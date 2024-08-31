@@ -25,9 +25,13 @@ Here are suggestions on how to perform these tasks:
   wraps the library interface is provided.  Thus, GUI interfaces can be
   written in Python or C/C++ that run LAMMPS and visualize or plot its
   output.  Examples of this are provided in the python directory and
-  described on the :doc:`Python <Python_head>` doc page.  As of version
-  2 August 2023 :ref:`a GUI tool <lammps_gui>` is included in LAMMPS.
-  Also, there are several external wrappers or GUI front ends.
+  described on the :doc:`Python <Python_head>` doc page.
+
+  Since version 2 August 2023 :ref:`a LAMMPS-GUI tool <lammps_gui>` is
+  included in LAMMPS.  Also, there are several external wrappers or GUI
+  front ends that are mentioned on the `Pre-/post-processing tools page
+  <https://www.lammps.org/prepost.html>`_ of the LAMMPS homepage.
+
 * **Builder:** Several pre-processing tools are packaged with LAMMPS.
   Some of them convert input files in formats produced by other MD codes
   such as CHARMM, AMBER, or Insight into LAMMPS input formats.  Some of
@@ -35,12 +39,13 @@ Here are suggestions on how to perform these tasks:
   such as linear bead-spring polymer chains.  The moltemplate program is
   a true molecular builder that will generate complex molecular models.
   See the :doc:`Tools <Tools>` page for details on tools packaged with
-  LAMMPS.  The `Pre-/post-processing page
+  LAMMPS.  The `Pre-/post-processing tools page
   <https://www.lammps.org/prepost.html>`_ of the LAMMPS homepage
   describes a variety of third party tools for this task.  Furthermore,
   some internal LAMMPS commands allow reconstructing, or selectively adding
   topology information, as well as provide the option to insert molecule
   templates instead of atoms for building bulk molecular systems.
+
 * **Force-field assignment:** The conversion tools described in the previous
   bullet for CHARMM, AMBER, and Insight will also assign force field
   coefficients in the LAMMPS format, assuming you provide CHARMM, AMBER,
@@ -49,6 +54,7 @@ Here are suggestions on how to perform these tasks:
   `InterMol <https://github.com/shirtsgroup/InterMol>`_ are particularly
   powerful and flexible in converting force field and topology data
   between various MD simulation programs.
+
 * **Simulation analysis:** If you want to perform analysis on-the-fly as
   your simulation runs, see the :doc:`compute <compute>` and :doc:`fix
   <fix>` doc pages, which list commands that can be used in a LAMMPS
@@ -66,19 +72,38 @@ Here are suggestions on how to perform these tasks:
   extract and massage data in dump files to make it easier to import
   into other programs.  See the :doc:`Tools <Tools>` page for details on
   these various options.
+
+  The `Pre-/post-processing page <https://www.lammps.org/prepost.html>`_
+  on the LAMMPS homepage lists some external packages for analysis of MD
+  simulation data, including data produced by LAMMPS.
+
 * **Visualization:** LAMMPS can produce NETPBM, JPG, or PNG format
   snapshot images on-the-fly via its :doc:`dump image <dump_image>`
-  command and pass them to an external program, `FFmpeg  <https://ffmpeg.org/>`_,
-  to generate movies from them.  For high-quality, interactive visualization,
-  there are many excellent and free tools available.  See the `Visualization Tools
+  command and pass them to an external program, `FFmpeg
+  <https://ffmpeg.org/>`_, to generate movies from them.  The
+  :ref:`LAMMPS-GUI tool <lammps_gui>` has an *Snapshot Image Viewer*
+  which uses :doc:`dump image <dump_image>` and allows to modify the
+  visualization settings interactively.  It also has a *Slide Show*
+  feature where images created by :doc:`dump image <dump_image>` are
+  collected during a simulation and can be animated interactively or
+  exported to a movie with FFmpeg.
+
+  For high-quality, interactive visualization, there are many excellent
+  and free tools available.  See the `Visualization Tools
   <https://www.lammps.org/viz.html>`_ page of the LAMMPS website for
   visualization packages that can process LAMMPS output data.
+
 * **Plotting:** See the next bullet about Pizza.py as well as the
   :doc:`Python <Python_head>` page for examples of plotting LAMMPS
   output.  Scripts provided with the *python* tool in the ``tools``
   directory will extract and process data in log and dump files to make
   it easier to analyze and plot.  See the :doc:`Tools <Tools>` doc page
   for more discussion of the various tools.
+
+  The :ref:`LAMMPS-GUI tool <lammps_gui>` has an *Chart Viewer* where
+  :doc:`thermodynamic data <thermo_style>` computed by LAMMPS is
+  collected during the simulation and plotted immediately.
+
 * **Pizza.py:** Our group has also written a separate toolkit called
   `Pizza.py <https://lammps.github.io/pizza>`_ which can do certain kinds of
   setup, analysis, plotting, and visualization (via OpenGL) for LAMMPS

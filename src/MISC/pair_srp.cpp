@@ -348,14 +348,12 @@ void PairSRP::settings(int narg, char **arg)
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair_style srp requires atom IDs");
 
-  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_global = utils::numeric(FLERR, arg[0], false, lmp);
   // wildcard
   if (strcmp(arg[1],"*") == 0) {
     btype = 0;
   } else {
-    btype = utils::inumeric(FLERR,arg[1],false,lmp);
-    if ((btype > atom->nbondtypes) || (btype <= 0))
-      error->all(FLERR,"Illegal pair_style command");
+    btype_str = arg[1];
   }
 
   // settings
@@ -383,19 +381,9 @@ void PairSRP::settings(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"bptype") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair srp command");
-      bptype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if ((bptype < 1) || (bptype > atom->ntypes))
-        error->all(FLERR,"Illegal bond particle type for srp");
+      bptype_str = arg[iarg+1];
       iarg += 2;
     } else error->all(FLERR,"Illegal pair srp command");
-  }
-
-  // reset cutoffs if explicitly set
-  if (allocated) {
-    int i,j;
-    for (i = 1; i <= bptype; i++)
-      for (j = i; j <= bptype; j++)
-        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -408,6 +396,24 @@ void PairSRP::coeff(int narg, char **arg)
   if (narg < 3 || narg > 4)
     error->all(FLERR,"PairSRP: Incorrect args for pair coeff");
   if (!allocated) allocate();
+
+  if (btype_str.size() > 0)
+    btype = utils::expand_type_int(FLERR, btype_str, Atom::BOND, lmp);
+  if ((btype > atom->nbondtypes) || (btype <= 0))
+    error->all(FLERR,"Invalid bond type {} for pair style srp", btype);
+
+  if (bptype_str.size() > 0)
+    bptype = utils::expand_type_int(FLERR, bptype_str, Atom::ATOM, lmp);
+  if ((bptype < 1) || (bptype > atom->ntypes))
+    error->all(FLERR,"Invalid bond particle type {} for pair style srp", bptype);
+
+  // reset cutoffs if explicitly set
+  if (allocated) {
+    int i,j;
+    for (i = 1; i <= bptype; i++)
+      for (j = i; j <= bptype; j++)
+        if (setflag[i][j]) cut[i][j] = cut_global;
+  }
 
   // set ij bond-bond cutoffs
   int ilo, ihi, jlo, jhi;

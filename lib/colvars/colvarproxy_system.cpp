@@ -18,6 +18,7 @@ colvarproxy_system::colvarproxy_system()
 {
   angstrom_value_ = 0.0;
   kcal_mol_value_ = 0.0;
+  timestep_ = 1.0;
   target_temperature_ = 0.0;
   boltzmann_ = 0.001987191; // Default: kcal/mol/K
   boundaries_type = boundaries_unsupported;
@@ -46,10 +47,10 @@ int colvarproxy_system::set_target_temperature(cvm::real T)
 }
 
 
-cvm::real colvarproxy_system::dt()
+int colvarproxy_system::set_integration_timestep(cvm::real dt)
 {
-  // TODO define, document and implement a user method to set the value of this
-  return 1.0;
+  timestep_ = dt;
+  return COLVARS_OK;
 }
 
 

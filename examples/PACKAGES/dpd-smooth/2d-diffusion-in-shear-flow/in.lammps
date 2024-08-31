@@ -16,7 +16,7 @@ variable        mass equal $a*$a*$a*${rho_0}
 variable        dt equal 1e-3           # timestep                  microseconds
 variable        skin equal 0.2*$h
 
-region          box block -${Lb} ${Lb} -${Lb} ${Lb} 0 ${a} units box
+region          box block -${Lb} ${Lb} -${Lb} ${Lb} -0.5 0.5 units box
 create_box      4 box
 lattice         sq $a
 

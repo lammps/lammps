@@ -2,6 +2,8 @@
 <RCC>
   <qresource prefix="/">
     <file>icons/lammps-icon-128x128.png</file>
+    <file>icons/tutorial1-logo.png</file>
+    <file>icons/tutorial2-logo.png</file>
     <file>help_index.table</file>
     <!-- This file is updated with: grep 'mycmd ==' ../../src/input.cpp | sed -e 's/^.*mycmd == "\(.*\)".*$/\1/' > lammps_internal_commands.txt -->
     <file>lammps_internal_commands.txt</file>
@@ -9,7 +11,9 @@
     <file>icons/application-calc.png</file>
     <file>icons/application-exit.png</file>
     <file>icons/application-plot.png</file>
+    <file>icons/application-yaml.png</file>
     <file>icons/axes-img.png</file>
+    <file>icons/chart-smooth.png</file>
     <file>icons/document-new.png</file>
     <file>icons/document-open-recent.png</file>
     <file>icons/document-open.png</file>
@@ -25,6 +29,7 @@
     <file>icons/emblem-photos.png</file>
     <file>icons/expand-text.png</file>
     <file>icons/export-movie.png</file>
+    <file>icons/file-clipboard.png</file>
     <file>icons/format-indent-less-3.png</file>
     <file>icons/go-first.png</file>
     <file>icons/go-last.png</file>
@@ -39,9 +44,12 @@
     <file>icons/help-about.png</file>
     <file>icons/help-browser.png</file>
     <file>icons/help-faq.png</file>
+    <file>icons/help-tutorial.png</file>
+    <file>icons/image-shiny.png</file>
     <file>icons/image-x-generic.png</file>
     <file>icons/media-playback-start-2.png</file>
     <file>icons/media-playlist-repeat.png</file>
+    <file>icons/move-recenter.png</file>
     <file>icons/object-rotate-left.png</file>
     <file>icons/object-rotate-right.png</file>
     <file>icons/ovito.png</file>
@@ -50,13 +58,17 @@
     <file>icons/preferences-desktop.png</file>
     <file>icons/process-stop.png</file>
     <file>icons/run-file.png</file>
+    <file>icons/search.png</file>
     <file>icons/system-box.png</file>
     <file>icons/system-help.png</file>
     <file>icons/system-run.png</file>
+    <file>icons/trash.png</file>
+    <file>icons/tutorial-logo.png</file>
     <file>icons/utilities-terminal.png</file>
     <file>icons/vdw-style.png</file>
     <file>icons/vmd.png</file>
     <file>icons/window-close.png</file>
     <file>icons/x-office-drawing.png</file>
+    <file>icons/yaml-file-icon.png</file>
   </qresource>
 </RCC>

@@ -64,7 +64,7 @@ class PairLJSPICACoulLong : public Pair {
   double cut_lj_global;
   double g_ewald;
 
-  void allocate();
+  virtual void allocate();
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();

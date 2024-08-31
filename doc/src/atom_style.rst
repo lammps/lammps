@@ -103,7 +103,7 @@ the Additional Information section below.
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 12 28 18 32
 
    * - Atom style
      - Attributes
@@ -189,6 +189,14 @@ the Additional Information section below.
      - *atomic* + molecule, radius, rmass + "smd data"
      - :ref:`MACHDYN <PKG-MACHDYN>`
      - Smooth Mach Dynamics models
+   * - *rheo*
+     - *atomic* + rho, status
+     - :ref:`RHEO <PKG-RHEO>`
+     - solid and fluid RHEO particles
+   * - *rheo/thermal*
+     - *atomic* + rho, status, energy, temperature
+     - :ref:`RHEO <PKG-RHEO>`
+     - RHEO particles with temperature
    * - *sph*
      - *atomic* + "sph data"
      - :ref:`SPH <PKG-SPH>`
@@ -411,7 +419,7 @@ showing the use of the *template* atom style versus *molecular*.
    <molecule>` that contains multiple molecules, you should ensure the
    atom types, bond types, angle_types, etc in all the molecules are
    consistent.  E.g. if one molecule represents H2O and another CO2,
-   then you probably do not want each molecule file to define 2 atom
+   then you probably do not want each molecule file to define two atom
    types and a single bond type, because they will conflict with each
    other when a mixture system of H2O and CO2 molecules is defined,
    e.g. by the :doc:`read_data <read_data>` command.  Rather the H2O

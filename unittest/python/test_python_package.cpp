@@ -342,7 +342,7 @@ TEST_F(FixPythonInvokeTest, post_force)
         if (line == "PYTHON_POST_FORCE") ++count;
     }
 
-    ASSERT_EQ(count, 5);
+    ASSERT_EQ(count, 6);
 }
 
 } // namespace LAMMPS_NS

@@ -639,8 +639,10 @@ public:
   AVEC_BINOP(-, sub)
 
   VEC_INLINE static void gather_prefetch0(const IVEC_NAME &a, void * mem) {
+#ifdef __AVX512PF__
     _mm512_mask_prefetch_i32gather_ps(a.val_, BVEC_NAME::full().val_, mem,
                                       sizeof(FVEC_SCAL_T), _MM_HINT_T0);
+#endif
   }
 };
 
@@ -697,8 +699,10 @@ public:
   AVEC2_BINOP(-, sub)
 
   VEC_INLINE static void gather_prefetch0(const IVEC_NAME &a, void * mem) {
+#ifdef __AVX512PF__
     _mm512_mask_prefetch_i32gather_ps(a.val_, BVEC_NAME::full().val_, mem,
                                       sizeof(double), _MM_HINT_T0);
+#endif
   }
 };
 #endif

@@ -61,8 +61,8 @@ protected:
 
 TEST_F(TextFileReaderTest, nofile)
 {
-    ASSERT_THROW({ TextFileReader reader("text_reader_noexist.file", "test"); },
-                 FileReaderException);
+    ASSERT_THROW(
+        { TextFileReader reader("text_reader_noexist.file", "test"); }, FileReaderException);
 }
 
 // this test cannot work on windows due to its non unix-like permission system
@@ -76,8 +76,8 @@ TEST_F(TextFileReaderTest, permissions)
     fputs("word\n", fp);
     fclose(fp);
     chmod("text_reader_noperms.file", 0);
-    ASSERT_THROW({ TextFileReader reader("text_reader_noperms.file", "test"); },
-                 FileReaderException);
+    ASSERT_THROW(
+        { TextFileReader reader("text_reader_noperms.file", "test"); }, FileReaderException);
     platform::unlink("text_reader_noperms.file");
 }
 #endif
@@ -87,14 +87,24 @@ TEST_F(TextFileReaderTest, nofp)
     ASSERT_THROW({ TextFileReader reader(nullptr, "test"); }, FileReaderException);
 }
 
+TEST_F(TextFileReaderTest, buffer)
+{
+    test_files();
+    auto *reader = new TextFileReader("text_reader_two.file", "test");
+    reader->set_bufsize(4096);
+    auto *line   = reader->next_line();
+    ASSERT_THROW({ reader->set_bufsize(20); }, FileReaderException);
+    delete reader;
+}
+
 TEST_F(TextFileReaderTest, usefp)
 {
     test_files();
     FILE *fp = fopen("text_reader_two.file", "r");
     ASSERT_NE(fp, nullptr);
 
-    auto reader = new TextFileReader(fp, "test");
-    auto line   = reader->next_line();
+    auto *reader = new TextFileReader(fp, "test");
+    auto *line   = reader->next_line();
     ASSERT_STREQ(line, "4  ");
     line = reader->next_line(1);
     ASSERT_STREQ(line, "4 0.5   ");
@@ -120,7 +130,7 @@ TEST_F(TextFileReaderTest, comments)
     test_files();
     TextFileReader reader("text_reader_two.file", "test");
     reader.ignore_comments = true;
-    auto line              = reader.next_line();
+    auto *line             = reader.next_line();
     ASSERT_STREQ(line, "4  ");
     line = reader.next_line(1);
     ASSERT_STREQ(line, "4 0.5   ");
@@ -141,7 +151,7 @@ TEST_F(TextFileReaderTest, nocomments)
     test_files();
     TextFileReader reader("text_reader_one.file", "test");
     reader.ignore_comments = false;
-    auto line              = reader.next_line();
+    auto *line             = reader.next_line();
     ASSERT_STREQ(line, "# test file 1 for text file reader\n");
     line = reader.next_line(1);
     ASSERT_STREQ(line, "one\n");

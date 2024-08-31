@@ -3,7 +3,7 @@
 add_executable(test_lammps_class test_lammps_class.cpp)
 target_link_libraries(test_lammps_class PRIVATE lammps GTest::GMockMain)
 add_test(NAME LammpsClass COMMAND test_lammps_class)
-set_tests_properties(LammpsClass PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=1")
+set_tests_properties(LammpsClass PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=2;OMP_PROC_BIND=false")
 
 add_executable(test_input_class test_input_class.cpp)
 target_link_libraries(test_input_class PRIVATE lammps GTest::GTestMain)

@@ -18,8 +18,8 @@ public:
   /// Clear volumetric map data
   int reset();
 
-  /// \brief Whether this implementation has capability to use volumetric maps
-  virtual int volmaps_available();
+  /// Test whether this implementation can use volumetric maps as CVs
+  virtual int check_volmaps_available();
 
   /// Create a slot for a volumetric map not requested yet
   int add_volmap_slot(int volmap_id);

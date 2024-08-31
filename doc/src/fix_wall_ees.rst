@@ -71,7 +71,7 @@ energy of wall-particle interactions E is given by:
    \sigma_{n}^5 \left(r^2-\sigma_{n}^2\right)} \right]\qquad \sigma_n
    < r < r_c
 
-Introduced by Babadi and Ejtehadi in :ref:`(Babadi)
+Introduced by Babadi and Ejtehadi in :ref:`(Babadi2)
 <BabadiEjtehadi>`. Here, *r* is the distance from the particle to the
 wall at position *coord*, and Rc is the *cutoff* distance at which
 the particle and wall no longer interact. Also, :math:`\sigma_n` is
@@ -182,4 +182,4 @@ none
 
 .. _BabadiEjtehadi:
 
-**(Babadi)** Babadi and Ejtehadi, EPL, 77 (2007) 23002.
+**(Babadi2)** Babadi and Ejtehadi, EPL, 77 (2007) 23002.

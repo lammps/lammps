@@ -37,7 +37,7 @@ executable code from the library is copied into the calling executable.
    .. tab:: CMake build
 
       This assumes that LAMMPS has been configured without setting a
-      ``LAMMPS_MACHINE`` name, installed with "make install", and the
+      ``LAMMPS_MACHINE`` name, installed with ``make install``, and the
       ``PKG_CONFIG_PATH`` environment variable has been updated to
       include the ``liblammps.pc`` file installed into the configured
       destination folder.  The commands to compile and link a coupled
@@ -45,8 +45,8 @@ executable code from the library is copied into the calling executable.
 
       .. code-block:: bash
 
-         mpicc -c -O $(pkgconf liblammps --cflags) caller.c
-         mpicxx -o caller caller.o -$(pkgconf liblammps --libs)
+         mpicc -c -O $(pkg-config --cflags liblammps) caller.c
+         mpicxx -o caller caller.o -$(pkg-config --libs liblammps)
 
    .. tab:: Traditional make
 
@@ -59,10 +59,10 @@ executable code from the library is copied into the calling executable.
          mpicc -c -O -I${HOME}/lammps/src caller.c
          mpicxx -o caller caller.o -L${HOME}/lammps/src -llammps_mpi
 
-      The *-I* argument is the path to the location of the ``library.h``
+      The ``-I`` argument is the path to the location of the ``library.h``
       header file containing the interface to the LAMMPS C-style library
-      interface.  The *-L* argument is the path to where the
-      ``liblammps_mpi.a`` file is located.  The *-llammps_mpi* argument
+      interface.  The ``-L`` argument is the path to where the
+      ``liblammps_mpi.a`` file is located.  The ``-llammps_mpi`` argument
       is shorthand for telling the compiler to link the file
       ``liblammps_mpi.a``.  If LAMMPS has been built as a shared
       library, then the linker will use ``liblammps_mpi.so`` instead.
@@ -142,7 +142,7 @@ When linking to LAMMPS built as a shared library, the situation becomes
 much simpler, as all dependent libraries and objects are either included
 in the shared library or registered as a dependent library in the shared
 library file.  Thus, those libraries need not be specified when linking
-the calling executable.  Only the *-I* flags are needed.  So the example
+the calling executable.  Only the ``-I`` flags are needed.  So the example
 case from above of the serial version static LAMMPS library with the
 POEMS package installed becomes:
 
@@ -155,8 +155,8 @@ POEMS package installed becomes:
 
       .. code-block:: bash
 
-         mpicc -c -O $(pkgconf liblammps --cflags) caller.c
-         mpicxx -o caller caller.o -$(pkgconf --libs)
+         mpicc -c -O $(pkg-config --cflags liblammps) caller.c
+         mpicxx -o caller caller.o -$(pkg-config --libs liblammps)
 
    .. tab:: Traditional make
 

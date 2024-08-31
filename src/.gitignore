@@ -245,6 +245,9 @@
 /pair_tdpd.cpp
 /pair_tdpd.h
 
+/*rheo*.cpp
+/*rheo*.h
+
 /compute_grid.cpp
 /compute_grid.h
 /compute_grid_local.cpp
@@ -790,6 +793,8 @@
 /fix_acks2_reaxff.h
 /fix_adapt_fep.cpp
 /fix_adapt_fep.h
+/fix_add_heat.cpp
+/fix_add_heat.h
 /fix_addtorque.cpp
 /fix_addtorque.h
 /fix_append_atoms.cpp
@@ -1070,6 +1075,8 @@
 /fix_wall_srd.h
 /fix_widom.cpp
 /fix_widom.h
+/geturl.cpp
+/geturl.h
 /gpu_extra.h
 /group_ndx.cpp
 /group_ndx.h

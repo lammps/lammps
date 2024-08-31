@@ -82,7 +82,7 @@ are updated by the AtomVec class as needed.
 
 /** Atom class constructor
  *
- * This resets and initialized all kinds of settings,
+ * This resets and initializes all kinds of settings,
  * parameters, and pointer variables for per-atom arrays.
  * This also initializes the factory for creating
  * instances of classes derived from the AtomVec base
@@ -197,6 +197,13 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
   eff_plastic_strain = nullptr;
   eff_plastic_strain_rate = nullptr;
   damage = nullptr;
+
+  // RHEO package
+
+  rheo_status = nullptr;
+  conductivity = nullptr;
+  pressure = nullptr;
+  viscosity = nullptr;
 
   // SPH package
 
@@ -529,6 +536,13 @@ void Atom::peratom_create()
   add_peratom("cc",&cc,DOUBLE,1);
   add_peratom("cc_flux",&cc_flux,DOUBLE,1,1);         // set per-thread flag
 
+  // RHEO package
+
+  add_peratom("rheo_status",&rheo_status,INT,0);
+  add_peratom("conductivity",&conductivity,DOUBLE,0);
+  add_peratom("pressure",&pressure,DOUBLE,0);
+  add_peratom("viscosity",&viscosity,DOUBLE,0);
+
   // SPH package
 
   add_peratom("rho",&rho,DOUBLE,0);
@@ -634,6 +648,7 @@ void Atom::set_atomflag_defaults()
   temperature_flag = heatflow_flag = 0;
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
   cs_flag = csforce_flag = vforce_flag = ervelforce_flag = etag_flag = 0;
+  rheo_status_flag = conductivity_flag = pressure_flag = viscosity_flag = 0;
   rho_flag = esph_flag = cv_flag = vest_flag = 0;
   dpd_flag = edpd_flag = tdpd_flag = 0;
   sp_flag = 0;
@@ -2816,7 +2831,7 @@ This will remove a property that was requested, e.g. by the
 :doc:`fix property/atom <fix_property_atom>` command.  It frees the
 allocated memory and sets the pointer to ``nullptr`` for the entry in
 the list so it can be reused. The lists of these pointers are never
-compacted or shrink, so that indices to name mappings remain valid.
+compacted or shrunk, so that indices to name mappings remain valid.
 \endverbatim
  * \param index Index of property in the respective list of properties
  * \param flag Data type of property: 0 for int, 1 for double
@@ -2976,11 +2991,11 @@ length of the data area, and a short description.
      - single double value defined by fix property/atom vector name
    * - i2_name
      - int
-     - n
+     - N
      - N integer values defined by fix property/atom array name
    * - d2_name
      - double
-     - n
+     - N
      - N double values defined by fix property/atom array name
 
 *See also*
@@ -3048,7 +3063,15 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"vforce") == 0) return (void *) vforce;
   if (strcmp(name,"etag") == 0) return (void *) etag;
 
+  // RHEO package
+
+  if (strcmp(name,"rheo_status") == 0) return (void *) rheo_status;
+  if (strcmp(name,"conductivity") == 0) return (void *) conductivity;
+  if (strcmp(name,"pressure") == 0) return (void *) pressure;
+  if (strcmp(name,"viscosity") == 0) return (void *) viscosity;
+
   // SPH package
+
   if (strcmp(name,"rho") == 0) return (void *) rho;
   if (strcmp(name,"drho") == 0) return (void *) drho;
   if (strcmp(name,"esph") == 0) return (void *) esph;
@@ -3067,7 +3090,7 @@ void *Atom::extract(const char *name)
     return (void *) eff_plastic_strain_rate;
   if (strcmp(name, "damage") == 0) return (void *) damage;
 
-  // DPD-REACT pakage
+  // DPD-REACT package
 
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
 
@@ -3168,6 +3191,15 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"csforce") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"vforce") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"etag") == 0) return LAMMPS_INT;
+
+  // RHEO package
+
+  if (strcmp(name,"rheo_status") == 0) return LAMMPS_INT;
+  if (strcmp(name,"conductivity") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"pressure") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"viscosity") == 0) return LAMMPS_DOUBLE;
+
+  // SPH package
 
   if (strcmp(name,"rho") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"drho") == 0) return LAMMPS_DOUBLE;

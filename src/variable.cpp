@@ -34,6 +34,7 @@
 #include "random_mars.h"
 #include "region.h"
 #include "thermo.h"
+#include "timer.h"
 #include "tokenizer.h"
 #include "universe.h"
 #include "update.h"
@@ -45,6 +46,7 @@
 #include <cmath>
 #include <cstring>
 #include <functional>
+#include <limits>
 #include <unordered_map>
 
 using namespace LAMMPS_NS;
@@ -798,8 +800,8 @@ int Variable::next(int narg, char **arg)
         fclose(fp);
 
         if (strlen(buf) > 0) {
-           nextindex = atoi(buf);
-           break;
+          nextindex = std::stoi(buf);
+          break;
         }
         delay = (int) (1000000*random->uniform());
         platform::usleep(delay);
@@ -815,7 +817,7 @@ int Variable::next(int narg, char **arg)
       fprintf(fp,"%d\n",nextindex+1);
       fclose(fp);
       fp = nullptr;
-      rename("tmp.lammps.variable.lock","tmp.lammps.variable");
+      (void) rename("tmp.lammps.variable.lock","tmp.lammps.variable");
       if (universe->uscreen)
         fprintf(universe->uscreen, "Increment via next: value %d on partition %d\n",
                 nextindex+1,universe->iworld);
@@ -1012,6 +1014,8 @@ char *Variable::retrieve(const char *name)
 
   } else if (style[ivar] == EQUAL) {
     double answer = evaluate(data[ivar][0],nullptr,ivar);
+    // round to zero on underflow
+    if (fabs(answer) < std::numeric_limits<double>::min()) answer = 0.0;
     delete[] data[ivar][1];
     data[ivar][1] = utils::strdup(fmt::format("{:.15g}",answer));
     str = data[ivar][1];
@@ -1024,7 +1028,7 @@ char *Variable::retrieve(const char *name)
       error->all(FLERR, "Variable {}: format variable {} has incompatible style",
                  names[ivar],data[ivar][0]);
     double answer = compute_equal(jvar);
-    sprintf(data[ivar][2],data[ivar][1],answer);
+    snprintf(data[ivar][2],VALUELENGTH,data[ivar][1],answer);
     str = data[ivar][2];
 
   } else if (style[ivar] == GETENV) {
@@ -1114,9 +1118,15 @@ double Variable::compute_equal(int ivar)
     if (ifunc < 0)
       print_var_error(FLERR,fmt::format("cannot find python function {}",data[ivar][0]),ivar);
     python->invoke_function(ifunc,data[ivar][1]);
-    value = atof(data[ivar][1]);
+    try {
+      value = std::stod(data[ivar][1]);
+    } catch (std::exception &e) {
+      print_var_error(FLERR,"has an invalid value", ivar);
+    }
   }
 
+  // round to zero on underflow
+  if (fabs(value) < std::numeric_limits<double>::min()) value = 0.0;
   eval_in_progress[ivar] = 0;
   return value;
 }
@@ -1131,6 +1141,7 @@ double Variable::compute_equal(const std::string &str)
 {
   char *ptr = utils::strdup(str);
   double val = evaluate(ptr,nullptr,-1);
+  if (fabs(val) < std::numeric_limits<double>::min()) val = 0.0;
   delete[] ptr;
   return val;
 }
@@ -1460,9 +1471,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
       if (tree) {
         auto newtree = new Tree();
         newtree->type = VALUE;
-        newtree->value = atof(number);
+        newtree->value = std::stod(number);
         treestack[ntreestack++] = newtree;
-      } else argstack[nargstack++] = atof(number);
+      } else argstack[nargstack++] = std::stod(number);
 
       delete[] number;
 
@@ -2065,9 +2076,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (tree) {
               auto newtree = new Tree();
               newtree->type = VALUE;
-              newtree->value = atof(var);
+              newtree->value = std::stod(var);
               treestack[ntreestack++] = newtree;
-            } else argstack[nargstack++] = atof(var);
+            } else argstack[nargstack++] = std::stod(var);
 
           // vector from vector-style variable
           // evaluate the vector-style variable, put result in newtree
@@ -3554,7 +3565,7 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
   } else {
     varflag = 0;
     while (*ptr && *ptr != ']') {
-      if (!isdigit(*ptr))
+      if (!(isdigit(*ptr) || (*ptr == '-') || (*ptr == '+') || (*ptr == '*') || (*ptr == '/')))
         error->all(FLERR,"Non digit character between brackets in variable");
       ptr++;
     }
@@ -3565,21 +3576,23 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
 
   *ptr = '\0';
 
-  // evaluate index as floating point variable or as tagint via ATOTAGINT()
+  // evaluate index as floating point variable or as tagint via stoll()
 
-  if (varflag) {
-    char *id = start+2;
-    int ivar = find(id);
-    if (ivar < 0)
-      error->all(FLERR,"Invalid variable name {} in variable formula", id);
+  try {
+    if (varflag) {
+      char *id = start+2;
+      int ivar = find(id);
+      if (ivar < 0)
+        error->all(FLERR,"Invalid variable name {} in variable formula", id);
 
-    char *var = retrieve(id);
-    if (var == nullptr)
-      error->all(FLERR,"Invalid variable evaluation for variable {} in variable formula", id);
-    index = static_cast<tagint> (atof(var));
-
-  } else index = ATOTAGINT(start);
-
+      char *var = retrieve(id);
+      if (var == nullptr)
+        error->all(FLERR,"Invalid variable evaluation for variable {} in variable formula", id);
+      index = static_cast<tagint>(std::stod(var));
+    } else index = static_cast<tagint>(std::stoll(start));
+  } catch (std::exception &e) {
+    error->all(FLERR,"Illegal value in brackets: {}({})", e.what(), start);
+  }
   *ptr = ']';
 
   if (index <= 0)
@@ -4276,8 +4289,9 @@ Region *Variable::region_function(char *id, int ivar)
    return 0 if not a match, 1 if successfully processed
    customize by adding a special function:
      sum(x),min(x),max(x),ave(x),trap(x),slope(x),
-     gmask(x),rmask(x),grmask(x,y),next(x),is_file(x),is_ox(x),
-     extract_setting(x),label2type(x,y),is_typelabel(x,y)
+     gmask(x),rmask(x),grmask(x,y),next(x),is_file(x),is_os(x),
+     extract_setting(x),label2type(x,y),is_tpelabel(x,y)
+     is_timeout()
 ------------------------------------------------------------------------- */
 
 // to simplify finding matches and assigning constants for functions operating on vectors
@@ -4286,7 +4300,7 @@ static const std::unordered_map<std::string,int> special_function_map = {
   {"sum", SUM}, {"min", XMIN}, {"max", XMAX}, {"ave", AVE}, {"trap", TRAP}, {"slope", SLOPE},
   {"sort", SORT}, {"rsort", RSORT}, {"gmask", NOVECTOR}, {"rmask", NOVECTOR}, {"grmask", NOVECTOR},
   {"next", NOVECTOR}, {"is_file", NOVECTOR}, {"is_os", NOVECTOR}, {"extract_setting", NOVECTOR},
-  {"label2type", NOVECTOR}, {"is_typelabel", NOVECTOR} };
+  {"label2type", NOVECTOR}, {"is_typelabel", NOVECTOR}, {"is_timeout", NOVECTOR} };
 
 int Variable::special_function(const std::string &word, char *contents, Tree **tree,
                                Tree **treestack, int &ntreestack, double *argstack,
@@ -4683,7 +4697,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     // save value in tree or on argstack
 
     if (style[ivar] == SCALARFILE) {
-      double value = atof(data[ivar][0]);
+      double value = std::stod(data[ivar][0]);
       int done = reader[ivar]->read_scalar(data[ivar][0]);
       if (done) remove(ivar);
 
@@ -4765,6 +4779,21 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       newtree->value = value;
       treestack[ntreestack++] = newtree;
     } else argstack[nargstack++] = value;
+
+  } else if (word == "is_timeout") {
+    if ((narg != 1) || (std::string(args[0]).size() != 0))
+      print_var_error(FLERR,"Invalid is_timeout() function in variable formula",ivar);
+    value = timer->is_timeout() ? 1.0 : 0.0;
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      auto newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
   }
 
   // delete stored args
@@ -5261,7 +5290,7 @@ double Variable::evaluate_boolean(char *str)
 
       onechar = str[i];
       str[i] = '\0';
-      argstack[nargstack].value = atof(&str[istart]);
+      argstack[nargstack].value = std::stod(&str[istart]);
       str[i] = onechar;
 
       argstack[nargstack++].flag = 0;

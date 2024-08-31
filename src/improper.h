@@ -46,7 +46,7 @@ class Improper : protected Pointers {
 
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
-  int copymode;
+  int copymode, kokkosable;
 
   Improper(class LAMMPS *);
   ~Improper() override;

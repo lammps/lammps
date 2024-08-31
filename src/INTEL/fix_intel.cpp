@@ -125,11 +125,11 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
       iarg += 2;
     } else if (strcmp(arg[iarg], "tpc") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      _offload_tpc = atoi(arg[iarg+1]);
+      _offload_tpc = std::stoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tptask") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      _offload_threads = atoi(arg[iarg+1]);
+      _offload_threads = std::stoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"no_affinity") == 0) {
       no_affinity = 1;
@@ -150,7 +150,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
       iarg++;
     } else if (strcmp(arg[iarg],"buffers") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      _allow_separate_buffers = atoi(arg[iarg+1]);
+      _allow_separate_buffers = std::stoi(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal package intel command");
   }
@@ -1198,7 +1198,7 @@ int FixIntel::set_host_affinity(const int nomp)
   if (p == nullptr) return -1;
   ncores = 0;
   while (fgets(readbuf, 512, p)) {
-    proc_list[ncores] = atoi(readbuf);
+    proc_list[ncores] = std::stoi(readbuf);
     ncores++;
   }
   pclose(p);
@@ -1218,7 +1218,7 @@ int FixIntel::set_host_affinity(const int nomp)
   if (nthreads == 0) {
     estring = getenv("OMP_NUM_THREADS");
     if (estring != nullptr) {
-      nthreads = atoi(estring);
+      nthreads = std::stoi(estring);
       if (nthreads < 2) nthreads = 1;
     } else
       nthreads = 1;
@@ -1251,7 +1251,7 @@ int FixIntel::set_host_affinity(const int nomp)
     if (p == nullptr) return -1;
 
     while (fgets(readbuf, 512, p)) {
-      lwp = atoi(readbuf);
+      lwp = std::stoi(readbuf);
       int first = coi_cores + node_rank * mpi_cores;
       CPU_ZERO(&cpuset);
       for (int i = first; i < first + mpi_cores; i++)
@@ -1287,7 +1287,7 @@ int FixIntel::set_host_affinity(const int nomp)
     if (p == nullptr) return -1;
 
     while (fgets(readbuf, 512, p)) {
-      lwp = atoi(readbuf);
+      lwp = std::stoi(readbuf);
       nlwp++;
       if (nlwp <= plwp) continue;
 

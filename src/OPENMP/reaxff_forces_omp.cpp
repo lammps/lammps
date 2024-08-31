@@ -155,7 +155,7 @@ namespace ReaxFF {
 /* ---------------------------------------------------------------------- */
 
   static void Validate_ListsOMP(reax_system *system, reax_list **lists,
-                         int step, int n, int N, int numH)
+                         int step, int N, int numH)
   {
     int comp, Hindex;
     reax_list *bonds, *hbonds;
@@ -195,7 +195,7 @@ namespace ReaxFF {
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
 #endif
-        for (int i = 0; i < n; ++i) {
+        for (int i = 0; i < N; ++i) {
           Hindex = system->my_atoms[i].Hindex;
           if (Hindex > -1) {
             system->my_atoms[i].num_hbonds =
@@ -457,8 +457,7 @@ namespace ReaxFF {
     workspace->realloc.num_bonds = num_bonds;
     workspace->realloc.num_hbonds = num_hbonds;
 
-    Validate_ListsOMP(system, lists, data->step,
-                      system->n, system->N, system->numH);
+    Validate_ListsOMP(system, lists, data->step, system->N, system->numH);
   }
 
 /* ---------------------------------------------------------------------- */

@@ -139,7 +139,7 @@ void PairTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   double r,rsq,r2inv,forcecoul,cforce;
   double factor_coul;
   double grij,expm2,prefactor,t,erfc;
-  double v[6];
+  double v[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   double fdx,fdy,fdz,fOx,fOy,fOz,fHx,fHy,fHz;
   dbl3_t x1,x2,xH1,xH2;
 

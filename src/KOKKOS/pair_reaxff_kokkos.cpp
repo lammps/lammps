@@ -1504,10 +1504,18 @@ void PairReaxFFKokkos<DeviceType>::allocate_array()
   if (cut_hbsq > 0.0) {
     MemKK::realloc_kokkos(d_hb_first,"reaxff/kk:hb_first",nmax);
     MemKK::realloc_kokkos(d_hb_num,"reaxff/kk:hb_num",nmax);
+
+    if (((bigint) nmax*maxhb) > MAXSMALLINT)
+      error->one(FLERR,"Too many hydrogen bonds in pair reaxff");
+
     MemKK::realloc_kokkos(d_hb_list,"reaxff/kk:hb_list",nmax*maxhb);
   }
   MemKK::realloc_kokkos(d_bo_first,"reaxff/kk:bo_first",nmax);
   MemKK::realloc_kokkos(d_bo_num,"reaxff/kk:bo_num",nmax);
+
+  if (((bigint) nmax*maxbo) > MAXSMALLINT)
+    error->one(FLERR,"Too many bonds in pair reaxff");
+
   MemKK::realloc_kokkos(d_bo_list,"reaxff/kk:bo_list",nmax*maxbo);
 
   MemKK::realloc_kokkos(d_BO,"reaxff/kk:BO",nmax,maxbo);

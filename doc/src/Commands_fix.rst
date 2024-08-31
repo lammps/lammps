@@ -1,19 +1,5 @@
-.. table_from_list::
-   :columns: 3
-
-   * :doc:`General commands <Commands_all>`
-   * :doc:`Fix styles <Commands_fix>`
-   * :doc:`Compute styles <Commands_compute>`
-   * :doc:`Pair styles <Commands_pair>`
-   * :ref:`Bond styles <bond>`
-   * :ref:`Angle styles <angle>`
-   * :ref:`Dihedral styles <dihedral>`
-   * :ref:`Improper styles <improper>`
-   * :doc:`KSpace styles <Commands_kspace>`
-   * :doc:`Dump styles <Commands_dump>`
-
-Fix commands
-============
+Fix styles
+==========
 
 An alphabetic list of all LAMMPS :doc:`fix <fix>` commands.  Some styles
 have accelerated versions.  This is indicated by additional letters in
@@ -21,13 +7,14 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
-   :columns: 5
+   :columns: 4
 
    * :doc:`accelerate/cos <fix_accelerate_cos>`
    * :doc:`acks2/reaxff (k) <fix_acks2_reaxff>`
    * :doc:`adapt <fix_adapt>`
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce <fix_addforce>`
+   * :doc:`add/heat <fix_add_heat>`
    * :doc:`addtorque <fix_addtorque>`
    * :doc:`alchemy <fix_alchemy>`
    * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>`
@@ -204,6 +191,11 @@ OPT.
    * :doc:`reaxff/species (k) <fix_reaxff_species>`
    * :doc:`recenter <fix_recenter>`
    * :doc:`restrain <fix_restrain>`
+   * :doc:`rheo <fix_rheo>`
+   * :doc:`rheo/oxidation <fix_rheo_oxidation>`
+   * :doc:`rheo/pressure <fix_rheo_pressure>`
+   * :doc:`rheo/thermal <fix_rheo_thermal>`
+   * :doc:`rheo/viscosity <fix_rheo_viscosity>`
    * :doc:`rhok <fix_rhok>`
    * :doc:`rigid (o) <fix_rigid>`
    * :doc:`rigid/meso <fix_rigid_meso>`

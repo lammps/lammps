@@ -21,12 +21,14 @@ jobs:
 
     steps:
     - name: Checkout repository
-    - uses: ilammy/msvc-dev-cmd@v1
-      with:
-        arch: x64
-    - uses: actions/checkout@v4
+      uses: actions/checkout@v4
       with:
         fetch-depth: 2
+
+    - name: Enable MSVC++
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
 
     - name: Install Ccache
       run: |

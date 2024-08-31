@@ -54,6 +54,8 @@ jobs:
         python3 -m pip install numpy
         python3 -m pip install pyyaml
         cmake -C cmake/presets/windows.cmake \
+              -D CMAKE_CXX_COMPILER=cl.exe \
+              -D CMAKE_C_COMPILER=cl.exe \
               -D CMAKE_CXX_COMPILER_LAUNCHER=$(which ccache) \
               -D CMAKE_C_COMPILER_LAUNCHER=$(which ccache) \
               -D DOWNLOAD_POTENTIALS=off \

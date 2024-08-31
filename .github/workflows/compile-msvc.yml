@@ -28,7 +28,6 @@ jobs:
     - name: Install Ccache
       run: |
         choco install ccache
-        choco install ninja
 
     - name: Install MSMPI
       run: |
@@ -54,8 +53,6 @@ jobs:
         python3 -m pip install numpy
         python3 -m pip install pyyaml
         cmake -C cmake/presets/windows.cmake \
-              -D CMAKE_CXX_COMPILER=cl.exe \
-              -D CMAKE_C_COMPILER=cl.exe \
               -D CMAKE_CXX_COMPILER_LAUNCHER=$(which ccache) \
               -D CMAKE_C_COMPILER_LAUNCHER=$(which ccache) \
               -D DOWNLOAD_POTENTIALS=off \
@@ -64,8 +61,7 @@ jobs:
               -D WITH_JPEG=off \
               -S cmake -B build \
               -D BUILD_SHARED_LIBS=on \
-              -D ENABLE_TESTING=on \
-              -G Ninja
+              -D ENABLE_TESTING=on
         cmake --build build
         ccache -s
 

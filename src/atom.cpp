@@ -2748,11 +2748,12 @@ for an example where checking ghost communication is necessary.
 int Atom::find_custom_ghost(const char *name, int &flag, int &cols, int &ghost)
 {
   int i = find_custom(name, flag, cols);
+  ghost = 0;
   if (i == -1) return i;
   if ((flag == 0) && (cols == 0)) ghost = ivghost[i];
   else if ((flag == 1) && (cols == 0)) ghost = dvghost[i];
-  else if ((flag == 0) && (cols == 1)) ghost = iaghost[i];
-  else if ((flag == 1) && (cols == 1)) ghost = daghost[i];
+  else if ((flag == 0) && (cols > 0)) ghost = iaghost[i];
+  else if ((flag == 1) && (cols > 0)) ghost = daghost[i];
   return i;
 }
 

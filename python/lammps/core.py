@@ -318,6 +318,8 @@ class lammps(object):
     self.lib.lammps_extract_atom.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_extract_atom_datatype.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_extract_atom_datatype.restype = c_int
+    self.lib.lammps_extract_atom_size.argtypes = [c_void_p, c_char_p, c_int]
+    self.lib.lammps_extract_atom_size.restype = c_int
 
     self.lib.lammps_extract_fix.argtypes = [c_void_p, c_char_p, c_int, c_int, c_int, c_int]
 
@@ -1071,30 +1073,58 @@ class lammps(object):
     return self.lib.lammps_extract_atom_datatype(self.lmp, newname)
 
   # -------------------------------------------------------------------------
+  # extract per-atom info datatype
+
+  def extract_atom_size(self, name, dtype):
+    """Retrieve per-atom property dimensions from LAMMPS
+
+    This is a wrapper around the :cpp:func:`lammps_extract_atom_size`
+    function of the C-library interface. Its documentation includes a
+    list of the supported keywords.
+    This function returns ``None`` if the keyword is not
+    recognized. Otherwise it will return an integer value with the size
+    of the per-atom vector or array.  If *name* corresponds to a per-atom
+    array, the *dtype* keyword must be either LMP_SIZE_ROWS or LMP_SIZE_COLS
+    from the :ref:`type <py_type_constants>` constants defined in the
+    :py:mod:`lammps` module.  The return value is the requested size.
+    If *name* corresponds to a per-atom vector the *dtype* keyword is ignored.
+
+    :param name: name of the property
+    :type name:  string
+    :param type: either LMP_SIZE_ROWS or LMP_SIZE_COLS for arrays, otherwise ignored
+    :type type:  int
+    :return: data type of per-atom property (see :ref:`py_datatype_constants`)
+    :rtype: int
+    """
+    if name: newname = name.encode()
+    else: return None
+    return self.lib.lammps_extract_atom_size(self.lmp, newname, dtype)
+
+  # -------------------------------------------------------------------------
   # extract per-atom info
 
   def extract_atom(self, name, dtype=LAMMPS_AUTODETECT):
     """Retrieve per-atom properties from LAMMPS
 
-    This is a wrapper around the :cpp:func:`lammps_extract_atom`
-    function of the C-library interface. Its documentation includes a
-    list of the supported keywords and their data types.
-    Since Python needs to know the data type to be able to interpret
-    the result, by default, this function will try to auto-detect the data type
-    by asking the library. You can also force a specific data type by setting ``dtype``
-    to one of the :ref:`data type <py_datatype_constants>` constants defined in the
-    :py:mod:`lammps` module.
-    This function returns ``None`` if either the keyword is not
-    recognized, or an invalid data type constant is used.
+    This is a wrapper around the :cpp:func:`lammps_extract_atom` function of the
+    C-library interface. Its documentation includes a list of the supported
+    keywords and their data types.  Since Python needs to know the data type to
+    be able to interpret the result, by default, this function will try to
+    auto-detect the data type by asking the library. You can also force a
+    specific data type by setting ``dtype`` to one of the :ref:`data type
+    <py_datatype_constants>` constants defined in the :py:mod:`lammps` module.
+    This function returns ``None`` if either the keyword is not recognized, or
+    an invalid data type constant is used.
 
     .. note::
 
-       While the returned arrays of per-atom data are dimensioned
-       for the range [0:nmax] - as is the underlying storage -
-       the data is usually only valid for the range of [0:nlocal],
-       unless the property of interest is also updated for ghost
-       atoms.  In some cases, this depends on a LAMMPS setting, see
-       for example :doc:`comm_modify vel yes <comm_modify>`.
+       While the returned vectors or arrays of per-atom data are dimensioned for
+       the range [0:nmax] - as is the underlying storage - the data is usually
+       only valid for the range of [0:nlocal], unless the property of interest
+       is also updated for ghost atoms.  In some cases, this depends on a LAMMPS
+       setting, see for example :doc:`comm_modify vel yes <comm_modify>`.
+       The actual size can be determined by calling
+       py:meth:`extract_atom_size() <lammps.lammps.extract_atom_size>`.
 
     :param name: name of the property
     :type name:  string
@@ -1105,6 +1135,7 @@ class lammps(object):
             ctypes.POINTER(ctypes.c_int64), ctypes.POINTER(ctypes.POINTER(ctypes.c_int64)),
             ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
             or NoneType
+
     """
     if dtype == LAMMPS_AUTODETECT:
       dtype = self.extract_atom_datatype(name)
@@ -2522,3 +2553,8 @@ class lammps(object):
     newcomputeid = computeid.encode()
     idx = self.lib.lammps_find_compute_neighlist(self.lmp, newcomputeid, reqid)
     return idx
+
+# Local Variables:
+# fill-column: 80
+# End:
+  

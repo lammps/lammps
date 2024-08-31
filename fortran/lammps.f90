@@ -542,6 +542,14 @@ MODULE LIBLAMMPS
       INTEGER(c_int) :: lammps_extract_atom_datatype
     END FUNCTION lammps_extract_atom_datatype
 
+    FUNCTION lammps_extract_atom_size(handle, name, dtype) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle, name
+      INTEGER(c_int), INTENT(IN), VALUE :: dtype
+      INTEGER(c_int) :: lammps_extract_atom_size
+    END FUNCTION lammps_extract_atom_size
+
     FUNCTION lammps_extract_atom(handle, name) BIND(C)
       IMPORT :: c_ptr
       IMPLICIT NONE
@@ -1461,20 +1469,11 @@ CONTAINS
     ntypes = lmp_extract_setting(self, 'ntypes')
     Cname = f2c_string(name)
     datatype = lammps_extract_atom_datatype(self%handle, Cname)
+    ! Fortran and C/C++ have rows and columns switched
+    ncols = lammps_extract_atom_size(self%handle, Cname, LMP_SIZE_ROWS)
+    nrows = lammps_extract_atom_size(self%handle, Cname, LMP_SIZE_COLS)
     Cptr = lammps_extract_atom(self%handle, Cname)
     CALL lammps_free(Cname)
-
-    SELECT CASE (name)
-      CASE ('mass')
-        ncols = ntypes + 1
-        nrows = 1
-      CASE ('x','v','f','mu','omega','torque','angmom')
-        ncols = nmax
-        nrows = 3
-      CASE DEFAULT
-        ncols = nmax
-        nrows = 1
-    END SELECT
 
     peratom_data%lammps_instance => self
     SELECT CASE (datatype)
@@ -1486,6 +1485,7 @@ CONTAINS
         CALL C_F_POINTER(Cptr, peratom_data%i64_vec, [ncols])
       CASE (LAMMPS_DOUBLE)
         peratom_data%datatype = DATA_DOUBLE_1D
+        ! The mass array is allocated from 0, but only used from 1. We also want to use it from 1.
         IF (name == 'mass') THEN
           CALL C_F_POINTER(Cptr, dummy, [ncols])
           peratom_data%r64_vec(0:) => dummy

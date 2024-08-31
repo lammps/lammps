@@ -695,6 +695,7 @@ TEST_F(LibraryProperties, has_error)
 class AtomProperties : public ::testing::Test {
 protected:
     void *lmp;
+    int ntypes, nlocal, nall;
 
     AtomProperties()           = default;
     ~AtomProperties() override = default;
@@ -732,6 +733,10 @@ protected:
         lammps_command(lmp, "set atom 2 i_two[2]  3");
         lammps_command(lmp, "set atom * d_four[1] -1.3");
         lammps_command(lmp, "set atom * d_four[2]  3.5");
+        ntypes = lammps_extract_setting(lmp, "ntypes");
+        nlocal = lammps_extract_setting(lmp, "nlocal");
+        nall   = lammps_extract_setting(lmp, "nall");
+
         output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
     }
@@ -754,10 +759,12 @@ TEST_F(AtomProperties, invalid)
 TEST_F(AtomProperties, mass)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "mass"), LAMMPS_DOUBLE);
+    EXPECT_EQ(lammps_extract_atom_size(lmp, "mass", 0), ntypes + 1);
     auto *mass = (double *)lammps_extract_atom(lmp, "mass");
     ASSERT_NE(mass, nullptr);
     ASSERT_DOUBLE_EQ(mass[1], 3.0);
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "rmass"), LAMMPS_DOUBLE);
+    EXPECT_EQ(lammps_extract_atom_size(lmp, "rmass", 0), nall);
     mass = (double *)lammps_extract_atom(lmp, "rmass");
     ASSERT_NE(mass, nullptr);
     ASSERT_DOUBLE_EQ(mass[0], 2.0);
@@ -767,6 +774,7 @@ TEST_F(AtomProperties, mass)
 TEST_F(AtomProperties, charge)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "q"), LAMMPS_DOUBLE);
+    EXPECT_EQ(lammps_extract_atom_size(lmp, "rmass", 0), nall);
     auto *charge = (double *)lammps_extract_atom(lmp, "q");
     ASSERT_NE(charge, nullptr);
     ASSERT_DOUBLE_EQ(charge[0], -1.0);
@@ -776,6 +784,7 @@ TEST_F(AtomProperties, charge)
 TEST_F(AtomProperties, molecule)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "molecule"), LAMMPS_TAGINT);
+    EXPECT_EQ(lammps_extract_atom_size(lmp, "molecule", 0), nall);
     auto *molecule = (tagint *)lammps_extract_atom(lmp, "molecule");
     ASSERT_NE(molecule, nullptr);
     ASSERT_EQ(molecule[0], 2);
@@ -785,6 +794,7 @@ TEST_F(AtomProperties, molecule)
 TEST_F(AtomProperties, id)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "id"), LAMMPS_TAGINT);
+    EXPECT_EQ(lammps_extract_atom_size(lmp, "id", 0), nall);
     auto *id = (tagint *)lammps_extract_atom(lmp, "id");
     ASSERT_NE(id, nullptr);
     ASSERT_EQ(id[0], 1);
@@ -794,6 +804,7 @@ TEST_F(AtomProperties, id)
 TEST_F(AtomProperties, type)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "type"), LAMMPS_INT);
+    EXPECT_EQ(lammps_extract_atom_size(lmp, "type", 0), nall);
     int *type = (int *)lammps_extract_atom(lmp, "type");
     ASSERT_NE(type, nullptr);
     ASSERT_EQ(type[0], 1);
@@ -803,6 +814,8 @@ TEST_F(AtomProperties, type)
 TEST_F(AtomProperties, position)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "x"), LAMMPS_DOUBLE_2D);
+    EXPECT_EQ(lammps_extract_atom_size(lmp, "x", LMP_SIZE_ROWS), nall);
+    EXPECT_EQ(lammps_extract_atom_size(lmp, "x", LMP_SIZE_COLS), 3);
     auto **x = (double **)lammps_extract_atom(lmp, "x");
     ASSERT_NE(x, nullptr);
     EXPECT_DOUBLE_EQ(x[0][0], 1.0);
@@ -816,15 +829,21 @@ TEST_F(AtomProperties, position)
 TEST_F(AtomProperties, custom)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "i_one"), LAMMPS_INT);
+    EXPECT_EQ(lammps_extract_atom_size(lmp, "i_one", 0), nlocal);
     auto *one = (int *)lammps_extract_atom(lmp, "i_one");
     ASSERT_NE(one, nullptr);
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "i2_two"), LAMMPS_INT_2D);
+    EXPECT_EQ(lammps_extract_atom_size(lmp, "i2_two", LMP_SIZE_ROWS), nlocal);
+    EXPECT_EQ(lammps_extract_atom_size(lmp, "i2_two", LMP_SIZE_COLS), 2);
     auto **two = (int **)lammps_extract_atom(lmp, "i2_two");
     ASSERT_NE(two, nullptr);
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "d_three"), LAMMPS_DOUBLE);
+    EXPECT_EQ(lammps_extract_atom_size(lmp, "d_three", 0), nlocal);
     auto *three = (double *)lammps_extract_atom(lmp, "d_three");
     ASSERT_NE(three, nullptr);
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "d2_four"), LAMMPS_DOUBLE_2D);
+    EXPECT_EQ(lammps_extract_atom_size(lmp, "d2_four", LMP_SIZE_ROWS), nlocal);
+    EXPECT_EQ(lammps_extract_atom_size(lmp, "d2_four", LMP_SIZE_COLS), 2);
     auto **four = (double **)lammps_extract_atom(lmp, "d2_four");
     ASSERT_NE(four, nullptr);
 

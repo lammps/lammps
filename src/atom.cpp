@@ -1911,7 +1911,11 @@ void Atom::allocate_type_arrays()
   if (avec->mass_type == AtomVec::PER_TYPE) {
     mass = new double[ntypes+1];
     mass_setflag = new int[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
+    // start loop from 0 to avoid uninitialized access when operating on the whole array
+    for (int itype = 0; itype <= ntypes; itype++) {
+      mass_setflag[itype] = 0;
+      mass[itype] = 0.0;
+    }
   }
 }
 

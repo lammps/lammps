@@ -11,14 +11,14 @@ on:
 
 jobs:
   build:
-    name: Build
+    name: Build LAMMPS
     # restrict to official LAMMPS repository
     if: ${{ github.repository == 'lammps/lammps' }}
     runs-on: ubuntu-latest
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
     strategy:
-      max-parallel: 2
+      max-parallel: 4
       matrix:
         idx: [ 0, 1, 2, 3 ]
 
@@ -71,7 +71,7 @@ jobs:
         cmake --build build
         ccache -s
 
-    - name: Full regression tests, splitting the top-level example input into 4 lists
+    - name: Run Full Regression Tests
       shell: bash
       run: |
         source linuxenv/bin/activate

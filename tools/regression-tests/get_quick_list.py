@@ -244,7 +244,7 @@ def get_examples_using_styles(regex, examples='examples'):
         with open(filename) as f:
             for line in f:
                 if commands.match(line):
-                    inputs.append(filename)
+                    inputs.append(str(filename))
                     break
     return inputs
 
@@ -258,14 +258,8 @@ if __name__ == "__main__":
     regex = make_regex(styles)
     if regex:
         inputs = get_examples_using_styles(regex, os.path.join(LAMMPS_DIR,'examples'))
-
-        print("Suggested inputs for testing:")
-        # input_list.txt is used for the regression tester tool
-        with open('input_list.txt', 'w') as f:
-            for inp in inputs:
-                print(inp)
-                f.write(str(inp) + '\n')
-
+    else:
+        inputs = []
     print("Found changes to the following styles:")
     print("Commands: ", styles['command'])
     print("Atom styles: ", styles['atom'])
@@ -282,3 +276,5 @@ if __name__ == "__main__":
     print("Region styles: ", styles['region'])
     print("Integrate styles: ", styles['integrate'])
     print("Minimize styles: ", styles['minimize'])
+
+    print("Example input files affected: ", len(inputs))

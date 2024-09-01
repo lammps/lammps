@@ -14,11 +14,16 @@ on:
 
 jobs:
   build:
-    name: Quick Regression Test
+    name: Build LAMMPS
+    # restrict to official LAMMPS repository
     if: ${{ github.repository == 'lammps/lammps' }}
     runs-on: ubuntu-latest
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
+    strategy:
+      max-parallel: 4
+      matrix:
+        idx: [ 0, 1, 2, 3 ]
 
     steps:
     - name: Checkout repository
@@ -70,21 +75,38 @@ jobs:
         cmake --build build
         ccache -s
 
-    - name: Run Selected Regression Tests
+    - name: Run Regression Tests for Modified Styles
       shell: bash
       run: |
         source linuxenv/bin/activate
-        python3 tools/regression-tests/get-quick-list.py
         python3 tools/regression-tests/run_tests.py \
                --lmp-bin=build/lmp \
                --config-file=tools/regression-tests/config_serial.yaml \
-               --list-input=input_list.txt
-        tar -cvf quick-regression-test.tar run.log progress.yaml
+               --examples-top-level=examples --quick --quick-branch=origin/develop --num-workers=4
+
+        python3 tools/regression-tests/run_tests.py \
+               --lmp-bin=build/lmp \
+               --config-file=tools/regression-tests/config_serial.yaml \
+               --list-input=input-list-${{ matrix.idx }}.txt \
+               --output-file=output-${{ matrix.idx }}.xml \
+               --progress-file=progress-${{ matrix.idx }}.yaml \
+               --log-file=run-${{ matrix.idx }}.log
+
+        tar -cvf quick-regression-test-${{ matrix.idx }}.tar run-${{ matrix.idx }}.log progress-${{ matrix.idx }}.yaml output-${{ matrix.idx }}.xml
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: quick-regression-test-artifact
-        path: quick-regression-test.tar
+        name: quick-regression-test-artifact-${{ matrix.idx }}
+        path: quick-regression-test-${{ matrix.idx }}.tar
 
+  merge:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Merge Artifacts
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: merged-quick-regresssion-artifact
+          pattern: quick-regression-test-artifact-*
 

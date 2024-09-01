@@ -29,7 +29,7 @@ TODO:
     + be able to be invoked from run_tests in the lammps-testing infrastruture
 
 The following Python packages need to be installed into an activated environment:
-    
+
     python3 -m venv testing-env
     source testing-env/bin/activate
     pip install numpy pyyaml junit_xml
@@ -54,16 +54,16 @@ Example usage:
     4) Specify a list of example input scripts (e.g. obtained from running tools/regression-tests/get-quick-list.py)
             python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
                 --list-input=input_list.txt
-        
+
     5) Test a LAMMPS binary with the whole top-level /examples folder in a LAMMPS source tree
            python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples
 
-    6) Analyze the LAMMPS binary annd whole top-level /examples folder in a LAMMPS source tree 
+    6) Analyze the LAMMPS binary and whole top-level /examples folder in a LAMMPS source tree
        and generate separate input lists for 8 workers:
            python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples \
                 --analyze --num-workers=8
 
-       The output of this run is 8 files folder-list-[0-7].txt that lists the subfolders 
+       The output of this run is 8 files folder-list-[0-7].txt that lists the subfolders
        and 8 files input-list-[0-7].txt that lists the input scripts under the top-level example folders.
        With these lists, one can launch multiple instances of run_tests.py simultaneously
        each with a list of example subfolders (Case 3), or with a list of input scripts (Case 4).
@@ -76,6 +76,7 @@ import logging
 import os
 import re
 import subprocess
+import sys
 #from multiprocessing import Pool
 
 # need "pip install numpy pyyaml"
@@ -89,6 +90,13 @@ try:
     from yaml import CSafeLoader as Loader
 except ImportError:
     from yaml import SafeLoader as Loader
+
+# infer top level LAMMPS dir from filename
+LAMMPS_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+# import git interface module
+sys.path.append(os.path.realpath(os.path.join(LAMMPS_DIR, 'tools', 'regression-tests')))
+import get_quick_list
 
 '''
    data structure to store the test result
@@ -104,11 +112,11 @@ class TestResult:
 '''
     Iterate over a list of input folders and scripts using the given lmp_binary and the testing configuration
 
-    lmp_binary   : full path to the LAMMPS binary 
+    lmp_binary   : full path to the LAMMPS binary
     input_folder : the absolute path to the input files
     input_list   : list of the input scripts under the input_folder
     config       : the dict that contains the test configuration
-    
+
     output_buf: placeholder for storing the output of a given worker
 
     return
@@ -186,7 +194,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 num_skipped = num_skipped + 1
                 test_id = test_id + 1
                 continue
-    
+
             if 'packaged not installed' in status:
                 msg = "  + " + input + f" ({test_id+1}/{num_tests}): due to package not installed (see {progress_file})"
                 logger.info(msg)
@@ -196,14 +204,14 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 num_skipped = num_skipped + 1
                 test_id = test_id + 1
                 continue
-    
+
         # if annotating input scripts with REG markers is True
         if using_markers == True:
             input_test = 'test.' + input
             if os.path.isfile(input) == True:
                 if has_markers(input):
                     process_markers(input, input_test)
-            
+
                 else:
                     print(f"WARNING: {input} does not have REG markers")
                     input_markers = input + '.markers'
@@ -214,7 +222,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                         os.system(cmd_str)
                         generate_markers(input, input_markers)
                         process_markers(input_markers, input_test)
-                
+
         else:
             # else the same file name for testing
             input_test = input
@@ -222,7 +230,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         str_t = "   + " + input_test + f" ({test_id+1}/{num_tests})"
         logger.info(str_t)
         print(str_t)
-        
+
         # check if a reference log file exists in the current folder: log.DDMMMYY.basename.g++.[nprocs]
         # assuming that input file names start with "in." (except in.disp, in.disp2 and in.dos in phonon/)
         basename = input_test[3:]
@@ -260,15 +268,15 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         # if there is no ref log file and not running with valgrind
         if ref_logfile_exist == False and use_valgrind == False:
             max_np = 4
-     
+
         saved_nprocs = config['nprocs']
-        
+
         # if the maximum number of procs is different from the value in the configuration file
         #      then override the setting for this particular input script
         if max_np != int(config['nprocs']):
             config['nprocs'] = str(max_np)
 
-        # store the value of nprocs 
+        # store the value of nprocs
         nprocs = int(config['nprocs'])
 
         # if valgrind is used for mem check, the run command will be
@@ -296,7 +304,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                     error_line = line
                     break
             logger.info(f"     The run terminated with {input_test} gives the following output:")
-            logger.info(f"       {error_line}")             
+            logger.info(f"       {error_line}")
             if "Unrecognized" in output:
                 result.status = f"error, unrecognized command, package not installed, {error_line}"
             elif "Unknown" in output:
@@ -334,7 +342,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         # if skip numerical checks, then skip the rest
         if skip_numerical_check == True:
-            msg = "completed, skipping numerical checks"           
+            msg = "completed, skipping numerical checks"
             if use_valgrind == True:
                 if "All heap blocks were freed" in error:
                     msg += ", no memory leak"
@@ -475,7 +483,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         if verbose == True:
             print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) +
                 "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
-        
+
         # check if overrides for this input scipt is specified
         overrides = {}
         if 'overrides' in config:
@@ -521,7 +529,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
                 abs_diff_check = "PASSED"
                 rel_diff_check = "PASSED"
-                
+
                 if quantity in config['tolerance'] or quantity in overrides:
 
                     if quantity in config['tolerance']:
@@ -547,7 +555,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 else:
                     # N/A means that tolerances are not defined in the config file
                     abs_diff_check = "N/A"
-                    rel_diff_check = "N/A"          
+                    rel_diff_check = "N/A"
 
                 if verbose == True and abs_diff_check != "N/A"  and rel_diff_check != "N/A":
                     print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} "
@@ -580,7 +588,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             msg = f"       all {num_checks} thermo checks passed."
             print(msg)
             logger.info(msg)
-            result.status = "passed"        
+            result.status = "passed"
             num_passed = num_passed + 1
 
         results.append(result)
@@ -621,7 +629,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
       of output and the inner list the values of the columns matching the header keywords for that step.
 '''
 def extract_thermo(yamlFileName):
-    docs = ""  
+    docs = ""
     with open(yamlFileName) as f:
         for line in f:
             m = re.search(r"^(keywords:.*$|data:$|---$|\.\.\.$|  - \[.*\]$)", line)
@@ -658,7 +666,7 @@ def extract_data_to_yaml(inputFileName):
             if "Loop" in line:
                 reading = False
                 docs += "...\n"
-           
+
             if reading == True and "Step" not in line:
                 if  "WARNING" in line:
                     continue
@@ -718,7 +726,7 @@ def get_lammps_build_configuration(lmp_binary):
             operating_system = line
         if "Git info" in line:
             GitInfo = line
-  
+
         row += 1
 
     packages = packages.strip()
@@ -729,7 +737,7 @@ def get_lammps_build_configuration(lmp_binary):
         if line != "":
             if "-DLAMMPS" in line:
                 compile_flags += " " + line.strip()
-  
+
         row += 1
 
     return packages.split(" "), operating_system, GitInfo, compile_flags
@@ -780,7 +788,7 @@ def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
     for i in range(num_workers):
         args.append((input1, input2, output_buf))
 
-    with Pool(num_workers) as pool:   
+    with Pool(num_workers) as pool:
         results = pool.starmap(func, args)
 '''
 def divide_into_N(original_list, N):
@@ -807,7 +815,7 @@ def process_markers(inputFileName, outputFileName):
     # replace #REG:ADD with empty string (i.e. adding the text at the end of the line)
     data = data.replace("#REG:ADD", "")
 
-    # replace the line contaning #REG:SUB with a line with the text that follows this marker 
+    # replace the line contaning #REG:SUB with a line with the text that follows this marker
     data = data.splitlines()
     separator="#REG:SUB"
     out = []
@@ -881,6 +889,8 @@ if __name__ == "__main__":
     list_input = ""
     list_subfolders = ""
     analyze = False
+    quick = False
+    quick_branch = "origin/develop"
 
     # distribute the total number of input scripts over the workers
     num_workers = 1
@@ -888,9 +898,9 @@ if __name__ == "__main__":
     # parse the arguments
     parser = ArgumentParser()
     parser.add_argument("--lmp-bin", dest="lmp_binary", default="", help="LAMMPS binary")
-    parser.add_argument("--config-file", dest="config_file", default=configFileName,
-                        help="Configuration YAML file")
-    parser.add_argument("--examples-top-level", dest="example_toplevel", default="", help="Examples top-level")
+    parser.add_argument("--config-file", dest="config_file", default=configFileName, help="Configuration YAML file")
+    parser.add_argument("--examples-top-level", dest="example_toplevel", default=os.path.join(LAMMPS_DIR, 'examples'),
+                        help="Examples top-level")
     parser.add_argument("--example-folders", dest="example_folders", default="", help="Example subfolders")
     parser.add_argument("--list-input", dest="list_input", default="", help="File that lists the input scripts")
     parser.add_argument("--list-subfolders", dest="list_subfolders", default="", help="File that lists the subfolders")
@@ -904,8 +914,13 @@ if __name__ == "__main__":
     parser.add_argument("--output-file",dest="output", default=output_file, help="Output file")
     parser.add_argument("--log-file",dest="logfile", default=log_file, help="Log file")
     parser.add_argument("--progress-file",dest="progress_file", default=progress_file, help="Progress file")
-    parser.add_argument("--analyze",dest="analyze", action='store_true', default=False,
+    analyze = parser.add_mutually_exclusive_group()
+    analyze.add_argument("--analyze",dest="analyze", action='store_true', default=False,
                         help="Analyze the testing folders and report statistics, not running the tests")
+    analyze.add_argument("--quick", dest="quick", action='store_true', default=False,
+                        help="Determine which test inputs have commands changed between a branch and the head")
+    parser.add_argument("--quick-branch", dest="quick_branch", default=quick_branch,
+                        help="Branch to which compare the current head to for changed styles")
     parser.add_argument("--skip-numerical-check",dest="skip_numerical_check", action='store_true', default=False,
                         help="Generating reference data")
 
@@ -924,11 +939,13 @@ if __name__ == "__main__":
        example_toplevel = args.example_toplevel
     if args.example_folders != "":
         example_subfolders = args.example_folders.split(';')
-   
+
     genref = args.genref
     verbose = args.verbose
     log_file = args.logfile
     analyze = args.analyze
+    quick = args.quick
+    quick_branch = args.quick_branch
     skip_numerical_check = args.skip_numerical_check
     resume = args.resume
     progress_file = args.progress_file
@@ -948,50 +965,19 @@ if __name__ == "__main__":
     inplace_input = True
     test_cases = []
 
-    # if the example folders are not specified from the command-line argument --example-folders
-    # then use the path from --example-top-folder, or from the input-list read from a text file
-    if len(example_subfolders) == 0:
-
-        # if the top level is specified
-        if len(example_toplevel) != 0:
-            # getting the list of all the input files because there are subfolders (e.g. PACKAGES) under the top level
-            cmd_str = f"find {example_toplevel} -name \"in.*\" "
-            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-            input_list = p.stdout.split('\n')
-            input_list.remove("")
-            msg = f"\nThere are {len(input_list)} input scripts in total under the {example_toplevel} folder."
+    # generate list of input scripts with commands that have been changed
+    if quick:
+        headers = get_quick_list.changed_files_from_git(quick_branch)
+        print("headers ", headers)
+        styles = get_quick_list.get_command_from_header(headers, LAMMPS_DIR)
+        print("styles ", styles)
+        regex = get_quick_list.make_regex(styles)
+        print("regex ", regex)
+        if regex:
+            input_list = get_quick_list.get_examples_using_styles(regex, example_toplevel)
+            msg = f"\nThere are {len(input_list)} input scripts with changed styles relative to branch {quick_branch}."
             print(msg)
             logger.info(msg)
-
-            # get the input file list
-            # TODO: generate a list of tuples, each tuple contains a folder list for a worker,
-            #       then use multiprocessing.Pool starmap()
-            folder_list = []
-            for input in input_list:
-                folder = input.rsplit('/', 1)[0]
-                # unique folders in the list
-                if folder not in folder_list:
-                    folder_list.append(folder)
-
-            # divide the list of folders into num_workers chunks
-            sublists = divide_into_N(folder_list, num_workers)
-
-            # write each chunk to a file
-            idx = 0
-            for list_input in sublists:
-                filename = f"folder-list-{idx}.txt"
-                with open(filename, "w") as f:
-                    for folder in list_input:
-                        # count the number of input scripts in each folder
-                        cmd_str = f"ls {folder}/in.* | wc -l"
-                        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-                        num_input = p.stdout.split('\n')[0]
-                        f.write(folder + ' ' + num_input + '\n')
-                    f.close()
-                idx = idx + 1
-
-            # working on all the folders for now
-            example_subfolders = folder_list
 
             # divide the list of input scripts into num_workers chunks
             sublists = divide_into_N(input_list, num_workers)
@@ -1005,53 +991,125 @@ if __name__ == "__main__":
                         f.write(inp + '\n')
                     f.close()
                 idx = idx + 1
-
-        # if a list of subfolders is provided from a text file (list_subfolders from the command-line argument)
-        elif len(list_subfolders) != 0:
-            num_inputscripts = 0
-            with open(list_subfolders, "r") as f:
-                all_subfolders = f.read().splitlines()
-                f.close()
-                for line in all_subfolders:
-                    if len(line) > 0:
-                        # skip subfolders
-                        if line[0] == '#':
-                            continue
-                        folder = line.split()[0]
-                        example_subfolders.append(folder)
-                        num_inputscripts += int(line.split()[1])
-            msg = f"\nThere are {len(example_subfolders)} folders with {num_inputscripts} input scripts in total listed in {list_input}."
-            print(msg)
-            logger.info(msg)
-
-        # if a list of input scripts is provided from a text file (list_input from the command-line argument)
-        elif len(list_input) != 0:
-            num_inputscripts = 0
-            folder_list = []
-            with open(list_input, "r") as f:
-                all_inputs = f.read().splitlines()
-                f.close()
-
-                for line in all_inputs:
-                    if len(line) > 0:
-                        # skip input scripts 
-                        if line[0] == '#':
-                            continue
-                        input = line.split()[0]
-                        folder = input.rsplit('/', 1)[0]
-                        # unique folders in the list
-                        if folder not in folder_list:
-                            folder_list.append(folder)
-                        example_inputs.append(input)
-                        num_inputscripts += 1
-
-            example_subfolders = folder_list
-            msg = f"\nThere are {num_inputscripts} input scripts listed in {list_input}."
-            print(msg)
-            logger.info(msg)
-
         else:
-            inplace_input = False
+            msg = f"\nThere are no input scripts with changed styles relative to branch {quick_branch}."
+            print(msg)
+            logger.info(msg)
+            for idx in range(0, num_workers):
+                try:
+                    os.remove(f"folder-list-{idx}.txt")
+                except:
+                    pass
+                try:
+                    os.remove(f"input-list-{idx}.txt")
+                except:
+                    pass
+        quit()
+    else:
+        # if the example folders are not specified from the command-line argument --example-folders
+        # then use the path from --example-top-folder, or from the input-list read from a text file
+        if len(example_subfolders) == 0:
+
+            # if the top level is specified
+            if len(example_toplevel) != 0:
+                # getting the list of all the input files because there are subfolders (e.g. PACKAGES) under the top level
+                cmd_str = f"find {example_toplevel} -name \"in.*\" "
+                p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+                input_list = p.stdout.split('\n')
+                input_list.remove("")
+                msg = f"\nThere are {len(input_list)} input scripts in total under the {example_toplevel} folder."
+                print(msg)
+                logger.info(msg)
+
+                # get the input file list
+                # TODO: generate a list of tuples, each tuple contains a folder list for a worker,
+                #       then use multiprocessing.Pool starmap()
+                folder_list = []
+                for input in input_list:
+                    folder = input.rsplit('/', 1)[0]
+                    # unique folders in the list
+                    if folder not in folder_list:
+                        folder_list.append(folder)
+
+                # divide the list of folders into num_workers chunks
+                sublists = divide_into_N(folder_list, num_workers)
+
+                # write each chunk to a file
+                idx = 0
+                for list_input in sublists:
+                    filename = f"folder-list-{idx}.txt"
+                    with open(filename, "w") as f:
+                        for folder in list_input:
+                            # count the number of input scripts in each folder
+                            cmd_str = f"ls {folder}/in.* | wc -l"
+                            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+                            num_input = p.stdout.split('\n')[0]
+                            f.write(folder + ' ' + num_input + '\n')
+                        f.close()
+                    idx = idx + 1
+
+                # working on all the folders for now
+                example_subfolders = folder_list
+
+                # divide the list of input scripts into num_workers chunks
+                sublists = divide_into_N(input_list, num_workers)
+
+                # write each chunk to a file
+                idx = 0
+                for list_input in sublists:
+                    filename = f"input-list-{idx}.txt"
+                    with open(filename, "w") as f:
+                        for inp in list_input:
+                            f.write(inp + '\n')
+                        f.close()
+                    idx = idx + 1
+
+            # if a list of subfolders is provided from a text file (list_subfolders from the command-line argument)
+            elif len(list_subfolders) != 0:
+                num_inputscripts = 0
+                with open(list_subfolders, "r") as f:
+                    all_subfolders = f.read().splitlines()
+                    f.close()
+                    for line in all_subfolders:
+                        if len(line) > 0:
+                            # skip subfolders
+                            if line[0] == '#':
+                                continue
+                            folder = line.split()[0]
+                            example_subfolders.append(folder)
+                            num_inputscripts += int(line.split()[1])
+                msg = f"\nThere are {len(example_subfolders)} folders with {num_inputscripts} input scripts in total listed in {list_input}."
+                print(msg)
+                logger.info(msg)
+
+            # if a list of input scripts is provided from a text file (list_input from the command-line argument)
+            elif len(list_input) != 0:
+                num_inputscripts = 0
+                folder_list = []
+                with open(list_input, "r") as f:
+                    all_inputs = f.read().splitlines()
+                    f.close()
+
+                    for line in all_inputs:
+                        if len(line) > 0:
+                            # skip input scripts
+                            if line[0] == '#':
+                                continue
+                            input = line.split()[0]
+                            folder = input.rsplit('/', 1)[0]
+                            # unique folders in the list
+                            if folder not in folder_list:
+                                folder_list.append(folder)
+                            example_inputs.append(input)
+                            num_inputscripts += 1
+
+                example_subfolders = folder_list
+                msg = f"\nThere are {num_inputscripts} input scripts listed in {list_input}."
+                print(msg)
+                logger.info(msg)
+
+            else:
+                inplace_input = False
 
     # if analyze the example folders (and split into separate lists for top-level examples), not running any test
     if analyze == True:
@@ -1063,7 +1121,7 @@ if __name__ == "__main__":
         absolute_path = os.path.abspath(configFileName)
         print(f"\nRegression test configuration file:\n  {absolute_path}")
         f.close()
-  
+
     # check if lmp_binary is specified in the config yaml
     if lmp_binary == "":
         if config['lmp_binary'] == "":
@@ -1091,7 +1149,7 @@ if __name__ == "__main__":
     pwd = p.stdout.split('\n')[0]
     pwd = os.path.abspath(pwd)
     print("\nWorking directory: " + pwd)
-    
+
     progress_file_abs = pwd + "/" + progress_file
     last_progress = {}
     if resume == False:
@@ -1124,7 +1182,7 @@ if __name__ == "__main__":
         for i in range(num_workers):
             args.append((input1, input2, output))
 
-        with Pool(num_workers) as pool:   
+        with Pool(num_workers) as pool:
             results = pool.starmap(func, args)
         '''
 
@@ -1204,9 +1262,9 @@ if __name__ == "__main__":
     print(msg)
 
     # optional: need to check if junit_xml packaged is already installed in the env
-    #   generate a JUnit XML file 
+    #   generate a JUnit XML file
     with open(output_file, 'w') as f:
-        test_cases = [] 
+        test_cases = []
         for result in all_results:
             #print(f"{result.name}: {result.status}")
             case = TestCase(name=result.name, classname=result.name)

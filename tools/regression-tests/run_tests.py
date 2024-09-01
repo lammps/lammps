@@ -74,6 +74,7 @@ import datetime
 import fnmatch
 import logging
 import os
+import random
 import re
 import subprocess
 import sys
@@ -891,6 +892,7 @@ if __name__ == "__main__":
     analyze = False
     quick = False
     quick_branch = "origin/develop"
+    quick_max = 50
 
     # distribute the total number of input scripts over the workers
     num_workers = 1
@@ -920,6 +922,8 @@ if __name__ == "__main__":
                         help="Determine which test inputs have commands changed between a branch and the head")
     parser.add_argument("--quick-branch", dest="quick_branch", default=quick_branch,
                         help="Branch to which compare the current head to for changed styles")
+    parser.add_argument("--quick-max", dest="quick_max", default=50,
+                        help="Maximum number of inputs to randomly select")
     parser.add_argument("--skip-numerical-check",dest="skip_numerical_check", action='store_true', default=False,
                         help="Generating reference data")
 
@@ -945,6 +949,7 @@ if __name__ == "__main__":
     analyze = args.analyze
     quick = args.quick
     quick_branch = args.quick_branch
+    quick_max = args.quick_max
     skip_numerical_check = args.skip_numerical_check
     resume = args.resume
     progress_file = args.progress_file
@@ -974,6 +979,11 @@ if __name__ == "__main__":
             input_list = get_quick_list.get_examples_using_styles(regex, example_toplevel)
             msg = f"\nThere are {len(input_list)} input scripts with changed styles relative to branch {quick_branch}."
             msg += "\nChanged styles: " + str(styles)
+
+            if len(input_list) > quick_max:
+                input_list = random.sample(input_list, quick_max)
+                msq += "\nTesting " + str(quick_max) + " randomly selected inputs"
+
             print(msg)
             logger.info(msg)
 

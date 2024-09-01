@@ -77,7 +77,7 @@ jobs:
         python3 tools/regression-tests/run_tests.py \
                --lmp-bin=build/lmp \
                --config-file=tools/regression-tests/config_serial.yaml \
-               --examples-top-level=examples --quick --quick-branch=origin/develop --num-workers=4
+               --examples-top-level=examples --quick --quick-branch=origin/develop --quick-max=100 --num-workers=4
 
         if [ -f input-list-${{ matrix.idx }}.txt ]
         then \

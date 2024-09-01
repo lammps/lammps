@@ -949,7 +949,7 @@ if __name__ == "__main__":
     analyze = args.analyze
     quick = args.quick
     quick_branch = args.quick_branch
-    quick_max = args.quick_max
+    quick_max = int(args.quick_max)
     skip_numerical_check = args.skip_numerical_check
     resume = args.resume
     progress_file = args.progress_file

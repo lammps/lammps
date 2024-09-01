@@ -79,13 +79,16 @@ jobs:
                --config-file=tools/regression-tests/config_serial.yaml \
                --examples-top-level=examples --quick --quick-branch=origin/develop --num-workers=4
 
-        python3 tools/regression-tests/run_tests.py \
+        if [ -f input-list-${{ matrix.idx }}.txt ]
+        then \
+           python3 tools/regression-tests/run_tests.py \
                --lmp-bin=build/lmp \
                --config-file=tools/regression-tests/config_serial.yaml \
                --list-input=input-list-${{ matrix.idx }}.txt \
                --output-file=output-${{ matrix.idx }}.xml \
                --progress-file=progress-${{ matrix.idx }}.yaml \
                --log-file=run-${{ matrix.idx }}.log
+        fi
 
         tar -cvf quick-regression-test-${{ matrix.idx }}.tar run-${{ matrix.idx }}.log progress-${{ matrix.idx }}.yaml output-${{ matrix.idx }}.xml
 

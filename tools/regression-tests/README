@@ -34,13 +34,13 @@ Limitations:
 TODO:
 
     + keep track of the testing progress to resume the testing from the last checkpoint
-    + distribute the input list across multiple processes via multiprocessing, or 
+    + distribute the input list across multiple processes via multiprocessing, or
       split the list of input scripts into separate runs (there are 800+ input script under the top-level examples)
     + be able to be invoked from run_tests in the lammps-testing infrastruture
 
 
 The following Python packages need to be installed into an activated environment:
-    
+
     python3 -m venv testing-env
     source testing-env/bin/activate
     pip install numpy pyyaml junit_xml
@@ -62,17 +62,23 @@ Example uses:
            python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
                 --list-input=list_subfolders1.txt --output-file=output1.txt --progress-file=progress1.yaml \
                 --log-file=run1.log
-          
+
     4) Test a LAMMPS binary with the whole top-level /examples folder in a LAMMPS source tree
            python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples
 
-    5) Analyze (dry run) the LAMMPS binary annd whole top-level /examples folder in a LAMMPS source tree 
+    5) Analyze (dry run) the LAMMPS binary and whole top-level /examples folder in a LAMMPS source tree
        and generate separate input lists for 8 workers:
            python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples \
-                --dry-run --num-workers=8
+                --analyze --num-workers=8
 
        This is used for splitting the subfolders into separate input lists and launching different instances
        of run_tests.py simultaneously.
+
+    6) Prepare (dry run) for a quick regression test run that only runs inputs with commands and styles that
+       have changes in the current branch versus the selected upstream branch. Curb at 40 runs and split and
+       write out separate lists for 4 workers:
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples \
+                --quick --quick-branch=origin/develop --quick-max= 40 --num-workers=4
 
 An example of the test configuration `config.yaml` is given as below.
 

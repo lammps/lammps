@@ -12,28 +12,28 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U)
+   Contributing author: Axel Kohlmeyer (Temple U), Don Xu/EiPi Fun
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(hbond/dreiding/lj/omp,PairHbondDreidingLJOMP);
+PairStyle(hbond/dreiding/lj/angleoffset/omp,PairHbondDreidingLJangleoffsetOMP);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_HBOND_DREIDING_LJ_OMP_H
-#define LMP_PAIR_HBOND_DREIDING_LJ_OMP_H
+#ifndef LMP_PAIR_HBOND_DREIDING_LJ_ANGLEOFFSET_OMP_H
+#define LMP_PAIR_HBOND_DREIDING_LJ_ANGLEOFFSET_OMP_H
 
-#include "pair_hbond_dreiding_lj.h"
+#include "pair_hbond_dreiding_lj_angleoffset.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairHbondDreidingLJOMP : public PairHbondDreidingLJ, public ThrOMP {
+class PairHbondDreidingLJangleoffsetOMP : public PairHbondDreidingLJangleoffset, public ThrOMP {
 
  public:
-  PairHbondDreidingLJOMP(class LAMMPS *);
-  ~PairHbondDreidingLJOMP() override;
+  PairHbondDreidingLJangleoffsetOMP(class LAMMPS *);
+  ~PairHbondDreidingLJangleoffsetOMP() override;
 
   void compute(int, int) override;
   double memory_usage() override;

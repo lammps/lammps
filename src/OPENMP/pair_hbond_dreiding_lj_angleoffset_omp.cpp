@@ -10,10 +10,10 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U)
+   Contributing author: Axel Kohlmeyer (Temple U), Don Xu/EiPi Fun
 ------------------------------------------------------------------------- */
 
-#include "pair_hbond_dreiding_lj_omp.h"
+#include "pair_hbond_dreiding_lj_angleoffset_omp.h"
 
 #include "atom.h"
 #include "atom_vec.h"
@@ -37,8 +37,8 @@ static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-PairHbondDreidingLJOMP::PairHbondDreidingLJOMP(LAMMPS *lmp) :
-  PairHbondDreidingLJ(lmp), ThrOMP(lmp, THR_PAIR)
+PairHbondDreidingLJangleoffsetOMP::PairHbondDreidingLJangleoffsetOMP(LAMMPS *lmp) :
+  PairHbondDreidingLJangleoffset(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
@@ -47,7 +47,7 @@ PairHbondDreidingLJOMP::PairHbondDreidingLJOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairHbondDreidingLJOMP::~PairHbondDreidingLJOMP()
+PairHbondDreidingLJangleoffsetOMP::~PairHbondDreidingLJangleoffsetOMP()
 {
   if (hbcount_thr) {
     delete[] hbcount_thr;
@@ -57,7 +57,7 @@ PairHbondDreidingLJOMP::~PairHbondDreidingLJOMP()
 
 /* ---------------------------------------------------------------------- */
 
-void PairHbondDreidingLJOMP::compute(int eflag, int vflag)
+void PairHbondDreidingLJangleoffsetOMP::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
 
@@ -115,7 +115,7 @@ void PairHbondDreidingLJOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairHbondDreidingLJOMP::eval(int iifrom, int iito, ThrData * const thr)
+void PairHbondDreidingLJangleoffsetOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,k,m,ii,jj,kk,jnum,knum,itype,jtype,ktype,iatom,imol;
   tagint tagprev;
@@ -222,6 +222,11 @@ void PairHbondDreidingLJOMP::eval(int iifrom, int iito, ThrData * const thr)
           if (c < -1.0) c = -1.0;
           ac = acos(c);
 
+          ac = ac + pm.angle_offset;
+          c = cos(ac);
+          if (c > 1.0) c = 1.0;
+          if (c < -1.0) c = -1.0;
+
           if (ac > pm.cut_angle && ac < (2.0*MY_PI - pm.cut_angle)) {
             s = sqrt(1.0 - c*c);
             if (s < SMALL) s = SMALL;
@@ -307,11 +312,11 @@ void PairHbondDreidingLJOMP::eval(int iifrom, int iito, ThrData * const thr)
 
 /* ---------------------------------------------------------------------- */
 
-double PairHbondDreidingLJOMP::memory_usage()
+double PairHbondDreidingLJangleoffsetOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
   bytes += (double)comm->nthreads * 2 * sizeof(double);
-  bytes += PairHbondDreidingLJ::memory_usage();
+  bytes += PairHbondDreidingLJangleoffset::memory_usage();
 
   return bytes;
 }

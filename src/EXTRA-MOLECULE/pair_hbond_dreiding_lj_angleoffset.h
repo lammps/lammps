@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(hbond/dreiding/lj,PairHbondDreidingLJ);
+PairStyle(hbond/dreiding/lj/angleoffset,PairHbondDreidingLJangleoffset);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_HBOND_DREIDING_LJ_H
-#define LMP_PAIR_HBOND_DREIDING_LJ_H
+#ifndef LMP_PAIR_HBOND_DREIDING_LJ_ANGLEOFFSET_H
+#define LMP_PAIR_HBOND_DREIDING_LJ_ANGLEOFFSET_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairHbondDreidingLJ : public Pair {
+class PairHbondDreidingLJangleoffset : public Pair {
  public:
-  PairHbondDreidingLJ(class LAMMPS *);
-  ~PairHbondDreidingLJ() override;
+  PairHbondDreidingLJangleoffset(class LAMMPS *);
+  ~PairHbondDreidingLJangleoffset() override;
   void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;
@@ -36,7 +36,7 @@ class PairHbondDreidingLJ : public Pair {
   double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
-  double cut_inner_global, cut_outer_global, cut_angle_global;
+  double cut_inner_global, cut_outer_global, cut_angle_global, angle_offset_global;
   int ap_global;
 
   struct Param {
@@ -45,7 +45,7 @@ class PairHbondDreidingLJ : public Pair {
     double d0, alpha, r0;
     double morse1;
     double denom_vdw;
-    double cut_inner, cut_outer, cut_innersq, cut_outersq, cut_angle, offset;
+    double cut_inner, cut_outer, cut_innersq, cut_outersq, cut_angle, offset, angle_offset;
     int ap;
   };
 

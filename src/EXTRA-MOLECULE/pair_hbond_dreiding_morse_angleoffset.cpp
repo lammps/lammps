@@ -13,10 +13,10 @@
    ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Tod A Pascal (Caltech)
+   Contributing author: Tod A Pascal (Caltech), Don Xu/EiPi Fun
 ------------------------------------------------------------------------- */
 
-#include "pair_hbond_dreiding_morse.h"
+#include "pair_hbond_dreiding_morse_angleoffset.h"
 
 #include "atom.h"
 #include "atom_vec.h"
@@ -42,12 +42,12 @@ static constexpr int CHUNK = 8;
 
 /* ---------------------------------------------------------------------- */
 
-PairHbondDreidingMorse::PairHbondDreidingMorse(LAMMPS *lmp) :
-  PairHbondDreidingLJ(lmp) {}
+PairHbondDreidingMorseAngleoffset::PairHbondDreidingMorseAngleoffset(LAMMPS *lmp) :
+  PairHbondDreidingLJangleoffset(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void PairHbondDreidingMorse::compute(int eflag, int vflag)
+void PairHbondDreidingMorseAngleoffset::compute(int eflag, int vflag)
 {
   int i,j,k,m,ii,jj,kk,inum,jnum,knum,itype,jtype,ktype,imol,iatom;
   tagint tagprev;
@@ -148,6 +148,11 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
           if (c < -1.0) c = -1.0;
           ac = acos(c);
 
+          ac = ac + pm.angle_offset;
+          c = cos(ac);
+          if (c > 1.0) c = 1.0;
+          if (c < -1.0) c = -1.0;
+
           if (ac > pm.cut_angle && ac < (2.0*MY_PI - pm.cut_angle)) {
             s = sqrt(1.0 - c*c);
             if (s < SMALL) s = SMALL;
@@ -236,9 +241,9 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairHbondDreidingMorse::coeff(int narg, char **arg)
+void PairHbondDreidingMorseAngleoffset::coeff(int narg, char **arg)
 {
-  if (narg < 7 || narg > 11)
+  if (narg < 7 || narg > 12)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -268,6 +273,10 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
     error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
   double cut_angle_one = cut_angle_global;
   if (narg > 10) cut_angle_one = utils::numeric(FLERR, arg[10], false, lmp) * MY_PI/180.0;
+  double angle_offset_one = angle_offset_global;
+  if (narg == 12) angle_offset_one = (180.0 - utils::numeric(FLERR,arg[11],false,lmp)) * MY_PI/180.0;
+  if (angle_offset_one < 0.0 || angle_offset_one > 90.0 * MY_PI/180.0)
+    error->all(FLERR,"Illegal angle offset");
 
   // grow params array if necessary
 
@@ -291,6 +300,7 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
   params[nparams].cut_innersq = cut_inner_one*cut_inner_one;
   params[nparams].cut_outersq = cut_outer_one*cut_outer_one;
   params[nparams].cut_angle = cut_angle_one;
+  params[nparams].angle_offset = angle_offset_one;
   params[nparams].denom_vdw =
     (params[nparams].cut_outersq-params[nparams].cut_innersq) *
     (params[nparams].cut_outersq-params[nparams].cut_innersq) *
@@ -315,7 +325,7 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairHbondDreidingMorse::init_style()
+void PairHbondDreidingMorseAngleoffset::init_style()
 {
   // molecular system required to use special list to find H atoms
   // tags required to use special list
@@ -370,7 +380,7 @@ void PairHbondDreidingMorse::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
+double PairHbondDreidingMorseAngleoffset::single(int i, int j, int itype, int jtype,
                                      double rsq,
                                      double /*factor_coul*/, double /*factor_lj*/,
                                      double &fforce)
@@ -442,6 +452,11 @@ double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
     ac = acos(c);
+
+    ac = ac + pm.angle_offset;
+    c = cos(ac);
+    if (c > 1.0) c = 1.0;
+    if (c < -1.0) c = -1.0;
 
     if (ac < pm.cut_angle || ac > (2.0*MY_PI - pm.cut_angle)) return 0.0;
     s = sqrt(1.0 - c*c);

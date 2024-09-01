@@ -12,28 +12,28 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U)
+   Contributing author: Axel Kohlmeyer (Temple U), Don Xu/EiPi Fun
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(hbond/dreiding/morse/omp,PairHbondDreidingMorseOMP);
+PairStyle(hbond/dreiding/morse/angleoffset/omp,PairHbondDreidingMorseAngleoffsetOMP);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_HBOND_DREIDING_MORSE_OMP_H
-#define LMP_PAIR_HBOND_DREIDING_MORSE_OMP_H
+#ifndef LMP_PAIR_HBOND_DREIDING_MORSE_ANGLEOFFSET_OMP_H
+#define LMP_PAIR_HBOND_DREIDING_MORSE_ANGLEOFFSET_OMP_H
 
-#include "pair_hbond_dreiding_morse.h"
+#include "pair_hbond_dreiding_morse_angleoffset.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairHbondDreidingMorseOMP : public PairHbondDreidingMorse, public ThrOMP {
+class PairHbondDreidingMorseAngleoffsetOMP : public PairHbondDreidingMorseAngleoffset, public ThrOMP {
 
  public:
-  PairHbondDreidingMorseOMP(class LAMMPS *);
-  ~PairHbondDreidingMorseOMP() override;
+  PairHbondDreidingMorseAngleoffsetOMP(class LAMMPS *);
+  ~PairHbondDreidingMorseAngleoffsetOMP() override;
 
   void compute(int, int) override;
   double memory_usage() override;

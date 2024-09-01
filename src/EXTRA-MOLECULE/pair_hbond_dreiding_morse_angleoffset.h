@@ -13,20 +13,20 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(hbond/dreiding/morse,PairHbondDreidingMorse);
+PairStyle(hbond/dreiding/morse/angleoffset,PairHbondDreidingMorseAngleoffset);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_HBOND_DREIDING_MORSE_H
-#define LMP_PAIR_HBOND_DREIDING_MORSE_H
+#ifndef LMP_PAIR_HBOND_DREIDING_MORSE_ANGLEOFFSET_H
+#define LMP_PAIR_HBOND_DREIDING_MORSE_ANGLEOFFSET_H
 
-#include "pair_hbond_dreiding_lj.h"
+#include "pair_hbond_dreiding_lj_angleoffset.h"
 
 namespace LAMMPS_NS {
 
-class PairHbondDreidingMorse : public PairHbondDreidingLJ {
+class PairHbondDreidingMorseAngleoffset : public PairHbondDreidingLJangleoffset {
  public:
-  PairHbondDreidingMorse(class LAMMPS *);
+  PairHbondDreidingMorseAngleoffset(class LAMMPS *);
 
   void compute(int, int) override;
   void coeff(int, char **) override;

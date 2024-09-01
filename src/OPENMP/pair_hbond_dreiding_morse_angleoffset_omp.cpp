@@ -10,10 +10,10 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U)
+   Contributing author: Axel Kohlmeyer (Temple U), Don Xu/EiPi Fun
 ------------------------------------------------------------------------- */
 
-#include "pair_hbond_dreiding_morse_omp.h"
+#include "pair_hbond_dreiding_morse_angleoffset_omp.h"
 
 #include "atom.h"
 #include "atom_vec.h"
@@ -37,8 +37,8 @@ static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-PairHbondDreidingMorseOMP::PairHbondDreidingMorseOMP(LAMMPS *lmp) :
-  PairHbondDreidingMorse(lmp), ThrOMP(lmp, THR_PAIR)
+PairHbondDreidingMorseAngleoffsetOMP::PairHbondDreidingMorseAngleoffsetOMP(LAMMPS *lmp) :
+  PairHbondDreidingMorseAngleoffset(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
@@ -47,7 +47,7 @@ PairHbondDreidingMorseOMP::PairHbondDreidingMorseOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairHbondDreidingMorseOMP::~PairHbondDreidingMorseOMP()
+PairHbondDreidingMorseAngleoffsetOMP::~PairHbondDreidingMorseAngleoffsetOMP()
 {
   if (hbcount_thr) {
     delete[] hbcount_thr;
@@ -57,7 +57,7 @@ PairHbondDreidingMorseOMP::~PairHbondDreidingMorseOMP()
 
 /* ---------------------------------------------------------------------- */
 
-void PairHbondDreidingMorseOMP::compute(int eflag, int vflag)
+void PairHbondDreidingMorseAngleoffsetOMP::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
 
@@ -115,7 +115,7 @@ void PairHbondDreidingMorseOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
+void PairHbondDreidingMorseAngleoffsetOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,k,m,ii,jj,kk,jnum,knum,itype,jtype,ktype,imol,iatom;
   tagint tagprev;
@@ -222,6 +222,11 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
           if (c < -1.0) c = -1.0;
           ac = acos(c);
 
+          ac = ac + pm.angle_offset;
+          c = cos(ac);
+          if (c > 1.0) c = 1.0;
+          if (c < -1.0) c = -1.0;
+
           if (ac > pm.cut_angle && ac < (2.0*MY_PI - pm.cut_angle)) {
             s = sqrt(1.0 - c*c);
             if (s < SMALL) s = SMALL;
@@ -306,11 +311,11 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
 
 /* ---------------------------------------------------------------------- */
 
-double PairHbondDreidingMorseOMP::memory_usage()
+double PairHbondDreidingMorseAngleoffsetOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
   bytes += (double)comm->nthreads * 2 * sizeof(double);
-  bytes += PairHbondDreidingMorse::memory_usage();
+  bytes += PairHbondDreidingMorseAngleoffset::memory_usage();
 
   return bytes;
 }

@@ -13,10 +13,10 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Tod A Pascal (Caltech)
+   Contributing author: Tod A Pascal (Caltech), Don Xu/EiPi Fun
 ------------------------------------------------------------------------- */
 
-#include "pair_hbond_dreiding_lj.h"
+#include "pair_hbond_dreiding_lj_angleoffset.h"
 
 #include "atom.h"
 #include "atom_vec.h"
@@ -42,7 +42,7 @@ static constexpr int CHUNK = 8;
 
 /* ---------------------------------------------------------------------- */
 
-PairHbondDreidingLJ::PairHbondDreidingLJ(LAMMPS *lmp) : Pair(lmp)
+PairHbondDreidingLJangleoffset::PairHbondDreidingLJangleoffset(LAMMPS *lmp) : Pair(lmp)
 {
   // hbond cannot compute virial as F dot r
   // due to using map() to find bonded H atoms which are not near donor atom
@@ -59,7 +59,7 @@ PairHbondDreidingLJ::PairHbondDreidingLJ(LAMMPS *lmp) : Pair(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-PairHbondDreidingLJ::~PairHbondDreidingLJ()
+PairHbondDreidingLJangleoffset::~PairHbondDreidingLJangleoffset()
 {
   memory->sfree(params);
   delete [] pvector;
@@ -76,7 +76,7 @@ PairHbondDreidingLJ::~PairHbondDreidingLJ()
 
 /* ---------------------------------------------------------------------- */
 
-void PairHbondDreidingLJ::compute(int eflag, int vflag)
+void PairHbondDreidingLJangleoffset::compute(int eflag, int vflag)
 {
   int i,j,k,m,ii,jj,kk,inum,jnum,knum,itype,jtype,ktype,iatom,imol;
   tagint tagprev;
@@ -178,6 +178,11 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
           if (c < -1.0) c = -1.0;
           ac = acos(c);
 
+          ac = ac + pm.angle_offset;
+          c = cos(ac);
+          if (c > 1.0) c = 1.0;
+          if (c < -1.0) c = -1.0;
+
           if (ac > pm.cut_angle && ac < (2.0*MY_PI - pm.cut_angle)) {
             s = sqrt(1.0 - c*c);
             if (s < SMALL) s = SMALL;
@@ -269,7 +274,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairHbondDreidingLJ::allocate()
+void PairHbondDreidingLJangleoffset::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -298,23 +303,24 @@ void PairHbondDreidingLJ::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairHbondDreidingLJ::settings(int narg, char **arg)
+void PairHbondDreidingLJangleoffset::settings(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 5) error->all(FLERR,"Illegal pair_style command");
 
   ap_global = utils::inumeric(FLERR,arg[0],false,lmp);
   cut_inner_global = utils::numeric(FLERR,arg[1],false,lmp);
   cut_outer_global = utils::numeric(FLERR,arg[2],false,lmp);
   cut_angle_global = utils::numeric(FLERR,arg[3],false,lmp) * MY_PI/180.0;
+  angle_offset_global = (180.0 - utils::numeric(FLERR,arg[4],false,lmp)) * MY_PI/180.0;
 }
 
 /* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairHbondDreidingLJ::coeff(int narg, char **arg)
+void PairHbondDreidingLJangleoffset::coeff(int narg, char **arg)
 {
-  if (narg < 6 || narg > 10)
+  if (narg < 6 || narg > 11)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -342,7 +348,12 @@ void PairHbondDreidingLJ::coeff(int narg, char **arg)
   if (cut_inner_one>cut_outer_one)
     error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
   double cut_angle_one = cut_angle_global;
-  if (narg == 10) cut_angle_one = utils::numeric(FLERR, arg[9], false, lmp) * MY_PI/180.0;
+  if (narg > 9) cut_angle_one = utils::numeric(FLERR, arg[9], false, lmp) * MY_PI/180.0;
+  double angle_offset_one = angle_offset_global;
+  if (narg == 11) angle_offset_one = (180.0 - utils::numeric(FLERR, arg[10], false, lmp)) * MY_PI/180.0;
+  if (angle_offset_one < 0.0 || angle_offset_one > 90.0 * MY_PI/180.0)
+    error->all(FLERR,"Illegal angle offset");
+
   // grow params array if necessary
 
   if (nparams == maxparam) {
@@ -364,6 +375,7 @@ void PairHbondDreidingLJ::coeff(int narg, char **arg)
   params[nparams].cut_innersq = cut_inner_one*cut_inner_one;
   params[nparams].cut_outersq = cut_outer_one*cut_outer_one;
   params[nparams].cut_angle = cut_angle_one;
+  params[nparams].angle_offset = angle_offset_one;
   params[nparams].denom_vdw =
     (params[nparams].cut_outersq-params[nparams].cut_innersq) *
     (params[nparams].cut_outersq-params[nparams].cut_innersq) *
@@ -388,7 +400,7 @@ void PairHbondDreidingLJ::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairHbondDreidingLJ::init_style()
+void PairHbondDreidingLJangleoffset::init_style()
 {
   // molecular system required to use special list to find H atoms
   // tags required to use special list
@@ -448,7 +460,7 @@ void PairHbondDreidingLJ::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairHbondDreidingLJ::init_one(int i, int j)
+double PairHbondDreidingLJangleoffset::init_one(int i, int j)
 {
   int m;
 
@@ -467,7 +479,7 @@ double PairHbondDreidingLJ::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
+double PairHbondDreidingLJangleoffset::single(int i, int j, int itype, int jtype,
                                    double rsq,
                                    double /*factor_coul*/, double /*factor_lj*/,
                                    double &fforce)
@@ -539,6 +551,11 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
     ac = acos(c);
+
+    ac = ac + pm.angle_offset;
+    c = cos(ac);
+    if (c > 1.0) c = 1.0;
+    if (c < -1.0) c = -1.0;
 
     if (ac < pm.cut_angle || ac > (2.0*MY_PI - pm.cut_angle)) return 0.0;
     s = sqrt(1.0 - c*c);

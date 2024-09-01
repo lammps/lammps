@@ -30,8 +30,8 @@ jobs:
 
     - name: Install extra packages
       run: |
-        sudo apt-get install -y ccache ninja-build
-        sudo apt-get install -y libeigen3-dev libgsl-dev libcurl4-openssl-dev python3-dev
+        sudo apt-get install -y ccache ninja-build libeigen3-dev \
+                     libgsl-dev libcurl4-openssl-dev python3-dev
 
     - name: Create Build Environment
       run: mkdir build
@@ -49,9 +49,8 @@ jobs:
         ccache -z
         python3 -m venv linuxenv
         source linuxenv/bin/activate
-        python3 -m pip install numpy
-        python3 -m pip install pyyaml
-        python3 -m pip install junit_xml
+        python3 -m pip install --upgrade pip
+        python3 -m pip install numpy pyyaml junit_xml
         cmake -S cmake -B build \
               -C cmake/presets/gcc.cmake \
               -C cmake/presets/most.cmake \

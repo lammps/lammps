@@ -941,7 +941,7 @@ class lammps(object):
   def extract_pair_dimension(self, name):
     """Retrieve pair style  property dimensionality from LAMMPS
 
-    .. versionadded:: TBD
+    .. versionadded:: 29Aug2024
 
     This is a wrapper around the :cpp:func:`lammps_extract_pair_dimension`
     function of the C-library interface. The list of supported keywords
@@ -970,7 +970,7 @@ class lammps(object):
   def extract_pair(self, name):
     """Extract pair style data from LAMMPS.
 
-    .. versionadded:: TBD
+    .. versionadded:: 29Aug2024
 
     This is a wrapper around the :cpp:func:`lammps_extract_pair` function
     of the C-library interface.  Since there are no pointers in Python, this

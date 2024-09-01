@@ -356,8 +356,9 @@ TEST(ImproperStyle, plain)
     EXPECT_STRESS("run_stress (newton on)", improper->virial, test_config.run_stress, epsilon);
 
     stats.reset();
-    int id        = lmp->modify->find_compute("sum");
-    double energy = lmp->modify->compute[id]->compute_scalar();
+    auto *icompute = lmp->modify->get_compute_by_id("sum");
+    double energy  = 0.0;
+    if (icompute) energy = icompute->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.run_energy, epsilon);
     EXPECT_FP_LE_WITH_EPS(improper->energy, energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
@@ -387,8 +388,8 @@ TEST(ImproperStyle, plain)
         EXPECT_STRESS("run_stress (newton off)", improper->virial, test_config.run_stress, epsilon);
 
         stats.reset();
-        id     = lmp->modify->find_compute("sum");
-        energy = lmp->modify->compute[id]->compute_scalar();
+        icompute = lmp->modify->get_compute_by_id("sum");
+        if (icompute) energy = icompute->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.run_energy, epsilon);
         EXPECT_FP_LE_WITH_EPS(improper->energy, energy, epsilon);
         if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
@@ -477,8 +478,9 @@ TEST(ImproperStyle, omp)
     EXPECT_STRESS("run_stress (newton on)", improper->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
-    int id        = lmp->modify->find_compute("sum");
-    double energy = lmp->modify->compute[id]->compute_scalar();
+    auto *icompute = lmp->modify->get_compute_by_id("sum");
+    double energy  = 0.0;
+    if (icompute) energy = icompute->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.run_energy, epsilon);
     // TODO: this is currently broken for OPENMP with improper style hybrid
     // needs to be fixed in the main code somewhere. Not sure where, though.
@@ -512,8 +514,8 @@ TEST(ImproperStyle, omp)
                       10 * epsilon);
 
         stats.reset();
-        id     = lmp->modify->find_compute("sum");
-        energy = lmp->modify->compute[id]->compute_scalar();
+        icompute = lmp->modify->get_compute_by_id("sum");
+        if (icompute) energy = icompute->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.run_energy, epsilon);
         // TODO: this is currently broken for OPENMP with improper style hybrid
         // needs to be fixed in the main code somewhere. Not sure where, though.
@@ -532,8 +534,9 @@ TEST(ImproperStyle, kokkos_omp)
     if (!LAMMPS::is_installed_pkg("KOKKOS")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
-    LAMMPS::argv args = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite",
-                         "-k",        "on",   "t",    "4",     "-sf",    "kk"};
+    LAMMPS::argv args = {"ImproperStyle", "-log", "none", "-echo", "screen",
+                         "-nocite",       "-k",   "on",   "t",     "4",
+                         "-sf",           "kk"};
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(args, test_config, true);
@@ -579,12 +582,12 @@ TEST(ImproperStyle, kokkos_omp)
     EXPECT_STRESS("run_stress (newton on)", improper->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
-    int id        = lmp->modify->find_compute("sum");
-    double energy = lmp->modify->compute[id]->compute_scalar();
+    auto *icompute = lmp->modify->get_compute_by_id("sum");
+    if (icompute) icompute->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.run_energy, epsilon);
     // FIXME: this is currently broken ??? for KOKKOS with improper style hybrid
     // needs to be fixed in the main code somewhere. Not sure where, though.
-    //if (test_config.improper_style.substr(0, 6) != "hybrid")
+    // if (test_config.improper_style.substr(0, 6) != "hybrid")
     //    EXPECT_FP_LE_WITH_EPS(improper->energy, energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
@@ -614,12 +617,12 @@ TEST(ImproperStyle, kokkos_omp)
                       10 * epsilon);
 
         stats.reset();
-        id     = lmp->modify->find_compute("sum");
-        energy = lmp->modify->compute[id]->compute_scalar();
+        icompute = lmp->modify->get_compute_by_id("sum");
+        if (icompute) icompute->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.run_energy, epsilon);
         // FIXME: this is currently broken ??? for KOKKOS with improper style hybrid
         // needs to be fixed in the main code somewhere. Not sure where, though.
-        //if (test_config.improper_style.substr(0, 6) != "hybrid")
+        // if (test_config.improper_style.substr(0, 6) != "hybrid")
         //    EXPECT_FP_LE_WITH_EPS(improper->energy, energy, epsilon);
         if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
     }

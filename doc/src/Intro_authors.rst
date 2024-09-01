@@ -51,7 +51,7 @@ lammps.org".  General questions about LAMMPS should be posted in the
    * - `Jacob R. Gissinger <jg_>`_
      - Stevens Institute of Technology
      - jgissing at stevens.edu
-     - reactive molecular dynamics, macromolecular systems, type labels
+     - reactive molecular dynamics, macro-molecular systems, type labels
    * - James Goff
      - SNL
      - jmgoff at sandia.gov
@@ -59,7 +59,7 @@ lammps.org".  General questions about LAMMPS should be posted in the
    * - Megan McCarthy
      - SNL
      - megmcca at sandia.gov
-     - alloys, microstucture, machine learned potentials
+     - alloys, micro-structure, machine learned potentials
    * - Stan Moore
      - SNL
      - stamoor at sandia.gov

@@ -407,6 +407,7 @@ Bybee
 bz
 Cadarache
 cadetblue
+Caen
 Cagin
 calc
 calibrationfunctions
@@ -1705,6 +1706,7 @@ jec
 Jeffers
 jewett
 Jewett
+jgissing
 ji
 Jiang
 Jiao
@@ -3550,6 +3552,7 @@ Steinhauser
 Stepaniants
 stepwise
 Stesmans
+stevens
 stiffnesses
 Stillinger
 stk
@@ -4127,6 +4130,7 @@ Xiaowang
 Xie
 xk
 xlat
+xlattice
 xlo
 xmax
 Xmax
@@ -4178,6 +4182,7 @@ yflag
 yhi
 yi
 ylat
+ylattice
 ylo
 ylz
 ymax
@@ -4226,6 +4231,7 @@ Ziegenhain
 zincblende
 zj
 Zj
+zlattice
 zlim
 zlo
 Zm

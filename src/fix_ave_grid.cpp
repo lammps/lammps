@@ -463,7 +463,7 @@ void FixAveGrid::init()
         if (which[m] == ArgInfo::COMPUTE) {
           compute = modify->get_compute_by_index(value2index[m]);
           grid2d = (Grid2d *) compute->get_grid_by_index(value2grid[m]);
-        } else {
+        } else if (which[m] == ArgInfo::FIX) {
           fix = modify->get_fix_by_index(value2index[m]);
           grid2d = (Grid2d *) fix->get_grid_by_index(value2grid[m]);
         }
@@ -475,7 +475,7 @@ void FixAveGrid::init()
         if (which[m] == ArgInfo::COMPUTE) {
           compute = modify->get_compute_by_index(value2index[m]);
           grid3d = (Grid3d *) compute->get_grid_by_index(value2grid[m]);
-        } else {
+        } else if (which[m] == ArgInfo::FIX) {
           fix = modify->get_fix_by_index(value2index[m]);
           grid3d = (Grid3d *) fix->get_grid_by_index(value2grid[m]);
         }
@@ -1127,7 +1127,7 @@ void FixAveGrid::grid2grid()
           ovec2d = (double **) compute->get_griddata_by_index(idata);
         else
           oarray2d = (double ***) compute->get_griddata_by_index(idata);
-      } else {
+      } else if (which[m] == ArgInfo::FIX) {
         if (j == 0)
           ovec2d = (double **) fix->get_griddata_by_index(idata);
         else
@@ -1165,7 +1165,7 @@ void FixAveGrid::grid2grid()
           ovec3d = (double ***) compute->get_griddata_by_index(idata);
         else
           oarray3d = (double ****) compute->get_griddata_by_index(idata);
-      } else {
+      } else if (which[m] == ArgInfo::FIX) {
         if (j == 0) {
           ovec3d = (double ***) fix->get_griddata_by_index(idata);
         } else

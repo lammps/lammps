@@ -31,7 +31,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 Pair style *rheo* computes pressure and viscous forces between particles
 in the :doc:`rheo package <Howto_rheo>`. If thermal evolution is turned

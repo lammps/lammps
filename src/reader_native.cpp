@@ -139,10 +139,10 @@ void ReaderNative::skip()
 
     // invoke read_lines() in chunks no larger than MAXSMALLINT
 
-    int nchunk;
+    bigint nchunk;
     while (nremain) {
       nchunk = MIN(nremain,MAXSMALLINT);
-      read_lines(nchunk);
+      read_lines((int)nchunk);
       nremain -= nchunk;
     }
   }

@@ -899,8 +899,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--lmp-bin", dest="lmp_binary", default="", help="LAMMPS binary")
     parser.add_argument("--config-file", dest="config_file", default=configFileName, help="Configuration YAML file")
-    parser.add_argument("--examples-top-level", dest="example_toplevel", default=os.path.join(LAMMPS_DIR, 'examples'),
-                        help="Examples top-level")
+    parser.add_argument("--examples-top-level", dest="example_toplevel", default="", help="Examples top-level")
     parser.add_argument("--example-folders", dest="example_folders", default="", help="Example subfolders")
     parser.add_argument("--list-input", dest="list_input", default="", help="File that lists the input scripts")
     parser.add_argument("--list-subfolders", dest="list_subfolders", default="", help="File that lists the subfolders")
@@ -974,6 +973,7 @@ if __name__ == "__main__":
         regex = get_quick_list.make_regex(styles)
         print("regex ", regex)
         if regex:
+            if not example_toplevel: example_toplevel = os.path.join(LAMMPS_DIR, 'examples')
             input_list = get_quick_list.get_examples_using_styles(regex, example_toplevel)
             msg = f"\nThere are {len(input_list)} input scripts with changed styles relative to branch {quick_branch}."
             print(msg)
@@ -1005,111 +1005,111 @@ if __name__ == "__main__":
                 except:
                     pass
         quit()
-    else:
-        # if the example folders are not specified from the command-line argument --example-folders
-        # then use the path from --example-top-folder, or from the input-list read from a text file
-        if len(example_subfolders) == 0:
 
-            # if the top level is specified
-            if len(example_toplevel) != 0:
-                # getting the list of all the input files because there are subfolders (e.g. PACKAGES) under the top level
-                cmd_str = f"find {example_toplevel} -name \"in.*\" "
-                p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-                input_list = p.stdout.split('\n')
-                input_list.remove("")
-                msg = f"\nThere are {len(input_list)} input scripts in total under the {example_toplevel} folder."
-                print(msg)
-                logger.info(msg)
+    # if the example folders are not specified from the command-line argument --example-folders
+    # then use the path from --example-top-folder, or from the input-list read from a text file
+    elif len(example_subfolders) == 0:
 
-                # get the input file list
-                # TODO: generate a list of tuples, each tuple contains a folder list for a worker,
-                #       then use multiprocessing.Pool starmap()
-                folder_list = []
-                for input in input_list:
-                    folder = input.rsplit('/', 1)[0]
-                    # unique folders in the list
-                    if folder not in folder_list:
-                        folder_list.append(folder)
+        # if the top level is specified
+        if len(example_toplevel) != 0:
+            # getting the list of all the input files because there are subfolders (e.g. PACKAGES) under the top level
+            cmd_str = f"find {example_toplevel} -name \"in.*\" "
+            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+            input_list = p.stdout.split('\n')
+            input_list.remove("")
+            msg = f"\nThere are {len(input_list)} input scripts in total under the {example_toplevel} folder."
+            print(msg)
+            logger.info(msg)
 
-                # divide the list of folders into num_workers chunks
-                sublists = divide_into_N(folder_list, num_workers)
+            # get the input file list
+            # TODO: generate a list of tuples, each tuple contains a folder list for a worker,
+            #       then use multiprocessing.Pool starmap()
+            folder_list = []
+            for input in input_list:
+                folder = input.rsplit('/', 1)[0]
+                # unique folders in the list
+                if folder not in folder_list:
+                    folder_list.append(folder)
 
-                # write each chunk to a file
-                idx = 0
-                for list_input in sublists:
-                    filename = f"folder-list-{idx}.txt"
-                    with open(filename, "w") as f:
-                        for folder in list_input:
-                            # count the number of input scripts in each folder
-                            cmd_str = f"ls {folder}/in.* | wc -l"
-                            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-                            num_input = p.stdout.split('\n')[0]
-                            f.write(folder + ' ' + num_input + '\n')
-                        f.close()
-                    idx = idx + 1
+            # divide the list of folders into num_workers chunks
+            sublists = divide_into_N(folder_list, num_workers)
 
-                # working on all the folders for now
-                example_subfolders = folder_list
-
-                # divide the list of input scripts into num_workers chunks
-                sublists = divide_into_N(input_list, num_workers)
-
-                # write each chunk to a file
-                idx = 0
-                for list_input in sublists:
-                    filename = f"input-list-{idx}.txt"
-                    with open(filename, "w") as f:
-                        for inp in list_input:
-                            f.write(inp + '\n')
-                        f.close()
-                    idx = idx + 1
-
-            # if a list of subfolders is provided from a text file (list_subfolders from the command-line argument)
-            elif len(list_subfolders) != 0:
-                num_inputscripts = 0
-                with open(list_subfolders, "r") as f:
-                    all_subfolders = f.read().splitlines()
+            # write each chunk to a file
+            idx = 0
+            for list_input in sublists:
+                filename = f"folder-list-{idx}.txt"
+                with open(filename, "w") as f:
+                    for folder in list_input:
+                        # count the number of input scripts in each folder
+                        cmd_str = f"ls {folder}/in.* | wc -l"
+                        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+                        num_input = p.stdout.split('\n')[0]
+                        f.write(folder + ' ' + num_input + '\n')
                     f.close()
-                    for line in all_subfolders:
-                        if len(line) > 0:
-                            # skip subfolders
-                            if line[0] == '#':
-                                continue
-                            folder = line.split()[0]
-                            example_subfolders.append(folder)
-                            num_inputscripts += int(line.split()[1])
-                msg = f"\nThere are {len(example_subfolders)} folders with {num_inputscripts} input scripts in total listed in {list_input}."
-                print(msg)
-                logger.info(msg)
+                idx = idx + 1
 
-            # if a list of input scripts is provided from a text file (list_input from the command-line argument)
-            elif len(list_input) != 0:
-                num_inputscripts = 0
-                folder_list = []
-                with open(list_input, "r") as f:
-                    all_inputs = f.read().splitlines()
+            # working on all the folders for now
+            example_subfolders = folder_list
+
+            # divide the list of input scripts into num_workers chunks
+            sublists = divide_into_N(input_list, num_workers)
+
+            # write each chunk to a file
+            idx = 0
+            for list_input in sublists:
+                filename = f"input-list-{idx}.txt"
+                with open(filename, "w") as f:
+                    for inp in list_input:
+                        f.write(inp + '\n')
                     f.close()
+                idx = idx + 1
 
-                    for line in all_inputs:
-                        if len(line) > 0:
-                            # skip input scripts
-                            if line[0] == '#':
-                                continue
-                            input = line.split()[0]
-                            folder = input.rsplit('/', 1)[0]
-                            # unique folders in the list
-                            if folder not in folder_list:
-                                folder_list.append(folder)
-                            example_inputs.append(input)
-                            num_inputscripts += 1
+        # if a list of subfolders is provided from a text file (list_subfolders from the command-line argument)
+        elif len(list_subfolders) != 0:
+            num_inputscripts = 0
+            with open(list_subfolders, "r") as f:
+                all_subfolders = f.read().splitlines()
+                f.close()
+                for line in all_subfolders:
+                    if len(line) > 0:
+                        # skip subfolders
+                        if line[0] == '#':
+                            continue
+                        folder = line.split()[0]
+                        example_subfolders.append(folder)
+                        num_inputscripts += int(line.split()[1])
+            msg = f"\nThere are {len(example_subfolders)} folders with {num_inputscripts} input scripts in total listed in {list_input}."
+            print(msg)
+            logger.info(msg)
 
-                example_subfolders = folder_list
-                msg = f"\nThere are {num_inputscripts} input scripts listed in {list_input}."
-                print(msg)
-                logger.info(msg)
+        # if a list of input scripts is provided from a text file (list_input from the command-line argument)
+        elif len(list_input) != 0:
+            num_inputscripts = 0
+            folder_list = []
+            with open(list_input, "r") as f:
+                all_inputs = f.read().splitlines()
+                f.close()
 
-            else:
-                inplace_input = False
+                for line in all_inputs:
+                    if len(line) > 0:
+                        # skip input scripts
+                        if line[0] == '#':
+                            continue
+                        input = line.split()[0]
+                        folder = input.rsplit('/', 1)[0]
+                        # unique folders in the list
+                        if folder not in folder_list:
+                            folder_list.append(folder)
+                        example_inputs.append(input)
+                        num_inputscripts += 1
+
+            example_subfolders = folder_list
+            msg = f"\nThere are {num_inputscripts} input scripts listed in {list_input}."
+            print(msg)
+            logger.info(msg)
+
+        else:
+            inplace_input = False
 
     # if analyze the example folders (and split into separate lists for top-level examples), not running any test
     if analyze == True:

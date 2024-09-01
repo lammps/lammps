@@ -2,10 +2,6 @@
 name: "Quick Regression Test"
 
 on:
-  push:
-    branches:
-      - develop
-      - quick-regression
   pull_request:
     branches:
       - develop

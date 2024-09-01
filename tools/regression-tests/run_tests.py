@@ -967,15 +967,13 @@ if __name__ == "__main__":
     # generate list of input scripts with commands that have been changed
     if quick:
         headers = get_quick_list.changed_files_from_git(quick_branch)
-        print("headers ", headers)
         styles = get_quick_list.get_command_from_header(headers, LAMMPS_DIR)
-        print("styles ", styles)
         regex = get_quick_list.make_regex(styles)
-        print("regex ", regex)
         if regex:
             if not example_toplevel: example_toplevel = os.path.join(LAMMPS_DIR, 'examples')
             input_list = get_quick_list.get_examples_using_styles(regex, example_toplevel)
             msg = f"\nThere are {len(input_list)} input scripts with changed styles relative to branch {quick_branch}."
+            msg += "\nChanged styles: " + str(styles)
             print(msg)
             logger.info(msg)
 

@@ -278,3 +278,4 @@ if __name__ == "__main__":
     print("Minimize styles: ", styles['minimize'])
 
     print("Example input files affected: ", len(inputs))
+    print("inputs: ", inputs.sort())

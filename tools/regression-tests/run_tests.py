@@ -982,7 +982,7 @@ if __name__ == "__main__":
 
             if len(input_list) > quick_max:
                 input_list = random.sample(input_list, quick_max)
-                msq += "\nTesting " + str(quick_max) + " randomly selected inputs"
+                msg += "\nTesting " + str(quick_max) + " randomly selected inputs"
 
             print(msg)
             logger.info(msg)

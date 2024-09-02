@@ -372,7 +372,8 @@ void FixQtpieReaxFF::reallocate_storage()
 
 void FixQtpieReaxFF::allocate_matrix()
 {
-  int i,ii,m;
+  int i,ii;
+  bigint m;
 
   int mincap;
   double safezone;
@@ -394,14 +395,17 @@ void FixQtpieReaxFF::allocate_matrix()
     i = ilist[ii];
     m += numneigh[i];
   }
-  m_cap = MAX((int)(m * safezone), mincap * REAX_MIN_NBRS);
+  bigint m_cap_big = (bigint)MAX(m * safezone, mincap * REAX_MIN_NBRS);
+  if (m_cap_big > MAXSMALLINT)
+    error->one(FLERR,"Too many neighbors in fix qeq/reaxff");
+  m_cap = m_cap_big;
 
   H.n = n_cap;
   H.m = m_cap;
-  memory->create(H.firstnbr,n_cap,"qtpie:H.firstnbr");
-  memory->create(H.numnbrs,n_cap,"qtpie:H.numnbrs");
-  memory->create(H.jlist,m_cap,"qtpie:H.jlist");
-  memory->create(H.val,m_cap,"qtpie:H.val");
+  memory->create(H.firstnbr,n_cap,"qeq:H.firstnbr");
+  memory->create(H.numnbrs,n_cap,"qeq:H.numnbrs");
+  memory->create(H.jlist,m_cap,"qeq:H.jlist");
+  memory->create(H.val,m_cap,"qeq:H.val");
 }
 
 /* ---------------------------------------------------------------------- */

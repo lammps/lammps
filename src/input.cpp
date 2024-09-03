@@ -22,7 +22,6 @@
 #include "comm.h"
 #include "comm_brick.h"
 #include "comm_brick_direct.h"
-#include "comm_brick_direct_kokkos.h"
 #include "comm_tiled.h"
 #include "command.h"
 #include "compute.h"

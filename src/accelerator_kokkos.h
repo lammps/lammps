@@ -19,14 +19,15 @@
 
 #ifdef LMP_KOKKOS
 
-#include "atom_kokkos.h"          // IWYU pragma: export
-#include "comm_brick_kokkos.h"    // IWYU pragma: export
-#include "comm_tiled_kokkos.h"    // IWYU pragma: export
-#include "domain_kokkos.h"        // IWYU pragma: export
-#include "kokkos.h"               // IWYU pragma: export
-#include "memory_kokkos.h"        // IWYU pragma: export
-#include "modify_kokkos.h"        // IWYU pragma: export
-#include "neighbor_kokkos.h"      // IWYU pragma: export
+#include "atom_kokkos.h"              // IWYU pragma: export
+#include "comm_brick_kokkos.h"        // IWYU pragma: export
+#include "comm_brick_direct_kokkos.h" // IWYU pragma: export
+#include "comm_tiled_kokkos.h"        // IWYU pragma: export
+#include "domain_kokkos.h"            // IWYU pragma: export
+#include "kokkos.h"                   // IWYU pragma: export
+#include "memory_kokkos.h"            // IWYU pragma: export
+#include "modify_kokkos.h"            // IWYU pragma: export
+#include "neighbor_kokkos.h"          // IWYU pragma: export
 
 #define LAMMPS_INLINE KOKKOS_INLINE_FUNCTION
 
@@ -37,6 +38,7 @@
 
 #include "atom.h"
 #include "comm_brick.h"
+#include "comm_brick_direct.h"
 #include "comm_tiled.h"
 #include "domain.h"
 #include "memory.h"
@@ -72,6 +74,12 @@ class AtomKokkos : public Atom {
 class CommBrickKokkos : public CommBrick {
  public:
   CommBrickKokkos(class LAMMPS *lmp) : CommBrick(lmp) {}
+};
+
+class CommBrickDirectKokkos : public CommBrickDirect {
+ public:
+  CommBrickDirectKokkos(class LAMMPS *lmp) : CommBrickDirect(lmp) {}
+  CommBrickDirectKokkos(class LAMMPS *lmp, Comm *oldcomm) : CommBrickDirect(lmp, oldcomm) {}
 };
 
 class CommTiledKokkos : public CommTiled {

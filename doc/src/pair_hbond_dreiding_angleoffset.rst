@@ -1,7 +1,7 @@
 .. index:: pair_style hbond/dreiding/lj/angleoffset
 .. index:: pair_style hbond/dreiding/lj/angleoffset/omp
 .. index:: pair_style hbond/dreiding/morse/angleoffset
-.. index:: pair_style hbond/dreiding/morse/angleoffest/omp
+.. index:: pair_style hbond/dreiding/morse/angleoffset/omp
 
 pair_style hbond/dreiding/lj/angleoffset command
 ================================================

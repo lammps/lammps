@@ -58,9 +58,9 @@ force field with an angle offset, given by:
 
 .. math::
 
-   E  = & \left[LJ(r) | Morse(r) \right] \qquad \qquad \qquad r < r_{\rm in} and  \theta + \theta_{offset} < \theta_c \\
-      = & S(r) * \left[LJ(r) | Morse(r) \right] \qquad \qquad r_{\rm in} < r < r_{\rm out} and \theta + \theta_{offset} < \theta_c \\
-      = & 0 \qquad \qquad \qquad \qquad \qquad \qquad \qquad r > r_{\rm out} and \theta + \theta_{offset} < \theta_c \\
+   E  = & \left[LJ(r) | Morse(r) \right] \qquad \qquad \qquad r < r_{\rm in} and  \theta + \theta_{offset} > \theta_c \\
+      = & S(r) * \left[LJ(r) | Morse(r) \right] \qquad \qquad r_{\rm in} < r < r_{\rm out} and \theta + \theta_{offset} > \theta_c \\
+      = & 0 \qquad \qquad \qquad \qquad \qquad \qquad \qquad r > r_{\rm out} and \theta + \theta_{offset} > \theta_c \\
    LJ(r)  = & AR^{-12}-BR^{-10}cos^n(\theta + \theta_{offset})=
          \epsilon\left\lbrace 5\left[ \frac{\sigma}{r}\right]^{12}-
          6\left[ \frac{\sigma}{r}\right]^{10}  \right\rbrace cos^n(\theta + \theta_{offset})\\

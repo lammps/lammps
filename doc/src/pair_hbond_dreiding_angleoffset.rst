@@ -4,12 +4,12 @@
 .. index:: pair_style hbond/dreiding/morse/angleoffest/omp
 
 pair_style hbond/dreiding/lj/angleoffset command
-====================================
+================================================
 
 Accelerator Variants: *hbond/dreiding/lj/angleoffset/omp*
 
 pair_style hbond/dreiding/morse/angleoffset command
-=======================================
+===================================================
 
 Accelerator Variants: *hbond/dreiding/morse/angleoffset/omp*
 
@@ -65,7 +65,7 @@ force field with an angle offset, given by:
          6\left[ \frac{\sigma}{r}\right]^{10}  \right\rbrace cos^n(\theta + \theta_{offset})\\
    Morse(r)  = & D_0\left\lbrace \chi^2 - 2\chi\right\rbrace cos^n(\theta + \theta_{offset})=
          D_{0}\left\lbrace e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)}
-         \right\rbrace cos^n(\theta + \theta_{offset})\
+         \right\rbrace cos^n(\theta + \theta_{offset})\\
    S(r)  = & \frac{ \left[r_{\rm out}^2 - r^2\right]^2
    \left[r_{\rm out}^2 + 2r^2 - 3{r_{\rm in}^2}\right]}
    { \left[r_{\rm out}^2 - {r_{\rm in}}^2\right]^3 }
@@ -115,7 +115,7 @@ follows:
 ----------
 
 Additional Information
-""""""""""""
+""""""""""""""""""""""
 
 For more information about DREIDING force field and other notes, please refer to the documentation of *hbond/dreiding* styles.
 
@@ -125,6 +125,6 @@ Restrictions
 """"""""""""
 
 This pair style can only be used if LAMMPS was built with the
-EXTRA-MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
-for more info.
+EXTRA-MOLECULE package.  See the :doc:`Build package <Build_package>`
+doc page for more info.
 

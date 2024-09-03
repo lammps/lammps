@@ -1024,7 +1024,7 @@ void CommBrickDirect::reverse_comm(Pair *pair)
 
   if (npost == 0) return;
 
-  for (int i; i < npost; i++) {
+  for (int i = 0; i < npost; i++) {
     MPI_Waitany(npost,requests,&irecv,MPI_STATUS_IGNORE);
     iswap = send_indices_direct[irecv];
     offset = recv_offset_reverse_atoms[iswap];
@@ -1176,7 +1176,7 @@ void CommBrickDirect::reverse_comm(Fix *fix, int size)
 
   if (npost == 0) return;
 
-  for (int i; i < npost; i++) {
+  for (int i = 0; i < npost; i++) {
     MPI_Waitany(npost,requests,&irecv,MPI_STATUS_IGNORE);
     iswap = send_indices_direct[irecv];
     offset = recv_offset_reverse_atoms[iswap];
@@ -1306,7 +1306,7 @@ void CommBrickDirect::reverse_comm(Compute *compute)
 
   if (npost == 0) return;
 
-  for (int i; i < npost; i++) {
+  for (int i = 0; i < npost; i++) {
     MPI_Waitany(npost,requests,&irecv,MPI_STATUS_IGNORE);
     iswap = send_indices_direct[irecv];
     offset = recv_offset_reverse_atoms[iswap];
@@ -1424,7 +1424,7 @@ void CommBrickDirect::reverse_comm(Dump *dump)
 
   if (npost == 0) return;
 
-  for (int i; i < npost; i++) {
+  for (int i = 0; i < npost; i++) {
     MPI_Waitany(npost,requests,&irecv,MPI_STATUS_IGNORE);
     iswap = send_indices_direct[irecv];
     offset = recv_offset_reverse_atoms[iswap];

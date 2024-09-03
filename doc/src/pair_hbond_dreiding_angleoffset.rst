@@ -119,7 +119,7 @@ Additional Information
 """"""""""""""""""""""
 
 For more information about DREIDING force field and other notes, please refer
-to the :doc:`documentation of the *hbond/dreiding* styles <hbond/dreiding>`.
+to the :doc:`documentation of the *hbond/dreiding* pair styles <pair_hbond_dreiding>`.
 
 ----------
 

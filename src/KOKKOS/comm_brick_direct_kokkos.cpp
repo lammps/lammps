@@ -178,6 +178,7 @@ void CommBrickDirectKokkos::forward_comm_device()
                         k_pbc_flag_direct,k_pbc_direct,
                         k_swap2list,k_buf_send_direct,k_self_flag);
   }
+  DeviceType().fence();
 
   // send all owned atoms to receiving procs
   // except for self copies
@@ -206,6 +207,7 @@ void CommBrickDirectKokkos::forward_comm_device()
   } else {
     //atomKK->avecKK->unpack_comm_direct(recvnum_direct,firstrecv_direct,buf_recv_direct);
   }
+  DeviceType().fence();
 }
 
 /* ----------------------------------------------------------------------

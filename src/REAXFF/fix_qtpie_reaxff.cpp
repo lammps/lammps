@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: 
+   Contributing authors:
       Navraj S Lalli (Imperial College London)
       Efstratios M Kritikos (California Institute of Technology)
 ------------------------------------------------------------------------- */
@@ -218,15 +218,15 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
 
         if (values.count() != 2)
           throw TokenizerException("Fix qtpie/reaxff: Incorrect number of values per line "
-				   "in gauss file",std::to_string(values.count()));
+                                   "in gauss file",std::to_string(values.count()));
 
         int itype = values.next_int();
         if ((itype < 1) || (itype > ntypes))
           throw TokenizerException("Fix qtpie/reaxff: Invalid atom type in gauss file",
                                    std::to_string(itype));
 
-	double exp = values.next_double();
-	if (exp < 0)
+        double exp = values.next_double();
+        if (exp < 0)
           throw TokenizerException("Fix qtpie/reaxff: Invalid orbital exponent in gauss file",
                                    std::to_string(exp));
         gauss_exp[itype] = exp;
@@ -1165,14 +1165,14 @@ void FixQtpieReaxFF::calc_chi_eff()
   const double comm_cutoff = MAX(neighbor->cutneighmax,comm->cutghostuser);
   if(comm_cutoff < dist_cutoff/ANGSTROM_TO_BOHRRADIUS) {
     error->all(FLERR,"comm cutoff = {} Angstrom is smaller than distance cutoff = {} Angstrom "
-	       "for overlap integrals in {}. Increase comm cutoff with comm_modify",
-	       comm_cutoff, dist_cutoff/ANGSTROM_TO_BOHRRADIUS, style);
+               "for overlap integrals in {}. Increase comm cutoff with comm_modify",
+               comm_cutoff, dist_cutoff/ANGSTROM_TO_BOHRRADIUS, style);
   }
 
   // efield energy is in real units of kcal/mol, factor needed for conversion to eV
   const double qe2f = force->qe2f;
   const double factor = 1.0/qe2f;
-  
+
   if (efield) {
     if (efield->varflag != FixEfield::CONSTANT)
       efield->update_efield_variables();
@@ -1184,9 +1184,9 @@ void FixQtpieReaxFF::calc_chi_eff()
     chia = chi[type[i]];
     if (efield) {
       if (efield->varflag != FixEfield::ATOM) {
-	phia = factor*(x[i][0]*efield->ex  + x[i][1]*efield->ey + x[i][2]*efield->ez);
+        phia = factor*(x[i][0]*efield->ex  + x[i][1]*efield->ey + x[i][2]*efield->ez);
       } else { // atom-style potential from FixEfield
-	phia = efield->efield[i][3];
+        phia = efield->efield[i][3];
       }
     }
 
@@ -1200,22 +1200,22 @@ void FixQtpieReaxFF::calc_chi_eff()
         expb = gauss_exp[type[j]];
         chib = chi[type[j]];
 
-	// overlap integral of two normalised 1s Gaussian type orbitals 
+        // overlap integral of two normalised 1s Gaussian type orbitals
         p = expa + expb;
         m = expa * expb / p;
         overlap = pow((4.0*m/p),0.75) * exp(-m*dist*dist);
 
         if (efield) {
-	  if (efield->varflag != FixEfield::ATOM) {
-	    phib = factor*(x[j][0]*efield->ex  + x[j][1]*efield->ey + x[j][2]*efield->ez);
-	  } else { // atom-style potential from FixEfield
-	    phib = efield->efield[j][3];
-	  }
-	  sum_n += (chia - chib + phib - phia) * overlap;
+          if (efield->varflag != FixEfield::ATOM) {
+            phib = factor*(x[j][0]*efield->ex  + x[j][1]*efield->ey + x[j][2]*efield->ez);
+          } else { // atom-style potential from FixEfield
+            phib = efield->efield[j][3];
+          }
+          sum_n += (chia - chib + phib - phia) * overlap;
         } else {
-	  sum_n += (chia - chib) * overlap;
+          sum_n += (chia - chib) * overlap;
         }
-	sum_d += overlap;
+        sum_d += overlap;
       }
     }
 
@@ -1236,7 +1236,7 @@ double FixQtpieReaxFF::find_min(const double *array, const int array_length)
   double smallest = array[1];
   for (int i = 2; i < array_length; i++)
   {
-    if (array[i] < smallest) 
+    if (array[i] < smallest)
       smallest = array[i];
   }
   return smallest;

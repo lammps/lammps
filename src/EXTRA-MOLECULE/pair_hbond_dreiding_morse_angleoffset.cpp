@@ -282,8 +282,7 @@ void PairHbondDreidingMorseAngleoffset::coeff(int narg, char **arg)
 
   if (nparams == maxparam) {
     maxparam += CHUNK;
-    params = (Param *) memory->srealloc(params, maxparam*sizeof(Param),
-                                        "pair:params");
+    params = (Param *) memory->srealloc(params, maxparam*sizeof(Param),"pair:params");
 
     // make certain all addional allocated storage is initialized
     // to avoid false positives when checking with valgrind
@@ -301,8 +300,7 @@ void PairHbondDreidingMorseAngleoffset::coeff(int narg, char **arg)
   params[nparams].cut_outersq = cut_outer_one*cut_outer_one;
   params[nparams].cut_angle = cut_angle_one;
   params[nparams].angle_offset = angle_offset_one;
-  params[nparams].denom_vdw =
-    (params[nparams].cut_outersq-params[nparams].cut_innersq) *
+  params[nparams].denom_vdw = (params[nparams].cut_outersq-params[nparams].cut_innersq) *
     (params[nparams].cut_outersq-params[nparams].cut_innersq) *
     (params[nparams].cut_outersq-params[nparams].cut_innersq);
 
@@ -333,14 +331,14 @@ void PairHbondDreidingMorseAngleoffset::init_style()
   //   and computing forces on A,H which may be on different procs
 
   if (atom->molecular == Atom::ATOMIC)
-    error->all(FLERR,"Pair style hbond/dreiding requires molecular system");
+    error->all(FLERR,"Pair style hbond/dreiding/morse/angleoffset requires molecular system");
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style hbond/dreiding requires atom IDs");
+    error->all(FLERR,"Pair style hbond/dreiding/morse/angleoffset requires atom IDs");
   if (atom->map_style == Atom::MAP_NONE)
-    error->all(FLERR,"Pair style hbond/dreiding requires an atom map, "
+    error->all(FLERR,"Pair style hbond/dreiding/morse/angleoffset requires an atom map, "
                "see atom_modify");
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style hbond/dreiding requires newton pair on");
+    error->all(FLERR,"Pair style hbond/dreiding/morse/angleoffset requires newton pair on");
 
   // set donor[M]/acceptor[M] if any atom of type M is a donor/acceptor
 
@@ -356,21 +354,13 @@ void PairHbondDreidingMorseAngleoffset::init_style()
           acceptor[j] = 1;
         }
 
-  if (!anyflag) error->all(FLERR,"No pair hbond/dreiding coefficients set");
+  if (!anyflag) error->all(FLERR,"No pair hbond/dreiding/morse/angleoffset coefficients set");
 
   // set additional param values
   // offset is for Morse only, angle term is not included
 
   for (int m = 0; m < nparams; m++) {
     params[m].morse1 = 2.0*params[m].d0*params[m].alpha;
-
-    /*
-    if (offset_flag) {
-      double alpha_dr = -params[m].alpha * (params[m].cut - params[m].r0);
-      params[m].offset = params[m].d0 *
-        ((exp(2.0*alpha_dr)) - (2.0*exp(alpha_dr)));
-    } else params[m].offset = 0.0;
-    */
   }
 
   // full neighbor list request

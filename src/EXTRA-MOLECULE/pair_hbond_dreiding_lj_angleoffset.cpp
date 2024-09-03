@@ -408,14 +408,14 @@ void PairHbondDreidingLJangleoffset::init_style()
   //   and computing forces on A,H which may be on different procs
 
   if (atom->molecular == Atom::ATOMIC)
-    error->all(FLERR,"Pair style hbond/dreiding requires molecular system");
+    error->all(FLERR,"Pair style hbond/dreiding/lj/angleoffset requires molecular system");
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style hbond/dreiding requires atom IDs");
+    error->all(FLERR,"Pair style hbond/dreiding/lj/angleoffset requires atom IDs");
   if (atom->map_style == Atom::MAP_NONE)
-    error->all(FLERR,"Pair style hbond/dreiding requires an atom map, "
+    error->all(FLERR,"Pair style hbond/dreiding/lj/angleoffset requires an atom map, "
                "see atom_modify");
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style hbond/dreiding requires newton pair on");
+    error->all(FLERR,"Pair style hbond/dreiding/lj/angleoffset requires newton pair on");
 
   // set donor[M]/acceptor[M] if any atom of type M is a donor/acceptor
 
@@ -431,7 +431,7 @@ void PairHbondDreidingLJangleoffset::init_style()
           acceptor[j] = 1;
         }
 
-  if (!anyflag) error->all(FLERR,"No pair hbond/dreiding coefficients set");
+  if (!anyflag) error->all(FLERR,"No pair hbond/dreiding/lj/angleoffset coefficients set");
 
   // set additional param values
   // offset is for LJ only, angle term is not included
@@ -441,14 +441,6 @@ void PairHbondDreidingLJangleoffset::init_style()
     params[m].lj2 = 60.0*params[m].epsilon*pow(params[m].sigma,10.0);
     params[m].lj3 = 5.0*params[m].epsilon*pow(params[m].sigma,12.0);
     params[m].lj4 = 6.0*params[m].epsilon*pow(params[m].sigma,10.0);
-
-    /*
-    if (offset_flag) {
-      double ratio = params[m].sigma / params[m].cut_outer;
-      params[m].offset = params[m].epsilon *
-        ((2.0*pow(ratio,9.0)) - (3.0*pow(ratio,6.0)));
-    } else params[m].offset = 0.0;
-    */
   }
 
   // full neighbor list request

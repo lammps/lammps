@@ -973,6 +973,9 @@ message(STATUS "<<< Compilers and Flags: >>>
       C++ Standard:  ${CMAKE_CXX_STANDARD}
       C++ Flags:    ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}
       Defines:       ${DEFINES}")
+if(CMAKE_CXX_COMPILER_LAUNCHER)
+  message(STATUS "      Launcher:      ${CMAKE_CXX_COMPILER_LAUNCHER}")
+endif()
 get_target_property(OPTIONS lammps COMPILE_OPTIONS)
 if(OPTIONS)
   message("      Options:       ${OPTIONS}")
@@ -991,6 +994,9 @@ if(_index GREATER -1)
       Type:          ${CMAKE_C_COMPILER_ID}
       Version:       ${CMAKE_C_COMPILER_VERSION}
       C Flags:      ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BTYPE}}")
+  if(CMAKE_C_COMPILER_LAUNCHER)
+    message(STATUS "      Launcher:      ${CMAKE_C_COMPILER_LAUNCHER}")
+  endif()
 endif()
 message(STATUS "<<< Linker flags: >>>")
 message(STATUS "Executable name:  ${LAMMPS_BINARY}")

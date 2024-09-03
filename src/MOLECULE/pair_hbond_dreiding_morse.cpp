@@ -323,14 +323,14 @@ void PairHbondDreidingMorse::init_style()
   //   and computing forces on A,H which may be on different procs
 
   if (atom->molecular == Atom::ATOMIC)
-    error->all(FLERR,"Pair style hbond/dreiding requires molecular system");
+    error->all(FLERR,"Pair style hbond/dreiding/morse requires molecular system");
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style hbond/dreiding requires atom IDs");
+    error->all(FLERR,"Pair style hbond/dreiding/morse requires atom IDs");
   if (atom->map_style == Atom::MAP_NONE)
-    error->all(FLERR,"Pair style hbond/dreiding requires an atom map, "
+    error->all(FLERR,"Pair style hbond/dreiding/morse requires an atom map, "
                "see atom_modify");
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style hbond/dreiding requires newton pair on");
+    error->all(FLERR,"Pair style hbond/dreiding/morse requires newton pair on");
 
   // set donor[M]/acceptor[M] if any atom of type M is a donor/acceptor
 
@@ -346,7 +346,7 @@ void PairHbondDreidingMorse::init_style()
           acceptor[j] = 1;
         }
 
-  if (!anyflag) error->all(FLERR,"No pair hbond/dreiding coefficients set");
+  if (!anyflag) error->all(FLERR,"No pair hbond/dreiding/morse coefficients set");
 
   // set additional param values
   // offset is for Morse only, angle term is not included

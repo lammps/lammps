@@ -27,7 +27,8 @@ Syntax
 * angle_cutoff = global angle cutoff for Acceptor-Hydrogen-Donor interactions (degrees)
 * equilibrium_angle = global equilibrium angle for Acceptor-Hydrogen-Donor interactions (degrees)
 
-(Tips: angle offset is the supplementary angle of equilibrium angle. It means if equilibrium angle is 166.6, the angle offset is 13.4)
+(Tips: angle offset is the supplementary angle of the equilibrium angle. It means if the
+equilibrium angle is 166.6, the angle offset is 13.4)
 
 Examples
 """"""""
@@ -117,7 +118,8 @@ follows:
 Additional Information
 """"""""""""""""""""""
 
-For more information about DREIDING force field and other notes, please refer to the documentation of *hbond/dreiding* styles.
+For more information about DREIDING force field and other notes, please refer
+to the :doc:`documentation of the *hbond/dreiding* styles <hbond/dreiding>`.
 
 ----------
 

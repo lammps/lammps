@@ -37,7 +37,7 @@
 #endif
 
 // with KOKKOS in CUDA, HIP, or SYCL mode we can only have
-//  CUFFT/HIPFFT/oneMKL or KISS, thus undefine all other
+//  CUFFT/HIPFFT/MKL_GPU or KISS, thus undefine all other
 //  FFTs here
 
 #ifdef KOKKOS_ENABLE_CUDA

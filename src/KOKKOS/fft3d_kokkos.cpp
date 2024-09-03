@@ -44,7 +44,6 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
   int ngpus = lmp->kokkos->ngpus;
   ExecutionSpace execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
-  // CHRIS:: what about supporting MKL on both CPU and GPU in same build??
 #if defined(FFT_KOKKOS_MKL_GPU)
   if (ngpus > 0 && execution_space == Host)
     lmp->error->all(FLERR,"Cannot use the MKL library with Kokkos on the host CPUs in a GPU build");

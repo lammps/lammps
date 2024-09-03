@@ -172,6 +172,7 @@ int lammps_map_atom(void *handle, const void *id);
  * ---------------------------------------------------------------------- */
 
 int lammps_extract_atom_datatype(void *handle, const char *name);
+int lammps_extract_atom_size(void *handle, const char *name, int type);
 void *lammps_extract_atom(void *handle, const char *name);
 
 /* ----------------------------------------------------------------------

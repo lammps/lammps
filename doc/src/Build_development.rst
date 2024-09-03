@@ -630,11 +630,35 @@ The following target are available for both, GNU make and CMake:
 GitHub command line interface
 -----------------------------
 
-GitHub is developing a `tool for the command line
-<https://cli.github.com>`_ that interacts with the GitHub website via a
-command called ``gh``.  This can be extremely convenient when working
-with a Git repository hosted on GitHub (like LAMMPS).  It is thus highly
-recommended to install it when doing LAMMPS development.
+GitHub has developed a `command line tool <https://cli.github.com>`_
+to interact with the GitHub website via a command called ``gh``.
+This is extremely convenient when working with a Git repository hosted
+on GitHub (like LAMMPS).  It is thus highly recommended to install it
+when doing LAMMPS development.  To use ``gh`` you must be within a git
+checkout of a repository and you must obtain an authentication token
+to connect your checkout with a GitHub user.  This is done with the
+command: ``gh auth login`` where you then have to follow the prompts.
+Here are some examples:
 
-The capabilities of the ``gh`` command is continually expanding, so
-please see the documentation at https://cli.github.com/manual/
+.. list-table::
+   :header-rows: 1
+   :widths: 34 66
+
+   * - Command
+     - Description
+   * - ``gh pr list``
+     - List currently open pull requests
+   * - ``gh pr checks 404``
+     - Shows the status of all checks for pull request #404
+   * - ``gh pr view 404``
+     - Shows the description and recent comments for pull request #404
+   * - ``gh co 404``
+     - Check out the branch from pull request #404; set up for pushing changes
+   * - ``gh issue list``
+     - List currently open issues
+   * - ``gh issue view 430 --comments``
+     - Shows the description and all comments for issue #430
+
+The capabilities of the ``gh`` command are continually expanding, so
+for more details please see the documentation at https://cli.github.com/manual/
+or use ``gh --help`` or ``gh <command> --help`` for embedded help.

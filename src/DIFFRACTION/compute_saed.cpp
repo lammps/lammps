@@ -401,7 +401,7 @@ void ComputeSAED::compute_vector()
 
   // Setting up OMP
 #if defined(_OPENMP)
-  if (me == 0 && echo) utils::logmesg(lmp," using {}OMP threads\n",comm->nthreads);
+  if (me == 0 && echo) utils::logmesg(lmp," using {} OMP thread(s)\n",comm->nthreads);
 #endif
 
   if (me == 0 && echo) utils::logmesg(lmp,"\n");
@@ -478,7 +478,7 @@ void ComputeSAED::compute_vector()
         }
       }
     } // End of pragma omp for region
-    delete [] f;
+    delete[] f;
   }
 
   auto scratch = new double[2*nRows];
@@ -499,10 +499,10 @@ void ComputeSAED::compute_vector()
     utils::logmesg(lmp," 100% \nTime elapsed during compute_saed = {:.2f} sec "
                    "using {:.2f} Mbytes/processor\n-----\n", t2-t0, bytes/1024.0/1024.0);
 
-  delete [] xlocal;
-  delete [] typelocal;
-  delete [] scratch;
-  delete [] Fvec;
+  delete[] xlocal;
+  delete[] typelocal;
+  delete[] scratch;
+  delete[] Fvec;
 }
 
 /* ----------------------------------------------------------------------

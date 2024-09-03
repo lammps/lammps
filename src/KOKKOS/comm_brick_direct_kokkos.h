@@ -24,9 +24,13 @@ class CommBrickDirectKokkos : public CommBrickDirect {
   CommBrickDirectKokkos(class LAMMPS *);
   CommBrickDirectKokkos(class LAMMPS *, class Comm *);
   ~CommBrickDirectKokkos() override;
-
   void setup() override;                        // setup direct comm data structs
+
+  using CommBrick::forward_comm;
+  using CommBrick::reverse_comm;
   void forward_comm(int dummy = 0) override;    // forward comm of atom coords
+  void reverse_comm() override;                 // reverse comm of atom coords
+  void exchange() override;                     // move atoms to new procs
   void borders() override;                      // setup list of atoms to comm
 
   template<class DeviceType> void forward_comm_device();

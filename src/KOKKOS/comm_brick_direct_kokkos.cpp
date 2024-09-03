@@ -211,6 +211,44 @@ void CommBrickDirectKokkos::forward_comm_device()
 }
 
 /* ----------------------------------------------------------------------
+   reverse communication of forces on atoms every timestep
+   other per-atom attributes may also be sent via pack/unpack routines
+------------------------------------------------------------------------- */
+
+void CommBrickDirectKokkos::reverse_comm()
+{
+  if (comm_f_only)
+    atomKK->sync(Host,F_MASK);
+  else
+    atomKK->sync(Host,ALL_MASK);
+
+  CommBrickDirect::reverse_comm();
+
+  if (comm_f_only)
+    atomKK->modified(Host,F_MASK);
+  else
+    atomKK->modified(Host,ALL_MASK);
+}
+
+/* ----------------------------------------------------------------------
+   exchange: move atoms to correct processors
+   atoms exchanged with all 6 stencil neighbors
+   send out atoms that have left my box, receive ones entering my box
+   atoms will be lost if not inside some proc's box
+     can happen if atom moves outside of non-periodic boundary
+     or if atom moves more than one proc away
+   this routine called before every reneighboring
+   for triclinic, atoms must be in lamda coords (0-1) before exchange is called
+------------------------------------------------------------------------- */
+
+void CommBrickDirectKokkos::exchange()
+{
+  atomKK->sync(Host,ALL_MASK);
+  CommBrickDirect::exchange();
+  atomKK->modified(Host,ALL_MASK);
+}
+
+/* ----------------------------------------------------------------------
    borders: list nearby atoms to send to neighboring procs at every timestep
    one list is created for every swap that will be made
    as list is made, actually do swaps

@@ -147,7 +147,6 @@ void CommBrickDirectKokkos::forward_comm_device()
     if (proc_direct[iswap] == me) continue;
     if (size_forward_recv_direct[iswap]) {
       if (comm_x_only) {
-        atomKK->k_x.sync<DeviceType>();
         buf = atomKK->k_x.view<DeviceType>().data() + firstrecv_direct[iswap]*atomKK->k_x.view<DeviceType>().extent(1);
       } else {
         offset = recv_offset_forward_direct[iswap];
@@ -165,6 +164,9 @@ void CommBrickDirectKokkos::forward_comm_device()
   k_pbc_flag_direct.sync<DeviceType>();
   k_pbc_direct.sync<DeviceType>();
   k_self_flag.sync<DeviceType>();
+  k_sendatoms_list.sync<DeviceType>();
+  k_sendnum_scan_direct.sync<DeviceType>();
+  k_firstrecv_direct.sync<DeviceType>();
 
   if (ghost_velocity) {
     //atomKK->avecKK->pack_comm_vel_direct(totalsend,k_sendatoms_list,
@@ -261,6 +263,10 @@ void CommBrickDirectKokkos::borders()
 
   if (totalsend*size_forward > k_buf_send_direct.d_view.extent(0))
     grow_send_direct(totalsend*size_forward,0);
+
+  k_sendatoms_list.modify_host();
+  k_sendnum_scan_direct.modify_host();
+  k_firstrecv_direct.modify_host();
 }
 
 /* ----------------------------------------------------------------------

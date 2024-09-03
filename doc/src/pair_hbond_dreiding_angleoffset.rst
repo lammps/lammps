@@ -118,6 +118,12 @@ follows:
 Additional Information
 """"""""""""""""""""""
 
+These pair styles do not support mixing. You must explicitly identify
+each donor/acceptor type pair.
+
+These styles do not support the :doc:`pair_modify <pair_modify>` shift
+option for the energy of the interactions.
+
 For more information about DREIDING force field and other notes, please refer
 to the :doc:`documentation of the *hbond/dreiding* pair styles <pair_hbond_dreiding>`.
 

@@ -274,7 +274,7 @@ void PairHbondDreidingMorseAngleoffset::coeff(int narg, char **arg)
   double cut_angle_one = cut_angle_global;
   if (narg > 10) cut_angle_one = utils::numeric(FLERR, arg[10], false, lmp) * MY_PI/180.0;
   double angle_offset_one = angle_offset_global;
-  if (narg == 12) angle_offset_one = (180.0 - utils::numeric(FLERR,arg[11],false,lmp)) * MY_PI/180.0;
+  if (narg == 12) angle_offset_one = (180.0 - utils::numeric(FLERR, arg[11], false, lmp)) * MY_PI/180.0;
   if (angle_offset_one < 0.0 || angle_offset_one > 90.0 * MY_PI/180.0)
     error->all(FLERR,"Illegal angle offset");
 

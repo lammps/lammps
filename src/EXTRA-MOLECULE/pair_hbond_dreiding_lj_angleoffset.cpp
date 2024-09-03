@@ -305,13 +305,13 @@ void PairHbondDreidingLJangleoffset::allocate()
 
 void PairHbondDreidingLJangleoffset::settings(int narg, char **arg)
 {
-  if (narg != 5) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 5) error->all(FLERR, "Illegal pair_style command");
 
-  ap_global = utils::inumeric(FLERR,arg[0],false,lmp);
-  cut_inner_global = utils::numeric(FLERR,arg[1],false,lmp);
-  cut_outer_global = utils::numeric(FLERR,arg[2],false,lmp);
-  cut_angle_global = utils::numeric(FLERR,arg[3],false,lmp) * MY_PI/180.0;
-  angle_offset_global = (180.0 - utils::numeric(FLERR,arg[4],false,lmp)) * MY_PI/180.0;
+  ap_global = utils::inumeric(FLERR, arg[0], false, lmp);
+  cut_inner_global = utils::numeric(FLERR, arg[1], false, lmp);
+  cut_outer_global = utils::numeric(FLERR, arg[2], false, lmp);
+  cut_angle_global = utils::numeric(FLERR, arg[3], false, lmp) * MY_PI/180.0;
+  angle_offset_global = (180.0 - utils::numeric(FLERR, arg[4], false, lmp)) * MY_PI/180.0;
 }
 
 /* ----------------------------------------------------------------------

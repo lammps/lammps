@@ -78,7 +78,7 @@ void CommBrickDirectKokkos::setup()
   MemKK::realloc_kokkos(k_swap2list,"comm_direct:swap2list",ndirect);
   MemKK::realloc_kokkos(k_pbc_flag_direct,"comm_direct:pbc_flag",ndirect);
   MemKK::realloc_kokkos(k_pbc_direct,"comm_direct:pbc",ndirect,6);
-  MemKK::realloc_kokkos(k_self_flags,"comm_direct:pbc",ndirect);
+  MemKK::realloc_kokkos(k_self_flag,"comm_direct:pbc",ndirect);
 
   for (int iswap = 0; iswap < ndirect; iswap++) {
     k_swap2list.h_view[iswap] = swap2list[iswap];
@@ -89,13 +89,13 @@ void CommBrickDirectKokkos::setup()
     k_pbc_direct.h_view(iswap,3) = pbc_direct[iswap][3];
     k_pbc_direct.h_view(iswap,4) = pbc_direct[iswap][4];
     k_pbc_direct.h_view(iswap,5) = pbc_direct[iswap][5];
-    k_self_flags.h_view(iswap) = proc_direct[iswap]==me;
+    k_self_flag.h_view(iswap) = proc_direct[iswap] == me;
   }
 
   k_swap2list.modify_host();
   k_pbc_flag_direct.modify_host();
   k_pbc_direct.modify_host();
-  k_self_flags.modify_host();
+  k_self_flag.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -148,7 +148,7 @@ void CommBrickDirectKokkos::forward_comm_device()
     if (size_forward_recv_direct[iswap]) {
       if (comm_x_only) {
         atomKK->k_x.sync<DeviceType>();
-        buf = atomKK->k_x.view<DeviceType>().data() + firstrecv_direct[iswap];
+        buf = atomKK->k_x.view<DeviceType>().data() + firstrecv_direct[iswap]*atomKK->k_x.view<DeviceType>().extent(1);
       } else {
         offset = recv_offset_forward_direct[iswap];
         buf = k_buf_recv_direct.view<DeviceType>().data() + offset;
@@ -164,7 +164,7 @@ void CommBrickDirectKokkos::forward_comm_device()
   k_swap2list.sync<DeviceType>();
   k_pbc_flag_direct.sync<DeviceType>();
   k_pbc_direct.sync<DeviceType>();
-  k_self_flags.sync<DeviceType>();
+  k_self_flag.sync<DeviceType>();
 
   if (ghost_velocity) {
     //atomKK->avecKK->pack_comm_vel_direct(totalsend,k_sendatoms_list,
@@ -174,7 +174,7 @@ void CommBrickDirectKokkos::forward_comm_device()
     atomKK->avecKK->pack_comm_direct(totalsend,k_sendatoms_list,
                         k_sendnum_scan_direct,k_firstrecv_direct,
                         k_pbc_flag_direct,k_pbc_direct,
-                        k_swap2list,k_buf_send_direct,k_self_flags);
+                        k_swap2list,k_buf_send_direct,k_self_flag);
   }
 
   // send all owned atoms to receiving procs
@@ -182,11 +182,11 @@ void CommBrickDirectKokkos::forward_comm_device()
 
   offset = 0;
   for (int iswap = 0; iswap < ndirect; iswap++) {
-    if (proc_direct[iswap] == me) continue;
     if (sendnum_direct[iswap]) {
       int n = sendnum_direct[iswap]*atomKK->avecKK->size_forward;
-      MPI_Send(k_buf_send_direct.view<DeviceType>().data() + offset,n,MPI_DOUBLE,proc_direct[iswap],sendtag[iswap],world);
-      offset += n; // TODO: check
+      if (proc_direct[iswap] != me)
+        MPI_Send(k_buf_send_direct.view<DeviceType>().data() + offset,n,MPI_DOUBLE,proc_direct[iswap],sendtag[iswap],world);
+      offset += n;
     }
   }
 
@@ -237,9 +237,9 @@ void CommBrickDirectKokkos::borders()
   if (k_sendatoms_list.d_view.extent(1) < maxsend)
     MemKK::realloc_kokkos(k_sendatoms_list,"comm_direct:sendatoms_list",maxlist,maxsend);
 
-  if(k_sendnum_scan_direct.extent(0) < nswap) {
-    MemKK::realloc_kokkos(k_sendnum_scan_direct,"comm_direct:sendnum_scan",nswap);
-    MemKK::realloc_kokkos(k_firstrecv_direct,"comm_direct:firstrecv",nswap);
+  if(k_sendnum_scan_direct.extent(0) < ndirect) {
+    MemKK::realloc_kokkos(k_sendnum_scan_direct,"comm_direct:sendnum_scan",ndirect);
+    MemKK::realloc_kokkos(k_firstrecv_direct,"comm_direct:firstrecv",ndirect);
   }
 
   for (int ilist = 0; ilist < maxlist; ilist++) {
@@ -249,7 +249,7 @@ void CommBrickDirectKokkos::borders()
   }
 
   int scan = 0;
-  for (int iswap = 0; iswap < nswap; iswap++) {
+  for (int iswap = 0; iswap < ndirect; iswap++) {
     scan += sendnum_direct[iswap];
     k_sendnum_scan_direct.h_view[iswap] = scan;
     k_firstrecv_direct.h_view[iswap] = firstrecv_direct[iswap];
@@ -258,8 +258,8 @@ void CommBrickDirectKokkos::borders()
 
   // grow send and recv buffers
 
-  if (totalsend > k_buf_send_direct.d_view.extent(0))
-    grow_send_direct(totalsend,0);
+  if (totalsend*size_forward > k_buf_send_direct.d_view.extent(0))
+    grow_send_direct(totalsend*size_forward,0);
 }
 
 /* ----------------------------------------------------------------------

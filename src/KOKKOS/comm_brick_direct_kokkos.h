@@ -39,7 +39,7 @@ class CommBrickDirectKokkos : public CommBrickDirect {
   DAT::tdual_int_1d k_pbc_flag_direct;
   DAT::tdual_int_1d k_firstrecv_direct;
   DAT::tdual_int_1d k_sendnum_scan_direct;
-  DAT::tdual_int_1d k_self_flags;
+  DAT::tdual_int_1d k_self_flag;
   int totalsend;
 
   void grow_send_direct(int, int) override;

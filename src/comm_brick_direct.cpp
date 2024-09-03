@@ -145,8 +145,8 @@ void CommBrickDirect::init_buffers_direct()
 
 void CommBrickDirect::init()
 {
-  init_buffers_direct();
   CommBrick::init();
+  init_buffers_direct();
 
   // disallow options not supported by CommBrickDirect
 

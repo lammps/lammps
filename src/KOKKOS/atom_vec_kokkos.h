@@ -76,7 +76,7 @@ class AtomVecKokkos : virtual public AtomVec {
                      const DAT::tdual_int_2d &pbc,
                      const DAT::tdual_int_1d &swap2llist,
                      const DAT::tdual_xfloat_1d &buf,
-                     const DAT::tdual_int_1d &k_self_flags);
+                     const DAT::tdual_int_1d &k_self_flag);
 
   virtual void
     unpack_comm_kokkos(const int &n, const int &nfirst,

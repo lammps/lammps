@@ -243,6 +243,7 @@ void CommBrickDirectKokkos::borders()
   }
 
   for (int ilist = 0; ilist < maxlist; ilist++) {
+    if (!active_list[ilist]) continue;
     const int nsend = sendnum_list[ilist];
     for (int i = 0; i < nsend; i++)
       k_sendatoms_list.h_view(ilist,i) = sendatoms_list[ilist][i];

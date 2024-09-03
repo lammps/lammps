@@ -203,7 +203,7 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
   const int *type = atom->type;
   const int ntypes = atom->ntypes;
 
-  // read gaussian exponents
+  // read gaussian orbital exponents
   memory->create(gauss_exp,ntypes+1,"qtpie/reaxff:gauss_exp");
   if (comm->me == 0) {
     gauss_exp[0] = 0.0;
@@ -225,11 +225,11 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
           throw TokenizerException("Fix qtpie/reaxff: Invalid atom type in gauss file",
                                    std::to_string(itype));
 
-	double expo = values.next_double();
-	if (expo < 0)
+	double exp = values.next_double();
+	if (exp < 0)
           throw TokenizerException("Fix qtpie/reaxff: Invalid orbital exponent in gauss file",
-                                   std::to_string(expo));
-        gauss_exp[itype] = expo;
+                                   std::to_string(exp));
+        gauss_exp[itype] = exp;
       }
     } catch (std::exception &e) {
       error->one(FLERR,e.what());
@@ -240,9 +240,9 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
 
   // define a cutoff distance (in atomic units) beyond which overlap integrals are neglected
   // in calc_chi_eff()
-  const double emin = find_min(gauss_exp,ntypes+1);
+  const double expmin = find_min(gauss_exp,ntypes+1);
   const int olap_cut = 10; // overlap integrals are neglected if less than pow(10,-olap_cut)
-  dist_cutoff = sqrt(1/emin*log(pow(10.0,2.0*olap_cut)));
+  dist_cutoff = sqrt(2*olap_cut/expmin*log(10.0));
 
   // read chi, eta and gamma
 
@@ -1158,7 +1158,7 @@ void FixQtpieReaxFF::calc_chi_eff()
   const int ntypes = atom->ntypes;
   const int *type = atom->type;
 
-  double dist,overlap,sum_n,sum_d,ea,eb,chia,chib,phia,phib,p,m;
+  double dist,overlap,sum_n,sum_d,expa,expb,chia,chib,phia,phib,p,m;
   int i,j;
 
   // check ghost atoms are stored up to the distance cutoff for overlap integrals
@@ -1180,7 +1180,7 @@ void FixQtpieReaxFF::calc_chi_eff()
 
   // compute chi_eff for each local atom
   for (i = 0; i < nn; i++) {
-    ea = gauss_exp[type[i]];
+    expa = gauss_exp[type[i]];
     chia = chi[type[i]];
     if (efield) {
       if (efield->varflag != FixEfield::ATOM) {
@@ -1197,12 +1197,12 @@ void FixQtpieReaxFF::calc_chi_eff()
       dist = distance(x[i],x[j])*ANGSTROM_TO_BOHRRADIUS; // in atomic units
 
       if (dist < dist_cutoff) {
-        eb = gauss_exp[type[j]];
+        expb = gauss_exp[type[j]];
         chib = chi[type[j]];
 
 	// overlap integral of two normalised 1s Gaussian type orbitals 
-        p = ea + eb;
-        m = ea * eb / p;
+        p = expa + expb;
+        m = expa * expb / p;
         overlap = pow((4.0*m/p),0.75) * exp(-m*dist*dist);
 
         if (efield) {

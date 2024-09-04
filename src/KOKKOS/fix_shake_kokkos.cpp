@@ -173,17 +173,6 @@ void FixShakeKokkos<DeviceType>::init()
 }
 
 /* ----------------------------------------------------------------------
-   SHAKE as pre-integrator constraint
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixShakeKokkos<DeviceType>::setup(int vflag)
-{
-  FixShake::setup(vflag);
-  atomKK->sync(Host,F_MASK);
-}
-
-/* ----------------------------------------------------------------------
    run setup for minimization.
 ------------------------------------------------------------------------- */
 

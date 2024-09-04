@@ -52,6 +52,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'lammps_theme',
     'sphinxcontrib.jquery',
+    'sphinxcontrib.youtube',
     'sphinxfortran.fortran_domain',
     'sphinx_tabs.tabs',
     'table_from_list',

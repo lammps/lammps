@@ -13,8 +13,8 @@ mass 2 15.999
 molecule H2 H2.txt
 molecule O2 O2.txt
 
-create_atoms 0 random 2000 12345 NULL overlap 1.0 maxtry 100 mol H2 12345
-create_atoms 0 random 1000 12345 NULL overlap 1.0 maxtry 100 mol O2 12345
+create_atoms 0 random 20000 12345 NULL overlap 1.0 maxtry 100 mol H2 12345
+create_atoms 0 random 10000 12345 NULL overlap 1.0 maxtry 100 mol O2 12345
 velocity all create 1000 12345
 
 pair_style      reaxff lmp_control
@@ -22,6 +22,7 @@ pair_coeff      * * ffield.reax.cho H O
 
 neighbor        2 bin
 neigh_modify    every 10 delay 0 check no
+
 
 variable dt equal 0.1
 timestep        ${dt}
@@ -34,6 +35,8 @@ fix             3 all reaxff/species 10 10 100 species.out
 
 thermo 100
 thermo_style custom step time spcpu cpuremain temp press vol density
+
+minimize 0.0 1.0e-8 1000 10000
 
 dump 1 all movie 100 hydrogen_combustion.mkv type type size 800 800
 dump_modify 1 acolor * white/red/green/blue/aqua/magenta

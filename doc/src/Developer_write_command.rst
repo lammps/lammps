@@ -72,7 +72,7 @@ LAMMPS build process, if it is not found locally.  The
 ``target_compile_definitions()`` function added the define ``-DLAMMPS_CURL``
 to the compilation flags when compiling objects for the LAMMPS library.
 This allows to always compile the :doc:`geturl command <geturl>`, but use
-preprocessing to compile in the interface to *libcurl* only when it is
+pre-processing to compile in the interface to *libcurl* only when it is
 present and usable and otherwise stop with an error message about the
 unavailability of *libcurl* to execute the functionality of the command.
 
@@ -205,13 +205,13 @@ is beneficial to use some kind of "permanent" email address, if possible.
    using namespace LAMMPS_NS;
 
 The second section of the implementation file has various include
-statements.  The include file for the class header has to come first,
-then a couple of LAMMPS classes (sorted alphabetically) followed by a
-block of system headers and others, if needed.  Note the standardized
-C++ notation for headers of C-library functions (``cmath`` instead of
-``math.h``).  The final statement of this segment imports the
-``LAMMPS_NS::`` namespace globally for this file.  This way, all LAMMPS
-specific functions and classes do not have to be prefixed with
+statements.  The include file for the class header has to come first, then a
+couple of LAMMPS classes (sorted alphabetically) followed by the header for
+the *libcurl* interface.  This is wrapped into an ``#ifdef`` block so that
+LAMMPS will compile this file without error when the *libcurl* header is not
+available and thus the define not set.  The final statement of this segment
+imports the ``LAMMPS_NS::`` namespace globally for this file.  This way, all
+LAMMPS specific functions and classes do not have to be prefixed with
 ``LAMMPS_NS::``.
 
 The command() function (required)
@@ -233,6 +233,13 @@ style and that is the ``command()`` function.
      int overwrite = 1;
      int verbose = 0;
 
+This first part also has the ``#ifdef`` block depending on the LAMMPS_CURL
+define.  This way the command will simply print an error, if *libcurl* is
+not available but will not fail to compile.  Furthermore, it sets the
+defaults for the following optional arguments.
+
+.. code-block:: c++
+
      // process arguments
 
      std::string url = arg[0];
@@ -244,6 +251,12 @@ style and that is the ``command()`` function.
 
      std::string output = url.substr(url.find_last_of('/') + 1);
      if (output.empty()) error->all(FLERR, "URL '{}' must end in a file string", url);
+
+This block stores the positional, i.e. non-optional argument of the URL to
+be downloaded and adds a couple of sanity checks on the string to make sure it is
+a valid URL.  Also it derives the default name of the output file from the URL.
+
+.. code-block:: c++
 
      int iarg = 1;
      while (iarg < narg) {
@@ -269,6 +282,9 @@ style and that is the ``command()`` function.
        ++iarg;
      }
 
+This block parses the optional arguments following the URL and stops with an
+error if there are arguments missing or an unknown argument is encountered.
+
 .. code-block:: c++
 
      // only download files from rank 0
@@ -282,6 +298,10 @@ style and that is the ``command()`` function.
      FILE *out = fopen(output.c_str(), "wb");
      if (!out)
        error->all(FLERR, "Cannot open output file {} for writing: {}", output, utils::getsyserror());
+
+Here all MPI ranks other than 0 will return, so that the URL download will
+only happen from a single MPI rank. For that rank the output file is opened
+for writing using the C library function ``fopen()``.
 
 .. code-block:: c++
 
@@ -311,8 +331,18 @@ style and that is the ``command()`` function.
                     response);
        }
        curl_easy_cleanup(curl);
+
+This block now implements the actual URL download with the selected options
+via the "easy" interface of *libcurl*.  For the details of what these
+function calls do, please have a look at the `*libcurl documentation
+<https://curl.se/libcurl/c/allfuncs.html>`_.
+
+ .. code-block:: c++
+
      }
      curl_global_cleanup();
      fclose(out);
    #endif
    }
+
+Finally, the previously opened file is closed and the command is complete.

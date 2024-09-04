@@ -62,12 +62,17 @@ kinetic energy is computed as :math:`\frac12 I \omega^2`, where :math:`I`
 is the moment of inertia tensor for the aspherical particle and :math:`\omega`
 is its angular velocity, which is computed from its angular momentum.
 
-A kinetic energy tensor, stored as a 6-element vector, is also calculated by
-this compute.  The formula for the components of the tensor is the same as the
-above formula, except that :math:`v^2` and :math:`\omega^2` are
-replaced by :math:`v_x v_y` and :math:`\omega_x \omega_y` for the
-math:`xy` component, and the appropriate elements of the inertia tensor are
-used.  The six components of the vector are ordered :math:`xx`, :math:`yy`,
+A symmetric tensor, stored as a six-element vector, is also calculated
+by this compute for use in the computation of a pressure tensor by the
+:doc:`compute pressue <compute_pressure>` command.  The formula for
+the components of the tensor is the same as the above expression for
+:math:`E_\mathrm{kin}`, except that the 1/2 factor is NOT included and
+the :math:`v_i^2` and :math:`\omega^2` are replaced by :math:`v_x v_y`
+and :math:`\omega_x \omega_y` for the :math:`xy` component, and so on.
+And the appropriate elements of the moment of inertia tensor are used.
+Note that because it lacks the 1/2 factor, these tensor components are
+twice those of the traditional kinetic energy tensor.  The six
+components of the vector are ordered :math:`xx`, :math:`yy`,
 :math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`.
 
 The number of atoms contributing to the temperature is assumed to be
@@ -111,17 +116,17 @@ Output info
 """""""""""
 
 This compute calculates a global scalar (the temperature) and a global
-vector of length 6 (KE tensor), which can be accessed by indices 1--6.
-These values can be used by any command that uses global scalar or
-vector values from a compute as input.
-See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS
+vector of length 6 (symmetric tensor), which can be accessed by
+indices 1--6.  These values can be used by any command that uses
+global scalar or vector values from a compute as input.  See the
+:doc:`Howto output <Howto_output>` page for an overview of LAMMPS
 output options.
 
 The scalar value calculated by this compute is "intensive".  The
 vector values are "extensive".
 
-The scalar value will be in temperature :doc:`units <units>`.
-The vector values will be in energy :doc:`units <units>`.
+The scalar value is in temperature :doc:`units <units>`.  The vector
+values are in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""

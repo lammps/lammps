@@ -283,7 +283,7 @@ in the ``examples/kim/plugin`` folder.  No changes to the sources of the
 KIM package themselves are needed; only the plugin interface and loader
 code needs to be added.  This example only supports building with CMake,
 but is probably a more typical example. To compile you need to run CMake
-with -DLAMMPS_SOURCE_DIR=<path/to/lammps/src/folder>.  Other
+with ``-DLAMMPS_SOURCE_DIR=<path/to/lammps/src/folder>``.  Other
 configuration setting are identical to those for compiling LAMMPS.
 
 A second example for a plugin from a package is in the

@@ -1005,8 +1005,6 @@ int utils::expand_type_int(const char *file, int line, const std::string &str, i
   char *typestr = expand_type(file, line, str, mode, lmp);
   int type = inumeric(file, line, typestr ? typestr : str, false, lmp);
   if (verify) {
-    int errorflag = 0;
-    if (type <= 0) errorflag = 1;
     int nmax;
     switch (mode) {
       case Atom::ATOM:
@@ -1024,10 +1022,12 @@ int utils::expand_type_int(const char *file, int line, const std::string &str, i
       case Atom::IMPROPER:
         nmax = lmp->atom->nimpropertypes;
         break;
+      default:
+        nmax = 0;
     }
-    if (type > nmax) errorflag = 1;
-    if (errorflag) lmp->error->all(file, line,  "{} type {} is out of bounds ({}-{})",
-                                   labeltypes[mode], type, 1, nmax);
+    if ((type <= 0) || (type > nmax))
+      lmp->error->all(file, line, "{} type {} is out of bounds ({}-{})", labeltypes[mode], type, 1,
+                      nmax);
   }
   delete[] typestr;
   return type;

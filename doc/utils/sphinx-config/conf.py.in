@@ -90,6 +90,16 @@ def get_lammps_version():
         end_pos = line.find('"', start_pos)
         return line[start_pos:end_pos]
 
+def get_lammps_update():
+    import os
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(LAMMPS_SOURCE_DIR, 'version.h'), 'r') as f:
+        line = f.readline()
+        line = f.readline()
+        start_pos = line.find('"')+1
+        end_pos = line.find('"', start_pos)
+        return line[start_pos:end_pos]
+
 def get_git_info():
     import subprocess,time
 
@@ -97,10 +107,10 @@ def get_git_info():
     try:
         gitinfo = subprocess.run(['git','describe'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         if gitinfo.returncode == 0:
-            git_n_date = gitinfo.stdout.decode().replace('_',' ').replace('patch ','')
+            git_n_date = gitinfo.stdout.decode().replace('_',' ').replace('patch ','').replace('stable ','')
     except:
         pass
-    return git_n_date
+    return git_n_date.strip()
 
 def get_git_commit():
     import subprocess,time
@@ -290,6 +300,16 @@ rst_prolog = r"""
 
 # -- Options for LaTeX output ---------------------------------------------
 
+latex_engine = 'pdflatex'
+if (get_lammps_update() == 'Development') or (get_lammps_update() == 'Maintenance'):
+    if get_git_info() == '':
+       lammpsversion =  format("\\newcommand{\\lammpsversion}{%s %s}\n" \
+                        % (get_lammps_update(), get_lammps_version()))
+    else:
+       lammpsversion =  format("\\newcommand{\\lammpsversion}{Git: %s}\n" % (get_git_info()))
+else:
+    lammpsversion =  format("\\newcommand{\\lammpsversion}{Release %s %s}\n" \
+                        % (get_lammps_version(), get_lammps_update()))
 latex_elements = {
 # The paper size ('letterpaper' or 'a4paper').
 #'papersize': 'letterpaper',
@@ -300,6 +320,7 @@ latex_elements = {
 # Additional stuff for the LaTeX preamble.
 'preamble': r'''
 \setcounter{tocdepth}{2}
+\setcounter{part}{-1}
 \renewcommand{\sfdefault}{ptm}  % Use Times New Roman font for \textrm
 \renewcommand{\sfdefault}{phv}  % Use Helvetica font for \textsf
 \usepackage[columns=1]{idxlayout} % create index with only one column
@@ -338,12 +359,45 @@ latex_elements = {
 % Make ToC number fields wider to accommodate sections with >= 100 subsections
 %   or >= 10 subsections with >= 10 subsubsections
 \makeatletter
+% reset chapter counter for each part
 \@addtoreset{chapter}{part}
 \renewcommand*{\sphinxtableofcontentshook}{%
   \renewcommand*\l@section{\@dottedtocline{1}{1.5em}{3.1em}}
   \renewcommand*\l@subsection{\@dottedtocline{2}{4.6em}{4.5em}}
 }
 \makeatother
+''',
+'maketitle': lammpsversion + r'''
+% customized titlepage
+{%
+  \hypersetup{pageanchor=false}% avoid duplicate destination warnings
+  \begin{titlepage}%
+    \sffamily\bfseries
+    \begingroup % for PDF information dictionary
+      \def\endgraf{ }\def\and{\& }%
+      \pdfstringdefDisableCommands{\def\\{, }}% overwrite hyperref setup
+      \hypersetup{pdfauthor={The LAMMPS Developers}, pdftitle={LAMMPS Documentation}}%
+    \endgroup
+    \noindent\rule{\textwidth}{4pt}\par
+    \begin{center}%
+      \sphinxlogo
+      \vfill
+      {\Huge LAMMPS Documentation \par}
+      \vfill
+      {\LARGE \lammpsversion \par}
+      \vfill
+      {\LARGE The LAMMPS Developers \par}
+      {\Large developers@lammps.org $^*$ \par}
+      \vfill\vfill\vfill
+      {\normalsize ${}^*$ see
+        \sphinxhref{https://www.lammps.org/authors.html}{https://www.lammps.org/authors.html}
+        for details \par}
+    \end{center}
+    \noindent\rule{\textwidth}{4pt}\par
+  \end{titlepage}%
+  \setcounter{footnote}{0}%
+  \clearpage
+}
 ''',
 }
 
@@ -362,21 +416,15 @@ latex_documents = [
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-latex_logo = "_static/lammps-logo-large.jpg"
+latex_logo = "_static/lammps-logo-large.png"
 
-# For "manual" documents, if this is true, then toplevel headings are parts,
-# not chapters.
-#latex_use_parts = False
 latex_toplevel_sectioning = 'part'
+
 # If true, show page references after internal links.
 #latex_show_pagerefs = False
 
 # If true, show URL addresses after external links.
 latex_show_urls = 'no'
-# latex_show_urls = 'footnote'
-
-# Documents to append as an appendix to all manuals.
-#latex_appendices = []
 
 # If false, no module index is generated.
 latex_domain_indices = False

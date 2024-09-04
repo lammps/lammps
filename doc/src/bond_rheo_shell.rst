@@ -38,7 +38,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 The *rheo/shell* bond style is designed to work with
 :doc:`fix rheo/oxidation <fix_rheo_oxidation>` which creates candidate

@@ -350,6 +350,7 @@ models for mesoscale simulations of solids and fracture.  See the
 * :doc:`compute nbond/atom <compute_nbond_atom>`
 * :doc:`fix nve/bpm/sphere <fix_nve_bpm_sphere>`
 * :doc:`pair_style bpm/spring <pair_bpm_spring>`
+* https://www.lammps.org/movies.html#bpmpackage
 * ``examples/bpm``
 
 ----------
@@ -1822,7 +1823,8 @@ Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1.
 **Install:**
 
 This package has :ref:`specific installation instructions <ml-pace>` on the
-:doc:`Build extras <Build_extras>` page.
+:doc:`Build extras <Build_extras>` page.  This package may also be compiled
+as a plugin to avoid licensing conflicts when distributing binaries.
 
 **Supporting info:**
 
@@ -2343,7 +2345,9 @@ and Gareth Tribello.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <plumed>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <plumed>` on the
+:doc:`Build extras <Build_extras>` page.  This package may also be compiled
+as a plugin to avoid licensing conflicts when distributing binaries.
 
 **Supporting info:**
 
@@ -2641,7 +2645,7 @@ This package has :ref:`specific installation instructions <rheo>` on the :doc:`B
 **Authors:** Joel T. Clemmer (Sandia National Labs),
 Thomas C. O'Connor (Carnegie Mellon University)
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 **Supporting info:**
 
@@ -2658,6 +2662,7 @@ Thomas C. O'Connor (Carnegie Mellon University)
 * :doc:`fix rheo/viscosity <fix_rheo_viscosity>`
 * :doc:`pair_style rheo <pair_rheo>`
 * :doc:`pair_style rheo/solid <pair_rheo_solid>`
+* https://www.lammps.org/movies.html#rheopackage
 * ``examples/rheo``
 
 ----------

@@ -2,7 +2,12 @@
 LAMMPS Documentation (|version| version)
 ########################################
 
-**About LAMMPS and this manual**
+.. toctree::
+   :caption: About LAMMPS
+
+****************************
+About LAMMPS and this manual
+****************************
 
 LAMMPS stands for **L**\ arge-scale **A**\ tomic/**M**\ olecular
 **M**\ assively **P**\ arallel **S**\ imulator.

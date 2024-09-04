@@ -332,7 +332,8 @@ only if the OPENMP package was included. See the :doc:`Build package
 <Build_package>` page for more info.
 
 Run style *verlet/split* is not compatible with kspace styles from
-the INTEL package and it is not compatible with any TIP4P styles.
+the INTEL package and it is not compatible with any tip4p, dipole,
+or spin kspace styles.
 
 Whenever using rRESPA, the user should experiment with trade-offs in
 speed and accuracy for their system, and verify that they are

@@ -48,7 +48,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 This fix performs time integration of temperature for atom style rheo/thermal.
 In addition, it defines multiple thermal properties of particles and handles

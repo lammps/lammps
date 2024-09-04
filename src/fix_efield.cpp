@@ -56,7 +56,6 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
   ilevel_respa = 0;
   energy_global_flag = 1;
   virial_global_flag = virial_peratom_flag = 1;
-  fsum = new double[4];
 
   qe2f = force->qe2f;
   xstyle = ystyle = zstyle = estyle = pstyle = NONE;
@@ -132,7 +131,6 @@ FixEfield::~FixEfield()
 {
   if (copymode) return;
 
-  delete[] fsum;
   delete[] xstr;
   delete[] ystr;
   delete[] zstr;

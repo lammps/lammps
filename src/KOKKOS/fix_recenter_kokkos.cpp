@@ -114,9 +114,11 @@ void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 
   copymode = 1;
 
+  auto l_group2bit = group2bit;
+
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
-    LAMMPS_LAMBDA(int i) {
-      if (d_mask[i] & group2bit) {
+    KOKKOS_LAMBDA(const int i) {
+      if (d_mask[i] & l_group2bit) {
         d_x(i,0) += shift[0];
         d_x(i,1) += shift[1];
         d_x(i,2) += shift[2];

@@ -33,7 +33,7 @@ class FixShake : public Fix {
   ~FixShake() override;
   int setmask() override;
   void init() override;
-  virtual void setup(int) override;
+  void setup(int) override;
   void setup_pre_reverse(int, int) override;
   void min_setup(int) override;
   void pre_neighbor() override;

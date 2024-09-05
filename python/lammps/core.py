@@ -19,7 +19,8 @@ from __future__ import print_function
 import os
 import sys
 from ctypes import CDLL, POINTER, RTLD_GLOBAL, CFUNCTYPE, py_object, byref, cast, sizeof, \
-  create_string_buffer, c_int, c_int32, c_int64, c_double, c_void_p, c_char_p, pythonapi
+  create_string_buffer, c_int, c_int32, c_int64, c_double, c_void_p, c_char_p, pythonapi, \
+  pointer
 from os.path import dirname, abspath, join
 from inspect import getsourcefile
 

@@ -622,7 +622,7 @@ classes:
    of a dense, symmetric, real matrix.
 
 #. The "PEigenDense" class only calculates the principal eigenvalue
-   (ie. the largest or smallest eigenvalue), and its corresponding
+   (i.e. the largest or smallest eigenvalue), and its corresponding
    eigenvector.  However it is much more efficient than "Jacobi" when
    applied to large matrices (larger than 13x13).  PEigenDense also can
    understand complex-valued Hermitian matrices.

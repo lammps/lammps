@@ -20,15 +20,19 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QDir>
+#include <QDoubleValidator>
 #include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QFontMetrics>
 #include <QGuiApplication>
+#include <QHBoxLayout>
 #include <QIcon>
 #include <QImage>
 #include <QImageReader>
 #include <QKeySequence>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMenu>
 #include <QMenuBar>
 #include <QPalette>
@@ -133,9 +137,10 @@ static const QString blank(" ");
 
 ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent) :
     QDialog(parent), menuBar(new QMenuBar), imageLabel(new QLabel), scrollArea(new QScrollArea),
-    saveAsAct(nullptr), copyAct(nullptr), cmdAct(nullptr), zoomInAct(nullptr), zoomOutAct(nullptr),
-    normalSizeAct(nullptr), lammps(_lammps), group("all"), filename(fileName), useelements(false),
-    usediameter(false), usesigma(false)
+    buttonBox(nullptr), scaleFactor(1.0), atomSize(1.0), saveAsAct(nullptr), copyAct(nullptr),
+    cmdAct(nullptr), zoomInAct(nullptr), zoomOutAct(nullptr), normalSizeAct(nullptr),
+    lammps(_lammps), group("all"), filename(fileName), useelements(false), usediameter(false),
+    usesigma(false)
 {
     imageLabel->setBackgroundRole(QPalette::Base);
     imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -150,35 +155,49 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
 
     QSettings settings;
 
-    vdwfactor = 0.5;
-    auto pix  = QPixmap(":/icons/emblem-photos.png");
+    vdwfactor   = 0.5;
+    shinyfactor = 0.6;
+    auto pix    = QPixmap(":/icons/emblem-photos.png");
     xcenter = ycenter = zcenter = 0.5;
+    auto bsize = QFontMetrics(QApplication::font()).size(Qt::TextSingleLine, "Height:  200");
 
     auto *renderstatus = new QLabel(QString());
     renderstatus->setPixmap(pix.scaled(22, 22, Qt::KeepAspectRatio));
     renderstatus->setEnabled(false);
     renderstatus->setToolTip("Render status");
     renderstatus->setObjectName("renderstatus");
+    auto *asize = new QLineEdit(QString::number(atomSize));
+    auto *valid = new QDoubleValidator(1.0e-10, 1.0e10, 10, asize);
+    asize->setValidator(valid);
+    asize->setObjectName("atomSize");
+    asize->setToolTip("Set Atom size");
+    asize->setEnabled(false);
+    asize->hide();
     settings.beginGroup("snapshot");
     auto *xval = new QSpinBox;
     xval->setRange(100, 10000);
     xval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
-    xval->setValue(settings.value("xsize", "800").toInt());
+    xval->setValue(settings.value("xsize", "600").toInt());
     xval->setObjectName("xsize");
     xval->setToolTip("Set rendered image width");
+    xval->setMinimumSize(bsize);
     auto *yval = new QSpinBox;
     yval->setRange(100, 10000);
     yval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
     yval->setValue(settings.value("ysize", "600").toInt());
     yval->setObjectName("ysize");
     yval->setToolTip("Set rendered image height");
+    yval->setMinimumSize(bsize);
     settings.endGroup();
+    connect(asize, &QLineEdit::editingFinished, this, &ImageViewer::set_atom_size);
     connect(xval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
     connect(yval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
 
     // workaround for incorrect highlight bug on macOS
-    auto *dummy = new QPushButton(QIcon(), "");
-    dummy->hide();
+    auto *dummy1 = new QPushButton(QIcon(), "");
+    dummy1->hide();
+    auto *dummy2 = new QPushButton(QIcon(), "");
+    dummy2->hide();
 
     auto *dossao = new QPushButton(QIcon(":/icons/hd-img.png"), "");
     dossao->setCheckable(true);
@@ -188,6 +207,10 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     doanti->setCheckable(true);
     doanti->setToolTip("Toggle anti-aliasing");
     doanti->setObjectName("antialias");
+    auto *doshiny = new QPushButton(QIcon(":/icons/image-shiny.png"), "");
+    doshiny->setCheckable(true);
+    doshiny->setToolTip("Toggle shininess");
+    doshiny->setObjectName("shiny");
     auto *dovdw = new QPushButton(QIcon(":/icons/vdw-style.png"), "");
     dovdw->setCheckable(true);
     dovdw->setToolTip("Toggle VDW style representation");
@@ -229,32 +252,46 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
         combo->addItem(gname);
     }
 
-    auto *menuLayout = new QHBoxLayout;
+    auto *menuLayout   = new QHBoxLayout;
+    auto *buttonLayout = new QHBoxLayout;
+    auto *topLayout    = new QVBoxLayout;
+    topLayout->addLayout(menuLayout);
+    topLayout->addLayout(buttonLayout);
+
     menuLayout->addWidget(menuBar);
     menuLayout->addWidget(renderstatus);
+    menuLayout->addWidget(new QLabel(" Atom Size: "));
+    menuLayout->addWidget(asize);
+    // hide item initially
+    menuLayout->itemAt(2)->widget()->setObjectName("AtomLabel");
+    menuLayout->itemAt(2)->widget()->hide();
     menuLayout->addWidget(new QLabel(" Width: "));
     menuLayout->addWidget(xval);
     menuLayout->addWidget(new QLabel(" Height: "));
     menuLayout->addWidget(yval);
-    menuLayout->addWidget(dummy);
-    menuLayout->addWidget(dossao);
-    menuLayout->addWidget(doanti);
-    menuLayout->addWidget(dovdw);
-    menuLayout->addWidget(dobox);
-    menuLayout->addWidget(doaxes);
-    menuLayout->addWidget(zoomin);
-    menuLayout->addWidget(zoomout);
-    menuLayout->addWidget(rotleft);
-    menuLayout->addWidget(rotright);
-    menuLayout->addWidget(rotup);
-    menuLayout->addWidget(rotdown);
-    menuLayout->addWidget(recenter);
-    menuLayout->addWidget(reset);
+    menuLayout->addWidget(dummy1);
     menuLayout->addWidget(new QLabel(" Group: "));
     menuLayout->addWidget(combo);
+    buttonLayout->addWidget(dummy2);
+    buttonLayout->addWidget(dossao);
+    buttonLayout->addWidget(doanti);
+    buttonLayout->addWidget(doshiny);
+    buttonLayout->addWidget(dovdw);
+    buttonLayout->addWidget(dobox);
+    buttonLayout->addWidget(doaxes);
+    buttonLayout->addWidget(zoomin);
+    buttonLayout->addWidget(zoomout);
+    buttonLayout->addWidget(rotleft);
+    buttonLayout->addWidget(rotright);
+    buttonLayout->addWidget(rotup);
+    buttonLayout->addWidget(rotdown);
+    buttonLayout->addWidget(recenter);
+    buttonLayout->addWidget(reset);
+    buttonLayout->addStretch(1);
 
     connect(dossao, &QPushButton::released, this, &ImageViewer::toggle_ssao);
     connect(doanti, &QPushButton::released, this, &ImageViewer::toggle_anti);
+    connect(doshiny, &QPushButton::released, this, &ImageViewer::toggle_shiny);
     connect(dovdw, &QPushButton::released, this, &ImageViewer::toggle_vdw);
     connect(dobox, &QPushButton::released, this, &ImageViewer::toggle_box);
     connect(doaxes, &QPushButton::released, this, &ImageViewer::toggle_axes);
@@ -268,7 +305,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     connect(reset, &QPushButton::released, this, &ImageViewer::reset_view);
     connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(change_group(int)));
 
-    mainLayout->addLayout(menuLayout);
+    mainLayout->addLayout(topLayout);
     mainLayout->addWidget(scrollArea);
     setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     setWindowTitle(QString("LAMMPS-GUI - Image Viewer - ") + QFileInfo(fileName).fileName());
@@ -278,6 +315,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     // layout has not yet be established, so we need to fix up some pushbutton
     // properties directly since lookup in reset_view() will have failed
     dobox->setChecked(showbox);
+    doshiny->setChecked(shinyfactor > 0.4);
     dovdw->setChecked(vdwfactor > 1.0);
     dovdw->setEnabled(useelements || usediameter || usesigma);
     doaxes->setChecked(showaxes);
@@ -285,7 +323,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     doanti->setChecked(antialias);
 
     scaleFactor = 1.0;
-    resize(image.width() + 20, image.height() + 75);
+    resize(image.width() + 25, image.height() + 80);
 
     scrollArea->setVisible(true);
     updateActions();
@@ -296,16 +334,17 @@ void ImageViewer::reset_view()
 {
     QSettings settings;
     settings.beginGroup("snapshot");
-    xsize     = settings.value("xsize", "800").toInt();
-    ysize     = settings.value("ysize", "600").toInt();
-    zoom      = settings.value("zoom", 1.0).toDouble();
-    hrot      = settings.value("hrot", 60).toInt();
-    vrot      = settings.value("vrot", 30).toInt();
-    vdwfactor = settings.value("vdwstyle", false).toBool() ? 1.6 : 0.5;
-    showbox   = settings.value("box", true).toBool();
-    showaxes  = settings.value("axes", false).toBool();
-    usessao   = settings.value("ssao", false).toBool();
-    antialias = settings.value("antialias", false).toBool();
+    xsize       = settings.value("xsize", "600").toInt();
+    ysize       = settings.value("ysize", "600").toInt();
+    zoom        = settings.value("zoom", 1.0).toDouble();
+    hrot        = settings.value("hrot", 60).toInt();
+    vrot        = settings.value("vrot", 30).toInt();
+    shinyfactor = settings.value("shinystyle", true).toBool() ? 0.6 : 0.2;
+    vdwfactor   = settings.value("vdwstyle", false).toBool() ? 1.6 : 0.5;
+    showbox     = settings.value("box", true).toBool();
+    showaxes    = settings.value("axes", false).toBool();
+    usessao     = settings.value("ssao", false).toBool();
+    antialias   = settings.value("antialias", false).toBool();
     xcenter = ycenter = zcenter = 0.5;
     settings.endGroup();
 
@@ -320,6 +359,8 @@ void ImageViewer::reset_view()
     if (button) button->setChecked(usessao);
     button = findChild<QPushButton *>("antialias");
     if (button) button->setChecked(antialias);
+    button = findChild<QPushButton *>("shiny");
+    if (button) button->setChecked(shinyfactor > 0.4);
     button = findChild<QPushButton *>("vdw");
     if (button) button->setChecked(vdwfactor > 1.0);
     button = findChild<QPushButton *>("box");
@@ -328,6 +369,13 @@ void ImageViewer::reset_view()
     if (button) button->setChecked(showaxes);
     auto *cb = findChild<QComboBox *>("combo");
     if (cb) cb->setCurrentText("all");
+    createImage();
+}
+
+void ImageViewer::set_atom_size()
+{
+    auto *field = qobject_cast<QLineEdit *>(sender());
+    atomSize    = field->text().toDouble();
     createImage();
 }
 
@@ -355,6 +403,17 @@ void ImageViewer::toggle_anti()
     auto *button = qobject_cast<QPushButton *>(sender());
     antialias    = !antialias;
     button->setChecked(antialias);
+    createImage();
+}
+
+void ImageViewer::toggle_shiny()
+{
+    auto *button = qobject_cast<QPushButton *>(sender());
+    if (shinyfactor > 0.4)
+        shinyfactor = 0.2;
+    else
+        shinyfactor = 0.6;
+    button->setChecked(shinyfactor > 0.4);
     createImage();
 }
 
@@ -455,14 +514,16 @@ void ImageViewer::cmd_to_clipboard()
     QString dumpcmd = "dump viz ";
     dumpcmd += words[1] + " image 100 myimage-*.ppm";
     for (int i = 4; i < modidx; ++i)
-        dumpcmd += blank + words[i];
+        if (words[i] != "noinit") dumpcmd += blank + words[i];
     dumpcmd += '\n';
 
     dumpcmd += "dump_modify viz pad 9";
     for (int i = modidx + 1; i < maxidx; ++i)
         dumpcmd += blank + words[i];
     dumpcmd += '\n';
+#if QT_CONFIG(clipboard)
     QGuiApplication::clipboard()->setText(dumpcmd);
+#endif
 }
 
 void ImageViewer::change_group(int)
@@ -508,35 +569,73 @@ void ImageViewer::createImage()
     // use Lennard-Jones sigma for radius, if available
     usesigma               = false;
     const char *pair_style = (const char *)lammps->extract_global("pair_style");
-    if (!useelements && pair_style && (strncmp(pair_style, "lj/", 3) == 0)) {
+    if (!useelements && !usediameter && pair_style && (strncmp(pair_style, "lj/", 3) == 0)) {
         double **sigma = (double **)lammps->extract_pair("sigma");
         if (sigma) {
             usesigma = true;
-            for (int i = 1; i <= ntypes; ++i)
-                adiams += QString("adiam %1 %2 ").arg(i).arg(vdwfactor * sigma[i][i]);
+            for (int i = 1; i <= ntypes; ++i) {
+                if (sigma[i][i] > 0.0)
+                    adiams += QString("adiam %1 %2 ").arg(i).arg(vdwfactor * sigma[i][i]);
+            }
         }
     }
     // adjust pushbutton state and clear adiams string to disable VDW display, if needed
     if (useelements || usediameter || usesigma) {
         auto *button = findChild<QPushButton *>("vdw");
         if (button) button->setEnabled(true);
+        auto *edit = findChild<QLineEdit *>("atomSize");
+        if (edit) {
+            edit->setEnabled(false);
+            edit->hide();
+        }
+        auto *label = findChild<QLabel *>("AtomLabel");
+        if (label) {
+            label->setEnabled(false);
+            label->hide();
+        }
+
     } else {
         adiams.clear();
         auto *button = findChild<QPushButton *>("vdw");
         if (button) button->setEnabled(false);
+
+        auto *label = findChild<QLabel *>("AtomLabel");
+        if (label) {
+            label->setEnabled(true);
+            label->show();
+        }
+        auto *edit = findChild<QLineEdit *>("atomSize");
+        if (edit) {
+            if (!edit->isEnabled()) {
+                edit->setEnabled(true);
+                edit->show();
+                // initialize with lattice spacing
+                auto *xlattice = (const double *)lammps->extract_global("xlattice");
+                if (xlattice) atomSize = *xlattice;
+                edit->setText(QString::number(atomSize));
+            }
+            atomSize = edit->text().toDouble();
+        }
+        if (atomSize != 1.0) {
+            for (int i = 1; i <= ntypes; ++i)
+                adiams += QString("adiam %1 %2 ").arg(i).arg(atomSize);
+        }
     }
 
+    // color
     if (useelements)
         dumpcmd += blank + "element";
     else
         dumpcmd += blank + settings.value("color", "type").toString();
+
+    // diameter
     if (usediameter && (vdwfactor > 1.0))
         dumpcmd += blank + "diameter";
     else
         dumpcmd += blank + settings.value("diameter", "type").toString();
     dumpcmd += QString(" size %1 %2").arg(xsize).arg(ysize);
     dumpcmd += QString(" zoom %1").arg(zoom);
-    dumpcmd += " shiny 0.5 ";
+    dumpcmd += QString(" shiny %1 ").arg(shinyfactor);
     dumpcmd += QString(" fsaa %1").arg(antialias ? "yes" : "no");
     if (nbondtypes > 0) {
         if (vdwfactor > 1.0)
@@ -559,10 +658,12 @@ void ImageViewer::createImage()
         dumpcmd += " axes no 0.0 0.0";
 
     dumpcmd += QString(" center s %1 %2 %3").arg(xcenter).arg(ycenter).arg(zcenter);
+    dumpcmd += " noinit";
     dumpcmd += " modify boxcolor " + settings.value("boxcolor", "yellow").toString();
     dumpcmd += " backcolor " + settings.value("background", "black").toString();
     if (useelements) dumpcmd += blank + elements + blank + adiams + blank;
     if (usesigma) dumpcmd += blank + adiams + blank;
+    if (!useelements && !usesigma && (atomSize != 1.0)) dumpcmd += blank + adiams + blank;
     settings.endGroup();
 
     last_dump_cmd = dumpcmd;
@@ -573,10 +674,10 @@ void ImageViewer::createImage()
     const QImage newImage = reader.read();
     dumpfile.remove();
 
-    // read of new image failed. Don't try to scale and load it.
+    // read of new image failed. nothing left to do.
     if (newImage.isNull()) return;
 
-    // scale back to achieve antialiasing
+    // show show image
     image = newImage;
     imageLabel->setPixmap(QPixmap::fromImage(image));
     imageLabel->adjustSize();

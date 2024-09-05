@@ -155,67 +155,104 @@ class PythonNumpy(unittest.TestCase):
         self.assertEqual(values[1,0], 1.5)
         self.assertEqual(values[1,3], 1.5)
 
-    def testExtractAtomDeprecated(self):
-        self.lmp.command("units lj")
-        self.lmp.command("atom_style atomic")
-        self.lmp.command("atom_modify map array")
-        self.lmp.command("region box block 0 2 0 2 0 2")
-        self.lmp.command("create_box 1 box")
-
-        x = [
-          1.0, 1.0, 1.0,
-          1.0, 1.0, 1.5
-        ]
-
-        types = [1, 1]
-
-        self.assertEqual(self.lmp.create_atoms(2, id=None, type=types, x=x), 2)
-        nlocal = self.lmp.extract_global("nlocal", LAMMPS_INT)
-        self.assertEqual(nlocal, 2)
-
-        ident = self.lmp.numpy.extract_atom_iarray("id", nlocal, dim=1)
-        self.assertEqual(len(ident), 2)
-
-        ntypes = self.lmp.extract_global("ntypes", LAMMPS_INT)
-        self.assertEqual(ntypes, 1)
-
-        x = self.lmp.numpy.extract_atom_darray("x", nlocal, dim=3)
-        v = self.lmp.numpy.extract_atom_darray("v", nlocal, dim=3)
-        self.assertEqual(len(x), 2)
-        self.assertTrue((x[0] == (1.0, 1.0, 1.0)).all())
-        self.assertTrue((x[1] == (1.0, 1.0, 1.5)).all())
-        self.assertEqual(len(v), 2)
-
     def testExtractAtom(self):
         self.lmp.command("units lj")
         self.lmp.command("atom_style atomic")
         self.lmp.command("atom_modify map array")
         self.lmp.command("region box block 0 2 0 2 0 2")
-        self.lmp.command("create_box 1 box")
+        self.lmp.command("create_box 2 box")
 
-        x = [
-          1.0, 1.0, 1.0,
-          1.0, 1.0, 1.5
-        ]
+        x = [ 1.0, 1.0, 1.0,  1.0, 1.0, 1.5,  1.5, 1.0, 1.0 ]
+        types = [1, 2, 1]
+        ids = [1, 2, 3]
+        self.assertEqual(self.lmp.create_atoms(3, id=ids, type=types, x=x), 3)
+        self.lmp.command("mass * 2.0")
+        self.lmp.command("pair_style zero 1.1")
+        self.lmp.command("pair_coeff * *")
+        self.lmp.command("fix props all property/atom i_one i2_two 2 d_three d2_four 2");
+        self.lmp.command("fix rmass all property/atom mol q rmass ghost yes");
+        self.lmp.command("fix 1 all nve")
+        self.lmp.command("run 0 post no")
+        ntypes = self.lmp.extract_setting("ntypes");
+        nlocal = self.lmp.extract_setting("nlocal");
+        nall   = self.lmp.extract_setting("nall");
+        self.assertEqual(nlocal, 3)
+        self.assertEqual(ntypes, 2)
+        self.assertEqual(nall, 63)
 
-        types = [1, 1]
+        self.lmp.command("set atom 1 charge -1");
+        self.lmp.command("set atom 2 charge  1");
+        self.lmp.command("set atom 3 charge  0");
+        self.lmp.command("set atom * mol 2");
+        self.lmp.command("set atom 2 mol 1");
+        self.lmp.command("set atom 1 i_one -3");
+        self.lmp.command("set atom 2 i_one  3");
+        self.lmp.command("set atom 2 d_three -1.3");
+        self.lmp.command("set atom 3 d_three  3.5");
+        self.lmp.command("set atom 1 i_two[1] -3");
+        self.lmp.command("set atom 2 i_two[2]  3");
+        self.lmp.command("set atom * d_four[1] -1.3");
+        self.lmp.command("set atom * d_four[2]  3.5");
+        self.lmp.command("run 0 post no")
 
-        self.assertEqual(self.lmp.create_atoms(2, id=None, type=types, x=x), 2)
-        nlocal = self.lmp.extract_global("nlocal")
-        self.assertEqual(nlocal, 2)
+        mass = self.lmp.numpy.extract_atom("mass")
+        self.assertEqual(len(mass), ntypes + 1)
+        self.assertTrue((mass == (0.0, 2.0, 2.0)).all())
+
+        rmass = self.lmp.numpy.extract_atom("rmass")
+        self.assertEqual(len(rmass), nall)
+        self.assertTrue((rmass[0:3] == (0.0, 0.0, 0.0)).all())
+
+        charge = self.lmp.numpy.extract_atom("q")
+        self.assertEqual(len(charge), nall)
+        self.assertTrue((charge[0:3] == (-1.0, 1.0, 0.0)).all())
+
+        molecule = self.lmp.numpy.extract_atom("molecule")
+        self.assertEqual(len(molecule), nall)
+        self.assertTrue((molecule[0:3] == (2, 1, 2)).all())
 
         ident = self.lmp.numpy.extract_atom("id")
-        self.assertEqual(len(ident), 2)
+        self.assertEqual(len(ident), nall)
+        self.assertTrue((ident[0:3] == (1, 2, 3)).all())
 
-        ntypes = self.lmp.extract_global("ntypes")
-        self.assertEqual(ntypes, 1)
+        atype = self.lmp.numpy.extract_atom("type")
+        self.assertEqual(len(atype), nall)
+        self.assertTrue((atype[0:3] == (1, 2, 1)).all())
 
         x = self.lmp.numpy.extract_atom("x")
         v = self.lmp.numpy.extract_atom("v")
-        self.assertEqual(len(x), 2)
+        self.assertEqual(len(x), nall)
+        self.assertEqual(len(x[0]), 3)
         self.assertTrue((x[0] == (1.0, 1.0, 1.0)).all())
         self.assertTrue((x[1] == (1.0, 1.0, 1.5)).all())
-        self.assertEqual(len(v), 2)
+        self.assertTrue((x[2] == (1.5, 1.0, 1.0)).all())
+        self.assertEqual(len(v), nlocal)
+        self.assertEqual(len(v[0]), 3)
+
+        self.lmp.command("comm_modify vel yes");
+        self.lmp.command("run 0 post no")
+
+        v = self.lmp.numpy.extract_atom("v")
+        self.assertEqual(len(v), nall)
+
+        one = self.lmp.numpy.extract_atom("i_one")
+        two = self.lmp.numpy.extract_atom("i2_two")
+        three = self.lmp.numpy.extract_atom("d_three")
+        four = self.lmp.numpy.extract_atom("d2_four")
+        self.assertEqual(len(one), nlocal)
+        self.assertTrue((one == (-3, 3, 0)).all())
+        self.assertEqual(len(two), nlocal)
+        self.assertEqual(len(two[0]), 2)
+        self.assertTrue((two[0] == (-3, 0)).all())
+        self.assertTrue((two[1] == (0, 3)).all())
+        self.assertTrue((two[2] == (0, 0)).all())
+        self.assertEqual(len(three), nlocal)
+        self.assertTrue((three == (0.0, -1.3, 3.5)).all())
+        self.assertEqual(len(four), nlocal)
+        self.assertEqual(len(four[0]), 2)
+        self.assertTrue((four[0] == (-1.3, 3.5)).all())
+        self.assertTrue((four[1] == (-1.3, 3.5)).all())
+        self.assertTrue((four[2] == (-1.3, 3.5)).all())
 
     @unittest.skipIf(not has_full,"Gather bonds test")
     def testGatherBond_newton_on(self):

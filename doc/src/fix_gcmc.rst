@@ -413,14 +413,14 @@ This fix computes a global vector of length 8, which can be accessed
 by various :doc:`output commands <Howto_output>`.  The vector values are
 the following global cumulative quantities:
 
-* 1 = translation attempts
-* 2 = translation successes
-* 3 = insertion attempts
-* 4 = insertion successes
-* 5 = deletion attempts
-* 6 = deletion successes
-* 7 = rotation attempts
-* 8 = rotation successes
+  #. translation attempts
+  #. translation successes
+  #. insertion attempts
+  #. insertion successes
+  #. deletion attempts
+  #. deletion successes
+  #. rotation attempts
+  #. rotation successes
 
 The vector values calculated by this fix are "intensive".
 

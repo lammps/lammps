@@ -995,17 +995,42 @@ char *utils::expand_type(const char *file, int line, const std::string &str, int
 
 /* -------------------------------------------------------------------------
    Expand type string to integer-valued numeric type from labelmap.
-   Not guaranteed to return a valid type.
-   For example, type <= 0 or type > Ntypes is checked in calling routine.
+   Not guaranteed to return a valid type if param verify = 0 (default)
+   In this case, type <= 0 or type > Ntypes should be checked in calling routine.
 ------------------------------------------------------------------------- */
 
 int utils::expand_type_int(const char *file, int line, const std::string &str, int mode,
-                           LAMMPS *lmp)
+                           LAMMPS *lmp, bool verify)
 {
   char *typestr = expand_type(file, line, str, mode, lmp);
-  int out = inumeric(file, line, typestr ? typestr : str, false, lmp);
+  int type = inumeric(file, line, typestr ? typestr : str, false, lmp);
+  if (verify) {
+    int nmax;
+    switch (mode) {
+      case Atom::ATOM:
+        nmax = lmp->atom->ntypes;
+        break;
+      case Atom::BOND:
+        nmax = lmp->atom->nbondtypes;
+        break;
+      case Atom::ANGLE:
+        nmax = lmp->atom->nangletypes;
+        break;
+      case Atom::DIHEDRAL:
+        nmax = lmp->atom->ndihedraltypes;
+        break;
+      case Atom::IMPROPER:
+        nmax = lmp->atom->nimpropertypes;
+        break;
+      default:
+        nmax = 0;
+    }
+    if ((type <= 0) || (type > nmax))
+      lmp->error->all(file, line, "{} type {} is out of bounds ({}-{})", labeltypes[mode], type, 1,
+                      nmax);
+  }
   delete[] typestr;
-  return out;
+  return type;
 }
 
 /* ----------------------------------------------------------------------

@@ -66,6 +66,9 @@ src/MANYBODY/pair_vashishta_table.* @andeplane
 src/MANYBODY/pair_atm.*             @sergeylishchuk
 src/MANYBODY/pair_nb3b_screened.*   @flodesani
 src/REPLICA/*_grem.*                @dstelter92
+src/EXTRA-COMMAND/geturl.*          @akohlmey
+src/EXTRA-COMMAND/group_ndx.*       @akohlmey
+src/EXTRA-COMMAND/ndx_group.*       @akohlmey
 src/EXTRA-COMPUTE/compute_stress_mop*.* @RomainVermorel
 src/EXTRA-COMPUTE/compute_born_matrix.* @Bibobu @athomps
 src/EXTRA-FIX/fix_deform_pressure.* @jtclemm
@@ -96,9 +99,10 @@ src/fix.*                 @sjplimp
 src/force.*               @sjplimp
 src/group.*               @sjplimp
 src/improper.*            @sjplimp
+src/info.*                @akohlmey
 src/kspace.*              @sjplimp
 src/lmptyp.h              @sjplimp
-src/library.*             @sjplimp
+src/library.*             @sjplimp @akohlmey
 src/main.cpp              @sjplimp
 src/min_*.*               @sjplimp
 src/memory.*              @sjplimp
@@ -106,12 +110,12 @@ src/modify.*              @sjplimp @stanmoore1
 src/molecule.*            @sjplimp
 src/my_page.h             @sjplimp
 src/my_pool_chunk.h       @sjplimp
-src/npair*.*              @sjplimp
-src/ntopo*.*              @sjplimp
-src/nstencil*.*           @sjplimp
-src/neighbor.*            @sjplimp
-src/nbin*.*               @sjplimp
-src/neigh_*.*             @sjplimp
+src/npair*.*              @sjplimp @jtclemm
+src/ntopo*.*              @sjplimp @jtclemm
+src/nstencil*.*           @sjplimp @jtclemm
+src/neighbor.*            @sjplimp @jtclemm
+src/nbin*.*               @sjplimp @jtclemm
+src/neigh_*.*             @sjplimp @jtclemm
 src/output.*              @sjplimp
 src/pair.*                @sjplimp
 src/rcb.*                 @sjplimp

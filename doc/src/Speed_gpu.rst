@@ -38,10 +38,10 @@ to have an NVIDIA GPU and install the corresponding NVIDIA CUDA
 toolkit software on your system (this is only tested on Linux
 and unsupported on Windows):
 
-* Check if you have an NVIDIA GPU: cat /proc/driver/nvidia/gpus/\*/information
+* Check if you have an NVIDIA GPU: ``cat /proc/driver/nvidia/gpus/\*/information``
 * Go to https://developer.nvidia.com/cuda-downloads
 * Install a driver and toolkit appropriate for your system (SDK is not necessary)
-* Run lammps/lib/gpu/nvc_get_devices (after building the GPU library, see below) to
+* Run ``lammps/lib/gpu/nvc_get_devices`` (after building the GPU library, see below) to
   list supported devices and properties
 
 To compile and use this package in OpenCL mode, you currently need
@@ -51,7 +51,7 @@ installed. There can be multiple of them for the same or different hardware
 (GPUs, CPUs, Accelerators) installed at the same time. OpenCL refers to those
 as 'platforms'.  The GPU library will try to auto-select the best suitable platform,
 but this can be overridden using the platform option of the :doc:`package <package>`
-command. run lammps/lib/gpu/ocl_get_devices to get a list of available
+command. run ``lammps/lib/gpu/ocl_get_devices`` to get a list of available
 platforms and devices with a suitable ICD available.
 
 To compile and use this package for Intel GPUs, OpenCL or the Intel oneAPI
@@ -63,7 +63,7 @@ provides optimized C++, MPI, and many other libraries and tools. See:
 If you do not have a discrete GPU card installed, this package can still provide
 significant speedups on some CPUs that include integrated GPUs. Additionally, for
 many macs, OpenCL is already included with the OS and Makefiles are available
-in the lib/gpu directory.
+in the ``lib/gpu`` directory.
 
 To compile and use this package in HIP mode, you have to have the AMD ROCm
 software installed. Versions of ROCm older than 3.5 are currently deprecated
@@ -94,31 +94,36 @@ shared by 4 MPI tasks.
 The GPU package also has limited support for OpenMP for both
 multi-threading and vectorization of routines that are run on the CPUs.
 This requires that the GPU library and LAMMPS are built with flags to
-enable OpenMP support (e.g. -fopenmp). Some styles for time integration
+enable OpenMP support (e.g. ``-fopenmp``). Some styles for time integration
 are also available in the GPU package. These run completely on the CPUs
 in full double precision, but exploit multi-threading and vectorization
 for faster performance.
 
-Use the "-sf gpu" :doc:`command-line switch <Run_options>`, which will
-automatically append "gpu" to styles that support it.  Use the "-pk
-gpu Ng" :doc:`command-line switch <Run_options>` to set Ng = # of
-GPUs/node to use. If Ng is 0, the number is selected automatically as
+Use the ``-sf gpu`` :doc:`command-line switch <Run_options>`, which will
+automatically append "gpu" to styles that support it.  Use the ``-pk
+gpu Ng`` :doc:`command-line switch <Run_options>` to set ``Ng`` = # of
+GPUs/node to use. If ``Ng`` is 0, the number is selected automatically as
 the number of matching GPUs that have the highest number of compute
 cores.
 
 .. code-block:: bash
 
-   lmp_machine -sf gpu -pk gpu 1 -in in.script                         # 1 MPI task uses 1 GPU
-   mpirun -np 12 lmp_machine -sf gpu -pk gpu 2 -in in.script           # 12 MPI tasks share 2 GPUs on a single 16-core (or whatever) node
-   mpirun -np 48 -ppn 12 lmp_machine -sf gpu -pk gpu 2 -in in.script   # ditto on 4 16-core nodes
+   # 1 MPI task uses 1 GPU
+   lmp_machine -sf gpu -pk gpu 1 -in in.script
 
-Note that if the "-sf gpu" switch is used, it also issues a default
+   # 12 MPI tasks share 2 GPUs on a single 16-core (or whatever) node
+   mpirun -np 12 lmp_machine -sf gpu -pk gpu 2 -in in.script
+
+   # ditto on 4 16-core nodes
+   mpirun -np 48 -ppn 12 lmp_machine -sf gpu -pk gpu 2 -in in.script
+
+Note that if the ``-sf gpu`` switch is used, it also issues a default
 :doc:`package gpu 0 <package>` command, which will result in
 automatic selection of the number of GPUs to use.
 
-Using the "-pk" switch explicitly allows for setting of the number of
+Using the ``-pk`` switch explicitly allows for setting of the number of
 GPUs/node to use and additional options.  Its syntax is the same as
-the "package gpu" command.  See the :doc:`package <package>`
+the ``package gpu`` command.  See the :doc:`package <package>`
 command page for details, including the default values used for
 all its options if it is not specified.
 
@@ -141,7 +146,7 @@ Use the :doc:`suffix gpu <suffix>` command, or you can explicitly add an
    pair_style lj/cut/gpu 2.5
 
 You must also use the :doc:`package gpu <package>` command to enable the
-GPU package, unless the "-sf gpu" or "-pk gpu" :doc:`command-line switches <Run_options>` were used.  It specifies the number of
+GPU package, unless the ``-sf gpu`` or ``-pk gpu`` :doc:`command-line switches <Run_options>` were used.  It specifies the number of
 GPUs/node to use, as well as other options.
 
 **Speed-ups to expect:**

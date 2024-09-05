@@ -4,7 +4,7 @@
 // concatenate two strings
 
 extern "C" {
-void s_lmp_cat(char *lp, char *rpp[], ftnint rnp[], ftnint *np, ftnlen ll)
+void s_lmp_cat(char *lp, char **rpp, integer *rnp, integer *np, ftnlen ll)
 {
     ftnlen i, nc;
     char *rp;

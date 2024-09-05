@@ -656,6 +656,9 @@ create_atoms 1 single &
         self.assertEqual(self.lmp.extract_global("map_tag_max"), -1)
         self.assertEqual(self.lmp.extract_global("sortfreq"), 1000)
         self.assertEqual(self.lmp.extract_global("nextsort"), 0)
+        self.assertEqual(self.lmp.extract_global("xlattice"), 1.0)
+        self.assertEqual(self.lmp.extract_global("ylattice"), 1.0)
+        self.assertEqual(self.lmp.extract_global("zlattice"), 1.0)
 
         # set and initialize r-RESPA
         self.lmp.command("run_style respa 3 5 2 pair 2 kspace 3")

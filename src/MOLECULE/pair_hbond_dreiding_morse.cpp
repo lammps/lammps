@@ -243,37 +243,37 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi,klo,khi;
-  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
-  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
-  utils::bounds(FLERR,arg[2],1,atom->ntypes,klo,khi,error);
+  utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
+  utils::bounds_typelabel(FLERR, arg[2], 1, atom->ntypes, klo, khi, lmp, Atom::ATOM);
 
   int donor_flag;
   if (strcmp(arg[3],"i") == 0) donor_flag = 0;
   else if (strcmp(arg[3],"j") == 0) donor_flag = 1;
   else error->all(FLERR,"Incorrect args for pair coefficients");
 
-  double d0_one = utils::numeric(FLERR,arg[4],false,lmp);
-  double alpha_one = utils::numeric(FLERR,arg[5],false,lmp);
-  double r0_one = utils::numeric(FLERR,arg[6],false,lmp);
+  double d0_one = utils::numeric(FLERR, arg[4], false, lmp);
+  double alpha_one = utils::numeric(FLERR, arg[5], false, lmp);
+  double r0_one = utils::numeric(FLERR, arg[6], false, lmp);
 
   int ap_one = ap_global;
-  if (narg > 7) ap_one = utils::inumeric(FLERR,arg[7],false,lmp);
+  if (narg > 7) ap_one = utils::inumeric(FLERR, arg[7], false, lmp);
   double cut_inner_one = cut_inner_global;
   double cut_outer_one = cut_outer_global;
   if (narg > 9) {
-    cut_inner_one = utils::numeric(FLERR,arg[8],false,lmp);
-    cut_outer_one = utils::numeric(FLERR,arg[9],false,lmp);
+    cut_inner_one = utils::numeric(FLERR, arg[8], false, lmp);
+    cut_outer_one = utils::numeric(FLERR, arg[9], false, lmp);
   }
   if (cut_inner_one>cut_outer_one)
     error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
   double cut_angle_one = cut_angle_global;
-  if (narg > 10) cut_angle_one = utils::numeric(FLERR,arg[10],false,lmp) * MY_PI/180.0;
+  if (narg > 10) cut_angle_one = utils::numeric(FLERR, arg[10], false, lmp) * MY_PI/180.0;
 
   // grow params array if necessary
 
   if (nparams == maxparam) {
     maxparam += CHUNK;
-    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+    params = (Param *) memory->srealloc(params, maxparam*sizeof(Param),
                                         "pair:params");
 
     // make certain all addional allocated storage is initialized
@@ -323,14 +323,14 @@ void PairHbondDreidingMorse::init_style()
   //   and computing forces on A,H which may be on different procs
 
   if (atom->molecular == Atom::ATOMIC)
-    error->all(FLERR,"Pair style hbond/dreiding requires molecular system");
+    error->all(FLERR,"Pair style hbond/dreiding/morse requires molecular system");
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style hbond/dreiding requires atom IDs");
+    error->all(FLERR,"Pair style hbond/dreiding/morse requires atom IDs");
   if (atom->map_style == Atom::MAP_NONE)
-    error->all(FLERR,"Pair style hbond/dreiding requires an atom map, "
+    error->all(FLERR,"Pair style hbond/dreiding/morse requires an atom map, "
                "see atom_modify");
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style hbond/dreiding requires newton pair on");
+    error->all(FLERR,"Pair style hbond/dreiding/morse requires newton pair on");
 
   // set donor[M]/acceptor[M] if any atom of type M is a donor/acceptor
 
@@ -346,7 +346,7 @@ void PairHbondDreidingMorse::init_style()
           acceptor[j] = 1;
         }
 
-  if (!anyflag) error->all(FLERR,"No pair hbond/dreiding coefficients set");
+  if (!anyflag) error->all(FLERR,"No pair hbond/dreiding/morse coefficients set");
 
   // set additional param values
   // offset is for Morse only, angle term is not included

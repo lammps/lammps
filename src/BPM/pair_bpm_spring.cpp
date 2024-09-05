@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairBPMSpring::PairBPMSpring(LAMMPS *_lmp) : Pair(_lmp)
+PairBPMSpring::PairBPMSpring(LAMMPS *_lmp) : Pair(_lmp), k(nullptr), cut(nullptr), gamma(nullptr)
 {
   writedata = 1;
 }
@@ -210,7 +210,7 @@ void PairBPMSpring::coeff(int narg, char **arg)
 void PairBPMSpring::init_style()
 {
   if (comm->ghost_velocity == 0)
-    error->all(FLERR,"Pair bpm/spring requires ghost atoms store velocity");
+    error->all(FLERR, "Pair bpm/spring requires ghost atoms store velocity");
 
   neighbor->add_request(this);
 }

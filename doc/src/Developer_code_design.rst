@@ -69,7 +69,7 @@ The basic LAMMPS class hierarchy which is created by the LAMMPS class
 constructor is shown in :ref:`class-topology`.  When input commands
 are processed, additional class instances are created, or deleted, or
 replaced.  Likewise, specific member functions of specific classes are
-called to trigger actions such creating atoms, computing forces,
+called to trigger actions such as creating atoms, computing forces,
 computing properties, time-propagating the system, or writing output.
 
 Compositing and Inheritance
@@ -110,9 +110,10 @@ As mentioned above, there can be multiple instances of classes derived
 from the ``Fix`` or ``Compute`` base classes.  They represent a
 different facet of LAMMPS' flexibility, as they provide methods which
 can be called at different points within a timestep, as explained in
-`Developer_flow`.  This allows the input script to tailor how a specific
-simulation is run, what diagnostic computations are performed, and how
-the output of those computations is further processed or output.
+the :doc:`How a timestep works <Developer_flow>` doc page.  This allows
+the input script to tailor how a specific simulation is run, what
+diagnostic computations are performed, and how the output of those
+computations is further processed or output.
 
 Additional code sharing is possible by creating derived classes from the
 derived classes (e.g., to implement an accelerated version of a pair

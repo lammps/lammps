@@ -817,7 +817,7 @@ int Variable::next(int narg, char **arg)
       fprintf(fp,"%d\n",nextindex+1);
       fclose(fp);
       fp = nullptr;
-      rename("tmp.lammps.variable.lock","tmp.lammps.variable");
+      (void) rename("tmp.lammps.variable.lock","tmp.lammps.variable");
       if (universe->uscreen)
         fprintf(universe->uscreen, "Increment via next: value %d on partition %d\n",
                 nextindex+1,universe->iworld);

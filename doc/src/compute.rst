@@ -362,7 +362,8 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 
 Restrictions
 """"""""""""
- none
+
+none
 
 Related commands
 """"""""""""""""

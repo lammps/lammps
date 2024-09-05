@@ -87,6 +87,16 @@ TEST_F(TextFileReaderTest, nofp)
     ASSERT_THROW({ TextFileReader reader(nullptr, "test"); }, FileReaderException);
 }
 
+TEST_F(TextFileReaderTest, buffer)
+{
+    test_files();
+    auto *reader = new TextFileReader("text_reader_two.file", "test");
+    reader->set_bufsize(4096);
+    auto *line   = reader->next_line();
+    ASSERT_THROW({ reader->set_bufsize(20); }, FileReaderException);
+    delete reader;
+}
+
 TEST_F(TextFileReaderTest, usefp)
 {
     test_files();

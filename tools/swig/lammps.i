@@ -130,6 +130,7 @@ extern void  *lammps_extract_pair(void *handle, const char *name);
 extern int    lammps_map_atom(void *handle, const void *id);
 
 extern int    lammps_extract_atom_datatype(void *handle, const char *name);
+extern int    lammps_extract_atom_size(void *handle, const char *name, int type);
 extern void  *lammps_extract_atom(void *handle, const char *name);
 
 extern void  *lammps_extract_compute(void *handle, const char *id, int, int);
@@ -171,6 +172,7 @@ extern int    lammps_config_has_gzip_support();
 extern int    lammps_config_has_png_support();
 extern int    lammps_config_has_jpeg_support();
 extern int    lammps_config_has_ffmpeg_support();
+extern int    lammps_config_has_curl_support();
 extern int    lammps_config_has_exceptions();
 extern int    lammps_config_has_package(const char *);
 extern int    lammps_config_package_count();
@@ -318,6 +320,7 @@ extern void  *lammps_extract_pair(void *handle, const char *name);
 extern int    lammps_map_atom(void *handle, const void *id);
 
 extern int    lammps_extract_atom_datatype(void *handle, const char *name);
+extern int    lammps_extract_atom_size(void *handle, const char *name, int type);
 extern void  *lammps_extract_atom(void *handle, const char *name);
 
 extern void  *lammps_extract_compute(void *handle, const char *id, int, int);
@@ -359,6 +362,7 @@ extern int    lammps_config_has_gzip_support();
 extern int    lammps_config_has_png_support();
 extern int    lammps_config_has_jpeg_support();
 extern int    lammps_config_has_ffmpeg_support();
+extern int    lammps_config_has_curl_support();
 extern int    lammps_config_has_exceptions();
 extern int    lammps_config_has_package(const char *);
 extern int    lammps_config_package_count();

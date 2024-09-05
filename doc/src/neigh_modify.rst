@@ -159,7 +159,7 @@ sample scenarios where this is useful:
 * When one or more rigid bodies are specified, interactions within each
   body can be turned off to save needless computation.  See the :doc:`fix rigid <fix_rigid>` command for more details.
 
-.. versionchanged:: TBD
+.. versionchanged:: 29Aug2024
 
    Support for type labels was added.
 
@@ -270,6 +270,8 @@ be used with atom styles that define molecule IDs.
 The value of the *page* setting must be at least 10x larger than the
 *one* setting.  This ensures neighbor pages are not mostly empty
 space.
+
+The *exclude group* setting is currently not compatible with dynamic groups.
 
 Related commands
 """"""""""""""""

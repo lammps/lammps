@@ -394,21 +394,17 @@ Cmin = 0.8, Cmax = 2.8.
 
 .. _Baskes97:
 
-**(Baskes)** Baskes,
-Materials Chemistry and Physics, 50(2), 152-158, (1997).
+**(Baskes)** Baskes, Materials Chemistry and Physics, 50(2), 152-158, (1997).
 
 .. _Dickel:
 
-**(Dickel)** Dickel, Francis, and Barrett,
-Computational Materials Science 171 (2020): 109157.
+**(Dickel)** Dickel, Francis, and Barrett, Computational Materials Science 171 (2020): 109157.
 
 .. _Nitol:
 
-**(Nitol)** Nitol, Dickel, and Barrett,
-Computational Materials Science 188 (2021): 110207.
+**(Nitol)** Nitol, Dickel, and Barrett, Computational Materials Science 188 (2021): 110207.
 
 .. _Tranchida7:
 
-**(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson,
-Journal of Computational Physics, 372, 406-425, (2018).
+**(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson, Journal of Computational Physics, 372, 406-425, (2018).
 

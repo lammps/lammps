@@ -115,7 +115,7 @@ double LammpsWrapper::extract_variable(const char *keyword)
     }
     double val = *((double *)ptr);
 #if defined(LAMMPS_GUI_USE_PLUGIN)
-    ptr = ((liblammpsplugin_t *)plugin_handle)->free(ptr);
+    ((liblammpsplugin_t *)plugin_handle)->free(ptr);
 #else
     lammps_free(ptr);
 #endif

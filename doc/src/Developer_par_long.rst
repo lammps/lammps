@@ -93,7 +93,7 @@ processors, since each tile in the initial tiling overlaps with a
 handful of tiles in the final tiling.
 
 The transformations could also be done using collective communication
-across all $P$ processors with a single call to ``MPI_Alltoall()``, but
+across all :math:`P` processors with a single call to ``MPI_Alltoall()``, but
 this is typically much slower.  However, for the specialized brick and
 pencil tiling illustrated in :ref:`fft-parallel` figure, collective
 communication across the entire MPI communicator is not required.  In
@@ -138,7 +138,7 @@ grid/particle operations that LAMMPS supports:
   :math:`O(P^{\frac{1}{2}})`.
 
 - For efficiency in performing 1d FFTs, the grid transpose
-  operations illustrated in Figure \ref{fig:fft} also involve
+  operations illustrated in Figure :ref:`fft-parallel` also involve
   reordering the 3d data so that a different dimension is contiguous
   in memory.  This reordering can be done during the packing or
   unpacking of buffers for MPI communication.

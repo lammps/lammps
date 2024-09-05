@@ -2059,6 +2059,7 @@ void Molecule::deallocate()
   memory->destroy(type);
   memory->destroy(molecule);
   memory->destroy(q);
+  memory->destroy(mu);
   memory->destroy(radius);
   memory->destroy(rmass);
 

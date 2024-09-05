@@ -253,6 +253,8 @@ public:
     f_cvb_write_ti_pmf,
     /// \brief whether this bias uses an external grid to scale the biasing forces
     f_cvb_scale_biasing_force,
+    /// \brief whether this bias is applied to one or more ext-Lagrangian colvars
+    f_cvb_extended,
     f_cvb_ntot
   };
 
@@ -355,6 +357,8 @@ public:
     f_cvc_lower_boundary,
     /// This CVC provides a default value for the colvar's upper boundary
     f_cvc_upper_boundary,
+    /// CVC accesses atom groups directly (as opposed to going throuh other objects)
+    f_cvc_explicit_atom_groups,
     /// CVC calculates atom gradients
     f_cvc_gradient,
     /// CVC calculates and stores explicit atom gradients on rank 0

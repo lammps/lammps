@@ -220,9 +220,11 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
 
   // Flags for fix references (i.e. quantities accessible via f_ID[n]
   vector_flag = 1;
+  extvector = 0;
   size_vector = 5;
 
   scalar_flag = 1;
+  extscalar = 0;
 
   int iarg = 6;
   while (iarg < narg) {
@@ -2414,7 +2416,6 @@ void FixLbFluid::dump(const bigint step)
       // Transpose local arrays to fortran-order for paraview output
       std::vector<double> density_2_fort(size2);
       std::vector<double> velocity_2_fort(size2 * 3);
-      int indexc = 0;
       for (int i = 0; i < subNbx + 3; i++)
         for (int j = 0; j < subNby + 3; j++)
           for (int k = 0; k < subNbz + 3; k++) {
@@ -2422,7 +2423,6 @@ void FixLbFluid::dump(const bigint step)
             velocity_2_fort[0 + 3 * (i + (subNbx + 3) * (j + (subNby + 3) * k))] = u_lb[i][j][k][0];
             velocity_2_fort[1 + 3 * (i + (subNbx + 3) * (j + (subNby + 3) * k))] = u_lb[i][j][k][1];
             velocity_2_fort[2 + 3 * (i + (subNbx + 3) * (j + (subNby + 3) * k))] = u_lb[i][j][k][2];
-            indexc++;
           }
 
       MPI_File_write_all(dump_file_handle_raw, &density_2_fort[0], 1, fluid_density_2_mpitype,

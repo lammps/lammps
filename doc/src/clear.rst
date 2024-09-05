@@ -36,7 +36,8 @@ script variables except for *atomfile* style variables (:doc:`variable
 
 Restrictions
 """"""""""""
- none
+
+none
 
 Related commands
 """"""""""""""""

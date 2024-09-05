@@ -20,7 +20,7 @@ class FileViewer : public QPlainTextEdit {
     Q_OBJECT
 
 public:
-    FileViewer(const QString &filename, QWidget *parent = nullptr);
+    FileViewer(const QString &filename, QString title = "", QWidget *parent = nullptr);
 
 private slots:
     void quit();

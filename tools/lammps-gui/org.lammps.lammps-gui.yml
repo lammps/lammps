@@ -1,0 +1,112 @@
+id: org.lammps.lammps-gui
+runtime: org.kde.Platform
+runtime-version: "5.15-23.08"
+sdk: org.kde.Sdk
+command: lammps-gui
+finish-args:
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --filesystem=host
+  - --share=network
+build-options:
+  build-args:
+    - --share=network
+rename-icon: lammps
+rename-desktop-file: lammps-gui.desktop
+rename-appdata-file: lammps-gui.appdata.xml
+rename-mime-file: lammps-input.xml
+modules:
+  - name: lammps-gui
+    buildsystem: cmake-ninja
+    builddir: true
+    subdir: cmake
+    config-opts:
+      - -D PKG_AMOEBA=yes
+      - -D PKG_ASPHERE=yes
+      - -D PKG_AWPMD=yes
+      - -D PKG_BOCS=yes
+      - -D PKG_BODY=yes
+      - -D PKG_BPM=yes
+      - -D PKG_BROWNIAN=yes
+      - -D PKG_CG-DNA=yes
+      - -D PKG_CG-SPICA=yes
+      - -D PKG_CLASS2=yes
+      - -D PKG_COLLOID=yes
+      - -D PKG_COLVARS=yes
+      - -D PKG_COMPRESS=yes
+      - -D PKG_CORESHELL=yes
+      - -D PKG_DIELECTRIC=yes
+      - -D PKG_DIFFRACTION=yes
+      - -D PKG_DIPOLE=yes
+      - -D PKG_DPD-BASIC=yes
+      - -D PKG_DPD-MESO=yes
+      - -D PKG_DPD-REACT=yes
+      - -D PKG_DPD-SMOOTH=yes
+      - -D PKG_DRUDE=yes
+      - -D PKG_EFF=yes
+      - -D PKG_ELECTRODE=yes
+      - -D PKG_EXTRA-COMMAND=yes
+      - -D PKG_EXTRA-COMPUTE=yes
+      - -D PKG_EXTRA-DUMP=yes
+      - -D PKG_EXTRA-FIX=yes
+      - -D PKG_EXTRA-MOLECULE=yes
+      - -D PKG_EXTRA-PAIR=yes
+      - -D PKG_FEP=yes
+      - -D PKG_GRANULAR=yes
+      - -D PKG_GPU=yes
+      - -D GPU_API=opencl
+      - -D PKG_INTERLAYER=yes
+      - -D PKG_KSPACE=yes
+      - -D PKG_LEPTON=yes
+      - -D PKG_MACHDYN=yes
+      - -D PKG_MANYBODY=yes
+      - -D PKG_MANIFOLD=yes
+      - -D PKG_MC=yes
+      - -D PKG_MEAM=yes
+      - -D PKG_MESONT=yes
+      - -D PKG_MGPT=yes
+      - -D PKG_MISC=yes
+      - -D PKG_ML-IAP=yes
+      - -D PKG_ML-PACE=yes
+      - -D PKG_ML-POD=yes
+      - -D PKG_ML-RANN=yes
+      - -D PKG_ML-SNAP=yes
+      - -D PKG_ML-UF3=yes
+      - -D PKG_MOFFF=yes
+      - -D PKG_MOLECULE=yes
+      - -D PKG_OPENMP=yes
+      - -D PKG_OPT=yes
+      - -D PKG_ORIENT=yes
+      - -D PKG_PERI=yes
+      - -D PKG_PHONON=yes
+      - -D PKG_PLUGIN=yes
+      - -D PKG_POEMS=yes
+      - -D PKG_PTM=yes
+      - -D PKG_PYTHON=yes
+      - -D PKG_QEQ=yes
+      - -D PKG_QTB=yes
+      - -D PKG_REACTION=yes
+      - -D PKG_REAXFF=yes
+      - -D PKG_RIGID=yes
+      - -D PKG_SHOCK=yes
+      - -D PKG_SMTBQ=yes
+      - -D PKG_SPH=yes
+      - -D PKG_SPIN=yes
+      - -D PKG_SRD=yes
+      - -D PKG_TALLY=yes
+      - -D PKG_UEF=yes
+      - -D PKG_VORONOI=yes
+      - -D PKG_YAFF=yes
+      - -D BUILD_LAMMPS_GUI=yes
+      - -D BUILD_SHARED_LIBS=yes
+      - -D CMAKE_CXX_COMPILER=g++
+      - -D CMAKE_C_COMPILER=gcc
+      - -D CMAKE_Fortran_COMPILER=gfortran
+      - -D CMAKE_BUILD_TYPE=Release
+      - -D DOWNLOAD_POTENTIALS=no
+      - -D BUILD_TOOLS=yes
+    sources:
+      - type: git
+        url: https://github.com/lammps/lammps.git
+        branch: release

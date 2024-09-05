@@ -69,7 +69,7 @@ libraries and better pipelining for packing and communication.
 
          -D FFT=value              # FFTW3 or MKL or KISS, default is FFTW3 if found,
                                    # else KISS
-         -D FFT_KOKKOS=value       # FFTW3 or MKL or KISS or CUFFT or HIPFFT,
+         -D FFT_KOKKOS=value       # FFTW3 or MKL or KISS or CUFFT or HIPFFT or MKL_GPU,
                                    # default is KISS
          -D FFT_SINGLE=value       # yes or no (default), no = double precision
          -D FFT_PACK=value         # array (default) or pointer or memcpy
@@ -123,7 +123,8 @@ libraries and better pipelining for packing and communication.
          FFT_INC = -DFFT_<NAME>        # where <NAME> is KISS (default), FFTW3,
                                        # FFTW (same as FFTW3), or MKL
          FFT_INC = -DFFT_KOKKOS_<NAME> # where <NAME> is KISS (default), FFTW3,
-                                       # FFTW (same as FFTW3), MKL, CUFFT, or HIPFFT
+                                       # FFTW (same as FFTW3), MKL, CUFFT, HIPFFT
+				       # or MKL_GPU
          FFT_INC = -DFFT_SINGLE       # do not specify for double precision
          FFT_INC = -DFFT_FFTW_THREADS # enable using threaded FFTW3 libraries
          FFT_INC = -DFFT_MKL_THREADS  # enable using threaded FFTs with MKL libraries
@@ -140,6 +141,9 @@ libraries and better pipelining for packing and communication.
 
          # cuFFT either precision
          FFT_LIB =  -lcufft
+
+	 # MKL_GPU either precision
+	 FFT_LIB = -lmkl_sycl_dft -lmkl_intel_ilp64 -lmkl_tbb_thread -lmkl_core -ltbb
 
          # FFTW3 double precision
          FFT_LIB =  -lfftw3
@@ -221,7 +225,9 @@ above).
 The cuFFT and hipFFT FFT libraries are packaged with NVIDIA's CUDA and
 AMD's HIP installations, respectively. These FFT libraries require the
 Kokkos acceleration package to be enabled and the Kokkos back end to be
-GPU-resident (i.e., HIP or CUDA).
+GPU-resident (i.e., HIP or CUDA). Similarly, GPU offload of FFTs on
+Intel GPUs with oneMKL currently requires the Kokkos acceleration
+package to be enabled with the SYCL backend.
 
 Performing 3d FFTs in parallel can be time-consuming due to data access
 and required communication.  This cost can be reduced by performing

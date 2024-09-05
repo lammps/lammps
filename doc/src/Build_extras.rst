@@ -751,14 +751,27 @@ This list was last updated for version 4.3.0 of the Kokkos library.
       platform-appropriate vendor library: rocFFT on AMD GPUs or cuFFT on
       NVIDIA GPUs.
 
-      To simplify compilation, five preset files are included in the
+      For Intel GPUs using SYCL, set these variables:
+
+      .. code-block:: bash
+
+         -D Kokkos_ARCH_HOSTARCH=yes   # HOSTARCH = HOST from list above
+         -D Kokkos_ARCH_GPUARCH=yes    # GPUARCH = GPU from list above
+         -D Kokkos_ENABLE_SYCL=yes
+         -D Kokkos_ENABLE_OPENMP=yes
+	 -D FFT_KOKKOS=MKL_GPU
+
+      This will enable FFTs on the GPU using the oneMKL library.
+
+      To simplify compilation, six preset files are included in the
       ``cmake/presets`` folder, ``kokkos-serial.cmake``,
       ``kokkos-openmp.cmake``, ``kokkos-cuda.cmake``,
-      ``kokkos-hip.cmake``, and ``kokkos-sycl.cmake``.  They will enable
-      the KOKKOS package and enable some hardware choices.  For GPU
-      support those preset files must be customized to match the
-      hardware used. So to compile with CUDA device parallelization with
-      some common packages enabled, you can do the following:
+      ``kokkos-hip.cmake``, ``kokkos-sycl-nvidia.cmake``, and
+      ``kokkos-sycl-intel.cmake``.  They will enable the KOKKOS
+      package and enable some hardware choices.  For GPU support those
+      preset files must be customized to match the hardware used. So
+      to compile with CUDA device parallelization with some common
+      packages enabled, you can do the following:
 
       .. code-block:: bash
 
@@ -829,6 +842,19 @@ This list was last updated for version 4.3.0 of the Kokkos library.
                                          # GPUARCH = GPU from list above
          FFT_INC = -DFFT_HIPFFT          # enable use of hipFFT (optional)
          FFT_LIB = -lhipfft              # link to hipFFT library
+
+      For Intel GPUs using SYCL:
+
+      .. code-block:: make
+
+         KOKKOS_DEVICES = SYCL
+         KOKKOS_ARCH = HOSTARCH,GPUARCH  # HOSTARCH = HOST from list above that is
+                                         #            hosting the GPU
+                                         # GPUARCH = GPU from list above
+         FFT_INC = -DFFT_KOKKOS_MKL_GPU  # enable use of hipFFT (optional)
+                                         # link to hipFFT library
+         FFT_LIB = -lmkl_sycl_dft -lmkl_intel_ilp64 -lmkl_tbb_thread
+	 -mkl_core -ltbb
 
 Advanced KOKKOS compilation settings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

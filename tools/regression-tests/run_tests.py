@@ -143,7 +143,7 @@ class TestResult:
        failure_file : file that reports the failed runs (a subset of progress_file)
        last_progress: the dictionary that shows the status of the last tests
 '''
-def iterate(lmp_binary, input_folder, input_list, config, results, progress_file, failure_file, last_progress=None, output_buf=None):
+def iterate(lmp_binary, input_folder, input_list, config, results, progress_file, failure_file, verbose=False, last_progress=None, output_buf=None):
 
     num_tests = len(input_list)
     num_completed = 0
@@ -347,6 +347,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             num_error = num_error + 1
 
             results.append(result)
+            print(f"{result.status}")
+            
             msg = f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime} }}\n"
             progress.write(msg)
             progress.close()
@@ -357,7 +359,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         # check if a log.lammps file exists in the current folder
         if os.path.isfile("log.lammps") == False:
-            logger.info(f"    ERROR: No log.lammps generated with {input_test} with return code {returncode}.\n")
+            msg = f"    failed, no log.lammps generated with {input_test} with return code {returncode}.\n"
+            print(msg)
+            logger.info(msg)
             logger.info(f"    Output:")
             logger.info(f"    {output}")
             logger.info(f"    Error:\n{error}")
@@ -377,7 +381,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         # if skip numerical checks, then skip the rest
         if skip_numerical_check == True:
-            msg = "completed, skipping numerical checks"
+            msg = "completed, skipping numerical checks"          
             if use_valgrind == True:
                 if "All heap blocks were freed" in error:
                     msg += ", no memory leak"
@@ -399,7 +403,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         # if there is no ERROR in the output, but there is no Total wall time printed out
         if "Total wall time" not in output:
-            logger.info(f"     ERROR: no Total wall time in the output.\n")
+            msg = f"     failed, no Total wall time in the output.\n"
+            print(msg)
+            logger.info(msg)
             logger.info(f"\n{input_test}:")
             logger.info(f"\n    Output:\n{output}")
             logger.info(f"\n    Error:\n{error}")
@@ -413,7 +419,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             test_id = test_id + 1
             continue
 
-        # NOTE: Total wall time could be 00:00:00 whereas Loop time is non-zero seonds
+        # NOTE: Total wall time could be 00:00:00 whereas Loop time is non-zero seconds
         for line in output.split('\n'):
             if "Total wall time" in line:
                 walltime_str = line.split('time:')[1]
@@ -426,7 +432,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         # if there is no Step or no Loop printed out
         if "Step" not in output or "Loop" not in output:
-            logger.info(f"    completed, but no Step nor Loop in the output.\n")
+            msg = f"    completed, but no Step nor Loop in the output.\n"
+            print(msg)
+            logger.info(msg)
             logger.info(f"\n{input_test}:")
             logger.info(f"\n    Output:\n{output}")
             logger.info(f"\n    Error:\n{error}")
@@ -462,6 +470,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime} }}\n")
             progress.close()
 
+            if verbose == True:
+                print(result.status)
+
             num_completed = num_completed + 1
             test_id = test_id + 1
             continue
@@ -474,8 +485,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             if thermo_ref:
                 num_runs_ref = len(thermo_ref)
             else:
-                # dictionary is empty
-                logger.info(f"    ERROR: Error parsing the reference log file {thermo_ref_file}.")
+                # thhe thermo_ref dictionary is empty
+                logger.info(f"    failed, error parsing the reference log file {thermo_ref_file}.")
                 result.status = "skipped numerical checks due to parsing the reference log file"
                 results.append(result)
                 progress.write(f"{input}: {{ folder: {input_folder}, status: \"completed, numerical checks skipped, unsupported log file format\", walltime: {walltime} }}\n")
@@ -484,7 +495,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 test_id = test_id + 1
                 continue
         else:
-            msg = f"       Cannot find the reference log file for {input_test} with the expected format log.[date].{basename}.*.[nprocs]"
+            msg = f"       failed, cannot find the reference log file for {input_test} with the expected format log.[date].{basename}.*.[nprocs]"
             logger.info(msg)
             print(msg)
             # attempt to read in the thermo yaml output from the working directory (the following section will be deprecated)
@@ -528,7 +539,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         num_fields = len(thermo[0]['keywords'])
         num_fields_ref = len(thermo_ref[0]['keywords'])
         if num_fields != num_fields_ref:
-            logger.info(f"     ERROR: Number of thermo colums in log.lammps ({num_fields}) is different from that in the reference log ({num_fields_ref}) in the first run.")
+            logger.info(f"     failed, number of thermo colums in log.lammps ({num_fields}) is different from that in the reference log ({num_fields_ref}) in the first run.")
             logger.info(f"     Check both log files for more details.")
             result.status = "failed, mismatched columns in the log files"
             results.append(result)
@@ -541,7 +552,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         # comparing output vs reference values
         width = 20
         if verbose == True:
-            print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) +
+            print("        Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) +
                 "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
 
         # check if overrides for this input scipt is specified
@@ -563,7 +574,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             num_fields = len(thermo[irun]['keywords'])
             num_fields_ref = len(thermo_ref[irun]['keywords'])
             if num_fields != num_fields_ref:
-                logger.info(f"     ERROR: Number of thermo columns in log.lammps ({num_fields})")
+                logger.info(f"     failed: Number of thermo columns in log.lammps ({num_fields})")
                 logger.info(f"     is different from that in the reference log ({num_fields_ref}) in run {irun}.")
                 mismatched_columns = True
                 continue
@@ -618,35 +629,34 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                     rel_diff_check = "N/A"
 
                 if verbose == True and abs_diff_check != "N/A"  and rel_diff_check != "N/A":
-                    print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} "
-                        "{abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
+                    print(f"        {thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
 
         # after all runs completed, or are interrupted in one of the runs (mismatched_columns = True)
 
         if mismatched_columns == True:
-            msg = f"       mismatched log files after the first run. Check both log files for more details."
+            msg = f"     mismatched log files after the first run. Check both log files for more details."
             print(msg)
             logger.info(msg)
             result.status = "thermo checks failed"
 
         if num_abs_failed > 0:
-            msg = f"       {num_abs_failed} abs diff thermo checks failed."
+            msg = f"     {num_abs_failed} abs diff thermo checks failed."
             print(msg)
             logger.info(msg)
             result.status = f"{num_abs_failed} abs thermo checks failed"
             if verbose == True:
-                for i in failed_abs_output:
-                    print(f"- {i}")
+                for out in failed_abs_output:
+                    print(f"        - {out}")
         if num_rel_failed > 0:
-            msg = f"       {num_rel_failed} rel diff thermo checks failed."
+            msg = f"     {num_rel_failed} rel diff thermo checks failed."
             print(msg)
             logger.info(msg)
             result.status = f"{num_rel_failed} rel thermo checks failed"
             if verbose == True:
-                for i in failed_rel_output:
-                    print(f"- {i}")
+                for out in failed_rel_output:
+                    print(f"        - {out}")
         if num_abs_failed == 0 and num_rel_failed == 0:
-            msg = f"       all {num_checks} thermo checks passed."
+            msg = f"     all {num_checks} thermo checks passed."
             print(msg)
             logger.info(msg)
             result.status = "thermo checks passed"
@@ -1298,7 +1308,8 @@ if __name__ == "__main__":
 
             # iterate through the input scripts
             results = []
-            stat = iterate(lmp_binary, directory, input_list, config, results, progress_file_abs, failure_file_abs, last_progress)
+            stat = iterate(lmp_binary, directory, input_list, config,
+                           results, progress_file_abs, failure_file_abs, verbose, last_progress)
 
             completed_tests += stat['num_completed']
             skipped_tests += stat['num_skipped']

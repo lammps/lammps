@@ -37,8 +37,9 @@ standard. A more detailed discussion of that is below.
 
       .. code-block:: bash
 
-         -D BUILD_MPI=value        # yes or no, default is yes if CMake finds MPI, else no
-         -D BUILD_OMP=value        # yes or no, default is yes if a compatible compiler is detected
+         -D BUILD_MPI=value        # yes or no, default is yes if CMake finds MPI
+         -D BUILD_OMP=value        # yes or no, default is yes if a compatible
+                                   # compiler is detected
          -D LAMMPS_MACHINE=name    # name = mpi, serial, mybox, titan, laptop, etc
                                    # no default value
 
@@ -54,9 +55,9 @@ standard. A more detailed discussion of that is below.
 
       .. code-block:: bash
 
-         make mpi                # parallel build, produces lmp_mpi using Makefile.mpi
-         make serial             # serial build, produces lmp_serial using Makefile/serial
-         make mybox              # uses Makefile.mybox to produce lmp_mybox
+         make mpi      # parallel build, produces lmp_mpi using Makefile.mpi
+         make serial   # serial build, produces lmp_serial using Makefile/serial
+         make mybox    # uses Makefile.mybox to produce lmp_mybox
 
       Any ``make machine`` command will look up the make settings from a
       file ``Makefile.machine`` in the folder ``src/MAKE`` or one of its
@@ -74,15 +75,15 @@ standard. A more detailed discussion of that is below.
       this is ``-fopenmp``\ , which can be added to the ``CC`` and
       ``LINK`` makefile variables.
 
-      For the serial build the following make variables are set (see src/MAKE/Makefile.serial):
+      For the serial build the following make variables are set (see ``src/MAKE/Makefile.serial``):
 
       .. code-block:: make
 
-         CC =            g++
-         LINK =          g++
-         MPI_INC =       -I../STUBS
-         MPI_PATH =      -L../STUBS
-         MPI_LIB =       -lmpi_stubs
+         CC =       g++
+         LINK =     g++
+         MPI_INC =  -I../STUBS
+         MPI_PATH = -L../STUBS
+         MPI_LIB =  -lmpi_stubs
 
       You also need to build the STUBS library for your platform before
       making LAMMPS itself.  A ``make serial`` build does this for you
@@ -231,24 +232,32 @@ LAMMPS.
       .. code-block:: bash
 
          # Building with GNU Compilers:
-         cmake ../cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_Fortran_COMPILER=gfortran
-         # Building with Intel Compilers:
-         cmake ../cmake -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc -DCMAKE_Fortran_COMPILER=ifort
+         cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ \
+               -DCMAKE_Fortran_COMPILER=gfortran ../cmake
+         # Building with Intel Classic Compilers:
+         cmake -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc \
+               -DCMAKE_Fortran_COMPILER=ifort ../cmake
          # Building with Intel oneAPI Compilers:
-         cmake ../cmake -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DCMAKE_Fortran_COMPILER=ifx
+         cmake -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx \
+               -DCMAKE_Fortran_COMPILER=ifx ../cmake
          # Building with LLVM/Clang Compilers:
-         cmake ../cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_Fortran_COMPILER=flang
+         cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+               -DCMAKE_Fortran_COMPILER=flang ../cmake
          # Building with PGI/Nvidia Compilers:
-         cmake ../cmake -DCMAKE_C_COMPILER=pgcc -DCMAKE_CXX_COMPILER=pgc++ -DCMAKE_Fortran_COMPILER=pgfortran
+         cmake -DCMAKE_C_COMPILER=pgcc -DCMAKE_CXX_COMPILER=pgc++ \
+               -DCMAKE_Fortran_COMPILER=pgfortran ../cmake
+         # Building with the NVHPC Compilers:
+         cmake -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ \
+               -DCMAKE_Fortran_COMPILER=nvfortran ../cmake
 
       For compiling with the Clang/LLVM compilers a CMake preset is
       provided that can be loaded with
-      `-C ../cmake/presets/clang.cmake`.  Similarly,
-      `-C ../cmake/presets/intel.cmake` should switch the compiler
-      toolchain to the legacy Intel compilers, `-C ../cmake/presets/oneapi.cmake`
+      ``-C ../cmake/presets/clang.cmake``.  Similarly,
+      ``-C ../cmake/presets/intel.cmake`` should switch the compiler
+      toolchain to the legacy Intel compilers, ``-C ../cmake/presets/oneapi.cmake``
       will switch to the LLVM based oneAPI Intel compilers,
-      and `-C ../cmake/presets/pgi.cmake`
-      will switch the compiler to the PGI compilers.
+      ``-C ../cmake/presets/pgi.cmake`` will switch the compiler to the PGI compilers,
+      and ``-C ../cmake/presets/nvhpc.cmake`` will switch to the NVHPC compilers.
 
       Furthermore, you can set ``CMAKE_TUNE_FLAGS`` to specifically add
       compiler flags to tune for optimal performance on given hosts.
@@ -259,7 +268,7 @@ LAMMPS.
          When the cmake command completes, it prints a summary to the
          screen which compilers it is using and what flags and settings
          will be used for the compilation.  Note that if the top-level
-         compiler is mpicxx, it is simply a wrapper on a real compiler.
+         compiler is ``mpicxx``, it is simply a wrapper on a real compiler.
          The underlying compiler info is what CMake will try to
          determine and report.  You should check to confirm you are
          using the compiler and optimization flags you want.
@@ -278,19 +287,19 @@ LAMMPS.
 
       .. code-block:: make
 
-         CC =            mpicxx
-         CCFLAGS =       -g -O3
-         LINK =          mpicxx
-         LINKFLAGS =     -g -O
+         CC =        mpicxx
+         CCFLAGS =   -g -O3
+         LINK =      mpicxx
+         LINKFLAGS = -g -O
 
       Serial build with GNU gcc (see ``src/MAKE/Makefile.serial``):
 
       .. code-block:: make
 
-         CC =            g++
-         CCFLAGS =       -g -O3
-         LINK =          g++
-         LINKFLAGS =     -g -O
+         CC =        g++
+         CCFLAGS =   -g -O3
+         LINK =      g++
+         LINKFLAGS = -g -O
 
       .. note::
 
@@ -316,10 +325,10 @@ LAMMPS.
          there may be specific compiler or linker flags that are either
          required or recommended to enable required features and to
          achieve optimal performance.  You need to include these in the
-         CCFLAGS and LINKFLAGS settings above.  For details, see the
+         ``CCFLAGS`` and ``LINKFLAGS`` settings above.  For details, see the
          documentation for the individual packages listed on the
          :doc:`Speed_packages` page.  Or examine these files in the
-         src/MAKE/OPTIONS directory.  They correspond to each of the 5
+         ``src/MAKE/OPTIONS`` directory.  They correspond to each of the 5
          accelerator packages and their hardware variants:
 
          .. code-block:: bash
@@ -388,7 +397,8 @@ running LAMMPS from Python via its library interface.
 
          make machine               # build LAMMPS executable lmp_machine
          make mode=static machine   # same as "make machine"
-         make mode=shared machine   # build LAMMPS shared lib liblammps_machine.so instead
+         make mode=shared machine   # build LAMMPS shared lib liblammps_machine.so
+                                    # instead
 
       The "static" build will generate a static library called
       ``liblammps_machine.a`` and an executable named ``lmp_machine``\ ,
@@ -450,7 +460,7 @@ installation.
 Including or removing debug support
 -----------------------------------
 
-By default the compilation settings will include the *-g* flag which
+By default the compilation settings will include the ``-g`` flag which
 instructs the compiler to include debug information (e.g. which line of
 source code a particular instruction correspond to).  This can be
 extremely useful in case LAMMPS crashes and can help to provide crucial
@@ -463,7 +473,7 @@ If this is a concern, you can change the compilation settings or remove
 the debug information from the LAMMPS executable:
 
 - **Traditional make**: edit your ``Makefile.<machine>`` to remove the
-  *-g* flag from the ``CCFLAGS`` and ``LINKFLAGS`` definitions
+  ``-g`` flag from the ``CCFLAGS`` and ``LINKFLAGS`` definitions
 - **CMake**: use ``-D CMAKE_BUILD_TYPE=Release`` or explicitly reset
   the applicable compiler flags (best done using the text mode or
   graphical user interface).
@@ -488,9 +498,10 @@ using CMake or Make.
 
       .. code-block:: bash
 
-         -D BUILD_TOOLS=value         # yes or no (default). Build binary2txt, chain.x, micelle2d.x, msi2lmp, phana, stl_bin2txt
-         -D BUILD_LAMMPS_SHELL=value  # yes or no (default). Build lammps-shell
-         -D BUILD_LAMMPS_GUI=value    # yes or no (default). Build lammps-gui
+         -D BUILD_TOOLS=value         # yes or no (default). Build binary2txt,
+                                      # chain.x, micelle2d.x, msi2lmp, phana,
+                                      # stl_bin2txt
+         -D BUILD_LAMMPS_GUI=value    # yes or no (default). Build LAMMPS-GUI
 
       The generated binaries will also become part of the LAMMPS installation
       (see below).
@@ -505,8 +516,9 @@ using CMake or Make.
          make chain            # build only chain tool
          make micelle2d        # build only micelle2d tool
 
-         cd lammps/tools/lammps-shell
-         make                  # build LAMMPS shell
+      .. note::
+
+         Building the LAMMPS-GUI *requires* building LAMMPS with CMake.
 
 ----------
 

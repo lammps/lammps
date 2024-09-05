@@ -126,18 +126,22 @@ class Neighbor : protected Pointers {
   virtual void init();
 
   // old API for creating neighbor list requests
+
   int request(void *, int instance = 0);
 
   // new API for creating neighbor list requests
+
   NeighRequest *add_request(class Pair *, int flags = 0);
   NeighRequest *add_request(class Fix *, int flags = 0);
   NeighRequest *add_request(class Compute *, int flags = 0);
   NeighRequest *add_request(class Command *, const char *, int flags = 0);
 
   // set neighbor list request OpenMP flag
+
   void set_omp_neighbor(int);
 
   // report if we have INTEL package neighbor lists
+
   bool has_intel_request() const;
 
   int decide();                     // decide whether to build or not
@@ -145,8 +149,8 @@ class Neighbor : protected Pointers {
   void setup_bins();                // setup bins based on box and cutoff
   virtual void build(int);          // build all perpetual neighbor lists
   virtual void build_topology();    // pairwise topology neighbor lists
-  // create a one-time pairwise neigh list
-  void build_one(class NeighList *list, int preflag = 0);
+
+  void build_one(class NeighList *list);      // create an occasional pairwise neigh list
   void set(int, char **);                     // set neighbor style and skin distance
   void reset_timestep(bigint);                // reset of timestep counter
   void modify_params(int, char **);           // modify params that control builds
@@ -155,18 +159,18 @@ class Neighbor : protected Pointers {
   void exclusion_group_group_delete(int, int);    // rm a group-group exclusion
   int exclude_setting();                          // return exclude value to accelerator pkg
 
-  // Option to call build_topology (e.g. from gpu styles instead for overlapped computation)
+  // option to call build_topology (e.g. from gpu styles instead for overlapped computation)
 
   int overlap_topo;    // 0 for default/old non-overlap mode
   void set_overlap_topo(int);
 
-  // find a neighbor list based on requestor
+  // find a neighbor list or request based on requestor
+
   NeighList *find_list(void *, const int id = 0) const;
-  // find a neighbor request based on requestor
   NeighRequest *find_request(void *, const int id = 0) const;
 
   const std::vector<NeighRequest *> get_pair_requests() const;
-  int any_full();                // Check if any old requests had full neighbor lists
+  int any_full();                // check if any old requests had full neighbor lists
   void build_collection(int);    // build peratom collection array starting at the given index
 
   bigint get_nneigh_full();    // return number of neighbors in a regular full neighbor list
@@ -175,6 +179,7 @@ class Neighbor : protected Pointers {
   double memory_usage();
 
   bigint last_setup_bins;    // step of last neighbor::setup_bins() call
+  double **get_xhold();      // access the latest-computed neighbor list positions
 
  protected:
   int me, nprocs;
@@ -184,9 +189,9 @@ class Neighbor : protected Pointers {
   int triclinic;      // 0 if domain is orthog, 1 if triclinic
   int newton_pair;    // 0 if newton off for pairwise, 1 if on
 
-  int must_check;       // 1 if must check other classes to reneigh
-  int restart_check;    // 1 if restart enabled, 0 if no
-  std::vector<Fix *>fixchecklist;    // which fixes to check
+  int must_check;                     // 1 if must check other classes to reneigh
+  int restart_check;                  // 1 if restart enabled, 0 if no
+  std::vector<Fix *> fixchecklist;    // which fixes to check
 
   double triggersq;    // trigger = build when atom moves this dist
 
@@ -204,9 +209,11 @@ class Neighbor : protected Pointers {
   int old_pgsize, old_oneatom;     // used to avoid re-creating neigh lists
 
   int nstencil_perpetual;    // # of perpetual NeighStencil classes
-  int npair_perpetual;       // #x of perpetual NeighPair classes
+  int npair_perpetual;       // # of perpetual NeighPair classes
   int *slist;                // indices of them in neigh_stencil
   int *plist;                // indices of them in neigh_pair
+  int npair_occasional;      // # of occasional NeighPair classes
+  int *olist;                // indices of them in neigh_pair
 
   int maxex_type;     // max # in exclusion type list
   int maxex_group;    // max # in exclusion group list

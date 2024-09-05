@@ -117,7 +117,7 @@ class Min : protected Pointers {
   class FixMinimize *fix_minimize;    // fix that stores auxiliary data
 
   Compute *pe_compute;    // compute for potential energy
-  double ecurrent;              // current potential energy
+  double ecurrent;        // current potential energy
 
   bigint ndoftotal;    // total dof for entire problem
 

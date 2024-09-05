@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_oxdna.h"
+#include "constants_oxdna.h"
 
 #include "atom.h"
 #include "error.h"
@@ -36,6 +37,7 @@ AtomVecOxdna::AtomVecOxdna(LAMMPS *lmp) : AtomVec(lmp)
   fields_grow = {"id5p"};
   fields_copy = {"id5p"};
   fields_border = {"id5p"};
+  fields_border_vel = {"id5p"};
   fields_exchange = {"id5p"};
   fields_restart = {"id5p"};
   fields_data_atom = {"id", "type", "x"};
@@ -45,6 +47,9 @@ AtomVecOxdna::AtomVecOxdna(LAMMPS *lmp) : AtomVec(lmp)
 
   if (!force->newton_bond)
     error->warning(FLERR, "Write_data command requires newton on to preserve 3'->5' bond polarity");
+
+  // initialize oxDNA units
+  ConstantsOxdna constants(lmp);
 }
 
 /* ----------------------------------------------------------------------

@@ -38,6 +38,7 @@ static constexpr double SMALL = 0.001;
 template<class DeviceType>
 AngleHarmonicKokkos<DeviceType>::AngleHarmonicKokkos(LAMMPS *lmp) : AngleHarmonic(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -71,14 +72,18 @@ void AngleHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
+    if(k_eatom.extent(0) < maxeatom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"angle:eatom");
     d_eatom = k_eatom.template view<DeviceType>();
+    } else Kokkos::deep_copy(d_eatom,0.0);
   }
   if (vflag_atom) {
+    if(k_vatom.extent(0) < maxvatom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"angle:vatom");
     d_vatom = k_vatom.template view<DeviceType>();
+    } else Kokkos::deep_copy(d_vatom,0.0);
   }
 
   //atomKK->sync(execution_space,datamask_read);
@@ -127,12 +132,12 @@ void AngleHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   copymode = 0;
@@ -264,8 +269,8 @@ void AngleHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
     k_theta0.h_view[i] = theta0[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_theta0.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_theta0.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -283,8 +288,8 @@ void AngleHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
     k_theta0.h_view[i] = theta0[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_theta0.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_theta0.modify_host();
 }
 
 /* ----------------------------------------------------------------------

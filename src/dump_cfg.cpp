@@ -166,23 +166,24 @@ int DumpCFG::convert_string(int n, double *mybuf)
       }
 
       for (j = 0; j < size_one; j++) {
+        const auto maxsize = maxsbuf - offset;
         if (j == 0) {
-          offset += sprintf(&sbuf[offset],"%f \n",mybuf[m]);
+          offset += snprintf(&sbuf[offset],maxsize,"%f \n",mybuf[m]);
         } else if (j == 1) {
-          offset += sprintf(&sbuf[offset],"%s \n",typenames[(int) mybuf[m]]);
+          offset += snprintf(&sbuf[offset],maxsize,"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2) {
           if (vtype[j] == Dump::INT)
-            offset += sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
+            offset += snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<int> (mybuf[m]));
           else if (vtype[j] == Dump::DOUBLE)
-            offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
+            offset += snprintf(&sbuf[offset],maxsize,vformat[j],mybuf[m]);
           else if (vtype[j] == Dump::STRING)
-            offset += sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
+            offset += snprintf(&sbuf[offset],maxsize,vformat[j],typenames[(int) mybuf[m]]);
           else if (vtype[j] == Dump::BIGINT)
-            offset += sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
+            offset += snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<bigint> (mybuf[m]));
         }
         m++;
       }
-      offset += sprintf(&sbuf[offset],"\n");
+      offset += snprintf(&sbuf[offset],maxsbuf-offset,"\n");
     }
 
   } else if (unwrapflag == 1) {
@@ -195,29 +196,30 @@ int DumpCFG::convert_string(int n, double *mybuf)
       }
 
       for (j = 0; j < size_one; j++) {
+        const auto maxsize = maxsbuf - offset;
         if (j == 0) {
-          offset += sprintf(&sbuf[offset],"%f \n",mybuf[m]);
+          offset += snprintf(&sbuf[offset],maxsize,"%f \n",mybuf[m]);
         } else if (j == 1) {
-          offset += sprintf(&sbuf[offset],"%s \n",typenames[(int) mybuf[m]]);
+          offset += snprintf(&sbuf[offset],maxsize,"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2 && j <= 4) {
           unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
-          offset += sprintf(&sbuf[offset],vformat[j],unwrap_coord);
+          offset += snprintf(&sbuf[offset],maxsize,vformat[j],unwrap_coord);
         } else if (j >= 5) {
           if (vtype[j] == Dump::INT)
             offset +=
-              sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
+              snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<int> (mybuf[m]));
           else if (vtype[j] == Dump::DOUBLE)
-            offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
+            offset += snprintf(&sbuf[offset],maxsize,vformat[j],mybuf[m]);
           else if (vtype[j] == Dump::STRING)
             offset +=
-              sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
+              snprintf(&sbuf[offset],maxsize,vformat[j],typenames[(int) mybuf[m]]);
           else if (vtype[j] == Dump::BIGINT)
             offset +=
-              sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
+              snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<bigint> (mybuf[m]));
         }
         m++;
       }
-      offset += sprintf(&sbuf[offset],"\n");
+      offset += snprintf(&sbuf[offset],maxsbuf - offset,"\n");
     }
   }
 

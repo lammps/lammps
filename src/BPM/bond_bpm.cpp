@@ -14,9 +14,11 @@
 #include "bond_bpm.h"
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "fix.h"
 #include "fix_bond_history.h"
 #include "fix_store_local.h"
 #include "fix_update_special_bonds.h"
@@ -30,6 +32,19 @@
 
 using namespace LAMMPS_NS;
 
+static const char cite_bpm[] =
+  "BPM bond style: doi:10.1039/D3SM01373A\n\n"
+  "@Article{Clemmer2024,\n"
+  " author =  {Clemmer, Joel T. and Monti, Joseph M. and Lechman, Jeremy B.},\n"
+  " title =   {A soft departure from jamming: the compaction of deformable\n"
+  "            granular matter under high pressures},\n"
+  " journal = {Soft Matter},\n"
+  " year =    2024,\n"
+  " volume =  20,\n"
+  " number =  8,\n"
+  " pages =   {1702--1718}\n"
+  "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 BondBPM::BondBPM(LAMMPS *_lmp) :
@@ -39,9 +54,13 @@ BondBPM::BondBPM(LAMMPS *_lmp) :
     pack_choice(nullptr), output_data(nullptr)
 {
   overlay_flag = 0;
+  ignore_special_flag = 0;
   prop_atom_flag = 0;
   break_flag = 1;
   nvalues = 0;
+
+  nhistory = 0;
+  update_flag = 0;
 
   r0_max_estimate = 0.0;
   max_stretch = 1.0;
@@ -50,11 +69,13 @@ BondBPM::BondBPM(LAMMPS *_lmp) :
   // this is so final order of Modify:fix will conform to input script
   // BondHistory technically only needs this if updateflag = 1
 
-  id_fix_dummy = utils::strdup("BPM_DUMMY");
+  id_fix_dummy = utils::strdup(fmt::format("BPM_DUMMY_{}", instance_total));
   modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy));
 
-  id_fix_dummy2 = utils::strdup("BPM_DUMMY2");
+  id_fix_dummy2 = utils::strdup(fmt::format("BPM_DUMMY2_{}", instance_total));
   modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy2));
+
+  if (lmp->citeme) lmp->citeme->add(cite_bpm);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -66,7 +87,7 @@ BondBPM::~BondBPM()
   if (id_fix_dummy) modify->delete_fix(id_fix_dummy);
   if (id_fix_dummy2) modify->delete_fix(id_fix_dummy2);
   if (id_fix_update) modify->delete_fix(id_fix_update);
-  if (id_fix_bond_history) modify->delete_fix(id_fix_bond_history);
+  if (fix_bond_history) modify->delete_fix(id_fix_bond_history);
   if (id_fix_store_local) modify->delete_fix(id_fix_store_local);
   if (id_fix_prop_atom) modify->delete_fix(id_fix_prop_atom);
 
@@ -93,39 +114,46 @@ void BondBPM::init_style()
     fix_store_local->nvalues = nvalues;
   }
 
-  if (overlay_flag) {
-    if (force->special_lj[1] != 1.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0 ||
-        force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 || force->special_coul[3] != 1.0)
-      error->all(FLERR,
-                 "With overlay/pair yes, BPM bond styles require a value of 1.0 for all special_bonds weights");
-    if (id_fix_update) {
-      modify->delete_fix(id_fix_update);
-      delete[] id_fix_update;
-      id_fix_update = nullptr;
-    }
-  } else {
-    // Require atoms know about all of their bonds and if they break
-    if (force->newton_bond && break_flag)
-      error->all(FLERR, "With overlay/pair no, or break yes, BPM bond styles require Newton bond off");
+  if (!ignore_special_flag) {
+    if (overlay_flag) {
+      if (force->special_lj[1] != 1.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0 ||
+          force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 || force->special_coul[3] != 1.0)
+        error->all(FLERR,
+                   "With overlay/pair yes, BPM bond styles require a value of 1.0 for all special_bonds weights");
+      if (id_fix_update) {
+        modify->delete_fix(id_fix_update);
+        delete[] id_fix_update;
+        id_fix_update = nullptr;
+      }
+    } else {
+      // Require atoms know about all of their bonds and if they break
+      if (force->newton_bond && break_flag)
+        error->all(FLERR, "With overlay/pair no, or break yes, BPM bond styles require Newton bond off");
 
-    // special lj must be 0 1 1 to censor pair forces between bonded particles
-    if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
-      error->all(FLERR,
-                 "With overlay/pair no, BPM bond styles require special LJ weights = 0,1,1");
-    // if bonds can break, special coulomb must be 1 1 1 to ensure all pairs are included in the
-    //    neighbor list and 1-3 and 1-4 special bond lists are skipped
-    if (break_flag && (force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 ||
-        force->special_coul[3] != 1.0))
-      error->all(FLERR,
-                 "With overlay/pair no, and break yes, BPM bond styles requires special Coulomb weights = 1,1,1");
+      // special lj must be 0 1 1 to censor pair forces between bonded particles
+      if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
+        error->all(FLERR,
+                   "With overlay/pair no, BPM bond styles require special LJ weights = 0,1,1");
+      // if bonds can break, special coulomb must be 1 1 1 to ensure all pairs are included in the
+      //    neighbor list and 1-3 and 1-4 special bond lists are skipped
+      if (break_flag && (force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 ||
+          force->special_coul[3] != 1.0))
+        error->all(FLERR,
+                   "With overlay/pair no, and break yes, BPM bond styles requires special Coulomb weights = 1,1,1");
 
-    if (id_fix_dummy && break_flag) {
-      id_fix_update = utils::strdup("BPM_UPDATE_SPECIAL_BONDS");
-      fix_update_special_bonds = dynamic_cast<FixUpdateSpecialBonds *>(modify->replace_fix(
-          id_fix_dummy, fmt::format("{} all UPDATE_SPECIAL_BONDS", id_fix_update), 1));
-      delete[] id_fix_dummy;
-      id_fix_dummy = nullptr;
+      if (id_fix_dummy && break_flag) {
+        id_fix_update = utils::strdup("BPM_UPDATE_SPECIAL_BONDS");
+        fix_update_special_bonds = dynamic_cast<FixUpdateSpecialBonds *>(modify->replace_fix(
+            id_fix_dummy, fmt::format("{} all UPDATE_SPECIAL_BONDS", id_fix_update), 1));
+        delete[] id_fix_dummy;
+        id_fix_dummy = nullptr;
+      }
     }
+
+    // special 1-3 and 1-4 weights must be 1 to prevent building 1-3 and 1-4 special bond lists
+    if (force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0 || force->special_coul[2] != 1.0 ||
+        force->special_coul[3] != 1.0)
+      error->all(FLERR, "Bond style bpm requires 1-3 and 1-4 special weights of 1.0");
   }
 
   if (force->angle || force->dihedral || force->improper)
@@ -133,10 +161,16 @@ void BondBPM::init_style()
   if (atom->molecular == 2)
     error->all(FLERR, "Bond style bpm cannot be used with atom style template");
 
-  // special 1-3 and 1-4 weights must be 1 to prevent building 1-3 and 1-4 special bond lists
-  if (force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0 || force->special_coul[2] != 1.0 ||
-      force->special_coul[3] != 1.0)
-    error->all(FLERR, "Bond style bpm requires 1-3 and 1-4 special weights of 1.0");
+  // find all instances of bond history to delete/shift data
+  // (bond hybrid may create multiple)
+  histories = modify->get_fix_by_style("BOND_HISTORY");
+  n_histories = histories.size();
+
+  // If a bond type isn't set, must be using bond style hybrid
+  hybrid_flag = 0;
+  for (int i = 1; i <= atom->nbondtypes; i++)
+    if (!setflag[i]) hybrid_flag = 1;
+  fix_bond_history->setflag = setflag;
 }
 
 /* ----------------------------------------------------------------------
@@ -253,6 +287,14 @@ void BondBPM::settings(int narg, char **arg)
       }
     }
   }
+
+  // Set up necessary history fix
+  if (!fix_bond_history) {
+    fix_bond_history = dynamic_cast<FixBondHistory *>(modify->replace_fix(
+        id_fix_dummy2, fmt::format("{} all BOND_HISTORY {} {}", id_fix_bond_history, update_flag, nhistory), 1));
+    delete[] id_fix_dummy2;
+    id_fix_dummy2 = nullptr;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -336,19 +378,32 @@ void BondBPM::process_broken(int i, int j)
 {
   if (!break_flag)
     error->one(FLERR, "BPM bond broke with break no option");
-  if (fix_store_local) {
-    for (int n = 0; n < nvalues; n++) (this->*pack_choice[n])(n, i, j);
 
-    fix_store_local->add_data(output_data, i, j);
+  int nlocal = atom->nlocal;
+  if (fix_store_local) {
+    // If newton off, bond can break on two procs so only record if proc owns lower tag
+    //    (BPM bond styles should sort so i -> atom with lower tag)
+    if (force->newton_bond || (i < nlocal)) {
+      for (int n = 0; n < nvalues; n++) (this->*pack_choice[n])(n, i, j);
+      fix_store_local->add_data(output_data, i, j);
+    }
   }
 
-  if (fix_update_special_bonds) fix_update_special_bonds->add_broken_bond(i, j);
+  if (fix_update_special_bonds) {
+    // If this processor owns two copies of the bond (i.e. if the domain is periodic and 1 proc thick),
+    //   skip instance where larger tag (j) owned
+    int check = 1;
+    if (i >= nlocal) {
+      int imap = atom->map(atom->tag[i]);
+      if (imap < nlocal) check = 0;
+    }
+    if (check) fix_update_special_bonds->add_broken_bond(i, j);
+  }
 
   // Manually search and remove from atom arrays
   // need to remove in case special bonds arrays rebuilt
-  int m, n;
-  int nlocal = atom->nlocal;
 
+  int m, n;
   tagint *tag = atom->tag;
   tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
@@ -356,12 +411,15 @@ void BondBPM::process_broken(int i, int j)
 
   if (i < nlocal) {
     for (m = 0; m < num_bond[i]; m++) {
-      if (bond_atom[i][m] == tag[j]) {
+      if (bond_atom[i][m] == tag[j] && setflag[bond_type[i][m]]) {
         n = num_bond[i];
         bond_type[i][m] = bond_type[i][n - 1];
         bond_atom[i][m] = bond_atom[i][n - 1];
-        fix_bond_history->shift_history(i, m, n - 1);
-        fix_bond_history->delete_history(i, n - 1);
+        for (auto &ihistory: histories) {
+          auto fix_bond_history2 = dynamic_cast<FixBondHistory *>  (ihistory);
+          fix_bond_history2->shift_history(i, m, n - 1);
+          fix_bond_history2->delete_history(i, n - 1);
+        }
         num_bond[i]--;
         break;
       }
@@ -370,12 +428,15 @@ void BondBPM::process_broken(int i, int j)
 
   if (j < nlocal) {
     for (m = 0; m < num_bond[j]; m++) {
-      if (bond_atom[j][m] == tag[i]) {
+      if (bond_atom[j][m] == tag[i] && setflag[bond_type[j][m]]) {
         n = num_bond[j];
         bond_type[j][m] = bond_type[j][n - 1];
         bond_atom[j][m] = bond_atom[j][n - 1];
-        fix_bond_history->shift_history(j, m, n - 1);
-        fix_bond_history->delete_history(j, n - 1);
+        for (auto &ihistory: histories) {
+          auto fix_bond_history2 = dynamic_cast<FixBondHistory *>  (ihistory);
+          fix_bond_history2->shift_history(j, m, n - 1);
+          fix_bond_history2->delete_history(j, n - 1);
+        }
         num_bond[j]--;
         break;
       }

@@ -102,9 +102,9 @@ endif()
 #######################################
 # select code sanitizer options
 #######################################
-set(ENABLE_SANITIZER "none" CACHE STRING "Select a code sanitizer option (none (default), address, leak, thread, undefined)")
+set(ENABLE_SANITIZER "none" CACHE STRING "Select a code sanitizer option (none (default), address, hwaddress, leak, thread, undefined)")
 mark_as_advanced(ENABLE_SANITIZER)
-set(ENABLE_SANITIZER_VALUES none address leak thread undefined)
+set(ENABLE_SANITIZER_VALUES none address hwaddress leak thread undefined)
 set_property(CACHE ENABLE_SANITIZER PROPERTY STRINGS ${ENABLE_SANITIZER_VALUES})
 validate_option(ENABLE_SANITIZER ENABLE_SANITIZER_VALUES)
 string(TOLOWER ${ENABLE_SANITIZER} ENABLE_SANITIZER)

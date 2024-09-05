@@ -10,7 +10,7 @@ Syntax
 
    pair_style e3b Otype
 
-* Otype = atom type for oxygen
+* Otype = atom type (numeric or type label) for oxygen
 
 .. code-block:: LAMMPS
 
@@ -49,6 +49,10 @@ Examples
 
    pair_style hybrid/overlay e3b 1 lj/cut/tip4p/long 1 2 1 1 0.15 8.5
    pair_coeff * * e3b preset 2011
+
+   pair_style e3b OW
+   labelmap atom 1 C 2 H 3 O 4 N 5 OW 6 HW
+   pair_coeff * * Ea 35.85 Eb -240.2 Ec 449.3 E2 108269.9 K3 1.907 K2 4.872 Rc3 5.2 Rc2 5.2 Rs 5.0 bondL 0.9572
 
 Used in example input script:
 
@@ -101,6 +105,11 @@ atom type is inferred from the ordering of the atoms.
    Every atom of type Otype must be part of a water molecule.
    Each water molecule must have consecutive IDs with the oxygen first.
    This pair style does not test that this criteria is met.
+
+.. note::
+
+   If using type labels, the type labels must be defined before calling
+   the :doc:`pair_coeff <pair_coeff>` command.
 
 The *pair_coeff* command must have at least one keyword/value pair, as
 described above.  The *preset* keyword sets the potential parameters to

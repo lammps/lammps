@@ -44,7 +44,7 @@ available:
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 32 18 50
    :align: left
 
    * - File name:
@@ -227,12 +227,12 @@ Tests for the C-style library interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Tests for validating the LAMMPS C-style library interface are in the
-``unittest/c-library`` folder.  They are implemented in either way used
-for utility functions and for LAMMPS commands, but use the functions
+``unittest/c-library`` folder.  They are implemented either to be used
+for utility functions or for LAMMPS commands, but use the functions
 implemented in the ``src/library.cpp`` file as much as possible.  There
 may be some overlap with other tests, but only in as much as is required
 to test the C-style library API.  The tests are distributed over
-multiple test programs which tries to match the grouping of the
+multiple test programs which try to match the grouping of the
 functions in the source code and :ref:`in the manual <lammps_c_api>`.
 
 This group of tests also includes tests invoking LAMMPS in parallel
@@ -258,7 +258,7 @@ Tests for the Python module and package
 
 The ``unittest/python`` folder contains primarily tests for classes and
 functions in the LAMMPS python module but also for commands in the
-PYTHON package.  These tests are only enabled, if the necessary
+PYTHON package.  These tests are only enabled if the necessary
 prerequisites are detected or enabled during configuration and
 compilation of LAMMPS (shared library build enabled, Python interpreter
 found, Python development files found).
@@ -272,7 +272,7 @@ Tests for the Fortran interface
 
 Tests for using the Fortran module are in the ``unittest/fortran``
 folder.  Since they are also using the GoogleTest library, they require
-to also implement test wrappers in C++ that will call fortran functions
+implementing test wrappers in C++ that will call fortran functions
 which provide a C function interface through ISO_C_BINDINGS that will in
 turn call the functions in the LAMMPS Fortran module.
 
@@ -293,7 +293,7 @@ The ``unittest/formats`` folder contains test programs for reading and
 writing files like data files, restart files, potential files or dump files.
 This covers simple things like the file i/o convenience functions in the
 ``utils::`` namespace to complex tests of atom styles where creating and
-deleting of atoms with different properties is tested in different ways
+deleting atoms with different properties is tested in different ways
 and through script commands or reading and writing of data or restart files.
 
 Tests for styles computing or modifying forces
@@ -411,7 +411,7 @@ With this scheme a large fraction of the code of any tested pair style
 will be executed and consistent results are required for different
 settings and between different accelerated pair style variants and the
 base class, as well as for computing individual pairs through the
-``Pair::single()`` where supported.
+``Pair::single()`` method where supported.
 
 The ``test_pair_style`` tester is used with 4 categories of test inputs:
 
@@ -443,7 +443,7 @@ file for a style that is similar to one to be tested.  The file name should
 follow the naming conventions described above and after copying the file,
 the first step is to replace the style names where needed.  The coefficient
 values do not have to be meaningful, just in a reasonable range for the
-given system.  It does not matter if some forces are large, for as long as
+given system.  It does not matter if some forces are large, as long as
 they do not diverge.
 
 The template input files define a large number of index variables at the top
@@ -535,7 +535,7 @@ The are by default no unit tests for newly added features (e.g. pair, fix,
 or compute styles) unless your pull request also includes tests for the
 added features.  If you are modifying some features, you may see failures
 for existing tests, if your modifications have some unexpected side effects
-or your changes render the existing text invalid.  If you are adding an
+or your changes render the existing test invalid.  If you are adding an
 accelerated version of an existing style, then only tests for INTEL,
 KOKKOS (with OpenMP only), OPENMP, and OPT will be run automatically.
 Tests for the GPU package are time consuming and thus are only run
@@ -543,7 +543,7 @@ Tests for the GPU package are time consuming and thus are only run
 to the pull request.  After the test has started, it is often best to
 remove the label since every PR activity will re-trigger the test (that
 is a limitation of triggering a test with a label).  Support for unit
-tests with using KOKKOS with GPU acceleration is currently not supported.
+tests when using KOKKOS with GPU acceleration is currently not supported.
 
 When you see a failed build on GitHub, click on ``Details`` to be taken
 to the corresponding LAMMPS Jenkins CI web page.  Click on the "Exit"
@@ -589,11 +589,10 @@ While the epsilon (relative precision) for a single, `IEEE 754 compliant
 point operation is at about 2.2e-16, the achievable precision for the
 tests is lower due to most numbers being sums over intermediate results
 and the non-associativity of floating point math leading to larger
-errors.  In some cases specific properties of the tested style.  As a
-rule of thumb, the test epsilon can often be in the range 5.0e-14 to
-1.0e-13.  But for "noisy" force kernels, e.g. those a larger amount of
-arithmetic operations involving `exp()`, `log()` or `sin()` functions,
-and also due to the effect of compiler optimization or differences
+errors.  As a rule of thumb, the test epsilon can often be in the range
+5.0e-14 to 1.0e-13.  But for "noisy" force kernels, e.g. those a larger
+amount of arithmetic operations involving `exp()`, `log()` or `sin()`
+functions, and also due to the effect of compiler optimization or differences
 between compilers or platforms, epsilon may need to be further relaxed,
 sometimes epsilon can be relaxed to 1.0e-12. If interpolation or lookup
 tables are used, epsilon may need to be set to 1.0e-10 or even higher.

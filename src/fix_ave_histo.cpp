@@ -207,7 +207,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
       if (val.val.v < 0)
         error->all(FLERR,"Variable name {} for {} does not exist", val.id, mycmd);
       // variables only produce one kind of output
-      if (input->variable->equalstyle(val.val.v)) kindglobal = 1;
+      if (input->variable->equalstyle(val.val.v) || input->variable->vectorstyle(val.val.v))
+          kindglobal = 1;
       else if (input->variable->atomstyle(val.val.v)) kindperatom = 1;
       else error->all(FLERR,"{} variable {} is incompatible style", mycmd, val.id);
     }
@@ -715,7 +716,7 @@ void FixAveHisto::end_of_step()
 
   if (fp && comm->me == 0) {
     clearerr(fp);
-    if (overwrite) platform::fseek(fp,filepos);
+    if (overwrite) (void) platform::fseek(fp,filepos);
     fmt::print(fp,"{} {} {} {} {} {}\n",ntimestep,nbins,
             stats_total[0],stats_total[1],stats_total[2],stats_total[3]);
     if (stats_total[0] != 0.0)

@@ -74,6 +74,9 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   if ((nevery <= 0) || (cutoff <= 0.0) || (tolerance <= 0.0) || (maxiter <= 0))
     error->all(FLERR,"Illegal fix qeq command");
 
+  // must have charges
+  if (!atom->q_flag) error->all(FLERR, "Fix {} requires atom attribute q", style);
+
   alpha = 0.20;
   swa = 0.0;
   swb = cutoff;
@@ -234,8 +237,9 @@ void FixQEq::reallocate_storage()
 
 void FixQEq::allocate_matrix()
 {
-  int i,ii,inum,m;
+  int i,ii,inum;
   int *ilist, *numneigh;
+  bigint m;
 
   int mincap;
   double safezone;
@@ -258,7 +262,10 @@ void FixQEq::allocate_matrix()
     i = ilist[ii];
     m += numneigh[i];
   }
-  m_cap = MAX((int)(m * safezone), mincap * MIN_NBRS);
+  bigint m_cap_big = (bigint)MAX(m * safezone, mincap * MIN_NBRS);
+  if (m_cap_big > MAXSMALLINT)
+    error->one(FLERR,"Too many neighbors in fix qeq");
+  m_cap = m_cap_big;
 
   H.n = n_cap;
   H.m = m_cap;
@@ -760,11 +767,12 @@ void FixQEq::read_file(char *file)
       chi[n] = eta[n] = gamma[n] = zeta[n] = zcore[n] = 0.0;
     }
 
+    FILE *fp = nullptr;
     try {
       int nlo,nhi;
       double val;
 
-      FILE *fp = utils::open_potential(file,lmp,nullptr);
+      fp = utils::open_potential(file,lmp,nullptr);
       if (fp == nullptr)
         throw qeq_parser_error(fmt::format("Cannot open fix qeq parameter file {}: {}",
                                            file,utils::getsyserror()));
@@ -795,7 +803,7 @@ void FixQEq::read_file(char *file)
         for (int n=nlo; n <= nhi; ++n) setflag[n] = 1;
       }
     } catch (EOFException &) {
-      ; // catch and ignore to exit loop
+      fclose(fp);
     } catch (std::exception &e) {
       error->one(FLERR,e.what());
     }

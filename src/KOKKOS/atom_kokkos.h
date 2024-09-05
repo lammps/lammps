@@ -165,10 +165,9 @@ class AtomKokkos : public Atom {
   void modified(const ExecutionSpace space, unsigned int mask);
   void sync_overlapping_device(const ExecutionSpace space, unsigned int mask);
   void sort() override;
-  virtual void grow(unsigned int mask);
   int add_custom(const char *, int, int, int border = 0) override;
   void remove_custom(int, int, int) override;
-  virtual void deallocate_topology();
+  void deallocate_topology() override;
 
   void map_set_device();
   void map_set_host();

@@ -47,8 +47,7 @@ using namespace LAMMPS_NS;
 PotentialFileReader::PotentialFileReader(LAMMPS *lmp, const std::string &filename,
                                          const std::string &potential_name,
                                          const std::string &name_suffix, const int auto_convert) :
-    Pointers(lmp),
-    reader(nullptr), filename(filename), filetype(potential_name + name_suffix),
+    Pointers(lmp), reader(nullptr), filename(filename), filetype(potential_name + name_suffix),
     unit_convert(auto_convert)
 {
   if (comm->me != 0) { error->one(FLERR, "FileReader should only be called by proc 0!"); }
@@ -135,7 +134,7 @@ char *PotentialFileReader::next_line(int nparams)
  *
  * This reads lines from the file using the next_line() function,
  * and splits them into floating-point numbers using the
- * ValueTokenizer class and stores the number is the provided list.
+ * ValueTokenizer class and stores the number in the provided list.
  *
  * \param  list  Pointer to array with suitable storage for *n* doubles
  * \param  n     Number of doubles to be read */
@@ -155,7 +154,7 @@ void PotentialFileReader::next_dvector(double *list, int n)
  *
  * This reads lines from the file using the next_line() function,
  * and splits them into floating-point numbers using the
- * ValueTokenizer class and stores the number is the provided list.
+ * ValueTokenizer class and stores the number in the provided list.
  *
  * \param   nparams     Number of words to be read
  * \param   separators  String with list of separators.

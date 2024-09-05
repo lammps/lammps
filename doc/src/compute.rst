@@ -272,6 +272,10 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`pe/mol/tally <compute_tally>` - potential energy between two groups of atoms separated into intermolecular and intramolecular components via the tally callback mechanism
 * :doc:`pe/tally <compute_tally>` - potential energy between two groups of atoms via the tally callback mechanism
 * :doc:`plasticity/atom <compute_plasticity_atom>` - Peridynamic plasticity for each atom
+* :doc:`pod/atom <compute_pod_atom>` - POD descriptors for each atom
+* :doc:`podd/atom <compute_pod_atom>` - derivative of POD descriptors for each atom
+* :doc:`pod/local <compute_pod_atom>` - local POD descriptors and their derivatives
+* :doc:`pod/global <compute_pod_atom>` - global POD descriptors and their derivatives
 * :doc:`pressure <compute_pressure>` - total pressure and pressure tensor
 * :doc:`pressure/alchemy <compute_pressure_alchemy>` - mixed system total pressure and pressure tensor for :doc:`fix alchemy <fix_alchemy>` runs
 * :doc:`pressure/uef <compute_pressure_uef>` - pressure tensor in the reference frame of an applied flow field
@@ -286,6 +290,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`reduce <compute_reduce>` - combine per-atom quantities into a single global value
 * :doc:`reduce/chunk <compute_reduce_chunk>` - reduce per-atom quantities within each chunk
 * :doc:`reduce/region <compute_reduce>` - same as compute reduce, within a region
+* :doc:`rheo/property/atom <compute_rheo_property_atom>` - convert atom attributes in RHEO package to per-atom vectors/arrays
 * :doc:`rigid/local <compute_rigid_local>` - extract rigid body attributes
 * :doc:`saed <compute_saed>` - electron diffraction intensity on a mesh of reciprocal lattice nodes
 * :doc:`slcsa/atom <compute_slcsa_atom>` - perform Supervised Learning Crystal Structure Analysis (SL-CSA)
@@ -357,7 +362,8 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 
 Restrictions
 """"""""""""
- none
+
+none
 
 Related commands
 """"""""""""""""

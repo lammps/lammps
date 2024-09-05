@@ -1,13 +1,13 @@
 OpenMP Parallelism
 ^^^^^^^^^^^^^^^^^^
 
-The styles in the INTEL, KOKKOS, and OPENMP package offer to use OpenMP
+The styles in the INTEL, KOKKOS, and OPENMP packages offer to use OpenMP
 thread parallelism to predominantly distribute loops over local data
 and thus follow an orthogonal parallelization strategy to the
 decomposition into spatial domains used by the :doc:`MPI partitioning
 <Developer_par_part>`.  For clarity, this section discusses only the
 implementation in the OPENMP package, as it is the simplest. The INTEL
-and KOKKOS package offer additional options and are more complex since
+and KOKKOS packages offer additional options and are more complex since
 they support more features and different hardware like co-processors
 or GPUs.
 
@@ -16,7 +16,7 @@ keep the changes to the source code small, so that it would be easier to
 maintain the code and keep it in sync with the non-threaded standard
 implementation.  This is achieved by a) making the OPENMP version a
 derived class from the regular version (e.g. ``PairLJCutOMP`` from
-``PairLJCut``) and overriding only methods that are multi-threaded or
+``PairLJCut``) and only overriding methods that are multi-threaded or
 need to be modified to support multi-threading (similar to what was done
 in the OPT package), b) keeping the structure in the modified code very
 similar so that side-by-side comparisons are still useful, and c)

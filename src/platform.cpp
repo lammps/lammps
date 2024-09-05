@@ -248,6 +248,8 @@ std::string platform::os_info()
     buf = "Windows 11 22H2";
   } else if (build == "22631") {
     buf = "Windows 11 23H2";
+  } else if (build == "26100") {
+    buf = "Windows 11 24H2";
   } else {
     buf = "Windows Build " + build;
   }
@@ -940,7 +942,7 @@ int platform::ftruncate(FILE *fp, bigint length)
     return 1;
   }
 #else
-  platform::fseek(fp, length);
+  (void) platform::fseek(fp, length);
   return ::ftruncate(fileno(fp), (off_t) length);
 #endif
 }

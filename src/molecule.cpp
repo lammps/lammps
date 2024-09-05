@@ -447,30 +447,30 @@ void Molecule::read(int flag)
 
       int nmatch = values.count();
       int nwant = 0;
-      if (values.contains("atoms")) {
+      if (values.matches("^\\s*\\d+\\s+atoms")) {
         natoms = values.next_int();
         nwant = 2;
-      } else if (values.contains("bonds")) {
+      } else if (values.matches("^\\s*\\d+\\s+bonds")) {
         nbonds = values.next_int();
         nwant = 2;
-      } else if (values.contains("angles")) {
+      } else if (values.matches("^\\s*\\d+\\s+angles")) {
         nangles = values.next_int();
         nwant = 2;
-      } else if (values.contains("dihedrals")) {
+      } else if (values.matches("^\\s*\\d+\\s+dihedrals")) {
         ndihedrals = values.next_int();
         nwant = 2;
-      } else if (values.contains("impropers")) {
+      } else if (values.matches("^\\s*\\d+\\s+impropers")) {
         nimpropers = values.next_int();
         nwant = 2;
-      } else if (values.contains("fragments")) {
+      } else if (values.matches("^\\s*\\d+\\s+fragments")) {
         nfragments = values.next_int();
         nwant = 2;
-      } else if (values.contains("mass")) {
+      } else if (values.matches("^\\s*\\f+\\s+mass")) {
         massflag = 1;
         masstotal = values.next_double();
         nwant = 2;
         masstotal *= sizescale * sizescale * sizescale;
-      } else if (values.contains("com")) {
+      } else if (values.matches("^\\s*\\f+\\s+\\f+\\s+\\f+\\s+com")) {
         comflag = 1;
         com[0] = values.next_double();
         com[1] = values.next_double();
@@ -480,8 +480,8 @@ void Molecule::read(int flag)
         com[1] *= sizescale;
         com[2] *= sizescale;
         if (domain->dimension == 2 && com[2] != 0.0)
-          error->all(FLERR, "Molecule file z center-of-mass must be 0.0 for 2d");
-      } else if (values.contains("inertia")) {
+          error->all(FLERR, "Molecule file z center-of-mass must be 0.0 for 2d systems");
+      } else if (values.matches("^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+inertia")) {
         inertiaflag = 1;
         itensor[0] = values.next_double();
         itensor[1] = values.next_double();
@@ -497,7 +497,7 @@ void Molecule::read(int flag)
         itensor[3] *= scale5;
         itensor[4] *= scale5;
         itensor[5] *= scale5;
-      } else if (values.contains("body")) {
+      } else if (values.matches("^\\s*\\d+\\s+\\f+\\s+body")) {
         bodyflag = 1;
         avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
         if (!avec_body) error->all(FLERR, "Molecule file requires atom style body");
@@ -506,10 +506,8 @@ void Molecule::read(int flag)
         nwant = 3;
       } else {
         // unknown header keyword
-        if (utils::strmatch(text, "^\\d+\\s+\\S+")) {
-          values.next_int();
-          auto keyword = values.next_string();
-          error->one(FLERR, "Invalid header keyword: {}", keyword);
+        if (values.matches("^\\s*\\f+\\s+\\S+")) {
+          error->one(FLERR, "Unknown keyword or incorrectly formatted header line: {}", line);
         } else
           break;
       }
@@ -601,14 +599,14 @@ void Molecule::read(int flag)
     } else if (keyword == "Dihedrals") {
       if (ndihedrals == 0)
         error->all(FLERR,
-                   "Found Dihedrals section"
+                   "Found Dihedrals section "
                    "but no ndihedrals setting in header");
       dihedralflag = tag_require = 1;
       dihedrals(flag, line);
     } else if (keyword == "Impropers") {
       if (nimpropers == 0)
         error->all(FLERR,
-                   "Found Impropers section"
+                   "Found Impropers section "
                    "but no nimpropers setting in header");
       improperflag = tag_require = 1;
       impropers(flag, line);
@@ -2061,6 +2059,7 @@ void Molecule::deallocate()
   memory->destroy(type);
   memory->destroy(molecule);
   memory->destroy(q);
+  memory->destroy(mu);
   memory->destroy(radius);
   memory->destroy(rmass);
 

@@ -1,0 +1,293 @@
+LAMMPS (17 Apr 2024 - Development - patch_17Apr2024-177-g86abf4f680-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# Demonstrate bispectrum computes
+
+# initialize simulation
+
+variable 	nsteps index 0
+variable 	nrep equal 2
+variable 	a equal 2.0
+units		metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable 	nx equal ${nrep}
+variable 	nx equal 2
+variable 	ny equal ${nrep}
+variable 	ny equal 2
+variable 	nz equal ${nrep}
+variable 	nz equal 2
+
+boundary	p p p
+
+atom_modify	map hash
+lattice         bcc $a
+lattice         bcc 2
+Lattice spacing in x,y,z = 2 2 2
+region		box block 0 ${nx} 0 ${ny} 0 ${nz}
+region		box block 0 2 0 ${ny} 0 ${nz}
+region		box block 0 2 0 2 0 ${nz}
+region		box block 0 2 0 2 0 2
+create_box	2 box
+Created orthogonal box = (0 0 0) to (4 4 4)
+  1 by 1 by 1 MPI processor grid
+create_atoms	2 box
+Created 16 atoms
+  using lattice units in orthogonal box = (0 0 0) to (4 4 4)
+  create_atoms CPU = 0.001 seconds
+
+mass 		* 180.88
+
+displace_atoms 	all random 0.1 0.1 0.1 123456
+Displacing atoms ...
+
+# set up dummy potential to satisfy cutoff
+variable 	rcutfac equal 6.0
+pair_style 	zero ${rcutfac}
+pair_style 	zero 6
+pair_coeff 	* *
+
+# set up per-atom computes
+
+compute ld all pod/atom Ta_param.pod Ta_coefficients.pod Ta Ta
+**************** Begin of POD Potentials ****************
+species: Ta 
+periodic boundary conditions: 1 1 1
+number of environment clusters: 1
+number of principal compoments: 2
+inner cut-off radius: 1
+outer cut-off radius: 5
+bessel polynomial degree: 3
+inverse polynomial degree: 6
+one-body potential: 1
+two-body radial basis functions: 6
+three-body radial basis functions: 5
+three-body angular degree: 4
+four-body radial basis functions: 0
+four-body angular degree: 0
+five-body radial basis functions: 0
+five-body angular degree: 0
+six-body radial basis functions: 0
+six-body angular degree: 0
+seven-body radial basis functions: 0
+seven-body angular degree: 0
+number of local descriptors per element for one-body potential: 1
+number of local descriptors per element for two-body potential: 6
+number of local descriptors per element for three-body potential: 25
+number of local descriptors per element for four-body potential: 0
+number of local descriptors per element for five-body potential: 0
+number of local descriptors per element for six-body potential: 0
+number of local descriptors per element for seven-body potential: 0
+number of local descriptors per element for all potentials: 32
+number of global descriptors: 32
+**************** End of POD Potentials ****************
+
+**************** Begin of Model Coefficients ****************
+total number of coefficients for POD potential: 32
+total number of elements for PCA projection matrix: 0
+total number of elements for PCA centroids: 0
+**************** End of Model Coefficients ****************
+
+compute dd all podd/atom Ta_param.pod Ta_coefficients.pod Ta Ta
+**************** Begin of POD Potentials ****************
+species: Ta 
+periodic boundary conditions: 1 1 1
+number of environment clusters: 1
+number of principal compoments: 2
+inner cut-off radius: 1
+outer cut-off radius: 5
+bessel polynomial degree: 3
+inverse polynomial degree: 6
+one-body potential: 1
+two-body radial basis functions: 6
+three-body radial basis functions: 5
+three-body angular degree: 4
+four-body radial basis functions: 0
+four-body angular degree: 0
+five-body radial basis functions: 0
+five-body angular degree: 0
+six-body radial basis functions: 0
+six-body angular degree: 0
+seven-body radial basis functions: 0
+seven-body angular degree: 0
+number of local descriptors per element for one-body potential: 1
+number of local descriptors per element for two-body potential: 6
+number of local descriptors per element for three-body potential: 25
+number of local descriptors per element for four-body potential: 0
+number of local descriptors per element for five-body potential: 0
+number of local descriptors per element for six-body potential: 0
+number of local descriptors per element for seven-body potential: 0
+number of local descriptors per element for all potentials: 32
+number of global descriptors: 32
+**************** End of POD Potentials ****************
+
+**************** Begin of Model Coefficients ****************
+total number of coefficients for POD potential: 32
+total number of elements for PCA projection matrix: 0
+total number of elements for PCA centroids: 0
+**************** End of Model Coefficients ****************
+
+
+# set up compute snap generating global array
+
+compute gdd all pod/gdd Ta_param.pod Ta_coefficients.pod Ta Ta
+**************** Begin of POD Potentials ****************
+species: Ta 
+periodic boundary conditions: 1 1 1
+number of environment clusters: 1
+number of principal compoments: 2
+inner cut-off radius: 1
+outer cut-off radius: 5
+bessel polynomial degree: 3
+inverse polynomial degree: 6
+one-body potential: 1
+two-body radial basis functions: 6
+three-body radial basis functions: 5
+three-body angular degree: 4
+four-body radial basis functions: 0
+four-body angular degree: 0
+five-body radial basis functions: 0
+five-body angular degree: 0
+six-body radial basis functions: 0
+six-body angular degree: 0
+seven-body radial basis functions: 0
+seven-body angular degree: 0
+number of local descriptors per element for one-body potential: 1
+number of local descriptors per element for two-body potential: 6
+number of local descriptors per element for three-body potential: 25
+number of local descriptors per element for four-body potential: 0
+number of local descriptors per element for five-body potential: 0
+number of local descriptors per element for six-body potential: 0
+number of local descriptors per element for seven-body potential: 0
+number of local descriptors per element for all potentials: 32
+number of global descriptors: 32
+**************** End of POD Potentials ****************
+
+**************** Begin of Model Coefficients ****************
+total number of coefficients for POD potential: 32
+total number of elements for PCA projection matrix: 0
+total number of elements for PCA centroids: 0
+**************** End of Model Coefficients ****************
+
+#fix 		gdd all ave/time 1 1 1 c_gdd[*] file pod.gdd.dat mode vector
+
+compute ldd all pod/ldd Ta_param.pod Ta_coefficients.pod Ta Ta
+**************** Begin of POD Potentials ****************
+species: Ta 
+periodic boundary conditions: 1 1 1
+number of environment clusters: 1
+number of principal compoments: 2
+inner cut-off radius: 1
+outer cut-off radius: 5
+bessel polynomial degree: 3
+inverse polynomial degree: 6
+one-body potential: 1
+two-body radial basis functions: 6
+three-body radial basis functions: 5
+three-body angular degree: 4
+four-body radial basis functions: 0
+four-body angular degree: 0
+five-body radial basis functions: 0
+five-body angular degree: 0
+six-body radial basis functions: 0
+six-body angular degree: 0
+seven-body radial basis functions: 0
+seven-body angular degree: 0
+number of local descriptors per element for one-body potential: 1
+number of local descriptors per element for two-body potential: 6
+number of local descriptors per element for three-body potential: 25
+number of local descriptors per element for four-body potential: 0
+number of local descriptors per element for five-body potential: 0
+number of local descriptors per element for six-body potential: 0
+number of local descriptors per element for seven-body potential: 0
+number of local descriptors per element for all potentials: 32
+number of global descriptors: 32
+**************** End of POD Potentials ****************
+
+**************** Begin of Model Coefficients ****************
+total number of coefficients for POD potential: 32
+total number of elements for PCA projection matrix: 0
+total number of elements for PCA centroids: 0
+**************** End of Model Coefficients ****************
+
+#fix 		ldd all ave/time 1 1 1 c_ldd[*] file pod.ldd.dat mode vector
+
+#dump 		mydump_ld all custom 1000 dump_ld id c_ld[*]
+#dump 		mydump_dd all custom 1000 dump_dd id c_dd[*]
+
+variable sample_ld1 equal C_ld[1][10]  # Arbitrary local descriptor
+fix ldprint all print 1 "${sample_ld1}"
+
+run             ${nsteps}
+run             0
+WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+WARNING: More than one compute pod (src/ML-POD/compute_pod_atom.cpp:87)
+WARNING: More than one compute pod (src/ML-POD/compute_podd_atom.cpp:87)
+WARNING: More than one compute pod (src/ML-POD/compute_pod_global.cpp:87)
+WARNING: More than one compute pod (src/ML-POD/compute_pod_local.cpp:89)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8
+  ghost atom cutoff = 8
+  binsize = 4, bins = 1 1 1
+  5 neighbor lists, perpetual/occasional/extra = 1 4 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) compute pod/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (3) compute podd/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (4) compute pod/gdd, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (5) compute pod/ldd, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+0.344594831165384
+Per MPI rank memory allocation (min/avg/max) = 6.326 | 6.326 | 6.326 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0              0              0              0              0            
+Loop time of 1.207e-06 on 1 procs for 0 steps with 16 atoms
+
+165.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.207e-06  |            |       |100.00
+
+Nlocal:             16 ave          16 max          16 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1984 ave        1984 max        1984 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           4311 ave        4311 max        4311 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:         8623 ave        8623 max        8623 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 8623
+Ave neighs/atom = 538.9375
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

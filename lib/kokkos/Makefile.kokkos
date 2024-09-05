@@ -12,7 +12,7 @@ endif
 
 KOKKOS_VERSION_MAJOR = 4
 KOKKOS_VERSION_MINOR = 3
-KOKKOS_VERSION_PATCH = 0
+KOKKOS_VERSION_PATCH = 1
 KOKKOS_VERSION = $(shell echo $(KOKKOS_VERSION_MAJOR)*10000+$(KOKKOS_VERSION_MINOR)*100+$(KOKKOS_VERSION_PATCH) | bc)
 
 # Options: Cuda,HIP,SYCL,OpenMPTarget,OpenMP,Threads,Serial
@@ -23,7 +23,7 @@ KOKKOS_DEVICES ?= "OpenMP"
 # NVIDIA:   Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal60,Pascal61,Volta70,Volta72,Turing75,Ampere80,Ampere86,Ada89,Hopper90
 # ARM:      ARMv80,ARMv81,ARMv8-ThunderX,ARMv8-TX2,A64FX
 # IBM:      Power8,Power9
-# AMD-GPUS: AMD_GFX906,AMD_GFX908,AMD_GFX90A,AMD_GFX940,AMD_GFX942,AMD_GFX1030,AMD_GFX1100
+# AMD-GPUS: AMD_GFX906,AMD_GFX908,AMD_GFX90A,AMD_GFX940,AMD_GFX942,AMD_GFX1030,AMD_GFX1100,AMD_GFX1103
 # AMD-CPUS: AMDAVX,Zen,Zen2,Zen3
 # Intel-GPUs: Gen9,Gen11,Gen12LP,DG1,XeHP,PVC
 KOKKOS_ARCH ?= ""
@@ -433,6 +433,7 @@ KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1100 := $(call kokkos_has_string,$(KOKKOS_ARCH),
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1100), 0)
   KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1100 := $(call kokkos_has_string,$(KOKKOS_ARCH),NAVI1100)
 endif
+KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1103 := $(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX1103)
 
 # Any AVX?
 KOKKOS_INTERNAL_USE_ARCH_AVX        := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_SNB) + $(KOKKOS_INTERNAL_USE_ARCH_AMDAVX))
@@ -1118,6 +1119,11 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1100), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GPU")
   KOKKOS_INTERNAL_HIP_ARCH_FLAG := --offload-arch=gfx1100
 endif
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1103), 1)
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GFX1103")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GPU")
+  KOKKOS_INTERNAL_HIP_ARCH_FLAG := --offload-arch=gfx1103
+endif
 
 
 ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
@@ -1232,6 +1238,22 @@ ifneq ($(KOKKOS_INTERNAL_NEW_CONFIG), 0)
   tmp := $(call kokkos_update_config_header, KOKKOS_FWD_HPP_, "KokkosCore_Config_FwdBackend.tmp", "KokkosCore_Config_FwdBackend.hpp")
   tmp := $(call kokkos_update_config_header, KOKKOS_SETUP_HPP_, "KokkosCore_Config_SetupBackend.tmp", "KokkosCore_Config_SetupBackend.hpp")
   tmp := $(call kokkos_update_config_header, KOKKOS_DECLARE_HPP_, "KokkosCore_Config_DeclareBackend.tmp", "KokkosCore_Config_DeclareBackend.hpp")
+  ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
+    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_OPENMP.hpp>","KokkosCore_Config_FwdBackend.hpp")
+    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_OPENMP.hpp>","KokkosCore_Config_DeclareBackend.hpp")
+  endif
+  ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 1)
+    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_THREADS.hpp>","KokkosCore_Config_FwdBackend.hpp")
+    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_THREADS.hpp>","KokkosCore_Config_DeclareBackend.hpp")
+  endif
+  ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
+    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_HPX.hpp>","KokkosCore_Config_FwdBackend.hpp")
+    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_HPX.hpp>","KokkosCore_Config_DeclareBackend.hpp")
+  endif
+  ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
+    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_SERIAL.hpp>","KokkosCore_Config_FwdBackend.hpp")
+    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_SERIAL.hpp>","KokkosCore_Config_DeclareBackend.hpp")
+  endif
   ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
     tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_CUDA.hpp>","KokkosCore_Config_FwdBackend.hpp")
     tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_CUDA.hpp>","KokkosCore_Config_DeclareBackend.hpp")
@@ -1251,25 +1273,9 @@ ifneq ($(KOKKOS_INTERNAL_NEW_CONFIG), 0)
     tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_HIP.hpp>","KokkosCore_Config_DeclareBackend.hpp")
     tmp := $(call kokkos_append_config_header,"$H""include <setup/Kokkos_Setup_HIP.hpp>","KokkosCore_Config_SetupBackend.hpp")
   endif
-  ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
-    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_OPENMP.hpp>","KokkosCore_Config_FwdBackend.hpp")
-    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_OPENMP.hpp>","KokkosCore_Config_DeclareBackend.hpp")
-  endif
   ifeq ($(KOKKOS_INTERNAL_USE_OPENACC), 1)
     tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_OPENACC.hpp>","KokkosCore_Config_FwdBackend.hpp")
     tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_OPENACC.hpp>","KokkosCore_Config_DeclareBackend.hpp")
-  endif
-  ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 1)
-    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_THREADS.hpp>","KokkosCore_Config_FwdBackend.hpp")
-    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_THREADS.hpp>","KokkosCore_Config_DeclareBackend.hpp")
-  endif
-  ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
-    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_HPX.hpp>","KokkosCore_Config_FwdBackend.hpp")
-    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_HPX.hpp>","KokkosCore_Config_DeclareBackend.hpp")
-  endif
-  ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
-    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_SERIAL.hpp>","KokkosCore_Config_FwdBackend.hpp")
-    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_SERIAL.hpp>","KokkosCore_Config_DeclareBackend.hpp")
   endif
 endif
 

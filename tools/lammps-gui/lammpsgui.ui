@@ -37,6 +37,8 @@
     <addaction name="actionNew"/>
     <addaction name="separator"/>
     <addaction name="actionOpen"/>
+    <addaction name="actionView"/>
+    <addaction name="actionInspect"/>
     <addaction name="separator"/>
     <addaction name="action_1"/>
     <addaction name="action_2"/>
@@ -60,6 +62,8 @@
     <addaction name="actionCut"/>
     <addaction name="actionPaste"/>
     <addaction name="separator"/>
+    <addaction name="actionSearchAndReplace"/>
+    <addaction name="separator"/>
     <addaction name="actionPreferences"/>
     <addaction name="actionDefaults"/>
    </widget>
@@ -77,6 +81,13 @@
     <addaction name="actionView_in_OVITO"/>
     <addaction name="actionView_in_VMD"/>
    </widget>
+   <widget class="QMenu" name="menu_Tutorial">
+    <property name="title">
+     <string>&amp;Tutorials</string>
+    </property>
+    <addaction name="actionTutorial1"/>
+    <addaction name="actionTutorial2"/>
+   </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
      <string>&amp;About</string>
@@ -85,6 +96,7 @@
     <addaction name="action_Help"/>
     <addaction name="actionLAMMPS_GUI_Howto"/>
     <addaction name="actionLAMMPS_Manual"/>
+    <addaction name="actionLAMMPS_Tutorial"/>
    </widget>
    <widget class="QMenu" name="menu_View">
     <property name="title">
@@ -100,6 +112,7 @@
    <addaction name="menuEdit"/>
    <addaction name="menu_Run"/>
    <addaction name="menu_View"/>
+   <addaction name="menu_Tutorial"/>
    <addaction name="menuAbout"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -123,6 +136,28 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionView">
+   <property name="icon">
+    <iconset theme=":/icons/document-open.png"/>
+   </property>
+   <property name="text">
+    <string>&amp;View</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+F</string>
+   </property>
+  </action>
+  <action name="actionInspect">
+   <property name="icon">
+    <iconset theme=":/icons/document-open.png"/>
+   </property>
+   <property name="text">
+    <string>Inspect &amp;Restart</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+R</string>
    </property>
   </action>
   <action name="actionSave">
@@ -262,7 +297,7 @@
     <iconset theme=":/icons/help-about.png"/>
    </property>
    <property name="text">
-    <string>&amp;About LAMMPS</string>
+    <string>&amp;About LAMMPS-GUI</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+A</string>
@@ -279,12 +314,23 @@
     <string>Ctrl+Shift+H</string>
    </property>
   </action>
+  <action name="actionSearchAndReplace">
+   <property name="icon">
+    <iconset theme=":/icons/search.png"/>
+   </property>
+   <property name="text">
+    <string>&amp;Find and Replace...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
   <action name="actionPreferences">
    <property name="icon">
     <iconset theme=":/icons/preferences-desktop.png"/>
    </property>
    <property name="text">
-    <string>Pre&amp;ferences...</string>
+    <string>P&amp;references...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
@@ -295,10 +341,21 @@
     <iconset theme=":/icons/help-browser.png"/>
    </property>
    <property name="text">
-    <string>LAMMPS &amp;Manual</string>
+    <string>LAMMPS Online &amp;Manual</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+M</string>
+   </property>
+  </action>
+  <action name="actionLAMMPS_Tutorial">
+   <property name="icon">
+    <iconset theme=":/icons/help-tutorial.png"/>
+   </property>
+   <property name="text">
+    <string>LAMMPS &amp;Tutorial Website</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+T</string>
    </property>
   </action>
   <action name="actionDefaults">
@@ -306,7 +363,7 @@
     <iconset theme=":/icons/document-revert.png"/>
    </property>
    <property name="text">
-    <string>Reset to &amp;Defaults</string>
+    <string>Reset Preferences to &amp;Defaults</string>
    </property>
   </action>
   <action name="actionView_in_OVITO">
@@ -336,7 +393,7 @@
     <iconset theme=":/icons/utilities-terminal.png"/>
    </property>
    <property name="text">
-    <string>&amp;Log Window</string>
+    <string>&amp;Output Window</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+L</string>
@@ -347,7 +404,7 @@
     <iconset theme=":/icons/x-office-drawing.png"/>
    </property>
    <property name="text">
-    <string>&amp;Chart Window</string>
+    <string>&amp;Charts Window</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+C</string>
@@ -437,12 +494,28 @@
     <string>Ctrl+Shift+W</string>
    </property>
   </action>
+  <action name="actionTutorial1">
+   <property name="icon">
+    <iconset theme=":/icons/tutorial-logo.png"/>
+   </property>
+   <property name="text">
+    <string>Start LAMMPS Tutorial &amp;1</string>
+   </property>
+  </action>
+  <action name="actionTutorial2">
+   <property name="icon">
+    <iconset theme=":/icons/tutorial-logo.png"/>
+   </property>
+   <property name="text">
+    <string>Start LAMMPS Tutorial &amp;2</string>
+   </property>
+  </action>
   <action name="actionLAMMPS_GUI_Howto">
    <property name="icon">
     <iconset theme=":/icons/system-help.png"/>
    </property>
    <property name="text">
-    <string>LAMMPS GUI Howto</string>
+    <string>LAMMPS-&amp;GUI Howto</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+G</string>

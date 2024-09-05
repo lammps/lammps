@@ -1,0 +1,318 @@
+%%
+%% This is file `ellipse.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% ellipse.dtx  (with options: `package')
+%% 
+%% Copyright (C) 2015
+%% Daan Leijen
+%% 
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   http://www.latex-project.org/lppl.txt
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 2003/12/01 or later.
+%% 
+%% This work has the LPPL maintenance status "author-maintained".
+%% 
+\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+\ProvidesPackage{ellipse}
+    [2004/11/05 v1.0 .dtx ellipse file]
+\RequirePackage{pict2e}
+
+\providecommand*\pIIe@csedef[1]{\expandafter\edef\csname #1\endcsname}
+\newcommand*\pIIe@ellip@csqrt[3]{%
+  \@ovxx=#1\relax
+  \ifdim\@ovxx<\z@\@ovxx-\@ovxx\fi
+  \@ovyy=#2\relax
+  \ifdim\@ovyy<\z@\@ovyy-\@ovyy\fi
+  \edef\pIIe@csname{@csqrt(\number\@ovxx,\number\@ovyy)}%
+  \expandafter\ifx\csname\pIIe@csname\endcsname\relax
+    \pIIe@ellip@csqrt@%
+    \pIIe@csedef{\pIIe@csname}{\the\dimen@}%
+    #3\dimen@
+  \else
+    #3\dimexpr\csname\pIIe@csname\endcsname\relax
+  \fi
+}
+\newcommand*\pIIe@ellip@csqrt@{%
+  \@ovdx\@ovxx
+  \advance\@ovdx by \@ovyy
+  \dimen@0.7071067\@ovdx
+  \ifdim\dimen@<\@ovyy\dimen@\@ovyy\fi
+  \ifdim\dimen@<\@ovxx\dimen@\@ovxx\fi
+  \ifdim\@ovdx<128\p@
+    \edef\@tempa{\strip@pt\@ovxx}%
+    \@ovxx\@tempa\@ovxx
+    \edef\@tempa{\strip@pt\@ovyy}%
+    \@ovyy\@tempa\@ovyy
+    \advance\@ovxx by \@ovyy
+    \advance\dimen@ by \dimexpr1pt * \@ovxx/\dimen@\relax
+    \divide\dimen@ by 2%
+    \advance\dimen@ by \dimexpr1pt * \@ovxx/\dimen@\relax
+    \divide\dimen@ by 2%
+  \fi
+}
+
+\newcommand*\pIIe@atan@{%
+  \@tempdima\dimen@
+  \@tempdimb\@tempdima
+  \ifdim\@tempdimb<\z@\@tempdimb-\@tempdimb\fi
+  \dimen@0.0663\@tempdimb
+  \advance\dimen@ 0.2447pt\relax
+  \advance\@tempdimb -1pt\relax
+  \edef\@tempa{\strip@pt\@tempdimb}%
+  \dimen@\@tempa\dimen@
+  \edef\@tempa{\strip@pt\@tempdima}%
+  \dimen@\@tempa\dimen@
+  \dimen@-\dimen@
+  \advance\dimen@ 0.7853\@tempdima
+}
+
+\newcommand*\pIIe@atantwo[3]{%
+  \edef\pIIe@csname{@atan2(\number\dimexpr#1\relax,\number\dimexpr#2\relax)}%
+  \expandafter\ifx\csname\pIIe@csname\endcsname\relax
+    \pIIe@atantwo@{#1}{#2}{#3}%
+    \pIIe@csedef{\pIIe@csname}{\the\dimexpr#3\relax}%
+  \else
+    #3\dimexpr\csname\pIIe@csname\endcsname\relax
+  \fi
+}
+
+\newcommand*\pIIe@atantwo@[3]{%
+  \@tempdima\dimexpr#2\relax
+  \@tempdimb\dimexpr#1\relax
+  \ifdim\@tempdima=\z@\relax
+    \ifdim\@tempdimb>\z@\relax\dimen@90\p@
+    \else\ifdim\@tempdimb<\z@\relax\dimen@-90\p@
+    \else\dimen@0\p@
+    \fi\fi
+  \else
+    \@tempdimd\z@
+    \ifdim\@tempdima<\z@\relax
+      \ifdim\@tempdimb<\z@\relax\@tempdimd-180\p@
+      \else\@tempdimd180\p@
+      \fi
+    \fi
+    \dimen@\dimexpr1pt * \@tempdimb/\@tempdima\relax
+    \@tempdimc\dimen@
+    \ifdim\@tempdimc<\z@\relax\@tempdimc-\@tempdimc\fi
+    \ifdim\@tempdimc>\p@\relax
+      \dimen@\dimexpr1pt * \@tempdima/\@tempdimb\relax
+      \ifdim\dimen@<\z@\relax\def\@tempsign{-}\else\def\@tempsign{}\fi
+      \pIIe@atan@
+      \dimen@-\dimen@
+      \advance\dimen@ by \@tempsign1.5707pt\relax
+    \else
+      \pIIe@atan@
+    \fi
+    \dimen@57.29578\dimen@
+    \advance\dimen@ by \@tempdimd
+  \fi
+  #3\dimen@%
+}
+
+\newcommand*\pIIe@noneto[2]{}
+\newcommand*\pIIe@ellip@sincost@[2]{%
+  \CalculateSin{#1}%
+  \CalculateCos{#1}%
+  \@tempdima\UseSin{#1}\p@
+  \@tempdimb\UseCos{#1}\p@
+  \ifdim\@tempdima=\p@\relax
+    \pIIe@csedef{@ellipsin#2}{1}%
+    \pIIe@csedef{@ellipcos#2}{0}%
+  \else\ifdim\@tempdima=-\p@\relax
+    \pIIe@csedef{@ellipsin#2}{-1}%
+    \pIIe@csedef{@ellipcos#2}{0}%
+  \else
+    \@tempdimc\@ellipratio\dimexpr1pt * \@tempdima/\@tempdimb\relax
+    %\typeout{ i#2=\the\@tempdimc, sin(#1)=\the\@tempdima}%
+    \pIIe@ellip@csqrt{\p@}{\@tempdimc}\@tempdimd
+    \ifdim\@tempdimb<\z@\relax\@tempdimd-\@tempdimd\fi
+    \pIIe@csedef{@ellipsin#2}{\strip@pt\dimexpr1pt * \@tempdimc/\@tempdimd\relax}%
+    \pIIe@csedef{@ellipcos#2}{\strip@pt\dimexpr1pt * \p@/\@tempdimd\relax}%
+  \fi\fi
+}
+
+\newcommand*\pIIe@ellip@sincost[2]{%
+  %\typeout{ calc sin cos: angles (#1,#2), radii: (\the\@ovro,\the\@ovri)}%
+  \edef\@ellipratio{\strip@pt\dimexpr1pt * \@ovro/\@ovri\relax}%
+  \pIIe@ellip@sincost@{#1}{one}%
+  \pIIe@ellip@sincost@{#2}{two}%
+  %\typeout{ sincos(a=#1)=(\@ellipsinone,\@ellipcosone), sincos(a=#2)=(\@ellipsintwo,\@ellipcostwo), }%
+}
+\newcommand*\pIIe@omega[3]{%
+  \@tempdima\csname @ellipcos#3\endcsname\@ovro
+  \advance\@tempdima by #1\relax
+  \@tempdimb\csname @ellipsin#3\endcsname\@ovri
+  \advance\@tempdimb by #2\relax
+}
+
+\newcommand*\pIIe@omegai[1]{%
+  \@tempdimc\csname @ellipsin#1\endcsname\@ovro
+  \@tempdimc-\@tempdimc
+  \@tempdimd\csname @ellipcos#1\endcsname\@ovri
+}
+
+\newcommand*\pIIe@ellip@kappa{%
+  \@ovyy\@ellipsinone\p@
+  \@ovxx\@ellipcosone\p@
+  \@tempdima\@ellipcostwo\@ovyy
+  \@tempdima-\@tempdima
+  \advance\@tempdima by \@ellipsintwo\@ovxx
+  \@tempdimb\@ellipcostwo\@ovxx
+  \advance\@tempdimb by \@ellipsintwo\@ovyy
+  \ifdim\@tempdima=\z@\relax
+    \edef\@ellipkappa{0}%
+  \else
+    \dimen@\dimexpr1pt - \@tempdimb\relax
+    \dimen@\dimexpr1pt * \dimen@/\@tempdima\relax
+    \pIIe@ellip@csqrt{2\p@}{1.73205\dimen@}{\dimen@}%
+    \advance\dimen@ by -\p@
+    \divide\dimen@ by 3%
+    \edef\@tempa{\strip@pt\@tempdima}%
+    \dimen@\@tempa\dimen@
+    \edef\@ellipkappa{\strip@pt\dimen@}%
+  \fi
+  %\typeout{ calculated kappa: \@ellipkappa}%
+}
+
+\newcommand*\pIIe@elliparc@[5]{%
+  %\typeout{elliparc: #1, center: (#2, #3), radius (\the\@ovro, \the\@ovri),angle (#4, #5)}%
+  \ifcase #1\relax
+      \let\@ellip@startto\pIIe@lineto
+  \or \let\@ellip@startto\pIIe@moveto
+  \or \let\@ellip@startto\pIIe@noneto%
+  \else\PackageWarning{ellipse}{Illegal initial action in \protect\elliparc: %
+          must be one of 0 (lineto), 1 (moveto) or 2 (do nothing) but I got: #1}%
+  \fi
+  \ifdim\@ovro=\z@\relax\@ovri\z@\fi
+  \ifdim\@ovri=\z@\relax
+    \@ellip@startto{#2}{#3}%
+  \else
+    \pIIe@ellip@sincost{#4}{#5}%
+    \pIIe@elliparc@draw{#2}{#3}%
+  \fi
+}
+\newcommand*\pIIe@elliparc@t[5]{%
+  \ifcase #1\relax
+      \let\@ellip@startto\pIIe@lineto
+  \or \let\@ellip@startto\pIIe@moveto
+  \or \let\@ellip@startto\pIIe@noneto%
+  \else\PackageWarning{ellipse}{Illegal initial action in \protect\elliparc: %
+          must be one of 0 (lineto), 1 (moveto) or 2 (do nothing) but I got: #1}%
+  \fi
+  \ifdim\@ovro=\z@\relax\@ovri\z@\fi
+  \ifdim\@ovri=\z@\relax
+    \@ellip@startto{#2}{#3}%
+  \else
+    \CalculateSin{#4}\CalculateCos{#4}%
+    \edef\@ellipsinone{\UseSin{#4}}%
+    \edef\@ellipcosone{\UseCos{#4}}%
+    \CalculateSin{#5}\CalculateCos{#5}%
+    \edef\@ellipsintwo{\UseSin{#5}}%
+    \edef\@ellipcostwo{\UseCos{#5}}%
+    \pIIe@elliparc@draw{#2}{#3}%
+  \fi
+}
+\newcommand*\pIIe@elliparc@draw[2]{%
+  \pIIe@ellip@kappa%
+  \pIIe@omega{#1}{#2}{one}%
+  %\typeout{ point one: (\the\@tempdima,\the\@tempdimb)}%
+  \@ellip@startto\@tempdima\@tempdimb
+  \pIIe@omegai{one}%
+  \advance\@tempdima by \@ellipkappa\@tempdimc
+  \advance\@tempdimb by \@ellipkappa\@tempdimd
+  \pIIe@add@nums\@tempdima\@tempdimb
+  %\typeout{ control one: (\the\@tempdima,\the\@tempdimb)}%
+  \pIIe@omega{#1}{#2}{two}%
+  \pIIe@omegai{two}%
+  \@tempdimc\@ellipkappa\@tempdimc
+  \@tempdimd\@ellipkappa\@tempdimd
+  \@tempdimc-\@tempdimc
+  \@tempdimd-\@tempdimd
+  \advance\@tempdimc by \@tempdima
+  \advance\@tempdimd by \@tempdimb
+  \pIIe@add@nums\@tempdimc\@tempdimd
+  %\typeout{ control two: (\the\@tempdimc,\the\@tempdimd)}%
+  \pIIe@add@CP\@tempdima\@tempdimb
+  %\typeout{ point two: (\the\@tempdima,\the\@tempdimb)}%
+  \pIIe@addtoGraph\pIIe@curveto@op
+}
+\newcommand*\pIIe@elliparc[7][0]{%
+  \@ovro #4\relax
+  \@ovri #5\relax
+  \iffalse%dim\@ovro=\@ovri
+    \pIIe@arc[#1]{#2}{#3}{#4}{#6}{#7}
+  \else
+    \ifdim \@ovro<\z@ \pIIe@badcircarg\else
+      \ifdim \@ovri<\z@ \pIIe@badcircarg\else
+        \@arclen #7\p@ \advance\@arclen -#6\p@
+        \ifdim \@arclen<\z@ \def\@tempsign{-}\else\def\@tempsign{}\fi
+        \ifdim \@tempsign\@arclen>720\p@
+          \PackageWarning {ellipse}{The arc angle is reduced to -720..720}%
+          \@whiledim \@tempsign\@arclen>720\p@ \do {\advance\@arclen-\@tempsign360\p@}%
+          \@tempdima #6\p@ \advance\@tempdima \@arclen
+          \edef\@angleend{\strip@pt\@tempdima}%
+          \pIIe@@elliparc{#1}{#2}{#3}{#6}{\@angleend}%
+        \else
+          \pIIe@@elliparc{#1}{#2}{#3}{#6}{#7}%
+        \fi
+      \fi
+    \fi
+  \fi
+}
+\newcommand*\pIIe@@elliparc[5]{%
+  \begingroup
+  \ifdim \@tempsign\@arclen>90\p@
+    \divide\@arclen 2%
+    \@tempdima #4\p@\advance\@tempdima by \@arclen
+    \edef\@anglemid{\strip@pt\@tempdima}%
+    \def\@tempa{\pIIe@@elliparc{#1}{#2}{#3}{#4}}%
+    \expandafter\@tempa\expandafter{\@anglemid}%
+    \def\@tempa{\pIIe@@elliparc{2}{#2}{#3}}%
+    \expandafter\@tempa\expandafter{\@anglemid}{#5}%
+  \else
+    \pIIe@elliparc@{#1}{#2}{#3}{#4}{#5}%
+  \fi
+  \endgroup
+}%
+
+\newcommand*\pIIeelliparc[7][0]{%
+  \@killglue
+  \pIIe@elliparc[#1]{#2\unitlength}{#3\unitlength}{#4\unitlength}{#5\unitlength}{#6}{#7}%
+  \ignorespaces%
+}
+\ifx\undefined\elliparc\else
+  \PackageWarning{ellipse}{\protect\elliparc\space is redefined}%
+\fi
+\let\elliparc\pIIeelliparc
+
+\newcommand*\pIIeearc
+  {\@ifstar{\@tempswatrue\pIIe@earc@}{\@tempswafalse\pIIe@earc@}}
+\newcommand*\pIIe@earc@[3][0,360]{\pIIe@earc@@(#1){#2}{#3}}
+\def\pIIe@earc@@(#1,#2)#3#4{%
+  \if@tempswa
+    \pIIe@moveto\z@\z@
+    \pIIe@elliparc{\z@}{\z@}{#3\unitlength}{#4\unitlength}{#1}{#2}%
+    \pIIe@closepath\pIIe@fillGraph
+  \else
+    \pIIe@elliparc[1]{\z@}{\z@}{#3\unitlength}{#4\unitlength}{#1}{#2}%
+    \pIIe@strokeGraph
+  \fi}
+\ifx\undefined\earc\else
+  \PackageWarning{ellipse}{\protect\earc\space is redefined}%
+\fi
+\let\earc\pIIeearc
+
+\newcommand*\pIIeellipse
+  {\@ifstar{\@tempswatrue\pIIe@earc@}{\@tempswafalse\pIIe@earc@}}
+\let\ellipse\pIIeellipse
+
+\endinput
+%%
+%% End of file `ellipse.sty'.

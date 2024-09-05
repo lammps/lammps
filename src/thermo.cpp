@@ -575,9 +575,9 @@ void Thermo::modify_params(int narg, char **arg)
 
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"triclinic/general") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR,"Illegal thermo_modify command");
-      triclinic_general = utils::logical(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "triclinic/general") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      triclinic_general = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       if (triclinic_general && !domain->triclinic_general)
         error->all(FLERR,"Thermo_modify triclinic/general cannot be used "
                    "if simulation box is not general triclinic");
@@ -987,31 +987,35 @@ void Thermo::parse_fields(const std::string &str)
     } else if (word == "pxx") {
       if (triclinic_general)
         addfield("Pxx", &Thermo::compute_pxx_triclinic_general, FLOAT);
-      else addfield("Pxx", &Thermo::compute_pxx, FLOAT);
+      else
+        addfield("Pxx", &Thermo::compute_pxx, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
     } else if (word == "pyy") {
       if (triclinic_general)
         addfield("Pyy", &Thermo::compute_pyy_triclinic_general, FLOAT);
-      else addfield("Pyy", &Thermo::compute_pyy, FLOAT);
+      else
+        addfield("Pyy", &Thermo::compute_pyy, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
     } else if (word == "pzz") {
       if (triclinic_general)
         addfield("Pzz", &Thermo::compute_pzz_triclinic_general, FLOAT);
-      else addfield("Pzz", &Thermo::compute_pzz, FLOAT);
+      else
+        addfield("Pzz", &Thermo::compute_pzz, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
     } else if (word == "pxy") {
       if (triclinic_general)
         addfield("Pxy", &Thermo::compute_pxy_triclinic_general, FLOAT);
-      else addfield("Pxy", &Thermo::compute_pxy, FLOAT);
+      else
+        addfield("Pxy", &Thermo::compute_pxy, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
     } else if (word == "pxz") {
       if (triclinic_general)
         addfield("Pxz", &Thermo::compute_pxz_triclinic_general, FLOAT);
-      else addfield("Pxz", &Thermo::compute_pxz, FLOAT);
+      else
+        addfield("Pxz", &Thermo::compute_pxz, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
     } else if (word == "pyz") {
-      if (triclinic_general)
-        addfield("Pyz", &Thermo::compute_pyz_triclinic_general, FLOAT);
+      if (triclinic_general) addfield("Pyz", &Thermo::compute_pyz_triclinic_general, FLOAT);
       addfield("Pyz", &Thermo::compute_pyz, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
 
@@ -1486,33 +1490,45 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   else if (word == "pxx") {
     check_press_vector(word);
-    if (triclinic_general) compute_pxx_triclinic_general();
-    else compute_pxx();
+    if (triclinic_general)
+      compute_pxx_triclinic_general();
+    else
+      compute_pxx();
 
   } else if (word == "pyy") {
     check_press_vector(word);
-    if (triclinic_general) compute_pyy_triclinic_general();
-    else compute_pyy();
+    if (triclinic_general)
+      compute_pyy_triclinic_general();
+    else
+      compute_pyy();
 
   } else if (word == "pzz") {
     check_press_vector(word);
-    if (triclinic_general) compute_pzz_triclinic_general();
-    else compute_pzz();
+    if (triclinic_general)
+      compute_pzz_triclinic_general();
+    else
+      compute_pzz();
 
   } else if (word == "pxy") {
     check_press_vector(word);
-    if (triclinic_general) compute_pxy_triclinic_general();
-    else compute_pxy();
+    if (triclinic_general)
+      compute_pxy_triclinic_general();
+    else
+      compute_pxy();
 
   } else if (word == "pxz") {
     check_press_vector(word);
-    if (triclinic_general) compute_pxz_triclinic_general();
-    else compute_pxz();
+    if (triclinic_general)
+      compute_pxz_triclinic_general();
+    else
+      compute_pxz();
 
   } else if (word == "pyz") {
     check_press_vector(word);
-    if (triclinic_general) compute_pyz_triclinic_general();
-    else compute_pyz();
+    if (triclinic_general)
+      compute_pyz_triclinic_general();
+    else
+      compute_pyz();
 
   } else if (word == "bonds") {
     compute_bonds();
@@ -1603,8 +1619,10 @@ void Thermo::compute_fix()
     // if index exceeds variable vector length, use a zero value
     // this can be useful if vector length is not known a priori
 
-    if (fix->size_vector_variable && argindex1[ifield] > fix->size_vector) dvalue = 0.0;
-    else dvalue = fix->compute_vector(argindex1[ifield] - 1);
+    if (fix->size_vector_variable && argindex1[ifield] > fix->size_vector)
+      dvalue = 0.0;
+    else
+      dvalue = fix->compute_vector(argindex1[ifield] - 1);
     if (normflag) {
       if (fix->extvector == 0)
         return;
@@ -1618,8 +1636,10 @@ void Thermo::compute_fix()
     // if index exceeds variable array rows, use a zero value
     // this can be useful if array size is not known a priori
 
-    if (fix->size_array_rows_variable && argindex1[ifield] > fix->size_array_rows) dvalue = 0.0;
-    else dvalue = fix->compute_array(argindex1[ifield] - 1, argindex2[ifield] - 1);
+    if (fix->size_array_rows_variable && argindex1[ifield] > fix->size_array_rows)
+      dvalue = 0.0;
+    else
+      dvalue = fix->compute_array(argindex1[ifield] - 1, argindex2[ifield] - 1);
     if (normflag && fix->extarray) dvalue /= natoms;
   }
 }
@@ -1639,8 +1659,10 @@ void Thermo::compute_variable()
   else {
     double *varvec;
     int nvec = input->variable->compute_vector(variables[field2index[ifield]], &varvec);
-    if (iarg > nvec) dvalue = 0.0;
-    else dvalue = varvec[iarg - 1];
+    if (iarg > nvec)
+      dvalue = 0.0;
+    else
+      dvalue = varvec[iarg - 1];
   }
 }
 
@@ -2087,79 +2109,106 @@ void Thermo::compute_yz()
 
 void Thermo::compute_avecx()
 {
-  if (!domain->triclinic) dvalue = domain->xprd;
-  else if (triclinic_general) dvalue = domain->avec[0];
-  else dvalue = domain->xprd;
+  if (!domain->triclinic)
+    dvalue = domain->xprd;
+  else if (triclinic_general)
+    dvalue = domain->avec[0];
+  else
+    dvalue = domain->xprd;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_avecy()
 {
-  if (!domain->triclinic) dvalue = 0.0;
-  else if (triclinic_general) dvalue = domain->avec[1];
-  else dvalue = 0.0;
+  if (!domain->triclinic)
+    dvalue = 0.0;
+  else if (triclinic_general)
+    dvalue = domain->avec[1];
+  else
+    dvalue = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_avecz()
 {
-  if (!domain->triclinic) dvalue = 0.0;
-  else if (triclinic_general) dvalue = domain->avec[2];
-  else dvalue = 0.0;
+  if (!domain->triclinic)
+    dvalue = 0.0;
+  else if (triclinic_general)
+    dvalue = domain->avec[2];
+  else
+    dvalue = 0.0;
 }
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_bvecx()
 {
-  if (!domain->triclinic) dvalue = 0.0;
-  else if (triclinic_general) dvalue = domain->bvec[0];
-  else dvalue = domain->xy;
+  if (!domain->triclinic)
+    dvalue = 0.0;
+  else if (triclinic_general)
+    dvalue = domain->bvec[0];
+  else
+    dvalue = domain->xy;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_bvecy()
 {
-  if (!domain->triclinic) dvalue = domain->yprd;
-  else if (triclinic_general) dvalue = domain->bvec[1];
-  else dvalue = domain->yprd;
+  if (!domain->triclinic)
+    dvalue = domain->yprd;
+  else if (triclinic_general)
+    dvalue = domain->bvec[1];
+  else
+    dvalue = domain->yprd;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_bvecz()
 {
-  if (!domain->triclinic) dvalue = 0.0;
-  else if (triclinic_general) dvalue = domain->bvec[2];
-  else dvalue = 0.0;
+  if (!domain->triclinic)
+    dvalue = 0.0;
+  else if (triclinic_general)
+    dvalue = domain->bvec[2];
+  else
+    dvalue = 0.0;
 }
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_cvecx()
 {
-  if (!domain->triclinic) dvalue = 0.0;
-  else if (triclinic_general) dvalue = domain->cvec[0];
-  else dvalue = domain->xz;
+  if (!domain->triclinic)
+    dvalue = 0.0;
+  else if (triclinic_general)
+    dvalue = domain->cvec[0];
+  else
+    dvalue = domain->xz;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_cvecy()
 {
-  if (!domain->triclinic) dvalue = 0.0;
-  else if (triclinic_general) dvalue = domain->cvec[1];
-  else dvalue = domain->yz;
+  if (!domain->triclinic)
+    dvalue = 0.0;
+  else if (triclinic_general)
+    dvalue = domain->cvec[1];
+  else
+    dvalue = domain->yz;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_cvecz()
 {
-  if (!domain->triclinic) dvalue = domain->zprd;
-  else if (triclinic_general) dvalue = domain->cvec[2];
-  else dvalue = domain->zprd;
+  if (!domain->triclinic)
+    dvalue = domain->zprd;
+  else if (triclinic_general)
+    dvalue = domain->cvec[2];
+  else
+    dvalue = domain->zprd;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2309,9 +2358,9 @@ void Thermo::compute_pyz()
 
 void Thermo::compute_pxx_triclinic_general()
 {
-  double middle[3][3],final[3][3];
-  MathExtra::times3(domain->rotate_r2g,press_tensor,middle);
-  MathExtra::times3(middle,domain->rotate_g2r,final);
+  double middle[3][3], final[3][3];
+  MathExtra::times3(domain->rotate_r2g, press_tensor, middle);
+  MathExtra::times3(middle, domain->rotate_g2r, final);
   dvalue = final[0][0];
 }
 
@@ -2319,9 +2368,9 @@ void Thermo::compute_pxx_triclinic_general()
 
 void Thermo::compute_pyy_triclinic_general()
 {
-  double middle[3][3],final[3][3];
-  MathExtra::times3(domain->rotate_r2g,press_tensor,middle);
-  MathExtra::times3(middle,domain->rotate_g2r,final);
+  double middle[3][3], final[3][3];
+  MathExtra::times3(domain->rotate_r2g, press_tensor, middle);
+  MathExtra::times3(middle, domain->rotate_g2r, final);
   dvalue = final[1][1];
 }
 
@@ -2329,9 +2378,9 @@ void Thermo::compute_pyy_triclinic_general()
 
 void Thermo::compute_pzz_triclinic_general()
 {
-  double middle[3][3],final[3][3];
-  MathExtra::times3(domain->rotate_r2g,press_tensor,middle);
-  MathExtra::times3(middle,domain->rotate_g2r,final);
+  double middle[3][3], final[3][3];
+  MathExtra::times3(domain->rotate_r2g, press_tensor, middle);
+  MathExtra::times3(middle, domain->rotate_g2r, final);
   dvalue = final[2][2];
 }
 
@@ -2339,9 +2388,9 @@ void Thermo::compute_pzz_triclinic_general()
 
 void Thermo::compute_pxy_triclinic_general()
 {
-  double middle[3][3],final[3][3];
-  MathExtra::times3(domain->rotate_r2g,press_tensor,middle);
-  MathExtra::times3(middle,domain->rotate_g2r,final);
+  double middle[3][3], final[3][3];
+  MathExtra::times3(domain->rotate_r2g, press_tensor, middle);
+  MathExtra::times3(middle, domain->rotate_g2r, final);
   dvalue = final[0][1];
 }
 
@@ -2349,9 +2398,9 @@ void Thermo::compute_pxy_triclinic_general()
 
 void Thermo::compute_pxz_triclinic_general()
 {
-  double middle[3][3],final[3][3];
-  MathExtra::times3(domain->rotate_r2g,press_tensor,middle);
-  MathExtra::times3(middle,domain->rotate_g2r,final);
+  double middle[3][3], final[3][3];
+  MathExtra::times3(domain->rotate_r2g, press_tensor, middle);
+  MathExtra::times3(middle, domain->rotate_g2r, final);
   dvalue = final[0][2];
 }
 
@@ -2359,9 +2408,9 @@ void Thermo::compute_pxz_triclinic_general()
 
 void Thermo::compute_pyz_triclinic_general()
 {
-  double middle[3][3],final[3][3];
-  MathExtra::times3(domain->rotate_r2g,press_tensor,middle);
-  MathExtra::times3(middle,domain->rotate_g2r,final);
+  double middle[3][3], final[3][3];
+  MathExtra::times3(domain->rotate_r2g, press_tensor, middle);
+  MathExtra::times3(middle, domain->rotate_g2r, final);
   dvalue = final[1][2];
 }
 

@@ -48,7 +48,7 @@ class FixAveGrid : public Fix {
   double memory_usage() override;
 
  private:
-  int nxgrid,nygrid,nzgrid;
+  int nxgrid, nygrid, nzgrid;
   int nvalues;
   int nrepeat, irepeat;
   bigint nvalid, nvalid_last;
@@ -57,14 +57,14 @@ class FixAveGrid : public Fix {
 
   double maxdist;
   int running_count;
-  int window_count,window_oldest,window_newest;
+  int window_count, window_oldest, window_newest;
 
   int biasflag;
   char *id_bias;
   class Compute *tbias;    // ptr to additional bias compute
-  double adof,cdof;
+  double adof, cdof;
 
-  int dimension,triclinic;
+  int dimension, triclinic;
 
   int *which, *argindex;
   char **ids;
@@ -75,26 +75,26 @@ class FixAveGrid : public Fix {
   int ngrid_buf1, ngrid_buf2;
   double *grid_buf1, *grid_buf2;
 
-  int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
-  int nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out;
+  int nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in;
+  int nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out;
   int ngridout;
 
   struct GridData {
-    double **vec2d,***vec3d;
-    double ***array2d,****array3d;
-    double **count2d,***count3d;
+    double **vec2d, ***vec3d;
+    double ***array2d, ****array3d;
+    double **count2d, ***count3d;
   };
 
   GridData *grid_output;
-  GridData *grid_sample,*grid_nfreq,*grid_running;
+  GridData *grid_sample, *grid_nfreq, *grid_running;
   GridData **grid_window;
 
   // old grid data for remap operation
 
   class Grid2d *grid2d_previous;
   class Grid3d *grid3d_previous;
-  int nxlo_out_previous,nylo_out_previous,nzlo_out_previous;
-  GridData *grid_sample_previous,*grid_nfreq_previous,*grid_running_previous;
+  int nxlo_out_previous, nylo_out_previous, nzlo_out_previous;
+  GridData *grid_sample_previous, *grid_nfreq_previous, *grid_running_previous;
   GridData **grid_window_previous;
 
   int **bin;

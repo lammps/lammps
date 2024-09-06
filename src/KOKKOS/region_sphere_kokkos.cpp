@@ -61,11 +61,12 @@ void RegSphereKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_i
 
   auto d_x = atomKK->k_x.template view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
+  auto l_groupbit = groupbit;
 
   copymode = 1;
 
   Kokkos::parallel_for(atom->nlocal, KOKKOS_LAMBDA( const int &i ) {
-    if (d_mask[i] & groupbit) {
+    if (d_mask[i] & l_groupbit) {
       double x_tmp = d_x(i,0);
       double y_tmp = d_x(i,1);
       double z_tmp = d_x(i,2);

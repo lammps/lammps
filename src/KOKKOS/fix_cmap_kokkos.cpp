@@ -40,7 +40,6 @@ static constexpr double LB_FACTOR = 1.5;
 
 static constexpr int CMAPMAX = 6;   // max # of CMAP terms stored by one atom
 static constexpr int CMAPDIM = 24;  // grid map dimension is 24 x 24
-static constexpr double CMAPXMIN = -360.0;
 static constexpr double CMAPXMIN2 = -180.0;
 static constexpr double CMAPDX = 15.0; // 360/CMAPDIM
 

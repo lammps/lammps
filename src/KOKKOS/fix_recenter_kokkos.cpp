@@ -103,10 +103,10 @@ void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 
   // shift coords by difference between actual COM and requested COM
 
-  shift[0] = xflag ? (xtarget - xcm[0]) : 0.0;
-  shift[1] = yflag ? (ytarget - xcm[1]) : 0.0;
-  shift[2] = zflag ? (ztarget - xcm[2]) : 0.0;
-  distance = sqrt(shift[0]*shift[0] + shift[1]*shift[1] + shift[2]*shift[2]);
+  double shiftx = xflag ? (xtarget - xcm[0]) : 0.0;
+  double shifty = yflag ? (ytarget - xcm[1]) : 0.0;
+  double shiftz = zflag ? (ztarget - xcm[2]) : 0.0;
+  distance = sqrt(shiftx*shiftx + shifty*shifty + shiftz*shiftz);
 
   auto d_x = atomKK->k_x.template view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
@@ -117,9 +117,9 @@ void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
     KOKKOS_LAMBDA(const int i) {
       if (d_mask[i] & l_group2bit) {
-        d_x(i,0) += shift[0];
-        d_x(i,1) += shift[1];
-        d_x(i,2) += shift[2];
+        d_x(i,0) += shiftx;
+        d_x(i,1) += shifty;
+        d_x(i,2) += shiftz;
       }
     });
 

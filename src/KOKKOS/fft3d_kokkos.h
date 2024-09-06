@@ -61,7 +61,7 @@ struct fft_plan_3d_kokkos {
   DFTI_DESCRIPTOR *handle_fast;
   DFTI_DESCRIPTOR *handle_mid;
   DFTI_DESCRIPTOR *handle_slow;
-#elif defined(FFT_KOKKOS_FFTW3)
+#elif defined(FFT_KOKKOS_FFTW3) || defined(FFT_KOKKOS_NVPL)
   FFTW_API(plan) plan_fast_forward;
   FFTW_API(plan) plan_fast_backward;
   FFTW_API(plan) plan_mid_forward;

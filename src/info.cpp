@@ -1318,6 +1318,8 @@ std::string Info::get_fft_info()
 #endif
 #elif defined(FFT_MKL_GPU)
   fft_info += "FFT library = MKL GPU\n";
+#elif defined(FFT_NVPL)
+  fft_info += "FFT library = NVPL\n";
 #elif defined(FFT_FFTW3)
 #if defined(FFT_FFTW_THREADS)
   fft_info += "FFT library = FFTW3 with threads\n";
@@ -1340,6 +1342,8 @@ std::string Info::get_fft_info()
 #else
   fft_info += "KOKKOS FFT library = FFTW3\n";
 #endif
+#elif defined(FFT_KOKKOS_NVPL)
+  fft_info += "KOKKOS FFT library = NVPL\n";
 #elif defined(FFT_KOKKOS_MKL)
 #if defined(FFT_KOKKOS_MKL_THREADS)
   fft_info += "KOKKOS FFT library = MKL with threads\n";

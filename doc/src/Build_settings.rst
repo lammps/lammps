@@ -124,7 +124,7 @@ libraries and better pipelining for packing and communication.
                                        # FFTW (same as FFTW3), or MKL
          FFT_INC = -DFFT_KOKKOS_<NAME> # where <NAME> is KISS (default), FFTW3,
                                        # FFTW (same as FFTW3), MKL, CUFFT, HIPFFT
-				       # or MKL_GPU
+                                       # or MKL_GPU
          FFT_INC = -DFFT_SINGLE       # do not specify for double precision
          FFT_INC = -DFFT_FFTW_THREADS # enable using threaded FFTW3 libraries
          FFT_INC = -DFFT_MKL_THREADS  # enable using threaded FFTs with MKL libraries
@@ -142,8 +142,8 @@ libraries and better pipelining for packing and communication.
          # cuFFT either precision
          FFT_LIB =  -lcufft
 
-	 # MKL_GPU either precision
-	 FFT_LIB = -lmkl_sycl_dft -lmkl_intel_ilp64 -lmkl_tbb_thread -lmkl_core -ltbb
+         # MKL_GPU either precision
+         FFT_LIB = -lmkl_sycl_dft -lmkl_intel_ilp64 -lmkl_tbb_thread -lmkl_core -ltbb
 
          # FFTW3 double precision
          FFT_LIB =  -lfftw3
@@ -227,7 +227,7 @@ AMD's HIP installations, respectively. These FFT libraries require the
 Kokkos acceleration package to be enabled and the Kokkos back end to be
 GPU-resident (i.e., HIP or CUDA). Similarly, GPU offload of FFTs on
 Intel GPUs with oneMKL currently requires the Kokkos acceleration
-package to be enabled with the SYCL backend.
+package to be enabled with the SYCL back end.
 
 Performing 3d FFTs in parallel can be time-consuming due to data access
 and required communication.  This cost can be reduced by performing

@@ -2725,6 +2725,7 @@ OMP
 oneAPI
 onebody
 onelevel
+oneMKL
 oneway
 onlysalt
 ons

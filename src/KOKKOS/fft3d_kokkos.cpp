@@ -223,7 +223,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
 
   total = plan->total1;
   length = plan->length1;
-  
+
   #if defined(FFT_KOKKOS_MKL_GPU)
     if (flag == 1)
       oneapi::mkl::dft::compute_forward(*(plan->desc_fast), (FFT_SCALAR*)d_data.data());
@@ -274,7 +274,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
 
   total = plan->total2;
   length = plan->length2;
-  
+
   #if defined(FFT_KOKKOS_MKL_GPU)
     if (flag == 1)
       oneapi::mkl::dft::compute_forward(*(plan->desc_mid), (FFT_SCALAR*)d_data.data());
@@ -630,25 +630,25 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
 
 #if defined(FFT_KOKKOS_MKL_GPU)
   sycl::queue queue = LMPDeviceType().sycl_queue();
-  
+
   plan->desc_fast = new descriptor_t (nfast);
   plan->desc_fast->set_value(oneapi::mkl::dft::config_param::NUMBER_OF_TRANSFORMS, plan->total1/nfast);
   plan->desc_fast->set_value(oneapi::mkl::dft::config_param::FWD_DISTANCE, plan->length1);
   plan->desc_fast->set_value(oneapi::mkl::dft::config_param::BWD_DISTANCE, plan->length1);
   plan->desc_fast->commit(queue);
-  
+
   plan->desc_mid = new descriptor_t (nmid);
   plan->desc_mid->set_value(oneapi::mkl::dft::config_param::NUMBER_OF_TRANSFORMS, plan->total2/nmid);
   plan->desc_mid->set_value(oneapi::mkl::dft::config_param::FWD_DISTANCE, plan->length2);
   plan->desc_mid->set_value(oneapi::mkl::dft::config_param::BWD_DISTANCE, plan->length2);
   plan->desc_mid->commit(queue);
-  
+
   plan->desc_slow = new descriptor_t (nslow);
   plan->desc_slow->set_value(oneapi::mkl::dft::config_param::NUMBER_OF_TRANSFORMS, plan->total3/nslow);
   plan->desc_slow->set_value(oneapi::mkl::dft::config_param::FWD_DISTANCE, plan->length3);
   plan->desc_slow->set_value(oneapi::mkl::dft::config_param::BWD_DISTANCE, plan->length3);
   plan->desc_slow->commit(queue);
-  
+
 #elif defined(FFT_KOKKOS_MKL)
   DftiCreateDescriptor( &(plan->handle_fast), FFT_KOKKOS_MKL_PREC, DFTI_COMPLEX, 1,
                         (MKL_LONG)nfast);
@@ -910,7 +910,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename FFT_AT::t_FFT_DATA_
 
   // perform 1d FFTs in each of 3 dimensions
   // data is just an array of 0.0
-  
+
 #if defined(FFT_KOKKOS_MKL_GPU)
   if (flag == -1) {
     oneapi::mkl::dft::compute_forward(*(plan->desc_fast), (FFT_SCALAR*)d_data.data());

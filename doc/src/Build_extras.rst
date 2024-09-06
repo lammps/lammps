@@ -759,7 +759,7 @@ This list was last updated for version 4.3.0 of the Kokkos library.
          -D Kokkos_ARCH_GPUARCH=yes    # GPUARCH = GPU from list above
          -D Kokkos_ENABLE_SYCL=yes
          -D Kokkos_ENABLE_OPENMP=yes
-	 -D FFT_KOKKOS=MKL_GPU
+         -D FFT_KOKKOS=MKL_GPU
 
       This will enable FFTs on the GPU using the oneMKL library.
 
@@ -851,10 +851,9 @@ This list was last updated for version 4.3.0 of the Kokkos library.
          KOKKOS_ARCH = HOSTARCH,GPUARCH  # HOSTARCH = HOST from list above that is
                                          #            hosting the GPU
                                          # GPUARCH = GPU from list above
-         FFT_INC = -DFFT_KOKKOS_MKL_GPU  # enable use of hipFFT (optional)
-                                         # link to hipFFT library
-         FFT_LIB = -lmkl_sycl_dft -lmkl_intel_ilp64 -lmkl_tbb_thread
-	 -mkl_core -ltbb
+         FFT_INC = -DFFT_KOKKOS_MKL_GPU  # enable use of oneMKL for Intel GPUs (optional)
+                                         # link to oneMKL FFT library
+         FFT_LIB = -lmkl_sycl_dft -lmkl_intel_ilp64 -lmkl_tbb_thread -mkl_core -ltbb
 
 Advanced KOKKOS compilation settings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

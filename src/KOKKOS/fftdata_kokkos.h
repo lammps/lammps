@@ -60,6 +60,9 @@
 # if defined(FFT_KOKKOS_FFTW3)
 #  undef FFT_KOKKOS_FFTW3
 # endif
+# if defined(FFT_KOKKOS_NVPL)
+#  undef FFT_KOKKOS_NVPL
+# endif
 # if defined(FFT_KOKKOS_MKL)
 #  undef FFT_KOKKOS_MKL
 # endif
@@ -85,6 +88,8 @@
 #define LMP_FFT_KOKKOS_LIB "FFTW3"
 #elif defined(FFT_KOKKOS_MKL)
 #define LMP_FFT_KOKKOS_LIB "MKL FFT"
+#elif defined(FFT_KOKKOS_NVPL)
+#define LMP_FFT_KOKKOS_LIB "NVPL FFT"
 #else
 #define LMP_FFT_KOKKOS_LIB "KISS FFT"
 #endif
@@ -101,6 +106,15 @@
   #endif
 #elif defined(FFT_KOKKOS_FFTW3)
   #include "fftw3.h"
+  #if defined(FFT_SINGLE)
+    typedef fftwf_complex FFT_KOKKOS_DATA;
+    #define FFTW_API(function)  fftwf_ ## function
+  #else
+    typedef fftw_complex FFT_KOKKOS_DATA;
+    #define FFTW_API(function) fftw_ ## function
+  #endif
+#elif defined(FFT_KOKKOS_NVPL)
+  #include "nvpl_fftw.h"
   #if defined(FFT_SINGLE)
     typedef fftwf_complex FFT_KOKKOS_DATA;
     #define FFTW_API(function)  fftwf_ ## function
@@ -146,7 +160,7 @@
 #endif
 
 // (double[2]*) is not a 1D pointer
-#if defined(FFT_KOKKOS_FFTW3)
+#if defined(FFT_KOKKOS_FFTW3) || defined(FFT_KOKKOS_NVPL)
   typedef FFT_SCALAR* FFT_KOKKOS_DATA_POINTER;
 #else
   typedef FFT_KOKKOS_DATA* FFT_KOKKOS_DATA_POINTER;

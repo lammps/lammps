@@ -46,6 +46,7 @@ class RegSphereKokkos : public RegSphere, public KokkosBase {
 
  private:
   int groupbit;
+  typename AT::t_int_1d d_match;
 
   KOKKOS_INLINE_FUNCTION
   int k_inside(double, double, double) const;

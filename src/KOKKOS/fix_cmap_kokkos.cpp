@@ -195,7 +195,7 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
     for (m = 0; m < k_num_crossterm.h_view(i); m++) {
 
       atom1 = AtomKokkos::map_kokkos<DeviceType>(k_crossterm_atom1.h_view(i,m),map_style,k_map_array,k_map_hash);
-      atom2 = AtomKokkos::map_kokkos<DeviceType>(k_crossterm_atom2.h_view((i,m),map_style,k_map_array,k_map_hash);
+      atom2 = AtomKokkos::map_kokkos<DeviceType>(k_crossterm_atom2.h_view(i,m),map_style,k_map_array,k_map_hash);
       atom3 = AtomKokkos::map_kokkos<DeviceType>(k_crossterm_atom3.h_view(i,m),map_style,k_map_array,k_map_hash);
       atom4 = AtomKokkos::map_kokkos<DeviceType>(k_crossterm_atom4.h_view(i,m),map_style,k_map_array,k_map_hash);
       atom5 = AtomKokkos::map_kokkos<DeviceType>(k_crossterm_atom5.h_view(i,m),map_style,k_map_array,k_map_hash);

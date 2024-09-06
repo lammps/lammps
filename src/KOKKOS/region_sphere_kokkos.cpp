@@ -53,7 +53,6 @@ int RegSphereKokkos<DeviceType>::k_inside(double x, double y, double z) const
 template<class DeviceType>
 void RegSphereKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_int_1d k_match_in)
 {
-  groupbit = groupbit_in;
   d_match = k_match_in.template view<DeviceType>();
 
   auto execution_space = ExecutionSpaceFromDevice<DeviceType>::space;

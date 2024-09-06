@@ -269,18 +269,18 @@ KOKKOS_INLINE_FUNCTION
 void FixCMAPKokkos<DeviceType>::operator()(const int n) const
 {
 
-  int i1,i2,i3,i4,i5,type,nlist;
+  int i1,i2,i3,i4,i5,type;
   int li1, li2, mli1,mli2,mli11,mli21,t1,li3,li4,mli3,mli4,mli31,mli41;
-  int list[5];
+
   // vectors needed to calculate the cross-term dihedral angles
   double vb21x,vb21y,vb21z,vb32x,vb32y,vb32z,vb34x,vb34y,vb34z;
   double vb23x,vb23y,vb23z;
   double vb43x,vb43y,vb43z,vb45x,vb45y,vb45z,a1x,a1y,a1z,b1x,b1y,b1z;
   double a2x,a2y,a2z,b2x,b2y,b2z,r32,a1sq,b1sq,a2sq,b2sq,dpr21r32,dpr34r32;
-  double dpr32r43,dpr45r43,r43,vb12x,vb12y,vb12z,vb54x,vb54y,vb54z;
+  double dpr32r43,dpr45r43,r43,vb12x,vb12y,vb12z;
   // cross-term dihedral angles
   double phi,psi,phi1,psi1;
-  double f1[3],f2[3],f3[3],f4[3],f5[3],vcmap[CMAPMAX];
+  double f1[3],f2[3],f3[3],f4[3],f5[3];
   double gs[4],d1gs[4],d2gs[4],d12gs[4];
 
   // vectors needed for the gradient/force calculation
@@ -300,115 +300,111 @@ void FixCMAPKokkos<DeviceType>::operator()(const int n) const
 
   int nlocal = atomKK->nlocal;
 
-    i1 = d_crosstermlist(n,0);
-    i2 = d_crosstermlist(n,1);
-    i3 = d_crosstermlist(n,2);
-    i4 = d_crosstermlist(n,3);
-    i5 = d_crosstermlist(n,4);
-    type = d_crosstermlist(n,5);
-    if (type == 0) return;
+  i1 = d_crosstermlist(n,0);
+  i2 = d_crosstermlist(n,1);
+  i3 = d_crosstermlist(n,2);
+  i4 = d_crosstermlist(n,3);
+  i5 = d_crosstermlist(n,4);
+  type = d_crosstermlist(n,5);
+  if (type == 0) return;
 
-    // calculate bond vectors for both dihedrals
+  // calculate bond vectors for both dihedrals
 
-    // phi
-    // vb21 = r2 - r1
+  // phi
+  // vb21 = r2 - r1
 
-      vb21x = d_x(i2,0) - d_x(i1,0);
-      vb21y = d_x(i2,1) - d_x(i1,1);
-      vb21z = d_x(i2,2) - d_x(i1,2);
-      vb12x = -1.0*vb21x;
-      vb12y = -1.0*vb21y;
-      vb12z = -1.0*vb21z;
-      vb32x = d_x(i3,0) - d_x(i2,0);
-      vb32y = d_x(i3,1) - d_x(i2,1);
-      vb32z = d_x(i3,2) - d_x(i2,2);
-      vb23x = -1.0*vb32x;
-      vb23y = -1.0*vb32y;
-      vb23z = -1.0*vb32z;
+  vb21x = d_x(i2,0) - d_x(i1,0);
+  vb21y = d_x(i2,1) - d_x(i1,1);
+  vb21z = d_x(i2,2) - d_x(i1,2);
+  vb12x = -1.0*vb21x;
+  vb12y = -1.0*vb21y;
+  vb12z = -1.0*vb21z;
+  vb32x = d_x(i3,0) - d_x(i2,0);
+  vb32y = d_x(i3,1) - d_x(i2,1);
+  vb32z = d_x(i3,2) - d_x(i2,2);
+  vb23x = -1.0*vb32x;
+  vb23y = -1.0*vb32y;
+  vb23z = -1.0*vb32z;
 
-      vb34x = d_x(i3,0) - d_x(i4,0);
-      vb34y = d_x(i3,1) - d_x(i4,1);
-      vb34z = d_x(i3,2) - d_x(i4,2);
+  vb34x = d_x(i3,0) - d_x(i4,0);
+  vb34y = d_x(i3,1) - d_x(i4,1);
+  vb34z = d_x(i3,2) - d_x(i4,2);
 
-      // psi
-      // bond vectors same as for phi: vb32
+  // psi
+  // bond vectors same as for phi: vb32
 
-      vb43x = -1.0*vb34x;
-      vb43y = -1.0*vb34y;
-      vb43z = -1.0*vb34z;
+  vb43x = -1.0*vb34x;
+  vb43y = -1.0*vb34y;
+  vb43z = -1.0*vb34z;
 
-      vb45x = d_x(i4,0) - d_x(i5,0);
-      vb45y = d_x(i4,1) - d_x(i5,1);
-      vb45z = d_x(i4,2) - d_x(i5,2);
-      vb54x = -1.0*vb45x;
-      vb54y = -1.0*vb45y;
-      vb54z = -1.0*vb45z;
+  vb45x = d_x(i4,0) - d_x(i5,0);
+  vb45y = d_x(i4,1) - d_x(i5,1);
+  vb45z = d_x(i4,2) - d_x(i5,2);
 
-      // calculate normal vectors for planes that define the dihedral angles
+  // calculate normal vectors for planes that define the dihedral angles
+  a1x = vb12y*vb23z - vb12z*vb23y;
+  a1y = vb12z*vb23x - vb12x*vb23z;
+  a1z = vb12x*vb23y - vb12y*vb23x;
 
-      a1x = vb12y*vb23z - vb12z*vb23y;
-      a1y = vb12z*vb23x - vb12x*vb23z;
-      a1z = vb12x*vb23y - vb12y*vb23x;
+  b1x = vb43y*vb23z - vb43z*vb23y;
+  b1y = vb43z*vb23x - vb43x*vb23z;
+  b1z = vb43x*vb23y - vb43y*vb23x;
 
-      b1x = vb43y*vb23z - vb43z*vb23y;
-      b1y = vb43z*vb23x - vb43x*vb23z;
-      b1z = vb43x*vb23y - vb43y*vb23x;
+  a2x = vb23y*vb34z - vb23z*vb34y;
+  a2y = vb23z*vb34x - vb23x*vb34z;
+  a2z = vb23x*vb34y - vb23y*vb34x;
 
-      a2x = vb23y*vb34z - vb23z*vb34y;
-      a2y = vb23z*vb34x - vb23x*vb34z;
-      a2z = vb23x*vb34y - vb23y*vb34x;
+  b2x = vb45y*vb43z - vb45z*vb43y;
+  b2y = vb45z*vb43x - vb45x*vb43z;
+  b2z = vb45x*vb43y - vb45y*vb43x;
 
-      b2x = vb45y*vb43z - vb45z*vb43y;
-      b2y = vb45z*vb43x - vb45x*vb43z;
-      b2z = vb45x*vb43y - vb45y*vb43x;
+  // calculate terms used later in calculations
 
-      // calculate terms used later in calculations
+  r32 = sqrt(vb32x*vb32x + vb32y*vb32y + vb32z*vb32z);
+  a1sq = a1x*a1x + a1y*a1y + a1z*a1z;
+  b1sq = b1x*b1x + b1y*b1y + b1z*b1z;
 
-      r32 = sqrt(vb32x*vb32x + vb32y*vb32y + vb32z*vb32z);
-      a1sq = a1x*a1x + a1y*a1y + a1z*a1z;
-      b1sq = b1x*b1x + b1y*b1y + b1z*b1z;
+  r43 = sqrt(vb43x*vb43x + vb43y*vb43y + vb43z*vb43z);
+  a2sq = a2x*a2x + a2y*a2y + a2z*a2z;
+  b2sq = b2x*b2x + b2y*b2y + b2z*b2z;
+  //if (a1sq<0.0001 || b1sq<0.0001 || a2sq<0.0001 || b2sq<0.0001)
+  //  printf("a1sq b1sq a2sq b2sq: %f %f %f %f \n",a1sq,b1sq,a2sq,b2sq);
+  if (a1sq<0.0001 || b1sq<0.0001 || a2sq<0.0001 || b2sq<0.0001) return;
+  dpr21r32 = vb21x*vb32x + vb21y*vb32y + vb21z*vb32z;
+  dpr34r32 = vb34x*vb32x + vb34y*vb32y + vb34z*vb32z;
+  dpr32r43 = vb32x*vb43x + vb32y*vb43y + vb32z*vb43z;
+  dpr45r43 = vb45x*vb43x + vb45y*vb43y + vb45z*vb43z;
 
-      r43 = sqrt(vb43x*vb43x + vb43y*vb43y + vb43z*vb43z);
-      a2sq = a2x*a2x + a2y*a2y + a2z*a2z;
-      b2sq = b2x*b2x + b2y*b2y + b2z*b2z;
-      //if (a1sq<0.0001 || b1sq<0.0001 || a2sq<0.0001 || b2sq<0.0001)
-      //  printf("a1sq b1sq a2sq b2sq: %f %f %f %f \n",a1sq,b1sq,a2sq,b2sq);
-      if (a1sq<0.0001 || b1sq<0.0001 || a2sq<0.0001 || b2sq<0.0001) return;
-      dpr21r32 = vb21x*vb32x + vb21y*vb32y + vb21z*vb32z;
-      dpr34r32 = vb34x*vb32x + vb34y*vb32y + vb34z*vb32z;
-      dpr32r43 = vb32x*vb43x + vb32y*vb43y + vb32z*vb43z;
-      dpr45r43 = vb45x*vb43x + vb45y*vb43y + vb45z*vb43z;
+  // calculate the backbone dihedral angles as VMD and GROMACS
 
-      // calculate the backbone dihedral angles as VMD and GROMACS
+  phi = FixCMAP::dihedral_angle_atan2(vb21x,vb21y,vb21z,a1x,a1y,a1z,b1x,b1y,b1z,r32);
+  psi = FixCMAP::dihedral_angle_atan2(vb32x,vb32y,vb32z,a2x,a2y,a2z,b2x,b2y,b2z,r43);
 
-      phi = FixCMAP::dihedral_angle_atan2(vb21x,vb21y,vb21z,a1x,a1y,a1z,b1x,b1y,b1z,r32);
-      psi = FixCMAP::dihedral_angle_atan2(vb32x,vb32y,vb32z,a2x,a2y,a2z,b2x,b2y,b2z,r43);
+  if (phi == 180.0) phi= -180.0;
+  if (psi == 180.0) psi= -180.0;
 
-      if (phi == 180.0) phi= -180.0;
-      if (psi == 180.0) psi= -180.0;
+  phi1 = phi;
+  if (phi1 < 0.0) phi1 += 360.0;
+  psi1 = psi;
+  if (psi1 < 0.0) psi1 += 360.0;
 
-      phi1 = phi;
-      if (phi1 < 0.0) phi1 += 360.0;
-      psi1 = psi;
-      if (psi1 < 0.0) psi1 += 360.0;
+  // find the neighbor grid point index
 
-      // find the neighbor grid point index
+  li1 = int(((phi1+CMAPXMIN2)/CMAPDX)+((CMAPDIM*1.0)/2.0));
+  li2 = int(((psi1+CMAPXMIN2)/CMAPDX)+((CMAPDIM*1.0)/2.0));
 
-      li1 = int(((phi1+CMAPXMIN2)/CMAPDX)+((CMAPDIM*1.0)/2.0));
-      li2 = int(((psi1+CMAPXMIN2)/CMAPDX)+((CMAPDIM*1.0)/2.0));
-
-      li3 = int((phi-CMAPXMIN2)/CMAPDX);
-      li4 = int((psi-CMAPXMIN2)/CMAPDX);
-      mli3 = li3 % CMAPDIM;
-      mli4 = li4 % CMAPDIM;
-      mli31 = (li3+1) % CMAPDIM;
-      mli41 = (li4+1)  %CMAPDIM;
-      mli1 = li1 % CMAPDIM;
-      mli2 = li2 % CMAPDIM;
-      mli11 = (li1+1) % CMAPDIM;
-      mli21 = (li2+1)  %CMAPDIM;
-      t1 = type-1;
-      if (t1 < 0 || t1 > 5) error->all(FLERR,"Invalid CMAP crossterm_type");
+  li3 = int((phi-CMAPXMIN2)/CMAPDX);
+  li4 = int((psi-CMAPXMIN2)/CMAPDX);
+  mli3 = li3 % CMAPDIM;
+  mli4 = li4 % CMAPDIM;
+  mli31 = (li3+1) % CMAPDIM;
+  mli41 = (li4+1)  %CMAPDIM;
+  mli1 = li1 % CMAPDIM;
+  mli2 = li2 % CMAPDIM;
+  mli11 = (li1+1) % CMAPDIM;
+  mli21 = (li2+1)  %CMAPDIM;
+  t1 = type-1;
+  if (t1 < 0 || t1 > 5) Kokkos::abort("Invalid CMAP crossterm_type");
 
       // determine the values and derivatives for the grid square points
 
@@ -539,7 +535,13 @@ void FixCMAPKokkos<DeviceType>::operator()(const int n) const
 /*
       if (evflag) {
         //std::cerr << "******** tally energy and/or virial\n";
-        nlist = 0;
+        int nlist = 0;
+        int list[5];
+        double vb54x = -1.0*vb45x;
+        double vb54y = -1.0*vb45y;
+        double vb54z = -1.0*vb45z;
+        double vcmap[CMAPMAX];
+
         if (i1 < nlocal) list[nlist++] = i1;
         if (i2 < nlocal) list[nlist++] = i2;
         if (i3 < nlocal) list[nlist++] = i3;

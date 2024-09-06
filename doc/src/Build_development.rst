@@ -145,6 +145,10 @@ of the LAMMPS project on GitHub.  A few tests are also run as GitHub
 Actions and their configuration files are in the ``.github/workflows/``
 folder of the LAMMPS git tree.
 
+Regression tests can also be performed locally with the :doc:`regression tester tool <Tools>`.
+The tool checks if a given LAMMPS binary run with selected input examples
+produces consistent thermo output with the provided log files.
+
 The unit testing facility is integrated into the CMake build process of
 the LAMMPS source code distribution itself.  It can be enabled by
 setting ``-D ENABLE_TESTING=on`` during the CMake configuration step.

@@ -95,6 +95,7 @@ KOKKOS_INLINE_FUNCTION
 int RegSphereKokkos<DeviceType>::match(double x, double y, double z) const
 {
   if (dynamic) inverse_transform(x,y,z);
+  if (openflag) return 1;
   return !(k_inside(x,y,z) ^ interior);
 }
 

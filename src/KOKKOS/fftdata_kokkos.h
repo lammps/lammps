@@ -36,8 +36,8 @@
 # endif
 #endif
 
-// with KOKKOS in CUDA or HIP mode we can only have
-//  CUFFT/HIPFFT or KISS, thus undefine all other
+// with KOKKOS in CUDA, HIP, or SYCL mode we can only have
+//  CUFFT/HIPFFT/MKL_GPU or KISS, thus undefine all other
 //  FFTs here
 
 #ifdef KOKKOS_ENABLE_CUDA
@@ -69,12 +69,28 @@
 # if !defined(FFT_KOKKOS_HIPFFT) && !defined(FFT_KOKKOS_KISS)
 #  define FFT_KOKKOS_KISS
 # endif
+#elif defined(KOKKOS_ENABLE_SYCL)
+# if defined(FFT_KOKKOS_FFTW)
+#  undef FFT_KOKKOS_FFTW
+# endif
+# if defined(FFT_KOKKOS_FFTW3)
+#  undef FFT_KOKKOS_FFTW3
+# endif
+# if defined(FFT_KOKKOS_MKL)
+#  undef FFT_KOKKOS_MKL
+# endif
+# if !defined(FFT_KOKKOS_MKL_GPU) && !defined(FFT_KOKKOS_KISS)
+#  define FFT_KOKKOS_KISS
+# endif
 #else
 # if defined(FFT_KOKKOS_CUFFT)
 #  error "Must enable CUDA with KOKKOS to use -DFFT_KOKKOS_CUFFT"
 # endif
 # if defined(FFT_KOKKOS_HIPFFT)
 #  error "Must enable HIP with KOKKOS to use -DFFT_KOKKOS_HIPFFT"
+# endif
+# if defined(FFT_KOKKOS_MKL_GPU)
+#  error "Must enable SYCL with KOKKOS to use -DFFT_KOKKOS_MKL_GPU"
 # endif
 #endif
 
@@ -88,6 +104,8 @@
 #define LMP_FFT_KOKKOS_LIB "FFTW3"
 #elif defined(FFT_KOKKOS_MKL)
 #define LMP_FFT_KOKKOS_LIB "MKL FFT"
+#elif defined(FFT_KOKKOS_MKL_GPU)
+#define LMP_FFT_KOKKOS_LIB "MKL_GPU FFT"
 #elif defined(FFT_KOKKOS_NVPL)
 #define LMP_FFT_KOKKOS_LIB "NVPL FFT"
 #else
@@ -95,7 +113,18 @@
 #endif
 
 
-#if defined(FFT_KOKKOS_MKL)
+#if defined(FFT_KOKKOS_MKL_GPU)
+  #include "CL/sycl.hpp"
+  #include "oneapi/mkl/dfti.hpp"
+  #include "mkl.h"
+  #if defined(FFT_SINGLE)
+    typedef std::complex<float> FFT_KOKKOS_DATA;
+    #define FFT_KOKKOS_MKL_PREC DFTI_SINGLE
+  #else
+    typedef std::complex<double> FFT_KOKKOS_DATA;
+    #define FFT_KOKKOS_MKL_PREC DFTI_DOUBLE
+  #endif
+#elif defined(FFT_KOKKOS_MKL)
   #include "mkl_dfti.h"
   #if defined(FFT_SINGLE)
     typedef float _Complex FFT_KOKKOS_DATA;

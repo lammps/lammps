@@ -21,6 +21,14 @@
 
 namespace LAMMPS_NS {
 
+#if defined(FFT_KOKKOS_MKL_GPU)
+#ifdef FFT_SINGLE
+  typedef oneapi::mkl::dft::descriptor<oneapi::mkl::dft::precision::SINGLE, oneapi::mkl::dft::domain::COMPLEX> descriptor_t;
+#else
+  typedef oneapi::mkl::dft::descriptor<oneapi::mkl::dft::precision::DOUBLE, oneapi::mkl::dft::domain::COMPLEX> descriptor_t;
+#endif
+#endif
+
 // -------------------------------------------------------------------------
 
 // plan for how to perform a 3d FFT
@@ -45,7 +53,11 @@ struct fft_plan_3d_kokkos {
   double norm;                      // normalization factor for rescaling
 
                                     // system specific 1d FFT info
-#if defined(FFT_KOKKOS_MKL)
+#if defined(FFT_KOKKOS_MKL_GPU)
+  descriptor_t *desc_fast;
+  descriptor_t *desc_mid;
+  descriptor_t *desc_slow;
+#elif defined(FFT_KOKKOS_MKL)
   DFTI_DESCRIPTOR *handle_fast;
   DFTI_DESCRIPTOR *handle_mid;
   DFTI_DESCRIPTOR *handle_slow;

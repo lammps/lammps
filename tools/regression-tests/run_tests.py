@@ -852,6 +852,69 @@ def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
     return cmd_str, "", "", -1
 
 '''
+   get the reference walltime by running the lmp_binary with config with an input script in the bench/ folder
+      in.lj is suitable as it doesn't need any potential file, nor any extra packages
+'''
+def get_reference_walltime(lmp_binary, config):
+    cmd_str = ""
+    # check if mpiexec/mpirun is used
+    if config['mpiexec']:
+        cmd_str += config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
+
+    # guess the build folder path
+    lmp_build_folder = lmp_binary.rsplit('/', 1)[0]
+
+    # guess the bench folder
+    lmp_bench_folder = lmp_build_folder + "/../bench/"
+
+    # run with replicate for a copple of seconds long run
+    cmd_str += lmp_binary + " -in " + lmp_bench_folder + "in.lj -v x 2 -v y 2 -v z 1 " + config['args']
+
+    logger.info(f"     Executing for reference walltime: {cmd_str}")
+
+    # walltime = -1 indicates some timeout (issues)
+    walltime = -1
+
+    # set a timeout for this reference run
+    timeout = 60
+    output = ""
+    try:
+        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True, timeout=timeout)
+        output = p.stdout
+
+    except subprocess.TimeoutExpired:
+        msg = f"     Timeout for: {cmd_str} ({timeout}s expired)"
+        logger.info(msg)
+        print(msg)
+
+    for line in output.split('\n'):
+        if "Total wall time" in line:
+            walltime_str = line.split('time:')[1]
+            hms = walltime_str.split(':')
+            hours = float(hms[0])
+            minutes = float(hms[1])
+            seconds = float(hms[2])
+            walltime = hours * 3600.0 + minutes * 60.0 + seconds
+
+    logger.info(f"     Reference walltime = {walltime}")
+
+    return walltime
+
+'''
+    infer the tools/regression-tests folder from the absolute path to lmp_binary
+    return the default config file path tools/regression-tests/config.yaml
+'''
+def get_default_config(lmp_binary):
+    # guess the build folder path
+    lmp_build_folder = lmp_binary.rsplit('/', 1)[0]
+
+    # guess the tools/regression-tests folder
+    regression_tests_folder = lmp_build_folder + "/../tools/regression-tests/"
+
+    defaultConfigFile = regression_tests_folder + "config.yaml"
+    return defaultConfigFile
+
+'''
     split a list into a list of N sublists
 
     NOTE:
@@ -978,7 +1041,7 @@ if __name__ == "__main__":
     # parse the arguments
     parser = ArgumentParser()
     parser.add_argument("--lmp-bin", dest="lmp_binary", default="", help="LAMMPS binary")
-    parser.add_argument("--config-file", dest="config_file", default=configFileName, help="Configuration YAML file")
+    parser.add_argument("--config-file", dest="config_file", default="", help="Configuration YAML file")
     parser.add_argument("--examples-top-level", dest="example_toplevel", default="", help="Examples top-level")
     parser.add_argument("--example-folders", dest="example_folders", default="", help="Example subfolders")
     parser.add_argument("--list-input", dest="list_input", default="", help="File that lists the input scripts")
@@ -1009,7 +1072,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     lmp_binary = os.path.abspath(args.lmp_binary)
-    configFileName = args.config_file
+    if len(args.config_file) > 0:
+        configFileName = args.config_file
+    else:
+        configFileName = get_default_config(lmp_binary)
+
     output_file = args.output
     if int(args.num_workers) > 0:
         num_workers = int(args.num_workers)
@@ -1044,6 +1111,9 @@ if __name__ == "__main__":
     if example_toplevel != "":
         print("\nTop-level example folder:")
         print(f"  {example_toplevel}")
+    if list_input != "":
+        print("\nInput scripts to test as listed in the file:")
+        print(f"  {list_input}")
 
     # Using in place input scripts
     inplace_input = True
@@ -1250,6 +1320,9 @@ if __name__ == "__main__":
             progress.close()
         except Exception:
             print(f"    Cannot open progress file {progress_file_abs} to resume, rerun all the tests")
+
+    # get a reference walltime
+    walltime_ref = get_reference_walltime(lmp_binary, config)
 
     # record all the failure cases (overwrite if the file exists)
     failure_file_abs = pwd + "/" + failure_file

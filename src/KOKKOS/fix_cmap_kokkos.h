@@ -52,7 +52,6 @@ class FixCMAPKokkos : public FixCMAP {
   protected:
     typename AT::t_x_array d_x;
     typename AT::t_f_array d_f;
-    //typename AT::t_int_1d d_type, d_mask;
 
     DAT::tdual_int_1d k_sametag;
     typename AT::t_int_1d d_sametag;

@@ -378,6 +378,7 @@ class Atom : protected Pointers {
 
   void *extract(const char *);
   int extract_datatype(const char *);
+  int extract_size(const char *, int);
 
   inline int *get_map_array() { return map_array; };
   inline int get_map_size() { return map_tag_max + 1; };

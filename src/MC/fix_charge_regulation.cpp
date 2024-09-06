@@ -218,7 +218,7 @@ void FixChargeRegulation::init() {
     int flagall = flag;
 
     MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
-    if (flagall && comm->me == 0)
+    if (flagall)
       error->all(FLERR, "fix charge/regulation cannot exchange "
                  "individual atoms (ions) belonging to a molecule");
   }

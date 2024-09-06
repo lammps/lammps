@@ -18,28 +18,27 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style style N inner_distance_cutoff outer_distance_cutoff angle_cutof
+   pair_style style N inner_distance_cutoff outer_distance_cutoff angle_cutoff
 
 * style = *hbond/dreiding/lj* or *hbond/dreiding/morse*
-* n = cosine angle periodicity
+* N = power of cosine of angle theta (integer)
 * inner_distance_cutoff = global inner cutoff for Donor-Acceptor interactions (distance units)
 * outer_distance_cutoff = global cutoff for Donor-Acceptor interactions (distance units)
-* angle_cutoff = global angle cutoff for Acceptor-Hydrogen-Donor
-* interactions (degrees)
+* angle_cutoff = global angle cutoff for Acceptor-Hydrogen-Donor interactions (degrees)
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   pair_style hybrid/overlay lj/cut 10.0 hbond/dreiding/lj 4 9.0 11.0 90
+   pair_style hybrid/overlay lj/cut 10.0 hbond/dreiding/lj 4 9.0 11.0 90.0
    pair_coeff 1 2 hbond/dreiding/lj 3 i 9.5 2.75 4 9.0 11.0 90.0
 
-   pair_style hybrid/overlay lj/cut 10.0 hbond/dreiding/morse 2 9.0 11.0 90
-   pair_coeff 1 2 hbond/dreiding/morse 3 i 3.88 1.7241379 2.9 2 9 11 90
+   pair_style hybrid/overlay lj/cut 10.0 hbond/dreiding/morse 2 9.0 11.0 90.0
+   pair_coeff 1 2 hbond/dreiding/morse 3 i 3.88 1.7241379 2.9 2 9.0 11.0 90.0
 
    labelmap atom 1 C 2 O 3 H
-   pair_coeff C O hbond/dreiding/morse H i 3.88 1.7241379 2.9 2 9 11 90
+   pair_coeff C O hbond/dreiding/morse H i 3.88 1.7241379 2.9 2 9.0 11.0 90.0
 
 Description
 """""""""""
@@ -65,7 +64,8 @@ force field, given by:
 
 where :math:`r_{\rm in}` is the inner spline distance cutoff,
 :math:`r_{\rm out}` is the outer distance cutoff, :math:`\theta_c` is
-the angle cutoff, and *n* is the cosine periodicity.
+the angle cutoff, and :math:`n` is the power of the cosine of the angle
+:math:`\theta`.
 
 Here, *r* is the radial distance between the donor (D) and acceptor
 (A) atoms and :math:`\theta` is the bond angle between the acceptor, the
@@ -217,7 +217,8 @@ These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-These pair styles do not write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands need to be
+These pair styles do not write their information to :doc:`binary restart
+files <restart>`, so pair_style and pair_coeff commands need to be
 re-specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the

@@ -11,16 +11,19 @@ With the current features, users can:
     + specify the examples subfolders (thus the reference log files) seperately (e.g. from other LAMMPS versions or commits)
     + specify the list of examples input scripts to test
     + specify tolerances for individual quantities for any input script to override the global values
-    + launch tests with `mpirun` with all supported command line features (multiple procs, multiple paritions, and suffices)
+    + launch tests with `mpirun` with all supported command line features (multiple procs, multiple paritions, and suffixes)
     + skip certain input files (whose names match specified patterns) if not interested, or packaged not installed, or no reference log file exists
     + set a timeout for every input script run if they may take too long
     + skip numerical checks if the goal is just to check if the runs do not fail
-    + simplify the main LAMMPS builds, as long as a LAMMPS binary is available
-    + keep track of the testing progress to resume the testing from the last checkpoint (skipping completed runs)
-    + distribute the input list across multiple processes via multiprocessing, or
-      split the list of input scripts into separate runs (there are 800+ input script under the top-level examples)
 
+Some benefits include:
 
+    + separating regression testing from building LAMMPS
+    + performing quick and full regression tests
+    + keeping track of the testing progress to resume the testing from the last checkpoint (skipping completed runs)
+    + distributing the input list across multiple processes by
+      splitting the list of input scripts into separate runs (there are ~800 input scripts under the top-level examples)
+      
 Input arguments:
     + the path to a LAMMPS binary (can be relative to the working directory)
     + a test configuration file (see tools/regression-tests/config.yaml for an example)
@@ -39,9 +42,6 @@ Limitations:
     - input scripts use thermo style multi (e.g., examples/peptide) do not work with the expected thermo output format
     - input scripts that require partition runs (e.g. examples/neb) need a separate config file, e.g. args: "--partition 3x1"
     - testing accelerator packages (GPU, INTEL, KOKKOS, OPENMP) need separate config files, "args: -sf omp -pk omp 4"
-
-TODO:
-    + be able to be invoked from run_tests in the lammps-testing infrastruture
 
 The following Python packages need to be installed into an activated environment:
 
@@ -1049,12 +1049,6 @@ if __name__ == "__main__":
     parser.add_argument("--list-input", dest="list_input", default="", help="File that lists the input scripts")
     parser.add_argument("--list-subfolders", dest="list_subfolders", default="", help="File that lists the subfolders")
     parser.add_argument("--num-workers", dest="num_workers", default=1, help="Number of workers")
-    parser.add_argument("--gen-ref",dest="genref", action='store_true', default=False,
-                        help="Generating reference data")
-    parser.add_argument("--verbose",dest="verbose", action='store_true', default=False,
-                        help="Verbose output")
-    parser.add_argument("--resume",dest="resume", action='store_true', default=False,
-                        help="Resume the test run")
     parser.add_argument("--output-file",dest="output", default=output_file, help="Output file")
     parser.add_argument("--log-file",dest="logfile", default=log_file, help="Log file")
     parser.add_argument("--progress-file",dest="progress_file", default=progress_file, help="Progress file")
@@ -1069,7 +1063,13 @@ if __name__ == "__main__":
     parser.add_argument("--quick-max", dest="quick_max", default=50,
                         help="Maximum number of inputs to randomly select")
     parser.add_argument("--skip-numerical-check",dest="skip_numerical_check", action='store_true', default=False,
-                        help="Generating reference data")
+                        help="Skip numerical checks")
+    parser.add_argument("--gen-ref",dest="genref", action='store_true', default=False,
+                        help="Generating reference log files")
+    parser.add_argument("--verbose",dest="verbose", action='store_true', default=False,
+                        help="Verbose screen output")
+    parser.add_argument("--resume",dest="resume", action='store_true', default=False,
+                        help="Resume the test run from the list of inputs given the progress in progress.yaml")
 
     args = parser.parse_args()
 

@@ -377,8 +377,8 @@ void FixCMAPKokkos<DeviceType>::operator()(const int n) const
 
   // calculate the backbone dihedral angles as VMD and GROMACS
 
-  phi = FixCMAP::dihedral_angle_atan2(vb21x,vb21y,vb21z,a1x,a1y,a1z,b1x,b1y,b1z,r32);
-  psi = FixCMAP::dihedral_angle_atan2(vb32x,vb32y,vb32z,a2x,a2y,a2z,b2x,b2y,b2z,r43);
+  phi = dihedral_angle_atan2(vb21x,vb21y,vb21z,a1x,a1y,a1z,b1x,b1y,b1z,r32);
+  psi = dihedral_angle_atan2(vb32x,vb32y,vb32z,a2x,a2y,a2z,b2x,b2y,b2z,r43);
 
   if (phi == 180.0) phi= -180.0;
   if (psi == 180.0) psi= -180.0;
@@ -715,6 +715,32 @@ int FixCMAPKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
   return m;
 }
 
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+double FixCMAPKokkos<DeviceType>::dihedral_angle_atan2(double fx, double fy, double fz,
+                                      double ax, double ay, double az,
+                                      double bx, double by, double bz,
+                                      double absg) const
+{
+  // calculate the dihedral angle
+
+  double angle = 0.0, arg1, arg2;
+
+  arg1 = absg*(fx*bx+fy*by+fz*bz);
+  arg2 = ax*bx+ay*by+az*bz;
+
+  if (arg1 == 0 && arg2 == 0)
+    Kokkos::abort("CMAP: atan2 function cannot take 2 zero arguments");
+  else {
+    angle = Kokkos::atan2(arg1,arg2);
+    angle = angle*180.0/MY_PI;
+  }
+
+  return angle;
+}
 
 /* ---------------------------------------------------------------------- */
 

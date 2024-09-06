@@ -77,6 +77,11 @@ class FixCMAPKokkos : public FixCMAP {
     DAT::tdual_float_3d k_cmapgrid, k_d1cmapgrid, k_d2cmapgrid, k_d12cmapgrid;
     typename AT::t_float_3d d_cmapgrid, d_d1cmapgrid, d_d2cmapgrid, d_d12cmapgrid;
 
+    // calculate dihedral angles
+    KOKKOS_INLINE_FUNCTION
+    double dihedral_angle_atan2(double, double, double, double, double, double, double, double,
+      double, double) const;
+
     // perform bicubic interpolation at point of interest
     KOKKOS_INLINE_FUNCTION
     void bc_interpol(double, double, int, int, double *, double *, double *, double *,

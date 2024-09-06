@@ -53,15 +53,14 @@ int RegSphereKokkos<DeviceType>::k_inside(double x, double y, double z) const
 template<class DeviceType>
 void RegSphereKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_int_1d k_match_in)
 {
-  groupbit = groupbit_in;
-  d_match = k_match_in.template view<DeviceType>();
 
   auto execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   atomKK->sync(execution_space, X_MASK | MASK_MASK);
 
   auto d_x = atomKK->k_x.template view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
-  auto l_groupbit = groupbit;
+  auto d_match = k_match_in.template view<DeviceType>();
+  auto l_groupbit = groupbit_in;
 
   copymode = 1;
 
@@ -95,6 +94,7 @@ KOKKOS_INLINE_FUNCTION
 int RegSphereKokkos<DeviceType>::match(double x, double y, double z) const
 {
   if (dynamic) inverse_transform(x,y,z);
+  if (openflag) return 1;
   return !(k_inside(x,y,z) ^ interior);
 }
 

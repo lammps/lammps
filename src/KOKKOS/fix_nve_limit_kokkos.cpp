@@ -58,6 +58,7 @@ void FixNVELimitKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   auto d_f = atomKK->k_f.template view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
   auto l_groupbit = groupbit;
+  auto l_dtf = dtf;
 
   int d_ncount;
 
@@ -69,7 +70,7 @@ void FixNVELimitKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 
     Kokkos::parallel_reduce(nlocal, KOKKOS_LAMBDA(const int i, int &l_ncount) {
       if (d_mask[i] & l_groupbit) {
-        const double dtfm = dtf / d_rmass[i];
+        const double dtfm = l_dtf / d_rmass[i];
         d_v(i,0) += dtfm * d_f(i,0);
         d_v(i,1) += dtfm * d_f(i,1);
         d_v(i,2) += dtfm * d_f(i,2);
@@ -98,7 +99,7 @@ void FixNVELimitKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 
     Kokkos::parallel_reduce(nlocal, KOKKOS_LAMBDA(const int i, int &l_ncount) {
       if (d_mask[i] & l_groupbit) {
-        const double dtfm = dtf / d_mass[d_type[i]];
+        const double dtfm = l_dtf / d_mass[d_type[i]];
         d_v(i,0) += dtfm * d_f(i,0);
         d_v(i,1) += dtfm * d_f(i,1);
         d_v(i,2) += dtfm * d_f(i,2);
@@ -136,6 +137,7 @@ void FixNVELimitKokkos<DeviceType>::final_integrate()
   auto d_f = atomKK->k_f.template view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
   auto l_groupbit = groupbit;
+  auto l_dtf = dtf;
 
   int d_ncount;
 
@@ -146,7 +148,7 @@ void FixNVELimitKokkos<DeviceType>::final_integrate()
 
     Kokkos::parallel_reduce(nlocal, KOKKOS_LAMBDA(const int i, int &l_ncount) {
       if (d_mask[i] & l_groupbit) {
-        const double dtfm = dtf / d_rmass[i];
+        const double dtfm = l_dtf / d_rmass[i];
         d_v(i,0) += dtfm * d_f(i,0);
         d_v(i,1) += dtfm * d_f(i,1);
         d_v(i,2) += dtfm * d_f(i,2);
@@ -170,7 +172,7 @@ void FixNVELimitKokkos<DeviceType>::final_integrate()
 
     Kokkos::parallel_reduce(nlocal, KOKKOS_LAMBDA(const int i, int &l_ncount) {
       if (d_mask[i] & l_groupbit) {
-        const double dtfm = dtf / d_mass[d_type[i]];
+        const double dtfm = l_dtf / d_mass[d_type[i]];
         d_v(i,0) += dtfm * d_f(i,0);
         d_v(i,1) += dtfm * d_f(i,1);
         d_v(i,2) += dtfm * d_f(i,2);

@@ -52,10 +52,6 @@ void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 {
 
   atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
-
-  d_x = atomKK->k_x.view<DeviceType>();
-  d_mask = atomKK->k_mask.view<DeviceType>();
   int nlocal = atomKK->nlocal;
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
@@ -112,9 +108,11 @@ void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   shift[2] = zflag ? (ztarget - xcm[2]) : 0.0;
   distance = sqrt(shift[0]*shift[0] + shift[1]*shift[1] + shift[2]*shift[2]);
 
-  copymode = 1;
-
+  auto d_x = atomKK->k_x.template view<DeviceType>();
+  auto d_mask = atomKK->k_mask.template view<DeviceType>();
   auto l_group2bit = group2bit;
+
+  copymode = 1;
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
     KOKKOS_LAMBDA(const int i) {
@@ -126,6 +124,8 @@ void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
     });
 
   copymode = 0;
+
+  atomKK->modified(execution_space,datamask_modify);
 }
 
 

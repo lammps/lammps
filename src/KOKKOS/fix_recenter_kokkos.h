@@ -36,8 +36,8 @@ class FixRecenterKokkos : public FixRecenter {
     void initial_integrate(int) override;
 
   private:
-    typename ArrayTypes<DeviceType>::t_x_array d_x;
-    typename ArrayTypes<DeviceType>::t_int_1d d_mask;
+    //typename ArrayTypes<DeviceType>::t_x_array d_x;
+    //typename ArrayTypes<DeviceType>::t_int_1d d_mask;
 };
 
 } // namespace LAMMPS_NS

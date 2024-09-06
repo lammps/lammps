@@ -5,7 +5,7 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-project(paceplugin VERSION 1.0 LANGUAGES CXX)
+project(paceplugin VERSION 1.1 LANGUAGES CXX)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 include(CheckIncludeFileCXX)
@@ -15,7 +15,11 @@ include(ML-PACE)
 ##########################
 # building the plugins
 
-add_library(paceplugin MODULE paceplugin.cpp ${LAMMPS_SOURCE_DIR}/ML-PACE/pair_pace.cpp)
+add_library(paceplugin MODULE paceplugin.cpp
+  ${LAMMPS_SOURCE_DIR}/ML-PACE/pair_pace.cpp
+  ${LAMMPS_SOURCE_DIR}/ML-PACE/pair_pace_extrapolation.cpp
+  ${LAMMPS_SOURCE_DIR}/ML-PACE/compute_pace.cpp)
+
 target_link_libraries(paceplugin PRIVATE pace)
 target_link_libraries(paceplugin PRIVATE lammps)
 target_include_directories(paceplugin PRIVATE ${LAMMPS_SOURCE_DIR}/ML-PACE)

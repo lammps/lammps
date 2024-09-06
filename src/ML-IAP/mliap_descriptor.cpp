@@ -28,6 +28,7 @@ MLIAPDescriptor::MLIAPDescriptor(LAMMPS *lmp) :
     cutghost(nullptr), radelem(nullptr), wjelem(nullptr)
 {
   cutmax = 0.0;
+  allocated_elements = 0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -157,7 +157,7 @@ public:
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &i) const {
-#if defined(FFT_KOKKOS_FFTW3) || defined(FFT_KOKKOS_CUFFT) || defined(FFT_KOKKOS_HIPFFT) || defined(FFT_KOKKOS_MKL_GPU || defined(FFT_KOKKOS_NVPL)
+#if defined(FFT_KOKKOS_FFTW3) || defined(FFT_KOKKOS_CUFFT) || defined(FFT_KOKKOS_HIPFFT) || defined(FFT_KOKKOS_MKL_GPU) || defined(FFT_KOKKOS_NVPL)
     FFT_SCALAR* out_ptr = (FFT_SCALAR *)(d_out.data()+i);
     *(out_ptr++) *= norm;
     *(out_ptr++) *= norm;

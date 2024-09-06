@@ -59,6 +59,7 @@ void FixNVELimitKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
   auto l_groupbit = groupbit;
   auto l_dtf = dtf;
+  auto l_vlimitsq = vlimitsq;
 
   int d_ncount;
 
@@ -76,9 +77,9 @@ void FixNVELimitKokkos<DeviceType>::initial_integrate(int /*vflag*/)
         d_v(i,2) += dtfm * d_f(i,2);
 
         const double vsq = d_v(i,0)*d_v(i,0) + d_v(i,1)*d_v(i,1) + d_v(i,2)*d_v(i,2);
-        if (vsq > vlimitsq) {
+        if (vsq > l_vlimitsq) {
           l_ncount++;
-          const double scale = sqrt(vlimitsq/vsq);
+          const double scale = sqrt(l_vlimitsq/vsq);
           d_v(i,0) *= scale;
           d_v(i,1) *= scale;
           d_v(i,2) *= scale;
@@ -105,9 +106,9 @@ void FixNVELimitKokkos<DeviceType>::initial_integrate(int /*vflag*/)
         d_v(i,2) += dtfm * d_f(i,2);
 
         const double vsq = d_v(i,0)*d_v(i,0) + d_v(i,1)*d_v(i,1) + d_v(i,2)*d_v(i,2);
-        if (vsq > vlimitsq) {
+        if (vsq > l_vlimitsq) {
           l_ncount++;
-          const double scale = sqrt(vlimitsq/vsq);
+          const double scale = sqrt(l_vlimitsq/vsq);
           d_v(i,0) *= scale;
           d_v(i,1) *= scale;
           d_v(i,2) *= scale;
@@ -138,6 +139,7 @@ void FixNVELimitKokkos<DeviceType>::final_integrate()
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
   auto l_groupbit = groupbit;
   auto l_dtf = dtf;
+  auto l_vlimitsq = vlimitsq;
 
   int d_ncount;
 
@@ -154,9 +156,9 @@ void FixNVELimitKokkos<DeviceType>::final_integrate()
         d_v(i,2) += dtfm * d_f(i,2);
 
         const double vsq = d_v(i,0)*d_v(i,0) + d_v(i,1)*d_v(i,1) + d_v(i,2)*d_v(i,2);
-        if (vsq > vlimitsq) {
+        if (vsq > l_vlimitsq) {
           l_ncount++;
-          const double scale = sqrt(vlimitsq/vsq);
+          const double scale = sqrt(l_vlimitsq/vsq);
           d_v(i,0) *= scale;
           d_v(i,1) *= scale;
           d_v(i,2) *= scale;
@@ -178,9 +180,9 @@ void FixNVELimitKokkos<DeviceType>::final_integrate()
         d_v(i,2) += dtfm * d_f(i,2);
 
         const double vsq = d_v(i,0)*d_v(i,0) + d_v(i,1)*d_v(i,1) + d_v(i,2)*d_v(i,2);
-        if (vsq > vlimitsq) {
+        if (vsq > l_vlimitsq) {
           l_ncount++;
-          const double scale = sqrt(vlimitsq/vsq);
+          const double scale = sqrt(l_vlimitsq/vsq);
           d_v(i,0) *= scale;
           d_v(i,1) *= scale;
           d_v(i,2) *= scale;

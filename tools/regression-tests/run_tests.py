@@ -133,8 +133,7 @@ class TestResult:
     input_folder : the absolute path to the input files
     input_list   : list of the input scripts under the input_folder
     config       : the dict that contains the test configuration
-
-    output_buf: placeholder for storing the output of a given worker
+    walltime_ref : reference walltime
 
     return
        results   : a list of TestResult objects
@@ -142,8 +141,9 @@ class TestResult:
        progress_file: yaml file that stores the tested input script and status
        failure_file : file that reports the failed runs (a subset of progress_file)
        last_progress: the dictionary that shows the status of the last tests
+       output_buf: placeholder for storing the output of a given worker
 '''
-def iterate(lmp_binary, input_folder, input_list, config, results, progress_file, failure_file, verbose=False, last_progress=None, output_buf=None):
+def iterate(lmp_binary, input_folder, input_list, config, results, progress_file, failure_file, walltime_ref=1, verbose=False, last_progress=None, output_buf=None):
 
     num_tests = len(input_list)
     num_completed = 0
@@ -420,6 +420,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             continue
 
         # NOTE: Total wall time could be 00:00:00 whereas Loop time is non-zero seconds
+        walltime_norm = 1.0
         for line in output.split('\n'):
             if "Total wall time" in line:
                 walltime_str = line.split('time:')[1]
@@ -428,6 +429,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 minutes = float(hms[1])
                 seconds = float(hms[2])
                 walltime = hours * 3600.0 + minutes * 60.0 + seconds
+                walltime_norm = float(walltime) / float(walltime_ref)
                 break
 
         # if there is no Step or no Loop printed out
@@ -439,7 +441,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"\n    Output:\n{output}")
             logger.info(f"\n    Error:\n{error}")
 
-            msg = f"{input}: {{ folder: {input_folder}, status: \"completed, but no Step nor Loop in the output.\", walltime: {walltime} }}\n"
+            msg = f"{input}: {{ folder: {input_folder}, status: \"completed, but no Step nor Loop in the output.\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n"
             progress.write(msg)
             progress.close()
             failure.write(msg)
@@ -467,7 +469,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
             result.status = msg + ", error parsing log.lammps into YAML"
             results.append(result)
-            progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime} }}\n")
+            progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
             progress.close()
 
             if verbose == True:
@@ -489,7 +491,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 logger.info(f"    failed, error parsing the reference log file {thermo_ref_file}.")
                 result.status = "skipped numerical checks due to parsing the reference log file"
                 results.append(result)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: \"completed, numerical checks skipped, unsupported log file format\", walltime: {walltime} }}\n")
+                progress.write(f"{input}: {{ folder: {input_folder}, status: \"completed, numerical checks skipped, unsupported log file format\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
                 progress.close()
                 num_error = num_error + 1
                 test_id = test_id + 1
@@ -505,12 +507,12 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 thermo_ref = extract_thermo(thermo_ref_file)
                 num_runs_ref = len(thermo_ref)
             else:
-                # mostly will come to here if the reference log file does not exist
+                # most likely to reach here if the reference log file does not exist
                 logger.info(f"       {thermo_ref_file} also does not exist in the working directory.")
                 result.status = "skipped due to missing the reference log file"
                 results.append(result)
 
-                msg = f"{input}: {{ folder: {input_folder}, status: \"completed, numerical checks skipped due to missing the reference log file\", walltime: {walltime} }}\n"
+                msg = f"{input}: {{ folder: {input_folder}, status: \"completed, numerical checks skipped due to missing the reference log file\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n"
                 progress.write(msg)
                 progress.close()
                 failure.write(msg)
@@ -527,7 +529,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                         " Check README in the folder, possibly due to using mpirun with partitions or parsing the wrong reference log file.")
             result.status = "failed, incomplete runs"
             results.append(result)
-            progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime} }}\n")
+            progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
             progress.close()
             num_error = num_error + 1
             test_id = test_id + 1
@@ -543,7 +545,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"     Check both log files for more details.")
             result.status = "failed, mismatched columns in the log files"
             results.append(result)
-            progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime} }}\n")
+            progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
             progress.close()
             num_error = num_error + 1
             test_id = test_id + 1
@@ -673,12 +675,12 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 msg += ", memory leaks detected"
                 num_memleak = num_memleak + 1
 
-        progress.write(f"{input}: {{ folder: {input_folder}, status: \"{msg}\", walltime: {walltime} }}\n")
+        progress.write(f"{input}: {{ folder: {input_folder}, status: \"{msg}\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
         progress.close()
 
         # write to failure if there is any numerical failed check
         if num_abs_failed > 0 or num_rel_failed > 0:
-            failure.write(f"{input}: {{ folder: {input_folder}, status: \"{msg}\", walltime: {walltime} }}\n")
+            failure.write(f"{input}: {{ folder: {input_folder}, status: \"{msg}\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
 
         # count the number of completed runs
         num_completed = num_completed + 1
@@ -896,7 +898,7 @@ def get_reference_walltime(lmp_binary, config):
             seconds = float(hms[2])
             walltime = hours * 3600.0 + minutes * 60.0 + seconds
 
-    logger.info(f"     Reference walltime = {walltime}")
+    logger.info(f"     Reference walltime, sec = {walltime}")
 
     return walltime
 
@@ -1382,7 +1384,7 @@ if __name__ == "__main__":
             # iterate through the input scripts
             results = []
             stat = iterate(lmp_binary, directory, input_list, config,
-                           results, progress_file_abs, failure_file_abs, verbose, last_progress)
+                           results, progress_file_abs, failure_file_abs, walltime_ref, verbose, last_progress)
 
             completed_tests += stat['num_completed']
             skipped_tests += stat['num_skipped']

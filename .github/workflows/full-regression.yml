@@ -79,12 +79,12 @@ jobs:
         source linuxenv/bin/activate
         python3 tools/regression-tests/run_tests.py \
                --lmp-bin=build/lmp \
-               --config-file=tools/regression-tests/config.yaml \
+               --config-file=tools/regression-tests/config_serial.yaml \
                --examples-top-level=examples --analyze --num-workers=4
 
         python3 tools/regression-tests/run_tests.py \
                --lmp-bin=build/lmp \
-               --config-file=tools/regression-tests/config.yaml \
+               --config-file=tools/regression-tests/config_serial.yaml \
                --list-input=input-list-${{ matrix.idx }}.txt \
                --output-file=output-${{ matrix.idx }}.xml \
                --progress-file=progress-${{ matrix.idx }}.yaml \

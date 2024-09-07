@@ -3,8 +3,10 @@ name: "Full Regression Test"
 
 on:
   push:
-    branches:
-      - develop
+#    branches:
+#      - develop
+     pull_request:
+       - develop
 
   workflow_dispatch:
 

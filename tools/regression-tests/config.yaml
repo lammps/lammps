@@ -30,8 +30,8 @@
         rel: 1e-4
   skip:
     [
-      in.displ,
-      in.displ2,
+      in.disp,
+      in.disp2,
       in.dos,
       in.*_imd*,
       in.bucky-plus-cnt*,

@@ -1167,7 +1167,7 @@ if __name__ == "__main__":
 
             print(msg)
             logger.info(msg)
-            quit()
+
             # divide the list of input scripts into num_workers chunks
             sublists = divide_into_N(input_list, num_workers)
 

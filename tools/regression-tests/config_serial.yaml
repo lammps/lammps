@@ -29,7 +29,8 @@
         abs: 1e-2
         rel: 1e-4
   skip:
-    [ in.displ,
+    [
+      in.displ,
       in.displ2,
       in.dos,
       in.*_imd*,

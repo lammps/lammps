@@ -3,7 +3,7 @@
   nprocs: "4"
   args: "-cite none"
   mpiexec: "mpirun"
-  mpiexec_numproc_flag: "-np"
+  mpiexec_numproc_flag: "--host localhost:4 -np"
   tolerance:
     PotEng:
       abs: 1e-4

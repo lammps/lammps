@@ -131,11 +131,11 @@ A *combustion reaction*, which also qualifies as a combination reaction, is a re
 However this combustion reaction is actually more complicated than 2 diatomic hydrogen molecules simply colliding with a diatomic oxygen molecule to form 2 water molecules. It actually proceeds as a series of steps in the reaction mechanism:
 
 .. math::
-  H_2 \rightarrow H + H \\
-  O_2 \rightarrow O + O \\
-  H + O_2 \rightarrow O + OH \\
-  H_2 + O \rightarrow H + OH \\
-  H_2 + OH \rightarrow H_2O + H \\
+  H_2 &\rightarrow H + H \\
+  O_2 &\rightarrow O + O \\
+  H + O_2 &\rightarrow O + OH \\
+  H_2 + O &\rightarrow H + OH \\
+  H_2 + OH &\rightarrow H_2O + H \\
 
 ..  youtube:: YuqA_uojSJ4
   :align: center
@@ -188,7 +188,7 @@ Polymerization reaction
     :caption: **examples/PACKAGES/reaction/nylon,6-6_melt/in.large_nylon_melt**
     :class: code
     :language: LAMMPS
-    
+
   .. literalinclude:: ../../examples/PACKAGES/reaction/nylon,6-6_melt/rxn1_stp1_unreacted.molecule_template
     :caption: **examples/PACKAGES/reaction/nylon,6-6_melt/rxn1_stp1_unreacted.molecule_template**
     :class: code

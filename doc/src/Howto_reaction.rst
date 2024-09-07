@@ -6,7 +6,7 @@ The five basic types of chemical reactions are combination, decomposition, singl
 
   .. image:: img/chemical_reactions.svg
     :align: center
-    :width: 61.8%
+    :width: 62%
 
 A combination reaction, also known as a synthesis reaction, is a reaction in which two or more substances combine to form a single new substance. One combination reaction is two elements combining to form a compound. The general form of a combination reaction is
 
@@ -42,220 +42,64 @@ or the two reactants are different:
 .. math::
   A + B  \rightarrow  products
 
-.. admonition:: REACTION example: Diels–Alder reaction
-
-
+.. admonition:: REACTION example: Diels–Alder
   :class: Hint
 
-  :doc:`fix bond/react <fix_bond_react>` allows for complex topology changes during a running MD simulation, when using classical force fields. Topology changes are defined in pre- and post-reaction molecule templates and can include creation and deletion of bonds, angles, dihedrals, impropers, atom types, bond types, angle types, dihedral types, improper types, and/or atomic charges. :ref:`(Gissinger, 2017) <howto-reaction-Gissinger-2017>` and :ref:`(Gissinger, 2020) <howto-reaction-Gissinger-2020>`. A suggested workflow is:
+  :doc:`fix bond/react <fix_bond_react>` allows for complex topology changes during a running MD simulation, when using classical force fields. Topology changes are defined in pre- and post-reaction molecule templates and can include creation and deletion of bonds, angles, dihedrals, impropers, atom types, bond types, angle types, dihedral types, improper types, and/or atomic charges. :ref:`(Gissinger, 2017) <howto-reaction-Gissinger-2017>` and :ref:`(Gissinger, 2020) <howto-reaction-Gissinger-2020>`.
+
+  A suggested workflow is:
 
   **(1) identify a reaction to be simulated**
 
-  gas-phase (g) reaction of 1,3-butadiene with ethene to form cyclohexene :ref:`(Moore, Zhou, Garand) <howto-reaction-moore-zhou-garand>`
+  Gas-phase reaction of 1,3-butadiene with ethene to form cyclohexene :ref:`(Moore, Zhou, Garand) <howto-reaction-moore-zhou-garand>`:
 
   .. math::
     C_4H_6(g) + C_2H_4(g) \rightarrow C_6H_{10}(g)
 
+  In the transition state, bonds that are breaking (three π bonds) are shown in orange and bonds that are forming (one π bond and two σ bonds) are shown in cyan.
+
   .. image:: img/diels_alder_pes.png
     :align: center
-    :width: 61.8%
+    :width: 62%
 
-  In the transition state, bonds that are breaking (three π bonds) are shown in orange and bonds that are forming (one π bond and two σ bonds) are shown in cyan.
 
   **(2) build a molecule template of the reaction site before the reaction has occurred**
 
   The pre-reacted molecule template is specified by a molecule command. This molecule template file contains a sample reaction site and its surrounding topology. All atom types in the pre-reacted template must be the same as those of a potential reaction site in the simulation. The initiator atom pairs of the pre-reacted template are specified by atom ID in the map file.
 
-  .. code-block::
-    :caption: `examples/PACKAGES/reaction/cyclohexene/1-3-butadiene.txt` (PubChem CID 7845)
+  .. literalinclude:: ../../examples/PACKAGES/reaction/cyclohexene/1,3-butadiene.txt
+    :caption: **examples/PACKAGES/reaction/cyclohexene/1,3-butadiene.txt**
+    :class: code
 
-    10 atoms
-    9 bonds
-
-    Types
-
-      1 C
-      2 C
-      3 C
-      4 C
-      5 H
-      6 H
-      7 H
-      8 H
-      9 H
-      10 H
-
-    Coords
-
-      1   -0.6022    0.3972    0.0000
-      2    0.6024   -0.3975    0.0000
-      3   -1.8315   -0.1305    0.0000
-      4    1.8314    0.1308    0.0000
-      5   -0.4975    1.4789    0.0001
-      6    0.4979   -1.4792    0.0001
-      7   -2.7035    0.5151    0.0000
-      8   -1.9975   -1.2027    0.0000
-      9    2.7036   -0.5143    0.0000
-      10   1.9969    1.2030    0.0000
-
-    Bonds
-
-      1  1  2  1  0  0  0  0
-      2  1  3  2  0  0  0  0
-      3  1  5  1  0  0  0  0
-      4  2  4  2  0  0  0  0
-      5  2  6  1  0  0  0  0
-      6  3  7  1  0  0  0  0
-      7  3  8  1  0  0  0  0
-      8  4  9  1  0  0  0  0
-      9  4 10  1  0  0  0  0
-
-    Charges
-
-      1 -0.15
-      10 0.15
-      2 -0.15
-      3 -0.3
-      4 -0.3
-      5 0.15
-      6 0.15
-      7 0.15
-      8 0.15
-      9 0.15
-
-
-  .. code-block::
-    :caption: `examples/PACKAGES/reaction/cyclohexene/ethene.txt` (PubChem CID 6325)
-
-    6 atoms
-    5 bonds
-
-    Types
-
-      1 C
-      2 C
-      3 H
-      4 H
-      5 H
-      6 H
-
-    Coords
-
-      1 -0.6672  0.0000  0.0000
-      2  0.6672  0.0000  0.0000
-      3 -1.2213 -0.9290  0.0708
-      4 -1.2212  0.9290 -0.0708
-      5  1.2213  0.9290 -0.0708
-      6  1.2213 -0.9290  0.0708
-
-    Charges
-
-      1 -0.3
-      2 -0.3
-      3 0.15
-      4 0.15
-      5 0.15
-      6 0.15
-
-    Bonds
-
-      1  2  1  2
-      2  1  1  3
-      3  1  1  4
-      4  1  2  5
-      5  1  2  6
+  .. literalinclude:: ../../examples/PACKAGES/reaction/cyclohexene/ethene.txt
+    :caption: **examples/PACKAGES/reaction/cyclohexene/ethene.txt**
+    :class: code
 
   **(3) build a molecule template of the reaction site after the reaction has occurred**
 
   The post-reacted molecule template contains a sample of the reaction site and its surrounding topology after the reaction has occurred. It must contain the same number of atoms as the pre-reacted template, unless there are created or deleted atoms (see examples/PACKAGES/reaction for details). A one-to-one correspondence between the atom IDs in the pre- and post-reacted templates is specified in the map file described below (4).
 
-  .. code-block::
-    :caption: `examples/PACKAGES/reaction/cyclohexene/cyclohexene.txt` (PubChem CID 8079)
-
-    16 atoms
-    16 bonds
-    18.0153 mass # Molecular Weight 82.14 g/mol
-
-    Types
-
-      1 C
-      2 C
-      3 C
-      4 C
-      5 C
-      6 C
-      7 H
-      8 H
-      9 H
-      10 H
-      11 H
-      12 H
-      13 H
-      14 H
-      15 H
-      16 H
-
-    Coords
-
-      1    0.6964   -1.2528   -0.3007
-      2   -0.7059   -1.2475    0.3010
-      3    1.4853   -0.0085    0.1150
-      4   -1.4851    0.0027   -0.1155
-      5    0.6721    1.2505    0.0597
-      6   -0.6628    1.2555   -0.0595
-      7    0.6205   -1.2901   -1.3951
-      8    1.2373   -2.1536    0.0107
-      9   -0.6303   -1.2847    1.3954
-      10  -1.2535   -2.1442   -0.0101
-      11   2.3597    0.0936   -0.5376
-      12   1.8605   -0.1328    1.1378
-      13  -2.3593    0.1112    0.5364
-      14  -1.8604   -0.1189   -1.1386
-      15   1.2038    2.1959    0.1161
-      16  -1.1873    2.2049   -0.1154
-
-    Charges
-
-      15  0.15
-      16  0.15
-       3  0.14
-       4  0.14
-       5 -0.29
-       6 -0.29
-
-    Bonds
-
-      1  1  2  1  0  0  0  0
-      2  1  3  1  0  0  0  0
-      3  1  7  1  0  0  0  0
-      4  1  8  1  0  0  0  0
-      5  2  4  1  0  0  0  0
-      6  2  9  1  0  0  0  0
-      7  2 10  1  0  0  0  0
-      8  3  5  1  0  0  0  0
-      9  3 11  1  0  0  0  0
-      10 3 12  1  0  0  0  0
-      11 4  6  1  0  0  0  0
-      12 4 13  1  0  0  0  0
-      13 4 14  1  0  0  0  0
-      14 5  6  2  0  0  0  0
-      15 5 15  1  0  0  0  0
-      16 6 16  1  0  0  0  0
-
+  .. literalinclude:: ../../examples/PACKAGES/reaction/cyclohexene/cyclohexene.txt
+    :caption: **examples/PACKAGES/reaction/cyclohexene/cyclohexene.txt**
+    :class: code
 
   **(4) create a map that relates the template-atom-IDs of each atom between pre- and post-reaction molecule templates**
 
-  The header of map file contains one mandatory keyword *equivalences*\, which is the number of atoms in the pre- and post-reaction  molecule templates.
+  The header of map file contains one mandatory keyword *equivalences*\, which is the number of atoms in the pre- and post-reaction molecule templates.
 
   The body of the map file contains two mandatory sections. The first mandatory section begins with the keyword *InitiatorIDs*\  listing the two atom IDs of the initiator atom pair in the pre-reacted molecule template. The second mandatory section begins with the keyword *Equivalences*\  listing a one-to-one correspondence between atom IDs of the pre- and post-reacted templates. The first column is an atom ID of the pre-reacted molecule template, and the second column is the corresponding atom ID of the post-reacted molecule template.
 
-  .. code-block::
-    :caption: `examples/PACKAGES/reaction/cyclohexene/cyclohexene_map.txt`
+  Small molecules (i.e., ones that have all their atoms contained within the reaction templates) never have edge atoms.
+
+  .. literalinclude:: ../../examples/PACKAGES/reaction/cyclohexene/cyclohexene_map.txt
+    :caption: **examples/PACKAGES/reaction/cyclohexene/cyclohexene_map.txt**
+    :class: code
 
   **(5) fill a simulation box with molecules and run a simulation with fix bond/react**
 
-  .. code-block::
-    :caption: `examples/PACKAGES/reaction/cyclohexene/in.cyclohexene`
+  .. literalinclude:: ../../examples/PACKAGES/reaction/cyclohexene/in.cyclohexene
+    :caption: **examples/PACKAGES/reaction/cyclohexene/in.cyclohexene**
+    :class: code
 
 
 
@@ -295,7 +139,7 @@ However this combustion reaction is actually more complicated than 2 diatomic hy
 
 ..  youtube:: YuqA_uojSJ4
   :align: center
-  :width: 90%
+  :width: 62%
 
 Oxyhydrogen is a mixture of hydrogen (H2) and oxygen (O2) gases, also known as "Knallgas" (from German lit. "bang-gas"). Theoretically, a ratio of 2:1 hydrogen:oxygen is enough to achieve maximum efficiency; in practice a ratio 4:1 or 5:1 is needed to avoid an oxidizing flame. Oxyhydrogen will combust when brought to its autoignition temperature of 843 K at normal atmospheric pressure. The minimum energy required to ignite such a mixture, at lower temperatures, with a spark is about 20 microjoules. At standard temperature and pressure, oxyhydrogen can burn when it is between about 4% and 95% hydrogen by volume.
 
@@ -304,234 +148,18 @@ When ignited, the gas mixture converts to water vapor and releases energy, which
 .. admonition:: REAXFF example: Hydrogen combustion
   :class: Hint
 
-  .. code-block:: LAMMPS
-    :caption: `examples/reaxff/hydrogen_combustion/in.hydrogen_combustion`
-
-    units real
-    dimension 3
-    boundary p p p
-    atom_style charge
-    newton on
-
-    region box block 0 99 0 99 0 99
-    create_box 2 box
-
-    mass 1 1.008
-    mass 2 15.999
-
-    create_atoms 1 random 2000 12345 NULL overlap 0.31 maxtry 100
-    create_atoms 2 random 1000 12345 NULL overlap 0.66 maxtry 100
-    velocity all create 2500 12345
-
-    pair_style      reaxff lmp_control
-    pair_coeff      * * ffield.reax.cho H O
-
-    neighbor        2 bin
-    neigh_modify    every 10 delay 0 check no
-
-    variable        dt equal 0.1
-    timestep        ${dt}
-    fix             1 all nvt temp 2500 2500 $(100.0*dt)
-    fix             2 all qeq/reax 1 0.0 10.0 1e-6 param.qeq
-    fix             4 all reaxff/species 10 10 100 species.out
-
-    thermo          100
-    dump            1 all movie 10 hydrogen_combustion.mkv type type size 800 800
-    dump_modify     1 acolor * white/red/green/blue/aqua/magenta
-
-    run             $(500*1000/dt)
-
-
-
-----------
-
-.. admonition:: REACTION example: Hydrogen combustion
-  :class: Hint
-
-  .. code-block::
-
-    # REACTION PACKAGE COMBUSTION EXAMPLE - Water molecule template (combustion_H2O.molecule_template)
-
-        3 atoms
-        2 bonds
-        1 angles
-        18.0153 mass
-
-    Coords
-
-        1    0.0000    0.0000    0.0000
-        2    0.8638    0.4573    0.0000
-        3    1.7785    0.0000    0.0000
-
-    Types
-
-        1 H
-        2 O
-        3 H
-
-    Bonds
-
-        1 1 1 2
-        2 1 2 3
-
-    Angles
-
-        1 1 1 2 3
-
-
-
-
-
-  .. code-block::
-
-    REACTION PACKAGE COMBUSTION EXAMPLE - molecule template pre-reaction 2 H2 and O2 (combustion_pre.molecule_template)
-
-    6 atoms
-    3 bonds
-
-    Coords
-
-        1    0.0000    0.0000    0.0000
-        2    1.0000    0.0000    0.0000
-        3    ???      ???     ???
-        4    ???      ???     ???
-        5    ???      ???     ???
-        6    ???      ???     ???
-
-    Types
-
-        1 H
-        2 H
-        3 H
-        4 H
-        5 O
-        6 O
-
-    Bonds
-
-        1 H-H      1      2
-        2 H-H      3      4
-        3 O-O      5      6
-
-
-  **(3) build a molecule template of the reaction site after the reaction has occurred**
-
-  .. code-block::
-
-    REACTION PACKAGE COMBUSTION EXAMPLE - molecule template post-reaction 2 H2O (combustion_post.molecule_template)
-
-    6 atoms
-    4 bonds
-    2 angles
-
-    Coords
-
-        1    0.0000    0.0000    0.0000
-        2    0.8638    0.4573    0.0000
-        3    1.7785    0.0000    0.0000
-        4    ???    ???    ???
-        5    ???    ???    ???
-        6    ???    ???    ???
-
-    Types
-
-        1 H
-        2 O
-        3 H
-        4 H
-        5 O
-        6 H
-
-    Molecules
-
-        1      1
-        2      1
-        3      1
-        4      2
-        5      2
-        6      2
-
-    Bonds
-
-        1 H-O      1      2
-        2 O-H      2      3
-        3 H-O      4      5
-        4 O-H      5      6
-
-    Angles
-
-        1 H-O-H    1   2   3
-        2 H-O-H    4   5   6
-
-
-
-  **(4) create a map that relates the template-atom-IDs of each atom between pre- and post-reaction molecule templates**
-
-  .. parsed-literal::
-
-    REACTION PACKAGE COMBUSTION EXAMPLE - map file (combustion.map)
-
-    6 equivalences
-
-    InitiatorIDs
-
-        ???
-        ???
-
-    Equivalences
-
-        1  1
-        2  3
-        3  4
-        4  5
-        5  2
-        6  6
-
-   
-  **(5) fill a simulation box with molecules and run a simulation with fix bond/react**
-
-  .. code-block:: LAMMPS
-
-    # REACTION PACKAGE COMBUSTION EXAMPLE - input script (combustion.in)
-
-    units real
-    dimension 3
-    boundary p p p
-    atom_style full
-
-    region combustion_region block 0.0 10.0 0.0 10.0 0.0 10.0
-    create_box 2 combustion_region bond/types 2 angle/types 1 extra/special/per/atom 2
-
-    labelmap atom 1 H 2 O
-    mass H 1.008
-    mass O 15.999
-    molecule H2 combustion_H2.molecule_template
-    molecule O2 combustion_O2.molecule_template
-    molecule H2O combustion_H2O.molecule_template
-
-    create_atoms 1 random 20 12345 NULL overlap 2.0 maxtry 50
-    create_atoms 2 random 10 12345 NULL overlap 2.0 maxtry 50
-    velocity all create 310.0 12345
-
-    pair_style lj/cut 2.5
-    pair_coeff * * 1.0 1.0 2.5
-    
-    fix combustion_fix1 all langevin 310.0 310.0 1000 12345
-    fix combustion_fix2 all nve
-
-    dump combustion_movie all movie 1 combustion.mpg type type size 512 512
-    #dump modify combustion_movie acolor H white
-    #dump modify combustion_movie acolor O red
-
-    #molecule combustion_pre combustion_pre.molecule_template
-    #molecule combustion_post combustion_post.molecule_template
-    #fix combustion_map all bond/react react myrxn1 all 1 0 3.25 combustion_pre combustion_post combustion.map
-
-    run 1000
-
-    undump combustion_movie
-
-
+  .. literalinclude:: ../../examples/reaxff/hydrogen_combustion/H2.txt
+    :caption: **examples/reaxff/hydrogen_combustion/H2.txt**
+    :class: code
+
+  .. literalinclude:: ../../examples/reaxff/hydrogen_combustion/O2.txt
+    :caption: **examples/reaxff/hydrogen_combustion/O2.txt**
+    :class: code
+
+  .. literalinclude:: ../../examples/reaxff/hydrogen_combustion/in.hydrogen_combustion
+    :caption: **examples/reaxff/hydrogen_combustion/in.hydrogen_combustion**
+    :class: code
+    :language: LAMMPS
 
 
 Enzyme-substrate reaction
@@ -552,51 +180,41 @@ Polymerization reaction
 .. admonition:: REACTION example: polymerization of nylon 6,6 :ref:`(Gissinger, 2020) <howto-reaction-Gissinger-2020>`
   :class: Hint
 
-  .. code-block:: LAMMPS
-    :caption: `examples/PACKAGES/reaction/nylon\,6-6_melt/in.large_nylon_melt`
-
-    # 35,000 atom nylon melt example
-    units real
-    boundary p p p
-    atom_style full
-    kspace_style pppm 1.0e-4
-    pair_style lj/class2/coul/long 8.5
-    angle_style class2
-    bond_style class2
-    dihedral_style class2
-    improper_style class2
-    special_bonds lj/coul 0 0 1
-    pair_modify tail yes mix sixthpower
-
-    read_data large_nylon_melt.data.gz &
-      extra/bond/per/atom 5  &
-      extra/angle/per/atom 15 &
-      extra/dihedral/per/atom 15 &
-      extra/improper/per/atom 25 &
-      extra/special/per/atom 25
-
-    velocity all create 800.0 4928459 dist gaussian
-
-    molecule mol1 rxn1_stp1_unreacted.molecule_template
-    molecule mol2 rxn1_stp1_reacted.molecule_template
-    molecule mol3 rxn1_stp2_unreacted.molecule_template
-    molecule mol4 rxn1_stp2_reacted.molecule_template
-
-    fix myrxns all bond/react stabilization yes statted_grp .03 &
-      react rxn1 all 1 0.0 2.9 mol1 mol2 rxn1_stp1_map &
-      react rxn2 all 1 0.0 5.0 mol3 mol4 rxn1_stp2_map
-
-    # stable at 800K
-    fix 1 statted_grp_REACT nvt temp 800 800 100
-
-    thermo 50
-    thermo_style custom step temp press density f_myrxns[*] # cumulative reaction counts
-    run 200
-
-
   ..  youtube:: -dlyapmW7uI
     :align: center
-    :width: 99%
+    :width: 62%
+
+  .. literalinclude:: ../../examples/PACKAGES/reaction/nylon,6-6_melt/in.large_nylon_melt
+    :caption: **examples/PACKAGES/reaction/nylon,6-6_melt/in.large_nylon_melt**
+    :class: code
+    :language: LAMMPS
+    
+  .. literalinclude:: ../../examples/PACKAGES/reaction/nylon,6-6_melt/rxn1_stp1_unreacted.molecule_template
+    :caption: **examples/PACKAGES/reaction/nylon,6-6_melt/rxn1_stp1_unreacted.molecule_template**
+    :class: code
+
+  .. literalinclude:: ../../examples/PACKAGES/reaction/nylon,6-6_melt/rxn1_stp1_reacted.molecule_template
+    :caption: **examples/PACKAGES/reaction/nylon,6-6_melt/rxn1_stp1_reacted.molecule_template**
+    :class: code
+
+  .. literalinclude:: ../../examples/PACKAGES/reaction/nylon,6-6_melt/rxn1_stp2_unreacted.molecule_template
+    :caption: **examples/PACKAGES/reaction/nylon,6-6_melt/rxn1_stp2_unreacted.molecule_template**
+    :class: code
+
+  .. literalinclude:: ../../examples/PACKAGES/reaction/nylon,6-6_melt/rxn1_stp2_reacted.molecule_template
+    :caption: **examples/PACKAGES/reaction/nylon,6-6_melt/rxn1_stp2_reacted.molecule_template**
+    :class: code
+
+  .. literalinclude:: ../../examples/PACKAGES/reaction/nylon,6-6_melt/rxn1_stp1_map
+    :caption: **examples/PACKAGES/reaction/nylon,6-6_melt/rxn1_stp1_map**
+    :class: code
+
+  .. literalinclude:: ../../examples/PACKAGES/reaction/nylon,6-6_melt/rxn1_stp2_map
+    :caption: **examples/PACKAGES/reaction/nylon,6-6_melt/rxn1_stp2_map**
+    :class: code
+
+
+
 
 
 

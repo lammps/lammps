@@ -23,7 +23,7 @@ Some benefits include:
     + keeping track of the testing progress to resume the testing from the last checkpoint (skipping completed runs)
     + distributing the input list across multiple processes by
       splitting the list of input scripts into separate runs (there are ~800 input scripts under the top-level examples)
-      
+
 Input arguments:
     + the path to a LAMMPS binary (can be relative to the working directory)
     + a test configuration file (see tools/regression-tests/config.yaml for an example)
@@ -174,7 +174,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             progress = open(progress_file, "w")
 
         # walltime =   -2: skipped tests
-        #              -1: failed tests 
+        #              -1: failed tests
         #            >= 0: walltime in seconds (e.g. in.melt walltime = 0.2 seconds)
         walltime = -2
 
@@ -348,7 +348,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
             results.append(result)
             print(f"{result.status}")
-            
+
             msg = f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime} }}\n"
             progress.write(msg)
             progress.close()
@@ -381,7 +381,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         # if skip numerical checks, then skip the rest
         if skip_numerical_check == True:
-            msg = "completed, skipping numerical checks"          
+            msg = "completed, skipping numerical checks"
             if use_valgrind == True:
                 if "All heap blocks were freed" in error:
                     msg += ", no memory leak"

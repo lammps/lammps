@@ -1036,6 +1036,7 @@ if __name__ == "__main__":
     quick = False
     quick_branch = "origin/develop"
     quick_max = 50
+    quick_reference = os.path.join(LAMMPS_DIR, 'tools', 'regression-tests', 'reference.yaml')
 
     # distribute the total number of input scripts over the workers
     num_workers = 1
@@ -1062,6 +1063,8 @@ if __name__ == "__main__":
                         help="Branch to which compare the current head to for changed styles")
     parser.add_argument("--quick-max", dest="quick_max", default=50,
                         help="Maximum number of inputs to randomly select")
+    parser.add_argument("--quick-reference", dest="quick_reference", default=quick_reference,
+                        help="Reference YAML file with progress data from full regression test run")
     parser.add_argument("--skip-numerical-check",dest="skip_numerical_check", action='store_true', default=False,
                         help="Skip numerical checks")
     parser.add_argument("--gen-ref",dest="genref", action='store_true', default=False,
@@ -1098,6 +1101,7 @@ if __name__ == "__main__":
     quick = args.quick
     quick_branch = args.quick_branch
     quick_max = int(args.quick_max)
+    quick_reference = args.quick_reference
     skip_numerical_check = args.skip_numerical_check
     resume = args.resume
     progress_file = args.progress_file
@@ -1132,13 +1136,38 @@ if __name__ == "__main__":
             msg = f"\nThere are {len(input_list)} input scripts with changed styles relative to branch {quick_branch}."
             msg += "\nChanged styles: " + str(styles)
 
+            # read in refrence data from a previous test run
+            with open(quick_reference, 'r') as f:
+                reference = yaml.load(f, Loader=Loader)
+            f.close()
+
+            # trim previously failing run and runs that would take too long
+            new_list = []
+            keys = reference.keys()
+            msg += "\nTrimming inputs using reference data from " + str(len(keys)) + " previous runs: "
+            for infile in input_list:
+                input = os.path.split(infile)[1]
+                if input in keys:
+                    if (reference[input]['walltime'] < 0.0):
+                        # print("Skipping ", input, " for previous failure")
+                        pass
+                    elif (reference[input]['walltime'] > 29.0):
+                        # print("Skipping ", input, " for wall time limit")
+                        pass
+                    else:
+                        new_list.append(infile)
+                else:
+                    new_list.append(infile)
+            input_list = new_list
+            msg += "trimmed list has " + str(len(input_list)) + " entries"
+
             if len(input_list) > quick_max:
                 input_list = random.sample(input_list, quick_max)
                 msg += "\nTesting " + str(quick_max) + " randomly selected inputs"
 
             print(msg)
             logger.info(msg)
-
+            quit()
             # divide the list of input scripts into num_workers chunks
             sublists = divide_into_N(input_list, num_workers)
 

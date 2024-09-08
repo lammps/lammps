@@ -341,17 +341,17 @@ public:
 // define precision
 // handle global precision, force, energy, positions, kspace separately
 
-#ifndef PRECISION
-#define PRECISION 2
+#ifndef LMP_PRECISION
+#define LMP_PRECISION 2
 #endif
-#if PRECISION==1
+#if LMP_PRECISION==1
 typedef float LMP_FLOAT;
 #else
 typedef double LMP_FLOAT;
 #endif
 
 #ifndef PREC_FORCE
-#define PREC_FORCE PRECISION
+#define PREC_FORCE LMP_PRECISION
 #endif
 
 #if PREC_FORCE==1
@@ -361,7 +361,7 @@ typedef double F_FLOAT;
 #endif
 
 #ifndef PREC_ENERGY
-#define PREC_ENERGY PRECISION
+#define PREC_ENERGY LMP_PRECISION
 #endif
 
 #if PREC_ENERGY==1
@@ -521,7 +521,7 @@ struct BinOp3DLAMMPS {
 };
 
 #ifndef PREC_POS
-#define PREC_POS PRECISION
+#define PREC_POS LMP_PRECISION
 #endif
 
 #if PREC_POS==1
@@ -531,7 +531,7 @@ typedef double X_FLOAT;
 #endif
 
 #ifndef PREC_VELOCITIES
-#define PREC_VELOCITIES PRECISION
+#define PREC_VELOCITIES LMP_PRECISION
 #endif
 
 #if PREC_VELOCITIES==1

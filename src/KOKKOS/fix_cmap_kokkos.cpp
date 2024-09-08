@@ -187,9 +187,9 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
   atomKK->k_sametag.sync<DeviceType>();
   d_sametag = atomKK->k_sametag.view<DeviceType>();
 
-  Kokkos::parallel_for(nlocal, KOKKOS_LAMBDA(const int i) {
+  //ncrosstermlist = 0;
 
-    ncrosstermlist = 0;
+  Kokkos::parallel_reduce(nlocal, KOKKOS_LAMBDA(const int i, int &l_ncrosstermlist) {
 
     for (int m = 0; m < d_num_crossterm(i); m++) {
 
@@ -201,14 +201,14 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
 
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1 || atom5 == -1) {
 
-        auto error_msg = fmt::format("CMAP atoms {} {} {} {} {} missing on "
-                                     "proc {} at step {}",
-                                     d_crossterm_atom1(i,m),d_crossterm_atom2(i,m),
-                                     d_crossterm_atom3(i,m),d_crossterm_atom4(i,m),
-                                     d_crossterm_atom5(i,m),me,update->ntimestep);
+        //auto error_msg = fmt::format("CMAP atoms {} {} {} {} {} missing on proc {} at step {}",
+        //  d_crossterm_atom1(i,m),d_crossterm_atom2(i,m),d_crossterm_atom3(i,m),
+        //  d_crossterm_atom4(i,m),d_crossterm_atom5(i,m),me,update->ntimestep);
 
-        Kokkos::abort(error_msg.c_str());
-        
+        //Kokkos::abort(error_msg.c_str());
+
+        Kokkos::abort("CMAP atoms missing on proc");
+
       }
 
       atom1 = closest_image(i,atom1);
@@ -219,22 +219,25 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
 
       if (i <= atom1 && i <= atom2 && i <= atom3 &&
           i <= atom4 && i <= atom5) {
-        if (ncrosstermlist == maxcrossterm) {
-          maxcrossterm += LISTDELTA;
-          memoryKK->grow_kokkos(k_crosstermlist,crosstermlist,maxcrossterm,CMAPMAX,"cmap:crosstermlist");
 
-          d_crosstermlist = k_crosstermlist.template view<DeviceType>();
+        if (l_ncrosstermlist == maxcrossterm) {
+          //maxcrossterm += LISTDELTA;
+          //memoryKK->grow_kokkos(k_crosstermlist,crosstermlist,maxcrossterm,CMAPMAX,"cmap:crosstermlist");
+          //d_crosstermlist = k_crosstermlist.template view<DeviceType>();
+
+          Kokkos::abort("ncrosstermlist == maxcrossterm");
+
         }
-        d_crosstermlist(ncrosstermlist,0) = atom1;
-        d_crosstermlist(ncrosstermlist,1) = atom2;
-        d_crosstermlist(ncrosstermlist,2) = atom3;
-        d_crosstermlist(ncrosstermlist,3) = atom4;
-        d_crosstermlist(ncrosstermlist,4) = atom5;
-        d_crosstermlist(ncrosstermlist,5) = d_crossterm_type(i,m);
-        ncrosstermlist++;
+        d_crosstermlist(l_ncrosstermlist,0) = atom1;
+        d_crosstermlist(l_ncrosstermlist,1) = atom2;
+        d_crosstermlist(l_ncrosstermlist,2) = atom3;
+        d_crosstermlist(l_ncrosstermlist,3) = atom4;
+        d_crosstermlist(l_ncrosstermlist,4) = atom5;
+        d_crosstermlist(l_ncrosstermlist,5) = d_crossterm_type(i,m);
+        l_ncrosstermlist++;
       }
     }
-  });
+  }, ncrosstermlist);
 
 }
 

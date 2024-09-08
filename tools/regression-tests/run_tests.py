@@ -410,7 +410,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"\n    Output:\n{output}")
             logger.info(f"\n    Error:\n{error}")
 
-            msg = f"{input}: {{ folder: {input_folder}, status: \"failed, no Total wall time in the output.\", walltime: {walltime} }}\n"
+            msg = f"{input}: {{ folder: {input_folder}, status: \"failed, no Total wall time in the output, {error}\", walltime: {walltime} }}\n"
             progress.write(msg)
             progress.close()
             failure.write(msg)
@@ -851,7 +851,8 @@ def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
         logger.info(msg)
         print(msg)
 
-    return cmd_str, "", "", -1
+    error_str = f"timeout ({timeout}s expired)"
+    return cmd_str, "", error_str, -1
 
 '''
    get the reference walltime by running the lmp_binary with config with an input script in the bench/ folder

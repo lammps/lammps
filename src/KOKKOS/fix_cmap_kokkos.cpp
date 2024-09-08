@@ -98,7 +98,6 @@ FixCMAPKokkos<DeviceType>::FixCMAPKokkos(LAMMPS *lmp, int narg, char **arg) :
         k_d1cmapgrid.h_view(i,j,k) = d1cmapgrid[i][j][k];
         k_d2cmapgrid.h_view(i,j,k) = d2cmapgrid[i][j][k];
         k_d12cmapgrid.h_view(i,j,k) = d12cmapgrid[i][j][k];
-
       }
     }
   }
@@ -158,7 +157,6 @@ void FixCMAPKokkos<DeviceType>::init()
 template<class DeviceType>
 void FixCMAPKokkos<DeviceType>::pre_neighbor()
 {
-  int i,m,atom1,atom2,atom3,atom4,atom5;
   const int me = comm->me;
   const int nprocs = comm->nprocs;
 
@@ -189,19 +187,19 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
   atomKK->k_sametag.sync<DeviceType>();
   d_sametag = atomKK->k_sametag.view<DeviceType>();
 
-  ncrosstermlist = 0;
+  Kokkos::parallel_for(nlocal, KOKKOS_LAMBDA(const int i) {
 
-  for (i = 0; i < nlocal; i++) {
-    for (m = 0; m < k_num_crossterm.h_view(i); m++) {
+    ncrosstermlist = 0;
 
-      atom1 = AtomKokkos::map_kokkos<DeviceType>(k_crossterm_atom1.h_view(i,m),map_style,k_map_array,k_map_hash);
-      atom2 = AtomKokkos::map_kokkos<DeviceType>(k_crossterm_atom2.h_view(i,m),map_style,k_map_array,k_map_hash);
-      atom3 = AtomKokkos::map_kokkos<DeviceType>(k_crossterm_atom3.h_view(i,m),map_style,k_map_array,k_map_hash);
-      atom4 = AtomKokkos::map_kokkos<DeviceType>(k_crossterm_atom4.h_view(i,m),map_style,k_map_array,k_map_hash);
-      atom5 = AtomKokkos::map_kokkos<DeviceType>(k_crossterm_atom5.h_view(i,m),map_style,k_map_array,k_map_hash);
+    for (int m = 0; m < d_num_crossterm(i); m++) {
 
-      if (atom1 == -1 || atom2 == -1 || atom3 == -1 ||
-          atom4 == -1 || atom5 == -1)
+      int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom1(i,m),map_style,k_map_array,k_map_hash);
+      int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom2(i,m),map_style,k_map_array,k_map_hash);
+      int atom3 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom3(i,m),map_style,k_map_array,k_map_hash);
+      int atom4 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom4(i,m),map_style,k_map_array,k_map_hash);
+      int atom5 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom5(i,m),map_style,k_map_array,k_map_hash);
+
+      if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1 || atom5 == -1)
         error->one(FLERR,"CMAP atoms {} {} {} {} {} missing on "
                                      "proc {} at step {}",
                                      d_crossterm_atom1(i,m),d_crossterm_atom2(i,m),
@@ -230,7 +228,8 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
         ncrosstermlist++;
       }
     }
-  }
+  });
+
 }
 
 

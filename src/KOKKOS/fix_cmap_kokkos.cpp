@@ -199,12 +199,18 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
       int atom4 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom4(i,m),map_style,k_map_array,k_map_hash);
       int atom5 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom5(i,m),map_style,k_map_array,k_map_hash);
 
-      if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1 || atom5 == -1)
-        error->one(FLERR,"CMAP atoms {} {} {} {} {} missing on "
+      if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1 || atom5 == -1) {
+
+        auto error_msg = fmt::format("CMAP atoms {} {} {} {} {} missing on "
                                      "proc {} at step {}",
                                      d_crossterm_atom1(i,m),d_crossterm_atom2(i,m),
                                      d_crossterm_atom3(i,m),d_crossterm_atom4(i,m),
                                      d_crossterm_atom5(i,m),me,update->ntimestep);
+
+        Kokkos::abort(error_msg.c_str());
+        
+      }
+
       atom1 = closest_image(i,atom1);
       atom2 = closest_image(i,atom2);
       atom3 = closest_image(i,atom3);

@@ -21,7 +21,6 @@ FixStyle(cmap,FixCMAP);
 #define LMP_FIX_CMAP_H
 
 #include "fix.h"
-
 namespace LAMMPS_NS {
 
 class FixCMAP : public Fix {
@@ -65,8 +64,6 @@ class FixCMAP : public Fix {
 
   double memory_usage() override;
 
-  double ecmap;
-
  protected:
   int eflag_caller;
   int ctype, ilevel_respa;
@@ -82,6 +79,9 @@ class FixCMAP : public Fix {
   tagint **crossterm_atom1, **crossterm_atom2, **crossterm_atom3;
   tagint **crossterm_atom4, **crossterm_atom5;
 
+  double E, dEdPhi, dEdPsi;
+  double ecmap;
+  double fcmap[4], cij[4][4];
   double *g_axis;
 
   // CMAP grid points obtained from external file
@@ -112,7 +112,7 @@ class FixCMAP : public Fix {
   // calculate dihedral angles
 
   double dihedral_angle_atan2(double, double, double, double, double, double, double, double,
-                              double, double) const;
+                              double, double);
 
   // calculate bicubic interpolation coefficient matrix c_ij
 
@@ -121,10 +121,6 @@ class FixCMAP : public Fix {
   // perform bicubic interpolation at point of interest
 
   void bc_interpol(double, double, int, int, double *, double *, double *, double *);
-
- private:
-  double E, dEdPhi, dEdPsi, cij[4][4];
-
 };
 }    // namespace LAMMPS_NS
 

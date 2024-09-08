@@ -59,6 +59,7 @@ void FixNVELimitKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
   auto l_groupbit = groupbit;
   auto l_dtf = dtf;
+  auto l_dtv = dtv;
   auto l_vlimitsq = vlimitsq;
 
   int d_ncount;
@@ -85,9 +86,9 @@ void FixNVELimitKokkos<DeviceType>::initial_integrate(int /*vflag*/)
           d_v(i,2) *= scale;
         }
 
-        d_x(i,0) += dtv * d_v(i,0);
-        d_x(i,1) += dtv * d_v(i,1);
-        d_x(i,2) += dtv * d_v(i,2);
+        d_x(i,0) += l_dtv * d_v(i,0);
+        d_x(i,1) += l_dtv * d_v(i,1);
+        d_x(i,2) += l_dtv * d_v(i,2);
       }
     }, d_ncount);
 
@@ -114,9 +115,9 @@ void FixNVELimitKokkos<DeviceType>::initial_integrate(int /*vflag*/)
           d_v(i,2) *= scale;
         }
 
-        d_x(i,0) += dtv * d_v(i,0);
-        d_x(i,1) += dtv * d_v(i,1);
-        d_x(i,2) += dtv * d_v(i,2);
+        d_x(i,0) += l_dtv * d_v(i,0);
+        d_x(i,1) += l_dtv * d_v(i,1);
+        d_x(i,2) += l_dtv * d_v(i,2);
       }
     }, d_ncount);
   }

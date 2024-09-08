@@ -2,8 +2,8 @@
 
 MSI2LMP_LIBRARY=../frc_files
 VALGRIND='valgrind -v --track-origins=yes --show-reachable=yes --leak-check=full'
-MSI2LMP=../src/msi2lmp.exe
-LAMMPS=../../../src/lmp_serial
+MSI2LMP=../../../build-test/msi2lmp
+LAMMPS=../../../build-test/lmp
 CHECKDATA=./data-compare.pl
 
 if [ ! -x $MSI2LMP ]

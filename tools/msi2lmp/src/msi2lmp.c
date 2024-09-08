@@ -2,6 +2,10 @@
 *
 *  msi2lmp.exe
 *
+*   v3.9.11 AK - Replace call to strncpy() with memcpy() when copying atom type strings
+*                to avoid problems with fixed array sizes
+*              - update tests for newer LAMMPS versions
+*
 *   v3.9.10 AK - Substitute UTF-8 characters in .frc files with known ASCII equivalents
 *              - add help message output
 *

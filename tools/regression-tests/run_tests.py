@@ -679,12 +679,12 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 msg += ", memory leaks detected"
                 num_memleak = num_memleak + 1
 
-        progress.write(f"{input}: {{ folder: {input_folder}, status: \"{msg}\", failed_checks: {{ \"{result.status}\" }}, walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
+        progress.write(f"{input}: {{ folder: {input_folder}, status: \"{msg}\", failed_checks: {{ {result.status} }}, walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
         progress.close()
 
         # write to failure if there is any numerical failed check
         if num_abs_failed > 0 or num_rel_failed > 0:
-            failure.write(f"{input}: {{ folder: {input_folder}, status: \"{msg}\", failed_checks: {{ \"{result.status}\" }}, walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
+            failure.write(f"{input}: {{ folder: {input_folder}, status: \"{msg}\", failed_checks: {{ {result.status} }}, walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
 
         # count the number of completed runs
         num_completed = num_completed + 1

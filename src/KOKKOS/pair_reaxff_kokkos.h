@@ -436,7 +436,8 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::t_ffloat_2d_dl d_C1dbo, d_C2dbo, d_C3dbo;
   typename AT::t_ffloat_2d_dl d_C1dbopi, d_C2dbopi, d_C3dbopi, d_C4dbopi;
   typename AT::t_ffloat_2d_dl d_C1dbopi2, d_C2dbopi2, d_C3dbopi2, d_C4dbopi2;
-  typename AT::t_ffloat_2d_dl d_Cdbo, d_Cdbopi, d_Cdbopi2, d_dDeltap_self;
+  typename AT::t_ffloat_2d_dl d_dDeltap_self;
+  typename AT::t_ffloat_3d d_Cdbo, d_Cdbopi, d_Cdbopi2;
 
   int need_dup;
 

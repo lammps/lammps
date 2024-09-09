@@ -245,17 +245,17 @@ class PairReaxFFKokkos : public PairReaxFF {
 
   // Abstraction for computing SBSO2, CSBO2, dSBO1, dsBO2
   KOKKOS_INLINE_FUNCTION
-  void compute_angular_sbo(int, int, int, int) const;
+  void compute_angular_sbo(int, int, int) const;
 
   // Abstraction for counting and populating angular intermediates
   template<bool POPULATE>
   KOKKOS_INLINE_FUNCTION
-  int preprocess_angular(int, int, int, int, int) const;
+  int preprocess_angular(int, int, int, int) const;
 
   // Abstraction for counting and populating torsion intermediated
   template<bool POPULATE>
   KOKKOS_INLINE_FUNCTION
-  int preprocess_torsion(int, int, tagint, F_FLOAT, F_FLOAT, F_FLOAT, int, int, int) const;
+  int preprocess_torsion(int, int, tagint, F_FLOAT, F_FLOAT, F_FLOAT, int, int) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -470,7 +470,8 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
 
-  typename AT::t_int_1d d_bo_num, d_bo_list, d_hb_num, d_hb_list;
+  typename AT::t_int_1d d_bo_num, d_hb_num;
+  typename AT::t_int_2d d_bo_list, d_hb_list;
 
   DAT::tdual_int_scalar k_resize_bo, k_resize_hb;
   typename AT::t_int_scalar d_resize_bo, d_resize_hb;

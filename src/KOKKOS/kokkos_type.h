@@ -863,15 +863,6 @@ typedef tdual_ffloat_2d_dl::t_dev_um t_ffloat_2d_um_dl;
 typedef tdual_ffloat_2d_dl::t_dev_const_um t_ffloat_2d_const_um_dl;
 typedef tdual_ffloat_2d_dl::t_dev_const_randomread t_ffloat_2d_randomread_dl;
 
-// 3d F_FLOAT array n*m
-
-typedef Kokkos::DualView<F_FLOAT***, LMPDeviceType::array_layout, LMPDeviceType> tdual_ffloat_3d;
-typedef tdual_ffloat_3d::t_dev t_ffloat_3d;
-typedef tdual_ffloat_3d::t_dev_const t_ffloat_3d_const;
-typedef tdual_ffloat_3d::t_dev_um t_ffloat_3d_um;
-typedef tdual_ffloat_3d::t_dev_const_um t_ffloat_3d_const_um;
-typedef tdual_ffloat_3d::t_dev_const_randomread t_ffloat_3d_randomread;
-
 //2d F_FLOAT array n*3
 
 typedef Kokkos::DualView<F_FLOAT*[3], Kokkos::LayoutRight, LMPDeviceType> tdual_f_array;
@@ -1177,14 +1168,6 @@ typedef tdual_ffloat_2d_dl::t_host_const t_ffloat_2d_const_dl;
 typedef tdual_ffloat_2d_dl::t_host_um t_ffloat_2d_um_dl;
 typedef tdual_ffloat_2d_dl::t_host_const_um t_ffloat_2d_const_um_dl;
 typedef tdual_ffloat_2d_dl::t_host_const_randomread t_ffloat_2d_randomread_dl;
-
-// 3d F_FLOAT array n*m
-typedef Kokkos::DualView<F_FLOAT***, Kokkos::LayoutRight, LMPDeviceType> tdual_ffloat_3d;
-typedef tdual_ffloat_3d::t_host t_ffloat_3d;
-typedef tdual_ffloat_3d::t_host_const t_ffloat_3d_const;
-typedef tdual_ffloat_3d::t_host_um t_ffloat_3d_um;
-typedef tdual_ffloat_3d::t_host_const_um t_ffloat_3d_const_um;
-typedef tdual_ffloat_3d::t_host_const_randomread t_ffloat_3d_randomread;
 
 //2d F_FLOAT array n*3
 typedef Kokkos::DualView<F_FLOAT*[3], Kokkos::LayoutRight, LMPDeviceType> tdual_f_array;

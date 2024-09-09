@@ -1537,9 +1537,9 @@ void PairReaxFFKokkos<DeviceType>::allocate_array()
   MemKK::realloc_kokkos(d_Deltap,"reaxff/kk:Deltap",nmax);
   MemKK::realloc_kokkos(d_total_bo,"reaxff/kk:total_bo",nmax);
 
-  MemKK::realloc_kokkos(d_Cdbo,"reaxff/kk:Cdbo",nmax,maxbo,3);
-  MemKK::realloc_kokkos(d_Cdbopi,"reaxff/kk:Cdbopi",nmax,maxbo,3);
-  MemKK::realloc_kokkos(d_Cdbopi2,"reaxff/kk:Cdbopi2",nmax,maxbo,3);
+  MemKK::realloc_kokkos(d_Cdbo,"reaxff/kk:Cdbo",nmax,maxbo);
+  MemKK::realloc_kokkos(d_Cdbopi,"reaxff/kk:Cdbopi",nmax,maxbo);
+  MemKK::realloc_kokkos(d_Cdbopi2,"reaxff/kk:Cdbopi2",nmax,maxbo);
 
   MemKK::realloc_kokkos(d_Delta,"reaxff/kk:Delta",nmax);
   MemKK::realloc_kokkos(d_Delta_boc,"reaxff/kk:Delta_boc",nmax);
@@ -2066,12 +2066,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &
     int j = d_bo_list(i, j_index);
     j &= NEIGHMASK;
     const int jtype = type(j);
-    //const int i_index = maxbo + j_index; // this line seems confusing...
-    const int i_index = j_index; // ??
-
 
     // calculate corrected BO and total bond order
-
     const F_FLOAT val_j = paramssing(jtype).valency;
     const F_FLOAT ovc = paramstwbp(itype,jtype).ovc;
     const F_FLOAT v13cor = paramstwbp(itype,jtype).v13cor;
@@ -2163,14 +2159,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &
 
     total_bo += d_BO(i,j_index);
 
-    // debugging whether or not the values that go into (*,*,1) are relevant
-    d_Cdbo(i,j_index,0) = 0.0;
-    d_Cdbopi(i,j_index,0) = 0.0;
-    d_Cdbopi2(i,j_index,0) = 0.0;
-    d_Cdbo(j,i_index,1) = 0.0;
-    d_Cdbopi(j,i_index,1) = 0.0;
-    d_Cdbopi2(j,i_index,1) = 0.0;
-
+    d_Cdbo(i,j_index) = 0.0;
+    d_Cdbopi(i,j_index) = 0.0;
+    d_Cdbopi2(i,j_index) = 0.0;
     d_CdDelta[j] = 0.0;
   }
   d_CdDelta[i] = 0.0;
@@ -2364,7 +2355,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
         const F_FLOAT e_lph = p_lp3 * (vov3-3.0)*(vov3-3.0);
         const F_FLOAT deahu2dbo = 2.0 * p_lp3 * (vov3 - 3.0);
         const F_FLOAT deahu2dsbo = 2.0 * p_lp3 * (vov3 - 3.0) * (-1.0 - 0.16 * pow(Di,3.0));
-        d_Cdbo(i,j_index,0) += deahu2dbo;
+        d_Cdbo(i,j_index) += deahu2dbo;
         CdDelta_i += deahu2dsbo;
 
         if (EFLAG) {
@@ -2377,9 +2368,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
     // over/under coordination forces merged together
     const F_FLOAT p_ovun1 = paramstwbp(itype,jtype).p_ovun1;
     a_CdDelta[j] += (CEover4 + CEunder4) * (1.0 - dfvl * d_dDelta_lp[j]) * (d_BO_pi(i,j_index) + d_BO_pi2(i,j_index));
-    d_Cdbo(i,j_index,0) += CEover1 * p_ovun1 * De_s;
-    d_Cdbopi(i,j_index,0) += (CEover4 + CEunder4) * (d_Delta[j] - dfvl*d_Delta_lp_temp[j]);
-    d_Cdbopi2(i,j_index,0) += (CEover4 + CEunder4) * (d_Delta[j] - dfvl*d_Delta_lp_temp[j]);
+    d_Cdbo(i,j_index) += CEover1 * p_ovun1 * De_s;
+    d_Cdbopi(i,j_index) += (CEover4 + CEunder4) * (d_Delta[j] - dfvl*d_Delta_lp_temp[j]);
+    d_Cdbopi2(i,j_index) += (CEover4 + CEunder4) * (d_Delta[j] - dfvl*d_Delta_lp_temp[j]);
   }
   a_CdDelta[i] += CdDelta_i;
 
@@ -2520,8 +2511,6 @@ int PairReaxFFKokkos<DeviceType>::preprocess_angular(int i, int itype, int jnum,
     if (bo_ij <= thb_cut) continue;
     if (i >= nlocal && j >= nlocal) continue;
 
-    // const int i_index = maxbo + j_index; ??
-    const int i_index = j_index; // plus a shift?
     const int jtype = type(j);
 
     for (int k_index = j_index + 1; k_index < jnum; k_index++) {
@@ -2550,8 +2539,8 @@ int PairReaxFFKokkos<DeviceType>::preprocess_angular(int i, int itype, int jnum,
         pack.i3 = jnum;
         d_angular_pack(location_angular, 0) = pack;
 
-        // Second pack stores i_index, j_index, k_index, and j_end
-        pack.i0 = i_index;
+        // Second pack stores j_index and k_index
+        // i0 is unused because there's no i_index
         pack.i1 = j_index;
         pack.i2 = k_index;
         // i3 is unused
@@ -2651,9 +2640,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
 
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-  Kokkos::View<F_FLOAT***, typename decltype(d_Cdbo)::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbo = d_Cdbo;
-  Kokkos::View<F_FLOAT***, typename decltype(d_Cdbopi)::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi = d_Cdbopi;
-  Kokkos::View<F_FLOAT***, typename decltype(d_Cdbopi2)::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi2 = d_Cdbopi2;
+  Kokkos::View<F_FLOAT**, typename decltype(d_Cdbo)::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbo = d_Cdbo;
+  Kokkos::View<F_FLOAT**, typename decltype(d_Cdbopi)::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi = d_Cdbopi;
+  Kokkos::View<F_FLOAT**, typename decltype(d_Cdbopi2)::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi2 = d_Cdbopi2;
 
   auto v_CdDelta = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
   auto a_CdDelta = v_CdDelta.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -2696,7 +2685,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   const int jnum = pack.i3;
 
   pack = d_angular_pack(apack, 1);
-  const int i_index = pack.i0;
+  // i0 is unused
   const int j_index = pack.i1;
   const int k_index = pack.i2;
   // i3 is unused
@@ -2848,11 +2837,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
 
   // Forces
 
-  // debugging whether or not the values at "1" are needed, they never seem to be read from?
-  a_Cdbo(i,j_index,0) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
-  a_Cdbo(j,i_index,1) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
-  a_Cdbo(i,k_index,0) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
-  a_Cdbo(k,i_index,1) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
+  a_Cdbo(i,j_index) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
+  a_Cdbo(i,k_index) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
 
   CdDelta_i += ((CEval3 + CEval7) + CEpen1 + CEcoa3);
   CdDelta_j += CEcoa4;
@@ -2863,9 +2849,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
     temp = temp_bo_jt * temp_bo_jt * temp_bo_jt;
     pBOjt7 = temp * temp * temp_bo_jt;
 
-    a_Cdbo(i,l_index,0) += (CEval6 * pBOjt7);
-    a_Cdbopi(i,l_index,0) += CEval5;
-    a_Cdbopi2(i,l_index,0) += CEval5;
+    a_Cdbo(i,l_index) += (CEval6 * pBOjt7);
+    a_Cdbopi(i,l_index) += CEval5;
+    a_Cdbopi2(i,l_index) += CEval5;
   }
 
   for (int d = 0; d < 3; d++) fi_tmp[d] = CEval8 * dcos_theta_di[d];
@@ -2912,8 +2898,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
 
   auto v_CdDelta = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
   auto a_CdDelta = v_CdDelta.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-  Kokkos::View<F_FLOAT***, typename decltype(d_Cdbo)::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbo = d_Cdbo;
-  Kokkos::View<F_FLOAT***, typename decltype(d_Cdbopi)::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi = d_Cdbopi;
+  Kokkos::View<F_FLOAT**, typename decltype(d_Cdbo)::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbo = d_Cdbo;
+  Kokkos::View<F_FLOAT**, typename decltype(d_Cdbopi)::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi = d_Cdbopi;
   //auto a_Cdbo = dup_Cdbo.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   // in reaxff_torsion_angles: j = i, k = j, i = k;
@@ -3156,14 +3142,14 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
 
   // contribution to bond order
 
-  a_Cdbopi(i,j_index,0) += CEtors2;
+  a_Cdbopi(i,j_index) += CEtors2;
 
   a_CdDelta[j] += CEtors3;
   a_CdDelta[i] += CEtors3;
 
-  a_Cdbo(i,k_index,0) += CEtors4 + CEconj1;
-  a_Cdbo(i,j_index,0) += CEtors5 + CEconj2;
-  a_Cdbo(j,l_index,0) += CEtors6 + CEconj3;
+  a_Cdbo(i,k_index) += CEtors4 + CEconj1;
+  a_Cdbo(i,j_index) += CEtors5 + CEconj2;
+  a_Cdbo(j,l_index) += CEtors6 + CEconj3;
 
   const F_FLOAT coeff74 = CEtors7 + CEconj4;
   const F_FLOAT coeff85 = CEtors8 + CEconj5;
@@ -3357,7 +3343,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeHydrogen<NEIGHFL
       CEhb2 = -p_hb1/2.0 * (1.0 - exp_hb2) * exp_hb3 * cos_xhz1;
       CEhb3 = -p_hb3 * (-r0_hb/SQR(rik) + 1.0/r0_hb) * e_hb;
 
-      d_Cdbo(i,j_index,0) += CEhb1; // dbo term
+      d_Cdbo(i,j_index) += CEhb1; // dbo term
 
       // dcos terms
       for (int d = 0; d < 3; d++) fi_tmp[d] = CEhb2 * dcos_theta_di[d];
@@ -3400,9 +3386,9 @@ template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxUpdateBond<NEIGHFLAG>, const int &ii) const {
 
-  Kokkos::View<F_FLOAT***, typename decltype(d_Cdbo)::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbo = d_Cdbo;
-  Kokkos::View<F_FLOAT***, typename decltype(d_Cdbopi)::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi = d_Cdbopi;
-  Kokkos::View<F_FLOAT***, typename decltype(d_Cdbopi2)::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi2 = d_Cdbopi2;
+  Kokkos::View<F_FLOAT**, typename decltype(d_Cdbo)::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbo = d_Cdbo;
+  Kokkos::View<F_FLOAT**, typename decltype(d_Cdbopi)::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi = d_Cdbopi;
+  Kokkos::View<F_FLOAT**, typename decltype(d_Cdbopi2)::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi2 = d_Cdbopi2;
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -3430,9 +3416,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxUpdateBond<NEIGHFLAG>, 
 
     if (!flag) continue;
 
-    const F_FLOAT Cdbo_i = d_Cdbo(i,j_index,0);
-    const F_FLOAT Cdbopi_i = d_Cdbopi(i,j_index,0);
-    const F_FLOAT Cdbopi2_i = d_Cdbopi2(i,j_index,0);
+    const F_FLOAT Cdbo_i = d_Cdbo(i,j_index);
+    const F_FLOAT Cdbopi_i = d_Cdbopi(i,j_index);
+    const F_FLOAT Cdbopi2_i = d_Cdbopi2(i,j_index);
 
     const int knum = d_bo_num[j];
 
@@ -3441,9 +3427,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxUpdateBond<NEIGHFLAG>, 
       k &= NEIGHMASK;
       if (k != i) continue;
 
-      a_Cdbo(j,k_index,0) += Cdbo_i;
-      a_Cdbopi(j,k_index,0) += Cdbopi_i;
-      a_Cdbopi2(j,k_index,0) += Cdbopi2_i;
+      a_Cdbo(j,k_index) += Cdbo_i;
+      a_Cdbopi(j,k_index) += Cdbopi_i;
+      a_Cdbopi2(j,k_index) += Cdbopi2_i;
     }
   }
 }
@@ -3514,9 +3500,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,
     //if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,ebond);
 
     // calculate derivatives of Bond Orders
-    d_Cdbo(i,j_index,0) += CEbo;
-    d_Cdbopi(i,j_index,0) -= (CEbo + De_p);
-    d_Cdbopi2(i,j_index,0) -= (CEbo + De_pp);
+    d_Cdbo(i,j_index) += CEbo;
+    d_Cdbopi(i,j_index) -= (CEbo + De_p);
+    d_Cdbopi2(i,j_index) -= (CEbo + De_pp);
 
     // Stabilisation terminal triple bond
     F_FLOAT estriph = 0.0;
@@ -3542,7 +3528,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,
         const F_FLOAT decobdboub = -gp[10] * exphu * hulpov *
             (gp[3]*exphub1 + 25.0*gp[4]*exphuov*hulpov*(exphua1+exphub1));
 
-        d_Cdbo(i,j_index,0) += decobdbo;
+        d_Cdbo(i,j_index) += decobdbo;
         CdDelta_i += decobdboua;
         a_CdDelta[j] += decobdboub;
       }
@@ -3617,18 +3603,18 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,
     coef_C1dDelta = coef_C2dDelta = coef_C3dDelta = 0.0;
 
     // total forces on i, j, k (nlocal + nghost, from Add_dBond_to_Forces))
-    const F_FLOAT Cdbo_ij = d_Cdbo(i,j_index,0);
+    const F_FLOAT Cdbo_ij = d_Cdbo(i,j_index);
     coef_C1dbo = d_C1dbo(i,j_index) * (Cdbo_ij);
     coef_C2dbo = d_C2dbo(i,j_index) * (Cdbo_ij);
     coef_C3dbo = d_C3dbo(i,j_index) * (Cdbo_ij);
 
-    const F_FLOAT Cdbopi_ij = d_Cdbopi(i,j_index,0);
+    const F_FLOAT Cdbopi_ij = d_Cdbopi(i,j_index);
     coef_C1dbopi = d_C1dbopi(i,j_index) * (Cdbopi_ij);
     coef_C2dbopi = d_C2dbopi(i,j_index) * (Cdbopi_ij);
     coef_C3dbopi = d_C3dbopi(i,j_index) * (Cdbopi_ij);
     coef_C4dbopi = d_C4dbopi(i,j_index) * (Cdbopi_ij);
 
-    const F_FLOAT Cdbopi2_ij = d_Cdbopi2(i,j_index,0);
+    const F_FLOAT Cdbopi2_ij = d_Cdbopi2(i,j_index);
     coef_C1dbopi2 = d_C1dbopi2(i,j_index) * (Cdbopi2_ij);
     coef_C2dbopi2 = d_C2dbopi2(i,j_index) * (Cdbopi2_ij);
     coef_C3dbopi2 = d_C3dbopi2(i,j_index) * (Cdbopi2_ij);

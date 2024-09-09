@@ -74,7 +74,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   DAT::tdual_ffloat_1d get_s() {return k_s;}
 
   KOKKOS_INLINE_FUNCTION
-  void num_neigh_item(int, int&) const;
+  void num_neigh_item(int, bigint&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagACKS2Zero, const int&) const;
@@ -264,13 +264,13 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
 template <class DeviceType>
 struct FixACKS2ReaxFFKokkosNumNeighFunctor  {
   typedef DeviceType device_type;
-  typedef int value_type;
+  typedef bigint value_type;
   FixACKS2ReaxFFKokkos<DeviceType> c;
   FixACKS2ReaxFFKokkosNumNeighFunctor(FixACKS2ReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, int &maxneigh) const {
+  void operator()(const int ii, bigint &maxneigh) const {
     c.num_neigh_item(ii, maxneigh);
   }
 };

@@ -2645,7 +2645,7 @@ This package has :ref:`specific installation instructions <rheo>` on the :doc:`B
 **Authors:** Joel T. Clemmer (Sandia National Labs),
 Thomas C. O'Connor (Carnegie Mellon University)
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 **Supporting info:**
 

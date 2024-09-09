@@ -171,7 +171,7 @@ instructions to install i-PI from PyPI via pip are provided.
 LAMMPS shell
 ------------
 
-.. versionchanged:: TBD
+.. versionchanged:: 29Aug2024
 
 The LAMMPS shell has been removed from the LAMMPS distribution. Users
 are encouraged to use the :ref:`LAMMPS-GUI <lammps_gui>` tool instead.

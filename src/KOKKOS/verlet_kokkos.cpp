@@ -162,8 +162,10 @@ void VerletKokkos::setup(int flag)
 
   lmp->kokkos->auto_sync = 0;
   modify->setup(vflag);
-  output->setup(flag);
   lmp->kokkos->auto_sync = 1;
+
+  atomKK->sync(Host,ALL_MASK);
+  output->setup(flag);
   update->setupflag = 0;
 }
 
@@ -252,6 +254,7 @@ void VerletKokkos::setup_minimal(int flag)
   lmp->kokkos->auto_sync = 0;
   modify->setup(vflag);
   lmp->kokkos->auto_sync = 1;
+
   update->setupflag = 0;
 }
 

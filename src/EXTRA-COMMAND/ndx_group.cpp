@@ -33,7 +33,8 @@ static std::string find_section(FILE *fp, const std::string &name)
 {
   char linebuf[BUFLEN];
 
-  fgets(linebuf, BUFLEN, fp);
+  if (!fgets(linebuf, BUFLEN, fp))
+    throw TokenizerException("Read error", utils::getsyserror());
   while (!feof(fp)) {
     if (utils::strmatch(linebuf, "^\\s*\\[.*\\]\\s*$")) {
       auto words = Tokenizer(linebuf).as_vector();

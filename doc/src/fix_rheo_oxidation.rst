@@ -27,7 +27,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 This fix dynamically creates bonds on the surface of fluids to
 represent physical processes such as oxidation. It is intended

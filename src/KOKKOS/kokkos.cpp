@@ -149,6 +149,14 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
           set_flag = 1;
         }
       }
+      if ((str = getenv("PALS_LOCAL_RANKID"))) {
+        if (ngpus > 0) {
+          int local_rank = atoi(str);
+          device = local_rank % ngpus;
+          if (device >= skip_gpu) device++;
+          set_flag = 1;
+        }
+      }
 
       if (ngpus > 1 && !set_flag)
         error->all(FLERR,"Could not determine local MPI rank for multiple "
@@ -640,29 +648,30 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
 bigint KokkosLMP::neigh_count(int m)
 {
+  int inum = 0;
   bigint nneigh = 0;
+
+  ArrayTypes<LMPHostType>::t_int_1d h_ilist;
+  ArrayTypes<LMPHostType>::t_int_1d h_numneigh;
 
   NeighborKokkos *nk = (NeighborKokkos *) neighbor;
   if (nk->lists[m]->execution_space == Host) {
     NeighListKokkos<LMPHostType>* nlistKK = (NeighListKokkos<LMPHostType>*) nk->lists[m];
-    int inum = nlistKK->inum;
-    auto d_ilist = nlistKK->d_ilist;
-    auto d_numneigh = nlistKK->d_numneigh;
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<LMPHostType>(0,inum), LAMMPS_LAMBDA(int ii, bigint &nneigh) {
-      const int i = d_ilist[ii];
-      nneigh += d_numneigh[i];
-    },nneigh);
-
+    inum = nlistKK->inum;
+    h_ilist = Kokkos::create_mirror_view(nlistKK->d_ilist);
+    h_numneigh = Kokkos::create_mirror_view(nlistKK->d_numneigh);
+    Kokkos::deep_copy(h_ilist,nlistKK->d_ilist);
+    Kokkos::deep_copy(h_numneigh,nlistKK->d_numneigh);
   } else if (nk->lists[m]->execution_space == Device) {
     NeighListKokkos<LMPDeviceType>* nlistKK = (NeighListKokkos<LMPDeviceType>*) nk->lists[m];
-    int inum = nlistKK->inum;
-    auto d_ilist = nlistKK->d_ilist;
-    auto d_numneigh = nlistKK->d_numneigh;
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<LMPDeviceType>(0,inum), LAMMPS_LAMBDA(int ii, bigint &nneigh) {
-      const int i = d_ilist[ii];
-      nneigh += d_numneigh[i];
-    },nneigh);
+    inum = nlistKK->inum;
+    h_ilist = Kokkos::create_mirror_view(nlistKK->d_ilist);
+    h_numneigh = Kokkos::create_mirror_view(nlistKK->d_numneigh);
+    Kokkos::deep_copy(h_ilist,nlistKK->d_ilist);
+    Kokkos::deep_copy(h_numneigh,nlistKK->d_numneigh);
   }
+
+  for (int i = 0; i < inum; i++) nneigh += h_numneigh[h_ilist[i]];
 
   return nneigh;
 }

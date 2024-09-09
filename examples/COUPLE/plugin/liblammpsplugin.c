@@ -105,6 +105,7 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(map_atom);
 
   ADDSYM(extract_atom_datatype);
+  ADDSYM(extract_atom_size);
   ADDSYM(extract_atom);
 
   ADDSYM(extract_compute);

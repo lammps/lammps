@@ -1,4 +1,4 @@
-# aurora_kokkos = KOKKOS/SYCL, Intel Data Center Max (Ponte Vecchio) GPU, Intel Sapphire Rapids CPU, mpicxx compiler
+# aurora = Intel Sapphire Rapids CPU, mpicxx compiler (compatible w/ GPU package)
 
 SHELL = /bin/sh
 
@@ -7,22 +7,20 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpicxx
-CCFLAGS =	-g -O3 -DNDEBUG -w
-CCFLAGS +=      -fsycl-device-code-split=per_kernel
+OPTFLAGS =      -DSHAKEATOMIC -DCOMMPARA  -xSAPPHIRERAPIDS -O2 -ffp-model=fast -qoverride-limits -qopt-zmm-usage=high
+CCFLAGS =	-qopenmp -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS)
+CCFLAGS +=      -I$(MKLROOT)/include
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		mpicxx
-LINKFLAGS =	-g -O3
-LINKFLAGS +=    -flink-huge-device-code -fsycl-max-parallel-link-jobs=64
-LIB = 
+LINKFLAGS =	-qopenmp $(OPTFLAGS)
+LIB =           -ltbbmalloc -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 SIZE =		size
 
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
-KOKKOS_DEVICES = SYCL
-KOKKOS_ARCH = PVC,SPR
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL
@@ -54,9 +52,9 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC = -DFFT_KOKKOS_MKL_GPU -DFFT_SINGLE -I${MKL_ROOT}/include
-FFT_PATH = -L${MKL_ROOT}/lib -L${TBB_ROOT}/lib/intel64/gcc4.8
-FFT_LIB = -lmkl_sycl_dft -lmkl_intel_ilp64 -lmkl_tbb_thread -lmkl_core -ltbb
+FFT_INC =  -DFFT_MKL -DFFT_SINGLE
+FFT_PATH =
+FFT_LIB =
 
 # JPEG and/or PNG library
 # see discussion in Section 3.5.4 of manual

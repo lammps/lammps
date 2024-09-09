@@ -470,7 +470,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
 
-  typename AT::t_int_1d d_bo_first, d_bo_num, d_bo_list, d_hb_first, d_hb_num, d_hb_list;
+  typename AT::t_int_1d d_bo_num, d_bo_list, d_hb_num, d_hb_list;
 
   DAT::tdual_int_scalar k_resize_bo, k_resize_hb;
   typename AT::t_int_scalar d_resize_bo, d_resize_hb;

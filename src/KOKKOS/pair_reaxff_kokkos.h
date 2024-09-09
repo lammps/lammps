@@ -178,14 +178,14 @@ class PairReaxFFKokkos : public PairReaxFF {
   // TagPairReaxBuildListsHalfBlocking, HalfBlockingPreview, HalfPreview
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void build_hb_list(F_FLOAT, int, int, int, int, int) const;
+  void build_hb_list(F_FLOAT, int, int, int, int) const;
 
   // Isolated function that builds the bond order list, reused across
   // TagPairReaxBuildListsHalfBlocking, HalfBlockingPreview, HalfPreview
   // Returns if we need to populate d_d* functions or not
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  bool build_bo_list(int, int, int, int&, int&) const;
+  bool build_bo_list(int, int, int&, int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBuildListsFull, const int&) const;

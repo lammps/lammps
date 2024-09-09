@@ -1604,17 +1604,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
   F_FLOAT dDeltap_self_i[3] = {0.0,0.0,0.0};
   F_FLOAT total_bo_i = 0.0;
 
-  const int bo_first_i = i * maxbo;
-
   int ihb = -1;
 
-  int hb_first_i;
-  if (cut_hbsq > 0.0) {
+  if (cut_hbsq > 0.0)
     ihb = paramssing(itype).p_hbond;
-    if (ihb == 1) {
-      hb_first_i = i * maxhb;
-    }
-  }
 
   int nnz;
   blocking_t selected_jj[blocksize];
@@ -1656,7 +1649,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
       const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
 
       // hbond list
-      build_hb_list<NEIGHFLAG>(rsq, i, hb_first_i, ihb, j, jtype);
+      build_hb_list<NEIGHFLAG>(rsq, i, ihb, j, jtype);
 
       if (rsq > cut_bosq) continue;
 
@@ -1675,7 +1668,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
 
       int ii_index = -1;
       int jj_index = -1;
-      if (build_bo_list<NEIGHFLAG>(bo_first_i, i, j, ii_index, jj_index)) {
+      if (build_bo_list<NEIGHFLAG>(i, j, ii_index, jj_index)) {
 
         // from BondOrder1
 
@@ -1743,17 +1736,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingP
 
   F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3];
 
-  const int bo_first_i = i * maxbo;
-
   int ihb = -1;
 
-  int hb_first_i;
-  if (cut_hbsq > 0.0) {
+  if (cut_hbsq > 0.0)
     ihb = paramssing(itype).p_hbond;
-    if (ihb == 1) {
-      hb_first_i = i * maxhb;
-    }
-  }
 
   int nnz;
   blocking_t selected_jj[blocksize];
@@ -1796,7 +1782,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingP
       const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
 
       // hbond list
-      build_hb_list<NEIGHFLAG>(rsq, i, hb_first_i, ihb, j, jtype);
+      build_hb_list<NEIGHFLAG>(rsq, i, ihb, j, jtype);
 
       if (rsq > cut_bosq) continue;
 
@@ -1815,7 +1801,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingP
 
       int ii_index = -1;
       int jj_index = -1;
-      build_bo_list<NEIGHFLAG>(bo_first_i, i, j, ii_index, jj_index);
+      build_bo_list<NEIGHFLAG>(i, j, ii_index, jj_index);
     }
   }
 }
@@ -1836,17 +1822,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<N
 
   F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3];
 
-  const int bo_first_i = i * maxbo;
-
   int ihb = -1;
 
-  int hb_first_i;
-  if (cut_hbsq > 0.0) {
+  if (cut_hbsq > 0.0)
     ihb = paramssing(itype).p_hbond;
-    if (ihb == 1) {
-      hb_first_i = i * maxhb;
-    }
-  }
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors(i,jj);
@@ -1860,7 +1839,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<N
     const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
 
     // hbond list
-    build_hb_list<NEIGHFLAG>(rsq, i, hb_first_i, ihb, j, jtype);
+    build_hb_list<NEIGHFLAG>(rsq, i, ihb, j, jtype);
 
     if (rsq > cut_bosq) continue;
 
@@ -1880,7 +1859,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<N
     int ii_index = -1;
     int jj_index = -1;
 
-    build_bo_list<NEIGHFLAG>(bo_first_i, i, j, ii_index, jj_index);
+    build_bo_list<NEIGHFLAG>(i, j, ii_index, jj_index);
   }
 }
 
@@ -1889,7 +1868,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<N
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::build_hb_list(F_FLOAT rsq, int i, int hb_first_i, int ihb, int j, int jtype) const {
+void PairReaxFFKokkos<DeviceType>::build_hb_list(F_FLOAT rsq, int i, int ihb, int j, int jtype) const {
 
   int i_index, j_index;
   int jhb = -1;
@@ -1897,12 +1876,12 @@ void PairReaxFFKokkos<DeviceType>::build_hb_list(F_FLOAT rsq, int i, int hb_firs
     jhb = paramssing(jtype).p_hbond;
     if (ihb == 1 && jhb == 2) {
       if (NEIGHFLAG == HALF) {
-        j_index = hb_first_i + d_hb_num[i];
+        j_index = i * maxhb + d_hb_num[i];
         d_hb_num[i]++;
       } else
-        j_index = hb_first_i + Kokkos::atomic_fetch_add(&d_hb_num[i],1);
+        j_index = i * maxhb + Kokkos::atomic_fetch_add(&d_hb_num[i],1);
 
-      const int jj_index = j_index - hb_first_i;
+      const int jj_index = j_index - i * maxhb;
 
       if (jj_index >= maxhb)
         d_resize_hb() = MAX(d_resize_hb(),jj_index+1);
@@ -1931,20 +1910,20 @@ void PairReaxFFKokkos<DeviceType>::build_hb_list(F_FLOAT rsq, int i, int hb_firs
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-bool PairReaxFFKokkos<DeviceType>::build_bo_list(int bo_first_i, int i, int j, int& ii_index, int& jj_index) const {
+bool PairReaxFFKokkos<DeviceType>::build_bo_list(int i, int j, int& ii_index, int& jj_index) const {
    int i_index, j_index;
 
   if (NEIGHFLAG == HALF) {
-    j_index = bo_first_i + d_bo_num[i];
+    j_index = i * maxbo + d_bo_num[i];
     i_index = j * maxbo + d_bo_num[j];
     d_bo_num[i]++;
     d_bo_num[j]++;
   } else {
-    j_index = bo_first_i + Kokkos::atomic_fetch_add(&d_bo_num[i],1);
+    j_index = i * maxbo + Kokkos::atomic_fetch_add(&d_bo_num[i],1);
     i_index = j * maxbo + Kokkos::atomic_fetch_add(&d_bo_num[j],1);
   }
 
-  jj_index = j_index - bo_first_i;
+  jj_index = j_index - i * maxbo;
   ii_index = i_index - j * maxbo;
 
   bool set_dB_flag = true;

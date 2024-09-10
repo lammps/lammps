@@ -240,9 +240,9 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
 
   // define a cutoff distance (in atomic units) beyond which overlap integrals are neglected
   // in calc_chi_eff()
-  const double expmin = find_min(gauss_exp,ntypes+1);
+  const double exp_min = find_min_exp(gauss_exp,ntypes+1);
   const int olap_cut = 10; // overlap integrals are neglected if less than pow(10,-olap_cut)
-  dist_cutoff = sqrt(2*olap_cut/expmin*log(10.0));
+  dist_cutoff = sqrt(2*olap_cut/exp_min*log(10.0));
 
   // read chi, eta and gamma
 
@@ -1230,16 +1230,16 @@ void FixQtpieReaxFF::calc_chi_eff()
 
 /* ---------------------------------------------------------------------- */
 
-double FixQtpieReaxFF::find_min(const double *array, const int array_length)
+double FixQtpieReaxFF::find_min_exp(const double *array, const int array_length)
 {
   // index of first gaussian orbital exponent is 1
-  double smallest = array[1];
+  double exp_min = array[1];
   for (int i = 2; i < array_length; i++)
   {
-    if (array[i] < smallest)
-      smallest = array[i];
+    if (array[i] < exp_min)
+      exp_min = array[i];
   }
-  return smallest;
+  return exp_min;
 }
 
 /* ---------------------------------------------------------------------- */

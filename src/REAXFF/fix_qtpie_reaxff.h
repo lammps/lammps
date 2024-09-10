@@ -130,7 +130,7 @@ class FixQtpieReaxFF : public Fix {
   void vector_add(double *, double, double *, int);
 
   void calc_chi_eff();
-  double find_min(const double*, const int);
+  double find_min_exp(const double*, const int);
   double distance(const double*, const double*);
 
   int matvecs_s, matvecs_t;    // Iteration count for each system

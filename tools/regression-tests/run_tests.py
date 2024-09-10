@@ -1358,7 +1358,7 @@ if __name__ == "__main__":
     # print out the binary info
     build_config = get_lammps_build_configuration(lmp_binary)
     packages = build_config['installed_packages']
-    operating_system = build_config['installed_packages']
+    operating_system = build_config['operating_system']
     GitInfo = build_config['git_info']
     compiler = build_config['compiler']
     compiler_full = build_config['compiler_full']
@@ -1367,7 +1367,7 @@ if __name__ == "__main__":
     print("\nLAMMPS build info:")
     print(f"  - {operating_system}")
     print(f"  - {GitInfo}")
-    print(f"  - Compiler: {compiler_full}")
+    print(f"  - {compiler_full}")
     print(f"  - Active compile flags: {compile_flags}")
     print(f"  - List of {len(packages)} installed packages:")
     all_pkgs = ""

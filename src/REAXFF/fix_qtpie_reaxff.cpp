@@ -21,7 +21,6 @@
 #include "fix_qtpie_reaxff.h"
 
 #include "atom.h"
-#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -52,19 +51,6 @@ static constexpr double CONV_TO_EV = 14.4;
 static constexpr double SMALL = 1.0e-14;
 static constexpr double QSUMSMALL = 0.00001;
 static constexpr double ANGSTROM_TO_BOHRRADIUS = 1.8897261259;
-
-static const char cite_fix_qtpie_reaxff[] =
-  "fix qtpie/reaxff command: doi\n\n"
-  "@article{,\n"
-  "title={},\n"
-  "author={},\n"
-  "journal={},\n"
-  "volume={},\n"
-  "number={},\n"
-  "pages={},\n"
-  "year={},\n"
-  "publisher={}\n"
-  "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -173,8 +159,6 @@ FixQtpieReaxFF::~FixQtpieReaxFF()
 
 void FixQtpieReaxFF::post_constructor()
 {
-  if (lmp->citeme) lmp->citeme->add(cite_fix_qtpie_reaxff);
-
   grow_arrays(atom->nmax);
   for (int i = 0; i < atom->nmax; i++)
     for (int j = 0; j < nprev; ++j)
@@ -471,16 +455,6 @@ void FixQtpieReaxFF::init()
     if (efield->varflag == FixEfield::ATOM && efield->pstyle != FixEfield::ATOM)
       error->all(FLERR,"Atom-style external electric field requires atom-style "
                        "potential variable when used with fix {}", style);
-    // if (((efield->xstyle != FixEfield::CONSTANT) && domain->xperiodic) ||
-    //      ((efield->ystyle != FixEfield::CONSTANT) && domain->yperiodic) ||
-    //      ((efield->zstyle != FixEfield::CONSTANT) && domain->zperiodic))
-    //   error->all(FLERR,"Must not have electric field component in direction of periodic "
-    //                    "boundary when using charge equilibration with ReaxFF.");
-    // if (((fabs(efield->ex) > SMALL) && domain->xperiodic) ||
-    //      ((fabs(efield->ey) > SMALL) && domain->yperiodic) ||
-    //      ((fabs(efield->ez) > SMALL) && domain->zperiodic))
-    //   error->all(FLERR,"Must not have electric field component in direction of periodic "
-    //                    "boundary when using charge equilibration with ReaxFF.");
   }
 
   // we need a half neighbor list w/ Newton off

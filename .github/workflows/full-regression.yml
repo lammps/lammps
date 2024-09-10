@@ -82,7 +82,7 @@ jobs:
         python3 tools/regression-tests/run_tests.py \
                --lmp-bin=build/lmp \
                --config-file=tools/regression-tests/config_serial.yaml \
-               --examples-top-level=examples --analyze --num-workers=4
+               --examples-top-level=examples --analyze --num-workers=8
 
         python3 tools/regression-tests/run_tests.py \
                --lmp-bin=build/lmp \

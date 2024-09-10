@@ -23,6 +23,7 @@ Some benefits include:
     + keeping track of the testing progress to resume the testing from the last checkpoint (skipping completed runs)
     + distributing the input list across multiple processes by
       splitting the list of input scripts into separate runs (there are ~800 input scripts under the top-level examples)
+    + generating new reference log files if desirable
 
 Input arguments:
     + the path to a LAMMPS binary (can be relative to the working directory)
@@ -794,7 +795,7 @@ def extract_data_to_yaml(inputFileName):
     return thermo
 
 '''
-    return a tuple of the list of installed packages, OS, GitInfo and compile_flags
+    return a dictionary of the list of installed packages, OS, GitInfo, compiler and compile_flags
 '''
 def get_lammps_build_configuration(lmp_binary):
     cmd_str = lmp_binary + " -h"
@@ -805,6 +806,7 @@ def get_lammps_build_configuration(lmp_binary):
     operating_system = ""
     GitInfo = ""
     compiler = "g++"
+    compiler_full = ""
     row = 0
     for line in output:
         if line != "":
@@ -821,6 +823,7 @@ def get_lammps_build_configuration(lmp_binary):
         if "Git info" in line:
             GitInfo = line
         if "Compiler" in line:
+            compiler_full = line
             if "GNU" in line:
                 compiler = "g++"
             if "Intel" in line: 
@@ -838,7 +841,17 @@ def get_lammps_build_configuration(lmp_binary):
 
         row += 1
 
-    return packages.split(" "), operating_system, GitInfo, compile_flags, compiler
+    installed_packages = packages.split(" ")
+    build_config = {
+        'installed_packages': installed_packages,
+        'operating_system': operating_system,
+        'git_info': GitInfo, 
+        'compiler': compiler,
+        'compiler_full': compiler_full,
+        'compile_flags': compile_flags,
+    }
+
+    return build_config
 
 '''
     launch LAMMPS using the configuration defined in the dictionary config with an input file
@@ -1343,11 +1356,18 @@ if __name__ == "__main__":
             lmp_binary = os.path.abspath(config['lmp_binary'])
 
     # print out the binary info
-    packages, operating_system, GitInfo, compile_flags, compiler = get_lammps_build_configuration(lmp_binary)
+    build_config = get_lammps_build_configuration(lmp_binary)
+    packages = build_config['installed_packages']
+    operating_system = build_config['installed_packages']
+    GitInfo = build_config['git_info']
+    compiler = build_config['compiler']
+    compiler_full = build_config['compiler_full']
+    compile_flags = build_config['compile_flags']
+    
     print("\nLAMMPS build info:")
     print(f"  - {operating_system}")
     print(f"  - {GitInfo}")
-    print(f"  - Compiler: {compiler}")
+    print(f"  - Compiler: {compiler_full}")
     print(f"  - Active compile flags: {compile_flags}")
     print(f"  - List of {len(packages)} installed packages:")
     all_pkgs = ""

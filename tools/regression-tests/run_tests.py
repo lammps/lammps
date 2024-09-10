@@ -322,7 +322,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         result = TestResult(name=input, output="", time="", status="passed")
 
         # run the LAMMPS binary with the input script
-        cmd_str, output, error, returncode = execute(lmp_binary, config, input_test)
+        cmd_str, output, error, returncode, logfilename = execute(lmp_binary, config, input_test)
 
         # restore the nprocs value in the configuration
         config['nprocs'] = saved_nprocs
@@ -361,8 +361,6 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             continue
 
         # check if a log file log.{basename}.{nprocs} exists in the current folder
-        logfilename = f"log.{basename}.{nprocs}"
-
         if os.path.isfile(logfilename) == False:
             msg = f"    failed, no log.{basename}.{nprocs} generated with {input_test} with return code {returncode}.\n"
             print(msg)
@@ -460,11 +458,11 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             test_id = test_id + 1
             continue
 
-        # parse thermo output in log.lammps from the run
-        thermo = extract_data_to_yaml("log.lammps")
+        # parse thermo output in the log file from the run
+        thermo = extract_data_to_yaml(logfilename)
         num_runs = len(thermo)
 
-        # the run completed normally but log.lammps may not be friendly for parsing into YAML format
+        # the run completed normally but the log file may not be friendly for parsing into YAML format
         if num_runs == 0:
             logger.info(f"     The run terminated with {input_test} gives the following output:")
             logger.info(f"     {output}")
@@ -477,7 +475,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                     msg += ", memory leaks detected"
                     num_memleak = num_memleak + 1
 
-            result.status = msg + ", error parsing log.lammps into YAML"
+            result.status = msg + f", error parsing {logfilename} into YAML"
             results.append(result)
             progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
             progress.close()
@@ -503,6 +501,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 results.append(result)
                 progress.write(f"{input}: {{ folder: {input_folder}, status: \"completed, numerical checks skipped, unsupported log file format\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
                 progress.close()
+                num_completed = num_completed + 1
                 num_error = num_error + 1
                 test_id = test_id + 1
                 continue
@@ -526,16 +525,17 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 progress.write(msg)
                 progress.close()
                 failure.write(msg)
+                num_completed = num_completed + 1
                 num_error = num_error + 1
                 test_id = test_id + 1
                 continue
 
-        logger.info(f"     Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
+        logger.info(f"     Comparing thermo output from {logfilename} against the reference log file {thermo_ref_file}")
 
         # check if the number of runs matches with that in the reference log file
         # maybe due to some changes to the input where the ref log file is not updated yet
         if num_runs != num_runs_ref:
-            logger.info(f"     ERROR: Number of runs in log.lammps ({num_runs}) is different from that in the reference log ({num_runs_ref})."
+            logger.info(f"     ERROR: Number of runs in {logfilename} ({num_runs}) is different from that in the reference log ({num_runs_ref})."
                         " Check README in the folder, possibly due to using mpirun with partitions or parsing the wrong reference log file.")
             result.status = "failed, incomplete runs"
             results.append(result)
@@ -551,7 +551,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         num_fields = len(thermo[0]['keywords'])
         num_fields_ref = len(thermo_ref[0]['keywords'])
         if num_fields != num_fields_ref:
-            logger.info(f"     failed, number of thermo colums in log.lammps ({num_fields}) is different from that in the reference log ({num_fields_ref}) in the first run.")
+            logger.info(f"     failed, number of thermo colums in {logfilename} ({num_fields}) is different from that in the reference log ({num_fields_ref}) in the first run.")
             logger.info(f"     Check both log files for more details.")
             result.status = "failed, mismatched columns in the log files"
             results.append(result)
@@ -586,7 +586,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             num_fields = len(thermo[irun]['keywords'])
             num_fields_ref = len(thermo_ref[irun]['keywords'])
             if num_fields != num_fields_ref:
-                logger.info(f"     failed: Number of thermo columns in log.lammps ({num_fields})")
+                logger.info(f"     failed: Number of thermo columns in {logfilename} ({num_fields})")
                 logger.info(f"     is different from that in the reference log ({num_fields_ref}) in run {irun}.")
                 mismatched_columns = True
                 continue
@@ -676,6 +676,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(msg)
             #result.status = f"all {num_checks} checks passed."
             num_passed = num_passed + 1
+        else:
+            num_error = num_error + 1
 
         result.status = f"abs_diff_failed: {num_abs_failed}, rel_diff_failed: {num_rel_failed}"
         results.append(result)
@@ -855,8 +857,13 @@ def get_lammps_build_configuration(lmp_binary):
 
 '''
     launch LAMMPS using the configuration defined in the dictionary config with an input file
-    TODO:
-        - generate new reference values if needed
+    return
+       - cmd_str:     the complete command used to launch LAMMPS with the input
+       - stdout:      stdout of the process
+       - stderr:      stderr of the process
+       - errorcode:   error code returned by the process
+       - logfilename: the log file name for the given input
+                      to avoid duplicate writes to log.lammps if multiple workers execute in the same folder
 '''
 def execute(lmp_binary, config, input_file_name, generate_ref=False):
     cmd_str = ""
@@ -879,7 +886,7 @@ def execute(lmp_binary, config, input_file_name, generate_ref=False):
 
     try:
         p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True, timeout=timeout)
-        return cmd_str, p.stdout, p.stderr, p.returncode
+        return cmd_str, p.stdout, p.stderr, p.returncode, logfilename
 
     except subprocess.TimeoutExpired:
         msg = f"     Timeout for: {cmd_str} ({timeout}s expired)"
@@ -887,7 +894,7 @@ def execute(lmp_binary, config, input_file_name, generate_ref=False):
         print(msg)
 
     error_str = f"timeout ({timeout}s expired)"
-    return cmd_str, "", error_str, -1
+    return cmd_str, "", error_str, -1, logfilename
 
 '''
    get the reference walltime by running the lmp_binary with config with an input script in the bench/ folder

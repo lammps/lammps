@@ -2,35 +2,32 @@
 Chemical reactions
 ==================
 
-The five basic types of chemical reactions are combination, decomposition, single-replacement, double-replacement, and combustion :ref:`(LibreTexts) <howto-reaction-LibreTexts>`.
+The five basic types of chemical reactions are combination, decomposition, single-replacement, double-replacement, and combustion :ref:`(LibreTexts) <howto-reaction-LibreTexts>`. Two or more reactants combine to form a product in a *combination reaction*, aka synthesis reaction. One reactant breaks down into two or more products in a *decomposition reaction*. One reactant replaces a similar reactant in a *single-replacement reaction*. Positive and negative ions of two ionic reactants exchange places to form two new products in a *double-replacement reaction*.
 
   .. image:: img/chemical_reactions.svg
     :align: center
     :width: 62%
 
-A combination reaction, also known as a synthesis reaction, is a reaction in which two or more substances combine to form a single new substance. One combination reaction is two elements combining to form a compound. The general form of a combination reaction is
-
-.. math:: A + B \rightarrow AB
-
-For example, solid sodium metal reacts with chlorine gas to product solid sodium chloride
-
-.. math:: 2 Na + Cl_2 \rightarrow 2 NaCl
+..
+  eg. solid sodium metal reacts with chlorine gas to product solid sodium chloride
+  .. math:: 2 Na(s) + Cl_2(g) \rightarrow 2 NaCl(s)
+  where (s) denotes *solid phase* and (g) denotes *gas phase*.
 
 
 ----------
 
 Elementary reaction
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
 An *elementary reaction* is a single step reaction with a single transition state and no intermediates. Elementary reactions add up to complex reactions; non-elementary reactions can be described by multiple elementary reaction steps. A set of elementary reactions comprises a reaction mechanism.
 
 Unimolecular reaction
-"""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^
 
 An elementary *unimolecular reaction* occurs when a molecule rearranges itself to produce one or more products
 
 Bimolecular reaction
-""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^
 
 An elementary *bimolecular reaction* involves the collision of two particles. Bimolecular reactions are common in organic reactions such as nucleophilic substitution. There are two types of bimolecular elementary reactions, either the two reactants are the same:
 
@@ -108,21 +105,21 @@ or the two reactants are different:
 
 
 Termolecular reaction
-"""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^
 
 An elementary *termolecular reaction* requires the collision of three particles at the same place and time. This type of reaction is extremely rare because all three reactants must simultaneously collide with each other, with sufficient energy and correct orientation, to produce a reaction. When a reaction involves three reactant molecules, it is much more likely for it to proceed via multiple steps known as a *reaction mechanism* involving elementary unimolecular and/or bimolecular reaction steps.
 
 ----------
 
 Reaction mechanism
-^^^^^^^^^^^^^^^^^^
+------------------
 
 A valid multi-step *reaction mechanism* consist of a series of unimolecular and/or bimolecular elementary reaction steps. The sum of the reaction steps should agree with the overall balanced reaction equation. A reaction intermediate is transient species within a multi-step reaction mechanism that is produced in the preceding step and consumed in a subsequent step to ultimately generate the final reaction product. Intermediate reactions are common in the biological world; a prime example can be seen in the metabolism of metabolites and nutrients.
 
 
 
 Combustion reaction
-"""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^
 
 A *combustion reaction*, which also qualifies as a combination reaction, is a reaction in which a substance reacts with oxygen gas, releasing energy in the form of light and heat. Combustion reactions must involve O\ :sub:`2`\  as one reactant. The combustion of hydrogen gas produces water vapor:
 
@@ -163,7 +160,7 @@ When ignited, the gas mixture converts to water vapor and releases energy, which
 
 
 Enzyme-substrate reaction
-"""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A reaction mechanism found in all living systems is the *enzyme-substrate reaction*. In this type of reaction, an enzyme binds to a substrate to produce an enzyme-substrate intermediate, which then forms the final product.
 
@@ -175,7 +172,10 @@ A reaction mechanism found in all living systems is the *enzyme-substrate reacti
 
 
 Polymerization reaction
-"""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Nylon6,6
+""""""""
 
 .. admonition:: REACTION example: polymerization of nylon 6,6 :ref:`(Gissinger, 2020) <howto-reaction-Gissinger-2020>`
   :class: Hint
@@ -214,6 +214,34 @@ Polymerization reaction
     :class: code
 
 
+Building a polystyrene chain
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Atoms can be created and inserted at specific positions relative to the reaction site with :doc:`fix bond/react <fix_bond_react>`. The post-reacted molecule template contains a sample of the reaction site and its surrounding topology after the reaction has occurred. It must contain the same number of atoms as the pre-reacted template *(unless there are created atoms)*.
+
+.. admonition:: REACTION example: Building a polystyrene chain :ref:`(Gissinger, 2020) <howto-reaction-Gissinger-2020>`
+  :class: Hint
+
+  ..  youtube:: VHBv_AdIi1s
+    :align: center
+    :width: 62%
+
+  .. literalinclude:: ../../examples/PACKAGES/reaction/create_atoms_polystyrene/in.grow_styrene
+    :caption: **examples/PACKAGES/reaction/create_atoms_polystyrene/in.grow_styrene**
+    :class: code
+    :language: LAMMPS
+
+  .. literalinclude:: ../../examples/PACKAGES/reaction/create_atoms_polystyrene/grow_styrene_pre.molecule_template
+    :caption: **examples/PACKAGES/reaction/create_atoms_polystyrene/grow_styrene_pre.molecule_template**
+    :class: code
+
+  .. literalinclude:: ../../examples/PACKAGES/reaction/create_atoms_polystyrene/grow_styrene_post.molecule_template
+    :caption: **examples/PACKAGES/reaction/create_atoms_polystyrene/grow_styrene_post.molecule_template**
+    :class: code
+
+  .. literalinclude:: ../../examples/PACKAGES/reaction/create_atoms_polystyrene/grow_styrene.map
+    :caption: **examples/PACKAGES/reaction/create_atoms_polystyrene/grow_styrene.map**
+    :class: code
 
 
 

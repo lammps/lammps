@@ -191,7 +191,7 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
 
   Kokkos::parallel_reduce(nlocal, KOKKOS_LAMBDA(const int i, int &l_ncrosstermlist) {
 
-    for (int m = 0; m < d_num_crossterm(i); m++) {
+    for( int m = 0; m < d_num_crossterm(i); m++) {
 
       int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom1(i,m),map_style,k_map_array,k_map_hash);
       int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom2(i,m),map_style,k_map_array,k_map_hash);
@@ -199,17 +199,8 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
       int atom4 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom4(i,m),map_style,k_map_array,k_map_hash);
       int atom5 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom5(i,m),map_style,k_map_array,k_map_hash);
 
-      if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1 || atom5 == -1) {
-
-        //auto error_msg = fmt::format("CMAP atoms {} {} {} {} {} missing on proc {} at step {}",
-        //  d_crossterm_atom1(i,m),d_crossterm_atom2(i,m),d_crossterm_atom3(i,m),
-        //  d_crossterm_atom4(i,m),d_crossterm_atom5(i,m),me,update->ntimestep);
-
-        //Kokkos::abort(error_msg.c_str());
-
+      if( atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1 || atom5 == -1)
         Kokkos::abort("CMAP atoms missing on proc");
-
-      }
 
       atom1 = closest_image(i,atom1);
       atom2 = closest_image(i,atom2);
@@ -217,16 +208,12 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
       atom4 = closest_image(i,atom4);
       atom5 = closest_image(i,atom5);
 
-      if (i <= atom1 && i <= atom2 && i <= atom3 &&
-          i <= atom4 && i <= atom5) {
-
+      if( i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4 && i <= atom5) {
         if (l_ncrosstermlist == maxcrossterm) {
           //maxcrossterm += LISTDELTA;
           //memoryKK->grow_kokkos(k_crosstermlist,crosstermlist,maxcrossterm,CMAPMAX,"cmap:crosstermlist");
           //d_crosstermlist = k_crosstermlist.template view<DeviceType>();
-
           Kokkos::abort("ncrosstermlist == maxcrossterm");
-
         }
         d_crosstermlist(l_ncrosstermlist,0) = atom1;
         d_crosstermlist(l_ncrosstermlist,1) = atom2;
@@ -238,6 +225,8 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
       }
     }
   }, ncrosstermlist);
+
+  std::cerr << fmt::format("*** pre_neighbor ncrosstermlist {} ncmap {}\n",ncrosstermlist, ncmap);
 
 }
 

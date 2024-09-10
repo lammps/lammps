@@ -356,7 +356,7 @@ latex_elements = {
 \DeclareMathSymbol{\Psi}{\mathalpha}{extraops}{"09}
 \DeclareMathSymbol{\Omega}{\mathalpha}{extraops}{"0A}
 
-# ignore sphinx output for youtube and vimeo video in latex
+% ignore sphinx output for youtube and vimeo video in latex
 \newcommand{\sphinxcontribyoutube}[3]{}
 \newcommand{\sphinxcontribvimeo}[3]{}
 

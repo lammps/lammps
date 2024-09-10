@@ -39,6 +39,7 @@ static constexpr double SMALLER =   0.00001;
 template<class DeviceType>
 DihedralOPLSKokkos<DeviceType>::DihedralOPLSKokkos(LAMMPS *lmp) : DihedralOPLS(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -100,7 +101,7 @@ void DihedralOPLSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   newton_bond = force->newton_bond;
 
   h_warning_flag() = 0;
-  k_warning_flag.template modify<LMPHostType>();
+  k_warning_flag.modify_host();
   k_warning_flag.template sync<DeviceType>();
 
   copymode = 1;
@@ -126,7 +127,7 @@ void DihedralOPLSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // error check
 
   k_warning_flag.template modify<DeviceType>();
-  k_warning_flag.template sync<LMPHostType>();
+  k_warning_flag.sync_host();
   if (h_warning_flag())
     error->warning(FLERR,"Dihedral problem");
 
@@ -142,12 +143,12 @@ void DihedralOPLSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   copymode = 0;
@@ -372,10 +373,10 @@ void DihedralOPLSKokkos<DeviceType>::coeff(int narg, char **arg)
     k_k4.h_view[i] = k4[i];
   }
 
-  k_k1.template modify<LMPHostType>();
-  k_k2.template modify<LMPHostType>();
-  k_k3.template modify<LMPHostType>();
-  k_k4.template modify<LMPHostType>();
+  k_k1.modify_host();
+  k_k2.modify_host();
+  k_k3.modify_host();
+  k_k4.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -395,10 +396,10 @@ void DihedralOPLSKokkos<DeviceType>::read_restart(FILE *fp)
     k_k4.h_view[i] = k4[i];
   }
 
-  k_k1.template modify<LMPHostType>();
-  k_k2.template modify<LMPHostType>();
-  k_k3.template modify<LMPHostType>();
-  k_k4.template modify<LMPHostType>();
+  k_k1.modify_host();
+  k_k2.modify_host();
+  k_k3.modify_host();
+  k_k4.modify_host();
 }
 
 /* ----------------------------------------------------------------------

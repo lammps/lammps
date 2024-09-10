@@ -3,9 +3,10 @@
 APP_NAME=lammps-gui
 DESTDIR=${PWD}/LAMMPS_GUI
 SYSROOT="$1"
+VERSION="$2"
 
 echo "Delete old files, if they exist"
-rm -rvf ${DESTDIR}/LAMMPS_GUI ${DESTDIR}/LAMMPS-Win10-amd64.zip
+rm -rvf ${DESTDIR}/LAMMPS_GUI ${DESTDIR}/LAMMPS-Win10-amd64*.zip
 
 echo "Create staging area for deployment and populate"
 DESTDIR=${DESTDIR} cmake --install .  --prefix "/"
@@ -60,5 +61,5 @@ cat > ${DESTDIR}/bin/qt.conf <<EOF
 [Paths]
 Plugins = ../qt5plugins
 EOF
-zip -9rvD LAMMPS-Win10-amd64.zip LAMMPS_GUI
+zip -9rvD LAMMPS-Win10-amd64-${VERSION}.zip LAMMPS_GUI
 

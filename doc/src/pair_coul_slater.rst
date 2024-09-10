@@ -43,7 +43,7 @@ Examples
 Description
 """""""""""
 
-Styles *coul/slater* compute electrostatic interactions in mesoscopic models
+Styles *coul/slater/** compute electrostatic interactions in mesoscopic models
 which employ potentials without explicit excluded-volume interactions.
 The goal is to prevent artificial ionic pair formation by including a charge
 distribution in the Coulomb potential, following the formulation of

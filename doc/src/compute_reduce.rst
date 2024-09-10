@@ -193,7 +193,7 @@ with maximum stretch, you can do it as follows:
    thermo_style custom step temp c_3[1] c_3[2] c_3[3]
 
 The first two input values in the compute reduce command are vectors
-with the IDs of the 2 atoms in each bond, using the
+with the IDs of the two atoms in each bond, using the
 :doc:`compute property/local <compute_property_local>` command.  The last input
 value is bond distance, using the
 :doc:`compute bond/local <compute_bond_local>` command.  Instead of taking the

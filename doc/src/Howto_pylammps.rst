@@ -6,19 +6,22 @@ PyLammps Tutorial
 Overview
 --------
 
-``PyLammps`` is a Python wrapper class for LAMMPS which can be created
-on its own or use an existing lammps Python object.  It creates a simpler,
+:py:class:`PyLammps <lammps.PyLammps>` is a Python wrapper class for
+LAMMPS which can be created on its own or use an existing
+:py:class:`lammps Python <lammps.lammps>` object.  It creates a simpler,
 more "pythonic" interface to common LAMMPS functionality, in contrast to
-the ``lammps`` wrapper for the C-style LAMMPS library interface which
-is written using `Python ctypes <ctypes_>`_.  The ``lammps`` wrapper
-is discussed on the :doc:`Python_head` doc page.
+the :py:class:`lammps <lammps.lammps>` wrapper for the LAMMPS :ref:`C
+language library interface API <lammps_c_api>` which is written using
+`Python ctypes <ctypes_>`_.  The :py:class:`lammps <lammps.lammps>`
+wrapper is discussed on the :doc:`Python_head` doc page.
 
-Unlike the flat ``ctypes`` interface, PyLammps exposes a discoverable
-API.  It no longer requires knowledge of the underlying C++ code
-implementation.  Finally, the ``IPyLammps`` wrapper builds on top of
-``PyLammps`` and adds some additional features for
-`IPython integration <ipython_>`_ into `Jupyter notebooks <jupyter_>`_,
-e.g. for embedded visualization output from :doc:`dump style image <dump_image>`.
+Unlike the flat `ctypes <ctypes_>`_ interface, PyLammps exposes a
+discoverable API.  It no longer requires knowledge of the underlying C++
+code implementation.  Finally, the :py:class:`IPyLammps
+<lammps.IPyLammps>` wrapper builds on top of :py:class:`PyLammps
+<lammps.PyLammps>` and adds some additional features for `IPython
+integration <ipython_>`_ into `Jupyter notebooks <jupyter_>`_, e.g. for
+embedded visualization output from :doc:`dump style image <dump_image>`.
 
 .. _ctypes: https://docs.python.org/3/library/ctypes.html
 .. _ipython: https://ipython.org/
@@ -30,19 +33,24 @@ Comparison of lammps and PyLammps interfaces
 lammps.lammps
 """""""""""""
 
-* uses ``ctypes``
-* direct memory access to native C++ data
+* uses `ctypes <ctypes_>`_
+* direct memory access to native C++ data with optional support for NumPy arrays
 * provides functions to send and receive data to LAMMPS
+* interface modeled after the LAMMPS :ref:`C language library interface API <lammps_c_api>`
 * requires knowledge of how LAMMPS internally works (C pointers, etc)
+* full support for running Python with MPI using `mpi4py <https://mpi4py.readthedocs.io>`_
+* no overhead from creating a more Python-like interface
 
 lammps.PyLammps
 """""""""""""""
 
-* higher-level abstraction built on top of original ctypes interface
+* higher-level abstraction built on *top* of the original :py:class:`ctypes based interface <lammps.lammps>`
 * manipulation of Python objects
 * communication with LAMMPS is hidden from API user
 * shorter, more concise Python
 * better IPython integration, designed for quick prototyping
+* designed for serial execution
+* additional overhead from capturing and parsing the LAMMPS screen output
 
 Quick Start
 -----------
@@ -506,14 +514,26 @@ inside of the IPython notebook.
 Using PyLammps and mpi4py (Experimental)
 ----------------------------------------
 
-PyLammps can be run in parallel using mpi4py. This python package can be installed using
+PyLammps can be run in parallel using `mpi4py
+<https://mpi4py.readthedocs.io>`_. This python package can be installed
+using
 
 .. code-block:: bash
 
    pip install mpi4py
 
-The following is a short example which reads in an existing LAMMPS input file and
-executes it in parallel.  You can find in.melt in the examples/melt folder.
+.. warning::
+
+   Usually, any :py:class:`PyLammps <lammps.PyLammps>` command must be
+   executed by *all* MPI processes. However, evaluations and querying
+   the system state is only available on MPI rank 0.  Using these
+   functions from other MPI ranks will raise an exception.
+
+The following is a short example which reads in an existing LAMMPS input
+file and executes it in parallel.  You can find in.melt in the
+examples/melt folder.  Please take note that the
+:py:meth:`PyLammps.eval() <lammps.PyLammps.eval>` is called only from
+MPI rank 0.
 
 .. code-block:: python
 
@@ -534,10 +554,6 @@ following mpirun command:
 .. code-block:: bash
 
    mpirun -np 4 python melt.py
-
-.. warning::
-
-   Any command must be executed by all MPI processes. However, evaluations and querying the system state is only available on rank 0.
 
 Feedback and Contributing
 -------------------------

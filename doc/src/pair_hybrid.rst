@@ -479,11 +479,12 @@ For the hybrid pair styles, the list of sub-styles and their respective
 settings are written to :doc:`binary restart files <restart>`, so a
 :doc:`pair_style <pair_style>` command does not need to specified in an
 input script that reads a restart file.  However, the coefficient
-information is not stored in the restart file.  Thus, pair_coeff
-commands need to be re-specified in the restart input script.  For pair
-style *hybrid/scaled* also the names of any variables used as scale
-factors are restored, but not the variables themselves, so those may
-need to be redefined when continuing from a restart.
+information is not stored in the restart file.  The same is true for
+:doc:`data files <write_data>`.  Thus, pair_coeff commands need to be
+re-specified in the restart input script.  For pair style
+*hybrid/scaled* also the names of any variables used as scale factors
+are restored, but not the variables themselves, so those may need to be
+redefined when continuing from a restart.
 
 These pair styles support the use of the *inner*, *middle*, and
 *outer* keywords of the :doc:`run_style respa <run_style>` command, if

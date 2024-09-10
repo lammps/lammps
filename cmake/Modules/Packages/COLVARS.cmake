@@ -24,6 +24,12 @@ target_include_directories(colvars PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/colvars)
 target_include_directories(colvars PRIVATE ${LAMMPS_SOURCE_DIR})
 target_link_libraries(lammps PRIVATE colvars)
 
+if(BUILD_OMP)
+  # Enable OpenMP for Colvars as well
+  target_compile_options(colvars PRIVATE ${OpenMP_CXX_FLAGS})
+  target_link_libraries(colvars PRIVATE OpenMP::OpenMP_CXX)
+endif()
+
 if(COLVARS_DEBUG)
   # Need to export the define publicly to be valid in interface code
   target_compile_definitions(colvars PUBLIC -DCOLVARS_DEBUG)

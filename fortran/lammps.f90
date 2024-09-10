@@ -113,6 +113,8 @@ MODULE LIBLAMMPS
     PROCEDURE :: get_mpi_comm           => lmp_get_mpi_comm
     PROCEDURE :: extract_setting        => lmp_extract_setting
     PROCEDURE :: extract_global         => lmp_extract_global
+    PROCEDURE :: extract_pair_dimension => lmp_extract_pair_dimension
+    PROCEDURE :: extract_pair           => lmp_extract_pair
     PROCEDURE, PRIVATE :: lmp_map_atom_int
     PROCEDURE, PRIVATE :: lmp_map_atom_big
     GENERIC :: map_atom               => lmp_map_atom_int, lmp_map_atom_big
@@ -194,6 +196,7 @@ MODULE LIBLAMMPS
     PROCEDURE, NOPASS :: config_has_jpeg_support => lmp_config_has_jpeg_support
     PROCEDURE, NOPASS :: config_has_ffmpeg_support &
                                         => lmp_config_has_ffmpeg_support
+    PROCEDURE, NOPASS :: config_has_curl_support => lmp_config_has_curl_support
     PROCEDURE, NOPASS :: config_has_exceptions => lmp_config_has_exceptions
     PROCEDURE, NOPASS :: config_has_package => lmp_config_has_package
     PROCEDURE, NOPASS :: config_package_count => lammps_config_package_count
@@ -511,6 +514,20 @@ MODULE LIBLAMMPS
       TYPE(c_ptr) :: lammps_extract_global
     END FUNCTION lammps_extract_global
 
+    FUNCTION lammps_extract_pair_dimension(handle,name) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle, name
+      INTEGER(c_int) :: lammps_extract_pair_dimension
+    END FUNCTION lammps_extract_pair_dimension
+
+    FUNCTION lammps_extract_pair(handle, name) BIND(C)
+      IMPORT :: c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle, name
+      TYPE(c_ptr) :: lammps_extract_pair
+    END FUNCTION lammps_extract_pair
+
     FUNCTION lammps_map_atom(handle, tag) BIND(C)
       IMPORT :: c_ptr, c_int
       IMPLICIT NONE
@@ -524,6 +541,14 @@ MODULE LIBLAMMPS
       TYPE(c_ptr), INTENT(IN), VALUE :: handle, name
       INTEGER(c_int) :: lammps_extract_atom_datatype
     END FUNCTION lammps_extract_atom_datatype
+
+    FUNCTION lammps_extract_atom_size(handle, name, dtype) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle, name
+      INTEGER(c_int), INTENT(IN), VALUE :: dtype
+      INTEGER(c_int) :: lammps_extract_atom_size
+    END FUNCTION lammps_extract_atom_size
 
     FUNCTION lammps_extract_atom(handle, name) BIND(C)
       IMPORT :: c_ptr
@@ -776,6 +801,12 @@ MODULE LIBLAMMPS
       IMPLICIT NONE
       INTEGER(c_int) :: lammps_config_has_ffmpeg_support
     END FUNCTION lammps_config_has_ffmpeg_support
+
+    FUNCTION lammps_config_has_curl_support() BIND(C)
+      IMPORT :: c_int
+      IMPLICIT NONE
+      INTEGER(c_int) :: lammps_config_has_curl_support
+    END FUNCTION lammps_config_has_curl_support
 
     FUNCTION lammps_config_has_exceptions() BIND(C)
       IMPORT :: c_int
@@ -1333,6 +1364,59 @@ CONTAINS
     END SELECT
   END FUNCTION
 
+  ! equivalent function to lammps_extract_pair_dimension
+  FUNCTION lmp_extract_pair_dimension(self, name) RESULT(dim)
+    CLASS(lammps), INTENT(IN), TARGET :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int) :: dim
+    TYPE(c_ptr) :: Cname
+
+    Cname = f2c_string(name)
+    dim = lammps_extract_pair_dimension(self%handle, Cname)
+    CALL lammps_free(Cname)
+  END FUNCTION
+
+  ! equivalent function to lammps_extract_pair
+  ! the assignment is actually overloaded so as to bind the pointers to
+  ! lammps data based on the information available from LAMMPS
+  FUNCTION lmp_extract_pair(self, name) RESULT(pair_data)
+    CLASS(lammps), INTENT(IN), TARGET :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    TYPE(lammps_data) :: pair_data
+    INTEGER(c_int) :: dim
+    TYPE(c_ptr) :: Cname, Cptr
+    TYPE(c_ptr), DIMENSION(:), POINTER :: Carrayptr
+    INTEGER(c_size_t) :: length
+
+    ! Determine extracted arrays length and dimension
+    length = lmp_extract_setting(self, 'ntypes') + 1
+
+    Cname = f2c_string(name)
+    dim = lammps_extract_pair_dimension(self%handle, Cname)
+      ! above could be c_null_ptr in place of self%handle...doesn't matter
+    Cptr = lammps_extract_pair(self%handle, Cname)
+    CALL lammps_free(Cname)
+
+    pair_data%lammps_instance => self
+    SELECT CASE (dim)
+      CASE (0)
+        pair_data%datatype = DATA_DOUBLE
+        CALL C_F_POINTER(Cptr, pair_data%r64)
+      CASE (1)
+        pair_data%datatype = DATA_DOUBLE_1D
+        CALL C_F_POINTER(Cptr, pair_data%r64_vec, [length])
+      CASE (2)
+        pair_data%datatype = DATA_DOUBLE_2D
+        ! First, we dereference the void** pointer to point to the void*
+        CALL C_F_POINTER(Cptr, Carrayptr, [length])
+        ! Catomptr(1) now points to the first element of the array
+        CALL C_F_POINTER(Carrayptr(1), pair_data%r64_mat, [length, length])
+      CASE DEFAULT
+        CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+          'Unsupported dimension or unknown property name in extract_pair')
+    END SELECT
+  END FUNCTION
+
   ! equivalent function to lammps_map_atom (for 32-bit integer tags)
   INTEGER FUNCTION lmp_map_atom_int(self, id)
     CLASS(lammps), INTENT(IN) :: self
@@ -1359,7 +1443,7 @@ CONTAINS
     IF (SIZE_TAGINT == 8) THEN
         Cptr = C_LOC(id)
     ELSE
-        id32 = id
+        id32 = INT(id, c_int)
         Cptr = C_LOC(id32)
     END IF
     lmp_map_atom_big = lammps_map_atom(self%handle, Cptr) + 1
@@ -1385,43 +1469,35 @@ CONTAINS
     ntypes = lmp_extract_setting(self, 'ntypes')
     Cname = f2c_string(name)
     datatype = lammps_extract_atom_datatype(self%handle, Cname)
+    nrows = lammps_extract_atom_size(self%handle, Cname, LMP_SIZE_ROWS)
+    ncols = lammps_extract_atom_size(self%handle, Cname, LMP_SIZE_COLS)
     Cptr = lammps_extract_atom(self%handle, Cname)
     CALL lammps_free(Cname)
-
-    SELECT CASE (name)
-      CASE ('mass')
-        ncols = ntypes + 1
-        nrows = 1
-      CASE ('x','v','f','mu','omega','torque','angmom')
-        ncols = nmax
-        nrows = 3
-      CASE DEFAULT
-        ncols = nmax
-        nrows = 1
-    END SELECT
 
     peratom_data%lammps_instance => self
     SELECT CASE (datatype)
       CASE (LAMMPS_INT)
         peratom_data%datatype = DATA_INT_1D
-        CALL C_F_POINTER(Cptr, peratom_data%i32_vec, [ncols])
+        CALL C_F_POINTER(Cptr, peratom_data%i32_vec, [nrows])
       CASE (LAMMPS_INT64)
         peratom_data%datatype = DATA_INT64_1D
-        CALL C_F_POINTER(Cptr, peratom_data%i64_vec, [ncols])
+        CALL C_F_POINTER(Cptr, peratom_data%i64_vec, [nrows])
       CASE (LAMMPS_DOUBLE)
         peratom_data%datatype = DATA_DOUBLE_1D
+        ! The mass array is allocated from 0, but only used from 1. We also want to use it from 1.
         IF (name == 'mass') THEN
-          CALL C_F_POINTER(Cptr, dummy, [ncols])
+          CALL C_F_POINTER(Cptr, dummy, [nrows])
           peratom_data%r64_vec(0:) => dummy
         ELSE
-          CALL C_F_POINTER(Cptr, peratom_data%r64_vec, [ncols])
+          CALL C_F_POINTER(Cptr, peratom_data%r64_vec, [nrows])
         END IF
       CASE (LAMMPS_DOUBLE_2D)
         peratom_data%datatype = DATA_DOUBLE_2D
         ! First, we dereference the void** pointer to point to the void*
-        CALL C_F_POINTER(Cptr, Catomptr, [ncols])
+        CALL C_F_POINTER(Cptr, Catomptr, [nrows])
         ! Catomptr(1) now points to the first element of the array
-        CALL C_F_POINTER(Catomptr(1), peratom_data%r64_mat, [nrows,ncols])
+        ! rows and columns are swapped in Fortran
+        CALL C_F_POINTER(Catomptr(1), peratom_data%r64_mat, [ncols,nrows])
       CASE (-1)
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
           'per-atom property ' // name // ' not found in extract_setting')
@@ -2528,6 +2604,8 @@ CONTAINS
     TYPE(c_ptr) :: Cid, Ctype, Cx, Cv, Cimage
     INTEGER(c_int) :: tagint_size, atoms_created
 
+    Ctype = c_null_ptr
+    Cx = c_null_ptr
     ! type is actually NOT optional, but we can't make id optional without it,
     ! so we check at run-time
     IF (.NOT. PRESENT(type)) THEN
@@ -2811,6 +2889,14 @@ CONTAINS
     has_ffmpeg_support = lammps_config_has_ffmpeg_support()
     lmp_config_has_ffmpeg_support = (has_ffmpeg_support /= 0_c_int)
   END FUNCTION lmp_config_has_ffmpeg_support
+
+  ! equivalent function to lammps_config_has_curl_support
+  LOGICAL FUNCTION lmp_config_has_curl_support()
+    INTEGER(c_int) :: has_curl_support
+
+    has_curl_support = lammps_config_has_curl_support()
+    lmp_config_has_curl_support = (has_curl_support /= 0_c_int)
+  END FUNCTION lmp_config_has_curl_support
 
   ! equivalent function to lammps_config_has_exceptions
   LOGICAL FUNCTION lmp_config_has_exceptions()

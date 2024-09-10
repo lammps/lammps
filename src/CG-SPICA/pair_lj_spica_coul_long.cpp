@@ -55,6 +55,8 @@ PairLJSPICACoulLong::PairLJSPICACoulLong(LAMMPS *lmp) :
 
 PairLJSPICACoulLong::~PairLJSPICACoulLong()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(lj_type);
@@ -356,7 +358,7 @@ void PairLJSPICACoulLong::coeff(int narg, char **arg)
 
 void PairLJSPICACoulLong::init_style()
 {
-  if (!atom->q_flag) error->all(FLERR, "Pair style lj/cut/coul/long requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR, "Pair style lj/spica/coul/long requires atom attribute q");
 
   neighbor->add_request(this);
 
@@ -385,7 +387,8 @@ double PairLJSPICACoulLong::init_one(int i, int j)
 
   const int ljt = lj_type[i][j];
 
-  if (ljt == LJ_NOT_SET) error->all(FLERR, "unrecognized LJ parameter flag");
+  if (ljt == LJ_NOT_SET)
+    error->all(FLERR,"unrecognized LJ parameter flag");
 
   double cut = MAX(cut_lj[i][j], cut_coul);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];

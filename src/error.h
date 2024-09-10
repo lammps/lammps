@@ -14,8 +14,8 @@
 #ifndef LMP_ERROR_H
 #define LMP_ERROR_H
 
-#include "pointers.h"
 #include "exceptions.h"
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -29,14 +29,14 @@ class Error : protected Pointers {
 
   [[noreturn]] void all(const std::string &, int, const std::string &);
   template <typename... Args>
-  void all(const std::string &file, int line, const std::string &format, Args &&...args)
+  [[noreturn]] void all(const std::string &file, int line, const std::string &format, Args &&...args)
   {
     _all(file, line, format, fmt::make_format_args(args...));
   }
 
   [[noreturn]] void one(const std::string &, int, const std::string &);
   template <typename... Args>
-  void one(const std::string &file, int line, const std::string &format, Args &&...args)
+  [[noreturn]] void one(const std::string &file, int line, const std::string &format, Args &&...args)
   {
     _one(file, line, format, fmt::make_format_args(args...));
   }

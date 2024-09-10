@@ -25,7 +25,7 @@ There are two ways to implement TIP4P water in LAMMPS:
 
    This can be done with the following pair styles for Coulomb with a cutoff:
 
-   * :doc:`pair_style tip4p/cut <pair_lj_cut_tip4p>`
+   * :doc:`pair_style tip4p/cut <pair_coul>`
    * :doc:`pair_style lj/cut/tip4p/cut <pair_lj_cut_tip4p>`
 
    or these commands for a long-range Coulomb treatment:
@@ -70,9 +70,9 @@ parameters adjusted for use with a long-range Coulombic solver
 OM distance is specified in the :doc:`pair_style <pair_style>` command,
 not as part of the pair coefficients.
 
-   .. list-table::
+.. list-table::
       :header-rows: 1
-      :widths: auto
+      :widths: 36 19 13 15 17
 
       * - Parameter
         - TIP4P (original)

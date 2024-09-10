@@ -94,7 +94,8 @@ bool StdCapture::EndCapture()
             buf[bytesRead] = 0;
             m_captured += buf;
         } else if (bytesRead < 0) {
-            fd_blocked = ((errno == EAGAIN) || (errno == EWOULDBLOCK) || (errno == EINTR)) && (maxwait > 0);
+            fd_blocked =
+                ((errno == EAGAIN) || (errno == EWOULDBLOCK) || (errno == EINTR)) && (maxwait > 0);
 
             if (fd_blocked) std::this_thread::sleep_for(std::chrono::milliseconds(10));
             --maxwait;

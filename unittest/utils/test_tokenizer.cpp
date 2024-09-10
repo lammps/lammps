@@ -11,10 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fmt/format.h"
 #include "lmptype.h"
 #include "tokenizer.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
+#include <cstdint>
 
 using namespace LAMMPS_NS;
 using ::testing::Eq;
@@ -173,6 +176,49 @@ TEST(Tokenizer, default_separators)
     ASSERT_EQ(t.count(), 2);
 }
 
+TEST(Tokenizer, contains)
+{
+    Tokenizer values("test word");
+    ASSERT_TRUE(values.contains("test"));
+    ASSERT_TRUE(values.contains("word"));
+    values = Tokenizer("Triangles");
+    ASSERT_TRUE(values.contains("angles"));
+    ASSERT_TRUE(values.contains("Triangles"));
+}
+
+TEST(Tokenizer, not_contains)
+{
+    Tokenizer values("test word");
+    ASSERT_FALSE(values.contains("test2"));
+}
+
+TEST(Tokenizer, matches)
+{
+    Tokenizer values("test word");
+    ASSERT_TRUE(values.matches("test"));
+    ASSERT_TRUE(values.matches("^test"));
+    ASSERT_TRUE(values.matches("word"));
+    ASSERT_TRUE(values.matches("word$"));
+    ASSERT_TRUE(values.matches("^\\s*\\S+\\s+word"));
+    values = Tokenizer("Triangles");
+    ASSERT_TRUE(values.matches("^\\s*Triangles\\s*$"));
+    values = Tokenizer("\t20\tatoms");
+    ASSERT_TRUE(values.matches("^\\s*\\d+\\s+atoms\\s*$"));
+}
+
+TEST(Tokenizer, not_matches)
+{
+    Tokenizer values("test word");
+    ASSERT_FALSE(values.matches("test2"));
+    ASSERT_FALSE(values.matches("^word"));
+    ASSERT_FALSE(values.matches("^ "));
+    ASSERT_FALSE(values.matches(" $"));
+    values = Tokenizer("Triangles");
+    ASSERT_FALSE(values.matches("^\\s*\\S+\\s+angles"));
+    values = Tokenizer("\t0x20\tatoms");
+    ASSERT_FALSE(values.matches("^\\s*\\d+\\s+atoms\\s*$"));
+}
+
 TEST(Tokenizer, as_vector1)
 {
     Tokenizer t(" \r\n test \t word \f");
@@ -291,46 +337,73 @@ TEST(ValueTokenizer, move_assignment)
 
 TEST(ValueTokenizer, bad_integer)
 {
-    ValueTokenizer values("f10 f11 f12");
+    ValueTokenizer values("f10 f11 f12 0xff 109951162777 "
+                          "36893488147419103232 36893488147419103232");
     ASSERT_THROW(values.next_int(), InvalidIntegerException);
     ASSERT_THROW(values.next_bigint(), InvalidIntegerException);
     ASSERT_THROW(values.next_tagint(), InvalidIntegerException);
+    ASSERT_THROW(values.next_int(), InvalidIntegerException);
+    ASSERT_THROW(values.next_int(), InvalidIntegerException);
+    ASSERT_THROW(values.next_tagint(), InvalidIntegerException);
+    ASSERT_THROW(values.next_bigint(), InvalidIntegerException);
 }
 
 TEST(ValueTokenizer, bad_double)
 {
-    ValueTokenizer values("1a.0");
+    ValueTokenizer values("1a.0 --2.0 2.4d3 -1e20000 1.0e-1.0");
+    ASSERT_THROW(values.next_double(), InvalidFloatException);
+    ASSERT_THROW(values.next_double(), InvalidFloatException);
+    ASSERT_THROW(values.next_double(), InvalidFloatException);
+    ASSERT_THROW(values.next_double(), InvalidFloatException);
     ASSERT_THROW(values.next_double(), InvalidFloatException);
 }
 
 TEST(ValueTokenizer, valid_int)
 {
-    ValueTokenizer values("10");
+    ValueTokenizer values(fmt::format("10 {} {}", -MAXSMALLINT - 1, MAXSMALLINT));
     ASSERT_EQ(values.next_int(), 10);
+    ASSERT_EQ(values.next_int(), -MAXSMALLINT - 1);
+    ASSERT_EQ(values.next_int(), MAXSMALLINT);
 }
 
 TEST(ValueTokenizer, valid_tagint)
 {
-    ValueTokenizer values("42");
+    ValueTokenizer values(
+        fmt::format("42 {} {} {} {}", -MAXSMALLINT - 1, MAXSMALLINT, -MAXTAGINT - 1, MAXTAGINT));
     ASSERT_EQ(values.next_tagint(), 42);
+    ASSERT_EQ(values.next_tagint(), -MAXSMALLINT - 1);
+    ASSERT_EQ(values.next_tagint(), MAXSMALLINT);
+    ASSERT_EQ(values.next_tagint(), -MAXTAGINT - 1);
+    ASSERT_EQ(values.next_tagint(), MAXTAGINT);
 }
 
 TEST(ValueTokenizer, valid_bigint)
 {
-    ValueTokenizer values("42");
+    ValueTokenizer values(
+        fmt::format("42 {} {} {} {}", -MAXSMALLINT - 1, MAXSMALLINT, -MAXBIGINT - 1, MAXBIGINT));
     ASSERT_EQ(values.next_bigint(), 42);
+    ASSERT_EQ(values.next_bigint(), -MAXSMALLINT - 1);
+    ASSERT_EQ(values.next_bigint(), MAXSMALLINT);
+    ASSERT_EQ(values.next_bigint(), -MAXBIGINT - 1);
+    ASSERT_EQ(values.next_bigint(), MAXBIGINT);
 }
 
 TEST(ValueTokenizer, valid_double)
 {
-    ValueTokenizer values("3.14");
+    ValueTokenizer values("3.14 -0.00002 .1 0xff " + std::to_string(MAXBIGINT));
     ASSERT_DOUBLE_EQ(values.next_double(), 3.14);
+    ASSERT_DOUBLE_EQ(values.next_double(), -0.00002);
+    ASSERT_DOUBLE_EQ(values.next_double(), 0.1);
+    ASSERT_DOUBLE_EQ(values.next_double(), 255);
+    ASSERT_DOUBLE_EQ(values.next_double(), MAXBIGINT);
 }
 
 TEST(ValueTokenizer, valid_double_with_exponential)
 {
-    ValueTokenizer values("3.14e22");
+    ValueTokenizer values(fmt::format("3.14e22 {} {}", DBL_MAX, DBL_MIN));
     ASSERT_DOUBLE_EQ(values.next_double(), 3.14e22);
+    ASSERT_DOUBLE_EQ(values.next_double(), DBL_MAX);
+    ASSERT_DOUBLE_EQ(values.next_double(), DBL_MIN);
 }
 
 TEST(ValueTokenizer, contains)
@@ -338,12 +411,42 @@ TEST(ValueTokenizer, contains)
     ValueTokenizer values("test word");
     ASSERT_TRUE(values.contains("test"));
     ASSERT_TRUE(values.contains("word"));
+    values = ValueTokenizer("Triangles");
+    ASSERT_TRUE(values.contains("angles"));
+    ASSERT_TRUE(values.contains("Triangles"));
 }
 
 TEST(ValueTokenizer, not_contains)
 {
     ValueTokenizer values("test word");
     ASSERT_FALSE(values.contains("test2"));
+}
+
+TEST(ValueTokenizer, matches)
+{
+    ValueTokenizer values("test word");
+    ASSERT_TRUE(values.matches("test"));
+    ASSERT_TRUE(values.matches("^test"));
+    ASSERT_TRUE(values.matches("word"));
+    ASSERT_TRUE(values.matches("word$"));
+    ASSERT_TRUE(values.matches("^\\s*\\S+\\s+word"));
+    values = ValueTokenizer("Triangles");
+    ASSERT_TRUE(values.matches("^\\s*Triangles\\s*$"));
+    values = ValueTokenizer("\t20\tatoms");
+    ASSERT_TRUE(values.matches("^\\s*\\d+\\s+atoms\\s*$"));
+}
+
+TEST(ValueTokenizer, not_matches)
+{
+    ValueTokenizer values("test word");
+    ASSERT_FALSE(values.matches("test2"));
+    ASSERT_FALSE(values.matches("^word"));
+    ASSERT_FALSE(values.matches("^ "));
+    ASSERT_FALSE(values.matches(" $"));
+    values = ValueTokenizer("Triangles");
+    ASSERT_FALSE(values.matches("^\\s*\\S+\\s+angles"));
+    values = ValueTokenizer("\t0x20\tatoms");
+    ASSERT_FALSE(values.matches("^\\s*\\d+\\s+atoms\\s*$"));
 }
 
 TEST(ValueTokenizer, missing_int)

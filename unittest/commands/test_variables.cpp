@@ -287,6 +287,7 @@ TEST_F(VariableTest, AtomicSystem)
     ASSERT_DOUBLE_EQ(variable->compute_equal("f_press[1]"), 0.0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("c_press"), 0.0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("c_press[2]"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("c_press[1+1]"), 0.0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("1.5+3.25"), 4.75);
     ASSERT_DOUBLE_EQ(variable->compute_equal("-2.5*1.5"), -3.75);
 
@@ -302,8 +303,18 @@ TEST_F(VariableTest, AtomicSystem)
                  variable->compute_equal("v_self"););
     TEST_FAILURE(".*ERROR: Variable sum2: Inconsistent lengths in vector-style variable.*",
                  variable->compute_equal("max(v_sum2)"););
-    TEST_FAILURE("ERROR: Mismatched fix in variable formula.*",
+    TEST_FAILURE(".*ERROR: Mismatched fix in variable formula.*",
                  variable->compute_equal("f_press"););
+    TEST_FAILURE(".*ERROR .*Variable formula compute vector is accessed out-of-range.*",
+                 variable->compute_equal("c_press[10]"););
+    TEST_FAILURE(".*ERROR: Non digit character between brackets in variable.*",
+                 variable->compute_equal("c_press[axy]"););
+    TEST_FAILURE(".*ERROR: Illegal value in brackets: stoll.*",
+                 variable->compute_equal("c_press[73786976294838206464]"););
+    TEST_FAILURE(".*ERROR: Index between variable brackets must be positive.*",
+                 variable->compute_equal("c_press[-2]"););
+    TEST_FAILURE(".*ERROR: Index between variable brackets must be positive.*",
+                 variable->compute_equal("c_press[0]"););
 }
 
 TEST_F(VariableTest, Expressions)
@@ -389,8 +400,9 @@ TEST_F(VariableTest, Expressions)
                  command("print \"${err2}\""););
     TEST_FAILURE(".*ERROR on proc 0: Variable err3: Invalid power expression in variable formula.*",
                  command("print \"${err3}\""););
-    TEST_FAILURE(".*ERROR: Variable one: Mis-matched special function variable in variable formula.*",
-                 command("print \"${isrt}\""););
+    TEST_FAILURE(
+        ".*ERROR: Variable one: Mis-matched special function variable in variable formula.*",
+        command("print \"${isrt}\""););
     TEST_FAILURE(".*ERROR: Variable vec4: index 11 exceeds vector size of 10.*",
                  command("print \"${xxxl}\""););
 }

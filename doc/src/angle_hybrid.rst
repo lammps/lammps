@@ -1,7 +1,10 @@
 .. index:: angle_style hybrid
+.. index:: angle_style hybrid/kk
 
 angle_style hybrid command
 ==========================
+
+Accelerator Variants: *hybrid/kk*
 
 Syntax
 """"""
@@ -79,6 +82,10 @@ for specific angle types.
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Restrictions
 """"""""""""
 
@@ -87,8 +94,9 @@ MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
 for more info.
 
 Unlike other angle styles, the hybrid angle style does not store angle
-coefficient info for individual sub-styles in a :doc:`binary restart files <restart>`.  Thus when restarting a simulation from a restart
-file, you need to re-specify :doc:`angle_coeff <angle_coeff>` commands.
+coefficient info for individual sub-styles in :doc:`binary restart files
+<restart>` or :doc:`data files <write_data>`.  Thus when restarting a
+simulation, you need to re-specify the angle_coeff commands.
 
 Related commands
 """"""""""""""""

@@ -286,7 +286,7 @@ void PairQUIP::coeff(int narg, char **arg)
   // and returns the necessary size of quip_potential. This behavior
   // is invoked by setting n_potential_quip to 0.
   n_quip_potential = 0;
-  quip_potential = new int[0];
+  quip_potential = new int[1];
   quip_lammps_potential_initialise(quip_potential, &n_quip_potential, &cutoff, quip_file,
                                    &n_quip_file, quip_string, &n_quip_string);
   delete[] quip_potential;

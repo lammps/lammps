@@ -61,8 +61,14 @@ public:
   /// Set the current target temperature of the simulation (K units)
   virtual int set_target_temperature(cvm::real T);
 
-  /// \brief Time step of the simulation (fs)
-  virtual cvm::real dt();
+  /// Time step of the simulation (fs units)
+  inline double dt() const
+  {
+    return timestep_;
+  }
+
+  /// Set the current integration timestep of the simulation (fs units)
+  virtual int set_integration_timestep(cvm::real dt);
 
   /// \brief Pseudo-random number with Gaussian distribution
   virtual cvm::real rand_gaussian(void);
@@ -137,8 +143,11 @@ protected:
   /// Boltzmann constant in internal Colvars units
   cvm::real boltzmann_;
 
-  /// Most up to date target temperature for the system (in K)
+  /// Most up to date target temperature (K units); default to 0.0 if undefined
   cvm::real target_temperature_;
+
+  /// Current integration timestep (engine units); default to 1.0 if undefined
+  double timestep_;
 
   /// \brief Value of 1 Angstrom in the internal (front-end) Colvars unit for atomic coordinates
   /// * defaults to 0 in the base class; derived proxy classes must set it

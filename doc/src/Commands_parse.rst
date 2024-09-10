@@ -42,8 +42,8 @@ LAMMPS:
    If the $ is followed by text in curly brackets '{}', then the
    variable name is the text inside the curly brackets.  If no curly
    brackets follow the $, then the variable name is the single character
-   immediately following the $.  Thus ${myTemp} and $x refer to variables
-   named "myTemp" and "x", while "$xx" will be interpreted as a variable
+   immediately following the $.  Thus ``${myTemp}`` and ``$x`` refer to variables
+   named "myTemp" and "x", while ``$xx`` will be interpreted as a variable
    named "x" followed by an "x" character.
 
    How the variable is converted to a text string depends on what style
@@ -79,10 +79,10 @@ LAMMPS:
 
    Additionally, the entire "immediate" variable expression may be
    followed by a colon, followed by a C-style format string,
-   e.g. ":%f" or ":%.10g".  The format string must be appropriate for
+   e.g. ``:%f`` or ``:%.10g``.  The format string must be appropriate for
    a double-precision floating-point value.  The format string is used
    to output the result of the variable expression evaluation.  If a
-   format string is not specified, a high-precision "%.20g" is used as
+   format string is not specified, a high-precision ``%.20g`` is used as
    the default format.
 
    This can be useful for formatting print output to a desired precision:
@@ -101,8 +101,8 @@ LAMMPS:
       variable        b2 equal 4
       print           "B2 = ${b$a}"
 
-   Nor can you specify an expression like "$($x-1.0)" for an immediate
-   variable, but you could use $(v_x-1.0), since the latter is valid
+   Nor can you specify an expression like ``$($x-1.0)`` for an immediate
+   variable, but you could use ``$(v_x-1.0)``, since the latter is valid
    syntax for an :doc:`equal-style variable <variable>`.
 
    See the :doc:`variable <variable>` command for more details of how

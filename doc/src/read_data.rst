@@ -12,7 +12,7 @@ Syntax
 
 * file = name of data file to read in
 * zero or more keyword/arg pairs may be appended
-* keyword = *add* or *offset* or *shift* or *extra/atom/types* or *extra/bond/types* or *extra/angle/types* or *extra/dihedral/types* or *extra/improper/types* or *extra/bond/per/atom* or *extra/angle/per/atom* or *extra/dihedral/per/atom* or *extra/improper/per/atom* or *group* or *nocoeff* or *fix*
+* keyword = *add* or *offset* or *shift* or *extra/atom/types* or *extra/bond/types* or *extra/angle/types* or *extra/dihedral/types* or *extra/improper/types* or *extra/bond/per/atom* or *extra/angle/per/atom* or *extra/dihedral/per/atom* or *extra/improper/per/atom* or *extra/special/per/atom* or *group* or *nocoeff* or *fix*
 
   .. parsed-literal::
 
@@ -750,7 +750,7 @@ example:
 
        2 2 17 29 430
 
-The 3 atoms are ordered linearly within the angle.  Thus the central
+The three atoms are ordered linearly within the angle.  Thus the central
 atom (around which the angle is computed) is the atom2 in the list.
 E.g. H,O,H for a water molecule.  The *Angles* section must appear
 after the *Atoms* section.
@@ -859,6 +859,10 @@ of analysis.
      - atom-ID molecule-ID atom-type x y z
    * - peri
      - atom-ID atom-type volume density x y z
+   * - rheo
+     - atom-ID atom-type status rho x y z
+   * - rheo/thermal
+     - atom-ID atom-type status rho energy x y z
    * - smd
      - atom-ID atom-type molecule volume mass kradius cradius x0 y0 z0 x y z
    * - sph

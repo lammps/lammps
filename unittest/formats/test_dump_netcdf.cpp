@@ -91,8 +91,8 @@ public:
 TEST_F(DumpNetCDFTest, run0_plain)
 {
     if (!lammps_has_style(lmp, "dump", "netcdf")) GTEST_SKIP();
-    auto dump_file = dump_filename("run0");
-    auto fields    = "id type proc procp1 mass x y z ix iy iz xu yu zu vx vy vz fx fy fz";
+    auto dump_file     = dump_filename("run0");
+    const auto *fields = "id type proc procp1 mass x y z ix iy iz xu yu zu vx vy vz fx fy fz";
     set_style("netcdf");
     generate_dump(dump_file, fields, "", 0);
 
@@ -285,8 +285,8 @@ TEST_F(DumpNetCDFTest, run0_plain)
 TEST_F(DumpNetCDFTest, run0_mpi)
 {
     if (!lammps_has_style(lmp, "dump", "netcdf/mpiio")) GTEST_SKIP();
-    auto dump_file = dump_filename("mpi0");
-    auto fields    = "id type proc procp1 mass x y z ix iy iz xu yu zu vx vy vz fx fy fz";
+    auto dump_file     = dump_filename("mpi0");
+    const auto *fields = "id type proc procp1 mass x y z ix iy iz xu yu zu vx vy vz fx fy fz";
     set_style("netcdf/mpiio");
     generate_dump(dump_file, fields, "", 0);
 

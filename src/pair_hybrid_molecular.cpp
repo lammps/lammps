@@ -62,8 +62,7 @@ double PairHybridMolecular::init_one(int i, int j)
   // plus I,I and J,J need the same number of substyles
 
   if (setflag[i][j] == 0) {
-    if (nmap[i][i] != nmap[j][j])
-      error->one(FLERR,"All pair coeffs are not set");
+    if (nmap[i][i] != nmap[j][j]) error->one(FLERR, "All pair coeffs are not set");
     int num = 0;
     for (int k = 0; k < nmap[i][i]; ++k) {
       for (int l = 0; l < nmap[j][j]; ++l) {
@@ -74,8 +73,7 @@ double PairHybridMolecular::init_one(int i, int j)
         }
       }
     }
-    if (nmap[i][i] != nmap[i][j])
-      error->one(FLERR,"All pair coeffs are not set");
+    if (nmap[i][i] != nmap[i][j]) error->one(FLERR, "All pair coeffs are not set");
   }
   nmap[j][i] = nmap[i][j];
 
@@ -92,16 +90,16 @@ double PairHybridMolecular::init_one(int i, int j)
 
   for (int k = 0; k < nmap[i][j]; k++) {
     map[j][i][k] = map[i][j][k];
-    double cut = styles[map[i][j][k]]->init_one(i,j);
+    double cut = styles[map[i][j][k]]->init_one(i, j);
     if (styles[map[i][j][k]]->did_mix) did_mix = true;
-    styles[map[i][j][k]]->cutsq[i][j] = styles[map[i][j][k]]->cutsq[j][i] = cut*cut;
+    styles[map[i][j][k]]->cutsq[i][j] = styles[map[i][j][k]]->cutsq[j][i] = cut * cut;
     if (styles[map[i][j][k]]->ghostneigh)
-      cutghost[i][j] = cutghost[j][i] = MAX(cutghost[i][j],styles[map[i][j][k]]->cutghost[i][j]);
+      cutghost[i][j] = cutghost[j][i] = MAX(cutghost[i][j], styles[map[i][j][k]]->cutghost[i][j]);
     if (tail_flag) {
       etail_ij += styles[map[i][j][k]]->etail_ij;
       ptail_ij += styles[map[i][j][k]]->ptail_ij;
     }
-    cutmax = MAX(cutmax,cut);
+    cutmax = MAX(cutmax, cut);
 
     int istyle;
     for (istyle = 0; istyle < nstyles; istyle++)
@@ -133,8 +131,7 @@ double PairHybridMolecular::init_one(int i, int j)
 double PairHybridMolecular::single(int i, int j, int itype, int jtype, double rsq,
                                    double factor_coul, double factor_lj, double &fforce)
 {
-  if (nmap[itype][jtype] == 0)
-    error->one(FLERR,"Invoked pair single() on sub-style none");
+  if (nmap[itype][jtype] == 0) error->one(FLERR, "Invoked pair single() on sub-style none");
 
   double fone;
   fforce = 0.0;
@@ -145,18 +142,19 @@ double PairHybridMolecular::single(int i, int j, int itype, int jtype, double rs
     const int mystyle = map[itype][jtype][m];
     if (rsq < styles[mystyle]->cutsq[itype][jtype]) {
       if (styles[mystyle]->single_enable == 0)
-        error->one(FLERR,"Pair hybrid/molecular sub-style {} does not support single() call",
+        error->one(FLERR, "Pair hybrid/molecular sub-style {} does not support single() call",
                    keywords[mystyle]);
 
       if ((special_lj[mystyle] != nullptr) || (special_coul[mystyle] != nullptr))
-        error->one(FLERR,"Pair hybrid/molecular single() calls do not support per sub-style "
+        error->one(FLERR,
+                   "Pair hybrid/molecular single() calls do not support per sub-style "
                    "special bond values");
 
-      esum += styles[mystyle]->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fone);
+      esum += styles[mystyle]->single(i, j, itype, jtype, rsq, factor_coul, factor_lj, fone);
       fforce += fone;
     }
   }
 
-  if (single_extra) copy_svector(itype,jtype);
+  if (single_extra) copy_svector(itype, jtype);
   return esum;
 }

@@ -47,7 +47,7 @@ static int element_args(int narg, char **arg, int *every)
   while (iarg<narg) {
     if (strcmp(arg[iarg], "every")==0) {
       if (narg<2) return -1;
-      *every = atoi(arg[iarg+1]);
+      *every = std::stoi(arg[iarg+1]);
       iarg+=2;
     } else {
       break;

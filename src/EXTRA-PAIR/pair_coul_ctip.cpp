@@ -116,17 +116,17 @@ void PairCoulCTIP::compute(int eflag, int vflag)
     for (elt2 = 0; elt2 < nelements; elt2++) {
       shield[elt1][elt2] = sqrt(params[elt1].gamma * params[elt2].gamma);
       shieldcu[elt1][elt2] = shield[elt1][elt2] * shield[elt1][elt2] * shield[elt1][elt2];
-      reffc[elt1][elt2] = cbrt(cut_coulcu + 1 / shieldcu[elt1][elt2]);
+      reffc[elt1][elt2] = std::cbrt(cut_coulcu + 1.0 / shieldcu[elt1][elt2]);
       reffcsq[elt1][elt2] = reffc[elt1][elt2] * reffc[elt1][elt2];
       reffc4[elt1][elt2] = reffcsq[elt1][elt2] * reffcsq[elt1][elt2];
       reffc7[elt1][elt2] = reffc4[elt1][elt2] * reffcsq[elt1][elt2] * reffc[elt1][elt2];
       s2d_shift[elt1][elt2] = 2.0 * erfcc_cut / cut_coulcu +
           4.0 * alpha / MY_PIS * erfcd_cut / cut_coulsq + 4.0 * alphacu / MY_PIS * erfcd_cut -
-          2 / cut_coulcu + 4 * cut_coul4 / reffc7[elt1][elt2] - 2 * cut_coul / reffc4[elt1][elt2];
+          2.0 / cut_coulcu + 4.0 * cut_coul4 / reffc7[elt1][elt2] - 2.0 * cut_coul / reffc4[elt1][elt2];
       f_shift[elt1][elt2] = erfcc_cut / cut_coulsq + 2.0 * alpha / MY_PIS * erfcd_cut / cut_coul -
-          1 / cut_coulsq + cut_coulsq / reffc4[elt1][elt2];
+          1.0 / cut_coulsq + cut_coulsq / reffc4[elt1][elt2];
       e_shift[elt1][elt2] = 2.0 * erfcc_cut / cut_coul + 2.0 * alpha / MY_PIS * erfcd_cut -
-          2 / cut_coul + 1 / reffc[elt1][elt2] + cut_coulcu / reffc4[elt1][elt2] +
+          2.0 / cut_coul + 1.0 / reffc[elt1][elt2] + cut_coulcu / reffc4[elt1][elt2] +
           s2d_shift[elt1][elt2] * cut_coulsq * 0.5;
       self_factor[elt1][elt2] = -(e_shift[elt1][elt2] * 0.5 + alpha / MY_PIS) * qqrd2e;
     }

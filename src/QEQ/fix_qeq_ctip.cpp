@@ -154,7 +154,7 @@ void FixQEqCTIP::init_matvec()
   double r = cutoff;
   double rsq = r*r;
   double r6 = rsq*rsq*rsq;
-  
+
   double erfcd_cut = exp(-cdamp * cdamp * rsq);
   double t_cut = 1.0 / (1.0 + EWALD_P * cdamp * r);
   double erfcc_cut = (t_cut * (A1 + t_cut * (A2 + t_cut * (A3 + t_cut * (A4 + t_cut * A5)))) * erfcd_cut) / r;
@@ -176,7 +176,7 @@ void FixQEqCTIP::init_matvec()
   for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
-      
+
       qi=q[i];
       if (qi < qmin[atom->type[i]]) {
         Hdia_inv[i] = 1. / (eta[atom->type[i]]+2*omega[atom->type[i]]-s2d_self[atom->type[i]-1]);
@@ -188,7 +188,7 @@ void FixQEqCTIP::init_matvec()
         Hdia_inv[i] = 1. / (eta[atom->type[i]]+2*omega[atom->type[i]]-s2d_self[atom->type[i]-1]);
         b_s[i]      = -((chi[atom->type[i]]-2*qmax[atom->type[i]]*omega[atom->type[i]]) + chizj[i]);
       }
-      
+
       b_t[i]      = -1.0;
       t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
       s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
@@ -227,7 +227,7 @@ void FixQEqCTIP::compute_H()
   cutoffcu = cutoffsq * cutoff;
   cutoff4 = cutoffsq * cutoffsq;
   cdampcu = cdamp * cdamp * cdamp;
-  
+
   erfcd_cut = exp(-cdamp * cdamp * cutoffsq);
   t_cut = 1.0 / (1.0 + EWALD_P * cdamp * cutoff);
   erfcc_cut = t_cut * (A1 + t_cut * (A2 + t_cut * (A3 + t_cut * (A4 + t_cut * A5)))) * erfcd_cut;
@@ -297,7 +297,7 @@ void FixQEqCTIP::sparse_matvec(sparse_matrix *A, double *x, double *b)
   double r = cutoff;
   double rsq = r*r;
   double r6 = rsq*rsq*rsq;
-  
+
   double erfcd_cut = exp(-cdamp * cdamp * rsq);
   double t_cut = 1.0 / (1.0 + EWALD_P * cdamp * r);
   double erfcc_cut = (t_cut * (A1 + t_cut * (A2 + t_cut * (A3 + t_cut * (A4 + t_cut * A5)))) * erfcd_cut) / r;
@@ -353,8 +353,8 @@ int FixQEqCTIP::calculate_check_Q()
   double *q = atom->q;
   double qi_old,qi_new;
   double qi_check1,qi_check2;
-  double qi_check3;						
-  int n;										
+  double qi_check3;
+  int n;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -379,7 +379,7 @@ int FixQEqCTIP::calculate_check_Q()
 
       qi_new = q[i];
       qi_check1=(qi_new-qmin[atom->type[i]])*(qi_old-qmin[atom->type[i]]);
-      qi_check2=(qi_new-qmax[atom->type[i]])*(qi_old-qmax[atom->type[i]]);								
+      qi_check2=(qi_new-qmax[atom->type[i]])*(qi_old-qmax[atom->type[i]]);
       if ( qi_check1 < 0.0 || qi_check2 < 0.0 ) {
         qi_check3=abs(qi_new-qi_old);
         if (qi_check3 > tolerance) n++;
@@ -390,5 +390,5 @@ int FixQEqCTIP::calculate_check_Q()
   pack_flag = 4;
   comm->forward_comm( this ); //Dist_vector( atom->q );
 
-  return n;			
+  return n;
 }

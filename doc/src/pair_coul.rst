@@ -288,14 +288,14 @@ Streitz-Mintmire parameterization for the material being modeled.
 
 ----------
 
-Style *coul/ctip* computes the Coulomb interations as described in 
-:ref:`Plummer <Plummer1>`. It uses the the damped shifted model as in 
-style *coul/dsf* but is further extended to the second derivative of 
-the potential and incorporates empirical charge shielding meant to 
-approximate the more expensive Coulomb integrals used in style *coul/streitz*. 
+Style *coul/ctip* computes the Coulomb interations as described in
+:ref:`Plummer <Plummer1>`. It uses the the damped shifted model as in
+style *coul/dsf* but is further extended to the second derivative of
+the potential and incorporates empirical charge shielding meant to
+approximate the more expensive Coulomb integrals used in style *coul/streitz*.
 More details can be found in the referenced paper. Like the style *coul/streitz*,
-style *coul/ctip* is a variable charge potential and must be hybridized 
-with a short-range potential via the :doc:`pair_style hybrid/overlay <pair_hybrid>` 
+style *coul/ctip* is a variable charge potential and must be hybridized
+with a short-range potential via the :doc:`pair_style hybrid/overlay <pair_hybrid>`
 command. Charge equilibration must be performed with the :doc:`fix qeq/ctip
 <fix_qeq>` command. For example:
 
@@ -306,8 +306,8 @@ command. Charge equilibration must be performed with the :doc:`fix qeq/ctip
    pair_coeff * * coul/ctip NiO.ctip Ni O
    fix 1 all qeq/ctip 1 12.0 1.0e-8 100 coul/ctip cdamp 0.30 maxrepeat 10
 
-See the examples/ctip directory for an example input script using the CTIP 
-potential. An Ni-O CTIP and EAM/FS parametrization are included for use with 
+See the examples/ctip directory for an example input script using the CTIP
+potential. An Ni-O CTIP and EAM/FS parametrization are included for use with
 the example.
 
 ----------
@@ -430,16 +430,18 @@ Restrictions
 """"""""""""
 
 The *coul/long*, *coul/msm*, *coul/streitz*, and *tip4p/long* styles are
-part of the KSPACE package.  The *coul/cut/global*, *coul/exclude* styles are
-part of the EXTRA-PAIR package.  The *tip4p/cut* style is part of the MOLECULE
-package.  A pair style is only enabled if LAMMPS was built with its
-corresponding package.  See the :doc:`Build package <Build_package>`
-doc page for more info.
+part of the KSPACE package.  The *coul/cut/global*, *coul/exclude*, and
+*coul/ctip* styles are part of the EXTRA-PAIR package.  The *tip4p/cut*
+style is part of the MOLECULE package.  A pair style is only enabled if
+LAMMPS was built with its corresponding package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style, hybrid/overlay <pair_hybrid>`, :doc:`kspace_style <kspace_style>`
+:doc:`pair_coeff <pair_coeff>`,
+:doc:`pair_style hybrid/overlay <pair_hybrid>`,
+:doc:`kspace_style <kspace_style>`
 
 Default
 """""""

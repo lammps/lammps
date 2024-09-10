@@ -181,17 +181,17 @@ on atoms via the matrix inversion method.  A tolerance of 1.0e-6 is
 usually a good number.  Keyword *alpha* can be used to change the Slater
 type orbital exponent.
 
-The *qeq/ctip* style describes partial charges on atoms in the same way as 
-style *qeq/shielded* but also enables the definition of charge bounds. Only 
-the *chi*, *eta*, *gamma*, *qmin*, *qmax*, and *omega* parameters from the 
-*qfile* file are used. When using the string *coul/ctip* as filename, these 
-parameters are extracted directly from an active *coul/ctip* pair style.  
-This style solves partial charges on atoms via the matrix inversion method. 
-Keyword *cdamp* can be used to change the damping parameter used to calculate 
-Coulomb interactions. Keyword *maxrepeat* can be used to adjust the number of 
-equilibration cycles allowed to ensure no atoms have crossed the charge bounds. 
-A value of 10 is usually a good choice. A tolerance between 1.0e-6 and 1.0e-8 
-is usually a good choice but should be checked in conjunction with the timestep 
+The *qeq/ctip* style describes partial charges on atoms in the same way as
+style *qeq/shielded* but also enables the definition of charge bounds. Only
+the *chi*, *eta*, *gamma*, *qmin*, *qmax*, and *omega* parameters from the
+*qfile* file are used. When using the string *coul/ctip* as filename, these
+parameters are extracted directly from an active *coul/ctip* pair style.
+This style solves partial charges on atoms via the matrix inversion method.
+Keyword *cdamp* can be used to change the damping parameter used to calculate
+Coulomb interactions. Keyword *maxrepeat* can be used to adjust the number of
+equilibration cycles allowed to ensure no atoms have crossed the charge bounds.
+A value of 10 is usually a good choice. A tolerance between 1.0e-6 and 1.0e-8
+is usually a good choice but should be checked in conjunction with the timestep
 for adequate energy conservation during dynamic runs.
 
 The *qeq/dynamic* style describes partial charges on atoms as point

@@ -44,7 +44,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulCTIP::PairCoulCTIP(LAMMPS *lmp) : Pair(lmp) 
+PairCoulCTIP::PairCoulCTIP(LAMMPS *lmp) : Pair(lmp)
 {
 params= nullptr;
 }
@@ -145,7 +145,7 @@ void PairCoulCTIP::compute(int eflag, int vflag)
 
     selfion = self(&params[iparam_i],qtmp);
 
-    if (evflag) ev_tally(i,i,nlocal,0,0.0,selfion,0.0,0.0,0.0,0.0);    
+    if (evflag) ev_tally(i,i,nlocal,0,0.0,selfion,0.0,0.0,0.0,0.0);
 
     if (eflag) {
       double e_self = self_factor[iparam_i][iparam_i] * qtmp * qtmp;
@@ -164,8 +164,8 @@ void PairCoulCTIP::compute(int eflag, int vflag)
 
       if (rsq < cut_coulsq) {
         jtype = map[type[j]];
-	jparam_j = elem1param[jtype];
-	r = sqrt(rsq);
+        jparam_j = elem1param[jtype];
+        r = sqrt(rsq);
         reff = cbrt(rsq * r + 1/shieldcu[iparam_i][jparam_j]);
         reffsq = reff * reff;
         reff4 = reffsq * reffsq;
@@ -207,12 +207,12 @@ double PairCoulCTIP::self(Param *param, double qi)
 {
  double s1=param->chi, s2=param->eta, s3=param->qmin, s4=param->qmax, s5=param->omega;
 
- if ( qi < s3 ) {										
- 	 return qi*((s1-2*s3*s5)+qi*(0.50*s2+s5))+s3*s3*s5;												
- } else if ( qi < s4 ) {									
- 	 return qi*(s1+qi*(0.50*s2));
- } else {															
- 	 return qi*((s1-2*s4*s5)+qi*(0.50*s2+s5))+s4*s4*s5;							
+ if ( qi < s3 ) {
+         return qi*((s1-2*s3*s5)+qi*(0.50*s2+s5))+s3*s3*s5;
+ } else if ( qi < s4 ) {
+         return qi*(s1+qi*(0.50*s2));
+ } else {
+         return qi*((s1-2*s4*s5)+qi*(0.50*s2+s5))+s4*s4*s5;
  }
 
  return 0.0;
@@ -343,9 +343,9 @@ void PairCoulCTIP::read_file(char *file)
         params[nparams].gamma = values.next_double();
         params[nparams].zeta = values.next_double();
         params[nparams].zcore = values.next_double();
-	params[nparams].qmin = values.next_double();
-	params[nparams].qmax = values.next_double();
-	params[nparams].omega = values.next_double();
+        params[nparams].qmin = values.next_double();
+        params[nparams].qmax = values.next_double();
+        params[nparams].omega = values.next_double();
 
       } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
@@ -505,7 +505,7 @@ void *PairCoulCTIP::extract(const char *str, int &dim)
     for (int i = 1; i <= atom->ntypes; i++)
       if (map[i] >= 0) qeq_q1[i] = params[map[i]].qmin;
       else qeq_q1[i] = 0.0;
-    return (void *) qeq_q1; 
+    return (void *) qeq_q1;
   }
   if (strcmp(str,"qmax") == 0 && qeq_q2) {
     dim = 1;

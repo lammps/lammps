@@ -37,6 +37,7 @@
       in.bucky-plus-cnt*,
     ]
 
+  timeout: 180
   nugget: 1.0
   epsilon: 1e-16
 

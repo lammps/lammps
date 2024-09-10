@@ -157,6 +157,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
     using_markers = False
     EPSILON = np.float64(config['epsilon'])
     nugget = float(config['nugget'])
+    genref = config['genref']
+    compiler = config['compiler']
     use_valgrind = False
     if 'valgrind' in config['mpiexec']:
         use_valgrind = True
@@ -325,7 +327,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         config['nprocs'] = saved_nprocs
 
         # check if the output contains ERROR
-        #   there might not be a log.lammps generated at this point, or only log.lammps contains only the date line
+        #   there might not be a log file generated at this point, or only the log file contains only the date line
         if "ERROR" in output:
             error_line = ""
             for line in output.split('\n'):
@@ -357,16 +359,18 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             test_id = test_id + 1
             continue
 
-        # check if a log.lammps file exists in the current folder
-        if os.path.isfile("log.lammps") == False:
-            msg = f"    failed, no log.lammps generated with {input_test} with return code {returncode}.\n"
+        # check if a log file log.{basename}.{nprocs} exists in the current folder
+        logfilename = f"log.{basename}.{nprocs}"
+
+        if os.path.isfile(logfilename) == False:
+            msg = f"    failed, no log.{basename}.{nprocs} generated with {input_test} with return code {returncode}.\n"
             print(msg)
             logger.info(msg)
             logger.info(f"    Output:")
             logger.info(f"    {output}")
             logger.info(f"    Error:\n{error}")
 
-            msg = f"{input}: {{ folder: {input_folder}, status: \"failed, no log.lammps\", walltime: {walltime} }}\n"
+            msg = f"{input}: {{ folder: {input_folder}, status: \"failed, no log file generated\", walltime: {walltime} }}\n"
             progress.write(msg)
             progress.close()
             failure.write(msg)
@@ -375,9 +379,14 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             test_id = test_id + 1
             continue
         else:
-            # save a copy of the log file for further inspection
-            cmd_str = f"cp log.lammps log.{basename}.{nprocs}"
-            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+            # generate a new log file whose name has the format of log.{date}.{basename}.{compiler}.{nprocs}
+            if genref == True:
+                dmy = datetime.datetime.now()
+                date = dmy.strftime("%d%b%y")
+                # assume g++ for now, but is be available from running "lmp_binary -h"
+                compiler = "g++"
+                cmd_str = f"cp log.{basename}.{nprocs} log.{date}.{basename}.{compiler}.{nprocs}"
+                p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
 
         # if skip numerical checks, then skip the rest
         if skip_numerical_check == True:
@@ -795,6 +804,7 @@ def get_lammps_build_configuration(lmp_binary):
     reading = False
     operating_system = ""
     GitInfo = ""
+    compiler = "g++"
     row = 0
     for line in output:
         if line != "":
@@ -810,7 +820,11 @@ def get_lammps_build_configuration(lmp_binary):
             operating_system = line
         if "Git info" in line:
             GitInfo = line
-
+        if "Compiler" in line:
+            if "GNU" in line:
+                compiler = "g++"
+            if "Intel" in line: 
+                compiler = "icc"
         row += 1
 
     packages = packages.strip()
@@ -824,20 +838,24 @@ def get_lammps_build_configuration(lmp_binary):
 
         row += 1
 
-    return packages.split(" "), operating_system, GitInfo, compile_flags
+    return packages.split(" "), operating_system, GitInfo, compile_flags, compiler
 
 '''
     launch LAMMPS using the configuration defined in the dictionary config with an input file
     TODO:
         - generate new reference values if needed
 '''
-def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
+def execute(lmp_binary, config, input_file_name, generate_ref=False):
     cmd_str = ""
     # check if mpiexec/mpirun is used
     if config['mpiexec']:
         cmd_str += config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
 
-    cmd_str += lmp_binary + " -in " + input_file_name + " " + config['args']
+    # write to a log file with format log.{basename}.{nprocs}
+    basename = input_file_name[3:]
+    logfilename = f"log.{basename}.{config['nprocs']}"
+
+    cmd_str += lmp_binary + " -in " + input_file_name + " " + config['args'] + " -log " + logfilename
 
     logger.info(f"     Executing: {cmd_str}")
     # set a timeout (in seconds) for each run
@@ -1325,16 +1343,21 @@ if __name__ == "__main__":
             lmp_binary = os.path.abspath(config['lmp_binary'])
 
     # print out the binary info
-    packages, operating_system, GitInfo, compile_flags = get_lammps_build_configuration(lmp_binary)
+    packages, operating_system, GitInfo, compile_flags, compiler = get_lammps_build_configuration(lmp_binary)
     print("\nLAMMPS build info:")
     print(f"  - {operating_system}")
     print(f"  - {GitInfo}")
+    print(f"  - Compiler: {compiler}")
     print(f"  - Active compile flags: {compile_flags}")
     print(f"  - List of {len(packages)} installed packages:")
     all_pkgs = ""
     for p in packages:
         all_pkgs += p + " "
     print(all_pkgs)
+
+    # augment config with additional keys
+    config['compiler'] = compiler
+    config['genref'] = genref
 
     all_results = []
 

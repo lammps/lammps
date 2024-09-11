@@ -42,7 +42,9 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixQEqCTIP::FixQEqCTIP(LAMMPS *lmp, int narg, char **arg) :
-  FixQEq(lmp, narg, arg) {
+    FixQEq(lmp, narg, arg), reff(nullptr), reffsq(nullptr), reff4(nullptr), reff7(nullptr),
+    s2d_self(nullptr)
+{
 
   cdamp = 0.30;
   maxrepeat = 10;
@@ -66,7 +68,16 @@ FixQEqCTIP::FixQEqCTIP(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR, "Unknown fix qeq/ctip keyword: {}", arg[iarg]);
   }
 
-  if (ctip_flag) extract_ctip();
+  extract_ctip();
+}
+
+FixQEqCTIP::~FixQEqCTIP()
+{
+  delete[] reff;
+  delete[] reffsq;
+  delete[] reff4;
+  delete[] reff7;
+  delete[] s2d_self;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,6 +90,34 @@ void FixQEqCTIP::init()
 
   int ntypes = atom->ntypes;
   memory->create(shld,ntypes+1,ntypes+1,"qeq:shielding");
+
+  delete[] reff;
+  delete[] reffsq;
+  delete[] reff4;
+  delete[] reff7;
+  delete[] s2d_self;
+
+  reff = new double[ntypes];
+  reffsq = new double[ntypes];
+  reff4 = new double[ntypes];
+  reff7 = new double[ntypes];
+  s2d_self = new double[ntypes];
+
+  double r = cutoff;
+  double rsq = r*r;
+  double r6 = rsq*rsq*rsq;
+
+  double erfcd_cut = exp(-cdamp * cdamp * rsq);
+  double t_cut = 1.0 / (1.0 + EWALD_P * cdamp * r);
+  double erfcc_cut = (t_cut * (A1 + t_cut * (A2 + t_cut * (A3 + t_cut * (A4 + t_cut * A5)))) * erfcd_cut) / r;
+
+  for (int elt1 = 0; elt1 < ntypes; elt1++) {
+    reff[elt1] = std::cbrt(rsq*r + 1.0/(gamma[elt1+1]*gamma[elt1+1]*gamma[elt1+1]));
+    reffsq[elt1] = reff[elt1]*reff[elt1];
+    reff4[elt1] = reffsq[elt1]*reffsq[elt1];
+    reff7[elt1] = reff4[elt1]*reffsq[elt1]*reff[elt1];
+    s2d_self[elt1] = 2.0*force->qqr2e*(1.5*erfcc_cut + 2.0*cdamp/MY_PIS*erfcd_cut + cdamp*cdamp*cdamp/MY_PIS*rsq*erfcd_cut + 0.5/reff[elt1] - 1.5/r + r6/reff7[elt1] + cdamp/MY_PIS);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -151,17 +190,6 @@ void FixQEqCTIP::init_matvec()
   double erfcd_cut = exp(-cdamp * cdamp * rsq);
   double t_cut = 1.0 / (1.0 + EWALD_P * cdamp * r);
   double erfcc_cut = (t_cut * (A1 + t_cut * (A2 + t_cut * (A3 + t_cut * (A4 + t_cut * A5)))) * erfcd_cut) / r;
-
-  int elt1;
-  double reff[atom->ntypes], reffsq[atom->ntypes], reff4[atom->ntypes], reff7[atom->ntypes], s2d_self[atom->ntypes];
-
-  for (elt1 = 0; elt1 < atom->ntypes; elt1++) {
-    reff[elt1] = cbrt(rsq*r + 1/(gamma[elt1+1]*gamma[elt1+1]*gamma[elt1+1]));
-    reffsq[elt1] = reff[elt1]*reff[elt1];
-    reff4[elt1] = reffsq[elt1]*reffsq[elt1];
-    reff7[elt1] = reff4[elt1]*reffsq[elt1]*reff[elt1];
-    s2d_self[elt1] = 2.0*force->qqr2e*(1.5*erfcc_cut + 2.0*cdamp/MY_PIS*erfcd_cut + cdamp*cdamp*cdamp/MY_PIS*rsq*erfcd_cut + 0.5/reff[elt1] - 1.5/r + r6/reff7[elt1] + cdamp/MY_PIS);
-  }
 
   inum = list->inum;
   ilist = list->ilist;

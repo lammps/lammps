@@ -27,16 +27,19 @@ namespace LAMMPS_NS {
 class FixQEqCTIP : public FixQEq {
  public:
   FixQEqCTIP(class LAMMPS *, int, char **);
+  ~FixQEqCTIP() override;
 
   void init() override;
   void pre_force(int) override;
 
- private:
+ protected:
   void init_matvec();
   void sparse_matvec(sparse_matrix *, double *, double *) override;
   void compute_H();
   void extract_ctip();
   int calculate_check_Q();
+  double *reff, *reffsq, *reff4, *reff7, *s2d_self;
+  double cdamp;
   int nout;
 };
 }    // namespace LAMMPS_NS

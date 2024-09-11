@@ -288,6 +288,8 @@ Streitz-Mintmire parameterization for the material being modeled.
 
 ----------
 
+.. versionadded:: TBD
+
 Style *coul/ctip* computes the Coulomb interations as described in
 :ref:`Plummer <Plummer1>`. It uses the the damped shifted model as in
 style *coul/dsf* but is further extended to the second derivative of

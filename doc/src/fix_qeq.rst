@@ -15,7 +15,7 @@ fix qeq/slater command
 ======================
 
 fix qeq/ctip command
-======================
+====================
 
 fix qeq/dynamic command
 =======================
@@ -110,7 +110,16 @@ equalizes the derivative of energy with respect to charge of all the
 atoms) by adjusting the partial charge on individual atoms based on
 interactions with their neighbors within *cutoff*\ .  It requires a few
 parameters in the appropriate units for each atom type which are read
-from a file specified by *qfile*\ .  The file has the following format
+from a file specified by *qfile*\ .  The file has the following format:
+
+.. parsed-literal::
+
+   1 chi eta gamma zeta qcore
+   2 chi eta gamma zeta qcore
+   ...
+   Ntype chi eta gamma zeta qcore
+
+except for fix style *qeq/ctip* where the format is:
 
 .. parsed-literal::
 
@@ -122,11 +131,11 @@ from a file specified by *qfile*\ .  The file has the following format
 There have to be parameters given for every atom type. Wildcard entries
 are possible using the same type range syntax as for "coeff" commands
 (i.e., n\*m, n\*, \*m, \*). Later entries will overwrite previous ones.
-Empty lines or any text following the pound sign (#) are ignored.
-Each line starts with the atom type followed by eight parameters.
-Only a subset of the parameters is used by each QEq style as described
-below, thus the others can be set to 0.0 if desired, but all eight
-entries per line are required.
+Empty lines or any text following the pound sign (#) are ignored.  Each
+line starts with the atom type followed by eight parameters.  Only a
+subset of the parameters is used by each QEq style as described below,
+thus the others can be set to 0.0 if desired, but all eight entries per
+line are required.
 
 * *chi* = electronegativity in energy units
 * *eta* = self-Coulomb potential in energy units
@@ -181,18 +190,21 @@ on atoms via the matrix inversion method.  A tolerance of 1.0e-6 is
 usually a good number.  Keyword *alpha* can be used to change the Slater
 type orbital exponent.
 
-The *qeq/ctip* style describes partial charges on atoms in the same way as
-style *qeq/shielded* but also enables the definition of charge bounds. Only
-the *chi*, *eta*, *gamma*, *qmin*, *qmax*, and *omega* parameters from the
-*qfile* file are used. When using the string *coul/ctip* as filename, these
-parameters are extracted directly from an active *coul/ctip* pair style.
-This style solves partial charges on atoms via the matrix inversion method.
-Keyword *cdamp* can be used to change the damping parameter used to calculate
-Coulomb interactions. Keyword *maxrepeat* can be used to adjust the number of
-equilibration cycles allowed to ensure no atoms have crossed the charge bounds.
-A value of 10 is usually a good choice. A tolerance between 1.0e-6 and 1.0e-8
-is usually a good choice but should be checked in conjunction with the timestep
-for adequate energy conservation during dynamic runs.
+.. versionadded:: TBD
+
+The *qeq/ctip* style describes partial charges on atoms in the same way
+as style *qeq/shielded* but also enables the definition of charge
+bounds.  Only the *chi*, *eta*, *gamma*, *qmin*, *qmax*, and *omega*
+parameters from the *qfile* file are used.  When using the string
+*coul/ctip* as filename, these parameters are extracted directly from an
+active *coul/ctip* pair style.  This style solves partial charges on
+atoms via the matrix inversion method.  Keyword *cdamp* can be used to
+change the damping parameter used to calculate Coulomb interactions.
+Keyword *maxrepeat* can be used to adjust the number of equilibration
+cycles allowed to ensure no atoms have crossed the charge bounds.  A
+value of 10 is usually a good choice.  A tolerance between 1.0e-6 and
+1.0e-8 is usually a good choice but should be checked in conjunction
+with the timestep for adequate energy conservation during dynamic runs.
 
 The *qeq/dynamic* style describes partial charges on atoms as point
 charges that interact through 1/r, but the extended Lagrangian method is

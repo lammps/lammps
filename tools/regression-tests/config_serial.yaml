@@ -1,9 +1,9 @@
 ---
   lmp_binary: ""
-  nprocs: "4"
+  nprocs: "1"
   args: "-cite none"
-  mpiexec: "mpirun"
-  mpiexec_numproc_flag: "--host localhost:4 -np"
+  mpiexec: ""
+  mpiexec_numproc_flag: ""
   tolerance:
     PotEng:
       abs: 1e-4
@@ -37,6 +37,7 @@
       in.bucky-plus-cnt*,
     ]
 
+  timeout: 180
   nugget: 1.0
   epsilon: 1e-16
 

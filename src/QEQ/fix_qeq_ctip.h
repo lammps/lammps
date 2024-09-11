@@ -40,6 +40,7 @@ class FixQEqCTIP : public FixQEq {
   int calculate_check_Q();
   double *reff, *reffsq, *reff4, *reff7, *s2d_self;
   double cdamp;
+  int maxrepeat;
   int nout;
 };
 }    // namespace LAMMPS_NS

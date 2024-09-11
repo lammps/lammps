@@ -96,15 +96,6 @@ class FixQEq : public Fix {
   double *b_s, *b_t;
   double *p, *q, *r, *d;
 
-  // streitz-mintmire
-
-  double alpha;
-
-  // ctip
-
-  double cdamp;
-  int maxrepeat;
-
   // damped dynamics
 
   double *qf, *q1, *q2, qdamp, qstep;

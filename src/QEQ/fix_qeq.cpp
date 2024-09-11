@@ -77,9 +77,9 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix qeq command");
 
   // must have charges
+
   if (!atom->q_flag) error->all(FLERR, "Fix {} requires atom attribute q", style);
 
-  alpha = 0.20;
   swa = 0.0;
   swb = cutoff;
 

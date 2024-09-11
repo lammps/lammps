@@ -68,6 +68,7 @@ void ReadPsf::command(int narg, char **arg)
   if (comm->me == 0) {
     try {
       open(arg[0]);
+      utils::logmesg(lmp, "Reading PSF file: {}\n", arg[0]);
       TextFileReader reader(fp, "Protein Structure Format (PSF)");
       reader.skip_line();
       reader.skip_line();

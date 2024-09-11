@@ -315,25 +315,6 @@ void FixQEqCTIP::sparse_matvec(sparse_matrix *A, double *x, double *b)
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
 
-  double r = cutoff;
-  double rsq = r*r;
-  double r6 = rsq*rsq*rsq;
-
-  double erfcd_cut = exp(-cdamp * cdamp * rsq);
-  double t_cut = 1.0 / (1.0 + EWALD_P * cdamp * r);
-  double erfcc_cut = (t_cut * (A1 + t_cut * (A2 + t_cut * (A3 + t_cut * (A4 + t_cut * A5)))) * erfcd_cut) / r;
-
-  int elt1;
-  double reff[atom->ntypes], reffsq[atom->ntypes], reff4[atom->ntypes], reff7[atom->ntypes], s2d_self[atom->ntypes];
-
-  for (elt1 = 0; elt1 < atom->ntypes; elt1++) {
-    reff[elt1] = cbrt(rsq*r + 1/(gamma[elt1+1]*gamma[elt1+1]*gamma[elt1+1]));
-    reffsq[elt1] = reff[elt1]*reff[elt1];
-    reff4[elt1] = reffsq[elt1]*reffsq[elt1];
-    reff7[elt1] = reff4[elt1]*reffsq[elt1]*reff[elt1];
-    s2d_self[elt1] = 2.0*force->qqr2e*(1.5*erfcc_cut + 2.0*cdamp/MY_PIS*erfcd_cut + cdamp*cdamp*cdamp/MY_PIS*rsq*erfcd_cut + 0.5/reff[elt1] - 1.5/r + r6/reff7[elt1] + cdamp/MY_PIS);
-  }
-
   for (i = 0; i < nlocal; ++i) {
     if (atom->mask[i] & groupbit) {
       qi=q[i];

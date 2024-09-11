@@ -599,7 +599,7 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
       _shared->k_transpose.set_size(g2x,g2y_m,b2x,b2y);
       // number of chunks needed for the whole transpose
       const int num_chunks = ceil(static_cast<double>(g2y) / g2y_m);
-      for (int i = 0; i < num_chunks; i++) {        
+      for (int i = 0; i < num_chunks; i++) {
         _shared->k_transpose.run(&dev_special,&dev_special_t,&_maxspecial,&nt,&shift);
         shift += g2y_m*b2y;
       }

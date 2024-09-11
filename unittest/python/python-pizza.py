@@ -6,7 +6,7 @@ from lammps import lammps
 EXAMPLES_DIR=os.path.abspath(os.path.join(__file__, '..', '..', '..', 'examples'))
 PIZZA_DIR=os.path.abspath(os.path.join(__file__, '..', '..', '..', 'tools', 'python', 'pizza'))
 DEFAULT_STYLE_EXAMPLE_LOG=os.path.join('melt', 'log.*.melt.g++.1')
-MULTI_STYLE_EXAMPLE_LOG=os.path.join('charmm', 'log.27Nov18.peptide.g++.1')
+MULTI_STYLE_EXAMPLE_LOG=os.path.join('charmm/peptide', 'log.27Nov18.peptide.g++.1')
 sys.path.insert(1,PIZZA_DIR)
 
 # dump class uses NumPy, so only load and test dump if NumPy is available

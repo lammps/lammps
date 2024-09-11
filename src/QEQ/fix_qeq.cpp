@@ -792,8 +792,13 @@ void FixQEq::read_file(char *file)
         auto values = reader.next_values(0);
 
         if (values.count() == 0) continue;
-        if (values.count() < 9)
-          throw qeq_parser_error("Invalid qeq parameter file");
+        if (ctip_flag) {
+          if (values.count() < 9)
+            throw qeq_parser_error(fmt::format("Invalid qeq parameter file for {}", style));
+        } else {
+          if (values.count() < 6)
+            throw qeq_parser_error(fmt::format("Invalid qeq parameter file for {}", style));
+        }
 
         auto word = values.next_string();
         utils::bounds(FLERR,word,1,ntypes,nlo,nhi,nullptr);
@@ -810,12 +815,14 @@ void FixQEq::read_file(char *file)
         for (int n=nlo; n <= nhi; ++n) zeta[n] = val;
         val = values.next_double();
         for (int n=nlo; n <= nhi; ++n) zcore[n] = val;
-        val = values.next_double();
-        for (int n=nlo; n <= nhi; ++n) qmin[n] = val;
-        val = values.next_double();
-	for (int n=nlo; n <= nhi; ++n) qmax[n] = val;
-	val = values.next_double();
-	for (int n=nlo; n <= nhi; ++n) omega[n] = val;
+        if (ctip_flag) {
+          val = values.next_double();
+          for (int n=nlo; n <= nhi; ++n) qmin[n] = val;
+          val = values.next_double();
+          for (int n=nlo; n <= nhi; ++n) qmax[n] = val;
+          val = values.next_double();
+          for (int n=nlo; n <= nhi; ++n) omega[n] = val;
+        }
         for (int n=nlo; n <= nhi; ++n) setflag[n] = 1;
       }
     } catch (EOFException &) {
@@ -826,8 +833,7 @@ void FixQEq::read_file(char *file)
 
     for (int n=1; n <= ntypes; ++n)
       if (setflag[n] == 0)
-        error->one(FLERR,fmt::format("Parameters for atom type {} missing in "
-                                     "qeq parameter file", n));
+        error->one(FLERR, "Parameters for atom type {} missing in qeq parameter file", n);
     delete[] setflag;
   }
 

@@ -156,7 +156,7 @@ FixQEq::~FixQEq()
 
   memory->destroy(shld);
 
-  if (!streitz_flag && !reax_flag) {
+  if (!streitz_flag && !reax_flag && !ctip_flag) {
     memory->destroy(chi);
     memory->destroy(eta);
     memory->destroy(gamma);

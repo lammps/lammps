@@ -27,6 +27,8 @@
 #define KOKKOS_LAMBDA [=] __host__ __device__
 #define KOKKOS_CLASS_LAMBDA [ =, *this ] __host__ __device__
 
+#define KOKKOS_DEDUCTION_GUIDE __host__ __device__
+
 #define KOKKOS_IMPL_FORCEINLINE_FUNCTION __device__ __host__ __forceinline__
 #define KOKKOS_IMPL_INLINE_FUNCTION __device__ __host__ inline
 #define KOKKOS_IMPL_FUNCTION __device__ __host__

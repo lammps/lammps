@@ -737,6 +737,14 @@ namespace Impl {
 int g_cuda_space_factory_initialized =
     initialize_space_factory<Cuda>("150_Cuda");
 
+int CudaInternal::m_cudaArch = -1;
+cudaDeviceProp CudaInternal::m_deviceProp;
+std::set<int> CudaInternal::cuda_devices = {};
+std::map<int, unsigned long *> CudaInternal::constantMemHostStagingPerDevice =
+    {};
+std::map<int, cudaEvent_t> CudaInternal::constantMemReusablePerDevice = {};
+std::map<int, std::mutex> CudaInternal::constantMemMutexPerDevice     = {};
+
 }  // namespace Impl
 
 }  // namespace Kokkos

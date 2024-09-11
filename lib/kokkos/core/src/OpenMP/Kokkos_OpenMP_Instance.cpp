@@ -34,18 +34,8 @@
 namespace Kokkos {
 namespace Impl {
 
-void OpenMPInternal::acquire_lock() {
-  while (1 == desul::atomic_compare_exchange(&m_pool_mutex, 0, 1,
-                                             desul::MemoryOrderAcquire(),
-                                             desul::MemoryScopeDevice())) {
-    // do nothing
-  }
-}
-
-void OpenMPInternal::release_lock() {
-  desul::atomic_store(&m_pool_mutex, 0, desul::MemoryOrderRelease(),
-                      desul::MemoryScopeDevice());
-}
+std::vector<OpenMPInternal *> OpenMPInternal::all_instances;
+std::mutex OpenMPInternal::all_instances_mutex;
 
 void OpenMPInternal::clear_thread_data() {
   const size_t member_bytes =
@@ -123,17 +113,11 @@ void OpenMPInternal::resize_thread_data(size_t pool_reduce_bytes,
       if (nullptr != m_pool[rank]) {
         m_pool[rank]->disband_pool();
 
-        space.deallocate(m_pool[rank], old_alloc_bytes);
+        // impl_deallocate to not fence here
+        space.impl_deallocate("[unlabeled]", m_pool[rank], old_alloc_bytes);
       }
 
-      void *ptr = nullptr;
-      try {
-        ptr = space.allocate(alloc_bytes);
-      } catch (
-          Kokkos::Experimental::RawMemoryAllocationFailure const &failure) {
-        // For now, just rethrow the error message the existing way
-        Kokkos::Impl::throw_runtime_exception(failure.get_error_message());
-      }
+      void *ptr = space.allocate("Kokkos::OpenMP::scratch_mem", alloc_bytes);
 
       m_pool[rank] = new (ptr) HostThreadTeamData();
 
@@ -304,6 +288,18 @@ void OpenMPInternal::finalize() {
   }
 
   m_initialized = false;
+
+  // guard erasing from all_instances
+  {
+    std::scoped_lock lock(all_instances_mutex);
+
+    auto it = std::find(all_instances.begin(), all_instances.end(), this);
+    if (it == all_instances.end())
+      Kokkos::abort(
+          "Execution space instance to be removed couldn't be found!");
+    *it = all_instances.back();
+    all_instances.pop_back();
+  }
 }
 
 void OpenMPInternal::print_configuration(std::ostream &s) const {

@@ -459,9 +459,11 @@ bool AtomicOperationsTestIntegralType(int old_val_in, int update_in, int test) {
     case 12: return true;
 #else
     case 11:
-      return update_in >= 0 ? atomic_op_test<LShiftAtomicTest, T, ExecSpace>(
-                                  old_val, update)
-                            : true;
+      return (std::make_signed_t<T>(update_in) >= 0 &&
+              std::make_signed_t<T>(old_val) >= 0)
+                 ? atomic_op_test<LShiftAtomicTest, T, ExecSpace>(old_val,
+                                                                  update)
+                 : true;
     case 12:
       return update_in >= 0 ? atomic_op_test<RShiftAtomicTest, T, ExecSpace>(
                                   old_val, update)

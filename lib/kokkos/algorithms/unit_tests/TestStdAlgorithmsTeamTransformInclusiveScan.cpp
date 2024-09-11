@@ -16,7 +16,7 @@
 
 #include <TestStdAlgorithmsCommon.hpp>
 
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
 
 namespace Test {
 namespace stdalgos {

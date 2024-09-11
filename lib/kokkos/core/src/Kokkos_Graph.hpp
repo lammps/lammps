@@ -167,6 +167,9 @@ Graph<ExecutionSpace> create_graph(Closure&& arg_closure) {
 #include <HIP/Kokkos_HIP_Graph_Impl.hpp>
 #endif
 #endif
+#ifdef SYCL_EXT_ONEAPI_GRAPH
+#include <SYCL/Kokkos_SYCL_Graph_Impl.hpp>
+#endif
 #ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_GRAPH
 #undef KOKKOS_IMPL_PUBLIC_INCLUDE
 #undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_GRAPH

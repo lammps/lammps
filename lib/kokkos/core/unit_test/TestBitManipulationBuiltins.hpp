@@ -827,12 +827,6 @@ struct TestBitCastFunction {
       }
     }
 
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC 23.7
-    if constexpr (std::is_same_v<Space, Kokkos::Cuda>) {
-      return;
-    }
-#endif
     struct S {
       int i;
 

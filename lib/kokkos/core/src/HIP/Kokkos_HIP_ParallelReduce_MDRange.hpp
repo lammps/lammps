@@ -50,6 +50,7 @@ class ParallelReduce<CombinedFunctorReducerType,
   using value_type     = typename ReducerType::value_type;
   using reference_type = typename ReducerType::reference_type;
   using functor_type   = FunctorType;
+  using reducer_type   = ReducerType;
   using size_type      = HIP::size_type;
 
   // Conditionally set word_size_type to int16_t or int8_t if value_type is

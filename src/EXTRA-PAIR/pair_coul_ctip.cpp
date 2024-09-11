@@ -45,6 +45,7 @@ PairCoulCTIP::PairCoulCTIP(LAMMPS *lmp) :
     e_shift(nullptr), self_factor(nullptr), qeq_x(nullptr), qeq_j(nullptr), qeq_g(nullptr),
     qeq_z(nullptr), qeq_c(nullptr), qeq_q1(nullptr), qeq_q2(nullptr), qeq_w(nullptr)
 {
+  single_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */

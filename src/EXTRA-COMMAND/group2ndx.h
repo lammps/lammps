@@ -1,6 +1,4 @@
-// -*- c++ -*-
-
-/* ----------------------------------------------------------
+/* -*- c++ -*-----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -19,8 +17,8 @@ CommandStyle(group2ndx,Group2Ndx);
 // clang-format on
 #else
 
-#ifndef LMP_GROUP_NDX_H
-#define LMP_GROUP_NDX_H
+#ifndef LMP_GROUP2NDX_H
+#define LMP_GROUP2NDX_H
 
 #include "command.h"
 
@@ -28,7 +26,7 @@ namespace LAMMPS_NS {
 
 class Group2Ndx : public Command {
  public:
-  Group2Ndx(class LAMMPS *lmp) : Command(lmp){};
+  Group2Ndx(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **) override;
 
  private:

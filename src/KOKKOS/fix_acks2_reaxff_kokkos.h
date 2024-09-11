@@ -74,7 +74,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   DAT::tdual_ffloat_1d get_s() {return k_s;}
 
   KOKKOS_INLINE_FUNCTION
-  void num_neigh_item(int, int&) const;
+  void num_neigh_item(int, bigint&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagACKS2Zero, const int&) const;
@@ -84,7 +84,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void compute_h_item(int, int &, const bool &) const;
+  void compute_h_item(int, bigint &, const bool &) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -92,7 +92,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void compute_x_item(int, int &, const bool &) const;
+  void compute_x_item(int, bigint &, const bool &) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -173,8 +173,9 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   int allocated_flag, last_allocate;
   int need_dup,prev_last_rows_rank;
   double* buf;
+  bigint m_cap_big;
 
-  typename AT::t_int_scalar d_mfill_offset;
+  typename AT::t_bigint_scalar d_mfill_offset;
 
   typedef Kokkos::DualView<int***,DeviceType> tdual_int_1d;
   Kokkos::DualView<params_acks2*,Kokkos::LayoutRight,DeviceType> k_params;
@@ -197,12 +198,12 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   DAT::tdual_ffloat_2d k_bcut;
   typename AT::t_ffloat_2d d_bcut;
 
-  typename AT::t_int_1d d_firstnbr;
+  typename AT::t_bigint_1d d_firstnbr;
   typename AT::t_int_1d d_numnbrs;
   typename AT::t_int_1d d_jlist;
   typename AT::t_ffloat_1d d_val;
 
-  typename AT::t_int_1d d_firstnbr_X;
+  typename AT::t_bigint_1d d_firstnbr_X;
   typename AT::t_int_1d d_numnbrs_X;
   typename AT::t_int_1d d_jlist_X;
   typename AT::t_ffloat_1d d_val_X;
@@ -264,21 +265,21 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
 template <class DeviceType>
 struct FixACKS2ReaxFFKokkosNumNeighFunctor  {
   typedef DeviceType device_type;
-  typedef int value_type;
+  typedef bigint value_type;
   FixACKS2ReaxFFKokkos<DeviceType> c;
   FixACKS2ReaxFFKokkosNumNeighFunctor(FixACKS2ReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, int &maxneigh) const {
-    c.num_neigh_item(ii, maxneigh);
+  void operator()(const int ii, bigint &totneigh) const {
+    c.num_neigh_item(ii, totneigh);
   }
 };
 
 template <class DeviceType, int NEIGHFLAG>
 struct FixACKS2ReaxFFKokkosComputeHFunctor {
   int atoms_per_team, vector_length;
-  typedef int value_type;
+  typedef bigint value_type;
   typedef Kokkos::ScratchMemorySpace<DeviceType> scratch_space;
   FixACKS2ReaxFFKokkos<DeviceType> c;
 
@@ -293,7 +294,7 @@ struct FixACKS2ReaxFFKokkosComputeHFunctor {
   };
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, int &m_fill, const bool &final) const {
+  void operator()(const int ii, bigint &m_fill, const bool &final) const {
     c.template compute_h_item<NEIGHFLAG>(ii,m_fill,final);
   }
 
@@ -325,7 +326,7 @@ struct FixACKS2ReaxFFKokkosComputeHFunctor {
 template <class DeviceType, int NEIGHFLAG>
 struct FixACKS2ReaxFFKokkosComputeXFunctor {
   int atoms_per_team, vector_length;
-  typedef int value_type;
+  typedef bigint value_type;
   typedef Kokkos::ScratchMemorySpace<DeviceType> scratch_space;
   FixACKS2ReaxFFKokkos<DeviceType> c;
 
@@ -340,7 +341,7 @@ struct FixACKS2ReaxFFKokkosComputeXFunctor {
   };
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, int &m_fill, const bool &final) const {
+  void operator()(const int ii, bigint &m_fill, const bool &final) const {
     c.template compute_x_item<NEIGHFLAG>(ii,m_fill,final);
   }
 

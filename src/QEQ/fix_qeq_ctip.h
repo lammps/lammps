@@ -39,6 +39,9 @@ class FixQEqCTIP : public FixQEq {
   void extract_ctip();
   int calculate_check_Q();
   double *reff, *reffsq, *reff4, *reff7, *s2d_self;
+  double **shield, **shieldcu, **reffc, **reffcsq, **reffc4, **reffc7;
+  double **s2d_shift, **f_shift, **e_shift;
+
   double cdamp;
   int maxrepeat;
   int nout;

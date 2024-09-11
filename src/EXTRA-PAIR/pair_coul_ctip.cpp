@@ -39,9 +39,12 @@ static constexpr int DELTA = 4;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulCTIP::PairCoulCTIP(LAMMPS *lmp) : Pair(lmp)
+PairCoulCTIP::PairCoulCTIP(LAMMPS *lmp) :
+    Pair(lmp), params(nullptr), shield(nullptr), shieldcu(nullptr), reffc(nullptr),
+    reffcsq(nullptr), reffc4(nullptr), reffc7(nullptr), s2d_shift(nullptr), f_shift(nullptr),
+    e_shift(nullptr), self_factor(nullptr), qeq_x(nullptr), qeq_j(nullptr), qeq_g(nullptr),
+    qeq_z(nullptr), qeq_c(nullptr), qeq_q1(nullptr), qeq_q2(nullptr), qeq_w(nullptr)
 {
-  params = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -52,6 +55,16 @@ PairCoulCTIP::~PairCoulCTIP()
 
   memory->sfree(params);
   memory->destroy(elem1param);
+  memory->destroy(shield);
+  memory->destroy(shieldcu);
+  memory->destroy(reffc);
+  memory->destroy(reffcsq);
+  memory->destroy(reffc4);
+  memory->destroy(reffc7);
+  memory->destroy(s2d_shift);
+  memory->destroy(f_shift);
+  memory->destroy(e_shift);
+  memory->destroy(self_factor);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -79,14 +92,6 @@ void PairCoulCTIP::compute(int eflag, int vflag)
   double selfion;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
-  double cut_coulcu, cut_coul4, alphacu, erfcd_cut, t_cut, erfcc_cut;
-  int elt1, elt2;
-
-  double shield[nelements][nelements], shieldcu[nelements][nelements], reffc[nelements][nelements],
-      reffcsq[nelements][nelements], reffc4[nelements][nelements], reffc7[nelements][nelements];
-  double s2d_shift[nelements][nelements], f_shift[nelements][nelements],
-      e_shift[nelements][nelements], self_factor[nelements][nelements];
-
   ecoul = 0.0;
   selfion = 0.0;
   ev_init(eflag, vflag);
@@ -99,38 +104,15 @@ void PairCoulCTIP::compute(int eflag, int vflag)
   double *special_coul = force->special_coul;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
+  double erfcd_cut, t_cut, erfcc_cut;
+  erfcd_cut = exp(-alpha * alpha * cut_coulsq);
+  t_cut = 1.0 / (1.0 + EWALD_P * alpha * cut_coul);
+  erfcc_cut = t_cut * (A1 + t_cut * (A2 + t_cut * (A3 + t_cut * (A4 + t_cut * A5)))) * erfcd_cut;
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
-  cut_coulcu = cut_coulsq * cut_coul;
-  cut_coul4 = cut_coulsq * cut_coulsq;
-  alphacu = alpha * alpha * alpha;
-  erfcd_cut = exp(-alpha * alpha * cut_coulsq);
-  t_cut = 1.0 / (1.0 + EWALD_P * alpha * cut_coul);
-  erfcc_cut = t_cut * (A1 + t_cut * (A2 + t_cut * (A3 + t_cut * (A4 + t_cut * A5)))) * erfcd_cut;
-
-  for (elt1 = 0; elt1 < nelements; elt1++) {
-    for (elt2 = 0; elt2 < nelements; elt2++) {
-      shield[elt1][elt2] = sqrt(params[elt1].gamma * params[elt2].gamma);
-      shieldcu[elt1][elt2] = shield[elt1][elt2] * shield[elt1][elt2] * shield[elt1][elt2];
-      reffc[elt1][elt2] = std::cbrt(cut_coulcu + 1.0 / shieldcu[elt1][elt2]);
-      reffcsq[elt1][elt2] = reffc[elt1][elt2] * reffc[elt1][elt2];
-      reffc4[elt1][elt2] = reffcsq[elt1][elt2] * reffcsq[elt1][elt2];
-      reffc7[elt1][elt2] = reffc4[elt1][elt2] * reffcsq[elt1][elt2] * reffc[elt1][elt2];
-      s2d_shift[elt1][elt2] = 2.0 * erfcc_cut / cut_coulcu +
-          4.0 * alpha / MY_PIS * erfcd_cut / cut_coulsq + 4.0 * alphacu / MY_PIS * erfcd_cut -
-          2.0 / cut_coulcu + 4.0 * cut_coul4 / reffc7[elt1][elt2] - 2.0 * cut_coul / reffc4[elt1][elt2];
-      f_shift[elt1][elt2] = erfcc_cut / cut_coulsq + 2.0 * alpha / MY_PIS * erfcd_cut / cut_coul -
-          1.0 / cut_coulsq + cut_coulsq / reffc4[elt1][elt2];
-      e_shift[elt1][elt2] = 2.0 * erfcc_cut / cut_coul + 2.0 * alpha / MY_PIS * erfcd_cut -
-          2.0 / cut_coul + 1.0 / reffc[elt1][elt2] + cut_coulcu / reffc4[elt1][elt2] +
-          s2d_shift[elt1][elt2] * cut_coulsq * 0.5;
-      self_factor[elt1][elt2] = -(e_shift[elt1][elt2] * 0.5 + alpha / MY_PIS) * qqrd2e;
-    }
-  }
 
   // loop over neighbors of my atoms
 
@@ -292,6 +274,58 @@ void PairCoulCTIP::init_style()
   neighbor->add_request(this);
 
   cut_coulsq = cut_coul * cut_coul;
+
+  memory->destroy(shield);
+  memory->destroy(shieldcu);
+  memory->destroy(reffc);
+  memory->destroy(reffcsq);
+  memory->destroy(reffc4);
+  memory->destroy(reffc7);
+  memory->destroy(s2d_shift);
+  memory->destroy(f_shift);
+  memory->destroy(e_shift);
+  memory->destroy(self_factor);
+
+  memory->create(shield, nelements, nelements, "pair:shield");
+  memory->create(shieldcu, nelements, nelements, "pair:shieldcu");
+  memory->create(reffc, nelements, nelements, "pair:reffc");
+  memory->create(reffcsq, nelements, nelements, "pair:reffcsq");
+  memory->create(reffc4, nelements, nelements, "pair:reffc4");
+  memory->create(reffc7, nelements, nelements, "pair:reffc7");
+  memory->create(s2d_shift, nelements, nelements, "pair:s2d_shift");
+  memory->create(f_shift, nelements, nelements, "pair:f_shift");
+  memory->create(e_shift, nelements, nelements, "pair:e_shift");
+  memory->create(self_factor, nelements, nelements, "pair:self_factor");
+
+  double qqrd2e = force->qqrd2e;
+  double cut_coulcu, cut_coul4, alphacu, erfcd_cut, t_cut, erfcc_cut;
+  cut_coulcu = cut_coulsq * cut_coul;
+  cut_coul4 = cut_coulsq * cut_coulsq;
+  alphacu = alpha * alpha * alpha;
+  erfcd_cut = exp(-alpha * alpha * cut_coulsq);
+  t_cut = 1.0 / (1.0 + EWALD_P * alpha * cut_coul);
+  erfcc_cut = t_cut * (A1 + t_cut * (A2 + t_cut * (A3 + t_cut * (A4 + t_cut * A5)))) * erfcd_cut;
+
+  for (int elt1 = 0; elt1 < nelements; elt1++) {
+    for (int elt2 = 0; elt2 < nelements; elt2++) {
+      shield[elt1][elt2] = sqrt(params[elt1].gamma * params[elt2].gamma);
+      shieldcu[elt1][elt2] = shield[elt1][elt2] * shield[elt1][elt2] * shield[elt1][elt2];
+      reffc[elt1][elt2] = std::cbrt(cut_coulcu + 1.0 / shieldcu[elt1][elt2]);
+      reffcsq[elt1][elt2] = reffc[elt1][elt2] * reffc[elt1][elt2];
+      reffc4[elt1][elt2] = reffcsq[elt1][elt2] * reffcsq[elt1][elt2];
+      reffc7[elt1][elt2] = reffc4[elt1][elt2] * reffcsq[elt1][elt2] * reffc[elt1][elt2];
+      s2d_shift[elt1][elt2] = 2.0 * erfcc_cut / cut_coulcu +
+          4.0 * alpha / MY_PIS * erfcd_cut / cut_coulsq + 4.0 * alphacu / MY_PIS * erfcd_cut -
+          2.0 / cut_coulcu + 4.0 * cut_coul4 / reffc7[elt1][elt2] -
+          2.0 * cut_coul / reffc4[elt1][elt2];
+      f_shift[elt1][elt2] = erfcc_cut / cut_coulsq + 2.0 * alpha / MY_PIS * erfcd_cut / cut_coul -
+          1.0 / cut_coulsq + cut_coulsq / reffc4[elt1][elt2];
+      e_shift[elt1][elt2] = 2.0 * erfcc_cut / cut_coul + 2.0 * alpha / MY_PIS * erfcd_cut -
+          2.0 / cut_coul + 1.0 / reffc[elt1][elt2] + cut_coulcu / reffc4[elt1][elt2] +
+          s2d_shift[elt1][elt2] * cut_coulsq * 0.5;
+      self_factor[elt1][elt2] = -(e_shift[elt1][elt2] * 0.5 + alpha / MY_PIS) * qqrd2e;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

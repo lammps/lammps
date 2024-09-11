@@ -52,6 +52,9 @@ class PairCoulCTIP : public Pair {
 
   Param *params;
 
+  double **shield, **shieldcu, **reffc, **reffcsq, **reffc4, **reffc7;
+  double **s2d_shift, **f_shift, **e_shift, **self_factor;
+
   double *qeq_x, *qeq_j, *qeq_g, *qeq_z, *qeq_c, *qeq_q1, *qeq_q2, *qeq_w;
 
   void allocate();

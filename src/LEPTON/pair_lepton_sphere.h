@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 
 class PairLeptonSphere : public PairLepton {
  public:
-  PairLeptonSphere(class LAMMPS *_lmp) : PairLepton(_lmp){};
+  PairLeptonSphere(class LAMMPS *_lmp) : PairLepton(_lmp) {};
 
   void compute(int, int) override;
   void settings(int, char **) override;

@@ -138,12 +138,27 @@ during development:
 The status of this automated testing can be viewed on `https://ci.lammps.org
 <https://ci.lammps.org>`_.
 
-The scripts and inputs for integration, run, and regression testing
-are maintained in a
-`separate repository <https://github.com/lammps/lammps-testing>`_
-of the LAMMPS project on GitHub.  A few tests are also run as GitHub
-Actions and their configuration files are in the ``.github/workflows/``
-folder of the LAMMPS git tree.
+The scripts and inputs for integration, run, and legacy regression
+testing are maintained in a `separate repository
+<https://github.com/lammps/lammps-testing>`_ of the LAMMPS project on
+GitHub.  A few tests are also run as GitHub Actions and their
+configuration files are in the ``.github/workflows/`` folder of the
+LAMMPS git tree.
+
+Regression tests can also be performed locally with the :ref:`regression
+tester tool <regression>`.  The tool checks if a given LAMMPS binary run
+with selected input examples produces thermo output that is consistent
+with the provided log files.  The script can be run in one pass over all
+available input files, but it can also first create multiple lists of
+inputs or folders that can then be run with multiple workers
+concurrently to speed things up.  Another mode allows to do a quick
+check of inputs that contain commands that have changes in the current
+checkout branch relative to a git branch.  This works similar to the two
+pass mode, but will select only shorter runs and no more than 100 inputs
+that are chosen randomly.  This ensures that this test runs
+significantly faster compared to the full test run.  These test runs can
+also be performed with instrumented LAMMPS binaries (see previous
+section).
 
 The unit testing facility is integrated into the CMake build process of
 the LAMMPS source code distribution itself.  It can be enabled by

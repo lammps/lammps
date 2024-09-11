@@ -1236,6 +1236,22 @@ if __name__ == "__main__":
                     os.remove(f"input-list-{idx}.txt")
                 except:
                     pass
+                filename = f"run-{idx}.log"
+                with open(filename, "w") as f:
+                    f.write('\n')
+                f.close()
+                filename = f"progress-{idx}.yaml"
+                with open(filename, "w") as f:
+                    f.write('\n')
+                f.close()
+                filename = f"output-{idx}.xml"
+                with open(filename, "w") as f:
+                    f.write('\n')
+                f.close()
+                filename = f"failure-{idx}.yaml"
+                with open(filename, "w") as f:
+                    f.write('\n')
+                f.close()
         quit()
 
     # if the example folders are not specified from the command-line argument --example-folders

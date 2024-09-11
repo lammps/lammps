@@ -21,6 +21,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
@@ -34,16 +35,9 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace EwaldConst;
 using namespace MathConst;
 using namespace FixConst;
-
-#define EWALD_F 1.12837917
-#define EWALD_P 0.3275911
-#define A1 0.254829592
-#define A2 -0.284496736
-#define A3 1.421413741
-#define A4 -1.453152027
-#define A5 1.061405429
 
 /* ---------------------------------------------------------------------- */
 
@@ -91,8 +85,8 @@ void FixQEqCTIP::init()
 
 void FixQEqCTIP::extract_ctip()
 {
-  Pair *pair = force->pair_match("coul/ctip",1);
-  if (pair == nullptr) error->all(FLERR,"No pair coul/ctip for fix qeq/ctip");
+  Pair *pair = force->pair_match("^coul/ctip",0);
+  if (pair == nullptr) error->all(FLERR,"No pair style coul/ctip for fix qeq/ctip");
   int tmp;
   chi = (double *) pair->extract("chi",tmp);
   eta = (double *) pair->extract("eta",tmp);
@@ -102,10 +96,9 @@ void FixQEqCTIP::extract_ctip()
   qmin = (double *) pair->extract("qmin",tmp);
   qmax = (double *) pair->extract("qmax",tmp);
   omega = (double *) pair->extract("omega",tmp);
-  if (chi == nullptr || eta == nullptr || gamma == nullptr
-                  || zeta == nullptr || zcore == nullptr || qmin == nullptr || qmax == nullptr || omega == nullptr)
-    error->all(FLERR,
-        "Fix qeq/ctip could not extract params from pair coul/ctip");
+  if (chi == nullptr || eta == nullptr || gamma == nullptr || zeta == nullptr ||
+      zcore == nullptr || qmin == nullptr || qmax == nullptr || omega == nullptr)
+    error->all(FLERR,  "Fix qeq/ctip could not extract all params from pair style coul/ctip");
 
 }
 

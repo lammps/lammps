@@ -37,8 +37,11 @@ group           nowater subtract all water
 group           ions type 63 64
 group           other subtract all water ions
 
-dump            dcd nowater dcd 1 1hvn-nowater.dcd
+dump            dcd1 nowater dcd 1 1hvn-nowater.dcd
 write_psf       nowater 1hvn-nowater.psf
+
+dump            dcd2 all dcd 10 1hvn-all.dcd
+write_psf       all 1hvn-all.psf
 
 # dump            viz      other    image 10 myimage-*.ppm element type size 800 800 zoom 2.82954 shiny 0.5 fsaa yes bond none none view 20 10 box no 0.0 axes no 0.0 0.0 center s 0.521318 0.489856 0.489856
 # dump_modify viz pad 9 boxcolor darkblue backcolor darkgray element H H H H H H H H H H H H H H H H H H C C C C C C C C C C C C C C C C C C C N N N N N N N N N N N N N N O O O O O O O O O P S Cl K  adiam 1 1.92 adiam 2 1.92 adiam 3 1.92 adiam 4 1.92 adiam 5 1.92 adiam 6 1.92 adiam 7 1.92 adiam 8 1.92 adiam 9 1.92 adiam 10 1.92 adiam 11 1.92 adiam 12 1.92 adiam 13 1.92 adiam 14 1.92 adiam 15 1.92 adiam 16 1.92 adiam 17 1.92 adiam 18 1.92 adiam 19 2.72 adiam 20 2.72 adiam 21 2.72 adiam 22 2.72 adiam 23 2.72 adiam 24 2.72 adiam 25 2.72 adiam 26 2.72 adiam 27 2.72 adiam 28 2.72 adiam 29 2.72 adiam 30 2.72 adiam 31 2.72 adiam 32 2.72 adiam 33 2.72 adiam 34 2.72 adiam 35 2.72 adiam 36 2.72 adiam 37 2.72 adiam 38 2.48 adiam 39 2.48 adiam 40 2.48 adiam 41 2.48 adiam 42 2.48 adiam 43 2.48 adiam 44 2.48 adiam 45 2.48 adiam 46 2.48 adiam 47 2.48 adiam 48 2.48 adiam 49 2.48 adiam 50 2.48 adiam 51 2.48 adiam 52 2.432 adiam 53 2.432 adiam 54 2.432 adiam 55 2.432 adiam 56 2.432 adiam 57 2.432 adiam 58 2.432 adiam 59 2.432 adiam 60 2.432 adiam 61 2.88 adiam 62 2.88 adiam 63 3.632 adiam 64 2.816  

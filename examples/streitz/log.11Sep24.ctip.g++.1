@@ -1,4 +1,5 @@
-LAMMPS (29 Aug 2024 - Development - patch_29Aug2024-115-g2b03a1ce17-modified)
+LAMMPS (29 Aug 2024 - Development - patch_29Aug2024-269-g5a12c762f3-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
 #CTIP potential for NiO
 #Contributing author: Gabriel Plummer (NASA)
@@ -16,7 +17,7 @@ Reading data file ...
   1 by 1 by 1 MPI processor grid
   reading atoms ...
   1728 atoms
-  read_data CPU = 0.003 seconds
+  read_data CPU = 0.004 seconds
 
 #Define Charges
 group		type1 type 1
@@ -33,6 +34,7 @@ pair_style	hybrid/overlay eam/fs coul/ctip 0.30 12.0
 pair_coeff	* * eam/fs NiO.eam.fs Ni O
 Reading eam/fs potential file NiO.eam.fs with DATE: 2024-04-29
 pair_coeff	* * coul/ctip NiO.ctip Ni O
+Reading coul/ctip potential file NiO.ctip with DATE: 2024-09-11
 fix		qeq all qeq/ctip 1 12.0 1.0e-8 100 coul/ctip cdamp 0.30 maxrepeat 10
 
 #Setup
@@ -88,30 +90,30 @@ WARNING: Energy due to 1 extra global DOFs will be included in minimizer energie
  (src/min.cpp:219)
 Per MPI rank memory allocation (min/avg/max) = 55.22 | 55.22 | 55.22 Mbytes
    Step          Temp          PotEng           Lx             Ly             Lz            Pxx            Pyy            Pzz            c_q1           c_q2     
-         0   0             -9633.183       24.719478      24.719478      24.719478     -1482.4422     -1482.4422     -1482.4422      1.2374584     -1.2374584    
-         6   0             -9633.1929      24.707584      24.707584      24.707584     -0.41006619    -0.41006619    -0.41006619     1.2410585     -1.2410585    
-Loop time of 1.50809 on 1 procs for 6 steps with 1728 atoms
+         0   0             -9633.183       24.719478      24.719478      24.719478     -1491.273      -1491.273      -1491.273       1.2374666     -1.2374666    
+         6   0             -9633.1929      24.707505      24.707505      24.707505      0.0050470506   0.0050470504   0.0050470502   1.2410908     -1.2410908    
+Loop time of 1.04745 on 1 procs for 6 steps with 1728 atoms
 
 99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = energy tolerance
   Energy initial, next-to-last, final = 
-     -9633.18301864113  -9633.19294374889  -9633.19294376207
-  Force two-norm initial, final = 41.928235 0.011586833
-  Force max component initial, final = 41.928235 0.011586832
-  Final line search alpha, max atom move = 0.0017273131 2.0014087e-05
-  Iterations, force evaluations = 6 12
+     -9633.18301850704  -9633.19294329023  -9633.19294333485
+  Force two-norm initial, final = 42.177998 0.00014264694
+  Force max component initial, final = 42.177998 0.00014260857
+  Final line search alpha, max atom move = 0.0079490417 1.1336014e-06
+  Iterations, force evaluations = 6 8
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.4921     | 0.4921     | 0.4921     |   0.0 | 32.63
+Pair    | 0.3534     | 0.3534     | 0.3534     |   0.0 | 33.74
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00054887 | 0.00054887 | 0.00054887 |   0.0 |  0.04
+Comm    | 0.0004205  | 0.0004205  | 0.0004205  |   0.0 |  0.04
 Output  | 0          | 0          | 0          |   0.0 |  0.00
-Modify  | 1.0134     | 1.0134     | 1.0134     |   0.0 | 67.20
-Other   |            | 0.002055   |            |       |  0.14
+Modify  | 0.69216    | 0.69216    | 0.69216    |   0.0 | 66.08
+Other   |            | 0.001461   |            |       |  0.14
 
 Nlocal:           1728 ave        1728 max        1728 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -142,43 +144,43 @@ fix		npt all npt temp 1000 1000 0.1 iso 0 0 1
 run		1000
 Per MPI rank memory allocation (min/avg/max) = 54.35 | 54.35 | 54.35 Mbytes
    Step          Temp          PotEng           Lx             Ly             Lz            Pxx            Pyy            Pzz            c_q1           c_q2     
-         0   1000          -9633.1929      24.707584      24.707584      24.707584      15934.422      15754.221      15735.035      1.2410585     -1.2410585    
-       100   600.77742     -9528.0586      24.816528      24.816528      24.816528     -16706.733     -15440.638     -17748.278      1.2181933     -1.2181933    
-       200   578.84892     -9490.9798      24.812599      24.812599      24.812599     -5869.8414     -4841.5113     -6712.1711      1.2254412     -1.2254412    
-       300   694.79572     -9478.5505      24.764328      24.764328      24.764328      14631.006      13819.424      13758.131      1.2372038     -1.2372038    
-       400   803.94267     -9462.254       24.866658      24.866658      24.866658     -4649.4599     -6022.0633     -7748.7857      1.2086114     -1.2086114    
-       500   893.70618     -9441.0062      24.891744      24.891744      24.891744     -5778.5831     -8212.0502     -4180.8669      1.2001224     -1.2001224    
-       600   947.22132     -9416.7533      24.86364       24.86364       24.86364       11263.568      12949.819      11329.619      1.2115051     -1.2115051    
-       700   1040.4865     -9409.8379      24.933876      24.933876      24.933876     -6572.21       -8530.9018     -3289.7496      1.1902748     -1.1902748    
-       800   1037.9463     -9398.4839      24.935133      24.935133      24.935133     -4681.3294     -2573.8745     -7152.1217      1.1880295     -1.1880295    
-       900   1049.4497     -9411.1235      24.899756      24.899756      24.899756      3245.0554      8109.3022      5937.385       1.202401      -1.202401     
-      1000   964.21894     -9412.4498      24.926456      24.926456      24.926456     -7644.4098     -5151.7326     -8343.9454      1.1908842     -1.1908842    
-Loop time of 170.213 on 1 procs for 1000 steps with 1728 atoms
+         0   1000          -9633.1929      24.707505      24.707505      24.707505      15934.991      15754.787      15735.602      1.2410908     -1.2410908    
+       100   600.77874     -9528.0602      24.816519      24.816519      24.816519     -16709.313     -15443.072     -17750.832      1.2181988     -1.2181988    
+       200   578.84295     -9490.9794      24.812627      24.812627      24.812627     -5879.8769     -4851.4601     -6722.107       1.2254363     -1.2254363    
+       300   694.7973      -9478.5512      24.764285      24.764285      24.764285      14639.415      13827.989      13766.766      1.2372201     -1.2372201    
+       400   803.93731     -9462.2542      24.866629      24.866629      24.866629     -4644.2854     -6017.2884     -7744.2567      1.2086229     -1.2086229    
+       500   893.70492     -9441.0072      24.891756      24.891756      24.891756     -5784.2232     -8219.1644     -4187.392       1.2001224     -1.2001224    
+       600   947.21728     -9416.7532      24.863623      24.863623      24.863623      11265.076      12952.469      11331.883      1.2115124     -1.2115124    
+       700   1040.4874     -9409.8397      24.933859      24.933859      24.933859     -6570.5927     -8532.7457     -3284.7317      1.1902794     -1.1902794    
+       800   1037.9366     -9398.4828      24.935138      24.935138      24.935138     -4681.8676     -2576.4998     -7160.562       1.1880324     -1.1880324    
+       900   1049.4211     -9411.115       24.899733      24.899733      24.899733      3250.2695      8121.9271      5945.0542      1.2024086     -1.2024086    
+      1000   964.18789     -9412.4405      24.926442      24.926442      24.926442     -7652.603      -5142.9259     -8351.8835      1.1908935     -1.1908935    
+Loop time of 183.932 on 1 procs for 1000 steps with 1728 atoms
 
-Performance: 0.508 ns/day, 47.281 hours/ns, 5.875 timesteps/s, 10.152 katom-step/s
-99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.470 ns/day, 51.092 hours/ns, 5.437 timesteps/s, 9.395 katom-step/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 35.178     | 35.178     | 35.178     |   0.0 | 20.67
-Neigh   | 0.22537    | 0.22537    | 0.22537    |   0.0 |  0.13
-Comm    | 0.04471    | 0.04471    | 0.04471    |   0.0 |  0.03
-Output  | 0.00055646 | 0.00055646 | 0.00055646 |   0.0 |  0.00
-Modify  | 134.75     | 134.75     | 134.75     |   0.0 | 79.17
-Other   |            | 0.0133     |            |       |  0.01
+Pair    | 37.347     | 37.347     | 37.347     |   0.0 | 20.30
+Neigh   | 0.22667    | 0.22667    | 0.22667    |   0.0 |  0.12
+Comm    | 0.052514   | 0.052514   | 0.052514   |   0.0 |  0.03
+Output  | 0.00053967 | 0.00053967 | 0.00053967 |   0.0 |  0.00
+Modify  | 146.29     | 146.29     | 146.29     |   0.0 | 79.53
+Other   |            | 0.01552    |            |       |  0.01
 
 Nlocal:           1728 ave        1728 max        1728 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 Nghost:          13901 ave       13901 max       13901 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:         210392 ave      210392 max      210392 min
+Neighs:         210388 ave      210388 max      210388 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 FullNghs:  2.23448e+06 ave 2.23448e+06 max 2.23448e+06 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 2234478
-Ave neighs/atom = 1293.1007
+Total # of neighbors = 2234476
+Ave neighs/atom = 1293.0995
 Neighbor list builds = 5
 Dangerous builds = 0
-Total wall time: 0:02:52
+Total wall time: 0:03:05

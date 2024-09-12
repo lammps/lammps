@@ -476,15 +476,18 @@ void PairBrownian::init_style()
   // are re-calculated at every step.
 
   flagdeform = flagwall = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style, "deform") == 0)
-      flagdeform = 1;
-    else if (strstr(modify->fix[i]->style, "wall") != nullptr) {
-      if (flagwall) error->all(FLERR, "Cannot use multiple fix wall commands with pair brownian");
-      flagwall = 1;    // Walls exist
-      wallfix = dynamic_cast<FixWall *>(modify->fix[i]);
-      if (wallfix->xflag) flagwall = 2;    // Moving walls exist
-    }
+  wallfix = nullptr;
+
+  if (modify->get_fix_by_style("^deform").size() > 0) flagdeform = 1;
+  auto fixes = modify->get_fix_by_style("^wall");
+  if (fixes.size() > 1)
+    error->all(FLERR, "Cannot use multiple fix wall commands with pair brownian");
+  else if (fixes.size() == 1) {
+    wallfix = dynamic_cast<FixWall *>(fixes[0]);
+    if (!wallfix)
+      error->all(FLERR, "Fix {} is not compatible with pair brownian", fixes[0]->style);
+    flagwall = 1;
+    if (wallfix->xflag) flagwall = 2; // Moving walls exist
   }
 
   // set the isotropic constants depending on the volume fraction
@@ -708,4 +711,18 @@ void PairBrownian::set_3_orthogonal_vectors(double p1[3], double p2[3], double p
   p3[0] = p1[1] * p2[2] - p1[2] * p2[1];
   p3[1] = p1[2] * p2[0] - p1[0] * p2[2];
   p3[2] = p1[0] * p2[1] - p1[1] * p2[0];
+}
+
+/* ----------------------------------------------------------------------
+   check if name is recognized, return pointer to that variable
+   if name not recognized, return nullptr
+------------------------------------------------------------------------- */
+
+void *PairBrownian::extract(const char *str, int &dim)
+{
+  if (strcmp(str, "mu") == 0) {
+    dim = 0;
+    return (void *) &mu;
+  }
+  return nullptr;
 }

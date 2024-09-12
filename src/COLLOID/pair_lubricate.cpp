@@ -819,25 +819,15 @@ void PairLubricate::unpack_forward_comm(int n, int first, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   check if name is recognized, return integer index for that name
-   if name not recognized, return -1
-   if type pair setting, return -2 if no type pairs are set
+   check if name is recognized, return pointer to that variable
+   if name not recognized, return nullptr
 ------------------------------------------------------------------------- */
 
-int PairLubricate::pre_adapt(char *name, int /*ilo*/, int /*ihi*/, int /*jlo*/, int /*jhi*/)
+void *PairLubricate::extract(const char *str, int &dim)
 {
-  if (strcmp(name,"mu") == 0) return 0;
-  return -1;
-}
-
-/* ----------------------------------------------------------------------
-   adapt parameter indexed by which
-   change all pair variables affected by the reset parameter
-   if type pair setting, set I-J and J-I coeffs
-------------------------------------------------------------------------- */
-
-void PairLubricate::adapt(int /*which*/, int /*ilo*/, int /*ihi*/, int /*jlo*/, int /*jhi*/,
-                          double value)
-{
-  mu = value;
+  if (strcmp(str, "mu") == 0) {
+    dim = 0;
+    return (void *) &mu;
+  }
+  return nullptr;
 }

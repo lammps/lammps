@@ -10,12 +10,23 @@ endif()
 if(Kokkos_ENABLE_CUDA)
   message(STATUS "KOKKOS: Enabling CUDA LAMBDA function support")
   set(Kokkos_ENABLE_CUDA_LAMBDA ON CACHE BOOL "" FORCE)
+  message(STATUS "KOKKOS: Disabling CUDA malloc async support")
+  set(Kokkos_ENABLE_IMPL_CUDA_MALLOC_ASYNC OFF CACHE BOOL "" FORCE)
 endif()
 # Adding OpenMP compiler flags without the checks done for
 # BUILD_OMP can result in compile failures. Enforce consistency.
 if(Kokkos_ENABLE_OPENMP)
   if(NOT BUILD_OMP)
     message(FATAL_ERROR "Must enable BUILD_OMP with Kokkos_ENABLE_OPENMP")
+  endif()
+endif()
+
+if(Kokkos_ENABLE_SERIAL)
+  if(NOT (Kokkos_ENABLE_OPENMP OR Kokkos_ENABLE_THREADS OR
+    Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP OR Kokkos_ENABLE_SYCL
+    OR Kokkos_ENABLE_OPENMPTARGET))
+  message(STATUS "KOKKOS: Disabling atomics for Serial Backend")
+  set(Kokkos_ENABLE_ATOMICS_BYPASS ON CACHE BOOL "" FORCE)
   endif()
 endif()
 ########################################################################

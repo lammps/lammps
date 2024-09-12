@@ -332,14 +332,14 @@ void destroy_kokkos(TYPE data, typename TYPE::value_type*** &array)
 ------------------------------------------------------------------------- */
 
 template <typename TYPE, typename... Indices>
-static std::enable_if_t<TYPE::rank == sizeof...(Indices),void> realloc_kokkos(TYPE &data, const char *name, Indices... ns)
+static std::enable_if_t<TYPE::rank_dynamic == sizeof...(Indices),void> realloc_kokkos(TYPE &data, const char *name, Indices... ns)
 {
   data = TYPE();
   data = TYPE(std::string(name), ns...);
 }
 
 template <typename TYPE, typename... Indices>
-static std::enable_if_t<TYPE::rank == sizeof...(Indices) || sizeof...(Indices) == 0,void> realloc_kokkos_allow_zero(TYPE &data, const char *name, Indices... ns)
+static std::enable_if_t<TYPE::rank_dynamic == sizeof...(Indices) || sizeof...(Indices) == 0,void> realloc_kokkos_allow_zero(TYPE &data, const char *name, Indices... ns)
 {
   data = TYPE();
   if constexpr (sizeof...(Indices) != 0)

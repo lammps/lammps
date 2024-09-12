@@ -1,6 +1,4 @@
-// -*- c++ -*-
-
-/* ----------------------------------------------------------------------
+/* -*- c++ -*--------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -16,7 +14,7 @@
    Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "group_ndx.h"
+#include "group2ndx.h"
 
 #include "atom.h"
 #include "comm.h"

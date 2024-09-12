@@ -18,7 +18,7 @@ Syntax
        *delete* = no args
        *block* args = xlo xhi ylo yhi zlo zhi
          xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
-           xlo,xhi,ylo,yhi,zlo,zhi can be a variable
+           xlo,xhi,ylo,yhi,zlo,zhi can be a variable (see below)
        *cone* args = dim c1 c2 radlo radhi lo hi
          dim = *x* or *y* or *z* = axis of cone
          c1,c2 = coords of cone axis in other 2 dimensions (distance units)
@@ -38,7 +38,7 @@ Syntax
        *plane* args = px py pz nx ny nz
          px,py,pz = point on the plane (distance units)
          nx,ny,nz = direction normal to plane (distance units)
-           px,py,pz can be a variable
+           px,py,pz can be a variable (see below)
        *prism* args = xlo xhi ylo yhi zlo zhi xy xz yz
          xlo,xhi,ylo,yhi,zlo,zhi = bounds of untilted prism (distance units)
          xy = distance to tilt y in x direction (distance units)

@@ -712,3 +712,17 @@ void PairBrownian::set_3_orthogonal_vectors(double p1[3], double p2[3], double p
   p3[1] = p1[2] * p2[0] - p1[0] * p2[2];
   p3[2] = p1[0] * p2[1] - p1[1] * p2[0];
 }
+
+/* ----------------------------------------------------------------------
+   check if name is recognized, return pointer to that variable
+   if name not recognized, return nullptr
+------------------------------------------------------------------------- */
+
+void *PairBrownian::extract(const char *str, int &dim)
+{
+  if (strcmp(str, "mu") == 0) {
+    dim = 0;
+    return (void *) &mu;
+  }
+  return nullptr;
+}

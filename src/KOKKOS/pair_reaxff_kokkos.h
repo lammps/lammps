@@ -178,14 +178,14 @@ class PairReaxFFKokkos : public PairReaxFF {
   // TagPairReaxBuildListsHalfBlocking, HalfBlockingPreview, HalfPreview
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void build_hb_list(F_FLOAT, int, int, int, int, int) const;
+  void build_hb_list(F_FLOAT, int, int, int, int) const;
 
   // Isolated function that builds the bond order list, reused across
   // TagPairReaxBuildListsHalfBlocking, HalfBlockingPreview, HalfPreview
   // Returns if we need to populate d_d* functions or not
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  bool build_bo_list(int, int, int, int&, int&) const;
+  bool build_bo_list(int, int, int&, int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBuildListsFull, const int&) const;
@@ -245,17 +245,17 @@ class PairReaxFFKokkos : public PairReaxFF {
 
   // Abstraction for computing SBSO2, CSBO2, dSBO1, dsBO2
   KOKKOS_INLINE_FUNCTION
-  void compute_angular_sbo(int, int, int, int) const;
+  void compute_angular_sbo(int, int, int) const;
 
   // Abstraction for counting and populating angular intermediates
   template<bool POPULATE>
   KOKKOS_INLINE_FUNCTION
-  int preprocess_angular(int, int, int, int, int) const;
+  int preprocess_angular(int, int, int, int) const;
 
   // Abstraction for counting and populating torsion intermediated
   template<bool POPULATE>
   KOKKOS_INLINE_FUNCTION
-  int preprocess_torsion(int, int, tagint, F_FLOAT, F_FLOAT, F_FLOAT, int, int, int) const;
+  int preprocess_torsion(int, int, tagint, F_FLOAT, F_FLOAT, F_FLOAT, int, int) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -436,7 +436,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::t_ffloat_2d_dl d_C1dbo, d_C2dbo, d_C3dbo;
   typename AT::t_ffloat_2d_dl d_C1dbopi, d_C2dbopi, d_C3dbopi, d_C4dbopi;
   typename AT::t_ffloat_2d_dl d_C1dbopi2, d_C2dbopi2, d_C3dbopi2, d_C4dbopi2;
-  typename AT::t_ffloat_2d_dl d_Cdbo, d_Cdbopi, d_Cdbopi2, d_dDeltap_self;
+  typename AT::t_ffloat_2d_dl d_dDeltap_self, d_Cdbo, d_Cdbopi, d_Cdbopi2;
 
   int need_dup;
 
@@ -470,7 +470,8 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
 
-  typename AT::t_int_1d d_bo_first, d_bo_num, d_bo_list, d_hb_first, d_hb_num, d_hb_list;
+  typename AT::t_int_1d d_bo_num, d_hb_num;
+  typename AT::t_int_2d d_bo_list, d_hb_list;
 
   DAT::tdual_int_scalar k_resize_bo, k_resize_hb;
   typename AT::t_int_scalar d_resize_bo, d_resize_hb;

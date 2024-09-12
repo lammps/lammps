@@ -1,6 +1,4 @@
-// -*- c++ -*-
-
-/* ----------------------------------------------------------------------
+/* -*- c++ -*---------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -16,7 +14,7 @@
    Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "ndx_group.h"
+#include "ndx2group.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -33,8 +31,7 @@ static std::string find_section(FILE *fp, const std::string &name)
 {
   char linebuf[BUFLEN];
 
-  if (!fgets(linebuf, BUFLEN, fp))
-    throw TokenizerException("Read error", utils::getsyserror());
+  if (!fgets(linebuf, BUFLEN, fp)) throw TokenizerException("Read error", utils::getsyserror());
   while (!feof(fp)) {
     if (utils::strmatch(linebuf, "^\\s*\\[.*\\]\\s*$")) {
       auto words = Tokenizer(linebuf).as_vector();

@@ -1,4 +1,4 @@
-# GitHub action to build LAMMPS on Windows with Visual C++
+# GitHub action to test LAMMPS on Windows with Visual C++
 name: "Windows Unit Tests"
 
 on:

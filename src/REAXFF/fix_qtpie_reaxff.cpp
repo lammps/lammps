@@ -44,7 +44,6 @@
 #include <cmath>
 #include <cstring>
 #include <exception>
-#include <iostream>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

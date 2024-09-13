@@ -37,41 +37,41 @@ Description
 
 The QTPIE charge equilibration method is an extension of the QEq charge
 equilibration method. With QTPIE, the partial charges on individual atoms
-are computed by minimizing the electrostatic energy of the system in the 
-same way as the QEq method but where the Mulliken electronegativity, 
-:math:`\chi_i`, of each atom in the QEq charge equilibration scheme 
-:ref:`(Rappe and Goddard) <Rappe3>` is replaced with an effective 
+are computed by minimizing the electrostatic energy of the system in the
+same way as the QEq method but where the Mulliken electronegativity,
+:math:`\chi_i`, of each atom in the QEq charge equilibration scheme
+:ref:`(Rappe and Goddard) <Rappe3>` is replaced with an effective
 electronegativity given by :ref:`(Chen) <qtpie-Chen>`
 
 .. math::
    \chi_{\mathrm{eff},i} = \frac{\sum_{j=1}^{N} (\chi_i - \chi_j + \phi_j - \phi_i) S_{ij}}
                                 {\sum_{m=1}^{N}S_{im}},
 
-which acts to penalize long-range charge transfer seen with the QEq charge 
+which acts to penalize long-range charge transfer seen with the QEq charge
 equilibration scheme. In this equation, :math:`N` is the number of atoms in
-the system, :math:`S_{ij}` is the overlap integral between atom :math:`i` 
-and atom :math:`j`, and :math:`\phi_i` and :math:`\phi_j` are the electric 
+the system, :math:`S_{ij}` is the overlap integral between atom :math:`i`
+and atom :math:`j`, and :math:`\phi_i` and :math:`\phi_j` are the electric
 potentials at the position of atom :math:`i` and :math:`j` due to
-an external electric field, respectively. 
+an external electric field, respectively.
 
 This fix is typically used in conjunction with the ReaxFF force
 field model as implemented in the :doc:`pair_style reaxff <pair_reaxff>`
 command, but it can be used with any potential in LAMMPS, so long as it
-defines and uses charges on each atom. For more technical details about the 
+defines and uses charges on each atom. For more technical details about the
 charge equilibration performed by `fix qtpie/reaxff`, which is the same as in
-:doc:`fix qeq/reaxff <fix_qeq_reaxff>` except for the use of 
+:doc:`fix qeq/reaxff <fix_qeq_reaxff>` except for the use of
 :math:`\chi_{\mathrm{eff},i}`, please refer to :ref:`(Aktulga) <qeq-Aktulga2>`.
-To be explicit, this fix replaces :math:`\chi_k` of eq. 3 in 
+To be explicit, this fix replaces :math:`\chi_k` of eq. 3 in
 :ref:`(Aktulga) <qeq-Aktulga2>` with :math:`\chi_{\mathrm{eff},k}`.
 
 This fix requires the Mulliken electronegativity, :math:`\chi`, in eV, the
 self-Coulomb potential, :math:`\eta`, in eV, and the shielded Coulomb
-constant, :math:`\gamma`, in :math:`\AA^{-1}`. If the *params* setting above 
-is the word "reaxff", then these are extracted from the 
-:doc:`pair_style reaxff <pair_reaxff>` command and the ReaxFF force field 
-file it reads in.  If a file name is specified for *params*, then the 
-parameters are taken from the specified file and the file must contain 
-one line for each atom type.  The latter form must be used when performing 
+constant, :math:`\gamma`, in :math:`\AA^{-1}`. If the *params* setting above
+is the word "reaxff", then these are extracted from the
+:doc:`pair_style reaxff <pair_reaxff>` command and the ReaxFF force field
+file it reads in.  If a file name is specified for *params*, then the
+parameters are taken from the specified file and the file must contain
+one line for each atom type.  The latter form must be used when performing
 QTPIE with a non-ReaxFF potential. Each line should be formatted as follows,
 ensuring that the parameters are given in units of eV, eV, and :math:`\AA^{-1}`,
 respectively:
@@ -80,15 +80,15 @@ respectively:
 
    itype chi eta gamma
 
-where *itype* is the atom type from 1 to Ntypes. Note that eta is 
+where *itype* is the atom type from 1 to Ntypes. Note that eta is
 defined here as twice the eta value in the ReaxFF file.
 
 The overlap integrals in the equation for :math:`\chi_{\mathrm{eff},i}`
 are computed by using normalized 1s Gaussian type orbitals. The Gaussian
-orbital exponents, :math:`\alpha`, that are needed to compute the overlap 
-integrals are taken from the file given by *gfile*. 
+orbital exponents, :math:`\alpha`, that are needed to compute the overlap
+integrals are taken from the file given by *gfile*.
 This file must contain one line for each atom type and provide the Gaussian
-orbital exponent for each atom type in units of inverse square Bohr radius. 
+orbital exponent for each atom type in units of inverse square Bohr radius.
 Each line should be formatted as follows:
 
 .. parsed-literal::
@@ -100,7 +100,7 @@ Empty lines or any text following the pound sign (#) are ignored. An example
 
 .. parsed-literal::
 
-    # An example gfile. Exponents are taken from Table 2.2 of Chen, J. (2009). 
+    # An example gfile. Exponents are taken from Table 2.2 of Chen, J. (2009).
     # Theory and applications of fluctuating-charge models.
     # The units of the exponents are 1 / (Bohr radius)^2 .
     1  0.2240  # O
@@ -142,12 +142,12 @@ periodic cell dimensions less than 10 Angstroms.
 This fix may be used in combination with :doc:`fix efield <fix_efield>`
 and will apply the external electric field during charge equilibration,
 but there may be only one fix efield instance used and the electric field
-must be applied to all atoms in the system. Consequently, `fix efield` must 
+must be applied to all atoms in the system. Consequently, `fix efield` must
 be used with *group-ID* all and must not be used with the keyword *region*.
-Equal-style variables can be used for electric field vector 
-components without any further settings. Atom-style variables can be used 
-for spatially-varying electric field vector components, but the resulting 
-electric potential must be specified as an atom-style variable using 
+Equal-style variables can be used for electric field vector
+components without any further settings. Atom-style variables can be used
+for spatially-varying electric field vector components, but the resulting
+electric potential must be specified as an atom-style variable using
 the *potential* keyword for `fix efield`.
 
 Related commands
@@ -169,7 +169,7 @@ maxiter 200
 
 .. _qtpie-Chen:
 
-**(Chen)** Chen, Jiahao. Theory and applications of fluctuating-charge models. 
+**(Chen)** Chen, Jiahao. Theory and applications of fluctuating-charge models.
 University of Illinois at Urbana-Champaign, 2009.
 
 .. _qeq-Aktulga2:

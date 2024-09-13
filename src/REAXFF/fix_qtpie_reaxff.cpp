@@ -14,7 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors:
-      Efstratios M Kritikos, California Institute of Technology 
+      Efstratios M Kritikos, California Institute of Technology
       (Implemented original version in LAMMMPS Aug 2019)
       Navraj S Lalli, Imperial College London
       (Reimplemented QTPIE as a new fix in LAMMPS Aug 2024 and extended functionality)

@@ -578,7 +578,7 @@ void PairReaxFFKokkos<DeviceType>::Deallocate_Lookup_Tables()
   for (i = 0; i <= ntypes; ++i) {
     if (map[i] == -1) continue;
     for (j = i; j <= ntypes; ++j) {
-      if (map[i] == -1) continue;
+      if (map[j] == -1) continue;
       if (LR[i][j].n) {
         sfree(LR[i][j].y);
         sfree(LR[i][j].H);

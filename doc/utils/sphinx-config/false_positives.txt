@@ -1303,6 +1303,7 @@ gettimeofday
 geturl
 gewald
 Gezelter
+gfile
 Gflop
 gfortran
 ghostneigh
@@ -1709,6 +1710,7 @@ Jewett
 jgissing
 ji
 Jiang
+Jiahao
 Jiao
 jik
 JIK
@@ -2363,6 +2365,7 @@ mui
 Mukherjee
 Mulders
 Müller
+Mulliken
 mult
 multi
 multibody
@@ -3069,6 +3072,7 @@ qqr
 qqrd
 Qsb
 qtb
+qtpie
 quadratically
 quadrupolar
 quadrupole

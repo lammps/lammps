@@ -1196,11 +1196,6 @@ void FixQtpieReaxFF::calc_chi_eff()
     }
 
     chi_eff[i] = sum_n / sum_d;
-
-    if (fabs(sum_n) < SMALL && fabs(sum_d) < SMALL)
-      error->all(FLERR,"Unexpected value: fabs(sum_d) is {}", fabs(sum_d));
-    if (fabs(sum_d) < 1.0)
-      error->all(FLERR,"Unexpected value: fabs(sum_d) is {}", fabs(sum_d));
   }
 }
 

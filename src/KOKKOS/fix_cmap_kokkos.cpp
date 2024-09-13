@@ -165,8 +165,12 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
   //   then list will grow by LISTDELTA chunks
 
   if (maxcrossterm == 0) {
-    if (nprocs == 1) maxcrossterm = ncmap;
-    else maxcrossterm = static_cast<int> (LB_FACTOR*ncmap/nprocs);
+
+    // on KOKKOS, allocate enough for all crossterms on each GPU to avoid grow operation in device code
+    //if (nprocs == 1) maxcrossterm = ncmap;
+    //else maxcrossterm = static_cast<int> (LB_FACTOR*ncmap/nprocs);
+    maxcrossterm = ncmap;
+
     memoryKK->create_kokkos(k_crosstermlist,crosstermlist,maxcrossterm,CMAPMAX,"cmap:crosstermlist");
     d_crosstermlist = k_crosstermlist.template view<DeviceType>();
   }
@@ -187,9 +191,7 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
   atomKK->k_sametag.sync<DeviceType>();
   d_sametag = atomKK->k_sametag.view<DeviceType>();
 
-  //ncrosstermlist = 0;
-
-  Kokkos::parallel_reduce(nlocal, KOKKOS_LAMBDA(const int i, int &l_ncrosstermlist) {
+  Kokkos::parallel_scan(nlocal, KOKKOS_LAMBDA(const int i, int &l_ncrosstermlist, bool is_final) {
 
     for( int m = 0; m < d_num_crossterm(i); m++) {
 
@@ -209,18 +211,16 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
       atom5 = closest_image(i,atom5);
 
       if( i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4 && i <= atom5) {
-        if (l_ncrosstermlist == maxcrossterm) {
-          //maxcrossterm += LISTDELTA;
-          //memoryKK->grow_kokkos(k_crosstermlist,crosstermlist,maxcrossterm,CMAPMAX,"cmap:crosstermlist");
-          //d_crosstermlist = k_crosstermlist.template view<DeviceType>();
-          Kokkos::abort("ncrosstermlist == maxcrossterm");
-        }
+        if (l_ncrosstermlist > maxcrossterm) Kokkos::abort("l_ncrosstermlist > maxcrossterm");
         d_crosstermlist(l_ncrosstermlist,0) = atom1;
         d_crosstermlist(l_ncrosstermlist,1) = atom2;
         d_crosstermlist(l_ncrosstermlist,2) = atom3;
         d_crosstermlist(l_ncrosstermlist,3) = atom4;
         d_crosstermlist(l_ncrosstermlist,4) = atom5;
         d_crosstermlist(l_ncrosstermlist,5) = d_crossterm_type(i,m);
+
+        Kokkos::printf(" *** l_ncrosstermlist %i d_crosstermlist %i %i %i %i %i %i\n", l_ncrosstermlist, d_crossterm_atom1(i,m), d_crossterm_atom2(i,m), d_crossterm_atom3(i,m), d_crossterm_atom4(i,m), d_crossterm_atom5(i,m), d_crosstermlist(l_ncrosstermlist,5));
+
         l_ncrosstermlist++;
       }
     }

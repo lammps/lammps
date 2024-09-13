@@ -49,6 +49,7 @@ class PairLubricate : public Pair {
   int flagdeform, flagwall;
   double vol_P;
   class FixWall *wallfix;
+  class FixWallRegion *regwallfix;
   int flagVF, flagHI;
 
   double Ef[3][3];

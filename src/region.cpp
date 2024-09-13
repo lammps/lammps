@@ -191,6 +191,44 @@ int Region::surface(double x, double y, double z, double cutoff)
 }
 
 /* ----------------------------------------------------------------------
+    estimate the volume of a specific region
+    written to be used with volume fraction corrections
+    integrates a dv over the entire region
+  ----------------------------------------------------------------------- */
+double Region::volume_calc()
+{
+  if(bboxflag==0) error->all(FLERR, "Cannot compute volume with unbounded box");
+  int i;
+  bigint volcount;
+  double bin_size[3], reg_volume;
+  reg_volume = -2;
+  // Defining bins to integrate region volume
+  bin_size[0] = (extent_xhi - extent_xlo) / 100.0;
+  bin_size[1] = (extent_yhi - extent_ylo) / 100.0;
+  bin_size[2] = (extent_zhi - extent_zlo) / 100.0;
+
+  double x_probe, y_probe, z_probe; 
+  
+  //Set probe at center of cuboid of dv
+  // x_probe = extent_xlo + (bin_size[0] / 2); 
+  // y_probe = extent_ylo + (bin_size[1] / 2);
+  // z_probe = extent_zlo + (bin_size[2] / 2); //Using these probe positions as start leads to just the innermost for loop being executed 
+  
+  volcount = 0; //Counter for total number of dv
+
+  for (x_probe = extent_xlo; x_probe <= extent_xhi; x_probe += bin_size[0]) //Integral is not isotropic - as a result of start and end conditions
+    for (y_probe = extent_ylo; y_probe <= extent_yhi; y_probe += bin_size[1])
+     for (z_probe = extent_zlo; z_probe <= extent_zhi; z_probe += bin_size[2]) 
+      if (inside(x_probe, y_probe, z_probe) == 0) volcount++;
+
+
+
+
+  reg_volume = volcount * bin_size[0] * bin_size[1] * bin_size[2];
+  return reg_volume;
+}
+ 
+/* ----------------------------------------------------------------------
    add a single contact at Nth location in contact array
    x = particle position
    xp,yp,zp = region surface point

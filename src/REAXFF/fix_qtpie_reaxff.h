@@ -13,7 +13,6 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(qtpie/reax,FixQtpieReaxFF);
 FixStyle(qtpie/reaxff,FixQtpieReaxFF);
 // clang-format on
 #else

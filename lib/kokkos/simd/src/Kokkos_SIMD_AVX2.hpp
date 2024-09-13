@@ -361,9 +361,7 @@ class simd_mask<std::int32_t, simd_abi::avx2_fixed_size<4>> {
   };
   using value_type = bool;
   using abi_type   = simd_abi::avx2_fixed_size<4>;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd_mask()                 = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd_mask(simd_mask const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd_mask(simd_mask&&)      = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd_mask() = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit simd_mask(value_type value)
       : m_value(_mm_set1_epi32(-std::int32_t(value))) {}
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION static constexpr std::size_t size() {
@@ -460,9 +458,7 @@ class simd_mask<std::int32_t, simd_abi::avx2_fixed_size<8>> {
   };
   using value_type = bool;
   using abi_type   = simd_abi::avx2_fixed_size<8>;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd_mask()                 = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd_mask(simd_mask const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd_mask(simd_mask&&)      = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd_mask() = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit simd_mask(value_type value)
       : m_value(_mm256_set1_epi32(-std::int32_t(value))) {}
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION static constexpr std::size_t size() {
@@ -561,9 +557,7 @@ class simd_mask<std::int64_t, simd_abi::avx2_fixed_size<4>> {
   };
   using value_type = bool;
   using abi_type   = simd_abi::avx2_fixed_size<4>;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd_mask()                 = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd_mask(simd_mask const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd_mask(simd_mask&&)      = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd_mask() = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit simd_mask(value_type value)
       : m_value(_mm256_set1_epi64x(-std::int64_t(value))) {}
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION static constexpr std::size_t size() {

@@ -31,11 +31,19 @@
 #include <sstream>
 #include <thread>
 
+namespace {
+int g_openmp_hardware_max_threads = 1;
+}
+
 namespace Kokkos {
 namespace Impl {
 
 std::vector<OpenMPInternal *> OpenMPInternal::all_instances;
 std::mutex OpenMPInternal::all_instances_mutex;
+
+int OpenMPInternal::max_hardware_threads() noexcept {
+  return g_openmp_hardware_max_threads;
+}
 
 void OpenMPInternal::clear_thread_data() {
   const size_t member_bytes =
@@ -188,9 +196,9 @@ void OpenMPInternal::initialize(int thread_count) {
     // Before any other call to OMP query the maximum number of threads
     // and save the value for re-initialization unit testing.
 
-    Impl::g_openmp_hardware_max_threads = get_current_max_threads();
+    g_openmp_hardware_max_threads = get_current_max_threads();
 
-    int process_num_threads = Impl::g_openmp_hardware_max_threads;
+    int process_num_threads = g_openmp_hardware_max_threads;
 
     if (Kokkos::hwloc::available()) {
       process_num_threads = Kokkos::hwloc::get_available_numa_count() *
@@ -203,11 +211,11 @@ void OpenMPInternal::initialize(int thread_count) {
     // process_num_threads if thread_count  > 0, set
     // g_openmp_hardware_max_threads to thread_count
     if (thread_count < 0) {
-      thread_count = Impl::g_openmp_hardware_max_threads;
+      thread_count = g_openmp_hardware_max_threads;
     } else if (thread_count == 0) {
-      if (Impl::g_openmp_hardware_max_threads != process_num_threads) {
-        Impl::g_openmp_hardware_max_threads = process_num_threads;
-        omp_set_num_threads(Impl::g_openmp_hardware_max_threads);
+      if (g_openmp_hardware_max_threads != process_num_threads) {
+        g_openmp_hardware_max_threads = process_num_threads;
+        omp_set_num_threads(g_openmp_hardware_max_threads);
       }
     } else {
       if (Kokkos::show_warnings() && thread_count > process_num_threads) {
@@ -218,16 +226,16 @@ void OpenMPInternal::initialize(int thread_count) {
                   << ",  requested thread : " << std::setw(3) << thread_count
                   << std::endl;
       }
-      Impl::g_openmp_hardware_max_threads = thread_count;
-      omp_set_num_threads(Impl::g_openmp_hardware_max_threads);
+      g_openmp_hardware_max_threads = thread_count;
+      omp_set_num_threads(g_openmp_hardware_max_threads);
     }
 
 // setup thread local
-#pragma omp parallel num_threads(Impl::g_openmp_hardware_max_threads)
+#pragma omp parallel num_threads(g_openmp_hardware_max_threads)
     { Impl::SharedAllocationRecord<void, void>::tracking_enable(); }
 
     auto &instance       = OpenMPInternal::singleton();
-    instance.m_pool_size = Impl::g_openmp_hardware_max_threads;
+    instance.m_pool_size = g_openmp_hardware_max_threads;
 
     // New, unified host thread team data:
     {
@@ -272,10 +280,9 @@ void OpenMPInternal::finalize() {
   if (this == &singleton()) {
     auto const &instance = singleton();
     // Silence Cuda Warning
-    const int nthreads =
-        instance.m_pool_size <= Impl::g_openmp_hardware_max_threads
-            ? Impl::g_openmp_hardware_max_threads
-            : instance.m_pool_size;
+    const int nthreads = instance.m_pool_size <= g_openmp_hardware_max_threads
+                             ? g_openmp_hardware_max_threads
+                             : instance.m_pool_size;
     (void)nthreads;
 
 #pragma omp parallel num_threads(nthreads)
@@ -284,7 +291,7 @@ void OpenMPInternal::finalize() {
     // allow main thread to track
     Impl::SharedAllocationRecord<void, void>::tracking_enable();
 
-    Impl::g_openmp_hardware_max_threads = 1;
+    g_openmp_hardware_max_threads = 1;
   }
 
   m_initialized = false;
@@ -307,7 +314,7 @@ void OpenMPInternal::print_configuration(std::ostream &s) const {
 
   if (m_initialized) {
     const int numa_count      = 1;
-    const int core_per_numa   = Impl::g_openmp_hardware_max_threads;
+    const int core_per_numa   = g_openmp_hardware_max_threads;
     const int thread_per_core = 1;
 
     s << " thread_pool_topology[ " << numa_count << " x " << core_per_numa

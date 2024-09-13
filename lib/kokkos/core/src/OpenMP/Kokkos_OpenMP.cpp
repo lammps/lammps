@@ -113,7 +113,7 @@ int OpenMP::impl_thread_pool_size() const noexcept {
 }
 
 int OpenMP::impl_max_hardware_threads() noexcept {
-  return Impl::g_openmp_hardware_max_threads;
+  return Impl::OpenMPInternal::max_hardware_threads();
 }
 
 namespace Impl {

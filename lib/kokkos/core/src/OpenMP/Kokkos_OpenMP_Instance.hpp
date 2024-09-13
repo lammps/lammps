@@ -47,8 +47,6 @@ namespace Impl {
 
 class OpenMPInternal;
 
-inline int g_openmp_hardware_max_threads = 1;
-
 struct OpenMPTraits {
   static constexpr int MAX_THREAD_COUNT = 512;
 };
@@ -85,6 +83,8 @@ class OpenMPInternal {
   void finalize();
 
   void clear_thread_data();
+
+  static int max_hardware_threads() noexcept;
 
   int thread_pool_size() const { return m_pool_size; }
 

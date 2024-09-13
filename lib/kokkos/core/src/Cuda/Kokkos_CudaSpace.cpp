@@ -31,7 +31,6 @@
 #include <algorithm>
 #include <atomic>
 
-//#include <Cuda/Kokkos_Cuda_BlockSize_Deduction.hpp>
 #include <impl/Kokkos_Error.hpp>
 
 #include <impl/Kokkos_Tools.hpp>
@@ -178,6 +177,29 @@ void *impl_allocate_common(const int device_id,
   cudaError_t error_code = cudaSuccess;
 #ifndef CUDART_VERSION
 #error CUDART_VERSION undefined!
+#elif defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY)
+  // This is intended for Grace-Hopper (and future unified memory architectures)
+  // The idea is to use host allocator and then advise to keep it in HBM on the
+  // device, but that requires CUDA 12.2
+  static_assert(CUDART_VERSION >= 12020,
+                "CUDA runtime version >=12.2 required when "
+                "Kokkos_ENABLE_IMPL_CUDA_UNIFIED_MEMORY is set. "
+                "Please update your CUDA runtime version or "
+                "reconfigure with "
+                "-D Kokkos_ENABLE_IMPL_CUDA_UNIFIED_MEMORY=OFF");
+  if (arg_alloc_size) {  // cudaMemAdvise_v2 does not work with nullptr
+    error_code = cudaMallocManaged(&ptr, arg_alloc_size, cudaMemAttachGlobal);
+    if (error_code == cudaSuccess) {
+      // One would think cudaMemLocation{device_id,
+      // cudaMemLocationTypeDevice} would work but it doesn't. I.e. the order of
+      // members doesn't seem to be defined.
+      cudaMemLocation loc;
+      loc.id   = device_id;
+      loc.type = cudaMemLocationTypeDevice;
+      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaMemAdvise_v2(
+          ptr, arg_alloc_size, cudaMemAdviseSetPreferredLocation, loc));
+    }
+  }
 #elif (defined(KOKKOS_ENABLE_IMPL_CUDA_MALLOC_ASYNC) && CUDART_VERSION >= 11020)
   if (arg_alloc_size >= memory_threshold_g) {
     error_code = cudaMallocAsync(&ptr, arg_alloc_size, stream);
@@ -190,9 +212,13 @@ void *impl_allocate_common(const int device_id,
             "Kokkos::Cuda: backend fence after async malloc");
       }
     }
-  } else
+  } else {
+    error_code = cudaMalloc(&ptr, arg_alloc_size);
+  }
+#else
+  error_code = cudaMalloc(&ptr, arg_alloc_size);
 #endif
-  { error_code = cudaMalloc(&ptr, arg_alloc_size); }
+
   if (error_code != cudaSuccess) {  // TODO tag as unlikely branch
     // This is the only way to clear the last error, which
     // we should do here since we're turning it into an
@@ -326,6 +352,9 @@ void CudaSpace::impl_deallocate(
   }
 #ifndef CUDART_VERSION
 #error CUDART_VERSION undefined!
+#elif defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY)
+  KOKKOS_IMPL_CUDA_SAFE_CALL(cudaSetDevice(m_device));
+  KOKKOS_IMPL_CUDA_SAFE_CALL(cudaFree(arg_alloc_ptr));
 #elif (defined(KOKKOS_ENABLE_IMPL_CUDA_MALLOC_ASYNC) && CUDART_VERSION >= 11020)
   if (arg_alloc_size >= memory_threshold_g) {
     Impl::cuda_device_synchronize(
@@ -436,8 +465,12 @@ void cuda_prefetch_pointer(const Cuda &space, const void *ptr, size_t bytes,
 
 #include <impl/Kokkos_SharedAlloc_timpl.hpp>
 
+#if !defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY)
 KOKKOS_IMPL_HOST_INACCESSIBLE_SHARED_ALLOCATION_RECORD_EXPLICIT_INSTANTIATION(
     Kokkos::CudaSpace);
+#else
+KOKKOS_IMPL_SHARED_ALLOCATION_RECORD_EXPLICIT_INSTANTIATION(Kokkos::CudaSpace);
+#endif
 KOKKOS_IMPL_SHARED_ALLOCATION_RECORD_EXPLICIT_INSTANTIATION(
     Kokkos::CudaUVMSpace);
 KOKKOS_IMPL_SHARED_ALLOCATION_RECORD_EXPLICIT_INSTANTIATION(

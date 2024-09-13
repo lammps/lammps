@@ -2825,10 +2825,12 @@ class ViewMapping<
     using memory_space    = typename Traits::memory_space;
     static_assert(
         SpaceAccessibility<execution_space, memory_space>::accessible);
-    using value_type = typename Traits::value_type;
-    using functor_type =
-        ViewValueFunctor<Kokkos::Device<execution_space, memory_space>,
-                         value_type>;
+    using device_type  = Kokkos::Device<execution_space, memory_space>;
+    using value_type   = typename Traits::value_type;
+    using functor_type = std::conditional_t<
+        alloc_prop::sequential_host_init,
+        ViewValueFunctorSequentialHostInit<device_type, value_type>,
+        ViewValueFunctor<device_type, value_type>>;
     using record_type =
         Kokkos::Impl::SharedAllocationRecord<memory_space, functor_type>;
 

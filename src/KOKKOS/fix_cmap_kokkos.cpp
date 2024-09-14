@@ -180,48 +180,50 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
   atomKK->k_sametag.sync<DeviceType>();
   d_sametag = atomKK->k_sametag.view<DeviceType>();
 
-  // FIXME: capture lambda reference to KOKKOS_INLINE_FUNCTION map_kokkos()
-  // workaround: KOKKOS_CLASS_LAMBDA instead of KOKKOS_LAMBDA
-  // https://github.com/kokkos/kokkos/issues/695
-
-  Kokkos::parallel_scan(nlocal, KOKKOS_CLASS_LAMBDA(const int i, int &l_ncrosstermlist, bool is_final) {
-
-    for( int m = 0; m < d_num_crossterm(i); m++) {
-
-      int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom1(i,m),map_style,k_map_array,k_map_hash);
-      int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom2(i,m),map_style,k_map_array,k_map_hash);
-      int atom3 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom3(i,m),map_style,k_map_array,k_map_hash);
-      int atom4 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom4(i,m),map_style,k_map_array,k_map_hash);
-      int atom5 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom5(i,m),map_style,k_map_array,k_map_hash);
-
-      if( atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1 || atom5 == -1)
-        Kokkos::abort("CMAP atoms missing on proc");
-
-      atom1 = closest_image(i,atom1);
-      atom2 = closest_image(i,atom2);
-      atom3 = closest_image(i,atom3);
-      atom4 = closest_image(i,atom4);
-      atom5 = closest_image(i,atom5);
-
-      if( i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4 && i <= atom5) {
-        if (l_ncrosstermlist > maxcrossterm) Kokkos::abort("l_ncrosstermlist > maxcrossterm");
-        if(is_final) {
-          d_crosstermlist(l_ncrosstermlist,0) = atom1;
-          d_crosstermlist(l_ncrosstermlist,1) = atom2;
-          d_crosstermlist(l_ncrosstermlist,2) = atom3;
-          d_crosstermlist(l_ncrosstermlist,3) = atom4;
-          d_crosstermlist(l_ncrosstermlist,4) = atom5;
-          d_crosstermlist(l_ncrosstermlist,5) = d_crossterm_type(i,m);
-        }
-        l_ncrosstermlist++;
-      }
-    }
-  }, ncrosstermlist);
+  copymode = 1;
+  Kokkos::parallel_scan(Kokkos::RangePolicy<DeviceType,TagFixCmapPreNeighbor>(0,nlocal),*this,ncrosstermlist);
+  copymode = 0;
 
   std::cerr << fmt::format("*** pre_neighbor ncrosstermlist {} ncmap {}\n",ncrosstermlist, ncmap);
 
 }
 
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPreNeighbor, const int i, int &l_ncrosstermlist, const bool is_final ) const
+{
+
+  for( int m = 0; m < d_num_crossterm(i); m++) {
+
+    int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom1(i,m),map_style,k_map_array,k_map_hash);
+    int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom2(i,m),map_style,k_map_array,k_map_hash);
+    int atom3 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom3(i,m),map_style,k_map_array,k_map_hash);
+    int atom4 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom4(i,m),map_style,k_map_array,k_map_hash);
+    int atom5 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom5(i,m),map_style,k_map_array,k_map_hash);
+
+    if( atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1 || atom5 == -1)
+      Kokkos::abort("CMAP atoms missing on proc");
+
+    atom1 = closest_image(i,atom1);
+    atom2 = closest_image(i,atom2);
+    atom3 = closest_image(i,atom3);
+    atom4 = closest_image(i,atom4);
+    atom5 = closest_image(i,atom5);
+
+    if( i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4 && i <= atom5) {
+      if (l_ncrosstermlist > maxcrossterm) Kokkos::abort("l_ncrosstermlist > maxcrossterm");
+      if(is_final) {
+        d_crosstermlist(l_ncrosstermlist,0) = atom1;
+        d_crosstermlist(l_ncrosstermlist,1) = atom2;
+        d_crosstermlist(l_ncrosstermlist,2) = atom3;
+        d_crosstermlist(l_ncrosstermlist,3) = atom4;
+        d_crosstermlist(l_ncrosstermlist,4) = atom5;
+        d_crosstermlist(l_ncrosstermlist,5) = d_crossterm_type(i,m);
+      }
+      l_ncrosstermlist++;
+    }
+  }
+}
 
 /* ----------------------------------------------------------------------
    compute CMAP terms as if newton_bond = OFF, even if actually ON
@@ -241,7 +243,7 @@ void FixCMAPKokkos<DeviceType>::post_force(int vflag)
   ev_init(eflag,vflag);
 
   copymode = 1;
-  Kokkos::parallel_for(ncrosstermlist, *this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixCmapPostForce>(0,ncrosstermlist), *this);
   copymode = 0;
   atomKK->modified(execution_space,F_MASK);
 
@@ -254,7 +256,7 @@ void FixCMAPKokkos<DeviceType>::post_force(int vflag)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixCMAPKokkos<DeviceType>::operator()(const int n) const
+void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n) const
 {
 
   int i1,i2,i3,i4,i5,type;

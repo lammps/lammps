@@ -28,6 +28,9 @@ FixStyle(cmap/kk/host,FixCMAPKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
+struct TagFixCmapPreNeighbor{};
+struct TagFixCmapPostForce{};
+
 template<class DeviceType>
 class FixCMAPKokkos : public FixCMAP {
   typedef ArrayTypes<DeviceType> AT;
@@ -41,7 +44,10 @@ class FixCMAPKokkos : public FixCMAP {
     void post_force(int) override;
 
     KOKKOS_INLINE_FUNCTION
-    void operator()(const int) const;
+    void operator()(TagFixCmapPreNeighbor, const int, int&, const bool) const;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()(TagFixCmapPostForce, const int) const;
 
     void grow_arrays(int) override;
     void copy_arrays(int, int, int) override;

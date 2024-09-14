@@ -111,10 +111,6 @@ FixCMAPKokkos<DeviceType>::FixCMAPKokkos(LAMMPS *lmp, int narg, char **arg) :
   k_d2cmapgrid.template sync<DeviceType>();
   k_d12cmapgrid.template sync<DeviceType>();
 
-  // on KOKKOS, allocate enough for all crossterms on each GPU to avoid grow operation in device code
-  maxcrossterm = ncmap;
-  memoryKK->create_kokkos(d_crosstermlist,maxcrossterm,CMAPMAX,"cmap:crosstermlist");
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -149,6 +145,10 @@ void FixCMAPKokkos<DeviceType>::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Cannot yet use respa with Kokkos");
+
+  // on KOKKOS, allocate enough for all crossterms on each GPU to avoid grow operation in device code
+  maxcrossterm = ncmap;
+  memoryKK->create_kokkos(d_crosstermlist,maxcrossterm,CMAPMAX,"cmap:crosstermlist");
 }
 
 /* ----------------------------------------------------------------------

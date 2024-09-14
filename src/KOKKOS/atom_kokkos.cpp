@@ -210,8 +210,8 @@ void AtomKokkos::sort()
         flag = 0;
 
         if (comm->me == 0)
-          error->warning(FLERR,"Fix {} {} not compatible with Kokkos sorting on device", fix_iextra->id, fix_iextra->style);
-        
+          error->warning(FLERR,"Fix {} not compatible with Kokkos sorting on device", fix_iextra->style);
+
         break;
       }
     }

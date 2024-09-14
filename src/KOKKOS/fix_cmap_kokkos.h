@@ -24,6 +24,8 @@ FixStyle(cmap/kk/host,FixCMAPKokkos<LMPHostType>);
 #define LMP_FIX_CMAP_KOKKOS_H
 
 #include "fix_cmap.h"
+
+#include "kokkos_base.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
@@ -32,7 +34,7 @@ struct TagFixCmapPreNeighbor{};
 struct TagFixCmapPostForce{};
 
 template<class DeviceType>
-class FixCMAPKokkos : public FixCMAP {
+class FixCMAPKokkos : public FixCMAP, public KokkosBase {
   typedef ArrayTypes<DeviceType> AT;
 
   public:
@@ -51,6 +53,7 @@ class FixCMAPKokkos : public FixCMAP {
 
     void grow_arrays(int) override;
     void copy_arrays(int, int, int) override;
+    void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
     void set_arrays(int) override;
     int pack_exchange(int, double *) override;
     int unpack_exchange(int, double *) override;
@@ -68,7 +71,7 @@ class FixCMAPKokkos : public FixCMAP {
     DAT::tdual_int_1d k_num_crossterm;
     typename AT::t_int_1d d_num_crossterm;
 
-    DAT::tdual_int_2d k_crosstermlist, k_crossterm_type;
+    DAT::tdual_int_2d k_crossterm_type;
     typename AT::t_int_2d d_crosstermlist, d_crossterm_type;
 
     DAT::tdual_tagint_2d k_crossterm_atom1, k_crossterm_atom2, k_crossterm_atom3;

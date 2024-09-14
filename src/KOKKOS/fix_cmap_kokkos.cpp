@@ -46,6 +46,8 @@ FixCMAPKokkos<DeviceType>::FixCMAPKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixCMAP(lmp, narg, arg)
 {
   kokkosable = 1;
+  //exchange_comm_device =
+  sort_device = 1;
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -109,6 +111,10 @@ FixCMAPKokkos<DeviceType>::FixCMAPKokkos(LAMMPS *lmp, int narg, char **arg) :
   k_d2cmapgrid.template sync<DeviceType>();
   k_d12cmapgrid.template sync<DeviceType>();
 
+  // on KOKKOS, allocate enough for all crossterms on each GPU to avoid grow operation in device code
+  maxcrossterm = ncmap;
+  memoryKK->create_kokkos(d_crosstermlist,maxcrossterm,CMAPMAX,"cmap:crosstermlist");
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -124,8 +130,6 @@ FixCMAPKokkos<DeviceType>::~FixCMAPKokkos()
   memoryKK->destroy_kokkos(k_d2cmapgrid,d2cmapgrid);
   memoryKK->destroy_kokkos(k_d12cmapgrid,d12cmapgrid);
 
-  memoryKK->destroy_kokkos(k_crosstermlist,crosstermlist);
-
   memoryKK->destroy_kokkos(k_num_crossterm,num_crossterm);
   memoryKK->destroy_kokkos(k_crossterm_type,crossterm_type);
   memoryKK->destroy_kokkos(k_crossterm_atom1,crossterm_atom1);
@@ -133,6 +137,8 @@ FixCMAPKokkos<DeviceType>::~FixCMAPKokkos()
   memoryKK->destroy_kokkos(k_crossterm_atom3,crossterm_atom3);
   memoryKK->destroy_kokkos(k_crossterm_atom4,crossterm_atom4);
   memoryKK->destroy_kokkos(k_crossterm_atom5,crossterm_atom5);
+
+  memoryKK->destroy_kokkos(d_crosstermlist);
 
 }
 
@@ -152,15 +158,6 @@ void FixCMAPKokkos<DeviceType>::init()
 template<class DeviceType>
 void FixCMAPKokkos<DeviceType>::pre_neighbor()
 {
-
-  if (maxcrossterm == 0) {
-
-    // on KOKKOS, allocate enough for all crossterms on each GPU to avoid grow operation in device code
-    maxcrossterm = ncmap;
-
-    memoryKK->create_kokkos(k_crosstermlist,crosstermlist,maxcrossterm,CMAPMAX,"cmap:crosstermlist");
-    d_crosstermlist = k_crosstermlist.template view<DeviceType>();
-  }
 
   atomKK->sync(execution_space,X_MASK);
   d_x = atomKK->k_x.view<DeviceType>();
@@ -232,7 +229,6 @@ void FixCMAPKokkos<DeviceType>::post_force(int vflag)
   d_x = atomKK->k_x.template view<DeviceType>();
   d_f = atomKK->k_f.template view<DeviceType>();
   atomKK->sync(execution_space,X_MASK|F_MASK);
-  k_crosstermlist.template sync<DeviceType>();
 
   ecmap = 0.0;
   int eflag = eflag_caller;
@@ -629,6 +625,40 @@ void FixCMAPKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
   k_crossterm_atom3.template modify<LMPHostType>();
   k_crossterm_atom4.template modify<LMPHostType>();
   k_crossterm_atom5.template modify<LMPHostType>();
+}
+
+/* ----------------------------------------------------------------------
+   sort local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixCMAPKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  // always sort on the device
+
+  k_num_crossterm.sync_device();
+  k_crossterm_type.sync_device();
+  k_crossterm_atom1.sync_device();
+  k_crossterm_atom2.sync_device();
+  k_crossterm_atom3.sync_device();
+  k_crossterm_atom4.sync_device();
+  k_crossterm_atom5.sync_device();
+
+  Sorter.sort(LMPDeviceType(), k_num_crossterm.d_view);
+  Sorter.sort(LMPDeviceType(), k_crossterm_type.d_view);
+  Sorter.sort(LMPDeviceType(), k_crossterm_atom1.d_view);
+  Sorter.sort(LMPDeviceType(), k_crossterm_atom2.d_view);
+  Sorter.sort(LMPDeviceType(), k_crossterm_atom3.d_view);
+  Sorter.sort(LMPDeviceType(), k_crossterm_atom4.d_view);
+  Sorter.sort(LMPDeviceType(), k_crossterm_atom5.d_view);
+
+  k_num_crossterm.modify_device();
+  k_crossterm_type.modify_device();
+  k_crossterm_atom1.modify_device();
+  k_crossterm_atom2.modify_device();
+  k_crossterm_atom3.modify_device();
+  k_crossterm_atom4.modify_device();
+  k_crossterm_atom5.modify_device();
 }
 
 /* ----------------------------------------------------------------------

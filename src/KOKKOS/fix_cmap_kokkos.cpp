@@ -212,15 +212,14 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
 
       if( i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4 && i <= atom5) {
         if (l_ncrosstermlist > maxcrossterm) Kokkos::abort("l_ncrosstermlist > maxcrossterm");
-        d_crosstermlist(l_ncrosstermlist,0) = atom1;
-        d_crosstermlist(l_ncrosstermlist,1) = atom2;
-        d_crosstermlist(l_ncrosstermlist,2) = atom3;
-        d_crosstermlist(l_ncrosstermlist,3) = atom4;
-        d_crosstermlist(l_ncrosstermlist,4) = atom5;
-        d_crosstermlist(l_ncrosstermlist,5) = d_crossterm_type(i,m);
-
-        Kokkos::printf(" *** l_ncrosstermlist %i d_crosstermlist %i %i %i %i %i %i\n", l_ncrosstermlist, d_crossterm_atom1(i,m), d_crossterm_atom2(i,m), d_crossterm_atom3(i,m), d_crossterm_atom4(i,m), d_crossterm_atom5(i,m), d_crosstermlist(l_ncrosstermlist,5));
-
+        if(is_final) {
+          d_crosstermlist(l_ncrosstermlist,0) = atom1;
+          d_crosstermlist(l_ncrosstermlist,1) = atom2;
+          d_crosstermlist(l_ncrosstermlist,2) = atom3;
+          d_crosstermlist(l_ncrosstermlist,3) = atom4;
+          d_crosstermlist(l_ncrosstermlist,4) = atom5;
+          d_crosstermlist(l_ncrosstermlist,5) = d_crossterm_type(i,m);
+        }
         l_ncrosstermlist++;
       }
     }

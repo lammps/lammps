@@ -46,8 +46,11 @@ FixCMAPKokkos<DeviceType>::FixCMAPKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixCMAP(lmp, narg, arg)
 {
   kokkosable = 1;
-  //exchange_comm_device =
+
+  // FIXME: test/bugfix pack_exchange_kokkos() and unpack_exchange_kokkos()
+  //exchange_comm_device = sort_device = 1;
   sort_device = 1;
+
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -729,6 +732,148 @@ int FixCMAPKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
   return m;
 }
 
+/* ----------------------------------------------------------------------
+   (KOKKOS) pack values in local atom-based array for exchange
+------------------------------------------------------------------------- */
+
+/*
+int FixCMAP::pack_exchange(int i, double *buf)
+{
+  int n = 0;
+  buf[n++] = ubuf(num_crossterm[i]).d;
+  for (int m = 0; m < num_crossterm[i]; m++) {
+    buf[n++] = ubuf(crossterm_type[i][m]).d;
+    buf[n++] = ubuf(crossterm_atom1[i][m]).d;
+    buf[n++] = ubuf(crossterm_atom2[i][m]).d;
+    buf[n++] = ubuf(crossterm_atom3[i][m]).d;
+    buf[n++] = ubuf(crossterm_atom4[i][m]).d;
+    buf[n++] = ubuf(crossterm_atom5[i][m]).d;
+  }
+  return n;
+}
+*/
+
+template<class DeviceType>
+int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
+   const int &nsend, DAT::tdual_xfloat_2d &k_buf,
+   DAT::tdual_int_1d k_exchange_sendlist, DAT::tdual_int_1d k_copylist,
+   ExecutionSpace space)
+{
+
+  k_buf.template sync<DeviceType>();
+  //k_copylist.template sync<DeviceType>();
+  k_exchange_sendlist.template sync<DeviceType>();
+
+  auto d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+    k_buf.template view<DeviceType>().data(),
+    k_buf.extent(0)*k_buf.extent(1));
+  //d_copylist = k_copylist.view<DeviceType>();
+  auto d_exchange_sendlist = k_exchange_sendlist.view<DeviceType>();
+  //this->nsend = nsend;
+
+  int n;
+  copymode = 1;
+
+  Kokkos::parallel_scan(nsend, KOKKOS_LAMBDA(const int &mysend, int &offset, const bool &final) {
+
+    const int i = d_exchange_sendlist(mysend);
+
+    if (!final) offset += d_num_crossterm(i);
+    else {
+      int j = nsend + offset;
+      d_buf(j) = ubuf(num_crossterm[i]).d;
+      for (int m = 0; m < num_crossterm[i]; m++) {
+        d_buf(j++) = ubuf(d_crossterm_type(i,m)).d;
+        d_buf(j++) = ubuf(d_crossterm_atom1(i,m)).d;
+        d_buf(j++) = ubuf(d_crossterm_atom2(i,m)).d;
+        d_buf(j++) = ubuf(d_crossterm_atom3(i,m)).d;
+        d_buf(j++) = ubuf(d_crossterm_atom4(i,m)).d;
+        d_buf(j++) = ubuf(d_crossterm_atom5(i,m)).d;
+      }
+    }
+  },n);
+
+  copymode = 0;
+
+  k_buf.modify<DeviceType>();
+  if (space == Host) k_buf.sync<LMPHostType>();
+  else k_buf.sync<LMPDeviceType>();
+
+  return n;
+}
+
+/* ----------------------------------------------------------------------
+   (KOKKOS) unpack values in local atom-based array from exchange
+------------------------------------------------------------------------- */
+
+/*
+int FixCMAP::unpack_exchange(int nlocal, double *buf)
+{
+  int n = 0;
+  num_crossterm[nlocal] = (int) ubuf(buf[n++]).i;
+  for (int m = 0; m < num_crossterm[nlocal]; m++) {
+    crossterm_type[nlocal][m] = (int) ubuf(buf[n++]).i;
+    crossterm_atom1[nlocal][m] = (tagint) ubuf(buf[n++]).i;
+    crossterm_atom2[nlocal][m] = (tagint) ubuf(buf[n++]).i;
+    crossterm_atom3[nlocal][m] = (tagint) ubuf(buf[n++]).i;
+    crossterm_atom4[nlocal][m] = (tagint) ubuf(buf[n++]).i;
+    crossterm_atom5[nlocal][m] = (tagint) ubuf(buf[n++]).i;
+  }
+  return n;
+}
+*/
+
+template <class DeviceType>
+void FixCMAPKokkos<DeviceType>::unpack_exchange_kokkos(
+  DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  int nrecv1, int nextrarecv1,
+  ExecutionSpace /*space*/)
+{
+  k_buf.template sync<DeviceType>();
+  k_indices.template sync<DeviceType>();
+
+  auto d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+    k_buf.template view<DeviceType>().data(),
+    k_buf.extent(0)*k_buf.extent(1));
+
+  auto d_indices = k_indices.view<DeviceType>();
+
+  //this->nrecv1 = nrecv1;
+  //this->nextrarecv1 = nextrarecv1;
+
+  k_num_crossterm.template sync<DeviceType>();
+  k_crossterm_type.template sync<DeviceType>();
+  k_crossterm_atom1.template sync<DeviceType>();
+  k_crossterm_atom2.template sync<DeviceType>();
+  k_crossterm_atom3.template sync<DeviceType>();
+  k_crossterm_atom4.template sync<DeviceType>();
+  k_crossterm_atom5.template sync<DeviceType>();
+
+  copymode = 1;
+
+  Kokkos::parallel_for(nrecv, KOKKOS_LAMBDA(const int &i) {
+    int index = d_indices(i);
+    d_num_crossterm(index) = (int) ubuf(d_buf[i]).i;
+    for (int m = 0; m < d_num_crossterm(index); m++) {
+      d_crossterm_type(index,m) = (int) ubuf(d_buf[i*m+1]).i;
+      d_crossterm_atom1(index,m) = (tagint) ubuf(d_buf[i*m+2]).i;
+      d_crossterm_atom2(index,m) = (tagint) ubuf(d_buf[i*m+3]).i;
+      d_crossterm_atom3(index,m) = (tagint) ubuf(d_buf[i*m+4]).i;
+      d_crossterm_atom4(index,m) = (tagint) ubuf(d_buf[i*m+5]).i;
+      d_crossterm_atom5(index,m) = (tagint) ubuf(d_buf[i*m+6]).i;
+    }
+  });
+
+  copymode = 0;
+
+  k_num_crossterm.template modify<DeviceType>();
+  k_crossterm_type.template modify<DeviceType>();
+  k_crossterm_atom1.template modify<DeviceType>();
+  k_crossterm_atom2.template modify<DeviceType>();
+  k_crossterm_atom3.template modify<DeviceType>();
+  k_crossterm_atom4.template modify<DeviceType>();
+  k_crossterm_atom5.template modify<DeviceType>();
+}
 
 /* ---------------------------------------------------------------------- */
 

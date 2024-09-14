@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mitch Murphy (alphataubio at gmail.com)
+   Contributing author: Mitch Murphy (alphataubio at gmail)
 ------------------------------------------------------------------------- */
 
 #include "region_sphere_kokkos.h"
@@ -64,7 +64,11 @@ void RegSphereKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_i
 
   copymode = 1;
 
-  Kokkos::parallel_for(atom->nlocal, KOKKOS_LAMBDA( const int &i ) {
+  // FIXME: capture lambda reference to KOKKOS_INLINE_FUNCTION match()
+  // workaround: KOKKOS_CLASS_LAMBDA instead of KOKKOS_LAMBDA
+  // https://github.com/kokkos/kokkos/issues/695
+
+  Kokkos::parallel_for(atom->nlocal, KOKKOS_CLASS_LAMBDA( const int &i ) {
     if (d_mask[i] & l_groupbit) {
       double x_tmp = d_x(i,0);
       double y_tmp = d_x(i,1);

@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mitch Murphy (alphataubio@gmail.com)
+   Contributing author: Mitch Murphy (alphataubio at gmail)
 ------------------------------------------------------------------------- */
 
 #include "fix_cmap_kokkos.h"
@@ -180,7 +180,11 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
   atomKK->k_sametag.sync<DeviceType>();
   d_sametag = atomKK->k_sametag.view<DeviceType>();
 
-  Kokkos::parallel_scan(nlocal, KOKKOS_LAMBDA(const int i, int &l_ncrosstermlist, bool is_final) {
+  // FIXME: capture lambda reference to KOKKOS_INLINE_FUNCTION map_kokkos()
+  // workaround: KOKKOS_CLASS_LAMBDA instead of KOKKOS_LAMBDA
+  // https://github.com/kokkos/kokkos/issues/695
+
+  Kokkos::parallel_scan(nlocal, KOKKOS_CLASS_LAMBDA(const int i, int &l_ncrosstermlist, bool is_final) {
 
     for( int m = 0; m < d_num_crossterm(i); m++) {
 

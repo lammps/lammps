@@ -30,8 +30,6 @@
 #include "update.h"
 #include "variable.h"
 
-#include <iostream>
-
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -184,8 +182,6 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
   Kokkos::parallel_scan(Kokkos::RangePolicy<DeviceType,TagFixCmapPreNeighbor>(0,nlocal),*this,ncrosstermlist);
   copymode = 0;
 
-  std::cerr << fmt::format("*** pre_neighbor ncrosstermlist {} ncmap {}\n",ncrosstermlist, ncmap);
-
 }
 
 template<class DeviceType>
@@ -246,8 +242,6 @@ void FixCMAPKokkos<DeviceType>::post_force(int vflag)
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixCmapPostForce>(0,ncrosstermlist), *this);
   copymode = 0;
   atomKK->modified(execution_space,F_MASK);
-
-       std::cerr << fmt::format("*** post_force ncrosstermlist {} vflag {} ecmap {}\n",ncrosstermlist,vflag,ecmap);
 
 }
 

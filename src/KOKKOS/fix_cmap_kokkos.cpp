@@ -35,9 +35,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-static constexpr int LISTDELTA = 10000;
-static constexpr double LB_FACTOR = 1.5;
-
 static constexpr int CMAPMAX = 6;   // max # of CMAP terms stored by one atom
 static constexpr int CMAPDIM = 24;  // grid map dimension is 24 x 24
 static constexpr double CMAPXMIN2 = -180.0;
@@ -157,18 +154,10 @@ void FixCMAPKokkos<DeviceType>::init()
 template<class DeviceType>
 void FixCMAPKokkos<DeviceType>::pre_neighbor()
 {
-  const int me = comm->me;
-  const int nprocs = comm->nprocs;
-
-  // guesstimate initial length of local crossterm list
-  // if ncmap was not set (due to read_restart, no read_data),
-  //   then list will grow by LISTDELTA chunks
 
   if (maxcrossterm == 0) {
 
     // on KOKKOS, allocate enough for all crossterms on each GPU to avoid grow operation in device code
-    //if (nprocs == 1) maxcrossterm = ncmap;
-    //else maxcrossterm = static_cast<int> (LB_FACTOR*ncmap/nprocs);
     maxcrossterm = ncmap;
 
     memoryKK->create_kokkos(k_crosstermlist,crosstermlist,maxcrossterm,CMAPMAX,"cmap:crosstermlist");

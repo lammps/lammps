@@ -3,6 +3,8 @@
 fix cmap command
 ================
 
+Accelerator Variants: *cmap/kk*
+
 Syntax
 """"""
 

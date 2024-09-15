@@ -786,7 +786,7 @@ int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
 
     const int i = d_exchange_sendlist(mysend);
 
-    if (!final) offset += d_num_crossterm(i);
+    if (!final) offset += l_num_crossterm(i);
     else {
       int j = nsend + offset;
       d_buf(j) = static_cast<double> (l_num_crossterm(i));

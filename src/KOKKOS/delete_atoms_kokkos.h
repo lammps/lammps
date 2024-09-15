@@ -11,23 +11,40 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_COMMAND_H
-#define LMP_COMMAND_H
+#ifdef COMMAND_CLASS
+// clang-format off
+CommandStyle(delete_atoms/kk,DeleteAtomsKokkos<LMPDeviceType>);
+CommandStyle(delete_atoms/kk/device,DeleteAtomsKokkos<LMPDeviceType>);
+CommandStyle(delete_atoms/kk/host,DeleteAtomsKokkos<LMPHostType>);
+// clang-format on
+#else
 
-#include "pointers.h"    // IWYU pragma: keep
+#ifndef LMP_DELETE_ATOMS_KOKKOS_H
+#define LMP_DELETE_ATOMS_KOKKOS_H
+
+#include "delete_atoms.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-class Command : protected Pointers {
+template<class DeviceType>
+class DeleteAtomsKokkos : public DeleteAtoms {
  public:
-  Command(class LAMMPS *lmp) : Pointers(lmp){};
-  virtual void command(int, char **) = 0;
+  DeleteAtomsKokkos(class LAMMPS *);
+
+  void command(int, char **) override;
+
+  void delete_overlap(int, char **);
+
+  //KOKKOS_INLINE_FUNCTION
+  //void operator()(const int &i) const;
 
  protected:
-  int copymode;    // if set, do not deallocate during destruction
-                   // required when classes are used as functors by Kokkos
-};
 
+  DAT::tdual_int_1d k_dlist;
+
+};
 }    // namespace LAMMPS_NS
 
+#endif    //LMP_DELETE_ATOMS_KOKKOS_H
 #endif

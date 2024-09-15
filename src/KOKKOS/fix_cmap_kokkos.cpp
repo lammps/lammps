@@ -781,14 +781,14 @@ int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
     if (!final) offset += d_num_crossterm(i);
     else {
       int j = nsend + offset;
-      d_buf(j) = ubuf(num_crossterm[i]).d;
+      d_buf(j) = static_cast<double> (num_crossterm[i]);
       for (int m = 0; m < num_crossterm[i]; m++) {
-        d_buf(j++) = ubuf(d_crossterm_type(i,m)).d;
-        d_buf(j++) = ubuf(d_crossterm_atom1(i,m)).d;
-        d_buf(j++) = ubuf(d_crossterm_atom2(i,m)).d;
-        d_buf(j++) = ubuf(d_crossterm_atom3(i,m)).d;
-        d_buf(j++) = ubuf(d_crossterm_atom4(i,m)).d;
-        d_buf(j++) = ubuf(d_crossterm_atom5(i,m)).d;
+        d_buf(j++) = static_cast<double> (d_crossterm_type(i,m));
+        d_buf(j++) = static_cast<double> (d_crossterm_atom1(i,m));
+        d_buf(j++) = static_cast<double> (d_crossterm_atom2(i,m));
+        d_buf(j++) = static_cast<double> (d_crossterm_atom3(i,m));
+        d_buf(j++) = static_cast<double> (d_crossterm_atom4(i,m));
+        d_buf(j++) = static_cast<double> (d_crossterm_atom5(i,m));
       }
     }
   },n);
@@ -853,14 +853,14 @@ void FixCMAPKokkos<DeviceType>::unpack_exchange_kokkos(
 
   Kokkos::parallel_for(nrecv, KOKKOS_LAMBDA(const int &i) {
     int index = d_indices(i);
-    d_num_crossterm(index) = (int) ubuf(d_buf[i]).i;
+    d_num_crossterm(index) = static_cast<int> (d_buf[i]);
     for (int m = 0; m < d_num_crossterm(index); m++) {
-      d_crossterm_type(index,m) = (int) ubuf(d_buf[i*m+1]).i;
-      d_crossterm_atom1(index,m) = (tagint) ubuf(d_buf[i*m+2]).i;
-      d_crossterm_atom2(index,m) = (tagint) ubuf(d_buf[i*m+3]).i;
-      d_crossterm_atom3(index,m) = (tagint) ubuf(d_buf[i*m+4]).i;
-      d_crossterm_atom4(index,m) = (tagint) ubuf(d_buf[i*m+5]).i;
-      d_crossterm_atom5(index,m) = (tagint) ubuf(d_buf[i*m+6]).i;
+      d_crossterm_type(index,m) = static_cast<int>(d_buf[i*m+1]);
+      d_crossterm_atom1(index,m) = static_cast<tagint> (d_buf[i*m+2]);
+      d_crossterm_atom2(index,m) = static_cast<tagint> (d_buf[i*m+3]);
+      d_crossterm_atom3(index,m) = static_cast<tagint> (d_buf[i*m+4]);
+      d_crossterm_atom4(index,m) = static_cast<tagint> (d_buf[i*m+5]);
+      d_crossterm_atom5(index,m) = static_cast<tagint> (d_buf[i*m+6]);
     }
   });
 

@@ -774,6 +774,14 @@ int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
   int n;
   copymode = 1;
 
+  auto l_num_crossterm = d_num_crossterm;
+  auto l_crossterm_type = d_crossterm_type;
+  auto l_crossterm_atom1 = d_crossterm_atom1;
+  auto l_crossterm_atom2 = d_crossterm_atom2;
+  auto l_crossterm_atom3 = d_crossterm_atom3;
+  auto l_crossterm_atom4 = d_crossterm_atom4;
+  auto l_crossterm_atom5 = d_crossterm_atom5;
+
   Kokkos::parallel_scan(nsend, KOKKOS_LAMBDA(const int &mysend, int &offset, const bool &final) {
 
     const int i = d_exchange_sendlist(mysend);
@@ -781,14 +789,14 @@ int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
     if (!final) offset += d_num_crossterm(i);
     else {
       int j = nsend + offset;
-      d_buf(j) = static_cast<double> (num_crossterm[i]);
-      for (int m = 0; m < num_crossterm[i]; m++) {
-        d_buf(j++) = static_cast<double> (d_crossterm_type(i,m));
-        d_buf(j++) = static_cast<double> (d_crossterm_atom1(i,m));
-        d_buf(j++) = static_cast<double> (d_crossterm_atom2(i,m));
-        d_buf(j++) = static_cast<double> (d_crossterm_atom3(i,m));
-        d_buf(j++) = static_cast<double> (d_crossterm_atom4(i,m));
-        d_buf(j++) = static_cast<double> (d_crossterm_atom5(i,m));
+      d_buf(j) = static_cast<double> (l_num_crossterm(i));
+      for (int m = 0; m < l_num_crossterm(i); m++) {
+        d_buf(j++) = static_cast<double> (l_crossterm_type(i,m));
+        d_buf(j++) = static_cast<double> (l_crossterm_atom1(i,m));
+        d_buf(j++) = static_cast<double> (l_crossterm_atom2(i,m));
+        d_buf(j++) = static_cast<double> (l_crossterm_atom3(i,m));
+        d_buf(j++) = static_cast<double> (l_crossterm_atom4(i,m));
+        d_buf(j++) = static_cast<double> (l_crossterm_atom5(i,m));
       }
     }
   },n);
@@ -851,16 +859,24 @@ void FixCMAPKokkos<DeviceType>::unpack_exchange_kokkos(
 
   copymode = 1;
 
+  auto l_num_crossterm = d_num_crossterm;
+  auto l_crossterm_type = d_crossterm_type;
+  auto l_crossterm_atom1 = d_crossterm_atom1;
+  auto l_crossterm_atom2 = d_crossterm_atom2;
+  auto l_crossterm_atom3 = d_crossterm_atom3;
+  auto l_crossterm_atom4 = d_crossterm_atom4;
+  auto l_crossterm_atom5 = d_crossterm_atom5;
+
   Kokkos::parallel_for(nrecv, KOKKOS_LAMBDA(const int &i) {
     int index = d_indices(i);
-    d_num_crossterm(index) = static_cast<int> (d_buf[i]);
-    for (int m = 0; m < d_num_crossterm(index); m++) {
-      d_crossterm_type(index,m) = static_cast<int>(d_buf[i*m+1]);
-      d_crossterm_atom1(index,m) = static_cast<tagint> (d_buf[i*m+2]);
-      d_crossterm_atom2(index,m) = static_cast<tagint> (d_buf[i*m+3]);
-      d_crossterm_atom3(index,m) = static_cast<tagint> (d_buf[i*m+4]);
-      d_crossterm_atom4(index,m) = static_cast<tagint> (d_buf[i*m+5]);
-      d_crossterm_atom5(index,m) = static_cast<tagint> (d_buf[i*m+6]);
+    l_num_crossterm(index) = static_cast<int> (d_buf(i));
+    for (int m = 0; m < l_num_crossterm(index); m++) {
+      l_crossterm_type(index,m) = static_cast<int>(d_buf(i*m+1));
+      l_crossterm_atom1(index,m) = static_cast<tagint> (d_buf(i*m+2));
+      l_crossterm_atom2(index,m) = static_cast<tagint> (d_buf(i*m+3));
+      l_crossterm_atom3(index,m) = static_cast<tagint> (d_buf(i*m+4));
+      l_crossterm_atom4(index,m) = static_cast<tagint> (d_buf(i*m+5));
+      l_crossterm_atom5(index,m) = static_cast<tagint> (d_buf(i*m+6));
     }
   });
 

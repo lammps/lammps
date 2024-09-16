@@ -34,5 +34,5 @@ jobs:
          make check-whitespace
          make check-permissions
          make check-homepage
-         make check-error-docs
+         make check-errordocs
          make check-docs

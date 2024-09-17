@@ -283,6 +283,15 @@ int LabelMap::find(const std::string &mylabel, int mode) const
     case Atom::IMPROPER:
       return search(mylabel, itypelabel_map);
       break;
+    case Atom::SEGMENT:
+      return search(mylabel, stypelabel_map);
+      break;
+    case Atom::RESIDUE:
+      return search(mylabel, rtypelabel_map);
+      break;
+    case Atom::NAME:
+      return search(mylabel, ntypelabel_map);
+      break;
     default:
       return -1;
   }

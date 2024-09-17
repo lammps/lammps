@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mitch Murphy (alphataubio@gmail.com)
+   Contributing author: Mitch Murphy (alphataubio at gmail.com)
 ------------------------------------------------------------------------- */
 
 #include "write_psf.h"
@@ -38,10 +38,10 @@
 
 #include <cstring>
 
-using namespace LAMMPS_NS;
+#include <iostream>
 
-#define BIG 1.0e20
-#define EPSILON 1.0e-6
+
+using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
@@ -51,15 +51,12 @@ WritePsf::WritePsf(LAMMPS *lmp) : Command(lmp)
   MPI_Comm_size(world,&nprocs);
 
   int flag,cols;
-  int index_atom_iarray = atom->find_custom("psf_segment_residue_name",flag,cols);
+  int index_atom_iarray = atom->find_custom("psf",flag,cols);
 
-  // ERROR if atom custom psf_segment_residue_name doesn't exist
-  // (ie. read_psf hasn't been called)
   if( index_atom_iarray == -1 )
-    error->all(FLERR,"write_psf command needs psf_segment_residue_name per-atom custom array created by read_psf command.");
-
-  atom_iarray_psf = atom->iarray[index_atom_iarray];
-
+    atom_iarray_psf = nullptr;
+  else
+    atom_iarray_psf = atom->iarray[index_atom_iarray];
 }
 
 /* ----------------------------------------------------------------------
@@ -177,6 +174,8 @@ void WritePsf::write(const std::string &file)
   // sum up bond,angle,dihedral,improper counts
   // may be different than atom->nbonds,nangles, etc. if broken/turned-off
 
+  // FIXME: handle Atom::TEMPLATE
+
   if (atom->molecular == Atom::MOLECULAR && (atom->nbonds || atom->nbondtypes)) {
     nbonds_local = atom->avec->pack_bond(nullptr);
     MPI_Allreduce(&nbonds_local,&nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
@@ -249,6 +248,8 @@ void WritePsf::header()
   fmt::print(fp,"* [https://userguide.mdanalysis.org/stable/formats/reference/psf.html]\n");
 
 }
+
+
 
 
 /* ----------------------------------------------------------------------
@@ -557,12 +558,20 @@ void WritePsf::atoms()
 
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
+          //std::cerr << "ok 1a\n";
         MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);
+           // std::cerr << "ok 1b\n";
         MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
+           // std::cerr << "ok 1c\n";
         MPI_Wait(&request,&status);
+           // std::cerr << "ok 1d\n";
         MPI_Get_count(&status,MPI_DOUBLE,&recvrow);
+           // std::cerr << "ok 1e\n";
         recvrow /= ncol;
       } else recvrow = sendrow;
+
+          //std::cerr << "ok 1f\n";
+
 
       for (int i = 0; i < atom->natoms; i++) {
 
@@ -580,27 +589,38 @@ void WritePsf::atoms()
 
         fmt::print(fp, "{:10} ", atom_tag );
 
-        // atom segment
-        int segment_type = atom_iarray_psf[atom_tag-1][0];
-        label = atom->lmap->label(segment_type, Atom::SEGMENT);
-        fmt::print(fp, "{0:<8} ", label );
+        if( atom_iarray_psf == nullptr ) {
 
-        // molecule id for Segment ID	and Residue ID
-        fmt::print(fp, "{0:<8} ", ubuf(buf[i][1]).i );
+          // defaults when atom_iarray_psf doesnt exists:
+          // - molecule id for Segment ID, molecule ID, Residue ID
+          // - numerical type for atom name and atom type
+          fmt::print(fp, "{0:<8} {0:<8} {0:<8} {1:<8} {1:<4} ", ubuf(buf[i][1]).i, atom_type );
 
-        // atom residue
-        int residue_type = atom_iarray_psf[atom_tag-1][1];
-        label = atom->lmap->label(residue_type, Atom::RESIDUE);
-        fmt::print(fp, "{0:<8} ", label );
+        } else {
 
-        // atom name
-        int name_type = atom_iarray_psf[atom_tag-1][2];
-        label = atom->lmap->label(name_type, Atom::NAME);
-        fmt::print(fp, "{0:<8} ", label );
+          // atom segment
+          int segment_type = atom_iarray_psf[atom_tag-1][0];
+          label = atom->lmap->label(segment_type, Atom::SEGMENT);
+          fmt::print(fp, "{:<8} ", label );
 
-        // atom type
-        label = atom->lmap->label(atom_type, Atom::ATOM);
-        fmt::print(fp, "{0:<4} ", label );
+          // molecule ID
+          fmt::print(fp, "{:<8} ", ubuf(buf[i][1]).i );
+
+          // atom residue
+          int residue_type = atom_iarray_psf[atom_tag-1][1];
+          label = atom->lmap->label(residue_type, Atom::RESIDUE);
+          fmt::print(fp, "{:<8} ", label );
+
+          // atom name
+          int name_type = atom_iarray_psf[atom_tag-1][2];
+          label = atom->lmap->label(name_type, Atom::NAME);
+          fmt::print(fp, "{:<8} ", label );
+
+          // atom type
+          label = atom->lmap->label(atom_type, Atom::ATOM);
+          fmt::print(fp, "{:<4} ", label );
+
+        }
 
         // charge
         fmt::print(fp, "{:12.6F}      ", buf[i][3] );
@@ -610,9 +630,15 @@ void WritePsf::atoms()
       }
     }
   } else {
+    std::cerr << "ok 2a\n";
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
+    std::cerr << "ok 2b\n";
     MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_DOUBLE,0,0,world);
+    std::cerr << "ok 2c\n";
   }
 
   memory->destroy(buf);
+
+  std::cerr << "ok 3\n";
+
 }

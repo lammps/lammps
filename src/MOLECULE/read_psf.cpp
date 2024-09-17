@@ -85,11 +85,12 @@ void ReadPsf::command(int narg, char **arg)
 
         // atom tag
         tagint atom_tag = values.next_tagint();
+        int atom_index = atom->map(atom_tag);
 
         // atom segment
         std::string segment = values.next_string();
         int segment_type = atom->lmap->find_or_add_psf(segment, Atom::SEGMENT);
-        atom_iarray_psf[atom_tag-1][0] = segment_type;
+        atom_iarray_psf[atom_index][0] = segment_type;
 
         // skip molecule id
         values.skip(1);
@@ -97,12 +98,12 @@ void ReadPsf::command(int narg, char **arg)
         // atom residue
         std::string residue = values.next_string();
         int residue_type = atom->lmap->find_or_add_psf(residue, Atom::RESIDUE);
-        atom_iarray_psf[atom_tag-1][1] = residue_type;
+        atom_iarray_psf[atom_index][1] = residue_type;
 
         // atom name
         std::string name = values.next_string();
         int name_type = atom->lmap->find_or_add_psf(name, Atom::NAME);
-        atom_iarray_psf[atom_tag-1][2] = name_type;
+        atom_iarray_psf[atom_index][2] = name_type;
 
         // atom type
         int atom_type = atom->type[lmp->atom->map(atom_tag)];

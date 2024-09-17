@@ -76,7 +76,7 @@ FixEpotLepton::FixEpotLepton(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR, "Unknown keyword for fix {} command: {}", style, arg[iarg]);
     }
   }
-  
+
   // check validity of Lepton expression
   // remove whitespace and quotes from expression string and then
   // check if the expression can be parsed without error
@@ -277,7 +277,7 @@ void FixEpotLepton::post_force(int vflag)
           // force = (mu dot D) E
           // using central difference method
           h_mu = h / mu_norm;
-          
+
           xf = unwrap[0] + h_mu * mu[i][0];
           yf = unwrap[1] + h_mu * mu[i][1];
           zf = unwrap[2] + h_mu * mu[i][2];
@@ -378,7 +378,7 @@ void FixEpotLepton::post_force(int vflag)
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
-        
+
         mu_norm = sqrt(mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2]);
         if (mu_norm > EPSILON) continue;
 
@@ -403,7 +403,7 @@ void FixEpotLepton::post_force(int vflag)
         // force = (mu dot D) E
         // using central difference method
         h_mu = h / sqrt(mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2]);
-        
+
         xf = unwrap[0] + h_mu * mu[i][0];
         yf = unwrap[1] + h_mu * mu[i][1];
         zf = unwrap[2] + h_mu * mu[i][2];
@@ -453,7 +453,7 @@ void FixEpotLepton::post_force(int vflag)
     }
   }
 }
-        
+
 /* ---------------------------------------------------------------------- */
 
 void FixEpotLepton::post_force_respa(int vflag, int ilevel, int /*iloop*/)

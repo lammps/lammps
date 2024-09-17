@@ -42,21 +42,21 @@ Description
 
 .. versionadded:: TBD
 
-Add an electric potential :math:`V` that applies to a group of charged atoms a force :math:`\vec{F} = q \vec{E}`, 
-and to dipoles a force :math:`\vec{F} = (\vec{p} \cdot \nabla) \vec{E}` and torque :math:`\vec{T} = \vec{p} \times \vec{E}`, 
-where :math:`\vec{E} = - \nabla V`. The fix also evaluates the electrostatic energy (:math:`U_{q} = q V` and :math:`U_{p} = - \vec{p} \cdot \vec{E}`) 
-due to this potential when the :doc:`fix_modify energy yes <fix_modify>` command is specified (see below). 
+Add an electric potential :math:`V` that applies to a group of charged atoms a force :math:`\vec{F} = q \vec{E}`,
+and to dipoles a force :math:`\vec{F} = (\vec{p} \cdot \nabla) \vec{E}` and torque :math:`\vec{T} = \vec{p} \times \vec{E}`,
+where :math:`\vec{E} = - \nabla V`. The fix also evaluates the electrostatic energy (:math:`U_{q} = q V` and :math:`U_{p} = - \vec{p} \cdot \vec{E}`)
+due to this potential when the :doc:`fix_modify energy yes <fix_modify>` command is specified (see below).
 
-The `Lepton library <https://simtk.org/projects/lepton>`_, that the *epot/lepton* fix style interfaces with, evaluates 
-the expression string at run time to compute the energy, forces, and torques. It creates an analytical representation 
+The `Lepton library <https://simtk.org/projects/lepton>`_, that the *epot/lepton* fix style interfaces with, evaluates
+the expression string at run time to compute the energy, forces, and torques. It creates an analytical representation
 of :math:`V` and :math:`\vec{E}`, while the gradient force is computed using a central difference scheme
 
 .. math::
-   
+
    \vec{F} = \frac{|\vec{p}|}{2h} \left[ \vec{E}(\vec{x} + h \hat{p}) - \vec{E}(\vec{x} - h \hat{p}) \right] .
 
-The Lepton expression must be either enclosed in quotes or must not contain any whitespace so that LAMMPS 
-recognizes it as a single keyword. More on valid Lepton expressions below. The final Lepton expression must 
+The Lepton expression must be either enclosed in quotes or must not contain any whitespace so that LAMMPS
+recognizes it as a single keyword. More on valid Lepton expressions below. The final Lepton expression must
 be a function of only :math:`x, y, z`, which refer to the current *unwrapped* coordinates of the atoms to ensure continuity. 
 Special care must be taken when using this fix with periodic boundary conditions or box-changing commands.
 
@@ -98,9 +98,9 @@ fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix adding its forces. Default is the outermost level.
 
 This fix computes a global scalar and a global 3-vector of forces,
-which can be accessed by various :doc:`output commands <Howto_output>`. 
-The scalar is the potential energy discussed above. 
-The vector is the total force added to the group of atoms. 
+which can be accessed by various :doc:`output commands <Howto_output>`.
+The scalar is the potential energy discussed above.
+The vector is the total force added to the group of atoms.
 The scalar and vector values calculated by this fix are "extensive".
 
 This fix cannot be used with the *start/stop* keywords of
@@ -123,7 +123,7 @@ the iteration count during the minimization.
 Restrictions
 """"""""""""
 
-Fix style *epot/lepton* is part of the LEPTON package. It is only enabled if LAMMPS was built with that package. 
+Fix style *epot/lepton* is part of the LEPTON package. It is only enabled if LAMMPS was built with that package.
 See the :doc:`Build package <Build_package>` page for more info.
 
 

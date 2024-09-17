@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mitch Murphy (alphataubio@gmail.com)
+   Contributing author: Mitch Murphy (alphataubio at gmail)
 ------------------------------------------------------------------------- */
 
 #include "read_psf.h"
@@ -41,11 +41,11 @@ ReadPsf::ReadPsf(LAMMPS *lmp) :
 {
 
   int flag,cols;
-  int index_atom_iarray = atom->find_custom("psf_segment_residue_name",flag,cols);
+  int index_atom_iarray = atom->find_custom("psf",flag,cols);
 
-  // if atom custom psf_segment_residue_name doesn't exist, add it
+  // if atom custom psf doesn't exist, add it
   if( index_atom_iarray == -1 )
-    index_atom_iarray = atom->add_custom("psf_segment_residue_name",0,3,0);
+    index_atom_iarray = atom->add_custom("psf",0,3,0);
 
   atom_iarray_psf = atom->iarray[index_atom_iarray];
 

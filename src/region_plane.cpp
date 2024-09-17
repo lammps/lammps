@@ -27,6 +27,8 @@ using namespace LAMMPS_NS;
 RegPlane::RegPlane(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg),
     xstr(nullptr), ystr(nullptr), zstr(nullptr)
 {
+  xvar = yvar = zvar = 0.0;
+
   options(narg - 8, &arg[8]);
 
   if (utils::strmatch(arg[2], "^v_")) {

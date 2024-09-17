@@ -44,6 +44,8 @@ class BondHybrid : public Bond {
   double single(int, double, int, int, double &) override;
   double memory_usage() override;
 
+  int check_itype(int, char *);
+
  protected:
   int *map;           // which style each bond type points to
   int has_quartic;    // which style, if any is a quartic bond style

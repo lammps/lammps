@@ -182,12 +182,12 @@ void FixEpotLepton::post_force(int vflag)
   std::vector<Lepton::CompiledExpression*> dphis = {&dphi_x, &dphi_y, &dphi_z};
 
   // check if reference to x, y, z exist
-  const std::array<std::string, 3> variableNames = {"x", "y", "z"}; 
-  std::array<bool, 3> phi_has_ref = {true, true, true}; 
+  const std::array<std::string, 3> variableNames = {"x", "y", "z"};
+  std::array<bool, 3> phi_has_ref = {true, true, true};
   if (atom->q_flag){
     phi = parsed.createCompiledExpression();
     for (size_t i = 0; i < 3; i++) {
-      try { 
+      try {
         phi.getVariableReference(variableNames[i]);
       }
       catch (Lepton::Exception &) {
@@ -200,7 +200,7 @@ void FixEpotLepton::post_force(int vflag)
   for (auto &dphi : dphis) {
     dphis_has_ref.push_back({false, false, false});
     for (size_t i = 0; i < 3; i++) {
-      try { 
+      try {
         (*dphi).getVariableReference(variableNames[i]);
         dphis_has_ref.back()[i] = true;
         e_uniform = false;
@@ -225,9 +225,9 @@ void FixEpotLepton::post_force(int vflag)
   fsum[0] = fsum[1] = fsum[2] = fsum[3] = 0.0;
   force_flag = 0;
 
-  double ex, ey, ez;  
+  double ex, ey, ez;
   double fx, fy, fz;
-  double v[6], unwrap[3];  
+  double v[6], unwrap[3];
   double xf, yf, zf, xb, yb, zb;
   double exf, eyf, ezf, exb, eyb, ezb;
   double tx, ty, tz;
@@ -274,7 +274,7 @@ void FixEpotLepton::post_force(int vflag)
           // potential energy = - mu dot E
           fsum[0] -= mue2e * (mu[i][0] * ex + mu[i][1] * ey + mu[i][2] * ez);
 
-          // force = (mu dot D) E 
+          // force = (mu dot D) E
           // using central difference method
           h_mu = h / mu_norm;
           
@@ -400,7 +400,7 @@ void FixEpotLepton::post_force(int vflag)
         // potential energy = - mu dot E
         fsum[0] -= mue2e * (mu[i][0] * ex + mu[i][1] * ey + mu[i][2] * ez);
 
-        // force = (mu dot D) E 
+        // force = (mu dot D) E
         // using central difference method
         h_mu = h / sqrt(mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2]);
         

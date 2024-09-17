@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -33,13 +32,13 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-enum {NONE, CONSTANT, POWER};
+enum { NONE, CONSTANT, POWER };
 
 /* ---------------------------------------------------------------------- */
 
 FixRHEOViscosity::FixRHEOViscosity(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), fix_rheo(nullptr), compute_grad(nullptr), eta(nullptr),
-  npow(nullptr), K(nullptr), gd0(nullptr), tau0(nullptr), viscosity_style(nullptr)
+    Fix(lmp, narg, arg), eta(nullptr), npow(nullptr), K(nullptr), gd0(nullptr), tau0(nullptr),
+    viscosity_style(nullptr), fix_rheo(nullptr), compute_grad(nullptr)
 {
   if (narg < 4) error->all(FLERR, "Illegal fix command");
 
@@ -48,8 +47,7 @@ FixRHEOViscosity::FixRHEOViscosity(LAMMPS *lmp, int narg, char **arg) :
   evolve_flag = 0;
 
   // Currently can only have one instance of fix rheo/viscosity
-  if (igroup != 0)
-    error->all(FLERR,"fix rheo/viscosity command requires group all");
+  if (igroup != 0) error->all(FLERR, "fix rheo/viscosity command requires group all");
 
   int i, nlo, nhi;
   int n = atom->ntypes;
@@ -107,7 +105,7 @@ FixRHEOViscosity::FixRHEOViscosity(LAMMPS *lmp, int narg, char **arg) :
 
   for (i = 1; i <= n; i++)
     if (viscosity_style[i] == NONE)
-      error->all(FLERR,"Must specify viscosity for atom type {} in fix/rheo/viscosity", i);
+      error->all(FLERR, "Must specify viscosity for atom type {} in fix/rheo/viscosity", i);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -172,8 +170,7 @@ void FixRHEOViscosity::post_neighbor()
 
   for (i = 0; i < nall; i++) {
     itype = type[i];
-    if (viscosity_style[itype])
-      viscosity[i] = eta[itype];
+    if (viscosity_style[itype]) viscosity[i] = eta[itype];
   }
 }
 
@@ -194,7 +191,6 @@ void FixRHEOViscosity::pre_force(int /*vflag*/)
 
   int nlocal = atom->nlocal;
   int dim = domain->dimension;
-
 
   for (i = 0; i < nlocal; i++) {
     itype = type[i];
@@ -222,15 +218,13 @@ void FixRHEOViscosity::pre_force(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-int FixRHEOViscosity::pack_forward_comm(int n, int *list, double *buf,
-                                        int /*pbc_flag*/, int * /*pbc*/)
+int FixRHEOViscosity::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
+                                        int * /*pbc*/)
 {
-  int i, j, k, m;
   double *viscosity = atom->viscosity;
-  m = 0;
-
-  for (i = 0; i < n; i++) {
-    j = list[i];
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    int j = list[i];
     buf[m++] = viscosity[j];
   }
   return m;
@@ -240,12 +234,8 @@ int FixRHEOViscosity::pack_forward_comm(int n, int *list, double *buf,
 
 void FixRHEOViscosity::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i, k, m, last;
   double *viscosity = atom->viscosity;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
-    viscosity[i] = buf[m++];
-  }
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; i++) { viscosity[i] = buf[m++]; }
 }

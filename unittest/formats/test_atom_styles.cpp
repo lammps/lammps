@@ -88,7 +88,7 @@ static void create_molecule_files(const std::string &h2o_filename, const std::st
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-const double EPSILON = 5.0e-14;
+static const double EPSILON = 5.0e-14;
 
 namespace LAMMPS_NS {
 using ::testing::Eq;

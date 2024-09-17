@@ -280,10 +280,8 @@ double BondBPMRotational::elastic_forces(int i1, int i2, int type, double r_mag,
 
   temp = sqrt(q21[0] * q21[0] + q21[3] * q21[3]);
   if (temp != 0.0) {
-    c = q21[0] / temp;
-    psi = 2.0 * acos_limit(c);
+    psi = 2.0 * acos_limit(q21[0] / temp);
   } else {
-    c = 0.0;
     psi = 0.0;
   }
 
@@ -296,7 +294,7 @@ double BondBPMRotational::elastic_forces(int i1, int i2, int type, double r_mag,
   c = q21[0] * q21[0] - q21[1] * q21[1] - q21[2] * q21[2] + q21[3] * q21[3];
   theta = acos_limit(c);
 
-  // Separately calculte magnitude of quaternion in x-y and out of x-y planes
+  // Separately calculate magnitude of quaternion in x-y and out of x-y planes
   // to avoid dividing by zero
   mag_out_plane = (q21[0] * q21[0] + q21[3] * q21[3]);
   mag_in_plane = (q21[1] * q21[1] + q21[2] * q21[2]);

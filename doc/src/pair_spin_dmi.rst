@@ -100,8 +100,6 @@ none
 
 .. _Tranchida5:
 
-**(Rohart)** Rohart and Thiaville,
-Physical Review B, 88(18), 184422. (2013).
+**(Rohart)** Rohart and Thiaville, Physical Review B, 88(18), 184422. (2013).
 
-**(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson,
-Journal of Computational Physics, 372, 406-425, (2018).
+**(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson, Journal of Computational Physics, 372, 406-425, (2018).

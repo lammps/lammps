@@ -122,6 +122,10 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
+This fix is part of the BOCS package.  It is only enabled if
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
+
 As this is computing a (modified) pressure, group-ID should be *all*\ .
 
 The pressure correction has only been tested for use with an isotropic
@@ -134,9 +138,6 @@ modified pressure, you must include the *thermo_modify* command given in
 the examples. For the last argument in the command, you should put
 XXXX_press, where XXXX is the ID given to the fix bocs command (in the
 example, the ID of the fix bocs command is 1).
-
-This fix is part of the BOCS package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Further information
 """""""""""""""""""

@@ -32,7 +32,7 @@ Syntax
          group-ID = only build pair neighbor lists for atoms in this group
        *exclude* values:
          *type* M N
-           M,N = exclude if one atom in pair is type M, other is type N
+           M,N = exclude if one atom in pair is type M, other is type N (M and N may be type labels)
          *group* group1-ID group2-ID
            group1-ID,group2-ID = exclude if one atom is in 1st group, other in 2nd
          *molecule/intra* group-ID
@@ -159,15 +159,19 @@ sample scenarios where this is useful:
 * When one or more rigid bodies are specified, interactions within each
   body can be turned off to save needless computation.  See the :doc:`fix rigid <fix_rigid>` command for more details.
 
-The *exclude type* option turns off the pairwise interaction if one
-atom is of type M and the other of type N.  M can equal N.  The
-*exclude group* option turns off the interaction if one atom is in the
-first group and the other is the second.  Group1-ID can equal
-group2-ID.  The *exclude molecule/intra* option turns off the
-interaction if both atoms are in the specified group and in the same
-molecule, as determined by their molecule ID.  The *exclude
-molecule/inter* turns off the interaction between pairs of atoms that
-have different molecule IDs and are both in the specified group.
+.. versionchanged:: 29Aug2024
+
+   Support for type labels was added.
+
+The *exclude type* option turns off the pairwise interaction if one atom
+is of type M and the other of type N.  M can equal N.  The *exclude
+group* option turns off the interaction if one atom is in the first
+group and the other is the second.  Group1-ID can equal group2-ID.  The
+*exclude molecule/intra* option turns off the interaction if both atoms
+are in the specified group and in the same molecule, as determined by
+their molecule ID.  The *exclude molecule/inter* turns off the
+interaction between pairs of atoms that have different molecule IDs and
+are both in the specified group.
 
 Each of the exclude options can be specified multiple times.  The
 *exclude type* option is the most efficient option to use; it requires
@@ -219,34 +223,34 @@ atom can have.
 The *binsize* option allows you to specify what size of bins will be
 used in neighbor list construction to sort and find neighboring atoms.
 By default, for :doc:`neighbor style bin <neighbor>`, LAMMPS uses bins
-that are 1/2 the size of the maximum pair cutoff.  For :doc:`neighbor style multi <neighbor>`,
-the bins are 1/2 the size of the collection interaction cutoff.
-Typically these are good values for minimizing the time for
-neighbor list construction.  This setting overrides the default.
-If you make it too big, there is little overhead due to
+that are 1/2 the size of the maximum pair cutoff.  For :doc:`neighbor
+style multi <neighbor>`, the bins are 1/2 the size of the collection
+interaction cutoff.  Typically these are good values for minimizing the
+time for neighbor list construction.  This setting overrides the
+default.  If you make it too big, there is little overhead due to
 looping over bins, but more atoms are checked.  If you make it too
-small, the optimal number of atoms is checked, but bin overhead goes
-up.  If you set the binsize to 0.0, LAMMPS will use the default
-binsize of 1/2 the cutoff.
+small, the optimal number of atoms is checked, but bin overhead goes up.
+If you set the binsize to 0.0, LAMMPS will use the default binsize of
+1/2 the cutoff.
 
 The *collection/type* option allows you to define collections of atom
-types, used by the *multi* neighbor mode. By grouping atom types with
-similar physical size or interaction cutoff lengths, one may be able
-to improve performance by reducing
-overhead. You must first specify the number of collections N to be
-defined followed by N lists of types. Each list consists of a series of type
-ranges separated by commas. The range can be specified as a
-single numeric value, or a wildcard asterisk can be used to specify a range
-of values.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  For
-example, if M = the number of atom types, then an asterisk with no numeric
-values means all types from 1 to M.  A leading asterisk means all types
-from 1 to n (inclusive).  A trailing asterisk means all types from n to M
-(inclusive).  A middle asterisk means all types from m to n (inclusive).
-Note that all atom types must be included in exactly one of the N collections.
+types, used by the *multi* neighbor mode.  By grouping atom types with
+similar physical size or interaction cutoff lengths, one may be able to
+improve performance by reducing overhead.  You must first specify the
+number of collections N to be defined followed by N lists of types.
+Each list consists of a series of type ranges separated by commas. The
+range can be specified as a single numeric value, or a wildcard asterisk
+can be used to specify a range of values.  This takes the form "\*" or
+"\*n" or "n\*" or "m\*n".  For example, if M = the number of atom types,
+then an asterisk with no numeric values means all types from 1 to M.  A
+leading asterisk means all types from 1 to n (inclusive).  A trailing
+asterisk means all types from n to M (inclusive).  A middle asterisk
+means all types from m to n (inclusive).  Note that all atom types must
+be included in exactly one of the N collections.
 
 The *collection/interval* option provides a similar capability.  This
 command allows a user to define collections by specifying a series of
-cutoff intervals. LAMMPS will automatically sort atoms into these
+cutoff intervals.  LAMMPS will automatically sort atoms into these
 intervals based on their type-dependent cutoffs or their finite size.
 You must first specify the number of collections N to be defined
 followed by N values representing the upper cutoff of each interval.
@@ -266,6 +270,8 @@ be used with atom styles that define molecule IDs.
 The value of the *page* setting must be at least 10x larger than the
 *one* setting.  This ensures neighbor pages are not mostly empty
 space.
+
+The *exclude group* setting is currently not compatible with dynamic groups.
 
 Related commands
 """"""""""""""""

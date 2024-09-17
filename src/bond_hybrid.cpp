@@ -385,6 +385,14 @@ void BondHybrid::init_style()
   else map[0] = -1;
 }
 
+/* ---------------------------------------------------------------------- */
+
+int BondHybrid::check_itype(int itype, char *substyle)
+{
+  if (strcmp(keywords[map[itype]], substyle) == 0) return 1;
+  return 0;
+}
+
 /* ----------------------------------------------------------------------
    return an equilbrium bond length
 ------------------------------------------------------------------------- */

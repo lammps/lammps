@@ -42,10 +42,12 @@ private slots:
     void copy();
     void quit();
 
+    void set_atom_size();
     void edit_size();
     void reset_view();
     void toggle_ssao();
     void toggle_anti();
+    void toggle_shiny();
     void toggle_vdw();
     void toggle_box();
     void toggle_axes();
@@ -55,6 +57,7 @@ private slots:
     void do_rot_right();
     void do_rot_up();
     void do_rot_down();
+    void do_recenter();
     void cmd_to_clipboard();
     void change_group(int);
 
@@ -74,7 +77,8 @@ private:
     QLabel *imageLabel;
     QScrollArea *scrollArea;
     QDialogButtonBox *buttonBox;
-    double scaleFactor = 1.0;
+    double scaleFactor;
+    double atomSize;
 
     QAction *saveAsAct;
     QAction *copyAct;
@@ -89,7 +93,8 @@ private:
     QString last_dump_cmd;
     int xsize, ysize;
     int hrot, vrot;
-    double zoom, vdwfactor;
+    double zoom, vdwfactor, shinyfactor;
+    double xcenter, ycenter, zcenter;
     bool showbox, showaxes, antialias, usessao, useelements, usediameter, usesigma;
 };
 #endif

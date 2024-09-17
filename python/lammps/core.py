@@ -18,12 +18,21 @@ from __future__ import print_function
 
 import os
 import sys
-from ctypes import *                    # lgtm [py/polluting-import]
-from os.path import dirname,abspath,join
+from ctypes import CDLL, POINTER, RTLD_GLOBAL, CFUNCTYPE, py_object, byref, cast, sizeof, \
+  create_string_buffer, c_int, c_int32, c_int64, c_double, c_void_p, c_char_p, pythonapi, \
+  pointer
+from os.path import dirname, abspath, join
 from inspect import getsourcefile
 
-from .constants import *                # lgtm [py/polluting-import]
-from .data import *                     # lgtm [py/polluting-import]
+from lammps.constants import LAMMPS_AUTODETECT, LAMMPS_STRING, \
+  LAMMPS_INT, LAMMPS_INT_2D, LAMMPS_DOUBLE, LAMMPS_DOUBLE_2D, LAMMPS_INT64, LAMMPS_INT64_2D, \
+  LMP_STYLE_GLOBAL, LMP_STYLE_ATOM, LMP_STYLE_LOCAL, \
+  LMP_TYPE_SCALAR, LMP_TYPE_VECTOR, LMP_TYPE_ARRAY, \
+  LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS, \
+  LMP_VAR_EQUAL, LMP_VAR_ATOM, LMP_VAR_VECTOR, LMP_VAR_STRING, \
+  get_ctypes_int
+
+from lammps.data import NeighList
 
 # -------------------------------------------------------------------------
 
@@ -318,6 +327,8 @@ class lammps(object):
     self.lib.lammps_extract_atom.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_extract_atom_datatype.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_extract_atom_datatype.restype = c_int
+    self.lib.lammps_extract_atom_size.argtypes = [c_void_p, c_char_p, c_int]
+    self.lib.lammps_extract_atom_size.restype = c_int
 
     self.lib.lammps_extract_fix.argtypes = [c_void_p, c_char_p, c_int, c_int, c_int, c_int]
 
@@ -342,8 +353,8 @@ class lammps(object):
     if self.has_mpi_support:
       try:
         from mpi4py import __version__ as mpi4py_version
-        # tested to work with mpi4py versions 2 and 3
-        self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
+        # tested to work with mpi4py versions 2, 3, and 4
+        self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3','4']
       except ImportError:
         # ignore failing import
         pass
@@ -369,7 +380,7 @@ class lammps(object):
         if not self.has_mpi_support:
           raise Exception('LAMMPS not compiled with real MPI library')
         if not self.has_mpi4py:
-          raise Exception('Python mpi4py version is not 2 or 3')
+          raise Exception('Python mpi4py version is not 2, 3, or 4')
         if self.MPI._sizeof(self.MPI.Comm) == sizeof(c_int):
           MPI_Comm = c_int
         else:
@@ -941,7 +952,7 @@ class lammps(object):
   def extract_pair_dimension(self, name):
     """Retrieve pair style  property dimensionality from LAMMPS
 
-    .. versionadded:: TBD
+    .. versionadded:: 29Aug2024
 
     This is a wrapper around the :cpp:func:`lammps_extract_pair_dimension`
     function of the C-library interface. The list of supported keywords
@@ -970,7 +981,7 @@ class lammps(object):
   def extract_pair(self, name):
     """Extract pair style data from LAMMPS.
 
-    .. versionadded:: TBD
+    .. versionadded:: 29Aug2024
 
     This is a wrapper around the :cpp:func:`lammps_extract_pair` function
     of the C-library interface.  Since there are no pointers in Python, this
@@ -992,7 +1003,7 @@ class lammps(object):
       return None
 
     dim = self.extract_pair_dimension(name)
-    if dim == None:
+    if dim is None:
       return None
     elif dim == 0:
       self.lib.lammps_extract_pair.restype = POINTER(c_double)
@@ -1071,30 +1082,58 @@ class lammps(object):
     return self.lib.lammps_extract_atom_datatype(self.lmp, newname)
 
   # -------------------------------------------------------------------------
+  # extract per-atom info datatype
+
+  def extract_atom_size(self, name, dtype):
+    """Retrieve per-atom property dimensions from LAMMPS
+
+    This is a wrapper around the :cpp:func:`lammps_extract_atom_size`
+    function of the C-library interface. Its documentation includes a
+    list of the supported keywords.
+    This function returns ``None`` if the keyword is not
+    recognized. Otherwise it will return an integer value with the size
+    of the per-atom vector or array.  If *name* corresponds to a per-atom
+    array, the *dtype* keyword must be either LMP_SIZE_ROWS or LMP_SIZE_COLS
+    from the :ref:`type <py_type_constants>` constants defined in the
+    :py:mod:`lammps` module.  The return value is the requested size.
+    If *name* corresponds to a per-atom vector the *dtype* keyword is ignored.
+
+    :param name: name of the property
+    :type name:  string
+    :param type: either LMP_SIZE_ROWS or LMP_SIZE_COLS for arrays, otherwise ignored
+    :type type:  int
+    :return: data type of per-atom property (see :ref:`py_datatype_constants`)
+    :rtype: int
+    """
+    if name: newname = name.encode()
+    else: return None
+    return self.lib.lammps_extract_atom_size(self.lmp, newname, dtype)
+
+  # -------------------------------------------------------------------------
   # extract per-atom info
 
   def extract_atom(self, name, dtype=LAMMPS_AUTODETECT):
     """Retrieve per-atom properties from LAMMPS
 
-    This is a wrapper around the :cpp:func:`lammps_extract_atom`
-    function of the C-library interface. Its documentation includes a
-    list of the supported keywords and their data types.
-    Since Python needs to know the data type to be able to interpret
-    the result, by default, this function will try to auto-detect the data type
-    by asking the library. You can also force a specific data type by setting ``dtype``
-    to one of the :ref:`data type <py_datatype_constants>` constants defined in the
-    :py:mod:`lammps` module.
-    This function returns ``None`` if either the keyword is not
-    recognized, or an invalid data type constant is used.
+    This is a wrapper around the :cpp:func:`lammps_extract_atom` function of the
+    C-library interface. Its documentation includes a list of the supported
+    keywords and their data types.  Since Python needs to know the data type to
+    be able to interpret the result, by default, this function will try to
+    auto-detect the data type by asking the library. You can also force a
+    specific data type by setting ``dtype`` to one of the :ref:`data type
+    <py_datatype_constants>` constants defined in the :py:mod:`lammps` module.
+    This function returns ``None`` if either the keyword is not recognized, or
+    an invalid data type constant is used.
 
     .. note::
 
-       While the returned arrays of per-atom data are dimensioned
-       for the range [0:nmax] - as is the underlying storage -
-       the data is usually only valid for the range of [0:nlocal],
-       unless the property of interest is also updated for ghost
-       atoms.  In some cases, this depends on a LAMMPS setting, see
-       for example :doc:`comm_modify vel yes <comm_modify>`.
+       While the returned vectors or arrays of per-atom data are dimensioned for
+       the range [0:nmax] - as is the underlying storage - the data is usually
+       only valid for the range of [0:nlocal], unless the property of interest
+       is also updated for ghost atoms.  In some cases, this depends on a LAMMPS
+       setting, see for example :doc:`comm_modify vel yes <comm_modify>`.
+       The actual size can be determined by calling
+       py:meth:`extract_atom_size() <lammps.lammps.extract_atom_size>`.
 
     :param name: name of the property
     :type name:  string
@@ -1105,6 +1144,7 @@ class lammps(object):
             ctypes.POINTER(ctypes.c_int64), ctypes.POINTER(ctypes.POINTER(ctypes.c_int64)),
             ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
             or NoneType
+
     """
     if dtype == LAMMPS_AUTODETECT:
       dtype = self.extract_atom_datatype(name)
@@ -1969,6 +2009,21 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
+  @property
+  def has_curl_support(self):
+    """ Report whether the LAMMPS shared library was compiled with support
+    for downloading files through libcurl.
+
+    This is a wrapper around the :cpp:func:`lammps_config_has_curl_support`
+    function of the library interface.
+
+    :return: state of CURL support
+    :rtype: bool
+    """
+    return self.lib.lammps_config_has_curl_support() != 0
+
+  # -------------------------------------------------------------------------
+
   def has_package(self, name):
     """ Report if the named package has been enabled in the LAMMPS shared library.
 
@@ -2052,7 +2107,7 @@ class lammps(object):
     """ List of the names of enabled packages in the LAMMPS shared library
 
     This is a wrapper around the functions :cpp:func:`lammps_config_package_count`
-    and :cpp:func`lammps_config_package_name` of the library interface.
+    and :cpp:func:`lammps_config_package_name` of the library interface.
 
     :return
     """
@@ -2212,7 +2267,6 @@ class lammps(object):
     :param caller: reference to some object passed to the callback function
     :type: object, optional
     """
-    import numpy as np
 
     def callback_wrapper(caller, ntimestep, nlocal, tag_ptr, x_ptr, fext_ptr):
       tag = self.numpy.iarray(self.c_tagint, tag_ptr, nlocal, 1)
@@ -2507,3 +2561,7 @@ class lammps(object):
     newcomputeid = computeid.encode()
     idx = self.lib.lammps_find_compute_neighlist(self.lmp, newcomputeid, reqid)
     return idx
+
+# Local Variables:
+# fill-column: 80
+# End:

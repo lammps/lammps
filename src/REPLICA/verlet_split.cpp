@@ -221,13 +221,22 @@ void VerletSplit::init()
   if (!force->kspace && comm->me == 0)
     error->warning(FLERR,"A KSpace style must be defined with verlet/split");
 
-  if (force->kspace_match("/tip4p",0)) tip4p_flag = 1;
-  else tip4p_flag = 0;
+  // error for as-yet unsupported verlet/split KSpace options
 
-  // currently TIP4P does not work with verlet/split, so generate error
-  // see Axel email on this, also other TIP4P notes below
+  int errflag = 0;
+  if (!atom->q_flag) errflag = 1;
+  if (force->kspace->tip4pflag) errflag = 1;
+  if (force->kspace->dipoleflag) errflag = 1;
+  if (force->kspace->spinflag) errflag = 1;
 
-  if (tip4p_flag) error->all(FLERR,"Verlet/split does not yet support TIP4P");
+  if (errflag)
+    error->all(FLERR,"Verlet/split cannot (yet) be used with kpace style {}", force->kspace_style);
+
+  // partial support for TIP4P, see where this flag is used below
+
+  tip4pflag = force->kspace->tip4pflag;
+
+  // invoke parent Verlet init
 
   Verlet::init();
 }
@@ -402,7 +411,7 @@ void VerletSplit::run(int n)
 
       // TIP4P PPPM puts forces on ghost atoms, so must reverse_comm()
 
-      if (tip4p_flag && force->newton) {
+      if (tip4pflag && force->newton) {
         comm->reverse_comm();
         timer->stamp(Timer::COMM);
       }
@@ -485,7 +494,7 @@ void VerletSplit::rk_setup()
   //   could do this by calling r2k_comm() here and not again from run()
   //   except that forward_comm() in r2k_comm() is wrong
 
-  if (tip4p_flag) {
+  if (tip4pflag) {
     //r2k_comm();
     MPI_Gatherv(atom->type,n,MPI_INT,atom->type,qsize,qdisp,MPI_INT,0,block);
     MPI_Gatherv(atom->tag,n,MPI_LMP_TAGINT,
@@ -543,7 +552,7 @@ void VerletSplit::r2k_comm()
 
   // for TIP4P, Kspace partition needs to update its ghost atoms
 
-  if (tip4p_flag && !master) {
+  if (tip4pflag && !master) {
     timer->stamp();
     comm->forward_comm();
     timer->stamp(Timer::COMM);

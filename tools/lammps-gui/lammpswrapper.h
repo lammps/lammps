@@ -34,6 +34,7 @@ public:
     void *extract_global(const char *keyword);
     void *extract_pair(const char *keyword);
     void *extract_atom(const char *keyword);
+    double extract_variable(const char *keyword);
 
     int id_count(const char *idtype);
     int id_name(const char *idtype, int idx, char *buf, int buflen);

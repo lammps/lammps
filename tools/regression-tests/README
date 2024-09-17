@@ -1,0 +1,165 @@
+The script `run_tests.py` in this folder is used to perform regression tests
+using in-place example scripts and provided log files as reference.
+
+What this single script does is to launch the selected LAMMPS binary
+using a testing configuration defined in a `.yaml` file (e.g., `config.yaml`)
+for the set of input scripts inside the given `examples/` subfolders,
+and compare the output thermo with that in the existing log file with the same number of procs.
+If there are multiple log files with the same input script (e.g., `log.melt.*.g++.1` and `log.melt.*.g++.4`),
+the one with the highest number of procs is chosen.
+
+The output includes the number of passed and failed tests and
+an `output.xml` file in the JUnit XML format for downstream reporting.
+The output and error of any crashed runs are logged.
+
+A test with an input script is considered passed when the given LAMMPS binary produces
+thermo output quantities consistent with those in the reference log file
+within the specified tolerances in the test configuration `config.yaml` file.
+
+With the current features, users can:
+
+    + specify which LAMMPS binary version to test (e.g., the version from a commit, or those from `lammps-testing`)
+    + specify the examples subfolders (thus the reference log files) seperately (e.g. from other LAMMPS versions or commits), or
+    + specify a file that lists of the examples input scripts to test
+    + specify tolerances for individual quantities for any input script to override the global values in the config file
+    + launch tests with `mpirun` with all supported command line features (multiple procs, multiple paritions, and suffixes)
+    + skip certain input files (whose names match specified patterns) if not interested, or packaged not installed, or no reference log file exists
+    + set a timeout for every input script run if they may take too long
+    + skip numerical checks if the goal is just to check if the runs do not fail
+
+Some benefits include:
+
+    + separating regression testing from building LAMMPS
+    + performing quick and full regression tests
+    + keeping track of the testing progress to resume the testing from the last checkpoint (skipping completed runs)
+    + distributing the input list across multiple processes by
+      splitting the list of input scripts into separate runs (there are ~800 input scripts under the top-level examples)
+
+Input arguments:
+
+    + the path to a LAMMPS binary (can be relative to the working directory)
+    + a test configuration file (see tools/regression-tests/config.yaml for an example)
+    + a text file that lists of folders where the input scripts reside and how many of them line by line, or
+      a text file that list of input scripts, or
+      the path to the top-level examples
+
+Output:
+
+    + failure.yaml : a dictionary of the failed runs and reasons
+    + progress.yaml: full testing results of the tested input scripts with the status (completed, failed or skipped)
+                     with error messages (for failed runs), and walltime (in seconds)
+    + output.xml   :    testing results in the JUnit XML format
+    + run.log      :       screen output and error of individual runs
+
+Limitations:
+
+    + input scripts use thermo style multi (e.g., examples/peptide) do not work with the expected thermo output format
+    + input scripts that require partition runs (e.g. examples/neb) need a separate config file, e.g., args: "--partition 3x1"
+    + testing with accelerator packages (GPU, INTEL, KOKKOS, OPENMP) need separate config files, e.g., args: "-sf omp -pk omp 4"
+
+The following Python packages need to be installed into an activated environment:
+
+    python3 -m venv testing-env
+    source testing-env/bin/activate
+    pip install numpy pyyaml junit_xml
+
+For all the supported arguments, run:
+
+    python3 tools/regression-tests/run_tests.py -h
+
+Example uses (aka, tests for this script):
+
+    1) Simple use (using the provided tools/regression-tests/config.yaml and the examples/ folder at the top level)
+           python3 run_tests.py --lmp-bin=build/lmp --config-file=tools/regression-tests/config.yaml
+
+    2) Use a custom testing configuration
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml
+
+    3) Specify a list of example folders
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
+                --example-folders="/path/to/examples/melt;/path/to/examples/rigid"
+
+       The example subfolders can also be loaded from a text file list_subfolders1.txt:
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
+                --list-subfolders=list_subfolders1.txt --output-file=output1.txt --progress-file=progress1.yaml \
+                --log-file=run1.log
+
+    4) Specify a list of example input scripts (e.g. obtained from running tools/regression-tests/get-quick-list.py)
+            python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
+                --list-input=input_list.txt
+
+    5) Test a LAMMPS binary with the whole top-level /examples folder in a LAMMPS source tree
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples
+                --config-file=tools/regression-tests/config.yaml
+
+    6) Analyze the LAMMPS binary and whole top-level /examples folder in a LAMMPS source tree
+       and generate separate input lists for 8 workers:
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples \
+                --analyze --num-workers=8
+
+       The output of this run is 8 files folder-list-[0-7].txt that lists the subfolders
+       and 8 files input-list-[0-7].txt that lists the input scripts under the top-level example folders.
+       With these lists, one can launch multiple instances of run_tests.py simultaneously
+       each with a list of example subfolders (Case 3), or with a list of input scripts (Case 4).
+
+An example of the test configuration `config.yaml` is given as below.
+
+  ---
+    lmp_binary: ""
+    nprocs: "4"
+    args: "-cite none"
+    mpiexec: "mpirun"
+    mpiexec_numproc_flag: "-np"
+    tolerance:
+      PotEng:
+        abs: 1e-4
+        rel: 1e-7
+      TotEng:
+        abs: 1e-4
+        rel: 1e-7
+      Press:
+        abs: 1e-4
+        rel: 1e-7
+      Temp:
+        abs: 1e-4
+        rel: 1e-7
+      E_vdwl:
+        abs: 1e-3
+        rel: 1e-7
+    overrides:
+      in.rigid.tnr:
+        Temp:
+          abs: 1e-3
+          rel: 1e-5
+        Press:
+          abs: 1e-2
+          rel: 1e-4
+    skip:
+      [ in.displ,
+        in.displ2,
+        in.*_imd*,
+      ]
+
+    nugget: 1.0
+    epsilon: 1e-16
+    timeout: 180
+
+An example of the list of example subfolders in a text file `list_subfolders1.txt`
+
+    /home/codes/lammps/examples/melt 1
+    /home/codes/lammps/examples/body 5
+    /home/codes/lammps/examples/PACKAGES/dielectric 2
+    /home/codes/lammps/examples/PACKAGES/tally 3
+
+where the numbers are the number of input scripts (in.*) in the folders.
+
+
+An example of the list of input scripts in a text file `input_list.txt`
+
+    /home/codes/lammps/examples/melt/in.melt
+    /home/codes/lammps/examples/body/in.body
+    /home/codes/lammps/examples/body/in.cubes
+    /home/codes/lammps/examples/PACKAGES/dielectric/in.confined
+    /home/codes/lammps/examples/PACKAGES/tally/in.pe
+    /home/codes/lammps/examples/PACKAGES/tally/in.force
+

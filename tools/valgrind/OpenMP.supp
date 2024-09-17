@@ -193,3 +193,13 @@
    fun:GOMP_parallel
 }
 
+{
+   gomp_realloc1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:gomp_realloc
+   fun:gomp_team_start
+   fun:GOMP_parallel
+}
+

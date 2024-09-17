@@ -457,30 +457,23 @@ void PairLubricatePoly::init_style()
   // are re-calculated at every step.
 
   shearing = flagdeform = flagwall = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"deform") == 0) {
-      shearing = flagdeform = 1;
-      if ((dynamic_cast<FixDeform *>(modify->fix[i]))->remapflag != Domain::V_REMAP)
-        error->all(FLERR,"Using pair lubricate with inconsistent "
-                   "fix deform remap option");
-    }
-    if (strstr(modify->fix[i]->style,"wall") != nullptr) {
-      if (flagwall)
-        error->all(FLERR,
-                   "Cannot use multiple fix wall commands with "
-                   "pair lubricate/poly");
-      flagwall = 1; // Walls exist
-      wallfix = dynamic_cast<FixWall *>(modify->fix[i]);
-      if (wallfix->xflag) flagwall = 2; // Moving walls exist
-    }
 
-    if (strstr(modify->fix[i]->style,"wall") != nullptr) {
-      flagwall = 1; // Walls exist
-      if ((dynamic_cast<FixWall *>(modify->fix[i]))->xflag) {
-        flagwall = 2; // Moving walls exist
-        wallfix = dynamic_cast<FixWall *>(modify->fix[i]);
-      }
-    }
+  auto fixes = modify->get_fix_by_style("^deform");
+  if (fixes.size() > 0) {
+    shearing = flagdeform = 1;
+    auto *myfix = dynamic_cast<FixDeform *>(fixes[0]);
+    if (myfix && (myfix->remapflag != Domain::V_REMAP))
+      error->all(FLERR,"Using pair lubricate/poly with inconsistent fix deform remap option");
+  }
+  fixes = modify->get_fix_by_style("^wall");
+  if (fixes.size() > 1)
+    error->all(FLERR, "Cannot use multiple fix wall commands with pair lubricate/poly");
+  else if (fixes.size() == 1) {
+    wallfix = dynamic_cast<FixWall *>(fixes[0]);
+    if (!wallfix)
+      error->all(FLERR, "Fix {} is not compatible with pair lubricate/poly", fixes[0]->style);
+    flagwall = 1;
+    if (wallfix->xflag) flagwall = 2; // Moving walls exist
   }
 
   double vol_T;

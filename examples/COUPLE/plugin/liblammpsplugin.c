@@ -41,7 +41,6 @@
 
 #include <stdlib.h>
 
-
 liblammpsplugin_t *liblammpsplugin_load(const char *lib)
 {
   liblammpsplugin_t *lmp;
@@ -106,6 +105,7 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(map_atom);
 
   ADDSYM(extract_atom_datatype);
+  ADDSYM(extract_atom_size);
   ADDSYM(extract_atom);
 
   ADDSYM(extract_compute);
@@ -150,6 +150,7 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(config_has_png_support);
   ADDSYM(config_has_jpeg_support);
   ADDSYM(config_has_ffmpeg_support);
+  ADDSYM(config_has_curl_support);
   ADDSYM(config_has_exceptions);
 
   ADDSYM(config_has_package);
@@ -189,6 +190,9 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
 
   ADDSYM(is_running);
   ADDSYM(force_timeout);
+
+  // symbol not present
+  if (!lmp->config_has_exceptions) return NULL;
 
   lmp->has_exceptions = lmp->config_has_exceptions();
   if (lmp->has_exceptions) {

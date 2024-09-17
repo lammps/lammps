@@ -166,12 +166,12 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
       overwrite = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg], "title1") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate/long title1", error);
+      if (iarg + 2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate/long title1", error);
       delete[] title1;
       title1 = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "title2") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate/long title2", error);
+      if (iarg + 2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate/long title2", error);
       delete[] title2;
       title2 = utils::strdup(arg[iarg + 1]);
       iarg += 2;
@@ -488,7 +488,7 @@ void FixAveCorrelateLong::end_of_step()
 
   if (fp && comm->me == 0) {
     clearerr(fp);
-    if (overwrite) platform::fseek(fp,filepos);
+    if (overwrite) (void) platform::fseek(fp,filepos);
     fmt::print(fp,"# Timestep: {}\n", ntimestep);
     for (unsigned int i=0; i < npcorr; ++i) {
       fprintf(fp, "%lg ", t[i]*update->dt*nevery);

@@ -750,7 +750,7 @@ example:
 
        2 2 17 29 430
 
-The 3 atoms are ordered linearly within the angle.  Thus the central
+The three atoms are ordered linearly within the angle.  Thus the central
 atom (around which the angle is computed) is the atom2 in the list.
 E.g. H,O,H for a water molecule.  The *Angles* section must appear
 after the *Atoms* section.

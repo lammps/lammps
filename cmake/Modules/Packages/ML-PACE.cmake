@@ -1,5 +1,11 @@
-set(PACELIB_URL "https://github.com/ICAMS/lammps-user-pace/archive/refs/tags/v.2023.11.25.fix.tar.gz" CACHE STRING "URL for PACE evaluator library sources")
+# PACE library support for ML-PACE package
 
+# set policy to silence warnings about timestamps of downloaded files. review occasionally if it may be set to NEW
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 OLD)
+endif()
+
+set(PACELIB_URL "https://github.com/ICAMS/lammps-user-pace/archive/refs/tags/v.2023.11.25.fix.tar.gz" CACHE STRING "URL for PACE evaluator library sources")
 set(PACELIB_MD5 "b45de9a633f42ed65422567e3ce56f9f" CACHE STRING "MD5 checksum of PACE evaluator library tarball")
 mark_as_advanced(PACELIB_URL)
 mark_as_advanced(PACELIB_MD5)

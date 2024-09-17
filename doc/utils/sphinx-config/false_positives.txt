@@ -141,6 +141,7 @@ arg
 arge
 args
 argv
+Armv
 arrhenius
 Arun
 arXiv
@@ -215,7 +216,6 @@ ba
 Babadi
 Babaei
 backcolor
-backends
 Baczewski
 Bagchi
 Bagi
@@ -407,6 +407,7 @@ Bybee
 bz
 Cadarache
 cadetblue
+Caen
 Cagin
 calc
 calibrationfunctions
@@ -636,6 +637,7 @@ cstdlib
 cstring
 cstyle
 csvr
+ctest
 ctilde
 ctrl
 ctrn
@@ -1187,6 +1189,7 @@ flaglog
 flagN
 flagVF
 flang
+flatpak
 fld
 floralwhite
 Florez
@@ -1298,6 +1301,7 @@ Gershgorin
 getrusage
 getter
 gettimeofday
+geturl
 gewald
 Gezelter
 Gflop
@@ -1356,6 +1360,7 @@ Grama
 grana
 granregion
 graphene
+Gravelle
 Greathouse
 greenyellow
 Greffet
@@ -1491,6 +1496,8 @@ hplanck
 Hs
 hstyle
 html
+http
+https
 hTST
 https
 hu
@@ -1533,6 +1540,7 @@ idx
 ie
 ielement
 ieni
+ifdef
 ifdefs
 iff
 ifort
@@ -1700,6 +1708,7 @@ jec
 Jeffers
 jewett
 Jewett
+jgissing
 ji
 Jiang
 Jiao
@@ -2305,6 +2314,7 @@ Montero
 Monti
 Monticelli
 Mora
+Morawietz
 Morefoo
 Morfill
 Mori
@@ -2466,6 +2476,7 @@ ncol
 ncorr
 ncount
 nd
+ndactrung
 ndescriptors
 ndihedrals
 Ndihedraltype
@@ -2716,6 +2727,7 @@ OMP
 oneAPI
 onebody
 onelevel
+oneMKL
 oneway
 onlysalt
 ons
@@ -2902,6 +2914,7 @@ plumedfile
 pmb
 pmcmoves
 pme
+pmf
 Pmolrotate
 Pmoltrans
 pN
@@ -3081,6 +3094,7 @@ qx
 qy
 qz
 Rackers
+Radeon
 radi
 radialscreened
 radialscreenedspin
@@ -3347,6 +3361,7 @@ Schunk
 Schuring
 Schwen
 Sci
+scp
 screenshot
 screenshots
 Scripps
@@ -3387,6 +3402,7 @@ setvel
 sevenbody
 sfftw
 sfree
+sftp
 Sg
 sgcmc
 Shan
@@ -3539,6 +3555,7 @@ Steinhauser
 Stepaniants
 stepwise
 Stesmans
+stevens
 stiffnesses
 Stillinger
 stk
@@ -3599,6 +3616,7 @@ supercell
 superset
 supersphere
 Supinski
+suppressions
 Sur
 Surblys
 surfactant
@@ -3872,6 +3890,8 @@ underprediction
 undump
 uniaxial
 uniaxially
+unicaen
+Unicaen
 unimodal
 uninstall
 unitarg
@@ -3901,6 +3921,7 @@ upenn
 upto
 Urbakh
 Urbana
+url
 UreyBradley
 Usabiaga
 usec
@@ -4112,6 +4133,7 @@ Xiaowang
 Xie
 xk
 xlat
+xlattice
 xlo
 xmax
 Xmax
@@ -4163,6 +4185,7 @@ yflag
 yhi
 yi
 ylat
+ylattice
 ylo
 ylz
 ymax
@@ -4211,6 +4234,7 @@ Ziegenhain
 zincblende
 zj
 Zj
+zlattice
 zlim
 zlo
 Zm

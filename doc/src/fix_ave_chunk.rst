@@ -201,7 +201,7 @@ simulation every :math:`N_\text{every}` time steps.  :math:`N_\text{freq}`
 must be a multiple of :math:`N_\text{every}` and :math:`N_\text{every}` must be
 non-zero even if :math:`N_\text{repeat} = 1`\ .  Also, the time steps
 contributing to the average value cannot overlap (i.e.,
-:math:`N_\text{repeat}N_\text{every}` cannot exceed :math:`N_\text{freq}`).
+:math:`N_\text{repeat} \times N_\text{every}` cannot exceed :math:`N_\text{freq}`).
 
 For example, if :math:`N_\text{every}=2`, :math:`N_\text{repeat}=6`, and
 :math:`N_\text{freq}=100`, then values on

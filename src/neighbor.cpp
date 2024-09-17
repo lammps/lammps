@@ -1,4 +1,4 @@
- // clang-format off
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -2705,8 +2705,8 @@ void Neighbor::modify_params(int narg, char **arg)
           memory->grow(ex1_type,maxex_type,"neigh:ex1_type");
           memory->grow(ex2_type,maxex_type,"neigh:ex2_type");
         }
-        ex1_type[nex_type] = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-        ex2_type[nex_type] = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+        ex1_type[nex_type] = utils::expand_type_int(FLERR, arg[iarg+2], Atom::ATOM, lmp);
+        ex2_type[nex_type] = utils::expand_type_int(FLERR, arg[iarg+3], Atom::ATOM, lmp);
         nex_type++;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"group") == 0) {
@@ -2721,7 +2721,9 @@ void Neighbor::modify_params(int narg, char **arg)
         if (ex1_group[nex_group] == -1)
           error->all(FLERR, "Invalid exclude group keyword: group {} not found", arg[iarg+2]);
         if (ex2_group[nex_group] == -1)
-            error->all(FLERR, "Invalid exclude group keyword: group {} not found", arg[iarg+3]);
+          error->all(FLERR, "Invalid exclude group keyword: group {} not found", arg[iarg+3]);
+        if (group->dynamic[ex1_group[nex_group]] || group->dynamic[ex2_group[nex_group]])
+          error->all(FLERR, "Neigh_modify exclude group is not compatible with dynamic groups");
         nex_group++;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"molecule/inter") == 0 ||

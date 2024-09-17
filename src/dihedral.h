@@ -41,7 +41,7 @@ class Dihedral : protected Pointers {
 
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
-  int copymode;
+  int copymode, kokkosable;
 
   Dihedral(class LAMMPS *);
   ~Dihedral() override;

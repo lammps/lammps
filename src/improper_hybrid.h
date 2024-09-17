@@ -40,14 +40,15 @@ class ImproperHybrid : public Improper {
   void read_restart(FILE *) override;
   double memory_usage() override;
 
- private:
+ protected:
   int *map;    // which style each improper type points to
 
   int *nimproperlist;     // # of impropers in sub-style improperlists
   int *maximproper;       // max # of impropers sub-style lists can store
   int ***improperlist;    // improperlist for each sub-style
 
-  void allocate();
+  virtual void allocate();
+  virtual void deallocate();
 };
 
 }    // namespace LAMMPS_NS

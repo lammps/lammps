@@ -17,6 +17,7 @@
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
+#include "bond_hybrid.h"
 #include "domain.h"
 #include "error.h"
 #include "fix_store_atom.h"
@@ -386,11 +387,15 @@ void FixAdapt::init()
 
       if (utils::strmatch(force->pair_style,"^hybrid")) {
         auto pair = dynamic_cast<PairHybrid *>(force->pair);
-        for (i = ad->ilo; i <= ad->ihi; i++)
-          for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
-            if (!pair->check_ijtype(i,j,pstyle))
-              error->all(FLERR,"Fix adapt type pair range is not valid "
-                         "for pair hybrid sub-style {}", pstyle);
+        if (pair) {
+          for (i = ad->ilo; i <= ad->ihi; i++) {
+            for (j = MAX(ad->jlo,i); j <= ad->jhi; j++) {
+              if (!pair->check_ijtype(i,j,pstyle))
+                error->all(FLERR,"Fix adapt type pair range is not valid "
+                           "for pair hybrid sub-style {}", pstyle);
+            }
+          }
+        }
       }
 
       delete[] pstyle;
@@ -416,8 +421,16 @@ void FixAdapt::init()
 
       if (ad->bdim == 1) ad->vector = (double *) ptr;
 
-      if (utils::strmatch(force->bond_style,"^hybrid"))
-        error->all(FLERR,"Fix adapt does not support bond_style hybrid");
+      if (utils::strmatch(force->bond_style,"^hybrid")) {
+        auto bond = dynamic_cast<BondHybrid *>(force->bond);
+        if (bond) {
+          for (i = ad->ilo; i <= ad->ihi; i++) {
+            if (!bond->check_itype(i,bstyle))
+              error->all(FLERR,"Fix adapt type bond range is not valid "
+                         "for pair hybrid sub-style {}", bstyle);
+          }
+        }
+      }
 
       delete[] bstyle;
 

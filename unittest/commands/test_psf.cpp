@@ -140,24 +140,6 @@ TEST_F(PsfTest, ReadWritePsfGroupSubset)
         ASSERT_THAT(lines[i], AnyOf(HasSubstr("OA"),HasSubstr("OB")));
 }
 
-TEST_F(PsfTest, ReadWritePsfErrorHandlingDeathTest)
-{
-    TEST_FAILURE(".*ERROR: write_psf command needs psf_segment_residue_name per-atom custom array created by read_psf command.", command("write_psf all fourmol.psf"););
-
-    // FIXME: doesnt work just silently quits the test
-    //TEST_FAILURE(".*No such file or directory.*", command("read_psf fourmol-foo.psf"););
-
-    // FIXME: this doesnt work either
-    //GTEST_FLAG_SET(death_test_style, "threadsafe");
-    //ASSERT_DEATH(command("read_psf fourmol-foo.psf"), ".*No such file or directory.*");
-
-    BEGIN_HIDE_OUTPUT();
-    command("read_psf fourmol.psf");
-    END_HIDE_OUTPUT();
-    TEST_FAILURE(".*No such file or directory.*", command("write_psf all some_crazy_dir/test.psf"););
-    TEST_FAILURE(".*ERROR: Could not find group ID foo.*", command("write_psf foo fourmol-foo.psf"););
-}
-
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

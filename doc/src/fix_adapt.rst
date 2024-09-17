@@ -319,25 +319,28 @@ all types from 1 to :math:`N`.  A leading asterisk means all types from
 :math:`N` (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
-Currently *bond* does not support bond_style hybrid nor bond_style
-hybrid/overlay as bond styles. The bond styles that currently work
-with fix_adapt are
+If :doc:`bond_style hybrid <bond_hybrid>` is used, *bstyle* should be a
+sub-style name. The bond styles that currently work with fix adapt are:
 
-+------------------------------------+------------+------------+
-| :doc:`class2 <bond_class2>`        | r0         | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`fene <bond_fene>`            | k,r0       | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`fene/nm <bond_fene>`         | k,r0       | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`gromos <bond_gromos>`        | k,r0       | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`harmonic <bond_harmonic>`    | k,r0       | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`morse <bond_morse>`          | r0         | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`nonlinear <bond_nonlinear>`  | epsilon,r0 | type bonds |
-+------------------------------------+------------+------------+
++---------------------------------------------------+------------+------------+
+| :doc:`class2 <bond_class2>`                       | r0         | type bonds |
++---------------------------------------------------+------------+------------+
+| :doc:`fene <bond_fene>`                           | k,r0       | type bonds |
++---------------------------------------------------+------------+------------+
+| :doc:`fene/nm <bond_fene>`                        | k,r0       | type bonds |
++---------------------------------------------------+------------+------------+
+| :doc:`gromos <bond_gromos>`                       | k,r0       | type bonds |
++---------------------------------------------------+------------+------------+
+| :doc:`harmonic <bond_harmonic>`                   | k,r0       | type bonds |
++---------------------------------------------------+------------+------------+
+| :doc:`harmonic/shift <bond_harmonic_shift>`       | k,r0,r1    | type bonds |
++---------------------------------------------------+------------+------------+
+| :doc:`harmonic/restrain <bond_harmonic_restrain>` | k          | type bonds |
++---------------------------------------------------+------------+------------+
+| :doc:`morse <bond_morse>`                         | r0         | type bonds |
++---------------------------------------------------+------------+------------+
+| :doc:`nonlinear <bond_nonlinear>`                 | epsilon,r0 | type bonds |
++---------------------------------------------------+------------+------------+
 
 ----------
 
@@ -359,7 +362,7 @@ all types from 1 to :math:`N`.  A leading asterisk means all types from
 
 Currently *angle* does not support angle_style hybrid nor angle_style
 hybrid/overlay as angle styles. The angle styles that currently work
-with fix_adapt are
+with fix adapt are
 
 +------------------------------------+----------+-------------+
 | :doc:`harmonic <angle_harmonic>`   | k,theta0 | type angles |

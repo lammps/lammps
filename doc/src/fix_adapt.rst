@@ -360,9 +360,8 @@ all types from 1 to :math:`N`.  A leading asterisk means all types from
 :math:`N` (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
-Currently *angle* does not support angle_style hybrid nor angle_style
-hybrid/overlay as angle styles. The angle styles that currently work
-with fix adapt are
+If :doc:`angle_style hybrid <angle_hybrid>` is used, *astyle* should be a
+sub-style name. The angle styles that currently work with fix adapt are:
 
 +------------------------------------+----------+-------------+
 | :doc:`harmonic <angle_harmonic>`   | k,theta0 | type angles |

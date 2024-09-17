@@ -15,6 +15,7 @@
 #include "fix_adapt.h"
 
 #include "angle.h"
+#include "angle_hybrid.h"
 #include "atom.h"
 #include "bond.h"
 #include "bond_hybrid.h"
@@ -455,8 +456,16 @@ void FixAdapt::init()
 
       if (ad->adim == 1) ad->vector = (double *) ptr;
 
-      if (utils::strmatch(force->angle_style,"^hybrid"))
-        error->all(FLERR,"Fix adapt does not support angle_style hybrid");
+      if (utils::strmatch(force->angle_style,"^hybrid")) {
+        auto angle = dynamic_cast<AngleHybrid *>(force->angle);
+        if (angle) {
+          for (i = ad->ilo; i <= ad->ihi; i++) {
+            if (!angle->check_itype(i,astyle))
+              error->all(FLERR,"Fix adapt type angle range is not valid "
+                         "for pair hybrid sub-style {}", astyle);
+          }
+        }
+      }
 
       delete[] astyle;
 

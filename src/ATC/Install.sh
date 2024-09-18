@@ -9,6 +9,19 @@ mode=$1
 LC_ALL=C
 export LC_ALL
 
+cat <<EOF
+WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
+WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
+
+ The ATC package will be removed from LAMMPS in Summer 2025 due to lack of
+ maintenance and use of code constructs that conflict with modern C++ compilers
+ and standards.  Please contact developers@lammps.org if you have any concerns
+ about this step.
+
+WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
+WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
+EOF
+
 action () {
   if (test $mode = 0) then
     rm -f ../$1

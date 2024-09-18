@@ -92,6 +92,7 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < size_one; i++) {
     if (vtype[i] == Dump::INT) cols += "%d ";
     else if (vtype[i] == Dump::DOUBLE) cols += "%g ";
+    else if (vtype[i] == Dump::BIGINT) cols += BIGINT_FORMAT " ";
     vformat[i] = nullptr;
   }
   cols.resize(cols.size()-1);
@@ -451,7 +452,9 @@ void DumpLocal::parse_fields(int narg, char **arg)
     if (strcmp(arg[iarg],"index") == 0) {
       pack_choice[iarg] = &DumpLocal::pack_index;
       vtype[iarg] = Dump::INT;
-
+    } else if (strcmp(arg[iarg],"step") == 0) {
+      pack_choice[iarg] = &DumpLocal::pack_step;
+      vtype[iarg] = Dump::BIGINT;
     } else {
       ArgInfo argi(arg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX);
       computefixflag = 1;
@@ -625,6 +628,16 @@ void DumpLocal::pack_index(int n)
 
   for (int i = 0; i < nmine; i++) {
     buf[n] = ++index;
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpLocal::pack_step(int n)
+{
+  for (int i = 0; i < nmine; i++) {
+    buf[n] = update->ntimestep;
     n += size_one;
   }
 }

@@ -77,6 +77,7 @@ class DumpLocal : public Dump {
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_index(int);
+  void pack_step(int);
   void pack_compute(int);
   void pack_fix(int);
 };

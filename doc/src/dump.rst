@@ -147,6 +147,7 @@ Syntax
 
          possible attributes = index, c_ID, c_ID[I], f_ID, f_ID[I]
            index = enumeration of local values
+           step = timestep
            c_ID = local vector calculated by a compute with ID
            c_ID[I] = Ith column of local array calculated by a compute with ID, I can include wildcard (see below)
            f_ID = local vector calculated by a fix with ID
@@ -912,13 +913,17 @@ which could then be output into dump files.
 Attributes used as arguments to the *local* style:
 
 The *index* attribute can be used to generate an index number from 1
-to N for each line written into the dump file, where N is the total
+to N for each line written into the dump local file, where N is the total
 number of local datums from all processors, or lines of output that
 will appear in the snapshot.  Note that because data from different
 processors depend on what atoms they currently own, and atoms migrate
 between processor, there is no guarantee that the same index will be
 used for the same info (e.g. a particular bond) in successive
 snapshots.
+
+.. versionadded:: TBD-2025
+
+The *step* attribute can be used to write the current timestep for each line written into the dump local file.
 
 The *c_ID* and *c_ID[I]* attributes allow local vectors or arrays
 calculated by a :doc:`compute <compute>` to be output.  The ID in the

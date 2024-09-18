@@ -8,6 +8,10 @@ Building LAMMPS with traditional makefiles requires that you have a
 for customizing your LAMMPS build with a number of global compilation
 options and features.
 
+This build system is slowly being phased out and may not support all
+optional features and packages in LAMMPS.  It is recommended to switch
+to the :doc:`CMake based build system <Build_cmake>`.
+
 Requirements
 ^^^^^^^^^^^^
 

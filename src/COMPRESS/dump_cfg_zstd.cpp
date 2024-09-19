@@ -145,7 +145,7 @@ void DumpCFGZstd::write_data(int n, double *mybuf)
               written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<int>(mybuf[m]));
             else if (vtype[j] == Dump::DOUBLE)
               written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], mybuf[m]);
-            else if (vtype[j] == Dump::STRING)
+            else if (vtype[j] == Dump::ELEMENT)
               written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], typenames[(int) mybuf[m]]);
             else if (vtype[j] == Dump::BIGINT)
               written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<bigint>(mybuf[m]));
@@ -176,7 +176,7 @@ void DumpCFGZstd::write_data(int n, double *mybuf)
               written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<int>(mybuf[m]));
             else if (vtype[j] == Dump::DOUBLE)
               written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], mybuf[m]);
-            else if (vtype[j] == Dump::STRING)
+            else if (vtype[j] == Dump::ELEMENT)
               written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], typenames[(int) mybuf[m]]);
             else if (vtype[j] == Dump::BIGINT)
               written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<bigint>(mybuf[m]));

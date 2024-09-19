@@ -114,7 +114,7 @@ DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < nfield; i++) {
     if (vtype[i] == Dump::INT) cols += "%d ";
     else if (vtype[i] == Dump::DOUBLE) cols += "%g ";
-    else if (vtype[i] == Dump::STRING) cols += "%s ";
+    else if (vtype[i] == Dump::ELEMENT) cols += "%s ";
     else if (vtype[i] == Dump::BIGINT) cols += BIGINT_FORMAT " ";
     vformat[i] = nullptr;
   }

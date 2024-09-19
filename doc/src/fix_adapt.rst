@@ -365,11 +365,13 @@ all types from 1 to :math:`N`.  A leading asterisk means all types from
 If :doc:`angle_style hybrid <angle_hybrid>` is used, *astyle* should be a
 sub-style name. The angle styles that currently work with fix adapt are:
 
-+------------------------------------+----------+-------------+
-| :doc:`harmonic <angle_harmonic>`   | k,theta0 | type angles |
-+------------------------------------+----------+-------------+
-| :doc:`cosine <angle_cosine>`       | k        | type angles |
-+------------------------------------+----------+-------------+
++-----------------------------------------------+----------+-------------+
+| :doc:`harmonic <angle_harmonic>`              | k,theta0 | type angles |
++-----------------------------------------------+----------+-------------+
+| :doc:`cosine <angle_cosine>`                  | k        | type angles |
++-----------------------------------------------+----------+-------------+
+| :doc:`cosine/squared <angle_cosine_squared>`  | k,theta0 | type angles |
++-----------------------------------------------+----------+-------------+
 
 Note that internally, theta0 is stored in radians, so the variable
 this fix uses to reset theta0 needs to generate values in radians.

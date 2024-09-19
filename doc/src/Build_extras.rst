@@ -2251,28 +2251,37 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
 RHEO package
 ------------
 
-To build with this package you must have the `GNU Scientific Library
-(GSL) <https://www.gnu.org/software/gsl/>` installed in locations that
-are accessible in your environment.  The GSL library should be at least
-version 2.7.
+This package depends on the BPM package.
 
 .. tabs::
 
    .. tab:: CMake build
 
-      If CMake cannot find the GSL library or include files, you can set:
-
       .. code-block:: bash
 
-         -D GSL_ROOT_DIR=path    # path to root of GSL installation
+         -D PKG_RHEO=yes               # enable the package itself
+         -D PKG_BPM=yes                # the RHEO package requires BPM
+         -D USE_INTERNAL_LINALG=value  #
+
+      Features in the RHEO package are dependent on code in the BPM
+      package so the latter one *must* be enabled.
+
+      The RHEO package also requires LAPACK (and BLAS) and CMake
+      can identify their locations and pass that info to the RHEO
+      build script.  But on some systems this may cause problems when
+      linking or the dependency is not desired.  Try enabling
+      ``USE_INTERNAL_LINALG`` in those cases to use the bundled linear
+      algebra library and work around the limitations.
 
    .. tab:: Traditional make
 
-      LAMMPS will try to auto-detect the GSL compiler and linker flags
-      from the corresponding ``pkg-config`` file (``gsl.pc``), otherwise
-      you can edit the file ``lib/rheo/Makefile.lammps``
-      to specify the paths and library names where indicated by comments.
-      This must be done **before** the package is installed.
+      The RHEO package also requires LAPACK (and BLAS) which can be
+      either a system provided library or the bundled "linalg" library
+      which is a subset of LAPACK.  For that, one of the provided
+      ``Makefile.lammps.<config>`` files needs to be copied to
+      ``Makefile.lammps`` and edited as needed.  The default file
+      uses the bundled "linalg" library, which can be built with
+      ``make lib-linalg args='-m serial'``.
 
 ----------
 

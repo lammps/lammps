@@ -33,6 +33,8 @@ class ComputePairLocal : public Compute {
   void compute_local() override;
   double memory_usage() override;
 
+  int igroup2, groupbit2;
+
  private:
   int nvalues, ncount, cutstyle;
 

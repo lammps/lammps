@@ -30,8 +30,9 @@ jobs:
 
     - name: Install extra packages
       run: |
+        sudo apt-get update
         sudo apt-get install -y ccache ninja-build libeigen3-dev \
-                     libgsl-dev libcurl4-openssl-dev python3-dev \
+                     libcurl4-openssl-dev python3-dev \
                      mpi-default-bin mpi-default-dev
 
     - name: Create Build Environment

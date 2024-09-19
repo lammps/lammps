@@ -49,7 +49,7 @@ static constexpr int MAX_MDIM = 12;
 // declare LAPACK functions
 
 extern "C" {
-  void dpotrf2_(const char *uplo, const int *n, double *a, const int *lda, int *info);
+  void dpotrf_(const char *uplo, const int *n, double *a, const int *lda, int *info);
   void dpotri_(const char *uplo, const int *n, double *a, const int *lda, int *info);
 }
 
@@ -721,7 +721,7 @@ void ComputeRHEOKernel::compute_peratom()
       // Use LAPACK to get Minv, use Cholesky decomposition since the
       // polynomials are independent, M is symmetrix & positive-definite
       const char uplo = 'U';
-      dpotrf2_(&uplo, &Mdim, M, &Mdim, &lapack_error);
+      dpotrf_(&uplo, &Mdim, M, &Mdim, &lapack_error);
 
       if (lapack_error) {
         // Revert to uncorrected SPH for this particle

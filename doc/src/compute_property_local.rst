@@ -67,11 +67,13 @@ Syntax
      itype = store improper type of each improper
 
 * zero or more keyword/arg pairs may be appended
-* keyword = *cutoff*
+* keyword = *cutoff* or *group2*
 
   .. parsed-literal::
 
        *cutoff* arg = *type* or *radius*
+
+       *group2* group2-ID = select group2-ID to restrict which atoms to consider
 
 Examples
 """"""""

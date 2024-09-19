@@ -31,6 +31,7 @@ jobs:
 
     - name: Install extra packages
       run: |
+        sudo apt-get update
         sudo apt-get install -y ccache \
                                 libeigen3-dev \
                                 libgsl-dev \

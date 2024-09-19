@@ -137,7 +137,7 @@ void DumpYAML::write_data(int n, double *mybuf)
         fprintf(fp, vformat[j], static_cast<int>(mybuf[m]));
       else if (vtype[j] == Dump::DOUBLE)
         fprintf(fp, vformat[j], mybuf[m]);
-      else if (vtype[j] == Dump::STRING)
+      else if (vtype[j] == Dump::ELEMENT)
         fprintf(fp, vformat[j], typenames[(int) mybuf[m]]);
       else if (vtype[j] == Dump::BIGINT)
         fprintf(fp, vformat[j], static_cast<bigint>(mybuf[m]));

@@ -17,6 +17,7 @@
 #include "atom_vec.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -200,6 +201,10 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
 
   cutstyle = TYPE;
 
+  // group2-ID defaults to group-ID of compute if group2 option not used
+  igroup2 = igroup;
+  groupbit2 = groupbit;
+
   while (iarg < narg) {
     if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal compute property/local command");
@@ -209,6 +214,12 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
         cutstyle = RADIUS;
       else
         error->all(FLERR, "Illegal compute property/local command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "group2") == 0) {
+      if (iarg + 1 > narg) error->all(FLERR, "Illegal compute property/local command");
+      igroup2 = group->find(arg[iarg + 1]);
+      if (igroup2 == -1) error->all(FLERR,"Could not find compute group2-ID {}", arg[iarg + 1] );
+      groupbit2 = group->bitmask[igroup2];
       iarg += 2;
     } else
       error->all(FLERR, "Illegal compute property/local command");
@@ -402,7 +413,7 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
       j = jlist[jj];
       j &= NEIGHMASK;
 
-      if (!(mask[j] & groupbit)) continue;
+      if (!(mask[j] & groupbit2)) continue;
 
       // itag = jtag is possible for long cutoffs that include images of self
       // do not need triclinic logic here b/c neighbor list itself is correct

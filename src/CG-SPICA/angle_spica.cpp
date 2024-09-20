@@ -523,6 +523,7 @@ double AngleSPICA::single(int type, int i1, int i2, int i3)
   return tk*dtheta + e13;
 }
 
+/* ----------------------------------------------------------------------
    return ptr to internal members upon request
 ------------------------------------------------------------------------ */
 

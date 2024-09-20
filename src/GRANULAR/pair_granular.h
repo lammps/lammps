@@ -75,7 +75,7 @@ class PairGranular : public Pair {
 
   // granular models
   int nmodels, maxmodels;
-  class Granular_NS::GranularModel** models_list;
+  class Granular_NS::GranularModel **models_list;
   int **types_indices;
 
   // optional user-specified global cutoff, per-type user-specified cutoffs

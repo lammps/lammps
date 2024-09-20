@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(lammps-gui VERSION 1.6.8 LANGUAGES CXX)
+project(lammps-gui VERSION 1.6.11 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -86,9 +86,7 @@ else()
       add_compile_options(/wd4244)
       add_compile_options(/wd4267)
       add_compile_options(/wd4250)
-      if(LAMMPS_EXCEPTIONS)
-        add_compile_options(/EHsc)
-      endif()
+      add_compile_options(/EHsc)
     endif()
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
   endif()
@@ -130,6 +128,8 @@ set(PROJECT_SOURCES
   chartviewer.h
   codeeditor.cpp
   codeeditor.h
+  findandreplace.cpp
+  findandreplace.h
   helpers.cpp
   highlighter.cpp
   highlighter.h

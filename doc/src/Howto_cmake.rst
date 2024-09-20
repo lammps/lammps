@@ -348,7 +348,7 @@ Some common LAMMPS specific variables
    * - ``FFT``
      - select which FFT library to use: ``FFTW3``, ``MKL``, ``KISS`` (default, unless FFTW3 is found)
    * - ``FFT_KOKKOS``
-     - select which FFT library to use in Kokkos-enabled styles: ``FFTW3``, ``MKL``, ``HIPFFT``, ``CUFFT``, ``KISS`` (default)
+     - select which FFT library to use in Kokkos-enabled styles: ``FFTW3``, ``MKL``, ``HIPFFT``, ``CUFFT``, ``MKL_GPU``, ``KISS`` (default)
    * - ``FFT_SINGLE``
      - select whether to use single precision FFTs (default: ``off``)
    * - ``WITH_JPEG``

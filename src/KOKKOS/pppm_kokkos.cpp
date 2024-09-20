@@ -794,7 +794,7 @@ void PPPMKokkos<DeviceType>::allocate()
   // 2nd FFT returns data in 3d brick decomposition
   // remap takes data from 3d brick to FFT decomposition
 
-  int collective_flag = 0; // not yet supported in Kokkos version
+  int collective_flag = force->kspace->collective_flag;
   int gpu_aware_flag = lmp->kokkos->gpu_aware_flag;
   int tmp;
 

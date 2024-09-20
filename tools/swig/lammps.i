@@ -106,6 +106,7 @@ extern void   lammps_mpi_finalize();
 extern void   lammps_kokkos_finalize();
 extern void   lammps_python_finalize();
 extern void   lammps_error(void *handle, int error_type, const char *error_text);
+extern char  *lammps_expand(void *handle, const char *line);
 
 extern void   lammps_file(void *handle, const char *file);
 extern char  *lammps_command(void *handle, const char *cmd);
@@ -296,6 +297,7 @@ extern void   lammps_mpi_finalize();
 extern void   lammps_kokkos_finalize();
 extern void   lammps_python_finalize();
 extern void   lammps_error(void *handle, int error_type, const char *error_text);
+extern char  *lammps_expand(void *handle, const char *line);
 
 extern void   lammps_file(void *handle, const char *file);
 extern char  *lammps_command(void *handle, const char *cmd);

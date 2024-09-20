@@ -130,6 +130,7 @@ extern void  *lammps_extract_pair(void *handle, const char *name);
 extern int    lammps_map_atom(void *handle, const void *id);
 
 extern int    lammps_extract_atom_datatype(void *handle, const char *name);
+extern int    lammps_extract_atom_size(void *handle, const char *name, int type);
 extern void  *lammps_extract_atom(void *handle, const char *name);
 
 extern void  *lammps_extract_compute(void *handle, const char *id, int, int);
@@ -319,6 +320,7 @@ extern void  *lammps_extract_pair(void *handle, const char *name);
 extern int    lammps_map_atom(void *handle, const void *id);
 
 extern int    lammps_extract_atom_datatype(void *handle, const char *name);
+extern int    lammps_extract_atom_size(void *handle, const char *name, int type);
 extern void  *lammps_extract_atom(void *handle, const char *name);
 
 extern void  *lammps_extract_compute(void *handle, const char *id, int, int);

@@ -65,8 +65,7 @@ class PairHippoGPU : public PairAmoeba {
 
   void udirect2b_cpu();
 
-  template<class numtyp>
-  void compute_force_from_torque(const numtyp*, double**, double*);
+  template <class numtyp> void compute_force_from_torque(const numtyp *, double **, double *);
 };
 
 }    // namespace LAMMPS_NS

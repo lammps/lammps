@@ -55,7 +55,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 Define a computation that stores atom attributes specific to the RHEO
 package for each atom in the group.  This is useful so that the values

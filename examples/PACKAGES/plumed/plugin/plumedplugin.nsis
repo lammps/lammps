@@ -1,0 +1,172 @@
+#!Nsis Installer Command Script
+#
+# The following external defines are recognized:
+# ${VERSION} = YYYYMMDD
+
+!include "MUI2.nsh"
+!include "FileFunc.nsh"
+
+!define MUI_ICON "lammps.ico"
+!define MUI_UNICON "lammps.ico"
+!define MUI_HEADERIMAGE
+!define MUI_HEADERIMAGE_BITMAP "lammps-text-logo-wide.bmp"
+!define MUI_HEADERIMAGE_RIGHT
+
+Unicode true
+XPStyle on
+
+!include "LogicLib.nsh"
+!addplugindir "envvar/Plugins/x86-unicode"
+!include "x64.nsh"
+
+RequestExecutionLevel user
+
+!macro VerifyUserIsAdmin
+UserInfo::GetAccountType
+pop $0
+${If} $0 != "admin"
+  messageBox mb_iconstop "Administrator rights required!"
+  setErrorLevel 740 ;ERROR_ELEVATION_REQUIRED
+  quit
+${EndIf}
+!macroend
+
+!define PLUMEDPLUGIN "LAMMPS PLUMED Plugin ${VERSION}"
+OutFile "LAMMPS-PLUMED-plugin-${VERSION}.exe"
+
+Name "${PLUMEDPLUGIN}"
+InstallDir "$LOCALAPPDATA\${PLUMEDPLUGIN}"
+
+ShowInstDetails show
+ShowUninstDetails show
+SetCompressor zlib
+
+!define MUI_ABORTWARNING
+
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_INSTFILES
+
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+
+!insertmacro MUI_LANGUAGE "English"
+
+function .onInit
+  # Determine if LAMMPS was already installed and check whether it was in 32-bit
+  # or 64-bit. Then look up path to uninstaller and offer to uninstall or quit
+  SetRegView 32
+  ReadRegDWORD $0 HKCU "Software\LAMMPS-PLUMED" "Bits"
+  SetRegView LastUsed
+  ${If} $0 == "32"
+    SetRegView 32
+  ${ElseIf} $0 == "64"
+    SetRegView 64
+  ${Else}
+    SetRegView 64
+  ${EndIf}
+  ClearErrors
+  ReadRegStr $R0 HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LAMMPS-PLUMED" "UninstallString"
+  SetRegView LastUsed
+  ${If} ${Errors}
+    DetailPrint "LAMMPS PLUMED plugin not (yet) installed"
+  ${Else}
+    MessageBox MB_YESNO "LAMMPS PLUMED plugin ($0 bit) is already installed. Uninstall existing version?" /SD IDYES IDNO Quit
+      Pop $R1
+      StrCmp $R1 2 Quit +1
+      Exec $R0
+    Quit:
+      Quit
+  ${EndIf}
+  setShellVarContext all
+functionEnd
+
+Section "${PLUMEDPLUGIN}" SecPlumedplugin
+  SectionIn RO
+  # Write LAMMPS installation bitness marker. Always use 32-bit registry view
+  SetRegView 32
+  IntFmt $0 "0x%08X" 64
+  WriteRegDWORD HKCU "Software\LAMMPS-PLUMED" "Bits" $0
+
+  # Switch to "native" registry view
+  SetRegView 64
+  SetShellVarContext current
+
+  SetOutPath "$INSTDIR"
+  CreateDirectory "$INSTDIR\patches"
+  CreateDirectory "$INSTDIR\bin"
+  File lammps.ico
+  File plumedplugin.so
+
+  SetOutPath "$INSTDIR\bin"
+  File plumed.exe
+
+  # Register Application and its uninstaller
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LAMMPS-PLUMED" \
+                 "DisplayName" "${PLUMEDPLUGIN}"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LAMMPS-PLUMED" \
+                 "Publisher" "The LAMMPS and PLUMED Developers"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LAMMPS-PLUMED" \
+                 "URLInfoAbout" "lammps.org"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LAMMPS-PLUMED" \
+                 "DisplayIcon" "$INSTDIR\lammps.ico"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LAMMPS-PLUMED" \
+                 "DisplayVersion" "${VERSION}"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LAMMPS-PLUMED" \
+                 "InstallLocation" "$INSTDIR"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LAMMPS-PLUMED" \
+                 "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LAMMPS-PLUMED" \
+                 "QuietUninstallString" "$\"$INSTDIR\uninstall.exe$\" /S"
+
+  ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
+  IntFmt $0 "0x%08X" $0
+  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LAMMPS-PLUMED" \
+                 "EstimatedSize" "$0"
+
+  # update path variables
+  EnVar::SetHKCU
+  # add plumed executable path
+  EnVar::AddValue "PATH" "$INSTDIR\bin"
+  # add to LAMMPS plugin search path
+  EnVar::AddValue "LAMMPS_PLUGIN_PATH" "$INSTDIR"
+  # add plumed2 patch files
+  EnVar::AddValue "PLUMED_ROOT" "$INSTDIR"
+
+  WriteUninstaller "$INSTDIR\Uninstall.exe"
+SectionEnd
+
+function un.onInit
+  SetShellVarContext current
+functionEnd
+
+Section "Uninstall"
+  # remove LAMMPS bitness/installation indicator always in 32-bit registry view
+  SetRegView 32
+  DeleteRegKey HKCU "Software\LAMMPS-PLUMED"
+
+  # unregister extension, and uninstall info
+  SetRegView 64
+  SetShellVarContext current
+  # unregister installation
+  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LAMMPS-PLUMED"
+
+  # update path variables
+  EnVar::SetHKCU
+  # remove plumed executable path
+  EnVar::DeleteValue "PATH" "$INSTDIR\bin"
+  # remove entry from LAMMPS plugin search path
+  EnVar::DeleteValue "LAMMPS_PLUGIN_PATH" "$INSTDIR"
+  # remove plumed patch environment
+  EnVar::Delete "PLUMED_ROOT"
+
+  RMDir /r /REBOOTOK "$INSTDIR\patches"
+  RMDir /r /REBOOTOK "$INSTDIR\bin"
+  Delete /REBOOTOK "$INSTDIR\plumedplugin.so"
+  Delete /REBOOTOK "$INSTDIR\Uninstall.exe"
+  Delete /REBOOTOK "$INSTDIR\lammps.ico"
+  RMDir /REBOOTOK "$INSTDIR"
+SectionEnd
+
+# Local Variables:
+# mode: sh
+# End:

@@ -159,7 +159,7 @@ sample scenarios where this is useful:
 * When one or more rigid bodies are specified, interactions within each
   body can be turned off to save needless computation.  See the :doc:`fix rigid <fix_rigid>` command for more details.
 
-.. versionchanged:: TBD
+.. versionchanged:: 29Aug2024
 
    Support for type labels was added.
 

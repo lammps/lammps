@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class PairTersoffMODC : public PairTersoffMOD {
  public:
-  PairTersoffMODC(class LAMMPS *lmp) : PairTersoffMOD(lmp){};
+  PairTersoffMODC(class LAMMPS *lmp) : PairTersoffMOD(lmp) {};
 
   static constexpr int NPARAMS_PER_LINE = 21;
 

@@ -127,7 +127,7 @@ void PairLJCutTIP4PLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
   double factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
   double denc, denlj, r4sig6;
-  double v[6];
+  double v[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   double fdx,fdy,fdz,fOx,fOy,fOz,fHx,fHy,fHz;
   dbl3_t x1,x2,xH1,xH2;
 

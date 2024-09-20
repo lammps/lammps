@@ -113,7 +113,7 @@ void GranSubModTangentialLinearHistory::coeffs_to_local()
 void GranSubModTangentialLinearHistory::calculate_forces()
 {
   // Note: this is the same as the base Mindlin calculation except k isn't scaled by contact radius
-  double magfs, magfs_inv, rsht, shrmag, prjmag, temp_dbl, temp_array[3];
+  double magfs, magfs_inv, rsht, shrmag, prjmag, temp_dbl, temp_array[3], vtr2[3];
   int frame_update = 0;
 
   damp = xt * gm->damping_model->get_damp_prefactor();
@@ -171,7 +171,24 @@ void GranSubModTangentialLinearHistory::calculate_forces()
 
   // tangential forces = history + tangential velocity damping
   scale3(-k, history, gm->fs);
-  scale3(damp, gm->vtr, temp_array);
+  //Rotating vtr for damping term in nx direction
+  rsht = dot3(gm->vtr, gm->nx);
+  if (frame_update) {
+    shrmag = len3(gm->vtr);
+    scale3(rsht, gm->nx, temp_array);
+    sub3(gm->vtr, temp_array, vtr2);
+
+    // also rescale to preserve magnitude
+    prjmag = len3(vtr2);
+    if (prjmag > 0)
+      temp_dbl = shrmag / prjmag;
+    else
+      temp_dbl = 0;
+    scale3(temp_dbl, vtr2);
+  } else {
+    copy3(gm->vtr, vtr2);
+  }
+  scale3(damp,vtr2, temp_array);
   sub3(gm->fs, temp_array, gm->fs);
 
   // rescale frictional displacements and forces if needed
@@ -323,7 +340,7 @@ void GranSubModTangentialMindlin::mix_coeffs(double *icoeffs, double *jcoeffs)
 void GranSubModTangentialMindlin::calculate_forces()
 {
   double k_scaled, magfs, magfs_inv, rsht, shrmag, prjmag, temp_dbl;
-  double temp_array[3];
+  double temp_array[3], vtr2[3];
   int frame_update = 0;
 
   damp = xt * gm->damping_model->get_damp_prefactor();
@@ -397,7 +414,24 @@ void GranSubModTangentialMindlin::calculate_forces()
   }
 
   // tangential forces = history + tangential velocity damping
-  scale3(-damp, gm->vtr, gm->fs);
+  //Rotating vtr for damping term in nx direction
+  rsht = dot3(gm->vtr, gm->nx);
+  if (frame_update) {
+    shrmag = len3(gm->vtr);
+    scale3(rsht, gm->nx, temp_array);
+    sub3(gm->vtr, temp_array, vtr2);
+
+    // also rescale to preserve magnitude
+    prjmag = len3(vtr2);
+    if (prjmag > 0)
+      temp_dbl = shrmag / prjmag;
+    else
+      temp_dbl = 0;
+    scale3(temp_dbl, vtr2);
+  } else {
+    copy3(gm->vtr, vtr2);
+  }
+  scale3(-damp, vtr2, gm->fs);
 
   if (!mindlin_force) {
     scale3(k_scaled, history, temp_array);

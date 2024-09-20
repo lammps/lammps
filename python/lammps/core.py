@@ -19,8 +19,8 @@ from __future__ import print_function
 import os
 import sys
 from ctypes import CDLL, POINTER, RTLD_GLOBAL, CFUNCTYPE, py_object, byref, cast, sizeof, \
-  create_string_buffer, c_int, c_int32, c_int64, c_double, c_void_p, c_char_p, pythonapi, \
-  pointer
+  create_string_buffer, c_int, c_int32, c_int64, c_double, c_void_p, c_char_p, c_char,    \
+  pythonapi, pointer
 from os.path import dirname, abspath, join
 from inspect import getsourcefile
 
@@ -179,7 +179,7 @@ class lammps(object):
     self.lib.lammps_error.argtypes = [c_void_p, c_int, c_char_p]
 
     self.lib.lammps_expand.argtypes = [c_void_p, c_char_p]
-    self.lib.lammps_expand.restype = c_char_p
+    self.lib.lammps_expand.restype = POINTER(c_char)
 
     self.lib.lammps_file.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_file.restype = None
@@ -632,8 +632,17 @@ class lammps(object):
 
     with ExceptionCheck(self):
       strptr = self.lib.lammps_expand(self.lmp, newline)
-      rval = strptr.decode()
-      return rval
+      rval = strptr[0]
+      if rval == b'\0':
+        rval = None
+      else:
+        i = 1
+        while strptr[i] != b'\0':
+          rval += strptr[i]
+          i = i + 1
+      self.lib.lammps_free(strptr)
+      if rval:
+        return rval.decode('utf-8')
 
     return None
   # -------------------------------------------------------------------------

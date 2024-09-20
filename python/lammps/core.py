@@ -178,6 +178,9 @@ class lammps(object):
 
     self.lib.lammps_error.argtypes = [c_void_p, c_int, c_char_p]
 
+    self.lib.lammps_expand.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_expand.restype = c_char_p
+
     self.lib.lammps_file.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_file.restype = None
 
@@ -611,6 +614,28 @@ class lammps(object):
       return MPIAbortException(error_msg)
     return Exception(error_msg)
 
+  # -------------------------------------------------------------------------
+
+  def expand(self,line):
+    """Expand a single LAMMPS string like an input line
+
+    This is a wrapper around the :cpp:func:`lammps_expand`
+    function of the C-library interface.
+
+    :param cmd: a single lammps line
+    :type cmd:  string
+    :return: expanded string
+    :rtype: string
+    """
+    if line: newline = line.encode()
+    else: return None
+
+    with ExceptionCheck(self):
+      strptr = self.lib.lammps_expand(self.lmp, newline)
+      rval = strptr.decode()
+      return rval
+
+    return None
   # -------------------------------------------------------------------------
 
   def file(self, path):

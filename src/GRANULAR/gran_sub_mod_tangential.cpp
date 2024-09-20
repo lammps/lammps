@@ -124,14 +124,14 @@ void GranSubModTangentialLinearHistory::calculate_forces()
   // rotate and update displacements / force.
   // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
   if (gm->history_update) {
-    rsht = dot3(history, gm->nx);
+    rsht = dot3(history, gm->nxuse);
     frame_update = (fabs(rsht) * k) > (EPSILON * Fscrit);
 
     if (frame_update) {
       shrmag = len3(history);
 
-      // projection
-      scale3(rsht, gm->nx, temp_array);
+      // first projection to half step normal
+      scale3(rsht, gm->nxuse, temp_array);
       sub3(history, temp_array, history);
 
       // also rescale to preserve magnitude
@@ -143,10 +143,30 @@ void GranSubModTangentialLinearHistory::calculate_forces()
       scale3(temp_dbl, history);
     }
 
-    // update history, tangential force
+    // update history, tangential force using velocities at half step
     // see e.g. eq. 18 of Thornton et al, Pow. Tech. 2013, v223,p30-46
     scale3(gm->dt, gm->vtr, temp_array);
     add3(history, temp_array, history);
+
+    //Second projection to nx (t+\Delta t)
+    rsht = dot3(history, gm->nx);
+    frame_update = (fabs(rsht) * k) > (EPSILON * Fscrit);
+
+    if (frame_update) {
+      shrmag = len3(history);
+
+      // second projection to full step normal
+      scale3(rsht, gm->nx, temp_array);
+      sub3(history, temp_array, history);
+
+      // also rescale to preserve magnitude
+      prjmag = len3(history);
+      if (prjmag > 0)
+        temp_dbl = shrmag / prjmag;
+      else
+        temp_dbl = 0;
+      scale3(temp_dbl, history);
+    }
   }
 
   // tangential forces = history + tangential velocity damping
@@ -320,7 +340,7 @@ void GranSubModTangentialMindlin::calculate_forces()
   // rotate and update displacements / force.
   // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
   if (gm->history_update) {
-    rsht = dot3(history, gm->nx);
+    rsht = dot3(history, gm->nxuse);
     if (mindlin_force) {
       frame_update = fabs(rsht) > (EPSILON * Fscrit);
     } else {
@@ -330,7 +350,7 @@ void GranSubModTangentialMindlin::calculate_forces()
     if (frame_update) {
       shrmag = len3(history);
       // projection
-      scale3(rsht, gm->nx, temp_array);
+      scale3(rsht, gm->nxuse, temp_array);
       sub3(history, temp_array, history);
       // also rescale to preserve magnitude
       prjmag = len3(history);
@@ -352,6 +372,28 @@ void GranSubModTangentialMindlin::calculate_forces()
     add3(history, temp_array, history);
 
     if (mindlin_rescale) history[3] = gm->contact_radius;
+
+    // second projection to full step normal
+    rsht = dot3(history, gm->nx);
+    if (mindlin_force) {
+      frame_update = fabs(rsht) > (EPSILON * Fscrit);
+    } else {
+      frame_update = (fabs(rsht) * k_scaled) > (EPSILON * Fscrit);
+    }
+
+    if (frame_update) {
+      shrmag = len3(history);
+      // projection
+      scale3(rsht, gm->nx, temp_array);
+      sub3(history, temp_array, history);
+      // also rescale to preserve magnitude
+      prjmag = len3(history);
+      if (prjmag > 0)
+        temp_dbl = shrmag / prjmag;
+      else
+        temp_dbl = 0;
+      scale3(temp_dbl, history);
+    }
   }
 
   // tangential forces = history + tangential velocity damping

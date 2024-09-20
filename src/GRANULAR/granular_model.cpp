@@ -409,9 +409,17 @@ void GranularModel::calculate_forces()
   // relative translational velocity
   sub3(vi, vj, vr);
 
+  //Calculating half step normal
+  double temp1[3], nhalf[3];
+  scale3(0.5*dt, vr, temp1);
+  sub3(dx, temp1, nhalf);
+  norm3(nhalf);
+  scale3(1.0, nhalf, nxuse);
+  // scale3(1.0, nx, nxuse);
+
   // normal component
-  vnnr = dot3(vr, nx);
-  scale3(vnnr, nx, vn);
+  vnnr = dot3(vr, nxuse);
+  scale3(vnnr, nxuse, vn);
 
   // tangential component
   sub3(vr, vn, vt);
@@ -421,7 +429,7 @@ void GranularModel::calculate_forces()
 
   // relative tangential velocities
   double temp[3];
-  cross3(wr, nx, temp);
+  cross3(wr, nxuse, temp);
   sub3(vt, temp, vtr);
   vrel = len3(vtr);
 
@@ -444,7 +452,7 @@ void GranularModel::calculate_forces()
   add3(forces, fs, forces);
 
   // May need to eventually rethink tris..
-  cross3(nx, fs, torquesi);
+  cross3(nx, fs, torquesi); //h has been rotated to full-step so we can use nx here
   scale3(-1, torquesi);
 
   if (contact_type == PAIR) {
@@ -468,9 +476,9 @@ void GranularModel::calculate_forces()
     // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
     // this is different from the Marshall papers, which use the Bagi/Kuhn formulation
     // for rolling velocity (see Wang et al for why the latter is wrong)
-    vrl[0] = Reff * (relrot[1] * nx[2] - relrot[2] * nx[1]);
-    vrl[1] = Reff * (relrot[2] * nx[0] - relrot[0] * nx[2]);
-    vrl[2] = Reff * (relrot[0] * nx[1] - relrot[1] * nx[0]);
+    vrl[0] = Reff * (relrot[1] * nxuse[2] - relrot[2] * nxuse[1]);
+    vrl[1] = Reff * (relrot[2] * nxuse[0] - relrot[0] * nxuse[2]);
+    vrl[2] = Reff * (relrot[0] * nxuse[1] - relrot[1] * nxuse[0]);
 
     rolling_model->calculate_forces();
 
@@ -483,7 +491,7 @@ void GranularModel::calculate_forces()
 
   if (twisting_defined) {
     // omega_T (eq 29 of Marshall)
-    magtwist = dot3(relrot, nx);
+    magtwist = dot3(relrot, nxuse);
 
     twisting_model->calculate_forces();
 

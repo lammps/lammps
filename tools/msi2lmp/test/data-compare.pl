@@ -2,11 +2,12 @@
 # Tool to validate and compare two LAMMPS data files
 # with "inexact" floating point comparisons
 # July 2013 by Axel Kohlmeyer <akohlmey@gmail.com>
+# last update September 2024 by Axel Kohlmeyer <akohlmey@gmail.com>
 
 use strict;
 use warnings;
 
-my $version = 'v0.3';
+my $version = 'v0.4';
 
 # delta for floating point comparisons.
 my $small = 1.0e-4;
@@ -596,6 +597,26 @@ sub read_data {
 
           last;
         }
+        # apply sort
+        if ($data->{nbonds} > 1) {
+            my ($did_swap, $num) = (1, $data->{nbonds});
+            while ($did_swap) {
+                $did_swap = 0;
+                for ($i=0; $i < $num-1; ++$i) {
+                    $j = $i+1;
+                    if (($data->{bond1}[$i] > $data->{bond1}[$j])
+                        or (($data->{bond1}[$i] == $data->{bond1}[$j])
+                            and ($data->{bond2}[$i] > $data->{bond2}[$j]))) {
+                        $did_swap = 1;
+                        my @tmp = ($data->{bondt}[$i], $data->{bond1}[$i], $data->{bond2}[$i]);
+                        ($data->{bondt}[$i], $data->{bond1}[$i], $data->{bond2}[$i]) =
+                            ($data->{bondt}[$j], $data->{bond1}[$j], $data->{bond2}[$j]);
+                        ($data->{bondt}[$j], $data->{bond1}[$j], $data->{bond2}[$j]) = @tmp;
+                    }
+                }
+                --$num;
+            }
+        }
       } elsif ($1 eq "Angles") {
         $data->{anglet} = [];
         $data->{angle1} = [];
@@ -637,6 +658,33 @@ sub read_data {
             if (scalar @{$data->{anglet}} != $data->{nangles});
 
           last;
+        }
+        # apply sort
+        if ($data->{nangles} > 1) {
+            my ($did_swap, $num) = (1, $data->{nangles});
+            while ($did_swap) {
+                $did_swap = 0;
+                for ($i=0; $i < $num-1; ++$i) {
+                    $j = $i+1;
+                    if (($data->{angle1}[$i] > $data->{angle1}[$j])
+                        or (($data->{angle1}[$i] == $data->{angle1}[$j])
+                            and ($data->{angle2}[$i] > $data->{angle2}[$j]))
+                        or (($data->{angle1}[$i] == $data->{angle1}[$j])
+                            and ($data->{angle2}[$i] == $data->{angle2}[$j])
+                            and ($data->{angle3}[$i] > $data->{angle3}[$j]))) {
+                        $did_swap = 1;
+                        my @tmp = ($data->{anglet}[$i], $data->{angle1}[$i],
+                                   $data->{angle2}[$i], $data->{angle3}[$i]);
+                        ($data->{anglet}[$i], $data->{angle1}[$i],
+                         $data->{angle2}[$i], $data->{angle3}[$i]) =
+                            ($data->{anglet}[$j], $data->{angle1}[$j],
+                             $data->{angle2}[$j], $data->{angle3}[$j]);
+                        ($data->{anglet}[$j], $data->{angle1}[$j],
+                         $data->{angle2}[$j], $data->{angle3}[$j]) = @tmp;
+                    }
+                }
+                --$num;
+            }
         }
       } elsif ($1 eq "Dihedrals") {
         $data->{dihedralt} = [];
@@ -684,6 +732,38 @@ sub read_data {
 
           last;
         }
+        # apply sort
+        if ($data->{ndihedrals} > 1) {
+            my ($did_swap, $num) = (1, $data->{ndihedrals});
+            while ($did_swap) {
+                $did_swap = 0;
+                for ($i=0; $i < $num-1; ++$i) {
+                    $j = $i+1;
+                    if (($data->{dihedral1}[$i] > $data->{dihedral1}[$j])
+                        or (($data->{dihedral1}[$i] == $data->{dihedral1}[$j])
+                            and ($data->{dihedral2}[$i] > $data->{dihedral2}[$j]))
+                        or (($data->{dihedral1}[$i] == $data->{dihedral1}[$j])
+                            and ($data->{dihedral2}[$i] == $data->{dihedral2}[$j])
+                            and ($data->{dihedral3}[$i] > $data->{dihedral3}[$j]))
+                        or (($data->{dihedral1}[$i] == $data->{dihedral1}[$j])
+                            and ($data->{dihedral2}[$i] == $data->{dihedral2}[$j])
+                            and ($data->{dihedral3}[$i] == $data->{dihedral3}[$j])
+                            and ($data->{dihedral4}[$i] > $data->{dihedral4}[$j]))) {
+                        $did_swap = 1;
+                        my @tmp = ($data->{dihedralt}[$i], $data->{dihedral1}[$i],
+                                   $data->{dihedral2}[$i], $data->{dihedral3}[$i],
+                                   $data->{dihedral4}[$i]);
+                        ($data->{dihedralt}[$i], $data->{dihedral1}[$i], $data->{dihedral2}[$i],
+                         $data->{dihedral3}[$i], $data->{dihedral4}[$i]) =
+                            ($data->{dihedralt}[$j], $data->{dihedral1}[$j],
+                             $data->{dihedral2}[$j], $data->{dihedral3}[$j], $data->{dihedral4}[$j]);
+                        ($data->{dihedralt}[$j], $data->{dihedral1}[$j], $data->{dihedral2}[$j],
+                         $data->{dihedral3}[$j], $data->{dihedral4}[$j]) = @tmp;
+                    }
+                }
+                --$num;
+            }
+        }
       } elsif ($1 eq "Impropers") {
         $data->{impropert} = [];
         $data->{improper1} = [];
@@ -730,6 +810,39 @@ sub read_data {
 
           last;
         }
+        # apply sort
+        if ($data->{nimpropers} > 1) {
+            my ($did_swap, $num) = (1, $data->{nimpropers});
+            while ($did_swap) {
+                $did_swap = 0;
+                for ($i=0; $i < $num-1; ++$i) {
+                    $j = $i+1;
+                    if (($data->{improper1}[$i] > $data->{improper1}[$j])
+                        or (($data->{improper1}[$i] == $data->{improper1}[$j])
+                            and ($data->{improper2}[$i] > $data->{improper2}[$j]))
+                        or (($data->{improper1}[$i] == $data->{improper1}[$j])
+                            and ($data->{improper2}[$i] == $data->{improper2}[$j])
+                            and ($data->{improper3}[$i] > $data->{improper3}[$j]))
+                        or (($data->{improper1}[$i] == $data->{improper1}[$j])
+                            and ($data->{improper2}[$i] == $data->{improper2}[$j])
+                            and ($data->{improper3}[$i] == $data->{improper3}[$j])
+                            and ($data->{improper4}[$i] > $data->{improper4}[$j]))) {
+                        $did_swap = 1;
+                        my @tmp = ($data->{impropert}[$i], $data->{improper1}[$i],
+                                   $data->{improper2}[$i], $data->{improper3}[$i],
+                                   $data->{improper4}[$i]);
+                        ($data->{impropert}[$i], $data->{improper1}[$i], $data->{improper2}[$i],
+                         $data->{improper3}[$i], $data->{improper4}[$i]) =
+                            ($data->{impropert}[$j], $data->{improper1}[$j],
+                             $data->{improper2}[$j], $data->{improper3}[$j], $data->{improper4}[$j]);
+                        ($data->{impropert}[$j], $data->{improper1}[$j], $data->{improper2}[$j],
+                         $data->{improper3}[$j], $data->{improper4}[$j]) = @tmp;
+                    }
+                }
+                --$num;
+            }
+        }
+
       } else {
         die "Bad data: $_";
       }

@@ -5,9 +5,9 @@ atom_style full
 pair_style lj/cut/coul/long 15.0
 pair_modify mix geometric
 bond_style harmonic
-kspace_style pppm 1.0e-5
 
 read_data PyAC_bulk-clayff.data
+kspace_style pppm 1.0e-5
 
 thermo_style multi
 minimize 0.0 0.0 100 1000

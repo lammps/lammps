@@ -26,8 +26,6 @@ using namespace LAMMPS_NS;
 
 static constexpr double BIG = 1.0e20;
 
-enum { CONSTANT, VARIABLE };
-
 /* ---------------------------------------------------------------------- */
 
 RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :

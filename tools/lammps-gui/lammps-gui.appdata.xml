@@ -54,6 +54,10 @@
   </provides>
 
   <releases>
+    <release version="1.6.11" timestamp="1725080055">
+      <description>
+      </description>
+    </release>
     <release version="1.6.10" timestamp="1724585189">
       <description>
         Resolve plugin mode issues.

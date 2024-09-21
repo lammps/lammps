@@ -336,8 +336,7 @@ void DihedralOPLS::write_data(FILE *fp)
 
 /* ----------------------------------------------------------------------*/
 
-void DihedralOPLS::born_matrix(int nd, int i1, int i2, int i3, int i4,
-                             double &du, double &du2)
+void DihedralOPLS::born_matrix(int nd, int i1, int i2, int i3, int i4, double &du, double &du2)
 {
   double vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, vb3z, vb2xm, vb2ym, vb2zm;
   double sb1, sb3, rb1, rb3, c0, b1mag2, b1mag, b2mag2;
@@ -425,9 +424,10 @@ void DihedralOPLS::born_matrix(int nd, int i1, int i2, int i3, int i4,
   si = sin(phi);
   if (fabs(si) < SMALLER) si = SMALLER;
 
-  du = k1[type] - 2.0 * k2[type] * sin(2.0 * phi) / si + 3.0 * k3[type] * sin(3.0 * phi) / si
-          - 4.0 * k4[type] * sin(4.0 * phi) / si;
-  du2 = (4.0 * k2[type] * si * cos(2.0 * phi) - 2.0 * k2[type] * sin(2.0 * phi)
-          - 9.0 * k3[type] * si * cos(3.0 * phi) + 3.0 * k3[type] * sin(3.0 * phi)
-          + 16.0 * k4[type] * si * cos(4.0 * phi) - 4.0 * k4[type] * sin(4.0 * phi)) / (si * si * si);
+  du = k1[type] - 2.0 * k2[type] * sin(2.0 * phi) / si + 3.0 * k3[type] * sin(3.0 * phi) / si -
+      4.0 * k4[type] * sin(4.0 * phi) / si;
+  du2 = (4.0 * k2[type] * si * cos(2.0 * phi) - 2.0 * k2[type] * sin(2.0 * phi) -
+         9.0 * k3[type] * si * cos(3.0 * phi) + 3.0 * k3[type] * sin(3.0 * phi) +
+         16.0 * k4[type] * si * cos(4.0 * phi) - 4.0 * k4[type] * sin(4.0 * phi)) /
+      (si * si * si);
 }

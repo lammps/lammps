@@ -206,7 +206,7 @@ TEST_F(VariableTest, CreateDelete)
     TEST_FAILURE(".*ERROR: Invalid variable loop argument: -1.*",
                  command("variable dummy loop -1"););
     TEST_FAILURE(".*ERROR: Illegal variable loop command.*", command("variable dummy loop 10 1"););
-    TEST_FAILURE(".*ERROR: Unknown variable keyword: xxx.*", command("variable dummy xxxx"););
+    TEST_FAILURE(".*ERROR: Unknown variable style: xxx.*", command("variable dummy xxxx"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
                  command("variable two string xxx"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",

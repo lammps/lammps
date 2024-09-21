@@ -18,8 +18,10 @@
 
 #include "reader_xyz.h"
 
-#include "memory.h"
+#include "atom.h"
 #include "error.h"
+#include "memory.h"
+#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 
@@ -166,43 +168,46 @@ bigint ReaderXYZ::read_header(double /*box*/[3][3], int &boxinfo, int &/*triclin
 
 void ReaderXYZ::read_atoms(int n, int nfield, double **fields)
 {
-  int i,m,rv;
+  int i,m;
   char *eof;
   int mytype;
   double myx, myy, myz;
 
-  for (i = 0; i < n; i++) {
-    eof = fgets(line,MAXLINE,fp);
-    if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
+  try {
+    for (i = 0; i < n; i++) {
+      eof = fgets(line,MAXLINE,fp);
+      if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
 
-    ++nid;
-    rv = sscanf(line,"%*s%lg%lg%lg", &myx, &myy, &myz);
-    if (rv != 3) error->one(FLERR,"Dump file is incorrectly formatted");
+      ++nid;
 
-    // XXX: we could insert an element2type translation here
-    // XXX: for now we flag unrecognized types as type 0,
-    // XXX: which should trigger an error, if LAMMPS uses it.
-    mytype = std::stoi(line);
+      auto values = ValueTokenizer(line);
+      mytype = utils::expand_type_int(FLERR, values.next_string(), Atom::ATOM, lmp);
+      myx = values.next_double();
+      myy = values.next_double();
+      myz = values.next_double();
 
-    for (m = 0; m < nfield; m++) {
-      switch (fieldindex[m]) {
-      case X:
-        fields[i][m] = myx;
-        break;
-      case Y:
-        fields[i][m] = myy;
-        break;
-      case Z:
-        fields[i][m] = myz;
-        break;
-      case ID:
-        fields[i][m] = nid;
-        break;
-      case TYPE:
-        fields[i][m] = mytype;
-        break;
+      for (m = 0; m < nfield; m++) {
+        switch (fieldindex[m]) {
+        case X:
+          fields[i][m] = myx;
+          break;
+        case Y:
+          fields[i][m] = myy;
+          break;
+        case Z:
+          fields[i][m] = myz;
+          break;
+        case ID:
+          fields[i][m] = nid;
+          break;
+        case TYPE:
+          fields[i][m] = mytype;
+          break;
+        }
       }
     }
+  } catch (TokenizerException &e) {
+    error->one(FLERR, "Error reading xyz file: {}", e.what());
   }
 }
 

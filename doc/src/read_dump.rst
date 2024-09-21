@@ -230,13 +230,18 @@ will then have a label corresponding to the fix-ID rather than "x" or
 "xs".  The *label* keyword can also be used to specify new column
 labels for fields *id* and *type*\ .
 
-For dump files in *xyz* format, only the *x*, *y*, and *z* fields are
-supported.  The dump file does not store atom IDs, so these are
-assigned consecutively to the atoms as they appear in the dump file,
-starting from 1.  Thus you should ensure that order of atoms is
-consistent from snapshot to snapshot in the XYZ dump file.  See
-the :doc:`dump_modify sort <dump_modify>` command if the XYZ dump file
-was written by LAMMPS.
+For dump files in *xyz* format, only the *type*, *x*, *y*, and *z*
+fields are supported.  If the atoms have an integer number as label
+(like when they are created with default setting by :doc:`dump style
+<dump>` *xyz*), that number will be used at atom type. The the atom
+label is a string, it is required that a map is created using the
+:doc:`labelmap command <labelmap>` that maps those labels to the
+(numeric) atom types that LAMMPS uses.  The xyz format dump file does
+not store atom IDs, so these are assigned consecutively to the atoms as
+they appear in the dump file, starting from 1.  Thus you should ensure
+that order of atoms is consistent from snapshot to snapshot in the XYZ
+dump file.  See the :doc:`dump_modify sort <dump_modify>` command if the
+XYZ dump file was written by LAMMPS.
 
 For dump files in *molfile* format, the *x*, *y*, *z*, *vx*, *vy*, and
 *vz* fields can be specified.  However, not all molfile formats store

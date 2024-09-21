@@ -47,6 +47,7 @@ if (test $1 = 1) then
     sed -i -e 's/[^ \t]*rheo[^ \t]* //' ../Makefile.package
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(rheo_SYSINC) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(rheo_SYSLIB) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(rheo_SYSPATH) |' ../Makefile.package
   fi
 
   if (test -e ../Makefile.package.settings) then

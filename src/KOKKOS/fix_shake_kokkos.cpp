@@ -172,7 +172,6 @@ void FixShakeKokkos<DeviceType>::init()
   k_angle_distance.sync<DeviceType>();
 }
 
-
 /* ----------------------------------------------------------------------
    run setup for minimization.
 ------------------------------------------------------------------------- */

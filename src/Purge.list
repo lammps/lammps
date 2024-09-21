@@ -53,6 +53,11 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+# renamed in September 2024
+group_ndx.cpp
+group_ndx.h
+ndx_group.cpp
+ndx_group.h
 # removed in August 2023
 dump_atom_mpiio.cpp
 dump_atom_mpiio.h

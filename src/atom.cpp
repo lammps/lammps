@@ -1911,7 +1911,11 @@ void Atom::allocate_type_arrays()
   if (avec->mass_type == AtomVec::PER_TYPE) {
     mass = new double[ntypes+1];
     mass_setflag = new int[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
+    // start loop from 0 to avoid uninitialized access when operating on the whole array
+    for (int itype = 0; itype <= ntypes; itype++) {
+      mass_setflag[itype] = 0;
+      mass[itype] = 0.0;
+    }
   }
 }
 
@@ -2739,20 +2743,21 @@ Classes rarely need to check on ghost communication and so `find_custom`
 is typically preferred to this function. See :doc:`pair amoeba <pair_amoeba>`
 for an example where checking ghost communication is necessary.
 \endverbatim
- * \param name Name of the property (w/o a "i_" or "d_" or "i2_" or "d2_" prefix)
- * \param &flag Returns data type of property: 0 for int, 1 for double
- * \param &cols Returns number of values: 0 for a single value, 1 or more for a vector of values
- * \param &ghost Returns whether property is communicated to ghost atoms: 0 for no, 1 for yes
+ * \param name    Name of the property (w/o a "i_" or "d_" or "i2_" or "d2_" prefix)
+ * \param &flag   Returns data type of property: 0 for int, 1 for double
+ * \param &cols   Returns number of values: 0 for a single value, 1 or more for a vector of values
+ * \param &ghost  Returns whether property is communicated to ghost atoms: 0 for no, 1 for yes
  * \return index of property in the respective list of properties
  */
 int Atom::find_custom_ghost(const char *name, int &flag, int &cols, int &ghost)
 {
   int i = find_custom(name, flag, cols);
+  ghost = 0;
   if (i == -1) return i;
   if ((flag == 0) && (cols == 0)) ghost = ivghost[i];
   else if ((flag == 1) && (cols == 0)) ghost = dvghost[i];
-  else if ((flag == 0) && (cols == 1)) ghost = iaghost[i];
-  else if ((flag == 1) && (cols == 1)) ghost = daghost[i];
+  else if ((flag == 0) && (cols > 0)) ghost = iaghost[i];
+  else if ((flag == 1) && (cols > 0)) ghost = daghost[i];
   return i;
 }
 
@@ -2999,11 +3004,13 @@ length of the data area, and a short description.
      - N double values defined by fix property/atom array name
 
 *See also*
-   :cpp:func:`lammps_extract_atom`
+   :cpp:func:`lammps_extract_atom`,
+   :cpp:func:`lammps_extract_atom_datatype`,
+   :cpp:func:`lammps_extract_atom_size`
 
 \endverbatim
  *
- * \sa extract_datatype
+ * \sa extract_datatype, extract_size
  *
  * \param  name  string with the keyword of the desired property.
                  Typically the name of the pointer variable returned
@@ -3142,7 +3149,7 @@ void *Atom::extract(const char *name)
 
 \endverbatim
  *
- * \sa extract
+ * \sa extract extract_size
  *
  * \param  name  string with the keyword of the desired property.
  * \return       data type constant for desired property or -1 */
@@ -3177,9 +3184,13 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"temperature") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"heatflow") == 0) return LAMMPS_DOUBLE;
 
+  // PERI package (and in part MACHDYN)
+
   if (strcmp(name,"vfrac") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"s0") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"x0") == 0) return LAMMPS_DOUBLE_2D;
+
+  // AWPMD package (and in part EFF and ELECTRODE)
 
   if (strcmp(name,"espin") == 0) return LAMMPS_INT;
   if (strcmp(name,"spin") == 0) return LAMMPS_INT;   // backwards compatibility
@@ -3248,14 +3259,255 @@ int Atom::extract_datatype(const char *name)
     if (!array) index = find_custom(&name[2],flag,cols);
     else index = find_custom(&name[3],flag,cols);
 
+    // consistency checks
     if (index < 0) return -1;
     if (which != flag) return -1;
     if ((!array && cols) || (array && !cols)) return -1;
 
-    if (which == 0) return LAMMPS_INT;
-    else return LAMMPS_DOUBLE;
+    if (!which && !array) return LAMMPS_INT;
+    if (which && !array) return LAMMPS_DOUBLE;
+    if (!which && array) return LAMMPS_INT_2D;
+    if (which && array) return LAMMPS_DOUBLE_2D;
   }
+  return -1;
+}
 
+/** Provide vector or array size info of internal data of the Atom class
+ *
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+\endverbatim
+ *
+ * \sa extract extract_datatype
+ *
+ * \param  name  string with the keyword of the desired property.
+ * \param  type  either LMP_SIZE_ROWS or LMP_SIZE_COLS for per-atom array or ignored
+ * \return       size of the vector or size of the array for the requested dimension or -1 */
+
+int Atom::extract_size(const char *name, int type)
+{
+  // --------------------------------------------------------------------
+  // 6th customization section: customize by adding new variable name
+
+  const auto datatype = extract_datatype(name);
+  const auto nall = nlocal + nghost;
+  const auto ghost_vel = comm->ghost_velocity;
+
+  if ((datatype == LAMMPS_DOUBLE_2D) || (datatype == LAMMPS_INT_2D)) {
+    if (type == LMP_SIZE_ROWS) {
+      if (strcmp(name,"x") == 0) return nall;
+      if (strcmp(name,"v") == 0) {
+        if (ghost_vel) return nall;
+        else return nlocal;
+      }
+      if (strcmp(name,"f") == 0) return nall;
+      if (strcmp(name,"mu") == 0) return nall;
+      if (strcmp(name,"omega") == 0) {
+        if (ghost_vel) return nall;
+        else return nlocal;
+      }
+      if (strcmp(name,"angmom") == 0) {
+        if (ghost_vel) return nall;
+        else return nlocal;
+      }
+      if (strcmp(name,"torque") == 0) return nlocal;
+      if (strcmp(name,"quat") == 0) {
+        if (ghost_vel) return nall;
+        else return nlocal;
+      }
+
+      // PERI package
+
+      if (strcmp(name,"x0") == 0) return nall;
+
+      // SPIN package
+
+      if (strcmp(name,"sp") == 0) return nall;
+      if (strcmp(name,"fm") == 0) return nlocal;
+      if (strcmp(name,"fm_long") == 0) return nlocal;
+
+      // AWPMD package
+
+      if (strcmp(name,"cs") == 0) {
+        if (ghost_vel) return nall;
+        else return nlocal;
+      }
+      if (strcmp(name,"csforce") == 0) return nlocal;
+      if (strcmp(name,"vforce") == 0) return nlocal;
+
+      // SPH package
+
+      if (strcmp(name,"vest") == 0) return nall;
+
+      // MACHDYN package
+
+      if (strcmp(name, "smd_data_9") == 0) return LAMMPS_DOUBLE_2D;
+      if (strcmp(name, "smd_stress") == 0) return LAMMPS_DOUBLE_2D;
+
+    } else if (type == LMP_SIZE_COLS) {
+
+      if (strcmp(name,"x") == 0) return 3;
+      if (strcmp(name,"v") == 0) return 3;
+      if (strcmp(name,"f") == 0) return 3;
+      if (strcmp(name,"mu") == 0) return 4;
+      if (strcmp(name,"omega") == 0) return 3;
+      if (strcmp(name,"angmom") == 0) return 3;
+      if (strcmp(name,"torque") == 0) return 3;
+      if (strcmp(name,"quat") == 0) return 4;
+
+      // PERI package
+
+      if (strcmp(name,"x0") == 0) return 3;
+
+      // SPIN package
+
+      if (strcmp(name,"sp") == 0) return 4;
+      if (strcmp(name,"fm") == 0) return 3;
+      if (strcmp(name,"fm_long") == 0) return 3;
+
+      // AWPMD package
+
+      if (strcmp(name,"cs") == 0) return 2;
+      if (strcmp(name,"csforce") == 0) return 2;
+      if (strcmp(name,"vforce") == 0) return 3;
+
+      // SPH package
+
+      if (strcmp(name,"vest") == 0) return 3;
+
+      // MACHDYN package
+
+      if (strcmp(name, "smd_data_9") == 0) return 9;
+      if (strcmp(name, "smd_stress") == 0) return 6;
+    }
+
+    // custom arrays
+
+    if (utils::strmatch(name,"^[id]2_")) {
+      int which = 0;
+      if (name[0] == 'd') which = 1;
+
+      int index,flag,cols,ghost;
+      index = find_custom_ghost(&name[3],flag,cols,ghost);
+
+      // consistency checks
+      if (index < 0) return -1;
+      if (which != flag) return -1;
+      if (!cols) return -1;
+
+      if (type == LMP_SIZE_ROWS) {
+        if (ghost) return nall;
+        else return nlocal;
+      } else if (type == LMP_SIZE_COLS) {
+        return cols;
+      }
+    }
+  } else {
+
+    if (strcmp(name,"mass") == 0) return ntypes + 1;
+
+    if (strcmp(name,"id") == 0) return nall;
+    if (strcmp(name,"type") == 0) return nall;
+    if (strcmp(name,"mask") == 0) return nall;
+    if (strcmp(name,"image") == 0) return nlocal;
+    if (strcmp(name,"molecule") == 0) return nall;
+    if (strcmp(name,"q") == 0) return nall;
+    if (strcmp(name,"radius") == 0) return nall;
+    if (strcmp(name,"rmass") == 0) return nall;
+
+    // ASPHERE package
+
+    if (strcmp(name,"ellipsoid") == 0) return nlocal;
+
+    // BODY package
+
+    if (strcmp(name,"line") == 0) return nlocal;
+    if (strcmp(name,"tri") == 0) return nlocal;
+    if (strcmp(name,"body") == 0) return nlocal;
+
+    // PERI package (and in part MACHDYN)
+
+    if (strcmp(name,"vfrac") == 0) return nall;
+    if (strcmp(name,"s0") == 0) return nall;
+
+    // AWPMD package (and in part EFF and ELECTRODE)
+
+    if (strcmp(name,"espin") == 0) return nall;
+    if (strcmp(name,"spin") == 0) return nall;   // backwards compatibility
+    if (strcmp(name,"eradius") == 0) return nall;
+    if (strcmp(name,"ervel") == 0) return nlocal;
+    if (strcmp(name,"erforce") == 0) return nlocal;
+    if (strcmp(name,"ervelforce") == 0) return nlocal;
+    if (strcmp(name,"etag") == 0) return nall;
+
+    // CG-DNA package
+
+    if (strcmp(name,"id5p") == 0) return nall;
+
+    // RHEO package
+
+    if (strcmp(name,"temperature") == 0) return nlocal;
+    if (strcmp(name,"heatflow") == 0) return nlocal;
+    if (strcmp(name,"rheo_status") == 0) return nall;
+    if (strcmp(name,"conductivity") == 0) return nlocal;
+    if (strcmp(name,"pressure") == 0) return nlocal;
+    if (strcmp(name,"viscosity") == 0) return nlocal;
+
+    // SPH package
+
+    if (strcmp(name,"rho") == 0) return nall;
+    if (strcmp(name,"drho") == 0) return nlocal;
+    if (strcmp(name,"esph") == 0) return nall;
+    if (strcmp(name,"desph") == 0) return nlocal;
+    if (strcmp(name,"cv") == 0) return nall;
+
+    // MACHDYN package
+
+    if (strcmp(name, "contact_radius") == 0) return nall;
+    if (strcmp(name, "eff_plastic_strain") == 0) return nlocal;
+    if (strcmp(name, "eff_plastic_strain_rate") == 0) return nlocal;
+    if (strcmp(name, "damage") == 0) return nlocal;
+
+    // DPD-REACT package
+
+    if (strcmp(name,"dpdTheta") == 0) return nall;
+
+    // DPD-MESO package
+
+    if (strcmp(name,"edpd_temp") == 0) return nall;
+
+    // DIELECTRIC package
+
+    if (strcmp(name,"area") == 0) return nall;
+    if (strcmp(name,"ed") == 0) return nall;
+    if (strcmp(name,"em") == 0) return nall;
+    if (strcmp(name,"epsilon") == 0) return nall;
+    if (strcmp(name,"curvature") == 0) return nall;
+    if (strcmp(name,"q_unscaled") == 0) return nall;
+
+    // end of customization section
+    // --------------------------------------------------------------------
+
+    // custom vectors
+
+    if (utils::strmatch(name,"^[id]_")) {
+      int which = 0;
+      if (name[0] == 'd') which = 1;
+
+      int index,flag,cols,ghost;
+      index = find_custom_ghost(&name[2],flag,cols,ghost);
+
+      // consistency checks
+      if (index < 0) return -1;
+      if (which != flag) return -1;
+      if (cols) return -1;
+
+      if (ghost) return nall;
+      else return nlocal;
+    }
+  }
   return -1;
 }
 

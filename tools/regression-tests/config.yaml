@@ -3,7 +3,7 @@
   nprocs: "4"
   args: "-cite none"
   mpiexec: "mpirun"
-  mpiexec_numproc_flag: "-np"
+  mpiexec_numproc_flag: "--host localhost:4 -np"
   tolerance:
     PotEng:
       abs: 1e-4
@@ -29,13 +29,10 @@
         abs: 1e-2
         rel: 1e-4
   skip:
-    [ in.rigid.poems3,
-      in.rigid.poems4,
-      in.rigid.poems5,
-      in.peptide,
-      in.voronoi,
-      in.voronoi.2d,
-      in.voronoi.data,
+    [
+      in.disp,
+      in.disp2,
+      in.dos,
       in.*_imd*,
       in.bucky-plus-cnt*,
     ]

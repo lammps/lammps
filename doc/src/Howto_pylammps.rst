@@ -39,16 +39,18 @@ lammps.lammps
 * interface modeled after the LAMMPS :ref:`C language library interface API <lammps_c_api>`
 * requires knowledge of how LAMMPS internally works (C pointers, etc)
 * full support for running Python with MPI using `mpi4py <https://mpi4py.readthedocs.io>`_
+* no overhead from creating a more Python-like interface
 
 lammps.PyLammps
 """""""""""""""
 
-* higher-level abstraction built on *top* of original :py:class:`ctypes based interface <lammps.lammps>`
+* higher-level abstraction built on *top* of the original :py:class:`ctypes based interface <lammps.lammps>`
 * manipulation of Python objects
 * communication with LAMMPS is hidden from API user
 * shorter, more concise Python
 * better IPython integration, designed for quick prototyping
 * designed for serial execution
+* additional overhead from capturing and parsing the LAMMPS screen output
 
 Quick Start
 -----------

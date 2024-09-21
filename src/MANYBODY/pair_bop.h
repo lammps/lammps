@@ -57,18 +57,18 @@ class PairBOP : public Pair {
   struct PairList1 {
     double r, dis[3];
     double betaS, dBetaS, betaP, dBetaP, rep, dRep;
-    PairList1(){};
+    PairList1() {};
   };
 
   struct PairList2 {
     double r, dis[3];
     double rep, dRep;
-    PairList2(){};
+    PairList2() {};
   };
 
   struct TripleList {
     double G, dG, cosAng, dCosAngi[3], dCosAngj[3], dCosAngk[3];
-    TripleList(){};
+    TripleList() {};
   };
 
   struct B_SG {

@@ -192,6 +192,8 @@
 /colvarproxy_lammps_version.h
 /fix_colvars.cpp
 /fix_colvars.h
+/inthash.cpp
+/inthash.h
 /fix_plumed.cpp
 /fix_plumed.h
 /dump_molfile.cpp
@@ -1078,12 +1080,12 @@
 /geturl.cpp
 /geturl.h
 /gpu_extra.h
-/group_ndx.cpp
-/group_ndx.h
+/group2ndx.cpp
+/group2ndx.h
 /gz_file_writer.cpp
 /gz_file_writer.h
-/ndx_group.cpp
-/ndx_group.h
+/ndx2group.cpp
+/ndx2group.h
 /hyper.cpp
 /hyper.h
 /improper_class2.cpp

@@ -36,7 +36,7 @@
 
 #include <stdio.h>              /* IWYU pragma: export */
 
-#define MSI2LMP_VERSION "v3.9.10 / 10 Mar 2023"
+#define MSI2LMP_VERSION "v3.9.11 / 6 Sep 2024"
 
 #define PI_180  0.01745329251994329576
 

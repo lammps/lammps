@@ -23,8 +23,6 @@
 
 using namespace LAMMPS_NS;
 
-enum { CONSTANT, VARIABLE };
-
 static constexpr double BIG = 1.0e20;
 
 /* ---------------------------------------------------------------------- */

@@ -19,6 +19,7 @@
 
 #include "atom.h"
 #include "error.h"
+#include "label_map.h"
 #include "memory.h"
 #include "tokenizer.h"
 
@@ -175,7 +176,14 @@ void ReaderXYZ::read_atoms(int n, int nfield, double **fields)
       ++nid;
 
       auto values = ValueTokenizer(line);
-      mytype = utils::expand_type_int(FLERR, values.next_string(), Atom::ATOM, lmp);
+      auto label = values.next_string();
+
+      // must have a complete atom type label map to parse xyz files with string labels
+      if (!utils::is_integer(label)) {
+        if (!atom->labelmapflag || !atom->lmap->is_complete(Atom::ATOM))
+          error->one(FLERR, "Must define atom labelmap to parse XYZ files with strings for types");
+      }
+      mytype = utils::expand_type_int(FLERR, label, Atom::ATOM, lmp);
       myx = values.next_double();
       myy = values.next_double();
       myz = values.next_double();
@@ -202,6 +210,8 @@ void ReaderXYZ::read_atoms(int n, int nfield, double **fields)
     }
   } catch (TokenizerException &e) {
     error->one(FLERR, "Error reading xyz file: {}", e.what());
+  } catch (LAMMPSAbortException &e) {
+    throw e;
   }
 }
 

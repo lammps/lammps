@@ -118,10 +118,10 @@ void PairReaxFFKokkos<DeviceType>::deallocate_views_of_views()
 
   for (int i = 0; i < (int)k_LR.extent(0); i++) {
     for (int j = 0; j < (int)k_LR.extent(1); j++) {
-      k_LR.h_view(i,j).d_vdW    = decltype(k_LR.h_view(i,j).d_vdW   )();
-      k_LR.h_view(i,j).d_CEvd   = decltype(k_LR.h_view(i,j).d_CEvd  )();
-      k_LR.h_view(i,j).d_ele    = decltype(k_LR.h_view(i,j).d_ele   )();
-      k_LR.h_view(i,j).d_CEclmb = decltype(k_LR.h_view(i,j).d_CEclmb)();
+      k_LR.h_view(i,j).d_vdW    = {};
+      k_LR.h_view(i,j).d_CEvd   = {};
+      k_LR.h_view(i,j).d_ele    = {};
+      k_LR.h_view(i,j).d_CEclmb = {};
     }
   }
 }
@@ -1101,19 +1101,19 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // free scatterview memory
   if (need_dup) {
-    dup_f            = decltype(dup_f)();
-    dup_eatom        = decltype(dup_eatom)();
-    dup_vatom        = decltype(dup_vatom)();
-    dup_dDeltap_self = decltype(dup_dDeltap_self)();
-    dup_total_bo     = decltype(dup_total_bo)();
-    dup_CdDelta      = decltype(dup_CdDelta)();
+    dup_f            = {};
+    dup_eatom        = {};
+    dup_vatom        = {};
+    dup_dDeltap_self = {};
+    dup_total_bo     = {};
+    dup_CdDelta      = {};
   } else {
-    ndup_f            = decltype(ndup_f)();
-    ndup_eatom        = decltype(ndup_eatom)();
-    ndup_vatom        = decltype(ndup_vatom)();
-    ndup_dDeltap_self = decltype(ndup_dDeltap_self)();
-    ndup_total_bo     = decltype(ndup_total_bo)();
-    ndup_CdDelta      = decltype(ndup_CdDelta)();
+    ndup_f            = {};
+    ndup_eatom        = {};
+    ndup_vatom        = {};
+    ndup_dDeltap_self = {};
+    ndup_total_bo     = {};
+    ndup_CdDelta      = {};
   }
 
   d_neighbors = typename AT::t_neighbors_2d();
@@ -1501,13 +1501,13 @@ void PairReaxFFKokkos<DeviceType>::allocate_array()
 {
   // free scatterview memory
   if (need_dup) {
-    dup_dDeltap_self = decltype(dup_dDeltap_self)();
-    dup_total_bo     = decltype(dup_total_bo)();
-    dup_CdDelta      = decltype(dup_CdDelta)();
+    dup_dDeltap_self = {};
+    dup_total_bo     = {};
+    dup_CdDelta      = {};
   } else {
-    ndup_dDeltap_self = decltype(ndup_dDeltap_self)();
-    ndup_total_bo     = decltype(ndup_total_bo)();
-    ndup_CdDelta      = decltype(ndup_CdDelta)();
+    ndup_dDeltap_self = {};
+    ndup_total_bo     = {};
+    ndup_CdDelta      = {};
   }
 
   if (cut_hbsq > 0.0) {

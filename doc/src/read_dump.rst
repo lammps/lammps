@@ -115,10 +115,11 @@ to tell LAMMPS how many parallel files exist, via its specified
 
 The format of the dump file is selected through the *format* keyword.
 If specified, it must be the last keyword used, since all remaining
-arguments are passed on to the dump reader.  The *native* format is
-for native LAMMPS dump files, written with a :doc:`dump atom <dump>`
-or :doc:`dump custom <dump>` command.  The *xyz* format is for generic XYZ
-formatted dump files.  These formats take no additional values.
+arguments are passed on to the dump reader.  The *native* format is for
+native LAMMPS dump files, written with a :doc:`dump atom <dump>` or
+:doc:`dump custom <dump>` command.  The *xyz* format is for generic XYZ
+formatted dump files (see details below).  These formats take no
+additional values.
 
 The *molfile* format supports reading data through using the `VMD <vmd_>`_
 molfile plugin interface. This dump reader format is only available,
@@ -231,17 +232,26 @@ will then have a label corresponding to the fix-ID rather than "x" or
 labels for fields *id* and *type*\ .
 
 For dump files in *xyz* format, only the *type*, *x*, *y*, and *z*
-fields are supported.  If the atoms have an integer number as label
-(like when they are created with default setting by :doc:`dump style
-<dump>` *xyz*), that number will be used at atom type. The the atom
-label is a string, it is required that a map is created using the
-:doc:`labelmap command <labelmap>` that maps those labels to the
-(numeric) atom types that LAMMPS uses.  The xyz format dump file does
-not store atom IDs, so these are assigned consecutively to the atoms as
-they appear in the dump file, starting from 1.  Thus you should ensure
-that order of atoms is consistent from snapshot to snapshot in the XYZ
-dump file.  See the :doc:`dump_modify sort <dump_modify>` command if the
-XYZ dump file was written by LAMMPS.
+fields are supported.  There are many variants of the XYZ file format.
+LAMMPS will read the number of atoms from the first line of each frame,
+ignore the second (title) line, and then read one line for each atom in the format:
+
+.. parsed-literal::
+
+   <label> <x coordinate>  <y coordinate> <z coordinate>
+
+
+If label is an integer number as label (like with XYZ files created by
+created with default settings by :doc:`dump style <dump>` *xyz*), that
+number will be used at atom type.  If the atom label is a string, then
+it is required that a map is created using the :doc:`labelmap command
+<labelmap>`. This map needs to associate each (numeric) atom type with
+one string label and that numeric type is stored.  The xyz format dump
+file does not store atom IDs, so these are assigned consecutively to the
+atoms as they appear in the dump file, starting from 1.  Thus you should
+ensure that order of atoms is consistent from snapshot to snapshot in
+the XYZ dump file.  See the :doc:`dump_modify sort <dump_modify>`
+command if the XYZ dump file was written by LAMMPS.
 
 For dump files in *molfile* format, the *x*, *y*, *z*, *vx*, *vy*, and
 *vz* fields can be specified.  However, not all molfile formats store

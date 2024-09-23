@@ -16,8 +16,7 @@ Syntax
 * kstyle = *quintic* or *RK0* or *RK1* or *RK2*
 * zmin = minimal number of neighbors for reproducing kernels
 * zero or more keyword/value pairs may be appended to args
-* keyword = *thermal* or *interface/reconstruct* or *surface/detection* or
-            *shift* or *rho/sum* or *density* or *self/mass* or *speed/sound*
+* keyword = *thermal* or *interface/reconstruct* or *surface/detection* or *shift* or *rho/sum* or *density* or *self/mass* or *speed/sound*
 
   .. parsed-literal::
 

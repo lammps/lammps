@@ -509,10 +509,9 @@ void lammps_error(void *handle, int error_type, const char *error_text)
 
 This function tells LAMMPS to expand the string in *cmd* like it would process
 an input line fed to :cpp:func:`lammps_command` **without** executing it.
-The entire string is considered as command and need not have a
-(final) newline character.  Newline characters in the body of the
-string, however, will be treated as part of the command and will **not**
-start a second command.
+The *entire* string is considered as input and need not have a (final) newline
+character.  Newline characters in the body of the string, however, will be
+treated as part of the command and will **not** start a second command.
 
 The function returns the expanded string in a new string buffer that
 must be freed with :cpp:func:`lammps_free` after use to avoid a memory leak.

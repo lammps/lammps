@@ -11,6 +11,10 @@ on:
 
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
 jobs:
   build:
     name: Linux Unit Test
@@ -27,9 +31,9 @@ jobs:
 
     - name: Install extra packages
       run: |
+        sudo apt-get update
         sudo apt-get install -y ccache \
                                 libeigen3-dev \
-                                libgsl-dev \
                                 libcurl4-openssl-dev \
                                 mold \
                                 ninja-build \

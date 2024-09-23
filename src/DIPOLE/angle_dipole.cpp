@@ -263,3 +263,15 @@ double AngleDipole::single(int type, int iRef, int iDip, int /*iDummy*/)
 
   return kdg * deltaGamma;    // energy
 }
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleDipole::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "gamma0") == 0) return (void *) gamma0;
+  return nullptr;
+}

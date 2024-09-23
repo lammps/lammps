@@ -105,7 +105,16 @@ PairReaxFFKokkos<DeviceType>::~PairReaxFFKokkos()
   memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
   tmpbo = nullptr;
 
-  // deallocate views of views in serial to prevent race condition in profiling tools
+  deallocate_views_of_views();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairReaxFFKokkos<DeviceType>::deallocate_views_of_views()
+{
+
+  // deallocate views of views in serial to prevent race conditions
 
   for (int i = 0; i < (int)k_LR.extent(0); i++) {
     for (int j = 0; j < (int)k_LR.extent(1); j++) {
@@ -409,8 +418,8 @@ void PairReaxFFKokkos<DeviceType>::init_md()
     int ntypes = atom->ntypes;
 
     Init_Lookup_Tables();
+    deallocate_views_of_views();
     k_LR = tdual_LR_lookup_table_kk_2d("lookup:LR",ntypes+1,ntypes+1);
-    d_LR = k_LR.template view<DeviceType>();
 
     for (int i = 1; i <= ntypes; ++i) {
       if (map[i] == -1) continue;
@@ -1392,7 +1401,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
 
     const int tmin  = MIN(itype, jtype);
     const int tmax  = MAX(itype, jtype);
-    const LR_lookup_table_kk<DeviceType>& t = d_LR(tmin,tmax);
+    const LR_lookup_table_kk<DeviceType>& t = k_LR.template view<DeviceType>()(tmin,tmax);
 
 
     /* Cubic Spline Interpolation */

@@ -8,8 +8,6 @@ endif()
 ########################################################################
 # consistency checks and Kokkos options/settings required by LAMMPS
 if(Kokkos_ENABLE_CUDA)
-  message(STATUS "KOKKOS: Enabling CUDA LAMBDA function support")
-  set(Kokkos_ENABLE_CUDA_LAMBDA ON CACHE BOOL "" FORCE)
   option(Kokkos_ENABLE_IMPL_CUDA_MALLOC_ASYNC "CUDA asynchronous malloc support" OFF)
   mark_as_advanced(Kokkos_ENABLE_IMPL_CUDA_MALLOC_ASYNC)
   if(Kokkos_ENABLE_IMPL_CUDA_MALLOC_ASYNC)
@@ -19,12 +17,15 @@ if(Kokkos_ENABLE_CUDA)
   endif()
 endif()
 if(Kokkos_ENABLE_HIP)
-  option(KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY "Enable unified memory with HIP" ON)
-  mark_as_advanced(KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY)
-  option(KOKKOS_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS "Enable multiple kernel instantiations with HIP" ON)
-  mark_as_advanced(KOKKOS_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS)
-  option(KOKKOS_ENABLE_ROCTHRUST "Use RoCThrust library" ON)
-  mark_as_advanced(KOKKOS_ENABLE_ROCTHRUST)
+  option(Kokkos_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS "Enable multiple kernel instantiations with HIP" ON)
+  mark_as_advanced(Kokkos_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS)
+  option(Kokkos_ENABLE_ROCTHRUST "Use RoCThrust library" ON)
+  mark_as_advanced(Kokkos_ENABLE_ROCTHRUST)
+
+  if(Kokkos_ARCH_AMD_GFX942 OR Kokkos_ARCH_AMD_GFX940)
+    option(Kokkos_ENABLE_IMPL_HIP_UNIFIED_MEMORY "Enable unified memory with HIP" ON)
+    mark_as_advanced(Kokkos_ENABLE_IMPL_HIP_UNIFIED_MEMORY)
+  endif()
 endif()
 # Adding OpenMP compiler flags without the checks done for
 # BUILD_OMP can result in compile failures. Enforce consistency.
@@ -38,8 +39,8 @@ if(Kokkos_ENABLE_SERIAL)
   if(NOT (Kokkos_ENABLE_OPENMP OR Kokkos_ENABLE_THREADS OR
     Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP OR Kokkos_ENABLE_SYCL
     OR Kokkos_ENABLE_OPENMPTARGET))
-  message(STATUS "KOKKOS: Disabling atomics for Serial Backend")
-  set(Kokkos_ENABLE_ATOMICS_BYPASS ON CACHE BOOL "" FORCE)
+  option(Kokkos_ENABLE_ATOMICS_BYPASS "Disable atomics for Kokkos Serial Backend" ON)
+  mark_as_advanced(Kokkos_ENABLE_ATOMICS_BYPASS)
   endif()
 endif()
 ########################################################################

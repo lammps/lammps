@@ -41,7 +41,7 @@ KOKKOS_STANDALONE_CMAKE ?= "no"
 
 # Default settings specific options.
 # Options: force_uvm,use_ldg,rdc,enable_lambda,enable_constexpr,disable_malloc_async
-KOKKOS_CUDA_OPTIONS ?= "enable_lambda,disable_malloc_async"
+KOKKOS_CUDA_OPTIONS ?= "disable_malloc_async"
 
 # Options: rdc
 KOKKOS_HIP_OPTIONS ?= ""

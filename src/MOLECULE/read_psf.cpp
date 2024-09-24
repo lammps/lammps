@@ -65,7 +65,9 @@ void ReadPsf::command(int narg, char **arg)
   char **lmap_arg;
   memory->create(lmap_arg,3,MAX_PSF_LABEL_SIZE+1,"read_psf:lmap_arg");
 
-  if (comm->me == 0) {
+
+  //if (comm->me == 0)
+  {
     try {
       open(arg[0]);
       utils::logmesg(lmp, "Reading PSF file: {}\n", arg[0]);
@@ -86,6 +88,9 @@ void ReadPsf::command(int narg, char **arg)
         // atom tag
         tagint atom_tag = values.next_tagint();
         int atom_index = atom->map(atom_tag);
+
+        // determine if this proc owns the atom
+        if( atom_index == -1 ) continue;
 
         // atom segment
         std::string segment = values.next_string();
@@ -126,7 +131,8 @@ void ReadPsf::command(int narg, char **arg)
 
   // close file
 
-  if (comm->me == 0) {
+  //if (comm->me == 0)
+  {
     if (compressed)
       platform::pclose(fp);
     else

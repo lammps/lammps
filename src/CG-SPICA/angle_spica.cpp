@@ -522,3 +522,15 @@ double AngleSPICA::single(int type, int i1, int i2, int i3)
   double tk = k[type] * dtheta;
   return tk*dtheta + e13;
 }
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleSPICA::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
+  return nullptr;
+}

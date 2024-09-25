@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -47,8 +46,10 @@ AtomVecRHEOThermal::AtomVecRHEOThermal(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = {"rheo_status", "rho", "drho", "temperature", "esph", "heatflow", "conductivity", "pressure", "viscosity"};
-  fields_copy = {"rheo_status", "rho", "drho", "temperature", "esph", "heatflow", "conductivity", "pressure", "viscosity"};
+  fields_grow = {"rheo_status", "rho",          "drho",     "temperature", "esph",
+                 "heatflow",    "conductivity", "pressure", "viscosity"};
+  fields_copy = {"rheo_status", "rho",          "drho",     "temperature", "esph",
+                 "heatflow",    "conductivity", "pressure", "viscosity"};
   fields_comm = {"rheo_status", "rho", "esph"};
   fields_comm_vel = {"rheo_status", "rho", "esph"};
   fields_reverse = {"drho", "heatflow"};
@@ -56,7 +57,8 @@ AtomVecRHEOThermal::AtomVecRHEOThermal(LAMMPS *lmp) : AtomVec(lmp)
   fields_border_vel = {"rheo_status", "rho", "esph"};
   fields_exchange = {"rheo_status", "rho", "esph"};
   fields_restart = {"rheo_status", "rho", "esph"};
-  fields_create = {"rheo_status", "rho", "drho", "temperature", "esph", "heatflow", "conductivity", "pressure", "viscosity"};
+  fields_create = {"rheo_status", "rho",          "drho",     "temperature", "esph",
+                   "heatflow",    "conductivity", "pressure", "viscosity"};
   fields_data_atom = {"id", "type", "rheo_status", "rho", "esph", "x"};
   fields_data_vel = {"id", "v"};
 

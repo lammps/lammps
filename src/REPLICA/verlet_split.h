@@ -40,7 +40,8 @@ class VerletSplit : public Verlet {
   int ratio;                             // ratio of Rspace procs to Kspace procs
   int *qsize, *qdisp, *xsize, *xdisp;    // MPI gather/scatter params for block comm
   MPI_Comm block;                        // communicator within one block
-  int tip4p_flag;                        // 1 if PPPM/tip4p so do extra comm
+
+  int tip4pflag;                         // 1 if Kspace method sets tip4pflag
 
   double **f_kspace;    // copy of Kspace forces on Rspace procs
   int maxatom;

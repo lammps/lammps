@@ -123,7 +123,7 @@ single processor, to enable good parallel performance.  A cluster is
 defined as a central atom connected to others in the cluster by
 constrained bonds.  LAMMPS allows for the following kinds of clusters
 to be constrained: one central atom bonded to 1 or 2 or 3 atoms, or
-one central atom bonded to 2 others and the angle between the 3 atoms
+one central atom bonded to 2 others and the angle between the three atoms
 also constrained.  This means water molecules or CH2 or CH3 groups may
 be constrained, but not all the C-C backbone bonds of a long polymer
 chain.
@@ -137,7 +137,7 @@ constrained (within a fudge factor of MASSDELTA specified in
 both bonds in the angle are constrained then the angle will also be
 constrained if its type is in the list.
 
-.. versionchanged:: TBD
+.. versionchanged:: 29Aug2024
 
 The types may be given as type labels *only* if there is no atom, bond,
 or angle type label named *b*, *a*, *t*, or *m* defined in the

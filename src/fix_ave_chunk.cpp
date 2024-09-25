@@ -153,7 +153,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < nargnew) {
     if (strcmp(arg[iarg],"norm") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/chunk norm", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/chunk norm", error);
       if (strcmp(arg[iarg+1],"all") == 0) {
         normflag = ALL;
         scaleflag = ATOM;
@@ -166,13 +166,13 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       } else error->all(FLERR,"Unknown fix ave/chunk norm mode: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/chunk ave", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/chunk ave", error);
       if (strcmp(arg[iarg+1],"one") == 0) ave = ONE;
       else if (strcmp(arg[iarg+1],"running") == 0) ave = RUNNING;
       else if (strcmp(arg[iarg+1],"window") == 0) ave = WINDOW;
       else error->all(FLERR,"Unknown fix ave/chunk ave mode: {}", arg[iarg+1]);
       if (ave == WINDOW) {
-        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix ave/chunk ave window", error);
+        if (iarg+3 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/chunk ave window", error);
         nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/chunk number of windows: {}", nwindow);
       }
@@ -180,21 +180,21 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       if (ave == WINDOW) iarg++;
 
     } else if (strcmp(arg[iarg],"bias") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/chunk bias", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/chunk bias", error);
       biasflag = 1;
       id_bias = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"adof") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/chunk adof", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/chunk adof", error);
       adof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"cdof") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/chunk cdof", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/chunk cdof", error);
       cdof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if ((strcmp(arg[iarg],"file") == 0) || (strcmp(arg[iarg],"append") == 0)) {
-      if (iarg+2 > narg)
+      if (iarg+2 > nargnew)
         utils::missing_cmd_args(FLERR, std::string("fix ave/chunk ")+arg[iarg], error);
       if (comm->me == 0) {
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
@@ -208,23 +208,23 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       overwrite = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"format") == 0) {
-      if (iarg+2 > narg)  utils::missing_cmd_args(FLERR, "fix ave/chunk format", error);
+      if (iarg+2 > nargnew)  utils::missing_cmd_args(FLERR, "fix ave/chunk format", error);
       delete[] format_user;
       format_user = utils::strdup(arg[iarg+1]);
       format = format_user;
       iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
-      if (iarg+2 > narg)  utils::missing_cmd_args(FLERR, "fix ave/chunk title1", error);
+      if (iarg+2 > nargnew)  utils::missing_cmd_args(FLERR, "fix ave/chunk title1", error);
       delete[] title1;
       title1 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
-      if (iarg+2 > narg)  utils::missing_cmd_args(FLERR, "fix ave/chunk title2", error);
+      if (iarg+2 > nargnew)  utils::missing_cmd_args(FLERR, "fix ave/chunk title2", error);
       delete[] title2;
       title2 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
-      if (iarg+2 > narg)  utils::missing_cmd_args(FLERR, "fix ave/chunk title3", error);
+      if (iarg+2 > nargnew)  utils::missing_cmd_args(FLERR, "fix ave/chunk title3", error);
       delete[] title3;
       title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;
@@ -899,7 +899,7 @@ void FixAveChunk::end_of_step()
 
   if (fp && comm->me == 0) {
     clearerr(fp);
-    if (overwrite) platform::fseek(fp,filepos);
+    if (overwrite) (void) platform::fseek(fp,filepos);
     double count = 0.0;
     for (m = 0; m < nchunk; m++) count += count_total[m];
     fmt::print(fp,"{} {} {}\n",ntimestep,nchunk,count);

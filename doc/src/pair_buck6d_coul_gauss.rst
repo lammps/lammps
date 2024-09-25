@@ -82,7 +82,7 @@ is thus evaluated as:
    E = \frac{C_{q_i q_j}}{\epsilon r_{ij}}\,\, \textrm{erf}\left(\alpha_{ij} r_{ij}\right)\quad\quad\quad r < r_c
 
 where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
-are the charges on the 2 atoms, epsilon is the dielectric constant which
+are the charges on the two atoms, epsilon is the dielectric constant which
 can be set by the :doc:`dielectric <dielectric>` command, :math:`\alpha`
 is the ion pair dependent damping parameter and erf() is the
 error-function.  The cutoff :math:`r_c` truncates the interaction distance.

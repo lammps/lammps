@@ -83,14 +83,8 @@ none
 
 .. _Lisal1:
 
-**(Lisal)** M. Lisal, J.K. Brennan, J. Bonet Avalos, "Dissipative
-particle dynamics at isothermal, isobaric, isoenergetic, and
-isoenthalpic conditions using Shardlow-like splitting algorithms.",
-J. Chem. Phys., 135, 204105 (2011).
+**(Lisal)** M. Lisal, J.K. Brennan, J. Bonet Avalos, J. Chem. Phys., 135, 204105 (2011).
 
 .. _Larentzos3:
 
-**(Larentzos)** J.P. Larentzos, J.K. Brennan, J.D. Moore, and
-W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative
-Particle Dynamics (DPD-E)", ARL-TR-6863, U.S. Army Research
-Laboratory, Aberdeen Proving Ground, MD (2014).
+**(Larentzos)** J.P. Larentzos, J.K. Brennan, J.D. Moore, and W.D. Mattson, ARL-TR-6863, U.S. Army Research Laboratory, Aberdeen Proving Ground, MD (2014).

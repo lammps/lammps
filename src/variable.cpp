@@ -613,7 +613,7 @@ void Variable::set(int narg, char **arg)
 
   // unrecognized variable style
 
-  } else error->all(FLERR,"Unknown variable keyword: {}", arg[1]);
+  } else error->all(FLERR,"Unknown variable style: {}", arg[1]);
 
   // set name of variable, if not replacing one flagged with replaceflag
   // name must be all alphanumeric chars or underscores
@@ -817,7 +817,7 @@ int Variable::next(int narg, char **arg)
       fprintf(fp,"%d\n",nextindex+1);
       fclose(fp);
       fp = nullptr;
-      rename("tmp.lammps.variable.lock","tmp.lammps.variable");
+      (void) rename("tmp.lammps.variable.lock","tmp.lammps.variable");
       if (universe->uscreen)
         fprintf(universe->uscreen, "Increment via next: value %d on partition %d\n",
                 nextindex+1,universe->iworld);

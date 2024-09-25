@@ -1,7 +1,7 @@
-.TH LAMMPS "1" "27 June 2024" "2024-06-27"
+.TH LAMMPS "1" "29 August 2024" "2024-08-29"
 .SH NAME
 .B LAMMPS
-\- Molecular Dynamics Simulator.  Version 27 June 2024
+\- Molecular Dynamics Simulator.  Version 29 August 2024
 
 .SH SYNOPSIS
 .B lmp
@@ -225,6 +225,20 @@ The syntax following the <dump file> name is identical to the
 arguments of the "dump" command. See the
 .B LAMMPS
 manual for details on either of the two commands.
+.TP
+\fB\-r2info <restart file> <keyword> ...\fR or
+\fB\-restart2info <restart file> <keyword> ...\fR
+Write information about the <restart file> previously written by
+.B LAMMPS
+to the screen and immediately exit.  Following <restart file>
+argument, additional keywords for the
+.B LAMMPS
+"info" command may be added to increase the amount of information
+written. By default "system" "group" "fix" "compute" are already
+set. See the
+.B LAMMPS
+manual for details on the "info" command.
+.TP
 .TP
 \fB\-sc <file name>\fR or \fB\-screen <file name>\fR
 Specify a file for

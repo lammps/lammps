@@ -58,6 +58,7 @@ Pre-processing tools
    * :ref:`polybond <polybond>`
    * :ref:`stl_bin2txt <stlconvert>`
    * :ref:`tabulate <tabulate>`
+   * :ref:`tinker <tinker>`
 
 Post-processing tools
 =====================
@@ -92,11 +93,13 @@ Miscellaneous tools
    * :ref:`emacs <emacs>`
    * :ref:`i-PI <ipi>`
    * :ref:`kate <kate>`
-   * :ref:`LAMMPS GUI <lammps_gui>`
+   * :ref:`LAMMPS-GUI <lammps_gui>`
    * :ref:`LAMMPS magic patterns for file(1) <magic>`
    * :ref:`Offline build tool <offline>`
+   * :ref:`Regression tester <regression>`
    * :ref:`singularity/apptainer <singularity_tool>`
    * :ref:`SWIG interface <swig>`
+   * :ref:`valgrind <valgrind>`
    * :ref:`vim <vim>`
 
 ----------
@@ -109,7 +112,7 @@ Tool descriptions
 amber2lmp tool
 --------------------------
 
-The amber2lmp subdirectory contains two Python scripts for converting
+The amber2lmp subdirectory contains three Python scripts for converting
 files back-and-forth between the AMBER MD code and LAMMPS.  See the
 README file in amber2lmp for more information.
 
@@ -302,7 +305,7 @@ The parameters for Cr were taken from:
 Lin Z B, Johnson R A and Zhigilei L V, Phys. Rev. B 77 214108 (2008).
 
 The Python version of the tool was authored  by Germain Clavier
-(TU Eindhoven) g.m.g.c.clavier at tue.nl or germain.clavier at gmail.com
+(Unicaen) germain.clavier at unicaen.fr
 
 .. note::
 
@@ -524,6 +527,7 @@ The LAMMPS-GUI has been successfully compiled and tested on:
 - Fedora Linux 40 x86\_64 using GCC 14, Qt version 6.7
 - Apple macOS 12 (Monterey) and macOS 13 (Ventura) with Xcode on arm64 and x86\_64, Qt version 5.15LTS
 - Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.36, Qt version 5.15LTS
+- Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.40, Qt version 6.7
 - Windows 10 and 11 x86_64 with MinGW / GCC 10.0 cross-compiler on Fedora 38, Qt version 5.15LTS
 
 .. _lammps_gui_install:
@@ -532,14 +536,28 @@ The LAMMPS-GUI has been successfully compiled and tested on:
 Pre-compiled executables
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Pre-compiled LAMMPS executable packages that include the GUI are currently
-available from https://download.lammps.org/static or
-https://github.com/lammps/lammps/releases.  You can unpack the archives
-(or mount the macOS disk image) and run the GUI directly in place. The
-folder may also be moved around and added to the ``PATH`` environment
-variable so the executables will be found automatically.  The LAMMPS-GUI
-executable is called ``lammps-gui`` and either takes no arguments or
-attempts to load the first argument as LAMMPS input file.
+Pre-compiled LAMMPS executable packages that include the GUI are
+currently available from https://download.lammps.org/static or
+https://github.com/lammps/lammps/releases.  For Windows, you need to
+download and then run the application installer.  For macOS you download
+and mount the disk image and then drag the application bundle to the
+Applications folder.  For Linux (x86_64) you currently have two
+options: 1) you can download the tar.gz archive, unpack it and run the
+GUI directly in place.  The ``LAMMPS_GUI`` folder may also be moved
+around and added to the ``PATH`` environment variable so the executables
+will be found automatically.  2) you can download the `Flatpak file
+<https://www.flatpak.org/>`_ and then install it locally with the
+*flatpak* command: ``flatpak install --user
+LAMMPS-Linux-x86_64-GUI-<version>.flatpak`` and run it with ``flatpak
+run org.lammps.lammps-gui``.  The flatpak bundle also includes the
+command line version of LAMMPS and some LAMMPS tools like msi2lmp.  The
+can be launched by using the ``--command`` flag. For example to run
+LAMMPS directly on the ``in.lj`` benchmark input you would type in the
+``bench`` folder: ``flatpak run --command=lmp -in in.lj`` The flatpak
+version should also appear in the applications menu of standard desktop
+environments.  The LAMMPS-GUI executable is called ``lammps-gui`` and
+either takes no arguments or attempts to load the first argument as
+LAMMPS input file.
 
 .. _lammps_gui_compilation:
 
@@ -572,19 +590,30 @@ and the LAMMPS library, via ``-D LAMMPS_SOURCE_DIR=/path/to/lammps/src``.
 CMake will try to guess a build folder with the LAMMPS library from that
 path, but it can also be set with ``-D LAMMPS_LIB_DIR=/path/to/lammps/lib``.
 
+Plugin version
+""""""""""""""
+
 Rather than linking to the LAMMPS library during compilation, it is also
-possible to compile the GUI with a plugin loader that will load
-the LAMMPS library dynamically at runtime during the start of the GUI
-from a shared library; e.g. ``liblammps.so`` or ``liblammps.dylib`` or
+possible to compile the GUI with a plugin loader that will load the
+LAMMPS library dynamically at runtime during the start of the GUI from a
+shared library; e.g. ``liblammps.so`` or ``liblammps.dylib`` or
 ``liblammps.dll`` (depending on the operating system).  This has the
 advantage that the LAMMPS library can be built from updated or modified
 LAMMPS source without having to recompile the GUI.  The ABI of the
 LAMMPS C-library interface is very stable and generally backward
-compatible.  This feature is enabled by setting
-``-D LAMMPS_GUI_USE_PLUGIN=on`` and then ``-D
+compatible.  This feature is enabled by setting ``-D
+LAMMPS_GUI_USE_PLUGIN=on`` and then ``-D
 LAMMPS_PLUGINLIB_DIR=/path/to/lammps/plugin/loader``. Typically, this
 would be the ``examples/COUPLE/plugin`` folder of the LAMMPS
 distribution.
+
+When compiling LAMMPS-GUI with plugin support, there is an additional
+command line flag (``-p <path>`` or ``--pluginpath <path>``) which
+allows to override the path to LAMMPS shared library used by the GUI.
+This is usually auto-detected on the first run and can be changed in the
+LAMMPS-GUI *Preferences* dialog.  The command line flag allows to reset
+this path to a valid value in case the original setting has become
+invalid.  An empty path ("") as argument restores the default setting.
 
 Platform notes
 ^^^^^^^^^^^^^^
@@ -652,6 +681,15 @@ pre-compiled executables (see above).  After compiling with
 folder> --target tgz`` or ``make tgz`` to build a
 ``LAMMPS-Linux-amd64.tar.gz`` file with the executables and their
 support libraries.
+
+It is also possible to build a `flatpak bundle
+<https://docs.flatpak.org/en/latest/single-file-bundles.html>`_ which is
+a way to distribute applications in a way that is compatible with most
+Linux distributions.  Use the "flatpak" target to trigger a compile
+(``cmake --build <build folder> --target flatpak`` or ``make flatpak``).
+Please note that this will not build from the local sources but from the
+repository and branch listed in the ``org.lammps.lammps-gui.yml``
+LAMMPS-GUI source folder.
 
 ----------
 
@@ -974,6 +1012,30 @@ README for more info on Pizza.py and how to use these scripts.
 
 ----------
 
+.. _regression:
+
+Regression tester tool
+----------------------
+
+The regression-tests subdirectory contains a tool for performing
+regression tests with a given LAMMPS binary.  The tool launches the
+LAMMPS binary with any given input script under one of the `examples`
+subdirectories, and compares the thermo output in the generated log file
+with those in the provided log file with the same number of processors
+in the same subdirectory. If the differences between the actual and
+reference values are within specified tolerances, the test is considered
+passed.  For each test batch, that is, a set of example input scripts,
+the mpirun command, the LAMMPS command line arguments, and the
+tolerances for individual thermo quantities can be specified in a
+configuration file in YAML format.
+
+The tool also reports if and how the run fails, and if a reference log file
+is missing.  See the README file for more information.
+
+This tool was written by Trung Nguyen at U of Chicago (ndactrung at gmail.com).
+
+----------
+
 .. _replica:
 
 replica tool
@@ -1107,13 +1169,13 @@ necessary development headers and libraries are present.
 
 .. code-block:: bash
 
-   -D WITH_SWIG=on         # to enable building any SWIG wrapper
-   -D BUILD_SWIG_JAVA=on   # to enable building the Java wrapper
-   -D BUILD_SWIG_LUA=on    # to enable building the Lua wrapper
-   -D BUILD_SWIG_PERL5=on  # to enable building the Perl 5.x wrapper
-   -D BUILD_SWIG_PYTHON=on # to enable building the Python wrapper
-   -D BUILD_SWIG_RUBY=on   # to enable building the Ruby wrapper
-   -D BUILD_SWIG_TCL=on    # to enable building the Tcl wrapper
+   -D WITH_SWIG=on          # to enable building any SWIG wrapper
+   -D BUILD_SWIG_JAVA=on    # to enable building the Java wrapper
+   -D BUILD_SWIG_LUA=on     # to enable building the Lua wrapper
+   -D BUILD_SWIG_PERL5=on   # to enable building the Perl 5.x wrapper
+   -D BUILD_SWIG_PYTHON=on  # to enable building the Python wrapper
+   -D BUILD_SWIG_RUBY=on    # to enable building the Ruby wrapper
+   -D BUILD_SWIG_TCL=on     # to enable building the Tcl wrapper
 
 
 Manual building allows a little more flexibility. E.g. one can choose
@@ -1192,6 +1254,33 @@ The ``tabulate`` folder contains Python scripts scripts to generate tabulated
 potential files for LAMMPS.  The bulk of the code is in the ``tabulate`` module
 in the ``tabulate.py`` file.  Some example files demonstrating its use are
 included.  See the README file for more information.
+
+----------
+
+.. _tinker:
+
+tinker tool
+--------------
+
+The ``tinker`` folder contains Python scripts scripts to convert Tinker input
+files to LAMMPS.
+
+See the README file for more information.
+
+Those scripts were written by Steve Plimpton sjplimp at gmail.com
+
+----------
+
+.. _valgrind:
+
+valgrind tool
+-------------
+
+The ``valgrind`` folder contains additional suppressions fur LAMMPS when using
+valgrind's memcheck tool to search for memory access violation and memory
+leaks. These suppressions are automatically invoked when running tests through
+CMake "ctest -T memcheck". See the provided README file to add these
+suppressions when running LAMMPS.
 
 ----------
 

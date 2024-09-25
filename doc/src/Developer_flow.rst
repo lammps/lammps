@@ -128,7 +128,7 @@ reflect particles off box boundaries in the :doc:`FixWallReflect class
 The ``decide()`` method in the Neighbor class determines whether
 neighbor lists need to be rebuilt on the current timestep (conditions
 can be changed using the :doc:`neigh_modify every/delay/check
-<neigh_modify>` command.  If not, coordinates of ghost atoms are
+<neigh_modify>` command).  If not, coordinates of ghost atoms are
 acquired by each processor via the ``forward_comm()`` method of the Comm
 class.  If neighbor lists need to be built, several operations within
 the inner if clause of the pseudocode are first invoked.  The

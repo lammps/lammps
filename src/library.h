@@ -172,6 +172,7 @@ int lammps_map_atom(void *handle, const void *id);
  * ---------------------------------------------------------------------- */
 
 int lammps_extract_atom_datatype(void *handle, const char *name);
+int lammps_extract_atom_size(void *handle, const char *name, int type);
 void *lammps_extract_atom(void *handle, const char *name);
 
 /* ----------------------------------------------------------------------
@@ -243,6 +244,7 @@ int lammps_config_has_gzip_support();
 int lammps_config_has_png_support();
 int lammps_config_has_jpeg_support();
 int lammps_config_has_ffmpeg_support();
+int lammps_config_has_curl_support();
 int lammps_config_has_exceptions();
 
 int lammps_config_has_package(const char *);

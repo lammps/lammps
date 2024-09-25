@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -37,7 +36,7 @@
 #include <cmath>
 #include <cstring>
 
-#define EPSILON 1e-10
+static constexpr double EPSILON = 1e-10;
 
 using namespace LAMMPS_NS;
 using namespace RHEO_NS;
@@ -45,8 +44,8 @@ using namespace RHEO_NS;
 /* ---------------------------------------------------------------------- */
 
 BondRHEOShell::BondRHEOShell(LAMMPS *_lmp) :
-  BondBPM(_lmp), k(nullptr), ecrit(nullptr), gamma(nullptr), dbond(nullptr), nbond(nullptr),
-  id_fix(nullptr), compute_surface(nullptr)
+    BondBPM(_lmp), k(nullptr), ecrit(nullptr), gamma(nullptr), dbond(nullptr), nbond(nullptr),
+    id_fix(nullptr), compute_surface(nullptr)
 {
   partial_flag = 1;
   comm_reverse = 1;
@@ -168,8 +167,7 @@ void BondRHEOShell::compute(int eflag, int vflag)
     store_data();
   }
 
-  if (hybrid_flag)
-    fix_bond_history->compress_history();
+  if (hybrid_flag) fix_bond_history->compress_history();
 
   int i1, i2, itmp, n, type;
   double delx, dely, delz, delvx, delvy, delvz;
@@ -191,7 +189,7 @@ void BondRHEOShell::compute(int eflag, int vflag)
 
   double **bondstore = fix_bond_history->bondstore;
 
-  if (atom->nmax > nmax_store){
+  if (atom->nmax > nmax_store) {
     nmax_store = atom->nmax;
     memory->destroy(dbond);
     memory->create(dbond, nmax_store, "rheo/shell:dbond");
@@ -226,8 +224,7 @@ void BondRHEOShell::compute(int eflag, int vflag)
     r = sqrt(rsq);
 
     // If bond hasn't been set - zero data
-    if (t < EPSILON || std::isnan(t))
-      t = store_bond(n, i1, i2);
+    if (t < EPSILON || std::isnan(t)) t = store_bond(n, i1, i2);
 
     delx = x[i1][0] - x[i2][0];
     dely = x[i1][1] - x[i2][1];
@@ -297,15 +294,14 @@ void BondRHEOShell::compute(int eflag, int vflag)
   // Communicate changes in nbond
   if (newton_bond) comm->reverse_comm(this);
 
-  for(int i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     nbond[i] += dbond[i];
 
     // If it has bonds, no shifting
     if (nbond[i] != 0) status[i] |= STATUS_NO_SHIFT;
   }
 
-  if (hybrid_flag)
-    fix_bond_history->uncompress_history();
+  if (hybrid_flag) fix_bond_history->uncompress_history();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -368,12 +364,13 @@ void BondRHEOShell::init_style()
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use bond rheo/shell");
   class FixRHEO *fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 
-  if (!fix_rheo->surface_flag) error->all(FLERR,
-      "Bond rheo/shell requires surface calculation in fix rheo");
+  if (!fix_rheo->surface_flag)
+    error->all(FLERR, "Bond rheo/shell requires surface calculation in fix rheo");
   compute_surface = fix_rheo->compute_surface;
 
   fixes = modify->get_fix_by_style("^rheo/oxidation$");
-  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo/oxidation to use bond rheo/shell");
+  if (fixes.size() == 0)
+    error->all(FLERR, "Need to define fix rheo/oxidation to use bond rheo/shell");
   class FixRHEOOxidation *fix_rheo_oxidation = dynamic_cast<FixRHEOOxidation *>(fixes[0]);
 
   rsurf = fix_rheo_oxidation->rsurf;
@@ -401,7 +398,6 @@ void BondRHEOShell::settings(int narg, char **arg)
   if (tform < 0.0)
     error->all(FLERR, "Illegal bond rheo/shell command, must specify positive formation time");
 }
-
 
 /* ----------------------------------------------------------------------
    used to check bond communiction cutoff - not perfect, estimates based on local-local only
@@ -464,12 +460,9 @@ void BondRHEOShell::write_restart_settings(FILE *fp)
 
 void BondRHEOShell::read_restart_settings(FILE *fp)
 {
-  if (comm->me == 0) {
-    utils::sfread(FLERR, &tform, sizeof(double), 1, fp, nullptr, error);
-  }
+  if (comm->me == 0) { utils::sfread(FLERR, &tform, sizeof(double), 1, fp, nullptr, error); }
   MPI_Bcast(&tform, 1, MPI_DOUBLE, 0, world);
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -479,9 +472,7 @@ int BondRHEOShell::pack_reverse_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
 
-  for (i = first; i < last; i++) {
-    buf[m++] = dbond[i];
-  }
+  for (i = first; i < last; i++) { buf[m++] = dbond[i]; }
   return m;
 }
 
@@ -561,8 +552,8 @@ void BondRHEOShell::process_ineligibility(int i, int j)
         n = num_bond[i];
         bond_type[i][m] = bond_type[i][n - 1];
         bond_atom[i][m] = bond_atom[i][n - 1];
-        for (auto &ihistory: histories) {
-          auto fix_bond_history2 = dynamic_cast<FixBondHistory *> (ihistory);
+        for (auto &ihistory : histories) {
+          auto fix_bond_history2 = dynamic_cast<FixBondHistory *>(ihistory);
           fix_bond_history2->shift_history(i, m, n - 1);
           fix_bond_history2->delete_history(i, n - 1);
         }
@@ -579,8 +570,8 @@ void BondRHEOShell::process_ineligibility(int i, int j)
         n = num_bond[j];
         bond_type[j][m] = bond_type[j][n - 1];
         bond_atom[j][m] = bond_atom[j][n - 1];
-        for (auto &ihistory: histories) {
-          auto fix_bond_history2 = dynamic_cast<FixBondHistory *> (ihistory);
+        for (auto &ihistory : histories) {
+          auto fix_bond_history2 = dynamic_cast<FixBondHistory *>(ihistory);
           fix_bond_history2->shift_history(j, m, n - 1);
           fix_bond_history2->delete_history(j, n - 1);
         }

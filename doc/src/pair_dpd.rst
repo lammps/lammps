@@ -118,7 +118,7 @@ atoms types via the :doc:`pair_coeff <pair_coeff>` command are:
 
 The cutoff coefficient is optional.
 
-The GPU-accelerated versions of these styles are implemented based on
+Styles with a *gpu* suffix are implemented based on
 the work of :ref:`(Afshar) <Afshar>` and :ref:`(Phillips) <Phillips>`.
 
 .. note::

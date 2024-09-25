@@ -709,9 +709,6 @@ TEST(AngleStyle, single)
 {
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
-    // angle-spica test not compatible with pair zero
-    if (utils::strmatch(test_config.angle_style, "^spica")) GTEST_SKIP();
-
     LAMMPS::argv args = {"AngleStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     // create a LAMMPS instance with standard settings to detect the number of atom types

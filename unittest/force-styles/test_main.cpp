@@ -102,7 +102,7 @@ void EXPECT_VELOCITIES(const std::string &name, Atom *atom, const std::vector<co
 }
 
 void EXPECT_TORQUES(const std::string &name, Atom *atom, const std::vector<coord_t> &t_ref,
-                       double epsilon)
+                    double epsilon)
 {
     SCOPED_TRACE("EXPECT_TORQUES: " + name);
     double **t       = atom->torque;

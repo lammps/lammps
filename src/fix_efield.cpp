@@ -518,6 +518,4 @@ void FixEfield::update_efield_variables()
     input->variable->compute_atom(evar, igroup, &efield[0][3], 4, 0);
 
   modify->addstep_compute(update->ntimestep + 1);
-
 }
-

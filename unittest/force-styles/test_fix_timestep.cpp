@@ -247,14 +247,15 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // run_torque
 
-    if(lmp->atom->torque_flag) {
-      block.clear();
-      auto *t = lmp->atom->torque;
-      for (int i = 1; i <= natoms; ++i) {
-          const int j = lmp->atom->map(i);
-          block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, t[j][0], t[j][1], t[j][2]);
-      }
-      writer.emit_block("run_torque", block);
+    if (lmp->atom->torque_flag) {
+        block.clear();
+        auto *t = lmp->atom->torque;
+        for (int i = 1; i <= natoms; ++i) {
+            const int j = lmp->atom->map(i);
+            block +=
+                fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, t[j][0], t[j][1], t[j][2]);
+        }
+        writer.emit_block("run_torque", block);
     }
 
     cleanup_lammps(lmp, config);
@@ -301,9 +302,9 @@ TEST(FixTimestep, plain)
 
     EXPECT_POSITIONS("run_pos (normal run, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (normal run, verlet)", lmp->atom, test_config.run_vel, epsilon);
-    if(lmp->atom->torque_flag)
-        EXPECT_TORQUES("run_torques (normal run, verlet)", lmp->atom, test_config.run_torque, epsilon);
-
+    if (lmp->atom->torque_flag)
+        EXPECT_TORQUES("run_torques (normal run, verlet)", lmp->atom, test_config.run_torque,
+                       epsilon);
 
     auto *ifix = lmp->modify->get_fix_by_id("test");
     if (!ifix) {
@@ -353,7 +354,7 @@ TEST(FixTimestep, plain)
 
     EXPECT_POSITIONS("run_pos (restart, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (restart, verlet)", lmp->atom, test_config.run_vel, epsilon);
-    if(lmp->atom->torque_flag)
+    if (lmp->atom->torque_flag)
         EXPECT_TORQUES("run_torque (restart, verlet)", lmp->atom, test_config.run_torque, epsilon);
 
     ifix = lmp->modify->get_fix_by_id("test");
@@ -858,7 +859,7 @@ TEST(FixTimestep, kokkos_omp)
     if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) GTEST_SKIP();
 
     LAMMPS::argv args = {"FixTimestep", "-log", "none", "-echo", "screen", "-nocite",
-                         "-k",        "on",   "t",    "4",     "-sf",    "kk"};
+                         "-k",          "on",   "t",    "4",     "-sf",    "kk"};
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp        = init_lammps(args, test_config);
@@ -892,8 +893,9 @@ TEST(FixTimestep, kokkos_omp)
 
     EXPECT_POSITIONS("run_pos (normal run, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (normal run, verlet)", lmp->atom, test_config.run_vel, epsilon);
-    if(lmp->atom->torque_flag)
-        EXPECT_TORQUES("run_torque (normal run, verlet)", lmp->atom, test_config.run_torque, epsilon);
+    if (lmp->atom->torque_flag)
+        EXPECT_TORQUES("run_torque (normal run, verlet)", lmp->atom, test_config.run_torque,
+                       epsilon);
 
     auto *ifix = lmp->modify->get_fix_by_id("test");
 
@@ -945,7 +947,7 @@ TEST(FixTimestep, kokkos_omp)
 
     EXPECT_POSITIONS("run_pos (restart, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (restart, verlet)", lmp->atom, test_config.run_vel, epsilon);
-    if(lmp->atom->torque_flag)
+    if (lmp->atom->torque_flag)
         EXPECT_TORQUES("run_torque (restart, verlet)", lmp->atom, test_config.run_torque, epsilon);
 
     ifix = lmp->modify->get_fix_by_id("test");
@@ -1023,4 +1025,3 @@ TEST(FixTimestep, kokkos_omp)
     cleanup_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
-

@@ -814,6 +814,7 @@ dipoleflag
 dir
 Direc
 dirname
+Dirkmann
 discoverable
 discretization
 discretized
@@ -975,6 +976,7 @@ elaplong
 elastance
 Electroneg
 electronegative
+electronegativities
 electronegativity
 electroneutral
 electroneutrality
@@ -1291,6 +1293,7 @@ Geocomputing
 georg
 Georg
 Geotechnica
+Gergs
 germain
 Germann
 Germano
@@ -2390,6 +2393,7 @@ Murdick
 Murtola
 Murty
 Muser
+Mussenbrock
 mutexes
 Muto
 muVT

@@ -38,21 +38,33 @@ Description
 The QTPIE charge equilibration method is an extension of the QEq charge
 equilibration method. With QTPIE, the partial charges on individual atoms
 are computed by minimizing the electrostatic energy of the system in the
-same way as the QEq method but where the Mulliken electronegativity,
+same way as the QEq method but where the absolute electronegativity,
 :math:`\chi_i`, of each atom in the QEq charge equilibration scheme
 :ref:`(Rappe and Goddard) <Rappe3>` is replaced with an effective
 electronegativity given by :ref:`(Chen) <qtpie-Chen>`
 
 .. math::
-   \chi_{\mathrm{eff},i} = \frac{\sum_{j=1}^{N} (\chi_i - \chi_j + \phi_j - \phi_i) S_{ij}}
+   \chi_{\mathrm{eff},i} = \frac{\sum_{j=1}^{N} (\chi_i - \chi_j) S_{ij}}
                                 {\sum_{m=1}^{N}S_{im}},
 
 which acts to penalize long-range charge transfer seen with the QEq charge
 equilibration scheme. In this equation, :math:`N` is the number of atoms in
-the system, :math:`S_{ij}` is the overlap integral between atom :math:`i`
-and atom :math:`j`, and :math:`\phi_i` and :math:`\phi_j` are the electric
-potentials at the position of atom :math:`i` and :math:`j` due to
-an external electric field, respectively.
+the system and :math:`S_{ij}` is the overlap integral between atom :math:`i`
+and atom :math:`j`.
+
+The effect of an external electric field can be incorporated into the QTPIE
+method by modifying the absolute or effective electronegativities of each
+atom :ref:`(Chen) <qtpie-Chen>`. This fix models the effect of an external
+electric field by using the effective electronegativity given in
+:ref:`(Gergs) <Gergs>`:
+
+.. math::
+   \chi_{\mathrm{eff},i} = \frac{\sum_{j=1}^{N} (\chi_i - \chi_j + \phi_j - \phi_i) S_{ij}}
+                                {\sum_{m=1}^{N}S_{im}},
+
+where :math:`\phi_i` and :math:`\phi_j` are the electric
+potentials at the positions of atom :math:`i` and :math:`j`
+due to the external electric field.
 
 This fix is typically used in conjunction with the ReaxFF force
 field model as implemented in the :doc:`pair_style reaxff <pair_reaxff>`
@@ -64,7 +76,7 @@ charge equilibration performed by `fix qtpie/reaxff`, which is the same as in
 To be explicit, this fix replaces :math:`\chi_k` of eq. 3 in
 :ref:`(Aktulga) <qeq-Aktulga2>` with :math:`\chi_{\mathrm{eff},k}`.
 
-This fix requires the Mulliken electronegativity, :math:`\chi`, in eV, the
+This fix requires the absolute electronegativity, :math:`\chi`, in eV, the
 self-Coulomb potential, :math:`\eta`, in eV, and the shielded Coulomb
 constant, :math:`\gamma`, in :math:`\AA^{-1}`. If the *params* setting above
 is the word "reaxff", then these are extracted from the
@@ -172,6 +184,11 @@ maxiter 200
 
 **(Chen)** Chen, Jiahao. Theory and applications of fluctuating-charge models.
 University of Illinois at Urbana-Champaign, 2009.
+
+.. _Gergs:
+
+**(Gergs)** Gergs, Dirkmann and Mussenbrock. 
+Journal of Applied Physics 123.24 (2018).
 
 .. _qeq-Aktulga2:
 

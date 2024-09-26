@@ -14,5 +14,15 @@
 //
 //@HEADER
 
-#include <TestOpenMP_Category.hpp>
-#include <TestGraph.hpp>
+#pragma once
+
+// backward compatibility import into experimental
+namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
+namespace MDSPAN_IMPL_PROPOSED_NAMESPACE {
+
+template< ::std::size_t Rank, class IndexType = std::size_t>
+using dims =
+  :: MDSPAN_IMPL_STANDARD_NAMESPACE :: dextents<IndexType, Rank>;
+
+} // namespace MDSPAN_IMPL_PROPOSED_NAMESPACE
+} // namespace MDSPAN_IMPL_STANDARD_NAMESPACE

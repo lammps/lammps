@@ -174,6 +174,7 @@ void PairReaxFF::allocate()
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   memory->create(cutghost,n+1,n+1,"pair:cutghost");
   map = new int[n+1];
+  for (int i = 0; i <= n; ++i) map[i] = -1;
 
   chi = new double[n+1];
   eta = new double[n+1];

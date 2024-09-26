@@ -16,12 +16,15 @@
 
 #pragma once
 #include "dynamic_extent.hpp"
+#include "utility.hpp"
 
 #ifdef __cpp_lib_span
 #include <span>
 #endif
 #include <array>
+#include <type_traits>
 
+#include <cassert>
 #include <cinttypes>
 
 namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
@@ -30,6 +33,7 @@ namespace detail {
 // Function used to check compatibility of extents in converting constructor
 // can't be a private member function for some reason.
 template <size_t... Extents, size_t... OtherExtents>
+MDSPAN_INLINE_FUNCTION
 static constexpr std::integral_constant<bool, false> __check_compatible_extents(
     std::integral_constant<bool, false>,
     std::integer_sequence<size_t, Extents...>,
@@ -46,6 +50,7 @@ struct __compare_extent_compatible : std::integral_constant<bool,
 {};
 
 template <size_t... Extents, size_t... OtherExtents>
+MDSPAN_INLINE_FUNCTION
 static constexpr std::integral_constant<
     bool, _MDSPAN_FOLD_AND(__compare_extent_compatible<Extents, OtherExtents>::value)>
 __check_compatible_extents(
@@ -59,8 +64,8 @@ template<class IndexType, class ... Arguments>
 MDSPAN_INLINE_FUNCTION
 static constexpr bool are_valid_indices() {
     return
-      (std::is_convertible<Arguments, IndexType>::value && ... && true) &&
-      (std::is_nothrow_constructible<IndexType, Arguments>::value && ... && true);
+      _MDSPAN_FOLD_AND(std::is_convertible<Arguments, IndexType>::value) &&
+      _MDSPAN_FOLD_AND(std::is_nothrow_constructible<IndexType, Arguments>::value);
 }
 
 // ------------------------------------------------------------------
@@ -538,14 +543,9 @@ public:
   MDSPAN_INLINE_FUNCTION friend constexpr bool
   operator==(const extents &lhs,
              const extents<OtherIndexType, OtherExtents...> &rhs) noexcept {
-    if constexpr (rank() != extents<OtherIndexType, OtherExtents...>::rank()) {
-      return false;
-    } else {
-      using common_t = std::common_type_t<index_type, OtherIndexType>;
-      for (size_type r = 0; r < m_rank; r++)
-        if(static_cast<common_t>(rhs.extent(r)) != static_cast<common_t>(lhs.extent(r))) return false;
-    }
-    return true;
+    return
+      rank() == extents<OtherIndexType, OtherExtents...>::rank() &&
+      detail::rankwise_equal(detail::with_rank<rank()>{}, rhs, lhs, detail::extent);
   }
 
 #if !(MDSPAN_HAS_CXX_20)
@@ -613,6 +613,81 @@ inline
 static
 #endif
 constexpr bool __is_extents_v = __is_extents<T>::value;
+
+template<class InputIndexType, class ExtentsIndexType>
+MDSPAN_INLINE_FUNCTION
+constexpr void
+check_lower_bound(InputIndexType user_index,
+                  ExtentsIndexType /* current_extent */,
+                  std::true_type /* is_signed */)
+{
+  (void) user_index; // prevent unused variable warning
+#ifdef _MDSPAN_DEBUG
+  assert(static_cast<ExtentsIndexType>(user_index) >= 0);
+#endif
+}
+
+template<class InputIndexType, class ExtentsIndexType>
+MDSPAN_INLINE_FUNCTION
+constexpr void
+check_lower_bound(InputIndexType /* user_index */,
+                  ExtentsIndexType /* current_extent */,
+                  std::false_type /* is_signed */)
+{}
+
+template<class InputIndexType, class ExtentsIndexType>
+MDSPAN_INLINE_FUNCTION
+constexpr void
+check_upper_bound(InputIndexType user_index,
+                  ExtentsIndexType current_extent)
+{
+  (void) user_index; // prevent unused variable warnings
+  (void) current_extent;
+#ifdef _MDSPAN_DEBUG
+  assert(static_cast<ExtentsIndexType>(user_index) < current_extent);
+#endif
+}
+
+// Returning true to use AND fold instead of comma
+// CPP14 mode doesn't like the use of void expressions
+// with the way the _MDSPAN_FOLD_AND is set up
+template<class InputIndex, class ExtentsIndexType>
+MDSPAN_INLINE_FUNCTION
+constexpr bool
+check_one_index(InputIndex user_index,
+                ExtentsIndexType current_extent)
+{
+  check_lower_bound(user_index, current_extent,
+    std::integral_constant<bool, std::is_signed<ExtentsIndexType>::value>{});
+  check_upper_bound(user_index, current_extent);
+  return true;
+}
+
+template<size_t ... RankIndices,
+         class ExtentsIndexType, size_t ... Exts,
+         class ... Indices>
+MDSPAN_INLINE_FUNCTION
+constexpr void
+check_all_indices_helper(std::index_sequence<RankIndices...>,
+                         const extents<ExtentsIndexType, Exts...>& exts,
+                         Indices... indices)
+{
+  // Suppress warning about statement has no effect
+  (void) _MDSPAN_FOLD_AND(
+    (check_one_index(indices, exts.extent(RankIndices)))
+  );
+}
+
+template<class ExtentsIndexType, size_t ... Exts,
+         class ... Indices>
+MDSPAN_INLINE_FUNCTION
+constexpr void
+check_all_indices(const extents<ExtentsIndexType, Exts...>& exts,
+                  Indices... indices)
+{
+  check_all_indices_helper(std::make_index_sequence<sizeof...(Indices)>(),
+                           exts, indices...);
+}
 
 } // namespace detail
 } // namespace MDSPAN_IMPL_STANDARD_NAMESPACE

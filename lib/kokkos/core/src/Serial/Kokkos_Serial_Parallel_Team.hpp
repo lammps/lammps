@@ -247,9 +247,11 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     const size_t thread_local_size = 0;  // Never shrinks
 
     auto* internal_instance = m_policy.space().impl_internal_space_instance();
-    // Need to lock resize_thread_team_data
-    std::lock_guard<std::mutex> lock(
-        internal_instance->m_thread_team_data_mutex);
+    // Make sure kernels are running sequentially even when using multiple
+    // threads, lock resize_thread_team_data
+    std::lock_guard<std::mutex> instance_lock(
+        internal_instance->m_instance_mutex);
+
     internal_instance->resize_thread_team_data(
         pool_reduce_size, team_reduce_size, team_shared_size,
         thread_local_size);
@@ -319,9 +321,11 @@ class ParallelReduce<CombinedFunctorReducerType,
     const size_t thread_local_size = 0;  // Never shrinks
 
     auto* internal_instance = m_policy.space().impl_internal_space_instance();
-    // Need to lock resize_thread_team_data
-    std::lock_guard<std::mutex> lock(
-        internal_instance->m_thread_team_data_mutex);
+    // Make sure kernels are running sequentially even when using multiple
+    // threads, lock resize_thread_team_data
+    std::lock_guard<std::mutex> instance_lock(
+        internal_instance->m_instance_mutex);
+
     internal_instance->resize_thread_team_data(
         pool_reduce_size, team_reduce_size, team_shared_size,
         thread_local_size);

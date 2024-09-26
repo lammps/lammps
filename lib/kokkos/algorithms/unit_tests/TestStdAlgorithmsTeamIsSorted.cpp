@@ -52,7 +52,7 @@ struct TestFunctorA {
       Kokkos::single(Kokkos::PerTeam(member),
                      [=, *this]() { m_returnsView(myRowIndex) = result; });
     }
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
     else if (m_apiPick == 2) {
       using value_type = typename ViewType::value_type;
       result = KE::is_sorted(member, KE::cbegin(myRowView), KE::cend(myRowView),
@@ -179,7 +179,7 @@ template <class LayoutTag, class ValueType>
 void run_all_scenarios(bool makeDataSortedOnPurpose) {
   for (int numTeams : teamSizesToTest) {
     for (const auto& numCols : {0, 1, 2, 13, 101, 1444, 5153}) {
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
       for (int apiId : {0, 1, 2, 3}) {
 #else
       for (int apiId : {0, 1}) {

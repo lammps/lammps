@@ -28,6 +28,7 @@
 #include <complex>
 #include <type_traits>
 #include <iosfwd>
+#include <tuple>
 
 namespace Kokkos {
 
@@ -256,6 +257,12 @@ class
     return *this;
   }
 
+  template <size_t I, typename RT>
+  friend constexpr const RT& get(const complex<RT>&) noexcept;
+
+  template <size_t I, typename RT>
+  friend constexpr const RT&& get(const complex<RT>&&) noexcept;
+
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   //! Copy constructor from volatile.
   template <
@@ -422,6 +429,75 @@ class
   }
 #endif  // KOKKOS_ENABLE_DEPRECATED_CODE_4
 };
+
+}  // namespace Kokkos
+
+// Tuple protocol for complex based on https://wg21.link/P2819R2 (voted into
+// the C++26 working draft on 2023-11)
+
+template <typename RealType>
+struct std::tuple_size<Kokkos::complex<RealType>>
+    : std::integral_constant<size_t, 2> {};
+
+template <size_t I, typename RealType>
+struct std::tuple_element<I, Kokkos::complex<RealType>> {
+  static_assert(I < 2);
+  using type = RealType;
+};
+
+namespace Kokkos {
+
+// get<...>(...) defined here so as not to be hidden friends, as per P2819R2
+
+template <size_t I, typename RealType>
+KOKKOS_FUNCTION constexpr RealType& get(complex<RealType>& z) noexcept {
+  static_assert(I < 2);
+  if constexpr (I == 0)
+    return z.real();
+  else
+    return z.imag();
+#ifdef KOKKOS_COMPILER_INTEL
+  __builtin_unreachable();
+#endif
+}
+
+template <size_t I, typename RealType>
+KOKKOS_FUNCTION constexpr RealType&& get(complex<RealType>&& z) noexcept {
+  static_assert(I < 2);
+  if constexpr (I == 0)
+    return std::move(z.real());
+  else
+    return std::move(z.imag());
+#ifdef KOKKOS_COMPILER_INTEL
+  __builtin_unreachable();
+#endif
+}
+
+template <size_t I, typename RealType>
+KOKKOS_FUNCTION constexpr const RealType& get(
+    const complex<RealType>& z) noexcept {
+  static_assert(I < 2);
+  if constexpr (I == 0)
+    return z.re_;
+  else
+    return z.im_;
+#ifdef KOKKOS_COMPILER_INTEL
+  __builtin_unreachable();
+#endif
+}
+
+template <size_t I, typename RealType>
+KOKKOS_FUNCTION constexpr const RealType&& get(
+    const complex<RealType>&& z) noexcept {
+  static_assert(I < 2);
+  if constexpr (I == 0)
+    return std::move(z.re_);
+  else
+    return std::move(z.im_);
+#ifdef KOKKOS_COMPILER_INTEL
+  __builtin_unreachable();
+#endif
+}
 
 //==============================================================================
 // <editor-fold desc="Equality and inequality"> {{{1

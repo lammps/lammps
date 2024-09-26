@@ -38,5 +38,6 @@
 #include "../experimental/__p2642_bits/layout_padded.hpp"
 #include "../experimental/__p2630_bits/submdspan.hpp"
 #endif
+#include "../experimental/__p2389_bits/dims.hpp"
 
 #endif // MDSPAN_HPP_

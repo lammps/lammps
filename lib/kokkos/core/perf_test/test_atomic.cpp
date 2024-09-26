@@ -390,7 +390,7 @@ static void Test_Atomic(benchmark::State& state) {
 
 static constexpr int LOOP = 100'000;
 
-BENCHMARK(Test_Atomic<int>)->Arg(LOOP)->Iterations(10);
+BENCHMARK(Test_Atomic<int>)->Arg(30'000)->Iterations(10);
 BENCHMARK(Test_Atomic<long int>)->Arg(LOOP)->Iterations(10);
 BENCHMARK(Test_Atomic<long long int>)->Arg(LOOP)->Iterations(10);
 BENCHMARK(Test_Atomic<unsigned int>)->Arg(LOOP)->Iterations(10);
@@ -398,4 +398,3 @@ BENCHMARK(Test_Atomic<unsigned long int>)->Arg(LOOP)->Iterations(10);
 BENCHMARK(Test_Atomic<unsigned long long int>)->Arg(LOOP)->Iterations(10);
 BENCHMARK(Test_Atomic<float>)->Arg(LOOP)->Iterations(10);
 BENCHMARK(Test_Atomic<double>)->Arg(LOOP)->Iterations(10);
-BENCHMARK(Test_Atomic<int>)->Arg(LOOP)->Iterations(10);

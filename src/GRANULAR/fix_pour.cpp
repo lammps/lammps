@@ -217,7 +217,7 @@ void FixPour::init()
     error->all(FLERR, "Fix gravity for fix pour must be constant");
 
   // Perform one time initialization operations
-  // outside of constructor in case fix definition precedes timestep defintion/atom creation
+  // outside of constructor in case fix definition precedes timestep definition/atom creation
 
   if (!initialize_flag) {
     initialize_flag = 1;

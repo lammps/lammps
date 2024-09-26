@@ -33,7 +33,7 @@ static const char cite_type_label_framework[] =
     " year =    2024,\n"
     " volume =  128,\n"
     " number =  13,\n"
-    " pages =   {3282–-3297}\n"
+    " pages =   {3282--3297}\n"
     "}\n\n";
 
 /* ---------------------------------------------------------------------- */

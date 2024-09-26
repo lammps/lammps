@@ -58,8 +58,14 @@ static constexpr double ANGSTROM_TO_BOHRRADIUS = 1.8897261259;
 FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), matvecs(0), pertype_option(nullptr), gauss_file(nullptr)
 {
+  // this fix returns a global scalar (the number of iterations)
   scalar_flag = 1;
   extscalar = 0;
+
+  // this fix returns a per-atom vector (the effective electronegativity)
+  peratom_flag = 1;
+  size_peratom_cols = 0;
+
   imax = 200;
   maxwarn = 1;
 
@@ -312,6 +318,7 @@ void FixQtpieReaxFF::allocate_storage()
   memory->create(Hdia_inv,nmax,"qtpie:Hdia_inv");
   memory->create(b_s,nmax,"qtpie:b_s");
   memory->create(chi_eff,nmax,"qtpie:chi_eff");
+  vector_atom = chi_eff;
   memory->create(b_t,nmax,"qtpie:b_t");
   memory->create(b_prc,nmax,"qtpie:b_prc");
   memory->create(b_prm,nmax,"qtpie:b_prm");

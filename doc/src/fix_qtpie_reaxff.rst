@@ -122,7 +122,8 @@ Restart, fix_modify, output, run start/stop, minimize info
 
 No information about this fix is written to :doc:`binary restart files
 <restart>`.  This fix computes a global scalar (the number of
-iterations) for access by various :doc:`output commands <Howto_output>`.
+iterations) and a per-atom vector (the effective electronegativity), which
+can be accessed by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
 

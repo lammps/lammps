@@ -196,36 +196,21 @@ class SharedAllocationRecord<void, void> {
       const SharedAllocationRecord* const root, const bool detail);
 };
 
-void safe_throw_allocation_with_header_failure(
-    std::string const& space_name, std::string const& label,
-    Kokkos::Experimental::RawMemoryAllocationFailure const& failure);
-
 template <class MemorySpace>
 SharedAllocationHeader* checked_allocation_with_header(MemorySpace const& space,
                                                        std::string const& label,
                                                        size_t alloc_size) {
-  try {
-    return reinterpret_cast<SharedAllocationHeader*>(space.allocate(
-        label.c_str(), alloc_size + sizeof(SharedAllocationHeader),
-        alloc_size));
-  } catch (Kokkos::Experimental::RawMemoryAllocationFailure const& failure) {
-    safe_throw_allocation_with_header_failure(space.name(), label, failure);
-  }
-  return nullptr;  // unreachable
+  return reinterpret_cast<SharedAllocationHeader*>(space.allocate(
+      label.c_str(), alloc_size + sizeof(SharedAllocationHeader), alloc_size));
 }
 
 template <class ExecutionSpace, class MemorySpace>
 SharedAllocationHeader* checked_allocation_with_header(
     ExecutionSpace const& exec_space, MemorySpace const& space,
     std::string const& label, size_t alloc_size) {
-  try {
-    return reinterpret_cast<SharedAllocationHeader*>(space.allocate(
-        exec_space, label.c_str(), alloc_size + sizeof(SharedAllocationHeader),
-        alloc_size));
-  } catch (Kokkos::Experimental::RawMemoryAllocationFailure const& failure) {
-    safe_throw_allocation_with_header_failure(space.name(), label, failure);
-  }
-  return nullptr;  // unreachable
+  return reinterpret_cast<SharedAllocationHeader*>(
+      space.allocate(exec_space, label.c_str(),
+                     alloc_size + sizeof(SharedAllocationHeader), alloc_size));
 }
 
 void fill_host_accessible_header_info(SharedAllocationHeader& arg_header,
@@ -385,11 +370,9 @@ SharedAllocationRecord<void, void>
   template class Kokkos::Impl::HostInaccessibleSharedAllocationRecordCommon<           \
       MEMORY_SPACE>
 
-namespace {
-
 /* Taking the address of this function so make sure it is unique */
 template <class MemorySpace, class DestroyFunctor>
-void deallocate(SharedAllocationRecord<void, void>* record_ptr) {
+inline void deallocate(SharedAllocationRecord<void, void>* record_ptr) {
   using base_type = SharedAllocationRecord<MemorySpace, void>;
   using this_type = SharedAllocationRecord<MemorySpace, DestroyFunctor>;
 
@@ -400,8 +383,6 @@ void deallocate(SharedAllocationRecord<void, void>* record_ptr) {
 
   delete ptr;
 }
-
-}  // namespace
 
 /*
  *  Memory space specialization of SharedAllocationRecord< Space , void >
@@ -487,15 +468,21 @@ union SharedAllocationTracker {
   // pressure on compiler optimization by reducing
   // number of symbols and inline functions.
 
-#define KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_INCREMENT          \
-  KOKKOS_IF_ON_HOST((if (!(m_record_bits & DO_NOT_DEREF_FLAG)) { \
-    Record::increment(m_record);                                 \
-  }))
+#ifdef KOKKOS_ENABLE_IMPL_REF_COUNT_BRANCH_UNLIKELY
+#define KOKKOS_IMPL_BRANCH_PROB KOKKOS_IMPL_ATTRIBUTE_UNLIKELY
+#else
+#define KOKKOS_IMPL_BRANCH_PROB
+#endif
 
-#define KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_DECREMENT          \
-  KOKKOS_IF_ON_HOST((if (!(m_record_bits & DO_NOT_DEREF_FLAG)) { \
-    Record::decrement(m_record);                                 \
-  }))
+#define KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_INCREMENT \
+  KOKKOS_IF_ON_HOST(                                    \
+      (if (!(m_record_bits & DO_NOT_DEREF_FLAG))        \
+           KOKKOS_IMPL_BRANCH_PROB { Record::increment(m_record); }))
+
+#define KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_DECREMENT \
+  KOKKOS_IF_ON_HOST(                                    \
+      (if (!(m_record_bits & DO_NOT_DEREF_FLAG))        \
+           KOKKOS_IMPL_BRANCH_PROB { Record::decrement(m_record); }))
 
 #define KOKKOS_IMPL_SHARED_ALLOCATION_CARRY_RECORD_BITS(rhs,               \
                                                         override_tracking) \
@@ -642,8 +629,41 @@ union SharedAllocationTracker {
 
 #undef KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_INCREMENT
 #undef KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_DECREMENT
+#undef KOKKOS_IMPL_BRANCH_PROB
 };
 
+struct SharedAllocationDisableTrackingGuard {
+  SharedAllocationDisableTrackingGuard() {
+    KOKKOS_ASSERT(
+        (Kokkos::Impl::SharedAllocationRecord<void, void>::tracking_enabled()));
+    Kokkos::Impl::SharedAllocationRecord<void, void>::tracking_disable();
+  }
+
+  SharedAllocationDisableTrackingGuard(
+      const SharedAllocationDisableTrackingGuard&) = delete;
+  SharedAllocationDisableTrackingGuard(SharedAllocationDisableTrackingGuard&&) =
+      delete;
+
+  ~SharedAllocationDisableTrackingGuard() {
+    KOKKOS_ASSERT((
+        !Kokkos::Impl::SharedAllocationRecord<void, void>::tracking_enabled()));
+    Kokkos::Impl::SharedAllocationRecord<void, void>::tracking_enable();
+  }
+  // clang-format off
+  // The old version of clang format we use is particularly egregious here
+  SharedAllocationDisableTrackingGuard& operator=(
+      const SharedAllocationDisableTrackingGuard&) = delete;
+  SharedAllocationDisableTrackingGuard& operator=(
+      SharedAllocationDisableTrackingGuard&&) = delete;
+  // clang-format on
+};
+
+template <class FunctorType, class... Args>
+inline FunctorType construct_with_shared_allocation_tracking_disabled(
+    Args&&... args) {
+  [[maybe_unused]] auto guard = SharedAllocationDisableTrackingGuard{};
+  return {std::forward<Args>(args)...};
+}
 } /* namespace Impl */
 } /* namespace Kokkos */
 #endif

@@ -137,9 +137,9 @@ inline void parallel_for(const std::string& str, const ExecPolicy& policy,
   ExecPolicy inner_policy = policy;
   Kokkos::Tools::Impl::begin_parallel_for(inner_policy, functor, str, kpID);
 
-  Kokkos::Impl::shared_allocation_tracking_disable();
-  Impl::ParallelFor<FunctorType, ExecPolicy> closure(functor, inner_policy);
-  Kokkos::Impl::shared_allocation_tracking_enable();
+  auto closure =
+      Kokkos::Impl::construct_with_shared_allocation_tracking_disabled<
+          Impl::ParallelFor<FunctorType, ExecPolicy>>(functor, inner_policy);
 
   closure.execute();
 
@@ -352,10 +352,10 @@ inline void parallel_scan(const std::string& str, const ExecutionPolicy& policy,
   ExecutionPolicy inner_policy = policy;
   Kokkos::Tools::Impl::begin_parallel_scan(inner_policy, functor, str, kpID);
 
-  Kokkos::Impl::shared_allocation_tracking_disable();
-  Impl::ParallelScan<FunctorType, ExecutionPolicy> closure(functor,
-                                                           inner_policy);
-  Kokkos::Impl::shared_allocation_tracking_enable();
+  auto closure =
+      Kokkos::Impl::construct_with_shared_allocation_tracking_disabled<
+          Impl::ParallelScan<FunctorType, ExecutionPolicy>>(functor,
+                                                            inner_policy);
 
   closure.execute();
 
@@ -398,18 +398,19 @@ inline void parallel_scan(const std::string& str, const ExecutionPolicy& policy,
   Kokkos::Tools::Impl::begin_parallel_scan(inner_policy, functor, str, kpID);
 
   if constexpr (Kokkos::is_view<ReturnType>::value) {
-    Kokkos::Impl::shared_allocation_tracking_disable();
-    Impl::ParallelScanWithTotal<FunctorType, ExecutionPolicy,
-                                typename ReturnType::value_type>
-        closure(functor, inner_policy, return_value);
-    Kokkos::Impl::shared_allocation_tracking_enable();
+    auto closure =
+        Kokkos::Impl::construct_with_shared_allocation_tracking_disabled<
+            Impl::ParallelScanWithTotal<FunctorType, ExecutionPolicy,
+                                        typename ReturnType::value_type>>(
+            functor, inner_policy, return_value);
     closure.execute();
   } else {
-    Kokkos::Impl::shared_allocation_tracking_disable();
     Kokkos::View<ReturnType, Kokkos::HostSpace> view(&return_value);
-    Impl::ParallelScanWithTotal<FunctorType, ExecutionPolicy, ReturnType>
-        closure(functor, inner_policy, view);
-    Kokkos::Impl::shared_allocation_tracking_enable();
+    auto closure =
+        Kokkos::Impl::construct_with_shared_allocation_tracking_disabled<
+            Impl::ParallelScanWithTotal<FunctorType, ExecutionPolicy,
+                                        ReturnType>>(functor, inner_policy,
+                                                     view);
     closure.execute();
   }
 

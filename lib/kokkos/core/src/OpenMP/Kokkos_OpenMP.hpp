@@ -67,7 +67,15 @@ class OpenMP {
 
   OpenMP();
 
-  OpenMP(int pool_size);
+  explicit OpenMP(int pool_size);
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  template <typename T = void>
+  KOKKOS_DEPRECATED_WITH_COMMENT(
+      "OpenMP execution space should be constructed explicitly.")
+  OpenMP(int pool_size)
+      : OpenMP(pool_size) {}
+#endif
 
   /// \brief Print configuration information to the given output stream.
   void print_configuration(std::ostream& os, bool verbose = false) const;
@@ -144,14 +152,6 @@ inline int OpenMP::impl_thread_pool_rank() noexcept {
   KOKKOS_IF_ON_HOST((return omp_get_thread_num();))
 
   KOKKOS_IF_ON_DEVICE((return -1;))
-}
-
-inline void OpenMP::impl_static_fence(std::string const& name) {
-  Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::OpenMP>(
-      name,
-      Kokkos::Tools::Experimental::SpecialSynchronizationCases::
-          GlobalDeviceSynchronization,
-      []() {});
 }
 
 inline bool OpenMP::is_asynchronous(OpenMP const& /*instance*/) noexcept {

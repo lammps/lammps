@@ -384,6 +384,7 @@ class PairReaxFFKokkos : public PairReaxFF {
     F_FLOAT *fi, F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *dril, F_FLOAT *drjl, F_FLOAT *drkl) const;
 
  protected:
+  void deallocate_views_of_views();
   void allocate();
   void allocate_array();
   void setup();
@@ -497,7 +498,6 @@ class PairReaxFFKokkos : public PairReaxFF {
   typedef typename tdual_LR_lookup_table_kk_2d::t_dev t_LR_lookup_table_kk_2d;
 
   tdual_LR_lookup_table_kk_2d k_LR;
-  t_LR_lookup_table_kk_2d d_LR;
 
   DAT::tdual_int_2d k_tmpid;
   DAT::tdual_ffloat_2d k_tmpbo;

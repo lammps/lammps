@@ -22,21 +22,23 @@
 
 template <typename Abi, typename DataType>
 inline void host_check_condition() {
-  using simd_type = typename Kokkos::Experimental::simd<DataType, Abi>;
-  using mask_type = typename simd_type::mask_type;
+  if constexpr (is_type_v<Kokkos::Experimental::simd<DataType, Abi>>) {
+    using simd_type = typename Kokkos::Experimental::simd<DataType, Abi>;
+    using mask_type = typename simd_type::mask_type;
 
-  auto condition_op = [](mask_type const& mask, simd_type const& a,
-                         simd_type const& b) {
-    return Kokkos::Experimental::condition(mask, a, b);
-  };
+    auto condition_op = [](mask_type const& mask, simd_type const& a,
+                           simd_type const& b) {
+      return Kokkos::Experimental::condition(mask, a, b);
+    };
 
-  simd_type value_a(16);
-  simd_type value_b(20);
+    simd_type value_a(16);
+    simd_type value_b(20);
 
-  auto condition_result = condition_op(mask_type(false), value_a, value_b);
-  EXPECT_TRUE(all_of(condition_result == value_b));
-  condition_result = condition_op(mask_type(true), value_a, value_b);
-  EXPECT_TRUE(all_of(condition_result == value_a));
+    auto condition_result = condition_op(mask_type(false), value_a, value_b);
+    EXPECT_TRUE(all_of(condition_result == value_b));
+    condition_result = condition_op(mask_type(true), value_a, value_b);
+    EXPECT_TRUE(all_of(condition_result == value_a));
+  }
 }
 
 template <typename Abi, typename... DataTypes>
@@ -54,22 +56,24 @@ inline void host_check_condition_all_abis(
 
 template <typename Abi, typename DataType>
 KOKKOS_INLINE_FUNCTION void device_check_condition() {
-  using simd_type = typename Kokkos::Experimental::simd<DataType, Abi>;
-  using mask_type = typename simd_type::mask_type;
-  kokkos_checker checker;
+  if constexpr (is_type_v<Kokkos::Experimental::simd<DataType, Abi>>) {
+    using simd_type = typename Kokkos::Experimental::simd<DataType, Abi>;
+    using mask_type = typename simd_type::mask_type;
+    kokkos_checker checker;
 
-  auto condition_op = [](mask_type const& mask, simd_type const& a,
-                         simd_type const& b) {
-    return Kokkos::Experimental::condition(mask, a, b);
-  };
+    auto condition_op = [](mask_type const& mask, simd_type const& a,
+                           simd_type const& b) {
+      return Kokkos::Experimental::condition(mask, a, b);
+    };
 
-  simd_type value_a(16);
-  simd_type value_b(20);
+    simd_type value_a(16);
+    simd_type value_b(20);
 
-  auto condition_result = condition_op(mask_type(false), value_a, value_b);
-  checker.truth(all_of(condition_result == value_b));
-  condition_result = condition_op(mask_type(true), value_a, value_b);
-  checker.truth(all_of(condition_result == value_a));
+    auto condition_result = condition_op(mask_type(false), value_a, value_b);
+    checker.truth(all_of(condition_result == value_b));
+    condition_result = condition_op(mask_type(true), value_a, value_b);
+    checker.truth(all_of(condition_result == value_a));
+  }
 }
 
 template <typename Abi, typename... DataTypes>

@@ -35,8 +35,7 @@ struct HIPTraits {
   static constexpr int WarpSize       = 64;
   static constexpr int WarpIndexMask  = 0x003f; /* hexadecimal for 63 */
   static constexpr int WarpIndexShift = 6;      /* WarpSize == 1 << WarpShift*/
-#elif defined(KOKKOS_ARCH_AMD_GFX1030) || defined(KOKKOS_ARCH_AMD_GFX1100) || \
-    defined(KOKKOS_ARCH_AMD_GFX1103)
+#elif defined(KOKKOS_ARCH_AMD_GFX1030) || defined(KOKKOS_ARCH_AMD_GFX1100)
   static constexpr int WarpSize       = 32;
   static constexpr int WarpIndexMask  = 0x001f; /* hexadecimal for 31 */
   static constexpr int WarpIndexShift = 5;      /* WarpSize == 1 << WarpShift*/
@@ -71,16 +70,16 @@ class HIPInternal {
  public:
   using size_type = ::Kokkos::HIP::size_type;
 
-  inline static int m_hipDev                        = -1;
-  inline static unsigned m_multiProcCount           = 0;
-  inline static unsigned m_maxWarpCount             = 0;
-  inline static std::array<size_type, 3> m_maxBlock = {0, 0, 0};
-  inline static unsigned m_maxWavesPerCU            = 0;
-  inline static int m_shmemPerSM                    = 0;
-  inline static int m_maxShmemPerBlock              = 0;
-  inline static int m_maxThreadsPerSM               = 0;
+  static int m_hipDev;
+  static unsigned m_multiProcCount;
+  static unsigned m_maxWarpCount;
+  static std::array<size_type, 3> m_maxBlock;
+  static unsigned m_maxWavesPerCU;
+  static int m_shmemPerSM;
+  static int m_maxShmemPerBlock;
+  static int m_maxThreadsPerSM;
 
-  inline static hipDeviceProp_t m_deviceProp;
+  static hipDeviceProp_t m_deviceProp;
 
   static int concurrency();
 
@@ -93,7 +92,7 @@ class HIPInternal {
   size_type *m_scratchFlags               = nullptr;
   mutable size_type *m_scratchFunctor     = nullptr;
   mutable size_type *m_scratchFunctorHost = nullptr;
-  inline static std::mutex scratchFunctorMutex;
+  static std::mutex scratchFunctorMutex;
 
   hipStream_t m_stream = nullptr;
   uint32_t m_instance_id =
@@ -112,9 +111,9 @@ class HIPInternal {
 
   // FIXME_HIP: these want to be per-device, not per-stream...  use of 'static'
   // here will break once there are multiple devices though
-  inline static unsigned long *constantMemHostStaging = nullptr;
-  inline static hipEvent_t constantMemReusable        = nullptr;
-  inline static std::mutex constantMemMutex;
+  static unsigned long *constantMemHostStaging;
+  static hipEvent_t constantMemReusable;
+  static std::mutex constantMemMutex;
 
   static HIPInternal &singleton();
 

@@ -1,7 +1,9 @@
 KOKKOS_INCLUDE_DIRECTORIES(${KOKKOS_SOURCE_DIR}/simd/unit_tests/include)
 
-KOKKOS_ADD_EXECUTABLE_AND_TEST(
-  UnitTest_SIMD
-  SOURCES
-  UnitTestMain.cpp
-  TestSIMD.cpp)
+IF((NOT (Kokkos_ENABLE_CUDA AND WIN32)))
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_SIMD
+    SOURCES
+    UnitTestMain.cpp
+    TestSIMD.cpp)
+ENDIF()

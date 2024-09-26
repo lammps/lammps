@@ -132,7 +132,6 @@ void FixWallLJ93Kokkos<DeviceType>::post_force(int vflag)
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
-KOKKOS_INLINE_FUNCTION
 void FixWallLJ93Kokkos<DeviceType>::wall_particle(int m_in, int which, double coord_in)
 {
   m = m_in;

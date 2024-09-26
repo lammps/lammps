@@ -187,7 +187,7 @@ University of Illinois at Urbana-Champaign, 2009.
 
 .. _Gergs:
 
-**(Gergs)** Gergs, Dirkmann and Mussenbrock. 
+**(Gergs)** Gergs, Dirkmann and Mussenbrock.
 Journal of Applied Physics 123.24 (2018).
 
 .. _qeq-Aktulga2:

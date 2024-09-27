@@ -837,7 +837,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       } else
         *rho21 = 8. / 3. * (rhoa21 - rhoa22) * (rhoa21 - rhoa22);
       if (msmeamflag) {
-	*rho21 = 8. / 3. * (rhoa21 - rhoa22) * (rhoa21 - rhoa22);
+        *rho21 = 8. / 3. * (rhoa21 - rhoa22) * (rhoa21 - rhoa22);
         *rho2m1 = 8. / 3. * (rhoa2m1 - rhoa2m2) * (rhoa2m1 - rhoa2m2);
       }
       break;

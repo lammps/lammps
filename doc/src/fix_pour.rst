@@ -155,7 +155,8 @@ many timesteps until the desired # of particles has been inserted.
    the :doc:`compute_modify dynamic/dof yes <compute_modify>` command
    for the temperature compute you are using.
 
-.. note::
+.. admonition:: Implementation Notes
+  :class: Hint
 
   The exact insertion procedure depends on many factors (e.g. the range of
   diameters inserted or whether molecules are being inserted). However, in

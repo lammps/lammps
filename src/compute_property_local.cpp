@@ -409,7 +409,7 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
   m = 0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (!(mask[i] & groupbit)) continue;
+    if ( !(mask[i] & groupbit) && !(mask[i] & groupbit2) ) continue;
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -423,7 +423,8 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
       j = jlist[jj];
       j &= NEIGHMASK;
 
-      if (!(mask[j] & groupbit2)) continue;
+      if ( (mask[i] & groupbit) && !(mask[j] & groupbit2)) continue;
+      if ( (mask[i] & groupbit2) && !(mask[j] & groupbit)) continue;
 
       // itag = jtag is possible for long cutoffs that include images of self
       // do not need triclinic logic here b/c neighbor list itself is correct
@@ -457,9 +458,12 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
         }
       }
 
-      if (allflag) {
+      if (allflag && (mask[i] & groupbit)) {
         indices[m][0] = i;
         indices[m][1] = j;
+      } else if (allflag && (mask[i] & groupbit2)) {
+        indices[m][0] = j;
+        indices[m][1] = i;
       }
       m++;
     }

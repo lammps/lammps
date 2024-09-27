@@ -32,7 +32,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 Download a file from an URL to the local disk. This is implemented with
 the `libcurl library <https:://curl.se/libcurl/>`_ which supports a

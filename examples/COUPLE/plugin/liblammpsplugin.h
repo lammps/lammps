@@ -151,6 +151,7 @@ struct _liblammpsplugin {
   int (*map_atom)(void *, const void *);
 
   int (*extract_atom_datatype)(void *, const char *);
+  int (*extract_atom_size)(void *, const char *, int);
   void *(*extract_atom)(void *, const char *);
 
   void *(*extract_compute)(void *, const char *, int, int);

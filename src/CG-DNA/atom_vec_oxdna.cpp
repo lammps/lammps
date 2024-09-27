@@ -37,6 +37,7 @@ AtomVecOxdna::AtomVecOxdna(LAMMPS *lmp) : AtomVec(lmp)
   fields_grow = {"id5p"};
   fields_copy = {"id5p"};
   fields_border = {"id5p"};
+  fields_border_vel = {"id5p"};
   fields_exchange = {"id5p"};
   fields_restart = {"id5p"};
   fields_data_atom = {"id", "type", "x"};

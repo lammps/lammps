@@ -35,6 +35,7 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "lattice.h"
 #include "lmppython.h"
 #include "memory.h"
 #include "modify.h"
@@ -1414,6 +1415,9 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"xy") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"xz") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"yz") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"xlattice") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"ylattice") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"zlattice") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"procgrid") == 0) return LAMMPS_INT;
 
   if (strcmp(name,"natoms") == 0) return LAMMPS_BIGINT;
@@ -1510,9 +1514,9 @@ The function :cpp:func:`lammps_extract_global_datatype` will directly
 report the "native" data type.  The following tables are provided:
 
 * :ref:`Timestep settings <extract_timestep_settings>`
-* :ref:`Git revision and version settings <extract_git_settings>`
 * :ref:`Simulation box settings <extract_box_settings>`
 * :ref:`System property settings <extract_system_settings>`
+* :ref:`Git revision and version settings <extract_git_settings>`
 * :ref:`Unit settings <extract_unit_settings>`
 
 .. _extract_timestep_settings:
@@ -1551,35 +1555,6 @@ report the "native" data type.  The following tables are provided:
      - double
      - :math:`N_{respa}`
      - length of the time steps with r-RESPA. See :doc:`run_style`.
-
-.. _extract_git_settings:
-
-**Git revision and version settings**
-
-.. list-table::
-   :header-rows: 1
-   :widths: 16 14 10 60
-
-   * - Name
-     - Type
-     - Length
-     - Description
-   * - git_commit
-     - const char \*
-     - 1
-     - Git commit hash for the LAMMPS version.
-   * - git_branch
-     - const char \*
-     - 1
-     - Git branch for the LAMMPS version.
-   * - git_descriptor
-     - const char \*
-     - 1
-     - Combined descriptor for the git revision
-   * - lammps_version
-     - const char \*
-     - 1
-     - LAMMPS version string.
 
 .. _extract_box_settings:
 
@@ -1649,6 +1624,18 @@ report the "native" data type.  The following tables are provided:
      - double
      - 1
      - triclinic tilt factor; see :doc:`Howto_triclinic`.
+   * - xlattice
+     - double
+     - 1
+     - lattice spacing in x-direction; see :doc:`lattice command <lattice>`.
+   * - ylattice
+     - double
+     - 1
+     - lattice spacing in y-direction; see :doc:`lattice command <lattice>`.
+   * - zlattice
+     - double
+     - 1
+     - lattice spacing in z-direction; see :doc:`lattice command <lattice>`.
    * - procgrid
      - int
      - 3
@@ -1762,6 +1749,35 @@ report the "native" data type.  The following tables are provided:
      - char \*
      - 1
      - string with the current KSpace style.
+
+.. _extract_git_settings:
+
+**Git revision and version settings**
+
+.. list-table::
+   :header-rows: 1
+   :widths: 16 14 10 60
+
+   * - Name
+     - Type
+     - Length
+     - Description
+   * - git_commit
+     - const char \*
+     - 1
+     - Git commit hash for the LAMMPS version.
+   * - git_branch
+     - const char \*
+     - 1
+     - Git branch for the LAMMPS version.
+   * - git_descriptor
+     - const char \*
+     - 1
+     - Combined descriptor for the git revision
+   * - lammps_version
+     - const char \*
+     - 1
+     - LAMMPS version string.
 
 .. _extract_unit_settings:
 
@@ -1917,6 +1933,9 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"xy") == 0) return (void *) &lmp->domain->xy;
   if (strcmp(name,"xz") == 0) return (void *) &lmp->domain->xz;
   if (strcmp(name,"yz") == 0) return (void *) &lmp->domain->yz;
+  if (strcmp(name,"xlattice") == 0) return (void *) &lmp->domain->lattice->xlattice;
+  if (strcmp(name,"ylattice") == 0) return (void *) &lmp->domain->lattice->ylattice;
+  if (strcmp(name,"zlattice") == 0) return (void *) &lmp->domain->lattice->zlattice;
   if (((lmp->comm->layout == Comm::LAYOUT_UNIFORM) ||
        (lmp->comm->layout == Comm::LAYOUT_NONUNIFORM)) && (strcmp(name,"procgrid") == 0))
     return (void *) &lmp->comm->procgrid;
@@ -1972,7 +1991,7 @@ void *lammps_extract_global(void *handle, const char *name)
  *
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 This function returns an integer that specified the dimensionality of
 the data that can be extracted from the current pair style with ``Pair::extract()``.
@@ -2005,7 +2024,7 @@ int lammps_extract_pair_dimension(void * handle, const char *name)
  *
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 This function returns a pointer to data available from the current pair
 style with ``Pair::extract()``. The dimensionality of the returned
@@ -2068,10 +2087,13 @@ int lammps_map_atom(void *handle, const void *id)
 
 .. versionadded:: 18Sep2020
 
-This function returns an integer that encodes the data type of the per-atom
-property with the specified name. See :cpp:enum:`_LMP_DATATYPE_CONST` for valid
-values. Callers of :cpp:func:`lammps_extract_atom` can use this information
-to then decide how to cast the ``void *`` pointer and access the data.
+This function returns an integer that encodes the data type of the
+per-atom property with the specified name. See
+:cpp:enum:`_LMP_DATATYPE_CONST` for valid values. Callers of
+:cpp:func:`lammps_extract_atom` can use this information to decide how
+to cast the ``void *`` pointer and access the data.  In addition,
+:cpp:func:`lammps_extract_atom_size` can be used to get information
+about the vector or array dimensions.
 
 \endverbatim
  *
@@ -2089,18 +2111,53 @@ int lammps_extract_atom_datatype(void *handle, const char *name)
 
 /* ---------------------------------------------------------------------- */
 
+/** Get dimension info of a LAMMPS per-atom property
+ *
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+This function returns an integer with the size of the per-atom
+property with the specified name.  This allows to accurately determine
+the size of the per-atom data vectors or arrays.  For per-atom arrays,
+the *type* argument is required to return either the number of rows or the
+number of columns.  It is ignored for per-atom vectors.
+
+Callers of :cpp:func:`lammps_extract_atom` can use this information in
+combination with the result from :cpp:func:`lammps_extract_atom_datatype`
+to decide how to cast the ``void *`` pointer and access the data.
+
+\endverbatim
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  name    string with the name of the extracted property
+ * \param  type    either LMP_SIZE_ROWS or LMP_SIZE_COLS if *name* refers
+                   to a per-atom array otherwise ignored
+ * \return         integer with the size of the vector or array dimension or -1
+ * */
+
+int lammps_extract_atom_size(void *handle, const char *name, int type)
+{
+  auto lmp = (LAMMPS *) handle;
+  return lmp->atom->extract_size(name, type);
+}
+
+/* ---------------------------------------------------------------------- */
+
 /** Get pointer to a LAMMPS per-atom property.
  *
 \verbatim embed:rst
 
-This function returns a pointer to the location of per-atom properties
-(and per-atom-type properties in the case of the 'mass' keyword).
-Per-atom data is distributed across sub-domains and thus MPI ranks.  The
-returned pointer is cast to ``void *`` and needs to be cast to a pointer
-of data type that the entity represents.
+This function returns a pointer to the location of per-atom properties (and
+per-atom-type properties in the case of the 'mass' keyword).  Per-atom data is
+distributed across sub-domains and thus MPI ranks.  The returned pointer is cast
+to ``void *`` and needs to be cast to a pointer of data type that the entity
+represents.  You can use the functions :cpp:func:`lammps_extract_atom_datatype`
+and :cpp:func:`lammps_extract_atom_size` to determine data type, dimensions and
+sizes of the storage pointed to by the returned pointer.
 
-A table with supported keywords is included in the documentation
-of the :cpp:func:`Atom::extract() <LAMMPS_NS::Atom::extract>` function.
+A table with supported keywords is included in the documentation of the
+:cpp:func:`Atom::extract() <LAMMPS_NS::Atom::extract>` function.
 
 .. warning::
 
@@ -5859,7 +5916,7 @@ int lammps_config_has_ffmpeg_support() {
 
 \verbatim embed:rst
 
-.. versionadded::TBD
+.. versionadded::29Aug2024
 
 The LAMMPS :doc:`geturl command <geturl>` supports downloading files
 through using `the libcurl library <https://curl.se/libcurl/>`_.
@@ -7008,5 +7065,5 @@ int lammps_python_api_version() {
 }
 
 // Local Variables:
-// fill-column: 72
+// fill-column: 80
 // End:

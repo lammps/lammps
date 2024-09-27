@@ -1,0 +1,65 @@
+cff-version: 1.2.0
+title: Kokkos
+message: >-
+  If you use this software, please cite the overview paper
+type: software
+authors:
+  - name: The Kokkos authors
+    website: https://kokkos.org/community/team/
+identifiers:
+  - type: url
+    website: https://kokkos.org/kokkos-core-wiki/citation.html
+repository-code: 'https://github.com/kokkos/kokkos'
+url: 'https://kokkos.org/'
+license: Apache-2.0
+preferred-citation:
+  type: article
+  authors:
+  - given-names: Christian R.
+    family-names: Trott
+  - given-names: Damien
+    family-names: Lebrun-Grandié
+  - given-names: Daniel
+    family-names: Arndt
+  - family-names: Ciesko
+    given-names: Jan
+  - given-names: Vinh
+    family-names: Dang
+  - family-names: Ellingwood
+    given-names: Nathan
+  - given-names: Rahulkumar
+    family-names: Gayatri
+  - given-names: Evan
+    family-names: Harvey
+  - given-names: Daisy S.
+    family-names: Hollman
+  - given-names: Dan
+    family-names: Ibanez
+  - given-names: Nevin
+    family-names: Liber
+  - given-names: Jonathan
+    family-names: Madsen
+  - given-names: Jeff
+    family-names: Miles
+  - given-names: David
+    family-names: Poliakoff
+  - given-names: Amy
+    family-names: Powell
+  - given-names: Sivasankaran
+    family-names: Rajamanickam
+  - given-names: Mikael
+    family-names: Simberg
+  - given-names: Dan
+    family-names: Sunderland
+  - given-names: Bruno
+    family-names: Turcksin
+  - given-names: Jeremiah
+    family-names: Wilke
+  doi: 10.1109/TPDS.2021.3097283
+  journal: IEEE Transactions on Parallel and Distributed Systems
+  start: 805
+  end: 817
+  title: "Kokkos 3: Programming Model Extensions for the Exascale Era"
+  volume: 33
+  issue: 4
+  year: 2022

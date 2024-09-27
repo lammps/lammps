@@ -1,0 +1,44 @@
+---
+  lmp_binary: ""
+  nprocs: "1"
+  args: "-cite none"
+  mpiexec: ""
+  mpiexec_numproc_flag: ""
+  tolerance:
+    PotEng:
+      abs: 1e-4
+      rel: 1e-7
+    TotEng:
+      abs: 1e-4
+      rel: 1e-7
+    Press:
+      abs: 1e-4
+      rel: 1e-7
+    Temp:
+      abs: 1e-4
+      rel: 1e-7
+    E_vdwl:
+      abs: 1e-3
+      rel: 1e-7
+  overrides:
+    in.rigid.tnr:
+      Temp:
+        abs: 1e-3
+        rel: 1e-5
+      Press:
+        abs: 1e-2
+        rel: 1e-4
+  skip:
+    [
+      in.disp,
+      in.disp2,
+      in.dos,
+      in.*_imd*,
+      in.bucky-plus-cnt*,
+    ]
+
+  timeout: 180
+  nugget: 1.0
+  epsilon: 1e-16
+
+

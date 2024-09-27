@@ -590,19 +590,30 @@ and the LAMMPS library, via ``-D LAMMPS_SOURCE_DIR=/path/to/lammps/src``.
 CMake will try to guess a build folder with the LAMMPS library from that
 path, but it can also be set with ``-D LAMMPS_LIB_DIR=/path/to/lammps/lib``.
 
+Plugin version
+""""""""""""""
+
 Rather than linking to the LAMMPS library during compilation, it is also
-possible to compile the GUI with a plugin loader that will load
-the LAMMPS library dynamically at runtime during the start of the GUI
-from a shared library; e.g. ``liblammps.so`` or ``liblammps.dylib`` or
+possible to compile the GUI with a plugin loader that will load the
+LAMMPS library dynamically at runtime during the start of the GUI from a
+shared library; e.g. ``liblammps.so`` or ``liblammps.dylib`` or
 ``liblammps.dll`` (depending on the operating system).  This has the
 advantage that the LAMMPS library can be built from updated or modified
 LAMMPS source without having to recompile the GUI.  The ABI of the
 LAMMPS C-library interface is very stable and generally backward
-compatible.  This feature is enabled by setting
-``-D LAMMPS_GUI_USE_PLUGIN=on`` and then ``-D
+compatible.  This feature is enabled by setting ``-D
+LAMMPS_GUI_USE_PLUGIN=on`` and then ``-D
 LAMMPS_PLUGINLIB_DIR=/path/to/lammps/plugin/loader``. Typically, this
 would be the ``examples/COUPLE/plugin`` folder of the LAMMPS
 distribution.
+
+When compiling LAMMPS-GUI with plugin support, there is an additional
+command line flag (``-p <path>`` or ``--pluginpath <path>``) which
+allows to override the path to LAMMPS shared library used by the GUI.
+This is usually auto-detected on the first run and can be changed in the
+LAMMPS-GUI *Preferences* dialog.  The command line flag allows to reset
+this path to a valid value in case the original setting has become
+invalid.  An empty path ("") as argument restores the default setting.
 
 Platform notes
 ^^^^^^^^^^^^^^
@@ -670,6 +681,15 @@ pre-compiled executables (see above).  After compiling with
 folder> --target tgz`` or ``make tgz`` to build a
 ``LAMMPS-Linux-amd64.tar.gz`` file with the executables and their
 support libraries.
+
+It is also possible to build a `flatpak bundle
+<https://docs.flatpak.org/en/latest/single-file-bundles.html>`_ which is
+a way to distribute applications in a way that is compatible with most
+Linux distributions.  Use the "flatpak" target to trigger a compile
+(``cmake --build <build folder> --target flatpak`` or ``make flatpak``).
+Please note that this will not build from the local sources but from the
+repository and branch listed in the ``org.lammps.lammps-gui.yml``
+LAMMPS-GUI source folder.
 
 ----------
 
@@ -1002,7 +1022,7 @@ regression tests with a given LAMMPS binary.  The tool launches the
 LAMMPS binary with any given input script under one of the `examples`
 subdirectories, and compares the thermo output in the generated log file
 with those in the provided log file with the same number of processors
-ub the same subdirectory. If the differences between the actual and
+in the same subdirectory. If the differences between the actual and
 reference values are within specified tolerances, the test is considered
 passed.  For each test batch, that is, a set of example input scripts,
 the mpirun command, the LAMMPS command line arguments, and the

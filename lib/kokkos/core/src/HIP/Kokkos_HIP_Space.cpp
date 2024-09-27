@@ -39,6 +39,7 @@
 
 /*--------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
+
 namespace {
 
 static std::atomic<bool> is_first_hip_managed_allocation(true);
@@ -66,7 +67,6 @@ void* HIPSpace::allocate(
   return impl_allocate(arg_label, arg_alloc_size, arg_logical_size);
 }
 void* HIPSpace::impl_allocate(
-
     const char* arg_label, const size_t arg_alloc_size,
     const size_t arg_logical_size,
     const Kokkos::Tools::SpaceHandle arg_handle) const {
@@ -77,10 +77,7 @@ void* HIPSpace::impl_allocate(
     // This is the only way to clear the last error, which we should do here
     // since we're turning it into an exception here
     (void)hipGetLastError();
-    throw Experimental::HIPRawMemoryAllocationFailure(
-        arg_alloc_size, error_code,
-        Experimental::RawMemoryAllocationFailure::AllocationMechanism::
-            HIPMalloc);
+    Kokkos::Impl::throw_bad_alloc(name(), arg_alloc_size, arg_label);
   }
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     const size_t reported_size =
@@ -111,10 +108,7 @@ void* HIPHostPinnedSpace::impl_allocate(
     // This is the only way to clear the last error, which we should do here
     // since we're turning it into an exception here
     (void)hipGetLastError();
-    throw Experimental::HIPRawMemoryAllocationFailure(
-        arg_alloc_size, error_code,
-        Experimental::RawMemoryAllocationFailure::AllocationMechanism::
-            HIPHostMalloc);
+    Kokkos::Impl::throw_bad_alloc(name(), arg_alloc_size, arg_label);
   }
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     const size_t reported_size =
@@ -178,10 +172,7 @@ Kokkos::HIP::runtime WARNING: Kokkos did not find an environment variable 'HSA_X
       // This is the only way to clear the last error, which we should do here
       // since we're turning it into an exception here
       (void)hipGetLastError();
-      throw Experimental::HIPRawMemoryAllocationFailure(
-          arg_alloc_size, error_code,
-          Experimental::RawMemoryAllocationFailure::AllocationMechanism::
-              HIPMallocManaged);
+      Kokkos::Impl::throw_bad_alloc(name(), arg_alloc_size, arg_label);
     }
     KOKKOS_IMPL_HIP_SAFE_CALL(hipMemAdvise(
         ptr, arg_alloc_size, hipMemAdviseSetCoarseGrain, m_device));

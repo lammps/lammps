@@ -121,31 +121,34 @@ inline void host_check_abi_size() {
 
 template <typename Abi, typename DataType>
 inline void host_check_math_ops() {
-  constexpr size_t n = 11;
-  constexpr size_t alignment =
-      Kokkos::Experimental::simd<DataType, Abi>::size() * sizeof(DataType);
+  if constexpr (is_type_v<Kokkos::Experimental::simd<DataType, Abi>>) {
+    constexpr size_t alignment =
+        Kokkos::Experimental::simd<DataType, Abi>::size() * sizeof(DataType);
 
-  host_check_abi_size<Abi, DataType>();
+    host_check_abi_size<Abi, DataType>();
 
-  if constexpr (!std::is_integral_v<DataType>) {
-    alignas(alignment) DataType const first_args[n] = {
-        0.1, 0.4, 0.5, 0.7, 1.0, 1.5, -2.0, 10.0, 0.0, 1.2, -2.8};
-    alignas(alignment) DataType const second_args[n] = {
-        1.0, 0.2, 1.1, 1.8, -0.1, -3.0, -2.4, 1.0, 13.0, -3.2, -2.1};
-    host_check_all_math_ops<Abi>(first_args, second_args);
-  } else {
-    if constexpr (std::is_signed_v<DataType>) {
-      alignas(alignment)
-          DataType const first_args[n] = {1, 2, -1, 10, 0, 1, -2, 10, 0, 1, -2};
-      alignas(alignment) DataType const second_args[n] = {1,  2, 1,  1,  1, -3,
-                                                          -2, 1, 13, -3, -2};
+    if constexpr (!std::is_integral_v<DataType>) {
+      alignas(alignment) DataType const first_args[] = {
+          0.1, 0.4, 0.5,  0.7, 1.0, 1.5,  -2.0, 10.0,
+          0.0, 1.2, -2.8, 3.0, 4.0, -0.1, 5.0,  -0.2};
+      alignas(alignment) DataType const second_args[] = {
+          1.0,  0.2,  1.1,  1.8, -0.1,  -3.0, -2.4, 1.0,
+          13.0, -3.2, -2.1, 3.0, -15.0, -0.5, -0.2, -0.2};
       host_check_all_math_ops<Abi>(first_args, second_args);
     } else {
-      alignas(alignment)
-          DataType const first_args[n] = {1, 2, 1, 10, 0, 1, 2, 10, 0, 1, 2};
-      alignas(alignment)
-          DataType const second_args[n] = {1, 2, 1, 1, 1, 3, 2, 1, 13, 3, 2};
-      host_check_all_math_ops<Abi>(first_args, second_args);
+      if constexpr (std::is_signed_v<DataType>) {
+        alignas(alignment) DataType const first_args[] = {
+            1, 2, -1, 10, 0, 1, -2, 10, 0, 1, -2, -3, 7, 4, -9, -15};
+        alignas(alignment) DataType const second_args[] = {
+            1, 2, 1, 1, 1, -3, -2, 1, 13, -3, -2, 10, -15, 7, 2, -10};
+        host_check_all_math_ops<Abi>(first_args, second_args);
+      } else {
+        alignas(alignment) DataType const first_args[] = {
+            1, 2, 1, 10, 0, 1, 2, 10, 0, 1, 2, 11, 5, 8, 2, 14};
+        alignas(alignment) DataType const second_args[] = {
+            1, 2, 1, 1, 1, 3, 2, 1, 13, 3, 2, 3, 6, 20, 5, 14};
+        host_check_all_math_ops<Abi>(first_args, second_args);
+      }
     }
   }
 }
@@ -253,25 +256,31 @@ KOKKOS_INLINE_FUNCTION void device_check_abi_size() {
 
 template <typename Abi, typename DataType>
 KOKKOS_INLINE_FUNCTION void device_check_math_ops() {
-  constexpr size_t n = 11;
+  if constexpr (is_type_v<Kokkos::Experimental::simd<DataType, Abi>>) {
+    device_check_abi_size<Abi, DataType>();
 
-  device_check_abi_size<Abi, DataType>();
-
-  if constexpr (!std::is_integral_v<DataType>) {
-    DataType const first_args[n]  = {0.1,  0.4,  0.5, 0.7, 1.0, 1.5,
-                                    -2.0, 10.0, 0.0, 1.2, -2.8};
-    DataType const second_args[n] = {1.0,  0.2, 1.1,  1.8,  -0.1, -3.0,
-                                     -2.4, 1.0, 13.0, -3.2, -2.1};
-    device_check_all_math_ops<Abi>(first_args, second_args);
-  } else {
-    if constexpr (std::is_signed_v<DataType>) {
-      DataType const first_args[n]  = {1, 2, -1, 10, 0, 1, -2, 10, 0, 1, -2};
-      DataType const second_args[n] = {1, 2, 1, 1, 1, -3, -2, 1, 13, -3, -2};
+    if constexpr (!std::is_integral_v<DataType>) {
+      DataType const first_args[]  = {0.1,  0.4,  0.5, 0.7, 1.0,  1.5,
+                                     -2.0, 10.0, 0.0, 1.2, -2.8, 3.0,
+                                     4.0,  -0.1, 5.0, -0.2};
+      DataType const second_args[] = {1.0,   0.2,  1.1,  1.8,  -0.1, -3.0,
+                                      -2.4,  1.0,  13.0, -3.2, -2.1, 3.0,
+                                      -15.0, -0.5, -0.2, -0.2};
       device_check_all_math_ops<Abi>(first_args, second_args);
     } else {
-      DataType const first_args[n]  = {1, 2, 1, 10, 0, 1, 2, 10, 0, 1, 2};
-      DataType const second_args[n] = {1, 2, 1, 1, 1, 3, 2, 1, 13, 3, 2};
-      device_check_all_math_ops<Abi>(first_args, second_args);
+      if constexpr (std::is_signed_v<DataType>) {
+        DataType const first_args[]  = {1, 2, -1, 10, 0, 1, -2, 10,
+                                       0, 1, -2, -3, 7, 4, -9, -15};
+        DataType const second_args[] = {1,  2,  1,  1,  1,   -3, -2, 1,
+                                        13, -3, -2, 10, -15, 7,  2,  -10};
+        device_check_all_math_ops<Abi>(first_args, second_args);
+      } else {
+        DataType const first_args[]  = {1, 2, 1, 10, 0, 1, 2, 10,
+                                       0, 1, 2, 11, 5, 8, 2, 14};
+        DataType const second_args[] = {1,  2, 1, 1, 1, 3,  2, 1,
+                                        13, 3, 2, 3, 6, 20, 5, 14};
+        device_check_all_math_ops<Abi>(first_args, second_args);
+      }
     }
   }
 }

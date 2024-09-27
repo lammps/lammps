@@ -18,17 +18,17 @@
 
 #include "angle_class2.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -466,4 +466,18 @@ double AngleClass2::single(int type, int i1, int i2, int i3)
   energy += ba_k1[type]*dr1*dtheta + ba_k2[type]*dr2*dtheta;
 
   return energy;
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleClass2::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k2") == 0) return (void *) k2;
+  if (strcmp(str, "k3") == 0) return (void *) k3;
+  if (strcmp(str, "k4") == 0) return (void *) k4;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
+  return nullptr;
 }

@@ -105,7 +105,8 @@ class UniqueToken<OpenMP, UniqueTokenScope::Global> {
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()
   KOKKOS_INLINE_FUNCTION
   int size() const noexcept {
-    KOKKOS_IF_ON_HOST((return Kokkos::Impl::g_openmp_hardware_max_threads;))
+    KOKKOS_IF_ON_HOST(
+        (return Kokkos::Impl::OpenMPInternal::max_hardware_threads();))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
   }

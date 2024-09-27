@@ -32,6 +32,10 @@
 
 // Profiling
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Kokkos_Profiling_KokkosPDeviceInfo {
   size_t deviceID;
 };
@@ -266,5 +270,9 @@ struct Kokkos_Profiling_EventSet {
                                                     // interface without
                                                     // changing struct layout
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // KOKKOS_PROFILING_C_INTERFACE_HPP

@@ -43,7 +43,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 Perform time integration for RHEO particles, updating positions, velocities,
 and densities. For an overview of other features available in the RHEO package,

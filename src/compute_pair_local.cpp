@@ -229,7 +229,7 @@ int ComputePairLocal::compute_pairs(int flag)
   m = 0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (!(mask[i] & groupbit)) continue;
+    if ( !(mask[i] & groupbit) && !(mask[i] & groupbit2) ) continue;
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -246,7 +246,8 @@ int ComputePairLocal::compute_pairs(int flag)
       j &= NEIGHMASK;
       jtag = tag[j];
 
-      if (!(mask[j] & groupbit2)) continue;
+      if ( (mask[i] & groupbit) && !(mask[j] & groupbit2)) continue;
+      if ( (mask[i] & groupbit2) && !(mask[j] & groupbit)) continue;
 
       // itag = jtag is possible for long cutoffs that include images of self
 

@@ -1519,6 +1519,10 @@ if __name__ == "__main__":
     msg += f"  - Skipped  : {skipped_tests}\n"
     msg += f"  - Failed   : {error_tests}\n"
     msg += f"  - Completed: {completed_tests}\n"
+
+    # print notice to GitHub
+    print(f"::notice:: Skipped: {skipped_tests}  Failed: {error_tests}  Completed: {completed_tests}")
+
     if memleak_tests < completed_tests and 'valgrind' in config['mpiexec']:
         msg += f"    - memory leak detected  : {memleak_tests}\n"
     if passed_tests <= completed_tests:

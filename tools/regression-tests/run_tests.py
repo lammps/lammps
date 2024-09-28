@@ -1521,7 +1521,8 @@ if __name__ == "__main__":
     msg += f"  - Completed: {completed_tests}\n"
 
     # print notice to GitHub
-    print(f"::notice:: Skipped: {skipped_tests}  Failed: {error_tests}  Completed: {completed_tests}")
+    with open(os.environ.get('GITHUB_STEP_SUMMARY'), 'w') as f:
+      print(f, f"Skipped: {skipped_tests}  Failed: {error_tests}  Completed: {completed_tests}")
 
     if memleak_tests < completed_tests and 'valgrind' in config['mpiexec']:
         msg += f"    - memory leak detected  : {memleak_tests}\n"

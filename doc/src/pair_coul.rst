@@ -4,6 +4,7 @@
 .. index:: pair_style coul/cut/omp
 .. index:: pair_style coul/cut/global
 .. index:: pair_style coul/cut/global/omp
+.. index:: pair_style coul/ctip
 .. index:: pair_style coul/debye
 .. index:: pair_style coul/debye/gpu
 .. index:: pair_style coul/debye/kk
@@ -20,7 +21,6 @@
 .. index:: pair_style coul/msm
 .. index:: pair_style coul/msm/omp
 .. index:: pair_style coul/streitz
-.. index:: pair_style coul/ctip
 .. index:: pair_style coul/wolf
 .. index:: pair_style coul/wolf/kk
 .. index:: pair_style coul/wolf/omp
@@ -38,6 +38,9 @@ pair_style coul/cut/global command
 ==================================
 
 Accelerator Variants: *coul/cut/omp*
+
+pair_style coul/ctip command
+============================
 
 pair_style coul/debye command
 =============================
@@ -65,9 +68,6 @@ Accelerator Variants: *coul/msm/omp*
 pair_style coul/streitz command
 ===============================
 
-pair_style coul/ctip command
-============================
-
 pair_style coul/wolf command
 ============================
 
@@ -90,12 +90,12 @@ Syntax
 
    pair_style coul/cut cutoff
    pair_style coul/cut/global cutoff
+   pair_style coul/ctip alpha cutoff
    pair_style coul/debye kappa cutoff
    pair_style coul/dsf alpha cutoff
    pair_style coul/exclude cutoff
    pair_style coul/long cutoff
    pair_style coul/wolf alpha cutoff
-   pair_style coul/ctip alpha cutoff
    pair_style coul/streitz cutoff keyword alpha
 
    * cutoff = global cutoff for Coulombic interactions
@@ -120,6 +120,9 @@ Examples
    pair_coeff * *
    pair_coeff 2 2 3.5
 
+   pair_style coul/ctip 0.30 12.0
+   pair_coeff * * NiO.ctip Ni O
+
    pair_style coul/debye 1.4 3.0
    pair_coeff * *
    pair_coeff 2 2 3.5
@@ -142,9 +145,6 @@ Examples
    pair_style coul/streitz 12.0 ewald
    pair_style coul/streitz 12.0 wolf 0.30
    pair_coeff * * AlO.streitz Al O
-
-   pair_style coul/ctip 0.30 12.0
-   pair_coeff * * NiO.ctip Ni O
 
    pair_style tip4p/cut 1 2 7 8 0.15 12.0
    pair_coeff * *
@@ -177,6 +177,32 @@ Pair style *coul/cut/global* computes the same Coulombic interactions
 as style *coul/cut* except that it allows only a single global cutoff
 and thus makes it compatible for use in combination with long-range
 coulomb styles in :doc:`hybrid pair styles <pair_hybrid>`.
+
+----------
+
+.. versionadded:: TBD
+
+Style *coul/ctip* computes the Coulomb interations as described in
+:ref:`Plummer <Plummer1>`. It uses the the damped shifted model as in
+style *coul/dsf* but is further extended to the second derivative of
+the potential and incorporates empirical charge shielding meant to
+approximate the more expensive Coulomb integrals used in style *coul/streitz*.
+More details can be found in the referenced paper. Like the style *coul/streitz*,
+style *coul/ctip* is a variable charge potential and must be hybridized
+with a short-range potential via the :doc:`pair_style hybrid/overlay <pair_hybrid>`
+command. Charge equilibration must be performed with the :doc:`fix qeq/ctip
+<fix_qeq>` command. For example:
+
+.. code-block:: LAMMPS
+
+   pair_style hybrid/overlay eam/fs coul/ctip 0.30 12.0
+   pair_coeff * * eam/fs NiO.eam.fs Ni O
+   pair_coeff * * coul/ctip NiO.ctip Ni O
+   fix 1 all qeq/ctip 1 12.0 1.0e-8 100 coul/ctip cdamp 0.30 maxrepeat 10
+
+See the examples/ctip directory for an example input script using the CTIP
+potential. An Ni-O CTIP and EAM/FS parametrization are included for use with
+the example.
 
 ----------
 
@@ -285,32 +311,6 @@ carbides (such as SiC, TiN).  Pair coul/strietz used by itself or with
 any other pair style such as EAM, MEAM, Tersoff, or LJ in
 hybrid/overlay mode.  To do this, you would need to provide a
 Streitz-Mintmire parameterization for the material being modeled.
-
-----------
-
-.. versionadded:: TBD
-
-Style *coul/ctip* computes the Coulomb interations as described in
-:ref:`Plummer <Plummer1>`. It uses the the damped shifted model as in
-style *coul/dsf* but is further extended to the second derivative of
-the potential and incorporates empirical charge shielding meant to
-approximate the more expensive Coulomb integrals used in style *coul/streitz*.
-More details can be found in the referenced paper. Like the style *coul/streitz*,
-style *coul/ctip* is a variable charge potential and must be hybridized
-with a short-range potential via the :doc:`pair_style hybrid/overlay <pair_hybrid>`
-command. Charge equilibration must be performed with the :doc:`fix qeq/ctip
-<fix_qeq>` command. For example:
-
-.. code-block:: LAMMPS
-
-   pair_style hybrid/overlay eam/fs coul/ctip 0.30 12.0
-   pair_coeff * * eam/fs NiO.eam.fs Ni O
-   pair_coeff * * coul/ctip NiO.ctip Ni O
-   fix 1 all qeq/ctip 1 12.0 1.0e-8 100 coul/ctip cdamp 0.30 maxrepeat 10
-
-See the examples/ctip directory for an example input script using the CTIP
-potential. An Ni-O CTIP and EAM/FS parametrization are included for use with
-the example.
 
 ----------
 

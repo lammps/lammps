@@ -59,7 +59,7 @@ electric field by using the effective electronegativity given in
 :ref:`(Gergs) <Gergs>`:
 
 .. math::
-   \chi_{\mathrm{eff},i} = \frac{\sum_{j=1}^{N} (\chi_i - \chi_j + \phi_j - \phi_i) S_{ij}}
+   \chi_{\mathrm{eff},i} = \frac{\sum_{j=1}^{N} (\chi_i - \chi_j + \phi_i - \phi_j) S_{ij}}
                                 {\sum_{m=1}^{N}S_{im}},
 
 where :math:`\phi_i` and :math:`\phi_j` are the electric

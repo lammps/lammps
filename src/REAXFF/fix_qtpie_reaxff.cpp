@@ -1166,7 +1166,7 @@ void FixQtpieReaxFF::calc_chi_eff()
     chia = chi[type[i]];
     if (efield) {
       if (efield->varflag != FixEfield::ATOM) {
-        phia = factor*(x[i][0]*efield->ex  + x[i][1]*efield->ey + x[i][2]*efield->ez);
+        phia = -factor*(x[i][0]*efield->ex  + x[i][1]*efield->ey + x[i][2]*efield->ez);
       } else { // atom-style potential from FixEfield
         phia = efield->efield[i][3];
       }
@@ -1189,11 +1189,11 @@ void FixQtpieReaxFF::calc_chi_eff()
 
         if (efield) {
           if (efield->varflag != FixEfield::ATOM) {
-            phib = factor*(x[j][0]*efield->ex  + x[j][1]*efield->ey + x[j][2]*efield->ez);
+            phib = -factor*(x[j][0]*efield->ex  + x[j][1]*efield->ey + x[j][2]*efield->ez);
           } else { // atom-style potential from FixEfield
             phib = efield->efield[j][3];
           }
-          sum_n += (chia - chib + phib - phia) * overlap;
+          sum_n += (chia - chib + phia - phib) * overlap;
         } else {
           sum_n += (chia - chib) * overlap;
         }

@@ -126,11 +126,11 @@ TEST(FmtLib, insert_neg_double)
 TEST(FmtLib, int_for_double)
 {
     const double val = -1.5;
-    ASSERT_THROW(fmt::format("word {:d}", val), std::exception);
+    ASSERT_THROW(auto text = fmt::format("word {:d}", val), std::exception);
 }
 
 TEST(FmtLib, double_for_int)
 {
     const int val = 15;
-    ASSERT_THROW(fmt::format("word {:g}", val), std::exception);
+    ASSERT_THROW(auto text = fmt::format("word {:g}", val), std::exception);
 }

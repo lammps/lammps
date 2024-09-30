@@ -241,17 +241,18 @@ ignore the second (title) line, and then read one line for each atom in the form
    <label> <x coordinate>  <y coordinate> <z coordinate>
 
 
-If label is an integer number as label (like with XYZ files created by
+If the atom label is a numeric integer (like with XYZ files created by
 created with default settings by :doc:`dump style <dump>` *xyz*), that
-number will be used at atom type.  If the atom label is a string, then
-it is required that a map is created using the :doc:`labelmap command
-<labelmap>`. This map needs to associate each (numeric) atom type with
-one string label and that numeric type is stored.  The xyz format dump
-file does not store atom IDs, so these are assigned consecutively to the
-atoms as they appear in the dump file, starting from 1.  Thus you should
-ensure that order of atoms is consistent from snapshot to snapshot in
-the XYZ dump file.  See the :doc:`dump_modify sort <dump_modify>`
-command if the XYZ dump file was written by LAMMPS.
+number will be used as the atom type.  If the atom label is a string,
+then a type map must be created using the :doc:`labelmap command
+<labelmap>`.  This map needs to associate each (numeric) atom type with
+one string label and that numeric type is stored.
+
+The xyz format dump file does not store atom IDs, so these are assigned
+consecutively to the atoms as they appear in the dump file, starting
+from 1.  Thus you should ensure that order of atoms is consistent from
+snapshot to snapshot in the XYZ dump file.  See the :doc:`dump_modify
+sort <dump_modify>` command if the XYZ dump file was written by LAMMPS.
 
 For dump files in *molfile* format, the *x*, *y*, *z*, *vx*, *vy*, and
 *vz* fields can be specified.  However, not all molfile formats store

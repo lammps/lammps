@@ -75,9 +75,9 @@ void MEAMKokkos<DeviceType>::meam_force(
     if (vflag_atom) Kokkos::Experimental::contribute(d_vatom, dup_vatom);
 
     // free duplicated memory
-    dup_f = decltype(dup_f)();
-    if (eflag_atom) dup_eatom = decltype(dup_eatom)();
-    if (vflag_atom) dup_vatom = decltype(dup_vatom)();
+    dup_f = {};
+    if (eflag_atom) dup_eatom = {};
+    if (vflag_atom) dup_vatom = {};
   }
 }
 

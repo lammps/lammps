@@ -68,7 +68,7 @@ struct TestInsert {
     } while (rehash_on_fail && failed_count > 0u);
 
     // Trigger the m_size mutable bug.
-    typename map_type::HostMirror map_h;
+    auto map_h = create_mirror(map);
     execution_space().fence();
     Kokkos::deep_copy(map_h, map);
     execution_space().fence();
@@ -367,7 +367,7 @@ void test_deep_copy(uint32_t num_nodes) {
     }
   }
 
-  host_map_type hmap;
+  auto hmap = create_mirror(map);
   Kokkos::deep_copy(hmap, map);
 
   ASSERT_EQ(map.size(), hmap.size());
@@ -380,6 +380,7 @@ void test_deep_copy(uint32_t num_nodes) {
   }
 
   map_type mmap;
+  mmap.allocate_view(hmap);
   Kokkos::deep_copy(mmap, hmap);
 
   const_map_type cmap = mmap;
@@ -424,7 +425,7 @@ TEST(TEST_CATEGORY, UnorderedMap_valid_empty) {
   Map n{};
   n = Map{m.capacity()};
   n.rehash(m.capacity());
-  Kokkos::deep_copy(n, m);
+  n.create_copy_view(m);
   ASSERT_TRUE(m.is_allocated());
   ASSERT_TRUE(n.is_allocated());
 }

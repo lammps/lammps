@@ -353,6 +353,22 @@ void HIPInternal::finalize() {
   m_num_scratch_locks = 0;
 }
 
+int HIPInternal::m_hipDev                                     = -1;
+unsigned HIPInternal::m_multiProcCount                        = 0;
+unsigned HIPInternal::m_maxWarpCount                          = 0;
+std::array<HIPInternal::size_type, 3> HIPInternal::m_maxBlock = {0, 0, 0};
+unsigned HIPInternal::m_maxWavesPerCU                         = 0;
+int HIPInternal::m_shmemPerSM                                 = 0;
+int HIPInternal::m_maxShmemPerBlock                           = 0;
+int HIPInternal::m_maxThreadsPerSM                            = 0;
+
+hipDeviceProp_t HIPInternal::m_deviceProp;
+
+std::mutex HIPInternal::scratchFunctorMutex;
+unsigned long *HIPInternal::constantMemHostStaging = nullptr;
+hipEvent_t HIPInternal::constantMemReusable        = nullptr;
+std::mutex HIPInternal::constantMemMutex;
+
 //----------------------------------------------------------------------------
 
 Kokkos::HIP::size_type hip_internal_multiprocessor_count() {

@@ -613,7 +613,7 @@ void Variable::set(int narg, char **arg)
 
   // unrecognized variable style
 
-  } else error->all(FLERR,"Unknown variable keyword: {}", arg[1]);
+  } else error->all(FLERR,"Unknown variable style: {}", arg[1]);
 
   // set name of variable, if not replacing one flagged with replaceflag
   // name must be all alphanumeric chars or underscores

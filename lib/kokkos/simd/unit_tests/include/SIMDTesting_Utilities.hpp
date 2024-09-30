@@ -135,8 +135,8 @@ class load_masked {
     for (std::size_t i = 0; i < n; ++i) {
       mask[i] = true;
     }
+    result = T(0);
     where(mask, result).copy_from(mem, Kokkos::Experimental::simd_flag_default);
-    where(!mask, result) = 0;
     return true;
   }
   template <class T, class Abi>
@@ -180,5 +180,15 @@ class load_as_scalars {
     return true;
   }
 };
+
+// Simple check to loosely test that T is a complete type.
+// Some capabilities are only defined for specific data type and abi pairs (i.e.
+// extended vector width); this is used to exclude pairs that
+// are not defined from being tested.
+template <typename T, typename = void>
+constexpr bool is_type_v = false;
+
+template <typename T>
+constexpr bool is_type_v<T, decltype(void(sizeof(T)))> = true;
 
 #endif

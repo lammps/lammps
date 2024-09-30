@@ -13,7 +13,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Stan Moore (SNL)
+   Contributing authors: Stan Moore (SNL)
+                         Mitch Murphy (alphataubio@gmail.com)
 ------------------------------------------------------------------------- */
 
 #include "fix_nh_kokkos.h"
@@ -37,6 +38,7 @@ using namespace FixConst;
 
 static constexpr double DELTAFLIP = 0.1;
 static constexpr double TILTMAX = 1.5;
+static constexpr double EPSILON = 1.0e-6;
 
 enum{NOBIAS,BIAS};
 enum{NONE,XYZ,XY,YZ,XZ};
@@ -50,6 +52,7 @@ template<class DeviceType>
 FixNHKokkos<DeviceType>::FixNHKokkos(LAMMPS *lmp, int narg, char **arg) : FixNH(lmp, narg, arg)
 {
   kokkosable = 1;
+  atomKK = (AtomKokkos *)atom;
   domainKK = (DomainKokkos *) domain;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -89,18 +92,21 @@ void FixNHKokkos<DeviceType>::setup(int /*vflag*/)
   } else if (pstat_flag) {
 
     // t0 = reference temperature for masses
+    // set equal to either ptemp or the current temperature
     // cannot be done in init() b/c temperature cannot be called there
     // is b/c Modify::init() inits computes after fixes due to dof dependence
-    // guesstimate a unit-dependent t0 if actual T = 0.0
+    // error if T less than 1e-6
     // if it was read in from a restart file, leave it be
 
     if (t0 == 0.0) {
-      atomKK->sync(temperature->execution_space,temperature->datamask_read);
-      t0 = temperature->compute_scalar();
-      atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-      if (t0 == 0.0) {
-        if (strcmp(update->unit_style,"lj") == 0) t0 = 1.0;
-        else t0 = 300.0;
+      if (p_temp_flag) {
+        t0 = p_temp;
+      } else {
+        atomKK->sync(temperature->execution_space,temperature->datamask_read);
+        t0 = temperature->compute_scalar();
+        atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+        if (t0 < EPSILON)
+          error->all(FLERR,"Current temperature too close to zero, consider using ptemp keyword");
       }
     }
     t_target = t0;
@@ -298,13 +304,14 @@ void FixNHKokkos<DeviceType>::remap()
 
   // convert pertinent atoms and rigid bodies to lamda coords
 
-  domainKK->x2lamda(nlocal);
-  //if (allremap) domainKK->x2lamda(nlocal);
-  //else {
-  //  for (i = 0; i < nlocal; i++)
-  //    if (mask[i] & dilate_group_bit)
-  //      domain->x2lamda(x[i],x[i]);
-  //}
+  x = atomKK->k_x.template view<DeviceType>();
+
+  if (allremap) domainKK->x2lamda(nlocal);
+  else {
+    for ( int i = 0; i < nlocal; i++)
+      if (mask[i] & dilate_group_bit)
+        domainKK->x2lamda(&x(i,0), &x(i,0));
+  }
 
   if (rfix.size() > 0)
     error->all(FLERR,"Cannot (yet) use rigid bodies with fix nh and Kokkos");
@@ -446,13 +453,12 @@ void FixNHKokkos<DeviceType>::remap()
 
   // convert pertinent atoms and rigid bodies back to box coords
 
-  domainKK->lamda2x(nlocal);
-  //if (allremap) domainKK->lamda2x(nlocal);
-  //else {
-  //  for (i = 0; i < nlocal; i++)
-  //    if (mask[i] & dilate_group_bit)
-  //      domain->lamda2x(x[i],x[i]);
-  //}
+  if (allremap) domainKK->lamda2x(nlocal);
+  else {
+    for ( int i = 0; i < nlocal; i++)
+      if (mask[i] & dilate_group_bit)
+        domainKK->lamda2x(&x(i,0), &x(i,0));
+  }
 
   // for (auto &ifix : rfix) ifix->deform(1);
 }

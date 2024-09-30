@@ -22,8 +22,6 @@
 
 using namespace LAMMPS_NS;
 
-enum { CONSTANT, VARIABLE };
-
 /* ---------------------------------------------------------------------- */
 
 RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :

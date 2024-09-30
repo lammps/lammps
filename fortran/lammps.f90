@@ -1443,7 +1443,7 @@ CONTAINS
     IF (SIZE_TAGINT == 8) THEN
         Cptr = C_LOC(id)
     ELSE
-        id32 = id
+        id32 = INT(id, c_int)
         Cptr = C_LOC(id32)
     END IF
     lmp_map_atom_big = lammps_map_atom(self%handle, Cptr) + 1
@@ -2604,6 +2604,8 @@ CONTAINS
     TYPE(c_ptr) :: Cid, Ctype, Cx, Cv, Cimage
     INTEGER(c_int) :: tagint_size, atoms_created
 
+    Ctype = c_null_ptr
+    Cx = c_null_ptr
     ! type is actually NOT optional, but we can't make id optional without it,
     ! so we check at run-time
     IF (.NOT. PRESENT(type)) THEN

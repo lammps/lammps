@@ -23,11 +23,15 @@
 namespace Kokkos {
 namespace Impl {
 
+struct SequentialHostInit_t {};
 struct WithoutInitializing_t {};
 struct AllowPadding_t {};
 
 template <typename>
 struct is_view_ctor_property : public std::false_type {};
+
+template <>
+struct is_view_ctor_property<SequentialHostInit_t> : public std::true_type {};
 
 template <>
 struct is_view_ctor_property<WithoutInitializing_t> : public std::true_type {};
@@ -84,10 +88,10 @@ struct ViewCtorProp<void, CommonViewAllocProp<Specialize, T>> {
 
 /* Property flags have constexpr value */
 template <typename P>
-struct ViewCtorProp<
-    std::enable_if_t<std::is_same<P, AllowPadding_t>::value ||
-                     std::is_same<P, WithoutInitializing_t>::value>,
-    P> {
+struct ViewCtorProp<std::enable_if_t<std::is_same_v<P, AllowPadding_t> ||
+                                     std::is_same_v<P, WithoutInitializing_t> ||
+                                     std::is_same_v<P, SequentialHostInit_t>>,
+                    P> {
   ViewCtorProp()                     = default;
   ViewCtorProp(const ViewCtorProp &) = default;
   ViewCtorProp &operator=(const ViewCtorProp &) = default;
@@ -199,6 +203,11 @@ struct ViewCtorProp : public ViewCtorProp<void, P>... {
       Kokkos::Impl::has_type<AllowPadding_t, P...>::value;
   static constexpr bool initialize =
       !Kokkos::Impl::has_type<WithoutInitializing_t, P...>::value;
+  static constexpr bool sequential_host_init =
+      Kokkos::Impl::has_type<SequentialHostInit_t, P...>::value;
+  static_assert(initialize || !sequential_host_init,
+                "Incompatible WithoutInitializing and SequentialHostInit view "
+                "alloc properties");
 
   using memory_space    = typename var_memory_space::type;
   using execution_space = typename var_execution_space::type;
@@ -251,7 +260,9 @@ auto with_properties_if_unset(const ViewCtorProp<P...> &view_ctor_prop,
                 (is_view_label<Property>::value &&
                  !ViewCtorProp<P...>::has_label) ||
                 (std::is_same_v<Property, WithoutInitializing_t> &&
-                 ViewCtorProp<P...>::initialize)) {
+                 ViewCtorProp<P...>::initialize) ||
+                (std::is_same_v<Property, SequentialHostInit_t> &&
+                 !ViewCtorProp<P...>::sequential_host_init)) {
     using NewViewCtorProp = ViewCtorProp<P..., Property>;
     NewViewCtorProp new_view_ctor_prop(view_ctor_prop);
     static_cast<ViewCtorProp<void, Property> &>(new_view_ctor_prop).value =
@@ -299,7 +310,9 @@ struct WithPropertiesIfUnset<ViewCtorProp<P...>, Property, Properties...> {
                   (is_view_label<Property>::value &&
                    !ViewCtorProp<P...>::has_label) ||
                   (std::is_same_v<Property, WithoutInitializing_t> &&
-                   ViewCtorProp<P...>::initialize)) {
+                   ViewCtorProp<P...>::initialize) ||
+                  (std::is_same_v<Property, SequentialHostInit_t> &&
+                   !ViewCtorProp<P...>::sequential_host_init)) {
       using NewViewCtorProp = ViewCtorProp<P..., Property>;
       NewViewCtorProp new_view_ctor_prop(view_ctor_prop);
       static_cast<ViewCtorProp<void, Property> &>(new_view_ctor_prop).value =

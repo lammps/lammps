@@ -1022,7 +1022,7 @@ regression tests with a given LAMMPS binary.  The tool launches the
 LAMMPS binary with any given input script under one of the `examples`
 subdirectories, and compares the thermo output in the generated log file
 with those in the provided log file with the same number of processors
-ub the same subdirectory. If the differences between the actual and
+in the same subdirectory. If the differences between the actual and
 reference values are within specified tolerances, the test is considered
 passed.  For each test batch, that is, a set of example input scripts,
 the mpirun command, the LAMMPS command line arguments, and the

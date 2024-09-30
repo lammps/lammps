@@ -53,7 +53,8 @@ FixACKS2ReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK | Q_MASK | TYPE_MASK | TAG_MASK;
   datamask_modify = Q_MASK | X_MASK;
 
-  nmax = m_cap = 0;
+  nmax = 0;
+  m_cap_big = 0;
   allocated_flag = 0;
   nprev = 4;
 
@@ -66,7 +67,7 @@ FixACKS2ReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   buf = new double[2*nprev];
   prev_last_rows_rank = 0;
 
-  d_mfill_offset = typename AT::t_int_scalar("acks2/kk:mfill_offset");
+  d_mfill_offset = typename AT::t_bigint_scalar("acks2/kk:mfill_offset");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -364,7 +365,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
     // free duplicated memory
 
-    dup_X_diag = decltype(dup_X_diag)();
+    dup_X_diag = {};
   }
 
   if (neighflag != FULL) {
@@ -418,10 +419,10 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixACKS2ReaxFFKokkos<DeviceType>::num_neigh_item(int ii, int &maxneigh) const
+void FixACKS2ReaxFFKokkos<DeviceType>::num_neigh_item(int ii, bigint &totneigh) const
 {
   const int i = d_ilist[ii];
-  maxneigh += d_numneigh[i];
+  totneigh += d_numneigh[i];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -433,39 +434,39 @@ void FixACKS2ReaxFFKokkos<DeviceType>::allocate_matrix()
 
   // determine the total space for the H matrix
 
-  m_cap = 0;
+  m_cap_big = 0;
 
   // limit scope of functor to allow deallocation of views
   {
     FixACKS2ReaxFFKokkosNumNeighFunctor<DeviceType> neigh_functor(this);
-    Kokkos::parallel_reduce(nn,neigh_functor,m_cap);
+    Kokkos::parallel_reduce(nn,neigh_functor,m_cap_big);
   }
 
   // deallocate first to reduce memory overhead
 
-  d_firstnbr = typename AT::t_int_1d();
+  d_firstnbr = typename AT::t_bigint_1d();
   d_numnbrs = typename AT::t_int_1d();
   d_jlist = typename AT::t_int_1d();
   d_val = typename AT::t_ffloat_1d();
 
-  d_firstnbr_X = typename AT::t_int_1d();
+  d_firstnbr_X = typename AT::t_bigint_1d();
   d_numnbrs_X = typename AT::t_int_1d();
   d_jlist_X = typename AT::t_int_1d();
   d_val_X = typename AT::t_ffloat_1d();
 
   // H matrix
 
-  d_firstnbr = typename AT::t_int_1d("acks2/kk:firstnbr",nmax);
+  d_firstnbr = typename AT::t_bigint_1d("acks2/kk:firstnbr",nmax);
   d_numnbrs = typename AT::t_int_1d("acks2/kk:numnbrs",nmax);
-  d_jlist = typename AT::t_int_1d("acks2/kk:jlist",m_cap);
-  d_val = typename AT::t_ffloat_1d("acks2/kk:val",m_cap);
+  d_jlist = typename AT::t_int_1d("acks2/kk:jlist",m_cap_big);
+  d_val = typename AT::t_ffloat_1d("acks2/kk:val",m_cap_big);
 
   // X matrix
 
-  d_firstnbr_X = typename AT::t_int_1d("acks2/kk:firstnbr_X",nmax);
+  d_firstnbr_X = typename AT::t_bigint_1d("acks2/kk:firstnbr_X",nmax);
   d_numnbrs_X = typename AT::t_int_1d("acks2/kk:numnbrs_X",nmax);
-  d_jlist_X = typename AT::t_int_1d("acks2/kk:jlist_X",m_cap);
-  d_val_X = typename AT::t_ffloat_1d("acks2/kk:val_X",m_cap);
+  d_jlist_X = typename AT::t_int_1d("acks2/kk:jlist_X",m_cap_big);
+  d_val_X = typename AT::t_ffloat_1d("acks2/kk:val_X",m_cap_big);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -566,7 +567,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Zero, const int &ii) 
 template<class DeviceType>
 template <int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_item(int ii, int &m_fill, const bool &final) const
+void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_item(int ii, bigint &m_fill, const bool &final) const
 {
   const int i = d_ilist[ii];
   int j,jj,jtype;
@@ -619,7 +620,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_item(int ii, int &m_fill, const
       m_fill++;
     }
     if (final)
-      d_numnbrs[i] = m_fill - d_firstnbr[i];
+      d_numnbrs[i] = int(m_fill - d_firstnbr[i]);
   }
 }
 
@@ -698,9 +699,9 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_team(
 
   // calculate the global memory offset from where the H matrix values to be
   // calculated by the current team will be stored in d_val
-  int team_firstnbr_idx = 0;
+  bigint team_firstnbr_idx = 0;
   Kokkos::single(Kokkos::PerTeam(team),
-                 [=](int &val) {
+                 [=](bigint &val) {
                    int totalnbrs = s_firstnbr[lastatom - firstatom - 1] +
                                    s_numnbrs[lastatom - firstatom - 1];
                    val = Kokkos::atomic_fetch_add(&d_mfill_offset(), totalnbrs);
@@ -726,7 +727,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_team(
             int jnum = s_numnbrs[idx];
 
             // calculate the write-offset for atom-i's first neighbor
-            int atomi_firstnbr_idx = team_firstnbr_idx + s_firstnbr[idx];
+            bigint atomi_firstnbr_idx = team_firstnbr_idx + s_firstnbr[idx];
             Kokkos::single(Kokkos::PerThread(team),
                            [&]() { d_firstnbr[i] = atomi_firstnbr_idx; });
 
@@ -739,7 +740,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_team(
             // are processed in batches and the batch size is vector_length
             for (int jj_start = 0; jj_start < jnum; jj_start += vector_length) {
 
-              int atomi_nbr_writeIdx = atomi_firstnbr_idx + atomi_nbrs_inH;
+              bigint atomi_nbr_writeIdx = atomi_firstnbr_idx + atomi_nbrs_inH;
 
               // count the # of neighbor atoms with non-zero electrostatic
               // interaction coefficients with atom-i in the current batch
@@ -782,7 +783,8 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_team(
                               valid = false;
                             if (x(j, 2) == ztmp && x(j, 1) < ytmp)
                               valid = false;
-                            if (x(j, 2) == ztmp && x(j, 1) == ytmp && x(j, 0) < xtmp)
+                            if (x(j, 2) == ztmp && x(j, 1) == ytmp &&
+                                x(j, 0) < xtmp)
                               valid = false;
                           }
                         }
@@ -851,7 +853,7 @@ double FixACKS2ReaxFFKokkos<DeviceType>::calculate_H_k(const F_FLOAT &r, const F
   taper = taper * r + d_tap[0];
 
   denom = r * r * r + shld;
-  denom = pow(denom,1.0/3.0);
+  denom = cbrt(denom);
 
   return taper * EV_TO_KCAL_PER_MOL / denom;
 }
@@ -861,7 +863,7 @@ double FixACKS2ReaxFFKokkos<DeviceType>::calculate_H_k(const F_FLOAT &r, const F
 template<class DeviceType>
 template <int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_item(int ii, int &m_fill, const bool &final) const
+void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_item(int ii, bigint &m_fill, const bool &final) const
 {
   // The X_diag array is duplicated for OpenMP, atomic for GPU, and neither for Serial
   auto v_X_diag = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_X_diag),decltype(ndup_X_diag)>::get(dup_X_diag,ndup_X_diag);
@@ -927,7 +929,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_item(int ii, int &m_fill, const
     }
     if (final) {
       a_X_diag[i] += tmp;
-      d_numnbrs_X[i] = m_fill - d_firstnbr_X[i];
+      d_numnbrs_X[i] = int(m_fill - d_firstnbr_X[i]);
     }
   }
 }
@@ -1005,9 +1007,9 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_team(
 
   // calculate the global memory offset from where the H matrix values to be
   // calculated by the current team will be stored in d_val_X
-  int team_firstnbr_idx = 0;
+  bigint team_firstnbr_idx = 0;
   Kokkos::single(Kokkos::PerTeam(team),
-                 [=](int &val) {
+                 [=](bigint &val) {
                    int totalnbrs = s_firstnbr[lastatom - firstatom - 1] +
                                    s_numnbrs[lastatom - firstatom - 1];
                    val = Kokkos::atomic_fetch_add(&d_mfill_offset(), totalnbrs);
@@ -1033,7 +1035,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_team(
             int jnum = s_numnbrs[idx];
 
             // calculate the write-offset for atom-i's first neighbor
-            int atomi_firstnbr_idx = team_firstnbr_idx + s_firstnbr[idx];
+            bigint atomi_firstnbr_idx = team_firstnbr_idx + s_firstnbr[idx];
             Kokkos::single(Kokkos::PerThread(team),
                            [&]() { d_firstnbr_X[i] = atomi_firstnbr_idx; });
 
@@ -1046,7 +1048,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_team(
             // are processed in batches and the batch size is vector_length
             for (int jj_start = 0; jj_start < jnum; jj_start += vector_length) {
 
-              int atomi_nbr_writeIdx = atomi_firstnbr_idx + atomi_nbrs_inH;
+              bigint atomi_nbr_writeIdx = atomi_firstnbr_idx + atomi_nbrs_inH;
 
               // count the # of neighbor atoms with non-zero electrostatic
               // interaction coefficients with atom-i in the current batch
@@ -1417,7 +1419,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::sparse_matvec_acks2(typename AT::t_ffloat
 
     // free duplicated memory
 
-    dup_bb = decltype(dup_bb)();
+    dup_bb = {};
   }
 }
 
@@ -1464,7 +1466,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec3_Half<NE
     F_FLOAT tmp = 0.0;
 
     // H Matrix
-    for(int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
+    for (bigint jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
       tmp += d_val(jj) * d_xx[j];
       a_bb[j] += d_val(jj) * d_xx[i];
@@ -1473,7 +1475,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec3_Half<NE
 
     // X Matrix
     tmp = 0.0;
-    for(int jj = d_firstnbr_X[i]; jj < d_firstnbr_X[i] + d_numnbrs_X[i]; jj++) {
+    for (bigint jj = d_firstnbr_X[i]; jj < d_firstnbr_X[i] + d_numnbrs_X[i]; jj++) {
       const int j = d_jlist_X(jj);
       tmp += d_val_X(jj) * d_xx[NN + j];
      a_bb[NN + j] += d_val_X(jj) * d_xx[NN + i];
@@ -1505,13 +1507,13 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec3_Full, c
     F_FLOAT sum;
     F_FLOAT sum2;
 
-    Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const int &jj, F_FLOAT &sum) {
+    Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const bigint &jj, F_FLOAT &sum) {
       const int j = d_jlist(jj);
       sum += d_val(jj) * d_xx[j];
     }, sum);
     team.team_barrier();
 
-    Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, d_firstnbr_X[i], d_firstnbr_X[i] + d_numnbrs_X[i]), [&] (const int &jj, F_FLOAT &sum2) {
+    Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, d_firstnbr_X[i], d_firstnbr_X[i] + d_numnbrs_X[i]), [&] (const bigint &jj, F_FLOAT &sum2) {
       const int j = d_jlist_X(jj);
       sum2 += d_val_X(jj) * d_xx[NN + j];
     }, sum2);
@@ -1865,8 +1867,8 @@ double FixACKS2ReaxFFKokkos<DeviceType>::memory_usage()
   bytes += nmax*4 * sizeof(double); // storage
   bytes += size*11 * sizeof(double); // storage
   bytes += n_cap*4 * sizeof(int); // matrix...
-  bytes += m_cap*2 * sizeof(int);
-  bytes += m_cap*2 * sizeof(double);
+  bytes += m_cap_big*2 * sizeof(int);
+  bytes += m_cap_big*2 * sizeof(double);
 
   return bytes;
 }

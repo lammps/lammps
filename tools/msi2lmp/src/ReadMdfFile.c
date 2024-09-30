@@ -144,7 +144,7 @@ void ReadMdfFile(void)
 
         molecule[n].residue[j].end = i;
         molecule[n].residue[++j].start = i;
-        strncpy(molecule[n].residue[j].name,atoms[i].residue_string,MAX_NAME);
+        memcpy(molecule[n].residue[j].name,atoms[i].residue_string,MAX_NAME);
       }
     }
     molecule[n].residue[j].end = molecule[n].end;
@@ -167,10 +167,9 @@ void ReadMdfFile(void)
 
   for (n=0; n < no_molecules; n++) {
     for (j=0; j < molecule[n].no_residues; j++) {
-      for (i=molecule[n].residue[j].start; i < molecule[n].residue[j].end;
-           i++) {
+      for (i=molecule[n].residue[j].start; i < molecule[n].residue[j].end; i++) {
         for (l=0; l < atoms[i].no_connect; l++) {
-          strncpy(temp_string,atoms[i].connections[l],MAX_STRING);
+          memcpy(temp_string,atoms[i].connections[l],MAX_STRING);
           temp_residue = strtok(temp_string,":");
           temp_atom_name = strtok(NULL,"%");
 

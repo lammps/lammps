@@ -16,13 +16,14 @@
 # Written by Richard Berger <richard.berger@temple.edu>
 ################################################################################
 
-import warnings
 from ctypes import POINTER, c_void_p, c_char_p, c_double, c_int, c_int32, c_int64, cast
 
+from .constants import  LAMMPS_AUTODETECT, LAMMPS_INT, LAMMPS_INT_2D, LAMMPS_DOUBLE, \
+  LAMMPS_DOUBLE_2D, LAMMPS_INT64, LAMMPS_INT64_2D, LMP_STYLE_GLOBAL, LMP_STYLE_ATOM, \
+  LMP_STYLE_LOCAL, LMP_TYPE_VECTOR, LMP_TYPE_ARRAY, LMP_SIZE_VECTOR, LMP_SIZE_ROWS, \
+  LMP_SIZE_COLS, LMP_VAR_EQUAL, LMP_VAR_ATOM
 
-from .constants import *                # lgtm [py/polluting-import]
 from .data import NeighList
-
 
 class numpy_wrapper:
   """lammps API NumPy Wrapper

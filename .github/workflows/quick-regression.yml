@@ -121,6 +121,12 @@ jobs:
         with:
           name: merged-quick-regresssion-artifact
           pattern: quick-regression-test-artifact-*
+
+      - name: Download all the artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+  
       - name: Print job summary
         run: |
-          zipgrep Failed screen-output* | tr -d '\n' > $GITHUB_STEP_SUMMARY
+          zipgrep Failed ./artifacts/screen-output-* | tr -d '\n' > $GITHUB_STEP_SUMMARY

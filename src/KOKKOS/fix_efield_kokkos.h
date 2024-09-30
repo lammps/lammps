@@ -25,6 +25,7 @@ FixStyle(efield/kk/host,FixEfieldKokkos<LMPHostType>);
 
 #include "fix_efield.h"
 #include "kokkos_type.h"
+#include "kokkos_few.h"
 
 namespace LAMMPS_NS {
 

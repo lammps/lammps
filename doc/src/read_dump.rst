@@ -246,23 +246,24 @@ created with default settings by :doc:`dump style <dump>` *xyz*), that
 number will be used as the atom type.  If the atom label is a string,
 then a type map must be created using the :doc:`labelmap command
 <labelmap>`.  This map needs to associate each (numeric) atom type with
-one string label and that numeric type is stored.
+a string label. The numeric atom type is stored internally.
 
 The xyz format dump file does not store atom IDs, so these are assigned
 consecutively to the atoms as they appear in the dump file, starting
-from 1.  Thus you should ensure that order of atoms is consistent from
-snapshot to snapshot in the XYZ dump file.  See the :doc:`dump_modify
-sort <dump_modify>` command if the XYZ dump file was written by LAMMPS.
+from 1.  Thus you should ensure that the order of atoms is consistent
+from snapshot to snapshot in the XYZ dump file.  See the
+:doc:`dump_modify sort <dump_modify>` command if the XYZ dump file was
+written by LAMMPS.
 
 For dump files in *molfile* format, the *x*, *y*, *z*, *vx*, *vy*, and
 *vz* fields can be specified.  However, not all molfile formats store
 velocities, or their respective plugins may not support reading of
-velocities.  The molfile dump files do not store atom IDs, so these
-are assigned consecutively to the atoms as they appear in the dump
-file, starting from 1.  Thus you should ensure that order of atoms are
-consistent from snapshot to snapshot in the molfile dump file.
-See the :doc:`dump_modify sort <dump_modify>` command if the dump file
-was written by LAMMPS.
+velocities.  The molfile dump files do not store atom IDs, so these are
+assigned consecutively to the atoms as they appear in the dump file,
+starting from 1.  Thus you should ensure that the order of atoms are
+consistent from snapshot to snapshot in the molfile dump file.  See the
+:doc:`dump_modify sort <dump_modify>` command if the dump file was
+written by LAMMPS.
 
 The *adios* format supports all fields that the *native* format supports
 except for the *q* charge field.

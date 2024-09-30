@@ -123,4 +123,4 @@ jobs:
           pattern: quick-regression-test-artifact-*
       - name: Print job summary
         run: |
-          grep Failed screen.* | tr -d '\n' > $GITHUB_STEP_SUMMARY
+          zipgrep Failed screen-output* | tr -d '\n' > $GITHUB_STEP_SUMMARY

@@ -130,5 +130,5 @@ jobs:
       - name: Print job summary
         run: |
           pwd
-          ls .
+          ls ./artifacts
           zipgrep Failed ./artifacts/screen-output-* | tr -d '\n' > $GITHUB_STEP_SUMMARY

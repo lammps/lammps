@@ -69,7 +69,7 @@ void iota(ExecutionSpace const &space, ViewType const &v,
           typename ViewType::value_type value = 0) {
   using ValueType = typename ViewType::value_type;
   Kokkos::parallel_for(
-      "ArborX::Algorithms::iota",
+      "Kokkos::Algorithms::iota",
       Kokkos::RangePolicy<ExecutionSpace>(space, 0, v.extent(0)),
       KOKKOS_LAMBDA(int i) { v(i) = value + (ValueType)i; });
 }
@@ -78,6 +78,18 @@ void iota(ExecutionSpace const &space, ViewType const &v,
 
 TEST(TEST_CATEGORY, SortByKeyEmptyView) {
   using ExecutionSpace = TEST_EXECSPACE;
+
+  // does not matter if we use int or something else
+  Kokkos::View<int *, ExecutionSpace> keys("keys", 0);
+  Kokkos::View<float *, ExecutionSpace> values("values", 0);
+
+  ASSERT_NO_THROW(
+      Kokkos::Experimental::sort_by_key(ExecutionSpace(), keys, values));
+}
+
+// Test #7036
+TEST(TEST_CATEGORY, SortByKeyEmptyViewHost) {
+  using ExecutionSpace = Kokkos::DefaultHostExecutionSpace;
 
   // does not matter if we use int or something else
   Kokkos::View<int *, ExecutionSpace> keys("keys", 0);

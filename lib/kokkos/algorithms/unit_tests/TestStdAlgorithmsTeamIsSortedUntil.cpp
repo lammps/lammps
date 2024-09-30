@@ -73,7 +73,7 @@ struct TestFunctorA {
         m_distancesView(myRowIndex) = resultDist;
       });
     }
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
     else if (m_apiPick == 2) {
       using value_type = typename ViewType::value_type;
       auto it          = KE::is_sorted_until(member, KE::cbegin(myRowView),
@@ -226,7 +226,7 @@ template <class LayoutTag, class ValueType>
 void run_all_scenarios(const std::string& name, const std::vector<int>& cols) {
   for (int numTeams : teamSizesToTest) {
     for (const auto& numCols : cols) {
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
       for (int apiId : {0, 1, 2, 3}) {
 #else
       for (int apiId : {0, 1}) {

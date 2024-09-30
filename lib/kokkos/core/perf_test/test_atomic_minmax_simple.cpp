@@ -183,7 +183,8 @@ double atomic_contentious_max_replacement(benchmark::State& state,
   Kokkos::parallel_reduce(
       con_length,
       KOKKOS_LAMBDA(const int i, T& inner) {
-        inner = Kokkos::atomic_max_fetch(&(input(0)), inner + 1);
+        inner = Kokkos::atomic_max_fetch(&(input(0)),
+                                         Kokkos::min(inner, max - 1) + 1);
         if (i == con_length - 1) {
           Kokkos::atomic_max_fetch(&(input(0)), max);
           inner = max;
@@ -223,7 +224,8 @@ double atomic_contentious_min_replacement(benchmark::State& state,
   Kokkos::parallel_reduce(
       con_length,
       KOKKOS_LAMBDA(const int i, T& inner) {
-        inner = Kokkos::atomic_min_fetch(&(input(0)), inner - 1);
+        inner = Kokkos::atomic_min_fetch(&(input(0)),
+                                         Kokkos::max(inner, min + 1) - 1);
         if (i == con_length - 1) {
           Kokkos::atomic_min_fetch(&(input(0)), min);
           inner = min;
@@ -246,7 +248,7 @@ static void Atomic_ContentiousMinReplacements(benchmark::State& state) {
   auto inp          = prepare_input(1, std::numeric_limits<T>::max());
 
   for (auto _ : state) {
-    const auto time = atomic_contentious_max_replacement(state, inp, length);
+    const auto time = atomic_contentious_min_replacement(state, inp, length);
 
     state.SetIterationTime(time);
   }

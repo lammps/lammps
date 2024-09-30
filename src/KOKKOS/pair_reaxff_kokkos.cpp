@@ -105,14 +105,23 @@ PairReaxFFKokkos<DeviceType>::~PairReaxFFKokkos()
   memoryKK->destroy_kokkos(k_tmpbo,tmpbo);
   tmpbo = nullptr;
 
-  // deallocate views of views in serial to prevent race condition in profiling tools
+  deallocate_views_of_views();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairReaxFFKokkos<DeviceType>::deallocate_views_of_views()
+{
+
+  // deallocate views of views in serial to prevent race conditions
 
   for (int i = 0; i < (int)k_LR.extent(0); i++) {
     for (int j = 0; j < (int)k_LR.extent(1); j++) {
-      k_LR.h_view(i,j).d_vdW    = decltype(k_LR.h_view(i,j).d_vdW   )();
-      k_LR.h_view(i,j).d_CEvd   = decltype(k_LR.h_view(i,j).d_CEvd  )();
-      k_LR.h_view(i,j).d_ele    = decltype(k_LR.h_view(i,j).d_ele   )();
-      k_LR.h_view(i,j).d_CEclmb = decltype(k_LR.h_view(i,j).d_CEclmb)();
+      k_LR.h_view(i,j).d_vdW    = {};
+      k_LR.h_view(i,j).d_CEvd   = {};
+      k_LR.h_view(i,j).d_ele    = {};
+      k_LR.h_view(i,j).d_CEclmb = {};
     }
   }
 }
@@ -409,8 +418,8 @@ void PairReaxFFKokkos<DeviceType>::init_md()
     int ntypes = atom->ntypes;
 
     Init_Lookup_Tables();
+    deallocate_views_of_views();
     k_LR = tdual_LR_lookup_table_kk_2d("lookup:LR",ntypes+1,ntypes+1);
-    d_LR = k_LR.template view<DeviceType>();
 
     for (int i = 1; i <= ntypes; ++i) {
       if (map[i] == -1) continue;
@@ -578,7 +587,7 @@ void PairReaxFFKokkos<DeviceType>::Deallocate_Lookup_Tables()
   for (i = 0; i <= ntypes; ++i) {
     if (map[i] == -1) continue;
     for (j = i; j <= ntypes; ++j) {
-      if (map[i] == -1) continue;
+      if (map[j] == -1) continue;
       if (LR[i][j].n) {
         sfree(LR[i][j].y);
         sfree(LR[i][j].H);
@@ -1092,19 +1101,19 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // free scatterview memory
   if (need_dup) {
-    dup_f            = decltype(dup_f)();
-    dup_eatom        = decltype(dup_eatom)();
-    dup_vatom        = decltype(dup_vatom)();
-    dup_dDeltap_self = decltype(dup_dDeltap_self)();
-    dup_total_bo     = decltype(dup_total_bo)();
-    dup_CdDelta      = decltype(dup_CdDelta)();
+    dup_f            = {};
+    dup_eatom        = {};
+    dup_vatom        = {};
+    dup_dDeltap_self = {};
+    dup_total_bo     = {};
+    dup_CdDelta      = {};
   } else {
-    ndup_f            = decltype(ndup_f)();
-    ndup_eatom        = decltype(ndup_eatom)();
-    ndup_vatom        = decltype(ndup_vatom)();
-    ndup_dDeltap_self = decltype(ndup_dDeltap_self)();
-    ndup_total_bo     = decltype(ndup_total_bo)();
-    ndup_CdDelta      = decltype(ndup_CdDelta)();
+    ndup_f            = {};
+    ndup_eatom        = {};
+    ndup_vatom        = {};
+    ndup_dDeltap_self = {};
+    ndup_total_bo     = {};
+    ndup_CdDelta      = {};
   }
 
   d_neighbors = typename AT::t_neighbors_2d();
@@ -1392,7 +1401,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
 
     const int tmin  = MIN(itype, jtype);
     const int tmax  = MAX(itype, jtype);
-    const LR_lookup_table_kk<DeviceType>& t = d_LR(tmin,tmax);
+    const LR_lookup_table_kk<DeviceType>& t = k_LR.template view<DeviceType>()(tmin,tmax);
 
 
     /* Cubic Spline Interpolation */
@@ -1492,13 +1501,13 @@ void PairReaxFFKokkos<DeviceType>::allocate_array()
 {
   // free scatterview memory
   if (need_dup) {
-    dup_dDeltap_self = decltype(dup_dDeltap_self)();
-    dup_total_bo     = decltype(dup_total_bo)();
-    dup_CdDelta      = decltype(dup_CdDelta)();
+    dup_dDeltap_self = {};
+    dup_total_bo     = {};
+    dup_CdDelta      = {};
   } else {
-    ndup_dDeltap_self = decltype(ndup_dDeltap_self)();
-    ndup_total_bo     = decltype(ndup_total_bo)();
-    ndup_CdDelta      = decltype(ndup_CdDelta)();
+    ndup_dDeltap_self = {};
+    ndup_total_bo     = {};
+    ndup_CdDelta      = {};
   }
 
   if (cut_hbsq > 0.0) {

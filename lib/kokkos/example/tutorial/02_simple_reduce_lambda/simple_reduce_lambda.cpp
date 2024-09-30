@@ -24,9 +24,8 @@
 //      using a C++11 lambda to define the loop body
 //   3. Shut down Kokkos
 //
-// This example only builds if C++11 is enabled.  Compare this example
-// to 02_simple_reduce, which uses a functor to define the loop body
-// of the parallel_reduce.
+// Compare this example to 02_simple_reduce, which uses a functor to
+// define the loop body of the parallel_reduce.
 //
 
 int main(int argc, char* argv[]) {

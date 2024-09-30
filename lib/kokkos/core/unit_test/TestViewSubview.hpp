@@ -2294,9 +2294,8 @@ template <class Space>
 struct TestExtentsStaticTests {
   using test1 = typename static_expect_same<
       /* expected */
-      Kokkos::Experimental::Extents<Kokkos::Experimental::dynamic_extent,
-                                    Kokkos::Experimental::dynamic_extent, 1, 2,
-                                    3>,
+      Kokkos::Experimental::Extents<Kokkos::dynamic_extent,
+                                    Kokkos::dynamic_extent, 1, 2, 3>,
       /* actual */
       typename Kokkos::Impl::ParseViewExtents<double* * [1][2][3]>::type>::type;
 

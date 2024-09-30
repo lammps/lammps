@@ -168,16 +168,30 @@ class HPX {
       : m_instance_data(Kokkos::Impl::HostSharedPtr<instance_data>(
             &m_default_instance_data, &default_instance_deleter)) {}
   ~HPX() = default;
-  HPX(instance_mode mode)
+  explicit HPX(instance_mode mode)
       : m_instance_data(
             mode == instance_mode::independent
                 ? (Kokkos::Impl::HostSharedPtr<instance_data>(
                       new instance_data(m_next_instance_id++)))
                 : Kokkos::Impl::HostSharedPtr<instance_data>(
                       &m_default_instance_data, &default_instance_deleter)) {}
-  HPX(hpx::execution::experimental::unique_any_sender<> &&sender)
+  explicit HPX(hpx::execution::experimental::unique_any_sender<> &&sender)
       : m_instance_data(Kokkos::Impl::HostSharedPtr<instance_data>(
             new instance_data(m_next_instance_id++, std::move(sender)))) {}
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  template <typename T = void>
+  KOKKOS_DEPRECATED_WITH_COMMENT(
+      "HPX execution space should be constructed explicitly.")
+  HPX(instance_mode mode)
+      : HPX(mode) {}
+
+  template <typename T = void>
+  KOKKOS_DEPRECATED_WITH_COMMENT(
+      "HPX execution space should be constructed explicitly.")
+  HPX(hpx::execution::experimental::unique_any_sender<> &&sender)
+      : HPX(std::move(sender)) {}
+#endif
 
   HPX(HPX &&other)      = default;
   HPX(const HPX &other) = default;

@@ -365,7 +365,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
     // free duplicated memory
 
-    dup_X_diag = decltype(dup_X_diag)();
+    dup_X_diag = {};
   }
 
   if (neighflag != FULL) {
@@ -1419,7 +1419,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::sparse_matvec_acks2(typename AT::t_ffloat
 
     // free duplicated memory
 
-    dup_bb = decltype(dup_bb)();
+    dup_bb = {};
   }
 }
 

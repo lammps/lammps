@@ -131,4 +131,8 @@ jobs:
         run: |
           pwd
           ls ./artifacts
-          zipgrep Failed ./artifacts/screen-output-* | tr -d '\n' > $GITHUB_STEP_SUMMARY
+          cat ./artifacts/screen-output-0
+          cat ./artifacts/screen-output-1
+          cat ./artifacts/screen-output-2
+          cat ./artifacts/screen-output-3
+          grep Failed ./artifacts/screen-output-* | tr -d '\n' > $GITHUB_STEP_SUMMARY

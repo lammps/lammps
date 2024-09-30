@@ -136,6 +136,7 @@ class Domain : protected Pointers {
   void closest_image(const double *const, const double *const, double *const);
   void remap(double *, imageint &);
   void remap(double *);
+  void remap_all();
   void remap_near(double *, double *);
   void unmap_inv(double *x, imageint);
   void unmap(double *, imageint);
@@ -166,7 +167,9 @@ class Domain : protected Pointers {
   void boundary_string(char *);
 
   virtual void lamda2x(int);
+  virtual void lamda2x(int, int);
   virtual void x2lamda(int);
+  virtual void x2lamda(int, int);
   virtual void lamda2x(double *, double *);
   virtual void x2lamda(double *, double *);
   int inside(double *);

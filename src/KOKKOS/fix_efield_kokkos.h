@@ -70,6 +70,10 @@ class FixEfieldKokkos : public FixEfield {
   typename AT::t_imageint_1d_randomread d_image;
   typename AT::t_int_1d_randomread d_mask;
 
+  Few<double,3> prd;
+  Few<double,6> h;
+  int triclinic;
+
   DAT::tdual_virial_array k_vatom;
   typename AT::t_virial_array d_vatom;
 

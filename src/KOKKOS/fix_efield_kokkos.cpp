@@ -14,7 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Trung Nguyen (U Chicago)
-                         Mitch Murphy (alphataubio@gmail.com)
+                         Mitch Murphy (alphataubio at gmail)
 ------------------------------------------------------------------------- */
 
 #include "fix_efield_kokkos.h"
@@ -130,6 +130,9 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
 
   if (varflag == CONSTANT) {
 
+    prd = domain->prd;
+    h = domain->h;
+    triclinic = domain->triclinic;
     copymode = 1;
 
     if(qflag && muflag)
@@ -204,7 +207,7 @@ void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldConstant<QFLAG,MUFLAG>,
     x_i[0] = d_x(i,0);
     x_i[1] = d_x(i,1);
     x_i[2] = d_x(i,2);
-    auto unwrapKK = DomainKokkos::unmap(domain->prd,domain->h,domain->triclinic,x_i,d_image(i));
+    auto unwrapKK = DomainKokkos::unmap(prd,h,triclinic,x_i,d_image(i));
     const F_FLOAT fx = d_q(i) * ex;
     const F_FLOAT fy = d_q(i) * ey;
     const F_FLOAT fz = d_q(i) * ez;

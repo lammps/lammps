@@ -130,9 +130,9 @@ jobs:
       - name: Print job summary
         run: |
           pwd
-          ls ./artifacts
-          cat ./artifacts/screen-output-0
-          cat ./artifacts/screen-output-1
-          cat ./artifacts/screen-output-2
-          cat ./artifacts/screen-output-3
-          grep Failed ./artifacts/screen-output-* | tr -d '\n' > $GITHUB_STEP_SUMMARY
+          ls -R ./artifacts
+          ls ./artifacts/screen-output-0
+          ls ./artifacts/screen-output-1
+          ls ./artifacts/screen-output-2
+          ls ./artifacts/screen-output-3
+          #grep Failed ./artifacts/screen-output-* | tr -d '\n' > $GITHUB_STEP_SUMMARY

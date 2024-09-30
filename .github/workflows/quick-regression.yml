@@ -95,8 +95,7 @@ jobs:
                --list-input=input-list-${{ matrix.idx }}.txt \
                --output-file=output-${{ matrix.idx }}.xml \
                --progress-file=progress-${{ matrix.idx }}.yaml \
-               --log-file=run-${{ matrix.idx }}.log \
-               > screen.${{ matrix.id }}
+               --log-file=run-${{ matrix.idx }}.log
         fi
 
         tar -cvf quick-regression-test-${{ matrix.idx }}.tar run-${{ matrix.idx }}.log progress-${{ matrix.idx }}.yaml output-${{ matrix.idx }}.xml
@@ -116,9 +115,4 @@ jobs:
         with:
           name: merged-quick-regresssion-artifact
           pattern: quick-regression-test-artifact-*
-      - name: Print Job Summary
-        run: |
-          echo "Quick regression test completed: " > $GITHUB_STEP_SUMMARY
-          grep Failed screen.* >> $GITHUB_STEP_SUMMARY
-          echo "::warning::`cat $GITHUB_STEP_SUMMARY`"
 

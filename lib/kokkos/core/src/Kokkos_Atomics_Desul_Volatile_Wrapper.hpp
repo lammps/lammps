@@ -22,7 +22,6 @@ static_assert(false,
 #ifndef KOKKOS_DESUL_ATOMICS_VOLATILE_WRAPPER_HPP_
 #define KOKKOS_DESUL_ATOMICS_VOLATILE_WRAPPER_HPP_
 #include <Kokkos_Macros.hpp>
-#include <Kokkos_Atomics_Desul_Config.hpp>
 #include <desul/atomics.hpp>
 
 #ifdef KOKKOS_ENABLE_ATOMICS_BYPASS

@@ -137,7 +137,7 @@ constrained (within a fudge factor of MASSDELTA specified in
 both bonds in the angle are constrained then the angle will also be
 constrained if its type is in the list.
 
-.. versionchanged:: TBD
+.. versionchanged:: 29Aug2024
 
 The types may be given as type labels *only* if there is no atom, bond,
 or angle type label named *b*, *a*, *t*, or *m* defined in the

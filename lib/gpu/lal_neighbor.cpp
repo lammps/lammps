@@ -586,8 +586,25 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
     const int b2y=_block_cell_2d;
     const int g2x=static_cast<int>(ceil(static_cast<double>(_maxspecial)/b2x));
     const int g2y=static_cast<int>(ceil(static_cast<double>(nt)/b2y));
-    _shared->k_transpose.set_size(g2x,g2y,b2x,b2y);
-    _shared->k_transpose.run(&dev_special,&dev_special_t,&_maxspecial,&nt);
+    // the maximum number of blocks on the device is typically 65535
+    // in principle we can use a lower number to have more resource per block 32768
+    const int max_num_blocks = 65535;
+    int shift = 0;
+    if (g2y < max_num_blocks) {
+      _shared->k_transpose.set_size(g2x,g2y,b2x,b2y);
+      _shared->k_transpose.run(&dev_special,&dev_special_t,&_maxspecial,&nt,&shift);
+    } else {
+      // using a fixed number of blocks
+      int g2y_m = max_num_blocks;
+      _shared->k_transpose.set_size(g2x,g2y_m,b2x,b2y);
+      // number of chunks needed for the whole transpose
+      const int num_chunks = ceil(static_cast<double>(g2y) / g2y_m);
+      for (int i = 0; i < num_chunks; i++) {
+        _shared->k_transpose.run(&dev_special,&dev_special_t,&_maxspecial,&nt,&shift);
+        shift += g2y_m*b2y;
+      }
+    }
+
     time_transpose.stop();
   }
 

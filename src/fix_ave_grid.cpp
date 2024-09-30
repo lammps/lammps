@@ -199,14 +199,14 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < nargnew) {
     if (strcmp(arg[iarg],"discard") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/grid command");
+      if (iarg+2 > nargnew) error->all(FLERR,"Illegal fix ave/grid command");
       if (strcmp(arg[iarg+1],"yes") == 0) discardflag = DISCARD;
       else if (strcmp(arg[iarg+1],"no") == 0) discardflag = KEEP;
       else error->all(FLERR,"Illegal fix ave/grid command");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"norm") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/grid command");
+      if (iarg+2 > nargnew) error->all(FLERR,"Illegal fix ave/grid command");
       if (strcmp(arg[iarg+1],"all") == 0) normflag = ALL;
       else if (strcmp(arg[iarg+1],"sample") == 0) normflag = SAMPLE;
       else if (strcmp(arg[iarg+1],"none") == 0) normflag = NONORM;
@@ -214,13 +214,13 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"ave") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/grid command");
+      if (iarg+2 > nargnew) error->all(FLERR,"Illegal fix ave/grid command");
       if (strcmp(arg[iarg+1],"one") == 0) aveflag = ONE;
       else if (strcmp(arg[iarg+1],"running") == 0) aveflag = RUNNING;
       else if (strcmp(arg[iarg+1],"window") == 0) aveflag = WINDOW;
       else error->all(FLERR,"Illegal fix ave/grid command");
       if (aveflag == WINDOW) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal fix ave/grid command");
+        if (iarg+3 > nargnew) error->all(FLERR,"Illegal fix ave/grid command");
         nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/grid command");
         iarg++;
@@ -228,19 +228,19 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"bias") == 0) {
-      if (iarg+2 > narg)
+      if (iarg+2 > nargnew)
         error->all(FLERR,"Illegal fix ave/grid command");
       biasflag = 1;
       id_bias = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"adof") == 0) {
-      if (iarg+2 > narg)
+      if (iarg+2 > nargnew)
         error->all(FLERR,"Illegal fix ave/grid command");
       adof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"cdof") == 0) {
-      if (iarg+2 > narg)
+      if (iarg+2 > nargnew)
         error->all(FLERR,"Illegal fix ave/grid command");
       cdof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;

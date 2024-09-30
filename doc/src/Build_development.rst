@@ -138,12 +138,27 @@ during development:
 The status of this automated testing can be viewed on `https://ci.lammps.org
 <https://ci.lammps.org>`_.
 
-The scripts and inputs for integration, run, and regression testing
-are maintained in a
-`separate repository <https://github.com/lammps/lammps-testing>`_
-of the LAMMPS project on GitHub.  A few tests are also run as GitHub
-Actions and their configuration files are in the ``.github/workflows/``
-folder of the LAMMPS git tree.
+The scripts and inputs for integration, run, and legacy regression
+testing are maintained in a `separate repository
+<https://github.com/lammps/lammps-testing>`_ of the LAMMPS project on
+GitHub.  A few tests are also run as GitHub Actions and their
+configuration files are in the ``.github/workflows/`` folder of the
+LAMMPS git tree.
+
+Regression tests can also be performed locally with the :ref:`regression
+tester tool <regression>`.  The tool checks if a given LAMMPS binary run
+with selected input examples produces thermo output that is consistent
+with the provided log files.  The script can be run in one pass over all
+available input files, but it can also first create multiple lists of
+inputs or folders that can then be run with multiple workers
+concurrently to speed things up.  Another mode allows to do a quick
+check of inputs that contain commands that have changes in the current
+checkout branch relative to a git branch.  This works similar to the two
+pass mode, but will select only shorter runs and no more than 100 inputs
+that are chosen randomly.  This ensures that this test runs
+significantly faster compared to the full test run.  These test runs can
+also be performed with instrumented LAMMPS binaries (see previous
+section).
 
 The unit testing facility is integrated into the CMake build process of
 the LAMMPS source code distribution itself.  It can be enabled by
@@ -630,11 +645,35 @@ The following target are available for both, GNU make and CMake:
 GitHub command line interface
 -----------------------------
 
-GitHub is developing a `tool for the command line
-<https://cli.github.com>`_ that interacts with the GitHub website via a
-command called ``gh``.  This can be extremely convenient when working
-with a Git repository hosted on GitHub (like LAMMPS).  It is thus highly
-recommended to install it when doing LAMMPS development.
+GitHub has developed a `command line tool <https://cli.github.com>`_
+to interact with the GitHub website via a command called ``gh``.
+This is extremely convenient when working with a Git repository hosted
+on GitHub (like LAMMPS).  It is thus highly recommended to install it
+when doing LAMMPS development.  To use ``gh`` you must be within a git
+checkout of a repository and you must obtain an authentication token
+to connect your checkout with a GitHub user.  This is done with the
+command: ``gh auth login`` where you then have to follow the prompts.
+Here are some examples:
 
-The capabilities of the ``gh`` command is continually expanding, so
-please see the documentation at https://cli.github.com/manual/
+.. list-table::
+   :header-rows: 1
+   :widths: 34 66
+
+   * - Command
+     - Description
+   * - ``gh pr list``
+     - List currently open pull requests
+   * - ``gh pr checks 404``
+     - Shows the status of all checks for pull request #404
+   * - ``gh pr view 404``
+     - Shows the description and recent comments for pull request #404
+   * - ``gh co 404``
+     - Check out the branch from pull request #404; set up for pushing changes
+   * - ``gh issue list``
+     - List currently open issues
+   * - ``gh issue view 430 --comments``
+     - Shows the description and all comments for issue #430
+
+The capabilities of the ``gh`` command are continually expanding, so
+for more details please see the documentation at https://cli.github.com/manual/
+or use ``gh --help`` or ``gh <command> --help`` for embedded help.

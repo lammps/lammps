@@ -45,5 +45,7 @@ void EXPECT_POSITIONS(const std::string &name, LAMMPS_NS::Atom *atom,
                       const std::vector<coord_t> &x_ref, double epsilon);
 void EXPECT_VELOCITIES(const std::string &name, LAMMPS_NS::Atom *atom,
                        const std::vector<coord_t> &v_ref, double epsilon);
+void EXPECT_TORQUES(const std::string &name, LAMMPS_NS::Atom *atom,
+                    const std::vector<coord_t> &t_ref, double epsilon);
 
 #endif

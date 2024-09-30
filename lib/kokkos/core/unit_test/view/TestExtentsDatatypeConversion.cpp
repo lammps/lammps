@@ -23,15 +23,14 @@ namespace {
 
 // Helper to make static tests more succinct
 template <typename DataType, typename Extent>
-constexpr bool datatype_matches_extent =
-    std::is_same_v<typename Kokkos::Experimental::Impl::ExtentsFromDataType<
-                       std::size_t, DataType>::type,
-                   Extent>;
+constexpr bool datatype_matches_extent = std::is_same_v<
+    typename Kokkos::Impl::ExtentsFromDataType<std::size_t, DataType>::type,
+    Extent>;
 
 template <typename DataType, typename BaseType, typename Extents>
 constexpr bool extent_matches_datatype =
-    std::is_same_v<DataType, typename Kokkos::Experimental::Impl::
-                                 DataTypeFromExtents<BaseType, Extents>::type>;
+    std::is_same_v<DataType, typename Kokkos::Impl::DataTypeFromExtents<
+                                 BaseType, Extents>::type>;
 
 // Conversion from DataType to extents
 // 0-rank view

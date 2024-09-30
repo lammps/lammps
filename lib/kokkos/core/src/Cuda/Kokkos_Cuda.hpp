@@ -166,8 +166,17 @@ class Cuda {
 
   Cuda();
 
-  Cuda(cudaStream_t stream,
-       Impl::ManageStream manage_stream = Impl::ManageStream::no);
+  explicit Cuda(cudaStream_t stream) : Cuda(stream, Impl::ManageStream::no) {}
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  template <typename T = void>
+  KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Cuda execution space should be constructed explicitly.")
+  Cuda(cudaStream_t stream)
+      : Cuda(stream) {}
+#endif
+
+  Cuda(cudaStream_t stream, Impl::ManageStream manage_stream);
 
   KOKKOS_DEPRECATED Cuda(cudaStream_t stream, bool manage_stream);
 
@@ -186,7 +195,7 @@ class Cuda {
   ///
   /// This matches the __CUDA_ARCH__ specification.
   KOKKOS_DEPRECATED static size_type device_arch() {
-    const cudaDeviceProp& cudaProp = Cuda().cuda_device_prop();
+    const cudaDeviceProp cudaProp = Cuda().cuda_device_prop();
     return cudaProp.major * 100 + cudaProp.minor;
   }
 

@@ -7,6 +7,8 @@ in addition to
 .. list-table::
    :align: center
    :header-rows: 1
+   :widths: 50 50
+   :width: 80%
 
    * - CMake build
      - Traditional make
@@ -115,7 +117,7 @@ GPU package
 
 To build with this package, you must choose options for precision and
 which GPU hardware to build for. The GPU package currently supports
-three different types of backends: OpenCL, CUDA and HIP.
+three different types of back ends: OpenCL, CUDA and HIP.
 
 CMake build
 ^^^^^^^^^^^
@@ -205,7 +207,7 @@ necessary for ``hipcc`` and the linker to work correctly.
 .. versionadded:: 3Aug2022
 
 Using the CHIP-SPV implementation of HIP is supported. It allows one to
-run HIP code on Intel GPUs via the OpenCL or Level Zero backends. To use
+run HIP code on Intel GPUs via the OpenCL or Level Zero back ends. To use
 CHIP-SPV, you must set ``-DHIP_USE_DEVICE_SORT=OFF`` in your CMake
 command line as CHIP-SPV does not yet support hipCUB. As of Summer 2022,
 the use of HIP for Intel GPUs is experimental. You should only use this
@@ -751,14 +753,27 @@ This list was last updated for version 4.3.0 of the Kokkos library.
       platform-appropriate vendor library: rocFFT on AMD GPUs or cuFFT on
       NVIDIA GPUs.
 
-      To simplify compilation, five preset files are included in the
+      For Intel GPUs using SYCL, set these variables:
+
+      .. code-block:: bash
+
+         -D Kokkos_ARCH_HOSTARCH=yes   # HOSTARCH = HOST from list above
+         -D Kokkos_ARCH_GPUARCH=yes    # GPUARCH = GPU from list above
+         -D Kokkos_ENABLE_SYCL=yes
+         -D Kokkos_ENABLE_OPENMP=yes
+         -D FFT_KOKKOS=MKL_GPU
+
+      This will enable FFTs on the GPU using the oneMKL library.
+
+      To simplify compilation, six preset files are included in the
       ``cmake/presets`` folder, ``kokkos-serial.cmake``,
       ``kokkos-openmp.cmake``, ``kokkos-cuda.cmake``,
-      ``kokkos-hip.cmake``, and ``kokkos-sycl.cmake``.  They will enable
-      the KOKKOS package and enable some hardware choices.  For GPU
-      support those preset files must be customized to match the
-      hardware used. So to compile with CUDA device parallelization with
-      some common packages enabled, you can do the following:
+      ``kokkos-hip.cmake``, ``kokkos-sycl-nvidia.cmake``, and
+      ``kokkos-sycl-intel.cmake``.  They will enable the KOKKOS
+      package and enable some hardware choices.  For GPU support those
+      preset files must be customized to match the hardware used. So
+      to compile with CUDA device parallelization with some common
+      packages enabled, you can do the following:
 
       .. code-block:: bash
 
@@ -829,6 +844,18 @@ This list was last updated for version 4.3.0 of the Kokkos library.
                                          # GPUARCH = GPU from list above
          FFT_INC = -DFFT_HIPFFT          # enable use of hipFFT (optional)
          FFT_LIB = -lhipfft              # link to hipFFT library
+
+      For Intel GPUs using SYCL:
+
+      .. code-block:: make
+
+         KOKKOS_DEVICES = SYCL
+         KOKKOS_ARCH = HOSTARCH,GPUARCH  # HOSTARCH = HOST from list above that is
+                                         #            hosting the GPU
+                                         # GPUARCH = GPU from list above
+         FFT_INC = -DFFT_KOKKOS_MKL_GPU  # enable use of oneMKL for Intel GPUs (optional)
+                                         # link to oneMKL FFT library
+         FFT_LIB = -lmkl_sycl_dft -lmkl_intel_ilp64 -lmkl_tbb_thread -mkl_core -ltbb
 
 Advanced KOKKOS compilation settings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2224,28 +2251,38 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
 RHEO package
 ------------
 
-To build with this package you must have the `GNU Scientific Library
-(GSL) <https://www.gnu.org/software/gsl/>` installed in locations that
-are accessible in your environment.  The GSL library should be at least
-version 2.7.
+This package depends on the BPM package.
 
 .. tabs::
 
    .. tab:: CMake build
 
-      If CMake cannot find the GSL library or include files, you can set:
-
       .. code-block:: bash
 
-         -D GSL_ROOT_DIR=path    # path to root of GSL installation
+         -D PKG_RHEO=yes               # enable the package itself
+         -D PKG_BPM=yes                # the RHEO package requires BPM
+         -D USE_INTERNAL_LINALG=value  # prefer internal LAPACK if true
+
+      Some features in the RHEO package are dependent on code in the BPM
+      package so the latter one *must* be enabled as well.
+
+      The RHEO package also requires LAPACK (and BLAS) and CMake
+      can identify their locations and pass that info to the RHEO
+      build script.  But on some systems this may cause problems when
+      linking or the dependency is not desired.  By using the setting
+      ``-D USE_INTERNAL_LINALG=yes`` when running the CMake
+      configuration, you will select compiling and linking the bundled
+      linear algebra library and work around the limitations.
 
    .. tab:: Traditional make
 
-      LAMMPS will try to auto-detect the GSL compiler and linker flags
-      from the corresponding ``pkg-config`` file (``gsl.pc``), otherwise
-      you can edit the file ``lib/rheo/Makefile.lammps``
-      to specify the paths and library names where indicated by comments.
-      This must be done **before** the package is installed.
+      The RHEO package requires LAPACK (and BLAS) which can be either
+      a system provided library or the bundled "linalg" library. This
+      is a subset of LAPACK translated to C++.  For that, one of the
+      provided ``Makefile.lammps.<config>`` files needs to be copied
+      to ``Makefile.lammps`` and edited as needed.  The default file
+      uses the bundled "linalg" library, which can be built by
+      ``make lib-linalg args='-m serial'`` in the ``src`` folder.
 
 ----------
 

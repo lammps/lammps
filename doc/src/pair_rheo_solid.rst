@@ -21,7 +21,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 Style *rheo/solid* is effectively a copy of pair style
 :doc:`bpm/spring <pair_bpm_spring>` except it only applies forces

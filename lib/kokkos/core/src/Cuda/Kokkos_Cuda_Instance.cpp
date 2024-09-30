@@ -607,6 +607,22 @@ Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default
 
   //----------------------------------
 
+#ifdef KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY
+  // Check if unified memory is available
+  int cuda_result;
+  cudaDeviceGetAttribute(&cuda_result, cudaDevAttrConcurrentManagedAccess,
+                         cuda_device_id);
+  if (cuda_result == 0) {
+    Kokkos::abort(
+        "Kokkos::Cuda::initialize ERROR: Unified memory is not available on "
+        "this device\n"
+        "Please recompile Kokkos with "
+        "-DKokkos_ENABLE_IMPL_CUDA_UNIFIED_MEMORY=OFF\n");
+  }
+#endif
+
+  //----------------------------------
+
   cudaStream_t singleton_stream;
   KOKKOS_IMPL_CUDA_SAFE_CALL(cudaSetDevice(cuda_device_id));
   KOKKOS_IMPL_CUDA_SAFE_CALL(cudaStreamCreate(&singleton_stream));
@@ -705,6 +721,10 @@ void Cuda::print_configuration(std::ostream &os, bool /*verbose*/) const {
 #else
   os << "no\n";
 #endif
+#ifdef KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY
+  os << "  KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY: ";
+  os << "yes\n";
+#endif
 
   os << "\nCuda Runtime Configuration:\n";
 
@@ -736,6 +756,14 @@ namespace Impl {
 
 int g_cuda_space_factory_initialized =
     initialize_space_factory<Cuda>("150_Cuda");
+
+int CudaInternal::m_cudaArch = -1;
+cudaDeviceProp CudaInternal::m_deviceProp;
+std::set<int> CudaInternal::cuda_devices = {};
+std::map<int, unsigned long *> CudaInternal::constantMemHostStagingPerDevice =
+    {};
+std::map<int, cudaEvent_t> CudaInternal::constantMemReusablePerDevice = {};
+std::map<int, std::mutex> CudaInternal::constantMemMutexPerDevice     = {};
 
 }  // namespace Impl
 

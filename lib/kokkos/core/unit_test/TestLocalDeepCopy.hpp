@@ -907,13 +907,7 @@ void impl_test_local_deepcopy_rangepolicy_rank_7(const int N) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
 TEST(TEST_CATEGORY, local_deepcopy_teampolicy_layoutleft) {
   using ExecSpace = TEST_EXECSPACE;
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC 23.7
-  if (std::is_same_v<ExecSpace, Kokkos::Cuda>)
-    GTEST_SKIP()
-        << "FIXME_NVHPC : Compiler bug affecting subviews of high rank Views";
-#endif
-  using ViewType = Kokkos::View<double********, Kokkos::LayoutLeft, ExecSpace>;
+  using ViewType  = Kokkos::View<double********, Kokkos::LayoutLeft, ExecSpace>;
 
   {  // Rank-1
     impl_test_local_deepcopy_teampolicy_rank_1<ExecSpace, ViewType>(8);
@@ -940,13 +934,7 @@ TEST(TEST_CATEGORY, local_deepcopy_teampolicy_layoutleft) {
 //-------------------------------------------------------------------------------------------------------------
 TEST(TEST_CATEGORY, local_deepcopy_rangepolicy_layoutleft) {
   using ExecSpace = TEST_EXECSPACE;
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC 23.7
-  if (std::is_same_v<ExecSpace, Kokkos::Cuda>)
-    GTEST_SKIP()
-        << "FIXME_NVHPC : Compiler bug affecting subviews of high rank Views";
-#endif
-  using ViewType = Kokkos::View<double********, Kokkos::LayoutLeft, ExecSpace>;
+  using ViewType  = Kokkos::View<double********, Kokkos::LayoutLeft, ExecSpace>;
 
   {  // Rank-1
     impl_test_local_deepcopy_rangepolicy_rank_1<ExecSpace, ViewType>(8);
@@ -973,12 +961,6 @@ TEST(TEST_CATEGORY, local_deepcopy_rangepolicy_layoutleft) {
 //-------------------------------------------------------------------------------------------------------------
 TEST(TEST_CATEGORY, local_deepcopy_teampolicy_layoutright) {
   using ExecSpace = TEST_EXECSPACE;
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC 23.7
-  if (std::is_same_v<ExecSpace, Kokkos::Cuda>)
-    GTEST_SKIP()
-        << "FIXME_NVHPC : Compiler bug affecting subviews of high rank Views";
-#endif
   using ViewType = Kokkos::View<double********, Kokkos::LayoutRight, ExecSpace>;
 
   {  // Rank-1
@@ -1006,12 +988,6 @@ TEST(TEST_CATEGORY, local_deepcopy_teampolicy_layoutright) {
 //-------------------------------------------------------------------------------------------------------------
 TEST(TEST_CATEGORY, local_deepcopy_rangepolicy_layoutright) {
   using ExecSpace = TEST_EXECSPACE;
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC 23.7
-  if (std::is_same_v<ExecSpace, Kokkos::Cuda>)
-    GTEST_SKIP()
-        << "FIXME_NVHPC : Compiler bug affecting subviews of high rank Views";
-#endif
 
   using ViewType = Kokkos::View<double********, Kokkos::LayoutRight, ExecSpace>;
 

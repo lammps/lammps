@@ -18,13 +18,13 @@ Syntax
        *delete* = no args
        *block* args = xlo xhi ylo yhi zlo zhi
          xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
-         xlo,xhi,ylo,yhi,zlo,zhi can be a variable
+           xlo,xhi,ylo,yhi,zlo,zhi can be a variable (see below)
        *cone* args = dim c1 c2 radlo radhi lo hi
          dim = *x* or *y* or *z* = axis of cone
          c1,c2 = coords of cone axis in other 2 dimensions (distance units)
          radlo,radhi = cone radii at lo and hi end (distance units)
          lo,hi = bounds of cone in dim (distance units)
-         c1,c2,radlo,radhi,lo,hi can be a variable (see below)
+           c1,c2,radlo,radhi,lo,hi can be a variable (see below)
        *cylinder* args = dim c1 c2 radius lo hi
          dim = *x* or *y* or *z* = axis of cylinder
          c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
@@ -38,6 +38,7 @@ Syntax
        *plane* args = px py pz nx ny nz
          px,py,pz = point on the plane (distance units)
          nx,ny,nz = direction normal to plane (distance units)
+           px,py,pz can be a variable (see below)
        *prism* args = xlo xhi ylo yhi zlo zhi xy xz yz
          xlo,xhi,ylo,yhi,zlo,zhi = bounds of untilted prism (distance units)
          xy = distance to tilt y in x direction (distance units)
@@ -166,7 +167,7 @@ extending in the y-direction from -5.0 to the upper box boundary.
 
 .. versionadded:: 4May2022
 
-For style *ellipsoid*, an axis-aligned ellipsoid is defined. The
+For style *ellipsoid*, an axis-aligned ellipsoid is defined.  The
 ellipsoid has its center at (x,y,z) and is defined by 3 axis-aligned
 vectors given by A = (a,0,0); B = (0,b,0); C = (0,0,c).  Note that
 although the ellipsoid is specified as axis-aligned it can be rotated
@@ -206,9 +207,10 @@ parameters a,b,c for style *ellipsoid*, can each be specified as an
 equal-style :doc:`variable <variable>`.  Likewise, for style *sphere*
 and *ellipsoid* the x-, y-, and z- coordinates of the center of the
 sphere/ellipsoid can be specified as an equal-style variable.  And for
-style *cylinder* the two center positions c1 and c2 for the location
-of the cylinder axes can be specified as a equal-style variable. For style *cone*
-all properties can be defined via equal-style variables.
+style *cylinder* the two center positions c1 and c2 for the location of
+the cylinder axes can be specified as a equal-style variable.  For style
+*cone* all properties can be defined via equal-style variables.  For
+style *plane* the point can be defined via equal-style variables.
 
 If the value is a variable, it should be specified as v_name, where
 name is the variable name.  In this case, the variable will be

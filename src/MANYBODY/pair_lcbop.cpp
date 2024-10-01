@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Dominik Wójt (Wroclaw University of Technology)
+   Contributing author: Dominik Wojt (Wroclaw University of Technology)
      based on pair_airebo by Ase Henry (MIT)
 ------------------------------------------------------------------------- */
 

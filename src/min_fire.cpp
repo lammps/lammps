@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Julien Guénolé, CNRS and
+   Contributing authors: Julien Guenole, CNRS and
                          Erik Bitzek, FAU Erlangen-Nuernberg
 
                          Support for ABC-FIRE:

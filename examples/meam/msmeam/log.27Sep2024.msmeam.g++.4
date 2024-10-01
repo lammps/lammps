@@ -1,4 +1,4 @@
-LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-182-g93942f2013-modified)
+LAMMPS (29 Aug 2024 - Development - patch_29Aug2024-372-g51d104975a)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
 # Test of MEAM potential for HGa
@@ -67,7 +67,7 @@ Created 1 atoms
 variable        teng equal "c_eatoms"
 compute pot_energy all pe/atom
 compute stress all stress/atom NULL
-# dump 1 all custom 1 dump.msmeam id x y z fx fy fz c_pot_energy c_stress[1] c_stress[2] c_stress[3] c_stress[4] c_stress[5] c_stress[6]
+dump 1 all custom 1 dump.msmeam id x y z fx fy fz c_pot_energy c_stress[1] c_stress[2] c_stress[3] c_stress[4] c_stress[5] c_stress[6]
 run     1
 WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
 Neighbor list info ...
@@ -89,22 +89,22 @@ Neighbor list info ...
       bin: none
 Per MPI rank memory allocation (min/avg/max) = 7.965 | 8.123 | 8.594 Mbytes
    Step          Temp          TotEng         Press           Pxx            Pyy            Pzz            Pxy            Pxz            Pyz             Lx             Ly             Lz           Volume        c_eatoms   
-         0   0              15.433079      491354.7       838670.96      635393.15      0              80195.797      0              0              8              8              8              512            15.433079    
-         1   0              15.433079      491354.7       838670.96      635393.15      0              80195.797      0              0              8              8              8              512            15.433079    
-Loop time of 8.70645e-05 on 4 procs for 1 steps with 3 atoms
+         0   0              15.438614      491542.52      839006.02      635621.55      0              80225.587      0              0              8              8              8              512            15.438614    
+         1   0              15.438614      491542.52      839006.02      635621.55      0              80225.587      0              0              8              8              8              512            15.438614    
+Loop time of 0.000328503 on 4 procs for 1 steps with 3 atoms
 
-Performance: 992.368 ns/day, 0.024 hours/ns, 11485.738 timesteps/s, 34.457 katom-step/s
-29.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 263.011 ns/day, 0.091 hours/ns, 3044.110 timesteps/s, 9.132 katom-step/s
+75.3% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 4.3957e-05 | 4.67e-05   | 5.1056e-05 |   0.0 | 53.64
+Pair    | 0.0001419  | 0.0001471  | 0.00015891 |   0.0 | 44.78
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 1.105e-05  | 1.3822e-05 | 1.7033e-05 |   0.0 | 15.88
-Output  | 1.5765e-05 | 1.9045e-05 | 2.5216e-05 |   0.0 | 21.87
-Modify  | 2.58e-07   | 3.465e-07  | 3.81e-07   |   0.0 |  0.40
-Other   |            | 7.151e-06  |            |       |  8.21
+Comm    | 2.2092e-05 | 2.8424e-05 | 3.667e-05  |   0.0 |  8.65
+Output  | 8.6275e-05 | 0.00010558 | 0.0001422  |   0.0 | 32.14
+Modify  | 1.093e-06  | 2.4148e-06 | 5.651e-06  |   0.0 |  0.74
+Other   |            | 4.498e-05  |            |       | 13.69
 
 Nlocal:           0.75 ave           3 max           0 min
 Histogram: 3 0 0 0 0 0 0 0 0 1

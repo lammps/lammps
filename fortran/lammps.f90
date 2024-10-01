@@ -100,6 +100,7 @@ MODULE LIBLAMMPS
   CONTAINS
     PROCEDURE :: close                  => lmp_close
     PROCEDURE :: error                  => lmp_error
+    PROCEDURE :: expand                 => lmp_expand
     PROCEDURE :: file                   => lmp_file
     PROCEDURE :: command                => lmp_command
     PROCEDURE :: commands_list          => lmp_commands_list
@@ -409,6 +410,14 @@ MODULE LIBLAMMPS
       INTEGER(c_int), VALUE :: error_type
       TYPE(c_ptr), VALUE :: error_text
     END SUBROUTINE lammps_error
+
+    FUNCTION lammps_expand(handle, line) BIND(C)
+      IMPORT :: c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle
+      TYPE(c_ptr), INTENT(IN), VALUE :: line
+      TYPE(c_ptr) :: lammps_expand
+    END FUNCTION lammps_expand
 
     SUBROUTINE lammps_file(handle, filename) BIND(C)
       IMPORT :: c_ptr
@@ -1107,10 +1116,24 @@ CONTAINS
     CALL lammps_free(str)
   END SUBROUTINE lmp_error
 
+  ! equivalent function to lammps_expand()
+  FUNCTION lmp_expand(self, line)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(len=*), INTENT(IN) :: line
+    TYPE(c_ptr) :: str, res
+    CHARACTER(len=:), ALLOCATABLE :: lmp_expand
+
+    str = f2c_string(line)
+    res = lammps_expand(self%handle, str)
+    CALL lammps_free(str)
+    lmp_expand = c2f_string(res)
+    CALL lammps_free(res)
+  END FUNCTION lmp_expand
+
   ! equivalent function to lammps_file()
   SUBROUTINE lmp_file(self, filename)
     CLASS(lammps), INTENT(IN) :: self
-    CHARACTER(len=*) :: filename
+    CHARACTER(len=*), INTENT(IN) :: filename
     TYPE(c_ptr) :: str
 
     str = f2c_string(filename)
@@ -1121,7 +1144,7 @@ CONTAINS
   ! equivalent function to lammps_command()
   SUBROUTINE lmp_command(self, cmd)
     CLASS(lammps), INTENT(IN) :: self
-    CHARACTER(len=*) :: cmd
+    CHARACTER(len=*), INTENT(IN) :: cmd
     TYPE(c_ptr) :: str
 
     str = f2c_string(cmd)
@@ -1155,7 +1178,7 @@ CONTAINS
   ! equivalent function to lammps_commands_string()
   SUBROUTINE lmp_commands_string(self, str)
     CLASS(lammps), INTENT(IN) :: self
-    CHARACTER(len=*) :: str
+    CHARACTER(len=*), INTENT(IN) :: str
     TYPE(c_ptr) :: tmp
 
     tmp = f2c_string(str)
@@ -1173,7 +1196,7 @@ CONTAINS
   ! equivalent function to lammps_get_thermo
   REAL(c_double) FUNCTION lmp_get_thermo(self,name)
     CLASS(lammps), INTENT(IN) :: self
-    CHARACTER(LEN=*) :: name
+    CHARACTER(LEN=*), INTENT(IN) :: name
     TYPE(c_ptr) :: Cname
 
     Cname = f2c_string(name)
@@ -1185,7 +1208,7 @@ CONTAINS
   FUNCTION lmp_last_thermo(self,what,index) RESULT(thermo_data)
     CLASS(lammps), INTENT(IN), TARGET :: self
     CHARACTER(LEN=*), INTENT(IN) :: what
-    INTEGER :: index
+    INTEGER, INTENT(IN) :: index
     INTEGER(c_int) :: idx
     TYPE(lammps_data) :: thermo_data, type_data
     INTEGER(c_int) :: datatype

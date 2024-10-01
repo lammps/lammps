@@ -501,6 +501,50 @@ void lammps_error(void *handle, int error_type, const char *error_text)
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+/** expand a single LAMMPS input line from a string.
+ *
+\verbatim embed:rst
+
+This function tells LAMMPS to expand the string in *cmd* like it would process
+an input line fed to :cpp:func:`lammps_command` **without** executing it.
+The *entire* string is considered as input and need not have a (final) newline
+character.  Newline characters in the body of the string, however, will be
+treated as part of the command and will **not** start a second command.
+
+The function returns the expanded string in a new string buffer that
+must be freed with :cpp:func:`lammps_free` after use to avoid a memory leak.
+
+\endverbatim
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  cmd     string with a single LAMMPS input line
+ * \return         string with expanded line */
+
+char *lammps_expand(void *handle, const char *line)
+{
+  auto lmp = (LAMMPS *) handle;
+  char *copy, *work;
+  int n, maxcopy, maxwork;
+
+  if (!line) return nullptr;
+
+  BEGIN_CAPTURE
+  {
+    n = strlen(line) + 1;
+    copy = (char *) malloc(n * sizeof(char));
+    work = (char *) malloc(n * sizeof(char));
+    maxwork = maxcopy = n;
+    memcpy(copy, line, maxcopy);
+    lmp->input->substitute(copy, work, maxcopy, maxwork, 0);
+    free(work);
+  }
+  END_CAPTURE
+
+  return copy;
+}
+
 // ----------------------------------------------------------------------
 // Library functions to process commands
 // ----------------------------------------------------------------------

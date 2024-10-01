@@ -95,7 +95,7 @@ jobs:
                --list-input=input-list-${{ matrix.idx }}.txt \
                --output-file=output-${{ matrix.idx }}.xml \
                --progress-file=progress-${{ matrix.idx }}.yaml \
-               --log-file=run-${{ matrix.idx }}.log > screen.${{ matrix.idx }}
+               --log-file=run-${{ matrix.idx }}.log
         fi
 
         tar -cvf quick-regression-test-${{ matrix.idx }}.tar run-${{ matrix.idx }}.log progress-${{ matrix.idx }}.yaml output-${{ matrix.idx }}.xml
@@ -105,12 +105,6 @@ jobs:
       with:
         name: quick-regression-test-artifact-${{ matrix.idx }}
         path: quick-regression-test-${{ matrix.idx }}.tar
-
-    - name: Upload screen output
-      uses: actions/upload-artifact@v4
-      with:
-        name: screen-output-${{ matrix.idx }}
-        path: screen.${{ matrix.idx }}
 
   merge:
     runs-on: ubuntu-latest
@@ -122,12 +116,3 @@ jobs:
           name: merged-quick-regresssion-artifact
           pattern: quick-regression-test-artifact-*
 
-      - name: Download all the artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ./artifacts
-  
-      - name: Print job summary
-        run: |
-          #ls -R ./artifacts
-          grep Failed ./artifacts/screen-output-*/screen.* | tr -d '\n' > $GITHUB_STEP_SUMMARY

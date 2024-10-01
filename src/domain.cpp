@@ -1664,6 +1664,27 @@ void Domain::remap(double *x)
 }
 
 /* ----------------------------------------------------------------------
+   remap all points into the periodic box no matter how far away
+   adjust 3 image flags encoded in image accordingly
+   resulting coord must satisfy lo <= coord < hi
+   MAX is important since coord - prd < lo can happen when coord = hi
+   for triclinic, point is converted to lamda coords (0-1) before doing remap
+   image = 10 bits for each dimension
+   increment/decrement in wrap-around fashion
+------------------------------------------------------------------------- */
+
+void Domain::remap_all()
+{
+  double **x = atom->x;
+  imageint *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  if (triclinic) x2lamda(nlocal);
+  for (int i = 0; i < nlocal; i++) remap(x[i],image[i]);
+  if (triclinic) lamda2x(nlocal);
+}
+
+/* ----------------------------------------------------------------------
    remap xnew to be within half box length of xold
    do it directly, not iteratively, in case is far away
    for triclinic, both points are converted to lamda coords (0-1) before remap
@@ -2188,6 +2209,19 @@ void Domain::lamda2x(int n)
   }
 }
 
+void Domain::lamda2x(int n, int groupbit)
+{
+  double **x = atom->x;
+  int *mask = atom->mask;
+
+  for (int i = 0; i < n; i++)
+    if (mask[i] & groupbit) {
+      x[i][0] = h[0]*x[i][0] + h[5]*x[i][1] + h[4]*x[i][2] + boxlo[0];
+      x[i][1] = h[1]*x[i][1] + h[3]*x[i][2] + boxlo[1];
+      x[i][2] = h[2]*x[i][2] + boxlo[2];
+    }
+}
+
 /* ----------------------------------------------------------------------
    convert box coords to triclinic 0-1 lamda coords for all N atoms
    lamda = H^-1 (x - x0)
@@ -2207,6 +2241,25 @@ void Domain::x2lamda(int n)
     x[i][1] = h_inv[1]*delta[1] + h_inv[3]*delta[2];
     x[i][2] = h_inv[2]*delta[2];
   }
+}
+
+void Domain::x2lamda(int n, int groupbit)
+{
+  double delta[3];
+  double **x = atom->x;
+  int *mask = atom->mask;
+
+  for (int i = 0; i < n; i++)
+    if (mask[i] & groupbit) {
+      delta[0] = x[i][0] - boxlo[0];
+      delta[1] = x[i][1] - boxlo[1];
+      delta[2] = x[i][2] - boxlo[2];
+
+      x[i][0] = h_inv[0]*delta[0] + h_inv[5]*delta[1] + h_inv[4]*delta[2];
+      x[i][1] = h_inv[1]*delta[1] + h_inv[3]*delta[2];
+      x[i][2] = h_inv[2]*delta[2];
+    }
+
 }
 
 /* ----------------------------------------------------------------------

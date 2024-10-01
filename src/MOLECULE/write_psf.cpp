@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mitch Murphy (alphataubio at gmail.com)
+   Contributing author: Mitch Murphy (alphataubio at gmail)
 ------------------------------------------------------------------------- */
 
 #include "write_psf.h"
@@ -558,20 +558,12 @@ void WritePsf::atoms()
 
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-          //std::cerr << "ok 1a\n";
         MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);
-           // std::cerr << "ok 1b\n";
         MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
-           // std::cerr << "ok 1c\n";
         MPI_Wait(&request,&status);
-           // std::cerr << "ok 1d\n";
         MPI_Get_count(&status,MPI_DOUBLE,&recvrow);
-           // std::cerr << "ok 1e\n";
         recvrow /= ncol;
       } else recvrow = sendrow;
-
-          //std::cerr << "ok 1f\n";
-
 
       for (int i = 0; i < atom->natoms; i++) {
 
@@ -630,15 +622,9 @@ void WritePsf::atoms()
       }
     }
   } else {
-    std::cerr << "ok 2a\n";
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
-    std::cerr << "ok 2b\n";
     MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_DOUBLE,0,0,world);
-    std::cerr << "ok 2c\n";
   }
 
   memory->destroy(buf);
-
-  std::cerr << "ok 3\n";
-
 }

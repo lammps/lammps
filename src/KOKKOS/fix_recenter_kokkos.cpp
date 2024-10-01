@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mitch Murphy (alphataubio@gmail.com)
+   Contributing author: Mitch Murphy (alphataubio at gmail)
 ------------------------------------------------------------------------- */
 
 #include "fix_recenter_kokkos.h"
@@ -103,23 +103,27 @@ void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 
   // shift coords by difference between actual COM and requested COM
 
-  double shiftx = xflag ? (xtarget - xcm[0]) : 0.0;
-  double shifty = yflag ? (ytarget - xcm[1]) : 0.0;
-  double shiftz = zflag ? (ztarget - xcm[2]) : 0.0;
-  distance = sqrt(shiftx*shiftx + shifty*shifty + shiftz*shiftz);
+  shift[0] = xflag ? (xtarget - xcm[0]) : 0.0;
+  shift[1] = yflag ? (ytarget - xcm[1]) : 0.0;
+  shift[2] = zflag ? (ztarget - xcm[2]) : 0.0;
+  distance = sqrt(shift[0]*shift[0] + shift[1]*shift[1] + shift[2]*shift[2]);
+
 
   auto d_x = atomKK->k_x.template view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
   auto l_group2bit = group2bit;
+  double l_shiftx = shift[0];
+  double l_shifty = shift[1];
+  double l_shiftz = shift[2];
 
   copymode = 1;
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
     KOKKOS_LAMBDA(const int i) {
       if (d_mask[i] & l_group2bit) {
-        d_x(i,0) += shiftx;
-        d_x(i,1) += shifty;
-        d_x(i,2) += shiftz;
+        d_x(i,0) += l_shiftx;
+        d_x(i,1) += l_shifty;
+        d_x(i,2) += l_shiftz;
       }
     });
 

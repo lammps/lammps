@@ -743,7 +743,7 @@ void ComputePropertyLocal::pack_ptype2(int n)
 void ComputePropertyLocal::pack_pmolecule1(int n)
 {
   int i;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
@@ -757,7 +757,7 @@ void ComputePropertyLocal::pack_pmolecule1(int n)
 void ComputePropertyLocal::pack_pmolecule2(int n)
 {
   int i;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][1];

@@ -174,8 +174,6 @@ void WritePsf::write(const std::string &file)
   // sum up bond,angle,dihedral,improper counts
   // may be different than atom->nbonds,nangles, etc. if broken/turned-off
 
-  // FIXME: handle Atom::TEMPLATE
-
   if (atom->molecular == Atom::MOLECULAR && (atom->nbonds || atom->nbondtypes)) {
     nbonds_local = atom->avec->pack_bond(nullptr);
     MPI_Allreduce(&nbonds_local,&nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
@@ -590,8 +588,10 @@ void WritePsf::atoms()
 
         } else {
 
+          int atom_index = atom->map(atom_tag);
+
           // atom segment
-          int segment_type = atom_iarray_psf[atom_tag-1][0];
+          int segment_type = atom_iarray_psf[atom_index][0];
           label = atom->lmap->label(segment_type, Atom::SEGMENT);
           fmt::print(fp, "{:<8} ", label );
 
@@ -599,12 +599,12 @@ void WritePsf::atoms()
           fmt::print(fp, "{:<8} ", ubuf(buf[i][1]).i );
 
           // atom residue
-          int residue_type = atom_iarray_psf[atom_tag-1][1];
+          int residue_type = atom_iarray_psf[atom_index][1];
           label = atom->lmap->label(residue_type, Atom::RESIDUE);
           fmt::print(fp, "{:<8} ", label );
 
           // atom name
-          int name_type = atom_iarray_psf[atom_tag-1][2];
+          int name_type = atom_iarray_psf[atom_index][2];
           label = atom->lmap->label(name_type, Atom::NAME);
           fmt::print(fp, "{:<8} ", label );
 

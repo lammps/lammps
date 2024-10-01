@@ -133,6 +133,8 @@ void lammps_python_finalize();
 
 void lammps_error(void *handle, int error_type, const char *error_text);
 
+char *lammps_expand(void *handle, const char *line);
+
 /* ----------------------------------------------------------------------
  * Library functions to process commands
  * ---------------------------------------------------------------------- */

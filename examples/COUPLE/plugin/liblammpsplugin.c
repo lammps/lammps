@@ -81,6 +81,7 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(python_finalize);
 
   ADDSYM(error);
+  ADDSYM(expand);
 
   ADDSYM(file);
   ADDSYM(command);

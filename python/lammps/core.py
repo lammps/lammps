@@ -19,8 +19,8 @@ from __future__ import print_function
 import os
 import sys
 from ctypes import CDLL, POINTER, RTLD_GLOBAL, CFUNCTYPE, py_object, byref, cast, sizeof, \
-  create_string_buffer, c_int, c_int32, c_int64, c_double, c_void_p, c_char_p, pythonapi, \
-  pointer
+  create_string_buffer, c_int, c_int32, c_int64, c_double, c_void_p, c_char_p, c_char,    \
+  pythonapi, pointer
 from os.path import dirname, abspath, join
 from inspect import getsourcefile
 
@@ -177,6 +177,9 @@ class lammps(object):
     self.lib.lammps_free.argtypes = [c_void_p]
 
     self.lib.lammps_error.argtypes = [c_void_p, c_int, c_char_p]
+
+    self.lib.lammps_expand.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_expand.restype = POINTER(c_char)
 
     self.lib.lammps_file.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_file.restype = None
@@ -611,6 +614,37 @@ class lammps(object):
       return MPIAbortException(error_msg)
     return Exception(error_msg)
 
+  # -------------------------------------------------------------------------
+
+  def expand(self,line):
+    """Expand a single LAMMPS string like an input line
+
+    This is a wrapper around the :cpp:func:`lammps_expand`
+    function of the C-library interface.
+
+    :param cmd: a single lammps line
+    :type cmd:  string
+    :return: expanded string
+    :rtype: string
+    """
+    if line: newline = line.encode()
+    else: return None
+
+    with ExceptionCheck(self):
+      strptr = self.lib.lammps_expand(self.lmp, newline)
+      rval = strptr[0]
+      if rval == b'\0':
+        rval = None
+      else:
+        i = 1
+        while strptr[i] != b'\0':
+          rval += strptr[i]
+          i = i + 1
+      self.lib.lammps_free(strptr)
+      if rval:
+        return rval.decode('utf-8')
+
+    return None
   # -------------------------------------------------------------------------
 
   def file(self, path):

@@ -127,9 +127,9 @@ void ComputeRHEOSurface::compute_peratom()
   size_t nbytes = nmax_store * sizeof(double);
   memset(&divr[0], 0, nbytes);
   memset(&rsurface[0], 0, nbytes);
-  memset(&nsurface[0][0], 0, dim * nbytes);
-  memset(&gradC[0][0], 0, dim * dim * nbytes);
-  memset(&B[0][0], 0, dim * dim * nbytes);
+  memset(&nsurface[0][0], 0, nbytes * dim);
+  memset(&gradC[0][0], 0, nbytes * dim * dim);
+  memset(&B[0][0], 0, nbytes * dim * dim);
 
   // loop over neighbors to calculate the average orientation of neighbors
   for (ii = 0; ii < inum; ii++) {

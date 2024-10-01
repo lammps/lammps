@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Ajinkya Hire (Univ. of Florida),
-                        Hendrik Kraß (Univ. of Constance),
+                        Hendrik Krass (Univ. of Constance),
                         Matthias Rupp (Luxembourg Institute of Science and Technology),
                         Richard Hennig (Univ of Florida)
 ---------------------------------------------------------------------- */

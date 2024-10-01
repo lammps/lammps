@@ -82,7 +82,7 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
 
   memory->create(type_list, atom->ntypes, "atom/swap:type_list");
   memory->create(mu, atom->ntypes + 1, "atom/swap:mu");
-  for (int i = 1; i <= atom->ntypes; i++) mu[i] = 0.0;
+  for (int i = 0; i <= atom->ntypes; i++) mu[i] = 0.0;
 
   // read options from end of input line
 

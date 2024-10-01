@@ -547,9 +547,9 @@ void PairMEAM::read_user_meam_file(const std::string &userfile)
 
   // open user param file on proc 0
 
-  std::shared_ptr<PotentialFileReader> reader;
+  PotentialFileReader *reader = nullptr;
 
-  if (comm->me == 0) reader = std::make_shared<PotentialFileReader>(lmp, userfile, "MEAM");
+  if (comm->me == 0) reader = new PotentialFileReader(lmp, userfile, "MEAM");
 
   // read settings
   // pass them one at a time to MEAM package
@@ -623,6 +623,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile)
                  keyword, descr[errorflag]);
     }
   }
+  if (comm->me == 0) delete reader;
 }
 
 /* ---------------------------------------------------------------------- */

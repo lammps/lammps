@@ -1911,7 +1911,11 @@ void Atom::allocate_type_arrays()
   if (avec->mass_type == AtomVec::PER_TYPE) {
     mass = new double[ntypes+1];
     mass_setflag = new int[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
+    // start loop from 0 to avoid uninitialized access when operating on the whole array
+    for (int itype = 0; itype <= ntypes; itype++) {
+      mass_setflag[itype] = 0;
+      mass[itype] = 0.0;
+    }
   }
 }
 
@@ -2748,11 +2752,12 @@ for an example where checking ghost communication is necessary.
 int Atom::find_custom_ghost(const char *name, int &flag, int &cols, int &ghost)
 {
   int i = find_custom(name, flag, cols);
+  ghost = 0;
   if (i == -1) return i;
   if ((flag == 0) && (cols == 0)) ghost = ivghost[i];
   else if ((flag == 1) && (cols == 0)) ghost = dvghost[i];
-  else if ((flag == 0) && (cols == 1)) ghost = iaghost[i];
-  else if ((flag == 1) && (cols == 1)) ghost = daghost[i];
+  else if ((flag == 0) && (cols > 0)) ghost = iaghost[i];
+  else if ((flag == 1) && (cols > 0)) ghost = daghost[i];
   return i;
 }
 
@@ -3248,14 +3253,16 @@ int Atom::extract_datatype(const char *name)
     if (!array) index = find_custom(&name[2],flag,cols);
     else index = find_custom(&name[3],flag,cols);
 
+    // consistency checks
     if (index < 0) return -1;
     if (which != flag) return -1;
     if ((!array && cols) || (array && !cols)) return -1;
 
-    if (which == 0) return LAMMPS_INT;
-    else return LAMMPS_DOUBLE;
+    if (!which && !array) return LAMMPS_INT;
+    if (which && !array) return LAMMPS_DOUBLE;
+    if (!which && array) return LAMMPS_INT_2D;
+    if (which && array) return LAMMPS_DOUBLE_2D;
   }
-
   return -1;
 }
 

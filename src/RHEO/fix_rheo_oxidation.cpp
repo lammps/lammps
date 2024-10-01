@@ -69,7 +69,7 @@ FixRHEOOxidation::FixRHEOOxidation(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR, "Illegal value {} for bond type in fix rheo/oxidation", btype);
 
   rsurf = utils::numeric(FLERR, arg[5], false, lmp);
-  if (rsurf <= 0.0) error->all(FLERR, "Illegal surface distance {} in fix rheo/oxidation", cut);
+  if (rsurf <= 0.0) error->all(FLERR, "Illegal surface distance {} in fix rheo/oxidation", rsurf);
 
   cutsq = cut * cut;
 

@@ -51,7 +51,7 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = 0;
   ewall = new double[4];
-  
+
   // parse args
 
   region = domain->get_region_by_id(arg[3]);

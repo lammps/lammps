@@ -584,6 +584,27 @@ void LabelMap::write_map(const std::string &filename)
         if (!itypelabel[i].empty()) fmt::print(fp, " {} \"\"\" {} \"\"\"", i + 1, itypelabel[i]);
       fputc('\n', fp);
     }
+
+    if (stypelabel_map.size() > 0) {
+      fputs("labelmap segment", fp);
+      for (int i = 0; i < nsegmenttypes; ++i)
+        if (!stypelabel[i].empty()) fmt::print(fp, " {} \"\"\" {} \"\"\"", i + 1, stypelabel[i]);
+      fputc('\n', fp);
+    }
+    if (rtypelabel_map.size() > 0) {
+      fputs("labelmap residue", fp);
+      for (int i = 0; i < nresiduetypes; ++i)
+        if (!rtypelabel[i].empty()) fmt::print(fp, " {} \"\"\" {} \"\"\"", i + 1, rtypelabel[i]);
+      fputc('\n', fp);
+    }
+    if (ntypelabel_map.size() > 0) {
+      fputs("labelmap name", fp);
+      for (int i = 0; i < nnametypes; ++i)
+        if (!ntypelabel[i].empty()) fmt::print(fp, " {} \"\"\" {} \"\"\"", i + 1, ntypelabel[i]);
+      fputc('\n', fp);
+    }
+
     fclose(fp);
   }
 }
+

@@ -31,9 +31,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp),
-mapBinner(1, 0.0, 1.0), // no default constructor, these values are not used
-mapSorter(d_tag_sorted, 0, 1, mapBinner, true)
+AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
 {
   avecKK = nullptr;
 
@@ -276,22 +274,6 @@ void AtomKokkos::sort_device()
  //  convert back to lamda coords
 
  if (domain->triclinic) domain->x2lamda(nlocal);
-}
-
-/* ----------------------------------------------------------------------
-   reallocate memory to the pointer selected by the mask
-------------------------------------------------------------------------- */
-
-void AtomKokkos::grow(unsigned int mask)
-{
-  if (mask & SPECIAL_MASK) {
-    memoryKK->destroy_kokkos(k_special, special);
-    sync(Device, mask);
-    modified(Device, mask);
-    memoryKK->grow_kokkos(k_special, special, nmax, maxspecial, "atom:special");
-    avec->grow_pointers();
-    sync(Host, mask);
-  }
 }
 
 /* ----------------------------------------------------------------------

@@ -46,8 +46,8 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery <= 0) error->all(FLERR,"Illegal fix bond/break command");
+  nevery = utils::inumeric(FLERR, arg[3], false, lmp);
+  if (nevery <= 0) error->all(FLERR, "Illegal fix bond/break command");
 
   force_reneighbor = 1;
   next_reneighbor = -1;
@@ -56,8 +56,8 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
 
-  btype = utils::inumeric(FLERR,arg[4],false,lmp);
-  cutoff = utils::numeric(FLERR,arg[5],false,lmp);
+  btype = utils::expand_type_int(FLERR, arg[4], Atom::BOND, lmp);
+  cutoff = utils::numeric(FLERR, arg[5], false, lmp);
 
   if (btype < 1 || btype > atom->nbondtypes)
     error->all(FLERR,"Invalid bond type in fix bond/break command");

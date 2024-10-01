@@ -20,6 +20,8 @@
 
 #include <Kokkos_Core.hpp>
 #include <iomanip>
+#include <iostream>
+#include <sstream>
 
 namespace Kokkos {
 namespace Impl {
@@ -320,6 +322,19 @@ void SharedAllocationRecord<void, void>::print_host_accessible_records(
       " only works with KOKKOS_ENABLE_DEBUG enabled");
 }
 #endif
+
+void fill_host_accessible_header_info(
+    SharedAllocationRecord<void, void>* arg_record,
+    SharedAllocationHeader& arg_header, std::string const& arg_label) {
+  // Fill in the Header information, directly accessible on the host
+
+  arg_header.m_record = arg_record;
+
+  strncpy(arg_header.m_label, arg_label.c_str(),
+          SharedAllocationHeader::maximum_label_length);
+  // Set last element zero, in case c_str is too long
+  arg_header.m_label[SharedAllocationHeader::maximum_label_length - 1] = '\0';
+}
 
 } /* namespace Impl */
 } /* namespace Kokkos */

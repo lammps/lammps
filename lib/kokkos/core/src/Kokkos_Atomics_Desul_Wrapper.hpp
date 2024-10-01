@@ -22,8 +22,6 @@ static_assert(false,
 #ifndef KOKKOS_DESUL_ATOMICS_WRAPPER_HPP_
 #define KOKKOS_DESUL_ATOMICS_WRAPPER_HPP_
 #include <Kokkos_Macros.hpp>
-
-#include <Kokkos_Atomics_Desul_Config.hpp>
 #include <desul/atomics.hpp>
 
 #include <impl/Kokkos_Volatile_Load.hpp>
@@ -49,7 +47,7 @@ inline const char* atomic_query_version() { return "KOKKOS_DESUL_ATOMICS"; }
 #endif
 // ============================================================
 
-#ifdef KOKKOS_INTERNAL_NOT_PARALLEL
+#ifdef KOKKOS_ENABLE_ATOMICS_BYPASS
 #define KOKKOS_DESUL_MEM_SCOPE desul::MemoryScopeCaller()
 #else
 #define KOKKOS_DESUL_MEM_SCOPE desul::MemoryScopeDevice()

@@ -44,9 +44,6 @@
               __LINE__) " \n");                                                \
     }                                                                          \
   }
-// some projects already define this for themselves, so don't mess
-// them up
-#ifndef KOKKOS_ASSERT
 #define KOKKOS_ASSERT(...)                                                     \
   {                                                                            \
     if (!bool(__VA_ARGS__)) {                                                  \
@@ -58,8 +55,7 @@
               __LINE__) " \n");                                                \
     }                                                                          \
   }
-#endif  // ifndef KOKKOS_ASSERT
-#else   // not debug mode
+#else  // not debug mode
 #define KOKKOS_EXPECTS(...)
 #define KOKKOS_ENSURES(...)
 #ifndef KOKKOS_ASSERT

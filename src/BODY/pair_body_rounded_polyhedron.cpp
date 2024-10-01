@@ -222,8 +222,7 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
       // sphere-sphere interaction
 
       if (npi == 1 && npj == 1) {
-        sphere_against_sphere(i, j, itype, jtype, delx, dely, delz,
-                              rsq, v, f, evflag);
+        sphere_against_sphere(i, j, itype, jtype, delx, dely, delz, rsq, v, f, evflag);
         continue;
       }
 
@@ -391,20 +390,16 @@ void PairBodyRoundedPolyhedron::coeff(int narg, char **arg)
 void PairBodyRoundedPolyhedron::init_style()
 {
   avec = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
-  if (!avec) error->all(FLERR,"Pair body/rounded/polyhedron requires "
-                        "atom style body");
+  if (!avec) error->all(FLERR,"Pair body/rounded/polyhedron requires atom style body");
   if (strcmp(avec->bptr->style,"rounded/polyhedron") != 0)
-    error->all(FLERR,"Pair body/rounded/polyhedron requires "
-               "body style rounded/polyhedron");
+    error->all(FLERR,"Pair body/rounded/polyhedron requires body style rounded/polyhedron");
   bptr = dynamic_cast<BodyRoundedPolyhedron *>(avec->bptr);
 
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style body/rounded/polyhedron requires "
-               "newton pair on");
+    error->all(FLERR,"Pair style body/rounded/polyhedron requires newton pair on");
 
   if (comm->ghost_velocity == 0)
-    error->all(FLERR,"Pair body/rounded/polyhedron requires "
-               "ghost atoms store velocity");
+    error->all(FLERR,"Pair body/rounded/polyhedron requires ghost atoms store velocity");
 
   neighbor->add_request(this);
 
@@ -446,27 +441,23 @@ void PairBodyRoundedPolyhedron::init_style()
   for (i = 1; i <= ntypes; i++)
     maxerad[i] = merad[i] = 0;
 
-  int ipour;
-  for (ipour = 0; ipour < modify->nfix; ipour++)
-    if (strcmp(modify->fix[ipour]->style,"pour") == 0) break;
-  if (ipour == modify->nfix) ipour = -1;
+  Fix *fixpour = nullptr;
+  auto pours = modify->get_fix_by_style("^pour");
+  if (pours.size() > 0) fixpour = pours[0];
 
-  int idep;
-  for (idep = 0; idep < modify->nfix; idep++)
-    if (strcmp(modify->fix[idep]->style,"deposit") == 0) break;
-  if (idep == modify->nfix) idep = -1;
+  Fix *fixdep = nullptr;
+  auto deps = modify->get_fix_by_style("^deposit");
+  if (deps.size() > 0) fixdep = deps[0];
 
   for (i = 1; i <= ntypes; i++) {
     merad[i] = 0.0;
-    if (ipour >= 0) {
+    if (fixpour) {
       itype = i;
-      merad[i] =
-        *((double *) modify->fix[ipour]->extract("radius",itype));
+      merad[i] = *((double *) fixpour->extract("radius",itype));
     }
-    if (idep >= 0) {
+    if (fixdep) {
       itype = i;
-      merad[i] =
-        *((double *) modify->fix[idep]->extract("radius",itype));
+      merad[i] = *((double *) fixdep->extract("radius",itype));
     }
   }
 
@@ -558,8 +549,7 @@ void PairBodyRoundedPolyhedron::body2space(int i)
   }
 
   if ((body_num_edges > 0) && (edge_ends == nullptr))
-    error->one(FLERR,"Inconsistent edge data for body of atom {}",
-                                 atom->tag[i]);
+    error->one(FLERR,"Inconsistent edge data for body of atom {}", atom->tag[i]);
 
   for (int m = 0; m < body_num_edges; m++) {
     edge[nedge][0] = static_cast<int>(edge_ends[2*m+0]);
@@ -585,8 +575,7 @@ void PairBodyRoundedPolyhedron::body2space(int i)
   }
 
   if ((body_num_faces > 0) && (face_pts == nullptr))
-    error->one(FLERR,"Inconsistent face data for body of atom {}",
-                                 atom->tag[i]);
+    error->one(FLERR,"Inconsistent face data for body of atom {}", atom->tag[i]);
 
   for (int m = 0; m < body_num_faces; m++) {
     for (int k = 0; k < MAX_FACE_SIZE; k++)

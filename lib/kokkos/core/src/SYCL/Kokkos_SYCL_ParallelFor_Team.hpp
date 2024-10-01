@@ -22,13 +22,14 @@
 #include <SYCL/Kokkos_SYCL_Team.hpp>
 #include <SYCL/Kokkos_SYCL_TeamPolicy.hpp>
 
+#include <sstream>
 #include <vector>
 
 template <typename FunctorType, typename... Properties>
 class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
                                 Kokkos::Experimental::SYCL> {
  public:
-  using Policy = TeamPolicyInternal<Kokkos::Experimental::SYCL, Properties...>;
+  using Policy       = TeamPolicy<Properties...>;
   using functor_type = FunctorType;
   using size_type    = ::Kokkos::Experimental::SYCL::size_type;
 
@@ -44,22 +45,19 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
   size_type const m_vector_size;
   int m_shmem_begin;
   int m_shmem_size;
-  sycl::device_ptr<char> m_global_scratch_ptr;
   size_t m_scratch_size[2];
-  // Only let one ParallelFor/Reduce modify the team scratch memory. The
-  // constructor acquires the mutex which is released in the destructor.
-  std::scoped_lock<std::mutex> m_scratch_lock;
-  int m_scratch_pool_id = -1;
 
   template <typename FunctorWrapper>
-  sycl::event sycl_direct_launch(const Policy& policy,
+  sycl::event sycl_direct_launch(const sycl_device_ptr<char> global_scratch_ptr,
                                  const FunctorWrapper& functor_wrapper,
                                  const sycl::event& memcpy_event) const {
     // Convenience references
-    const Kokkos::Experimental::SYCL& space = policy.space();
+    const Kokkos::Experimental::SYCL& space = m_policy.space();
     sycl::queue& q                          = space.sycl_queue();
 
-    auto parallel_for_event = q.submit([&](sycl::handler& cgh) {
+    desul::ensure_sycl_lock_arrays_on_device(q);
+
+    auto cgh_lambda = [&](sycl::handler& cgh) {
       // FIXME_SYCL accessors seem to need a size greater than zero at least for
       // host queues
       sycl::local_accessor<char, 1> team_scratch_memory_L0(
@@ -70,11 +68,11 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
       // Avoid capturing *this since it might not be trivially copyable
       const auto shmem_begin       = m_shmem_begin;
       const size_t scratch_size[2] = {m_scratch_size[0], m_scratch_size[1]};
-      sycl::device_ptr<char> const global_scratch_ptr = m_global_scratch_ptr;
 
       auto lambda = [=](sycl::nd_item<2> item) {
         const member_type team_member(
-            team_scratch_memory_L0.get_pointer(), shmem_begin, scratch_size[0],
+            KOKKOS_IMPL_SYCL_GET_MULTI_PTR(team_scratch_memory_L0), shmem_begin,
+            scratch_size[0],
             global_scratch_ptr + item.get_group(1) * scratch_size[1],
             scratch_size[1], item, item.get_group_linear_id(),
             item.get_group_range(1));
@@ -111,28 +109,53 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
               sycl::range<2>(m_team_size, m_league_size * final_vector_size),
               sycl::range<2>(m_team_size, final_vector_size)),
           lambda);
-    });
-#ifndef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
-    q.ext_oneapi_submit_barrier(std::vector<sycl::event>{parallel_for_event});
+    };
+
+#ifdef SYCL_EXT_ONEAPI_GRAPH
+    if constexpr (Policy::is_graph_kernel::value) {
+      sycl_attach_kernel_to_node(*this, cgh_lambda);
+      return {};
+    } else
 #endif
-    return parallel_for_event;
+    {
+      auto parallel_for_event = q.submit(cgh_lambda);
+
+#ifndef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
+      q.ext_oneapi_submit_barrier(std::vector<sycl::event>{parallel_for_event});
+#endif
+      return parallel_for_event;
+    }
   }
 
  public:
   inline void execute() const {
     if (m_league_size == 0) return;
 
-    auto& space = *m_policy.space().impl_internal_space_instance();
+    auto& instance = *m_policy.space().impl_internal_space_instance();
+
+    // Only let one instance at a time resize the instance's scratch memory
+    // allocations.
+    std::scoped_lock<std::mutex> team_scratch_lock(
+        instance.m_team_scratch_mutex);
+
+    // Functor's reduce memory, team scan memory, and team shared memory depend
+    // upon team size.
+    int scratch_pool_id = instance.acquire_team_scratch_space();
+    const sycl_device_ptr<char> global_scratch_ptr =
+        static_cast<sycl_device_ptr<char>>(instance.resize_team_scratch_space(
+            scratch_pool_id,
+            static_cast<ptrdiff_t>(m_scratch_size[1]) * m_league_size));
+
     Kokkos::Experimental::Impl::SYCLInternal::IndirectKernelMem&
-        indirectKernelMem = space.get_indirect_kernel_mem();
+        indirectKernelMem = instance.get_indirect_kernel_mem();
 
     auto functor_wrapper = Experimental::Impl::make_sycl_function_wrapper(
         m_functor, indirectKernelMem);
 
-    sycl::event event = sycl_direct_launch(m_policy, functor_wrapper,
+    sycl::event event = sycl_direct_launch(global_scratch_ptr, functor_wrapper,
                                            functor_wrapper.get_copy_event());
     functor_wrapper.register_event(event);
-    space.register_team_scratch_event(m_scratch_pool_id, event);
+    instance.register_team_scratch_event(scratch_pool_id, event);
   }
 
   ParallelFor(FunctorType const& arg_functor, Policy const& arg_policy)
@@ -140,10 +163,7 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_policy(arg_policy),
         m_league_size(arg_policy.league_size()),
         m_team_size(arg_policy.team_size()),
-        m_vector_size(arg_policy.impl_vector_length()),
-        m_scratch_lock(arg_policy.space()
-                           .impl_internal_space_instance()
-                           ->m_team_scratch_mutex) {
+        m_vector_size(arg_policy.impl_vector_length()) {
     // FIXME_SYCL optimize
     if (m_team_size < 0)
       m_team_size =
@@ -156,22 +176,14 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     m_scratch_size[0] = m_shmem_size;
     m_scratch_size[1] = m_policy.scratch_size(1, m_team_size);
 
-    // Functor's reduce memory, team scan memory, and team shared memory depend
-    // upon team size.
-    auto& space       = *m_policy.space().impl_internal_space_instance();
-    m_scratch_pool_id = space.acquire_team_scratch_space();
-    m_global_scratch_ptr =
-        static_cast<sycl::device_ptr<char>>(space.resize_team_scratch_space(
-            m_scratch_pool_id,
-            static_cast<ptrdiff_t>(m_scratch_size[1]) * m_league_size));
-
-    if (static_cast<int>(space.m_maxShmemPerBlock) <
+    const auto& instance = *m_policy.space().impl_internal_space_instance();
+    if (static_cast<int>(instance.m_maxShmemPerBlock) <
         m_shmem_size - m_shmem_begin) {
       std::stringstream out;
       out << "Kokkos::Impl::ParallelFor<SYCL> insufficient shared memory! "
              "Requested "
           << m_shmem_size - m_shmem_begin << " bytes but maximum is "
-          << space.m_maxShmemPerBlock << '\n';
+          << instance.m_maxShmemPerBlock << '\n';
       Kokkos::Impl::throw_runtime_exception(out.str());
     }
 

@@ -105,12 +105,8 @@ void ComputeClusterAtom::compute_peratom()
   comm->forward_comm();
 
   // invoke full neighbor list (will copy or build if necessary)
-  // on the first step of a run, set preflag to one in neighbor->build_one(...)
 
-  if (update->firststep == update->ntimestep)
-    neighbor->build_one(list, 1);
-  else
-    neighbor->build_one(list);
+  neighbor->build_one(list);
 
   inum = list->inum;
   ilist = list->ilist;

@@ -85,7 +85,7 @@ struct TestFunctorA {
         break;
       }
 
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
 
       case 2: {
         auto it = KE::exclusive_scan(
@@ -121,7 +121,9 @@ struct TestFunctorA {
   }
 };
 
-template <class LayoutTag, class ValueType>
+struct InPlace {};
+
+template <class LayoutTag, class ValueType, class InPlaceOrVoid = void>
 void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
   /* description:
      use a rank-2 view randomly filled with values,
@@ -147,9 +149,6 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
   using space_t = Kokkos::DefaultExecutionSpace;
   Kokkos::TeamPolicy<space_t> policy(numTeams, Kokkos::AUTO());
 
-  // create the destination view
-  Kokkos::View<ValueType**> destView("destView", numTeams, numCols);
-
   // exclusive_scan returns an iterator so to verify that it is correct
   // each team stores the distance of the returned iterator from the beginning
   // of the interval that team operates on and then we check that these
@@ -168,12 +167,19 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
   rand_pool pool(lowerBound * upperBound);
   Kokkos::fill_random(initValuesView_h, pool, lowerBound, upperBound);
 
-  // use CTAD for functor
   auto initValuesView =
       Kokkos::create_mirror_view_and_copy(space_t(), initValuesView_h);
-  TestFunctorA fnc(sourceView, destView, distancesView, intraTeamSentinelView,
-                   initValuesView, binaryOp, apiId);
-  Kokkos::parallel_for(policy, fnc);
+
+  Kokkos::View<ValueType**> destView("destView", numTeams, numCols);
+  if constexpr (std::is_same_v<InPlaceOrVoid, InPlace>) {
+    TestFunctorA fnc(sourceView, sourceView, distancesView,
+                     intraTeamSentinelView, initValuesView, binaryOp, apiId);
+    Kokkos::parallel_for(policy, fnc);
+  } else {
+    TestFunctorA fnc(sourceView, destView, distancesView, intraTeamSentinelView,
+                     initValuesView, binaryOp, apiId);
+    Kokkos::parallel_for(policy, fnc);
+  }
 
   // -----------------------------------------------
   // run cpp-std kernel and check
@@ -207,7 +213,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
         break;
       }
 
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
       case 2:
       case 3: {
         auto it = exclusive_scan(KE::cbegin(rowFrom), KE::cend(rowFrom),
@@ -223,29 +229,42 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
 #undef exclusive_scan
   }
 
-  auto dataViewAfterOp_h = create_host_space_copy(destView);
-  expect_equal_host_views(stdDestView, dataViewAfterOp_h);
+  if constexpr (std::is_same_v<InPlaceOrVoid, InPlace>) {
+    auto dataViewAfterOp_h = create_host_space_copy(sourceView);
+    expect_equal_host_views(stdDestView, dataViewAfterOp_h);
+  } else {
+    auto dataViewAfterOp_h = create_host_space_copy(destView);
+    expect_equal_host_views(stdDestView, dataViewAfterOp_h);
+  }
 }
 
-template <class LayoutTag, class ValueType>
+template <class LayoutTag, class ValueType, class InPlaceOrVoid = void>
 void run_all_scenarios() {
   for (int numTeams : teamSizesToTest) {
     for (const auto& numCols : {0, 1, 2, 13, 101, 1444, 8153}) {
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
       for (int apiId : {0, 1, 2, 3}) {
 #else
       for (int apiId : {0, 1}) {
 #endif
-        test_A<LayoutTag, ValueType>(numTeams, numCols, apiId);
+        test_A<LayoutTag, ValueType, InPlaceOrVoid>(numTeams, numCols, apiId);
       }
     }
   }
 }
 
 TEST(std_algorithms_exclusive_scan_team_test, test) {
+// FIXME_OPENMPTARGET
+#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_ARCH_INTEL_GPU)
+  GTEST_SKIP() << "the test is known to fail with OpenMPTarget on Intel GPUs";
+#endif
   run_all_scenarios<DynamicTag, double>();
   run_all_scenarios<StridedTwoRowsTag, int>();
   run_all_scenarios<StridedThreeRowsTag, unsigned>();
+
+  run_all_scenarios<DynamicTag, double, InPlace>();
+  run_all_scenarios<StridedTwoRowsTag, int, InPlace>();
+  run_all_scenarios<StridedThreeRowsTag, unsigned, InPlace>();
 }
 
 }  // namespace TeamExclusiveScan

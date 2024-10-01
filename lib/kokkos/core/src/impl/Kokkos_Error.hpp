@@ -18,113 +18,19 @@
 #define KOKKOS_IMPL_ERROR_HPP
 
 #include <string>
-#include <iosfwd>
 #include <Kokkos_Macros.hpp>
 #include <Kokkos_Abort.hpp>
 #include <Kokkos_Assert.hpp>
 
-namespace Kokkos {
-namespace Impl {
+namespace Kokkos::Impl {
 
 [[noreturn]] void throw_runtime_exception(const std::string &msg);
+[[noreturn]] void throw_bad_alloc(std::string_view memory_space_name,
+                                  std::size_t size, std::string_view label);
+void log_warning(const std::string &msg);
 
-std::string human_memory_size(size_t arg_bytes);
+std::string human_memory_size(size_t bytes);
 
-}  // namespace Impl
+}  // namespace Kokkos::Impl
 
-namespace Experimental {
-
-class RawMemoryAllocationFailure : public std::bad_alloc {
- public:
-  enum class FailureMode {
-    OutOfMemoryError,
-    AllocationNotAligned,
-    InvalidAllocationSize,
-    MaximumCudaUVMAllocationsExceeded,
-    Unknown
-  };
-  enum class AllocationMechanism {
-    StdMalloc,
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-    PosixMemAlign KOKKOS_DEPRECATED,
-    PosixMMap KOKKOS_DEPRECATED,
-    IntelMMAlloc KOKKOS_DEPRECATED,
 #endif
-    CudaMalloc,
-    CudaMallocManaged,
-    CudaHostAlloc,
-    HIPMalloc,
-    HIPHostMalloc,
-    HIPMallocManaged,
-    SYCLMallocDevice,
-    SYCLMallocShared,
-    SYCLMallocHost
-  };
-
- private:
-  size_t m_attempted_size;
-  size_t m_attempted_alignment;
-  FailureMode m_failure_mode;
-  AllocationMechanism m_mechanism;
-
- public:
-  RawMemoryAllocationFailure(
-      size_t arg_attempted_size, size_t arg_attempted_alignment,
-      FailureMode arg_failure_mode = FailureMode::OutOfMemoryError,
-      AllocationMechanism arg_mechanism =
-          AllocationMechanism::StdMalloc) noexcept
-      : m_attempted_size(arg_attempted_size),
-        m_attempted_alignment(arg_attempted_alignment),
-        m_failure_mode(arg_failure_mode),
-        m_mechanism(arg_mechanism) {}
-
-  RawMemoryAllocationFailure() noexcept = delete;
-
-  RawMemoryAllocationFailure(RawMemoryAllocationFailure const &) noexcept =
-      default;
-  RawMemoryAllocationFailure(RawMemoryAllocationFailure &&) noexcept = default;
-
-  RawMemoryAllocationFailure &operator             =(
-      RawMemoryAllocationFailure const &) noexcept = default;
-  RawMemoryAllocationFailure &operator             =(
-      RawMemoryAllocationFailure &&) noexcept = default;
-
-  ~RawMemoryAllocationFailure() noexcept override = default;
-
-  [[nodiscard]] const char *what() const noexcept override {
-    if (m_failure_mode == FailureMode::OutOfMemoryError) {
-      return "Memory allocation error: out of memory";
-    } else if (m_failure_mode == FailureMode::AllocationNotAligned) {
-      return "Memory allocation error: allocation result was under-aligned";
-    }
-
-    return nullptr;  // unreachable
-  }
-
-  [[nodiscard]] size_t attempted_size() const noexcept {
-    return m_attempted_size;
-  }
-
-  [[nodiscard]] size_t attempted_alignment() const noexcept {
-    return m_attempted_alignment;
-  }
-
-  [[nodiscard]] AllocationMechanism allocation_mechanism() const noexcept {
-    return m_mechanism;
-  }
-
-  [[nodiscard]] FailureMode failure_mode() const noexcept {
-    return m_failure_mode;
-  }
-
-  void print_error_message(std::ostream &o) const;
-  [[nodiscard]] std::string get_error_message() const;
-
-  virtual void append_additional_error_information(std::ostream &) const {}
-};
-
-}  // end namespace Experimental
-
-}  // namespace Kokkos
-
-#endif /* #ifndef KOKKOS_IMPL_ERROR_HPP */

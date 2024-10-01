@@ -206,7 +206,12 @@ void PairMEAM::coeff(int narg, char **arg)
   // check for presence of first meam file
 
   std::string lib_file = utils::get_potential_file_path(arg[2]);
-  if (lib_file.empty()) error->all(FLERR, "Cannot open MEAM library file {}", lib_file);
+  if (lib_file.empty()) {
+    if (msmeamflag)
+      error->all(FLERR, "Cannot open MS-MEAM library file {}", lib_file);
+    else
+      error->all(FLERR, "Cannot open MEAM library file {}", lib_file);
+  }
 
   // find meam parameter file in arguments:
   // first word that is a file or "NULL" after the MEAM library file
@@ -226,7 +231,12 @@ void PairMEAM::coeff(int narg, char **arg)
       break;
     }
   }
-  if (paridx < 0) error->all(FLERR, "No MEAM parameter file in pair coefficients");
+  if (paridx < 0) {
+    if (msmeamflag)
+      error->all(FLERR, "No MS-MEAM parameter file in pair coefficients");
+    else
+      error->all(FLERR, "No MEAM parameter file in pair coefficients");
+  }
   if ((narg - paridx - 1) != atom->ntypes)
     error->all(FLERR, "Incorrect args for pair style {} coefficients", myname);
 
@@ -537,16 +547,16 @@ void PairMEAM::read_user_meam_file(const std::string &userfile)
 
   // open user param file on proc 0
 
-  std::shared_ptr<PotentialFileReader> reader;
+  PotentialFileReader *reader = nullptr;
 
-  if (comm->me == 0) { reader = std::make_shared<PotentialFileReader>(lmp, userfile, "MEAM"); }
+  if (comm->me == 0) reader = new PotentialFileReader(lmp, userfile, "MEAM");
 
   // read settings
   // pass them one at a time to MEAM package
   // match strings to list of corresponding ints
   char *line = nullptr;
   char buffer[MAXLINE];
-
+  int lineno = 0;
   while (true) {
     int which;
     int nindex, index[3];
@@ -554,6 +564,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile)
     int nline;
     if (comm->me == 0) {
       line = reader->next_line();
+      ++lineno;
       if (line == nullptr) {
         nline = -1;
       } else
@@ -573,20 +584,32 @@ void PairMEAM::read_user_meam_file(const std::string &userfile)
     for (which = 0; which < nkeywords; which++)
       if (keyword == keywords[which]) break;
     if (which == nkeywords)
-      error->all(FLERR, "Keyword {} in MEAM parameter file not recognized", keyword);
+      error->all(FLERR, "Keyword {} in MEAM parameter file {}:{} not recognized", keyword,
+                 userfile, lineno);
 
-    nindex = nparams - 2;
-    for (int i = 0; i < nindex; i++) index[i] = values.next_int() - 1;
+    try {
+      nindex = nparams - 2;
+      for (int i = 0; i < nindex; i++) index[i] = values.next_int() - 1;
+    } catch (std::exception &e) {
+      error->all(FLERR, "Error parsing MEAM parameter file {}:{}: {}", userfile, lineno, e.what());
+    }
 
     // map lattce_meam value to an integer
     if (which == 4) {
       std::string lattice_type = values.next_string();
       lattice_t latt;
       if (!MEAM::str_to_lat(lattice_type, false, latt))
-        error->all(FLERR, "Unrecognized lattice type in MEAM parameter file: {}", lattice_type);
+        error->all(FLERR, "Unrecognized lattice type {} in MEAM parameter file {}:{}",
+                   lattice_type, userfile, lineno);
       value = latt;
-    } else
-      value = values.next_double();
+    } else {
+      try {
+        value = values.next_double();
+      } catch (std::exception &e) {
+        error->all(FLERR, "Error parsing MEAM parameter file {}:{}: {}", userfile, lineno,
+                   e.what());
+      }
+    }
 
     // pass single setting to MEAM package
 
@@ -596,9 +619,11 @@ void PairMEAM::read_user_meam_file(const std::string &userfile)
       const char *descr[] = {"has an unknown error", "is out of range (please report a bug)",
                              "expected more indices", "has out of range element index"};
       if ((errorflag < 0) || (errorflag > 3)) errorflag = 0;
-      error->all(FLERR, "Error in MEAM parameter file: keyword {} {}", keyword, descr[errorflag]);
+      error->all(FLERR, "Error in MEAM parameter file {}:{}: keyword {} {}", userfile, lineno,
+                 keyword, descr[errorflag]);
     }
   }
+  if (comm->me == 0) delete reader;
 }
 
 /* ---------------------------------------------------------------------- */

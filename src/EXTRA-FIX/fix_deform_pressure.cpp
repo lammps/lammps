@@ -110,6 +110,11 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
         }
         set_extra[index].pgain = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
         i += 4;
+      } else if (strcmp(arg[iarg + 1], "erate/rescale") == 0) {
+        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix deform/pressure erate/rescale", error);
+        set[index].style = ERATERS;
+        set[index].rate = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+        i += 3;
       } else error->all(FLERR, "Illegal fix deform/pressure command: {}", arg[iarg + 1]);
 
     } else if (strcmp(arg[iarg], "box") == 0) {
@@ -424,16 +429,29 @@ void FixDeformPressure::init()
     if (!pressure)
       error->all(FLERR, "Pressure ID {} for fix deform/pressure does not exist", id_press);
   }
+
+  // if yz [3] changes and will cause box flip, then xy [5] cannot be changing
+  // this is b/c the flips would induce continuous changes in xz
+  //   in order to keep the edge vectors of the flipped shape matrix
+  //   an integer combination of the edge vectors of the unflipped shape matrix
+  // error if style PRESSURE/ERATEER for yz, can't calculate if box flip occurs
+
+  if (set[3].style && set[5].style) {
+    if (flipflag && set[3].style == PRESSURE)
+      error->all(FLERR, "Fix {} cannot use yz pressure with xy", style);
+    if (flipflag && set[3].style == ERATERS)
+      error->all(FLERR, "Fix {} cannot use yz erate/rescale with xy", style);
+  }
 }
 
 /* ----------------------------------------------------------------------
-   compute T,P if needed before integrator starts
+   compute T,P before integrator starts
 ------------------------------------------------------------------------- */
 
 void FixDeformPressure::setup(int /*vflag*/)
 {
-  // trigger virial computation on next timestep
-  if (pressure_flag) pressure->addstep(update->ntimestep+1);
+  // trigger virial computation, if needed, on next timestep
+  if (pressure_flag) pressure->addstep(update->ntimestep + 1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -446,7 +464,20 @@ void FixDeformPressure::end_of_step()
 
   // set new box size for strain-based dims
 
-  if (strain_flag) FixDeform::apply_strain();
+  if (strain_flag) {
+    FixDeform::apply_strain();
+
+    for (int i = 3; i < 6; i++) {
+      if (set[i].style == ERATERS) {
+        double L = domain->zprd;
+        if (i == 5) L = domain->yprd;
+
+        h_rate[i] = set[i].rate * L;
+        set_extra[i].cumulative_shift += update->dt * h_rate[i];
+        set[i].tilt_target = set[i].tilt_start + set_extra[i].cumulative_shift;
+      }
+    }
+  }
 
   // set new box size for pressure-based dims
 
@@ -479,12 +510,33 @@ void FixDeformPressure::end_of_step()
     for (int i = 0; i < 3; i++) {
       set_extra[i].prior_pressure = pressure->vector[i];
       set_extra[i].prior_rate = ((set[i].hi_target - set[i].lo_target) /
-                           (domain->boxhi[i] - domain->boxlo[i]) - 1.0)  / update->dt;
+                           domain->prd[i] - 1.0)  / update->dt;
     }
   }
 
   if (varflag) modify->addstep_compute(update->ntimestep + nevery);
 
+  // If tilting while evolving linear dimension, sum remapping effects
+  // otherwise, update_domain() will inaccurately use the current
+  // linear dimension to apply prior remappings
+
+  for (int i = 3; i < 6; i++) {
+    int idenom = 0;
+    if (i == 3) idenom = 1;
+    if (set[i].style && (set_box.style || set[idenom].style) && domain->periodicity[idenom]) {
+      // Add prior remappings. If the box remaps this timestep, don't
+      // add it yet so update_domain() will first detect the remapping
+      set[i].tilt_target += set_extra[i].cumulative_remap;
+
+      // Update remapping for next timestep
+      double prd = set[idenom].hi_target - set[idenom].lo_target;
+      double prdinv = 1.0 / prd;
+      if (set[i].tilt_target * prdinv < -0.5)
+        set_extra[i].cumulative_remap += prd;
+      if (set[i].tilt_target * prdinv > 0.5)
+        set_extra[i].cumulative_remap -= prd;
+    }
+  }
 
   FixDeform::update_domain();
 
@@ -502,7 +554,7 @@ void FixDeformPressure::apply_pressure()
 {
   // If variable pressure, calculate current target
   for (int i = 0; i < 6; i++)
-    if (set[i].style == PRESSURE)
+    if (set[i].style == PRESSURE || set[i].style == PMEAN)
       if (set_extra[i].pvar_flag)
         set_extra[i].ptarget = input->variable->compute_equal(set_extra[i].pvar);
 
@@ -556,26 +608,24 @@ void FixDeformPressure::apply_pressure()
 
     h_ratelo[i] = -0.5 * h_rate[i];
 
-    double offset = 0.5 * (domain->boxhi[i] - domain->boxlo[i]) * (1.0 + update->dt * h_rate[i]);
-    set[i].lo_target = 0.5 * (set[i].lo_start + set[i].hi_start) - offset;
-    set[i].hi_target = 0.5 * (set[i].lo_start + set[i].hi_start) + offset;
+    double shift = domain->prd[i] * update->dt * h_rate[i];
+    set_extra[i].cumulative_shift += shift;
+    set[i].lo_target = set[i].lo_start - 0.5 * set_extra[i].cumulative_shift;
+    set[i].hi_target = set[i].hi_start + 0.5 * set_extra[i].cumulative_shift;
   }
 
   for (int i = 3; i < 6; i++) {
     if (set[i].style != PRESSURE) continue;
 
-    double L, tilt, pcurrent;
+    double L, pcurrent;
     if (i == 3) {
       L = domain->zprd;
-      tilt = domain->yz;
       pcurrent = tensor[5];
     } else if (i == 4) {
       L = domain->zprd;
-      tilt = domain->xz + update->dt;
       pcurrent = tensor[4];
     } else {
       L = domain->yprd;
-      tilt = domain->xy;
       pcurrent = tensor[3];
     }
 
@@ -592,7 +642,8 @@ void FixDeformPressure::apply_pressure()
       if (fabs(h_rate[i]) > max_h_rate)
         h_rate[i] = max_h_rate * h_rate[i] / fabs(h_rate[i]);
 
-    set[i].tilt_target = tilt + update->dt * h_rate[i];
+    set_extra[i].cumulative_shift += update->dt * h_rate[i];
+    set[i].tilt_target = set[i].tilt_start + set_extra[i].cumulative_shift;
   }
 }
 
@@ -629,9 +680,9 @@ void FixDeformPressure::apply_volume()
         double dt = update->dt;
         double e1i = set_extra[i].prior_rate;
         double e2i = set_extra[fixed].prior_rate;
-        double L1i = domain->boxhi[i] - domain->boxlo[i];
-        double L2i = domain->boxhi[fixed] - domain->boxlo[fixed];
-        double L3i = domain->boxhi[dynamic1] - domain->boxlo[dynamic1];
+        double L1i = domain->prd[i];
+        double L2i = domain->prd[fixed];
+        double L3i = domain->prd[dynamic1];
         double L3 = (set[dynamic1].hi_target - set[dynamic1].lo_target);
         double Vi = L1i * L2i * L3i;
         double V = L3 * L1i * L2i;
@@ -680,7 +731,7 @@ void FixDeformPressure::apply_volume()
       }
     }
 
-    h_rate[i] = (2.0 * shift / (domain->boxhi[i] - domain->boxlo[i]) - 1.0) / update->dt;
+    h_rate[i] = (2.0 * shift / domain->prd[i] - 1.0) / update->dt;
     h_ratelo[i] = -0.5 * h_rate[i];
 
     set[i].lo_target = 0.5 * (set[i].lo_start + set[i].hi_start) - shift;
@@ -742,7 +793,7 @@ void FixDeformPressure::apply_box()
       set[i].hi_target = 0.5 * (set[i].lo_start + set[i].hi_start) + shift;
 
       // Recalculate h_rate
-      h_rate[i] = (set[i].hi_target - set[i].lo_target) / (domain->boxhi[i] - domain->boxlo[i]) - 1.0;
+      h_rate[i] = (set[i].hi_target - set[i].lo_target) / domain->prd[i] - 1.0;
       h_rate[i] /= update->dt;
       h_ratelo[i] = -0.5 * h_rate[i];
     }
@@ -767,15 +818,21 @@ void FixDeformPressure::apply_box()
       if (fabs(v_rate) > max_h_rate)
         v_rate = max_h_rate * v_rate / fabs(v_rate);
 
-    set_extra[6].cumulative_strain += update->dt * v_rate;
-    scale = (1.0 + set_extra[6].cumulative_strain);
     for (i = 0; i < 3; i++) {
-      shift = 0.5 * (set[i].hi_target - set[i].lo_target) * scale;
-      set[i].lo_target = 0.5 * (set[i].lo_start + set[i].hi_start) - shift;
-      set[i].hi_target = 0.5 * (set[i].lo_start + set[i].hi_start) + shift;
+      shift = (set[i].hi_target - set[i].lo_target) * update->dt * v_rate;
+      set_extra[6].cumulative_vshift[i] += shift;
+
+      if (set[i].style == NONE) {
+        // Overwrite default targets of current length
+        set[i].lo_target = set[i].lo_start;
+        set[i].hi_target = set[i].hi_start;
+      }
+
+      set[i].lo_target -= 0.5 * set_extra[6].cumulative_vshift[i];
+      set[i].hi_target += 0.5 * set_extra[6].cumulative_vshift[i];
 
       // Recalculate h_rate
-      h_rate[i] = (set[i].hi_target - set[i].lo_target) / (domain->boxhi[i] - domain->boxlo[i]) - 1.0;
+      h_rate[i] = (set[i].hi_target - set[i].lo_target) / domain->prd[i] - 1.0;
       h_rate[i] /= update->dt;
       h_ratelo[i] = -0.5 * h_rate[i];
     }
@@ -789,7 +846,7 @@ void FixDeformPressure::apply_box()
 void FixDeformPressure::write_restart(FILE *fp)
 {
   if (comm->me == 0) {
-    int size = 9 * sizeof(double) + 7 * sizeof(Set) + 7 * sizeof(SetExtra);
+    int size = 7 * sizeof(Set) + 7 * sizeof(SetExtra);
     fwrite(&size, sizeof(int), 1, fp);
     fwrite(set, sizeof(Set), 6, fp);
     fwrite(&set_box, sizeof(Set), 1, fp);
@@ -804,22 +861,16 @@ void FixDeformPressure::write_restart(FILE *fp)
 void FixDeformPressure::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
-  for (int i = 0; i < 6; i++)
-    h_rate[i] = list[n++];
-  for (int i = 0; i < 3; i++)
-    h_ratelo[i] = list[n++];
-
-  n = n * sizeof(double);
   int samestyle = 1;
-  Set *set_restart = (Set *) &buf[n];
+  Set *set_restart = (Set *) buf;
   for (int i = 0; i < 6; ++i) {
     // restore data from initial state
     set[i].lo_initial = set_restart[i].lo_initial;
     set[i].hi_initial = set_restart[i].hi_initial;
     set[i].vol_initial = set_restart[i].vol_initial;
     set[i].tilt_initial = set_restart[i].tilt_initial;
-    // check if style settings are consistent (should do the whole set?)
+
+    // check if style settings are consistent
     if (set[i].style != set_restart[i].style)
       samestyle = 0;
     if (set[i].substyle != set_restart[i].substyle)
@@ -843,7 +894,6 @@ void FixDeformPressure::restart(char *buf)
     set_extra[i].saved = set_extra_restart[i].saved;
     set_extra[i].prior_rate = set_extra_restart[i].prior_rate;
     set_extra[i].prior_pressure = set_extra_restart[i].prior_pressure;
-    set_extra[i].cumulative_strain = set_extra_restart[i].cumulative_strain;
   }
 }
 

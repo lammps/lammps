@@ -72,42 +72,48 @@ int OpenMP::concurrency(OpenMP const &instance) {
 int OpenMP::concurrency() const { return impl_thread_pool_size(); }
 #endif
 
+void OpenMP::impl_static_fence(std::string const &name) {
+  Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::OpenMP>(
+      name,
+      Kokkos::Tools::Experimental::SpecialSynchronizationCases::
+          GlobalDeviceSynchronization,
+      []() {
+        std::lock_guard<std::mutex> lock_all_instances(
+            Impl::OpenMPInternal::all_instances_mutex);
+        for (auto *instance_ptr : Impl::OpenMPInternal::all_instances) {
+          std::lock_guard<std::mutex> lock_instance(
+              instance_ptr->m_instance_mutex);
+        }
+      });
+}
+
 void OpenMP::fence(const std::string &name) const {
   Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::OpenMP>(
-      name, Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{1}, []() {});
+      name, Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{1},
+      [this]() {
+        auto *internal_instance = this->impl_internal_space_instance();
+        std::lock_guard<std::mutex> lock(internal_instance->m_instance_mutex);
+      });
 }
 
 bool OpenMP::impl_is_initialized() noexcept {
   return Impl::OpenMPInternal::singleton().is_initialized();
 }
 
-bool OpenMP::in_parallel(OpenMP const &exec_space) noexcept {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-  return (
-      (exec_space.impl_internal_space_instance()->m_level < omp_get_level()) &&
-      (!Impl::t_openmp_instance ||
-       Impl::t_openmp_instance->m_level < omp_get_level()));
-#else
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+KOKKOS_DEPRECATED bool OpenMP::in_parallel(OpenMP const &exec_space) noexcept {
   return exec_space.impl_internal_space_instance()->m_level < omp_get_level();
-#endif
 }
+#endif
 
 int OpenMP::impl_thread_pool_size() const noexcept {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-  return OpenMP::in_parallel(*this)
-             ? omp_get_num_threads()
-             : (Impl::t_openmp_instance
-                    ? Impl::t_openmp_instance->m_pool_size
-                    : impl_internal_space_instance()->m_pool_size);
-#else
-  return OpenMP::in_parallel(*this)
+  return (impl_internal_space_instance()->get_level() < omp_get_level())
              ? omp_get_num_threads()
              : impl_internal_space_instance()->m_pool_size;
-#endif
 }
 
 int OpenMP::impl_max_hardware_threads() noexcept {
-  return Impl::g_openmp_hardware_max_threads;
+  return Impl::OpenMPInternal::max_hardware_threads();
 }
 
 namespace Impl {

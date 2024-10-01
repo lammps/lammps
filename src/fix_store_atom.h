@@ -49,11 +49,11 @@ class FixStoreAtom : public Fix {
   double memory_usage() override;
 
  private:
-  int vecflag;       // 1 if ncol=1
-  int arrayflag;     // 1 if a 2d array (vector per atom)
-  int tensorflag;    // 1 if a 3d array (array per atom)
-  int ghostflag;     // 0/1 to communicate values with ghost atoms
-  int restartflag;   // 0/1 to store values in restart files
+  int vecflag;        // 1 if ncol=1
+  int arrayflag;      // 1 if a 2d array (vector per atom)
+  int tensorflag;     // 1 if a 3d array (array per atom)
+  int ghostflag;      // 0/1 to communicate values with ghost atoms
+  int restartflag;    // 0/1 to store values in restart files
 
   int n1, n2;     // size of 3d dims of per-atom data struct
   int nvalues;    // number of per-atom values

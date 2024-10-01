@@ -32,6 +32,10 @@
 
 // Profiling
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Kokkos_Profiling_KokkosPDeviceInfo {
   size_t deviceID;
 };
@@ -154,7 +158,7 @@ enum Kokkos_Tools_OptimizationType {
   Kokkos_Tools_Maximize
 };
 
-struct Kokkos_Tools_OptimzationGoal {
+struct Kokkos_Tools_OptimizationGoal {
   size_t type_id;
   enum Kokkos_Tools_OptimizationType goal;
 };
@@ -220,7 +224,7 @@ typedef void (*Kokkos_Tools_contextBeginFunction)(const size_t);
 typedef void (*Kokkos_Tools_contextEndFunction)(
     const size_t, struct Kokkos_Tools_VariableValue);
 typedef void (*Kokkos_Tools_optimizationGoalDeclarationFunction)(
-    const size_t, const struct Kokkos_Tools_OptimzationGoal goal);
+    const size_t, const struct Kokkos_Tools_OptimizationGoal goal);
 
 struct Kokkos_Profiling_EventSet {
   Kokkos_Profiling_initFunction init;
@@ -266,5 +270,9 @@ struct Kokkos_Profiling_EventSet {
                                                     // interface without
                                                     // changing struct layout
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // KOKKOS_PROFILING_C_INTERFACE_HPP

@@ -106,7 +106,6 @@ void OpenMPTargetInternal::print_configuration(std::ostream& os,
 void OpenMPTargetInternal::impl_finalize() {
   m_is_initialized = false;
   Kokkos::Impl::OpenMPTargetExec space;
-  if (space.m_lock_array != nullptr) space.clear_lock_array();
 
   if (space.m_uniquetoken_ptr != nullptr)
     Kokkos::kokkos_free<Kokkos::Experimental::OpenMPTargetSpace>(
@@ -178,8 +177,10 @@ void OpenMPTarget::impl_static_fence(const std::string& name) {
 }
 
 void OpenMPTarget::impl_initialize(InitializationSettings const& settings) {
+  using Kokkos::Impl::get_visible_devices;
+  std::vector<int> const& visible_devices = get_visible_devices();
   using Kokkos::Impl::get_gpu;
-  const int device_num = get_gpu(settings);
+  const int device_num = get_gpu(settings).value_or(visible_devices[0]);
   omp_set_default_device(device_num);
 
   Impl::OpenMPTargetInternal::impl_singleton()->impl_initialize();

@@ -17,11 +17,15 @@
 #ifndef KOKKOS_SYCL_PARALLEL_FOR_RANGE_HPP_
 #define KOKKOS_SYCL_PARALLEL_FOR_RANGE_HPP_
 
+#ifdef SYCL_EXT_ONEAPI_AUTO_LOCAL_RANGE
+#include <Kokkos_BitManipulation.hpp>
+#endif
 #ifndef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
 #include <vector>
 #endif
 
 namespace Kokkos::Impl {
+#ifndef SYCL_EXT_ONEAPI_AUTO_LOCAL_RANGE
 template <typename FunctorWrapper, typename Policy>
 struct FunctorWrapperRangePolicyParallelFor {
   using WorkTag = typename Policy::work_tag;
@@ -37,14 +41,15 @@ struct FunctorWrapperRangePolicyParallelFor {
   typename Policy::index_type m_begin;
   FunctorWrapper m_functor_wrapper;
 };
+#endif
 
 // Same as above but for a user-provided workgroup size
 template <typename FunctorWrapper, typename Policy>
 struct FunctorWrapperRangePolicyParallelForCustom {
   using WorkTag = typename Policy::work_tag;
 
-  void operator()(sycl::item<1> item) const {
-    const typename Policy::index_type id = item.get_linear_id();
+  void operator()(sycl::nd_item<1> item) const {
+    const typename Policy::index_type id = item.get_global_linear_id();
     if (id < m_work_size) {
       const auto shifted_id = id + m_begin;
       if constexpr (std::is_void_v<WorkTag>)
@@ -74,25 +79,47 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>,
   const Policy m_policy;
 
   template <typename Functor>
-  static sycl::event sycl_direct_launch(const Policy& policy,
-                                        const Functor& functor,
-                                        const sycl::event& memcpy_event) {
+  sycl::event sycl_direct_launch(const Policy& policy, const Functor& functor,
+                                 const sycl::event& memcpy_event) const {
     // Convenience references
     const Kokkos::Experimental::SYCL& space = policy.space();
     sycl::queue& q                          = space.sycl_queue();
 
-    auto parallel_for_event = q.submit([&](sycl::handler& cgh) {
+    desul::ensure_sycl_lock_arrays_on_device(q);
+
+    auto cgh_lambda = [&](sycl::handler& cgh) {
 #ifndef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
       cgh.depends_on(memcpy_event);
 #else
       (void)memcpy_event;
 #endif
+
       if (policy.chunk_size() <= 1) {
+#ifdef SYCL_EXT_ONEAPI_AUTO_LOCAL_RANGE
+        const auto actual_range = policy.end() - policy.begin();
+        FunctorWrapperRangePolicyParallelForCustom<Functor, Policy> f{
+            policy.begin(), functor, actual_range};
+        // Round the actual range up to the closest power of two not exceeding
+        // the maximum workgroup size
+        const auto max_wgroup_size =
+            q.get_device().get_info<sycl::info::device::max_work_group_size>();
+        const auto wgroup_size_multiple = Kokkos::bit_floor(
+            std::min<std::size_t>(max_wgroup_size, actual_range));
+
+        const auto launch_range = (actual_range + wgroup_size_multiple - 1) /
+                                  wgroup_size_multiple * wgroup_size_multiple;
+        sycl::nd_range<1> range(
+            launch_range, sycl::ext::oneapi::experimental::auto_range<1>());
+        cgh.parallel_for<
+            FunctorWrapperRangePolicyParallelForCustom<Functor, Policy>>(range,
+                                                                         f);
+#else
         FunctorWrapperRangePolicyParallelFor<Functor, Policy> f{policy.begin(),
                                                                 functor};
         sycl::range<1> range(policy.end() - policy.begin());
         cgh.parallel_for<FunctorWrapperRangePolicyParallelFor<Functor, Policy>>(
             range, f);
+#endif
       } else {
         // Use the chunk size as workgroup size. We need to make sure that the
         // range the kernel is launched with is a multiple of the workgroup
@@ -109,12 +136,22 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>,
             FunctorWrapperRangePolicyParallelForCustom<Functor, Policy>>(range,
                                                                          f);
       }
-    });
-#ifndef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
-    q.ext_oneapi_submit_barrier(std::vector<sycl::event>{parallel_for_event});
-#endif
+    };
 
-    return parallel_for_event;
+#ifdef SYCL_EXT_ONEAPI_GRAPH
+    if constexpr (Policy::is_graph_kernel::value) {
+      sycl_attach_kernel_to_node(*this, cgh_lambda);
+      return {};
+    } else
+#endif
+    {
+      auto parallel_for_event = q.submit(cgh_lambda);
+
+#ifndef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
+      q.ext_oneapi_submit_barrier(std::vector<sycl::event>{parallel_for_event});
+#endif
+      return parallel_for_event;
+    }
   }
 
  public:
@@ -134,12 +171,6 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>,
                                            functor_wrapper.get_copy_event());
     functor_wrapper.register_event(event);
   }
-
-  ParallelFor(const ParallelFor&) = delete;
-  ParallelFor(ParallelFor&&)      = delete;
-  ParallelFor& operator=(const ParallelFor&) = delete;
-  ParallelFor& operator=(ParallelFor&&) = delete;
-  ~ParallelFor()                        = default;
 
   ParallelFor(const FunctorType& arg_functor, const Policy& arg_policy)
       : m_functor(arg_functor), m_policy(arg_policy) {}

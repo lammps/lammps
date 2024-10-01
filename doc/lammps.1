@@ -1,7 +1,7 @@
-.TH LAMMPS "1" "7 February 2024" "2024-02-07"
+.TH LAMMPS "1" "29 August 2024" "2024-08-29"
 .SH NAME
 .B LAMMPS
-\- Molecular Dynamics Simulator.  Version 7 February 2024
+\- Molecular Dynamics Simulator.  Version 29 August 2024
 
 .SH SYNOPSIS
 .B lmp
@@ -226,6 +226,20 @@ arguments of the "dump" command. See the
 .B LAMMPS
 manual for details on either of the two commands.
 .TP
+\fB\-r2info <restart file> <keyword> ...\fR or
+\fB\-restart2info <restart file> <keyword> ...\fR
+Write information about the <restart file> previously written by
+.B LAMMPS
+to the screen and immediately exit.  Following <restart file>
+argument, additional keywords for the
+.B LAMMPS
+"info" command may be added to increase the amount of information
+written. By default "system" "group" "fix" "compute" are already
+set. See the
+.B LAMMPS
+manual for details on the "info" command.
+.TP
+.TP
 \fB\-sc <file name>\fR or \fB\-screen <file name>\fR
 Specify a file for
 .B LAMMPS
@@ -297,7 +311,7 @@ the chapter on errors in the
 manual gives some additional information about error messages, if possible.
 
 .SH COPYRIGHT
-© 2003--2022 Sandia Corporation
+© 2003--2024 Sandia Corporation
 
 This package is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 2 as

@@ -214,7 +214,7 @@ struct point_t {
   uint8_t x, y, z;
 
   KOKKOS_FUNCTION
-  point_t() : x(1), y(1), z(1){};
+  point_t() : x(0), y(0), z(0){};
 
   KOKKOS_FUNCTION
   point_t(const point_t &val) : x(val.x), y(val.y), z(val.z){};

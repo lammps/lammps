@@ -62,8 +62,12 @@ struct TestIncrExecSpace {
     auto concurrency = ExecSpace().concurrency();
     ASSERT_GT(concurrency, 0);
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
     int in_parallel = ExecSpace::in_parallel();
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
     ASSERT_FALSE(in_parallel);
+#endif
 
     const char* name = ExecSpace::name();
     std::cout << name << std::endl;

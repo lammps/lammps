@@ -48,8 +48,19 @@ class HIP {
   using scratch_memory_space = ScratchMemorySpace<HIP>;
 
   HIP();
-  HIP(hipStream_t stream,
-      Impl::ManageStream manage_stream = Impl::ManageStream::no);
+
+  explicit HIP(hipStream_t stream) : HIP(stream, Impl::ManageStream::no) {}
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  template <typename T = void>
+  KOKKOS_DEPRECATED_WITH_COMMENT(
+      "HIP execution space should be constructed explicitly.")
+  HIP(hipStream_t stream)
+      : HIP(stream) {}
+#endif
+
+  HIP(hipStream_t stream, Impl::ManageStream manage_stream);
+
   KOKKOS_DEPRECATED HIP(hipStream_t stream, bool manage_stream);
 
   //@}
@@ -57,13 +68,15 @@ class HIP {
   //! \name Functions that all Kokkos devices must implement.
   //@{
 
-  KOKKOS_INLINE_FUNCTION static int in_parallel() {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION static int in_parallel() {
 #if defined(__HIP_DEVICE_COMPILE__)
     return true;
 #else
     return false;
 #endif
   }
+#endif
 
   /** \brief Wait until all dispatched functors complete.
    *
@@ -94,9 +107,13 @@ class HIP {
 
   static int impl_is_initialized();
 
-  //  static size_type device_arch();
-
-  static size_type detect_device_count();
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  KOKKOS_DEPRECATED static size_type detect_device_count() {
+    int count;
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipGetDeviceCount(&count));
+    return count;
+  }
+#endif
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   static int concurrency();

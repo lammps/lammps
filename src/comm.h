@@ -146,6 +146,7 @@ class Comm : protected Pointers {
   char xyz[4];         // xyz mapping of procs to 3d grid
   char *customfile;    // file with custom proc map
   char *outfile;       // proc grid/map output file
+  int numa_nodes;      // Number of numa domains per socket for 3d grid
 
   int otherflag;            // 1 if this partition dependent on another
   int other_style;          // style of dependency

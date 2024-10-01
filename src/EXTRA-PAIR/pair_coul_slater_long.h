@@ -41,9 +41,7 @@ class PairCoulSlaterLong : public Pair {
   void *extract(const char *, int &) override;
 
  protected:
-  double cut_coul, cut_coulsq, qdist;
-  double lamda;
-  double g_ewald;
+  double cut_coul, cut_coulsq, lamda, g_ewald;
   double **scale;
 
   virtual void allocate();

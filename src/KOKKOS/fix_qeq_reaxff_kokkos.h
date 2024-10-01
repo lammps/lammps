@@ -70,7 +70,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void pre_force(int) override;
 
   KOKKOS_INLINE_FUNCTION
-  void num_neigh_item(int, int&) const;
+  void num_neigh_item(int, bigint&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqZero, const int&) const;
@@ -80,7 +80,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void compute_h_item(int, int &, const bool &) const;
+  void compute_h_item(int, bigint &, const bool &) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -201,8 +201,9 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   int allocated_flag, last_allocate;
   int need_dup;
   int converged;
+  bigint m_cap_big;
 
-  typename AT::t_int_scalar d_mfill_offset;
+  typename AT::t_bigint_scalar d_mfill_offset;
 
   typedef Kokkos::DualView<int***,DeviceType> tdual_int_1d;
   Kokkos::DualView<params_qeq*,Kokkos::LayoutRight,DeviceType> k_params;
@@ -227,7 +228,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   DAT::tdual_ffloat_1d k_tap;
   typename AT::t_ffloat_1d d_tap;
 
-  typename AT::t_int_1d d_firstnbr;
+  typename AT::t_bigint_1d d_firstnbr;
   typename AT::t_int_1d d_numnbrs;
   typename AT::t_int_1d d_jlist;
   typename AT::t_ffloat_1d d_val;
@@ -290,21 +291,21 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 template <class DeviceType>
 struct FixQEqReaxFFKokkosNumNeighFunctor {
   typedef DeviceType device_type;
-  typedef int value_type;
+  typedef bigint value_type;
   FixQEqReaxFFKokkos<DeviceType> c;
   FixQEqReaxFFKokkosNumNeighFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, int &maxneigh) const {
-    c.num_neigh_item(ii, maxneigh);
+  void operator()(const int ii, bigint &totneigh) const {
+    c.num_neigh_item(ii, totneigh);
   }
 };
 
 template <class DeviceType, int NEIGHFLAG>
 struct FixQEqReaxFFKokkosComputeHFunctor {
   int atoms_per_team, vector_length;
-  typedef int value_type;
+  typedef bigint value_type;
   typedef Kokkos::ScratchMemorySpace<DeviceType> scratch_space;
   FixQEqReaxFFKokkos<DeviceType> c;
 
@@ -319,7 +320,7 @@ struct FixQEqReaxFFKokkosComputeHFunctor {
   };
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, int &m_fill, const bool &final) const {
+  void operator()(const int ii, bigint &m_fill, const bool &final) const {
     c.template compute_h_item<NEIGHFLAG>(ii,m_fill,final);
   }
 

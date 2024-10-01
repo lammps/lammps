@@ -37,9 +37,9 @@ class FixAveHisto : public Fix {
 
  protected:
   struct value_t {
-    int which;       // type of data: COMPUTE, FIX, VARIABLE
-    int argindex;    // 1-based index if data is vector, else 0
-    std::string id;         // compute/fix/variable ID
+    int which;         // type of data: COMPUTE, FIX, VARIABLE
+    int argindex;      // 1-based index if data is vector, else 0
+    std::string id;    // compute/fix/variable ID
     union {
       class Compute *c;
       class Fix *f;

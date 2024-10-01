@@ -88,26 +88,82 @@ bool SYCL::impl_is_initialized() {
 void SYCL::impl_finalize() { Impl::SYCLInternal::singleton().finalize(); }
 
 void SYCL::print_configuration(std::ostream& os, bool verbose) const {
-  os << "Devices:\n";
-  os << "  KOKKOS_ENABLE_SYCL: yes\n";
-
   os << "\nRuntime Configuration:\n";
 
-  os << "macro  KOKKOS_ENABLE_SYCL : defined\n";
+#ifdef KOKKOS_ENABLE_ONEDPL
+  os << "macro  KOKKOS_ENABLE_ONEDPL : defined\n";
+#else
+  os << "macro  KOKKOS_ENABLE_ONEDPL : undefined\n";
+#endif
 #ifdef KOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED
   os << "macro  KOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED : defined\n";
 #else
   os << "macro  KOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED : undefined\n";
 #endif
-
+#ifdef SYCL_EXT_ONEAPI_DEVICE_GLOBAL
+  os << "macro  SYCL_EXT_ONEAPI_DEVICE_GLOBAL : defined\n";
+#else
+  os << "macro  SYCL_EXT_ONEAPI_DEVICE_GLOBAL : undefined\n";
+#endif
 #ifdef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
   os << "macro  KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES : defined\n";
 #else
   os << "macro  KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES : undefined\n";
 #endif
+#ifdef SYCL_EXT_ONEAPI_GRAPH
+  os << "macro  SYCL_EXT_ONEAPI_GRAPH : defined\n";
+#else
+  os << "macro  SYCL_EXT_ONEAPI_GRAPH : undefined\n";
+#endif
+#ifdef SYCL_EXT_INTEL_QUEUE_IMMEDIATE_COMMAND_LIST
+  if (sycl_queue()
+          .has_property<
+              sycl::ext::intel::property::queue::immediate_command_list>())
+    os << "Immediate command lists enforced\n";
+  else if (sycl_queue()
+               .has_property<sycl::ext::intel::property::queue::
+                                 no_immediate_command_list>())
+    os << "Standard command queue enforced\n";
+  else
+#endif
+  {
+    os << "Immediate command lists and standard command queue allowed.\n";
+    if (const char* environment_setting =
+            std::getenv("SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS"))
+      os << "SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS="
+         << environment_setting << " takes precedence.\n";
+    else
+      os << "SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS not defined.\n";
+  }
 
-  if (verbose)
+  int counter       = 0;
+  int active_device = Kokkos::device_id();
+  std::cout << "\nAvailable devices: \n";
+  std::vector<sycl::device> devices = Impl::get_sycl_devices();
+  for (const auto& device : devices) {
+    std::string device_type;
+    switch (device.get_info<sycl::info::device::device_type>()) {
+      case sycl::info::device_type::cpu: device_type = "cpu"; break;
+      case sycl::info::device_type::gpu: device_type = "gpu"; break;
+      case sycl::info::device_type::accelerator:
+        device_type = "accelerator";
+        break;
+      case sycl::info::device_type::custom: device_type = "custom"; break;
+      case sycl::info::device_type::automatic: device_type = "automatic"; break;
+      case sycl::info::device_type::host: device_type = "host"; break;
+      case sycl::info::device_type::all: device_type = "all"; break;
+    }
+    os << "[" << device.get_backend() << "]:" << device_type << ':' << counter
+       << "] " << device.get_info<sycl::info::device::name>();
+    if (counter == active_device) os << " : Selected";
+    os << '\n';
+    ++counter;
+  }
+
+  if (verbose) {
+    os << '\n';
     SYCL::impl_sycl_info(os, m_space_instance->m_queue->get_device());
+  }
 }
 
 void SYCL::fence(const std::string& name) const {
@@ -137,20 +193,11 @@ void SYCL::impl_static_fence(const std::string& name) {
 }
 
 void SYCL::impl_initialize(InitializationSettings const& settings) {
-  std::vector<sycl::device> gpu_devices =
-      sycl::device::get_devices(sycl::info::device_type::gpu);
-  // If the device id is not specified and there are no GPUs, sidestep Kokkos
-  // device selection and use whatever is available (if no GPU architecture is
-  // specified).
-#if !defined(KOKKOS_ARCH_INTEL_GPU) && !defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
-  if (!settings.has_device_id() && gpu_devices.empty()) {
-    Impl::SYCLInternal::singleton().initialize(sycl::device());
-    Impl::SYCLInternal::m_syclDev = 0;
-    return;
-  }
-#endif
-  const auto id = ::Kokkos::Impl::get_gpu(settings);
-  Impl::SYCLInternal::singleton().initialize(gpu_devices[id]);
+  const auto& visible_devices = ::Kokkos::Impl::get_visible_devices();
+  const auto id =
+      ::Kokkos::Impl::get_gpu(settings).value_or(visible_devices[0]);
+  std::vector<sycl::device> sycl_devices = Impl::get_sycl_devices();
+  Impl::SYCLInternal::singleton().initialize(sycl_devices[id]);
   Impl::SYCLInternal::m_syclDev = id;
 }
 
@@ -243,9 +290,32 @@ std::ostream& SYCL::impl_sycl_info(std::ostream& os,
 
 namespace Impl {
 
+std::vector<sycl::device> get_sycl_devices() {
+#if defined(KOKKOS_ARCH_INTEL_GPU) || defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU) || \
+    defined(KOKKOS_ARCH_AMD_GPU)
+  std::vector<sycl::device> devices =
+      sycl::device::get_devices(sycl::info::device_type::gpu);
+#if defined(KOKKOS_ARCH_INTEL_GPU)
+  sycl::backend backend = sycl::backend::ext_oneapi_level_zero;
+#elif defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
+  sycl::backend backend = sycl::backend::ext_oneapi_cuda;
+#elif defined(KOKKOS_ARCH_AMD_GPU)
+  sycl::backend backend = sycl::backend::ext_oneapi_hip;
+#endif
+  devices.erase(std::remove_if(devices.begin(), devices.end(),
+                               [backend](const sycl::device& d) {
+                                 return d.get_backend() != backend;
+                               }),
+                devices.end());
+#else
+  std::vector<sycl::device> devices = sycl::device::get_devices();
+#endif
+  return devices;
+}
+
 int g_sycl_space_factory_initialized =
     Kokkos::Impl::initialize_space_factory<SYCL>("170_SYCL");
 
-}
+}  // namespace Impl
 }  // namespace Experimental
 }  // namespace Kokkos

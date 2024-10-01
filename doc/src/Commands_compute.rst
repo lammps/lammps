@@ -1,19 +1,5 @@
-.. table_from_list::
-   :columns: 3
-
-   * :doc:`General commands <Commands_all>`
-   * :doc:`Fix styles <Commands_fix>`
-   * :doc:`Compute styles <Commands_compute>`
-   * :doc:`Pair styles <Commands_pair>`
-   * :ref:`Bond styles <bond>`
-   * :ref:`Angle styles <angle>`
-   * :ref:`Dihedral styles <dihedral>`
-   * :ref:`Improper styles <improper>`
-   * :doc:`KSpace styles <Commands_kspace>`
-   * :doc:`Dump styles <Commands_dump>`
-
-Compute commands
-================
+Compute styles
+==============
 
 An alphabetic list of all LAMMPS :doc:`compute <compute>` commands.
 Some styles have accelerated versions.  This is indicated by
@@ -21,7 +7,7 @@ additional letters in parenthesis: g = GPU, i = INTEL, k =
 KOKKOS, o = OPENMP, t = OPT.
 
 .. table_from_list::
-   :columns: 5
+   :columns: 4
 
    * :doc:`ackland/atom <compute_ackland_atom>`
    * :doc:`adf <compute_adf>`
@@ -108,6 +94,10 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`pe/mol/tally <compute_tally>`
    * :doc:`pe/tally <compute_tally>`
    * :doc:`plasticity/atom <compute_plasticity_atom>`
+   * :doc:`pod/atom <compute_pod_atom>`
+   * :doc:`podd/atom <compute_pod_atom>`
+   * :doc:`pod/local <compute_pod_atom>`
+   * :doc:`pod/global <compute_pod_atom>`
    * :doc:`pressure <compute_pressure>`
    * :doc:`pressure/alchemy <compute_pressure_alchemy>`
    * :doc:`pressure/uef <compute_pressure_uef>`
@@ -122,6 +112,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`reduce <compute_reduce>`
    * :doc:`reduce/chunk <compute_reduce_chunk>`
    * :doc:`reduce/region <compute_reduce>`
+   * :doc:`rheo/property/atom <compute_rheo_property_atom>`
    * :doc:`rigid/local <compute_rigid_local>`
    * :doc:`saed <compute_saed>`
    * :doc:`slcsa/atom <compute_slcsa_atom>`

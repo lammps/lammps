@@ -27,14 +27,13 @@
 
 using namespace LAMMPS_NS;
 
-enum { CONSTANT, VARIABLE };
-
 static constexpr double BIG = 1.0e20;
 
 /* ---------------------------------------------------------------------- */
 
-RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg), lo(0.0), hi(0.0),
-  c1str(nullptr), c2str(nullptr), rlostr(nullptr), rhistr(nullptr), lostr(nullptr), histr(nullptr)
+RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
+    Region(lmp, narg, arg), lo(0.0), hi(0.0), c1str(nullptr), c2str(nullptr), rlostr(nullptr),
+    rhistr(nullptr), lostr(nullptr), histr(nullptr)
 {
   options(narg - 9, &arg[9]);
 
@@ -172,7 +171,6 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg), lo
       radiushi = xscale * utils::numeric(FLERR, arg[6], false, lmp);
       rhistyle = CONSTANT;
     }
-
   }
 
   lostyle = CONSTANT;
@@ -265,7 +263,7 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg), lo
   if (hi <= lo) error->all(FLERR, "Illegal cone length in region cone command");
 
   // extent of cone
-  maxradius = ( (radiuslo > radiushi) ? radiuslo : radiushi);
+  maxradius = ((radiuslo > radiushi) ? radiuslo : radiushi);
 
   if (interior) {
     bboxflag = 1;
@@ -779,8 +777,7 @@ void RegCone::shape_update()
   if (lostyle == VARIABLE) lo = input->variable->compute_equal(lovar);
   if (histyle == VARIABLE) hi = input->variable->compute_equal(hivar);
 
-  if (radiuslo == 0.0 && radiushi == 0.0)
-    error->all(FLERR, "dtion in region gave bad value");
+  if (radiuslo == 0.0 && radiushi == 0.0) error->all(FLERR, "dtion in region gave bad value");
 
   if (axis == 'x') {
     if (c1style == VARIABLE) c1 *= yscale;

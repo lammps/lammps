@@ -16,7 +16,6 @@
 
 #include <Kokkos_Core.hpp>
 #include <cstdio>
-#include <typeinfo>
 
 //
 // "Hello world" parallel_for example:
@@ -25,12 +24,12 @@
 //      using a functor to define the loop body
 //   3. Shut down Kokkos
 //
-// If Kokkos was built with C++11 enabled, try comparing this example
-// to 01_hello_world_lambda.  The latter uses C++11 lambdas (anonymous
-// functions) to define the loop body of the parallel_for.  That makes
-// the code much more concise and readable.  On the other hand,
-// breaking out the loop body into an explicit functor makes it easier
-// to test the loop independently of the parallel pattern.
+// Try comparing this example to 01_hello_world_lambda, which uses
+// C++11 lambdas (anonymous functions) to define the loop body of the
+// parallel_for.  That makes the code much more concise and readable.
+// On the other hand, breaking out the loop body into an explicit
+// functor makes it easier to test the loop independently of the
+// parallel pattern.
 //
 
 // Functor that defines the parallel_for's loop body.
@@ -58,12 +57,7 @@ struct hello_world {
   // is unnecessary but harmless.
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
-    // FIXME_SYCL needs workaround for printf
-#ifndef __SYCL_DEVICE_ONLY__
-    printf("Hello from i = %i\n", i);
-#else
-    (void)i;
-#endif
+    Kokkos::printf("Hello from i = %i\n", i);
   }
 };
 
@@ -77,11 +71,9 @@ int main(int argc, char* argv[]) {
   // start with "--kokkos-".
   Kokkos::initialize(argc, argv);
 
-  // Print the name of Kokkos' default execution space.  We're using
-  // typeid here, so the name might get a bit mangled by the linker,
-  // but you should still be able to figure out what it is.
+  // Print the name of Kokkos' default execution space.
   printf("Hello World on Kokkos execution space %s\n",
-         typeid(Kokkos::DefaultExecutionSpace).name());
+         Kokkos::DefaultExecutionSpace::name());
 
   // Run the above functor on the default Kokkos execution space in
   // parallel, with a parallel for loop count of 15.

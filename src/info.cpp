@@ -110,12 +110,6 @@ static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES
 
 using namespace LAMMPS_NS;
 
-// must match enumerator in variable.h
-static const char *varstyles[] = {
-  "index", "loop", "world", "universe", "uloop", "string", "getenv",
-  "file", "atomfile", "format", "equal", "atom", "vector", "python",
-  "timer", "internal", "(unknown)"};
-
 static const char *mapstyles[] = { "none", "array", "hash", "yes" };
 
 static const char *commstyles[] = { "brick", "tiled" };
@@ -267,7 +261,7 @@ void Info::command(int narg, char **arg)
         ++idx;
       }
     } else {
-      error->warning(FLERR,"Ignoring unknown or incorrect info command flag");
+      error->warning(FLERR,"Ignoring unknown or incorrect info command flag: {}",arg[idx]);
       ++idx;
     }
   }
@@ -302,6 +296,7 @@ void Info::command(int narg, char **arg)
     if (has_png_support()) fputs("-DLAMMPS_PNG\n",out);
     if (has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",out);
     if (has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",out);
+    if (has_curl_support()) fputs("-DLAMMPS_CURL\n",out);
     if (has_fft_single_support()) fputs("-DFFT_SINGLE\n",out);
 
 #if defined(LAMMPS_BIGBIG)
@@ -423,6 +418,12 @@ void Info::command(int narg, char **arg)
     fmt::print(out,"Atoms     = {:12},  types = {:8d},  style = {}\n",
                atom->natoms, atom->ntypes, force->pair_style);
 
+    if (atom->tag_enable) fmt::print(out,"Atoms with atom IDs\n");
+    if (atom->molecule) fmt::print(out,"Atoms with molecule IDs\n");
+    if (atom->mass) fmt::print(out,"Atoms with per-type masses\n");
+    if (atom->rmass) fmt::print(out,"Atoms with per-atom masses\n");
+    if (atom->q) fmt::print(out,"Atoms with per-atom charges\n");
+
     if (force->pair && utils::strmatch(force->pair_style,"^hybrid")) {
       auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
       fmt::print(out,"Hybrid sub-styles:");
@@ -478,6 +479,8 @@ void Info::command(int narg, char **arg)
     } else {
       fputs("\nBox has not yet been created\n",out);
     }
+    fmt::print(out,"\nCurrent timestep number = {}\n", update->ntimestep);
+    fmt::print(out,"Current timestep size = {}\n", update->dt);
   }
 
   if (domain->box_exist && (flags & COEFFS)) {
@@ -863,6 +866,8 @@ bool Info::is_available(const char *category, const char *name)
       return has_jpeg_support();
     } else if (strcmp(name,"ffmpeg") == 0) {
       return has_ffmpeg_support();
+    } else if (strcmp(name,"curl") == 0) {
+      return has_curl_support();
     } else if (strcmp(name,"fft_single") == 0) {
       return has_fft_single_support();
     } else if (strcmp(name,"exceptions") == 0) {
@@ -1077,6 +1082,14 @@ bool Info::has_jpeg_support() {
 
 bool Info::has_ffmpeg_support() {
 #ifdef LAMMPS_FFMPEG
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool Info::has_curl_support() {
+#ifdef LAMMPS_CURL
   return true;
 #else
   return false;
@@ -1303,6 +1316,10 @@ std::string Info::get_fft_info()
 #else
   fft_info += "FFT library = MKL\n";
 #endif
+#elif defined(FFT_MKL_GPU)
+  fft_info += "FFT library = MKL GPU\n";
+#elif defined(FFT_NVPL)
+  fft_info += "FFT library = NVPL\n";
 #elif defined(FFT_FFTW3)
 #if defined(FFT_FFTW_THREADS)
   fft_info += "FFT library = FFTW3 with threads\n";
@@ -1325,12 +1342,16 @@ std::string Info::get_fft_info()
 #else
   fft_info += "KOKKOS FFT library = FFTW3\n";
 #endif
+#elif defined(FFT_KOKKOS_NVPL)
+  fft_info += "KOKKOS FFT library = NVPL\n";
 #elif defined(FFT_KOKKOS_MKL)
 #if defined(FFT_KOKKOS_MKL_THREADS)
   fft_info += "KOKKOS FFT library = MKL with threads\n";
 #else
   fft_info += "KOKKOS FFT library = MKL\n";
 #endif
+#elif defined(FFT_KOKKOS_MKL_GPU)
+  fft_info += "KOKKOS FFT library = MKL GPU\n";
 #else
   fft_info += "KOKKOS FFT library = KISS\n";
 #endif
@@ -1401,7 +1422,7 @@ std::string Info::get_variable_info(int num) {
   std::string text;
   int ndata = 1;
   text = fmt::format("Variable[{:3d}]: {:16}  style = {:16}  def =", num,
-                     std::string(names[num]) + ',', std::string(varstyles[style[num]]) + ',');
+                     std::string(names[num]) + ',', Variable::varstyles[style[num]] + ',');
   if (style[num] == Variable::INTERNAL) {
     text += fmt::format("{:.8}\n",input->variable->dvalue[num]);
     return text;

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meißner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
@@ -119,10 +119,11 @@ class FixElectrodeConp : public Fix {
   void create_taglist();
   void invert();
   void symmetrize();
-  double gausscorr(int, bool);
+  double gausscorr(int, int, bool);
   void update_charges();
   double potential_energy();
   double self_energy(int);
+  void v_tally(int, int, int, int, double, double, double, double);
   void write_to_file(FILE *, const std::vector<tagint> &, const std::vector<std::vector<double>> &);
   void read_from_file(const std::string &input_file, double **, const std::string &);
   void compute_sd_vectors();

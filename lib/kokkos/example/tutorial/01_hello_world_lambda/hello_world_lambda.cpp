@@ -16,7 +16,6 @@
 
 #include <Kokkos_Core.hpp>
 #include <cstdio>
-#include <typeinfo>
 
 //
 // "Hello world" parallel_for example:
@@ -25,10 +24,9 @@
 //      using a C++11 lambda to define the loop body
 //   3. Shut down Kokkos
 //
-// This example only builds if C++11 is enabled.  Compare this example
-// to 01_hello_world, which uses functors (explicitly defined classes)
-// to define the loop body of the parallel_for.  Both functors and
-// lambdas have their places.
+// Compare this example to 01_hello_world, which uses functors
+// (explicitly defined classes) to define the loop body of the
+// parallel_for. Both functors and lambdas have their places.
 //
 
 int main(int argc, char* argv[]) {
@@ -41,11 +39,9 @@ int main(int argc, char* argv[]) {
   // start with "--kokkos-".
   Kokkos::initialize(argc, argv);
 
-  // Print the name of Kokkos' default execution space.  We're using
-  // typeid here, so the name might get a bit mangled by the linker,
-  // but you should still be able to figure out what it is.
+  // Print the name of Kokkos' default execution space.
   printf("Hello World on Kokkos execution space %s\n",
-         typeid(Kokkos::DefaultExecutionSpace).name());
+         Kokkos::DefaultExecutionSpace::name());
 
   // Run lambda on the default Kokkos execution space in parallel,
   // with a parallel for loop count of 15.  The lambda's argument is
@@ -76,13 +72,9 @@ int main(int argc, char* argv[]) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
   Kokkos::parallel_for(
       15, KOKKOS_LAMBDA(const int i) {
-  // FIXME_SYCL needs workaround for printf
-#ifndef __SYCL_DEVICE_ONLY__
-        // printf works in a CUDA parallel kernel; std::ostream does not.
-        printf("Hello from i = %i\n", i);
-#else
-	(void)i;
-#endif
+        // Kokko::printf works for all backends in a parallel kernel;
+        // std::ostream does not.
+        Kokkos::printf("Hello from i = %i\n", i);
       });
 #endif
   // You must call finalize() after you are done using Kokkos.

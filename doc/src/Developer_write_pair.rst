@@ -50,6 +50,30 @@ We are looking at the following cases:
 - `Case 3: a potential requiring communication`_
 - `Case 4: potentials without a compute() function`_
 
+Package and build system considerations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In general, new pair styles should be added to the :ref:`EXTRA-PAIR
+package <PKG-EXTRA-PAIR>` unless they are an accelerated pair style and
+then they should be added to the corresponding accelerator package
+(:ref:`GPU <PKG-GPU>`, :ref:`INTEL <PKG-INTEL>`, :ref:`KOKKOS
+<PKG-KOKKOS>`, :ref:`OPENMP <PKG-OPENMP>`, :ref:`OPT <PKG-OPT>`).  If
+you feel that your contribution should be added to a different package,
+please consult with the LAMMPS developers first.
+
+The contributed code needs to support the :doc:`traditional GNU make
+build process <Build_make>` **and** the :doc:`CMake build process
+<Build_cmake>`.  For the GNU make process and if the package has an
+``Install.sh`` file, most likely that file needs to be updated to
+correctly copy the sources when installing the package and properly
+delete them when uninstalling.  This is particularly important when
+added a new pair style that is a derived class from an existing pair
+style in a package, so that its installation depends on the the
+installation status of the package of the derived class.  For the CMake
+process, it is sometimes necessary to make changes to the package
+specific CMake scripting in ``cmake/Modules/Packages``.
+
+
 ----
 
 Case 1: a pairwise additive model
@@ -136,7 +160,7 @@ message and before the include guards for the class definition:
 
    #endif
 
-This block of between ``#ifdef PAIR_CLASS`` and ``#else`` will be
+This block between ``#ifdef PAIR_CLASS`` and ``#else`` will be
 included by the ``Force`` class in ``force.cpp`` to build a map of
 "factory functions" that will create an instance of these classes and
 return a pointer to it.  The map connects the name of the pair style,
@@ -347,9 +371,9 @@ but moving this to a separate function allows users to change global
 settings like the default cutoff without having to reissue all
 pair_coeff commands or re-read the ``Pair Coeffs`` sections from the
 data file.  In the ``settings()`` function, also the arrays for storing
-parameters, to define cutoffs, track with pairs of parameters have been
-explicitly set are allocated and, if needed, initialized.  In this case,
-the memory allocation and initialization is moved to a function
+parameters, to define cutoffs, track which pairs of parameters have been
+explicitly set and allocated and, if needed, initialized.  In this case,
+the memory allocation and initialization are moved to a function
 ``allocate()``.
 
 .. code-block:: c++
@@ -564,17 +588,20 @@ loop atoms are also initialized.
        jnum = numneigh[i];
 
 The inner loop (index *j*) processes the neighbor lists.  The neighbor
-list code encodes in the upper 2 bits whether a pair is a regular pair
-of neighbor (= 0) or a pair of 1-2 (= 1), 1-3 (= 2), or 1-4 (= 3)
-:doc:`"special" neighbor <special_bonds>`.  The ``sbmask()`` inline
-function extracts those bits and converts them into a number.  This
-number is used to look up the corresponding scaling factor for the
-non-bonded interaction from the ``force->special_lj`` array and stores
-it in the `factor_lj` variable.  Due to the additional bits, the value
-of *j* would be out of range when accessing data from per-atom arrays,
-so we apply the NEIGHMASK constant with a bit-wise and operation to mask
-them out.  This step *must* be done, even if a pair style does not use
-special bond scaling of forces and energies to avoid segmentation faults.
+list code encodes extra information using the upper 3 bits. The 2
+highest bits encode whether a pair is a regular pair of neighbor (= 0)
+or a pair of 1-2 (= 1), 1-3 (= 2), or 1-4 (= 3) :doc:`"special" neighbor
+<special_bonds>`.  The next highest bit encodes whether the pair stores
+data in a ``fix neigh/history`` instance (an undocumented internal fix
+style).  The ``sbmask()`` inline function extracts those bits and
+converts them into a number.  This number is used to look up the
+corresponding scaling factor for the non-bonded interaction from the
+``force->special_lj`` array and stores it in the `factor_lj` variable.
+Due to the additional bits, the value of *j* would be out of range when
+accessing data from per-atom arrays, so we apply the NEIGHMASK constant
+with a bit-wise and operation to mask them out.  This step *must* be
+done, even if a pair style does not use special bond scaling of forces
+and energies to avoid segmentation faults.
 
 With the corrected *j* index, it is now possible to compute the distance
 of the pair.  For efficiency reasons, the square root is only taken
@@ -867,7 +894,7 @@ through *multiple* :doc:`pair_coeff commands <pair_coeff>`.  Pair styles
 that require a single "pair_coeff \* \*" command line are not compatible
 with reading their parameters from data files.  For pair styles like
 *born/gauss* that do support writing to data files, the potential
-parameters will be read from the data file, if present and
+parameters will be read from the data file, if present, and
 :doc:`pair_coeff commands <pair_coeff>` may not be needed.
 
 The member variable ``writedata`` should be set to 1 in the constructor,

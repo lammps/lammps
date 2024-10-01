@@ -22,6 +22,7 @@
 #ifdef KOKKOS_ENABLE_SYCL
 
 #include <utility>
+#include <SYCL/Kokkos_SYCL_WorkgroupReduction.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -133,67 +134,71 @@ class SYCLTeamMember {
     const unsigned int team_rank_ = team_rank();
 
     // First combine the values in the same subgroup
+#if defined(KOKKOS_ARCH_INTEL_GPU) || defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
+    auto shuffle_combine = [&](int shift) {
+      if (vector_range * shift < sub_group_range) {
+        const value_type tmp = Kokkos::Impl::SYCLReduction::shift_group_left(
+            sg, value, vector_range * shift);
+        if (team_rank_ + shift < team_size_) reducer.join(value, tmp);
+      }
+    };
+    shuffle_combine(1);
+    shuffle_combine(2);
+    shuffle_combine(4);
+    shuffle_combine(8);
+    shuffle_combine(16);
+    KOKKOS_ASSERT(sub_group_range <= 32);
+#else
     for (unsigned int shift = 1; vector_range * shift < sub_group_range;
          shift <<= 1) {
-      const value_type tmp = sg.shuffle_down(value, vector_range * shift);
+      auto tmp = Kokkos::Impl::SYCLReduction::shift_group_left(
+          sg, value, vector_range * shift);
       if (team_rank_ + shift < team_size_) reducer.join(value, tmp);
     }
-    value = sg.shuffle(value, 0);
+#endif
+    value = Kokkos::Impl::SYCLReduction::select_from_group(sg, value, 0);
 
-    // We need to chunk up the whole reduction because we might not have
-    // allocated enough memory.
-    const auto n_subgroups = sg.get_group_range()[0];
-    const unsigned int maximum_work_range =
-        std::min<int>(m_team_reduce_size / sizeof(value_type), n_subgroups);
+    const int n_subgroups = sg.get_group_range()[0];
+    if (n_subgroups == 1) {
+      reducer.reference() = value;
+      return;
+    }
+
+    // It was found experimentally that 16 is a good value for Intel PVC.
+    // Since there is a maximum number of 1024 threads with subgroup size 16,
+    // we have a maximum of 64 subgroups per workgroup which means 64/16=4
+    // rounds for loading values into the reduction_array, and 16 redundant
+    // reduction steps executed by every thread.
+    constexpr int step_width = 16;
+    auto tmp_alloc = sycl::ext::oneapi::group_local_memory_for_overwrite<
+        value_type[step_width]>(m_item.get_group());
+    auto& reduction_array = *tmp_alloc;
 
     const auto id_in_sg = sg.get_local_id()[0];
-    auto reduction_array =
-        static_cast<sycl::local_ptr<value_type>>(m_team_reduce);
 
-    // Load values into the first maximum_work_range values of the reduction
+    // Load values into the first step_width values of the reduction
     // array in chunks. This means that only sub groups with an id in the
     // corresponding chunk load values.
-    const auto group_id = sg.get_group_id()[0];
-    if (id_in_sg == 0 && group_id < maximum_work_range)
+    const int group_id = sg.get_group_id()[0];
+    if (id_in_sg == 0 && group_id < step_width)
       reduction_array[group_id] = value;
     sycl::group_barrier(m_item.get_group());
 
-    for (unsigned int start = maximum_work_range; start < n_subgroups;
-         start += maximum_work_range) {
+    for (int start = step_width; start < n_subgroups; start += step_width) {
       if (id_in_sg == 0 && group_id >= start &&
-          group_id <
-              std::min<unsigned int>(start + maximum_work_range, n_subgroups))
+          group_id < std::min(start + step_width, n_subgroups))
         reducer.join(reduction_array[group_id - start], value);
       sycl::group_barrier(m_item.get_group());
     }
 
-    // Let the first subgroup do the final reduction
-    if (group_id == 0) {
-      const auto local_range = sg.get_local_range()[0];
-      auto result =
-          reduction_array[id_in_sg < maximum_work_range ? id_in_sg : 0];
-      // In case the maximum_work_range is larger than the range of the first
-      // subgroup, we first combine the items with a higher index.
-      for (unsigned int offset = local_range; offset < maximum_work_range;
-           offset += local_range)
-        if (id_in_sg + offset < maximum_work_range)
-          reducer.join(result, reduction_array[id_in_sg + offset]);
-      sycl::group_barrier(sg);
+    // Do the final reduction for all threads redundantly
+    value = reduction_array[0];
+    for (int i = 1; i < std::min(step_width, n_subgroups); ++i)
+      reducer.join(value, reduction_array[i]);
 
-      // Now do the actual subgroup reduction.
-      const auto min_range =
-          std::min<unsigned int>(maximum_work_range, local_range);
-      for (unsigned int stride = 1; stride < min_range; stride <<= 1) {
-        const auto tmp = sg.shuffle_down(result, stride);
-        if (id_in_sg + stride < min_range) reducer.join(result, tmp);
-      }
-      if (id_in_sg == 0) reduction_array[0] = result;
-    }
+    reducer.reference() = value;
+    // Make sure that every thread is done using the reduction array.
     sycl::group_barrier(m_item.get_group());
-
-    reducer.reference() = reduction_array[0];
-    // Make sure that the reduction array hasn't been modified in the meantime.
-    m_item.barrier(sycl::access::fence_space::local_space);
   }
 
   //--------------------------------------------------------------------------
@@ -218,7 +223,8 @@ class SYCLTeamMember {
     // First combine the values in the same subgroup
     for (unsigned int stride = 1; vector_range * stride < sub_group_range;
          stride <<= 1) {
-      auto tmp = sg.shuffle_up(value, vector_range * stride);
+      auto tmp = Kokkos::Impl::SYCLReduction::shift_group_right(
+          sg, value, vector_range * stride);
       if (id_in_sg >= vector_range * stride) value += tmp;
     }
 
@@ -244,7 +250,8 @@ class SYCLTeamMember {
               sub_group_range, n_active_subgroups - round * sub_group_range);
           auto local_value = base_data[idx];
           for (unsigned int stride = 1; stride < upper_bound; stride <<= 1) {
-            auto tmp = sg.shuffle_up(local_value, stride);
+            auto tmp = Kokkos::Impl::SYCLReduction::shift_group_right(
+                sg, local_value, stride);
             if (id_in_sg >= stride) {
               if (idx < n_active_subgroups)
                 local_value += tmp;
@@ -262,7 +269,8 @@ class SYCLTeamMember {
     }
     auto total = base_data[n_active_subgroups - 1];
 
-    const auto update = sg.shuffle_up(value, vector_range);
+    const auto update =
+        Kokkos::Impl::SYCLReduction::shift_group_right(sg, value, vector_range);
     Type intermediate = (group_id > 0 ? base_data[group_id - 1] : 0) +
                         (id_in_sg >= vector_range ? update : 0);
 
@@ -315,7 +323,7 @@ class SYCLTeamMember {
     typename ReducerType::value_type tmp2 = tmp;
 
     for (int i = grange1; (i >>= 1);) {
-      tmp2 = sg.shuffle_down(tmp, i);
+      tmp2 = Kokkos::Impl::SYCLReduction::shift_group_left(sg, tmp, i);
       if (static_cast<int>(tidx1) < i) {
         reducer.join(tmp, tmp2);
       }
@@ -326,8 +334,9 @@ class SYCLTeamMember {
     // because floating point summation is not associative
     // and thus different threads could have different results.
 
-    tmp2  = sg.shuffle(tmp, (sg.get_local_id() / grange1) * grange1);
-    value = tmp2;
+    tmp2 = Kokkos::Impl::SYCLReduction::select_from_group(
+        sg, tmp, (sg.get_local_id() / grange1) * grange1);
+    value               = tmp2;
     reducer.reference() = tmp2;
   }
 
@@ -337,7 +346,7 @@ class SYCLTeamMember {
   KOKKOS_INLINE_FUNCTION
   SYCLTeamMember(sycl::local_ptr<void> shared, const std::size_t shared_begin,
                  const std::size_t shared_size,
-                 sycl::device_ptr<void> scratch_level_1_ptr,
+                 sycl_device_ptr<void> scratch_level_1_ptr,
                  const std::size_t scratch_level_1_size,
                  const sycl::nd_item<2> item, const int arg_league_rank,
                  const int arg_league_size)
@@ -834,7 +843,8 @@ parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<
     //  [t] += [t-4] if t >= 4
     //  ...
     for (int j = 1; j < static_cast<int>(grange1); j <<= 1) {
-      value_type tmp = sg.shuffle_up(val, j);
+      value_type tmp =
+          Kokkos::Impl::SYCLReduction::shift_group_right(sg, val, j);
       if (j <= static_cast<int>(tidx1)) {
         reducer.join(val, tmp);
       }
@@ -845,7 +855,8 @@ parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<
 
     // Update i's contribution into the val and add it to accum for next round
     if (i < loop_boundaries.end) closure(i, val, true);
-    accum = sg.shuffle(val, mask + vector_offset);
+    accum = Kokkos::Impl::SYCLReduction::select_from_group(
+        sg, val, mask + vector_offset);
   }
   reducer.reference() = accum;
 }
@@ -922,7 +933,8 @@ KOKKOS_INLINE_FUNCTION void single(
   const auto grange1          = item.get_local_range(1);
   const auto sg               = item.get_sub_group();
   if (item.get_local_id(1) == 0) lambda(val);
-  val = sg.shuffle(val, (sg.get_local_id() / grange1) * grange1);
+  val = Kokkos::Impl::SYCLReduction::select_from_group(
+      sg, val, (sg.get_local_id() / grange1) * grange1);
 }
 
 template <class FunctorType, class ValueType>

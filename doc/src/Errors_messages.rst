@@ -96,13 +96,13 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    are too far apart to make a valid angle.
 
 *Angle atoms %d %d %d missing on proc %d at step %ld*
-   One or more of 3 atoms needed to compute a particular angle are
+   One or more of three atoms needed to compute a particular angle are
    missing on this processor.  Typically this is because the pairwise
    cutoff is set too short or the angle has blown apart and an atom is
    too far away.
 
 *Angle atoms missing on proc %d at step %ld*
-   One or more of 3 atoms needed to compute a particular angle are
+   One or more of three atoms needed to compute a particular angle are
    missing on this processor.  Typically this is because the pairwise
    cutoff is set too short or the angle has blown apart and an atom is
    too far away.
@@ -1932,7 +1932,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Compute chunk/atom fix array is accessed out-of-range*
-   the index for the array is out of bounds.
+   The index for the array is out of bounds.
 
 *Compute chunk/atom fix does not calculate a per-atom array*
    Self-explanatory.
@@ -6073,9 +6073,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *New atom IDs exceed maximum allowed ID*
    See the setting for tagint in the src/lmptype.h file.
 
-*New bond exceeded bonds per atom in create_bonds*
-See the read_data command for info on using the "extra/bond/per/atom"
-keyword to allow for additional bonds to be formed
+*New bond exceeded bonds per atom in create\_bonds*
+   See the read_data command for info on using the "extra/bond/per/atom"
+   keyword to allow for additional bonds to be formed
 
 *New bond exceeded bonds per atom in fix bond/create*
    See the read_data command for info on using the "extra/bond/per/atom"
@@ -7310,12 +7310,12 @@ keyword to allow for additional bonds to be formed
    atom has moved too far.
 
 *Restrain atoms %d %d %d missing on proc %d at step %ld*
-   The 3 atoms in a restrain angle specified by the fix restrain
+   The three atoms in a restrain angle specified by the fix restrain
    command are not all accessible to a processor.  This probably means an
    atom has moved too far.
 
 *Restrain atoms %d %d missing on proc %d at step %ld*
-   The 2 atoms in a restrain bond specified by the fix restrain
+   The two atoms in a restrain bond specified by the fix restrain
    command are not all accessible to a processor.  This probably means an
    atom has moved too far.
 
@@ -7406,7 +7406,7 @@ keyword to allow for additional bonds to be formed
 *Shake angles have different bond types*
    All 3-atom angle-constrained SHAKE clusters specified by the fix shake
    command that are the same angle type, must also have the same bond
-   types for the 2 bonds in the angle.
+   types for the two bonds in the angle.
 
 *Shake atoms %d %d %d %d missing on proc %d at step %ld*
    The 4 atoms in a single shake cluster specified by the fix shake
@@ -7414,12 +7414,12 @@ keyword to allow for additional bonds to be formed
    an atom has moved too far.
 
 *Shake atoms %d %d %d missing on proc %d at step %ld*
-   The 3 atoms in a single shake cluster specified by the fix shake
+   The three atoms in a single shake cluster specified by the fix shake
    command are not all accessible to a processor.  This probably means
    an atom has moved too far.
 
 *Shake atoms %d %d missing on proc %d at step %ld*
-   The 2 atoms in a single shake cluster specified by the fix shake
+   The two atoms in a single shake cluster specified by the fix shake
    command are not all accessible to a processor.  This probably means
    an atom has moved too far.
 
@@ -7882,12 +7882,6 @@ keyword to allow for additional bonds to be formed
 *Tree structure in joint connections*
    Fix poems cannot (yet) work with coupled bodies whose joints connect
    the bodies in a tree structure.
-
-*Triclinic box skew is too large*
-   The displacement in a skewed direction must be less than half the box
-   length in that dimension.  E.g. the xy tilt must be between -half and
-   +half of the x box length.  This constraint can be relaxed by using
-   the box tilt command.
 
 *Tried to convert a double to int, but input_double > INT_MAX*
    Self-explanatory.

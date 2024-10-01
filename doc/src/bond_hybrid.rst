@@ -1,7 +1,10 @@
 .. index:: bond_style hybrid
+.. index:: bond_style hybrid/kk
 
 bond_style hybrid command
 =========================
+
+Accelerator Variants: *hybrid/kk*
 
 Syntax
 """"""
@@ -15,7 +18,7 @@ Syntax
 Examples
 """"""""
 
-.. code-block: LAMMPS
+.. code-block:: LAMMPS
 
    bond_style hybrid harmonic fene
    bond_coeff 1 harmonic 80.0 1.2
@@ -60,6 +63,10 @@ bond types.
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Restrictions
 """"""""""""
 
@@ -68,8 +75,9 @@ package.  See the :doc:`Build package <Build_package>` page for more
 info.
 
 Unlike other bond styles, the hybrid bond style does not store bond
-coefficient info for individual sub-styles in a :doc:`binary restart files <restart>`.  Thus when restarting a simulation from a restart
-file, you need to re-specify bond_coeff commands.
+coefficient info for individual sub-styles in :doc:`binary restart files
+<restart>` or :doc:`data files <write_data>`.  Thus when restarting a
+simulation, you need to re-specify the bond_coeff commands.
 
 Related commands
 """"""""""""""""

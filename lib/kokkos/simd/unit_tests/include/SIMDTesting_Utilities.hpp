@@ -93,7 +93,7 @@ class load_element_aligned {
   bool host_load(T const* mem, std::size_t n,
                  Kokkos::Experimental::simd<T, Abi>& result) const {
     if (n < result.size()) return false;
-    result.copy_from(mem, Kokkos::Experimental::element_aligned_tag());
+    result.copy_from(mem, Kokkos::Experimental::simd_flag_default);
     return true;
   }
   template <class T, class Abi>
@@ -101,7 +101,26 @@ class load_element_aligned {
       T const* mem, std::size_t n,
       Kokkos::Experimental::simd<T, Abi>& result) const {
     if (n < result.size()) return false;
-    result.copy_from(mem, Kokkos::Experimental::element_aligned_tag());
+    result.copy_from(mem, Kokkos::Experimental::simd_flag_default);
+    return true;
+  }
+};
+
+class load_vector_aligned {
+ public:
+  template <class T, class Abi>
+  bool host_load(T const* mem, std::size_t n,
+                 Kokkos::Experimental::simd<T, Abi>& result) const {
+    if (n < result.size()) return false;
+    result.copy_from(mem, Kokkos::Experimental::simd_flag_aligned);
+    return true;
+  }
+  template <class T, class Abi>
+  KOKKOS_INLINE_FUNCTION bool device_load(
+      T const* mem, std::size_t n,
+      Kokkos::Experimental::simd<T, Abi>& result) const {
+    if (n < result.size()) return false;
+    result.copy_from(mem, Kokkos::Experimental::simd_flag_aligned);
     return true;
   }
 };
@@ -116,9 +135,8 @@ class load_masked {
     for (std::size_t i = 0; i < n; ++i) {
       mask[i] = true;
     }
-    where(mask, result)
-        .copy_from(mem, Kokkos::Experimental::element_aligned_tag());
-    where(!mask, result) = 0;
+    result = T(0);
+    where(mask, result).copy_from(mem, Kokkos::Experimental::simd_flag_default);
     return true;
   }
   template <class T, class Abi>
@@ -130,8 +148,7 @@ class load_masked {
     for (std::size_t i = 0; i < n; ++i) {
       mask[i] = true;
     }
-    where(mask, result)
-        .copy_from(mem, Kokkos::Experimental::element_aligned_tag());
+    where(mask, result).copy_from(mem, Kokkos::Experimental::simd_flag_default);
     where(!mask, result) = T(0);
     return true;
   }
@@ -163,5 +180,15 @@ class load_as_scalars {
     return true;
   }
 };
+
+// Simple check to loosely test that T is a complete type.
+// Some capabilities are only defined for specific data type and abi pairs (i.e.
+// extended vector width); this is used to exclude pairs that
+// are not defined from being tested.
+template <typename T, typename = void>
+constexpr bool is_type_v = false;
+
+template <typename T>
+constexpr bool is_type_v<T, decltype(void(sizeof(T)))> = true;
 
 #endif

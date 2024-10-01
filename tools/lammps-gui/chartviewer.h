@@ -17,11 +17,15 @@
 #include <QComboBox>
 #include <QList>
 #include <QString>
+#include <QTime>
 #include <QWidget>
 
 class QAction;
+class QCloseEvent;
+class QEvent;
 class QMenuBar;
 class QMenu;
+class QSpinBox;
 namespace QtCharts {
 class ChartViewer;
 }
@@ -46,10 +50,13 @@ private slots:
     void quit();
     void reset_zoom();
     void stop_run();
+    void select_smooth(int selection);
+    void update_smooth();
 
     void saveAs();
     void exportDat();
     void exportCsv();
+    void exportYaml();
 
     void change_chart(int index);
 
@@ -58,11 +65,14 @@ protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
+    bool do_raw, do_smooth;
     QMenuBar *menu;
     QMenu *file;
     QComboBox *columns;
-    QAction *saveAsAct, *exportCsvAct, *exportDatAct;
+    QAction *saveAsAct, *exportCsvAct, *exportDatAct, *exportYamlAct;
     QAction *closeAct, *stopAct, *quitAct;
+    QComboBox *smooth;
+    QSpinBox *window, *order;
 
     QString filename;
     QList<QtCharts::ChartViewer *> charts;
@@ -70,10 +80,10 @@ private:
 
 /* -------------------------------------------------------------------- */
 
-#include <QChart>
 #include <QChartView>
 #include <QLineSeries>
 #include <QValueAxis>
+class QChart;
 
 namespace QtCharts {
 class ChartViewer : public QChartView {
@@ -81,22 +91,28 @@ class ChartViewer : public QChartView {
 
 public:
     explicit ChartViewer(const QString &title, int index, QWidget *parent = nullptr);
+    ~ChartViewer();
 
     void add_data(int step, double data);
     void reset_zoom();
+    void smooth_param(bool _do_raw, bool _do_smooth, int _window, int _order);
+    void update_smooth();
 
     int get_index() const { return index; };
     int get_count() const { return series->count(); }
-    const char *get_title() const { return series->name().toLocal8Bit(); }
+    QString get_title() const { return series->name(); }
     double get_step(int index) const { return (index < 0) ? 0.0 : series->at(index).x(); }
     double get_data(int index) const { return (index < 0) ? 0.0 : series->at(index).y(); }
 
 private:
     int last_step, index;
+    int window, order;
     QChart *chart;
-    QLineSeries *series;
+    QLineSeries *series, *smooth;
     QValueAxis *xaxis;
     QValueAxis *yaxis;
+    QTime last_update;
+    bool do_raw, do_smooth;
 };
 } // namespace QtCharts
 #endif

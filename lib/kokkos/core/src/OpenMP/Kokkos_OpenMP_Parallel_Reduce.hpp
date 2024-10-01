@@ -83,7 +83,8 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
 
     const size_t pool_reduce_bytes = reducer.value_size();
 
-    m_instance->acquire_lock();
+    // Serialize kernels on the same execution space instance
+    std::lock_guard<std::mutex> lock(m_instance->m_instance_mutex);
 
     m_instance->resize_thread_data(pool_reduce_bytes, 0  // team_reduce_bytes
                                    ,
@@ -106,6 +107,7 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
           update);
 
       reducer.final(ptr);
+
       return;
     }
     const int pool_size = m_instance->thread_pool_size();
@@ -157,8 +159,6 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
         m_result_ptr[j] = ptr[j];
       }
     }
-
-    m_instance->release_lock();
   }
 
   //----------------------------------------
@@ -170,15 +170,7 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
         m_functor_reducer(arg_functor_reducer),
         m_policy(arg_policy),
         m_result_ptr(arg_view.data()) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (t_openmp_instance) {
-      m_instance = t_openmp_instance;
-    } else {
-      m_instance = arg_policy.space().impl_internal_space_instance();
-    }
-#else
     m_instance = arg_policy.space().impl_internal_space_instance();
-#endif
     static_assert(
         Kokkos::Impl::MemorySpaceAccess<typename ViewType::memory_space,
                                         Kokkos::HostSpace>::accessible,
@@ -226,7 +218,8 @@ class ParallelReduce<CombinedFunctorReducerType,
     const ReducerType& reducer     = m_iter.m_func.get_reducer();
     const size_t pool_reduce_bytes = reducer.value_size();
 
-    m_instance->acquire_lock();
+    // Serialize kernels on the same execution space instance
+    std::lock_guard<std::mutex> lock(m_instance->m_instance_mutex);
 
     m_instance->resize_thread_data(pool_reduce_bytes, 0  // team_reduce_bytes
                                    ,
@@ -248,8 +241,6 @@ class ParallelReduce<CombinedFunctorReducerType,
       ParallelReduce::exec_range(0, m_iter.m_rp.m_num_tiles, update);
 
       reducer.final(ptr);
-
-      m_instance->release_lock();
 
       return;
     }
@@ -307,8 +298,6 @@ class ParallelReduce<CombinedFunctorReducerType,
         m_result_ptr[j] = ptr[j];
       }
     }
-
-    m_instance->release_lock();
   }
 
   //----------------------------------------
@@ -319,15 +308,7 @@ class ParallelReduce<CombinedFunctorReducerType,
       : m_instance(nullptr),
         m_iter(arg_policy, arg_functor_reducer),
         m_result_ptr(arg_view.data()) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (t_openmp_instance) {
-      m_instance = t_openmp_instance;
-    } else {
-      m_instance = arg_policy.space().impl_internal_space_instance();
-    }
-#else
     m_instance = arg_policy.space().impl_internal_space_instance();
-#endif
     static_assert(
         Kokkos::Impl::MemorySpaceAccess<typename ViewType::memory_space,
                                         Kokkos::HostSpace>::accessible,
@@ -431,7 +412,8 @@ class ParallelReduce<CombinedFunctorReducerType,
     const size_t team_shared_size  = m_shmem_size + m_policy.scratch_size(1);
     const size_t thread_local_size = 0;  // Never shrinks
 
-    m_instance->acquire_lock();
+    // Serialize kernels on the same execution space instance
+    std::lock_guard<std::mutex> lock(m_instance->m_instance_mutex);
 
     m_instance->resize_thread_data(pool_reduce_size, team_reduce_size,
                                    team_shared_size, thread_local_size);
@@ -448,8 +430,6 @@ class ParallelReduce<CombinedFunctorReducerType,
           league_rank_end, m_policy.league_size());
 
       reducer.final(ptr);
-
-      m_instance->release_lock();
 
       return;
     }
@@ -526,8 +506,6 @@ class ParallelReduce<CombinedFunctorReducerType,
         m_result_ptr[j] = ptr[j];
       }
     }
-
-    m_instance->release_lock();
   }
 
   //----------------------------------------
@@ -543,15 +521,7 @@ class ParallelReduce<CombinedFunctorReducerType,
             arg_policy.scratch_size(0) + arg_policy.scratch_size(1) +
             FunctorTeamShmemSize<FunctorType>::value(
                 arg_functor_reducer.get_functor(), arg_policy.team_size())) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (t_openmp_instance) {
-      m_instance = t_openmp_instance;
-    } else {
-      m_instance = arg_policy.space().impl_internal_space_instance();
-    }
-#else
     m_instance = arg_policy.space().impl_internal_space_instance();
-#endif
 
     static_assert(
         Kokkos::Impl::MemorySpaceAccess<typename ViewType::memory_space,

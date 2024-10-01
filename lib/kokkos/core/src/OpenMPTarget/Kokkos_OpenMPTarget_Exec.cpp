@@ -71,10 +71,9 @@ void OpenMPTargetExec::verify_initialized(const char* const label) {
 
 void* OpenMPTargetExec::m_scratch_ptr         = nullptr;
 int64_t OpenMPTargetExec::m_scratch_size      = 0;
-int* OpenMPTargetExec::m_lock_array           = nullptr;
-uint64_t OpenMPTargetExec::m_lock_size        = 0;
 uint32_t* OpenMPTargetExec::m_uniquetoken_ptr = nullptr;
 int OpenMPTargetExec::MAX_ACTIVE_THREADS      = 0;
+std::mutex OpenMPTargetExec::m_mutex_scratch_ptr;
 
 void OpenMPTargetExec::clear_scratch() {
   Kokkos::Experimental::OpenMPTargetSpace space;
@@ -83,21 +82,17 @@ void OpenMPTargetExec::clear_scratch() {
   m_scratch_size = 0;
 }
 
-void OpenMPTargetExec::clear_lock_array() {
-  if (m_lock_array != nullptr) {
-    Kokkos::Experimental::OpenMPTargetSpace space;
-    space.deallocate(m_lock_array, m_lock_size);
-    m_lock_array = nullptr;
-    m_lock_size  = 0;
-  }
-}
-
 void* OpenMPTargetExec::get_scratch_ptr() { return m_scratch_ptr; }
 
 void OpenMPTargetExec::resize_scratch(int64_t team_size, int64_t shmem_size_L0,
                                       int64_t shmem_size_L1,
                                       int64_t league_size) {
   Kokkos::Experimental::OpenMPTargetSpace space;
+  // Level-0 scratch when using clang/17 and higher comes from their OpenMP
+  // extension, `ompx_dyn_cgroup_mem`.
+#if defined(KOKKOS_IMPL_OPENMPTARGET_LLVM_EXTENSIONS)
+  shmem_size_L0 = 0;
+#endif
   const int64_t shmem_size =
       shmem_size_L0 + shmem_size_L1;  // L0 + L1 scratch memory per team.
   const int64_t padding = shmem_size * 10 / 100;  // Padding per team.
@@ -127,35 +122,6 @@ void OpenMPTargetExec::resize_scratch(int64_t team_size, int64_t shmem_size_L0,
     m_scratch_size = total_size;
     m_scratch_ptr  = space.allocate(total_size);
   }
-}
-
-int* OpenMPTargetExec::get_lock_array(int num_teams) {
-  Kokkos::Experimental::OpenMPTargetSpace space;
-  int max_active_league_size = MAX_ACTIVE_THREADS / 32;
-  int lock_array_elem =
-      (num_teams > max_active_league_size) ? num_teams : max_active_league_size;
-  if (m_lock_size < (lock_array_elem * sizeof(int))) {
-    space.deallocate(m_lock_array, m_lock_size);
-    m_lock_size  = lock_array_elem * sizeof(int);
-    m_lock_array = static_cast<int*>(space.allocate(m_lock_size));
-
-    // FIXME_OPENMPTARGET - Creating a target region here to initialize the
-    // lock_array with 0's fails. Hence creating an equivalent host array to
-    // achieve the same. Value of host array are then copied to the lock_array.
-    int* h_lock_array = static_cast<int*>(
-        omp_target_alloc(m_lock_size, omp_get_initial_device()));
-
-    for (int i = 0; i < lock_array_elem; ++i) h_lock_array[i] = 0;
-
-    if (0 < m_lock_size)
-      KOKKOS_IMPL_OMPT_SAFE_CALL(omp_target_memcpy(
-          m_lock_array, h_lock_array, m_lock_size, 0, 0,
-          omp_get_default_device(), omp_get_initial_device()));
-
-    omp_target_free(h_lock_array, omp_get_initial_device());
-  }
-
-  return m_lock_array;
 }
 
 }  // namespace Impl

@@ -21,17 +21,17 @@ Syntax
        *pair* args = pstyle pparam I J v_name
          pstyle = pair style name (e.g., lj/cut)
          pparam = parameter to adapt over time
-         I,J = type pair(s) to set parameter for
+         I,J = type pair(s) to set parameter for (integer or type label)
          v_name = variable with name that calculates value of pparam
        *bond* args = bstyle bparam I v_name
          bstyle = bond style name (e.g., harmonic)
          bparam = parameter to adapt over time
-         I = type bond to set parameter for
+         I = type bond to set parameter for (integer or type label)
          v_name = variable with name that calculates value of bparam
        *angle* args = astyle aparam I v_name
          astyle = angle style name (e.g., harmonic)
          aparam = parameter to adapt over time
-         I = type angle to set parameter for
+         I = type angle to set parameter for (integer or type label)
          v_name = variable with name that calculates value of aparam
        *kspace* arg = v_name
          v_name = variable with name that calculates scale factor on :math:`k`-space terms
@@ -66,6 +66,9 @@ Examples
 
    variable ramp_up equal "ramp(0.01,0.5)"
    fix stretch all adapt 1 bond harmonic r0 1 v_ramp_up
+
+   labelmap atom 1 c1
+   fix 1 all adapt 1 pair soft a c1 c1 v_prefactor
 
 Description
 """""""""""
@@ -254,10 +257,12 @@ should be specified to indicate which type pairs to apply it to.  If a global
 parameter is specified, the :math:`I` and :math:`J` settings still need to be
 specified, but are ignored.
 
-Similar to the :doc:`pair_coeff command <pair_coeff>`, :math:`I` and :math:`J`
-can be specified in one of two ways.  Explicit numeric values can be used for
-each, as in the first example above.  :math:`I \le J` is required.  LAMMPS sets
-the coefficients for the symmetric :math:`J,I` interaction to the same values.
+Similar to the :doc:`pair_coeff command <pair_coeff>`, :math:`I` and
+:math:`J` can be specified in one of several ways.  Explicit numeric values
+can be used for each, as in the first example above.  Or, one or both of
+the types in the I,J pair can be a :doc:`type label <Howto_type_labels>`.
+LAMMPS sets the coefficients for the symmetric :math:`J,I` interaction to
+the same values.
 
 A wild-card asterisk can be used in place of or in conjunction with
 the :math:`I,J` arguments to set the coefficients for multiple pairs of atom
@@ -266,8 +271,9 @@ is the number of atom types, then an asterisk with no numeric values
 means all types from 1 to :math:`N`.  A leading asterisk means all types from
 1 to n (inclusive).  A trailing asterisk means all types from m to :math:`N`
 (inclusive).  A middle asterisk means all types from m to n
-(inclusive).  Note that only type pairs with :math:`I \le J` are considered; if
-asterisks imply type pairs where :math:`J < I`, they are ignored.
+(inclusive).  For the asterisk syntax, note that only type pairs with
+:math:`I \le J` are considered; if asterisks imply type pairs where
+:math:`J < I`, they are ignored.
 
 IMPORTANT NOTE: If :doc:`pair_style hybrid or hybrid/overlay
 <pair_hybrid>` is being used, then the *pstyle* will be a sub-style
@@ -313,25 +319,34 @@ all types from 1 to :math:`N`.  A leading asterisk means all types from
 :math:`N` (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
-Currently *bond* does not support bond_style hybrid nor bond_style
-hybrid/overlay as bond styles. The bond styles that currently work
-with fix_adapt are
+If :doc:`bond_style hybrid <bond_hybrid>` is used, *bstyle* should be a
+sub-style name. The bond styles that currently work with fix adapt are:
 
-+------------------------------------+------------+------------+
-| :doc:`class2 <bond_class2>`        | r0         | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`fene <bond_fene>`            | k,r0       | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`fene/nm <bond_fene>`         | k,r0       | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`gromos <bond_gromos>`        | k,r0       | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`harmonic <bond_harmonic>`    | k,r0       | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`morse <bond_morse>`          | r0         | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`nonlinear <bond_nonlinear>`  | epsilon,r0 | type bonds |
-+------------------------------------+------------+------------+
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`class2 <bond_class2>`                         | r0                        | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`fene <bond_fene>`                             | k,r0                      | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`fene/expand <bond_fene_expand>`               | k,r0,epsilon,sigma,shift  | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`fene/nm <bond_fene>`                          | k,r0                      | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`gromos <bond_gromos>`                         | k,r0                      | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`harmonic <bond_harmonic>`                     | k,r0                      | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`harmonic/restrain <bond_harmonic_restrain>`   | k                         | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`harmonic/shift <bond_harmonic_shift>`         | k,r0,r1                   | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`harmonic/shift/cut <bond_harmonic_shift_cut>` | k,r0,r1                   | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`mm3 <bond_mm3>`                               | k,r0                      | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`morse <bond_morse>`                           | r0                        | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`nonlinear <bond_nonlinear>`                   | epsilon,r0                | type bonds |
++-----------------------------------------------------+---------------------------+------------+
 
 ----------
 
@@ -351,15 +366,34 @@ all types from 1 to :math:`N`.  A leading asterisk means all types from
 :math:`N` (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
-Currently *angle* does not support angle_style hybrid nor angle_style
-hybrid/overlay as angle styles. The angle styles that currently work
-with fix_adapt are
+If :doc:`angle_style hybrid <angle_hybrid>` is used, *astyle* should be a
+sub-style name. The angle styles that currently work with fix adapt are:
 
-+------------------------------------+----------+-------------+
-| :doc:`harmonic <angle_harmonic>`   | k,theta0 | type angles |
-+------------------------------------+----------+-------------+
-| :doc:`cosine <angle_cosine>`       | k        | type angles |
-+------------------------------------+----------+-------------+
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`harmonic <angle_harmonic>`                                   | k,theta0        | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`charmm <angle_charmm>`                                       | k,theta0        | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`class2 <angle_class2>`                                       | k2,k3,k4,theta0 | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`cosine <angle_cosine>`                                       | k               | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`cosine/periodic <angle_cosine_periodic>`                     | k,b,n           | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`cosine/squared/restricted <angle_cosine_squared_restricted>` | k,theta0        | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`dipole <angle_dipole>`                                       | k,gamma0        | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`fourier <angle_fourier>`                                     | k,c0,c1,c2      | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`fourier/simple <angle_fourier_simple>`                       | k,c,n           | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`mm3 <angle_mm3>`                                             | k,theta0        | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`quartic <angle_quartic>`                                     | k2,k3,k4,theta0 | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`spica <angle_spica>`                                         | k,theta0        | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
 
 Note that internally, theta0 is stored in radians, so the variable
 this fix uses to reset theta0 needs to generate values in radians.

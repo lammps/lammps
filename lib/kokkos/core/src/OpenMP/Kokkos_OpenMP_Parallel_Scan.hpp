@@ -70,6 +70,9 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
     const int value_count          = Analysis::value_count(m_functor);
     const size_t pool_reduce_bytes = 2 * Analysis::value_size(m_functor);
 
+    // Serialize kernels on the same execution space instance
+    std::lock_guard<std::mutex> lock(m_instance->m_instance_mutex);
+
     m_instance->resize_thread_data(pool_reduce_bytes, 0  // team_reduce_bytes
                                    ,
                                    0  // team_shared_bytes
@@ -140,15 +143,7 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
 
   inline ParallelScan(const FunctorType& arg_functor, const Policy& arg_policy)
       : m_instance(nullptr), m_functor(arg_functor), m_policy(arg_policy) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (t_openmp_instance) {
-      m_instance = t_openmp_instance;
-    } else {
-      m_instance = arg_policy.space().impl_internal_space_instance();
-    }
-#else
     m_instance = arg_policy.space().impl_internal_space_instance();
-#endif
   }
 };
 
@@ -201,7 +196,8 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
     const int value_count          = Analysis::value_count(m_functor);
     const size_t pool_reduce_bytes = 2 * Analysis::value_size(m_functor);
 
-    m_instance->acquire_lock();
+    // Serialize kernels on the same execution space instance
+    std::lock_guard<std::mutex> lock(m_instance->m_instance_mutex);
 
     m_instance->resize_thread_data(pool_reduce_bytes, 0  // team_reduce_bytes
                                    ,
@@ -220,8 +216,6 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
                                          m_policy.end(), update, true);
 
       *m_result_ptr = update;
-
-      m_instance->release_lock();
 
       return;
     }
@@ -274,8 +268,6 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
         *m_result_ptr = update_base;
       }
     }
-
-    m_instance->release_lock();
   }
 
   //----------------------------------------
@@ -292,15 +284,7 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
         Kokkos::Impl::MemorySpaceAccess<typename ViewType::memory_space,
                                         Kokkos::HostSpace>::accessible,
         "Kokkos::OpenMP parallel_scan result must be host-accessible!");
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (t_openmp_instance) {
-      m_instance = t_openmp_instance;
-    } else {
-      m_instance = arg_policy.space().impl_internal_space_instance();
-    }
-#else
     m_instance = arg_policy.space().impl_internal_space_instance();
-#endif
   }
 
   //----------------------------------------

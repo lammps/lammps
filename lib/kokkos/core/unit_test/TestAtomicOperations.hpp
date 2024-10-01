@@ -368,6 +368,63 @@ bool atomic_op_test(T old_val, T update) {
   return result == 0;
 }
 
+template <class T>
+constexpr T relative_error_threshold = T(1.0e-15);
+
+template <class Op, class T, class ExecSpace>
+bool atomic_op_test_rel(T old_val, T update) {
+  Kokkos::View<T[3], ExecSpace> op_data("op_data");
+  Kokkos::deep_copy(op_data, old_val);
+  int result = 0;
+  Kokkos::parallel_reduce(
+      Kokkos::RangePolicy<ExecSpace>(0, 1),
+      KOKKOS_LAMBDA(int, int& local_result) {
+        auto fetch_result =
+            Op::atomic_op(&op_data(0), &op_data(1), &op_data(2), update);
+        T expected_val = Op::op(old_val, update);
+        Kokkos::memory_fence();
+        if (expected_val == T(0)) {
+          if (fabs(op_data(0)) > relative_error_threshold<T>) local_result += 1;
+          if (fabs(op_data(1)) > relative_error_threshold<T>) local_result += 2;
+          if (fabs(op_data(2)) > relative_error_threshold<T>) local_result += 4;
+          if (fetch_result.first != old_val) local_result += 8;
+          if (fabs(fetch_result.second) > relative_error_threshold<T>)
+            local_result += 16;
+        } else {
+          if (fabs((op_data(0) - expected_val) / expected_val) >
+              relative_error_threshold<T>)
+            local_result += 1;
+          if (fabs((op_data(1) - expected_val) / expected_val) >
+              relative_error_threshold<T>)
+            local_result += 2;
+          if (fabs((op_data(2) - expected_val) / expected_val) >
+              relative_error_threshold<T>)
+            local_result += 4;
+          if (fetch_result.first != old_val) local_result += 8;
+          if (fabs((fetch_result.second - expected_val) / expected_val) >
+              relative_error_threshold<T>)
+            local_result += 16;
+        }
+      },
+      result);
+  if ((result & 1) != 0)
+    printf("atomic_%s failed with type %s\n", Op::name(), typeid(T).name());
+  if ((result & 2) != 0)
+    printf("atomic_fetch_%s failed with type %s\n", Op::name(),
+           typeid(T).name());
+  if ((result & 4) != 0)
+    printf("atomic_%s_fetch failed with type %s\n", Op::name(),
+           typeid(T).name());
+  if ((result & 8) != 0)
+    printf("atomic_fetch_%s did not return old value with type %s\n",
+           Op::name(), typeid(T).name());
+  if ((result & 16) != 0)
+    printf("atomic_%s_fetch did not return updated value with type %s\n",
+           Op::name(), typeid(T).name());
+
+  return result == 0;
+}
+
 //---------------------------------------------------
 //--------------atomic_test_control------------------
 //---------------------------------------------------
@@ -395,14 +452,23 @@ bool AtomicOperationsTestIntegralType(int old_val_in, int update_in, int test) {
     case 9: return atomic_op_test<XorAtomicTest, T, ExecSpace>(old_val, update);
     case 10:
       return atomic_op_test<NandAtomicTest, T, ExecSpace>(old_val, update);
+#if defined(KOKKOS_ENABLE_OPENACC) && defined(KOKKOS_COMPILER_NVHPC)
+    // FIXME_NVHPC: atomic-fetch-shift operation fails due to NVHPC OpenACC
+    // compiler bugs, which are reported to NVIDIA.
+    case 11: return true;
+    case 12: return true;
+#else
     case 11:
-      return update_in >= 0 ? atomic_op_test<LShiftAtomicTest, T, ExecSpace>(
-                                  old_val, update)
-                            : true;
+      return (std::make_signed_t<T>(update_in) >= 0 &&
+              std::make_signed_t<T>(old_val) >= 0)
+                 ? atomic_op_test<LShiftAtomicTest, T, ExecSpace>(old_val,
+                                                                  update)
+                 : true;
     case 12:
       return update_in >= 0 ? atomic_op_test<RShiftAtomicTest, T, ExecSpace>(
                                   old_val, update)
                             : true;
+#endif
     case 13:
       return atomic_op_test<IncAtomicTest, T, ExecSpace>(old_val, update);
     case 14:
@@ -440,10 +506,20 @@ bool AtomicOperationsTestNonIntegralType(int old_val_in, int update_in,
     case 2: return atomic_op_test<MaxAtomicTest, T, ExecSpace>(old_val, update);
     case 3: return atomic_op_test<MinAtomicTest, T, ExecSpace>(old_val, update);
     case 4: return atomic_op_test<MulAtomicTest, T, ExecSpace>(old_val, update);
+#if defined(KOKKOS_ENABLE_OPENACC) && defined(KOKKOS_COMPILER_NVHPC)
+    // NVHPC may use different internal precisions for the device and host
+    // atomic operations. Therefore, relative errors are used to compare the
+    // host results and device results.
+    case 5:
+      return update != 0 ? atomic_op_test_rel<DivAtomicTest, T, ExecSpace>(
+                               old_val, update)
+                         : true;
+#else
     case 5:
       return update != 0
                  ? atomic_op_test<DivAtomicTest, T, ExecSpace>(old_val, update)
                  : true;
+#endif
     case 6:
       return atomic_op_test<LoadStoreAtomicTest, T, ExecSpace>(old_val, update);
   }

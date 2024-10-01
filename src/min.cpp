@@ -785,7 +785,7 @@ void Min::ev_set(bigint ntimestep)
   int flag;
 
   int eflag_global = 1;
-  for (auto &icompute : elist_global) icompute->matchstep(ntimestep);
+  for (auto &icompute : elist_global) (void) icompute->matchstep(ntimestep);
 
   flag = 0;
   int eflag_atom = 0;

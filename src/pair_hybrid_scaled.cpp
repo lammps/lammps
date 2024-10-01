@@ -254,6 +254,7 @@ void PairHybridScaled::settings(int narg, char **arg)
       delete[] special_coul[m];
     }
     delete[] styles;
+    delete[] cutmax_style;
     delete[] keywords;
     delete[] multiple;
     delete[] special_lj;
@@ -516,7 +517,7 @@ void PairHybridScaled::coeff(int narg, char **arg)
     if (strcmp(arg[2], "none") == 0)
       none = 1;
     else
-      error->all(FLERR, "Pair coeff for hybrid has invalid style: {}", arg[2]);
+      error->all(FLERR, "Expected hybrid sub-style instead of {} in pair_coeff command", arg[2]);
   }
 
   // move 1st/2nd args to 2nd/3rd args

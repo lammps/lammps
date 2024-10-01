@@ -108,6 +108,8 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::OpenMP> {
 
  public:
   inline void execute() const {
+    // Serialize kernels on the same execution space instance
+    std::lock_guard<std::mutex> lock(m_instance->m_instance_mutex);
     if (execute_in_serial(m_policy.space())) {
       exec_range(m_functor, m_policy.begin(), m_policy.end());
       return;
@@ -147,15 +149,7 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::OpenMP> {
 
   inline ParallelFor(const FunctorType& arg_functor, Policy arg_policy)
       : m_instance(nullptr), m_functor(arg_functor), m_policy(arg_policy) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (t_openmp_instance) {
-      m_instance = t_openmp_instance;
-    } else {
-      m_instance = arg_policy.space().impl_internal_space_instance();
-    }
-#else
     m_instance = arg_policy.space().impl_internal_space_instance();
-#endif
   }
 };
 
@@ -210,6 +204,9 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
 
  public:
   inline void execute() const {
+    // Serialize kernels on the same execution space instance
+    std::lock_guard<std::mutex> lock(m_instance->m_instance_mutex);
+
 #ifndef KOKKOS_COMPILER_INTEL
     if (execute_in_serial(m_iter.m_rp.space())) {
       exec_range(0, m_iter.m_rp.m_num_tiles);
@@ -251,16 +248,9 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
 
   inline ParallelFor(const FunctorType& arg_functor, MDRangePolicy arg_policy)
       : m_instance(nullptr), m_iter(arg_policy, arg_functor) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (t_openmp_instance) {
-      m_instance = t_openmp_instance;
-    } else {
-      m_instance = arg_policy.space().impl_internal_space_instance();
-    }
-#else
     m_instance = arg_policy.space().impl_internal_space_instance();
-#endif
   }
+
   template <typename Policy, typename Functor>
   static int max_tile_size_product(const Policy&, const Functor&) {
     /**
@@ -348,7 +338,8 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     const size_t team_shared_size  = m_shmem_size;
     const size_t thread_local_size = 0;  // Never shrinks
 
-    m_instance->acquire_lock();
+    // Serialize kernels on the same execution space instance
+    std::lock_guard<std::mutex> lock(m_instance->m_instance_mutex);
 
     m_instance->resize_thread_data(pool_reduce_size, team_reduce_size,
                                    team_shared_size, thread_local_size);
@@ -357,8 +348,6 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
       ParallelFor::template exec_team<WorkTag>(
           m_functor, *(m_instance->get_thread_data()), 0,
           m_policy.league_size(), m_policy.league_size());
-
-      m_instance->release_lock();
 
       return;
     }
@@ -398,8 +387,6 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
       data.disband_team();
     }
-
-    m_instance->release_lock();
   }
 
   inline ParallelFor(const FunctorType& arg_functor, const Policy& arg_policy)
@@ -409,15 +396,7 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_shmem_size(arg_policy.scratch_size(0) + arg_policy.scratch_size(1) +
                      FunctorTeamShmemSize<FunctorType>::value(
                          arg_functor, arg_policy.team_size())) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (t_openmp_instance) {
-      m_instance = t_openmp_instance;
-    } else {
-      m_instance = arg_policy.space().impl_internal_space_instance();
-    }
-#else
     m_instance = arg_policy.space().impl_internal_space_instance();
-#endif
   }
 };
 

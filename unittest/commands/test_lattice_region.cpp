@@ -54,7 +54,7 @@ TEST_F(LatticeRegionTest, lattice_none)
     BEGIN_HIDE_OUTPUT();
     command("lattice none 2.0");
     END_HIDE_OUTPUT();
-    auto lattice = lmp->domain->lattice;
+    auto *lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::NONE);
     ASSERT_EQ(lattice->xlattice, 2.0);
     ASSERT_EQ(lattice->ylattice, 2.0);
@@ -84,7 +84,7 @@ TEST_F(LatticeRegionTest, lattice_sc)
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, ContainsRegex(".*Lattice spacing in x,y,z = 1.5.* 2.* 3.*"));
 
-    auto lattice = lmp->domain->lattice;
+    auto *lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->xlattice, 1.5);
     ASSERT_EQ(lattice->ylattice, 2.0);
     ASSERT_EQ(lattice->zlattice, 3.0);
@@ -152,7 +152,7 @@ TEST_F(LatticeRegionTest, lattice_bcc)
     BEGIN_HIDE_OUTPUT();
     command("lattice bcc 4.2 orient x 1 1 0 orient y -1 1 0");
     END_HIDE_OUTPUT();
-    auto lattice = lmp->domain->lattice;
+    auto *lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::BCC);
     ASSERT_DOUBLE_EQ(lattice->xlattice, sqrt(2.0) * 4.2);
     ASSERT_DOUBLE_EQ(lattice->ylattice, sqrt(2.0) * 4.2);
@@ -177,7 +177,7 @@ TEST_F(LatticeRegionTest, lattice_fcc)
     BEGIN_HIDE_OUTPUT();
     command("lattice fcc 3.5 origin 0.5 0.5 0.5");
     END_HIDE_OUTPUT();
-    auto lattice = lmp->domain->lattice;
+    auto *lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::FCC);
     ASSERT_DOUBLE_EQ(lattice->xlattice, 3.5);
     ASSERT_DOUBLE_EQ(lattice->ylattice, 3.5);
@@ -215,7 +215,7 @@ TEST_F(LatticeRegionTest, lattice_hcp)
     BEGIN_HIDE_OUTPUT();
     command("lattice hcp 3.0 orient z 0 0 1");
     END_HIDE_OUTPUT();
-    auto lattice = lmp->domain->lattice;
+    auto *lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::HCP);
     ASSERT_DOUBLE_EQ(lattice->xlattice, 3.0);
     ASSERT_DOUBLE_EQ(lattice->ylattice, 3.0 * sqrt(3.0));
@@ -259,7 +259,7 @@ TEST_F(LatticeRegionTest, lattice_diamond)
     BEGIN_HIDE_OUTPUT();
     command("lattice diamond 4.1 orient x 1 1 2 orient y -1 1 0 orient z -1 -1 1");
     END_HIDE_OUTPUT();
-    auto lattice = lmp->domain->lattice;
+    auto *lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::DIAMOND);
     ASSERT_DOUBLE_EQ(lattice->xlattice, 6.6952719636073539);
     ASSERT_DOUBLE_EQ(lattice->ylattice, 5.7982756057296889);
@@ -312,7 +312,7 @@ TEST_F(LatticeRegionTest, lattice_sq)
     command("dimension 2");
     command("lattice sq 3.0");
     END_HIDE_OUTPUT();
-    auto lattice = lmp->domain->lattice;
+    auto *lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::SQ);
     ASSERT_DOUBLE_EQ(lattice->xlattice, 3.0);
     ASSERT_DOUBLE_EQ(lattice->ylattice, 3.0);
@@ -322,7 +322,7 @@ TEST_F(LatticeRegionTest, lattice_sq)
     ASSERT_EQ(lattice->basis[0][1], 0.0);
     ASSERT_EQ(lattice->basis[0][2], 0.0);
 
-    TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
+    TEST_FAILURE(".*ERROR: Lattice orient vectors are not compatible with 2d simulation.*",
                  command("lattice sq 1.0 orient x 1 1 2 orient y -1 1 0 orient z -1 -1 1"););
 
     BEGIN_HIDE_OUTPUT();
@@ -338,7 +338,7 @@ TEST_F(LatticeRegionTest, lattice_sq2)
     command("dimension 2");
     command("lattice sq2 2.0");
     END_HIDE_OUTPUT();
-    auto lattice = lmp->domain->lattice;
+    auto *lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::SQ2);
     ASSERT_DOUBLE_EQ(lattice->xlattice, 2.0);
     ASSERT_DOUBLE_EQ(lattice->ylattice, 2.0);
@@ -364,7 +364,7 @@ TEST_F(LatticeRegionTest, lattice_hex)
     command("dimension 2");
     command("lattice hex 2.0");
     END_HIDE_OUTPUT();
-    auto lattice = lmp->domain->lattice;
+    auto *lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::HEX);
     ASSERT_DOUBLE_EQ(lattice->xlattice, 2.0);
     ASSERT_DOUBLE_EQ(lattice->ylattice, 3.4641016151377544);
@@ -414,7 +414,7 @@ TEST_F(LatticeRegionTest, lattice_custom)
             "basis   $t   0.0  0.125 "
             "basis   $f   0.5  0.125 ");
     END_HIDE_OUTPUT();
-    auto lattice = lmp->domain->lattice;
+    auto *lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::CUSTOM);
     ASSERT_DOUBLE_EQ(lattice->xlattice, 4.34);
     ASSERT_DOUBLE_EQ(lattice->ylattice, 4.34 * sqrt(3.0));
@@ -463,13 +463,13 @@ TEST_F(LatticeRegionTest, lattice_custom)
     command("dimension 2");
     END_HIDE_OUTPUT();
     TEST_FAILURE(".*ERROR: No basis atoms in lattice.*", command("lattice custom 1.0"););
-    TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
+    TEST_FAILURE(".*ERROR: Lattice origin z coord must be 0.0 for 2d simulation.*",
                  command("lattice custom 1.0 origin 0.5 0.5 0.5 basis 0.0 0.0 0.0"););
-    TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
+    TEST_FAILURE(".*ERROR: Lattice a1/a2/a3 vectors are not compatible with 2d simulation.*",
                  command("lattice custom 1.0 a1 1.0 1.0 1.0 basis 0.0 0.0 0.0"););
-    TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
+    TEST_FAILURE(".*ERROR: Lattice a1/a2/a3 vectors are not compatible with 2d simulation.*",
                  command("lattice custom 1.0 a2 1.0 1.0 1.0 basis 0.0 0.0 0.0"););
-    TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
+    TEST_FAILURE(".*ERROR: Lattice a1/a2/a3 vectors are not compatible with 2d simulation.*",
                  command("lattice custom 1.0 a3 1.0 1.0 1.0 basis 0.0 0.0 0.0"););
 }
 
@@ -499,7 +499,7 @@ TEST_F(LatticeRegionTest, region_block_lattice)
     END_HIDE_OUTPUT();
 
     ASSERT_EQ(lmp->domain->triclinic, 0);
-    auto x = lmp->atom->x;
+    auto *x = lmp->atom->x;
     ASSERT_EQ(lmp->atom->natoms, 8);
     ASSERT_DOUBLE_EQ(x[0][0], 0.0);
     ASSERT_DOUBLE_EQ(x[0][1], 0.0);
@@ -525,7 +525,7 @@ TEST_F(LatticeRegionTest, region_block_box)
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->domain->triclinic, 0);
 
-    auto x = lmp->atom->x;
+    auto *x = lmp->atom->x;
     ASSERT_EQ(lmp->atom->natoms, 1);
     ASSERT_DOUBLE_EQ(x[0][0], 1.125);
     ASSERT_DOUBLE_EQ(x[0][1], 1.125);

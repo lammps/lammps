@@ -321,11 +321,12 @@ void PairHybrid::settings(int narg, char **arg)
 
   iarg = 0;
   nstyles = 0;
+  const std::string mystyle = force->pair_style;
   while (iarg < narg) {
     if (utils::strmatch(arg[iarg],"^hybrid"))
-      error->all(FLERR,"Pair style hybrid cannot have hybrid as a sub-style");
+      error->all(FLERR,"Pair style {} cannot have hybrid as a sub-style", mystyle);
     if (strcmp(arg[iarg],"none") == 0)
-      error->all(FLERR,"Pair style hybrid cannot have none as a sub-style");
+      error->all(FLERR,"Pair style {} cannot have none as a sub-style", mystyle);
 
     styles[nstyles] = force->new_pair(arg[iarg],1,dummy);
     keywords[nstyles] = force->store_style(arg[iarg],0);
@@ -344,6 +345,9 @@ void PairHybrid::settings(int narg, char **arg)
     iarg = jarg;
     nstyles++;
   }
+
+  if (utils::strmatch(mystyle,"^hybrid/molecular") && (nstyles != 2))
+      error->all(FLERR, "Pair style {} must have exactly two sub-styles", mystyle);
 
   delete[] cutmax_style;
   cutmax_style = new double[nstyles];
@@ -394,8 +398,7 @@ void PairHybrid::flags()
   for (m = 0; m < nstyles; m++) {
     if (styles[m]) comm_forward = MAX(comm_forward,styles[m]->comm_forward);
     if (styles[m]) comm_reverse = MAX(comm_reverse,styles[m]->comm_reverse);
-    if (styles[m]) comm_reverse_off = MAX(comm_reverse_off,
-                                          styles[m]->comm_reverse_off);
+    if (styles[m]) comm_reverse_off = MAX(comm_reverse_off,styles[m]->comm_reverse_off);
   }
 
   // single_enable = 1 if all sub-styles are set
@@ -521,8 +524,10 @@ void PairHybrid::coeff(int narg, char **arg)
 
   int none = 0;
   if (m == nstyles) {
-    if (strcmp(arg[2],"none") == 0) none = 1;
-    else error->all(FLERR,"Pair coeff for hybrid has invalid style: {}", arg[2]);
+    if (strcmp(arg[2],"none") == 0)
+      none = 1;
+    else
+      error->all(FLERR,"Expected hybrid sub-style instead of {} in pair_coeff command", arg[2]);
   }
 
   // move 1st/2nd args to 2nd/3rd args

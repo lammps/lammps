@@ -62,24 +62,24 @@ ComputeCountType::ComputeCountType(LAMMPS *lmp, int narg, char **arg) :
   if (mode == ATOM) {
     vector_flag = 1;
     size_vector = atom->ntypes;
-    extvector = 1;
+    extvector = 0;
   } else if (mode == BOND) {
     scalar_flag = vector_flag = 1;
     size_vector = atom->nbondtypes;
-    extscalar = 1;
-    extvector = 1;
+    extscalar = 0;
+    extvector = 0;
   } else if (mode == ANGLE) {
     vector_flag = 1;
     size_vector = atom->nangletypes;
-    extvector = 1;
+    extvector = 0;
   } else if (mode == DIHEDRAL) {
     vector_flag = 1;
     size_vector = atom->ndihedraltypes;
-    extvector = 1;
+    extvector = 0;
   } else if (mode == IMPROPER) {
     vector_flag = 1;
     size_vector = atom->nimpropertypes;
-    extvector = 1;
+    extvector = 0;
   }
 
   // output vector

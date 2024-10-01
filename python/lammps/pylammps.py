@@ -27,8 +27,8 @@ import sys
 import tempfile
 from collections import namedtuple
 
-from .core import lammps
-from .constants import *                # lgtm [py/polluting-import]
+from lammps.core import lammps
+from lammps.constants import LMP_VAR_EQUAL, LMP_VAR_ATOM, LMP_VAR_VECTOR, LMP_VAR_STRING
 
 # -------------------------------------------------------------------------
 
@@ -192,11 +192,23 @@ class Atom(object):
   @property
   def mass(self):
     """
-    Return the atom mass
+    Return the atom mass as a per-atom property.
+    This returns either the per-type mass or the per-atom
+    mass (AKA 'rmass') depending on what is available with
+    preference for the per-atom mass.
+
+    .. versionchanged:: 17Apr2024
+
+       Support both per-type and per-atom masses. With
+       per-type return "mass[type[i]]" else return "rmass[i]".
+       Per-atom mass is preferred if available.
 
     :type: float
     """
-    return self.get("mass", self.index)
+    if self._pylmp.lmp.extract_setting('rmass_flag'):
+      return self.get("rmass", self.index)
+    else:
+      return self.get("mass", self.type)
 
   @property
   def radius(self):
@@ -346,6 +358,7 @@ class Atom2D(Atom):
   @property
   def velocity(self):
     """Access to velocity of an atom
+
     :getter: Return velocity of atom
     :setter: Set velocity of atom
     :type: numpy.array (float, float)
@@ -360,6 +373,7 @@ class Atom2D(Atom):
   @property
   def force(self):
     """Access to force of an atom
+
     :getter: Return force of atom
     :setter: Set force of atom
     :type: numpy.array (float, float)
@@ -406,7 +420,7 @@ class PyLammps(object):
   """
   This is a Python wrapper class around the lower-level
   :py:class:`lammps` class, exposing a more Python-like,
-  object-oriented interface for prototyping system inside of IPython and
+  object-oriented interface for prototyping systems inside of IPython and
   Jupyter notebooks.
 
   It either creates its own instance of :py:class:`lammps` or can be
@@ -451,13 +465,19 @@ class PyLammps(object):
         self.lmp = lammps(name=name,cmdargs=cmdargs,ptr=ptr,comm=comm)
     else:
       self.lmp = lammps(name=name,cmdargs=cmdargs,ptr=None,comm=comm)
-    print("LAMMPS output is captured by PyLammps wrapper")
+    self.comm_nprocs = self.lmp.extract_setting("world_size")
+    self.comm_me = self.lmp.extract_setting("world_rank")
+    if self.comm_me == 0:
+      print("LAMMPS output is captured by PyLammps wrapper")
+      if self.comm_nprocs > 1:
+        print("WARNING: Using PyLammps with multiple MPI ranks is experimental. Not all functionality is supported.")
     self._cmd_history = []
     self._enable_cmd_history = False
     self.runs = []
 
     if not self.lmp.has_package("PYTHON"):
-      print("WARNING: run thermo data not captured since PYTHON LAMMPS package is not enabled")
+      if self.comm_me == 0:
+        print("WARNING: run thermo data not captured since PYTHON LAMMPS package is not enabled")
 
   def __enter__(self):
     return self
@@ -531,6 +551,18 @@ class PyLammps(object):
     Clear LAMMPS command history up to this point
     """
     self._cmd_history = []
+
+
+  def append_cmd_history(self, cmd):
+    """
+    Commands will be added to the command history but not executed.
+
+    Add `commands` only to the command history, but do not execute them, so that you can
+    conveniently create LAMMPS input files, using
+    :py:meth:`PyLammps.write_script()`.
+    """
+    self._cmd_history.append(cmd)
+
 
   def command(self, cmd):
     """
@@ -703,7 +735,15 @@ class PyLammps(object):
 
   def eval(self, expr):
     """
-    Evaluate expression
+    Evaluate LAMMPS input file expression.
+
+    This is equivalent to using immediate variable expressions in the format "$(...)"
+    in the LAMMPS input and will return the result of that expression.
+
+    .. warning::
+
+       This function is only supported on MPI rank 0.  Calling it from a different
+       MPI rank will raise an exception.
 
     :param expr: the expression string that should be evaluated inside of LAMMPS
     :type expr: string
@@ -711,6 +751,9 @@ class PyLammps(object):
     :return: the value of the evaluated expression
     :rtype: float if numeric, string otherwise
     """
+    if self.comm_me > 0:
+      raise Exception("PyLammps.eval() may only be used on MPI rank 0")
+
     value = self.lmp_print('"$(%s)"' % expr).strip()
     try:
       return float(value)
@@ -772,18 +815,16 @@ class PyLammps(object):
     comm = {}
     comm['nprocs'] = self.lmp.extract_setting("world_size")
     comm['nthreads'] = self.lmp.extract_setting("nthreads")
+    comm['proc_grid'] = comm['procgrid'] = self.lmp.extract_global("procgrid")
+    idx = self.lmp.extract_setting("comm_style")
+    comm['comm_style'] = ('brick', 'tiled')[idx]
+    idx = self.lmp.extract_setting("comm_style")
+    comm['comm_layout'] = ('uniform', 'nonuniform', 'irregular')[idx]
+    comm['ghost_velocity'] = self.lmp.extract_setting("ghost_velocity") == 1
 
     for line in output:
       if line.startswith("MPI library"):
         comm['mpi_version'] = line.split(':')[1].strip()
-      elif line.startswith("Comm style"):
-        parts = self._split_values(line)
-        comm['comm_style'] = self._get_pair(parts[0])[1]
-        comm['comm_layout'] = self._get_pair(parts[1])[1]
-      elif line.startswith("Processor grid"):
-        comm['proc_grid'] = [int(x) for x in self._get_pair(line)[1].split('x')]
-      elif line.startswith("Communicate velocities for ghost atoms"):
-        comm['ghost_velocity'] = (self._get_pair(line)[1] == "yes")
     return comm
 
   def _parse_element_list(self, output):
@@ -869,7 +910,7 @@ class PyLammps(object):
 
 class IPyLammps(PyLammps):
   """
-  IPython wrapper for LAMMPS which adds embedded graphics capabilities to PyLammmps interface
+  IPython wrapper for LAMMPS which adds embedded graphics capabilities to PyLammps interface
 
   It either creates its own instance of :py:class:`lammps` or can be
   initialized with an existing instance. The arguments are the same of the

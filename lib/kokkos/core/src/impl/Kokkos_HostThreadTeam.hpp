@@ -106,7 +106,11 @@ class HostThreadTeamData {
 
  public:
   inline bool team_rendezvous() const noexcept {
-    int* ptr = reinterpret_cast<int*>(m_team_scratch + m_team_rendezvous);
+    // FIXME_OPENMP The tasking framework creates an instance with
+    // m_team_scratch == nullptr and m_team_rendezvous != 0:
+    int* ptr = m_team_scratch == nullptr
+                   ? nullptr
+                   : reinterpret_cast<int*>(m_team_scratch + m_team_rendezvous);
     HostBarrier::split_arrive(ptr, m_team_size, m_team_rendezvous_step);
     if (m_team_rank != 0) {
       HostBarrier::wait(ptr, m_team_size, m_team_rendezvous_step);
@@ -130,9 +134,13 @@ class HostThreadTeamData {
   }
 
   inline void team_rendezvous_release() const noexcept {
+    // FIXME_OPENMP The tasking framework creates an instance with
+    // m_team_scratch == nullptr and m_team_rendezvous != 0:
     HostBarrier::split_release(
-        reinterpret_cast<int*>(m_team_scratch + m_team_rendezvous), m_team_size,
-        m_team_rendezvous_step);
+        (m_team_scratch == nullptr)
+            ? nullptr
+            : reinterpret_cast<int*>(m_team_scratch + m_team_rendezvous),
+        m_team_size, m_team_rendezvous_step);
   }
 
   inline int pool_rendezvous() const noexcept {
@@ -271,6 +279,9 @@ class HostThreadTeamData {
   }
 
   int64_t* team_shared() const noexcept {
+    // FIXME_OPENMP The tasking framework creates an instance with
+    // m_team_scratch == nullptr and m_team_shared != 0
+    if (m_team_scratch == nullptr) return nullptr;
     return m_team_scratch + m_team_shared;
   }
 
@@ -400,8 +411,12 @@ class HostThreadTeamMember {
   int const m_league_size;
 
  public:
+  // FIXME_OPENMP The tasking framework creates an instance with
+  // m_team_scratch == nullptr and m_team_shared != 0:
   constexpr HostThreadTeamMember(HostThreadTeamData& arg_data) noexcept
-      : m_scratch(arg_data.team_shared(), arg_data.team_shared_bytes()),
+      : m_scratch(arg_data.team_shared(), (arg_data.team_shared() == nullptr)
+                                              ? 0
+                                              : arg_data.team_shared_bytes()),
         m_data(arg_data),
         m_league_rank(arg_data.m_league_rank),
         m_league_size(arg_data.m_league_size) {}
@@ -885,7 +900,7 @@ KOKKOS_INLINE_FUNCTION
     closure(i, accum, false);
   }
 
-  auto team_member = loop_boundaries.thread;
+  auto& team_member = loop_boundaries.thread;
 
   // 'accum' output is the exclusive prefix sum
   accum = team_member.team_scan(accum);

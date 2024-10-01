@@ -57,7 +57,7 @@ namespace Experimental {
 template <class Policy, unsigned long Property>
 constexpr auto require(const Policy p,
                        WorkItemProperty::ImplWorkItemProperty<Property>) {
-  static_assert(Kokkos::is_execution_policy<Policy>::value, "");
+  static_assert(Kokkos::is_execution_policy<Policy>::value);
   using new_policy_t = Kokkos::Impl::WorkItemPropertyTrait::policy_with_trait<
       Policy, WorkItemProperty::ImplWorkItemProperty<Property>>;
   return new_policy_t{p};

@@ -385,9 +385,9 @@ void TestJacobi(int n,                         //<! matrix size
     Alloc2D(n, n, &M);
     Alloc2D(n, n, &evecs);
     Alloc2D(n, n, &evecs_known);
-    Scalar *evals       = new Scalar[n];
-    Scalar *evals_known = new Scalar[n];
-    Scalar *test_evec   = new Scalar[n];
+    auto *evals       = new Scalar[n];
+    auto *evals_known = new Scalar[n];
+    auto *test_evec   = new Scalar[n];
 
 #endif
 
@@ -464,7 +464,7 @@ void TestJacobi(int n,                         //<! matrix size
                                          Scalar const(*)[NF]>::SORT_INCREASING_ABS_EVALS);
 #else
                 ecalc.Diagonalize(M, evals, evecs,
-                                    Jacobi<Scalar, Scalar *, Scalar **,
+                                  Jacobi<Scalar, Scalar *, Scalar **,
                                          Scalar const *const *>::SORT_INCREASING_ABS_EVALS);
 #endif
 
@@ -488,7 +488,7 @@ void TestJacobi(int n,                         //<! matrix size
                                          Scalar const(*)[NF]>::SORT_DECREASING_ABS_EVALS);
 #else
                 ecalc.Diagonalize(M, evals, evecs,
-                                    Jacobi<Scalar, Scalar *, Scalar **,
+                                  Jacobi<Scalar, Scalar *, Scalar **,
                                          Scalar const *const *>::SORT_DECREASING_ABS_EVALS);
 #endif
 
@@ -511,7 +511,7 @@ void TestJacobi(int n,                         //<! matrix size
                                          Scalar const(*)[NF]>::SORT_INCREASING_EVALS);
 #else
                 ecalc.Diagonalize(M, evals, evecs,
-                                    Jacobi<Scalar, Scalar *, Scalar **,
+                                  Jacobi<Scalar, Scalar *, Scalar **,
                                          Scalar const *const *>::SORT_INCREASING_EVALS);
 #endif
                 for (int i = 1; i < n; i++)
@@ -533,8 +533,8 @@ void TestJacobi(int n,                         //<! matrix size
                     Jacobi<Scalar, Scalar *, Scalar(*)[NF], Scalar const(*)[NF]>::DO_NOT_SORT);
 #else
                 ecalc.Diagonalize(
-                      M, evals, evecs,
-                      Jacobi<Scalar, Scalar *, Scalar **, Scalar const *const *>::DO_NOT_SORT);
+                    M, evals, evecs,
+                    Jacobi<Scalar, Scalar *, Scalar **, Scalar const *const *>::DO_NOT_SORT);
 #endif
 
             } // if (test_code_coverage)

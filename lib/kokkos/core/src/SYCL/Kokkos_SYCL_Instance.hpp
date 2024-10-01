@@ -43,12 +43,12 @@ class SYCLInternal {
   SYCLInternal& operator=(SYCLInternal&&) = delete;
   SYCLInternal(SYCLInternal&&)            = delete;
 
-  sycl::device_ptr<void> scratch_space(const std::size_t size);
-  sycl::device_ptr<void> scratch_flags(const std::size_t size);
+  Kokkos::Impl::sycl_device_ptr<void> scratch_space(const std::size_t size);
+  Kokkos::Impl::sycl_device_ptr<void> scratch_flags(const std::size_t size);
+  Kokkos::Impl::sycl_host_ptr<void> scratch_host(const std::size_t size);
   int acquire_team_scratch_space();
-  sycl::device_ptr<void> resize_team_scratch_space(int scratch_pool_id,
-                                                   std::int64_t bytes,
-                                                   bool force_shrink = false);
+  Kokkos::Impl::sycl_device_ptr<void> resize_team_scratch_space(
+      int scratch_pool_id, std::int64_t bytes, bool force_shrink = false);
   void register_team_scratch_event(int scratch_pool_id, sycl::event event);
 
   uint32_t impl_get_instance_id() const;
@@ -58,19 +58,22 @@ class SYCLInternal {
   uint32_t m_maxConcurrency   = 0;
   uint64_t m_maxShmemPerBlock = 0;
 
-  std::size_t m_scratchSpaceCount            = 0;
-  sycl::device_ptr<size_type> m_scratchSpace = nullptr;
-  std::size_t m_scratchFlagsCount            = 0;
-  sycl::device_ptr<size_type> m_scratchFlags = nullptr;
+  std::size_t m_scratchSpaceCount                         = 0;
+  Kokkos::Impl::sycl_device_ptr<size_type> m_scratchSpace = nullptr;
+  std::size_t m_scratchHostCount                          = 0;
+  Kokkos::Impl::sycl_host_ptr<size_type> m_scratchHost    = nullptr;
+  std::size_t m_scratchFlagsCount                         = 0;
+  Kokkos::Impl::sycl_device_ptr<size_type> m_scratchFlags = nullptr;
   // mutex to access shared memory
   mutable std::mutex m_mutexScratchSpace;
 
   // Team Scratch Level 1 Space
-  static constexpr int m_n_team_scratch                               = 10;
-  mutable int64_t m_team_scratch_current_size[m_n_team_scratch]       = {};
-  mutable sycl::device_ptr<void> m_team_scratch_ptr[m_n_team_scratch] = {};
-  mutable int m_current_team_scratch                                  = 0;
-  mutable sycl::event m_team_scratch_event[m_n_team_scratch]          = {};
+  static constexpr int m_n_team_scratch                         = 10;
+  mutable int64_t m_team_scratch_current_size[m_n_team_scratch] = {};
+  mutable Kokkos::Impl::sycl_device_ptr<void>
+      m_team_scratch_ptr[m_n_team_scratch]                   = {};
+  mutable int m_current_team_scratch                         = 0;
+  mutable sycl::event m_team_scratch_event[m_n_team_scratch] = {};
   mutable std::mutex m_team_scratch_mutex;
 
   uint32_t m_instance_id = Kokkos::Tools::Experimental::Impl::idForInstance<
@@ -330,8 +333,8 @@ struct sycl::is_device_copyable<
     Kokkos::Experimental::Impl::SYCLFunctionWrapper<Functor, Storage, false>>
     : std::true_type {};
 
-// FIXME_SYCL Remove when this specialization when specializations for
-// sycl::device_copyable also apply to const-qualified types.
+#if (defined(__INTEL_LLVM_COMPILER) && __INTEL_LLVM_COMPILER < 20240000) || \
+    (defined(__LIBSYCL_MAJOR_VERSION) && __LIBSYCL_MAJOR_VERSION < 7)
 template <typename>
 struct NonTriviallyCopyableAndDeviceCopyable {
   NonTriviallyCopyableAndDeviceCopyable(
@@ -354,5 +357,6 @@ struct sycl::is_device_copyable<
     std::enable_if_t<!sycl::is_device_copyable_v<
         const NonTriviallyCopyableAndDeviceCopyable<Functor>>>>
     : std::true_type {};
+#endif
 #endif
 #endif

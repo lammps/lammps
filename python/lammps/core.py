@@ -18,12 +18,21 @@ from __future__ import print_function
 
 import os
 import sys
-from ctypes import *                    # lgtm [py/polluting-import]
-from os.path import dirname,abspath,join
+from ctypes import CDLL, POINTER, RTLD_GLOBAL, CFUNCTYPE, py_object, byref, cast, sizeof, \
+  create_string_buffer, c_int, c_int32, c_int64, c_double, c_void_p, c_char_p, c_char,    \
+  pythonapi, pointer
+from os.path import dirname, abspath, join
 from inspect import getsourcefile
 
-from .constants import *                # lgtm [py/polluting-import]
-from .data import *                     # lgtm [py/polluting-import]
+from lammps.constants import LAMMPS_AUTODETECT, LAMMPS_STRING, \
+  LAMMPS_INT, LAMMPS_INT_2D, LAMMPS_DOUBLE, LAMMPS_DOUBLE_2D, LAMMPS_INT64, LAMMPS_INT64_2D, \
+  LMP_STYLE_GLOBAL, LMP_STYLE_ATOM, LMP_STYLE_LOCAL, \
+  LMP_TYPE_SCALAR, LMP_TYPE_VECTOR, LMP_TYPE_ARRAY, \
+  LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS, \
+  LMP_VAR_EQUAL, LMP_VAR_ATOM, LMP_VAR_VECTOR, LMP_VAR_STRING, \
+  get_ctypes_int
+
+from lammps.data import NeighList
 
 # -------------------------------------------------------------------------
 
@@ -169,6 +178,9 @@ class lammps(object):
 
     self.lib.lammps_error.argtypes = [c_void_p, c_int, c_char_p]
 
+    self.lib.lammps_expand.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_expand.restype = POINTER(c_char)
+
     self.lib.lammps_file.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_file.restype = None
 
@@ -267,7 +279,13 @@ class lammps(object):
     self.lib.lammps_extract_global.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_extract_global_datatype.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_extract_global_datatype.restype = c_int
+    self.lib.lammps_extract_pair.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_extract_pair_dimension.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_extract_pair_dimension.restype = c_int
     self.lib.lammps_extract_compute.argtypes = [c_void_p, c_char_p, c_int, c_int]
+
+    self.lib.lammps_map_atom.argtypes = [c_void_p, c_void_p]
+    self.lib.lammps_map_atom.restype = c_int
 
     self.lib.lammps_get_thermo.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_get_thermo.restype = c_double
@@ -312,6 +330,8 @@ class lammps(object):
     self.lib.lammps_extract_atom.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_extract_atom_datatype.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_extract_atom_datatype.restype = c_int
+    self.lib.lammps_extract_atom_size.argtypes = [c_void_p, c_char_p, c_int]
+    self.lib.lammps_extract_atom_size.restype = c_int
 
     self.lib.lammps_extract_fix.argtypes = [c_void_p, c_char_p, c_int, c_int, c_int, c_int]
 
@@ -336,8 +356,8 @@ class lammps(object):
     if self.has_mpi_support:
       try:
         from mpi4py import __version__ as mpi4py_version
-        # tested to work with mpi4py versions 2 and 3
-        self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
+        # tested to work with mpi4py versions 2, 3, and 4
+        self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3','4']
       except ImportError:
         # ignore failing import
         pass
@@ -363,7 +383,7 @@ class lammps(object):
         if not self.has_mpi_support:
           raise Exception('LAMMPS not compiled with real MPI library')
         if not self.has_mpi4py:
-          raise Exception('Python mpi4py version is not 2 or 3')
+          raise Exception('Python mpi4py version is not 2, 3, or 4')
         if self.MPI._sizeof(self.MPI.Comm) == sizeof(c_int):
           MPI_Comm = c_int
         else:
@@ -376,12 +396,16 @@ class lammps(object):
         narg = 0
         cargs = None
         if cmdargs is not None:
-          cmdargs.insert(0,"lammps")
-          narg = len(cmdargs)
-          for i in range(narg):
-            if type(cmdargs[i]) is str:
-              cmdargs[i] = cmdargs[i].encode()
-          cargs = (c_char_p*(narg+1))(*cmdargs)
+          myargs = ["lammps".encode()]
+          narg = len(cmdargs) + 1
+          for arg in cmdargs:
+            if type(arg) is str:
+              myargs.append(arg.encode())
+            elif type(arg) is bytes:
+              myargs.append(arg)
+            else:
+              raise TypeError('Unsupported cmdargs type ', type(arg))
+          cargs = (c_char_p*(narg+1))(*myargs)
           cargs[narg] = None
           self.lib.lammps_open.argtypes = [c_int, c_char_p*(narg+1), MPI_Comm, c_void_p]
         else:
@@ -397,12 +421,16 @@ class lammps(object):
           self.comm = self.MPI.COMM_WORLD
         self.opened = 1
         if cmdargs is not None:
-          cmdargs.insert(0,"lammps")
-          narg = len(cmdargs)
-          for i in range(narg):
-            if type(cmdargs[i]) is str:
-              cmdargs[i] = cmdargs[i].encode()
-          cargs = (c_char_p*(narg+1))(*cmdargs)
+          myargs = ["lammps".encode()]
+          narg = len(cmdargs) + 1
+          for arg in cmdargs:
+            if type(arg) is str:
+              myargs.append(arg.encode())
+            elif type(arg) is bytes:
+              myargs.append(arg)
+            else:
+              raise TypeError('Unsupported cmdargs type ', type(arg))
+          cargs = (c_char_p*(narg+1))(*myargs)
           cargs[narg] = None
           self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p*(narg+1), c_void_p]
           self.lmp = c_void_p(self.lib.lammps_open_no_mpi(narg,cargs,None))
@@ -519,11 +547,11 @@ class lammps(object):
     :param error_text:
     :type error_text:  string
     """
-    if error_text: error_text = error_text.encode()
-    else: error_text = "(unknown error)".encode()
+    if error_text: new_error_text = error_text.encode()
+    else: new_error_text = "(unknown error)".encode()
 
     with ExceptionCheck(self):
-      self.lib.lammps_error(self.lmp, error_type, error_text)
+      self.lib.lammps_error(self.lmp, error_type, new_error_text)
 
   # -------------------------------------------------------------------------
 
@@ -588,6 +616,37 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
+  def expand(self,line):
+    """Expand a single LAMMPS string like an input line
+
+    This is a wrapper around the :cpp:func:`lammps_expand`
+    function of the C-library interface.
+
+    :param cmd: a single lammps line
+    :type cmd:  string
+    :return: expanded string
+    :rtype: string
+    """
+    if line: newline = line.encode()
+    else: return None
+
+    with ExceptionCheck(self):
+      strptr = self.lib.lammps_expand(self.lmp, newline)
+      rval = strptr[0]
+      if rval == b'\0':
+        rval = None
+      else:
+        i = 1
+        while strptr[i] != b'\0':
+          rval += strptr[i]
+          i = i + 1
+      self.lib.lammps_free(strptr)
+      if rval:
+        return rval.decode('utf-8')
+
+    return None
+  # -------------------------------------------------------------------------
+
   def file(self, path):
     """Read LAMMPS commands from a file.
 
@@ -598,11 +657,11 @@ class lammps(object):
     :param path: Name of the file/path with LAMMPS commands
     :type path:  string
     """
-    if path: path = path.encode()
+    if path: newpath = path.encode()
     else: return
 
     with ExceptionCheck(self):
-      self.lib.lammps_file(self.lmp, path)
+      self.lib.lammps_file(self.lmp, newpath)
 
   # -------------------------------------------------------------------------
 
@@ -615,11 +674,11 @@ class lammps(object):
     :param cmd: a single lammps command
     :type cmd:  string
     """
-    if cmd: cmd = cmd.encode()
+    if cmd: newcmd = cmd.encode()
     else: return
 
     with ExceptionCheck(self):
-      self.lib.lammps_command(self.lmp,cmd)
+      self.lib.lammps_command(self.lmp, newcmd)
 
   # -------------------------------------------------------------------------
 
@@ -653,10 +712,11 @@ class lammps(object):
     :param multicmd: text block of lammps commands
     :type multicmd:  string
     """
-    if type(multicmd) is str: multicmd = multicmd.encode()
+    if type(multicmd) is str: newmulticmd = multicmd.encode()
+    else: newmulticmd = multicmd
 
     with ExceptionCheck(self):
-      self.lib.lammps_commands_string(self.lmp,c_char_p(multicmd))
+      self.lib.lammps_commands_string(self.lmp,c_char_p(newmulticmd))
 
   # -------------------------------------------------------------------------
 
@@ -743,11 +803,11 @@ class lammps(object):
     :return: value of thermo keyword
     :rtype: double or None
     """
-    if name: name = name.encode()
+    if name: newname = name.encode()
     else: return None
 
     with ExceptionCheck(self):
-      return self.lib.lammps_get_thermo(self.lmp,name)
+      return self.lib.lammps_get_thermo(self.lmp, newname)
 
   # -------------------------------------------------------------------------
   @property
@@ -821,9 +881,9 @@ class lammps(object):
     :return: value of the setting
     :rtype: int
     """
-    if name: name = name.encode()
+    if name: newname = name.encode()
     else: return None
-    return int(self.lib.lammps_extract_setting(self.lmp,name))
+    return int(self.lib.lammps_extract_setting(self.lmp, newname))
 
   # -------------------------------------------------------------------------
   # extract global info datatype
@@ -837,16 +897,16 @@ class lammps(object):
     This function returns ``None`` if the keyword is not
     recognized. Otherwise it will return a positive integer value that
     corresponds to one of the :ref:`data type <py_datatype_constants>`
-    constants define in the :py:mod:`lammps` module.
+    constants defined in the :py:mod:`lammps` module.
 
     :param name: name of the property
     :type name:  string
     :return: data type of global property, see :ref:`py_datatype_constants`
     :rtype: int
     """
-    if name: name = name.encode()
+    if name: newname = name.encode()
     else: return None
-    return self.lib.lammps_extract_global_datatype(self.lmp, name)
+    return self.lib.lammps_extract_global_datatype(self.lmp, newname)
 
   # -------------------------------------------------------------------------
   # extract global info
@@ -880,15 +940,17 @@ class lammps(object):
     # set length of vector for items that are not a scalar
     vec_dict = { 'boxlo':3, 'boxhi':3, 'sublo':3, 'subhi':3,
                  'sublo_lambda':3, 'subhi_lambda':3, 'periodicity':3,
-                 'special_lj':4, 'special_coul':4 }
+                 'special_lj':4, 'special_coul':4, 'procgrid':3 }
     if name in vec_dict:
       veclen = vec_dict[name]
     elif name == 'respa_dt':
       veclen = self.extract_global('respa_levels',LAMMPS_INT)
+    elif name == 'sametag':
+      veclen = self.extract_setting('nall')
     else:
       veclen = 1
 
-    if name: name = name.encode()
+    if name: newname = name.encode()
     else: return None
 
     if dtype == LAMMPS_INT:
@@ -906,7 +968,7 @@ class lammps(object):
     else:
       target_type = None
 
-    ptr = self.lib.lammps_extract_global(self.lmp, name)
+    ptr = self.lib.lammps_extract_global(self.lmp, newname)
     if ptr:
       if dtype == LAMMPS_STRING:
         return ptr.decode('utf-8')
@@ -917,6 +979,118 @@ class lammps(object):
         return result
       else: return target_type(ptr[0])
     return None
+
+  # -------------------------------------------------------------------------
+  # extract pair property dimensionality
+
+  def extract_pair_dimension(self, name):
+    """Retrieve pair style  property dimensionality from LAMMPS
+
+    .. versionadded:: 29Aug2024
+
+    This is a wrapper around the :cpp:func:`lammps_extract_pair_dimension`
+    function of the C-library interface. The list of supported keywords
+    depends on the pair style. This function returns ``None`` if the keyword
+    is not recognized.
+
+    :param name: name of the property
+    :type name:  string
+    :return: dimensionality of the extractable data (typically 0, 1, or 2)
+    :rtype: int
+    """
+    if name:
+      newname = name.encode()
+    else:
+      return None
+    dim = self.lib.lammps_extract_pair_dimension(self.lmp, newname)
+
+    if dim < 0:
+      return None
+    else:
+      return dim;
+
+  # -------------------------------------------------------------------------
+  # get access to pair style extractable data
+
+  def extract_pair(self, name):
+    """Extract pair style data from LAMMPS.
+
+    .. versionadded:: 29Aug2024
+
+    This is a wrapper around the :cpp:func:`lammps_extract_pair` function
+    of the C-library interface.  Since there are no pointers in Python, this
+    method will - unlike the C function - return the value or a list of
+    values.
+    Since Python needs to know the dimensionality to be able to interpret
+    the result, this function will detect the dimensionality by asking the library.
+    This function returns ``None`` if the keyword is not recognized.
+
+    :param name: name of the property
+    :type name:  string
+    :return: value of the property or list of values or None
+    :rtype: float, list of float, list of list of floats, or NoneType
+    """
+
+    if name:
+      newname = name.encode()
+    else:
+      return None
+
+    dim = self.extract_pair_dimension(name)
+    if dim is None:
+      return None
+    elif dim == 0:
+      self.lib.lammps_extract_pair.restype = POINTER(c_double)
+    elif dim == 1:
+      self.lib.lammps_extract_pair.restype = POINTER(c_double)
+    elif dim == 2:
+      self.lib.lammps_extract_pair.restype = POINTER(POINTER(c_double))
+    else:
+      return None
+
+    ntypes = self.extract_setting('ntypes')
+    ptr = self.lib.lammps_extract_pair(self.lmp, newname)
+    if ptr:
+      if dim == 0:
+        return float(ptr[0])
+      elif dim == 1:
+        result = [0.0]
+        for i in range(1,ntypes+1):
+          result.append(float(ptr[i]))
+        return result
+      elif dim == 2:
+        result = []
+        inner = []
+        for i in range(0,ntypes+1):
+          inner.append(float(0.0))
+        result.append(inner)
+        for i in range(1,ntypes+1):
+          inner = [0.0]
+          for j in range(1,ntypes+1):
+            inner.append(float(ptr[i][j]))
+          result.append(inner)
+        return result
+      else:
+        return None
+    return None
+
+  # -------------------------------------------------------------------------
+  # map global atom ID to local atom index
+
+  def map_atom(self, id):
+    """Map a global atom ID (aka tag) to the local atom index
+
+    This is a wrapper around the :cpp:func:`lammps_map_atom`
+    function of the C-library interface.
+
+    :param id: atom ID
+    :type id:  int
+    :return: local index
+    :rtype: int
+    """
+
+    tag = self.c_tagint(id)
+    return self.lib.lammps_map_atom(self.lmp, pointer(tag))
 
   # -------------------------------------------------------------------------
   # extract per-atom info datatype
@@ -937,9 +1111,37 @@ class lammps(object):
     :return: data type of per-atom property (see :ref:`py_datatype_constants`)
     :rtype: int
     """
-    if name: name = name.encode()
+    if name: newname = name.encode()
     else: return None
-    return self.lib.lammps_extract_atom_datatype(self.lmp, name)
+    return self.lib.lammps_extract_atom_datatype(self.lmp, newname)
+
+  # -------------------------------------------------------------------------
+  # extract per-atom info datatype
+
+  def extract_atom_size(self, name, dtype):
+    """Retrieve per-atom property dimensions from LAMMPS
+
+    This is a wrapper around the :cpp:func:`lammps_extract_atom_size`
+    function of the C-library interface. Its documentation includes a
+    list of the supported keywords.
+    This function returns ``None`` if the keyword is not
+    recognized. Otherwise it will return an integer value with the size
+    of the per-atom vector or array.  If *name* corresponds to a per-atom
+    array, the *dtype* keyword must be either LMP_SIZE_ROWS or LMP_SIZE_COLS
+    from the :ref:`type <py_type_constants>` constants defined in the
+    :py:mod:`lammps` module.  The return value is the requested size.
+    If *name* corresponds to a per-atom vector the *dtype* keyword is ignored.
+
+    :param name: name of the property
+    :type name:  string
+    :param type: either LMP_SIZE_ROWS or LMP_SIZE_COLS for arrays, otherwise ignored
+    :type type:  int
+    :return: data type of per-atom property (see :ref:`py_datatype_constants`)
+    :rtype: int
+    """
+    if name: newname = name.encode()
+    else: return None
+    return self.lib.lammps_extract_atom_size(self.lmp, newname, dtype)
 
   # -------------------------------------------------------------------------
   # extract per-atom info
@@ -947,25 +1149,25 @@ class lammps(object):
   def extract_atom(self, name, dtype=LAMMPS_AUTODETECT):
     """Retrieve per-atom properties from LAMMPS
 
-    This is a wrapper around the :cpp:func:`lammps_extract_atom`
-    function of the C-library interface. Its documentation includes a
-    list of the supported keywords and their data types.
-    Since Python needs to know the data type to be able to interpret
-    the result, by default, this function will try to auto-detect the data type
-    by asking the library. You can also force a specific data type by setting ``dtype``
-    to one of the :ref:`data type <py_datatype_constants>` constants defined in the
-    :py:mod:`lammps` module.
-    This function returns ``None`` if either the keyword is not
-    recognized, or an invalid data type constant is used.
+    This is a wrapper around the :cpp:func:`lammps_extract_atom` function of the
+    C-library interface. Its documentation includes a list of the supported
+    keywords and their data types.  Since Python needs to know the data type to
+    be able to interpret the result, by default, this function will try to
+    auto-detect the data type by asking the library. You can also force a
+    specific data type by setting ``dtype`` to one of the :ref:`data type
+    <py_datatype_constants>` constants defined in the :py:mod:`lammps` module.
+    This function returns ``None`` if either the keyword is not recognized, or
+    an invalid data type constant is used.
 
     .. note::
 
-       While the returned arrays of per-atom data are dimensioned
-       for the range [0:nmax] - as is the underlying storage -
-       the data is usually only valid for the range of [0:nlocal],
-       unless the property of interest is also updated for ghost
-       atoms.  In some cases, this depends on a LAMMPS setting, see
-       for example :doc:`comm_modify vel yes <comm_modify>`.
+       While the returned vectors or arrays of per-atom data are dimensioned for
+       the range [0:nmax] - as is the underlying storage - the data is usually
+       only valid for the range of [0:nlocal], unless the property of interest
+       is also updated for ghost atoms.  In some cases, this depends on a LAMMPS
+       setting, see for example :doc:`comm_modify vel yes <comm_modify>`.
+       The actual size can be determined by calling
+       py:meth:`extract_atom_size() <lammps.lammps.extract_atom_size>`.
 
     :param name: name of the property
     :type name:  string
@@ -976,11 +1178,12 @@ class lammps(object):
             ctypes.POINTER(ctypes.c_int64), ctypes.POINTER(ctypes.POINTER(ctypes.c_int64)),
             ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
             or NoneType
+
     """
     if dtype == LAMMPS_AUTODETECT:
       dtype = self.extract_atom_datatype(name)
 
-    if name: name = name.encode()
+    if name: newname = name.encode()
     else: return None
 
     if dtype == LAMMPS_INT:
@@ -997,7 +1200,7 @@ class lammps(object):
       self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_int64))
     else: return None
 
-    ptr = self.lib.lammps_extract_atom(self.lmp, name)
+    ptr = self.lib.lammps_extract_atom(self.lmp, newname)
     if ptr: return ptr
     else:   return None
 
@@ -1025,47 +1228,47 @@ class lammps(object):
     :return: requested data as scalar, pointer to 1d or 2d double array, or None
     :rtype: c_double, ctypes.POINTER(c_double), ctypes.POINTER(ctypes.POINTER(c_double)), or NoneType
     """
-    if cid: cid = cid.encode()
+    if cid: newcid = cid.encode()
     else: return None
 
     if ctype == LMP_TYPE_SCALAR:
       if cstyle == LMP_STYLE_GLOBAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_double)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
+          ptr = self.lib.lammps_extract_compute(self.lmp,newcid,cstyle,ctype)
         return ptr[0]
       elif cstyle == LMP_STYLE_ATOM:
         return None
       elif cstyle == LMP_STYLE_LOCAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_int)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
+          ptr = self.lib.lammps_extract_compute(self.lmp,newcid,cstyle,ctype)
         return ptr[0]
 
     elif ctype == LMP_TYPE_VECTOR:
       self.lib.lammps_extract_compute.restype = POINTER(c_double)
       with ExceptionCheck(self):
-        ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
+        ptr = self.lib.lammps_extract_compute(self.lmp,newcid,cstyle,ctype)
       return ptr
 
     elif ctype == LMP_TYPE_ARRAY:
       self.lib.lammps_extract_compute.restype = POINTER(POINTER(c_double))
       with ExceptionCheck(self):
-        ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
+        ptr = self.lib.lammps_extract_compute(self.lmp,newcid,cstyle,ctype)
       return ptr
 
     elif ctype == LMP_SIZE_COLS:
       if cstyle == LMP_STYLE_GLOBAL or cstyle == LMP_STYLE_ATOM or cstyle == LMP_STYLE_LOCAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_int)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
+          ptr = self.lib.lammps_extract_compute(self.lmp,newcid,cstyle,ctype)
         return ptr[0]
 
     elif ctype == LMP_SIZE_VECTOR or ctype == LMP_SIZE_ROWS:
       if cstyle == LMP_STYLE_GLOBAL or cstyle == LMP_STYLE_LOCAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_int)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
+          ptr = self.lib.lammps_extract_compute(self.lmp,newcid,cstyle,ctype)
         return ptr[0]
 
     return None
@@ -1078,15 +1281,23 @@ class lammps(object):
   def extract_fix(self,fid,fstyle,ftype,nrow=0,ncol=0):
     """Retrieve data from a LAMMPS fix
 
-    This is a wrapper around the :cpp:func:`lammps_extract_fix`
-    function of the C-library interface.
-    This function returns ``None`` if either the fix id is not
-    recognized, or an invalid combination of :ref:`fstyle <py_style_constants>`
-    and :ref:`ftype <py_type_constants>` constants is used. The
-    names and functionality of the constants are the same as for
-    the corresponding C-library function.  For requests to return
-    a scalar or a size, the value is returned, also when accessing
-    global vectors or arrays, otherwise a pointer.
+    This is a wrapper around the :cpp:func:`lammps_extract_fix` function
+    of the C-library interface.  This function returns ``None`` if
+    either the fix id is not recognized, or an invalid combination of
+    :ref:`fstyle <py_style_constants>` and :ref:`ftype
+    <py_type_constants>` constants is used. The names and functionality
+    of the constants are the same as for the corresponding C-library
+    function.  For requests to return a scalar or a size, the value is
+    returned, also when accessing global vectors or arrays, otherwise a
+    pointer.
+
+    .. note::
+
+       When requesting global data, the fix data can only be accessed
+       one item at a time without access to the whole vector or array.
+       Thus this function will always return a scalar.  To access vector
+       or array elements the "nrow" and "ncol" arguments need to be set
+       accordingly (they default to 0).
 
     :param fid: fix ID
     :type fid:  string
@@ -1102,21 +1313,21 @@ class lammps(object):
     :rtype: c_double, ctypes.POINTER(c_double), ctypes.POINTER(ctypes.POINTER(c_double)), or NoneType
 
     """
-    if fid: fid = fid.encode()
+    if fid: newfid = fid.encode()
     else: return None
 
     if fstyle == LMP_STYLE_GLOBAL:
       if ftype in (LMP_TYPE_SCALAR, LMP_TYPE_VECTOR, LMP_TYPE_ARRAY):
         self.lib.lammps_extract_fix.restype = POINTER(c_double)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_fix(self.lmp,fid,fstyle,ftype,nrow,ncol)
+          ptr = self.lib.lammps_extract_fix(self.lmp,newfid,fstyle,ftype,nrow,ncol)
         result = ptr[0]
         self.lib.lammps_free(ptr)
         return result
       elif ftype in (LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS):
         self.lib.lammps_extract_fix.restype = POINTER(c_int)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_fix(self.lmp,fid,fstyle,ftype,nrow,ncol)
+          ptr = self.lib.lammps_extract_fix(self.lmp,newfid,fstyle,ftype,nrow,ncol)
         return ptr[0]
       else:
         return None
@@ -1131,7 +1342,7 @@ class lammps(object):
       else:
         return None
       with ExceptionCheck(self):
-        ptr = self.lib.lammps_extract_fix(self.lmp,fid,fstyle,ftype,nrow,ncol)
+        ptr = self.lib.lammps_extract_fix(self.lmp,newfid,fstyle,ftype,nrow,ncol)
       if ftype == LMP_SIZE_COLS:
         return ptr[0]
       else:
@@ -1147,7 +1358,7 @@ class lammps(object):
       else:
         return None
       with ExceptionCheck(self):
-        ptr = self.lib.lammps_extract_fix(self.lmp,fid,fstyle,ftype,nrow,ncol)
+        ptr = self.lib.lammps_extract_fix(self.lmp,newfid,fstyle,ftype,nrow,ncol)
       if ftype in (LMP_TYPE_VECTOR, LMP_TYPE_ARRAY):
         return ptr
       else:
@@ -1188,15 +1399,16 @@ class lammps(object):
     :return: the requested data
     :rtype: c_double, (c_double), or NoneType
     """
-    if name: name = name.encode()
+    if name: newname = name.encode()
     else: return None
-    if group: group = group.encode()
+    if group: newgroup = group.encode()
+    else: newgroup = None
     if vartype is None :
-      vartype = self.lib.lammps_extract_variable_datatype(self.lmp, name)
+      vartype = self.lib.lammps_extract_variable_datatype(self.lmp, newname)
     if vartype == LMP_VAR_EQUAL:
       self.lib.lammps_extract_variable.restype = POINTER(c_double)
       with ExceptionCheck(self):
-        ptr = self.lib.lammps_extract_variable(self.lmp,name,group)
+        ptr = self.lib.lammps_extract_variable(self.lmp, newname, newgroup)
       if ptr: result = ptr[0]
       else: return None
       self.lib.lammps_free(ptr)
@@ -1206,7 +1418,7 @@ class lammps(object):
       result = (c_double*nlocal)()
       self.lib.lammps_extract_variable.restype = POINTER(c_double)
       with ExceptionCheck(self):
-        ptr = self.lib.lammps_extract_variable(self.lmp,name,group)
+        ptr = self.lib.lammps_extract_variable(self.lmp, newname, newgroup)
       if ptr:
         for i in range(nlocal): result[i] = ptr[i]
         self.lib.lammps_free(ptr)
@@ -1215,27 +1427,27 @@ class lammps(object):
     elif vartype == LMP_VAR_VECTOR :
       nvector = 0
       self.lib.lammps_extract_variable.restype = POINTER(c_int)
-      ptr = self.lib.lammps_extract_variable(self.lmp,name,
+      ptr = self.lib.lammps_extract_variable(self.lmp, newname,
               'LMP_SIZE_VECTOR'.encode())
       if ptr :
         nvector = ptr[0]
         self.lib.lammps_free(ptr)
-      else :
+      else:
         return None
       self.lib.lammps_extract_variable.restype = POINTER(c_double)
       result = (c_double*nvector)()
-      values = self.lib.lammps_extract_variable(self.lmp,name,group)
+      values = self.lib.lammps_extract_variable(self.lmp, newname, newgroup)
       if values :
         for i in range(nvector) :
           result[i] = values[i]
         # do NOT free the values pointer (points to internal vector data)
         return result
-      else :
+      else:
         return None
     elif vartype == LMP_VAR_STRING :
       self.lib.lammps_extract_variable.restype = c_char_p
       with ExceptionCheck(self) :
-        ptr = self.lib.lammps_extract_variable(self.lmp, name, group)
+        ptr = self.lib.lammps_extract_variable(self.lmp, newname, newgroup)
         return ptr.decode('utf-8')
     return None
 
@@ -1266,12 +1478,12 @@ class lammps(object):
     :return: either 0 on success or -1 on failure
     :rtype: int
     """
-    if name: name = name.encode()
+    if name: newname = name.encode()
     else: return -1
-    if value: value = str(value).encode()
+    if value: newvalue = str(value).encode()
     else: return -1
     with ExceptionCheck(self):
-      return self.lib.lammps_set_variable(self.lmp,name,value)
+      return self.lib.lammps_set_variable(self.lmp, newname, newvalue)
 
   # -------------------------------------------------------------------------
 
@@ -1290,12 +1502,12 @@ class lammps(object):
     :return: either 0 on success or -1 on failure
     :rtype: int
     """
-    if name: name = name.encode()
+    if name: newname = name.encode()
     else: return -1
-    if value: value = str(value).encode()
+    if value: newvalue = str(value).encode()
     else: return -1
     with ExceptionCheck(self):
-      return self.lib.lammps_set_string_variable(self.lmp,name,value)
+      return self.lib.lammps_set_string_variable(self.lmp,newname,newvalue)
 
   # -------------------------------------------------------------------------
 
@@ -1314,10 +1526,10 @@ class lammps(object):
     :return: either 0 on success or -1 on failure
     :rtype: int
     """
-    if name: name = name.encode()
+    if name: newname = name.encode()
     else: return -1
     with ExceptionCheck(self):
-      return self.lib.lammps_set_internal_variable(self.lmp,name,value)
+      return self.lib.lammps_set_internal_variable(self.lmp,newname,value)
 
   # -------------------------------------------------------------------------
 
@@ -1331,15 +1543,16 @@ class lammps(object):
   #   e.g. for Python list or NumPy or ctypes
 
   def gather_atoms(self,name,dtype,count):
-    if name: name = name.encode()
+    if name: newname = name.encode()
+    else: newname = None
     natoms = self.get_natoms()
     with ExceptionCheck(self):
       if dtype == 0:
         data = ((count*natoms)*c_int)()
-        self.lib.lammps_gather_atoms(self.lmp,name,dtype,count,data)
+        self.lib.lammps_gather_atoms(self.lmp,newname,dtype,count,data)
       elif dtype == 1:
         data = ((count*natoms)*c_double)()
-        self.lib.lammps_gather_atoms(self.lmp,name,dtype,count,data)
+        self.lib.lammps_gather_atoms(self.lmp,newname,dtype,count,data)
       else:
         return None
     return data
@@ -1347,28 +1560,30 @@ class lammps(object):
   # -------------------------------------------------------------------------
 
   def gather_atoms_concat(self,name,dtype,count):
-    if name: name = name.encode()
+    if name: newname = name.encode()
+    else: newname = None
     natoms = self.get_natoms()
     with ExceptionCheck(self):
       if dtype == 0:
         data = ((count*natoms)*c_int)()
-        self.lib.lammps_gather_atoms_concat(self.lmp,name,dtype,count,data)
+        self.lib.lammps_gather_atoms_concat(self.lmp,newname,dtype,count,data)
       elif dtype == 1:
         data = ((count*natoms)*c_double)()
-        self.lib.lammps_gather_atoms_concat(self.lmp,name,dtype,count,data)
+        self.lib.lammps_gather_atoms_concat(self.lmp,newname,dtype,count,data)
       else:
           return None
     return data
 
   def gather_atoms_subset(self,name,dtype,count,ndata,ids):
-    if name: name = name.encode()
+    if name: newname = name.encode()
+    else: newname = None
     with ExceptionCheck(self):
       if dtype == 0:
         data = ((count*ndata)*c_int)()
-        self.lib.lammps_gather_atoms_subset(self.lmp,name,dtype,count,ndata,ids,data)
+        self.lib.lammps_gather_atoms_subset(self.lmp,newname,dtype,count,ndata,ids,data)
       elif dtype == 1:
         data = ((count*ndata)*c_double)()
-        self.lib.lammps_gather_atoms_subset(self.lmp,name,dtype,count,ndata,ids,data)
+        self.lib.lammps_gather_atoms_subset(self.lmp,newname,dtype,count,ndata,ids,data)
       else:
         return None
     return data
@@ -1385,16 +1600,18 @@ class lammps(object):
   #   e.g. for Python list or NumPy or ctypes
 
   def scatter_atoms(self,name,dtype,count,data):
-    if name: name = name.encode()
+    if name: newname = name.encode()
+    else: newname = None
     with ExceptionCheck(self):
-      self.lib.lammps_scatter_atoms(self.lmp,name,dtype,count,data)
+      self.lib.lammps_scatter_atoms(self.lmp,newname,dtype,count,data)
 
   # -------------------------------------------------------------------------
 
   def scatter_atoms_subset(self,name,dtype,count,ndata,ids,data):
-    if name: name = name.encode()
+    if name: newname = name.encode()
+    else: newname = None
     with ExceptionCheck(self):
-      self.lib.lammps_scatter_atoms_subset(self.lmp,name,dtype,count,ndata,ids,data)
+      self.lib.lammps_scatter_atoms_subset(self.lmp,newname,dtype,count,ndata,ids,data)
 
 
   # -------------------------------------------------------------------------
@@ -1500,42 +1717,45 @@ class lammps(object):
   # NOTE: need to ensure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
   def gather(self,name,dtype,count):
-    if name: name = name.encode()
+    if name: newname = name.encode()
+    else: newname = None
     natoms = self.get_natoms()
     with ExceptionCheck(self):
       if dtype == 0:
         data = ((count*natoms)*c_int)()
-        self.lib.lammps_gather(self.lmp,name,dtype,count,data)
+        self.lib.lammps_gather(self.lmp,newname,dtype,count,data)
       elif dtype == 1:
         data = ((count*natoms)*c_double)()
-        self.lib.lammps_gather(self.lmp,name,dtype,count,data)
+        self.lib.lammps_gather(self.lmp,newname,dtype,count,data)
       else:
         return None
     return data
 
   def gather_concat(self,name,dtype,count):
-    if name: name = name.encode()
+    if name: newname = name.encode()
+    else: newname = None
     natoms = self.get_natoms()
     with ExceptionCheck(self):
       if dtype == 0:
         data = ((count*natoms)*c_int)()
-        self.lib.lammps_gather_concat(self.lmp,name,dtype,count,data)
+        self.lib.lammps_gather_concat(self.lmp,newname,dtype,count,data)
       elif dtype == 1:
         data = ((count*natoms)*c_double)()
-        self.lib.lammps_gather_concat(self.lmp,name,dtype,count,data)
+        self.lib.lammps_gather_concat(self.lmp,newname,dtype,count,data)
       else:
         return None
     return data
 
   def gather_subset(self,name,dtype,count,ndata,ids):
-    if name: name = name.encode()
+    if name: newname = name.encode()
+    else: newname = None
     with ExceptionCheck(self):
       if dtype == 0:
         data = ((count*ndata)*c_int)()
-        self.lib.lammps_gather_subset(self.lmp,name,dtype,count,ndata,ids,data)
+        self.lib.lammps_gather_subset(self.lmp,newname,dtype,count,ndata,ids,data)
       elif dtype == 1:
         data = ((count*ndata)*c_double)()
-        self.lib.lammps_gather_subset(self.lmp,name,dtype,count,ndata,ids,data)
+        self.lib.lammps_gather_subset(self.lmp,newname,dtype,count,ndata,ids,data)
       else:
         return None
     return data
@@ -1550,14 +1770,16 @@ class lammps(object):
   #   e.g. for Python list or NumPy or ctypes
 
   def scatter(self,name,dtype,count,data):
-    if name: name = name.encode()
+    if name: newname = name.encode()
+    else: newname = None
     with ExceptionCheck(self):
-      self.lib.lammps_scatter(self.lmp,name,dtype,count,data)
+      self.lib.lammps_scatter(self.lmp,newname,dtype,count,data)
 
   def scatter_subset(self,name,dtype,count,ndata,ids,data):
-    if name: name = name.encode()
+    if name: newname = name.encode()
+    else: newname = None
     with ExceptionCheck(self):
-      self.lib.lammps_scatter_subset(self.lmp,name,dtype,count,ndata,ids,data)
+      self.lib.lammps_scatter_subset(self.lmp,newname,dtype,count,ndata,ids,data)
 
    # -------------------------------------------------------------------------
 
@@ -1821,6 +2043,21 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
+  @property
+  def has_curl_support(self):
+    """ Report whether the LAMMPS shared library was compiled with support
+    for downloading files through libcurl.
+
+    This is a wrapper around the :cpp:func:`lammps_config_has_curl_support`
+    function of the library interface.
+
+    :return: state of CURL support
+    :rtype: bool
+    """
+    return self.lib.lammps_config_has_curl_support() != 0
+
+  # -------------------------------------------------------------------------
+
   def has_package(self, name):
     """ Report if the named package has been enabled in the LAMMPS shared library.
 
@@ -1904,7 +2141,7 @@ class lammps(object):
     """ List of the names of enabled packages in the LAMMPS shared library
 
     This is a wrapper around the functions :cpp:func:`lammps_config_package_count`
-    and :cpp:func`lammps_config_package_name` of the library interface.
+    and :cpp:func:`lammps_config_package_name` of the library interface.
 
     :return
     """
@@ -2064,7 +2301,6 @@ class lammps(object):
     :param caller: reference to some object passed to the callback function
     :type: object, optional
     """
-    import numpy as np
 
     def callback_wrapper(caller, ntimestep, nlocal, tag_ptr, x_ptr, fext_ptr):
       tag = self.numpy.iarray(self.c_tagint, tag_ptr, nlocal, 1)
@@ -2310,9 +2546,9 @@ class lammps(object):
     :rtype:  int
 
     """
-    style = style.encode()
+    newstyle = style.encode()
     exact = int(exact)
-    idx = self.lib.lammps_find_pair_neighlist(self.lmp, style, exact, nsub, reqid)
+    idx = self.lib.lammps_find_pair_neighlist(self.lmp, newstyle, exact, nsub, reqid)
     return idx
 
   # -------------------------------------------------------------------------
@@ -2333,8 +2569,8 @@ class lammps(object):
     :rtype:  int
 
     """
-    fixid = fixid.encode()
-    idx = self.lib.lammps_find_fix_neighlist(self.lmp, fixid, reqid)
+    newfixid = fixid.encode()
+    idx = self.lib.lammps_find_fix_neighlist(self.lmp, newfixid, reqid)
     return idx
 
   # -------------------------------------------------------------------------
@@ -2356,6 +2592,10 @@ class lammps(object):
     :rtype:  int
 
     """
-    computeid = computeid.encode()
-    idx = self.lib.lammps_find_compute_neighlist(self.lmp, computeid, reqid)
+    newcomputeid = computeid.encode()
+    idx = self.lib.lammps_find_compute_neighlist(self.lmp, newcomputeid, reqid)
     return idx
+
+# Local Variables:
+# fill-column: 80
+# End:

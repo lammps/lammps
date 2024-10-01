@@ -13,14 +13,15 @@
  ------------------------------------------------------------------------- */
 
 #include "pair_sph_lj.h"
-#include <cmath>
-#include "atom.h"
-#include "force.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "domain.h"
 
+#include "atom.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -28,12 +29,17 @@ using namespace LAMMPS_NS;
 
 PairSPHLJ::PairSPHLJ(LAMMPS *lmp) : Pair(lmp)
 {
+  if ((atom->esph_flag != 1) || (atom->rho_flag != 1) || (atom->cv_flag != 1) || (atom->vest_flag != 1))
+    error->all(FLERR, "Pair sph/lj requires atom attributes energy, density, specific heat, and velocity estimates, e.g. in atom_style sph");
+
   restartinfo = 0;
+  single_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHLJ::~PairSPHLJ() {
+PairSPHLJ::~PairSPHLJ()
+{
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -45,7 +51,8 @@ PairSPHLJ::~PairSPHLJ() {
 
 /* ---------------------------------------------------------------------- */
 
-void PairSPHLJ::compute(int eflag, int vflag) {
+void PairSPHLJ::compute(int eflag, int vflag)
+{
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, fpair;
 
@@ -182,7 +189,8 @@ void PairSPHLJ::compute(int eflag, int vflag) {
  allocate all arrays
  ------------------------------------------------------------------------- */
 
-void PairSPHLJ::allocate() {
+void PairSPHLJ::allocate()
+{
   allocated = 1;
   int n = atom->ntypes;
 
@@ -201,7 +209,8 @@ void PairSPHLJ::allocate() {
  global settings
  ------------------------------------------------------------------------- */
 
-void PairSPHLJ::settings(int narg, char **/*arg*/) {
+void PairSPHLJ::settings(int narg, char **/*arg*/)
+{
   if (narg != 0)
     error->all(FLERR,
         "Illegal number of arguments for pair_style sph/lj");
@@ -211,7 +220,8 @@ void PairSPHLJ::settings(int narg, char **/*arg*/) {
  set coeffs for one or more type pairs
  ------------------------------------------------------------------------- */
 
-void PairSPHLJ::coeff(int narg, char **arg) {
+void PairSPHLJ::coeff(int narg, char **arg)
+{
   if (narg != 4)
     error->all(FLERR,
         "Incorrect args for pair_style sph/lj coefficients");
@@ -229,7 +239,6 @@ void PairSPHLJ::coeff(int narg, char **arg) {
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       viscosity[i][j] = viscosity_one;
-      printf("setting cut[%d][%d] = %f\n", i, j, cut_one);
       cut[i][j] = cut_one;
       setflag[i][j] = 1;
       count++;
@@ -244,8 +253,8 @@ void PairSPHLJ::coeff(int narg, char **arg) {
  init for one type pair i,j and corresponding j,i
  ------------------------------------------------------------------------- */
 
-double PairSPHLJ::init_one(int i, int j) {
-
+double PairSPHLJ::init_one(int i, int j)
+{
   if (setflag[i][j] == 0) {
     error->all(FLERR,"All pair sph/lj coeffs are not set");
   }
@@ -255,16 +264,6 @@ double PairSPHLJ::init_one(int i, int j) {
 
   return cut[i][j];
 }
-
-/* ---------------------------------------------------------------------- */
-
-double PairSPHLJ::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/,
-    double /*rsq*/, double /*factor_coul*/, double /*factor_lj*/, double &fforce) {
-  fforce = 0.0;
-
-  return 0.0;
-}
-
 
 /*double PairSPHLJ::LJEOS2(double rho, double e, double cv) {
 
@@ -293,11 +292,12 @@ double PairSPHLJ::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/,
 /* --------------------------------------------------------------------------------------------- */
 /* Lennard-Jones EOS,
    Francis H. Ree
-   "Analytic representation of thermodynamic data for the Lennard‐Jones fluid",
+   Analytic representation of thermodynamic data for the Lennard-Jones fluid,
    Journal of Chemical Physics 73 pp. 5401-5403 (1980)
 */
 
-void PairSPHLJ::LJEOS2(double rho, double e, double cv, double *p, double *c) {
+void PairSPHLJ::LJEOS2(double rho, double e, double cv, double *p, double *c)
+{
   double T = e/cv;
   double beta = 1.0 / T;
   double beta_sqrt = sqrt(beta);
@@ -331,7 +331,7 @@ void PairSPHLJ::LJEOS2(double rho, double e, double cv, double *p, double *c) {
 
 /* ------------------------------------------------------------------------------ */
 
-/* Jirí Kolafa, Ivo Nezbeda
+/* Jiri Kolafa, Ivo Nezbeda
  * "The Lennard-Jones fluid: an accurate analytic and theoretically-based equation of state",
  *  Fluid Phase Equilibria 100 pp. 1-34 (1994) */
 /*double PairSPHLJ::LJEOS2(double rho, double e, double cv) {

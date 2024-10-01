@@ -44,7 +44,7 @@ class Angle : protected Pointers {
 
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
-  int copymode;
+  int copymode, kokkosable;
 
   Angle(class LAMMPS *);
   ~Angle() override;

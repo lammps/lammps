@@ -56,7 +56,7 @@ TEST_F(ResetAtomsIDTest, MolIDAll)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
-    auto molid = lmp->atom->molecule;
+    auto *molid = lmp->atom->molecule;
     ASSERT_EQ(molid[GETIDX(1)], 1);
     ASSERT_EQ(molid[GETIDX(2)], 1);
     ASSERT_EQ(molid[GETIDX(3)], 1);
@@ -128,7 +128,7 @@ TEST_F(ResetAtomsIDTest, DeletePlusAtomID)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
-    auto molid = lmp->atom->molecule;
+    auto *molid = lmp->atom->molecule;
 
     // delete two water molecules
     BEGIN_HIDE_OUTPUT();
@@ -206,7 +206,7 @@ TEST_F(ResetAtomsIDTest, PartialOffset)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
-    auto molid = lmp->atom->molecule;
+    auto *molid = lmp->atom->molecule;
 
     // delete two water molecules
     BEGIN_HIDE_OUTPUT();
@@ -286,7 +286,7 @@ TEST_F(ResetAtomsIDTest, DeleteAdd)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
-    auto molid = lmp->atom->molecule;
+    auto *molid = lmp->atom->molecule;
 
     // delete two water molecules
     BEGIN_HIDE_OUTPUT();
@@ -445,12 +445,12 @@ TEST_F(ResetAtomsIDTest, TopologyData)
     ASSERT_EQ(lmp->atom->natoms, 23);
     ASSERT_EQ(lmp->atom->map_tag_max, 26);
 
-    auto num_bond    = lmp->atom->num_bond;
-    auto num_angle   = lmp->atom->num_angle;
-    auto bond_atom   = lmp->atom->bond_atom;
-    auto angle_atom1 = lmp->atom->angle_atom1;
-    auto angle_atom2 = lmp->atom->angle_atom2;
-    auto angle_atom3 = lmp->atom->angle_atom3;
+    auto *num_bond    = lmp->atom->num_bond;
+    auto *num_angle   = lmp->atom->num_angle;
+    auto *bond_atom   = lmp->atom->bond_atom;
+    auto *angle_atom1 = lmp->atom->angle_atom1;
+    auto *angle_atom2 = lmp->atom->angle_atom2;
+    auto *angle_atom3 = lmp->atom->angle_atom3;
     ASSERT_EQ(num_bond[GETIDX(1)], 2);
     ASSERT_EQ(bond_atom[GETIDX(1)][0], 2);
     ASSERT_EQ(bond_atom[GETIDX(1)][1], 3);

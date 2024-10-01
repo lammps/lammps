@@ -12,8 +12,8 @@ programming style choices in LAMMPS is :doc:`given elsewhere
 <Developer_code_design>`.
 
 Most of the new features described on the :doc:`Modify <Modify>` doc
-page require you to write a new C++ derived class (except for
-exceptions described below, where you can make small edits to existing
+page require you to write a new C++ derived class (excluding exceptions
+described below, this can often be done by making small edits to existing
 files).  Creating a new class requires 2 files, a source code file
 (\*.cpp) and a header file (\*.h).  The derived class must provide
 certain methods to work as a new option.  Depending on how different
@@ -46,7 +46,7 @@ then your ``pair_foo.h`` file should be structured as follows:
    // clang-format off
    PairStyle(foo,PairFoo);
    #else
-   // clanf-format on
+   // clang-format on
    ...
    (class definition for PairFoo)
    ...

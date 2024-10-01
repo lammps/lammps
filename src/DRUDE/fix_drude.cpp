@@ -82,7 +82,7 @@ FixDrude::~FixDrude()
 
 void FixDrude::init()
 {
-  if (modify->get_fix_by_style("drude").size() > 1) error->all(FLERR,"More than one fix drude");
+  if (modify->get_fix_by_style("^drude$").size() > 1) error->all(FLERR,"More than one fix drude");
 
   if (!rebuildflag) rebuild_special();
 }

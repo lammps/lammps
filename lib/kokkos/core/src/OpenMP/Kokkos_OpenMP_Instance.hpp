@@ -41,23 +41,11 @@
 #include <vector>
 
 /*--------------------------------------------------------------------------*/
-namespace Kokkos {
-namespace Impl {
-
-inline bool execute_in_serial(OpenMP const& space = OpenMP()) {
-  return (OpenMP::in_parallel(space) &&
-          !(omp_get_nested() && (omp_get_level() == 1)));
-}
-
-}  // namespace Impl
-}  // namespace Kokkos
 
 namespace Kokkos {
 namespace Impl {
 
 class OpenMPInternal;
-
-inline int g_openmp_hardware_max_threads = 1;
 
 struct OpenMPTraits {
   static constexpr int MAX_THREAD_COUNT = 512;
@@ -66,7 +54,13 @@ struct OpenMPTraits {
 class OpenMPInternal {
  private:
   OpenMPInternal(int arg_pool_size)
-      : m_pool_size{arg_pool_size}, m_level{omp_get_level()}, m_pool() {}
+      : m_pool_size{arg_pool_size}, m_level{omp_get_level()}, m_pool() {
+    // guard pushing to all_instances
+    {
+      std::scoped_lock lock(all_instances_mutex);
+      all_instances.push_back(this);
+    }
+  }
 
   ~OpenMPInternal() { clear_thread_data(); }
 
@@ -76,7 +70,6 @@ class OpenMPInternal {
 
   int m_pool_size;
   int m_level;
-  int m_pool_mutex = 0;
 
   HostThreadTeamData* m_pool[OpenMPTraits::MAX_THREAD_COUNT];
 
@@ -91,18 +84,9 @@ class OpenMPInternal {
 
   void clear_thread_data();
 
+  static int max_hardware_threads() noexcept;
+
   int thread_pool_size() const { return m_pool_size; }
-
-  // Acquire lock used to protect access to m_pool
-  void acquire_lock();
-
-  // Release lock used to protect access to m_pool
-  void release_lock();
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-  static void validate_partition_impl(const int nthreads, int& num_partitions,
-                                      int& partition_size);
-#endif
 
   void resize_thread_data(size_t pool_reduce_bytes, size_t team_reduce_bytes,
                           size_t team_shared_bytes, size_t thread_local_bytes);
@@ -115,39 +99,34 @@ class OpenMPInternal {
     return m_pool[i];
   }
 
+  int get_level() const { return m_level; }
+
   bool is_initialized() const { return m_initialized; }
 
   bool verify_is_initialized(const char* const label) const;
 
   void print_configuration(std::ostream& s) const;
+
+  std::mutex m_instance_mutex;
+
+  static std::vector<OpenMPInternal*> all_instances;
+  static std::mutex all_instances_mutex;
 };
+
+inline bool execute_in_serial(OpenMP const& space = OpenMP()) {
+// The default value returned by `omp_get_max_active_levels` with gcc version
+// lower than 11.1.0 is 2147483647 instead of 1.
+#if (!defined(KOKKOS_COMPILER_GNU) || KOKKOS_COMPILER_GNU >= 1110) && \
+    _OPENMP >= 201511
+  bool is_nested = omp_get_max_active_levels() > 1;
+#else
+  bool is_nested = static_cast<bool>(omp_get_nested());
+#endif
+  return (space.impl_internal_space_instance()->get_level() < omp_get_level() &&
+          !(is_nested && (omp_get_level() == 1)));
+}
 
 }  // namespace Impl
-
-namespace Experimental {
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-template <>
-class MasterLock<OpenMP> {
- public:
-  void lock() { omp_set_lock(&m_lock); }
-  void unlock() { omp_unset_lock(&m_lock); }
-  bool try_lock() { return static_cast<bool>(omp_test_lock(&m_lock)); }
-
-  KOKKOS_DEPRECATED MasterLock() { omp_init_lock(&m_lock); }
-  ~MasterLock() { omp_destroy_lock(&m_lock); }
-
-  MasterLock(MasterLock const&) = delete;
-  MasterLock(MasterLock&&)      = delete;
-  MasterLock& operator=(MasterLock const&) = delete;
-  MasterLock& operator=(MasterLock&&) = delete;
-
- private:
-  omp_lock_t m_lock;
-};
-#endif
-
-}  // namespace Experimental
 
 namespace Experimental {
 namespace Impl {
@@ -182,7 +161,7 @@ inline std::vector<OpenMP> create_OpenMP_instances(
         "Kokkos::abort: Partition not enough resources left to create the last "
         "instance.");
   }
-  instances[weights.size() - 1] = resources_left;
+  instances[weights.size() - 1] = OpenMP(resources_left);
 
   return instances;
 }
@@ -202,48 +181,6 @@ std::vector<OpenMP> partition_space(OpenMP const& main_instance,
   return Impl::create_OpenMP_instances(main_instance, weights);
 }
 }  // namespace Experimental
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-template <typename F>
-KOKKOS_DEPRECATED void OpenMP::partition_master(F const& f, int num_partitions,
-                                                int partition_size) {
-#if _OPENMP >= 201511
-  if (omp_get_max_active_levels() > 1) {
-#else
-  if (omp_get_nested()) {
-#endif
-    using Exec = Impl::OpenMPInternal;
-
-    Exec* prev_instance = &Impl::OpenMPInternal::singleton();
-
-    Exec::validate_partition_impl(prev_instance->m_pool_size, num_partitions,
-                                  partition_size);
-
-#pragma omp parallel num_threads(num_partitions)
-    {
-      Exec thread_local_instance(partition_size);
-      Impl::t_openmp_instance = &thread_local_instance;
-
-      size_t pool_reduce_bytes  = 32 * partition_size;
-      size_t team_reduce_bytes  = 32 * partition_size;
-      size_t team_shared_bytes  = 1024 * partition_size;
-      size_t thread_local_bytes = 1024;
-
-      thread_local_instance.resize_thread_data(
-          pool_reduce_bytes, team_reduce_bytes, team_shared_bytes,
-          thread_local_bytes);
-
-      omp_set_num_threads(partition_size);
-      f(omp_get_thread_num(), omp_get_num_threads());
-      Impl::t_openmp_instance = nullptr;
-    }
-  } else {
-    // nested openmp not enabled
-    f(0, 1);
-  }
-}
-#endif
-
 }  // namespace Kokkos
 
 #endif

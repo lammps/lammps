@@ -114,6 +114,7 @@ Syntax
            proc = ID of processor that owns atom
            procp1 = ID+1 of processor that owns atom
            type = atom type
+           typelabel = atom :doc:`type label <Howto_type_labels>`
            element = name of atom element, as defined by :doc:`dump_modify <dump_modify>` command
            mass = atom mass
            x,y,z = unscaled atom coordinates
@@ -275,16 +276,20 @@ format <dump_modify>` command and its options.
 Format of native LAMMPS format dump files:
 
 The *atom*, *custom*, *grid*, and *local* styles create files in a
-simple LAMMPS-specific text format that is self-explanatory when
-viewing a dump file.  Many post-processing tools either included with
-LAMMPS or third-party tools can read this format, as does the
+simple LAMMPS-specific text format that is mostly self-explanatory
+when viewing a dump file.  Many post-processing tools either included
+with LAMMPS or third-party tools can read this format, as does the
 :doc:`rerun <rerun>` command.  See tools described on the :doc:`Tools
 <Tools>` doc page for examples, including `Pizza.py
 <https://lammps.github.io/pizza>`_.
 
 For all these styles, the dimensions of the simulation box are
-included in each snapshot.  For an orthogonal simulation box this
-information is formatted as:
+included in each snapshot.  The simulation box in LAMMPS can be
+defined in one of 3 ways: orthogonal, restricted triclinic, and
+general triclinic.  See the :doc:`Howto triclinic <Howto_triclinic>`
+doc page for a detailed description of all 3 options.
+
+For an orthogonal simulation box the box information is formatted as:
 
 .. parsed-literal::
 
@@ -301,10 +306,10 @@ the six characters is one of *p* (periodic), *f* (fixed), *s* (shrink wrap),
 or *m* (shrink wrapped with a minimum value).  See the
 :doc:`boundary <boundary>` command for details.
 
-For triclinic simulation boxes (non-orthogonal), an orthogonal
-bounding box which encloses the triclinic simulation box is output,
-along with the three tilt factors (*xy*, *xz*, *yz*) of the triclinic box,
-formatted as follows:
+For a restricted triclinic simulation box, an orthogonal bounding box
+which encloses the restricted triclinic simulation box is output,
+along with the three tilt factors (*xy*, *xz*, *yz*) of the triclinic
+box, formatted as follows:
 
 .. parsed-literal::
 
@@ -325,6 +330,10 @@ triclinic boxes, as defined by LAMMPS, simple formulas for how the six
 bounding box extents (xlo_bound, xhi_bound, etc.) are calculated from the
 triclinic parameters, and how to transform those parameters to and
 from other commonly used triclinic representations.
+
+For a general triclinic simulation box, see the "General triclinic"
+section below for a description of the ITEM: BOX BOUNDS format as well
+as how per-atom coordinates and per-atom vector quantities are output.
 
 The *atom* and *custom* styles output a "ITEM: NUMBER OF ATOMS" line
 with the count of atoms in the snapshot.  Likewise they output an
@@ -397,7 +406,6 @@ command.
 
 Dump files in other popular formats:
 
-
 .. note::
 
    This section only discusses file formats relevant to this doc page.
@@ -463,8 +471,9 @@ followed by one line per atom with the atom type and the :math:`x`-,
 :math:`y`-, and :math:`z`-coordinate of that atom.  You can use the
 :doc:`dump_modify element <dump_modify>` option to change the output
 from using the (numerical) atom type to an element name (or some other
-label). This will help many visualization programs to guess bonds and
-colors.
+label). This option will help many visualization programs to guess bonds
+and colors. You can use the :doc:`dump_modify types labels <dump_modify>`
+option to replace numeric atom types with :doc:`type labels <Howto_type_labels>`.
 
 .. versionadded:: 22Dec2022
 
@@ -653,6 +662,87 @@ how to control the compression level in both variants.
 
 ----------
 
+General triclinic simulation box output for the *atom* and *custom* styles:
+
+As mentioned above, the simulation box can be defined as a general
+triclinic box, which means that 3 arbitrary box edge vectors **A**,
+**B**, **C** can be specified.  See the :doc:`Howto triclinic
+<Howto_triclinic>` doc page for a detailed description of general
+triclinic boxes.
+
+This option is provided as a convenience for users who may be
+converting data from solid-state crystallographic representations or
+from DFT codes for input to LAMMPS.  However, as explained on the
+:doc:`Howto_triclinic <Howto_triclinic>` doc page, internally, LAMMPS
+only uses restricted triclinic simulation boxes.  This means the box
+and per-atom information (e.g. coordinates, velocities) LAMMPS stores
+are converted (rotated) from general to restricted triclinic form when
+the system is created.
+
+For dump output, if the :doc:`dump_modify triclinic/general
+<dump_modify>` command is used, the box description and per-atom
+coordinates and other per-atom vectors will be converted (rotated)
+from restricted to general form when each dump file snapshots is
+output.  This option can only be used if the simulation box was
+initially created as general triclinic.  If the option is not used,
+and the simulation box is general triclinic, then the dump file
+snapshots will reflect the internal restricted triclinic geometry.
+
+The dump_modify triclinic/general option affects 3 aspects of the dump
+file output.
+
+First, the format for the BOX BOUNDS is as follows
+
+.. parsed-literal::
+
+   ITEM: BOX BOUNDS abc origin
+   ax ay az originx
+   bx by bz originy
+   cx cy cz originz
+
+where the **A** edge vector of the box is (ax,ay,az) and similarly
+for **B** and **C**.  The origin of all 3 edge vectors is (originx,
+originy, originz).
+
+Second, the coordinates of each atom are converted (rotated) so that
+the atom is inside (or near) the general triclinic box defined by the
+**A**, **B**, **C** edge vectors.  For style *atom*, this only alters
+output for unscaled atom coords, via the :doc:`dump_modify scaled no
+<dump_modify>` setting. For style *custom*, this alters output for
+either unscaled or unwrapped output of atom coords, via the *x,y,z* or
+*xu,yu,zu* attributes.  For output of scaled atom coords by both
+styles, there is no difference between restricted and general
+triclinic values.
+
+Third, the output for any attribute of the *custom* style which
+represents a per-atom vector quantity will be converted (rotated) to
+be oriented consistent with the general triclinic box and its
+orientation relative to the standard xyz coordinate axes.
+
+This applies to the following *custom* style attributes:
+
+* vx,vy,vz = atom velocities
+* fx,fy,fz = forces on atoms
+* mux,muy,muz = orientation of dipole moment of atom
+* omegax,omegay,omegaz = angular velocity of spherical particle
+* angmomx,angmomy,angmomz = angular momentum of aspherical particle
+* tqx,tqy,tqz = torque on finite-size particles
+
+For example, if the velocity of an atom in a restricted triclinic box
+is along the x-axis, then it will be output for a general triclinic
+box as a vector along the **A** edge vector of the box.
+
+.. note::
+
+   For style *custom*, the :doc:`dump_modify thresh <dump_modify>`
+   command may access per-atom attributes either directly or
+   indirectly through a compute or variable.  If the attribute is an
+   atom coordinate or one of the vectors mentioned above, its value
+   will *NOT* be a general triclinic (rotated) value.  Rather it will
+   be a restricted triclinic value.
+
+----------
+
 Arguments for different styles:
 
 The sections below describe per-atom, local, and per grid cell
@@ -686,21 +776,21 @@ command creates a per-atom array with six columns:
 
 Per-atom attributes used as arguments to the *custom* and *cfg* styles:
 
-The *id*, *mol*, *proc*, *procp1*, *type*, *element*, *mass*, *vx*,
-*vy*, *vz*, *fx*, *fy*, *fz*, *q* attributes are self-explanatory.
+The *id*, *mol*, *proc*, *procp1*, *type*, *typelabel*, *element*, *mass*,
+*vx*, *vy*, *vz*, *fx*, *fy*, *fz*, *q* attributes are self-explanatory.
 
-*Id* is the atom ID.  *Mol* is the molecule ID, included in the data
-file for molecular systems.  *Proc* is the ID of the processor (0 to
+*Id* is the atom ID.  *Mol* is the molecule ID, included in the data file
+for molecular systems.  *Proc* is the ID of the processor (0 to
 :math:`N_\text{procs}-1`) that currently owns the atom.  *Procp1* is the
 proc ID+1, which can be convenient in place of a *type* attribute (1 to
 :math:`N_\text{types}`) for coloring atoms in a visualization program.
-*Type* is the atom type (1 to :math:`N_\text{types}`).  *Element* is
-typically the chemical name of an element, which you must assign to each
-type via the :doc:`dump_modify element <dump_modify>` command.  More
-generally, it can be any string you wish to associated with an atom
-type.  *Mass* is the atom mass. The quantities *vx*, *vy*, *vz*, *fx*,
-*fy*, *fz*, and *q* are components of atom velocity and force and atomic
-charge.
+*Type* is the atom type (1 to :math:`N_\text{types}`).  *Typelabel* is the
+atom :doc:`type label <Howto_type_labels>`.  *Element* is typically the
+chemical name of an element, which you must assign to each type via the
+:doc:`dump_modify element <dump_modify>` command.  More generally, it can
+be any string you wish to associated with an atom type.  *Mass* is the atom
+mass.  The quantities *vx*, *vy*, *vz*, *fx*, *fy*, *fz*, and *q* are
+components of atom velocity and force and atomic charge.
 
 There are several options for outputting atom coordinates.  The *x*,
 *y*, and *z* attributes write atom coordinates "unscaled", in the

@@ -211,6 +211,9 @@ Argument processing
 .. doxygenfunction:: bounds
    :project: progguide
 
+.. doxygenfunction:: bounds_typelabel
+   :project: progguide
+
 .. doxygenfunction:: expand_args
    :project: progguide
 
@@ -619,7 +622,7 @@ classes:
    of a dense, symmetric, real matrix.
 
 #. The "PEigenDense" class only calculates the principal eigenvalue
-   (ie. the largest or smallest eigenvalue), and its corresponding
+   (i.e. the largest or smallest eigenvalue), and its corresponding
    eigenvector.  However it is much more efficient than "Jacobi" when
    applied to large matrices (larger than 13x13).  PEigenDense also can
    understand complex-valued Hermitian matrices.
@@ -635,10 +638,10 @@ Tohoku University (under MIT license)
 
 ----------
 
-.. doxygenfunction:: MathEigen::jacobi3(double const *const *mat, double *eval, double **evec)
+.. doxygenfunction:: MathEigen::jacobi3(double const *const *mat, double *eval, double **evec, int sort)
    :project: progguide
 
-.. doxygenfunction:: MathEigen::jacobi3(double const mat[3][3], double *eval, double evec[3][3])
+.. doxygenfunction:: MathEigen::jacobi3(double const mat[3][3], double *eval, double evec[3][3], int sort)
    :project: progguide
 
 ---------------------------

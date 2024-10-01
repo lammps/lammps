@@ -120,7 +120,7 @@ void PairLJCutTIP4PCutOMP::eval(int iifrom, int iito, ThrData * const thr)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
   double r,rsq,r2inv,r6inv,forcecoul,forcelj,cforce;
   double factor_coul,factor_lj;
-  double v[6];
+  double v[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   double fdx,fdy,fdz,fOx,fOy,fOz,fHx,fHy,fHz;
   dbl3_t x1,x2,xH1,xH2;
 

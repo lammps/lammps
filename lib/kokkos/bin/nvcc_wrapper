@@ -229,11 +229,11 @@ do
     fi
     ;;
   #Handle known nvcc args
-  --dryrun|--verbose|--keep|--source-in-ptx|-src-in-ptx|--keep-dir*|-G|-lineinfo|-extended-lambda|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|--fmad=*|--use_fast_math|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
+  --dryrun|-dryrun|--verbose|--keep|-keep|--source-in-ptx|-src-in-ptx|--keep-dir*|-keep-dir*|-G|-lineinfo|--generate-line-info|-extended-lambda|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|-res-usage|--fmad=*|-fmad=*|--use_fast_math|-use_fast_math|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
     cuda_args="$cuda_args $1"
     ;;
   #Handle more known nvcc args
-  --extended-lambda|--expt-extended-lambda|--expt-relaxed-constexpr|--Wno-deprecated-gpu-targets|-Wno-deprecated-gpu-targets|-allow-unsupported-compiler|--allow-unsupported-compiler)
+  --extended-lambda|--expt-extended-lambda|--expt-relaxed-constexpr|--Wno-deprecated-gpu-targets|-Wno-deprecated-gpu-targets|-allow-unsupported-compiler|--allow-unsupported-compiler|--disable-warnings)
     cuda_args="$cuda_args $1"
     ;;
   #Handle known nvcc args that have an argument

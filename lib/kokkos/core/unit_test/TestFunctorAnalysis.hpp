@@ -59,16 +59,15 @@ void test_functor_analysis() {
 
   using R01 = typename A01::Reducer;
 
-  static_assert(std::is_void<typename A01::value_type>::value, "");
-  static_assert(std::is_void<typename A01::pointer_type>::value, "");
-  static_assert(std::is_void<typename A01::reference_type>::value, "");
-  static_assert(std::is_same<typename R01::functor_type, decltype(c01)>::value,
-                "");
+  static_assert(std::is_void<typename A01::value_type>::value);
+  static_assert(std::is_void<typename A01::pointer_type>::value);
+  static_assert(std::is_void<typename A01::reference_type>::value);
+  static_assert(std::is_same<typename R01::functor_type, decltype(c01)>::value);
 
-  static_assert(!A01::has_join_member_function, "");
-  static_assert(!A01::has_init_member_function, "");
-  static_assert(!A01::has_final_member_function, "");
-  static_assert(A01::StaticValueSize == 0, "");
+  static_assert(!A01::has_join_member_function);
+  static_assert(!A01::has_init_member_function);
+  static_assert(!A01::has_final_member_function);
+  static_assert(A01::StaticValueSize == 0);
   ASSERT_EQ(R01(c01).length(), 0);
 
   //------------------------------
@@ -78,16 +77,15 @@ void test_functor_analysis() {
       Kokkos::RangePolicy<ExecSpace>, decltype(c02), void>;
   using R02 = typename A02::Reducer;
 
-  static_assert(std::is_same<typename A02::value_type, double>::value, "");
-  static_assert(std::is_same<typename A02::pointer_type, double*>::value, "");
-  static_assert(std::is_same<typename A02::reference_type, double&>::value, "");
-  static_assert(std::is_same<typename R02::functor_type, decltype(c02)>::value,
-                "");
+  static_assert(std::is_same<typename A02::value_type, double>::value);
+  static_assert(std::is_same<typename A02::pointer_type, double*>::value);
+  static_assert(std::is_same<typename A02::reference_type, double&>::value);
+  static_assert(std::is_same<typename R02::functor_type, decltype(c02)>::value);
 
-  static_assert(!A02::has_join_member_function, "");
-  static_assert(!A02::has_init_member_function, "");
-  static_assert(!A02::has_final_member_function, "");
-  static_assert(A02::StaticValueSize == sizeof(double), "");
+  static_assert(!A02::has_join_member_function);
+  static_assert(!A02::has_init_member_function);
+  static_assert(!A02::has_final_member_function);
+  static_assert(A02::StaticValueSize == sizeof(double));
   ASSERT_EQ(R02(c02).length(), 1);
 
   //------------------------------
@@ -99,23 +97,19 @@ void test_functor_analysis() {
   using R03 = typename A03::Reducer;
 
   static_assert(std::is_same<typename A03::value_type,
-                             TestFunctorAnalysis_03::value_type>::value,
-                "");
+                             TestFunctorAnalysis_03::value_type>::value);
   static_assert(std::is_same<typename A03::pointer_type,
-                             TestFunctorAnalysis_03::value_type*>::value,
-                "");
+                             TestFunctorAnalysis_03::value_type*>::value);
   static_assert(std::is_same<typename A03::reference_type,
-                             TestFunctorAnalysis_03::value_type&>::value,
-                "");
+                             TestFunctorAnalysis_03::value_type&>::value);
   static_assert(
-      std::is_same<typename R03::functor_type, TestFunctorAnalysis_03>::value,
-      "");
+      std::is_same<typename R03::functor_type, TestFunctorAnalysis_03>::value);
 
-  static_assert(A03::has_join_member_function, "");
-  static_assert(A03::has_init_member_function, "");
-  static_assert(!A03::has_final_member_function, "");
-  static_assert(
-      A03::StaticValueSize == sizeof(TestFunctorAnalysis_03::value_type), "");
+  static_assert(A03::has_join_member_function);
+  static_assert(A03::has_init_member_function);
+  static_assert(!A03::has_final_member_function);
+  static_assert(A03::StaticValueSize ==
+                sizeof(TestFunctorAnalysis_03::value_type));
   ASSERT_EQ(R03(c03).length(), 1);
 
   //------------------------------

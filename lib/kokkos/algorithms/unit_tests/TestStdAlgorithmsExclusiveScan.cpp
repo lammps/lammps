@@ -16,6 +16,7 @@
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <utility>
+#include <iomanip>
 
 namespace Test {
 namespace stdalgos {
@@ -132,47 +133,6 @@ void my_host_exclusive_scan(it1 first, it1 last, it2 dest, ValType init,
   }
 }
 
-template <class ViewType1, class ViewType2, class ValueType, class BinaryOp>
-void verify_data(ViewType1 data_view,  // contains data
-                 ViewType2 test_view,  // the view to test
-                 ValueType init_value, BinaryOp bop) {
-  //! always careful because views might not be deep copyable
-
-  auto data_view_dc = create_deep_copyable_compatible_clone(data_view);
-  auto data_view_h =
-      create_mirror_view_and_copy(Kokkos::HostSpace(), data_view_dc);
-
-  using gold_view_value_type = typename ViewType2::value_type;
-  Kokkos::View<gold_view_value_type*, Kokkos::HostSpace> gold_h(
-      "goldh", data_view.extent(0));
-  my_host_exclusive_scan(KE::cbegin(data_view_h), KE::cend(data_view_h),
-                         KE::begin(gold_h), init_value, bop);
-
-  auto test_view_dc = create_deep_copyable_compatible_clone(test_view);
-  auto test_view_h =
-      create_mirror_view_and_copy(Kokkos::HostSpace(), test_view_dc);
-  if (test_view_h.extent(0) > 0) {
-    for (std::size_t i = 0; i < test_view_h.extent(0); ++i) {
-      // std::cout << i << " " << std::setprecision(15) << data_view_h(i) << " "
-      //           << gold_h(i) << " " << test_view_h(i) << " "
-      //           << std::abs(gold_h(i) - test_view_h(i)) << std::endl;
-      if (std::is_same<gold_view_value_type, int>::value) {
-        ASSERT_EQ(gold_h(i), test_view_h(i));
-      } else {
-        const auto error =
-            std::abs(static_cast<double>(gold_h(i) - test_view_h(i)));
-        if (error > 1e-10) {
-          std::cout << i << " " << std::setprecision(15) << data_view_h(i)
-                    << " " << gold_h(i) << " " << test_view_h(i) << " "
-                    << std::abs(static_cast<double>(gold_h(i) - test_view_h(i)))
-                    << std::endl;
-        }
-        EXPECT_LT(error, 1e-10);
-      }
-    }
-  }
-}
-
 template <class ValueType>
 struct MultiplyFunctor {
   KOKKOS_INLINE_FUNCTION
@@ -189,107 +149,153 @@ struct SumFunctor {
   }
 };
 
+struct VerifyData {
+  template <class ViewType1, class ViewType2, class ValueType, class BinaryOp>
+  void operator()(ViewType1 data_view,  // contains data
+                  ViewType2 test_view,  // the view to test
+                  ValueType init_value, BinaryOp bop) {
+    //! always careful because views might not be deep copyable
+
+    auto data_view_dc = create_deep_copyable_compatible_clone(data_view);
+    auto data_view_h =
+        create_mirror_view_and_copy(Kokkos::HostSpace(), data_view_dc);
+
+    using gold_view_value_type = typename ViewType2::value_type;
+    Kokkos::View<gold_view_value_type*, Kokkos::HostSpace> gold_h(
+        "goldh", data_view.extent(0));
+    my_host_exclusive_scan(KE::cbegin(data_view_h), KE::cend(data_view_h),
+                           KE::begin(gold_h), init_value, bop);
+
+    auto test_view_dc = create_deep_copyable_compatible_clone(test_view);
+    auto test_view_h =
+        create_mirror_view_and_copy(Kokkos::HostSpace(), test_view_dc);
+    if (test_view_h.extent(0) > 0) {
+      for (std::size_t i = 0; i < test_view_h.extent(0); ++i) {
+        if (std::is_same<gold_view_value_type, int>::value) {
+          ASSERT_EQ(gold_h(i), test_view_h(i));
+        } else {
+          const auto error =
+              std::abs(static_cast<double>(gold_h(i) - test_view_h(i)));
+          ASSERT_LT(error, 1e-10) << i << " " << std::setprecision(15) << error
+                                  << static_cast<double>(test_view_h(i)) << " "
+                                  << static_cast<double>(gold_h(i));
+        }
+      }
+    }
+  }
+
+  template <class ViewType1, class ViewType2, class ValueType>
+  void operator()(ViewType1 data_view,  // contains data
+                  ViewType2 test_view,  // the view to test
+                  ValueType init_value) {
+    (*this)(data_view, test_view, init_value, SumFunctor<ValueType>());
+  }
+};
+
 std::string value_type_to_string(int) { return "int"; }
 
 std::string value_type_to_string(double) { return "double"; }
 
-template <class Tag, class ValueType, class InfoType>
-void run_single_scenario_default_op(const InfoType& scenario_info,
-                                    ValueType init_value) {
-  using default_op           = SumFunctor<ValueType>;
+template <class Tag, class ValueType, class InfoType, class... OpOrEmpty>
+void run_single_scenario(const InfoType& scenario_info, ValueType init_value,
+                         OpOrEmpty... empty_or_op) {
   const auto name            = std::get<0>(scenario_info);
   const std::size_t view_ext = std::get<1>(scenario_info);
-  // std::cout << "exclusive_scan default op: " << name << ", "
-  //           << view_tag_to_string(Tag{}) << ", "
-  //           << value_type_to_string(ValueType()) << ", "
-  //           << "init = " << init_value << std::endl;
 
   auto view_dest = create_view<ValueType>(Tag{}, view_ext, "exclusive_scan");
   auto view_from = create_view<ValueType>(Tag{}, view_ext, "exclusive_scan");
   fill_view(view_from, name);
+  // view_dest is filled with zeros before calling the algorithm everytime to
+  // ensure the algorithm does something meaningful
 
   {
     fill_zero(view_dest);
     auto r = KE::exclusive_scan(exespace(), KE::cbegin(view_from),
                                 KE::cend(view_from), KE::begin(view_dest),
-                                init_value);
+                                init_value, empty_or_op...);
     ASSERT_EQ(r, KE::end(view_dest));
-    verify_data(view_from, view_dest, init_value, default_op());
+    VerifyData()(view_from, view_dest, init_value, empty_or_op...);
   }
 
   {
     fill_zero(view_dest);
     auto r = KE::exclusive_scan("label", exespace(), KE::cbegin(view_from),
                                 KE::cend(view_from), KE::begin(view_dest),
-                                init_value);
+                                init_value, empty_or_op...);
     ASSERT_EQ(r, KE::end(view_dest));
-    verify_data(view_from, view_dest, init_value, default_op());
+    VerifyData()(view_from, view_dest, init_value, empty_or_op...);
   }
 
   {
     fill_zero(view_dest);
-    auto r = KE::exclusive_scan(exespace(), view_from, view_dest, init_value);
+    auto r = KE::exclusive_scan(exespace(), view_from, view_dest, init_value,
+                                empty_or_op...);
     ASSERT_EQ(r, KE::end(view_dest));
-    verify_data(view_from, view_dest, init_value, default_op());
+    VerifyData()(view_from, view_dest, init_value, empty_or_op...);
   }
 
   {
     fill_zero(view_dest);
     auto r = KE::exclusive_scan("label", exespace(), view_from, view_dest,
-                                init_value);
+                                init_value, empty_or_op...);
     ASSERT_EQ(r, KE::end(view_dest));
-    verify_data(view_from, view_dest, init_value, default_op());
+    VerifyData()(view_from, view_dest, init_value, empty_or_op...);
   }
 
   Kokkos::fence();
 }
 
-template <class Tag, class ValueType, class InfoType, class BinaryOp>
-void run_single_scenario_custom_op(const InfoType& scenario_info,
-                                   ValueType init_value, BinaryOp bop) {
+template <class Tag, class ValueType, class InfoType, class... OpOrEmpty>
+void run_single_scenario_inplace(const InfoType& scenario_info,
+                                 ValueType init_value,
+                                 OpOrEmpty... empty_or_op) {
   const auto name            = std::get<0>(scenario_info);
   const std::size_t view_ext = std::get<1>(scenario_info);
-  // std::cout << "exclusive_scan custom op: " << name << ", "
-  //           << view_tag_to_string(Tag{}) << ", "
-  //           << value_type_to_string(ValueType()) << ", "
-  //           << "init = " << init_value << std::endl;
 
-  auto view_dest = create_view<ValueType>(Tag{}, view_ext, "exclusive_scan");
-  auto view_from = create_view<ValueType>(Tag{}, view_ext, "exclusive_scan");
-  fill_view(view_from, name);
+  // since here we call the in-place operation, we need to use two views:
+  // view1: filled according to what the scenario asks for and is not modified
+  // view2: filled according to what the scenario asks for and used for the
+  // in-place op Therefore, after the op is done, view2 should contain the
+  // result of doing exclusive scan NOTE: view2 is filled below every time
+  // because the algorithm acts in place
 
+  auto view1 =
+      create_view<ValueType>(Tag{}, view_ext, "exclusive_scan_inplace_view1");
+  fill_view(view1, name);
+
+  auto view2 =
+      create_view<ValueType>(Tag{}, view_ext, "exclusive_scan_inplace_view2");
   {
-    fill_zero(view_dest);
-    auto r = KE::exclusive_scan(exespace(), KE::cbegin(view_from),
-                                KE::cend(view_from), KE::begin(view_dest),
-                                init_value, bop);
-    ASSERT_EQ(r, KE::end(view_dest));
-    verify_data(view_from, view_dest, init_value, bop);
+    fill_view(view2, name);
+    auto r = KE::exclusive_scan(exespace(), KE::cbegin(view2), KE::cend(view2),
+                                KE::begin(view2), init_value, empty_or_op...);
+    ASSERT_EQ(r, KE::end(view2));
+    VerifyData()(view1, view2, init_value, empty_or_op...);
   }
 
   {
-    fill_zero(view_dest);
-    auto r = KE::exclusive_scan("label", exespace(), KE::cbegin(view_from),
-                                KE::cend(view_from), KE::begin(view_dest),
-                                init_value, bop);
-    ASSERT_EQ(r, KE::end(view_dest));
-    verify_data(view_from, view_dest, init_value, bop);
+    fill_view(view2, name);
+    auto r = KE::exclusive_scan("label", exespace(), KE::cbegin(view2),
+                                KE::cend(view2), KE::begin(view2), init_value,
+                                empty_or_op...);
+    ASSERT_EQ(r, KE::end(view2));
+    VerifyData()(view1, view2, init_value, empty_or_op...);
   }
 
   {
-    fill_zero(view_dest);
-    auto r =
-        KE::exclusive_scan(exespace(), view_from, view_dest, init_value, bop);
-    ASSERT_EQ(r, KE::end(view_dest));
-    verify_data(view_from, view_dest, init_value, bop);
+    fill_view(view2, name);
+    auto r = KE::exclusive_scan(exespace(), view2, view2, init_value,
+                                empty_or_op...);
+    ASSERT_EQ(r, KE::end(view2));
+    VerifyData()(view1, view2, init_value, empty_or_op...);
   }
 
   {
-    fill_zero(view_dest);
-    auto r = KE::exclusive_scan("label", exespace(), view_from, view_dest,
-                                init_value, bop);
-    ASSERT_EQ(r, KE::end(view_dest));
-    verify_data(view_from, view_dest, init_value, bop);
+    fill_view(view2, name);
+    auto r = KE::exclusive_scan("label", exespace(), view2, view2, init_value,
+                                empty_or_op...);
+    ASSERT_EQ(r, KE::end(view2));
+    VerifyData()(view1, view2, init_value, empty_or_op...);
   }
 
   Kokkos::fence();
@@ -303,34 +309,39 @@ void run_exclusive_scan_all_scenarios() {
       {"medium", 1103},      {"large", 10513}};
 
   for (const auto& it : scenarios) {
-    run_single_scenario_default_op<Tag, ValueType>(it, ValueType{0});
-    run_single_scenario_default_op<Tag, ValueType>(it, ValueType{1});
-    run_single_scenario_default_op<Tag, ValueType>(it, ValueType{-2});
-    run_single_scenario_default_op<Tag, ValueType>(it, ValueType{3});
+    run_single_scenario<Tag, ValueType>(it, ValueType{0});
+    run_single_scenario<Tag, ValueType>(it, ValueType{1});
+    run_single_scenario<Tag, ValueType>(it, ValueType{-2});
+    run_single_scenario<Tag, ValueType>(it, ValueType{3});
+
+    run_single_scenario_inplace<Tag, ValueType>(it, ValueType{0});
+    run_single_scenario_inplace<Tag, ValueType>(it, ValueType{-2});
 
 #if !defined KOKKOS_ENABLE_OPENMPTARGET
     // custom multiply op is only run for small views otherwise it overflows
     if (it.first == "small-a" || it.first == "small-b") {
       using custom_bop_t = MultiplyFunctor<ValueType>;
-      run_single_scenario_custom_op<Tag, ValueType>(it, ValueType{0},
-                                                    custom_bop_t());
-      run_single_scenario_custom_op<Tag, ValueType>(it, ValueType{1},
-                                                    custom_bop_t());
-      run_single_scenario_custom_op<Tag, ValueType>(it, ValueType{-2},
-                                                    custom_bop_t());
-      run_single_scenario_custom_op<Tag, ValueType>(it, ValueType{3},
-                                                    custom_bop_t());
+      run_single_scenario<Tag, ValueType>(it, ValueType{0}, custom_bop_t());
+      run_single_scenario<Tag, ValueType>(it, ValueType{1}, custom_bop_t());
+      run_single_scenario<Tag, ValueType>(it, ValueType{-2}, custom_bop_t());
+      run_single_scenario<Tag, ValueType>(it, ValueType{3}, custom_bop_t());
+
+      run_single_scenario_inplace<Tag, ValueType>(it, ValueType{0},
+                                                  custom_bop_t());
+      run_single_scenario_inplace<Tag, ValueType>(it, ValueType{-2},
+                                                  custom_bop_t());
     }
 
     using custom_bop_t = SumFunctor<ValueType>;
-    run_single_scenario_custom_op<Tag, ValueType>(it, ValueType{0},
-                                                  custom_bop_t());
-    run_single_scenario_custom_op<Tag, ValueType>(it, ValueType{1},
-                                                  custom_bop_t());
-    run_single_scenario_custom_op<Tag, ValueType>(it, ValueType{-2},
-                                                  custom_bop_t());
-    run_single_scenario_custom_op<Tag, ValueType>(it, ValueType{3},
-                                                  custom_bop_t());
+    run_single_scenario<Tag, ValueType>(it, ValueType{0}, custom_bop_t());
+    run_single_scenario<Tag, ValueType>(it, ValueType{1}, custom_bop_t());
+    run_single_scenario<Tag, ValueType>(it, ValueType{-2}, custom_bop_t());
+    run_single_scenario<Tag, ValueType>(it, ValueType{3}, custom_bop_t());
+
+    run_single_scenario_inplace<Tag, ValueType>(it, ValueType{0},
+                                                custom_bop_t());
+    run_single_scenario_inplace<Tag, ValueType>(it, ValueType{-2},
+                                                custom_bop_t());
 #endif
   }
 }

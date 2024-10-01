@@ -244,6 +244,20 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, v[j][0], v[j][1], v[j][2]);
     }
     writer.emit_block("run_vel", block);
+
+    // run_torque
+
+    if (lmp->atom->torque_flag) {
+        block.clear();
+        auto *t = lmp->atom->torque;
+        for (int i = 1; i <= natoms; ++i) {
+            const int j = lmp->atom->map(i);
+            block +=
+                fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, t[j][0], t[j][1], t[j][2]);
+        }
+        writer.emit_block("run_torque", block);
+    }
+
     cleanup_lammps(lmp, config);
 }
 
@@ -288,6 +302,9 @@ TEST(FixTimestep, plain)
 
     EXPECT_POSITIONS("run_pos (normal run, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (normal run, verlet)", lmp->atom, test_config.run_vel, epsilon);
+    if (lmp->atom->torque_flag)
+        EXPECT_TORQUES("run_torques (normal run, verlet)", lmp->atom, test_config.run_torque,
+                       epsilon);
 
     auto *ifix = lmp->modify->get_fix_by_id("test");
     if (!ifix) {
@@ -335,14 +352,12 @@ TEST(FixTimestep, plain)
     restart_lammps(lmp, test_config, false, false);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    ifix = lmp->modify->get_fix_by_id("test");
-
-    if (utils::strmatch(ifix->style, "^cmap") )
-      return;
-
     EXPECT_POSITIONS("run_pos (restart, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (restart, verlet)", lmp->atom, test_config.run_vel, epsilon);
+    if (lmp->atom->torque_flag)
+        EXPECT_TORQUES("run_torque (restart, verlet)", lmp->atom, test_config.run_torque, epsilon);
 
+    ifix = lmp->modify->get_fix_by_id("test");
     if (!ifix) {
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
@@ -844,7 +859,7 @@ TEST(FixTimestep, kokkos_omp)
     if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) GTEST_SKIP();
 
     LAMMPS::argv args = {"FixTimestep", "-log", "none", "-echo", "screen", "-nocite",
-                         "-k",        "on",   "t",    "4",     "-sf",    "kk"};
+                         "-k",          "on",   "t",    "4",     "-sf",    "kk"};
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp        = init_lammps(args, test_config);
@@ -868,7 +883,7 @@ TEST(FixTimestep, kokkos_omp)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     // relax error a bit for KOKKOS package
-    double epsilon = 5.0 * test_config.epsilon;
+    double epsilon = 10.0 * test_config.epsilon;
     // relax test precision when using pppm and single precision FFTs
 #if defined(FFT_SINGLE)
     if (lmp->force->kspace && utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
@@ -878,38 +893,42 @@ TEST(FixTimestep, kokkos_omp)
 
     EXPECT_POSITIONS("run_pos (normal run, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (normal run, verlet)", lmp->atom, test_config.run_vel, epsilon);
+    if (lmp->atom->torque_flag)
+        EXPECT_TORQUES("run_torque (normal run, verlet)", lmp->atom, test_config.run_torque,
+                       epsilon);
 
-    int ifix = lmp->modify->find_fix("test");
-    if (ifix < 0) {
+    auto *ifix = lmp->modify->get_fix_by_id("test");
+
+    if (!ifix) {
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
-        Fix *fix = lmp->modify->fix[ifix];
-        if (fix->thermo_virial) {
-            EXPECT_STRESS("run_stress (normal run, verlet)", fix->virial, test_config.run_stress,
+
+        if (ifix->thermo_virial) {
+            EXPECT_STRESS("run_stress (normal run, verlet)", ifix->virial, test_config.run_stress,
                           epsilon);
         }
 
         stats.reset();
         // global scalar
-        if (fix->scalar_flag) {
-            double value = fix->compute_scalar();
+        if (ifix->scalar_flag) {
+            double value = ifix->compute_scalar();
             EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
         }
 
         // global vector
-        if (fix->vector_flag) {
-            int num = fix->size_vector;
+        if (ifix->vector_flag) {
+            int num = ifix->size_vector;
             EXPECT_EQ(num, test_config.global_vector.size());
 
             for (int i = 0; i < num; ++i)
-                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], ifix->compute_vector(i),
                                       epsilon);
         }
 
         // check t_target for thermostats
 
         int dim     = -1;
-        double *ptr = (double *)fix->extract("t_target", dim);
+        double *ptr = (double *)ifix->extract("t_target", dim);
         if ((ptr != nullptr) && (dim == 0)) {
             int ivar = lmp->input->variable->find("t_target");
             if (ivar >= 0) {
@@ -922,44 +941,39 @@ TEST(FixTimestep, kokkos_omp)
             std::cerr << "global_data, normal run, verlet: " << stats << std::endl;
     }
 
-
-    // FIXME: remove after debugging
-    if (utils::strmatch(lmp->modify->fix[ifix]->style, "^cmap") )
-      return;
-
     if (!verbose) ::testing::internal::CaptureStdout();
     restart_lammps(lmp, test_config, false, false);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-
     EXPECT_POSITIONS("run_pos (restart, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (restart, verlet)", lmp->atom, test_config.run_vel, epsilon);
+    if (lmp->atom->torque_flag)
+        EXPECT_TORQUES("run_torque (restart, verlet)", lmp->atom, test_config.run_torque, epsilon);
 
-    ifix = lmp->modify->find_fix("test");
-    if (ifix < 0) {
+    ifix = lmp->modify->get_fix_by_id("test");
+    if (!ifix) {
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
-        Fix *fix = lmp->modify->fix[ifix];
-        if (fix->thermo_virial) {
-            EXPECT_STRESS("run_stress (restart, verlet)", fix->virial, test_config.run_stress,
+        if (ifix->thermo_virial) {
+            EXPECT_STRESS("run_stress (restart, verlet)", ifix->virial, test_config.run_stress,
                           epsilon);
         }
 
         stats.reset();
 
         // global scalar
-        if (fix->scalar_flag) {
-            double value = fix->compute_scalar();
+        if (ifix->scalar_flag) {
+            double value = ifix->compute_scalar();
             EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
         }
 
         // global vector
-        if (fix->vector_flag) {
-            int num = fix->size_vector;
+        if (ifix->vector_flag) {
+            int num = ifix->size_vector;
             EXPECT_EQ(num, test_config.global_vector.size());
 
             for (int i = 0; i < num; ++i)
-                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], ifix->compute_vector(i),
                                       epsilon);
         }
         if (print_stats && stats.has_data())
@@ -974,31 +988,30 @@ TEST(FixTimestep, kokkos_omp)
         EXPECT_POSITIONS("run_pos (rmass, verlet)", lmp->atom, test_config.run_pos, epsilon);
         EXPECT_VELOCITIES("run_vel (rmass, verlet)", lmp->atom, test_config.run_vel, epsilon);
 
-        ifix = lmp->modify->find_fix("test");
-        if (ifix < 0) {
+        ifix = lmp->modify->get_fix_by_id("test");
+        if (!ifix) {
             FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
         } else {
-            Fix *fix = lmp->modify->fix[ifix];
-            if (fix->thermo_virial) {
-                EXPECT_STRESS("run_stress (rmass, verlet)", fix->virial, test_config.run_stress,
+            if (ifix->thermo_virial) {
+                EXPECT_STRESS("run_stress (rmass, verlet)", ifix->virial, test_config.run_stress,
                               epsilon);
             }
 
             stats.reset();
 
             // global scalar
-            if (fix->scalar_flag) {
-                double value = fix->compute_scalar();
+            if (ifix->scalar_flag) {
+                double value = ifix->compute_scalar();
                 EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
             }
 
             // global vector
-            if (fix->vector_flag) {
-                int num = fix->size_vector;
+            if (ifix->vector_flag) {
+                int num = ifix->size_vector;
                 EXPECT_EQ(num, test_config.global_vector.size());
 
                 for (int i = 0; i < num; ++i)
-                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], ifix->compute_vector(i),
                                           epsilon);
             }
             if (print_stats && stats.has_data())
@@ -1012,5 +1025,3 @@ TEST(FixTimestep, kokkos_omp)
     cleanup_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
-
-

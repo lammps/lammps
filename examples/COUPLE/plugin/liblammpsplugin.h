@@ -126,6 +126,7 @@ struct _liblammpsplugin {
   void (*python_finalize)();
 
   void (*error)(void *, int, const char *);
+  char *(*expand)(void *, const char *);
 
   void (*file)(void *, const char *);
   char *(*command)(void *, const char *);

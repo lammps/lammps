@@ -319,25 +319,34 @@ all types from 1 to :math:`N`.  A leading asterisk means all types from
 :math:`N` (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
-Currently *bond* does not support bond_style hybrid nor bond_style
-hybrid/overlay as bond styles. The bond styles that currently work
-with fix_adapt are
+If :doc:`bond_style hybrid <bond_hybrid>` is used, *bstyle* should be a
+sub-style name. The bond styles that currently work with fix adapt are:
 
-+------------------------------------+------------+------------+
-| :doc:`class2 <bond_class2>`        | r0         | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`fene <bond_fene>`            | k,r0       | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`fene/nm <bond_fene>`         | k,r0       | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`gromos <bond_gromos>`        | k,r0       | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`harmonic <bond_harmonic>`    | k,r0       | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`morse <bond_morse>`          | r0         | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`nonlinear <bond_nonlinear>`  | epsilon,r0 | type bonds |
-+------------------------------------+------------+------------+
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`class2 <bond_class2>`                         | r0                        | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`fene <bond_fene>`                             | k,r0                      | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`fene/expand <bond_fene_expand>`               | k,r0,epsilon,sigma,shift  | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`fene/nm <bond_fene>`                          | k,r0                      | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`gromos <bond_gromos>`                         | k,r0                      | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`harmonic <bond_harmonic>`                     | k,r0                      | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`harmonic/restrain <bond_harmonic_restrain>`   | k                         | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`harmonic/shift <bond_harmonic_shift>`         | k,r0,r1                   | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`harmonic/shift/cut <bond_harmonic_shift_cut>` | k,r0,r1                   | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`mm3 <bond_mm3>`                               | k,r0                      | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`morse <bond_morse>`                           | r0                        | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`nonlinear <bond_nonlinear>`                   | epsilon,r0                | type bonds |
++-----------------------------------------------------+---------------------------+------------+
 
 ----------
 
@@ -357,15 +366,34 @@ all types from 1 to :math:`N`.  A leading asterisk means all types from
 :math:`N` (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
-Currently *angle* does not support angle_style hybrid nor angle_style
-hybrid/overlay as angle styles. The angle styles that currently work
-with fix_adapt are
+If :doc:`angle_style hybrid <angle_hybrid>` is used, *astyle* should be a
+sub-style name. The angle styles that currently work with fix adapt are:
 
-+------------------------------------+----------+-------------+
-| :doc:`harmonic <angle_harmonic>`   | k,theta0 | type angles |
-+------------------------------------+----------+-------------+
-| :doc:`cosine <angle_cosine>`       | k        | type angles |
-+------------------------------------+----------+-------------+
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`harmonic <angle_harmonic>`                                   | k,theta0        | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`charmm <angle_charmm>`                                       | k,theta0        | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`class2 <angle_class2>`                                       | k2,k3,k4,theta0 | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`cosine <angle_cosine>`                                       | k               | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`cosine/periodic <angle_cosine_periodic>`                     | k,b,n           | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`cosine/squared/restricted <angle_cosine_squared_restricted>` | k,theta0        | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`dipole <angle_dipole>`                                       | k,gamma0        | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`fourier <angle_fourier>`                                     | k,c0,c1,c2      | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`fourier/simple <angle_fourier_simple>`                       | k,c,n           | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`mm3 <angle_mm3>`                                             | k,theta0        | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`quartic <angle_quartic>`                                     | k2,k3,k4,theta0 | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`spica <angle_spica>`                                         | k,theta0        | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
 
 Note that internally, theta0 is stored in radians, so the variable
 this fix uses to reset theta0 needs to generate values in radians.

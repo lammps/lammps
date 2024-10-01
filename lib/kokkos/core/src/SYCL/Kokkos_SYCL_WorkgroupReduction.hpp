@@ -21,8 +21,53 @@
 
 namespace Kokkos::Impl::SYCLReduction {
 
-// FIXME_SYCL It appears that using shuffles is slower than going through local
-// memory.
+template <int N>
+struct TrivialWrapper {
+  std::byte array[N];
+};
+
+// shuffle down
+template <typename T>
+T shift_group_left(sycl::sub_group sg, T x,
+                   sycl::sub_group::linear_id_type delta) {
+  if constexpr (std::is_trivially_copyable_v<T>)
+    return sycl::shift_group_left(sg, x, delta);
+  else {
+    auto tmp = sycl::shift_group_left(
+        sg, reinterpret_cast<TrivialWrapper<sizeof(T)>&>(x), delta);
+    return reinterpret_cast<T&>(tmp);
+  }
+}
+
+// shuffle up
+template <typename T>
+T shift_group_right(sycl::sub_group sg, T x,
+                    sycl::sub_group::linear_id_type delta) {
+  if constexpr (std::is_trivially_copyable_v<T>)
+    return sycl::shift_group_right(sg, x, delta);
+  else {
+    auto tmp = sycl::shift_group_right(
+        sg, reinterpret_cast<TrivialWrapper<sizeof(T)>&>(x), delta);
+    return reinterpret_cast<T&>(tmp);
+  }
+}
+
+// shuffle
+template <typename T>
+T select_from_group(sycl::sub_group sg, T x,
+                    sycl::sub_group::id_type remote_local_id) {
+  if constexpr (std::is_trivially_copyable_v<T>)
+    return sycl::select_from_group(sg, x, remote_local_id);
+  else {
+    auto tmp = sycl::select_from_group(
+        sg, reinterpret_cast<TrivialWrapper<sizeof(T)>&>(x), remote_local_id);
+    return reinterpret_cast<T&>(tmp);
+  }
+}
+
+// FIXME_SYCL For some types, shuffle reductions are competitive with local
+// memory reductions but they are significantly slower for the value type used
+// in combined reductions with multiple double arguments.
 template <class ReducerType>
 inline constexpr bool use_shuffle_based_algorithm = false;
 // std::is_reference_v<typename ReducerType::reference_type>;
@@ -30,7 +75,7 @@ inline constexpr bool use_shuffle_based_algorithm = false;
 template <typename ValueType, typename ReducerType, int dim>
 std::enable_if_t<!use_shuffle_based_algorithm<ReducerType>> workgroup_reduction(
     sycl::nd_item<dim>& item, sycl::local_accessor<ValueType> local_mem,
-    sycl::device_ptr<ValueType> results_ptr,
+    sycl_device_ptr<ValueType> results_ptr,
     sycl::global_ptr<ValueType> device_accessible_result_ptr,
     const unsigned int value_count_, const ReducerType& final_reducer,
     bool final, unsigned int max_size) {
@@ -102,24 +147,40 @@ std::enable_if_t<!use_shuffle_based_algorithm<ReducerType>> workgroup_reduction(
 template <typename ValueType, typename ReducerType, int dim>
 std::enable_if_t<use_shuffle_based_algorithm<ReducerType>> workgroup_reduction(
     sycl::nd_item<dim>& item, sycl::local_accessor<ValueType> local_mem,
-    ValueType local_value, sycl::device_ptr<ValueType> results_ptr,
+    ValueType local_value, sycl_device_ptr<ValueType> results_ptr,
     sycl::global_ptr<ValueType> device_accessible_result_ptr,
     const ReducerType& final_reducer, bool final, unsigned int max_size) {
   const auto local_id = item.get_local_linear_id();
 
   // Perform the actual workgroup reduction in each subgroup
   // separately.
-  auto sg            = item.get_sub_group();
-  const int id_in_sg = sg.get_local_id()[0];
-  const auto local_range =
-      std::min<unsigned int>(sg.get_local_range()[0], max_size);
+  auto sg               = item.get_sub_group();
+  const int id_in_sg    = sg.get_local_id()[0];
+  const int local_range = std::min<int>(sg.get_local_range()[0], max_size);
 
   const auto upper_stride_bound =
-      std::min<unsigned int>(local_range - id_in_sg, max_size - local_id);
+      std::min<int>(local_range - id_in_sg, max_size - local_id);
+#if defined(KOKKOS_ARCH_INTEL_GPU) || defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
+  auto shuffle_combine = [&](int stride) {
+    if (stride < local_range) {
+      auto tmp = Kokkos::Impl::SYCLReduction::shift_group_left(sg, local_value,
+                                                               stride);
+      if (stride < upper_stride_bound) final_reducer.join(&local_value, &tmp);
+    }
+  };
+  shuffle_combine(1);
+  shuffle_combine(2);
+  shuffle_combine(4);
+  shuffle_combine(8);
+  shuffle_combine(16);
+  KOKKOS_ASSERT(local_range <= 32);
+#else
   for (unsigned int stride = 1; stride < local_range; stride <<= 1) {
-    auto tmp = sg.shuffle_down(local_value, stride);
+    auto tmp =
+        Kokkos::Impl::SYCLReduction::shift_group_left(sg, local_value, stride);
     if (stride < upper_stride_bound) final_reducer.join(&local_value, &tmp);
   }
+#endif
 
   // Copy the subgroup results into the first positions of the
   // reduction array.
@@ -140,7 +201,7 @@ std::enable_if_t<use_shuffle_based_algorithm<ReducerType>> workgroup_reduction(
     // the first subgroup, we first combine the items with a higher
     // index.
     if (n_active_subgroups > local_range) {
-      for (unsigned int offset = local_range; offset < n_active_subgroups;
+      for (int offset = local_range; offset < n_active_subgroups;
            offset += local_range)
         if (id_in_sg + offset < n_active_subgroups) {
           final_reducer.join(&sg_value, &local_mem[(id_in_sg + offset)]);
@@ -149,11 +210,29 @@ std::enable_if_t<use_shuffle_based_algorithm<ReducerType>> workgroup_reduction(
     }
 
     // Then, we proceed as before.
+#if defined(KOKKOS_ARCH_INTEL_GPU) || defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
+    auto shuffle_combine_sg = [&](int stride) {
+      if (stride < local_range) {
+        auto tmp =
+            Kokkos::Impl::SYCLReduction::shift_group_left(sg, sg_value, stride);
+        if (id_in_sg + stride < n_active_subgroups)
+          final_reducer.join(&sg_value, &tmp);
+      }
+    };
+    shuffle_combine_sg(1);
+    shuffle_combine_sg(2);
+    shuffle_combine_sg(4);
+    shuffle_combine_sg(8);
+    shuffle_combine_sg(16);
+    KOKKOS_ASSERT(local_range <= 32);
+#else
     for (unsigned int stride = 1; stride < local_range; stride <<= 1) {
-      auto tmp = sg.shuffle_down(sg_value, stride);
+      auto tmp =
+          Kokkos::Impl::SYCLReduction::shift_group_left(sg, sg_value, stride);
       if (id_in_sg + stride < n_active_subgroups)
         final_reducer.join(&sg_value, &tmp);
     }
+#endif
 
     // Finally, we copy the workgroup results back to global memory
     // to be used in the next iteration. If this is the last

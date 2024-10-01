@@ -238,3 +238,16 @@ void BondHarmonicShiftCut::born_matrix(int type, double rsq, int /*i*/, int /*j*
   du2 = 2 * k[type];
   if (r > 0.0) du = du2 * dr;
 }
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *BondHarmonicShiftCut::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "r0") == 0) return (void *) r0;
+  if (strcmp(str, "r1") == 0) return (void *) r1;
+  return nullptr;
+}

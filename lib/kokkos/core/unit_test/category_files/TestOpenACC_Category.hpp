@@ -23,5 +23,6 @@
 #define TEST_CATEGORY_NUMBER 8
 #define TEST_CATEGORY_DEATH openacc_DeathTest
 #define TEST_EXECSPACE Kokkos::Experimental::OpenACC
+#define TEST_CATEGORY_FIXTURE(name) openacc_##name
 
 #endif

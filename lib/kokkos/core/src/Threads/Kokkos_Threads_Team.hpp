@@ -188,8 +188,6 @@ class ThreadsExecTeamMember {
         using type =
             typename if_c<sizeof(Type) < TEAM_REDUCE_SIZE, Type, void>::type;
 
-        if (m_instance == nullptr) return value;
-
         if (team_rank() != team_size() - 1) *
             ((volatile type*)m_instance->scratch_memory()) = value;
 
@@ -228,8 +226,6 @@ class ThreadsExecTeamMember {
         // Make sure there is enough scratch space:
         using type = typename if_c<sizeof(value_type) < TEAM_REDUCE_SIZE,
                                    value_type, void>::type;
-
-        if (m_instance == nullptr) return;
 
         type* const local_value = ((type*)m_instance->scratch_memory());
 
@@ -284,8 +280,6 @@ class ThreadsExecTeamMember {
     KOKKOS_IF_ON_HOST((  // Make sure there is enough scratch space:
         using type = typename if_c<sizeof(ArgType) < TEAM_REDUCE_SIZE, ArgType,
                                    void>::type;
-
-        if (m_instance == nullptr) return type(0);
 
         volatile type* const work_value = ((type*)m_instance->scratch_memory());
 
@@ -358,6 +352,7 @@ class ThreadsExecTeamMember {
         m_chunk_size(team.chunk_size()),
         m_league_chunk_end(0),
         m_team_alloc(team.team_alloc()) {
+    KOKKOS_ASSERT(m_instance != nullptr);
     if (team.league_size()) {
       // Execution is using device-team interface:
 

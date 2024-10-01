@@ -1585,34 +1585,24 @@ struct TestIsFinite {
       Kokkos::printf("failed isfinite(float)\n");
     }
 #if !(defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_COMPILER_MSVC))
-    if (!isfinite(static_cast<KE::half_t>(2.f))
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC 23.7
-        || isfinite(quiet_NaN<KE::half_t>::value) ||
+    if (!isfinite(static_cast<KE::half_t>(2.f)) ||
+        isfinite(quiet_NaN<KE::half_t>::value) ||
         isfinite(signaling_NaN<KE::half_t>::value) ||
-        isfinite(infinity<KE::half_t>::value)
-#endif
-    ) {
+        isfinite(infinity<KE::half_t>::value)) {
       ++e;
       Kokkos::printf("failed isfinite(KE::half_t)\n");
     }
-    if (!isfinite(static_cast<KE::bhalf_t>(2.f))
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC 23.7
-        || isfinite(quiet_NaN<KE::bhalf_t>::value) ||
+    if (!isfinite(static_cast<KE::bhalf_t>(2.f)) ||
+        isfinite(quiet_NaN<KE::bhalf_t>::value) ||
         isfinite(signaling_NaN<KE::bhalf_t>::value) ||
-        isfinite(infinity<KE::bhalf_t>::value)
-#endif
-    ) {
+        isfinite(infinity<KE::bhalf_t>::value)) {
       ++e;
       Kokkos::printf("failed isfinite(KE::bhalf_t)\n");
     }
 #endif
-    if (!isfinite(3.)
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC 23.7
-        || isfinite(quiet_NaN<double>::value) ||
+    if (!isfinite(3.) || isfinite(quiet_NaN<double>::value) ||
         isfinite(signaling_NaN<double>::value) ||
-        isfinite(infinity<double>::value)
-#endif
-    ) {
+        isfinite(infinity<double>::value)) {
       ++e;
       Kokkos::printf("failed isfinite(double)\n");
     }
@@ -1666,33 +1656,24 @@ struct TestIsInf {
       Kokkos::printf("failed isinf(float)\n");
     }
 #if !(defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_COMPILER_MSVC))
-    if (isinf(static_cast<KE::half_t>(2.f))
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC 23.7
-        || isinf(quiet_NaN<KE::half_t>::value) ||
+    if (isinf(static_cast<KE::half_t>(2.f)) ||
+        isinf(quiet_NaN<KE::half_t>::value) ||
         isinf(signaling_NaN<KE::half_t>::value) ||
-        !isinf(infinity<KE::half_t>::value)
-#endif
-    ) {
+        !isinf(infinity<KE::half_t>::value)) {
       ++e;
       Kokkos::printf("failed isinf(KE::half_t)\n");
     }
-    if (isinf(static_cast<KE::bhalf_t>(2.f))
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC 23.7
-        || isinf(quiet_NaN<KE::bhalf_t>::value) ||
+    if (isinf(static_cast<KE::bhalf_t>(2.f)) ||
+        isinf(quiet_NaN<KE::bhalf_t>::value) ||
         isinf(signaling_NaN<KE::bhalf_t>::value) ||
-        !isinf(infinity<KE::bhalf_t>::value)
-#endif
-    ) {
+        !isinf(infinity<KE::bhalf_t>::value)) {
       ++e;
       Kokkos::printf("failed isinf(KE::bhalf_t)\n");
     }
 #endif
-    if (isinf(3.)
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC 23.7
-        || isinf(quiet_NaN<double>::value) ||
-        isinf(signaling_NaN<double>::value) || !isinf(infinity<double>::value)
-#endif
-    ) {
+    if (isinf(3.) || isinf(quiet_NaN<double>::value) ||
+        isinf(signaling_NaN<double>::value) ||
+        !isinf(infinity<double>::value)) {
       ++e;
       Kokkos::printf("failed isinf(double)\n");
     }
@@ -1746,32 +1727,23 @@ struct TestIsNaN {
       Kokkos::printf("failed isnan(float)\n");
     }
 #if !(defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_COMPILER_MSVC))
-    if (isnan(static_cast<KE::half_t>(2.f))
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC 23.7
-        || !isnan(quiet_NaN<KE::half_t>::value) ||
+    if (isnan(static_cast<KE::half_t>(2.f)) ||
+        !isnan(quiet_NaN<KE::half_t>::value) ||
         !isnan(signaling_NaN<KE::half_t>::value) ||
-        isnan(infinity<KE::half_t>::value)
-#endif
-    ) {
+        isnan(infinity<KE::half_t>::value)) {
       ++e;
       Kokkos::printf("failed isnan(KE::half_t)\n");
     }
-    if (isnan(static_cast<KE::bhalf_t>(2.f))
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC 23.7
-        || !isnan(quiet_NaN<KE::bhalf_t>::value) ||
+    if (isnan(static_cast<KE::bhalf_t>(2.f)) ||
+        !isnan(quiet_NaN<KE::bhalf_t>::value) ||
         !isnan(signaling_NaN<KE::bhalf_t>::value) ||
-        isnan(infinity<KE::bhalf_t>::value)
-#endif
-    ) {
+        isnan(infinity<KE::bhalf_t>::value)) {
       ++e;
       Kokkos::printf("failed isnan(KE::bhalf_t)\n");
     }
-    if (isnan(3.)
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC 23.7
-        || !isnan(quiet_NaN<double>::value) ||
-        !isnan(signaling_NaN<double>::value) || isnan(infinity<double>::value)
-#endif
-    ) {
+    if (isnan(3.) || !isnan(quiet_NaN<double>::value) ||
+        !isnan(signaling_NaN<double>::value) ||
+        isnan(infinity<double>::value)) {
       ++e;
       Kokkos::printf("failed isnan(double)\n");
     }

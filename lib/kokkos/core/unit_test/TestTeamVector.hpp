@@ -1060,11 +1060,8 @@ TEST(TEST_CATEGORY, parallel_scan_with_reducers) {
   constexpr int n              = 1000000;
   constexpr int n_vector_range = 100;
 
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC 23.7
-  if constexpr (std::is_same_v<TEST_EXECSPACE, Kokkos::Cuda>) {
-    GTEST_SKIP() << "All but max inclusive scan differ at index 101";
-  }
+#ifdef KOKKOS_IMPL_32BIT
+  GTEST_SKIP() << "Failing KOKKOS_IMPL_32BIT";  // FIXME_32BIT
 #endif
 
   checkScan<TEST_EXECSPACE, ScanType::Exclusive, n, n_vector_range,

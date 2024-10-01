@@ -56,7 +56,7 @@ lammps.org".  General questions about LAMMPS should be posted in the
      - SNL
      - jmgoff at sandia.gov
      - machine learned potentials, QEq solvers, Python
-   * - Megan McCarthy
+   * - Meg McCarthy
      - SNL
      - megmcca at sandia.gov
      - alloys, micro-structure, machine learned potentials
@@ -67,7 +67,7 @@ lammps.org".  General questions about LAMMPS should be posted in the
    * - `Trung Nguyen <tn_>`_
      - U Chicago
      - ndactrung at gmail.com
-     - soft matter, GPU package
+     - soft matter, GPU package, DIELECTRIC package, regression testing
 
 .. _rb:  https://rbberger.github.io/
 .. _gc:  https://enthalpiste.fr/

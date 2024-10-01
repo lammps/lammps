@@ -316,3 +316,16 @@ void AngleFourierSimple::born_matrix(int type, int i1, int i2, int i3, double &d
   du2 = k[type] * C[type] * N[type] * (cos(theta) * sin(N[type] * theta)
                   - N[type] * sin(theta) * cos(N[type] * theta)) / pow(sin(theta),3);
 }
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleFourierSimple::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "C") == 0) return (void *) C;
+  if (strcmp(str, "N") == 0) return (void *) N;
+  return nullptr;
+}

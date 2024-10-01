@@ -87,6 +87,49 @@ protected:
       fmt::print(fp, "{:8g}           0\n", lmp->atom->mass[atom_type] );
     }
 
+      fmt::print(fp, R"(
+        24 !NBOND: bonds
+        10        11        10        12        10        16        12        13
+        12        14        12        15         3         4         3         5
+         3         6         6         8         6         7        18        19
+        18        20         8         9         8        10        16        17
+         1         2         1         3        21        22        21        23
+        24        25        24        26        27        28        27        29
+
+        30 !NTHETA: angles
+         8        10        11         8        10        16        11        10        12
+        12        10        16         8        10        12        11        10        16
+        10        12        15        10        12        14        10        12        13
+        13        12        15        13        12        14        14        12        15
+         1         3         5         1         3         4         1         3         6
+         4         3         5         5         3         6         4         3         6
+         3         6         7         3         6         8         7         6         8
+        19        18        20         6         8         9         9         8        10
+         6         8        10        10        16        17         2         1         3
+        22        21        23        25        24        26        28        27        29
+
+        31 !NPHI: dihedrals
+         8        10        12        13         8        10        12        14
+         8        10        12        15         8        10        16        17
+        11        10        12        13        11        10        12        14
+        11        10        12        15        11        10        16        17
+        12        10        16        17        16        10        12        13
+        16        10        12        14        16        10        12        15
+         1         3         6         8         1         3         6         7
+         4         3         6         8         4         3         6         7
+         5         3         6         8         5         3         6         7
+         3         6         8         9         3         6         8        10
+         7         6         8         9         7         6         8        10
+         6         8        10        12         6         8        10        16
+         6         8        10        11         9         8        10        12
+         9         8        10        16         9         8        10        11
+         2         1         3         6         2         1         3         4
+         2         1         3         5
+
+         2 !NIMPHI: impropers
+         6         3         8         7         8         6        10         9
+)");
+
     fclose(fp);
   }
 
@@ -105,9 +148,9 @@ protected:
 
   void TearDown() override
   {
-    platform::unlink("fourmol.psf");
-    platform::unlink("fourmol-all.psf");
-    platform::unlink("fourmol-oxygen.psf");
+    //platform::unlink("fourmol.psf");
+    //platform::unlink("fourmol-all.psf");
+    //platform::unlink("fourmol-oxygen.psf");
   }
 
 };

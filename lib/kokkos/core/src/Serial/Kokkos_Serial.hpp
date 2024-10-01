@@ -60,7 +60,10 @@ class SerialInternal {
 
   static SerialInternal& singleton();
 
-  std::mutex m_thread_team_data_mutex;
+  std::mutex m_instance_mutex;
+
+  static std::vector<SerialInternal*> all_instances;
+  static std::mutex all_instances_mutex;
 
   // Resize thread team data scratch memory
   void resize_thread_team_data(size_t pool_reduce_bytes,
@@ -113,7 +116,15 @@ class Serial {
 
   Serial();
 
-  Serial(NewInstance);
+  explicit Serial(NewInstance);
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  template <typename T = void>
+  KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Serial execution space should be constructed explicitly.")
+  Serial(NewInstance)
+      : Serial(NewInstance{}) {}
+#endif
 
   /// \brief True if and only if this method is being called in a
   ///   thread-parallel function.
@@ -137,7 +148,14 @@ class Serial {
         name,
         Kokkos::Tools::Experimental::SpecialSynchronizationCases::
             GlobalDeviceSynchronization,
-        []() {});  // TODO: correct device ID
+        []() {
+          std::lock_guard<std::mutex> lock_all_instances(
+              Impl::SerialInternal::all_instances_mutex);
+          for (auto* instance_ptr : Impl::SerialInternal::all_instances) {
+            std::lock_guard<std::mutex> lock_instance(
+                instance_ptr->m_instance_mutex);
+          }
+        });  // TODO: correct device ID
     Kokkos::memory_fence();
   }
 
@@ -145,7 +163,10 @@ class Serial {
                  "Kokkos::Serial::fence: Unnamed Instance Fence") const {
     Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::Serial>(
         name, Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{1},
-        []() {});  // TODO: correct device ID
+        [this]() {
+          auto* internal_instance = this->impl_internal_space_instance();
+          std::lock_guard<std::mutex> lock(internal_instance->m_instance_mutex);
+        });  // TODO: correct device ID
     Kokkos::memory_fence();
   }
 

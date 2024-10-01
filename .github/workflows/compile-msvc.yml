@@ -1,4 +1,4 @@
-# GitHub action to build LAMMPS on Windows with Visual C++
+# GitHub action to test LAMMPS on Windows with Visual C++
 name: "Windows Unit Tests"
 
 on:
@@ -10,6 +10,10 @@ on:
       - develop
 
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
 
 jobs:
   build:

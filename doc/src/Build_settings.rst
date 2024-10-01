@@ -229,8 +229,7 @@ can be used with the Intel or GNU compiler (see the ``FFT_LIB`` setting
 above).
 
 The NVIDIA Performance Libraries (NVPL) FFT library is optimized for NVIDIA
-Grace Armv9.0 architecture. You can download it from
-`https://docs.nvidia.com/nvpl/`_.
+Grace Armv9.0 architecture. You can download it from https://docs.nvidia.com/nvpl/
 
 The cuFFT and hipFFT FFT libraries are packaged with NVIDIA's CUDA and
 AMD's HIP installations, respectively. These FFT libraries require the

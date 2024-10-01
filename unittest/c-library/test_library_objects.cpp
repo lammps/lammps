@@ -213,3 +213,23 @@ TEST_F(LibraryObjects, variables)
 
     LAMMPS_NS::platform::unlink("test_variable.file");
 }
+
+TEST_F(LibraryObjects, expand)
+{
+    ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "variable one    index     1 2 3 4");
+    lammps_command(lmp, "variable two    equal     2");
+    lammps_command(lmp, "variable three  string    three");
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+
+    char *ptr = lammps_expand(lmp, "xx_$(4+5)_$(PI) ${one}-${two}-${three}");
+    EXPECT_NE(ptr, nullptr);
+    EXPECT_THAT((char *)ptr, StrEq("xx_9_3.141592653589793116 1-2-three"));
+    lammps_free(ptr);
+
+    ptr = lammps_expand(lmp, "'xx_$(4+5)_$(PI) ${one}-${two}-${three}'");
+    EXPECT_NE(ptr, nullptr);
+    EXPECT_THAT((char *)ptr, StrEq("'xx_$(4+5)_$(PI) ${one}-${two}-${three}'"));
+    lammps_free(ptr);
+}

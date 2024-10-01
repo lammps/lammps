@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-  Contributing authors: Martin Svoboda (ICPF, UJEP), Martin Lísal (ICPF, UJEP)
+  Contributing authors: Martin Svoboda (ICPF, UJEP), Martin Lisal (ICPF, UJEP)
   based on pair style dpd by: Kurt Smith (U Pittsburgh)
 ------------------------------------------------------------------------- */
 

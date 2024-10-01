@@ -88,6 +88,19 @@ class CudaSpace {
   void* allocate(const char* arg_label, const size_t arg_alloc_size,
                  const size_t arg_logical_size = 0) const;
 
+#if defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY)
+  template <typename ExecutionSpace>
+  void* allocate(const ExecutionSpace&, const size_t arg_alloc_size) const {
+    return allocate(arg_alloc_size);
+  }
+  template <typename ExecutionSpace>
+  void* allocate(const ExecutionSpace&, const char* arg_label,
+                 const size_t arg_alloc_size,
+                 const size_t arg_logical_size = 0) const {
+    return allocate(arg_label, arg_alloc_size, arg_logical_size);
+  }
+#endif
+
   /**\brief  Deallocate untracked memory in the cuda space */
   void deallocate(void* const arg_alloc_ptr, const size_t arg_alloc_size) const;
   void deallocate(const char* arg_label, void* const arg_alloc_ptr,
@@ -337,7 +350,11 @@ static_assert(
 template <>
 struct MemorySpaceAccess<Kokkos::HostSpace, Kokkos::CudaSpace> {
   enum : bool { assignable = false };
-  enum : bool { accessible = false };
+#if !defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY)
+  enum : bool{accessible = false};
+#else
+  enum : bool { accessible = true };
+#endif
   enum : bool { deepcopy = true };
 };
 
@@ -558,8 +575,12 @@ struct DeepCopy<HostSpace, MemSpace, ExecutionSpace,
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
+#if !defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY)
 KOKKOS_IMPL_HOST_INACCESSIBLE_SHARED_ALLOCATION_SPECIALIZATION(
     Kokkos::CudaSpace);
+#else
+KOKKOS_IMPL_SHARED_ALLOCATION_SPECIALIZATION(Kokkos::CudaSpace);
+#endif
 KOKKOS_IMPL_SHARED_ALLOCATION_SPECIALIZATION(Kokkos::CudaUVMSpace);
 KOKKOS_IMPL_SHARED_ALLOCATION_SPECIALIZATION(Kokkos::CudaHostPinnedSpace);
 

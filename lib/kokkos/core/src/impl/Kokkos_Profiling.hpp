@@ -263,40 +263,41 @@ size_t get_current_context_id();
 }  // namespace Tools
 namespace Profiling {
 
-bool profileLibraryLoaded();
+// don't let ClangFormat reorder the using-declarations below
+// clang-format off
+using Kokkos::Tools::profileLibraryLoaded;
 
-void beginParallelFor(const std::string& kernelPrefix, const uint32_t devID,
-                      uint64_t* kernelID);
-void beginParallelReduce(const std::string& kernelPrefix, const uint32_t devID,
-                         uint64_t* kernelID);
-void beginParallelScan(const std::string& kernelPrefix, const uint32_t devID,
-                       uint64_t* kernelID);
-void endParallelFor(const uint64_t kernelID);
-void endParallelReduce(const uint64_t kernelID);
-void endParallelScan(const uint64_t kernelID);
-void pushRegion(const std::string& kName);
-void popRegion();
+using Kokkos::Tools::printHelp;
+using Kokkos::Tools::parseArgs;
 
-void createProfileSection(const std::string& sectionName, uint32_t* secID);
-void destroyProfileSection(const uint32_t secID);
-void startSection(const uint32_t secID);
+using Kokkos::Tools::initialize;
+using Kokkos::Tools::finalize;
 
-void stopSection(const uint32_t secID);
+using Kokkos::Tools::beginParallelFor;
+using Kokkos::Tools::beginParallelReduce;
+using Kokkos::Tools::beginParallelScan;
+using Kokkos::Tools::endParallelFor;
+using Kokkos::Tools::endParallelReduce;
+using Kokkos::Tools::endParallelScan;
 
-void markEvent(const std::string& eventName);
-void allocateData(const SpaceHandle handle, const std::string name,
-                  const void* data, const uint64_t size);
-void deallocateData(const SpaceHandle space, const std::string label,
-                    const void* ptr, const uint64_t size);
-void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label,
-                   const void* dst_ptr, const SpaceHandle src_space,
-                   const std::string src_label, const void* src_ptr,
-                   const uint64_t size);
-void endDeepCopy();
-void finalize();
-void initialize(const std::string& = {});
+using Kokkos::Tools::allocateData;
+using Kokkos::Tools::deallocateData;
 
-SpaceHandle make_space_handle(const char* space_name);
+using Kokkos::Tools::beginDeepCopy;
+using Kokkos::Tools::endDeepCopy;
+
+using Kokkos::Tools::pushRegion;
+using Kokkos::Tools::popRegion;
+
+using Kokkos::Tools::createProfileSection;
+using Kokkos::Tools::destroyProfileSection;
+using Kokkos::Tools::startSection;
+using Kokkos::Tools::stopSection;
+
+using Kokkos::Tools::markEvent;
+
+using Kokkos::Tools::make_space_handle;
+// clang-format on
 
 namespace Experimental {
 using Kokkos::Tools::Experimental::set_allocate_data_callback;

@@ -141,6 +141,7 @@ arg
 arge
 args
 argv
+Armv
 arrhenius
 Arun
 arXiv

@@ -40,7 +40,12 @@ struct ParallelReduceTag {};
 
 struct ChunkSize {
   int value;
+  explicit ChunkSize(int value_) : value(value_) {}
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  template <typename T = void>
+  KOKKOS_DEPRECATED_WITH_COMMENT("ChunkSize should be constructed explicitly.")
   ChunkSize(int value_) : value(value_) {}
+#endif
 };
 
 /** \brief  Execution policy for work over a range of an integral type.
@@ -714,6 +719,58 @@ class TeamPolicy
   }
 };
 
+// Execution space not provided deduces to TeamPolicy<>
+
+TeamPolicy()->TeamPolicy<>;
+
+TeamPolicy(int, int)->TeamPolicy<>;
+TeamPolicy(int, int, int)->TeamPolicy<>;
+TeamPolicy(int, Kokkos::AUTO_t const&)->TeamPolicy<>;
+TeamPolicy(int, Kokkos::AUTO_t const&, int)->TeamPolicy<>;
+TeamPolicy(int, Kokkos::AUTO_t const&, Kokkos::AUTO_t const&)->TeamPolicy<>;
+TeamPolicy(int, int, Kokkos::AUTO_t const&)->TeamPolicy<>;
+
+// DefaultExecutionSpace deduces to TeamPolicy<>
+
+TeamPolicy(DefaultExecutionSpace const&, int, int)->TeamPolicy<>;
+TeamPolicy(DefaultExecutionSpace const&, int, int, int)->TeamPolicy<>;
+TeamPolicy(DefaultExecutionSpace const&, int, Kokkos::AUTO_t const&)
+    ->TeamPolicy<>;
+TeamPolicy(DefaultExecutionSpace const&, int, Kokkos::AUTO_t const&, int)
+    ->TeamPolicy<>;
+TeamPolicy(DefaultExecutionSpace const&, int, Kokkos::AUTO_t const&,
+           Kokkos::AUTO_t const&)
+    ->TeamPolicy<>;
+TeamPolicy(DefaultExecutionSpace const&, int, int, Kokkos::AUTO_t const&)
+    ->TeamPolicy<>;
+
+// ES != DefaultExecutionSpace deduces to TeamPolicy<ES>
+
+template <typename ES,
+          typename = std::enable_if_t<Kokkos::is_execution_space_v<ES>>>
+TeamPolicy(ES const&, int, int)->TeamPolicy<ES>;
+
+template <typename ES,
+          typename = std::enable_if_t<Kokkos::is_execution_space_v<ES>>>
+TeamPolicy(ES const&, int, int, int)->TeamPolicy<ES>;
+
+template <typename ES,
+          typename = std::enable_if_t<Kokkos::is_execution_space_v<ES>>>
+TeamPolicy(ES const&, int, Kokkos::AUTO_t const&)->TeamPolicy<ES>;
+
+template <typename ES,
+          typename = std::enable_if_t<Kokkos::is_execution_space_v<ES>>>
+TeamPolicy(ES const&, int, Kokkos::AUTO_t const&, int)->TeamPolicy<ES>;
+
+template <typename ES,
+          typename = std::enable_if_t<Kokkos::is_execution_space_v<ES>>>
+TeamPolicy(ES const&, int, Kokkos::AUTO_t const&, Kokkos::AUTO_t const&)
+    ->TeamPolicy<ES>;
+
+template <typename ES,
+          typename = std::enable_if_t<Kokkos::is_execution_space_v<ES>>>
+TeamPolicy(ES const&, int, int, Kokkos::AUTO_t const&)->TeamPolicy<ES>;
+
 namespace Impl {
 
 template <typename iType, class TeamMemberType>
@@ -968,9 +1025,9 @@ struct TeamThreadMDRange<Rank<N, OuterDir, InnerDir>, TeamHandle> {
   static constexpr auto par_vector = Impl::TeamMDRangeParVector::NotParVector;
 
   static constexpr Iterate direction =
-      OuterDir == Iterate::Default
-          ? layout_iterate_type_selector<ArrayLayout>::outer_iteration_pattern
-          : iter;
+      OuterDir == Iterate::Default ? Impl::layout_iterate_type_selector<
+                                         ArrayLayout>::outer_iteration_pattern
+                                   : iter;
 
   template <class... Args>
   KOKKOS_FUNCTION TeamThreadMDRange(TeamHandleType const& team_, Args&&... args)
@@ -983,7 +1040,7 @@ struct TeamThreadMDRange<Rank<N, OuterDir, InnerDir>, TeamHandle> {
 };
 
 template <typename TeamHandle, typename... Args>
-TeamThreadMDRange(TeamHandle const&, Args&&...)
+KOKKOS_DEDUCTION_GUIDE TeamThreadMDRange(TeamHandle const&, Args&&...)
     ->TeamThreadMDRange<Rank<sizeof...(Args), Iterate::Default>, TeamHandle>;
 
 template <typename Rank, typename TeamHandle>
@@ -1004,9 +1061,9 @@ struct ThreadVectorMDRange<Rank<N, OuterDir, InnerDir>, TeamHandle> {
   static constexpr auto par_vector = Impl::TeamMDRangeParVector::ParVector;
 
   static constexpr Iterate direction =
-      OuterDir == Iterate::Default
-          ? layout_iterate_type_selector<ArrayLayout>::outer_iteration_pattern
-          : iter;
+      OuterDir == Iterate::Default ? Impl::layout_iterate_type_selector<
+                                         ArrayLayout>::outer_iteration_pattern
+                                   : iter;
 
   template <class... Args>
   KOKKOS_INLINE_FUNCTION ThreadVectorMDRange(TeamHandleType const& team_,
@@ -1020,7 +1077,7 @@ struct ThreadVectorMDRange<Rank<N, OuterDir, InnerDir>, TeamHandle> {
 };
 
 template <typename TeamHandle, typename... Args>
-ThreadVectorMDRange(TeamHandle const&, Args&&...)
+KOKKOS_DEDUCTION_GUIDE ThreadVectorMDRange(TeamHandle const&, Args&&...)
     ->ThreadVectorMDRange<Rank<sizeof...(Args), Iterate::Default>, TeamHandle>;
 
 template <typename Rank, typename TeamHandle>
@@ -1041,9 +1098,9 @@ struct TeamVectorMDRange<Rank<N, OuterDir, InnerDir>, TeamHandle> {
   static constexpr auto par_vector = Impl::TeamMDRangeParVector::ParVector;
 
   static constexpr Iterate direction =
-      iter == Iterate::Default
-          ? layout_iterate_type_selector<ArrayLayout>::outer_iteration_pattern
-          : iter;
+      iter == Iterate::Default ? Impl::layout_iterate_type_selector<
+                                     ArrayLayout>::outer_iteration_pattern
+                               : iter;
 
   template <class... Args>
   KOKKOS_INLINE_FUNCTION TeamVectorMDRange(TeamHandleType const& team_,
@@ -1057,7 +1114,7 @@ struct TeamVectorMDRange<Rank<N, OuterDir, InnerDir>, TeamHandle> {
 };
 
 template <typename TeamHandle, typename... Args>
-TeamVectorMDRange(TeamHandle const&, Args&&...)
+KOKKOS_DEDUCTION_GUIDE TeamVectorMDRange(TeamHandle const&, Args&&...)
     ->TeamVectorMDRange<Rank<sizeof...(Args), Iterate::Default>, TeamHandle>;
 
 template <typename Rank, typename TeamHandle, typename Lambda,

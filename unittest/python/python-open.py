@@ -7,8 +7,8 @@ has_mpi4py=False
 
 try:
     from mpi4py import __version__ as mpi4py_version
-    # tested to work with mpi4py versions 2 and 3
-    has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
+    # tested to work with mpi4py versions 2, 3, and 4
+    has_mpi4py = mpi4py_version.split('.')[0] in ['2','3','4']
 except:
     pass
 

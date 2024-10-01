@@ -91,10 +91,10 @@ class CudaInternal {
   int m_cudaDev = -1;
 
   // Device Properties
-  inline static int m_cudaArch = -1;
+  static int m_cudaArch;
   static int concurrency();
 
-  inline static cudaDeviceProp m_deviceProp;
+  static cudaDeviceProp m_deviceProp;
 
   // Scratch Spaces for Reductions
   mutable std::size_t m_scratchSpaceCount;
@@ -120,11 +120,10 @@ class CudaInternal {
   bool was_initialized = false;
   bool was_finalized   = false;
 
-  inline static std::set<int> cuda_devices = {};
-  inline static std::map<int, unsigned long*> constantMemHostStagingPerDevice =
-      {};
-  inline static std::map<int, cudaEvent_t> constantMemReusablePerDevice = {};
-  inline static std::map<int, std::mutex> constantMemMutexPerDevice     = {};
+  static std::set<int> cuda_devices;
+  static std::map<int, unsigned long*> constantMemHostStagingPerDevice;
+  static std::map<int, cudaEvent_t> constantMemReusablePerDevice;
+  static std::map<int, std::mutex> constantMemMutexPerDevice;
 
   static CudaInternal& singleton();
 
@@ -420,23 +419,6 @@ class CudaInternal {
     if constexpr (setCudaDevice) set_cuda_device();
     return cudaStreamSynchronize(stream);
   }
-
-  // The following are only available for cuda 11.2 and greater
-#if (defined(KOKKOS_ENABLE_IMPL_CUDA_MALLOC_ASYNC) && CUDART_VERSION >= 11020)
-  template <bool setCudaDevice = true>
-  cudaError_t cuda_malloc_async_wrapper(void** devPtr, size_t size,
-                                        cudaStream_t hStream = nullptr) const {
-    if constexpr (setCudaDevice) set_cuda_device();
-    return cudaMallocAsync(devPtr, size, get_input_stream(hStream));
-  }
-
-  template <bool setCudaDevice = true>
-  cudaError_t cuda_free_async_wrapper(void* devPtr,
-                                      cudaStream_t hStream = nullptr) const {
-    if constexpr (setCudaDevice) set_cuda_device();
-    return cudaFreeAsync(devPtr, get_input_stream(hStream));
-  }
-#endif
 
   // C++ API routines
   template <typename T, bool setCudaDevice = true>

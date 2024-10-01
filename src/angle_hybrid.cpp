@@ -320,6 +320,14 @@ void AngleHybrid::init_style()
     if (styles[m]) styles[m]->init_style();
 }
 
+/* ---------------------------------------------------------------------- */
+
+int AngleHybrid::check_itype(int itype, char *substyle)
+{
+  if (strcmp(keywords[map[itype]], substyle) == 0) return 1;
+  return 0;
+}
+
 /* ----------------------------------------------------------------------
    return an equilbrium angle length
 ------------------------------------------------------------------------- */

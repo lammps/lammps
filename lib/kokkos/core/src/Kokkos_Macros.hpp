@@ -55,7 +55,20 @@
 
 #ifndef KOKKOS_DONT_INCLUDE_CORE_CONFIG_H
 #include <KokkosCore_config.h>
+#include <impl/Kokkos_DesulAtomicsConfig.hpp>
 #include <impl/Kokkos_NvidiaGpuArchitectures.hpp>
+#endif
+
+#if !defined(KOKKOS_ENABLE_CXX17)
+#if __has_include(<version>)
+#include <version>
+#else
+#include <ciso646>
+#endif
+#if defined(_GLIBCXX_RELEASE) && _GLIBCXX_RELEASE < 10
+#error \
+    "Compiling with support for C++20 or later requires a libstdc++ version later than 9"
+#endif
 #endif
 
 //----------------------------------------------------------------------------
@@ -332,6 +345,10 @@
 #define KOKKOS_DEFAULTED_FUNCTION
 #endif
 
+#if !defined(KOKKOS_DEDUCTION_GUIDE)
+#define KOKKOS_DEDUCTION_GUIDE
+#endif
+
 #if !defined(KOKKOS_IMPL_HOST_FUNCTION)
 #define KOKKOS_IMPL_HOST_FUNCTION
 #endif
@@ -562,7 +579,43 @@ static constexpr bool kokkos_omp_on_host() { return false; }
 #define KOKKOS_IMPL_WARNING(desc) KOKKOS_IMPL_DO_PRAGMA(message(#desc))
 #endif
 
+// clang-format off
+#if defined(__NVCOMPILER)
+  #define KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH() \
+    _Pragma("diag_suppress 1216")
+  #define KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP() \
+    _Pragma("diag_default 1216")
+#elif defined(__EDG__)
+  #define KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH() \
+    _Pragma("warning push")                              \
+    _Pragma("warning disable 1478")
+  #define KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP() \
+    _Pragma("warning pop")
+#elif defined(__GNUC__) || defined(__clang__)
+  #define KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH() \
+    _Pragma("GCC diagnostic push")                       \
+    _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
+  #define KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP() \
+    _Pragma("GCC diagnostic pop")
+#elif defined(_MSC_VER)
+  #define KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH() \
+    _Pragma("warning(push)")                             \
+    _Pragma("warning(disable: 4996)")
+  #define KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP() \
+    _Pragma("warning(pop)")
+#else
+  #define KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+  #define KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
+// clang-format on
+
 #define KOKKOS_ATTRIBUTE_NODISCARD [[nodiscard]]
+
+#ifndef KOKKOS_ENABLE_CXX17
+#define KOKKOS_IMPL_ATTRIBUTE_UNLIKELY [[unlikely]]
+#else
+#define KOKKOS_IMPL_ATTRIBUTE_UNLIKELY
+#endif
 
 #if (defined(KOKKOS_COMPILER_GNU) || defined(KOKKOS_COMPILER_CLANG) ||        \
      defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_INTEL_LLVM) || \

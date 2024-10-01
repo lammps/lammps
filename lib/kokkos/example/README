@@ -1,7 +1,7 @@
 This directory contains example application proxies that use different
 parts of Kokkos.  If you are looking for the FENL ("finite element
-nonlinear" solve) example, it has moved into the LinAlg subpackage of
-Tpetra.
+nonlinear" solve) example, it has moved into the TrilinosCouplings
+package in Trilinos.
 
 MANIFEST:
 

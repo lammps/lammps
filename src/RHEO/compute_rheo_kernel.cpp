@@ -37,10 +37,6 @@
 #include "utils.h"
 
 #include <cmath>
-#include <gsl/gsl_cblas.h>
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_linalg.h>
-#include <gsl/gsl_matrix.h>
 
 using namespace LAMMPS_NS;
 using namespace RHEO_NS;
@@ -49,6 +45,13 @@ using namespace MathExtra;
 
 // max value of Mdim 1 + dim + dim * (dim + 1) / 2 with dim = 3
 static constexpr int MAX_MDIM = 12;
+
+// declare LAPACK functions
+
+extern "C" {
+  void dpotrf_(const char *uplo, const int *n, double *a, const int *lda, int *info);
+  void dpotri_(const char *uplo, const int *n, double *a, const int *lda, int *info);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -89,7 +92,7 @@ ComputeRHEOKernel::ComputeRHEOKernel(LAMMPS *lmp, int narg, char **arg) :
 
   comm_forward_save = comm_forward;
   corrections_calculated = 0;
-  gsl_error_flag = 0;
+  lapack_error_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -156,9 +159,9 @@ void ComputeRHEOKernel::init_list(int /*id*/, NeighList *ptr)
 
 int ComputeRHEOKernel::check_corrections(int i)
 {
-  // Skip if there were gsl errors for this atom
-  if (gsl_error_flag)
-    if (gsl_error_tags.find(atom->tag[i]) != gsl_error_tags.end()) return 0;
+  // Skip if there were lapack errors for this atom
+  if (lapack_error_flag)
+    if (lapack_error_tags.find(atom->tag[i]) != lapack_error_tags.end()) return 0;
 
   // Skip if undercoordinated
   if (coordination[i] < zmin) return 0;
@@ -558,19 +561,15 @@ void ComputeRHEOKernel::calc_dw_rk2(int i, double delx, double dely, double delz
 
 void ComputeRHEOKernel::compute_peratom()
 {
-  gsl_error_flag = 0;
-  gsl_error_tags.clear();
+  lapack_error_flag = 0;
+  lapack_error_tags.clear();
 
   if (kernel_style == QUINTIC) return;
   corrections_calculated = 1;
 
-  int i, j, ii, jj, inum, jnum, a, b, gsl_error;
+  int i, j, ii, jj, inum, jnum, a, b, lapack_error;
   double xtmp, ytmp, ztmp, r, rsq, w, vj, rhoj;
   double dx[3];
-  gsl_matrix_view gM;
-
-  // Turn off GSL error handler, revert RK to Quintic when insufficient neighbors
-  gsl_set_error_handler_off();
 
   double **x = atom->x;
   int *type = atom->type;
@@ -633,7 +632,7 @@ void ComputeRHEOKernel::compute_peratom()
     }
   } else if (correction_order > 0) {
 
-    // Moment matrix M and polynomial basis vector cut (1d for gsl compatibility)
+    // Moment matrix M and polynomial basis vector cut (1d for LAPACK compatibility)
     double H[MAX_MDIM], M[MAX_MDIM * MAX_MDIM];
 
     for (ii = 0; ii < inum; ii++) {
@@ -647,7 +646,9 @@ void ComputeRHEOKernel::compute_peratom()
 
       // Zero upper-triangle M and cut (will be symmetric):
       for (a = 0; a < Mdim; a++) {
-        for (b = a; b < Mdim; b++) { M[a * Mdim + b] = 0; }
+        for (b = a; b < Mdim; b++) {
+          M[a * Mdim + b] = 0;
+        }
       }
 
       for (jj = 0; jj < jnum; jj++) {
@@ -700,37 +701,50 @@ void ComputeRHEOKernel::compute_peratom()
 
           // Populate the upper triangle
           for (a = 0; a < Mdim; a++) {
-            for (b = a; b < Mdim; b++) { M[a * Mdim + b] += H[a] * H[b] * w * vj; }
+            for (b = a; b < Mdim; b++) {
+              M[a * Mdim + b] += H[a] * H[b] * w * vj;
+            }
           }
         }
       }
 
       // Populate the lower triangle from the symmetric entries of M:
       for (a = 0; a < Mdim; a++) {
-        for (b = a; b < Mdim; b++) { M[b * Mdim + a] = M[a * Mdim + b]; }
+        for (b = a; b < Mdim; b++) {
+          M[b * Mdim + a] = M[a * Mdim + b];
+        }
       }
 
       // Skip if undercoordinated
       if (coordination[i] < zmin) continue;
 
-      // Use gsl to get Minv, use Cholesky decomposition since the
+      // Use LAPACK to get Minv, use Cholesky decomposition since the
       // polynomials are independent, M is symmetrix & positive-definite
-      gM = gsl_matrix_view_array(M, Mdim, Mdim);
-      gsl_error = gsl_linalg_cholesky_decomp1(&gM.matrix);
+      const char uplo = 'U';
+      dpotrf_(&uplo, &Mdim, M, &Mdim, &lapack_error);
 
-      if (gsl_error) {
-        //Revert to uncorrected SPH for this particle
-        gsl_error_flag = 1;
-        gsl_error_tags.insert(tag[i]);
+      if (lapack_error) {
+        // Revert to uncorrected SPH for this particle
+        lapack_error_flag = 1;
+        lapack_error_tags.insert(tag[i]);
 
-        //check if not positive-definite
-        if (gsl_error != GSL_EDOM)
-          error->warning(FLERR, "Failed decomposition in rheo/kernel, gsl_error = {}", gsl_error);
+        // check if not positive-definite
+        if (lapack_error > 0)
+          error->warning(FLERR, "Failed DPOTRF2 decomposition in rheo/kernel, info = {}",
+                         lapack_error);
 
         continue;
       }
 
-      gsl_linalg_cholesky_invert(&gM.matrix);    //M is now M^-1
+      // M is now M^-1
+      dpotri_(&uplo, &Mdim, M, &Mdim, &lapack_error);
+
+      // make result matrix symmetric
+      for (int i = 0; i < Mdim; ++i) {
+        for (int j = i+1; j < Mdim; ++j) {
+          M[i * Mdim + j] = M[j * Mdim + i];
+        }
+      }
 
       // Correction coefficients are columns of M^-1 multiplied by an appropriate coefficient
       // Solve the linear system several times to get coefficientns

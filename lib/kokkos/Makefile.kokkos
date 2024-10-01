@@ -11,7 +11,7 @@ CXXFLAGS += $(SHFLAGS)
 endif
 
 KOKKOS_VERSION_MAJOR = 4
-KOKKOS_VERSION_MINOR = 3
+KOKKOS_VERSION_MINOR = 4
 KOKKOS_VERSION_PATCH = 1
 KOKKOS_VERSION = $(shell echo $(KOKKOS_VERSION_MAJOR)*10000+$(KOKKOS_VERSION_MINOR)*100+$(KOKKOS_VERSION_PATCH) | bc)
 
@@ -21,11 +21,11 @@ KOKKOS_DEVICES ?= "OpenMP"
 # Options:
 # Intel:    KNC,KNL,SNB,HSW,BDW,SKL,SKX,ICL,ICX,SPR
 # NVIDIA:   Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal60,Pascal61,Volta70,Volta72,Turing75,Ampere80,Ampere86,Ada89,Hopper90
-# ARM:      ARMv80,ARMv81,ARMv8-ThunderX,ARMv8-TX2,A64FX
+# ARM:      ARMv80,ARMv81,ARMv8-ThunderX,ARMv8-TX2,A64FX,ARMv9-Grace
 # IBM:      Power8,Power9
 # AMD-GPUS: AMD_GFX906,AMD_GFX908,AMD_GFX90A,AMD_GFX940,AMD_GFX942,AMD_GFX1030,AMD_GFX1100,AMD_GFX1103
 # AMD-CPUS: AMDAVX,Zen,Zen2,Zen3
-# Intel-GPUs: Gen9,Gen11,Gen12LP,DG1,XeHP,PVC
+# Intel-GPUs: Intel_Gen,Intel_Gen9,Intel_Gen11,Intel_Gen12LP,Intel_DG1,Intel_XeHP,Intel_PVC
 KOKKOS_ARCH ?= ""
 # Options: yes,no
 KOKKOS_DEBUG ?= "no"
@@ -41,7 +41,7 @@ KOKKOS_STANDALONE_CMAKE ?= "no"
 
 # Default settings specific options.
 # Options: force_uvm,use_ldg,rdc,enable_lambda,enable_constexpr,disable_malloc_async
-KOKKOS_CUDA_OPTIONS ?= "enable_lambda"
+KOKKOS_CUDA_OPTIONS ?= "disable_malloc_async"
 
 # Options: rdc
 KOKKOS_HIP_OPTIONS ?= ""
@@ -328,12 +328,43 @@ KOKKOS_INTERNAL_USE_ARCH_ICL := $(call kokkos_has_string,$(KOKKOS_ARCH),ICL)
 KOKKOS_INTERNAL_USE_ARCH_ICX := $(call kokkos_has_string,$(KOKKOS_ARCH),ICX)
 KOKKOS_INTERNAL_USE_ARCH_SPR := $(call kokkos_has_string,$(KOKKOS_ARCH),SPR)
 
-KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN := $(call kokkos_has_string,$(KOKKOS_ARCH),IntelGen)
+# Traditionally, we supported, e.g., IntelGen9 instead of Intel_Gen9. The latter
+# matches the CMake option but we also accept the former for backward-compatibility.
 KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN9 := $(call kokkos_has_string,$(KOKKOS_ARCH),IntelGen9)
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN9), 0)
+  KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN9 := $(call kokkos_has_string,$(KOKKOS_ARCH),Intel_Gen9)
+endif
 KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN11 := $(call kokkos_has_string,$(KOKKOS_ARCH),IntelGen11)
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN11), 0)
+  KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN11 := $(call kokkos_has_string,$(KOKKOS_ARCH),Intel_Gen11)
+endif
 KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN12LP := $(call kokkos_has_string,$(KOKKOS_ARCH),IntelGen12LP)
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN12LP), 0)
+  KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN12LP := $(call kokkos_has_string,$(KOKKOS_ARCH),Intel_Gen12LP)
+endif
+KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN := $(call kokkos_has_string,$(KOKKOS_ARCH),IntelGen9)
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN9), 0)
+  KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN9 := $(call kokkos_has_string,$(KOKKOS_ARCH),Intel_Gen9)
+endif
+KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN_SET := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN9)  \
+                                                     + $(KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN11) \
+                                                     + $(KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN12LP))
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN_SET), 0)
+  KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN := $(call kokkos_has_string,$(KOKKOS_ARCH),IntelGen)
+  ifeq ($(KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN), 0)
+    KOKKOS_INTERNAL_USE_ARCH_INTEL_GEN := $(call kokkos_has_string,$(KOKKOS_ARCH),Intel_Gen)
+  endif
+endif
 KOKKOS_INTERNAL_USE_ARCH_INTEL_DG1 := $(call kokkos_has_string,$(KOKKOS_ARCH),IntelDG1)
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_INTEL_DG1), 0)
+  KOKKOS_INTERNAL_USE_ARCH_INTEL_DG1 := $(call kokkos_has_string,$(KOKKOS_ARCH),Intel_DG1)
+endif
 KOKKOS_INTERNAL_USE_ARCH_INTEL_XEHP := $(call kokkos_has_string,$(KOKKOS_ARCH),IntelXeHP)
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_INTEL_XEHP), 0)
+  KOKKOS_INTERNAL_USE_ARCH_INTEL_XEHP := $(call kokkos_has_string,$(KOKKOS_ARCH),Intel_XeHP)
+endif
+# Traditionally the architecture was called PVC instead of Intel_PVC. This
+# version makes us accept IntelPVC and Intel_PVC as well.
 KOKKOS_INTERNAL_USE_ARCH_INTEL_PVC := $(call kokkos_has_string,$(KOKKOS_ARCH),PVC)
 
 # NVIDIA based.
@@ -394,7 +425,8 @@ KOKKOS_INTERNAL_USE_ARCH_ARMV81 := $(call kokkos_has_string,$(KOKKOS_ARCH),ARMv8
 KOKKOS_INTERNAL_USE_ARCH_ARMV8_THUNDERX := $(call kokkos_has_string,$(KOKKOS_ARCH),ARMv8-ThunderX)
 KOKKOS_INTERNAL_USE_ARCH_ARMV8_THUNDERX2 := $(call kokkos_has_string,$(KOKKOS_ARCH),ARMv8-TX2)
 KOKKOS_INTERNAL_USE_ARCH_A64FX := $(call kokkos_has_string,$(KOKKOS_ARCH),A64FX)
-KOKKOS_INTERNAL_USE_ARCH_ARM := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_ARMV80)+$(KOKKOS_INTERNAL_USE_ARCH_ARMV81)+$(KOKKOS_INTERNAL_USE_ARCH_ARMV8_THUNDERX)+$(KOKKOS_INTERNAL_USE_ARCH_ARMV8_THUNDERX2)+$(KOKKOS_INTERNAL_USE_ARCH_A64FX) | bc))
+KOKKOS_INTERNAL_USE_ARCH_ARMV9_GRACE := $(call kokkos_has_string,$(KOKKOS_ARCH),ARMv9-Grace)
+KOKKOS_INTERNAL_USE_ARCH_ARM := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_ARMV80)+$(KOKKOS_INTERNAL_USE_ARCH_ARMV81)+$(KOKKOS_INTERNAL_USE_ARCH_ARMV8_THUNDERX)+$(KOKKOS_INTERNAL_USE_ARCH_ARMV8_THUNDERX2)+$(KOKKOS_INTERNAL_USE_ARCH_A64FX)+$(KOKKOS_INTERNAL_USE_ARCH_ARMV9_GRACE) | bc))
 
 # IBM based.
 KOKKOS_INTERNAL_USE_ARCH_POWER8 := $(call kokkos_has_string,$(KOKKOS_ARCH),Power8)
@@ -756,6 +788,14 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_A64FX), 1)
     KOKKOS_CXXFLAGS += -msve-vector-bits=512
     KOKKOS_LDFLAGS += -msve-vector-bits=512
   endif
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ARMV9_GRACE), 1)
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ARMV9_GRACE")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ARM_NEON")
+
+  KOKKOS_CXXFLAGS += -mcpu=neoverse-v2  -msve-vector-bits=128
+  KOKKOS_LDFLAGS += -mcpu=neoverse-v2  -msve-vector-bits=128
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN), 1)
@@ -1215,6 +1255,8 @@ ifeq ($(KOKKOS_INTERNAL_DISABLE_BUNDLED_MDSPAN), 0)
   KOKKOS_CPPFLAGS+=-I$(KOKKOS_PATH)/tpls/mdspan/include
 endif
 tmp := $(call kokkos_append_header,"$H""define KOKKOS_ENABLE_IMPL_MDSPAN")
+
+tmp := $(call kokkos_append_header,"$H""define KOKKOS_ENABLE_IMPL_REF_COUNT_BRANCH_UNLIKELY")
 
 KOKKOS_INTERNAL_LS_CONFIG := $(shell ls KokkosCore_config.h 2>&1)
 

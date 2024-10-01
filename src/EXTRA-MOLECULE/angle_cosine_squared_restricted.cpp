@@ -296,3 +296,15 @@ void AngleCosineSquaredRestricted::born_matrix(int type, int i1, int i2, int i3,
 
   du2 = 2 * k[type] * numerator / denominator;
 }
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleCosineSquaredRestricted::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
+  return nullptr;
+}

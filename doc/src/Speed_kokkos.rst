@@ -399,7 +399,7 @@ KOKKOS will run properly if you are using *only one* MPI rank per GPU with a non
    mpirun -np 1 lmp_kokkos_cuda_openmpi -in in.lj -k on g 1 -sf kk
    mpirun -np 2 lmp_kokkos_cuda_openmpi -in in.lj -k on g 2 -sf kk
    mpirun -np 4 lmp_kokkos_cuda_openmpi -in in.lj -k on g 4 -sf kk
-   
+
    mpirun -np 2 lmp_kokkos_cuda_openmpi -in in.lj -k on g 1 -sf kk -pk kokkos gpu/aware off
    mpirun -np 4 lmp_kokkos_cuda_openmpi -in in.lj -k on g 2 -sf kk -pk kokkos gpu/aware off
    mpirun -np 16 lmp_kokkos_cuda_openmpi -in in.lj -k on g 4 -sf kk -pk kokkos gpu/aware off
@@ -418,7 +418,7 @@ Compiling KOKKOS package with CMake option ``-DKokkos_ENABLE_DEBUG=on`` or makef
 
 .. admonition:: CUDA MPS
     :class: note
-    
+
     If you use multiple MPI ranks per GPU, then you **MUST** enable CUDA MPS (`Multi-Process Service :: GPU Deployment and Management Documentation <https://docs.nvidia.com/deploy/mps/index.html>`_ ) to get good performance.
 
 
@@ -431,7 +431,7 @@ Troubleshooting memory allocation on GPUs
 
     export KOKKOS_TOOLS_LIBS=${HOME}/kokkos-tools/src/tools/memory-events/kp_memory_event.so
     mpirun -np 4 lmp_kokkos_cuda_openmpi -in in.lj -k on g 4 -sf kk
-    
+
 Starting with NVIDIA Pascal GPU architecture, `"Unified Virtual Memory" (UVM) <https://developer.nvidia.com/blog/unified-memory-cuda-beginners/>`_ enables scaling of larger applications to both CPU and GPU memory. Application performance depends on `memory access pattern, data residency, and GPU memory oversubscription <https://developer.nvidia.com/blog/improving-gpu-memory-oversubscription-performance/>`_ . The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` or the makefile setting ``KOKKOS_CUDA_OPTIONS=enable_lambda,force_uvm`` enables UVM in Kokkos by transparently using host RAM to supplement device RAM (with some performance penalty).
 
 Run with the KOKKOS package by editing an input script

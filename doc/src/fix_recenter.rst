@@ -3,6 +3,8 @@
 fix recenter command
 ====================
 
+Accelerator Variants: *recenter/kk*
+
 Syntax
 """"""
 

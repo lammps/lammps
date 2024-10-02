@@ -1,4 +1,5 @@
 .. index:: fix wall/region
+.. index:: fix wall/region/kk
 
 fix wall/region command
 =======================

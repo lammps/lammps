@@ -1,4 +1,5 @@
 .. index:: fix recenter
+.. index:: fix recenter/kk
 
 fix recenter command
 ====================

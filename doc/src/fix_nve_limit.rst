@@ -1,4 +1,5 @@
 .. index:: fix nve/limit
+.. index:: fix nve/limit/kk
 
 fix nve/limit command
 =====================

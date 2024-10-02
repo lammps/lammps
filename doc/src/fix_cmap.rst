@@ -1,4 +1,5 @@
 .. index:: fix cmap
+.. index:: fix cmap/kk
 
 fix cmap command
 ================

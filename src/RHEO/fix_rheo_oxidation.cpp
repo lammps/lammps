@@ -55,7 +55,7 @@ static const char cite_rheo_oxide[] =
 FixRHEOOxidation::FixRHEOOxidation(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), compute_surface(nullptr), fix_rheo(nullptr)
 {
-  if (narg != 6) error->all(FLERR, "Illegal fix command");
+  if (narg != 6) error->all(FLERR, "Illegal fix rheo/oxidation command");
 
   force_reneighbor = 1;
   next_reneighbor = -1;
@@ -69,7 +69,7 @@ FixRHEOOxidation::FixRHEOOxidation(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR, "Illegal value {} for bond type in fix rheo/oxidation", btype);
 
   rsurf = utils::numeric(FLERR, arg[5], false, lmp);
-  if (rsurf <= 0.0) error->all(FLERR, "Illegal surface distance {} in fix rheo/oxidation", cut);
+  if (rsurf <= 0.0) error->all(FLERR, "Illegal surface distance {} in fix rheo/oxidation", rsurf);
 
   cutsq = cut * cut;
 

@@ -844,7 +844,7 @@ void FixBondReact::init_list(int /*id*/, NeighList *ptr)
 
 /* ----------------------------------------------------------------------
   Identify all pairs of potentially reactive atoms for this time step.
-  This function is modified from LAMMPS’ fix bond/create.
+  This function is modified from LAMMPS' fix bond/create.
 ---------------------------------------------------------------------- */
 
 void FixBondReact::post_integrate()

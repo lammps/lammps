@@ -220,7 +220,7 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate angle style arrays:
 
-  n = atom->nbondtypes;
+  n = atom->nangletypes;
   for (int m = 0; m < nadapt; ++m)
     if (adapt[m].which == ANGLE) memory->create(adapt[m].vector_orig,n+1,"adapt:vector_orig");
 }

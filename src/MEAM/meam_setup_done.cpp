@@ -829,7 +829,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
     case L12:
       *rho01 = 8 * rhoa01 + 4 * rhoa02;
       *rho02 = 12 * rhoa01;
-      if (ialloy ==1){
+      if (ialloy == 1) {
         *rho21 = 8. / 3. * MathSpecial::square(rhoa21 * t2_meam[a] - rhoa22 * t2_meam[b]);
         denom = 8 * rhoa01 * MathSpecial::square(t2_meam[a]) + 4 * rhoa02 * MathSpecial::square(t2_meam[b]);
         if (denom > 0.)
@@ -837,6 +837,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       } else
         *rho21 = 8. / 3. * (rhoa21 - rhoa22) * (rhoa21 - rhoa22);
       if (msmeamflag) {
+        *rho21 = 8. / 3. * (rhoa21 - rhoa22) * (rhoa21 - rhoa22);
         *rho2m1 = 8. / 3. * (rhoa2m1 - rhoa2m2) * (rhoa2m1 - rhoa2m2);
       }
       break;

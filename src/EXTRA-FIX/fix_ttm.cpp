@@ -163,13 +163,13 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
 FixTTM::~FixTTM()
 {
-  delete [] infile;
-  delete [] outfile;
+  delete[] infile;
+  delete[] outfile;
 
   delete random;
 
-  delete [] gfactor1;
-  delete [] gfactor2;
+  delete[] gfactor1;
+  delete[] gfactor2;
 
   memory->destroy(flangevin);
 

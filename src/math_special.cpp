@@ -209,7 +209,7 @@ double MathSpecial::factorial(const int n)
  *
  * Copyright:
  *   (C) 2012 Massachusetts Institute of Technology
- *   (C) 2013 Forschungszentrum Jülich GmbH
+ *   (C) 2013 Forschungszentrum Juelich GmbH
  *
  * Licence:
  *   Permission is hereby granted, free of charge, to any person obtaining
@@ -233,7 +233,7 @@ double MathSpecial::factorial(const int n)
  *
  * Authors:
  *   Steven G. Johnson, Massachusetts Institute of Technology, 2012, core author
- *   Joachim Wuttke, Forschungszentrum Jülich, 2013, package maintainer
+ *   Joachim Wuttke, Forschungszentrum Juelich, 2013, package maintainer
  *
  * Website:
  *   https://jugit.fz-juelich.de/mlz/libcerf

@@ -318,7 +318,6 @@ void FixEfield::post_force(int vflag)
   double **x = atom->x;
   double fx, fy, fz;
   double v[6], unwrap[3];
-  ;
 
   // constant efield
 

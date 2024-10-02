@@ -24,7 +24,9 @@ namespace LAMMPS_NS {
 struct TagDomain_remap_all{};
 struct TagDomain_image_flip{};
 struct TagDomain_lamda2x{};
+struct TagDomain_lamda2x_group{};
 struct TagDomain_x2lamda{};
+struct TagDomain_x2lamda_group{};
 
 class DomainKokkos : public Domain {
  public:
@@ -35,7 +37,9 @@ class DomainKokkos : public Domain {
   void remap_all();
   void image_flip(int, int, int);
   void x2lamda(int) override;
+  void x2lamda(int,int) override;
   void lamda2x(int) override;
+  void lamda2x(int,int) override;
   // forward remaining x2lamda() and lambda2x() variants to parent class
   void x2lamda(double *a, double *b) override { Domain::x2lamda(a,b); }
   void lamda2x(double *a, double *b) override { Domain::lamda2x(a,b); }
@@ -55,17 +59,25 @@ class DomainKokkos : public Domain {
   void operator()(TagDomain_lamda2x, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
+  void operator()(TagDomain_lamda2x_group, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
   void operator()(TagDomain_x2lamda, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagDomain_x2lamda_group, const int&) const;
 
   static KOKKOS_INLINE_FUNCTION
   Few<double,3> unmap(Few<double,3> prd, Few<double,6> h, int triclinic,
       Few<double,3> x, imageint image);
 
  private:
+  int groupbit;
   double lo[3],hi[3],period[3];
   int n_flip, m_flip, p_flip;
   ArrayTypes<LMPDeviceType>::t_x_array x;
   ArrayTypes<LMPDeviceType>::t_imageint_1d image;
+  ArrayTypes<LMPDeviceType>::t_int_1d mask;
 };
 
 KOKKOS_INLINE_FUNCTION

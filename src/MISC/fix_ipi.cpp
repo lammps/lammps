@@ -40,7 +40,7 @@ using namespace FixConst;
  * Please cite:
  * Ceriotti, M., More, J., & Manolopoulos, D. E. (2014).
  * i-PI: A Python interface for ab initio path integral molecular dynamics simulations.
- * Computer Physics Communications, 185, 1019–1026. doi:10.1016/j.cpc.2013.10.027
+ * Computer Physics Communications, 185, 1019-1026. doi:10.1016/j.cpc.2013.10.027
  * And see [https://github.com/i-pi/i-pi] to download a version of i-PI
  ******************************************************************************************/
 

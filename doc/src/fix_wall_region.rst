@@ -3,6 +3,8 @@
 fix wall/region command
 =======================
 
+Accelerator Variants: *wall/region/kk*
+
 Syntax
 """"""
 

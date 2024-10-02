@@ -14,7 +14,7 @@ style, but can be adapted using :doc:`thermo_modify line <thermo_modify>`.
 
 The thermo styles (one, multi, etc) are defined by lists of keywords
 with associated formats for integer and floating point numbers and
-identified but an enumerator constant.  Adding a new style thus mostly
+identified by an enumerator constant.  Adding a new style thus mostly
 requires defining a new list of keywords and the associated formats and
 then inserting the required output processing where the enumerators are
 identified.  Search for the word "CUSTOMIZATION" with references to

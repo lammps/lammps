@@ -12,3 +12,4 @@ details are provided for writing code for LAMMPS.
 
    Developer_write_pair
    Developer_write_fix
+   Developer_write_command

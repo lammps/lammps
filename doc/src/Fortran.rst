@@ -305,6 +305,8 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype extract_setting: function
    :f extract_global: :f:func:`extract_global`
    :ftype extract_global: function
+   :f map_atom: :f:func:`map_atom`
+   :ftype map_atom: function
    :f extract_atom: :f:func:`extract_atom`
    :ftype extract_atom: function
    :f extract_compute: :f:func:`extract_compute`
@@ -1075,7 +1077,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. list-table::
       :header-rows: 1
-      :widths: auto
+      :widths: 21 20 40 19
 
       * - Style
         - Type
@@ -1165,7 +1167,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. list-table::
       :header-rows: 1
-      :widths: auto
+      :widths: 20 19 11 11 21 18
 
       * - Style
         - Type
@@ -2325,7 +2327,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    retrieved via :f:func:`get_last_error_message`.  This allows to
    restart a calculation or delete and recreate the LAMMPS instance when
    a C++ exception occurs.  One application of using exceptions this way
-   is the :ref:`lammps_shell`.
+   is the :ref:`lammps_gui`.
 
    :to: :cpp:func:`lammps_config_has_exceptions`
    :r has_exceptions:

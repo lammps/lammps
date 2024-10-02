@@ -23,8 +23,6 @@
 
 using namespace LAMMPS_NS;
 
-enum { CONSTANT, VARIABLE };
-
 static double GetRoot2D(double r0, double z0, double z1, double g);
 static double GetRoot3D(double r0, double r1, double z0, double z1, double z2, double g);
 

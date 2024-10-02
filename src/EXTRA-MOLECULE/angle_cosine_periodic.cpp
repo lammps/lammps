@@ -336,3 +336,16 @@ void AngleCosinePeriodic::born_matrix(int type, int i1, int i2, int i3, double &
   du = prefactor * sin(m_angle) / s;
   du2 = prefactor * (c * sin(m_angle) - s * cos(m_angle) * multiplicity[type]) / (s * s * s);
 }
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleCosinePeriodic::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "b") == 0) return (void *) b;
+  if (strcmp(str, "multiplicity") == 0) return (void *) multiplicity;
+  return nullptr;
+}

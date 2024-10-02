@@ -32,6 +32,7 @@ ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 4) error->all(FLERR, "Illegal compute msd/chunk command");
 
+  msdnchunk = 0;
   array_flag = 1;
   size_array_cols = 4;
   size_array_rows = 0;
@@ -117,14 +118,14 @@ void ComputeMSDChunk::compute_array()
   double massone;
   double unwrap[3];
 
-  int oldnchunk = nchunk;
   ComputeChunk::compute_array();
   int *ichunk = cchunk->ichunk;
 
   // first time call, allocate per-chunk arrays
   // thereafter, require nchunk remain the same
 
-  if (!firstflag && (oldnchunk != nchunk))
+  if (firstflag) msdnchunk = nchunk;
+  else if (msdnchunk != nchunk)
     error->all(FLERR, "Compute msd/chunk nchunk is not static");
 
   // zero local per-chunk values

@@ -339,8 +339,6 @@ Some common LAMMPS specific variables
      - build LAMMPS with OpenMP support (default: ``on`` if compiler supports OpenMP fully, else ``off``)
    * - ``BUILD_TOOLS``
      - compile some additional executables from the ``tools`` folder (default: ``off``)
-   * - ``BUILD_LAMMPS_SHELL``
-     - compile the LAMMPS shell from the ``tools/lammps-shell`` folder (default: ``off``)
    * - ``BUILD_DOC``
      - include building the HTML format documentation for packaging/installing (default: ``off``)
    * - ``CMAKE_TUNE_FLAGS``
@@ -350,7 +348,7 @@ Some common LAMMPS specific variables
    * - ``FFT``
      - select which FFT library to use: ``FFTW3``, ``MKL``, ``KISS`` (default, unless FFTW3 is found)
    * - ``FFT_KOKKOS``
-     - select which FFT library to use in Kokkos-enabled styles: ``FFTW3``, ``MKL``, ``HIPFFT``, ``CUFFT``, ``KISS`` (default)
+     - select which FFT library to use in Kokkos-enabled styles: ``FFTW3``, ``MKL``, ``HIPFFT``, ``CUFFT``, ``MKL_GPU``, ``KISS`` (default)
    * - ``FFT_SINGLE``
      - select whether to use single precision FFTs (default: ``off``)
    * - ``WITH_JPEG``

@@ -184,7 +184,7 @@ package so that it is optional.
 Included Fortran code has to be compatible with the Fortran 2003
 standard.  Since not all platforms supported by LAMMPS provide good
 support for compiling Fortran files, it should be considered to rewrite
-these parts as C++ code, if possible and thus allow for a wider adoption
+these parts as C++ code, if possible, and thus allow for a wider adoption
 of the contribution.  As of January 2023, all previously included
 Fortran code for the LAMMPS executable has been replaced by equivalent
 C++ code.

@@ -52,7 +52,7 @@ file; angle coefficients need to be re-specified.
    exist between 3 bonded atoms.
 
 In the formulas listed for each angle style, *theta* is the angle
-between the 3 atoms in the angle.
+between the three atoms in the angle.
 
 ----------
 

@@ -34,6 +34,7 @@ BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp)
   nstyles = 0;
   has_quartic = -1;
   nbondlist = nullptr;
+  orig_map = nullptr;
   maxbond = nullptr;
   bondlist = nullptr;
 }
@@ -51,14 +52,7 @@ BondHybrid::~BondHybrid()
 
   delete[] svector;
 
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(map);
-    delete[] nbondlist;
-    delete[] maxbond;
-    for (int i = 0; i < nstyles; i++) memory->destroy(bondlist[i]);
-    delete[] bondlist;
-  }
+  deallocate();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -88,6 +82,10 @@ void BondHybrid::compute(int eflag, int vflag)
         memory->destroy(bondlist[m]);
         maxbond[m] = nbondlist[m] + EXTRA;
         memory->create(bondlist[m], maxbond[m], 3, "bond_hybrid:bondlist");
+        if (partial_flag) {
+          memory->destroy(orig_map[m]);
+          memory->create(orig_map[m], maxbond[m], "bond_hybrid:orig_map");
+        }
       }
       nbondlist[m] = 0;
     }
@@ -98,6 +96,8 @@ void BondHybrid::compute(int eflag, int vflag)
       bondlist[m][n][0] = bondlist_orig[i][0];
       bondlist[m][n][1] = bondlist_orig[i][1];
       bondlist[m][n][2] = bondlist_orig[i][2];
+      if (partial_flag)
+        orig_map[m][n] = i;
       nbondlist[m]++;
     }
   }
@@ -142,6 +142,21 @@ void BondHybrid::compute(int eflag, int vflag)
     }
   }
 
+  // If bond style can be deleted by setting type to zero (BPM or quartic), update bondlist_orig
+  //   Otherwise, bond type could be restored back to its original value during reneighboring
+  //   Use orig_map to propagate changes from temporary bondlist array back to original array
+
+  if (partial_flag) {
+    for (m = 0; m < nstyles; m++) {
+      for (i = 0; i < nbondlist[m]; i++) {
+        if (bondlist[m][i][2] <= 0) {
+          n = orig_map[m][i];
+          bondlist_orig[n][2] = bondlist[m][i][2];
+        }
+      }
+    }
+  }
+
   // restore ptrs to original bondlist
 
   neighbor->nbondlist = nbondlist_orig;
@@ -161,9 +176,29 @@ void BondHybrid::allocate()
 
   nbondlist = new int[nstyles];
   maxbond = new int[nstyles];
+  orig_map = new int *[nstyles];
   bondlist = new int **[nstyles];
   for (int m = 0; m < nstyles; m++) maxbond[m] = 0;
   for (int m = 0; m < nstyles; m++) bondlist[m] = nullptr;
+  for (int m = 0; m < nstyles; m++) orig_map[m] = nullptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void BondHybrid::deallocate()
+{
+  if (!allocated) return;
+
+  allocated = 0;
+
+  memory->destroy(setflag);
+  memory->destroy(map);
+  delete[] nbondlist;
+  delete[] maxbond;
+  for (int i = 0; i < nstyles; i++) memory->destroy(bondlist[i]);
+  delete[] bondlist;
+  for (int i = 0; i < nstyles; i++) memory->destroy(orig_map[i]);
+  delete[] orig_map;
 }
 
 /* ----------------------------------------------------------------------
@@ -186,15 +221,7 @@ void BondHybrid::settings(int narg, char **arg)
     has_quartic = -1;
   }
 
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(map);
-    delete[] nbondlist;
-    delete[] maxbond;
-    for (i = 0; i < nstyles; i++) memory->destroy(bondlist[i]);
-    delete[] bondlist;
-  }
-  allocated = 0;
+  deallocate();
 
   // allocate list of sub-styles
 
@@ -259,7 +286,12 @@ void BondHybrid::flags()
     if (styles[m]) comm_forward = MAX(comm_forward, styles[m]->comm_forward);
     if (styles[m]) comm_reverse = MAX(comm_reverse, styles[m]->comm_reverse);
     if (styles[m]) comm_reverse_off = MAX(comm_reverse_off, styles[m]->comm_reverse_off);
+    if (styles[m]) partial_flag = MAX(partial_flag, styles[m]->partial_flag);
   }
+
+  for (m = 0; m < nstyles; m++)
+    if (styles[m]->partial_flag != partial_flag)
+      error->all(FLERR, "Cannot hybridize bond styles with different topology settings");
 
   init_svector();
 }
@@ -350,6 +382,15 @@ void BondHybrid::init_style()
   // to create an entry for it in the bond type to sub-style map
 
   if (has_quartic >= 0) map[0] = has_quartic;
+  else map[0] = -1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int BondHybrid::check_itype(int itype, char *substyle)
+{
+  if (strcmp(keywords[map[itype]], substyle) == 0) return 1;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -400,7 +441,7 @@ void BondHybrid::read_restart(FILE *fp)
     keywords[m] = new char[n];
     if (me == 0) utils::sfread(FLERR, keywords[m], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(keywords[m], n, MPI_CHAR, 0, world);
-    styles[m] = force->new_bond(keywords[m], 0, dummy);
+    styles[m] = force->new_bond(keywords[m], 1, dummy);
     styles[m]->read_restart_settings(fp);
   }
 }

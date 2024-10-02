@@ -116,6 +116,7 @@ if (test $1 = "KSPACE") then
   depend CG-SPICA
   depend CORESHELL
   depend DIELECTRIC
+  depend DPD-BASIC
   depend GPU
   depend KOKKOS
   depend OPT
@@ -184,10 +185,18 @@ if (test $1 = "ML-PACE") then
   depend KOKKOS
 fi
 
+if (test $1 = "ML-POD") then
+  depend KOKKOS
+fi
+
 if (test $1 = "ML-SNAP") then
   depend ML-IAP
   depend KOKKOS
   depend INTEL
+fi
+
+if (test $1 = "ML-UF3") then
+  depend KOKKOS
 fi
 
 if (test $1 = "CG-SPICA") then

@@ -214,8 +214,10 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg], "inputs") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, mycmd + " inputs", error);
-      if (strcmp(arg[iarg+1], "peratom") == 0) input_mode = PERATOM;
-      else if (strcmp(arg[iarg+1], "local") == 0) input_mode = LOCAL;
+      if (strcmp(arg[iarg + 1], "peratom") == 0)
+        input_mode = PERATOM;
+      else if (strcmp(arg[iarg + 1], "local") == 0)
+        input_mode = LOCAL;
       iarg += 2;
     } else
       error->all(FLERR, "Unknown compute {} keyword: {}", style, arg[iarg]);
@@ -242,7 +244,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 
   for (auto &val : values) {
     if (val.which == ArgInfo::X || val.which == ArgInfo::V || val.which == ArgInfo::F) {
-      if (input_mode == LOCAL) error->all(FLERR,"Compute {} inputs must be all local");
+      if (input_mode == LOCAL) error->all(FLERR, "Compute {} inputs must be all local");
 
     } else if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
@@ -251,11 +253,14 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 
       if (input_mode == PERATOM) {
         if (!val.val.c->peratom_flag)
-          error->all(FLERR, "Compute {} compute {} does not calculate per-atom values", style, val.id);
+          error->all(FLERR, "Compute {} compute {} does not calculate per-atom values", style,
+                     val.id);
         if (val.argindex == 0 && val.val.c->size_peratom_cols != 0)
-          error->all(FLERR, "Compute {} compute {} does not calculate a per-atom vector", style, val.id);
+          error->all(FLERR, "Compute {} compute {} does not calculate a per-atom vector", style,
+                     val.id);
         if (val.argindex && val.val.c->size_peratom_cols == 0)
-          error->all(FLERR, "Compute {} compute {} does not calculate a per-atom array", style, val.id);
+          error->all(FLERR, "Compute {} compute {} does not calculate a per-atom array", style,
+                     val.id);
         if (val.argindex && val.argindex > val.val.c->size_peratom_cols)
           error->all(FLERR, "Compute {} compute {} array is accessed out-of-range", style, val.id);
 
@@ -263,9 +268,11 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
         if (!val.val.c->local_flag)
           error->all(FLERR, "Compute {} compute {} does not calculate local values", style, val.id);
         if (val.argindex == 0 && val.val.c->size_local_cols != 0)
-          error->all(FLERR, "Compute {} compute {} does not calculate a local vector", style, val.id);
+          error->all(FLERR, "Compute {} compute {} does not calculate a local vector", style,
+                     val.id);
         if (val.argindex && val.val.c->size_local_cols == 0)
-          error->all(FLERR, "Compute {} compute {} does not calculate a local array", style, val.id);
+          error->all(FLERR, "Compute {} compute {} does not calculate a local array", style,
+                     val.id);
         if (val.argindex && val.argindex > val.val.c->size_local_cols)
           error->all(FLERR, "Compute {} compute {} array is accessed out-of-range", style, val.id);
       }
@@ -278,7 +285,8 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
         if (!val.val.f->peratom_flag)
           error->all(FLERR, "Compute {} fix {} does not calculate per-atom values", style, val.id);
         if (val.argindex == 0 && (val.val.f->size_peratom_cols != 0))
-          error->all(FLERR, "Compute {} fix {} does not calculate a per-atom vector", style, val.id);
+          error->all(FLERR, "Compute {} fix {} does not calculate a per-atom vector", style,
+                     val.id);
         if (val.argindex && (val.val.f->size_peratom_cols == 0))
           error->all(FLERR, "Compute {} fix {} does not calculate a per-atom array", style, val.id);
         if (val.argindex && (val.argindex > val.val.f->size_peratom_cols))
@@ -296,7 +304,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
       }
 
     } else if (val.which == ArgInfo::VARIABLE) {
-      if (input_mode == LOCAL) error->all(FLERR,"Compute {} inputs must be all local");
+      if (input_mode == LOCAL) error->all(FLERR, "Compute {} inputs must be all local");
       val.val.v = input->variable->find(val.id.c_str());
       if (val.val.v < 0)
         error->all(FLERR, "Variable name {} for compute {} does not exist", val.id, style);
@@ -417,7 +425,8 @@ void ComputeReduce::compute_vector()
   } else if (mode == MINN) {
     if (!replace) {
       for (int m = 0; m < nvalues; m++)
-        MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, this->scalar_reduction_operation, world);
+        MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, this->scalar_reduction_operation,
+                      world);
 
     } else {
       for (int m = 0; m < nvalues; m++)
@@ -437,7 +446,8 @@ void ComputeReduce::compute_vector()
   } else if (mode == MAXX) {
     if (!replace) {
       for (int m = 0; m < nvalues; m++)
-        MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, this->scalar_reduction_operation, world);
+        MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, this->scalar_reduction_operation,
+                      world);
 
     } else {
       for (int m = 0; m < nvalues; m++)

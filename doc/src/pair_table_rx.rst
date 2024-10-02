@@ -49,7 +49,7 @@ distances.  During a simulation, these tables are used to interpolate
 energy and force values as needed.  The interpolation is done in one
 of 4 styles: *lookup*, *linear*, *spline*, or *bitmap*\ .
 
-For the *lookup* style, the distance between 2 atoms is used to find
+For the *lookup* style, the distance between two atoms is used to find
 the nearest table entry, which is the energy or force.
 
 For the *linear* style, the pair distance is used to find 2

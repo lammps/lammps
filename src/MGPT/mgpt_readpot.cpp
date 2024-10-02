@@ -107,7 +107,7 @@ static void getparmindata(const char *potin_file,int nvol[1],double vol0[1],doub
       }
     }
 
-    fgets(line,sizeof(line),in);
+    (void) fgets(line,sizeof(line),in);
     sscanf(line,"%lf %lf %lf %lf",&zval,&ivol,&rws,&mass);
     if (n >= vsize) {
       vsize = 2*vsize;
@@ -117,11 +117,11 @@ static void getparmindata(const char *potin_file,int nvol[1],double vol0[1],doub
     n = n + 1;
 
     for (i = 0; i<5; i++)
-      fgets(line,sizeof(line),in);
+      (void) fgets(line,sizeof(line),in);
     sscanf(line,"%lf %lf %lf",&r0x,&r1x,&drx);
     nrx = (int) ((r1x-r0x)/drx + 1.1); /* Really: 1+round((r1-r0)/dr) */
     for (i = 0; i<nrx; i++)
-      fgets(line,sizeof(line),in);
+      (void) fgets(line,sizeof(line),in);
   }
   fclose(in);
 
@@ -185,7 +185,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
   /* Read potential data */
   in = fopen(parmin_file,"r");
   do {
-    fgets(line,sizeof(line),in);
+    (void) fgets(line,sizeof(line),in);
   } while (line[strspn(line," \t")] == '#');
 
   /* Test to see whether this is a one-line or two-line version of parmin */
@@ -201,7 +201,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
   } else {
     /* Two-line version, reparse this line, and read second line */
     sscanf(line,"%lf %lf %lf %lf",&x0,&x1,&dx,&vol0);
-    fgets(line,sizeof(line),in);
+    (void) fgets(line,sizeof(line),in);
     sscanf(line,"%lf %lf %lf %lf %d",&ddl[1],&ddl[2],&ddl[3],&ddl[4],&L);
 
   }
@@ -244,7 +244,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
   for (ii = 0; ii<nx; ii++) {
 
     do {
-      fgets(line,sizeof(line),in);
+      (void) fgets(line,sizeof(line),in);
     } while (line[strspn(line," \t")] == '#');
 
     metalx[0] = 0;
@@ -304,7 +304,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
     }
     //printf("LINE: %s\n",line);
     //printf("metal = \'%s\'  ipot = %d  mode = %d\n",metalx,ipotx,modex);
-    fgets(line,sizeof(line),in);
+    (void) fgets(line,sizeof(line),in);
     sscanf(line,"%lf %lf %lf %lf",&zval,&ivol,&rws,&mass);
     /*{
       double xi = x0 + i/((double) (nx-1)) * (x1-x0);
@@ -327,12 +327,12 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
       exit(1);
     } else tag[i] = 1;
 
-    fgets(line,sizeof(line),in);
+    (void) fgets(line,sizeof(line),in);
     sscanf(line,"%lf %lf %lf %lf",&r0rwstab[i],&altab[i],&rcrws,&rmrws);
-    fgets(line,sizeof(line),in);
+    (void) fgets(line,sizeof(line),in);
     sscanf(line,"%lf %lf %lf",&p1tab[i],&unused,&evol0tab[i]);
 
-    fgets(line,sizeof(line),in);
+    (void) fgets(line,sizeof(line),in);
     sscanf(line,"%lf %lf %lf %lf %lf",
            &vatab[i],&vbtab[i],&vctab[i],&vdtab[i],&vetab[i]);
     if (ipot == 1) {
@@ -341,9 +341,9 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
       vetab[i] *= vetab[i];
     }
 
-    fgets(line,sizeof(line),in);
+    (void) fgets(line,sizeof(line),in);
 
-    fgets(line,sizeof(line),in);
+    (void) fgets(line,sizeof(line),in);
     sscanf(line,"%lf %lf %lf",&r0x,&r1x,&drx);
     nrx = (int) ((r1x-r0x)/drx + 1.1); /* Really: 1+round((r1-r0)/dr) */
 
@@ -356,7 +356,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
 
     for (j = 0; j<nr; j++) {
       double rj,ktan,dvdvol;
-      fgets(line,sizeof(line),in);
+      (void) fgets(line,sizeof(line),in);
       sscanf(line,"%lf %lf %lf %lf",
              &rj,&vpairtab[i*nr+j],&ktan,&dvdvol);
 
@@ -531,7 +531,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
 
 /*
 int main(int argc,char *argv[]) {
-  double vol = atof(argv[3]);
+  double vol = std::stod(argv[3]);
   int n = 25,i;
 
   printf("%% parmin = %s\n%% potin = %s\n%% vol = %15.5e\n",

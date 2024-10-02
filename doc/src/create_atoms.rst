@@ -10,7 +10,7 @@ Syntax
 
    create_atoms type style args keyword values ...
 
-* type = atom type (1-Ntypes) of atoms to create (offset for molecule creation)
+* type = atom type (1-Ntypes or type label) of atoms to create (offset for molecule creation)
 * style = *box* or *region* or *single* or *mesh* or *random*
 
   .. parsed-literal::
@@ -37,7 +37,7 @@ Syntax
          seed = random # seed (positive integer)
        *basis* values = M itype
          M = which basis atom
-         itype = atom type (1-N) to assign to this basis atom
+         itype = atom type (1-Ntypes or type label) to assign to this basis atom
        *ratio* values = frac seed
          frac = fraction of lattice sites (0 to 1) to populate randomly
          seed = random # seed (positive integer)
@@ -74,6 +74,13 @@ Examples
 .. code-block:: LAMMPS
 
    create_atoms 1 box
+
+   labelmap atom 1 Pt
+   create_atoms Pt box
+
+   labelmap atom 1 C 2 Si
+   create_atoms C region regsphere basis Si C
+
    create_atoms 3 region regsphere basis 2 3
    create_atoms 3 region regsphere basis 2 3 ratio 0.5 74637
    create_atoms 3 single 0 0 5
@@ -175,9 +182,9 @@ a simulation box which replicates that unit cell along each of the
    well as the atoms created by this command with their per-atom
    information (e.g. coordinates, velocities) are converted (rotated)
    from general to restricted triclinic form when the two commands are
-   invoked.  The <Howto_triclinic>` doc page also discusses other
-   LAMMPS commands which can input/output general triclinic
-   representations of the simulation box and per-atom data.
+   invoked.  The :doc:`Howto_triclinic <Howto_triclinic>` doc page also
+   discusses other LAMMPS commands which can input/output general
+   triclinic representations of the simulation box and per-atom data.
 
 The *box* style will fill the entire general triclinic box with
 particles on the lattice, as explained above.
@@ -636,5 +643,4 @@ checked, *maxtry* = 10, and *units* = lattice.
 
 .. _Roberts2019:
 
-**(Roberts)** R. Roberts (2019) "Evenly Distributing Points in a Triangle." Extreme Learning.
-`<http://extremelearning.com.au/evenly-distributing-points-in-a-triangle/>`_
+**(Roberts)** R. Roberts (2019) "Evenly Distributing Points in a Triangle." Extreme Learning.  `<http://extremelearning.com.au/evenly-distributing-points-in-a-triangle/>`_

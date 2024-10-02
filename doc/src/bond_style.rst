@@ -59,10 +59,10 @@ coefficients need to be re-specified.
    When both a bond and pair style is defined, the
    :doc:`special_bonds <special_bonds>` command often needs to be used to
    turn off (or weight) the pairwise interaction that would otherwise
-   exist between 2 bonded atoms.
+   exist between two bonded atoms.
 
 In the formulas listed for each bond style, *r* is the distance
-between the 2 atoms in the bond.
+between the two atoms in the bond.
 
 ----------
 
@@ -105,6 +105,7 @@ accelerated styles exist.
 * :doc:`oxdna2/fene <bond_oxdna>` - same as oxdna but used with different pair styles
 * :doc:`oxrna2/fene <bond_oxdna>` - modified FENE bond suitable for RNA modeling
 * :doc:`quartic <bond_quartic>` - breakable quartic bond
+* :doc:`rheo/shell <bond_rheo_shell>` - shell bond for oxidation modeling in RHEO
 * :doc:`special <bond_special>` - enable special bond exclusions for 1-5 pairs and beyond
 * :doc:`table <bond_table>` - tabulated by bond length
 

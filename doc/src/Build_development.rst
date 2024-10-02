@@ -88,8 +88,8 @@ on recording all commands required to do the compilation.
 
 .. _sanitizer:
 
-Address, Undefined Behavior, and Thread Sanitizer Support (CMake only)
-----------------------------------------------------------------------
+Address, Leak, Undefined Behavior, and Thread Sanitizer Support (CMake only)
+----------------------------------------------------------------------------
 
 Compilers such as GCC and Clang support generating instrumented binaries
 which use different sanitizer libraries to detect problems in the code
@@ -110,6 +110,7 @@ compilation and linking stages.  This is done through setting the
 
    -D ENABLE_SANITIZER=none       # no sanitizer active (default)
    -D ENABLE_SANITIZER=address    # enable address sanitizer / memory leak checker
+   -D ENABLE_SANITIZER=hwaddress  # enable hardware assisted address sanitizer / memory leak checker
    -D ENABLE_SANITIZER=leak       # enable memory leak checker (only)
    -D ENABLE_SANITIZER=undefined  # enable undefined behavior sanitizer
    -D ENABLE_SANITIZER=thread     # enable thread sanitizer
@@ -137,12 +138,27 @@ during development:
 The status of this automated testing can be viewed on `https://ci.lammps.org
 <https://ci.lammps.org>`_.
 
-The scripts and inputs for integration, run, and regression testing
-are maintained in a
-`separate repository <https://github.com/lammps/lammps-testing>`_
-of the LAMMPS project on GitHub.  A few tests are also run as GitHub
-Actions and their configuration files are in the ``.github/workflows/``
-folder of the LAMMPS git tree.
+The scripts and inputs for integration, run, and legacy regression
+testing are maintained in a `separate repository
+<https://github.com/lammps/lammps-testing>`_ of the LAMMPS project on
+GitHub.  A few tests are also run as GitHub Actions and their
+configuration files are in the ``.github/workflows/`` folder of the
+LAMMPS git tree.
+
+Regression tests can also be performed locally with the :ref:`regression
+tester tool <regression>`.  The tool checks if a given LAMMPS binary run
+with selected input examples produces thermo output that is consistent
+with the provided log files.  The script can be run in one pass over all
+available input files, but it can also first create multiple lists of
+inputs or folders that can then be run with multiple workers
+concurrently to speed things up.  Another mode allows to do a quick
+check of inputs that contain commands that have changes in the current
+checkout branch relative to a git branch.  This works similar to the two
+pass mode, but will select only shorter runs and no more than 100 inputs
+that are chosen randomly.  This ensures that this test runs
+significantly faster compared to the full test run.  These test runs can
+also be performed with instrumented LAMMPS binaries (see previous
+section).
 
 The unit testing facility is integrated into the CMake build process of
 the LAMMPS source code distribution itself.  It can be enabled by
@@ -152,7 +168,12 @@ development headers to compile (if those are not found locally a recent
 version of that library will be downloaded and compiled along with
 LAMMPS and the test programs) and will download and compile a specific
 version of the `GoogleTest <https://github.com/google/googletest/>`_ C++
-test framework that is used to implement the tests.
+test framework that is used to implement the tests.  Those unit tests
+may be combined with memory access and leak checking with valgrind
+(see below for how to enable it).  In that case, running so-called
+death tests will create a lot of false positives and thus they can be
+disabled by configuring compilation with the additional setting
+``-D SKIP_DEATH_TESTS=on``.
 
 .. admonition:: Software version and LAMMPS configuration requirements
    :class: note
@@ -175,24 +196,24 @@ The output of this command will be looking something like this:
     $ ctest
     Test project /home/akohlmey/compile/lammps/build-testing
          Start   1: RunLammps
-   1/563 Test   #1: RunLammps ..........................................   Passed    0.28 sec
+   1/563 Test   #1: RunLammps ..................................   Passed    0.28 sec
          Start   2: HelpMessage
-   2/563 Test   #2: HelpMessage ........................................   Passed    0.06 sec
+   2/563 Test   #2: HelpMessage ................................   Passed    0.06 sec
          Start   3: InvalidFlag
-   3/563 Test   #3: InvalidFlag ........................................   Passed    0.06 sec
+   3/563 Test   #3: InvalidFlag ................................   Passed    0.06 sec
          Start   4: Tokenizer
-   4/563 Test   #4: Tokenizer ..........................................   Passed    0.05 sec
+   4/563 Test   #4: Tokenizer ..................................   Passed    0.05 sec
          Start   5: MemPool
-   5/563 Test   #5: MemPool ............................................   Passed    0.05 sec
+   5/563 Test   #5: MemPool ....................................   Passed    0.05 sec
          Start   6: ArgUtils
-   6/563 Test   #6: ArgUtils ...........................................   Passed    0.05 sec
+   6/563 Test   #6: ArgUtils ...................................   Passed    0.05 sec
        [...]
          Start 561: ImproperStyle:zero
- 561/563 Test #561: ImproperStyle:zero .................................   Passed    0.07 sec
+ 561/563 Test #561: ImproperStyle:zero .........................   Passed    0.07 sec
          Start 562: TestMliapPyUnified
- 562/563 Test #562: TestMliapPyUnified .................................   Passed    0.16 sec
+ 562/563 Test #562: TestMliapPyUnified .........................   Passed    0.16 sec
          Start 563: TestPairList
- 563/563 Test #563: TestPairList .......................................   Passed    0.06 sec
+ 563/563 Test #563: TestPairList ...............................   Passed    0.06 sec
 
  100% tests passed, 0 tests failed out of 563
 
@@ -207,24 +228,25 @@ The output of this command will be looking something like this:
 The ``ctest`` command has many options, the most important ones are:
 
 .. list-table::
+   :widths: 20 80
 
    * - Option
      - Function
-   * - -V
+   * - ``-V``
      - verbose output: display output of individual test runs
-   * - -j <num>
+   * - ``-j <num>``
      - parallel run: run <num> tests in parallel
-   * - -R <regex>
+   * - ``-R <regex>``
      - run subset of tests matching the regular expression <regex>
-   * - -E <regex>
+   * - ``-E <regex>``
      - exclude subset of tests matching the regular expression <regex>
-   * - -L <regex>
+   * - ``-L <regex>``
      - run subset of tests with a label matching the regular expression <regex>
-   * - -LE <regex>
+   * - ``-LE <regex>``
      - exclude subset of tests with a label matching the regular expression <regex>
-   * - -N
+   * - ``-N``
      - dry-run: display list of tests without running them
-   * - -T memcheck
+   * - ``-T memcheck``
      - run tests with valgrind memory checker (if available)
 
 In its full implementation, the unit test framework will consist of multiple
@@ -330,16 +352,17 @@ paths in the individual source files.
 The force style test programs have a common set of options:
 
 .. list-table::
+   :widths: 25 75
 
    * - Option
      - Function
-   * - -g <newfile>
+   * - ``-g <newfile>``
      - regenerate reference data in new YAML file
-   * - -u
+   * - ``-u``
      - update reference data in the original YAML file
-   * - -s
+   * - ``-s``
      - print error statistics for each group of comparisons
-   * - -v
+   * - ``-v``
      - verbose output: also print the executed LAMMPS commands
 
 The ``ctest`` tool has no mechanism to directly pass flags to the individual
@@ -353,10 +376,10 @@ set in an environment variable ``TEST_ARGS``. Example:
 To add a test for a style that is not yet covered, it is usually best
 to copy a YAML file for a similar style to a new file, edit the details
 of the style (how to call it, how to set its coefficients) and then
-run test command with either the *-g* and the replace the initial
-test file with the regenerated one or the *-u* option.  The *-u* option
+run test command with either the ``-g`` and the replace the initial
+test file with the regenerated one or the ``-u`` option.  The ``-u`` option
 will destroy the original file, if the generation run does not complete,
-so using *-g* is recommended unless the YAML file is fully tested
+so using ``-g`` is recommended unless the YAML file is fully tested
 and working.
 
 Some of the force style tests are rather slow to run and some are very
@@ -506,27 +529,51 @@ After post-processing with ``gen_coverage_html`` the results are in
 a folder ``coverage_html`` and can be viewed with a web browser.
 The images below illustrate how the data is presented.
 
-.. list-table::
+.. only:: not latex
 
-      * - .. figure:: JPG/coverage-overview-top.png
-             :scale: 25%
+   .. list-table::
 
-          Top of the overview page
+         * - .. figure:: JPG/coverage-overview-top.png
+                :scale: 25%
 
-        - .. figure:: JPG/coverage-overview-manybody.png
-             :scale: 25%
+             Top of the overview page
 
-          Styles with good coverage
+           - .. figure:: JPG/coverage-overview-manybody.png
+                :scale: 25%
 
-        - .. figure:: JPG/coverage-file-top.png
-             :scale: 25%
+             Styles with good coverage
 
-          Top of individual source page
+           - .. figure:: JPG/coverage-file-top.png
+                :scale: 25%
 
-        - .. figure:: JPG/coverage-file-branches.png
-             :scale: 25%
+             Top of individual source page
 
-          Source page with branches
+           - .. figure:: JPG/coverage-file-branches.png
+                :scale: 25%
+
+             Source page with branches
+
+.. only:: latex
+
+   .. figure:: JPG/coverage-overview-top.png
+      :width: 60%
+
+      Top of the overview page
+
+   .. figure:: JPG/coverage-overview-manybody.png
+      :width: 60%
+
+      Styles with good coverage
+
+   .. figure:: JPG/coverage-file-top.png
+      :width: 60%
+
+      Top of individual source page
+
+   .. figure:: JPG/coverage-file-branches.png
+      :width: 60%
+
+      Source page with branches
 
 Coding style utilities
 ----------------------
@@ -598,11 +645,35 @@ The following target are available for both, GNU make and CMake:
 GitHub command line interface
 -----------------------------
 
-GitHub is developing a `tool for the command line
-<https://cli.github.com>`_ that interacts with the GitHub website via a
-command called ``gh``.  This can be extremely convenient when working
-with a Git repository hosted on GitHub (like LAMMPS).  It is thus highly
-recommended to install it when doing LAMMPS development.
+GitHub has developed a `command line tool <https://cli.github.com>`_
+to interact with the GitHub website via a command called ``gh``.
+This is extremely convenient when working with a Git repository hosted
+on GitHub (like LAMMPS).  It is thus highly recommended to install it
+when doing LAMMPS development.  To use ``gh`` you must be within a git
+checkout of a repository and you must obtain an authentication token
+to connect your checkout with a GitHub user.  This is done with the
+command: ``gh auth login`` where you then have to follow the prompts.
+Here are some examples:
 
-The capabilities of the ``gh`` command is continually expanding, so
-please see the documentation at https://cli.github.com/manual/
+.. list-table::
+   :header-rows: 1
+   :widths: 34 66
+
+   * - Command
+     - Description
+   * - ``gh pr list``
+     - List currently open pull requests
+   * - ``gh pr checks 404``
+     - Shows the status of all checks for pull request #404
+   * - ``gh pr view 404``
+     - Shows the description and recent comments for pull request #404
+   * - ``gh co 404``
+     - Check out the branch from pull request #404; set up for pushing changes
+   * - ``gh issue list``
+     - List currently open issues
+   * - ``gh issue view 430 --comments``
+     - Shows the description and all comments for issue #430
+
+The capabilities of the ``gh`` command are continually expanding, so
+for more details please see the documentation at https://cli.github.com/manual/
+or use ``gh --help`` or ``gh <command> --help`` for embedded help.

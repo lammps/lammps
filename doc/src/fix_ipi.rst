@@ -79,10 +79,16 @@ setting the *reset* switch.
 Obtaining i-PI
 """"""""""""""
 
-A simple version of the i-PI package, containing only files needed for use
-with LAMMPS, is provided in the tools/i-pi directory. We recommend you
-obtain the latest stable version from the github repository of i-PI,
-or from the python package index.
+Here are the commands to set up a virtual environment and install
+i-PI into it with all its dependencies via the PyPI repository and
+the pip package manager.
+
+.. code-block:: sh
+
+   python -m venv ipienv
+   source ipienv/bin/activate
+   pip install --upgrade pip
+   pip install ipi
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -125,7 +131,7 @@ Related commands
 
 .. _IPICPC2:
 
-**(IPI-CPC-2019)** Kapil et al., Comp Phys Comm 236, 214–223 (2019).
+**(IPI-CPC-2019)** Kapil et al., Comp Phys Comm 236, 214-223 (2019).
 
 
 .. _ipihome:

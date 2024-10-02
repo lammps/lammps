@@ -18,7 +18,7 @@ namespace desul {
 namespace Impl {
 
 template <class Scalar1, class Scalar2>
-struct max_operator {
+struct max_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) {
     return (val1 > val2 ? val1 : val2);
@@ -30,7 +30,7 @@ struct max_operator {
 };
 
 template <class Scalar1, class Scalar2>
-struct min_operator {
+struct min_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) {
     return (val1 < val2 ? val1 : val2);
@@ -70,55 +70,55 @@ constexpr DESUL_FUNCTION
 }
 
 template <class Scalar1, class Scalar2>
-struct add_operator {
+struct add_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) { return val1 + val2; }
 };
 
 template <class Scalar1, class Scalar2>
-struct sub_operator {
+struct sub_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) { return val1 - val2; }
 };
 
 template <class Scalar1, class Scalar2>
-struct mul_operator {
+struct mul_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) { return val1 * val2; }
 };
 
 template <class Scalar1, class Scalar2>
-struct div_operator {
+struct div_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) { return val1 / val2; }
 };
 
 template <class Scalar1, class Scalar2>
-struct mod_operator {
+struct mod_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) { return val1 % val2; }
 };
 
 template <class Scalar1, class Scalar2>
-struct and_operator {
+struct and_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) { return val1 & val2; }
 };
 
 template <class Scalar1, class Scalar2>
-struct or_operator {
+struct or_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) { return val1 | val2; }
 };
 
 template <class Scalar1, class Scalar2>
-struct xor_operator {
+struct xor_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) { return val1 ^ val2; }
 };
 
 template <class Scalar1, class Scalar2>
-struct nand_operator {
+struct nand_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) {
     return ~(val1 & val2);
@@ -126,7 +126,7 @@ struct nand_operator {
 };
 
 template <class Scalar1, class Scalar2>
-struct lshift_operator {
+struct lshift_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) {
     return val1 << val2;
@@ -134,7 +134,7 @@ struct lshift_operator {
 };
 
 template <class Scalar1, class Scalar2>
-struct rshift_operator {
+struct rshift_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) {
     return val1 >> val2;
@@ -142,7 +142,7 @@ struct rshift_operator {
 };
 
 template <class Scalar1, class Scalar2>
-struct inc_mod_operator {
+struct inc_mod_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) {
     return ((val1 >= val2) ? Scalar1(0) : val1 + Scalar1(1));
@@ -150,7 +150,7 @@ struct inc_mod_operator {
 };
 
 template <class Scalar1, class Scalar2>
-struct dec_mod_operator {
+struct dec_mod_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) {
     return (((val1 == Scalar1(0)) | (val1 > val2)) ? val2 : (val1 - Scalar1(1)));
@@ -158,13 +158,13 @@ struct dec_mod_operator {
 };
 
 template <class Scalar1, class Scalar2>
-struct store_operator {
+struct store_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1&, const Scalar2& val2) { return val2; }
 };
 
 template <class Scalar1, class Scalar2>
-struct load_operator {
+struct load_fetch_operator {
   DESUL_FORCEINLINE_FUNCTION
   static Scalar1 apply(const Scalar1& val1, const Scalar2&) { return val1; }
 };

@@ -16,13 +16,14 @@
 # Written by Richard Berger <richard.berger@temple.edu>
 ################################################################################
 
-import warnings
 from ctypes import POINTER, c_void_p, c_char_p, c_double, c_int, c_int32, c_int64, cast
 
+from .constants import  LAMMPS_AUTODETECT, LAMMPS_INT, LAMMPS_INT_2D, LAMMPS_DOUBLE, \
+  LAMMPS_DOUBLE_2D, LAMMPS_INT64, LAMMPS_INT64_2D, LMP_STYLE_GLOBAL, LMP_STYLE_ATOM, \
+  LMP_STYLE_LOCAL, LMP_TYPE_VECTOR, LMP_TYPE_ARRAY, LMP_SIZE_VECTOR, LMP_SIZE_ROWS, \
+  LMP_SIZE_COLS, LMP_VAR_EQUAL, LMP_VAR_ATOM
 
-from .constants import *                # lgtm [py/polluting-import]
 from .data import NeighList
-
 
 class numpy_wrapper:
   """lammps API NumPy Wrapper
@@ -54,7 +55,8 @@ class numpy_wrapper:
 
   # -------------------------------------------------------------------------
 
-  def extract_atom(self, name, dtype=LAMMPS_AUTODETECT, nelem=LAMMPS_AUTODETECT, dim=LAMMPS_AUTODETECT):
+  def extract_atom(self, name, dtype=LAMMPS_AUTODETECT, nelem=LAMMPS_AUTODETECT,
+                   dim=LAMMPS_AUTODETECT):
     """Retrieve per-atom properties from LAMMPS as NumPy arrays
 
     This is a wrapper around the :py:meth:`lammps.extract_atom()` method.
@@ -63,16 +65,16 @@ class numpy_wrapper:
 
     .. note::
 
-       The returned arrays of per-atom data are by default dimensioned
-       for the range [0:nlocal] since that data is *always* valid.  The
-       underlying storage for the data, however, is typically allocated
-       for the range of [0:nmax]. Whether there is valid data in the range
-       [nlocal:nlocal+nghost] depends on whether the property of interest
-       is also updated for ghost atoms.  This is not often the case.  In
-       some cases, it depends on a LAMMPS setting, see for example
-       :doc:`comm_modify vel yes <comm_modify>`.  By using the optional
-       *nelem* parameter the size of the returned NumPy can be overridden.
-       There is no check whether the number of elements chosen is valid.
+       The returned vectors or arrays of per-atom data are dimensioned
+       according to the return value of :py:meth:`lammps.extract_atom_size()`.
+       Except for the "mass" property, the underlying storage will always be
+       dimensioned for the range [0:nmax].  The actual usable data may be
+       only in the range [0:nlocal] or [0:nlocal][0:dim].  Whether there is
+       valid data in the range [nlocal:nlocal+nghost] or [nlocal:local+nghost][0:dim]
+       depends on whether the property of interest is also updated for ghost atoms.
+       Also the value of *dim* depends on the value of *name*.  By using the optional
+       *nelem* and *dim* parameters the dimensions of the returned NumPy array can
+       be overridden.  There is no check whether the number of elements chosen is valid.
 
     :param name: name of the property
     :type name:  string
@@ -89,21 +91,10 @@ class numpy_wrapper:
       dtype = self.lmp.extract_atom_datatype(name)
 
     if nelem == LAMMPS_AUTODETECT:
-      if name == "mass":
-        nelem = self.lmp.extract_global("ntypes") + 1
-      else:
-        nelem = self.lmp.extract_global("nlocal")
+      nelem = self.lmp.extract_atom_size(name, LMP_SIZE_ROWS)
     if dim == LAMMPS_AUTODETECT:
       if dtype in (LAMMPS_INT_2D, LAMMPS_DOUBLE_2D, LAMMPS_INT64_2D):
-        # TODO add other fields
-        if name in ("x", "v", "f", "x0","omega", "angmom", "torque", "csforce", "vforce", "vest"):
-          dim = 3
-        elif name == "smd_data_9":
-          dim = 9
-        elif name == "smd_stress":
-          dim = 6
-        else:
-          dim = 2
+        dim = self.lmp.extract_atom_size(name, LMP_SIZE_COLS)
       else:
         dim = 1
 
@@ -116,37 +107,6 @@ class numpy_wrapper:
     elif dtype in (LAMMPS_INT64, LAMMPS_INT64_2D):
       return self.iarray(c_int64, raw_ptr, nelem, dim)
     return raw_ptr
-
-  # -------------------------------------------------------------------------
-
-  def extract_atom_iarray(self, name, nelem, dim=1):
-    warnings.warn("deprecated, use extract_atom instead", DeprecationWarning)
-
-    if name in ['id', 'molecule']:
-      c_int_type = self.lmp.c_tagint
-    elif name in ['image']:
-      c_int_type = self.lmp.c_imageint
-    else:
-      c_int_type = c_int
-
-    if dim == 1:
-      raw_ptr = self.lmp.extract_atom(name, LAMMPS_INT)
-    else:
-      raw_ptr = self.lmp.extract_atom(name, LAMMPS_INT_2D)
-
-    return self.iarray(c_int_type, raw_ptr, nelem, dim)
-
-  # -------------------------------------------------------------------------
-
-  def extract_atom_darray(self, name, nelem, dim=1):
-    warnings.warn("deprecated, use extract_atom instead", DeprecationWarning)
-
-    if dim == 1:
-      raw_ptr = self.lmp.extract_atom(name, LAMMPS_DOUBLE)
-    else:
-      raw_ptr = self.lmp.extract_atom(name, LAMMPS_DOUBLE_2D)
-
-    return self.darray(raw_ptr, nelem, dim)
 
   # -------------------------------------------------------------------------
 
@@ -271,11 +231,11 @@ class numpy_wrapper:
     # -------------------------------------------------------------------------
 
   def gather_bonds(self):
-    """Retrieve global list of bonds as NumPy array
+    """Retrieve global list of bonds as a NumPy array
 
     .. versionadded:: 28Jul2021
 
-    This is a wrapper around :py:meth:`lammps.gather_bonds() <lammps.lammps.gather_bonds()>`
+    This is a wrapper around :py:meth:`lammps.gather_bonds() <lammps.lammps.gather_bonds()>`.
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
 
@@ -289,11 +249,11 @@ class numpy_wrapper:
     # -------------------------------------------------------------------------
 
   def gather_angles(self):
-    """ Retrieve global list of angles as NumPy array
+    """ Retrieve global list of angles as a NumPy array
 
     .. versionadded:: 8Feb2023
 
-    This is a wrapper around :py:meth:`lammps.gather_angles() <lammps.lammps.gather_angles()>`
+    This is a wrapper around :py:meth:`lammps.gather_angles() <lammps.lammps.gather_angles()>`.
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
 
@@ -307,11 +267,11 @@ class numpy_wrapper:
     # -------------------------------------------------------------------------
 
   def gather_dihedrals(self):
-    """ Retrieve global list of dihedrals as NumPy array
+    """ Retrieve global list of dihedrals as a NumPy array
 
     .. versionadded:: 8Feb2023
 
-    This is a wrapper around :py:meth:`lammps.gather_dihedrals() <lammps.lammps.gather_dihedrals()>`
+    This is a wrapper around :py:meth:`lammps.gather_dihedrals() <lammps.lammps.gather_dihedrals()>`.
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
 
@@ -325,11 +285,11 @@ class numpy_wrapper:
     # -------------------------------------------------------------------------
 
   def gather_impropers(self):
-    """ Retrieve global list of impropers as NumPy array
+    """ Retrieve global list of impropers as a NumPy array
 
     .. versionadded:: 8Feb2023
 
-    This is a wrapper around :py:meth:`lammps.gather_impropers() <lammps.lammps.gather_impropers()>`
+    This is a wrapper around :py:meth:`lammps.gather_impropers() <lammps.lammps.gather_impropers()>`.
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
 

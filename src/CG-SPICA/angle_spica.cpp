@@ -44,8 +44,8 @@ static constexpr double SMALL = 0.001;
 /* ---------------------------------------------------------------------- */
 
 AngleSPICA::AngleSPICA(LAMMPS *lmp) :
-    Angle(lmp), k(nullptr), theta0(nullptr), lj_type(nullptr), lj1(nullptr), lj2(nullptr),
-    lj3(nullptr), lj4(nullptr), rminsq(nullptr), emin(nullptr)
+    Angle(lmp), k(nullptr), theta0(nullptr), repscale(nullptr), lj_type(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), rminsq(nullptr), emin(nullptr)
 {
   repflag = 0;
 }
@@ -54,7 +54,7 @@ AngleSPICA::AngleSPICA(LAMMPS *lmp) :
 
 AngleSPICA::~AngleSPICA()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k);
     memory->destroy(theta0);
@@ -521,4 +521,16 @@ double AngleSPICA::single(int type, int i1, int i2, int i3)
   double dtheta = acos(c) - theta0[type];
   double tk = k[type] * dtheta;
   return tk*dtheta + e13;
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleSPICA::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
+  return nullptr;
 }

@@ -1,6 +1,7 @@
 // unit tests for extracting Atom class data from a LAMMPS instance through the
 // Fortran wrapper
 
+#include "atom.h"
 #include "lammps.h"
 #include "library.h"
 #include <cstdint>
@@ -16,12 +17,16 @@ void *f_lammps_with_args();
 void f_lammps_close();
 void f_lammps_setup_extract_atom();
 double f_lammps_extract_atom_mass();
+int f_lammps_extract_atom_mass_size();
 int f_lammps_extract_atom_tag_int(int);
 int64_t f_lammps_extract_atom_tag_int64(int64_t);
 int f_lammps_extract_atom_type(int);
+int f_lammps_extract_atom_type_size();
 int f_lammps_extract_atom_mask(int);
 void f_lammps_extract_atom_x(int, double *);
+int f_lammps_extract_atom_x_size(int);
 void f_lammps_extract_atom_v(int, double *);
+int f_lammps_extract_atom_v_size(int);
 }
 
 class LAMMPS_extract_atom : public ::testing::Test {
@@ -50,7 +55,9 @@ protected:
 TEST_F(LAMMPS_extract_atom, mass)
 {
     f_lammps_setup_extract_atom();
-    EXPECT_DOUBLE_EQ(f_lammps_extract_atom_mass(), 2.0);
+    int ntypes = lmp->atom->ntypes;
+    EXPECT_DOUBLE_EQ(f_lammps_extract_atom_mass(), 3.0);
+    EXPECT_EQ(f_lammps_extract_atom_mass_size(), ntypes + 1);
 };
 
 TEST_F(LAMMPS_extract_atom, tag)
@@ -68,8 +75,10 @@ TEST_F(LAMMPS_extract_atom, tag)
 TEST_F(LAMMPS_extract_atom, type)
 {
     f_lammps_setup_extract_atom();
+    int nall = lmp->atom->nlocal + lmp->atom->nghost;
     EXPECT_EQ(f_lammps_extract_atom_type(1), 1);
     EXPECT_EQ(f_lammps_extract_atom_type(2), 1);
+    EXPECT_EQ(f_lammps_extract_atom_type_size(), nall);
 };
 
 TEST_F(LAMMPS_extract_atom, mask)
@@ -86,6 +95,7 @@ TEST_F(LAMMPS_extract_atom, mask)
 TEST_F(LAMMPS_extract_atom, x)
 {
     f_lammps_setup_extract_atom();
+    int nall = lmp->atom->nlocal + lmp->atom->nghost;
     double x1[3];
     double x2[3];
     f_lammps_extract_atom_x(1, x1);
@@ -96,11 +106,15 @@ TEST_F(LAMMPS_extract_atom, x)
     EXPECT_DOUBLE_EQ(x2[0], 0.2);
     EXPECT_DOUBLE_EQ(x2[1], 0.1);
     EXPECT_DOUBLE_EQ(x2[2], 0.1);
+    // in Fortran row and column are swapped
+    EXPECT_EQ(f_lammps_extract_atom_x_size(1), 3);
+    EXPECT_EQ(f_lammps_extract_atom_x_size(2), nall);
 }
 
 TEST_F(LAMMPS_extract_atom, v)
 {
     f_lammps_setup_extract_atom();
+    int nall = lmp->atom->nlocal + lmp->atom->nghost;
     double v1[3];
     double v2[3];
     f_lammps_extract_atom_v(1, v1);
@@ -117,4 +131,13 @@ TEST_F(LAMMPS_extract_atom, v)
     EXPECT_DOUBLE_EQ(v1[0], 1.0);
     EXPECT_DOUBLE_EQ(v1[1], 2.0);
     EXPECT_DOUBLE_EQ(v1[2], 3.0);
+    // in Fortran row and column are swapped!
+    EXPECT_EQ(f_lammps_extract_atom_v_size(1), 3);
+    EXPECT_EQ(f_lammps_extract_atom_v_size(2), lmp->atom->nlocal);
+    lammps_command(lmp, "comm_modify vel yes");
+    lammps_command(lmp, "run 0 post no");
+    EXPECT_EQ(f_lammps_extract_atom_v_size(1), 3);
+    EXPECT_EQ(f_lammps_extract_atom_v_size(2), nall);
 }
+
+// TODO: write tests for custom properties

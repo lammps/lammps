@@ -52,6 +52,9 @@ BondBPMRotational::BondBPMRotational(LAMMPS *_lmp) :
   smooth_flag = 1;
   normalize_flag = 0;
 
+  nhistory = 4;
+  id_fix_bond_history = utils::strdup("HISTORY_BPM_ROTATIONAL");
+
   single_extra = 7;
   svector = new double[7];
 }
@@ -277,10 +280,8 @@ double BondBPMRotational::elastic_forces(int i1, int i2, int type, double r_mag,
 
   temp = sqrt(q21[0] * q21[0] + q21[3] * q21[3]);
   if (temp != 0.0) {
-    c = q21[0] / temp;
-    psi = 2.0 * acos_limit(c);
+    psi = 2.0 * acos_limit(q21[0] / temp);
   } else {
-    c = 0.0;
     psi = 0.0;
   }
 
@@ -293,7 +294,7 @@ double BondBPMRotational::elastic_forces(int i1, int i2, int type, double r_mag,
   c = q21[0] * q21[0] - q21[1] * q21[1] - q21[2] * q21[2] + q21[3] * q21[3];
   theta = acos_limit(c);
 
-  // Separately calculte magnitude of quaternion in x-y and out of x-y planes
+  // Separately calculate magnitude of quaternion in x-y and out of x-y planes
   // to avoid dividing by zero
   mag_out_plane = (q21[0] * q21[0] + q21[3] * q21[3]);
   mag_in_plane = (q21[1] * q21[1] + q21[2] * q21[2]);
@@ -458,6 +459,9 @@ void BondBPMRotational::compute(int eflag, int vflag)
     store_data();
   }
 
+  if (hybrid_flag)
+    fix_bond_history->compress_history();
+
   int i1, i2, itmp, n, type;
   double r[3], r0[3], rhat[3];
   double rsq, r0_mag, r_mag, r_mag_inv;
@@ -563,6 +567,9 @@ void BondBPMRotational::compute(int eflag, int vflag)
       ev_tally_xyz(i1, i2, nlocal, newton_bond, 0.0, -force1on2[0] * smooth, -force1on2[1] * smooth,
                    -force1on2[2] * smooth, r[0], r[1], r[2]);
   }
+
+  if (hybrid_flag)
+    fix_bond_history->uncompress_history();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -652,14 +659,6 @@ void BondBPMRotational::init_style()
 
   if (domain->dimension == 2)
     error->warning(FLERR, "Bond style bpm/rotational not intended for 2d use");
-
-  if (!id_fix_bond_history) {
-    id_fix_bond_history = utils::strdup("HISTORY_BPM_ROTATIONAL");
-    fix_bond_history = dynamic_cast<FixBondHistory *>(modify->replace_fix(
-        id_fix_dummy2, fmt::format("{} all BOND_HISTORY 0 4", id_fix_bond_history), 1));
-    delete[] id_fix_dummy2;
-    id_fix_dummy2 = nullptr;
-  }
 }
 
 /* ---------------------------------------------------------------------- */

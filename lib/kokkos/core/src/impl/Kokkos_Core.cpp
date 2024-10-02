@@ -91,6 +91,7 @@ void combine(Kokkos::InitializationSettings& out,
   KOKKOS_IMPL_COMBINE_SETTING(map_device_id_by);
   KOKKOS_IMPL_COMBINE_SETTING(device_id);
   KOKKOS_IMPL_COMBINE_SETTING(disable_warnings);
+  KOKKOS_IMPL_COMBINE_SETTING(print_configuration);
   KOKKOS_IMPL_COMBINE_SETTING(tune_internals);
   KOKKOS_IMPL_COMBINE_SETTING(tools_help);
   KOKKOS_IMPL_COMBINE_SETTING(tools_libs);
@@ -610,6 +611,7 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
 #else
   declare_configuration_metadata("options", "KOKKOS_ENABLE_LIBDL", "no");
 #endif
+
   declare_configuration_metadata("architecture", "Default Device",
                                  typeid(Kokkos::DefaultExecutionSpace).name());
 
@@ -785,34 +787,18 @@ void initialize_internal(const Kokkos::InitializationSettings& settings) {
   post_initialize_internal(settings);
 }
 
-void pre_finalize_internal() {
-  typename decltype(finalize_hooks)::size_type numSuccessfulCalls = 0;
+// declared noexcept such that std::terminate is called if any of the registered
+// function throws
+void call_registered_finalize_hook_functions() noexcept {
   while (!finalize_hooks.empty()) {
-    auto f = finalize_hooks.top();
-    try {
-      f();
-    } catch (...) {
-      std::cerr << "Kokkos::finalize: A finalize hook (set via "
-                   "Kokkos::push_finalize_hook) threw an exception that it did "
-                   "not catch."
-                   "  Per std::atexit rules, this results in std::terminate.  "
-                   "This is "
-                   "finalize hook number "
-                << numSuccessfulCalls
-                << " (1-based indexing) "
-                   "out of "
-                << finalize_hooks.size()
-                << " to call.  Remember that "
-                   "Kokkos::finalize calls finalize hooks in reverse order "
-                   "from how they "
-                   "were pushed."
-                << std::endl;
-      std::terminate();
-    }
+    auto const& func = finalize_hooks.top();
+    func();
     finalize_hooks.pop();
-    ++numSuccessfulCalls;
   }
+}
 
+void pre_finalize_internal() {
+  call_registered_finalize_hook_functions();
   Kokkos::Profiling::finalize();
 }
 

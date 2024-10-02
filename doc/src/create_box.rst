@@ -13,7 +13,7 @@ Syntax
 
 * N = # of atom types to use in this simulation
 * region-ID = ID of region to use as simulation domain or NULL for general triclinic box
-* alo,ahi,blo,bhi,clo,chi = multipliers on a1,a2,a3 vectors defined by :doc"`lattice <lattice>` command (only when region-ID = NULL)
+* alo,ahi,blo,bhi,clo,chi = multipliers on a1,a2,a3 vectors defined by :doc:`lattice <lattice>` command (only when region-ID = NULL)
 * zero or more keyword/value pairs may be appended
 * keyword = *bond/types* or *angle/types* or *dihedral/types* or *improper/types* or *extra/bond/per/atom* or *extra/angle/per/atom* or *extra/dihedral/per/atom* or *extra/improper/per/atom* or *extra/special/per/atom*
 

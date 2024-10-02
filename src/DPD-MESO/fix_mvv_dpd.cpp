@@ -24,6 +24,7 @@
 #include "fix_mvv_dpd.h"
 
 #include "atom.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "update.h"
@@ -64,6 +65,11 @@ void FixMvvDPD::init()
 {
   if (!atom->vest_flag)
     error->all(FLERR,"Fix mvv/dpd requires atom attribute vest e.g. from atom style mdpd");
+
+  // Cannot use vremap since its effects aren't propagated to vest
+  //   see RHEO or SPH packages for examples of patches
+  if (domain->deform_vremap)
+    error->all(FLERR, "Fix mvv/dpd cannot be used with velocity remapping");
 
   if (!force->pair_match("^mdpd",0) && !force->pair_match("^dpd",0)) {
     if (force->pair_match("^hybrid",0)) {

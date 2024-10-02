@@ -32,6 +32,12 @@ using LAMMPS_NS::LAMMPSException;
 
 using ::testing::ContainsRegex;
 
+#if defined(LAMMPS_SKIP_DEATH_TESTS)
+#define TEST_FAILURE(errmsg, ...)                             \
+    {                                                         \
+        ;                                                     \
+    }
+#else
 #define TEST_FAILURE(errmsg, ...)                             \
     {                                                         \
         ::testing::internal::CaptureStdout();                 \
@@ -39,6 +45,7 @@ using ::testing::ContainsRegex;
         auto mesg = ::testing::internal::GetCapturedStdout(); \
         ASSERT_THAT(mesg, ContainsRegex(errmsg));             \
     }
+#endif
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 extern bool verbose;
@@ -107,7 +114,7 @@ public:
 
 protected:
     std::string testbinary = "LAMMPSTest";
-    LAMMPS::argv args = {"-log", "none", "-echo", "screen", "-nocite"};
+    LAMMPS::argv args      = {"-log", "none", "-echo", "screen", "-nocite"};
     LAMMPS *lmp;
     Info *info;
 

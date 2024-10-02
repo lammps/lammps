@@ -16,7 +16,11 @@
 
 #include "bond.h"
 
+#include <vector>
+
 namespace LAMMPS_NS {
+
+class Fix;
 
 class BondBPM : public Bond {
  public:
@@ -34,7 +38,7 @@ class BondBPM : public Bond {
  protected:
   double r0_max_estimate;
   double max_stretch;
-  int store_local_freq;
+  int store_local_freq, nhistory, update_flag, hybrid_flag;
 
   std::vector<int> leftover_iarg;
 
@@ -50,8 +54,11 @@ class BondBPM : public Bond {
   FnPtrPack *pack_choice;    // ptrs to pack functions
   double *output_data;
 
-  int prop_atom_flag, nvalues, overlay_flag, break_flag;
+  int prop_atom_flag, nvalues, overlay_flag, break_flag, ignore_special_flag;
   int index_x_ref, index_y_ref, index_z_ref;
+
+  int n_histories;
+  std::vector<Fix *> histories;
 
   void pack_id1(int, int, int);
   void pack_id2(int, int, int);

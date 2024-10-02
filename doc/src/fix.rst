@@ -357,6 +357,7 @@ accelerated styles exist.
 * :doc:`python/move <fix_python_move>` - move particles using a Python function during a simulation run
 * :doc:`qbmsst <fix_qbmsst>` - quantum bath multi-scale shock technique time integrator
 * :doc:`qeq/comb <fix_qeq_comb>` - charge equilibration for COMB potential
+* :doc:`qeq/ctip <fix_qeq>` - charge equilibration for CTIP potential
 * :doc:`qeq/dynamic <fix_qeq>` - charge equilibration via dynamic method
 * :doc:`qeq/fire <fix_qeq>` - charge equilibration via FIRE minimizer
 * :doc:`qeq/point <fix_qeq>` - charge equilibration via point method

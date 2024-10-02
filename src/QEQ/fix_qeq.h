@@ -70,10 +70,10 @@ class FixQEq : public Fix {
   int maxwarn;                 // print warning when max iterations was reached
   double cutoff, cutoff_sq;    // neighbor cutoff
 
-  double *chi, *eta, *gamma, *zeta, *zcore;    // qeq parameters
+  double *chi, *eta, *gamma, *zeta, *zcore, *qmin, *qmax, *omega;
   double *chizj;
   double **shld;
-  int streitz_flag, reax_flag;
+  int streitz_flag, reax_flag, ctip_flag;
 
   bigint ngroup;
 
@@ -95,10 +95,6 @@ class FixQEq : public Fix {
   double *Hdia_inv;
   double *b_s, *b_t;
   double *p, *q, *r, *d;
-
-  // streitz-mintmire
-
-  double alpha;
 
   // damped dynamics
 

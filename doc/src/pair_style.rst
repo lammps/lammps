@@ -151,6 +151,7 @@ accelerated styles exist.
 * :doc:`comb <pair_comb>` - charge-optimized many-body (COMB) potential
 * :doc:`comb3 <pair_comb>` - charge-optimized many-body (COMB3) potential
 * :doc:`cosine/squared <pair_cosine_squared>` - Cooke-Kremer-Deserno membrane model potential
+* :doc:`coul/ctip <pair_coul>` - Charge Transfer Interatomic (Coulomb) Potential
 * :doc:`coul/cut <pair_coul>` - cutoff Coulomb potential
 * :doc:`coul/cut/dielectric <pair_dielectric>` -
 * :doc:`coul/cut/global <pair_coul>` - cutoff Coulomb potential

@@ -121,10 +121,6 @@ void WritePsf::command(int narg, char **arg)
 
   reorderflag = 0;
 
-  if (nprocs > 1 && irregular == nullptr)
-    irregular = new Irregular(lmp);
-
-
   write(file);
   // restore saved setting
   atom->types_style = types_style;
@@ -153,21 +149,13 @@ int WritePsf::count()
 
 void WritePsf::write(const std::string &file)
 {
-  // special case where reneighboring is not done in integrator
-  //   on timestep data file is written (due to build_once being set)
-  // if box is changing, must be reset, else data file will have
-  //   wrong box size and atoms will be lost when data file is read
-  // other calls to pbc and domain and comm are not made,
-  //   b/c they only make sense if reneighboring is actually performed
-
-  //if (neighbor->build_once) domain->reset_box();
 
   // natoms = sum of nlocal = value to write into data file
   // if unequal and thermo lostflag is "error", don't write data file
 
-  bigint nblocal = atom->nlocal;
-  bigint natoms;
-  MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  natoms_local = count();
+
+  MPI_Allreduce(&natoms_local,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms && output->thermo->lostflag == Thermo::ERROR)
     error->all(FLERR,"Atom count is inconsistent, cannot write data file");
 
@@ -203,15 +191,10 @@ void WritePsf::write(const std::string &file)
   }
 
   // proc 0 writes header, ntype-length arrays, force fields
-  // label map must come before coeffs
-
-  if (me == 0) {
-    header();
-  }
+  if (me == 0) header();
 
   // per atom info in Atoms and Velocities sections
-
-  if (natoms) atoms();
+  if (natoms > 0) atoms();
 
   // molecular topology info if defined
   // do not write molecular topology for atom_style template
@@ -224,7 +207,6 @@ void WritePsf::write(const std::string &file)
   }
 
   // close data file
-
   if (me == 0) fclose(fp);
 }
 
@@ -246,8 +228,6 @@ void WritePsf::header()
   fmt::print(fp,"* [https://userguide.mdanalysis.org/stable/formats/reference/psf.html]\n");
 
 }
-
-
 
 
 /* ----------------------------------------------------------------------
@@ -338,7 +318,6 @@ void WritePsf::angles()
   else memory->create(buf,MAX(1,sendrow),ncol,"write_psf:buf");
 
   // pack my angle data into buf
-
   atom->avec->pack_angle(buf);
 
   // write one chunk of info per proc to file
@@ -506,7 +485,6 @@ void WritePsf::impropers()
         if( j % 2 == 0) // newline every 2 dihedrals
           fmt::print(fp, "\n");
       }
-
     }
 
     if( j % 2 != 0) // newline after last dihedral if row not full
@@ -526,105 +504,97 @@ void WritePsf::impropers()
 
 void WritePsf::atoms()
 {
-  // communication buffer for all my Atom info
-  // maxrow X ncol = largest buffer needed by any proc
-
-  int ncol = atom->avec->size_data_atom + 3;
-  size_one = atom->avec->size_data_atom;
-  int sendrow = atom->nlocal;
-  int maxrow;
-  MPI_Allreduce(&sendrow,&maxrow,1,MPI_INT,MPI_MAX,world);
+  int *recvcounts = new int[nprocs];
+  int *displs = new int[nprocs];
+  MPI_Gather( &natoms_local, 1, MPI_INT, recvcounts, 1, MPI_INT, 0, world);
+  displs[0] = 0;
+  for ( int i=1; i<nprocs; i++) displs[i] = displs[i-1]+recvcounts[i-1];
 
   double **buf;
-  if (me == 0) memory->create(buf,MAX(1,maxrow),ncol,"write_psf:buf");
-  else memory->create(buf,MAX(1,sendrow),ncol,"write_psf:buf");
+  if (me == 0) memory->create(buf,natoms,7,"write_psf:buf");
+  else memory->create(buf,natoms_local,7,"write_psf:buf");
 
-  // pack my atom data into buf
-  atom->avec->pack_data(buf);
+  int nlocal = atom->nlocal;
+  int *mask = atom->mask;
+  tagint *tag = atom->tag;
+  tagint *molecule = atom->molecule;
+  int *type = atom->type;
+  double *q = atom->q;
 
-  // write one chunk of atoms per proc to file
-  // proc 0 pings each proc, receives its chunk, writes to file
-  // all other procs wait for ping, send their chunk to proc 0
+  // atom_tag, segment_id, molecule_id, residue_id, name_id, type_id, charge
+  for (int i = 0; i < nlocal; i++)
+    if ( igroup && (mask[i] & groupbit)) {
+      buf[i][0] = ubuf(tag[i]).d;
+      buf[i][2] = ubuf(molecule[i]).d;
+      buf[i][5] = ubuf(type[i]).d;
+      if(atom->q_flag) buf[i][6] = q[i];
 
-  int tmp,recvrow;
+      if( atom_iarray_psf == nullptr ) continue;
+      buf[i][1] = ubuf(atom_iarray_psf[i][0]).d;
+      buf[i][3] = ubuf(atom_iarray_psf[i][1]).d;
+      buf[i][4] = ubuf(atom_iarray_psf[i][2]).d;
+    }
+
+  //int MPI_Gatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+  //  void *recvbuf, const int recvcounts[], const int displs[],
+  //  MPI_Datatype recvtype, int root, MPI_Comm comm)
+
+  // Use the variable MPI_IN_PLACE as the value of the root process sendbuf. In this case, sendcount and sendtype are ignored, and the contribution of the root process to the gathered vector is assumed to already be in the correct place in the receive buffer.
+
+  MPI_Gatherv(MPI_IN_PLACE, natoms_local, MPI_DOUBLE,
+    &buf[0][0], recvcounts, displs, MPI_DOUBLE, 0, world);
 
   if (me == 0) {
-    MPI_Status status;
-    MPI_Request request;
 
-    fmt::print(fp,"\n {:8} !NATOM\n",count());
+    fmt::print(fp,"\n {:8} !NATOM\n",natoms);
 
-    for (int iproc = 0; iproc < nprocs; iproc++) {
-      if (iproc) {
-        MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);
-        MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
-        MPI_Wait(&request,&status);
-        MPI_Get_count(&status,MPI_DOUBLE,&recvrow);
-        recvrow /= ncol;
-      } else recvrow = sendrow;
+    for (int i = 0; i < natoms; i++) {
 
-      for (int i = 0; i < atom->natoms; i++) {
+      // II,LSEGID,LRESID,LRES,TYPE(I),IAC(I),CG(I),AMASS(I),IMOVE(I)
+      // (I10,1X,A8,1X,A8,1X,A8,1X,A8,1X,A4,1X,2G14.6,I8)
 
-        // skip if not in group
-        if (igroup && !((atom->mask)[i] & groupbit))
-            continue;
+      tagint atom_tag = ubuf(buf[i][0]).i;
+      tagint molecule_id = ubuf(buf[i][2]).i;
+      int type_id = ubuf(buf[i][5]).i;
+      // utils::logmesg(lmp, "write_psf... atom_tag={} atom_type={}\n", atom_tag, atom_type);
 
-        // II,LSEGID,LRESID,LRES,TYPE(I),IAC(I),CG(I),AMASS(I),IMOVE(I)
-        // (I10,1X,A8,1X,A8,1X,A8,1X,A8,1X,A4,1X,2G14.6,I8)
-
-        std::string label;
-        auto atom_tag = ubuf(buf[i][0]).i;
-        int atom_type = ubuf(buf[i][2]).i;
-        // utils::logmesg(lmp, "write_psf... atom_tag={} atom_type={}\n", atom_tag, atom_type);
-
-        fmt::print(fp, "{:10} ", atom_tag );
+      fmt::print(fp, "{:10} ", atom_tag );
 
         if( atom_iarray_psf == nullptr ) {
 
           // defaults when atom_iarray_psf doesnt exists:
           // - molecule id for Segment ID, molecule ID, Residue ID
           // - numerical type for atom name and atom type
-          fmt::print(fp, "{0:<8} {0:<8} {0:<8} {1:<8} {1:<4} ", ubuf(buf[i][1]).i, atom_type );
+          fmt::print(fp, "{0:<8} {0:<8} {0:<8} {1:<8} {1:<4} ", molecule_id, type_id );
 
         } else {
 
-          int atom_index = atom->map(atom_tag);
+          // segment label
+          fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[i][1]).i, Atom::SEGMENT) );
 
-          // atom segment
-          int segment_type = atom_iarray_psf[atom_index][0];
-          label = atom->lmap->label(segment_type, Atom::SEGMENT);
-          fmt::print(fp, "{:<8} ", label );
+          // molecule id
+          fmt::print(fp, "{:<8} ", molecule_id );
 
-          // molecule ID
-          fmt::print(fp, "{:<8} ", ubuf(buf[i][1]).i );
+          // residue label
+          fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[i][3]).i, Atom::RESIDUE) );
 
-          // atom residue
-          int residue_type = atom_iarray_psf[atom_index][1];
-          label = atom->lmap->label(residue_type, Atom::RESIDUE);
-          fmt::print(fp, "{:<8} ", label );
+          // name label
+          fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[i][4]).i, Atom::NAME) );
 
-          // atom name
-          int name_type = atom_iarray_psf[atom_index][2];
-          label = atom->lmap->label(name_type, Atom::NAME);
-          fmt::print(fp, "{:<8} ", label );
-
-          // atom type
-          label = atom->lmap->label(atom_type, Atom::ATOM);
-          fmt::print(fp, "{:<4} ", label );
+          // type label
+          fmt::print(fp, "{:<4} ", atom->lmap->label(type_id, Atom::ATOM) );
 
         }
 
         // charge
-        fmt::print(fp, "{:12.6F}      ", buf[i][3] );
+        fmt::print(fp, "{:12.6F}      ", buf[i][6] );
 
         // mass
-        fmt::print(fp, "{:8g}           0\n", atom->mass[atom_type] );
+        fmt::print(fp, "{:8g}           0\n", atom->mass[type_id] );
       }
     }
-  } else {
-    MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
-    MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_DOUBLE,0,0,world);
-  }
 
   memory->destroy(buf);
+  delete [] recvcounts;
+  delete [] displs;
 }

@@ -35,6 +35,7 @@ class WritePsf : public Command {
   int lmapflag;
   int igroup, groupbit;    // group that WritePsf is performed on
   FILE *fp;
+  bigint natoms_local, natoms;
   bigint nbonds_local, nbonds;
   bigint nangles_local, nangles;
   bigint ndihedrals_local, ndihedrals;
@@ -74,9 +75,6 @@ class WritePsf : public Command {
 #else
   static int idcompare(const int, const int, void *);
 #endif
-
-  class Irregular *irregular;
-
 
 };
 

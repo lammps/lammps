@@ -59,6 +59,7 @@ OPT.
    * :doc:`comb (o) <pair_comb>`
    * :doc:`comb3 <pair_comb>`
    * :doc:`cosine/squared <pair_cosine_squared>`
+   * :doc:`coul/ctip <pair_coul>`
    * :doc:`coul/cut (gko) <pair_coul>`
    * :doc:`coul/cut/dielectric <pair_dielectric>`
    * :doc:`coul/cut/global (o) <pair_coul>`

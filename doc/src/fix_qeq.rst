@@ -1,6 +1,7 @@
 .. index:: fix qeq/point
 .. index:: fix qeq/shielded
 .. index:: fix qeq/slater
+.. index:: fix qeq/ctip
 .. index:: fix qeq/dynamic
 .. index:: fix qeq/fire
 
@@ -12,6 +13,9 @@ fix qeq/shielded command
 
 fix qeq/slater command
 ======================
+
+fix qeq/ctip command
+====================
 
 fix qeq/dynamic command
 =======================
@@ -27,18 +31,20 @@ Syntax
    fix ID group-ID style Nevery cutoff tolerance maxiter qfile keyword ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style = *qeq/point* or *qeq/shielded* or *qeq/slater* or *qeq/dynamic* or *qeq/fire*
+* style = *qeq/point* or *qeq/shielded* or *qeq/slater* or *qeq/ctip* or *qeq/dynamic* or *qeq/fire*
 * Nevery = perform charge equilibration every this many steps
 * cutoff = global cutoff for charge-charge interactions (distance unit)
 * tolerance = precision to which charges will be equilibrated
 * maxiter = maximum iterations to perform charge equilibration
-* qfile = a filename with QEq parameters or *coul/streitz* or *reaxff*
+* qfile = a filename with QEq parameters or *coul/streitz* or *coul/ctip* or *reaxff*
 * zero or more keyword/value pairs may be appended
-* keyword = *alpha* or *qdamp* or *qstep* or *warn*
+* keyword = *alpha* or *cdamp* or *maxrepeat* or *qdamp* or *qstep* or *warn*
 
   .. parsed-literal::
 
        *alpha* value = Slater type orbital exponent (qeq/slater only)
+       *cdamp* value = damping parameter for Coulomb interactions (qeq/ctip only)
+       *maxrepeat* value = number of equilibration cycles allowed to ensure no atoms cross charge bounds (qeq/ctip only)
        *qdamp* value = damping factor for damped dynamics charge solver (qeq/dynamic and qeq/fire only)
        *qstep* value = time step size for damped dynamics charge solver (qeq/dynamic and qeq/fire only)
        *warn* value = do (=yes) or do not (=no) print a warning when the maximum number of iterations is reached
@@ -51,6 +57,7 @@ Examples
    fix 1 all qeq/point 1 10 1.0e-6 200 param.qeq1
    fix 1 qeq qeq/shielded 1 8 1.0e-6 100 param.qeq2
    fix 1 all qeq/slater 5 10 1.0e-6 100 params alpha 0.2
+   fix 1 all qeq/ctip 1 12 1.0e-8 100 coul/ctip cdamp 0.30 maxrepeat 10
    fix 1 qeq qeq/dynamic 1 12 1.0e-3 100 my_qeq
    fix 1 all qeq/fire 1 10 1.0e-3 100 my_qeq qdamp 0.2 qstep 0.1
 
@@ -103,7 +110,7 @@ equalizes the derivative of energy with respect to charge of all the
 atoms) by adjusting the partial charge on individual atoms based on
 interactions with their neighbors within *cutoff*\ .  It requires a few
 parameters in the appropriate units for each atom type which are read
-from a file specified by *qfile*\ .  The file has the following format
+from a file specified by *qfile*\ .  The file has the following format:
 
 .. parsed-literal::
 
@@ -112,20 +119,32 @@ from a file specified by *qfile*\ .  The file has the following format
    ...
    Ntype chi eta gamma zeta qcore
 
+except for fix style *qeq/ctip* where the format is:
+
+.. parsed-literal::
+
+   1 chi eta gamma zeta qcore qmin qmax omega
+   2 chi eta gamma zeta qcore qmin qmax omega
+   ...
+   Ntype chi eta gamma zeta qcore qmin qmax omega
+
 There have to be parameters given for every atom type. Wildcard entries
 are possible using the same type range syntax as for "coeff" commands
 (i.e., n\*m, n\*, \*m, \*). Later entries will overwrite previous ones.
-Empty lines or any text following the pound sign (#) are ignored.
-Each line starts with the atom type followed by five parameters.
-Only a subset of the parameters is used by each QEq style as described
-below, thus the others can be set to 0.0 if desired, but all five
-entries per line are required.
+Empty lines or any text following the pound sign (#) are ignored.  Each
+line starts with the atom type followed by eight parameters.  Only a
+subset of the parameters is used by each QEq style as described below,
+thus the others can be set to 0.0 if desired, but all eight entries per
+line are required.
 
 * *chi* = electronegativity in energy units
 * *eta* = self-Coulomb potential in energy units
 * *gamma* = shielded Coulomb constant defined by :ref:`ReaxFF force field <vanDuin>` in distance units
 * *zeta* = Slater type orbital exponent defined by the :ref:`Streitz-Mintmire <Streitz1>` potential in reverse distance units
 * *qcore* = charge of the nucleus defined by the :ref:`Streitz-Mintmire potential <Streitz1>` potential in charge units
+* *qmin* = lower bound on the allowed charge defined by the :ref:`CTIP <CTIP1>` potential in charge units
+* *qmax* = upper bound on the allowed charge defined by the :ref:`CTIP <CTIP1>` potential in charge units
+* *omega* = penalty parameter used to enforce charge bounds defined by the :ref:`CTIP <CTIP1>` potential in energy units
 
 The fix qeq styles will print a warning if the charges are not
 equilibrated within *tolerance* by *maxiter* steps, unless the
@@ -171,6 +190,22 @@ on atoms via the matrix inversion method.  A tolerance of 1.0e-6 is
 usually a good number.  Keyword *alpha* can be used to change the Slater
 type orbital exponent.
 
+.. versionadded:: TBD
+
+The *qeq/ctip* style describes partial charges on atoms in the same way
+as style *qeq/shielded* but also enables the definition of charge
+bounds.  Only the *chi*, *eta*, *gamma*, *qmin*, *qmax*, and *omega*
+parameters from the *qfile* file are used.  When using the string
+*coul/ctip* as filename, these parameters are extracted directly from an
+active *coul/ctip* pair style.  This style solves partial charges on
+atoms via the matrix inversion method.  Keyword *cdamp* can be used to
+change the damping parameter used to calculate Coulomb interactions.
+Keyword *maxrepeat* can be used to adjust the number of equilibration
+cycles allowed to ensure no atoms have crossed the charge bounds.  A
+value of 10 is usually a good choice.  A tolerance between 1.0e-6 and
+1.0e-8 is usually a good choice but should be checked in conjunction
+with the timestep for adequate energy conservation during dynamic runs.
+
 The *qeq/dynamic* style describes partial charges on atoms as point
 charges that interact through 1/r, but the extended Lagrangian method is
 used to solve partial charges on atoms.  Only the *chi* and *eta*
@@ -186,7 +221,7 @@ minimization algorithm to solve for equilibrium charges.  Keyword
 *qdamp* can be used to change the damping factor, while keyword *qstep*
 can be used to change the time step size.
 
-Note that *qeq/point*, *qeq/shielded*, and *qeq/slater* describe
+Note that *qeq/point*, *qeq/shielded*, *qeq/slater*, and *qeq/ctip* describe
 different charge models, whereas the matrix inversion method and the
 extended Lagrangian method (\ *qeq/dynamic* and *qeq/fire*\ ) are
 different solvers.
@@ -265,6 +300,11 @@ Chemistry, 95, 3358-3363 (1991).
 
 **(Streitz-Mintmire)** F. H. Streitz, J. W. Mintmire, Physical Review B, 50,
 16, 11996 (1994)
+
+.. _CTIP1:
+
+**(CTIP)** G. Plummer, J. P. Tavenner, M. I. Mendelev, Z. Wu, J. W. Lawson,
+in preparation
 
 .. _vanDuin:
 

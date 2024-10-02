@@ -3,6 +3,8 @@
 region command
 ==============
 
+Accelerator Variants: *block/kk*, *sphere/kk*
+
 Syntax
 """"""
 

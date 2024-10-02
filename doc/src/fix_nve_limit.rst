@@ -3,6 +3,8 @@
 fix nve/limit command
 =====================
 
+Accelerator Variants: *nve/limit/kk*
+
 Syntax
 """"""
 

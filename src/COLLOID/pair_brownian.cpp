@@ -249,7 +249,7 @@ void PairBrownian::compute(int eflag, int vflag)
         fy = vxmu2f * fy;
         fz = vxmu2f * fz;
 
-	// sum to total force
+        // sum to total force
 
         f[i][0] -= fx;
         f[i][1] -= fy;

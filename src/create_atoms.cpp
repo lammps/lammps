@@ -303,7 +303,7 @@ void CreateAtoms::command(int narg, char **arg)
     if (onemol->xflag == 0) error->all(FLERR, "Create_atoms molecule must have coordinates");
     if (onemol->typeflag == 0) error->all(FLERR, "Create_atoms molecule must have atom types");
     if (ntype + onemol->ntypes <= 0 || ntype + onemol->ntypes > atom->ntypes)
-      error->all(FLERR, "Invalid atom type {} in create_atoms mol command (onemol->ntypes {} atom->ntypes {})", ntype, onemol->ntypes, atom->ntypes);
+      error->all(FLERR, "Invalid atom type {} in create_atoms mol command", ntype + onemol->ntypes);
     if (onemol->tag_require && !atom->tag_enable)
       error->all(FLERR, "Create_atoms molecule has atom IDs, but system does not");
     if (atom->molecular == Atom::TEMPLATE && onemol != atom->avec->onemols[0])

@@ -56,7 +56,7 @@ class PairLubricate : public Pair {
   double R0, RT0, RS0;
   double **cut_inner, **cut;
 
-  virtual void allocate();
+  void allocate();
 };
 
 }    // namespace LAMMPS_NS

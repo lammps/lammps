@@ -163,7 +163,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_firstshear = fix_historyKK->k_firstvalue.template view<DeviceType>();
 
   Kokkos::deep_copy(d_firsttouch,0);
- 
+
   EV_FLOAT ev;
 
   if (neighflag == HALF) {
@@ -422,7 +422,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     fx_i += fx;
     fy_i += fy;
     fz_i += fz;
- 
+
     F_FLOAT tor1 = rinv * (dely*fs3 - delz*fs2);
     F_FLOAT tor2 = rinv * (delz*fs1 - delx*fs3);
     F_FLOAT tor3 = rinv * (delx*fs2 - dely*fs1);

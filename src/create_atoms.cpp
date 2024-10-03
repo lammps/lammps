@@ -303,7 +303,7 @@ void CreateAtoms::command(int narg, char **arg)
     if (onemol->xflag == 0) error->all(FLERR, "Create_atoms molecule must have coordinates");
     if (onemol->typeflag == 0) error->all(FLERR, "Create_atoms molecule must have atom types");
     if (ntype + onemol->ntypes <= 0 || ntype + onemol->ntypes > atom->ntypes)
-      error->all(FLERR, "Invalid atom type {} in create_atoms mol command", ntype + onemol->ntypes);
+      error->all(FLERR, "Invalid atom type in create_atoms mol command");
     if (onemol->tag_require && !atom->tag_enable)
       error->all(FLERR, "Create_atoms molecule has atom IDs, but system does not");
     if (atom->molecular == Atom::TEMPLATE && onemol != atom->avec->onemols[0])
@@ -319,7 +319,11 @@ void CreateAtoms::command(int narg, char **arg)
     memory->create(xmol, onemol->natoms, 3, "create_atoms:xmol");
   }
 
-  if (style == MESH && scaleflag) error->all(FLERR, "Create_atoms mesh must use 'units box' option");
+  if (style == MESH) {
+    if (mode == MOLECULE)
+      error->all(FLERR, "Create_atoms mesh is not compatible with the 'mol' option");
+    if (scaleflag) error->all(FLERR, "Create_atoms mesh must use 'units box' option");
+  }
 
   ranlatt = nullptr;
   if (subsetflag != NONE) ranlatt = new RanMars(lmp, subsetseed + comm->me);
@@ -964,12 +968,7 @@ int CreateAtoms::add_bisection(const double vert[3][3], tagint molid)
     if ((center[0] >= sublo[0]) && (center[0] < subhi[0]) && (center[1] >= sublo[1]) &&
         (center[1] < subhi[1]) && (center[2] >= sublo[2]) && (center[2] < subhi[2])) {
 
-      if (mode == ATOM) atom->avec->create_atom(ntype, center);
-      else {
-        get_xmol(center);
-        add_molecule();
-      }
-
+      atom->avec->create_atom(ntype, center);
       int idx = atom->nlocal - 1;
       if (atom->radius_flag) atom->radius[idx] = ravg * radscale;
       if (atom->molecule_flag) atom->molecule[idx] = molid;
@@ -1051,12 +1050,7 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
     if ((point[0] >= sublo[0]) && (point[0] < subhi[0]) && (point[1] >= sublo[1]) &&
         (point[1] < subhi[1]) && (point[2] >= sublo[2]) && (point[2] < subhi[2])) {
 
-      if (mode == ATOM) atom->avec->create_atom(ntype, point);
-      else {
-        get_xmol(point);
-        add_molecule();
-      }
-
+      atom->avec->create_atom(ntype, point);
       int idx = atom->nlocal - 1;
       if (atom->molecule_flag) atom->molecule[idx] = molid;
       if (atom->radius_flag) atom->radius[idx] = rad * radscale;

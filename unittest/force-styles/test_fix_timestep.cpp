@@ -430,7 +430,8 @@ TEST(FixTimestep, plain)
     // fix nve/limit cannot work with r-RESPA
     ifix = lmp->modify->get_fix_by_id("test");
     if (ifix && !utils::strmatch(ifix->style, "^rigid") &&
-        !utils::strmatch(ifix->style, "^nve/limit")) {
+        !utils::strmatch(ifix->style, "^nve/limit") &&
+        !utils::strmatch(ifix->style, "^recenter")) {
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
         if (!verbose) ::testing::internal::GetCapturedStdout();

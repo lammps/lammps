@@ -212,7 +212,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         }
       }
     } else {
-      if (vflag_global) {
+      if (vflag_either) {
         if (shearupdate) {
           Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,1,1>>(0,inum),*this, ev);
         } else {

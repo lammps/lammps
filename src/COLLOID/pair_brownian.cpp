@@ -238,7 +238,7 @@ void PairBrownian::compute(int eflag, int vflag)
           fz += Fbmag * randr * p2[2];
 
           randr = random->uniform() - 0.5;
-	  fx += Fbmag * randr * p3[0];
+          fx += Fbmag * randr * p3[0];
           fy += Fbmag * randr * p3[1];
           fz += Fbmag * randr * p3[2];
         }
@@ -248,7 +248,8 @@ void PairBrownian::compute(int eflag, int vflag)
         fx = vxmu2f * fx;
         fy = vxmu2f * fy;
         fz = vxmu2f * fz;
-        // sum to total force
+
+	// sum to total force
 
         f[i][0] -= fx;
         f[i][1] -= fy;

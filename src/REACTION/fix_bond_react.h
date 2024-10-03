@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing Author: Jacob Gissinger (jgissing@stevens.edu)
+------------------------------------------------------------------------- */
+
 #ifdef FIX_CLASS
 // clang-format off
 FixStyle(bond/react,FixBondReact);
@@ -51,7 +55,7 @@ class FixBondReact : public Fix {
   double compute_vector(int) override;
   double memory_usage() override;
 
- protected:
+ private:
   int newton_bond;
   int nreacts;
   int *nevery;

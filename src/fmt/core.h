@@ -219,7 +219,15 @@
 #  define FMT_UNICODE !FMT_MSC_VERSION
 #endif
 
+// LAMMPS customization.
+// Our use of libfmt is not compatible with making its calls consteval.
+// Revise this customization (and the corresponding code) after we have
+// updated the minimum C++ standard requirement to C++20.
 #ifndef FMT_CONSTEVAL
+# define FMT_CONSTEVAL
+#endif
+
+#if 0  // FMT_CONSTEVAL
 #  if ((FMT_GCC_VERSION >= 1000 || FMT_CLANG_VERSION >= 1101) && \
        (!defined(__apple_build_version__) ||                     \
         __apple_build_version__ >= 14000029L) &&                 \

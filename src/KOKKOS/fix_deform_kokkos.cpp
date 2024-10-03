@@ -55,7 +55,7 @@ void FixDeformKokkos::pre_exchange()
 
 void FixDeformKokkos::end_of_step()
 {
-  atomKK->sync(Host,ALL_MASK);
+  if (remapflag == Domain::X_REMAP) atomKK->sync(Host,ALL_MASK);
   FixDeform::end_of_step();
-  atomKK->modified(Host,ALL_MASK);
+  if (remapflag == Domain::X_REMAP) atomKK->modified(Host,ALL_MASK);
 }

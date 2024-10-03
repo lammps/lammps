@@ -47,7 +47,7 @@ enum { EDGE, CONSTANT, VARIABLE };
 
 template<class DeviceType>
 PairBrownianKokkos<DeviceType>::PairBrownianKokkos(LAMMPS *lmp) : PairBrownian(lmp),
-								  rand_pool(seed + comm->me)
+                                                                  rand_pool(seed + comm->me)
 {
   respa_enable = 0;
 
@@ -115,7 +115,7 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // This section of code adjusts R0/RT0/RS0 if necessary due to changes
   // in the volume fraction as a result of fix deform or moving walls
-  
+
   double dims[3], wallcoord;
   if (flagVF)                             // Flag for volume fraction corrections
     if (flagdeform || flagwall == 2) {    // Possible changes in volume fraction
@@ -158,7 +158,7 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   prethermostat = sqrt(24.0 * force->boltz * t_target / update->dt);
   prethermostat *= sqrt(force->vxmu2f / force->ftm2v / force->mvv2e);
-  
+
   // reallocate per-atom arrays if necessary
 
   if (vflag_atom) {
@@ -193,7 +193,7 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_ilist = k_list->d_ilist;
 
   copymode = 1;
-  
+
   EV_FLOAT ev;
 
   if (flagfld) { // FLAGFLD == 1
@@ -245,7 +245,7 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     }
   }
-  
+
   if (vflag_global) {
     virial[0] += ev.v[0];
     virial[1] += ev.v[1];
@@ -259,7 +259,7 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
-  
+
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
   copymode = 0;
@@ -269,13 +269,13 @@ template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int VFLAG, int FLAGFLD>
 KOKKOS_INLINE_FUNCTION
 void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG,NEWTON_PAIR,VFLAG,FLAGFLD>, const int ii, EV_FLOAT &ev) const {
-  
+
   // The f and torque arrays are atomic for Half/Thread neighbor style
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_torque = torque;
 
   rand_type rand_gen = rand_pool.get_state();
-  
+
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
@@ -286,7 +286,7 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 
   LMP_FLOAT a_sq, a_sh, a_pu;
   LMP_FLOAT xl[3], p1[3], p2[3], p3[3];
-  
+
   F_FLOAT fx_i = 0.0;
   F_FLOAT fy_i = 0.0;
   F_FLOAT fz_i = 0.0;
@@ -294,7 +294,7 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
   F_FLOAT torquex_i = 0.0;
   F_FLOAT torquey_i = 0.0;
   F_FLOAT torquez_i = 0.0;
-  
+
   if (FLAGFLD) {
     fx_i = prethermostat * sqrt(R0) * (rand_gen.drand() - 0.5);
     fy_i = prethermostat * sqrt(R0) * (rand_gen.drand() - 0.5);
@@ -307,170 +307,170 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
   }
 
   if (flagHI) {
-    
+
     for (int jj = 0; jj < jnum; jj++) {
       int j = d_neighbors(i,jj);
       j &= NEIGHMASK;
-      
+
       const X_FLOAT delx = xtmp - x(j,0);
       const X_FLOAT dely = ytmp - x(j,1);
       const X_FLOAT delz = ztmp - x(j,2);
       const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
       const int jtype = type[j];
-      
+
       if(rsq < d_cutsq(itype,jtype)) {
-	
-  	const LMP_FLOAT r = sqrt(rsq);
-	
-   	// scalar resistances a_sq and a_sh
-	
-   	LMP_FLOAT h_sep = r - 2.0 * radi;
-	
-   	// if less than minimum gap, use minimum gap instead
-	
-	if (r < d_cut_inner(itype,jtype)) h_sep = d_cut_inner(itype,jtype) - 2.0 * radi;
-	
-	// scale h_sep by radi
-	
-	h_sep = h_sep / radi;
-	
-	if (flaglog) {
-	  a_sq = 6.0 * MY_PI * mu * radi * (1.0 / 4.0 / h_sep + 9.0 / 40.0 * log(1.0 / h_sep));
-	  a_sh = 6.0 * MY_PI * mu * radi * (1.0 / 6.0 * log(1.0 / h_sep));
-	  a_pu = 8.0 * MY_PI * mu * cube(radi) * (3.0 / 160.0 * log(1.0 / h_sep));
-	} else
-	  a_sq = 6.0 * MY_PI * mu * radi * (1.0 / 4.0 / h_sep);
-	
-	// generate the Pairwise Brownian Force: a_sq
-	
-   	LMP_FLOAT Fbmag = prethermostat * sqrt(a_sq);
-	
-	// generate a random number
 
-   	LMP_FLOAT randr = rand_gen.drand() - 0.5;
-	
-	// contribution due to Brownian motion
-	
-	F_FLOAT fx = Fbmag * randr * delx / r;
-	F_FLOAT fy = Fbmag * randr * dely / r;
-	F_FLOAT fz = Fbmag * randr * delz / r;
-  	
-	// add terms due to a_sh
+        const LMP_FLOAT r = sqrt(rsq);
 
-	if (flaglog) {
-  	  
-	  // generate two orthogonal vectors to the line of centers
-	  
-	  p1[0] = delx / r;
-	  p1[1] = dely / r;
-	  p1[2] = delz / r;
-	  set_3_orthogonal_vectors(p1, p2, p3);
-  	  
-	  // magnitude
-	  
-	  Fbmag = prethermostat * sqrt(a_sh);
-	  
-	  // force in each of the two directions
+        // scalar resistances a_sq and a_sh
 
-	  randr = rand_gen.drand() - 0.5;
-	  
-	  fx += Fbmag * randr * p2[0];
-	  fy += Fbmag * randr * p2[1];
-	  fz += Fbmag * randr * p2[2];
+        LMP_FLOAT h_sep = r - 2.0 * radi;
 
-	  randr = rand_gen.drand() - 0.5;
-	  
-	  fx += Fbmag * randr * p3[0];
-	  fy += Fbmag * randr * p3[1];
-	  fz += Fbmag * randr * p3[2];
-   	}
+        // if less than minimum gap, use minimum gap instead
 
-	// scale forces to appropriate units
+        if (r < d_cut_inner(itype,jtype)) h_sep = d_cut_inner(itype,jtype) - 2.0 * radi;
 
-	fx = vxmu2f * fx;
-	fy = vxmu2f * fy;
-	fz = vxmu2f * fz;
-  	
-	// sum to total force
-  	
-   	fx_i -= fx;
-   	fy_i -= fy;
-   	fz_i -= fz;
-  	
-   	if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-   	  a_f(j,0) += fx;
-   	  a_f(j,1) += fy;
-   	  a_f(j,2) += fz;
-   	}
+        // scale h_sep by radi
 
-	// torque due to the Brownian Force
+        h_sep = h_sep / radi;
 
-	if (flaglog) {
-	  
-	  // location of the point of closest approach on I from its center
-	  
-	  xl[0] = -delx / r * radi;
-	  xl[1] = -dely / r * radi;
-	  xl[2] = -delz / r * radi;
-	  
-	  // torque = xl_cross_F
-	  
-	  F_FLOAT tx = xl[1] * fz - xl[2] * fy;
-	  F_FLOAT ty = xl[2] * fx - xl[0] * fz;
-	  F_FLOAT tz = xl[0] * fy - xl[1] * fx;
-	  
-	  // torque is same on both particles
-	  
-	  torquex_i -= tx;
-	  torquey_i -= ty;
-	  torquez_i -= tz;
-	  
-	  if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-	    a_torque(j,0) -= tx;
-	    a_torque(j,1) -= ty;
-	    a_torque(j,2) -= tz;
-	  }
-	  
-	  // torque due to a_pu
-	  
-	  Fbmag = prethermostat * sqrt(a_pu);
-	  
-	  // force in each direction
+        if (flaglog) {
+          a_sq = 6.0 * MY_PI * mu * radi * (1.0 / 4.0 / h_sep + 9.0 / 40.0 * log(1.0 / h_sep));
+          a_sh = 6.0 * MY_PI * mu * radi * (1.0 / 6.0 * log(1.0 / h_sep));
+          a_pu = 8.0 * MY_PI * mu * cube(radi) * (3.0 / 160.0 * log(1.0 / h_sep));
+        } else
+          a_sq = 6.0 * MY_PI * mu * radi * (1.0 / 4.0 / h_sep);
 
-	  randr = rand_gen.drand() - 0.5;
-	  
-	  tx = Fbmag * randr * p2[0];
-	  ty = Fbmag * randr * p2[1];
-	  tz = Fbmag * randr * p2[2];
+        // generate the Pairwise Brownian Force: a_sq
 
-	  randr = rand_gen.drand() - 0.5;
-	  
-	  tx += Fbmag * randr * p3[0];
-	  ty += Fbmag * randr * p3[1];
-	  tz += Fbmag * randr * p3[2];
-	  
-	  // torque has opposite sign on two particles
-	  
-	  torquex_i -= tx;
-	  torquey_i -= ty;
-	  torquez_i -= tz;
-	  
-	  if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-	    a_torque(j,0) += tx;
-	    a_torque(j,1) += ty;
-	    a_torque(j,2) += tz;
-	  }
-	}
-	
-	if (VFLAG)
+        LMP_FLOAT Fbmag = prethermostat * sqrt(a_sq);
+
+        // generate a random number
+
+        LMP_FLOAT randr = rand_gen.drand() - 0.5;
+
+        // contribution due to Brownian motion
+
+        F_FLOAT fx = Fbmag * randr * delx / r;
+        F_FLOAT fy = Fbmag * randr * dely / r;
+        F_FLOAT fz = Fbmag * randr * delz / r;
+
+        // add terms due to a_sh
+
+        if (flaglog) {
+
+          // generate two orthogonal vectors to the line of centers
+
+          p1[0] = delx / r;
+          p1[1] = dely / r;
+          p1[2] = delz / r;
+          set_3_orthogonal_vectors(p1, p2, p3);
+
+          // magnitude
+
+          Fbmag = prethermostat * sqrt(a_sh);
+
+          // force in each of the two directions
+
+          randr = rand_gen.drand() - 0.5;
+
+          fx += Fbmag * randr * p2[0];
+          fy += Fbmag * randr * p2[1];
+          fz += Fbmag * randr * p2[2];
+
+          randr = rand_gen.drand() - 0.5;
+
+          fx += Fbmag * randr * p3[0];
+          fy += Fbmag * randr * p3[1];
+          fz += Fbmag * randr * p3[2];
+        }
+
+        // scale forces to appropriate units
+
+        fx = vxmu2f * fx;
+        fy = vxmu2f * fy;
+        fz = vxmu2f * fz;
+
+        // sum to total force
+
+        fx_i -= fx;
+        fy_i -= fy;
+        fz_i -= fz;
+
+        if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
+          a_f(j,0) += fx;
+          a_f(j,1) += fy;
+          a_f(j,2) += fz;
+        }
+
+        // torque due to the Brownian Force
+
+        if (flaglog) {
+
+          // location of the point of closest approach on I from its center
+
+          xl[0] = -delx / r * radi;
+          xl[1] = -dely / r * radi;
+          xl[2] = -delz / r * radi;
+
+          // torque = xl_cross_F
+
+          F_FLOAT tx = xl[1] * fz - xl[2] * fy;
+          F_FLOAT ty = xl[2] * fx - xl[0] * fz;
+          F_FLOAT tz = xl[0] * fy - xl[1] * fx;
+
+          // torque is same on both particles
+
+          torquex_i -= tx;
+          torquey_i -= ty;
+          torquez_i -= tz;
+
+          if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
+            a_torque(j,0) -= tx;
+            a_torque(j,1) -= ty;
+            a_torque(j,2) -= tz;
+          }
+
+          // torque due to a_pu
+
+          Fbmag = prethermostat * sqrt(a_pu);
+
+          // force in each direction
+
+          randr = rand_gen.drand() - 0.5;
+
+          tx = Fbmag * randr * p2[0];
+          ty = Fbmag * randr * p2[1];
+          tz = Fbmag * randr * p2[2];
+
+          randr = rand_gen.drand() - 0.5;
+
+          tx += Fbmag * randr * p3[0];
+          ty += Fbmag * randr * p3[1];
+          tz += Fbmag * randr * p3[2];
+
+          // torque has opposite sign on two particles
+
+          torquex_i -= tx;
+          torquey_i -= ty;
+          torquez_i -= tz;
+
+          if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
+            a_torque(j,0) += tx;
+            a_torque(j,1) += ty;
+            a_torque(j,2) += tz;
+          }
+        }
+
+        if (VFLAG)
           ev_tally_xyz<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, -fx, -fy, -fz, delx, dely, delz);
       }
     }
-    
+
   } // if(flagHI)
-  
+
   rand_pool.free_state(rand_gen);
-    
+
   a_f(i,0) += fx_i;
   a_f(i,1) += fy_i;
   a_f(i,2) += fz_i;
@@ -505,33 +505,33 @@ void PairBrownianKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT & ev, int i, int j,
   const F_FLOAT v3 = delx*fy;
   const F_FLOAT v4 = delx*fz;
   const F_FLOAT v5 = dely*fz;
-  
+
   if (vflag_global) {
     if (NEIGHFLAG != FULL) {
       if (NEWTON_PAIR) { // neigh half, newton on
-	ev.v[0] += v0;
-	ev.v[1] += v1;
-	ev.v[2] += v2;
-	ev.v[3] += v3;
-	ev.v[4] += v4;
-	ev.v[5] += v5;
+        ev.v[0] += v0;
+        ev.v[1] += v1;
+        ev.v[2] += v2;
+        ev.v[3] += v3;
+        ev.v[4] += v4;
+        ev.v[5] += v5;
       } else { // neigh half, newton off
-	if (i < nlocal) {
-	  ev.v[0] += 0.5*v0;
-	  ev.v[1] += 0.5*v1;
-	  ev.v[2] += 0.5*v2;
-	  ev.v[3] += 0.5*v3;
-	  ev.v[4] += 0.5*v4;
-	  ev.v[5] += 0.5*v5;
-	}
-	if (j < nlocal) {
-	  ev.v[0] += 0.5*v0;
-	  ev.v[1] += 0.5*v1;
-	  ev.v[2] += 0.5*v2;
-	  ev.v[3] += 0.5*v3;
-	  ev.v[4] += 0.5*v4;
-	  ev.v[5] += 0.5*v5;
-	}
+        if (i < nlocal) {
+          ev.v[0] += 0.5*v0;
+          ev.v[1] += 0.5*v1;
+          ev.v[2] += 0.5*v2;
+          ev.v[3] += 0.5*v3;
+          ev.v[4] += 0.5*v4;
+          ev.v[5] += 0.5*v5;
+        }
+        if (j < nlocal) {
+          ev.v[0] += 0.5*v0;
+          ev.v[1] += 0.5*v1;
+          ev.v[2] += 0.5*v2;
+          ev.v[3] += 0.5*v3;
+          ev.v[4] += 0.5*v4;
+          ev.v[5] += 0.5*v5;
+        }
       }
     } else { //neigh full
       ev.v[0] += 0.5*v0;
@@ -542,9 +542,9 @@ void PairBrownianKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT & ev, int i, int j,
       ev.v[5] += 0.5*v5;
     }
   }
-  
+
   if (vflag_atom) {
-    
+
     if (NEIGHFLAG == FULL || NEWTON_PAIR || i < nlocal) {
       v_vatom(i,0) += 0.5*v0;
       v_vatom(i,1) += 0.5*v1;
@@ -574,11 +574,11 @@ void PairBrownianKokkos<DeviceType>::allocate()
   PairBrownian::allocate();
 
   int n = atom->ntypes;
-  
+
   memory->destroy(cutsq);
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
-  
+
   memory->destroy(cut_inner);
   memoryKK->create_kokkos(k_cut_inner,cut_inner,n+1,n+1,"pair:cut_inner");
   d_cut_inner = k_cut_inner.template view<DeviceType>();
@@ -608,7 +608,7 @@ double PairBrownianKokkos<DeviceType>::init_one(int i, int j)
 
   k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
   k_cutsq.template modify<LMPHostType>();
-  
+
   k_cut_inner.h_view(i,j) = k_cut_inner.h_view(j,i) = cutinnerm;
   k_cut_inner.template modify<LMPHostType>();
 

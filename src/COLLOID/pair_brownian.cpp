@@ -55,7 +55,7 @@ PairBrownian::PairBrownian(LAMMPS *lmp) : Pair(lmp)
 PairBrownian::~PairBrownian()
 {
   if(copymode) return;
-  
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

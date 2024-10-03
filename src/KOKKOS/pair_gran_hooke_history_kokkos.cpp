@@ -466,8 +466,8 @@ template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
 void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, int j,
-							  F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
-							  X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const
+                                                          F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
+                                                          X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const
 {
   Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
 
@@ -477,7 +477,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, i
   const F_FLOAT v3 = delx*fy;
   const F_FLOAT v4 = delx*fz;
   const F_FLOAT v5 = dely*fz;
-  
+
   if (vflag_global) {
     if (NEWTON_PAIR) { // neigh half, newton on
       ev.v[0] += v0;
@@ -488,26 +488,26 @@ void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, i
       ev.v[5] += v5;
     } else { // neigh half, newton off
       if (i < nlocal) {
-	ev.v[0] += 0.5*v0;
-	ev.v[1] += 0.5*v1;
-	ev.v[2] += 0.5*v2;
-	ev.v[3] += 0.5*v3;
-	ev.v[4] += 0.5*v4;
-	ev.v[5] += 0.5*v5;
+        ev.v[0] += 0.5*v0;
+        ev.v[1] += 0.5*v1;
+        ev.v[2] += 0.5*v2;
+        ev.v[3] += 0.5*v3;
+        ev.v[4] += 0.5*v4;
+        ev.v[5] += 0.5*v5;
       }
       if (j < nlocal) {
-	ev.v[0] += 0.5*v0;
-	ev.v[1] += 0.5*v1;
-	ev.v[2] += 0.5*v2;
-	ev.v[3] += 0.5*v3;
-	ev.v[4] += 0.5*v4;
-	ev.v[5] += 0.5*v5;
+        ev.v[0] += 0.5*v0;
+        ev.v[1] += 0.5*v1;
+        ev.v[2] += 0.5*v2;
+        ev.v[3] += 0.5*v3;
+        ev.v[4] += 0.5*v4;
+        ev.v[5] += 0.5*v5;
       }
-    } 
+    }
   }
-  
+
   if (vflag_atom) {
-    
+
     if (NEWTON_PAIR || i < nlocal) {
       v_vatom(i,0) += 0.5*v0;
       v_vatom(i,1) += 0.5*v1;
@@ -524,7 +524,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, i
       v_vatom(j,4) += 0.5*v4;
       v_vatom(j,5) += 0.5*v5;
     }
-    
+
   }
 
 }

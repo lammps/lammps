@@ -57,7 +57,7 @@ PairLubricate::PairLubricate(LAMMPS *lmp) : Pair(lmp)
 PairLubricate::~PairLubricate()
 {
   if (copymode) return;
-  
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

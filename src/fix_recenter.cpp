@@ -217,10 +217,7 @@ void FixRecenter::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
   // outermost level - operate recenter
   // all other levels - nothing
 
-  //if (ilevel == nlevels_respa-1) initial_integrate(vflag);
-  // FIXME: why does always calling initial_integrate make respa tests
-  // pass, i dont know !
-  initial_integrate(vflag);
+  if (ilevel == nlevels_respa-1) initial_integrate(vflag);
 
 }
 

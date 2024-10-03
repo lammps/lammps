@@ -93,6 +93,7 @@ void PairBrownian::compute(int eflag, int vflag)
 
   // This section of code adjusts R0/RT0/RS0 if necessary due to changes
   // in the volume fraction as a result of fix deform or moving walls
+
   double dims[3], wallcoord;
   if (flagVF)                             // Flag for volume fraction corrections
     if (flagdeform || flagwall == 2) {    // Possible changes in volume fraction
@@ -135,10 +136,12 @@ void PairBrownian::compute(int eflag, int vflag)
 
   prethermostat = sqrt(24.0 * force->boltz * t_target / update->dt);
   prethermostat *= sqrt(force->vxmu2f / force->ftm2v / force->mvv2e);
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
@@ -161,6 +164,7 @@ void PairBrownian::compute(int eflag, int vflag)
         torque[i][2] += prethermostat * sqrt(RT0) * (random->uniform() - 0.5);
       }
     }
+
     if (!flagHI) continue;
 
     for (jj = 0; jj < jnum; jj++) {
@@ -296,12 +300,12 @@ void PairBrownian::compute(int eflag, int vflag)
           // force in each direction
 
           randr = random->uniform() - 0.5;
-	  tx = Fbmag * randr * p2[0];
+          tx = Fbmag * randr * p2[0];
           ty = Fbmag * randr * p2[1];
           tz = Fbmag * randr * p2[2];
 
           randr = random->uniform() - 0.5;
-	  tx += Fbmag * randr * p3[0];
+          tx += Fbmag * randr * p3[0];
           ty += Fbmag * randr * p3[1];
           tz += Fbmag * randr * p3[2];
 
@@ -318,12 +322,12 @@ void PairBrownian::compute(int eflag, int vflag)
           }
         }
 
-	if (evflag)
-	  ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, -fx, -fy, -fz, delx, dely, delz);
+        if (evflag)
+          ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, -fx, -fy, -fz, delx, dely, delz);
       }
     }
   }
- 
+
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
@@ -431,7 +435,7 @@ void PairBrownian::coeff(int narg, char **arg)
 ------------------------------------------------------------------------- */
 
 void PairBrownian::init_style()
-{  
+{
   if (!atom->radius_flag) error->all(FLERR, "Pair brownian requires atom attribute radius");
 
   // if newton off, forces between atoms ij will be double computed

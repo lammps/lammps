@@ -106,7 +106,6 @@ void OpenMPTargetInternal::print_configuration(std::ostream& os,
 void OpenMPTargetInternal::impl_finalize() {
   m_is_initialized = false;
   Kokkos::Impl::OpenMPTargetExec space;
-  if (space.m_lock_array != nullptr) space.clear_lock_array();
 
   if (space.m_uniquetoken_ptr != nullptr)
     Kokkos::kokkos_free<Kokkos::Experimental::OpenMPTargetSpace>(

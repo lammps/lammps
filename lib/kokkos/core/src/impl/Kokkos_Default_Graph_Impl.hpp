@@ -56,7 +56,7 @@ struct GraphImpl : private ExecutionSpaceInstanceStorage<ExecutionSpace> {
   //----------------------------------------------------------------------------
   // <editor-fold desc="Constructors, destructor, and assignment"> {{{2
 
-  // Not moveable or copyable; it spends its whole live as a shared_ptr in the
+  // Not movable or copyable; it spends its whole live as a shared_ptr in the
   // Graph object
   GraphImpl()                 = default;
   GraphImpl(GraphImpl const&) = delete;
@@ -82,10 +82,7 @@ struct GraphImpl : private ExecutionSpaceInstanceStorage<ExecutionSpace> {
   template <class NodeImpl>
   //  requires NodeImplPtr is a shared_ptr to specialization of GraphNodeImpl
   void add_node(std::shared_ptr<NodeImpl> const& arg_node_ptr) {
-    static_assert(
-        NodeImpl::kernel_type::Policy::is_graph_kernel::value,
-        "Something has gone horribly wrong, but it's too complicated to "
-        "explain here.  Buy Daisy a coffee and she'll explain it to you.");
+    static_assert(NodeImpl::kernel_type::Policy::is_graph_kernel::value);
     // Since this is always called before any calls to add_predecessor involving
     // it, we can treat this node as a sink until we discover otherwise.
     arg_node_ptr->node_details_t::set_kernel(arg_node_ptr->get_kernel());

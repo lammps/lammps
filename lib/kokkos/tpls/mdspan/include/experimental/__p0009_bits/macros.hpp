@@ -18,7 +18,12 @@
 
 #include "config.hpp"
 
+#include <cstdio>
+#include <cstdlib>
 #include <type_traits> // std::is_void
+#if defined(_MDSPAN_HAS_CUDA) || defined(_MDSPAN_HAS_HIP) || defined(_MDSPAN_HAS_SYCL)
+#include "assert.h"
+#endif
 
 #ifndef _MDSPAN_HOST_DEVICE
 #  if defined(_MDSPAN_HAS_CUDA) || defined(_MDSPAN_HAS_HIP)
@@ -100,6 +105,69 @@
 
 #define MDSPAN_IMPL_STANDARD_NAMESPACE_STRING MDSPAN_PP_STRINGIFY(MDSPAN_IMPL_STANDARD_NAMESPACE)
 #define MDSPAN_IMPL_PROPOSED_NAMESPACE_STRING MDSPAN_PP_STRINGIFY(MDSPAN_IMPL_STANDARD_NAMESPACE) "::" MDSPAN_PP_STRINGIFY(MDSPAN_IMPL_PROPOSED_NAMESPACE)
+
+namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
+namespace detail {
+
+#if defined(_MDSPAN_HAS_CUDA) || defined(_MDSPAN_HAS_HIP)
+MDSPAN_FUNCTION inline void default_precondition_violation_handler(const char* cond, const char* file, unsigned line)
+{
+  printf("%s:%u: precondition failure: `%s`\n", file, line, cond);
+  assert(0);
+}
+#elif defined(_MDSPAN_HAS_SYCL)
+MDSPAN_FUNCTION inline void default_precondition_violation_handler(const char* cond, const char* file, unsigned line)
+{
+  sycl::ext::oneapi::experimental::printf("%s:%u: precondition failure: `%s`\n", file, line, cond);
+  assert(0);
+}
+#else
+MDSPAN_FUNCTION inline void default_precondition_violation_handler(const char* cond, const char* file, unsigned line)
+{
+  std::fprintf(stderr, "%s:%u: precondition failure: `%s`\n", file, line, cond);
+  std::abort();
+}
+#endif
+
+} // namespace detail
+} // namespace MDSPAN_IMPL_STANDARD_NAMESPACE
+
+#ifndef MDSPAN_IMPL_PRECONDITION_VIOLATION_HANDLER
+#define MDSPAN_IMPL_PRECONDITION_VIOLATION_HANDLER(cond, file, line) \
+  MDSPAN_IMPL_STANDARD_NAMESPACE::detail::default_precondition_violation_handler(cond, file, line)
+#endif
+
+#ifndef MDSPAN_IMPL_CHECK_PRECONDITION
+  #ifndef NDEBUG
+    #define MDSPAN_IMPL_CHECK_PRECONDITION 0
+  #else
+    #define MDSPAN_IMPL_CHECK_PRECONDITION 1
+  #endif
+#endif
+
+namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
+namespace detail {
+
+template <bool check = MDSPAN_IMPL_CHECK_PRECONDITION>
+MDSPAN_FUNCTION constexpr void precondition(const char* cond, const char* file, unsigned line)
+{
+  if (!check) { return; }
+  // in case the macro doesn't use the arguments for custom macros
+  (void) cond;
+  (void) file;
+  (void) line;
+  MDSPAN_IMPL_PRECONDITION_VIOLATION_HANDLER(cond, file, line);
+}
+
+} // namespace detail
+} // namespace MDSPAN_IMPL_STANDARD_NAMESPACE
+
+#define MDSPAN_IMPL_PRECONDITION(...) \
+  do { \
+    if (!(__VA_ARGS__)) { \
+      MDSPAN_IMPL_STANDARD_NAMESPACE::detail::precondition(#__VA_ARGS__, __FILE__, __LINE__); \
+    } \
+  } while (0)
 
 // </editor-fold> end Preprocessor helpers }}}1
 //==============================================================================
@@ -574,7 +642,7 @@ __fold_left_assign_impl(Args&&... args) {
 
 
 template <class... Args>
-constexpr __mdspan_enable_fold_comma __fold_comma_impl(Args&&... args) noexcept { return { }; }
+constexpr __mdspan_enable_fold_comma __fold_comma_impl(Args&&...) noexcept { return { }; }
 
 template <bool... Bs>
 struct __bools;

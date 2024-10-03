@@ -53,8 +53,8 @@ class ComputeRHEOKernel : public Compute {
  private:
   int comm_stage, comm_forward_save;
   int interface_flag;
-  int gsl_error_flag;
-  std::unordered_set<tagint> gsl_error_tags;
+  int lapack_error_flag;
+  std::unordered_set<tagint> lapack_error_tags;
 
   int corrections_calculated;
   int kernel_style, zmin, dim, Mdim, ncor;

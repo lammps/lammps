@@ -13,11 +13,11 @@ neigh_modify    delay 0 every 1 check yes
 neigh_modify    exclude molecule/intra all
 
 pair_style      line/lj 2.5
-pair_coeff      * * 1.0 1.0 1.0 0.25 2.5
+pair_coeff      * * 0.25 0.25 1.0 0.25 2.5
 
 fix             2 all rigid molecule langevin 2.0 2.0 1.0 492983
 
-fix             3 all deform 1 x scale 0.3 y scale 0.3
+fix             3 all deform 5 x scale 0.8 y scale 0.8
 fix             4 all enforce2d
 
 compute         10 all property/atom end1x end1y end2x end2y
@@ -26,7 +26,7 @@ compute         10 all property/atom end1x end1y end2x end2y
 #dump           2 all custom 500 dump1.line id type &
 #               c_10[1] c_10[2] c_10[3] c_10[4]
 
-timestep        0.004
+timestep        0.001
 
 compute         1 all erotate/asphere
 compute         2 all ke

@@ -3,8 +3,9 @@ multiphase fluid systems. The authors include Joel Clemmer (Sandia), Thomas
 O'Connor (Carnegie Mellon), and Eric Palermo (Carnegie Mellon).
 
 Bond style rheo/shell, compute style rheo/property/atom, and fix style
-rheo/temperature all depend on the BPM package.
+rheo/temperature depend on the BPM package, so it is required to install
+the BPM package with RHEO.
 
-This package requires the GNU scientific library (GSL). We recommend version
-2.7 or later. To build this package, one must first separately install GSL in
-a location that can be found by your environment.
+This package requires the BLAS/LAPACK.  This can be either a seperate installation
+or you can use the bundled "linalg" library.  Please see the LAMMPS manual at
+https://docs.lammps.org/Build_extras.html#rheo for details.

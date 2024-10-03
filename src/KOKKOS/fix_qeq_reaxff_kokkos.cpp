@@ -291,7 +291,7 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
   // free duplicated memory
 
   if (need_dup)
-    dup_o = decltype(dup_o)();
+    dup_o = {};
 
   atomKK->modified(execution_space,datamask_modify);
 

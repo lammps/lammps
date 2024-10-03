@@ -439,6 +439,8 @@
 /pair_coul_cut_global.h
 /pair_coul_streitz.cpp
 /pair_coul_streitz.h
+/pair_coul_ctip.cpp
+/pair_coul_ctip.h
 /pair_gauss.cpp
 /pair_gauss.h
 /pair_lj96_cut.cpp
@@ -978,6 +980,8 @@
 /fix_pour.h
 /fix_qeq_comb.cpp
 /fix_qeq_comb.h
+/fix_qeq_ctip.cpp
+/fix_qeq_ctip.h
 /fix_qeq_fire.cpp
 /fix_qeq_fire.h
 /fix_qeq_reaxff.cpp

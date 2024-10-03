@@ -1,5 +1,5 @@
-# GitHub action to build LAMMPS on Linux with gcc and C++20
-name: "Check for C++20 Compatibility"
+# GitHub action to build LAMMPS on Linux with gcc and C++23
+name: "Check for C++23 Compatibility"
 
 on:
   push:
@@ -13,7 +13,7 @@ on:
 
 jobs:
   build:
-    name: Build with C++20 support enabled
+    name: Build with C++23 support enabled
     if: ${{ github.repository == 'lammps/lammps' }}
     runs-on: ubuntu-latest
     env:
@@ -44,8 +44,8 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ${{ env.CCACHE_DIR }}
-        key: linux-cpp20-ccache-${{ github.sha }}
-        restore-keys: linux-cpp20-ccache-
+        key: linux-cpp23-ccache-${{ github.sha }}
+        restore-keys: linux-cpp23-ccache-
 
     - name: Building LAMMPS via CMake
       shell: bash
@@ -58,13 +58,13 @@ jobs:
         cmake -S cmake -B build \
               -C cmake/presets/most.cmake \
               -C cmake/presets/kokkos-openmp.cmake \
+              -D CMAKE_CXX_STANDARD=23 \
               -D CMAKE_CXX_COMPILER=g++ \
               -D CMAKE_C_COMPILER=gcc \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
               -D CMAKE_BUILD_TYPE=Debug \
               -D CMAKE_CXX_FLAGS_DEBUG="-Og -g" \
-              -D CMAKE_CXX_STANDARD=20 \
               -D DOWNLOAD_POTENTIALS=off \
               -D BUILD_MPI=on \
               -D BUILD_SHARED_LIBS=on \

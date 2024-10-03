@@ -43,8 +43,6 @@ using namespace MathSpecialKokkos;
 
 enum { EDGE, CONSTANT, VARIABLE };
 
-//#define _NO_RANDOM
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -108,10 +106,6 @@ void PairBrownianKokkos<DeviceType>::init_style()
 template<class DeviceType>
 void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
-#ifdef _NO_RANDOM
-  printf("Warning:: PairBrownian::compute()  Random numbers all set to 0.5\n");
-#endif
-  
   eflag = eflag_in;
   vflag = vflag_in;
 
@@ -301,18 +295,6 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
   F_FLOAT torquey_i = 0.0;
   F_FLOAT torquez_i = 0.0;
   
-#ifdef _NO_RANDOM
-  if (FLAGFLD) {
-    fx_i = prethermostat * sqrt(R0) * 0.5;
-    fy_i = prethermostat * sqrt(R0) * 0.5;
-    fz_i = prethermostat * sqrt(R0) * 0.5;
-    if (flaglog) {
-      torquex_i = prethermostat * sqrt(RT0) * 0.5;
-      torquey_i = prethermostat * sqrt(RT0) * 0.5;
-      torquez_i = prethermostat * sqrt(RT0) * 0.5;
-    }
-  }
-#else
   if (FLAGFLD) {
     fx_i = prethermostat * sqrt(R0) * (rand_gen.drand() - 0.5);
     fy_i = prethermostat * sqrt(R0) * (rand_gen.drand() - 0.5);
@@ -323,7 +305,6 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
       torquez_i = prethermostat * sqrt(RT0) * (rand_gen.drand() - 0.5);
     }
   }
-#endif
 
   if (flagHI) {
     
@@ -366,11 +347,7 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 	
 	// generate a random number
 
-#ifdef _NO_RANDOM
-	LMP_FLOAT randr = 0.5;
-#else
    	LMP_FLOAT randr = rand_gen.drand() - 0.5;
-#endif
 	
 	// contribution due to Brownian motion
 	
@@ -395,18 +372,14 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 	  
 	  // force in each of the two directions
 
-#ifdef _NO_RANDOM
-	  randr = 0.5;
-#else
 	  randr = rand_gen.drand() - 0.5;
-#endif
+	  
 	  fx += Fbmag * randr * p2[0];
 	  fy += Fbmag * randr * p2[1];
 	  fz += Fbmag * randr * p2[2];
 
-#ifndef _NO_RANDOM
 	  randr = rand_gen.drand() - 0.5;
-#endif
+	  
 	  fx += Fbmag * randr * p3[0];
 	  fy += Fbmag * randr * p3[1];
 	  fz += Fbmag * randr * p3[2];
@@ -464,18 +437,14 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 	  
 	  // force in each direction
 
-#ifdef _NO_RANDOM
-	  randr = 0.5;
-#else
 	  randr = rand_gen.drand() - 0.5;
-#endif
+	  
 	  tx = Fbmag * randr * p2[0];
 	  ty = Fbmag * randr * p2[1];
 	  tz = Fbmag * randr * p2[2];
 
-#ifndef _NO_RANDOM
 	  randr = rand_gen.drand() - 0.5;
-#endif
+	  
 	  tx += Fbmag * randr * p3[0];
 	  ty += Fbmag * randr * p3[1];
 	  tz += Fbmag * randr * p3[2];

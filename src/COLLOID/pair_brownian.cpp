@@ -42,8 +42,6 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-//#define _NO_RANDOM
-
 /* ---------------------------------------------------------------------- */
 
 PairBrownian::PairBrownian(LAMMPS *lmp) : Pair(lmp)
@@ -72,10 +70,6 @@ PairBrownian::~PairBrownian()
 
 void PairBrownian::compute(int eflag, int vflag)
 {
-#ifdef _NO_RANDOM
-  printf("Warning:: PairBrownian::compute()  Random numbers all set to 0.5\n");
-#endif
-  
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, fx, fy, fz, tx, ty, tz;
   double rsq, r, h_sep, radi;
@@ -160,18 +154,6 @@ void PairBrownian::compute(int eflag, int vflag)
 
     // FLD contribution to force and torque due to isotropic terms
 
-#ifdef _NO_RANDOM
-    if (flagfld) {
-      f[i][0] += prethermostat * sqrt(R0) * 0.5;
-      f[i][1] += prethermostat * sqrt(R0) * 0.5;
-      f[i][2] += prethermostat * sqrt(R0) * 0.5;
-      if (flaglog) {
-        torque[i][0] += prethermostat * sqrt(RT0) * 0.5;
-        torque[i][1] += prethermostat * sqrt(RT0) * 0.5;
-        torque[i][2] += prethermostat * sqrt(RT0) * 0.5;
-      }
-    }
-#else
     if (flagfld) {
       f[i][0] += prethermostat * sqrt(R0) * (random->uniform() - 0.5);
       f[i][1] += prethermostat * sqrt(R0) * (random->uniform() - 0.5);
@@ -182,7 +164,6 @@ void PairBrownian::compute(int eflag, int vflag)
         torque[i][2] += prethermostat * sqrt(RT0) * (random->uniform() - 0.5);
       }
     }
-#endif
     
     if (!flagHI) continue;
 
@@ -226,11 +207,7 @@ void PairBrownian::compute(int eflag, int vflag)
 
         // generate a random number
 
-#ifdef _NO_RANDOM
-        randr = 0.5;
-#else
         randr = random->uniform() - 0.5;
-#endif
 
         // contribution due to Brownian motion
 
@@ -255,19 +232,14 @@ void PairBrownian::compute(int eflag, int vflag)
 
           // force in each of the two directions
 
-#ifdef _NO_RANDOM
-	  randr = 0.5;
-#else
           randr = random->uniform() - 0.5;
-#endif
           fx += Fbmag * randr * p2[0];
           fy += Fbmag * randr * p2[1];
           fz += Fbmag * randr * p2[2];
 
-#ifndef _NO_RANDOM
           randr = random->uniform() - 0.5;
-#endif
-          fx += Fbmag * randr * p3[0];
+          
+	  fx += Fbmag * randr * p3[0];
           fy += Fbmag * randr * p3[1];
           fz += Fbmag * randr * p3[2];
         }
@@ -329,19 +301,15 @@ void PairBrownian::compute(int eflag, int vflag)
 
           // force in each direction
 
-#ifdef _NO_RANDOM
-	  randr = 0.5;
-#else
           randr = random->uniform() - 0.5;
-#endif
-          tx = Fbmag * randr * p2[0];
+          
+	  tx = Fbmag * randr * p2[0];
           ty = Fbmag * randr * p2[1];
           tz = Fbmag * randr * p2[2];
 
-#ifndef _NO_RANDOM
           randr = random->uniform() - 0.5;
-#endif
-          tx += Fbmag * randr * p3[0];
+          
+	  tx += Fbmag * randr * p3[0];
           ty += Fbmag * randr * p3[1];
           tz += Fbmag * randr * p3[2];
 

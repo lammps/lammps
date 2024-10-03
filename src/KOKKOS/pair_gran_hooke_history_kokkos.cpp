@@ -163,12 +163,12 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_firstshear = fix_historyKK->k_firstvalue.template view<DeviceType>();
 
   Kokkos::deep_copy(d_firsttouch,0);
-  
+ 
   EV_FLOAT ev;
 
   if (neighflag == HALF) {
     if (force->newton_pair) {
-      if (vflag_either) { // VFLAG == 1
+      if (vflag_either) {
         if (shearupdate) {
           Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,1,1>>(0,inum),*this, ev);
         } else {
@@ -198,7 +198,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   } else { // HALFTHREAD
     if (force->newton_pair) {
-      if (vflag_either) { // VFLAG == 0
+      if (vflag_either) {
         if (shearupdate) {
           Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,1,1>>(0,inum),*this, ev);
         } else {
@@ -227,7 +227,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     }
   }
-  
+
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
     k_eatom.template sync<LMPHostType>();
@@ -241,7 +241,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     virial[4] += ev.v[4];
     virial[5] += ev.v[5];
   }
-  
+
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
@@ -300,7 +300,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     const LMP_FLOAT jmass = rmass[j];
     const LMP_FLOAT jrad = radius[j];
     const LMP_FLOAT radsum = irad + jrad;
-      
+
     // check for touching neighbors
 
     if (rsq >= radsum * radsum) {
@@ -422,7 +422,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     fx_i += fx;
     fy_i += fy;
     fz_i += fz;
-    
+ 
     F_FLOAT tor1 = rinv * (dely*fs3 - delz*fs2);
     F_FLOAT tor2 = rinv * (delz*fs1 - delx*fs3);
     F_FLOAT tor3 = rinv * (delx*fs2 - dely*fs1);

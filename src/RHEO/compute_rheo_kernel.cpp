@@ -740,9 +740,9 @@ void ComputeRHEOKernel::compute_peratom()
       dpotri_(&uplo, &Mdim, M, &Mdim, &lapack_error);
 
       // make result matrix symmetric
-      for (int i = 0; i < Mdim; ++i) {
-        for (int j = i+1; j < Mdim; ++j) {
-          M[i * Mdim + j] = M[j * Mdim + i];
+      for (a = 0; a < Mdim; a++) {
+        for (b = a + 1; b < Mdim; b++) {
+          M[a * Mdim + b] = M[b * Mdim + a];
         }
       }
 

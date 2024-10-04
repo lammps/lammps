@@ -125,10 +125,6 @@ where thermo_temp is the ID of a similarly defined compute of style
 
 ----------
 
-.. include:: accel_styles.rst
-
-----------
-
 Output info
 """""""""""
 

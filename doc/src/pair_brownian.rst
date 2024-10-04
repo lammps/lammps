@@ -1,5 +1,6 @@
 .. index:: pair_style brownian
 .. index:: pair_style brownian/omp
+.. index:: pair_style brownian/kk
 .. index:: pair_style brownian/poly
 .. index:: pair_style brownian/poly/omp
 

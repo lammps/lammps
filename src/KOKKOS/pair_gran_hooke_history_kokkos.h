@@ -32,7 +32,7 @@ namespace LAMMPS_NS {
 template <class DeviceType>
 class FixNeighHistoryKokkos;
 
-template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>
+template<int NEIGHFLAG, int NEWTON_PAIR, int VFLAG, int SHEARUPDATE>
 struct TagPairGranHookeHistoryCompute {};
 
 template <class DeviceType>
@@ -47,23 +47,18 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
   void compute(int, int) override;
   void init_style() override;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>
+  template<int NEIGHFLAG, int NEWTON_PAIR, int VFLAG, int SHEARUPDATE>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,SHEARUPDATE>, const int, EV_FLOAT &ev) const;
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>
+  void operator()(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,VFLAG,SHEARUPDATE>, const int, EV_FLOAT &ev) const;
+  template<int NEIGHFLAG, int NEWTON_PAIR, int VFLAG, int SHEARUPDATE>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,SHEARUPDATE>, const int) const;
+  void operator()(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,VFLAG,SHEARUPDATE>, const int) const;
 
-  template<int NEWTON_PAIR>
+  template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void ev_tally_xyz(EV_FLOAT &ev, int i, int j,
                     F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
                     X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
-  template<int NEIGHFLAG, int NEWTON_PAIR>
-  KOKKOS_INLINE_FUNCTION
-  void ev_tally_xyz_atom(EV_FLOAT &ev, int i, int j,
-                         F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
-                         X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
 
  protected:
   typename AT::t_x_array_randomread x;

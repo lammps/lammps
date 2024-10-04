@@ -149,6 +149,14 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
           set_flag = 1;
         }
       }
+      if ((str = getenv("PALS_LOCAL_RANKID"))) {
+        if (ngpus > 0) {
+          int local_rank = atoi(str);
+          device = local_rank % ngpus;
+          if (device >= skip_gpu) device++;
+          set_flag = 1;
+        }
+      }
 
       if (ngpus > 1 && !set_flag)
         error->all(FLERR,"Could not determine local MPI rank for multiple "
@@ -625,13 +633,22 @@ void KokkosLMP::accelerator(int narg, char **arg)
   // set neighbor binsize, same as neigh_modify command
 
   force->newton = force->newton_pair = force->newton_bond = newtonflag;
-
-  if (neigh_thread && newtonflag)
-    error->all(FLERR,"Must use KOKKOS package option 'newton off' with 'neigh/thread on'");
+  newton_check();
 
   neighbor->binsize_user = binsize;
   if (binsize <= 0.0) neighbor->binsizeflag = 0;
   else neighbor->binsizeflag = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void KokkosLMP::newton_check()
+{
+  if (neighflag == FULL && force->newton)
+    error->all(FLERR,"Must use 'newton off' with KOKKOS package option 'neigh full'");
+
+  if (neigh_thread && force->newton)
+    error->all(FLERR,"Must use 'newton off' with KOKKOS package option 'neigh/thread on'");
 }
 
 /* ----------------------------------------------------------------------

@@ -144,6 +144,12 @@ outermost level.
    MUST not disable the :doc:`fix_modify <fix_modify>` *energy* option
    for this fix.
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 Restrictions
 """"""""""""
 

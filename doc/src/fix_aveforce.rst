@@ -71,10 +71,6 @@ to it.
 
 ----------
 
-.. include:: accel_styles.rst
-
-----------
-
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

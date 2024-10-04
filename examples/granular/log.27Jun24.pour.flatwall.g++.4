@@ -1,4 +1,4 @@
-LAMMPS (28 Mar 2023 - Development)
+LAMMPS (27 Jun 2024 - Development - patch_27Jun2024-930-g7036930360)
 # pour two types of particles (cohesive and non-cohesive) on flat wall
 
 variable        name string pour_two_types
@@ -44,7 +44,7 @@ region          boxreg block 0 20 0 20 0 ${boxz}
 region          boxreg block 0 20 0 20 0 30
 create_box      2 boxreg
 Created orthogonal box = (0 0 0) to (20 20 30)
-  1 by 1 by 1 MPI processor grid
+  2 by 2 by 1 MPI processor grid
 change_box      all boundary p p f
 Changing box ...
 
@@ -70,13 +70,11 @@ fix             ins1 all pour 1500 1 3123 region insreg1 diam range 0.5 ${dhi} d
 fix             ins1 all pour 1500 1 3123 region insreg1 diam range 0.5 1 dens ${dens} ${dens}
 fix             ins1 all pour 1500 1 3123 region insreg1 diam range 0.5 1 dens 1 ${dens}
 fix             ins1 all pour 1500 1 3123 region insreg1 diam range 0.5 1 dens 1 1
-Particle insertion: 562 every 346 steps, 1500 by step 693
 fix             ins2 all pour 1500 2 3123 region insreg2 diam range ${dlo} ${dhi} dens ${dens} ${dens}
 fix             ins2 all pour 1500 2 3123 region insreg2 diam range 0.5 ${dhi} dens ${dens} ${dens}
 fix             ins2 all pour 1500 2 3123 region insreg2 diam range 0.5 1 dens ${dens} ${dens}
 fix             ins2 all pour 1500 2 3123 region insreg2 diam range 0.5 1 dens 1 ${dens}
 fix             ins2 all pour 1500 2 3123 region insreg2 diam range 0.5 1 dens 1 1
-Particle insertion: 562 every 346 steps, 1500 by step 693
 
 neighbor        ${skin} bin
 neighbor        0.15 bin
@@ -94,6 +92,8 @@ timestep        0.001
 
 run             5000
 Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Particle insertion: 562 every 1732 steps, 1500 by step 3465
+Particle insertion: 562 every 1732 steps, 1500 by step 3465
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -103,93 +103,91 @@ Neighbor list info ...
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
   (1) pair granular, perpetual
       attributes: half, newton on, size, history
-      pair build: half/size/bin/newton
+      pair build: half/size/bin/atomonly/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 15.24 | 15.24 | 15.24 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 15.03 | 15.03 | 15.03 Mbytes
    Step        Atoms        KinEng    
          0           0  -0            
-WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
-WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
+WARNING: Fewer insertions than requested (../fix_pour.cpp:688)
+WARNING: Fewer insertions than requested (../fix_pour.cpp:688)
        100         926  -0            
        200         926  -0            
        300         926  -0            
-WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
-WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
-       400        1498  -0            
-       500        1498  -0            
-       600        1498  -0            
-WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
-WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
-       700        2275  -0            
-       800        2275  -0            
-       900        2275  -0            
-      1000        2275  -0            
-WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
-      1100        2954  -0            
-      1200        2954  -0            
-      1300        2954  -0            
-      1400        3000  -0            
-      1500        3000  -0            
-      1600        3000  -0            
-      1700        3000  -0            
-      1800        3000  -0            
-      1900        3000  -0            
-      2000        3000  -0            
-      2100        3000  -0            
-      2200        3000  -0            
-      2300        3000  -0            
-      2400        3000  -0            
-      2500        3000  -0            
-      2600        3000  -0            
-      2700        3000  -0            
-      2800        3000  -0            
-      2900        3000  -0            
-      3000        3000  -0            
-      3100        3000  -0            
-      3200        3000  -0            
-      3300        3000  -0            
-      3400        3000  -0            
-      3500        3000  -0            
-      3600        3000  -0            
-      3700        3000  -0            
-      3800        3000  -0            
-      3900        3000  -0            
-      4000        3000  -0            
-      4100        3000  -0            
-      4200        3000  -0            
-      4300        3000  -0            
-      4400        3000  -0            
-      4500        3000  -0            
-      4600        3000  -0            
-      4700        3000  -0            
-      4800        3000  -0            
-      4900        3000  -0            
-      5000        3000  -0            
-Loop time of 10.8677 on 1 procs for 5000 steps with 3000 atoms
+       400         926  -0            
+       500         926  -0            
+       600         926  -0            
+       700         926  -0            
+       800         926  -0            
+       900         926  -0            
+      1000         926  -0            
+      1100         926  -0            
+      1200         926  -0            
+      1300         926  -0            
+      1400         926  -0            
+      1500         926  -0            
+      1600         926  -0            
+      1700         926  -0            
+WARNING: Fewer insertions than requested (../fix_pour.cpp:688)
+WARNING: Fewer insertions than requested (../fix_pour.cpp:688)
+      1800        1882  -0            
+      1900        1882  -0            
+      2000        1882  -0            
+      2100        1882  -0            
+      2200        1882  -0            
+      2300        1882  -0            
+      2400        1882  -0            
+      2500        1882  -0            
+      2600        1882  -0            
+      2700        1882  -0            
+      2800        1882  -0            
+      2900        1882  -0            
+      3000        1882  -0            
+      3100        1882  -0            
+      3200        1882  -0            
+      3300        1882  -0            
+      3400        1882  -0            
+WARNING: Fewer insertions than requested (../fix_pour.cpp:688)
+      3500        2849  -0            
+      3600        2849  -0            
+      3700        2849  -0            
+      3800        2849  -0            
+      3900        2849  -0            
+      4000        2849  -0            
+      4100        2849  -0            
+      4200        2849  -0            
+      4300        2849  -0            
+      4400        2849  -0            
+      4500        2849  -0            
+      4600        2849  -0            
+      4700        2849  -0            
+      4800        2849  -0            
+      4900        2849  -0            
+      5000        2849  -0            
+Loop time of 2.29763 on 4 procs for 5000 steps with 2849 atoms
 
-Performance: 39750.725 tau/day, 460.078 timesteps/s, 1.380 Matom-step/s
-99.6% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 188019.846 tau/day, 2176.156 timesteps/s, 6.200 Matom-step/s
+99.3% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 8.0086     | 8.0086     | 8.0086     |   0.0 | 73.69
-Neigh   | 1.3537     | 1.3537     | 1.3537     |   0.0 | 12.46
-Comm    | 0.063133   | 0.063133   | 0.063133   |   0.0 |  0.58
-Output  | 0.0010708  | 0.0010708  | 0.0010708  |   0.0 |  0.01
-Modify  | 1.3723     | 1.3723     | 1.3723     |   0.0 | 12.63
-Other   |            | 0.06891    |            |       |  0.63
+Pair    | 0.38295    | 0.832      | 1.3838     |  49.2 | 36.21
+Neigh   | 0.13581    | 0.1818     | 0.24052    |  10.9 |  7.91
+Comm    | 0.21418    | 0.83972    | 1.3498     |  56.1 | 36.55
+Output  | 0.00049029 | 0.00061201 | 0.00074711 |   0.0 |  0.03
+Modify  | 0.37843    | 0.41232    | 0.44468    |   4.0 | 17.95
+Other   |            | 0.03117    |            |       |  1.36
 
-Nlocal:           3000 ave        3000 max        3000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:            477 ave         477 max         477 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:          16725 ave       16725 max       16725 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:         712.25 ave         891 max         538 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:         420.25 ave         451 max         381 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+Neighs:        3050.75 ave        4663 max        1564 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
 
-Total # of neighbors = 16725
-Ave neighs/atom = 5.575
-Neighbor list builds = 1109
+Total # of neighbors = 12203
+Ave neighs/atom = 4.2832573
+Neighbor list builds = 1282
 Dangerous builds = 0
-Total wall time: 0:00:10
+Total wall time: 0:00:02

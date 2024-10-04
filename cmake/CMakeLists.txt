@@ -2,7 +2,10 @@
 ########################################
 # CMake build system
 # This file is part of LAMMPS
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.16)
+if(CMAKE_VERSION VERSION_LESS 3.20)
+  message(WARNING "LAMMPS is planning require at least CMake version 3.20 by Summer 2025. Please upgrade!")
+endif()
 ########################################
 # set policy to silence warnings about ignoring <PackageName>_ROOT but use it
 if(POLICY CMP0074)

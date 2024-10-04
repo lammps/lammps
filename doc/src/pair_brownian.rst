@@ -6,7 +6,7 @@
 pair_style brownian command
 ===========================
 
-Accelerator Variants: *brownian/omp*
+Accelerator Variants: *brownian/omp*, *brownian/kk*
 
 pair_style brownian/poly command
 ================================

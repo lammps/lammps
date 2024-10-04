@@ -1,5 +1,18 @@
+@PACKAGE_INIT@
+
 include(CMakeFindDependencyMacro)
+
 if(@BUILD_MPI@)
+  set(MPI_CXX_SKIP_MPICXX TRUE)
   find_dependency(MPI REQUIRED CXX)
 endif()
+
+if(@BUILD_OMP@)
+  find_dependency(OpenMP REQUIRED CXX)
+endif()
+
+if(@PKG_PLUGIN@)
+  include("${CMAKE_CURRENT_LIST_DIR}/Plugin.cmake")
+endif()
+
 include("${CMAKE_CURRENT_LIST_DIR}/LAMMPS_Targets.cmake")

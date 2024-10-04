@@ -23,6 +23,18 @@ target_include_directories(colvars PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/colvars)
 # The line below is needed to locate math_eigen_impl.h
 target_include_directories(colvars PRIVATE ${LAMMPS_SOURCE_DIR})
 target_link_libraries(lammps PRIVATE colvars)
+# ugly hacks for MSVC which by default always reports an old C++ standard in the __cplusplus macro
+# and prints lots of pointless warnings about "unsafe" functions
+if(MSVC)
+  if((CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "Intel"))
+    target_compile_options(colvars PUBLIC /Zc:__cplusplus)
+    target_compile_options(colvars PUBLIC /wd4244)
+    target_compile_options(colvars PUBLIC /wd4267)
+    target_compile_options(colvars PUBLIC /wd4250)
+    target_compile_options(colvars PUBLIC /EHsc)
+  endif()
+  target_compile_definitions(colvars PUBLIC _CRT_SECURE_NO_WARNINGS)
+endif()
 
 if(BUILD_OMP)
   # Enable OpenMP for Colvars as well

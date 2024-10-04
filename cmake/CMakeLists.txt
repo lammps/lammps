@@ -47,6 +47,8 @@ set(LAMMPS_POTENTIALS_URL "${LAMMPS_DOWNLOADS_URL}/potentials")
 set(LAMMPS_THIRDPARTY_URL "${LAMMPS_DOWNLOADS_URL}/thirdparty")
 mark_as_advanced(LAMMPS_DOWNLOADS_URL)
 
+add_library(lammps)
+
 find_package(Git)
 
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
@@ -156,17 +158,19 @@ if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 17))
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
+target_compile_features(lammps PUBLIC cxx_std_${CMAKE_CXX_STANDARD})
+set_target_properties(lammps PROPERTIES CXX_EXTENSIONS ${CMAKE_CXX_EXTENSIONS})
 # ugly hacks for MSVC which by default always reports an old C++ standard in the __cplusplus macro
 # and prints lots of pointless warnings about "unsafe" functions
 if(MSVC)
   if((CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "Intel"))
-    add_compile_options(/Zc:__cplusplus)
-    add_compile_options(/wd4244)
-    add_compile_options(/wd4267)
-    add_compile_options(/wd4250)
-    add_compile_options(/EHsc)
+    target_compile_options(lammps PUBLIC /Zc:__cplusplus)
+    target_compile_options(lammps PUBLIC /wd4244)
+    target_compile_options(lammps PUBLIC /wd4267)
+    target_compile_options(lammps PUBLIC /wd4250)
+    target_compile_options(lammps PUBLIC /EHsc)
   endif()
-  add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+  target_compile_definitions(lammps PUBLIC _CRT_SECURE_NO_WARNINGS)
 endif()
 
 # warn about potentially problematic GCC compiler versions
@@ -233,14 +237,16 @@ endif()
 file(GLOB ALL_SOURCES CONFIGURE_DEPENDS ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
 file(GLOB MAIN_SOURCES CONFIGURE_DEPENDS ${LAMMPS_SOURCE_DIR}/main.cpp)
 list(REMOVE_ITEM ALL_SOURCES ${MAIN_SOURCES})
-add_library(lammps ${ALL_SOURCES})
+target_sources(lammps PRIVATE ${ALL_SOURCES})
 
 # tell CMake to export all symbols to a .dll on Windows with MinGW cross-compilers
 if(BUILD_SHARED_LIBS AND (CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
+  target_link_options(lammps PUBLIC "-Wl,--export-all-symbols")
   set_target_properties(lammps PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
 endif()
 
 add_executable(lmp ${MAIN_SOURCES})
+add_executable(LAMMPS::lmp ALIAS lmp)
 target_link_libraries(lmp PRIVATE lammps)
 set_target_properties(lmp PROPERTIES OUTPUT_NAME ${LAMMPS_BINARY})
 # re-export all symbols for plugins
@@ -387,14 +393,15 @@ if(BUILD_MPI)
     find_package(MPI REQUIRED)
     option(LAMMPS_LONGLONG_TO_LONG "Workaround if your system or MPI version does not recognize 'long long' data types" OFF)
     if(LAMMPS_LONGLONG_TO_LONG)
-      target_compile_definitions(lammps PRIVATE -DLAMMPS_LONGLONG_TO_LONG)
+      target_compile_definitions(lammps PUBLIC -DLAMMPS_LONGLONG_TO_LONG)
     endif()
   endif()
   target_link_libraries(lammps PUBLIC MPI::MPI_CXX)
 else()
   target_sources(lammps PRIVATE ${LAMMPS_SOURCE_DIR}/STUBS/mpi.cpp)
   add_library(mpi_stubs INTERFACE)
-  target_include_directories(mpi_stubs INTERFACE $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
+  add_library(LAMMPS::mpi_stubs ALIAS mpi_stubs)
+  target_include_directories(mpi_stubs INTERFACE $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/lammps/STUBS>)
   target_link_libraries(lammps PUBLIC mpi_stubs)
 endif()
 
@@ -414,7 +421,7 @@ else()
   set(LAMMPS_MEMALIGN "64" CACHE STRING "enables the use of the posix_memalign() call instead of malloc() when large chunks or memory are allocated by LAMMPS. Set to 0 to disable")
 endif()
 if(NOT ${LAMMPS_MEMALIGN} STREQUAL "0")
-  target_compile_definitions(lammps PRIVATE -DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
+  target_compile_definitions(lammps PUBLIC -DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
 endif()
 
 # "hard" dependencies between packages resulting
@@ -465,8 +472,8 @@ if(BUILD_OMP)
   else()
     set(LAMMPS_OMP_COMPAT_LEVEL 3)
   endif()
-  target_compile_definitions(lammps PRIVATE -DLAMMPS_OMP_COMPAT=${LAMMPS_OMP_COMPAT_LEVEL})
-  target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
+  target_compile_definitions(lammps PUBLIC -DLAMMPS_OMP_COMPAT=${LAMMPS_OMP_COMPAT_LEVEL})
+  target_link_libraries(lammps PUBLIC OpenMP::OpenMP_CXX)
   target_link_libraries(lmp PRIVATE OpenMP::OpenMP_CXX)
 
   # this hack is required to correctly link with OpenMP support when using CrayClang version 15.0.2
@@ -645,7 +652,10 @@ foreach(PKG ${STANDARD_PACKAGES})
     RegisterStyles(${${PKG}_SOURCES_DIR})
 
     target_sources(lammps PRIVATE ${${PKG}_SOURCES})
-    target_include_directories(lammps PRIVATE ${${PKG}_SOURCES_DIR})
+    target_include_directories(lammps PUBLIC $<BUILD_INTERFACE:${${PKG}_SOURCES_DIR}>
+                                             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/lammps/${PKG}>)
+    install(DIRECTORY ${${PKG}_SOURCES_DIR} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps
+        FILES_MATCHING PATTERN "*.h")
   endif()
 
   RegisterPackages(${${PKG}_SOURCES_DIR})
@@ -721,7 +731,7 @@ foreach(PKG_WITH_INCL CORESHELL DPD-BASIC DPD-SMOOTH MC MISC PHONON QEQ OPENMP K
 endforeach()
 
 if(PKG_PLUGIN)
-  target_compile_definitions(lammps PRIVATE -DLMP_PLUGIN)
+  target_compile_definitions(lammps PUBLIC -DLMP_PLUGIN)
 endif()
 
 # link with -ldl or equivalent for plugin loading; except on Windows
@@ -790,7 +800,8 @@ endif()
 set(LAMMPS_CXX_HEADERS angle.h atom.h bond.h citeme.h comm.h command.h compute.h dihedral.h domain.h
   error.h exceptions.h fix.h force.h group.h improper.h input.h info.h kspace.h lammps.h lattice.h
   library.h lmppython.h lmptype.h memory.h modify.h neighbor.h neigh_list.h output.h pair.h
-  platform.h pointers.h region.h timer.h universe.h update.h utils.h variable.h)
+  platform.h pointers.h region.h timer.h universe.h update.h utils.h variable.h lammpsplugin.h
+  respa.h suffix.h integrate.h version.h math_const.h omp_compat.h)
 set(LAMMPS_FMT_HEADERS core.h format.h)
 
 set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_MACHINE})
@@ -825,14 +836,22 @@ if(BUILD_SHARED_LIBS)
   install(TARGETS lammps EXPORT LAMMPS_Targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
   if(NOT BUILD_MPI)
     install(TARGETS mpi_stubs EXPORT LAMMPS_Targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    install(DIRECTORY ${LAMMPS_SOURCE_DIR}/STUBS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps
+        FILES_MATCHING PATTERN "*.h")
   endif()
   configure_file(pkgconfig/liblammps.pc.in ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_MACHINE}.pc @ONLY)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_MACHINE}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
   install(EXPORT LAMMPS_Targets FILE LAMMPS_Targets.cmake NAMESPACE LAMMPS:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LAMMPS)
+  export(EXPORT LAMMPS_Targets FILE LAMMPS_Targets.cmake NAMESPACE LAMMPS::)
   include(CMakePackageConfigHelpers)
-  configure_file(LAMMPSConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/LAMMPSConfig.cmake @ONLY)
+  configure_package_config_file(LAMMPSConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/LAMMPSConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LAMMPS)
   write_basic_package_version_file("LAMMPSConfigVersion.cmake" VERSION ${PROJECT_VERSION} COMPATIBILITY ExactVersion)
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/LAMMPSConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/LAMMPSConfigVersion.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LAMMPS)
+  if(PKG_PLUGIN)
+    include(Plugin)
+    install(FILES Modules/Plugin.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LAMMPS)
+  endif()
 endif()
 install(FILES ${LAMMPS_DOC_DIR}/lammps.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${LAMMPS_BINARY}.1)
 

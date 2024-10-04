@@ -741,10 +741,6 @@ atom types.
 
 ----------
 
-.. include:: accel_styles.rst
-
-----------
-
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

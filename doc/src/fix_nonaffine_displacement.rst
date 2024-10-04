@@ -102,7 +102,6 @@ zeroed. The *update* reference style implies the reference state will be updated
 *nstep* timesteps. The *offset* reference will update the reference state *nstep*
 timesteps before a multiple of *nevery* timesteps.
 
-
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info
@@ -128,6 +127,12 @@ Restrictions
 This compute is part of the EXTRA-FIX package.  It is only enabled if
 LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` page for more info.
+
+As this fix depends on a run including specific reference timesteps, it
+currently does not update peratom values if used in conjunction with the
+:doc:`rerun command <rerun>` since it cannot ensure the necessary reference
+timesteps are included.
+
 
 Related commands
 """"""""""""""""

@@ -178,6 +178,7 @@ OPT.
    * :doc:`python/move <fix_python_move>`
    * :doc:`qbmsst <fix_qbmsst>`
    * :doc:`qeq/comb (o) <fix_qeq_comb>`
+   * :doc:`qeq/ctip <fix_qeq>`
    * :doc:`qeq/dynamic <fix_qeq>`
    * :doc:`qeq/fire <fix_qeq>`
    * :doc:`qeq/point <fix_qeq>`

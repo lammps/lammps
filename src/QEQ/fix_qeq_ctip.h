@@ -13,20 +13,21 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(qeq/slater,FixQEqSlater);
+FixStyle(qeq/ctip,FixQEqCTIP);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_QEQ_SLATER_H
-#define LMP_FIX_QEQ_SLATER_H
+#ifndef LMP_FIX_QEQ_CTIP_H
+#define LMP_FIX_QEQ_CTIP_H
 
 #include "fix_qeq.h"
 
 namespace LAMMPS_NS {
 
-class FixQEqSlater : public FixQEq {
+class FixQEqCTIP : public FixQEq {
  public:
-  FixQEqSlater(class LAMMPS *, int, char **);
+  FixQEqCTIP(class LAMMPS *, int, char **);
+  ~FixQEqCTIP() override;
 
   void init() override;
   void pre_force(int) override;
@@ -35,12 +36,15 @@ class FixQEqSlater : public FixQEq {
   void init_matvec();
   void sparse_matvec(sparse_matrix *, double *, double *) override;
   void compute_H();
-  double calculate_H(double, double, double, double, double &);
-  double calculate_H_wolf(double, double, double, double, double &);
-  void extract_streitz();
+  void extract_ctip();
+  int calculate_check_Q();
+  double *reff, *reffsq, *reff4, *reff7, *s2d_self;
+  double **shield, **shieldcu, **reffc, **reffcsq, **reffc4, **reffc7;
+  double **s2d_shift, **f_shift, **e_shift;
 
-  class PairCoulStreitz *streitz;
-  double alpha;
+  double cdamp;
+  int maxrepeat;
+  int nout;
 };
 }    // namespace LAMMPS_NS
 #endif

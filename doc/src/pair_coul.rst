@@ -4,6 +4,7 @@
 .. index:: pair_style coul/cut/omp
 .. index:: pair_style coul/cut/global
 .. index:: pair_style coul/cut/global/omp
+.. index:: pair_style coul/ctip
 .. index:: pair_style coul/debye
 .. index:: pair_style coul/debye/gpu
 .. index:: pair_style coul/debye/kk
@@ -37,6 +38,9 @@ pair_style coul/cut/global command
 ==================================
 
 Accelerator Variants: *coul/cut/omp*
+
+pair_style coul/ctip command
+============================
 
 pair_style coul/debye command
 =============================
@@ -79,7 +83,6 @@ pair_style tip4p/long command
 
 Accelerator Variants: *tip4p/long/omp*
 
-
 Syntax
 """"""
 
@@ -87,6 +90,7 @@ Syntax
 
    pair_style coul/cut cutoff
    pair_style coul/cut/global cutoff
+   pair_style coul/ctip alpha cutoff
    pair_style coul/debye kappa cutoff
    pair_style coul/dsf alpha cutoff
    pair_style coul/exclude cutoff
@@ -115,6 +119,9 @@ Examples
    pair_style coul/cut 2.5
    pair_coeff * *
    pair_coeff 2 2 3.5
+
+   pair_style coul/ctip 0.30 12.0
+   pair_coeff * * NiO.ctip Ni O
 
    pair_style coul/debye 1.4 3.0
    pair_coeff * *
@@ -170,6 +177,33 @@ Pair style *coul/cut/global* computes the same Coulombic interactions
 as style *coul/cut* except that it allows only a single global cutoff
 and thus makes it compatible for use in combination with long-range
 coulomb styles in :doc:`hybrid pair styles <pair_hybrid>`.
+
+----------
+
+.. versionadded:: TBD
+
+Style *coul/ctip* computes the Coulomb interactions as described in
+:ref:`Plummer <Plummer1>`. It uses the the damped shifted model as in
+style *coul/dsf* but is further extended to the second derivative of the
+potential and incorporates empirical charge shielding meant to
+approximate the more expensive Coulomb integrals used in style
+*coul/streitz*.  More details can be found in the referenced paper. Like
+the style *coul/streitz*, style *coul/ctip* is a variable charge
+potential and must be hybridized with a short-range potential via the
+:doc:`pair_style hybrid/overlay <pair_hybrid>` command. Charge
+equilibration must be performed with the :doc:`fix qeq/ctip <fix_qeq>`
+command. For example:
+
+.. code-block:: LAMMPS
+
+   pair_style hybrid/overlay eam/fs coul/ctip 0.30 12.0
+   pair_coeff * * eam/fs NiO.eam.fs Ni O
+   pair_coeff * * coul/ctip NiO.ctip Ni O
+   fix 1 all qeq/ctip 1 12.0 1.0e-8 100 coul/ctip cdamp 0.30 maxrepeat 10
+
+See the examples/ctip directory for an example input script using the
+CTIP potential. An Ni-O CTIP and EAM/FS parameterization are included
+for use with the example.
 
 ----------
 
@@ -399,16 +433,18 @@ Restrictions
 """"""""""""
 
 The *coul/long*, *coul/msm*, *coul/streitz*, and *tip4p/long* styles are
-part of the KSPACE package.  The *coul/cut/global*, *coul/exclude* styles are
-part of the EXTRA-PAIR package.  The *tip4p/cut* style is part of the MOLECULE
-package.  A pair style is only enabled if LAMMPS was built with its
-corresponding package.  See the :doc:`Build package <Build_package>`
-doc page for more info.
+part of the KSPACE package.  The *coul/cut/global*, *coul/exclude*, and
+*coul/ctip* styles are part of the EXTRA-PAIR package.  The *tip4p/cut*
+style is part of the MOLECULE package.  A pair style is only enabled if
+LAMMPS was built with its corresponding package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style, hybrid/overlay <pair_hybrid>`, :doc:`kspace_style <kspace_style>`
+:doc:`pair_coeff <pair_coeff>`,
+:doc:`pair_style hybrid/overlay <pair_hybrid>`,
+:doc:`kspace_style <kspace_style>`
 
 Default
 """""""
@@ -431,6 +467,11 @@ Phys, 110, 8254 (1999).
 
 **(Streitz)** F. H. Streitz, J. W. Mintmire, Phys Rev B, 50, 11996-12003
 (1994).
+
+.. _Plummer1:
+
+**(Plummer)** G. Plummer, J. P. Tavenner, M. I. Mendelev, Z. Wu, J. W. Lawson,
+in preparation
 
 .. _Jorgensen3:
 

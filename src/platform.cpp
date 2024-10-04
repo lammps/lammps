@@ -314,8 +314,10 @@ std::string platform::os_info()
 
 std::string platform::cxx_standard()
 {
-#if __cplusplus > 202002L
-  return "newer than C++20";
+#if __cplusplus > 202302L
+  return "newer than C++23";
+#elif __cplusplus == 202302L
+  return "C++23";
 #elif __cplusplus == 202002L
   return "C++20";
 #elif __cplusplus == 201703L

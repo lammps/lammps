@@ -524,9 +524,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, i
       v_vatom(j,4) += 0.5*v4;
       v_vatom(j,5) += 0.5*v5;
     }
-
   }
-
 }
 
 namespace LAMMPS_NS {

@@ -216,17 +216,17 @@ class Fix : protected Pointers {
   virtual int pack_reverse_comm(int, int, double *) { return 0; }
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
-  virtual void reset_grid(){};
+  virtual void reset_grid() {};
 
-  virtual void pack_forward_grid(int, void *, int, int *){};
-  virtual void unpack_forward_grid(int, void *, int, int *){};
-  virtual void pack_reverse_grid(int, void *, int, int *){};
-  virtual void unpack_reverse_grid(int, void *, int, int *){};
-  virtual void pack_remap_grid(int, void *, int, int *){};
-  virtual void unpack_remap_grid(int, void *, int, int *){};
+  virtual void pack_forward_grid(int, void *, int, int *) {};
+  virtual void unpack_forward_grid(int, void *, int, int *) {};
+  virtual void pack_reverse_grid(int, void *, int, int *) {};
+  virtual void unpack_reverse_grid(int, void *, int, int *) {};
+  virtual void pack_remap_grid(int, void *, int, int *) {};
+  virtual void unpack_remap_grid(int, void *, int, int *) {};
   virtual int unpack_read_grid(int, char *) { return 0; };
-  virtual void pack_write_grid(int, void *){};
-  virtual void unpack_write_grid(int, void *, int *){};
+  virtual void pack_write_grid(int, void *) {};
+  virtual void unpack_write_grid(int, void *, int *) {};
 
   virtual int get_grid_by_name(const std::string &, int &) { return -1; };
   virtual void *get_grid_by_index(int) { return nullptr; };

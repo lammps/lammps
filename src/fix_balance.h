@@ -43,9 +43,9 @@ class FixBalance : public Fix {
   int nevery, lbstyle, nitermax;
   double thresh, stopthresh;
   std::string bstr;
-  int wtflag;               // 1 for weighted balancing
-  int sortflag;             // 1 for sorting comm messages
-  int reportonly;           // 1 if skipping rebalancing and only computing imbalance
+  int wtflag;        // 1 for weighted balancing
+  int sortflag;      // 1 for sorting comm messages
+  int reportonly;    // 1 if skipping rebalancing and only computing imbalance
 
   double imbnow;            // current imbalance factor
   double imbprev;           // imbalance factor before last rebalancing
@@ -53,7 +53,7 @@ class FixBalance : public Fix {
   double maxloadperproc;    // max load on any processor
   int itercount;            // iteration count of last call to Balance
   int pending;
-  bigint lastbalance;       // last timestep balancing was attempted
+  bigint lastbalance;    // last timestep balancing was attempted
 
   class Balance *balance;
   class Irregular *irregular;

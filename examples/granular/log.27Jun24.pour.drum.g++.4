@@ -1,4 +1,4 @@
-LAMMPS (28 Mar 2023 - Development)
+LAMMPS (27 Jun 2024 - Development - patch_27Jun2024-930-g7036930360)
 # pour two types of particles (cohesive and non-cohesive) into cylinder
 # 'turn' cylinder by changing direction of gravity, then rotate it.
 # This simulates a rotating drum powder characterization experiment.
@@ -92,13 +92,11 @@ fix             ins1 all pour 2000 1 1234 region insreg diam range 0.5 ${dhi} de
 fix             ins1 all pour 2000 1 1234 region insreg diam range 0.5 1 dens ${dens} ${dens}
 fix             ins1 all pour 2000 1 1234 region insreg diam range 0.5 1 dens 1 ${dens}
 fix             ins1 all pour 2000 1 1234 region insreg diam range 0.5 1 dens 1 1
-Particle insertion: 9396 every 490 steps, 2000 by step 1
 fix             ins2 all pour 2000 2 1234 region insreg diam range ${dlo} ${dhi} dens ${dens} ${dens}
 fix             ins2 all pour 2000 2 1234 region insreg diam range 0.5 ${dhi} dens ${dens} ${dens}
 fix             ins2 all pour 2000 2 1234 region insreg diam range 0.5 1 dens ${dens} ${dens}
 fix             ins2 all pour 2000 2 1234 region insreg diam range 0.5 1 dens 1 ${dens}
 fix             ins2 all pour 2000 2 1234 region insreg diam range 0.5 1 dens 1 1
-Particle insertion: 9396 every 490 steps, 2000 by step 1
 
 comm_modify     vel yes
 
@@ -126,6 +124,8 @@ dynamic group delgroup defined
 
 run             2000
 Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Particle insertion: 9396 every 2449 steps, 2000 by step 1
+Particle insertion: 9396 every 2449 steps, 2000 by step 1
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -135,7 +135,7 @@ Neighbor list info ...
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
   (1) pair granular, perpetual
       attributes: half, newton on, size, history
-      pair build: half/size/bin/newton
+      pair build: half/size/bin/atomonly/newton
       stencil: half/bin/3d
       bin: standard
 Per MPI rank memory allocation (min/avg/max) = 15.26 | 15.26 | 15.26 Mbytes
@@ -161,20 +161,20 @@ Per MPI rank memory allocation (min/avg/max) = 15.26 | 15.26 | 15.26 Mbytes
       1800        4000  -0              0            
       1900        4000  -0              0            
       2000        4000  -0              0            
-Loop time of 0.748557 on 4 procs for 2000 steps with 4000 atoms
+Loop time of 0.717368 on 4 procs for 2000 steps with 4000 atoms
 
-Performance: 230844.044 tau/day, 2671.806 timesteps/s, 10.687 Matom-step/s
-97.9% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 240880.647 tau/day, 2787.970 timesteps/s, 11.152 Matom-step/s
+99.6% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.06941    | 0.071981   | 0.074417   |   0.7 |  9.62
-Neigh   | 0.16177    | 0.16555    | 0.17093    |   0.8 | 22.12
-Comm    | 0.090638   | 0.10803    | 0.12219    |   4.1 | 14.43
-Output  | 0.00028818 | 0.00034597 | 0.0004604  |   0.0 |  0.05
-Modify  | 0.36474    | 0.3754     | 0.38959    |   1.7 | 50.15
-Other   |            | 0.02725    |            |       |  3.64
+Pair    | 0.066314   | 0.069313   | 0.072824   |   0.9 |  9.66
+Neigh   | 0.17091    | 0.17659    | 0.18316    |   1.2 | 24.62
+Comm    | 0.090794   | 0.10277    | 0.11691    |   3.3 | 14.33
+Output  | 0.00026021 | 0.00028548 | 0.00031629 |   0.0 |  0.04
+Modify  | 0.33724    | 0.3471     | 0.35578    |   1.1 | 48.39
+Other   |            | 0.02131    |            |       |  2.97
 
 Nlocal:           1000 ave        1011 max         989 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -243,20 +243,20 @@ Per MPI rank memory allocation (min/avg/max) = 21.56 | 21.56 | 21.56 Mbytes
       4800        4000   2.6544181      0.87964594   
       4900        4000   2.4465164      0.91106187   
       5000        4000   2.2332401      0.9424778    
-Loop time of 2.5078 on 4 procs for 3000 steps with 4000 atoms
+Loop time of 2.47988 on 4 procs for 3000 steps with 4000 atoms
 
-Performance: 103357.584 tau/day, 1196.268 timesteps/s, 4.785 Matom-step/s
-98.5% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 104520.996 tau/day, 1209.734 timesteps/s, 4.839 Matom-step/s
+99.2% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.54095    | 0.71709    | 0.87542    |  14.0 | 28.59
-Neigh   | 0.36061    | 0.42976    | 0.50378    |   7.7 | 17.14
-Comm    | 0.17653    | 0.42898    | 0.69006    |  27.8 | 17.11
-Output  | 0.00074969 | 0.0013183  | 0.0019347  |   1.2 |  0.05
-Modify  | 0.70535    | 0.80409    | 0.91217    |   8.2 | 32.06
-Other   |            | 0.1266     |            |       |  5.05
+Pair    | 0.51755    | 0.69165    | 0.84951    |  14.2 | 27.89
+Neigh   | 0.37557    | 0.44168    | 0.51371    |   7.4 | 17.81
+Comm    | 0.17182    | 0.42275    | 0.67979    |  27.7 | 17.05
+Output  | 0.00061419 | 0.0013055  | 0.0020239  |   1.4 |  0.05
+Modify  | 0.69708    | 0.79942    | 0.90438    |   8.2 | 32.24
+Other   |            | 0.1231     |            |       |  4.96
 
 Nlocal:           1000 ave        1311 max         689 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

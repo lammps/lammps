@@ -1546,16 +1546,16 @@ void FixElectrodeConp::gather_list_iele()
 void FixElectrodeConp::gather_elevec(double *elevec)
 {
   assert(matrix_algo);
-  MPI_Allgatherv(&buf_iele[0], nlocalele, MPI_DOUBLE, buf_gathered, recvcounts, displs, MPI_DOUBLE,
-                 world);
+  MPI_Allgatherv(buf_iele.data(), nlocalele, MPI_DOUBLE, buf_gathered, recvcounts, displs,
+                 MPI_DOUBLE, world);
 
-  for (int i = 0; i < ngroup; i++) { elevec[iele_gathered[i]] = buf_gathered[i]; }
+  for (int i = 0; i < ngroup; i++) elevec[iele_gathered[i]] = buf_gathered[i];
 }
 
 void FixElectrodeConp::buffer_and_gather(double *ivec, double *elevec)
 {
   assert(matrix_algo);
-  buf_iele.reserve(nlocalele);    // avoid unexpected reallocs
+  buf_iele.resize(nlocalele);
   for (int i_iele = 0; i_iele < nlocalele; i_iele++) {
     buf_iele[i_iele] = ivec[atom->map(taglist[list_iele[i_iele]])];
   }

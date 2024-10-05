@@ -6,3 +6,6 @@ set(CMAKE_Fortran_COMPILER "ifx" CACHE STRING "" FORCE)
 set(MPI_CXX "icpx" CACHE STRING "" FORCE)
 set(MPI_CXX_COMPILER "mpicxx" CACHE STRING "" FORCE)
 
+# force using internal BLAS/LAPCK since external ones may not be ABI compatible
+set(USE_INTERNAL_LINALG ON CACHE BOOL "" FORCE)
+

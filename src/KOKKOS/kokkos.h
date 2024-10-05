@@ -64,6 +64,7 @@ class KokkosLMP : protected Pointers {
   static void initialize(const Kokkos::InitializationSettings&, Error *);
   static void finalize();
   void accelerator(int, char **);
+  void newton_check();
   bigint neigh_count(int);
 
   template<class DeviceType>

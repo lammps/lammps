@@ -24,6 +24,8 @@ FixStyle(recenter/kk/host,FixRecenterKokkos<LMPHostType>);
 #define LMP_FIX_RECENTER_KOKKOS_H
 
 #include "fix_recenter.h"
+
+#include "group_kokkos.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
@@ -33,6 +35,8 @@ class FixRecenterKokkos : public FixRecenter {
   public:
     FixRecenterKokkos(class LAMMPS *, int, char **);
     void initial_integrate(int) override;
+  private:
+    GroupKokkos<DeviceType> *groupKK;
 };
 
 } // namespace LAMMPS_NS

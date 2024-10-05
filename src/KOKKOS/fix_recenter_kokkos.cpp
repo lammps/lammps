@@ -24,8 +24,7 @@
 #include "modify.h"
 #include "update.h"
 #include "domain.h"
-#include "group.h"
-#include "kokkos_few.h"
+#include "group_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -39,6 +38,7 @@ FixRecenterKokkos<DeviceType>::FixRecenterKokkos(LAMMPS *lmp, int narg, char **a
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *)atom;
+  groupKK = (GroupKokkos<DeviceType> *)group;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
   datamask_read = X_MASK | MASK_MASK;
@@ -88,18 +88,9 @@ void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 
   // current COM
 
-  // FIXME: make Group kokkos-aware
-  //double xcm[3];
-  //if (group->dynamic[igroup])
-  //  masstotal = group->mass(igroup);
-
-  //group->xcm(igroup,masstotal,xcm);
-
-  /* this is needed because Group is not Kokkos-aware ! */
-  atomKK->sync(ExecutionSpaceFromDevice<LMPHostType>::space,X_MASK);
-  Few<double, 3> tmpxcm;
-  group->xcm(igroup,masstotal,&tmpxcm[0]);
-  const Few<double, 3> xcm(tmpxcm);
+  double xcm[3];
+  if (group->dynamic[igroup]) masstotal = groupKK->mass(igroup);
+  groupKK->xcm(igroup,masstotal,xcm);
 
   // shift coords by difference between actual COM and requested COM
 

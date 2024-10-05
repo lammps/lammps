@@ -128,6 +128,12 @@ See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 Output info
 """""""""""
 

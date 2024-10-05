@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mitch Murphy, alphataubio at gmail com
+   Contributing author: Mitch Murphy, alphataubio at gmail
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_limit_kokkos.h"
@@ -33,10 +33,6 @@ FixNVELimitKokkos<DeviceType>::FixNVELimitKokkos(LAMMPS *lmp, int narg, char **a
   FixNVELimit(lmp, narg, arg)
 {
   kokkosable = 1;
-
-  //FIXME: unit test fails when i turn this on
-  //fuse_integrate_flag = 1;
-
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   atomKK = (AtomKokkos *) atom;
   datamask_read = EMPTY_MASK;

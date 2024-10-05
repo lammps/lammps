@@ -226,28 +226,24 @@ void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPreNeighbor, const int i, i
 template<class DeviceType>
 void FixCMAPKokkos<DeviceType>::post_force(int vflag)
 {
-
   d_x = atomKK->k_x.template view<DeviceType>();
   d_f = atomKK->k_f.template view<DeviceType>();
   atomKK->sync(execution_space,X_MASK|F_MASK);
 
-  ecmap = 0.0;
   int eflag = eflag_caller;
   ev_init(eflag,vflag);
 
   copymode = 1;
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixCmapPostForce>(0,ncrosstermlist), *this);
+  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixCmapPostForce>(0,ncrosstermlist),*this,ecmap);
   copymode = 0;
   atomKK->modified(execution_space,F_MASK);
-
 }
-
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n) const
+void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n, double &ecmapKK) const
 {
 
   int i1,i2,i3,i4,i5,type;
@@ -385,162 +381,122 @@ void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n) con
   t1 = type-1;
   if (t1 < 0 || t1 > 5) Kokkos::abort("Invalid CMAP crossterm_type");
 
-      // determine the values and derivatives for the grid square points
+  // determine the values and derivatives for the grid square points
 
-      gs[0] = d_cmapgrid(t1,mli3,mli4);
-      gs[1] = d_cmapgrid(t1,mli31,mli4);
-      gs[2] = d_cmapgrid(t1,mli31,mli41);
-      gs[3] = d_cmapgrid(t1,mli3,mli41);
-      d1gs[0] = d_d1cmapgrid(t1,mli1,mli2);
-      d1gs[1] = d_d1cmapgrid(t1,mli11,mli2);
-      d1gs[2] = d_d1cmapgrid(t1,mli11,mli21);
-      d1gs[3] = d_d1cmapgrid(t1,mli1,mli21);
-      d2gs[0] = d_d2cmapgrid(t1,mli1,mli2);
-      d2gs[1] = d_d2cmapgrid(t1,mli11,mli2);
-      d2gs[2] = d_d2cmapgrid(t1,mli11,mli21);
-      d2gs[3] = d_d2cmapgrid(t1,mli1,mli21);
-      d12gs[0] = d_d12cmapgrid(t1,mli1,mli2);
-      d12gs[1] = d_d12cmapgrid(t1,mli11,mli2);
-      d12gs[2] = d_d12cmapgrid(t1,mli11,mli21);
-      d12gs[3] = d_d12cmapgrid(t1,mli1,mli21);
+  gs[0] = d_cmapgrid(t1,mli3,mli4);
+  gs[1] = d_cmapgrid(t1,mli31,mli4);
+  gs[2] = d_cmapgrid(t1,mli31,mli41);
+  gs[3] = d_cmapgrid(t1,mli3,mli41);
+  d1gs[0] = d_d1cmapgrid(t1,mli1,mli2);
+  d1gs[1] = d_d1cmapgrid(t1,mli11,mli2);
+  d1gs[2] = d_d1cmapgrid(t1,mli11,mli21);
+  d1gs[3] = d_d1cmapgrid(t1,mli1,mli21);
+  d2gs[0] = d_d2cmapgrid(t1,mli1,mli2);
+  d2gs[1] = d_d2cmapgrid(t1,mli11,mli2);
+  d2gs[2] = d_d2cmapgrid(t1,mli11,mli21);
+  d2gs[3] = d_d2cmapgrid(t1,mli1,mli21);
+  d12gs[0] = d_d12cmapgrid(t1,mli1,mli2);
+  d12gs[1] = d_d12cmapgrid(t1,mli11,mli2);
+  d12gs[2] = d_d12cmapgrid(t1,mli11,mli21);
+  d12gs[3] = d_d12cmapgrid(t1,mli1,mli21);
 
-      // calculate the cmap energy and the gradient (dE/dphi,dE/dpsi)
+  // calculate the cmap energy and the gradient (dE/dphi,dE/dpsi)
 
-      double E, dEdPhi, dEdPsi;
-      bc_interpol(phi,psi,li3,li4,gs,d1gs,d2gs,d12gs,E,dEdPhi,dEdPsi);
+  double E, dEdPhi, dEdPsi;
+  bc_interpol(phi,psi,li3,li4,gs,d1gs,d2gs,d12gs,E,dEdPhi,dEdPsi);
 
-      // sum up cmap energy contributions
+  // sum up cmap energy contributions
 
-      double ecmapKK = 0.0;
+  // needed for compute_scalar()
+  double engfraction = 0.2 * E;
+  if (i1 < nlocal) ecmapKK += engfraction;
+  if (i2 < nlocal) ecmapKK += engfraction;
+  if (i3 < nlocal) ecmapKK += engfraction;
+  if (i4 < nlocal) ecmapKK += engfraction;
+  if (i5 < nlocal) ecmapKK += engfraction;
 
-      // needed for compute_scalar()
-      double engfraction = 0.2 * E;
-      if (i1 < nlocal) ecmapKK += engfraction;
-      if (i2 < nlocal) ecmapKK += engfraction;
-      if (i3 < nlocal) ecmapKK += engfraction;
-      if (i4 < nlocal) ecmapKK += engfraction;
-      if (i5 < nlocal) ecmapKK += engfraction;
+  // calculate the derivatives dphi/dr_i
 
-      // calculate the derivatives dphi/dr_i
+  dphidr1x = 1.0*r32/a1sq*a1x;
+  dphidr1y = 1.0*r32/a1sq*a1y;
+  dphidr1z = 1.0*r32/a1sq*a1z;
 
-      dphidr1x = 1.0*r32/a1sq*a1x;
-      dphidr1y = 1.0*r32/a1sq*a1y;
-      dphidr1z = 1.0*r32/a1sq*a1z;
+  dphidr2x = -1.0*r32/a1sq*a1x - dpr21r32/a1sq/r32*a1x + dpr34r32/b1sq/r32*b1x;
+  dphidr2y = -1.0*r32/a1sq*a1y - dpr21r32/a1sq/r32*a1y + dpr34r32/b1sq/r32*b1y;
+  dphidr2z = -1.0*r32/a1sq*a1z - dpr21r32/a1sq/r32*a1z + dpr34r32/b1sq/r32*b1z;
 
-      dphidr2x = -1.0*r32/a1sq*a1x - dpr21r32/a1sq/r32*a1x +
-        dpr34r32/b1sq/r32*b1x;
-      dphidr2y = -1.0*r32/a1sq*a1y - dpr21r32/a1sq/r32*a1y +
-        dpr34r32/b1sq/r32*b1y;
-      dphidr2z = -1.0*r32/a1sq*a1z - dpr21r32/a1sq/r32*a1z +
-        dpr34r32/b1sq/r32*b1z;
+  dphidr3x = dpr34r32/b1sq/r32*b1x - dpr21r32/a1sq/r32*a1x - r32/b1sq*b1x;
+  dphidr3y = dpr34r32/b1sq/r32*b1y - dpr21r32/a1sq/r32*a1y - r32/b1sq*b1y;
+  dphidr3z = dpr34r32/b1sq/r32*b1z - dpr21r32/a1sq/r32*a1z - r32/b1sq*b1z;
 
-      dphidr3x = dpr34r32/b1sq/r32*b1x - dpr21r32/a1sq/r32*a1x - r32/b1sq*b1x;
-      dphidr3y = dpr34r32/b1sq/r32*b1y - dpr21r32/a1sq/r32*a1y - r32/b1sq*b1y;
-      dphidr3z = dpr34r32/b1sq/r32*b1z - dpr21r32/a1sq/r32*a1z - r32/b1sq*b1z;
+  dphidr4x = r32/b1sq*b1x;
+  dphidr4y = r32/b1sq*b1y;
+  dphidr4z = r32/b1sq*b1z;
 
-      dphidr4x = r32/b1sq*b1x;
-      dphidr4y = r32/b1sq*b1y;
-      dphidr4z = r32/b1sq*b1z;
+  // calculate the derivatives dpsi/dr_i
 
-      // calculate the derivatives dpsi/dr_i
+  dpsidr1x = 1.0*r43/a2sq*a2x;
+  dpsidr1y = 1.0*r43/a2sq*a2y;
+  dpsidr1z = 1.0*r43/a2sq*a2z;
 
-      dpsidr1x = 1.0*r43/a2sq*a2x;
-      dpsidr1y = 1.0*r43/a2sq*a2y;
-      dpsidr1z = 1.0*r43/a2sq*a2z;
+  dpsidr2x = r43/a2sq*a2x + dpr32r43/a2sq/r43*a2x - dpr45r43/b2sq/r43*b2x;
+  dpsidr2y = r43/a2sq*a2y + dpr32r43/a2sq/r43*a2y - dpr45r43/b2sq/r43*b2y;
+  dpsidr2z = r43/a2sq*a2z + dpr32r43/a2sq/r43*a2z - dpr45r43/b2sq/r43*b2z;
 
-      dpsidr2x = r43/a2sq*a2x + dpr32r43/a2sq/r43*a2x - dpr45r43/b2sq/r43*b2x;
-      dpsidr2y = r43/a2sq*a2y + dpr32r43/a2sq/r43*a2y - dpr45r43/b2sq/r43*b2y;
-      dpsidr2z = r43/a2sq*a2z + dpr32r43/a2sq/r43*a2z - dpr45r43/b2sq/r43*b2z;
+  dpsidr3x = dpr45r43/b2sq/r43*b2x - dpr32r43/a2sq/r43*a2x - r43/b2sq*b2x;
+  dpsidr3y = dpr45r43/b2sq/r43*b2y - dpr32r43/a2sq/r43*a2y - r43/b2sq*b2y;
+  dpsidr3z = dpr45r43/b2sq/r43*b2z - dpr32r43/a2sq/r43*a2z - r43/b2sq*b2z;
 
-      dpsidr3x = dpr45r43/b2sq/r43*b2x - dpr32r43/a2sq/r43*a2x - r43/b2sq*b2x;
-      dpsidr3y = dpr45r43/b2sq/r43*b2y - dpr32r43/a2sq/r43*a2y - r43/b2sq*b2y;
-      dpsidr3z = dpr45r43/b2sq/r43*b2z - dpr32r43/a2sq/r43*a2z - r43/b2sq*b2z;
+  dpsidr4x = r43/b2sq*b2x;
+  dpsidr4y = r43/b2sq*b2y;
+  dpsidr4z = r43/b2sq*b2z;
 
-      dpsidr4x = r43/b2sq*b2x;
-      dpsidr4y = r43/b2sq*b2y;
-      dpsidr4z = r43/b2sq*b2z;
+  // calculate forces on cross-term atoms: F = -(dE/dPhi)*(dPhi/dr)
 
-      // calculate forces on cross-term atoms: F = -(dE/dPhi)*(dPhi/dr)
+  f1[0] = dEdPhi*dphidr1x;
+  f1[1] = dEdPhi*dphidr1y;
+  f1[2] = dEdPhi*dphidr1z;
+  f2[0] = dEdPhi*dphidr2x + dEdPsi*dpsidr1x;
+  f2[1] = dEdPhi*dphidr2y + dEdPsi*dpsidr1y;
+  f2[2] = dEdPhi*dphidr2z + dEdPsi*dpsidr1z;
+  f3[0] = -dEdPhi*dphidr3x - dEdPsi*dpsidr2x;
+  f3[1] = -dEdPhi*dphidr3y - dEdPsi*dpsidr2y;
+  f3[2] = -dEdPhi*dphidr3z - dEdPsi*dpsidr2z;
+  f4[0] = -dEdPhi*dphidr4x - dEdPsi*dpsidr3x;
+  f4[1] = -dEdPhi*dphidr4y - dEdPsi*dpsidr3y;
+  f4[2] = -dEdPhi*dphidr4z - dEdPsi*dpsidr3z;
+  f5[0] = -dEdPsi*dpsidr4x;
+  f5[1] = -dEdPsi*dpsidr4y;
+  f5[2] = -dEdPsi*dpsidr4z;
 
-      f1[0] = dEdPhi*dphidr1x;
-      f1[1] = dEdPhi*dphidr1y;
-      f1[2] = dEdPhi*dphidr1z;
-      f2[0] = dEdPhi*dphidr2x + dEdPsi*dpsidr1x;
-      f2[1] = dEdPhi*dphidr2y + dEdPsi*dpsidr1y;
-      f2[2] = dEdPhi*dphidr2z + dEdPsi*dpsidr1z;
-      f3[0] = -dEdPhi*dphidr3x - dEdPsi*dpsidr2x;
-      f3[1] = -dEdPhi*dphidr3y - dEdPsi*dpsidr2y;
-      f3[2] = -dEdPhi*dphidr3z - dEdPsi*dpsidr2z;
-      f4[0] = -dEdPhi*dphidr4x - dEdPsi*dpsidr3x;
-      f4[1] = -dEdPhi*dphidr4y - dEdPsi*dpsidr3y;
-      f4[2] = -dEdPhi*dphidr4z - dEdPsi*dpsidr3z;
-      f5[0] = -dEdPsi*dpsidr4x;
-      f5[1] = -dEdPsi*dpsidr4y;
-      f5[2] = -dEdPsi*dpsidr4z;
+  // apply force to each of the 5 atoms
 
-      // apply force to each of the 5 atoms
-
-      if (i1 < nlocal) {
-        d_f(i1,0) += f1[0];
-        d_f(i1,1) += f1[1];
-        d_f(i1,2) += f1[2];
-      }
-      if (i2 < nlocal) {
-        d_f(i2,0) += f2[0];
-        d_f(i2,1) += f2[1];
-        d_f(i2,2) += f2[2];
-      }
-      if (i3 < nlocal) {
-        d_f(i3,0) += f3[0];
-        d_f(i3,1) += f3[1];
-        d_f(i3,2) += f3[2];
-      }
-      if (i4 < nlocal) {
-        d_f(i4,0) += f4[0];
-        d_f(i4,1) += f4[1];
-        d_f(i4,2) += f4[2];
-      }
-      if (i5 < nlocal) {
-        d_f(i5,0) += f5[0];
-        d_f(i5,1) += f5[1];
-        d_f(i5,2) += f5[2];
-      }
-
-      // tally energy and/or virial
-
-/*
-      if (evflag) {
-        //std::cerr << "******** tally energy and/or virial\n";
-        int nlist = 0;
-        int list[5];
-        double vb54x = -1.0*vb45x;
-        double vb54y = -1.0*vb45y;
-        double vb54z = -1.0*vb45z;
-        double vcmap[CMAPMAX];
-
-        if (i1 < nlocal) list[nlist++] = i1;
-        if (i2 < nlocal) list[nlist++] = i2;
-        if (i3 < nlocal) list[nlist++] = i3;
-        if (i4 < nlocal) list[nlist++] = i4;
-        if (i5 < nlocal) list[nlist++] = i5;
-        vcmap[0] = (vb12x*f1[0])+(vb32x*f3[0])+((vb43x+vb32x)*f4[0])+
-          ((vb54x+vb43x+vb32x)*f5[0]);
-        vcmap[1] = (vb12y*f1[1])+(vb32y*f3[1])+((vb43y+vb32y)*f4[1])+
-          ((vb54y+vb43y+vb32y)*f5[1]);
-        vcmap[2] = (vb12z*f1[2])+(vb32z*f3[2])+((vb43z+vb32z)*f4[2])+
-          ((vb54z+vb43z+vb32z)*f5[2]);
-        vcmap[3] = (vb12x*f1[1])+(vb32x*f3[1])+((vb43x+vb32x)*f4[1])+
-          ((vb54x+vb43x+vb32x)*f5[1]);
-        vcmap[4] = (vb12x*f1[2])+(vb32x*f3[2])+((vb43x+vb32x)*f4[2])+
-          ((vb54x+vb43x+vb32x)*f5[2]);
-        vcmap[5] = (vb12y*f1[2])+(vb32y*f3[2])+((vb43y+vb32y)*f4[2])+
-          ((vb54y+vb43y+vb32y)*f5[2]);
-        ev_tally(nlist,list,5.0,E,vcmap);
-        //ev_tally(5,list,nlocal,newton_bond,E,vcmap);
-      }
-*/
-
+  if (i1 < nlocal) {
+    d_f(i1,0) += f1[0];
+    d_f(i1,1) += f1[1];
+    d_f(i1,2) += f1[2];
   }
+  if (i2 < nlocal) {
+    d_f(i2,0) += f2[0];
+    d_f(i2,1) += f2[1];
+    d_f(i2,2) += f2[2];
+  }
+  if (i3 < nlocal) {
+    d_f(i3,0) += f3[0];
+    d_f(i3,1) += f3[1];
+    d_f(i3,2) += f3[2];
+  }
+  if (i4 < nlocal) {
+    d_f(i4,0) += f4[0];
+    d_f(i4,1) += f4[1];
+    d_f(i4,2) += f4[2];
+  }
+  if (i5 < nlocal) {
+    d_f(i5,0) += f5[0];
+    d_f(i5,1) += f5[1];
+    d_f(i5,2) += f5[2];
+  }
+}
 
 /* ----------------------------------------------------------------------
    allocate atom-based array

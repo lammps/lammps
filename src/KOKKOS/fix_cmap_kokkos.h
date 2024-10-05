@@ -49,7 +49,7 @@ class FixCMAPKokkos : public FixCMAP, public KokkosBase {
     void operator()(TagFixCmapPreNeighbor, const int, int&, const bool) const;
 
     KOKKOS_INLINE_FUNCTION
-    void operator()(TagFixCmapPostForce, const int) const;
+    void operator()(TagFixCmapPostForce, const int, double&) const;
 
     void grow_arrays(int) override;
     void copy_arrays(int, int, int) override;

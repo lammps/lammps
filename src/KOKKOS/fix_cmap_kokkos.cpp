@@ -47,9 +47,7 @@ FixCMAPKokkos<DeviceType>::FixCMAPKokkos(LAMMPS *lmp, int narg, char **arg) :
 {
   kokkosable = 1;
 
-  // FIXME: test/bugfix pack_exchange_kokkos() and unpack_exchange_kokkos()
-  //exchange_comm_device = sort_device = 1;
-  sort_device = 1;
+  exchange_comm_device = sort_device = 1;
 
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -350,8 +348,6 @@ void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n) con
   r43 = sqrt(vb43x*vb43x + vb43y*vb43y + vb43z*vb43z);
   a2sq = a2x*a2x + a2y*a2y + a2z*a2z;
   b2sq = b2x*b2x + b2y*b2y + b2z*b2z;
-  //if (a1sq<0.0001 || b1sq<0.0001 || a2sq<0.0001 || b2sq<0.0001)
-  //  printf("a1sq b1sq a2sq b2sq: %f %f %f %f \n",a1sq,b1sq,a2sq,b2sq);
   if (a1sq<0.0001 || b1sq<0.0001 || a2sq<0.0001 || b2sq<0.0001) return;
   dpr21r32 = vb21x*vb32x + vb21y*vb32y + vb21z*vb32z;
   dpr34r32 = vb34x*vb32x + vb34y*vb32y + vb34z*vb32z;
@@ -417,16 +413,13 @@ void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n) con
 
       double ecmapKK = 0.0;
 
-// FIXME: needed for compute_scalar()
+      // needed for compute_scalar()
       double engfraction = 0.2 * E;
       if (i1 < nlocal) ecmapKK += engfraction;
       if (i2 < nlocal) ecmapKK += engfraction;
       if (i3 < nlocal) ecmapKK += engfraction;
       if (i4 < nlocal) ecmapKK += engfraction;
       if (i5 < nlocal) ecmapKK += engfraction;
-
-      //std::cerr << fmt::format("*** i {} {} {} {} {} nlocal {} E {} ecmapKK {}\n",
-        //i1,i2,i3,i4,i5,nlocal,E,ecmapKK);
 
       // calculate the derivatives dphi/dr_i
 
@@ -733,25 +726,8 @@ int FixCMAPKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   (KOKKOS) pack values in local atom-based array for exchange
+   pack values in local atom-based array for exchange
 ------------------------------------------------------------------------- */
-
-/*
-int FixCMAP::pack_exchange(int i, double *buf)
-{
-  int n = 0;
-  buf[n++] = ubuf(num_crossterm[i]).d;
-  for (int m = 0; m < num_crossterm[i]; m++) {
-    buf[n++] = ubuf(crossterm_type[i][m]).d;
-    buf[n++] = ubuf(crossterm_atom1[i][m]).d;
-    buf[n++] = ubuf(crossterm_atom2[i][m]).d;
-    buf[n++] = ubuf(crossterm_atom3[i][m]).d;
-    buf[n++] = ubuf(crossterm_atom4[i][m]).d;
-    buf[n++] = ubuf(crossterm_atom5[i][m]).d;
-  }
-  return n;
-}
-*/
 
 template<class DeviceType>
 int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
@@ -811,25 +787,8 @@ int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
 }
 
 /* ----------------------------------------------------------------------
-   (KOKKOS) unpack values in local atom-based array from exchange
+   unpack values in local atom-based array from exchange
 ------------------------------------------------------------------------- */
-
-/*
-int FixCMAP::unpack_exchange(int nlocal, double *buf)
-{
-  int n = 0;
-  num_crossterm[nlocal] = (int) ubuf(buf[n++]).i;
-  for (int m = 0; m < num_crossterm[nlocal]; m++) {
-    crossterm_type[nlocal][m] = (int) ubuf(buf[n++]).i;
-    crossterm_atom1[nlocal][m] = (tagint) ubuf(buf[n++]).i;
-    crossterm_atom2[nlocal][m] = (tagint) ubuf(buf[n++]).i;
-    crossterm_atom3[nlocal][m] = (tagint) ubuf(buf[n++]).i;
-    crossterm_atom4[nlocal][m] = (tagint) ubuf(buf[n++]).i;
-    crossterm_atom5[nlocal][m] = (tagint) ubuf(buf[n++]).i;
-  }
-  return n;
-}
-*/
 
 template <class DeviceType>
 void FixCMAPKokkos<DeviceType>::unpack_exchange_kokkos(

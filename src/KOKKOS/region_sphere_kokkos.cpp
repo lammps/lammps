@@ -64,8 +64,8 @@ void RegSphereKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_i
 
   copymode = 1;
 
-  // FIXME: capture lambda reference to KOKKOS_INLINE_FUNCTION match()
-  // workaround: KOKKOS_CLASS_LAMBDA instead of KOKKOS_LAMBDA
+  // capture lambda reference to KOKKOS_INLINE_FUNCTION match()
+  // use KOKKOS_CLASS_LAMBDA instead of KOKKOS_LAMBDA
   // https://github.com/kokkos/kokkos/issues/695
 
   Kokkos::parallel_for(atom->nlocal, KOKKOS_CLASS_LAMBDA( const int &i ) {

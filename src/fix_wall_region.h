@@ -43,7 +43,7 @@ class FixWallRegion : public Fix {
   double epsilon, sigma, cutoff;
   double alpha;
   int eflag;
-  double *ewall, ewall_all[4]; // need ewall double*, not double[] for kokkos dual view
+  double ewall[4], ewall_all[4];
   int ilevel_respa;
   char *idregion;
   class Region *region;

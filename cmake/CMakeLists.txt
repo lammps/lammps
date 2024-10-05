@@ -364,11 +364,13 @@ endforeach()
 
 set(DEPRECATED_PACKAGES AWPMD ATC POEMS)
 foreach(PKG ${DEPRECATED_PACKAGES})
-  message(WARNING
+  if(PKG_${PKG})
+    message(WARNING
           "The ${PKG} package will be removed from LAMMPS in Summer 2025 due to lack of "
           "maintenance and use of code constructs that conflict with modern C++ compilers "
           "and standards.  Please contact developers@lammps.org if you have any concerns "
           "about this step.")
+  endif()
 endforeach()
 
 ######################################################

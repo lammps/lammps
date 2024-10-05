@@ -144,6 +144,7 @@ class Compute : protected Pointers {
   virtual void remove_bias(int, double *) {}
   virtual void remove_bias_thr(int, double *, double *) {}
   virtual void remove_bias_all() {}
+  virtual void remove_bias_all_kk() {}
   virtual void reapply_bias_all() {}
   virtual void restore_bias(int, double *) {}
   virtual void restore_bias_thr(int, double *, double *) {}

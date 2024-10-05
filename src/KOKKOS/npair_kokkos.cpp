@@ -1438,7 +1438,6 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
     for (int k = 0; k < nstencil; k++) {
       const int jbin = ibin + stencil[k];
 
-      if (ibin == jbin) continue;
       if (HalfNeigh && Newton && !Tri && (ibin == jbin)) continue;
 
       bincount_current = c_bincount[jbin];

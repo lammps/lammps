@@ -1687,6 +1687,8 @@ void Input::newton()
 
   if (newton_pair || newton_bond) force->newton = 1;
   else force->newton = 0;
+
+  if (lmp->kokkos) lmp->kokkos->newton_check();
 }
 
 /* ---------------------------------------------------------------------- */

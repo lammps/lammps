@@ -943,9 +943,11 @@ void CommTiled::exchange()
   // only need to reset if a fix can dynamically add to size of single atom
 
   if (maxexchange_fix_dynamic) {
-    int bufextra_old = bufextra;
     init_exchange();
-    if (bufextra > bufextra_old) grow_send(maxsend+bufextra,2);
+    if (bufextra > bufextra_max) {
+      grow_send(maxsend+bufextra,2);
+      bufextra = bufextra_max;
+    }
   }
 
   // domain properties used in exchange method and methods it calls

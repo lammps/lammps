@@ -416,7 +416,7 @@ int FixQEqCTIP::calculate_check_Q()
       qi_check1=(qi_new-qmin[type[i]])*(qi_old-qmin[type[i]]);
       qi_check2=(qi_new-qmax[type[i]])*(qi_old-qmax[type[i]]);
       if ( qi_check1 < 0.0 || qi_check2 < 0.0 ) {
-        qi_check3=abs(qi_new-qi_old);
+        qi_check3=fabs(qi_new-qi_old);
         if (qi_check3 > tolerance) n++;
       }
     }

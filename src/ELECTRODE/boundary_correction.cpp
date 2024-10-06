@@ -69,7 +69,7 @@ std::vector<bigint> BoundaryCorrection::gather_jmat(bigint *imat)
   std::vector<bigint> jmat = std::vector<bigint>(ngroup);
   std::vector<int> recvcounts = gather_recvcounts(ngrouplocal);
   std::vector<int> displs = gather_displs(recvcounts);
-  MPI_Allgatherv(jmat_local.data(), ngrouplocal, MPI_LMP_BIGINT, jmat.data(),
-                 recvcounts.data(), displs.data(), MPI_LMP_BIGINT, world);
+  MPI_Allgatherv(jmat_local.data(), ngrouplocal, MPI_LMP_BIGINT, jmat.data(), recvcounts.data(),
+                 displs.data(), MPI_LMP_BIGINT, world);
   return jmat;
 }

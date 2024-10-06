@@ -1049,8 +1049,8 @@ void EwaldElectrode::compute_matrix(bigint *imat, double **matrix, bool /* timer
   MPI_Allgather(&ngrouplocal, 1, MPI_INT, recvcounts, 1, MPI_INT, world);
   displs[0] = 0;
   for (int i = 1; i < nprocs; i++) displs[i] = displs[i - 1] + recvcounts[i - 1];
-  MPI_Allgatherv(jmat_local, ngrouplocal, MPI_LMP_BIGINT, jmat, recvcounts, displs,
-                 MPI_LMP_BIGINT, world);
+  MPI_Allgatherv(jmat_local, ngrouplocal, MPI_LMP_BIGINT, jmat, recvcounts, displs, MPI_LMP_BIGINT,
+                 world);
 
   memory->destroy(displs);
   memory->destroy(recvcounts);

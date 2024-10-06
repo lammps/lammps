@@ -112,17 +112,17 @@ class KSpace : protected Pointers {
 
   // general child-class methods
 
-  virtual void settings(int, char **){};
+  virtual void settings(int, char **) {};
   virtual void init() = 0;
   virtual void setup() = 0;
-  virtual void reset_grid(){};
+  virtual void reset_grid() {};
   virtual void compute(int, int) = 0;
-  virtual void compute_group_group(int, int, int){};
+  virtual void compute_group_group(int, int, int) {};
 
-  virtual void pack_forward_grid(int, void *, int, int *){};
-  virtual void unpack_forward_grid(int, void *, int, int *){};
-  virtual void pack_reverse_grid(int, void *, int, int *){};
-  virtual void unpack_reverse_grid(int, void *, int, int *){};
+  virtual void pack_forward_grid(int, void *, int, int *) {};
+  virtual void unpack_forward_grid(int, void *, int, int *) {};
+  virtual void pack_reverse_grid(int, void *, int, int *) {};
+  virtual void unpack_reverse_grid(int, void *, int, int *) {};
 
   virtual int timing(int, double &, double &) { return 0; }
   virtual int timing_1d(int, double &) { return 0; }

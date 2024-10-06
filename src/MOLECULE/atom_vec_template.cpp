@@ -42,7 +42,7 @@ AtomVecTemplate::AtomVecTemplate(LAMMPS *lmp) : AtomVec(lmp)
   fields_exchange = {"molecule", "molindex", "molatom"};
   fields_restart = {"molecule", "molindex", "molatom"};
   fields_create = {"molecule", "molindex", "molatom"};
-  fields_data_atom = {"id", "molecule", "type", "x", "molindex", "molatom"};
+  fields_data_atom = {"id", "molecule", "molindex", "molatom", "type", "x"};
   fields_data_vel = {"id", "v"};
 
   setup_fields();

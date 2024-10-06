@@ -140,6 +140,7 @@ class Comm : protected Pointers {
   int maxexchange_fix;            // static contribution to maxexchange from Fixes
   int maxexchange_fix_dynamic;    // 1 if a fix has a dynamic contribution
   int bufextra;                   // augment send buf size for an exchange atom
+  int bufextra_max;
 
   int gridflag;        // option for creating 3d grid
   int mapflag;         // option for mapping procs to 3d grid

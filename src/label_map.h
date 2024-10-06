@@ -25,6 +25,7 @@ class LabelMap : protected Pointers {
   friend class DumpCustom;
   friend class DumpXYZ;
   friend class ReadData;
+  friend class ReadPsf;
 
  public:
   LabelMap(LAMMPS *lmp, int, int, int, int, int);
@@ -36,12 +37,7 @@ class LabelMap : protected Pointers {
   int find(const std::string &, int) const;    // find numeric type of type label
   bool is_complete(int) const;                 // check if all types are assigned
 
-  // segment/residue/name for read_psf and write_psf
-  int find_or_add_psf(const std::string &, int);
   std::string label(int type, int mode) const;
-  std::unordered_map<std::string, int> stypelabel_map;
-  std::unordered_map<std::string, int> rtypelabel_map;
-  std::unordered_map<std::string, int> ntypelabel_map;
 
   // input/output for atom class label map
 
@@ -59,9 +55,14 @@ class LabelMap : protected Pointers {
   std::unordered_map<std::string, int> dtypelabel_map;
   std::unordered_map<std::string, int> itypelabel_map;
 
+
   // read_psf, write_psf
-  int nsegmenttypes, nresiduetypes, nnametypes; // read_psf, write_psf
-  std::vector<std::string> stypelabel, rtypelabel, ntypelabel;  // read_psf, write_psf
+  int nsegmenttypes, nresiduetypes, nnametypes;
+  std::vector<std::string> stypelabel, rtypelabel, ntypelabel;
+  std::unordered_map<std::string, int> stypelabel_map;
+  std::unordered_map<std::string, int> rtypelabel_map;
+  std::unordered_map<std::string, int> ntypelabel_map;
+  int find_or_add_psf(const std::string &, int);
 
   // per-type data struct mapping this label map to another
 

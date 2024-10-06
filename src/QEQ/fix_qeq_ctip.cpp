@@ -201,7 +201,7 @@ void FixQEqCTIP::extract_ctip()
 void FixQEqCTIP::pre_force(int /*vflag*/)
 {
 
-  int i,n;
+  int i, n, nout;
 
   if (update->ntimestep % nevery) return;
 

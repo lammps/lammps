@@ -218,7 +218,6 @@ void FixRecenter::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
   // all other levels - nothing
 
   if (ilevel == nlevels_respa-1) initial_integrate(vflag);
-
 }
 
 /* ---------------------------------------------------------------------- */

@@ -182,7 +182,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg], "ghost") == 0) { // skip here, since handled earlier
+    if (strcmp(arg[iarg], "ghost") == 0) {    // skip here, since handled earlier
       iarg += 2;
     } else if (strcmp(arg[iarg], "writedata") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix property/atom command");
@@ -200,9 +200,12 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
     int flag = 0;
     for (int i = 0; i < nvalue; i++)
       if (styles[i] == MOLECULE || styles[i] == CHARGE || styles[i] == RMASS ||
-      styles[i] == TEMPERATURE || styles[i] == HEATFLOW) flag = 1;
+          styles[i] == TEMPERATURE || styles[i] == HEATFLOW)
+        flag = 1;
     if (flag && comm->me == 0)
-      error->warning(FLERR, "Fix property/atom mol, charge, rmass, temperature, or heatflow w/out ghost communication");
+      error->warning(FLERR,
+                     "Fix property/atom mol, charge, rmass, temperature, or heatflow w/out ghost "
+                     "communication");
   }
 
   // store current atom style
@@ -215,7 +218,6 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(Atom::RESTART);
   if (border) atom->add_callback(Atom::BORDER);
 }
-
 
 /* ---------------------------------------------------------------------- */
 

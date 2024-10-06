@@ -142,10 +142,10 @@ void WireDipole::matrix_corr(bigint *imat, double **matrix)
   std::vector<int> displs = gather_displs(recvcounts);
   std::vector<double> xprd_all = std::vector<double>(ngroup);
   std::vector<double> yprd_all = std::vector<double>(ngroup);
-  MPI_Allgatherv(&xprd_local.front(), ngrouplocal, MPI_DOUBLE, &xprd_all.front(),
-                 &recvcounts.front(), &displs.front(), MPI_DOUBLE, world);
-  MPI_Allgatherv(&yprd_local.front(), ngrouplocal, MPI_DOUBLE, &yprd_all.front(),
-                 &recvcounts.front(), &displs.front(), MPI_DOUBLE, world);
+  MPI_Allgatherv(xprd_local.data(), ngrouplocal, MPI_DOUBLE, xprd_all.data(),
+                 recvcounts.data(), displs.data(), MPI_DOUBLE, world);
+  MPI_Allgatherv(yprd_local.data(), ngrouplocal, MPI_DOUBLE, yprd_all.data(),
+                 recvcounts.data(), displs.data(), MPI_DOUBLE, world);
 
   std::vector<bigint> jmat = gather_jmat(imat);
   const double prefac = MY_2PI / volume;

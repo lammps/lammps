@@ -131,8 +131,8 @@ void SlabDipole::matrix_corr(bigint *imat, double **matrix)
   std::vector<int> recvcounts = gather_recvcounts(ngrouplocal);
   std::vector<int> displs = gather_displs(recvcounts);
   std::vector<double> nprd_all = std::vector<double>(ngroup);
-  MPI_Allgatherv(&nprd_local.front(), ngrouplocal, MPI_DOUBLE, &nprd_all.front(),
-                 &recvcounts.front(), &displs.front(), MPI_DOUBLE, world);
+  MPI_Allgatherv(nprd_local.data(), ngrouplocal, MPI_DOUBLE, nprd_all.data(),
+                 recvcounts.data(), displs.data(), MPI_DOUBLE, world);
 
   std::vector<bigint> jmat = gather_jmat(imat);
   const double prefac = MY_4PI / volume;

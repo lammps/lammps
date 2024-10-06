@@ -645,7 +645,8 @@ void FixElectrodeConp::setup_post_neighbor()
 void FixElectrodeConp::setup_pre_reverse(int eflag, int vflag)
 {
   if (pair->did_tally_callback() && (comm->me == 0))
-    error->warning(FLERR, "Computation of virials in fix {} is incompatible with TALLY package", style);
+    error->warning(FLERR, "Computation of virials in fix {} is incompatible with TALLY package",
+                   style);
   // correct forces for initial timestep
   ev_init(eflag, vflag);
   gausscorr(eflag, vflag, true);
@@ -1537,7 +1538,7 @@ void FixElectrodeConp::gather_list_iele()
     int const nprocs = comm->nprocs;
     for (int i = 1; i < nprocs; i++) { displs[i] = displs[i - 1] + recvcounts[i - 1]; }
 
-    MPI_Allgatherv(&list_iele[0], nlocalele, MPI_INT, iele_gathered, recvcounts, displs, MPI_INT,
+    MPI_Allgatherv(list_iele.data(), nlocalele, MPI_INT, iele_gathered, recvcounts, displs, MPI_INT,
                    world);
   }
   nlocalele_outdated = 0;

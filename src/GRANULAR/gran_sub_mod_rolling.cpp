@@ -81,10 +81,32 @@ void GranSubModRollingSDS::calculate_forces()
     hist_temp[0] = gm->history[rhist0];
     hist_temp[1] = gm->history[rhist1];
     hist_temp[2] = gm->history[rhist2];
-    rolldotn = dot3(hist_temp, gm->nx);
+    rolldotn = dot3(hist_temp, gm->nxuse);
 
     frameupdate = (fabs(rolldotn) * k) > (EPSILON * Frcrit);
-    if (frameupdate) {    // rotate into tangential plane
+    if (frameupdate) {    // rotate into tangential plane at half-step
+      rollmag = len3(hist_temp);
+      // projection
+      scale3(rolldotn, gm->nxuse, temp_array);
+      sub3(hist_temp, temp_array, hist_temp);
+
+      // also rescale to preserve magnitude
+      prjmag = len3(hist_temp);
+      if (prjmag > 0)
+        scalefac = rollmag / prjmag;
+      else
+        scalefac = 0;
+      scale3(scalefac, hist_temp);
+    }
+
+    // update history at half-step
+    scale3(gm->dt, gm->vrl, temp_array);
+    add3(hist_temp, temp_array, hist_temp);
+
+    // rotate into tangential plane at full-step
+    rolldotn = dot3(hist_temp, gm->nx);
+    frameupdate = (fabs(rolldotn) * k) > (EPSILON * Frcrit);
+    if (frameupdate) {    // rotate into tangential plane at full-step
       rollmag = len3(hist_temp);
       // projection
       scale3(rolldotn, gm->nx, temp_array);
@@ -98,8 +120,6 @@ void GranSubModRollingSDS::calculate_forces()
         scalefac = 0;
       scale3(scalefac, hist_temp);
     }
-    scale3(gm->dt, gm->vrl, temp_array);
-    add3(hist_temp, temp_array, hist_temp);
   }
 
   scaleadd3(-k, hist_temp, -gamma, gm->vrl, gm->fr);

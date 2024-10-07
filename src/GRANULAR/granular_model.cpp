@@ -261,9 +261,9 @@ void GranularModel::init()
     if (sub_models[i]->beyond_contact)
       beyond_contact = 1;
     size_history += sub_models[i]->size_history;
-    if (!sub_models[i]->allow_cohesion && normal_model->get_cohesive_flag())
-      error->all(FLERR,"Cannot use {} model with a cohesive normal model, {}",
-                 sub_models[i]->name, normal_model->name);
+    // if (!sub_models[i]->allow_cohesion && normal_model->get_cohesive_flag())
+    //   error->all(FLERR,"Cannot use {} model with a cohesive normal model, {}",
+    //              sub_models[i]->name, normal_model->name);
     if (sub_models[i]->contact_radius_flag) contact_radius_flag = 1;
   }
 
@@ -414,8 +414,11 @@ void GranularModel::calculate_forces()
   scale3(0.5*dt, vr, temp1);
   sub3(dx, temp1, nhalf);
   norm3(nhalf);
-  scale3(1.0, nhalf, nxuse);
-  // scale3(1.0, nx, nxuse);
+  if (contact_type != WALL){
+    scale3(1.0, nhalf, nxuse);
+  } else {
+    scale3(1.0, nx, nxuse); 
+  }
 
   // normal component
   vnnr = dot3(vr, nxuse);
@@ -483,7 +486,7 @@ void GranularModel::calculate_forces()
     rolling_model->calculate_forces();
 
     double torroll[3];
-    cross3(nx, fr, torroll);
+    cross3(nx, fr, torroll); //we can use nx here as fr has been rotated to full-step
     scale3(Reff, torroll);
     add3(torquesi, torroll, torquesi);
     if (contact_type == PAIR) sub3(torquesj, torroll, torquesj);

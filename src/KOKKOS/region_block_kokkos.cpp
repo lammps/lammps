@@ -207,7 +207,7 @@ int RegBlockKokkos<DeviceType>::surface_exterior(double *x, double cutoff)
     else
       zp = x[2];
   } else {
-    mindist = BIG;
+    mindist = MAXDOUBLEINT;
     for (int i = 0; i < 6; i++) {
       if (open_faces[i]) continue;
       dist = find_closest_point(i, x, xc, yc, zc);

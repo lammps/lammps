@@ -45,9 +45,9 @@ class RegSphereKokkos : public RegSphere, public KokkosBase {
   //KOKKOS_INLINE_FUNCTION
   //void operator()(TagRegBlockMatchAll, const int&) const;
 
- private:
-
   Kokkos::View<Contact[1], DeviceType> d_contact;
+
+ private:
 
   KOKKOS_INLINE_FUNCTION
   int k_inside(double, double, double) const;
@@ -59,7 +59,9 @@ class RegSphereKokkos : public RegSphere, public KokkosBase {
   void rotate(double &, double &, double &, double) const;
 
   KOKKOS_INLINE_FUNCTION
-  int surface(double, double, double, double);
+  void add_contact(int, double *, double, double, double) override;
+  KOKKOS_INLINE_FUNCTION
+  int surface(double, double, double, double) override;
   KOKKOS_INLINE_FUNCTION
   int surface_interior(double *, double) override;
   KOKKOS_INLINE_FUNCTION

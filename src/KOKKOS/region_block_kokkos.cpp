@@ -234,13 +234,31 @@ int RegBlockKokkos<DeviceType>::surface_exterior(double *x, double cutoff)
     }
   }
 
-  // FIXME: write add_contact inline for KOKKOS
   add_contact(0, x, xp, yp, zp);
   d_contact[0].iwall = 0;
   if (d_contact[0].r < cutoff) return 1;
   return 0;
 }
 
+/* ----------------------------------------------------------------------
+   add a single contact at Nth location in contact array
+   x = particle position
+   xp,yp,zp = region surface point
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void RegBlockKokkos<DeviceType>::add_contact(int n, double *x, double xp, double yp, double zp)
+{
+  double delx = x[0] - xp;
+  double dely = x[1] - yp;
+  double delz = x[2] - zp;
+  d_contact[n].r = sqrt(delx * delx + dely * dely + delz * delz);
+  d_contact[n].radius = 0;
+  d_contact[n].delx = delx;
+  d_contact[n].dely = dely;
+  d_contact[n].delz = delz;
+}
 
 /* ----------------------------------------------------------------------
    inside = 1 if x,y,z is inside or on surface

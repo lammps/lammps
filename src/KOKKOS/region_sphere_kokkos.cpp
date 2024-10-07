@@ -64,6 +64,8 @@ int RegSphereKokkos<DeviceType>::surface(double x, double y, double z, double cu
   double xs, ys, zs;
   double xnear[3], xorig[3];
 
+  utils::logmesg(lmp, " *** RegSphereKokkos<DeviceType>::surface\n");
+
   if (dynamic) {
     xorig[0] = x; xorig[1] = y; xorig[2] = z;
     inverse_transform(x, y, z);
@@ -156,6 +158,26 @@ int RegSphereKokkos<DeviceType>::surface_exterior(double *x, double cutoff)
     return 1;
   }
   return 0;
+}
+
+/* ----------------------------------------------------------------------
+   add a single contact at Nth location in contact array
+   x = particle position
+   xp,yp,zp = region surface point
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void RegBlockKokkos<DeviceType>::add_contact(int n, double *x, double xp, double yp, double zp)
+{
+  double delx = x[0] - xp;
+  double dely = x[1] - yp;
+  double delz = x[2] - zp;
+  d_contact[n].r = sqrt(delx * delx + dely * dely + delz * delz);
+  d_contact[n].radius = 0;
+  d_contact[n].delx = delx;
+  d_contact[n].dely = dely;
+  d_contact[n].delz = delz;
 }
 
 /* ----------------------------------------------------------------------

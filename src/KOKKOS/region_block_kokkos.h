@@ -62,6 +62,13 @@ class RegBlockKokkos : public RegBlock, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void rotate(double &, double &, double &, double) const;
 
+  KOKKOS_INLINE_FUNCTION
+  int surface(double, double, double, double);
+  KOKKOS_INLINE_FUNCTION
+  int surface_interior(double *, double) override;
+  KOKKOS_INLINE_FUNCTION
+  int surface_exterior(double *, double) override;
+
 };
 
 }

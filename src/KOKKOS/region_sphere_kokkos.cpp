@@ -33,6 +33,120 @@ RegSphereKokkos<DeviceType>::RegSphereKokkos(LAMMPS *lmp, int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   generate list of contact points for interior or exterior regions
+   if region has variable shape, invoke shape_update() once per timestep
+   if region is dynamic:
+     before: inverse transform x,y,z (unmove, then unrotate)
+     after: forward transform contact point xs,yx,zs (rotate, then move),
+            then reset contact delx,dely,delz based on new contact point
+            no need to do this if no rotation since delxyz doesn't change
+   caller is responsible for wrapping this call with
+     modify->clearstep_compute() and modify->addstep_compute() if needed
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+int RegSphereKokkos<DeviceType>::surface(double x, double y, double z, double cutoff)
+{
+  int ncontact;
+  double xs, ys, zs;
+  double xnear[3], xorig[3];
+
+  if (dynamic) {
+    xorig[0] = x; xorig[1] = y; xorig[2] = z;
+    inverse_transform(x, y, z);
+  }
+
+  xnear[0] = x; xnear[1] = y; xnear[2] = z;
+
+  if (!openflag) {
+    if (interior)
+      ncontact = surface_interior(xnear, cutoff);
+    else
+      ncontact = surface_exterior(xnear, cutoff);
+  } else {
+    // one of surface_int/ext() will return 0
+    // so no need to worry about offset of contact indices
+    ncontact = surface_exterior(xnear, cutoff) + surface_interior(xnear, cutoff);
+  }
+
+  if (rotateflag && ncontact) {
+    for (int i = 0; i < ncontact; i++) {
+      xs = xnear[0] - contact[i].delx;
+      ys = xnear[1] - contact[i].dely;
+      zs = xnear[2] - contact[i].delz;
+      forward_transform(xs, ys, zs);
+      contact[i].delx = xorig[0] - xs;
+      contact[i].dely = xorig[1] - ys;
+      contact[i].delz = xorig[2] - zs;
+    }
+  }
+
+  return ncontact;
+}
+
+/* ----------------------------------------------------------------------
+   one contact if 0 <= x < cutoff from inner surface of sphere
+   no contact if outside (possible if called from union/intersect)
+   delxyz = vector from nearest point on sphere to x
+   special case: no contact if x is at center of sphere
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+int RegSphereKokkos<DeviceType>::surface_interior(double *x, double cutoff)
+{
+  double delx = x[0] - xc;
+  double dely = x[1] - yc;
+  double delz = x[2] - zc;
+  double r = sqrt(delx * delx + dely * dely + delz * delz);
+  if (r > radius || r == 0.0) return 0;
+
+  double delta = radius - r;
+  if (delta < cutoff) {
+    contact[0].r = delta;
+    contact[0].delx = delx * (1.0 - radius / r);
+    contact[0].dely = dely * (1.0 - radius / r);
+    contact[0].delz = delz * (1.0 - radius / r);
+    contact[0].radius = -radius;
+    contact[0].iwall = 0;
+    contact[0].varflag = 1;
+    return 1;
+  }
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   one contact if 0 <= x < cutoff from outer surface of sphere
+   no contact if inside (possible if called from union/intersect)
+   delxyz = vector from nearest point on sphere to x
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+int RegSphereKokkos<DeviceType>::surface_exterior(double *x, double cutoff)
+{
+  double delx = x[0] - xc;
+  double dely = x[1] - yc;
+  double delz = x[2] - zc;
+  double r = sqrt(delx * delx + dely * dely + delz * delz);
+  if (r < radius) return 0;
+
+  double delta = r - radius;
+  if (delta < cutoff) {
+    contact[0].r = delta;
+    contact[0].delx = delx * (1.0 - radius / r);
+    contact[0].dely = dely * (1.0 - radius / r);
+    contact[0].delz = delz * (1.0 - radius / r);
+    contact[0].radius = radius;
+    contact[0].iwall = 0;
+    contact[0].varflag = 1;
+    return 1;
+  }
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    inside = 1 if x,y,z is inside or on surface
    inside = 0 if x,y,z is outside and not on surface
 ------------------------------------------------------------------------- */

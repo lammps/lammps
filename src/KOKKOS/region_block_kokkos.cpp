@@ -28,6 +28,206 @@ RegBlockKokkos<DeviceType>::RegBlockKokkos(LAMMPS *lmp, int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   generate list of contact points for interior or exterior regions
+   if region has variable shape, invoke shape_update() once per timestep
+   if region is dynamic:
+     before: inverse transform x,y,z (unmove, then unrotate)
+     after: forward transform contact point xs,yx,zs (rotate, then move),
+            then reset contact delx,dely,delz based on new contact point
+            no need to do this if no rotation since delxyz doesn't change
+   caller is responsible for wrapping this call with
+     modify->clearstep_compute() and modify->addstep_compute() if needed
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+int RegBlockKokkos<DeviceType>::surface(double x, double y, double z, double cutoff)
+{
+  int ncontact;
+  double xs, ys, zs;
+  double xnear[3], xorig[3];
+
+  if (dynamic) {
+    xorig[0] = x; xorig[1] = y; xorig[2] = z;
+    inverse_transform(x, y, z);
+  }
+
+  xnear[0] = x; xnear[1] = y; xnear[2] = z;
+
+  if (!openflag) {
+    if (interior)
+      ncontact = surface_interior(xnear, cutoff);
+    else
+      ncontact = surface_exterior(xnear, cutoff);
+  } else {
+    // one of surface_int/ext() will return 0
+    // so no need to worry about offset of contact indices
+    ncontact = surface_exterior(xnear, cutoff) + surface_interior(xnear, cutoff);
+  }
+
+  if (rotateflag && ncontact) {
+    for (int i = 0; i < ncontact; i++) {
+      xs = xnear[0] - contact[i].delx;
+      ys = xnear[1] - contact[i].dely;
+      zs = xnear[2] - contact[i].delz;
+      forward_transform(xs, ys, zs);
+      contact[i].delx = xorig[0] - xs;
+      contact[i].dely = xorig[1] - ys;
+      contact[i].delz = xorig[2] - zs;
+    }
+  }
+
+  return ncontact;
+}
+
+/* ----------------------------------------------------------------------
+   contact if 0 <= x < cutoff from one or more inner surfaces of block
+   can be one contact for each of 6 faces
+   no contact if outside (possible if called from union/intersect)
+   delxyz = vector from nearest point on block to x
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+int RegBlockKokkos<DeviceType>::surface_interior(double *x, double cutoff)
+{
+  double delta;
+
+  // x is exterior to block
+
+  if (x[0] < xlo || x[0] > xhi || x[1] < ylo || x[1] > yhi || x[2] < zlo || x[2] > zhi) return 0;
+
+  // x is interior to block or on its surface
+
+  int n = 0;
+
+  delta = x[0] - xlo;
+  if (delta < cutoff && !open_faces[0]) {
+    contact[n].r = delta;
+    contact[n].delx = delta;
+    contact[n].dely = contact[n].delz = 0.0;
+    contact[n].radius = 0;
+    contact[n].iwall = 0;
+    n++;
+  }
+  delta = xhi - x[0];
+  if (delta < cutoff && !open_faces[1]) {
+    contact[n].r = delta;
+    contact[n].delx = -delta;
+    contact[n].dely = contact[n].delz = 0.0;
+    contact[n].radius = 0;
+    contact[n].iwall = 1;
+    n++;
+  }
+
+  delta = x[1] - ylo;
+  if (delta < cutoff && !open_faces[2]) {
+    contact[n].r = delta;
+    contact[n].dely = delta;
+    contact[n].delx = contact[n].delz = 0.0;
+    contact[n].radius = 0;
+    contact[n].iwall = 2;
+    n++;
+  }
+  delta = yhi - x[1];
+  if (delta < cutoff && !open_faces[3]) {
+    contact[n].r = delta;
+    contact[n].dely = -delta;
+    contact[n].delx = contact[n].delz = 0.0;
+    contact[n].radius = 0;
+    contact[n].iwall = 3;
+    n++;
+  }
+
+  delta = x[2] - zlo;
+  if (delta < cutoff && !open_faces[4]) {
+    contact[n].r = delta;
+    contact[n].delz = delta;
+    contact[n].delx = contact[n].dely = 0.0;
+    contact[n].radius = 0;
+    contact[n].iwall = 4;
+    n++;
+  }
+  delta = zhi - x[2];
+  if (delta < cutoff && !open_faces[5]) {
+    contact[n].r = delta;
+    contact[n].delz = -delta;
+    contact[n].delx = contact[n].dely = 0.0;
+    contact[n].radius = 0;
+    contact[n].iwall = 5;
+    n++;
+  }
+
+  return n;
+}
+
+/* ----------------------------------------------------------------------
+   one contact if 0 <= x < cutoff from outer surface of block
+   no contact if inside (possible if called from union/intersect)
+   delxyz = vector from nearest point on block to x
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+int RegBlockKokkos<DeviceType>::surface_exterior(double *x, double cutoff)
+{
+  double xp, yp, zp;
+  double xc, yc, zc, dist, mindist;
+
+  // x is far enough from block that there is no contact
+  // x is interior to block
+
+  if (x[0] <= xlo - cutoff || x[0] >= xhi + cutoff || x[1] <= ylo - cutoff ||
+      x[1] >= yhi + cutoff || x[2] <= zlo - cutoff || x[2] >= zhi + cutoff)
+    return 0;
+  if (x[0] > xlo && x[0] < xhi && x[1] > ylo && x[1] < yhi && x[2] > zlo && x[2] < zhi) return 0;
+
+  // x is exterior to block or on its surface
+  // xp,yp,zp = point on surface of block that x is closest to
+  //            could be edge or corner pt of block
+  // do not add contact point if r >= cutoff
+
+  if (!openflag) {
+    if (x[0] < xlo)
+      xp = xlo;
+    else if (x[0] > xhi)
+      xp = xhi;
+    else
+      xp = x[0];
+    if (x[1] < ylo)
+      yp = ylo;
+    else if (x[1] > yhi)
+      yp = yhi;
+    else
+      yp = x[1];
+    if (x[2] < zlo)
+      zp = zlo;
+    else if (x[2] > zhi)
+      zp = zhi;
+    else
+      zp = x[2];
+  } else {
+    mindist = BIG;
+    for (int i = 0; i < 6; i++) {
+      if (open_faces[i]) continue;
+      dist = find_closest_point(i, x, xc, yc, zc);
+      if (dist < mindist) {
+        xp = xc;
+        yp = yc;
+        zp = zc;
+        mindist = dist;
+      }
+    }
+  }
+
+  add_contact(0, x, xp, yp, zp);
+  contact[0].iwall = 0;
+  if (contact[0].r < cutoff) return 1;
+  return 0;
+}
+
+
+/* ----------------------------------------------------------------------
    inside = 1 if x,y,z is inside or on surface
    inside = 0 if x,y,z is outside and not on surface
 ------------------------------------------------------------------------- */

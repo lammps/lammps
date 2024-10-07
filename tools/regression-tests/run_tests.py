@@ -187,7 +187,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 msg = "   + " + input + f" ({test_id+1}/{num_tests}): skipped as specified in {configFileName}"
                 print(msg)
                 logger.info(msg)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: \"skipped\", walltime: {walltime} }}\n")
+                progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'skipped', 'walltime': '{walltime}' }} }}\n")
                 progress.close()
                 num_skipped = num_skipped + 1
                 test_id = test_id + 1
@@ -205,7 +205,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 msg = "   + " + input + f" ({test_id+1}/{num_tests}): skipped as specified in {configFileName}"
                 print(msg)
                 logger.info(msg)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: \"skipped\", walltime: {walltime} }}\n")
+                progress.write(f"{{ '{input}': {{ 'folder': {input_folder}, 'status': 'skipped', 'walltime': '{walltime}' }} }}\n")
                 progress.close()
                 num_skipped = num_skipped + 1
                 test_id = test_id + 1
@@ -352,7 +352,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             results.append(result)
             print(f"{result.status}")
 
-            msg = f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime} }}\n"
+            msg = f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}' }} }}\n"
             progress.write(msg)
             progress.close()
             failure.write(msg)
@@ -369,7 +369,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"    {output}")
             logger.info(f"    Error:\n{error}")
 
-            msg = f"{input}: {{ folder: {input_folder}, status: \"failed, no log file generated\", walltime: {walltime} }}\n"
+            msg = f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'failed, no log file generated', 'walltime': '{walltime}' }} }}\n"
             progress.write(msg)
             progress.close()
             failure.write(msg)
@@ -399,7 +399,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             result.status = msg
             results.append(result)
 
-            msg = f"{input}: {{ folder: {input_folder}, status: \"{msg}\", walltime: {walltime} }}\n"
+            msg = f"{{ '{input}': {{ 'folder': '{input_folder}', status: \"{msg}\", 'walltime': '{walltime}' }} }}\n"
             progress.write(msg)
             progress.close()
             failure.write(msg)
@@ -418,7 +418,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"\n    Output:\n{output}")
             logger.info(f"\n    Error:\n{error}")
 
-            msg = f"{input}: {{ folder: {input_folder}, status: \"failed, no Total wall time in the output, {error}\", walltime: {walltime} }}\n"
+            msg = f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'failed, no Total wall time in the output, {error}', 'walltime': '{walltime}' }} }}\n"
             progress.write(msg)
             progress.close()
             failure.write(msg)
@@ -449,7 +449,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"\n    Output:\n{output}")
             logger.info(f"\n    Error:\n{error}")
 
-            msg = f"{input}: {{ folder: {input_folder}, status: \"completed, but no Step nor Loop in the output.\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n"
+            msg = f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'completed, but no Step nor Loop in the output.', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n"
             progress.write(msg)
             progress.close()
             failure.write(msg)
@@ -477,7 +477,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
             result.status = msg + f", error parsing {logfilename} into YAML"
             results.append(result)
-            progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
+            progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
             progress.close()
 
             if verbose == True:
@@ -499,7 +499,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 logger.info(f"    failed, error parsing the reference log file {thermo_ref_file}.")
                 result.status = "skipped numerical checks due to parsing the reference log file"
                 results.append(result)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: \"completed, numerical checks skipped, unsupported log file format\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
+                progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'completed, numerical checks skipped, unsupported log file format', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
                 progress.close()
                 num_completed = num_completed + 1
                 num_error = num_error + 1
@@ -521,7 +521,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 result.status = "skipped due to missing the reference log file"
                 results.append(result)
 
-                msg = f"{input}: {{ folder: {input_folder}, status: \"completed, numerical checks skipped due to missing the reference log file\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n"
+                msg = f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'completed, numerical checks skipped due to missing the reference log file', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n"
                 progress.write(msg)
                 progress.close()
                 failure.write(msg)
@@ -539,7 +539,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                         " Check README in the folder, possibly due to using mpirun with partitions or parsing the wrong reference log file.")
             result.status = "failed, incomplete runs"
             results.append(result)
-            progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
+            progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
             progress.close()
             num_error = num_error + 1
             test_id = test_id + 1
@@ -555,7 +555,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"     Check both log files for more details.")
             result.status = "failed, mismatched columns in the log files"
             results.append(result)
-            progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
+            progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
             progress.close()
             num_error = num_error + 1
             test_id = test_id + 1
@@ -691,12 +691,12 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 msg += ", memory leaks detected"
                 num_memleak = num_memleak + 1
 
-        progress.write(f"{input}: {{ folder: {input_folder}, status: \"{msg}\", failed_checks: {{ {result.status} }}, walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
+        progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{msg}', 'failed_checks': {{ '{result.status}' }}, 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
         progress.close()
 
         # write to failure if there is any numerical failed check
         if num_abs_failed > 0 or num_rel_failed > 0:
-            failure.write(f"{input}: {{ folder: {input_folder}, status: \"{msg}\", failed_checks: {{ {result.status} }}, walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
+            failure.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{msg}', 'failed_checks': '{{ '{result.status}' }}, 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
 
         # count the number of completed runs
         num_completed = num_completed + 1
@@ -940,6 +940,14 @@ def get_reference_walltime(lmp_binary, config):
             minutes = float(hms[1])
             seconds = float(hms[2])
             walltime = hours * 3600.0 + minutes * 60.0 + seconds
+        if "Loop time" in line:
+            looptime_str = line.split(' ')[3]
+            seconds = float(looptime_str)
+            looptime = seconds
+
+    # there is case where total walltime with in.lj is reported as zero seconds, then use loop time
+    if float(walltime) < float(config['epsilon']):
+        walltime = looptime
 
     logger.info(f"     Reference walltime, sec = {walltime}")
 
@@ -1455,6 +1463,9 @@ if __name__ == "__main__":
         '''
 
         for directory in example_subfolders:
+
+            if os.path.exists(directory) is False:
+                continue
 
             # change to the directory where the input script and data files are located
             print("-"*80)

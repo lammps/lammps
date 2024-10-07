@@ -300,12 +300,15 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         saved_nprocs = config['nprocs']
 
-        # if the maximum number of procs is different from the value in the configuration file
-        #      then override the setting for this particular input script
-        if max_np != int(config['nprocs']):
+        # if the nprocs value in the configuration file is empty then use max_np for this particular input script
+        if config['nprocs'] == "":
             config['nprocs'] = str(max_np)
+        else:
+            # otherwise use the nprocs value in the configuration file (4 for most examples)
+            logger.info(f"     Using nprocs {config['nprocs']} nprocs for {input_test} as specified in the config file.")
+            logger.info(f"     The maximum number of procs in the log files is {max_np}.")
 
-        # store the value of nprocs
+        # store the value of nprocs to name the generated log file
         nprocs = int(config['nprocs'])
 
         # if valgrind is used for mem check, the run command will be

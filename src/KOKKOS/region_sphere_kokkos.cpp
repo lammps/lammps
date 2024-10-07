@@ -64,8 +64,6 @@ int RegSphereKokkos<DeviceType>::surface(double x, double y, double z, double cu
   double xs, ys, zs;
   double xnear[3], xorig[3];
 
-  utils::logmesg(lmp, " *** RegSphereKokkos<DeviceType>::surface\n");
-
   if (dynamic) {
     xorig[0] = x; xorig[1] = y; xorig[2] = z;
     inverse_transform(x, y, z);

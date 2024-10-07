@@ -642,7 +642,7 @@ bool FixSemiGrandCanonicalMC::placeSamplingWindow()
   samplingWindowPosition += 1;
 
   // Compile a list of atoms that are inside the sampling window.
-  samplingWindowAtoms.resize(0);
+  samplingWindowAtoms.clear();
   samplingWindowAtoms.reserve(atom->nlocal);
   numSamplingWindowAtoms = 0;
   numFixAtomsLocal = 0;

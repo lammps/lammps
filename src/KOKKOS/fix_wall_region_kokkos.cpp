@@ -56,18 +56,13 @@ FixWallRegionKokkos<DeviceType>::FixWallRegionKokkos(LAMMPS *lmp, int narg, char
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | V_MASK | MASK_MASK;
   datamask_modify = F_MASK;
-
-  //memoryKK->create_kokkos(k_ewall,4,"wall_region:ewall");
-  //d_ewall = k_ewall.template view<DeviceType>();
 }
 
 template<class DeviceType>
 FixWallRegionKokkos<DeviceType>::~FixWallRegionKokkos()
 {
   if (copymode) return;
-
   memoryKK->destroy_kokkos(k_vatom,vatom);
-  memoryKK->destroy_kokkos(k_ewall);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,9 +130,6 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
     virial[4] += result[8];
     virial[5] += result[9];
   }
-
-  k_ewall.template modify<DeviceType>();
-  k_ewall.template sync<LMPHostType>();
 
   atomKK->modified(execution_space,F_MASK);
 

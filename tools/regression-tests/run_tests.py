@@ -929,6 +929,7 @@ def get_reference_walltime(lmp_binary, config):
         logger.info(msg)
         print(msg)
 
+    looptime = 1.0
     for line in output.split('\n'):
         if "Total wall time" in line:
             walltime_str = line.split('time:')[1]

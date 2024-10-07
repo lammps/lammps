@@ -1,7 +1,7 @@
 ---
   lmp_binary: ""
   nprocs: "4"
-  args: "-cite none -k on g 2 -sf kk -pk kokkos newton on neigh half"
+  args: "-cite none -k on t 2 -sf kk -pk kokkos newton on neigh half"
   mpiexec: "mpirun"
   mpiexec_numproc_flag: "--host localhost:4 -np"
   tolerance:

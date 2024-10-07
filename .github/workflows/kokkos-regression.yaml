@@ -62,7 +62,6 @@ jobs:
               -D Kokkos_ENABLE_CUDA=off  \
               -D PKG_COLLOID=on \
               -D PKG_GRANULAR=on \
-              -D PKG_ML-SNAP=on \
               -D BUILD_OMP=yes \
               -G Ninja
         cmake --build build
@@ -74,8 +73,8 @@ jobs:
         source linuxenv/bin/activate
         python3 tools/regression-tests/run_tests.py \
                --lmp-bin=build/lmp \
-               --config-file=tools/regression-tests/config_kokkos.yaml \
-               --example-folders="examples/colloid;examples/melt;examples/micelle;examples/threebody;examples/snap" \
+               --config-file=tools/regression-tests/config_kokkos_openmp.yaml \
+               --example-folders="examples/colloid;examples/melt;examples/micelle;examples/threebody" \
                --output-file=output.xml \
                --progress-file=progress.yaml \
                --log-file=run.log

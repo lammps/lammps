@@ -212,7 +212,7 @@ void AtomKokkos::map_set_device()
   Kokkos::sort(LMPDeviceType(),l_sorted,MyComp{});
 
   auto d_map_array = k_map_array.d_view;
-  auto& d_map_hash = k_map_hash.d_view;
+  auto& d_map_hash = k_map_hash.d_view; // must be alias
   if (!map_style_array)
     d_map_hash.clear();
 
@@ -352,7 +352,7 @@ void AtomKokkos::map_set_host()
 
     // use "view" template method to avoid unnecessary deep_copy
 
-    auto& h_map_hash = k_map_hash.h_view; // must be an alias
+    auto& h_map_hash = k_map_hash.h_view; // must be alias
     h_map_hash.clear();
 
     for (int i = 0; i < nall; i++) {
@@ -390,7 +390,7 @@ void AtomKokkos::map_one(tagint global, int local)
     k_map_array.h_view[global] = local;
   } else {
     k_map_hash.sync_host();
-    auto& h_map_hash = k_map_hash.h_view; // must be an alias
+    auto& h_map_hash = k_map_hash.h_view; // must be alias
 
     auto insert_result = h_map_hash.insert(global, local);
     if (insert_result.existing())
@@ -408,7 +408,7 @@ void AtomKokkos::map_one(tagint global, int local)
 int AtomKokkos::map_find_hash(tagint global)
 {
   k_map_hash.sync_host();
-  auto& h_map_hash = k_map_hash.h_view;
+  auto& h_map_hash = k_map_hash.h_view; // must be alias
 
   int local = -1;
   auto index = h_map_hash.find(global);

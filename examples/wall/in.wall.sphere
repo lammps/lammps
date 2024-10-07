@@ -19,7 +19,7 @@ angle_coeff 1 104.52
 
 region sphere1 sphere 0 0 0 $(v_radius-10) side in
 region sphere2 sphere 0 0 0 $(v_radius-20) side in
-create_atoms 0 random 1000 12345 sphere2 mol water 12345 overlap 1.33
+create_atoms 0 random 5000 12345 sphere2 mol water 12345 overlap 2
 
 thermo 1
 thermo_style custom step time spcpu temp press etotal pe

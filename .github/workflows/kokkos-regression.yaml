@@ -75,7 +75,7 @@ jobs:
         python3 tools/regression-tests/run_tests.py \
                --lmp-bin=build/lmp \
                --config-file=tools/regression-tests/config_kokkos.yaml \
-               --example-folders="examples/colloid;examples/melt;examples/micelle;examples/threebody;examples/snap;"
+               --example-folders="examples/colloid;examples/melt;examples/micelle;examples/threebody;examples/snap" \
                --output-file=output.xml \
                --progress-file=progress.yaml \
                --log-file=run.log

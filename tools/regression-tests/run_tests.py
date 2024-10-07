@@ -656,7 +656,6 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             msg = f"     {num_abs_failed} abs diff checks failed."
             print(msg)
             logger.info(msg)
-            #result.status = f"abs_diff_failed: {num_abs_failed}, "
             if verbose == True:
                 for out in failed_abs_output:
                     print(f"        - {out}")
@@ -665,7 +664,6 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             msg = f"     {num_rel_failed} rel diff checks failed."
             print(msg)
             logger.info(msg)
-            #result.status += f"rel_diff_failed: {num_rel_failed}"
             if verbose == True:
                 for out in failed_rel_output:
                     print(f"        - {out}")
@@ -674,12 +672,11 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             msg = f"     all {num_checks} checks passed."
             print(msg)
             logger.info(msg)
-            #result.status = f"all {num_checks} checks passed."
             num_passed = num_passed + 1
         else:
             num_error = num_error + 1
 
-        result.status = f"abs_diff_failed: {num_abs_failed}, rel_diff_failed: {num_rel_failed}"
+        result.status = f" 'abs_diff_failed': '{num_abs_failed}', 'rel_diff_failed': '{num_rel_failed}' "
         results.append(result)
 
         # check if memleak detects from valgrind run (need to replace "mpirun" -> valgrind --leak-check=yes mpirun")
@@ -691,12 +688,12 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 msg += ", memory leaks detected"
                 num_memleak = num_memleak + 1
 
-        progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{msg}', 'failed_checks': {{ '{result.status}' }}, 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
+        progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{msg}', 'failed_checks': {{ {result.status} }}, 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
         progress.close()
 
         # write to failure if there is any numerical failed check
         if num_abs_failed > 0 or num_rel_failed > 0:
-            failure.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{msg}', 'failed_checks': '{{ '{result.status}' }}, 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
+            failure.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{msg}', 'failed_checks': '{{ {result.status} }}, 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
 
         # count the number of completed runs
         num_completed = num_completed + 1

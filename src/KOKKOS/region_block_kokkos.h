@@ -40,6 +40,7 @@ class RegBlockKokkos : public RegBlock, public KokkosBase {
   typedef ArrayTypes<DeviceType> AT;
 
   RegBlockKokkos(class LAMMPS *, int, char **);
+  ~RegBlockKokkos() override;
 
   void match_all_kokkos(int, DAT::tdual_int_1d) override;
 
@@ -52,6 +53,8 @@ class RegBlockKokkos : public RegBlock, public KokkosBase {
 
   typename AT::t_x_array_randomread x;
   typename AT::t_int_1d_randomread mask;
+
+  Kokkos::View<Contact[6], DeviceType> d_contact;
 
   KOKKOS_INLINE_FUNCTION
   int k_inside(double, double, double) const;

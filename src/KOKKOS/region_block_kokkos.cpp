@@ -13,8 +13,10 @@
 ------------------------------------------------------------------------- */
 
 #include "region_block_kokkos.h"
+
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -25,6 +27,16 @@ RegBlockKokkos<DeviceType>::RegBlockKokkos(LAMMPS *lmp, int narg, char **arg)
   : RegBlock(lmp, narg, arg)
 {
   atomKK = (AtomKokkos*) atom;
+  memoryKK->create_kokkos(d_contact,6,"region_block:d_contact");
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+RegBlockKokkos<DeviceType>::~RegBlockKokkos()
+{
+  if (copymode) return;
+  memoryKK->destroy_kokkos(d_contact);
 }
 
 /* ----------------------------------------------------------------------
@@ -47,6 +59,8 @@ int RegBlockKokkos<DeviceType>::surface(double x, double y, double z, double cut
   double xs, ys, zs;
   double xnear[3], xorig[3];
 
+  utils::logmesg(lmp, " *** RegBlockKokkos<DeviceType>::surface\n");
+
   if (dynamic) {
     xorig[0] = x; xorig[1] = y; xorig[2] = z;
     inverse_transform(x, y, z);
@@ -67,13 +81,13 @@ int RegBlockKokkos<DeviceType>::surface(double x, double y, double z, double cut
 
   if (rotateflag && ncontact) {
     for (int i = 0; i < ncontact; i++) {
-      xs = xnear[0] - contact[i].delx;
-      ys = xnear[1] - contact[i].dely;
-      zs = xnear[2] - contact[i].delz;
+      xs = xnear[0] - d_contact[i].delx;
+      ys = xnear[1] - d_contact[i].dely;
+      zs = xnear[2] - d_contact[i].delz;
       forward_transform(xs, ys, zs);
-      contact[i].delx = xorig[0] - xs;
-      contact[i].dely = xorig[1] - ys;
-      contact[i].delz = xorig[2] - zs;
+      d_contact[i].delx = xorig[0] - xs;
+      d_contact[i].dely = xorig[1] - ys;
+      d_contact[i].delz = xorig[2] - zs;
     }
   }
 
@@ -103,58 +117,58 @@ int RegBlockKokkos<DeviceType>::surface_interior(double *x, double cutoff)
 
   delta = x[0] - xlo;
   if (delta < cutoff && !open_faces[0]) {
-    contact[n].r = delta;
-    contact[n].delx = delta;
-    contact[n].dely = contact[n].delz = 0.0;
-    contact[n].radius = 0;
-    contact[n].iwall = 0;
+    d_contact[n].r = delta;
+    d_contact[n].delx = delta;
+    d_contact[n].dely = d_contact[n].delz = 0.0;
+    d_contact[n].radius = 0;
+    d_contact[n].iwall = 0;
     n++;
   }
   delta = xhi - x[0];
   if (delta < cutoff && !open_faces[1]) {
-    contact[n].r = delta;
-    contact[n].delx = -delta;
-    contact[n].dely = contact[n].delz = 0.0;
-    contact[n].radius = 0;
-    contact[n].iwall = 1;
+    d_contact[n].r = delta;
+    d_contact[n].delx = -delta;
+    d_contact[n].dely = d_contact[n].delz = 0.0;
+    d_contact[n].radius = 0;
+    d_contact[n].iwall = 1;
     n++;
   }
 
   delta = x[1] - ylo;
   if (delta < cutoff && !open_faces[2]) {
-    contact[n].r = delta;
-    contact[n].dely = delta;
-    contact[n].delx = contact[n].delz = 0.0;
-    contact[n].radius = 0;
-    contact[n].iwall = 2;
+    d_contact[n].r = delta;
+    d_contact[n].dely = delta;
+    d_contact[n].delx = d_contact[n].delz = 0.0;
+    d_contact[n].radius = 0;
+    d_contact[n].iwall = 2;
     n++;
   }
   delta = yhi - x[1];
   if (delta < cutoff && !open_faces[3]) {
-    contact[n].r = delta;
-    contact[n].dely = -delta;
-    contact[n].delx = contact[n].delz = 0.0;
-    contact[n].radius = 0;
-    contact[n].iwall = 3;
+    d_contact[n].r = delta;
+    d_contact[n].dely = -delta;
+    d_contact[n].delx = d_contact[n].delz = 0.0;
+    d_contact[n].radius = 0;
+    d_contact[n].iwall = 3;
     n++;
   }
 
   delta = x[2] - zlo;
   if (delta < cutoff && !open_faces[4]) {
-    contact[n].r = delta;
-    contact[n].delz = delta;
-    contact[n].delx = contact[n].dely = 0.0;
-    contact[n].radius = 0;
-    contact[n].iwall = 4;
+    d_contact[n].r = delta;
+    d_contact[n].delz = delta;
+    d_contact[n].delx = d_contact[n].dely = 0.0;
+    d_contact[n].radius = 0;
+    d_contact[n].iwall = 4;
     n++;
   }
   delta = zhi - x[2];
   if (delta < cutoff && !open_faces[5]) {
-    contact[n].r = delta;
-    contact[n].delz = -delta;
-    contact[n].delx = contact[n].dely = 0.0;
-    contact[n].radius = 0;
-    contact[n].iwall = 5;
+    d_contact[n].r = delta;
+    d_contact[n].delz = -delta;
+    d_contact[n].delx = d_contact[n].dely = 0.0;
+    d_contact[n].radius = 0;
+    d_contact[n].iwall = 5;
     n++;
   }
 
@@ -220,9 +234,10 @@ int RegBlockKokkos<DeviceType>::surface_exterior(double *x, double cutoff)
     }
   }
 
+  // FIXME: write add_contact inline for KOKKOS
   add_contact(0, x, xp, yp, zp);
-  contact[0].iwall = 0;
-  if (contact[0].r < cutoff) return 1;
+  d_contact[0].iwall = 0;
+  if (d_contact[0].r < cutoff) return 1;
   return 0;
 }
 

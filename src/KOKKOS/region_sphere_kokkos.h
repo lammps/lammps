@@ -38,6 +38,7 @@ class RegSphereKokkos : public RegSphere, public KokkosBase {
   typedef ArrayTypes<DeviceType> AT;
 
   RegSphereKokkos(class LAMMPS *, int, char **);
+  ~RegSphereKokkos() override;
 
   void match_all_kokkos(int, DAT::tdual_int_1d) override;
 
@@ -45,6 +46,8 @@ class RegSphereKokkos : public RegSphere, public KokkosBase {
   //void operator()(TagRegBlockMatchAll, const int&) const;
 
  private:
+
+  Kokkos::View<Contact[1], DeviceType> d_contact;
 
   KOKKOS_INLINE_FUNCTION
   int k_inside(double, double, double) const;

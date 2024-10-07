@@ -20,6 +20,7 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -30,7 +31,18 @@ RegSphereKokkos<DeviceType>::RegSphereKokkos(LAMMPS *lmp, int narg, char **arg)
   : RegSphere(lmp, narg, arg)
 {
   atomKK = (AtomKokkos*) atom;
+  memoryKK->create_kokkos(d_contact,1,"region_sphere:d_contact");
 }
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+RegSphereKokkos<DeviceType>::~RegSphereKokkos()
+{
+  if (copymode) return;
+  memoryKK->destroy_kokkos(d_contact);
+}
+
 
 /* ----------------------------------------------------------------------
    generate list of contact points for interior or exterior regions
@@ -52,6 +64,8 @@ int RegSphereKokkos<DeviceType>::surface(double x, double y, double z, double cu
   double xs, ys, zs;
   double xnear[3], xorig[3];
 
+  utils::logmesg(lmp, " *** RegSphereKokkos<DeviceType>::surface\n");
+
   if (dynamic) {
     xorig[0] = x; xorig[1] = y; xorig[2] = z;
     inverse_transform(x, y, z);
@@ -72,13 +86,13 @@ int RegSphereKokkos<DeviceType>::surface(double x, double y, double z, double cu
 
   if (rotateflag && ncontact) {
     for (int i = 0; i < ncontact; i++) {
-      xs = xnear[0] - contact[i].delx;
-      ys = xnear[1] - contact[i].dely;
-      zs = xnear[2] - contact[i].delz;
+      xs = xnear[0] - d_contact[i].delx;
+      ys = xnear[1] - d_contact[i].dely;
+      zs = xnear[2] - d_contact[i].delz;
       forward_transform(xs, ys, zs);
-      contact[i].delx = xorig[0] - xs;
-      contact[i].dely = xorig[1] - ys;
-      contact[i].delz = xorig[2] - zs;
+      d_contact[i].delx = xorig[0] - xs;
+      d_contact[i].dely = xorig[1] - ys;
+      d_contact[i].delz = xorig[2] - zs;
     }
   }
 
@@ -104,13 +118,13 @@ int RegSphereKokkos<DeviceType>::surface_interior(double *x, double cutoff)
 
   double delta = radius - r;
   if (delta < cutoff) {
-    contact[0].r = delta;
-    contact[0].delx = delx * (1.0 - radius / r);
-    contact[0].dely = dely * (1.0 - radius / r);
-    contact[0].delz = delz * (1.0 - radius / r);
-    contact[0].radius = -radius;
-    contact[0].iwall = 0;
-    contact[0].varflag = 1;
+    d_contact[0].r = delta;
+    d_contact[0].delx = delx * (1.0 - radius / r);
+    d_contact[0].dely = dely * (1.0 - radius / r);
+    d_contact[0].delz = delz * (1.0 - radius / r);
+    d_contact[0].radius = -radius;
+    d_contact[0].iwall = 0;
+    d_contact[0].varflag = 1;
     return 1;
   }
   return 0;
@@ -134,13 +148,13 @@ int RegSphereKokkos<DeviceType>::surface_exterior(double *x, double cutoff)
 
   double delta = r - radius;
   if (delta < cutoff) {
-    contact[0].r = delta;
-    contact[0].delx = delx * (1.0 - radius / r);
-    contact[0].dely = dely * (1.0 - radius / r);
-    contact[0].delz = delz * (1.0 - radius / r);
-    contact[0].radius = radius;
-    contact[0].iwall = 0;
-    contact[0].varflag = 1;
+    d_contact[0].r = delta;
+    d_contact[0].delx = delx * (1.0 - radius / r);
+    d_contact[0].dely = dely * (1.0 - radius / r);
+    d_contact[0].delz = delz * (1.0 - radius / r);
+    d_contact[0].radius = radius;
+    d_contact[0].iwall = 0;
+    d_contact[0].varflag = 1;
     return 1;
   }
   return 0;

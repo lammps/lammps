@@ -212,7 +212,7 @@ void AtomKokkos::map_set_device()
   Kokkos::sort(LMPDeviceType(),l_sorted,MyComp{});
 
   auto d_map_array = k_map_array.d_view;
-  auto d_map_hash = k_map_hash.d_view;
+  auto& d_map_hash = k_map_hash.d_view;
   if (!map_style_array)
     d_map_hash.clear();
 

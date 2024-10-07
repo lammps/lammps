@@ -239,12 +239,6 @@ void FixQEqCTIP::init_matvec()
   double *q = atom->q, qi;
   int *type = atom->type;
 
-  double r = cutoff;
-  double rsq = r*r;
-
-  double erfcd_cut = exp(-cdamp * cdamp * rsq);
-  double t_cut = 1.0 / (1.0 + EWALD_P * cdamp * r);
-
   inum = list->inum;
   ilist = list->ilist;
 
@@ -283,7 +277,6 @@ void FixQEqCTIP::compute_H()
   int inum, jnum, *ilist, *jlist, *numneigh, **firstneigh;
   int i, j, ii, jj;
   double dx, dy, dz, r_sqr, r, reff;
-  double cutoffsq, erfcd_cut, t_cut;
   double erfcc, erfcd, t;
 
   double **x = atom->x;
@@ -294,10 +287,6 @@ void FixQEqCTIP::compute_H()
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
-  cutoffsq = cutoff * cutoff;
-  erfcd_cut = exp(-cdamp * cdamp * cutoffsq);
-  t_cut = 1.0 / (1.0 + EWALD_P * cdamp * cutoff);
 
   // fill in the H matrix
   m_fill = 0;

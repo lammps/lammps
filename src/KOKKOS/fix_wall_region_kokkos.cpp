@@ -164,29 +164,29 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(int i, value_type result) co
     int n = region->surface(d_x(i,0), d_x(i,1), d_x(i,2), cutoff);
 
     for ( int m = 0; m < n; m++) {
-      if (region->contact[m].r <= tooclose)
+      if (region->d_contact[m].r <= tooclose)
         Kokkos::abort("Particle outside surface of region used in fix wall/region");
       else
-        rinv = 1.0 / region->contact[m].r;
+        rinv = 1.0 / region->d_contact[m].r;
 
       double fwallKK, engKK;
 
       if (style == LJ93)
-        engKK = lj93(region->contact[m].r,fwallKK);
+        engKK = lj93(region->d_contact[m].r,fwallKK);
       else if (style == LJ126)
-        engKK = lj126(region->contact[m].r,fwallKK);
+        engKK = lj126(region->d_contact[m].r,fwallKK);
       else if (style == LJ1043)
-        engKK = lj1043(region->contact[m].r,fwallKK);
+        engKK = lj1043(region->d_contact[m].r,fwallKK);
       else if (style == MORSE)
-        engKK = morse(region->contact[m].r,fwallKK);
+        engKK = morse(region->d_contact[m].r,fwallKK);
       else if (style == COLLOID)
-        engKK = colloid(region->contact[m].r,d_radius(i),fwallKK);
+        engKK = colloid(region->d_contact[m].r,d_radius(i),fwallKK);
       else
-        engKK = harmonic(region->contact[m].r,fwallKK);
+        engKK = harmonic(region->d_contact[m].r,fwallKK);
 
-      double delx = region->contact[m].delx;
-      double dely = region->contact[m].dely;
-      double delz = region->contact[m].delz;
+      double delx = region->d_contact[m].delx;
+      double dely = region->d_contact[m].dely;
+      double delz = region->d_contact[m].delz;
       double fx = fwall * delx * rinv;
       double fy = fwall * dely * rinv;
       double fz = fwall * delz * rinv;

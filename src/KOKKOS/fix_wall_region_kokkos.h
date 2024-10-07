@@ -55,9 +55,6 @@ class FixWallRegionKokkos : public FixWallRegion {
   DAT::tdual_virial_array k_vatom;
   typename AT::t_virial_array d_vatom;
 
-  typename AT::tdual_ffloat_1d k_ewall;
-  typename AT::t_ffloat_1d d_ewall;
-
   KOKKOS_INLINE_FUNCTION
   double lj93(double, double&) const;
 

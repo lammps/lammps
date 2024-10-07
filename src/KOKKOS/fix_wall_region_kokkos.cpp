@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mitch Murphy (alphataubio at gmail.com)
+   Contributing author: Mitch Murphy (alphataubio at gmail)
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_region_kokkos.h"
@@ -57,8 +57,8 @@ FixWallRegionKokkos<DeviceType>::FixWallRegionKokkos(LAMMPS *lmp, int narg, char
   datamask_read = X_MASK | V_MASK | MASK_MASK;
   datamask_modify = F_MASK;
 
-  memoryKK->create_kokkos(k_ewall,4,"wall_region:ewall");
-  d_ewall = k_ewall.template view<DeviceType>();
+  //memoryKK->create_kokkos(k_ewall,4,"wall_region:ewall");
+  //d_ewall = k_ewall.template view<DeviceType>();
 }
 
 template<class DeviceType>
@@ -117,7 +117,6 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
   // eflag is used to track whether wall energies have been communicated.
 
   eflag = 0;
-  d_ewall(0)=d_ewall(1)=d_ewall(2)=d_ewall(3)=0.0;
 
   double result[10];
 
@@ -126,7 +125,7 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
   Kokkos::parallel_reduce(nlocal,functor,result);
   copymode = 0;
 
-  for( int i=0 ; i<4 ; i++ ) Kokkos::atomic_add(&(d_ewall[i]),result[i]);
+  for( int i=0 ; i<4 ; i++ ) ewall[i] = result[i];
 
   if (vflag_global) {
     virial[0] += result[4];

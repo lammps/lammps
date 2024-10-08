@@ -659,6 +659,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             msg = f"     {num_abs_failed} abs diff checks failed."
             print(msg)
             logger.info(msg)
+            for out in failed_abs_output:
+                logger.info(f"        - {out}")
+
             if verbose == True:
                 for out in failed_abs_output:
                     print(f"        - {out}")
@@ -667,6 +670,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             msg = f"     {num_rel_failed} rel diff checks failed."
             print(msg)
             logger.info(msg)
+            for out in failed_rel_output:
+                logger.info(f"        - {out}")
+            
             if verbose == True:
                 for out in failed_rel_output:
                     print(f"        - {out}")
@@ -675,11 +681,15 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             msg = f"     all {num_checks} checks passed."
             print(msg)
             logger.info(msg)
+
+            result.status = f" 'status': 'passed', 'abs_diff_failed': '{num_abs_failed}', 'rel_diff_failed': '{num_rel_failed}' "
+
             num_passed = num_passed + 1
         else:
+            result.status = f" 'status': 'failed', 'abs_diff_failed': '{num_abs_failed}', 'rel_diff_failed': '{num_rel_failed}' "
             num_error = num_error + 1
 
-        result.status = f" 'abs_diff_failed': '{num_abs_failed}', 'rel_diff_failed': '{num_rel_failed}' "
+        
         results.append(result)
 
         # check if memleak detects from valgrind run (need to replace "mpirun" -> valgrind --leak-check=yes mpirun")
@@ -1556,12 +1566,10 @@ if __name__ == "__main__":
         for result in all_results:
             #print(f"{result.name}: {result.status}")
             case = TestCase(name=result.name, classname=result.name)
-            if result.status == "failed":
-                case.add_failure_info(message="Actual values did not match expected ones.")
-            if result.status == "skipped":
+            if "passed" not in result.status:
+                case.add_failure_info(message=result.status)
+            if "skipped" in result.status:
                 case.add_skipped_info(message="Test was skipped.")
-            if result.status == "error":
-                case.add_skipped_info(message="Test run had errors.")
             test_cases.append(case)
 
         current_timestamp = datetime.datetime.now()

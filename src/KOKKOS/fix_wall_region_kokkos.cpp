@@ -24,6 +24,8 @@
 #include "kokkos_base.h"
 #include "memory_kokkos.h"
 #include "region.h"
+#include "region_block_kokkos.h"
+#include "region_sphere_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -161,32 +163,43 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(int i, value_type result) co
     else
       tooclose = 0.0;
 
-    int n = region->surface(d_x(i,0), d_x(i,1), d_x(i,2), cutoff);
+    int n;
+
+    if(RegBlockKokkos<DeviceType> *regionKK = dynamic_cast<RegBlockKokkos<DeviceType>*>(region))
+      n = regionKK->surface_kokkos(d_x(i,0), d_x(i,1), d_x(i,2), cutoff);
+    else if (RegSphereKokkos<DeviceType> *regionKK = dynamic_cast<RegSphereKokkos<DeviceType>*>(region))
+      n = regionKK->surface_kokkos(d_x(i,0), d_x(i,1), d_x(i,2), cutoff);
 
     for ( int m = 0; m < n; m++) {
-      if (region->d_contact[m].r <= tooclose)
+
+      double r, delx, dely, delz;
+
+      if(RegBlockKokkos<DeviceType> *regionKK = dynamic_cast<RegBlockKokkos<DeviceType>*>(region)) {
+        r = regionKK->d_contact[m].r;
+        delx = regionKK->d_contact[m].delx;
+        dely = regionKK->d_contact[m].dely;
+        delz = regionKK->d_contact[m].delz;
+      } else if (RegSphereKokkos<DeviceType> *regionKK = dynamic_cast<RegSphereKokkos<DeviceType>*>(region)){
+        r = regionKK->d_contact[m].r;
+        delx = regionKK->d_contact[m].delx;
+        dely = regionKK->d_contact[m].dely;
+        delz = regionKK->d_contact[m].delz;
+      }
+
+      if (r <= tooclose)
         Kokkos::abort("Particle outside surface of region used in fix wall/region");
       else
-        rinv = 1.0 / region->d_contact[m].r;
+        rinv = 1.0 / r;
 
       double fwallKK, engKK;
 
-      if (style == LJ93)
-        engKK = lj93(region->d_contact[m].r,fwallKK);
-      else if (style == LJ126)
-        engKK = lj126(region->d_contact[m].r,fwallKK);
-      else if (style == LJ1043)
-        engKK = lj1043(region->d_contact[m].r,fwallKK);
-      else if (style == MORSE)
-        engKK = morse(region->d_contact[m].r,fwallKK);
-      else if (style == COLLOID)
-        engKK = colloid(region->d_contact[m].r,d_radius(i),fwallKK);
-      else
-        engKK = harmonic(region->d_contact[m].r,fwallKK);
+      if (style == LJ93) engKK = lj93(r,fwallKK);
+      else if (style == LJ126) engKK = lj126(r,fwallKK);
+      else if (style == LJ1043) engKK = lj1043(r,fwallKK);
+      else if (style == MORSE) engKK = morse(r,fwallKK);
+      else if (style == COLLOID) engKK = colloid(r,d_radius(i),fwallKK);
+      else engKK = harmonic(r,fwallKK);
 
-      double delx = region->d_contact[m].delx;
-      double dely = region->d_contact[m].dely;
-      double delz = region->d_contact[m].delz;
       double fx = fwall * delx * rinv;
       double fy = fwall * dely * rinv;
       double fz = fwall * delz * rinv;

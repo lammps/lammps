@@ -417,7 +417,7 @@ void GranularModel::calculate_forces()
   if (contact_type != WALL){
     scale3(1.0, nhalf, nxuse);
   } else {
-    scale3(1.0, nx, nxuse); 
+    scale3(1.0, nx, nxuse);
   }
 
   // normal component

@@ -75,13 +75,13 @@ int RegSphereKokkos<DeviceType>::surface_kokkos(double x, double y, double z, do
 
   if (!openflag) {
     if (interior)
-      ncontact = surface_interior(xnear, cutoff);
+      ncontact = surface_interior_kokkos(xnear, cutoff);
     else
-      ncontact = surface_exterior(xnear, cutoff);
+      ncontact = surface_exterior_kokkos(xnear, cutoff);
   } else {
     // one of surface_int/ext() will return 0
     // so no need to worry about offset of contact indices
-    ncontact = surface_exterior(xnear, cutoff) + surface_interior(xnear, cutoff);
+    ncontact = surface_exterior_kokkos(xnear, cutoff) + surface_interior_kokkos(xnear, cutoff);
   }
 
   if (rotateflag && ncontact) {

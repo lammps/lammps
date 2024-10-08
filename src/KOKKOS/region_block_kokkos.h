@@ -71,9 +71,9 @@ class RegBlockKokkos : public RegBlock, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void add_contact(int, double *, double, double, double);
   KOKKOS_INLINE_FUNCTION
-  int surface_interior(double *, double);
+  int surface_interior_kokkos(double *, double);
   KOKKOS_INLINE_FUNCTION
-  int surface_exterior(double *, double);
+  int surface_exterior_kokkos(double *, double);
 
 };
 

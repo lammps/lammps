@@ -70,13 +70,13 @@ int RegBlockKokkos<DeviceType>::surface_kokkos(double x, double y, double z, dou
 
   if (!openflag) {
     if (interior)
-      ncontact = surface_interior(xnear, cutoff);
+      ncontact = surface_interior_kokkos(xnear, cutoff);
     else
-      ncontact = surface_exterior(xnear, cutoff);
+      ncontact = surface_exterior_kokkos(xnear, cutoff);
   } else {
     // one of surface_int/ext() will return 0
     // so no need to worry about offset of contact indices
-    ncontact = surface_exterior(xnear, cutoff) + surface_interior(xnear, cutoff);
+    ncontact = surface_exterior_kokkos(xnear, cutoff) + surface_interior_kokkos(xnear, cutoff);
   }
 
   if (rotateflag && ncontact) {
@@ -103,7 +103,7 @@ int RegBlockKokkos<DeviceType>::surface_kokkos(double x, double y, double z, dou
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-int RegBlockKokkos<DeviceType>::surface_interior(double *x, double cutoff)
+int RegBlockKokkos<DeviceType>::surface_interior_kokkos(double *x, double cutoff)
 {
   double delta;
 
@@ -183,7 +183,7 @@ int RegBlockKokkos<DeviceType>::surface_interior(double *x, double cutoff)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-int RegBlockKokkos<DeviceType>::surface_exterior(double *x, double cutoff)
+int RegBlockKokkos<DeviceType>::surface_exterior_kokkos(double *x, double cutoff)
 {
   double xp, yp, zp;
   double xc, yc, zc, dist, mindist;

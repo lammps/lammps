@@ -99,7 +99,6 @@ void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   shift[2] = zflag ? (ztarget - xcm[2]) : 0.0;
   distance = sqrt(shift[0]*shift[0] + shift[1]*shift[1] + shift[2]*shift[2]);
 
-
   auto d_x = atomKK->k_x.template view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
   auto l_group2bit = group2bit;
@@ -119,7 +118,6 @@ void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
     });
 
   copymode = 0;
-
   atomKK->modified(execution_space,datamask_modify);
 }
 

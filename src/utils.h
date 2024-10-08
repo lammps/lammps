@@ -21,6 +21,7 @@
 
 #include <mpi.h>
 
+#include <string>
 #include <vector>    // IWYU pragma: export
 
 namespace LAMMPS_NS {

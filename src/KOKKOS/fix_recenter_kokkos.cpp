@@ -88,8 +88,8 @@ void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 
   // current COM
 
-  double xcm[3];
   if (group->dynamic[igroup]) masstotal = groupKK->mass(igroup);
+  double xcm[3];
   groupKK->xcm(igroup,masstotal,xcm);
 
   // shift coords by difference between actual COM and requested COM

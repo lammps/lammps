@@ -39,13 +39,12 @@ class RegSphereKokkos : public RegSphere, public KokkosBase {
 
   RegSphereKokkos(class LAMMPS *, int, char **);
   ~RegSphereKokkos() override;
-
   void match_all_kokkos(int, DAT::tdual_int_1d) override;
 
-  //KOKKOS_INLINE_FUNCTION
-  //void operator()(TagRegBlockMatchAll, const int&) const;
+  KOKKOS_INLINE_FUNCTION
+  int surface_kokkos(double, double, double, double);
 
-  Kokkos::View<Contact[1], DeviceType> d_contact;
+  Kokkos::View<Contact*, DeviceType> d_contact;
 
  private:
 
@@ -59,9 +58,7 @@ class RegSphereKokkos : public RegSphere, public KokkosBase {
   void rotate(double &, double &, double &, double) const;
 
   KOKKOS_INLINE_FUNCTION
-  void add_contact(int, double *, double, double, double) override;
-  KOKKOS_INLINE_FUNCTION
-  int surface(double, double, double, double) override;
+  void add_contact(int, double *, double, double, double);
   KOKKOS_INLINE_FUNCTION
   int surface_interior(double *, double) override;
   KOKKOS_INLINE_FUNCTION

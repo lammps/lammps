@@ -47,7 +47,10 @@ class RegBlockKokkos : public RegBlock, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagRegBlockMatchAll, const int&) const;
 
-  Kokkos::View<Contact[6], DeviceType> d_contact;
+  KOKKOS_INLINE_FUNCTION
+  int surface_kokkos(double, double, double, double);
+
+  Kokkos::View<Contact*, DeviceType> d_contact;
 
  private:
   int groupbit;
@@ -66,9 +69,7 @@ class RegBlockKokkos : public RegBlock, public KokkosBase {
   void rotate(double &, double &, double &, double) const;
 
   KOKKOS_INLINE_FUNCTION
-  void add_contact(int, double *, double, double, double) override;
-  KOKKOS_INLINE_FUNCTION
-  int surface(double, double, double, double) override;
+  void add_contact(int, double *, double, double, double);
   KOKKOS_INLINE_FUNCTION
   int surface_interior(double *, double) override;
   KOKKOS_INLINE_FUNCTION

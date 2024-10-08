@@ -53,7 +53,7 @@ RegBlockKokkos<DeviceType>::~RegBlockKokkos()
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-int RegBlockKokkos<DeviceType>::surface(double x, double y, double z, double cutoff)
+int RegBlockKokkos<DeviceType>::surface_kokkos(double x, double y, double z, double cutoff)
 {
   int ncontact;
   double xs, ys, zs;

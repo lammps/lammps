@@ -58,7 +58,7 @@ RegSphereKokkos<DeviceType>::~RegSphereKokkos()
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-int RegSphereKokkos<DeviceType>::surface(double x, double y, double z, double cutoff)
+int RegSphereKokkos<DeviceType>::surface_kokkos(double x, double y, double z, double cutoff)
 {
   int ncontact;
   double xs, ys, zs;
@@ -168,7 +168,7 @@ int RegSphereKokkos<DeviceType>::surface_exterior(double *x, double cutoff)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void RegBlockKokkos<DeviceType>::add_contact(int n, double *x, double xp, double yp, double zp)
+void RegSphereKokkos<DeviceType>::add_contact(int n, double *x, double xp, double yp, double zp)
 {
   double delx = x[0] - xp;
   double dely = x[1] - yp;

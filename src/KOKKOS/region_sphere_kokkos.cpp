@@ -108,7 +108,7 @@ int RegSphereKokkos<DeviceType>::surface_kokkos(double x, double y, double z, do
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-int RegSphereKokkos<DeviceType>::surface_interior(double *x, double cutoff)
+int RegSphereKokkos<DeviceType>::surface_interior_kokkos(double *x, double cutoff)
 {
   double delx = x[0] - xc;
   double dely = x[1] - yc;
@@ -138,7 +138,7 @@ int RegSphereKokkos<DeviceType>::surface_interior(double *x, double cutoff)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-int RegSphereKokkos<DeviceType>::surface_exterior(double *x, double cutoff)
+int RegSphereKokkos<DeviceType>::surface_exterior_kokkos(double *x, double cutoff)
 {
   double delx = x[0] - xc;
   double dely = x[1] - yc;

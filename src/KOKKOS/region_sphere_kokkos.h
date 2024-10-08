@@ -60,9 +60,9 @@ class RegSphereKokkos : public RegSphere, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void add_contact(int, double *, double, double, double);
   KOKKOS_INLINE_FUNCTION
-  int surface_interior(double *, double) override;
+  int surface_interior(double *, double);
   KOKKOS_INLINE_FUNCTION
-  int surface_exterior(double *, double) override;
+  int surface_exterior(double *, double);
 
 };
 

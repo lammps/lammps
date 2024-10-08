@@ -75,12 +75,14 @@ jobs:
                --lmp-bin=build/lmp \
                --config-file=tools/regression-tests/config_kokkos_openmp.yaml \
                --example-folders="examples/colloid;examples/melt;examples/micelle;examples/threebody" \
-               --output-file=output_kokkos.xml --progress-file=progress_kokkos.yaml --log-file=run_kokkos.log \
+               --output-file=output.xml --progress-file=progress.yaml --log-file=run.log \
                --verbose
+
+        tar -cvf kokkos-regression-test.tar run.log progress.yaml output.xml
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: kokkos-regression-test-artifact
-        path: *_kokkos.*
+        path: kokkos-regression-test.tar
 

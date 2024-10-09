@@ -51,7 +51,7 @@ class RegSphereKokkos : public RegSphere, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   int k_inside(double, double, double) const;
   KOKKOS_INLINE_FUNCTION
-  int match(double, double, double) const;
+  int match_kokkos(double, double, double) const;
   KOKKOS_INLINE_FUNCTION
   void forward_transform(double &, double &, double &) const;
   KOKKOS_INLINE_FUNCTION

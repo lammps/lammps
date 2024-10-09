@@ -218,7 +218,7 @@ void RegSphereKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_i
       double x_tmp = d_x(i,0);
       double y_tmp = d_x(i,1);
       double z_tmp = d_x(i,2);
-      d_match[i] = match(x_tmp,y_tmp,z_tmp);
+      d_match[i] = match_kokkos(x_tmp,y_tmp,z_tmp);
     }});
 
   copymode = 0;
@@ -240,7 +240,7 @@ void RegSphereKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_i
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-int RegSphereKokkos<DeviceType>::match(double x, double y, double z) const
+int RegSphereKokkos<DeviceType>::match_kokkos(double x, double y, double z) const
 {
   if (dynamic) inverse_transform(x,y,z);
   if (openflag) return 1;

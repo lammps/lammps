@@ -300,7 +300,7 @@ void RegBlockKokkos<DeviceType>::operator()(TagRegBlockMatchAll, const int &i) c
     double x_tmp = x(i,0);
     double y_tmp = x(i,1);
     double z_tmp = x(i,2);
-    d_match[i] = match(x_tmp,y_tmp,z_tmp);
+    d_match[i] = match_kokkos(x_tmp,y_tmp,z_tmp);
   }
 }
 
@@ -318,7 +318,7 @@ void RegBlockKokkos<DeviceType>::operator()(TagRegBlockMatchAll, const int &i) c
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-int RegBlockKokkos<DeviceType>::match(double x, double y, double z) const
+int RegBlockKokkos<DeviceType>::match_kokkos(double x, double y, double z) const
 {
   if (dynamic) inverse_transform(x,y,z);
   if (openflag) return 1;

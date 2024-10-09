@@ -16,10 +16,11 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "math_extra.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
+using namespace MathSpecialKokkos;
 
 /* ---------------------------------------------------------------------- */
 
@@ -419,9 +420,9 @@ void RegBlockKokkos<DeviceType>::point_on_line_segment(double *a, double *b, dou
 {
   double ba[3], ca[3];
 
-  MathExtra::sub3(b, a, ba);
-  MathExtra::sub3(c, a, ca);
-  double t = MathExtra::dot3(ca, ba) / MathExtra::dot3(ba, ba);
+  sub3(b, a, ba);
+  sub3(c, a, ca);
+  double t = dot3(ca, ba) / dot3(ba, ba);
   if (t <= 0.0) {
     d[0] = a[0];
     d[1] = a[1];

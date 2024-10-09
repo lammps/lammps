@@ -16,6 +16,7 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "math_extra.h"
 #include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
@@ -402,6 +403,40 @@ void RegBlockKokkos<DeviceType>::rotate(double &x, double &y, double &z, double 
   y = point[1] + c[1] + disp[1];
   z = point[2] + c[2] + disp[2];
 }
+
+/* ----------------------------------------------------------------------
+   find nearest point to C on line segment A,B and return it as D
+   project (C-A) onto (B-A)
+   t = length of that projection, normalized by length of (B-A)
+   t <= 0, C is closest to A
+   t >= 1, C is closest to B
+   else closest point is between A and B
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void RegBlockKokkos<DeviceType>::point_on_line_segment(double *a, double *b, double *c, double *d)
+{
+  double ba[3], ca[3];
+
+  MathExtra::sub3(b, a, ba);
+  MathExtra::sub3(c, a, ca);
+  double t = MathExtra::dot3(ca, ba) / MathExtra::dot3(ba, ba);
+  if (t <= 0.0) {
+    d[0] = a[0];
+    d[1] = a[1];
+    d[2] = a[2];
+  } else if (t >= 1.0) {
+    d[0] = b[0];
+    d[1] = b[1];
+    d[2] = b[2];
+  } else {
+    d[0] = a[0] + t * ba[0];
+    d[1] = a[1] + t * ba[1];
+    d[2] = a[2] + t * ba[2];
+  }
+}
+
 
 /*------------------------------------------------------------------------
   return distance to closest point on surface I of block region

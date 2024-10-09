@@ -24,10 +24,15 @@ FixStyle(wall/region/kk/host,FixWallRegionKokkos<LMPHostType>);
 #define LMP_FIX_WALL_REGION_KOKKOS_H
 
 #include "fix_wall_region.h"
+
 #include "kokkos_type.h"
+#include "region_block_kokkos.h"
+#include "region_sphere_kokkos.h"
 
 namespace LAMMPS_NS {
 
+//template<class T>
+//struct TagFixWallRegionKokkos{};
 
 template <class DeviceType>
 class FixWallRegionKokkos : public FixWallRegion {
@@ -40,8 +45,15 @@ class FixWallRegionKokkos : public FixWallRegion {
   ~FixWallRegionKokkos() override;
   void post_force(int) override;
 
+  template<class T>
   KOKKOS_INLINE_FUNCTION
-  void wall_particle(int, value_type) const;
+  void wall_particle(T, const int, value_type) const;
+
+  //template<class T>
+  //KOKKOS_INLINE_FUNCTION
+  //void operator()(TagFixWallRegionKokkos<T>(const int&, double&, double&, double&, double&) const;
+
+  //regionKK
 
  private:
 
@@ -78,16 +90,16 @@ class FixWallRegionKokkos : public FixWallRegion {
 
 };
 
-
-template <class DeviceType>
+template <class DeviceType, class T>
 struct FixWallRegionKokkosFunctor {
   typedef DeviceType device_type;
   typedef double value_type[];
   const int value_count;
   FixWallRegionKokkos<DeviceType> c;
+  T *regionKK;
 
-  FixWallRegionKokkosFunctor(FixWallRegionKokkos<DeviceType>* c_ptr):
-    value_count(10), c(*c_ptr) {}
+  FixWallRegionKokkosFunctor(FixWallRegionKokkos<DeviceType>* c_ptr, T *regionKK):
+    value_count(10), c(*c_ptr), regionKK(regionKK) {}
 
   KOKKOS_INLINE_FUNCTION
   void init(value_type result) const {
@@ -96,7 +108,7 @@ struct FixWallRegionKokkosFunctor {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i, value_type result) const {
-    c.wall_particle(i,result);
+    c.wall_particle(regionKK,i,result);
   }
 
 };

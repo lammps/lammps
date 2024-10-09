@@ -114,12 +114,21 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
   // eflag is used to track whether wall energies have been communicated.
 
   eflag = 0;
-
   double result[10];
-
   copymode = 1;
-  FixWallRegionKokkosFunctor<DeviceType> functor(this);
-  Kokkos::parallel_reduce(nlocal,functor,result);
+
+  if(auto *regionKK = dynamic_cast<RegBlockKokkos<DeviceType>*>(region)) {
+
+    FixWallRegionKokkosFunctor<DeviceType,class RegBlockKokkos<DeviceType>> functor(this,regionKK);
+    Kokkos::parallel_reduce(nlocal,functor,result);
+
+  } else if (auto *regionKK = dynamic_cast<RegSphereKokkos<DeviceType>*>(region)){
+
+    FixWallRegionKokkosFunctor<DeviceType,class RegSphereKokkos<DeviceType>> functor(this,regionKK);
+    Kokkos::parallel_reduce(nlocal,functor,result);
+
+  }
+
   copymode = 0;
 
   for( int i=0 ; i<4 ; i++ ) ewall[i] = result[i];
@@ -139,7 +148,6 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
-
 }
 
 
@@ -150,9 +158,10 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
    error if any particle is on or behind wall
 ------------------------------------------------------------------------- */
 
-template <class DeviceType>
+template<class DeviceType>
+template<class T>
 KOKKOS_INLINE_FUNCTION
-void FixWallRegionKokkos<DeviceType>::wall_particle(int i, value_type result) const {
+void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, value_type result) const {
   if (d_mask(i) & groupbit) {
     if (!d_match[i]) Kokkos::abort("Particle outside surface of region used in fix wall/region");
 
@@ -163,28 +172,14 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(int i, value_type result) co
     else
       tooclose = 0.0;
 
-    int n;
-
-    if(RegBlockKokkos<DeviceType> *regionKK = dynamic_cast<RegBlockKokkos<DeviceType>*>(region))
-      n = regionKK->surface_kokkos(d_x(i,0), d_x(i,1), d_x(i,2), cutoff);
-    else if (RegSphereKokkos<DeviceType> *regionKK = dynamic_cast<RegSphereKokkos<DeviceType>*>(region))
-      n = regionKK->surface_kokkos(d_x(i,0), d_x(i,1), d_x(i,2), cutoff);
+    int n = regionKK->surface_kokkos(d_x(i,0), d_x(i,1), d_x(i,2), cutoff);
 
     for ( int m = 0; m < n; m++) {
 
-      double r, delx, dely, delz;
-
-      if(RegBlockKokkos<DeviceType> *regionKK = dynamic_cast<RegBlockKokkos<DeviceType>*>(region)) {
-        r = regionKK->d_contact[m].r;
-        delx = regionKK->d_contact[m].delx;
-        dely = regionKK->d_contact[m].dely;
-        delz = regionKK->d_contact[m].delz;
-      } else if (RegSphereKokkos<DeviceType> *regionKK = dynamic_cast<RegSphereKokkos<DeviceType>*>(region)){
-        r = regionKK->d_contact[m].r;
-        delx = regionKK->d_contact[m].delx;
-        dely = regionKK->d_contact[m].dely;
-        delz = regionKK->d_contact[m].delz;
-      }
+      double r = regionKK->d_contact[m].r;
+      double delx = regionKK->d_contact[m].delx;
+      double dely = regionKK->d_contact[m].dely;
+      double delz = regionKK->d_contact[m].delz;
 
       if (r <= tooclose)
         Kokkos::abort("Particle outside surface of region used in fix wall/region");
@@ -200,16 +195,16 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(int i, value_type result) co
       else if (style == COLLOID) engKK = colloid(r,d_radius(i),fwallKK);
       else engKK = harmonic(r,fwallKK);
 
-      double fx = fwall * delx * rinv;
-      double fy = fwall * dely * rinv;
-      double fz = fwall * delz * rinv;
+      double fx = fwallKK * delx * rinv;
+      double fy = fwallKK * dely * rinv;
+      double fz = fwallKK * delz * rinv;
       d_f(i,0) += fx;
       d_f(i,1) += fy;
       d_f(i,2) += fz;
       result[1] -= fx;
       result[2] -= fy;
       result[3] -= fz;
-      result[0] += eng;
+      result[0] += engKK;
       if (evflag) {
         double v[6] = {
           fx * delx,

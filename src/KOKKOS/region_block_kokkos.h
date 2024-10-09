@@ -79,6 +79,8 @@ class RegBlockKokkos : public RegBlock, public KokkosBase {
   void point_on_line_segment(double*, double*, double*, double*);
   KOKKOS_INLINE_FUNCTION
   double find_closest_point(int, double*, double&, double&, double&);
+  KOKKOS_INLINE_FUNCTION
+  double inside_face(double*, int);
 
 };
 

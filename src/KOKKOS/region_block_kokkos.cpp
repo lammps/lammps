@@ -437,6 +437,25 @@ void RegBlockKokkos<DeviceType>::point_on_line_segment(double *a, double *b, dou
   }
 }
 
+/*------------------------------------------------------------------------
+  determine if projected point is inside given face of the block
+--------------------------------------------------------------------------*/
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+double RegBlockKokkos<DeviceType>::inside_face(double *xproj, int iface)
+{
+  if (iface < 2) {
+    if (xproj[1] > 0 && (xproj[1] < yhi - ylo) && xproj[2] > 0 && (xproj[2] < zhi - zlo)) return 1;
+  } else if (iface < 4) {
+    if (xproj[0] > 0 && (xproj[0] < (xhi - xlo)) && xproj[2] > 0 && (xproj[2] < (zhi - zlo)))
+      return 1;
+  } else {
+    if (xproj[0] > 0 && xproj[0] < (xhi - xlo) && xproj[1] > 0 && xproj[1] < (yhi - ylo)) return 1;
+  }
+
+  return 0;
+}
 
 /*------------------------------------------------------------------------
   return distance to closest point on surface I of block region

@@ -41,7 +41,6 @@ class RegSphereKokkos : public RegSphere, public KokkosBase {
   ~RegSphereKokkos() override;
   void match_all_kokkos(int, DAT::tdual_int_1d) override;
 
-  KOKKOS_INLINE_FUNCTION
   int surface_kokkos(double, double, double, double);
 
   Kokkos::View<Contact*, DeviceType> d_contact;

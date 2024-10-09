@@ -43,7 +43,6 @@ RegSphereKokkos<DeviceType>::~RegSphereKokkos()
   memoryKK->destroy_kokkos(d_contact);
 }
 
-
 /* ----------------------------------------------------------------------
    generate list of contact points for interior or exterior regions
    if region has variable shape, invoke shape_update() once per timestep
@@ -57,7 +56,6 @@ RegSphereKokkos<DeviceType>::~RegSphereKokkos()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
 int RegSphereKokkos<DeviceType>::surface_kokkos(double x, double y, double z, double cutoff)
 {
   int ncontact;

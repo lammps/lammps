@@ -47,7 +47,6 @@ class RegBlockKokkos : public RegBlock, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagRegBlockMatchAll, const int&) const;
 
-  KOKKOS_INLINE_FUNCTION
   int surface_kokkos(double, double, double, double);
 
   Kokkos::View<Contact*, DeviceType> d_contact;

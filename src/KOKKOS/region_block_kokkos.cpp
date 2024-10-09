@@ -42,6 +42,27 @@ RegBlockKokkos<DeviceType>::~RegBlockKokkos()
 }
 
 /* ----------------------------------------------------------------------
+   determine if point x,y,z is a match to region volume
+   XOR computes 0 if 2 args are the same, 1 if different
+   note that k_inside() returns 1 for points on surface of region
+   thus point on surface of exterior region will not match
+   if region has variable shape, invoke shape_update() once per timestep
+   if region is dynamic, apply inverse transform to x,y,z
+     unmove first, then unrotate, so don't have to change rotation point
+   caller is responsible for wrapping this call with
+     modify->clearstep_compute() and modify->addstep_compute() if needed
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_FUNCTION
+int RegBlockKokkos<DeviceType>::match_kokkos(double x, double y, double z) const
+{
+  if (dynamic) inverse_transform(x,y,z);
+  if (openflag) return 1;
+  return !(k_inside(x,y,z) ^ interior);
+}
+
+/* ----------------------------------------------------------------------
    generate list of contact points for interior or exterior regions
    if region has variable shape, invoke shape_update() once per timestep
    if region is dynamic:
@@ -272,58 +293,6 @@ int RegBlockKokkos<DeviceType>::k_inside(double x, double y, double z) const
   if (x >= xlo && x <= xhi && y >= ylo && y <= yhi && z >= zlo && z <= zhi)
     return 1;
   return 0;
-}
-
-template<class DeviceType>
-void RegBlockKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_int_1d k_match_in)
-{
-  groupbit = groupbit_in;
-  d_match = k_match_in.template view<DeviceType>();
-
-  auto execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  atomKK->sync(execution_space, X_MASK | MASK_MASK);
-
-  x = atomKK->k_x.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
-  int nlocal = atom->nlocal;
-
-  copymode = 1;
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagRegBlockMatchAll>(0,nlocal),*this);
-  copymode = 0;
-
-  k_match_in.template modify<DeviceType>();
-}
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void RegBlockKokkos<DeviceType>::operator()(TagRegBlockMatchAll, const int &i) const {
-  if (mask[i] & groupbit) {
-    double x_tmp = x(i,0);
-    double y_tmp = x(i,1);
-    double z_tmp = x(i,2);
-    d_match[i] = match_kokkos(x_tmp,y_tmp,z_tmp);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   determine if point x,y,z is a match to region volume
-   XOR computes 0 if 2 args are the same, 1 if different
-   note that k_inside() returns 1 for points on surface of region
-   thus point on surface of exterior region will not match
-   if region has variable shape, invoke shape_update() once per timestep
-   if region is dynamic, apply inverse transform to x,y,z
-     unmove first, then unrotate, so don't have to change rotation point
-   caller is responsible for wrapping this call with
-     modify->clearstep_compute() and modify->addstep_compute() if needed
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-int RegBlockKokkos<DeviceType>::match_kokkos(double x, double y, double z) const
-{
-  if (dynamic) inverse_transform(x,y,z);
-  if (openflag) return 1;
-  return !(k_inside(x,y,z) ^ interior);
 }
 
 /* ----------------------------------------------------------------------

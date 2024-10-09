@@ -33,6 +33,10 @@ using namespace MathSpecialKokkos;
 
 enum { LJ93, LJ126, LJ1043, COLLOID, HARMONIC, MORSE };
 
+// make sure surface_kokkos() functions get resolved by linker
+//template <class DeviceType> class RegBlockKokkos<DeviceType>;
+//template <class DeviceType> class RegSphereKokkos<DeviceType>;
+
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
@@ -80,11 +84,6 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
   int nlocal = atomKK->nlocal;
 
   region->prematch();
-  DAT::tdual_int_1d k_match = DAT::tdual_int_1d("wall_region:k_match",nlocal);
-  KokkosBase* regionKKBase = dynamic_cast<KokkosBase*>(region);
-  regionKKBase->match_all_kokkos(groupbit,k_match);
-  k_match.template sync<DeviceType>();
-  d_match = k_match.template view<DeviceType>();
 
   // virial setup
 
@@ -112,7 +111,6 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
   }
 
   copymode = 0;
-
   for( int i=0 ; i<4 ; i++ ) ewall[i] = result[i];
 
   if (vflag_global) {
@@ -132,7 +130,6 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
   }
 }
 
-
 /* ----------------------------------------------------------------------
    interaction of all particles in group with a wall
    m = index of wall coeffs
@@ -145,7 +142,8 @@ template<class T>
 KOKKOS_INLINE_FUNCTION
 void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, value_type result) const {
   if (d_mask(i) & groupbit) {
-    if (!d_match[i]) Kokkos::abort("Particle outside surface of region used in fix wall/region");
+
+    if (!regionKK->match_kokkos(d_x(i,0), d_x(i,1), d_x(i,2))) Kokkos::abort("Particle outside surface of region used in fix wall/region");
 
     double rinv, tooclose;
 

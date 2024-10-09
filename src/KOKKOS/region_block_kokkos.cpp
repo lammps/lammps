@@ -465,7 +465,7 @@ double RegBlockKokkos<DeviceType>::inside_face(double *xproj, int iface)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double RegBlockKokkos<DeviceType>::find_closest_point(int i, double *x, double &xc, double &yc, double &zc) 
+double RegBlockKokkos<DeviceType>::find_closest_point(int i, double *x, double &xc, double &yc, double &zc)
 {
   double dot, d2, d2min;
   double xr[3], xproj[3], p[3];

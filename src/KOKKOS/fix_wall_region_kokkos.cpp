@@ -33,10 +33,6 @@ using namespace MathSpecialKokkos;
 
 enum { LJ93, LJ126, LJ1043, COLLOID, HARMONIC, MORSE };
 
-// make sure surface_kokkos() functions get resolved by linker
-//template <class DeviceType> class RegBlockKokkos<DeviceType>;
-//template <class DeviceType> class RegSphereKokkos<DeviceType>;
-
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>

@@ -22,30 +22,16 @@
 #include "atom_kokkos.h"
 #include "error.h"
 #include "kokkos_base.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "region.h"
 #include "region_block_kokkos.h"
 #include "region_sphere_kokkos.h"
 
 using namespace LAMMPS_NS;
+using namespace MathSpecialKokkos;
 
 enum { LJ93, LJ126, LJ1043, COLLOID, HARMONIC, MORSE };
-
-KOKKOS_INLINE_FUNCTION double powint(const double &x, const int n)
-{
-  double yy, ww;
-
-  if (n == 0) return 1.0;
-  if (x == 0.0) return 0.0;
-  int nn = (n > 0) ? n : -n;
-  ww = x;
-
-  for (yy = 1.0; nn != 0; nn >>= 1, ww *= ww)
-    if (nn & 1) yy *= ww;
-
-  return (n > 0) ? yy : 1.0 / yy;
-}
-
 
 /* ---------------------------------------------------------------------- */
 

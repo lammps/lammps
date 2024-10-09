@@ -31,9 +31,6 @@ FixStyle(wall/region/kk/host,FixWallRegionKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
-//template<class T>
-//struct TagFixWallRegionKokkos{};
-
 template <class DeviceType>
 class FixWallRegionKokkos : public FixWallRegion {
  public:
@@ -48,12 +45,6 @@ class FixWallRegionKokkos : public FixWallRegion {
   template<class T>
   KOKKOS_INLINE_FUNCTION
   void wall_particle(T, const int, value_type) const;
-
-  //template<class T>
-  //KOKKOS_INLINE_FUNCTION
-  //void operator()(TagFixWallRegionKokkos<T>(const int&, double&, double&, double&, double&) const;
-
-  //regionKK
 
  private:
 
@@ -110,7 +101,6 @@ struct FixWallRegionKokkosFunctor {
   void operator()(const int i, value_type result) const {
     c.wall_particle(regionKK,i,result);
   }
-
 };
 
 }

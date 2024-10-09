@@ -118,15 +118,11 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
   copymode = 1;
 
   if(auto *regionKK = dynamic_cast<RegBlockKokkos<DeviceType>*>(region)) {
-
     FixWallRegionKokkosFunctor<DeviceType,class RegBlockKokkos<DeviceType>> functor(this,regionKK);
     Kokkos::parallel_reduce(nlocal,functor,result);
-
   } else if (auto *regionKK = dynamic_cast<RegSphereKokkos<DeviceType>*>(region)){
-
     FixWallRegionKokkosFunctor<DeviceType,class RegSphereKokkos<DeviceType>> functor(this,regionKK);
     Kokkos::parallel_reduce(nlocal,functor,result);
-
   }
 
   copymode = 0;

@@ -24,12 +24,14 @@ RegionStyle(sphere/kk/host,RegSphereKokkos<LMPHostType>);
 #define LMP_REGION_SPHERE_KOKKOS_H
 
 #include "region_sphere.h"
+
+#include "kokkos_base.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
 template<class DeviceType>
-class RegSphereKokkos : public RegSphere {
+class RegSphereKokkos : public RegSphere, public KokkosBase  {
   friend class FixPour;
 
  public:
@@ -38,6 +40,8 @@ class RegSphereKokkos : public RegSphere {
 
   RegSphereKokkos(class LAMMPS *, int, char **);
   ~RegSphereKokkos() override;
+
+  void match_all_kokkos(int, DAT::tdual_int_1d) override;
 
   KOKKOS_INLINE_FUNCTION
   int match_kokkos(double x, double y, double z) const
@@ -90,7 +94,6 @@ class RegSphereKokkos : public RegSphere {
   Kokkos::View<Contact*, DeviceType> d_contact;
 
  private:
-
 
 KOKKOS_INLINE_FUNCTION
 int surface_interior_kokkos(double *x, double cutoff)

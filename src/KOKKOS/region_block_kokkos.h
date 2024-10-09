@@ -24,6 +24,8 @@ RegionStyle(block/kk/host,RegBlockKokkos<LMPHostType>);
 #define LMP_REGION_BLOCK_KOKKOS_H
 
 #include "region_block.h"
+
+#include "kokkos_base.h"
 #include "kokkos_type.h"
 #include "math_special_kokkos.h"
 
@@ -34,7 +36,7 @@ using namespace MathSpecialKokkos;
 struct TagRegBlockMatchAll{};
 
 template<class DeviceType>
-class RegBlockKokkos : public RegBlock {
+class RegBlockKokkos : public RegBlock, public KokkosBase  {
   friend class FixPour;
 
  public:
@@ -43,6 +45,11 @@ class RegBlockKokkos : public RegBlock {
 
   RegBlockKokkos(class LAMMPS *, int, char **);
   ~RegBlockKokkos() override;
+
+  void match_all_kokkos(int, DAT::tdual_int_1d) override;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRegBlockMatchAll, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   int match_kokkos(double x, double y, double z) const
@@ -99,29 +106,6 @@ class RegBlockKokkos : public RegBlock {
 
   typename AT::t_x_array_randomread x;
   typename AT::t_int_1d_randomread mask;
-
-/*
-  KOKKOS_INLINE_FUNCTION
-  int k_inside(double, double, double) const;
-  KOKKOS_INLINE_FUNCTION
-  void forward_transform(double&, double&, double&) const;
-  KOKKOS_INLINE_FUNCTION
-  void inverse_transform(double&, double&, double&) const;
-  KOKKOS_INLINE_FUNCTION
-  void rotate(double&, double&, double&, double) const;
-  KOKKOS_INLINE_FUNCTION
-  void add_contact(int, double*, double, double, double);
-  KOKKOS_INLINE_FUNCTION
-  int surface_interior_kokkos(double*, double);
-  KOKKOS_INLINE_FUNCTION
-  int surface_exterior_kokkos(double*, double);
-  KOKKOS_INLINE_FUNCTION
-  void point_on_line_segment(double*, double*, double*, double*);
-  KOKKOS_INLINE_FUNCTION
-  double find_closest_point(int, double*, double&, double&, double&);
-  KOKKOS_INLINE_FUNCTION
-  double inside_face(double*, int);
-*/
 
 KOKKOS_INLINE_FUNCTION
 int surface_interior_kokkos(double *x, double cutoff)

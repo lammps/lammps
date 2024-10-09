@@ -42,6 +42,38 @@ RegBlockKokkos<DeviceType>::~RegBlockKokkos()
 
 /* ---------------------------------------------------------------------- */
 
+template<class DeviceType>
+void RegBlockKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_int_1d k_match_in)
+{
+  groupbit = groupbit_in;
+  d_match = k_match_in.template view<DeviceType>();
+
+  auto execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  atomKK->sync(execution_space, X_MASK | MASK_MASK);
+  x = atomKK->k_x.view<DeviceType>();
+  mask = atomKK->k_mask.view<DeviceType>();
+  int nlocal = atom->nlocal;
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagRegBlockMatchAll>(0,nlocal),*this);
+  copymode = 0;
+  k_match_in.template modify<DeviceType>();
+}
+
+/* ---------------------------------------------------------------------- */
+
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void RegBlockKokkos<DeviceType>::operator()(TagRegBlockMatchAll, const int &i) const {
+  if (mask[i] & groupbit) {
+    double x_tmp = x(i,0);
+    double y_tmp = x(i,1);
+    double z_tmp = x(i,2);
+    d_match[i] = match_kokkos(x_tmp,y_tmp,z_tmp);
+  }
+}
+
 namespace LAMMPS_NS {
 template class RegBlockKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU

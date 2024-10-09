@@ -325,6 +325,23 @@ int RegBlockKokkos<DeviceType>::match(double x, double y, double z) const
 }
 
 /* ----------------------------------------------------------------------
+   transform a point x,y,z in region space to moved space
+   rotate first (around original P), then displace
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void RegBlockKokkos<DeviceType>::forward_transform(double &x, double &y, double &z) const
+{
+  if (rotateflag) rotate(x, y, z, theta);
+  if (moveflag) {
+    x += dx;
+    y += dy;
+    z += dz;
+  }
+}
+
+/* ----------------------------------------------------------------------
    transform a point x,y,z in moved space back to region space
    undisplace first, then unrotate (around original P)
 ------------------------------------------------------------------------- */
@@ -385,6 +402,85 @@ void RegBlockKokkos<DeviceType>::rotate(double &x, double &y, double &z, double 
   y = point[1] + c[1] + disp[1];
   z = point[2] + c[2] + disp[2];
 }
+
+/*------------------------------------------------------------------------
+  return distance to closest point on surface I of block region
+  store closest point in xc,yc,zc
+--------------------------------------------------------------------------*/
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+double RegBlockKokkos<DeviceType>::find_closest_point(int i, double *x, double &xc, double &yc, double &zc) 
+{
+  double dot, d2, d2min;
+  double xr[3], xproj[3], p[3];
+
+  xr[0] = x[0] - corners[i][0][0];
+  xr[1] = x[1] - corners[i][0][1];
+  xr[2] = x[2] - corners[i][0][2];
+  dot = face[i][0] * xr[0] + face[i][1] * xr[1] + face[i][2] * xr[2];
+  xproj[0] = xr[0] - dot * face[i][0];
+  xproj[1] = xr[1] - dot * face[i][1];
+  xproj[2] = xr[2] - dot * face[i][2];
+
+  d2min = MAXDOUBLEINT;
+
+  // check if point projects inside of face
+
+  if (inside_face(xproj, i)) {
+    d2 = d2min = dot * dot;
+    xc = xproj[0] + corners[i][0][0];
+    yc = xproj[1] + corners[i][0][1];
+    zc = xproj[2] + corners[i][0][2];
+
+    // check each edge
+
+  } else {
+    point_on_line_segment(corners[i][0], corners[i][1], x, p);
+    d2 = (p[0] - x[0]) * (p[0] - x[0]) + (p[1] - x[1]) * (p[1] - x[1]) +
+        (p[2] - x[2]) * (p[2] - x[2]);
+    if (d2 < d2min) {
+      d2min = d2;
+      xc = p[0];
+      yc = p[1];
+      zc = p[2];
+    }
+
+    point_on_line_segment(corners[i][1], corners[i][2], x, p);
+    d2 = (p[0] - x[0]) * (p[0] - x[0]) + (p[1] - x[1]) * (p[1] - x[1]) +
+        (p[2] - x[2]) * (p[2] - x[2]);
+    if (d2 < d2min) {
+      d2min = d2;
+      xc = p[0];
+      yc = p[1];
+      zc = p[2];
+    }
+
+    point_on_line_segment(corners[i][2], corners[i][3], x, p);
+    d2 = (p[0] - x[0]) * (p[0] - x[0]) + (p[1] - x[1]) * (p[1] - x[1]) +
+        (p[2] - x[2]) * (p[2] - x[2]);
+    if (d2 < d2min) {
+      d2min = d2;
+      xc = p[0];
+      yc = p[1];
+      zc = p[2];
+    }
+
+    point_on_line_segment(corners[i][3], corners[i][0], x, p);
+    d2 = (p[0] - x[0]) * (p[0] - x[0]) + (p[1] - x[1]) * (p[1] - x[1]) +
+        (p[2] - x[2]) * (p[2] - x[2]);
+    if (d2 < d2min) {
+      d2min = d2;
+      xc = p[0];
+      yc = p[1];
+      zc = p[2];
+    }
+  }
+
+  return d2min;
+}
+
+
 
 namespace LAMMPS_NS {
 template class RegBlockKokkos<LMPDeviceType>;

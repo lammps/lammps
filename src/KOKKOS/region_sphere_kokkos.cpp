@@ -248,6 +248,23 @@ int RegSphereKokkos<DeviceType>::match(double x, double y, double z) const
 }
 
 /* ----------------------------------------------------------------------
+   transform a point x,y,z in region space to moved space
+   rotate first (around original P), then displace
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void RegSphereKokkos<DeviceType>::forward_transform(double &x, double &y, double &z) const
+{
+  if (rotateflag) rotate(x, y, z, theta);
+  if (moveflag) {
+    x += dx;
+    y += dy;
+    z += dz;
+  }
+}
+
+/* ----------------------------------------------------------------------
    transform a point x,y,z in moved space back to region space
    undisplace first, then unrotate (around original P)
 ------------------------------------------------------------------------- */

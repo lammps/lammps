@@ -64,6 +64,8 @@ class RegBlockKokkos : public RegBlock, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   int match(double, double, double) const;
   KOKKOS_INLINE_FUNCTION
+  void forward_transform(double &, double &, double &) const;
+  KOKKOS_INLINE_FUNCTION
   void inverse_transform(double &, double &, double &) const;
   KOKKOS_INLINE_FUNCTION
   void rotate(double &, double &, double &, double) const;
@@ -74,6 +76,9 @@ class RegBlockKokkos : public RegBlock, public KokkosBase {
   int surface_interior_kokkos(double *, double);
   KOKKOS_INLINE_FUNCTION
   int surface_exterior_kokkos(double *, double);
+
+  KOKKOS_INLINE_FUNCTION
+  double find_closest_point(int, double*, double&, double&, double&);
 
 };
 

@@ -113,9 +113,11 @@ void MSMDielectric::compute(int eflag, int vflag)
   if (atom->nmax > nmax) {
     memory->destroy(part2grid);
     memory->destroy(efield);
+    memory->destroy(phi);
     nmax = atom->nmax;
     memory->create(part2grid,nmax,3,"msm:part2grid");
     memory->create(efield,nmax,3,"msm:efield");
+    memory->create(phi,nmax,"msm:phi");
   }
 
   // find grid points for all my particles

@@ -128,7 +128,8 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/atom_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/atom_map_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/atom_vec_kokkos.cpp
-                       ${KOKKOS_PKG_SOURCES_DIR}/comm_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/comm_brick_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/comm_brick_direct_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/comm_tiled_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/min_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/min_linesearch_kokkos.cpp

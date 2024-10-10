@@ -41,18 +41,12 @@ static constexpr double BIG = 1.0e20;
 
 /* ---------------------------------------------------------------------- */
 
-CommBrick::CommBrick(LAMMPS *lmp) :
-  Comm(lmp),
-  sendnum(nullptr), recvnum(nullptr), sendproc(nullptr), recvproc(nullptr),
-  size_forward_recv(nullptr), size_reverse_send(nullptr), size_reverse_recv(nullptr),
-  slablo(nullptr), slabhi(nullptr), multilo(nullptr), multihi(nullptr),
-  multioldlo(nullptr), multioldhi(nullptr), cutghostmulti(nullptr), cutghostmultiold(nullptr),
-  pbc_flag(nullptr), pbc(nullptr), firstrecv(nullptr), sendlist(nullptr),
-  localsendlist(nullptr), maxsendlist(nullptr), buf_send(nullptr), buf_recv(nullptr)
+CommBrick::CommBrick(LAMMPS *lmp) :Comm(lmp)
 {
   style = Comm::BRICK;
   layout = Comm::LAYOUT_UNIFORM;
   pbc_flag = nullptr;
+  init_pointers();
   init_buffers();
 }
 
@@ -80,6 +74,37 @@ CommBrick::~CommBrick()
   memory->destroy(buf_recv);
 }
 
+/* ----------------------------------------------------------------------
+   initialize comm pointers to nullptr
+------------------------------------------------------------------------- */
+
+void CommBrick::init_pointers()
+{
+  sendnum = nullptr;
+  recvnum = nullptr;
+  sendproc = nullptr;
+  recvproc = nullptr;
+  size_forward_recv = nullptr;
+  size_reverse_send = nullptr;
+  size_reverse_recv = nullptr;
+  slablo = nullptr;
+  slabhi = nullptr;
+  multilo = nullptr;
+  multihi = nullptr;
+  multioldlo = nullptr;
+  multioldhi = nullptr;
+  cutghostmulti = nullptr;
+  cutghostmultiold = nullptr;
+  pbc_flag = nullptr;
+  pbc = nullptr;
+  firstrecv = nullptr;
+  sendlist = nullptr;
+  localsendlist = nullptr;
+  maxsendlist = nullptr;
+  buf_send = nullptr;
+  buf_recv = nullptr;
+}
+
 /* ---------------------------------------------------------------------- */
 //IMPORTANT: we *MUST* pass "*oldcomm" to the Comm initializer here, as
 //           the code below *requires* that the (implicit) copy constructor
@@ -95,6 +120,7 @@ CommBrick::CommBrick(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
   style = Comm::BRICK;
   layout = oldcomm->layout;
   Comm::copy_arrays(oldcomm);
+  init_pointers();
   init_buffers();
 }
 
@@ -291,7 +317,8 @@ void CommBrick::setup()
   //   do not cross non-periodic boundaries, need[2] = 0 for 2d
   // sendneed[idim][0/1] = # of procs away I send atoms to
   //   0 = to left, 1 = to right
-  //   set equal to recvneed[idim][1/0] of neighbor proc
+  //   # of messages I send to left is # of messages proc to my left receives from right
+  //   so set sendneed[idim][0/1] to recvneed[idim][1/0] of my 2 neighbor procs
   // maxneed[idim] = max procs away any proc recvs atoms in either direction
   // layout = UNIFORM = uniform sized sub-domains:
   //   maxneed is directly computable from sub-domain size
@@ -962,15 +989,16 @@ void CommBrick::borders()
     }
   }
 
-  // For molecular systems we lose some bits for local atom indices due
-  // to encoding of special pairs in neighbor lists. Check for overflows.
+  // for molecular systems some bits are lost for local atom indices
+  //   due to encoding of special pairs in neighbor lists
+  // check for overflow
 
   if ((atom->molecular != Atom::ATOMIC)
       && ((atom->nlocal + atom->nghost) > NEIGHMASK))
     error->one(FLERR,"Per-processor number of atoms is too large for "
                "molecular neighbor lists");
 
-  // ensure send/recv buffers are long enough for all forward & reverse comm
+  // ensure send/recv buffers are large enough for all forward & reverse comm
 
   int max = MAX(maxforward*smax,maxreverse*rmax);
   if (max > maxsend) grow_send(max,0);
@@ -1510,6 +1538,7 @@ void CommBrick::grow_swap(int n)
 {
   free_swap();
   allocate_swap(n);
+
   if (mode == Comm::MULTI) {
     free_multi();
     allocate_multi(n);
@@ -1520,9 +1549,7 @@ void CommBrick::grow_swap(int n)
     allocate_multiold(n);
   }
 
-
-  sendlist = (int **)
-    memory->srealloc(sendlist,n*sizeof(int *),"comm:sendlist");
+  sendlist = (int **) memory->srealloc(sendlist,n*sizeof(int *),"comm:sendlist");
   memory->grow(maxsendlist,n,"comm:maxsendlist");
   for (int i = maxswap; i < n; i++) {
     maxsendlist[i] = BUFMIN;

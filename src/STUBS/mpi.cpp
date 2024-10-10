@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <climits>
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
@@ -40,7 +41,7 @@ typedef struct _mpi_double_int double_int;
 
 #define MAXEXTRA_DATATYPE 16
 
-int nextra_datatype;
+int nextra_datatype,attribute_val;
 MPI_Datatype *ptr_datatype[MAXEXTRA_DATATYPE];
 int index_datatype[MAXEXTRA_DATATYPE];
 int size_datatype[MAXEXTRA_DATATYPE];
@@ -705,6 +706,25 @@ int MPI_Alltoallv(void *sendbuf, int *sendcounts, int *sdispls, MPI_Datatype sen
   if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return 0;
   memcpy(recvbuf, sendbuf, n);
   return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int MPI_Comm_get_attr(MPI_Comm comm, int comm_keyval, void **attribute_val_ptr,
+                      int *flag)
+{
+  if (comm_keyval != MPI_TAG_UB) {
+    printf("MPI Stub WARNING: Unsupported keyword in MPI_Comm_get_attr\n");
+    *attribute_val_ptr = NULL;
+    *flag = 0;
+    return MPI_ERR_ARG;
+  }
+
+  attribute_val = INT_MAX;
+  *attribute_val_ptr = (void*) &attribute_val;
+
+  *flag = 1;
+  return MPI_SUCCESS;
 }
 
 /* ---------------------------------------------------------------------- */

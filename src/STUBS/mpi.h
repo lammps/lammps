@@ -57,6 +57,8 @@
 #define MPI_ANY_SOURCE -1
 #define MPI_STATUS_IGNORE NULL
 
+#define MPI_TAG_UB 0
+
 #define MPI_Comm int
 #define MPI_Request int
 #define MPI_Datatype int
@@ -163,6 +165,8 @@ int MPI_Alltoall(void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recv
 int MPI_Alltoallv(void *sendbuf, int *sendcounts, int *sdispls, MPI_Datatype sendtype,
                   void *recvbuf, int *recvcounts, int *rdispls, MPI_Datatype recvtype,
                   MPI_Comm comm);
+int MPI_Comm_get_attr(MPI_Comm comm, int comm_keyval, void **attribute_val,
+                      int *flag);
 /* ---------------------------------------------------------------------- */
 
 #endif

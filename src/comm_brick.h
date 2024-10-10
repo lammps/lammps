@@ -44,7 +44,7 @@ class CommBrick : public Comm {
   void forward_comm(class Dump *) override;                 // forward comm from a Dump
   void reverse_comm(class Dump *) override;                 // reverse comm from a Dump
 
-  void forward_comm_array(int, double **) override;            // forward comm of array
+  void forward_comm_array(int, double **) override;         // forward comm of array
   void *extract(const char *, int &) override;
   double memory_usage() override;
 
@@ -77,11 +77,13 @@ class CommBrick : public Comm {
   int maxsend, maxrecv;    // current size of send/recv buffer
   int smax, rmax;          // max size in atoms of single borders send/recv
 
-  // NOTE: init_buffers is called from a constructor and must not be made virtual
+  // NOTE: init_pointers and init_buffers are called from a constructor
+  //  and must not be made virtual
+
+  void init_pointers();
   void init_buffers();
 
-  int updown(int, int, int, double, int, double *);
-  // compare cutoff to procs
+  int updown(int, int, int, double, int, double *);   // compare cutoff to procs
   virtual void grow_send(int, int);       // reallocate send buffer
   virtual void grow_recv(int);            // free/allocate recv buffer
   virtual void grow_list(int, int);       // reallocate one sendlist

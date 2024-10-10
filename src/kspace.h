@@ -23,6 +23,39 @@ class KSpace : protected Pointers {
   friend class FixOMP;
 
  public:
+  enum {
+    REVERSE_RHO,
+    REVERSE_RHO_GEOM,
+    REVERSE_RHO_ARITH,
+    REVERSE_RHO_NONE,
+    REVERSE_RHO_GPU,
+    REVERSE_AD,
+    REVERSE_AD_PERATOM,
+    REVERSE_MU,
+    REVERSE_MU_PERATOM
+  };
+  enum {
+    FORWARD_RHO,
+    FORWARD_IK,
+    FORWARD_AD,
+    FORWARD_MU,
+    FORWARD_IK_PERATOM,
+    FORWARD_AD_PERATOM,
+    FORWARD_MU_PERATOM,
+    FORWARD_IK_GEOM,
+    FORWARD_AD_GEOM,
+    FORWARD_IK_PERATOM_GEOM,
+    FORWARD_AD_PERATOM_GEOM,
+    FORWARD_IK_ARITH,
+    FORWARD_AD_ARITH,
+    FORWARD_IK_PERATOM_ARITH,
+    FORWARD_AD_PERATOM_ARITH,
+    FORWARD_IK_NONE,
+    FORWARD_AD_NONE,
+    FORWARD_IK_PERATOM_NONE,
+    FORWARD_AD_PERATOM_NONE
+  };
+
   double energy;    // accumulated energies
   double energy_1, energy_6;
   double virial[6];          // accumulated virial: xx,yy,zz,xy,xz,yz

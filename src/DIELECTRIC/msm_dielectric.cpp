@@ -29,8 +29,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-enum{REVERSE_RHO,REVERSE_AD,REVERSE_AD_PERATOM};
-enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 MSMDielectric::MSMDielectric(LAMMPS *_lmp) : MSM(_lmp)

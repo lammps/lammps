@@ -39,9 +39,6 @@ using namespace MathConst;
 static constexpr int MAX_LEVELS = 10;
 static constexpr int OFFSET = 16384;
 
-enum { REVERSE_RHO, REVERSE_AD, REVERSE_AD_PERATOM };
-enum { FORWARD_RHO, FORWARD_AD, FORWARD_AD_PERATOM };
-
 /* ---------------------------------------------------------------------- */
 
 MSM::MSM(LAMMPS *lmp)

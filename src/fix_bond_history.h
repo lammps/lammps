@@ -62,7 +62,7 @@ class FixBondHistory : public Fix {
   // to enable quick look up
   std::map<std::pair<tagint, tagint>, std::vector<double>> cached_histories;
 
-  int *setflag;       // Set by BondBPM, which bond types are used
+  int *setflag;    // Set by BondBPM, which bond types are used
   double **bondstore;
   int stored_flag;
   int ndata;

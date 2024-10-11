@@ -31,7 +31,7 @@ class FixQEqSlater : public FixQEq {
   void init() override;
   void pre_force(int) override;
 
- private:
+ protected:
   void init_matvec();
   void sparse_matvec(sparse_matrix *, double *, double *) override;
   void compute_H();
@@ -40,6 +40,7 @@ class FixQEqSlater : public FixQEq {
   void extract_streitz();
 
   class PairCoulStreitz *streitz;
+  double alpha;
 };
 }    // namespace LAMMPS_NS
 #endif

@@ -1,8 +1,8 @@
-To run Baske's test, do
+To run this test, do
 
     lmp -in in.msmeam
 
-Then 
+Then: 
 
     diff dump.msmeam dump.msmeam.bu
 

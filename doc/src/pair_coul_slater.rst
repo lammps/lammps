@@ -77,6 +77,10 @@ The global decay length of the charge (:math:`\lambda`) specified in the pair_st
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

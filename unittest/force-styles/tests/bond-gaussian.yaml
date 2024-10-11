@@ -17,7 +17,10 @@ bond_coeff: ! |
   4 300.0 1 0.0100 0.098 2.45
   5 300.0 1 0.0100 0.098 2.85
 equilibrium: 5 1.45 1.37 1.61 2.45 2.85
-extract: ! ""
+extract: ! |
+  alpha 2
+  width 2
+  r0 2
 natoms: 29
 init_energy: 4638.6541482649545
 init_stress: ! |2-

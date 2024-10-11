@@ -323,7 +323,7 @@ If :doc:`bond_style hybrid <bond_hybrid>` is used, *bstyle* should be a
 sub-style name. The bond styles that currently work with fix adapt are:
 
 +-----------------------------------------------------+---------------------------+------------+
-| :doc:`class2 <bond_class2>`                         | r0                        | type bonds |
+| :doc:`class2 <bond_class2>`                         | k2,k3,k4,r0               | type bonds |
 +-----------------------------------------------------+---------------------------+------------+
 | :doc:`fene <bond_fene>`                             | k,r0                      | type bonds |
 +-----------------------------------------------------+---------------------------+------------+
@@ -343,9 +343,9 @@ sub-style name. The bond styles that currently work with fix adapt are:
 +-----------------------------------------------------+---------------------------+------------+
 | :doc:`mm3 <bond_mm3>`                               | k,r0                      | type bonds |
 +-----------------------------------------------------+---------------------------+------------+
-| :doc:`morse <bond_morse>`                           | r0                        | type bonds |
+| :doc:`morse <bond_morse>`                           | d0,alpha,r0               | type bonds |
 +-----------------------------------------------------+---------------------------+------------+
-| :doc:`nonlinear <bond_nonlinear>`                   | epsilon,r0                | type bonds |
+| :doc:`nonlinear <bond_nonlinear>`                   | lamda,epsilon,r0          | type bonds |
 +-----------------------------------------------------+---------------------------+------------+
 
 ----------
@@ -378,7 +378,11 @@ sub-style name. The angle styles that currently work with fix adapt are:
 +--------------------------------------------------------------------+-----------------+-------------+
 | :doc:`cosine <angle_cosine>`                                       | k               | type angles |
 +--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`cosine/delta <angle_cosine_delta>`                           | k               | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
 | :doc:`cosine/periodic <angle_cosine_periodic>`                     | k,b,n           | type angles |
++--------------------------------------------------------------------+-----------------+-------------+
+| :doc:`cosine/squared <angle_cosine_squared>`                       | k,theta0        | type angles |
 +--------------------------------------------------------------------+-----------------+-------------+
 | :doc:`cosine/squared/restricted <angle_cosine_squared_restricted>` | k,theta0        | type angles |
 +--------------------------------------------------------------------+-----------------+-------------+

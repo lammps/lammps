@@ -10,6 +10,33 @@ from argparse import ArgumentParser
 import subprocess
 import sys
 
+# in_style = fix, pair, compute, angle, bond, min
+def get_list(in_style, example_toplevel):
+    
+    with open(f"input-list-{in_style}-kk.txt", "w") as f:
+        # find all the pair styles with the kokkos suffix 
+        cmd_str = f"ls {example_toplevel}/../src/KOKKOS | grep -v npair | grep {in_style} | grep .cpp"
+        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+        kokkos_styles = p.stdout.split('\n')
+        style_names = []
+        for style in kokkos_styles:
+            if style != "":
+                # replace "{in_style}_[name]_kokkos.cpp" into "[name]"
+                style = style.replace(f"{in_style}_","")
+                style = style.replace("_kokkos.cpp","")
+                style = style.replace("_","/")
+                style_names.append(style)
+
+        for style in style_names:
+            cmd_str = f"grep -rl '{in_style}_style.*{style}' {example_toplevel}/*/in.* "
+            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+            input_list = p.stdout.split('\n')
+            input_list = ' '.join(input_list).split()
+            #print(f"There are {len(input_list)} input files that contains {in_style} {style}")
+            for input in input_list:
+                if input != "":
+                    f.write(f"{input}\n")
+
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--examples-top-level", dest="example_toplevel", default="", help="Examples top-level")

@@ -16,17 +16,16 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
-
     strategy:
       max-parallel: 4
       matrix:
         style: [ 'pair', 'fix', 'compute', 'misc' ]
-        
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        fetch-depth: 2
         show-progress: false
 
     - name: Install extra packages
@@ -43,8 +42,8 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ${{ env.CCACHE_DIR }}
-        key: linux-quick-ccache-${{ github.sha }}
-        restore-keys: linux-quick-ccache-
+        key: linux-kokkos-ccache-${{ github.sha }}
+        restore-keys: linux-kokkos-ccache-
 
     - name: Building LAMMPS via CMake
       shell: bash
@@ -56,7 +55,7 @@ jobs:
         python3 -m pip install numpy pyyaml junit_xml
         cmake -S cmake -B build \
               -C cmake/presets/gcc.cmake \
-              -C cmake/presets/basic.cmake \
+              -C cmake/presets/most.cmake \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
               -D BUILD_SHARED_LIBS=off \
@@ -67,6 +66,7 @@ jobs:
               -D Kokkos_ENABLE_CUDA=off  \
               -D PKG_COLLOID=on \
               -D PKG_GRANULAR=on \
+              -D PKG_PYTHON=on \
               -D BUILD_OMP=yes \
               -G Ninja
         cmake --build build
@@ -83,7 +83,8 @@ jobs:
                --config-file=tools/regression-tests/config_kokkos_openmp.yaml \
                --list-input=input-list-${{ matrix.style }}-kk.txt \
                --output-file=output-${{ matrix.style }}.xml \
-               --progress-file=progress-${{ matrix.style }}.yaml --log-file=run-${{ matrix.style }}.log \
+               --progress-file=progress-${{ matrix.style }}.yaml \
+               --log-file=run-${{ matrix.style }}.log \
                --verbose
 
         tar -cvf kokkos-regression-test-${{ matrix.style }}.tar run-${{ matrix.style }}.log progress-${{ matrix.style }}.yaml output-${{ matrix.style }}.xml
@@ -93,7 +94,7 @@ jobs:
       with:
         name: kokkos-regression-test-artifact-${{ matrix.style }}
         path: kokkos-regression-test-${{ matrix.style }}.tar
-      
+
   merge:
     runs-on: ubuntu-latest
     needs: build
@@ -102,5 +103,5 @@ jobs:
         uses: actions/upload-artifact/merge@v4
         with:
           name: merged-kokkos-regresssion-artifact
-          pattern: kokkos-regression-test-artifact-*        
+          pattern: kokkos-regression-test-artifact-*
 

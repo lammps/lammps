@@ -55,7 +55,7 @@ jobs:
         python3 -m pip install numpy pyyaml junit_xml
         cmake -S cmake -B build \
               -C cmake/presets/gcc.cmake \
-              -C cmake/presets/most.cmake \
+              -C cmake/presets/basic.cmake \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
               -D BUILD_SHARED_LIBS=off \
@@ -64,9 +64,15 @@ jobs:
               -D Kokkos_ARCH_ARMAVX=on \
               -D Kokkos_ENABLE_OPENMP=on \
               -D Kokkos_ENABLE_CUDA=off  \
+              -D PKG_BROWNIAN=on \
+              -D PKG_CLASS2=on \
               -D PKG_COLLOID=on \
+              -D PKG_DIPOLE=on \
+              -D PKG_DPD-BASIC=on \
               -D PKG_GRANULAR=on \
               -D PKG_PYTHON=on \
+              -D PKG_QEQ=on \
+              -D PKG_REAXFF=on \
               -D BUILD_OMP=yes \
               -G Ninja
         cmake --build build

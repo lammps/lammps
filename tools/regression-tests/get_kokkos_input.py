@@ -11,7 +11,7 @@ import subprocess
 import sys
 
 # in_style = fix, pair, compute, angle, bond, dihedral, improper, min
-def generate_list(in_style, example_toplevel, output_list):
+def generate_list(in_style, example_toplevel, filter_out, output_list):
     
     # find all the pair styles with the kokkos suffix 
     cmd_str = f"ls {example_toplevel}/../src/KOKKOS | grep {in_style} | grep .cpp"
@@ -40,21 +40,31 @@ def generate_list(in_style, example_toplevel, output_list):
         #print(f"There are {len(input_list)} input files that contains {in_style} {style}")
         for input in input_list:
             if input != "":
-                output_list.append(input)
+                skip = False
+                for filter in filter_out:
+                    if filter in input:
+                        skip = True
+                        break
+                if skip == True:
+                    continue
+                else:    
+                    output_list.append(input)
 
 
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--examples-top-level", dest="example_toplevel", default="", help="Examples top-level")
+    parser.add_argument("--filter-out", dest="filter_out", default="", help="Filter out input scripts that contain strings")
 
     args = parser.parse_args()
     example_toplevel = args.example_toplevel
+    filter_out = args.filter_out.split(";")
 
     # print the list of the input scripts that has each feature to a separate file
     features = [ 'pair', 'fix', 'compute' ]
     for feature in features:
         input_list = []
-        generate_list(feature, example_toplevel, input_list)
+        generate_list(feature, example_toplevel, filter_out, input_list)
         with open(f"input-list-{feature}-kk.txt", "w") as f:
             for input in input_list:
                 if input != "":
@@ -64,7 +74,7 @@ if __name__ == "__main__":
     features = [ 'angle', 'bond', 'dihedral', 'improper', 'min' ]
     input_list = []
     for feature in features:
-        generate_list(feature, example_toplevel, input_list)
+        generate_list(feature, example_toplevel, filter_out, input_list)
 
     with open(f"input-list-misc-kk.txt", "w") as f:
         for input in input_list:

@@ -41,9 +41,6 @@ using namespace LAMMPS_NS;
 static constexpr int OFFSET = 16384;
 static constexpr double SMALLQ = 0.00001;
 
-enum{REVERSE_RHO,REVERSE_AD,REVERSE_AD_PERATOM};
-enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
-
 /* ---------------------------------------------------------------------- */
 
 MSMCGOMP::MSMCGOMP(LAMMPS *lmp) : MSMOMP(lmp),

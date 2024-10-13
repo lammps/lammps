@@ -44,7 +44,6 @@ class RegPlane : public Region {
   char *xstr, *ystr, *zstr;
 
   void variable_check();
-
 };
 
 }    // namespace LAMMPS_NS

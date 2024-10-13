@@ -96,8 +96,7 @@ void BondHybrid::compute(int eflag, int vflag)
       bondlist[m][n][0] = bondlist_orig[i][0];
       bondlist[m][n][1] = bondlist_orig[i][1];
       bondlist[m][n][2] = bondlist_orig[i][2];
-      if (partial_flag)
-        orig_map[m][n] = i;
+      if (partial_flag) orig_map[m][n] = i;
       nbondlist[m]++;
     }
   }
@@ -381,8 +380,10 @@ void BondHybrid::init_style()
   // bond style quartic will set broken bonds to bond type 0, so we need
   // to create an entry for it in the bond type to sub-style map
 
-  if (has_quartic >= 0) map[0] = has_quartic;
-  else map[0] = -1;
+  if (has_quartic >= 0)
+    map[0] = has_quartic;
+  else
+    map[0] = -1;
 }
 
 /* ---------------------------------------------------------------------- */

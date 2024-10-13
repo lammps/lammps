@@ -777,9 +777,9 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
           bond_type[i][m] = bond_type[i][n - 1];
           bond_atom[i][m] = bond_atom[i][n - 1];
           if (n_histories > 0)
-            for (auto &ihistory: histories) {
-              dynamic_cast<FixBondHistory *>(ihistory)->shift_history(i,m,n-1);
-              dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i,n-1);
+            for (auto &ihistory : histories) {
+              dynamic_cast<FixBondHistory *>(ihistory)->shift_history(i, m, n - 1);
+              dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i, n - 1);
             }
           n--;
         } else

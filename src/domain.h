@@ -39,8 +39,8 @@ class Domain : protected Pointers {
                          // 2 = shrink-wrap non-periodic
                          // 3 = shrink-wrap non-per w/ min
 
-  int triclinic;          // 0 = orthog box, 1 = triclinic (restricted or general)
-  int triclinic_general;  // 1 if general <-> restricted tri mapping is stored, 0 if not
+  int triclinic;            // 0 = orthog box, 1 = triclinic (restricted or general)
+  int triclinic_general;    // 1 if general <-> restricted tri mapping is stored, 0 if not
 
   // orthogonal box
 
@@ -91,9 +91,9 @@ class Domain : protected Pointers {
   // general triclinic box
   // boxlo = lower left corner
 
-  double avec[3], bvec[3], cvec[3];  // ABC edge vectors of general triclinic box
-  double rotate_g2r[3][3];           // rotation matrix from general --> restricted tri
-  double rotate_r2g[3][3];           // rotation matrix from restricted --> general tri
+  double avec[3], bvec[3], cvec[3];    // ABC edge vectors of general triclinic box
+  double rotate_g2r[3][3];             // rotation matrix from general --> restricted tri
+  double rotate_r2g[3][3];             // rotation matrix from restricted --> general tri
 
   // box flags
 
@@ -145,9 +145,8 @@ class Domain : protected Pointers {
   int ownatom(int, double *, imageint *, int);
 
   void define_general_triclinic(double *, double *, double *, double *);
-  void general_to_restricted_rotation(double *, double *, double *,
-                                      double [3][3],
-                                      double *, double *, double *);
+  void general_to_restricted_rotation(double *, double *, double *, double[3][3], double *,
+                                      double *, double *);
   void general_to_restricted_coords(double *);
   void restricted_to_general_coords(double *);
   void restricted_to_general_coords(double *, double *);

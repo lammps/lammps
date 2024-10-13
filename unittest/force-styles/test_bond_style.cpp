@@ -539,6 +539,10 @@ TEST(BondStyle, kokkos_omp)
     if (!LAMMPS::is_installed_pkg("KOKKOS")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
     if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) GTEST_SKIP();
+    // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
+    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) GTEST_SKIP();
 
     LAMMPS::argv args = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite",
                          "-k",        "on",   "t",    "4",     "-sf",    "kk"};

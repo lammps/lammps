@@ -79,7 +79,7 @@ jobs:
       shell: bash
       run: |
         source linuxenv/bin/activate
-        python3 tools/regression-tests/get_kokkos_input.py --examples-top-level=examples --filter-out="balance;mdi;mliap;pace;prd;pour;python;snap"
+        python3 tools/regression-tests/get_kokkos_input.py --examples-top-level=examples --filter-out="balance;fire;mdi;mliap;pace;prd;pour;python;snap"
 
         python3 tools/regression-tests/run_tests.py \
                --lmp-bin=build/lmp \

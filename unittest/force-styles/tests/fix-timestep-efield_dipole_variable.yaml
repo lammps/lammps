@@ -6,6 +6,7 @@ epsilon: 2e-13
 skip_tests:
 prerequisites: ! |
   atom full
+  atom dipole
   fix efield
 pre_commands: ! ""
 post_commands: ! |

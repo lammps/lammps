@@ -49,11 +49,13 @@ void CreateBox::command(int narg, char **arg)
   Region *region = nullptr;
   int triclinic_general = 0;
 
-  if (strcmp(arg[1],"NULL") == 0) triclinic_general = 1;
+  if (strcmp(arg[1], "NULL") == 0)
+    triclinic_general = 1;
   else {
     region = domain->get_region_by_id(arg[1]);
     if (!region) error->all(FLERR, "Create_box region {} does not exist", arg[1]);
-    if (region->bboxflag == 0) error->all(FLERR, "Create_box region does not support a bounding box");
+    if (region->bboxflag == 0)
+      error->all(FLERR, "Create_box region does not support a bounding box");
     region->init();
   }
 
@@ -77,9 +79,9 @@ void CreateBox::command(int narg, char **arg)
       domain->boxlo[2] = region->extent_zlo;
       domain->boxhi[2] = region->extent_zhi;
 
-    // region is prism
-    // seutp restricted triclinic box
-    // set simulation domain from prism params
+      // region is prism
+      // seutp restricted triclinic box
+      // set simulation domain from prism params
 
     } else {
       domain->triclinic = 1;
@@ -97,17 +99,17 @@ void CreateBox::command(int narg, char **arg)
 
     if (domain->dimension == 2) {
       if (domain->boxlo[2] >= 0.0 || domain->boxhi[2] <= 0.0)
-        error->all(FLERR,"Create_box region zlo/zhi for 2d simulation must straddle 0.0");
+        error->all(FLERR, "Create_box region zlo/zhi for 2d simulation must straddle 0.0");
     }
 
-  // setup general triclinic box (with no region)
-  // read next box extent arguments to create ABC edge vectors + origin
-  // define_general_triclinic() converts
-  //   ABC edge vectors + origin to restricted triclinic
+    // setup general triclinic box (with no region)
+    // read next box extent arguments to create ABC edge vectors + origin
+    // define_general_triclinic() converts
+    //   ABC edge vectors + origin to restricted triclinic
 
   } else if (triclinic_general) {
     if (!domain->lattice->is_general_triclinic())
-      error->all(FLERR,"Create_box for general triclinic requires triclnic/general lattice");
+      error->all(FLERR, "Create_box for general triclinic requires triclnic/general lattice");
 
     if (iarg + 6 > narg) utils::missing_cmd_args(FLERR, "create_box general triclinic", error);
 
@@ -121,42 +123,50 @@ void CreateBox::command(int narg, char **arg)
 
     if (domain->dimension == 2)
       if (clo != -0.5 || chi != 0.5)
-        error->all(FLERR,"Create_box for general triclinic requires clo = -0.5 and chi = 0.5");
+        error->all(FLERR, "Create_box for general triclinic requires clo = -0.5 and chi = 0.5");
 
     // use lattice2box() to generate origin and ABC vectors
     // origin = abc lo
     // ABC vectors = hi in one dim - origin
 
-    double avec[3],bvec[3],cvec[3],origin[3];
-    double px,py,pz;
+    double avec[3], bvec[3], cvec[3], origin[3];
+    double px, py, pz;
 
-    px = alo; py = blo; pz = clo;
-    domain->lattice->lattice2box(px,py,pz);
+    px = alo;
+    py = blo;
+    pz = clo;
+    domain->lattice->lattice2box(px, py, pz);
     origin[0] = px;
     origin[1] = py;
     origin[2] = pz;
 
-    px = ahi; py = blo; pz = clo;
-    domain->lattice->lattice2box(px,py,pz);
+    px = ahi;
+    py = blo;
+    pz = clo;
+    domain->lattice->lattice2box(px, py, pz);
     avec[0] = px - origin[0];
     avec[1] = py - origin[1];
     avec[2] = pz - origin[2];
 
-    px = alo; py = bhi; pz = clo;
-    domain->lattice->lattice2box(px,py,pz);
+    px = alo;
+    py = bhi;
+    pz = clo;
+    domain->lattice->lattice2box(px, py, pz);
     bvec[0] = px - origin[0];
     bvec[1] = py - origin[1];
     bvec[2] = pz - origin[2];
 
-    px = alo; py = blo; pz = chi;
-    domain->lattice->lattice2box(px,py,pz);
+    px = alo;
+    py = blo;
+    pz = chi;
+    domain->lattice->lattice2box(px, py, pz);
     cvec[0] = px - origin[0];
     cvec[1] = py - origin[1];
     cvec[2] = pz - origin[2];
 
     // define general triclinic box within Domain class
 
-    domain->define_general_triclinic(avec,bvec,cvec,origin);
+    domain->define_general_triclinic(avec, bvec, cvec, origin);
   }
 
   // if molecular, zero out topology info

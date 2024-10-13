@@ -81,6 +81,7 @@ def require_accel_include(path):
     # handle exceptions
     if path == "src/min_style.rst" : needs = True
     if path == "src/atom_style.rst" : needs = True
+    if path == "src/region.rst" : needs = True
     # check file
     with open(path, 'r') as reader:
         for line in reader:

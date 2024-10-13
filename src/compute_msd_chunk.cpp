@@ -124,7 +124,8 @@ void ComputeMSDChunk::compute_array()
   // first time call, allocate per-chunk arrays
   // thereafter, require nchunk remain the same
 
-  if (firstflag) msdnchunk = nchunk;
+  if (firstflag)
+    msdnchunk = nchunk;
   else if (msdnchunk != nchunk)
     error->all(FLERR, "Compute msd/chunk nchunk is not static");
 

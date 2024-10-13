@@ -31,18 +31,19 @@ Operating systems
 ^^^^^^^^^^^^^^^^^
 
 The primary development platform for LAMMPS is Linux.  Thus, the chances
-for LAMMPS to compile without problems on Linux machines are the best.
+for LAMMPS to compile without problems are the best on Linux machines.
 Also, compilation and correct execution on macOS and Windows (using
-Microsoft Visual C++) is checked automatically for largest part of the
-source code.  Some (optional) features are not compatible with all
+Microsoft Visual C++) is checked automatically for the largest part of
+the source code.  Some (optional) features are not compatible with all
 operating systems, either through limitations of the corresponding
-LAMMPS source code or through source code or build system
-incompatibilities of required libraries.
+LAMMPS source code or through incompatibilities of source code or
+build system of required external libraries or packages.
 
 Executables for Windows may be created natively using either Cygwin or
 Visual Studio or with a Linux to Windows MinGW cross-compiler.
 
-Additionally, FreeBSD and Solaris have been tested successfully.
+Additionally, FreeBSD and Solaris have been tested successfully to
+run LAMMPS and produce results consistent with those on Linux.
 
 Compilers
 ^^^^^^^^^

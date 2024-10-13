@@ -44,7 +44,6 @@ class FixQEqCTIP : public FixQEq {
 
   double cdamp;
   int maxrepeat;
-  int nout;
 };
 }    // namespace LAMMPS_NS
 #endif

@@ -205,8 +205,6 @@ double PairCoulCTIP::self(Param *param, double qi)
   } else {
     return qi * ((s1 - 2 * s4 * s5) + qi * (0.50 * s2 + s5)) + s4 * s4 * s5;
   }
-
-  return 0.0;
 }
 
 /* ----------------------------------------------------------------------

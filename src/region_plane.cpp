@@ -24,8 +24,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-RegPlane::RegPlane(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg),
-    xstr(nullptr), ystr(nullptr), zstr(nullptr)
+RegPlane::RegPlane(LAMMPS *lmp, int narg, char **arg) :
+    Region(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr)
 {
   xvar = yvar = zvar = 0.0;
 
@@ -203,4 +203,3 @@ void RegPlane::variable_check()
       error->all(FLERR, "Variable {} for region plane is invalid style", zstr);
   }
 }
-

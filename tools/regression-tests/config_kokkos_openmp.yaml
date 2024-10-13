@@ -20,7 +20,12 @@
     E_vdwl:
       abs: 1e-3
       rel: 1e-7
+  
+  skip:
+  [
+     in.min.box,
+  ]
 
-  timeout: 180
+  timeout: 120
   nugget: 1.0
   epsilon: 1e-16

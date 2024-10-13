@@ -33,6 +33,6 @@
      in.min.box,
   ]
 
-  timeout: 180
+  timeout: 120
   nugget: 1.0
   epsilon: 1e-16

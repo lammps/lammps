@@ -30,6 +30,8 @@
 
 #include <cstring>
 
+#include <iostream>
+
 #define MAX_PSF_LABEL_SIZE 8 // psf EXT format
 
 using namespace LAMMPS_NS;
@@ -65,9 +67,10 @@ void ReadPsf::command(int narg, char **arg)
   char **lmap_arg;
   memory->create(lmap_arg,3,MAX_PSF_LABEL_SIZE+1,"read_psf:lmap_arg");
 
+  int sendsize;
+  int **sendbuf;
 
-  //if (comm->me == 0)
-  {
+  if (comm->me == 0) {
     try {
       open(arg[0]);
       utils::logmesg(lmp, "Reading PSF file: {}\n", arg[0]);
@@ -80,6 +83,7 @@ void ReadPsf::command(int narg, char **arg)
         reader.skip_line();
 
       int natom = reader.next_int();
+      memory->create(sendbuf,natom,4,"read_psf:sendbuf");
 
       for( int i=0; i<natom ; i++) {
         char *line = reader.next_line(9);
@@ -89,56 +93,82 @@ void ReadPsf::command(int narg, char **arg)
         tagint atom_tag = values.next_tagint();
         int atom_index = atom->map(atom_tag);
 
-        // determine if this proc owns the atom
-        if( atom_index == -1 ) continue;
-
         // atom segment
         std::string segment = values.next_string();
-        int segment_type = atom->lmap->find_or_add_psf(segment, Atom::SEGMENT);
-        atom_iarray_psf[atom_index][0] = segment_type;
+        int segment_id = atom->lmap->find_or_add_psf(segment, Atom::SEGMENT);
 
         // skip molecule id
         values.skip(1);
 
-        // atom residue
+        // residue
         std::string residue = values.next_string();
-        int residue_type = atom->lmap->find_or_add_psf(residue, Atom::RESIDUE);
-        atom_iarray_psf[atom_index][1] = residue_type;
+        int residue_id = atom->lmap->find_or_add_psf(residue, Atom::RESIDUE);
 
-        // atom name
+        // name
         std::string name = values.next_string();
-        int name_type = atom->lmap->find_or_add_psf(name, Atom::NAME);
-        atom_iarray_psf[atom_index][2] = name_type;
+        int name_id = atom->lmap->find_or_add_psf(name, Atom::NAME);
 
-        // atom type
-        int atom_type = atom->type[lmp->atom->map(atom_tag)];
-        //utils::logmesg(lmp, "read_psf... atom_tag={} atom_type={}\n", atom_tag, atom_type);
+        // determine if this proc owns the atom
+        if( atom_index != -1 ) {
+          atom_iarray_psf[atom_index][0] = segment_id;
+          atom_iarray_psf[atom_index][1] = residue_id;
+          atom_iarray_psf[atom_index][2] = name_id;
 
-        strcpy(lmap_arg[0], "atom");
-        strcpy(lmap_arg[1],std::to_string(atom_type).c_str());
-        strcpy(lmap_arg[2],values.next_string().c_str());
-        atom->lmap->modify_lmap(3,lmap_arg);
+          // type
+          int type_id = atom->type[atom_index];
+
+          strcpy(lmap_arg[0], "atom");
+          strcpy(lmap_arg[1],std::to_string(type_id).c_str());
+          strcpy(lmap_arg[2],values.next_string().c_str());
+          //utils::logmesg(lmp, "read_psf... lmap_arg {} {} {}\n", lmap_arg[0], lmap_arg[1], lmap_arg[2]);
+          atom->lmap->modify_lmap(3,lmap_arg);
+
+        } else {
+          sendbuf[sendsize][0] = atom_tag;
+          sendbuf[sendsize][1] = segment_id;
+          sendbuf[sendsize][2] = residue_id;
+          sendbuf[sendsize][3] = name_id;
+          sendsize++;
+        }
       }
+      memory->destroy(lmap_arg);
+
+      // close file
+      if (compressed)
+        platform::pclose(fp);
+      else
+        fclose(fp);
+      fp = nullptr;
+      
     } catch (EOFException &) {
       // reached end of file
       printf("reached EOF\n");
     } catch (std::exception &e) {
       error->one(FLERR, "Error reading psf file: {}", e.what());
     }
+
   }
 
-  memory->destroy(lmap_arg);
+  MPI_Bcast(&sendsize,1,MPI_INT,0,world);
+  if (comm->me > 0) memory->create(sendbuf,sendsize,4,"read_psf:sendbuf");
+  MPI_Bcast(&sendbuf[0][0],sendsize*4,MPI_INT,0,world);
 
-  // close file
+  if (comm->me > 0) {
 
-  //if (comm->me == 0)
-  {
-    if (compressed)
-      platform::pclose(fp);
-    else
-      fclose(fp);
-    fp = nullptr;
+    for( int i=0; i<sendsize ; i++) {
+
+      int atom_index = atom->map(sendbuf[i][0]);
+
+      if( atom_index != -1 ) {
+        atom_iarray_psf[atom_index][0] = sendbuf[i][1]; // segment_id
+        atom_iarray_psf[atom_index][1] = sendbuf[i][2]; // residue_id
+        atom_iarray_psf[atom_index][2] = sendbuf[i][3]; // name_id
+      }
+
+    }
   }
+
+  memory->destroy(sendbuf);
 
 }
 

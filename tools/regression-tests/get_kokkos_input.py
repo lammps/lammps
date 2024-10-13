@@ -28,7 +28,7 @@ def generate_list(in_style, example_toplevel, filter_out, output_list):
 
     for style in style_names:
         # find in the in. script a line with "pair_style [name]"
-        if in_style == "pair":
+        if in_style == "pair" or in_style == "angle" or in_style == "bond" or in_style == "dihedral" or in_style == "improper":
             cmd_str = f"grep -rl '{in_style}_style.*{style}' {example_toplevel}/*/in.* "
         else:
             # find in the in. script a line with "fix ... [name]" (or "compute ... [name]")
@@ -37,7 +37,6 @@ def generate_list(in_style, example_toplevel, filter_out, output_list):
         p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
         input_list = p.stdout.split('\n')
         input_list = ' '.join(input_list).split()
-        #print(f"There are {len(input_list)} input files that contains {in_style} {style}")
         for input in input_list:
             if input != "":
                 skip = False
@@ -47,8 +46,9 @@ def generate_list(in_style, example_toplevel, filter_out, output_list):
                         break
                 if skip == True:
                     continue
-                else:    
-                    output_list.append(input)
+                else:
+                    if input not in output_list:
+                        output_list.append(input)
 
 
 if __name__ == "__main__":
@@ -80,3 +80,4 @@ if __name__ == "__main__":
         for input in input_list:
             if input != "":
                 f.write(f"{input}\n")
+

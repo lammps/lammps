@@ -305,8 +305,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             config['nprocs'] = str(max_np)
         else:
             # otherwise use the nprocs value in the configuration file (4 for most examples)
-            logger.info(f"     Using nprocs {config['nprocs']} nprocs for {input_test} as specified in the config file.")
-            logger.info(f"     The maximum number of procs in the log files is {max_np}.")
+            logger.info(f"     Using {config['nprocs']} nprocs for {input_test} as enforced in the config file.")
+            logger.info(f"     WARNING: The maximum number of procs found from the reference log files is {max_np}.")
 
         # store the value of nprocs to name the generated log file
         nprocs = int(config['nprocs'])

@@ -29,9 +29,9 @@
         abs: 1e-2
         rel: 1e-4
   skip:
-  [
-     in.min.box,
-  ]
+    [
+      in.min.box,
+    ]
 
   timeout: 120
   nugget: 1.0

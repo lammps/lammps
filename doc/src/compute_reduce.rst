@@ -211,8 +211,8 @@ a compute or fix is specified as an input, it must produce per-atom or
 local data to match this setting.  If it produces both, like for example
 the :doc:`compute voronoi/atom <compute_voronoi_atom>` command, then
 this keyword selects between them.  If a compute *only* produces local
-data, like for example the :doc:`compute bond/local <compute_bond_local>
-command`, the setting "inputs local" is *required*.
+data, like for example the :doc:`compute bond/local command
+<compute_bond_local>`, the setting "inputs local" is *required*.
 
 ----------
 

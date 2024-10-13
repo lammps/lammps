@@ -43,6 +43,8 @@
 
 using namespace LAMMPS_NS;
 
+static int compare_tags(const int, const int, void *);
+
 /* ---------------------------------------------------------------------- */
 
 WritePsf::WritePsf(LAMMPS *lmp) : Command(lmp)
@@ -506,13 +508,18 @@ void WritePsf::atoms()
 {
   int *recvcounts = new int[nprocs];
   int *displs = new int[nprocs];
-  MPI_Gather( &natoms_local, 1, MPI_INT, recvcounts, 1, MPI_INT, 0, world);
+  int bufsize = natoms_local*7;
+  MPI_Gather( &bufsize, 1, MPI_INT, recvcounts, 1, MPI_INT, 0, world);
+  recvcounts[0] = natoms_local*7;
   displs[0] = 0;
-  for ( int i=1; i<nprocs; i++) displs[i] = displs[i-1]+recvcounts[i-1];
 
   double **buf;
-  if (me == 0) memory->create(buf,natoms,7,"write_psf:buf");
-  else memory->create(buf,natoms_local,7,"write_psf:buf");
+
+  if (me > 0) memory->create(buf,natoms_local,7,"write_psf:buf");
+  else {
+    memory->create(buf,natoms,7,"write_psf:buf");
+    for ( int i=1; i<nprocs; i++) displs[i] = displs[i-1]+recvcounts[i-1];
+  }
 
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
@@ -522,29 +529,35 @@ void WritePsf::atoms()
   double *q = atom->q;
 
   // atom_tag, segment_id, molecule_id, residue_id, name_id, type_id, charge
+
+  int j=-1;
+
   for (int i = 0; i < nlocal; i++)
-    if ( igroup && (mask[i] & groupbit)) {
-      buf[i][0] = ubuf(tag[i]).d;
-      buf[i][2] = ubuf(molecule[i]).d;
-      buf[i][5] = ubuf(type[i]).d;
-      if(atom->q_flag) buf[i][6] = q[i];
+    if ( mask[i] & groupbit) {
+      j++;
+      buf[j][0] = ubuf(tag[i]).d;
+      buf[j][2] = ubuf(molecule[i]).d;
+      buf[j][5] = ubuf(type[i]).d;
+      if(atom->q_flag) buf[j][6] = q[i];
 
       if( atom_iarray_psf == nullptr ) continue;
-      buf[i][1] = ubuf(atom_iarray_psf[i][0]).d;
-      buf[i][3] = ubuf(atom_iarray_psf[i][1]).d;
-      buf[i][4] = ubuf(atom_iarray_psf[i][2]).d;
+      buf[j][1] = ubuf(atom_iarray_psf[i][0]).d;
+      buf[j][3] = ubuf(atom_iarray_psf[i][1]).d;
+      buf[j][4] = ubuf(atom_iarray_psf[i][2]).d;
     }
 
-  //int MPI_Gatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
-  //  void *recvbuf, const int recvcounts[], const int displs[],
-  //  MPI_Datatype recvtype, int root, MPI_Comm comm)
+  if (me == 0)
+    MPI_Gatherv(MPI_IN_PLACE,natoms_local*7,MPI_DOUBLE,&buf[0][0],recvcounts,displs,MPI_DOUBLE,0,world);
+  else
+    MPI_Gatherv(&buf[0][0],natoms_local*7,MPI_DOUBLE,0,0,0,MPI_DOUBLE,0,world);
 
-  // Use the variable MPI_IN_PLACE as the value of the root process sendbuf. In this case, sendcount and sendtype are ignored, and the contribution of the root process to the gathered vector is assumed to already be in the correct place in the receive buffer.
-
-  MPI_Gatherv(MPI_IN_PLACE, natoms_local, MPI_DOUBLE,
-    &buf[0][0], recvcounts, displs, MPI_DOUBLE, 0, world);
 
   if (me == 0) {
+
+    int *order;
+    memory->create(order, natoms, "write_psf:order");
+    for (int i = 0; i < natoms; i++) order[i] = i;
+    utils::merge_sort(order, natoms, (void *)buf, compare_tags);
 
     fmt::print(fp,"\n {:8} !NATOM\n",natoms);
 
@@ -553,11 +566,10 @@ void WritePsf::atoms()
       // II,LSEGID,LRESID,LRES,TYPE(I),IAC(I),CG(I),AMASS(I),IMOVE(I)
       // (I10,1X,A8,1X,A8,1X,A8,1X,A8,1X,A4,1X,2G14.6,I8)
 
-      tagint atom_tag = ubuf(buf[i][0]).i;
-      tagint molecule_id = ubuf(buf[i][2]).i;
-      int type_id = ubuf(buf[i][5]).i;
-      // utils::logmesg(lmp, "write_psf... atom_tag={} atom_type={}\n", atom_tag, atom_type);
-
+      int j = order[i];
+      tagint atom_tag = ubuf(buf[j][0]).i;
+      tagint molecule_id = ubuf(buf[j][2]).i;
+      int type_id = ubuf(buf[j][5]).i;
       fmt::print(fp, "{:10} ", atom_tag );
 
         if( atom_iarray_psf == nullptr ) {
@@ -570,16 +582,16 @@ void WritePsf::atoms()
         } else {
 
           // segment label
-          fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[i][1]).i, Atom::SEGMENT) );
+          fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[j][1]).i, Atom::SEGMENT) );
 
           // molecule id
           fmt::print(fp, "{:<8} ", molecule_id );
 
           // residue label
-          fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[i][3]).i, Atom::RESIDUE) );
+          fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[j][3]).i, Atom::RESIDUE) );
 
           // name label
-          fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[i][4]).i, Atom::NAME) );
+          fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[j][4]).i, Atom::NAME) );
 
           // type label
           fmt::print(fp, "{:<4} ", atom->lmap->label(type_id, Atom::ATOM) );
@@ -587,14 +599,28 @@ void WritePsf::atoms()
         }
 
         // charge
-        fmt::print(fp, "{:12.6F}      ", buf[i][6] );
+        fmt::print(fp, "{:12.6F}      ", buf[j][6] );
 
         // mass
         fmt::print(fp, "{:8g}           0\n", atom->mass[type_id] );
+
       }
+      memory->destroy(order);
     }
 
   memory->destroy(buf);
   delete [] recvcounts;
   delete [] displs;
+}
+
+/* ----------------------------------------------------------------------
+   comparison function invoked by merge_sort()
+   void pointer contains sortrvous
+------------------------------------------------------------------------- */
+
+int compare_tags(const int i, const int j, void *ptr)
+{
+  double **buf = (double **) ptr;
+  if (ubuf(buf[i][0]).i < ubuf(buf[j][0]).i) return -1;
+  else return 1;
 }

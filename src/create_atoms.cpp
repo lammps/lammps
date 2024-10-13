@@ -114,7 +114,7 @@ void CreateAtoms::command(int narg, char **arg)
     xone[1] = utils::numeric(FLERR, arg[3], false, lmp);
     xone[2] = utils::numeric(FLERR, arg[4], false, lmp);
     if (domain->dimension == 2 && xone[2] != 0.0)
-      error->all(FLERR,"Create_atoms single for 2d simulation requires z coord = 0.0");
+      error->all(FLERR, "Create_atoms single for 2d simulation requires z coord = 0.0");
     iarg = 5;
   } else if (strcmp(arg[1], "random") == 0) {
     style = RANDOM;
@@ -184,7 +184,8 @@ void CreateAtoms::command(int narg, char **arg)
       if (imol == -1)
         error->all(FLERR, "Molecule template ID {} for create_atoms does not exist", arg[iarg + 1]);
       if ((atom->molecules[imol]->nset > 1) && (comm->me == 0))
-        error->warning(FLERR, "Molecule template for create_atoms has multiple molecule sets. "
+        error->warning(FLERR,
+                       "Molecule template for create_atoms has multiple molecule sets. "
                        "Only the first set will be used.");
       mode = MOLECULE;
       onemol = atom->molecules[imol];
@@ -371,9 +372,9 @@ void CreateAtoms::command(int narg, char **arg)
 
   if (scaleflag) {
     if (style == SINGLE) {
-    xone[0] *= domain->lattice->xlattice;
-    xone[1] *= domain->lattice->ylattice;
-    xone[2] *= domain->lattice->zlattice;
+      xone[0] *= domain->lattice->xlattice;
+      xone[1] *= domain->lattice->ylattice;
+      xone[2] *= domain->lattice->zlattice;
     } else if (style == RANDOM) {
       if (overlapflag) overlap *= domain->lattice->xlattice;
     } else if (style == MESH) {
@@ -835,7 +836,7 @@ void CreateAtoms::add_random()
           }
         } else {
           if (comm->me == 0) get_xmol(xone);
-          MPI_Bcast(&xmol[0][0], onemol->natoms*3, MPI_DOUBLE, 0, world);
+          MPI_Bcast(&xmol[0][0], onemol->natoms * 3, MPI_DOUBLE, 0, world);
 
           for (int i = 0; i < nlocal; i++) {
             for (int j = 0; j < onemol->natoms; j++) {
@@ -1207,9 +1208,10 @@ void CreateAtoms::add_lattice()
   // verify lattice was defined with triclinic/general option
 
   if (!domain->triclinic_general && domain->lattice->is_general_triclinic())
-    error->all(FLERR,"Create_atoms for non general triclinic box cannot use triclinic/general lattice");
+    error->all(FLERR,
+               "Create_atoms for non general triclinic box cannot use triclinic/general lattice");
   if (domain->triclinic_general && !domain->lattice->is_general_triclinic())
-    error->all(FLERR,"Create_atoms for general triclinic box requires triclinic/general lattice");
+    error->all(FLERR, "Create_atoms for general triclinic box requires triclinic/general lattice");
 
   // convert 8 corners of my subdomain from box coords to lattice coords
   // for orthogonal, use corner pts of my subbox
@@ -1266,38 +1268,54 @@ void CreateAtoms::add_lattice()
     domain->lattice->bbox(1, bboxlo[0], bboxhi[1], bboxhi[2], xmin, ymin, zmin, xmax, ymax, zmax);
     domain->lattice->bbox(1, bboxhi[0], bboxhi[1], bboxhi[2], xmin, ymin, zmin, xmax, ymax, zmax);
 
-  // for general triclinic, convert 8 corner points of bbox to general triclinic coords
-  // new set of 8 points is no longer an orthogonal bounding box
-  // instead invoke lattice->bbox() on each of 8 points
+    // for general triclinic, convert 8 corner points of bbox to general triclinic coords
+    // new set of 8 points is no longer an orthogonal bounding box
+    // instead invoke lattice->bbox() on each of 8 points
 
   } else if (domain->triclinic_general) {
     double point[3];
 
-    point[0] = bboxlo[0]; point[1] = bboxlo[1]; point[2] = bboxlo[2];
+    point[0] = bboxlo[0];
+    point[1] = bboxlo[1];
+    point[2] = bboxlo[2];
     domain->restricted_to_general_coords(point);
     domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
-    point[0] = bboxhi[0]; point[1] = bboxlo[1]; point[2] = bboxlo[2];
-    domain->restricted_to_general_coords(point);
-    domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
-
-    point[0] = bboxlo[0]; point[1] = bboxhi[1]; point[2] = bboxlo[2];
-    domain->restricted_to_general_coords(point);
-    domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
-    point[0] = bboxhi[0]; point[1] = bboxhi[1]; point[2] = bboxlo[2];
+    point[0] = bboxhi[0];
+    point[1] = bboxlo[1];
+    point[2] = bboxlo[2];
     domain->restricted_to_general_coords(point);
     domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
 
-    point[0] = bboxlo[0]; point[1] = bboxlo[1]; point[2] = bboxhi[2];
+    point[0] = bboxlo[0];
+    point[1] = bboxhi[1];
+    point[2] = bboxlo[2];
     domain->restricted_to_general_coords(point);
     domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
-    point[0] = bboxhi[0]; point[1] = bboxlo[1]; point[2] = bboxhi[2];
+    point[0] = bboxhi[0];
+    point[1] = bboxhi[1];
+    point[2] = bboxlo[2];
     domain->restricted_to_general_coords(point);
     domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
 
-    point[0] = bboxlo[0]; point[1] = bboxhi[1]; point[2] = bboxhi[2];
+    point[0] = bboxlo[0];
+    point[1] = bboxlo[1];
+    point[2] = bboxhi[2];
     domain->restricted_to_general_coords(point);
     domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
-    point[0] = bboxhi[0]; point[1] = bboxhi[1]; point[2] = bboxhi[2];
+    point[0] = bboxhi[0];
+    point[1] = bboxlo[1];
+    point[2] = bboxhi[2];
+    domain->restricted_to_general_coords(point);
+    domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
+
+    point[0] = bboxlo[0];
+    point[1] = bboxhi[1];
+    point[2] = bboxhi[2];
+    domain->restricted_to_general_coords(point);
+    domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
+    point[0] = bboxhi[0];
+    point[1] = bboxhi[1];
+    point[2] = bboxhi[2];
     domain->restricted_to_general_coords(point);
     domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
   }
@@ -1419,7 +1437,7 @@ void CreateAtoms::loop_lattice(int action)
             domain->general_to_restricted_coords(x);
             if (dimension == 2) {
               if (fabs(x[2]) > EPS_ZCOORD)
-                error->all(FLERR,"Create_atoms atom z coord is non-zero for 2d simulation");
+                error->all(FLERR, "Create_atoms atom z coord is non-zero for 2d simulation");
               x[2] = 0.0;
             }
           }
@@ -1510,8 +1528,7 @@ void CreateAtoms::get_xmol(double *center)
   for (int m = 0; m < natoms; m++) {
     MathExtra::matvec(rotmat, onemol->dx[m], xnew);
     MathExtra::add3(xnew, center, xnew);
-    for (int i = 0; i < 3; i++)
-      xmol[m][i] = xnew[i];
+    for (int i = 0; i < 3; i++) xmol[m][i] = xnew[i];
   }
 }
 

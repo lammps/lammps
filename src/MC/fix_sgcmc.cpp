@@ -274,7 +274,7 @@ void FixSemiGrandCanonicalMC::init()
 
   // MPI sum to get global concentrations.
   speciesCounts.resize(atom->ntypes+1);
-  MPI_Allreduce(&localSpeciesCounts.front(), &speciesCounts.front(), localSpeciesCounts.size(),
+  MPI_Allreduce(localSpeciesCounts.data(), speciesCounts.data(), localSpeciesCounts.size(),
                 MPI_INT, MPI_SUM, world);
 }
 
@@ -411,7 +411,7 @@ void FixSemiGrandCanonicalMC::doMC()
         // semi-grandcanonical method.
 
         // MPI sum of total change in number of particles.
-        MPI_Allreduce(&deltaN.front(), &deltaNGlobal.front(), deltaN.size(), MPI_INT, MPI_SUM, world);
+        MPI_Allreduce(deltaN.data(), deltaNGlobal.data(), deltaN.size(), MPI_INT, MPI_SUM, world);
 
         // Perform outer MC acceptance test.
         // This is done in sync by all processors.
@@ -476,7 +476,7 @@ void FixSemiGrandCanonicalMC::doMC()
       if (mask[i] & groupbit)
         localSpeciesCounts[*type]++;
     }
-    MPI_Allreduce(&localSpeciesCounts.front(), &speciesCounts.front(), localSpeciesCounts.size(), MPI_INT, MPI_SUM, world);
+    MPI_Allreduce(localSpeciesCounts.data(), speciesCounts.data(), localSpeciesCounts.size(), MPI_INT, MPI_SUM, world);
   }
 }
 
@@ -642,7 +642,7 @@ bool FixSemiGrandCanonicalMC::placeSamplingWindow()
   samplingWindowPosition += 1;
 
   // Compile a list of atoms that are inside the sampling window.
-  samplingWindowAtoms.resize(0);
+  samplingWindowAtoms.clear();
   samplingWindowAtoms.reserve(atom->nlocal);
   numSamplingWindowAtoms = 0;
   numFixAtomsLocal = 0;

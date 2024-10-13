@@ -144,8 +144,8 @@ class Variable : protected Pointers {
   int math_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
   int group_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
   Region *region_function(char *, int);
-  int special_function(const std::string &, char *, Tree **, Tree **, int &, double *, int &,
-                       int, char *, int &, char *&);
+  int special_function(const std::string &, char *, Tree **, Tree **, int &, double *, int &, int,
+                       char *, int &, char *&);
   int feature_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
   void peratom2global(int, char *, double *, int, tagint, Tree **, Tree **, int &, double *, int &);
   void custom2global(int *, double *, int, tagint, Tree **, Tree **, int &, double *, int &);

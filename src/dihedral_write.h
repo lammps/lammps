@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class DihedralWrite : public Command {
  public:
-  DihedralWrite(class LAMMPS *lmp) : Command(lmp){};
+  DihedralWrite(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **) override;
 };
 }    // namespace LAMMPS_NS

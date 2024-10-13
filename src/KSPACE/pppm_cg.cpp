@@ -35,10 +35,6 @@ using namespace MathConst;
 
 static constexpr int OFFSET = 16384;
 static constexpr double SMALLQ = 0.00001;
-
-enum{REVERSE_RHO};
-enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
-
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
 /* ---------------------------------------------------------------------- */

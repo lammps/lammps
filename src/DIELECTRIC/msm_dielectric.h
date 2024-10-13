@@ -32,7 +32,6 @@ class MSMDielectric : public MSM {
   void compute(int, int) override;
 
   double **efield;
-  double *phi;
 
  protected:
   void fieldforce() override;

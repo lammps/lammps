@@ -38,18 +38,9 @@ using namespace MathConst;
 static constexpr double SMALL = 0.00001;
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
-enum{REVERSE_RHO,REVERSE_RHO_GEOM,REVERSE_RHO_ARITH,REVERSE_RHO_NONE};
-enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM,
-     FORWARD_IK_GEOM,FORWARD_AD_GEOM,
-     FORWARD_IK_PERATOM_GEOM,FORWARD_AD_PERATOM_GEOM,
-     FORWARD_IK_ARITH,FORWARD_AD_ARITH,
-     FORWARD_IK_PERATOM_ARITH,FORWARD_AD_PERATOM_ARITH,
-     FORWARD_IK_NONE,FORWARD_AD_NONE,FORWARD_IK_PERATOM_NONE,
-     FORWARD_AD_PERATOM_NONE};
-
 /* ---------------------------------------------------------------------- */
 
-PPPMDispDielectric::PPPMDispDielectric(LAMMPS *_lmp) : PPPMDisp(_lmp)
+PPPMDispDielectric::PPPMDispDielectric(LAMMPS *_lmp) : PPPMDisp(_lmp), efield(nullptr)
 {
   dipoleflag = 0; // turned off for now, until dipole works
   group_group_enable = 0;
@@ -60,10 +51,6 @@ PPPMDispDielectric::PPPMDispDielectric(LAMMPS *_lmp) : PPPMDisp(_lmp)
   // no warnings about non-neutral systems from qsum_qsq()
   warn_nonneutral = 2;
 
-  efield = nullptr;
-  phi = nullptr;
-  potflag = 0;
-
   avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR,"pppm/dielectric requires atom style dielectric");
 }
@@ -73,7 +60,6 @@ PPPMDispDielectric::PPPMDispDielectric(LAMMPS *_lmp) : PPPMDisp(_lmp)
 PPPMDispDielectric::~PPPMDispDielectric()
 {
   memory->destroy(efield);
-  memory->destroy(phi);
 }
 
 /* ----------------------------------------------------------------------
@@ -106,14 +92,12 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
     if (function[0]) {
       memory->destroy(part2grid);
       memory->destroy(efield);
-      memory->destroy(phi);
     }
     if (function[1] + function[2] + function[3]) memory->destroy(part2grid_6);
     nmax = atom->nmax;
     if (function[0]) {
       memory->create(part2grid,nmax,3,"pppm/disp:part2grid");
       memory->create(efield,nmax,3,"pppm/disp:efield");
-      memory->create(phi,nmax,"pppm/disp:phi");
     }
     if (function[1] + function[2] + function[3])
       memory->create(part2grid_6,nmax,3,"pppm/disp:part2grid_6");
@@ -666,7 +650,7 @@ void PPPMDispDielectric::fieldforce_c_ik()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz,x0,y0,z0;
-  FFT_SCALAR ekx,eky,ekz,u;
+  FFT_SCALAR ekx,eky,ekz;
 
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -690,7 +674,7 @@ void PPPMDispDielectric::fieldforce_c_ik()
 
     compute_rho1d(dx,dy,dz, order, rho_coeff, rho1d);
 
-    u = ekx = eky = ekz = ZEROF;
+    ekx = eky = ekz = ZEROF;
     for (n = nlower; n <= nupper; n++) {
       mz = n+nz;
       z0 = rho1d[2][n];
@@ -700,17 +684,12 @@ void PPPMDispDielectric::fieldforce_c_ik()
         for (l = nlower; l <= nupper; l++) {
           mx = l+nx;
           x0 = y0*rho1d[0][l];
-          if (potflag) u += x0*u_brick[mz][my][mx];
           ekx -= x0*vdx_brick[mz][my][mx];
           eky -= x0*vdy_brick[mz][my][mx];
           ekz -= x0*vdz_brick[mz][my][mx];
         }
       }
     }
-
-    // electrostatic potential
-
-    if (potflag) phi[i] = u;
 
     // convert E-field to force
 
@@ -776,14 +755,13 @@ void PPPMDispDielectric::fieldforce_c_ad()
     compute_rho1d(dx,dy,dz, order, rho_coeff, rho1d);
     compute_drho1d(dx,dy,dz, order, drho_coeff, drho1d);
 
-    u = ekx = eky = ekz = ZEROF;
+    ekx = eky = ekz = ZEROF;
     for (n = nlower; n <= nupper; n++) {
       mz = n+nz;
       for (m = nlower; m <= nupper; m++) {
         my = m+ny;
         for (l = nlower; l <= nupper; l++) {
           mx = l+nx;
-          u += rho1d[0][l]*rho1d[1][m]*rho1d[2][n]*u_brick[mz][my][mx];
           ekx += drho1d[0][l]*rho1d[1][m]*rho1d[2][n]*u_brick[mz][my][mx];
           eky += rho1d[0][l]*drho1d[1][m]*rho1d[2][n]*u_brick[mz][my][mx];
           ekz += rho1d[0][l]*rho1d[1][m]*drho1d[2][n]*u_brick[mz][my][mx];
@@ -793,10 +771,6 @@ void PPPMDispDielectric::fieldforce_c_ad()
     ekx *= hx_inv;
     eky *= hy_inv;
     ekz *= hz_inv;
-
-    // electrical potential
-
-    if (potflag) phi[i] = u;
 
     // convert E-field to force and substract self forces
     const double qfactor = qqrd2e * scale;
@@ -874,10 +848,6 @@ void PPPMDispDielectric::fieldforce_c_peratom()
         }
       }
     }
-
-    // electrostatic potential
-
-    phi[i] = u_pa;
 
     // convert E-field to force
 

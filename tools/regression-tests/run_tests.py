@@ -584,6 +584,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         failed_rel_output = []
         num_checks = 0
         mismatched_columns = False
+        mismatched_num_steps = False
 
         for irun in range(num_runs):
             num_fields = len(thermo[irun]['keywords'])
@@ -596,6 +597,13 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
             # get the total number of the thermo output lines
             nthermo_steps = len(thermo[irun]['data'])
+            nthermo_steps_ref = len(thermo_ref[irun]['data'])
+
+            if nthermo_steps_ref != nthermo_steps:
+                logger.info(f"     failed: Number of thermo steps in {logfilename} ({nthermo_steps})")
+                logger.info(f"     is different from that in the reference log ({nthermo_steps_ref}) in run {irun}.")
+                mismatched_num_steps = True   
+                continue
 
             # get the output at the last timestep
             thermo_step = nthermo_steps - 1
@@ -647,12 +655,30 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                     print(f"        {thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
 
         # after all runs completed, or are interrupted in one of the runs (mismatched_columns = True)
-
         if mismatched_columns == True:
-            msg = f"     mismatched log files after the first run. Check both log files for more details."
+            msg = f"     mismatched columns in the log files after the first run. Check both log files for more details."
             print(msg)
             logger.info(msg)
             result.status = "thermo checks failed due to mismatched log files after the first run"
+            results.append(result)
+            progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
+            progress.close()
+            num_error = num_error + 1
+            test_id = test_id + 1
+            continue
+
+        # some runs that involve the minimize command that leads to different number of steps vs the reference log file
+        if mismatched_num_steps == True:
+            msg = f"     mismatched num steps in the log files. Check both log files for more details."
+            print(msg)
+            logger.info(msg)
+            result.status = "thermo checks failed due to mismatched log files "
+            results.append(result)
+            progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
+            progress.close()
+            num_error = num_error + 1
+            test_id = test_id + 1
+            continue
 
         result.status = ""
         if num_abs_failed > 0:

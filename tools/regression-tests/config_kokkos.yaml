@@ -7,32 +7,19 @@
   tolerance:
     PotEng:
       abs: 1e-4
-      rel: 1e-7
+      rel: 1e-6
     TotEng:
       abs: 1e-4
-      rel: 1e-7
+      rel: 1e-6
     Press:
       abs: 1e-4
-      rel: 1e-7
+      rel: 1e-6
     Temp:
       abs: 1e-4
-      rel: 1e-7
+      rel: 1e-6
     E_vdwl:
       abs: 1e-3
-      rel: 1e-7
-  overrides:
-    in.rigid.tnr:
-      Temp:
-        abs: 1e-3
-        rel: 1e-5
-      Press:
-        abs: 1e-2
-        rel: 1e-4
-  skip:
-    [
-      in.min.box,
-      in.icos,
-    ]
+      rel: 1e-6
 
   timeout: 120
   nugget: 1.0

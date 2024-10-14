@@ -988,6 +988,7 @@ void LammpsGui::logupdate()
     if (logwindow) {
         const auto text = capturer->GetChunk();
         if (text.size() > 0) {
+            logwindow->moveCursor(QTextCursor::End);
             logwindow->insertPlainText(text.c_str());
             logwindow->moveCursor(QTextCursor::End);
             logwindow->textCursor().deleteChar();

@@ -37,6 +37,7 @@ class FixBondReact : public Fix {
   enum { MAXNAME = 256 };    // max character length of react-ID
   enum { MAXCONIDS = 4 };    // max # of IDs used by any constraint
   enum { MAXCONPAR = 5 };    // max # of constraint parameters
+  enum class Reset_mol_ids { Yes, No, Molmap };  // values for reset_mol_ids keyword
 
   FixBondReact(class LAMMPS *, int, char **);
   ~FixBondReact() override;
@@ -66,7 +67,7 @@ class FixBondReact : public Fix {
   int *max_rxn, *nlocalkeep, *nghostlykeep;
   tagint lastcheck;
   int stabilization_flag;
-  int reset_mol_ids_flag;
+  Reset_mol_ids molid_mode;
   int custom_exclude_flag;
   int **rate_limit;
   int **store_rxn_count;

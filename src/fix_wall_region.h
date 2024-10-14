@@ -37,6 +37,8 @@ class FixWallRegion : public Fix {
   void min_post_force(int) override;
   double compute_scalar() override;
   double compute_vector(int) override;
+  double compute_volume(); //Needs to be re-written for parallelisation
+  int dynflag;
 
  private:
   int style;

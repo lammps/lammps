@@ -2053,3 +2053,17 @@ double PairLubricateU::dot_vec_vec(int N, double *x, double *y)
   for (int i = 0; i < N; i++) dotp += x[i]*y[i];
   return dotp;
 }
+
+/* ----------------------------------------------------------------------
+   check if name is recognized, return pointer to that variable
+   if name not recognized, return nullptr
+------------------------------------------------------------------------- */
+
+void *PairLubricateU::extract(const char *str, int &dim)
+{
+  if (strcmp(str, "mu") == 0) {
+    dim = 0;
+    return (void *) &mu;
+  }
+  return nullptr;
+}

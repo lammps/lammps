@@ -1,5 +1,5 @@
 # GitHub action to build LAMMPS on Linux and run selected regression tests
-name: "Kokkos Regression Test"
+name: "Kokkos OpenMP Regression Test"
 
 on:
   pull_request:
@@ -16,6 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
+    strategy:
+      max-parallel: 4
+      matrix:
+        idx: [ 'pair', 'fix', 'compute', 'misc' ]
 
     steps:
     - name: Checkout repository
@@ -80,24 +84,33 @@ jobs:
       shell: bash
       run: |
         source linuxenv/bin/activate
-        python3 tools/regression-tests/get_kokkos_input.py --examples-top-level=examples --filter-out="balance;fire;gcmc;mdi;mliap;neb;pace;prd;pour;python;snap"
+        python3 tools/regression-tests/get_kokkos_input.py \
+               --examples-top-level=examples \
+               --filter-out="balance;fire;gcmc;mdi;mliap;neb;pace;prd;pour;python;snap"
 
         python3 tools/regression-tests/run_tests.py \
                --lmp-bin=build/lmp \
                --config-file=tools/regression-tests/config_kokkos_openmp.yaml \
-               --list-input=input-list-pair-kk.txt \
-               --quick-max=100 \
-               --output-file=output-pair.xml \
-               --progress-file=progress-pair.yaml \
-               --log-file=run-pair.log \
-               --verbose
+               --list-input=input-list-${{ matrix.idx }}-kk.txt \
+               --output-file=output-${{ matrix.idx }}.xml \
+               --progress-file=progress-${{ matrix.idx }}.yaml \
+               --log-file=run-${{ matrix.idx }}.log \
+               --quick-max=100 --verbose
 
-        tar -cvf kokkos-regression-test-pair.tar run-pair.log progress-pair.yaml output-pair.xml
+        tar -cvf kokkos-regression-test-${{ matrix.idx }}.tar run-${{ matrix.idx }}.log progress-${{ matrix.idx }}.yaml output-${{ matrix.idx }}.xml
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: kokkos-regression-test-artifact
-        path: kokkos-regression-test*.tar
+        name: kokkos-regression-test-artifact-${{ matrix.idx }}
+        path: kokkos-regression-test-${{ matrix.idx }}.tar
 
-
+  merge:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Merge Artifacts
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: merged-kokkos-regresssion-artifact
+          pattern: kokkos-regression-test-artifact-*

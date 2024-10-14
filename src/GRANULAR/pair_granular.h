@@ -45,7 +45,7 @@ class PairGranular : public Pair {
   void unpack_forward_comm(int, int, double *) override;
   double memory_usage() override;
   double atom2cut(int) override;
-  double radii2cut(double, double) override;
+  int neigh_check(int, int, double, double) override;
 
  protected:
   int freeze_group_bit;

@@ -23,6 +23,7 @@
 #include "my_page.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "pair.h"
 
 #include <cmath>
 
@@ -31,8 +32,8 @@ using namespace NeighConst;
 
 /* ---------------------------------------------------------------------- */
 
-template<int HALF, int NEWTON, int TRI, int SIZE, int ATOMONLY>
-NPairMulti<HALF, NEWTON, TRI, SIZE, ATOMONLY>::NPairMulti(LAMMPS *lmp) : NPair(lmp) {}
+template<int HALF, int NEWTON, int TRI, int SIZE, int CUSTOMCHECK, int ATOMONLY>
+NPairMulti<HALF, NEWTON, TRI, SIZE, CUSTOMCHECK, ATOMONLY>::NPairMulti(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    multi stencil is icollection-jcollection dependent
@@ -50,12 +51,12 @@ NPairMulti<HALF, NEWTON, TRI, SIZE, ATOMONLY>::NPairMulti(LAMMPS *lmp) : NPair(l
      every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-template<int HALF, int NEWTON, int TRI, int SIZE, int ATOMONLY>
-void NPairMulti<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
+template<int HALF, int NEWTON, int TRI, int SIZE, int CUSTOMCHECK, int ATOMONLY>
+void NPairMulti<HALF, NEWTON, TRI, SIZE, CUSTOMCHECK, ATOMONLY>::build(NeighList *list)
 {
   int i, j, jh, js, k, n, itype, jtype, ibin, jbin, icollection, jcollection, which, ns, imol, iatom, moltemplate;
-  tagint itag, jtag, tagprev;
-  double xtmp, ytmp, ztmp, delx, dely, delz, rsq, radsum, cut, cutsq;
+  tagint itag, jtag, tagprev, neigh_check;
+  double xtmp, ytmp, ztmp, rtmp, delx, dely, delz, rsq, radsum, cut, cutsq;
   int *neighptr, *s;
 
   const double delta = 0.01 * force->angstrom;
@@ -103,6 +104,7 @@ void NPairMulti<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+
     if (!ATOMONLY) {
       if (moltemplate) {
         imol = molindex[i];
@@ -110,6 +112,9 @@ void NPairMulti<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
         tagprev = tag[i] - iatom - 1;
       }
     }
+
+    if (SIZE)
+      rtmp = radius[i];
 
     ibin = atom2bin[i];
 
@@ -208,63 +213,55 @@ void NPairMulti<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
           delz = ztmp - x[j][2];
           rsq = delx * delx + dely * dely + delz * delz;
 
-          if (SIZE) {
-            radsum = radius[i] + radius[j];
+          if (CUSTOMCHECK) {
+            neigh_check = pair->neigh_check(i, j, skin, rsq);
+          } else if (SIZE) {
+            radsum = rtmp + radius[j];
             cut = radsum + skin;
             cutsq = cut * cut;
+            neigh_check = rsq <= cutsq;
+          } else {
+            neigh_check = rsq <= cutneighsq[itype][jtype];
+          }
 
-            if (ATOMONLY) {
-              if (rsq <= cutsq) {
-                jh = j;
-                if (history && rsq < (radsum * radsum))
-                  jh = jh ^ mask_history;
-                neighptr[n++] = jh;
-              }
+          if (!neigh_check) continue;
+
+          if (ATOMONLY) {
+            if (SIZE && history && (rsq < (radsum * radsum))) {
+              neighptr[n++] = j ^ mask_history;
             } else {
-              if (rsq <= cutsq) {
-                jh = j;
-                if (history && rsq < (radsum * radsum))
-                  jh = jh ^ mask_history;
-
-                if (molecular != Atom::ATOMIC) {
-                  if (!moltemplate)
-                    which = find_special(special[i], nspecial[i], tag[j]);
-                  else if (imol >= 0)
-                    which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
-                                         tag[j] - tagprev);
-                  else
-                    which = 0;
-                  if (which == 0)
-                    neighptr[n++] = jh;
-                  else if (domain->minimum_image_check(delx, dely, delz))
-                    neighptr[n++] = jh;
-                  else if (which > 0)
-                    neighptr[n++] = jh ^ (which << SBBITS);
-                } else
-                  neighptr[n++] = jh;
-              }
+              neighptr[n++] = j;
             }
           } else {
-            if (ATOMONLY) {
-              if (rsq <= cutneighsq[itype][jtype]) neighptr[n++] = j;
-            } else {
-              if (rsq <= cutneighsq[itype][jtype]) {
-                if (molecular != Atom::ATOMIC) {
-                  if (!moltemplate)
-                    which = find_special(special[i], nspecial[i], tag[j]);
-                  else if (imol >= 0)
-                    which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
-                                         tag[j] - tagprev);
-                  else
-                    which = 0;
-                  if (which == 0)
-                    neighptr[n++] = j;
-                  else if (domain->minimum_image_check(delx, dely, delz))
-                    neighptr[n++] = j;
-                  else if (which > 0)
-                    neighptr[n++] = j ^ (which << SBBITS);
-                } else
+            if (molecular != Atom::ATOMIC) {
+              if (!moltemplate)
+                which = find_special(special[i], nspecial[i],   tag[j]);
+              else if (imol >= 0)
+                which = find_special(onemols[imol]->special  [iatom], onemols[imol]->nspecial[iatom],
+                                     tag[j] - tagprev);
+              else
+                which = 0;
+
+              if (SIZE && history && (rsq < (radsum * radsum))) {
+                if (which == 0)
+                  neighptr[n++] = j ^ mask_history;
+                else if (domain->minimum_image_check(delx, dely, delz))
+                  neighptr[n++] = j ^ mask_history;
+                else if (which > 0)
+                  neighptr[n++] = (j ^ mask_history) ^ (which <<   SBBITS);
+              } else {
+                if (which == 0)
                   neighptr[n++] = j;
+                else if (domain->minimum_image_check(delx, dely, delz))
+                  neighptr[n++] = j;
+                else if (which > 0)
+                  neighptr[n++] = j ^ (which << SBBITS);
+              }
+            } else {
+              if (SIZE && history && (rsq < (radsum * radsum))) {
+                neighptr[n++] = j ^ mask_history;
+              } else {
+                neighptr[n++] = j;
               }
             }
           }
@@ -284,20 +281,28 @@ void NPairMulti<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
 }
 
 namespace LAMMPS_NS {
-template class NPairMulti<0,1,0,0,0>;
-template class NPairMulti<1,0,0,0,0>;
-template class NPairMulti<1,1,0,0,0>;
-template class NPairMulti<1,1,1,0,0>;
-template class NPairMulti<0,1,0,1,0>;
-template class NPairMulti<1,0,0,1,0>;
-template class NPairMulti<1,1,0,1,0>;
-template class NPairMulti<1,1,1,1,0>;
-template class NPairMulti<0,1,0,0,1>;
-template class NPairMulti<1,0,0,0,1>;
-template class NPairMulti<1,1,0,0,1>;
-template class NPairMulti<1,1,1,0,1>;
-template class NPairMulti<0,1,0,1,1>;
-template class NPairMulti<1,0,0,1,1>;
-template class NPairMulti<1,1,0,1,1>;
-template class NPairMulti<1,1,1,1,1>;
+template class NPairMulti<0,1,0,0,0,0>;
+template class NPairMulti<1,0,0,0,0,0>;
+template class NPairMulti<1,1,0,0,0,0>;
+template class NPairMulti<1,1,1,0,0,0>;
+template class NPairMulti<0,1,0,1,0,0>;
+template class NPairMulti<1,0,0,1,0,0>;
+template class NPairMulti<1,1,0,1,0,0>;
+template class NPairMulti<1,1,1,1,0,0>;
+template class NPairMulti<0,1,0,0,1,0>;
+template class NPairMulti<1,0,0,0,1,0>;
+template class NPairMulti<1,1,0,0,1,0>;
+template class NPairMulti<1,1,1,0,1,0>;
+template class NPairMulti<0,1,0,0,0,1>;
+template class NPairMulti<1,0,0,0,0,1>;
+template class NPairMulti<1,1,0,0,0,1>;
+template class NPairMulti<1,1,1,0,0,1>;
+template class NPairMulti<0,1,0,1,0,1>;
+template class NPairMulti<1,0,0,1,0,1>;
+template class NPairMulti<1,1,0,1,0,1>;
+template class NPairMulti<1,1,1,1,0,1>;
+template class NPairMulti<0,1,0,0,1,1>;
+template class NPairMulti<1,0,0,0,1,1>;
+template class NPairMulti<1,1,0,0,1,1>;
+template class NPairMulti<1,1,1,0,1,1>;
 }

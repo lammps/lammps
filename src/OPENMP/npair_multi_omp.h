@@ -13,85 +13,125 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-typedef NPairMultiOmp<0, 1, 0, 0, 0> NPairFullMultiOmp;
+typedef NPairMultiOmp<0, 1, 0, 0, 0, 0> NPairFullMultiOmp;
 NPairStyle(full/multi/omp,
            NPairFullMultiOmp,
            NP_FULL | NP_MULTI | NP_MOLONLY | NP_OMP | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairMultiOmp<1, 0, 0, 0, 0> NPairHalfMultiNewtoffOmp;
+typedef NPairMultiOmp<1, 0, 0, 0, 0, 0> NPairHalfMultiNewtoffOmp;
 NPairStyle(half/multi/newtoff/omp,
            NPairHalfMultiNewtoffOmp,
            NP_HALF | NP_MULTI | NP_MOLONLY | NP_OMP | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairMultiOmp<1, 1, 0, 0, 0> NPairHalfMultiNewtonOmp;
+typedef NPairMultiOmp<1, 1, 0, 0, 0, 0> NPairHalfMultiNewtonOmp;
 NPairStyle(half/multi/newton/omp,
            NPairHalfMultiNewtonOmp,
            NP_HALF | NP_MULTI | NP_MOLONLY | NP_OMP | NP_NEWTON | NP_ORTHO);
 
-typedef NPairMultiOmp<1, 1, 1, 0, 0> NPairHalfMultiNewtonTriOmp;
+typedef NPairMultiOmp<1, 1, 1, 0, 0, 0> NPairHalfMultiNewtonTriOmp;
 NPairStyle(half/multi/newton/tri/omp,
            NPairHalfMultiNewtonTriOmp,
            NP_HALF | NP_MULTI | NP_MOLONLY | NP_OMP | NP_NEWTON | NP_TRI);
 
-typedef NPairMultiOmp<0, 1, 0, 1, 0> NPairFullSizeMultiOmp;
+typedef NPairMultiOmp<0, 1, 0, 1, 0, 0> NPairFullSizeMultiOmp;
 NPairStyle(full/size/multi/omp,
            NPairFullSizeMultiOmp,
            NP_FULL | NP_SIZE | NP_MULTI | NP_MOLONLY | NP_OMP | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairMultiOmp<1, 0, 0, 1, 0> NPairHalfSizeMultiNewtoffOmp;
+typedef NPairMultiOmp<1, 0, 0, 1, 0, 0> NPairHalfSizeMultiNewtoffOmp;
 NPairStyle(half/size/multi/newtoff/omp,
            NPairHalfSizeMultiNewtoffOmp,
            NP_HALF | NP_SIZE | NP_MULTI | NP_MOLONLY | NP_OMP | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairMultiOmp<1, 1, 0, 1, 0> NPairHalfSizeMultiNewtonOmp;
+typedef NPairMultiOmp<1, 1, 0, 1, 0, 0> NPairHalfSizeMultiNewtonOmp;
 NPairStyle(half/size/multi/newton/omp,
            NPairHalfSizeMultiNewtonOmp,
            NP_HALF | NP_SIZE | NP_MULTI | NP_MOLONLY | NP_OMP | NP_NEWTON | NP_ORTHO);
 
-typedef NPairMultiOmp<1, 1, 1, 1, 0> NPairHalfSizeMultiNewtonTriOmp;
+typedef NPairMultiOmp<1, 1, 1, 1, 0, 0> NPairHalfSizeMultiNewtonTriOmp;
 NPairStyle(half/size/multi/newton/tri/omp,
            NPairHalfSizeMultiNewtonTriOmp,
            NP_HALF | NP_SIZE | NP_MULTI | NP_MOLONLY | NP_OMP | NP_NEWTON | NP_TRI);
 
-typedef NPairMultiOmp<0, 1, 0, 0, 1> NPairFullMultiAtomonlyOmp;
+typedef NPairMultiOmp<0, 1, 0, 0, 1, 0> NPairFullCustomCheckCutMultiOmp;
+NPairStyle(full/customcheck/cut/multi/omp,
+           NPairFullCustomCheckCutMultiOmp,
+           NP_FULL | NP_CUSTOMCHECK | NP_MULTI | NP_MOLONLY | NP_OMP | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+
+typedef NPairMultiOmp<1, 0, 0, 0, 1, 0> NPairHalfCustomCheckCutMultiNewtoffOmp;
+NPairStyle(half/customcheck/cut/multi/newtoff/omp,
+           NPairHalfCustomCheckCutMultiNewtoffOmp,
+           NP_HALF | NP_CUSTOMCHECK | NP_MULTI | NP_MOLONLY | NP_OMP | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+
+typedef NPairMultiOmp<1, 1, 0, 0, 1, 0> NPairHalfCustomCheckCutMultiNewtonOmp;
+NPairStyle(half/customcheck/cut/multi/newton/omp,
+           NPairHalfCustomCheckCutMultiNewtonOmp,
+           NP_HALF | NP_CUSTOMCHECK | NP_MULTI | NP_MOLONLY | NP_OMP | NP_NEWTON | NP_ORTHO);
+
+typedef NPairMultiOmp<1, 1, 1, 0, 1, 0> NPairHalfCustomCheckCutMultiNewtonTriOmp;
+NPairStyle(half/customcheck/cut/multi/newton/tri/omp,
+           NPairHalfCustomCheckCutMultiNewtonTriOmp,
+           NP_HALF | NP_CUSTOMCHECK | NP_MULTI | NP_MOLONLY | NP_OMP | NP_NEWTON | NP_TRI);
+
+typedef NPairMultiOmp<0, 1, 0, 0, 0, 1> NPairFullMultiAtomonlyOmp;
 NPairStyle(full/multi/atomonly/omp,
            NPairFullMultiAtomonlyOmp,
            NP_FULL | NP_MULTI | NP_ATOMONLY | NP_OMP | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairMultiOmp<1, 0, 0, 0, 1> NPairHalfMultiAtomonlyNewtoffOmp;
+typedef NPairMultiOmp<1, 0, 0, 0, 0, 1> NPairHalfMultiAtomonlyNewtoffOmp;
 NPairStyle(half/multi/atomonly/newtoff/omp,
            NPairHalfMultiAtomonlyNewtoffOmp,
            NP_HALF | NP_MULTI | NP_ATOMONLY | NP_OMP | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairMultiOmp<1, 1, 0, 0, 1> NPairHalfMultiAtomonlyNewtonOmp;
+typedef NPairMultiOmp<1, 1, 0, 0, 0, 1> NPairHalfMultiAtomonlyNewtonOmp;
 NPairStyle(half/multi/atomonly/newton/omp,
            NPairHalfMultiAtomonlyNewtonOmp,
            NP_HALF | NP_MULTI | NP_ATOMONLY | NP_OMP | NP_NEWTON | NP_ORTHO);
 
-typedef NPairMultiOmp<1, 1, 1, 0, 1> NPairHalfMultiAtomonlyNewtonTriOmp;
+typedef NPairMultiOmp<1, 1, 1, 0, 0, 1> NPairHalfMultiAtomonlyNewtonTriOmp;
 NPairStyle(half/multi/atomonly/newton/tri/omp,
            NPairHalfMultiAtomonlyNewtonTriOmp,
            NP_HALF | NP_MULTI | NP_ATOMONLY | NP_OMP | NP_NEWTON | NP_TRI);
 
-typedef NPairMultiOmp<0, 1, 0, 1, 1> NPairFullSizeMultiAtomonlyOmp;
+typedef NPairMultiOmp<0, 1, 0, 1, 0, 1> NPairFullSizeMultiAtomonlyOmp;
 NPairStyle(full/size/multi/atomonly/omp,
            NPairFullSizeMultiAtomonlyOmp,
            NP_FULL | NP_SIZE | NP_MULTI | NP_ATOMONLY | NP_OMP | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairMultiOmp<1, 0, 0, 1, 1> NPairHalfSizeMultiAtomonlyNewtoffOmp;
+typedef NPairMultiOmp<1, 0, 0, 1, 0, 1> NPairHalfSizeMultiAtomonlyNewtoffOmp;
 NPairStyle(half/size/multi/atomonly/newtoff/omp,
            NPairHalfSizeMultiAtomonlyNewtoffOmp,
            NP_HALF | NP_SIZE | NP_MULTI | NP_ATOMONLY | NP_OMP | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairMultiOmp<1, 1, 0, 1, 1> NPairHalfSizeMultiAtomonlyNewtonOmp;
+typedef NPairMultiOmp<1, 1, 0, 1, 0, 1> NPairHalfSizeMultiAtomonlyNewtonOmp;
 NPairStyle(half/size/multi/atomonly/newton/omp,
            NPairHalfSizeMultiAtomonlyNewtonOmp,
            NP_HALF | NP_SIZE | NP_MULTI | NP_ATOMONLY | NP_OMP | NP_NEWTON | NP_ORTHO);
 
-typedef NPairMultiOmp<1, 1, 1, 1, 1> NPairHalfSizeMultiAtomonlyNewtonTriOmp;
+typedef NPairMultiOmp<1, 1, 1, 1, 0, 1> NPairHalfSizeMultiAtomonlyNewtonTriOmp;
 NPairStyle(half/size/multi/atomonly/newton/tri/omp,
            NPairHalfSizeMultiAtomonlyNewtonTriOmp,
            NP_HALF | NP_SIZE | NP_MULTI | NP_ATOMONLY | NP_OMP | NP_NEWTON | NP_TRI);
+
+typedef NPairMultiOmp<0, 1, 0, 0, 1, 1> NPairFullCustomCheckCutMultiAtomonlyOmp;
+NPairStyle(full/customcheck/cut/multi/atomonly/omp,
+           NPairFullCustomCheckCutMultiAtomonlyOmp,
+           NP_FULL | NP_CUSTOMCHECK | NP_MULTI | NP_ATOMONLY | NP_OMP | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+
+typedef NPairMultiOmp<1, 0, 0, 0, 1, 1> NPairHalfCustomCheckCutMultiAtomonlyNewtoffOmp;
+NPairStyle(half/customcheck/cut/multi/atomonly/newtoff/omp,
+           NPairHalfCustomCheckCutMultiAtomonlyNewtoffOmp,
+           NP_HALF | NP_CUSTOMCHECK | NP_MULTI | NP_ATOMONLY | NP_OMP | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+
+typedef NPairMultiOmp<1, 1, 0, 0, 1, 1> NPairHalfCustomCheckCutMultiAtomonlyNewtonOmp;
+NPairStyle(half/customcheck/cut/multi/atomonly/newton/omp,
+           NPairHalfCustomCheckCutMultiAtomonlyNewtonOmp,
+           NP_HALF | NP_CUSTOMCHECK | NP_MULTI | NP_ATOMONLY | NP_OMP | NP_NEWTON | NP_ORTHO);
+
+typedef NPairMultiOmp<1, 1, 1, 0, 1, 1> NPairHalfCustomCheckCutMultiAtomonlyNewtonTriOmp;
+NPairStyle(half/customcheck/cut/multi/atomonly/newton/tri/omp,
+           NPairHalfCustomCheckCutMultiAtomonlyNewtonTriOmp,
+           NP_HALF | NP_CUSTOMCHECK | NP_MULTI | NP_ATOMONLY | NP_OMP | NP_NEWTON | NP_TRI);
 // clang-format on
 #else
 
@@ -102,7 +142,7 @@ NPairStyle(half/size/multi/atomonly/newton/tri/omp,
 
 namespace LAMMPS_NS {
 
-template<int HALF, int NEWTON, int TRI, int SIZE, int ATOMONLY>
+template<int HALF, int NEWTON, int TRI, int SIZE, int CUSTOMCHECK, int ATOMONLY>
 class NPairMultiOmp : public NPair {
  public:
   NPairMultiOmp(class LAMMPS *);

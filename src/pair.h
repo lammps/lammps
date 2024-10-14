@@ -61,6 +61,7 @@ class Pair : protected Pointers {
   int unit_convert_flag;          // value != 0 indicates support for unit conversion.
   int no_virial_fdotr_compute;    // 1 if does not invoke virial_fdotr_compute()
   int writedata;                  // 1 if writes coeffs to data file
+  int customneighcheck;           // 1 if neighbors are determined by a custom functopm, not a standard function of type/size
   int finitecutflag;              // 1 if cut depends on finite atom size
   int ghostneigh;                 // 1 if pair style needs neighbors of ghosts
   double **cutghost;              // cutoff for each ghost pair
@@ -226,7 +227,7 @@ class Pair : protected Pointers {
   virtual void min_x_set(int) {}
   virtual void transfer_history(double *, double *, int, int) {}
   virtual double atom2cut(int) { return 0.0; }
-  virtual double radii2cut(double, double) { return 0.0; }
+  virtual int neigh_check(int, int, double, double) { return 0; }
 
   // management of callbacks to be run from ev_tally()
 

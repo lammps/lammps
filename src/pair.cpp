@@ -77,6 +77,7 @@ Pair::Pair(LAMMPS *lmp) :
   one_coeff = 0;
   no_virial_fdotr_compute = 0;
   writedata = 0;
+  customneighcheck = 0;
   finitecutflag = 0;
   ghostneigh = 0;
   unit_convert_flag = utils::NOCONVERT;

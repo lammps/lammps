@@ -88,7 +88,7 @@ class GranularModel : protected Pointers {
   double *xi, *xj, *vi, *vj, *omegai, *omegaj;
   double fs[3], fr[3], ft[3];
 
-  double dx[3], nx[3], r, rsq, rinv, Reff, radsum, delta, dR;
+  double dx[3], nx[3], nxuse[3], r, rsq, rinv, Reff, radsum, delta, dR;
   double vr[3], vn[3], vnnr, vt[3], wr[3], vtr[3], vrl[3], relrot[3], vrel;
   double magtwist;
   bool touch;

@@ -988,6 +988,8 @@
 /fix_qeq_reaxff.h
 /fix_qmmm.cpp
 /fix_qmmm.h
+/fix_qtpie_reaxff.cpp
+/fix_qtpie_reaxff.h
 /fix_reaxff.cpp
 /fix_reaxff.h
 /fix_reaxff_bonds.cpp

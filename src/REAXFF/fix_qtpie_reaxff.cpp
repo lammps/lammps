@@ -13,23 +13,22 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Hasan Metin Aktulga, Purdue University
-   (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
-
-     Hybrid and sub-group capabilities: Ray Shan (Sandia)
+   Contributing authors:
+      Efstratios M Kritikos, California Institute of Technology
+      (Implemented original version in LAMMMPS Aug 2019)
+      Navraj S Lalli, Imperial College London
+      (Reimplemented QTPIE as a new fix in LAMMPS Aug 2024 and extended functionality)
 ------------------------------------------------------------------------- */
 
-#include "fix_qeq_reaxff.h"
+#include "fix_qtpie_reaxff.h"
 
 #include "atom.h"
-#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "fix_efield.h"
 #include "force.h"
 #include "group.h"
-#include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -49,50 +48,41 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
+static constexpr double CONV_TO_EV = 14.4;
 static constexpr double SMALL = 1.0e-14;
 static constexpr double QSUMSMALL = 0.00001;
-
-static const char cite_fix_qeq_reaxff[] =
-  "fix qeq/reaxff command: doi:10.1016/j.parco.2011.08.005\n\n"
-  "@Article{Aktulga12,\n"
-  " author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},\n"
-  " title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},\n"
-  " journal = {Parallel Computing},\n"
-  " year =    2012,\n"
-  " volume =  38,\n"
-  " pages =   {245--259}\n"
-  "}\n\n";
+static constexpr double ANGSTROM_TO_BOHRRADIUS = 1.8897261259;
 
 /* ---------------------------------------------------------------------- */
 
-FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), matvecs(0), pertype_option(nullptr)
+FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg), matvecs(0), pertype_option(nullptr), gauss_file(nullptr)
 {
+  // this fix returns a global scalar (the number of iterations)
   scalar_flag = 1;
   extscalar = 0;
+
+  // this fix returns a per-atom vector (the effective electronegativity)
+  peratom_flag = 1;
+  size_peratom_cols = 0;
+
   imax = 200;
   maxwarn = 1;
 
-  if ((narg < 8) || (narg > 12)) error->all(FLERR,"Illegal fix qeq/reaxff command");
+  if ((narg < 9) || (narg > 12)) error->all(FLERR,"Illegal fix {} command", style);
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery <= 0) error->all(FLERR,"Illegal fix qeq/reaxff command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix {} command", style);
 
   swa = utils::numeric(FLERR,arg[4],false,lmp);
   swb = utils::numeric(FLERR,arg[5],false,lmp);
   tolerance = utils::numeric(FLERR,arg[6],false,lmp);
   pertype_option = utils::strdup(arg[7]);
+  gauss_file = utils::strdup(arg[8]);
 
-  // dual CG support only available for OPENMP variant
-  // check for compatibility is in Fix::post_constructor()
-
-  dual_enabled = 0;
-
-  int iarg = 8;
+  int iarg = 9;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"dual") == 0) dual_enabled = 1;
-    else if (strcmp(arg[iarg],"nowarn") == 0) maxwarn = 0;
+    if (strcmp(arg[iarg],"nowarn") == 0) maxwarn = 0;
     else if (strcmp(arg[iarg],"maxiter") == 0) {
       if (iarg+1 > narg-1)
         error->all(FLERR,"Illegal fix {} command", style);
@@ -103,7 +93,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   }
   shld = nullptr;
 
-  nn = n_cap = 0;
+  nn = nt = n_cap = 0;
   nmax = 0;
   m_fill = m_cap = 0;
   pack_flag = 0;
@@ -113,7 +103,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
 
   Hdia_inv = nullptr;
   b_s = nullptr;
-  chi_field = nullptr;
+  chi_eff = nullptr;
   b_t = nullptr;
   b_prc = nullptr;
   b_prm = nullptr;
@@ -132,11 +122,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   H.jlist = nullptr;
   H.val = nullptr;
 
-  // dual CG support
-  // Update comm sizes for this fix
-
-  if (dual_enabled) comm_forward = comm_reverse = 2;
-  else comm_forward = comm_reverse = 1;
+  comm_forward = comm_reverse = 1;
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
@@ -149,11 +135,12 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixQEqReaxFF::~FixQEqReaxFF()
+FixQtpieReaxFF::~FixQtpieReaxFF()
 {
   if (copymode) return;
 
   delete[] pertype_option;
+  delete[] gauss_file;
 
   // unregister callbacks to this fix from Atom class
 
@@ -162,11 +149,12 @@ FixQEqReaxFF::~FixQEqReaxFF()
   memory->destroy(s_hist);
   memory->destroy(t_hist);
 
-  FixQEqReaxFF::deallocate_storage();
-  FixQEqReaxFF::deallocate_matrix();
+  FixQtpieReaxFF::deallocate_storage();
+  FixQtpieReaxFF::deallocate_matrix();
 
   memory->destroy(shld);
 
+  memory->destroy(gauss_exp);
   if (!reaxflag) {
     memory->destroy(chi);
     memory->destroy(eta);
@@ -176,23 +164,19 @@ FixQEqReaxFF::~FixQEqReaxFF()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::post_constructor()
+void FixQtpieReaxFF::post_constructor()
 {
-  if (lmp->citeme) lmp->citeme->add(cite_fix_qeq_reaxff);
-
   grow_arrays(atom->nmax);
   for (int i = 0; i < atom->nmax; i++)
     for (int j = 0; j < nprev; ++j)
       s_hist[i][j] = t_hist[i][j] = 0;
 
   pertype_parameters(pertype_option);
-  if (dual_enabled)
-    error->all(FLERR,"Dual keyword only supported with fix qeq/reaxff/omp");
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixQEqReaxFF::setmask()
+int FixQtpieReaxFF::setmask()
 {
   int mask = 0;
   mask |= PRE_FORCE;
@@ -203,23 +187,67 @@ int FixQEqReaxFF::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::pertype_parameters(char *arg)
+void FixQtpieReaxFF::pertype_parameters(char *arg)
 {
   const int nlocal = atom->nlocal;
   const int *mask = atom->mask;
   const int *type = atom->type;
+  const int ntypes = atom->ntypes;
+
+  // read gaussian orbital exponents
+  memory->create(gauss_exp,ntypes+1,"qtpie/reaxff:gauss_exp");
+  if (comm->me == 0) {
+    gauss_exp[0] = 0.0;
+    try {
+      TextFileReader reader(gauss_file,"qtpie/reaxff gaussian exponents");
+      reader.ignore_comments = true;
+      for (int i = 1; i <= ntypes; i++) {
+        const char *line = reader.next_line();
+        if (!line)
+          throw TokenizerException("Fix qtpie/reaxff: Incorrect number of atom types in gauss file","");
+        ValueTokenizer values(line);
+
+        if (values.count() != 2)
+          throw TokenizerException("Fix qtpie/reaxff: Incorrect number of values per line "
+                                   "in gauss file",std::to_string(values.count()));
+
+        int itype = values.next_int();
+        if ((itype < 1) || (itype > ntypes))
+          throw TokenizerException("Fix qtpie/reaxff: Invalid atom type in gauss file",
+                                   std::to_string(itype));
+
+        double exp = values.next_double();
+        if (exp < 0)
+          throw TokenizerException("Fix qtpie/reaxff: Invalid orbital exponent in gauss file",
+                                   std::to_string(exp));
+        gauss_exp[itype] = exp;
+      }
+    } catch (std::exception &e) {
+      error->one(FLERR,e.what());
+    }
+  }
+
+  MPI_Bcast(gauss_exp,ntypes+1,MPI_DOUBLE,0,world);
+
+  // define a cutoff distance (in atomic units) beyond which overlap integrals are neglected
+  // in calc_chi_eff()
+  const double exp_min = find_min_exp(gauss_exp,ntypes+1);
+  const int olap_cut = 10; // overlap integrals are neglected if less than pow(10,-olap_cut)
+  dist_cutoff = sqrt(2*olap_cut/exp_min*log(10.0));
+
+  // read chi, eta and gamma
 
   if (utils::strmatch(arg,"^reaxff")) {
     reaxflag = 1;
     Pair *pair = force->pair_match("^reaxff",0);
-    if (!pair) error->all(FLERR,"No reaxff pair style for fix qeq/reaxff");
+    if (!pair) error->all(FLERR,"No reaxff pair style for fix qtpie/reaxff");
 
     int tmp, tmp_all;
     chi = (double *) pair->extract("chi",tmp);
     eta = (double *) pair->extract("eta",tmp);
     gamma = (double *) pair->extract("gamma",tmp);
     if ((chi == nullptr) || (eta == nullptr) || (gamma == nullptr))
-      error->all(FLERR, "Fix qeq/reaxff could not extract all QEq parameters from pair reaxff");
+      error->all(FLERR, "Fix qtpie/reaxff could not extract qtpie parameters from pair reaxff");
     tmp = tmp_all = 0;
     for (int i = 0; i < nlocal; ++i) {
       if (mask[i] & groupbit) {
@@ -229,40 +257,39 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
     }
     MPI_Allreduce(&tmp, &tmp_all, 1, MPI_INT, MPI_MAX, world);
     if (tmp_all)
-      error->all(FLERR, "No QEq parameters for atom type {} provided by pair reaxff", tmp_all);
+      error->all(FLERR, "No qtpie parameters for atom type {} provided by pair reaxff", tmp_all);
     return;
   } else if (utils::strmatch(arg,"^reax/c")) {
-    error->all(FLERR, "Fix qeq/reaxff keyword 'reax/c' is obsolete; please use 'reaxff'");
+    error->all(FLERR, "Fix qtpie/reaxff keyword 'reax/c' is obsolete; please use 'reaxff'");
   } else if (platform::file_is_readable(arg)) {
     ; // arg is readable file. will read below
   } else {
-    error->all(FLERR, "Unknown fix qeq/reaxff keyword {}", arg);
+    error->all(FLERR, "Unknown fix qtpie/reaxff keyword {}", arg);
   }
 
   reaxflag = 0;
 
-  const int ntypes = atom->ntypes;
-  memory->create(chi,ntypes+1,"qeq/reaxff:chi");
-  memory->create(eta,ntypes+1,"qeq/reaxff:eta");
-  memory->create(gamma,ntypes+1,"qeq/reaxff:gamma");
+  memory->create(chi,ntypes+1,"qtpie/reaxff:chi");
+  memory->create(eta,ntypes+1,"qtpie/reaxff:eta");
+  memory->create(gamma,ntypes+1,"qtpie/reaxff:gamma");
 
   if (comm->me == 0) {
     chi[0] = eta[0] = gamma[0] = 0.0;
     try {
-      TextFileReader reader(arg,"qeq/reaxff parameter");
+      TextFileReader reader(arg,"qtpie/reaxff parameter");
       reader.ignore_comments = false;
       for (int i = 1; i <= ntypes; i++) {
         const char *line = reader.next_line();
         if (!line)
-          throw TokenizerException("Fix qeq/reaxff: Invalid param file format","");
+          throw TokenizerException("Fix qtpie/reaxff: Invalid param file format","");
         ValueTokenizer values(line);
 
         if (values.count() != 4)
-          throw TokenizerException("Fix qeq/reaxff: Incorrect format of param file","");
+          throw TokenizerException("Fix qtpie/reaxff: Incorrect format of param file","");
 
         int itype = values.next_int();
         if ((itype < 1) || (itype > ntypes))
-          throw TokenizerException("Fix qeq/reaxff: invalid atom type in param file",
+          throw TokenizerException("Fix qtpie/reaxff: Invalid atom type in param file",
                                    std::to_string(itype));
 
         chi[itype] = values.next_double();
@@ -281,33 +308,32 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::allocate_storage()
+void FixQtpieReaxFF::allocate_storage()
 {
   nmax = atom->nmax;
 
-  memory->create(s,nmax,"qeq:s");
-  memory->create(t,nmax,"qeq:t");
+  memory->create(s,nmax,"qtpie:s");
+  memory->create(t,nmax,"qtpie:t");
 
-  memory->create(Hdia_inv,nmax,"qeq:Hdia_inv");
-  memory->create(b_s,nmax,"qeq:b_s");
-  memory->create(chi_field,nmax,"qeq:chi_field");
-  memory->create(b_t,nmax,"qeq:b_t");
-  memory->create(b_prc,nmax,"qeq:b_prc");
-  memory->create(b_prm,nmax,"qeq:b_prm");
+  memory->create(Hdia_inv,nmax,"qtpie:Hdia_inv");
+  memory->create(b_s,nmax,"qtpie:b_s");
+  memory->create(chi_eff,nmax,"qtpie:chi_eff");
+  vector_atom = chi_eff;
+  memory->create(b_t,nmax,"qtpie:b_t");
+  memory->create(b_prc,nmax,"qtpie:b_prc");
+  memory->create(b_prm,nmax,"qtpie:b_prm");
 
-  // dual CG support
   int size = nmax;
-  if (dual_enabled) size*= 2;
 
-  memory->create(p,size,"qeq:p");
-  memory->create(q,size,"qeq:q");
-  memory->create(r,size,"qeq:r");
-  memory->create(d,size,"qeq:d");
+  memory->create(p,size,"qtpie:p");
+  memory->create(q,size,"qtpie:q");
+  memory->create(r,size,"qtpie:r");
+  memory->create(d,size,"qtpie:d");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::deallocate_storage()
+void FixQtpieReaxFF::deallocate_storage()
 {
   memory->destroy(s);
   memory->destroy(t);
@@ -317,7 +343,7 @@ void FixQEqReaxFF::deallocate_storage()
   memory->destroy(b_t);
   memory->destroy(b_prc);
   memory->destroy(b_prm);
-  memory->destroy(chi_field);
+  memory->destroy(chi_eff);
 
   memory->destroy(p);
   memory->destroy(q);
@@ -327,7 +353,7 @@ void FixQEqReaxFF::deallocate_storage()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::reallocate_storage()
+void FixQtpieReaxFF::reallocate_storage()
 {
   deallocate_storage();
   allocate_storage();
@@ -336,7 +362,7 @@ void FixQEqReaxFF::reallocate_storage()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::allocate_matrix()
+void FixQtpieReaxFF::allocate_matrix()
 {
   int i,ii;
   bigint m;
@@ -368,15 +394,15 @@ void FixQEqReaxFF::allocate_matrix()
 
   H.n = n_cap;
   H.m = m_cap;
-  memory->create(H.firstnbr,n_cap,"qeq:H.firstnbr");
-  memory->create(H.numnbrs,n_cap,"qeq:H.numnbrs");
-  memory->create(H.jlist,m_cap,"qeq:H.jlist");
-  memory->create(H.val,m_cap,"qeq:H.val");
+  memory->create(H.firstnbr,n_cap,"qtpie:H.firstnbr");
+  memory->create(H.numnbrs,n_cap,"qtpie:H.numnbrs");
+  memory->create(H.jlist,m_cap,"qtpie:H.jlist");
+  memory->create(H.val,m_cap,"qtpie:H.val");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::deallocate_matrix()
+void FixQtpieReaxFF::deallocate_matrix()
 {
   memory->destroy(H.firstnbr);
   memory->destroy(H.numnbrs);
@@ -386,7 +412,7 @@ void FixQEqReaxFF::deallocate_matrix()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::reallocate_matrix()
+void FixQtpieReaxFF::reallocate_matrix()
 {
   deallocate_matrix();
   allocate_matrix();
@@ -394,7 +420,7 @@ void FixQEqReaxFF::reallocate_matrix()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::init()
+void FixQtpieReaxFF::init()
 {
   if (!atom->q_flag)
     error->all(FLERR,"Fix {} requires atom attribute q", style);
@@ -403,7 +429,6 @@ void FixQEqReaxFF::init()
     error->all(FLERR,"Fix {} group has no atoms", style);
 
   // compute net charge and print warning if too large
-
   double qsum_local = 0.0, qsum = 0.0;
   for (int i = 0; i < atom->nlocal; i++) {
     if (atom->mask[i] & groupbit)
@@ -415,7 +440,6 @@ void FixQEqReaxFF::init()
     error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}", style, qsum);
 
   // get pointer to fix efield if present. there may be at most one instance of fix efield in use.
-
   efield = nullptr;
   auto fixes = modify->get_fix_by_style("^efield");
   if (fixes.size() == 1) efield = dynamic_cast<FixEfield *>(fixes.front());
@@ -428,19 +452,17 @@ void FixQEqReaxFF::init()
     if (strcmp(update->unit_style,"real") != 0)
       error->all(FLERR,"Must use unit_style real with fix {} and external fields", style);
 
+    if (efield->groupbit != 1){ // if efield is not applied to all atoms
+      error->all(FLERR,"Must use group id all for fix efield when using fix {}", style);
+    }
+
+    if (efield->region){ // if efield is not applied to all atoms
+      error->all(FLERR,"Keyword region not supported for fix efield when using fix {}", style);
+    }
+
     if (efield->varflag == FixEfield::ATOM && efield->pstyle != FixEfield::ATOM)
       error->all(FLERR,"Atom-style external electric field requires atom-style "
                        "potential variable when used with fix {}", style);
-    if (((efield->xstyle != FixEfield::CONSTANT) && domain->xperiodic) ||
-         ((efield->ystyle != FixEfield::CONSTANT) && domain->yperiodic) ||
-         ((efield->zstyle != FixEfield::CONSTANT) && domain->zperiodic))
-      error->all(FLERR,"Must not have electric field component in direction of periodic "
-                       "boundary when using charge equilibration with ReaxFF.");
-    if (((fabs(efield->ex) > SMALL) && domain->xperiodic) ||
-         ((fabs(efield->ey) > SMALL) && domain->yperiodic) ||
-         ((fabs(efield->ez) > SMALL) && domain->zperiodic))
-      error->all(FLERR,"Must not have electric field component in direction of periodic "
-                       "boundary when using charge equilibration with ReaxFF.");
   }
 
   // we need a half neighbor list w/ Newton off
@@ -457,28 +479,28 @@ void FixQEqReaxFF::init()
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEqReaxFF::compute_scalar()
+double FixQtpieReaxFF::compute_scalar()
 {
   return matvecs/2.0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::init_list(int /*id*/, NeighList *ptr)
+void FixQtpieReaxFF::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::init_shielding()
+void FixQtpieReaxFF::init_shielding()
 {
   int i,j;
   int ntypes;
 
   ntypes = atom->ntypes;
   if (shld == nullptr)
-    memory->create(shld,ntypes+1,ntypes+1,"qeq:shielding");
+    memory->create(shld,ntypes+1,ntypes+1,"qtpie:shielding");
 
   for (i = 1; i <= ntypes; ++i)
     for (j = 1; j <= ntypes; ++j)
@@ -487,16 +509,16 @@ void FixQEqReaxFF::init_shielding()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::init_taper()
+void FixQtpieReaxFF::init_taper()
 {
   double d7, swa2, swa3, swb2, swb3;
 
   if (fabs(swa) > 0.01 && comm->me == 0)
-    error->warning(FLERR,"Fix qeq/reaxff has non-zero lower Taper radius cutoff");
+    error->warning(FLERR,"Fix qtpie/reaxff has non-zero lower Taper radius cutoff");
   if (swb < 0)
-    error->all(FLERR, "Fix qeq/reaxff has negative upper Taper radius cutoff");
+    error->all(FLERR, "Fix qtpie/reaxff has negative upper Taper radius cutoff");
   else if (swb < 5 && comm->me == 0)
-    error->warning(FLERR,"Fix qeq/reaxff has very low Taper radius cutoff");
+    error->warning(FLERR,"Fix qtpie/reaxff has very low Taper radius cutoff");
 
   d7 = pow(swb - swa, 7);
   swa2 = SQR(swa);
@@ -517,15 +539,17 @@ void FixQEqReaxFF::init_taper()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::setup_pre_force(int vflag)
+void FixQtpieReaxFF::setup_pre_force(int vflag)
 {
   if (reaxff) {
     nn = reaxff->list->inum;
+    nt = reaxff->list->inum + reaxff->list->gnum;
     ilist = reaxff->list->ilist;
     numneigh = reaxff->list->numneigh;
     firstneigh = reaxff->list->firstneigh;
   } else {
     nn = list->inum;
+    nt = list->inum + list->gnum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
@@ -544,7 +568,7 @@ void FixQEqReaxFF::setup_pre_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::setup_pre_force_respa(int vflag, int ilevel)
+void FixQtpieReaxFF::setup_pre_force_respa(int vflag, int ilevel)
 {
   if (ilevel < nlevels_respa-1) return;
   setup_pre_force(vflag);
@@ -552,23 +576,22 @@ void FixQEqReaxFF::setup_pre_force_respa(int vflag, int ilevel)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::min_setup_pre_force(int vflag)
+void FixQtpieReaxFF::min_setup_pre_force(int vflag)
 {
   setup_pre_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::init_storage()
+void FixQtpieReaxFF::init_storage()
 {
-  if (efield) get_chi_field();
+  calc_chi_eff();
 
   for (int ii = 0; ii < nn; ii++) {
     int i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[atom->type[i]];
-      b_s[i] = -chi[atom->type[i]];
-      if (efield) b_s[i] -= chi_field[i];
+      b_s[i] = -chi_eff[i];
       b_t[i] = -1.0;
       b_prc[i] = 0;
       b_prm[i] = 0;
@@ -579,7 +602,7 @@ void FixQEqReaxFF::init_storage()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::pre_force(int /*vflag*/)
+void FixQtpieReaxFF::pre_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
 
@@ -587,11 +610,13 @@ void FixQEqReaxFF::pre_force(int /*vflag*/)
 
   if (reaxff) {
     nn = reaxff->list->inum;
+    nt = reaxff->list->inum + reaxff->list->gnum;
     ilist = reaxff->list->ilist;
     numneigh = reaxff->list->numneigh;
     firstneigh = reaxff->list->firstneigh;
   } else {
     nn = list->inum;
+    nt = list->inum + list->gnum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
@@ -604,7 +629,7 @@ void FixQEqReaxFF::pre_force(int /*vflag*/)
   if (n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
-  if (efield) get_chi_field();
+  calc_chi_eff();
 
   init_matvec();
 
@@ -617,21 +642,21 @@ void FixQEqReaxFF::pre_force(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::pre_force_respa(int vflag, int ilevel, int /*iloop*/)
+void FixQtpieReaxFF::pre_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) pre_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::min_pre_force(int vflag)
+void FixQtpieReaxFF::min_pre_force(int vflag)
 {
   pre_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::init_matvec()
+void FixQtpieReaxFF::init_matvec()
 {
   /* fill-in H matrix */
   compute_H();
@@ -644,8 +669,7 @@ void FixQEqReaxFF::init_matvec()
 
       /* init pre-conditioner for H and init solution vectors */
       Hdia_inv[i] = 1. / eta[atom->type[i]];
-      b_s[i]      = -chi[atom->type[i]];
-      if (efield) b_s[i] -= chi_field[i];
+      b_s[i]      = -chi_eff[i];
       b_t[i]      = -1.0;
 
       /* quadratic extrapolation for s & t from previous solutions */
@@ -664,7 +688,7 @@ void FixQEqReaxFF::init_matvec()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::compute_H()
+void FixQtpieReaxFF::compute_H()
 {
   int jnum;
   int i, j, ii, jj, flag;
@@ -720,13 +744,13 @@ void FixQEqReaxFF::compute_H()
   }
 
   if (m_fill >= H.m)
-    error->all(FLERR,"Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
+    error->all(FLERR,"Fix qtpie/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
                m_fill, H.m);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEqReaxFF::calculate_H(double r, double gamma)
+double FixQtpieReaxFF::calculate_H(double r, double gamma)
 {
   double Taper, denom;
 
@@ -741,12 +765,12 @@ double FixQEqReaxFF::calculate_H(double r, double gamma)
   denom = r * r * r + gamma;
   denom = pow(denom,1.0/3.0);
 
-  return Taper * EV_TO_KCAL_PER_MOL / denom;
+  return Taper * CONV_TO_EV / denom;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixQEqReaxFF::CG(double *b, double *x)
+int FixQtpieReaxFF::CG(double *b, double *x)
 {
   int  i, j;
   double tmp, alpha, beta, b_norm;
@@ -795,7 +819,7 @@ int FixQEqReaxFF::CG(double *b, double *x)
   }
 
   if ((i >= imax) && maxwarn && (comm->me == 0))
-    error->warning(FLERR, "Fix qeq/reaxff CG convergence failed after {} iterations at step {}",
+    error->warning(FLERR, "Fix qtpie/reaxff CG convergence failed after {} iterations at step {}",
                    i,update->ntimestep);
   return i;
 }
@@ -803,7 +827,7 @@ int FixQEqReaxFF::CG(double *b, double *x)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::sparse_matvec(sparse_matrix *A, double *x, double *b)
+void FixQtpieReaxFF::sparse_matvec(sparse_matrix *A, double *x, double *b)
 {
   int i, j, itr_j;
   int ii;
@@ -833,7 +857,7 @@ void FixQEqReaxFF::sparse_matvec(sparse_matrix *A, double *x, double *b)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::calculate_Q()
+void FixQtpieReaxFF::calculate_Q()
 {
   int i, k;
   double u, s_sum, t_sum;
@@ -866,7 +890,7 @@ void FixQEqReaxFF::calculate_Q()
 
 /* ---------------------------------------------------------------------- */
 
-int FixQEqReaxFF::pack_forward_comm(int n, int *list, double *buf,
+int FixQtpieReaxFF::pack_forward_comm(int n, int *list, double *buf,
                                   int /*pbc_flag*/, int * /*pbc*/)
 {
   int m;
@@ -893,7 +917,7 @@ int FixQEqReaxFF::pack_forward_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::unpack_forward_comm(int n, int first, double *buf)
+void FixQtpieReaxFF::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, m;
 
@@ -918,7 +942,7 @@ void FixQEqReaxFF::unpack_forward_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int FixQEqReaxFF::pack_reverse_comm(int n, int first, double *buf)
+int FixQtpieReaxFF::pack_reverse_comm(int n, int first, double *buf)
 {
   int i, m;
   if (pack_flag == 5) {
@@ -938,7 +962,7 @@ int FixQEqReaxFF::pack_reverse_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::unpack_reverse_comm(int n, int *list, double *buf)
+void FixQtpieReaxFF::unpack_reverse_comm(int n, int *list, double *buf)
 {
   if (pack_flag == 5) {
     int m = 0;
@@ -956,7 +980,7 @@ void FixQEqReaxFF::unpack_reverse_comm(int n, int *list, double *buf)
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
-double FixQEqReaxFF::memory_usage()
+double FixQtpieReaxFF::memory_usage()
 {
   double bytes;
 
@@ -966,9 +990,6 @@ double FixQEqReaxFF::memory_usage()
   bytes += (double)m_cap * sizeof(int);
   bytes += (double)m_cap * sizeof(double);
 
-  if (dual_enabled)
-    bytes += (double)atom->nmax*4 * sizeof(double); // double size for q, d, r, and p
-
   return bytes;
 }
 
@@ -976,17 +997,17 @@ double FixQEqReaxFF::memory_usage()
    allocate fictitious charge arrays
 ------------------------------------------------------------------------- */
 
-void FixQEqReaxFF::grow_arrays(int nmax)
+void FixQtpieReaxFF::grow_arrays(int nmax)
 {
-  memory->grow(s_hist,nmax,nprev,"qeq:s_hist");
-  memory->grow(t_hist,nmax,nprev,"qeq:t_hist");
+  memory->grow(s_hist,nmax,nprev,"qtpie:s_hist");
+  memory->grow(t_hist,nmax,nprev,"qtpie:t_hist");
 }
 
 /* ----------------------------------------------------------------------
    copy values within fictitious charge arrays
 ------------------------------------------------------------------------- */
 
-void FixQEqReaxFF::copy_arrays(int i, int j, int /*delflag*/)
+void FixQtpieReaxFF::copy_arrays(int i, int j, int /*delflag*/)
 {
   for (int m = 0; m < nprev; m++) {
     s_hist[j][m] = s_hist[i][m];
@@ -998,7 +1019,7 @@ void FixQEqReaxFF::copy_arrays(int i, int j, int /*delflag*/)
    pack values in local atom-based array for exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixQEqReaxFF::pack_exchange(int i, double *buf)
+int FixQtpieReaxFF::pack_exchange(int i, double *buf)
 {
   for (int m = 0; m < nprev; m++) buf[m] = s_hist[i][m];
   for (int m = 0; m < nprev; m++) buf[nprev+m] = t_hist[i][m];
@@ -1009,7 +1030,7 @@ int FixQEqReaxFF::pack_exchange(int i, double *buf)
    unpack values in local atom-based array from exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixQEqReaxFF::unpack_exchange(int nlocal, double *buf)
+int FixQtpieReaxFF::unpack_exchange(int nlocal, double *buf)
 {
   for (int m = 0; m < nprev; m++) s_hist[nlocal][m] = buf[m];
   for (int m = 0; m < nprev; m++) t_hist[nlocal][m] = buf[nprev+m];
@@ -1018,7 +1039,7 @@ int FixQEqReaxFF::unpack_exchange(int nlocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEqReaxFF::parallel_norm(double *v, int n)
+double FixQtpieReaxFF::parallel_norm(double *v, int n)
 {
   int  i;
   double my_sum, norm_sqr;
@@ -1040,7 +1061,7 @@ double FixQEqReaxFF::parallel_norm(double *v, int n)
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEqReaxFF::parallel_dot(double *v1, double *v2, int n)
+double FixQtpieReaxFF::parallel_dot(double *v1, double *v2, int n)
 {
   int  i;
   double my_dot, res;
@@ -1062,7 +1083,7 @@ double FixQEqReaxFF::parallel_dot(double *v1, double *v2, int n)
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEqReaxFF::parallel_vector_acc(double *v, int n)
+double FixQtpieReaxFF::parallel_vector_acc(double *v, int n)
 {
   int  i;
   double my_acc, res;
@@ -1084,7 +1105,7 @@ double FixQEqReaxFF::parallel_vector_acc(double *v, int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::vector_sum(double* dest, double c, double* v,
+void FixQtpieReaxFF::vector_sum(double* dest, double c, double* v,
                                 double d, double* y, int k)
 {
   int kk;
@@ -1098,7 +1119,7 @@ void FixQEqReaxFF::vector_sum(double* dest, double c, double* v,
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::vector_add(double* dest, double c, double* v, int k)
+void FixQtpieReaxFF::vector_add(double* dest, double c, double* v, int k)
 {
   int kk;
 
@@ -1111,55 +1132,100 @@ void FixQEqReaxFF::vector_add(double* dest, double c, double* v, int k)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::get_chi_field()
+void FixQtpieReaxFF::calc_chi_eff()
 {
-  memset(&chi_field[0],0,atom->nmax*sizeof(double));
-  if (!efield) return;
+  memset(&chi_eff[0],0,atom->nmax*sizeof(double));
 
   const auto x = (const double * const *)atom->x;
-  const int *mask = atom->mask;
-  const imageint *image = atom->image;
-  const int nlocal = atom->nlocal;
+  const int ntypes = atom->ntypes;
+  const int *type = atom->type;
 
+  double dist,overlap,sum_n,sum_d,expa,expb,chia,chib,phia,phib,p,m;
+  int i,j;
 
-  // update electric field region if necessary
-
-  Region *region = efield->region;
-  if (region) region->prematch();
-
-  // efield energy is in real units of kcal/mol/angstrom, need to convert to eV
-
-  const double qe2f = force->qe2f;
-  const double factor = -1.0/qe2f;
-
-
-  if (efield->varflag != FixEfield::CONSTANT)
-    efield->update_efield_variables();
-
-  // atom selection is for the group of fix efield
-
-  double unwrap[3];
-  const double ex = efield->ex;
-  const double ey = efield->ey;
-  const double ez = efield->ez;
-  const int efgroupbit = efield->groupbit;
-
-    // charge interactions
-    // force = qE, potential energy = F dot x in unwrapped coords
-  if (efield->varflag != FixEfield::ATOM) {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & efgroupbit) {
-        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
-        domain->unmap(x[i],image[i],unwrap);
-        chi_field[i] = factor*(ex*unwrap[0] + ey*unwrap[1] + ez*unwrap[2]);
-      }
-    }
-  } else { // must use atom-style potential from FixEfield
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & efgroupbit) {
-        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
-        chi_field[i] = efield->efield[i][3];
-      }
-    }
+  // check ghost atoms are stored up to the distance cutoff for overlap integrals
+  const double comm_cutoff = MAX(neighbor->cutneighmax,comm->cutghostuser);
+  if(comm_cutoff < dist_cutoff/ANGSTROM_TO_BOHRRADIUS) {
+    error->all(FLERR,"comm cutoff = {} Angstrom is smaller than distance cutoff = {} Angstrom "
+               "for overlap integrals in {}. Increase comm cutoff with comm_modify",
+               comm_cutoff, dist_cutoff/ANGSTROM_TO_BOHRRADIUS, style);
   }
+
+  // efield energy is in real units of kcal/mol, factor needed for conversion to eV
+  const double qe2f = force->qe2f;
+  const double factor = 1.0/qe2f;
+
+  if (efield) {
+    if (efield->varflag != FixEfield::CONSTANT)
+      efield->update_efield_variables();
+  }
+
+  // compute chi_eff for each local atom
+  for (i = 0; i < nn; i++) {
+    expa = gauss_exp[type[i]];
+    chia = chi[type[i]];
+    if (efield) {
+      if (efield->varflag != FixEfield::ATOM) {
+        phia = -factor*(x[i][0]*efield->ex  + x[i][1]*efield->ey + x[i][2]*efield->ez);
+      } else { // atom-style potential from FixEfield
+        phia = efield->efield[i][3];
+      }
+    }
+
+    sum_n = 0.0;
+    sum_d = 0.0;
+
+    for (j = 0; j < nt; j++) {
+      dist = distance(x[i],x[j])*ANGSTROM_TO_BOHRRADIUS; // in atomic units
+
+      if (dist < dist_cutoff) {
+        expb = gauss_exp[type[j]];
+        chib = chi[type[j]];
+
+        // overlap integral of two normalised 1s Gaussian type orbitals
+        p = expa + expb;
+        m = expa * expb / p;
+        overlap = pow((4.0*m/p),0.75) * exp(-m*dist*dist);
+
+        if (efield) {
+          if (efield->varflag != FixEfield::ATOM) {
+            phib = -factor*(x[j][0]*efield->ex  + x[j][1]*efield->ey + x[j][2]*efield->ez);
+          } else { // atom-style potential from FixEfield
+            phib = efield->efield[j][3];
+          }
+          sum_n += (chia - chib + phia - phib) * overlap;
+        } else {
+          sum_n += (chia - chib) * overlap;
+        }
+        sum_d += overlap;
+      }
+    }
+
+    chi_eff[i] = sum_n / sum_d;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixQtpieReaxFF::find_min_exp(const double *array, const int array_length)
+{
+  // index of first gaussian orbital exponent is 1
+  double exp_min = array[1];
+  for (int i = 2; i < array_length; i++)
+  {
+    if (array[i] < exp_min)
+      exp_min = array[i];
+  }
+  return exp_min;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixQtpieReaxFF::distance(const double *posa, const double *posb)
+{
+  double dx, dy, dz;
+  dx = posb[0] - posa[0];
+  dy = posb[1] - posa[1];
+  dz = posb[2] - posa[2];
+  return sqrt(dx*dx + dy*dy + dz*dz);
 }

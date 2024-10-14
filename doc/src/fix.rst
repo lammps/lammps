@@ -366,6 +366,7 @@ accelerated styles exist.
 * :doc:`qeq/slater <fix_qeq>` - charge equilibration via Slater method
 * :doc:`qmmm <fix_qmmm>` - functionality to enable a quantum mechanics/molecular mechanics coupling
 * :doc:`qtb <fix_qtb>` - implement quantum thermal bath scheme
+* :doc:`qtpie/reaxff <fix_qtpie_reaxff>` - apply QTPIE charge equilibration
 * :doc:`rattle <fix_shake>` - RATTLE constraints on bonds and/or angles
 * :doc:`reaxff/bonds <fix_reaxff_bonds>` - write out ReaxFF bond information
 * :doc:`reaxff/species <fix_reaxff_species>` - write out ReaxFF molecule information

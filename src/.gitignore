@@ -1268,6 +1268,10 @@
 /pair_hbond_dreiding_lj.h
 /pair_hbond_dreiding_morse.cpp
 /pair_hbond_dreiding_morse.h
+/pair_hbond_dreiding_lj_angleoffset.cpp
+/pair_hbond_dreiding_lj_angleoffset.h
+/pair_hbond_dreiding_morse_angleoffset.cpp
+/pair_hbond_dreiding_morse_angleoffset.h
 /pair_hdnnp.cpp
 /pair_hdnnp.h
 /pair_ilp_graphene_hbn.cpp

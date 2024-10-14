@@ -31,8 +31,6 @@ class ComputeRmsd : public Compute {
   void init() override;
   double compute_scalar() override;
 
-
-
  protected:
 
   tagint *group_taglist;

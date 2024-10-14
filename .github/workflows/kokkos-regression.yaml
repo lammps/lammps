@@ -86,6 +86,7 @@ jobs:
                --lmp-bin=build/lmp \
                --config-file=tools/regression-tests/config_kokkos_openmp.yaml \
                --list-input=input-list-pair-kk.txt \
+               --quick --quick-max=100 \
                --output-file=output-pair.xml \
                --progress-file=progress-pair.yaml \
                --log-file=run-pair.log \
@@ -97,6 +98,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: kokkos-regression-test-artifact
-        path: kokkos-regression-test.tar
+        path: kokkos-regression-test*.tar
 
 

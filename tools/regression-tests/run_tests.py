@@ -1370,6 +1370,14 @@ if __name__ == "__main__":
                         example_inputs.append(input)
                         num_inputscripts += 1
 
+            # allow to select randomly some input scripts at this point if quick is set to be True
+            if quick:
+                if len(example_inputs) > quick_max:
+                    example_inputs = random.sample(example_inputs, quick_max)
+                    msg = "\nTesting " + str(quick_max) + " randomly selected inputs"
+                    print(msg)
+                    logger.info(msg)
+
             example_subfolders = folder_list
             msg = f"\nThere are {num_inputscripts} input scripts listed in {list_input}."
             print(msg)

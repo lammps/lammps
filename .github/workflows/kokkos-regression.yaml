@@ -19,7 +19,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        idx: [ 'pair', 'compute', 'misc' ]
+        idx: [ 'pair', 'fix', 'compute', 'misc' ]
 
     steps:
     - name: Checkout repository

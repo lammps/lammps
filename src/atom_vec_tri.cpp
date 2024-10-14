@@ -61,7 +61,7 @@ AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
   fields_comm_vel = {"omega", "angmom"};
   fields_reverse = {"torque"};
   fields_border = {"molecule", "radius", "rmass"};
-  fields_border_vel = {"molecule", "radius", "rmass", "omega"};
+  fields_border_vel = {"molecule", "radius", "rmass", "omega", "angmom"};
   fields_exchange = {"molecule", "radius", "rmass", "omega", "angmom"};
   fields_restart = {"molecule", "radius", "rmass", "omega", "angmom"};
   fields_create = {"molecule", "radius", "rmass", "omega", "angmom", "tri"};

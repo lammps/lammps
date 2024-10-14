@@ -25,6 +25,8 @@ Syntax
        *dynamic/dof* value = *yes* or *no*
          yes/no = do or do not re-compute the number of degrees of freedom (DOF) contributing to the temperature
        *energy* value = *yes* or *no*
+       *move* values = args
+          for details, see the list below of fixes which support this keyword
        *press* value = compute ID that calculates a pressure
        *respa* value = *1* to *max respa level* or *0* (for outermost level)
        *temp* value = compute ID that calculates a temperature
@@ -171,7 +173,6 @@ will have no effect on the motion of the rigid bodies if they are
 specified in the input script after the fix rigid command.  LAMMPS
 will give a warning if that is the case.
 
-
 The *colname* keyword can be used to change the default header keywords
 in output files of fix styles that support it: currently only :doc:`fix
 ave/time <fix_ave_time>` is supported.  The setting for *ID string*
@@ -184,6 +185,14 @@ replaces the string for that specific keyword. The *colname* keyword can
 be used multiple times. If multiple *colname* settings refer to the same
 keyword, the last setting has precedence.
 
+----------
+
+The *move* keyword is currently supported by only this fix:
+
+* :doc:`fix surface/global <fix_surface_global>
+
+See its doc page for details of the *move* keyword syntax and its
+meaning.
 
 Restrictions
 """"""""""""

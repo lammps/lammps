@@ -85,6 +85,7 @@ MyPoolChunk<T>::MyPoolChunk(int user_minchunk, int user_maxchunk, int user_nbin,
 }
 
 /** Destroy class instance and free all allocated memory */
+
 template <class T> MyPoolChunk<T>::~MyPoolChunk()
 {
   delete[] freehead;

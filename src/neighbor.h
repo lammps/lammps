@@ -355,6 +355,7 @@ namespace NeighConst {
     REQ_NEWTON_ON = 1 << 8,
     REQ_NEWTON_OFF = 1 << 9,
     REQ_SSA = 1 << 10,
+    REQ_ONESIDED = 1 << 11
   };
 }    // namespace NeighConst
 

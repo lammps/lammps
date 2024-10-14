@@ -53,11 +53,11 @@ used to measure properties of a system.
 
 For each atom, this compute accesses its chunk ID from the specified
 *chunkID* compute.  The per-atom value from an input contributes to a
-per-chunk value corresponding the the chunk ID.
+per-chunk value corresponding the chunk ID.
 
 The reduction operation is specified by the *mode* setting and is
 performed over all the per-atom values from the atoms in each chunk.
-The *sum* option adds the pre-atom values to a per-chunk total.  The
+The *sum* option adds the per-atom values to a per-chunk total.  The
 *min* or *max* options find the minimum or maximum value of the per-atom
 values for each chunk.
 
@@ -67,7 +67,7 @@ atom (i.e., the atom is not in a chunk defined by the :doc:`compute
 chunk/atom <compute_chunk_atom>` command), that atom will also not
 contribute to the reduction operation.  An input that is a compute or
 fix may define its own group which affects the quantities it returns.
-For example, a compute with return a zero value for atoms that are not
+For example, a compute will return a zero value for atoms that are not
 in the group specified for that compute.
 
 Each listed input is operated on independently.  Each input can be the

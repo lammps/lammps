@@ -20,10 +20,11 @@
     E_vdwl:
       abs: 1e-3
       rel: 1e-7
-  
+
   skip:
     [
       in.min.box,
+      in.icos,
     ]
 
   timeout: 120

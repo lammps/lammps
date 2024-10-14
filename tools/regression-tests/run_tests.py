@@ -1123,7 +1123,7 @@ if __name__ == "__main__":
                         help="Determine which test inputs have commands changed between a branch and the head")
     parser.add_argument("--quick-branch", dest="quick_branch", default=quick_branch,
                         help="Branch to which compare the current head to for changed styles")
-    parser.add_argument("--quick-max", dest="quick_max", default=50,
+    parser.add_argument("--quick-max", dest="quick_max", default=0,
                         help="Maximum number of inputs to randomly select")
     parser.add_argument("--quick-reference", dest="quick_reference", default=quick_reference,
                         help="Reference YAML file with progress data from full regression test run")
@@ -1370,13 +1370,12 @@ if __name__ == "__main__":
                         example_inputs.append(input)
                         num_inputscripts += 1
 
-            # allow to select randomly some input scripts at this point if quick is set to be True
-            if quick:
-                if len(example_inputs) > quick_max:
-                    example_inputs = random.sample(example_inputs, quick_max)
-                    msg = "\nTesting " + str(quick_max) + " randomly selected inputs"
-                    print(msg)
-                    logger.info(msg)
+            # allow to select randomly some input scripts at this point if quick_max is set
+            if quick_max > 0 and len(example_inputs) > quick_max:
+                example_inputs = random.sample(example_inputs, quick_max)
+                msg = "\nTesting " + str(quick_max) + " randomly selected inputs"
+                print(msg)
+                logger.info(msg)
 
             example_subfolders = folder_list
             msg = f"\nThere are {num_inputscripts} input scripts listed in {list_input}."

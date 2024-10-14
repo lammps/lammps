@@ -54,7 +54,7 @@ ComputeRmsd::ComputeRmsd(LAMMPS *lmp, int narg, char **arg) :
   MathEigen::Alloc2D(group_count, 3, &x_group);
   MathEigen::Alloc2D(group_count, 3, &x_group_shifted);
   MathEigen::Alloc2D(group_count, 3, &ref_positions_shifted);
-  memory->create(group_taglist,group_count,"rmsd:group_taglist");
+  memory->create(group_taglist,group_count,"compute_rmsd:group_taglist");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -97,14 +97,14 @@ int ComputeRmsd::idcompare(const int i, const int j, void *ptr)
 
 double ComputeRmsd::compute_scalar()
 {
+  invoked_scalar = update->ntimestep;
   double inverse_quat[4];
-  return rmsd(inverse_quat);
+  scalar = rmsd(inverse_quat);
+  return scalar;
 }
 
 
 /* ---------------------------------------------------------------------- */
-
-// FIXME: should it be static inline, or inline. do i care...
 
 using std::fdim;
 using std::sqrt;
@@ -250,9 +250,13 @@ double ComputeRmsd::rmsd( double inverse_quat[4] )
       E0 += (square(x_group_shifted[n][d] - ref_positions_shifted[n][d]));
       x_group[n][d] = tmp[d]+aCenter_m[d];
     }
+        //std::cerr << fmt::format(" *** x_group_shifted[{}] {:.6} {:.6} {:.6} ref_positions_shifted[{}] {:.6} {:.6} {:.6}\n", n, x_group_shifted[n][0],x_group_shifted[n][1],x_group_shifted[n][2], n, ref_positions_shifted[n][0],ref_positions_shifted[n][1],ref_positions_shifted[n][2] );
+
     //std::cerr << fmt::format(" *** AFTER_TRANSLATION x_group[{}] {:.6} {:.6} {:.6}\n", n,x_group[n][0],x_group[n][1],x_group[n][2]);
   }
+
   return sqrt(fdim(E0, 2.0 * Evl[0])/group_count); // Evl[0] = the maximum eigenvalue of P
+
 }
 
 /* ---------------------------------------------------------------------- */

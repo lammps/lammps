@@ -53,6 +53,7 @@ class Fix : protected Pointers {
   int nevery;                  // how often to call an end_of_step fix
   int thermo_energy;           // 1 if fix_modify energy enabled, 0 if not
   int thermo_virial;           // 1 if fix_modify virial enabled, 0 if not
+  int thermo_modify_colname;   // 1 if fix has custom column names for output
   int energy_global_flag;      // 1 if contributes to global eng
   int energy_peratom_flag;     // 1 if contributes to peratom eng
   int virial_global_flag;      // 1 if contributes to global virial
@@ -236,6 +237,7 @@ class Fix : protected Pointers {
   virtual double compute_scalar() { return 0.0; }
   virtual double compute_vector(int) { return 0.0; }
   virtual double compute_array(int, int) { return 0.0; }
+  virtual std::string get_thermo_colname(int) { return {};  }
 
   virtual bigint dof(int) { return 0; }
   virtual void deform(int) {}

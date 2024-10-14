@@ -113,6 +113,7 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
   lostflag = lostbond = Thermo::ERROR;
   lostbefore = warnbefore = 0;
   flushflag = 0;
+  autocolname = 0;
   triclinic_general = 0;
   firststep = 0;
   ntimestep = -1;
@@ -652,6 +653,10 @@ void Thermo::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg + 1], "default") == 0) {
         for (auto &item : keyword_user) item.clear();
         iarg += 2;
+      } else if (strcmp(arg[iarg + 1], "auto") == 0) {
+        autocolname = 1;
+        parse_fields(line);
+        iarg += 2;
       } else {
         if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "thermo_modify colname", error);
         int icol = -1;
@@ -1075,6 +1080,9 @@ void Thermo::parse_fields(const std::string &str)
             error->all(FLERR, "Thermo compute array is accessed out-of-range");
         }
 
+        if (autocolname && icompute->thermo_modify_colname)
+          keyword_user[nfield] = icompute->get_thermo_colname(argindex1[nfield]-1);
+
         if (argindex1[nfield] == 0)
           field2index[nfield] = add_compute(argi.get_name(), SCALAR);
         else if (argindex2[nfield] == 0)
@@ -1100,6 +1108,9 @@ void Thermo::parse_fields(const std::string &str)
           if (argindex2[nfield] > ifix->size_array_cols)
             error->all(FLERR, "Thermo fix array is accessed out-of-range");
         }
+
+        if (autocolname && ifix->thermo_modify_colname)
+          keyword_user[nfield] = ifix->get_thermo_colname(argindex1[nfield]-1);
 
         field2index[nfield] = add_fix(argi.get_name());
         addfield(word.c_str(), &Thermo::compute_fix, FLOAT);

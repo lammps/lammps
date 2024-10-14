@@ -69,6 +69,7 @@ OPT.
    * :doc:`eos/cv <fix_eos_cv>`
    * :doc:`eos/table <fix_eos_table>`
    * :doc:`eos/table/rx (k) <fix_eos_table_rx>`
+   * :doc:`epot/lepton <fix_epot_lepton>`
    * :doc:`evaporate <fix_evaporate>`
    * :doc:`external <fix_external>`
    * :doc:`ffl <fix_ffl>`

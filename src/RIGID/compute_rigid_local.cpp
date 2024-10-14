@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_rigid_local.h"
-#include <cstring>
+
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
@@ -21,6 +21,8 @@
 #include "fix_rigid_small.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -150,7 +152,7 @@ int ComputeRigidLocal::compute_rigid(int flag)
 {
   int i,m,n,ibody;
   double *ptr;
-  FixRigidSmall::Body *body;
+  RigidSmallBody *body;
 
   double xprd = domain->xprd;
   double yprd = domain->yprd;

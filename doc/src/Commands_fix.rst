@@ -83,6 +83,7 @@ OPT.
    * :doc:`halt <fix_halt>`
    * :doc:`heat <fix_heat>`
    * :doc:`heat/flow <fix_heat_flow>`
+   * :doc:`hmc <fix_hmc>`
    * :doc:`hyper/global <fix_hyper_global>`
    * :doc:`hyper/local <fix_hyper_local>`
    * :doc:`imd <fix_imd>`

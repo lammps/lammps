@@ -262,6 +262,7 @@ accelerated styles exist.
 * :doc:`halt <fix_halt>` - terminate a dynamics run or minimization
 * :doc:`heat <fix_heat>` - add/subtract momentum-conserving heat
 * :doc:`heat/flow <fix_heat_flow>` - plain time integration of heat flow with per-atom temperature updates
+* :doc:`hmc <fix_hmc>` -  Hybrid/Hamiltonian Monte Carlo (HMC) particle propagation
 * :doc:`hyper/global <fix_hyper_global>` - global hyperdynamics
 * :doc:`hyper/local <fix_hyper_local>` - local hyperdynamics
 * :doc:`imd <fix_imd>` - implements the "Interactive MD" (IMD) protocol

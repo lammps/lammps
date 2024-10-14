@@ -347,8 +347,8 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_ARRAY_ALLOCATED(atom->x, expected.has_x);
     ASSERT_ARRAY_ALLOCATED(atom->v, expected.has_v);
     ASSERT_ARRAY_ALLOCATED(atom->f, expected.has_f);
-    ASSERT_ARRAY_ALLOCATED(atom->q, expected.q_flag);
     ASSERT_ARRAY_ALLOCATED(atom->mu, expected.mu_flag);
+    ASSERT_ARRAY_ALLOCATED(atom->q, expected.q_flag);
 
     ASSERT_ARRAY_ALLOCATED(atom->omega, expected.omega_flag);
     ASSERT_ARRAY_ALLOCATED(atom->angmom, expected.angmom_flag);

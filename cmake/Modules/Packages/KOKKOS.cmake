@@ -130,6 +130,7 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/atom_vec_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/comm_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/comm_tiled_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/group_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/min_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/min_linesearch_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/neighbor_kokkos.cpp

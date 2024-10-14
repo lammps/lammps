@@ -43,7 +43,7 @@ OPT.
    * :doc:`brownian/asphere <fix_brownian>`
    * :doc:`brownian/sphere <fix_brownian>`
    * :doc:`charge/regulation <fix_charge_regulation>`
-   * :doc:`cmap <fix_cmap>`
+   * :doc:`cmap (k) <fix_cmap>`
    * :doc:`colvars <fix_colvars>`
    * :doc:`controller <fix_controller>`
    * :doc:`damping/cundall <fix_damping_cundall>`
@@ -134,7 +134,7 @@ OPT.
    * :doc:`nve/dot <fix_nve_dot>`
    * :doc:`nve/dotc/langevin <fix_nve_dotc_langevin>`
    * :doc:`nve/eff <fix_nve_eff>`
-   * :doc:`nve/limit <fix_nve_limit>`
+   * :doc:`nve/limit (k) <fix_nve_limit>`
    * :doc:`nve/line <fix_nve_line>`
    * :doc:`nve/manifold/rattle <fix_nve_manifold_rattle>`
    * :doc:`nve/noforce <fix_nve_noforce>`
@@ -190,7 +190,7 @@ OPT.
    * :doc:`rattle <fix_shake>`
    * :doc:`reaxff/bonds (k) <fix_reaxff_bonds>`
    * :doc:`reaxff/species (k) <fix_reaxff_species>`
-   * :doc:`recenter <fix_recenter>`
+   * :doc:`recenter (k) <fix_recenter>`
    * :doc:`restrain <fix_restrain>`
    * :doc:`rheo <fix_rheo>`
    * :doc:`rheo/oxidation <fix_rheo_oxidation>`
@@ -268,7 +268,7 @@ OPT.
    * :doc:`wall/piston <fix_wall_piston>`
    * :doc:`wall/reflect (k) <fix_wall_reflect>`
    * :doc:`wall/reflect/stochastic <fix_wall_reflect_stochastic>`
-   * :doc:`wall/region <fix_wall_region>`
+   * :doc:`wall/region (k) <fix_wall_region>`
    * :doc:`wall/region/ees <fix_wall_ees>`
    * :doc:`wall/srd <fix_wall_srd>`
    * :doc:`wall/table <fix_wall>`

@@ -38,7 +38,7 @@ class FixWallRegion : public Fix {
   double compute_scalar() override;
   double compute_vector(int) override;
 
- private:
+ protected:
   int style;
   double epsilon, sigma, cutoff;
   double alpha;

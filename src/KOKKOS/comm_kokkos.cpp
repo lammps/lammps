@@ -739,6 +739,8 @@ void CommKokkos::exchange()
         auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
         if (!fix_iextra->exchange_comm_device) {
           flag = 0;
+          if (comm->me == 0)
+            error->warning(FLERR,"Fix {} not compatible with sending data in Kokkos communication", fix_iextra->style);
           break;
         }
       }

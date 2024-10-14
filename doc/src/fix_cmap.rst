@@ -1,7 +1,10 @@
 .. index:: fix cmap
+.. index:: fix cmap/kk
 
 fix cmap command
 ================
+
+Accelerator Variants: *cmap/kk*
 
 Syntax
 """"""
@@ -140,6 +143,12 @@ outermost level.
    potential energy of the system (the quantity being minimized), you
    MUST not disable the :doc:`fix_modify <fix_modify>` *energy* option
    for this fix.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

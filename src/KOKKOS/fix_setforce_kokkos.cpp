@@ -84,7 +84,7 @@ void FixSetForceKokkos<DeviceType>::post_force(int /*vflag*/)
   // update region if necessary
 
   if (region) {
-    if (!utils::strmatch(region->style, "^block"))
+    if (!(utils::strmatch(region->style, "^block") || utils::strmatch(region->style, "^sphere")))
       error->all(FLERR,"Cannot (yet) use {}-style region with fix setforce/kk",region->style);
     region->prematch();
     DAT::tdual_int_1d k_match = DAT::tdual_int_1d("setforce:k_match",nlocal);

@@ -86,7 +86,7 @@ jobs:
                --lmp-bin=build/lmp \
                --config-file=tools/regression-tests/config_kokkos_openmp.yaml \
                --list-input=input-list-pair-kk.txt \
-               --quick --quick-max=100 \
+               --quick-max=100 \
                --output-file=output-pair.xml \
                --progress-file=progress-pair.yaml \
                --log-file=run-pair.log \

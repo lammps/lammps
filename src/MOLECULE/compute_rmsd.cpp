@@ -97,10 +97,16 @@ int ComputeRmsd::idcompare(const int i, const int j, void *ptr)
 
 double ComputeRmsd::compute_scalar()
 {
+
+  // Skip if already calculated on this timestep
+  if (invoked_scalar == update->ntimestep) return scalar;
+
   invoked_scalar = update->ntimestep;
   double inverse_quat[4];
-  scalar = rmsd(inverse_quat);
+  double scalar_local = rmsd(inverse_quat);
+  MPI_Allreduce(&scalar_local, &scalar, 1, MPI_DOUBLE, MPI_SUM, world);
   return scalar;
+
 }
 
 

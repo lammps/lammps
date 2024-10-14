@@ -6,6 +6,9 @@ and :doc:`built an executable <Build>`.  The :doc:`Commands <Commands>`
 doc page describes how input scripts are structured and the commands
 they can contain.
 
+..  youtube:: pPN4ll7cSrU
+  :align: center
+
 .. toctree::
    :maxdepth: 1
 

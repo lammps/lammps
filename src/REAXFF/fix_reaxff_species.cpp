@@ -15,6 +15,7 @@
    Contributing authors: Ray Shan (Sandia, tnshan@sandia.gov)
                          Oleg Sergeev (VNIIA, sergeev@vniia.ru)
                          Jacob Gissinger (NASA, jacob.r.gissinger@gmail.com), 'delete' keyword
+                         Mitch Murphy (alphataubio at gmail), 'output' keyword
 ------------------------------------------------------------------------- */
 
 #include "fix_reaxff_species.h"
@@ -161,7 +162,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   // optional args
   filepos = filedel = nullptr;
   eleflag = posflag = padflag = 0;
-  delflag = specieslistflag = masslimitflag = 0;
+  delflag = specieslistflag = masslimitflag = outputflag = 0;
   delete_Nlimit = delete_Nsteps = 0;
 
   singlepos_opened = multipos_opened = del_opened = 0;
@@ -261,7 +262,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
       posflag = 1;
       posfreq = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       if (posfreq < nfreq || (posfreq % nfreq != 0))
-        error->all(FLERR, "Incompatible fix reaxff/species postion frequency {}", posfreq);
+        error->all(FLERR, "Incompatible fix reaxff/species position frequency {}", posfreq);
 
       filepos = new char[255];
       strcpy(filepos, arg[iarg + 2]);
@@ -278,6 +279,21 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
         multipos = 0;
       }
       iarg += 3;
+    } else if (strcmp(arg[iarg], "output") == 0) {
+
+      outputflag = 1;
+      iarg++;
+
+      while(strcmp(arg[iarg], "other") != 0) {
+        output_species.push_back(arg[iarg]);
+        iarg++;
+        if(iarg >= narg)
+          utils::missing_cmd_args(FLERR, "fix reaxff/species output", error);
+      }
+
+      size_vector = output_species.size() + 3;
+      iarg++;
+
     } else
       error->all(FLERR, "Unknown fix reaxff/species keyword: {}", arg[iarg]);
   }
@@ -419,7 +435,6 @@ void FixReaxFFSpecies::post_integrate()
 /* ---------------------------------------------------------------------- */
 
 void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
-
 {
   int Nmole, Nspec;
 
@@ -1118,6 +1133,34 @@ double FixReaxFFSpecies::compute_vector(int n)
 {
   if (n == 0) return vector_nmole;
   if (n == 1) return vector_nspec;
+
+  if( outputflag==1 ) {
+
+    // MolType not initialized yet, return 0.0 as default
+    if( MolType==nullptr ) return 0.0;
+
+    int nmol_other = 0;
+
+    for( int i=0 ; i<Nmoltype; i++ ) {
+      std::string molname;
+      for( int j=0 ; j<nutypes; j++ ) {
+        int itemp = MolType[nutypes * i + j];
+        if (itemp != 0) {
+          molname += ueletype[j];
+          if (itemp != 1) molname += std::to_string(itemp);
+        }
+      }
+
+      if( n<size_vector-1 && molname.compare(output_species[n-2])==0 )
+        return (double)NMol[i];
+      else if( std::find(output_species.begin(), output_species.end(), molname) == std::end(output_species) )
+        nmol_other += NMol[i];
+
+    }
+    if( n==size_vector-1 )
+        return (double)nmol_other;
+
+  }
   return 0.0;
 }
 

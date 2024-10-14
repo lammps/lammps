@@ -1,23 +1,14 @@
 # 35,000 atom nylon melt example
 
 units real
-
 boundary p p p
-
 atom_style full
-
 kspace_style pppm 1.0e-4
-
 pair_style lj/class2/coul/long 8.5
-
 angle_style class2
-
 bond_style class2
-
 dihedral_style class2
-
 improper_style class2
-
 special_bonds lj/coul 0 0 1
 pair_modify tail yes mix sixthpower
 
@@ -35,8 +26,6 @@ molecule mol2 rxn1_stp1_reacted.molecule_template
 molecule mol3 rxn1_stp2_unreacted.molecule_template
 molecule mol4 rxn1_stp2_reacted.molecule_template
 
-thermo 50
-
 # dump 1 all xyz 100 test_vis.xyz
 # dump_modify 1 types labels
 
@@ -51,6 +40,7 @@ fix 1 statted_grp_REACT nvt temp 800 800 100
 # you can use the internally created 'bond_react_MASTER_group', like so:
 # fix 2 bond_react_MASTER_group temp/rescale 1 800 800 10 1
 
+thermo 50
 thermo_style custom step temp press density f_myrxns[*] # cumulative reaction counts
 
 # restart 100 restart1 restart2

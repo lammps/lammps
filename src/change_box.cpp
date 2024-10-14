@@ -52,9 +52,7 @@ void ChangeBox::command(int narg, char **arg)
 
   // group
 
-  int igroup = group->find(arg[0]);
-  if (igroup == -1) error->all(FLERR,"Could not find change_box group ID {}", arg[0]);
-  int groupbit = group->bitmask[igroup];
+  int groupbit = group->get_bitmask_by_id(FLERR, arg[0], "change_box");
 
   // parse operation arguments
   // allocate ops to max possible length

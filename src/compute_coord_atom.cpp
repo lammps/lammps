@@ -39,8 +39,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 5) error->all(FLERR, "Illegal compute coord/atom command");
 
-  jgroup = group->find("all");
-  jgroupbit = group->bitmask[jgroup];
+  jgroupbit = group->get_bitmask_by_id(FLERR, "all", "compute coord/atom");
   cstyle = NONE;
 
   if (strcmp(arg[3], "cutoff") == 0) {
@@ -50,11 +49,10 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 
     int iarg = 5;
     if ((narg > 6) && (strcmp(arg[5], "group") == 0)) {
+      delete[] group2;
       group2 = utils::strdup(arg[6]);
       iarg += 2;
-      jgroup = group->find(group2);
-      if (jgroup == -1) error->all(FLERR, "Compute coord/atom group2 ID does not exist");
-      jgroupbit = group->bitmask[jgroup];
+      jgroupbit = group->get_bitmask_by_id(FLERR, group2, "compute coord/atom");
     }
 
     ncol = narg - iarg + 1;

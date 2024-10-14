@@ -46,7 +46,7 @@ class ComputeCoordAtom : public Compute {
   double **carray;
 
   char *group2;
-  int jgroup, jgroupbit;
+  int jgroupbit;
 
   class ComputeOrientOrderAtom *c_orientorder;
   char *id_orientorder;

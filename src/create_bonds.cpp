@@ -59,12 +59,8 @@ void CreateBonds::command(int narg, char **arg)
   if (strcmp(arg[0], "many") == 0) {
     style = MANY;
     if (narg != 6) error->all(FLERR, "No optional keywords allowed with create_bonds many");
-    igroup = group->find(arg[1]);
-    if (igroup == -1) error->all(FLERR, "Cannot find create_bonds first group ID {}", arg[1]);
-    group1bit = group->bitmask[igroup];
-    igroup = group->find(arg[2]);
-    if (igroup == -1) error->all(FLERR, "Cannot find create_bonds second group ID {}", arg[2]);
-    group2bit = group->bitmask[igroup];
+    group1bit = group->get_bitmask_by_id(FLERR, arg[1], "create_bonds");
+    group2bit = group->get_bitmask_by_id(FLERR, arg[2], "create_bonds");
     btype = utils::inumeric(FLERR, arg[3], false, lmp);
     rmin = utils::numeric(FLERR, arg[4], false, lmp);
     rmax = utils::numeric(FLERR, arg[5], false, lmp);

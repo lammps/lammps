@@ -35,7 +35,7 @@ class ComputeGroupGroup : public Compute {
 
  private:
   char *group2;
-  int jgroup, jgroupbit, othergroupbit;
+  int jgroupbit;
   double **cutsq;
   double e_self, e_correction;
   int pairflag, kspaceflag, boundaryflag, molflag;

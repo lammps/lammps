@@ -468,6 +468,9 @@ class PyLammps(object):
     self.comm_nprocs = self.lmp.extract_setting("world_size")
     self.comm_me = self.lmp.extract_setting("world_rank")
     if self.comm_me == 0:
+      print("\nWARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING")
+      print("WARNING:   The PyLammps class is obsolete and will be removed from LAMMPS soon.")
+      print("WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING\n")
       print("LAMMPS output is captured by PyLammps wrapper")
       if self.comm_nprocs > 1:
         print("WARNING: Using PyLammps with multiple MPI ranks is experimental. Not all functionality is supported.")

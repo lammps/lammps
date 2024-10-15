@@ -16,7 +16,7 @@ environments is on a :doc:`separate page <Howto_cmake>`.
 
 .. note::
 
-   LAMMPS currently requires that CMake version 3.16 or later is available.
+   LAMMPS currently requires that CMake version 3.20 or later is available.
 
 .. warning::
 
@@ -32,11 +32,11 @@ environments is on a :doc:`separate page <Howto_cmake>`.
 Advantages of using CMake
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-CMake is an alternative to compiling LAMMPS in the traditional way
-through :doc:`(manually customized) makefiles <Build_make>`.  Using
-CMake has multiple advantages that are specifically helpful for
-people with limited experience in compiling software or for people
-that want to modify or extend LAMMPS.
+CMake is the preferred way of compiling LAMMPS in contrast to the legacy
+build system based on GNU make and through :doc:`(manually customized)
+makefiles <Build_make>`.  Using CMake has multiple advantages that are
+specifically helpful for people with limited experience in compiling
+software or for people that want to modify or extend LAMMPS.
 
 - CMake can detect available hardware, tools, features, and libraries
   and adapt the LAMMPS default build configuration accordingly.
@@ -47,7 +47,7 @@ that want to modify or extend LAMMPS.
   knowledge of file formats or complex command line syntax is required.
 - All enabled components are compiled in a single build operation.
 - Automated dependency tracking for all files and configuration options.
-- Support for true out-of-source compilation. Multiple configurations
+- Support for true out-of-source compilation.  Multiple configurations
   and settings with different choices of LAMMPS packages, settings, or
   compilers can be configured and built concurrently from the same
   source tree.

@@ -35,6 +35,7 @@ class AngleClass2P6 : public Angle {
   void read_restart(FILE *) override;
   void write_data(FILE *) override;
   double single(int, int, int, int) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double *theta0, *k2, *k3, *k4, *k5, *k6;

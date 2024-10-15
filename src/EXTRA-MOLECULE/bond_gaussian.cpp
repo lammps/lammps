@@ -337,3 +337,14 @@ void BondGaussian::born_matrix(int type, double rsq, int /*i*/, int /*j*/, doubl
 
   du2 = - (force->boltz * bond_temperature[type]) * numerator / denominator;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void *BondGaussian::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"alpha") == 0) return (void *) alpha;
+  if (strcmp(str,"width") == 0) return (void *) width;
+  if (strcmp(str,"r0") == 0) return (void *) r0;
+  return nullptr;
+}

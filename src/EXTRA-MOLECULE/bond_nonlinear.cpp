@@ -228,6 +228,7 @@ void BondNonlinear::born_matrix(int type, double rsq, int /*i*/, int /*j*/, doub
 void *BondNonlinear::extract(const char *str, int &dim)
 {
   dim = 1;
+  if (strcmp(str,"lamda")==0) return (void*) lamda;
   if (strcmp(str,"epsilon")==0) return (void*) epsilon;
   if (strcmp(str,"r0")==0) return (void*) r0;
   return nullptr;

@@ -64,17 +64,29 @@ jobs:
               -D Kokkos_ARCH_ARMAVX=on \
               -D Kokkos_ENABLE_OPENMP=on \
               -D Kokkos_ENABLE_CUDA=off  \
+              -D PKG_AMOEBA=on \
+              -D PKG_ASPHERE=on \
               -D PKG_BROWNIAN=on \
               -D PKG_CLASS2=on \
               -D PKG_COLLOID=on \
               -D PKG_CORESHELL=on \
               -D PKG_DIPOLE=on \
               -D PKG_DPD-BASIC=on \
+              -D PKG_EXTRA-COMPUTE=on \
+              -D PKG_EXTRA-FIX=on \
+              -D PKG_EXTRA-MOLECULE=on \
+              -D PKG_EXTRA-PAIR=on \
               -D PKG_GRANULAR=on \
+              -D PKG_LEPTON=on \
+              -D PKG_MC=on \
+              -D PKG_MEAM=on \
+              -D PKG_POEMS=on \
               -D PKG_PYTHON=on \
               -D PKG_QEQ=on \
               -D PKG_REAXFF=on \
               -D PKG_REPLICA=on \
+              -D PKG_SRD=on \
+              -D PKG_VORONOI=on \
               -D BUILD_OMP=yes \
               -G Ninja
         cmake --build build
@@ -86,7 +98,7 @@ jobs:
         source linuxenv/bin/activate
         python3 tools/regression-tests/get_kokkos_input.py \
                --examples-top-level=examples \
-               --filter-out="balance;fire;gcmc;mdi;mliap;neb;pace;prd;pour;python;snap"
+               --filter-out="balance;fire;gcmc;granregion;mdi;mliap;neb;pace;prd;pour;python;snap"
 
         python3 tools/regression-tests/run_tests.py \
                --lmp-bin=build/lmp \

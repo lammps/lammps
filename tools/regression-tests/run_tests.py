@@ -147,10 +147,12 @@ class TestResult:
 def iterate(lmp_binary, input_folder, input_list, config, results, progress_file, failure_file, walltime_ref=1, verbose=False, last_progress=None, output_buf=None):
 
     num_tests = len(input_list)
+
+    num_skipped = 0 
+    num_error = 0
+    num_failed = 0
     num_completed = 0
     num_passed = 0
-    num_skipped = 0
-    num_error = 0
     num_memleak = 0
     test_id = 0
 
@@ -498,14 +500,14 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             if thermo_ref:
                 num_runs_ref = len(thermo_ref)
             else:
-                # thhe thermo_ref dictionary is empty
+                # the thermo_ref dictionary is empty
                 logger.info(f"    failed, error parsing the reference log file {thermo_ref_file}.")
                 result.status = "skipped numerical checks due to parsing the reference log file"
                 results.append(result)
                 progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'completed, numerical checks skipped, unsupported log file format', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
                 progress.close()
                 num_completed = num_completed + 1
-                num_error = num_error + 1
+                num_failed = num_failed + 1
                 test_id = test_id + 1
                 continue
         else:
@@ -529,7 +531,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 progress.close()
                 failure.write(msg)
                 num_completed = num_completed + 1
-                num_error = num_error + 1
+                num_failed = num_failed + 1
                 test_id = test_id + 1
                 continue
 
@@ -544,7 +546,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             results.append(result)
             progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
             progress.close()
-            num_error = num_error + 1
+            num_completed = num_completed + 1
+            num_failed = num_failed + 1
             test_id = test_id + 1
             continue
 
@@ -560,7 +563,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             results.append(result)
             progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
             progress.close()
-            num_error = num_error + 1
+            num_completed = num_completed + 1
+            num_failed = num_failed + 1
             test_id = test_id + 1
             continue
 
@@ -663,7 +667,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             results.append(result)
             progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
             progress.close()
-            num_error = num_error + 1
+            num_completed = num_completed + 1
+            num_failed = num_failed + 1
             test_id = test_id + 1
             continue
 
@@ -676,7 +681,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             results.append(result)
             progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
             progress.close()
-            num_error = num_error + 1
+            num_completed = num_completed + 1
+            num_failed = num_failed + 1
             test_id = test_id + 1
             continue
 
@@ -713,9 +719,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             num_passed = num_passed + 1
         else:
             result.status = f" 'status': 'failed', 'abs_diff_failed': '{num_abs_failed}', 'rel_diff_failed': '{num_rel_failed}' "
-            num_error = num_error + 1
+            num_failed = num_failed + 1
 
-        
         results.append(result)
 
         # check if memleak detects from valgrind run (need to replace "mpirun" -> valgrind --leak-check=yes mpirun")
@@ -745,6 +750,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
              'num_passed': num_passed,
              'num_skipped': num_skipped,
              'num_error': num_error,
+             'num_failed': num_failed,
              'num_memleak':  num_memleak,
            }
     return stat
@@ -1489,6 +1495,7 @@ if __name__ == "__main__":
     passed_tests = 0
     skipped_tests = 0
     error_tests = 0
+    failed_tests = 0
     memleak_tests = 0
 
     # default setting is to use inplace_input
@@ -1545,6 +1552,7 @@ if __name__ == "__main__":
             skipped_tests += stat['num_skipped']
             passed_tests += stat['num_passed']
             error_tests += stat['num_error']
+            failed_tests += stat['num_failed']
             memleak_tests += stat['num_memleak']
 
             # append the results to the all_results list
@@ -1564,26 +1572,32 @@ if __name__ == "__main__":
         skipped_tests = stat['num_skipped']
         passed_tests = stat['num_passed']
         error_tests = stat['num_error']
+        failed_tests = stat['num_failed']
         memleak_tests = stat['num_memleak']
 
         all_results.extend(results)
 
-    # print out summary
+    # print out summary:
+    #  error_tests = number of runs that errored out
+    #  failed_tests = number of runs that failed the numerical checks, including missing the reference log files, different num runs and num steps in a run
+    #  completed_tests = number of runs that reached the end (Total wall time printed out) = failed_sests + passed_tests
+
     msg = "\nSummary:\n"
     msg += f"  Total number of input scripts: {total_tests}\n"
     msg += f"  - Skipped  : {skipped_tests}\n"
-    msg += f"  - Failed   : {error_tests}\n"
+    msg += f"  - Error    : {error_tests}\n"
     msg += f"  - Completed: {completed_tests}\n"
+    msg += f"     - failed   : {failed_tests}\n"
 
     # print notice to GitHub
     if 'GITHUB_STEP_SUMMARY' in os.environ:
         with open(os.environ.get('GITHUB_STEP_SUMMARY'), 'w') as f:
-            print(f"Skipped: {skipped_tests}  Failed: {error_tests}  Completed: {completed_tests}", file=f)
+            print(f"Skipped: {skipped_tests}  Error: {error_tests} Failed: {failed_tests}  Completed: {completed_tests}", file=f)
 
     if memleak_tests < completed_tests and 'valgrind' in config['mpiexec']:
-        msg += f"    - memory leak detected  : {memleak_tests}\n"
+        msg += f"     - memory leak detected  : {memleak_tests}\n"
     if passed_tests <= completed_tests:
-        msg += f"    - numerical tests passed: {passed_tests}\n"
+        msg += f"     - numerical tests passed: {passed_tests}\n"
     msg += "\nOutput:\n"
     msg += f"  - List of failed inputs         : {failure_file}\n"
     msg += f"  - Status of the tested inputs   : {progress_file}\n"

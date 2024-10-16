@@ -715,7 +715,7 @@ void PPPMDispDielectric::fieldforce_c_ad()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz;
-  FFT_SCALAR ekx,eky,ekz,u;
+  FFT_SCALAR ekx,eky,ekz;
   double s1,s2,s3;
   double sf = 0.0;
 

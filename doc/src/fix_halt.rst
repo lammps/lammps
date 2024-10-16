@@ -101,7 +101,7 @@ hstyle = bondmax option.
 .. code-block:: LAMMPS
 
    compute         bdist all bond/local dist
-   compute         bmax all reduce max c_bdist
+   compute         bmax all reduce max c_bdist inputs local
    variable        bondmax equal c_bmax
 
 Thus these two versions of a fix halt command will do the same thing:

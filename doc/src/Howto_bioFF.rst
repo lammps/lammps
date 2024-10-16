@@ -257,10 +257,6 @@ documentation for the formula it computes.
 * :doc:`angle_style <angle_harmonic>` harmonic
 * :doc:`dihedral_style <dihedral_opls>` opls
 * :doc:`improper_style <improper_harmonic>` harmonic
-* :doc:`pair_style <pair_buck>` buck
-* :doc:`pair_style <pair_buck>` buck/coul/cut
-* :doc:`pair_style <pair_buck>` buck/coul/long
-* :doc:`pair_style <pair_lj>` lj/cut
 * :doc:`pair_style <pair_lj_cut_coul>` lj/cut/coul/cut
 * :doc:`pair_style <pair_lj_cut_coul>` lj/cut/coul/long
 * :doc:`pair_modify <pair_modify>` geometric

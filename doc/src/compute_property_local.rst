@@ -18,7 +18,7 @@ Syntax
   .. parsed-literal::
 
      possible attributes = natom1, natom2, ntype1, ntype2,
-                           patom1, patom2, ptype1, ptype2,
+                           patom1, patom2, ptype1, ptype2, pmolecule1, pmolecule2,
                            batom1, batom2, btype,
                            aatom1, aatom2, aatom3, atype,
                            datom1, datom2, datom3, datom4, dtype,
@@ -37,6 +37,7 @@ Syntax
 
      patom1, patom2 = store IDs of two atoms in each pair (within force cutoff)
      ptype1, ptype2 = store types of two atoms in each pair (within force cutoff)
+     pmolecule1, pmolecule2 = store molecule ID of two atoms in each pair (within force cutoff)
 
   * Bond attributes
 
@@ -67,11 +68,13 @@ Syntax
      itype = store improper type of each improper
 
 * zero or more keyword/arg pairs may be appended
-* keyword = *cutoff*
+* keyword = *cutoff* or *group2*
 
   .. parsed-literal::
 
        *cutoff* arg = *type* or *radius*
+
+       *group2* group2-ID = select group2-ID to restrict which atoms to consider
 
 Examples
 """"""""

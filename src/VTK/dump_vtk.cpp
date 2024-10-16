@@ -1143,7 +1143,7 @@ void DumpVTK::buf2arrays(int n, double *mybuf)
               pda->InsertNextValue(mybuf[iatom*size_one+j]);
               break;
             }
-          case Dump::STRING:
+          case Dump::ELEMENT:
             {
               vtkStringArray *psa = static_cast<vtkStringArray*>(paa);
               psa->InsertNextValue(typenames[static_cast<int>(mybuf[iatom*size_one+j])]);
@@ -1509,7 +1509,7 @@ void DumpVTK::reset_vtk_data_containers()
       case Dump::DOUBLE:
         myarrays[it->first] = vtkSmartPointer<vtkDoubleArray>::New();
         break;
-      case Dump::STRING:
+      case Dump::ELEMENT:
         myarrays[it->first] = vtkSmartPointer<vtkStringArray>::New();
         break;
     }
@@ -1568,7 +1568,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
       name[TYPE] =arg[iarg];
     } else if (strcmp(arg[iarg],"element") == 0) {
       pack_choice[ELEMENT] = &DumpVTK::pack_type;
-      vtype[ELEMENT] = Dump::STRING;
+      vtype[ELEMENT] = Dump::ELEMENT;
       name[ELEMENT] = arg[iarg];
     } else if (strcmp(arg[iarg],"mass") == 0) {
       pack_choice[MASS] = &DumpVTK::pack_mass;

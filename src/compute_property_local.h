@@ -33,6 +33,8 @@ class ComputePropertyLocal : public Compute {
   void compute_local() override;
   double memory_usage() override;
 
+  int igroup2, groupbit2;
+
  private:
   int nvalues, kindflag, cutstyle;
 
@@ -60,6 +62,8 @@ class ComputePropertyLocal : public Compute {
   void pack_patom2(int);
   void pack_ptype1(int);
   void pack_ptype2(int);
+  void pack_pmolecule1(int);
+  void pack_pmolecule2(int);
 
   void pack_batom1(int);
   void pack_batom2(int);

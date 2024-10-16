@@ -1,5 +1,5 @@
-CHARMM, AMBER, COMPASS, and DREIDING force fields
-=================================================
+CHARMM, AMBER, COMPASS, DREIDING, and OPLS-AA force fields
+==========================================================
 
 A compact summary of the concepts, definitions, and properties of
 force fields with explicit bonded interactions (like the ones discussed
@@ -236,6 +236,36 @@ documentation for the formula it computes.
 
 * :doc:`special_bonds <special_bonds>` dreiding
 
+OPLS-AA
+-------
+
+OPLS-AA is a general force field for atomistic simulation of proteins in
+their native environment, developed at the `Jorgensen group
+<https://traken.chem.yale.edu/oplsaam.html>`_ at Purdue University and
+later at Yale University.
+
+This force field is based on atom types mapping to specific functional
+groups in organic and biological molecules. The atom type includes an
+average atomic charge reflecting the oxidation state of the element in a
+specific chemical bond :ref:`(Jorgensen) <howto-jorgensen>`.
+
+The interaction styles listed below compute force field formulas that
+are consistent with the OPLS-AA force field.  See each command's
+documentation for the formula it computes.
+
+* :doc:`bond_style <bond_harmonic>` harmonic
+* :doc:`angle_style <angle_harmonic>` harmonic
+* :doc:`dihedral_style <dihedral_opls>` opls
+* :doc:`improper_style <improper_harmonic>` harmonic
+* :doc:`pair_style <pair_buck>` buck
+* :doc:`pair_style <pair_buck>` buck/coul/cut
+* :doc:`pair_style <pair_buck>` buck/coul/long
+* :doc:`pair_style <pair_lj>` lj/cut
+* :doc:`pair_style <pair_lj_cut_coul>` lj/cut/coul/cut
+* :doc:`pair_style <pair_lj_cut_coul>` lj/cut/coul/long
+* :doc:`pair_modify <pair_modify>` geometric
+* :doc:`special_bonds <special_bonds>` lj/coul 0.0 0.0 0.5
+
 ----------
 
 .. _Typelabel2:
@@ -266,3 +296,6 @@ documentation for the formula it computes.
 
 **(Mayo)** Mayo, Olfason, Goddard III (1990). J Phys Chem, 94, 8897-8909. https://doi.org/10.1021/j100389a010
 
+.. _howto-Jorgensen:
+
+**(Jorgensen)** Jorgensen, Tirado-Rives (1988). J Am Chem Soc, 110, 1657-1666. https://doi.org/10.1021/ja00214a001

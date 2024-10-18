@@ -352,3 +352,14 @@ double AngleGaussian::single(int type, int i1, int i2, int i3)
   if (sum_g_i < SMALL) sum_g_i = SMALL;
   return -(force->boltz * angle_temperature[type]) * log(sum_g_i);
 }
+
+/* ---------------------------------------------------------------------- */
+
+void *AngleGaussian::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"alpha") == 0) return (void *) alpha;
+  if (strcmp(str,"width") == 0) return (void *) width;
+  if (strcmp(str,"theta0") == 0) return (void *) theta0;
+  return nullptr;
+}

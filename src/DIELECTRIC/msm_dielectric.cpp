@@ -29,15 +29,9 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-enum{REVERSE_RHO,REVERSE_AD,REVERSE_AD_PERATOM};
-enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
-MSMDielectric::MSMDielectric(LAMMPS *_lmp) : MSM(_lmp)
-{
-  efield = nullptr;
-  phi = nullptr;
-}
+MSMDielectric::MSMDielectric(LAMMPS *_lmp) : MSM(_lmp), efield(nullptr) {}
 
 /* ----------------------------------------------------------------------
    free all memory
@@ -46,7 +40,6 @@ MSMDielectric::MSMDielectric(LAMMPS *_lmp) : MSM(_lmp)
 MSMDielectric::~MSMDielectric()
 {
   memory->destroy(efield);
-  memory->destroy(phi);
 }
 
 /* ----------------------------------------------------------------------
@@ -276,7 +269,7 @@ void MSMDielectric::fieldforce()
 
   int i,l,m,n,nx,ny,nz,mx,my,mz;
   double dx,dy,dz;
-  double phi_x,phi_y,phi_z,u;
+  double phi_x,phi_y,phi_z;
   double dphi_x,dphi_y,dphi_z;
   double ekx,eky,ekz,etmp;
 
@@ -303,7 +296,7 @@ void MSMDielectric::fieldforce()
 
     compute_phis_and_dphis(dx,dy,dz);
 
-    u = ekx = eky = ekz = 0.0;
+    ekx = eky = ekz = 0.0;
     for (n = nlower; n <= nupper; n++) {
       mz = n+nz;
       phi_z = phi1d[2][n];
@@ -317,7 +310,6 @@ void MSMDielectric::fieldforce()
           phi_x = phi1d[0][l];
           dphi_x = dphi1d[0][l];
           etmp = egridn[mz][my][mx];
-          u += phi_z*phi_y*phi_x*etmp;
           ekx += dphi_x*phi_y*phi_z*etmp;
           eky += phi_x*dphi_y*phi_z*etmp;
           ekz += phi_x*phi_y*dphi_z*etmp;
@@ -328,10 +320,6 @@ void MSMDielectric::fieldforce()
     ekx *= delxinv[0];
     eky *= delyinv[0];
     ekz *= delzinv[0];
-
-    // electrical potential
-
-    phi[i] = u;
 
     // effectively divide by length for a triclinic system
 

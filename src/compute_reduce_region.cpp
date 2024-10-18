@@ -34,7 +34,7 @@ ComputeReduceRegion::ComputeReduceRegion(LAMMPS *lmp, int narg, char **arg) :
     ComputeReduce(lmp, narg, arg)
 {
   if (input_mode == LOCAL)
-    error->all(FLERR,"Compute reduce/region cannot use local data as input");
+    error->all(FLERR, "Compute reduce/region cannot use local data as input");
 }
 
 /* ----------------------------------------------------------------------
@@ -150,7 +150,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
         one = fix_array[flag][aidxm1];
     }
 
-  // evaluate atom-style variable
+    // evaluate atom-style variable
 
   } else if (val.which == ArgInfo::VARIABLE) {
     if (atom->nmax > maxatom) {

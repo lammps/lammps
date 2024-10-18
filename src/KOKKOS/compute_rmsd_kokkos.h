@@ -40,7 +40,7 @@ class ComputeRmsdKokkos : public ComputeRmsd {
   ~ComputeRmsdKokkos() override;
   void init() override;
   double compute_scalar() override;
-  
+
   KOKKOS_INLINE_FUNCTION
   double rmsd(double *);
 

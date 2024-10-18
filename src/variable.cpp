@@ -4344,6 +4344,12 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       value = atom->lmap->find(typestr,Atom::DIHEDRAL);
     } else if (kind == "improper") {
       value = atom->lmap->find(typestr,Atom::IMPROPER);
+    } else if (kind == "segment") {
+      value = atom->lmap->find(typestr,Atom::SEGMENT);
+    } else if (kind == "residue") {
+      value = atom->lmap->find(typestr,Atom::RESIDUE);
+    } else if (kind == "name") {
+      value = atom->lmap->find(typestr,Atom::NAME);
     } else {
       print_var_error(FLERR, fmt::format("Invalid kind {} in {}() in variable", kind, word),ivar);
     }

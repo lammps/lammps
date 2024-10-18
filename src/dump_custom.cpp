@@ -140,8 +140,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < nfield; i++) {
     if (vtype[i] == Dump::INT) cols += "%d ";
     else if (vtype[i] == Dump::DOUBLE) cols += "%g ";
-    else if (vtype[i] == Dump::STRING) cols += "%s ";
-    else if (vtype[i] == Dump::STRING2) cols += "%s ";
+    else if (vtype[i] == Dump::ELEMENT) cols += "%s ";
+    else if (vtype[i] == Dump::TYPELABEL_ATOM) cols += "%s ";
     else if (vtype[i] == Dump::BIGINT) cols += BIGINT_FORMAT " ";
     vformat[i] = nullptr;
   }
@@ -1363,9 +1363,9 @@ int DumpCustom::convert_string(int n, double *mybuf)
         offset += snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<int> (mybuf[m]));
       else if (vtype[j] == Dump::DOUBLE)
         offset += snprintf(&sbuf[offset],maxsize,vformat[j],mybuf[m]);
-      else if (vtype[j] == Dump::STRING)
+      else if (vtype[j] == Dump::ELEMENT)
         offset += snprintf(&sbuf[offset],maxsize,vformat[j],typenames[(int) mybuf[m]]);
-      else if (vtype[j] == Dump::STRING2)
+      else if (vtype[j] == Dump::TYPELABEL_ATOM)
         offset += snprintf(&sbuf[offset],maxsize,vformat[j],atom->lmap->typelabel[(int) mybuf[m]-1].c_str());
       else if (vtype[j] == Dump::BIGINT)
         offset += snprintf(&sbuf[offset],maxsize,vformat[j],
@@ -1413,9 +1413,9 @@ void DumpCustom::write_lines(int n, double *mybuf)
     for (j = 0; j < nfield; j++) {
       if (vtype[j] == Dump::INT) fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
       else if (vtype[j] == Dump::DOUBLE) fprintf(fp,vformat[j],mybuf[m]);
-      else if (vtype[j] == Dump::STRING)
+      else if (vtype[j] == Dump::ELEMENT)
         fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
-      else if (vtype[j] == Dump::STRING2)
+      else if (vtype[j] == Dump::TYPELABEL_ATOM)
         fprintf(fp,vformat[j],atom->lmap->typelabel[(int) mybuf[m]-1].c_str());
       else if (vtype[j] == Dump::BIGINT)
         fprintf(fp,vformat[j],static_cast<bigint> (mybuf[m]));
@@ -1456,10 +1456,10 @@ int DumpCustom::parse_fields(int narg, char **arg)
       vtype[iarg] = Dump::INT;
     } else if (strcmp(arg[iarg],"element") == 0) {
       pack_choice[iarg] = &DumpCustom::pack_type;
-      vtype[iarg] = Dump::STRING;
+      vtype[iarg] = Dump::ELEMENT;
     } else if (strcmp(arg[iarg],"typelabel") == 0) {
       pack_choice[iarg] = &DumpCustom::pack_type;
-      vtype[iarg] = Dump::STRING2;
+      vtype[iarg] = Dump::TYPELABEL_ATOM;
     } else if (strcmp(arg[iarg],"mass") == 0) {
       pack_choice[iarg] = &DumpCustom::pack_mass;
       vtype[iarg] = Dump::DOUBLE;

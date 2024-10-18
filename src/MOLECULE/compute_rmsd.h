@@ -13,46 +13,45 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(pair/local,ComputePairLocal);
+ComputeStyle(rmsd,ComputeRmsd);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_PAIR_LOCAL_H
-#define LMP_COMPUTE_PAIR_LOCAL_H
+#ifndef LMP_COMPUTE_RMSD_H
+#define LMP_COMPUTE_RMSD_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputePairLocal : public Compute {
+class ComputeRmsd : public Compute {
  public:
-  ComputePairLocal(class LAMMPS *, int, char **);
-  ~ComputePairLocal() override;
+  ComputeRmsd(class LAMMPS *, int, char **);
+  ~ComputeRmsd() override;
   void init() override;
-  void init_list(int, class NeighList *) override;
-  void compute_local() override;
-  double memory_usage() override;
+  double compute_scalar() override;
 
-  int igroup2, groupbit2;
+ protected:
 
- private:
-  int nvalues, ncount, cutstyle;
+  tagint *group_taglist;
+  double **x_group, **x_group_shifted, **ref_positions_shifted;
 
-  int *pstyle;    // style of each requested output
-  int *pindex;    // for pI, index of the output (0 to M-1)
-  int singleflag;
+  static int idcompare(const tagint, const tagint, void *);
 
-  int nmax;
-  double *vlocal;
-  double **alocal;
+  // -------- RMSD --------
 
-  class NeighList *list;
+  tagint group_count;
+  double **ref_positions;
 
-  int compute_pairs(int);
-  void reallocate(int);
+  double rmsd(double *);
+
+  // -------- PRIVATE IMPLEMENTATION METHODS --------
+
+  void read_xyz(char *);
+
 };
-
 }    // namespace LAMMPS_NS
+
 
 #endif
 #endif

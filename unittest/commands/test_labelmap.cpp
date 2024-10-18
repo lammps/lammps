@@ -16,6 +16,7 @@
 #include "atom.h"
 #include "compute.h"
 #include "domain.h"
+#include "group.h"
 #include "info.h"
 #include "label_map.h"
 #include "math_const.h"
@@ -292,6 +293,25 @@ TEST_F(LabelMapTest, Topology)
     TEST_FAILURE(".*ERROR: Improper type string XX not found in labelmap.*",
                  utils::expand_type(FLERR, "XX", Atom::IMPROPER, lmp););
 }
+
+TEST_F(LabelMapTest, CreateAtoms_Group)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 4 box");
+    command("labelmap atom 2 N1");
+    command("labelmap atom 3 O1 4 H1");
+    command("create_atoms N1 random 100 12345 NULL");
+    command("create_atoms O1 random 100 12345 NULL");
+    command("create_atoms H1 random 100 12345 NULL");
+    command("group one type N1");
+    command("group two type N1 H1");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->natoms, 300);
+    ASSERT_EQ(lmp->group->count(lmp->group->find("one")), 100);
+    ASSERT_EQ(lmp->group->count(lmp->group->find("two")), 200);
+}
+
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

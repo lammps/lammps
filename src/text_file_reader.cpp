@@ -240,3 +240,54 @@ ValueTokenizer TextFileReader::next_values(int nparams, const std::string &separ
   if (ptr == nullptr) throw EOFException(fmt::format("Missing line in {} file!", filetype));
   return {line, separators};
 }
+
+/** Read next line and convert first word to a double
+ *
+ * \return  Value of first word in line as double */
+
+double TextFileReader::next_double()
+{
+  char *line = next_line(1);
+  return ValueTokenizer(line).next_double();
+}
+
+/** Read next line and convert first word to an int
+ *
+ * \return  Value of first word in line as int */
+
+int TextFileReader::next_int()
+{
+  char *line = next_line(1);
+  return ValueTokenizer(line).next_int();
+}
+
+/** Read next line and convert first word to a tagint
+ *
+ * \return  Value of first word in line as tagint */
+
+tagint TextFileReader::next_tagint()
+{
+  char *line = next_line(1);
+  return ValueTokenizer(line).next_tagint();
+}
+
+/** Read next line and convert first word to a bigint
+ *
+ * \return  Value of first word in line as bigint */
+
+bigint TextFileReader::next_bigint()
+{
+  char *line = next_line(1);
+  return ValueTokenizer(line).next_bigint();
+}
+
+/** Read next line and return first word
+ *
+ * \return  First word of read in line */
+
+std::string TextFileReader::next_string()
+{
+  char *line = next_line(1);
+  return ValueTokenizer(line).next_string();
+}
+

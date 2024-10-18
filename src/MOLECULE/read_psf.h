@@ -11,45 +11,29 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMPUTE_CLASS
+#ifdef COMMAND_CLASS
 // clang-format off
-ComputeStyle(pair/local,ComputePairLocal);
+CommandStyle(read_psf,ReadPsf);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_PAIR_LOCAL_H
-#define LMP_COMPUTE_PAIR_LOCAL_H
+#ifndef LMP_READ_PSF_H
+#define LMP_READ_PSF_H
 
-#include "compute.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class ComputePairLocal : public Compute {
+class ReadPsf : public Command {
  public:
-  ComputePairLocal(class LAMMPS *, int, char **);
-  ~ComputePairLocal() override;
-  void init() override;
-  void init_list(int, class NeighList *) override;
-  void compute_local() override;
-  double memory_usage() override;
-
-  int igroup2, groupbit2;
+  ReadPsf(class LAMMPS *);
+  void command(int, char **) override;
 
  private:
-  int nvalues, ncount, cutstyle;
+  int compressed, **atom_iarray_psf;
+  FILE *fp;
 
-  int *pstyle;    // style of each requested output
-  int *pindex;    // for pI, index of the output (0 to M-1)
-  int singleflag;
-
-  int nmax;
-  double *vlocal;
-  double **alocal;
-
-  class NeighList *list;
-
-  int compute_pairs(int);
-  void reallocate(int);
+  void open(const std::string &);
 };
 
 }    // namespace LAMMPS_NS

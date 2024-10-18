@@ -403,8 +403,8 @@ void DumpNetCDF::openfile()
           xtype = NC_INT;
         } else if (vtype[perat[i].field[0]] == Dump::BIGINT) {
           xtype = NC_INT64;
-        } else if (vtype[perat[i].field[0]] == Dump::STRING) {
-          error->all(FLERR,"Dump netcdf currently does not support dumping string properties");
+        } else if (vtype[perat[i].field[0]] == Dump::ELEMENT) {
+          error->all(FLERR,"Dump netcdf currently does not support dumping element");
         } else {
           xtype = type_nc_real;
         }

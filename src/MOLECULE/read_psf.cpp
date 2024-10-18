@@ -139,7 +139,7 @@ void ReadPsf::command(int narg, char **arg)
       else
         fclose(fp);
       fp = nullptr;
-      
+
     } catch (EOFException &) {
       // reached end of file
       printf("reached EOF\n");

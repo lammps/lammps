@@ -36,11 +36,11 @@ class ComputeRmsd : public Compute {
   tagint *group_taglist;
   double **x_group, **x_group_shifted, **ref_positions_shifted;
 
-  static int idcompare(const int, const int, void *);
+  static int idcompare(const tagint, const tagint, void *);
 
   // -------- RMSD --------
 
-  bigint group_count;
+  tagint group_count;
   double **ref_positions;
 
   double rmsd(double *);

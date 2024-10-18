@@ -43,7 +43,7 @@
 
 using namespace LAMMPS_NS;
 
-static int compare_tags(const int, const int, void *);
+static int compare_tags(const tagint, const tagint, void *);
 
 /* ---------------------------------------------------------------------- */
 
@@ -554,7 +554,7 @@ void WritePsf::atoms()
 
   if (me == 0) {
 
-    int *order;
+    bigint *order;
     memory->create(order, natoms, "write_psf:order");
     for (int i = 0; i < natoms; i++) order[i] = i;
     utils::merge_sort(order, natoms, (void *)buf, compare_tags);
@@ -618,7 +618,7 @@ void WritePsf::atoms()
    void pointer contains sortrvous
 ------------------------------------------------------------------------- */
 
-int compare_tags(const int i, const int j, void *ptr)
+int compare_tags(const tagint i, const tagint j, void *ptr)
 {
   double **buf = (double **) ptr;
   if (ubuf(buf[i][0]).i < ubuf(buf[j][0]).i) return -1;

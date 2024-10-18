@@ -86,7 +86,7 @@ void ComputeRmsd::init()
 
 }
 
-int ComputeRmsd::idcompare(const int i, const int j, void *ptr)
+int ComputeRmsd::idcompare(const tagint i, const tagint j, void *ptr)
 {
   if (i < j) return -1;
   else if (i > j) return 1;

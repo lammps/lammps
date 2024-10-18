@@ -171,7 +171,7 @@ double ComputeRmsd::rmsd( double inverse_quat[4] )
       if (i == j) Q[i][j] -= 2.0 * traceM;
     }
   }
-  
+
   // Calculate V (equation 18)
   double V[3];
   V[0] = M[1][2] - M[2][1];

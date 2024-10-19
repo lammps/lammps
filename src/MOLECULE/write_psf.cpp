@@ -43,7 +43,7 @@
 
 using namespace LAMMPS_NS;
 
-static int compare_tags(const tagint, const tagint, void *);
+static int compare_tags(const bigint, const bigint, void *);
 
 /* ---------------------------------------------------------------------- */
 
@@ -618,7 +618,7 @@ void WritePsf::atoms()
    void pointer contains sortrvous
 ------------------------------------------------------------------------- */
 
-int compare_tags(const tagint i, const tagint j, void *ptr)
+int compare_tags(const bigint i, const bigint j, void *ptr)
 {
   double **buf = (double **) ptr;
   if (ubuf(buf[i][0]).i < ubuf(buf[j][0]).i) return -1;

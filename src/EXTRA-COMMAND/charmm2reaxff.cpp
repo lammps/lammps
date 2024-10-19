@@ -86,7 +86,7 @@ void Charmm2Reaxff::command(int narg, char **arg)
   std::string pair_coeff_cmd = fmt::format("pair_coeff * * {} C H O N S Mg P Na Ti Cl F Au X", arg[0]);
 
   //input->one("newton on");
-  input->one("labelmap atom 1 C 2 H 3 O 4 N 5 S 6 Mg 7 P 8 Na 9 Ti 10 Cl 11 F 12 Au 13 X");
+  //input->one("labelmap atom 1 C 2 H 3 O 4 N 5 S 6 Mg 7 P 8 Na 9 Ti 10 Cl 11 F 12 Au 13 X");
   input->one("bond_style none");
   input->one("angle_style none");
   input->one("dihedral_style none");

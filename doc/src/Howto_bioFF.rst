@@ -1,5 +1,5 @@
-CHARMM, AMBER, COMPASS, DREIDING, and OPLS-AA force fields
-==========================================================
+CHARMM, AMBER, COMPASS, DREIDING, and OPLS force fields
+=======================================================
 
 A compact summary of the concepts, definitions, and properties of
 force fields with explicit bonded interactions (like the ones discussed
@@ -241,17 +241,18 @@ OPLS
 
 OPLS (Optimized Potentials for Liquid Simulations) is a general force
 field for atomistic simulation of organic molecules in solvent.  It was
-developed at the `Jorgensen group
+developed by the `Jorgensen group
 <https://traken.chem.yale.edu/oplsaam.html>`_ at Purdue University and
 later at Yale University.  Multiple versions of the OPLS parameters
 exist for united atom representations (OPLS-UA) and for all-atom
 representations (OPLS-AA).
 
-This force field is based on atom types mapping to specific functional
-groups in organic and biological molecules. The atom type includes an
-average atomic charge reflecting the oxidation state of the element in a
-specific chemical bond :ref:`(Jorgensen) <howto-jorgensen>` and computed
-based on increments determined by the atom type of the atoms bond to it.
+This force field is based on atom types mapped to specific functional
+groups in organic and biological molecules. Each atom includes an
+static, partial atomic charge reflecting the oxidation state of the
+element derived from its bonded neighbors :ref:`(Jorgensen) <howto-jorgensen>`
+and computed based on increments determined by the atom type of the
+atoms bond to it.
 
 The interaction styles listed below compute force field formulas that
 are fully or in part consistent with the OPLS style force fields.  See

@@ -17,6 +17,7 @@
 #include "charmm2reaxff.h"
 
 #include "atom.h"
+#include "atom_vec.h"
 #include "error.h"
 #include "input.h"
 

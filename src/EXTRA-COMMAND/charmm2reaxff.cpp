@@ -35,7 +35,7 @@ void Charmm2Reaxff::command(int narg, char **arg)
   lmp->atom->molecular = Atom::ATOMIC;
   lmp->atom->avec->molecular = Atom::ATOMIC;
   lmp->atom->q_flag = 1;
-  lmp->atom->deallocate_topology();
+  //lmp->atom->deallocate_topology();
   lmp->atom->nbondtypes = 0;
   lmp->atom->nangletypes = 0;
   lmp->atom->ndihedraltypes = 0;

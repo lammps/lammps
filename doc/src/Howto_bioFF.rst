@@ -236,26 +236,33 @@ documentation for the formula it computes.
 
 * :doc:`special_bonds <special_bonds>` dreiding
 
-OPLS-AA
--------
+OPLS
+----
 
-OPLS-AA is a general force field for atomistic simulation of proteins in
-their native environment, developed at the `Jorgensen group
+OPLS (Optimized Potentials for Liquid Simulations) is a general force
+field for atomistic simulation of organic molecules in solvent.  It was
+developed at the `Jorgensen group
 <https://traken.chem.yale.edu/oplsaam.html>`_ at Purdue University and
-later at Yale University.
+later at Yale University.  Multiple versions of the OPLS parameters
+exist for united atom representations (OPLS-UA) and for all-atom
+representations (OPLS-AA).
 
 This force field is based on atom types mapping to specific functional
 groups in organic and biological molecules. The atom type includes an
 average atomic charge reflecting the oxidation state of the element in a
-specific chemical bond :ref:`(Jorgensen) <howto-jorgensen>`.
+specific chemical bond :ref:`(Jorgensen) <howto-jorgensen>` and computed
+based on increments determined by the atom type of the atoms bond to it.
 
 The interaction styles listed below compute force field formulas that
-are consistent with the OPLS-AA force field.  See each command's
-documentation for the formula it computes.
+are fully or in part consistent with the OPLS style force fields.  See
+each command's documentation for the formula it computes.  Some are only
+compatible with a subset of OPLS interactions.
 
 * :doc:`bond_style <bond_harmonic>` harmonic
 * :doc:`angle_style <angle_harmonic>` harmonic
 * :doc:`dihedral_style <dihedral_opls>` opls
+* :doc:`improper_style <improper_cvff>` cvff
+* :doc:`improper_style <improper_fourier>` fourier
 * :doc:`improper_style <improper_harmonic>` harmonic
 * :doc:`pair_style <pair_lj_cut_coul>` lj/cut/coul/cut
 * :doc:`pair_style <pair_lj_cut_coul>` lj/cut/coul/long

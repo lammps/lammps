@@ -795,7 +795,7 @@ or the *-suffix/-sf* command line flag and return correspondingly modified strin
    * \param  comp   Pointer to comparison function */
 
   void merge_sort(int *index, int num, void *ptr, int (*comp)(int, int, void *));
-  void merge_sort(tagint *index, tagint num, void *ptr, int (*comp)(tagint, tagint, void *));
+  void merge_sort(bigint *index, bigint num, void *ptr, int (*comp)(bigint, bigint, void *));
 
   template <typename T>
   void merge_sort(T *index, T num, void *ptr, int (*comp)(T, T, void *));

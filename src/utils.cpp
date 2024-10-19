@@ -1956,8 +1956,8 @@ void utils::merge_sort(int *index, int num, void *ptr, int (*comp)(int, int, voi
   merge_sort<int>(index,num,ptr,comp);
 }
 
-void utils::merge_sort(tagint *index, tagint num, void *ptr, int (*comp)(tagint, tagint, void *)) {
-  merge_sort<tagint>(index,num,ptr,comp);
+void utils::merge_sort(bigint *index, bigint num, void *ptr, int (*comp)(bigint, bigint, void *)) {
+  merge_sort<bigint>(index,num,ptr,comp);
 }
 
 

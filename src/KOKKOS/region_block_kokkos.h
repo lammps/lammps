@@ -103,9 +103,8 @@ class RegBlockKokkos : public RegBlock, public KokkosBase  {
  private:
   int groupbit;
   typename AT::t_int_1d d_match;
-
-  typename AT::t_x_array_randomread x;
-  typename AT::t_int_1d_randomread mask;
+  typename AT::t_x_array_randomread d_x;
+  typename AT::t_int_1d_randomread d_mask;
 
 KOKKOS_INLINE_FUNCTION
 int surface_interior_kokkos(double *x, double cutoff)

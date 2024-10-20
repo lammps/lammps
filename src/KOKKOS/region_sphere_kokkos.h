@@ -30,6 +30,8 @@ RegionStyle(sphere/kk/host,RegSphereKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
+struct TagRegSphereMatchAll{};
+
 template<class DeviceType>
 class RegSphereKokkos : public RegSphere, public KokkosBase  {
   friend class FixPour;
@@ -42,6 +44,9 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
   ~RegSphereKokkos() override;
 
   void match_all_kokkos(int, DAT::tdual_int_1d) override;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRegSphereMatchAll, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   int match_kokkos(double x, double y, double z) const
@@ -93,6 +98,10 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
   Kokkos::View<Contact*, DeviceType> d_contact;
 
  private:
+  int groupbit;
+  typename AT::t_int_1d d_match;
+  typename AT::t_x_array_randomread d_x;
+  typename AT::t_int_1d_randomread d_mask;
 
   KOKKOS_INLINE_FUNCTION
   int surface_interior_kokkos(double *x, double cutoff)

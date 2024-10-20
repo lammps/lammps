@@ -48,31 +48,33 @@ RegSphereKokkos<DeviceType>::~RegSphereKokkos()
 template<class DeviceType>
 void RegSphereKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_int_1d k_match_in)
 {
+  groupbit = groupbit_in;
+  d_match = k_match_in.template view<DeviceType>();
   auto execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   atomKK->sync(execution_space, X_MASK | MASK_MASK);
-
-  auto d_x = atomKK->k_x.template view<DeviceType>();
-  auto d_mask = atomKK->k_mask.template view<DeviceType>();
-  auto d_match = k_match_in.template view<DeviceType>();
-  auto l_groupbit = groupbit_in;
+  d_x = atomKK->k_x.view<DeviceType>();
+  d_mask = atomKK->k_mask.view<DeviceType>();
+  int nlocal = atom->nlocal;
 
   copymode = 1;
-
-  // capture lambda reference to KOKKOS_INLINE_FUNCTION match()
-  // use KOKKOS_CLASS_LAMBDA instead of KOKKOS_LAMBDA
-  // https://github.com/kokkos/kokkos/issues/695
-
-  Kokkos::parallel_for(atom->nlocal, KOKKOS_CLASS_LAMBDA( const int &i ) {
-    if (d_mask[i] & l_groupbit) {
-      double x_tmp = d_x(i,0);
-      double y_tmp = d_x(i,1);
-      double z_tmp = d_x(i,2);
-      d_match[i] = match_kokkos(x_tmp,y_tmp,z_tmp);
-    }});
-
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagRegSphereMatchAll>(0,nlocal),*this);
   copymode = 0;
   k_match_in.template modify<DeviceType>();
 }
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void RegSphereKokkos<DeviceType>::operator()(TagRegSphereMatchAll, const int &i) const {
+  if (d_mask[i] & groupbit) {
+    double x_tmp = d_x(i,0);
+    double y_tmp = d_x(i,1);
+    double z_tmp = d_x(i,2);
+    d_match[i] = match_kokkos(x_tmp,y_tmp,z_tmp);
+  }
+}
+
 
 /* ---------------------------------------------------------------------- */
 

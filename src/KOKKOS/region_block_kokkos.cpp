@@ -47,11 +47,10 @@ void RegBlockKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_in
 {
   groupbit = groupbit_in;
   d_match = k_match_in.template view<DeviceType>();
-
   auto execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   atomKK->sync(execution_space, X_MASK | MASK_MASK);
-  x = atomKK->k_x.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
+  d_x = atomKK->k_x.view<DeviceType>();
+  d_mask = atomKK->k_mask.view<DeviceType>();
   int nlocal = atom->nlocal;
 
   copymode = 1;
@@ -62,14 +61,13 @@ void RegBlockKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_in
 
 /* ---------------------------------------------------------------------- */
 
-
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void RegBlockKokkos<DeviceType>::operator()(TagRegBlockMatchAll, const int &i) const {
-  if (mask[i] & groupbit) {
-    double x_tmp = x(i,0);
-    double y_tmp = x(i,1);
-    double z_tmp = x(i,2);
+  if (d_mask[i] & groupbit) {
+    double x_tmp = d_x(i,0);
+    double y_tmp = d_x(i,1);
+    double z_tmp = d_x(i,2);
     d_match[i] = match_kokkos(x_tmp,y_tmp,z_tmp);
   }
 }

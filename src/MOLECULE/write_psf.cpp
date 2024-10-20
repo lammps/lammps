@@ -38,9 +38,6 @@
 
 #include <cstring>
 
-#include <iostream>
-
-
 using namespace LAMMPS_NS;
 
 static int compare_tags(const bigint, const bigint, void *);
@@ -158,8 +155,6 @@ void WritePsf::write(const std::string &file)
   natoms_local = count();
 
   MPI_Allreduce(&natoms_local,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (natoms != atom->natoms && output->thermo->lostflag == Thermo::ERROR)
-    error->all(FLERR,"Atom count is inconsistent, cannot write data file");
 
   // sum up bond,angle,dihedral,improper counts
   // may be different than atom->nbonds,nangles, etc. if broken/turned-off
@@ -615,7 +610,6 @@ void WritePsf::atoms()
 
 /* ----------------------------------------------------------------------
    comparison function invoked by merge_sort()
-   void pointer contains sortrvous
 ------------------------------------------------------------------------- */
 
 int compare_tags(const bigint i, const bigint j, void *ptr)

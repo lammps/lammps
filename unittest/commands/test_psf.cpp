@@ -44,6 +44,17 @@ namespace LAMMPS_NS {
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
 
+/* ----------------------------------------------------------------------
+   comparison function invoked by merge_sort()
+------------------------------------------------------------------------- */
+
+int compare_tags(const int i, const int j, void *ptr)
+{
+  tagint *tags = (tagint *)ptr;
+  if (tags[i] < tags[j]) return -1;
+  else return 1;
+}
+
 class PsfTest : public LAMMPSTest {
 protected:
 
@@ -73,21 +84,33 @@ protected:
 
     fmt::print(fp,"\n {:8} !NATOM\n", 29);
 
+    tagint *tags = new tagint[29];
+    std::vector<std::string> psf_lines;
+
     for( int i=0; i<29 ; i++ ) {
       auto atom_tag = lmp->atom->tag[i];
       auto atom_type = lmp->atom->type[GETIDX(atom_tag)];
       //utils::logmesg(lmp, "create_fourmol_psf()... atom_tag={} atom_type={}\n", atom_tag, atom_type);
-      fmt::print(fp, "{:10} ", atom_tag);
-      fmt::print(fp, "{0:<8} ", segments[rnd_segment(generator)] );
-      fmt::print(fp, "{0:<8} ", lmp->atom->molecule[i] );
-      fmt::print(fp, "{0:<8} ", residues[rnd_residue(generator)] );
-      fmt::print(fp, "{0:<8} ", names[rnd_name(generator)] );
-      fmt::print(fp, "{0:<4} ", types[atom_type-1] );
-      fmt::print(fp, "{:12.6F}      ", lmp->atom->q[i] );
-      fmt::print(fp, "{:8g}           0\n", lmp->atom->mass[atom_type] );
+      tags[i] = atom_tag;
+      psf_lines.push_back(fmt::format("{:10} {:<8} {:<8} {:<8} {:<8} {:<4} {:12.6F}      {:8g}           0\n", atom_tag,
+        segments[rnd_segment(generator)],
+        lmp->atom->molecule[i],
+        residues[rnd_residue(generator)],
+        names[rnd_name(generator)],
+        types[atom_type-1],
+        lmp->atom->q[i],
+        lmp->atom->mass[atom_type] ));
+
     }
 
-      fmt::print(fp, R"(
+    int *order = new int[29];
+    for (int i = 0; i < 29; i++) order[i] = i;
+    utils::merge_sort(order, 29, (void *)tags, compare_tags);
+
+    for( int i=0; i<29 ; i++ )
+      fmt::print(fp, psf_lines[order[i]] );
+
+    fmt::print(fp, R"(
         24 !NBOND: bonds
         10        11        10        12        10        16        12        13
         12        14        12        15         3         4         3         5
@@ -148,9 +171,9 @@ protected:
 
   void TearDown() override
   {
-    //platform::unlink("fourmol.psf");
-    //platform::unlink("fourmol-all.psf");
-    //platform::unlink("fourmol-oxygen.psf");
+    platform::unlink("fourmol.psf");
+    platform::unlink("fourmol-all.psf");
+    platform::unlink("fourmol-oxygen.psf");
   }
 
 };

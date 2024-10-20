@@ -66,6 +66,7 @@ void ReadPsf::command(int narg, char **arg)
   if (!atom->labelmapflag)
     atom->add_label_map();
 
+  LabelMap *lmap = atom->lmap;
   char **lmap_arg;
   memory->create(lmap_arg,3,MAX_PSF_LABEL_SIZE+1,"read_psf:lmap_arg");
 
@@ -98,18 +99,18 @@ void ReadPsf::command(int narg, char **arg)
 
         // atom segment
         std::string segment = values.next_string();
-        int segment_id = atom->lmap->find_or_add_psf(segment, Atom::SEGMENT);
+        int segment_id = lmap->find_or_add_psf(segment, Atom::SEGMENT);
 
         // skip molecule id
         values.skip(1);
 
         // residue
         std::string residue = values.next_string();
-        int residue_id = atom->lmap->find_or_add_psf(residue, Atom::RESIDUE);
+        int residue_id = lmap->find_or_add_psf(residue, Atom::RESIDUE);
 
         // name
         std::string name = values.next_string();
-        int name_id = atom->lmap->find_or_add_psf(name, Atom::NAME);
+        int name_id = lmap->find_or_add_psf(name, Atom::NAME);
 
         // determine if this proc owns the atom
         if( atom_index != -1 ) {
@@ -124,7 +125,7 @@ void ReadPsf::command(int narg, char **arg)
           strcpy(lmap_arg[1],std::to_string(type_id).c_str());
           strcpy(lmap_arg[2],values.next_string().c_str());
           //utils::logmesg(lmp, " *** lmap_arg (me==0) {} {} {}\n", lmap_arg[0], lmap_arg[1], lmap_arg[2]);
-          atom->lmap->modify_lmap(3,lmap_arg);
+          lmap->modify_lmap(3,lmap_arg);
         } else {
           sendbuf[sendsize][0] = atom_tag;
           sendbuf[sendsize][1] = segment_id;
@@ -192,33 +193,51 @@ void ReadPsf::command(int narg, char **arg)
     if (comm->me == 0) {
       for( int j=0; j<sendsize ; j++) {
         int i = recvbuf[j][0];
-        if( atom->lmap->find(atom_types[i], Atom::ATOM) == -1 ) {
+        if( lmap->find(atom_types[i], Atom::ATOM) == -1 ) {
           int type_id = recvbuf[j][1];
           strcpy(lmap_arg[0], "atom");
           strcpy(lmap_arg[1],std::to_string(type_id).c_str());
           strcpy(lmap_arg[2],atom_types[i].c_str());
-          atom->lmap->modify_lmap(3,lmap_arg);
+          lmap->modify_lmap(3,lmap_arg);
         }
       }
     }
 
     // SEND COMPLETE LMAP TO OTHER PROCS
 
-    int lmapsize = atom->lmap->typelabel.size();
-    MPI_Bcast(&lmapsize,1,MPI_INT,0,world);
+    int lmapsizes[4];
+    lmapsizes[0] = lmap->natomtypes;
+    lmapsizes[1] = lmap->nsegmenttypes;
+    lmapsizes[2] = lmap->nresiduetypes;
+    lmapsizes[3] = lmap->nnametypes;
+    MPI_Bcast(&lmapsizes[0],4,MPI_INT,0,world);
+    int lmapsize = lmapsizes[0] + lmapsizes[1] + lmapsizes[2] + lmapsizes[3];
     char **lmapbuf;
     memory->create(lmapbuf,lmapsize,9,"read_psf:lmapbuf");
 
-    if (comm->me == 0)
-      for ( int i=0; i<lmapsize; i++)
-        strcpy(lmapbuf[i],atom->lmap->typelabel[i].c_str());
-
+    if (comm->me == 0) {
+      for ( int i=0; i<lmapsizes[0]; i++)
+        strcpy(lmapbuf[i],lmap->typelabel[i].c_str());
+      for ( int i=0; i<lmapsizes[1]; i++)
+        strcpy(lmapbuf[lmapsizes[0]+i],lmap->stypelabel[i].c_str());
+      for ( int i=0; i<lmapsizes[2]; i++)
+        strcpy(lmapbuf[lmapsizes[0]+lmapsizes[1]+i],lmap->rtypelabel[i].c_str());
+      for ( int i=0; i<lmapsizes[3]; i++)
+        strcpy(lmapbuf[lmapsizes[0]+lmapsizes[1]+lmapsizes[2]+i],lmap->ntypelabel[i].c_str());
+    }
+    
     MPI_Bcast(&lmapbuf[0][0],lmapsize*9,MPI_CHAR,0,world);
 
-    if (comm->me > 0)
-      for ( int i=0; i<lmapsize; i++)
-        atom->lmap->find_or_create(std::string(lmapbuf[i]), atom->lmap->typelabel, atom->lmap->typelabel_map);
-
+    if (comm->me > 0) {
+      for ( int i=0; i<lmapsizes[0]; i++)
+        lmap->find_or_create(std::string(lmapbuf[i]), lmap->typelabel, lmap->typelabel_map);
+      for ( int i=0; i<lmapsizes[1]; i++)
+        lmap->find_or_add_psf(std::string(lmapbuf[lmapsizes[0]+i]), Atom::SEGMENT);
+      for ( int i=0; i<lmapsizes[2]; i++)
+        lmap->find_or_add_psf(std::string(lmapbuf[lmapsizes[0]+lmapsizes[1]+i]), Atom::RESIDUE);
+      for ( int i=0; i<lmapsizes[3]; i++)
+        lmap->find_or_add_psf(std::string(lmapbuf[lmapsizes[0]+lmapsizes[1]+lmapsizes[2]+i]), Atom::NAME);
+    }
     // CLEANUP
     memory->destroy(sendbuf);
     memory->destroy(recvbuf);

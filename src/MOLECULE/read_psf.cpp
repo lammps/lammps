@@ -29,8 +29,7 @@
 #include "text_file_reader.h"
 
 #include <cstring>
-
-#include <iostream>
+#include <vector>
 
 #define MAX_PSF_LABEL_SIZE 8 // psf EXT format
 
@@ -58,6 +57,9 @@ ReadPsf::ReadPsf(LAMMPS *lmp) :
 void ReadPsf::command(int narg, char **arg)
 {
 
+  int nprocs;
+  MPI_Comm_size(world,&nprocs);
+
   if (domain->box_exist == 0)
     error->all(FLERR,"Read_psf command before simulation box is defined");
 
@@ -67,8 +69,9 @@ void ReadPsf::command(int narg, char **arg)
   char **lmap_arg;
   memory->create(lmap_arg,3,MAX_PSF_LABEL_SIZE+1,"read_psf:lmap_arg");
 
-  int sendsize;
+  int sendsize = 0;
   int **sendbuf;
+  std::vector<std::string> atom_types;
 
   if (comm->me == 0) {
     try {
@@ -83,7 +86,7 @@ void ReadPsf::command(int narg, char **arg)
         reader.skip_line();
 
       int natom = reader.next_int();
-      memory->create(sendbuf,natom,4,"read_psf:sendbuf");
+      if( nprocs>1 ) memory->create(sendbuf,natom,4,"read_psf:sendbuf");
 
       for( int i=0; i<natom ; i++) {
         char *line = reader.next_line(9);
@@ -120,24 +123,21 @@ void ReadPsf::command(int narg, char **arg)
           strcpy(lmap_arg[0], "atom");
           strcpy(lmap_arg[1],std::to_string(type_id).c_str());
           strcpy(lmap_arg[2],values.next_string().c_str());
-          //utils::logmesg(lmp, "read_psf... lmap_arg {} {} {}\n", lmap_arg[0], lmap_arg[1], lmap_arg[2]);
+          //utils::logmesg(lmp, " *** lmap_arg (me==0) {} {} {}\n", lmap_arg[0], lmap_arg[1], lmap_arg[2]);
           atom->lmap->modify_lmap(3,lmap_arg);
-
         } else {
           sendbuf[sendsize][0] = atom_tag;
           sendbuf[sendsize][1] = segment_id;
           sendbuf[sendsize][2] = residue_id;
           sendbuf[sendsize][3] = name_id;
+          atom_types.push_back(values.next_string());
           sendsize++;
         }
       }
-      memory->destroy(lmap_arg);
 
       // close file
-      if (compressed)
-        platform::pclose(fp);
-      else
-        fclose(fp);
+      if (compressed) platform::pclose(fp);
+      else fclose(fp);
       fp = nullptr;
 
     } catch (EOFException &) {
@@ -146,30 +146,67 @@ void ReadPsf::command(int narg, char **arg)
     } catch (std::exception &e) {
       error->one(FLERR, "Error reading psf file: {}", e.what());
     }
-
   }
 
-  MPI_Bcast(&sendsize,1,MPI_INT,0,world);
-  if (comm->me > 0) memory->create(sendbuf,sendsize,4,"read_psf:sendbuf");
-  MPI_Bcast(&sendbuf[0][0],sendsize*4,MPI_INT,0,world);
+  if( nprocs>1 ) {
 
-  if (comm->me > 0) {
+    // SEND TAG/SEGMENT/RESIDUE/NAME NOT OWNED BY PROC 0 TO OTHER PROCS
 
-    for( int i=0; i<sendsize ; i++) {
+    MPI_Bcast(&sendsize,1,MPI_INT,0,world);
+    if (comm->me > 0) memory->create(sendbuf,sendsize,4,"read_psf:sendbuf");
+    MPI_Bcast(&sendbuf[0][0],sendsize*4,MPI_INT,0,world);
 
-      int atom_index = atom->map(sendbuf[i][0]);
+    int recvsize = 0;
+    int **recvbuf;
+    memory->create(recvbuf,sendsize,2,"read_psf:recvbuf");
 
-      if( atom_index != -1 ) {
-        atom_iarray_psf[atom_index][0] = sendbuf[i][1]; // segment_id
-        atom_iarray_psf[atom_index][1] = sendbuf[i][2]; // residue_id
-        atom_iarray_psf[atom_index][2] = sendbuf[i][3]; // name_id
+    if (comm->me > 0) {
+      for( int i=0; i<sendsize ; i++) {
+        int atom_index = atom->map(sendbuf[i][0]);
+        if( atom_index != -1 ) {
+          atom_iarray_psf[atom_index][0] = sendbuf[i][1]; // segment_id
+          atom_iarray_psf[atom_index][1] = sendbuf[i][2]; // residue_id
+          atom_iarray_psf[atom_index][2] = sendbuf[i][3]; // name_id
+          recvbuf[recvsize][0] = i;
+          recvbuf[recvsize][1] = atom->type[atom_index]; //type_id
+          recvsize++;
+        }
       }
-
     }
+
+    // GET BACK ATOM TYPES NOT OWNED BY PROC 0 AND UPDATE MISSING LMAP TYPES
+
+    int *recvcounts = new int[nprocs];
+    int *displs = new int[nprocs];
+    recvsize *= 2;
+    MPI_Gather( &recvsize, 1, MPI_INT, recvcounts, 1, MPI_INT, 0, world);
+    recvcounts[0] = 0;
+    displs[0] = 0;
+
+    if (comm->me == 0) {
+      for ( int i=1; i<nprocs; i++) displs[i] = displs[i-1]+recvcounts[i-1];
+      MPI_Gatherv(MPI_IN_PLACE,0,MPI_INT,&recvbuf[0][0],recvcounts,displs,MPI_INT,0,world);
+    } else
+      MPI_Gatherv(&recvbuf[0][0],recvsize,MPI_INT,0,0,0,MPI_INT,0,world);
+
+    if (comm->me == 0) {
+      for( int j=0; j<sendsize ; j++) {
+        int i = recvbuf[j][0];
+        if( atom->lmap->find(atom_types[i], Atom::ATOM) == -1 ) {
+          int type_id = recvbuf[j][1];
+          strcpy(lmap_arg[0], "atom");
+          strcpy(lmap_arg[1],std::to_string(type_id).c_str());
+          strcpy(lmap_arg[2],atom_types[i].c_str());
+          atom->lmap->modify_lmap(3,lmap_arg);
+        }
+      }
+    }
+    memory->destroy(sendbuf);
+    memory->destroy(recvbuf);
+    delete [] recvcounts;
+    delete [] displs;
   }
-
-  memory->destroy(sendbuf);
-
+  memory->destroy(lmap_arg);
 }
 
 /* ----------------------------------------------------------------------

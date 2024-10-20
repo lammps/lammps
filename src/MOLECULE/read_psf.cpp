@@ -201,8 +201,28 @@ void ReadPsf::command(int narg, char **arg)
         }
       }
     }
+
+    // SEND COMPLETE LMAP TO OTHER PROCS
+
+    int lmapsize = atom->lmap->typelabel.size();
+    MPI_Bcast(&lmapsize,1,MPI_INT,0,world);
+    char **lmapbuf;
+    memory->create(lmapbuf,lmapsize,9,"read_psf:lmapbuf");
+
+    if (comm->me == 0)
+      for ( int i=0; i<lmapsize; i++)
+        strcpy(lmapbuf[i],atom->lmap->typelabel[i].c_str());
+
+    MPI_Bcast(&lmapbuf[0][0],lmapsize*9,MPI_CHAR,0,world);
+
+    if (comm->me > 0)
+      for ( int i=0; i<lmapsize; i++)
+        atom->lmap->find_or_create(std::string(lmapbuf[i]), atom->lmap->typelabel, atom->lmap->typelabel_map);
+
+    // CLEANUP
     memory->destroy(sendbuf);
     memory->destroy(recvbuf);
+    memory->destroy(lmapbuf);
     delete [] recvcounts;
     delete [] displs;
   }

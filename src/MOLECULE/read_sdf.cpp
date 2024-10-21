@@ -40,20 +40,23 @@ ReadSdf::ReadSdf(LAMMPS *lmp) : Command(lmp) {}
 void ReadSdf::command(int narg, char **arg)
 {
 
+  atom->molecular = Atom::ATOMIC;
+
+  if (atom->find_molecule(arg[0]) >= 0)
+    error->all(FLERR,"Reuse of molecule template ID {}", arg[0]);
+
   atom->molecules = (Molecule **)
       memory->srealloc(atom->molecules,(atom->nmolecule+1)*sizeof(Molecule *), "read_sdf::molecules");
   Molecule *molecule = new Molecule(lmp);
   atom->molecules[atom->nmolecule] = molecule;
-  atom->molecules[atom->nmolecule]->nset = 0;
-  atom->molecules[atom->nmolecule+1]->nset++;
+  atom->molecules[atom->nmolecule]->nset = 1;
   atom->nmolecule++;
+
+  molecule->xflag = molecule->typeflag = 1;
 
   molecule->id = utils::strdup(arg[0]);
   if (!utils::is_id(molecule->id))
     error->all(FLERR, "Molecule template ID must have only alphanumeric or underscore characters");
-
-  if (atom->find_molecule(arg[0]) >= 0)
-    error->all(FLERR,"Reuse of molecule template ID {}", arg[0]);
 
   if (comm->me == 0) {
     try {
@@ -77,6 +80,7 @@ void ReadSdf::command(int narg, char **arg)
         molecule->x[i][2] = values.next_double();
         std::string element = values.next_string();
         molecule->type[i] = atom->lmap->find(element, Atom::ATOM);
+        molecule->ntypes = MAX(molecule->ntypes, molecule->type[i]);
 
         // FIXME: read partial charges if available
 

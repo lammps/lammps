@@ -155,6 +155,7 @@ void BondBPMSpring::compute(int eflag, int vflag)
     vol0 = atom->dvector[index_vol0];
     vol = atom->dvector[index_vol];
 
+    // grow + initialize dvol0 as necessary
     if (nmax < atom->nmax) {
       nmax = atom->nmax;
       memory->create(dvol0, nmax, "bond/bpm/spring:dvol0");
@@ -169,6 +170,8 @@ void BondBPMSpring::compute(int eflag, int vflag)
     if (volume_flag) {
       vol_current = vol0;
       bond_change_flag = calculate_vol();
+
+      // zero dvol0, not needed since vol0 just calculated
       for (i = 0; i < nmax; i++) dvol0[i] = 0.0;
     }
   }

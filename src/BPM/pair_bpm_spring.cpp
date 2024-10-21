@@ -174,7 +174,7 @@ void PairBPMSpring::settings(int narg, char ** arg)
 {
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg], "anharmonic") != 0) {
+    if (strcmp(arg[iarg], "anharmonic") == 0) {
       if (iarg + 1 >= narg)
         utils::missing_cmd_args(FLERR, "pair_coeff bpm/spring anharmonic", error);
       anharmonic_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);

@@ -225,7 +225,7 @@ void ReadPsf::command(int narg, char **arg)
       for ( int i=0; i<lmapsizes[3]; i++)
         strcpy(lmapbuf[lmapsizes[0]+lmapsizes[1]+lmapsizes[2]+i],lmap->ntypelabel[i].c_str());
     }
-    
+
     MPI_Bcast(&lmapbuf[0][0],lmapsize*9,MPI_CHAR,0,world);
 
     if (comm->me > 0) {
@@ -265,5 +265,3 @@ void ReadPsf::open(const std::string &file)
     if (!fp) error->one(FLERR, "Cannot open file {}: {}", file, utils::getsyserror());
   }
 }
-
-

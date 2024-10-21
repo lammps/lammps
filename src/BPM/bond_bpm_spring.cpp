@@ -158,6 +158,7 @@ void BondBPMSpring::compute(int eflag, int vflag)
     if (nmax < atom->nmax) {
       nmax = atom->nmax;
       memory->create(dvol0, nmax, "bond/bpm/spring:dvol0");
+      for (i = 0; i < nmax; i++) dvol0[i] = 0.0;
     }
   }
 

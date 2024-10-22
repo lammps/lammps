@@ -42,7 +42,8 @@ Currently, there are two types of bonds included in the BPM package. The
 first bond style, :doc:`bond bpm/spring <bond_bpm_spring>`, only applies
 pairwise, central body forces. Point particles must have :doc:`bond atom
 style <atom_style>` and may be thought of as nodes in a spring
-network. Alternatively, the second bond style, :doc:`bond bpm/rotational
+network. An optional multibody term can be used to adjust the network's
+Poisson's ratio. Alternatively, the second bond style, :doc:`bond bpm/rotational
 <bond_bpm_rotational>`, resolves tangential forces and torques arising
 with the shearing, bending, and twisting of the bond due to rotation or
 displacement of particles.  Particles are similar to those used in the
@@ -55,8 +56,9 @@ orientation similar to :doc:`fix nve/asphere <fix_nve_asphere>`.
 
 In addition to bond styles, a new pair style :doc:`pair bpm/spring
 <pair_bpm_spring>` was added to accompany the bpm/spring bond
-style. This pair style is simply a hookean repulsion with similar
-velocity damping as its sister bond style.
+style. By default, this pair style is simply a hookean repulsion with
+similar velocity damping as its sister bond style, but optional
+arguments can be used to modify the force.
 
 ----------
 

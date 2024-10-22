@@ -88,16 +88,15 @@ void GroupKokkos<DeviceType>::xcm(int igroup, double masstotal, double *cm)
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
   auto d_type = atomKK->k_type.template view<DeviceType>();
   auto d_image = atomKK->k_image.template view<DeviceType>();
-  auto d_mass = atomKK->k_mass.template view<DeviceType>();
-  auto d_rmass = atomKK->k_rmass.template view<DeviceType>();
-
-  auto l_prd = domain->prd;
-  auto l_h = domain->h;
+  auto l_prd = Few<double, 3>(domain->prd);
+  auto l_h = Few<double, 6>(domain->h);
   auto l_triclinic = domain->triclinic;
 
   double cmone[3];
 
   if (atomKK->rmass) {
+
+    auto d_rmass = atomKK->k_rmass.template view<DeviceType>();
 
     Kokkos::parallel_reduce(atom->nlocal, KOKKOS_LAMBDA(const int i, double &l_cmx, double &l_cmy, double &l_cmz) {
       if (d_mask(i) & groupbit) {
@@ -114,6 +113,8 @@ void GroupKokkos<DeviceType>::xcm(int igroup, double masstotal, double *cm)
     }, cmone[0], cmone[1], cmone[2]);
 
   } else {
+
+    auto d_mass = atomKK->k_mass.template view<DeviceType>();
 
     Kokkos::parallel_reduce(atom->nlocal, KOKKOS_LAMBDA(const int i, double &l_cmx, double &l_cmy, double &l_cmz) {
       if (d_mask(i) & groupbit) {

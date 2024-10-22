@@ -342,3 +342,19 @@ double AngleCross::single(int type, int i1, int i2, int i3)
   double energy = kss[type]*dr1*dr2+kbs0[type]*dr1*dtheta + kbs1[type]*dr2*dtheta;
   return energy;
 }
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleCross::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "r00") == 0) return (void *) r00;
+  if (strcmp(str, "r01") == 0) return (void *) r01;
+  if (strcmp(str, "kss") == 0) return (void *) kss;
+  if (strcmp(str, "kbs0") == 0) return (void *) kbs0;
+  if (strcmp(str, "kbs1") == 0) return (void *) kbs1;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
+  return nullptr;
+}

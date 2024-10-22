@@ -487,3 +487,19 @@ double AngleClass2P6::single(int type, int i1, int i2, int i3)
 
   return energy;
 }
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleClass2P6::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k2") == 0) return (void *) k2;
+  if (strcmp(str, "k3") == 0) return (void *) k3;
+  if (strcmp(str, "k4") == 0) return (void *) k4;
+  if (strcmp(str, "k5") == 0) return (void *) k5;
+  if (strcmp(str, "k6") == 0) return (void *) k6;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
+  return nullptr;
+}

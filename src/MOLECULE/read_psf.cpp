@@ -87,7 +87,7 @@ void ReadPsf::command(int narg, char **arg)
         reader.skip_line();
 
       int natom = reader.next_int();
-      if( nprocs>1 ) memory->create(sendbuf,natom,4,"read_psf:sendbuf");
+      memory->create(sendbuf,natom,4,"read_psf:sendbuf");
 
       for( int i=0; i<natom ; i++) {
         char *line = reader.next_line(9);

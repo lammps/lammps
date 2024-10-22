@@ -69,6 +69,9 @@ class FixCMAPKokkos : public FixCMAP, public KokkosBase {
                               ExecutionSpace space) override;
 
   protected:
+
+    int nlocal;
+
     typename AT::t_x_array d_x;
     typename AT::t_f_array d_f;
 

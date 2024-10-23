@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 
 BondBPMSpring::BondBPMSpring(LAMMPS *_lmp) :
     BondBPM(_lmp), k(nullptr), av(nullptr), ecrit(nullptr), gamma(nullptr),
-    id_fix(nullptr), vol_current(nullptr), dvol0(nullptr)
+    id_fix_prop_bond(nullptr), vol_current(nullptr), dvol0(nullptr)
 {
   partial_flag = 1;
   smooth_flag = 1;
@@ -43,7 +43,6 @@ BondBPMSpring::BondBPMSpring(LAMMPS *_lmp) :
   writedata = 1;
 
   nhistory = 1;
-  id_fix_bond_history = utils::strdup("HISTORY_BPM_SPRING");
 
   single_extra = 1;
   svector = new double[1];
@@ -59,9 +58,10 @@ BondBPMSpring::BondBPMSpring(LAMMPS *_lmp) :
 BondBPMSpring::~BondBPMSpring()
 {
   delete[] svector;
-  delete[] id_fix_bond_history;
-  if (id_fix && modify->nfix) modify->delete_fix(id_fix);
-  delete[] id_fix;
+  if (id_fix_prop_bond && modify->nfix) {
+    modify->delete_fix(id_fix_prop_bond);
+    delete[] id_fix_prop_bond;
+  }
 
   if (allocated) {
     memory->destroy(setflag);
@@ -448,9 +448,9 @@ void BondBPMSpring::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR, "Bond bpm/spring requires ghost atoms store velocity");
 
-  if (volume_flag && !id_fix) {
-    id_fix = utils::strdup("BOND_BPM_SPRING_FIX_PROP_ATOM");
-    modify->add_fix(fmt::format("{} all property/atom d_vol d_vol0 ghost yes", id_fix));
+  if (volume_flag && !id_fix_prop_bond) {
+    id_fix_prop_bond = utils::strdup("BOND_BPM_SPRING_FIX_PROP_ATOM");
+    modify->add_fix(fmt::format("{} all property/atom d_vol d_vol0 ghost yes", id_fix_prop_bond));
 
     int tmp1, tmp2;
     index_vol = atom->find_custom("vol", tmp1, tmp2);
@@ -568,7 +568,7 @@ void BondBPMSpring::write_data(FILE *fp)
 {
   if (volume_flag) {
     for (int i = 1; i <= atom->nbondtypes; i++)
-      fprintf(fp, "%d %g %g %g\n", i, k[i], ecrit[i], gamma[i], av[i]);
+      fprintf(fp, "%d %g %g %g %g\n", i, k[i], ecrit[i], gamma[i], av[i]);
   } else {
     for (int i = 1; i <= atom->nbondtypes; i++)
       fprintf(fp, "%d %g %g %g\n", i, k[i], ecrit[i], gamma[i]);

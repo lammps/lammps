@@ -48,7 +48,7 @@ class BondBPMSpring : public BondBPM {
   int smooth_flag, normalize_flag, volume_flag;
 
   int index_vol, index_vol0, nmax;
-  char *id_fix;
+  char *id_fix_prop_bond;
   double *vol_current, *dvol0;
 
   void allocate();

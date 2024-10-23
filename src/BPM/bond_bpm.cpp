@@ -75,6 +75,7 @@ BondBPM::BondBPM(LAMMPS *_lmp) :
   id_fix_dummy2 = utils::strdup(fmt::format("BPM_DUMMY2_{}", instance_total));
   modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy2));
 
+  id_fix_bond_history = utils::strdup("HISTORY_BPM_SPRING");
   if (lmp->citeme) lmp->citeme->add(cite_bpm);
 }
 

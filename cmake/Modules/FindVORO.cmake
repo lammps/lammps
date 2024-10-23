@@ -21,9 +21,9 @@ if(VORO_FOUND)
   set(VORO_LIBRARIES ${VORO_LIBRARY})
   set(VORO_INCLUDE_DIRS ${VORO_INCLUDE_DIR})
 
-  if(NOT TARGET VORO::VORO)
-    add_library(VORO::VORO UNKNOWN IMPORTED)
-    set_target_properties(VORO::VORO PROPERTIES
+  if(NOT TARGET VORO::voro++)
+    add_library(VORO::voro++ UNKNOWN IMPORTED)
+    set_target_properties(VORO::voro++ PROPERTIES
       IMPORTED_LOCATION "${VORO_LIBRARY}"
       INTERFACE_INCLUDE_DIRECTORIES "${VORO_INCLUDE_DIR}")
   endif()

@@ -239,12 +239,12 @@ void ReadPsf::command(int narg, char **arg)
         lmap->find_or_add_psf(std::string(lmapbuf[lmapsizes[0]+lmapsizes[1]+lmapsizes[2]+i]), Atom::NAME);
     }
     // CLEANUP
-    memory->destroy(sendbuf);
     memory->destroy(recvbuf);
     memory->destroy(lmapbuf);
     delete [] recvcounts;
     delete [] displs;
   }
+  memory->destroy(sendbuf);
   memory->destroy(lmap_arg);
 }
 

@@ -34,19 +34,19 @@ using namespace LAMMPS_NS;
 
 BondBPMSpring::BondBPMSpring(LAMMPS *_lmp) :
     BondBPM(_lmp), k(nullptr), av(nullptr), ecrit(nullptr), gamma(nullptr),
-    vol_current(nullptr), dvol0(nullptr)
+    id_fix(nullptr), vol_current(nullptr), dvol0(nullptr)
 {
   partial_flag = 1;
   smooth_flag = 1;
   normalize_flag = 0;
   volume_flag = 0;
+  writedata = 1;
 
   nhistory = 1;
   id_fix_bond_history = utils::strdup("HISTORY_BPM_SPRING");
 
   single_extra = 1;
   svector = new double[1];
-  id_fix = nullptr;
 
   nmax = 0;
 
@@ -58,7 +58,10 @@ BondBPMSpring::BondBPMSpring(LAMMPS *_lmp) :
 
 BondBPMSpring::~BondBPMSpring()
 {
-  delete [] svector;
+  delete[] svector;
+  delete[] id_fix_bond_history;
+  if (id_fix && modify->nfix) modify->delete_fix(id_fix);
+  delete[] id_fix;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -446,7 +449,7 @@ void BondBPMSpring::init_style()
     error->all(FLERR, "Bond bpm/spring requires ghost atoms store velocity");
 
   if (volume_flag && !id_fix) {
-    id_fix = "BOND_BPM_SPRING_FIX_PROP_ATOM";
+    id_fix = utils::strdup("BOND_BPM_SPRING_FIX_PROP_ATOM");
     modify->add_fix(fmt::format("{} all property/atom d_vol d_vol0 ghost yes", id_fix));
 
     int tmp1, tmp2;
@@ -555,6 +558,21 @@ void BondBPMSpring::read_restart_settings(FILE *fp)
   MPI_Bcast(&smooth_flag, 1, MPI_INT, 0, world);
   MPI_Bcast(&normalize_flag, 1, MPI_INT, 0, world);
   MPI_Bcast(&volume_flag, 1, MPI_INT, 0, world);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file file
+------------------------------------------------------------------------- */
+
+void BondBPMSpring::write_data(FILE *fp)
+{
+  if (volume_flag) {
+    for (int i = 1; i <= atom->nbondtypes; i++)
+      fprintf(fp, "%d %g %g %g\n", i, k[i], ecrit[i], gamma[i], av[i]);
+  } else {
+    for (int i = 1; i <= atom->nbondtypes; i++)
+      fprintf(fp, "%d %g %g %g\n", i, k[i], ecrit[i], gamma[i]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

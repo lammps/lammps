@@ -150,6 +150,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
     num_skipped = 0 
     num_error = 0
+    num_timeout = 0
     num_failed = 0
     num_completed = 0
     num_passed = 0
@@ -432,6 +433,10 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             progress.write(msg)
             progress.close()
             failure.write(msg)
+
+            returncode = int(returncode)
+            if returncode == -1:
+                num_timeout = num_timeout + 1
 
             num_error = num_error + 1
             test_id = test_id + 1
@@ -755,6 +760,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
              'num_passed': num_passed,
              'num_skipped': num_skipped,
              'num_error': num_error,
+             'num_timeout': num_timeout,
              'num_failed': num_failed,
              'num_memleak':  num_memleak,
            }
@@ -1514,6 +1520,7 @@ if __name__ == "__main__":
     passed_tests = 0
     skipped_tests = 0
     error_tests = 0
+    timeout_tests = 0
     failed_tests = 0
     memleak_tests = 0
 
@@ -1571,6 +1578,7 @@ if __name__ == "__main__":
             skipped_tests += stat['num_skipped']
             passed_tests += stat['num_passed']
             error_tests += stat['num_error']
+            timeout_tests += stat['num_timeout']
             failed_tests += stat['num_failed']
             memleak_tests += stat['num_memleak']
 
@@ -1591,6 +1599,7 @@ if __name__ == "__main__":
         skipped_tests = stat['num_skipped']
         passed_tests = stat['num_passed']
         error_tests = stat['num_error']
+        timeout_tests += stat['num_timeout']
         failed_tests = stat['num_failed']
         memleak_tests = stat['num_memleak']
 
@@ -1605,13 +1614,14 @@ if __name__ == "__main__":
     msg += f"  Total number of input scripts: {total_tests}\n"
     msg += f"  - Skipped  : {skipped_tests}\n"
     msg += f"  - Error    : {error_tests}\n"
+    msg += f"     - timeout  : {timeout_tests}\n"
     msg += f"  - Completed: {completed_tests}\n"
     msg += f"     - failed   : {failed_tests}\n"
 
     # print notice to GitHub
     if 'GITHUB_STEP_SUMMARY' in os.environ:
         with open(os.environ.get('GITHUB_STEP_SUMMARY'), 'w') as f:
-            print(f"Skipped: {skipped_tests}  Error: {error_tests} Failed: {failed_tests}  Completed: {completed_tests}", file=f)
+            print(f"Skipped: {skipped_tests}  Error: {error_tests} Timeout: {timeout_tests} Failed: {failed_tests}  Completed: {completed_tests}", file=f)
 
     if memleak_tests < completed_tests and 'valgrind' in config['mpiexec']:
         msg += f"     - memory leak detected  : {memleak_tests}\n"

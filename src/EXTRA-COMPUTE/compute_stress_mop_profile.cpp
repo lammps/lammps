@@ -229,30 +229,41 @@ void ComputeStressMopProfile::init()
 
   if (comm->me == 0) {
 
-    // Compute stress/mop/profile only accounts for pair interactions.
-    // issue an error if any intramolecular potential or Kspace is defined.
+    // issue an error for unimplemented intramolecular potentials or Kspace.
 
-    if (force->bond) bondflag = 1;
+    if (force->bond) {
+      bondflag = 1;
+      if (comm->nprocs > 1)
+        error->one(
+            FLERR,
+            "compute stress/mop/profile with bonds does not (yet) support MPI parallel runs");
+    }
 
     if (force->angle) {
       if (force->angle->born_matrix_enable == 0) {
         if ((strcmp(force->angle_style, "zero") != 0) && (strcmp(force->angle_style, "none") != 0))
-          error->all(FLERR,"compute stress/mop/profile does not account for angle potentials");
+          error->one(FLERR, "compute stress/mop/profile does not account for angle potentials");
       } else {
         angleflag = 1;
+        if (comm->nprocs > 1)
+          error->one(
+              FLERR,
+              "compute stress/mop/profile with angles does not (yet) support MPI parallel runs");
       }
     }
-
     if (force->dihedral) {
       if (force->dihedral->born_matrix_enable == 0) {
         if ((strcmp(force->dihedral_style, "zero") != 0) &&
             (strcmp(force->dihedral_style, "none") != 0))
-          error->all(FLERR, "compute stress/mop/profile does not account for dihedral potentials");
+          error->one(FLERR, "compute stress/mop/profile does not account for dihedral potentials");
       } else {
         dihedralflag = 1;
+        if (comm->nprocs > 1)
+          error->one(
+              FLERR,
+              "compute stress/mop/profile with dihedrals does not (yet) support MPI parallel runs");
       }
     }
-
     if (force->improper)
       if ((strcmp(force->improper_style, "zero") != 0) &&
           (strcmp(force->improper_style, "none") != 0))

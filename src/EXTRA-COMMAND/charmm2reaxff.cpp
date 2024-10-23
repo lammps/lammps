@@ -62,6 +62,7 @@ void Charmm2Reaxff::command(int narg, char **arg)
     else if(is_mass_equal(mass_i,14.007)) type[i] = 4;  // N
     else if(is_mass_equal(mass_i,32.060)) type[i] = 5;  // S
     else if(is_mass_equal(mass_i,24.305)) type[i] = 6;  // Mg
+    else if(is_mass_equal(mass_i,30.974)) type[i] = 7;  // P
     else if(is_mass_equal(mass_i,22.990)) type[i] = 8;  // Na
     else if(is_mass_equal(mass_i,35.450)) type[i] = 10;  // Cl
     else

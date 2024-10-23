@@ -327,7 +327,12 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         result = TestResult(name=input, output="", time="", status="passed")
 
         # run the LAMMPS binary with the input script
-        cmd_str, output, error, returncode, logfilename = execute(lmp_binary, config, input_test)
+        status = execute(lmp_binary, config, input_test)
+        cmd_str = status['cmd_str']
+        output = status['stdout']
+        error = status['stderr']
+        returncode = status['returncode']
+        logfilename = status['logfilename']
 
         # restore the nprocs value in the configuration
         config['nprocs'] = saved_nprocs
@@ -928,7 +933,14 @@ def execute(lmp_binary, config, input_file_name, generate_ref=False):
 
     try:
         p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True, timeout=timeout)
-        return cmd_str, p.stdout, p.stderr, p.returncode, logfilename
+        status = { 
+            'cmd_str': cmd_str,
+            'stdout': p.stdout,
+            'stderr': p.stderr,
+            'returncode': p.returncode,
+            'logfilename': logfilename,
+        }
+        return status
 
     except subprocess.TimeoutExpired:
         msg = f"     Timeout for: {cmd_str} ({timeout}s expired)"
@@ -936,7 +948,14 @@ def execute(lmp_binary, config, input_file_name, generate_ref=False):
         print(msg)
 
     error_str = f"timeout ({timeout}s expired)"
-    return cmd_str, "", error_str, -1, logfilename
+    status = { 
+        'cmd_str': cmd_str,
+        'stdout': "",
+        'stderr': error_str,
+        'returncode': -1,
+        'logfilename': logfilename,
+    }
+    return status
 
 '''
    get the reference walltime by running the lmp_binary with config with an input script in the bench/ folder

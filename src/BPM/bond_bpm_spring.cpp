@@ -450,7 +450,7 @@ void BondBPMSpring::init_style()
 
   if (volume_flag && !id_fix_prop_bond) {
     id_fix_prop_bond = utils::strdup("BOND_BPM_SPRING_FIX_PROP_ATOM");
-    modify->add_fix(fmt::format("{} all property/atom d_vol d_vol0 ghost yes", id_fix_prop_bond));
+    modify->add_fix(fmt::format("{} all property/atom d_vol d_vol0 ghost yes writedata no", id_fix_prop_bond));
 
     int tmp1, tmp2;
     index_vol = atom->find_custom("vol", tmp1, tmp2);

@@ -29,6 +29,7 @@ using namespace LAMMPS_NS;
 
 PairBPMSpring::PairBPMSpring(LAMMPS *_lmp) : Pair(_lmp), k(nullptr), ka(nullptr), cut(nullptr), gamma(nullptr)
 {
+  writedata = 1;
   anharmonic_flag = 0;
 }
 
@@ -325,6 +326,38 @@ void PairBPMSpring::read_restart_settings(FILE *fp)
   if (comm->me == 0)
     utils::sfread(FLERR, &anharmonic_flag, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&anharmonic_flag, 1, MPI_INT, 0, world);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairBPMSpring::write_data(FILE *fp)
+{
+  if (anharmonic_flag) {
+    for (int i = 1; i <= atom->ntypes; i++)
+      fprintf(fp, "%d %g %g %g %g\n", i, k[i][i], cut[i][i], gamma[i][i], ka[i][i]);
+  } else {
+    for (int i = 1; i <= atom->ntypes; i++)
+      fprintf(fp, "%d %g %g %g\n", i, k[i][i], cut[i][i], gamma[i][i]);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairBPMSpring::write_data_all(FILE *fp)
+{
+  if (anharmonic_flag) {
+    for (int i = 1; i <= atom->ntypes; i++)
+      for (int j = i; j <= atom->ntypes; j++)
+        fprintf(fp, "%d %d %g %g %g %g\n", i, j, k[i][j], cut[i][j], gamma[i][j], ka[i][j]);
+  } else {
+    for (int i = 1; i <= atom->ntypes; i++)
+      for (int j = i; j <= atom->ntypes; j++)
+        fprintf(fp, "%d %d %g %g %g\n", i, j, k[i][j], cut[i][j], gamma[i][j]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

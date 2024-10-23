@@ -46,9 +46,6 @@ static constexpr double SMALL = 0.00001;
 static constexpr double EPS_HOC = 1.0e-7;
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
-enum { REVERSE_MU };
-enum { FORWARD_MU, FORWARD_MU_PERATOM };
-
 /* ---------------------------------------------------------------------- */
 
 PPPMDipole::PPPMDipole(LAMMPS *lmp) : PPPM(lmp),

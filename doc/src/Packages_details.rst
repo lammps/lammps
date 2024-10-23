@@ -880,7 +880,7 @@ groups of atoms that interact with the remaining atoms as electrolyte.
 
 **Authors:** The ELECTRODE package is written and maintained by Ludwig
 Ahrens-Iwers (TUHH, Hamburg, Germany), Shern Tee (UQ, Brisbane, Australia) and
-Robert Meissner (TUHH, Hamburg, Germany).
+Robert Meissner (Helmholtz-Zentrum Hereon, Geesthacht and TUHH, Hamburg, Germany).
 
 .. versionadded:: 4May2022
 

@@ -21,6 +21,7 @@
 
 #include <mpi.h>
 
+#include <string>
 #include <vector>    // IWYU pragma: export
 
 namespace LAMMPS_NS {
@@ -409,7 +410,8 @@ This functions adds the following case to :cpp:func:`utils::bounds() <LAMMPS_NS:
    *
    *  This function has the same arguments as expand_type() but returns an integer value */
 
-  int expand_type_int(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp, bool verify = false);
+  int expand_type_int(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp,
+                      bool verify = false);
 
   /*! Check grid reference for valid Compute or Fix which produces per-grid data
    *

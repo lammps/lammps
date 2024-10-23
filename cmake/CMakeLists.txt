@@ -141,7 +141,7 @@ endif()
 
 # silence nvcc warnings
 if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND NOT (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
-  set(CMAKE_TUNE_DEFAULT "${CMAKE_TUNE_DEFAULT} -Xcudafe --diag_suppress=unrecognized_pragma -Xcudafe --diag_suppress=128")
+  set(CMAKE_TUNE_DEFAULT "${CMAKE_TUNE_DEFAULT} -Xcudafe --diag_suppress=unrecognized_pragma SHELL:-Xcudafe --diag_suppress=128")
 endif()
 
 # we require C++11 without extensions. Kokkos requires at least C++17 (currently)
@@ -591,7 +591,7 @@ separate_arguments(CMAKE_TUNE_FLAGS)
 foreach(_FLAG ${CMAKE_TUNE_FLAGS})
   target_compile_options(lammps PRIVATE ${_FLAG})
   # skip these flags when linking the main executable
-  if(NOT (("${_FLAG}" STREQUAL "-Xcudafe") OR (("${_FLAG}" STREQUAL "--diag_suppress=unrecognized_pragma"))))
+  if(NOT (("${_FLAG}" STREQUAL "-Xcudafe") OR ("${_FLAG}" STREQUAL "--diag_suppress=unrecognized_pragma") OR ("${_FLAG}" STREQUAL "--diag_suppress=128")))
     target_compile_options(lmp PRIVATE ${_FLAG})
   endif()
 endforeach()

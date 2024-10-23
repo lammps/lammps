@@ -61,10 +61,10 @@ class FixIndent : public Fix {
   // methods for conical indenter
 
   bool PointInsideCone(int, double *, double, double, double, double, double *);
-  void DistanceExteriorPoint(int, double *, double, double, double, double,
-                             double &, double &, double &);
-  void DistanceInteriorPoint(int, double *, double, double, double, double,
-                             double &, double &, double &);
+  void DistanceExteriorPoint(int, double *, double, double, double, double, double &, double &,
+                             double &);
+  void DistanceInteriorPoint(int, double *, double, double, double, double, double &, double &,
+                             double &);
   void point_on_line_segment(double *, double *, double *, double *);
   double closest(double *, double *, double *, double);
 };

@@ -325,8 +325,9 @@ int Dump::count()
 
 void Dump::write()
 {
-  imageint *imagehold;
-  double **xhold,**vhold;
+  imageint *imagehold = nullptr;
+  double **xhold = nullptr;
+  double **vhold = nullptr;
 
   // simulation box bounds
 

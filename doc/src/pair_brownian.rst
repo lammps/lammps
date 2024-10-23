@@ -1,12 +1,13 @@
 .. index:: pair_style brownian
 .. index:: pair_style brownian/omp
+.. index:: pair_style brownian/kk
 .. index:: pair_style brownian/poly
 .. index:: pair_style brownian/poly/omp
 
 pair_style brownian command
 ===========================
 
-Accelerator Variants: *brownian/omp*
+Accelerator Variants: *brownian/omp*, *brownian/kk*
 
 pair_style brownian/poly command
 ================================

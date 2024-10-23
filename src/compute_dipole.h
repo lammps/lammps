@@ -28,7 +28,7 @@ class ComputeDipole : public Compute {
  public:
   ComputeDipole(class LAMMPS *, int, char **);
   ~ComputeDipole() override;
-  void init() override{};
+  void init() override {};
   void compute_vector() override;
   double compute_scalar() override;
 

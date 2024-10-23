@@ -1519,12 +1519,18 @@ if __name__ == "__main__":
     msg += f"  - Skipped  : {skipped_tests}\n"
     msg += f"  - Failed   : {error_tests}\n"
     msg += f"  - Completed: {completed_tests}\n"
+
+    # print notice to GitHub
+    if 'GITHUB_STEP_SUMMARY' in os.environ:
+        with open(os.environ.get('GITHUB_STEP_SUMMARY'), 'w') as f:
+            print(f"Skipped: {skipped_tests}  Failed: {error_tests}  Completed: {completed_tests}", file=f)
+
     if memleak_tests < completed_tests and 'valgrind' in config['mpiexec']:
         msg += f"    - memory leak detected  : {memleak_tests}\n"
     if passed_tests <= completed_tests:
         msg += f"    - numerical tests passed: {passed_tests}\n"
     msg += "\nOutput:\n"
-    msg += f"  - Failed inputs and reasons     : {failure_file}\n"
+    msg += f"  - List of failed inputs         : {failure_file}\n"
     msg += f"  - Status of the tested inputs   : {progress_file}\n"
     msg += f"  - Running log with screen output: {log_file}\n"
     msg += f"  - Testing result in JUnit XML   : {output_file}\n"

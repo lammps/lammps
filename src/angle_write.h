@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class AngleWrite : public Command {
  public:
-  AngleWrite(class LAMMPS *lmp) : Command(lmp){};
+  AngleWrite(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **) override;
 };
 }    // namespace LAMMPS_NS

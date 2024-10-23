@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meißner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
 ------------------------------------------------------------------------- */
 
 #include "pppm_electrode.h"
@@ -49,10 +49,6 @@ using namespace MathSpecial;
 static constexpr int MAXORDER = 7;
 static constexpr int OFFSET = 16384;
 static constexpr double EPS_HOC = 1.0e-7;
-
-enum { REVERSE_RHO };
-enum { FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
-
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
 static const char cite_pppm_electrode[] =

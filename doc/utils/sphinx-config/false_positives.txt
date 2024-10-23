@@ -639,6 +639,7 @@ cstyle
 csvr
 ctest
 ctilde
+ctip
 ctrl
 ctrn
 ctypes
@@ -3664,6 +3665,7 @@ Tanmoy
 Tartakovsky
 taskset
 taubi
+Tavenner
 taylor
 tb
 tchain

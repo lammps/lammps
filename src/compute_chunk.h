@@ -43,7 +43,7 @@ class ComputeChunk : public Compute {
   int firstflag, massneed;
   ComputeChunkAtom *cchunk;
 
-  virtual void allocate(){};
+  virtual void allocate() {};
 };
 }    // namespace LAMMPS_NS
 #endif

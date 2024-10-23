@@ -99,10 +99,13 @@ void FixTempRescaleKokkos<DeviceType>::end_of_step()
     auto groupbit = this->groupbit;
 
     if (which == NOBIAS) {
-      atomKK->sync(temperature->execution_space,temperature->datamask_read);
-      temperature->remove_bias_all();
-      atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-      atomKK->sync(execution_space,temperature->datamask_modify);
+      if (temperature->kokkosable) temperature->remove_bias_all_kk();
+      else {
+        atomKK->sync(temperature->execution_space,temperature->datamask_read);
+        temperature->remove_bias_all();
+        atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+        atomKK->sync(execution_space,temperature->datamask_modify);
+      }
     }
 
     atomKK->sync(execution_space,V_MASK|MASK_MASK);
@@ -118,11 +121,13 @@ void FixTempRescaleKokkos<DeviceType>::end_of_step()
     atomKK->modified(execution_space,V_MASK);
 
     if (which == NOBIAS) {
-      atomKK->sync(temperature->execution_space,temperature->datamask_read);
-      temperature->restore_bias_all();
-      atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-      atomKK->sync(execution_space,temperature->datamask_modify);
-
+      if (temperature->kokkosable) temperature->restore_bias_all();
+      else {
+        atomKK->sync(temperature->execution_space,temperature->datamask_read);
+        temperature->restore_bias_all();
+        atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+        atomKK->sync(execution_space,temperature->datamask_modify);
+      }
     }
   }
 }

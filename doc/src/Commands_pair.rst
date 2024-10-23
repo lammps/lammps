@@ -44,7 +44,7 @@ OPT.
    * :doc:`born/coul/wolf/cs (g) <pair_cs>`
    * :doc:`born/gauss <pair_born_gauss>`
    * :doc:`bpm/spring <pair_bpm_spring>`
-   * :doc:`brownian (o) <pair_brownian>`
+   * :doc:`brownian (ko) <pair_brownian>`
    * :doc:`brownian/poly (o) <pair_brownian>`
    * :doc:`buck (giko) <pair_buck>`
    * :doc:`buck/coul/cut (giko) <pair_buck>`
@@ -59,6 +59,7 @@ OPT.
    * :doc:`comb (o) <pair_comb>`
    * :doc:`comb3 <pair_comb>`
    * :doc:`cosine/squared <pair_cosine_squared>`
+   * :doc:`coul/ctip <pair_coul>`
    * :doc:`coul/cut (gko) <pair_coul>`
    * :doc:`coul/cut/dielectric <pair_dielectric>`
    * :doc:`coul/cut/global (o) <pair_coul>`

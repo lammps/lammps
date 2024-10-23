@@ -118,7 +118,7 @@ endif()
 
 # silence excessive warnings for new Intel Compilers
 if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
-  set(CMAKE_TUNE_DEFAULT "-Wno-tautological-constant-compare -Wno-unused-command-line-argument")
+  set(CMAKE_TUNE_DEFAULT "-fp-model precise -Wno-tautological-constant-compare -Wno-unused-command-line-argument")
 endif()
 
 # silence excessive warnings for PGI/NVHPC compilers
@@ -141,7 +141,7 @@ endif()
 
 # silence nvcc warnings
 if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND NOT (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
-  set(CMAKE_TUNE_DEFAULT "${CMAKE_TUNE_DEFAULT} -Xcudafe --diag_suppress=unrecognized_pragma")
+  set(CMAKE_TUNE_DEFAULT "${CMAKE_TUNE_DEFAULT} -Xcudafe --diag_suppress=unrecognized_pragma -Xcudafe --diag_suppress=128")
 endif()
 
 # we require C++11 without extensions. Kokkos requires at least C++17 (currently)
@@ -165,6 +165,7 @@ if(MSVC)
     add_compile_options(/wd4267)
     add_compile_options(/wd4250)
     add_compile_options(/EHsc)
+    add_compile_options(/utf-8)
   endif()
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
@@ -822,9 +823,15 @@ foreach(_DEF ${LAMMPS_DEFINES})
   set(LAMMPS_API_DEFINES "${LAMMPS_API_DEFINES} -D${_DEF}")
 endforeach()
 if(BUILD_SHARED_LIBS)
-  install(TARGETS lammps EXPORT LAMMPS_Targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  install(TARGETS lammps EXPORT LAMMPS_Targets
+          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   if(NOT BUILD_MPI)
-    install(TARGETS mpi_stubs EXPORT LAMMPS_Targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    install(TARGETS mpi_stubs EXPORT LAMMPS_Targets
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   endif()
   configure_file(pkgconfig/liblammps.pc.in ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_MACHINE}.pc @ONLY)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_MACHINE}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)

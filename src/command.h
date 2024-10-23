@@ -20,7 +20,7 @@ namespace LAMMPS_NS {
 
 class Command : protected Pointers {
  public:
-  Command(class LAMMPS *lmp) : Pointers(lmp){};
+  Command(class LAMMPS *lmp) : Pointers(lmp) {};
   virtual void command(int, char **) = 0;
 };
 

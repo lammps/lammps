@@ -36,7 +36,7 @@ class FixNVELimit : public Fix {
   void reset_dt() override;
   double compute_scalar() override;
 
- private:
+ protected:
   double dtv, dtf;
   double *step_respa;
   int ncount;

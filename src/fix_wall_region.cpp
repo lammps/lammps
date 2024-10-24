@@ -100,6 +100,7 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
 
 FixWallRegion::~FixWallRegion()
 {
+  if (copymode) return;
   delete[] idregion;
 }
 

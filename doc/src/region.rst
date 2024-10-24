@@ -3,6 +3,8 @@
 region command
 ==============
 
+Accelerator Variants: *block/kk*, *sphere/kk*
+
 Syntax
 """"""
 
@@ -74,7 +76,7 @@ Syntax
          Rx,Ry,Rz = axis of rotation vector
        *open* value = integer from 1-6 corresponding to face index (see below)
 
-* accelerated styles (with same args) = *block/kk*
+* accelerated styles (with same args) = *block/kk, sphere/kk*
 
 Examples
 """"""""
@@ -401,9 +403,9 @@ sub-regions can be defined with the *open* keyword.
 
 .. note::
 
-  Currently, only *block* style regions are supported by Kokkos.  The
+  Currently, only *block* and *sphere* style regions are supported by KOKKOS.  The
   code using the region (such as a fix or compute) must also be
-  supported by Kokkos or no acceleration will occur.
+  supported by KOKKOS or no acceleration will occur.
 
 ----------
 

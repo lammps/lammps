@@ -34,7 +34,7 @@ class FixRecenter : public Fix {
   double compute_scalar() override;
   double compute_vector(int) override;
 
- private:
+ protected:
   int group2bit, scaleflag;
   int xflag, yflag, zflag;
   int xinitflag, yinitflag, zinitflag;

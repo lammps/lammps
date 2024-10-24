@@ -1,7 +1,10 @@
 .. index:: fix recenter
+.. index:: fix recenter/kk
 
 fix recenter command
 ====================
+
+Accelerator Variants: *recenter/kk*
 
 Syntax
 """"""
@@ -112,6 +115,12 @@ The scalar and vector values calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

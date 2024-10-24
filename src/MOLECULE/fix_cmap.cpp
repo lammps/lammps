@@ -127,6 +127,9 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
 
 FixCMAP::~FixCMAP()
 {
+
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
 
   atom->delete_callback(id,Atom::GROW);
@@ -413,8 +416,6 @@ void FixCMAP::post_force(int vflag)
       r43 = sqrt(vb43x*vb43x + vb43y*vb43y + vb43z*vb43z);
       a2sq = a2x*a2x + a2y*a2y + a2z*a2z;
       b2sq = b2x*b2x + b2y*b2y + b2z*b2z;
-      //if (a1sq<0.0001 || b1sq<0.0001 || a2sq<0.0001 || b2sq<0.0001)
-      //  printf("a1sq b1sq a2sq b2sq: %f %f %f %f \n",a1sq,b1sq,a2sq,b2sq);
       if (a1sq<0.0001 || b1sq<0.0001 || a2sq<0.0001 || b2sq<0.0001) continue;
       dpr21r32 = vb21x*vb32x + vb21y*vb32y + vb21z*vb32z;
       dpr34r32 = vb34x*vb32x + vb34y*vb32y + vb34z*vb32z;

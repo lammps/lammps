@@ -53,7 +53,6 @@ Region::~Region()
 
   delete[] id;
   delete[] style;
-
   delete[] xstr;
   delete[] ystr;
   delete[] zstr;

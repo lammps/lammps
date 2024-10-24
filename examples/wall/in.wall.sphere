@@ -1,0 +1,40 @@
+
+units real
+
+molecule water tip3p.mol
+atom_style     full
+
+variable        radius equal 100.0
+region          box block $(-v_radius) $(v_radius) $(-v_radius) $(v_radius) $(-v_radius) $(v_radius)
+create_box 2 box bond/types 1 angle/types 1 &
+            extra/bond/per/atom 2 extra/angle/per/atom 1 extra/special/per/atom 2
+
+mass 1 15.9994
+mass 2 1.008
+
+bond_style zero
+bond_coeff 1 0.9574
+angle_style zero
+angle_coeff 1 104.52
+
+region sphere1 sphere 0 0 0 $(v_radius-10) side in
+region sphere2 sphere 0 0 0 $(v_radius-20) side in
+create_atoms 0 random 5000 12345 sphere2 mol water 12345 overlap 2
+
+thermo 1
+thermo_style custom step time spcpu temp press etotal pe
+
+fix wall all wall/region sphere1 harmonic 1000.0 0.0 2.5
+fix_modify wall energy yes
+
+pair_style lj/cut/coul/cut 8.0
+pair_coeff 1 1 0.1521 3.1507
+pair_coeff 2 2 0.0    1.0
+velocity all create 300.0 12345
+fix 1 all nvt temp 300 300 100.0
+fix 2 all shake 0.001 10 10000 b 1 a 1
+
+dump 2 all movie 10 wall.sphere.mpg type type size 1500 1500 fsaa yes
+dump_modify 2 pad 4 acolor * white/red/green/blue/aqua/magenta
+
+run             100

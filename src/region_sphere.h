@@ -36,7 +36,7 @@ class RegSphere : public Region {
   void set_velocity_shape() override;
   void velocity_contact_shape(double *, double *) override;
 
- private:
+ protected:
   double xc, yc, zc;
   double radius;
   int xstyle, xvar;

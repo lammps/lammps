@@ -208,6 +208,8 @@ void AtomKokkos::sort()
       auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
       if (!fix_iextra->sort_device) {
         flag = 0;
+        if (comm->me == 0)
+          error->warning(FLERR,"Fix {} not compatible with Kokkos sorting on device", fix_iextra->style);
         break;
       }
     }

@@ -1,7 +1,10 @@
 .. index:: fix wall/region
+.. index:: fix wall/region/kk
 
 fix wall/region command
 =======================
+
+Accelerator Variants: *wall/region/kk*
 
 Syntax
 """"""
@@ -233,6 +236,12 @@ invoked by the :doc:`minimize <minimize>` command.
    total potential energy of the system (the quantity being
    minimized), you MUST enable the :doc:`fix_modify <fix_modify>`
    *energy* option for this fix.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

@@ -248,13 +248,19 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     if (title2) fprintf(fp,"%s\n",title2);
     else if (mode == SCALAR) {
       fprintf(fp,"# TimeStep");
-      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",earg[i]);
+      for (int i = 0; i < nvalues; i++) {
+          fprintf(fp," %s",earg[i]);
+          if (variance) fprintf(fp," %s.var",earg[i]);
+      }
       fprintf(fp,"\n");
     } else fprintf(fp,"# TimeStep Number-of-rows\n");
     if (title3 && mode == VECTOR) fprintf(fp,"%s\n",title3);
     else if (mode == VECTOR) {
       fprintf(fp,"# Row");
-      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",earg[i]);
+      for (int i = 0; i < nvalues; i++) {
+          fprintf(fp," %s",earg[i]);
+          if (variance) fprintf(fp," %s.var",earg[i]);
+      }
       fprintf(fp,"\n");
     }
     if (yaml_flag) fputs("---\n",fp);
@@ -281,10 +287,28 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   array = array_total = nullptr;
   array_list = nullptr;
 
+  // also allocate memory for variance
+  varmold = varmnew = nullptr;
+  varsold = varsnew = nullptr;
+  variance_total = nullptr;
+  variance_list = nullptr;
+  varmold_array = varmnew_array = nullptr;
+  varsold_array = varsnew_array = nullptr;
+  variance_array = nullptr;
+  variance_array_list = nullptr;
+
   if (mode == SCALAR) {
     vector = new double[nvalues];
     vector_total = new double[nvalues];
     if (ave == WINDOW) memory->create(vector_list,nwindow,nvalues,"ave/time:vector_list");
+    if (variance) {
+        varmold = new double[nvalues];
+        varmnew = new double[nvalues];
+        varsold = new double[nvalues];
+        varsnew = new double[nvalues];
+        variance_total = new double[nvalues];
+        if (ave == WINDOW) memory->create(variance_list,nwindow,nvalues,"ave/time:variance_list");
+    }
   } else allocate_arrays();
 
   // this fix produces either a global scalar or vector or array
@@ -395,8 +419,17 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   iwindow = window_limit = 0;
   norm = 0;
 
-  if (mode == SCALAR)
-    for (int i = 0; i < nvalues; i++) vector_total[i] = 0.0;
+  if (mode == SCALAR) {
+    for (int i = 0; i < nvalues; i++) {
+      vector_total[i] = 0.0;
+      if (variance) {
+        varmold[i] = 0.0;
+        varmnew[i] = 0.0;
+        varsold[i] = 0.0;
+        varsnew[i] = 0.0;
+      }
+    }
+  }
 
   // nvalid = next step on which end_of_step does something
   // add nvalid to all computes that store invocation times
@@ -441,6 +474,21 @@ FixAveTime::~FixAveTime()
   memory->destroy(array);
   memory->destroy(array_total);
   memory->destroy(array_list);
+  if (variance) {
+    delete[] varmold;
+    delete[] varmnew;
+    delete[] varsold;
+    delete[] varsnew;
+    delete[] variance_total;
+    delete[] variance_list;
+    memory->destroy(variance_array);
+    memory->destroy(varmold_array);
+    memory->destroy(varmnew_array);
+    memory->destroy(varsold_array);
+    memory->destroy(varsnew_array);
+    memory->destroy(variance_array_list);
+  }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -521,7 +569,10 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
       modify->addstep_compute(ntimestep+nevery);
       modify->addstep_compute(ntimestep+nfreq);
     }
-    for (int i = 0; i < nvalues; i++) vector[i] = 0.0;
+    for (int i = 0; i < nvalues; i++) {
+        vector[i] = 0.0;
+        if (variance) varmold[i] = varmnew[i] = varsold[i] = varsnew[i] = 0.0;
+    }
   }
 
   // accumulate results of computes,fixes,variables to local copy
@@ -580,6 +631,22 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
 
     if (val.offcol) vector[i] = scalar;
     else vector[i] += scalar;
+
+    // If Welford's variance is to be computed, it has to be done here
+    // because you need to account for all the values.
+    // Assuming independance, the average of the variances converges to the
+    // average variance.
+
+    if (variance && !val.offcol) {
+      if (!irepeat) {
+        varmnew[i] = scalar;
+      } else {
+        varmold[i] = varmnew[i];
+        varsold[i] = varsnew[i];
+        varmnew[i] = varmold[i] + (scalar - varmold[i])/(irepeat+1);
+        varsnew[i] = varsold[i] + (scalar - varmold[i])*(scalar - varmnew[i]);
+      }
+    }
     ++i;
   }
 
@@ -600,19 +667,27 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
   // average the final result for the Nfreq timestep
 
   double repeat = nrepeat;
-  for (i = 0; i < nvalues; i++)
+  for (i = 0; i < nvalues; i++) {
     if (values[i].offcol == 0) vector[i] /= repeat;
+    if (variance) varsnew[i] /= repeat;
+  }
 
   // if ave = ONE, only single Nfreq timestep value is needed
   // if ave = RUNNING, combine with all previous Nfreq timestep values
   // if ave = WINDOW, combine with nwindow most recent Nfreq timestep values
 
   if (ave == ONE) {
-    for (i = 0; i < nvalues; i++) vector_total[i] = vector[i];
+    for (i = 0; i < nvalues; i++) {
+      vector_total[i] = vector[i];
+      if (variance) variance_total[i] = varsnew[i];
+    }
     norm = 1;
 
   } else if (ave == RUNNING) {
-    for (i = 0; i < nvalues; i++) vector_total[i] += vector[i];
+    for (i = 0; i < nvalues; i++) {
+      vector_total[i] += vector[i];
+      if (variance) variance_total[i] += varsnew[i];
+    }
     norm++;
 
   } else if (ave == WINDOW) {
@@ -620,6 +695,11 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
       vector_total[i] += vector[i];
       if (window_limit) vector_total[i] -= vector_list[iwindow][i];
       vector_list[iwindow][i] = vector[i];
+      if (variance) {
+          variance_total[i] += varsnew[i];
+          if (window_limit) variance_total[i] -= variance_list[iwindow][i];
+          variance_list[iwindow][i] = varsnew[i];
+      }
     }
 
     iwindow++;
@@ -645,15 +725,24 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
       if (!yaml_header || overwrite) {
         yaml_header = true;
         fputs("keywords: ['Step', ", fp);
-        for (const auto &val : values) fmt::print(fp, "'{}', ", val.keyword);
+        for (const auto &val : values) {
+            fmt::print(fp, "'{}', ", val.keyword);
+            if (variance) fmt::print(fp, "'{}.var', ", val.keyword);
+        }
         fputs("]\ndata:\n", fp);
       }
       fmt::print(fp, "  - [{}, ", ntimestep);
-      for (i = 0; i < nvalues; i++) fmt::print(fp,"{}, ",vector_total[i]/norm);
+      for (i = 0; i < nvalues; i++) {
+          fmt::print(fp,"{}, ",vector_total[i]/norm);
+          if (variance) fmt::print(fp,"{}, ",variance_total[i]/norm);
+      }
       fputs("]\n", fp);
     } else {
       fmt::print(fp,"{}",ntimestep);
-      for (i = 0; i < nvalues; i++) fprintf(fp,format,vector_total[i]/norm);
+      for (i = 0; i < nvalues; i++) {
+          fprintf(fp,format,vector_total[i]/norm);
+          if (variance) fprintf(fp,format,variance_total[i]/norm);
+      }
       fprintf(fp,"\n");
       if (ferror(fp)) error->one(FLERR,"Error writing out time averaged data");
     }
@@ -712,8 +801,15 @@ void FixAveTime::invoke_vector(bigint ntimestep)
       if (lockforever_flag) lockforever = 1;
     }
 
-    for (int i = 0; i < nrows; i++)
-      for (int j = 0; j < nvalues; j++) array[i][j] = 0.0;
+    for (int i = 0; i < nrows; i++) {
+      for (int j = 0; j < nvalues; j++) {
+        array[i][j] = 0.0;
+        if (variance) {
+          varmold_array[i][j] = varmnew_array[i][j] = 0.0;
+          varsold_array[i][j] = varsnew_array[i][j] = 0.0;
+        }
+      }
+    }
   }
 
   // accumulate results of computes,fixes,variables to local copy
@@ -781,6 +877,19 @@ void FixAveTime::invoke_vector(bigint ntimestep)
       for (int i = 0; i < nrows; i++)
         array[i][j] += column[i];
     }
+
+    if (variance && !val.offcol) {
+      if (!irepeat) {
+        for (int i = 0; i < nrows; i++) varmnew_array[i][j] = column[i];
+      } else {
+        for (int i = 0; i < nrows; i++) {
+          varmold_array[i][j] = varmnew_array[i][j];
+          varsold_array[i][j] = varsnew_array[i][j];
+          varmnew_array[i][j] = varmold_array[i][j] + (column[i] - varmold_array[i][j])/(irepeat+1);
+          varsnew_array[i][j] = varsold_array[i][j] + (column[i] - varmold_array[i][j])*(column[i] - varmnew_array[i][j]);
+        }
+      }
+    }
     ++j;
   }
 
@@ -813,7 +922,10 @@ void FixAveTime::invoke_vector(bigint ntimestep)
   double repeat = nrepeat;
   for (int i = 0; i < nrows; i++)
     for (int j = 0; j < nvalues; j++)
-      if (values[j].offcol == 0) array[i][j] /= repeat;
+      if (values[j].offcol == 0) {
+        array[i][j] /= repeat;
+        if (variance) varsnew_array[i][j] /= repeat;
+      }
 
   // if ave = ONE, only single Nfreq timestep value is needed
   // if ave = RUNNING, combine with all previous Nfreq timestep values
@@ -821,12 +933,18 @@ void FixAveTime::invoke_vector(bigint ntimestep)
 
   if (ave == ONE) {
     for (int i = 0; i < nrows; i++)
-      for (int j = 0; j < nvalues; j++) array_total[i][j] = array[i][j];
+      for (int j = 0; j < nvalues; j++) {
+        array_total[i][j] = array[i][j];
+        if (variance) variance_array[i][j] = varsnew_array[i][j];
+      }
     norm = 1;
 
   } else if (ave == RUNNING) {
     for (int i = 0; i < nrows; i++)
-      for (int j = 0; j < nvalues; j++) array_total[i][j] += array[i][j];
+      for (int j = 0; j < nvalues; j++) {
+        array_total[i][j] += array[i][j];
+        if (variance) variance_array[i][j] += varsnew_array[i][j];
+      }
     norm++;
 
   } else if (ave == WINDOW) {
@@ -835,6 +953,11 @@ void FixAveTime::invoke_vector(bigint ntimestep)
         array_total[i][j] += array[i][j];
         if (window_limit) array_total[i][j] -= array_list[iwindow][i][j];
         array_list[iwindow][i][j] = array[i][j];
+        if (variance) {
+            variance_array[i][j] += varsnew_array[i][j];
+            if (window_limit) variance_array[i][j] -= variance_array_list[iwindow][i][j];
+            variance_array_list[iwindow][i][j] = varsnew_array[i][j];
+        }
       }
 
     iwindow++;
@@ -860,20 +983,29 @@ void FixAveTime::invoke_vector(bigint ntimestep)
       if (!yaml_header || overwrite) {
         yaml_header = true;
         fputs("keywords: [", fp);
-        for (const auto &val : values) fmt::print(fp, "'{}', ", val.keyword);
+        for (const auto &val : values) {
+          fmt::print(fp, "'{}', ", val.keyword);
+          if (variance) fmt::print(fp, "'{}.var', ", val.keyword);
+        }
         fputs("]\ndata:\n", fp);
       }
       fmt::print(fp, "  {}:\n", ntimestep);
       for (int i = 0; i < nrows; i++) {
         fputs("  - [", fp);
-        for (int j = 0; j < nvalues; j++) fmt::print(fp,"{}, ",array_total[i][j]/norm);
+        for (int j = 0; j < nvalues; j++) {
+          fmt::print(fp,"{}, ",array_total[i][j]/norm);
+          if (variance) fmt::print(fp,"{}, ",variance_array[i][j]/norm);
+        }
         fputs("]\n", fp);
       }
     } else {
       fmt::print(fp,"{} {}\n",ntimestep,nrows);
       for (int i = 0; i < nrows; i++) {
         fprintf(fp,"%d",i+1);
-        for (int j = 0; j < nvalues; j++) fprintf(fp,format,array_total[i][j]/norm);
+        for (int j = 0; j < nvalues; j++) {
+          fprintf(fp,format,array_total[i][j]/norm);
+          if (variance) fprintf(fp,format,variance_array[i][j]/norm);
+        }
         fprintf(fp,"\n");
       }
     }
@@ -1030,6 +1162,7 @@ void FixAveTime::options(int iarg, int narg, char **arg)
   title1 = nullptr;
   title2 = nullptr;
   title3 = nullptr;
+  variance = false;
 
   // optional args
 
@@ -1099,6 +1232,9 @@ void FixAveTime::options(int iarg, int narg, char **arg)
       delete[] title3;
       title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"var") == 0) {
+        variance = true;
+        iarg += 1;
     } else error->all(FLERR,"Unknown fix ave/time keyword {}", arg[iarg]);
   }
 }
@@ -1113,15 +1249,40 @@ void FixAveTime::allocate_arrays()
   memory->destroy(array_total);
   memory->create(array,nrows,nvalues,"ave/time:array");
   memory->create(array_total,nrows,nvalues,"ave/time:array_total");
+  if (variance) {
+      memory->destroy(varmold_array);
+      memory->destroy(varmnew_array);
+      memory->destroy(varsold_array);
+      memory->destroy(varsnew_array);
+      memory->destroy(variance_array);
+      memory->create(varmold_array,nrows,nvalues,"ave/time:varmold_array");
+      memory->create(varmnew_array,nrows,nvalues,"ave/time:varmnew_array");
+      memory->create(varsold_array,nrows,nvalues,"ave/time:varsold_array");
+      memory->create(varsnew_array,nrows,nvalues,"ave/time:varsnew_array");
+      memory->create(variance_array,nrows,nvalues,"ave/time:variance_array");
+  }
   if (ave == WINDOW) {
     memory->destroy(array_list);
     memory->create(array_list,nwindow,nrows,nvalues,"ave/time:array_list");
+    if (variance) {
+      memory->destroy(variance_array_list);
+      memory->create(variance_array_list,nwindow,nrows,nvalues,"ave/time:variance_array_list");
+    }
   }
 
   // reinitialize regrown array_total since it accumulates
 
   for (int i = 0; i < nrows; i++)
-    for (int j = 0; j < nvalues; j++) array_total[i][j] = 0.0;
+    for (int j = 0; j < nvalues; j++) {
+      array_total[i][j] = 0.0;
+      if (variance) {
+        varmold_array[i][j] = 0.0;
+        varmnew_array[i][j] = 0.0;
+        varsold_array[i][j] = 0.0;
+        varsnew_array[i][j] = 0.0;
+        variance_array[i][j] = 0.0;
+      }
+    }
 }
 
 /* ----------------------------------------------------------------------

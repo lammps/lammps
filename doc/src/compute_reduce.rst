@@ -206,11 +206,13 @@ IDs and the bond stretch will be printed with thermodynamic output.
 
 The *inputs* keyword allows selection of whether all the inputs are
 per-atom or local quantities.  As noted above, all the inputs must be
-the same kind (per-atom or local).  Per-atom is the default setting.
-If a compute or fix is specified as an input, it must produce per-atom
-or local data to match this setting.  If it produces both, e.g. for
+the same kind (per-atom or local).  Per-atom is the default setting.  If
+a compute or fix is specified as an input, it must produce per-atom or
+local data to match this setting.  If it produces both, like for example
 the :doc:`compute voronoi/atom <compute_voronoi_atom>` command, then
-this keyword selects between them.
+this keyword selects between them.  If a compute *only* produces local
+data, like for example the :doc:`compute bond/local command
+<compute_bond_local>`, the setting "inputs local" is *required*.
 
 ----------
 

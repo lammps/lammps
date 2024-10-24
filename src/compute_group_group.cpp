@@ -54,9 +54,7 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
 
   group2 = utils::strdup(arg[3]);
-  jgroup = group->find(group2);
-  if (jgroup == -1) error->all(FLERR, "Compute group/group group ID does not exist");
-  jgroupbit = group->bitmask[jgroup];
+  jgroupbit = group->get_bitmask_by_id(FLERR, group2, "compute group/group");
 
   pairflag = 1;
   kspaceflag = 0;
@@ -147,9 +145,7 @@ void ComputeGroupGroup::init()
 
   // recheck that group 2 has not been deleted
 
-  jgroup = group->find(group2);
-  if (jgroup == -1) error->all(FLERR, "Compute group/group group ID does not exist");
-  jgroupbit = group->bitmask[jgroup];
+  jgroupbit = group->get_bitmask_by_id(FLERR, group2, "compute group/group");
 
   // need an occasional half neighbor list
 

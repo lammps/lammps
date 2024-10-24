@@ -56,11 +56,9 @@ void DeleteBonds::command(int narg, char **arg)
 
   if (comm->me == 0) utils::logmesg(lmp,"Deleting bonds ...\n");
 
-  // identify group
+  // get group bitmask
 
-  int igroup = group->find(arg[0]);
-  if (igroup == -1) error->all(FLERR,"Cannot find delete_bonds group ID");
-  int groupbit = group->bitmask[igroup];
+  int groupbit = group->get_bitmask_by_id(FLERR, arg[0], "delete_bonds");
 
   // set style and which = type value
 

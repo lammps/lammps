@@ -650,6 +650,22 @@ int Group::find_unused()
 }
 
 /* ----------------------------------------------------------------------
+   return group bitmask for given group id. Error out if group is not found.
+------------------------------------------------------------------------- */
+
+int Group::get_bitmask_by_id(const std::string &file, int line, const std::string &name,
+                             const std::string &caller)
+{
+  int igroup = 0;
+  for (; igroup < MAX_GROUP; ++igroup) {
+    if (names[igroup] && (name == names[igroup])) break;
+  }
+  if (igroup == MAX_GROUP)
+    error->all(file, line, "Group ID {} requested by {} does not exist", name, caller);
+  return bitmask[igroup];
+}
+
+/* ----------------------------------------------------------------------
    add atoms to group that are in same molecules as atoms already in group
    do not include molID = 0
 ------------------------------------------------------------------------- */

@@ -56,6 +56,7 @@ FixCMAPKokkos<DeviceType>::FixCMAPKokkos(LAMMPS *lmp, int narg, char **arg) :
   datamask_modify = F_MASK;
 
   // allocate memory for CMAP data
+
   memoryKK->create_kokkos(k_g_axis,g_axis,CMAPDIM,"cmap:g_axis");
   memoryKK->create_kokkos(k_cmapgrid,cmapgrid,CMAPMAX,CMAPDIM,CMAPDIM,"cmap:grid");
   memoryKK->create_kokkos(k_d1cmapgrid,d1cmapgrid,CMAPMAX,CMAPDIM,CMAPDIM,"cmap:d1grid");
@@ -69,6 +70,7 @@ FixCMAPKokkos<DeviceType>::FixCMAPKokkos(LAMMPS *lmp, int narg, char **arg) :
   d_d12cmapgrid = k_d12cmapgrid.template view<DeviceType>();
 
   // read and setup CMAP data
+
   read_grid_map(arg[3]);
 
   int i = 0;
@@ -88,6 +90,7 @@ FixCMAPKokkos<DeviceType>::FixCMAPKokkos(LAMMPS *lmp, int narg, char **arg) :
   for( int i=0 ; i<CMAPMAX ; i++ ) {
 
     // pre-compute the derivatives of the maps
+
     set_map_derivatives(cmapgrid[i],d1cmapgrid[i],d2cmapgrid[i],d12cmapgrid[i]);
 
     for( int j=0 ; j<CMAPDIM ; j++ ) {
@@ -111,7 +114,6 @@ FixCMAPKokkos<DeviceType>::FixCMAPKokkos(LAMMPS *lmp, int narg, char **arg) :
   k_d1cmapgrid.template sync<DeviceType>();
   k_d2cmapgrid.template sync<DeviceType>();
   k_d12cmapgrid.template sync<DeviceType>();
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -136,7 +138,6 @@ FixCMAPKokkos<DeviceType>::~FixCMAPKokkos()
   memoryKK->destroy_kokkos(k_crossterm_atom5,crossterm_atom5);
 
   memoryKK->destroy_kokkos(d_crosstermlist);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -148,6 +149,7 @@ void FixCMAPKokkos<DeviceType>::init()
     error->all(FLERR,"Cannot yet use respa with Kokkos");
 
   // on KOKKOS, allocate enough for all crossterms on each GPU to avoid grow operation in device code
+
   maxcrossterm = ncmap;
   memoryKK->create_kokkos(d_crosstermlist,maxcrossterm,CMAPMAX,"cmap:crosstermlist");
 }
@@ -159,7 +161,6 @@ void FixCMAPKokkos<DeviceType>::init()
 template<class DeviceType>
 void FixCMAPKokkos<DeviceType>::pre_neighbor()
 {
-
   atomKK->sync(execution_space,X_MASK);
   d_x = atomKK->k_x.view<DeviceType>();
   int nlocal = atomKK->nlocal;
@@ -179,14 +180,12 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
   copymode = 1;
   Kokkos::parallel_scan(Kokkos::RangePolicy<DeviceType,TagFixCmapPreNeighbor>(0,nlocal),*this,ncrosstermlist);
   copymode = 0;
-
 }
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPreNeighbor, const int i, int &l_ncrosstermlist, const bool is_final ) const
 {
-
   for( int m = 0; m < d_num_crossterm(i); m++) {
 
     int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_crossterm_atom1(i,m),map_style,k_map_array,k_map_hash);
@@ -297,6 +296,7 @@ void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n, dou
   double vb45z = d_x(i4,2) - d_x(i5,2);
 
   // calculate normal vectors for planes that define the dihedral angles
+
   double a1x = vb12y*vb23z - vb12z*vb23y;
   double a1y = vb12z*vb23x - vb12x*vb23z;
   double a1z = vb12x*vb23y - vb12y*vb23x;
@@ -325,6 +325,7 @@ void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n, dou
   if (a1sq<0.0001 || b1sq<0.0001 || a2sq<0.0001 || b2sq<0.0001) return;
 
   // vectors needed to calculate the cross-term dihedral angles
+
   double dpr21r32 = vb21x*vb32x + vb21y*vb32y + vb21z*vb32z;
   double dpr34r32 = vb34x*vb32x + vb34y*vb32y + vb34z*vb32z;
   double dpr32r43 = vb32x*vb43x + vb32y*vb43y + vb32z*vb43z;
@@ -388,8 +389,8 @@ void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n, dou
   bc_interpol(phi,psi,li3,li4,gs,d1gs,d2gs,d12gs,E,dEdPhi,dEdPsi);
 
   // sum up cmap energy contributions
-
   // needed for compute_scalar()
+
   double engfraction = 0.2 * E;
   if (i1 < nlocal) ecmapKK += engfraction;
   if (i2 < nlocal) ecmapKK += engfraction;
@@ -479,6 +480,7 @@ void FixCMAPKokkos<DeviceType>::grow_arrays(int nmax)
   k_crossterm_atom5.template sync<LMPHostType>();
 
   // force reallocation on host
+
   k_num_crossterm.template modify<LMPHostType>();
   k_crossterm_type.template modify<LMPHostType>();
   k_crossterm_atom1.template modify<LMPHostType>();
@@ -877,8 +879,6 @@ void FixCMAPKokkos<DeviceType>::bc_interpol(double x1, double x2, int low1, int 
   dEdPsi *= (180.0/MY_PI/CMAPDX);
 }
 
-
-
 /* ----------------------------------------------------------------------
    return local index of atom J or any of its images that is closest to atom I
    if J is not a valid index like -1, just return it
@@ -916,7 +916,6 @@ int FixCMAPKokkos<DeviceType>::closest_image(const int i, int j) const
 
   return closest;
 }
-
 
 namespace LAMMPS_NS {
 template class FixCMAPKokkos<LMPDeviceType>;

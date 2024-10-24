@@ -131,6 +131,7 @@ FixCMAP::~FixCMAP()
   if (copymode) return;
 
   // unregister callbacks to this fix from Atom class
+
   atom->delete_callback(id,Atom::GROW);
   atom->delete_callback(id,Atom::RESTART);
 

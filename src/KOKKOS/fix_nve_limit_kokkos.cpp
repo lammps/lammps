@@ -120,7 +120,6 @@ void FixNVELimitKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 
   ncount += d_ncount;
   atomKK->modified(execution_space, X_MASK | V_MASK );
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -190,7 +189,6 @@ void FixNVELimitKokkos<DeviceType>::final_integrate()
 
   ncount += d_ncount;
   atomKK->modified(execution_space, V_MASK );
-
 }
 
 /* ---------------------------------------------------------------------- */

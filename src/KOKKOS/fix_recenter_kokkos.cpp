@@ -50,7 +50,6 @@ FixRecenterKokkos<DeviceType>::FixRecenterKokkos(LAMMPS *lmp, int narg, char **a
 template<class DeviceType>
 void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 {
-
   atomKK->sync(execution_space,datamask_read);
   int nlocal = atomKK->nlocal;
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
@@ -120,7 +119,6 @@ void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   copymode = 0;
   atomKK->modified(execution_space,datamask_modify);
 }
-
 
 namespace LAMMPS_NS {
 template class FixRecenterKokkos<LMPDeviceType>;

@@ -50,6 +50,7 @@ Region::Region(LAMMPS *lmp, int /*narg*/, char **arg) :
 Region::~Region()
 {
   if (copymode) return;
+
   delete[] id;
   delete[] style;
   delete[] xstr;

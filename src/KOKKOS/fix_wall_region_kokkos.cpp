@@ -91,8 +91,8 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
   // initilize ewall after region->prematch(),
   //   so a dynamic region can access last timestep values
 
-  // energy intialize.
-  // eflag is used to track whether wall energies have been communicated.
+  // energy intialize
+  // eflag is used to track whether wall energies have been communicated
 
   eflag = 0;
   double result[10];
@@ -330,7 +330,6 @@ template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixWallRegionKokkos<DeviceType>::v_tally(value_type result, int i, double *v) const
 {
-
   if (vflag_global) {
     result[4] += v[0];
     result[5] += v[1];
@@ -348,7 +347,6 @@ void FixWallRegionKokkos<DeviceType>::v_tally(value_type result, int i, double *
     Kokkos::atomic_add(&(d_vatom(i,4)),v[4]);
     Kokkos::atomic_add(&(d_vatom(i,5)),v[5]);
   }
-
 }
 
 namespace LAMMPS_NS {

@@ -269,9 +269,9 @@ void FixBondDynamic::setup(int /*vflag*/)
   for (int i = 0; i < nlocal; i++) {
     if (num_bond[i] == 0) continue;
     for (int b = 0; b < num_bond[i]; b++) {
-       if (bond_type[i][b] == btype) {
-        fbd[i][b] = bond_atom[i][b];
-       }
+       //if (bond_type[i][b] == btype) {
+      fbd[i][b] = bond_atom[i][b];
+       //}
     }
   }
 

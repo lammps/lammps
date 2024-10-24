@@ -17,6 +17,7 @@
 #include "atom_vec.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -91,6 +92,16 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
       kindflag = PAIR;
     } else if (strcmp(arg[iarg], "ptype2") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_ptype2;
+      if (kindflag != NONE && kindflag != PAIR)
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
+      kindflag = PAIR;
+    } else if (strcmp(arg[iarg], "pmolecule1") == 0) {
+      pack_choice[i] = &ComputePropertyLocal::pack_pmolecule1;
+      if (kindflag != NONE && kindflag != PAIR)
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
+      kindflag = PAIR;
+    } else if (strcmp(arg[iarg], "pmolecule2") == 0) {
+      pack_choice[i] = &ComputePropertyLocal::pack_pmolecule2;
       if (kindflag != NONE && kindflag != PAIR)
         error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = PAIR;
@@ -200,6 +211,10 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
 
   cutstyle = TYPE;
 
+  // group2-ID defaults to group-ID of compute if group2 option not used
+  igroup2 = igroup;
+  groupbit2 = groupbit;
+
   while (iarg < narg) {
     if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute property/local cutoff", error);
@@ -209,6 +224,12 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
         cutstyle = RADIUS;
       else
         error->all(FLERR, "Unknown compute property/local cutoff keyword: {}", arg[iarg + 1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "group2") == 0) {
+      if (iarg + 1 > narg) error->all(FLERR, "Illegal compute property/local command");
+      igroup2 = group->find(arg[iarg + 1]);
+      if (igroup2 == -1) error->all(FLERR,"Could not find compute group2-ID {}", arg[iarg + 1] );
+      groupbit2 = group->bitmask[igroup2];
       iarg += 2;
     } else
       error->all(FLERR, "Unknown compute property/local keyword: {}", arg[iarg]);
@@ -384,7 +405,7 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
   m = 0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (!(mask[i] & groupbit)) continue;
+    if ( !(mask[i] & groupbit) && !(mask[i] & groupbit2) ) continue;
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -398,7 +419,8 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
       j = jlist[jj];
       j &= NEIGHMASK;
 
-      if (!(mask[j] & groupbit)) continue;
+      if ( (mask[i] & groupbit) && !(mask[j] & groupbit2)) continue;
+      if ( (mask[i] & groupbit2) && !(mask[j] & groupbit)) continue;
 
       // itag = jtag is possible for long cutoffs that include images of self
       // do not need triclinic logic here b/c neighbor list itself is correct
@@ -432,9 +454,12 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
         }
       }
 
-      if (allflag) {
+      if (allflag && (mask[i] & groupbit)) {
         indices[m][0] = i;
         indices[m][1] = j;
+      } else if (allflag && (mask[i] & groupbit2)) {
+        indices[m][0] = j;
+        indices[m][1] = i;
       }
       m++;
     }
@@ -705,6 +730,34 @@ void ComputePropertyLocal::pack_ptype2(int n)
   for (int m = 0; m < ncount; m++) {
     i = indices[m][1];
     buf[n] = type[i];
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyLocal::pack_pmolecule1(int n)
+{
+  int i;
+  tagint *molecule = atom->molecule;
+
+  for (int m = 0; m < ncount; m++) {
+    i = indices[m][0];
+    buf[n] = molecule[i];
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyLocal::pack_pmolecule2(int n)
+{
+  int i;
+  tagint *molecule = atom->molecule;
+
+  for (int m = 0; m < ncount; m++) {
+    i = indices[m][1];
+    buf[n] = molecule[i];
     n += nvalues;
   }
 }

@@ -51,6 +51,13 @@ class TextFileReader {
   void next_dvector(double *list, int n);
   ValueTokenizer next_values(int nparams,
                              const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
+
+  // convenience functions
+  double next_double();
+  int next_int();
+  tagint next_tagint();
+  bigint next_bigint();
+  std::string next_string();
 };
 
 class FileReaderException : public std::exception {

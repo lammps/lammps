@@ -69,6 +69,11 @@ if(PKG_MOLECULE)
   target_compile_definitions(test_compute_chunk PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
   target_link_libraries(test_compute_chunk PRIVATE lammps GTest::GMock)
   add_test(NAME ComputeChunk COMMAND test_compute_chunk)
+
+  add_executable(test_psf test_psf.cpp)
+  target_compile_definitions(test_psf PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+  target_link_libraries(test_psf PRIVATE lammps GTest::GMock)
+  add_test(NAME PsfTest COMMAND test_psf)
 endif()
 
 add_executable(test_mpi_load_balancing test_mpi_load_balancing.cpp)

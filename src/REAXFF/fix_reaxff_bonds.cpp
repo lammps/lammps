@@ -28,6 +28,8 @@
 #include "pair_reaxff.h"
 #include "reaxff_api.h"
 
+#include <string>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace ReaxFF;
@@ -37,7 +39,7 @@ using namespace ReaxFF;
 FixReaxFFBonds::FixReaxFFBonds(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 5) error->all(FLERR,"Illegal fix reaxff/bonds command");
+  if (narg < 5) error->all(FLERR,"Illegal fix reaxff/bonds command");
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -45,6 +47,8 @@ FixReaxFFBonds::FixReaxFFBonds(LAMMPS *lmp, int narg, char **arg) :
   nmax = atom->nmax;
   compressed = 0;
   first_flag = true;
+  write_header_flag = 1;
+  write_step_flag = 0;
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
 
@@ -67,6 +71,24 @@ FixReaxFFBonds::FixReaxFFBonds(LAMMPS *lmp, int narg, char **arg) :
   abo = nullptr;
   neighid = nullptr;
   numneigh = nullptr;
+
+  int iarg = 5;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"header") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix reaxff/bonds header", error);
+      write_header_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"step") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix reaxff/bonds step", error);
+      write_step_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else {
+      int n = modify_param(narg-iarg,&arg[iarg]);
+      if (n == 0) error->all(FLERR,"Unknown fix reaxff/bonds keyword: {}", arg[iarg]);
+      iarg += n;
+    }
+  }
 
   allocate();
 }
@@ -252,7 +274,7 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
   double cutof3 = reaxff->api->control->bg_cut;
   MPI_Request irequest, irequest2;
 
-  if (me == 0) {
+  if (me == 0 && write_header_flag) {
     fmt::print(fp,"# Timestep {}\n#\n",ntimestep);
     fmt::print(fp,"# Number of particles {}\n#\n",natoms);
     fmt::print(fp,"# Max number of bonds per atom {} with coarse bond order cutoff {:5.3f}\n",
@@ -281,6 +303,7 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
         numbonds = nint(buf[j+4]);
 
         auto mesg = fmt::format(" {} {} {}",itag,itype,numbonds);
+        if( write_step_flag ) mesg = std::to_string(ntimestep) + mesg;
         for (k = 5; k < 5+numbonds; k++)
           mesg += " " + std::to_string(static_cast<tagint> (buf[j+k]));
         j += (5+numbonds);

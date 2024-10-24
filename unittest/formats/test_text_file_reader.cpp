@@ -37,6 +37,7 @@ protected:
     {
         platform::unlink("text_reader_one.file");
         platform::unlink("text_reader_two.file");
+        platform::unlink("text_reader_three.file");
     }
 
     void test_files()
@@ -55,6 +56,19 @@ protected:
               "2\n10 1.0 # test\n13 1.0\n\n######\n"
               "4\n1 4.0 # test\n2 3.0\n3 2.0\n4 1.0\n#END\n",
               fp);
+        fclose(fp);
+
+        fp = fopen("text_reader_three.file", "w");
+        fmt::print(fp, "123\n");
+        fmt::print(fp, "-123.45\n");
+        fmt::print(fp, "{}\n", DBL_MIN);
+        fmt::print(fp, "{}\n", DBL_MAX);
+        fmt::print(fp, "{}\n", -DBL_MIN);
+        fmt::print(fp, "{}\n", -DBL_MAX);
+        fmt::print(fp, "{}\n", MAXSMALLINT);
+        fmt::print(fp, "{}\n", MAXTAGINT);
+        fmt::print(fp, "{}\n", MAXBIGINT);
+        fmt::print(fp, "fooBAR\n");
         fclose(fp);
     }
 };
@@ -169,6 +183,22 @@ TEST_F(TextFileReaderTest, nocomments)
     }
     ASSERT_THROW({ reader.skip_line(); }, EOFException);
     ASSERT_EQ(reader.next_line(), nullptr);
+}
+
+TEST_F(TextFileReaderTest, convenience_functions)
+{
+    test_files();
+    TextFileReader reader("text_reader_three.file", "test");
+    ASSERT_DOUBLE_EQ( reader.next_double(), 123 );
+    ASSERT_DOUBLE_EQ( reader.next_double(), -123.45 );
+    ASSERT_DOUBLE_EQ( reader.next_double(), DBL_MIN );
+    ASSERT_DOUBLE_EQ( reader.next_double(), DBL_MAX );
+    ASSERT_DOUBLE_EQ( reader.next_double(), -DBL_MIN );
+    ASSERT_DOUBLE_EQ( reader.next_double(), -DBL_MAX );
+    ASSERT_EQ( reader.next_int(), MAXSMALLINT );
+    ASSERT_EQ( reader.next_tagint(), MAXTAGINT );
+    ASSERT_EQ( reader.next_bigint(), MAXBIGINT );
+    ASSERT_STREQ( reader.next_string().c_str(), "fooBAR" );
 }
 
 int main(int argc, char **argv)

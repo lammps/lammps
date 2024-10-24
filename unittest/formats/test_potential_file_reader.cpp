@@ -258,6 +258,51 @@ TEST_F(PotentialFileReaderTest, UnitConvert)
     delete reader;
 }
 
+TEST_F(PotentialFileReaderTest, convenience_functions)
+{
+    FILE *fp = fopen("potential_reader.file", "w");
+    fmt::print(fp, "123\n");
+    fmt::print(fp, "-123.45\n");
+    fmt::print(fp, "{}\n", DBL_MIN);
+    fmt::print(fp, "{}\n", DBL_MAX);
+    fmt::print(fp, "{}\n", -DBL_MIN);
+    fmt::print(fp, "{}\n", -DBL_MAX);
+    fmt::print(fp, "{}\n", MAXSMALLINT);
+    fmt::print(fp, "{}\n", MAXTAGINT);
+    fmt::print(fp, "{}\n", MAXBIGINT);
+    fmt::print(fp, "fooBAR\n");
+    fclose(fp);
+
+    BEGIN_HIDE_OUTPUT();
+    command("units real");
+    PotentialFileReader reader(lmp, "potential_reader.file", "test");
+    END_HIDE_OUTPUT();
+
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    reader.rewind();
+
+    ASSERT_DOUBLE_EQ( reader.next_double(), 123 );
+    ASSERT_DOUBLE_EQ( reader.next_double(), -123.45 );
+    ASSERT_DOUBLE_EQ( reader.next_double(), DBL_MIN );
+    ASSERT_DOUBLE_EQ( reader.next_double(), DBL_MAX );
+    ASSERT_DOUBLE_EQ( reader.next_double(), -DBL_MIN );
+    ASSERT_DOUBLE_EQ( reader.next_double(), -DBL_MAX );
+    ASSERT_EQ( reader.next_int(), MAXSMALLINT );
+    ASSERT_EQ( reader.next_tagint(), MAXTAGINT );
+    ASSERT_EQ( reader.next_bigint(), MAXBIGINT );
+    ASSERT_STREQ( reader.next_string().c_str(), "fooBAR" );
+    platform::unlink("potential_reader.file");
+}
+
 class OpenPotentialTest : public LAMMPSTest {};
 
 // open for native units

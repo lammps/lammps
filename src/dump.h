@@ -107,7 +107,7 @@ class Dump : protected Pointers {
   char *format_int_user;
   char *format_bigint_user;
   char **format_column_user;
-  enum { INT, DOUBLE, STRING, STRING2, BIGINT };
+  enum { INT, BIGINT, DOUBLE, ELEMENT, TYPELABEL_ATOM };
   std::map<std::string, int> key2col;
   std::vector<std::string> keyword_user;
 

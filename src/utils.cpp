@@ -82,9 +82,12 @@ static int re_find(const char *text, const char *pattern, int *matchlen);
 ////////////////////////////////////////////////////////////////////////
 // Merge sort support functions
 
-static void do_merge(int *idx, int *buf, int llo, int lhi, int rlo, int rhi, void *ptr,
-                     int (*comp)(int, int, void *));
-static void insertion_sort(int *index, int num, void *ptr, int (*comp)(int, int, void *));
+template <typename T>
+static void do_merge(T *idx, T *buf, int llo, int lhi, int rlo, int rhi, void *ptr,
+                     int (*comp)(T, T, void *));
+
+template <typename T>
+static void insertion_sort(T *index, int num, void *ptr, int (*comp)(T, T, void *));
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -1843,7 +1846,8 @@ int utils::binary_search(const double needle, const int n, const double *haystac
  * Pre-sort small sublists with insertion sort for better overall performance.
 ------------------------------------------------------------------------- */
 
-void utils::merge_sort(int *index, int num, void *ptr, int (*comp)(int, int, void *))
+template <typename T>
+void utils::merge_sort(T *index, T num, void *ptr, int (*comp)(T, T, void *))
 {
   if (num < 2) return;
 
@@ -1866,16 +1870,16 @@ void utils::merge_sort(int *index, int num, void *ptr, int (*comp)(int, int, voi
   // pointers to operate on, so we can swap the pointers
   // rather than copying to the hold buffer in each pass
 
-  int *buf = new int[num];
-  int *dest = index;
-  int *hold = buf;
+  T *buf = new T[num];
+  T *dest = index;
+  T *hold = buf;
 
   while (chunk < num) {
     int m;
 
     // swap hold and destination buffer
 
-    int *tmp = dest;
+    T *tmp = dest;
     dest = hold;
     hold = tmp;
 
@@ -1897,7 +1901,7 @@ void utils::merge_sort(int *index, int num, void *ptr, int (*comp)(int, int, voi
 
   // if the final sorted data is in buf, copy back to index
 
-  if (dest == buf) memcpy(index, buf, sizeof(int) * num);
+  if (dest == buf) memcpy(index, buf, sizeof(T) * num);
 
   delete[] buf;
 }
@@ -1908,7 +1912,8 @@ void utils::merge_sort(int *index, int num, void *ptr, int (*comp)(int, int, voi
  * Merge sort part 2: Insertion sort for pre-sorting of small chunks
 ------------------------------------------------------------------------- */
 
-void insertion_sort(int *index, int num, void *ptr, int (*comp)(int, int, void *))
+template <typename T>
+void insertion_sort(T *index, int num, void *ptr, int (*comp)(T, T, void *))
 {
   if (num < 2) return;
   for (int i = 1; i < num; ++i) {
@@ -1929,8 +1934,9 @@ void insertion_sort(int *index, int num, void *ptr, int (*comp)(int, int, void *
  * Merge sort part 3: Merge two sublists
 ------------------------------------------------------------------------- */
 
-static void do_merge(int *idx, int *buf, int llo, int lhi, int rlo, int rhi, void *ptr,
-                     int (*comp)(int, int, void *))
+template <typename T>
+static void do_merge(T *idx, T *buf, int llo, int lhi, int rlo, int rhi, void *ptr,
+                     int (*comp)(T, T, void *))
 {
   int i = llo;
   int l = llo;
@@ -1945,6 +1951,15 @@ static void do_merge(int *idx, int *buf, int llo, int lhi, int rlo, int rhi, voi
   while (l < lhi) idx[i++] = buf[l++];
   while (r < rhi) idx[i++] = buf[r++];
 }
+
+void utils::merge_sort(int *index, int num, void *ptr, int (*comp)(int, int, void *)) {
+  merge_sort<int>(index,num,ptr,comp);
+}
+
+void utils::merge_sort(bigint *index, bigint num, void *ptr, int (*comp)(bigint, bigint, void *)) {
+  merge_sort<bigint>(index,num,ptr,comp);
+}
+
 
 /* ------------------------------------------------------------------ */
 

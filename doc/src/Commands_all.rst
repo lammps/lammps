@@ -92,6 +92,7 @@ An alphabetic list of general LAMMPS commands.
    * :doc:`quit <quit>`
    * :doc:`read_data <read_data>`
    * :doc:`read_dump <read_dump>`
+   * :doc:`read_psf <read_psf>`
    * :doc:`read_restart <read_restart>`
    * :doc:`region <region>`
    * :doc:`replicate <replicate>`
@@ -119,6 +120,7 @@ An alphabetic list of general LAMMPS commands.
    * :doc:`write_coeff <write_coeff>`
    * :doc:`write_data <write_data>`
    * :doc:`write_dump <write_dump>`
+   * :doc:`write_psf <write_psf>`
    * :doc:`write_restart <write_restart>`
 
 Additional general LAMMPS commands provided by packages.  A few

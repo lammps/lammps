@@ -16,6 +16,7 @@
 #include "atom.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -80,6 +81,10 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
 
   cutstyle = TYPE;
 
+  // group2-ID defaults to group-ID of compute if group2 option not used
+  igroup2 = igroup;
+  groupbit2 = groupbit;
+
   while (iarg < narg) {
     if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute pair/local cutoff", error);
@@ -89,6 +94,12 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
         cutstyle = RADIUS;
       else
         error->all(FLERR, "Unknown compute pair/local cutoff keyword: {}", arg[iarg + 1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "group2") == 0) {
+      if (iarg + 1 > narg) error->all(FLERR, "Illegal compute property/local command");
+      igroup2 = group->find(arg[iarg + 1]);
+      if (igroup2 == -1) error->all(FLERR,"Could not find compute group2-ID {}", arg[iarg + 1] );
+      groupbit2 = group->bitmask[igroup2];
       iarg += 2;
     } else
       error->all(FLERR, "Unknown compute pair/local keyword: {}", arg[iarg]);
@@ -218,7 +229,7 @@ int ComputePairLocal::compute_pairs(int flag)
   m = 0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (!(mask[i] & groupbit)) continue;
+    if ( !(mask[i] & groupbit) && !(mask[i] & groupbit2) ) continue;
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -235,7 +246,8 @@ int ComputePairLocal::compute_pairs(int flag)
       j &= NEIGHMASK;
       jtag = tag[j];
 
-      if (!(mask[j] & groupbit)) continue;
+      if ( (mask[i] & groupbit) && !(mask[j] & groupbit2)) continue;
+      if ( (mask[i] & groupbit2) && !(mask[j] & groupbit)) continue;
 
       // itag = jtag is possible for long cutoffs that include images of self
 

@@ -273,13 +273,13 @@ none
 
 .. _Brooks1:
 
-**(Brooks)** Brooks, et al, J Comput Chem, 30, 1545 (2009).
+**(Brooks)** Brooks, et al, J Comput Chem, 30, 1545 (2009). https://doi.org/10.1002/jcc.21287
 
 .. _pair-MacKerell:
 
 **(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
-Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
+Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998). https://doi.org/10.1021/jp973084f
 
 .. _Steinbach:
 
-**(Steinbach)** Steinbach, Brooks, J Comput Chem, 15, 667 (1994).
+**(Steinbach)** Steinbach, Brooks, J Comput Chem, 15, 667 (1994). https://doi.org/10.1002/jcc.540150702

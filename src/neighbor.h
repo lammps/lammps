@@ -111,7 +111,7 @@ class Neighbor : protected Pointers {
 
   int custom_collection_flag;      // 1 if custom collections are defined for multi
   int interval_collection_flag;    // 1 if custom collections use intervals
-  int finite_cut_flag;             // 1 if multi considers finite atom size
+  int cut_style;                   // whether cutoffs are determined by type, radii, or other
   int ncollections;                // # of custom collections
   int nmax_collection;             // maximum atoms stored in collection array
   int *type2collection;            // ntype array mapping types to custom collections
@@ -327,20 +327,21 @@ namespace NeighConst {
     NP_NEWTOFF = 1 << 10,
     NP_GHOST = 1 << 11,
     NP_SIZE = 1 << 12,
-    NP_ONESIDE = 1 << 13,
-    NP_RESPA = 1 << 14,
-    NP_BOND = 1 << 15,
-    NP_OMP = 1 << 16,
-    NP_INTEL = 1 << 17,
-    NP_KOKKOS_DEVICE = 1 << 18,
-    NP_KOKKOS_HOST = 1 << 19,
-    NP_SSA = 1 << 20,
-    NP_COPY = 1 << 21,
-    NP_SKIP = 1 << 22,
-    NP_HALF_FULL = 1 << 23,
-    NP_OFF2ON = 1 << 24,
-    NP_MULTI_OLD = 1 << 25,
-    NP_TRIM = 1 << 26
+    NP_CUSTOMCHECK = 1 << 13,
+    NP_ONESIDE = 1 << 14,
+    NP_RESPA = 1 << 15,
+    NP_BOND = 1 << 16,
+    NP_OMP = 1 << 17,
+    NP_INTEL = 1 << 18,
+    NP_KOKKOS_DEVICE = 1 << 19,
+    NP_KOKKOS_HOST = 1 << 20,
+    NP_SSA = 1 << 21,
+    NP_COPY = 1 << 22,
+    NP_SKIP = 1 << 23,
+    NP_HALF_FULL = 1 << 24,
+    NP_OFF2ON = 1 << 25,
+    NP_MULTI_OLD = 1 << 26,
+    NP_TRIM = 1 << 27
   };
 
   enum {
@@ -348,10 +349,11 @@ namespace NeighConst {
     REQ_FULL = 1 << 0,
     REQ_GHOST = 1 << 1,
     REQ_SIZE = 1 << 2,
-    REQ_HISTORY = 1 << 3,
-    REQ_OCCASIONAL = 1 << 4,
-    REQ_RESPA_INOUT = 1 << 5,
-    REQ_RESPA_ALL = 1 << 6,
+    REQ_CUSTOMCHECK = 1 << 3,
+    REQ_HISTORY = 1 << 4,
+    REQ_OCCASIONAL = 1 << 5,
+    REQ_RESPA_INOUT = 1 << 6,
+    REQ_RESPA_ALL = 1 << 7,
     REQ_NEWTON_ON = 1 << 8,
     REQ_NEWTON_OFF = 1 << 9,
     REQ_SSA = 1 << 10,

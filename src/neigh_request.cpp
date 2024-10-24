@@ -44,7 +44,7 @@ NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp)
   // default is every reneighboring, not occasional
   // default is use newton_pair setting in force
   // default is no neighbors of ghosts
-  // default is use cutoffs, not size of particles
+  // default is use cutoffs, not size of particles or custom pair-specific criterion
   // default is no associated neighbor history info in FixNeighHistory
   // default is no one-sided sphere/surface interactions (when size = 1)
   // default is neighbors of atoms, not bonds
@@ -60,6 +60,7 @@ NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp)
   newton = 0;
   ghost = 0;
   size = 0;
+  customcheck = 0;
   history = 0;
   granonesided = 0;
   respainner = respamiddle = respaouter = 0;
@@ -157,6 +158,7 @@ int NeighRequest::identical(NeighRequest *other)
   if (newton != other->newton) same = 0;
   if (ghost != other->ghost) same = 0;
   if (size != other->size) same = 0;
+  if (customcheck != other->customcheck) same = 0;
   if (history != other->history) same = 0;
   if (granonesided != other->granonesided) same = 0;
   if (respainner != other->respainner) same = 0;
@@ -223,6 +225,7 @@ void NeighRequest::copy_request(NeighRequest *other, int skipflag)
   newton = other->newton;
   ghost = other->ghost;
   size = other->size;
+  customcheck = other->customcheck;
   history = other->history;
   granonesided = other->granonesided;
   respainner = other->respainner;
@@ -270,6 +273,7 @@ void NeighRequest::apply_flags(int flags)
   // clang-format off
   if (flags & REQ_GHOST)       { ghost = 1; }
   if (flags & REQ_SIZE)        { size = 1; }
+  if (flags & REQ_CUSTOMCHECK) { customcheck = 1; }
   if (flags & REQ_HISTORY)     { history = 1; }
   if (flags & REQ_NEWTON_ON)   { newton = 1; }
   if (flags & REQ_NEWTON_OFF)  { newton = 2; }

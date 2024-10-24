@@ -13,15 +13,18 @@
 ------------------------------------------------------------------------- */
 
 #include "npair.h"
-#include <cmath>
+
+#include "atom.h"
+#include "error.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "nbin.h"
 #include "nstencil.h"
-#include "atom.h"
+#include "pair.h"
 #include "update.h"
-#include "memory.h"
-#include "error.h"
+#include <cmath>
+
 
 using namespace LAMMPS_NS;
 
@@ -52,6 +55,10 @@ void NPair::post_constructor(NeighRequest *nrq)
 {
   cutoff_custom = 0.0;
   if (nrq->cut) cutoff_custom = nrq->cutoff;
+  if (nrq->customcheck) {
+    if (!nrq->pair) error->all(FLERR, "Invalid neighbor request");
+    pair = (Pair *) nrq->requestor;
+  }
 }
 
 /* ----------------------------------------------------------------------

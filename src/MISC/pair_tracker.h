@@ -38,8 +38,6 @@ class PairTracker : public Pair {
   void write_restart_settings(FILE *) override;
   void read_restart_settings(FILE *) override;
   double single(int, int, int, int, double, double, double, double &) override;
-  double atom2cut(int) override;
-  double radii2cut(double, double) override;
   void transfer_history(double *, double *, int, int) override;
 
  protected:

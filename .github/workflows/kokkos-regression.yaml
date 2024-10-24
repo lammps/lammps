@@ -56,14 +56,11 @@ jobs:
         cmake -S cmake -B build \
               -C cmake/presets/gcc.cmake \
               -C cmake/presets/basic.cmake \
+              -D cmake/presets/kokkos-openmp.cmake \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
               -D BUILD_SHARED_LIBS=off \
               -D DOWNLOAD_POTENTIALS=off \
-              -D PKG_KOKKOS=on \
-              -D Kokkos_ARCH_ARMAVX=on \
-              -D Kokkos_ENABLE_OPENMP=on \
-              -D Kokkos_ENABLE_CUDA=off  \
               -D PKG_AMOEBA=on \
               -D PKG_ASPHERE=on \
               -D PKG_BROWNIAN=on \
@@ -87,7 +84,6 @@ jobs:
               -D PKG_REPLICA=on \
               -D PKG_SRD=on \
               -D PKG_VORONOI=on \
-              -D BUILD_OMP=yes \
               -G Ninja
         cmake --build build
         ccache -s

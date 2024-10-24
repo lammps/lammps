@@ -129,18 +129,6 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
     iarg++;
   }
 
-  // check domain related errors
-
-  // 3D only
-
-  if (domain->dimension == 2 && dir == Z)
-    error->all(FLERR, "Compute stress/mop/profile is incompatible with Z in 2d system");
-
-  // orthogonal simulation box
-
-  if (domain->triclinic != 0)
-    error->all(FLERR, "Compute stress/mop/profile is incompatible with triclinic simulation box");
-
   // Initialize some variables
 
   nbins = 0;
@@ -192,6 +180,18 @@ ComputeStressMopProfile::~ComputeStressMopProfile()
 
 void ComputeStressMopProfile::init()
 {
+  // check domain related errors
+
+  // 3D only
+
+  if (domain->dimension == 2 && dir == Z)
+    error->all(FLERR, "Compute stress/mop/profile is incompatible with Z in 2d system");
+
+  // check for orthogonal simulation box
+
+  if (domain->triclinic != 0)
+    error->all(FLERR, "Compute stress/mop/profile is incompatible with triclinic simulation box");
+
   // Conversion constants
 
   nktv2p = force->nktv2p;

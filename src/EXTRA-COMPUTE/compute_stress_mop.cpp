@@ -144,17 +144,6 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(
     iarg++;
   }
 
-  // Error checks:
-
-  // 2D and pressure calculation in the Z coordinate
-  if (domain->dimension == 2 && dir == Z)
-    error->all(FLERR, "Compute stress/mop is incompatible with Z in 2d system");
-
-  // orthogonal simulation box
-
-  if (domain->triclinic != 0)
-    error->all(FLERR, "Compute stress/mop is incompatible with triclinic simulation box");
-
   // Initialize some variables
 
   values_local = values_global = vector = nullptr;
@@ -203,6 +192,17 @@ ComputeStressMop::~ComputeStressMop()
 
 void ComputeStressMop::init()
 {
+  // Error checks:
+
+  // 2D and pressure calculation in the Z coordinate
+  if (domain->dimension == 2 && dir == Z)
+    error->all(FLERR, "Compute stress/mop is incompatible with Z in 2d system");
+
+  // orthogonal simulation box
+
+  if (domain->triclinic != 0)
+    error->all(FLERR, "Compute stress/mop is incompatible with triclinic simulation box");
+
   // Conversion constants
 
   nktv2p = force->nktv2p;

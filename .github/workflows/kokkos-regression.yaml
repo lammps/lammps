@@ -56,7 +56,7 @@ jobs:
         cmake -S cmake -B build \
               -C cmake/presets/gcc.cmake \
               -C cmake/presets/basic.cmake \
-              -D cmake/presets/kokkos-openmp.cmake \
+              -C cmake/presets/kokkos-openmp.cmake \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
               -D BUILD_SHARED_LIBS=off \

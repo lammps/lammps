@@ -147,7 +147,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
       if (vvar[i] < 0)
-        error->all(FLERR, "Variable name {} for copute bond/local does not exist", vstr[i]);
+        error->all(FLERR, "Variable name {} for compute bond/local does not exist", vstr[i]);
       if (!input->variable->equalstyle(vvar[i]))
         error->all(FLERR, "Variable {} for compute bond/local is invalid style", vstr[i]);
     }

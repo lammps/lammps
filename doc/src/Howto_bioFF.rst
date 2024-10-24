@@ -248,11 +248,11 @@ exist for united atom representations (OPLS-UA) and for all-atom
 representations (OPLS-AA).
 
 This force field is based on atom types mapped to specific functional
-groups in organic and biological molecules. Each atom includes an
+groups in organic and biological molecules.  Each atom includes a
 static, partial atomic charge reflecting the oxidation state of the
-element derived from its bonded neighbors :ref:`(Jorgensen) <howto-jorgensen>`
-and computed based on increments determined by the atom type of the
-atoms bond to it.
+element derived from its bonded neighbors :ref:`(Jorgensen)
+<howto-jorgensen>` and computed based on increments determined by the
+atom type of the atoms bond to it.
 
 The interaction styles listed below compute force field formulas that
 are fully or in part consistent with the OPLS style force fields.  See

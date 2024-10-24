@@ -101,7 +101,7 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
     if (!setflag) error->all(FLERR, "Compute angle/local variable requires a set variable");
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
-      if (vvar[i] < 0) error->all(FLERR, "Variable name for copute angle/local does not exist");
+      if (vvar[i] < 0) error->all(FLERR, "Variable name for compute angle/local does not exist");
       if (!input->variable->equalstyle(vvar[i]))
         error->all(FLERR, "Variable for compute angle/local is invalid style");
     }

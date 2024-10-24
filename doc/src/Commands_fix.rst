@@ -187,6 +187,7 @@ OPT.
    * :doc:`qeq/slater <fix_qeq>`
    * :doc:`qmmm <fix_qmmm>`
    * :doc:`qtb <fix_qtb>`
+   * :doc:`qtpie/reaxff <fix_qtpie_reaxff>`
    * :doc:`rattle <fix_shake>`
    * :doc:`reaxff/bonds (k) <fix_reaxff_bonds>`
    * :doc:`reaxff/species (k) <fix_reaxff_species>`

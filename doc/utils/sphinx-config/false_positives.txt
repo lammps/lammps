@@ -815,6 +815,7 @@ dipoleflag
 dir
 Direc
 dirname
+Dirkmann
 discoverable
 discretization
 discretized
@@ -976,6 +977,7 @@ elaplong
 elastance
 Electroneg
 electronegative
+electronegativities
 electronegativity
 electroneutral
 electroneutrality
@@ -1293,6 +1295,7 @@ Geocomputing
 georg
 Georg
 Geotechnica
+Gergs
 germain
 Germann
 Germano
@@ -1305,6 +1308,7 @@ gettimeofday
 geturl
 gewald
 Gezelter
+gfile
 Gflop
 gfortran
 ghostneigh
@@ -1712,6 +1716,7 @@ Jewett
 jgissing
 ji
 Jiang
+Jiahao
 Jiao
 jik
 JIK
@@ -2366,6 +2371,7 @@ mui
 Mukherjee
 Mulders
 Müller
+Mulliken
 mult
 multi
 multibody
@@ -2390,6 +2396,7 @@ Murdick
 Murtola
 Murty
 Muser
+Mussenbrock
 mutexes
 Muto
 muVT
@@ -3073,6 +3080,7 @@ qqr
 qqrd
 Qsb
 qtb
+qtpie
 quadratically
 quadrupolar
 quadrupole

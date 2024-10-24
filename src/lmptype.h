@@ -34,6 +34,13 @@
 #error LAMMPS requires a C++11 (or later) compliant compiler. Enable C++11 compatibility or upgrade the compiler.
 #endif
 
+// C++17 check
+#ifndef LAMMPS_CXX11
+#if __cplusplus < 201703L
+#error LAMMPS is planning to transition to C++17. To disable this error please use a C++17 compliant compiler, enable C++17 support, or define -DLAMMPS_CXX11 in your makefile or when running cmake
+#endif
+#endif
+
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif

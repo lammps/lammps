@@ -262,6 +262,7 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) :
 RegBlock::~RegBlock()
 {
   if (copymode) return;
+
   delete[] xlostr;
   delete[] xhistr;
   delete[] ylostr;

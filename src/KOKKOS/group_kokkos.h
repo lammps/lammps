@@ -23,7 +23,7 @@ template<class DeviceType>
 class GroupKokkos : public Group {
  public:
   GroupKokkos(class LAMMPS *);
-  double mass(int);               // total mass of atoms in group
+  double mass(int);                   // total mass of atoms in group
   void xcm(int, double, double *);    // center-of-mass coords of group
 };
 

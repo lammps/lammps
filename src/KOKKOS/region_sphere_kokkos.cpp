@@ -75,7 +75,6 @@ void RegSphereKokkos<DeviceType>::operator()(TagRegSphereMatchAll, const int &i)
   }
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {

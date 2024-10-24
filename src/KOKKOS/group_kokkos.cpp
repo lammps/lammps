@@ -71,7 +71,6 @@ double GroupKokkos<DeviceType>::mass(int igroup)
   return all;
 }
 
-
 /* ----------------------------------------------------------------------
    compute the center-of-mass coords of group of atoms
    masstotal = total mass

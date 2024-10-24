@@ -1,0 +1,246 @@
+LAMMPS (27 Jun 2024)
+# pouring spheres into box made of line segments
+
+units		lj
+atom_style	line
+atom_modify     map array
+boundary        f f p
+dimension	2
+comm_modify     vel yes
+
+read_data	data.line
+Reading data file ...
+  orthogonal box = (-15 -15 -0.5) to (15 15 0.5)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  9 atoms
+  9 lines
+  read_data CPU = 0.001 seconds
+
+pair_style	hybrid gran/hooke/history 4000.0 NULL 100.0 NULL 0.5 1                 line/gran/hooke 4000.0 NULL 100.0 NULL 0.5 1
+pair_coeff	1 1 gran/hooke/history
+pair_coeff	1 2 line/gran/hooke
+pair_coeff	2 2 none
+
+group           sphere type 1
+0 atoms in group sphere
+group           line type 2
+9 atoms in group line
+
+fix             fsl all surface/local NULL
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+#displace_atoms  all rotate 0 0 0 0 0 1 90
+
+# rotate the box
+
+fix             1 line move rotate 0 0 0 0 0 1 25
+
+fix             2 sphere nve/sphere
+fix		3 sphere gravity 1.0 vector 0 -1 0
+#fix             4 sphere viscous 0.2
+
+region          slab block -3 3 -2 2 -0.5 0.5 units box
+fix             ins sphere pour 100 1 4767548 vol 0.4 10 	        diam one 1.0 region slab
+Particle insertion: 12 every 566 steps, 100 by step 4529
+
+fix		10 all enforce2d
+
+timestep	0.005
+
+compute         1 sphere temp
+compute_modify  1 dynamic yes
+
+compute         2 sphere temp/sphere
+compute_modify  2 dynamic yes
+
+thermo		100
+thermo_style	custom step atoms temp c_1 c_2 press
+thermo_modify   lost ignore
+compute_modify  thermo_temp dynamic yes
+
+dump		2 all image 100 tmp.image.*.ppm type type 		zoom 1.6 adiam 1.0 line type 0.5
+dump_modify	2 pad 5
+
+run             10000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- Type Label Framework: https://doi.org/10.1021/acs.jpcb.3c08419
+
+@Article{Gissinger24,
+ author = {Jacob R. Gissinger, Ilia Nikiforov, Yaser Afshar, Brendon Waters, Moon-ki Choi, Daniel S. Karls, Alexander Stukowski, Wonpil Im, Hendrik Heinz, Axel Kohlmeyer, and Ellad B. Tadmor},
+ title = {Type Label Framework for Bonded Force Fields in LAMMPS},
+ journal = {J. Phys. Chem. B},
+ year =    2024,
+ volume =  128,
+ number =  13,
+ pages =   {3282–-3297}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.0201533
+  ghost atom cutoff = 6.0201533
+  binsize = 3.0100766, bins = 10 10 1
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair gran/hooke/history, perpetual, skip trim from (3)
+      attributes: half, newton on, size, history, cut 1.3, off2on
+      pair build: skip/trim/size/off2on
+      stencil: none
+      bin: none
+  (2) pair line/gran/hooke, perpetual, skip from (3)
+      attributes: half, newton on, size, onesided, off2on
+      pair build: skip/size/off2on/oneside
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: half, newton off, size, history
+      pair build: half/size/bin/atomonly/newtoff
+      stencil: full/bin/2d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 12.08 | 12.08 | 12.08 Mbytes
+   Step        Atoms         Temp           c_1            c_2           Press     
+         0           9   0              0              0              0            
+WARNING: Fewer insertions than requested (../fix_pour.cpp:683)
+       100          16   19.603933      1.0483784      0.66213376     0.32673222   
+       200          16   19.831299      1.6167923      1.0211319      0.33052165   
+       300          16   20.119751      2.3379224      1.4765825      0.33532918   
+       400          16   20.469289      3.2117688      2.0284855      0.34115482   
+       500          16   20.879914      4.2383315      2.676841       0.34799857   
+WARNING: Fewer insertions than requested (../fix_pour.cpp:683)
+       600          27   12.449543      2.1129055      1.3869354      0.35243867   
+       700          27   12.770891      2.6043792      1.7214254      0.38349742   
+       800          27   12.943117      2.8677827      1.9147069      0.37516936   
+       900          27   13.109917      3.1228891      2.1263001      0.38019376   
+      1000          27   12.990208      2.9398046      2.0739419      0.42599315   
+      1100          27   12.719767      2.5261889      1.8187978      0.45457071   
+WARNING: Fewer insertions than requested (../fix_pour.cpp:683)
+      1200          35   9.8597994      1.8985781      1.2816098      0.38022839   
+      1300          35   9.7545391      1.7554241      1.2048448      0.37276257   
+      1400          35   9.7769878      1.7859543      1.2306073      0.37760148   
+      1500          35   9.9443391      2.013552       1.3984072      0.38116488   
+      1600          35   10.108938      2.2374064      1.548047       0.38622523   
+WARNING: Fewer insertions than requested (../fix_pour.cpp:683)
+      1700          45   8.2127721      2.1026641      1.4164548      0.41493848   
+      1800          45   8.3070246      2.221153       1.4818344      0.48996397   
+      1900          45   8.3176349      2.2344917      1.4850053      0.47813979   
+      2000          45   8.2600241      2.1620667      1.4483974      0.43264606   
+      2100          45   8.1701045      2.0490249      1.3718091      0.42642557   
+      2200          45   8.1506342      2.0245479      1.3453729      0.41836911   
+      2300          57   6.4845955      1.6035877      1.0816884      0.47342846   
+      2400          57   6.4586802      1.5727098      1.0558623      0.46664067   
+      2500          57   6.4961252      1.6173252      1.0834364      0.44274885   
+      2600          57   6.6039251      1.7457676      1.176221       0.41973624   
+      2700          57   6.5554483      1.688008       1.1497303      0.44701076   
+      2800          57   6.5567541      1.6895638      1.1752899      0.43024349   
+      2900          69   5.8154825      1.8251539      1.249261       0.48033376   
+      3000          69   6.0391782      2.0829727      1.4327472      0.47214476   
+      3100          69   6.1705005      2.2343272      1.5419433      0.48474059   
+      3200          69   6.132184       2.1901659      1.4819192      0.55938449   
+      3300          69   5.8754263      1.8942417      1.2793954      0.49963347   
+WARNING: Fewer insertions than requested (../fix_pour.cpp:683)
+      3400          76   5.2906822      1.6520066      1.1205016      0.45528549   
+      3500          76   5.3445576      1.7132287      1.1601016      0.47797559   
+      3600          76   5.4367165      1.8179547      1.2411665      0.48683301   
+      3700          76   5.4872464      1.875375       1.273533       0.498041     
+      3800          76   5.4740601      1.8603906      1.266449       0.48678074   
+      3900          76   5.1850894      1.5320148      1.0615263      0.54254269   
+      4000          88   4.6518362      1.4992438      1.0244353      0.4970414    
+      4100          88   4.7393433      1.596848       1.1075633      0.5183373    
+      4200          88   4.5210383      1.3533539      0.95365012     0.45549812   
+      4300          88   4.7560439      1.6154755      1.0954535      0.50256618   
+      4400          88   4.9238859      1.8026839      1.219188       0.55797132   
+      4500          88   4.9156862      1.7935381      1.225359       0.55455375   
+WARNING: Fewer insertions than requested (../fix_pour.cpp:683)
+      4600          96   4.553808       1.6842213      1.1456065      0.49939928   
+      4700          96   4.6015699      1.7369816      1.1986257      0.4988626    
+      4800          96   4.6404333      1.7799121      1.2251247      0.55167427   
+      4900          96   4.7241213      1.872358       1.2735481      0.71833717   
+      5000          96   4.7796445      1.9336918      1.3156784      0.66606358   
+WARNING: Fewer insertions than requested (../fix_pour.cpp:683)
+      5100         104   4.5227739      1.894436       1.2925792      0.68747814   
+      5200         104   4.5828         1.9602093      1.3495676      0.72748168   
+      5300         104   4.2544924      1.600468       1.1051773      0.60419007   
+      5400         104   4.3514327      1.7066898      1.1556029      0.64443629   
+      5500         104   4.3561805      1.7118922      1.1567283      0.64063026   
+      5600         104   4.4135092      1.7747098      1.2134595      0.64422908   
+      5700         109   4.1731736      1.6457981      1.1165517      0.62979315   
+      5800         109   4.2360976      1.7144426      1.1586539      0.59262337   
+      5900         109   4.3212416      1.8073269      1.2143855      0.63775197   
+      6000         109   4.4240471      1.9194784      1.2958061      0.60804743   
+      6100         109   4.5373715      2.043105       1.3752433      0.63992905   
+      6200         109   4.4471074      1.9446351      1.3287311      0.69275635   
+      6300         109   4.4126755      1.9070729      1.3022258      0.62040671   
+      6400         109   4.5165479      2.0203883      1.3863072      0.63682236   
+      6500         109   4.2755226      1.7574517      1.2024768      0.61086932   
+      6600         109   4.1690976      1.6413517      1.1235094      0.5863121    
+      6700         109   4.0973952      1.5631308      1.0585691      0.64655034   
+      6800         109   4.106546       1.5731135      1.0593334      0.59742247   
+      6900         109   4.09205        1.5572998      1.0468541      0.54449389   
+      7000         109   4.1494965      1.6199687      1.0886876      0.58703636   
+      7100         109   4.220005       1.696887       1.1346313      0.58309534   
+      7200         109   4.2559993      1.7361535      1.1633567      0.59963725   
+      7300         109   4.3570648      1.8464068      1.2394663      0.59299795   
+      7400         109   4.5559427      2.0633645      1.3860772      0.5985101    
+      7500         109   4.7538736      2.2792891      1.5322837      0.60614702   
+      7600         109   4.9145244      2.4545446      1.6536668      0.63147745   
+      7700         109   5.0299608      2.5804752      1.757645       0.69057802   
+      7800         109   5.3520062      2.9317973      2.000564       0.66812054   
+      7900         109   5.4070924      2.9918914      2.0567247      0.7668346    
+      8000         109   4.9680652      2.5129527      1.7229154      0.65816251   
+      8100         108   4.8654372      2.3758475      1.6345121      0.6217302    
+      8200         108   4.9502871      2.4684897      1.6821321      0.67733955   
+      8300         106   5.1164153      2.5984884      1.7604625      0.65703214   
+      8400         104   5.1073874      2.5350232      1.7227477      0.61775984   
+      8500         103   5.1173391      2.518278       1.7205254      0.63856204   
+      8600         101   4.9892171      2.3203624      1.5725655      0.66092676   
+      8700         101   4.9544942      2.2822054      1.5445523      0.63575204   
+      8800          98   4.7811294      2.0000094      1.360531       0.59490375   
+      8900          98   4.5866354      1.7856239      1.2179755      0.5479866    
+      9000          97   4.5098376      1.668686       1.1480979      0.51766609   
+      9100          96   4.4900228      1.6137609      1.1001152      0.58261959   
+      9200          96   4.5323564      1.6605248      1.1250204      0.52446222   
+      9300          96   4.6268095      1.7648625      1.1909651      0.51122536   
+      9400          94   4.6951589      1.7723935      1.2009448      0.51084023   
+      9500          94   4.7977809      1.8860106      1.2743862      0.55202711   
+      9600          92   4.9195403      1.9501151      1.3186129      0.52289861   
+      9700          92   5.0437791      2.0879899      1.4123366      0.69726187   
+      9800          92   4.9557322      1.9902793      1.3693209      0.63183721   
+      9900          92   5.0579303      2.1036943      1.4503547      0.5525547    
+     10000          92   4.9127294      1.9425566      1.3361772      0.54682786   
+Loop time of 0.370625 on 1 procs for 10000 steps with 92 atoms
+
+Performance: 11655971.193 tau/day, 26981.415 timesteps/s, 2.482 Matom-step/s
+88.3% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.031333   | 0.031333   | 0.031333   |   0.0 |  8.45
+Neigh   | 0.02915    | 0.02915    | 0.02915    |   0.0 |  7.87
+Comm    | 0.0011333  | 0.0011333  | 0.0011333  |   0.0 |  0.31
+Output  | 0.29072    | 0.29072    | 0.29072    |   0.0 | 78.44
+Modify  | 0.015871   | 0.015871   | 0.015871   |   0.0 |  4.28
+Other   |            | 0.002418   |            |       |  0.65
+
+Nlocal:             92 ave          92 max          92 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 1464
+Dangerous builds = 0
+Total wall time: 0:00:00

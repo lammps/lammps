@@ -32,7 +32,8 @@ enum SubModelType {
 enum ContactType {
   PAIR = 0,
   WALL = 1,
-  WALLREGION = 2
+  WALLREGION = 2,
+  SURFACE = 3
 };
 
 // forward declarations

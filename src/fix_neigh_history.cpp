@@ -35,7 +35,7 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), pair(nullptr), npartner(nullptr), partner(nullptr), valuepartner(nullptr),
     ipage_atom(nullptr), dpage_atom(nullptr), ipage_neigh(nullptr), dpage_neigh(nullptr)
 {
-  if (narg != 4) error->all(FLERR, "Illegal fix NEIGH_HISTORY command");
+  if (narg != 4 && narg != 5) error->all(FLERR, "Illegal fix NEIGH_HISTORY command");
 
   restart_peratom = 1;
   restart_global = 1;
@@ -53,8 +53,10 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < dnum; i++) zeroes[i] = 0.0;
 
   onesided = 0;
-  if (strcmp(id, "LINE_NEIGH_HISTORY") == 0) onesided = 1;
-  if (strcmp(id, "TRI_NEIGH_HISTORY") == 0) onesided = 1;
+  if (narg == 5) {
+    if (strcmp(arg[4], "onesided") == 0) onesided = 1;
+    else error->all(FLERR, "Illegal fix neigh/history command");
+  }
 
   if (newton_pair)
     comm_reverse = 1;    // just for single npartner value

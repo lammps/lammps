@@ -203,6 +203,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`Howto granular <Howto_granular>`
      - pour
      - no
+   * - :ref:`GRANSURF <PKG-GRANSURF>`
+     - granular surfaces
+     - :doc:`Howto granular surfaces <Howto_granular_surfaces>`
+     - pour
+     - no
    * - :ref:`H5MD <PKG-H5MD>`
      - dump output via HDF5
      - :doc:`dump h5md <dump_h5md>`

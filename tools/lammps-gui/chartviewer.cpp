@@ -423,27 +423,6 @@ void ChartViewer::add_data(int step, double data)
 {
     if (last_step < step) {
         last_step = step;
-
-        // do not add data that deviates by more than 4 sigma from the average
-        // over the last 5 to 20 data items.  this is a hack to work around
-        // getting corrupted data from lammps_get_last_thermo()
-        const auto &points = series->points();
-        const auto count   = points.count();
-        if (count > 4) {
-            double ysum   = 0.0;
-            double ysumsq = 0.0;
-            int first     = count - 20;
-            if (first < 0) first = 0;
-            for (int i = first; i < count; ++i) {
-                double val = points[i].y();
-                ysum += val;
-                ysumsq += val * val;
-            }
-            const double num   = count - first;
-            const double avg   = ysum / num;
-            const double avgsq = ysumsq / num;
-            if (fabs(data - avg) > (5.0 * sqrt(avgsq - (avg * avg)))) return;
-        }
         series->append(step, data);
 
         QSettings settings;

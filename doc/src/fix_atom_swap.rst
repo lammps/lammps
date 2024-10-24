@@ -181,8 +181,8 @@ built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
 When this fix is used with a :doc:`hybrid pair style <pair_hybrid>`
-system, only swaps between atom types of the same substyle (or
-combination of substyles) are permitted.
+system, only swaps between atom types of the same sub-style (or
+combination of sub-styles) are permitted.
 
 This fix cannot be used with systems that do not have per-type masses
 (e.g. atom style sphere) since the implemented algorithm pre-computes

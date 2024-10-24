@@ -48,6 +48,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 using namespace RigidConst;
+typedef RigidSmallBody Body;
 
 static constexpr int RVOUS = 1;   // 0 for irregular, 1 for all2all
 

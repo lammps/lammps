@@ -871,6 +871,8 @@
 /fix_gpu.h
 /fix_grem.cpp
 /fix_grem.h
+/fix_hmc.cpp
+/fix_hmc.h
 /fix_hyper.cpp
 /fix_hyper.h
 /fix_hyper_global.cpp

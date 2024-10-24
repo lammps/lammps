@@ -56,7 +56,7 @@ class FixReaxFFSpecies : public Fix {
 
   FILE *fp, *pos, *fdel;
   int eleflag, posflag, multipos, padflag, setupflag;
-  int delflag, specieslistflag, masslimitflag;
+  int delflag, specieslistflag, masslimitflag, outputflag;
   int delete_Nlimit, delete_Nlimit_varid;
   std::string delete_Nlimit_varname;
   int delete_Nsteps, *delete_Tcount;
@@ -66,6 +66,7 @@ class FixReaxFFSpecies : public Fix {
   std::vector<int> ele2uele;            // for element eletype[i], ele2uele[i] stores index of unique element
   std::vector<std::string> eletype;     // list of ReaxFF elements of length ntypes
   std::vector<std::string> ueletype;    // list of unique elements, of quantity nutypes
+  std::vector<std::string> output_species;    // list of species for global vector
 
   void Output_ReaxFF_Bonds(bigint, FILE *);
   AtomCoord chAnchor(AtomCoord, AtomCoord);

@@ -1,21 +1,13 @@
 # use bond/react 'create atoms' feature to add 30 new styrene monomers to chain
 
 units real
-
 boundary p p p
-
 atom_style full
-
 pair_style lj/class2/coul/cut 8.5
-
 angle_style class2
-
 bond_style class2
-
 dihedral_style class2
-
 improper_style class2
-
 special_bonds lj/coul 0 0 1
 pair_modify tail yes mix sixthpower
 
@@ -37,11 +29,9 @@ fix myrxns all bond/react stabilization yes statted_grp .03 &
         stabilize_steps 200 max_rxn 30
 
 fix 1 statted_grp_REACT nvt temp $T $T 100
-
 fix 4 bond_react_MASTER_group temp/rescale 1 $T $T 1 1
 
 thermo_style custom step temp press density f_myrxns[*]
-
 thermo 100
 
 run 8000

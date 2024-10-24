@@ -1,0 +1,13 @@
+# H2 molecule file, with no bonds as workaround for REAXFF example
+
+2 atoms
+
+Coords
+
+  1    0.0000    0.0000    0.0000
+  2    0.7414    0.0000    0.0000
+
+Types
+
+  1        1
+  2        1

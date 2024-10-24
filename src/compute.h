@@ -49,6 +49,7 @@ class Compute : protected Pointers {
   int scalar_flag;                 // 0/1 if compute_scalar() function exists
   int vector_flag;                 // 0/1 if compute_vector() function exists
   int array_flag;                  // 0/1 if compute_array() function exists
+  int thermo_modify_colname;       // 1 if fix has custom column names for output
   int size_vector;                 // length of global vector
   int size_array_rows;             // rows in global array
   int size_array_cols;             // columns in global array
@@ -126,6 +127,7 @@ class Compute : protected Pointers {
   virtual void compute_local() {}
   virtual void compute_pergrid() {}
   virtual void set_arrays(int) {}
+  virtual std::string get_thermo_colname(int) { return {};  }
 
   virtual int pack_forward_comm(int, int *, double *, int, int *) { return 0; }
   virtual void unpack_forward_comm(int, int, double *) {}

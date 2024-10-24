@@ -165,6 +165,7 @@ void Error::one(const std::string &file, int line, int failed, const std::string
   if (failed > NOPOINTER) mesg += utils::point_to_error(input, failed);
   if (failed == ARGZERO) mesg += utils::point_to_error(input, 0);
   utils::logmesg(lmp,mesg);
+  utils::flush_buffers(lmp);
 
   if (universe->nworlds > 1)
     if (universe->uscreen)

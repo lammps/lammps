@@ -37,8 +37,7 @@ class PairLubricate : public Pair {
   void read_restart(FILE *) override;
   void write_restart_settings(FILE *) override;
   void read_restart_settings(FILE *) override;
-  int pre_adapt(char *, int, int, int, int);
-  void adapt(int, int, int, int, int, double);
+  void *extract(const char *, int &) override;
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
@@ -50,6 +49,7 @@ class PairLubricate : public Pair {
   int flagdeform, flagwall;
   double vol_P;
   class FixWall *wallfix;
+  class FixWallRegion *regwallfix;
   int flagVF, flagHI;
 
   double Ef[3][3];

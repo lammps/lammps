@@ -655,7 +655,7 @@ int FixCMAPKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 template<class DeviceType>
 int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
    const int &nsend, DAT::tdual_xfloat_2d &k_buf,
-   DAT::tdual_int_1d k_exchange_sendlist, DAT::tdual_int_1d /*k_copylist*/,
+   DAT::tdual_int_1d k_exchange_sendlist, DAT::tdual_int_1d k_copylist,
    ExecutionSpace space)
 {
 
@@ -666,8 +666,8 @@ int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
   auto d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
-  d_copylist = k_copylist.view<DeviceType>();
-  auto d_exchange_sendlist = k_exchange_sendlist.view<DeviceType>();
+  d_copylist = k_copylist.template view<DeviceType>();
+  auto d_exchange_sendlist = k_exchange_sendlist.template view<DeviceType>();
 
   int n;
   copymode = 1;

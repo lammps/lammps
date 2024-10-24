@@ -1,0 +1,27 @@
+name: Style
+on:
+  push:
+    branches:
+      - develop
+      - add_more_gh_actions
+  pull_request:
+    branches:
+      - develop
+  workflow_dispatch:
+jobs:
+  style:
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for whitespace errors
+        run: python tools/coding_standard/whitespace.py .
+      - name: Check file permissions
+        run: python tools/coding_standard/permissions.py .
+        if: always()
+      - name: Check for old LAMMPS homepage URLs
+        run: python tools/coding_standard/homepage.py .
+        if: always()
+      - name: Check for obsolete Error docs in headers
+        run: python tools/coding_standard/errordocs.py .
+        if: always()

@@ -1,0 +1,39 @@
+name: Documentation
+on:
+  push:
+    branches:
+      - develop
+      - add_more_gh_actions
+#    paths:
+#      - 'doc/*'
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - 'doc/*'
+  workflow_dispatch:
+jobs:
+  build:
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    container: "lammps/buildenv:fedora38_mingw"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate HTML
+        run: make -C doc -j 2 html
+      - name: Generate PDF
+        run: make -C doc -j 2 pdf
+      - name: Check Spelling
+        run: make -C doc -j 2 spelling | tee spellcheck_build.log
+      - name: Archive HTML documentation
+        uses: actions/upload-artifact@v3
+        with:
+          name: html
+          path: doc/html
+          retention-days: 7
+      - name: Archive PDF documentation
+        uses: actions/upload-artifact@v3
+        with:
+          name: pdf
+          path: doc/Manual.pdf
+          retention-days: 7

@@ -666,7 +666,7 @@ int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
   auto d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
-  d_copylist = k_copylist.template view<DeviceType>();
+  auto d_copylist = k_copylist.template view<DeviceType>();
   auto d_exchange_sendlist = k_exchange_sendlist.template view<DeviceType>();
 
   int n;
@@ -717,6 +717,14 @@ int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
   k_buf.modify<DeviceType>();
   if (space == Host) k_buf.sync<LMPHostType>();
   else k_buf.sync<LMPDeviceType>();
+
+  k_num_crossterm.template modify<DeviceType>();
+  k_crossterm_type.template modify<DeviceType>();
+  k_crossterm_atom1.template modify<DeviceType>();
+  k_crossterm_atom2.template modify<DeviceType>();
+  k_crossterm_atom3.template modify<DeviceType>();
+  k_crossterm_atom4.template modify<DeviceType>();
+  k_crossterm_atom5.template modify<DeviceType>();
 
   return n;
 }

@@ -28,8 +28,6 @@ ComputeStyle(rmsd/kk/host,ComputeRmsdKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
-struct TagComputeRmsd{};
-
 template<class DeviceType>
 class ComputeRmsdKokkos : public ComputeRmsd {
  public:
@@ -40,14 +38,8 @@ class ComputeRmsdKokkos : public ComputeRmsd {
   ~ComputeRmsdKokkos() override;
   void init() override;
   double compute_scalar() override;
-
-  KOKKOS_INLINE_FUNCTION
   double rmsd(double *);
-
-  KOKKOS_INLINE_FUNCTION
   double gpu_q_j(typename AT::t_x_array, typename AT::t_x_array, double*);
-
-  KOKKOS_INLINE_FUNCTION
   double rmsd_grad_gpu(double*);
 
  private:

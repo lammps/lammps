@@ -104,7 +104,6 @@ double ComputeRmsdKokkos<DeviceType>::compute_scalar()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
 double ComputeRmsdKokkos<DeviceType>::rmsd_grad_gpu(double quat[4])
 {
   auto d_x = atomKK->k_x.template view<DeviceType>();
@@ -122,7 +121,6 @@ double ComputeRmsdKokkos<DeviceType>::rmsd_grad_gpu(double quat[4])
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
 double ComputeRmsdKokkos<DeviceType>::gpu_q_j(typename AT::t_x_array p, typename AT::t_x_array q, double quat[4])
 {
 
@@ -184,7 +182,7 @@ double ComputeRmsdKokkos<DeviceType>::gpu_q_j(typename AT::t_x_array p, typename
   int ierror = ecalc.Diagonalize(P,Evl,Evc);
 
   if(ierror)
-    error->all(FLERR, "cmopute rmsd/kk: Too many iterations in jacobi diagonalization.\n"
+    Kokkos::abort("compute rmsd/kk: Too many iterations in jacobi diagonalization.\n"
       "This is usually the result of an ill-defined set of atoms for "
       "rotational alignment (RMSD, rotateReference, etc).\n");
 

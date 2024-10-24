@@ -658,15 +658,14 @@ int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
 {
 
   k_buf.template sync<DeviceType>();
-  //k_copylist.template sync<DeviceType>();
+  k_copylist.template sync<DeviceType>();
   k_exchange_sendlist.template sync<DeviceType>();
 
   auto d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
-  //d_copylist = k_copylist.view<DeviceType>();
+  d_copylist = k_copylist.view<DeviceType>();
   auto d_exchange_sendlist = k_exchange_sendlist.view<DeviceType>();
-  //this->nsend = nsend;
 
   int n;
   copymode = 1;
@@ -694,6 +693,19 @@ int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
         d_buf(j++) = static_cast<double> (l_crossterm_atom3(i,m));
         d_buf(j++) = static_cast<double> (l_crossterm_atom4(i,m));
         d_buf(j++) = static_cast<double> (l_crossterm_atom5(i,m));
+      }
+
+      const int k = d_copylist(mysend);
+      if (k > -1) {
+        l_num_crossterm(i) = l_num_crossterm(k);
+        for (int m = 0; m < l_num_crossterm(k); m++) {
+          l_crossterm_type(i,m) = l_crossterm_type(k,m);
+          l_crossterm_atom1(i,m) = l_crossterm_atom1(k,m);
+          l_crossterm_atom2(i,m) = l_crossterm_atom2(k,m);
+          l_crossterm_atom3(i,m) = l_crossterm_atom3(k,m);
+          l_crossterm_atom4(i,m) = l_crossterm_atom4(k,m);
+          l_crossterm_atom5(i,m) = l_crossterm_atom5(k,m);
+        }
       }
     }
   },n);

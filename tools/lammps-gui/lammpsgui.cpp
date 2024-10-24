@@ -988,6 +988,7 @@ void LammpsGui::logupdate()
     if (logwindow) {
         const auto text = capturer->GetChunk();
         if (text.size() > 0) {
+            logwindow->moveCursor(QTextCursor::End);
             logwindow->insertPlainText(text.c_str());
             logwindow->moveCursor(QTextCursor::End);
             logwindow->textCursor().deleteChar();
@@ -2016,8 +2017,8 @@ bool LammpsGui::eventFilter(QObject *watched, QEvent *event)
 }
 
 // LAMMPS geturl command with current location of the input and solution files on the web
-static const QString geturl = "geturl https://raw.githubusercontent.com/akohlmey/"
-                              "lammps-tutorials-inputs/main/tutorial%1/%2 output %2 verify no";
+static const QString geturl = "geturl https://raw.githubusercontent.com/lammpstutorials/"
+    "lammpstutorials-article/refs/heads/main/files/tutorial%1/%2 output %2 verify no";
 
 void LammpsGui::setup_tutorial(int tutno, const QString &dir, bool purgedir, bool getsolution)
 {

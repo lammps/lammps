@@ -8,7 +8,14 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style bpm/spring
+   pair_style bpm/spring keyword value  ...
+
+* optional keyword = *anharmonic*
+
+  .. parsed-literal::
+
+       *anharmonic* value = *yes* or *no*
+          whether forces include the anharmonic term
 
 Examples
 """"""""
@@ -17,7 +24,8 @@ Examples
 
    pair_style bpm/spring
    pair_coeff * * 1.0 1.0 1.0
-   pair_coeff 1 1 1.0 1.0 1.0
+   pair_style bpm/spring anharmonic yes
+   pair_coeff 1 1 1.0 1.0 1.0 50.0
 
 Description
 """""""""""
@@ -28,12 +36,16 @@ Style *bpm/spring* computes pairwise forces with the formula
 
 .. math::
 
-   F = k (r - r_c)
+   F = k (r - r_c) + k_a (r - r_c)^3
 
-where :math:`k` is a stiffness and :math:`r_c` is the cutoff length.
-An additional damping force is also applied to interacting
-particles. The force is proportional to the difference in the
-normal velocity of particles
+where :math:`k` is a stiffness, :math:`r_c` is the cutoff
+length, and :math:`k_a` is an optional anharmonic cubic prefactor
+that can be enabled using the *anharmonic* keyword. The anharmonic
+term may be useful in scenarios that need to prevent large particle overlap.
+
+An additional damping force is also applied to interacting particles.
+The force is proportional to the difference in the normal velocity of
+particles
 
 .. math::
 
@@ -73,6 +85,12 @@ commands, or by mixing as described below:
 * :math:`r_c`           (distance units)
 * :math:`\gamma`        (force/velocity units)
 
+.. versionadded:: TBD
+
+Additionally, if *anharmonic* is set to *yes*, a fourth coefficient
+must be provided:
+
+* :math:`k_a`           (force/distance\^3 units)
 
 ----------
 
@@ -117,4 +135,5 @@ Related commands
 Default
 """""""
 
-none
+The option defaults are *anharmonic* = *no*
+

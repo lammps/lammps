@@ -75,6 +75,7 @@ BondBPM::BondBPM(LAMMPS *_lmp) :
   id_fix_dummy2 = utils::strdup(fmt::format("BPM_DUMMY2_{}", instance_total));
   modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy2));
 
+  id_fix_bond_history = utils::strdup("HISTORY_BPM_SPRING");
   if (lmp->citeme) lmp->citeme->add(cite_bpm);
 }
 
@@ -288,8 +289,8 @@ void BondBPM::settings(int narg, char **arg)
     }
   }
 
-  // Set up necessary history fix
-  if (!fix_bond_history) {
+  // Set up necessary history fix when required
+  if ((nhistory > 0) && !fix_bond_history) {
     fix_bond_history = dynamic_cast<FixBondHistory *>(modify->replace_fix(
         id_fix_dummy2, fmt::format("{} all BOND_HISTORY {} {}", id_fix_bond_history, update_flag, nhistory), 1));
     delete[] id_fix_dummy2;

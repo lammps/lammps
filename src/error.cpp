@@ -132,6 +132,7 @@ void Error::all(const std::string &file, int line, const std::string &str)
       ; // do nothing
     }
     utils::logmesg(lmp,mesg);
+    utils::flush_buffers(lmp);
   }
 
   // allow commands if an exception was caught in a run
@@ -164,6 +165,7 @@ void Error::one(const std::string &file, int line, const std::string &str)
   std::string mesg = fmt::format("ERROR on proc {}: {} ({}:{})\nLast command: {}\n",
                                  me,str,truncpath(file),line,lastcmd);
   utils::logmesg(lmp,mesg);
+  utils::flush_buffers(lmp);
 
   if (universe->nworlds > 1)
     if (universe->uscreen)

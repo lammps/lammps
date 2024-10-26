@@ -2159,7 +2159,7 @@ int lammps_extract_atom_datatype(void *handle, const char *name)
  *
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 29Oct2024
 
 This function returns an integer with the size of the per-atom
 property with the specified name.  This allows to accurately determine

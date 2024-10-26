@@ -180,7 +180,7 @@ coulomb styles in :doc:`hybrid pair styles <pair_hybrid>`.
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 29Oct2024
 
 Style *coul/ctip* computes the Coulomb interactions as described in
 :ref:`Plummer <Plummer1>`. It uses the the damped shifted model as in

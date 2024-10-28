@@ -1258,6 +1258,7 @@ void Set::setrandom(int keyword)
     for (i = 0; i < nlocal; i++)
       for (int m = 0; m < n; m++)
         if (select[i]) {
+          ranmars->reset(seed,x[i];)
           if (ranmars->uniform() > fraction) continue;
           atom->bond_type[i][m] = newtype;
           count++;

@@ -1249,20 +1249,24 @@ void Set::setrandom(int keyword)
 
   // set approx fraction of bond types to newtype
 
-  } else if (keyword == BOND_FRACTION) {
+    } else if (keyword == BOND_FRACTION) {
     int  nlocal = atom->nlocal;
     int *num_bond = atom->num_bond;
     int **bond_type = atom->bond_type;
-    int n = num_bond[i];
 
-    for (i = 0; i < nlocal; i++)
-      for (int m = 0; m < n; m++)
+    int n;
+    int m;
+
+    for (i = 0; i < nlocal; i++){
+      n = num_bond[i];
+      for (m = 0; m < n; m++){
         if (select[i]) {
-          ranmars->reset(seed,x[i];)
           if (ranmars->uniform() > fraction) continue;
           atom->bond_type[i][m] = newtype;
           count++;
         }
+      }
+    }
 
   // set exact count of atom types to newtype
   // for TYPE_RATIO, exact = fraction out of total eligible

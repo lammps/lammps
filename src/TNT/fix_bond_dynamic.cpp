@@ -523,6 +523,9 @@ void FixBondDynamic::post_integrate()
 
   for (int i = 0; i < nlocal; i++) {
 
+    // Skip if ka = 0;
+    if (ka == 0) continue;
+
     // Skip irrelevant atoms
     if (!(mask[i] & groupbit)) continue;
     if ((type[i] != iatomtype) && (type[i] != jatomtype)) continue;

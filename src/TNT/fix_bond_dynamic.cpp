@@ -72,7 +72,6 @@ FixBondDynamic::FixBondDynamic(LAMMPS *lmp, int narg, char **arg) :
   maxbond = atom->bond_per_atom;
   seed = 12345;
   jatomtype = iatomtype;
-  frac = 0.5;
 
   // Flags for optional settings
   flag_prob = 0;
@@ -357,7 +356,7 @@ void FixBondDynamic::post_integrate()
       double probability = random->uniform();
 
       // Detachment probability for constant kd
-      double p_detach = 1 - exp(-frac*kd*DT_EQ);
+      double p_detach = 1 - exp(-kd*DT_EQ);
 
       // Flags that modify kd
       if (flag_bell) {
@@ -376,7 +375,7 @@ void FixBondDynamic::post_integrate()
         double bondforce = fabs(fbond)*r;
 
         // Modify kd using Bell's law
-        double kd_bell = frac*kd*exp(fabs(bondforce)/f0);
+        double kd_bell = kd*exp(fabs(bondforce)/f0);
         p_detach = 1 - exp(-kd_bell*DT_EQ);
       }
       if (flag_catch) {
@@ -396,7 +395,7 @@ void FixBondDynamic::post_integrate()
 
         // Modify kd using two-path catch model
         // kd = slip + catch
-        double kd_catch = frac*kd*exp(fabs(bondforce)/fs0) + frac*kd*kc0_scale*exp(-fabs(bondforce)/fc0);
+        double kd_catch = kd*exp(fabs(bondforce)/fs0) + kd*kc0_scale*exp(-fabs(bondforce)/fc0);
         //printf("kd_catch %4.4f\n",kd_catch);
         //printf("fbond %4.4f\n",fbond);
         //printf("fs0 %4.4f\n",fs0);

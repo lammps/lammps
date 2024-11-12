@@ -550,7 +550,7 @@ void FixBondDynamic::post_integrate()
       if (tag[i] == tag[j]) continue;
 
       // Skip bonds that don't belong to the right type
-      if (bond_type[i][j] != btype) continue;
+      //if (bond_type[i][j] != btype) continue;
 
       // flag_mol = 1 means only atoms on different molecules can bond
       if (flag_mol == 1) {

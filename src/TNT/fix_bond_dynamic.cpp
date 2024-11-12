@@ -349,6 +349,9 @@ void FixBondDynamic::post_integrate()
       if (!(mask[j] & groupbit)) continue;
       //if ((type[j] != iatomtype) && (type[j] != jatomtype)) continue; //### TEMP (too restrictive)
 
+
+      printf("bond type (j) %4.4f\n",bond_type[i][j]);
+      printf("bond type (b) %4.4f\n",bond_type[i][b]);
       // Skip bonds that don't belong to the right type
       if (bond_type[i][j] != btype) continue;
 

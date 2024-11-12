@@ -349,6 +349,9 @@ void FixBondDynamic::post_integrate()
       if (!(mask[j] & groupbit)) continue;
       //if ((type[j] != iatomtype) && (type[j] != jatomtype)) continue; //### TEMP (too restrictive)
 
+      // Skip bonds that don't belong to the right type
+      if (bond_type[i][j] != btype) continue;
+
       // Only consider each bond once - when my atom has the lower atom tag
       if (tag[i] > tagj) continue;
 
@@ -545,6 +548,9 @@ void FixBondDynamic::post_integrate()
       if ((type[j] != iatomtype) && (type[j] != jatomtype)) continue;
       if (npos[j] == 0) continue;
       if (tag[i] == tag[j]) continue;
+
+      // Skip bonds that don't belong to the right type
+      if (bond_type[i][j] != btype) continue;
 
       // flag_mol = 1 means only atoms on different molecules can bond
       if (flag_mol == 1) {

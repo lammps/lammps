@@ -29,6 +29,7 @@
 #include "pair.h"
 #include "respa.h"
 #include "update.h"
+#include <iostream>
 
 #include <cstring>
 #include "math_const.h"
@@ -265,6 +266,7 @@ void FixBondDynamic::setup(int /*vflag*/)
   int **bond_type = atom->bond_type;
   tagint **bond_atom = atom->bond_atom;
   int nlocal = atom->nlocal;
+  int **bond_type_raw = atom->bond_type;
 
   for (int i = 0; i < nlocal; i++) {
     if (num_bond[i] == 0) continue;
@@ -301,7 +303,13 @@ void FixBondDynamic::post_integrate()
 
   int *num_bond = atom->num_bond;
   int **bond_type = atom->bond_type;
+  int  bondid = atom->bond_per_atom;
   tagint **bond_atom = atom->bond_atom;
+
+  int **bondlist = neighbor->bondlist;
+  int nbondlist = neighbor->nbondlist;
+
+  int bondtype = 0;
 
   if (update->ntimestep % nevery) return;
 
@@ -324,6 +332,14 @@ void FixBondDynamic::post_integrate()
   // loop over local atoms
   // check for possible breaks
 
+  //int size = sizeof(bond_type_raw);
+  //printf("%i\n\n",size);
+
+  //printf("%i\n\n",bondlist[0][2]);
+  //printf("%i\n\n",bondlist[1][2]);
+  //printf("%i\n\n",bondlist[2][2]);
+  
+
   for (int i = 0; i < nlocal; i++) {
 
     // Skip atoms not in the desired group or of the wrong type
@@ -332,15 +348,42 @@ void FixBondDynamic::post_integrate()
 
     // Loop through each entry of fbd
     for (int b = 0; b < maxbond; b++) {
-
+      
       // Tag of current bond pair
       tagint tagj = fbd[i][b];
       
       // tagj < 1 means bond is already detached or there is no bond
       if (tagj < 1) continue;
 
+      // Skip bonds that don't belong to the right type
+      //printf("nbonds %i\n",nbondlist);
+      for (int n = 0; n < nbondlist; n++) {
+        int iatom = bondlist[n][0];
+        int jatom = bondlist[n][1];
+        //printf("n:%i bondtype: %i \n",n,bondtype);
+
+        //printf("iatom:%i \n",tag[iatom]);
+        //printf("jatom:%i \n",tag[jatom]);
+        //printf("tagi:%i \n",tag[i]);
+        //printf("tagj:%i \n\n",tagj);
+
+        if((tag[iatom]==tag[i] and tag[jatom]==tagj) || (tag[iatom]==tagj and tag[jatom]==tag[i])) {
+          bondtype = bondlist[n][2];
+          break;
+        }
+
+      }
+
+      //printf("%i\n",fbd[i][b]);
+      //printf("%i\n",tag[i]);
+      //printf("bondtype %f\n",bondtype);
+      //printf("conditional %i\n",(bondtype != btype));
+
+      if (bondtype != btype) continue;
+ 
       // Local id of current bond pair
       int j = atom->map(tagj);
+
       //if (j < 0) continue;
       //  error->one(FLERR,"Fix bond/dynamic needs ghost atoms "    //### TEMP  
       //              "from further away 1");
@@ -348,12 +391,6 @@ void FixBondDynamic::post_integrate()
       // Skip atoms not in the desired group or of the wrong type
       if (!(mask[j] & groupbit)) continue;
       //if ((type[j] != iatomtype) && (type[j] != jatomtype)) continue; //### TEMP (too restrictive)
-
-
-      printf("bond type (j) %4.4f\n",bond_type[i][j]);
-      printf("bond type (b) %4.4f\n",bond_type[i][b]);
-      // Skip bonds that don't belong to the right type
-      if (bond_type[i][j] != btype) continue;
 
       // Only consider each bond once - when my atom has the lower atom tag
       if (tag[i] > tagj) continue;
@@ -408,7 +445,7 @@ void FixBondDynamic::post_integrate()
         //printf("fc0 %4.4f\n",fc0);
         //printf("kco_scale %4.4f\n",kc0_scale);
         //printf("bond %4.4f\n",bondforce);
-        //printf("delx %4.4f\n",delx);
+        
         p_detach = 1 - exp(-kd_catch*DT_EQ);
       }
       if (flag_critical) {
@@ -431,6 +468,19 @@ void FixBondDynamic::post_integrate()
 
       // Apply probability constraint
       if (probability > p_detach) continue;
+
+      //double delx = x[i][0] - x[j][0];
+      //double dely = x[i][1] - x[j][1];
+      //double delz = x[i][2] - x[j][2];
+      //domain->minimum_image(delx, dely, delz);
+      //double rsq = delx*delx + dely*dely + delz*delz;
+      //double fbond;
+      //double engpot = bond->single(btype,rsq,i,j,fbond);
+      //if (btype==1){
+      //  printf("btype %i\n",btype);
+      //}
+
+      if (kd == 0) continue; 
 
       // if breaking was successful, update fbd to -tag
       fbd[i][b] *= -1;
@@ -913,7 +963,7 @@ void FixBondDynamic::post_integrate()
 
 void FixBondDynamic::process_broken(int i, int j)
 {
-
+  
   // First add the pair to new_broken_pairs
   auto tag_pair = std::make_pair(atom->tag[i], atom->tag[j]);
   new_broken_pairs.push_back(tag_pair);
@@ -926,6 +976,7 @@ void FixBondDynamic::process_broken(int i, int j)
   tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
   int *num_bond = atom->num_bond;
+  
 
   if (i < nlocal) {
     int n = num_bond[i];

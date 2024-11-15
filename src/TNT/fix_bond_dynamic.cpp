@@ -480,7 +480,7 @@ void FixBondDynamic::post_integrate()
       //  printf("btype %i\n",btype);
       //}
 
-      if (kd == 0) continue; 
+      //if (kd == 0) continue; 
 
       // if breaking was successful, update fbd to -tag
       fbd[i][b] *= -1;

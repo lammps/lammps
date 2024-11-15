@@ -105,6 +105,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   intelflag = false;
   tfflag = false;
   etaflag = false;
+  pairflag = false;
   timer_flag = false;
 
   update_time = 0;
@@ -230,6 +231,10 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
       if (!is_double) error->all(FLERR, "eta keyword requires double-valued property/atom vector");
       if (cols != 0) error->all(FLERR, "eta keyword requires property/atom vector not an array");
       if (!ghost) error->all(FLERR, "eta keyword requires property/atom fix with ghost on");
+    } else if ((strcmp(arg[iarg], "pair") == 0)) {
+      if (iarg + 2 > narg) error->all(FLERR, "Need one argument after pair command");
+      pairflag = true;
+      pair_str = arg[++iarg];
     }
     // toggle parameters
     else if ((strcmp(arg[iarg], "etypes") == 0)) {
@@ -247,7 +252,16 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   if (qtotal_var_style != VarStyle::UNSET) {
     if (symm) error->all(FLERR, "{} cannot use qtotal keyword with symm on", this->style);
   }
-  if (etanull && !etaflag) error->all(FLERR, "If eta is NULL the eta keyword must be used");
+  if (etanull && !(etaflag || pairflag))
+    error->all(FLERR, "If eta is NULL the eta or pair keyword must be used");
+  if (pairflag) {
+    if (etaflag) error->all(FLERR, "The eta and pair keywords can not both be used");
+    if (etypes_neighlists) error->all(FLERR, "The etypes and pair keyword are not compatible");
+    if (!etanull && comm->me == 0)
+      error->warning(
+          FLERR,
+          "The eta parameter is not NULL but will not be used because the pair keyword is used");
+  }
 
   // computatonal potential
   group_psi = std::vector<double>(groups.size());
@@ -405,10 +419,16 @@ int FixElectrodeConp::groupnum_from_name(char *groupname)
 void FixElectrodeConp::init()
 {
   pair = nullptr;    // not sure if needed -- remove if unnecessary
-  pair = (Pair *) force->pair_match("coul", 0);
-  if (pair == nullptr) {    // couldn't find a pair with name coul -- maybe hybrid
-    // return 1st hybrid substyle containing 'coul'
-    pair = (Pair *) force->pair_match("coul", 0, 1);
+  if (pairflag) {
+    pair = force->pair_match(pair_str, 1);
+    if (pair == nullptr)
+      error->all(FLERR, "Fix electrode couldn't find the pair style {}", pair_str);
+  } else {
+    pair = force->pair_match("coul", 0);
+    if (pair ==
+        nullptr) {    // couldn't find a pair with name coul -- maybe hybrid return 1st hybrid substyle containing 'coul'
+      pair = force->pair_match("coul", 0, 1);
+    }
   }
   if (pair == nullptr) error->all(FLERR, "Fix electrode couldn't find a Coulombic pair style");
 
@@ -534,10 +554,10 @@ void FixElectrodeConp::setup_post_neighbor()
   // pair and list setups:
 
   evscale = force->qe2f / force->qqrd2e;
-  elyt_vector->setup(pair, vec_neighlist, timer_flag);
+  elyt_vector->setup(pair, vec_neighlist, pairflag, timer_flag);
   if (etaflag) elyt_vector->setup_eta(eta_index);
   if (need_elec_vector) {
-    elec_vector->setup(pair, mat_neighlist, timer_flag);
+    elec_vector->setup(pair, mat_neighlist, pairflag, timer_flag);
     if (etaflag) elec_vector->setup_eta(eta_index);
     if (tfflag) elec_vector->setup_tf(tf_types);
   }
@@ -572,7 +592,7 @@ void FixElectrodeConp::setup_post_neighbor()
     else if (!read_inv) {
       if (etypes_neighlists) neighbor->build_one(mat_neighlist);
       auto array_compute = std::unique_ptr<ElectrodeMatrix>(new ElectrodeMatrix(lmp, igroup, eta));
-      array_compute->setup(tag_to_iele, pair, mat_neighlist);
+      array_compute->setup(tag_to_iele, pair, mat_neighlist, pairflag);
       if (etaflag) array_compute->setup_eta(eta_index);
       if (tfflag) array_compute->setup_tf(tf_types);
       array_compute->compute_array(elastance, timer_flag);
@@ -1199,28 +1219,35 @@ double FixElectrodeConp::potential_energy()
   MPI_Allreduce(MPI_IN_PLACE, &energy, 1, MPI_DOUBLE, MPI_SUM, world);
   return energy;
 }
+
 /* ---------------------------------------------------------------------- */
 
 double FixElectrodeConp::self_energy(int eflag)
 {
   // corrections to energy due to self interaction
+  double energy = 0.;
   double const qqrd2e = force->qqrd2e;
   int const nlocal = atom->nlocal;
-  double const pre = 1. / sqrt(MY_2PI) * qqrd2e;
   int *mask = atom->mask;
-  int *type = atom->type;
   double *q = atom->q;
-  double energy = 0;
-  for (int i = 0; i < nlocal; i++) {
-    if (groupbit & mask[i]) {
-      double const q2 = q[i] * q[i];
-      double ieta = etaflag ? atom->dvector[eta_index][i] : eta;
-      double e = ieta * pre * q2;
-      if (tfflag && (groupbit & mask[i])) e += 0.5 * qqrd2e * q2 * tf_types[type[i]];
-      energy += e;
-      if (eflag) {
-        force->pair->ev_tally(i, i, nlocal, force->newton_pair, 0., e, 0, 0, 0,
-                              0);    // 0 evdwl, 0 fpair, 0 delxyz
+  if (tfflag) {
+    int *type = atom->type;
+    for (int i = 0; i < nlocal; i++) {
+      if (groupbit & mask[i]) {
+        double e = 0.5 * qqrd2e * q[i] * q[i] * tf_types[type[i]];
+        energy += e;
+        if (eflag) { force->pair->ev_tally(i, i, nlocal, force->newton_pair, 0., e, 0, 0, 0, 0); }
+      }
+    }
+  }
+  if (!pairflag) {
+    double const pre = 1. / sqrt(MY_2PI) * qqrd2e;
+    for (int i = 0; i < nlocal; i++) {
+      if (groupbit & mask[i]) {
+        double ieta = etaflag ? atom->dvector[eta_index][i] : eta;
+        double e = ieta * pre * q[i] * q[i];
+        energy += e;
+        if (eflag) { force->pair->ev_tally(i, i, nlocal, force->newton_pair, 0., e, 0, 0, 0, 0); }
       }
     }
   }
@@ -1233,7 +1260,7 @@ double FixElectrodeConp::self_energy(int eflag)
 double FixElectrodeConp::gausscorr(int eflag, int vflag, bool fflag)
 {
   // correction to short range interaction due to eta
-
+  if (pairflag) return 0.;
   double const qqrd2e = force->qqrd2e;
   int const nlocal = atom->nlocal;
   int *mask = atom->mask;

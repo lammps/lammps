@@ -153,6 +153,7 @@ OPT.
    * :doc:`lj/cut/coul/long (gikot) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/long/cs <pair_cs>`
    * :doc:`lj/cut/coul/long/dielectric (o) <pair_dielectric>`
+   * :doc:`lj/cut/coul/long/gauss <pair_electrode>`
    * :doc:`lj/cut/coul/long/soft (go) <pair_fep_soft>`
    * :doc:`lj/cut/coul/msm (go) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/msm/dielectric <pair_dielectric>`

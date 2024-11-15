@@ -72,6 +72,7 @@ Syntax
         add overall potential so that all electrode charges add up to *qtotal*
     *eta* value = d_propname
         d_propname = a custom double vector defined via fix property/atom
+    *pair* value = pair style name
 
 Examples
 """"""""
@@ -274,6 +275,15 @@ fix property/atom.  The values will be used instead of the standard eta
 value.  The property/atom fix must be for vector of double values and
 use the *ghost on* option.
 
+.. versionadded:: TODO
+
+The keyword *pair* must be followed by the name of a pair style which
+implements ELECTRODE pair methods (see :doc:`pair_electrode <pair_electrode>`).
+Energy corrections, force corrections, and pair interaction quantities used
+in CPM will then be calculated by the supplied pair style; *fix electrode*
+will then purely update charges and not apply Gaussian-based energy or
+force corrections, and the eta parameter specified in the input of this
+fix will be ignored.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

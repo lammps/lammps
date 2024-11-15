@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class ElectrodeMatrix : protected Pointers {
  public:
   ElectrodeMatrix(class LAMMPS *, int, double);
-  void setup(const std::unordered_map<tagint, int> &, class Pair *, class NeighList *);
+  void setup(const std::unordered_map<tagint, int> &, class Pair *, class NeighList *, bool);
   void setup_tf(const std::map<int, double> &);
   void setup_eta(int);
   void compute_array(double **, bool);
@@ -39,6 +39,7 @@ class ElectrodeMatrix : protected Pointers {
   bigint ngroup;
   double **cutsq;
   double g_ewald, eta;
+  bool pairflag;
   bool tfflag;
   bool etaflag;
   int eta_index;
@@ -48,6 +49,7 @@ class ElectrodeMatrix : protected Pointers {
   std::vector<bigint> mpos;
   class Pair *pair;
   class NeighList *list;
+  class ElectrodePair *electrode_pair;
   class ElectrodeKSpace *electrode_kspace;
 
   void update_mpos();

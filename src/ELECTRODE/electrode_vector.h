@@ -27,7 +27,7 @@ class ElectrodeVector : protected Pointers {
  public:
   ElectrodeVector(class LAMMPS *, int, int, double, bool);
   ~ElectrodeVector() override;
-  void setup(class Pair *, class NeighList *, bool);
+  void setup(class Pair *, class NeighList *, bool, bool);
   void setup_tf(const std::map<int, double> &);
   void setup_eta(int);
   void compute_vector(double *);
@@ -39,12 +39,13 @@ class ElectrodeVector : protected Pointers {
   bigint ngroup;
   double **cutsq;
   double g_ewald, eta;
+  bool pairflag;
   bool tfflag;
   bool etaflag;
   int eta_index;
   std::map<int, double> tf_types;
-  class Pair *pair;
   class NeighList *list;
+  class ElectrodePair *electrode_pair;
   class ElectrodeKSpace *electrode_kspace;
 
   void pair_contribution(double *);

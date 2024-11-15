@@ -13,12 +13,6 @@ Masses
 2 196.966553
 3 1.0
 
-Pair Coeffs # lj/cut/coul/long
-
-1 0 0
-2 0 0
-3 0 0
-
 Atoms # full
 
 1 1 1  0.00 0.00 0.00 -2.00 # bottom electrode

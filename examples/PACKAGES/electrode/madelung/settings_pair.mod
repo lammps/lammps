@@ -4,13 +4,13 @@ units real
 if "$(extract_setting(world_size) % 2) == 0" then "processors * * 2"
 
 atom_style full
-pair_style lj/cut/coul/long 12
+pair_style lj/cut/coul/long/gauss 12
 
 read_data "data.au-elyt"
 
-pair_coeff 1 1 0 0
-pair_coeff 2 2 0 0
-pair_coeff 3 3 0 0
+pair_coeff 1 1 0 0 2
+pair_coeff 2 2 0 0 2
+pair_coeff 3 3 0 0 NULL
 
 group bot type 1
 group top type 2

@@ -247,6 +247,7 @@ accelerated styles exist.
 * :doc:`lj/cut/coul/long <pair_lj_cut_coul>` - LJ with long-range Coulomb
 * :doc:`lj/cut/coul/long/cs <pair_cs>` - LJ with long-range Coulomb with core/shell adjustments
 * :doc:`lj/cut/coul/long/dielectric <pair_dielectric>` -
+* :doc:`lj/cut/coul/long/gauss <pair_electrode>` - LJ with long-range Coulomb with point and Gaussian charges
 * :doc:`lj/cut/coul/long/soft <pair_fep_soft>` - LJ with long-range Coulomb with a soft core
 * :doc:`lj/cut/coul/msm <pair_lj_cut_coul>` - LJ with long-range MSM Coulomb
 * :doc:`lj/cut/coul/msm/dielectric <pair_dielectric>` -

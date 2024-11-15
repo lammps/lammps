@@ -21,6 +21,7 @@
 #include "comm.h"
 #include "electrode_kspace.h"
 #include "electrode_math.h"
+#include "electrode_pair.h"
 #include "error.h"
 #include "force.h"
 #include "group.h"
@@ -37,7 +38,8 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 ElectrodeVector::ElectrodeVector(LAMMPS *lmp, int sensor_group, int source_group, double eta,
-                                 bool invert_source) : Pointers(lmp)
+                                 bool invert_source) :
+    Pointers(lmp)
 {
   igroup = sensor_group;                // group of all atoms at which we calculate potential
   this->source_group = source_group;    // group of all atoms influencing potential
@@ -72,13 +74,19 @@ ElectrodeVector::~ElectrodeVector()
 
 /* ---------------------------------------------------------------------- */
 
-void ElectrodeVector::setup(class Pair *fix_pair, class NeighList *fix_neighlist, bool timer_flag)
+void ElectrodeVector::setup(Pair *fix_pair, class NeighList *fix_neighlist, bool pairflag,
+                            bool timer_flag)
 {
-  pair = fix_pair;
+  Pair *pair = fix_pair;
   cutsq = pair->cutsq;
   list = fix_neighlist;
+  this->pairflag = pairflag;
   this->timer_flag = timer_flag;
 
+  if (pairflag) {
+    electrode_pair = dynamic_cast<ElectrodePair *>(pair);
+    if (electrode_pair == nullptr) error->all(FLERR, "Pair style does not implement ElectrodePair");
+  }
   electrode_kspace = dynamic_cast<ElectrodeKSpace *>(force->kspace);
   if (electrode_kspace == nullptr) error->all(FLERR, "KSpace does not implement ElectrodeKSpace");
   g_ewald = force->kspace->g_ewald;
@@ -108,8 +116,13 @@ void ElectrodeVector::compute_vector(double *vector)
   double start_time = MPI_Wtime();
   // pair
   double pair_start_time = MPI_Wtime();
-  pair_contribution(vector);
-  self_contribution(vector);
+  if (pairflag) {
+    electrode_pair->compute_vector(vector, groupbit, source_grpbit, invert_source);
+    electrode_pair->compute_vector_self(vector, groupbit, source_grpbit, invert_source);
+  } else {
+    pair_contribution(vector);
+    self_contribution(vector);
+  }
   if (tfflag) tf_contribution(vector);
   MPI_Barrier(world);
   pair_time_total += MPI_Wtime() - pair_start_time;

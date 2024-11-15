@@ -4,7 +4,7 @@ units real
 if "$(extract_setting(world_size) % 2) == 0" then "processors * * 2"
 
 atom_style full
-pair_style lj/cut/coul/long 16
+pair_style lj/cut/coul/long/gauss 16
 bond_style harmonic
 angle_style harmonic
 kspace_style pppm/electrode 1e-7
@@ -12,14 +12,12 @@ kspace_style pppm/electrode 1e-7
 
 read_data "data.graph-il"
 
-pair_coeff 1 1 0.61185 4.38
-pair_coeff 2 2 0.08604 3.41
-pair_coeff 3 3 0.43738 5.04
-pair_coeff 4 4 1.12572 5.06
-pair_coeff 5 5 0.05497 3.37
-pair_coeff 6 6 0.05497 3.37
-
-# replicate 4 4 1 # test different sys sizes
+pair_coeff 1 1 0.61185 4.38 NULL
+pair_coeff 2 2 0.08604 3.41 NULL
+pair_coeff 3 3 0.43738 5.04 NULL
+pair_coeff 4 4 1.12572 5.06 NULL
+pair_coeff 5 5 0.05497 3.37 1.979
+pair_coeff 6 6 0.05497 3.37 NULL
 
 variable zpos atom "z > 0"
 group zpos variable zpos

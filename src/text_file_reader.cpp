@@ -287,7 +287,7 @@ bigint TextFileReader::next_bigint()
 
 std::string TextFileReader::next_string()
 {
-  char *line = next_line(1);
+  char *line = next_line(0);
   return ValueTokenizer(line).next_string();
 }
 

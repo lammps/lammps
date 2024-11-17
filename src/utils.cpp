@@ -2100,10 +2100,11 @@ void utils::merge_sort(int *index, int num, void *ptr, int (*comp)(int, int, voi
   merge_sort<int>(index,num,ptr,comp);
 }
 
+#ifndef LAMMPS_SMALLSMALL
 void utils::merge_sort(bigint *index, bigint num, void *ptr, int (*comp)(bigint, bigint, void *)) {
   merge_sort<bigint>(index,num,ptr,comp);
 }
-
+#endif
 
 /* ------------------------------------------------------------------ */
 

@@ -52,7 +52,7 @@ void ReadSdf::command(int narg, char **arg)
   atom->molecules[atom->nmolecule]->nset = 1;
   atom->nmolecule++;
 
-  molecule->xflag = molecule->typeflag = 1;
+  molecule->xflag = molecule->typeflag = molecule->qflag = 1;
 
   molecule->id = utils::strdup(arg[0]);
   if (!utils::is_id(molecule->id))
@@ -69,6 +69,7 @@ void ReadSdf::command(int narg, char **arg)
       molecule->natoms = reader.next_int();
       memory->create(molecule->x, molecule->natoms, 3, "molecule:x");
       memory->create(molecule->type, molecule->natoms, "molecule:type");
+      memory->create(molecule->q, molecule->natoms, "molecule:q");
 
       for( int i=0; i<molecule->natoms ; i++) {
         char *line = reader.next_line(4);
@@ -82,8 +83,25 @@ void ReadSdf::command(int narg, char **arg)
         molecule->type[i] = atom->lmap->find(element, Atom::ATOM);
         molecule->ntypes = MAX(molecule->ntypes, molecule->type[i]);
 
-        // FIXME: read partial charges if available
 
+      }
+
+      // > <PUBCHEM_MMFF94_PARTIAL_CHARGES>
+      // FIXME: handle partial charges not available
+
+      //bool found = false;
+
+      while( strcmp(reader.next_line(0), "> <PUBCHEM_MMFF94_PARTIAL_CHARGES>\n") != 0 ) {}
+
+      int num_charges = reader.next_int();
+      utils::logmesg(lmp, " *** num_charges {}\n", num_charges);
+
+      for( int i=0; i<num_charges ; i++) {
+        char *line = reader.next_line(2);
+        ValueTokenizer values(line);
+        int index = values.next_int();
+        double q = values.next_double();
+        molecule->q[index-1] = q;
       }
 
       fclose(fp);

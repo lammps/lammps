@@ -401,6 +401,7 @@ void FixBondDynamic::post_integrate()
       // Detachment probability for constant kd
       double p_detach = 1 - exp(-kd*DT_EQ);
 
+      double icritical = 0;
       // Flags that modify kd
       if (flag_bell) {
 
@@ -458,7 +459,10 @@ void FixBondDynamic::post_integrate()
         double rsq = delx*delx + dely*dely + delz*delz;
 
         // Compare to critical length for forced detachment
-        if (rsq >= r2_critical) p_detach = 1.0;
+        if (rsq >= r2_critical) {
+          p_detach = 1.0;
+          icritical = 1;
+        }
       }
       if (flag_prob) {
 
@@ -480,7 +484,7 @@ void FixBondDynamic::post_integrate()
       //  printf("btype %i\n",btype);
       //}
 
-      //if (kd == 0) continue; 
+      if (kd == 0 && icritical != 1) continue; 
 
       // if breaking was successful, update fbd to -tag
       fbd[i][b] *= -1;

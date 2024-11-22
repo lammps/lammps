@@ -356,30 +356,12 @@ void FixBondDynamic::post_integrate()
       if (tagj < 1) continue;
 
       // Skip bonds that don't belong to the right type
-      //printf("nbonds %i\n",nbondlist);
-      for (int n = 0; n < nbondlist; n++) {
-        int iatom = bondlist[n][0];
-        int jatom = bondlist[n][1];
-        //printf("n:%i bondtype: %i \n",n,bondtype);
-
-        //printf("iatom:%i \n",tag[iatom]);
-        //printf("jatom:%i \n",tag[jatom]);
-        //printf("tagi:%i \n",tag[i]);
-        //printf("tagj:%i \n\n",tagj);
-
-        if((tag[iatom]==tag[i] and tag[jatom]==tagj) || (tag[iatom]==tagj and tag[jatom]==tag[i])) {
-          bondtype = bondlist[n][2];
-          break;
-        }
-
+      bondtype = bond_type[i][b];
+      if ((bondtype == btype) || (bondtype == 0)) {
+        //do nothing
+      } else {
+        continue;
       }
-
-      //printf("%i\n",fbd[i][b]);
-      //printf("%i\n",tag[i]);
-      //printf("bondtype %f\n",bondtype);
-      //printf("conditional %i\n",(bondtype != btype));
-
-      if (bondtype != btype) continue;
  
       // Local id of current bond pair
       int j = atom->map(tagj);
@@ -484,6 +466,7 @@ void FixBondDynamic::post_integrate()
       //  printf("btype %i\n",btype);
       //}
 
+      // if kd is zero but the bond isnt broken - manually skip
       if (kd == 0 && icritical != 1) continue; 
 
       // if breaking was successful, update fbd to -tag

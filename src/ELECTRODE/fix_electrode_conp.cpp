@@ -104,7 +104,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   top_group = 0;
   intelflag = false;
   tfflag = false;
-  etaflag = false;
+  etapropflag = false;
   pairflag = false;
   timer_flag = false;
 
@@ -129,10 +129,9 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
     group_psi_var_styles[0] = VarStyle::EQUAL;
   } else
     group_psi_const[0] = utils::numeric(FLERR, arg[3], false, lmp);
-  char *eta_str = arg[4];
-  bool etanull = (strcmp(eta_str, "NULL") == 0);
-  if (!etanull) eta = utils::numeric(FLERR, eta_str, false, lmp);
-  int iarg = 5;
+  bool etaflag = false;
+  bool deprecated_single_eta = false;
+  int iarg = 4;
   while (iarg < narg) {
     if ((strcmp(arg[iarg], "couple") == 0)) {
       if (iarg + 3 > narg) error->all(FLERR, "Need two arguments after couple keyword");
@@ -222,16 +221,29 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
         qtotal_var_style = VarStyle::CONST;
       }
     } else if ((strcmp(arg[iarg], "eta") == 0)) {
+      if (etaflag || pairflag)
+        error->all(FLERR,
+                   "eta keyword cannot be used if eta or pair keyword has already been used");
       if (iarg + 2 > narg) error->all(FLERR, "Need one argument after eta command");
       etaflag = true;
+      char *eta_str = arg[++iarg];
       int is_double, cols, ghost;
-      eta_index = atom->find_custom_ghost(arg[++iarg] + 2, is_double, cols, ghost);
-      if (eta_index == -1)
-        error->all(FLERR, "eta keyword requires name of previously defined property");
-      if (!is_double) error->all(FLERR, "eta keyword requires double-valued property/atom vector");
-      if (cols != 0) error->all(FLERR, "eta keyword requires property/atom vector not an array");
-      if (!ghost) error->all(FLERR, "eta keyword requires property/atom fix with ghost on");
+      if (utils::is_double(std::string(eta_str))) {
+        eta = utils::numeric(FLERR, eta_str, false, lmp);
+      } else if ((eta_index = atom->find_custom_ghost(eta_str + 2, is_double, cols, ghost)) != -1) {
+        etapropflag = true;
+        if (!is_double)
+          error->all(FLERR, "eta keyword requires double-valued property/atom vector");
+        if (cols != 0) error->all(FLERR, "eta keyword requires property/atom vector not an array");
+        if (!ghost) error->all(FLERR, "eta keyword requires property/atom fix with ghost on");
+      } else {
+        error->all(FLERR,
+                   "eta keyword requires a value or the name of previously defined property");
+      }
     } else if ((strcmp(arg[iarg], "pair") == 0)) {
+      if (etaflag || pairflag)
+        error->all(FLERR,
+                   "pair keyword cannot be used if eta or pair coammnd has already been used");
       if (iarg + 2 > narg) error->all(FLERR, "Need one argument after pair command");
       pairflag = true;
       pair_str = arg[++iarg];
@@ -243,6 +255,21 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
       symm = utils::logical(FLERR, arg[++iarg], false, lmp);
     } else if ((strcmp(arg[iarg], "ffield") == 0)) {
       ffield = utils::logical(FLERR, arg[++iarg], false, lmp);
+    } else if (iarg == 4) {    // deprecated option to specify eta as fourth argument
+      char *eta_str = arg[iarg];
+      bool etanull = (strcmp(eta_str, "NULL") == 0);
+      if (!etanull) {
+        if (utils::is_double(std::string(eta_str))) {
+          eta = utils::numeric(FLERR, eta_str, false, lmp);
+          deprecated_single_eta = true;
+        } else {
+          error->all(FLERR, "Unknown keyword {} for fix {} command", arg[iarg], style);
+        }
+      }
+      if (comm->me == 0)
+        error->warning(FLERR,
+                       "Setting eta as the fourth argument is deprecated and will be removed in "
+                       "the future; use the eta command");
     } else {
       error->all(FLERR, "Unknown keyword {} for fix {} command", arg[iarg], style);
     }
@@ -252,16 +279,16 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   if (qtotal_var_style != VarStyle::UNSET) {
     if (symm) error->all(FLERR, "{} cannot use qtotal keyword with symm on", this->style);
   }
-  if (etanull && !(etaflag || pairflag))
-    error->all(FLERR, "If eta is NULL the eta or pair keyword must be used");
-  if (pairflag) {
-    if (etaflag) error->all(FLERR, "The eta and pair keywords can not both be used");
-    if (etypes_neighlists) error->all(FLERR, "The etypes and pair keyword are not compatible");
-    if (!etanull && comm->me == 0)
-      error->warning(
-          FLERR,
-          "The eta parameter is not NULL but will not be used because the pair keyword is used");
+  if (!(etaflag || pairflag || deprecated_single_eta))
+    error->all(FLERR, "The eta or pair keyword must be used");
+  if (comm->me == 0) {
+    if (deprecated_single_eta && (pairflag || etaflag))
+      error->warning(FLERR,
+                     "The eta parameter has been set as fourth argument but will be ignored "
+                     "because the eta or pair command has been used");
   }
+  if (pairflag && etypes_neighlists)
+    error->all(FLERR, "The etypes and pair keyword are not compatible");
 
   // computatonal potential
   group_psi = std::vector<double>(groups.size());
@@ -555,10 +582,10 @@ void FixElectrodeConp::setup_post_neighbor()
 
   evscale = force->qe2f / force->qqrd2e;
   elyt_vector->setup(pair, vec_neighlist, pairflag, timer_flag);
-  if (etaflag) elyt_vector->setup_eta(eta_index);
+  if (etapropflag) elyt_vector->setup_eta(eta_index);
   if (need_elec_vector) {
     elec_vector->setup(pair, mat_neighlist, pairflag, timer_flag);
-    if (etaflag) elec_vector->setup_eta(eta_index);
+    if (etapropflag) elec_vector->setup_eta(eta_index);
     if (tfflag) elec_vector->setup_tf(tf_types);
   }
 
@@ -593,7 +620,7 @@ void FixElectrodeConp::setup_post_neighbor()
       if (etypes_neighlists) neighbor->build_one(mat_neighlist);
       auto array_compute = std::unique_ptr<ElectrodeMatrix>(new ElectrodeMatrix(lmp, igroup, eta));
       array_compute->setup(tag_to_iele, pair, mat_neighlist, pairflag);
-      if (etaflag) array_compute->setup_eta(eta_index);
+      if (etapropflag) array_compute->setup_eta(eta_index);
       if (tfflag) array_compute->setup_tf(tf_types);
       array_compute->compute_array(elastance, timer_flag);
     }    // write_mat before proceeding
@@ -1244,7 +1271,7 @@ double FixElectrodeConp::self_energy(int eflag)
     double const pre = 1. / sqrt(MY_2PI) * qqrd2e;
     for (int i = 0; i < nlocal; i++) {
       if (groupbit & mask[i]) {
-        double ieta = etaflag ? atom->dvector[eta_index][i] : eta;
+        double ieta = etapropflag ? atom->dvector[eta_index][i] : eta;
         double e = ieta * pre * q[i] * q[i];
         energy += e;
         if (eflag) { force->pair->ev_tally(i, i, nlocal, force->newton_pair, 0., e, 0, 0, 0, 0); }
@@ -1281,7 +1308,7 @@ double FixElectrodeConp::gausscorr(int eflag, int vflag, bool fflag)
     double xtmp = x[i][0];
     double ytmp = x[i][1];
     double ztmp = x[i][2];
-    double const eta_i = etaflag ? atom->dvector[eta_index][i] : eta;
+    double const eta_i = etapropflag ? atom->dvector[eta_index][i] : eta;
     int itype = type[i];
     int *jlist = firstneigh[i];
     int jnum = numneigh[i];
@@ -1298,7 +1325,7 @@ double FixElectrodeConp::gausscorr(int eflag, int vflag, bool fflag)
       int jtype = type[j];
 
       if (rsq < force->pair->cutsq[itype][jtype]) {
-        double const eta_j = etaflag ? atom->dvector[eta_index][j] : eta;
+        double const eta_j = etapropflag ? atom->dvector[eta_index][j] : eta;
         double eta_ij;
         if (i_in_ele && j_in_ele)
           eta_ij = eta_i * eta_j / sqrt(eta_i * eta_i + eta_j * eta_j);

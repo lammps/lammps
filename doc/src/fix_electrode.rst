@@ -33,19 +33,18 @@ Syntax
 
   .. parsed-literal::
 
-       *electrode/conp* args = potential eta
-       *electrode/conq* args = charge eta
-       *electrode/thermo* args = potential eta *temp* values
+       *electrode/conp* args = potential
+       *electrode/conq* args = charge
+       *electrode/thermo* args = potential *temp* values
             potential = electrode potential
             charge = electrode charge
-            eta = reciprocal width of electrode charge smearing (can be NULL if eta keyword is used)
             *temp* values = T_v tau_v rng_v
                 T_v = temperature of thermo-potentiostat
                 tau_v = time constant of thermo-potentiostat
                 rng_v = integer used to initialize random number generator
 
 * zero or more keyword/value pairs may be appended
-* keyword = *algo* or *symm* or *couple* or *etypes* or *ffield* or *write_mat* or *write_inv* or *read_mat* or *read_inv* or *qtotal* or *eta*
+* keyword = *algo* or *symm* or *couple* or *etypes* or *ffield* or *write_mat* or *write_inv* or *read_mat* or *read_inv* or *qtotal* or *eta* or *pair*
 
 .. parsed-literal::
 
@@ -70,7 +69,7 @@ Syntax
         filename = file from which to read inverted matrix
     *qtotal* value = number or *v_* equal-style variable
         add overall potential so that all electrode charges add up to *qtotal*
-    *eta* value = d_propname
+    *eta* value = number or d_propname
         d_propname = a custom double vector defined via fix property/atom
     *pair* value = pair style name
 
@@ -79,9 +78,10 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix fxconp bot electrode/conp -1.0 1.805 couple top 1.0 couple ref 0.0 write_inv inv.csv symm on
-   fix fxconp electrodes electrode/conq 0.0 1.805 algo cg 1e-5
-   fix fxconp bot electrode/thermo -1.0 1.805 temp 298 100 couple top 1.0
+   fix fxconp bot electrode/conp -1.0 couple top 1.0 couple ref 0.0 write_inv inv.csv symm on pair lj/cut/coul/long/gauss
+   fix fxconp electrodes electrode/conq 0.0 eta 1.805 algo cg 1e-5
+   fix fxconp bot electrode/thermo -1.0 eta  1.805 temp 298 100 couple top 1.0
+   fix fxconq elec electrode/conq -1.0 eta d_etavector
 
 Description
 """""""""""
@@ -127,8 +127,7 @@ those charges.  From basic electrostatics, this is equivalent to making
 each group conductive, or imposing an equal electrostatic potential on
 every particle in the same group (hence the name CPM).  The charges are
 usually modelled as a Gaussian distribution to make the charge-charge
-interaction matrix invertible (:ref:`Gingrich <Gingrich>`).  The keyword
-*eta* specifies the distribution's width in units of inverse length.
+interaction matrix invertible (:ref:`Gingrich <Gingrich>`).
 
 .. versionadded:: 22Dec2022
 
@@ -268,14 +267,14 @@ and since *symm on* constrains the total charge of all electrodes to be
 zero, either option is incompatible with the *qtotal* keyword (even if
 *qtotal* is set to zero).
 
-.. versionadded:: 17Apr2024
+.. versionchanged:: TBD
 
-The keyword *eta* takes the name of a custom double vector defined via
-fix property/atom.  The values will be used instead of the standard eta
-value.  The property/atom fix must be for vector of double values and
-use the *ghost on* option.
+The keyword *eta* specifies the reciprocal width of electrode charge smearing in
+units of inverse length. The argument takes a single value or the name of a
+custom double vector defined via fix property/atom. The property/atom fix must
+be for vector of double values and use the *ghost on* option.
 
-.. versionadded:: TODO
+.. versionadded:: TBD
 
 The keyword *pair* must be followed by the name of a pair style which
 implements ELECTRODE pair methods (see :doc:`pair_electrode <pair_electrode>`).
@@ -284,6 +283,7 @@ in CPM will then be calculated by the supplied pair style; *fix electrode*
 will then purely update charges and not apply Gaussian-based energy or
 force corrections, and the eta parameter specified in the input of this
 fix will be ignored.
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

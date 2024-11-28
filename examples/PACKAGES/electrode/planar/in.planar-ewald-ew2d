@@ -5,7 +5,7 @@ kspace_modify slab ew2d
 include "settings.mod" # styles, computes, groups and fixes
 
 # constant potential electrodes with ramping potential difference
-fix conp bot electrode/conp 0 1.979 couple top v_v symm on
+fix conp bot electrode/conp 0 eta 1.979 couple top v_v symm on
 
 thermo 1
 # thermo: step, imposed potential, bottom charge, top charge, theory charge, percent deviation

@@ -139,7 +139,7 @@ class FixElectrodeConp : public Fix {
   int top_group;          // used by ffield
   bool tfflag;
   int eta_index;    // index of atom property for eta
-  bool etaflag;     // eta specified as atom property
+  bool etapropflag;     // eta specified as atom property
   bool pairflag;    // whether a pair style is specified
   std::string pair_str;
   bool timer_flag;

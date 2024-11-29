@@ -53,9 +53,7 @@ void Charmm2Reaxff::command(int narg, char **arg)
   double *mass = lmp->atom->mass;
 
   for ( int i = 0; i < lmp->atom->nlocal; i++) {
-
     double mass_i = mass[type[i]];
-
     if(is_mass_equal(mass_i,12.011))      type[i] = 1;  // C
     else if(is_mass_equal(mass_i,1.008))  type[i] = 2;  // H
     else if(is_mass_equal(mass_i,15.999)) type[i] = 3;  // O
@@ -65,31 +63,48 @@ void Charmm2Reaxff::command(int narg, char **arg)
     else if(is_mass_equal(mass_i,30.974)) type[i] = 7;  // P
     else if(is_mass_equal(mass_i,22.990)) type[i] = 8;  // Na
     else if(is_mass_equal(mass_i,35.450)) type[i] = 10;  // Cl
-    else
-      error->all(FLERR, "charmm2reaxff: atom {} with unknown mass", i);
-
+    else error->all(FLERR, "charmm2reaxff: atom {} with unknown mass", i);
   }
 
-  atom->ntypes = 13;
+  std::string pair_coeff_cmd;
 
-  mass[1] = 12.011;  // C
-  mass[2] = 1.008;   // H
-  mass[3] = 15.999;  // O
-  mass[4] = 14.007;  // N
-  mass[5] = 32.060;  // S
-  mass[6] = 24.305;  // Mg
-  mass[7] = 30.974;  // P
-  mass[8] = 22.990;  // Na
-  mass[9] = 47.867;  // Ti
-  mass[10] = 35.450; // Cl
-  mass[11] = 18.998; // F
-  mass[12] = 196.97; // Au
-  mass[13] = 0.0000; // X
+  if (utils::strmatch(arg[0],"^CHONSMgPNaTiClFAu")) {
+    atom->ntypes = 13;
+    mass[1] = 12.011;  // C
+    mass[2] = 1.008;   // H
+    mass[3] = 15.999;  // O
+    mass[4] = 14.007;  // N
+    mass[5] = 32.060;  // S
+    mass[6] = 24.305;  // Mg
+    mass[7] = 30.974;  // P
+    mass[8] = 22.990;  // Na
+    mass[9] = 47.867;  // Ti
+    mass[10] = 35.450; // Cl
+    mass[11] = 18.998; // F
+    mass[12] = 196.97; // Au
+    mass[13] = 0.0000; // X
+    pair_coeff_cmd = fmt::format("pair_coeff * * {} C H O N S Mg P Na Ti Cl F Au X", arg[0]);
+    //input->one("newton on");
+    //input->one("labelmap atom 1 C 2 H 3 O 4 N 5 S 6 Mg 7 P 8 Na 9 Ti 10 Cl 11 F 12 Au 13 X");
+  } else if (utils::strmatch(arg[0],"^CHON-2017_weak")) {
+    atom->ntypes = 11;
+    mass[1] = 12.011;  // C
+    mass[2] = 1.008;   // H
+    mass[3] = 15.999;  // O
+    mass[4] = 14.007;  // N
+    mass[5] = 32.060;  // S
+    mass[6] = 24.305;  // Mg
+    mass[7] = 30.974;  // P
+    mass[8] = 22.990;  // Na
+    mass[9] = 63.546;  // Cu
+    mass[10] = 35.450; // Cl
+    mass[13] = 0.0001; // X
+    pair_coeff_cmd = fmt::format("pair_coeff * * {} C H O N S Mg P Na Cu Cl X", arg[0]);
+    //input->one("newton on");
+    //input->one("labelmap atom 1 C 2 H 3 O 4 N 5 S 6 Mg 7 P 8 Na 9 Ti 10 Cl 11 F 12 Au 13 X");
+  } else
+    error->all(FLERR, "REAXFF force field {} not supported by charmm2reaxff", arg[0]);
 
-  std::string pair_coeff_cmd = fmt::format("pair_coeff * * {} C H O N S Mg P Na Ti Cl F Au X", arg[0]);
-
-  //input->one("newton on");
-  //input->one("labelmap atom 1 C 2 H 3 O 4 N 5 S 6 Mg 7 P 8 Na 9 Ti 10 Cl 11 F 12 Au 13 X");
   input->one("bond_style none");
   input->one("angle_style none");
   input->one("dihedral_style none");

@@ -86,7 +86,7 @@ void Charmm2Reaxff::command(int narg, char **arg)
     pair_coeff_cmd = fmt::format("pair_coeff * * {} C H O N S Mg P Na Ti Cl F Au X", arg[0]);
     //input->one("newton on");
     //input->one("labelmap atom 1 C 2 H 3 O 4 N 5 S 6 Mg 7 P 8 Na 9 Ti 10 Cl 11 F 12 Au 13 X");
-  } else if (utils::strmatch(arg[0],"^CHON-2017_weak")) {
+  } else if (utils::strmatch(arg[0],"^CHON2017_weak")) {
     atom->ntypes = 11;
     mass[1] = 12.011;  // C
     mass[2] = 1.008;   // H

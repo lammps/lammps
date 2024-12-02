@@ -87,9 +87,16 @@ void ElectrodeVector::setup(Pair *fix_pair, class NeighList *fix_neighlist, bool
     electrode_pair = dynamic_cast<ElectrodePair *>(pair);
     if (electrode_pair == nullptr) error->all(FLERR, "Pair style does not implement ElectrodePair");
   }
-  electrode_kspace = dynamic_cast<ElectrodeKSpace *>(force->kspace);
-  if (electrode_kspace == nullptr) error->all(FLERR, "KSpace does not implement ElectrodeKSpace");
-  g_ewald = force->kspace->g_ewald;
+  kspaceflag = (force->kspace != nullptr);
+  if (kspaceflag) {
+    electrode_kspace = dynamic_cast<ElectrodeKSpace *>(force->kspace);
+    if (electrode_kspace == nullptr)
+      error->all(FLERR, "KSpace {} does not implement ElectrodeKSpace", force->kspace_style);
+    g_ewald = force->kspace->g_ewald;
+    if (comm->me == 0)
+      utils::logmesg(lmp, "ELECTRODE vector setup with KSpace {}\n", force->kspace_style);
+  } else if (comm->me == 0)
+    utils::logmesg(lmp, "ELECTRODE vector setup without KSpace\n");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -127,15 +134,17 @@ void ElectrodeVector::compute_vector(double *vector)
   MPI_Barrier(world);
   pair_time_total += MPI_Wtime() - pair_start_time;
   // kspace
-  double kspace_start_time = MPI_Wtime();
-  electrode_kspace->compute_vector(vector, groupbit, source_grpbit, invert_source);
-  MPI_Barrier(world);
-  kspace_time_total += MPI_Wtime() - kspace_start_time;
-  // boundary
-  double boundary_start_time = MPI_Wtime();
-  electrode_kspace->compute_vector_corr(vector, groupbit, source_grpbit, invert_source);
-  MPI_Barrier(world);
-  boundary_time_total += MPI_Wtime() - boundary_start_time;
+  if (kspaceflag) {
+    double kspace_start_time = MPI_Wtime();
+    electrode_kspace->compute_vector(vector, groupbit, source_grpbit, invert_source);
+    MPI_Barrier(world);
+    kspace_time_total += MPI_Wtime() - kspace_start_time;
+    // boundary
+    double boundary_start_time = MPI_Wtime();
+    electrode_kspace->compute_vector_corr(vector, groupbit, source_grpbit, invert_source);
+    MPI_Barrier(world);
+    boundary_time_total += MPI_Wtime() - boundary_start_time;
+  }
   b_time_total += MPI_Wtime() - start_time;
 }
 

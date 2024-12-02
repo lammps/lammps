@@ -16,7 +16,7 @@ fi
 echo "Running Lammps inputs"
 # w/o eta mixing
 rm -rf madelung.txt && touch madelung.txt
-for file in in.eta in.ewald-ew3dc in.ewald-ew2d in.pppm-ew3dc in.cg in.pair; do
+for file in in.eta in.ewald-ew3dc in.ewald-ew2d in.pppm-ew3dc in.cg in.pair in.wolf; do
     printf "\n$file\n" >> madelung.txt
     rm -f out.csv inv.csv vec.csv 
     $lmpbin -i $file &> /dev/null

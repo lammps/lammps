@@ -16,7 +16,7 @@
 
 namespace LAMMPS_NS {
 namespace EwaldConst {
-  static constexpr double EWALD_F = 1.12837917;
+  static constexpr double EWALD_F = 1.12837917;    // 2/sqrt(pi)
   static constexpr double EWALD_P = 0.3275911;
   static constexpr double A1 = 0.254829592;
   static constexpr double A2 = -0.284496736;

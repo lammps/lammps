@@ -50,6 +50,7 @@ class ElectrodeMatrix : protected Pointers {
   class Pair *pair;
   class NeighList *list;
   class ElectrodePair *electrode_pair;
+  bool kspaceflag;
   class ElectrodeKSpace *electrode_kspace;
 
   void update_mpos();

@@ -15,7 +15,7 @@
    Contributing author: Ludwig Ahrens-Iwers (TUHH)
 ------------------------------------------------------------------------- */
 
-#include "pair_lj_cut_coul_long_gauss.h"
+#include "pair_lj_cut_coul_wolf_gauss.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -23,7 +23,6 @@
 #include "error.h"
 #include "ewald_const.h"
 #include "force.h"
-#include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -37,21 +36,18 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace EwaldConst;
 
-static constexpr double SMALL = 1e-16;
-
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongGauss::PairLJCutCoulLongGauss(LAMMPS *lmp) : Pair(lmp)
+PairLJCutCoulWolfGauss::PairLJCutCoulWolfGauss(LAMMPS *lmp) : Pair(lmp)
 {
-  ewaldflag = pppmflag = 1;
-  respa_enable = 0;
+  ncoultablebits = 0;
+  single_enable = 0;
   writedata = 1;
-  ftable = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongGauss::~PairLJCutCoulLongGauss()
+PairLJCutCoulWolfGauss::~PairLJCutCoulWolfGauss()
 {
   if (copymode) return;
 
@@ -65,6 +61,8 @@ PairLJCutCoulLongGauss::~PairLJCutCoulLongGauss()
     memory->destroy(sigma);
     memory->destroy(ispoint);
     memory->destroy(eta);
+    memory->destroy(eshift_eta);
+    memory->destroy(fshift_eta);
     memory->destroy(lj1);
     memory->destroy(lj2);
     memory->destroy(lj3);
@@ -76,13 +74,21 @@ PairLJCutCoulLongGauss::~PairLJCutCoulLongGauss()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGauss::compute(int eflag, int vflag)
+double PairLJCutCoulWolfGauss::compl_error_func(double arg, double expm2)
 {
-  int i, ii, j, jj, inum, jnum, itype, jtype, itable;
+  // expm2 = exp(-arg*arg)
+  double const t = 1.0 / (1.0 + EWALD_P * arg);
+  return t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJCutCoulWolfGauss::compute(int eflag, int vflag)
+{
+  int i, ii, j, jj, inum, jnum, itype, jtype;
   double qtmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
-  double fraction, table;
   double r, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;
-  double grij, expm2, prefactor, t, erfc;
+  double grij, expm2, prefactor, erfc;
   int *ilist, *jlist, *numneigh, **firstneigh;
   double rsq;
 
@@ -104,7 +110,12 @@ void PairLJCutCoulLongGauss::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  double const pre_self = 1. / MY_PIS * qqrd2e;
+  // self and shifted Coulombic energy
+  double const alpha_cut = alpha * cut_coul;
+  double const expm2_cut = exp(-alpha_cut * alpha_cut);
+  double const e_shift = compl_error_func(alpha_cut, expm2_cut) / cut_coul;
+  double const pre_self_wolf = (e_shift / 2.0 + alpha / MY_PIS) * qqrd2e;
+  double f_shift = -(e_shift + 2.0 * alpha / MY_PIS * expm2_cut) / cut_coul;
 
   // loop over neighbors of my atoms
 
@@ -119,8 +130,10 @@ void PairLJCutCoulLongGauss::compute(int eflag, int vflag)
     jnum = numneigh[i];
     bool ipoint = !!ispoint[itype];
 
-    if (!ipoint && eflag) {
-      double e = eta[itype][itype] * pre_self * q[i] * q[i];
+    if (eflag) {
+      double const q2 = q[i] * q[i];
+      double e = -pre_self_wolf * q2;
+      if (!ipoint) e += (eshift_eta[itype][itype] / 2.0 + eta[itype][itype] / MY_PIS) * qqrd2e * q2;
       ev_tally(i, i, nlocal, newton_pair, 0., e, 0., 0., 0., 0.);
     }
 
@@ -135,44 +148,30 @@ void PairLJCutCoulLongGauss::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
-      bool needcorr = !ipoint || !ispoint[jtype];
+      bool gausscorr = !ipoint || !ispoint[jtype];
 
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0 / rsq;
         double erfc_eta = 0.;
         if (rsq < cut_coulsq) {
-          if (!ncoultablebits || rsq <= tabinnersq) {
-            r = sqrt(rsq);
-            grij = g_ewald * r;
-            expm2 = exp(-grij * grij);
-            t = 1.0 / (1.0 + EWALD_P * grij);
-            erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
-            prefactor = qqrd2e * qtmp * q[j] / r;
-            forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
-          } else {
-            union_int_float_t rsq_lookup;
-            rsq_lookup.f = rsq;
-            itable = rsq_lookup.i & ncoulmask;
-            itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-            table = ftable[itable] + fraction * dftable[itable];
-            forcecoul = qtmp * q[j] * table;
-            if (factor_coul < 1.0 || needcorr) {
-              table = ctable[itable] + fraction * dctable[itable];
-              prefactor = qtmp * q[j] * table;
-            }
-          }
+          r = sqrt(rsq);
+          grij = alpha * r;
+          expm2 = exp(-grij * grij);
+          erfc = compl_error_func(grij, expm2);
+          prefactor = qqrd2e * qtmp * q[j] / r;
+          forcecoul = prefactor * (erfc + EWALD_F * grij * expm2 + f_shift * rsq);
           double forcecorr = 0.0;
-          if (needcorr) {
-            r = sqrt(rsq);
+          if (gausscorr) {
             double etarij = eta[itype][jtype] * r;
             double expm2_eta = exp(-etarij * etarij);
-            double te = 1.0 / (1.0 + EWALD_P * etarij);
-            erfc_eta = te * (A1 + te * (A2 + te * (A3 + te * (A4 + te * A5)))) * expm2_eta;
+            erfc_eta = compl_error_func(etarij, expm2_eta);
             forcecorr = erfc_eta + EWALD_F * etarij * expm2_eta;
-            forcecoul -= prefactor * forcecorr;
+            forcecoul -= prefactor * (forcecorr + fshift_eta[itype][jtype] * rsq);
           }
-          if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor * (1.0 - forcecorr);
+          if (factor_coul < 1.0) {
+            forcecoul -= (1.0 - factor_coul) * prefactor * (1.0 - forcecorr);
+            if (gausscorr) {}
+          }
         } else
           forcecoul = 0.0;
 
@@ -195,13 +194,8 @@ void PairLJCutCoulLongGauss::compute(int eflag, int vflag)
 
         if (eflag) {
           if (rsq < cut_coulsq) {
-            if (!ncoultablebits || rsq <= tabinnersq)
-              ecoul = prefactor * erfc;
-            else {
-              table = etable[itable] + fraction * detable[itable];
-              ecoul = qtmp * q[j] * table;
-            }
-            if (needcorr) ecoul -= prefactor * erfc_eta;
+            ecoul = prefactor * (erfc - e_shift * r);
+            if (gausscorr) ecoul -= prefactor * (erfc_eta - eshift_eta[itype][jtype] * r);
             if (factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor * (1.0 - erfc_eta);
           } else
             ecoul = 0.0;
@@ -225,7 +219,7 @@ void PairLJCutCoulLongGauss::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGauss::allocate()
+void PairLJCutCoulWolfGauss::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -241,6 +235,8 @@ void PairLJCutCoulLongGauss::allocate()
   memory->create(sigma, n + 1, n + 1, "pair:sigma");
   memory->create(ispoint, n + 1, "pair:ispoint");
   memory->create(eta, n + 1, n + 1, "pair:eta");
+  memory->create(eshift_eta, n + 1, n + 1, "pair:eshift_eta");
+  memory->create(fshift_eta, n + 1, n + 1, "pair:fshift_eta");
   memory->create(lj1, n + 1, n + 1, "pair:lj1");
   memory->create(lj2, n + 1, n + 1, "pair:lj2");
   memory->create(lj3, n + 1, n + 1, "pair:lj3");
@@ -252,18 +248,19 @@ void PairLJCutCoulLongGauss::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGauss::settings(int narg, char **arg)
+void PairLJCutCoulWolfGauss::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2) error->all(FLERR, "Illegal pair_style command");
+  if (narg < 2 || narg > 3) error->all(FLERR, "Illegal pair_style command");
 
-  cut_lj_global = utils::numeric(FLERR, arg[0], false, lmp);
-  if (narg == 1)
+  alpha = utils::numeric(FLERR, arg[0], false, lmp);
+  cut_lj_global = utils::numeric(FLERR, arg[1], false, lmp);
+  if (narg == 2)
     cut_coul = cut_lj_global;
   else
-    cut_coul = utils::numeric(FLERR, arg[1], false, lmp);
+    cut_coul = utils::numeric(FLERR, arg[2], false, lmp);
 
   // reset cutoffs that have been explicitly set
-  //
+
   if (allocated) {
     int i, j;
     for (i = 1; i <= atom->ntypes; i++)
@@ -276,7 +273,7 @@ void PairLJCutCoulLongGauss::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGauss::coeff(int narg, char **arg)
+void PairLJCutCoulWolfGauss::coeff(int narg, char **arg)
 {
   if (narg < 5 || narg > 6) error->all(FLERR, "Incorrect args for pair coefficients");
   if (!allocated) allocate();
@@ -287,11 +284,13 @@ void PairLJCutCoulLongGauss::coeff(int narg, char **arg)
 
   double epsilon_one = utils::numeric(FLERR, arg[2], false, lmp);
   double sigma_one = utils::numeric(FLERR, arg[3], false, lmp);
-  int ispoint_one = (strcmp(arg[4], "NULL") == 0);
+  int ispoint_one = !!(strcmp(arg[4], "NULL") == 0);
   double eta_one = 0.;
   if (!ispoint_one) {
     eta_one = utils::numeric(FLERR, arg[4], false, lmp);
-    if (eta_one < -SMALL) error->all(FLERR, "Gaussian parameter eta is set to a negative value");
+    if (eta_one < MY_SQRT2 * alpha)
+      error->all(FLERR, "Reciprocal width is too small for damping parameter {}",
+                 alpha);    // sign of Coulomb interaction would flip
     if (ilo != jlo || ihi != jhi)
       if (comm->me == 0)
         error->warning(FLERR, "Gaussian parameter eta cannot be set for mixed interactions");
@@ -321,36 +320,26 @@ void PairLJCutCoulLongGauss::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGauss::init_style()
+void PairLJCutCoulWolfGauss::init_style()
 {
   if (!atom->q_flag)
-    error->all(FLERR, "Pair style lj/cut/coul/long/gauss requires atom attribute q");
+    error->all(FLERR, "Pair style lj/cut/coul/wolf/gauss requires atom attribute q");
 
   // request regular neighbor list
   int list_style = NeighConst::REQ_DEFAULT;
   neighbor->add_request(this, list_style);
 
   cut_coulsq = cut_coul * cut_coul;
-  double *cut_respa = nullptr;
-
-  // ensure use of KSpace long-range solver, set g_ewald
-  if (force->kspace == nullptr) error->all(FLERR, "Pair style requires a KSpace style");
-  g_ewald = force->kspace->g_ewald;
-
-  // setup force tables
-  if (ncoultablebits) init_tables(cut_coul, cut_respa);
 }
 
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairLJCutCoulLongGauss::init_one(int i, int j)
+double PairLJCutCoulWolfGauss::init_one(int i, int j)
 {
-  // set mixed eta values
-
-  bool const ipoint = !!ispoint[i];
   if (i != j) {
+    bool const ipoint = !!ispoint[i];
     double const ieta = eta[i][i] * MY_SQRT2;
     bool const jpoint = !!ispoint[j];
     double const jeta = eta[j][j] * MY_SQRT2;
@@ -365,9 +354,14 @@ double PairLJCutCoulLongGauss::init_one(int i, int j)
     }
     eta[i][j] = tmp;
     eta[j][i] = tmp;
-  } else if (!ipoint && g_ewald >= eta[i][i])
-    error->all(FLERR, "Reciprocal width of type {} is too small for G vector value {}", i,
-               g_ewald);    // criterion in derivation by Gingrich and Wilson
+  }
+  double etaij = eta[i][j];
+  double const eta_cut_coul = etaij * cut_coul;
+  double const expm2 = exp(-eta_cut_coul * eta_cut_coul);
+  eshift_eta[i][j] = compl_error_func(eta_cut_coul, expm2) / cut_coul;
+  eshift_eta[j][i] = eshift_eta[i][j];
+  fshift_eta[i][j] = -(eshift_eta[i][j] + 2.0 * etaij / MY_PIS * expm2) / cut_coul;
+  fshift_eta[j][i] = fshift_eta[i][j];
 
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i], epsilon[j][j], sigma[i][i], sigma[j][j]);
@@ -429,7 +423,7 @@ double PairLJCutCoulLongGauss::init_one(int i, int j)
    compute pair interaction term of vector in constant potential method
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGauss::compute_vector(double *vec, int groupbit, int source_grpbit, bool inv)
+void PairLJCutCoulWolfGauss::compute_vector(double *vec, int groupbit, int source_grpbit, bool inv)
 {
   double **x = atom->x;
   double *q = atom->q;
@@ -442,6 +436,8 @@ void PairLJCutCoulLongGauss::compute_vector(double *vec, int groupbit, int sourc
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   int newton_pair = force->newton_pair;
+
+  double const e_shift = ElectrodeMath::safe_erfc(alpha * cut_coul) / cut_coul;
 
   for (int ii = 0; ii < inum; ii++) {
     int const i = ilist[ii];
@@ -473,9 +469,9 @@ void PairLJCutCoulLongGauss::compute_vector(double *vec, int groupbit, int sourc
       double const factor_coul = special_coul[sbmask(j)];
       double const r = sqrt(rsq);
       double const rinv = 1.0 / r;
-      double aij = rinv * ElectrodeMath::safe_erfc(g_ewald * r);
+      double aij = rinv * ElectrodeMath::safe_erfc(alpha * r) - e_shift;
       double const erfc_eta = ElectrodeMath::safe_erfc(eta[itype][jtype] * r);
-      aij -= rinv * erfc_eta;
+      aij -= rinv * erfc_eta - eshift_eta[itype][jtype];
       if (factor_coul < 1.0) aij -= (1.0 - factor_coul) * rinv * (1.0 - erfc_eta);
       if (i_in_sensor) { vec[i] += aij * q[j]; }
       if (j_in_sensor && (!inv || !i_in_sensor)) { vec[j] += aij * q[i]; }
@@ -487,7 +483,7 @@ void PairLJCutCoulLongGauss::compute_vector(double *vec, int groupbit, int sourc
    compute self interaction term of vector in constant potential method
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGauss::compute_vector_self(double *vec, int groupbit, int source_grpbit,
+void PairLJCutCoulWolfGauss::compute_vector_self(double *vec, int groupbit, int source_grpbit,
                                                  bool inv)
 {
   int const inum = list->inum;
@@ -496,8 +492,9 @@ void PairLJCutCoulLongGauss::compute_vector_self(double *vec, int groupbit, int 
   int *ilist = list->ilist;
   double *q = atom->q;
 
-  const double selfint = 2.0 / MY_PIS * g_ewald;
-  const double preta = 2.0 / MY_PIS;
+  double const selfint = 2.0 * alpha / MY_PIS;
+  double const pre_eta = 2.0 / MY_PIS;
+  double const pre_wolf = ElectrodeMath::safe_erfc(alpha * cut_coul) / cut_coul;
 
   for (int ii = 0; ii < inum; ii++) {
     int const i = ilist[ii];
@@ -505,7 +502,9 @@ void PairLJCutCoulLongGauss::compute_vector_self(double *vec, int groupbit, int 
     int const itype = type[i];
     if (ispoint[itype]) error->all(FLERR, "Point charges can not be used in sensor group");
     bool const i_in_source = !!(mask[i] & source_grpbit) != inv;
-    if (i_in_source) vec[i] += (preta * eta[itype][itype] - selfint) * q[i];
+    if (i_in_source)
+      vec[i] +=
+          (pre_eta * eta[itype][itype] + eshift_eta[itype][itype] - selfint - pre_wolf) * q[i];
   }
 }
 
@@ -513,7 +512,7 @@ void PairLJCutCoulLongGauss::compute_vector_self(double *vec, int groupbit, int 
    compute pair interaction term of matrix in constant potential method
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGauss::compute_matrix(bigint *mpos, double **array, int groupbit)
+void PairLJCutCoulWolfGauss::compute_matrix(bigint *mpos, double **array, int groupbit)
 {
   int *numneigh, **firstneigh;
 
@@ -527,6 +526,8 @@ void PairLJCutCoulLongGauss::compute_matrix(bigint *mpos, double **array, int gr
   double *special_coul = force->special_coul;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+
+  double const e_shift = ElectrodeMath::safe_erfc(alpha * cut_coul) / cut_coul;
 
   for (int ii = 0; ii < inum; ii++) {
     int const i = ilist[ii];
@@ -556,9 +557,9 @@ void PairLJCutCoulLongGauss::compute_matrix(bigint *mpos, double **array, int gr
         double const factor_coul = special_coul[sbmask(j)];
         double const r = sqrt(rsq);
         double const rinv = 1.0 / r;
-        double aij = rinv * ElectrodeMath::safe_erfc(g_ewald * r);
+        double aij = rinv * ElectrodeMath::safe_erfc(alpha * r) - e_shift;
         double const erfc_eta = ElectrodeMath::safe_erfc(eta[itype][jtype] * r);
-        aij -= rinv * erfc_eta;
+        aij -= rinv * erfc_eta - eshift_eta[itype][jtype];
         if (factor_coul < 1.0) aij -= (1.0 - factor_coul) * rinv * (1.0 - erfc_eta);
         // newton on or off?
         if (!newton_pair && j >= nlocal) aij *= 0.5;
@@ -575,19 +576,21 @@ void PairLJCutCoulLongGauss::compute_matrix(bigint *mpos, double **array, int gr
    compute self interaction term of matrix in constant potential method
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGauss::compute_matrix_self(bigint *mpos, double **array, int groupbit)
+void PairLJCutCoulWolfGauss::compute_matrix_self(bigint *mpos, double **array, int groupbit)
 {
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
   int *type = atom->type;
 
-  const double selfint = 2.0 / MY_PIS * g_ewald;
-  const double preta = 2.0 / MY_PIS;
+  double const selfint = 2.0 * alpha / MY_PIS;
+  double const pre_eta = 2.0 / MY_PIS;
+  double const pre_wolf = ElectrodeMath::safe_erfc(alpha * cut_coul) / cut_coul;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       int const itype = type[i];
-      array[mpos[i]][mpos[i]] += preta * eta[itype][itype] - selfint;
+      array[mpos[i]][mpos[i]] +=
+          pre_eta * eta[itype][itype] + eshift_eta[itype][itype] - selfint - pre_wolf;
     }
 }
 
@@ -595,7 +598,7 @@ void PairLJCutCoulLongGauss::compute_matrix_self(bigint *mpos, double **array, i
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGauss::write_restart(FILE *fp)
+void PairLJCutCoulWolfGauss::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -617,7 +620,7 @@ void PairLJCutCoulLongGauss::write_restart(FILE *fp)
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGauss::read_restart(FILE *fp)
+void PairLJCutCoulWolfGauss::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
 
@@ -650,14 +653,14 @@ void PairLJCutCoulLongGauss::read_restart(FILE *fp)
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGauss::write_restart_settings(FILE *fp)
+void PairLJCutCoulWolfGauss::write_restart_settings(FILE *fp)
 {
+  fwrite(&alpha, sizeof(double), 1, fp);
   fwrite(&cut_lj_global, sizeof(double), 1, fp);
   fwrite(&cut_coul, sizeof(double), 1, fp);
   fwrite(&offset_flag, sizeof(int), 1, fp);
   fwrite(&mix_flag, sizeof(int), 1, fp);
   fwrite(&tail_flag, sizeof(int), 1, fp);
-  fwrite(&ncoultablebits, sizeof(int), 1, fp);
   fwrite(&tabinner, sizeof(double), 1, fp);
 }
 
@@ -665,23 +668,23 @@ void PairLJCutCoulLongGauss::write_restart_settings(FILE *fp)
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGauss::read_restart_settings(FILE *fp)
+void PairLJCutCoulWolfGauss::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
+    utils::sfread(FLERR, &alpha, sizeof(double), 1, fp, nullptr, error);
     utils::sfread(FLERR, &cut_lj_global, sizeof(double), 1, fp, nullptr, error);
     utils::sfread(FLERR, &cut_coul, sizeof(double), 1, fp, nullptr, error);
     utils::sfread(FLERR, &offset_flag, sizeof(int), 1, fp, nullptr, error);
     utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error);
     utils::sfread(FLERR, &tail_flag, sizeof(int), 1, fp, nullptr, error);
-    utils::sfread(FLERR, &ncoultablebits, sizeof(int), 1, fp, nullptr, error);
     utils::sfread(FLERR, &tabinner, sizeof(double), 1, fp, nullptr, error);
   }
+  MPI_Bcast(&alpha, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&cut_lj_global, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&cut_coul, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&offset_flag, 1, MPI_INT, 0, world);
   MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);
   MPI_Bcast(&tail_flag, 1, MPI_INT, 0, world);
-  MPI_Bcast(&ncoultablebits, 1, MPI_INT, 0, world);
   MPI_Bcast(&tabinner, 1, MPI_DOUBLE, 0, world);
 }
 
@@ -689,7 +692,7 @@ void PairLJCutCoulLongGauss::read_restart_settings(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGauss::write_data(FILE *fp)
+void PairLJCutCoulWolfGauss::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     if (!ispoint[i]) {
@@ -703,7 +706,7 @@ void PairLJCutCoulLongGauss::write_data(FILE *fp)
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongGauss::write_data_all(FILE *fp)
+void PairLJCutCoulWolfGauss::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
@@ -717,84 +720,10 @@ void PairLJCutCoulLongGauss::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutCoulLongGauss::single(int i, int j, int itype, int jtype, double rsq,
-                                      double factor_coul, double factor_lj, double &fforce)
-{
-  double r2inv, r6inv, r, grij, expm2, t, erfc, prefactor;
-  double fraction, table, forcecoul, forcelj, phicoul, philj;
-  int itable;
-
-  r2inv = 1.0 / rsq;
-  double erfc_eta = 0.0;
-  bool needcorr = !ispoint[itype] || !ispoint[jtype];
-  if (rsq < cut_coulsq) {
-    if (!ncoultablebits || rsq <= tabinnersq) {
-      r = sqrt(rsq);
-      grij = g_ewald * r;
-      expm2 = exp(-grij * grij);
-      t = 1.0 / (1.0 + EWALD_P * grij);
-      erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
-      prefactor = force->qqrd2e * atom->q[i] * atom->q[j] / r;
-      forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
-    } else {
-      union_int_float_t rsq_lookup_single;
-      rsq_lookup_single.f = rsq;
-      itable = rsq_lookup_single.i & ncoulmask;
-      itable >>= ncoulshiftbits;
-      fraction = (rsq_lookup_single.f - rtable[itable]) * drtable[itable];
-      table = ftable[itable] + fraction * dftable[itable];
-      forcecoul = atom->q[i] * atom->q[j] * table;
-      if (factor_coul < 1.0 || needcorr) {
-        table = ctable[itable] + fraction * dctable[itable];
-        prefactor = atom->q[i] * atom->q[j] * table;
-      }
-    }
-    double forcecorr = 0.0;
-    if (needcorr) {
-      r = sqrt(rsq);
-      double etarij = eta[itype][jtype] * r;
-      double expm2_eta = exp(-etarij * etarij);
-      double te = 1.0 / (1.0 + EWALD_P * etarij);
-      erfc_eta = te * (A1 + te * (A2 + te * (A3 + te * (A4 + te * A5)))) * expm2_eta;
-      forcecorr = erfc_eta + EWALD_F * etarij * expm2_eta;
-      forcecoul -= prefactor * forcecorr;
-    }
-    if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor * (1.0 - forcecorr);
-  } else
-    forcecoul = 0.0;
-
-  if (rsq < cut_ljsq[itype][jtype]) {
-    r6inv = r2inv * r2inv * r2inv;
-    forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
-  } else
-    forcelj = 0.0;
-
-  fforce = (forcecoul + factor_lj * forcelj) * r2inv;
-
-  double eng = 0.0;
-  if (rsq < cut_coulsq) {
-    if (!ncoultablebits || rsq <= tabinnersq)
-      phicoul = prefactor * erfc;
-    else {
-      table = etable[itable] + fraction * detable[itable];
-      phicoul = atom->q[i] * atom->q[j] * table;
-    }
-    if (needcorr) phicoul -= prefactor * erfc_eta;
-    if (factor_coul < 1.0) phicoul -= (1.0 - factor_coul) * prefactor * (1.0 - erfc_eta);
-    eng += phicoul;
-  }
-  if (rsq < cut_ljsq[itype][jtype]) {
-    philj = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
-    eng += factor_lj * philj;
-  }
-  return eng;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void *PairLJCutCoulLongGauss::extract(const char *str, int &dim)
+void *PairLJCutCoulWolfGauss::extract(const char *str, int &dim)
 {
   dim = 0;
+  if (strcmp(str, "alpha") == 0) return (void *) &alpha;
   if (strcmp(str, "cut_coul") == 0) return (void *) &cut_coul;
   dim = 1;
   if (strcmp(str, "ispoint") == 0) return (void *) ispoint;

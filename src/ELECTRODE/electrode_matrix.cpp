@@ -62,9 +62,15 @@ void ElectrodeMatrix::setup(const std::unordered_map<tagint, int> &tag_ids, clas
     electrode_pair = dynamic_cast<ElectrodePair *>(pair);
     if (electrode_pair == nullptr) error->all(FLERR, "Pair style does not implement ElectrodePair");
   }
-  electrode_kspace = dynamic_cast<ElectrodeKSpace *>(force->kspace);
-  if (electrode_kspace == nullptr) error->all(FLERR, "KSpace does not implement ElectrodeKSpace");
-  g_ewald = force->kspace->g_ewald;
+  kspaceflag = (force->kspace != nullptr);
+  if (kspaceflag) {
+    electrode_kspace = dynamic_cast<ElectrodeKSpace *>(force->kspace);
+    if (electrode_kspace == nullptr) error->all(FLERR, "KSpace does not implement ElectrodeKSpace");
+    g_ewald = force->kspace->g_ewald;
+    if (comm->me == 0)
+      utils::logmesg(lmp, "ELECTRODE matrix setup with KSpace {}\n", force->kspace_style);
+  } else if (comm->me == 0)
+    utils::logmesg(lmp, "ELECTRODE matrix setup without KSpace\n");
 
   tag_to_iele = tag_ids;
 }
@@ -93,13 +99,7 @@ void ElectrodeMatrix::compute_array(double **array, bool timer_flag)
   size_t nbytes = sizeof(double) * ngroup * ngroup;
   if (nbytes) memset(&array[0][0], 0, nbytes);
 
-  MPI_Barrier(world);
-  double kspace_time = MPI_Wtime();
   update_mpos();
-  electrode_kspace->compute_matrix(&mpos[0], array, timer_flag);
-  MPI_Barrier(world);
-  if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp, "KSpace time: {:.4g} s\n", MPI_Wtime() - kspace_time);
   if (pairflag) {
     electrode_pair->compute_matrix(&mpos[0], array, groupbit);
     electrode_pair->compute_matrix_self(&mpos[0], array, groupbit);
@@ -107,8 +107,17 @@ void ElectrodeMatrix::compute_array(double **array, bool timer_flag)
     pair_contribution(array);
     self_contribution(array);
   }
-  electrode_kspace->compute_matrix_corr(&mpos[0], array);
   if (tfflag) tf_contribution(array);
+  if (kspaceflag) {
+    MPI_Barrier(world);
+    double kspace_time = MPI_Wtime();
+    electrode_kspace->compute_matrix(&mpos[0], array, timer_flag);
+    electrode_kspace->compute_matrix_corr(&mpos[0], array);
+    MPI_Barrier(world);
+    if (timer_flag && (comm->me == 0)) {
+      utils::logmesg(lmp, "KSpace time: {:.4g} s\n", MPI_Wtime() - kspace_time);
+    }
+  }
 
   // reduce coulomb matrix with contributions from all procs
   // all procs need to know full matrix for matrix inversion

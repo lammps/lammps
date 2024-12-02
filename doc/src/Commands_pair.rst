@@ -158,6 +158,7 @@ OPT.
    * :doc:`lj/cut/coul/msm (go) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/msm/dielectric <pair_dielectric>`
    * :doc:`lj/cut/coul/wolf (o) <pair_lj_cut_coul>`
+   * :doc:`lj/cut/coul/wolf/gauss <pair_electrode>`
    * :doc:`lj/cut/dipole/cut (gko) <pair_dipole>`
    * :doc:`lj/cut/dipole/long (g) <pair_dipole>`
    * :doc:`lj/cut/dipole/sf (go) <pair_dipole>`

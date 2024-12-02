@@ -3,6 +3,11 @@
 pair_style lj/cut/coul/long/gauss command
 =========================================
 
+.. index:: pair_style lj/cut/coul/wolf/gauss
+
+pair_style lj/cut/coul/wolf/gauss command
+=========================================
+
 Syntax
 """"""
 
@@ -10,12 +15,16 @@ Syntax
 
    pair_style style args
 
-* style = *lj/cut/coul/long/gauss*
+* style = *lj/cut/coul/long/gauss* or *lj/cut/coul/wolf/gauss*
 * args = list of arguments for a particular style
 
 .. parsed-literal::
 
      *lj/cut/coul/long/gauss* args = cutoff (cutoff2)
+       cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+       cutoff2 = global cutoff for Coulombic (optional) (distance units)
+     *lj/cut/coul/wolf/gauss* args = alpha cutoff (cutoff2)
+       alpha = damping parameter (inverse distance units)
        cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
        cutoff2 = global cutoff for Coulombic (optional) (distance units)
 
@@ -26,6 +35,7 @@ Examples
 
    pair_style lj/cut/coul/long/gauss 10.0
    pair_style lj/cut/coul/long/gauss 10.0 8.0
+   pair_style lj/cut/coul/wolf/gauss 0.2 10.0
    pair_coeff 1 1 1.13  5.06 NULL
    pair_coeff 2 2 0.055 3.37 1.979
 
@@ -61,9 +71,24 @@ and the self-interaction of Gaussian charges is given by
 
    E = \frac{\eta_i}{\sqrt{2\pi}} q_i^2.
 
-The pair style calculates the short-range term of the energy as the energy of
-point charges with a correction for the Gaussian charge width as derived by
-:ref:`Gingrich and Wilson <GingrichWilson>`.
+The pair style *lj/cut/coul/long/gauss* calculates the short-range term of the
+Coulomb energy as the energy of point charges with a correction for the Gaussian
+charge width as derived by :ref:`Gingrich and Wilson <GingrichWilson>`. The
+short-range term has to be used in combination with a :doc:`kspace_style
+<kspace_style>`.
+
+The pair style *lj/cut/coul/wolf/gauss* computes the Coulomb energy via the
+:ref:`Wolf <Wolf5>` summation method with a correction for Gaussian charges.
+
+.. note::
+
+   The inequality :math:`\eta_i > \sqrt{2} \alpha` needs to hold (:ref:`Gingrich
+   and Wilson <GingrichWilson>`). :math:`\alpha` is the damping parameter and is
+   either gewald (cf. :doc:`kspace_modify <kspace_modify>`) or alpha in the Wolf
+   summation. The damping parameter needs to be sufficiently small relative to
+   the reciprocal width of Gaussian charges. In particluar, the inequality is
+   required to ensure the matrix in :doc:`fix electrode <fix_electrode>` is
+   positive-definite.
 
 Coefficients
 """"""""""""
@@ -97,7 +122,8 @@ file or restart files read by the :doc:`read_data <read_data>` or
 Restrictions
 """"""""""""
 
-The *lj/cut/coul/long/gauss* does not support the run_style respa.
+*lj/cut/coul/long/gauss* and *lj/cut/coul/wolf/gauss* do not support the
+run_style respa.
 
 These pair styles are part of the ELECTRODE package. They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
@@ -119,3 +145,8 @@ none
 
 **(Gingrich and Wilson)** Gingrich and Wilson, Chem. Phys. Lett., 500, 178-183
 (2010).
+
+.. _Wolf5:
+
+**(Wolf)** D. Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem
+Phys, 110, 8254 (1999).

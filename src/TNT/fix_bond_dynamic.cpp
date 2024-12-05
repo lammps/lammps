@@ -355,14 +355,31 @@ void FixBondDynamic::post_integrate()
       // tagj < 1 means bond is already detached or there is no bond
       if (tagj < 1) continue;
 
-      // Skip bonds that don't belong to the right type
-      bondtype = bond_type[i][b];
-      if ((bondtype == btype) || (bondtype == 0)) {
-        //do nothing
-      } else {
-        continue;
+      // Skip bonds that don't belong to the right type (fast)
+      //bondtype = bond_type[i][b];
+      //if ((bondtype == btype) || (bondtype == 0)) {
+      //  //do nothing
+      //} else {
+      //  continue;
+      //}
+
+      // Skip bonds that don't belong to the right type (slow)
+      for (int n = 0; n < nbondlist; n++) {
+        int iatom = bondlist[n][0];
+        int jatom = bondlist[n][1];
+        //printf("n:%i bondtype: %i \n",n,bondtype);
+        //printf("iatom:%i \n",tag[iatom]);
+        //printf("jatom:%i \n",tag[jatom]);
+        //printf("tagi:%i \n",tag[i]);
+        //printf("tagj:%i \n\n",tagj);
+        if((tag[iatom]==tag[i] and tag[jatom]==tagj) || (tag[iatom]==tagj and tag[jatom]==tag[i])) {
+          bondtype = bondlist[n][2];
+          break;
+        }
       }
- 
+
+      if (bondtype != btype) continue;
+      
       // Local id of current bond pair
       int j = atom->map(tagj);
 

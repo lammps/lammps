@@ -52,7 +52,7 @@ void PairBPMSpring::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
-  double r, rsq, rinv, factor_lj;
+  double r, rsq, rinv, delr, factor_lj;
   int *ilist, *jlist, *numneigh, **firstneigh;
   double vxtmp, vytmp, vztmp, delvx, delvy, delvz, dot, smooth;
 
@@ -105,9 +105,10 @@ void PairBPMSpring::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
         r = sqrt(rsq);
-
+        delr = (cut[itype][jtype] - r);
+         
         rinv = 1.0 / r;
-        fpair = k[itype][jtype] * (cut[itype][jtype] - r);
+        fpair = k[itype][jtype] * delr + k[itype][jtype] * delr * delr * delr;
 
         smooth = rsq / cutsq[itype][jtype];
         smooth *= smooth;

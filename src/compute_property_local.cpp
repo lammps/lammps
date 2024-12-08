@@ -94,6 +94,16 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
       if (kindflag != NONE && kindflag != PAIR)
         error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = PAIR;
+    } else if (strcmp(arg[iarg], "pmolecule1") == 0) {
+      pack_choice[i] = &ComputePropertyLocal::pack_pmolecule1;
+      if (kindflag != NONE && kindflag != PAIR)
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
+      kindflag = PAIR;
+    } else if (strcmp(arg[iarg], "pmolecule2") == 0) {
+      pack_choice[i] = &ComputePropertyLocal::pack_pmolecule2;
+      if (kindflag != NONE && kindflag != PAIR)
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
+      kindflag = PAIR;
 
     } else if (strcmp(arg[iarg], "batom1") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_batom1;
@@ -708,6 +718,35 @@ void ComputePropertyLocal::pack_ptype2(int n)
     n += nvalues;
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyLocal::pack_pmolecule1(int n)
+{
+  int i;
+  tagint *molecule = atom->molecule;
+
+  for (int m = 0; m < ncount; m++) {
+    i = indices[m][0];
+    buf[n] = molecule[i];
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyLocal::pack_pmolecule2(int n)
+{
+  int i;
+  tagint *molecule = atom->molecule;
+
+  for (int m = 0; m < ncount; m++) {
+    i = indices[m][1];
+    buf[n] = molecule[i];
+    n += nvalues;
+  }
+}
+
 
 /* ---------------------------------------------------------------------- */
 

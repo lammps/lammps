@@ -76,9 +76,10 @@ Syntax
        *update* value = *dipole* or *dipole/dlm*
          dipole = update dipole orientation (only for sphere variants)
          dipole/dlm = use DLM integrator to update dipole orientation (only for sphere variants)
-       *preserve* value = *xyz* or *xy* (deviatoric instead of hydrostatic barostatting)
-         xyz = preserve total xyz volume
-         xy = preserve total xy area
+       *preserve* value = *xyz* or *xy* or *xy+z* (deviatoric instead of hydrostatic barostatting)
+         xyz = preserve volume or area product of all barostatted dimensions
+         xy = preserve total xy area while barostatting z independently
+         xy+z = preserve total xy area while barostatting z with xy hydrostatic stress added
 
 Examples
 """"""""

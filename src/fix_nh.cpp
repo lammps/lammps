@@ -482,12 +482,9 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix {} cannot preserve xyz volume in 2D simulation");
     if (area_preserve_flag)
       error->all(FLERR,"Fix {} cannot preserve both xyz volume and xy area together", style);
-    if (p_flag[0]+p_flag[1]+p_flag[2] < 2)
-      error->all(FLERR,"Fix {} cannot preserve xyz volume if barostatting only one dimension", style);
-    if ((pcouple == XY && p_flag[2] == 0) ||
-        (pcouple == XZ && p_flag[1] == 0) ||
-        (pcouple == YZ && p_flag[0] == 0) ||
-        pcouple == XYZ)
+    if (p_flag[0]+p_flag[1]+p_flag[2] < 3)
+      error->all(FLERR,"Fix {} cannot preserve xyz volume if barostatting only one or two dimensions", style);
+    if (pcouple == XYZ)
       error->all(FLERR,"Fix {} requires at least one uncoupled barostatted dimension to preserve xyz volume", style);
     if (p_start[0] + p_start[1] + p_start[2] != 0.0 ||
         p_stop[0] + p_stop[1] + p_stop[2] != 0.0)

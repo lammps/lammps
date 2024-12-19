@@ -56,6 +56,9 @@
   <releases>
     <release version="1.6.11" timestamp="1725080055">
       <description>
+        move cursor to end of log buffer before inserting new text
+        remove empirical filter to remove outliers from corrupted data
+        change tutorial download URL to tutorial website
       </description>
     </release>
     <release version="1.6.10" timestamp="1724585189">

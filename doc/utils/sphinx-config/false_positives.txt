@@ -2499,6 +2499,7 @@ neel
 Neel
 Neelov
 Negre
+Negrut
 nelem
 Nelement
 Nelements
@@ -3116,6 +3117,7 @@ Rafferty
 rahman
 Rahman
 Rajamanickam
+Rakhsha
 Ralf
 Raman
 ramped

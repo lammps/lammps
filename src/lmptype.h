@@ -287,7 +287,7 @@ struct multitype {
     int64_t b;
   } data;
 
-  multitype() : type(LAMMPS_NONE) { data.d = 0.0; }
+  multitype() noexcept : type(LAMMPS_NONE) { data.d = 0.0; }
   multitype(const multitype &) = default;
   multitype(multitype &&) = default;
   ~multitype() = default;

@@ -155,7 +155,7 @@ page on BPMs.
 If the *break* keyword is set to *no*, LAMMPS assumes bonds should not break
 during a simulation run. This will prevent some unnecessary calculation.
 The recommended bond communication distance no longer depends on bond failure
-coefficients (which are ignored) but instead corresponds to the typical heurestic
+coefficients (which are ignored) but instead corresponds to the typical heuristic
 maximum strain used by typical non-bpm bond styles. Similar behavior to *break no*
 can also be attained by setting arbitrarily high values for all four failure
 coefficients. One cannot use *break no* with *smooth yes*.

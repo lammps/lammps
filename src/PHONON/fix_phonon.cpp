@@ -400,7 +400,7 @@ void FixPhonon::end_of_step()
       ndim = sysdim;
       for (i = 1; i < nucell; ++i) {
         for (idim = 0; idim < sysdim; ++idim) dist2orig[idim] = Rnow[idx][ndim++] - Rnow[idx][idim];
-        domain->minimum_image(dist2orig);
+        domain->minimum_image_big(dist2orig);
         for (idim = 0; idim < sysdim; ++idim) basis[i][idim] += dist2orig[idim];
       }
     }

@@ -88,6 +88,7 @@ modules:
       - -D PKG_QTB=yes
       - -D PKG_REACTION=yes
       - -D PKG_REAXFF=yes
+      - -D PKG_RHEO=yes
       - -D PKG_RIGID=yes
       - -D PKG_SHOCK=yes
       - -D PKG_SMTBQ=yes

@@ -20,5 +20,3 @@ Examples:
 4. in.comb.Cu2O.elastic: Cu2O crystal, qeq on, minimizes, then calculates
    elastic constants
 5. in.comb.HfO2: HfO2 polymorphs: Monoclinic HfO2 NVT @ 300K
-6. in.comb.CuaS: Metallic Cu and amorphous silica interface, qeq on,
-	five step NVE run

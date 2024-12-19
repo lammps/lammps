@@ -40,7 +40,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *ptemp* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint* or *update*
+     keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *ptemp* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint* or *update* or *preserve*
        *temp* values = Tstart Tstop Tdamp
          Tstart,Tstop = external temperature at start/end of run
          Tdamp = temperature damping parameter (time units)
@@ -76,6 +76,9 @@ Syntax
        *update* value = *dipole* or *dipole/dlm*
          dipole = update dipole orientation (only for sphere variants)
          dipole/dlm = use DLM integrator to update dipole orientation (only for sphere variants)
+       *preserve* value = *xyz* or *xy* (deviatoric instead of hydrostatic barostatting)
+         xyz = preserve total xyz volume
+         xy = preserve total xy area
 
 Examples
 """"""""
@@ -397,6 +400,32 @@ Dullweber-Leimkuhler-McLachlan integration scheme
 *dipole/dlm*\ . This integrator is symplectic and time-reversible,
 giving better energy conservation and allows slightly longer timesteps
 at only a small additional computational cost.
+
+.. versionadded:: latest
+
+The *preserve* keyword enables box changes that preserve either the box volume
+or cross-sectional area (in technical terms, barostatting with deviatoric
+instead of hydrostatic stresses). With value *xyz*, the barostat is modified
+to preserve the product of all barostatted dimensions (by setting the averaged
+barostat velocities to zero). Thus:
+* in a two-dimensional simulation *x* and *y* will change while preserving the total area
+* in a three-dimensional simulation,
+  * if *x*, *y* and *z* are barostatted, they will change while preserving
+    the total volume
+  * if any two dimensions are barostatted, they will change while preserving
+    the total cross-sectional area, and the remaining dimension will not change.
+Note that the *couple* keyword (and *iso* keyword) is almost always incompatible
+with *preserve* and will trigger an error. Also, *preserve* *xyz* is physically
+incompatible with a non-zero target hydrostatic pressure (sum of relevant target
+pressures) and will trigger an error in that case.
+
+The *preserve* keyword can also preserve the X-Y cross-sectional area in a simulation
+with three-dimensional barostatting. The *xy* value will preserve the *x-y*
+cross-sectional area without changing any barostatting in the *z* direction.
+On the other hand, the *xy+z* value will preserve the *x-y* cross-sectional area,
+but transfer any measured non-zero *x-y* hydrostatic stress to the *z* barostat.
+Determining which method is more physically appropriate for your simulation
+is a scientific question which individual researchers are responsible for resolving.
 
 ----------
 

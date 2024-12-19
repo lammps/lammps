@@ -105,6 +105,8 @@ class FixNH : public Fix {
   double sigma[6];        // scaled target stress
   double fdev[6];         // deviatoric force on barostat
   int deviatoric_flag;    // 0 if target stress tensor is hydrostatic
+  int vol_preserve_flag;  // 1 if barostat preserves XYZ volume
+  int area_preserve_flag; // 1 if barostat preserves XY area
   double h0_inv[6];       // h_inv of reference (zero strain) box
   int nreset_h0;          // interval for resetting h0
 

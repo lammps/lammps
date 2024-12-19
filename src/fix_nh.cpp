@@ -79,6 +79,8 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   nc_tchain = nc_pchain = 1;
   mtk_flag = 1;
   deviatoric_flag = 0;
+  vol_preserve_flag = 0;
+  area_preserve_flag = 0;
   nreset_h0 = 0;
   eta_mass_flag = 1;
   omega_mass_flag = 0;
@@ -326,6 +328,13 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} flip", style), error);
       flipflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"preserve") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} preserve", style), error);
+      if (strcmp(arg[iarg+1],"xyz") == 0) vol_preserve_flag = 1;
+      else if (strcmp(arg[iarg+1], "xy") == 0) area_preserve_flag = 1;
+      else if (strcmp(arg[iarg+1], "xy+z") == 0) area_preserve_flag = 2;
+      else error->all(FLERR, fmt::format("fix {} preserve was followed by invalid option {}", style, arg[iarg+1]));
+      iarg += 2;
     } else if (strcmp(arg[iarg],"update") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} update", style), error);
       if (strcmp(arg[iarg+1],"dipole") == 0) dipole_flag = 1;
@@ -466,6 +475,36 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   // check that ptemp is not defined with a thermostat
   if (tstat_flag && p_temp_flag)
     error->all(FLERR,"Thermostat in fix {} is incompatible with ptemp command", style);
+
+  // check "preserve" compatibilities
+  if (vol_preserve_flag) {
+    if (dimension != 3)
+      error->all(FLERR,"Fix {} cannot preserve xyz volume in 2D simulation");
+    if (area_preserve_flag)
+      error->all(FLERR,"Fix {} cannot preserve both xyz volume and xy area together", style);
+    if (p_flag[0]+p_flag[1]+p_flag[2] < 2)
+      error->all(FLERR,"Fix {} cannot preserve xyz volume if barostatting only one dimension", style);
+    if ((pcouple == XY && p_flag[2] == 0) ||
+        (pcouple == XZ && p_flag[1] == 0) ||
+        (pcouple == YZ && p_flag[0] == 0) ||
+        pcouple == XYZ)
+      error->all(FLERR,"Fix {} requires at least one uncoupled barostatted dimension to preserve xyz volume", style);
+    if (p_start[0] + p_start[1] + p_start[2] != 0.0 ||
+        p_stop[0] + p_stop[1] + p_stop[2] != 0.0)
+      error->all(FLERR,"Fix {} requires all pressures sum to zero to preserve xyz volume", style);
+  }
+
+  if (area_preserve_flag) {
+    if (p_flag[0] == 0 || p_flag[1] == 0)
+      error->all(FLERR,"Fix {} must barostat both x and y dimensions to preserve xy area");
+    if (pcouple == XYZ || pcouple == XY)
+      error->all(FLERR,"Fix {} cannot couple x and y dimensions while preserving xy area", style);
+    if (pcouple == XZ || pcouple == YZ)
+      error->all(FLERR,"Fix {} cannot couple z dimension while preserving xy area", style);
+    if ((p_start[0] + p_start[1] != 0.0 ||
+         p_stop[0] + p_stop[1] != 0.0) && comm->me == 0)
+      error->warning(FLERR,"Fix {} has x and y pressures that do not sum to zero but is preserving xy area", style);
+  }
 
   // set pstat_flag and box change and restart_pbc variables
 
@@ -2268,6 +2307,18 @@ void FixNH::nh_omega_dot()
       omega_dot[i] += f_omega*dthalf;
       omega_dot[i] *= pdrag_factor;
     }
+  if (vol_preserve_flag) {
+    double omega_ave = 0.;
+    for (int i = 0; i < 3; i++) { if (p_flag[i]) omega_ave += omega_dot[i]; }
+    omega_ave /= pdim;
+    for (int i = 0; i < 3; i++) { if (p_flag[i]) omega_dot[i] -= omega_ave; }
+  }
+  if (area_preserve_flag) {
+    double omega_ave = 0.5*(omega_dot[0] + omega_dot[1]);
+    omega_dot[0] -= omega_ave;
+    omega_dot[1] -= omega_ave;
+    if (p_flag[2] && area_preserve_flag == 2) omega_dot[2] += 2*omega_ave;
+  }
 
   mtk_term2 = 0.0;
   if (mtk_flag) {

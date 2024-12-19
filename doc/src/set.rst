@@ -516,6 +516,12 @@ Keywords *sph/e*, *sph/cv*, and *sph/rho* set the energy, heat capacity,
 and density of smoothed particle hydrodynamics (SPH) particles.  See
 `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
 
+.. note::
+
+   Please note that the SPH PDF guide file has not been updated for
+   many years and thus does not reflect the current *syntax* of the
+   SPH package commands. For that please refer to the LAMMPS manual.
+
 Keyword *smd/mass/density* sets the mass of all selected particles, but
 it is only applicable to the Smooth Mach Dynamics package MACHDYN.  It
 assumes that the particle volume has already been correctly set and

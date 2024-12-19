@@ -2789,14 +2789,15 @@ implements smoothed particle hydrodynamics (SPH) for liquids.  See the
 related :ref:`MACHDYN package <PKG-MACHDYN>` package for smooth Mach dynamics
 (SMD) for solids.
 
-This package contains ideal gas, Lennard-Jones equation of states,
-Tait, and full support for complete (i.e. internal-energy dependent)
-equations of state.  It allows for plain or Monaghans XSPH integration
-of the equations of motion.  It has options for density continuity or
-density summation to propagate the density field.  It has
-:doc:`set <set>` command options to set the internal energy and density
-of particles from the input script and allows the same quantities to
-be output with thermodynamic output or to dump files via the :doc:`compute property/atom <compute_property_atom>` command.
+This package contains ideal gas, Lennard-Jones equation of states, Tait,
+and full support for complete (i.e. internal-energy dependent) equations
+of state.  It allows for plain or Monaghans XSPH integration of the
+equations of motion.  It has options for density continuity or density
+summation to propagate the density field.  It has :doc:`set <set>`
+command options to set the internal energy and density of particles from
+the input script and allows the same quantities to be output with
+thermodynamic output or to dump files via the :doc:`compute
+property/atom <compute_property_atom>` command.
 
 **Author:** Georg Ganzenmuller (Fraunhofer-Institute for High-Speed
 Dynamics, Ernst Mach Institute, Germany).
@@ -2808,6 +2809,17 @@ Dynamics, Ernst Mach Institute, Germany).
 * `doc/PDF/SPH_LAMMPS_userguide.pdf <PDF/SPH_LAMMPS_userguide.pdf>`_
 * ``examples/PACKAGES/sph``
 * https://www.lammps.org/movies.html#sph
+
+.. note::
+
+   Please note that the SPH PDF guide file has not been updated for
+   many years and thus does not reflect the current *syntax* of the
+   SPH package commands. For that please refer to the LAMMPS manual.
+
+.. note::
+
+   Please also note, that the :ref:`RHEO package <PKG-RHEO>` offers
+   similar functionality in a more modern and flexible implementation.
 
 ----------
 

@@ -33,6 +33,12 @@ particle.
 See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
 LAMMPS.
 
+.. note::
+
+   Please note that the SPH PDF guide file has not been updated for
+   many years and thus does not reflect the current *syntax* of the
+   SPH package commands. For that please refer to the LAMMPS manual.
+
 The value of the internal energy will be 0.0 for atoms not in the
 specified compute group.
 

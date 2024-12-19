@@ -519,7 +519,7 @@ must be freed with :cpp:func:`lammps_free` after use to avoid a memory leak.
 \endverbatim
  *
  * \param  handle  pointer to a previously created LAMMPS instance
- * \param  cmd     string with a single LAMMPS input line
+ * \param  line    string with a single LAMMPS input line
  * \return         string with expanded line */
 
 char *lammps_expand(void *handle, const char *line)

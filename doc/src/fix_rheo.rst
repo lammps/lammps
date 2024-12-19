@@ -64,7 +64,7 @@ Description
 
 Perform time integration for RHEO particles, updating positions, velocities,
 and densities. For a detailed breakdown of the integration timestep and
-numerical details, see :ref:`(Palermo) <rheo_palermo>`. For an overview
+numerical details, see :ref:`(Palermo) <fix_rheo_palermo>`. For an overview
 and list of other features available in the RHEO package, see
 :doc:`the RHEO howto <Howto_rheo>`.
 
@@ -101,7 +101,7 @@ A modified form of Fickian particle shifting can be enabled with the
 more uniform spatial distribution. By default, shifting does not consider the
 type of a particle and therefore may be inappropriate in systems consisting
 of multiple atom types representing multiple fluid phases. However, two
-optional subarguments can follow the *shift* keyword, *exclude/type* and
+optional sub-arguments can follow the *shift* keyword, *exclude/type* and
 *scale/cross/type* to adjust shifting at fluid interfaces.
 
 The *exclude/type* option lets the user specify a list of atom types which
@@ -155,7 +155,7 @@ threshold for this classification is set by the numerical value of
 By default, RHEO integrates particles' densities using a mass diffusion
 equation. Alternatively, one can update densities every timestep by performing
 a kernel summation of the masses of neighboring particles by specifying the *rho/sum*
-keyword. Following this keyword, one may include the optional *self/mass* subargument
+keyword. Following this keyword, one may include the optional *self/mass* sub-argument
 which modifies the behavior of the density summation. Typically, the density
 :math:`\rho` of a particle is calculated as the sum over neighbors
 
@@ -218,11 +218,11 @@ Default
 
 ----------
 
-.. _rheo_palermo:
+.. _fix_rheo_palermo:
 
 **(Palermo)** Palermo, Wolf, Clemmer, O'Connor, Phys. Fluids, 36, 113337 (2024).
 
-.. _rheo_yang:
+.. _fix_rheo_yang:
 
 **(Yang)** Yang, Rakhsha, Hu, Negrut, J. Comp. Physics, 458, 111079 (2022).
 

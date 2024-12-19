@@ -59,17 +59,21 @@ class TokenizerException : public std::exception {
   std::string message;
 
  public:
-  // remove unused default constructor
+  /** The default constructor is disabled */
   TokenizerException() = delete;
 
   /** Thrown during retrieving or skipping tokens
    *
-   * \param  msg    String with error message
-   * \param  token  String of the token/word that caused the error */
+   * \param   msg     String with error message
+   * \param   token   String of the token or word that caused the error */
   explicit TokenizerException(const std::string &msg, const std::string &token);
 
   /** Retrieve message describing the thrown exception
-   * \return string with error message */
+   *
+   * This function provides the message that can be retrieved when the corresponding
+   * exception is caught.
+   *
+   * \return  String with error message */
   const char *what() const noexcept override { return message.c_str(); }
 };
 

@@ -54,13 +54,13 @@ void AngleZero::compute(int eflag, int vflag)
 
 void AngleZero::settings(int narg, char **arg)
 {
-  if ((narg != 0) && (narg != 1)) error->all(FLERR, "Illegal angle_style command");
+  if (narg > 1) error->all(FLERR, "Too many angle_style zero keywords");
 
   if (narg == 1) {
     if (strcmp("nocoeff", arg[0]) == 0)
       coeffflag = 0;
     else
-      error->all(FLERR, "Illegal angle_style command");
+      error->all(FLERR, "Unknown angle_style zero keyword {}", arg[0]);
   }
 }
 

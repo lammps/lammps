@@ -340,7 +340,7 @@ int LabelMap::find_or_add_psf(const std::string &mylabel, int mode)
 
 /* ----------------------------------------------------------------------
    return a type label given a numeric type
-   return NULL if type not yet defined
+   error if type labels for mode not yet defined
 ------------------------------------------------------------------------- */
 
 std::string LabelMap::label(int type, int mode) const
@@ -371,7 +371,8 @@ std::string LabelMap::label(int type, int mode) const
       return ntypelabel[type-1];
       break;
     default:
-      return nullptr;
+      // fix return NULL as std::string for C++23 compliance
+      error->all(FLERR, "No labels defined for mode {}.", mode);
   }
 }
 

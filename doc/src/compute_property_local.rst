@@ -74,8 +74,6 @@ Syntax
 
        *cutoff* arg = *type* or *radius*
 
-       *group2* group2-ID = select group2-ID to restrict which atoms to consider
-
 Examples
 """"""""
 

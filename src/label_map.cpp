@@ -371,7 +371,7 @@ std::string LabelMap::label(int type, int mode) const
       return ntypelabel[type-1];
       break;
     default:
-      return NULL;
+      return nullptr;
   }
 }
 

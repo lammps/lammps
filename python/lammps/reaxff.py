@@ -13,10 +13,11 @@
 
 ###########################################################################
 #   Written by Mitch Murphy alphataubio at gmail
-#   For FitSNAP-ReaxFF
+#   MINIMAL changes needed for FitSNAP-ReaxFF
 ###########################################################################
 
 from lammps.core import lammps
+from ctypes import c_void_p, c_int, c_double
 
 # -------------------------------------------------------------------------
 

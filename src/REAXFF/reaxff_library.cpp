@@ -12,11 +12,19 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Mitch Murphy (alphataubio at gmail)
+------------------------------------------------------------------------- */
+
 #include "reaxff_library.h"
+
+#define LAMMPS_LIB_MPI 1
+#include <mpi.h>
+
+#include "error.h"
+#include "force.h"
 #include "pair_reaxff.h"
 #include "reaxff_api.h"
-
-#include <cstring>
 
 #if defined(LMP_PYTHON)
 #include <Python.h>
@@ -271,7 +279,6 @@ void lammps_set_reaxff_ofd_parameter(void *handle, int type1, int type2, int par
     int k = type2 - 1;
 
     switch(parameter_index) {
-
       case 0:  tbp[j][k].D     = tbp[k][j].D     = value;     break;
       case 1:  tbp[j][k].r_vdW = tbp[k][j].r_vdW = 2.0*value; break;
       case 2:  tbp[j][k].alpha = tbp[k][j].alpha = value;     break;
@@ -279,7 +286,6 @@ void lammps_set_reaxff_ofd_parameter(void *handle, int type1, int type2, int par
       case 4:  tbp[j][k].r_p   = tbp[k][j].r_p   = value;     break;
       case 5:  tbp[j][k].r_pp  = tbp[k][j].r_pp  = value;     break;
       case 6:  tbp[j][k].lgcij = tbp[k][j].lgcij = value;     break;
-
     }
 
   }
@@ -304,7 +310,6 @@ void lammps_set_reaxff_ang_parameter(void *handle, int type1, int type2, int typ
       lmp->error->all(FLERR,"lammps_set_reaxff_ang_parameter(): thbp[{}][{}][{}].cnt != 1.", j, k, l );
 
     switch(parameter_index) {
-
       case 0:  thbp[j][k][l].prm[0].theta_00 = thbp[l][k][j].prm[0].theta_00 = value;  break;
       case 1:  thbp[j][k][l].prm[0].p_val1   = thbp[l][k][j].prm[0].p_val1   = value;  break;
       case 2:  thbp[j][k][l].prm[0].p_val2   = thbp[l][k][j].prm[0].p_val2   = value;  break;
@@ -312,7 +317,6 @@ void lammps_set_reaxff_ang_parameter(void *handle, int type1, int type2, int typ
       case 4:  thbp[j][k][l].prm[0].p_val7   = thbp[l][k][j].prm[0].p_val7   = value;  break;
       case 5:  thbp[j][k][l].prm[0].p_pen1   = thbp[l][k][j].prm[0].p_pen1   = value;  break;
       case 6:  thbp[j][k][l].prm[0].p_val4   = thbp[l][k][j].prm[0].p_val4   = value;  break;
-
     }
 
   }
@@ -342,13 +346,11 @@ void lammps_set_reaxff_tor_parameter(void *handle, int type1, int type2, int typ
     for (int o=omin; o<=omax; ++o)
       for (int p=pmin; p<=pmax; ++p)
         switch(parameter_index) {
-
           case 0:  fbp[o][k][l][p].prm[0].V1     = fbp[p][l][k][o].prm[0].V1     = value;  break;
           case 1:  fbp[o][k][l][p].prm[0].V2     = fbp[p][l][k][o].prm[0].V2     = value;  break;
           case 2:  fbp[o][k][l][p].prm[0].V3     = fbp[p][l][k][o].prm[0].V3     = value;  break;
           case 3:  fbp[o][k][l][p].prm[0].p_tor1 = fbp[p][l][k][o].prm[0].p_tor1 = value;  break;
           case 4:  fbp[o][k][l][p].prm[0].p_cot1 = fbp[p][l][k][o].prm[0].p_cot1 = value;  break;
-
         }
 
   }

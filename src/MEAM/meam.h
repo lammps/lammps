@@ -152,99 +152,9 @@ class MEAM {
 
  protected:
   // meam_funcs.cpp
-
-  //-----------------------------------------------------------------------------
-  // Cutoff function
-  //
-  static double fcut(const double xi)
-  {
-    double a;
-    if (xi >= 1.0)
-      return 1.0;
-    else if (xi <= 0.0)
-      return 0.0;
-    else {
-      // ( 1.d0 - (1.d0 - xi)**4 )**2, but with better codegen
-      a = 1.0 - xi;
-      a *= a;
-      a *= a;
-      a = 1.0 - a;
-      return a * a;
-    }
-  }
-
-  //-----------------------------------------------------------------------------
-  // Cutoff function and derivative
-  //
-  static double dfcut(const double xi, double &dfc)
-  {
-    double a, a3, a4, a1m4;
-    if (xi >= 1.0) {
-      dfc = 0.0;
-      return 1.0;
-    } else if (xi <= 0.0) {
-      dfc = 0.0;
-      return 0.0;
-    } else {
-      a = 1.0 - xi;
-      a3 = a * a * a;
-      a4 = a * a3;
-      a1m4 = 1.0 - a4;
-
-      dfc = 8 * a1m4 * a3;
-      return a1m4 * a1m4;
-    }
-  }
-
-  //-----------------------------------------------------------------------------
-  // Derivative of Cikj w.r.t. rij
-  //     Inputs: rij,rij2,rik2,rjk2
-  //
-  static double dCfunc(const double rij2, const double rik2, const double rjk2)
-  {
-    double rij4, a, asq, b, denom;
-
-    rij4 = rij2 * rij2;
-    a = rik2 - rjk2;
-    b = rik2 + rjk2;
-    asq = a * a;
-    denom = rij4 - asq;
-    denom = denom * denom;
-    return -4 * (-2 * rij2 * asq + rij4 * b + asq * b) / denom;
-  }
-
-  //-----------------------------------------------------------------------------
-  // Derivative of Cikj w.r.t. rik and rjk
-  //     Inputs: rij,rij2,rik2,rjk2
-  //
-  static void dCfunc2(const double rij2, const double rik2, const double rjk2, double &dCikj1,
-                      double &dCikj2)
-  {
-    double rij4, rik4, rjk4, a, denom;
-
-    rij4 = rij2 * rij2;
-    rik4 = rik2 * rik2;
-    rjk4 = rjk2 * rjk2;
-    a = rik2 - rjk2;
-    denom = rij4 - a * a;
-    denom = denom * denom;
-    dCikj1 = 4 * rij2 * (rij4 + rik4 + 2 * rik2 * rjk2 - 3 * rjk4 - 2 * rij2 * a) / denom;
-    dCikj2 = 4 * rij2 * (rij4 - 3 * rik4 + 2 * rik2 * rjk2 + rjk4 + 2 * rij2 * a) / denom;
-  }
-
   double G_gam(const double gamma, const int ibar, int &errorflag) const;
   double dG_gam(const double gamma, const int ibar, double &dG) const;
-  static double zbl(const double r, const int z1, const int z2);
   double embedding(const double A, const double Ec, const double rhobar, double &dF) const;
-  static double erose(const double r, const double re, const double alpha, const double Ec,
-                      const double repuls, const double attrac, const int form);
-
-  static void get_shpfcn(const lattice_t latt, const double sthe, const double cthe,
-                         double (&s)[3]);
-
-  static int get_Zij2(const lattice_t latt, const double cmin, const double cmax, const double sthe,
-                      double &a, double &S);
-  static int get_Zij2_b2nn(const lattice_t latt, const double cmin, const double cmax, double &S);
 
  protected:
   void meam_checkindex(int, int, int, int *, int *);
@@ -268,42 +178,6 @@ class MEAM {
   void interpolate_meam(int);
 
  public:
-  // clang-format off
-  //-----------------------------------------------------------------------------
-  // convert lattice spec to lattice_t
-  // only use single-element lattices if single=true
-  // return false on failure
-  // return true and set lat on success
-  static bool str_to_lat(const std::string & str, bool single, lattice_t& lat)
-  {
-    if (str == "fcc") lat = FCC;
-    else if (str == "bcc") lat = BCC;
-    else if (str == "hcp") lat = HCP;
-    else if (str == "dim") lat = DIM;
-    else if (str == "dia") lat = DIA;
-    else if (str == "dia3") lat = DIA3;
-    else if (str == "lin") lat = LIN;
-    else if (str == "zig") lat = ZIG;
-    else if (str == "tri") lat = TRI;
-    else if (str == "sc") lat = SC;
-    else {
-      if (single)
-        return false;
-
-      if (str == "b1") lat = B1;
-      else if (str == "c11") lat = C11;
-      else if (str == "l12") lat = L12;
-      else if (str == "b2") lat = B2;
-      else if (str == "ch4") lat = CH4;
-      else if (str == "lin") lat =LIN;
-      else if (str == "zig") lat = ZIG;
-      else if (str == "tri") lat = TRI;
-      else return false;
-    }
-    return true;
-  }
-  // clang-format on
-  static int get_Zij(const lattice_t latt);
   // last 6 args are optional msmeam parameters
   void meam_setup_global(int nelt, lattice_t *lat, int *ielement, double *atwt, double *alpha,
                          double *b0, double *b1, double *b2, double *b3, double *alat, double *esub,
@@ -325,25 +199,166 @@ class MEAM {
                   int *firstneigh_full, int fnoffset, double **f, double **vatom, double *virial);
 };
 
+//-----------------------------------------------------------------------------
 // Functions we need for compat
 
-static inline bool iszero(const double f)
+static
+inline bool iszero(const double f)
 {
   return fabs(f) < 1e-20;
 }
 
-static inline bool isone(const double f)
+static
+inline bool isone(const double f)
 {
   return fabs(f - 1.0) < 1e-20;
 }
 
+//-----------------------------------------------------------------------------
 // Helper functions
 
-static inline double fdiv_zero(const double n, const double d)
+static
+inline double fdiv_zero(const double n, const double d)
 {
   if (iszero(d)) return 0.0;
   return n / d;
 }
+
+// Lattice IO
+// clang-format off
+//-----------------------------------------------------------------------------
+// convert lattice spec to lattice_t
+// only use single-element lattices if single=true
+// return false on failure
+// return true and set lat on success
+static
+bool str_to_lat(const std::string & str, bool single, lattice_t& lat)
+{
+  if (str == "fcc") lat = FCC;
+  else if (str == "bcc") lat = BCC;
+  else if (str == "hcp") lat = HCP;
+  else if (str == "dim") lat = DIM;
+  else if (str == "dia") lat = DIA;
+  else if (str == "dia3") lat = DIA3;
+  else if (str == "lin") lat = LIN;
+  else if (str == "zig") lat = ZIG;
+  else if (str == "tri") lat = TRI;
+  else if (str == "sc") lat = SC;
+  else {
+    if (single)
+      return false;
+
+    if (str == "b1") lat = B1;
+    else if (str == "c11") lat = C11;
+    else if (str == "l12") lat = L12;
+    else if (str == "b2") lat = B2;
+    else if (str == "ch4") lat = CH4;
+    else if (str == "lin") lat =LIN;
+    else if (str == "zig") lat = ZIG;
+    else if (str == "tri") lat = TRI;
+    else return false;
+  }
+  return true;
+}
+// clang-format on
+
+//-----------------------------------------------------------------------------
+// Pure Functions where inlining is known to give performance benefit: give the
+// compiler visibility at call site, but leave final inline decision to optimizer
+
+// Cutoff function
+//
+static
+double fcut(const double xi)
+{
+  double a;
+  if (xi >= 1.0)
+    return 1.0;
+  else if (xi <= 0.0)
+    return 0.0;
+  else {
+    // ( 1.d0 - (1.d0 - xi)**4 )**2, but with better codegen
+    a = 1.0 - xi;
+    a *= a;
+    a *= a;
+    a = 1.0 - a;
+    return a * a;
+  }
+}
+
+// Cutoff function and derivative
+//
+static
+double dfcut(const double xi, double &dfc)
+{
+  double a, a3, a4, a1m4;
+  if (xi >= 1.0) {
+    dfc = 0.0;
+    return 1.0;
+  } else if (xi <= 0.0) {
+    dfc = 0.0;
+    return 0.0;
+  } else {
+    a = 1.0 - xi;
+    a3 = a * a * a;
+    a4 = a * a3;
+    a1m4 = 1.0 - a4;
+
+    dfc = 8 * a1m4 * a3;
+    return a1m4 * a1m4;
+  }
+}
+
+// Derivative of Cikj w.r.t. rij
+//     Inputs: rij,rij2,rik2,rjk2
+//
+static
+double dCfunc(const double rij2, const double rik2, const double rjk2)
+{
+  double rij4, a, asq, b, denom;
+
+  rij4 = rij2 * rij2;
+  a = rik2 - rjk2;
+  b = rik2 + rjk2;
+  asq = a * a;
+  denom = rij4 - asq;
+  denom = denom * denom;
+  return -4 * (-2 * rij2 * asq + rij4 * b + asq * b) / denom;
+}
+
+// Derivative of Cikj w.r.t. rik and rjk
+//     Inputs: rij,rij2,rik2,rjk2
+//
+static
+void dCfunc2(const double rij2, const double rik2, const double rjk2, double &dCikj1,
+             double &dCikj2)
+{
+  double rij4, rik4, rjk4, a, denom;
+
+  rij4 = rij2 * rij2;
+  rik4 = rik2 * rik2;
+  rjk4 = rjk2 * rjk2;
+  a = rik2 - rjk2;
+  denom = rij4 - a * a;
+  denom = denom * denom;
+  dCikj1 = 4 * rij2 * (rij4 + rik4 + 2 * rik2 * rjk2 - 3 * rjk4 - 2 * rij2 * a) / denom;
+  dCikj2 = 4 * rij2 * (rij4 - 3 * rik4 + 2 * rik2 * rjk2 + rjk4 + 2 * rij2 * a) / denom;
+}
+
+//-----------------------------------------------------------------------------
+// Pure Functions where no benefit from inlining is expected
+extern double zbl(const double r, const int z1, const int z2);
+extern double erose(const double r, const double re, const double alpha, const double Ec,
+                    const double repuls, const double attrac, const int form);
+
+extern void get_shpfcn(const lattice_t latt, const double sthe, const double cthe,
+                       double (&s)[3]);
+
+extern int get_Zij(const lattice_t latt);
+extern int get_Zij2(const lattice_t latt, const double cmin, const double cmax, const double sthe,
+                    double &a, double &S);
+extern int get_Zij2_b2nn(const lattice_t latt, const double cmin, const double cmax, double &S);
+
 
 }    // namespace MEAM_NS
 }    // namespace LAMMPS_NS

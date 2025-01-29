@@ -436,7 +436,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         // map lat string to an integer
         std::string lattice_type = values.next_string();
 
-        if (!MEAM::str_to_lat(lattice_type, true, lat[index]))
+        if (!str_to_lat(lattice_type, true, lat[index]))
           error->one(FLERR, 4, "Unrecognized lattice type in MEAM library file: {}", lattice_type);
 
         // store parameters
@@ -473,7 +473,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
           error->one(FLERR, 4, "Unsupported parameter in MEAM library file: t0 != 1");
 
         // z given is ignored: if this is mismatched, we definitely won't do what the user said -> fatal error
-        if (z[index] != MEAM::get_Zij(lat[index]))
+        if (z[index] != get_Zij(lat[index]))
           error->one(FLERR, 4, "Mismatched parameter in MEAM library file: z != lat");
 
         nset++;
@@ -605,7 +605,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile, int uidx)
     if (which == 4) {
       std::string lattice_type = values.next_string();
       lattice_t latt;
-      if (!MEAM::str_to_lat(lattice_type, false, latt))
+      if (!str_to_lat(lattice_type, false, latt))
         error->all(FLERR, uidx, "Unrecognized lattice type {} in MEAM parameter file {}:{}",
                    lattice_type, userfile, lineno);
       value = latt;

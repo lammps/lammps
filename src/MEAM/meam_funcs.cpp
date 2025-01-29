@@ -121,26 +121,6 @@ double MEAM::dG_gam(const double gamma, const int ibar, double &dG) const
 }
 
 //-----------------------------------------------------------------------------
-// Compute ZBL potential
-//
-double MEAM::zbl(const double r, const int z1, const int z2)
-{
-  int i;
-  const double c[] = {0.028171, 0.28022, 0.50986, 0.18175};
-  const double d[] = {0.20162, 0.40290, 0.94229, 3.1998};
-  const double azero = 0.4685;
-  const double cc = 14.3997;
-  double a, x;
-  // azero = (9pi^2/128)^1/3 (0.529) Angstroms
-  a = azero / (pow(z1, 0.23) + pow(z2, 0.23));
-  double result = 0.0;
-  x = r / a;
-  for (i = 0; i <= 3; i++) { result = result + c[i] * MathSpecial::fm_exp(-d[i] * x); }
-  if (r > 0.0) result = result * z1 * z2 / r * cc;
-  return result;
-}
-
-//-----------------------------------------------------------------------------
 // Compute embedding function F(rhobar) and derivative F'(rhobar), eqn I.5
 //
 double MEAM::embedding(const double A, const double Ec, const double rhobar, double &dF) const
@@ -163,10 +143,30 @@ double MEAM::embedding(const double A, const double Ec, const double rhobar, dou
 }
 
 //-----------------------------------------------------------------------------
+// Compute ZBL potential
+//
+double MEAM_NS::zbl(const double r, const int z1, const int z2)
+{
+  int i;
+  const double c[] = {0.028171, 0.28022, 0.50986, 0.18175};
+  const double d[] = {0.20162, 0.40290, 0.94229, 3.1998};
+  const double azero = 0.4685;
+  const double cc = 14.3997;
+  double a, x;
+  // azero = (9pi^2/128)^1/3 (0.529) Angstroms
+  a = azero / (pow(z1, 0.23) + pow(z2, 0.23));
+  double result = 0.0;
+  x = r / a;
+  for (i = 0; i <= 3; i++) { result = result + c[i] * MathSpecial::fm_exp(-d[i] * x); }
+  if (r > 0.0) result = result * z1 * z2 / r * cc;
+  return result;
+}
+
+//-----------------------------------------------------------------------------
 // Compute Rose energy function, I.16
 //
-double MEAM::erose(const double r, const double re, const double alpha, const double Ec,
-                   const double repuls, const double attrac, const int form)
+double MEAM_NS::erose(const double r, const double re, const double alpha, const double Ec,
+                      const double repuls, const double attrac, const int form)
 {
   double astar, a3;
   double result = 0.0;
@@ -194,7 +194,7 @@ double MEAM::erose(const double r, const double re, const double alpha, const do
 //-----------------------------------------------------------------------------
 // Shape factors for various configurations
 //
-void MEAM::get_shpfcn(const lattice_t latt, const double sthe, const double cthe, double (&s)[3])
+void MEAM_NS::get_shpfcn(const lattice_t latt, const double sthe, const double cthe, double (&s)[3])
 {
   switch (latt) {
     case FCC:
@@ -245,7 +245,7 @@ void MEAM::get_shpfcn(const lattice_t latt, const double sthe, const double cthe
 //-----------------------------------------------------------------------------
 // Number of first neighbors for reference structure
 //
-int MEAM::get_Zij(const lattice_t latt)
+int MEAM_NS::get_Zij(const lattice_t latt)
 {
   switch (latt) {
     case FCC:
@@ -285,8 +285,8 @@ int MEAM::get_Zij(const lattice_t latt)
 //   numscr = number of atoms that screen the 2NN bond
 //   S = second neighbor screening function (xfac, a part of b2nn in dynamo)
 //
-int MEAM::get_Zij2(const lattice_t latt, const double cmin, const double cmax, const double stheta,
-                   double &a, double &S)
+int MEAM_NS::get_Zij2(const lattice_t latt, const double cmin, const double cmax, const double stheta,
+                      double &a, double &S)
 {
 
   double C, x, sijk;
@@ -390,7 +390,7 @@ int MEAM::get_Zij2(const lattice_t latt, const double cmin, const double cmax, c
   return Zij2;
 }
 
-int MEAM::get_Zij2_b2nn(const lattice_t latt, const double cmin, const double cmax, double &S)
+int MEAM_NS::get_Zij2_b2nn(const lattice_t latt, const double cmin, const double cmax, double &S)
 {
 
   double x, sijk, C;

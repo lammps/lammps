@@ -22,9 +22,9 @@ from lammps.core import lammps
 
 class lammps_reaxff(lammps):
 
-  def __init__(self):
+  def __init__(self,name='',cmdargs=None,ptr=None,comm=None):
 
-    super().__init__()
+    super().__init__(name=name,cmdargs=cmdargs,ptr=ptr,comm=comm)
 
     #if has_package('REAXFF')
 
@@ -44,7 +44,7 @@ class lammps_reaxff(lammps):
 
   def set_reaxff_parameters(self, parameters):
 
-    with ExceptionCheck(self):
+    #with ExceptionCheck(self):
 
       # ATM
       for p in parameters[0]:

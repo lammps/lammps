@@ -47,27 +47,31 @@ class lammps_reaxff(lammps):
 
     #with ExceptionCheck(self):
 
-      # ATM
-      for p in parameters[0]:
-        self.lib.lammps_set_reaxff_atm_parameter(self.lmp,p[0],p[1],p[2])
+      for p in parameters:
 
-      # BND
-      for p in parameters[1]:
-        self.lib.lammps_set_reaxff_bnd_parameter(self.lmp,p[0],p[1],p[2],p[3])
+        p_block_index = p[0]
 
-      # OFD
-      for p in parameters[2]:
-        self.lib.lammps_set_reaxff_ofd_parameter(self.lmp,p[0],p[1],p[2],p[3])
+        # ATM
+        if p_block_index == 0:
+          self.lib.lammps_set_reaxff_atm_parameter(self.lmp,p[1],p[2],p[3])
 
-      # ANG
-      for p in parameters[3]:
-        self.lib.lammps_set_reaxff_ang_parameter(self.lmp,p[0],p[1],p[2],p[3],p[4])
+        # BND
+        if p_block_index == 1:
+          self.lib.lammps_set_reaxff_bnd_parameter(self.lmp,p[1],p[2],p[3],p[4])
 
-      # TOR
-      for p in parameters[4]:
-        self.lib.lammps_set_reaxff_tor_parameter(self.lmp,p[0],p[1],p[2],p[3],p[4],p[5])
+        # OFD
+        if p_block_index == 2:
+          self.lib.lammps_set_reaxff_ofd_parameter(self.lmp,p[1],p[2],p[3],p[4])
 
-      # HBD
-      for p in parameters[5]:
-        self.lib.lammps_set_reaxff_hbd_parameter(self.lmp,p[0],p[1],p[2],p[3],p[4])
+        # ANG
+        if p_block_index == 3:
+          self.lib.lammps_set_reaxff_ang_parameter(self.lmp,p[1],p[2],p[3],p[4],p[5])
+
+        # TOR
+        if p_block_index == 4:
+          self.lib.lammps_set_reaxff_tor_parameter(self.lmp,p[1],p[2],p[3],p[4],p[5],p[6])
+
+        # HBD
+        if p_block_index == 5:
+          self.lib.lammps_set_reaxff_hbd_parameter(self.lmp,p[1],p[2],p[3],p[4],p[5])
 

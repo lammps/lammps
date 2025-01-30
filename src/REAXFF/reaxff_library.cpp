@@ -73,6 +73,26 @@ using namespace LAMMPS_NS;
 // Library functions to set reaxff parameters
 // ----------------------------------------------------------------------
 
+void lammps_set_reaxff_gen_parameter(void *handle, int parameter_index, double value) {
+
+  auto lmp = (LAMMPS *) handle;
+
+  BEGIN_CAPTURE
+  {
+    PairReaxFF *reaxff = static_cast<PairReaxFF *>(lmp->force->pair);
+    auto reax = &(reaxff->api->system->reax_param);
+    auto &gp = reax->gp;
+
+    // only used for gp.l[34] by fitsnap-reaxff at this time
+    // but as general as possible
+    gp.l[parameter_index] = value;
+
+    // FIXME: handle gp.l[35] for lg-dispersion later
+  }
+  END_CAPTURE
+
+}
+
 void lammps_set_reaxff_atm_parameter(void *handle, int type, int parameter_index, double value) {
 
   auto lmp = (LAMMPS *) handle;

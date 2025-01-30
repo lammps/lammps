@@ -55,7 +55,7 @@ class lammps_reaxff(lammps):
 
         # GEN
         if p_block_index == 0:
-          self.lib.lammps_set_reaxff_gen_parameter(self.lmp,p[2],v)
+          self.lib.lammps_set_reaxff_gen_parameter(self.lmp,p[1],v)
 
         # ATM
         if p_block_index == 1:

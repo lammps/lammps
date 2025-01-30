@@ -191,14 +191,14 @@ namespace ReaxFF {
           ++lineno;
           CHECK_COLUMNS(8);
 
-          sbp[i].alpha      = values.next_double();
-          sbp[i].gamma_w    = values.next_double();
-          sbp[i].valency_boc= values.next_double();
-          sbp[i].p_ovun5    = values.next_double();
-          values.skip();
-          sbp[i].chi        = values.next_double();
-          sbp[i].eta        = 2.0*values.next_double();
-          sbp[i].p_hbond = (int) values.next_double();
+          sbp[i].alpha       = values.next_double();
+          sbp[i].gamma_w     = values.next_double();
+          sbp[i].valency_boc = values.next_double();
+          sbp[i].p_ovun5     = values.next_double();
+          sbp[i].gauss_exp   = values.next_double();
+          sbp[i].chi         = values.next_double();
+          sbp[i].eta         = 2.0*values.next_double();
+          sbp[i].p_hbond     = (int) values.next_double();
 
           // line three
 
@@ -212,7 +212,7 @@ namespace ReaxFF {
           sbp[i].b_o_131    = values.next_double();
           sbp[i].b_o_132    = values.next_double();
           sbp[i].b_o_133    = values.next_double();
-          sbp[i].bcut_acks2  = values.next_double();
+          sbp[i].bcut_acks2 = values.next_double();
 
           // line four
 

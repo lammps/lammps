@@ -67,6 +67,7 @@ struct single_body_parameters {
   double gamma_w;
   double valency_boc;
   double p_ovun5;
+  double gauss_exp;  // for QTPIE (only supported in LAMMPS)
   double chi;
   double eta;
   int p_hbond;    // 1 for H, 2 for hbonding atoms (O,S,P,N), 0 for others

@@ -21,12 +21,13 @@
 extern "C" {
 #endif
 
-void lammps_set_reaxff_atm_parameter(void *handle, int type, int parameter_index, double value);
-void lammps_set_reaxff_bnd_parameter(void *handle, int type1, int type2, int parameter_index, double value);
-void lammps_set_reaxff_ofd_parameter(void *handle, int type1, int type2, int parameter_index, double value);
-void lammps_set_reaxff_ang_parameter(void *handle, int type1, int type2, int type3, int parameter_index, double value);
-void lammps_set_reaxff_tor_parameter(void *handle, int type1, int type2, int type3, int type4, int parameter_index, double value);
-void lammps_set_reaxff_hbd_parameter(void *handle, int type1, int type2, int type3, int parameter_index, double value);
+void lammps_set_reaxff_gen_parameter(void *, int, double)
+void lammps_set_reaxff_atm_parameter(void *, int, int, double);
+void lammps_set_reaxff_bnd_parameter(void *, int, int, int, double);
+void lammps_set_reaxff_ofd_parameter(void *, int, int, int, double);
+void lammps_set_reaxff_ang_parameter(void *, int, int, int, int, double);
+void lammps_set_reaxff_tor_parameter(void *, int, int, int, int, int, double);
+void lammps_set_reaxff_hbd_parameter(void *, int, int, int, int, double);
 
 #ifdef __cplusplus
 }

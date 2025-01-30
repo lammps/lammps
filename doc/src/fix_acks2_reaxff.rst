@@ -62,17 +62,18 @@ The lines should be formatted as follows:
 .. parsed-literal::
 
    bond_softness
-   itype chi eta gamma bcut
+   itype chi eta gamma bcut_acks2
 
 where the first line is the global parameter *bond_softness*. The
-remaining 1 to Ntypes lines include *itype*, the atom type from 1 to
-Ntypes, *chi*, the electronegativity in eV, *eta*, the self-Coulomb
-potential in eV, *gamma*, the valence orbital exponent, and *bcut*, the
-bond cutoff distance.  Note that these 4 quantities are also in the
-ReaxFF potential file, except that eta is defined here as twice the eta
-value in the ReaxFF file. Note that unlike the rest of LAMMPS, the units
-of this fix are hard-coded to be :math:`\AA`, eV, and
-electronic charge.
+remaining 1 to Ntypes lines include:
+
+  - *itype* atom type from 1 to Ntypes
+  - *chi* electronegativity (in eV)
+  - *eta* atomic hardness (in eV)
+  - *gamma* valence orbital exponent
+  - *bcut_acks2* bond cutoff distance.
+
+.. note:: These 4 quantities (*chi*, *eta*, *gamma*, *bcut_acks2*) are also in the ReaxFF potential file, except that *eta* is defined in LAMMPS as twice the *eta* value in the ReaxFF file. **Unlike the rest of LAMMPS, units of this fix are hard-coded to be** :math:`\pmb{\AA,}` **eV, and electronic charge.**
 
 The optional *maxiter* keyword allows changing the max number
 of iterations in the linear solver. The default value is 200.

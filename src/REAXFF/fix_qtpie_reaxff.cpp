@@ -201,14 +201,12 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
   const int *type = atom->type;
   const int ntypes = atom->ntypes;
 
-  // read chi, eta and gamma
-
   if (utils::strmatch(arg,"^reaxff")) {
     reaxflag = 1;
     Pair *pair = force->pair_match("^reaxff",0);
     if (!pair) error->all(FLERR,"No reaxff pair style for fix qtpie/reaxff");
-
     int tmp, tmp_all;
+    gauss_exp = (double *) pair->extract("gauss_exp",tmp);
     chi = (double *) pair->extract("chi",tmp);
     eta = (double *) pair->extract("eta",tmp);
     gamma = (double *) pair->extract("gamma",tmp);
@@ -262,6 +260,7 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
       error->one(FLERR,e.what());
     }
     // -------- READ PARAM FILE --------
+    // read chi, eta and gamma
     memory->create(chi,ntypes+1,"qtpie/reaxff:chi");
     memory->create(eta,ntypes+1,"qtpie/reaxff:eta");
     memory->create(gamma,ntypes+1,"qtpie/reaxff:gamma");

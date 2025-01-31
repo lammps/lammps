@@ -29,7 +29,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all qtpie/reaxff 1 0.0 10.0 1.0e-6 reaxff exp.qtpie
+   fix 1 all qtpie/reaxff 1 0.0 10.0 1.0e-6 reaxff
    fix 1 all qtpie/reaxff 1 0.0 10.0 1.0e-6 params.qtpie exp.qtpie maxiter 500
 
 Description
@@ -97,13 +97,19 @@ respectively:
 where *itype* is the atom type from 1 to Ntypes. Note that eta is
 defined here as twice the eta value in the ReaxFF file.
 
+.. versionchanged:: FIXME
+
 The overlap integrals in the equation for :math:`\chi_{\mathrm{eff},i}`
-are computed by using normalized 1s Gaussian type orbitals. The Gaussian
-orbital exponents, :math:`\alpha`, that are needed to compute the overlap
-integrals are taken from the file given by *gfile*.
-This file must contain one line for each atom type and provide the Gaussian
-orbital exponent for each atom type in units of inverse square Bohr radius.
-Each line should be formatted as follows:
+are computed by using normalized 1s Gaussian type orbitals. If the *params*
+setting above is the word "reaxff", then the Gaussian orbital exponents
+:math:`\alpha` needed to compute the overlap integrals are extracted from
+the :doc:`pair_style reaxff <pair_reaxff>` command and the ReaxFF force
+field file it reads in (previously unused ATM line 2 position 5 just before
+*chi* and *eta*). If a file name is specified for *gfile*, then the
+gaussian exponents are taken from the specified file and the file must contain
+one line for each atom type and provide the Gaussian orbital exponent for each
+atom type in units of inverse square Bohr radius. Each line should be
+formatted as follows:
 
 .. parsed-literal::
 

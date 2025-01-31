@@ -151,6 +151,7 @@ PairReaxFF::~PairReaxFF()
     memory->destroy(cutsq);
     memory->destroy(cutghost);
 
+    delete[] gauss_exp;
     delete[] chi;
     delete[] eta;
     delete[] gamma;
@@ -176,6 +177,7 @@ void PairReaxFF::allocate()
   map = new int[n+1];
   for (int i = 0; i <= n; ++i) map[i] = -1;
 
+  gauss_exp = new double[n+1];
   chi = new double[n+1];
   eta = new double[n+1];
   gamma = new double[n+1];

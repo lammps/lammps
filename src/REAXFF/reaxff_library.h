@@ -21,7 +21,7 @@
 extern "C" {
 #endif
 
-void lammps_set_reaxff_gen_parameter(void *, int, double)
+void lammps_set_reaxff_gen_parameter(void *, int, double);
 void lammps_set_reaxff_atm_parameter(void *, int, int, double);
 void lammps_set_reaxff_bnd_parameter(void *, int, int, int, double);
 void lammps_set_reaxff_ofd_parameter(void *, int, int, int, double);

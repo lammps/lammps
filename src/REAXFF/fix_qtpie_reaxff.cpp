@@ -79,9 +79,15 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   swb = utils::numeric(FLERR,arg[5],false,lmp);
   tolerance = utils::numeric(FLERR,arg[6],false,lmp);
   pertype_option = utils::strdup(arg[7]);
-  gauss_file = utils::strdup(arg[8]);
 
-  int iarg = 9;
+  int iarg;
+  if (utils::strmatch(pertype_option,"^reaxff"))
+    iarg = 8;
+  else {
+    gauss_file = utils::strdup(arg[8]);
+    iarg = 9;
+  }
+
   while (iarg < narg) {
     if (strcmp(arg[iarg],"nowarn") == 0) maxwarn = 0;
     else if (strcmp(arg[iarg],"maxiter") == 0) {
@@ -141,7 +147,6 @@ FixQtpieReaxFF::~FixQtpieReaxFF()
   if (copymode) return;
 
   delete[] pertype_option;
-  delete[] gauss_file;
 
   // unregister callbacks to this fix from Atom class
 
@@ -155,8 +160,9 @@ FixQtpieReaxFF::~FixQtpieReaxFF()
 
   memory->destroy(shld);
 
-  memory->destroy(gauss_exp);
   if (!reaxflag) {
+    delete[] gauss_file;
+    memory->destroy(gauss_exp);
     memory->destroy(chi);
     memory->destroy(eta);
     memory->destroy(gamma);

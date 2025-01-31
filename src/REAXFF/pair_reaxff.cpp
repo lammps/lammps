@@ -696,6 +696,13 @@ void PairReaxFF::read_reax_forces(int /*vflag*/)
 void *PairReaxFF::extract(const char *str, int &dim)
 {
   dim = 1;
+  if (strcmp(str,"gauss_exp") == 0 && gauss_exp) {
+    gauss_exp[0] = 0.0;
+    for (int i = 1; i <= atom->ntypes; i++)
+      if (map[i] >= 0) gauss_exp[i] = api->system->reax_param.sbp[map[i]].gauss_exp;
+      else gauss_exp[i] = 0.0;
+    return (void *) gauss_exp;
+  }
   if (strcmp(str,"chi") == 0 && chi) {
     chi[0] = 0.0;
     for (int i = 1; i <= atom->ntypes; i++)

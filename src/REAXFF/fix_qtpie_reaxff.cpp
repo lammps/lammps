@@ -18,6 +18,8 @@
       (Implemented original version in LAMMMPS Aug 2019)
       Navraj S Lalli, Imperial College London
       (Reimplemented QTPIE as a new fix in LAMMPS Aug 2024 and extended functionality)
+      Mitch Murphy, alphataubio at gmail
+      (gauss_exp ffield unused ATM line 2 pos 5 to enable FitSNAP-ReaxFF)
 ------------------------------------------------------------------------- */
 
 #include "fix_qtpie_reaxff.h"
@@ -193,9 +195,35 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
   const int *type = atom->type;
   const int ntypes = atom->ntypes;
 
-  // read gaussian orbital exponents
-  memory->create(gauss_exp,ntypes+1,"qtpie/reaxff:gauss_exp");
-  if (comm->me == 0) {
+  // read chi, eta and gamma
+
+  if (utils::strmatch(arg,"^reaxff")) {
+    reaxflag = 1;
+    Pair *pair = force->pair_match("^reaxff",0);
+    if (!pair) error->all(FLERR,"No reaxff pair style for fix qtpie/reaxff");
+
+    int tmp, tmp_all;
+    chi = (double *) pair->extract("chi",tmp);
+    eta = (double *) pair->extract("eta",tmp);
+    gamma = (double *) pair->extract("gamma",tmp);
+    if ((chi == nullptr) || (eta == nullptr) || (gamma == nullptr))
+      error->all(FLERR, "Fix qtpie/reaxff could not extract qtpie parameters from pair reaxff");
+    tmp = tmp_all = 0;
+    for (int i = 0; i < nlocal; ++i) {
+      if (mask[i] & groupbit) {
+        if ((chi[type[i]] == 0.0) && (eta[type[i]] == 0.0) && (gamma[type[i]] == 0.0))
+          tmp = type[i];
+      }
+    }
+    MPI_Allreduce(&tmp, &tmp_all, 1, MPI_INT, MPI_MAX, world);
+    if (tmp_all)
+      error->all(FLERR, "No qtpie parameters for atom type {} provided by pair reaxff", tmp_all);
+  } else if (utils::strmatch(arg,"^reax/c")) {
+    error->all(FLERR, "Fix qtpie/reaxff keyword 'reax/c' is obsolete; please use 'reaxff'");
+  } else if (platform::file_is_readable(arg)) {
+    reaxflag = 0;
+    // -------- READ GAUSS FILE --------
+    memory->create(gauss_exp,ntypes+1,"qtpie/reaxff:gauss_exp");
     gauss_exp[0] = 0.0;
     try {
       FILE *fp = utils::open_potential(gauss_file, lmp, nullptr);
@@ -227,55 +255,10 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
     } catch (std::exception &e) {
       error->one(FLERR,e.what());
     }
-  }
-
-  MPI_Bcast(gauss_exp,ntypes+1,MPI_DOUBLE,0,world);
-
-  // define a cutoff distance (in atomic units) beyond which overlap integrals are neglected
-  // in calc_chi_eff()
-  const double exp_min = find_min_exp(gauss_exp,ntypes+1);
-  const int olap_cut = 10; // overlap integrals are neglected if less than pow(10,-olap_cut)
-  dist_cutoff = sqrt(2*olap_cut/exp_min*log(10.0));
-
-  // read chi, eta and gamma
-
-  if (utils::strmatch(arg,"^reaxff")) {
-    reaxflag = 1;
-    Pair *pair = force->pair_match("^reaxff",0);
-    if (!pair) error->all(FLERR,"No reaxff pair style for fix qtpie/reaxff");
-
-    int tmp, tmp_all;
-    chi = (double *) pair->extract("chi",tmp);
-    eta = (double *) pair->extract("eta",tmp);
-    gamma = (double *) pair->extract("gamma",tmp);
-    if ((chi == nullptr) || (eta == nullptr) || (gamma == nullptr))
-      error->all(FLERR, "Fix qtpie/reaxff could not extract qtpie parameters from pair reaxff");
-    tmp = tmp_all = 0;
-    for (int i = 0; i < nlocal; ++i) {
-      if (mask[i] & groupbit) {
-        if ((chi[type[i]] == 0.0) && (eta[type[i]] == 0.0) && (gamma[type[i]] == 0.0))
-          tmp = type[i];
-      }
-    }
-    MPI_Allreduce(&tmp, &tmp_all, 1, MPI_INT, MPI_MAX, world);
-    if (tmp_all)
-      error->all(FLERR, "No qtpie parameters for atom type {} provided by pair reaxff", tmp_all);
-    return;
-  } else if (utils::strmatch(arg,"^reax/c")) {
-    error->all(FLERR, "Fix qtpie/reaxff keyword 'reax/c' is obsolete; please use 'reaxff'");
-  } else if (platform::file_is_readable(arg)) {
-    ; // arg is readable file. will read below
-  } else {
-    error->all(FLERR, "Unknown fix qtpie/reaxff keyword {}", arg);
-  }
-
-  reaxflag = 0;
-
-  memory->create(chi,ntypes+1,"qtpie/reaxff:chi");
-  memory->create(eta,ntypes+1,"qtpie/reaxff:eta");
-  memory->create(gamma,ntypes+1,"qtpie/reaxff:gamma");
-
-  if (comm->me == 0) {
+    // -------- READ PARAM FILE --------
+    memory->create(chi,ntypes+1,"qtpie/reaxff:chi");
+    memory->create(eta,ntypes+1,"qtpie/reaxff:eta");
+    memory->create(gamma,ntypes+1,"qtpie/reaxff:gamma");
     chi[0] = eta[0] = gamma[0] = 0.0;
     try {
       TextFileReader reader(arg,"qtpie/reaxff parameter");
@@ -301,7 +284,17 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
     } catch (std::exception &e) {
       error->one(FLERR,e.what());
     }
+  } else {
+    error->all(FLERR, "Unknown fix qtpie/reaxff keyword {}", arg);
   }
+
+  MPI_Bcast(gauss_exp,ntypes+1,MPI_DOUBLE,0,world);
+
+  // define a cutoff distance (in atomic units) beyond which overlap integrals are neglected
+  // in calc_chi_eff()
+  const double exp_min = find_min_exp(gauss_exp,ntypes+1);
+  const int olap_cut = 10; // overlap integrals are neglected if less than pow(10,-olap_cut)
+  dist_cutoff = sqrt(2*olap_cut/exp_min*log(10.0));
 
   MPI_Bcast(chi,ntypes+1,MPI_DOUBLE,0,world);
   MPI_Bcast(eta,ntypes+1,MPI_DOUBLE,0,world);

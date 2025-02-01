@@ -137,6 +137,30 @@ of iterations in the linear solver. The default value is 200.
    assignments should also satisfy this constraint.  LAMMPS will print a
    warning if that is not the case.
 
+.. warning::
+
+  If you get the error ``ERROR: comm cutoff = 12 Angstrom is smaller than distance cutoff = Inf Angstrom for overlap integrals in qtpie/reaxff. Increase comm cutoff with comm_modify (src/REAXFF/fix_qtpie_reaxff.cpp:1109)``, then it means one of the atoms has a gaussian exponent *gauss_exp* equal to 0.
+
+  If you get the same error but with ``cutoff = x smaller than distance cutoff = y`` it's because the smallest gaussian exponent for your atoms :math:`\text{gauss_exp}_{min} < 2x / log10`.
+
+  :ref:`(Chen) <qtpie-Chen>` has the following values in Table 2.2:
+
+  .. csv-table::
+    :header: H,Li,C,N,O,F,Na,Si
+    :widths: 8,8,8,8,8,8,8,8
+    :align: center
+
+    0.5434,0.1668,0.2069,0.2214,0.2240,0.2313,0.0959,0.1052
+
+  .. csv-table::
+    :header: P,S,Br,Rb,I,Cs,Cl,K
+    :widths: 8,8,8,8,8,8,8,8
+    :align: center
+
+    0.1085,0.1156,0.0701,0.0420,0.0686,0.0307,0.1137,0.0602
+
+
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

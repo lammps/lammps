@@ -16,7 +16,7 @@
 #   MINIMAL changes needed for FitSNAP-ReaxFF
 ###########################################################################
 
-from lammps.core import lammps
+from lammps.core import lammps, ExceptionCheck
 from ctypes import c_void_p, c_int, c_double
 
 # -------------------------------------------------------------------------
@@ -47,7 +47,7 @@ class lammps_reaxff(lammps):
 
   def set_reaxff_parameters(self, parameters, values):
 
-    #with ExceptionCheck(self):
+    with ExceptionCheck(self):
 
       for p, v in zip(parameters, values):
 

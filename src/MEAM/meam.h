@@ -82,7 +82,7 @@ class MEAM {
 
   // MS-MEAM parameters
 
-  // msmeamflag = flag to activate MS-MEAM
+  // msmeamflag = flag to activate MS-MEAM (public; above)
   // betam[1-3]_meam = MS-MEAM electron density constants
   // tm[1-3]_meam = MS-MEAM coefficients on densities in Gamma computation
 
@@ -131,7 +131,6 @@ class MEAM {
 
   double t1m_meam[MAXELT], t2m_meam[MAXELT], t3m_meam[MAXELT];
   double beta1m_meam[MAXELT], beta2m_meam[MAXELT], beta3m_meam[MAXELT];
-  //int msmeamflag; // made public for pair style settings
 
  public:
   int nmax;

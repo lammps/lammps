@@ -365,9 +365,6 @@ void MEAM::eval_force(int i, int eflag_global, int eflag_atom, int vflag_global,
           }
         }
 
-        //     write(1,*) "force_meamf: phi: ",phi
-        //     write(1,*) "force_meamf: phip: ",phip
-
         //     Compute pair densities and derivatives
 
         invrei = 1.0 / re_meam[elti][elti];

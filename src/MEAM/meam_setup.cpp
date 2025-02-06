@@ -354,7 +354,7 @@ void MEAM::setup_param(int which, double value, int nindex, int *index /*index(3
       break;
 
     //     21 = theta
-    // see alloyparams(void) in meam_setup_done.cpp
+    // see alloyparams(void) below
     case 21:
       check_index(2, neltypes, nindex, index, errorflag);
       if (*errorflag != 0) return;

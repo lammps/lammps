@@ -144,7 +144,7 @@ void PairMEAM::compute(int eflag, int vflag)
 
   offset = 0;
 
-  // vptr is first value in vatom if it will be used by meam_force()
+  // vptr is first value in vatom if it will be used by eval_force()
   // else vatom may not exist, so pass dummy ptr
 
   double **vptr = nullptr;

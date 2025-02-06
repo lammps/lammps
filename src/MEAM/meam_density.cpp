@@ -328,7 +328,6 @@ void MEAM::calc_rho1(int i, int /*ntype*/, int *type, int *fmap, double **x, int
   int nv2, nv3;
   double xtmp, ytmp, ztmp, delij[3], rij2, rij, sij;
   double ai, aj, rhoa0j, rhoa1j, rhoa2j, rhoa3j, A1j, A2j, A3j;
-  // double G,Gbar,gam,shp[3+1];
   double ro0i, ro0j;
   double rhoa0i, rhoa1i, rhoa2i, rhoa3i, A1i, A2i, A3i;
   // msmeam params
@@ -382,7 +381,6 @@ void MEAM::calc_rho1(int i, int /*ntype*/, int *type, int *fmap, double **x, int
         }
         rho0[i] = rho0[i] + rhoa0j;
         rho0[j] = rho0[j] + rhoa0i;
-        // For ialloy = 2, use single-element value (not average)
         // For ialloy = 2, use single-element value (not average)
         if (ialloy != 2) {
           t_ave[i][0] = t_ave[i][0] + t1_meam[eltj] * rhoa0j;

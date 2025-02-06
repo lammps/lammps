@@ -201,16 +201,10 @@ double MEAM::phi_meam(double r, int a, int b)
   Z2 = get_Zij(lattce_meam[b][b]);
   Z12 = get_Zij(lattce_meam[a][b]);
 
-  // this function has extra args for msmeam
-  if (msmeamflag) {
-    get_densref(r, a, b, &rho01, &rho11, &rho21, &rho31, &rho02, &rho12, &rho22, &rho32,
-                &rho1m1, &rho2m1, &rho3m1,
-                &rho1m2, &rho2m2, &rho3m2);
-  } else {
-    get_densref(r, a, b, &rho01, &rho11, &rho21, &rho31, &rho02, &rho12, &rho22, &rho32,
-                nullptr, nullptr, nullptr,
-                nullptr, nullptr, nullptr);
-  }
+  // the last 6 arguments are only touched for msmeam
+  get_densref(r, a, b, &rho01, &rho11, &rho21, &rho31, &rho02, &rho12, &rho22, &rho32,
+              &rho1m1, &rho2m1, &rho3m1,
+              &rho1m2, &rho2m2, &rho3m2);
   // if densities are too small, numerical problems may result; just return zero
   if (rho01 <= 1e-14 && rho02 <= 1e-14)
     return 0.0;
@@ -294,29 +288,19 @@ double MEAM::phi_meam(double r, int a, int b)
     if (msmeamflag) {
       // no additional use of t's here; all included in definitions of rho's for msmeam
       Gam1 = rho11 + rho21 + rho31 - (rho1m1 + rho2m1 + rho3m1);
-      if (rho01 < 1.0e-14)
-        Gam1 = 0.0;
-      else
-        Gam1 = Gam1 / (rho01 * rho01);
       Gam2 = rho12 + rho22 + rho32 - (rho1m2 + rho2m2 + rho3m2);
-      if (rho02 < 1.0e-14)
-        Gam2 = 0.0;
-      else
-        Gam2 = Gam2 / (rho02 * rho02);
-
     } else {
-      Gam1 = (t11av * rho11 + t21av * rho21 + t31av * rho31);
-      if (rho01 < 1.0e-14)
-        Gam1 = 0.0;
-      else
-        Gam1 = Gam1 / (rho01 * rho01);
-
-      Gam2 = (t12av * rho12 + t22av * rho22 + t32av * rho32);
-      if (rho02 < 1.0e-14)
-        Gam2 = 0.0;
-      else
-        Gam2 = Gam2 / (rho02 * rho02);
+      Gam1 = t11av * rho11 + t21av * rho21 + t31av * rho31;
+      Gam2 = t12av * rho12 + t22av * rho22 + t32av * rho32;
     }
+    if (rho01 < 1.0e-14)
+      Gam1 = 0.0;
+    else
+      Gam1 = Gam1 / (rho01 * rho01);
+    if (rho02 < 1.0e-14)
+      Gam2 = 0.0;
+    else
+      Gam2 = Gam2 / (rho02 * rho02);
 
     G1 = G_gam(Gam1, ibar_meam[a], errorflag);
     G2 = G_gam(Gam2, ibar_meam[b], errorflag);

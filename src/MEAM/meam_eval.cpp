@@ -38,11 +38,11 @@ void MEAM::eval_energy(int nlocal, int eflag_either, int eflag_global, int eflag
 
   //     Complete the calculation of density
 
-  if (msmeamflag) {
-    for (i = 0; i < nlocal; i++) {
-      elti = fmap[type[i]];
-      if (elti >= 0) {
-        scaleii = scale[type[i]][type[i]];
+  for (i = 0; i < nlocal; i++) {
+    elti = fmap[type[i]];
+    if (elti >= 0) {
+      scaleii = scale[type[i]][type[i]];
+      if (msmeamflag) {
         rho1[i] = 0.0;
         rho2[i] = -1.0 / 3.0 * (arho2b[i] * arho2b[i]
                               - arho2mb[i] * arho2mb[i]);
@@ -65,88 +65,7 @@ void MEAM::eval_energy(int nlocal, int eflag_either, int eflag_global, int eflag
 
         // all the t weights are already accounted for with msmeam
         gamma[i] = rho1[i] + rho2[i] + rho3[i];
-
-        if (rho0[i] > 0.0) {
-          gamma[i] = gamma[i] / (rho0[i] * rho0[i]);
-        }
-
-        Z = get_Zij(lattce_meam[elti][elti]);
-
-        G = G_gam(gamma[i], ibar_meam[elti], errorflag);
-        if (errorflag != 0)
-          return;
-
-        get_shpfcn(lattce_meam[elti][elti], stheta_meam[elti][elti], ctheta_meam[elti][elti], shp);
-
-        if (ibar_meam[elti] <= 0) {
-          Gbar = 1.0;
-          dGbar = 0.0;
-        } else {
-          if (mix_ref_t == 1) {
-            gam = (t_ave[i][0] * shp[0] + t_ave[i][1] * shp[1] + t_ave[i][2] * shp[2]) / (Z * Z);
-          } else {
-            gam = (t1_meam[elti] * shp[0] + t2_meam[elti] * shp[1] + t3_meam[elti] * shp[2]) /
-                  (Z * Z);
-          }
-          Gbar = G_gam(gam, ibar_meam[elti], errorflag);
-        }
-        rho[i] = rho0[i] * G;
-
-        if (mix_ref_t == 1) {
-          if (ibar_meam[elti] <= 0) {
-            Gbar = 1.0;
-            dGbar = 0.0;
-          } else {
-            gam = (t_ave[i][0] * shp[0] + t_ave[i][1] * shp[1] + t_ave[i][2] * shp[2]) / (Z * Z);
-            Gbar = dG_gam(gam, ibar_meam[elti], dGbar);
-          }
-          rho_bkgd = rho0_meam[elti] * Z * Gbar;
-        } else {
-          if (bkgd_dyn == 1) {
-            rho_bkgd = rho0_meam[elti] * Z;
-          } else {
-            rho_bkgd = rho_ref_meam[elti];
-          }
-        }
-        rhob = rho[i] / rho_bkgd;
-        denom = 1.0 / rho_bkgd;
-
-        G = dG_gam(gamma[i], ibar_meam[elti], dG);
-
-        dgamma1[i] = (G - 2 * dG * gamma[i]) * denom;
-
-        if (!iszero(rho0[i])) {
-          dgamma2[i] = (dG / rho0[i]) * denom;
-        } else {
-          dgamma2[i] = 0.0;
-        }
-
-        //     dgamma3 is nonzero only if we are using the "mixed" rule for
-        //     computing t in the reference system (which is not correct, but
-        //     included for backward compatibility
-        if (mix_ref_t == 1) {
-          dgamma3[i] = rho0[i] * G * dGbar / (Gbar * Z * Z) * denom;
-        } else {
-          dgamma3[i] = 0.0;
-        }
-
-        Fl = embedding(A_meam[elti], Ec_meam[elti][elti], rhob, frhop[i]);
-        if (eflag_either != 0) {
-          Fl *= scaleii;
-          if (eflag_global != 0) {
-            *eng_vdwl = *eng_vdwl + Fl;
-          }
-          if (eflag_atom != 0) {
-            eatom[i] = eatom[i] + Fl;
-          }
-        }
-      }
-    }
-  } else {
-    for (i = 0; i < nlocal; i++) {
-      elti = fmap[type[i]];
-      if (elti >= 0) {
-        scaleii = scale[type[i]][type[i]];
+      } else {
         rho1[i] = 0.0;
         rho2[i] = -1.0 / 3.0 * arho2b[i] * arho2b[i];
         rho3[i] = 0.0;
@@ -178,82 +97,82 @@ void MEAM::eval_energy(int nlocal, int eflag_either, int eflag_global, int eflag
         }
 
         gamma[i] = t_ave[i][0] * rho1[i] + t_ave[i][1] * rho2[i] + t_ave[i][2] * rho3[i];
+      }
+      if (rho0[i] > 0.0) {
+        gamma[i] = gamma[i] / (rho0[i] * rho0[i]);
+      }
 
-        if (rho0[i] > 0.0) {
-          gamma[i] = gamma[i] / (rho0[i] * rho0[i]);
+      Z = get_Zij(lattce_meam[elti][elti]);
+
+      G = G_gam(gamma[i], ibar_meam[elti], errorflag);
+      if (errorflag != 0)
+        return;
+
+      get_shpfcn(lattce_meam[elti][elti], stheta_meam[elti][elti], ctheta_meam[elti][elti], shp);
+
+      if (ibar_meam[elti] <= 0) {
+        Gbar = 1.0;
+        dGbar = 0.0;
+      } else {
+        if (mix_ref_t == 1) {
+          gam = (t_ave[i][0] * shp[0] + t_ave[i][1] * shp[1] + t_ave[i][2] * shp[2]) / (Z * Z);
+        } else {
+          gam = (t1_meam[elti] * shp[0] + t2_meam[elti] * shp[1] + t3_meam[elti] * shp[2]) /
+                (Z * Z);
         }
+        Gbar = G_gam(gam, ibar_meam[elti], errorflag);
+      }
+      rho[i] = rho0[i] * G;
 
-        Z = get_Zij(lattce_meam[elti][elti]);
-
-        G = G_gam(gamma[i], ibar_meam[elti], errorflag);
-        if (errorflag != 0)
-          return;
-
-        get_shpfcn(lattce_meam[elti][elti], stheta_meam[elti][elti], ctheta_meam[elti][elti], shp);
-
+      // compute background density rho_bkgd
+      if (mix_ref_t == 1) {
         if (ibar_meam[elti] <= 0) {
           Gbar = 1.0;
           dGbar = 0.0;
         } else {
-          if (mix_ref_t == 1) {
-            gam = (t_ave[i][0] * shp[0] + t_ave[i][1] * shp[1] + t_ave[i][2] * shp[2]) / (Z * Z);
-          } else {
-            gam = (t1_meam[elti] * shp[0] + t2_meam[elti] * shp[1] + t3_meam[elti] * shp[2]) /
-                  (Z * Z);
-          }
-          Gbar = G_gam(gam, ibar_meam[elti], errorflag);
+          gam = (t_ave[i][0] * shp[0] + t_ave[i][1] * shp[1] + t_ave[i][2] * shp[2]) / (Z * Z);
+          Gbar = dG_gam(gam, ibar_meam[elti], dGbar);
         }
-        rho[i] = rho0[i] * G;
-
-        if (mix_ref_t == 1) {
-          if (ibar_meam[elti] <= 0) {
-            Gbar = 1.0;
-            dGbar = 0.0;
-          } else {
-            gam = (t_ave[i][0] * shp[0] + t_ave[i][1] * shp[1] + t_ave[i][2] * shp[2]) / (Z * Z);
-            Gbar = dG_gam(gam, ibar_meam[elti], dGbar);
-          }
-          rho_bkgd = rho0_meam[elti] * Z * Gbar;
+        rho_bkgd = rho0_meam[elti] * Z * Gbar;
+      } else {
+        if (bkgd_dyn == 1) {
+          rho_bkgd = rho0_meam[elti] * Z;
         } else {
-          if (bkgd_dyn == 1) {
-            rho_bkgd = rho0_meam[elti] * Z;
-          } else {
-            rho_bkgd = rho_ref_meam[elti];
-          }
+          rho_bkgd = rho_ref_meam[elti];
         }
-        rhob = rho[i] / rho_bkgd;
-        denom = 1.0 / rho_bkgd;
+      }
+      rhob = rho[i] / rho_bkgd;
+      denom = 1.0 / rho_bkgd;
 
-        G = dG_gam(gamma[i], ibar_meam[elti], dG);
+      // compute gamma & derivatives
+      G = dG_gam(gamma[i], ibar_meam[elti], dG);
 
-        dgamma1[i] = (G - 2 * dG * gamma[i]) * denom;
+      dgamma1[i] = (G - 2 * dG * gamma[i]) * denom;
 
-        if (!iszero(rho0[i])) {
-          dgamma2[i] = (dG / rho0[i]) * denom;
-        } else {
-          dgamma2[i] = 0.0;
+      if (!iszero(rho0[i])) {
+        dgamma2[i] = (dG / rho0[i]) * denom;
+      } else {
+        dgamma2[i] = 0.0;
+      }
+
+      //     dgamma3 is nonzero only if we are using the "mixed" rule for
+      //     computing t in the reference system (which is not correct, but
+      //     included for backward compatibility
+      if (mix_ref_t == 1) {
+        dgamma3[i] = rho0[i] * G * dGbar / (Gbar * Z * Z) * denom;
+      } else {
+        dgamma3[i] = 0.0;
+      }
+
+      // finally, the EAM embedding energy
+      Fl = embedding(A_meam[elti], Ec_meam[elti][elti], rhob, frhop[i]);
+      if (eflag_either != 0) {
+        Fl *= scaleii;
+        if (eflag_global != 0) {
+          *eng_vdwl = *eng_vdwl + Fl;
         }
-
-        //     dgamma3 is nonzero only if we are using the "mixed" rule for
-        //     computing t in the reference system (which is not correct, but
-        //     included for backward compatibility
-        if (mix_ref_t == 1) {
-          dgamma3[i] = rho0[i] * G * dGbar / (Gbar * Z * Z) * denom;
-        } else {
-          dgamma3[i] = 0.0;
-        }
-
-        Fl = embedding(A_meam[elti], Ec_meam[elti][elti], rhob, frhop[i]);
-
-        if (eflag_either != 0) {
-          Fl *= scaleii;
-          if (eflag_global != 0) {
-            *eng_vdwl = *eng_vdwl + Fl;
-          }
-          if (eflag_atom != 0) {
-            eatom[i] = eatom[i] + Fl;
-
-          }
+        if (eflag_atom != 0) {
+          eatom[i] = eatom[i] + Fl;
         }
       }
     }
@@ -638,10 +557,9 @@ void MEAM::eval_force(int i, int eflag_global, int eflag_atom, int vflag_global,
         }
 
         // compute derivatives of weighting functions t wrt rij
-        // weighting functions t set to unity for MS-MEAM
 
         if (msmeamflag) {
-
+          // weighting functions t set to unity for MS-MEAM
           t1i = 1.0;
           t2i = 1.0;
           t3i = 1.0;
@@ -654,9 +572,7 @@ void MEAM::eval_force(int i, int eflag_global, int eflag_atom, int vflag_global,
           dt2dr2 = 0.0;
           dt3dr1 = 0.0;
           dt3dr2 = 0.0;
-
         } else {
-
           t1i = t_ave[i][0];
           t2i = t_ave[i][1];
           t3i = t_ave[i][2];
@@ -665,7 +581,6 @@ void MEAM::eval_force(int i, int eflag_global, int eflag_atom, int vflag_global,
           t3j = t_ave[j][2];
 
           if (ialloy == 1) {
-
             a1i = fdiv_zero(drhoa0j * sij, tsq_ave[i][0]);
             a1j = fdiv_zero(drhoa0i * sij, tsq_ave[j][0]);
             a2i = fdiv_zero(drhoa0j * sij, tsq_ave[i][1]);
@@ -679,18 +594,14 @@ void MEAM::eval_force(int i, int eflag_global, int eflag_atom, int vflag_global,
             dt2dr2 = a2j * (t2mi - t2j * MathSpecial::square(t2mi));
             dt3dr1 = a3i * (t3mj - t3i * MathSpecial::square(t3mj));
             dt3dr2 = a3j * (t3mi - t3j * MathSpecial::square(t3mi));
-
           } else if (ialloy == 2) {
-
             dt1dr1 = 0.0;
             dt1dr2 = 0.0;
             dt2dr1 = 0.0;
             dt2dr2 = 0.0;
             dt3dr1 = 0.0;
             dt3dr2 = 0.0;
-
           } else {
-
             ai = 0.0;
             if (!iszero(rho0[i]))
               ai = drhoa0j * sij / rho0[i];
@@ -705,7 +616,6 @@ void MEAM::eval_force(int i, int eflag_global, int eflag_atom, int vflag_global,
             dt3dr1 = ai * (t3mj - t3i);
             dt3dr2 = aj * (t3mi - t3j);
           }
-
         }
 
         //     Compute derivatives of total density wrt rij, sij and rij(3)

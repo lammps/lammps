@@ -325,6 +325,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
                        double* rho1m2, double* rho2m2, double* rho3m2)
 {
   double a1, a2;
+  double t1ma, t2ma, t3ma, t1mb, t2mb, t3mb;
   double s[3];
   lattice_t lat;
   int Zij,Zij2nn;
@@ -336,20 +337,18 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
   // msmeam
   double rhoa1m1, rhoa2m1, rhoa3m1, rhoa1m2, rhoa2m2, rhoa3m2;
 
+  t1ma = t2ma = t3ma = t1mb = t2mb = t3mb = 1.0;
   a1 = r / re_meam[a][a] - 1.0;
   a2 = r / re_meam[b][b] - 1.0;
 
-  rhoa01 = rho0_meam[a] * MathSpecial::fm_exp(-beta0_meam[a] * a1);
-
   if (msmeamflag) {
     // the rho variables are multiplied by t here since ialloy not needed in msmeam
-    rhoa11 = rho0_meam[a] * t1_meam[a] * MathSpecial::fm_exp(-beta1_meam[a] * a1);
-    rhoa21 = rho0_meam[a] * t2_meam[a] * MathSpecial::fm_exp(-beta2_meam[a] * a1);
-    rhoa31 = rho0_meam[a] * t3_meam[a] * MathSpecial::fm_exp(-beta3_meam[a] * a1);
-    rhoa02 = rho0_meam[b] * MathSpecial::fm_exp(-beta0_meam[b] * a2);
-    rhoa12 = rho0_meam[b] * t1_meam[b] * MathSpecial::fm_exp(-beta1_meam[b] * a2);
-    rhoa22 = rho0_meam[b] * t2_meam[b] * MathSpecial::fm_exp(-beta2_meam[b] * a2);
-    rhoa32 = rho0_meam[b] * t3_meam[b] * MathSpecial::fm_exp(-beta3_meam[b] * a2);
+    t1ma = t1_meam[a];
+    t2ma = t2_meam[a];
+    t3ma = t3_meam[a];
+    t1mb = t1_meam[b];
+    t2mb = t2_meam[b];
+    t3mb = t3_meam[b];
     // msmeam specific rho vars
     rhoa1m1 = rho0_meam[a] * t1m_meam[a] * MathSpecial::fm_exp(-beta1m_meam[a] * a1);
     rhoa2m1 = rho0_meam[a] * t2m_meam[a] * MathSpecial::fm_exp(-beta2m_meam[a] * a1);
@@ -357,15 +356,15 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
     rhoa1m2 = rho0_meam[b] * t1m_meam[b] * MathSpecial::fm_exp(-beta1m_meam[b] * a2);
     rhoa2m2 = rho0_meam[b] * t2m_meam[b] * MathSpecial::fm_exp(-beta2m_meam[b] * a2);
     rhoa3m2 = rho0_meam[b] * t3m_meam[b] * MathSpecial::fm_exp(-beta3m_meam[b] * a2);
-  } else {
-    rhoa11 = rho0_meam[a] * MathSpecial::fm_exp(-beta1_meam[a] * a1);
-    rhoa21 = rho0_meam[a] * MathSpecial::fm_exp(-beta2_meam[a] * a1);
-    rhoa31 = rho0_meam[a] * MathSpecial::fm_exp(-beta3_meam[a] * a1);
-    rhoa02 = rho0_meam[b] * MathSpecial::fm_exp(-beta0_meam[b] * a2);
-    rhoa12 = rho0_meam[b] * MathSpecial::fm_exp(-beta1_meam[b] * a2);
-    rhoa22 = rho0_meam[b] * MathSpecial::fm_exp(-beta2_meam[b] * a2);
-    rhoa32 = rho0_meam[b] * MathSpecial::fm_exp(-beta3_meam[b] * a2);
   }
+  rhoa01 = rho0_meam[a]        * MathSpecial::fm_exp(-beta0_meam[a] * a1);
+  rhoa11 = rho0_meam[a] * t1ma * MathSpecial::fm_exp(-beta1_meam[a] * a1);
+  rhoa21 = rho0_meam[a] * t2ma * MathSpecial::fm_exp(-beta2_meam[a] * a1);
+  rhoa31 = rho0_meam[a] * t3ma * MathSpecial::fm_exp(-beta3_meam[a] * a1);
+  rhoa02 = rho0_meam[b]        * MathSpecial::fm_exp(-beta0_meam[b] * a2);
+  rhoa12 = rho0_meam[b] * t1mb * MathSpecial::fm_exp(-beta1_meam[b] * a2);
+  rhoa22 = rho0_meam[b] * t2mb * MathSpecial::fm_exp(-beta2_meam[b] * a2);
+  rhoa32 = rho0_meam[b] * t3mb * MathSpecial::fm_exp(-beta3_meam[b] * a2);
 
   lat = lattce_meam[a][b];
 
@@ -462,15 +461,15 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
     case L12:
       *rho01 = 8 * rhoa01 + 4 * rhoa02;
       *rho02 = 12 * rhoa01;
-      if (ialloy == 1) {
+      if (!msmeamflag && ialloy == 1) {
         *rho21 = 8. / 3. * MathSpecial::square(rhoa21 * t2_meam[a] - rhoa22 * t2_meam[b]);
         denom = 8 * rhoa01 * MathSpecial::square(t2_meam[a]) + 4 * rhoa02 * MathSpecial::square(t2_meam[b]);
         if (denom > 0.)
           *rho21 = *rho21 / denom * *rho01;
-      } else
+      } else {
         *rho21 = 8. / 3. * (rhoa21 - rhoa22) * (rhoa21 - rhoa22);
+      }
       if (msmeamflag) {
-        *rho21 = 8. / 3. * (rhoa21 - rhoa22) * (rhoa21 - rhoa22);
         *rho2m1 = 8. / 3. * (rhoa2m1 - rhoa2m2) * (rhoa2m1 - rhoa2m2);
       }
       break;

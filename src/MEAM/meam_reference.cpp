@@ -18,6 +18,194 @@
 using namespace LAMMPS_NS;
 using namespace MEAM_NS;
 
+void hcp_shpfcn(const double sthe, const double cthe, double (&s)[3])
+{
+  s[2] = 1.0 / 3.0;
+}
+
+void dia_shpfcn(const double sthe, const double cthe, double (&s)[3])
+{
+  s[2] = 32.0 / 9.0;
+}
+
+void dim_shpfcn(const double sthe, const double cthe, double (&s)[3])
+{
+  s[0] = 1.0;
+  s[1] = 2.0 / 3.0;
+  //        s(3) = 1.d0 // this should be 0.4 unless (1-legendre) is multiplied in the density calc.
+  s[2] = 0.40;    // this is (1-legendre) where legendre = 0.6 in dynamo is accounted.
+}
+
+void lin_shpfcn(const double sthe, const double cthe, double (&s)[3])
+{
+  s[0] = 0.0;
+  // FIXME: comment and value are in conflict
+  s[1] = 8.0 / 3.0;    // 4*(co**4 + si**4 - 1.0/3.0) in zig become 4*(1-1/3)
+  s[2] = 0.0;
+}
+
+void zig_shpfcn(const double sthe, const double cthe, double (&s)[3])
+{
+  s[0] = 4.0 * pow(cthe, 2);
+  s[1] = 4.0 * (pow(cthe, 4) + pow(sthe, 4) - 1.0 / 3.0);
+  s[2] = 4.0 * (pow(cthe, 2) * (3 * pow(sthe, 4) + pow(cthe, 4)));
+  s[2] = s[2] - 0.6 * s[0];    //legend in dyn, 0.6 is default value.
+}
+
+// Ensure these are in the same order as lattice_t (for now)!
+const reference_lattice_t MEAM_NS::lattice_defs[MAXLAT] = {
+  {
+    .name                    = "fcc",
+    .single                  = true,
+    .re                      = 1.0 / sqrt(2.0),
+    .Zij                     = 12,
+    .Zij2                    = 6,
+    .Nscr2                   = 4,
+    .ratio_2nn               = sqrt(2.0),
+  },
+  {
+    .name                    = "bcc",
+    .single                  = true,
+    .re                      = sqrt(3.0) / 2.0,
+    .Zij                     = 8,
+    .Zij2                    = 6,
+    .Nscr2                   = 4,
+    .ratio_2nn               = 2.0 / sqrt(3.0),
+  },
+  {
+    .name                    = "hcp",
+    .single                  = true,
+    .re                      = 1.0,
+    .Zij                     = 12,
+    .Zij2                    = 6,
+    .Nscr2                   = 4,
+    .ratio_2nn               = sqrt(2.0),
+    .shpfcn                  = hcp_shpfcn,
+  },
+  {
+    .name                    = "dim",
+    .single                  = true,
+    .re                      = 1.0,
+    .Zij                     = 1,
+    .shpfcn                  = dim_shpfcn,
+  },
+  {
+    .name                    = "dia",
+    .single                  = true,
+    .re                      = sqrt(3.0) / 4.0,
+    .Zij                     = 4,
+    .Zij2                    = 12,
+    .Nscr2                   = 1,
+    .ratio_2nn               = sqrt(8.0 / 3.0),
+    .shpfcn                  = dia_shpfcn,
+  },
+  {
+    .name                    = "dia3",
+    .single                  = true,
+    .re                      = sqrt(3.0) / 4.0,
+    .Zij                     = 4,
+    .Zij2                    = 12,
+    .Nscr2                   = 4,
+    .ratio_2nn               = sqrt(11.0 / 3.0),
+    .shpfcn                  = dia_shpfcn,
+    .nn3                     = true,
+  },
+  {
+    .name                    = "b1",
+    .Zij                     = 6,
+    .Zij2                    = 12,
+    .Nscr2                   = 2,
+    .ratio_2nn               = sqrt(2.0),
+  },
+  {
+    .name                    = "c11",
+    .Zij                     = 10,
+  },
+  {
+    .name                    = "l12",
+    .Zij                     = 12,
+    .Zij2                    = 6,
+    .Nscr2                   = 4,
+    .ratio_2nn               = sqrt(2.0),
+  },
+  {
+    .name                    = "b2",
+    .Zij                     = 8,
+    .Zij2                    = 6,
+    .Nscr2                   = 4,
+    .ratio_2nn               = 2.0 / sqrt(3.0),
+  },
+  {
+    .name                    = "ch4",
+    .re                      = 1.0,
+    .Zij                     = 4,
+    // CH4 actually needs shape factor for diamond for C, dimer for H
+    .shpfcn                  = dia_shpfcn,
+  },
+  {
+    .name                    = "lin",
+    .single                  = true,
+    .re                      = 1.0,
+    .Zij                     = 2,
+    .shpfcn                  = lin_shpfcn,
+  },
+  {
+    .name                    = "zig",
+    .single                  = true,
+    .re                      = 1.0,
+    .Zij                     = 2,
+    .Zij2                    = 2,
+    .Nscr2                   = 1,
+    .ratio_2nn               = 2.0,
+    .ratio_2nn_angular       = true,
+    .shpfcn                  = zig_shpfcn,
+  },
+  {
+    .name                    = "tri",
+    .single                  = true,
+    .re                      = 1.0,
+    .Zij                     = 2,
+    .Zij2                    = 1,
+    .Nscr2                   = 2,
+    .ratio_2nn               = 2.0,
+    .ratio_2nn_angular       = true,
+    .shpfcn                  = zig_shpfcn,
+  },
+  {
+    .name                    = "sc",
+    .single                  = true,
+    .re                      = 1.0,
+    .Zij                     = 6,
+    .Zij2                    = 12,
+    .Nscr2                   = 2,
+    .ratio_2nn               = sqrt(2.0),
+  },
+};
+
+static_assert(MAXLAT == sizeof(lattice_defs) / sizeof(reference_lattice_t));
+
+/* ----------------------------------------------------------------------
+   Convert lattice name from input to to lattice_t
+   return false on failure
+   return true and set lat on success
+------------------------------------------------------------------------- */
+
+bool MEAM_NS::str_to_lat(const std::string & str, bool single, lattice_t& lat)
+{
+  for (int i=0; i<MAXLAT; i++) {
+    const reference_lattice_t& def = lattice_defs[i];
+
+    if (single && !def.single)
+      continue;
+
+    if (str == def.name) {
+      lat = (lattice_t)i;
+      return true;
+    }
+  }
+  return false;
+}
+
 
 /* ----------------------------------------------------------------------
    Number of first neighbors for reference structure
@@ -25,36 +213,11 @@ using namespace MEAM_NS;
 
 int MEAM_NS::get_Zij(const lattice_t latt)
 {
-  switch (latt) {
-    case FCC:
-      return 12;
-    case BCC:
-      return 8;
-    case HCP:
-      return 12;
-    case DIA:
-    case DIA3:
-      return 4;
-    case DIM:
-      return 1;
-    case B1:
-    case SC:
-      return 6;
-    case C11:
-      return 10;
-    case L12:
-      return 12;
-    case B2:
-      return 8;
-    case CH4:    // DYNAMO currently implemented this way while it needs two Z values, 4 and 1
-      return 4;
-    case LIN:
-    case ZIG:
-    case TRI:
-      return 2;
-      //        call error('Lattice not defined in get_Zij.')
-  }
-  return 0;
+  const int lidx = (int)latt;
+  if (latt < 0 || latt >= MAXLAT)
+    return -1;
+
+  return lattice_defs[lidx].Zij;
 }
 
 /* ----------------------------------------------------------------------
@@ -67,97 +230,28 @@ int MEAM_NS::get_Zij(const lattice_t latt)
 int MEAM_NS::get_Zij2(const lattice_t latt, const double cmin, const double cmax, const double stheta,
                       double &arat, double &S)
 {
-
   double C, sijk;
-  int Zij2 = 0, numscr = 0;
+  int Zij2, numscr;
 
-  switch (latt) {
+  const int lidx = (int)latt;
+  if (latt < 0 || latt >= MAXLAT)
+    return -1;
+  const reference_lattice_t& def = lattice_defs[lidx];
 
-    case FCC:
-      Zij2 = 6;
-      arat = sqrt(2.0);
-      numscr = 4;
-      break;
+  Zij2 = def.Zij2;
+  numscr = def.Nscr2;
+  arat = def.ratio_2nn;
+  if (def.ratio_2nn_angular) {
+    arat *= stheta;
+  }
 
-    case BCC:
-      Zij2 = 6;
-      arat = 2.0 / sqrt(3.0);
-      numscr = 4;
-      break;
-
-    case HCP:
-      Zij2 = 6;
-      arat = sqrt(2.0);
-      numscr = 4;
-      break;
-
-    case B1:
-    case SC:
-      Zij2 = 12;
-      arat = sqrt(2.0);
-      numscr = 2;
-      break;
-
-    case DIA:    // 2NN
-      Zij2 = 12;
-      arat = sqrt(8.0 / 3.0);
-      numscr = 1;
-      if (cmin < 0.500001) {
-        //          call error('can not do 2NN MEAM for dia')
-      }
-      break;
-
-    case DIA3:    // 3NN
-      Zij2 = 12;
-      arat = sqrt(11.0 / 3.0);
-      numscr = 4;
-      if (cmin < 0.500001) {
-        //          call error('can not do 2NN MEAM for dia')
-      }
-      break;
-
-    case CH4:    //does not have 2nn structure so it returns 0
-    case LIN:    //line
-    case DIM:
-      //        this really shouldn't be allowed; make sure screening is zero
-      arat = 1.0;
-      S = 0.0;
-      return 0;
-
-    case TRI:    //TRI
-      Zij2 = 1;
-      arat = 2.0 * stheta;
-      numscr = 2;
-      break;
-
-    case ZIG:    //zig-zag
-      Zij2 = 2;
-      arat = 2.0 * stheta;
-      numscr = 1;
-      break;
-
-    case L12:
-      Zij2 = 6;
-      arat = sqrt(2.0);
-      numscr = 4;
-      break;
-
-    case B2:
-      Zij2 = 6;
-      arat = 2.0 / sqrt(3.0);
-      numscr = 4;
-      break;
-    case C11:
-      // unsupported lattice flag C11 in get_Zij
-      break;
-    default:
-      // unknown lattic flag in get Zij
-      //        call error('Lattice not defined in get_Zij.')
-      break;
+  if (iszero(arat)) {
+    // error
+    return -1;
   }
 
   // Compute screening for each first neighbor
-  if (latt == DIA3) {    // special case for 3NN diamond structure
+  if (def.nn3) {
     C = 1.0;
   } else {
     C = 4.0 / (arat * arat) - 1.0;
@@ -178,6 +272,7 @@ int MEAM_NS::get_Zij2_b2nn(const lattice_t latt, const double cmin, const double
 
   double sijk;
   int numscr = 0, Zij2 = 0;
+
   switch (latt) {
     case ZIG:    //zig-zag for b11s and b22s term
     case TRI:    //trimer for b11s
@@ -200,50 +295,22 @@ int MEAM_NS::get_Zij2_b2nn(const lattice_t latt, const double cmin, const double
 
 void MEAM_NS::get_shpfcn(const lattice_t latt, const double sthe, const double cthe, double (&s)[3])
 {
-  switch (latt) {
-    case FCC:
-    case BCC:
-    case B1:
-    case B2:
-    case SC:
-      s[0] = 0.0;
-      s[1] = 0.0;
-      s[2] = 0.0;
-      break;
-    case HCP:
-      s[0] = 0.0;
-      s[1] = 0.0;
-      s[2] = 1.0 / 3.0;
-      break;
-    case CH4:    // CH4 actually needs shape factor for diamond for C, dimer for H
-    case DIA:
-    case DIA3:
-      s[0] = 0.0;
-      s[1] = 0.0;
-      s[2] = 32.0 / 9.0;
-      break;
-    case DIM:
-      s[0] = 1.0;
-      s[1] = 2.0 / 3.0;
-      //        s(3) = 1.d0 // this should be 0.4 unless (1-legendre) is multiplied in the density calc.
-      s[2] = 0.40;    // this is (1-legendre) where legendre = 0.6 in dynamo is accounted.
-      break;
-    case LIN:    //linear, theta being 180
-      s[0] = 0.0;
-      s[1] = 8.0 / 3.0;    // 4*(co**4 + si**4 - 1.0/3.0) in zig become 4*(1-1/3)
-      s[2] = 0.0;
-      break;
-    case ZIG:    //zig-zag
-    case TRI:    //trimer e.g. H2O
-      s[0] = 4.0 * pow(cthe, 2);
-      s[1] = 4.0 * (pow(cthe, 4) + pow(sthe, 4) - 1.0 / 3.0);
-      s[2] = 4.0 * (pow(cthe, 2) * (3 * pow(sthe, 4) + pow(cthe, 4)));
-      s[2] = s[2] - 0.6 * s[0];    //legend in dyn, 0.6 is default value.
-      break;
-    default:
-      s[0] = 0.0;
-      //        call error('Lattice not defined in get_shpfcn.')
+  const int lidx = (int)latt;
+
+  s[0] = 0.0;
+  s[1] = 0.0;
+  s[2] = 0.0;
+
+  if (latt < 0 || latt >= MAXLAT) {
+    return;
   }
+  const reference_lattice_t& def = lattice_defs[lidx];
+
+  if (def.shpfcn == nullptr) {
+    return;
+  }
+
+  def.shpfcn(sthe, cthe, s);
 }
 
 /* ----------------------------------------------------------------------

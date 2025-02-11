@@ -201,6 +201,36 @@ class MEAM {
 };
 
 //-----------------------------------------------------------------------------
+// Reference lattice definition
+// Any value not set will be 0/false/nullptr, make sure this is a sensible default
+
+typedef struct {
+  // Name of the lattice in potential files
+  const char * name;
+  // lattice is valid for single element references
+  bool single;
+  // factor from alat to re
+  double re;
+  // Number of nearest neighbors (=coordination number)
+  int Zij;
+  // Number of second-nearest neighbors
+  int Zij2;
+  // number of atoms that screen the 2NN bond
+  int Nscr2;
+  // distance ratio R1/R2 (a2nn in dynamo)
+  double ratio_2nn;
+  // ratio_2nn depends on sin(theta)
+  bool ratio_2nn_angular;
+  // shape function getter  
+  void (*shpfcn)(const double sthe, const double cthe, double (&s)[3]);
+  // special: reference structure includes third nearest neighbors
+  bool nn3;
+} reference_lattice_t;
+
+constexpr int MAXLAT = 15;
+extern const reference_lattice_t lattice_defs[MAXLAT];
+
+//-----------------------------------------------------------------------------
 // Functions we need for compat
 
 static
@@ -225,43 +255,6 @@ inline double fdiv_zero(const double n, const double d)
   return n / d;
 }
 
-// Lattice IO
-// clang-format off
-//-----------------------------------------------------------------------------
-// convert lattice spec to lattice_t
-// only use single-element lattices if single=true
-// return false on failure
-// return true and set lat on success
-static
-bool str_to_lat(const std::string & str, bool single, lattice_t& lat)
-{
-  if (str == "fcc") lat = FCC;
-  else if (str == "bcc") lat = BCC;
-  else if (str == "hcp") lat = HCP;
-  else if (str == "dim") lat = DIM;
-  else if (str == "dia") lat = DIA;
-  else if (str == "dia3") lat = DIA3;
-  else if (str == "lin") lat = LIN;
-  else if (str == "zig") lat = ZIG;
-  else if (str == "tri") lat = TRI;
-  else if (str == "sc") lat = SC;
-  else {
-    if (single)
-      return false;
-
-    if (str == "b1") lat = B1;
-    else if (str == "c11") lat = C11;
-    else if (str == "l12") lat = L12;
-    else if (str == "b2") lat = B2;
-    else if (str == "ch4") lat = CH4;
-    else if (str == "lin") lat =LIN;
-    else if (str == "zig") lat = ZIG;
-    else if (str == "tri") lat = TRI;
-    else return false;
-  }
-  return true;
-}
-// clang-format on
 
 //-----------------------------------------------------------------------------
 // Pure Functions where inlining is known to give performance benefit: give the
@@ -358,6 +351,7 @@ void dCfunc2(const double rij2, const double rik2, const double rjk2, double &dC
 
 //-----------------------------------------------------------------------------
 // Pure Functions where no benefit from inlining is expected
+extern bool str_to_lat(const std::string & str, bool single, lattice_t& lat);
 extern double zbl(const double r, const int z1, const int z2);
 extern double erose(const double r, const double re, const double alpha, const double Ec,
                     const double repuls, const double attrac, const int form);

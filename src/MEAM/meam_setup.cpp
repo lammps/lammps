@@ -96,35 +96,7 @@ void MEAM::setup_library(int nelt, lattice_t *lat, int *ielement, double * /*atw
     rho0_meam[i] = rozero[i];
     ibar_meam[i] = ibar[i];
 
-    switch (lattce_meam[i][i]) {
-      case FCC:
-        re_meam[i][i] = tmplat[i] / sqrt(2.0);
-        break;
-      case BCC:
-        re_meam[i][i] = tmplat[i] * sqrt(3.0) / 2.0;
-        break;
-      case HCP:
-      case DIM:
-      case CH4:
-      case LIN:
-      case ZIG:
-      case TRI:
-      case SC:
-        re_meam[i][i] = tmplat[i];
-        break;
-      case DIA:
-      case DIA3:
-        re_meam[i][i] = tmplat[i] * sqrt(3.0) / 4.0;
-        break;
-      case B1:
-      case B2:
-      case C11:
-      case L12:
-        // do nothing
-        break;
-      default:;
-        //  error
-    }
+    re_meam[i][i] = lattice_defs[(int)lat[i]].re * tmplat[i];
   }
 
   // Set some defaults

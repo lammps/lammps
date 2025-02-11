@@ -65,42 +65,42 @@ int MEAM_NS::get_Zij(const lattice_t latt)
 ------------------------------------------------------------------------- */
 
 int MEAM_NS::get_Zij2(const lattice_t latt, const double cmin, const double cmax, const double stheta,
-                      double &a, double &S)
+                      double &arat, double &S)
 {
 
-  double C, x, sijk;
+  double C, sijk;
   int Zij2 = 0, numscr = 0;
 
   switch (latt) {
 
     case FCC:
       Zij2 = 6;
-      a = sqrt(2.0);
+      arat = sqrt(2.0);
       numscr = 4;
       break;
 
     case BCC:
       Zij2 = 6;
-      a = 2.0 / sqrt(3.0);
+      arat = 2.0 / sqrt(3.0);
       numscr = 4;
       break;
 
     case HCP:
       Zij2 = 6;
-      a = sqrt(2.0);
+      arat = sqrt(2.0);
       numscr = 4;
       break;
 
     case B1:
     case SC:
       Zij2 = 12;
-      a = sqrt(2.0);
+      arat = sqrt(2.0);
       numscr = 2;
       break;
 
     case DIA:    // 2NN
       Zij2 = 12;
-      a = sqrt(8.0 / 3.0);
+      arat = sqrt(8.0 / 3.0);
       numscr = 1;
       if (cmin < 0.500001) {
         //          call error('can not do 2NN MEAM for dia')
@@ -109,7 +109,7 @@ int MEAM_NS::get_Zij2(const lattice_t latt, const double cmin, const double cmax
 
     case DIA3:    // 3NN
       Zij2 = 12;
-      a = sqrt(11.0 / 3.0);
+      arat = sqrt(11.0 / 3.0);
       numscr = 4;
       if (cmin < 0.500001) {
         //          call error('can not do 2NN MEAM for dia')
@@ -120,31 +120,31 @@ int MEAM_NS::get_Zij2(const lattice_t latt, const double cmin, const double cmax
     case LIN:    //line
     case DIM:
       //        this really shouldn't be allowed; make sure screening is zero
-      a = 1.0;
+      arat = 1.0;
       S = 0.0;
       return 0;
 
     case TRI:    //TRI
       Zij2 = 1;
-      a = 2.0 * stheta;
+      arat = 2.0 * stheta;
       numscr = 2;
       break;
 
     case ZIG:    //zig-zag
       Zij2 = 2;
-      a = 2.0 * stheta;
+      arat = 2.0 * stheta;
       numscr = 1;
       break;
 
     case L12:
       Zij2 = 6;
-      a = sqrt(2.0);
+      arat = sqrt(2.0);
       numscr = 4;
       break;
 
     case B2:
       Zij2 = 6;
-      a = 2.0 / sqrt(3.0);
+      arat = 2.0 / sqrt(3.0);
       numscr = 4;
       break;
     case C11:
@@ -160,11 +160,10 @@ int MEAM_NS::get_Zij2(const lattice_t latt, const double cmin, const double cmax
   if (latt == DIA3) {    // special case for 3NN diamond structure
     C = 1.0;
   } else {
-    C = 4.0 / (a * a) - 1.0;
+    C = 4.0 / (arat * arat) - 1.0;
   }
-  x = (C - cmin) / (cmax - cmin);
-  sijk = fcut(x);
   // There are numscr first neighbors screening the second neighbors
+  sijk = Csijk(C, cmin, cmax);
   S = MathSpecial::powint(sijk, numscr);
   return Zij2;
 }
@@ -177,7 +176,7 @@ int MEAM_NS::get_Zij2(const lattice_t latt, const double cmin, const double cmax
 int MEAM_NS::get_Zij2_b2nn(const lattice_t latt, const double cmin, const double cmax, double &S)
 {
 
-  double x, sijk, C;
+  double sijk;
   int numscr = 0, Zij2 = 0;
   switch (latt) {
     case ZIG:    //zig-zag for b11s and b22s term
@@ -190,9 +189,7 @@ int MEAM_NS::get_Zij2_b2nn(const lattice_t latt, const double cmin, const double
       //        call error('Lattice not defined in get_Zij.')
       break;
   }
-  C = 1.0;
-  x = (C - cmin) / (cmax - cmin);
-  sijk = fcut(x);
+  sijk = Csijk(1.0, cmin, cmax);
   S = MathSpecial::powint(sijk, numscr);
   return Zij2;
 }
@@ -553,9 +550,9 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       //     As usual, L12 thinks it's special; we need to be careful computing
       //     the screening functions
       C = 1.0;
-      get_sijk(C, a, a, a, &s111);
-      get_sijk(C, a, a, b, &s112);
-      get_sijk(C, b, b, a, &s221);
+      s111 = get_sijk(C, a, a, a);
+      s112 = get_sijk(C, a, a, b);
+      s221 = get_sijk(C, b, b, a);
       S11 = s111 * s111 * s112 * s112;
       S22 = s221 * s221 * s221 * s221;
       *rho01 = *rho01 + 6 * S11 * rhoa01nn;

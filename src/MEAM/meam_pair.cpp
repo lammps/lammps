@@ -126,9 +126,9 @@ void MEAM::compute_pair_meam()
               //     1
               //     atoms.
               C = 1.0;
-              get_sijk(C, a, a, a, &s111);
-              get_sijk(C, a, a, b, &s112);
-              get_sijk(C, b, b, a, &s221);
+              s111 = get_sijk(C, a, a, a);
+              s112 = get_sijk(C, a, a, b);
+              s221 = get_sijk(C, b, b, a);
               S11 = s111 * s111 * s112 * s112;
               S22 = pow(s221, 4);
               phir[nv2][j] = phir[nv2][j] - 0.75 * S11 * phiaa - 0.25 * S22 * phibb;
@@ -424,13 +424,9 @@ double MEAM::phi_meam_series(const double scrn, const int Z1, const int Z2, cons
    Calculate screening ellipse
 ------------------------------------------------------------------------- */
 
-void MEAM::get_sijk(double C, int i, int j, int k, double* sijk)
+double MEAM::get_sijk(double C, int i, int j, int k)
 {
-  double x, Cmin, Cmax;
-  Cmin = Cmin_meam[i][j][k];
-  Cmax = Cmax_meam[i][j][k];
-  x = (C - Cmin) / (Cmax - Cmin);
-  *sijk = fcut(x);
+  return Csijk(C, Cmin_meam[i][j][k], Cmax_meam[i][j][k]);
 }
 
 /* ----------------------------------------------------------------------

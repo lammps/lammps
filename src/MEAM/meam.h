@@ -170,7 +170,7 @@ class MEAM {
   void compute_reference_density();
   void get_tavref(double *, double *, double *, double *, double *, double *, double, double,
                   double, double, double, double, double, int, int, lattice_t);
-  void get_sijk(double, int, int, int, double *);
+  double get_sijk(double, int, int, int);
   void get_densref(double, int, int, double *, double *, double *, double *, double *, double *,
                    double *, double *, double *, double *, double *, double *, double *, double *); // last 6 args for msmeam
   void interpolate_meam(int);
@@ -310,6 +310,16 @@ double dfcut(const double xi, double &dfc)
   }
 }
 
+// Screening ellipse, excluding multiple screening
+//
+static
+double Csijk(const double C, const double Cmin, const double Cmax)
+{
+  double x;
+  x = (C - Cmin) / (Cmax - Cmin);
+  return fcut(x);
+}
+
 // Derivative of Cikj w.r.t. rij
 //     Inputs: rij,rij2,rik2,rjk2
 //
@@ -357,7 +367,7 @@ extern void get_shpfcn(const lattice_t latt, const double sthe, const double cth
 
 extern int get_Zij(const lattice_t latt);
 extern int get_Zij2(const lattice_t latt, const double cmin, const double cmax, const double sthe,
-                    double &a, double &S);
+                    double &arat, double &S);
 extern int get_Zij2_b2nn(const lattice_t latt, const double cmin, const double cmax, double &S);
 
 

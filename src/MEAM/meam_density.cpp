@@ -246,9 +246,7 @@ void MEAM::getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, dou
         sij = 0.0;
         break;
       } else {
-        delc = Cmax - Cmin;
-        cikj = (cikj - Cmin) / delc;
-        sikj = fcut(cikj);
+        sikj = Csijk(cikj, Cmin, Cmax);
       }
       sij *= sikj;
     }

@@ -293,7 +293,7 @@ void PairBrownianPoly::compute(int eflag, int vflag)
             torque[j][1] -= ty;
             torque[j][2] -= tz;
           }
-          
+        
           // torque due to a_pu
 
           Fbmag = prethermostat*sqrt(a_pu);

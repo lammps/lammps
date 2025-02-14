@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (GU), Kamila Savvidi (TUHH), Robert Meissner (Hereon, TUHH)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
@@ -138,8 +138,11 @@ class FixElectrodeConp : public Fix {
   int get_top_group();    // used by ffield
   int top_group;          // used by ffield
   bool tfflag;
-  int eta_index;    // index of atom property for eta
-  bool etapropflag;     // eta specified as atom property
+  int eta_index;                // index of atom property for eta
+  bool etapropflag;             // eta specified as atom property
+  bool enflag, hardnessflag;    // qeq parameters set
+  void add_electronegativity(std::vector<double> &);
+  int en_index, hardness_index;
   bool pairflag;    // whether a pair style is specified
   std::string pair_str;
   bool timer_flag;

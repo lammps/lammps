@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Ludwig Ahrens-Iwers (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (GU), Kamila Savvidi (TUHH), Robert Meissner (Hereon, TUHH)
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_coul_long_gauss.h"
@@ -47,6 +47,7 @@ PairLJCutCoulLongGauss::PairLJCutCoulLongGauss(LAMMPS *lmp) : Pair(lmp)
   respa_enable = 0;
   writedata = 1;
   ftable = nullptr;
+  already_warned = false;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -431,6 +432,7 @@ double PairLJCutCoulLongGauss::init_one(int i, int j)
 
 void PairLJCutCoulLongGauss::compute_vector(double *vec, int groupbit, int source_grpbit, bool inv)
 {
+  point_in_sensor_warning(groupbit);
   double **x = atom->x;
   double *q = atom->q;
   int *type = atom->type;
@@ -453,7 +455,6 @@ void PairLJCutCoulLongGauss::compute_vector(double *vec, int groupbit, int sourc
     double const ztmp = x[i][2];
     int const itype = type[i];
     bool const ipoint = !!ispoint[itype];
-    if (ipoint && i_in_sensor) error->all(FLERR, "Point charges can not be used in sensor group");
     int *jlist = firstneigh[i];
     int jnum = numneigh[i];
     for (int jj = 0; jj < jnum; jj++) {
@@ -469,13 +470,15 @@ void PairLJCutCoulLongGauss::compute_vector(double *vec, int groupbit, int sourc
       double const rsq = delx * delx + dely * dely + delz * delz;
       int jtype = type[j];
       if (rsq >= cutsq[itype][jtype]) continue;
-      assert(!(ipoint && !!ispoint[jtype]));
       double const factor_coul = special_coul[sbmask(j)];
       double const r = sqrt(rsq);
       double const rinv = 1.0 / r;
       double aij = rinv * ElectrodeMath::safe_erfc(g_ewald * r);
-      double const erfc_eta = ElectrodeMath::safe_erfc(eta[itype][jtype] * r);
-      aij -= rinv * erfc_eta;
+      double erfc_eta = 0.0;
+      if (!(ipoint && !!ispoint[jtype])) {
+        erfc_eta = ElectrodeMath::safe_erfc(eta[itype][jtype] * r);
+        aij -= rinv * erfc_eta;
+      }
       if (factor_coul < 1.0) aij -= (1.0 - factor_coul) * rinv * (1.0 - erfc_eta);
       if (i_in_sensor) { vec[i] += aij * q[j]; }
       if (j_in_sensor && (!inv || !i_in_sensor)) { vec[j] += aij * q[i]; }
@@ -490,6 +493,7 @@ void PairLJCutCoulLongGauss::compute_vector(double *vec, int groupbit, int sourc
 void PairLJCutCoulLongGauss::compute_vector_self(double *vec, int groupbit, int source_grpbit,
                                                  bool inv)
 {
+  point_in_sensor_warning(groupbit);
   int const inum = list->inum;
   int *mask = atom->mask;
   int *type = atom->type;
@@ -503,9 +507,11 @@ void PairLJCutCoulLongGauss::compute_vector_self(double *vec, int groupbit, int 
     int const i = ilist[ii];
     if (!(mask[i] & groupbit)) continue;
     int const itype = type[i];
-    if (ispoint[itype]) error->all(FLERR, "Point charges can not be used in sensor group");
     bool const i_in_source = !!(mask[i] & source_grpbit) != inv;
-    if (i_in_source) vec[i] += (preta * eta[itype][itype] - selfint) * q[i];
+    if (i_in_source) {
+      vec[i] -= selfint * q[i];
+      if (!ispoint[itype]) vec[i] += preta * eta[itype][itype] * q[i];
+    }
   }
 }
 
@@ -515,6 +521,7 @@ void PairLJCutCoulLongGauss::compute_vector_self(double *vec, int groupbit, int 
 
 void PairLJCutCoulLongGauss::compute_matrix(bigint *mpos, double **array, int groupbit)
 {
+  point_in_sensor_warning(groupbit);
   int *numneigh, **firstneigh;
 
   double **x = atom->x;
@@ -532,7 +539,7 @@ void PairLJCutCoulLongGauss::compute_matrix(bigint *mpos, double **array, int gr
     int const i = ilist[ii];
     if (!(mask[i] & groupbit)) continue;
     int const itype = type[i];
-    if (ispoint[itype]) error->all(FLERR, "Electrode matrix can not be computed for point charges");
+    bool const ipoint = !!ispoint[itype];
     bigint const ipos = mpos[i];
     double const xtmp = x[i][0];
     double const ytmp = x[i][1];
@@ -557,8 +564,11 @@ void PairLJCutCoulLongGauss::compute_matrix(bigint *mpos, double **array, int gr
         double const r = sqrt(rsq);
         double const rinv = 1.0 / r;
         double aij = rinv * ElectrodeMath::safe_erfc(g_ewald * r);
-        double const erfc_eta = ElectrodeMath::safe_erfc(eta[itype][jtype] * r);
-        aij -= rinv * erfc_eta;
+        double erfc_eta = 0.0;
+        if (!(ipoint && !!ispoint[jtype])) {
+          erfc_eta = ElectrodeMath::safe_erfc(eta[itype][jtype] * r);
+          aij -= rinv * erfc_eta;
+        }
         if (factor_coul < 1.0) aij -= (1.0 - factor_coul) * rinv * (1.0 - erfc_eta);
         // newton on or off?
         if (!newton_pair && j >= nlocal) aij *= 0.5;
@@ -577,6 +587,7 @@ void PairLJCutCoulLongGauss::compute_matrix(bigint *mpos, double **array, int gr
 
 void PairLJCutCoulLongGauss::compute_matrix_self(bigint *mpos, double **array, int groupbit)
 {
+  point_in_sensor_warning(groupbit);
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
   int *type = atom->type;
@@ -584,11 +595,13 @@ void PairLJCutCoulLongGauss::compute_matrix_self(bigint *mpos, double **array, i
   const double selfint = 2.0 / MY_PIS * g_ewald;
   const double preta = 2.0 / MY_PIS;
 
-  for (int i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       int const itype = type[i];
-      array[mpos[i]][mpos[i]] += preta * eta[itype][itype] - selfint;
+      array[mpos[i]][mpos[i]] -= selfint;
+      if (!ispoint[itype]) array[mpos[i]][mpos[i]] += preta * eta[itype][itype];
     }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -803,4 +816,22 @@ void *PairLJCutCoulLongGauss::extract(const char *str, int &dim)
   if (strcmp(str, "sigma") == 0) return (void *) sigma;
   if (strcmp(str, "eta") == 0) return (void *) eta;
   return nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   warn if point charges are in the sensor group (this should only be the case in EEM not for QEq or CPM)
+------------------------------------------------------------------------- */
+
+void PairLJCutCoulLongGauss::point_in_sensor_warning(int groupbit)
+{
+  if (already_warned) return;
+  int point_in_sensor = 0;
+  for (int i = 0; i < atom->nlocal; i++) {
+    if (!!ispoint[atom->type[i]] && (atom->mask[i] & groupbit)) point_in_sensor++;
+  }
+  MPI_Allreduce(MPI_IN_PLACE, &point_in_sensor, 1, MPI_INT, MPI_SUM, world);
+  if (point_in_sensor) {
+    if (comm->me == 0) error->warning(FLERR, "Point charges are used in sensor group");
+    already_warned = true;
+  }
 }

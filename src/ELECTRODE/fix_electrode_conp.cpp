@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (GU), Kamila Savvidi (TUHH), Robert Meissner (Hereon, TUHH)
 ------------------------------------------------------------------------- */
 
 #include "fix_electrode_conp.h"
@@ -104,7 +104,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   top_group = 0;
   intelflag = false;
   tfflag = false;
-  etapropflag = false;
+  etapropflag = enflag = hardnessflag = false;
   pairflag = false;
   timer_flag = false;
 
@@ -247,6 +247,25 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 2 > narg) error->all(FLERR, "Need one argument after pair command");
       pairflag = true;
       pair_str = arg[++iarg];
+    } else if ((strcmp(arg[iarg], "electronegativity") == 0) ||
+               (strcmp(arg[iarg], "hardness") == 0)) {
+      char *keyword = arg[iarg];
+      if (iarg + 2 > narg) error->all(FLERR, "Need one argument after {} command", keyword);
+      int is_double, cols;
+      int index = atom->find_custom(arg[++iarg] + 2, is_double, cols);
+      if (index == -1)
+        error->all(FLERR, "{} keyword requires name of previously defined property", keyword);
+      if (!is_double)
+        error->all(FLERR, "{} keyword requires double-valued property/atom vector", keyword);
+      if (cols != 0)
+        error->all(FLERR, "{} keyword requires property/atom vector not an array", keyword);
+      if (strcmp(keyword, "electronegativity") == 0) {
+        en_index = index;
+        enflag = true;
+      } else if (strcmp(keyword, "hardness") == 0) {
+        hardness_index = index;
+        hardnessflag = true;
+      }
     }
     // toggle parameters
     else if ((strcmp(arg[iarg], "etypes") == 0)) {
@@ -587,6 +606,7 @@ void FixElectrodeConp::setup_post_neighbor()
     elec_vector->setup(pair, mat_neighlist, pairflag, timer_flag);
     if (etapropflag) elec_vector->setup_eta(eta_index);
     if (tfflag) elec_vector->setup_tf(tf_types);
+    if (hardnessflag) elec_vector->setup_hardness(hardness_index);
   }
 
   auto const order_matrix = [](std::vector<tagint> order, double **mat) {
@@ -622,6 +642,7 @@ void FixElectrodeConp::setup_post_neighbor()
       array_compute->setup(tag_to_iele, pair, mat_neighlist, pairflag);
       if (etapropflag) array_compute->setup_eta(eta_index);
       if (tfflag) array_compute->setup_tf(tf_types);
+      if (hardnessflag) array_compute->setup_hardness(hardness_index);
       array_compute->compute_array(elastance, timer_flag);
     }    // write_mat before proceeding
     if (comm->me == 0 && write_mat) {
@@ -915,6 +936,12 @@ void FixElectrodeConp::update_charges()
     std::fill(sb_charges.begin(), sb_charges.end(), 0.);
     memset(potential_i, 0, atom->nmax * sizeof(double));
     elyt_vector->compute_vector(potential_i);
+    if (enflag) {
+      double *d_en = atom->dvector[en_index];
+      for (int i = 0; i < atom->nlocal; i++) {
+        if (atom->mask[i] & groupbit) potential_i[i] += d_en[i] / force->qqrd2e;
+      }
+    }
     if (force->newton_pair) comm->reverse_comm(this);
     buffer_and_gather(potential_i, potential_iele);
     MPI_Barrier(world);
@@ -938,6 +965,7 @@ void FixElectrodeConp::update_charges()
   } else if (algo == Algo::MATRIX_CG || algo == Algo::CG) {    // conjugate gradient algorithm
     update_psi();                                              // update group_psi if equal-style
     auto b = gather_elevec_local(elyt_vector);
+    if (enflag) add_electronegativity(b);
     for (int i = 0; i < nlocalele; i++) {
       b[i] -= evscale * group_psi[iele_to_group_local[i]];
       q_local[i] = q[atom->map(taglist_local[i])];    // pre-condition with current charges
@@ -1256,14 +1284,24 @@ double FixElectrodeConp::self_energy(int eflag)
   double const qqrd2e = force->qqrd2e;
   int const nlocal = atom->nlocal;
   int *mask = atom->mask;
+  int *type = atom->type;
   double *q = atom->q;
   if (tfflag) {
-    int *type = atom->type;
     for (int i = 0; i < nlocal; i++) {
       if (groupbit & mask[i]) {
-        double e = 0.5 * qqrd2e * q[i] * q[i] * tf_types[type[i]];
+        double const e = 0.5 * qqrd2e * q[i] * q[i] * tf_types[type[i]];
         energy += e;
-        if (eflag) { force->pair->ev_tally(i, i, nlocal, force->newton_pair, 0., e, 0, 0, 0, 0); }
+        if (eflag) force->pair->ev_tally(i, i, nlocal, force->newton_pair, 0., e, 0, 0, 0, 0);
+      }
+    }
+  }
+  if (hardnessflag) {    // TODO really want to add hardness energy term?
+    double *d_hardness = atom->dvector[hardness_index];
+    for (int i = 0; i < nlocal; i++) {
+      if (groupbit & mask[i]) {
+        double const e = 0.5 * q[i] * q[i] * d_hardness[i];
+        energy += e;
+        if (eflag) force->pair->ev_tally(i, i, nlocal, force->newton_pair, 0., e, 0, 0, 0, 0);
       }
     }
   }
@@ -1745,3 +1783,14 @@ void FixElectrodeConp::v_tally(int i, int j, int nlocal, int newton_pair, double
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixElectrodeConp::add_electronegativity(std::vector<double> &b)
+{
+  assert(enflag);
+  double *d_en = atom->dvector[en_index];
+  for (int i = 0; i < nlocalele; i++) b[i] += d_en[atom->map(taglist_local[i])] / force->qqrd2e;
+}
+
+/* ---------------------------------------------------------------------- */

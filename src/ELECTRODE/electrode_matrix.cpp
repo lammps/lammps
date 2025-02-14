@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (GU), Robert Meissner (Hereon, TUHH)
 ------------------------------------------------------------------------- */
 
 #include "electrode_matrix.h"
@@ -46,6 +46,7 @@ ElectrodeMatrix::ElectrodeMatrix(LAMMPS *lmp, int electrode_group, double eta) :
   this->eta = eta;
   etaflag = false;
   tfflag = false;
+  hardnessflag = false;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -85,6 +86,14 @@ void ElectrodeMatrix::setup_tf(const std::map<int, double> &tf_types)
 
 /* ---------------------------------------------------------------------- */
 
+void ElectrodeMatrix::setup_hardness(int index)
+{
+  hardnessflag = true;
+  hardness_index = index;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ElectrodeMatrix::setup_eta(int index)
 {
   etaflag = true;
@@ -108,6 +117,7 @@ void ElectrodeMatrix::compute_array(double **array, bool timer_flag)
     self_contribution(array);
   }
   if (tfflag) tf_contribution(array);
+  if (hardnessflag) hardness_contribution(array);
   if (kspaceflag) {
     MPI_Barrier(world);
     double kspace_time = MPI_Wtime();
@@ -222,6 +232,25 @@ void ElectrodeMatrix::tf_contribution(double **array)
   int *mask = atom->mask;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) array[mpos[i]][mpos[i]] += tf_types[type[i]];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ElectrodeMatrix::hardness_contribution(double **array)
+{
+  double *d_hardness = atom->dvector[hardness_index];
+  int nlocal = atom->nlocal;
+  int *mask = atom->mask;
+  bool warn = false;
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      double hardness = d_hardness[i] / force->qqrd2e;
+      array[mpos[i]][mpos[i]] += hardness;
+      if (hardness < 0) warn = true;
+    }
+  }
+  if (warn && comm->me == 0)
+    error->warning(FLERR, "Hardness smaller than zero. Qeq might not converge.");
 }
 
 /* ---------------------------------------------------------------------- */

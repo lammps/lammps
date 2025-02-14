@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (GU), Robert Meissner (Hereon, TUHH)
 ------------------------------------------------------------------------- */
 
 #ifndef LMP_ELECTRODE_VECTOR_H
@@ -29,6 +29,7 @@ class ElectrodeVector : protected Pointers {
   ~ElectrodeVector() override;
   void setup(class Pair *, class NeighList *, bool, bool);
   void setup_tf(const std::map<int, double> &);
+  void setup_hardness(int index);
   void setup_eta(int);
   void compute_vector(double *);
   int igroup, source_group;
@@ -41,9 +42,11 @@ class ElectrodeVector : protected Pointers {
   double g_ewald, eta;
   bool pairflag;
   bool tfflag;
+  bool hardnessflag;
   bool etaflag;
   int eta_index;
   std::map<int, double> tf_types;
+  int hardness_index;
   class NeighList *list;
   class ElectrodePair *electrode_pair;
   bool kspaceflag;
@@ -52,6 +55,7 @@ class ElectrodeVector : protected Pointers {
   void pair_contribution(double *);
   void self_contribution(double *);
   void tf_contribution(double *);
+  void hardness_contribution(double *);
 
   double kspace_time_total;
   double pair_time_total;

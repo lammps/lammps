@@ -61,6 +61,8 @@ class PairLJCutCoulWolfGauss : public Pair, public ElectrodePair {
   virtual void allocate();
 
  private:
+  bool already_warned;
+  void point_in_sensor_warning(int);
   double compl_error_func(double, double);
 };
 

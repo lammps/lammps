@@ -1,0 +1,37 @@
+# -------------------- INITIALIZATION -------------------- #
+# -------------------------------------------------------- #
+units		real
+dimension	3
+boundary	p p p
+atom_style	full
+include "in.settings"
+thermo_style	custom step temp press etotal ke pe ecoul elong density v_charge_qsi v_charge_qo
+thermo 100
+timestep 1.0 #1 fs
+
+# -------------------- ELECTRODE/QEQ --------------------- #
+fix pra all property/atom d_chi d_hardness d_eta ghost yes
+fix qeq all electrode/conp 0 algo cg 1e-4 symm on electronegativity d_chi hardness d_hardness eta d_eta
+
+# reciprocal width in 1/A
+variable eta_Si equal 0.4738752  
+variable eta_O equal 0.8338071  
+# effective hardness in kcal/mol
+variable hard_eff_Si equal 160.7282 
+variable hard_eff_O equal 308.0816 
+# hardness subtracted by the self-interaction
+variable qqr2de equal 332.0637132991922
+variable hard_Si equal ${hard_eff_Si}-${qqr2de}*sqrt(2/PI)*${eta_Si}
+variable hard_O equal ${hard_eff_O}-${qqr2de}*sqrt(2/PI)*${eta_O}
+# set atom properties for fix electrode
+set type 2 d_chi 96.11408 d_hardness ${hard_Si} d_eta ${eta_Si}  # Si
+set type 1 d_chi 201.5444 d_hardness ${hard_O} d_eta ${eta_O}  # O
+
+# Equilibration at 300K
+fix fxnpt all npt temp 298.0 298.0 $(100.0*dt) iso 1.0 1.0 $(1000.0*dt) 
+
+run     1000
+
+write_data data.quartz_final nocoeff
+
+# ------------------------ END --------------------------- #

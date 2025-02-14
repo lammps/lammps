@@ -44,7 +44,7 @@ Syntax
                 rng_v = integer used to initialize random number generator
 
 * zero or more keyword/value pairs may be appended
-* keyword = *algo* or *symm* or *couple* or *etypes* or *ffield* or *write_mat* or *write_inv* or *read_mat* or *read_inv* or *qtotal* or *eta* or *pair*
+* keyword = *algo* or *symm* or *couple* or *etypes* or *ffield* or *write_mat* or *write_inv* or *read_mat* or *read_inv* or *qtotal* or *eta* or *hardness* or *electronegativity* or *pair*
 
 .. parsed-literal::
 
@@ -71,6 +71,10 @@ Syntax
         add overall potential so that all electrode charges add up to *qtotal*
     *eta* value = number or d_propname
         d_propname = a custom double vector defined via fix property/atom
+    *hardness* value = d_propname
+        d_propname = a custom double vector defined via fix property/atom
+    *electronegativity* value = d_propname
+        d_propname = a custom double vector defined via fix property/atom
     *pair* value = pair style name
 
 Examples
@@ -82,6 +86,7 @@ Examples
    fix fxconp electrodes electrode/conq 0.0 eta 1.805 algo cg 1e-5
    fix fxconp bot electrode/thermo -1.0 eta  1.805 temp 298 100 couple top 1.0
    fix fxconq elec electrode/conq -1.0 eta d_etavector
+   fix fxqeq all electrode/conp 0.0 algo cg 1e-5 pair lj/cut/coul/wolf/gauss hardness d_hardness electronegativity d_chi qtotal 0
 
 Description
 """""""""""
@@ -284,6 +289,15 @@ will then purely update charges and not apply Gaussian-based energy or
 force corrections, and the eta parameter specified in the input of this
 fix will be ignored.
 
+.. versionadded:: TBD
+
+The keywords *hardness* and *electronegativity* must be followed by the name of
+a custom double vector defined via fix property/atom. The units of hardness are
+energy units per charge^2 and the units of electronegativity are energy units
+per charge. The terms add quadratic and linear terms to the energy,
+respectively. The two keywords enable simulations with charge equilibration
+(:ref:`Rappe <Rappe>`).
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -458,6 +472,10 @@ The default keyword-option settings are *algo mat_inv*, *symm off*,
 .. _Tee:
 
 **(Tee)** Tee and Searles, J. Chem. Phys. 156, 184101 (2022).
+
+.. _Rappe:
+
+**(Rappe)** Rappe and Goddard, J. Phys. Chem., 95, 3358 (1991).
 
 .. _Scalfi:
 

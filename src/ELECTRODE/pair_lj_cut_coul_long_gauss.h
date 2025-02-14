@@ -54,12 +54,15 @@ class PairLJCutCoulLongGauss : public Pair, public ElectrodePair {
   double cut_lj_global;
   double **cut_lj, **cut_ljsq;
   double cut_coul, cut_coulsq;
-  double **epsilon, **sigma,**eta;
+  double **epsilon, **sigma, **eta;
   double **lj1, **lj2, **lj3, **lj4, **offset;
   int *ispoint;
   double g_ewald;
 
   virtual void allocate();
+ private:
+  bool already_warned;
+  void point_in_sensor_warning(int);
 };
 
 }    // namespace LAMMPS_NS

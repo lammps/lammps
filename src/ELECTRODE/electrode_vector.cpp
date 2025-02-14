@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (GU), Robert Meissner (Hereon, TUHH)
 ------------------------------------------------------------------------- */
 
 #include "electrode_vector.h"
@@ -49,6 +49,7 @@ ElectrodeVector::ElectrodeVector(LAMMPS *lmp, int sensor_group, int source_group
   source_grpbit = group->bitmask[source_group];
   this->eta = eta;
   tfflag = false;
+  hardnessflag = false;
   etaflag = false;
 
   kspace_time_total = 0;
@@ -109,6 +110,14 @@ void ElectrodeVector::setup_tf(const std::map<int, double> &tf_types)
 
 /* ---------------------------------------------------------------------- */
 
+void ElectrodeVector::setup_hardness(int index)
+{
+  hardnessflag = true;
+  hardness_index = index;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ElectrodeVector::setup_eta(int index)
 {
   etaflag = true;
@@ -131,6 +140,7 @@ void ElectrodeVector::compute_vector(double *vector)
     self_contribution(vector);
   }
   if (tfflag) tf_contribution(vector);
+  if (hardnessflag) hardness_contribution(vector);
   MPI_Barrier(world);
   pair_time_total += MPI_Wtime() - pair_start_time;
   // kspace
@@ -247,4 +257,28 @@ void ElectrodeVector::tf_contribution(double *vector)
     bool const i_in_source = !!(mask[i] & source_grpbit) != invert_source;
     if (i_in_sensor && i_in_source) vector[i] += tf_types[type[i]] * q[i];
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ElectrodeVector::hardness_contribution(double *vector)
+{
+  int const inum = list->inum;
+  int *ilist = list->ilist;
+  double *q = atom->q;
+  double *d_hardness = atom->dvector[hardness_index];
+  int *mask = atom->mask;
+  bool warn = false;
+  for (int ii = 0; ii < inum; ii++) {
+    int const i = ilist[ii];
+    bool const i_in_sensor = (mask[i] & groupbit);
+    bool const i_in_source = !!(mask[i] & source_grpbit) != invert_source;
+    if (i_in_sensor && i_in_source) {
+      double hardness = d_hardness[i] / force->qqrd2e;
+      vector[i] += hardness * q[i];
+      if (hardness < 0) warn = true;
+    }
+  }
+  if (warn && comm->me == 0)
+    error->warning(FLERR, "Hardness smaller than zero. Qeq might not converge.");
 }

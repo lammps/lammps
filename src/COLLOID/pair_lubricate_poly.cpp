@@ -353,6 +353,13 @@ void PairLubricatePoly::compute(int eflag, int vflag)
         f[i][1] -= fy;
         f[i][2] -= fz;
 
+        //use Newton's third law
+
+        if (newton_pair || j<nlocal) {
+          f[j][0] += fx;
+          f[j][1] += fy;
+          f[j][2] += fz;
+        }
         // torque due to this force
 
         if (flaglog) {
@@ -363,6 +370,12 @@ void PairLubricatePoly::compute(int eflag, int vflag)
           torque[i][0] -= vxmu2f*tx;
           torque[i][1] -= vxmu2f*ty;
           torque[i][2] -= vxmu2f*tz;
+
+          if (newton_pair || j < nlocal) {
+            torque[j][0] -= vxmu2f*tx;
+            torque[j][1] -= vxmu2f*ty;
+            torque[j][2] -= vxmu2f*tz;
+          }
 
           // torque due to a_pu
 
@@ -380,11 +393,17 @@ void PairLubricatePoly::compute(int eflag, int vflag)
           torque[i][1] -= vxmu2f*ty;
           torque[i][2] -= vxmu2f*tz;
 
+          if (newton_pair || j < nlocal) {
+            torque[j][0] += vxmu2f*tx;
+            torque[j][1] += vxmu2f*ty;
+            torque[j][2] += vxmu2f*tz;
+          }
+
         }
 
         // set j = nlocal so that only I gets tallied
 
-        if (evflag) ev_tally_xyz(i,nlocal,nlocal,0,
+        if (evflag) ev_tally_xyz(i,nlocal,nlocal,newton_pair,
                                  0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
       }
     }
@@ -423,8 +442,8 @@ void PairLubricatePoly::compute(int eflag, int vflag)
 
 void PairLubricatePoly::init_style()
 {
-  if (force->newton_pair == 1)
-    error->all(FLERR, "Pair lubricate/poly requires newton pair off");
+  // if (force->newton_pair == 1)
+  //   error->all(FLERR, "Pair lubricate/poly requires newton pair off");
   if (comm->ghost_velocity == 0)
     error->all(FLERR, "Pair lubricate/poly requires ghost atoms store velocity");
   if (!atom->omega_flag)

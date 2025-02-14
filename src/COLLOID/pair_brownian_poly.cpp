@@ -66,6 +66,7 @@ void PairBrownianPoly::compute(int eflag, int vflag)
   double *radius = atom->radius;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
 
   double vxmu2f = force->vxmu2f;
   double randr;
@@ -255,6 +256,16 @@ void PairBrownianPoly::compute(int eflag, int vflag)
         f[i][1] -= fy;
         f[i][2] -= fz;
 
+        if (newton_pair || j < nlocal) {
+          //randr = random->uniform()-0.5;
+          //fx = Fbmag*randr*delx/r;
+          //fy = Fbmag*randr*dely/r;
+          //fz = Fbmag*randr*delz/r;
+
+          f[j][0] += fx;
+          f[j][1] += fy;
+          f[j][2] += fz;
+        }
         // torque due to the Brownian Force
 
         if (flaglog) {
@@ -277,6 +288,12 @@ void PairBrownianPoly::compute(int eflag, int vflag)
           torque[i][1] -= ty;
           torque[i][2] -= tz;
 
+          if (newton_pair || j < nlocal) {
+            torque[j][0] -= tx;
+            torque[j][1] -= ty;
+            torque[j][2] -= tz;
+          }
+          
           // torque due to a_pu
 
           Fbmag = prethermostat*sqrt(a_pu);
@@ -303,7 +320,7 @@ void PairBrownianPoly::compute(int eflag, int vflag)
 
         // set j = nlocal so that only I gets tallied
 
-        if (evflag) ev_tally_xyz(i,nlocal,nlocal,0,
+        if (evflag) ev_tally_xyz(i,nlocal,nlocal,newton_pair,
                                  0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
       }
     }
@@ -316,8 +333,8 @@ void PairBrownianPoly::compute(int eflag, int vflag)
 
 void PairBrownianPoly::init_style()
 {
-  if (force->newton_pair == 1)
-    error->all(FLERR,"Pair brownian/poly requires newton pair off");
+  // if (force->newton_pair == 1)
+  //   error->all(FLERR,"Pair brownian/poly requires newton pair off");
   if (!atom->radius_flag)
     error->all(FLERR,"Pair brownian/poly requires atom attribute radius");
 

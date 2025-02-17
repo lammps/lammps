@@ -577,7 +577,7 @@ void PairLJClass2CoulLong::compute_outer(int eflag, int vflag)
 void PairLJClass2CoulLong::allocate()
 {
   allocated = 1;
-  const int np1 = atom->ntypes + 1;
+  const int np1 = atom->max_ntypes + 1;
 
   memory->create(setflag, np1, np1, "pair:setflag");
   for (int i = 1; i < np1; i++)
@@ -630,8 +630,8 @@ void PairLJClass2CoulLong::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
-  utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
-  utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
+  utils::bounds(FLERR, arg[0], 1, atom->max_ntypes, ilo, ihi, error);
+  utils::bounds(FLERR, arg[1], 1, atom->max_ntypes, jlo, jhi, error);
 
   double epsilon_one = utils::numeric(FLERR, arg[2], false, lmp);
   double sigma_one = utils::numeric(FLERR, arg[3], false, lmp);
@@ -645,6 +645,7 @@ void PairLJClass2CoulLong::coeff(int narg, char **arg)
       epsilon[i][j] = epsilon_one;
       sigma[i][j] = sigma_one;
       cut_lj[i][j] = cut_lj_one;
+      if (i == j && setflag[i][j] == 0) atom->ntypes++;
       setflag[i][j] = 1;
       count++;
     }

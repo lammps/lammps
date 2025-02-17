@@ -55,6 +55,7 @@ class Atom : protected Pointers {
 
   bigint nbonds, nangles, ndihedrals, nimpropers;
   int ntypes, nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
+  int max_ntypes, max_nbondtypes, max_nangletypes, max_ndihedraltypes, max_nimpropertypes;
   int bond_per_atom, angle_per_atom, dihedral_per_atom, improper_per_atom;
   int extra_bond_per_atom, extra_angle_per_atom;
   int extra_dihedral_per_atom, extra_improper_per_atom;

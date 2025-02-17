@@ -334,9 +334,9 @@ bool LabelMap::is_complete(int mode) const
 
 void LabelMap::write_data(FILE *fp)
 {
-  if (is_complete(Atom::ATOM)) {
+  if (static_cast<int>(typelabel_map.size()) == atom->ntypes) {
     utils::print(fp, "\nAtom Type Labels\n\n");
-    for (int i = 0; i < natomtypes; i++) utils::print(fp, "{} {}\n", i + 1, typelabel[i]);
+    for (int i = 0; i < atom->ntypes; i++) utils::print(fp, "{} {}\n", i + 1, typelabel[i]);
   }
 
   if (force->bond && is_complete(Atom::BOND)) {

@@ -94,8 +94,9 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
 {
   natoms = 0;
   nlocal = nghost = nmax = 0;
-  ntypes = 0;
+  ntypes = max_ntypes = 0;
   nellipsoids = nlines = ntris = nbodies = 0;
+  max_nbondtypes = max_nangletypes = max_ndihedraltypes = max_nimpropertypes = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
 
@@ -1902,17 +1903,17 @@ void Atom::data_fix_compute_variable(int nprev, int nnew)
 }
 
 /* ----------------------------------------------------------------------
-   allocate arrays of length ntypes
-   only done after ntypes is set
+   allocate arrays of length max_ntypes
+   only done after max_ntypes is set
 ------------------------------------------------------------------------- */
 
 void Atom::allocate_type_arrays()
 {
   if (avec->mass_type == AtomVec::PER_TYPE) {
-    mass = new double[ntypes+1];
-    mass_setflag = new int[ntypes+1];
+    mass = new double[max_ntypes+1];
+    mass_setflag = new int[max_ntypes+1];
     // start loop from 0 to avoid uninitialized access when operating on the whole array
-    for (int itype = 0; itype <= ntypes; itype++) {
+    for (int itype = 0; itype <= max_ntypes; itype++) {
       mass_setflag[itype] = 0;
       mass[itype] = 0.0;
     }
@@ -1949,7 +1950,7 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
 
     case 0: {    // numeric
       itype = utils::inumeric(file, line, typestr, false, lmp);
-      if ((itype < 1) || (itype > ntypes))
+      if ((itype < 1) || (itype > max_ntypes))
         error->all(file, line, "Invalid atom type {} in {}: {}", itype, location, utils::trim(str));
       if (labelflag) itype = ilabel[itype - 1];
       break;
@@ -1973,7 +1974,7 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
   itype += type_offset;
   mass_one = utils::numeric(file, line, values[1], false, lmp);
 
-  if (itype < 1 || itype > ntypes)
+  if (itype < 1 || itype > max_ntypes)
     error->all(file, line, "Invalid atom type {} in {}: {}", itype, location, utils::trim(str));
 
   if (mass_one <= 0.0)
@@ -2014,7 +2015,7 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
     error->all(file,line, "Cannot set per-type atom mass for atom style {}", atom_style);
 
   int lo, hi;
-  utils::bounds_typelabel(file, line, arg[0], 1, ntypes, lo, hi, lmp, Atom::ATOM);
+  utils::bounds_typelabel(file, line, arg[0], 1, max_ntypes, lo, hi, lmp, Atom::ATOM);
   if ((lo < 1) || (hi > ntypes))
     error->all(file, line, "Invalid atom type {} for atom mass", arg[0]);
 
@@ -2280,7 +2281,7 @@ void Atom::add_label_map()
   if (lmp->kokkos)
     error->all(FLERR, "Label maps are currently not supported with Kokkos");
   labelmapflag = 1;
-  lmap = new LabelMap(lmp,ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes);
+  lmap = new LabelMap(lmp,max_ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes);
 }
 
 /* ----------------------------------------------------------------------

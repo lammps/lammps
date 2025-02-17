@@ -1233,7 +1233,7 @@ void ReadData::header(int firstpass)
   // value will not be processed
 
   if (addflag == NONE) {
-    atom->ntypes = extra_atom_types;
+    atom->max_ntypes = extra_atom_types;
     atom->nbondtypes = extra_bond_types;
     atom->nangletypes = extra_angle_types;
     atom->ndihedraltypes = extra_dihedral_types;
@@ -1374,7 +1374,7 @@ void ReadData::header(int firstpass)
 
     } else if (utils::strmatch(line, "^\\s*\\d+\\s+atom\\s+types\\s")) {
       ntypes = utils::inumeric(FLERR, words[0], false, lmp);
-      if (addflag == NONE) atom->ntypes = ntypes + extra_atom_types;
+      if (addflag == NONE) atom->max_ntypes = ntypes + extra_atom_types;
 
     } else if (utils::strmatch(line, "\\s*\\d+\\s+bond\\s+types\\s")) {
       nbondtypes = utils::inumeric(FLERR, words[0], false, lmp);

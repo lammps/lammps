@@ -267,7 +267,7 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
         error->one(FLERR, "atom {} has bodyown {} but no bodies", i, d_bodyown(i));
       }
       if(d_bodyown(i) >= nlocal_body){
-        error->one(FLERR, "rank {} atom {} has bodyown {} but only {} local bodies",
+        error->message(FLERR, "rank {} atom {} has bodyown {} but only {} local bodies",
             comm->me, i, d_bodyown(i), nlocal_body);
       }
 #endif
@@ -1282,6 +1282,7 @@ int FixRigidSmallKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first, DAT::tdual_xfloat_1d &k_buf)
 {
+  if (n==0) return;
   Kokkos::Profiling::pushRegion("rigid/small unpack forward");
   this->first = first;
   auto d_buf = k_buf.view<DeviceType>();
@@ -1406,6 +1407,8 @@ int FixRigidSmallKokkos<DeviceType>::pack_reverse_comm_kokkos(int n, int first, 
   if (commflag != FORCE_TORQUE) {
     error->all(FLERR, "attempting invalid reverse comm on device");
   }
+
+  if (n==0) return 0;
 
   auto d_buf = k_buf.view<DeviceType>();
   auto d_bodyown = this->d_bodyown;

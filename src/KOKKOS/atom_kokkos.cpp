@@ -173,7 +173,7 @@ void AtomKokkos::sort()
       auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
       if (!fix_iextra->sort_device) {
         flag = 0;
-        error->warning(FLERR, "fix w/o device sort");
+        if (comm->me == 0) error->warning(FLERR, "fix w/o device sort");
         break;
       }
     }

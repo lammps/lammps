@@ -55,6 +55,18 @@ target_include_directories(test_error_stats PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} 
 target_link_libraries(test_error_stats PRIVATE GTest::GMockMain)
 add_test(NAME ErrorStats COMMAND test_error_stats)
 
+if(MSVC)
+  if((CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "Intel"))
+    target_compile_options(test_error_stats PUBLIC /Zc:__cplusplus)
+    target_compile_options(test_error_stats PUBLIC /wd4244)
+    target_compile_options(test_error_stats PUBLIC /wd4267)
+    target_compile_options(test_error_stats PUBLIC /wd4250)
+    target_compile_options(test_error_stats PUBLIC /EHsc)
+    target_compile_options(test_error_stats PUBLIC /utf-8)
+  endif()
+  target_compile_definitions(test_error_stats PUBLIC _CRT_SECURE_NO_WARNINGS)
+endif()
+
 # pair style tester
 add_executable(test_pair_style test_pair_style.cpp)
 target_link_libraries(test_pair_style PRIVATE lammps style_tests)

@@ -6,7 +6,6 @@ add_executable(test_simple_commands test_simple_commands.cpp)
 if(PKG_PLUGIN)
   add_subdirectory(${LAMMPS_DIR}/examples/plugins ${CMAKE_BINARY_DIR}/build-plugins)
   add_dependencies(test_simple_commands plugins)
-  target_compile_definitions(test_simple_commands PRIVATE -DLMP_PLUGIN)
 endif()
 
 target_link_libraries(test_simple_commands PRIVATE lammps GTest::GMock)

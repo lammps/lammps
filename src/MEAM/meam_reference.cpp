@@ -312,14 +312,26 @@ void MEAM_NS::get_shpfcn(const lattice_t latt, const double sthe, const double c
 }
 
 /* ----------------------------------------------------------------------
+   Atomic density term; inlinable helper for get_tavref.
+------------------------------------------------------------------------- */
+
+double get_rhoa0(double r, double re, double rho0, double beta)
+{
+  double a;
+  a = r / re - 1.0;
+  return rho0 * MathSpecial::fm_exp(-beta * a);
+}
+
+/* ----------------------------------------------------------------------
    Average weighting factors for the reference structure
 ------------------------------------------------------------------------- */
 
 void MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av, double* t22av, double* t32av,
-                      double t11, double t21, double t31, double t12, double t22, double t32, double r, int a,
-                      int b, lattice_t latt)
+                      double t11, double t21, double t31, double t12, double t22, double t32,
+                      double rho01, double rho02,
+                      double r, int a, int b, lattice_t latt)
 {
-  double rhoa01, rhoa02, a1, a2;
+  double f, rhoa01, rhoa02;
 
   //     For ialloy = 2, no averaging is done
   if (ialloy == 2) {
@@ -351,29 +363,27 @@ void MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av
       *t22av = t21;
       *t32av = t31;
       break;
+    case C11:
+      f = 1.0 / (rho01 + rho02);
+      *t11av = f * (t11 * rho01 + t12 * rho02);
+      *t12av = *t11av;
+      *t21av = f * (t21 * rho01 + t22 * rho02);
+      *t22av = *t21av;
+      *t31av = f * (t31 * rho01 + t32 * rho02);
+      *t32av = *t31av;
+      break;
+    case L12:
+      rhoa01 = get_rhoa0(r, re_meam[a][a], rho0_meam[a], beta0_meam[a]);
+      rhoa02 = get_rhoa0(r, re_meam[b][b], rho0_meam[b], beta0_meam[b]);
+      *t12av = t11;
+      *t22av = t21;
+      *t32av = t31;
+      *t11av = (8 * t11 * rhoa01 + 4 * t12 * rhoa02) / rho01;
+      *t21av = (8 * t21 * rhoa01 + 4 * t22 * rhoa02) / rho01;
+      *t31av = (8 * t31 * rhoa01 + 4 * t32 * rhoa02) / rho01;
+      break;
     default:
-      a1 = r / re_meam[a][a] - 1.0;
-      a2 = r / re_meam[b][b] - 1.0;
-      rhoa01 = rho0_meam[a] * MathSpecial::fm_exp(-beta0_meam[a] * a1);
-      rhoa02 = rho0_meam[b] * MathSpecial::fm_exp(-beta0_meam[b] * a2);
-      if (latt == L12) {
-        double rho01 = 8 * rhoa01 + 4 * rhoa02;
-        *t12av = t11;
-        *t22av = t21;
-        *t32av = t31;
-        if (rho01 > 0.0) {
-          *t11av = (8 * t11 * rhoa01 + 4 * t12 * rhoa02) / rho01;
-          *t21av = (8 * t21 * rhoa01 + 4 * t22 * rhoa02) / rho01;
-          *t31av = (8 * t31 * rhoa01 + 4 * t32 * rhoa02) / rho01;
-        } else {
-          // limit for rhoa01 and rhoa02 -> 0.0. Should not happen.
-          *t11av = (2.0 * t11 + t12) / 3.0;
-          *t21av = (2.0 * t21 + t22) / 3.0;
-          *t31av = (2.0 * t31 + t32) / 3.0;
-        }
-      } else {
-        throw MEAMException("Lattice not defined in get_tavref.");
-      }
+      throw MEAMException("Lattice not defined in get_tavref.");
   }
 }
 

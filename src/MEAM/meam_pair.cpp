@@ -173,12 +173,12 @@ double MEAM::phi_meam(double r, int a, int b)
 {
   /*unused:double a1,a2,a12;*/
   double t11av, t21av, t31av, t12av, t22av, t32av;
-  double G1, G2, s1[3], s2[3], rho0_1, rho0_2;
+  double G1, G2, s1[3], s2[3];
   double Gam1, Gam2, Z1, Z2;
   double rhobar1, rhobar2, F1, F2, dF;
   double rho01, rho11, rho21, rho31;
   double rho02, rho12, rho22, rho32;
-  double scalfac, phiaa, phibb;
+  double phiaa, phibb;
   double Eu;
   double arat, scrn, scrn2;
   int Z12, errorflag;
@@ -192,6 +192,11 @@ double MEAM::phi_meam(double r, int a, int b)
   double rho1m2, rho2m2, rho3m2;
 
   double phi_m = 0.0;
+
+  // if r = 0, just return 0
+  if (iszero(r))
+    return 0.0;
+
   // Equation numbers below refer to:
   //   I. Huang et.al., Modelling simul. Mater. Sci. Eng. 3:615
 
@@ -210,104 +215,77 @@ double MEAM::phi_meam(double r, int a, int b)
     return 0.0;
 
   // calculate average weighting factors for the reference structure
-  if (lattce_meam[a][b] == C11) {
-    if (ialloy == 2) {
-      t11av = t1_meam[a];
-      t12av = t1_meam[b];
-      t21av = t2_meam[a];
-      t22av = t2_meam[b];
-      t31av = t3_meam[a];
-      t32av = t3_meam[b];
-    } else {
-      scalfac = 1.0 / (rho01 + rho02);
-      t11av = scalfac * (t1_meam[a] * rho01 + t1_meam[b] * rho02);
-      t12av = t11av;
-      t21av = scalfac * (t2_meam[a] * rho01 + t2_meam[b] * rho02);
-      t22av = t21av;
-      t31av = scalfac * (t3_meam[a] * rho01 + t3_meam[b] * rho02);
-      t32av = t31av;
-    }
-  } else {
-    // average weighting factors for the reference structure, eqn. I.8
-    get_tavref(&t11av, &t21av, &t31av, &t12av, &t22av, &t32av, t1_meam[a], t2_meam[a],
-               t3_meam[a], t1_meam[b], t2_meam[b], t3_meam[b], r, a, b,
-               lattce_meam[a][b]);
-    // with msmeam call twice with different sets of variables
-    if (msmeamflag) {
-      get_tavref(&t1m1av, &t2m1av, &t3m1av, &t1m2av, &t2m2av, &t3m2av, t1m_meam[a], t2m_meam[a],
-                t3m_meam[a], t1m_meam[b], t2m_meam[b], t3m_meam[b], r, a, b,
-                lattce_meam[a][b]);
-    }
+  // average weighting factors for the reference structure, eqn. I.8
+  get_tavref(&t11av, &t21av, &t31av, &t12av, &t22av, &t32av, t1_meam[a], t2_meam[a],
+             t3_meam[a], t1_meam[b], t2_meam[b], t3_meam[b], rho01, rho02, r, a, b,
+             lattce_meam[a][b]);
+  // with msmeam call twice with different sets of variables
+  if (msmeamflag) {
+    get_tavref(&t1m1av, &t2m1av, &t3m1av, &t1m2av, &t2m2av, &t3m2av, t1m_meam[a], t2m_meam[a],
+              t3m_meam[a], t1m_meam[b], t2m_meam[b], t3m_meam[b], rho01, rho02, r, a, b,
+              lattce_meam[a][b]);
   }
 
-  // for c11b structure, calculate background electron densities
-  if (lattce_meam[a][b] == C11) {
-    latta = lattce_meam[a][a];
-    if (latta == DIA) {
-      rhobar1 = MathSpecial::square((Z12 / 2) * (rho02 + rho01))
-                + t11av * MathSpecial::square(rho12 - rho11)
-                + t21av / 6.0 * MathSpecial::square(rho22 + rho21)
-                + 121.0 / 40.0 * t31av * MathSpecial::square(rho32 - rho31);
-      rhobar1 = sqrt(rhobar1);
-      rhobar2 = MathSpecial::square(Z12 * rho01) + 2.0 / 3.0 * t21av * MathSpecial::square(rho21);
-      rhobar2 = sqrt(rhobar2);
-    } else {
-      rhobar2 = MathSpecial::square((Z12 / 2) * (rho01 + rho02))
-                + t12av * MathSpecial::square(rho11 - rho12)
-                + t22av / 6.0 * MathSpecial::square(rho21 + rho22)
-                + 121.0 / 40.0 * t32av * MathSpecial::square(rho31 - rho32);
-      rhobar2 = sqrt(rhobar2);
-      rhobar1 = MathSpecial::square(Z12 * rho02) + 2.0 / 3.0 * t22av * MathSpecial::square(rho22);
-      rhobar1 = sqrt(rhobar1);
-    }
-  } else {
-    // for other structures, use formalism developed in Huang's paper
-    //
-    //     composition-dependent scaling, equation I.7
-    //     If using mixing rule for t, apply to reference structure; else
-    //     use precomputed values
-    if (mix_ref_t == 1) {
-      if (ibar_meam[a] <= 0)
-        G1 = 1.0;
-      else {
-        get_shpfcn(lattce_meam[a][a], stheta_meam[a][a], ctheta_meam[a][a], s1);
-        Gam1 = (s1[0] * t11av + s1[1] * t21av + s1[2] * t31av) / (Z1 * Z1);
-        G1 = G_gam(Gam1, ibar_meam[a], errorflag);
+  // calculate background electron densities rhobar1 and rhobar2
+  switch (lattce_meam[a][b]) {
+    case C11:
+      // for c11b structure we have analytic solution, swapped depending on which side has the DIA atom
+      latta = lattce_meam[a][a];
+      if (latta == DIA) {
+        rhobar1 = MathSpecial::square((Z12 / 2) * (rho02 + rho01))
+                  + t11av * MathSpecial::square(rho12 - rho11)
+                  + t21av / 6.0 * MathSpecial::square(rho22 + rho21)
+                  + 121.0 / 40.0 * t31av * MathSpecial::square(rho32 - rho31);
+        rhobar1 = sqrt(rhobar1);
+        rhobar2 = MathSpecial::square(Z12 * rho01) + 2.0 / 3.0 * t21av * MathSpecial::square(rho21);
+        rhobar2 = sqrt(rhobar2);
+      } else {
+        rhobar2 = MathSpecial::square((Z12 / 2) * (rho01 + rho02))
+                  + t12av * MathSpecial::square(rho11 - rho12)
+                  + t22av / 6.0 * MathSpecial::square(rho21 + rho22)
+                  + 121.0 / 40.0 * t32av * MathSpecial::square(rho31 - rho32);
+        rhobar2 = sqrt(rhobar2);
+        rhobar1 = MathSpecial::square(Z12 * rho02) + 2.0 / 3.0 * t22av * MathSpecial::square(rho22);
+        rhobar1 = sqrt(rhobar1);
       }
-      if (ibar_meam[b] <= 0)
-        G2 = 1.0;
-      else {
-        get_shpfcn(lattce_meam[b][b], stheta_meam[b][b], ctheta_meam[b][b],  s2);
-        Gam2 = (s2[0] * t12av + s2[1] * t22av + s2[2] * t32av) / (Z2 * Z2);
-        G2 = G_gam(Gam2, ibar_meam[b], errorflag);
+      break;
+    default:
+      // for other structures, use the densities computed before
+      if (mix_ref_t == 1) {
+        // This is the original formalism based on the reference structure developed in Huang's paper, equation I.7
+        // WARNING: this is not correct and only provided for compatibility.
+        // To get the equations from the paper, bkgd_dyn=1 and ibar=1
+        if (ibar_meam[a] <= 0)
+          G1 = 1.0;
+        else {
+          get_shpfcn(lattce_meam[a][a], stheta_meam[a][a], ctheta_meam[a][a], s1);
+          Gam1 = (s1[0] * t11av + s1[1] * t21av + s1[2] * t31av) / (Z1 * Z1);
+          G1 = G_gam(Gam1, ibar_meam[a], errorflag);
+        }
+        if (ibar_meam[b] <= 0)
+          G2 = 1.0;
+        else {
+          get_shpfcn(lattce_meam[b][b], stheta_meam[b][b], ctheta_meam[b][b],  s2);
+          Gam2 = (s2[0] * t12av + s2[1] * t22av + s2[2] * t32av) / (Z2 * Z2);
+          G2 = G_gam(Gam2, ibar_meam[b], errorflag);
+        }
+        rho_bkgd1 = rho0_meam[a] * Z1 * G1;
+        rho_bkgd2 = rho0_meam[b] * Z2 * G2;
       }
-      rho0_1 = rho0_meam[a] * Z1 * G1;
-      rho0_2 = rho0_meam[b] * Z2 * G2;
-    }
 
-    if (msmeamflag) {
-      // no additional use of t's here; all included in definitions of rho's for msmeam
-      Gam1 = rho11 + rho21 + rho31 - (rho1m1 + rho2m1 + rho3m1);
-      Gam2 = rho12 + rho22 + rho32 - (rho1m2 + rho2m2 + rho3m2);
-    } else {
-      Gam1 = t11av * rho11 + t21av * rho21 + t31av * rho31;
-      Gam2 = t12av * rho12 + t22av * rho22 + t32av * rho32;
-    }
-    if (rho01 < 1.0e-14)
-      Gam1 = 0.0;
-    else
-      Gam1 = Gam1 / (rho01 * rho01);
-    if (rho02 < 1.0e-14)
-      Gam2 = 0.0;
-    else
-      Gam2 = Gam2 / (rho02 * rho02);
+      if (msmeamflag) {
+        // no additional use of t's here; all included in definitions of rho's for msmeam
+        Gam1 = rho11 + rho21 + rho31 - (rho1m1 + rho2m1 + rho3m1);
+        Gam2 = rho12 + rho22 + rho32 - (rho1m2 + rho2m2 + rho3m2);
+      } else {
+        Gam1 = t11av * rho11 + t21av * rho21 + t31av * rho31;
+        Gam2 = t12av * rho12 + t22av * rho22 + t32av * rho32;
+      }
+      Gam1 = (rho01 < 1.0e-14) ? 0.0 : Gam1 / (rho01 * rho01);
+      Gam2 = (rho02 < 1.0e-14) ? 0.0 : Gam2 / (rho02 * rho02);
 
-    G1 = G_gam(Gam1, ibar_meam[a], errorflag);
-    G2 = G_gam(Gam2, ibar_meam[b], errorflag);
-    if (mix_ref_t == 1) {
-      rho_bkgd1 = rho0_1;
-      rho_bkgd2 = rho0_2;
-    } else {
+      G1 = G_gam(Gam1, ibar_meam[a], errorflag);
+      G2 = G_gam(Gam2, ibar_meam[b], errorflag);
       if (bkgd_dyn == 1) {
         rho_bkgd1 = rho0_meam[a] * Z1;
         rho_bkgd2 = rho0_meam[b] * Z2;
@@ -315,9 +293,8 @@ double MEAM::phi_meam(double r, int a, int b)
         rho_bkgd1 = rho_ref_meam[a];
         rho_bkgd2 = rho_ref_meam[b];
       }
-    }
-    rhobar1 = rho01 / rho_bkgd1 * G1;
-    rhobar2 = rho02 / rho_bkgd2 * G2;
+      rhobar1 = rho01 / rho_bkgd1 * G1;
+      rhobar2 = rho02 / rho_bkgd2 * G2;
   }
 
   // compute embedding functions, eqn I.5
@@ -325,12 +302,11 @@ double MEAM::phi_meam(double r, int a, int b)
   F1 = embedding(A_meam[a], Ec_meam[a][a], rhobar1, dF);
   F2 = embedding(A_meam[b], Ec_meam[b][b], rhobar2, dF);
 
-
   // compute Rose function, I.16
   Eu = erose(r, re_meam[a][b], alpha_meam[a][b], Ec_meam[a][b], repuls_meam[a][b],
              attrac_meam[a][b], erose_form);
 
-  // calculate the pair energy
+  // calculate the pair energy, I.18
   switch (lattce_meam[a][b]) {
     case C11:
       latta = lattce_meam[a][a];
@@ -384,11 +360,6 @@ double MEAM::phi_meam(double r, int a, int b)
     default:
       // potential is computed from Rose function and embedding energy
       phi_m = (2 * Eu - F1 - F2) / Z12;
-  }
-
-  // if r = 0, just return 0
-  if (iszero(r)) {
-    phi_m = 0.0;
   }
 
   return phi_m;

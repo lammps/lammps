@@ -171,7 +171,7 @@ class MEAM {
                          const double r, const double arat);
   void compute_reference_density();
   void get_tavref(double *, double *, double *, double *, double *, double *, double, double,
-                  double, double, double, double, double, int, int, lattice_t);
+                  double, double, double, double, double, double, double, int, int, lattice_t);
   double get_sijk(double, int, int, int);
   void get_densref(double, int, int, double *, double *, double *, double *, double *, double *,
                    double *, double *, double *, double *, double *, double *, double *, double *); // last 6 args for msmeam

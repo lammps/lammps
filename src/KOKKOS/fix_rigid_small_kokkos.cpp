@@ -186,6 +186,18 @@ void FixRigidSmallKokkos<DeviceType>::setup(int vflag)
   forward_comm_device = 1;
   sort_device = 1;
   reverse_comm_device = 1;
+
+  // pre_neighbor isn't called again until necessary during the run,
+  // need to set up the body sendlist and send the ghost bodies now
+  nghost_body = 0;
+  max_body_sent = 0;
+  n_body_recv.clear();
+  n_body_sent.clear();
+  first_body.clear();
+  commflag = BODY_SENDLIST;
+  commKK->forward_comm_device<DeviceType>(this, 1);
+  commflag = FULL_BODY;
+  commKK->forward_comm_device<DeviceType>(this, bodysize);
 }
 
 template<class DeviceType>

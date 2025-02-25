@@ -14,6 +14,8 @@
 #ifndef LMP_MEAM_H
 #define LMP_MEAM_H
 
+#include "exceptions.h"
+
 #include <cmath>
 #include <string>
 
@@ -198,6 +200,14 @@ class MEAM {
                   double *eng_vdwl, double *eatom, int ntype, int *type, int *fmap, double **scale,
                   double **x, int numneigh, int *firstneigh, int numneigh_full,
                   int *firstneigh_full, int fnoffset, double **f, double **vatom, double *virial);
+};
+
+class MEAMException : public LAMMPSException {
+ public:
+  MEAMException(const std::string &msg) :
+      LAMMPSException(msg)
+  {
+  }
 };
 
 //-----------------------------------------------------------------------------

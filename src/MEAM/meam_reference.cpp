@@ -214,8 +214,8 @@ bool MEAM_NS::str_to_lat(const std::string & str, bool single, lattice_t& lat)
 int MEAM_NS::get_Zij(const lattice_t latt)
 {
   const int lidx = (int)latt;
-  if (latt < 0 || latt >= MAXLAT)
-    return -1;
+  if (lidx < 0 || lidx >= MAXLAT)
+    throw MEAMException("Invalid lattice_t");
 
   return lattice_defs[lidx].Zij;
 }
@@ -234,8 +234,9 @@ int MEAM_NS::get_Zij2(const lattice_t latt, const double cmin, const double cmax
   int Zij2, numscr;
 
   const int lidx = (int)latt;
-  if (latt < 0 || latt >= MAXLAT)
-    return -1;
+  if (lidx < 0 || lidx >= MAXLAT)
+    throw MEAMException("Invalid lattice_t");
+
   const reference_lattice_t& def = lattice_defs[lidx];
 
   Zij2 = def.Zij2;
@@ -280,9 +281,7 @@ int MEAM_NS::get_Zij2_b2nn(const lattice_t latt, const double cmin, const double
       numscr = 1;
       break;
     default:
-      // unknown lattic flag in get Zij
-      //        call error('Lattice not defined in get_Zij.')
-      break;
+      throw MEAMException("Lattice not defined in get_Zij.");
   }
   sijk = Csijk(1.0, cmin, cmax);
   S = MathSpecial::powint(sijk, numscr);
@@ -296,14 +295,13 @@ int MEAM_NS::get_Zij2_b2nn(const lattice_t latt, const double cmin, const double
 void MEAM_NS::get_shpfcn(const lattice_t latt, const double sthe, const double cthe, double (&s)[3])
 {
   const int lidx = (int)latt;
+  if (lidx < 0 || lidx >= MAXLAT)
+    throw MEAMException("Invalid lattice_t");
 
   s[0] = 0.0;
   s[1] = 0.0;
   s[2] = 0.0;
 
-  if (latt < 0 || latt >= MAXLAT) {
-    return;
-  }
   const reference_lattice_t& def = lattice_defs[lidx];
 
   if (def.shpfcn == nullptr) {
@@ -374,7 +372,7 @@ void MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av
           *t31av = (2.0 * t31 + t32) / 3.0;
         }
       } else {
-        //      call error('Lattice not defined in get_tavref.')
+        throw MEAMException("Lattice not defined in get_tavref.");
       }
   }
 }
@@ -597,8 +595,8 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       break;
 
 
-    // default:
-    //        call error('Lattice not defined in get_densref.')
+    default:
+      throw MEAMException("Lattice not defined in get_densref.");
   }
 
   if (nn2_meam[a][b] == 1) {

@@ -157,7 +157,6 @@ class MEAM {
   double embedding(const double A, const double Ec, const double rhobar, double &dF) const;
 
  protected:
-  void meam_checkindex(int, int, int, int *, int *);
   void getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, double **x, int numneigh,
                  int *firstneigh, int numneigh_full, int *firstneigh_full, int ntype, int *type,
                  int *fmap);
@@ -178,22 +177,25 @@ class MEAM {
   void interpolate_meam(int);
 
  public:
-  // last 6 args are optional msmeam parameters
-  void meam_setup_global(int nelt, lattice_t *lat, int *ielement, double *atwt, double *alpha,
-                         double *b0, double *b1, double *b2, double *b3, double *alat, double *esub,
-                         double *asub, double *t0, double *t1, double *t2, double *t3,
-                         double *rozero, int *ibar, double *b1m, double *b2m, double *b3m,
-                         double *t1m, double *t2m, double *t3m);
-  void meam_setup_param(int which, double value, int nindex, int *index /*index(3)*/,
-                        int *errorflag);
-  virtual void meam_setup_done(double *cutmax);
-  virtual void meam_dens_setup(int atom_nmax, int nall, int n_neigh);
-  void meam_dens_init(int i, int ntype, int *type, int *fmap, double **x, int numneigh,
-                      int *firstneigh, int numneigh_full, int *firstneigh_full, int fnoffset);
-  void meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_atom,
-                       double *eng_vdwl, double *eatom, int ntype, int *type, int *fmap,
-                       double **scale, int &errorflag);
-  void meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int vflag_atom,
+  void setup_library(int nelt, lattice_t *lat, int *ielement, double *atwt, double *alpha,
+                     double *b0, double *b1, double *b2, double *b3, double *alat, double *esub,
+                     double *asub, double *t0, double *t1, double *t2, double *t3,
+                     double *rozero, int *ibar);
+  void setup_library_ms(int nelt, double *b1m, double *b2m, double *b3m,
+                        double *t1m, double *t2m, double *t3m);
+  void setup_param(int which, double value, int nindex, int *index /*index(3)*/,
+                   int *errorflag);
+  void setup_finish(double *cutmax);
+
+  void density_precompute();
+  void density_setup(int atom_nmax, int nall, int n_neigh);
+  void density_local(int i, int ntype, int *type, int *fmap, double **x, int numneigh,
+                     int *firstneigh, int numneigh_full, int *firstneigh_full, int fnoffset);
+
+  void eval_energy(int nlocal, int eflag_either, int eflag_global, int eflag_atom,
+                   double *eng_vdwl, double *eatom, int ntype, int *type, int *fmap,
+                   double **scale, int &errorflag);
+  void eval_force(int i, int eflag_global, int eflag_atom, int vflag_global, int vflag_atom,
                   double *eng_vdwl, double *eatom, int ntype, int *type, int *fmap, double **scale,
                   double **x, int numneigh, int *firstneigh, int numneigh_full,
                   int *firstneigh_full, int fnoffset, double **f, double **vatom, double *virial);

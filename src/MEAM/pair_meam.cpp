@@ -117,7 +117,7 @@ void PairMEAM::compute(int eflag, int vflag)
   n = 0;
   for (ii = 0; ii < inum_half; ii++) n += numneigh_half[ilist_half[ii]];
 
-  meam_inst->meam_dens_setup(atom->nmax, nall, n);
+  meam_inst->density_setup(atom->nmax, nall, n);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -131,13 +131,13 @@ void PairMEAM::compute(int eflag, int vflag)
   errorflag = 0;
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
-    meam_inst->meam_dens_init(i, ntype, type, map, x, numneigh_half[i], firstneigh_half[i],
-                              numneigh_full[i], firstneigh_full[i], offset);
+    meam_inst->density_local(i, ntype, type, map, x, numneigh_half[i], firstneigh_half[i],
+                             numneigh_full[i], firstneigh_full[i], offset);
     offset += numneigh_half[i];
   }
   comm->reverse_comm(this);
-  meam_inst->meam_dens_final(nlocal, eflag_either, eflag_global, eflag_atom, &eng_vdwl, eatom,
-                             ntype, type, map, scale, errorflag);
+  meam_inst->eval_energy(nlocal, eflag_either, eflag_global, eflag_atom, &eng_vdwl, eatom,
+                         ntype, type, map, scale, errorflag);
   if (errorflag) error->one(FLERR, Error::NOLASTLINE, "MEAM library error {}", errorflag);
 
   comm->forward_comm(this);
@@ -151,7 +151,7 @@ void PairMEAM::compute(int eflag, int vflag)
   if (vflag_atom) vptr = vatom;
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
-    meam_inst->meam_force(i, eflag_global, eflag_atom, vflag_global, vflag_atom, &eng_vdwl, eatom,
+    meam_inst->eval_force(i, eflag_global, eflag_atom, vflag_global, vflag_atom, &eng_vdwl, eatom,
                           ntype, type, map, scale, x, numneigh_half[i], firstneigh_half[i],
                           numneigh_full[i], firstneigh_full[i], offset, f, vptr, virial);
     offset += numneigh_half[i];
@@ -272,10 +272,10 @@ void PairMEAM::coeff(int narg, char **arg)
 
   // read MEAM library and parameter files
   // pass all parameters to MEAM package
-  // tell MEAM package that setup is done
 
   read_files(lib_file, par_file, 3 + nlibelements);
-  meam_inst->meam_setup_done(&cutmax);
+  meam_inst->setup_finish(&cutmax);
+  meam_inst->density_precompute();
 
   // read args that map atom types to MEAM elements
   // map[i] = which element the Ith atom type is, -1 if not mapped
@@ -524,18 +524,12 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
 
   // pass element parameters to MEAM package
 
+  meam_inst->setup_library(nlibelements, lat.data(), ielement.data(), atwt.data(),
+                           alpha.data(), b0.data(), b1.data(), b2.data(), b3.data(),
+                           alat.data(), esub.data(), asub.data(), t0.data(), t1.data(),
+                           t2.data(), t3.data(), rozero.data(), ibar.data());
   if (msmeamflag) {
-    meam_inst->meam_setup_global(nlibelements, lat.data(), ielement.data(), atwt.data(),
-                                 alpha.data(), b0.data(), b1.data(), b2.data(), b3.data(),
-                                 alat.data(), esub.data(), asub.data(), t0.data(), t1.data(),
-                                 t2.data(), t3.data(), rozero.data(), ibar.data(), b1m.data(),
-                                 b2m.data(), b3m.data(), t1m.data(), t2m.data(), t3m.data());
-  } else {
-    meam_inst->meam_setup_global(nlibelements, lat.data(), ielement.data(), atwt.data(),
-                                 alpha.data(), b0.data(), b1.data(), b2.data(), b3.data(),
-                                 alat.data(), esub.data(), asub.data(), t0.data(), t1.data(),
-                                 t2.data(), t3.data(), rozero.data(), ibar.data(), nullptr, nullptr,
-                                 nullptr, nullptr, nullptr, nullptr);
+    meam_inst->setup_library_ms(nlibelements, b1m.data(), b2m.data(), b3m.data(), t1m.data(), t2m.data(), t3m.data());
   }
 
   // set element masses
@@ -621,7 +615,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile, int uidx)
     // pass single setting to MEAM package
 
     int errorflag = 0;
-    meam_inst->meam_setup_param(which, value, nindex, index, &errorflag);
+    meam_inst->setup_param(which, value, nindex, index, &errorflag);
     if (errorflag) {
       const char *descr[] = { "has an unknown error",
               "is out of range (please report a bug)",

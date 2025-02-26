@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -15,12 +16,30 @@
 #include "math_special.h"
 #include "memory.h"
 
-#include <cmath>
-
 using namespace LAMMPS_NS;
 using namespace MEAM_NS;
 
-void MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
+
+/* ----------------------------------------------------------------------
+   Compute the pair potential functions from the reference density
+------------------------------------------------------------------------- */
+
+void MEAM::density_precompute()
+{
+  //     Compute background densities for reference structure
+  compute_reference_density();
+
+  //     Compute pair potentials and setup arrays for interpolation
+  nr = 1000;
+  dr = 1.1 * rc_meam / nr;
+  compute_pair_meam();
+}
+
+/* ----------------------------------------------------------------------
+   Create/Resize/Init atomic density arrays
+------------------------------------------------------------------------- */
+
+void MEAM::density_setup(int atom_nmax, int nall, int n_neigh)
 {
   int i, j;
 
@@ -117,8 +136,12 @@ void MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
   }
 }
 
-void MEAM::meam_dens_init(int i, int ntype, int *type, int *fmap, double **x, int numneigh,
-                          int *firstneigh, int numneigh_full, int *firstneigh_full, int fnoffset)
+/* ----------------------------------------------------------------------
+   Compute atomic density at site i
+------------------------------------------------------------------------- */
+
+void MEAM::density_local(int i, int ntype, int *type, int *fmap, double **x, int numneigh,
+                         int *firstneigh, int numneigh_full, int *firstneigh_full, int fnoffset)
 {
   //     Compute screening function and derivatives
   getscreen(i, &scrfcn[fnoffset], &dscrfcn[fnoffset], &fcpair[fnoffset], x, numneigh, firstneigh,
@@ -128,7 +151,10 @@ void MEAM::meam_dens_init(int i, int ntype, int *type, int *fmap, double **x, in
   calc_rho1(i, ntype, type, fmap, x, numneigh, firstneigh, &scrfcn[fnoffset], &fcpair[fnoffset]);
 }
 
-// ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
+/* ----------------------------------------------------------------------
+   Compute screening function at site i by j and k
+------------------------------------------------------------------------- */
 
 void MEAM::getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, double **x,
                      int numneigh, int *firstneigh, int numneigh_full, int *firstneigh_full,
@@ -291,7 +317,9 @@ void MEAM::getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, dou
   }
 }
 
-// ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+/* ----------------------------------------------------------------------
+   Compute screened atomic density at site i
+------------------------------------------------------------------------- */
 
 void MEAM::calc_rho1(int i, int /*ntype*/, int *type, int *fmap, double **x, int numneigh,
                      int *firstneigh, double *scrfcn, double *fcpair)
@@ -425,5 +453,45 @@ void MEAM::calc_rho1(int i, int /*ntype*/, int *type, int *fmap, double **x, int
         }
       }
     }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Compute background density for reference structure of each element
+------------------------------------------------------------------------- */
+
+void MEAM::compute_reference_density()
+{
+  int a, Z, Z2, errorflag;
+  double gam, Gbar, shp[3];
+  double rho0, rho0_2nn, arat, scrn;
+
+  // loop over element types
+  for (a = 0; a < neltypes; a++) {
+    Z = get_Zij(lattce_meam[a][a]);
+    if (ibar_meam[a] <= 0)
+      Gbar = 1.0;
+    else {
+      get_shpfcn(lattce_meam[a][a], stheta_meam[a][a], ctheta_meam[a][a], shp);
+      gam = (t1_meam[a] * shp[0] + t2_meam[a] * shp[1] + t3_meam[a] * shp[2]) / (Z * Z);
+      Gbar = G_gam(gam, ibar_meam[a], errorflag);
+    }
+
+    //     The zeroth order density in the reference structure, with
+    //     equilibrium spacing, is just the number of first neighbors times
+    //     the rho0_meam coefficient...
+    rho0 = rho0_meam[a] * Z;
+
+    //     ...unless we have unscreened second neighbors, in which case we
+    //     add on the contribution from those (accounting for partial
+    //     screening)
+    if (nn2_meam[a][a] == 1) {
+      Z2 = get_Zij2(lattce_meam[a][a], Cmin_meam[a][a][a],
+               Cmax_meam[a][a][a], stheta_meam[a][a], arat, scrn);
+      rho0_2nn = rho0_meam[a] * MathSpecial::fm_exp(-beta0_meam[a] * (arat - 1));
+      rho0 = rho0 + Z2 * rho0_2nn * scrn;
+    }
+
+    rho_ref_meam[a] = rho0 * Gbar;
   }
 }

@@ -329,7 +329,7 @@ double get_rhoa0(double r, double re, double rho0, double beta)
 void MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av, double* t22av, double* t32av,
                       double t11, double t21, double t31, double t12, double t22, double t32,
                       double rho01, double rho02,
-                      double r, int a, int b, lattice_t latt)
+                      double r, int a, int b, lattice_t latt) const
 {
   double f, rhoa01, rhoa02;
 
@@ -394,7 +394,7 @@ void MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av
 void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* rho21, double* rho31,
                        double* rho02, double* rho12, double* rho22, double* rho32,
                        double* rho1m1, double* rho2m1, double* rho3m1,
-                       double* rho1m2, double* rho2m2, double* rho3m2)
+                       double* rho1m2, double* rho2m2, double* rho3m2) const
 {
   double a1, a2;
   double t1ma, t2ma, t3ma, t1mb, t2mb, t3mb;

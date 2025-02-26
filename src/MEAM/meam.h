@@ -155,7 +155,12 @@ class MEAM {
   // meam_funcs.cpp
   double G_gam(const double gamma, const int ibar, int &errorflag) const;
   double dG_gam(const double gamma, const int ibar, double &dG) const;
+  bool rhobar12(const double r, const int a, const int b, double &rhobar1, double &rhobar2) const;
   double embedding(const double A, const double Ec, const double rhobar, double &dF) const;
+  double invert_eam(const double r, const int a, const int b, const double Eu, const double F1, const double F2) const;
+  double phi_meam(double, int, int) const;
+  double phi_2nn_series(const double scrn, const int Z1, const int Z2, const int a, const int b,
+                        const double r, const double arat) const;
 
  protected:
   void getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, double **x, int numneigh,
@@ -166,15 +171,12 @@ class MEAM {
 
   void alloyparams();
   void compute_pair_meam();
-  double phi_meam(double, int, int);
-  double phi_meam_series(const double scrn, const int Z1, const int Z2, const int a, const int b,
-                         const double r, const double arat);
   void compute_reference_density();
   void get_tavref(double *, double *, double *, double *, double *, double *, double, double,
-                  double, double, double, double, double, double, double, int, int, lattice_t);
-  double get_sijk(double, int, int, int);
+                  double, double, double, double, double, double, double, int, int, lattice_t) const;
+  double get_sijk(double, int, int, int) const;
   void get_densref(double, int, int, double *, double *, double *, double *, double *, double *,
-                   double *, double *, double *, double *, double *, double *, double *, double *); // last 6 args for msmeam
+                   double *, double *, double *, double *, double *, double *, double *, double *) const; // last 6 args for msmeam
   void interpolate_meam(int);
 
  public:

@@ -100,13 +100,13 @@ void MEAM::compute_pair_meam()
             phiaa = phi_meam(rarat, a, a);
             Z1 = get_Zij(lattaa);
             Z2 = get_Zij2(lattaa, Cmin_meam[a][a][a], Cmax_meam[a][a][a], stheta_meam[a][a], arat, scrn);
-            phiaa+= phi_meam_series(scrn, Z1, Z2, a, a, rarat, arat);
+            phiaa+= phi_2nn_series(scrn, Z1, Z2, a, a, rarat, arat);
 
             //               phi_bb
             phibb = phi_meam(rarat, b, b);
             Z1 = get_Zij(lattbb);
             Z2 = get_Zij2(lattbb, Cmin_meam[b][b][b], Cmax_meam[b][b][b], stheta_meam[b][b], arat, scrn);
-            phibb+= phi_meam_series(scrn, Z1, Z2, b, b, rarat, arat);
+            phibb+= phi_2nn_series(scrn, Z1, Z2, b, b, rarat, arat);
 
             if (lattab == B1 || lattab == B2 || lattab == DIA) {
               //     Add contributions to the B1 or B2 potential
@@ -135,7 +135,7 @@ void MEAM::compute_pair_meam()
             }
 
           } else {
-            phir[nv2][j]+= phi_meam_series(scrn, Z1, Z2, a, b, r, arat);
+            phir[nv2][j]+= phi_2nn_series(scrn, Z1, Z2, a, b, r, arat);
           }
         }
 
@@ -166,53 +166,34 @@ void MEAM::compute_pair_meam()
 }
 
 /* ----------------------------------------------------------------------
-   Compute MEAM pair potential for distance r, element types a and b
+   Compute \bar{rho} for both a and b at distance r
+   (Eqn. 7 in Huang 1995)
 ------------------------------------------------------------------------- */
 
-double MEAM::phi_meam(double r, int a, int b)
+bool MEAM::rhobar12(const double r, const int a, const int b, double &rhobar1, double &rhobar2) const
 {
-  /*unused:double a1,a2,a12;*/
-  double t11av, t21av, t31av, t12av, t22av, t32av;
-  double G1, G2, s1[3], s2[3];
-  double Gam1, Gam2, Z1, Z2;
-  double rhobar1, rhobar2, F1, F2, dF;
   double rho01, rho11, rho21, rho31;
   double rho02, rho12, rho22, rho32;
-  double phiaa, phibb;
-  double Eu;
-  double arat, scrn, scrn2;
-  int Z12, errorflag;
-  int Z1nn, Z2nn;
-  lattice_t latta /*unused:,lattb*/;
-  double rho_bkgd1, rho_bkgd2;
-  double b11s, b22s;
+  double t11av, t21av, t31av, t12av, t22av, t32av;
   // msmeam
-  double t1m1av, t2m1av, t3m1av, t1m2av, t2m2av, t3m2av;
   double rho1m1, rho2m1, rho3m1;
   double rho1m2, rho2m2, rho3m2;
+  double t1m1av, t2m1av, t3m1av, t1m2av, t2m2av, t3m2av;
 
-  double phi_m = 0.0;
-
-  // if r = 0, just return 0
-  if (iszero(r))
-    return 0.0;
-
-  // Equation numbers below refer to:
-  //   I. Huang et.al., Modelling simul. Mater. Sci. Eng. 3:615
-
-  // get number of neighbors in the reference structure
-  //   Nref[i][j] = # of i's neighbors of type j
-  Z1 = get_Zij(lattce_meam[a][a]);
-  Z2 = get_Zij(lattce_meam[b][b]);
-  Z12 = get_Zij(lattce_meam[a][b]);
+  int errorflag, Z12;
+  lattice_t latta;
+  double G1, G2, s1[3], s2[3];
+  double Gam1, Gam2, Z1, Z2;
+  double rho_bkgd1, rho_bkgd2;
 
   // the last 6 arguments are only touched for msmeam
   get_densref(r, a, b, &rho01, &rho11, &rho21, &rho31, &rho02, &rho12, &rho22, &rho32,
               &rho1m1, &rho2m1, &rho3m1,
               &rho1m2, &rho2m2, &rho3m2);
-  // if densities are too small, numerical problems may result; just return zero
+
+  // if densities are too small, numerical problems may result; let caller return zero
   if (rho01 <= 1e-14 && rho02 <= 1e-14)
-    return 0.0;
+    return false;
 
   // calculate average weighting factors for the reference structure
   // average weighting factors for the reference structure, eqn. I.8
@@ -226,10 +207,10 @@ double MEAM::phi_meam(double r, int a, int b)
               lattce_meam[a][b]);
   }
 
-  // calculate background electron densities rhobar1 and rhobar2
   switch (lattce_meam[a][b]) {
     case C11:
       // for c11b structure we have analytic solution, swapped depending on which side has the DIA atom
+      Z12 = get_Zij(lattce_meam[a][b]);
       latta = lattce_meam[a][a];
       if (latta == DIA) {
         rhobar1 = MathSpecial::square((Z12 / 2) * (rho02 + rho01))
@@ -251,6 +232,9 @@ double MEAM::phi_meam(double r, int a, int b)
       break;
     default:
       // for other structures, use the densities computed before
+      Z1 = get_Zij(lattce_meam[a][a]);
+      Z2 = get_Zij(lattce_meam[b][b]);
+
       if (mix_ref_t == 1) {
         // This is the original formalism based on the reference structure developed in Huang's paper, equation I.7
         // WARNING: this is not correct and only provided for compatibility.
@@ -297,16 +281,26 @@ double MEAM::phi_meam(double r, int a, int b)
       rhobar2 = rho02 / rho_bkgd2 * G2;
   }
 
-  // compute embedding functions, eqn I.5
+  return true;
+}
 
-  F1 = embedding(A_meam[a], Ec_meam[a][a], rhobar1, dF);
-  F2 = embedding(A_meam[b], Ec_meam[b][b], rhobar2, dF);
+/* ----------------------------------------------------------------------
+   Invert the EAM energy function for a reference structure with known energy and embedding
+   (Eqn. 18 in Huang 1995)
+------------------------------------------------------------------------- */
 
-  // compute Rose function, I.16
-  Eu = erose(r, re_meam[a][b], alpha_meam[a][b], Ec_meam[a][b], repuls_meam[a][b],
-             attrac_meam[a][b], erose_form);
+double MEAM::invert_eam(const double r, const int a, const int b, const double Eu, const double F1, const double F2) const
+{
+  int Z1, Z2, Z12;
+  int Z1nn, Z2nn;
+  lattice_t latta;
+  double phiaa, phibb;
+  double arat, scrn, scrn2;
+  double b11s, b22s;
+  double phi_m = 0.0;
 
-  // calculate the pair energy, I.18
+  Z12 = get_Zij(lattce_meam[a][b]);
+
   switch (lattce_meam[a][b]) {
     case C11:
       latta = lattce_meam[a][a];
@@ -325,7 +319,7 @@ double MEAM::phi_meam(double r, int a, int b)
       Z2nn = get_Zij2(lattce_meam[a][a], Cmin_meam[a][a][a],
                Cmax_meam[a][a][a], stheta_meam[a][b], arat, scrn);
 
-      phiaa += phi_meam_series(scrn, Z1nn, Z2nn, a, a, r, arat);
+      phiaa += phi_2nn_series(scrn, Z1nn, Z2nn, a, a, r, arat);
       phi_m = Eu / 3.0 - F1 / 4.0 - F2 / 12.0 - phiaa;
       break;
     case CH4:
@@ -365,14 +359,49 @@ double MEAM::phi_meam(double r, int a, int b)
   return phi_m;
 }
 
+
+/* ----------------------------------------------------------------------
+   Compute MEAM pair potential for distance r, element types a and b
+------------------------------------------------------------------------- */
+
+double MEAM::phi_meam(double r, int a, int b) const
+{
+  double rhobar1, rhobar2;
+  double F1, F2, dF, Eu, phi_m;
+
+  // if r = 0, just return 0
+  if (iszero(r))
+    return 0.0;
+
+  // Equation numbers below refer to:
+  //   I. Huang et.al., Modelling simul. Mater. Sci. Eng. 3:615
+
+  // calculate background electron densities rhobar1 and rhobar2
+  if (!rhobar12(r, a, b, rhobar1, rhobar2))
+    return 0.0;
+
+  // compute embedding functions, eqn I.5
+
+  F1 = embedding(A_meam[a], Ec_meam[a][a], rhobar1, dF);
+  F2 = embedding(A_meam[b], Ec_meam[b][b], rhobar2, dF);
+
+  // compute Rose function, I.16
+  Eu = erose(r, re_meam[a][b], alpha_meam[a][b], Ec_meam[a][b], repuls_meam[a][b],
+             attrac_meam[a][b], erose_form);
+
+  phi_m = invert_eam(r, a, b, Eu, F1, F2);
+
+  return phi_m;
+}
+
 /* ----------------------------------------------------------------------
    Compute 2NN series terms for phi
      To avoid nan values of phir due to rapid decrease of b2nn^n or/and
      argument of phi_meam, i.e. r*arat^n, in some cases (3NN dia with low Cmin value)
 ------------------------------------------------------------------------- */
 
-double MEAM::phi_meam_series(const double scrn, const int Z1, const int Z2, const int a, const int b,
-                             const double r, const double arat)
+double MEAM::phi_2nn_series(const double scrn, const int Z1, const int Z2, const int a, const int b,
+                            const double r, const double arat) const
 {
   double phi_sum = 0.0;
   double b2nn, phi_val;
@@ -395,7 +424,7 @@ double MEAM::phi_meam_series(const double scrn, const int Z1, const int Z2, cons
    Calculate screening ellipse
 ------------------------------------------------------------------------- */
 
-double MEAM::get_sijk(double C, int i, int j, int k)
+double MEAM::get_sijk(double C, int i, int j, int k) const
 {
   return Csijk(C, Cmin_meam[i][j][k], Cmax_meam[i][j][k]);
 }

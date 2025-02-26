@@ -404,7 +404,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
   double rhoa01nn, rhoa02nn;
   double rhoa01, rhoa11, rhoa21, rhoa31;
   double rhoa02, rhoa12, rhoa22, rhoa32;
-  double arat, scrn, denom;
+  double arat, denom;
   double C, s111, s112, s221, S11, S22;
   // msmeam
   double rhoa1m1, rhoa2m1, rhoa3m1, rhoa1m2, rhoa2m2, rhoa3m2;
@@ -459,59 +459,38 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
 
   // keep track of density components separately; combine in the calling subroutine
   switch (lat) {
+    // simple cases: all first neighbors of opposite type and same number
     case FCC:
-      *rho01 = 12.0 * rhoa02;
-      *rho02 = 12.0 * rhoa01;
-      break;
     case BCC:
-      *rho01 = 8.0 * rhoa02;
-      *rho02 = 8.0 * rhoa01;
-      break;
     case B1:
     case SC:
-      *rho01 = 6.0 * rhoa02;
-      *rho02 = 6.0 * rhoa01;
-      break;
     case DIA:
     case DIA3:
-      *rho01 = 4.0 * rhoa02;
-      *rho02 = 4.0 * rhoa01;
-      *rho31 = 32.0 / 9.0 * rhoa32 * rhoa32;
-      *rho32 = 32.0 / 9.0 * rhoa31 * rhoa31;
-      if (msmeamflag) {
-        *rho3m1 = 32.0 / 9.0 * rhoa3m2 * rhoa3m2;
-        *rho3m2 = 32.0 / 9.0 * rhoa3m1 * rhoa3m1;
-      }
-      break;
     case HCP:
-      *rho01 = 12 * rhoa02;
-      *rho02 = 12 * rhoa01;
-      *rho31 = 1.0 / 3.0 * rhoa32 * rhoa32;
-      *rho32 = 1.0 / 3.0 * rhoa31 * rhoa31;
-      if (msmeamflag) {
-        *rho3m1 = 1.0 / 3.0 * rhoa3m2 * rhoa3m2;
-        *rho3m2 = 1.0 / 3.0 * rhoa3m1 * rhoa3m1;
-      }
-      break;
     case DIM:
-      get_shpfcn(DIM, 0, 0, s);
-      *rho01 = rhoa02;
-      *rho02 = rhoa01;
-      *rho11 = s[0] * rhoa12 * rhoa12;
+    case B2:
+    case LIN:
+    case ZIG:
+      *rho01 = Zij * rhoa02;
+      *rho02 = Zij * rhoa01;
+
+      get_shpfcn(lat, stheta_meam[a][b], ctheta_meam[a][b], s);
       *rho12 = s[0] * rhoa11 * rhoa11;
-      *rho21 = s[1] * rhoa22 * rhoa22;
       *rho22 = s[1] * rhoa21 * rhoa21;
-      *rho31 = s[2] * rhoa32 * rhoa32;
       *rho32 = s[2] * rhoa31 * rhoa31;
+      *rho11 = s[0] * rhoa12 * rhoa12;
+      *rho21 = s[1] * rhoa22 * rhoa22;
+      *rho31 = s[2] * rhoa32 * rhoa32;
       if (msmeamflag) {
-        *rho1m1 = s[0] * rhoa1m2 * rhoa1m2;
         *rho1m2 = s[0] * rhoa1m1 * rhoa1m1;
-        *rho2m1 = s[1] * rhoa2m2 * rhoa2m2;
         *rho2m2 = s[1] * rhoa2m1 * rhoa2m1;
-        *rho3m1 = s[2] * rhoa3m2 * rhoa3m2;
         *rho3m2 = s[2] * rhoa3m1 * rhoa3m1;
+        *rho1m1 = s[0] * rhoa1m2 * rhoa1m2;
+        *rho2m1 = s[1] * rhoa2m2 * rhoa2m2;
+        *rho3m1 = s[2] * rhoa3m2 * rhoa3m2;
       }
       break;
+    // complex cases: not all neighbors opposite type
     case C11:
       *rho01 = rhoa01;
       *rho02 = rhoa02;
@@ -545,10 +524,6 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
         *rho2m1 = 8. / 3. * (rhoa2m1 - rhoa2m2) * (rhoa2m1 - rhoa2m2);
       }
       break;
-    case B2:
-      *rho01 = 8.0 * rhoa02;
-      *rho02 = 8.0 * rhoa01;
-      break;
     case CH4:
       *rho01 = 4.0 * rhoa02; //in assumption that 'a' represent carbon
       *rho02 = rhoa01;       //in assumption that 'b' represent hydrogen
@@ -563,30 +538,6 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho21 = s[1] * rhoa22 * rhoa22;
       *rho31 = s[2] * rhoa32 * rhoa32;
       break;
-    case LIN:
-      *rho01 = rhoa02*Zij;
-      *rho02 = rhoa01*Zij;
-
-      get_shpfcn(LIN, stheta_meam[a][b], ctheta_meam[a][b], s);
-      *rho12 = s[0] * rhoa11 * rhoa11;
-      *rho22 = s[1] * rhoa21 * rhoa21;
-      *rho32 = s[2] * rhoa31 * rhoa31;
-      *rho11 = s[0] * rhoa12 * rhoa12;
-      *rho21 = s[1] * rhoa22 * rhoa22;
-      *rho31 = s[2] * rhoa32 * rhoa32;
-      break;
-    case ZIG:
-      *rho01 = rhoa02*Zij;
-      *rho02 = rhoa01*Zij;
-
-      get_shpfcn(ZIG, stheta_meam[a][b], ctheta_meam[a][b], s);
-      *rho12 = s[0] * rhoa11 * rhoa11;
-      *rho22 = s[1] * rhoa21 * rhoa21;
-      *rho32 = s[2] * rhoa31 * rhoa31;
-      *rho11 = s[0] * rhoa12 * rhoa12;
-      *rho21 = s[1] * rhoa22 * rhoa22;
-      *rho31 = s[2] * rhoa32 * rhoa32;
-      break;
     case TRI:
       *rho01 = rhoa02;
       *rho02 = rhoa01*Zij;
@@ -595,25 +546,22 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho12 = s[0] * rhoa11 * rhoa11;
       *rho22 = s[1] * rhoa21 * rhoa21;
       *rho32 = s[2] * rhoa31 * rhoa31;
-      s[0] = 1.0;
-      s[1] = 2.0/3.0;
-      s[2] = 1.0 - 0.6*s[0];
 
+      get_shpfcn(DIM, stheta_meam[a][b], ctheta_meam[a][b], s);
       *rho11 = s[0] * rhoa12 * rhoa12;
       *rho21 = s[1] * rhoa22 * rhoa22;
       *rho31 = s[2] * rhoa32 * rhoa32;
       break;
-
 
     default:
       throw MEAMException("Lattice not defined in get_densref.");
   }
 
   if (nn2_meam[a][b] == 1) {
+    // Add the 2nn contributions to the density by calculating the screened effect of the
+    // other coordination shells on the current
 
-
-    Zij2nn = get_Zij2(lat, Cmin_meam[a][a][b], Cmax_meam[a][a][b],
-                      stheta_meam[a][b], arat, scrn);
+    Zij2nn = get_Zij2(lat, Cmin_meam[a][a][b], Cmax_meam[a][a][b], stheta_meam[a][b], arat, S11);
 
     a1 = arat * r / re_meam[a][a] - 1.0;
     a2 = arat * r / re_meam[b][b] - 1.0;
@@ -621,28 +569,24 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
     rhoa01nn = rho0_meam[a] * MathSpecial::fm_exp(-beta0_meam[a] * a1);
     rhoa02nn = rho0_meam[b] * MathSpecial::fm_exp(-beta0_meam[b] * a2);
 
-    if (lat == L12) {
-      //     As usual, L12 thinks it's special; we need to be careful computing
-      //     the screening functions
-      C = 1.0;
-      s111 = get_sijk(C, a, a, a);
-      s112 = get_sijk(C, a, a, b);
-      s221 = get_sijk(C, b, b, a);
-      S11 = s111 * s111 * s112 * s112;
-      S22 = s221 * s221 * s221 * s221;
-      *rho01 = *rho01 + 6 * S11 * rhoa01nn;
-      *rho02 = *rho02 + 6 * S22 * rhoa02nn;
-
-    } else {
-      //     For other cases, assume that second neighbor is of same type,
-      //     first neighbor may be of different type
-
-      *rho01 = *rho01 + Zij2nn * scrn * rhoa01nn;
-
-      //     Assume Zij2nn and arat don't depend on order, but scrn might
-      Zij2nn = get_Zij2(lat, Cmin_meam[b][b][a], Cmax_meam[b][b][a],
-                        stheta_meam[a][b], arat, scrn);
-      *rho02 = *rho02 + Zij2nn * scrn * rhoa02nn;
+    switch (lat) {
+      case L12:
+        //     As usual, L12 thinks it's special; we need to be careful computing
+        //     the screening functions
+        C = 1.0;
+        s111 = get_sijk(C, a, a, a);
+        s112 = get_sijk(C, a, a, b);
+        s221 = get_sijk(C, b, b, a);
+        S11 = s111 * s111 * s112 * s112;
+        S22 = s221 * s221 * s221 * s221;
+        break;
+      default:
+        //     For other cases, assume that second neighbor is of same type,
+        //     first neighbor may be of different type
+        //     Assume Zij2nn and arat don't depend on order, but scrn might
+        get_Zij2(lat, Cmin_meam[b][b][a], Cmax_meam[b][b][a], stheta_meam[a][b], arat, S22);
     }
+    *rho01 += Zij2nn * S11 * rhoa01nn;
+    *rho02 += Zij2nn * S22 * rhoa02nn;
   }
 }

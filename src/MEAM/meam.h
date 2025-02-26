@@ -233,7 +233,7 @@ typedef struct {
   double ratio_2nn;
   // ratio_2nn depends on sin(theta)
   bool ratio_2nn_angular;
-  // shape function getter  
+  // shape function getter, assume s is initialized to 0.0
   void (*shpfcn)(const double sthe, const double cthe, double (&s)[3]);
   // special: reference structure includes third nearest neighbors
   bool nn3;

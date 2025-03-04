@@ -235,6 +235,8 @@ typedef struct {
   bool ratio_2nn_angular;
   // shape function getter, assume s is initialized to 0.0
   void (*shpfcn)(const double sthe, const double cthe, double (&s)[3]);
+  // i-j cohesive energy from formation energy, use averaging if not specified
+  double (*ecoh)(const double Eii, const lattice_t ilat, const double Ejj, const double delta);
   // special: reference structure includes third nearest neighbors
   bool nn3;
 } reference_lattice_t;

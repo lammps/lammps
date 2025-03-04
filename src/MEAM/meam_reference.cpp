@@ -52,6 +52,18 @@ void zig_shpfcn(const double sthe, const double cthe, double (&s)[3])
   s[2] = s[2] - 0.6 * s[0];    //legend in dyn, 0.6 is default value.
 }
 
+double c11_ecoh(const double Eii, const lattice_t ilat, const double Ejj, const double delta)
+{
+  if (ilat == DIA)
+    return (2 * Eii + Ejj) / 3.0 - delta;
+  return (Eii + 2 * Ejj) / 3.0 - delta;
+}
+
+double l12_ecoh(const double Eii, const lattice_t ilat, const double Ejj, const double delta)
+{
+  return (3 * Eii + Ejj) / 4.0 - delta;
+}
+
 // Ensure these are in the same order as lattice_t (for now)!
 const reference_lattice_t MEAM_NS::lattice_defs[MAXLAT] = {
   {
@@ -120,6 +132,7 @@ const reference_lattice_t MEAM_NS::lattice_defs[MAXLAT] = {
   {
     .name                    = "c11",
     .Zij                     = 10,
+    .ecoh                    = c11_ecoh,
   },
   {
     .name                    = "l12",
@@ -127,6 +140,7 @@ const reference_lattice_t MEAM_NS::lattice_defs[MAXLAT] = {
     .Zij2                    = 6,
     .Nscr2                   = 4,
     .ratio_2nn               = sqrt(2.0),
+    .ecoh                    = l12_ecoh,
   },
   {
     .name                    = "b2",

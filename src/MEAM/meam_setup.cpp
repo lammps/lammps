@@ -420,7 +420,6 @@ void MEAM::alloyparams()
 {
 
   int i, j, k;
-  double eb;
 
   // Loop over pairs
   for (i = 0; i < neltypes; i++) {
@@ -441,18 +440,14 @@ void MEAM::alloyparams()
         // j-j)
       } else if (j > i) {
         if (iszero(Ec_meam[i][j])) {
-          switch (lattce_meam[i][j]) {
-            case L12:
-              Ec_meam[i][j] = (3 * Ec_meam[i][i] + Ec_meam[j][j]) / 4.0 - delta_meam[i][j];
-              break;
-            case C11:
-              if (lattce_meam[i][i] == DIA)
-                Ec_meam[i][j] = (2 * Ec_meam[i][i] + Ec_meam[j][j]) / 3.0 - delta_meam[i][j];
-              else
-                Ec_meam[i][j] = (Ec_meam[i][i] + 2 * Ec_meam[j][j]) / 3.0 - delta_meam[i][j];
-              break;
-            default:
-              Ec_meam[i][j] = (Ec_meam[i][i] + Ec_meam[j][j]) / 2.0 - delta_meam[i][j];
+          auto &def = lattice_defs[lattce_meam[i][j]];
+          double ei = Ec_meam[i][i];
+          double ej = Ec_meam[j][j];
+          double delta = delta_meam[i][j];
+          if (def.ecoh) {
+            Ec_meam[i][j] = def.ecoh(ei, lattce_meam[i][i], ej, delta);
+          } else {
+            Ec_meam[i][j] = (ei + ej) / 2.0 - delta;
           }
         }
         if (iszero(alpha_meam[i][j]))
@@ -481,7 +476,7 @@ void MEAM::alloyparams()
   for (i = 0; i < neltypes; i++) {
     for (j = 0; j < neltypes; j++) {
       for (k = 0; k < neltypes; k++) {
-        eb = (Cmax_meam[i][j][k] * Cmax_meam[i][j][k]) / (4.0 * (Cmax_meam[i][j][k] - 1.0));
+        double eb = (Cmax_meam[i][j][k] * Cmax_meam[i][j][k]) / (4.0 * (Cmax_meam[i][j][k] - 1.0));
         ebound_meam[i][j] = std::max(ebound_meam[i][j], eb);
       }
     }

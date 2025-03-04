@@ -41,33 +41,18 @@ void MEAM::compute_pair_meam()
   // check for previously allocated arrays and free them
   if (phir != nullptr)
     memory->destroy(phir);
-  if (phirar != nullptr)
-    memory->destroy(phirar);
-  if (phirar1 != nullptr)
-    memory->destroy(phirar1);
-  if (phirar2 != nullptr)
-    memory->destroy(phirar2);
-  if (phirar3 != nullptr)
-    memory->destroy(phirar3);
-  if (phirar4 != nullptr)
-    memory->destroy(phirar4);
-  if (phirar5 != nullptr)
-    memory->destroy(phirar5);
-  if (phirar6 != nullptr)
-    memory->destroy(phirar6);
+  if (phi_spline != nullptr)
+    memory->destroy(phi_spline);
+  if (phip_spline != nullptr)
+    memory->destroy(phip_spline);
 
   // allocate memory for array that defines the potential
   memory->create(phir, (neltypes * (neltypes + 1)) / 2, nr, "pair:phir");
 
   // allocate coeff memory
 
-  memory->create(phirar, (neltypes * (neltypes + 1)) / 2, nr, "pair:phirar");
-  memory->create(phirar1, (neltypes * (neltypes + 1)) / 2, nr, "pair:phirar1");
-  memory->create(phirar2, (neltypes * (neltypes + 1)) / 2, nr, "pair:phirar2");
-  memory->create(phirar3, (neltypes * (neltypes + 1)) / 2, nr, "pair:phirar3");
-  memory->create(phirar4, (neltypes * (neltypes + 1)) / 2, nr, "pair:phirar4");
-  memory->create(phirar5, (neltypes * (neltypes + 1)) / 2, nr, "pair:phirar5");
-  memory->create(phirar6, (neltypes * (neltypes + 1)) / 2, nr, "pair:phirar6");
+  memory->create(phi_spline, (neltypes * (neltypes + 1)) / 2, nr, 4, "pair:phi_spline");
+  memory->create(phip_spline, (neltypes * (neltypes + 1)) / 2, nr, 3, "pair:phip_spline");
 
   // loop over pairs of element types
   nv2 = 0;
@@ -446,32 +431,33 @@ void MEAM::interpolate_meam(int ind)
 
   // phir interp
 
+  auto &phi = phi_spline[ind];
+  auto &phip = phip_spline[ind];
+
   for (j = 0; j < nrar; j++) {
-    phirar[ind][j] = phir[ind][j];
+    phi[j][0] = phir[ind][j];
   }
-  phirar1[ind][0] = phirar[ind][1] - phirar[ind][0];
-  phirar1[ind][1] = 0.5 * (phirar[ind][2] - phirar[ind][0]);
-  phirar1[ind][nrar - 2] =
-    0.5 * (phirar[ind][nrar - 1] - phirar[ind][nrar - 3]);
-  phirar1[ind][nrar - 1] = 0.0;
+  phi[0][1] = phi[1][0] - phi[0][0];
+  phi[1][1] = 0.5 * (phi[2][0] - phi[0][0]);
+  phi[nrar - 2][1] = 0.5 * (phi[nrar - 1][0] - phi[nrar - 3][0]);
+  phi[nrar - 1][1] = 0.0;
   for (j = 2; j < nrar - 2; j++) {
-    phirar1[ind][j] = ((phirar[ind][j - 2] - phirar[ind][j + 2]) +
-                             8.0 * (phirar[ind][j + 1] - phirar[ind][j - 1])) /
-                            12.;
+    phi[j][1] = ((phi[j - 2][0] - phi[j + 2][0]) +
+                8.0 * (phi[j + 1][0] - phi[j - 1][0])) / 12.0;
   }
 
   for (j = 0; j < nrar - 1; j++) {
-    phirar2[ind][j] = 3.0 * (phirar[ind][j + 1] - phirar[ind][j]) -
-                            2.0 * phirar1[ind][j] - phirar1[ind][j + 1];
-    phirar3[ind][j] = phirar1[ind][j] + phirar1[ind][j + 1] -
-                            2.0 * (phirar[ind][j + 1] - phirar[ind][j]);
+    phi[j][2] = 3.0 * (phi[j + 1][0] - phi[j][0]) -
+                2.0 * phi[j][1] - phi[j + 1][1];
+    phi[j][3] = phi[j][1] + phi[j + 1][1] -
+                2.0 * (phi[j + 1][0] - phi[j][0]);
   }
-  phirar2[ind][nrar - 1] = 0.0;
-  phirar3[ind][nrar - 1] = 0.0;
+  phi[nrar - 1][2] = 0.0;
+  phi[nrar - 1][3] = 0.0;
 
   for (j = 0; j < nrar; j++) {
-    phirar4[ind][j] = phirar1[ind][j] / drar;
-    phirar5[ind][j] = 2.0 * phirar2[ind][j] / drar;
-    phirar6[ind][j] = 3.0 * phirar3[ind][j] / drar;
+    phip[j][0] = phi[j][1] / drar;
+    phip[j][1] = 2.0 * phi[j][2] / drar;
+    phip[j][2] = 3.0 * phi[j][3] / drar;
   }
 }

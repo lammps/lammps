@@ -62,8 +62,6 @@ class MEAM {
   // lattce_meam(i,j) = lattce configuration for elt i or alloy (i,j)
   // neltypes = maximum number of element type defined
   // eltind = index number of pair (similar to Voigt notation; ij = ji)
-  // phir = pair potential function array
-  // phirar[1-6] = spline coeffs
   // attrac_meam = attraction parameter in Rose energy
   // repuls_meam = repulsion parameter in Rose energy
   // nn2_meam = 1 if second nearest neighbors are to be computed, else 0
@@ -110,9 +108,12 @@ class MEAM {
   int eltind[MAXELT][MAXELT];
   int neltypes;
 
+  // phi as computed from the potential, dimension: [(neltypes * (neltypes + 1)) / 2][nr],
   double **phir;
 
-  double **phirar, **phirar1, **phirar2, **phirar3, **phirar4, **phirar5, **phirar6;
+  // phi interpolation spline, dimension: [(neltypes * (neltypes + 1)) / 2][nrar][4]
+  // phi' interpolation spline, dimension: [(neltypes * (neltypes + 1)) / 2][nrar][3]
+  double ***phi_spline, ***phip_spline;
 
   double attrac_meam[MAXELT][MAXELT], repuls_meam[MAXELT][MAXELT];
 
@@ -178,6 +179,7 @@ class MEAM {
   void get_densref(double, int, int, double *, double *, double *, double *, double *, double *,
                    double *, double *, double *, double *, double *, double *, double *, double *) const; // last 6 args for msmeam
   void interpolate_meam(int);
+  double phi_interpolate(const int ind, const double r, double &dphi);
 
  public:
   void setup_library(int nelt, lattice_t *lat, int *ielement, double *atwt, double *alpha,

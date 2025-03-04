@@ -26,7 +26,8 @@ using namespace MEAM_NS;
 
 MEAM::MEAM(Memory *mem) : memory(mem)
 {
-  phir = phirar = phirar1 = phirar2 = phirar3 = phirar4 = phirar5 = phirar6 = nullptr;
+  phir = nullptr;
+  phi_spline = phip_spline = nullptr;
 
   nmax = 0;
   rho = rho0 = rho1 = rho2 = rho3 = frhop = nullptr;
@@ -101,14 +102,9 @@ MEAM::~MEAM()
 {
   if (copymode) return;
 
-  memory->destroy(phirar6);
-  memory->destroy(phirar5);
-  memory->destroy(phirar4);
-  memory->destroy(phirar3);
-  memory->destroy(phirar2);
-  memory->destroy(phirar1);
-  memory->destroy(phirar);
   memory->destroy(phir);
+  memory->destroy(phi_spline);
+  memory->destroy(phip_spline);
 
   memory->destroy(rho);
   memory->destroy(rho0);

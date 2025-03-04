@@ -180,6 +180,26 @@ void MEAM::eval_energy(int nlocal, int eflag_either, int eflag_global, int eflag
 }
 
 /* ----------------------------------------------------------------------
+   Evaluate phi spline and derivative of pair ind at r
+------------------------------------------------------------------------- */
+
+double MEAM::phi_interpolate(const int ind, const double r, double &dphi)
+{
+  // find the bucket and position in bucket corresponding to r
+  double pp = r * rdrar;
+  int bucket = std::min((int)pp, nrar - 2);
+  double x = std::min(pp - bucket, 1.0);
+
+  // spline coeffs
+  auto &phi = phi_spline[ind][bucket];
+  auto &phip = phip_spline[ind][bucket];
+
+  // evaluate
+  dphi = (phip[2] * x + phip[1]) * x + phip[0];
+  return ((phi[3] * x + phi[2]) * x + phi[1]) * x + phi[0];
+}
+
+/* ----------------------------------------------------------------------
    Compute force, stress, and energy contribution of the density gradient
 ------------------------------------------------------------------------- */
 
@@ -189,14 +209,14 @@ void MEAM::eval_force(int i, int eflag_global, int eflag_atom, int vflag_global,
                       int *firstneigh_full, int fnoffset, double **f, double **vatom,
                       double *virial)
 {
-  int j, jn, k, kn, kk, m, n, p, q;
-  int nv2, nv3, elti, eltj, eltk, ind;
+  int j, jn, k, kn, m, n, p, q;
+  int nv2, nv3, elti, eltj, eltk;
   int eflag_either = eflag_atom || eflag_global;
   int vflag_either = vflag_atom || vflag_global;
   double xitmp, yitmp, zitmp, delij[3], rij2, rij, rij3;
   double v[6], fi[3], fj[3];
   double third, sixth;
-  double pp, dUdrij, dUdsij, dUdrijm[3], force, forcem;
+  double dUdrij, dUdsij, dUdrijm[3], force, forcem;
   double recip, phi, phip;
   double sij;
   double a1, a1i, a1j, a2, a2i, a2j;
@@ -265,14 +285,7 @@ void MEAM::eval_force(int i, int eflag_global, int eflag_atom, int vflag_global,
         rij = sqrt(rij2);
         recip = 1.0 / rij;
         //     Compute phi and phip
-        ind = eltind[elti][eltj];
-        pp = rij * rdrar;
-        kk = (int)pp;
-        kk = std::min(kk, nrar - 2);
-        pp = pp - kk;
-        pp = std::min(pp, 1.0);
-        phi = ((phirar3[ind][kk] * pp + phirar2[ind][kk]) * pp + phirar1[ind][kk]) * pp + phirar[ind][kk];
-        phip = (phirar6[ind][kk] * pp + phirar5[ind][kk]) * pp + phirar4[ind][kk];
+        phi = phi_interpolate(eltind[elti][eltj], rij, phip);
 
         if (eflag_either != 0) {
           double phi_sc = phi * scaleij * sij;

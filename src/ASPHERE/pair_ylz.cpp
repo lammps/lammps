@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_ylz.h"
-
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "citeme.h"

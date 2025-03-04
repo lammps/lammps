@@ -348,7 +348,7 @@ void MEAM::setup_param(int which, double value, int nindex, int *index /*index(3
 
 void MEAM::setup_finish(double* cutmax)
 {
-  int nv2, nv3, m, n, p;
+  int nv2, m, n;
 
   //     Force cutoff
   cutforce = rc_meam;
@@ -364,44 +364,7 @@ void MEAM::setup_finish(double* cutmax)
   //     Compute off-diagonal alloy parameters
   alloyparams();
 
-  // indices and factors for Voight notation
-  nv2 = 0;
-  nv3 = 0;
-  for (m = 0; m < 3; m++) {
-    for (n = m; n < 3; n++) {
-      vind2D[m][n] = nv2;
-      vind2D[n][m] = nv2;
-      nv2 = nv2 + 1;
-      for (p = n; p < 3; p++) {
-        vind3D[m][n][p] = nv3;
-        vind3D[m][p][n] = nv3;
-        vind3D[n][m][p] = nv3;
-        vind3D[n][p][m] = nv3;
-        vind3D[p][m][n] = nv3;
-        vind3D[p][n][m] = nv3;
-        nv3 = nv3 + 1;
-      }
-    }
-  }
-
-  v2D[0] = 1;
-  v2D[1] = 2;
-  v2D[2] = 2;
-  v2D[3] = 1;
-  v2D[4] = 2;
-  v2D[5] = 1;
-
-  v3D[0] = 1;
-  v3D[1] = 3;
-  v3D[2] = 3;
-  v3D[3] = 3;
-  v3D[4] = 6;
-  v3D[5] = 3;
-  v3D[6] = 1;
-  v3D[7] = 3;
-  v3D[8] = 3;
-  v3D[9] = 1;
-
+  // index array for phi/phip splines
   nv2 = 0;
   for (m = 0; m < neltypes; m++) {
     for (n = m; n < neltypes; n++) {

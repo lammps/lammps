@@ -235,6 +235,10 @@ typedef struct {
   double ratio_2nn;
   // ratio_2nn depends on sin(theta)
   bool ratio_2nn_angular;
+  // include contribution of a-a, b-b 2NN neighbors in a-b calculation
+  bool phi_2nn_recursive;
+  // special: in 2nn pair potential calculation, apply L12 uneven types
+  bool type_2nn_l12;
   // shape function getter, assume s is initialized to 0.0
   void (*shpfcn)(const double sthe, const double cthe, double (&s)[3]);
   // i-j cohesive energy from formation energy, use averaging if not specified

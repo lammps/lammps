@@ -33,8 +33,8 @@ void MEAM::compute_pair_meam()
   int j, a, b, nv2;
   double astar, frac, phizbl;
   int Z1, Z2;
-  double arat, rarat, scrn, scrn2;
-  double phiaa, phibb /*unused:,phitmp*/;
+  double arat, rarat, scrn;
+  double phiaa, phibb, waa, wbb;
   double C, s111, s112, s221, S11, S22;
   lattice_t lattaa, lattbb, lattab;
 
@@ -69,58 +69,55 @@ void MEAM::compute_pair_meam()
           lattaa = lattce_meam[a][a];
           lattbb = lattce_meam[b][b];
           lattab = lattce_meam[a][b];
+          auto &def = lattice_defs[lattab];
 
+          // may use Z1,Z2 in the generic case, otherwise only arat is used immediately
           Z1 = get_Zij(lattab);
-          Z2 = get_Zij2(lattab, Cmin_meam[a][a][b],
-                     Cmax_meam[a][a][b], stheta_meam[a][b], arat, scrn);
+          Z2 = get_Zij2(lattab, Cmin_meam[a][a][b], Cmax_meam[a][a][b], stheta_meam[a][b], arat, scrn);
 
-          //     The B1, B2,  and L12 cases with NN2 have a trick to them; we need to
-          //     compute the contributions from second nearest neighbors, like a-a
-          //     pairs, but need to include NN2 contributions to those pairs as
-          //     well.
-          if (lattab == B1 || lattab == B2 || lattab == L12 || lattab == DIA) {
+          // "Uneven" lattices with 2NN have a trick to them; we need to compute the contributions
+          // from second nearest neighbors, like a-a pairs, but need to include NN2 contributions
+          // to those pairs as well.
+          if (def.phi_2nn_recursive) {
             rarat = r * arat;
 
-            //               phi_aa
-            phiaa = phi_meam(rarat, a, a);
+            // contributions at each 2nn site
             Z1 = get_Zij(lattaa);
             Z2 = get_Zij2(lattaa, Cmin_meam[a][a][a], Cmax_meam[a][a][a], stheta_meam[a][a], arat, scrn);
-            phiaa+= phi_2nn_series(scrn, Z1, Z2, a, a, rarat, arat);
+            phiaa = phi_meam(rarat, a, a) + phi_2nn_series(scrn, Z1, Z2, a, a, rarat, arat);
 
-            //               phi_bb
-            phibb = phi_meam(rarat, b, b);
             Z1 = get_Zij(lattbb);
             Z2 = get_Zij2(lattbb, Cmin_meam[b][b][b], Cmax_meam[b][b][b], stheta_meam[b][b], arat, scrn);
-            phibb+= phi_2nn_series(scrn, Z1, Z2, b, b, rarat, arat);
+            phibb = phi_meam(rarat, b, b) + phi_2nn_series(scrn, Z1, Z2, b, b, rarat, arat);
 
-            if (lattab == B1 || lattab == B2 || lattab == DIA) {
-              //     Add contributions to the B1 or B2 potential
-              Z1 = get_Zij(lattab);
-              Z2 = get_Zij2(lattab, Cmin_meam[a][a][b], Cmax_meam[a][a][b], stheta_meam[a][b], arat, scrn);
-              phir[nv2][j] -= Z2 * scrn / (2 * Z1) * phiaa;
-              Z2 = get_Zij2(lattab, Cmin_meam[b][b][a], Cmax_meam[b][b][a], stheta_meam[a][b], arat, scrn2);
-              phir[nv2][j] -= Z2 * scrn2 / (2 * Z1) * phibb;
-
-            } else if (lattab == L12) {
-              //     The L12 case has one last trick; we have to be careful to
-              //     compute
-              //     the correct screening between 2nd-neighbor pairs.  1-1
-              //     second-neighbor pairs are screened by 2 type 1 atoms and
-              //     two type
-              //     2 atoms.  2-2 second-neighbor pairs are screened by 4 type
-              //     1
-              //     atoms.
+            // compute screening and weight of 2nn site contributions
+            if (def.type_2nn_l12) {
+              // The L12 case has one last trick; we have to be careful to compute
+              // the correct screening between 2nd-neighbor pairs.  1-1
+              // second-neighbor pairs are screened by 2 type 1 atoms and two type
+              // 2 atoms.  2-2 second-neighbor pairs are screened by 4 type 1 atoms.
               C = 1.0;
               s111 = get_sijk(C, a, a, a);
               s112 = get_sijk(C, a, a, b);
               s221 = get_sijk(C, b, b, a);
               S11 = s111 * s111 * s112 * s112;
               S22 = pow(s221, 4);
-              phir[nv2][j] = phir[nv2][j] - 0.75 * S11 * phiaa - 0.25 * S22 * phibb;
+              // this corresponds to Z2 / (2.0 * Z1) below, but counting multiplicity
+              waa = 0.75;
+              wbb = 0.25;
+            } else {
+              // Other cases mix based on Z1/Z2 only and assume neighbor types are in 1:1 number ratio
+              Z1 = get_Zij(lattab);
+              Z2 = get_Zij2(lattab, Cmin_meam[a][a][b], Cmax_meam[a][a][b], stheta_meam[a][b], arat, S11);
+              waa = Z2 / (2.0 * Z1);
+              Z2 = get_Zij2(lattab, Cmin_meam[b][b][a], Cmax_meam[b][b][a], stheta_meam[a][b], arat, S22);
+              wbb = Z2 / (2.0 * Z1);
             }
-
+            phir[nv2][j] -= waa * S11 * phiaa;
+            phir[nv2][j] -= wbb * S22 * phibb;
           } else {
-            phir[nv2][j]+= phi_2nn_series(scrn, Z1, Z2, a, b, r, arat);
+            // generic solution: just add a-b potential (first series term is negative, similar to subtracting waa/wbb above)
+            phir[nv2][j] += phi_2nn_series(scrn, Z1, Z2, a, b, r, arat);
           }
         }
 
@@ -298,13 +295,11 @@ double MEAM::invert_eam(const double r, const int a, const int b, const double E
       }
       break;
     case L12:
-      phiaa = phi_meam(r, a, a);
       //       account for second neighbor a-a potential here...
       Z1nn = get_Zij(lattce_meam[a][a]);
-      Z2nn = get_Zij2(lattce_meam[a][a], Cmin_meam[a][a][a],
-               Cmax_meam[a][a][a], stheta_meam[a][b], arat, scrn);
+      Z2nn = get_Zij2(lattce_meam[a][a], Cmin_meam[a][a][a], Cmax_meam[a][a][a], stheta_meam[a][b], arat, scrn);
+      phiaa = phi_meam(r, a, a) + phi_2nn_series(scrn, Z1nn, Z2nn, a, a, r, arat);
 
-      phiaa += phi_2nn_series(scrn, Z1nn, Z2nn, a, a, r, arat);
       phi_m = Eu / 3.0 - F1 / 4.0 - F2 / 12.0 - phiaa;
       break;
     case CH4:

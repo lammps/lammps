@@ -109,6 +109,7 @@ const reference_lattice_t MEAM_NS::lattice_defs[MAXLAT] = {
     .Zij2                    = 12,
     .Nscr2                   = 1,
     .ratio_2nn               = sqrt(8.0 / 3.0),
+    .phi_2nn_recursive       = true,
     .shpfcn                  = dia_shpfcn,
   },
   {
@@ -128,6 +129,7 @@ const reference_lattice_t MEAM_NS::lattice_defs[MAXLAT] = {
     .Zij2                    = 12,
     .Nscr2                   = 2,
     .ratio_2nn               = sqrt(2.0),
+    .phi_2nn_recursive       = true,
   },
   {
     .name                    = "c11",
@@ -140,6 +142,8 @@ const reference_lattice_t MEAM_NS::lattice_defs[MAXLAT] = {
     .Zij2                    = 6,
     .Nscr2                   = 4,
     .ratio_2nn               = sqrt(2.0),
+    .phi_2nn_recursive       = true,
+    .type_2nn_l12            = true,
     .ecoh                    = l12_ecoh,
   },
   {
@@ -148,6 +152,7 @@ const reference_lattice_t MEAM_NS::lattice_defs[MAXLAT] = {
     .Zij2                    = 6,
     .Nscr2                   = 4,
     .ratio_2nn               = 2.0 / sqrt(3.0),
+    .phi_2nn_recursive       = true,
   },
   {
     .name                    = "ch4",

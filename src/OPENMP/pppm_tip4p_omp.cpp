@@ -39,14 +39,10 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#else
-#define ZEROF 0.0
-#endif
+static constexpr FFT_SCALAR ZEROF = 0.0;
 
-#define EPS_HOC 1.0e-7
-#define OFFSET 16384
+static constexpr double EPS_HOC = 1.0e-7;
+static constexpr int OFFSET = 16384;
 
 /* ---------------------------------------------------------------------- */
 
@@ -392,7 +388,7 @@ void PPPMTIP4POMP::particle_map()
 
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all(FLERR,"Out of range atoms - cannot compute PPPM");
+  if (flag_all) error->all(FLERR,"Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
 }
 
 /* ----------------------------------------------------------------------

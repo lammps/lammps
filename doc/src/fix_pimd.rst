@@ -10,7 +10,7 @@ fix pimd/nvt command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style keyword value ...
 
@@ -31,7 +31,7 @@ Syntax
 
   .. parsed-literal::
        *keywords* = *method* or *integrator* or *ensemble* or *fmmode* or *fmass* or *scale* or *temp* or *thermostat* or *tau* or *iso* or *aniso* or *barostat* or *taup* or *fixcom* or *lj*
-       *method* value = *nmpimd*
+       *method* value = *nmpimd* (default) or *pimd*
        *integrator* value = *obabo* or *baoab*
        *fmmode* value = *physical* or *normal*
        *fmass* value = scaling factor on mass
@@ -137,8 +137,6 @@ normal-mode PIMD.  A value of *cmd* is for centroid molecular dynamics
    the real particle.
 
 .. note::
-   Fix pimd/langevin only supports *method* value *nmpimd*. This should be enough
-   for most PIMD applications for quantum thermodynamics purpose.
 
    Motion of the centroid can be effectively uncoupled from the other
    normal modes by scaling the fictitious masses to achieve a partial
@@ -150,6 +148,16 @@ normal-mode PIMD.  A value of *cmd* is for centroid molecular dynamics
    The CMD method also uses normal modes to evolve the system, except
    only the k > 0 modes are thermostatted, not the centroid degrees of
    freedom.
+
+.. versionadded:: 21Nov2023
+
+   Mode *pimd* added to fix pimd/langevin.
+
+Fix pimd/langevin supports the *method* values *nmpimd* and *pimd*. The default value is *nmpimd*.
+If *method* is *nmpimd*, the normal mode representation is used to integrate the equations of motion.
+The exact solution of harmonic oscillator is used to propagate the free ring polymer part of the Hamiltonian.
+If *method* is *pimd*, the Cartesian representation is used to integrate the equations of motion.
+The harmonic force is added to the total force of the system, and the numerical integrator is used to propagate the Hamiltonian.
 
 The keyword *integrator* specifies the Trotter splitting method used by *fix pimd/langevin*.
 See :ref:`(Liu) <Liu>` for a discussion on the OBABO and BAOAB splitting schemes. Typically
@@ -207,6 +215,7 @@ The keyword *thermostat* reads *style* and *seed* of thermostat for fix style *p
 be *PILE_L* (path integral Langevin equation local thermostat, as described in :ref:`Ceriotti <Ceriotti2>`), and *seed* should a positive integer number, which serves as the seed of the pseudo random number generator.
 
 .. note::
+
    The fix style *pimd/langevin* uses the stochastic PILE_L thermostat to control temperature. This thermostat works on the normal modes
    of the ring polymer. The *tau* parameter controls the centroid mode, and the *scale* parameter controls the non-centroid modes.
 
@@ -227,7 +236,7 @@ The keyword *fixcom* specifies whether the center-of-mass of the extended ring-p
 Once *fixcom* is set to be *yes*, the center-of-mass velocity will be distracted from the centroid-mode velocities in each step.
 
 The keyword *lj* should be used if :doc:`lj units <units>` is used for *fix pimd/langevin*. Typically one may want to use
-reduced units to run the simulation, and then convert the results into some physical units (for example, :doc:`metal units <units>`). In this case, the 5 quantities in the physical mass units are needed: epsilon (energy scale), sigma (length scale), mass, Planck's constant, mvv2e (mass * velocity^2 to energy conversion factor). Planck's constant and mvv2e can be found in src/update.cpp. If there is no need to convert reduced units to physical units, set all these five value to 1.
+reduced units to run the simulation, and then convert the results into some physical units (for example, :doc:`metal units <units>`). In this case, the 5 quantities in the physical mass units are needed: epsilon (energy scale), sigma (length scale), mass, Planck's constant, mvv2e (mass * velocity^2 to energy conversion factor). Planck's constant and mvv2e can be found in src/update.cpp. If there is no need to convert reduced units to physical units, you can omit the keyword *lj* and these five values will be set to 1.
 
 The PIMD algorithm in LAMMPS is implemented as a hyper-parallel scheme
 as described in :ref:`Calhoun <Calhoun>`.  In LAMMPS this is done by using
@@ -269,6 +278,7 @@ related tasks for each of the partitions, e.g.
    read_restart system_${ibead}.restart2
 
 .. note::
+
    Fix *pimd/langevin* dumps the Cartesian coordinates, but dumps the velocities and
    forces in the normal mode representation. If the Cartesian velocities and forces are
    needed, it is easy to perform the transformation when doing post-processing.

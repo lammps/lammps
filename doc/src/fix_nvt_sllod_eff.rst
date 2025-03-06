@@ -6,7 +6,7 @@ fix nvt/sllod/eff command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID nvt/sllod/eff keyword value ...
 

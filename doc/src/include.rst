@@ -6,7 +6,7 @@ include command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    include file
 
@@ -35,7 +35,8 @@ scripts.
 
 Restrictions
 """"""""""""
- none
+
+none
 
 Related commands
 """"""""""""""""

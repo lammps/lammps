@@ -1,55 +1,23 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
 static_assert(false,
               "Including non-public Kokkos header files is not allowed.");
-#else
-KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
-#endif
 #endif
 #ifndef KOKKOS_CORE_EXP_MD_RANGE_POLICY_HPP
 #define KOKKOS_CORE_EXP_MD_RANGE_POLICY_HPP
@@ -62,6 +30,7 @@ KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
 #include <impl/KokkosExp_Host_IterateTile.hpp>
 #include <Kokkos_ExecPolicy.hpp>
 #include <type_traits>
+#include <cmath>
 
 namespace Kokkos {
 
@@ -92,28 +61,33 @@ namespace Impl {
 // NOTE the comparison below is encapsulated to silent warnings about pointless
 // comparison of unsigned integer with zero
 template <class T>
-constexpr std::enable_if_t<!std::is_signed<T>::value, bool>
+constexpr std::enable_if_t<!std::is_signed_v<T>, bool>
 is_less_than_value_initialized_variable(T) {
   return false;
 }
 
 template <class T>
-constexpr std::enable_if_t<std::is_signed<T>::value, bool>
+constexpr std::enable_if_t<std::is_signed_v<T>, bool>
 is_less_than_value_initialized_variable(T arg) {
   return arg < T{};
 }
 
 // Checked narrowing conversion that calls abort if the cast changes the value
 template <class To, class From>
-constexpr To checked_narrow_cast(From arg) {
+constexpr To checked_narrow_cast(From arg, std::size_t idx) {
   constexpr const bool is_different_signedness =
-      (std::is_signed<To>::value != std::is_signed<From>::value);
+      (std::is_signed_v<To> != std::is_signed_v<From>);
   auto const ret = static_cast<To>(arg);
   if (static_cast<From>(ret) != arg ||
       (is_different_signedness &&
        is_less_than_value_initialized_variable(arg) !=
            is_less_than_value_initialized_variable(ret))) {
-    Kokkos::abort("unsafe narrowing conversion");
+    auto msg =
+        "Kokkos::MDRangePolicy bound type error: an unsafe implicit conversion "
+        "is performed on a bound (" +
+        std::to_string(arg) + ") in dimension (" + std::to_string(idx) +
+        "), which may not preserve its original value.\n";
+    Kokkos::abort(msg.c_str());
   }
   return ret;
 }
@@ -128,15 +102,15 @@ constexpr Array to_array_potentially_narrowing(const U (&init)[M]) {
   using T = typename Array::value_type;
   Array a{};
   constexpr std::size_t N = a.size();
-  static_assert(M <= N, "");
+  static_assert(M <= N);
   auto* ptr = a.data();
   // NOTE equivalent to
   // std::transform(std::begin(init), std::end(init), a.data(),
   //                [](U x) { return static_cast<T>(x); });
   // except that std::transform is not constexpr.
-  for (auto x : init) {
-    *ptr++ = checked_narrow_cast<T>(x);
-    (void)checked_narrow_cast<IndexType>(x);  // see note above
+  for (std::size_t i = 0; i < M; ++i) {
+    *ptr++ = checked_narrow_cast<T>(init[i], i);
+    (void)checked_narrow_cast<IndexType>(init[i], i);  // see note above
   }
   return a;
 }
@@ -152,10 +126,10 @@ constexpr NVCC_WONT_LET_ME_CALL_YOU_Array to_array_potentially_narrowing(
   using T = typename NVCC_WONT_LET_ME_CALL_YOU_Array::value_type;
   NVCC_WONT_LET_ME_CALL_YOU_Array a{};
   constexpr std::size_t N = a.size();
-  static_assert(M <= N, "");
+  static_assert(M <= N);
   for (std::size_t i = 0; i < M; ++i) {
-    a[i] = checked_narrow_cast<T>(other[i]);
-    (void)checked_narrow_cast<IndexType>(other[i]);  // see note above
+    a[i] = checked_narrow_cast<T>(other[i], i);
+    (void)checked_narrow_cast<IndexType>(other[i], i);  // see note above
   }
   return a;
 }
@@ -182,9 +156,20 @@ TileSizeProperties get_tile_size_properties(const ExecutionSpace&) {
 
 // multi-dimensional iteration pattern
 template <typename... Properties>
-struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
-  using traits       = Kokkos::Impl::PolicyTraits<Properties...>;
-  using range_policy = RangePolicy<Properties...>;
+struct MDRangePolicy;
+
+// Note: If MDRangePolicy has a primary template, implicit CTAD (deduction
+// guides) are generated -> MDRangePolicy<> by some compilers, which is
+// incorrect.  By making it a template specialization instead, no implicit CTAD
+// is generated.  This works because there has to be at least one property
+// specified (which is Rank<...>); otherwise, we'd get the static_assert
+// "Kokkos::Error: MD iteration pattern not defined".  This template
+// specialization uses <P, Properties...> in all places for correctness.
+template <typename P, typename... Properties>
+struct MDRangePolicy<P, Properties...>
+    : public Kokkos::Impl::PolicyTraits<P, Properties...> {
+  using traits       = Kokkos::Impl::PolicyTraits<P, Properties...>;
+  using range_policy = RangePolicy<P, Properties...>;
 
   typename traits::execution_space m_space;
 
@@ -193,13 +178,13 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
                   typename traits::schedule_type, typename traits::index_type>;
 
   using execution_policy =
-      MDRangePolicy<Properties...>;  // needed for is_execution_space
-                                     // interrogation
+      MDRangePolicy<P, Properties...>;  // needed for is_execution_policy
+                                        // interrogation
 
   template <class... OtherProperties>
   friend struct MDRangePolicy;
 
-  static_assert(!std::is_void<typename traits::iteration_pattern>::value,
+  static_assert(!std::is_void_v<typename traits::iteration_pattern>,
                 "Kokkos Error: MD iteration pattern not defined");
 
   using iteration_pattern = typename traits::iteration_pattern;
@@ -208,6 +193,7 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
   using member_type       = typename range_policy::member_type;
 
   static constexpr int rank = iteration_pattern::rank;
+  static_assert(rank < 7, "Kokkos MDRangePolicy Error: Unsupported rank...");
 
   using index_type       = typename traits::index_type;
   using array_index_type = std::int64_t;
@@ -253,9 +239,9 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
 
   template <typename LT, std::size_t LN, typename UT, std::size_t UN,
             typename TT = array_index_type, std::size_t TN = rank,
-            typename = std::enable_if_t<std::is_integral<LT>::value &&
-                                        std::is_integral<UT>::value &&
-                                        std::is_integral<TT>::value>>
+            typename = std::enable_if_t<std::is_integral_v<LT> &&
+                                        std::is_integral_v<UT> &&
+                                        std::is_integral_v<TT>>>
   MDRangePolicy(const LT (&lower)[LN], const UT (&upper)[UN],
                 const TT (&tile)[TN] = {})
       : MDRangePolicy(
@@ -272,9 +258,9 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
 
   template <typename LT, std::size_t LN, typename UT, std::size_t UN,
             typename TT = array_index_type, std::size_t TN = rank,
-            typename = std::enable_if_t<std::is_integral<LT>::value &&
-                                        std::is_integral<UT>::value &&
-                                        std::is_integral<TT>::value>>
+            typename = std::enable_if_t<std::is_integral_v<LT> &&
+                                        std::is_integral_v<UT> &&
+                                        std::is_integral_v<TT>>>
   MDRangePolicy(const typename traits::execution_space& work_space,
                 const LT (&lower)[LN], const UT (&upper)[UN],
                 const TT (&tile)[TN] = {})
@@ -306,14 +292,14 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
   }
 
   template <typename T, std::size_t NT = rank,
-            typename = std::enable_if_t<std::is_integral<T>::value>>
+            typename = std::enable_if_t<std::is_integral_v<T>>>
   MDRangePolicy(Kokkos::Array<T, rank> const& lower,
                 Kokkos::Array<T, rank> const& upper,
                 Kokkos::Array<T, NT> const& tile = Kokkos::Array<T, NT>{})
       : MDRangePolicy(typename traits::execution_space(), lower, upper, tile) {}
 
   template <typename T, std::size_t NT = rank,
-            typename = std::enable_if_t<std::is_integral<T>::value>>
+            typename = std::enable_if_t<std::is_integral_v<T>>>
   MDRangePolicy(const typename traits::execution_space& work_space,
                 Kokkos::Array<T, rank> const& lower,
                 Kokkos::Array<T, rank> const& upper,
@@ -345,7 +331,44 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
   }
   bool impl_tune_tile_size() const { return m_tune_tile_size; }
 
+  tile_type tile_size_recommended() const {
+    tile_type rec_tile_sizes = {};
+
+    for (std::size_t i = 0; i < rec_tile_sizes.size(); ++i) {
+      rec_tile_sizes[i] = tile_size_recommended(i);
+    }
+    return rec_tile_sizes;
+  }
+
+  int max_total_tile_size() const {
+    return Impl::get_tile_size_properties(m_space).max_total_tile_size;
+  }
+
  private:
+  int tile_size_recommended(const int tile_rank) const {
+    auto properties = Impl::get_tile_size_properties(m_space);
+    int last_rank   = (inner_direction == Iterate::Right) ? rank - 1 : 0;
+    int rank_acc =
+        (inner_direction == Iterate::Right) ? tile_rank + 1 : tile_rank - 1;
+    int rec_tile_size = (std::pow(properties.default_tile_size, rank_acc) <
+                         properties.max_total_tile_size)
+                            ? properties.default_tile_size
+                            : 1;
+
+    if (tile_rank == last_rank) {
+      rec_tile_size = tile_size_last_rank(
+          properties, m_upper[last_rank] - m_lower[last_rank]);
+    }
+    return rec_tile_size;
+  }
+
+  int tile_size_last_rank(const Impl::TileSizeProperties properties,
+                          const index_type length) const {
+    return properties.default_largest_tile_size == 0
+               ? std::max<int>(length, 1)
+               : properties.default_largest_tile_size;
+  }
+
   void init_helper(Impl::TileSizeProperties properties) {
     m_prod_tile_dims = 1;
     int increment    = 1;
@@ -356,8 +379,23 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
       rank_start = rank - 1;
       rank_end   = -1;
     }
+
     for (int i = rank_start; i != rank_end; i += increment) {
       const index_type length = m_upper[i] - m_lower[i];
+
+      if (m_upper[i] < m_lower[i]) {
+        std::string msg =
+            "Kokkos::MDRangePolicy bounds error: The lower bound (" +
+            std::to_string(m_lower[i]) + ") is greater than its upper bound (" +
+            std::to_string(m_upper[i]) + ") in dimension " + std::to_string(i) +
+            ".\n";
+#if !defined(KOKKOS_ENABLE_DEPRECATED_CODE_4)
+        Kokkos::abort(msg.c_str());
+#elif defined(KOKKOS_ENABLE_DEPRECATION_WARNINGS)
+        Kokkos::Impl::log_warning(msg);
+#endif
+      }
+
       if (m_tile[i] <= 0) {
         m_tune_tile_size = true;
         if ((inner_direction == Iterate::Right && (i < rank - 1)) ||
@@ -369,9 +407,7 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
             m_tile[i] = 1;
           }
         } else {
-          m_tile[i] = properties.default_largest_tile_size == 0
-                          ? std::max<int>(length, 1)
-                          : properties.default_largest_tile_size;
+          m_tile[i] = tile_size_last_rank(properties, length);
         }
       }
       m_tile_end[i] =
@@ -389,20 +425,57 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
   }
 };
 
-}  // namespace Kokkos
+template <typename LT, size_t N, typename UT>
+MDRangePolicy(const LT (&)[N], const UT (&)[N]) -> MDRangePolicy<Rank<N>>;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-// For backward compatibility
-namespace Kokkos {
-namespace Experimental {
-using Iterate KOKKOS_DEPRECATED = Kokkos::Iterate;
-template <typename... Properties>
-using MDRangePolicy KOKKOS_DEPRECATED = Kokkos::MDRangePolicy<Properties...>;
-template <unsigned N, Kokkos::Iterate OuterDir = Kokkos::Iterate::Default,
-          Kokkos::Iterate InnerDir = Kokkos::Iterate::Default>
-using Rank KOKKOS_DEPRECATED = Kokkos::Rank<N, OuterDir, InnerDir>;
-}  // namespace Experimental
+template <typename LT, size_t N, typename UT, typename TT, size_t TN>
+MDRangePolicy(const LT (&)[N], const UT (&)[N], const TT (&)[TN])
+    -> MDRangePolicy<Rank<N>>;
+
+template <typename LT, size_t N, typename UT>
+MDRangePolicy(DefaultExecutionSpace const&, const LT (&)[N], const UT (&)[N])
+    -> MDRangePolicy<Rank<N>>;
+
+template <typename LT, size_t N, typename UT, typename TT, size_t TN>
+MDRangePolicy(DefaultExecutionSpace const&, const LT (&)[N], const UT (&)[N],
+              const TT (&)[TN]) -> MDRangePolicy<Rank<N>>;
+
+template <typename ES, typename LT, size_t N, typename UT,
+          typename = std::enable_if_t<is_execution_space_v<ES>>>
+MDRangePolicy(ES const&, const LT (&)[N], const UT (&)[N])
+    -> MDRangePolicy<ES, Rank<N>>;
+
+template <typename ES, typename LT, size_t N, typename UT, typename TT,
+          size_t TN, typename = std::enable_if_t<is_execution_space_v<ES>>>
+MDRangePolicy(ES const&, const LT (&)[N], const UT (&)[N], const TT (&)[TN])
+    -> MDRangePolicy<ES, Rank<N>>;
+
+template <typename T, size_t N>
+MDRangePolicy(Array<T, N> const&, Array<T, N> const&) -> MDRangePolicy<Rank<N>>;
+
+template <typename T, size_t N, size_t NT>
+MDRangePolicy(Array<T, N> const&, Array<T, N> const&, Array<T, NT> const&)
+    -> MDRangePolicy<Rank<N>>;
+
+template <typename T, size_t N>
+MDRangePolicy(DefaultExecutionSpace const&, Array<T, N> const&,
+              Array<T, N> const&) -> MDRangePolicy<Rank<N>>;
+
+template <typename T, size_t N, size_t NT>
+MDRangePolicy(DefaultExecutionSpace const&, Array<T, N> const&,
+              Array<T, N> const&, Array<T, NT> const&)
+    -> MDRangePolicy<Rank<N>>;
+
+template <typename ES, typename T, size_t N,
+          typename = std::enable_if_t<is_execution_space_v<ES>>>
+MDRangePolicy(ES const&, Array<T, N> const&, Array<T, N> const&)
+    -> MDRangePolicy<ES, Rank<N>>;
+
+template <typename ES, typename T, size_t N, size_t NT,
+          typename = std::enable_if_t<is_execution_space_v<ES>>>
+MDRangePolicy(ES const&, Array<T, N> const&, Array<T, N> const&,
+              Array<T, NT> const&) -> MDRangePolicy<ES, Rank<N>>;
+
 }  // namespace Kokkos
-#endif
 
 #endif  // KOKKOS_CORE_EXP_MD_RANGE_POLICY_HPP

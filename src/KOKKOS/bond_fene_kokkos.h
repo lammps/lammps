@@ -58,6 +58,9 @@ class BondFENEKokkos : public BondFENE {
       const F_FLOAT &ebond, const F_FLOAT &fbond, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const;
 
+  DAT::tdual_efloat_1d k_eatom;
+  DAT::tdual_virial_array k_vatom;
+
  protected:
 
   class NeighborKokkos *neighborKK;
@@ -66,8 +69,6 @@ class BondFENEKokkos : public BondFENE {
   typename ArrayTypes<DeviceType>::t_f_array f;
   typename ArrayTypes<DeviceType>::t_int_2d bondlist;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 

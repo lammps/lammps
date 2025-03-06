@@ -63,6 +63,7 @@ help:
 	@echo "  anchor_check  scan for duplicate anchor labels"
 	@echo "  style_check   check for complete and consistent style lists"
 	@echo "  package_check check for complete and consistent package lists"
+	@echo "  role_check    check for misformatted role keywords"
 	@echo "  spelling      spell-check the manual"
 
 # ------------------------------------------
@@ -82,7 +83,10 @@ $(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
 	    -e 's,@LAMMPS_PYTHON_DIR@,$(BUILDDIR)/../python,g' \
 	    -e 's,@LAMMPS_DOC_DIR@,$(BUILDDIR),g' $< > $@
 
-html: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
+globbed-tocs:
+	$(PYTHON) $(BUILDDIR)/utils/make-globbed-tocs.py -d $(RSTDIR)
+
+html: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@(\
@@ -98,6 +102,8 @@ html: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
 		env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst ;\
 		env LC_ALL=C grep -n ' `[^`]\+<[a-z][^`]\+`[^_]' $(RSTDIR)/*.rst ;\
+		env LC_ALL=C grep -n ':\(ref\|doc\):[^`]' $(RSTDIR)/*.rst ;\
+		env LC_ALL=C grep -n '\(ref\|doc\)`[^`]' $(RSTDIR)/*.rst ;\
 		$(PYTHON) $(BUILDDIR)/utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
 		deactivate ;\
@@ -110,7 +116,7 @@ html: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@rm -rf html/PDF/.[sg]*
 	@echo "Build finished. The HTML pages are in doc/html."
 
-fasthtml: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
+fasthtml: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@mkdir -p fasthtml
@@ -129,7 +135,7 @@ fasthtml: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@rm -rf fasthtml/PDF/.[sg]*
 	@echo "Fast HTML build finished. The HTML pages are in doc/fasthtml."
 
-spelling: xmlgen $(SPHINXCONFIG)/conf.py $(VENV) $(SPHINXCONFIG)/false_positives.txt
+spelling: xmlgen globbed-tocs $(SPHINXCONFIG)/conf.py $(VENV) $(SPHINXCONFIG)/false_positives.txt
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@(\
 		. $(VENV)/bin/activate ; \
@@ -140,7 +146,7 @@ spelling: xmlgen $(SPHINXCONFIG)/conf.py $(VENV) $(SPHINXCONFIG)/false_positives
 	)
 	@echo "Spell check finished."
 
-epub: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
+epub: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@mkdir -p epub/JPG
@@ -163,7 +169,7 @@ mobi: epub
 	@ebook-convert LAMMPS.epub LAMMPS.mobi
 	@echo "Conversion finished. The MOBI manual file is created."
 
-pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
+pdf: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX or latexmk were not found! Please check README for further instructions" 1>&2; exit 1; fi
@@ -179,6 +185,8 @@ pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
 		env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst ;\
 		env LC_ALL=C grep -n ' `[^`]\+<[a-z][^`]\+`[^_]' $(RSTDIR)/*.rst ;\
+		env LC_ALL=C grep -n ':\(ref\|doc\):[^`]' $(RSTDIR)/*.rst ;\
+		env LC_ALL=C grep -n '\(ref\|doc\)`[^`]' $(RSTDIR)/*.rst ;\
 		$(PYTHON) utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
 		deactivate ;\
@@ -227,6 +235,8 @@ char_check :
 role_check :
 	@( env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst && exit 1 || : )
 	@( env LC_ALL=C grep -n ' `[^`]\+<[a-z][^`]\+`[^_]' $(RSTDIR)/*.rst && exit 1 || : )
+	@( env LC_ALL=C grep -n ':\(ref\|doc\):[^`]' $(RSTDIR)/*.rst && exit 1 || : )
+	@( env LC_ALL=C grep -n '\(ref\|doc\)`[^`]' $(RSTDIR)/*.rst && exit 1 || : )
 
 link_check : $(VENV) html
 	@(\

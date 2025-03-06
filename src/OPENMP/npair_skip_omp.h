@@ -16,16 +16,15 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
+
 NPairStyle(skip/omp,
            NPairSkip,
-           NP_SKIP | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_SKIP | NP_HALF | NP_FULL | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_OMP);
 
 NPairStyle(skip/half/respa/omp,
            NPairSkipRespa,
-           NP_SKIP | NP_RESPA | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_SKIP | NP_RESPA | NP_HALF | NP_FULL | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_OMP);
 
 NPairStyle(skip/half/size/omp,
@@ -35,21 +34,48 @@ NPairStyle(skip/half/size/omp,
 
 NPairStyle(skip/size/off2on/omp,
            NPairSkipSizeOff2on,
-           NP_SKIP | NP_SIZE | NP_OFF2ON | NP_HALF |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_MULTI_OLD |
+           NP_SKIP | NP_SIZE | NP_OFF2ON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_OMP);
 
 NPairStyle(skip/size/off2on/oneside/omp,
            NPairSkipSizeOff2onOneside,
-           NP_SKIP | NP_SIZE | NP_OFF2ON | NP_ONESIDE | NP_HALF |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_NEWTON | NP_NEWTOFF |
-           NP_ORTHO | NP_TRI | NP_OMP);
+           NP_SKIP | NP_SIZE | NP_OFF2ON | NP_ONESIDE | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
+           NP_MULTI_OLD | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_OMP);
 
 NPairStyle(skip/ghost/omp,
            NPairSkip,
-           NP_SKIP | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_SKIP | NP_HALF | NP_FULL | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_OMP | NP_GHOST);
+
+NPairStyle(skip/trim/omp,
+           NPairSkipTrim,
+           NP_SKIP | NP_HALF | NP_FULL | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM | NP_OMP);
+
+NPairStyle(skip/trim/half/respa/omp,
+           NPairSkipTrimRespa,
+           NP_SKIP | NP_RESPA | NP_HALF | NP_FULL | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM | NP_OMP);
+
+NPairStyle(skip/trim/half/size/omp,
+           NPairSkipTrimSize,
+           NP_SKIP | NP_SIZE | NP_HALF | NP_FULL | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM | NP_OMP);
+
+NPairStyle(skip/trim/size/off2on/omp,
+           NPairSkipTrimSizeOff2on,
+           NP_SKIP | NP_SIZE | NP_OFF2ON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM | NP_OMP);
+
+NPairStyle(skip/trim/size/off2on/oneside/omp,
+           NPairSkipTrimSizeOff2onOneside,
+           NP_SKIP | NP_SIZE | NP_OFF2ON | NP_ONESIDE | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
+           NP_MULTI_OLD | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM | NP_OMP);
+
+NPairStyle(skip/trim/ghost/omp,
+           NPairSkipTrim,
+           NP_SKIP | NP_HALF | NP_FULL | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM | NP_OMP | NP_GHOST);
 // clang-format off
 #endif
 

@@ -30,7 +30,7 @@ PROGRAM f_driver
   REAL (kind=8), ALLOCATABLE :: x(:)
   REAL (kind=8), PARAMETER   :: epsilon=0.1
 
-  CHARACTER (len=64)   :: arg
+  CHARACTER (len=1024) :: arg
   CHARACTER (len=1024) :: line
 
   ! setup MPI and various communicators

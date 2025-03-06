@@ -7,14 +7,14 @@ fix charge/regulation command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
     fix ID group-ID charge/regulation cation_type anion_type keyword value(s)
 
 * ID, group-ID are documented in fix command
 * charge/regulation = style name of this fix command
-* cation_type = atom type of free cations
-* anion_type = atom type of free anions
+* cation_type = atom type of free cations (integer or type label)
+* anion_type = atom type of free anions (integer or type label)
 
 * zero or more keyword/value pairs may be appended
 
@@ -27,8 +27,8 @@ Syntax
      *pIp* value = activity (effective concentration) of free cations (in the -log10 representation)
      *pIm* value = activity (effective concentration) of free anions (in the -log10 representation)
      *pKs* value = solvent self-dissociation constant (in the -log10 representation)
-     *acid_type* = atom type of acid groups
-     *base_type*  = atom type of base groups
+     *acid_type* = atom type of acid groups (integer or type label)
+     *base_type*  = atom type of base groups (integer or type label)
      *lunit_nm* value = unit length used by LAMMPS (# in the units of nanometers)
      *temp* value = temperature
      *tempfixid* value = fix ID of temperature thermostat
@@ -45,11 +45,14 @@ Syntax
 
 Examples
 """"""""
+
 .. code-block:: LAMMPS
 
     fix chareg all charge/regulation 1 2 acid_type 3 base_type 4 pKa 5.0 pKb 6.0 pH 7.0 pIp 3.0 pIm 3.0 nevery 200 nmc 200 seed 123 tempfixid fT
-
     fix chareg all charge/regulation 1 2 pIp 3 pIm 3 onlysalt yes 2 -1 seed 123 tag yes temp 1.0
+
+    labelmap atom 1 H+ 2 OH-
+    fix chareg all charge/regulation H+ OH- pIp 3 pIm 3 onlysalt yes 2 -1 seed 123 tag yes temp 1.0
 
 Description
 """""""""""
@@ -171,7 +174,7 @@ Langevin thermostat:
 .. code-block:: LAMMPS
 
     compute dtemp all temp
-    compute_modify dtemp dynamic yes
+    compute_modify dtemp dynamic/dof yes
     fix fT all langevin 1.0 1.0 1.0 123
     fix_modify fT temp dtemp
 
@@ -235,14 +238,14 @@ This fix computes a global vector of length 8, which can be accessed by
 various output commands. The vector values are the following global
 quantities:
 
-* 1 = cumulative MC attempts
-* 2 = cumulative MC successes
-* 3 = current # of neutral acid atoms
-* 4 = current # of -1 charged acid atoms
-* 5 = current # of neutral base atoms
-* 6 = current # of +1 charged base atoms
-* 7 = current # of free cations
-* 8 = current # of free anions
+  #. cumulative MC attempts
+  #. cumulative MC successes
+  #. current # of neutral acid atoms
+  #. current # of -1 charged acid atoms
+  #. current # of neutral base atoms
+  #. current # of +1 charged base atoms
+  #. current # of free cations
+  #. current # of free anions
 
 
 Restrictions
@@ -253,11 +256,11 @@ built with that package.  See the :doc:`Build package <Build_package>`
 page for more info.
 
 The :doc:`atom_style <atom_style>`, used must contain the charge
-property, for example, the style could be *charge* or *full*. Only
-usable for 3D simulations. Atoms specified as free ions cannot be part
-of rigid bodies or molecules and cannot have bonding interactions. The
-scheme is limited to integer charges, any atoms with non-integer charges
-will not be considered by the fix.
+property and have per atom type masses, for example, the style could be
+*charge* or *full*. Only usable for 3D simulations.  Atoms specified as
+free ions cannot be part of rigid bodies or molecules and cannot have
+bonding interactions.  The scheme is limited to integer charges, any
+atoms with non-integer charges will not be considered by the fix.
 
 All interaction potentials used must be continuous, otherwise the MD
 integration and the particle exchange MC moves do not correspond to the

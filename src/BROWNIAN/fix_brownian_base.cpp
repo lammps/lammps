@@ -33,8 +33,9 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
-
-FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), gamma_t_inv(nullptr), gamma_r_inv(nullptr), gamma_t_invsqrt(nullptr),
+    gamma_r_invsqrt(nullptr), dipole_body(nullptr), rng(nullptr)
 {
   time_integrate = 1;
 
@@ -47,18 +48,18 @@ FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, n
   planar_rot_flag = 0;
   g2 = 0.0;
 
-  if (narg < 5) error->all(FLERR, "Illegal fix brownian command.");
+  if (narg < 5) utils::missing_cmd_args(FLERR, "fix brownian", error);
 
   temp = utils::numeric(FLERR, arg[3], false, lmp);
-  if (temp <= 0) error->all(FLERR, "Fix brownian temp must be > 0.");
+  if (temp <= 0) error->all(FLERR, "Fix brownian temp must be > 0.0");
 
   seed = utils::inumeric(FLERR, arg[4], false, lmp);
-  if (seed <= 0) error->all(FLERR, "Fix brownian seed must be > 0.");
+  if (seed <= 0) error->all(FLERR, "Fix brownian seed must be > 0");
 
   int iarg = 5;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "rng") == 0) {
-      if (narg == iarg + 1) error->all(FLERR, "Illegal fix brownian command.");
+      if (narg < iarg + 1) utils::missing_cmd_args(FLERR, "fix brownian rng", error);
       if (strcmp(arg[iarg + 1], "uniform") == 0) {
         noise_flag = 1;
       } else if (strcmp(arg[iarg + 1], "gaussian") == 0) {
@@ -67,13 +68,14 @@ FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, n
       } else if (strcmp(arg[iarg + 1], "none") == 0) {
         noise_flag = 0;
       } else {
-        error->all(FLERR, "Illegal fix brownian command.");
+        error->all(FLERR, "Unknown fix brownian rng keyword {}", arg[iarg + 1]);
       }
       iarg = iarg + 2;
     } else if (strcmp(arg[iarg], "dipole") == 0) {
-      if (narg == iarg + 3) error->all(FLERR, "Illegal fix brownian command.");
+      if (narg < iarg + 3) utils::missing_cmd_args(FLERR, "fix brownian dipole", error);
 
       dipole_flag = 1;
+      delete[] dipole_body;
       dipole_body = new double[3];
 
       dipole_body[0] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
@@ -82,9 +84,11 @@ FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, n
       iarg = iarg + 4;
 
     } else if (strcmp(arg[iarg], "gamma_t_eigen") == 0) {
-      if (narg == iarg + 3) error->all(FLERR, "Illegal fix brownian command.");
+      if (narg < iarg + 3) utils::missing_cmd_args(FLERR, "fix brownian gamma_t_eigen", error);
 
       gamma_t_eigen_flag = 1;
+      delete[] gamma_t_inv;
+      delete[] gamma_t_invsqrt;
       gamma_t_inv = new double[3];
       gamma_t_invsqrt = new double[3];
       gamma_t_inv[0] = 1. / utils::numeric(FLERR, arg[iarg + 1], false, lmp);
@@ -111,6 +115,8 @@ FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, n
       if (narg == iarg + 3) error->all(FLERR, "Illegal fix brownian command.");
 
       gamma_r_eigen_flag = 1;
+      delete[] gamma_r_inv;
+      delete[] gamma_r_invsqrt;
       gamma_r_inv = new double[3];
       gamma_r_invsqrt = new double[3];
 
@@ -204,7 +210,7 @@ FixBrownianBase::~FixBrownianBase()
     delete[] gamma_r_invsqrt;
   }
 
-  if (dipole_flag) { delete[] dipole_body; }
+  if (dipole_flag) delete[] dipole_body;
   delete rng;
 }
 

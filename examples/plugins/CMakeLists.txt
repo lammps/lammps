@@ -1,10 +1,9 @@
-##########################################
-# CMake build system for plugin examples.
+# -*- CMake -*- file for plugin examples.
 # The is meant to be used as a template for plugins that are
 # distributed independent from the LAMMPS package.
 ##########################################
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 # enforce out-of-source build
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -36,16 +35,35 @@ else()
       add_compile_options(/Zc:__cplusplus)
       add_compile_options(/wd4244)
       add_compile_options(/wd4267)
-      if(LAMMPS_EXCEPTIONS)
-        add_compile_options(/EHsc)
-      endif()
+      add_compile_options(/wd4250)
+      add_compile_options(/EHsc)
     endif()
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
   endif()
 endif()
 
-# C++11 is required
-set(CMAKE_CXX_STANDARD 11)
+# we *require* C++11 without extensions but prefer C++17.
+# Kokkos requires at least C++17 (currently)
+if(NOT CMAKE_CXX_STANDARD)
+  if(cxx_std_17 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+    set(CMAKE_CXX_STANDARD 17)
+  else()
+    set(CMAKE_CXX_STANDARD 11)
+  endif()
+endif()
+if(CMAKE_CXX_STANDARD LESS 11)
+  message(FATAL_ERROR "C++ standard must be set to at least 11")
+endif()
+if(CMAKE_CXX_STANDARD LESS 17)
+  message(WARNING "Selecting C++17 standard is preferred over C++${CMAKE_CXX_STANDARD}")
+endif()
+if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 17))
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+# turn off C++17 check in lmptype.h
+if(LAMMPS_CXX11)
+  add_compile_definitions(LAMMPS_CXX11)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Need -restrict with Intel compilers

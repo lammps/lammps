@@ -21,7 +21,8 @@
 ----------------------------------------------------------------------- */
 
 #include "gran_sub_mod.h"
-#include "error.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
@@ -41,6 +42,7 @@ GranSubMod::GranSubMod(class GranularModel *gm, LAMMPS *lmp) : Pointers(lmp)
   beyond_contact = 0;
   num_coeffs = 0;
   contact_radius_flag = 0;
+  nsvector = 0;
 
   nondefault_history_transfer = 0;
   transfer_history_factor = nullptr;

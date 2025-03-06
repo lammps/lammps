@@ -1,0 +1,41 @@
+Additional information for pair style nb3b/screened example.
+
+This input uses the BMP potential (Bertani, M., Menziani, M. C.,
+& Pedone, A. (2021). Improved empirical force field for multicomponent
+oxide glasses and crystals. Physical Review Materials, 5(4), 045602).
+
+The interatomic potential is obtained by mixing coulombic interactions
+with other two-body functions (modified Morse and Buckingham), with a
+three-body interaction (screened harmonic function).
+
+The modified Morse is introduce with Tables and it is combined with
+Buckingham and coul/dsf to complete the two-body force field.
+The three-body interaction is computed with pair style nb3b/screened
+only for P-O-P angle. With the pair_coeff command the atom types
+involved in the three-body potential are specified:
+
+pair_coeff * * nb3b/screened PSiO.nb3b.screened  P NULL O
+
+And they appear in the same order as in the data file:
+type 1: P;
+type 2: Na, not involved in the three body so indicated as NULL;
+type 3: O.
+
+In the potential file PSiO.nb3b.screened there are the parameters of
+all permutations of the required atom types. In the example, also
+parameters for Si permutations appear but they are not employed in
+the current case.
+
+# i  j  k   K     theta0   rho  cutoff
+O   P   P    32.5  109.47   1.0   3.3
+O   P   Si   60.0  109.47   1.0   0.000
+O   P   O   0.000  0.000    1.0   0.000
+O   Si  P    60.0  109.47   1.0   0.000
+O   Si  Si   12.5  109.47   1.0   3.3
+(...)
+
+The rho value must be always higher than 0.0. Cutoff and rho are extracted
+only from symmetric interactions (e.g. O P P, O Si Si), because of that
+you do not need to specify those values for the asymmetric interactions
+(e.g. O P Si and O Si P).
+

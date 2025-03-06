@@ -6,7 +6,7 @@ fix drude command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID drude flag1 flag2 ... flagN
 

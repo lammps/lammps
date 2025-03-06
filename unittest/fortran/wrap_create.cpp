@@ -34,7 +34,7 @@ TEST(open_no_mpi, no_args)
     void *handle       = f_lammps_no_mpi_no_args();
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0, 6).c_str(), "LAMMPS");
-    LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
+    auto *lmp = (LAMMPS_NS::LAMMPS *)handle;
     EXPECT_EQ(lmp->world, MPI_COMM_WORLD);
     EXPECT_EQ(lmp->infile, stdin);
     EXPECT_EQ(lmp->screen, stdout);
@@ -51,7 +51,7 @@ TEST(open_no_mpi, with_args)
     void *handle       = f_lammps_no_mpi_with_args();
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0, 6).c_str(), "LAMMPS");
-    LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
+    auto *lmp = (LAMMPS_NS::LAMMPS *)handle;
     EXPECT_EQ(lmp->infile, stdin);
     EXPECT_EQ(lmp->screen, stdout);
     EXPECT_EQ(lmp->logfile, nullptr);
@@ -70,10 +70,10 @@ TEST(fortran_open, no_args)
     void *handle       = f_lammps_open_no_args();
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0, 6).c_str(), "LAMMPS");
-    LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
+    auto *lmp = (LAMMPS_NS::LAMMPS *)handle;
 
-    int f_comm      = f_lammps_get_comm();
-    MPI_Comm mycomm = MPI_Comm_f2c(f_comm);
+    int f_comm  = f_lammps_get_comm();
+    auto mycomm = MPI_Comm_f2c(f_comm);
     EXPECT_EQ(lmp->world, mycomm);
     EXPECT_EQ(lmp->infile, stdin);
     EXPECT_EQ(lmp->screen, stdout);
@@ -90,10 +90,10 @@ TEST(fortran_open, with_args)
     void *handle       = f_lammps_open_with_args();
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0, 6).c_str(), "LAMMPS");
-    LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
+    auto *lmp = (LAMMPS_NS::LAMMPS *)handle;
 
-    int f_comm      = f_lammps_get_comm();
-    MPI_Comm mycomm = MPI_Comm_f2c(f_comm);
+    int f_comm  = f_lammps_get_comm();
+    auto mycomm = MPI_Comm_f2c(f_comm);
     EXPECT_EQ(lmp->world, mycomm);
     EXPECT_EQ(lmp->infile, stdin);
     EXPECT_EQ(lmp->screen, stdout);

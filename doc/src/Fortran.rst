@@ -16,7 +16,7 @@ compiled alongside the code using it from the source code in
 ``fortran/lammps.f90`` *and* with the same compiler used to build the
 rest of the Fortran code that interfaces to LAMMPS.  When linking, you
 also need to :doc:`link to the LAMMPS library <Build_link>`.  A typical
-command line for a simple program using the Fortran interface would be:
+command for a simple program using the Fortran interface would be:
 
 .. code-block:: bash
 
@@ -91,12 +91,12 @@ function and triggered with the optional logical argument set to
      CALL lmp%close(.TRUE.)
    END PROGRAM testlib
 
-It is also possible to pass command line flags from Fortran to C/C++ and
+It is also possible to pass command-line flags from Fortran to C/C++ and
 thus make the resulting executable behave similarly to the standalone
 executable (it will ignore the `-in/-i` flag, though).  This allows
-using the command line to configure accelerator and suffix settings,
+using the command-line to configure accelerator and suffix settings,
 configure screen and logfile output, or to set index style variables
-from the command line and more.  Here is a correspondingly adapted
+from the command-line and more.  Here is a correspondingly adapted
 version of the previous example:
 
 .. code-block:: fortran
@@ -108,7 +108,7 @@ version of the previous example:
      CHARACTER(LEN=128), ALLOCATABLE :: command_args(:)
      INTEGER :: i, argc
 
-     ! copy command line flags to `command_args()`
+     ! copy command-line flags to `command_args()`
      argc = COMMAND_ARGUMENT_COUNT()
      ALLOCATE(command_args(0:argc))
      DO i=0, argc
@@ -305,6 +305,8 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype extract_setting: function
    :f extract_global: :f:func:`extract_global`
    :ftype extract_global: function
+   :f map_atom: :f:func:`map_atom`
+   :ftype map_atom: function
    :f extract_atom: :f:func:`extract_atom`
    :ftype extract_atom: function
    :f extract_compute: :f:func:`extract_compute`
@@ -315,6 +317,18 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype extract_variable: function
    :f set_variable: :f:subr:`set_variable`
    :ftype set_variable: subroutine
+   :f set_string_variable: :f:subr:`set_set_string_variable`
+   :ftype set_string_variable: subroutine
+   :f set_internal_variable: :f:subr:`set_internal_variable`
+   :ftype set_internal_variable: subroutine
+   :f eval: :f:func:`eval`
+   :ftype eval: function
+   :f clearstep_compute: :f:subr:`clearstep_compute`
+   :ftype clearstep_compute: subroutine
+   :f addstep_compute: :f:subr:`addstep_compute`
+   :ftype addstep_compute: subroutine
+   :f addstep_compute_all: :f:subr:`addstep_compute_all`
+   :ftype addstep_compute_all: subroutine
    :f gather_atoms: :f:subr:`gather_atoms`
    :ftype gather_atoms: subroutine
    :f gather_atoms_concat: :f:subr:`gather_atoms_concat`
@@ -442,7 +456,7 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    compiled with MPI support, it will also initialize MPI, if it has
    not already been initialized before.
 
-   The *args* argument with the list of command line parameters is
+   The *args* argument with the list of command-line parameters is
    optional and so it the *comm* argument with the MPI communicator.
    If *comm* is not provided, ``MPI_COMM_WORLD`` is assumed. For
    more details please see the documentation of :cpp:func:`lammps_open`.
@@ -948,6 +962,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       :f:func:`extract_atom` between runs.
 
    .. admonition:: Array index order
+      :class: tip
 
       Two-dimensional arrays returned from :f:func:`extract_atom` will be
       **transposed** from equivalent arrays in C, and they will be indexed
@@ -1060,6 +1075,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    you based on data from the :cpp:class:`Compute` class.
 
    .. admonition:: Array index order
+      :class: tip
 
       Two-dimensional arrays returned from :f:func:`extract_compute` will be
       **transposed** from equivalent arrays in C, and they will be indexed
@@ -1071,7 +1087,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. list-table::
       :header-rows: 1
-      :widths: auto
+      :widths: 21 20 40 19
 
       * - Style
         - Type
@@ -1161,7 +1177,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. list-table::
       :header-rows: 1
-      :widths: auto
+      :widths: 20 19 11 11 21 18
 
       * - Style
         - Type
@@ -1251,8 +1267,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    three elements of the global vector calculated by fix recenter into the
    variables *dx*, *dy*, and *dz*, respectively.
 
-   If asked for per-atom or local data, :f:func:`extract_compute` returns a
-   pointer to actual LAMMPS data. The pointer so returned will have the
+   If asked for per-atom or local data, :f:func:`extract_fix` returns a
+   pointer to actual LAMMPS data.  The pointer returned will have the
    appropriate size to match the internal data, and will be
    type/kind/rank-checked at the time of the assignment. For example,
 
@@ -1318,6 +1334,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :rtype data: polymorphic
 
    .. admonition:: Array index order
+      :class: tip
 
       Two-dimensional global, per-atom, or local array data from
       :f:func:`extract_fix` will be **transposed** from equivalent arrays in
@@ -1398,7 +1415,28 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Set the value of a string-style variable.
 
-   .. versionadded:: 3Nov2022
+   .. deprecated:: 7Feb2024
+
+   This function assigns a new value from the string *str* to the string-style
+   variable *name*\ . If *name* does not exist or is not a string-style
+   variable, an error is generated.
+
+   .. warning::
+
+      This subroutine is deprecated and :f:subr:`set_string_variable`
+      should be used instead.
+
+   :p character(len=*) name: name of the variable
+   :p character(len=*) str:  new value to assign to the variable
+   :to: :cpp:func:`lammps_set_variable`
+
+--------
+
+.. f:subroutine:: set_string_variable(name, str)
+
+   Set the value of a string-style variable.
+
+   .. versionadded:: 7Feb2024
 
    This function assigns a new value from the string *str* to the string-style
    variable *name*\ . If *name* does not exist or is not a string-style
@@ -1406,7 +1444,74 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    :p character(len=*) name: name of the variable
    :p character(len=*) str:  new value to assign to the variable
-   :to: :cpp:func:`lammps_set_variable`
+   :to: :cpp:func:`lammps_set_string_variable`
+
+--------
+
+.. f:subroutine:: set_internal_variable(name, val)
+
+   Set the value of a internal-style variable.
+
+   .. versionadded:: 7Feb2024
+
+   This function assigns a new value from the floating-point number *val* to
+   the internal-style variable *name*\ . If *name* does not exist or is not
+   an internal-style variable, an error is generated.
+
+   :p character(len=*) name: name of the variable
+   :p real(c_double) val:  new value to assign to the variable
+   :to: :cpp:func:`lammps_set_internal_variable`
+
+--------
+
+.. f:function:: eval(expr)
+
+   This function is a wrapper around :cpp:func:`lammps_eval` that takes a
+   LAMMPS equal style variable string, evaluates it and returns the resulting
+   scalar value as a floating-point number.
+
+   .. versionadded:: 4Feb2025
+
+   :p character(len=\*) expr: string to be evaluated
+   :to: :cpp:func:`lammps_eval`
+   :r value [real(c_double)]: result of the evaluated string
+
+--------
+
+.. f:subroutine:: clearstep_compute()
+
+   Clear whether a compute has been invoked
+
+   .. versionadded:: 4Feb2025
+
+   :to: :cpp:func:`lammps_clearstep_compute`
+
+--------
+
+.. f:subroutine:: addstep_compute(nextstep)
+
+   Add timestep to list of future compute invocations
+   if the compute has been invoked on the current timestep
+
+   .. versionadded:: 4Feb2025
+
+   overloaded for 32-bit and 64-bit integer arguments
+
+   :p integer(kind=8 or kind=4) nextstep: next timestep
+   :to: :cpp:func:`lammps_addstep_compute`
+
+--------
+
+.. f:subroutine:: addstep_compute_all(nextstep)
+
+   Add timestep to list of future compute invocations
+
+   .. versionadded:: 4Feb2025
+
+   overloaded for 32-bit and 64-bit integer arguments
+
+   :p integer(kind=8 or kind=4) nextstep: next timestep
+   :to: :cpp:func:`lammps_addstep_compute_all`
 
 --------
 
@@ -2278,19 +2383,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionadded:: 3Nov2022
 
-   In case of an error, LAMMPS will either abort or throw a C++ exception.
-   The latter has to be :ref:`enabled at compile time <exceptions>`.
-   This function checks if exceptions were enabled.
-
-   When using the library interface with C++ exceptions enabled, the library
-   interface functions will "catch" them, and the error status can then be
-   checked by calling :f:func:`has_error`. The most recent error message can be
-   retrieved via :f:func:`get_last_error_message`.
-   This can allow one to restart a calculation or delete and recreate
-   the LAMMPS instance when a C++ exception occurs.  One application
-   of using exceptions this way is the :ref:`lammps_shell`.  If C++
-   exceptions are disabled and an error happens during a call to
-   LAMMPS or the Fortran API, the application will terminate.
+   When using the library interface, the library interface functions
+   will "catch" exceptions, and then the error status can be checked by
+   calling :f:func:`has_error`.  The most recent error message can be
+   retrieved via :f:func:`get_last_error_message`.  This allows to
+   restart a calculation or delete and recreate the LAMMPS instance when
+   a C++ exception occurs.  One application of using exceptions this way
+   is the :ref:`lammps_gui`.
 
    :to: :cpp:func:`lammps_config_has_exceptions`
    :r has_exceptions:
@@ -3044,14 +3143,6 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This function can be used to query if an error inside of LAMMPS
    has thrown a :ref:`C++ exception <exceptions>`.
 
-   .. note::
-
-      This function will always report "no error" when the LAMMPS library
-      has been compiled without ``-DLAMMPS_EXCEPTIONS``, which turns fatal
-      errors aborting LAMMPS into C++ exceptions. You can use the library
-      function :cpp:func:`lammps_config_has_exceptions` to check if this is
-      the case.
-
    :to: :cpp:func:`lammps_has_error`
    :r has_error: ``.TRUE.`` if there is an error.
    :rtype has_error: logical
@@ -3073,13 +3164,6 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    MPI ranks and is often recoverable, while a "2" indicates an abort that
    would happen only in a single MPI rank and thus may not be recoverable, as
    other MPI ranks may be waiting on the failing MPI rank(s) to send messages.
-
-   .. note::
-
-      This function will do nothing when the LAMMPS library has been
-      compiled without ``-DLAMMPS_EXCEPTIONS``, which turns errors aborting
-      LAMMPS into C++ exceptions.  You can use the function
-      :f:func:`config_has_exceptions` to check whether this is the case.
 
    :p character(len=\*) buffer: string buffer to copy the error message into
    :o integer(c_int) status [optional]: 1 when all ranks had the error,

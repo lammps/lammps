@@ -59,6 +59,10 @@ class BondClass2Kokkos : public BondClass2 {
       const F_FLOAT &ebond, const F_FLOAT &fbond, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const;
 
+  typedef typename KKDevice<DeviceType>::value KKDeviceType;
+  Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType> k_eatom;
+  Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType> k_vatom;
+
  protected:
 
   class NeighborKokkos *neighborKK;
@@ -67,9 +71,6 @@ class BondClass2Kokkos : public BondClass2 {
   typename Kokkos::View<double*[3],typename AT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
   typename AT::t_int_2d bondlist;
 
-  typedef typename KKDevice<DeviceType>::value KKDeviceType;
-  Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType> k_eatom;
-  Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType> k_vatom;
   Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom;
   Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom;
 

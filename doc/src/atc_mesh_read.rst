@@ -6,7 +6,7 @@ fix_modify AtC mesh read command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> mesh read <f|p> <f|p> <f|p>
 

@@ -30,7 +30,6 @@ class FixHeatFlow : public Fix {
 
   int setmask() override;
   void init() override;
-  void setup(int) override;
   void setup_pre_force(int) override;
   void pre_force(int) override;
   void final_integrate() override;

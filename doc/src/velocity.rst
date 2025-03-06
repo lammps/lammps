@@ -6,7 +6,7 @@ velocity command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    velocity group-ID style args keyword value ...
 

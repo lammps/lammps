@@ -12,8 +12,7 @@
 #include "colvarcomp.h"
 
 
-colvar::angle::angle(std::string const &conf)
-  : cvc(conf)
+colvar::angle::angle()
 {
   set_function_type("angle");
   init_as_angle();
@@ -21,26 +20,25 @@ colvar::angle::angle(std::string const &conf)
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
   enable(f_cvc_com_based);
+}
+
+
+int colvar::angle::init(std::string const &conf)
+{
+  int error_code = cvc::init(conf);
 
   group1 = parse_group(conf, "group1");
   group2 = parse_group(conf, "group2");
   group3 = parse_group(conf, "group3");
 
-  init_total_force_params(conf);
+  error_code |= init_total_force_params(conf);
+
+  return error_code;
 }
 
 
-colvar::angle::angle(cvm::atom const &a1,
-                     cvm::atom const &a2,
-                     cvm::atom const &a3)
+colvar::angle::angle(cvm::atom const &a1, cvm::atom const &a2, cvm::atom const &a3) : angle()
 {
-  set_function_type("angle");
-  init_as_angle();
-
-  provide(f_cvc_inv_gradient);
-  provide(f_cvc_Jacobian);
-  enable(f_cvc_com_based);
-
   group1 = new cvm::atom_group(std::vector<cvm::atom>(1, a1));
   group2 = new cvm::atom_group(std::vector<cvm::atom>(1, a2));
   group3 = new cvm::atom_group(std::vector<cvm::atom>(1, a3));
@@ -120,57 +118,24 @@ void colvar::angle::calc_Jacobian_derivative()
 }
 
 
-void colvar::angle::apply_force(colvarvalue const &force)
-{
-  if (!group1->noforce)
-    group1->apply_colvar_force(force.real_value);
-
-  if (!group2->noforce)
-    group2->apply_colvar_force(force.real_value);
-
-  if (!group3->noforce)
-    group3->apply_colvar_force(force.real_value);
-}
-
-
-simple_scalar_dist_functions(angle)
-
-
-
-colvar::dipole_angle::dipole_angle(std::string const &conf)
-  : cvc(conf)
-{
-  set_function_type("dipoleAngle");
-  init_as_angle();
-
-  group1 = parse_group(conf, "group1");
-  group2 = parse_group(conf, "group2");
-  group3 = parse_group(conf, "group3");
-
-  init_total_force_params(conf);
-}
-
-
-colvar::dipole_angle::dipole_angle(cvm::atom const &a1,
-                      cvm::atom const &a2,
-                      cvm::atom const &a3)
-{
-  set_function_type("dipoleAngle");
-  init_as_angle();
-
-  group1 = new cvm::atom_group(std::vector<cvm::atom>(1, a1));
-  group2 = new cvm::atom_group(std::vector<cvm::atom>(1, a2));
-  group3 = new cvm::atom_group(std::vector<cvm::atom>(1, a3));
-  register_atom_group(group1);
-  register_atom_group(group2);
-  register_atom_group(group3);
-}
-
 
 colvar::dipole_angle::dipole_angle()
 {
   set_function_type("dipoleAngle");
   init_as_angle();
+}
+
+
+int colvar::dipole_angle::init(std::string const &conf)
+{
+  int error_code = cvc::init(conf);
+
+  group1 = parse_group(conf, "group1");
+  group2 = parse_group(conf, "group2");
+  group3 = parse_group(conf, "group3");
+
+  error_code |= init_total_force_params(conf);
+  return error_code;
 }
 
 
@@ -229,52 +194,35 @@ void colvar::dipole_angle::calc_gradients()
 }
 
 
-void colvar::dipole_angle::apply_force(colvarvalue const &force)
-{
-  if (!group1->noforce)
-    group1->apply_colvar_force(force.real_value);
 
-  if (!group2->noforce)
-    group2->apply_colvar_force(force.real_value);
-
-  if (!group3->noforce)
-    group3->apply_colvar_force(force.real_value);
-}
-
-
-simple_scalar_dist_functions(dipole_angle)
-
-
-
-colvar::dihedral::dihedral(std::string const &conf)
-  : cvc(conf)
+colvar::dihedral::dihedral()
 {
   set_function_type("dihedral");
   init_as_periodic_angle();
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
   enable(f_cvc_com_based);
+}
+
+
+int colvar::dihedral::init(std::string const &conf)
+{
+  int error_code = cvc::init(conf);
 
   group1 = parse_group(conf, "group1");
   group2 = parse_group(conf, "group2");
   group3 = parse_group(conf, "group3");
   group4 = parse_group(conf, "group4");
 
-  init_total_force_params(conf);
+  error_code |= init_total_force_params(conf);
+  return error_code;
 }
 
 
-colvar::dihedral::dihedral(cvm::atom const &a1,
-                           cvm::atom const &a2,
-                           cvm::atom const &a3,
+colvar::dihedral::dihedral(cvm::atom const &a1, cvm::atom const &a2, cvm::atom const &a3,
                            cvm::atom const &a4)
+  : dihedral()
 {
-  set_function_type("dihedral");
-  init_as_periodic_angle();
-  provide(f_cvc_inv_gradient);
-  provide(f_cvc_Jacobian);
-  enable(f_cvc_com_based);
-
   b_1site_force = false;
 
   group1 = new cvm::atom_group(std::vector<cvm::atom>(1, a1));
@@ -285,16 +233,6 @@ colvar::dihedral::dihedral(cvm::atom const &a1,
   register_atom_group(group2);
   register_atom_group(group3);
   register_atom_group(group4);
-}
-
-
-colvar::dihedral::dihedral()
-{
-  set_function_type("dihedral");
-  init_as_periodic_angle();
-  enable(f_cvc_periodic);
-  provide(f_cvc_inv_gradient);
-  provide(f_cvc_Jacobian);
 }
 
 
@@ -323,7 +261,7 @@ void colvar::dihedral::calc_value()
   cvm::real const sin_phi = n1 * r34 * r23.norm();
 
   x.real_value = (180.0/PI) * cvm::atan2(sin_phi, cos_phi);
-  this->wrap(x);
+  wrap(x);
 }
 
 
@@ -349,7 +287,7 @@ void colvar::dihedral::calc_gradients()
     A *= rA;
     cvm::rvector const dcosdA = rA*(cos_phi*A-B);
     cvm::rvector const dcosdB = rB*(cos_phi*B-A);
-    rA = 1.0;
+    // rA = 1.0;
 
     cvm::real const K = (1.0/sin_phi) * (180.0/PI);
 
@@ -363,7 +301,7 @@ void colvar::dihedral::calc_gradients()
     C *= rC;
     cvm::rvector const dsindC = rC*(sin_phi*C-B);
     cvm::rvector const dsindB = rB*(sin_phi*B-C);
-    rC = 1.0;
+    // rC = 1.0;
 
     cvm::real    const K = (-1.0/cos_phi) * (180.0/PI);
 
@@ -439,81 +377,22 @@ void colvar::dihedral::calc_Jacobian_derivative()
 }
 
 
-void colvar::dihedral::apply_force(colvarvalue const &force)
-{
-  if (!group1->noforce)
-    group1->apply_colvar_force(force.real_value);
-
-  if (!group2->noforce)
-    group2->apply_colvar_force(force.real_value);
-
-  if (!group3->noforce)
-    group3->apply_colvar_force(force.real_value);
-
-  if (!group4->noforce)
-    group4->apply_colvar_force(force.real_value);
-}
-
-
-// metrics functions for cvc implementations with a periodicity
-
-cvm::real colvar::dihedral::dist2(colvarvalue const &x1,
-                                  colvarvalue const &x2) const
-{
-  cvm::real diff = x1.real_value - x2.real_value;
-  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
-  return diff * diff;
-}
-
-
-colvarvalue colvar::dihedral::dist2_lgrad(colvarvalue const &x1,
-                                          colvarvalue const &x2) const
-{
-  cvm::real diff = x1.real_value - x2.real_value;
-  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
-  return 2.0 * diff;
-}
-
-
-colvarvalue colvar::dihedral::dist2_rgrad(colvarvalue const &x1,
-                                          colvarvalue const &x2) const
-{
-  cvm::real diff = x1.real_value - x2.real_value;
-  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
-  return (-2.0) * diff;
-}
-
-
-void colvar::dihedral::wrap(colvarvalue &x_unwrapped) const
-{
-  if ((x_unwrapped.real_value - wrap_center) >= 180.0) {
-    x_unwrapped.real_value -= 360.0;
-    return;
-  }
-
-  if ((x_unwrapped.real_value - wrap_center) < -180.0) {
-    x_unwrapped.real_value += 360.0;
-    return;
-  }
-}
-
-
-colvar::polar_theta::polar_theta(std::string const &conf)
-  : cvc(conf)
-{
-  set_function_type("polarTheta");
-  enable(f_cvc_com_based);
-
-  atoms = parse_group(conf, "atoms");
-  init_total_force_params(conf);
-  x.type(colvarvalue::type_scalar);
-}
-
 
 colvar::polar_theta::polar_theta()
 {
+  r = theta = phi = 0.0;
   set_function_type("polarTheta");
-  x.type(colvarvalue::type_scalar);
+  enable(f_cvc_com_based);
+  init_as_angle();
+}
+
+
+int colvar::polar_theta::init(std::string const &conf)
+{
+  int error_code = cvc::init(conf);
+  atoms = parse_group(conf, "atoms");
+  error_code |= init_total_force_params(conf);
+  return error_code;
 }
 
 
@@ -540,32 +419,22 @@ void colvar::polar_theta::calc_gradients()
 }
 
 
-void colvar::polar_theta::apply_force(colvarvalue const &force)
-{
-  if (!atoms->noforce)
-    atoms->apply_colvar_force(force.real_value);
-}
-
-
-simple_scalar_dist_functions(polar_theta)
-
-
-colvar::polar_phi::polar_phi(std::string const &conf)
-  : cvc(conf)
-{
-  set_function_type("polarPhi");
-  init_as_periodic_angle();
-  enable(f_cvc_com_based);
-
-  atoms = parse_group(conf, "atoms");
-  init_total_force_params(conf);
-}
-
 
 colvar::polar_phi::polar_phi()
 {
+  r = theta = phi = 0.0;
   set_function_type("polarPhi");
+  enable(f_cvc_com_based);
   init_as_periodic_angle();
+}
+
+
+int colvar::polar_phi::init(std::string const &conf)
+{
+  int error_code = cvc::init(conf);
+  atoms = parse_group(conf, "atoms");
+  error_code |= init_total_force_params(conf);
+  return error_code;
 }
 
 
@@ -586,56 +455,4 @@ void colvar::polar_phi::calc_gradients()
     (180.0/PI) * -cvm::sin(phi) / (r*cvm::sin(theta)),
     (180.0/PI) *  cvm::cos(phi) / (r*cvm::sin(theta)),
     0.));
-}
-
-
-void colvar::polar_phi::apply_force(colvarvalue const &force)
-{
-  if (!atoms->noforce)
-    atoms->apply_colvar_force(force.real_value);
-}
-
-
-// Same as dihedral, for polar_phi
-
-cvm::real colvar::polar_phi::dist2(colvarvalue const &x1,
-                                  colvarvalue const &x2) const
-{
-  cvm::real diff = x1.real_value - x2.real_value;
-  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
-  return diff * diff;
-}
-
-
-colvarvalue colvar::polar_phi::dist2_lgrad(colvarvalue const &x1,
-                                          colvarvalue const &x2) const
-{
-  cvm::real diff = x1.real_value - x2.real_value;
-  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
-  return 2.0 * diff;
-}
-
-
-colvarvalue colvar::polar_phi::dist2_rgrad(colvarvalue const &x1,
-                                          colvarvalue const &x2) const
-{
-  cvm::real diff = x1.real_value - x2.real_value;
-  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
-  return (-2.0) * diff;
-}
-
-
-void colvar::polar_phi::wrap(colvarvalue &x_unwrapped) const
-{
-  if ((x_unwrapped.real_value - wrap_center) >= 180.0) {
-    x_unwrapped.real_value -= 360.0;
-    return;
-  }
-
-  if ((x_unwrapped.real_value - wrap_center) < -180.0) {
-    x_unwrapped.real_value += 360.0;
-    return;
-  }
-
-  return;
 }

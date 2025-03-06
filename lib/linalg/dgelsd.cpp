@@ -19,9 +19,8 @@ int dgelsd_(integer *m, integer *n, integer *nrhs, doublereal *a, integer *lda, 
     integer itau, nlvl, iascl, ibscl;
     doublereal sfmin;
     integer minmn, maxmn, itaup, itauq, mnthr, nwork;
-    extern int dlabad_(doublereal *, doublereal *),
-        dgebrd_(integer *, integer *, doublereal *, integer *, doublereal *, doublereal *,
-                doublereal *, doublereal *, doublereal *, integer *, integer *);
+    extern int dgebrd_(integer *, integer *, doublereal *, integer *, doublereal *, doublereal *,
+                       doublereal *, doublereal *, doublereal *, integer *, integer *);
     extern doublereal dlamch_(char *, ftnlen),
         dlange_(char *, integer *, integer *, doublereal *, integer *, doublereal *, ftnlen);
     extern int dgelqf_(integer *, integer *, doublereal *, integer *, doublereal *, doublereal *,
@@ -87,7 +86,7 @@ int dgelsd_(integer *m, integer *n, integer *nrhs, doublereal *a, integer *lda, 
     i__1 = (integer)(log((doublereal)minmn / (doublereal)(smlsiz + 1)) / log(2.)) + 1;
     nlvl = max(i__1, 0);
     if (*info == 0) {
-        maxwrk = 0;
+        maxwrk = 1;
         liwork = minmn * 3 * nlvl + minmn * 11;
         mm = *m;
         if (*m >= *n && *m >= mnthr) {
@@ -189,7 +188,6 @@ int dgelsd_(integer *m, integer *n, integer *nrhs, doublereal *a, integer *lda, 
     sfmin = dlamch_((char *)"S", (ftnlen)1);
     smlnum = sfmin / eps;
     bignum = 1. / smlnum;
-    dlabad_(&smlnum, &bignum);
     anrm = dlange_((char *)"M", m, n, &a[a_offset], lda, &work[1], (ftnlen)1);
     iascl = 0;
     if (anrm > 0. && anrm < smlnum) {

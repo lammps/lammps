@@ -26,8 +26,7 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 4
-#define BIG MAXTAGINT
+static constexpr int DELTA = 4;
 
 // allocate space for static class instance variable and initialize it
 
@@ -42,7 +41,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
 {
   instance_me = instance_total++;
 
-  if (narg < 3) error->all(FLERR,"Illegal compute command");
+  if (narg < 3) utils::missing_cmd_args(FLERR,"compute", error);
 
   // compute ID, group, and style
   // ID must be all alphanumeric chars or underscores
@@ -60,6 +59,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
   // set child class defaults
 
   scalar_flag = vector_flag = array_flag = 0;
+  extscalar = extvector = extarray = -1;
   peratom_flag = local_flag = pergrid_flag = 0;
   size_vector_variable = size_array_rows_variable = 0;
 
@@ -74,6 +74,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
   dynamic = 0;
   dynamic_group_allow = 1;
 
+  initialized_flag = 0;
   invoked_scalar = invoked_vector = invoked_array = -1;
   invoked_peratom = invoked_local = -1;
   invoked_flag = INVOKED_NONE;
@@ -82,7 +83,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
 
   extra_dof = domain->dimension;
   dynamic_user = 0;
-  fix_dof = 0;
+  fix_dof = 0.0;
 
   // setup list of timesteps
 
@@ -111,25 +112,45 @@ Compute::~Compute()
 
 /* ---------------------------------------------------------------------- */
 
+void Compute::init_flags()
+{
+  initialized_flag = 1;
+  invoked_scalar = invoked_vector = invoked_array = -1;
+  invoked_peratom = invoked_local = -1;
+
+  if (scalar_flag && (extscalar < 0))
+    error->all(FLERR, "Must set 'extscalar' when setting 'scalar_flag' for compute {}.  "
+               "Contact the developer.", style);
+  if (vector_flag && (extvector < 0) && !extlist)
+    error->all(FLERR, "Must set 'extvector' or 'extlist' when setting 'vector_flag' for compute {}.  "
+               "Contact the developer.", style);
+  if (array_flag && (extarray < 0))
+    error->all(FLERR, "Must set 'extarray' when setting 'array_flag' for compute {}.  "
+               "Contact the developer.", style);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Compute::modify_params(int narg, char **arg)
 {
   if (narg == 0) error->all(FLERR,"Illegal compute_modify command");
 
   int iarg = 0;
   while (iarg < narg) {
-    // added more specific keywords in Mar17
-    // at some point, remove generic extra and dynamic
-    if (strcmp(arg[iarg],"extra") == 0 ||
-        strcmp(arg[iarg],"extra/dof") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal compute_modify command");
+    if (strcmp(arg[iarg],"extra/dof") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute_modify extra/dof", error);
       extra_dof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"dynamic") == 0 ||
-               strcmp(arg[iarg],"dynamic/dof") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal compute_modify command");
+    } else if (strcmp(arg[iarg],"dynamic/dof") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute_modify dynamic/dof", error);
       dynamic_user = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else error->all(FLERR,"Illegal compute_modify command");
+    } else {
+      int n = modify_param(narg-iarg, &arg[iarg]);
+        if (n== 0)
+          error->all(FLERR, iarg + 1, "Compute {} {} does not support compute_modify {} command",
+                     id, style, arg[iarg]);
+    }
   }
 }
 

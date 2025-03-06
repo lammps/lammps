@@ -1,0 +1,76 @@
+LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-442-gf1c2a22e2d)
+# general triclinic box for bcc lattice primitive cell
+
+lattice       custom 1.0 a1 -0.5 0.5 0.5 a2 0.5 -0.5 0.5 a3 0.5 0.5 -0.5               basis 0.0 0.0 0.0 triclinic/general
+Lattice spacing in x,y,z = 1.8185394 1.5430818 0.89089872
+
+create_box    1 NULL 0 1 0 1 0 1
+Created triclinic box = (0 0 0) to (1.0911236 1.0287212 0.89089872) with tilt (-0.36370788 -0.36370788 -0.51436061)
+WARNING: Triclinic box skew is large. LAMMPS will run inefficiently. (../domain.cpp:221)
+  1 by 1 by 1 MPI processor grid
+create_atoms  1 box
+Created 1 atoms
+  using lattice units in triclinic box = (0 0 0) to (1.0911236 1.0287212 0.89089872) with tilt (-0.36370788 -0.36370788 -0.51436061)
+  create_atoms CPU = 0.000 seconds
+
+mass          * 1.0
+
+write_data    tmp.data.bcc.primitive triclinic/general
+System init for write_data ...
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (../comm_brick.cpp:210)
+
+pair_style    lj/cut 1.1
+pair_coeff    * * 1.0 1.0
+
+neighbor      0.0 bin
+
+thermo_style  custom step pe avecx avecy avecz bvecx bvecy bvecz               cvecx cvecy cvecz pxx pyy pzz vol
+thermo_modify triclinic/general yes
+
+dump          1 all custom 100 tmp.dump.bcc.primitive id type x y z
+dump_modify   1 triclinic/general yes
+
+run           0
+WARNING: No fixes with time integration, atoms won't move (../verlet.cpp:60)
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.1
+  ghost atom cutoff = 1.1
+  binsize = 0.55, bins = 4 3 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton/tri
+      stencil: half/bin/3d/tri
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.084 | 3.084 | 3.084 Mbytes
+   Step         PotEng         Avecx          Avecy          Avecz          Bvecx          Bvecy          Bvecz          Cvecx          Cvecy          Cvecz           Pxx            Pyy            Pzz           Volume    
+         0  -3.8628258     -0.62996052     0.62996052     0.62996052     0.62996052    -0.62996052     0.62996052     0.62996052     0.62996052    -0.62996052     3.5116598      3.5116598      3.5116598      1            
+Loop time of 6.86e-07 on 1 procs for 0 steps with 1 atoms
+
+145.8% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 6.86e-07   |            |       |100.00
+
+Nlocal:              1 ave           1 max           1 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:             63 ave          63 max          63 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              4 ave           4 max           4 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 4
+Ave neighs/atom = 4
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

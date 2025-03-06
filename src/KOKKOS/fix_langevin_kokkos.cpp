@@ -32,16 +32,19 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NOBIAS,BIAS};
-enum{CONSTANT,EQUAL,ATOM};
-#define SINERTIA 0.4          // moment of inertia prefactor for sphere
-#define EINERTIA 0.2          // moment of inertia prefactor for ellipsoid
+enum { NOBIAS, BIAS };
+enum { CONSTANT, EQUAL, ATOM };
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixLangevin(lmp, narg, arg),rand_pool(seed + comm->me)
+  FixLangevin(lmp, narg, arg),
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  rand_pool(seed + comm->me, lmp)
+#else
+  rand_pool(seed + comm->me)
+#endif
 {
   kokkosable = 1;
   fuse_integrate_flag = 1;
@@ -50,45 +53,43 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
   int ntypes = atomKK->ntypes;
 
   // allocate per-type arrays for force prefactors
+  delete[] gfactor1;
+  delete[] gfactor2;
+  delete[] ratio;
   memoryKK->create_kokkos(k_gfactor1,gfactor1,ntypes+1,"langevin:gfactor1");
   memoryKK->create_kokkos(k_gfactor2,gfactor2,ntypes+1,"langevin:gfactor2");
   memoryKK->create_kokkos(k_ratio,ratio,ntypes+1,"langevin:ratio");
   d_gfactor1 = k_gfactor1.template view<DeviceType>();
-  h_gfactor1 = k_gfactor1.template view<LMPHostType>();
+  h_gfactor1 = k_gfactor1.h_view;
   d_gfactor2 = k_gfactor2.template view<DeviceType>();
-  h_gfactor2 = k_gfactor2.template view<LMPHostType>();
+  h_gfactor2 = k_gfactor2.h_view;
   d_ratio = k_ratio.template view<DeviceType>();
-  h_ratio = k_ratio.template view<LMPHostType>();
+  h_ratio = k_ratio.h_view;
 
   // optional args
   for (int i = 1; i <= ntypes; i++) ratio[i] = 1.0;
-  k_ratio.template modify<LMPHostType>();
+  k_ratio.modify_host();
 
   if (gjfflag) {
+    memory->destroy(franprev);
+    memory->destroy(lv);
     grow_arrays(atomKK->nmax);
-    atom->add_callback(Atom::GROW);
+
     // initialize franprev to zero
-    for (int i = 0; i < atomKK->nlocal; i++) {
-      franprev[i][0] = 0.0;
-      franprev[i][1] = 0.0;
-      franprev[i][2] = 0.0;
-      lv[i][0] = 0.0;
-      lv[i][1] = 0.0;
-      lv[i][2] = 0.0;
-    }
-    k_franprev.template modify<LMPHostType>();
-    k_lv.template modify<LMPHostType>();
+
+    Kokkos::deep_copy(d_franprev,0.0);
+    Kokkos::deep_copy(d_lv,0.0);
   }
+
   if (zeroflag) {
     k_fsumall = tdual_double_1d_3n("langevin:fsumall");
-    h_fsumall = k_fsumall.template view<LMPHostType>();
+    h_fsumall = k_fsumall.h_view;
     d_fsumall = k_fsumall.template view<DeviceType>();
   }
 
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read =  V_MASK | F_MASK | MASK_MASK | RMASS_MASK | TYPE_MASK;
+  datamask_read = V_MASK | F_MASK | MASK_MASK | RMASS_MASK | TYPE_MASK;
   datamask_modify = F_MASK;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -96,13 +97,21 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
 template<class DeviceType>
 FixLangevinKokkos<DeviceType>::~FixLangevinKokkos()
 {
+  if (copymode) return;
+
   memoryKK->destroy_kokkos(k_gfactor1,gfactor1);
   memoryKK->destroy_kokkos(k_gfactor2,gfactor2);
   memoryKK->destroy_kokkos(k_ratio,ratio);
   memoryKK->destroy_kokkos(k_flangevin,flangevin);
-  if (gjfflag) memoryKK->destroy_kokkos(k_franprev,franprev);
-  if (gjfflag) memoryKK->destroy_kokkos(k_lv,lv);
+  if (gjfflag) {
+    memoryKK->destroy_kokkos(k_franprev,franprev);
+    memoryKK->destroy_kokkos(k_lv,lv);
+  }
   memoryKK->destroy_kokkos(k_tforce,tforce);
+
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  rand_pool.destroy();
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -121,8 +130,170 @@ void FixLangevinKokkos<DeviceType>::init()
     error->warning(FLERR,"Fix langevin gjf + kokkos is not implemented with random gaussians");
 
   // prefactors are modified in the init
-  k_gfactor1.template modify<LMPHostType>();
-  k_gfactor2.template modify<LMPHostType>();
+  k_gfactor1.modify_host();
+  k_gfactor2.modify_host();
+
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  rand_pool.init(random,seed + comm->me);
+#endif
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixLangevinKokkos<DeviceType>::setup(int vflag)
+{
+  if (gjfflag) {
+    double dt = update->dt;
+    double ftm2v = force->ftm2v;
+    auto v = atomKK->k_v.view<DeviceType>();
+    auto f = atomKK->k_f.view<DeviceType>();
+    auto mask = atomKK->k_mask.view<DeviceType>();
+    int nlocal = atom->nlocal;
+    auto rmass = atomKK->k_rmass.view<DeviceType>();
+    auto mass = atomKK->k_mass.view<DeviceType>();
+    auto type = atomKK->k_type.view<DeviceType>();
+    auto groupbit = this->groupbit;
+    auto gjfa = this->gjfa;
+    auto gjfsib = this->gjfsib;
+
+    if (atom->rmass) {
+      atomKK->sync(execution_space,V_MASK|F_MASK|MASK_MASK|RMASS_MASK);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal), KOKKOS_LAMBDA(const int &i) {
+        if (mask[i] & groupbit) {
+          const double dtfm = ftm2v * 0.5 * dt / rmass[i];
+          v(i,0) -= dtfm * f(i,0);
+          v(i,1) -= dtfm * f(i,1);
+          v(i,2) -= dtfm * f(i,2);
+        }
+      });
+
+      if (tbiasflag) {
+        // account for bias velocity
+        if (temperature->kokkosable) {
+          temperature->compute_scalar();
+          temperature->remove_bias_all_kk();
+        } else {
+          atomKK->sync(temperature->execution_space,temperature->datamask_read);
+          temperature->compute_scalar();
+          temperature->remove_bias_all();
+          atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+          atomKK->sync(execution_space,temperature->datamask_modify);
+        }
+      }
+
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal), KOKKOS_LAMBDA(const int &i) {
+        if (mask[i] & groupbit) {
+          v(i,0) /= gjfa * gjfsib * gjfsib;
+          v(i,1) /= gjfa * gjfsib * gjfsib;
+          v(i,2) /= gjfa * gjfsib * gjfsib;
+        }
+      });
+
+      if (tbiasflag) {
+        if (temperature->kokkosable) temperature->restore_bias_all();
+        else {
+          atomKK->sync(temperature->execution_space,temperature->datamask_read);
+          temperature->restore_bias_all();
+          atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+          atomKK->sync(execution_space,temperature->datamask_modify);
+        }
+      }
+
+    } else {
+      atomKK->sync(execution_space,V_MASK|F_MASK|MASK_MASK|TYPE_MASK);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal), KOKKOS_LAMBDA(const int &i) {
+        if (mask[i] & groupbit) {
+          const double dtfm = ftm2v * 0.5 * dt / mass[type[i]];
+          v(i,0) -= dtfm * f(i,0);
+          v(i,1) -= dtfm * f(i,1);
+          v(i,2) -= dtfm * f(i,2);
+        }
+      });
+
+      if (tbiasflag) {
+        // account for bias velocity
+        if (temperature->kokkosable) {
+          temperature->compute_scalar();
+          temperature->remove_bias_all_kk();
+        } else {
+          atomKK->sync(temperature->execution_space,temperature->datamask_read);
+          temperature->compute_scalar();
+          temperature->remove_bias_all();
+          atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+          atomKK->sync(execution_space,temperature->datamask_modify);
+        }
+      }
+
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal), KOKKOS_LAMBDA(const int &i) {
+        if (mask[i] & groupbit) {
+          v(i,0) /= gjfa * gjfsib * gjfsib;
+          v(i,1) /= gjfa * gjfsib * gjfsib;
+          v(i,2) /= gjfa * gjfsib * gjfsib;
+        }
+      });
+
+      if (tbiasflag) {
+        if (temperature->kokkosable) temperature->restore_bias_all();
+        else {
+          atomKK->sync(temperature->execution_space,temperature->datamask_read);
+          temperature->restore_bias_all();
+          atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+          atomKK->sync(execution_space,temperature->datamask_modify);
+        }
+      }
+
+    }
+    atomKK->modified(execution_space,V_MASK);
+  }
+
+  post_force(vflag);
+
+  if (gjfflag) {
+    double dt = update->dt;
+    double ftm2v = force->ftm2v;
+    auto f = atomKK->k_f.view<DeviceType>();
+    auto v = atomKK->k_v.view<DeviceType>();
+    auto mask = atomKK->k_mask.view<DeviceType>();
+    int nlocal = atom->nlocal;
+    auto rmass = atomKK->k_rmass.view<DeviceType>();
+    auto mass = atomKK->k_mass.view<DeviceType>();
+    auto type = atomKK->k_type.view<DeviceType>();
+    auto groupbit = this->groupbit;
+
+    k_lv.template sync<DeviceType>();
+    auto l_lv = d_lv;
+
+    if (atom->rmass) {
+      atomKK->sync(execution_space,V_MASK|F_MASK|MASK_MASK|RMASS_MASK);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal), KOKKOS_LAMBDA(const int &i) {
+        if (mask[i] & groupbit) {
+          const double dtfm = ftm2v * 0.5 * dt / rmass[i];
+          v(i,0) += dtfm * f(i,0);
+          v(i,1) += dtfm * f(i,1);
+          v(i,2) += dtfm * f(i,2);
+          l_lv(i,0) = v(i,0);
+          l_lv(i,1) = v(i,1);
+          l_lv(i,2) = v(i,2);
+        }
+      });
+    } else {
+      atomKK->sync(execution_space,V_MASK|F_MASK|MASK_MASK|TYPE_MASK);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal), KOKKOS_LAMBDA(const int &i) {
+        if (mask[i] & groupbit) {
+          const double dtfm = ftm2v * 0.5 * dt / mass[type[i]];
+          v(i,0) += dtfm * f(i,0);
+          v(i,1) += dtfm * f(i,1);
+          v(i,2) += dtfm * f(i,2);
+          l_lv(i,0) = v(i,0);
+          l_lv(i,1) = v(i,1);
+          l_lv(i,2) = v(i,2);
+        }
+      });
+    }
+    atomKK->modified(execution_space,V_MASK);
+    k_lv.template modify<DeviceType>();
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -132,10 +303,10 @@ void FixLangevinKokkos<DeviceType>::grow_arrays(int nmax)
 {
   memoryKK->grow_kokkos(k_franprev,franprev,nmax,3,"langevin:franprev");
   d_franprev = k_franprev.template view<DeviceType>();
-  h_franprev = k_franprev.template view<LMPHostType>();
+  h_franprev = k_franprev.h_view;
   memoryKK->grow_kokkos(k_lv,lv,nmax,3,"langevin:lv");
   d_lv = k_lv.template view<DeviceType>();
-  h_lv = k_lv.template view<LMPHostType>();
+  h_lv = k_lv.h_view;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -144,7 +315,6 @@ template<class DeviceType>
 void FixLangevinKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 {
   atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
 
   v = atomKK->k_v.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
@@ -153,6 +323,8 @@ void FixLangevinKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 
   FixLangevinKokkosInitialIntegrateFunctor<DeviceType> functor(this);
   Kokkos::parallel_for(nlocal,functor);
+
+  atomKK->modified(execution_space,datamask_modify);
 }
 
 template<class DeviceType>
@@ -187,6 +359,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
   rmass = atomKK->k_rmass.view<DeviceType>();
   f = atomKK->k_f.template view<DeviceType>();
   v = atomKK->k_v.template view<DeviceType>();
+  mass = atomKK->k_mass.template view<DeviceType>();
   type = atomKK->k_type.template view<DeviceType>();
   mask = atomKK->k_mask.template view<DeviceType>();
 
@@ -200,7 +373,8 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
   dt = update->dt;
   mvv2e = force->mvv2e;
   ftm2v = force->ftm2v;
-  fran_prop_const = sqrt(24.0*boltz/t_period/dt/mvv2e);
+  fran_prop_const = sqrt(2.0*boltz/t_period/dt/mvv2e);
+  fran_prop_const_gjf = sqrt(24.0*boltz/t_period/dt/mvv2e);
 
   compute_target(); // modifies tforce vector, hence sync here
   k_tforce.template sync<DeviceType>();
@@ -223,18 +397,22 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
       maxatom1 = atomKK->nmax;
       memoryKK->create_kokkos(k_flangevin,flangevin,maxatom1,3,"langevin:flangevin");
       d_flangevin = k_flangevin.template view<DeviceType>();
-      h_flangevin = k_flangevin.template view<LMPHostType>();
+      h_flangevin = k_flangevin.h_view;
     }
   }
 
   // account for bias velocity
   if (tbiasflag == BIAS) {
-    atomKK->sync(temperature->execution_space,temperature->datamask_read);
-    temperature->compute_scalar();
-    temperature->remove_bias_all(); // modifies velocities
-    // if temeprature compute is kokkosized host-device comm won't be needed
-    atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-    atomKK->sync(execution_space,temperature->datamask_modify);
+    if (temperature->kokkosable) {
+      temperature->compute_scalar();
+      temperature->remove_bias_all_kk();
+    } else {
+      atomKK->sync(temperature->execution_space,temperature->datamask_read);
+      temperature->compute_scalar();
+      temperature->remove_bias_all();
+      atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+      atomKK->sync(execution_space,temperature->datamask_modify);
+    }
   }
 
   // compute langevin force in parallel on the device
@@ -528,10 +706,13 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
 
 
   if (tbiasflag == BIAS) {
-    atomKK->sync(temperature->execution_space,temperature->datamask_read);
-    temperature->restore_bias_all(); // modifies velocities
-    atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-    atomKK->sync(execution_space,temperature->datamask_modify);
+    if (temperature->kokkosable) temperature->restore_bias_all();
+    else {
+      atomKK->sync(temperature->execution_space,temperature->datamask_read);
+      temperature->restore_bias_all();
+      atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+      atomKK->sync(execution_space,temperature->datamask_modify);
+    }
   }
 
   // set modify flags for the views modified in post_force functor
@@ -546,7 +727,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
     h_fsumall(0) = fsumall[0]/count;
     h_fsumall(1) = fsumall[1]/count;
     h_fsumall(2) = fsumall[2]/count;
-    k_fsumall.template modify<LMPHostType>();
+    k_fsumall.modify_host();
     k_fsumall.template sync<DeviceType>();
     // set total force zero in parallel on the device
     FixLangevinKokkosZeroForceFunctor<DeviceType> zero_functor(this);
@@ -577,20 +758,30 @@ FSUM FixLangevinKokkos<DeviceType>::post_force_item(int i) const
 
   if (mask[i] & groupbit) {
     rand_type rand_gen = rand_pool.get_state();
+
     if (Tp_TSTYLEATOM) tsqrt_t = sqrt(d_tforce[i]);
     if (Tp_RMASS) {
       gamma1 = -rmass[i] / t_period / ftm2v;
-      gamma2 = sqrt(rmass[i]) * fran_prop_const / ftm2v;
-      gamma1 *= 1.0/d_ratio[type[i]];
+      if (Tp_GJF)
+        gamma2 = sqrt(rmass[i]) * fran_prop_const_gjf / ftm2v;
+      else
+        gamma2 = sqrt(rmass[i]) * fran_prop_const / ftm2v;
+      gamma1 *= 1.0/ratio[type[i]];
       gamma2 *= 1.0/sqrt(d_ratio[type[i]]) * tsqrt_t;
     } else {
       gamma1 = d_gfactor1[type[i]];
       gamma2 = d_gfactor2[type[i]] * tsqrt_t;
     }
 
-    fran[0] = gamma2 * (rand_gen.drand() - 0.5); //(random->uniform()-0.5);
-    fran[1] = gamma2 * (rand_gen.drand() - 0.5); //(random->uniform()-0.5);
-    fran[2] = gamma2 * (rand_gen.drand() - 0.5); //(random->uniform()-0.5);
+    if (Tp_GJF) {
+      fran[0] = gamma2 * rand_gen.normal(); //random->gaussian()
+      fran[1] = gamma2 * rand_gen.normal(); //random->gaussian()
+      fran[2] = gamma2 * rand_gen.normal(); //random->gaussian()
+    } else {
+      fran[0] = gamma2 * (rand_gen.drand() - 0.5); //(random->uniform()-0.5);
+      fran[1] = gamma2 * (rand_gen.drand() - 0.5); //(random->uniform()-0.5);
+      fran[2] = gamma2 * (rand_gen.drand() - 0.5); //(random->uniform()-0.5);
+    }
 
     if (Tp_BIAS) {
       fdrag[0] = gamma1*v(i,0);
@@ -674,7 +865,6 @@ void FixLangevinKokkos<DeviceType>::zero_force_item(int i) const
     f(i,1) -= d_fsumall[1];
     f(i,2) -= d_fsumall[2];
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -736,7 +926,7 @@ void FixLangevinKokkos<DeviceType>::reset_dt()
         force->ftm2v;
       h_gfactor2[i] *= 1.0/sqrt(h_ratio[i]);
     }
-    k_gfactor2.template modify<LMPHostType>();
+    k_gfactor2.modify_host();
   }
 
 }
@@ -777,9 +967,15 @@ KOKKOS_INLINE_FUNCTION
 double FixLangevinKokkos<DeviceType>::compute_energy_item(int i) const
 {
   double my_energy = 0.0;
-  if (mask[i] & groupbit)
-    my_energy = d_flangevin(i,0)*v(i,0) + d_flangevin(i,1)*v(i,1) +
-      d_flangevin(i,2)*v(i,2);
+  if (mask[i] & groupbit) {
+    if (gjfflag) {
+      my_energy = d_flangevin(i,0)*d_lv(i,0) + d_flangevin(i,1)*d_lv(i,1) +
+        d_flangevin(i,2)*d_lv(i,2);
+    } else {
+      my_energy = d_flangevin(i,0)*v(i,0) + d_flangevin(i,1)*v(i,1) +
+        d_flangevin(i,2)*v(i,2);
+    }
+  }
   return my_energy;
 }
 
@@ -792,29 +988,41 @@ void FixLangevinKokkos<DeviceType>::end_of_step()
 {
   if (!tallyflag && !gjfflag) return;
 
+  dt = update->dt;
+  ftm2v = force->ftm2v;
   v = atomKK->k_v.template view<DeviceType>();
-  f = atomKK->k_f.template view<DeviceType>();
+  rmass = atomKK->k_rmass.template view<DeviceType>();
+  mass = atomKK->k_mass.template view<DeviceType>();
   mask = atomKK->k_mask.template view<DeviceType>();
-
-  atomKK->sync(execution_space,V_MASK | MASK_MASK);
   int nlocal = atomKK->nlocal;
 
   energy_onestep = 0.0;
 
+  atomKK->sync(execution_space,V_MASK | MASK_MASK);
+  if (gjfflag) k_lv.template sync<DeviceType>();
   k_flangevin.template sync<DeviceType>();
-  FixLangevinKokkosTallyEnergyFunctor<DeviceType> tally_functor(this);
-  Kokkos::parallel_reduce(nlocal,tally_functor,energy_onestep);
+
+  if (tallyflag) {
+    FixLangevinKokkosTallyEnergyFunctor<DeviceType> tally_functor(this);
+    Kokkos::parallel_reduce(nlocal,tally_functor,energy_onestep);
+  }
 
   if (gjfflag) {
     if (rmass.data()) {
+      atomKK->sync(execution_space,RMASS_MASK);
       FixLangevinKokkosEndOfStepFunctor<DeviceType,1> functor(this);
       Kokkos::parallel_for(nlocal,functor);
     } else {
+      atomKK->sync(execution_space,TYPE_MASK);
+      type = atomKK->k_type.template view<DeviceType>();
       mass = atomKK->k_mass.view<DeviceType>();
       FixLangevinKokkosEndOfStepFunctor<DeviceType,0> functor(this);
       Kokkos::parallel_for(nlocal,functor);
     }
   }
+
+  atomKK->modified(execution_space,V_MASK);
+  k_lv.template modify<DeviceType>();
 
   energy += energy_onestep*update->dt;
 }
@@ -824,7 +1032,7 @@ KOKKOS_INLINE_FUNCTION
 void FixLangevinKokkos<DeviceType>::end_of_step_item(int i) const {
   double tmp[3];
   if (mask[i] & groupbit) {
-    const double dtfm = force->ftm2v * 0.5 * dt / mass[type[i]];
+    const double dtfm = ftm2v * 0.5 * dt / mass[type[i]];
     tmp[0] = v(i,0);
     tmp[1] = v(i,1);
     tmp[2] = v(i,2);
@@ -837,10 +1045,10 @@ void FixLangevinKokkos<DeviceType>::end_of_step_item(int i) const {
                 dtfm * 0.5 * (gjfsib * d_flangevin(i,0) - d_franprev(i,0)) +
                 (gjfsib * gjfa * 0.5 + dt * 0.25 / t_period / gjfsib) * d_lv(i,0);
       v(i,1) = 0.5 * gjfsib * gjfsib * (v(i,1) + dtfm * f(i,1) / gjfa) +
-                dtfm * 0.5 * (gjfsib * d_flangevin(i,0) - d_franprev(i,1)) +
+                dtfm * 0.5 * (gjfsib * d_flangevin(i,1) - d_franprev(i,1)) +
                 (gjfsib * gjfa * 0.5 + dt * 0.25 / t_period / gjfsib) * d_lv(i,1);
       v(i,2) = 0.5 * gjfsib * gjfsib * (v(i,2) + dtfm * f(i,2) / gjfa) +
-                dtfm * 0.5 * (gjfsib * d_flangevin(i,0) - d_franprev(i,2)) +
+                dtfm * 0.5 * (gjfsib * d_flangevin(i,2) - d_franprev(i,2)) +
                 (gjfsib * gjfa * 0.5 + dt * 0.25 / t_period / gjfsib) * d_lv(i,2);
     }
     d_lv(i,0) = tmp[0];
@@ -855,7 +1063,7 @@ void FixLangevinKokkos<DeviceType>::end_of_step_rmass_item(int i) const
 {
   double tmp[3];
   if (mask[i] & groupbit) {
-    const double dtfm = force->ftm2v * 0.5 * dt / rmass[i];
+    const double dtfm = ftm2v * 0.5 * dt / rmass[i];
     tmp[0] = v(i,0);
     tmp[1] = v(i,1);
     tmp[2] = v(i,2);
@@ -887,6 +1095,9 @@ void FixLangevinKokkos<DeviceType>::end_of_step_rmass_item(int i) const
 template<class DeviceType>
 void FixLangevinKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 {
+  k_franprev.sync_host();
+  k_lv.sync_host();
+
   h_franprev(j,0) = h_franprev(i,0);
   h_franprev(j,1) = h_franprev(i,1);
   h_franprev(j,2) = h_franprev(i,2);
@@ -894,8 +1105,8 @@ void FixLangevinKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
   h_lv(j,1) = h_lv(i,1);
   h_lv(j,2) = h_lv(i,2);
 
-  k_franprev.template modify<LMPHostType>();
-  k_lv.template modify<LMPHostType>();
+  k_franprev.modify_host();
+  k_lv.modify_host();
 
 }
 
@@ -919,24 +1130,6 @@ void FixLangevinKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, Bin
 }
 
 /* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixLangevinKokkos<DeviceType>::cleanup_copy()
-{
-  random = nullptr;
-  tstr = nullptr;
-  gfactor1 = nullptr;
-  gfactor2 = nullptr;
-  ratio = nullptr;
-  id_temp = nullptr;
-  flangevin = nullptr;
-  tforce = nullptr;
-  gjfflag = 0;
-  franprev = nullptr;
-  lv = nullptr;
-  id = style = nullptr;
-  vatom = nullptr;
-}
 
 namespace LAMMPS_NS {
 template class FixLangevinKokkos<LMPDeviceType>;

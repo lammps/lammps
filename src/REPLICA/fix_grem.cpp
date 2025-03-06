@@ -29,6 +29,7 @@
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_nh.h"
 #include "force.h"
 #include "modify.h"
 #include "update.h"
@@ -117,11 +118,11 @@ FixGrem::~FixGrem()
   modify->delete_compute(id_press);
   modify->delete_compute(id_ke);
   modify->delete_compute(id_pe);
-  delete [] id_temp;
-  delete [] id_press;
-  delete [] id_ke;
-  delete [] id_pe;
-  delete [] id_nh;
+  delete[] id_temp;
+  delete[] id_press;
+  delete[] id_ke;
+  delete[] id_pe;
+  delete[] id_nh;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -141,55 +142,70 @@ void FixGrem::init()
   if (domain->triclinic)
     error->all(FLERR,"Triclinic cells are not supported");
 
-  // set temperature and pressure ptrs
+  // set temperature and other pointers to compute instances
 
-  int icompute = modify->find_compute(id_temp);
-  if (icompute < 0)
-    error->all(FLERR,"Temperature compute ID for fix grem does not exist");
-  temperature = modify->compute[icompute];
+  temperature = modify->get_compute_by_id(id_temp);
+  if (!temperature) {
+    error->all(FLERR,"Temperature compute ID {} for fix {} does not exist", id_temp, style);
+  } else {
+    if (temperature->tempflag == 0)
+      error->all(FLERR, "Compute ID {} for fix {} does not compute a temperature", id_temp, style);
+  }
 
-  icompute = modify->find_compute(id_ke);
-  if (icompute < 0)
-    error->all(FLERR,"KE compute ID for fix grem does not exist");
-  ke = modify->compute[icompute];
+  ke = modify->get_compute_by_id(id_ke);
+  if (!ke) {
+    error->all(FLERR,"Kinetic energy compute ID {} for fix {} does not exist", id_ke, style);
+  } else {
+    if (strcmp(ke->style, "ke") != 0)
+      error->all(FLERR, "Compute ID {} for fix {} does not compute kinetic energy", id_ke, style);
+  }
 
-  icompute = modify->find_compute(id_pe);
-  if (icompute < 0)
-    error->all(FLERR,"PE compute ID for fix grem does not exist");
-  pe = modify->compute[icompute];
+  pe = modify->get_compute_by_id(id_pe);
+  if (!pe) {
+    error->all(FLERR,"Potential energy compute ID {} for fix {} does not exist", id_pe, style);
+  } else {
+    if (pe->peflag == 0)
+      error->all(FLERR,"Compute ID {} for fix {} does not compute potential energy", id_pe, style);
+  }
 
-  int ifix = modify->find_fix(id_nh);
-  if (ifix < 0)
+  auto *ifix = modify->get_fix_by_id(id_nh);
+  if (!ifix) {
     error->all(FLERR,"Fix id for nvt or npt fix does not exist");
-  Fix *nh = modify->fix[ifix];
-
-  auto t_start = (double *)nh->extract("t_start",ifix);
-  auto t_stop = (double *)nh->extract("t_stop",ifix);
-  if ((t_start != nullptr) && (t_stop != nullptr) && (ifix == 0)) {
-    tbath = *t_start;
-    if (*t_start != *t_stop)
-      error->all(FLERR,"Thermostat temperature ramp not allowed");
-  } else
-    error->all(FLERR,"Problem extracting target temperature from fix nvt or npt");
-
-  pressref = 0.0;
-  if (pressflag) {
-    int *p_flag = (int *)nh->extract("p_flag",ifix);
-    auto p_start = (double *) nh->extract("p_start",ifix);
-    auto p_stop = (double *) nh->extract("p_stop",ifix);
-    if ((p_flag != nullptr) && (p_start != nullptr) && (p_stop != nullptr)
-        && (ifix == 1)) {
-      ifix = 0;
-      pressref = p_start[0];
-      if ((p_start[0] != p_stop[0]) || (p_flag[0] != 1)) ++ ifix;
-      if ((p_start[1] != p_stop[1]) || (p_flag[0] != 1)) ++ ifix;
-      if ((p_start[2] != p_stop[2]) || (p_flag[0] != 1)) ++ ifix;
-      if ((p_start[0] != p_start[1]) || (p_start[1] != p_start[2])) ++ifix;
-      if ((p_flag[3] != 0) || (p_flag[4] != 0) || (p_flag[5] != 0)) ++ifix;
-      if (ifix > 0)
-        error->all(FLERR,"Unsupported pressure settings in fix npt");
-    } else
-      error->all(FLERR,"Problem extracting target pressure from fix npt");
+  } else { // check for correct fix style
+    FixNH *nh = dynamic_cast<FixNH *>(ifix);
+    if (!nh) {
+      error->all(FLERR, "Fix ID {} is not a compatible Nose-Hoover fix for fix {}", id_nh, style);
+    } else {
+      int dummy;
+      auto t_start = (double *)nh->extract("t_start",dummy);
+      auto t_stop = (double *)nh->extract("t_stop",dummy);
+      if ((t_start != nullptr) && (t_stop != nullptr)) {
+        tbath = *t_start;
+        if (*t_start != *t_stop)
+          error->all(FLERR,"Temperature ramp in fix {} ID {} not allowed", nh->style, id_nh);
+      } else {
+        error->all(FLERR,"Problem extracting target temperature from fix {}", nh->style);
+      }
+      pressref = 0.0;
+      if (pressflag) {
+        int *p_flag = (int *)nh->extract("p_flag",dummy);
+        auto p_start = (double *) nh->extract("p_start",dummy);
+        auto p_stop = (double *) nh->extract("p_stop",dummy);
+        if ((p_flag != nullptr) && (p_start != nullptr) && (p_stop != nullptr)) {
+          int ifix = 0;
+          pressref = p_start[0];
+          if ((p_start[0] != p_stop[0]) || (p_flag[0] != 1)) ++ ifix;
+          if ((p_start[1] != p_stop[1]) || (p_flag[0] != 1)) ++ ifix;
+          if ((p_start[2] != p_stop[2]) || (p_flag[0] != 1)) ++ ifix;
+          if ((p_start[0] != p_start[1]) || (p_start[1] != p_start[2])) ++ifix;
+          if ((p_flag[3] != 0) || (p_flag[4] != 0) || (p_flag[5] != 0)) ++ifix;
+          if (ifix > 0)
+            error->all(FLERR,"Unsupported pressure settings in fix {} ID {}", nh->style, id_nh);
+        } else {
+          error->all(FLERR,"Problem extracting target pressure from fix {}", nh->style);
+        }
+      }
+    }
   }
 }
 

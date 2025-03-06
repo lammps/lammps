@@ -28,9 +28,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define TOLERANCE 0.05
-#define SMALL     0.001
-
 /* ---------------------------------------------------------------------- */
 
 ImproperAmoeba::ImproperAmoeba(LAMMPS *lmp) : Improper(lmp)

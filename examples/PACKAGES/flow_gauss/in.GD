@@ -68,7 +68,7 @@ variable        Lx1 equal round(${Lx}/${aWall})*${aWall}
 #create simulation box
 variable        lx2 equal ${Lx1}/2
 variable        ly2 equal ${Ly1}/2
-region          simbox block -${lx2} ${lx2} -${ly2} ${ly2} 0 0.1 units box
+region          simbox block -${lx2} ${lx2} -${ly2} ${ly2} -0.1 0.1 units box
 create_box      2 simbox
 
 #####################################################################

@@ -1,6 +1,0 @@
-# Settings that the LAMMPS build will import when this package library is used
-# settings for OpenCL builds
-gpu_SYSINC =
-gpu_SYSLIB = -Wl,--enable-stdcall-fixup -L../../tools/mingw-cross$(LIBOBJDIR) -Wl,-Bdynamic,-lOpenCL,-Bstatic
-gpu_SYSPATH = 
-

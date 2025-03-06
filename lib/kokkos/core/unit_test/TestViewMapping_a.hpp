@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <gtest/gtest.h>
 
@@ -101,67 +73,67 @@ void test_view_mapping() {
   ASSERT_LE(sizeof(dim_s0_s0_s0_s0_s0_s0_s0), 8 * sizeof(unsigned));
   ASSERT_EQ(sizeof(dim_s0_s0_s0_s0_s0_s0_s0_s0), 8 * sizeof(unsigned));
 #endif
-  static_assert(int(dim_0::rank) == int(0), "");
-  static_assert(int(dim_0::rank_dynamic) == int(0), "");
-  static_assert(int(dim_0::ArgN0) == 1, "");
-  static_assert(int(dim_0::ArgN1) == 1, "");
-  static_assert(int(dim_0::ArgN2) == 1, "");
+  static_assert(int(dim_0::rank) == int(0));
+  static_assert(int(dim_0::rank_dynamic) == int(0));
+  static_assert(int(dim_0::ArgN0) == 1);
+  static_assert(int(dim_0::ArgN1) == 1);
+  static_assert(int(dim_0::ArgN2) == 1);
 
-  static_assert(int(dim_s2::rank) == int(1), "");
-  static_assert(int(dim_s2::rank_dynamic) == int(0), "");
-  static_assert(int(dim_s2::ArgN0) == 2, "");
-  static_assert(int(dim_s2::ArgN1) == 1, "");
+  static_assert(int(dim_s2::rank) == int(1));
+  static_assert(int(dim_s2::rank_dynamic) == int(0));
+  static_assert(int(dim_s2::ArgN0) == 2);
+  static_assert(int(dim_s2::ArgN1) == 1);
 
-  static_assert(int(dim_s2_s3::rank) == int(2), "");
-  static_assert(int(dim_s2_s3::rank_dynamic) == int(0), "");
-  static_assert(int(dim_s2_s3::ArgN0) == 2, "");
-  static_assert(int(dim_s2_s3::ArgN1) == 3, "");
-  static_assert(int(dim_s2_s3::ArgN2) == 1, "");
+  static_assert(int(dim_s2_s3::rank) == int(2));
+  static_assert(int(dim_s2_s3::rank_dynamic) == int(0));
+  static_assert(int(dim_s2_s3::ArgN0) == 2);
+  static_assert(int(dim_s2_s3::ArgN1) == 3);
+  static_assert(int(dim_s2_s3::ArgN2) == 1);
 
-  static_assert(int(dim_s2_s3_s4::rank) == int(3), "");
-  static_assert(int(dim_s2_s3_s4::rank_dynamic) == int(0), "");
-  static_assert(int(dim_s2_s3_s4::ArgN0) == 2, "");
-  static_assert(int(dim_s2_s3_s4::ArgN1) == 3, "");
-  static_assert(int(dim_s2_s3_s4::ArgN2) == 4, "");
-  static_assert(int(dim_s2_s3_s4::ArgN3) == 1, "");
+  static_assert(int(dim_s2_s3_s4::rank) == int(3));
+  static_assert(int(dim_s2_s3_s4::rank_dynamic) == int(0));
+  static_assert(int(dim_s2_s3_s4::ArgN0) == 2);
+  static_assert(int(dim_s2_s3_s4::ArgN1) == 3);
+  static_assert(int(dim_s2_s3_s4::ArgN2) == 4);
+  static_assert(int(dim_s2_s3_s4::ArgN3) == 1);
 
-  static_assert(int(dim_s0::rank) == int(1), "");
-  static_assert(int(dim_s0::rank_dynamic) == int(1), "");
+  static_assert(int(dim_s0::rank) == int(1));
+  static_assert(int(dim_s0::rank_dynamic) == int(1));
 
-  static_assert(int(dim_s0_s3::rank) == int(2), "");
-  static_assert(int(dim_s0_s3::rank_dynamic) == int(1), "");
-  static_assert(int(dim_s0_s3::ArgN0) == 0, "");
-  static_assert(int(dim_s0_s3::ArgN1) == 3, "");
+  static_assert(int(dim_s0_s3::rank) == int(2));
+  static_assert(int(dim_s0_s3::rank_dynamic) == int(1));
+  static_assert(int(dim_s0_s3::ArgN0) == 0);
+  static_assert(int(dim_s0_s3::ArgN1) == 3);
 
-  static_assert(int(dim_s0_s3_s4::rank) == int(3), "");
-  static_assert(int(dim_s0_s3_s4::rank_dynamic) == int(1), "");
-  static_assert(int(dim_s0_s3_s4::ArgN0) == 0, "");
-  static_assert(int(dim_s0_s3_s4::ArgN1) == 3, "");
-  static_assert(int(dim_s0_s3_s4::ArgN2) == 4, "");
+  static_assert(int(dim_s0_s3_s4::rank) == int(3));
+  static_assert(int(dim_s0_s3_s4::rank_dynamic) == int(1));
+  static_assert(int(dim_s0_s3_s4::ArgN0) == 0);
+  static_assert(int(dim_s0_s3_s4::ArgN1) == 3);
+  static_assert(int(dim_s0_s3_s4::ArgN2) == 4);
 
-  static_assert(int(dim_s0_s0_s4::rank) == int(3), "");
-  static_assert(int(dim_s0_s0_s4::rank_dynamic) == int(2), "");
-  static_assert(int(dim_s0_s0_s4::ArgN0) == 0, "");
-  static_assert(int(dim_s0_s0_s4::ArgN1) == 0, "");
-  static_assert(int(dim_s0_s0_s4::ArgN2) == 4, "");
+  static_assert(int(dim_s0_s0_s4::rank) == int(3));
+  static_assert(int(dim_s0_s0_s4::rank_dynamic) == int(2));
+  static_assert(int(dim_s0_s0_s4::ArgN0) == 0);
+  static_assert(int(dim_s0_s0_s4::ArgN1) == 0);
+  static_assert(int(dim_s0_s0_s4::ArgN2) == 4);
 
-  static_assert(int(dim_s0_s0_s0::rank) == int(3), "");
-  static_assert(int(dim_s0_s0_s0::rank_dynamic) == int(3), "");
+  static_assert(int(dim_s0_s0_s0::rank) == int(3));
+  static_assert(int(dim_s0_s0_s0::rank_dynamic) == int(3));
 
-  static_assert(int(dim_s0_s0_s0_s0::rank) == int(4), "");
-  static_assert(int(dim_s0_s0_s0_s0::rank_dynamic) == int(4), "");
+  static_assert(int(dim_s0_s0_s0_s0::rank) == int(4));
+  static_assert(int(dim_s0_s0_s0_s0::rank_dynamic) == int(4));
 
-  static_assert(int(dim_s0_s0_s0_s0_s0::rank) == int(5), "");
-  static_assert(int(dim_s0_s0_s0_s0_s0::rank_dynamic) == int(5), "");
+  static_assert(int(dim_s0_s0_s0_s0_s0::rank) == int(5));
+  static_assert(int(dim_s0_s0_s0_s0_s0::rank_dynamic) == int(5));
 
-  static_assert(int(dim_s0_s0_s0_s0_s0_s0::rank) == int(6), "");
-  static_assert(int(dim_s0_s0_s0_s0_s0_s0::rank_dynamic) == int(6), "");
+  static_assert(int(dim_s0_s0_s0_s0_s0_s0::rank) == int(6));
+  static_assert(int(dim_s0_s0_s0_s0_s0_s0::rank_dynamic) == int(6));
 
-  static_assert(int(dim_s0_s0_s0_s0_s0_s0_s0::rank) == int(7), "");
-  static_assert(int(dim_s0_s0_s0_s0_s0_s0_s0::rank_dynamic) == int(7), "");
+  static_assert(int(dim_s0_s0_s0_s0_s0_s0_s0::rank) == int(7));
+  static_assert(int(dim_s0_s0_s0_s0_s0_s0_s0::rank_dynamic) == int(7));
 
-  static_assert(int(dim_s0_s0_s0_s0_s0_s0_s0_s0::rank) == int(8), "");
-  static_assert(int(dim_s0_s0_s0_s0_s0_s0_s0_s0::rank_dynamic) == int(8), "");
+  static_assert(int(dim_s0_s0_s0_s0_s0_s0_s0_s0::rank) == int(8));
+  static_assert(int(dim_s0_s0_s0_s0_s0_s0_s0_s0::rank_dynamic) == int(8));
 
   dim_s0 d1(2, 3, 4, 5, 6, 7, 8, 9);
   dim_s0_s0 d2(2, 3, 4, 5, 6, 7, 8, 9);
@@ -542,69 +514,61 @@ void test_view_mapping() {
   {
     using namespace Kokkos::Impl;
 
-    static_assert(rank_dynamic<>::value == 0, "");
-    static_assert(rank_dynamic<1>::value == 0, "");
-    static_assert(rank_dynamic<0>::value == 1, "");
-    static_assert(rank_dynamic<0, 1>::value == 1, "");
-    static_assert(rank_dynamic<0, 0, 1>::value == 2, "");
+    static_assert(rank_dynamic<>::value == 0);
+    static_assert(rank_dynamic<1>::value == 0);
+    static_assert(rank_dynamic<0>::value == 1);
+    static_assert(rank_dynamic<0, 1>::value == 1);
+    static_assert(rank_dynamic<0, 0, 1>::value == 2);
   }
 
   {
     using namespace Kokkos::Impl;
 
     using a_int_r1       = ViewArrayAnalysis<int[]>;
-    using a_int_r5       = ViewArrayAnalysis<int* * [4][5][6]>;
+    using a_int_r5       = ViewArrayAnalysis<int** [4][5][6]>;
     using a_const_int_r1 = ViewArrayAnalysis<const int[]>;
-    using a_const_int_r5 = ViewArrayAnalysis<const int* * [4][5][6]>;
+    using a_const_int_r5 = ViewArrayAnalysis<const int** [4][5][6]>;
 
-    static_assert(a_int_r1::dimension::rank == 1, "");
-    static_assert(a_int_r1::dimension::rank_dynamic == 1, "");
-    static_assert(a_int_r5::dimension::ArgN0 == 0, "");
-    static_assert(a_int_r5::dimension::ArgN1 == 0, "");
-    static_assert(a_int_r5::dimension::ArgN2 == 4, "");
-    static_assert(a_int_r5::dimension::ArgN3 == 5, "");
-    static_assert(a_int_r5::dimension::ArgN4 == 6, "");
-    static_assert(a_int_r5::dimension::ArgN5 == 1, "");
+    static_assert(a_int_r1::dimension::rank == 1);
+    static_assert(a_int_r1::dimension::rank_dynamic == 1);
+    static_assert(a_int_r5::dimension::ArgN0 == 0);
+    static_assert(a_int_r5::dimension::ArgN1 == 0);
+    static_assert(a_int_r5::dimension::ArgN2 == 4);
+    static_assert(a_int_r5::dimension::ArgN3 == 5);
+    static_assert(a_int_r5::dimension::ArgN4 == 6);
+    static_assert(a_int_r5::dimension::ArgN5 == 1);
 
     static_assert(
-        std::is_same<typename a_int_r1::dimension, ViewDimension<0> >::value,
-        "");
+        std::is_same_v<typename a_int_r1::dimension, ViewDimension<0> >);
+    static_assert(std::is_same_v<typename a_int_r1::non_const_value_type, int>);
+
+    static_assert(a_const_int_r1::dimension::rank == 1);
+    static_assert(a_const_int_r1::dimension::rank_dynamic == 1);
     static_assert(
-        std::is_same<typename a_int_r1::non_const_value_type, int>::value, "");
-
-    static_assert(a_const_int_r1::dimension::rank == 1, "");
-    static_assert(a_const_int_r1::dimension::rank_dynamic == 1, "");
-    static_assert(std::is_same<typename a_const_int_r1::dimension,
-                               ViewDimension<0> >::value,
-                  "");
+        std::is_same_v<typename a_const_int_r1::dimension, ViewDimension<0> >);
     static_assert(
-        std::is_same<typename a_const_int_r1::non_const_value_type, int>::value,
-        "");
+        std::is_same_v<typename a_const_int_r1::non_const_value_type, int>);
 
-    static_assert(a_const_int_r5::dimension::rank == 5, "");
-    static_assert(a_const_int_r5::dimension::rank_dynamic == 2, "");
+    static_assert(a_const_int_r5::dimension::rank == 5);
+    static_assert(a_const_int_r5::dimension::rank_dynamic == 2);
 
-    static_assert(a_const_int_r5::dimension::ArgN0 == 0, "");
-    static_assert(a_const_int_r5::dimension::ArgN1 == 0, "");
-    static_assert(a_const_int_r5::dimension::ArgN2 == 4, "");
-    static_assert(a_const_int_r5::dimension::ArgN3 == 5, "");
-    static_assert(a_const_int_r5::dimension::ArgN4 == 6, "");
-    static_assert(a_const_int_r5::dimension::ArgN5 == 1, "");
+    static_assert(a_const_int_r5::dimension::ArgN0 == 0);
+    static_assert(a_const_int_r5::dimension::ArgN1 == 0);
+    static_assert(a_const_int_r5::dimension::ArgN2 == 4);
+    static_assert(a_const_int_r5::dimension::ArgN3 == 5);
+    static_assert(a_const_int_r5::dimension::ArgN4 == 6);
+    static_assert(a_const_int_r5::dimension::ArgN5 == 1);
 
-    static_assert(std::is_same<typename a_const_int_r5::dimension,
-                               ViewDimension<0, 0, 4, 5, 6> >::value,
-                  "");
+    static_assert(std::is_same_v<typename a_const_int_r5::dimension,
+                                 ViewDimension<0, 0, 4, 5, 6> >);
     static_assert(
-        std::is_same<typename a_const_int_r5::non_const_value_type, int>::value,
-        "");
+        std::is_same_v<typename a_const_int_r5::non_const_value_type, int>);
 
-    static_assert(a_int_r5::dimension::rank == 5, "");
-    static_assert(a_int_r5::dimension::rank_dynamic == 2, "");
-    static_assert(std::is_same<typename a_int_r5::dimension,
-                               ViewDimension<0, 0, 4, 5, 6> >::value,
-                  "");
-    static_assert(
-        std::is_same<typename a_int_r5::non_const_value_type, int>::value, "");
+    static_assert(a_int_r5::dimension::rank == 5);
+    static_assert(a_int_r5::dimension::rank_dynamic == 2);
+    static_assert(std::is_same_v<typename a_int_r5::dimension,
+                                 ViewDimension<0, 0, 4, 5, 6> >);
+    static_assert(std::is_same_v<typename a_int_r5::non_const_value_type, int>);
   }
 
   {
@@ -613,17 +577,16 @@ void test_view_mapping() {
     using t_i4 = int[4];
 
     // Dimensions of t_i4 are appended to the multdimensional array.
-    using a_int_r5 = ViewArrayAnalysis<t_i4** * [3]>;
+    using a_int_r5 = ViewArrayAnalysis<t_i4*** [3]>;
 
-    static_assert(a_int_r5::dimension::rank == 5, "");
-    static_assert(a_int_r5::dimension::rank_dynamic == 3, "");
-    static_assert(a_int_r5::dimension::ArgN0 == 0, "");
-    static_assert(a_int_r5::dimension::ArgN1 == 0, "");
-    static_assert(a_int_r5::dimension::ArgN2 == 0, "");
-    static_assert(a_int_r5::dimension::ArgN3 == 3, "");
-    static_assert(a_int_r5::dimension::ArgN4 == 4, "");
-    static_assert(
-        std::is_same<typename a_int_r5::non_const_value_type, int>::value, "");
+    static_assert(a_int_r5::dimension::rank == 5);
+    static_assert(a_int_r5::dimension::rank_dynamic == 3);
+    static_assert(a_int_r5::dimension::ArgN0 == 0);
+    static_assert(a_int_r5::dimension::ArgN1 == 0);
+    static_assert(a_int_r5::dimension::ArgN2 == 0);
+    static_assert(a_int_r5::dimension::ArgN3 == 3);
+    static_assert(a_int_r5::dimension::ArgN4 == 4);
+    static_assert(std::is_same_v<typename a_int_r5::non_const_value_type, int>);
   }
 
   {
@@ -631,74 +594,55 @@ void test_view_mapping() {
 
     using a_const_int_r1 = ViewDataAnalysis<const int[], void>;
 
-    static_assert(std::is_void<typename a_const_int_r1::specialize>::value, "");
-    static_assert(std::is_same<typename a_const_int_r1::dimension,
-                               Kokkos::Impl::ViewDimension<0> >::value,
-                  "");
+    static_assert(std::is_void_v<typename a_const_int_r1::specialize>);
+    static_assert(std::is_same_v<typename a_const_int_r1::dimension,
+                                 Kokkos::Impl::ViewDimension<0> >);
+
+    static_assert(std::is_same_v<typename a_const_int_r1::type, const int*>);
+    static_assert(
+        std::is_same_v<typename a_const_int_r1::value_type, const int>);
 
     static_assert(
-        std::is_same<typename a_const_int_r1::type, const int*>::value, "");
+        std::is_same_v<typename a_const_int_r1::scalar_array_type, const int*>);
     static_assert(
-        std::is_same<typename a_const_int_r1::value_type, const int>::value,
-        "");
-
-    static_assert(std::is_same<typename a_const_int_r1::scalar_array_type,
-                               const int*>::value,
-                  "");
+        std::is_same_v<typename a_const_int_r1::const_type, const int*>);
     static_assert(
-        std::is_same<typename a_const_int_r1::const_type, const int*>::value,
-        "");
-    static_assert(std::is_same<typename a_const_int_r1::const_value_type,
-                               const int>::value,
-                  "");
-    static_assert(std::is_same<typename a_const_int_r1::const_scalar_array_type,
-                               const int*>::value,
-                  "");
+        std::is_same_v<typename a_const_int_r1::const_value_type, const int>);
     static_assert(
-        std::is_same<typename a_const_int_r1::non_const_type, int*>::value, "");
+        std::is_same_v<typename a_const_int_r1::const_scalar_array_type,
+                       const int*>);
     static_assert(
-        std::is_same<typename a_const_int_r1::non_const_value_type, int>::value,
-        "");
+        std::is_same_v<typename a_const_int_r1::non_const_type, int*>);
+    static_assert(
+        std::is_same_v<typename a_const_int_r1::non_const_value_type, int>);
 
-    using a_const_int_r3 = ViewDataAnalysis<const int* * [4], void>;
+    using a_const_int_r3 = ViewDataAnalysis<const int** [4], void>;
 
-    static_assert(std::is_void<typename a_const_int_r3::specialize>::value, "");
+    static_assert(std::is_void_v<typename a_const_int_r3::specialize>);
 
-    static_assert(std::is_same<typename a_const_int_r3::dimension,
-                               Kokkos::Impl::ViewDimension<0, 0, 4> >::value,
-                  "");
+    static_assert(std::is_same_v<typename a_const_int_r3::dimension,
+                                 Kokkos::Impl::ViewDimension<0, 0, 4> >);
 
     static_assert(
-        std::is_same<typename a_const_int_r3::type, const int* * [4]>::value,
-        "");
+        std::is_same_v<typename a_const_int_r3::type, const int** [4]>);
     static_assert(
-        std::is_same<typename a_const_int_r3::value_type, const int>::value,
-        "");
-    static_assert(std::is_same<typename a_const_int_r3::scalar_array_type,
-                               const int* * [4]>::value,
-                  "");
-    static_assert(std::is_same<typename a_const_int_r3::const_type,
-                               const int* * [4]>::value,
-                  "");
-    static_assert(std::is_same<typename a_const_int_r3::const_value_type,
-                               const int>::value,
-                  "");
-    static_assert(std::is_same<typename a_const_int_r3::const_scalar_array_type,
-                               const int* * [4]>::value,
-                  "");
-    static_assert(std::is_same<typename a_const_int_r3::non_const_type,
-                               int* * [4]>::value,
-                  "");
+        std::is_same_v<typename a_const_int_r3::value_type, const int>);
+    static_assert(std::is_same_v<typename a_const_int_r3::scalar_array_type,
+                                 const int** [4]>);
     static_assert(
-        std::is_same<typename a_const_int_r3::non_const_value_type, int>::value,
-        "");
+        std::is_same_v<typename a_const_int_r3::const_type, const int** [4]>);
     static_assert(
-        std::is_same<typename a_const_int_r3::non_const_scalar_array_type,
-                     int* * [4]>::value,
-        "");
-
-    // std::cout << "typeid( const int**[4] ).name() = " << typeid( const
-    // int**[4] ).name() << std::endl;
+        std::is_same_v<typename a_const_int_r3::const_value_type, const int>);
+    static_assert(
+        std::is_same_v<typename a_const_int_r3::const_scalar_array_type,
+                       const int** [4]>);
+    static_assert(
+        std::is_same_v<typename a_const_int_r3::non_const_type, int** [4]>);
+    static_assert(
+        std::is_same_v<typename a_const_int_r3::non_const_value_type, int>);
+    static_assert(
+        std::is_same_v<typename a_const_int_r3::non_const_scalar_array_type,
+                       int** [4]>);
   }
 
   //----------------------------------------
@@ -723,46 +667,45 @@ void test_view_mapping() {
     ASSERT_EQ(vr1.data(), &data[0]);
     ASSERT_EQ(cr1.data(), &data[0]);
 
-    ASSERT_TRUE((std::is_same<typename T::data_type, int*>::value));
-    ASSERT_TRUE((std::is_same<typename T::const_data_type, const int*>::value));
-    ASSERT_TRUE((std::is_same<typename T::non_const_data_type, int*>::value));
+    ASSERT_TRUE((std::is_same_v<typename T::data_type, int*>));
+    ASSERT_TRUE((std::is_same_v<typename T::const_data_type, const int*>));
+    ASSERT_TRUE((std::is_same_v<typename T::non_const_data_type, int*>));
 
-    ASSERT_TRUE((std::is_same<typename T::scalar_array_type, int*>::value));
+    ASSERT_TRUE((std::is_same_v<typename T::scalar_array_type, int*>));
     ASSERT_TRUE(
-        (std::is_same<typename T::const_scalar_array_type, const int*>::value));
+        (std::is_same_v<typename T::const_scalar_array_type, const int*>));
     ASSERT_TRUE(
-        (std::is_same<typename T::non_const_scalar_array_type, int*>::value));
+        (std::is_same_v<typename T::non_const_scalar_array_type, int*>));
 
-    ASSERT_TRUE((std::is_same<typename T::value_type, int>::value));
-    ASSERT_TRUE((std::is_same<typename T::const_value_type, const int>::value));
-    ASSERT_TRUE((std::is_same<typename T::non_const_value_type, int>::value));
+    ASSERT_TRUE((std::is_same_v<typename T::value_type, int>));
+    ASSERT_TRUE((std::is_same_v<typename T::const_value_type, const int>));
+    ASSERT_TRUE((std::is_same_v<typename T::non_const_value_type, int>));
 
-    ASSERT_TRUE((std::is_same<typename T::memory_space,
-                              typename Space::memory_space>::value));
-    ASSERT_TRUE((std::is_same<typename T::reference_type, int&>::value));
+    ASSERT_TRUE((std::is_same_v<typename T::memory_space,
+                                typename Space::memory_space>));
+    ASSERT_TRUE((std::is_same_v<typename T::reference_type, int&>));
 
-    ASSERT_EQ(T::Rank, 1);
+    ASSERT_EQ(T::rank, size_t(1));
 
-    ASSERT_TRUE((std::is_same<typename C::data_type, const int*>::value));
-    ASSERT_TRUE((std::is_same<typename C::const_data_type, const int*>::value));
-    ASSERT_TRUE((std::is_same<typename C::non_const_data_type, int*>::value));
+    ASSERT_TRUE((std::is_same_v<typename C::data_type, const int*>));
+    ASSERT_TRUE((std::is_same_v<typename C::const_data_type, const int*>));
+    ASSERT_TRUE((std::is_same_v<typename C::non_const_data_type, int*>));
 
+    ASSERT_TRUE((std::is_same_v<typename C::scalar_array_type, const int*>));
     ASSERT_TRUE(
-        (std::is_same<typename C::scalar_array_type, const int*>::value));
+        (std::is_same_v<typename C::const_scalar_array_type, const int*>));
     ASSERT_TRUE(
-        (std::is_same<typename C::const_scalar_array_type, const int*>::value));
-    ASSERT_TRUE(
-        (std::is_same<typename C::non_const_scalar_array_type, int*>::value));
+        (std::is_same_v<typename C::non_const_scalar_array_type, int*>));
 
-    ASSERT_TRUE((std::is_same<typename C::value_type, const int>::value));
-    ASSERT_TRUE((std::is_same<typename C::const_value_type, const int>::value));
-    ASSERT_TRUE((std::is_same<typename C::non_const_value_type, int>::value));
+    ASSERT_TRUE((std::is_same_v<typename C::value_type, const int>));
+    ASSERT_TRUE((std::is_same_v<typename C::const_value_type, const int>));
+    ASSERT_TRUE((std::is_same_v<typename C::non_const_value_type, int>));
 
-    ASSERT_TRUE((std::is_same<typename C::memory_space,
-                              typename Space::memory_space>::value));
-    ASSERT_TRUE((std::is_same<typename C::reference_type, const int&>::value));
+    ASSERT_TRUE((std::is_same_v<typename C::memory_space,
+                                typename Space::memory_space>));
+    ASSERT_TRUE((std::is_same_v<typename C::reference_type, const int&>));
 
-    ASSERT_EQ(C::Rank, 1);
+    ASSERT_EQ(C::rank, size_t(1));
 
     ASSERT_EQ(vr1.extent(0), size_t(N));
 
@@ -792,24 +735,24 @@ void test_view_mapping() {
     T vr1("vr1", N);
     C cr1(vr1);
 
-    ASSERT_TRUE((std::is_same<typename T::data_type, int*>::value));
-    ASSERT_TRUE((std::is_same<typename T::const_data_type, const int*>::value));
-    ASSERT_TRUE((std::is_same<typename T::non_const_data_type, int*>::value));
+    ASSERT_TRUE((std::is_same_v<typename T::data_type, int*>));
+    ASSERT_TRUE((std::is_same_v<typename T::const_data_type, const int*>));
+    ASSERT_TRUE((std::is_same_v<typename T::non_const_data_type, int*>));
 
-    ASSERT_TRUE((std::is_same<typename T::scalar_array_type, int*>::value));
+    ASSERT_TRUE((std::is_same_v<typename T::scalar_array_type, int*>));
     ASSERT_TRUE(
-        (std::is_same<typename T::const_scalar_array_type, const int*>::value));
+        (std::is_same_v<typename T::const_scalar_array_type, const int*>));
     ASSERT_TRUE(
-        (std::is_same<typename T::non_const_scalar_array_type, int*>::value));
+        (std::is_same_v<typename T::non_const_scalar_array_type, int*>));
 
-    ASSERT_TRUE((std::is_same<typename T::value_type, int>::value));
-    ASSERT_TRUE((std::is_same<typename T::const_value_type, const int>::value));
-    ASSERT_TRUE((std::is_same<typename T::non_const_value_type, int>::value));
+    ASSERT_TRUE((std::is_same_v<typename T::value_type, int>));
+    ASSERT_TRUE((std::is_same_v<typename T::const_value_type, const int>));
+    ASSERT_TRUE((std::is_same_v<typename T::non_const_value_type, int>));
 
-    ASSERT_TRUE((std::is_same<typename T::memory_space,
-                              typename Space::memory_space>::value));
-    ASSERT_TRUE((std::is_same<typename T::reference_type, int&>::value));
-    ASSERT_EQ(T::Rank, 1);
+    ASSERT_TRUE((std::is_same_v<typename T::memory_space,
+                                typename Space::memory_space>));
+    ASSERT_TRUE((std::is_same_v<typename T::reference_type, int&>));
+    ASSERT_EQ(T::rank, size_t(1));
 
     ASSERT_EQ(vr1.extent(0), size_t(N));
 
@@ -846,8 +789,8 @@ void test_view_mapping() {
   // Testing using space instance for allocation.
   // The execution space of the memory space must be available for view data
   // initialization.
-  if (std::is_same<ExecSpace,
-                   typename ExecSpace::memory_space::execution_space>::value) {
+  if (std::is_same_v<ExecSpace,
+                     typename ExecSpace::memory_space::execution_space>) {
     using namespace Kokkos;
 
     using memory_space = typename ExecSpace::memory_space;
@@ -1066,12 +1009,9 @@ void test_view_mapping() {
     ASSERT_EQ(a.use_count(), 1);
     ASSERT_EQ(b.use_count(), 0);
 
-// TODO: a.use_count() and x.use_count() are 0 with the asynchronous HPX
-// backend. Why?
-#if !defined(KOKKOS_ENABLE_CUDA_LAMBDA) && \
-    !(defined(KOKKOS_ENABLE_HPX) && defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH))
-    // Cannot launch host lambda when CUDA lambda is enabled.
-
+// FIXME_NVCC For some reason, the use count is higher (but still constant) when
+// using nvcc. Replacing the lambda with a functor doesn't show this behavior.
+#if !(defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_COMPILER_NVCC))
     using host_exec_space =
         typename Kokkos::Impl::HostMirror<Space>::Space::execution_space;
 
@@ -1079,17 +1019,20 @@ void test_view_mapping() {
     Kokkos::parallel_reduce(
         Kokkos::RangePolicy<host_exec_space>(0, 10),
         KOKKOS_LAMBDA(int, int& e) {
-          // an unmanaged copy.  When the parallel dispatch accepts a move for
-          // the lambda, this count should become 1.
+          // for parallel_reduce we copy the functor into a combined
+          // functor-reducer object (with reference-counting on) before
+          // constructing the ParallelReduce object (with reference-counting
+          // turned off). When the parallel dispatch accepts a move for the
+          // lambda, this count should become 2.
 
-          if (a.use_count() != 2) ++e;
+          if (a.use_count() != 3) ++e;
           V x = a;
-          if (a.use_count() != 2) ++e;
-          if (x.use_count() != 2) ++e;
+          if (a.use_count() != 3) ++e;
+          if (x.use_count() != 3) ++e;
         },
         errors);
     ASSERT_EQ(errors, 0);
-#endif  // #if !defined( KOKKOS_ENABLE_CUDA_LAMBDA )
+#endif
   }
 }
 
@@ -1326,7 +1269,7 @@ TEST(TEST_CATEGORY, view_mapping_operator) {
 }
 
 TEST(TEST_CATEGORY, static_extent) {
-  using T = Kokkos::View<double * [2][3]>;
+  using T = Kokkos::View<double* [2][3]>;
   ASSERT_EQ(T::static_extent(1), 2u);
   ASSERT_EQ(T::static_extent(2), 3u);
 }

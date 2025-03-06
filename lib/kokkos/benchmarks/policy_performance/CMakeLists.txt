@@ -1,0 +1,1 @@
+kokkos_add_executable(policy_performance SOURCES main.cpp)

@@ -20,6 +20,7 @@ int dgecon_(char *norm, integer *n, doublereal *a, integer *lda, doublereal *ano
                 integer *);
     extern doublereal dlamch_(char *, ftnlen);
     extern integer idamax_(integer *, doublereal *, integer *);
+    extern logical disnan_(doublereal *);
     extern int xerbla_(char *, integer *, ftnlen);
     doublereal ainvnm;
     extern int dlatrs_(char *, char *, char *, char *, integer *, doublereal *, integer *,
@@ -27,12 +28,13 @@ int dgecon_(char *norm, integer *n, doublereal *a, integer *lda, doublereal *ano
                        ftnlen);
     logical onenrm;
     char normin[1];
-    doublereal smlnum;
+    doublereal smlnum, hugeval;
     a_dim1 = *lda;
     a_offset = 1 + a_dim1;
     a -= a_offset;
     --work;
     --iwork;
+    hugeval = dlamch_((char *)"Overflow", (ftnlen)8);
     *info = 0;
     onenrm = *(unsigned char *)norm == '1' || lsame_(norm, (char *)"O", (ftnlen)1, (ftnlen)1);
     if (!onenrm && !lsame_(norm, (char *)"I", (ftnlen)1, (ftnlen)1)) {
@@ -55,6 +57,13 @@ int dgecon_(char *norm, integer *n, doublereal *a, integer *lda, doublereal *ano
         return 0;
     } else if (*anorm == 0.) {
         return 0;
+    } else if (disnan_(anorm)) {
+        *rcond = *anorm;
+        *info = -5;
+        return 0;
+    } else if (*anorm > hugeval) {
+        *info = -5;
+        return 0;
     }
     smlnum = dlamch_((char *)"Safe minimum", (ftnlen)12);
     ainvnm = 0.;
@@ -69,15 +78,15 @@ L10:
     dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
     if (kase != 0) {
         if (kase == kase1) {
-            dlatrs_((char *)"Lower", (char *)"No transpose", (char *)"Unit", normin, n, &a[a_offset], lda, &work[1], &sl,
-                    &work[(*n << 1) + 1], info, (ftnlen)5, (ftnlen)12, (ftnlen)4, (ftnlen)1);
-            dlatrs_((char *)"Upper", (char *)"No transpose", (char *)"Non-unit", normin, n, &a[a_offset], lda, &work[1],
-                    &su, &work[*n * 3 + 1], info, (ftnlen)5, (ftnlen)12, (ftnlen)8, (ftnlen)1);
+            dlatrs_((char *)"L", (char *)"N", (char *)"U", normin, n, &a[a_offset], lda, &work[1], &sl,
+                    &work[(*n << 1) + 1], info, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
+            dlatrs_((char *)"U", (char *)"N", (char *)"N", normin, n, &a[a_offset], lda, &work[1], &su, &work[*n * 3 + 1],
+                    info, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
         } else {
-            dlatrs_((char *)"Upper", (char *)"Transpose", (char *)"Non-unit", normin, n, &a[a_offset], lda, &work[1], &su,
-                    &work[*n * 3 + 1], info, (ftnlen)5, (ftnlen)9, (ftnlen)8, (ftnlen)1);
-            dlatrs_((char *)"Lower", (char *)"Transpose", (char *)"Unit", normin, n, &a[a_offset], lda, &work[1], &sl,
-                    &work[(*n << 1) + 1], info, (ftnlen)5, (ftnlen)9, (ftnlen)4, (ftnlen)1);
+            dlatrs_((char *)"U", (char *)"T", (char *)"N", normin, n, &a[a_offset], lda, &work[1], &su, &work[*n * 3 + 1],
+                    info, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
+            dlatrs_((char *)"L", (char *)"T", (char *)"U", normin, n, &a[a_offset], lda, &work[1], &sl,
+                    &work[(*n << 1) + 1], info, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
         }
         scale = sl * su;
         *(unsigned char *)normin = 'Y';
@@ -92,6 +101,12 @@ L10:
     }
     if (ainvnm != 0.) {
         *rcond = 1. / ainvnm / *anorm;
+    } else {
+        *info = 1;
+        return 0;
+    }
+    if (disnan_(rcond) || *rcond > hugeval) {
+        *info = 1;
     }
 L20:
     return 0;

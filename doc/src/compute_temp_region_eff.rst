@@ -32,32 +32,33 @@ temperature (e.g., :doc:`thermo_modify <thermo_modify>`).
 
 The operation of this compute is exactly like that described by the
 :doc:`compute temp/region <compute_temp_region>` command, except that
-the formula for the temperature itself includes the radial electron
-velocity contributions, as discussed by the
-:doc:`compute temp/eff <compute_temp_eff>` command.
+the formulas for the temperature (scalar) and diagonal components of
+the symmetric tensor (vector) include the radial electron velocity
+contributions, as discussed by the :doc:`compute temp/eff
+<compute_temp_eff>` command.
 
 Output info
 """""""""""
 
 This compute calculates a global scalar (the temperature) and a global
-vector of length 6 (KE tensor), which can be accessed by indices 1--6.
-These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See the
-:doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
-options.
+vector of length 6 (symmetric tensor), which can be accessed by
+indices 1--6.  These values can be used by any command that uses
+global scalar or vector values from a compute as input.  See the
+:doc:`Howto output <Howto_output>` page for an overview of LAMMPS
+output options.
 
 The scalar value calculated by this compute is "intensive".  The
 vector values are "extensive".
 
-The scalar value will be in temperature :doc:`units <units>`.  The
-vector values will be in energy :doc:`units <units>`.
+The scalar value is in temperature :doc:`units <units>`.  The vector
+values are in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
 
-This compute is part of the EFF package.  It is only enabled if
-LAMMPS was built with that package.
-See the :doc:`Build package <Build_package>` page for more info.
+This compute is part of the EFF package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

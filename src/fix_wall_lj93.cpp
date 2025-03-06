@@ -17,8 +17,6 @@
 #include "error.h"
 #include "math_special.h"
 
-#include <cmath>
-
 using namespace LAMMPS_NS;
 using MathSpecial::powint;
 

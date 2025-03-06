@@ -2,7 +2,7 @@ Neighbor list access
 ====================
 
 Access to neighbor lists is handled through a couple of wrapper classes
-that allows to treat it like either a python list or a NumPy array.  The
+that allows one to treat it like either a python list or a NumPy array.  The
 access procedure is similar to that of the C-library interface: use one
 of the "find" functions to look up the index of the neighbor list in the
 global table of neighbor lists and then get access to the neighbor list
@@ -79,11 +79,11 @@ potential is shown below.
 * :py:meth:`lammps.get_neighlist_element_neighbors()`: Get element in neighbor list and its neighbors
 
 * :py:meth:`lammps.find_pair_neighlist() <lammps.lammps.find_pair_neighlist()>`: Find neighbor list of pair style
-* :py:meth:`lammps.find_fix_neighlist() <lammps.lammps.find_pair_neighlist()>`: Find neighbor list of pair style
-* :py:meth:`lammps.find_compute_neighlist() <lammps.lammps.find_pair_neighlist()>`: Find neighbor list of pair style
+* :py:meth:`lammps.find_fix_neighlist() <lammps.lammps.find_pair_neighlist()>`: Find neighbor list of fix style
+* :py:meth:`lammps.find_compute_neighlist() <lammps.lammps.find_pair_neighlist()>`: Find neighbor list of compute style
 
 
 **NumPy Methods:**
 
 * :py:meth:`lammps.numpy.get_neighlist() <lammps.numpy_wrapper.numpy_wrapper.get_neighlist()>`: Get neighbor list for given index, which uses NumPy arrays for its element neighbor arrays
-* :py:meth:`lammps.numpy.get_neighlist_element_neighbors() <lammps.numpy_wrapper.numpy_wrapper.get_neighlist_element_neighbors()>`: Get element in neighbor list and its neighbors (as numpy array)
+* :py:meth:`lammps.numpy.get_neighlist_element_neighbors() <lammps.numpy_wrapper.numpy_wrapper.get_neighlist_element_neighbors()>`: Get element in neighbor list and its neighbors (as a numpy array)

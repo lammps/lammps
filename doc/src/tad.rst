@@ -6,7 +6,7 @@ tad command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    tad N t_event T_lo T_hi delta tmax compute-ID keyword value ...
 

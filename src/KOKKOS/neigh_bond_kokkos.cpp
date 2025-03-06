@@ -27,6 +27,7 @@
 #include "force.h"
 #include "memory_kokkos.h"
 #include "modify.h"
+#include "neighbor.h"
 #include "output.h"
 #include "thermo.h"
 #include "update.h"
@@ -35,8 +36,8 @@
 #include <cstring>
 using namespace LAMMPS_NS;
 
-#define BONDDELTA 10000
-#define LB_FACTOR 1.5
+static constexpr int BONDDELTA = 10000;
+static constexpr double LB_FACTOR = 1.5;
 
 /* ---------------------------------------------------------------------- */
 
@@ -112,9 +113,8 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
   int i,m;
   int bond_off = 0;
   int angle_off = 0;
-  for (i = 0; i < modify->nfix; i++)
-    if ((strcmp(modify->fix[i]->style,"shake") == 0)
-        || (strcmp(modify->fix[i]->style,"rattle") == 0))
+  for (const auto &ifix : modify->get_fix_list())
+    if (utils::strmatch(ifix->style,"^shake") || utils::strmatch(ifix->style,"^rattle"))
       bond_off = angle_off = 1;
   if (force->bond && force->bond_match("quartic")) bond_off = 1;
 
@@ -266,7 +266,7 @@ void NeighBondKokkos<DeviceType>::bond_all()
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all && me ==0)
+  if (all && me == 0)
     error->warning(FLERR,"Bond atoms missing at step {}", update->ntimestep);
 
   k_bondlist.modify<DeviceType>();
@@ -345,7 +345,7 @@ void NeighBondKokkos<DeviceType>::bond_partial()
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all && me ==0)
+  if (all && me == 0)
     error->warning(FLERR,"Bond atoms missing at step {}", update->ntimestep);
 
   k_bondlist.modify<DeviceType>();

@@ -65,11 +65,11 @@ void MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global,
   double rhoa2mj,drhoa2mj,rhoa2mi,drhoa2mi;
   double rhoa3mj, drhoa3mj, rhoa3mi, drhoa3mi;
   double arg1i1m, arg1j1m, arg1i2m, arg1j2m, arg1i3m, arg1j3m, arg3i3m, arg3j3m;
-  double drho1mdr1, drho1mdr2, drho1mds1, drho1mds2;
+  double drho1mdr1, drho1mdr2;
   double drho1mdrm1[3], drho1mdrm2[3];
-  double drho2mdr1, drho2mdr2, drho2mds1, drho2mds2;
+  double drho2mdr1, drho2mdr2;
   double drho2mdrm1[3], drho2mdrm2[3];
-  double drho3mdr1, drho3mdr2, drho3mds1, drho3mds2;
+  double drho3mdr1, drho3mdr2;
   double drho3mdrm1[3], drho3mdrm2[3];
 
   third = 1.0 / 3.0;
@@ -527,78 +527,75 @@ void MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global,
           drho3ds2 = a3 * rhoa3i * arg1j3 - a3a * rhoa3i * arg3j3;
 
           if (msmeamflag) {
-            drho1mds1 = a1 * rhoa1mj * arg1i1m;
-            drho1mds2 = a1 * rhoa1mi * arg1j1m;
-            drho2mds1 = a2 * rhoa2mj * arg1i2m - 2.0 / 3.0 * arho2mb[i] * rhoa2mj;
-            drho2mds2 = a2 * rhoa2mi * arg1j2m - 2.0 / 3.0 * arho2mb[j] * rhoa2mi;
-            drho3mds1 = a3 * rhoa3mj * arg1i3m - a3a * rhoa3mj * arg3i3m;
-            drho3mds2 = a3 * rhoa3mi * arg1j3m - a3a * rhoa3mi * arg3j3m;
-            drho3mds1 *= -1;
-            drho3mds2 *= -1;
-          } else {
-            drho1mds1 = 0.0;
-            drho1mds2 = 0.0;
-            drho2mds1 = 0.0;
-            drho2mds2 = 0.0;
-            drho3mds1 = 0.0;
-            drho3mds2 = 0.0;
-          }
 
-          if (ialloy == 1) {
+            const double drho1mds1 = -a1 * rhoa1mj * arg1i1m;
+            const double drho1mds2 = -a1 * rhoa1mi * arg1j1m;
+            const double drho2mds1 =  a2 * rhoa2mj * arg1i2m - 2.0 / 3.0 * arho2mb[i] * rhoa2mj;
+            const double drho2mds2 =  a2 * rhoa2mi * arg1j2m - 2.0 / 3.0 * arho2mb[j] * rhoa2mi;
+            const double drho3mds1 = -a3 * rhoa3mj * arg1i3m + a3a * rhoa3mj * arg3i3m;
+            const double drho3mds2 = -a3 * rhoa3mi * arg1j3m + a3a * rhoa3mi * arg3j3m;
 
-            a1i = fdiv_zero(rhoa0j, tsq_ave[i][0]);
-            a1j = fdiv_zero(rhoa0i, tsq_ave[j][0]);
-            a2i = fdiv_zero(rhoa0j, tsq_ave[i][1]);
-            a2j = fdiv_zero(rhoa0i, tsq_ave[j][1]);
-            a3i = fdiv_zero(rhoa0j, tsq_ave[i][2]);
-            a3j = fdiv_zero(rhoa0i, tsq_ave[j][2]);
+            t1i = 1.0;
+            t2i = 1.0;
+            t3i = 1.0;
+            t1j = 1.0;
+            t2j = 1.0;
+            t3j = 1.0;
+            dt1dr1 = 0.0;
+            dt1dr2 = 0.0;
+            dt2dr1 = 0.0;
+            dt2dr2 = 0.0;
+            dt3dr1 = 0.0;
+            dt3dr2 = 0.0;
 
-            dt1ds1 = a1i * (t1mj - t1i * MathSpecial::square(t1mj));
-            dt1ds2 = a1j * (t1mi - t1j * MathSpecial::square(t1mi));
-            dt2ds1 = a2i * (t2mj - t2i * MathSpecial::square(t2mj));
-            dt2ds2 = a2j * (t2mi - t2j * MathSpecial::square(t2mi));
-            dt3ds1 = a3i * (t3mj - t3i * MathSpecial::square(t3mj));
-            dt3ds2 = a3j * (t3mi - t3j * MathSpecial::square(t3mi));
+            // these formulae are simplifed by substituting t=1, dt=0 from above
 
-          } else if (ialloy == 2) {
-
-            dt1ds1 = 0.0;
-            dt1ds2 = 0.0;
-            dt2ds1 = 0.0;
-            dt2ds2 = 0.0;
-            dt3ds1 = 0.0;
-            dt3ds2 = 0.0;
-
+            drhods1 = dgamma1[i] * drho0ds1 + dgamma2[i]
+              * ((drho1ds1 - drho1mds1) + (drho2ds1 - drho2mds1) + (drho3ds1 - drho3mds1));
+            drhods2 = dgamma1[j] * drho0ds2 + dgamma2[j]
+              * ((drho1ds2 - drho1mds2) + (drho2ds2 - drho2mds2) + (drho3ds2 - drho3mds2));
           } else {
 
-            ai = 0.0;
-            if (!iszero(rho0[i]))
-              ai = rhoa0j / rho0[i];
-            aj = 0.0;
-            if (!iszero(rho0[j]))
-              aj = rhoa0i / rho0[j];
+            if (ialloy == 1) {
 
-            dt1ds1 = ai * (t1mj - t1i);
-            dt1ds2 = aj * (t1mi - t1j);
-            dt2ds1 = ai * (t2mj - t2i);
-            dt2ds2 = aj * (t2mi - t2j);
-            dt3ds1 = ai * (t3mj - t3i);
-            dt3ds2 = aj * (t3mi - t3j);
-          }
+              a1i = fdiv_zero(rhoa0j, tsq_ave[i][0]);
+              a1j = fdiv_zero(rhoa0i, tsq_ave[j][0]);
+              a2i = fdiv_zero(rhoa0j, tsq_ave[i][1]);
+              a2j = fdiv_zero(rhoa0i, tsq_ave[j][1]);
+              a3i = fdiv_zero(rhoa0j, tsq_ave[i][2]);
+              a3j = fdiv_zero(rhoa0i, tsq_ave[j][2]);
 
-          if (msmeamflag) {
-            drhods1 = dgamma1[i] * drho0ds1 +
-              dgamma2[i] * (dt1ds1 * rho1[i] + t1i * (drho1ds1 - drho1mds1) +
-                            dt2ds1 * rho2[i] + t2i * (drho2ds1 - drho2mds1) +
-                            dt3ds1 * rho3[i] + t3i * (drho3ds1 - drho3mds1)) -
-              dgamma3[i] * (shpi[0] * dt1ds1 + shpi[1] * dt2ds1 + shpi[2] * dt3ds1);
-            drhods2 = dgamma1[j] * drho0ds2 +
-              dgamma2[j] * (dt1ds2 * rho1[j] + t1j * (drho1ds2 - drho1mds2) +
-                            dt2ds2 * rho2[j] + t2j * (drho2ds2 - drho2mds2) +
-                            dt3ds2 * rho3[j] + t3j * (drho3ds2 - drho3mds2)) -
-              dgamma3[j] * (shpj[0] * dt1ds2 + shpj[1] * dt2ds2 + shpj[2] * dt3ds2);
-          }
-          else {
+              dt1ds1 = a1i * (t1mj - t1i * MathSpecial::square(t1mj));
+              dt1ds2 = a1j * (t1mi - t1j * MathSpecial::square(t1mi));
+              dt2ds1 = a2i * (t2mj - t2i * MathSpecial::square(t2mj));
+              dt2ds2 = a2j * (t2mi - t2j * MathSpecial::square(t2mi));
+              dt3ds1 = a3i * (t3mj - t3i * MathSpecial::square(t3mj));
+              dt3ds2 = a3j * (t3mi - t3j * MathSpecial::square(t3mi));
+
+            } else if (ialloy == 2) {
+
+              dt1ds1 = 0.0;
+              dt1ds2 = 0.0;
+              dt2ds1 = 0.0;
+              dt2ds2 = 0.0;
+              dt3ds1 = 0.0;
+              dt3ds2 = 0.0;
+
+            } else {
+
+              ai = 0.0;
+              if (!iszero(rho0[i])) ai = rhoa0j / rho0[i];
+              aj = 0.0;
+              if (!iszero(rho0[j])) aj = rhoa0i / rho0[j];
+
+              dt1ds1 = ai * (t1mj - t1i);
+              dt1ds2 = aj * (t1mi - t1j);
+              dt2ds1 = ai * (t2mj - t2i);
+              dt2ds2 = aj * (t2mi - t2j);
+              dt3ds1 = ai * (t3mj - t3i);
+              dt3ds2 = aj * (t3mi - t3j);
+            }
+
             drhods1 = dgamma1[i] * drho0ds1 +
               dgamma2[i] * (dt1ds1 * rho1[i] + t1i * drho1ds1 + dt2ds1 * rho2[i] + t2i * drho2ds1 +
                             dt3ds1 * rho3[i] + t3i * drho3ds1) -

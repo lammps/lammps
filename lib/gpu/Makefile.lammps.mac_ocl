@@ -2,4 +2,4 @@
 
 gpu_SYSINC = -DFFT_SINGLE
 gpu_SYSLIB = -framework OpenCL
-gpu_SYSPATH = 
+gpu_SYSPATH =

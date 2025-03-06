@@ -16,15 +16,19 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "neigh_list.h"
 #include "suffix.h"
 
-#include <cmath>
-
 #include "Lepton.h"
 #include "lepton_utils.h"
 #include "omp_compat.h"
+
+#include <array>
+#include <cmath>
+#include <exception>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -99,25 +103,30 @@ void PairLeptonSphereOMP::eval(int iifrom, int iito, ThrData *const thr)
 
   std::vector<Lepton::CompiledExpression> pairforce;
   std::vector<Lepton::CompiledExpression> pairpot;
-  std::vector<std::pair<bool, bool>> have_rad;
+  std::vector<std::array<bool, 3>> has_ref;
   try {
     for (const auto &expr : expressions) {
       auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp), functions);
       pairforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
+      has_ref.push_back({true, true, true});
+      try {
+        pairforce.back().getVariableReference("r");
+      } catch (Lepton::Exception &) {
+        has_ref.back()[0] = false;
+      }
       if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
-      pairforce.back().getVariableReference("r");
-      have_rad.emplace_back(true, true);
 
-      // check if there are references to charges
+      // check if there are references to radii
+
       try {
         pairforce.back().getVariableReference("radi");
-      } catch (std::exception &) {
-        have_rad.back().first = false;
+      } catch (Lepton::Exception &) {
+        has_ref.back()[1] = false;
       }
       try {
         pairforce.back().getVariableReference("radj");
-      } catch (std::exception &) {
-        have_rad.back().second = false;
+      } catch (Lepton::Exception &) {
+        has_ref.back()[2] = false;
       }
     }
   } catch (std::exception &e) {
@@ -150,9 +159,9 @@ void PairLeptonSphereOMP::eval(int iifrom, int iito, ThrData *const thr)
       if (rsq < cutsq[itype][jtype]) {
         const double r = sqrt(rsq);
         const int idx = type2expression[itype][jtype];
-        pairforce[idx].getVariableReference("r") = r;
-        if (have_rad[idx].first) pairforce[idx].getVariableReference("radi") = radius[i];
-        if (have_rad[idx].second) pairforce[idx].getVariableReference("radj") = radius[j];
+        if (has_ref[idx][0]) pairforce[idx].getVariableReference("r") = r;
+        if (has_ref[idx][1]) pairforce[idx].getVariableReference("radi") = radius[i];
+        if (has_ref[idx][2]) pairforce[idx].getVariableReference("radj") = radius[j];
         const double fpair = -pairforce[idx].evaluate() / r * factor_lj;
 
         fxtmp += delx * fpair;
@@ -166,9 +175,14 @@ void PairLeptonSphereOMP::eval(int iifrom, int iito, ThrData *const thr)
 
         double evdwl = 0.0;
         if (EFLAG) {
-          pairpot[idx].getVariableReference("r") = r;
-          if (have_rad[idx].first) pairpot[idx].getVariableReference("radi") = radius[i];
-          if (have_rad[idx].second) pairpot[idx].getVariableReference("radj") = radius[j];
+          try {
+            pairpot[idx].getVariableReference("r") = r;
+          } catch (Lepton::Exception &) {
+            ;    // ignore -> constant potential
+          }
+          if (has_ref[idx][1]) pairpot[idx].getVariableReference("radi") = radius[i];
+          if (has_ref[idx][2]) pairpot[idx].getVariableReference("radj") = radius[j];
+
           evdwl = pairpot[idx].evaluate();
           evdwl *= factor_lj;
         }

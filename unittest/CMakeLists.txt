@@ -1,10 +1,9 @@
-########################################
-# CMake build for automated testing
+# -*- CMake -*- build file for automated testing
 # This file is part of LAMMPS
 # Created by Axel Kohlmeyer and Richard Berger
 ########################################
-# download and build googletest framework
 
+# download and build googletest framework
 # cannot compile googletest anymore with the default GCC on RHEL 7.x
 if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0))
   message(FATAL_ERROR "Need GNU C++ compiler version 6.x or later for unit testing")
@@ -29,6 +28,11 @@ add_library(GTest::GMock ALIAS gmock)
 add_library(GTest::GTestMain ALIAS gtest_main)
 add_library(GTest::GMockMain ALIAS gmock_main)
 
+option(SKIP_DEATH_TESTS "Do not run 'death tests' to reduce false positives in valgrind" OFF)
+mark_as_advanced(SKIP_DEATH_TESTS)
+if(SKIP_DEATH_TESTS)
+  add_compile_definitions(LAMMPS_SKIP_DEATH_TESTS)
+endif()
 # import
 foreach(_FLAG ${CMAKE_TUNE_FLAGS})
   add_compile_options(${_FLAG})
@@ -36,11 +40,7 @@ endforeach()
 
 # must repeat handling coverage for older CMake
 if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND ENABLE_COVERAGE)
-  if(CMAKE_VERSION VERSION_LESS 3.13)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
-  else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_${CMAKE_BUILD_TYPE}_FLAGS} --coverage")
-  endif()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_${CMAKE_BUILD_TYPE}_FLAGS} --coverage")
 endif()
 
 ########################################
@@ -104,7 +104,6 @@ add_subdirectory(c-library)
 add_subdirectory(cplusplus)
 add_subdirectory(fortran)
 add_subdirectory(python)
-add_subdirectory(tools)
 add_subdirectory(force-styles)
 
 # clang-format support for test sources

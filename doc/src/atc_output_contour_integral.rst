@@ -6,7 +6,7 @@ fix_modify AtC output contour_integral command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> output contour_integral <fieldname> faceset <name> [axis [x|y|z]]
 

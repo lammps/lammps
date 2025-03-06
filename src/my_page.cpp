@@ -40,7 +40,7 @@ using namespace LAMMPS_NS;
  * chunks of size *maxchunk*.  The combination of these two
  * parameters determines how much memory is wasted by either switching
  * to the next page too soon or allocating too large pages that never
- * get properly used.  It is an error, if a requested chunk is larger
+ * get properly used.  An error is issued if a requested chunk is larger
  * than *maxchunk*.  The *pagedelta* parameter determines how many
  * pages are allocated in one go.  In combination with the *pagesize*
  * setting, this determines how often blocks of memory get allocated
@@ -48,7 +48,7 @@ using namespace LAMMPS_NS;
  *
  * \note
  * This is a template class with explicit instantiation. If the class
- * is used with a new data type a new explicit instantiation may need to
+ * is used with a new data type, a new explicit instantiation may need to
  * be added at the end of the file ``src/my_page.cpp`` to avoid symbol
  * lookup errors. */
 
@@ -101,7 +101,7 @@ template <class T> int MyPage<T>::init(int user_maxchunk, int user_pagesize, int
  *
  * This will allocate more pages as needed.
  * If the parameter *N* is larger than the *maxchunk*
- * setting an error is flagged.
+ * setting, an error is flagged.
  *
  * \param  n  number of items for which storage is requested
  * \return    memory location or null pointer, if error or allocation failed */

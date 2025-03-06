@@ -11,7 +11,7 @@ Syntax
    thermo_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
-* keyword = *lost* or *lost/bond* or *warn* or *norm* or *flush* or *line* or *colname* or *format* or *temp* or *press*
+* keyword = *lost* or *lost/bond* or *warn* or *norm* or *flush* or *line* or *colname* or *format* or *temp* or *press* or *triclinic/general*
 
   .. parsed-literal::
 
@@ -32,6 +32,8 @@ Syntax
               *or* a thermo keyword or reference to compute, fix, property or variable.
        *temp* value = compute ID that calculates a temperature
        *press* value = compute ID that calculates a pressure
+       *triclinic/general* arg = *yes* or *no*
+
 
 Examples
 """"""""
@@ -240,6 +242,19 @@ command, thermo output uses a default compute for pressure with ID =
    keyword, then the new pressure compute specified by the *press*
    keyword will be unaffected by the *temp* setting.
 
+The *triclinic/general* keyword can only be used with a value of *yes*
+if the simulation box was created as a general triclinic box.  See the
+:doc:`Howto_triclinic <Howto_triclinic>` doc page for a detailed
+explanation of orthogonal, restricted triclinic, and general triclinic
+simulation boxes.
+
+If this keyword is *yes*, the output of the simulation box edge
+vectors and the pressure tensor components for the system are
+affected.  These are specified by the *avec,bvec,cvec* and
+*pxx,pyy,pzz,pxy,pxz,pyz* keywords of the :doc:`thermo_style
+<thermo_style>` command.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
+
 Restrictions
 """"""""""""
 none
@@ -253,8 +268,9 @@ Default
 """""""
 
 The option defaults are lost = error, warn = 100, norm = yes for unit
-style of *lj*, norm = no for unit style of *real* and *metal*,
-flush = no, and temp/press = compute IDs defined by thermo_style.
+style of *lj*, norm = no for unit style of *real* and *metal*, flush =
+no, temp/press = compute IDs defined by thermo_style, and
+triclinic/general = no.
 
 The defaults for the line and format options depend on the thermo style.
 For styles "one" and "custom", the line and format defaults are "one",

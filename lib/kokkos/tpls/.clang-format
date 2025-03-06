@@ -1,3 +1,2 @@
-#Official Tool: clang-format version 8.0.0
 DisableFormat: true
 SortIncludes: false

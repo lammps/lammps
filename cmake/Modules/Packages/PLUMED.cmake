@@ -1,5 +1,14 @@
 # Plumed2 support for PLUMED package
 
+# set policy to silence warnings about timestamps of downloaded files. review occasionally if it may be set to NEW
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 OLD)
+endif()
+
+# for supporting multiple concurrent plumed2 installations for debugging and testing
+set(PLUMED_SUFFIX "" CACHE STRING "Suffix for Plumed2 library")
+mark_as_advanced(PLUMED_SUFFIX)
+
 if(BUILD_MPI)
   set(PLUMED_CONFIG_MPI "--enable-mpi")
   set(PLUMED_CONFIG_CC  ${CMAKE_MPI_C_COMPILER})
@@ -21,13 +30,22 @@ else()
   set(PLUMED_CONFIG_OMP "--disable-openmp")
 endif()
 
-set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.8.2/plumed-src-2.8.2.tgz"
+# Note: must also adjust check for supported API versions in
+# fix_plumed.cpp when version changes from v2.n.x to v2.n+1.y
+set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.9.3/plumed-src-2.9.3.tgz"
   CACHE STRING "URL for PLUMED tarball")
-set(PLUMED_MD5 "599092b6a0aa6fff992612537ad98994" CACHE STRING "MD5 checksum of PLUMED tarball")
+set(PLUMED_MD5 "ee1249805fe94bccee17d10610d3f6f1" CACHE STRING "MD5 checksum of PLUMED tarball")
 
 mark_as_advanced(PLUMED_URL)
 mark_as_advanced(PLUMED_MD5)
 GetFallbackURL(PLUMED_URL PLUMED_FALLBACK)
+
+# adjust C++ standard support for self-compiled Plumed2
+if(CMAKE_CXX_STANDARD GREATER 11)
+  set(PLUMED_CXX_STANDARD 14)
+else()
+  set(PLUMED_CXX_STANDARD 11)
+endif()
 
 if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
   if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
@@ -44,7 +62,7 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
     URL_MD5 ${PLUMED_MD5}
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ${CROSS_CONFIGURE} --disable-shared --disable-bsymbolic
-                                         --disable-python --enable-cxx=11
+                                         --disable-python --enable-cxx=${PLUMED_CXX_STANDARD}
                                          --enable-modules=-adjmat:+crystallization:-dimred:+drr:+eds:-fisst:+funnel:+logmfd:+manyrestraints:+maze:+opes:+multicolvar:-pamm:-piv:+s2cm:-sasa:-ves
                                          ${PLUMED_CONFIG_OMP}
                                          ${PLUMED_CONFIG_MPI}
@@ -75,6 +93,9 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
     DEPENDS plumed_build
     COMMENT "Copying Plumed files"
   )
+  if(CMAKE_PROJECT_NAME STREQUAL "lammps")
+    target_link_libraries(lammps INTERFACE LAMMPS::PLUMED)
+  endif()
 
 else()
 
@@ -128,7 +149,7 @@ else()
       CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
                                              ${CONFIGURE_REQUEST_PIC}
                                              --enable-modules=all
-                                             --enable-cxx=11
+                                             --enable-cxx=${PLUMED_CXX_STANDARD}
                                              --disable-python
                                              ${PLUMED_CONFIG_MPI}
                                              ${PLUMED_CONFIG_OMP}
@@ -149,21 +170,26 @@ else()
     endif()
     set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${INSTALL_DIR}/include)
     file(MAKE_DIRECTORY ${INSTALL_DIR}/include)
+    if(CMAKE_PROJECT_NAME STREQUAL "lammps")
+      target_link_libraries(lammps PRIVATE LAMMPS::PLUMED)
+    endif()
   else()
     find_package(PkgConfig REQUIRED)
-    pkg_check_modules(PLUMED REQUIRED plumed)
+    pkg_check_modules(PLUMED REQUIRED plumed${PLUMED_SUFFIX})
     add_library(LAMMPS::PLUMED INTERFACE IMPORTED)
     if(PLUMED_MODE STREQUAL "STATIC")
-      include(${PLUMED_LIBDIR}/plumed/src/lib/Plumed.cmake.static)
+      include(${PLUMED_LIBDIR}/plumed${PLUMED_SUFFIX}/src/lib/Plumed.cmake.static)
     elseif(PLUMED_MODE STREQUAL "SHARED")
-      include(${PLUMED_LIBDIR}/plumed/src/lib/Plumed.cmake.shared)
+      include(${PLUMED_LIBDIR}/plumed${PLUMED_SUFFIX}/src/lib/Plumed.cmake.shared)
     elseif(PLUMED_MODE STREQUAL "RUNTIME")
-      set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_COMPILE_DEFINITIONS "__PLUMED_DEFAULT_KERNEL=${PLUMED_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}plumedKernel${CMAKE_SHARED_LIBRARY_SUFFIX}")
-      include(${PLUMED_LIBDIR}/plumed/src/lib/Plumed.cmake.runtime)
+      set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_COMPILE_DEFINITIONS "__PLUMED_DEFAULT_KERNEL=${PLUMED_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}plumed${PLUMED_SUFFIX}Kernel${CMAKE_SHARED_LIBRARY_SUFFIX}")
+      include(${PLUMED_LIBDIR}/plumed${PLUMED_SUFFIX}/src/lib/Plumed.cmake.runtime)
     endif()
     set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_LINK_LIBRARIES "${PLUMED_LOAD}")
     set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${PLUMED_INCLUDE_DIRS}")
+    if(CMAKE_PROJECT_NAME STREQUAL "lammps")
+      target_link_libraries(lammps PUBLIC LAMMPS::PLUMED)
+    endif()
   endif()
 endif()
 
-target_link_libraries(lammps PRIVATE LAMMPS::PLUMED)

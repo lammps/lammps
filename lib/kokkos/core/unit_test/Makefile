@@ -52,8 +52,8 @@ ifneq ($(KOKKOS_INTERNAL_USE_RDYNAMIC), 1)
    KOKKOS_INTERNAL_USE_RDYNAMIC := $(call kokkos_has_string,$(CXXFLAGS),rdynamic)
 endif
 
-ifeq ($(KOKKOS_INTERNAL_USE_RDYNAMIC),1) 
-   ifneq ($(KOKKOS_INTERNAL_HAS_OPTIMIZATIONS),1) 
+ifeq ($(KOKKOS_INTERNAL_USE_RDYNAMIC),1)
+   ifneq ($(KOKKOS_INTERNAL_HAS_OPTIMIZATIONS),1)
       STACK_TRACE_TERMINATE_FILTER :=_dynamic
    else
       STACK_TRACE_TERMINATE_FILTER :=
@@ -62,18 +62,18 @@ else
    STACK_TRACE_TERMINATE_FILTER :=
 endif
 
-TESTS = AtomicOperations_int AtomicOperations_unsignedint AtomicOperations_longint AtomicOperations_unsignedlongint AtomicOperations_longlongint AtomicOperations_double AtomicOperations_float AtomicOperations_complexdouble AtomicOperations_complexfloat AtomicViews Atomics BlockSizeDeduction Concepts Complex Crs DeepCopyAlignment FunctorAnalysis Init LocalDeepCopy MDRange_a MDRange_b MDRange_c MDRange_d MDRange_e MDRange_f Other RangePolicy RangePolicyRequire Reductions Reducers_a Reducers_b Reducers_c Reducers_d Reducers_e Reductions_DeviceView Scan SharedAlloc TeamBasic TeamReductionScan TeamScratch TeamTeamSize TeamVectorRange UniqueToken ViewAPI_a ViewAPI_b ViewAPI_c ViewAPI_d ViewAPI_e ViewCopy_a ViewCopy_b ViewLayoutStrideAssignment ViewMapping_a ViewMapping_b ViewMapping_subview ViewOfClass WorkGraph View_64bit ViewResize
+TESTS = AtomicOperations_int AtomicOperations_unsignedint AtomicOperations_longint AtomicOperations_unsignedlongint AtomicOperations_longlongint AtomicOperations_double AtomicOperations_float AtomicOperations_complexdouble AtomicOperations_complexfloat AtomicViews Atomics BlockSizeDeduction Concepts Complex Crs DeepCopyAlignment FunctorAnalysis Init LocalDeepCopy MDRange_a MDRange_b MDRange_c MDRange_d MDRange_e MDRange_f Other ParallelScanRangePolicy RangePolicy RangePolicyRequire Reductions Reducers_a Reducers_b Reducers_c Reducers_d Reducers_e Reductions_DeviceView SharedAlloc TeamBasic TeamReductionScan TeamScratch TeamTeamSize TeamVectorRange UniqueToken ViewAPI_a ViewAPI_b ViewAPI_c ViewAPI_d ViewAPI_e ViewCopy_a ViewCopy_b ViewCopy_c ViewLayoutStrideAssignment ViewMapping_a ViewMapping_b ViewMapping_subview ViewOfClass WorkGraph View_64bit ViewResize
 
 tmp := $(foreach device, $(KOKKOS_DEVICELIST), \
   tmp2 := $(foreach test, $(TESTS), \
     $(if $(filter Test$(device)_$(test).cpp, $(shell ls Test$(device)_$(test).cpp 2>/dev/null)),,\
-      $(shell echo "\#include <Test"$(device)"_Category.hpp>" > Test$(device)_$(test).cpp); \
-      $(shell echo "\#include <Test"$(test)".hpp>" >> Test$(device)_$(test).cpp); \
+      $(shell echo "$(H)include <Test"$(device)"_Category.hpp>" > Test$(device)_$(test).cpp); \
+      $(shell echo "$(H)include <Test"$(test)".hpp>" >> Test$(device)_$(test).cpp); \
      ) \
   ) \
 )
 
-GPU_SPACE_TESTS = SharedAlloc ViewAPI_a ViewAPI_b ViewAPI_c ViewAPI_d ViewAPI_e ViewCopy_a ViewCopy_b ViewMapping_a ViewMapping_b ViewMapping_subview
+GPU_SPACE_TESTS = SharedAlloc ViewAPI_a ViewAPI_b ViewAPI_c ViewAPI_d ViewAPI_e ViewCopy_a ViewCopy_b ViewCopy_c ViewMapping_a ViewMapping_b ViewMapping_subview
 
 SUBVIEW_TESTS = SubView_a SubView_b SubView_c01 SubView_c02 SubView_c03 SubView_c04 SubView_c05 SubView_c06 SubView_c07 SubView_c08 SubView_c09 SubView_c10 SubView_c11 SubView_c12 SubView_c13
 
@@ -82,8 +82,8 @@ KOKKOS_SUBVIEW_DEVICELIST := $(filter-out Cuda, $(KOKKOS_DEVICELIST))
 tmp := $(foreach device, $(KOKKOS_SUBVIEW_DEVICELIST), \
   tmp2 := $(foreach test, $(SUBVIEW_TESTS), \
     $(if $(filter Test$(device)_$(test).cpp, $(shell ls Test$(device)_$(test).cpp 2>/dev/null)),, \
-      $(shell echo "\#include <Test"$(device)"_Category.hpp>" > Test$(device)_$(test).cpp); \
-      $(shell echo "\#include <Test"$(test)".hpp>" >> Test$(device)_$(test).cpp); \
+      $(shell echo "$(H)include <Test"$(device)"_Category.hpp>" > Test$(device)_$(test).cpp); \
+      $(shell echo "$(H)include <Test"$(test)".hpp>" >> Test$(device)_$(test).cpp); \
      ) \
   )\
 )
@@ -91,8 +91,8 @@ tmp := $(foreach device, $(KOKKOS_SUBVIEW_DEVICELIST), \
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
     tmp2 := $(foreach test, $(SUBVIEW_TESTS), \
       $(if $(filter TestCuda_$(test).cpp, $(shell ls TestCuda_$(test).cpp 2>/dev/null)),,\
-        $(shell echo "\#include <TestCudaUVM_Category.hpp>" > TestCuda_$(test).cpp); \
-        $(shell echo "\#include <Test"$(test)".hpp>" >> TestCuda_$(test).cpp); \
+        $(shell echo "$(H)include <TestCudaUVM_Category.hpp>" > TestCuda_$(test).cpp); \
+        $(shell echo "$(H)include <Test"$(test)".hpp>" >> TestCuda_$(test).cpp); \
       )\
     )
 
@@ -100,8 +100,8 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
     tmp := $(foreach space, $(GPU_SPACES), \
       tmp2 := $(foreach test, $(GPU_SPACE_TESTS), \
         $(if $(filter Test$(space)_$(test).cpp, $(shell ls Test$(space)_$(test).cpp 2>/dev/null)),,\
-          $(shell echo "\#include <Test$(space)_Category.hpp>" > Test$(space)_$(test).cpp); \
-          $(shell echo "\#include <Test"$(test)".hpp>" >> Test$(space)_$(test).cpp); \
+          $(shell echo "$(H)include <Test$(space)_Category.hpp>" > Test$(space)_$(test).cpp); \
+          $(shell echo "$(H)include <Test"$(test)".hpp>" >> Test$(space)_$(test).cpp); \
         )\
       )\
     )
@@ -110,14 +110,14 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
     OBJ_CUDA += TestCuda_Init.o
     OBJ_CUDA += TestCuda_SharedAlloc.o TestCudaUVM_SharedAlloc.o TestCudaHostPinned_SharedAlloc.o
     OBJ_CUDA += TestCuda_RangePolicy.o TestCuda_RangePolicyRequire.o
-    OBJ_CUDA += TestCuda_ViewAPI_a.o TestCuda_ViewAPI_b.o TestCuda_ViewAPI_c.o TestCuda_ViewAPI_d.o TestCuda_ViewAPI_e.o TestCuda_ViewCopy_a.o TestCuda_ViewCopy_b.o
+    OBJ_CUDA += TestCuda_ViewAPI_a.o TestCuda_ViewAPI_b.o TestCuda_ViewAPI_c.o TestCuda_ViewAPI_d.o TestCuda_ViewAPI_e.o TestCuda_ViewCopy_a.o TestCuda_ViewCopy_b.o TestCuda_ViewCopy_c.o
     OBJ_CUDA += TestCuda_DeepCopyAlignment.o
     OBJ_CUDA += TestCuda_ViewMapping_a.o TestCuda_ViewMapping_b.o TestCuda_ViewMapping_subview.o TestCuda_ViewResize.o TestCuda_ViewLayoutStrideAssignment.o
     OBJ_CUDA += TestCudaUVM_ViewAPI_a.o TestCudaUVM_ViewAPI_b.o TestCudaUVM_ViewAPI_c.o TestCudaUVM_ViewAPI_d.o TestCudaUVM_ViewAPI_e.o
-    OBJ_CUDA += TestCudaUVM_ViewCopy_a.o TestCudaUVM_ViewCopy_b.o
+    OBJ_CUDA += TestCudaUVM_ViewCopy_a.o TestCudaUVM_ViewCopy_b.o TestCudaUVM_ViewCopy_c.o
     OBJ_CUDA += TestCudaUVM_ViewMapping_a.o TestCudaUVM_ViewMapping_b.o TestCudaUVM_ViewMapping_subview.o
     OBJ_CUDA += TestCudaHostPinned_ViewAPI_a.o TestCudaHostPinned_ViewAPI_b.o TestCudaHostPinned_ViewAPI_c.o TestCudaHostPinned_ViewAPI_d.o TestCudaHostPinned_ViewAPI_e.o
-    OBJ_CUDA += TestCudaHostPinned_ViewCopy_a.o TestCudaHostPinned_ViewCopy_b.o
+    OBJ_CUDA += TestCudaHostPinned_ViewCopy_a.o TestCudaHostPinned_ViewCopy_b.o TestCudaHostPinned_ViewCopy_c.o
     OBJ_CUDA += TestCudaHostPinned_ViewMapping_a.o TestCudaHostPinned_ViewMapping_b.o TestCudaHostPinned_ViewMapping_subview.o
     OBJ_CUDA += TestCuda_View_64bit.o
     OBJ_CUDA += TestCuda_ViewOfClass.o
@@ -127,7 +127,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
     OBJ_CUDA += TestCuda_SubView_c07.o TestCuda_SubView_c08.o TestCuda_SubView_c09.o
     OBJ_CUDA += TestCuda_SubView_c10.o TestCuda_SubView_c11.o TestCuda_SubView_c12.o
     OBJ_CUDA += TestCuda_SubView_c13.o
-    OBJ_CUDA += TestCuda_Reductions.o TestCuda_Scan.o
+    OBJ_CUDA += TestCuda_Reductions.o TestCuda_ParallelScanRangePolicy.o
     OBJ_CUDA += TestCuda_Reductions_DeviceView.o
     OBJ_CUDA += TestCuda_Reducers_a.o TestCuda_Reducers_b.o TestCuda_Reducers_c.o TestCuda_Reducers_d.o TestCuda_Reducers_e.o
     OBJ_CUDA += TestCuda_Complex.o
@@ -141,7 +141,10 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
     OBJ_CUDA += TestCuda_Other.o
     OBJ_CUDA += TestCuda_MDRange_a.o TestCuda_MDRange_b.o TestCuda_MDRange_c.o TestCuda_MDRange_d.o TestCuda_MDRange_e.o
     OBJ_CUDA += TestCuda_Crs.o
-    OBJ_CUDA += TestCuda_Task.o TestCuda_WorkGraph.o
+    ifneq ($(KOKKOS_INTERNAL_DISABLE_DEPRECATED_CODE), 1)
+      OBJ_CUDA += TestCuda_Task.o
+    endif
+    OBJ_CUDA += TestCuda_WorkGraph.o
     OBJ_CUDA += TestCuda_Spaces.o
     OBJ_CUDA += TestCuda_UniqueToken.o
     OBJ_CUDA += TestCuda_LocalDeepCopy.o
@@ -162,7 +165,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 1)
     OBJ_THREADS += TestThreads_RangePolicy.o TestThreads_RangePolicyRequire.o
     OBJ_THREADS += TestThreads_View_64bit.o
     OBJ_THREADS += TestThreads_ViewAPI_a.o TestThreads_ViewAPI_b.o TestThreads_ViewAPI_c.o TestThreads_ViewAPI_d.o TestThreads_ViewAPI_e.o
-    OBJ_THREADS += TestThreads_ViewCopy_a.o TestThreads_ViewCopy_b.o
+    OBJ_THREADS += TestThreads_ViewCopy_a.o TestThreads_ViewCopy_b.o TestThreads_ViewCopy_c.o
     OBJ_THREADS += TestThreads_DeepCopyAlignment.o
     OBJ_THREADS += TestThreads_ViewMapping_a.o TestThreads_ViewMapping_b.o TestThreads_ViewMapping_subview.o TestThreads_ViewResize.o TestThreads_ViewLayoutStrideAssignment.o
     OBJ_THREADS += TestThreads_ViewOfClass.o
@@ -171,7 +174,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 1)
     OBJ_THREADS += TestThreads_SubView_c04.o TestThreads_SubView_c05.o TestThreads_SubView_c06.o
     OBJ_THREADS += TestThreads_SubView_c07.o TestThreads_SubView_c08.o TestThreads_SubView_c09.o
     OBJ_THREADS += TestThreads_SubView_c10.o TestThreads_SubView_c11.o TestThreads_SubView_c12.o
-    OBJ_THREADS += TestThreads_Reductions.o TestThreads_Scan.o
+    OBJ_THREADS += TestThreads_Reductions.o TestThreads_ParallelScanRangePolicy.o
     OBJ_THREADS += TestThreads_Reductions_DeviceView.o
     OBJ_THREADS += TestThreads_Reducers_a.o TestThreads_Reducers_b.o TestThreads_Reducers_c.o TestThreads_Reducers_d.o TestThreads_Reducers_e.o
     OBJ_THREADS += TestThreads_Complex.o
@@ -198,7 +201,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
     OBJ_OPENMP += TestOpenMP_RangePolicy.o TestOpenMP_RangePolicyRequire.o
     OBJ_OPENMP += TestOpenMP_View_64bit.o
     OBJ_OPENMP += TestOpenMP_ViewAPI_a.o TestOpenMP_ViewAPI_b.o TestOpenMP_ViewAPI_c.o TestOpenMP_ViewAPI_d.o TestOpenMP_ViewAPI_e.o
-    OBJ_OPENMP += TestOpenMP_DeepCopyAlignment.o TestOpenMP_ViewCopy_a.o TestOpenMP_ViewCopy_b.o
+    OBJ_OPENMP += TestOpenMP_DeepCopyAlignment.o TestOpenMP_ViewCopy_a.o TestOpenMP_ViewCopy_b.o TestOpenMP_ViewCopy_c.o
     OBJ_OPENMP += TestOpenMP_ViewMapping_a.o TestOpenMP_ViewMapping_b.o TestOpenMP_ViewMapping_subview.o TestOpenMP_ViewResize.o TestOpenMP_ViewLayoutStrideAssignment.o
     OBJ_OPENMP += TestOpenMP_ViewOfClass.o
     OBJ_OPENMP += TestOpenMP_SubView_a.o TestOpenMP_SubView_b.o
@@ -207,7 +210,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
     OBJ_OPENMP += TestOpenMP_SubView_c07.o TestOpenMP_SubView_c08.o TestOpenMP_SubView_c09.o
     OBJ_OPENMP += TestOpenMP_SubView_c10.o TestOpenMP_SubView_c11.o TestOpenMP_SubView_c12.o
     OBJ_OPENMP += TestOpenMP_SubView_c13.o
-    OBJ_OPENMP += TestOpenMP_Reductions.o TestOpenMP_Scan.o
+    OBJ_OPENMP += TestOpenMP_Reductions.o TestOpenMP_ParallelScanRangePolicy.o
     OBJ_OPENMP += TestOpenMP_Reductions_DeviceView.o
     OBJ_OPENMP += TestOpenMP_Reducers_a.o TestOpenMP_Reducers_b.o TestOpenMP_Reducers_c.o TestOpenMP_Reducers_d.o TestOpenMP_Reducers_e.o
     OBJ_OPENMP += TestOpenMP_Complex.o
@@ -221,7 +224,10 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
     OBJ_OPENMP += TestOpenMP_Other.o
     OBJ_OPENMP += TestOpenMP_MDRange_a.o TestOpenMP_MDRange_b.o TestOpenMP_MDRange_c.o TestOpenMP_MDRange_d.o TestOpenMP_MDRange_e.o
     OBJ_OPENMP += TestOpenMP_Crs.o
-    OBJ_OPENMP += TestOpenMP_Task.o TestOpenMP_WorkGraph.o
+    ifneq ($(KOKKOS_INTERNAL_DISABLE_DEPRECATED_CODE), 1)
+      OBJ_OPENMP += TestOpenMP_Task.o
+    endif
+    OBJ_OPENMP += TestOpenMP_WorkGraph.o
     OBJ_OPENMP += TestOpenMP_UniqueToken.o
     OBJ_OPENMP += TestOpenMP_LocalDeepCopy.o
 
@@ -237,7 +243,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMPTARGET), 1)
     #OBJ_OPENMPTARGET += TestOpenMPTarget_SharedAlloc.o
     OBJ_OPENMPTARGET += TestOpenMPTarget_RangePolicy.o
     OBJ_OPENMPTARGET += TestOpenMPTarget_ViewAPI_a.o TestOpenMPTarget_ViewAPI_b.o TestOpenMPTarget_ViewAPI_c.o TestOpenMPTarget_ViewAPI_d.o  #Some commented out code
-    #OBJ_OPENMPTARGET += TestOpenMPTarget_ViewAPI_e.o TestOpenMPTarget_ViewCopy_a.o TestOpenMPTarget_ViewCopy_b.o
+    #OBJ_OPENMPTARGET += TestOpenMPTarget_ViewAPI_e.o TestOpenMPTarget_ViewCopy_a.o TestOpenMPTarget_ViewCopy_b.o TestOpenMPTarget_ViewCopy_c.o
     OBJ_OPENMPTARGET += TestOpenMPTarget_DeepCopyAlignment.o
     OBJ_OPENMPTARGET += TestOpenMPTarget_ViewMapping_a.o
     OBJ_OPENMPTARGET += TestOpenMPTarget_ViewMapping_b.o
@@ -251,11 +257,11 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMPTARGET), 1)
     #OBJ_OPENMPTARGET += TestOpenMPTarget_SubView_c10.o TestOpenMPTarget_SubView_c11.o TestOpenMPTarget_SubView_c12.o
     #OBJ_OPENMPTARGET += TestOpenMPTarget_Reductions.o # Need custom reductions
     OBJ_OPENMPTARGET += TestOpenMPTarget_Reducers_a.o TestOpenMPTarget_Reducers_b.o TestOpenMPTarget_Reducers_c.o TestOpenMPTarget_Reducers_d.o TestOpenMPTarget_Reducers_e.o
-    #OBJ_OPENMPTARGET += TestOpenMPTarget_Scan.o
+    OBJ_OPENMPTARGET += TestOpenMPTarget_ParallelScanRangePolicy.o
     OBJ_OPENMPTARGET += TestOpenMPTarget_Complex.o
     OBJ_OPENMPTARGET += TestOpenMPTarget_AtomicOperations_int.o TestOpenMPTarget_AtomicOperations_unsignedint.o TestOpenMPTarget_AtomicOperations_longint.o
     OBJ_OPENMPTARGET += TestOpenMPTarget_AtomicOperations_unsignedlongint.o TestOpenMPTarget_AtomicOperations_longlongint.o TestOpenMPTarget_AtomicOperations_double.o TestOpenMPTarget_AtomicOperations_float.o
-    #OBJ_OPENMPTARGET += TestOpenMPTarget_AtomicOperations_complexfloat.o 
+    #OBJ_OPENMPTARGET += TestOpenMPTarget_AtomicOperations_complexfloat.o
     #OBJ_OPENMPTARGET += TestOpenMPTarget_AtomicOperations_complexdouble.o
     OBJ_OPENMPTARGET += TestOpenMPTarget_AtomicViews.o
     OBJ_OPENMPTARGET += TestOpenMPTarget_Atomics.o # Commented Out Arbitrary Type Atomics
@@ -265,7 +271,6 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMPTARGET), 1)
     #OBJ_OPENMPTARGET += TestOpenMPTarget_TeamReductionScan.o
     #OBJ_OPENMPTARGET += TestOpenMPTarget_Other.o
     #OBJ_OPENMPTARGET += TestOpenMPTarget_MDRange_a.o TestOpenMPTarget_MDRange_b.o TestOpenMPTarget_MDRange_c.o TestOpenMPTarget_MDRange_d.o TestOpenMPTarget_MDRange_d.e
-    #OBJ_OPENMPTARGET += TestOpenMPTarget_Task.o
 
     TARGETS += KokkosCore_UnitTest_OpenMPTarget
 
@@ -277,8 +282,8 @@ ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
 	tmp := $(foreach space, $(GPU_SPACES), \
 	  tmp2 := $(foreach test, $(GPU_SPACE_TESTS), \
 	    $(if $(filter Test$(space)_$(test).cpp, $(shell ls Test$(space)_$(test).cpp 2>/dev/null)),,\
-	      $(shell echo "\#include <Test$(space)_Category.hpp>" > Test$(space)_$(test).cpp); \
-	      $(shell echo "\#include <Test"$(test)".hpp>" >> Test$(space)_$(test).cpp); \
+	      $(shell echo "$(H)include <Test$(space)_Category.hpp>" > Test$(space)_$(test).cpp); \
+	      $(shell echo "$(H)include <Test"$(test)".hpp>" >> Test$(space)_$(test).cpp); \
 	    )\
 	  )\
 	)
@@ -290,8 +295,9 @@ ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
 	OBJ_HIP += TestHIP_MDRange_a.o TestHIP_MDRange_b.o TestHIP_MDRange_c.o TestHIP_MDRange_d.o TestHIP_MDRange_e.o
 	OBJ_HIP += TestHIP_Spaces.o
 	OBJ_HIP += TestHIP_Memory_Requirements.o
+        OBJ_HIP += TestHIP_ParallelScanRangePolicy.o
 	OBJ_HIP += TestHIPHostPinned_ViewAPI_a.o TestHIPHostPinned_ViewAPI_b.o TestHIPHostPinned_ViewAPI_c.o TestHIPHostPinned_ViewAPI_d.o TestHIPHostPinned_ViewAPI_e.o
-	OBJ_HIP += TestHIPHostPinned_ViewCopy_a.o TestHIPHostPinned_ViewCopy_b.o
+	OBJ_HIP += TestHIPHostPinned_ViewCopy_a.o TestHIPHostPinned_ViewCopy_b.o TestHIPHostPinned_ViewCopy_c.o
 	OBJ_HIP += TestHIPHostPinned_ViewMapping_a.o TestHIPHostPinned_ViewMapping_b.o TestHIPHostPinned_ViewMapping_subview.o
 
 	TARGETS += KokkosCore_UnitTest_HIP
@@ -306,7 +312,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
 	OBJ_HPX += TestHPX_RangePolicy.o TestHPX_RangePolicyRequire.o
 	OBJ_HPX += TestHPX_View_64bit.o
 	OBJ_HPX += TestHPX_ViewAPI_a.o TestHPX_ViewAPI_b.o TestHPX_ViewAPI_c.o TestHPX_ViewAPI_d.o TestHPX_ViewAPI_e.o
-	OBJ_HPX += TestHPX_ViewCopy_a.o TestHPX_ViewCopy_b.o
+	OBJ_HPX += TestHPX_ViewCopy_a.o TestHPX_ViewCopy_b.o TestHPX_ViewCopy_c.o
 	OBJ_HPX += TestHPX_ViewMapping_a.o TestHPX_ViewMapping_b.o TestHPX_ViewMapping_subview.o TestHPX_ViewResize.o
 	OBJ_HPX += TestHPX_ViewOfClass.o
 	OBJ_HPX += TestHPX_SubView_a.o TestHPX_SubView_b.o
@@ -316,7 +322,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
 	OBJ_HPX += TestHPX_SubView_c10.o TestHPX_SubView_c11.o TestHPX_SubView_c12.o
 	OBJ_HPX += TestHPX_SubView_c13.o
 	OBJ_HPX += TestHPX_Reductions.o
-	OBJ_HPX += TestHPX_Scan.o
+	OBJ_HPX += TestHPX_ParallelScanRangePolicy.o
 	OBJ_HPX += TestHPX_Reducers_a.o TestHPX_Reducers_b.o TestHPX_Reducers_c.o TestHPX_Reducers_d.o TestHPX_Reducers_e.o
 	OBJ_HPX += TestHPX_Complex.o
 	OBJ_HPX += TestHPX_AtomicOperations_int.o TestHPX_AtomicOperations_unsignedint.o TestHPX_AtomicOperations_longint.o
@@ -329,7 +335,9 @@ ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
 	OBJ_HPX += TestHPX_Other.o
 	OBJ_HPX += TestHPX_MDRange_a.o TestHPX_MDRange_b.o TestHPX_MDRange_c.o TestHPX_MDRange_d.o TestHPX_MDRange_e.o
 	OBJ_HPX += TestHPX_Crs.o
-	OBJ_HPX += TestHPX_Task.o
+	ifneq ($(KOKKOS_INTERNAL_DISABLE_DEPRECATED_CODE), 1)
+	  OBJ_HPX += TestHPX_Task.o
+	endif
 	OBJ_HPX += TestHPX_WorkGraph.o
 	OBJ_HPX += TestHPX_UniqueToken.o
 
@@ -346,7 +354,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
     OBJ_SERIAL += TestSerial_RangePolicy.o TestSerial_RangePolicyRequire.o
     OBJ_SERIAL += TestSerial_View_64bit.o
     OBJ_SERIAL += TestSerial_ViewAPI_a.o TestSerial_ViewAPI_b.o TestSerial_ViewAPI_c.o TestSerial_ViewAPI_d.o TestSerial_ViewAPI_e.o
-    OBJ_SERIAL += TestSerial_DeepCopyAlignment.o TestSerial_ViewCopy_a.o TestSerial_ViewCopy_b.o
+    OBJ_SERIAL += TestSerial_DeepCopyAlignment.o TestSerial_ViewCopy_a.o TestSerial_ViewCopy_b.o TestSerial_ViewCopy_c.o
     OBJ_SERIAL += TestSerial_ViewMapping_a.o TestSerial_ViewMapping_b.o TestSerial_ViewMapping_subview.o TestSerial_ViewResize.o TestSerial_ViewLayoutStrideAssignment.o
     OBJ_SERIAL += TestSerial_ViewOfClass.o
     OBJ_SERIAL += TestSerial_SubView_a.o TestSerial_SubView_b.o
@@ -355,7 +363,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
     OBJ_SERIAL += TestSerial_SubView_c07.o TestSerial_SubView_c08.o TestSerial_SubView_c09.o
     OBJ_SERIAL += TestSerial_SubView_c10.o TestSerial_SubView_c11.o TestSerial_SubView_c12.o
     OBJ_SERIAL += TestSerial_SubView_c13.o
-    OBJ_SERIAL += TestSerial_Reductions.o TestSerial_Scan.o
+    OBJ_SERIAL += TestSerial_Reductions.o TestSerial_ParallelScanRangePolicy.o
     OBJ_SERIAL += TestSerial_Reductions_DeviceView.o
     OBJ_SERIAL += TestSerial_Reducers_a.o TestSerial_Reducers_b.o TestSerial_Reducers_c.o TestSerial_Reducers_d.o TestSerial_Reducers_e.o
     OBJ_SERIAL += TestSerial_Complex.o
@@ -372,7 +380,10 @@ ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
         OBJ_SERIAL += TestSerial_MDRange_a.o TestSerial_MDRange_b.o TestSerial_MDRange_c.o TestSerial_MDRange_d.o TestSerial_MDRange_e.o
     endif
     OBJ_SERIAL += TestSerial_Crs.o
-    OBJ_SERIAL += TestSerial_Task.o TestSerial_WorkGraph.o
+    ifneq ($(KOKKOS_INTERNAL_DISABLE_DEPRECATED_CODE), 1)
+      OBJ_SERIAL += TestSerial_Task.o
+    endif
+    OBJ_SERIAL += TestSerial_WorkGraph.o
     OBJ_SERIAL += TestSerial_LocalDeepCopy.o
 
     TARGETS += KokkosCore_UnitTest_Serial
@@ -391,7 +402,6 @@ ifneq ($(KOKKOS_INTERNAL_COMPILER_HCC), 1)
   OBJ_DEFAULT += TestDefaultDeviceType_a1.o TestDefaultDeviceType_b1.o TestDefaultDeviceType_c1.o
   OBJ_DEFAULT += TestDefaultDeviceType_a2.o TestDefaultDeviceType_b2.o TestDefaultDeviceType_c2.o
   OBJ_DEFAULT += TestDefaultDeviceType_a3.o TestDefaultDeviceType_b3.o TestDefaultDeviceType_c3.o
-  OBJ_DEFAULT += TestDefaultDeviceType_d.o
 endif
 endif
 
@@ -408,15 +418,6 @@ TARGETS += KokkosCore_UnitTest_StackTraceTestExec
 TEST_TARGETS += test-stack-trace
 TEST_TARGETS += test-stack-trace-terminate
 TEST_TARGETS += test-stack-trace-generic-term
-
-ifneq ($(KOKKOS_INTERNAL_DISABLE_DEPRECATED_CODE), 1)
-NUM_INITTESTS = 16
-INITTESTS_NUMBERS := $(shell seq 1 ${NUM_INITTESTS})
-INITTESTS_TARGETS := $(addprefix KokkosCore_UnitTest_DefaultDeviceTypeInit_,${INITTESTS_NUMBERS})
-TARGETS += ${INITTESTS_TARGETS}
-INITTESTS_TEST_TARGETS := $(addprefix test-default-init-,${INITTESTS_NUMBERS})
-TEST_TARGETS += ${INITTESTS_TEST_TARGETS}
-endif
 
 KokkosCore_UnitTest_Cuda: $(OBJ_CUDA) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_CUDA) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_Cuda
@@ -464,10 +465,6 @@ KokkosCore_UnitTest_PushFinalizeHook: $(OBJ_DEFAULT) $(KOKKOS_LINK_DEPENDS)
 
 KokkosCore_UnitTest_PushFinalizeHook_terminate: $(OBJ_DEFAULT) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_DEFAULT) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_PushFinalizeHook_terminate
-
-
-${INITTESTS_TARGETS}: KokkosCore_UnitTest_DefaultDeviceTypeInit_%: TestDefaultDeviceTypeInit_%.o UnitTestMain.o gtest-all.o $(KOKKOS_LINK_DEPENDS)
-	$(LINK) $(EXTRA_PATH) TestDefaultDeviceTypeInit_$*.o UnitTestMain.o gtest-all.o $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_DefaultDeviceTypeInit_$*
 
 KokkosCore_UnitTest_StackTraceTestExec: TestStackTrace.o  TestStackTrace_f0.o TestStackTrace_f1.o TestStackTrace_f2.o TestStackTrace_f3.o TestStackTrace_f4.o $(KOKKOS_LINK_DEPENDS) gtest-all.o
 	$(LINK) $(EXTRA_PATH) TestStackTrace.o TestStackTrace_f0.o TestStackTrace_f1.o TestStackTrace_f2.o TestStackTrace_f3.o TestStackTrace_f4.o gtest-all.o $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_StackTraceTestExec
@@ -520,10 +517,6 @@ test-stack-trace-terminate: KokkosCore_UnitTest_StackTraceTestExec
 
 test-stack-trace-generic-term: KokkosCore_UnitTest_StackTraceTestExec
 	./KokkosCore_UnitTest_StackTraceTestExec --gtest_filter=*generic_term$(STACK_TRACE_TERMINATE_FILTER)
-
-
-${INITTESTS_TEST_TARGETS}: test-default-init-%: KokkosCore_UnitTest_DefaultDeviceTypeInit_%
-	./KokkosCore_UnitTest_DefaultDeviceTypeInit_$*
 
 build_all: $(TARGETS)
 

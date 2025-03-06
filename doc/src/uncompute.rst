@@ -6,7 +6,7 @@ uncompute command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    uncompute compute-ID
 

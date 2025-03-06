@@ -22,6 +22,9 @@ namespace LAMMPS_NS {
 
 class Reader : protected Pointers {
  public:
+  enum { ID, TYPE, X, Y, Z, VX, VY, VZ, Q, IX, IY, IZ, FX, FY, FZ };
+  enum { UNSET, NOSCALE_NOWRAP, NOSCALE_WRAP, SCALE_NOWRAP, SCALE_WRAP };
+
   Reader(class LAMMPS *);
   ~Reader() override;
 

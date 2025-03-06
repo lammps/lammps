@@ -40,9 +40,9 @@ FixDampingCundall::FixDampingCundall(LAMMPS *_lmp, int narg, char **arg) :
 {
   dynamic_group_allow = 1;
 
-  if (!atom->sphere_flag) error->all(FLERR, "Fix damping/cundall requires atom style sphere");
+  if (!atom->omega_flag) error->all(FLERR, "Fix damping/cundall requires atom attribute omega");
 
-  if (narg < 5) error->all(FLERR, "Illegal fix damping/cundall command");
+  if (narg < 5) utils::missing_cmd_args(FLERR, "fix damping/cundall", error);
 
   gamma_lin = utils::numeric(FLERR, arg[3], false, lmp);
   gamma_ang = utils::numeric(FLERR, arg[4], false, lmp);
@@ -120,7 +120,7 @@ void FixDampingCundall::init()
   }
 
   bool fflag = false;
-  for (auto ifix : modify->get_fix_list()) {
+  for (auto &ifix : modify->get_fix_list()) {
     if (fflag && (comm->me == 0) && (ifix->setmask() & POST_FORCE))
       error->warning(FLERR, "Fix {} alters forces after fix damping/cundall", ifix->id);
     if (ifix == this) fflag = true;

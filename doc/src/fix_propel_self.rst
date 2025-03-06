@@ -6,7 +6,7 @@ fix propel/self command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID propel/self mode magnitude keyword values
 

@@ -1,0 +1,147 @@
+LAMMPS (17 Apr 2024 - Development - patch_17Apr2024-262-g0aff26705c-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# DPD Ionic Fluid
+
+variable    T           equal 1.0
+variable    cut_DPD     equal 1.0
+variable    seed        equal 165412
+variable    lambda      equal 0.25
+variable    cut_coul    equal 2.0
+
+#-------------------------------------------------------------------------------
+# Initialize LAMMPS run for 3-d periodic
+#-------------------------------------------------------------------------------
+
+units                   lj
+boundary                p p p # periodic at all axes
+atom_style              full
+dimension    3
+
+bond_style              none
+angle_style             none
+dihedral_style          none
+improper_style          none
+
+newton on
+comm_modify vel yes # store info of ghost atoms btw processors
+
+#-------------------------------------------------------------------------------
+# Box creation and configuration
+#-------------------------------------------------------------------------------
+
+# Define pair style and coefficients
+pair_style dpd/coul/slater/long ${T} ${cut_DPD} ${seed} ${lambda} ${cut_coul}
+pair_style dpd/coul/slater/long 1 ${cut_DPD} ${seed} ${lambda} ${cut_coul}
+pair_style dpd/coul/slater/long 1 1 ${seed} ${lambda} ${cut_coul}
+pair_style dpd/coul/slater/long 1 1 165412 ${lambda} ${cut_coul}
+pair_style dpd/coul/slater/long 1 1 165412 0.25 ${cut_coul}
+pair_style dpd/coul/slater/long 1 1 165412 0.25 2
+
+read_data data.dpd_coul_slater_long
+Reading data file ...
+  orthogonal box = (0 0 0) to (5 5 5)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  375 atoms
+  reading velocities ...
+  375 velocities
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.003 seconds
+
+# Enable long range electrostatics solver
+kspace_style    pppm       1e-04
+
+# Construct neighbors every steps
+neighbor 1.0 bin
+neigh_modify every 1 delay 0 check yes
+
+#-------------------------------------------------------------------------------
+# Run the simulation
+#-------------------------------------------------------------------------------
+
+thermo_style            custom step temp press vol evdwl ecoul elong pe ke fnorm fmax
+thermo_modify norm no
+thermo                  100
+
+timestep     0.01
+run_style    verlet
+
+fix                     1 all nve
+
+run                     1000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
+  G vector (1/distance) = 1.4828454
+  grid = 20 20 20
+  stencil order = 5
+  estimated absolute RMS force accuracy = 7.7240141e-05
+  estimated relative force accuracy = 7.7240141e-05
+  using double precision FFTW3
+  3d grid and FFT values/proc = 10469 2000
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3
+  ghost atom cutoff = 3
+  binsize = 1.5, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair dpd/coul/slater/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 7.208 | 7.208 | 7.209 Mbytes
+   Step          Temp          Press          Volume         E_vdwl         E_coul         E_long         PotEng         KinEng         Fnorm           Fmax     
+         0   0.9849949      69.076433      125            4673.0443      0             -30.365103      4642.6792      552.58214      613.18374      70.700582    
+       100   0.95374867     69.110009      125            4681.1097      0             -31.260804      4649.8489      535.053        629.95109      62.05418     
+       200   1.0076152      69.824904      125            4670.7458      0             -28.382203      4642.3636      565.27213      656.8501       72.049813    
+       300   1.0014752      69.666331      125            4696.454       0             -26.943577      4669.5105      561.8276       631.49861      74.737274    
+       400   0.98863876     69.731774      125            4700.7552      0             -23.816077      4676.9391      554.62634      637.74742      68.928573    
+       500   0.95782852     68.588075      125            4698.588       0             -29.249543      4669.3385      537.3418       646.31897      68.800569    
+       600   0.97443232     70.864079      125            4674.8821      0             -26.415644      4648.4664      546.65653      606.50755      78.664429    
+       700   0.98783988     68.908299      125            4692.5536      0             -28.092022      4664.4616      554.17817      638.98401      69.691814    
+       800   0.98000145     69.83977       125            4706.6365      0             -29.648365      4676.9881      549.78082      626.84362      73.133934    
+       900   1.0526251      69.466078      125            4671.9648      0             -30.941117      4641.0237      590.52269      618.1049       62.333546    
+      1000   0.98340746     69.527121      125            4728.2894      0             -31.869907      4696.4195      551.69159      630.14208      61.392611    
+Loop time of 0.928543 on 4 procs for 1000 steps with 375 atoms
+
+Performance: 930490.137 tau/day, 1076.956 timesteps/s, 403.859 katom-step/s
+98.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.30761    | 0.34974    | 0.38864    |   4.9 | 37.67
+Bond    | 8.4633e-05 | 9.0539e-05 | 9.9184e-05 |   0.0 |  0.01
+Kspace  | 0.39038    | 0.42976    | 0.47215    |   4.4 | 46.28
+Neigh   | 0.033986   | 0.035576   | 0.036791   |   0.5 |  3.83
+Comm    | 0.10247    | 0.10324    | 0.10481    |   0.3 | 11.12
+Output  | 0.00024145 | 0.00027404 | 0.00036867 |   0.0 |  0.03
+Modify  | 0.0022402  | 0.0025068  | 0.0026343  |   0.3 |  0.27
+Other   |            | 0.007356   |            |       |  0.79
+
+Nlocal:          93.75 ave          96 max          93 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
+Nghost:        2289.75 ave        2317 max        2271 min
+Histogram: 1 1 0 0 1 0 0 0 0 1
+Neighs:        15590.2 ave       16765 max       14540 min
+Histogram: 1 0 1 0 0 1 0 0 0 1
+
+Total # of neighbors = 62361
+Ave neighs/atom = 166.296
+Ave special neighs/atom = 0
+Neighbor list builds = 64
+Dangerous builds = 0
+
+unfix           1
+
+Total wall time: 0:00:00

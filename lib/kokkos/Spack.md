@@ -159,7 +159,6 @@ If you don't specify a CUDA build variant in a `packages.yaml` and you build you
 > spack install superscience
 ````
 you may end up just getting the default Kokkos (i.e. Serial).
-Some examples are included in the `config/yaml` folder for common platforms.
 Before running `spack install <package>` we recommend running `spack spec <package>` to confirm your dependency tree is correct.
 For example, with Kokkos Kernels:
 ````bash

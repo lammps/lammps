@@ -3,12 +3,11 @@
 
 # General parameters
 
-variable	sname index Si2H6
-log		${sname}.log
+variable        sname index Si2H6
 
-units		electron
-newton		on
-boundary	f f f
+units           electron
+newton          on
+boundary        f f f
 
 atom_style      electron
 
@@ -23,7 +22,7 @@ variable        epauli equal c_energies[2]
 variable        estatics equal c_energies[3]
 variable        errestrain equal c_energies[4]
 
-comm_modify	vel yes
+comm_modify     vel yes
 
 compute         peratom all stress/atom NULL
 compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
@@ -39,12 +38,12 @@ thermo_modify   temp effTemp press effPress
 # Minimization
 
 min_style       cg
-dump            1 all xyz 2 ${sname}.min.xyz
+#dump            1 all xyz 2 ${sname}.min.xyz
 compute         1 all property/atom spin eradius erforce
-dump            2 all custom 2 ${sname}.min.lammpstrj id type q c_1[1] c_1[2] x y z fx fy fz c_1[3]
+#dump            2 all custom 2 ${sname}.min.lammpstrj id type q c_1[1] c_1[2] x y z fx fy fz c_1[3]
 min_modify      line quadratic
 minimize        0 1.0e-5 1000 10000
 
-undump		1
-undump		2
+#undump          1
+#undump          2
 

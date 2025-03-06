@@ -6,7 +6,7 @@ jump command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    jump file label
 

@@ -1,58 +1,26 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 /// \file Kokkos_Layout.hpp
 /// \brief Declaration of various \c MemoryLayout options.
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
 static_assert(false,
               "Including non-public Kokkos header files is not allowed.");
-#else
-KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
-#endif
 #endif
 #ifndef KOKKOS_LAYOUT_HPP
 #define KOKKOS_LAYOUT_HPP
@@ -84,13 +52,17 @@ struct LayoutLeft {
   using array_layout = LayoutLeft;
 
   size_t dimension[ARRAY_LAYOUT_MAX_RANK];
+  // we don't have a constructor to set the stride directly
+  // but we will deprecate the class anyway (or at least using an instance of
+  // this class) when switching the internal implementation to use mdspan
+  size_t stride;
 
   enum : bool { is_extent_constructible = true };
 
-  LayoutLeft(LayoutLeft const&) = default;
-  LayoutLeft(LayoutLeft&&)      = default;
+  LayoutLeft(LayoutLeft const&)            = default;
+  LayoutLeft(LayoutLeft&&)                 = default;
   LayoutLeft& operator=(LayoutLeft const&) = default;
-  LayoutLeft& operator=(LayoutLeft&&) = default;
+  LayoutLeft& operator=(LayoutLeft&&)      = default;
 
   KOKKOS_INLINE_FUNCTION
   explicit constexpr LayoutLeft(size_t N0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -101,7 +73,8 @@ struct LayoutLeft {
                                 size_t N5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                                 size_t N6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                                 size_t N7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG)
-      : dimension{N0, N1, N2, N3, N4, N5, N6, N7} {}
+      : dimension{N0, N1, N2, N3, N4, N5, N6, N7},
+        stride(KOKKOS_IMPL_CTOR_DEFAULT_ARG) {}
 
   friend bool operator==(const LayoutLeft& left, const LayoutLeft& right) {
     for (unsigned int rank = 0; rank < ARRAY_LAYOUT_MAX_RANK; ++rank)
@@ -133,13 +106,17 @@ struct LayoutRight {
   using array_layout = LayoutRight;
 
   size_t dimension[ARRAY_LAYOUT_MAX_RANK];
+  // we don't have a constructor to set the stride directly
+  // but we will deprecate the class anyway (or at least using an instance of
+  // this class) when switching the internal implementation to use mdspan
+  size_t stride;
 
   enum : bool { is_extent_constructible = true };
 
-  LayoutRight(LayoutRight const&) = default;
-  LayoutRight(LayoutRight&&)      = default;
+  LayoutRight(LayoutRight const&)            = default;
+  LayoutRight(LayoutRight&&)                 = default;
   LayoutRight& operator=(LayoutRight const&) = default;
-  LayoutRight& operator=(LayoutRight&&) = default;
+  LayoutRight& operator=(LayoutRight&&)      = default;
 
   KOKKOS_INLINE_FUNCTION
   explicit constexpr LayoutRight(size_t N0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -150,7 +127,8 @@ struct LayoutRight {
                                  size_t N5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                                  size_t N6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                                  size_t N7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG)
-      : dimension{N0, N1, N2, N3, N4, N5, N6, N7} {}
+      : dimension{N0, N1, N2, N3, N4, N5, N6, N7},
+        stride{KOKKOS_IMPL_CTOR_DEFAULT_ARG} {}
 
   friend bool operator==(const LayoutRight& left, const LayoutRight& right) {
     for (unsigned int rank = 0; rank < ARRAY_LAYOUT_MAX_RANK; ++rank)
@@ -176,10 +154,10 @@ struct LayoutStride {
 
   enum : bool { is_extent_constructible = false };
 
-  LayoutStride(LayoutStride const&) = default;
-  LayoutStride(LayoutStride&&)      = default;
+  LayoutStride(LayoutStride const&)            = default;
+  LayoutStride(LayoutStride&&)                 = default;
   LayoutStride& operator=(LayoutStride const&) = default;
-  LayoutStride& operator=(LayoutStride&&) = default;
+  LayoutStride& operator=(LayoutStride&&)      = default;
 
   /** \brief  Compute strides from ordered dimensions.
    *
@@ -223,8 +201,8 @@ struct LayoutStride {
       size_t N5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG, size_t S5 = 0,
       size_t N6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG, size_t S6 = 0,
       size_t N7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG, size_t S7 = 0)
-      : dimension{N0, N1, N2, N3, N4, N5, N6, N7}, stride{S0, S1, S2, S3,
-                                                          S4, S5, S6, S7} {}
+      : dimension{N0, N1, N2, N3, N4, N5, N6, N7},
+        stride{S0, S1, S2, S3, S4, S5, S6, S7} {}
 
   friend bool operator==(const LayoutStride& left, const LayoutStride& right) {
     for (unsigned int rank = 0; rank < ARRAY_LAYOUT_MAX_RANK; ++rank)
@@ -249,81 +227,12 @@ enum class Iterate {
   Right  // Right indices stride fastest
 };
 
-// To check for LayoutTiled
-// This is to hide extra compile-time 'identifier' info within the LayoutTiled
-// class by not relying on template specialization to include the ArgN*'s
-template <typename LayoutTiledCheck, class Enable = void>
-struct is_layouttiled : std::false_type {};
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+template <typename Layout, class Enable = void>
+struct KOKKOS_DEPRECATED is_layouttiled : std::false_type {};
+#endif
 
-template <typename LayoutTiledCheck>
-struct is_layouttiled<LayoutTiledCheck,
-                      std::enable_if_t<LayoutTiledCheck::is_array_layout_tiled>>
-    : std::true_type {};
-
-namespace Experimental {
-
-/// LayoutTiled
-// Must have Rank >= 2
-template <
-    Kokkos::Iterate OuterP, Kokkos::Iterate InnerP, unsigned ArgN0,
-    unsigned ArgN1, unsigned ArgN2 = 0, unsigned ArgN3 = 0, unsigned ArgN4 = 0,
-    unsigned ArgN5 = 0, unsigned ArgN6 = 0, unsigned ArgN7 = 0,
-    bool IsPowerOfTwo =
-        (Kokkos::Impl::is_integral_power_of_two(ArgN0) &&
-         Kokkos::Impl::is_integral_power_of_two(ArgN1) &&
-         (Kokkos::Impl::is_integral_power_of_two(ArgN2) || (ArgN2 == 0)) &&
-         (Kokkos::Impl::is_integral_power_of_two(ArgN3) || (ArgN3 == 0)) &&
-         (Kokkos::Impl::is_integral_power_of_two(ArgN4) || (ArgN4 == 0)) &&
-         (Kokkos::Impl::is_integral_power_of_two(ArgN5) || (ArgN5 == 0)) &&
-         (Kokkos::Impl::is_integral_power_of_two(ArgN6) || (ArgN6 == 0)) &&
-         (Kokkos::Impl::is_integral_power_of_two(ArgN7) || (ArgN7 == 0)))>
-struct LayoutTiled {
-  static_assert(IsPowerOfTwo,
-                "LayoutTiled must be given power-of-two tile dimensions");
-
-  using array_layout = LayoutTiled<OuterP, InnerP, ArgN0, ArgN1, ArgN2, ArgN3,
-                                   ArgN4, ArgN5, ArgN6, ArgN7, IsPowerOfTwo>;
-  static constexpr Iterate outer_pattern = OuterP;
-  static constexpr Iterate inner_pattern = InnerP;
-
-  enum { N0 = ArgN0 };
-  enum { N1 = ArgN1 };
-  enum { N2 = ArgN2 };
-  enum { N3 = ArgN3 };
-  enum { N4 = ArgN4 };
-  enum { N5 = ArgN5 };
-  enum { N6 = ArgN6 };
-  enum { N7 = ArgN7 };
-
-  size_t dimension[ARRAY_LAYOUT_MAX_RANK];
-
-  enum : bool { is_extent_constructible = true };
-
-  LayoutTiled(LayoutTiled const&) = default;
-  LayoutTiled(LayoutTiled&&)      = default;
-  LayoutTiled& operator=(LayoutTiled const&) = default;
-  LayoutTiled& operator=(LayoutTiled&&) = default;
-
-  KOKKOS_INLINE_FUNCTION
-  explicit constexpr LayoutTiled(size_t argN0 = 0, size_t argN1 = 0,
-                                 size_t argN2 = 0, size_t argN3 = 0,
-                                 size_t argN4 = 0, size_t argN5 = 0,
-                                 size_t argN6 = 0, size_t argN7 = 0)
-      : dimension{argN0, argN1, argN2, argN3, argN4, argN5, argN6, argN7} {}
-
-  friend bool operator==(const LayoutTiled& left, const LayoutTiled& right) {
-    for (unsigned int rank = 0; rank < ARRAY_LAYOUT_MAX_RANK; ++rank)
-      if (left.dimension[rank] != right.dimension[rank]) return false;
-    return true;
-  }
-
-  friend bool operator!=(const LayoutTiled& left, const LayoutTiled& right) {
-    return !(left == right);
-  }
-};
-
-}  // namespace Experimental
-
+namespace Impl {
 // For use with view_copy
 template <typename... Layout>
 struct layout_iterate_type_selector {
@@ -352,42 +261,13 @@ struct layout_iterate_type_selector<Kokkos::LayoutStride> {
   static const Kokkos::Iterate inner_iteration_pattern =
       Kokkos::Iterate::Default;
 };
+}  // namespace Impl
 
-template <unsigned ArgN0, unsigned ArgN1, unsigned ArgN2, unsigned ArgN3,
-          unsigned ArgN4, unsigned ArgN5, unsigned ArgN6, unsigned ArgN7>
-struct layout_iterate_type_selector<Kokkos::Experimental::LayoutTiled<
-    Kokkos::Iterate::Left, Kokkos::Iterate::Left, ArgN0, ArgN1, ArgN2, ArgN3,
-    ArgN4, ArgN5, ArgN6, ArgN7, true>> {
-  static const Kokkos::Iterate outer_iteration_pattern = Kokkos::Iterate::Left;
-  static const Kokkos::Iterate inner_iteration_pattern = Kokkos::Iterate::Left;
-};
-
-template <unsigned ArgN0, unsigned ArgN1, unsigned ArgN2, unsigned ArgN3,
-          unsigned ArgN4, unsigned ArgN5, unsigned ArgN6, unsigned ArgN7>
-struct layout_iterate_type_selector<Kokkos::Experimental::LayoutTiled<
-    Kokkos::Iterate::Right, Kokkos::Iterate::Left, ArgN0, ArgN1, ArgN2, ArgN3,
-    ArgN4, ArgN5, ArgN6, ArgN7, true>> {
-  static const Kokkos::Iterate outer_iteration_pattern = Kokkos::Iterate::Right;
-  static const Kokkos::Iterate inner_iteration_pattern = Kokkos::Iterate::Left;
-};
-
-template <unsigned ArgN0, unsigned ArgN1, unsigned ArgN2, unsigned ArgN3,
-          unsigned ArgN4, unsigned ArgN5, unsigned ArgN6, unsigned ArgN7>
-struct layout_iterate_type_selector<Kokkos::Experimental::LayoutTiled<
-    Kokkos::Iterate::Left, Kokkos::Iterate::Right, ArgN0, ArgN1, ArgN2, ArgN3,
-    ArgN4, ArgN5, ArgN6, ArgN7, true>> {
-  static const Kokkos::Iterate outer_iteration_pattern = Kokkos::Iterate::Left;
-  static const Kokkos::Iterate inner_iteration_pattern = Kokkos::Iterate::Right;
-};
-
-template <unsigned ArgN0, unsigned ArgN1, unsigned ArgN2, unsigned ArgN3,
-          unsigned ArgN4, unsigned ArgN5, unsigned ArgN6, unsigned ArgN7>
-struct layout_iterate_type_selector<Kokkos::Experimental::LayoutTiled<
-    Kokkos::Iterate::Right, Kokkos::Iterate::Right, ArgN0, ArgN1, ArgN2, ArgN3,
-    ArgN4, ArgN5, ArgN6, ArgN7, true>> {
-  static const Kokkos::Iterate outer_iteration_pattern = Kokkos::Iterate::Right;
-  static const Kokkos::Iterate inner_iteration_pattern = Kokkos::Iterate::Right;
-};
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+template <typename... Layout>
+using layout_iterate_type_selector KOKKOS_DEPRECATED =
+    Impl::layout_iterate_type_selector<Layout...>;
+#endif
 
 }  // namespace Kokkos
 

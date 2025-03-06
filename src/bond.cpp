@@ -20,6 +20,7 @@
 #include "force.h"
 #include "memory.h"
 #include "neighbor.h"
+#include "safe_pointers.h"
 #include "suffix.h"
 #include "update.h"
 
@@ -36,12 +37,13 @@ int Bond::instance_total = 0;
    a particular bond style can override this
 ------------------------------------------------------------------------- */
 
-Bond::Bond(LAMMPS *_lmp) : Pointers(_lmp)
+Bond::Bond(LAMMPS *_lmp) :
+    Pointers(_lmp), setflag(nullptr), virial{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, eatom(nullptr),
+    vatom(nullptr), svector(nullptr)
 {
   instance_me = instance_total++;
 
   energy = 0.0;
-  virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
   writedata = 1;
   reinitflag = 1;
 
@@ -53,18 +55,13 @@ Bond::Bond(LAMMPS *_lmp) : Pointers(_lmp)
   partial_flag = 0;
 
   single_extra = 0;
-  svector = nullptr;
 
   maxeatom = maxvatom = 0;
-  eatom = nullptr;
-  vatom = nullptr;
-  setflag = nullptr;
 
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
-
-  copymode = 0;
+  copymode = kokkosable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -369,7 +366,7 @@ void Bond::write_file(int narg, char **arg)
   // add line with DATE: and UNITS: tag when creating new file
   // print header in format used by bond_style table
 
-  FILE *fp = nullptr;
+  SafeFilePtr fp;
   if (comm->me == 0) {
     std::string table_file = arg[4];
 
@@ -392,7 +389,7 @@ void Bond::write_file(int narg, char **arg)
                      utils::current_date());
       fp = fopen(table_file.c_str(), "w");
       if (fp)
-        fmt::print(fp, "# DATE: {} UNITS: {} Created by bond_write\n", utils::current_date(),
+        utils::print(fp, "# DATE: {} UNITS: {} Created by bond_write\n", utils::current_date(),
                    update->unit_style);
     }
     if (fp == nullptr)
@@ -423,7 +420,6 @@ void Bond::write_file(int narg, char **arg)
       e = single(btype, r * r, itype, jtype, f);
       fprintf(fp, "%8d %- 22.15g %- 22.15g %- 22.15g\n", i + 1, r, e, f * r);
     }
-    fclose(fp);
   }
 }
 

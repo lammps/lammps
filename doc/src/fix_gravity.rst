@@ -10,7 +10,7 @@ Accelerator Variants: *gravity/omp*, *gravity/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group gravity magnitude style args
 

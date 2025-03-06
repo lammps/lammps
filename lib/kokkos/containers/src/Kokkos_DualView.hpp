@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 /// \file Kokkos_DualView.hpp
 /// \brief Declaration and definition of Kokkos::DualView.
@@ -114,22 +86,57 @@ inline const Kokkos::Cuda& get_cuda_space(const NonCudaExecSpace&) {
 #endif  // KOKKOS_ENABLE_CUDA
 
 }  // namespace Impl
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
 template <class DataType, class Arg1Type = void, class Arg2Type = void,
           class Arg3Type = void>
+class DualView;
+#else
+template <class DataType, class... Properties>
+class DualView;
+#endif
+
+template <class>
+struct is_dual_view : public std::false_type {};
+
+template <class DT, class... DP>
+struct is_dual_view<DualView<DT, DP...>> : public std::true_type {};
+
+template <class DT, class... DP>
+struct is_dual_view<const DualView<DT, DP...>> : public std::true_type {};
+
+template <class T>
+inline constexpr bool is_dual_view_v = is_dual_view<T>::value;
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+template <class DataType, class Arg1Type, class Arg2Type, class Arg3Type>
 class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   template <class, class, class, class>
+#else
+template <class DataType, class... Properties>
+class DualView : public ViewTraits<DataType, Properties...> {
+  template <class, class...>
+#endif
   friend class DualView;
 
  public:
   //! \name Typedefs for device types and various Kokkos::View specializations.
   //@{
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   using traits = ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type>;
+#else
+  using traits      = ViewTraits<DataType, Properties...>;
+#endif
 
   //! The Kokkos Host Device type;
   using host_mirror_space = typename traits::host_mirror_space;
 
   //! The type of a Kokkos::View on the device.
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   using t_dev = View<typename traits::data_type, Arg1Type, Arg2Type, Arg3Type>;
+#else
+  using t_dev       = View<typename traits::data_type, Properties...>;
+#endif
 
   /// \typedef t_host
   /// \brief The type of a Kokkos::View host mirror of \c t_dev.
@@ -137,8 +144,12 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
 
   //! The type of a const View on the device.
   //! The type of a Kokkos::View on the device.
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   using t_dev_const =
       View<typename traits::const_data_type, Arg1Type, Arg2Type, Arg3Type>;
+#else
+  using t_dev_const = View<typename traits::const_data_type, Properties...>;
+#endif
 
   /// \typedef t_host_const
   /// \brief The type of a const View host mirror of \c t_dev_const.
@@ -264,25 +275,41 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
            const size_t n5                   = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
            const size_t n6                   = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
            const size_t n7                   = KOKKOS_IMPL_CTOR_DEFAULT_ARG)
-      : modified_flags(t_modified_flags("DualView::modified_flags")),
-        d_view(arg_prop, n0, n1, n2, n3, n4, n5, n6, n7) {
-    // without UVM, host View mirrors
-    if (Kokkos::Impl::has_type<Impl::WithoutInitializing_t, P...>::value)
-      h_view = Kokkos::create_mirror_view(Kokkos::WithoutInitializing, d_view);
-    else
-      h_view = Kokkos::create_mirror_view(d_view);
+      : modified_flags(t_modified_flags("DualView::modified_flags")) {
+    if constexpr (Impl::ViewCtorProp<P...>::sequential_host_init) {
+      h_view = t_host(arg_prop, n0, n1, n2, n3, n4, n5, n6, n7);
+      static_assert(Impl::ViewCtorProp<P...>::initialize,
+                    "DualView: SequentialHostInit isn't compatible with "
+                    "WithoutInitializing!");
+      static_assert(!Impl::ViewCtorProp<P...>::has_execution_space,
+                    "DualView: SequentialHostInit isn't compatible with "
+                    "providing an execution space instance!");
+
+      d_view = Kokkos::create_mirror_view_and_copy(
+          typename traits::memory_space{}, h_view);
+    } else {
+      d_view = t_dev(arg_prop, n0, n1, n2, n3, n4, n5, n6, n7);
+
+      // without UVM, host View mirrors
+      if constexpr (Kokkos::Impl::has_type<Impl::WithoutInitializing_t,
+                                           P...>::value)
+        h_view =
+            Kokkos::create_mirror_view(Kokkos::WithoutInitializing, d_view);
+      else
+        h_view = Kokkos::create_mirror_view(d_view);
+    }
   }
 
   //! Copy constructor (shallow copy)
-  template <class SS, class LS, class DS, class MS>
-  DualView(const DualView<SS, LS, DS, MS>& src)
+  template <typename DT, typename... DP>
+  DualView(const DualView<DT, DP...>& src)
       : modified_flags(src.modified_flags),
         d_view(src.d_view),
         h_view(src.h_view) {}
 
   //! Subview constructor
-  template <class SD, class S1, class S2, class S3, class Arg0, class... Args>
-  DualView(const DualView<SD, S1, S2, S3>& src, const Arg0& arg0, Args... args)
+  template <class DT, class... DP, class Arg0, class... Args>
+  DualView(const DualView<DT, DP...>& src, const Arg0& arg0, Args... args)
       : modified_flags(src.modified_flags),
         d_view(Kokkos::subview(src.d_view, arg0, args...)),
         h_view(Kokkos::subview(src.h_view, arg0, args...)) {}
@@ -326,23 +353,21 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   // does the DualView have only one device
   struct impl_dualview_is_single_device {
     enum : bool {
-      value = std::is_same<typename t_dev::device_type,
-                           typename t_host::device_type>::value
+      value = std::is_same_v<typename t_dev::device_type,
+                             typename t_host::device_type>
     };
   };
 
   // does the given device match the device of t_dev?
   template <typename Device>
   struct impl_device_matches_tdev_device {
-    enum : bool {
-      value = std::is_same<typename t_dev::device_type, Device>::value
-    };
+    enum : bool { value = std::is_same_v<typename t_dev::device_type, Device> };
   };
   // does the given device match the device of t_host?
   template <typename Device>
   struct impl_device_matches_thost_device {
     enum : bool {
-      value = std::is_same<typename t_host::device_type, Device>::value
+      value = std::is_same_v<typename t_host::device_type, Device>
     };
   };
 
@@ -350,7 +375,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   template <typename Device>
   struct impl_device_matches_thost_exec {
     enum : bool {
-      value = std::is_same<typename t_host::execution_space, Device>::value
+      value = std::is_same_v<typename t_host::execution_space, Device>
     };
   };
 
@@ -358,7 +383,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   template <typename Device>
   struct impl_device_matches_tdev_exec {
     enum : bool {
-      value = std::is_same<typename t_dev::execution_space, Device>::value
+      value = std::is_same_v<typename t_dev::execution_space, Device>
     };
   };
 
@@ -366,8 +391,8 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   template <typename Device>
   struct impl_device_matches_tdev_memory_space {
     enum : bool {
-      value = std::is_same<typename t_dev::memory_space,
-                           typename Device::memory_space>::value
+      value = std::is_same_v<typename t_dev::memory_space,
+                             typename Device::memory_space>
     };
   };
 
@@ -376,11 +401,6 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   //@{
 
   /// \brief Return a View on a specific device \c Device.
-  ///
-  /// Please don't be afraid of the nested if_c expressions in the return
-  /// value's type.  That just tells the method what the return type
-  /// should be: t_dev if the \c Device template parameter matches
-  /// this DualView's device type, else t_host.
   ///
   /// For example, suppose you create a DualView on Cuda, like this:
   /// \code
@@ -398,56 +418,47 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   ///   typename dual_view_type::t_host hostView = DV.view<host_device_type> ();
   /// \endcode
   template <class Device>
-  KOKKOS_INLINE_FUNCTION const typename std::conditional_t<
-      impl_device_matches_tdev_device<Device>::value, t_dev,
-      typename std::conditional_t<
-          impl_device_matches_thost_device<Device>::value, t_host,
-          typename std::conditional_t<
-              impl_device_matches_thost_exec<Device>::value, t_host,
-              typename std::conditional_t<
-                  impl_device_matches_tdev_exec<Device>::value, t_dev,
-                  typename std::conditional_t<
-                      impl_device_matches_tdev_memory_space<Device>::value,
-                      t_dev, t_host>>>>>
-  view() const {
-    constexpr bool device_is_memspace =
-        std::is_same<Device, typename Device::memory_space>::value;
-    constexpr bool device_is_execspace =
-        std::is_same<Device, typename Device::execution_space>::value;
-    constexpr bool device_exec_is_t_dev_exec =
-        std::is_same<typename Device::execution_space,
-                     typename t_dev::execution_space>::value;
-    constexpr bool device_mem_is_t_dev_mem =
-        std::is_same<typename Device::memory_space,
-                     typename t_dev::memory_space>::value;
-    constexpr bool device_exec_is_t_host_exec =
-        std::is_same<typename Device::execution_space,
-                     typename t_host::execution_space>::value;
-    constexpr bool device_mem_is_t_host_mem =
-        std::is_same<typename Device::memory_space,
-                     typename t_host::memory_space>::value;
-    constexpr bool device_is_t_host_device =
-        std::is_same<typename Device::execution_space,
-                     typename t_host::device_type>::value;
-    constexpr bool device_is_t_dev_device =
-        std::is_same<typename Device::memory_space,
-                     typename t_host::device_type>::value;
-
-    static_assert(
-        device_is_t_dev_device || device_is_t_host_device ||
-            (device_is_memspace &&
-             (device_mem_is_t_dev_mem || device_mem_is_t_host_mem)) ||
-            (device_is_execspace &&
-             (device_exec_is_t_dev_exec || device_exec_is_t_host_exec)) ||
-            ((!device_is_execspace && !device_is_memspace) &&
-             ((device_mem_is_t_dev_mem || device_mem_is_t_host_mem) ||
-              (device_exec_is_t_dev_exec || device_exec_is_t_host_exec))),
-        "Template parameter to .view() must exactly match one of the "
-        "DualView's device types or one of the execution or memory spaces");
-
-    return Impl::if_c<std::is_same<typename t_dev::memory_space,
-                                   typename Device::memory_space>::value,
-                      t_dev, t_host>::select(d_view, h_view);
+  KOKKOS_FUNCTION auto view() const {
+    if constexpr (std::is_same_v<Device, typename Device::memory_space>) {
+      if constexpr (std::is_same_v<typename Device::memory_space,
+                                   typename t_dev::memory_space>) {
+        return d_view;
+      } else {
+        static_assert(std::is_same_v<typename Device::memory_space,
+                                     typename t_host::memory_space>,
+                      "The template argument is a memory space but doesn't "
+                      "match either of DualView's memory spaces!");
+        return h_view;
+      }
+    } else {
+      if constexpr (std::is_same_v<Device, typename Device::execution_space>) {
+        if constexpr (std::is_same_v<typename Device::execution_space,
+                                     typename t_dev::execution_space>) {
+          return d_view;
+        } else {
+          static_assert(std::is_same_v<typename Device::execution_space,
+                                       typename t_host::execution_space>,
+                        "The template argument is an execution space but "
+                        "doesn't match either of DualView's execution spaces!");
+          return h_view;
+        }
+      } else {
+        static_assert(std::is_same_v<Device, typename Device::device_type>,
+                      "The template argument is neither a memory space, "
+                      "execution space, or device!");
+        if constexpr (std::is_same_v<Device, typename t_dev::device_type>)
+          return d_view;
+        else {
+          static_assert(std::is_same_v<Device, typename t_host::device_type>,
+                        "The template argument is a device but "
+                        "doesn't match either of DualView's devices!");
+          return h_view;
+        }
+      }
+    }
+#ifdef KOKKOS_COMPILER_INTEL
+    __builtin_unreachable();
+#endif
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -463,27 +474,27 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   template <class Device>
   static int get_device_side() {
     constexpr bool device_is_memspace =
-        std::is_same<Device, typename Device::memory_space>::value;
+        std::is_same_v<Device, typename Device::memory_space>;
     constexpr bool device_is_execspace =
-        std::is_same<Device, typename Device::execution_space>::value;
+        std::is_same_v<Device, typename Device::execution_space>;
     constexpr bool device_exec_is_t_dev_exec =
-        std::is_same<typename Device::execution_space,
-                     typename t_dev::execution_space>::value;
+        std::is_same_v<typename Device::execution_space,
+                       typename t_dev::execution_space>;
     constexpr bool device_mem_is_t_dev_mem =
-        std::is_same<typename Device::memory_space,
-                     typename t_dev::memory_space>::value;
+        std::is_same_v<typename Device::memory_space,
+                       typename t_dev::memory_space>;
     constexpr bool device_exec_is_t_host_exec =
-        std::is_same<typename Device::execution_space,
-                     typename t_host::execution_space>::value;
+        std::is_same_v<typename Device::execution_space,
+                       typename t_host::execution_space>;
     constexpr bool device_mem_is_t_host_mem =
-        std::is_same<typename Device::memory_space,
-                     typename t_host::memory_space>::value;
+        std::is_same_v<typename Device::memory_space,
+                       typename t_host::memory_space>;
     constexpr bool device_is_t_host_device =
-        std::is_same<typename Device::execution_space,
-                     typename t_host::device_type>::value;
+        std::is_same_v<typename Device::execution_space,
+                       typename t_host::device_type>;
     constexpr bool device_is_t_dev_device =
-        std::is_same<typename Device::memory_space,
-                     typename t_host::device_type>::value;
+        std::is_same_v<typename Device::memory_space,
+                       typename t_host::device_type>;
 
     static_assert(
         device_is_t_dev_device || device_is_t_host_device ||
@@ -604,8 +615,8 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
         impl_report_host_sync();
       }
     }
-    if (std::is_same<typename t_host::memory_space,
-                     typename t_dev::memory_space>::value) {
+    if constexpr (std::is_same<typename t_host::memory_space,
+                               typename t_dev::memory_space>::value) {
       typename t_dev::execution_space().fence(
           "Kokkos::DualView<>::sync: fence after syncing DualView");
       typename t_host::execution_space().fence(
@@ -615,9 +626,9 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
 
   template <class Device>
   void sync(const std::enable_if_t<
-                (std::is_same<typename traits::data_type,
-                              typename traits::non_const_data_type>::value) ||
-                    (std::is_same<Device, int>::value),
+                (std::is_same_v<typename traits::data_type,
+                                typename traits::non_const_data_type>) ||
+                    (std::is_same_v<Device, int>),
                 int>& = 0) {
     sync_impl<Device>(std::true_type{});
   }
@@ -625,9 +636,9 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   template <class Device, class ExecutionSpace>
   void sync(const ExecutionSpace& exec,
             const std::enable_if_t<
-                (std::is_same<typename traits::data_type,
-                              typename traits::non_const_data_type>::value) ||
-                    (std::is_same<Device, int>::value),
+                (std::is_same_v<typename traits::data_type,
+                                typename traits::non_const_data_type>) ||
+                    (std::is_same_v<Device, int>),
                 int>& = 0) {
     sync_impl<Device>(std::true_type{}, exec);
   }
@@ -657,18 +668,18 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
 
   template <class Device>
   void sync(const std::enable_if_t<
-                (!std::is_same<typename traits::data_type,
-                               typename traits::non_const_data_type>::value) ||
-                    (std::is_same<Device, int>::value),
+                (!std::is_same_v<typename traits::data_type,
+                                 typename traits::non_const_data_type>) ||
+                    (std::is_same_v<Device, int>),
                 int>& = 0) {
     sync_impl<Device>(std::false_type{});
   }
   template <class Device, class ExecutionSpace>
   void sync(const ExecutionSpace& exec,
             const std::enable_if_t<
-                (!std::is_same<typename traits::data_type,
-                               typename traits::non_const_data_type>::value) ||
-                    (std::is_same<Device, int>::value),
+                (!std::is_same_v<typename traits::data_type,
+                                 typename traits::non_const_data_type>) ||
+                    (std::is_same_v<Device, int>),
                 int>& = 0) {
     sync_impl<Device>(std::false_type{}, exec);
   }
@@ -931,28 +942,26 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
         Impl::size_mismatch(h_view, h_view.rank_dynamic, new_extents);
 
     if (sizeMismatch) {
-      ::Kokkos::realloc(arg_prop, d_view, n0, n1, n2, n3, n4, n5, n6, n7);
-      if (alloc_prop_input::initialize) {
-        h_view = create_mirror_view(typename t_host::memory_space(), d_view);
+      if constexpr (alloc_prop_input::sequential_host_init) {
+        static_assert(alloc_prop_input::initialize,
+                      "DualView: SequentialHostInit isn't compatible with "
+                      "WithoutInitializing!");
+        ::Kokkos::realloc(arg_prop, h_view, n0, n1, n2, n3, n4, n5, n6, n7);
+        d_view =
+            create_mirror_view_and_copy(typename t_dev::memory_space(), h_view);
       } else {
-        h_view = create_mirror_view(Kokkos::WithoutInitializing,
-                                    typename t_host::memory_space(), d_view);
+        ::Kokkos::realloc(arg_prop, d_view, n0, n1, n2, n3, n4, n5, n6, n7);
+        if constexpr (alloc_prop_input::initialize) {
+          h_view = create_mirror_view(typename t_host::memory_space(), d_view);
+        } else {
+          h_view = create_mirror_view(Kokkos::WithoutInitializing,
+                                      typename t_host::memory_space(), d_view);
+        }
       }
-    } else if (alloc_prop_input::initialize) {
-      if (alloc_prop_input::has_execution_space) {
-        // Add execution_space if not provided to avoid need for if constexpr
-        using alloc_prop = Impl::ViewCtorProp<
-            ViewCtorArgs...,
-            std::conditional_t<alloc_prop_input::has_execution_space,
-                               std::integral_constant<unsigned int, 2>,
-                               typename t_dev::execution_space>>;
-        alloc_prop arg_prop_copy(arg_prop);
-        using execution_space_type = typename alloc_prop::execution_space;
-        const execution_space_type& exec_space =
-            static_cast<
-                Kokkos::Impl::ViewCtorProp<void, execution_space_type> const&>(
-                arg_prop_copy)
-                .value;
+    } else if constexpr (alloc_prop_input::initialize) {
+      if constexpr (alloc_prop_input::has_execution_space) {
+        const auto& exec_space =
+            Impl::get_property<Impl::ExecutionSpaceTag>(arg_prop);
         ::Kokkos::deep_copy(exec_space, d_view, typename t_dev::value_type{});
       } else
         ::Kokkos::deep_copy(d_view, typename t_dev::value_type{});
@@ -1032,38 +1041,113 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
     if (modified_flags.data() == nullptr) {
       modified_flags = t_modified_flags("DualView::modified_flags");
     }
-    if (modified_flags(1) >= modified_flags(0)) {
+
+    [[maybe_unused]] auto resize_on_device = [&](const auto& properties) {
       /* Resize on Device */
       if (sizeMismatch) {
-        ::Kokkos::resize(arg_prop, d_view, n0, n1, n2, n3, n4, n5, n6, n7);
-        if (alloc_prop_input::initialize) {
-          h_view = create_mirror_view(typename t_host::memory_space(), d_view);
-        } else {
-          h_view = create_mirror_view(Kokkos::WithoutInitializing,
-                                      typename t_host::memory_space(), d_view);
-        }
+        ::Kokkos::resize(properties, d_view, n0, n1, n2, n3, n4, n5, n6, n7);
+        // this part of the lambda was relocated in a method as it contains a
+        // `if constexpr`. In some cases, both branches were evaluated
+        // leading to a compile error
+        resync_host(properties);
 
         /* Mark Device copy as modified */
         ++modified_flags(1);
       }
-    } else {
+    };
+
+    [[maybe_unused]] auto resize_on_host = [&](const auto& properties) {
       /* Resize on Host */
       if (sizeMismatch) {
-        ::Kokkos::resize(arg_prop, h_view, n0, n1, n2, n3, n4, n5, n6, n7);
-        if (alloc_prop_input::initialize) {
-          d_view = create_mirror_view(typename t_dev::memory_space(), h_view);
-
-        } else {
-          d_view = create_mirror_view(Kokkos::WithoutInitializing,
-                                      typename t_dev::memory_space(), h_view);
-        }
+        ::Kokkos::resize(properties, h_view, n0, n1, n2, n3, n4, n5, n6, n7);
+        // this part of the lambda was relocated in a method as it contains a
+        // `if constexpr`. In some cases, both branches were evaluated
+        // leading to a compile error
+        resync_device(properties);
 
         /* Mark Host copy as modified */
         ++modified_flags(0);
       }
+    };
+
+    if constexpr (alloc_prop_input::sequential_host_init) {
+      static_assert(alloc_prop_input::initialize,
+                    "DualView: SequentialHostInit isn't compatible with "
+                    "WithoutInitializing!");
+      static_assert(!alloc_prop_input::has_execution_space,
+                    "DualView: SequentialHostInit isn't compatible with "
+                    "providing an execution space instance!");
+
+      if (sizeMismatch) {
+        sync<typename t_host::memory_space>();
+        ::Kokkos::resize(arg_prop, h_view, n0, n1, n2, n3, n4, n5, n6, n7);
+        d_view =
+            create_mirror_view_and_copy(typename t_dev::memory_space(), h_view);
+      }
+      return;
+    } else if constexpr (alloc_prop_input::has_execution_space) {
+      using ExecSpace = typename alloc_prop_input::execution_space;
+      const auto& exec_space =
+          Impl::get_property<Impl::ExecutionSpaceTag>(arg_prop);
+      constexpr bool exec_space_can_access_device =
+          SpaceAccessibility<ExecSpace,
+                             typename t_dev::memory_space>::accessible;
+      constexpr bool exec_space_can_access_host =
+          SpaceAccessibility<ExecSpace,
+                             typename t_host::memory_space>::accessible;
+      static_assert(exec_space_can_access_device || exec_space_can_access_host);
+      if constexpr (exec_space_can_access_device) {
+        sync<typename t_dev::memory_space>(exec_space);
+        resize_on_device(arg_prop);
+        return;
+      }
+      if constexpr (exec_space_can_access_host) {
+        sync<typename t_host::memory_space>(exec_space);
+        resize_on_host(arg_prop);
+        return;
+      }
+    } else {
+      if (modified_flags(1) >= modified_flags(0)) {
+        resize_on_device(arg_prop);
+      } else {
+        resize_on_host(arg_prop);
+      }
     }
   }
 
+ private:
+  // resync host mirror from device
+  // this code was relocated from a lambda as it contains a `if constexpr`.
+  // In some cases, both branches were evaluated, leading to a compile error
+  template <class... ViewCtorArgs>
+  inline void resync_host(Impl::ViewCtorProp<ViewCtorArgs...> const&) {
+    using alloc_prop_input = Impl::ViewCtorProp<ViewCtorArgs...>;
+
+    if constexpr (alloc_prop_input::initialize) {
+      h_view = create_mirror_view(typename t_host::memory_space(), d_view);
+    } else {
+      h_view = create_mirror_view(Kokkos::WithoutInitializing,
+                                  typename t_host::memory_space(), d_view);
+    }
+  }
+
+  // resync device mirror from host
+  // this code was relocated from a lambda as it contains a `if constexpr`
+  // In some cases, both branches were evaluated leading to a compile error
+  template <class... ViewCtorArgs>
+  inline void resync_device(Impl::ViewCtorProp<ViewCtorArgs...> const&) {
+    using alloc_prop_input = Impl::ViewCtorProp<ViewCtorArgs...>;
+
+    if constexpr (alloc_prop_input::initialize) {
+      d_view = create_mirror_view(typename t_dev::memory_space(), h_view);
+
+    } else {
+      d_view = create_mirror_view(Kokkos::WithoutInitializing,
+                                  typename t_dev::memory_space(), h_view);
+    }
+  }
+
+ public:
   void resize(const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
               const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
               const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -1119,15 +1203,15 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   }
 
   template <typename iType>
-  KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<
-      std::is_integral<iType>::value, size_t>
+  KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<std::is_integral_v<iType>,
+                                                    size_t>
   extent(const iType& r) const {
     return d_view.extent(r);
   }
 
   template <typename iType>
-  KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<
-      std::is_integral<iType>::value, int>
+  KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<std::is_integral_v<iType>,
+                                                    int>
   extent_int(const iType& r) const {
     return static_cast<int>(d_view.extent(r));
   }
@@ -1146,23 +1230,24 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
 namespace Kokkos {
 namespace Impl {
 
-template <class D, class A1, class A2, class A3, class... Args>
-struct DualViewSubview {
-  using dst_traits = typename Kokkos::Impl::ViewMapping<
-      void, Kokkos::ViewTraits<D, A1, A2, A3>, Args...>::traits_type;
+template <class V>
+struct V2DV;
 
-  using type = Kokkos::DualView<
-      typename dst_traits::data_type, typename dst_traits::array_layout,
-      typename dst_traits::device_type, typename dst_traits::memory_traits>;
+template <class D, class... P>
+struct V2DV<View<D, P...>> {
+  using type = DualView<D, P...>;
 };
-
 } /* namespace Impl */
 
-template <class D, class A1, class A2, class A3, class... Args>
-typename Impl::DualViewSubview<D, A1, A2, A3, Args...>::type subview(
-    const DualView<D, A1, A2, A3>& src, Args... args) {
-  return typename Impl::DualViewSubview<D, A1, A2, A3, Args...>::type(src,
-                                                                      args...);
+template <class DataType, class... Properties, class... Args>
+auto subview(const DualView<DataType, Properties...>& src, Args&&... args) {
+  // leverage Kokkos::View facilities to deduce the properties of the subview
+  using deduce_subview_type =
+      decltype(subview(std::declval<View<DataType, Properties...>>(),
+                       std::forward<Args>(args)...));
+  // map it back to dual view
+  return typename Impl::V2DV<deduce_subview_type>::type(
+      src, std::forward<Args>(args)...);
 }
 
 } /* namespace Kokkos */
@@ -1176,11 +1261,8 @@ namespace Kokkos {
 // Partial specialization of Kokkos::deep_copy() for DualView objects.
 //
 
-template <class DT, class DL, class DD, class DM, class ST, class SL, class SD,
-          class SM>
-void deep_copy(
-    DualView<DT, DL, DD, DM> dst,  // trust me, this must not be a reference
-    const DualView<ST, SL, SD, SM>& src) {
+template <class DT, class... DP, class ST, class... SP>
+void deep_copy(DualView<DT, DP...>& dst, const DualView<ST, SP...>& src) {
   if (src.need_sync_device()) {
     deep_copy(dst.h_view, src.h_view);
     dst.modify_host();
@@ -1190,12 +1272,9 @@ void deep_copy(
   }
 }
 
-template <class ExecutionSpace, class DT, class DL, class DD, class DM,
-          class ST, class SL, class SD, class SM>
-void deep_copy(
-    const ExecutionSpace& exec,
-    DualView<DT, DL, DD, DM> dst,  // trust me, this must not be a reference
-    const DualView<ST, SL, SD, SM>& src) {
+template <class ExecutionSpace, class DT, class... DP, class ST, class... SP>
+void deep_copy(const ExecutionSpace& exec, DualView<DT, DP...>& dst,
+               const DualView<ST, SP...>& src) {
   if (src.need_sync_device()) {
     deep_copy(exec, dst.h_view, src.h_view);
     dst.modify_host();

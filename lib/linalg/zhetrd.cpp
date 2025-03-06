@@ -49,7 +49,8 @@ int zhetrd_(char *uplo, integer *n, doublecomplex *a, integer *lda, doublereal *
     }
     if (*info == 0) {
         nb = ilaenv_(&c__1, (char *)"ZHETRD", uplo, n, &c_n1, &c_n1, &c_n1, (ftnlen)6, (ftnlen)1);
-        lwkopt = *n * nb;
+        i__1 = 1, i__2 = *n * nb;
+        lwkopt = max(i__1, i__2);
         work[1].r = (doublereal)lwkopt, work[1].i = 0.;
     }
     if (*info != 0) {
@@ -97,8 +98,8 @@ int zhetrd_(char *uplo, integer *n, doublecomplex *a, integer *lda, doublereal *
                     (ftnlen)1);
             i__3 = i__ - 1;
             z__1.r = -1., z__1.i = -0.;
-            zher2k_(uplo, (char *)"No transpose", &i__3, &nb, &z__1, &a[i__ * a_dim1 + 1], lda, &work[1],
-                    &ldwork, &c_b23, &a[a_offset], lda, (ftnlen)1, (ftnlen)12);
+            zher2k_(uplo, (char *)"N", &i__3, &nb, &z__1, &a[i__ * a_dim1 + 1], lda, &work[1], &ldwork,
+                    &c_b23, &a[a_offset], lda, (ftnlen)1, (ftnlen)1);
             i__3 = i__ + nb - 1;
             for (j = i__; j <= i__3; ++j) {
                 i__4 = j - 1 + j * a_dim1;
@@ -118,9 +119,8 @@ int zhetrd_(char *uplo, integer *n, doublecomplex *a, integer *lda, doublereal *
                     &ldwork, (ftnlen)1);
             i__3 = *n - i__ - nb + 1;
             z__1.r = -1., z__1.i = -0.;
-            zher2k_(uplo, (char *)"No transpose", &i__3, &nb, &z__1, &a[i__ + nb + i__ * a_dim1], lda,
-                    &work[nb + 1], &ldwork, &c_b23, &a[i__ + nb + (i__ + nb) * a_dim1], lda,
-                    (ftnlen)1, (ftnlen)12);
+            zher2k_(uplo, (char *)"N", &i__3, &nb, &z__1, &a[i__ + nb + i__ * a_dim1], lda, &work[nb + 1],
+                    &ldwork, &c_b23, &a[i__ + nb + (i__ + nb) * a_dim1], lda, (ftnlen)1, (ftnlen)1);
             i__3 = i__ + nb - 1;
             for (j = i__; j <= i__3; ++j) {
                 i__4 = j + 1 + j * a_dim1;

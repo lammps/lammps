@@ -6,7 +6,7 @@ fix_modify AtC boundary_faceset command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> boundary_faceset <is|add> <faceset_name>
 

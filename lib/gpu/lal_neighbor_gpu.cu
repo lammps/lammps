@@ -147,7 +147,7 @@ __kernel void kernel_calc_cell_counts(const unsigned *restrict cell_id,
 
 __kernel void transpose(__global tagint *restrict out,
                         const __global tagint *restrict in,
-                        int columns_in, int rows_in)
+                        int columns_in, int rows_in, int shift)
 {
   __local tagint block[BLOCK_CELL_2D][BLOCK_CELL_2D+1];
 
@@ -158,15 +158,15 @@ __kernel void transpose(__global tagint *restrict out,
 
   unsigned i=bi*BLOCK_CELL_2D+ti;
   unsigned j=bj*BLOCK_CELL_2D+tj;
-  if ((i<columns_in) && (j<rows_in))
-    block[tj][ti]=in[j*columns_in+i];
+  if ((i<columns_in) && (j+shift<rows_in))
+    block[tj][ti]=in[(j+shift)*columns_in+i];
 
    __syncthreads();
 
   i=bj*BLOCK_CELL_2D+ti;
   j=bi*BLOCK_CELL_2D+tj;
-  if ((i<rows_in) && (j<columns_in))
-    out[j*rows_in+i] = block[ti][tj];
+  if ((i+shift<rows_in) && (j<columns_in))
+    out[j*rows_in+i+shift] = block[ti][tj];
 }
 
 #ifndef LAL_USE_OLD_NEIGHBOR

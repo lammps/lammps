@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-#define SMALL 0.001
+static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
@@ -120,14 +120,14 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
   int i,j,k,m,ii,jj,kk,jnum,knum,itype,jtype,ktype,imol,iatom;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq,rsq1,rsq2,r1,r2;
-  double factor_hb,force_angle,force_kernel,evdwl;
-  double c,s,a,b,ac,a11,a12,a22,vx1,vx2,vy1,vy2,vz1,vz2;
+  double factor_hb,force_angle,force_kernel,force_switch,evdwl,ehbond;
+  double c,s,a,b,d,ac,a11,a12,a22,vx1,vx2,vy1,vy2,vz1,vz2;
   double fi[3],fj[3],delr1[3],delr2[3];
   double r,dr,dexp,eng_morse,switch1,switch2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   const tagint *klist;
 
-  evdwl = 0.0;
+  evdwl = ehbond = 0.0;
 
   const auto * _noalias const x = (dbl3_t *) atom->x[0];
   auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
@@ -151,7 +151,6 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
   // kk = loop over hydrogens bonded to donor
 
   int hbcount = 0;
-  double hbeng = 0.0;
 
   for (ii = iifrom; ii < iito; ++ii) {
 
@@ -222,6 +221,13 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
           if (c < -1.0) c = -1.0;
           ac = acos(c);
 
+          if (angle_offset_flag){
+            ac = ac + pm.angle_offset;
+            c = cos(ac);
+            if (c > 1.0) c = 1.0;
+            if (c < -1.0) c = -1.0;
+          }
+
           if (ac > pm.cut_angle && ac < (2.0*MY_PI - pm.cut_angle)) {
             s = sqrt(1.0 - c*c);
             if (s < SMALL) s = SMALL;
@@ -232,8 +238,10 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
             dr = r - pm.r0;
             dexp = exp(-pm.alpha * dr);
             eng_morse = pm.d0 * (dexp*dexp - 2.0*dexp);
+
             force_kernel = pm.morse1*(dexp*dexp - dexp)/r * powint(c,pm.ap);
             force_angle = pm.ap * eng_morse * powint(c,pm.ap-1)*s;
+            force_switch = 0.0;
 
             if (rsq > pm.cut_innersq) {
               switch1 = (pm.cut_outersq-rsq) * (pm.cut_outersq-rsq) *
@@ -241,18 +249,22 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
                         pm.denom_vdw;
               switch2 = 12.0*rsq * (pm.cut_outersq-rsq) *
                         (rsq-pm.cut_innersq) / pm.denom_vdw;
-              force_kernel = force_kernel*switch1 + eng_morse*switch2/rsq;
+
+              force_kernel *= switch1;
               force_angle  *= switch1;
+              force_switch  = eng_morse*switch2/rsq;
               eng_morse    *= switch1;
             }
 
             if (EFLAG) {
               evdwl = eng_morse * powint(c,pm.ap);
               evdwl *= factor_hb;
+              ehbond += evdwl;
             }
 
             a = factor_hb*force_angle/s;
             b = factor_hb*force_kernel;
+            d = factor_hb*force_switch;
 
             a11 = a*c / rsq1;
             a12 = -a / (r1*r2);
@@ -265,12 +277,12 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
             vz1 = a11*delr1[2] + a12*delr2[2];
             vz2 = a22*delr2[2] + a12*delr1[2];
 
-            fi[0] = vx1 + b*delx;
-            fi[1] = vy1 + b*dely;
-            fi[2] = vz1 + b*delz;
-            fj[0] = vx2 - b*delx;
-            fj[1] = vy2 - b*dely;
-            fj[2] = vz2 - b*delz;
+            fi[0] = vx1 + b*delx + d*delx;
+            fi[1] = vy1 + b*dely + d*dely;
+            fi[2] = vz1 + b*delz + d*delz;
+            fj[0] = vx2 - b*delx - d*delx;
+            fj[1] = vy2 - b*dely - d*dely;
+            fj[2] = vz2 - b*delz - d*delz;
 
             fxtmp += fi[0];
             fytmp += fi[1];
@@ -289,7 +301,7 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
             if (EVFLAG) ev_tally3_thr(this,k,i,j,evdwl,0.0,fi,fj,delr1,delr2,thr);
             if (EFLAG) {
               hbcount++;
-              hbeng += evdwl;
+              ehbond += evdwl;
             }
           }
         }
@@ -301,7 +313,7 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
   }
   const int tid = thr->get_tid();
   hbcount_thr[tid] = static_cast<double>(hbcount);
-  hbeng_thr[tid] = hbeng;
+  hbeng_thr[tid] = ehbond;
 }
 
 /* ---------------------------------------------------------------------- */

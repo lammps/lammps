@@ -18,16 +18,14 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "bond.h"
-#include "comm.h"
+#include "domain.h"
 #include "dihedral.h"
 #include "error.h"
-#include "fix.h"
 #include "force.h"
 #include "improper.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_request.h"
-#include "pair.h"
 #include "style_nbin.h"
 #include "style_npair.h"
 #include "style_nstencil.h"
@@ -308,7 +306,8 @@ void NeighborKokkos::build_kokkos(int topoflag)
   for (i = 0; i < npair_perpetual; i++) {
     m = plist[i];
     if (!lists[m]->kokkos) atomKK->sync(Host,ALL_MASK);
-    if (!lists[m]->copy) lists[m]->grow(nlocal,nall);
+    if (!lists[m]->copy || lists[m]->trim || lists[m]->kk2cpu)
+      lists[m]->grow(nlocal,nall);
     neigh_pair[m]->build_setup();
     neigh_pair[m]->build(lists[m]);
   }

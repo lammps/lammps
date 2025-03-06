@@ -41,22 +41,8 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-#define MAXORDER 7
-#define OFFSET 16384
-#define LARGE 10000.0
-#define SMALL 0.00001
-#define EPS_HOC 1.0e-7
-
-enum{REVERSE_RHO};
-enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
-
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
+static constexpr int OFFSET = 16384;
+static constexpr FFT_SCALAR ZEROF = 0.0;
 
 /* ---------------------------------------------------------------------- */
 
@@ -156,8 +142,6 @@ void PPPMIntel::compute(int eflag, int vflag)
 
 void PPPMIntel::compute_first(int eflag, int vflag)
 {
-  int i,j;
-
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
@@ -420,7 +404,7 @@ void PPPMIntel::particle_map(IntelBuffers<flt_t,acc_t> *buffers)
     }
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
+  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
 }
 
 
@@ -465,7 +449,6 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
     const flt_t xi = delxinv;
     const flt_t yi = delyinv;
     const flt_t zi = delzinv;
-    const flt_t fshift = shift;
     const flt_t fshiftone = shiftone;
     const flt_t fdelvolinv = delvolinv;
 
@@ -698,8 +681,6 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
       _alignvar(FFT_SCALAR ekx_arr[INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
       _alignvar(FFT_SCALAR eky_arr[INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
       _alignvar(FFT_SCALAR ekz_arr[INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
-      _alignvar(FFT_SCALAR ekxy_arr[2 * INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
-      _alignvar(FFT_SCALAR ekz0_arr[2 * INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
 
       #if defined(LMP_SIMD_COMPILER)
       #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)

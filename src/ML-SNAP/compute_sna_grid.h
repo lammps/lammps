@@ -31,21 +31,27 @@ class ComputeSNAGrid : public ComputeGrid {
   void init() override;
   void compute_array() override;
   double memory_usage() override;
+  int ncoeff,nelements; // public for kokkos, but could go in the protected block now
 
- private:
-  int ncoeff;
+ protected:
+  //int ncoeff;
   double **cutsq;
   double rcutfac;
   double *radelem;
   double *wjelem;
   int *map;    // map types to [0,nelements)
-  int nelements, chemflag;
+  int chemflag;
   int switchinnerflag;
   double *sinnerelem;
   double *dinnerelem;
+  int parallel_thresh;
   class SNA *snaptr;
   double cutmax;
   int quadraticflag;
+  double rfac0, rmin0;
+  int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
+  int chunksize;
+
 };
 
 }    // namespace LAMMPS_NS

@@ -73,9 +73,8 @@ class FixNPTCauchy : public Fix {
   double drag, tdrag_factor;     // drag factor on particle thermostat
   double pdrag_factor;           // drag factor on barostat
   int kspace_flag;               // 1 if KSpace invoked, 0 if not
-  int nrigid;                    // number of rigid fixes
   int dilate_group_bit;          // mask for dilation group
-  int *rfix;                     // indices of rigid fixes
+  std::vector<Fix *> rfix;       // indices of rigid fixes
   char *id_dilate;               // group name to dilate
   class Irregular *irregular;    // for migrating atoms after box flips
 
@@ -118,8 +117,6 @@ class FixNPTCauchy : public Fix {
   int eta_mass_flag;      // 1 if eta_mass updated, 0 if not.
   int omega_mass_flag;    // 1 if omega_mass updated, 0 if not.
   int etap_mass_flag;     // 1 if etap_mass updated, 0 if not.
-  int dipole_flag;        // 1 if dipole is updated, 0 if not.
-  int dlm_flag;           // 1 if using the DLM rotational integrator, 0 if not
 
   int scaleyz;     // 1 if yz scaled with lz
   int scalexz;     // 1 if xz scaled with lz

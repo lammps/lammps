@@ -1,0 +1,46 @@
+# This example demonstrates the use of various fix qeq variants with pair reaxff
+# You can comment in/out various versions below
+#
+# 1) Fix qeq/shielded generates the same results compared to fix qeq/reax when
+#    used with pair_style reaxff, provided that the QEq parameters are the same.
+#
+# 2) Fix qeq/point and fix qeq/dynamic generate comparable results provided that
+#    the QEq parameters are the same.  These two styles can also be used with 
+#    pair_style reaxff.
+
+units		real
+atom_style	charge
+
+read_data	data.CHO
+
+pair_style	reaxff NULL checkqeq no
+pair_coeff	* * ffield.reax.cho H C O
+
+neighbor	1 bin
+neigh_modify	every 1 delay 0 check yes
+
+group    	type1 type 1
+compute   	charge1 type1 property/atom q
+compute   	q1 type1 reduce ave c_charge1
+group    	type2 type 2
+compute   	charge2 type2 property/atom q
+compute   	q2 type2 reduce ave c_charge2
+group    	type3 type 3
+compute   	charge3 type3 property/atom q
+compute   	q3 type3 reduce ave c_charge3
+variable   	qtot equal count(type1)*c_q1+count(type2)*c_q2+count(type3)*c_q3
+
+thermo_style  	custom step pe c_q1 c_q2 c_q3 v_qtot
+thermo     	1
+
+velocity  	all create 300.0 1281937 
+fix		1 all nve
+
+fix             2 all qeq/reax 1 0.0 10.0 1e-6 param.qeq.reax
+#fix             2 all qeq/shielded 1 10.0 1e-6 400 param.qeq1
+#fix             2 all qeq/point 1 10.0 1e-6 400 param.qeq1
+#fix             2 all qeq/dynamic 1 10.0 1e-3 100 param.qeq1
+
+timestep	0.25
+
+run		10

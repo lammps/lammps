@@ -49,14 +49,17 @@ simulation.  An example set of statistics is shown here:
 ----------
 
 The first section provides a global loop timing summary. The *loop time*
-is the total wall-clock time for the simulation to run.  The
-*Performance* line is provided for convenience to help predict how long
-it will take to run a desired physical simulation and to have numbers
-useful for performance comparison between different simulation settings
-or system sizes.  The *CPU use* line provides the CPU utilization per
-MPI task; it should be close to 100% times the number of OpenMP threads
-(or 1 of not using OpenMP).  Lower numbers correspond to delays due to
-file I/O or insufficient thread utilization.
+is the total wall-clock time for the MD steps of the simulation run,
+excluding the time for initialization and setup (i.e. the parts that may
+be skipped with :doc:`run N pre no <run>`).  The *Performance* line is
+provided for convenience to help predict how long it will take to run a
+desired physical simulation and to have numbers useful for performance
+comparison between different simulation settings or system sizes.  The
+*CPU use* line provides the CPU utilization per MPI task; it should be
+close to 100% times the number of OpenMP threads (or 1 if not using
+OpenMP).  Lower numbers correspond to delays due to file I/O or
+insufficient thread utilization from parts of the code that have not
+been multi-threaded.
 
 ----------
 
@@ -114,14 +117,19 @@ number of histogram counts is equal to the number of processors.
 
 ----------
 
-The last section gives aggregate statistics (across all processors)
-for pairwise neighbors and special neighbors that LAMMPS keeps track
-of (see the :doc:`special_bonds <special_bonds>` command).  The number
-of times neighbor lists were rebuilt is tallied, as is the number of
-potentially *dangerous* rebuilds.  If atom movement triggered neighbor
-list rebuilding (see the :doc:`neigh_modify <neigh_modify>` command),
-then dangerous reneighborings are those that were triggered on the
-first timestep atom movement was checked for.  If this count is
+The last section gives aggregate statistics (across all processors) for
+pairwise neighbors and special neighbors that LAMMPS keeps track of (see
+the :doc:`special_bonds <special_bonds>` command).  This section will
+not always contain data, for example when there has not been a neighbor
+rebuild, or the neighbor list was constructed on the GPU or when a
+hybrid pair style was used and LAMMPS cannot determine a suitable (base)
+neighbor list to draw the statistics from.
+
+The number of times neighbor lists were rebuilt is tallied, as is the
+number of potentially *dangerous* rebuilds.  If atom movement triggered
+neighbor list rebuilding (see the :doc:`neigh_modify <neigh_modify>`
+command), then dangerous reneighborings are those that were triggered on
+the first timestep atom movement was checked for.  If this count is
 non-zero you may wish to reduce the delay factor to ensure no force
 interactions are missed by atoms moving beyond the neighbor skin
 distance before a rebuild takes place.
@@ -175,3 +183,64 @@ with and without the communication and a Gflop rate is computed.  The
 3d rate is with communication; the 1d rate is without (just the 1d
 FFTs).  Thus you can estimate what fraction of your FFT time was spent
 in communication, roughly 75% in the example above.
+
+Error message output
+====================
+
+Depending on the error function arguments when it is called in the
+source code, there will be one to four lines of error output.
+
+A single line
+^^^^^^^^^^^^^
+
+The line starts with "ERROR: ", followed by the error message and
+information about the location in the source where the error function
+was called in parenthesis on the right (here: line 131 of the file
+src/fix_print.cpp). Example:
+
+.. parsed-literal::
+
+   ERROR: Fix print timestep variable nevery returned a bad timestep: 9900 (src/fix_print.cpp:131)
+
+Two lines
+^^^^^^^^^
+
+In addition to the single line output, also the last line of the input
+will be repeated.  If a command is spread over multiple lines in the
+input using the continuation character '&', then the error will print
+the entire concatenated line.  For readability all whitespace is
+compressed to single blanks.  Example:
+
+.. parsed-literal::
+
+   ERROR: Unrecognized fix style 'printf' (src/modify.cpp:924)
+   Last input line: fix 0 all printf v_nevery "Step: $(step) ${step}"
+
+Three lines
+^^^^^^^^^^^
+
+In addition to the two line output from above, a third line is added
+that uses caret character markers '^' to indicate which "word" in the
+input failed.  Example:
+
+.. parsed-literal::
+
+   ERROR: Illegal fix print nevery value -100; must be > 0 (src/fix_print.cpp:41)
+   Last input line: fix 0 all print -100 "Step: $(step) ${stepx}"
+                                    ^^^^
+
+Four lines
+^^^^^^^^^^
+
+The three line output is expanded to four lines, if the the input is
+modified through input pre-processing, e.g. when substituting
+variables. Now the last command is printed once in the original form and
+a second time after substitutions are applied.  The caret character
+markers '^' are applied to the second version.  Example:
+
+.. parsed-literal::
+
+   ERROR: Illegal fix print nevery value -100; must be > 0 (src/fix_print.cpp:41)
+   Last input line: fix 0 all print ${nevery} 'Step: $(step) ${step}'
+   --> parsed line: fix 0 all print -100 "Step: $(step) ${step}"
+                                    ^^^^

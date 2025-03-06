@@ -73,12 +73,16 @@ simulation, :math:`N` is the number of atoms in the group, :math:`k_B`
 is the Boltzmann constant, and :math:`T` is the temperature.  Note that
 :math:`v` in the kinetic energy formula is the atom's velocity.
 
-A kinetic energy tensor, stored as a six-element vector, is also
-calculated by this compute for use in the computation of a pressure
-tensor.  The formula for the components of the tensor is the same as
-the above formula, except that :math:`v^2` is replaced by :math:`v_x v_y` for
-the :math:`xy` component, and so on. The six components of the vector are
-ordered :math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`,
+A symmetric tensor, stored as a six-element vector, is also calculated
+by this compute for use in the computation of a pressure tensor by the
+:doc:`compute pressue <compute_pressure>` command.  The formula for
+the components of the tensor is the same as the above expression for
+:math:`E_\mathrm{kin}`, except that the 1/2 factor is NOT included and
+the :math:`v_i^2` is replaced by :math:`v_{i,x} v_{i,y}` for the
+:math:`xy` component, and so on.  Note that because it lacks the 1/2
+factor, these tensor components are twice those of the traditional
+kinetic energy tensor.  The six components of the vector are ordered
+:math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`,
 :math:`yz`.
 
 The number of atoms contributing to the temperature is assumed to be
@@ -124,21 +128,27 @@ See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 Output info
 """""""""""
 
 This compute calculates a global scalar (the temperature) and a global
-vector of length 6 (KE tensor), which can be accessed by indices 1--6.
-These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See the
-:doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
-options.
+vector of length 6 (symmetric tensor), which can be accessed by
+indices 1--6.  These values can be used by any command that uses
+global scalar or vector values from a compute as input.  See the
+:doc:`Howto output <Howto_output>` page for an overview of LAMMPS
+output options.
 
 The scalar value calculated by this compute is "intensive".  The
 vector values are "extensive".
 
-The scalar value will be in temperature :doc:`units <units>`.
-The vector values will be in energy :doc:`units <units>`.
+The scalar value is in temperature :doc:`units <units>`.  The vector
+values are in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""

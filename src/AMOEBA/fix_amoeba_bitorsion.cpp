@@ -32,10 +32,10 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-#define BITORSIONMAX 6   // max # of BiTorsion terms stored by one atom
-#define LISTDELTA 10000
-#define LB_FACTOR 1.5
-#define MAXLINE 1024
+static constexpr int BITORSIONMAX = 6;   // max # of BiTorsion terms stored by one atom
+static constexpr int LISTDELTA = 10000;
+static constexpr double LB_FACTOR = 1.5;
+static constexpr int MAXLINE = 1024;
 
 // spline weighting factors
 
@@ -724,7 +724,7 @@ double FixAmoebaBiTorsion::compute_scalar()
 
 void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
 {
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
   char *eof;
 
   FILE *fp = nullptr;

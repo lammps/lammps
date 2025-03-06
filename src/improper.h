@@ -37,16 +37,16 @@ class Improper : protected Pointers {
                              // CENTROID_AVAIL = different and implemented
                              // CENTROID_NOTAVAIL = different, not yet implemented
 
-  int symmatoms[4];          // symmetry atom(s) of improper style
-                             // value of 0: interchangable atoms
-                             // value of 1: central atom
-                             // values >1: additional atoms of symmetry
+  int symmatoms[4];    // symmetry atom(s) of improper style
+                       // value of 0: interchangable atoms
+                       // value of 1: central atom
+                       // values >1: additional atoms of symmetry
 
   // KOKKOS host/device flag and data masks
 
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
-  int copymode;
+  int copymode, kokkosable;
 
   Improper(class LAMMPS *);
   ~Improper() override;
@@ -57,8 +57,8 @@ class Improper : protected Pointers {
   virtual void coeff(int, char **) = 0;
   virtual void write_restart(FILE *) = 0;
   virtual void read_restart(FILE *) = 0;
-  virtual void write_restart_settings(FILE *){};
-  virtual void read_restart_settings(FILE *){};
+  virtual void write_restart_settings(FILE *) {};
+  virtual void read_restart_settings(FILE *) {};
   virtual void write_data(FILE *) {}
   virtual double memory_usage();
   virtual void born_matrix(int /*dtype*/, int /*at1*/, int /*at2*/, int /*at3*/, int /*at4*/,

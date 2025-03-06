@@ -17,9 +17,9 @@ rho_e, electrons/volume units
 D_e, length^2/time units
 20000
 gamma_p, mass/time units
-39.235
-gamma_s, mass/time units
 24.443
+gamma_s, mass/time units
+39.235
 v_0, length/time units
 79.76
 I_0, energy/(time*length^2) units

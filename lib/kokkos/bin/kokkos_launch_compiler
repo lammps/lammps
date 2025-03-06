@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 #   This script allows CMAKE_CXX_COMPILER to be a standard
 #   C++ compiler and Kokkos sets RULE_LAUNCH_COMPILE and
@@ -12,6 +12,8 @@
 #   the original command. Examples of when $2 will not equal
 #   $1 are 'ar', 'cmake', etc. during the linking phase
 #
+
+set -e
 
 # emit a message about the underlying command executed
 : ${DEBUG:=0}
@@ -60,7 +62,7 @@ KOKKOS_COMPILER=${1}
 shift
 
 # store the expected C++ compiler
-CXX_COMPILER=${1}
+CXX_COMPILER=$(which "${1}")
 
 # remove the expected C++ compiler from the arguments
 shift
@@ -82,7 +84,7 @@ shift
 #       kokkos_launch_compiler ${KOKKOS_COMPILER} g++ g++ -c file.cpp -o file.o
 # results in this command being executed:
 #       ${KOKKOS_COMPILER} -c file.cpp -o file.o
-if [[ "${KOKKOS_DEPENDENCE}" -eq "0" || "${CXX_COMPILER}" != "${1}" ]]; then
+if [[ "${KOKKOS_DEPENDENCE}" -eq "0" || "${CXX_COMPILER}" != $(which "${1}") ]]; then
     debug-message "$@"
     # the command does not depend on Kokkos so just execute the command w/o re-directing to ${KOKKOS_COMPILER}
     exec "$@"

@@ -41,15 +41,9 @@
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
 
-enum{NONE,RLINEAR,RSQ};
+enum{ NONE, RLINEAR, RSQ };
 
-#define MAXLINE 1024
-
-#ifdef DBL_EPSILON
-  #define MY_EPSILON (10.0*DBL_EPSILON)
-#else
-  #define MY_EPSILON (10.0*2.220446049250313e-16)
-#endif
+static constexpr int MAXLINE = 1024;
 
 #define oneFluidParameter (-1)
 #define isOneFluid(_site) ( (_site) == oneFluidParameter )
@@ -483,16 +477,13 @@ double PairMultiLucyRX::init_one(int i, int j)
 
 void PairMultiLucyRX::read_table(Table *tb, char *file, char *keyword)
 {
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
 
   // open file
 
   FILE *fp = utils::open_potential(file,lmp,nullptr);
-  if (fp == nullptr) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
+  if (fp == nullptr)
+    error->one(FLERR, "Cannot open file {}: {}",file,utils::getsyserror());
 
   // loop until section found with matching keyword
 
@@ -621,20 +612,20 @@ void PairMultiLucyRX::param_extract(Table *tb, char *line)
   while (word) {
     if (strcmp(word,"N") == 0) {
       word = strtok(nullptr," \t\n\r\f");
-      tb->ninput = atoi(word);
+      tb->ninput = std::stoi(word);
     } else if (strcmp(word,"R") == 0 || strcmp(word,"RSQ") == 0) {
       if (strcmp(word,"R") == 0) tb->rflag = RLINEAR;
       else if (strcmp(word,"RSQ") == 0) tb->rflag = RSQ;
       word = strtok(nullptr," \t\n\r\f");
-      tb->rlo = atof(word);
+      tb->rlo = std::stod(word);
       word = strtok(nullptr," \t\n\r\f");
-      tb->rhi = atof(word);
+      tb->rhi = std::stod(word);
     } else if (strcmp(word,"FP") == 0) {
       tb->fpflag = 1;
       word = strtok(nullptr," \t\n\r\f");
-      tb->fplo = atof(word);
+      tb->fplo = std::stod(word);
       word = strtok(nullptr," \t\n\r\f");
-      tb->fphi = atof(word);
+      tb->fphi = std::stod(word);
     } else {
       printf("WORD: %s\n",word);
       error->one(FLERR,"Invalid keyword in pair table parameters");

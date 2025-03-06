@@ -15,7 +15,7 @@
 #ifdef PAIR_CLASS
 // clang-format off
 // Currently the Intel compilers are required for this pair style.
-#ifdef __INTEL_COMPILER
+#if defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
 PairStyle(tersoff/intel,PairTersoffIntel);
 #endif
 // clang-format on
@@ -28,7 +28,7 @@ PairStyle(tersoff/intel,PairTersoffIntel);
 #include "pair.h"
 #include "pair_tersoff.h"
 
-#ifdef __INTEL_COMPILER
+#if defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
 
 namespace LAMMPS_NS {
 
@@ -84,7 +84,7 @@ class PairTersoffIntel : public PairTersoff {
     c_outer_t **c_outer;
     c_inner_t ***c_inner;
     ForceConst() : _ntypes(0) {}
-    ~ForceConst() { set_ntypes(0, nullptr, _cop); }
+    ~ForceConst() noexcept(false) { set_ntypes(0, nullptr, _cop); }
 
     void set_ntypes(const int ntypes, Memory *memory, const int cop);
 

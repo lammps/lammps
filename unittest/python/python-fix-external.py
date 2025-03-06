@@ -1,6 +1,6 @@
 import sys,os,unittest
 from ctypes import *
-from lammps import lammps, LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR
+from lammps import lammps, LMP_STYLE_GLOBAL, LMP_STYLE_ATOM, LMP_TYPE_VECTOR, LMP_TYPE_ARRAY
 
 try:
     import numpy
@@ -92,6 +92,17 @@ class PythonExternal(unittest.TestCase):
         self.assertAlmostEqual(reduce[5],6.5,14)
         self.assertAlmostEqual(reduce[6],-0.6,14)
 
+        fext = lmp.extract_fix("ext", LMP_STYLE_ATOM, LMP_TYPE_ARRAY)
+        self.assertAlmostEqual(float(fext[0][0]), 0.0)
+        self.assertAlmostEqual(float(fext[0][1]), 0.0)
+        self.assertAlmostEqual(float(fext[0][2]), 0.0)
+        self.assertAlmostEqual(float(fext[1][0]), 0.0)
+        self.assertAlmostEqual(float(fext[1][1]), 0.0)
+        self.assertAlmostEqual(float(fext[1][2]), 0.0)
+        self.assertAlmostEqual(float(fext[2][0]), 0.0)
+        self.assertAlmostEqual(float(fext[2][1]), 0.0)
+        self.assertAlmostEqual(float(fext[2][2]), 0.0)
+
         lmp.command("run 10 post no")
         self.assertAlmostEqual(lmp.get_thermo("temp"),1.0/30.0,14)
         self.assertAlmostEqual(lmp.get_thermo("pe"),1.0/8.0,14)
@@ -109,6 +120,17 @@ class PythonExternal(unittest.TestCase):
         for i in range(0,6):
             val += lmp.extract_fix("ext",LMP_STYLE_GLOBAL,LMP_TYPE_VECTOR,nrow=i)
         self.assertAlmostEqual(val,15.0,14)
+
+        fext = lmp.extract_fix("ext", LMP_STYLE_ATOM, LMP_TYPE_ARRAY)
+        self.assertAlmostEqual(float(fext[0][0]), 10.0)
+        self.assertAlmostEqual(float(fext[0][1]), 10.0)
+        self.assertAlmostEqual(float(fext[0][2]), 10.0)
+        self.assertAlmostEqual(float(fext[1][0]), 10.0)
+        self.assertAlmostEqual(float(fext[1][1]), 10.0)
+        self.assertAlmostEqual(float(fext[1][2]), 10.0)
+        self.assertAlmostEqual(float(fext[2][0]), 10.0)
+        self.assertAlmostEqual(float(fext[2][1]), 10.0)
+        self.assertAlmostEqual(float(fext[2][2]), 10.0)
 
     def testExternalArray(self):
         """Test fix external from Python with pf/array"""
@@ -142,6 +164,16 @@ class PythonExternal(unittest.TestCase):
             force[i][2] = 0.0
         lmp.fix_external_set_energy_global("ext", 0.5)
         lmp.fix_external_set_virial_global("ext",[0.5, 0.5, 0.5, 0.0, 0.0, 0.0])
+        fext = lmp.extract_fix("ext", LMP_STYLE_ATOM, LMP_TYPE_ARRAY)
+        self.assertAlmostEqual(float(fext[0][0]), 0.0)
+        self.assertAlmostEqual(float(fext[0][1]), 0.0)
+        self.assertAlmostEqual(float(fext[0][2]), 0.0)
+        self.assertAlmostEqual(float(fext[1][0]), 0.0)
+        self.assertAlmostEqual(float(fext[1][1]), 0.0)
+        self.assertAlmostEqual(float(fext[1][2]), 0.0)
+        self.assertAlmostEqual(float(fext[2][0]), 0.0)
+        self.assertAlmostEqual(float(fext[2][1]), 0.0)
+        self.assertAlmostEqual(float(fext[2][2]), 0.0)
 
         lmp.command("run 5 post no")
         self.assertAlmostEqual(lmp.get_thermo("temp"),4.0/525.0,14)
@@ -170,6 +202,16 @@ class PythonExternal(unittest.TestCase):
             self.assertEqual(npforce[0][0],6.0)
             self.assertEqual(npforce[3][1],6.0)
             self.assertEqual(npforce[7][2],6.0)
+        fext = lmp.extract_fix("ext", LMP_STYLE_ATOM, LMP_TYPE_ARRAY)
+        self.assertAlmostEqual(float(fext[0][0]), 6.0)
+        self.assertAlmostEqual(float(fext[0][1]), 6.0)
+        self.assertAlmostEqual(float(fext[0][2]), 6.0)
+        self.assertAlmostEqual(float(fext[1][0]), 6.0)
+        self.assertAlmostEqual(float(fext[1][1]), 6.0)
+        self.assertAlmostEqual(float(fext[1][2]), 6.0)
+        self.assertAlmostEqual(float(fext[2][0]), 6.0)
+        self.assertAlmostEqual(float(fext[2][1]), 6.0)
+        self.assertAlmostEqual(float(fext[2][2]), 6.0)
 
 ##############################
 if __name__ == "__main__":

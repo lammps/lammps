@@ -1,0 +1,24 @@
+# orthogonal box for 2d hex lattice unit cell
+
+dimension     2
+
+lattice       hex 1.0
+
+region        mybox block 0 1 0 1 -0.5 0.5
+create_box    1 mybox
+create_atoms  1 box
+
+mass          * 1.0
+
+write_data    tmp.data.hex.orthog
+
+pair_style    lj/cut 1.1
+pair_coeff    * * 1.0 1.0
+
+neighbor      0.0 bin
+
+thermo_style  custom step pe avecx avecy bvecx bvecy pxx pyy vol
+
+dump          1 all custom 100 tmp.dump.hex.orthog id type x y z
+
+run           0

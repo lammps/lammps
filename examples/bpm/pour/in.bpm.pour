@@ -13,9 +13,9 @@ region          wall_cyl cylinder z 0.0 0.0 10.0 EDGE EDGE side in
 region          dropzone cylinder z 0.0 0.0 10.0 40.0 50.0 side in
 
 pair_style      gran/hertz/history 1.0 NULL 0.5 NULL 0.1 1
-bond_style      bpm/rotational
+bond_style      bpm/rotational break no smooth no
 pair_coeff      1 1
-bond_coeff      1 1.0 0.2 0.01 0.01 2.0 0.4 0.02 0.02 0.2 0.04 0.002 0.002
+bond_coeff      1 1.0 0.2 0.01 0.01 0.0 0.0 0.0 0.0 0.2 0.04 0.002 0.002
 
 compute         nbond all nbond/atom
 compute         tbond all reduce sum c_nbond

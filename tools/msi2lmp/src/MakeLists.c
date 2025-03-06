@@ -476,7 +476,7 @@ void build_atomtypes_list()
 {
   int j,k,n,match,atom_type=0;
 
-  strncpy(atomtypes[0].potential,atoms[0].potential,5);
+  memcpy(atomtypes[0].potential,atoms[0].potential,5);
   atoms[0].type = 0;
 
   atomtypes[0].no_connect = atoms[0].no_connect;
@@ -497,7 +497,7 @@ void build_atomtypes_list()
     if (match == 0) {
       atom_type = n;
       atomtypes[n].no_connect = atoms[j].no_connect;
-      strncpy(atomtypes[n++].potential,atoms[j].potential,5);
+      memcpy(atomtypes[n++].potential,atoms[j].potential,5);
     }
     if (n >= MAX_ATOM_TYPES) {
       fprintf(stderr,"Too many atom types (> 100) - error\n");

@@ -18,30 +18,29 @@
 
 #include "compute_temp_asphere.h"
 
-#include <cstring>
-#include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
-#include "update.h"
-#include "force.h"
 #include "domain.h"
-#include "modify.h"
-#include "group.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "math_extra.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
-enum{ROTATE,ALL};
-
-#define INERTIA 0.2          // moment of inertia prefactor for ellipsoid
+enum { ROTATE, ALL };
+static constexpr double INERTIA = 0.2;    // moment of inertia prefactor for ellipsoid
 
 /* ---------------------------------------------------------------------- */
 
 ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  id_bias(nullptr), tbias(nullptr), avec(nullptr)
+    Compute(lmp, narg, arg), id_bias(nullptr), tbias(nullptr), avec(nullptr)
 {
-  if (narg < 3) error->all(FLERR,"Illegal compute temp/asphere command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "compute temp/asphere", error);
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
@@ -56,19 +55,17 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"bias") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute temp/asphere command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "compute temp/asphere bias", error);
       tempbias = 1;
       id_bias = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dof") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute temp/asphere command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "compute temp/asphere dof", error);
       if (strcmp(arg[iarg+1],"rotate") == 0) mode = ROTATE;
       else if (strcmp(arg[iarg+1],"all") == 0) mode = ALL;
-      else error->all(FLERR,"Illegal compute temp/asphere command");
+      else error->all(FLERR,"Unknown compute temp/asphere dof keyword {}", arg[iarg+1]);
       iarg += 2;
-    } else error->all(FLERR,"Illegal compute temp/asphere command");
+    } else error->all(FLERR,"Unknown compute temp/asphere keyword {}", arg[iarg]);
   }
 
   // when computing only the rotational temperature,
@@ -84,8 +81,8 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempAsphere::~ComputeTempAsphere()
 {
-  delete [] id_bias;
-  delete [] vector;
+  delete[] id_bias;
+  delete[] vector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -107,17 +104,17 @@ void ComputeTempAsphere::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (ellipsoid[i] < 0)
-        error->one(FLERR,"Compute temp/asphere requires extended particles");
+        error->one(FLERR,"Compute temp/asphere requires all extended particles");
 
   if (tempbias) {
-    int i = modify->find_compute(id_bias);
-    if (i < 0)
-      error->all(FLERR,"Could not find compute ID for temperature bias");
-    tbias = modify->compute[i];
+    tbias = modify->get_compute_by_id(id_bias);
+    if (!tbias)
+      error->all(FLERR,"Could not find compute ID {} for temperature bias", id_bias);
+
     if (tbias->tempflag == 0)
-      error->all(FLERR,"Bias compute does not calculate temperature");
+      error->all(FLERR,"Bias compute {} does not calculate temperature", id_bias);
     if (tbias->tempbias == 0)
-      error->all(FLERR,"Bias compute does not calculate a velocity bias");
+      error->all(FLERR,"Bias compute {} does not calculate a velocity bias", id_bias);
     if (tbias->igroup != igroup)
       error->all(FLERR,"Bias compute group does not match compute group");
     if (strcmp(tbias->style,"temp/region") == 0) tempbias = 2;

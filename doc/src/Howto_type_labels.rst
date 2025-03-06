@@ -14,16 +14,17 @@ wherever they appear in LAMMPS input or output files.  The total number
 Ntypes for each interaction is "locked in" when the simulation box
 is created.
 
-A recent addition to LAMMPS is the option to use strings - referred
-to as type labels - as an alternative.  Using type labels instead of
+A recent addition to LAMMPS is the option to use strings - referred to
+as type labels - as an alternative.  Using type labels instead of
 numeric types can be advantageous in various scenarios.  For example,
-type labels can make inputs more readable and generic (i.e. usable through
-the :doc:`include command <include>` for different systems with different
-numerical values assigned to types.  This generality also applies to
-other inputs like data files read by :doc:`read_data <read_data>` or
-molecule template files read by the :doc:`molecule <molecule>`
-command.  See below for a list of other commands that can use
-type labels in different ways.
+type labels can make inputs more readable and generic (i.e. usable
+through the :doc:`include command <include>` for different systems with
+different numerical values assigned to types.  This generality also
+applies to other inputs like data files read by :doc:`read_data
+<read_data>` or molecule template files read by the :doc:`molecule
+<molecule>` command.  A discussion of the current type label support can
+be found in :ref:`(Gissinger) <Typelabel24>`.  See below for a list of
+other commands that can use type labels in different ways.
 
 LAMMPS will *internally* continue to use numeric types, which means
 that many previous restrictions still apply.  For example, the total
@@ -124,3 +125,9 @@ between the files.  The creation of simulation-ready reaction templates
 for :doc:`fix bond/react <fix_bond_react>` is much simpler when using
 type labels, and results in templates that can be used without
 modification in multiple simulations or different systems.
+
+-----------
+
+.. _Typelabel24:
+
+**(Gissinger)** J. R. Gissinger, I. Nikiforov, Y. Afshar, B. Waters, M. Choi, D. S. Karls, A. Stukowski, W. Im, H. Heinz, A. Kohlmeyer, and E. B. Tadmor, J Phys Chem B, 128, 3282-3297 (2024).

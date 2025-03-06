@@ -47,9 +47,6 @@ static const char cite_pair_agni[] =
   " year      = {2019},\n"
   "}\n\n";
 
-#define MAXLINE 10240
-#define MAXWORD 40
-
 /* ---------------------------------------------------------------------- */
 
 PairAGNI::PairAGNI(LAMMPS *lmp) : Pair(lmp)
@@ -347,7 +344,7 @@ void PairAGNI::read_file(char *filename)
             curparam = -1;
           } else error->warning(FLERR,"Ignoring unknown tag '{}' in AGNI potential file.",tag);
         } else {
-          if (params && wantdata >=0) {
+          if (params && wantdata >= 0) {
             if ((int)values.count() == params[wantdata].numeta + 2) {
               for (k = 0; k < params[wantdata].numeta; ++k)
                 params[wantdata].xU[k][fp_counter] = values.next_double();

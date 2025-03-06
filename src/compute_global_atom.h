@@ -33,7 +33,7 @@ class ComputeGlobalAtom : public Compute {
   double memory_usage() override;
 
  protected:
-    struct value_t {
+  struct value_t {
     int which;
     int argindex;
     std::string id;

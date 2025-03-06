@@ -6,7 +6,7 @@ fix meso/move command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID meso/move style args keyword values ...
 
@@ -246,6 +246,11 @@ This fix requires that atoms store density and internal energy as
 defined by the :doc:`atom_style sph <atom_style>` command.
 
 All particles in the group must be mesoscopic SPH/SDPD particles.
+
+.. versionchanged:: 29Aug2024
+
+This fix is incompatible with deformation controls that remap velocity,
+for instance the *remap v* option of :doc:`fix deform <fix_deform>`.
 
 Related commands
 """"""""""""""""

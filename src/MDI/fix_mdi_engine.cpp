@@ -19,7 +19,6 @@
 #include "fix_mdi_engine.h"
 
 #include "error.h"
-#include "update.h"
 
 #include "mdi_engine.h"
 
@@ -28,7 +27,8 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixMDIEngine::FixMDIEngine(LAMMPS *_lmp, int narg, char **arg) : Fix(_lmp, narg, arg)
+FixMDIEngine::FixMDIEngine(LAMMPS *_lmp, int narg, char **arg) :
+    Fix(_lmp, narg, arg), mdi_engine(nullptr)
 {
   if (narg != 3) error->all(FLERR, "Illegal fix mdi/engine command");
 }

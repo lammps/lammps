@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_STD_ALGORITHMS_TRANSFORM_REDUCE_IMPL_HPP
 #define KOKKOS_STD_ALGORITHMS_TRANSFORM_REDUCE_IMPL_HPP
@@ -138,9 +110,13 @@ struct StdTransformReduceTwoIntervalsFunctor {
 //
 //------------------------------
 
+//
+// exespace impl
+//
+
 template <class ExecutionSpace, class IteratorType, class ValueType,
           class JoinerType, class UnaryTransformerType>
-ValueType transform_reduce_custom_functors_impl(
+ValueType transform_reduce_custom_functors_exespace_impl(
     const std::string& label, const ExecutionSpace& ex, IteratorType first,
     IteratorType last, ValueType init_reduction_value, JoinerType joiner,
     UnaryTransformerType transformer) {
@@ -179,7 +155,7 @@ ValueType transform_reduce_custom_functors_impl(
 
 template <class ExecutionSpace, class IteratorType1, class IteratorType2,
           class ValueType, class JoinerType, class BinaryTransformerType>
-ValueType transform_reduce_custom_functors_impl(
+ValueType transform_reduce_custom_functors_exespace_impl(
     const std::string& label, const ExecutionSpace& ex, IteratorType1 first1,
     IteratorType1 last1, IteratorType2 first2, ValueType init_reduction_value,
     JoinerType joiner, BinaryTransformerType transformer) {
@@ -219,7 +195,7 @@ ValueType transform_reduce_custom_functors_impl(
 
 template <class ExecutionSpace, class IteratorType1, class IteratorType2,
           class ValueType>
-ValueType transform_reduce_default_functors_impl(
+ValueType transform_reduce_default_functors_exespace_impl(
     const std::string& label, const ExecutionSpace& ex, IteratorType1 first1,
     IteratorType1 last1, IteratorType2 first2, ValueType init_reduction_value) {
   // checks
@@ -233,8 +209,112 @@ ValueType transform_reduce_default_functors_impl(
       Impl::StdTranformReduceDefaultBinaryTransformFunctor<ValueType>;
   using joiner_type = Impl::StdTranformReduceDefaultJoinFunctor<ValueType>;
 
-  return transform_reduce_custom_functors_impl(
+  return transform_reduce_custom_functors_exespace_impl(
       label, ex, first1, last1, first2, std::move(init_reduction_value),
+      joiner_type(), transformer_type());
+}
+
+//
+// team impl
+//
+
+template <class TeamHandleType, class IteratorType, class ValueType,
+          class JoinerType, class UnaryTransformerType>
+KOKKOS_FUNCTION ValueType transform_reduce_custom_functors_team_impl(
+    const TeamHandleType& teamHandle, IteratorType first, IteratorType last,
+    ValueType init_reduction_value, JoinerType joiner,
+    UnaryTransformerType transformer) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first);
+  Impl::static_assert_is_not_openmptarget(teamHandle);
+  Impl::expect_valid_range(first, last);
+
+  if (first == last) {
+    // init is returned, unmodified
+    return init_reduction_value;
+  }
+
+  // aliases
+  using reducer_type =
+      ReducerWithArbitraryJoinerNoNeutralElement<ValueType, JoinerType>;
+  using functor_type =
+      StdTransformReduceSingleIntervalFunctor<IteratorType, reducer_type,
+                                              UnaryTransformerType>;
+  using reduction_value_type = typename reducer_type::value_type;
+
+  // run
+  reduction_value_type result;
+  reducer_type reducer(result, joiner);
+  const auto num_elements = Kokkos::Experimental::distance(first, last);
+  ::Kokkos::parallel_reduce(TeamThreadRange(teamHandle, 0, num_elements),
+                            functor_type(first, reducer, transformer), reducer);
+
+  teamHandle.team_barrier();
+
+  // as per standard, transform is not applied to the init value
+  // https://en.cppreference.com/w/cpp/algorithm/transform_reduce
+  return joiner(result.val, init_reduction_value);
+}
+
+template <class TeamHandleType, class IteratorType1, class IteratorType2,
+          class ValueType, class JoinerType, class BinaryTransformerType>
+KOKKOS_FUNCTION ValueType transform_reduce_custom_functors_team_impl(
+    const TeamHandleType& teamHandle, IteratorType1 first1, IteratorType1 last1,
+    IteratorType2 first2, ValueType init_reduction_value, JoinerType joiner,
+    BinaryTransformerType transformer) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first1, first2);
+  Impl::static_assert_is_not_openmptarget(teamHandle);
+  Impl::static_assert_iterators_have_matching_difference_type(first1, first2);
+  Impl::expect_valid_range(first1, last1);
+
+  if (first1 == last1) {
+    // init is returned, unmodified
+    return init_reduction_value;
+  }
+
+  // aliases
+  using index_type = typename IteratorType1::difference_type;
+  using reducer_type =
+      ReducerWithArbitraryJoinerNoNeutralElement<ValueType, JoinerType>;
+  using functor_type =
+      StdTransformReduceTwoIntervalsFunctor<index_type, IteratorType1,
+                                            IteratorType2, reducer_type,
+                                            BinaryTransformerType>;
+  using reduction_value_type = typename reducer_type::value_type;
+
+  // run
+  reduction_value_type result;
+  reducer_type reducer(result, joiner);
+
+  const auto num_elements = Kokkos::Experimental::distance(first1, last1);
+  ::Kokkos::parallel_reduce(TeamThreadRange(teamHandle, 0, num_elements),
+                            functor_type(first1, first2, reducer, transformer),
+                            reducer);
+
+  teamHandle.team_barrier();
+
+  return joiner(result.val, init_reduction_value);
+}
+
+template <class TeamHandleType, class IteratorType1, class IteratorType2,
+          class ValueType>
+KOKKOS_FUNCTION ValueType transform_reduce_default_functors_team_impl(
+    const TeamHandleType& teamHandle, IteratorType1 first1, IteratorType1 last1,
+    IteratorType2 first2, ValueType init_reduction_value) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first1, first2);
+  Impl::static_assert_is_not_openmptarget(teamHandle);
+  Impl::static_assert_iterators_have_matching_difference_type(first1, first2);
+  Impl::expect_valid_range(first1, last1);
+
+  // aliases
+  using transformer_type =
+      Impl::StdTranformReduceDefaultBinaryTransformFunctor<ValueType>;
+  using joiner_type = Impl::StdTranformReduceDefaultJoinFunctor<ValueType>;
+
+  return transform_reduce_custom_functors_team_impl(
+      teamHandle, first1, last1, first2, std::move(init_reduction_value),
       joiner_type(), transformer_type());
 }
 

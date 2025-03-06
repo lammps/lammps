@@ -40,22 +40,11 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-#define MAXORDER 7
-#define OFFSET 16384
-#define LARGE 10000.0
-#define SMALL 0.00001
-#define EPS_HOC 1.0e-7
-
-enum{REVERSE_MU};
-enum{FORWARD_MU,FORWARD_MU_PERATOM};
-
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
+static constexpr int MAXORDER = 7;
+static constexpr int OFFSET = 16384;
+static constexpr double SMALL = 0.00001;
+static constexpr double EPS_HOC = 1.0e-7;
+static constexpr FFT_SCALAR ZEROF = 0.0;
 
 /* ---------------------------------------------------------------------- */
 
@@ -621,8 +610,7 @@ void PPPMDipole::allocate()
   memory->create2d_offset(rho1d,3,-order/2,order/2,"pppm_dipole:rho1d");
   memory->create2d_offset(drho1d,3,-order/2,order/2,"pppm_dipole:drho1d");
   memory->create2d_offset(rho_coeff,order,(1-order)/2,order/2,"pppm_dipole:rho_coeff");
-  memory->create2d_offset(drho_coeff,order,(1-order)/2,order/2,
-                          "pppm_dipole:drho_coeff");
+  memory->create2d_offset(drho_coeff,order,(1-order)/2,order/2,"pppm_dipole:drho_coeff");
 
   // create 2 FFTs and a Remap
   // 1st FFT keeps data in FFT decomposition
@@ -677,8 +665,23 @@ void PPPMDipole::deallocate()
   memory->destroy(densityy_fft_dipole);
   memory->destroy(densityz_fft_dipole);
 
+  memory->destroy(density_fft);
+  memory->destroy(greensfn);
+  memory->destroy(work1);
+  memory->destroy(work2);
   memory->destroy(work3);
   memory->destroy(work4);
+  memory->destroy(vg);
+
+  memory->destroy1d_offset(fkx,nxlo_fft);
+  memory->destroy1d_offset(fky,nylo_fft);
+  memory->destroy1d_offset(fkz,nzlo_fft);
+
+  memory->destroy(gf_b);
+  memory->destroy2d_offset(rho1d,-order_allocated/2);
+  memory->destroy2d_offset(drho1d,-order_allocated/2);
+  memory->destroy2d_offset(rho_coeff,(1-order_allocated)/2);
+  memory->destroy2d_offset(drho_coeff,(1-order_allocated)/2);
 
   delete fft1;
   delete fft2;
@@ -686,6 +689,7 @@ void PPPMDipole::deallocate()
 
   fft1 = fft2 = nullptr;
   remap = nullptr;
+  gf_b = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1338,7 +1342,8 @@ void PPPMDipole::poisson_ik_dipole()
 
   // global energy and virial contribution
 
-  double scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
+  bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
+  double scaleinv = 1.0/ngridtotal;
   double s2 = scaleinv*scaleinv;
 
   if (eflag_global || vflag_global) {

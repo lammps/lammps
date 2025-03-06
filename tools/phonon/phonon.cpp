@@ -96,15 +96,14 @@ Phonon::Phonon(DynMat *dm)
       else if (job ==-1) dynmat->reset_interp_method();
       else break;
    }
-   return;
-}
+   }
 
 /* ----------------------------------------------------------------------------
  * Deconstructor to free memory
  * ---------------------------------------------------------------------------- */
 Phonon::~Phonon()
 {
-   dynmat = NULL;
+   dynmat = nullptr;
  
    memory->destroy(wt);
    memory->destroy(qpts);
@@ -120,8 +119,6 @@ Phonon::~Phonon()
    memory->destroy(atpos);
 #endif
    delete memory;
-
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -191,8 +188,6 @@ void Phonon::pdos()
  
    // output DOS
    writeDOS();
- 
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -200,7 +195,7 @@ void Phonon::pdos()
  * ---------------------------------------------------------------------------- */
 void Phonon::writeDOS()
 {
-   if (dos == NULL) return;
+   if (dos == nullptr) return;
  
    char str[MAXLINE];
    // now to output the phonon DOS
@@ -231,8 +226,6 @@ void Phonon::writeDOS()
    fclose(fp);
  
    fname = NULL;
-   
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -265,8 +258,7 @@ void Phonon::writeLDOS()
       fclose(fp);
    }
  
-   return;
-}
+   }
 
 /* ----------------------------------------------------------------------------
  * Private method to calculate the local phonon DOS via the real space Green's
@@ -303,7 +295,7 @@ void Phonon::ldos_rsgf()
    int ik = 0, nit = MAX(ndim*0.1, MIN(ndim,50));
    double eps = 12.; // for Cu with 1000+ atoms, 12 is enough; for small system, eps should be large.
  
-   while (1) {
+   while (true) {
       int istr, iend, iinc;
       // ask for relevant info
       printf("\nThere are %d atoms in each unit cell of your lattice.\n", dynmat->nucell);
@@ -401,8 +393,6 @@ void Phonon::ldos_rsgf()
  
    }
    memory->destroy(Hessian);
- 
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -412,19 +402,17 @@ void Phonon::dmanyq()
 {
    char str[MAXLINE];
    double q[3];
-   while ( 1 ){
+   while ( true ){
       printf("Please input the q-point to output the dynamical matrix: ");
       input->read_stdin(str);
       if (count_words(str) >= 3) break;
    }
    q[0] = atof(strtok(str," \t\n\r\f"));
-   q[1] = atof(strtok(NULL," \t\n\r\f"));
-   q[2] = atof(strtok(NULL," \t\n\r\f"));
+   q[1] = atof(strtok(nullptr," \t\n\r\f"));
+   q[2] = atof(strtok(nullptr," \t\n\r\f"));
  
    dynmat->getDMq(q);
    dynmat->writeDMq(q);
- 
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -436,7 +424,7 @@ void Phonon::vfanyq()
    double q[3];
    double *egvs = new double[ndim];
    
-   while ( 1 ){
+   while ( true ){
       printf("Please input the q-point to compute the frequencies, q to exit: ");
       input->read_stdin(str);
       if (count_words(str) < 3) break;
@@ -454,7 +442,6 @@ void Phonon::vfanyq()
    }
 
    delete[] egvs;
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -471,7 +458,7 @@ void Phonon::vecanyq()
    if (count_words(str) < 1) strcpy(str,"eigvec.dat");
    FILE *fp = fopen(strtok(str," \t\n\r\f"), "w");
  
-   while ( 1 ){
+   while ( true ){
       printf("Please input the q-point to compute the frequencies, q to exit: ");
       input->read_stdin(str);
       if (count_words(str) < 3) break;
@@ -504,7 +491,6 @@ void Phonon::vecanyq()
    fclose(fp);
    delete[] egvs;
    eigvec = NULL;
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -528,7 +514,7 @@ void Phonon::DMdisp()
    int nq = MAX(MAX(dynmat->nx,dynmat->ny),dynmat->nz)/2;
    qend[0] = qend[1] = qend[2] = 0.;
  
-   while ( 1 ){
+   while ( true ){
       for (int i = 0; i < 3; ++i) qstr[i] = qend[i];
   
       printf("\nPlease input the start q-point in unit of B1->B3, q to exit [%g %g %g]: ", qstr[0], qstr[1], qstr[2]);
@@ -542,7 +528,7 @@ void Phonon::DMdisp()
          qstr[2] = atof(strtok(NULL," \t\n\r\f"));
       }
   
-      while ( 1 ){
+      while ( true ){
          printf("Please input the end q-point in unit of B1->B3: ");
          input->read_stdin(str);
          if (count_words(str) >= 3) break;
@@ -569,8 +555,6 @@ void Phonon::DMdisp()
       qr -= dq;
    }
    fclose(fp);
- 
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -605,8 +589,6 @@ void Phonon::smooth(double *array, const int npt)
  
    memory->destroy(tmp);
    memory->destroy(table);
- 
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -671,8 +653,6 @@ void Phonon::therm()
   
    } while (T > 0.);
    fclose(fp);
- 
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -707,7 +687,7 @@ void Phonon::local_therm()
    // constants          J.s             J/K                J
    const double h = 6.62606896e-34, Kb = 1.380658e-23, eV = 1.60217733e-19;
    double T = dynmat->Tmeasure;
-   while ( 1 ){
+   while ( true ){
       printf("\nPlease input the temperature at which to evaluate the local vibrational\n");
       printf("thermal properties, non-positive number to exit [%g]: ", T);
       input->read_stdin(str);
@@ -789,8 +769,6 @@ void Phonon::local_therm()
       }
    }
    fclose(fp);
- 
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -935,8 +913,6 @@ void Phonon::QMesh()
    }
 #endif
    printf("Your new q-mesh size would be: %d x %d x %d => %d points\n", nx,ny,nz,nq);
-
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -1055,8 +1031,6 @@ void Phonon::ldos_egv()
  
    // evaluate the local vibrational thermal properties optionally
    local_therm();
- 
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -1078,8 +1052,6 @@ void Phonon::ShowCell()
    for (int i = 0; i < dynmat->nucell; ++i)
      printf("%4d %12.8f %12.8f %12.8f\n", dynmat->attyp[i], dynmat->basis[i][0], dynmat->basis[i][1], dynmat->basis[i][2]);
    puts("================================================================================");
- 
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -1112,8 +1084,7 @@ void Phonon::Normalize()
       }
    }
  
-   return;
-}
+   }
 
 /* ----------------------------------------------------------------------------
  * Private method to calculate vibrational frequencies for all q-points
@@ -1138,8 +1109,6 @@ void Phonon::ComputeAll()
    }
    printf("Done!\n");
    time->stop(); time->print(); delete time;
- 
-   return;
 }
 
 /*------------------------------------------------------------------------------

@@ -5,7 +5,11 @@ The BPM package implements bonded particle models which can be used to
 simulate mesoscale solids.  Solids are constructed as a collection of
 particles, which each represent a coarse-grained region of space much
 larger than the atomistic scale.  Particles within a solid region are
-then connected by a network of bonds to provide solid elasticity.
+then connected by a network of bonds to model solid elasticity.
+There are many names for methods that are based on similar (or
+equivalent) capabilities to those in this package, including, but not
+limited to, cohesive beam models, bonded DEMs, lattice spring models,
+mass spring models, and lattice particle methods.
 
 Unlike traditional bonds in molecular dynamics, the equilibrium bond
 length can vary between bonds. Bonds store the reference state.  This
@@ -15,7 +19,10 @@ orientation for rotational models. This produces a stress-free initial
 state. Furthermore, bonds are allowed to break under large strains,
 producing fracture. The examples/bpm directory has sample input scripts
 for simulations of the fragmentation of an impacted plate and the
-pouring of extended, elastic bodies.
+pouring of extended, elastic bodies. See :ref:`(Clemmer) <howto-Clemmer>`
+for more general information on the approach and the LAMMPS implementation.
+Example movies illustrating some of these capabilities are found at
+https://www.lammps.org/movies.html#bpmpackage.
 
 ----------
 
@@ -39,7 +46,8 @@ Currently, there are two types of bonds included in the BPM package. The
 first bond style, :doc:`bond bpm/spring <bond_bpm_spring>`, only applies
 pairwise, central body forces. Point particles must have :doc:`bond atom
 style <atom_style>` and may be thought of as nodes in a spring
-network. Alternatively, the second bond style, :doc:`bond bpm/rotational
+network. An optional multibody term can be used to adjust the network's
+Poisson's ratio. Alternatively, the second bond style, :doc:`bond bpm/rotational
 <bond_bpm_rotational>`, resolves tangential forces and torques arising
 with the shearing, bending, and twisting of the bond due to rotation or
 displacement of particles.  Particles are similar to those used in the
@@ -52,8 +60,9 @@ orientation similar to :doc:`fix nve/asphere <fix_nve_asphere>`.
 
 In addition to bond styles, a new pair style :doc:`pair bpm/spring
 <pair_bpm_spring>` was added to accompany the bpm/spring bond
-style. This pair style is simply a hookean repulsion with similar
-velocity damping as its sister bond style.
+style. By default, this pair style is simply a hookean repulsion with
+similar velocity damping as its sister bond style, but optional
+arguments can be used to modify the force.
 
 ----------
 
@@ -79,9 +88,9 @@ As bonds can be broken between neighbor list builds, the
 bond styles. There are two possible settings which determine how pair
 interactions work between bonded particles.  First, one can overlay
 pair forces with bond forces such that all bonded particles also
-feel pair interactions. This can be accomplished by using the *overlay/pair*
-keyword present in all bpm bond styles and by using the following special
-bond settings
+feel pair interactions. This can be accomplished by setting the *overlay/pair*
+keyword present in all bpm bond styles to *yes* and requires using the
+following special bond settings
 
    .. code-block:: LAMMPS
 
@@ -107,7 +116,17 @@ bond lists is expensive.  By setting the lj weight for 1-2 bonds to
 zero, this turns off pairwise interactions.  Even though there are no
 charges in BPM models, setting a nonzero coul weight for 1-2 bonds
 ensures all bonded neighbors are still included in the neighbor list
-in case bonds break between neighbor list builds.
+in case bonds break between neighbor list builds. If bond breakage is
+disabled during a simulation run by setting the *break* keyword to *no*,
+a zero coul weight for 1-2 bonds can be used to exclude bonded atoms
+from the neighbor list builds
+
+   .. code-block:: LAMMPS
+
+      special_bonds lj 0 1 1 coul 0 1 1
+
+This can be useful for post-processing, or to determine pair interaction
+properties between distinct bonded particles.
 
 To monitor the fracture of bonds in the system, all BPM bond styles
 have the ability to record instances of bond breakage to output using
@@ -140,3 +159,9 @@ the following are currently compatible with BPM bond styles:
    interactions, one will need to switch between different *special_bonds*
    settings in the input script. An example is found in
    ``examples/bpm/impact``.
+
+----------
+
+.. _howto-Clemmer:
+
+**(Clemmer)** Clemmer, Monti, Lechman, Soft Matter, 20, 1702 (2024).

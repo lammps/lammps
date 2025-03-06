@@ -53,7 +53,7 @@ void dpd_gpu_compute(const int ago, const int inum_full, const int nall, double 
                      double *boxlo, double *prd);
 double dpd_gpu_bytes();
 
-#define EPSILON 1.0e-10
+static constexpr double EPSILON = 1.0e-10;
 
 //#define _USE_UNIFORM_SARU_LCG
 //#define _USE_UNIFORM_SARU_TEA8

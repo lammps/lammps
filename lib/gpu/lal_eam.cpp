@@ -303,7 +303,7 @@ double EAMT::host_memory_usage() const {
 }
 
 // ---------------------------------------------------------------------------
-// Copy nbor list from host if necessary and then compute atom energies/forces
+// Copy nbor list from host if necessary and then compute per-atom fp
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 void EAMT::compute(const int f_ago, const int inum_full, const int nlocal,
@@ -379,7 +379,7 @@ void EAMT::compute(const int f_ago, const int inum_full, const int nlocal,
 }
 
 // ---------------------------------------------------------------------------
-// Reneighbor on GPU and then compute per-atom densities
+// Reneighbor on GPU and then compute per-atom fp
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int** EAMT::compute(const int ago, const int inum_full, const int nall,
@@ -461,7 +461,7 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
 }
 
 // ---------------------------------------------------------------------------
-// Copy nbor list from host if necessary and then calculate forces, virials,..
+// Update per-atom fp, and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 void EAMT::compute2(int *ilist, const bool eflag, const bool vflag,

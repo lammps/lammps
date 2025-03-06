@@ -48,24 +48,24 @@ int dlarfb_(char *side, char *trans, char *direct, char *storev, integer *m, int
                 for (j = 1; j <= i__1; ++j) {
                     dcopy_(n, &c__[j + c_dim1], ldc, &work[j * work_dim1 + 1], &c__1);
                 }
-                dtrmm_((char *)"Right", (char *)"Lower", (char *)"No transpose", (char *)"Unit", n, k, &c_b14, &v[v_offset], ldv,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                dtrmm_((char *)"R", (char *)"L", (char *)"N", (char *)"U", n, k, &c_b14, &v[v_offset], ldv, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*m > *k) {
                     i__1 = *m - *k;
-                    dgemm_((char *)"Transpose", (char *)"No transpose", n, k, &i__1, &c_b14, &c__[*k + 1 + c_dim1],
-                           ldc, &v[*k + 1 + v_dim1], ldv, &c_b14, &work[work_offset], ldwork,
-                           (ftnlen)9, (ftnlen)12);
+                    dgemm_((char *)"T", (char *)"N", n, k, &i__1, &c_b14, &c__[*k + 1 + c_dim1], ldc,
+                           &v[*k + 1 + v_dim1], ldv, &c_b14, &work[work_offset], ldwork, (ftnlen)1,
+                           (ftnlen)1);
                 }
-                dtrmm_((char *)"Right", (char *)"Upper", transt, (char *)"Non-unit", n, k, &c_b14, &t[t_offset], ldt,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)1, (ftnlen)8);
+                dtrmm_((char *)"R", (char *)"U", transt, (char *)"N", n, k, &c_b14, &t[t_offset], ldt, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*m > *k) {
                     i__1 = *m - *k;
-                    dgemm_((char *)"No transpose", (char *)"Transpose", &i__1, n, k, &c_b25, &v[*k + 1 + v_dim1],
-                           ldv, &work[work_offset], ldwork, &c_b14, &c__[*k + 1 + c_dim1], ldc,
-                           (ftnlen)12, (ftnlen)9);
+                    dgemm_((char *)"N", (char *)"T", &i__1, n, k, &c_b25, &v[*k + 1 + v_dim1], ldv,
+                           &work[work_offset], ldwork, &c_b14, &c__[*k + 1 + c_dim1], ldc,
+                           (ftnlen)1, (ftnlen)1);
                 }
-                dtrmm_((char *)"Right", (char *)"Lower", (char *)"Transpose", (char *)"Unit", n, k, &c_b14, &v[v_offset], ldv,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)9, (ftnlen)4);
+                dtrmm_((char *)"R", (char *)"L", (char *)"T", (char *)"U", n, k, &c_b14, &v[v_offset], ldv, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *k;
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *n;
@@ -78,24 +78,24 @@ int dlarfb_(char *side, char *trans, char *direct, char *storev, integer *m, int
                 for (j = 1; j <= i__1; ++j) {
                     dcopy_(m, &c__[j * c_dim1 + 1], &c__1, &work[j * work_dim1 + 1], &c__1);
                 }
-                dtrmm_((char *)"Right", (char *)"Lower", (char *)"No transpose", (char *)"Unit", m, k, &c_b14, &v[v_offset], ldv,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                dtrmm_((char *)"R", (char *)"L", (char *)"N", (char *)"U", m, k, &c_b14, &v[v_offset], ldv, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*n > *k) {
                     i__1 = *n - *k;
-                    dgemm_((char *)"No transpose", (char *)"No transpose", m, k, &i__1, &c_b14,
-                           &c__[(*k + 1) * c_dim1 + 1], ldc, &v[*k + 1 + v_dim1], ldv, &c_b14,
-                           &work[work_offset], ldwork, (ftnlen)12, (ftnlen)12);
+                    dgemm_((char *)"N", (char *)"N", m, k, &i__1, &c_b14, &c__[(*k + 1) * c_dim1 + 1], ldc,
+                           &v[*k + 1 + v_dim1], ldv, &c_b14, &work[work_offset], ldwork, (ftnlen)1,
+                           (ftnlen)1);
                 }
-                dtrmm_((char *)"Right", (char *)"Upper", trans, (char *)"Non-unit", m, k, &c_b14, &t[t_offset], ldt,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)1, (ftnlen)8);
+                dtrmm_((char *)"R", (char *)"U", trans, (char *)"N", m, k, &c_b14, &t[t_offset], ldt, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*n > *k) {
                     i__1 = *n - *k;
-                    dgemm_((char *)"No transpose", (char *)"Transpose", m, &i__1, k, &c_b25, &work[work_offset],
-                           ldwork, &v[*k + 1 + v_dim1], ldv, &c_b14, &c__[(*k + 1) * c_dim1 + 1],
-                           ldc, (ftnlen)12, (ftnlen)9);
+                    dgemm_((char *)"N", (char *)"T", m, &i__1, k, &c_b25, &work[work_offset], ldwork,
+                           &v[*k + 1 + v_dim1], ldv, &c_b14, &c__[(*k + 1) * c_dim1 + 1], ldc,
+                           (ftnlen)1, (ftnlen)1);
                 }
-                dtrmm_((char *)"Right", (char *)"Lower", (char *)"Transpose", (char *)"Unit", m, k, &c_b14, &v[v_offset], ldv,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)9, (ftnlen)4);
+                dtrmm_((char *)"R", (char *)"L", (char *)"T", (char *)"U", m, k, &c_b14, &v[v_offset], ldv, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *k;
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *m;
@@ -110,26 +110,22 @@ int dlarfb_(char *side, char *trans, char *direct, char *storev, integer *m, int
                 for (j = 1; j <= i__1; ++j) {
                     dcopy_(n, &c__[*m - *k + j + c_dim1], ldc, &work[j * work_dim1 + 1], &c__1);
                 }
-                dtrmm_((char *)"Right", (char *)"Upper", (char *)"No transpose", (char *)"Unit", n, k, &c_b14,
-                       &v[*m - *k + 1 + v_dim1], ldv, &work[work_offset], ldwork, (ftnlen)5,
-                       (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                dtrmm_((char *)"R", (char *)"U", (char *)"N", (char *)"U", n, k, &c_b14, &v[*m - *k + 1 + v_dim1], ldv,
+                       &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*m > *k) {
                     i__1 = *m - *k;
-                    dgemm_((char *)"Transpose", (char *)"No transpose", n, k, &i__1, &c_b14, &c__[c_offset], ldc,
-                           &v[v_offset], ldv, &c_b14, &work[work_offset], ldwork, (ftnlen)9,
-                           (ftnlen)12);
+                    dgemm_((char *)"T", (char *)"N", n, k, &i__1, &c_b14, &c__[c_offset], ldc, &v[v_offset], ldv,
+                           &c_b14, &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1);
                 }
-                dtrmm_((char *)"Right", (char *)"Lower", transt, (char *)"Non-unit", n, k, &c_b14, &t[t_offset], ldt,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)1, (ftnlen)8);
+                dtrmm_((char *)"R", (char *)"L", transt, (char *)"N", n, k, &c_b14, &t[t_offset], ldt, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*m > *k) {
                     i__1 = *m - *k;
-                    dgemm_((char *)"No transpose", (char *)"Transpose", &i__1, n, k, &c_b25, &v[v_offset], ldv,
-                           &work[work_offset], ldwork, &c_b14, &c__[c_offset], ldc, (ftnlen)12,
-                           (ftnlen)9);
+                    dgemm_((char *)"N", (char *)"T", &i__1, n, k, &c_b25, &v[v_offset], ldv, &work[work_offset],
+                           ldwork, &c_b14, &c__[c_offset], ldc, (ftnlen)1, (ftnlen)1);
                 }
-                dtrmm_((char *)"Right", (char *)"Upper", (char *)"Transpose", (char *)"Unit", n, k, &c_b14,
-                       &v[*m - *k + 1 + v_dim1], ldv, &work[work_offset], ldwork, (ftnlen)5,
-                       (ftnlen)5, (ftnlen)9, (ftnlen)4);
+                dtrmm_((char *)"R", (char *)"U", (char *)"T", (char *)"U", n, k, &c_b14, &v[*m - *k + 1 + v_dim1], ldv,
+                       &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *k;
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *n;
@@ -143,26 +139,22 @@ int dlarfb_(char *side, char *trans, char *direct, char *storev, integer *m, int
                     dcopy_(m, &c__[(*n - *k + j) * c_dim1 + 1], &c__1, &work[j * work_dim1 + 1],
                            &c__1);
                 }
-                dtrmm_((char *)"Right", (char *)"Upper", (char *)"No transpose", (char *)"Unit", m, k, &c_b14,
-                       &v[*n - *k + 1 + v_dim1], ldv, &work[work_offset], ldwork, (ftnlen)5,
-                       (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                dtrmm_((char *)"R", (char *)"U", (char *)"N", (char *)"U", m, k, &c_b14, &v[*n - *k + 1 + v_dim1], ldv,
+                       &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*n > *k) {
                     i__1 = *n - *k;
-                    dgemm_((char *)"No transpose", (char *)"No transpose", m, k, &i__1, &c_b14, &c__[c_offset], ldc,
-                           &v[v_offset], ldv, &c_b14, &work[work_offset], ldwork, (ftnlen)12,
-                           (ftnlen)12);
+                    dgemm_((char *)"N", (char *)"N", m, k, &i__1, &c_b14, &c__[c_offset], ldc, &v[v_offset], ldv,
+                           &c_b14, &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1);
                 }
-                dtrmm_((char *)"Right", (char *)"Lower", trans, (char *)"Non-unit", m, k, &c_b14, &t[t_offset], ldt,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)1, (ftnlen)8);
+                dtrmm_((char *)"R", (char *)"L", trans, (char *)"N", m, k, &c_b14, &t[t_offset], ldt, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*n > *k) {
                     i__1 = *n - *k;
-                    dgemm_((char *)"No transpose", (char *)"Transpose", m, &i__1, k, &c_b25, &work[work_offset],
-                           ldwork, &v[v_offset], ldv, &c_b14, &c__[c_offset], ldc, (ftnlen)12,
-                           (ftnlen)9);
+                    dgemm_((char *)"N", (char *)"T", m, &i__1, k, &c_b25, &work[work_offset], ldwork, &v[v_offset],
+                           ldv, &c_b14, &c__[c_offset], ldc, (ftnlen)1, (ftnlen)1);
                 }
-                dtrmm_((char *)"Right", (char *)"Upper", (char *)"Transpose", (char *)"Unit", m, k, &c_b14,
-                       &v[*n - *k + 1 + v_dim1], ldv, &work[work_offset], ldwork, (ftnlen)5,
-                       (ftnlen)5, (ftnlen)9, (ftnlen)4);
+                dtrmm_((char *)"R", (char *)"U", (char *)"T", (char *)"U", m, k, &c_b14, &v[*n - *k + 1 + v_dim1], ldv,
+                       &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *k;
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *m;
@@ -179,24 +171,24 @@ int dlarfb_(char *side, char *trans, char *direct, char *storev, integer *m, int
                 for (j = 1; j <= i__1; ++j) {
                     dcopy_(n, &c__[j + c_dim1], ldc, &work[j * work_dim1 + 1], &c__1);
                 }
-                dtrmm_((char *)"Right", (char *)"Upper", (char *)"Transpose", (char *)"Unit", n, k, &c_b14, &v[v_offset], ldv,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)9, (ftnlen)4);
+                dtrmm_((char *)"R", (char *)"U", (char *)"T", (char *)"U", n, k, &c_b14, &v[v_offset], ldv, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*m > *k) {
                     i__1 = *m - *k;
-                    dgemm_((char *)"Transpose", (char *)"Transpose", n, k, &i__1, &c_b14, &c__[*k + 1 + c_dim1],
-                           ldc, &v[(*k + 1) * v_dim1 + 1], ldv, &c_b14, &work[work_offset], ldwork,
-                           (ftnlen)9, (ftnlen)9);
+                    dgemm_((char *)"T", (char *)"T", n, k, &i__1, &c_b14, &c__[*k + 1 + c_dim1], ldc,
+                           &v[(*k + 1) * v_dim1 + 1], ldv, &c_b14, &work[work_offset], ldwork,
+                           (ftnlen)1, (ftnlen)1);
                 }
-                dtrmm_((char *)"Right", (char *)"Upper", transt, (char *)"Non-unit", n, k, &c_b14, &t[t_offset], ldt,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)1, (ftnlen)8);
+                dtrmm_((char *)"R", (char *)"U", transt, (char *)"N", n, k, &c_b14, &t[t_offset], ldt, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*m > *k) {
                     i__1 = *m - *k;
-                    dgemm_((char *)"Transpose", (char *)"Transpose", &i__1, n, k, &c_b25, &v[(*k + 1) * v_dim1 + 1],
-                           ldv, &work[work_offset], ldwork, &c_b14, &c__[*k + 1 + c_dim1], ldc,
-                           (ftnlen)9, (ftnlen)9);
+                    dgemm_((char *)"T", (char *)"T", &i__1, n, k, &c_b25, &v[(*k + 1) * v_dim1 + 1], ldv,
+                           &work[work_offset], ldwork, &c_b14, &c__[*k + 1 + c_dim1], ldc,
+                           (ftnlen)1, (ftnlen)1);
                 }
-                dtrmm_((char *)"Right", (char *)"Upper", (char *)"No transpose", (char *)"Unit", n, k, &c_b14, &v[v_offset], ldv,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                dtrmm_((char *)"R", (char *)"U", (char *)"N", (char *)"U", n, k, &c_b14, &v[v_offset], ldv, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *k;
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *n;
@@ -209,24 +201,24 @@ int dlarfb_(char *side, char *trans, char *direct, char *storev, integer *m, int
                 for (j = 1; j <= i__1; ++j) {
                     dcopy_(m, &c__[j * c_dim1 + 1], &c__1, &work[j * work_dim1 + 1], &c__1);
                 }
-                dtrmm_((char *)"Right", (char *)"Upper", (char *)"Transpose", (char *)"Unit", m, k, &c_b14, &v[v_offset], ldv,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)9, (ftnlen)4);
+                dtrmm_((char *)"R", (char *)"U", (char *)"T", (char *)"U", m, k, &c_b14, &v[v_offset], ldv, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*n > *k) {
                     i__1 = *n - *k;
-                    dgemm_((char *)"No transpose", (char *)"Transpose", m, k, &i__1, &c_b14,
-                           &c__[(*k + 1) * c_dim1 + 1], ldc, &v[(*k + 1) * v_dim1 + 1], ldv, &c_b14,
-                           &work[work_offset], ldwork, (ftnlen)12, (ftnlen)9);
+                    dgemm_((char *)"N", (char *)"T", m, k, &i__1, &c_b14, &c__[(*k + 1) * c_dim1 + 1], ldc,
+                           &v[(*k + 1) * v_dim1 + 1], ldv, &c_b14, &work[work_offset], ldwork,
+                           (ftnlen)1, (ftnlen)1);
                 }
-                dtrmm_((char *)"Right", (char *)"Upper", trans, (char *)"Non-unit", m, k, &c_b14, &t[t_offset], ldt,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)1, (ftnlen)8);
+                dtrmm_((char *)"R", (char *)"U", trans, (char *)"N", m, k, &c_b14, &t[t_offset], ldt, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*n > *k) {
                     i__1 = *n - *k;
-                    dgemm_((char *)"No transpose", (char *)"No transpose", m, &i__1, k, &c_b25, &work[work_offset],
-                           ldwork, &v[(*k + 1) * v_dim1 + 1], ldv, &c_b14,
-                           &c__[(*k + 1) * c_dim1 + 1], ldc, (ftnlen)12, (ftnlen)12);
+                    dgemm_((char *)"N", (char *)"N", m, &i__1, k, &c_b25, &work[work_offset], ldwork,
+                           &v[(*k + 1) * v_dim1 + 1], ldv, &c_b14, &c__[(*k + 1) * c_dim1 + 1], ldc,
+                           (ftnlen)1, (ftnlen)1);
                 }
-                dtrmm_((char *)"Right", (char *)"Upper", (char *)"No transpose", (char *)"Unit", m, k, &c_b14, &v[v_offset], ldv,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                dtrmm_((char *)"R", (char *)"U", (char *)"N", (char *)"U", m, k, &c_b14, &v[v_offset], ldv, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *k;
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *m;
@@ -241,26 +233,22 @@ int dlarfb_(char *side, char *trans, char *direct, char *storev, integer *m, int
                 for (j = 1; j <= i__1; ++j) {
                     dcopy_(n, &c__[*m - *k + j + c_dim1], ldc, &work[j * work_dim1 + 1], &c__1);
                 }
-                dtrmm_((char *)"Right", (char *)"Lower", (char *)"Transpose", (char *)"Unit", n, k, &c_b14,
-                       &v[(*m - *k + 1) * v_dim1 + 1], ldv, &work[work_offset], ldwork, (ftnlen)5,
-                       (ftnlen)5, (ftnlen)9, (ftnlen)4);
+                dtrmm_((char *)"R", (char *)"L", (char *)"T", (char *)"U", n, k, &c_b14, &v[(*m - *k + 1) * v_dim1 + 1], ldv,
+                       &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*m > *k) {
                     i__1 = *m - *k;
-                    dgemm_((char *)"Transpose", (char *)"Transpose", n, k, &i__1, &c_b14, &c__[c_offset], ldc,
-                           &v[v_offset], ldv, &c_b14, &work[work_offset], ldwork, (ftnlen)9,
-                           (ftnlen)9);
+                    dgemm_((char *)"T", (char *)"T", n, k, &i__1, &c_b14, &c__[c_offset], ldc, &v[v_offset], ldv,
+                           &c_b14, &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1);
                 }
-                dtrmm_((char *)"Right", (char *)"Lower", transt, (char *)"Non-unit", n, k, &c_b14, &t[t_offset], ldt,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)1, (ftnlen)8);
+                dtrmm_((char *)"R", (char *)"L", transt, (char *)"N", n, k, &c_b14, &t[t_offset], ldt, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*m > *k) {
                     i__1 = *m - *k;
-                    dgemm_((char *)"Transpose", (char *)"Transpose", &i__1, n, k, &c_b25, &v[v_offset], ldv,
-                           &work[work_offset], ldwork, &c_b14, &c__[c_offset], ldc, (ftnlen)9,
-                           (ftnlen)9);
+                    dgemm_((char *)"T", (char *)"T", &i__1, n, k, &c_b25, &v[v_offset], ldv, &work[work_offset],
+                           ldwork, &c_b14, &c__[c_offset], ldc, (ftnlen)1, (ftnlen)1);
                 }
-                dtrmm_((char *)"Right", (char *)"Lower", (char *)"No transpose", (char *)"Unit", n, k, &c_b14,
-                       &v[(*m - *k + 1) * v_dim1 + 1], ldv, &work[work_offset], ldwork, (ftnlen)5,
-                       (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                dtrmm_((char *)"R", (char *)"L", (char *)"N", (char *)"U", n, k, &c_b14, &v[(*m - *k + 1) * v_dim1 + 1], ldv,
+                       &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *k;
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *n;
@@ -274,26 +262,22 @@ int dlarfb_(char *side, char *trans, char *direct, char *storev, integer *m, int
                     dcopy_(m, &c__[(*n - *k + j) * c_dim1 + 1], &c__1, &work[j * work_dim1 + 1],
                            &c__1);
                 }
-                dtrmm_((char *)"Right", (char *)"Lower", (char *)"Transpose", (char *)"Unit", m, k, &c_b14,
-                       &v[(*n - *k + 1) * v_dim1 + 1], ldv, &work[work_offset], ldwork, (ftnlen)5,
-                       (ftnlen)5, (ftnlen)9, (ftnlen)4);
+                dtrmm_((char *)"R", (char *)"L", (char *)"T", (char *)"U", m, k, &c_b14, &v[(*n - *k + 1) * v_dim1 + 1], ldv,
+                       &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*n > *k) {
                     i__1 = *n - *k;
-                    dgemm_((char *)"No transpose", (char *)"Transpose", m, k, &i__1, &c_b14, &c__[c_offset], ldc,
-                           &v[v_offset], ldv, &c_b14, &work[work_offset], ldwork, (ftnlen)12,
-                           (ftnlen)9);
+                    dgemm_((char *)"N", (char *)"T", m, k, &i__1, &c_b14, &c__[c_offset], ldc, &v[v_offset], ldv,
+                           &c_b14, &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1);
                 }
-                dtrmm_((char *)"Right", (char *)"Lower", trans, (char *)"Non-unit", m, k, &c_b14, &t[t_offset], ldt,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)1, (ftnlen)8);
+                dtrmm_((char *)"R", (char *)"L", trans, (char *)"N", m, k, &c_b14, &t[t_offset], ldt, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*n > *k) {
                     i__1 = *n - *k;
-                    dgemm_((char *)"No transpose", (char *)"No transpose", m, &i__1, k, &c_b25, &work[work_offset],
-                           ldwork, &v[v_offset], ldv, &c_b14, &c__[c_offset], ldc, (ftnlen)12,
-                           (ftnlen)12);
+                    dgemm_((char *)"N", (char *)"N", m, &i__1, k, &c_b25, &work[work_offset], ldwork, &v[v_offset],
+                           ldv, &c_b14, &c__[c_offset], ldc, (ftnlen)1, (ftnlen)1);
                 }
-                dtrmm_((char *)"Right", (char *)"Lower", (char *)"No transpose", (char *)"Unit", m, k, &c_b14,
-                       &v[(*n - *k + 1) * v_dim1 + 1], ldv, &work[work_offset], ldwork, (ftnlen)5,
-                       (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                dtrmm_((char *)"R", (char *)"L", (char *)"N", (char *)"U", m, k, &c_b14, &v[(*n - *k + 1) * v_dim1 + 1], ldv,
+                       &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *k;
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *m;

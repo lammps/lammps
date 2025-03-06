@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
@@ -48,9 +20,22 @@
 
 #include <Kokkos_Core.hpp>  //kokkos_malloc
 
+#include <impl/Kokkos_CheckedIntegerOps.hpp>
+#include <impl/Kokkos_Error.hpp>
+
 namespace Kokkos {
-namespace Experimental {
 namespace Impl {
+
+namespace {
+
+// FIXME_SYCL Should be a multiple of the maximum subgroup size.
+static constexpr auto sizeScratchGrain = sizeof(Kokkos::SYCL::size_type[32]);
+
+std::size_t scratch_count(const std::size_t size) {
+  return (size + sizeScratchGrain - 1) / sizeScratchGrain;
+}
+
+}  // namespace
 
 std::vector<std::optional<sycl::queue>*> SYCLInternal::all_queues;
 std::mutex SYCLInternal::mutex;
@@ -67,9 +52,9 @@ Kokkos::View<uint32_t*, SYCLDeviceUSMSpace> sycl_global_unique_token_locks(
 }
 
 SYCLInternal::~SYCLInternal() {
-  if (!was_finalized || m_scratchSpace || m_scratchFlags) {
-    std::cerr << "Kokkos::Experimental::SYCL ERROR: Failed to call "
-                 "Kokkos::Experimental::SYCL::finalize()"
+  if (!was_finalized || m_scratchSpace || m_scratchHost || m_scratchFlags) {
+    std::cerr << "Kokkos::SYCL ERROR: Failed to call "
+                 "Kokkos::SYCL::finalize()"
               << std::endl;
     std::cerr.flush();
   }
@@ -77,7 +62,7 @@ SYCLInternal::~SYCLInternal() {
 
 int SYCLInternal::verify_is_initialized(const char* const label) const {
   if (!is_initialized()) {
-    Kokkos::abort((std::string("Kokkos::Experimental::SYCL::") + label +
+    Kokkos::abort((std::string("Kokkos::SYCL::") + label +
                    " : ERROR device not initialized\n")
                       .c_str());
   }
@@ -103,93 +88,110 @@ void SYCLInternal::initialize(const sycl::device& d) {
       Kokkos::Impl::throw_runtime_exception(
           "There was an asynchronous SYCL error!\n");
   };
+#ifdef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
+  initialize(
+      sycl::queue{d, exception_handler, sycl::property::queue::in_order()});
+#else
   initialize(sycl::queue{d, exception_handler});
+#endif
 }
 
 // FIXME_SYCL
 void SYCLInternal::initialize(const sycl::queue& q) {
+  KOKKOS_EXPECTS(!is_initialized());
+
+#define KOKKOS_IMPL_CHECK_SYCL_BACKEND_SUPPORT(BACKEND, REQUIRED)            \
+  if (BACKEND != REQUIRED)                                                   \
+  Kokkos::abort(                                                             \
+      "The SYCL execution space instance was initialized with an "           \
+      "unsupported backend type! For this GPU architecture, only " #REQUIRED \
+      " is supported.")
+#if defined(KOKKOS_ARCH_INTEL_GPU)
+  KOKKOS_IMPL_CHECK_SYCL_BACKEND_SUPPORT(q.get_backend(),
+                                         sycl::backend::ext_oneapi_level_zero);
+#elif defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
+  KOKKOS_IMPL_CHECK_SYCL_BACKEND_SUPPORT(q.get_backend(),
+                                         sycl::backend::ext_oneapi_cuda);
+#elif defined(KOKKOS_ARCH_AMD_GPU)
+  KOKKOS_IMPL_CHECK_SYCL_BACKEND_SUPPORT(q.get_backend(),
+                                         sycl::backend::ext_oneapi_hip);
+#endif
+
   if (was_finalized)
     Kokkos::abort("Calling SYCL::initialize after SYCL::finalize is illegal\n");
 
-  if (is_initialized()) return;
+  m_queue = q;
+  // guard pushing to all_queues
+  {
+    std::scoped_lock lock(mutex);
+    all_queues.push_back(&m_queue);
+  }
+  const sycl::device& d = m_queue->get_device();
 
-  if (!HostSpace::execution_space::impl_is_initialized()) {
-    const std::string msg(
-        "SYCL::initialize ERROR : HostSpace::execution_space is not "
-        "initialized");
-    Kokkos::Impl::throw_runtime_exception(msg);
+  m_maxWorkgroupSize =
+      d.template get_info<sycl::info::device::max_work_group_size>();
+  // FIXME_SYCL this should give the correct value for NVIDIA GPUs
+  m_maxConcurrency =
+      m_maxWorkgroupSize * 2 *
+      d.template get_info<sycl::info::device::max_compute_units>();
+
+  m_maxShmemPerBlock =
+      d.template get_info<sycl::info::device::local_mem_size>();
+
+  for (auto& usm_mem : m_indirectKernelMem) {
+    usm_mem.reset(*m_queue, m_instance_id);
   }
 
-  const bool ok_init = nullptr == m_scratchSpace || nullptr == m_scratchFlags;
-  const bool ok_dev  = true;
-  if (ok_init && ok_dev) {
-    m_queue = q;
-    // guard pushing to all_queues
-    {
-      std::scoped_lock lock(mutex);
-      all_queues.push_back(&m_queue);
-    }
-    const sycl::device& d = m_queue->get_device();
-
-    m_maxWorkgroupSize =
-        d.template get_info<sycl::info::device::max_work_group_size>();
-    // FIXME_SYCL this should give the correct value for NVIDIA GPUs
-    m_maxConcurrency =
-        m_maxWorkgroupSize * 2 *
-        d.template get_info<sycl::info::device::max_compute_units>();
-
-    // Setup concurent bitset for obtaining unique tokens from within an
-    // executing kernel.
-    {
-      const int32_t buffer_bound =
-          Kokkos::Impl::concurrent_bitset::buffer_bound(m_maxConcurrency);
-      using Record = Kokkos::Impl::SharedAllocationRecord<
-          Kokkos::Experimental::SYCLDeviceUSMSpace, void>;
-      Record* const r =
-          Record::allocate(Kokkos::Experimental::SYCLDeviceUSMSpace(*m_queue),
-                           "Kokkos::Experimental::SYCL::InternalScratchBitset",
-                           sizeof(uint32_t) * buffer_bound);
-      Record::increment(r);
-    }
-
-    m_maxShmemPerBlock =
-        d.template get_info<sycl::info::device::local_mem_size>();
-
-    for (auto& usm_mem : m_indirectKernelMem) {
-      usm_mem.reset(*m_queue, m_instance_id);
-    }
-
-  } else {
-    std::ostringstream msg;
-    msg << "Kokkos::Experimental::SYCL::initialize(...) FAILED";
-
-    if (!ok_init) {
-      msg << " : Already initialized";
-    }
-    Kokkos::Impl::throw_runtime_exception(msg.str());
+#ifdef KOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED
+  // Init the array for used for arbitrarily sized atomics
+  if (this == &singleton()) {
+    desul::Impl::init_lock_arrays();
+    desul::Impl::init_lock_arrays_sycl(*m_queue);
   }
-
-  m_team_scratch_current_size = 0;
-  m_team_scratch_ptr          = nullptr;
+#endif
 }
 
-sycl::device_ptr<void> SYCLInternal::resize_team_scratch_space(
-    std::int64_t bytes, bool force_shrink) {
-  if (m_team_scratch_current_size == 0) {
-    m_team_scratch_current_size = bytes;
-    m_team_scratch_ptr =
-        Kokkos::kokkos_malloc<Experimental::SYCLDeviceUSMSpace>(
-            "Kokkos::Experimental::SYCLDeviceUSMSpace::TeamScratchMemory",
-            m_team_scratch_current_size);
+int SYCLInternal::acquire_team_scratch_space() {
+  // Grab the next scratch memory allocation. We must make sure that the last
+  // kernel using the allocation has completed, so we wait for the event that
+  // was registered with that kernel.
+  int current_team_scratch = desul::atomic_fetch_inc_mod(
+      &m_current_team_scratch, m_n_team_scratch - 1,
+      desul::MemoryOrderRelaxed(), desul::MemoryScopeDevice());
+
+  m_team_scratch_event[current_team_scratch].wait_and_throw();
+
+  return current_team_scratch;
+}
+
+Kokkos::Impl::sycl_device_ptr<void> SYCLInternal::resize_team_scratch_space(
+    int scratch_pool_id, std::int64_t bytes, bool force_shrink) {
+  // Multiple ParallelFor/Reduce Teams can call this function at the same time
+  // and invalidate the m_team_scratch_ptr. We use a pool to avoid any race
+  // condition.
+  auto mem_space = Kokkos::SYCLDeviceUSMSpace(*m_queue);
+  if (m_team_scratch_current_size[scratch_pool_id] == 0 && bytes > 0) {
+    m_team_scratch_current_size[scratch_pool_id] = bytes;
+    m_team_scratch_ptr[scratch_pool_id] =
+        mem_space.allocate("Kokkos::SYCL::InternalTeamScratchMemory",
+                           m_team_scratch_current_size[scratch_pool_id]);
   }
-  if ((bytes > m_team_scratch_current_size) ||
-      ((bytes < m_team_scratch_current_size) && (force_shrink))) {
-    m_team_scratch_current_size = bytes;
-    m_team_scratch_ptr =
-        Kokkos::kokkos_realloc<Experimental::SYCLDeviceUSMSpace>(
-            m_team_scratch_ptr, m_team_scratch_current_size);
+  if ((bytes > m_team_scratch_current_size[scratch_pool_id]) ||
+      ((bytes < m_team_scratch_current_size[scratch_pool_id]) &&
+       (force_shrink))) {
+    mem_space.deallocate(m_team_scratch_ptr[scratch_pool_id],
+                         m_team_scratch_current_size[scratch_pool_id]);
+    m_team_scratch_current_size[scratch_pool_id] = bytes;
+    m_team_scratch_ptr[scratch_pool_id] =
+        mem_space.allocate("Kokkos::SYCL::InternalTeamScratchMemory",
+                           m_team_scratch_current_size[scratch_pool_id]);
   }
-  return m_team_scratch_ptr;
+  return m_team_scratch_ptr[scratch_pool_id];
+}
+
+void SYCLInternal::register_team_scratch_event(int scratch_pool_id,
+                                               sycl::event event) {
+  m_team_scratch_event[scratch_pool_id] = event;
 }
 
 uint32_t SYCLInternal::impl_get_instance_id() const { return m_instance_id; }
@@ -202,24 +204,41 @@ void SYCLInternal::finalize() {
 
   // The global_unique_token_locks array is static and should only be
   // deallocated once by the defualt instance
-  if (this == &singleton()) Impl::sycl_global_unique_token_locks(true);
+  if (this == &singleton()) {
+    Impl::sycl_global_unique_token_locks(true);
+#ifdef KOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED
+    desul::Impl::finalize_lock_arrays();
+    desul::Impl::finalize_lock_arrays_sycl(*m_queue);
+#endif
+  }
 
-  using RecordSYCL = Kokkos::Impl::SharedAllocationRecord<SYCLDeviceUSMSpace>;
+  auto device_mem_space = SYCLDeviceUSMSpace(*m_queue);
+  auto host_mem_space   = SYCLHostUSMSpace(*m_queue);
   if (nullptr != m_scratchSpace)
-    RecordSYCL::decrement(RecordSYCL::get_record(m_scratchSpace));
+    device_mem_space.deallocate(m_scratchSpace,
+                                m_scratchSpaceCount * sizeScratchGrain);
+  if (nullptr != m_scratchHost)
+    host_mem_space.deallocate(m_scratchHost,
+                              m_scratchHostCount * sizeScratchGrain);
   if (nullptr != m_scratchFlags)
-    RecordSYCL::decrement(RecordSYCL::get_record(m_scratchFlags));
+    device_mem_space.deallocate(m_scratchFlags,
+                                m_scratchFlagsCount * sizeScratchGrain);
   m_syclDev           = -1;
   m_scratchSpaceCount = 0;
   m_scratchSpace      = nullptr;
+  m_scratchHostCount  = 0;
+  m_scratchHost       = nullptr;
   m_scratchFlagsCount = 0;
   m_scratchFlags      = nullptr;
 
-  if (m_team_scratch_current_size > 0)
-    Kokkos::kokkos_free<Kokkos::Experimental::SYCLDeviceUSMSpace>(
-        m_team_scratch_ptr);
-  m_team_scratch_current_size = 0;
-  m_team_scratch_ptr          = nullptr;
+  for (int i = 0; i < m_n_team_scratch; ++i) {
+    if (m_team_scratch_current_size[i] > 0) {
+      device_mem_space.deallocate(m_team_scratch_ptr[i],
+                                  m_team_scratch_current_size[i]);
+      m_team_scratch_current_size[i] = 0;
+      m_team_scratch_ptr[i]          = nullptr;
+    }
+  }
 
   for (auto& usm_mem : m_indirectKernelMem) usm_mem.reset();
   // guard erasing from all_queues
@@ -230,59 +249,74 @@ void SYCLInternal::finalize() {
   m_queue.reset();
 }
 
-sycl::device_ptr<void> SYCLInternal::scratch_space(const std::size_t size) {
-  const size_type sizeScratchGrain =
-      sizeof(Kokkos::Experimental::SYCL::size_type);
+Kokkos::Impl::sycl_device_ptr<void> SYCLInternal::scratch_space(
+    const std::size_t size) {
   if (verify_is_initialized("scratch_space") &&
-      m_scratchSpaceCount * sizeScratchGrain < size) {
-    m_scratchSpaceCount = (size + sizeScratchGrain - 1) / sizeScratchGrain;
-
-    using Record = Kokkos::Impl::SharedAllocationRecord<
-        Kokkos::Experimental::SYCLDeviceUSMSpace, void>;
+      m_scratchSpaceCount < scratch_count(size)) {
+    auto mem_space = Kokkos::SYCLDeviceUSMSpace(*m_queue);
 
     if (nullptr != m_scratchSpace)
-      Record::decrement(Record::get_record(m_scratchSpace));
+      mem_space.deallocate(m_scratchSpace,
+                           m_scratchSpaceCount * sizeScratchGrain);
 
-    Record* const r =
-        Record::allocate(Kokkos::Experimental::SYCLDeviceUSMSpace(*m_queue),
-                         "Kokkos::Experimental::SYCL::InternalScratchSpace",
-                         (sizeScratchGrain * m_scratchSpaceCount));
+    m_scratchSpaceCount = scratch_count(size);
 
-    Record::increment(r);
-
-    m_scratchSpace = reinterpret_cast<size_type*>(r->data());
+    std::size_t alloc_size = Kokkos::Impl::multiply_overflow_abort(
+        m_scratchSpaceCount, sizeScratchGrain);
+    m_scratchSpace = static_cast<size_type*>(
+        mem_space.allocate("Kokkos::SYCL::InternalScratchSpace", alloc_size));
   }
 
   return m_scratchSpace;
 }
 
-sycl::device_ptr<void> SYCLInternal::scratch_flags(const std::size_t size) {
-  const size_type sizeScratchGrain =
-      sizeof(Kokkos::Experimental::SYCL::size_type);
-  if (verify_is_initialized("scratch_flags") &&
-      m_scratchFlagsCount * sizeScratchGrain < size) {
-    m_scratchFlagsCount = (size + sizeScratchGrain - 1) / sizeScratchGrain;
+Kokkos::Impl::sycl_host_ptr<void> SYCLInternal::scratch_host(
+    const std::size_t size) {
+  if (verify_is_initialized("scratch_unified") &&
+      m_scratchHostCount < scratch_count(size)) {
+    auto mem_space = Kokkos::SYCLHostUSMSpace(*m_queue);
 
-    using Record = Kokkos::Impl::SharedAllocationRecord<
-        Kokkos::Experimental::SYCLDeviceUSMSpace, void>;
+    if (nullptr != m_scratchHost)
+      mem_space.deallocate(m_scratchHost,
+                           m_scratchHostCount * sizeScratchGrain);
+
+    m_scratchHostCount = scratch_count(size);
+
+    std::size_t alloc_size = Kokkos::Impl::multiply_overflow_abort(
+        m_scratchHostCount, sizeScratchGrain);
+    m_scratchHost = static_cast<size_type*>(
+        mem_space.allocate("Kokkos::SYCL::InternalScratchHost", alloc_size));
+  }
+
+  return m_scratchHost;
+}
+
+Kokkos::Impl::sycl_device_ptr<void> SYCLInternal::scratch_flags(
+    const std::size_t size) {
+  if (verify_is_initialized("scratch_flags") &&
+      m_scratchFlagsCount < scratch_count(size)) {
+    auto mem_space = Kokkos::SYCLDeviceUSMSpace(*m_queue);
 
     if (nullptr != m_scratchFlags)
-      Record::decrement(Record::get_record(m_scratchFlags));
+      mem_space.deallocate(m_scratchFlags,
+                           m_scratchFlagsCount * sizeScratchGrain);
 
-    Record* const r =
-        Record::allocate(Kokkos::Experimental::SYCLDeviceUSMSpace(*m_queue),
-                         "Kokkos::Experimental::SYCL::InternalScratchFlags",
-                         (sizeScratchGrain * m_scratchFlagsCount));
+    m_scratchFlagsCount = scratch_count(size);
 
-    Record::increment(r);
+    std::size_t alloc_size = Kokkos::Impl::multiply_overflow_abort(
+        m_scratchFlagsCount, sizeScratchGrain);
+    m_scratchFlags = static_cast<size_type*>(
+        mem_space.allocate("Kokkos::SYCL::InternalScratchFlags", alloc_size));
 
-    m_scratchFlags = reinterpret_cast<size_type*>(r->data());
+    // We only zero-initialize the allocation when we actually allocate.
+    // It's the responsibility of the features using scratch_flags,
+    // namely parallel_reduce and parallel_scan, to reset the used values to 0.
+    auto memset_event = m_queue->memset(m_scratchFlags, 0,
+                                        m_scratchFlagsCount * sizeScratchGrain);
+#ifndef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
+    m_queue->ext_oneapi_submit_barrier(std::vector{memset_event});
+#endif
   }
-  m_queue->memset(m_scratchFlags, 0, m_scratchFlagsCount * sizeScratchGrain);
-  fence(*m_queue,
-        "Kokkos::Experimental::SYCLInternal::scratch_flags fence after "
-        "initializing m_scratchFlags",
-        m_instance_id);
 
   return m_scratchFlags;
 }
@@ -290,8 +324,7 @@ sycl::device_ptr<void> SYCLInternal::scratch_flags(const std::size_t size) {
 template <typename WAT>
 void SYCLInternal::fence_helper(WAT& wat, const std::string& name,
                                 uint32_t instance_id) {
-  Kokkos::Tools::Experimental::Impl::profile_fence_event<
-      Kokkos::Experimental::SYCL>(
+  Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::SYCL>(
       name, Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{instance_id},
       [&]() {
         try {
@@ -325,15 +358,11 @@ size_t SYCLInternal::USMObjectMem<Kind>::reserve(size_t n) {
   assert(m_q);
 
   if (m_capacity < n) {
-    using Record = Kokkos::Impl::SharedAllocationRecord<AllocationSpace, void>;
-    // First free what we have (in case malloc can reuse it)
-    if (m_data) Record::decrement(Record::get_record(m_data));
+    AllocationSpace alloc_space(*m_q);
+    if (m_data) alloc_space.deallocate(m_data, m_capacity);
 
-    Record* const r = Record::allocate(
-        AllocationSpace(*m_q), "Kokkos::Experimental::SYCL::USMObjectMem", n);
-    Record::increment(r);
+    m_data = alloc_space.allocate("Kokkos::SYCL::USMObjectMem", n);
 
-    m_data = r->data();
     if constexpr (sycl::usm::alloc::device == Kind)
       m_staging.reset(new char[n]);
     m_capacity = n;
@@ -347,8 +376,8 @@ void SYCLInternal::USMObjectMem<Kind>::reset() {
   if (m_data) {
     // This implies a fence since this class is not copyable
     // and deallocating implies a fence across all registered queues.
-    using Record = Kokkos::Impl::SharedAllocationRecord<AllocationSpace, void>;
-    Record::decrement(Record::get_record(m_data));
+    AllocationSpace alloc_space(*m_q);
+    alloc_space.deallocate(m_data, m_capacity);
 
     m_capacity = 0;
     m_data     = nullptr;
@@ -356,10 +385,11 @@ void SYCLInternal::USMObjectMem<Kind>::reset() {
   m_q.reset();
 }
 
+int SYCLInternal::m_syclDev;
+
 template class SYCLInternal::USMObjectMem<sycl::usm::alloc::shared>;
 template class SYCLInternal::USMObjectMem<sycl::usm::alloc::device>;
 template class SYCLInternal::USMObjectMem<sycl::usm::alloc::host>;
 
 }  // namespace Impl
-}  // namespace Experimental
 }  // namespace Kokkos

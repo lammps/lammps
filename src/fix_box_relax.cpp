@@ -35,10 +35,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NONE,XYZ,XY,YZ,XZ};
-enum{ISO,ANISO,TRICLINIC};
-
-#define MAX_LIFO_DEPTH 2     // 3 box0 arrays in *.h dimensioned to this
+enum { NONE, XYZ, XY, YZ, XZ };
+enum { ISO, ANISO, TRICLINIC };
 
 /* ---------------------------------------------------------------------- */
 
@@ -319,9 +317,6 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   pflag = 1;
 
   dimension = domain->dimension;
-  nrigid = 0;
-  rfix = nullptr;
-
   current_lifo = 0;
 }
 
@@ -329,8 +324,6 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
 
 FixBoxRelax::~FixBoxRelax()
 {
-  delete[] rfix;
-
   // delete temperature and pressure if fix created them
 
   if (tflag) modify->delete_compute(id_temp);
@@ -355,12 +348,20 @@ void FixBoxRelax::init()
   // set temperature and pressure ptrs
 
   temperature = modify->get_compute_by_id(id_temp);
-  if (!temperature)
-    error->all(FLERR,"Temperature compute ID {} for fix box/relax does not exist", id_temp);
+  if (!temperature) {
+    error->all(FLERR,"Temperature compute ID {} for fix {} does not exist", id_temp, style);
+  } else {
+    if (temperature->tempflag == 0)
+      error->all(FLERR, "Compute ID {} for fix {} does not compute a temperature", id_temp, style);
+  }
 
   pressure = modify->get_compute_by_id(id_press);
-  if (!pressure)
-    error->all(FLERR,"Pressure compute ID {} for fix box/relax does not exist", id_press);
+  if (!pressure) {
+    error->all(FLERR,"Pressure compute ID {} for fix {} does not exist", id_press, style);
+  } else {
+    if (pressure->pressflag == 0)
+      error->all(FLERR,"Compute ID {} for fix {} does not compute pressure", id_press, style);
+  }
 
   pv2e = 1.0 / force->nktv2p;
 
@@ -368,20 +369,10 @@ void FixBoxRelax::init()
   else kspace_flag = 0;
 
   // detect if any rigid fixes exist so rigid bodies move when box is remapped
-  // rfix[] = indices to each fix rigid
 
-  delete[] rfix;
-  nrigid = 0;
-  rfix = nullptr;
-
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) nrigid++;
-  if (nrigid) {
-    rfix = new int[nrigid];
-    nrigid = 0;
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->rigid_flag) rfix[nrigid++] = i;
-  }
+  rfix.clear();
+  for (auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) rfix.push_back(ifix);
 
   // initial box dimensions
 
@@ -638,9 +629,7 @@ void FixBoxRelax::remap()
         domain->x2lamda(x[i],x[i]);
   }
 
-  if (nrigid)
-    for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(0);
+  for (auto &ifix : rfix) ifix->deform(0);
 
   // reset global and local box to new size/shape
 
@@ -678,9 +667,7 @@ void FixBoxRelax::remap()
         domain->lamda2x(x[i],x[i]);
   }
 
-  if (nrigid)
-    for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(1);
+  for (auto &ifix : rfix) ifix->deform(1);
 }
 
 /* ---------------------------------------------------------------------- */

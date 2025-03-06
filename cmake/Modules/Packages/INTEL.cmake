@@ -72,6 +72,10 @@ if(INTEL_ARCH STREQUAL "KNL")
   if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     message(FATAL_ERROR "Must use Intel compiler with INTEL for KNL architecture")
   endif()
+  message(WARNING, "Support for Intel Xeon Phi accelerators and Knight's Landing CPUs "
+          "will be removed from LAMMPS in Summer 2025 due to lack of available machines "
+          "in labs and HPC centers and removed support in recent compilers "
+          "Please contact developers@lammps.org if you have any concerns about this step.")
   set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -xHost -qopenmp -qoffload")
   set(MIC_OPTIONS "-qoffload-option,mic,compiler,\"-fp-model fast=2 -mGLOB_default_function_attrs=\\\"gather_scatter_loop_unroll=4\\\"\"")
   target_compile_options(lammps PRIVATE -xMIC-AVX512 -qoffload -fno-alias -ansi-alias -restrict -qoverride-limits ${MIC_OPTIONS})
@@ -110,6 +114,9 @@ get_property(INTEL_SOURCES GLOBAL PROPERTY INTEL_SOURCES)
 if(PKG_KSPACE)
   list(APPEND INTEL_SOURCES ${INTEL_SOURCES_DIR}/verlet_lrt_intel.cpp)
   RegisterIntegrateStyle(${INTEL_SOURCES_DIR}/verlet_lrt_intel.h)
+endif()
+if(PKG_ML-SNAP)
+  list(APPEND INTEL_SOURCES ${INTEL_SOURCES_DIR}/sna_intel.cpp)
 endif()
 
 target_sources(lammps PRIVATE ${INTEL_SOURCES})

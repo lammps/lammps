@@ -31,7 +31,7 @@ command:
    tar -xzvf lammps*.tar.gz
 
 This will create a LAMMPS directory with the version date in its name,
-e.g. lammps-28Mar23.
+e.g. ``lammps-28Mar23``.
 
 ----------
 

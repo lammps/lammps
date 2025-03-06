@@ -34,7 +34,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define SMALL 0.001
+static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
@@ -382,4 +382,17 @@ double AngleCosineBuck6d::single(int type, int i1, int i2, int i3)
   double tk = multiplicity[type]*acos(c)-th0[type];
 
   return k[type]*(1.0+cos(tk));
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleCosineBuck6d::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "multiplicity") == 0) return (void *) multiplicity;
+  if (strcmp(str, "th0") == 0) return (void *) th0;
+  return nullptr;
 }

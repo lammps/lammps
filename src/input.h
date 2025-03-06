@@ -26,8 +26,10 @@ class Input : protected Pointers {
   friend class Error;
   friend class Deprecated;
   friend class SimpleCommandsTest_Echo_Test;
+  friend std::string utils::point_to_error(Input *input, int failed);
 
  public:
+  char *command;               // ptr to current command
   int narg;                    // # of command args
   char **arg;                  // parsed args for command
   class Variable *variable;    // defined variables
@@ -39,9 +41,9 @@ class Input : protected Pointers {
   char *one(const std::string &);                          // process a single command
   void substitute(char *&, char *&, int &, int &, int);    // substitute for variables in a string
   void write_echo(const std::string &);                    // send text to active echo file pointers
+  int get_jump_skip() const { return jump_skip; }
 
  protected:
-  char *command;      // ptr to current command
   int echo_screen;    // 0 = no, 1 = yes
   int echo_log;       // 0 = no, 1 = yes
 
@@ -50,13 +52,14 @@ class Input : protected Pointers {
   int maxarg;                       // max # of args in arg
   char *line, *copy, *work;         // input line & copy and work string
   int maxline, maxcopy, maxwork;    // max lengths of char strings
-  int nfile, maxfile;               // current # and max # of open input files
+  int nfile;                        // current # of open input files
   int label_active;                 // 0 = no label, 1 = looking for label
   char *labelstr;                   // label string being looked for
   int jump_skip;                    // 1 if skipping next jump, 0 otherwise
   bool utf8_warn;                   // true if need to warn about UTF-8 chars
 
   FILE **infiles;    // list of open input files
+  int *inlines;      // list of saved line numbers of open input files
 
  public:
   typedef Command *(*CommandCreator)(LAMMPS *);

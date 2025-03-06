@@ -1,61 +1,34 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_SYCL_UNIQUE_TOKEN_HPP
 #define KOKKOS_SYCL_UNIQUE_TOKEN_HPP
 
 #include <impl/Kokkos_ConcurrentBitset.hpp>
-#include <Kokkos_SYCL_Space.hpp>
+#include <SYCL/Kokkos_SYCL_Space.hpp>
 #include <Kokkos_UniqueToken.hpp>
 
 namespace Kokkos {
-namespace Experimental {
 
 namespace Impl {
 Kokkos::View<uint32_t*, SYCLDeviceUSMSpace> sycl_global_unique_token_locks(
     bool deallocate = false);
 }
+
+namespace Experimental {
 
 // both global and instance Unique Tokens are implemented in the same way
 // the global version has one shared static lock array underneath
@@ -70,7 +43,7 @@ class UniqueToken<SYCL, UniqueTokenScope::Global> {
   using size_type       = int32_t;
 
   explicit UniqueToken(execution_space const& = execution_space())
-      : m_locks(Impl::sycl_global_unique_token_locks()) {}
+      : m_locks(Kokkos::Impl::sycl_global_unique_token_locks()) {}
 
   KOKKOS_DEFAULTED_FUNCTION
   UniqueToken(const UniqueToken&) = default;
@@ -103,11 +76,15 @@ class UniqueToken<SYCL, UniqueTokenScope::Global> {
   /// \brief acquire value such that 0 <= value < size()
   KOKKOS_INLINE_FUNCTION
   size_type impl_acquire() const {
+#if defined(__INTEL_LLVM_COMPILER) && __INTEL_LLVM_COMPILER >= 20250000
+    auto item = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
+#else
     auto item = sycl::ext::oneapi::experimental::this_nd_item<3>();
+#endif
     std::size_t threadIdx[3] = {item.get_local_id(2), item.get_local_id(1),
                                 item.get_local_id(0)};
     std::size_t blockIdx[3]  = {item.get_group(2), item.get_group(1),
-                               item.get_group(0)};
+                                item.get_group(0)};
     std::size_t blockDim[3] = {item.get_local_range(2), item.get_local_range(1),
                                item.get_local_range(0)};
 
@@ -121,12 +98,8 @@ class UniqueToken<SYCL, UniqueTokenScope::Global> {
     }
 
     // Make sure that all writes in the previous lock owner are visible to me
-#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
     desul::atomic_thread_fence(desul::MemoryOrderAcquire(),
                                desul::MemoryScopeDevice());
-#else
-    Kokkos::memory_fence();
-#endif
     return idx;
   }
 
@@ -142,12 +115,8 @@ class UniqueToken<SYCL, UniqueTokenScope::Global> {
   KOKKOS_INLINE_FUNCTION
   void release(size_type idx) const noexcept {
     // Make sure my writes are visible to the next lock owner
-#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
     desul::atomic_thread_fence(desul::MemoryOrderRelease(),
                                desul::MemoryScopeDevice());
-#else
-    Kokkos::memory_fence();
-#endif
     (void)Kokkos::atomic_exchange(&m_locks(idx), 0);
   }
 };
@@ -158,11 +127,11 @@ class UniqueToken<SYCL, UniqueTokenScope::Instance>
  public:
   UniqueToken()
       : UniqueToken<SYCL, UniqueTokenScope::Global>(
-            Kokkos::Experimental::SYCL().concurrency()) {}
+            Kokkos::SYCL().concurrency()) {}
 
   explicit UniqueToken(execution_space const& arg)
       : UniqueToken<SYCL, UniqueTokenScope::Global>(
-            Kokkos::Experimental::SYCL().concurrency(), arg) {}
+            Kokkos::SYCL().concurrency(), arg) {}
 
   explicit UniqueToken(size_type max_size)
       : UniqueToken<SYCL, UniqueTokenScope::Global>(max_size) {}

@@ -7,10 +7,13 @@
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
+#include <iostream>
+
 #include "colvarmodule.h"
 #include "colvarproxy.h"
 #include "colvar.h"
 #include "colvarbias_histogram.h"
+#include "colvars_memstream.h"
 
 
 colvarbias_histogram::colvarbias_histogram(char const *key)
@@ -23,7 +26,10 @@ colvarbias_histogram::colvarbias_histogram(char const *key)
 
 int colvarbias_histogram::init(std::string const &conf)
 {
-  colvarbias::init(conf);
+  int err = colvarbias::init(conf);
+  if (err != COLVARS_OK) {
+    return err;
+  }
   cvm::main()->cite_feature("Histogram colvar bias implementation");
 
   enable(f_cvb_scalar_variables);
@@ -125,22 +131,6 @@ int colvarbias_histogram::update()
   // assign a valid bin size
   bin.assign(num_variables(), 0);
 
-  if (out_name.size() == 0) {
-    // At the first timestep, we need to assign out_name since
-    // output_prefix is unset during the constructor
-    if (cvm::step_relative() == 0) {
-      out_name = cvm::output_prefix() + "." + this->name + ".dat";
-      cvm::log("Histogram " + this->name + " will be written to file \"" + out_name + "\"\n");
-    }
-  }
-
-  if (out_name_dx.size() == 0) {
-    if (cvm::step_relative() == 0) {
-      out_name_dx = cvm::output_prefix() + "." + this->name + ".dx";
-      cvm::log("Histogram " + this->name + " will be written to file \"" + out_name_dx + "\"\n");
-    }
-  }
-
   if (colvar_array_size == 0) {
     // update indices for scalar values
     size_t i;
@@ -181,6 +171,16 @@ int colvarbias_histogram::write_output_files()
 
   int error_code = COLVARS_OK;
 
+  // Set default filenames, if none have been provided
+  if (!cvm::output_prefix().empty()) {
+    if (out_name.empty()) {
+      out_name = cvm::output_prefix() + "." + this->name + ".dat";
+    }
+    if (out_name_dx.empty()) {
+      out_name_dx = cvm::output_prefix() + "." + this->name + ".dx";
+    }
+  }
+
   if (out_name.size() && out_name != "none") {
     cvm::log("Writing the histogram file \""+out_name+"\".\n");
     error_code |= grid->write_multicol(out_name, "histogram output file");
@@ -197,13 +197,18 @@ int colvarbias_histogram::write_output_files()
 
 std::istream & colvarbias_histogram::read_state_data(std::istream& is)
 {
-  if (! read_state_data_key(is, "grid")) {
-    return is;
+  if (read_state_data_key(is, "grid")) {
+    grid->read_raw(is);
   }
-  if (! grid->read_raw(is)) {
-    return is;
-  }
+  return is;
+}
 
+
+cvm::memory_stream & colvarbias_histogram::read_state_data(cvm::memory_stream& is)
+{
+  if (read_state_data_key(is, "grid")) {
+    grid->read_raw(is);
+  }
   return is;
 }
 
@@ -212,8 +217,16 @@ std::ostream & colvarbias_histogram::write_state_data(std::ostream& os)
 {
   std::ios::fmtflags flags(os.flags());
   os.setf(std::ios::fmtflags(0), std::ios::floatfield);
-  os << "grid\n";
+  write_state_data_key(os, "grid");
   grid->write_raw(os, 8);
   os.flags(flags);
+  return os;
+}
+
+
+cvm::memory_stream & colvarbias_histogram::write_state_data(cvm::memory_stream& os)
+{
+  write_state_data_key(os, "grid");
+  grid->write_raw(os);
   return os;
 }

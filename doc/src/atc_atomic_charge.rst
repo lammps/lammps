@@ -6,7 +6,7 @@ fix_modify AtC atomic_charge command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> <include|omit> atomic_charge
 

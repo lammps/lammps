@@ -8,6 +8,7 @@ on running LAMMPS, use a command line like following:
 valgrind --show-leak-kinds=all --track-origins=yes \
    --suppressions=/path/to/lammps/tools/valgrind/OpenMP.supp \
    --suppressions=/path/to/lammps/tools/valgrind/OpenMPI.supp \
+   --suppressions=/path/to/lammps/tools/valgrind/MPICH.supp \
    --suppressions=/path/to/lammps/tools/valgrind/Python3.supp \
    --suppressions=/path/to/lammps/tools/valgrind/GTest.supp \
    --suppressions=/path/to/lammps/tools/valgrind/FlexiBLAS.supp \

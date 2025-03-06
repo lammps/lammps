@@ -4,33 +4,21 @@
 option(BUILD_DOC "Build LAMMPS HTML documentation" OFF)
 
 if(BUILD_DOC)
+  option(BUILD_DOC_VENV "Build LAMMPS documentation virtual environment" ON)
+  mark_as_advanced(BUILD_DOC_VENV)
   # Current Sphinx versions require at least Python 3.8
-  if(CMAKE_VERSION VERSION_LESS 3.12)
-    find_package(PythonInterp 3.8 REQUIRED)
-    set(VIRTUALENV ${PYTHON_EXECUTABLE} -m venv)
-  else()
-    # use default (or custom) Python executable, if version is sufficient
-    if(Python_VERSION VERSION_GREATER_EQUAL 3.8)
-      set(Python3_EXECUTABLE ${Python_EXECUTABLE})
-    endif()
-    find_package(Python3 REQUIRED COMPONENTS Interpreter)
-    if(Python3_VERSION VERSION_LESS 3.8)
-      message(FATAL_ERROR "Python 3.8 and up is required to build the HTML documentation")
-    endif()
-    set(VIRTUALENV ${Python3_EXECUTABLE} -m venv)
+  # use default (or custom) Python executable, if version is sufficient
+  if(Python_VERSION VERSION_GREATER_EQUAL 3.8)
+    set(Python3_EXECUTABLE ${Python_EXECUTABLE})
   endif()
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  if(Python3_VERSION VERSION_LESS 3.8)
+    message(FATAL_ERROR "Python 3.8 and up is required to build the LAMMPS HTML documentation")
+  endif()
+  set(VIRTUALENV ${Python3_EXECUTABLE} -m venv)
+
   find_package(Doxygen 1.8.10 REQUIRED)
-
-  file(GLOB DOC_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_DOC_DIR}/src/[^.]*.rst)
-
-
-  add_custom_command(
-    OUTPUT docenv
-    COMMAND ${VIRTUALENV} docenv
-  )
-
-  set(DOCENV_BINARY_DIR ${CMAKE_BINARY_DIR}/docenv/bin)
-  set(DOCENV_REQUIREMENTS_FILE ${LAMMPS_DOC_DIR}/utils/requirements.txt)
+  file(GLOB DOC_SOURCES CONFIGURE_DEPENDS ${LAMMPS_DOC_DIR}/src/[^.]*.rst)
 
   set(SPHINX_CONFIG_DIR ${LAMMPS_DOC_DIR}/utils/sphinx-config)
   set(SPHINX_CONFIG_FILE_TEMPLATE ${SPHINX_CONFIG_DIR}/conf.py.in)
@@ -50,17 +38,35 @@ if(BUILD_DOC)
   # configure paths in conf.py, since relative paths change when file is copied
   configure_file(${SPHINX_CONFIG_FILE_TEMPLATE} ${DOC_BUILD_CONFIG_FILE})
 
-  add_custom_command(
-    OUTPUT ${DOC_BUILD_DIR}/requirements.txt
-    DEPENDS docenv ${DOCENV_REQUIREMENTS_FILE}
-    COMMAND ${CMAKE_COMMAND} -E copy ${DOCENV_REQUIREMENTS_FILE} ${DOC_BUILD_DIR}/requirements.txt
-    COMMAND ${DOCENV_BINARY_DIR}/pip $ENV{PIP_OPTIONS} install --upgrade pip
-    COMMAND ${DOCENV_BINARY_DIR}/pip $ENV{PIP_OPTIONS} install --upgrade ${LAMMPS_DOC_DIR}/utils/converters
-    COMMAND ${DOCENV_BINARY_DIR}/pip $ENV{PIP_OPTIONS} install -r ${DOC_BUILD_DIR}/requirements.txt --upgrade
-  )
+  if(BUILD_DOC_VENV)
+    add_custom_command(
+      OUTPUT docenv
+      COMMAND ${VIRTUALENV} docenv
+    )
 
-  set(MATHJAX_URL "https://github.com/mathjax/MathJax/archive/3.1.3.tar.gz" CACHE STRING "URL for MathJax tarball")
-  set(MATHJAX_MD5 "b81661c6e6ba06278e6ae37b30b0c492" CACHE STRING "MD5 checksum of MathJax tarball")
+    set(DOCENV_BINARY_DIR ${CMAKE_BINARY_DIR}/docenv/bin)
+    set(DOCENV_REQUIREMENTS_FILE ${LAMMPS_DOC_DIR}/utils/requirements.txt)
+
+    add_custom_command(
+      OUTPUT ${DOC_BUILD_DIR}/requirements.txt
+      DEPENDS docenv ${DOCENV_REQUIREMENTS_FILE}
+      COMMAND ${CMAKE_COMMAND} -E copy ${DOCENV_REQUIREMENTS_FILE} ${DOC_BUILD_DIR}/requirements.txt
+      COMMAND ${DOCENV_BINARY_DIR}/pip $ENV{PIP_OPTIONS} install --upgrade pip
+      COMMAND ${DOCENV_BINARY_DIR}/pip $ENV{PIP_OPTIONS} install --upgrade ${LAMMPS_DOC_DIR}/utils/converters
+      COMMAND ${DOCENV_BINARY_DIR}/pip $ENV{PIP_OPTIONS} install -r ${DOC_BUILD_DIR}/requirements.txt --upgrade
+    )
+
+    set(DOCENV_DEPS docenv ${DOC_BUILD_DIR}/requirements.txt)
+    if(NOT TARGET Sphinx::sphinx-build)
+      add_executable(Sphinx::sphinx-build IMPORTED GLOBAL)
+      set_target_properties(Sphinx::sphinx-build PROPERTIES IMPORTED_LOCATION "${DOCENV_BINARY_DIR}/sphinx-build")
+    endif()
+  else()
+    find_package(Sphinx)
+  endif()
+
+  set(MATHJAX_URL "https://github.com/mathjax/MathJax/archive/3.2.2.tar.gz" CACHE STRING "URL for MathJax tarball")
+  set(MATHJAX_MD5 "08dd6ef33ca08870220d9aade2a62845" CACHE STRING "MD5 checksum of MathJax tarball")
   mark_as_advanced(MATHJAX_URL)
   GetFallbackURL(MATHJAX_URL MATHJAX_FALLBACK)
 
@@ -80,7 +86,7 @@ if(BUILD_DOC)
       message(STATUS "Using already downloaded archive ${CMAKE_BINARY_DIR}/libpace.tar.gz")
     endif()
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf mathjax.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    file(GLOB MATHJAX_VERSION_DIR ${CONFIGURE_DEPENDS} ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
+    file(GLOB MATHJAX_VERSION_DIR CONFIGURE_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
     execute_process(COMMAND ${CMAKE_COMMAND} -E rename ${MATHJAX_VERSION_DIR} ${DOC_BUILD_STATIC_DIR}/mathjax)
   endif()
 
@@ -103,8 +109,9 @@ if(BUILD_DOC)
   endif()
   add_custom_command(
     OUTPUT html
-    DEPENDS ${DOC_SOURCES} docenv ${DOC_BUILD_DIR}/requirements.txt ${DOXYGEN_XML_DIR}/index.xml ${BUILD_DOC_CONFIG_FILE}
-    COMMAND ${DOCENV_BINARY_DIR}/sphinx-build ${SPHINX_EXTRA_OPTS} -b html -c ${DOC_BUILD_DIR} -d ${DOC_BUILD_DIR}/doctrees ${LAMMPS_DOC_DIR}/src ${DOC_BUILD_DIR}/html
+    DEPENDS ${DOC_SOURCES} ${DOCENV_DEPS} ${DOXYGEN_XML_DIR}/index.xml ${BUILD_DOC_CONFIG_FILE}
+    COMMAND ${Python3_EXECUTABLE} ${LAMMPS_DOC_DIR}/utils/make-globbed-tocs.py -d ${LAMMPS_DOC_DIR}/src
+    COMMAND Sphinx::sphinx-build ${SPHINX_EXTRA_OPTS} -b html -c ${DOC_BUILD_DIR} -d ${DOC_BUILD_DIR}/doctrees ${LAMMPS_DOC_DIR}/src ${DOC_BUILD_DIR}/html
     COMMAND ${CMAKE_COMMAND} -E create_symlink Manual.html ${DOC_BUILD_DIR}/html/index.html
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DOC_DIR}/src/PDF ${DOC_BUILD_DIR}/html/PDF
     COMMAND ${CMAKE_COMMAND} -E remove -f ${DOXYGEN_XML_DIR}/run.stamp

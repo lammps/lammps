@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <Kokkos_Core.hpp>
 
@@ -115,7 +87,6 @@ double AddTestFunctor() {
   return result;
 }
 
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
 template <class DeviceType, bool PWRTest>
 double AddTestLambda() {
   Kokkos::View<double**, DeviceType> a("A", 100, 5);
@@ -172,12 +143,6 @@ double AddTestLambda() {
 
   return result;
 }
-#else
-template <class DeviceType, bool PWRTest>
-double AddTestLambda() {
-  return AddTestFunctor<DeviceType, PWRTest>();
-}
-#endif
 
 template <class DeviceType>
 struct FunctorReduceTest {
@@ -252,7 +217,6 @@ double ReduceTestFunctor() {
   return result;
 }
 
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
 template <class DeviceType, bool PWRTest>
 double ReduceTestLambda() {
   using policy_type = Kokkos::TeamPolicy<DeviceType>;
@@ -305,12 +269,6 @@ double ReduceTestLambda() {
 
   return result;
 }
-#else
-template <class DeviceType, bool PWRTest>
-double ReduceTestLambda() {
-  return ReduceTestFunctor<DeviceType, PWRTest>();
-}
-#endif
 
 template <class DeviceType>
 double TestVariantLambda(int test) {
@@ -338,7 +296,6 @@ double TestVariantFunctor(int test) {
 
 template <class DeviceType>
 bool Test(int test) {
-#ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
   double res_functor = TestVariantFunctor<DeviceType>(test);
   double res_lambda  = TestVariantLambda<DeviceType>(test);
 
@@ -361,17 +318,13 @@ bool Test(int test) {
   }
 
   return passed;
-#else
-  (void)test;
-  return true;
-#endif
 }
 
 }  // namespace TestCXX11
 
 namespace Test {
 TEST(TEST_CATEGORY, cxx11) {
-  if (std::is_same<Kokkos::DefaultExecutionSpace, TEST_EXECSPACE>::value) {
+  if (std::is_same_v<Kokkos::DefaultExecutionSpace, TEST_EXECSPACE>) {
     ASSERT_TRUE((TestCXX11::Test<TEST_EXECSPACE>(1)));
     ASSERT_TRUE((TestCXX11::Test<TEST_EXECSPACE>(2)));
     ASSERT_TRUE((TestCXX11::Test<TEST_EXECSPACE>(3)));

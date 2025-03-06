@@ -1,0 +1,762 @@
+diff --git a/.gitignore b/.gitignore
+index 28ac6ef..a401160 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -6,6 +6,8 @@ doc.toc
+ wham-dist.tar.gz
+ 
+ *.o
++*~
+ 
+ wham/wham
+ wham-2d/wham-2d
++/build
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+new file mode 100644
+index 0000000..b4f0fe6
+--- /dev/null
++++ b/CMakeLists.txt
+@@ -0,0 +1,38 @@
++# Custom minimal -*- CMake -*- file for wham
++
++cmake_minimum_required(VERSION 3.16)
++project(wham VERSION 2.0.11
++  DESCRIPTION "WHAM: a fast, memory efficient implementation of the Weighted Histogram Analysis Method"
++  LANGUAGES C
++  HOMEPAGE_URL http://membrane.urmc.rochester.edu/content/wham/)
++
++include(GNUInstallDirs)
++
++add_executable(wham
++  nr/ran2.c
++  nr/locate.c
++  wham/wham.c
++  wham/file_read.c
++  wham/histogram.c
++  wham/bootstrap.c
++)
++target_include_directories(wham PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/wham)
++target_link_libraries(wham PRIVATE m)
++install(TARGETS wham DESTINATION ${CMAKE_INSTALL_BINDIR})
++
++add_executable(wham-2d
++  nr/ran2.c
++  nr/locate.c
++  wham-2d/wham-2d.c
++  wham-2d/file_read.c
++  wham-2d/histogram.c
++  wham/bootstrap.c
++)
++target_include_directories(wham-2d PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/wham)
++target_link_libraries(wham-2d PRIVATE m)
++install(TARGETS wham-2d DESTINATION ${CMAKE_INSTALL_BINDIR})
++
++install(FILES doc/doc.pdf
++  TYPE DOC
++  PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
++)
+diff --git a/nr/locate.c b/nr/locate.c
+index 9f92dc0..f3bf294 100644
+--- a/nr/locate.c
++++ b/nr/locate.c
+@@ -11,7 +11,7 @@ void locate(double xx[], int n, double x, int *j)
+ 	ascnd=(xx[n] > xx[0]);  // I think this makes it zero based
+ 	while (ju-jl > 1) {
+ 		jm=(ju+jl) >> 1;
+-		if (x > xx[jm] == ascnd)
++		if ((x > xx[jm]) == ascnd)
+ 			jl=jm;
+ 		else
+ 			ju=jm;
+diff --git a/wham-2d/histogram.c b/wham-2d/histogram.c
+index 1bd1329..b5d1c01 100644
+--- a/wham-2d/histogram.c
++++ b/wham-2d/histogram.c
+@@ -78,14 +78,14 @@ return hp;
+ }
+ 
+ /* Get a value from a histogram structure
+- * Given i and j, the indices into the global histogram, return 
++ * Given i and j, the indices into the global histogram, return
+  * the correct histogram value.  Since we only store range of histogram
+- * indices containing the nonzero values, we have to check the index value 
++ * indices containing the nonzero values, we have to check the index value
+  * against the range in the structure.
+  */
+ double get_histval(struct histogram *hist, int i, int j)
+ {
+-if ( (i < hist->first_x) || (i > hist->last_x) 
++if ( (i < hist->first_x) || (i > hist->last_x)
+    ||(j < hist->first_y) || (j > hist->last_y))
+     {
+     return 0.0;
+@@ -239,7 +239,7 @@ return error;
+ 
+ 
+ // Calculate the free energy, setting the minimum value to 0
+-void calc_free(double **free, double **prob, double kT, 
++void calc_free(double **free, double **prob, double kT,
+                int use_mask, int **mask)
+ {
+ int i,j;
+@@ -257,7 +257,14 @@ for (i=0; i<NUM_BINSx; i++)
+             }
+         else
+             {
+-            free[i][j] = -kT * log(prob[i][j]);
++            if (prob[i][j] > 0.0)
++                {
++                free[i][j] = -kT * log(prob[i][j]);
++                }
++            else
++                {
++                free[i][j] = 0.0;
++                }
+             if (free[i][j] < min)
+                 {
+                 min = free[i][j];
+@@ -321,8 +328,6 @@ return 0.5*(springx*(dx*dx) + springy*(dy*dy));
+ 
+ void calc_coor(int i, int j, double *coor)
+ {
+-coor[0] = HIST_MINx + BIN_WIDTHx*((double)i+0.5); 
+-coor[1] = HIST_MINy + BIN_WIDTHy*((double)j+0.5); 
++coor[0] = HIST_MINx + BIN_WIDTHx*((double)i+0.5);
++coor[1] = HIST_MINy + BIN_WIDTHy*((double)j+0.5);
+ }
+-
+-
+diff --git a/wham-2d/wham-2d.c b/wham-2d/wham-2d.c
+index fb6e059..a6b8483 100644
+--- a/wham-2d/wham-2d.c
++++ b/wham-2d/wham-2d.c
+@@ -25,7 +25,7 @@
+ #include <time.h>
+ #include "wham-2d.h"
+ 
+-#define COMMAND_LINE "Command line:  wham-2d Px[=0|pi|val] hist_min_x hist_max_x num_bins_x Py[=0|pi|val] hist_min_y hist_max_y num_bins_y tol temperature numpad metadatafile freefile use_mask\n"
++#define COMMAND_LINE "Command line:  wham-2d [units <real|metal|lj|...>] Px[=0|pi|val] hist_min_x hist_max_x num_bins_x Py[=0|pi|val] hist_min_y hist_max_y num_bins_y tol temperature numpad metadatafile freefile use_mask\n"
+ double HIST_MAXx,HIST_MINx,BIN_WIDTHx;
+ double HIST_MAXy,HIST_MINy,BIN_WIDTHy;
+ double TOL;
+@@ -35,7 +35,7 @@ int  NUM_BINSx, NUM_BINSy;
+ int PERIODICx, PERIODICy;
+ double PERIODx, PERIODy;
+ double *data1,**num,***bias;
+-
++double k_B = k_B_DEFAULT;
+ 
+ int main(int argc, char *argv[])
+ {
+@@ -57,7 +57,7 @@ double sum;
+ int iteration;
+ int max_iteration = 100000;
+ int numpad;
+-int **mask;
++int **mask = NULL;
+ int use_mask;
+ 
+ cpu1 = ((double) clock())/CLOCKS_PER_SEC;
+@@ -76,6 +76,61 @@ for (i=0; i<argc; i++)
+     }
+ printf("\n");
+ 
++// set k_B according to LAMMPS units settings
++if (strcmp(argv[1],"units") == 0)
++    {
++        if (argc < 3)
++        {
++            printf( COMMAND_LINE );
++            exit(-1);
++        }
++
++        if (strcmp(argv[2], "lj") == 0)
++        {
++            k_B = 1.0;
++        }
++        else if (strcmp(argv[2], "real") == 0)
++        {
++            k_B = 0.0019872067;
++        }
++        else if (strcmp(argv[2], "metal") == 0)
++        {
++            k_B = 8.617343e-5;
++        }
++        else if (strcmp(argv[2], "si") == 0)
++        {
++            k_B = 1.3806504e-23;
++        }
++        else if (strcmp(argv[2], "cgs") == 0)
++        {
++            k_B = 1.3806504e-16;
++        }
++        else if (strcmp(argv[2], "electron") == 0)
++        {
++            k_B = 3.16681534e-6;
++        }
++        else if (strcmp(argv[2], "micro") == 0)
++        {
++            k_B = 1.3806504e-8;
++        }
++        else if (strcmp(argv[2], "nano") == 0)
++        {
++            k_B = 0.013806504;
++        }
++        else if (strcmp(argv[2], "default") == 0)
++        {
++            k_B = k_B_DEFAULT;
++        }
++        else
++        {
++            printf("Unknown unit style: %s\n%s", argv[2], COMMAND_LINE);
++            exit(-1);
++        }
++        printf("# Setting value of k_B to = %.15g\n", k_B);
++        argc -= 2;
++        argv += 2;
++    }
++
+ PERIODICx = parse_periodic(argv[1], &PERIODx);
+ if (PERIODICx)
+     {
+@@ -360,8 +415,8 @@ while ( ! iConverged || first)
+             for (j=0; j< NUM_BINSy; j++)
+                 {
+                 calc_coor(i,j,coor);
+-                printf("%f\t%f\t%f\t%f\n", coor[0], coor[1], free_ene[i][j],
+-                                        prob[i][j]);
++                if (prob[i][j] != 0.0)
++                    printf("%f\t%f\t%f\t%f\n", coor[0], coor[1], free_ene[i][j], prob[i][j]);
+                 }
+             }
+ 
+@@ -444,8 +499,9 @@ if (!FREEFILE)
+         for (j=0; j< NUM_BINSy; j++)
+             {
+             calc_coor(i,j,coor);
+-            printf("%f\t%f\t%f\t%f\n", coor[0], coor[1],
+-                                       free_ene[i][j], final_prob[i][j]);
++            if (prob[i][j] != 0.0)
++                printf("%f\t%f\t%f\t%f\n", coor[0], coor[1],
++                       free_ene[i][j], final_prob[i][j]);
+             }
+         }
+     exit(errno);
+@@ -461,25 +517,28 @@ else
+         for (j=-numpad; j<0; j++)
+             {
+             calc_coor(i,j,coor);
+-            fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
+-                    free_ene[NUM_BINSx+i][NUM_BINSy+j],
+-                    final_prob[NUM_BINSx+i][NUM_BINSy+j]);
++            if (prob[NUM_BINSx+i][NUM_BINSy+j] != 0.0)
++                fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
++                        free_ene[NUM_BINSx+i][NUM_BINSy+j],
++                        final_prob[NUM_BINSx+i][NUM_BINSy+j]);
+             }
+         // center values in y
+         for (j=0; j<NUM_BINSy; j++)
+             {
+             calc_coor(i,j,coor);
+-            fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
+-                           free_ene[NUM_BINSx+i][j],
+-                           final_prob[NUM_BINSx+i][j]);
++            if (prob[NUM_BINSx+i][j] != 0.0)
++                fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
++                        free_ene[NUM_BINSx+i][j],
++                        final_prob[NUM_BINSx+i][j]);
+             }
+         // trailing padding values in y
+         for (j=0; j<numpad; j++)
+             {
+             calc_coor(i,NUM_BINSy+j,coor);
+-            fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
+-                           free_ene[NUM_BINSx+i][j],
+-                           final_prob[NUM_BINSx+i][j]);
++            if (prob[NUM_BINSx+i][j] != 0.0)
++                fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
++                        free_ene[NUM_BINSx+i][j],
++                        final_prob[NUM_BINSx+i][j]);
+             }
+         fprintf(FREEFILE, "\n");
+         }
+@@ -490,25 +549,28 @@ else
+         for (j=-numpad; j<0; j++)
+             {
+             calc_coor(i,j,coor);
+-            fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
+-                           free_ene[i][NUM_BINSy+j],
+-                           final_prob[i][NUM_BINSy+j]);
++            if (prob[i][NUM_BINSy+j] != 0.0)
++                fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
++                        free_ene[i][NUM_BINSy+j],
++                        final_prob[i][NUM_BINSy+j]);
+             }
+         // center values in y
+         for (j=0; j<NUM_BINSy; j++)
+             {
+             calc_coor(i,j,coor);
+-            fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
+-                             free_ene[i][j],
+-                             final_prob[i][j]);
++            if (prob[i][j] != 0.0)
++                fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
++                        free_ene[i][j],
++                        final_prob[i][j]);
+             }
+         // trailing padding values in y
+         for (j=0; j<numpad; j++)
+             {
+             calc_coor(i,NUM_BINSy+j,coor);
+-            fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
+-                             free_ene[i][j],
+-                             final_prob[i][j]);
++            if (prob[i][j] != 0.0)
++                fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
++                        free_ene[i][j],
++                        final_prob[i][j]);
+             }
+         fprintf(FREEFILE, "\n");
+         }
+@@ -519,25 +581,28 @@ else
+         for (j=-numpad; j<0; j++)
+             {
+             calc_coor(NUM_BINSx+i,j,coor);
+-            fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
+-                             free_ene[i][NUM_BINSy+j],
+-                             final_prob[i][NUM_BINSy+j]);
++            if (prob[i][NUM_BINSy+j] != 0.0)
++                fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
++                        free_ene[i][NUM_BINSy+j],
++                        final_prob[i][NUM_BINSy+j]);
+             }
+         // center values in y
+         for (j=0; j<NUM_BINSy; j++)
+             {
+             calc_coor(NUM_BINSx+i,j,coor);
+-            fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
+-                             free_ene[i][j],
+-                             final_prob[i][j]);
++            if (prob[i][j] != 0.0)
++                fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
++                        free_ene[i][j],
++                        final_prob[i][j]);
+             }
+         // trailing padding values in y
+         for (j=0; j<numpad; j++)
+             {
+             calc_coor(NUM_BINSx+i,NUM_BINSy+j,coor);
+-            fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
+-                             free_ene[i][j],
+-                             final_prob[i][j]);
++            if (prob[i][j] != 0.0)
++                fprintf(FREEFILE,"%f\t%f\t%f\t%f\n", coor[0], coor[1],
++                        free_ene[i][j],
++                        final_prob[i][j]);
+             }
+         fprintf(FREEFILE, "\n");
+         }
+diff --git a/wham-2d/wham-2d.h b/wham-2d/wham-2d.h
+index b17e4bd..5fc17ff 100644
+--- a/wham-2d/wham-2d.h
++++ b/wham-2d/wham-2d.h
+@@ -20,15 +20,15 @@ extern int    NUM_BINSy;
+ 
+ extern int    PERIODICx,PERIODICy;  // flags to turn on periodicity
+ extern double PERIODx, PERIODy;     // flags to control periodic interval
++extern double k_B;
+ 
+ // A couple of predefined periodic units
+ #define DEGREES   360.0
+ #define RADIANS   6.28318530717959
+ 
+-#define k_B 0.001982923700 // Boltzmann's constant in kcal/mol K
+-//#define k_B  0.0083144621 // Boltzmann's constant kJ/mol-K
+-//#define k_B 1.0  // Boltzmann's constant in reduced units
+-
++#define k_B_DEFAULT 0.001982923700 // Boltzmann's constant in kcal/mol K
++//#define k_B_DEFAULT 0.0083144621 // Boltzmann's constant kJ/mol-K
++//#define k_B_DEFAULT 1.0  // Boltzmann's constant in reduced units
+ 
+ 
+ // Value inserted for the free energy of masked values
+diff --git a/wham/histogram.c b/wham/histogram.c
+index bc52d74..635b39f 100644
+--- a/wham/histogram.c
++++ b/wham/histogram.c
+@@ -16,7 +16,7 @@
+ 
+ 
+ //  Allocate memory for a histogram
+-struct histogram *hist_alloc(int first, int last, int num_points, 
++struct histogram *hist_alloc(int first, int last, int num_points,
+                              int num_mc_samples)
+ {
+ struct histogram *hp;
+@@ -45,9 +45,9 @@ return hp;
+ }
+ 
+ /* Get a value from a histogram structure
+- * Given index, the index into the global histogram, return 
++ * Given index, the index into the global histogram, return
+  * the correct histogram value.  Since we only store range of histogram
+- * indices containing the nonzero values, we have to check the index value 
++ * indices containing the nonzero values, we have to check the index value
+  * against the range in the structure.
+  */
+ double get_histval(struct histogram *hist, int index)
+@@ -213,8 +213,16 @@ double min = 1e50;
+ bin_min = 0;
+ for (i=0; i<NUM_BINS; i++)
+     {
+-    free[i] = -kT * log(prob[i]);
+-    if (free[i] < min) 
++    if (prob[i] > 0.0)
++        {
++        free[i] = -kT * log(prob[i]);
++        }
++    else
++        {
++        free[i] = 0.0;
++        }
++
++    if (free[i] < min)
+         {
+         min = free[i];
+         bin_min = i;
+@@ -252,5 +260,5 @@ return 0.5*dx*dx*spring;
+ 
+ double calc_coor(int i)
+ {
+-return HIST_MIN + BIN_WIDTH*((double)i+0.5); 
++return HIST_MIN + BIN_WIDTH*((double)i+0.5);
+ }
+diff --git a/wham/wham.c b/wham/wham.c
+index 487871b..edb8125 100644
+--- a/wham/wham.c
++++ b/wham/wham.c
+@@ -1,4 +1,4 @@
+-/* 
++/*
+  * WHAM -- Weighted Histogram Analysis Method
+  *
+  * Reference 1: Computer Physics Communications, 91(1995) 275-282, Benoit Roux
+@@ -21,7 +21,7 @@
+ #include "wham.h"
+ 
+ 
+-#define COMMAND_LINE "Command line: wham [P|Ppi|Pval] hist_min hist_max num_bins tol temperature numpad metadatafile freefile [num_MC_trials randSeed]\n"
++#define COMMAND_LINE "Command line: wham [units <real|metal|lj|...>] [P|Ppi|Pval] hist_min hist_max num_bins tol temperature numpad metadatafile freefile [num_MC_trials randSeed]\n"
+ 
+ double HIST_MAX,HIST_MIN,BIN_WIDTH,TOL;
+ double *HISTOGRAM;
+@@ -29,6 +29,7 @@ double kT;
+ int  NUM_BINS;
+ int PERIODIC;
+ double PERIOD;
++double k_B = k_B_DEFAULT;
+ 
+ int main(int argc, char *argv[])
+ {
+@@ -41,7 +42,7 @@ int first;
+ int bin_min;
+ int have_energy;
+ char *freefile;
+-FILE *METAFILE, *FREEFILE; 
++FILE *METAFILE, *FREEFILE;
+ struct hist_group *hist_group;
+ struct histogram  *hp;
+ double coor;
+@@ -82,6 +83,61 @@ for (i=0; i<argc; i++)
+     }
+ printf("\n");
+ 
++// set k_B according to LAMMPS units settings
++if (strcmp(argv[1],"units") == 0)
++    {
++        if (argc < 3)
++        {
++            printf( COMMAND_LINE );
++            exit(-1);
++        }
++
++        if (strcmp(argv[2], "lj") == 0)
++        {
++            k_B = 1.0;
++        }
++        else if (strcmp(argv[2], "real") == 0)
++        {
++            k_B = 0.0019872067;
++        }
++        else if (strcmp(argv[2], "metal") == 0)
++        {
++            k_B = 8.617343e-5;
++        }
++        else if (strcmp(argv[2], "si") == 0)
++        {
++            k_B = 1.3806504e-23;
++        }
++        else if (strcmp(argv[2], "cgs") == 0)
++        {
++            k_B = 1.3806504e-16;
++        }
++        else if (strcmp(argv[2], "electron") == 0)
++        {
++            k_B = 3.16681534e-6;
++        }
++        else if (strcmp(argv[2], "micro") == 0)
++        {
++            k_B = 1.3806504e-8;
++        }
++        else if (strcmp(argv[2], "nano") == 0)
++        {
++            k_B = 0.013806504;
++        }
++        else if (strcmp(argv[2], "default") == 0)
++        {
++            k_B = k_B_DEFAULT;
++        }
++        else
++        {
++            printf("Unknown unit style: %s\n%s", argv[2], COMMAND_LINE);
++            exit(-1);
++        }
++        printf("# Setting value of k_B to = %.15g\n", k_B);
++        argc -= 2;
++        argv += 2;
++    }
++
+ if (toupper(argv[1][0]) == 'P')
+     {
+     PERIODIC = 1;
+@@ -123,7 +179,7 @@ if (argc != 9 && argc !=11)
+     printf( COMMAND_LINE );
+     exit(-1);
+     }
+-    
++
+ HIST_MIN = atof(argv[1]);
+ HIST_MAX = atof(argv[2]);
+ NUM_BINS = atoi(argv[3]);
+@@ -213,13 +269,13 @@ if (!ave_pdf2)
+     printf("couldn't allocate space for ave_pdf2: %s\n", strerror(errno));
+     exit(errno);
+     }
+- 
++
+ free_ene = (double *) malloc(sizeof(double) * NUM_BINS);
+ if (!free_ene)
+     {
+     printf("couldn't allocate space for free_ene: %s\n", strerror(errno));
+     exit(errno);
+-    }  
++    }
+ 
+ i = get_numwindows(METAFILE);
+ printf("#Number of windows = %d\n", i);
+@@ -248,7 +304,7 @@ assert(i == hist_group->num_windows);
+ // Figure out if we have trajectories at different temperatures.
+ // Missing temperatures are set to -1 in read_metadata, and
+ // since we require that either all trajectories specify a temperature
+-// or all trajectories are assumed to be at the wham temperature, we only 
++// or all trajectories are assumed to be at the wham temperature, we only
+ // have to check one of them
+ if (hist_group->kT[0] > 0)
+     {
+@@ -257,7 +313,7 @@ if (hist_group->kT[0] > 0)
+ else
+     {
+     have_energy = 0;
+-    for (i=0; i< hist_group->num_windows; i++) 
++    for (i=0; i< hist_group->num_windows; i++)
+         {
+         hist_group->kT[i] = kT;
+         }
+@@ -269,7 +325,7 @@ if (!final_f)
+     {
+     printf("couldn't allocate space for final_f: %s\n", strerror(errno));
+     exit(errno);
+-    } 
++    }
+ 
+ free(HISTOGRAM);
+ 
+@@ -305,7 +361,8 @@ while (! is_converged(hist_group) || first )
+         for (i=0; i< NUM_BINS; i++)
+             {
+             coor = calc_coor(i);
+-            printf("%f\t%f\t%f\n", coor, free_ene[i], prob[i]);
++            if (prob[i] != 0.0)
++                printf("%f\t%f\t%f\n", coor, free_ene[i], prob[i]);
+             }
+         printf("\n");
+ 
+@@ -319,7 +376,7 @@ while (! is_converged(hist_group) || first )
+             }
+         }
+     // Cheesy bailout if we're going on too long
+-    if (iteration >= max_iteration) 
++    if (iteration >= max_iteration)
+         {
+         printf("Too many iterations: %d\n", iteration);
+         break;
+@@ -383,11 +440,11 @@ for (i=0; i< num_mc_runs; i++)
+         //printf("Faking %d: %d  %d\n", i,j,hp->num_points);
+         num_used = hp->last - hp->first + 1;
+         mk_new_hist(hp->cum, hp->data, num_used, hp->num_mc_samples, &idum);
+-      
++
+         hist_group->F_old[j] = 0.0;
+         hist_group->F[j] = 0.0;
+         }
+-      
++
+       // perform WHAM iterations on the fake data sets
+       iteration = 0;
+       first = 1;
+@@ -403,7 +460,7 @@ for (i=0; i< num_mc_runs; i++)
+           printf("Too many iterations: %d\n", iteration);
+           break;
+           }
+-        }  
++        }
+       printf("#MC trial %d: %d iterations\n", i, iteration);
+       printf("#PMF values\n");
+       // accumulate the average and stdev of the resulting probabilities
+@@ -419,18 +476,19 @@ for (i=0; i< num_mc_runs; i++)
+       for (j=0; j < NUM_BINS; j++)
+           {
+           pdf = -kT*log(prob[j]);
+-      
++
+           ave_p[j] += prob[j];
+           ave_pdf[j] += pdf;
+           ave_p2[j] += prob[j] * prob[j];
+           ave_pdf2[j] += pdf*pdf;
+           }
+-      for (j=0; j<hist_group->num_windows;j++) 
++      for (j=0; j<hist_group->num_windows;j++)
+           {
+           ave_F[j] += hist_group->F[j] - hist_group->F[0];
+-          ave_F2[j] += hist_group->F[j]*hist_group->F[j] ; 
++          ave_F2[j] += hist_group->F[j]*hist_group->F[j] ;
+           }
+-    } 
++    }
++ if (num_mc_runs == 0) num_mc_runs = 1;
+  for (i=0; i < NUM_BINS; i++)
+    {
+    ave_p[i] /= (double)num_mc_runs;
+@@ -457,12 +515,12 @@ if (!FREEFILE)
+     for (i=0; i< NUM_BINS; i++)
+         {
+         coor = calc_coor(i);
+-        printf("%f\t%f\t%f\t%f\t%f\n", coor, free_ene[i], ave_pdf2[i], 
+-                    prob[i], ave_p2[i]);
++        if (prob[i] != 0.0)
++            printf("%f\t%f\t%f\t%f\t%f\n", coor, free_ene[i], ave_pdf2[i], prob[i], ave_p2[i]);
+         }
+     for (i=0; i<hist_group->num_windows; i++)
+         {
+-        fprintf(FREEFILE,"%d\t%f\t%f\n", i, final_f[i],ave_F2[i]);  
++            printf("%d\t%f\t%f\n", i, final_f[i],ave_F2[i]);
+         }
+ 
+     exit(errno);
+@@ -470,38 +528,37 @@ if (!FREEFILE)
+ else
+     {
+     // write out header
+-    fprintf(FREEFILE, "#Coor\t\tFree\t+/-\t\tProb\t\t+/-\n");
++    fprintf(FREEFILE, "#Coor\t\tFree\t\t+/-\t\tProb\t\t+/-\n");
+     // write out the leading padded values
+     for (i=-numpad; i<0; i++)
+         {
+         coor = calc_coor(i);
+-        fprintf(FREEFILE,"%f\t%f\t%f\t%f\t%f\n", coor, free_ene[NUM_BINS+i], 
+-        ave_pdf2[NUM_BINS+i], 
+-        final_prob[NUM_BINS+i],
+-        ave_p2[NUM_BINS+i]);
++        if (prob[NUM_BINS+1] != 0.0)
++            fprintf(FREEFILE,"%f\t%f\t%f\t%f\t%f\n", coor, free_ene[NUM_BINS+i],
++                    ave_pdf2[NUM_BINS+i], final_prob[NUM_BINS+i], ave_p2[NUM_BINS+i]);
+         }
+     // write out the center values
+     for (i=0; i<NUM_BINS; i++)
+         {
+         coor = calc_coor(i);
+-        fprintf(FREEFILE,"%f\t%f\t%f\t%f\t%f\n", coor, free_ene[i],
+-        ave_pdf2[i],final_prob[i], 
+-        ave_p2[i]);  
++        if (prob[i] != 0.0)
++            fprintf(FREEFILE,"%f\t%f\t%f\t%f\t%f\n", coor, free_ene[i],
++                    ave_pdf2[i],final_prob[i],ave_p2[i]);
+         }
+ 
+     // write out the trailing padded values
+     for (i=0; i<numpad; i++)
+         {
+         coor = calc_coor(NUM_BINS+i);
+-        fprintf(FREEFILE,"%f\t%f\t%f\t%f\t%f\n", coor, free_ene[i], 
+-        ave_pdf2[i],final_prob[i], 
+-        ave_p2[i]); 
++        if (prob[i] != 0.0)
++            fprintf(FREEFILE,"%f\t%f\t%f\t%f\t%f\n", coor, free_ene[i],
++                    ave_pdf2[i],final_prob[i], ave_p2[i]);
+         }
+ 
+-    fprintf(FREEFILE, "#Window\t\tFree\t+/-\t\n");
++    fprintf(FREEFILE, "#Window\t\tFree\t\t+/-\t\n");
+     for (i=0; i<hist_group->num_windows; i++)
+         {
+-        fprintf(FREEFILE,"#%d\t%f\t%f\n", i, final_f[i],ave_F2[i]);  
++        fprintf(FREEFILE,"#%d\t\t%f\t%f\n", i, final_f[i],ave_F2[i]);
+         }
+     }
+ 
+@@ -515,7 +572,7 @@ exit(0);
+ /*
+  *  Perform a single WHAM iteration
+  */
+-void wham_iteration(struct hist_group* hist_group, double *prob, 
++void wham_iteration(struct hist_group* hist_group, double *prob,
+                    int have_energy)
+ {
+ int i,j;
+@@ -535,9 +592,9 @@ for (i=0; i<NUM_BINS; i++)
+         num += (double) get_histval( &(hist_group->hists[j]),i);
+         bias = calc_bias(hist_group,j,coor);
+         bf = exp((hist_group->F_old[j] - bias) / hist_group->kT[j]);
+-        /* If we have energies, then the histograms contain boltzmann 
+-         * factors.  If not, they contain integer counts.  Accordingly, 
+-         * we either use a partition function to normalize, or simply the 
++        /* If we have energies, then the histograms contain boltzmann
++         * factors.  If not, they contain integer counts.  Accordingly,
++         * we either use a partition function to normalize, or simply the
+          * number of points.
+          */
+         if (have_energy)
+diff --git a/wham/wham.h b/wham/wham.h
+index aacc1e8..7d509f2 100644
+--- a/wham/wham.h
++++ b/wham/wham.h
+@@ -15,14 +15,16 @@ extern double kT;
+ extern int    NUM_BINS;
+ extern int    PERIODIC;
+ extern double PERIOD;
++extern double k_B;
++
+ 
+ // Some predefined periodic units
+ #define DEGREES   360.0
+ #define RADIANS   6.28318530717959
+ 
+-#define k_B 0.001982923700 // Boltzmann's constant in kcal/mol K
+-//#define k_B  0.0083144621 // Boltzmann's constant kJ/mol-K
+-//#define k_B 1.0  // Boltzmann's constant in reduced units
++#define k_B_DEFAULT 0.001982923700 // Boltzmann's constant in kcal/mol K
++//#define k_B_DEFAULT  0.0083144621 // Boltzmann's constant kJ/mol-K
++//#define k_B_DEFAULT 1.0  // Boltzmann's constant in reduced units
+ 
+ 
+ // global (untrimmed) histogram, global to prevent reallocation

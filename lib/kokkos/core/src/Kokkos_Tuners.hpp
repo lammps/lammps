@@ -1,55 +1,23 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
 static_assert(false,
               "Including non-public Kokkos header files is not allowed.");
-#else
-KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
-#endif
 #endif
 #ifndef KOKKOS_KOKKOS_TUNERS_HPP
 #define KOKKOS_KOKKOS_TUNERS_HPP
@@ -83,6 +51,8 @@ void request_output_values(size_t, size_t,
 VariableValue make_variable_value(size_t, int64_t);
 VariableValue make_variable_value(size_t, double);
 SetOrRange make_candidate_range(double lower, double upper, double step,
+                                bool openLower, bool openUpper);
+SetOrRange make_candidate_range(int64_t lower, int64_t upper, int64_t step,
                                 bool openLower, bool openUpper);
 size_t get_new_context_id();
 void begin_context(size_t context_id);
@@ -288,13 +258,14 @@ auto get_point_helper(const PointType& in, const ArrayType& indices,
 template <typename PointType, typename ArrayType>
 struct GetPoint;
 
-template <typename PointType, size_t X>
-struct GetPoint<PointType,
-                std::array<Kokkos::Tools::Experimental::VariableValue, X>> {
+template <typename PointType, size_t ArraySize>
+struct GetPoint<
+    PointType,
+    std::array<Kokkos::Tools::Experimental::VariableValue, ArraySize>> {
   using index_set_type =
-      std::array<Kokkos::Tools::Experimental::VariableValue, X>;
+      std::array<Kokkos::Tools::Experimental::VariableValue, ArraySize>;
   static auto build(const PointType& in, const index_set_type& indices) {
-    return get_point_helper(in, indices, std::make_index_sequence<X>{});
+    return get_point_helper(in, indices, std::make_index_sequence<ArraySize>{});
   }
 };
 
@@ -443,18 +414,19 @@ class TeamSizeTuner : public ExtendableTunerMixin<TeamSizeTuner> {
   TunerType tuner;
 
  public:
-  TeamSizeTuner()        = default;
+  TeamSizeTuner()                                      = default;
   TeamSizeTuner& operator=(const TeamSizeTuner& other) = default;
   TeamSizeTuner(const TeamSizeTuner& other)            = default;
-  TeamSizeTuner& operator=(TeamSizeTuner&& other) = default;
-  TeamSizeTuner(TeamSizeTuner&& other)            = default;
+  TeamSizeTuner& operator=(TeamSizeTuner&& other)      = default;
+  TeamSizeTuner(TeamSizeTuner&& other)                 = default;
   template <typename ViableConfigurationCalculator, typename Functor,
             typename TagType, typename... Properties>
   TeamSizeTuner(const std::string& name,
-                Kokkos::TeamPolicy<Properties...>& policy,
+                const Kokkos::TeamPolicy<Properties...>& policy_in,
                 const Functor& functor, const TagType& tag,
                 ViableConfigurationCalculator calc) {
-    using PolicyType           = Kokkos::TeamPolicy<Properties...>;
+    using PolicyType = Kokkos::TeamPolicy<Properties...>;
+    PolicyType policy(policy_in);
     auto initial_vector_length = policy.impl_vector_length();
     if (initial_vector_length < 1) {
       policy.impl_set_vector_length(1);
@@ -536,7 +508,8 @@ class TeamSizeTuner : public ExtendableTunerMixin<TeamSizeTuner> {
   }
 
   template <typename... Properties>
-  void tune(Kokkos::TeamPolicy<Properties...>& policy) {
+  auto tune(const Kokkos::TeamPolicy<Properties...>& policy_in) {
+    Kokkos::TeamPolicy<Properties...> policy(policy_in);
     if (Kokkos::Tools::Experimental::have_tuning_tool()) {
       auto configuration = tuner.begin();
       auto team_size     = std::get<1>(configuration);
@@ -546,6 +519,111 @@ class TeamSizeTuner : public ExtendableTunerMixin<TeamSizeTuner> {
         policy.impl_set_vector_length(vector_length);
       }
     }
+    return policy;
+  }
+  void end() {
+    if (Kokkos::Tools::Experimental::have_tuning_tool()) {
+      tuner.end();
+    }
+  }
+
+  TunerType get_tuner() const { return tuner; }
+};
+namespace Impl {
+template <class T>
+struct tuning_type_for;
+
+template <>
+struct tuning_type_for<double> {
+  static constexpr Kokkos::Tools::Experimental::ValueType value =
+      Kokkos::Tools::Experimental::ValueType::kokkos_value_double;
+  static double get(
+      const Kokkos::Tools::Experimental::VariableValue& value_struct) {
+    return value_struct.value.double_value;
+  }
+};
+template <>
+struct tuning_type_for<int64_t> {
+  static constexpr Kokkos::Tools::Experimental::ValueType value =
+      Kokkos::Tools::Experimental::ValueType::kokkos_value_int64;
+  static int64_t get(
+      const Kokkos::Tools::Experimental::VariableValue& value_struct) {
+    return value_struct.value.int_value;
+  }
+};
+}  // namespace Impl
+template <class Bound>
+class SingleDimensionalRangeTuner {
+  size_t id;
+  size_t context;
+  using tuning_util = Impl::tuning_type_for<Bound>;
+
+  Bound default_value;
+
+ public:
+  SingleDimensionalRangeTuner() = default;
+  SingleDimensionalRangeTuner(
+      const std::string& name,
+      Kokkos::Tools::Experimental::StatisticalCategory category,
+      Bound default_val, Bound lower, Bound upper, Bound step = (Bound)0) {
+    default_value = default_val;
+    Kokkos::Tools::Experimental::VariableInfo info;
+    info.category   = category;
+    info.candidates = make_candidate_range(
+        static_cast<Bound>(lower), static_cast<Bound>(upper),
+        static_cast<Bound>(step), false, false);
+    info.valueQuantity =
+        Kokkos::Tools::Experimental::CandidateValueType::kokkos_value_range;
+    info.type = tuning_util::value;
+    id        = Kokkos::Tools::Experimental::declare_output_type(name, info);
+  }
+
+  Bound begin() {
+    context = Kokkos::Tools::Experimental::get_new_context_id();
+    Kokkos::Tools::Experimental::begin_context(context);
+    auto tuned_value =
+        Kokkos::Tools::Experimental::make_variable_value(id, default_value);
+    Kokkos::Tools::Experimental::request_output_values(context, 1,
+                                                       &tuned_value);
+    return tuning_util::get(tuned_value);
+  }
+
+  void end() { Kokkos::Tools::Experimental::end_context(context); }
+
+  template <typename Functor>
+  void with_tuned_value(Functor& func) {
+    func(begin());
+    end();
+  }
+};
+
+class RangePolicyOccupancyTuner {
+ private:
+  using TunerType = SingleDimensionalRangeTuner<int64_t>;
+  TunerType tuner;
+
+ public:
+  RangePolicyOccupancyTuner() = default;
+  template <typename ViableConfigurationCalculator, typename Functor,
+            typename TagType, typename... Properties>
+  RangePolicyOccupancyTuner(const std::string& name,
+                            const Kokkos::RangePolicy<Properties...>&,
+                            const Functor&, const TagType&,
+                            ViableConfigurationCalculator)
+      : tuner(TunerType(name,
+                        Kokkos::Tools::Experimental::StatisticalCategory::
+                            kokkos_value_ratio,
+                        100, 5, 100, 5)) {}
+
+  template <typename... Properties>
+  auto tune(const Kokkos::RangePolicy<Properties...>& policy_in) {
+    Kokkos::RangePolicy<Properties...> policy(policy_in);
+    if (Kokkos::Tools::Experimental::have_tuning_tool()) {
+      auto occupancy = tuner.begin();
+      policy.impl_set_desired_occupancy(
+          Kokkos::Experimental::DesiredOccupancy{static_cast<int>(occupancy)});
+    }
+    return policy;
   }
   void end() {
     if (Kokkos::Tools::Experimental::have_tuning_tool()) {
@@ -609,11 +687,13 @@ struct MDRangeTuner : public ExtendableTunerMixin<MDRangeTuner<MDRangeRank>> {
     policy.impl_change_tile_size({std::get<Indices>(tuple)...});
   }
   template <typename... Properties>
-  void tune(Kokkos::MDRangePolicy<Properties...>& policy) {
+  auto tune(const Kokkos::MDRangePolicy<Properties...>& policy_in) {
+    Kokkos::MDRangePolicy<Properties...> policy(policy_in);
     if (Kokkos::Tools::Experimental::have_tuning_tool()) {
       auto configuration = tuner.begin();
       set_policy_tile(policy, configuration, std::make_index_sequence<rank>{});
     }
+    return policy;
   }
   void end() {
     if (Kokkos::Tools::Experimental::have_tuning_tool()) {

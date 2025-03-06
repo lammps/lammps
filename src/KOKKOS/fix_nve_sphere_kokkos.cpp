@@ -15,7 +15,8 @@
 #include "fix_nve_sphere_kokkos.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
-#include "error.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

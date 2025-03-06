@@ -1,0 +1,74 @@
+# LAMMPS input file in real units via oxdna lj2real.py, date 2024-05-19
+variable number equal 2
+variable ofreq  equal 1000
+variable efreq  equal 1000
+variable T      equal 300.0
+variable rhos   equal 0.5
+
+units real
+
+dimension 3
+
+newton on
+
+boundary  p p p
+
+atom_style hybrid bond ellipsoid oxdna
+atom_modify sort 0 8.518
+
+# Pair interactions require lists of neighbours to be calculated
+neighbor 17.036 bin
+neigh_modify every 1 delay 0 check yes
+
+read_data data.duplex2
+
+set atom * mass 315.8376
+
+group all type 1 4
+
+# oxRNA2 bond interactions - FENE backbone
+bond_style oxrna2/fene
+bond_coeff * oxrna2_real.cgdna
+special_bonds lj 0 1 1
+
+# oxRNA2 pair interactions
+pair_style hybrid/overlay oxrna2/excv oxrna2/stk oxrna2/hbond oxrna2/xstk oxrna2/coaxstk oxrna2/dh
+pair_coeff * * oxrna2/excv    oxrna2_real.cgdna
+pair_coeff * * oxrna2/stk     seqdep 300.0 8.35864576375849 0.005504556 oxrna2_real.cgdna
+pair_coeff * * oxrna2/hbond   seqdep oxrna2_real.cgdna
+pair_coeff 1 4 oxrna2/hbond   seqdep oxrna2_real.cgdna
+pair_coeff 2 3 oxrna2/hbond   seqdep oxrna2_real.cgdna
+pair_coeff 3 4 oxrna2/hbond   seqdep oxrna2_real.cgdna
+pair_coeff * * oxrna2/xstk    oxrna2_real.cgdna
+pair_coeff * * oxrna2/coaxstk oxrna2_real.cgdna
+pair_coeff * * oxrna2/dh      300.0 0.5 oxrna2_real.cgdna
+
+# NVE ensemble
+fix 1 all nve/asphere
+#fix 2 all langevin ${T} ${T} 4265.0 457145 angmom 10
+
+timestep 0.01706
+
+#comm_style tiled
+fix 3 all balance 1000 1.03 shift xyz 10 1.03
+comm_modify cutoff 32.4
+
+compute quat all property/atom quatw quati quatj quatk
+
+compute erot all erotate/asphere
+compute ekin all ke
+compute epot all pe
+variable erot equal c_erot
+variable ekin equal c_ekin
+variable epot equal c_epot
+variable etot equal c_erot+c_ekin+c_epot
+fix 5 all print ${efreq} "$(step)  ekin = ${ekin} |  erot = ${erot} | epot = ${epot} | etot = ${etot}" screen yes
+
+dump out all custom ${ofreq} out.${number}.lammpstrj id mol type x y z ix iy iz vx vy vz c_quat[1] c_quat[2] c_quat[3] c_quat[4] angmomx angmomy angmomz
+dump_modify out sort id
+dump_modify out format line "%d %d %d  %22.15le %22.15le %22.15le  %d %d %d  %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le"
+
+run 1000000
+
+write_data last_config.${number}.* nocoeff
+#write_restart last_config.${number}.*

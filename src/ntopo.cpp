@@ -22,8 +22,8 @@
 
 using namespace LAMMPS_NS;
 
-#define LB_FACTOR 1.5
-#define DELTA 10000
+static constexpr double LB_FACTOR = 1.5;
+static constexpr int DELTA = 10000;
 
 /* ---------------------------------------------------------------------- */
 

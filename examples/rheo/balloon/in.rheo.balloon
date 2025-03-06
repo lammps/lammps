@@ -1,0 +1,75 @@
+# ------ 2D water balloon ------ #
+
+dimension          2
+units              lj
+atom_style         hybrid rheo bond
+boundary           m m p
+comm_modify        vel yes
+newton             off
+
+region             box block -40 40 0 80 -0.01 0.01 units box
+create_box         1 box bond/types 1 extra/bond/per/atom 15 extra/special/per/atom 50
+
+region             fluid sphere -10 40 0 30 units box side in
+lattice            hex 1.0
+create_atoms       1 region fluid
+
+region             shell sphere -10 40 0 27 units box side out
+group              shell region shell
+
+set                group shell rheo/status 1
+set                group all vx 0.005 vy -0.04
+
+# ------ Model parameters ------#
+
+variable           cut equal 3.0
+variable           n equal 1.0
+variable           rho0 equal 1.0
+variable           cs equal 1.0
+variable           mp equal ${rho0}/${n}
+variable           zeta equal 0.05
+variable           kappa equal 0.01*${rho0}/${mp}
+variable           dt_max equal 0.1*${cut}/${cs}/3
+variable           eta equal 0.05
+variable           Cv equal 1.0
+variable           L equal 1.0
+variable           Tf equal 1.0
+
+mass               * ${mp}
+timestep           0.1
+
+pair_style         hybrid/overlay rheo ${cut} artificial/visc ${zeta} rheo/solid
+pair_coeff         * * rheo
+pair_coeff         * * rheo/solid 1.0 1.0 1.0
+
+special_bonds      lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
+create_bonds       many shell shell 1 0 1.5
+special_bonds      lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
+
+bond_style         bpm/spring
+bond_coeff         1 1.0 1.0 1.0
+
+# A lower critical strain allows the balloon to pop
+#bond_coeff         1 1.0 0.05 1.0
+
+# ------ Drop balloon ------#
+
+fix             1 all rheo ${cut} quintic 0 &
+                           shift &
+                           surface/detection coordination 22 8
+fix             2 all rheo/viscosity * constant ${eta}
+fix             3 all rheo/pressure * linear
+fix             4 all wall/harmonic ylo EDGE 2.0 1.0 1.0
+fix             5 all enforce2d
+
+compute         rho all rheo/property/atom rho
+compute         phase all rheo/property/atom phase
+compute         nbond all nbond/atom
+
+# ------ Output & Run ------ #
+
+thermo          200
+thermo_style    custom step time ke press atoms
+
+#dump            1 all custom 200 atomDump id type x y vx vy fx fy c_phase c_nbond c_rho
+run             30000

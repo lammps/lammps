@@ -30,7 +30,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define SMALL 1.0e-10
+static constexpr double SMALL = 1.0e-10;
 
 /* ---------------------------------------------------------------------- */
 

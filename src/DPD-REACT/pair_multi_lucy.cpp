@@ -39,9 +39,8 @@
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
 
-enum{NONE,RLINEAR,RSQ};
-
-#define MAXLINE 1024
+enum { NONE, RLINEAR, RSQ };
+static constexpr int MAXLINE = 1024;
 
 static const char cite_pair_multi_lucy[] =
   "pair_style multi/lucy command: doi:10.1063/1.4942520\n\n"
@@ -344,7 +343,7 @@ double PairMultiLucy::init_one(int i, int j)
 
 void PairMultiLucy::read_table(Table *tb, char *file, char *keyword)
 {
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
 
   // open file
 
@@ -482,20 +481,20 @@ void PairMultiLucy::param_extract(Table *tb, char *line)
   while (word) {
     if (strcmp(word,"N") == 0) {
       word = strtok(nullptr," \t\n\r\f");
-      tb->ninput = atoi(word);
+      tb->ninput = std::stoi(word);
     } else if (strcmp(word,"R") == 0 || strcmp(word,"RSQ") == 0) {
       if (strcmp(word,"R") == 0) tb->rflag = RLINEAR;
       else if (strcmp(word,"RSQ") == 0) tb->rflag = RSQ;
       word = strtok(nullptr," \t\n\r\f");
-      tb->rlo = atof(word);
+      tb->rlo = std::stod(word);
       word = strtok(nullptr," \t\n\r\f");
-      tb->rhi = atof(word);
+      tb->rhi = std::stod(word);
     } else if (strcmp(word,"FP") == 0) {
       tb->fpflag = 1;
       word = strtok(nullptr," \t\n\r\f");
-      tb->fplo = atof(word);
+      tb->fplo = std::stod(word);
       word = strtok(nullptr," \t\n\r\f");
-      tb->fphi = atof(word);
+      tb->fphi = std::stod(word);
     } else {
       printf("WORD: %s\n",word);
       error->one(FLERR,"Invalid keyword in pair table parameters");

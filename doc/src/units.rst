@@ -6,7 +6,7 @@ units command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    units style
 

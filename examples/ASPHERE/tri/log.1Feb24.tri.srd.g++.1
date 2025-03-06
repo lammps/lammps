@@ -1,0 +1,343 @@
+LAMMPS (21 Nov 2023 - Development - patch_21Nov2023-665-g17f869bf5e)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# Aspherical shear demo - 3d triangle boxes, solvated by SRD particles
+
+units           lj
+atom_style      tri
+atom_modify     first big map yes
+
+read_data       data.tri.srd
+Reading data file ...
+  orthogonal box = (-8.4373405 -8.4373405 -8.4373405) to (8.4373405 8.4373405 8.4373405)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  1500 atoms
+  1500 triangles
+  read_data CPU = 0.013 seconds
+
+# add small particles as hi density lattice
+
+lattice         sc 0.4
+Lattice spacing in x,y,z = 1.3572088 1.3572088 1.3572088
+region          box block INF INF INF INF INF INF
+lattice         sc 20.0
+Lattice spacing in x,y,z = 0.36840315 0.36840315 0.36840315
+create_atoms    2 region box
+Created 91125 atoms
+  using lattice units in orthogonal box = (-8.4373405 -8.4373405 -8.4373405) to (8.4373405 8.4373405 8.4373405)
+  create_atoms CPU = 0.014 seconds
+
+group           big type 1
+1500 atoms in group big
+group           small type 2
+91125 atoms in group small
+set             group small mass 0.01
+Setting atom values ...
+  91125 settings made for mass
+
+# delete overlaps
+# must set 1-2 cutoff to non-zero value
+
+pair_style      lj/cut 1.5
+pair_coeff      1 1 1.0 1.0
+pair_coeff      2 2 0.0 1.0 0.0
+pair_coeff      1 2 0.0 1.0
+
+delete_atoms    overlap 1.5 small big
+System init for delete_atoms ...
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.8
+  ghost atom cutoff = 1.8
+  binsize = 0.9, bins = 19 19 19
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) command delete_atoms, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+WARNING: Delete_atoms cutoff > minimum neighbor cutoff (src/delete_atoms.cpp:312)
+Deleted 76354 atoms, new total = 16271
+
+# SRD run
+
+reset_timestep  0
+
+velocity        small create 1.44 87287 loop geom
+
+neighbor        0.3 multi
+neigh_modify    delay 0 every 1 check yes
+neigh_modify    exclude molecule/intra big include big
+
+comm_modify     mode multi group big vel yes
+neigh_modify    include big
+
+# no pairwise interactions with small particles
+
+pair_style      tri/lj 3.5
+pair_coeff      1 1 0.1 1.0
+pair_coeff      2 2 0.0 1.0 0.0
+pair_coeff      1 2 0.0 1.0 0.0
+
+# use fix SRD to push small particles out from inside big ones
+# if comment out, big particles won't see SRD particles
+
+timestep        0.001
+
+fix             1 big rigid/small molecule #langevin 1.0 1.0 0.1 12398
+  create bodies CPU = 0.000 seconds
+  125 rigid bodies with 1500 atoms
+  1.8601881 = max distance from body owner to body atom
+fix             2 small srd 20 big 1.0 1.0 49894                 search 0.2 cubic warn 0.0001 shift yes 49829                 overlap yes collision noslip inside ignore
+
+fix             3 all deform 1 x scale 0.8 y scale 0.8 z scale 0.8
+
+# diagnostics
+
+compute         tsmall small temp/deform
+compute         tbig big temp
+variable        pebig equal pe*atoms/count(big)
+variable        ebig equal etotal*atoms/count(big)
+
+compute_modify  tbig extra/dof -4500
+
+compute         1 big erotate/asphere
+compute         2 all ke
+compute         3 all pe
+variable        toteng equal (c_1+c_2+c_3)/atoms
+
+thermo          100
+thermo_style    custom step f_1 c_tsmall temp press f_2[9] f_2[4]
+thermo_modify   temp tbig
+WARNING: Temperature for thermo pressure is not for group all (src/thermo.cpp:530)
+
+compute         10 all property/atom corner1x corner1y corner1z                 corner2x corner2y corner2z corner3x corner3y corner3z
+
+#dump           1 all custom 500 dump1.atom.srd id type x y z ix iy iz
+#dump           2 all custom 500 dump1.tri.srd id type #               c_10[1] c_10[2] c_10[3] c_10[4] c_10[5] c_10[6] #               c_10[7] c_10[8] c_10[9]
+
+run             1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- neighbor multi command: doi:10.1016/j.cpc.2008.03.005, doi:10.1007/s40571-020-00361-2
+
+@Article{Intveld08,
+ author =  {in 't Veld, P. J. and S. J.~Plimpton and G. S. Grest},
+ title =   {Accurate and Efficient Methods for Modeling Colloidal
+            Mixtures in an Explicit Solvent using Molecular Dynamics},
+ journal = {Comput.\ Phys.\ Commut.},
+ year =    2008,
+ volume =  179,
+ pages =   {320--329}
+}
+
+@article{Shire2020,
+ author = {Shire, Tom and Hanley, Kevin J. and Stratford, Kevin},
+ title = {{DEM} Simulations of Polydisperse Media: Efficient Contact
+          Detection Applied to Investigate the Quasi-Static Limit},
+ journal = {Computational Particle Mechanics},
+ year = {2020}
+@article{Monti2022,
+ author = {Monti, Joseph M. and Clemmer, Joel T. and Srivastava, 
+           Ishan and Silbert, Leonardo E. and Grest, Gary S. 
+           and Lechman, Jeremy B.},
+ title = {Large-scale frictionless jamming with power-law particle 
+          size distributions},
+ journal = {Phys. Rev. E},
+ volume = {106}
+ issue = {3}
+ year = {2022}
+}
+
+- fix srd command: doi:10.1063/1.3419070
+
+@Article{Petersen10,
+ author = {M. K. Petersen and J. B. Lechman and S. J. Plimpton and
+ G. S. Grest and in 't Veld, P. J. and P. R. Schunk},
+ title =   {Mesoscale Hydrodynamics via Stochastic Rotation
+    Dynamics: Comparison with {L}ennard-{J}ones Fluid},
+ journal = {J.~Chem.\ Phys.},
+ year =    2010,
+ volume =  132,
+ pages =   174106
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+WARNING: Using compute temp/deform with inconsistent fix deform remap option (src/compute_temp_deform.cpp:71)
+WARNING: Using fix srd with box deformation but no SRD thermostat (src/SRD/fix_srd.cpp:405)
+SRD info:
+  SRD/big particles = 14771 1500
+  big particle diameter max/min = 2.9202881 0.87320391
+  SRD temperature & lamda = 1 0.2
+  SRD max distance & max velocity = 0.8 40
+  SRD grid counts: 17 17 17
+  SRD grid size: request, actual (xyz) = 1, 0.99262829 0.99262829 0.99262829
+  SRD per actual grid cell = -3.9971745
+  SRD viscosity = -34.162587
+  big/SRD mass density ratio = -3.3753691
+WARNING: SRD bin size for fix srd differs from user request (src/SRD/fix_srd.cpp:2809)
+WARNING: Fix srd grid size > 1/4 of big particle diameter (src/SRD/fix_srd.cpp:2830)
+WARNING: Fix srd viscosity < 0.0 due to low SRD density (src/SRD/fix_srd.cpp:2832)
+  # of rescaled SRD velocities = 0
+  ave/max small velocity = 19.970837 35.150443
+  ave/max big velocity = 0 0
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.8
+  ghost atom cutoff = 3.8
+  binsize = 16.874681, bins = 1 1 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair tri/lj, perpetual
+      attributes: half, newton on
+      pair build: half/multi/atomonly/newton
+      stencil: half/multi/3d
+      bin: multi
+Per MPI rank memory allocation (min/avg/max) = 381.8 | 381.8 | 381.8 Mbytes
+   Step          f_1          c_tsmall         Temp          Press          f_2[9]         f_2[4]    
+         0   0              1.4502537      0             -0.15976045     0              0            
+       100   0.41802172     1.152223       0.27557714     1.0421065      1.1470081      283          
+       200   0.79710339     1.0669332      0.5813323      0.97699684     1.0361619      534          
+       300   1.3739181      1.0275476      1.0869716      0.81001536     1.0211312      658          
+       400   1.9355117      1.0155457      1.5813236      1.7798798      0.99354559     831          
+       500   2.8557382      1.0005021      2.267698       3.3903849      0.98597972     927          
+       600   4.7851916      1.0156689      3.730334       2.838776       0.99140534     1053         
+       700   5.3647697      1.0176657      3.9593121      5.1189107      0.9972029      1218         
+       800   8.23688        1.0268086      5.899689       6.8199153      0.99310516     1349         
+       900   9.9330758      1.0356047      7.0260595      7.2596589      0.98360014     1607         
+      1000   9.8719995      1.043178       6.9903792      10.05101       1.0045416      1805         
+Loop time of 79.2664 on 1 procs for 1000 steps with 16271 atoms
+
+Performance: 1089.995 tau/day, 12.616 timesteps/s, 205.270 katom-step/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 57.961     | 57.961     | 57.961     |   0.0 | 73.12
+Neigh   | 0.34589    | 0.34589    | 0.34589    |   0.0 |  0.44
+Comm    | 0.28615    | 0.28615    | 0.28615    |   0.0 |  0.36
+Output  | 0.0022784  | 0.0022784  | 0.0022784  |   0.0 |  0.00
+Modify  | 20.644     | 20.644     | 20.644     |   0.0 | 26.04
+Other   |            | 0.02724    |            |       |  0.03
+
+Nlocal:          16271 ave       16271 max       16271 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           4612 ave        4612 max        4612 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          99463 ave       99463 max       99463 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 99463
+Ave neighs/atom = 6.1129003
+Neighbor list builds = 72
+Dangerous builds = 0
+
+#undump          1
+#undump          2
+unfix           3
+
+change_box      all triclinic
+Changing box ...
+  triclinic box = (-6.7498724 -6.7498724 -6.7498724) to (6.7498724 6.7498724 6.7498724) with tilt (0 0 0)
+
+fix             2 small srd 20 big 1.0 1.0 49894                 search 0.2 cubic warn 0.0001 shift yes 49829                 overlap yes collision noslip tstat yes inside ignore
+
+#dump           1 all custom 500 dump2.atom.srd id type x y z ix iy iz
+#dump           2 all custom 500 dump2.tri.srd id type #               c_10[1] c_10[2] c_10[3] c_10[4] c_10[5] c_10[6] #               c_10[7] c_10[8] c_10[9]
+
+fix             3 all deform 1 xy erate 0.05 units box remap v
+
+run             2000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+SRD info:
+  SRD/big particles = 14771 1500
+  big particle diameter max/min = 2.9202881 0.87320391
+  SRD temperature & lamda = 1 0.2
+  SRD max distance & max velocity = 0.8 40
+  SRD grid counts: 13 13 13
+  SRD grid size: request, actual (xyz) = 1, 1.0384419 1.0384419 1.0384419
+  SRD per actual grid cell = -2.775698
+  SRD viscosity = -12.180602
+  big/SRD mass density ratio = -5.5653033
+WARNING: SRD bin size for fix srd differs from user request (src/SRD/fix_srd.cpp:2809)
+WARNING: Fix srd grid size > 1/4 of big particle diameter (src/SRD/fix_srd.cpp:2830)
+WARNING: Fix srd viscosity < 0.0 due to low SRD density (src/SRD/fix_srd.cpp:2832)
+  # of rescaled SRD velocities = 3
+  ave/max small velocity = 16.23763 40
+  ave/max big velocity = 1.9825234 5.257255
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.8
+  ghost atom cutoff = 3.8
+  binsize = 13.499745, bins = 1 1 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair tri/lj, perpetual
+      attributes: half, newton on
+      pair build: half/multi/atomonly/newton/tri
+      stencil: half/multi/3d/tri
+      bin: multi
+Per MPI rank memory allocation (min/avg/max) = 278.4 | 278.4 | 278.4 Mbytes
+   Step          f_1          c_tsmall         Temp          Press          f_2[9]         f_2[4]    
+      1000   9.8719995      1.0317167      6.98982        4.0948969      0              0            
+      1100   7.6460335      1.0028444      5.2446585      6.6348814      1              1320         
+      1200   6.2789381      1.0012003      4.5257435      6.3278972      1              1024         
+      1300   5.5060209      1.002182       3.7063549      7.0004503      1              794          
+      1400   5.4107119      1.002291       3.594515       7.9511695      1              621          
+      1500   5.072582       1.0001037      3.2501353      8.6993671      1              503          
+      1600   4.7912016      0.99982803     3.1208274      6.464157       1              416          
+      1700   4.5518848      1.0030059      2.9084074      6.3278992      1              346          
+      1800   4.368682       1.000831       2.807184       6.7382017      1              282          
+      1900   4.458655       1.0012568      2.7966515      6.0124309      1              246          
+      2000   4.1256128      1.0004032      2.763649       6.3707442      1              208          
+      2100   3.7040346      1.0004125      2.4398152      5.4213931      1              181          
+      2200   4.2347861      1.002625       2.6206986      6.6832437      1              151          
+      2300   4.254984       1.0028871      2.6794167      7.1661525      1              127          
+      2400   4.1017692      1.0028508      2.6371178      8.388599       1              105          
+      2500   3.9285571      1.0002888      2.5002741      6.0806187      1              95           
+      2600   3.6239964      1.0012152      2.2573993      6.7863124      1              80           
+      2700   3.4085702      1.0023974      2.1179914      6.7351139      1              68           
+      2800   3.1399303      1.0005349      2.0163219      6.4502765      1              61           
+      2900   3.1277562      1.0004013      2.0453134      6.6485498      1              51           
+      3000   3.0737732      1.0022962      1.997382       6.797214       1              44           
+Loop time of 206.387 on 1 procs for 2000 steps with 16271 atoms
+
+Performance: 837.264 tau/day, 9.691 timesteps/s, 157.675 katom-step/s
+99.3% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 173.6      | 173.6      | 173.6      |   0.0 | 84.12
+Neigh   | 1.0077     | 1.0077     | 1.0077     |   0.0 |  0.49
+Comm    | 0.58656    | 0.58656    | 0.58656    |   0.0 |  0.28
+Output  | 0.0042824  | 0.0042824  | 0.0042824  |   0.0 |  0.00
+Modify  | 31.128     | 31.128     | 31.128     |   0.0 | 15.08
+Other   |            | 0.05664    |            |       |  0.03
+
+Nlocal:          16271 ave       16271 max       16271 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           4521 ave        4521 max        4521 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          94777 ave       94777 max       94777 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 94777
+Ave neighs/atom = 5.8249032
+Neighbor list builds = 100
+Dangerous builds = 0
+Total wall time: 0:04:47

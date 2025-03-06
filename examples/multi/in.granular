@@ -1,4 +1,4 @@
-# Big colloid particles and small LJ particles
+# Binary granular system
 
 units           lj
 atom_style      sphere

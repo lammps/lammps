@@ -1,50 +1,52 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <TestViewAPI.hpp>
 
 namespace Test {
+
+TEST(TEST_CATEGORY, view_layout_left_with_stride) {
+  Kokkos::LayoutLeft ll(10, 20);
+  ll.stride = 15;
+  Kokkos::View<int**, Kokkos::LayoutLeft> a("A", ll);
+  ASSERT_EQ(static_cast<int>(a.extent(0)), 10);
+  ASSERT_EQ(static_cast<int>(a.extent(1)), 20);
+  ASSERT_EQ(static_cast<int>(a.stride(0)), 1);
+  ASSERT_EQ(static_cast<int>(a.stride(1)), 15);
+
+  auto ll2 = a.layout();
+  ASSERT_EQ(static_cast<int>(ll2.dimension[0]), 10);
+  ASSERT_EQ(static_cast<int>(ll2.dimension[1]), 20);
+  ASSERT_EQ(static_cast<int>(ll2.stride), 15);
+}
+
+TEST(TEST_CATEGORY, view_layout_right_with_stride) {
+  Kokkos::LayoutRight lr(10, 20);
+  lr.stride = 25;
+  Kokkos::View<int**, Kokkos::LayoutRight> a("A", lr);
+  ASSERT_EQ(static_cast<int>(a.extent(0)), 10);
+  ASSERT_EQ(static_cast<int>(a.extent(1)), 20);
+  ASSERT_EQ(static_cast<int>(a.stride(0)), 25);
+  ASSERT_EQ(static_cast<int>(a.stride(1)), 1);
+
+  auto lr2 = a.layout();
+  ASSERT_EQ(static_cast<int>(lr2.dimension[0]), 10);
+  ASSERT_EQ(static_cast<int>(lr2.dimension[1]), 20);
+  ASSERT_EQ(static_cast<int>(lr2.stride), 25);
+}
 
 TEST(TEST_CATEGORY, view_api_b) {
   TestViewAPI<double, TEST_EXECSPACE>::run_test_view_operator_a();

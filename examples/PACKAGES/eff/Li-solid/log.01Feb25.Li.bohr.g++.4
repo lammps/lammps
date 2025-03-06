@@ -1,0 +1,166 @@
+LAMMPS (19 Nov 2024 - Development - patch_19Nov2024-836-ge548c656ce)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:99)
+  using 1 OpenMP thread(s) per MPI task
+variable        sname index Li.bohr
+
+units           electron
+newton          off
+boundary        p p p
+dielectric	1.0
+
+atom_style      electron
+
+read_data       data.${sname}
+read_data       data.Li.bohr
+Reading data file ...
+  orthogonal box = (0 0 0) to (41.76 41.76 41.76)
+  2 by 1 by 2 MPI processor grid
+  reading atoms ...
+  2000 atoms
+  read_data CPU = 0.006 seconds
+
+pair_style      eff/cut 20.88 limit/eradius pressure/evirials
+pair_coeff      * *
+
+comm_modify	vel yes
+
+neigh_modify	one 2000 page 20000
+
+compute         peratom all stress/atom NULL
+compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
+variable        press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
+
+compute         effTemp all temp/eff
+compute         effPress all pressure effTemp
+
+compute         energies all pair eff/cut
+variable        eke equal c_energies[1]
+variable        epauli equal c_energies[2]
+variable        estatics equal c_energies[3]
+variable        errestrain equal c_energies[4]
+
+thermo          10
+thermo_style    custom step etotal pe ke v_eke v_epauli v_estatics v_errestrain press v_press temp
+thermo_modify   temp effTemp press effPress
+
+min_style	cg
+minimize	0 1e-6 100 200
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+- EFF package: doi:10.1002/jcc.21637
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 20000
+  master list distance cutoff = 22.88
+  ghost atom cutoff = 22.88
+  binsize = 11.44, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eff/cut, perpetual
+      attributes: half, newton off
+      pair build: half/bin/atomonly/newtoff
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 9.51 | 9.51 | 9.51 Mbytes
+   Step         TotEng         PotEng         KinEng         v_eke         v_epauli      v_estatics    v_errestrain      Press         v_press          Temp     
+         0  -3083.509      -3083.509       0              3144.5578      14.882406     -6242.9492      0              1.2112606e+10  1.2112606e+10  0            
+        10  -3085.4657     -3085.4657      0              3062.6201      21.113244     -6169.199       0              1.797769e+09   1.797769e+09   0            
+        20  -3085.9152     -3085.9152      0              3063.3218      21.843788     -6171.0808      0              1.9306772e+09  1.9306772e+09  0            
+        30  -3086.103      -3086.103       0              3065.4937      21.7953       -6173.392       0              2.1693045e+09  2.1693045e+09  0            
+        40  -3086.2065     -3086.2065      0              3062.3955      22.002457     -6170.6045      0              1.7527596e+09  1.7527596e+09  0            
+        50  -3086.2558     -3086.2558      0              3059.7162      22.165243     -6168.1372      0              1.4005967e+09  1.4005967e+09  0            
+        60  -3086.2823     -3086.2823      0              3061.7509      22.016476     -6170.0497      0              1.6419693e+09  1.6419693e+09  0            
+        70  -3086.3068     -3086.3068      0              3063.1496      22.125331     -6171.5817      0              1.8371954e+09  1.8371954e+09  0            
+        80  -3086.3286     -3086.3286      0              3063.4058      22.112083     -6171.8465      0              1.8595352e+09  1.8595352e+09  0            
+        90  -3086.342      -3086.342       0              3062.6876      22.145517     -6171.1752      0              1.761838e+09   1.761838e+09   0            
+       100  -3086.3493     -3086.3493      0              3061.4985      22.1758       -6170.0236      0              1.6034889e+09  1.6034889e+09  0            
+Loop time of 9.51021 on 4 procs for 100 steps with 2000 atoms
+
+99.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = max iterations
+  Energy initial, next-to-last, final = 
+      -3083.5089570212  -3086.34842671529  -3086.34926128553
+  Force two-norm initial, final = 3.4238461 0.15353209
+  Force max component initial, final = 0.15119069 0.017560878
+  Final line search alpha, max atom move = 0.75419179 0.01324427
+  Iterations, force evaluations = 100 191
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 8.8842     | 9.0722     | 9.2808     |   5.4 | 95.39
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.04463    | 0.04473    | 0.04481    |   0.0 |  0.47
+Output  | 0.00071317 | 0.00073223 | 0.0007793  |   0.0 |  0.01
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.3926     |            |       |  4.13
+
+Nlocal:            500 ave         500 max         500 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:          10252 ave       10252 max       10252 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         648158 ave      648158 max      648158 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2592632
+Ave neighs/atom = 1296.316
+Neighbor list builds = 0
+Dangerous builds = 0
+
+fix 		0 all temp/rescale/eff 1 0.0 3000.0 0.02 0.5
+
+fix		1 all npt/eff temp 3000.0 3000.0 0.1 iso 1e7 1e7 1.0
+
+compute         1 all property/atom spin eradius
+dump            1 all custom 100 ${sname}.spe.lammpstrj                 id type q c_1[1] c_1[2] x y z
+dump            1 all custom 100 Li.bohr.spe.lammpstrj                 id type q c_1[1] c_1[2] x y z
+
+run 		100
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 8.76 | 8.76 | 8.76 Mbytes
+   Step         TotEng         PotEng         KinEng         v_eke         v_epauli      v_estatics    v_errestrain      Press         v_press          Temp     
+       100  -3086.3493     -3086.3493      0              3061.4985      22.1758       -6170.0236      0              1.6034889e+09  1.6034889e+09  0            
+       110  -3085.709      -3086.35        0.64098668     3062.5195      22.168933     -6171.0384      0              1.9130428e+09  1.8610249e+09  270.41729    
+       120  -3084.995      -3086.3497      1.3546418      3064.69        22.151949     -6173.1916      0              2.3968054e+09  2.2869572e+09  571.49172    
+       130  -3084.2774     -3086.3449      2.0675114      3067.5683      22.125927     -6176.0391      0              2.9762332e+09  2.8088108e+09  872.23471    
+       140  -3083.5543     -3086.3327      2.7783319      3071.0091      22.090343     -6179.4321      0              3.6318905e+09  3.4073653e+09  1172.1133    
+       150  -3082.8209     -3086.3101      3.4891918      3074.9323      22.044189     -6183.2866      0              4.3538347e+09  4.0726292e+09  1472.0085    
+       160  -3082.0735     -3086.274       4.2005492      3079.2855      21.986186     -6187.5458      0              5.1353281e+09  4.7979569e+09  1772.1135    
+       170  -3081.3099     -3086.2215      4.911672       3084.0302      21.914874     -6192.1667      0              5.9710184e+09  5.5781934e+09  2072.1196    
+       180  -3080.5276     -3086.1495      5.6218934      3089.1358      21.828679     -6197.1139      0              6.8564778e+09  6.4091119e+09  2371.7454    
+       190  -3079.7237     -3086.0546      6.330928       3094.5768      21.725972     -6202.3574      0              7.787914e+09   7.2871001e+09  2670.8705    
+       200  -3078.895      -3085.9337      7.0387107      3100.3318      21.605131     -6207.8707      0              8.7619059e+09  8.2089091e+09  2969.4675    
+Loop time of 5.34836 on 4 procs for 100 steps with 2000 atoms
+
+Performance: 1615.450 fs/day, 0.015 hours/fs, 18.697 timesteps/s, 37.395 katom-step/s
+99.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.8621     | 5.065      | 5.2272     |   5.9 | 94.70
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.02486    | 0.025085   | 0.025316   |   0.1 |  0.47
+Output  | 0.0016755  | 0.0018282  | 0.0019368  |   0.2 |  0.03
+Modify  | 0.092978   | 0.25534    | 0.4584     |  26.2 |  4.77
+Other   |            | 0.00111    |            |       |  0.02
+
+Nlocal:            500 ave         518 max         484 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+Nghost:          10252 ave       10268 max       10234 min
+Histogram: 1 0 0 0 1 0 1 0 0 1
+Neighs:         621113 ave      642857 max      604509 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+
+Total # of neighbors = 2484453
+Ave neighs/atom = 1242.2265
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Total wall time: 0:00:15

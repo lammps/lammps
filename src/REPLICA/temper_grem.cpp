@@ -24,6 +24,7 @@
 #include "finish.h"
 #include "fix.h"
 #include "fix_grem.h"
+#include "fix_nh.h"
 #include "force.h"
 #include "integrate.h"
 #include "modify.h"
@@ -37,7 +38,7 @@
 
 using namespace LAMMPS_NS;
 
-//#define TEMPER_DEBUG 1
+#define TEMPER_DEBUG 0
 
 /* ---------------------------------------------------------------------- */
 
@@ -50,11 +51,10 @@ TemperGrem::~TemperGrem()
   MPI_Comm_free(&roots);
   if (ranswap) delete ranswap;
   delete ranboltz;
-  delete [] set_lambda;
-  delete [] lambda2world;
-  delete [] world2lambda;
-  delete [] world2root;
-  delete [] id_nh;
+  delete[] set_lambda;
+  delete[] lambda2world;
+  delete[] world2lambda;
+  delete[] world2root;
 }
 
 /* ----------------------------------------------------------------------
@@ -64,46 +64,50 @@ TemperGrem::~TemperGrem()
 void TemperGrem::command(int narg, char **arg)
 {
   if (universe->nworlds == 1)
-    error->all(FLERR,"Must have more than one processor partition to temper");
+    error->universe_all(FLERR,"More than one processor partition required for temper/grem command");
   if (domain->box_exist == 0)
-    error->all(FLERR,"Temper/gREM command before simulation box is defined");
-  if (narg != 7 && narg != 8)
-    error->universe_all(FLERR,"Illegal temper command");
+    error->universe_all(FLERR,"Temper/grem command before simulation box is defined");
+  if (narg != 7 && narg != 8) error->universe_all(FLERR,"Illegal temper/grem command");
 
   int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
   nevery = utils::inumeric(FLERR,arg[1],false,lmp);
   double lambda = utils::numeric(FLERR,arg[2],false,lmp);
 
   // ignore temper command, if walltime limit was already reached
+
   if (timer->is_timeout()) return;
 
-  // Get and check if gREM fix exists
-  for (whichfix = 0; whichfix < modify->nfix; whichfix++)
-    if (strcmp(arg[3],modify->fix[whichfix]->id) == 0) break;
-  if (whichfix == modify->nfix)
-    error->universe_all(FLERR,"Tempering fix ID is not defined");
-  fix_grem = dynamic_cast<FixGrem*>(modify->fix[whichfix]);
+  // Get and check if gREM fix exists and is correct style
+
+  auto ifix = modify->get_fix_by_id(arg[3]);
+  if (!ifix) error->universe_all(FLERR,fmt::format("Tempering fix ID {} is not defined", arg[3]));
+
+  fix_grem = dynamic_cast<FixGrem*>(ifix);
+  if (!fix_grem || (strcmp(ifix->style,"grem") != 0))
+    error->universe_all(FLERR,"Tempering temperature fix is of incorrect style");
 
   // Check input values lambdas should be equal, assign other gREM values
   if (lambda != fix_grem->lambda)
-    error->universe_all(FLERR,"Lambda from tempering and fix in the same world"
-        " must be the same");
+    error->universe_all(FLERR,"Lambda from tempering and fix in the same world must be the same");
   double eta = fix_grem->eta;
   double h0 = fix_grem->h0;
   double pressref = 0;
 
   // Get and check for nh fix
-  id_nh = utils::strdup(arg[4]);
-  int ifix = modify->find_fix(id_nh);
-  if (ifix < 0)
-    error->all(FLERR,"Fix id for nvt or npt fix does not exist");
-  Fix *nh = modify->fix[ifix];
+
+  FixNH *nh = dynamic_cast<FixNH *>(modify->get_fix_by_id(arg[4]));
+  if (!nh)
+    error->universe_all(FLERR,fmt::format("Fix {} for Nose-Hoover fix does not exist", arg[4]));
 
   // get result from nvt vs npt check from fix_grem
+
   int pressflag = fix_grem->pressflag;
+
   // fix_grem does all the checking...
+
   if (pressflag) {
-    auto p_start = (double *) nh->extract("p_start",ifix);
+    int dummy;
+    auto p_start = (double *) nh->extract("p_start",dummy);
     pressref = p_start[0];
   }
 
@@ -123,11 +127,6 @@ void TemperGrem::command(int narg, char **arg)
   if (nswaps*nevery != nsteps)
     error->universe_all(FLERR,"Non integer # of swaps in temper command");
 
-  // Must be used with fix_grem
-
-  if (strcmp(modify->fix[whichfix]->style,"grem") != 0)
-    error->universe_all(FLERR,"Tempering temperature fix is not supported");
-
   // setup for long tempering run
 
   update->whichflag = 1;
@@ -136,8 +135,7 @@ void TemperGrem::command(int narg, char **arg)
   update->nsteps = nsteps;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + nsteps;
-  if (update->laststep < 0)
-    error->all(FLERR,"Too many timesteps");
+  if (update->laststep < 0) error->all(FLERR,"Too many timesteps");
 
   lmp->init();
 
@@ -152,9 +150,9 @@ void TemperGrem::command(int narg, char **arg)
   // pe_compute = ptr to thermo_pe compute
   // notify compute it will be called at first swap
 
-  int id = modify->find_compute("thermo_pe");
-  if (id < 0) error->all(FLERR,"Tempering could not find thermo_pe compute");
-  Compute *pe_compute = modify->compute[id];
+  Compute *pe_compute = modify->get_compute_by_id("thermo_pe");
+  if (!pe_compute) error->all(FLERR,"Tempering could not find thermo_pe compute");
+
   pe_compute->addstep(update->ntimestep + nevery);
 
   // create MPI communicator for root proc from each world
@@ -319,13 +317,12 @@ void TemperGrem::command(int narg, char **arg)
       else
         MPI_Recv(&swap,1,MPI_INT,partner,0,universe->uworld,MPI_STATUS_IGNORE);
 
-#ifdef TEMPER_DEBUG
+#if TEMPER_DEBUG
       if (me_universe < partner)
-        printf("SWAP %d & %d: yes = %d,Ts = %d %d, PEs = %g %g, Bz = %g %g\n",
-               me_universe,partner,swap,my_set_lambda,partner_set_lambda,
-               weight,weight_partner,boltz_factor,exp(boltz_factor));
+        fprintf(universe->uscreen,"SWAP %d & %d: yes = %d,Ts = %d %d, PEs = %g %g, Bz = %g %g\n",
+                me_universe,partner,swap,my_set_lambda,partner_set_lambda,
+                weight,weight_partner,boltz_factor,exp(boltz_factor));
 #endif
-
     }
 
     // bcast swap result to other procs in my world

@@ -32,8 +32,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  nwall(0)
+  Fix(lmp, narg, arg), nwall(0), varflag(0)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, "fix wall/reflect", error);
 
@@ -176,12 +175,11 @@ void FixWallReflect::init()
   }
 
   int nrigid = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) nrigid++;
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) nrigid++;
 
-  if (nrigid && comm->me == 0)
-    error->warning(FLERR,"Should not allow rigid bodies to bounce off "
-                   "relecting walls");
+  if (nrigid && (comm->me == 0))
+    error->warning(FLERR,"Should not use reflecting walls with rigid bodies");
 }
 
 /* ---------------------------------------------------------------------- */

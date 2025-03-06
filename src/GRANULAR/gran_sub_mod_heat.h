@@ -14,6 +14,7 @@
 #ifdef GRAN_SUB_MOD_CLASS
 // clang-format off
 GranSubModStyle(none,GranSubModHeatNone,HEAT);
+GranSubModStyle(radius,GranSubModHeatRadius,HEAT);
 GranSubModStyle(area,GranSubModHeatArea,HEAT);
 // clang-format on
 #else
@@ -42,6 +43,18 @@ namespace Granular_NS {
 
   /* ---------------------------------------------------------------------- */
 
+  class GranSubModHeatRadius : public GranSubModHeat {
+   public:
+    GranSubModHeatRadius(class GranularModel *, class LAMMPS *);
+    void coeffs_to_local() override;
+    double calculate_heat() override;
+
+   protected:
+    double conductivity;
+  };
+
+  /* ---------------------------------------------------------------------- */
+
   class GranSubModHeatArea : public GranSubModHeat {
    public:
     GranSubModHeatArea(class GranularModel *, class LAMMPS *);
@@ -49,7 +62,7 @@ namespace Granular_NS {
     double calculate_heat() override;
 
    protected:
-    double conductivity;
+    double heat_transfer_coeff;
   };
 
 }    // namespace Granular_NS

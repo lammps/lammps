@@ -73,7 +73,7 @@ class PairBuckIntel : public PairBuck {
     c_energy_t **c_energy;
 
     ForceConst() : _ntypes(0) {}
-    ~ForceConst() { set_ntypes(0, nullptr, _cop); }
+    ~ForceConst() noexcept(false) { set_ntypes(0, nullptr, _cop); }
 
     void set_ntypes(const int ntypes, Memory *memory, const int cop);
 

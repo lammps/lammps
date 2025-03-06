@@ -1,0 +1,21 @@
+# read a general triclinic data file
+
+read_data     data.general
+
+mass          * 1.0
+
+write_data    tmp.data.general triclinic/general
+
+pair_style    lj/cut 1.2
+pair_coeff    * * 1.0 1.0
+
+neighbor      0.0 bin
+
+thermo_style  custom step pe avecx avecy avecz bvecx bvecy bvecz &
+              cvecx cvecy cvecz pxx pyy pzz vol
+thermo_modify triclinic/general yes
+
+dump          1 all custom 100 tmp.dump.general id type x y z
+dump_modify   1 triclinic/general yes
+
+run           0

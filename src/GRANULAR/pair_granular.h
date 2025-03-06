@@ -21,7 +21,6 @@ PairStyle(granular,PairGranular);
 #define LMP_PAIR_GRANULAR_H
 
 #include "pair.h"
-#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -47,6 +46,12 @@ class PairGranular : public Pair {
   double memory_usage() override;
   double atom2cut(int) override;
   double radii2cut(double, double) override;
+  int get_size_history() const { return size_history; }
+
+  // granular models
+  class Granular_NS::GranularModel** models_list;
+  int **types_indices;
+  int nmodels, maxmodels;
 
  protected:
   int freeze_group_bit;
@@ -74,14 +79,11 @@ class PairGranular : public Pair {
   int size_history;
   int heat_flag;
 
-  // granular models
-  int nmodels, maxmodels;
-  class Granular_NS::GranularModel** models_list;
-  int **types_indices;
-
   // optional user-specified global cutoff, per-type user-specified cutoffs
   double **cutoff_type;
   double cutoff_global;
+
+  int extra_svector;
 };
 
 }    // namespace LAMMPS_NS

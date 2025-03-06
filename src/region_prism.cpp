@@ -19,7 +19,10 @@
 
 #include "domain.h"
 #include "error.h"
+#include "input.h"
 #include "math_extra.h"
+#include "update.h"
+#include "variable.h"
 
 #include <cstring>
 
@@ -29,10 +32,13 @@ static constexpr double BIG = 1.0e20;
 
 /* ---------------------------------------------------------------------- */
 
-RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
+RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg),
+   xlostr(nullptr), ylostr(nullptr), zlostr(nullptr), xhistr(nullptr),
+   yhistr(nullptr), zhistr(nullptr), xystr(nullptr), xzstr(nullptr), yzstr(nullptr)
 {
   options(narg - 11, &arg[11]);
 
+  xlostyle = CONSTANT;
   if (strcmp(arg[2], "INF") == 0 || strcmp(arg[2], "EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR, "Cannot use region INF or EDGE when box does not exist");
@@ -40,9 +46,15 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
       xlo = -BIG;
     else
       xlo = domain->boxlo[0];
+  } else if (utils::strmatch(arg[2], "^v_")) {
+    xlostr = utils::strdup(arg[2] + 2);
+    xlo = 0.0;
+    xlostyle = VARIABLE;
+    varshape = 1;
   } else
     xlo = xscale * utils::numeric(FLERR, arg[2], false, lmp);
 
+  xhistyle = CONSTANT;
   if (strcmp(arg[3], "INF") == 0 || strcmp(arg[3], "EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR, "Cannot use region INF or EDGE when box does not exist");
@@ -50,9 +62,15 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
       xhi = BIG;
     else
       xhi = domain->boxhi[0];
+  } else if (utils::strmatch(arg[3], "^v_")) {
+    xhistr = utils::strdup(arg[3] + 2);
+    xhi = 0.0;
+    xhistyle = VARIABLE;
+    varshape = 1;
   } else
     xhi = xscale * utils::numeric(FLERR, arg[3], false, lmp);
 
+  ylostyle = CONSTANT;
   if (strcmp(arg[4], "INF") == 0 || strcmp(arg[4], "EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR, "Cannot use region INF or EDGE when box does not exist");
@@ -60,9 +78,15 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
       ylo = -BIG;
     else
       ylo = domain->boxlo[1];
+  } else if (utils::strmatch(arg[4], "^v_")) {
+    ylostr = utils::strdup(arg[4] + 2);
+    ylo = 0.0;
+    ylostyle = VARIABLE;
+    varshape = 1;
   } else
     ylo = yscale * utils::numeric(FLERR, arg[4], false, lmp);
 
+  yhistyle = CONSTANT;
   if (strcmp(arg[5], "INF") == 0 || strcmp(arg[5], "EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR, "Cannot use region INF or EDGE when box does not exist");
@@ -70,9 +94,15 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
       yhi = BIG;
     else
       yhi = domain->boxhi[1];
+  } else if (utils::strmatch(arg[5], "^v_")) {
+    yhistr = utils::strdup(arg[5] + 2);
+    yhi = 0.0;
+    yhistyle = VARIABLE;
+    varshape = 1;
   } else
     yhi = yscale * utils::numeric(FLERR, arg[5], false, lmp);
 
+  zlostyle = CONSTANT;
   if (strcmp(arg[6], "INF") == 0 || strcmp(arg[6], "EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR, "Cannot use region INF or EDGE when box does not exist");
@@ -80,9 +110,15 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
       zlo = -BIG;
     else
       zlo = domain->boxlo[2];
+  } else if (utils::strmatch(arg[6], "^v_")) {
+    zlostr = utils::strdup(arg[6] + 2);
+    zlo = 0.0;
+    zlostyle = VARIABLE;
+    varshape = 1;
   } else
     zlo = zscale * utils::numeric(FLERR, arg[6], false, lmp);
 
+  zhistyle = CONSTANT;
   if (strcmp(arg[7], "INF") == 0 || strcmp(arg[7], "EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR, "Cannot use region INF or EDGE when box does not exist");
@@ -90,12 +126,48 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
       zhi = BIG;
     else
       zhi = domain->boxhi[2];
+  } else if (utils::strmatch(arg[7], "^v_")) {
+    zhistr = utils::strdup(arg[7] + 2);
+    zhi = 0.0;
+    zhistyle = VARIABLE;
+    varshape = 1;
   } else
     zhi = zscale * utils::numeric(FLERR, arg[7], false, lmp);
 
-  xy = xscale * utils::numeric(FLERR, arg[8], false, lmp);
-  xz = xscale * utils::numeric(FLERR, arg[9], false, lmp);
-  yz = yscale * utils::numeric(FLERR, arg[10], false, lmp);
+  if (utils::strmatch(arg[8], "^v_")) {
+    xystr = utils::strdup(arg[8] + 2);
+    xy = 0.0;
+    xystyle = VARIABLE;
+    varshape = 1;
+  } else {
+    xy = xscale * utils::numeric(FLERR, arg[8], false, lmp);
+    xystyle = CONSTANT;
+  }
+
+  if (utils::strmatch(arg[9], "^v_")) {
+    xzstr = utils::strdup(arg[9] + 2);
+    xz = 0.0;
+    xzstyle = VARIABLE;
+    varshape = 1;
+  } else {
+    xz = xscale * utils::numeric(FLERR, arg[9], false, lmp);
+    xzstyle = CONSTANT;
+  }
+
+  if (utils::strmatch(arg[10], "^v_")) {
+    yzstr = utils::strdup(arg[10] + 2);
+    yz = 0.0;
+    yzstyle = VARIABLE;
+    varshape = 1;
+  } else {
+    yz = yscale * utils::numeric(FLERR, arg[10], false, lmp);
+    yzstyle = CONSTANT;
+  }
+
+  if (varshape) {
+    variable_check();
+    RegPrism::shape_update();
+  }
 
   // error check
   // prism cannot be 0 thickness in any dim, else inverse blows up
@@ -286,7 +358,24 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 
 RegPrism::~RegPrism()
 {
+  delete[] xlostr;
+  delete[] ylostr;
+  delete[] zlostr;
+  delete[] xhistr;
+  delete[] yhistr;
+  delete[] zhistr;
+  delete[] xystr;
+  delete[] xzstr;
+  delete[] yzstr;
   delete[] contact;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void RegPrism::init()
+{
+  Region::init();
+  if (varshape) variable_check();
 }
 
 /* ----------------------------------------------------------------------
@@ -410,6 +499,209 @@ int RegPrism::surface_exterior(double *x, double cutoff)
   contact[0].iwall = 0;
   if (contact[0].r < cutoff) return 1;
   return 0;
+}
+
+/* ----------------------------------------------------------------------
+   change region shape via variable evaluation
+------------------------------------------------------------------------- */
+
+void RegPrism::shape_update()
+{
+  if (xlostyle == VARIABLE) xlo = xscale * input->variable->compute_equal(xlovar);
+
+  if (xhistyle == VARIABLE) xhi = xscale * input->variable->compute_equal(xhivar);
+
+  if (ylostyle == VARIABLE) ylo = yscale * input->variable->compute_equal(ylovar);
+
+  if (yhistyle == VARIABLE) yhi = yscale * input->variable->compute_equal(yhivar);
+
+  if (zlostyle == VARIABLE) zlo = zscale * input->variable->compute_equal(zlovar);
+
+  if (zhistyle == VARIABLE) zhi = zscale * input->variable->compute_equal(zhivar);
+
+  if (xystyle == VARIABLE) xy = xscale * input->variable->compute_equal(xyvar);
+
+  if (xzstyle == VARIABLE) xz = xscale * input->variable->compute_equal(xzvar);
+
+  if (yzstyle == VARIABLE) yz = yscale * input->variable->compute_equal(yzvar);
+
+  // error check
+  // prism cannot be 0 thickness in any dim, else inverse blows up
+  // non-zero tilt values cannot be used if either dim is INF on both ends
+
+  if (xlo >= xhi) error->all(FLERR, "Illegal region prism xlo: {} >= xhi: {}", xlo, xhi);
+  if (ylo >= yhi) error->all(FLERR, "Illegal region prism ylo: {} >= yhi: {}", ylo, yhi);
+  if (zlo >= zhi) error->all(FLERR, "Illegal region prism zlo: {} >= zhi: {}", zlo, zhi);
+
+  if (xy != 0.0 && xlo == -BIG && xhi == BIG)
+    error->all(FLERR, "Illegal region prism non-zero xy tilt with infinite x size");
+  if (xy != 0.0 && ylo == -BIG && yhi == BIG)
+    error->all(FLERR, "Illegal region prism non-zero xy tilt with infinite y size");
+
+  if (xz != 0.0 && xlo == -BIG && xhi == BIG)
+    error->all(FLERR, "Illegal region prism non-zero xz tilt with infinite x size");
+  if (xz != 0.0 && zlo == -BIG && zhi == BIG)
+    error->all(FLERR, "Illegal region prism non-zero xz tilt with infinite z size");
+
+  if (yz != 0.0 && ylo == -BIG && yhi == BIG)
+    error->all(FLERR, "Illegal region prism non-zero yz tilt with infinite y size");
+  if (yz != 0.0 && zlo == -BIG && zhi == BIG)
+    error->all(FLERR, "Illegal region prism non-zero yz tilt with infinite z size");
+
+  // extent of prism
+
+  if (interior) {
+    extent_xlo = MIN(xlo, xlo + xy);
+    extent_xlo = MIN(extent_xlo, extent_xlo + xz);
+    extent_ylo = MIN(ylo, ylo + yz);
+    extent_zlo = zlo;
+
+    extent_xhi = MAX(xhi, xhi + xy);
+    extent_xhi = MAX(extent_xhi, extent_xhi + xz);
+    extent_yhi = MAX(yhi, yhi + yz);
+    extent_zhi = zhi;
+  }
+
+  // h = transformation matrix from tilt coords (0-1) to box coords (xyz)
+
+  h[0][0] = xhi - xlo;
+  h[0][1] = xy;
+  h[0][2] = xz;
+  h[1][1] = yhi - ylo;
+  h[1][2] = yz;
+  h[2][2] = zhi - zlo;
+
+  hinv[0][0] = 1.0 / h[0][0];
+  hinv[0][1] = -h[0][1] / (h[0][0] * h[1][1]);
+  hinv[0][2] = (h[0][1] * h[1][2] - h[0][2] * h[1][1]) / (h[0][0] * h[1][1] * h[2][2]);
+  hinv[1][1] = 1.0 / h[1][1];
+  hinv[1][2] = -h[1][2] / (h[1][1] * h[2][2]);
+  hinv[2][2] = 1.0 / h[2][2];
+
+  // corners = 8 corner points of prism
+
+  a[0] = xhi - xlo;
+  a[1] = 0.0;
+  a[2] = 0.0;
+  b[0] = xy;
+  b[1] = yhi - ylo;
+  b[2] = 0.0;
+  c[0] = xz;
+  c[1] = yz;
+  c[2] = zhi - zlo;
+
+  clo[0] = corners[0][0] = xlo;
+  clo[1] = corners[0][1] = ylo;
+  clo[2] = corners[0][2] = zlo;
+
+  corners[1][0] = xlo + a[0];
+  corners[1][1] = ylo + a[1];
+  corners[1][2] = zlo + a[2];
+
+  corners[2][0] = xlo + b[0];
+  corners[2][1] = ylo + b[1];
+  corners[2][2] = zlo + b[2];
+
+  corners[3][0] = xlo + a[0] + b[0];
+  corners[3][1] = ylo + a[1] + b[1];
+  corners[3][2] = zlo + a[2] + b[2];
+
+  corners[4][0] = xlo + c[0];
+  corners[4][1] = ylo + c[1];
+  corners[4][2] = zlo + c[2];
+
+  corners[5][0] = xlo + a[0] + c[0];
+  corners[5][1] = ylo + a[1] + c[1];
+  corners[5][2] = zlo + a[2] + c[2];
+
+  corners[6][0] = xlo + b[0] + c[0];
+  corners[6][1] = ylo + b[1] + c[1];
+  corners[6][2] = zlo + b[2] + c[2];
+
+  chi[0] = corners[7][0] = xlo + a[0] + b[0] + c[0];
+  chi[1] = corners[7][1] = ylo + a[1] + b[1] + c[1];
+  chi[2] = corners[7][2] = zlo + a[2] + b[2] + c[2];
+
+  // face = 6 inward-facing unit normals to prism faces
+
+  MathExtra::cross3(a, b, face[0]);
+  MathExtra::cross3(b, a, face[1]);
+  MathExtra::cross3(c, a, face[2]);
+  MathExtra::cross3(a, c, face[3]);
+  MathExtra::cross3(b, c, face[4]);
+  MathExtra::cross3(c, b, face[5]);
+
+  for (int i = 0; i < 6; i++) MathExtra::norm3(face[i]);
+}
+
+/* ----------------------------------------------------------------------
+   error check on existence of variable
+------------------------------------------------------------------------- */
+
+void RegPrism::variable_check()
+{
+  if (xlostyle == VARIABLE) {
+    xlovar = input->variable->find(xlostr);
+    if (xlovar < 0) error->all(FLERR, "Variable {} for region prism does not exist", xlostr);
+    if (!input->variable->equalstyle(xlovar))
+      error->all(FLERR, "Variable {} for region prism is invalid style", xlostr);
+  }
+
+  if (xhistyle == VARIABLE) {
+    xhivar = input->variable->find(xhistr);
+    if (xhivar < 0) error->all(FLERR, "Variable {} for region prism does not exist", xhistr);
+    if (!input->variable->equalstyle(xhivar))
+      error->all(FLERR, "Variable {} for region prism is invalid style", xhistr);
+  }
+
+  if (ylostyle == VARIABLE) {
+    ylovar = input->variable->find(ylostr);
+    if (ylovar < 0) error->all(FLERR, "Variable {} for region prism does not exist", ylostr);
+    if (!input->variable->equalstyle(ylovar))
+      error->all(FLERR, "Variable {} for region prism is invalid style", ylostr);
+    }
+
+  if (yhistyle == VARIABLE) {
+    yhivar = input->variable->find(yhistr);
+    if (yhivar < 0) error->all(FLERR, "Variable {} for region prism does not exist", yhistr);
+    if (!input->variable->equalstyle(yhivar))
+      error->all(FLERR, "Variable {} for region prism is invalid style", yhistr);
+    }
+
+   if (zlostyle == VARIABLE) {
+     zlovar = input->variable->find(zlostr);
+     if (zlovar < 0) error->all(FLERR, "Variable {} for region prism does not exist", zlostr);
+     if (!input->variable->equalstyle(zlovar))
+       error->all(FLERR, "Variable {} for region prism is invalid style", zlostr);
+   }
+
+   if (zhistyle == VARIABLE) {
+     zhivar = input->variable->find(zhistr);
+     if (zhivar < 0) error->all(FLERR, "Variable {} for region prism does not exist", zhistr);
+     if (!input->variable->equalstyle(zhivar))
+       error->all(FLERR, "Variable {} for region prism is invalid style", zhistr);
+   }
+
+   if (xystyle == VARIABLE) {
+     xyvar = input->variable->find(xystr);
+     if (xyvar < 0) error->all(FLERR, "Variable {} for region prism does not exist", xystr);
+     if (!input->variable->equalstyle(xyvar))
+       error->all(FLERR, "Variable {} for region prism is invalid style", xystr);
+   }
+
+   if (xzstyle == VARIABLE) {
+     xzvar = input->variable->find(xzstr);
+     if (xzvar < 0) error->all(FLERR, "Variable {} for region prism does not exist", xzstr);
+     if (!input->variable->equalstyle(xzvar))
+       error->all(FLERR, "Variable {} for region prism is invalid style", xzstr);
+   }
+
+   if (yzstyle == VARIABLE) {
+     yzvar = input->variable->find(yzstr);
+     if (yzvar < 0) error->all(FLERR, "Variable {} for region prism does not exist", yzstr);
+     if (!input->variable->equalstyle(yzvar))
+       error->all(FLERR, "Variable {} for region prism is invalid style", yzstr);
+   }
 }
 
 /* ----------------------------------------------------------------------

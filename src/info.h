@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 
 class Info : public Command {
  public:
-  Info(class LAMMPS *lmp) : Command(lmp){};
+  Info(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **) override;
 
   bool is_active(const char *, const char *);
@@ -42,17 +42,21 @@ class Info : public Command {
   static bool has_png_support();
   static bool has_jpeg_support();
   static bool has_ffmpeg_support();
+  static bool has_curl_support();
   static bool has_fft_single_support();
   static bool has_exceptions();
   static bool has_package(const std::string &);
   static bool has_accelerator_feature(const std::string &, const std::string &,
                                       const std::string &);
+  static std::string get_fft_info();
+  static std::string get_fmt_info();
   static bool has_gpu_device();
   static std::string get_gpu_device_info();
   static std::string get_accelerator_info(const std::string &pkg = "");
 
   void get_memory_info(double *);
   char **get_variable_names(int &num);
+  std::string get_variable_info(int num);
 
  private:
   void available_styles(FILE *out, int flags);

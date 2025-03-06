@@ -46,6 +46,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 
@@ -439,8 +440,6 @@ void PairMEAMSpline::coeff(int narg, char **arg)
       error->all(FLERR,"Pair style meam/spline requires one atom type per element");
   }
 }
-
-#define MAXLINE 1024
 
 void PairMEAMSpline::read_file(const char* filename)
 {

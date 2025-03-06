@@ -5,6 +5,7 @@
 .. index:: pair_style lj/spica/coul/long
 .. index:: pair_style lj/spica/coul/long/gpu
 .. index:: pair_style lj/spica/coul/long/omp
+.. index:: pair_style lj/spica/coul/long/kk
 .. index:: pair_style lj/spica/coul/msm
 .. index:: pair_style lj/spica/coul/msm/omp
 
@@ -16,7 +17,7 @@ Accelerator Variants: *lj/spica/gpu*, *lj/spica/kk*, *lj/spica/omp*
 pair_style lj/spica/coul/long command
 =====================================
 
-Accelerator Variants: *lj/spica/coul/long/gpu*, *lj/spica/coul/long/omp*
+Accelerator Variants: *lj/spica/coul/long/gpu*, *lj/spica/coul/long/omp*, *lj/spica/coul/long/kk*
 
 pair_style lj/spica/coul/msm command
 ====================================
@@ -81,7 +82,7 @@ given by
 
 as required for the SPICA (formerly called SDK) and the pSPICA Coarse-grained MD parameterization discussed in
 :ref:`(Shinoda) <Shinoda3>`, :ref:`(DeVane) <DeVane>`, :ref:`(Seo) <Seo>`, and :ref:`(Miyazaki) <Miyazaki>`.
-Rc is the cutoff.
+:math:`r_c` is the cutoff.
 Summary information on these force fields can be found at https://www.spica-ff.org
 
 Style *lj/spica/coul/long* computes the adds Coulombic interactions

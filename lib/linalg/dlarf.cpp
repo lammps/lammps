@@ -51,15 +51,15 @@ int dlarf_(char *side, integer *m, integer *n, doublereal *v, integer *incv, dou
     }
     if (applyleft) {
         if (lastv > 0) {
-            dgemv_((char *)"Transpose", &lastv, &lastc, &c_b4, &c__[c_offset], ldc, &v[1], incv, &c_b5,
-                   &work[1], &c__1, (ftnlen)9);
+            dgemv_((char *)"T", &lastv, &lastc, &c_b4, &c__[c_offset], ldc, &v[1], incv, &c_b5, &work[1],
+                   &c__1, (ftnlen)1);
             d__1 = -(*tau);
             dger_(&lastv, &lastc, &d__1, &v[1], incv, &work[1], &c__1, &c__[c_offset], ldc);
         }
     } else {
         if (lastv > 0) {
-            dgemv_((char *)"No transpose", &lastc, &lastv, &c_b4, &c__[c_offset], ldc, &v[1], incv, &c_b5,
-                   &work[1], &c__1, (ftnlen)12);
+            dgemv_((char *)"N", &lastc, &lastv, &c_b4, &c__[c_offset], ldc, &v[1], incv, &c_b5, &work[1],
+                   &c__1, (ftnlen)1);
             d__1 = -(*tau);
             dger_(&lastc, &lastv, &d__1, &work[1], &c__1, &v[1], incv, &c__[c_offset], ldc);
         }

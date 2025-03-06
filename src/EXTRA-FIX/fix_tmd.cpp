@@ -32,12 +32,13 @@
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define CHUNK 1000
-#define MAXLINE 256
+static constexpr int CHUNK = 1000;
+static constexpr int MAXLINE = 256;
 
 /* ---------------------------------------------------------------------- */
 
@@ -269,7 +270,7 @@ void FixTMD::initial_integrate(int /*vflag*/)
     work_lambda += lambda*(rho_target - rho_old);
     if (!(update->ntimestep % nfileevery) &&
         (previous_stat != update->ntimestep)) {
-      fmt::print(fp, "{} {} {} {} {} {} {} {}\n", update->ntimestep,rho_target,rho_old,
+      utils::print(fp, "{} {} {} {} {} {} {} {}\n", update->ntimestep,rho_target,rho_old,
                  gamma_back,gamma_forward,lambda,work_lambda,work_analytical);
       fflush(fp);
       previous_stat = update->ntimestep;

@@ -92,8 +92,8 @@ Arguments for these methods can be values returned by the
 *setup_grid()* method (described below), which define the extent of
 the grid cells (owned+ghost) the processor owns.  These 4 methods
 allocate memory for 2d (first two) and 3d (second two) grid data.  The
-two methods that end in "_one" allocate an array which stores a single
-value per grid cell.  The two that end in "_multi" allocate an array
+two methods that end in "_offset" allocate an array which stores a single
+value per grid cell.  The two that end in "_last" allocate an array
 which stores *Nvalues* per grid cell.
 
 .. code-block:: c++
@@ -433,7 +433,7 @@ from owned to ghost cells, or ghost to owned cells, respectively, as
 described above.  The *caller* argument should be one of these values
 -- Grid3d::COMPUTE, Grid3d::FIX, Grid3d::KSPACE, Grid3d::PAIR --
 depending on the style of the caller class.  The *ptr* argument is the
-"this" pointer to the caller class.  These 2 arguments are used to
+"this" pointer to the caller class.  These two arguments are used to
 call back to pack()/unpack() functions in the caller class, as
 explained below.
 

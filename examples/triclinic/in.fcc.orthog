@@ -1,0 +1,23 @@
+# orthogonal box for fcc lattice unit cell
+
+lattice       fcc 1.1
+
+region        mybox block 0 1 0 1 0 1
+create_box    1 mybox
+create_atoms  1 box
+
+mass          * 1.0
+
+write_data    tmp.data.fcc.orthog
+
+pair_style    lj/cut 1.2
+pair_coeff    * * 1.0 1.0
+
+neighbor      0.0 bin
+
+thermo_style  custom step pe avecx avecy avecz bvecx bvecy bvecz &
+              cvecx cvecy cvecz pxx pyy pzz vol
+
+dump          1 all custom 100 tmp.dump.fcc.orthog id type x y z
+
+run           0

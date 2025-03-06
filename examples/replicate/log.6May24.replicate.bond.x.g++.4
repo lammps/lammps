@@ -1,0 +1,126 @@
+LAMMPS (17 Apr 2024)
+WARNING: Using I/O redirection is unreliable with parallel runs. Better to use the -in switch to read input files. (../lammps.cpp:551)
+# test of replicating system with periodic bonds in x
+
+dimension       2
+atom_style      molecular
+
+read_data       data.bond.x
+Reading data file ...
+  orthogonal box = (0 0 -0.5) to (3 1 0.5)
+  4 by 1 by 1 MPI processor grid
+  reading atoms ...
+  3 atoms
+  scanning bonds ...
+  1 = max bonds/atom
+  orthogonal box = (0 0 -0.5) to (3 1 0.5)
+  4 by 1 by 1 MPI processor grid
+  reading bonds ...
+  3 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.003 seconds
+
+#replicate       3 3 1
+replicate       3 3 1 bond/periodic
+Replication is creating a 3x3x1 = 9 times larger system...
+  orthogonal box = (0 0 -0.5) to (9 3 0.5)
+  4 by 1 by 1 MPI processor grid
+  bounding box image = (0 0 0) to (0 0 0)
+  bounding box extra memory = 0.00 MB
+  average # of replicas added to proc = 5.25 out of 9 (58.33%)
+  27 atoms
+  27 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  replicate CPU = 0.002 seconds
+
+mass            1 1.0
+velocity        all create 0.02 87287 loop geom
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+
+bond_style      harmonic
+bond_coeff      1 50.0 1.0
+
+special_bonds   fene
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        1        1       
+     2 = max # of 1-2 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+fix             1 all nve
+
+write_data      tmp.data.x
+System init for write_data ...
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 7 3 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/2d
+      bin: standard
+
+dump		1 all image 100 tmp.image.x.*.ppm type type                 adiam 0.2 bond type 0.1 zoom 1.6
+dump_modify	1 pad 5
+
+#dump		2 all movie 100 tmp.movie.x.mpg type type #                adiam 0.2 bond type 0.1 zoom 1.6
+#dump_modify	2 pad 5
+
+run             5000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+WARNING: Inconsistent image flags (../domain.cpp:1051)
+Per MPI rank memory allocation (min/avg/max) = 6.309 | 6.309 | 6.309 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0.02          -1.1250229      0             -1.1057636      9.028122     
+      5000   0.50911963    -1.7968226      0.21209852    -1.0944607      4.1676488    
+Loop time of 0.21682 on 4 procs for 5000 steps with 27 atoms
+
+Performance: 9962160.612 tau/day, 23060.557 timesteps/s, 622.635 katom-step/s
+93.9% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.001787   | 0.0021247  | 0.0028772  |   1.0 |  0.98
+Bond    | 0.00039682 | 0.00045617 | 0.00059887 |   0.0 |  0.21
+Neigh   | 0.0013626  | 0.0014006  | 0.0014798  |   0.1 |  0.65
+Comm    | 0.017009   | 0.01791    | 0.018656   |   0.5 |  8.26
+Output  | 0.06892    | 0.12188    | 0.18918    |  13.7 | 56.21
+Modify  | 0.00060336 | 0.00072159 | 0.00088047 |   0.0 |  0.33
+Other   |            | 0.07233    |            |       | 33.36
+
+Nlocal:           6.75 ave           7 max           6 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Nghost:           64.5 ave          65 max          63 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Neighs:          70.25 ave          77 max          60 min
+Histogram: 1 0 0 0 0 1 0 0 1 1
+
+Total # of neighbors = 281
+Ave neighs/atom = 10.407407
+Ave special neighs/atom = 2
+Neighbor list builds = 287
+Dangerous builds = 0
+Total wall time: 0:00:00

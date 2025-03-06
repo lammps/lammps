@@ -20,6 +20,7 @@ namespace LAMMPS_NS {
 
 class FixWall : public Fix {
  public:
+  enum { XLO = 0, XHI = 1, YLO = 2, YHI = 3, ZLO = 4, ZHI = 5 };
   int nwall;
   int wallwhich[6];
   double coord0[6];
@@ -27,6 +28,7 @@ class FixWall : public Fix {
   int xstyle[6];
   int xindex[6];
   char *xstr[6];
+  enum { NONE = 0, EDGE, CONSTANT, VARIABLE };
 
   FixWall(class LAMMPS *, int, char **);
   ~FixWall() override;

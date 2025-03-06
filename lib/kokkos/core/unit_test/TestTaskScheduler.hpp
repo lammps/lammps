@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_UNITTEST_TASKSCHEDULER_HPP
 #define KOKKOS_UNITTEST_TASKSCHEDULER_HPP
@@ -51,6 +23,11 @@
 #include <cstdio>
 #include <iostream>
 #include <cmath>
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+// We allow using deprecated classes in this file
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
 
 //==============================================================================
 // <editor-fold desc="TestFib"> {{{1
@@ -198,9 +175,9 @@ struct TestTaskDependence {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(typename sched_type::member_type& member) {
-    auto& sched = member.scheduler();
-    enum { CHUNK = 8 };
-    const int n = CHUNK < m_count ? CHUNK : m_count;
+    auto& sched                = member.scheduler();
+    static constexpr int CHUNK = 8;
+    const int n                = CHUNK < m_count ? CHUNK : m_count;
 
     if (1 < m_count) {
       const int increment = (m_count + n - 1) / n;
@@ -218,7 +195,7 @@ struct TestTaskDependence {
 
       Kokkos::respawn(this, f);
     } else if (1 == m_count) {
-      Kokkos::atomic_increment(&m_accum());
+      Kokkos::atomic_inc(&m_accum());
     }
   }
 
@@ -739,7 +716,7 @@ struct TestMultipleDependence {
     using value_type = int;
     KOKKOS_INLINE_FUNCTION
     void operator()(typename Scheduler::member_type&, int& result) {
-      double value = 0;
+      double value = 1;
       // keep this one busy for a while
       for (int i = 0; i < 10000; ++i) {
         value += i * i / 7.138 / value;
@@ -851,50 +828,12 @@ struct TestMultipleDependence {
 #undef TEST_SCHEDULER_SUFFIX
 #endif
 
-#if 0
-#define TEST_SCHEDULER_SUFFIX _fixed_mempool
-#define TEST_SCHEDULER                                                      \
-  Kokkos::SimpleTaskScheduler<                                              \
-      TEST_EXECSPACE,                                                       \
-      Kokkos::Impl::SingleTaskQueue<                                        \
-          TEST_EXECSPACE,                                                   \
-          Kokkos::Impl::default_tasking_memory_space_for_execution_space_t< \
-              TEST_EXECSPACE>,                                              \
-          Kokkos::Impl::TaskQueueTraitsLockBased,                           \
-          Kokkos::Impl::FixedBlockSizeMemoryPool<                           \
-              Kokkos::Device<                                               \
-                  TEST_EXECSPACE,                                           \
-                  Kokkos::Impl::                                            \
-                      default_tasking_memory_space_for_execution_space_t<   \
-                          TEST_EXECSPACE>>,                                 \
-              128, 16>>>
-#include "TestTaskScheduler_single.hpp"
-#undef TEST_SCHEDULER
-#undef TEST_SCHEDULER_SUFFIX
-
-#define TEST_SCHEDULER_SUFFIX _fixed_mempool_multiple
-#define TEST_SCHEDULER                                                      \
-  Kokkos::SimpleTaskScheduler<                                              \
-      TEST_EXECSPACE,                                                       \
-      Kokkos::Impl::MultipleTaskQueue<                                      \
-          TEST_EXECSPACE,                                                   \
-          Kokkos::Impl::default_tasking_memory_space_for_execution_space_t< \
-              TEST_EXECSPACE>,                                              \
-          Kokkos::Impl::TaskQueueTraitsLockBased,                           \
-          Kokkos::Impl::FixedBlockSizeMemoryPool<                           \
-              Kokkos::Device<                                               \
-                  TEST_EXECSPACE,                                           \
-                  Kokkos::Impl::                                            \
-                      default_tasking_memory_space_for_execution_space_t<   \
-                          TEST_EXECSPACE>>,                                 \
-              128, 16>>>
-#include "TestTaskScheduler_single.hpp"
-#undef TEST_SCHEDULER
-#undef TEST_SCHEDULER_SUFFIX
-#endif
-
 #undef KOKKOS_TEST_WITH_SUFFIX
 #undef KOKKOS_PP_CAT_IMPL
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
 #endif  // #if defined( KOKKOS_ENABLE_TASKDAG )
 #endif  // #ifndef KOKKOS_UNITTEST_TASKSCHEDULER_HPP

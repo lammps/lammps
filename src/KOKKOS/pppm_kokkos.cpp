@@ -20,6 +20,7 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "fft3d_kokkos.h"
@@ -39,22 +40,11 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecialKokkos;
 
-#define MAXORDER 7
-#define OFFSET 16384
-#define LARGE 10000.0
-#define SMALL 0.00001
-#define EPS_HOC 1.0e-7
-
-enum{REVERSE_RHO};
-enum{FORWARD_IK,FORWARD_IK_PERATOM};
-
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
+static constexpr int MAXORDER = 7;
+static constexpr int OFFSET = 16384;
+static constexpr double SMALL = 0.00001;
+static constexpr double EPS_HOC = 1.0e-7;
+static constexpr FFT_SCALAR ZEROF = 0.0;
 
 /* ---------------------------------------------------------------------- */
 
@@ -113,6 +103,13 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp) : PPPM(lmp)
   fft1 = nullptr;
   fft2 = nullptr;
   remap = nullptr;
+
+#if defined (LMP_KOKKOS_GPU)
+  #if defined(FFT_KOKKOS_KISS)
+    if (comm->me == 0)
+      error->warning(FLERR,"Using default KISS FFT with Kokkos GPU backends may give suboptimal performance");
+  #endif
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -285,7 +282,7 @@ void PPPMKokkos<DeviceType>::init()
                        estimated_accuracy);
     mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
                        estimated_accuracy/two_charge_force);
-    mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
+    mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_KOKKOS_LIB "\n";
     mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
                        ngrid_max,nfft_both_max);
     utils::logmesg(lmp,mesg);
@@ -794,7 +791,7 @@ void PPPMKokkos<DeviceType>::allocate()
   // 2nd FFT returns data in 3d brick decomposition
   // remap takes data from 3d brick to FFT decomposition
 
-  int collective_flag = 0; // not yet supported in Kokkos version
+  int collective_flag = force->kspace->collective_flag;
   int gpu_aware_flag = lmp->kokkos->gpu_aware_flag;
   int tmp;
 
@@ -1149,7 +1146,8 @@ void PPPMKokkos<DeviceType>::particle_map()
 
   k_flag.template modify<DeviceType>();
   k_flag.template sync<LMPHostType>();
-  if (k_flag.h_view()) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
+  if (k_flag.h_view())
+    error->one(FLERR,"Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
 }
 
 template<class DeviceType>
@@ -1371,8 +1369,6 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_brick2fft, const int &ii) const
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::poisson_ik()
 {
-  int j;
-
   // transform charge density (r -> k)
 
   copymode = 1;
@@ -1383,7 +1379,8 @@ void PPPMKokkos<DeviceType>::poisson_ik()
 
   // global energy and virial contribution
 
-  scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
+  bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
+  scaleinv = 1.0/ngridtotal;
   s2 = scaleinv*scaleinv;
 
   if (eflag_global || vflag_global) {
@@ -1392,7 +1389,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
       copymode = 1;
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik2>(0,nfft),*this,ev);
       copymode = 0;
-      for (j = 0; j < 6; j++) virial[j] += ev.v[j];
+      for (int j = 0; j < 6; j++) virial[j] += ev.v[j];
       energy += ev.ecoul;
     } else {
       copymode = 1;

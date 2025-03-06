@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 enum { NONE, NEIGH, PAIR, BOND, ANGLE, DIHEDRAL, IMPROPER };
 enum { TYPE, RADIUS };
 
-#define DELTA 10000
+static constexpr int DELTA = 10000;
 
 /* ---------------------------------------------------------------------- */
 
@@ -39,7 +39,7 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), vlocal(nullptr), alocal(nullptr), indices(nullptr),
     pack_choice(nullptr)
 {
-  if (narg < 4) error->all(FLERR, "Illegal compute property/local command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "compute property/local", error);
 
   local_flag = 1;
   nvalues = narg - 3;
@@ -202,25 +202,23 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg], "cutoff") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute property/local command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute property/local cutoff", error);
       if (strcmp(arg[iarg + 1], "type") == 0)
         cutstyle = TYPE;
       else if (strcmp(arg[iarg + 1], "radius") == 0)
         cutstyle = RADIUS;
       else
-        error->all(FLERR, "Illegal compute property/local command");
+        error->all(FLERR, "Unknown compute property/local cutoff keyword: {}", arg[iarg + 1]);
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal compute property/local command");
+      error->all(FLERR, "Unknown compute property/local keyword: {}", arg[iarg]);
   }
 
   // error check
 
   if (atom->molecular == 2 &&
       (kindflag == BOND || kindflag == ANGLE || kindflag == DIHEDRAL || kindflag == IMPROPER))
-    error->all(FLERR,
-               "Compute property/local does not (yet) work "
-               "with atom_style template");
+    error->all(FLERR, "Compute property/local does not (yet) work with atom_style template");
 
   if (kindflag == BOND && atom->avec->bonds_allow == 0)
     error->all(FLERR, "Compute property/local for property that isn't allocated");
@@ -231,7 +229,7 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
   if (kindflag == IMPROPER && atom->avec->impropers_allow == 0)
     error->all(FLERR, "Compute property/local for property that isn't allocated");
   if (cutstyle == RADIUS && !atom->radius_flag)
-    error->all(FLERR, "Compute property/local requires atom attribute radius");
+    error->all(FLERR, "Compute property/local with ID {} requires atom attribute radius", id);
 
   nmax = 0;
   vlocal = nullptr;
@@ -255,8 +253,6 @@ void ComputePropertyLocal::init()
   if (kindflag == NEIGH || kindflag == PAIR) {
     if (force->pair == nullptr)
       error->all(FLERR, "No pair style is defined for compute property/local");
-    if (force->pair->single_enable == 0)
-      error->all(FLERR, "Pair style does not support compute property/local");
   }
 
   // for NEIGH/PAIR need an occasional half neighbor list
@@ -405,6 +401,7 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
       if (!(mask[j] & groupbit)) continue;
 
       // itag = jtag is possible for long cutoffs that include images of self
+      // do not need triclinic logic here b/c neighbor list itself is correct
 
       if (newton_pair == 0 && j >= nlocal) {
         jtag = tag[j];

@@ -11,7 +11,7 @@ fix tgnpt/drude command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style_name keyword values ...
 

@@ -19,7 +19,6 @@ Examples
 
    read_restart save.10000
    read_restart restart.*
-   read_restart restart.*.mpiio
 
 Description
 """""""""""
@@ -48,6 +47,12 @@ Restart files are saved in binary format to enable exact restarts,
 meaning that the trajectories of a restarted run will precisely match
 those produced by the original run had it continued on.
 
+Some information about a restart file can be gathered directly from the
+command-line when using LAMMPS with the :ref:`-restart2info
+<restart2info>` command-line flag.  On Unix-like operating systems (like
+Linux or macOS), one can also :ref:`configure the "file" command-line
+program <magic>` to display basic information about a restart file
+
 The binary restart file format was not designed with backward, forward,
 or cross-platform compatibility in mind, so the files are only expected
 to be read correctly by the same LAMMPS executable on the same platform.
@@ -55,9 +60,9 @@ Changes to the architecture, compilation settings, or LAMMPS version can
 render a restart file unreadable or it may read the data incorrectly.
 If you want a more portable format, you can use the data file format as
 created by the :doc:`write_data <write_data>` command.  Binary restart
-files can also be converted into a data file from the command line by
+files can also be converted into a data file from the command-line by
 the LAMMPS executable that wrote them using the :ref:`-restart2data
-<restart2data>` command line flag.
+<restart2data>` command-line flag.
 
 Several things can prevent exact restarts due to round-off effects, in
 which case the trajectories in the 2 runs will slowly diverge.  These
@@ -120,22 +125,6 @@ different the number of processors in the current LAMMPS simulation.
 This can be a fast mode of input on parallel machines that support
 parallel I/O.
 
-A restart file can also be read in parallel as one large binary file
-via the MPI-IO library, assuming it was also written with MPI-IO.
-MPI-IO is part of the MPI standard for versions 2.0 and above.  Using
-MPI-IO requires two steps.  First, build LAMMPS with its MPIIO package
-installed, e.g.
-
-.. code-block:: bash
-
-   make yes-mpiio    # installs the MPIIO package
-   make mpi          # build LAMMPS for your platform
-
-Second, use a restart filename which contains ".mpiio".  Note that it
-does not have to end in ".mpiio", just contain those characters.
-Unlike MPI-IO dump files, a particular restart file must be both
-written and read using MPI-IO.
-
 ----------
 
 Here is the list of information included in a restart file, which
@@ -147,7 +136,7 @@ these settings after the restart file is read.
 * :doc:`newton bond <newton>` (see discussion of newton command below)
 * :doc:`atom style <atom_style>` and :doc:`atom_modify <atom_modify>` settings id, map, sort
 * :doc:`comm style <comm_style>` and :doc:`comm_modify <comm_modify>` settings mode, cutoff, vel
-* :doc:`timestep <timestep>`
+* :doc:`timestep size <timestep>` and :doc:`timestep number <reset_timestep>`
 * simulation box size and shape and :doc:`boundary <boundary>` settings
 * atom :doc:`group <group>` definitions
 * per-type atom settings such as :doc:`mass <mass>`
@@ -268,8 +257,7 @@ information about these bonds is written to the restart file.
 Restrictions
 """"""""""""
 
-To write and read restart files in parallel with MPI-IO, the MPIIO
-package must be installed.
+none
 
 Related commands
 """"""""""""""""

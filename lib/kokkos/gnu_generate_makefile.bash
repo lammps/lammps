@@ -74,9 +74,6 @@ do
     --with-hwloc*)
       HWLOC_PATH="${key#*=}"
       ;;
-    --with-memkind*)
-      MEMKIND_PATH="${key#*=}"
-      ;;
     --arch*)
       KOKKOS_ARCH="${key#*=}"
       ;;
@@ -148,12 +145,9 @@ do
       echo "                 ARMv8-ThunderX  = ARMv8 Cavium ThunderX CPU"
       echo "                 ARMv8-TX2       = ARMv8 Cavium ThunderX2 CPU"
       echo "               [IBM]"
-      echo "                 BGQ             = IBM Blue Gene Q"
-      echo "                 Power7          = IBM POWER7 and POWER7+ CPUs"
       echo "                 Power8          = IBM POWER8 CPUs"
       echo "                 Power9          = IBM POWER9 CPUs"
       echo "               [Intel]"
-      echo "                 WSM             = Intel Westmere CPUs"
       echo "                 SNB             = Intel Sandy/Ivy Bridge CPUs"
       echo "                 HSW             = Intel Haswell CPUs"
       echo "                 BDW             = Intel Broadwell Xeon E-class CPUs"
@@ -188,9 +182,9 @@ do
       echo "--cxxflags=[FLAGS]            Overwrite CXXFLAGS for library build and test"
       echo "                                build.  This will still set certain required"
       echo "                                flags via KOKKOS_CXXFLAGS (such as -fopenmp,"
-      echo "                                -std=c++14, etc.)."
+      echo "                                -std=c++17, etc.)."
       echo "--cxxstandard=[FLAGS]         Overwrite KOKKOS_CXX_STANDARD for library build and test"
-      echo "                                c++14 (default), c++17, c++1y, c++1z, c++2a"
+      echo "                                c++17 (default), c++1z, c++20, c++2a, c++23, c++2b"
       echo "--ldflags=[FLAGS]             Overwrite LDFLAGS for library build and test"
       echo "                                build. This will still set certain required"
       echo "                                flags via KOKKOS_LDFLAGS (such as -fopenmp,"
@@ -198,7 +192,6 @@ do
       echo "--with-gtest=/Path/To/Gtest:  Set path to gtest.  (Used in unit and performance"
       echo "                                tests.)"
       echo "--with-hwloc=/Path/To/Hwloc:  Set path to hwloc library."
-      echo "--with-memkind=/Path/To/MemKind:  Set path to memkind library."
       echo "--with-options=[OPT]:         Additional options to Kokkos:"
       echo "                                compiler_warnings"
       echo "                                aggressive_vectorization = add ivdep on loops"
@@ -296,11 +289,6 @@ fi
 if [ ${#HWLOC_PATH} -gt 0 ]; then
   KOKKOS_SETTINGS="${KOKKOS_SETTINGS} HWLOC_PATH=${HWLOC_PATH}"
   KOKKOS_USE_TPLS="${KOKKOS_USE_TPLS},hwloc"
-fi
-
-if [ ${#MEMKIND_PATH} -gt 0 ]; then
-  KOKKOS_SETTINGS="${KOKKOS_SETTINGS} MEMKIND_PATH=${MEMKIND_PATH}" 
-  KOKKOS_USE_TPLS="${KOKKOS_USE_TPLS},experimental_memkind"
 fi
 
 if [ ${#KOKKOS_USE_TPLS} -gt 0 ]; then

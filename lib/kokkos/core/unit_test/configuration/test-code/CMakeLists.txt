@@ -19,8 +19,8 @@
 # The CMake variables CMAKE_CXX_STANDARD and CMAKE_CXX_EXTENSIONS are
 # respected.  We recommend that you set CMAKE_CXX_EXTENSIONS to OFF.
 # Otherwise, CMake defaults to using extensions for the C++ standard, and the
-# GNU extensions (-std=gnu++14) will be used for compilers that support it
-# instead of standard C++14 (-std=c++14).
+# GNU extensions (-std=gnu++17) will be used for compilers that support it
+# instead of standard C++17 (-std=c++17).
 #
 # A bunch of build options are added as variables (all starting with KOKKOS_)
 # to the build.  Check them out using ccmake or the CMake GUI.

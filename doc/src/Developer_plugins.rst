@@ -53,7 +53,7 @@ Members of ``lammpsplugin_t``
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 15 85
 
    * - Member
      - Description
@@ -135,7 +135,7 @@ unique inside the entire LAMMPS executable.
 Fix style example
 ^^^^^^^^^^^^^^^^^
 
-If the factory function would be for a fix or compute, which take three
+If the factory function is for a fix or compute, which take three
 arguments (a pointer to the LAMMPS class, the number of arguments and the
 list of argument strings), then the pointer type is ``lammpsplugin_factory2``
 and it must be assigned to the *creator.v2* member of the plugin struct.
@@ -271,7 +271,7 @@ Plugins need to be compiled with the same compilers and libraries
 as the LAMMPS executable and library.  Otherwise the plugin will likely
 not load due to mismatches in the function signatures (LAMMPS is C++ so
 scope, type, and number of arguments are encoded into the symbol names
-and thus differences in them will lead to failed plugin load commands.
+and thus differences in them will lead to failed plugin load commands).
 Compilation of the plugin can be managed via both, CMake or traditional
 GNU makefiles.  Some examples that can be used as a template are in the
 ``examples/plugins`` folder.  The CMake script code has some small
@@ -283,7 +283,7 @@ in the ``examples/kim/plugin`` folder.  No changes to the sources of the
 KIM package themselves are needed; only the plugin interface and loader
 code needs to be added.  This example only supports building with CMake,
 but is probably a more typical example. To compile you need to run CMake
-with -DLAMMPS_SOURCE_DIR=<path/to/lammps/src/folder>.  Other
+with ``-DLAMMPS_SOURCE_DIR=<path/to/lammps/src/folder>``.  Other
 configuration setting are identical to those for compiling LAMMPS.
 
 A second example for a plugin from a package is in the

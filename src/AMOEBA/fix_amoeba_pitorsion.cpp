@@ -32,9 +32,9 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-#define PITORSIONMAX 6   // max # of PiTorsion terms stored by one atom
-#define LISTDELTA 8196
-#define LB_FACTOR 1.5
+static constexpr int PITORSIONMAX = 6;   // max # of PiTorsion terms stored by one atom
+static constexpr int LISTDELTA = 8196;
+static constexpr double LB_FACTOR = 1.5;
 
 /* ---------------------------------------------------------------------- */
 
@@ -773,9 +773,9 @@ bigint FixAmoebaPiTorsion::read_data_skip_lines(char *keyword)
 
 void FixAmoebaPiTorsion::write_data_header(FILE *fp, int mth)
 {
-  if (mth == 0) fmt::print(fp,"{} pitorsions\n",npitorsions);
+  if (mth == 0) utils::print(fp,"{} pitorsions\n",npitorsions);
   else if (mth == 1)
-    fmt::print(fp, "{} pitorsion types\n",npitorsion_types);
+    utils::print(fp, "{} pitorsion types\n",npitorsion_types);
 }
 
 /* ----------------------------------------------------------------------

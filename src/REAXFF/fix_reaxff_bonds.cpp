@@ -44,6 +44,7 @@ FixReaxFFBonds::FixReaxFFBonds(LAMMPS *lmp, int narg, char **arg) :
   ntypes = atom->ntypes;
   nmax = atom->nmax;
   compressed = 0;
+  first_flag = true;
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
 
@@ -56,8 +57,8 @@ FixReaxFFBonds::FixReaxFFBonds(LAMMPS *lmp, int narg, char **arg) :
       if (!fp) error->one(FLERR,"Cannot open compressed file");
     } else fp = fopen(arg[4],"w");
 
-    if (!fp) error->one(FLERR,fmt::format("Cannot open fix reaxff/bonds file {}: {}",
-                                          arg[4],utils::getsyserror()));
+    if (!fp) error->one(FLERR,"Cannot open fix reaxff/bonds file {}: {}",
+                        arg[4],utils::getsyserror());
   }
 
   if (atom->tag_consecutive() == 0)
@@ -94,7 +95,10 @@ int FixReaxFFBonds::setmask()
 
 void FixReaxFFBonds::setup(int /*vflag*/)
 {
-  end_of_step();
+  // only print output during setup() at the very beginning
+  // to avoid duplicate outputs when using multiple run statements
+  if (first_flag) end_of_step();
+  first_flag = false;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -249,11 +253,11 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
   MPI_Request irequest, irequest2;
 
   if (me == 0) {
-    fmt::print(fp,"# Timestep {}\n#\n",ntimestep);
-    fmt::print(fp,"# Number of particles {}\n#\n",natoms);
-    fmt::print(fp,"# Max number of bonds per atom {} with coarse bond order cutoff {:5.3f}\n",
+    utils::print(fp,"# Timestep {}\n#\n",ntimestep);
+    utils::print(fp,"# Number of particles {}\n#\n",natoms);
+    utils::print(fp,"# Max number of bonds per atom {} with coarse bond order cutoff {:5.3f}\n",
                maxnum,cutof3);
-    fmt::print(fp,"# Particle connection table and bond orders\n"
+    utils::print(fp,"# Particle connection table and bond orders\n"
                "# id type nb id_1...id_nb mol bo_1...bo_nb abo nlp q\n");
   }
 
@@ -288,14 +292,14 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
         j += (1+numbonds);
 
         mesg += fmt::format("{:14.3f}{:14.3f}{:14.3f}\n",sbotmp,nlptmp,avqtmp);
-        fmt::print(fp, mesg);
+        utils::print(fp, mesg);
       }
     }
   } else {
     MPI_Isend(&buf[0],nbuf_local,MPI_DOUBLE,0,0,world,&irequest2);
     MPI_Wait(&irequest2,MPI_STATUS_IGNORE);
   }
-  if (me ==0) fputs("# \n",fp);
+  if (me == 0) fputs("# \n",fp);
 
 }
 

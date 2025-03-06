@@ -9,7 +9,7 @@ Accelerator Variants: *viscous/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID viscous gamma keyword values ...
 

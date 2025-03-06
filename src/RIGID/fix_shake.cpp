@@ -21,6 +21,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "label_map.h"
 #include "fix_respa.h"
 #include "force.h"
 #include "group.h"
@@ -39,7 +40,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-#define RVOUS 1    // 0 for irregular, 1 for all2all
+static constexpr int RVOUS = 1;    // 0 for irregular, 1 for all2all
 
 static constexpr double BIG = 1.0e20;
 static constexpr double MASSDELTA = 0.1;
@@ -63,6 +64,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   create_attribute = 1;
   dof_flag = 1;
   scalar_flag = 1;
+  extscalar = 1;
   stores_ids = 1;
   centroidstressflag = CENTROID_AVAIL;
   next_output = -1;
@@ -97,6 +99,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   comm_forward = 3;
 
   // parse SHAKE args
+
   auto mystyle = fmt::format("fix {}", style);
 
   if (narg < 8) utils::missing_cmd_args(FLERR, mystyle, error);
@@ -104,6 +107,21 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   tolerance = utils::numeric(FLERR, arg[3], false, lmp);
   max_iter = utils::inumeric(FLERR, arg[4], false, lmp);
   output_every = utils::inumeric(FLERR, arg[5], false, lmp);
+
+  // check if any typelabels conflict with fix shake arguments.
+
+  bool allow_typelabels = (atom->labelmapflag != 0);
+  if (allow_typelabels) {
+    for (int i = Atom::ATOM; i < Atom::DIHEDRAL; ++i) {
+      if ((atom->lmap->find("b", i) >= 0) ||
+          (atom->lmap->find("a", i) >= 0) ||
+          (atom->lmap->find("t", i) >= 0) ||
+          (atom->lmap->find("m", i) >= 0)) allow_typelabels = false;
+    }
+    if (!allow_typelabels && (comm->me == 0))
+      error->warning(FLERR, "At least one typelabel conflicts with a fix shake option: "
+                     "support for typelabels is disabled.");
+  }
 
   // parse SHAKE args for bond and angle types
   // will be used by find_clusters
@@ -123,6 +141,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   char mode = '\0';
   int next = 6;
   while (next < narg) {
+    int i = -1;
     if (strcmp(arg[next],"b") == 0) mode = 'b';
     else if (strcmp(arg[next],"a") == 0) mode = 'a';
     else if (strcmp(arg[next],"t") == 0) mode = 't';
@@ -130,33 +149,40 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       mode = 'm';
       atom->check_mass(FLERR);
 
-    // break if keyword that is not b,a,t,m
+    // break if known optional keyword
 
-    } else if (isalpha(arg[next][0])) break;
+    } else if ((strcmp(arg[next], "mol") == 0) || (strcmp(arg[next], "kbond") == 0)) {
+      break;
 
-    // read numeric args of b,a,t,m
+    // get numeric types for b, a, t, or m keywords.
 
-    else if (mode == 'b') {
-      int i = utils::inumeric(FLERR,arg[next],false,lmp);
+    } else if (mode == 'b') {
+      if (allow_typelabels) i = utils::expand_type_int(FLERR, arg[next], Atom::BOND, lmp);
+      else i = utils::inumeric(FLERR, arg[next], false, lmp);
+
       if (i < 1 || i > atom->nbondtypes)
-        error->all(FLERR,"Invalid bond type index for {}", mystyle);
+        error->all(FLERR,"Invalid bond type {} index for {}", arg[next], mystyle);
       bond_flag[i] = 1;
 
     } else if (mode == 'a') {
-      int i = utils::inumeric(FLERR,arg[next],false,lmp);
+      if (allow_typelabels) i = utils::expand_type_int(FLERR, arg[next], Atom::ANGLE, lmp);
+      else i = utils::inumeric(FLERR, arg[next], false, lmp);
+
       if (i < 1 || i > atom->nangletypes)
-        error->all(FLERR,"Invalid angle type index for {}", mystyle);
+        error->all(FLERR,"Invalid angle type {} for {}", arg[next], mystyle);
       angle_flag[i] = 1;
 
     } else if (mode == 't') {
-      int i = utils::inumeric(FLERR,arg[next],false,lmp);
+      if (allow_typelabels) i = utils::expand_type_int(FLERR, arg[next], Atom::ATOM, lmp);
+      else i = utils::inumeric(FLERR, arg[next], false, lmp);
+
       if (i < 1 || i > atom->ntypes)
-        error->all(FLERR,"Invalid atom type index for {}", mystyle);
+        error->all(FLERR,"Invalid atom type {} for {}", arg[next], mystyle);
       type_flag[i] = 1;
 
     } else if (mode == 'm') {
-      double massone = utils::numeric(FLERR,arg[next],false,lmp);
-      if (massone == 0.0) error->all(FLERR,"Invalid atom mass for {}", mystyle);
+      double massone = utils::numeric(FLERR, arg[next], false, lmp);
+      if (massone == 0.0) error->all(FLERR,"Invalid atom mass {} for {}", arg[next], mystyle);
       if (nmass == atom->ntypes)
         error->all(FLERR,"Too many masses for {}", mystyle);
       mass_list[nmass++] = massone;
@@ -207,8 +233,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   if (output_every) {
     int nb = atom->nbondtypes + 1;
-    b_count = new int[nb];
-    b_count_all = new int[nb];
+    b_count = new bigint[nb];
+    b_count_all = new bigint[nb];
     b_ave = new double[nb];
     b_ave_all = new double[nb];
     b_max = new double[nb];
@@ -217,8 +243,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     b_min_all = new double[nb];
 
     int na = atom->nangletypes + 1;
-    a_count = new int[na];
-    a_count_all = new int[na];
+    a_count = new bigint[na];
+    a_count_all = new bigint[na];
     a_ave = new double[na];
     a_ave_all = new double[na];
     a_max = new double[na];
@@ -371,7 +397,9 @@ void FixShake::init()
   // if rRESPA, find associated fix that must exist
   // could have changed locations in fix list since created
   // set ptrs to rRESPA variables
+  // set respa to 0 if verlet is used and to 1 otherwise
 
+  respa = 0;
   fix_respa = nullptr;
   if (utils::strmatch(update->integrate_style,"^respa")) {
     if (update->whichflag > 0) {
@@ -379,10 +407,12 @@ void FixShake::init()
       if (fixes.size() > 0) fix_respa = dynamic_cast<FixRespa *>(fixes.front());
       else error->all(FLERR,"Run style respa did not create fix RESPA");
     }
-    auto respa_style = dynamic_cast<Respa *>(update->integrate);
-    nlevels_respa = respa_style->nlevels;
-    loop_respa = respa_style->loop;
-    step_respa = respa_style->step;
+    auto respa_ptr = dynamic_cast<Respa *>(update->integrate);
+    if (!respa_ptr) error->all(FLERR, "Failure to access Respa style {}", update->integrate_style);
+    respa = 1;
+    nlevels_respa = respa_ptr->nlevels;
+    loop_respa = respa_ptr->loop;
+    step_respa = respa_ptr->step;
   }
 
   // set equilibrium bond distances
@@ -473,18 +503,22 @@ void FixShake::setup(int vflag)
       next_output = (ntimestep/output_every)*output_every + output_every;
   } else next_output = -1;
 
-  // set respa to 0 if verlet is used and to 1 otherwise
-
-  if (utils::strmatch(update->integrate_style,"^verlet"))
-    respa = 0;
-  else
-    respa = 1;
-
   if (!respa) {
     dtv     = update->dt;
     dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
     if (!rattle) dtfsq = update->dt * update->dt * force->ftm2v;
   } else {
+    auto respa_ptr = dynamic_cast<Respa *>(update->integrate);
+    if (!respa_ptr) error->all(FLERR, "Failure to access Respa style {}", update->integrate_style);
+    if (update->whichflag > 0) {
+      auto fixes = modify->get_fix_by_style("^RESPA");
+      if (fixes.size() > 0) fix_respa = dynamic_cast<FixRespa *>(fixes.front());
+      else error->all(FLERR,"Run style respa did not create fix RESPA");
+    }
+    respa = 1;
+    nlevels_respa = respa_ptr->nlevels;
+    loop_respa = respa_ptr->loop;
+    step_respa = respa_ptr->step;
     dtv = step_respa[0];
     dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
     dtf_inner = dtf_innerhalf;
@@ -755,7 +789,7 @@ void FixShake::min_post_force(int vflag)
    count # of degrees-of-freedom removed by SHAKE for atoms in igroup
 ------------------------------------------------------------------------- */
 
-int FixShake::dof(int igroup)
+bigint FixShake::dof(int igroup)
 {
   int groupbit = group->bitmask[igroup];
 
@@ -766,7 +800,7 @@ int FixShake::dof(int igroup)
   // count dof in a cluster if and only if
   // the central atom is in group and atom i is the central atom
 
-  int n = 0;
+  bigint n = 0;
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
     if (shake_flag[i] == 0) continue;
@@ -777,8 +811,8 @@ int FixShake::dof(int igroup)
     else if (shake_flag[i] == 4) n += 3;
   }
 
-  int nall;
-  MPI_Allreduce(&n,&nall,1,MPI_INT,MPI_SUM,world);
+  bigint nall;
+  MPI_Allreduce(&n,&nall,1,MPI_LMP_BIGINT,MPI_SUM,world);
   return nall;
 }
 
@@ -877,7 +911,7 @@ void FixShake::find_clusters()
       tagprev = tag[i] - iatom - 1;
       npartner[i] = atommols[imol]->nspecial[iatom][0];
       for (j = 0; j < npartner[i]; j++)
-        partner_tag[i][j] = atommols[imol]->special[iatom][j] + tagprev;;
+        partner_tag[i][j] = atommols[imol]->special[iatom][j] + tagprev;
     }
   }
 
@@ -1098,7 +1132,7 @@ void FixShake::find_clusters()
   // print info on SHAKE clusters
   // -----------------------------------------------------
 
-  int count1,count2,count3,count4;
+  bigint count1,count2,count3,count4;
   count1 = count2 = count3 = count4 = 0;
   for (i = 0; i < nlocal; i++) {
     if (shake_flag[i] == 1) count1++;
@@ -1107,15 +1141,15 @@ void FixShake::find_clusters()
     else if (shake_flag[i] == 4) count4++;
   }
 
-  int tmp;
+  bigint tmp;
   tmp = count1;
-  MPI_Allreduce(&tmp,&count1,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&tmp,&count1,1,MPI_LMP_BIGINT,MPI_SUM,world);
   tmp = count2;
-  MPI_Allreduce(&tmp,&count2,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&tmp,&count2,1,MPI_LMP_BIGINT,MPI_SUM,world);
   tmp = count3;
-  MPI_Allreduce(&tmp,&count3,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&tmp,&count3,1,MPI_LMP_BIGINT,MPI_SUM,world);
   tmp = count4;
-  MPI_Allreduce(&tmp,&count4,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&tmp,&count4,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (comm->me == 0) {
     utils::logmesg(lmp,"{:>8} = # of size 2 clusters\n"
@@ -2682,12 +2716,12 @@ void FixShake::stats()
 
   // sum across all procs
 
-  MPI_Allreduce(b_count,b_count_all,nb,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(b_count,b_count_all,nb,MPI_LMP_BIGINT,MPI_SUM,world);
   MPI_Allreduce(b_ave,b_ave_all,nb,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(b_max,b_max_all,nb,MPI_DOUBLE,MPI_MAX,world);
   MPI_Allreduce(b_min,b_min_all,nb,MPI_DOUBLE,MPI_MIN,world);
 
-  MPI_Allreduce(a_count,a_count_all,na,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(a_count,a_count_all,na,MPI_LMP_BIGINT,MPI_SUM,world);
   MPI_Allreduce(a_ave,a_ave_all,na,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(a_max,a_max_all,na,MPI_DOUBLE,MPI_MAX,world);
   MPI_Allreduce(a_min,a_min_all,na,MPI_DOUBLE,MPI_MIN,world);
@@ -3123,7 +3157,14 @@ void FixShake::reset_dt()
     dtv = update->dt;
     if (rattle) dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
     else dtfsq = update->dt * update->dt * force->ftm2v;
+    respa = 0;
   } else {
+    auto respa_ptr = dynamic_cast<Respa *>(update->integrate);
+    if (!respa_ptr) error->all(FLERR, "Failure to access Respa style {}", update->integrate_style);
+    respa = 1;
+    nlevels_respa = respa_ptr->nlevels;
+    loop_respa = respa_ptr->loop;
+    step_respa = respa_ptr->step;
     dtv = step_respa[0];
     dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
     if (rattle) dtf_inner = dtf_innerhalf;

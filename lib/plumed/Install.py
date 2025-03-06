@@ -16,18 +16,20 @@ parser = ArgumentParser(prog='Install.py',
                         description="LAMMPS library build wrapper script")
 
 # settings
+# Note: must also adjust check for supported API versions in
+# fix_plumed.cpp when version changes from v2.n.x to v2.n+1.y
 
-version = "2.8.2"
+version = "2.9.3"
 mode = "static"
 
 # help message
 
 HELP = """
 Syntax from src dir: make lib-plumed args="-b"
-                 or: make lib-plumed args="-b -v 2.8.2"
+                 or: make lib-plumed args="-b -v 2.8.3"
                  or: make lib-plumed args="-p /usr/local/plumed2 -m shared"
 
-Syntax from lib dir: python Install.py -b -v 2.8.2
+Syntax from lib dir: python Install.py -b -v 2.8.3
                  or: python Install.py -b
                  or: python Install.py -p /usr/local/plumed2 -m shared
 
@@ -45,6 +47,12 @@ checksums = { \
         '2.7.6' : 'fb8c0ec10f97a9353eb123a5c4c35aa6', \
         '2.8.1' : '6bfe72ebdae63dc38a9ca27d9b0e08f8', \
         '2.8.2' : '599092b6a0aa6fff992612537ad98994', \
+        '2.8.3' : '76d23cd394eba9e6530316ed1184e219', \
+        '2.8.4' : '9f59c4f9bda86fe5bef19543c295a981', \
+        '2.9.0' : '661eabeebee05cf84bbf9dc23d7d5f46', \
+        '2.9.1' : 'c3b2d31479c1e9ce211719d40e9efbd7', \
+        '2.9.2' : '04862602a372c1013bdfee2d6d03bace', \
+        '2.9.3' : 'ee1249805fe94bccee17d10610d3f6f1', \
         }
 
 # parse and process arguments

@@ -3,6 +3,8 @@
 min_style cg command
 ====================
 
+Accelerator Variant: *cg/kk*
+
 min_style hftn command
 ======================
 
@@ -27,7 +29,7 @@ min_style fire command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    min_style style
 

@@ -152,7 +152,7 @@ void WriteCoeff::command(int narg, char **arg)
           }
 
           // parse type number and skip over it
-          int type = atoi(str);
+          int type = std::stoi(str);
           char *p = str;
           while ((*p != '\0') && (*p == ' ')) ++p;
           while ((*p != '\0') && isdigit(*p)) ++p;

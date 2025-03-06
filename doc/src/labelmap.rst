@@ -24,6 +24,7 @@ Examples
 
 .. code-block:: LAMMPS
 
+   labelmap atom 1 c1 2 hc 3 cp 4 nt
    labelmap atom 3 carbon 4 'c3"' 5 "c1'" 6 "c#"
    labelmap atom $(label2type(atom,carbon)) C  # change type label from 'carbon' to 'C'
    labelmap clear
@@ -43,7 +44,8 @@ The label map can also be defined by the :doc:`read_data <read_data>`
 command when it reads these sections in a data file: Atom Type Labels,
 Bond Type Labels, etc.  See the :doc:`Howto type labels
 <Howto_type_labels>` doc page for a general discussion of how type
-labels can be used.
+labels can be used.  See :ref:`(Gissinger) <Typelabel1>` for a
+discussion of the type label implementation in LAMMPS and its uses.
 
 Valid type labels can contain any alphanumeric character, but must not
 start with a number, a '#', or a '*' character.  They can contain other
@@ -98,3 +100,9 @@ Default
 """""""
 
 none
+
+-----------
+
+.. _Typelabel1:
+
+**(Gissinger)** J. R. Gissinger, I. Nikiforov, Y. Afshar, B. Waters, M. Choi, D. S. Karls, A. Stukowski, W. Im, H. Heinz, A. Kohlmeyer, and E. B. Tadmor, J Phys Chem B, 128, 3282-3297 (2024).

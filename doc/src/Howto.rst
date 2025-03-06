@@ -89,6 +89,7 @@ Packages howto
    Howto_drude2
    Howto_peri
    Howto_manifold
+   Howto_rheo
    Howto_spins
 
 Tutorials howto
@@ -100,6 +101,9 @@ Tutorials howto
 
    Howto_cmake
    Howto_github
+   Howto_lammps_gui
+   Howto_moltemplate
+   Howto_python
    Howto_pylammps
    Howto_wsl
 

@@ -1,67 +1,65 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.5
+//                        Kokkos v. 4.0
 //       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_SYCL_HALF_IMPL_TYPE_HPP_
 #define KOKKOS_SYCL_HALF_IMPL_TYPE_HPP_
 
 #include <Kokkos_Macros.hpp>
-#ifdef KOKKOS_ENABLE_SYCL
 
+// FIXME_SYCL
+#if __has_include(<sycl/sycl.hpp>)
+#include <sycl/sycl.hpp>
+#else
 #include <CL/sycl.hpp>
+#endif
 
-#ifndef KOKKOS_IMPL_HALF_TYPE_DEFINED
 // Make sure no one else tries to define half_t
+#ifndef KOKKOS_IMPL_HALF_TYPE_DEFINED
 #define KOKKOS_IMPL_HALF_TYPE_DEFINED
 #define KOKKOS_IMPL_SYCL_HALF_TYPE_DEFINED
 
-namespace Kokkos {
-namespace Impl {
+namespace Kokkos::Impl {
 struct half_impl_t {
   using type = sycl::half;
 };
-}  // namespace Impl
-}  // namespace Kokkos
+}  // namespace Kokkos::Impl
 #endif  // KOKKOS_IMPL_HALF_TYPE_DEFINED
-#endif  // KOKKOS_ENABLE_SYCL
-#endif
+
+// Make sure no one else tries to define bhalf_t
+#ifndef KOKKOS_IMPL_BHALF_TYPE_DEFINED
+// FIXME_SYCL Evaluate when to drop the check
+#if __has_include(<sycl/ext/oneapi/bfloat16.hpp>)
+#define KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#define KOKKOS_IMPL_SYCL_BHALF_TYPE_DEFINED
+namespace Kokkos::Impl {
+struct bhalf_impl_t {
+  using type = sycl::ext::oneapi::bfloat16;
+};
+}  // namespace Kokkos::Impl
+#elif defined(SYCL_EXT_ONEAPI_BFLOAT16) && defined(KOKKOS_ARCH_INTEL_GPU)
+// FIXME_SYCL bfloat16 is only supported for compute capability 8.0 or higher
+// on Nvidia GPUs but SYCL_EXT_ONEAPI_BFLOAT16 is defined even for lower compute
+// capability.
+#define KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#define KOKKOS_IMPL_SYCL_BHALF_TYPE_DEFINED
+namespace Kokkos::Impl {
+struct bhalf_impl_t {
+  using type = sycl::ext::oneapi::experimental::bfloat16;
+};
+}  // namespace Kokkos::Impl
+#endif  // test for bfloat16 support
+#endif  // KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#endif  // KOKKOS_SYCL_HALF_IMPL_TYPE_HPP_

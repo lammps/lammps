@@ -738,8 +738,8 @@ command.
 
 This can be done, for example, by using the built-in visualizer of the
 :doc:`dump image or dump movie <dump_image>` command to create snapshot
-images or a movie. Below are example command lines for using dump image
-with the :ref:`example listed below <periexample>` and a set of images
+images or a movie. Below are example command for using dump image with
+the :ref:`example listed below <periexample>` and a set of images
 created for steps 300, 600, and 2000 this way.
 
 .. code-block:: LAMMPS

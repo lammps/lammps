@@ -16,6 +16,7 @@ neighbor	        0.3 bin
 neigh_modify        every 1 delay 0 check yes
 
 atom_style	        mdpd
+comm_modify vel yes
 
 region     mdpd     block -25 25 -10 10 -10 10 units box
 create_box          1 mdpd

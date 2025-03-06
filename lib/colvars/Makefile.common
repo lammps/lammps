@@ -25,6 +25,7 @@ COLVARS_INCFLAGS = -DCOLVARS_LAMMPS $(COLVARS_DEBUG_INCFLAGS) $(COLVARS_PYTHON_I
 COLVARS_SRCS = \
         colvaratoms.cpp \
         colvarbias_abf.cpp \
+        colvarbias_abmd.cpp \
         colvarbias_alb.cpp \
         colvarbias.cpp \
         colvarbias_histogram.cpp \
@@ -59,6 +60,7 @@ COLVARS_SRCS = \
         colvarscript_commands.cpp \
         colvarscript_commands_bias.cpp \
         colvarscript_commands_colvar.cpp \
+        colvars_memstream.cpp \
         colvartypes.cpp \
         colvarvalue.cpp \
         colvar_neuralnetworkcompute.cpp

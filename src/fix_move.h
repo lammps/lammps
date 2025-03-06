@@ -61,7 +61,7 @@ class FixMove : public Fix {
   int xvar, yvar, zvar, vxvar, vyvar, vzvar;
   int xvarstyle, yvarstyle, zvarstyle, vxvarstyle, vyvarstyle, vzvarstyle;
   int extra_flag, omega_flag, angmom_flag;
-  int radius_flag, ellipsoid_flag, line_flag, tri_flag, body_flag;
+  int radius_flag, ellipsoid_flag, line_flag, tri_flag, body_flag, quat_atom_flag;
   int theta_flag, quat_flag;
   int nlevels_respa, nrestart;
   int time_origin;

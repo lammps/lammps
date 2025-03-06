@@ -88,8 +88,8 @@ on recording all commands required to do the compilation.
 
 .. _sanitizer:
 
-Address, Undefined Behavior, and Thread Sanitizer Support (CMake only)
-----------------------------------------------------------------------
+Address, Leak, Undefined Behavior, and Thread Sanitizer Support (CMake only)
+----------------------------------------------------------------------------
 
 Compilers such as GCC and Clang support generating instrumented binaries
 which use different sanitizer libraries to detect problems in the code
@@ -110,6 +110,7 @@ compilation and linking stages.  This is done through setting the
 
    -D ENABLE_SANITIZER=none       # no sanitizer active (default)
    -D ENABLE_SANITIZER=address    # enable address sanitizer / memory leak checker
+   -D ENABLE_SANITIZER=hwaddress  # enable hardware assisted address sanitizer / memory leak checker
    -D ENABLE_SANITIZER=leak       # enable memory leak checker (only)
    -D ENABLE_SANITIZER=undefined  # enable undefined behavior sanitizer
    -D ENABLE_SANITIZER=thread     # enable thread sanitizer
@@ -122,32 +123,59 @@ Code Coverage and Unit Testing (CMake only)
 -------------------------------------------
 
 The LAMMPS code is subject to multiple levels of automated testing
-during development: integration testing (i.e. whether the code compiles
-on various platforms and with a variety of settings), unit testing
-(i.e. whether certain individual parts of the code produce the expected
-results for given inputs), run testing (whether selected complete input
-decks run without crashing for multiple configurations), and regression
-testing (i.e. whether selected input examples reproduce the same
-results over a given number of steps and operations within a given
-error margin).  The status of this automated testing can be viewed on
-`https://ci.lammps.org <https://ci.lammps.org>`_.
+during development:
 
-The scripts and inputs for integration, run, and regression testing
-are maintained in a
-`separate repository <https://github.com/lammps/lammps-testing>`_
-of the LAMMPS project on GitHub.
+- Integration testing (i.e. whether the code compiles
+  on various platforms and with a variety of compilers and settings),
+- Unit testing (i.e. whether certain functions or classes of the code
+  produce the expected results for given inputs),
+- Run testing (i.e. whether selected input decks can run to completion
+  without crashing for multiple configurations),
+- Regression testing (i.e. whether selected input examples reproduce the
+  same results over a given number of steps and operations within a
+  given error margin).
 
-The unit testing facility is integrated into the CMake build process
-of the LAMMPS source code distribution itself.  It can be enabled by
+The status of this automated testing can be viewed on `https://ci.lammps.org
+<https://ci.lammps.org>`_.
+
+The scripts and inputs for integration, run, and legacy regression
+testing are maintained in a `separate repository
+<https://github.com/lammps/lammps-testing>`_ of the LAMMPS project on
+GitHub.  A few tests are also run as GitHub Actions and their
+configuration files are in the ``.github/workflows/`` folder of the
+LAMMPS git tree.
+
+Regression tests can also be performed locally with the :ref:`regression
+tester tool <regression>`.  The tool checks if a given LAMMPS binary run
+with selected input examples produces thermo output that is consistent
+with the provided log files.  The script can be run in one pass over all
+available input files, but it can also first create multiple lists of
+inputs or folders that can then be run with multiple workers
+concurrently to speed things up.  Another mode allows to do a quick
+check of inputs that contain commands that have changes in the current
+checkout branch relative to a git branch.  This works similar to the two
+pass mode, but will select only shorter runs and no more than 100 inputs
+that are chosen randomly.  This ensures that this test runs
+significantly faster compared to the full test run.  These test runs can
+also be performed with instrumented LAMMPS binaries (see previous
+section).
+
+The unit testing facility is integrated into the CMake build process of
+the LAMMPS source code distribution itself.  It can be enabled by
 setting ``-D ENABLE_TESTING=on`` during the CMake configuration step.
-It requires the `YAML <https://pyyaml.org/>`_ library and development
-headers (if those are not found locally a recent version will be
-downloaded and compiled along with LAMMPS and the test program) to
-compile and will download and compile a specific recent version of the
-`Googletest <https://github.com/google/googletest/>`_ C++ test framework
-for implementing the tests.
+It requires the `YAML <https://pyyaml.org/>`_ library and matching
+development headers to compile (if those are not found locally a recent
+version of that library will be downloaded and compiled along with
+LAMMPS and the test programs) and will download and compile a specific
+version of the `GoogleTest <https://github.com/google/googletest/>`_ C++
+test framework that is used to implement the tests.  Those unit tests
+may be combined with memory access and leak checking with valgrind
+(see below for how to enable it).  In that case, running so-called
+death tests will create a lot of false positives and thus they can be
+disabled by configuring compilation with the additional setting
+``-D SKIP_DEATH_TESTS=on``.
 
-.. admonition:: Software version requirements for testing
+.. admonition:: Software version and LAMMPS configuration requirements
    :class: note
 
    The compiler and library version requirements for the testing
@@ -155,7 +183,7 @@ for implementing the tests.
    example the default GNU C++ and Fortran compilers of RHEL/CentOS 7.x
    (version 4.8.x) are not sufficient.  The CMake configuration will try
    to detect incompatible versions and either skip incompatible tests or
-   stop with an error.  Also the number of tests will depend on
+   stop with an error.  Also the number of available tests will depend on
    installed LAMMPS packages, development environment, operating system,
    and configuration settings.
 
@@ -168,24 +196,24 @@ The output of this command will be looking something like this:
     $ ctest
     Test project /home/akohlmey/compile/lammps/build-testing
          Start   1: RunLammps
-   1/563 Test   #1: RunLammps ..........................................   Passed    0.28 sec
+   1/563 Test   #1: RunLammps ..................................   Passed    0.28 sec
          Start   2: HelpMessage
-   2/563 Test   #2: HelpMessage ........................................   Passed    0.06 sec
+   2/563 Test   #2: HelpMessage ................................   Passed    0.06 sec
          Start   3: InvalidFlag
-   3/563 Test   #3: InvalidFlag ........................................   Passed    0.06 sec
+   3/563 Test   #3: InvalidFlag ................................   Passed    0.06 sec
          Start   4: Tokenizer
-   4/563 Test   #4: Tokenizer ..........................................   Passed    0.05 sec
+   4/563 Test   #4: Tokenizer ..................................   Passed    0.05 sec
          Start   5: MemPool
-   5/563 Test   #5: MemPool ............................................   Passed    0.05 sec
+   5/563 Test   #5: MemPool ....................................   Passed    0.05 sec
          Start   6: ArgUtils
-   6/563 Test   #6: ArgUtils ...........................................   Passed    0.05 sec
+   6/563 Test   #6: ArgUtils ...................................   Passed    0.05 sec
        [...]
          Start 561: ImproperStyle:zero
- 561/563 Test #561: ImproperStyle:zero .................................   Passed    0.07 sec
+ 561/563 Test #561: ImproperStyle:zero .........................   Passed    0.07 sec
          Start 562: TestMliapPyUnified
- 562/563 Test #562: TestMliapPyUnified .................................   Passed    0.16 sec
+ 562/563 Test #562: TestMliapPyUnified .........................   Passed    0.16 sec
          Start 563: TestPairList
- 563/563 Test #563: TestPairList .......................................   Passed    0.06 sec
+ 563/563 Test #563: TestPairList ...............................   Passed    0.06 sec
 
  100% tests passed, 0 tests failed out of 563
 
@@ -200,24 +228,25 @@ The output of this command will be looking something like this:
 The ``ctest`` command has many options, the most important ones are:
 
 .. list-table::
+   :widths: 20 80
 
    * - Option
      - Function
-   * - -V
+   * - ``-V``
      - verbose output: display output of individual test runs
-   * - -j <num>
+   * - ``-j <num>``
      - parallel run: run <num> tests in parallel
-   * - -R <regex>
+   * - ``-R <regex>``
      - run subset of tests matching the regular expression <regex>
-   * - -E <regex>
+   * - ``-E <regex>``
      - exclude subset of tests matching the regular expression <regex>
-   * - -L <regex>
+   * - ``-L <regex>``
      - run subset of tests with a label matching the regular expression <regex>
-   * - -LE <regex>
+   * - ``-LE <regex>``
      - exclude subset of tests with a label matching the regular expression <regex>
-   * - -N
+   * - ``-N``
      - dry-run: display list of tests without running them
-   * - -T memcheck
+   * - ``-T memcheck``
      - run tests with valgrind memory checker (if available)
 
 In its full implementation, the unit test framework will consist of multiple
@@ -234,12 +263,31 @@ will be skipped if prerequisite features are not available in LAMMPS.
    time.  Preference is given to parts of the code base that are easy to
    test or commonly used.
 
-Tests for styles of the same kind of style (e.g. pair styles or bond
-styles) are performed with the same test executable using different
-input files in YAML format.  So to add a test for another style of the
-same kind it may be sufficient to add a suitable YAML file.
-:doc:`Detailed instructions for adding tests <Developer_unittest>` are
-provided in the Programmer Guide part of the manual.
+Tests as shown by the ``ctest`` program are commands defined in the
+``CMakeLists.txt`` files in the ``unittest`` directory tree.  A few
+tests simply execute LAMMPS with specific command-line flags and check
+the output to the screen for expected content.  A large number of unit
+tests are special tests programs using the `GoogleTest framework
+<https://github.com/google/googletest/>`_ and linked to the LAMMPS
+library that test individual functions or create a LAMMPS class
+instance, execute one or more commands and check data inside the LAMMPS
+class hierarchy.  There are also tests for the C-library, Fortran, and
+Python module interfaces to LAMMPS.  The Python tests use the Python
+"unittest" module in a similar fashion than the others use `GoogleTest`.
+These special test programs are structured to perform multiple
+individual tests internally and each of those contains several checks
+(aka assertions) for internal data being changed as expected.
+
+Tests for force computing or modifying styles (e.g. styles for non-bonded
+and bonded interactions and selected fixes) are run by using a more generic
+test program that reads its input from files in YAML format. The YAML file
+provides the information on how to customized the test program to test
+a specific style and - if needed - with specific settings.
+To add a test for another, similar style (e.g. a new pair style) it is
+usually sufficient to add a suitable YAML file.  :doc:`Detailed
+instructions for adding tests <Developer_unittest>` are provided in the
+Programmer Guide part of the manual.  A description of what happens
+during the tests is given below.
 
 Unit tests for force styles
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -255,16 +303,18 @@ A test run is then a a collection multiple individual test runs each
 with many comparisons to reference results based on template input
 files, individual command settings, relative error margins, and
 reference data stored in a YAML format file with ``.yaml``
-suffix. Currently the programs ``test_pair_style``, ``test_bond_style``, and
-``test_angle_style`` are implemented.  They will compare forces, energies and
-(global) stress for all atoms after a ``run 0`` calculation and after a
-few steps of MD with :doc:`fix nve <fix_nve>`, each in multiple variants
-with different settings and also for multiple accelerated styles. If a
-prerequisite style or package is missing, the individual tests are
-skipped.  All tests will be executed on a single MPI process, so using
-the CMake option ``-D BUILD_MPI=off`` can significantly speed up testing,
-since this will skip the MPI initialization for each test run.
-Below is an example command and output:
+suffix. Currently the programs ``test_pair_style``, ``test_bond_style``,
+``test_angle_style``, ``test_dihedral_style``, and
+``test_improper_style`` are implemented.  They will compare forces,
+energies and (global) stress for all atoms after a ``run 0`` calculation
+and after a few steps of MD with :doc:`fix nve <fix_nve>`, each in
+multiple variants with different settings and also for multiple
+accelerated styles. If a prerequisite style or package is missing, the
+individual tests are skipped.  All force style tests will be executed on
+a single MPI process, so using the CMake option ``-D BUILD_MPI=off`` can
+significantly speed up testing, since this will skip the MPI
+initialization for each test run.  Below is an example command and
+output:
 
 .. code-block:: console
 
@@ -302,16 +352,17 @@ paths in the individual source files.
 The force style test programs have a common set of options:
 
 .. list-table::
+   :widths: 25 75
 
    * - Option
      - Function
-   * - -g <newfile>
+   * - ``-g <newfile>``
      - regenerate reference data in new YAML file
-   * - -u
+   * - ``-u``
      - update reference data in the original YAML file
-   * - -s
+   * - ``-s``
      - print error statistics for each group of comparisons
-   * - -v
+   * - ``-v``
      - verbose output: also print the executed LAMMPS commands
 
 The ``ctest`` tool has no mechanism to directly pass flags to the individual
@@ -325,10 +376,10 @@ set in an environment variable ``TEST_ARGS``. Example:
 To add a test for a style that is not yet covered, it is usually best
 to copy a YAML file for a similar style to a new file, edit the details
 of the style (how to call it, how to set its coefficients) and then
-run test command with either the *-g* and the replace the initial
-test file with the regenerated one or the *-u* option.  The *-u* option
+run test command with either the ``-g`` and the replace the initial
+test file with the regenerated one or the ``-u`` option.  The ``-u`` option
 will destroy the original file, if the generation run does not complete,
-so using *-g* is recommended unless the YAML file is fully tested
+so using ``-g`` is recommended unless the YAML file is fully tested
 and working.
 
 Some of the force style tests are rather slow to run and some are very
@@ -369,7 +420,7 @@ during MD timestepping and manipulate per-atom properties like
 positions, velocities, and forces.  For those fix styles, testing can be
 done in a very similar fashion as for force fields and thus there is a
 test program `test_fix_timestep` that shares a lot of code, properties,
-and command line flags with the force field style testers described in
+and command-line flags with the force field style testers described in
 the previous section.
 
 This tester will set up a small molecular system run with verlet run
@@ -416,15 +467,16 @@ When compiling LAMMPS with enabled tests, most test executables will
 need to be linked against the LAMMPS library.  Since this can be a very
 large library with many C++ objects when many packages are enabled, link
 times can become very long on machines that use the GNU BFD linker (e.g.
-Linux systems).  Alternatives like the ``lld`` linker of the LLVM project
-or the ``gold`` linker available with GNU binutils can speed up this step
-substantially. CMake will by default test if any of the two can be
-enabled and use it when ``ENABLE_TESTING`` is active.  It can also be
-selected manually through the ``CMAKE_CUSTOM_LINKER`` CMake variable.
-Allowed values are ``lld``, ``gold``, ``bfd``, or ``default``.  The
-``default`` option will use the system default linker otherwise, the
-linker is chosen explicitly.  This option is only available for the
-GNU or Clang C++ compiler.
+Linux systems).  Alternatives like the ``mold`` linker, the ``lld``
+linker of the LLVM project, or the ``gold`` linker available with GNU
+binutils can speed up this step substantially (in this order).  CMake
+will by default test if any of the three can be enabled and use it when
+``ENABLE_TESTING`` is active.  It can also be selected manually through
+the ``CMAKE_CUSTOM_LINKER`` CMake variable.  Allowed values are
+``mold``, ``lld``, ``gold``, ``bfd``, or ``default``.  The ``default``
+option will use the system default linker otherwise, the linker is
+chosen explicitly.  This option is only available for the GNU or Clang
+C++ compilers.
 
 Tests for other components and utility functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -477,27 +529,51 @@ After post-processing with ``gen_coverage_html`` the results are in
 a folder ``coverage_html`` and can be viewed with a web browser.
 The images below illustrate how the data is presented.
 
-.. list-table::
+.. only:: not latex
 
-      * - .. figure:: JPG/coverage-overview-top.png
-             :scale: 25%
+   .. list-table::
 
-          Top of the overview page
+         * - .. figure:: JPG/coverage-overview-top.png
+                :scale: 25%
 
-        - .. figure:: JPG/coverage-overview-manybody.png
-             :scale: 25%
+             Top of the overview page
 
-          Styles with good coverage
+           - .. figure:: JPG/coverage-overview-manybody.png
+                :scale: 25%
 
-        - .. figure:: JPG/coverage-file-top.png
-             :scale: 25%
+             Styles with good coverage
 
-          Top of individual source page
+           - .. figure:: JPG/coverage-file-top.png
+                :scale: 25%
 
-        - .. figure:: JPG/coverage-file-branches.png
-             :scale: 25%
+             Top of individual source page
 
-          Source page with branches
+           - .. figure:: JPG/coverage-file-branches.png
+                :scale: 25%
+
+             Source page with branches
+
+.. only:: latex
+
+   .. figure:: JPG/coverage-overview-top.png
+      :width: 60%
+
+      Top of the overview page
+
+   .. figure:: JPG/coverage-overview-manybody.png
+      :width: 60%
+
+      Styles with good coverage
+
+   .. figure:: JPG/coverage-file-top.png
+      :width: 60%
+
+      Top of individual source page
+
+   .. figure:: JPG/coverage-file-branches.png
+      :width: 60%
+
+      Source page with branches
 
 Coding style utilities
 ----------------------
@@ -518,6 +594,8 @@ The following options are available.
    make fix-errordocs       # remove error docs in header files
    make check-permissions   # search for files with permissions issues
    make fix-permissions     # correct permissions issues in files
+   make check-docs          # search for several issues in the manual
+   make check-version       # list files with pending release version tags
    make check               # run all check targets from above
 
 These should help to make source and documentation files conforming
@@ -564,14 +642,38 @@ The following target are available for both, GNU make and CMake:
 
 .. _gh-cli:
 
-GitHub command line interface
+GitHub command-line interface
 -----------------------------
 
-GitHub is developing a `tool for the command line
-<https://cli.github.com>`_ that interacts with the GitHub website via a
-command called ``gh``.  This can be extremely convenient when working
-with a Git repository hosted on GitHub (like LAMMPS).  It is thus highly
-recommended to install it when doing LAMMPS development.
+GitHub has developed a `command-line tool <https://cli.github.com>`_
+to interact with the GitHub website via a command called ``gh``.
+This is extremely convenient when working with a Git repository hosted
+on GitHub (like LAMMPS).  It is thus highly recommended to install it
+when doing LAMMPS development.  To use ``gh`` you must be within a git
+checkout of a repository and you must obtain an authentication token
+to connect your checkout with a GitHub user.  This is done with the
+command: ``gh auth login`` where you then have to follow the prompts.
+Here are some examples:
 
-The capabilities of the ``gh`` command is continually expanding, so
-please see the documentation at https://cli.github.com/manual/
+.. list-table::
+   :header-rows: 1
+   :widths: 34 66
+
+   * - Command
+     - Description
+   * - ``gh pr list``
+     - List currently open pull requests
+   * - ``gh pr checks 404``
+     - Shows the status of all checks for pull request #404
+   * - ``gh pr view 404``
+     - Shows the description and recent comments for pull request #404
+   * - ``gh co 404``
+     - Check out the branch from pull request #404; set up for pushing changes
+   * - ``gh issue list``
+     - List currently open issues
+   * - ``gh issue view 430 --comments``
+     - Shows the description and all comments for issue #430
+
+The capabilities of the ``gh`` command are continually expanding, so
+for more details please see the documentation at https://cli.github.com/manual/
+or use ``gh --help`` or ``gh <command> --help`` for embedded help.

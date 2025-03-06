@@ -17,6 +17,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"
+#include "domain.h"
 #include "error.h"
 #include "fix.h"
 #include "fmt/chrono.h"
@@ -33,6 +34,7 @@
 #include <cerrno>
 #include <cstring>
 #include <ctime>
+#include <stdexcept>
 
 /*! \file utils.cpp */
 
@@ -109,6 +111,55 @@ bool utils::strmatch(const std::string &text, const std::string &pattern)
   return (pos >= 0);
 }
 
+bool utils::strsame(const std::string &text1, const std::string &text2)
+{
+  const char *ptr1 = text1.c_str();
+  const char *ptr2 = text2.c_str();
+
+  while (*ptr1 && *ptr2) {
+
+    // ignore whitespace
+    while (*ptr1 && isspace(*ptr1)) ++ptr1;
+    while (*ptr2 && isspace(*ptr2)) ++ptr2;
+
+    // strings differ
+    if (*ptr1 != *ptr2) return false;
+
+    // reached end of both strings
+    if (!*ptr1 && !*ptr2) return true;
+
+    ++ptr1;
+    ++ptr2;
+  }
+  return true;
+}
+
+std::string utils::strcompress(const std::string &text)
+{
+  const char *ptr = text.c_str();
+  std::string output;
+
+  // remove leading whitespace
+  while (*ptr && isspace(*ptr)) ++ptr;
+
+  while (*ptr) {
+    // copy non-blank characters
+    while (*ptr && !isspace(*ptr)) output += *ptr++;
+
+    if (!*ptr) break;
+
+    // add one blank only
+    if (isspace(*ptr)) output += ' ';
+
+    // skip additional blanks
+    while (*ptr && isspace(*ptr)) ++ptr;
+  }
+
+  // remove trailing blank
+  if (!output.empty() && output.back() == ' ') output.erase(output.size() - 1, 1);
+  return output;
+}
+
 /** This function is a companion function to utils::strmatch(). Arguments
  *  and logic is the same, but instead of a boolean, it returns the
  *  sub-string that matches the regex pattern.  There can be only one match.
@@ -127,7 +178,72 @@ std::string utils::strfind(const std::string &text, const std::string &pattern)
 void utils::missing_cmd_args(const std::string &file, int line, const std::string &cmd,
                              Error *error)
 {
-  if (error) error->all(file, line, "Illegal {} command: missing argument(s)", cmd);
+  if (error)
+    error->all(file, line, Error::NOPOINTER, "Illegal {} command: missing argument(s)", cmd);
+}
+
+std::string utils::point_to_error(Input *input, int failed)
+{
+  if (input && input->line && input->command) {
+    std::string lastline = utils::strcompress(input->line);
+    std::string lastargs = input->command;
+    std::string cmdline = "Last input line: ";
+
+    // extended output
+    if (failed > Error::NOPOINTER) {
+
+      // indicator points to command by default
+      int indicator = 0;
+      int quoted = 0;
+      lastargs += ' ';
+
+      // assemble pre-processed command line and update error indicator position, if needed.
+      for (int i = 0; i < input->narg; ++i) {
+        std::string inputarg = input->arg[i];
+        if (i == failed) indicator = lastargs.size();
+
+        // argument contains whitespace. add quotes. check which type of quotes, too
+        if (inputarg.find_first_of(" \t\n") != std::string::npos) {
+          if (i == failed) quoted = 2;
+          if (inputarg.find_first_of('"') != std::string::npos) {
+            lastargs += "'";
+            lastargs += inputarg;
+            lastargs += "'";
+          } else {
+            lastargs += '"';
+            lastargs += inputarg;
+            lastargs += '"';
+          }
+        } else
+          lastargs += inputarg;
+        lastargs += ' ';
+      }
+
+      indicator += cmdline.size();
+      // the string is unchanged by substitution (ignoring whitespace), print output only once
+      if (utils::strsame(lastline, lastargs)) {
+        cmdline += lastargs;
+      } else {
+        cmdline += lastline;
+        cmdline += '\n';
+        // must have the same number of chars as "Last input line: " used in the previous line
+        cmdline += "--> parsed line: ";
+        cmdline += lastargs;
+      }
+
+      // construct and append error indicator line
+      cmdline += '\n';
+      cmdline += std::string(indicator, ' ');
+      cmdline += std::string(strlen((failed < 0) ? input->command : input->arg[failed])
+                             + quoted, '^');
+      cmdline += '\n';
+    } else {
+      cmdline += lastline;
+      cmdline += '\n';
+    }
+    return cmdline;
+  } else
+    return std::string("");
 }
 
 /* specialization for the case of just a single string argument */
@@ -144,6 +260,22 @@ void utils::fmtargs_logmesg(LAMMPS *lmp, fmt::string_view format, fmt::format_ar
     logmesg(lmp, fmt::vformat(format, args));
   } catch (fmt::format_error &e) {
     logmesg(lmp, std::string(e.what()) + "\n");
+  }
+}
+
+/* specialization for the case of just a single string argument */
+
+void utils::print(FILE *fp, const std::string &mesg)
+{
+  fputs(mesg.c_str(), fp);
+}
+
+void utils::fmtargs_print(FILE *fp, fmt::string_view format, fmt::format_args args)
+{
+  try {
+    print(fp, fmt::vformat(format, args));
+  } catch (fmt::format_error &) {
+    ; // do nothing
   }
 }
 
@@ -272,6 +404,7 @@ int utils::read_lines_from_file(FILE *fp, int nlines, int nmax, char *buffer, in
 {
   char *ptr = buffer;
   *ptr = '\0';
+  int mylines = 0;
 
   if (me == 0) {
     if (fp) {
@@ -282,11 +415,14 @@ int utils::read_lines_from_file(FILE *fp, int nlines, int nmax, char *buffer, in
         ptr += strlen(ptr);
         // ensure buffer is null terminated. null char is start of next line.
         *ptr = '\0';
+        // count line
+        ++mylines;
       }
     }
   }
 
   int n = strlen(buffer);
+  if (nlines != mylines) n = 0;
   MPI_Bcast(&n, 1, MPI_INT, 0, comm);
   if (n == 0) return 1;
   MPI_Bcast(buffer, n + 1, MPI_CHAR, 0, comm);
@@ -391,7 +527,30 @@ double utils::numeric(const char *file, int line, const std::string &str, bool d
       lmp->error->all(file, line, msg);
   }
 
-  return atof(buf.c_str());
+  double rv = 0;
+  auto msg = fmt::format("Floating point number {} in input script or data file is invalid", buf);
+  try {
+    std::size_t endpos;
+    rv = std::stod(buf, &endpos);
+    if (buf.size() != endpos) {
+      if (do_abort)
+        lmp->error->one(file, line, msg);
+      else
+        lmp->error->all(file, line, msg);
+    }
+  } catch (std::invalid_argument const &) {
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  } catch (std::out_of_range const &) {
+    msg = fmt::format("Floating point number {} in input script or data file is out of range", buf);
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  }
+  return rv;
 }
 
 /* ----------------------------------------------------------------------
@@ -435,7 +594,30 @@ int utils::inumeric(const char *file, int line, const std::string &str, bool do_
       lmp->error->all(file, line, msg);
   }
 
-  return atoi(buf.c_str());
+  int rv = 0;
+  auto msg = fmt::format("Integer {} in input script or data file is invalid", buf);
+  try {
+    std::size_t endpos;
+    rv = std::stoi(buf, &endpos);
+    if (buf.size() != endpos) {
+      if (do_abort)
+        lmp->error->one(file, line, msg);
+      else
+        lmp->error->all(file, line, msg);
+    }
+  } catch (std::invalid_argument const &) {
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  } catch (std::out_of_range const &) {
+    msg = fmt::format("Integer {} in input script or data file is out of range", buf);
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  }
+  return rv;
 }
 
 /* ----------------------------------------------------------------------
@@ -480,7 +662,31 @@ bigint utils::bnumeric(const char *file, int line, const std::string &str, bool 
       lmp->error->all(file, line, msg);
   }
 
-  return ATOBIGINT(buf.c_str());
+  long long rv = 0;
+  auto msg = fmt::format("Integer {} in input script or data file is invalid", buf);
+  try {
+    std::size_t endpos;
+    rv = std::stoll(buf, &endpos);
+    if (buf.size() != endpos) {
+      if (do_abort)
+        lmp->error->one(file, line, msg);
+      else
+        lmp->error->all(file, line, msg);
+    }
+    if ((rv < (-MAXBIGINT - 1) || (rv > MAXBIGINT))) throw std::out_of_range("bigint");
+  } catch (std::invalid_argument const &) {
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  } catch (std::out_of_range const &) {
+    auto msg = fmt::format("Integer {} in input script or data file is out of range", buf);
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  }
+  return static_cast<bigint>(rv);
 }
 
 /* ----------------------------------------------------------------------
@@ -525,7 +731,31 @@ tagint utils::tnumeric(const char *file, int line, const std::string &str, bool 
       lmp->error->all(file, line, msg);
   }
 
-  return ATOTAGINT(buf.c_str());
+  long long rv = 0;
+  auto msg = fmt::format("Integer {} in input script or data file is invalid", buf);
+  try {
+    std::size_t endpos;
+    rv = std::stoll(buf, &endpos);
+    if (buf.size() != endpos) {
+      if (do_abort)
+        lmp->error->one(file, line, msg);
+      else
+        lmp->error->all(file, line, msg);
+    }
+    if ((rv < (-MAXTAGINT - 1) || (rv > MAXTAGINT))) throw std::out_of_range("tagint");
+  } catch (std::invalid_argument const &) {
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  } catch (std::out_of_range const &) {
+    auto msg = fmt::format("Integer {} in input script or data file is out of range", buf);
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  }
+  return static_cast<tagint>(rv);
 }
 
 /* ----------------------------------------------------------------------
@@ -546,64 +776,93 @@ tagint utils::tnumeric(const char *file, int line, const char *str, bool do_abor
 // clang-format off
 template <typename TYPE>
 void utils::bounds(const char *file, int line, const std::string &str,
-                   bigint nmin, bigint nmax, TYPE &nlo, TYPE &nhi, Error *error)
+                   bigint nmin, bigint nmax, TYPE &nlo, TYPE &nhi, Error *error, int failed)
 {
   nlo = nhi = -1;
 
-  // check for illegal charcters
+  // check for illegal characters
   size_t found = str.find_first_not_of("*-0123456789");
   if (found != std::string::npos) {
-    if (error) error->all(file, line, fmt::format("Invalid range string: {}", str));
+    if (error) error->all(file, line, failed, "Invalid range string: {}", str);
     return;
   }
 
   found = str.find_first_of('*');
   if (found == std::string::npos) {    // contains no '*'
-    nlo = nhi = strtol(str.c_str(), nullptr, 10);
+    nlo = nhi = std::stol(str, nullptr, 10);
   } else if (str.size() == 1) {    // is only '*'
     nlo = nmin;
     nhi = nmax;
   } else if (found == 0) {    // is '*j'
     nlo = nmin;
-    nhi = strtol(str.substr(1).c_str(), nullptr, 10);
+    nhi = std::stol(str.substr(1), nullptr, 10);
   } else if (str.size() == found + 1) {    // is 'i*'
-    nlo = strtol(str.c_str(), nullptr, 10);
+    nlo = std::stol(str, nullptr, 10);
     nhi = nmax;
   } else {    // is 'i*j'
-    nlo = strtol(str.c_str(), nullptr, 10);
-    nhi = strtol(str.substr(found + 1).c_str(), nullptr, 10);
+    nlo = std::stol(str, nullptr, 10);
+    nhi = std::stol(str.substr(found + 1), nullptr, 10);
   }
 
   if (error) {
     if ((nlo <= 0) || (nhi <= 0))
-      error->all(file, line, fmt::format("Invalid range string: {}", str));
+      error->all(file, line, failed, "Invalid range string: {}", str);
 
     if (nlo < nmin)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
-                                         nlo, nmin, nmax));
+      error->all(file, line, failed, "Numeric index {} is out of bounds ({}-{})", nlo, nmin, nmax);
     else if (nhi > nmax)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
-                                         nhi, nmin, nmax));
+      error->all(file, line, failed, "Numeric index {} is out of bounds ({}-{})", nhi, nmin, nmax);
     else if (nlo > nhi)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
-                                         nlo, nmin, nhi));
+      error->all(file, line, failed, "Numeric index {} is out of bounds ({}-{})", nlo, nmin, nhi);
   }
 }
 
 template void utils::bounds<>(const char *, int, const std::string &,
-                              bigint, bigint, int &, int &, Error *);
+                              bigint, bigint, int &, int &, Error *, int);
 template void utils::bounds<>(const char *, int, const std::string &,
-                              bigint, bigint, long &, long &, Error *);
+                              bigint, bigint, long &, long &, Error *, int);
 template void utils::bounds<>(const char *, int, const std::string &,
-                              bigint, bigint, long long &, long long &, Error *);
+                              bigint, bigint, long long &, long long &, Error *, int);
+
 // clang-format on
+/* ----------------------------------------------------------------------
+   wrapper for utils::bounds() that accepts type label input
+------------------------------------------------------------------------- */
+
+template <typename TYPE>
+void utils::bounds_typelabel(const char *file, int line, const std::string &str, bigint nmin,
+                             bigint nmax, TYPE &nlo, TYPE &nhi, LAMMPS *lmp, int mode)
+{
+  nlo = nhi = -1;
+
+  // cannot check for typelabels without a LAMMPS instance or a box
+  if (!lmp || !lmp->domain->box_exist)
+    utils::bounds(file, line, str, nmin, nmax, nlo, nhi, nullptr);
+
+  char *typestr = nullptr;
+  if ((typestr = utils::expand_type(FLERR, str, mode, lmp)))
+    nlo = nhi = utils::inumeric(FLERR, typestr, false, lmp);
+
+  delete[] typestr;
+  if (nlo > -1)
+    return;
+  else
+    utils::bounds(file, line, str, nmin, nmax, nlo, nhi, lmp->error);
+}
+
+template void utils::bounds_typelabel<>(const char *, int, const std::string &, bigint, bigint,
+                                        int &, int &, LAMMPS *, int);
+template void utils::bounds_typelabel<>(const char *, int, const std::string &, bigint, bigint,
+                                        long &, long &, LAMMPS *, int);
+template void utils::bounds_typelabel<>(const char *, int, const std::string &, bigint, bigint,
+                                        long long &, long long &, LAMMPS *, int);
 
 /* -------------------------------------------------------------------------
    Expand list of arguments in arg to earg if arg contains wildcards
 ------------------------------------------------------------------------- */
 
 int utils::expand_args(const char *file, int line, int narg, char **arg, int mode, char **&earg,
-                       LAMMPS *lmp)
+                       LAMMPS *lmp, int **argmap)
 {
   int iarg;
 
@@ -618,10 +877,18 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     return narg;
   }
 
+  // determine argument offset, if possible
+  int ioffset = 0;
+  if (lmp->input->arg) {
+    for (int i = 0; i < lmp->input->narg; ++i)
+      if (lmp->input->arg[i] == arg[0]) ioffset = i;
+  }
+
   // maxarg should always end up equal to newarg, so caller can free earg
 
   int maxarg = narg - iarg;
-  earg = (char **) lmp->memory->smalloc(maxarg * sizeof(char *), "input:earg");
+  earg = (char **) lmp->memory->smalloc(maxarg * sizeof(char *), "expand_args:earg");
+  int *amap = (int *) lmp->memory->smalloc(maxarg * sizeof(int), "expand_args:amap");
 
   int newarg = 0, expandflag, nlo, nhi, nmax;
   std::string id, wc, tail;
@@ -684,16 +951,18 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
       // expand wild card string to nlo/nhi numbers
 
       if (expandflag) {
-        utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
+        utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error, iarg + ioffset);
 
         if (newarg + nhi - nlo + 1 > maxarg) {
           maxarg += nhi - nlo + 1;
-          earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
+          earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "expand_args:earg");
+          amap = (int *) lmp->memory->srealloc(amap, maxarg * sizeof(char *), "expand_args:amap");
         }
 
         for (int index = nlo; index <= nhi; index++) {
           earg[newarg] =
               utils::strdup(fmt::format("{}:{}:{}[{}]{}", gridid[0], gridid[1], id, index, tail));
+          amap[newarg] = iarg;
           newarg++;
         }
       }
@@ -771,7 +1040,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
 
         if (index >= 0) {
           if (mode == 0 && lmp->input->variable->vectorstyle(index)) {
-            utils::bounds(file, line, wc, 1, MAXSMALLINT, nlo, nhi, lmp->error);
+            utils::bounds(file, line, wc, 1, MAXSMALLINT, nlo, nhi, lmp->error, iarg + ioffset);
             if (nhi < MAXSMALLINT) {
               nmax = nhi;
               expandflag = 1;
@@ -802,12 +1071,12 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
       if (expandflag) {
 
         // expand wild card string to nlo/nhi numbers
-
-        utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
+        utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error, iarg + ioffset);
 
         if (newarg + nhi - nlo + 1 > maxarg) {
           maxarg += nhi - nlo + 1;
-          earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
+          earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "expand_args:earg");
+          amap = (int *) lmp->memory->srealloc(amap, maxarg * sizeof(char *), "expand_args:amap");
         }
 
         for (int index = nlo; index <= nhi; index++) {
@@ -815,6 +1084,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
             earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
           else
             earg[newarg] = utils::strdup(fmt::format("{}_{}[{}]{}", word[0], id, index, tail));
+          amap[newarg] = iarg;
           newarg++;
         }
       }
@@ -825,14 +1095,21 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     if (!expandflag) {
       if (newarg == maxarg) {
         maxarg++;
-        earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
+        earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "expand_args:earg");
+        amap = (int *) lmp->memory->srealloc(amap, maxarg * sizeof(char *), "expand_args:amap");
       }
       earg[newarg] = utils::strdup(word);
+      amap[newarg] = iarg;
       newarg++;
     }
   }
 
-  // printf("NEWARG %d\n",newarg); for (int i = 0; i < newarg; i++) printf("  arg %d: %s\n",i,earg[i]);
+  if (argmap)
+    *argmap = amap;
+  else
+    lmp->memory->sfree(amap);
+
+  // fprintf(stderr, "NEWARG %d\n",newarg); for (int i = 0; i < newarg; i++) printf("  arg %d: %s %d\n",i,earg[i], amap ? amap[i] : -1);
   return newarg;
 }
 
@@ -864,6 +1141,46 @@ char *utils::expand_type(const char *file, int line, const std::string &str, int
     return nullptr;
 }
 
+/* -------------------------------------------------------------------------
+   Expand type string to integer-valued numeric type from labelmap.
+   Not guaranteed to return a valid type if param verify = 0 (default)
+   In this case, type <= 0 or type > Ntypes should be checked in calling routine.
+------------------------------------------------------------------------- */
+
+int utils::expand_type_int(const char *file, int line, const std::string &str, int mode,
+                           LAMMPS *lmp, bool verify)
+{
+  char *typestr = expand_type(file, line, str, mode, lmp);
+  int type = inumeric(file, line, typestr ? typestr : str, false, lmp);
+  if (verify) {
+    int nmax;
+    switch (mode) {
+      case Atom::ATOM:
+        nmax = lmp->atom->ntypes;
+        break;
+      case Atom::BOND:
+        nmax = lmp->atom->nbondtypes;
+        break;
+      case Atom::ANGLE:
+        nmax = lmp->atom->nangletypes;
+        break;
+      case Atom::DIHEDRAL:
+        nmax = lmp->atom->ndihedraltypes;
+        break;
+      case Atom::IMPROPER:
+        nmax = lmp->atom->nimpropertypes;
+        break;
+      default:
+        nmax = 0;
+    }
+    if ((type <= 0) || (type > nmax))
+      lmp->error->all(file, line, "{} type {} is out of bounds ({}-{})", labeltypes[mode], type, 1,
+                      nmax);
+  }
+  delete[] typestr;
+  return type;
+}
+
 /* ----------------------------------------------------------------------
    Check grid reference for valid Compute or Fix which produces per-grid data
    errstr = name of calling command used if error is generated
@@ -879,8 +1196,8 @@ char *utils::expand_type(const char *file, int line, const std::string &str, int
      caller decides what to do if arg is not a COMPUTE or FIX reference
 ------------------------------------------------------------------------- */
 
-int utils::check_grid_reference(char *errstr, char *ref, int nevery,
-                                char *&id, int &igrid, int &idata, int &index, LAMMPS *lmp)
+int utils::check_grid_reference(char *errstr, char *ref, int nevery, char *&id, int &igrid,
+                                int &idata, int &index, LAMMPS *lmp)
 {
   ArgInfo argi(ref, ArgInfo::COMPUTE | ArgInfo::FIX);
   index = argi.get_index1();
@@ -889,80 +1206,85 @@ int utils::check_grid_reference(char *errstr, char *ref, int nevery,
   switch (argi.get_type()) {
 
     case ArgInfo::UNKNOWN: {
-      lmp->error->all(FLERR,"%s grid reference %s is invalid",errstr,ref);
+      lmp->error->all(FLERR, "%s grid reference %s is invalid", errstr, ref);
     } break;
 
-    // compute value = c_ID
+      // compute value = c_ID
 
     case ArgInfo::COMPUTE: {
 
       // split name = idcompute:gname:dname into 3 strings
 
-      auto words = parse_grid_id(FLERR,name,lmp->error);
+      auto words = parse_grid_id(FLERR, name, lmp->error);
       const auto &idcompute = words[0];
       const auto &gname = words[1];
       const auto &dname = words[2];
 
       auto icompute = lmp->modify->get_compute_by_id(idcompute);
-      if (!icompute) lmp->error->all(FLERR,"{} compute ID {} not found",errstr,idcompute);
+      if (!icompute) lmp->error->all(FLERR, "{} compute ID {} not found", errstr, idcompute);
       if (icompute->pergrid_flag == 0)
-        lmp->error->all(FLERR,"{} compute {} does not compute per-grid info",errstr,idcompute);
+        lmp->error->all(FLERR, "{} compute {} does not compute per-grid info", errstr, idcompute);
 
       int dim;
-      igrid = icompute->get_grid_by_name(gname,dim);
+      igrid = icompute->get_grid_by_name(gname, dim);
       if (igrid < 0)
-        lmp->error->all(FLERR,"{} compute {} does not recognize grid name {}",errstr,idcompute,gname);
+        lmp->error->all(FLERR, "{} compute {} does not recognize grid name {}", errstr, idcompute,
+                        gname);
 
       int ncol;
-      idata = icompute->get_griddata_by_name(igrid,dname,ncol);
+      idata = icompute->get_griddata_by_name(igrid, dname, ncol);
       if (idata < 0)
-        lmp->error->all(FLERR,"{} compute {} does not recognize data name {}",errstr,idcompute,dname);
+        lmp->error->all(FLERR, "{} compute {} does not recognize data name {}", errstr, idcompute,
+                        dname);
 
       if (argi.get_dim() == 0 && ncol)
-        lmp->error->all(FLERR,"{} compute {} data {} is not per-grid vector",errstr,idcompute,dname);
+        lmp->error->all(FLERR, "{} compute {} data {} is not per-grid vector", errstr, idcompute,
+                        dname);
       if (argi.get_dim() && ncol == 0)
-        lmp->error->all(FLERR,"{} compute {} data {} is not per-grid array",errstr,idcompute,dname);
+        lmp->error->all(FLERR, "{} compute {} data {} is not per-grid array", errstr, idcompute,
+                        dname);
       if (argi.get_dim() && argi.get_index1() > ncol)
-        lmp->error->all(FLERR,"{} compute {} array {} is accessed out-of-range",errstr,idcompute,dname);
+        lmp->error->all(FLERR, "{} compute {} array {} is accessed out-of-range", errstr, idcompute,
+                        dname);
 
       id = utils::strdup(idcompute);
       return ArgInfo::COMPUTE;
     } break;
 
-    // fix value = f_ID
+      // fix value = f_ID
 
     case ArgInfo::FIX: {
 
       // split name = idfix:gname:dname into 3 strings
 
-      auto words = parse_grid_id(FLERR,name,lmp->error);
+      auto words = parse_grid_id(FLERR, name, lmp->error);
       const auto &idfix = words[0];
       const auto &gname = words[1];
       const auto &dname = words[2];
 
       auto ifix = lmp->modify->get_fix_by_id(idfix);
-      if (!ifix) lmp->error->all(FLERR,"{} fix ID {} not found",errstr,idfix);
+      if (!ifix) lmp->error->all(FLERR, "{} fix ID {} not found", errstr, idfix);
       if (ifix->pergrid_flag == 0)
-        lmp->error->all(FLERR,"{} fix {} does not compute per-grid info",errstr,idfix);
+        lmp->error->all(FLERR, "{} fix {} does not compute per-grid info", errstr, idfix);
       if (nevery % ifix->pergrid_freq)
-        lmp->error->all(FLERR,"{} fix {} not computed at compatible time",errstr,idfix);
+        lmp->error->all(FLERR, "{} fix {} not computed at compatible time", errstr, idfix);
 
       int dim;
-      igrid = ifix->get_grid_by_name(gname,dim);
+      igrid = ifix->get_grid_by_name(gname, dim);
       if (igrid < 0)
-        lmp->error->all(FLERR,"{} fix {} does not recognize grid name {}",errstr,idfix,gname);
+        lmp->error->all(FLERR, "{} fix {} does not recognize grid name {}", errstr, idfix, gname);
 
       int ncol;
-      idata = ifix->get_griddata_by_name(igrid,dname,ncol);
+      idata = ifix->get_griddata_by_name(igrid, dname, ncol);
       if (idata < 0)
-        lmp->error->all(FLERR,"{} fix {} does not recognize data name {}",errstr,idfix,dname);
+        lmp->error->all(FLERR, "{} fix {} does not recognize data name {}", errstr, idfix, dname);
 
       if (argi.get_dim() == 0 && ncol)
-        lmp->error->all(FLERR,"{} fix {} data {} is not per-grid vector",errstr,idfix,dname);
+        lmp->error->all(FLERR, "{} fix {} data {} is not per-grid vector", errstr, idfix, dname);
       if (argi.get_dim() > 0 && ncol == 0)
-        lmp->error->all(FLERR,"{} fix {} data {} is not per-grid array",errstr,idfix,dname);
+        lmp->error->all(FLERR, "{} fix {} data {} is not per-grid array", errstr, idfix, dname);
       if (argi.get_dim() > 0 && argi.get_index1() > ncol)
-        lmp->error->all(FLERR,"{} fix {} array {} is accessed out-of-range",errstr,idfix,dname);
+        lmp->error->all(FLERR, "{} fix {} array {} is accessed out-of-range", errstr, idfix, dname);
 
       id = utils::strdup(idfix);
       return ArgInfo::FIX;
@@ -1360,8 +1682,9 @@ bool utils::is_double(const std::string &str)
 {
   if (str.empty()) return false;
 
-  return strmatch(str, "^[+-]?\\d+\\.?\\d*$") || strmatch(str, "^[+-]?\\d+\\.?\\d*[eE][+-]?\\d+$") ||
-      strmatch(str, "^[+-]?\\d*\\.?\\d+$") || strmatch(str, "^[+-]?\\d*\\.?\\d+[eE][+-]?\\d+$");
+  return strmatch(str, "^[+-]?\\d+\\.?\\d*$") ||
+      strmatch(str, "^[+-]?\\d+\\.?\\d*[eE][+-]?\\d+$") || strmatch(str, "^[+-]?\\d*\\.?\\d+$") ||
+      strmatch(str, "^[+-]?\\d*\\.?\\d+[eE][+-]?\\d+$");
 }
 
 /* ----------------------------------------------------------------------
@@ -1569,13 +1892,9 @@ double utils::timespec2seconds(const std::string &timespec)
 
   ValueTokenizer values(timespec, ":");
 
-  try {
-    for (i = 0; i < 3; i++) {
-      if (!values.has_next()) break;
-      vals[i] = values.next_int();
-    }
-  } catch (TokenizerException &) {
-    return -1.0;
+  for (i = 0; i < 3; i++) {
+    if (!values.has_next()) break;
+    vals[i] = values.next_double();
   }
 
   if (i == 3)
@@ -1592,10 +1911,10 @@ double utils::timespec2seconds(const std::string &timespec)
 int utils::date2num(const std::string &date)
 {
   std::size_t found = date.find_first_not_of("0123456789 ");
-  int num = strtol(date.substr(0, found).c_str(), nullptr, 10);
+  int num = std::stol(date.substr(0, found), nullptr, 10);
   auto month = date.substr(found);
   found = month.find_first_of("0123456789 ");
-  num += strtol(month.substr(found).c_str(), nullptr, 10) * 10000;
+  num += std::stol(month.substr(found), nullptr, 10) * 10000;
   if (num < 1000000) num += 20000000;
 
   if (strmatch(month, "^Jan"))

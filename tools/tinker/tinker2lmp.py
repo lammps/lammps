@@ -923,7 +923,7 @@ for atom1,atom2,atom3 in alist:
   elif (c3,c2,c1) in ubdict:
     ublist.append((atom3,atom2,atom1))
 
-# create pitorslist = list of 6-body interactions
+# create pitorsionlist = list of 6-body interactions
 # based on central bond, each bond atom is bonded to exactly 2 other atoms
 # avoid double counting by requiring atom1 < atom2
 # NOTE: need more info on how to order the 6 atoms for Tinker to compute on
@@ -962,7 +962,7 @@ for atom1 in id:
 
       pitorsionlist.append((atom3,atom4,atom1,atom2,atom5,atom6))
 
-# create bitorslist = list of 5-body interactions
+# create bitorsionlist = list of 5-body interactions
 # generate topology via double loop over neighbors of central atom3
 #   additional double loop over bonds of atom2 and bonds of atom4
 # avoid double counting the reverse bitorsion by use of btdict dictionary

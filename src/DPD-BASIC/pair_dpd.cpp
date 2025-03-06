@@ -32,7 +32,7 @@
 
 using namespace LAMMPS_NS;
 
-#define EPSILON 1.0e-10
+static constexpr double EPSILON = 1.0e-10;
 
 /* ---------------------------------------------------------------------- */
 
@@ -73,6 +73,10 @@ void PairDPD::compute(int eflag, int vflag)
 
   evdwl = 0.0;
   ev_init(eflag,vflag);
+
+  // precompute random force scaling factors
+
+  for (int i = 0; i < 4; ++i) special_sqrt[i] = sqrt(force->special_lj[i]);
 
   double **x = atom->x;
   double **v = atom->v;
@@ -266,10 +270,6 @@ void PairDPD::init_style()
     error->warning(FLERR, "Pair dpd needs newton pair on for momentum conservation");
 
   neighbor->add_request(this);
-
-  // precompute random force scaling factors
-
-  for (int i = 0; i < 4; ++i) special_sqrt[i] = sqrt(force->special_lj[i]);
 }
 
 /* ----------------------------------------------------------------------

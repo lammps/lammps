@@ -34,6 +34,13 @@
 #error LAMMPS requires a C++11 (or later) compliant compiler. Enable C++11 compatibility or upgrade the compiler.
 #endif
 
+// C++17 check
+#ifndef LAMMPS_CXX11
+#if __cplusplus < 201703L
+#error LAMMPS is planning to transition to requiring C++17. To disable this error please use a C++17 compliant compiler, enable C++17 support, or define -DLAMMPS_CXX11 in your makefile or when running cmake
+#endif
+#endif
+
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif
@@ -44,7 +51,6 @@
 
 #include <cinttypes>    // IWYU pragma: export
 #include <climits>      // IWYU pragma: export
-#include <cstdint>      // IWYU pragma: export
 #include <cstdlib>      // IWYU pragma: export
 
 // grrr - IBM Power6 does not provide this def in their system header files
@@ -65,6 +71,13 @@ namespace LAMMPS_NS {
 #define HISTMASK 0xDFFFFFFF
 #define SPECIALMASK 0x3FFFFFFF
 
+// mask to curb data sizes when calling memcpy() to avoid bogus compiler warnings
+#if UINTPTR_MAX > (1UL<<63)
+static constexpr uint64_t MEMCPYMASK = (static_cast<uint64_t>(1) << 63) - 1U;
+#else
+static constexpr uint32_t MEMCPYMASK = (static_cast<uint32_t>(1) << 31) - 1U;
+#endif
+
 // default to 32-bit smallint and other ints, 64-bit bigint
 
 #if !defined(LAMMPS_SMALLSMALL) && !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG)
@@ -75,10 +88,8 @@ namespace LAMMPS_NS {
 
 #ifdef LAMMPS_LONGLONG_TO_LONG
 #define MPI_LL MPI_LONG
-#define ATOLL atoll
 #else
 #define MPI_LL MPI_LONG_LONG
-#define ATOLL atol
 #endif
 
 // for atomic problems that exceed 2 billion (2^31) atoms
@@ -103,9 +114,6 @@ typedef int64_t bigint;
 
 #define TAGINT_FORMAT "%d"
 #define BIGINT_FORMAT "%" PRId64
-
-#define ATOTAGINT atoi
-#define ATOBIGINT ATOLL
 
 #define LAMMPS_TAGINT LAMMPS_INT
 #define LAMMPS_TAGINT_2D LAMMPS_INT_2D
@@ -142,9 +150,6 @@ typedef int64_t bigint;
 #define TAGINT_FORMAT "%" PRId64
 #define BIGINT_FORMAT "%" PRId64
 
-#define ATOTAGINT ATOLL
-#define ATOBIGINT ATOLL
-
 #define LAMMPS_TAGINT LAMMPS_INT64
 #define LAMMPS_TAGINT_2D LAMMPS_INT64_2D
 #define LAMMPS_BIGINT LAMMPS_INT64
@@ -178,9 +183,6 @@ typedef int bigint;
 
 #define TAGINT_FORMAT "%d"
 #define BIGINT_FORMAT "%d"
-
-#define ATOTAGINT atoi
-#define ATOBIGINT atoi
 
 #define LAMMPS_TAGINT LAMMPS_INT
 #define LAMMPS_TAGINT_2D LAMMPS_INT_2D
@@ -299,7 +301,7 @@ struct multitype {
     int64_t b;
   } data;
 
-  multitype() : type(LAMMPS_NONE) { data.d = 0.0; }
+  multitype() noexcept : type(LAMMPS_NONE) { data.d = 0.0; }
   multitype(const multitype &) = default;
   multitype(multitype &&) = default;
   ~multitype() = default;

@@ -32,7 +32,7 @@
 
 using namespace LAMMPS_NS;
 
-#define EPSILON 1.0e-7
+static constexpr double EPSILON = 1.0e-7;
 enum{SPHERE,LINE};           // also in DumpImage
 
 /* ---------------------------------------------------------------------- */
@@ -155,7 +155,7 @@ int BodyRoundedPolygon::unpack_border_body(AtomVecBody::Bonus *bonus,
 }
 
 /* ----------------------------------------------------------------------
-   populate bonus data structure with data file values
+   populate bonus data structure with data file values for one body
 ------------------------------------------------------------------------- */
 
 void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
@@ -398,27 +398,27 @@ int BodyRoundedPolygon::write_data_body(FILE *fp, double *buf)
 
   // atomID ninteger ndouble
 
-  fmt::print(fp,"{} {} {}\n",ubuf(buf[m]).i,ubuf(buf[m+1]).i,ubuf(buf[m+2]).i);
+  utils::print(fp,"{} {} {}\n",ubuf(buf[m]).i,ubuf(buf[m+1]).i,ubuf(buf[m+2]).i);
   m += 3;
 
   const int nsub = (int) ubuf(buf[m++]).i;
-  fmt::print(fp,"{}\n",nsub);
+  utils::print(fp,"{}\n",nsub);
 
   // inertia
 
-  fmt::print(fp,"{} {} {} {} {} {}\n",
+  utils::print(fp,"{} {} {} {} {} {}\n",
              buf[m+0],buf[m+1],buf[m+2],buf[m+3],buf[m+4],buf[m+5]);
   m += 6;
 
   // nsub vertices
 
   for (int i = 0; i < nsub; i++, m+=3)
-    fmt::print(fp,"{} {} {}\n",buf[m],buf[m+1],buf[m+2]);
+    utils::print(fp,"{} {} {}\n",buf[m],buf[m+1],buf[m+2]);
 
   // rounded diameter
 
   double diameter = buf[m++];
-  fmt::print(fp,"{}\n",diameter);
+  utils::print(fp,"{}\n",diameter);
 
   return m;
 }

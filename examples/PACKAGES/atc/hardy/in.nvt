@@ -5,12 +5,12 @@ atom_style  atomic
 echo both
 dimension 3
 boundary  p p p
-lattice 	fcc  5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
-region  	box block 0 5 0 5 0 5
-read_data	nvt.init
+lattice         fcc  5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
+region          box block 0 5 0 5 0 5
+read_data       nvt.init
 pair_style  lj/cut 13.0
-pair_coeff	1 1 0.2381 3.405
-group		internal region box
+pair_coeff      1 1 0.2381 3.405
+group           internal region box
 
 fix         ATC internal atc field
 fix_modify  ATC mesh create 1 1 1 box p p p
@@ -27,12 +27,12 @@ fix_modify  PP  atom_element_map eulerian 100
 fix_modify  PP  fields add mass_density energy stress temperature kinetic_temperature
 fix_modify  PP  fields add velocity thermal_energy kinetic_energy
 fix_modify  PP  output nvtPP 100 text
-thermo		100
-compute_modify	thermo_temp extra 0
-thermo_style 	custom step temp etotal ke pe press vol
-timestep 	4.0
-reset_timestep	0
+thermo          100
+compute_modify  thermo_temp extra/dof 0
+thermo_style    custom step temp etotal ke pe press vol
+timestep        4.0
+reset_timestep  0
 # NOTE fixes performing time integration (init_integrate/final_integrate) should be defined after atc
-fix 		NVT all nvt temp 30 30 10.0 drag 0.2 tchain 1
-log		nvt.log
-run 		1000
+fix             NVT all nvt temp 30 30 10.0 drag 0.2 tchain 1
+log             nvt.log
+run             1000

@@ -32,7 +32,7 @@ fix             1 all nvt temp 0.7 0.7 0.2
 #dump_modify    3 pad 3
 
 fix 2 all recenter NULL NULL 15 units lattice
-compute p1 all stress/cartesian z 0.5
+compute p1 all stress/cartesian z 0.5 NULL 0
 fix 3 all ave/time 100 1 100 c_p1[*] file flat.out mode vector
 
 thermo          50

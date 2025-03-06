@@ -26,7 +26,7 @@ class BinaryDistribution(Distribution):
         return True
 
 if version_info.major >= 3:
-    pkgs = ['lammps', 'lammps.mliap']
+    pkgs = ['lammps', 'lammps.mliap', 'lammps.ipython']
 else:
     pkgs = ['lammps']
 

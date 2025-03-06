@@ -21,6 +21,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
@@ -36,14 +37,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathExtra;
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+using namespace EwaldConst;
 
 // ----------------------------------------------------------------------
 
@@ -407,7 +401,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
   ev_init(eflag,vflag);
 
   double **x = atom->x, *x0 = x[0];
-  double **mu = atom->mu, *mu0 = mu[0], *imu, *jmu;
+  double **mu = atom->mu, *mu0 = mu[0];
   double **tq = atom->torque, *tq0 = tq[0], *tqi;
   double **f = atom->f, *f0 = f[0], *fi = f0, fx, fy, fz;
   double *q = atom->q, qi = 0, qj;
@@ -441,7 +435,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
     lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
     memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
-    memcpy(mui, imu = mu0+(i<<2), 3*sizeof(double));
+    memcpy(mui, mu0+(i<<2), 3*sizeof(double));
 
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
@@ -459,7 +453,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
       r2inv = 1.0/rsq;
 
       if (order3 && (rsq < cut_coulsq)) {               // dipole
-        memcpy(muj, jmu = mu0+(j<<2), 3*sizeof(double));
+        memcpy(muj, mu0+(j<<2), 3*sizeof(double));
         {                                               // series real space
           double r = sqrt(rsq);
           double x = g_ewald*r;

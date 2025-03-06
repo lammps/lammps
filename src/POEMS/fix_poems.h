@@ -47,7 +47,7 @@ class FixPOEMS : public Fix {
   double memory_usage() override;
 
   void pre_neighbor() override;
-  int dof(int) override;
+  bigint dof(int) override;
   void deform(int) override;
   int modify_param(int, char **) override;
   void reset_dt() override;

@@ -50,6 +50,7 @@
 #include "npair_half_bin_newton_ssa.h"
 #include "pair_dpd_fdt.h"
 #include "pair_dpd_fdt_energy.h"
+#include "random_external_state.h"
 #include "update.h"
 
 #include <cstring>
@@ -59,8 +60,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace random_external_state;
 
-#define EPSILON 1.0e-10
-#define EPSILON_SQUARED ((EPSILON) * (EPSILON))
+static constexpr double EPSILON_SQUARED = 1.0e-20;
 
 static const char cite_fix_shardlow[] =
   "fix shardlow command: doi:10.1016/j.cpc.2014.03.029, doi:10.1063/1.3660209\n\n"
@@ -85,8 +85,8 @@ static const char cite_fix_shardlow[] =
 /* ---------------------------------------------------------------------- */
 
 FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), pairDPD(nullptr), pairDPDE(nullptr), v_t0(nullptr)
-  ,rand_state(nullptr)
+  Fix(lmp, narg, arg), pairDPD(nullptr), pairDPDE(nullptr), v_t0(nullptr),
+  rand_state(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_shardlow);
 

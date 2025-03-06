@@ -3,35 +3,35 @@
 # rho ~ 0.5
 # p ~ 1.5
 # mu_ex ~ 0.0
-# comparable to Frenkel and Smit GCMC Case Study, Figure 5.8 
+# comparable to Frenkel and Smit GCMC Case Study, Figure 5.8
 
 # variables modifiable using -var command line switch
 
 variable        mu index -1.25
 variable        temp index 2.0
-variable	disp index 1.0
+variable        disp index 1.0
 variable        lbox index 5.0
 
 # global model settings
 
 units           lj
 atom_style      atomic
-pair_style      lj/cut 3.0 
-pair_modify	tail no # turn of to avoid triggering full_energy
+pair_style      lj/cut 3.0
+pair_modify     tail no # turn of to avoid triggering full_energy
 
 # box
 
-region		box block 0 ${lbox} 0 ${lbox} 0 ${lbox}
-create_box	1 box
+region          box block 0 ${lbox} 0 ${lbox} 0 ${lbox}
+create_box      1 box
 
 # lj parameters
 
-pair_coeff	* * 1.0 1.0
-mass		* 1.0
+pair_coeff      * * 1.0 1.0
+mass            * 1.0
 
 # we recommend setting up a dedicated group for gcmc
 
-group		gcmcgroup type 1
+group           gcmcgroup type 1
 
 # gcmc
 
@@ -39,29 +39,29 @@ fix             mygcmc gcmcgroup gcmc 1 100 100 1 29494 ${temp} ${mu} ${disp}
 
 # atom count
 
-variable 	type1 atom "type==1"
-group 		type1 dynamic gcmcgroup var type1
+variable        type1 atom "type==1"
+group           type1 dynamic gcmcgroup var type1
 variable        n1 equal count(type1)
 
 # averaging
 
-variable	rho equal density
-variable	p equal press
-variable	nugget equal 1.0e-8
+variable        rho equal density
+variable        p equal press
+variable        nugget equal 1.0e-8
 variable        lambda equal 1.0
-variable     	muex equal ${mu}-${temp}*ln(density*${lambda}+${nugget})
-fix 		ave all ave/time 10 100 1000 v_rho v_p v_muex v_n1 ave one file rho_vs_p.dat
-variable	rhoav equal f_ave[1]
-variable	pav equal f_ave[2]
-variable	muexav equal f_ave[3]
-variable	n1av equal f_ave[4]
+variable        muex equal ${mu}-${temp}*ln(density*${lambda}+${nugget})
+fix             ave all ave/time 10 100 1000 v_rho v_p v_muex v_n1 ave one file rho_vs_p.dat
+variable        rhoav equal f_ave[1]
+variable        pav equal f_ave[2]
+variable        muexav equal f_ave[3]
+variable        n1av equal f_ave[4]
 
 # output
 
-variable	tacc equal f_mygcmc[2]/(f_mygcmc[1]+${nugget})
-variable	iacc equal f_mygcmc[4]/(f_mygcmc[3]+${nugget})
-variable	dacc equal f_mygcmc[6]/(f_mygcmc[5]+${nugget})
-compute_modify  thermo_temp dynamic yes
+variable        tacc equal f_mygcmc[2]/(f_mygcmc[1]+${nugget})
+variable        iacc equal f_mygcmc[4]/(f_mygcmc[3]+${nugget})
+variable        dacc equal f_mygcmc[6]/(f_mygcmc[5]+${nugget})
+compute_modify  thermo_temp dynamic/dof yes
 thermo_style    custom step temp press pe ke density atoms v_iacc v_dacc v_tacc v_rhoav v_pav v_muexav v_n1av
 thermo          1000
 

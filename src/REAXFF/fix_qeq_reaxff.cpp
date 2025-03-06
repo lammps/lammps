@@ -141,7 +141,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reax..",0));
+  reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reaxff",0));
 
   s_hist = t_hist = nullptr;
   atom->add_callback(Atom::GROW);
@@ -205,24 +205,43 @@ int FixQEqReaxFF::setmask()
 
 void FixQEqReaxFF::pertype_parameters(char *arg)
 {
-  // match either new keyword "reaxff" or old keyword "reax/c"
-  if (utils::strmatch(arg,"^reax..$")) {
+  const int nlocal = atom->nlocal;
+  const int *mask = atom->mask;
+  const int *type = atom->type;
+
+  if (utils::strmatch(arg,"^reaxff")) {
     reaxflag = 1;
-    Pair *pair = force->pair_match("^reax..",0);
+    Pair *pair = force->pair_match("^reaxff",0);
     if (!pair) error->all(FLERR,"No reaxff pair style for fix qeq/reaxff");
 
-    int tmp;
+    int tmp, tmp_all;
     chi = (double *) pair->extract("chi",tmp);
     eta = (double *) pair->extract("eta",tmp);
     gamma = (double *) pair->extract("gamma",tmp);
-    if (chi == nullptr || eta == nullptr || gamma == nullptr)
-      error->all(FLERR, "Fix qeq/reaxff could not extract params from pair reaxff");
+    if ((chi == nullptr) || (eta == nullptr) || (gamma == nullptr))
+      error->all(FLERR, "Fix qeq/reaxff could not extract all QEq parameters from pair reaxff");
+    tmp = tmp_all = 0;
+    for (int i = 0; i < nlocal; ++i) {
+      if (mask[i] & groupbit) {
+        if ((chi[type[i]] == 0.0) && (eta[type[i]] == 0.0) && (gamma[type[i]] == 0.0))
+          tmp = type[i];
+      }
+    }
+    MPI_Allreduce(&tmp, &tmp_all, 1, MPI_INT, MPI_MAX, world);
+    if (tmp_all)
+      error->all(FLERR, "No QEq parameters for atom type {} provided by pair reaxff", tmp_all);
     return;
+  } else if (utils::strmatch(arg,"^reax/c")) {
+    error->all(FLERR, "Fix qeq/reaxff keyword 'reax/c' is obsolete; please use 'reaxff'");
+  } else if (platform::file_is_readable(arg)) {
+    ; // arg is readable file. will read below
+  } else {
+    error->all(FLERR, "Unknown fix qeq/reaxff keyword {}", arg);
   }
 
   reaxflag = 0;
-  const int ntypes = atom->ntypes;
 
+  const int ntypes = atom->ntypes;
   memory->create(chi,ntypes+1,"qeq/reaxff:chi");
   memory->create(eta,ntypes+1,"qeq/reaxff:eta");
   memory->create(gamma,ntypes+1,"qeq/reaxff:gamma");
@@ -319,12 +338,13 @@ void FixQEqReaxFF::reallocate_storage()
 
 void FixQEqReaxFF::allocate_matrix()
 {
-  int i,ii,m;
+  int i,ii;
+  bigint m;
 
   int mincap;
   double safezone;
 
-  if (reaxflag) {
+  if (reaxflag && reaxff) {
     mincap = reaxff->api->system->mincap;
     safezone = reaxff->api->system->safezone;
   } else {
@@ -341,7 +361,10 @@ void FixQEqReaxFF::allocate_matrix()
     i = ilist[ii];
     m += numneigh[i];
   }
-  m_cap = MAX((int)(m * safezone), mincap * REAX_MIN_NBRS);
+  bigint m_cap_big = (bigint)MAX(m * safezone, mincap * REAX_MIN_NBRS);
+  if (m_cap_big > MAXSMALLINT)
+    error->one(FLERR,"Too many neighbors in fix {}",style);
+  m_cap = m_cap_big;
 
   H.n = n_cap;
   H.m = m_cap;
@@ -697,8 +720,8 @@ void FixQEqReaxFF::compute_H()
   }
 
   if (m_fill >= H.m)
-    error->all(FLERR,fmt::format("Fix qeq/reaxff H matrix size has been "
-                                 "exceeded: m_fill={} H.m={}\n", m_fill, H.m));
+    error->all(FLERR,"Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
+               m_fill, H.m);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -772,9 +795,8 @@ int FixQEqReaxFF::CG(double *b, double *x)
   }
 
   if ((i >= imax) && maxwarn && (comm->me == 0))
-    error->warning(FLERR,fmt::format("Fix qeq/reaxff CG convergence failed "
-                                     "after {} iterations at step {}",
-                                     i,update->ntimestep));
+    error->warning(FLERR, "Fix qeq/reaxff CG convergence failed after {} iterations at step {}",
+                   i,update->ntimestep);
   return i;
 }
 
@@ -1136,7 +1158,7 @@ void FixQEqReaxFF::get_chi_field()
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & efgroupbit) {
         if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
-        chi_field[i] = -efield->efield[i][3];
+        chi_field[i] = efield->efield[i][3];
       }
     }
   }

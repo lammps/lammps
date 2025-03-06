@@ -138,8 +138,12 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-This style is part of the MC package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+This pair style is part of the MC package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
+
+This pair style requires an :doc:`atom style <atom_style>` with per
+atom type masses.
 
 Related commands
 """"""""""""""""

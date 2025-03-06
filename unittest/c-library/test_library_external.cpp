@@ -18,8 +18,8 @@ extern "C" {
 typedef int32_t step_t;
 typedef int32_t tag_t;
 #elif LAMMPS_SMALLBIG
-typedef int64_t step_t;
-typedef int32_t tag_t;
+using step_t = int64_t;
+using tag_t  = int32_t;
 #else
 typedef int64_t step_t;
 typedef int64_t tag_t;
@@ -42,10 +42,10 @@ static void callback(void *handle, step_t timestep, int nlocal, tag_t *, double 
         lammps_fix_external_set_vector(handle, "ext", 5, -1.0);
         lammps_fix_external_set_vector(handle, "ext", 6, 0.25);
     }
-    double *eatom  = new double[nlocal];
-    double **vatom = new double *[nlocal];
-    vatom[0]       = new double[nlocal * 6];
-    eatom[0]       = 0.0;
+    auto *eatom  = new double[nlocal];
+    auto **vatom = new double *[nlocal];
+    vatom[0]     = new double[nlocal * 6];
+    eatom[0]     = 0.0;
     vatom[0][0] = vatom[0][1] = vatom[0][2] = vatom[0][3] = vatom[0][4] = vatom[0][5] = 0.0;
 
     for (int i = 1; i < nlocal; ++i) {
@@ -64,9 +64,9 @@ static void callback(void *handle, step_t timestep, int nlocal, tag_t *, double 
 
 TEST(lammps_external, callback)
 {
-    const char *args[] = {"liblammps", "-log", "none", "-nocite"};
+    const char *args[] = {"liblammps", "-log", "none", "-nocite", nullptr};
     char **argv        = (char **)args;
-    int argc           = sizeof(args) / sizeof(char *);
+    int argc           = (sizeof(args) / sizeof(char *)) - 1;
 
     ::testing::internal::CaptureStdout();
     void *handle       = lammps_open_no_mpi(argc, argv, nullptr);
@@ -107,7 +107,7 @@ TEST(lammps_external, callback)
         val += *valp;
         lammps_free(valp);
     }
-    double *reduce =
+    auto *reduce =
         (double *)lammps_extract_compute(handle, "sum", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR);
     output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
@@ -123,6 +123,18 @@ TEST(lammps_external, callback)
     EXPECT_DOUBLE_EQ(reduce[5], 1.4);
     EXPECT_DOUBLE_EQ(reduce[6], 1.4);
 
+    double **fext =
+        (double **)lammps_extract_fix(handle, "ext", LMP_STYLE_ATOM, LMP_TYPE_ARRAY, 0, 0);
+    EXPECT_DOUBLE_EQ(fext[0][0], 10.0);
+    EXPECT_DOUBLE_EQ(fext[0][1], 10.0);
+    EXPECT_DOUBLE_EQ(fext[0][2], 10.0);
+    EXPECT_DOUBLE_EQ(fext[3][0], 10.0);
+    EXPECT_DOUBLE_EQ(fext[3][1], 10.0);
+    EXPECT_DOUBLE_EQ(fext[3][2], 10.0);
+    EXPECT_DOUBLE_EQ(fext[7][0], 10.0);
+    EXPECT_DOUBLE_EQ(fext[7][1], 10.0);
+    EXPECT_DOUBLE_EQ(fext[7][2], 10.0);
+
     ::testing::internal::CaptureStdout();
     lammps_close(handle);
     output = ::testing::internal::GetCapturedStdout();
@@ -131,9 +143,9 @@ TEST(lammps_external, callback)
 
 TEST(lammps_external, array)
 {
-    const char *args[] = {"liblammps", "-log", "none", "-nocite"};
+    const char *args[] = {"liblammps", "-log", "none", "-nocite", nullptr};
     char **argv        = (char **)args;
-    int argc           = sizeof(args) / sizeof(char *);
+    int argc           = (sizeof(args) / sizeof(char *)) - 1;
 
     ::testing::internal::CaptureStdout();
     void *handle       = lammps_open_no_mpi(argc, argv, nullptr);
@@ -192,6 +204,18 @@ TEST(lammps_external, array)
     EXPECT_DOUBLE_EQ(temp, 1.0 / 30.0);
     EXPECT_DOUBLE_EQ(pe, 1.0 / 8.0);
     EXPECT_DOUBLE_EQ(press, 0.15416666666666667);
+
+    double **fext =
+        (double **)lammps_extract_fix(handle, "ext", LMP_STYLE_ATOM, LMP_TYPE_ARRAY, 0, 0);
+    EXPECT_DOUBLE_EQ(fext[0][0], 6.0);
+    EXPECT_DOUBLE_EQ(fext[0][1], 6.0);
+    EXPECT_DOUBLE_EQ(fext[0][2], 6.0);
+    EXPECT_DOUBLE_EQ(fext[3][0], 6.0);
+    EXPECT_DOUBLE_EQ(fext[3][1], 6.0);
+    EXPECT_DOUBLE_EQ(fext[3][2], 6.0);
+    EXPECT_DOUBLE_EQ(fext[7][0], 6.0);
+    EXPECT_DOUBLE_EQ(fext[7][1], 6.0);
+    EXPECT_DOUBLE_EQ(fext[7][2], 6.0);
 
     ::testing::internal::CaptureStdout();
     lammps_close(handle);

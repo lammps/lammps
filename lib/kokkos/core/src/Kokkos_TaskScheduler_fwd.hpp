@@ -1,55 +1,23 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
 static_assert(false,
               "Including non-public Kokkos header files is not allowed.");
-#else
-KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
-#endif
 #endif
 #ifndef KOKKOS_TASKSCHEDULER_FWD_HPP
 #define KOKKOS_TASKSCHEDULER_FWD_HPP
@@ -63,31 +31,40 @@ KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
 #include <Kokkos_Core_fwd.hpp>
 //----------------------------------------------------------------------------
 
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+// We allow using deprecated classes in this file
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
+
 namespace Kokkos {
 
 // Forward declarations used in Impl::TaskQueue
 
 template <typename ValueType, typename Scheduler>
-class BasicFuture;
+class KOKKOS_DEPRECATED BasicFuture;
 
 template <class Space, class Queue>
-class SimpleTaskScheduler;
+class KOKKOS_DEPRECATED SimpleTaskScheduler;
 
 template <class Space, class Queue>
-class BasicTaskScheduler;
+class KOKKOS_DEPRECATED BasicTaskScheduler;
 
 template <typename Space>
-struct is_scheduler : public std::false_type {};
+struct KOKKOS_DEPRECATED is_scheduler : public std::false_type {};
 
 template <class Space, class Queue>
-struct is_scheduler<BasicTaskScheduler<Space, Queue>> : public std::true_type {
-};
+struct KOKKOS_DEPRECATED is_scheduler<BasicTaskScheduler<Space, Queue>>
+    : public std::true_type {};
 
 template <class Space, class Queue>
-struct is_scheduler<SimpleTaskScheduler<Space, Queue>> : public std::true_type {
-};
+struct KOKKOS_DEPRECATED is_scheduler<SimpleTaskScheduler<Space, Queue>>
+    : public std::true_type {};
 
-enum class TaskPriority : int { High = 0, Regular = 1, Low = 2 };
+enum class KOKKOS_DEPRECATED TaskPriority : int {
+  High    = 0,
+  Regular = 1,
+  Low     = 2
+};
 
 }  // namespace Kokkos
 
@@ -173,28 +150,28 @@ using default_tasking_memory_space_for_execution_space_t =
 namespace Kokkos {
 
 template <typename Space>
-using DeprecatedTaskScheduler = BasicTaskScheduler<
+using DeprecatedTaskScheduler KOKKOS_DEPRECATED = BasicTaskScheduler<
     Space,
     Impl::TaskQueue<
         Space,
         Impl::default_tasking_memory_space_for_execution_space_t<Space>>>;
 
 template <typename Space>
-using DeprecatedTaskSchedulerMultiple = BasicTaskScheduler<
+using DeprecatedTaskSchedulerMultiple KOKKOS_DEPRECATED = BasicTaskScheduler<
     Space,
     Impl::TaskQueueMultiple<
         Space,
         Impl::default_tasking_memory_space_for_execution_space_t<Space>>>;
 
 template <typename Space>
-using TaskScheduler = SimpleTaskScheduler<
+using TaskScheduler KOKKOS_DEPRECATED = SimpleTaskScheduler<
     Space,
     Impl::SingleTaskQueue<
         Space, Impl::default_tasking_memory_space_for_execution_space_t<Space>,
         Impl::TaskQueueTraitsLockBased>>;
 
 template <typename Space>
-using TaskSchedulerMultiple = SimpleTaskScheduler<
+using TaskSchedulerMultiple KOKKOS_DEPRECATED = SimpleTaskScheduler<
     Space,
     Impl::MultipleTaskQueue<
         Space, Impl::default_tasking_memory_space_for_execution_space_t<Space>,
@@ -204,7 +181,7 @@ using TaskSchedulerMultiple = SimpleTaskScheduler<
             Impl::default_tasking_memory_space_for_execution_space_t<Space>>>>>;
 
 template <typename Space>
-using ChaseLevTaskScheduler = SimpleTaskScheduler<
+using ChaseLevTaskScheduler KOKKOS_DEPRECATED = SimpleTaskScheduler<
     Space,
     Impl::MultipleTaskQueue<
         Space, Impl::default_tasking_memory_space_for_execution_space_t<Space>,
@@ -214,7 +191,7 @@ using ChaseLevTaskScheduler = SimpleTaskScheduler<
             Impl::default_tasking_memory_space_for_execution_space_t<Space>>>>>;
 
 template <class Space, class QueueType>
-void wait(BasicTaskScheduler<Space, QueueType> const&);
+KOKKOS_DEPRECATED void wait(BasicTaskScheduler<Space, QueueType> const&);
 
 namespace Impl {
 
@@ -235,6 +212,10 @@ struct TaskPolicyData;
 }  // end namespace Impl
 
 }  // namespace Kokkos
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
 //----------------------------------------------------------------------------
 

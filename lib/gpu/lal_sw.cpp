@@ -52,12 +52,12 @@ int SWT::init(const int ntypes, const int nlocal, const int nall,
               double ***costheta, const int *map, int ***e2param) {
   _lj_types=ntypes;
 
-  int oldparam=-1;
   int onetype=-1;
   int onetype3=0;
   int spq=1;
-  int mtypes=0;
   #ifdef USE_OPENCL
+  int oldparam=-1;
+  int mtypes=0;
   for (int ii=1; ii<ntypes; ii++) {
     int i=map[ii];
     if (i<0) continue;

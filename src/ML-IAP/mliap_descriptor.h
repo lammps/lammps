@@ -31,6 +31,7 @@ class MLIAPDescriptor : virtual protected Pointers {
 
   int ndescriptors;     // number of descriptors
   int nelements;        // # of unique elements
+  int allocated_elements; // is the element array allocated
   char **elements;      // names of unique elements
   double **cutsq;       // nelem x nelem rcutsq values
   double **cutghost;    // cutoff for each ghost pair

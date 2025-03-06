@@ -106,7 +106,7 @@ TEST_F(LabelMapTest, Atoms)
     EXPECT_EQ(utils::expand_type(FLERR, "**", Atom::ATOM, lmp), nullptr);
     EXPECT_EQ(utils::expand_type(FLERR, "1*2*", Atom::ATOM, lmp), nullptr);
 
-    auto expanded = utils::expand_type(FLERR, "C1", Atom::ATOM, lmp);
+    auto *expanded = utils::expand_type(FLERR, "C1", Atom::ATOM, lmp);
     EXPECT_THAT(expanded, StrEq("1"));
     delete[] expanded;
     expanded = utils::expand_type(FLERR, "O#", Atom::ATOM, lmp);
@@ -268,7 +268,7 @@ TEST_F(LabelMapTest, Topology)
     EXPECT_EQ(atom->lmap->find("N2'-C1\"-N2'", Atom::BOND), -1);
     platform::unlink("labelmap_topology.inc");
 
-    auto expanded = utils::expand_type(FLERR, "N2'", Atom::ATOM, lmp);
+    auto *expanded = utils::expand_type(FLERR, "N2'", Atom::ATOM, lmp);
     EXPECT_THAT(expanded, StrEq("2"));
     delete[] expanded;
     expanded = utils::expand_type(FLERR, "[C1][C1]", Atom::BOND, lmp);
@@ -298,9 +298,6 @@ int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
-
-    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

@@ -93,8 +93,8 @@ enum{X,Y,Z, // required for vtk, must come first
 enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 enum{VTK,VTP,VTU,PVTP,PVTU}; // file formats
 
-#define ONEFIELD 32
-#define DELTA 1048576
+static constexpr int ONEFIELD = 32;
+static constexpr int DELTA = 1048576;
 
 #if (VTK_MAJOR_VERSION < 5) || (VTK_MAJOR_VERSION > 9)
 #error This code has only been tested with VTK 5, 6, 7, 8, and 9
@@ -107,7 +107,7 @@ enum{VTK,VTP,VTU,PVTP,PVTU}; // file formats
 DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
   DumpCustom(lmp, narg, arg)
 {
-  if (narg == 5) error->all(FLERR,"No dump vtk arguments specified");
+  if (narg < 6) utils::missing_cmd_args(FLERR,"dump vtk", error);
 
   pack_choice.clear();
   vtype.clear();
@@ -214,17 +214,18 @@ void DumpVTK::init_style()
   // check that fix frequency is acceptable
 
   for (int i = 0; i < ncompute; i++) {
-    int icompute = modify->find_compute(id_compute[i]);
-    if (icompute < 0) error->all(FLERR,"Could not find dump vtk compute ID");
-    compute[i] = modify->compute[icompute];
+    compute[i] = modify->get_compute_by_id(id_compute[i]);
+    if (!compute[i]) error->all(FLERR,"Could not find dump vtk compute ID {}", id_compute[i]);
   }
 
   for (int i = 0; i < nfix; i++) {
-    int ifix = modify->find_fix(id_fix[i]);
-    if (ifix < 0) error->all(FLERR,"Could not find dump vtk fix ID");
-    fix[i] = modify->fix[ifix];
-    if (nevery % modify->fix[ifix]->peratom_freq)
-      error->all(FLERR,"Dump vtk and fix not computed at compatible times");
+    fix[i] = modify->get_fix_by_id(id_fix[i]);
+    if (!fix[i]) {
+      error->all(FLERR,"Could not find dump vtk fix ID {}", id_fix[i]);
+    } else {
+      if (nevery % fix[i]->peratom_freq)
+        error->all(FLERR,"Dump vtk and fix ID {} not called at compatible times", id_fix[i]);
+    }
   }
 
   for (int i = 0; i < nvariable; i++) {
@@ -297,9 +298,10 @@ int DumpVTK::count()
   // cannot invoke before first run, otherwise invoke if necessary
 
   if (ncompute) {
-    if (update->first_update == 0)
-      error->all(FLERR,"Dump compute cannot be invoked before first run");
     for (i = 0; i < ncompute; i++) {
+      if (!compute[i]->is_initialized())
+        error->all(FLERR,"Dump compute ID {} cannot be invoked before initialization by a run",
+          compute[i]->id);
       if (!(compute[i]->invoked_flag & Compute::INVOKED_PERATOM)) {
         compute[i]->compute_peratom();
         compute[i]->invoked_flag |= Compute::INVOKED_PERATOM;
@@ -358,8 +360,7 @@ int DumpVTK::count()
         nstride = 1;
       } else if (thresh_array[ithresh] == MOL) {
         if (!atom->molecule_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR, "Threshold for an atom property that isn't allocated");
         tagint *molecule = atom->molecule;
         for (i = 0; i < nlocal; i++) dchoose[i] = molecule[i];
         ptr = dchoose;
@@ -653,64 +654,54 @@ int DumpVTK::count()
 
       } else if (thresh_array[ithresh] == RADIUS) {
         if (!atom->radius_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = atom->radius;
         nstride = 1;
       } else if (thresh_array[ithresh] == DIAMETER) {
         if (!atom->radius_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         double *radius = atom->radius;
         for (i = 0; i < nlocal; i++) dchoose[i] = 2.0*radius[i];
         ptr = dchoose;
         nstride = 1;
       } else if (thresh_array[ithresh] == OMEGAX) {
         if (!atom->omega_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = &atom->omega[0][0];
         nstride = 3;
       } else if (thresh_array[ithresh] == OMEGAY) {
         if (!atom->omega_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = &atom->omega[0][1];
         nstride = 3;
       } else if (thresh_array[ithresh] == OMEGAZ) {
         if (!atom->omega_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = &atom->omega[0][2];
         nstride = 3;
       } else if (thresh_array[ithresh] == ANGMOMX) {
         if (!atom->angmom_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = &atom->angmom[0][0];
         nstride = 3;
       } else if (thresh_array[ithresh] == ANGMOMY) {
         if (!atom->angmom_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = &atom->angmom[0][1];
         nstride = 3;
       } else if (thresh_array[ithresh] == ANGMOMZ) {
         if (!atom->angmom_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = &atom->angmom[0][2];
         nstride = 3;
       } else if (thresh_array[ithresh] == TQX) {
         if (!atom->torque_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = &atom->torque[0][0];
         nstride = 3;
       } else if (thresh_array[ithresh] == TQY) {
         if (!atom->torque_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = &atom->torque[0][1];
         nstride = 3;
       } else if (thresh_array[ithresh] == TQZ) {
@@ -927,7 +918,7 @@ void DumpVTK::write()
 
   if (nmax > maxbuf) {
     if ((bigint) nmax * size_one > MAXSMALLINT)
-      error->all(FLERR,"Too much per-proc info for dump");
+      error->all(FLERR,"Too much per processor data info for dump");
     maxbuf = nmax;
     memory->destroy(buf);
     memory->create(buf,maxbuf*size_one,"dump:buf");
@@ -982,9 +973,10 @@ void DumpVTK::write()
 void DumpVTK::pack(tagint *ids)
 {
   int n = 0;
-  for (std::map<int,FnPtrPack>::iterator it=pack_choice.begin(); it!=pack_choice.end(); ++it, ++n) {
-      current_pack_choice_key = it->first; // work-around for pack_compute, pack_fix, pack_variable
-      (this->*(it->second))(n);
+  for (auto &choice : pack_choice) {
+      current_pack_choice_key = choice.first; // work-around for pack_compute, pack_fix, pack_variable
+      (this->*(choice.second))(n);
+      ++n;
   }
 
   if (ids) {
@@ -1107,10 +1099,10 @@ void DumpVTK::buf2arrays(int n, double *mybuf)
     pid[0] = points->InsertNextPoint(mybuf[iatom*size_one],mybuf[iatom*size_one+1],mybuf[iatom*size_one+2]);
 
     int j=3; // 0,1,2 = x,y,z handled just above
-    for (std::map<int, vtkSmartPointer<vtkAbstractArray> >::iterator it=myarrays.begin(); it!=myarrays.end(); ++it) {
-      vtkAbstractArray *paa = it->second;
-      if (it->second->GetNumberOfComponents() == 3) {
-        switch (vtype[it->first]) {
+    for (auto &it : myarrays) {
+      vtkAbstractArray *paa = it.second;
+      if (it.second->GetNumberOfComponents() == 3) {
+        switch (vtype[it.first]) {
           case Dump::INT:
             {
               int iv3[3] = { static_cast<int>(mybuf[iatom*size_one+j  ]),
@@ -1129,7 +1121,7 @@ void DumpVTK::buf2arrays(int n, double *mybuf)
         }
         j+=3;
       } else {
-        switch (vtype[it->first]) {
+        switch (vtype[it.first]) {
           case Dump::INT:
             {
               vtkIntArray *pia = static_cast<vtkIntArray*>(paa);
@@ -1316,8 +1308,8 @@ void DumpVTK::write_vtk(int n, double *mybuf)
     unstructuredGrid->SetPoints(points);
     unstructuredGrid->SetCells(VTK_VERTEX, pointsCells);
 
-    for (std::map<int, vtkSmartPointer<vtkAbstractArray> >::iterator it=myarrays.begin(); it!=myarrays.end(); ++it) {
-      unstructuredGrid->GetPointData()->AddArray(it->second);
+    for (const auto & it : myarrays) {
+      unstructuredGrid->GetPointData()->AddArray(it.second);
     }
 
     vtkSmartPointer<vtkUnstructuredGridWriter> writer = vtkSmartPointer<vtkUnstructuredGridWriter>::New();
@@ -1326,8 +1318,8 @@ void DumpVTK::write_vtk(int n, double *mybuf)
     polyData->SetPoints(points);
     polyData->SetVerts(pointsCells);
 
-    for (std::map<int, vtkSmartPointer<vtkAbstractArray> >::iterator it=myarrays.begin(); it!=myarrays.end(); ++it) {
-      polyData->GetPointData()->AddArray(it->second);
+    for (auto &it : myarrays) {
+      polyData->GetPointData()->AddArray(it.second);
     }
 
     vtkSmartPointer<vtkPolyDataWriter> writer = vtkSmartPointer<vtkPolyDataWriter>::New();
@@ -1383,8 +1375,8 @@ void DumpVTK::write_vtp(int n, double *mybuf)
     polyData->SetPoints(points);
     polyData->SetVerts(pointsCells);
 
-    for (std::map<int, vtkSmartPointer<vtkAbstractArray> >::iterator it=myarrays.begin(); it!=myarrays.end(); ++it) {
-      polyData->GetPointData()->AddArray(it->second);
+    for (auto &it : myarrays) {
+      polyData->GetPointData()->AddArray(it.second);
     }
 
     vtkSmartPointer<vtkXMLPolyDataWriter> writer = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
@@ -1447,8 +1439,8 @@ void DumpVTK::write_vtu(int n, double *mybuf)
     unstructuredGrid->SetPoints(points);
     unstructuredGrid->SetCells(VTK_VERTEX, pointsCells);
 
-    for (std::map<int, vtkSmartPointer<vtkAbstractArray> >::iterator it=myarrays.begin(); it!=myarrays.end(); ++it) {
-      unstructuredGrid->GetPointData()->AddArray(it->second);
+    for (auto &it : myarrays) {
+      unstructuredGrid->GetPointData()->AddArray(it.second);
     }
 
     vtkSmartPointer<vtkXMLUnstructuredGridWriter> writer = vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
@@ -1539,9 +1531,8 @@ int DumpVTK::parse_fields(int narg, char **arg)
   name[Z] = "z";
 
   // customize by adding to if statement
-  int i;
-  for (int iarg = 5; iarg < narg; iarg++) {
-    i = iarg-5;
+
+  for (int iarg = 0; iarg < narg; iarg++) {
 
     if (strcmp(arg[iarg],"id") == 0) {
       pack_choice[ID] = &DumpVTK::pack_id;
@@ -1549,7 +1540,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
       name[ID] = arg[iarg];
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property 'mol' that isn't allocated");
       pack_choice[MOL] = &DumpVTK::pack_molecule;
       vtype[MOL] = Dump::INT;
       name[MOL] = arg[iarg];
@@ -1664,98 +1655,97 @@ int DumpVTK::parse_fields(int narg, char **arg)
       name[FZ] = arg[iarg];
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (!atom->q_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property '{}' that isn't allocated", arg[iarg]);
       pack_choice[Q] = &DumpVTK::pack_q;
       vtype[Q] = Dump::DOUBLE;
       name[Q] = arg[iarg];
     } else if (strcmp(arg[iarg],"mux") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property '{}' that isn't allocated", arg[iarg]);
       pack_choice[MUX] = &DumpVTK::pack_mux;
       vtype[MUX] = Dump::DOUBLE;
       name[MUX] = arg[iarg];
     } else if (strcmp(arg[iarg],"muy") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property '{}' that isn't allocated", arg[iarg]);
       pack_choice[MUY] = &DumpVTK::pack_muy;
       vtype[MUY] = Dump::DOUBLE;
       name[MUY] = arg[iarg];
     } else if (strcmp(arg[iarg],"muz") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property '{}' that isn't allocated", arg[iarg]);
       pack_choice[MUZ] = &DumpVTK::pack_muz;
       vtype[MUZ] = Dump::DOUBLE;
       name[MUZ] = arg[iarg];
     } else if (strcmp(arg[iarg],"mu") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property '{}' that isn't allocated", arg[iarg]);
       pack_choice[MU] = &DumpVTK::pack_mu;
       vtype[MU] = Dump::DOUBLE;
       name[MU] = arg[iarg];
-
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property '{}' that isn't allocated", arg[iarg]);
       pack_choice[RADIUS] = &DumpVTK::pack_radius;
       vtype[RADIUS] = Dump::DOUBLE;
       name[RADIUS] = arg[iarg];
     } else if (strcmp(arg[iarg],"diameter") == 0) {
       if (!atom->radius_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property '{}' that isn't allocated", arg[iarg]);
       pack_choice[DIAMETER] = &DumpVTK::pack_diameter;
       vtype[DIAMETER] = Dump::DOUBLE;
       name[DIAMETER] = arg[iarg];
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property '{}' that isn't allocated", arg[iarg]);
       pack_choice[OMEGAX] = &DumpVTK::pack_omegax;
       vtype[OMEGAX] = Dump::DOUBLE;
       name[OMEGAX] = arg[iarg];
     } else if (strcmp(arg[iarg],"omegay") == 0) {
       if (!atom->omega_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property '{}' that isn't allocated", arg[iarg]);
       pack_choice[OMEGAY] = &DumpVTK::pack_omegay;
       vtype[OMEGAY] = Dump::DOUBLE;
       name[OMEGAY] = arg[iarg];
     } else if (strcmp(arg[iarg],"omegaz") == 0) {
       if (!atom->omega_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property '{}' that isn't allocated", arg[iarg]);
       pack_choice[OMEGAZ] = &DumpVTK::pack_omegaz;
       vtype[OMEGAZ] = Dump::DOUBLE;
       name[OMEGAZ] = arg[iarg];
     } else if (strcmp(arg[iarg],"angmomx") == 0) {
       if (!atom->angmom_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property '{}' that isn't allocated", arg[iarg]);
       pack_choice[ANGMOMX] = &DumpVTK::pack_angmomx;
       vtype[ANGMOMX] = Dump::DOUBLE;
       name[ANGMOMX] = arg[iarg];
     } else if (strcmp(arg[iarg],"angmomy") == 0) {
       if (!atom->angmom_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property '{}' that isn't allocated", arg[iarg]);
       pack_choice[ANGMOMY] = &DumpVTK::pack_angmomy;
       vtype[ANGMOMY] = Dump::DOUBLE;
       name[ANGMOMY] = arg[iarg];
     } else if (strcmp(arg[iarg],"angmomz") == 0) {
       if (!atom->angmom_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property '{}' that isn't allocated", arg[iarg]);
       pack_choice[ANGMOMZ] = &DumpVTK::pack_angmomz;
       vtype[ANGMOMZ] = Dump::DOUBLE;
       name[ANGMOMZ] = arg[iarg];
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property '{}' that isn't allocated", arg[iarg]);
       pack_choice[TQX] = &DumpVTK::pack_tqx;
       vtype[TQX] = Dump::DOUBLE;
       name[TQX] = arg[iarg];
     } else if (strcmp(arg[iarg],"tqy") == 0) {
       if (!atom->torque_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property '{}' that isn't allocated", arg[iarg]);
       pack_choice[TQY] = &DumpVTK::pack_tqy;
       vtype[TQY] = Dump::DOUBLE;
       name[TQY] = arg[iarg];
     } else if (strcmp(arg[iarg],"tqz") == 0) {
       if (!atom->torque_flag)
-        error->all(FLERR,"Dumping an atom property that isn't allocated");
+        error->all(FLERR,"Dumping atom property '{}' that isn't allocated", arg[iarg]);
       pack_choice[TQZ] = &DumpVTK::pack_tqz;
       vtype[TQZ] = Dump::DOUBLE;
       name[TQZ] = arg[iarg];
@@ -1765,7 +1755,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
       int n,flag,cols;
       ArgInfo argi(arg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
                    |ArgInfo::DNAME|ArgInfo::INAME);
-      argindex[ATTRIBUTES+i] = argi.get_index1();
+      argindex[ATTRIBUTES+iarg] = argi.get_index1();
       auto aname = argi.get_name();
 
       switch (argi.get_type()) {
@@ -1778,107 +1768,114 @@ int DumpVTK::parse_fields(int narg, char **arg)
       // if no trailing [], then arg is set to 0, else arg is int between []
 
       case ArgInfo::COMPUTE:
-        pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_compute;
-        vtype[ATTRIBUTES+i] = Dump::DOUBLE;
+      {
+        pack_choice[ATTRIBUTES+iarg] = &DumpVTK::pack_compute;
+        vtype[ATTRIBUTES+iarg] = Dump::DOUBLE;
 
-        n = modify->find_compute(aname);
-        if (n < 0) error->all(FLERR,"Could not find dump vtk compute ID: {}",aname);
-        if (modify->compute[n]->peratom_flag == 0)
-          error->all(FLERR,"Dump vtk compute {} does not compute per-atom info",aname);
-        if (argi.get_dim() == 0 && modify->compute[n]->size_peratom_cols > 0)
-          error->all(FLERR,"Dump vtk compute {} does not calculate per-atom vector",aname);
-        if (argi.get_dim() > 0 && modify->compute[n]->size_peratom_cols == 0)
-          error->all(FLERR,"Dump vtk compute {} does not calculate per-atom array",aname);
-        if (argi.get_dim() > 0 &&
-            argi.get_index1() > modify->compute[n]->size_peratom_cols)
-          error->all(FLERR,"Dump vtk compute {} vector is accessed out-of-range",aname);
-
-        field2index[ATTRIBUTES+i] = add_compute(aname);
-        name[ATTRIBUTES+i] = arg[iarg];
+        auto icompute = modify->get_compute_by_id(aname);
+        if (!icompute) {
+          error->all(FLERR,"Could not find dump vtk compute ID: {}",aname);
+        } else {
+          if (icompute->peratom_flag == 0)
+            error->all(FLERR,"Dump vtk compute {} does not compute per-atom info",aname);
+          if (argi.get_dim() == 0 && icompute->size_peratom_cols > 0)
+            error->all(FLERR,"Dump vtk compute {} does not calculate per-atom vector",aname);
+          if (argi.get_dim() > 0 && icompute->size_peratom_cols == 0)
+            error->all(FLERR,"Dump vtk compute {} does not calculate per-atom array",aname);
+          if (argi.get_dim() > 0 && argi.get_index1() > icompute->size_peratom_cols)
+            error->all(FLERR,"Dump vtk compute {} vector is accessed out-of-range",aname);
+          field2index[ATTRIBUTES+iarg] = add_compute(aname);
+          name[ATTRIBUTES+iarg] = arg[iarg];
+        }
         break;
+      }
 
       // fix value = f_ID
       // if no trailing [], then arg is set to 0, else arg is between []
 
       case ArgInfo::FIX:
-        pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_fix;
-        vtype[ATTRIBUTES+i] = Dump::DOUBLE;
+      {
+        pack_choice[ATTRIBUTES+iarg] = &DumpVTK::pack_fix;
+        vtype[ATTRIBUTES+iarg] = Dump::DOUBLE;
 
-        n = modify->find_fix(aname);
-        if (n < 0) error->all(FLERR,"Could not find dump vtk fix ID: {}",aname);
-        if (modify->fix[n]->peratom_flag == 0)
-          error->all(FLERR,"Dump vtk fix {} does not compute per-atom info",aname);
-        if (argi.get_dim() == 0 && modify->fix[n]->size_peratom_cols > 0)
-          error->all(FLERR,"Dump vtk fix {} does not compute per-atom vector",aname);
-        if (argi.get_dim() > 0 && modify->fix[n]->size_peratom_cols == 0)
-          error->all(FLERR,"Dump vtk fix {} does not compute per-atom array",aname);
-        if (argi.get_dim() > 0 &&
-            argi.get_index1() > modify->fix[n]->size_peratom_cols)
-          error->all(FLERR,"Dump vtk fix {} vector is accessed out-of-range",aname);
+        auto ifix = modify->get_fix_by_id(aname);
+        if (!ifix) {
+          error->all(FLERR,"Could not find dump vtk fix ID: {}",aname);
+        } else {
+          if (ifix->peratom_flag == 0)
+            error->all(FLERR,"Dump vtk fix {} does not compute per-atom info",aname);
+          if (argi.get_dim() == 0 && ifix->size_peratom_cols > 0)
+            error->all(FLERR,"Dump vtk fix {} does not compute per-atom vector",aname);
+          if (argi.get_dim() > 0 && ifix->size_peratom_cols == 0)
+            error->all(FLERR,"Dump vtk fix {} does not compute per-atom array",aname);
+          if (argi.get_dim() > 0 && argi.get_index1() > ifix->size_peratom_cols)
+            error->all(FLERR,"Dump vtk fix {} vector is accessed out-of-range",aname);
 
-        field2index[ATTRIBUTES+i] = add_fix(aname);
-        name[ATTRIBUTES+i] = arg[iarg];
+          field2index[ATTRIBUTES+iarg] = add_fix(aname);
+          name[ATTRIBUTES+iarg] = arg[iarg];
+        }
         break;
+      }
 
       // variable value = v_name
 
       case ArgInfo::VARIABLE:
-        pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_variable;
-        vtype[ATTRIBUTES+i] = Dump::DOUBLE;
+        pack_choice[ATTRIBUTES+iarg] = &DumpVTK::pack_variable;
+        vtype[ATTRIBUTES+iarg] = Dump::DOUBLE;
 
         n = input->variable->find(aname);
         if (n < 0) error->all(FLERR,"Could not find dump vtk variable name {}",aname);
         if (input->variable->atomstyle(n) == 0)
           error->all(FLERR,"Dump vtk variable {} is not atom-style variable",aname);
 
-        field2index[ATTRIBUTES+i] = add_variable(aname);
-        name[ATTRIBUTES+i] = arg[iarg];
+        field2index[ATTRIBUTES+iarg] = add_variable(aname);
+        name[ATTRIBUTES+iarg] = arg[iarg];
         break;
 
       // custom per-atom floating point vector or array = d_ID d2_ID
 
       case ArgInfo::DNAME:
-        pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
-        vtype[ATTRIBUTES+i] = Dump::DOUBLE;
+        pack_choice[ATTRIBUTES+iarg] = &DumpVTK::pack_custom;
+        vtype[ATTRIBUTES+iarg] = Dump::DOUBLE;
 
         n = atom->find_custom(aname,flag,cols);
 
         if (n < 0)
           error->all(FLERR,"Could not find custom per-atom property ID: {}", aname);
-        if (argindex[ATTRIBUTES+i] == 0) {
+        if (argindex[ATTRIBUTES+iarg] == 0) {
           if (!flag || cols)
             error->all(FLERR,"Property double vector {} for dump vtk does not exist",aname);
         } else {
           if (!flag || !cols)
             error->all(FLERR,"Property double array {} for dump vtk does not exist",aname);
-          if (argindex[ATTRIBUTES+i] > atom->dcols[n])
+          if (argindex[ATTRIBUTES+iarg] > atom->dcols[n])
             error->all(FLERR,"Dump vtk property array {} is accessed out-of-range",aname);
         }
-        field2index[ATTRIBUTES+i] = add_custom(aname,1);
-        name[ATTRIBUTES+i] = arg[iarg];
+        field2index[ATTRIBUTES+iarg] = add_custom(aname,1);
+        name[ATTRIBUTES+iarg] = arg[iarg];
         break;
 
       // custom per-atom integer vector or array = i_ID or i2_ID
 
       case ArgInfo::INAME:
-        pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
-        vtype[ATTRIBUTES+i] = Dump::INT;
+        pack_choice[ATTRIBUTES+iarg] = &DumpVTK::pack_custom;
+        vtype[ATTRIBUTES+iarg] = Dump::INT;
 
         n = atom->find_custom(aname,flag,cols);
 
         if (n < 0)
           error->all(FLERR,"Could not find custom per-atom property ID: {}", aname);
-        if (argindex[ATTRIBUTES+i] == 0) {
+        if (argindex[ATTRIBUTES+iarg] == 0) {
           if (flag || cols)
             error->all(FLERR,"Property integer vector {} for dump vtk does not exist",aname);
         } else {
           if (flag || !cols)
             error->all(FLERR,"Property integer array {} for dump vtk does not exist",aname);
-          if (argindex[ATTRIBUTES+i] > atom->icols[n])
+          if (argindex[ATTRIBUTES+iarg] > atom->icols[n])
             error->all(FLERR,"Dump vtk property array {} is accessed out-of-range",aname);
         }
-        field2index[ATTRIBUTES+i] = add_custom(aname,0);
-        name[ATTRIBUTES+i] = arg[iarg];
+        field2index[ATTRIBUTES+iarg] = add_custom(aname,0);
+        name[ATTRIBUTES+iarg] = arg[iarg];
         break;
 
       // no match
@@ -1933,7 +1930,7 @@ void DumpVTK::identify_vectors()
     // assume components are grouped together and in correct order
     if (name.count(it->first + 1) && name.count(it->first + 2)) { // more attributes?
       if (it->second.compare(0,it->second.length()-3,name[it->first + 1],0,it->second.length()-3) == 0  && // same attributes?
-         it->second.compare(0,it->second.length()-3,name[it->first + 2],0,it->second.length()-3) == 0 )
+         it->second.compare(0,it->second.length()-3,name[it->first + 2],0,it->second.length()-3) == 0)
       {
         it->second.erase(it->second.length()-1);
         std::ostringstream oss;
@@ -2095,7 +2092,7 @@ int DumpVTK::modify_param(int narg, char **arg)
     if (refreshflag) error->all(FLERR,"Dump_modify can only have one refresh");
 
     refreshflag = 1;
-    refresh = argi.copy_name();
+    idrefresh = argi.copy_name();
     return 2;
   }
 
@@ -2231,42 +2228,50 @@ int DumpVTK::modify_param(int narg, char **arg)
       // if no trailing [], then arg is set to 0, else arg is between []
 
       case ArgInfo::COMPUTE:
+      {
         thresh_array[nthresh] = COMPUTE;
-        n = modify->find_compute(aname);
-        if (n < 0) error->all(FLERR,"Could not find dump modify compute ID: {}",aname);
+        auto icompute = modify->get_compute_by_id(aname);
+        if (!icompute) {
+          error->all(FLERR,"Could not find dump modify compute ID: {}",aname);
+        } else {
+          if (modify->compute[n]->peratom_flag == 0)
+            error->all(FLERR,"Dump modify compute ID {} does not compute per-atom info",aname);
+          if (argi.get_dim() == 0 && icompute->size_peratom_cols > 0)
+            error->all(FLERR,"Dump modify compute ID {} does not compute per-atom vector",aname);
+          if (argi.get_index1() > 0 && icompute->size_peratom_cols == 0)
+            error->all(FLERR,"Dump modify compute ID {} does not compute per-atom array",aname);
+          if (argi.get_index1() > 0 &&
+              argi.get_index1() > icompute->size_peratom_cols)
+            error->all(FLERR,"Dump modify compute ID {} vector is not large enough",aname);
 
-        if (modify->compute[n]->peratom_flag == 0)
-          error->all(FLERR,"Dump modify compute ID {} does not compute per-atom info",aname);
-        if (argi.get_dim() == 0 && modify->compute[n]->size_peratom_cols > 0)
-          error->all(FLERR,"Dump modify compute ID {} does not compute per-atom vector",aname);
-        if (argi.get_index1() > 0 && modify->compute[n]->size_peratom_cols == 0)
-          error->all(FLERR,"Dump modify compute ID {} does not compute per-atom array",aname);
-        if (argi.get_index1() > 0 &&
-            argi.get_index1() > modify->compute[n]->size_peratom_cols)
-          error->all(FLERR,"Dump modify compute ID {} vector is not large enough",aname);
-
-        field2index[ATTRIBUTES+nfield+nthresh] = add_compute(aname);
+          field2index[ATTRIBUTES+nfield+nthresh] = add_compute(aname);
+        }
         break;
+      }
 
       // fix value = f_ID
       // if no trailing [], then arg is set to 0, else arg is between []
 
       case ArgInfo::FIX:
+      {
         thresh_array[nthresh] = FIX;
-        n = modify->find_fix(aname);
-        if (n < 0) error->all(FLERR,"Could not find dump modify fix ID: {}",aname);
+        auto ifix = modify->get_fix_by_id(aname);
+        if (!ifix) {
+          error->all(FLERR,"Could not find dump modify fix ID: {}",aname);
+        } else {
+          if (ifix->peratom_flag == 0)
+            error->all(FLERR,"Dump modify fix ID {} does not compute per-atom info",aname);
+          if (argi.get_dim() == 0 && ifix->size_peratom_cols > 0)
+            error->all(FLERR,"Dump modify fix ID {} does not compute per-atom vector",aname);
+          if (argi.get_index1() > 0 && ifix->size_peratom_cols == 0)
+            error->all(FLERR,"Dump modify fix ID {} does not compute per-atom array",aname);
+          if (argi.get_index1() > 0 && argi.get_index1() > ifix->size_peratom_cols)
+            error->all(FLERR,"Dump modify fix ID {} vector is not large enough",aname);
 
-        if (modify->fix[n]->peratom_flag == 0)
-          error->all(FLERR,"Dump modify fix ID {} does not compute per-atom info",aname);
-        if (argi.get_dim() == 0 && modify->fix[n]->size_peratom_cols > 0)
-          error->all(FLERR,"Dump modify fix ID {} does not compute per-atom vector",aname);
-        if (argi.get_index1() > 0 && modify->fix[n]->size_peratom_cols == 0)
-          error->all(FLERR,"Dump modify fix ID {} does not compute per-atom array",aname);
-        if (argi.get_index1() > 0 && argi.get_index1() > modify->fix[n]->size_peratom_cols)
-          error->all(FLERR,"Dump modify fix ID {} vector is not large enough",aname);
-
-        field2index[ATTRIBUTES+nfield+nthresh] = add_fix(aname);
+          field2index[ATTRIBUTES+nfield+nthresh] = add_fix(aname);
+        }
         break;
+      }
 
       // variable value = v_ID
 

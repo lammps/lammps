@@ -47,6 +47,8 @@ In addition there are DOIs generated for individual stable releases:
 - 3 March 2020 version: `DOI:10.5281/zenodo.3726417 <https://dx.doi.org/10.5281/zenodo.3726417>`_
 - 29 October 2020 version: `DOI:10.5281/zenodo.4157471 <https://dx.doi.org/10.5281/zenodo.4157471>`_
 - 29 September 2021 version: `DOI:10.5281/zenodo.6386596 <https://dx.doi.org/10.5281/zenodo.6386596>`_
+- 23 June 2022 version: `DOI:10.5281/zenodo.10806836 <https://doi.org/10.5281/zenodo.10806836>`_
+- 2 August 2023 version: `DOI:10.5281/zenodo.10806852 <https://doi.org/10.5281/zenodo.10806852>`_
 
 Home page
 ^^^^^^^^^

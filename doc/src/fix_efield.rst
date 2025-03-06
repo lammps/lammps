@@ -1,4 +1,5 @@
 .. index:: fix efield
+.. index:: fix efield/kk
 .. index:: fix efield/tip4p
 
 fix efield command
@@ -10,7 +11,7 @@ fix efield/tip4p command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style ex ey ez keyword value ...
 
@@ -44,8 +45,9 @@ Description
 
 Add a force :math:`\vec{F} = q\vec{E}` to each charged atom in the group due to an
 external electric field being applied to the system.  If the system
-contains point-dipoles, also add a torque on the dipoles due to the
-external electric field.
+contains point-dipoles, also add a torque :math:`\vec{T} = \vec{p} \times \vec{E}` on the dipoles due to the
+external electric field. This fix does not compute the dipole force :math:`\vec{F} = (\vec{p} \cdot \nabla) \vec{E}`,
+and the :doc:`fix efield/lepton <fix_efield_lepton>` command should be used instead.
 
 .. versionadded:: 28Mar2023
 
@@ -67,6 +69,7 @@ For point-dipoles, equal-style variables can be used, but atom-style
 variables are not currently supported, since they imply a spatial
 gradient in the electric field which means additional terms with
 gradients of the field are required for the force and torque on dipoles.
+The :doc:`fix efield/lepton <fix_efield_lepton>` command should be used instead.
 
 Equal-style variables can specify formulas with various mathematical
 functions, and include :doc:`thermo_style <thermo_style>` command
@@ -210,6 +213,12 @@ the iteration count during the minimization.
    system (the quantity being minimized), you MUST enable the
    :doc:`fix_modify <fix_modify>` *energy* option for this fix.
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 Restrictions
 """"""""""""
 
@@ -222,7 +231,7 @@ Fix style *efield/tip4p* can only be used with tip4p pair styles.
 Related commands
 """"""""""""""""
 
-:doc:`fix addforce <fix_addforce>`
+:doc:`fix addforce <fix_addforce>`, :doc:`fix efield/lepton <fix_efield_lepton>`
 
 Default
 """""""

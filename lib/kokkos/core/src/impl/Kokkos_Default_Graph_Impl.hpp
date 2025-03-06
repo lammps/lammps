@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_HOST_GRAPH_IMPL_HPP
 #define KOKKOS_HOST_GRAPH_IMPL_HPP
@@ -51,8 +23,8 @@
 #include <impl/Kokkos_GraphImpl_fwd.hpp>
 #include <impl/Kokkos_Default_Graph_fwd.hpp>
 
-#include <Kokkos_Serial.hpp>
-#include <Kokkos_OpenMP.hpp>
+#include <Serial/Kokkos_Serial.hpp>
+#include <OpenMP/Kokkos_OpenMP.hpp>
 // FIXME @graph other backends?
 
 #include <impl/Kokkos_OptionalRef.hpp>
@@ -84,14 +56,14 @@ struct GraphImpl : private ExecutionSpaceInstanceStorage<ExecutionSpace> {
   //----------------------------------------------------------------------------
   // <editor-fold desc="Constructors, destructor, and assignment"> {{{2
 
-  // Not moveable or copyable; it spends its whole live as a shared_ptr in the
+  // Not movable or copyable; it spends its whole live as a shared_ptr in the
   // Graph object
-  GraphImpl()                 = default;
-  GraphImpl(GraphImpl const&) = delete;
-  GraphImpl(GraphImpl&&)      = delete;
+  GraphImpl()                            = default;
+  GraphImpl(GraphImpl const&)            = delete;
+  GraphImpl(GraphImpl&&)                 = delete;
   GraphImpl& operator=(GraphImpl const&) = delete;
-  GraphImpl& operator=(GraphImpl&&) = delete;
-  ~GraphImpl()                      = default;
+  GraphImpl& operator=(GraphImpl&&)      = delete;
+  ~GraphImpl()                           = default;
 
   explicit GraphImpl(ExecutionSpace arg_space)
       : execution_space_instance_storage_base_t(std::move(arg_space)) {}
@@ -110,10 +82,7 @@ struct GraphImpl : private ExecutionSpaceInstanceStorage<ExecutionSpace> {
   template <class NodeImpl>
   //  requires NodeImplPtr is a shared_ptr to specialization of GraphNodeImpl
   void add_node(std::shared_ptr<NodeImpl> const& arg_node_ptr) {
-    static_assert(
-        NodeImpl::kernel_type::Policy::is_graph_kernel::value,
-        "Something has gone horribly wrong, but it's too complicated to "
-        "explain here.  Buy Daisy a coffee and she'll explain it to you.");
+    static_assert(NodeImpl::kernel_type::Policy::is_graph_kernel::value);
     // Since this is always called before any calls to add_predecessor involving
     // it, we can treat this node as a sink until we discover otherwise.
     arg_node_ptr->node_details_t::set_kernel(arg_node_ptr->get_kernel());
@@ -167,16 +136,39 @@ struct GraphImpl : private ExecutionSpaceInstanceStorage<ExecutionSpace> {
     return rv;
   }
 
-  void submit() {
+  void instantiate() {
+    KOKKOS_EXPECTS(!m_has_been_instantiated);
+    m_has_been_instantiated = true;
+  }
+
+  void submit(const ExecutionSpace& exec) {
+    if (!m_has_been_instantiated) instantiate();
     // This reset is gross, but for the purposes of our simple host
     // implementation...
     for (auto& sink : m_sinks) {
       sink->reset_has_executed();
     }
+
+    // We don't know where the nodes will execute, so we need to fence the given
+    // execution space instance before proceeding. This is the simplest way
+    // of guaranteeing that the kernels in the graph are correctly "enqueued".
+    exec.fence(
+        "Kokkos::DefaultGraph::submit: fencing before launching graph nodes");
+
     for (auto& sink : m_sinks) {
-      sink->execute_node();
+      sink->execute_node(exec);
+    }
+
+    // Once all sinks have been executed, we need to fence them.
+    for (const auto& sink : m_sinks) {
+      if (sink->awaitable() && sink->get_execution_space() != exec)
+        sink->get_execution_space().fence(
+            "Kokkos::DefaultGraph::submit: fencing before ending graph submit");
     }
   }
+
+ private:
+  bool m_has_been_instantiated = false;
 
   // </editor-fold> end required customizations }}}2
   //----------------------------------------------------------------------------
@@ -188,8 +180,6 @@ struct GraphImpl : private ExecutionSpaceInstanceStorage<ExecutionSpace> {
 }  // end namespace Impl
 
 }  // end namespace Kokkos
-
-#include <OpenMP/Kokkos_OpenMP_Parallel.hpp>
 
 #include <impl/Kokkos_Default_GraphNodeKernel.hpp>
 #include <impl/Kokkos_Default_GraphNode_Impl.hpp>

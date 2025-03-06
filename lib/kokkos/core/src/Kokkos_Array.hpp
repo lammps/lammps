@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_ARRAY_HPP
 #define KOKKOS_ARRAY_HPP
@@ -50,20 +22,20 @@
 #endif
 
 #include <Kokkos_Macros.hpp>
+#include <Kokkos_Swap.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_StringManipulation.hpp>
 
 #include <type_traits>
 #include <algorithm>
 #include <utility>
-#include <limits>
 #include <cstddef>
 
 namespace Kokkos {
 
 #ifdef KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
 namespace Impl {
-template <typename Integral, bool Signed = std::is_signed<Integral>::value>
+template <typename Integral, bool Signed = std::is_signed_v<Integral>>
 struct ArrayBoundsCheck;
 
 template <typename Integral>
@@ -107,7 +79,11 @@ struct ArrayBoundsCheck<Integral, false> {
 /**\brief  Derived from the C++17 'std::array'.
  *         Dropping the iterator interface.
  */
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
 template <class T = void, size_t N = KOKKOS_INVALID_INDEX, class Proxy = void>
+#else
+template <class T, size_t N>
+#endif
 struct Array {
  public:
   /**
@@ -156,10 +132,38 @@ struct Array {
   KOKKOS_INLINE_FUNCTION constexpr const_pointer data() const {
     return &m_internal_implementation_private_member_data[0];
   }
+
+  friend KOKKOS_FUNCTION constexpr bool operator==(Array const& lhs,
+                                                   Array const& rhs) noexcept {
+    for (size_t i = 0; i != N; ++i)
+      if (lhs[i] != rhs[i]) return false;
+    return true;
+  }
+
+  friend KOKKOS_FUNCTION constexpr bool operator!=(Array const& lhs,
+                                                   Array const& rhs) noexcept {
+    return !(lhs == rhs);
+  }
+
+ private:
+  template <class U = T>
+  friend KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<
+      Impl::is_swappable<U>::value>
+  kokkos_swap(Array<T, N>& a,
+              Array<T, N>& b) noexcept(Impl::is_nothrow_swappable_v<U>) {
+    for (std::size_t i = 0; i < N; ++i) {
+      kokkos_swap(a[i], b[i]);
+    }
+  }
 };
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
 template <class T, class Proxy>
 struct Array<T, 0, Proxy> {
+#else
+template <class T>
+struct Array<T, 0> {
+#endif
  public:
   using reference       = T&;
   using const_reference = std::add_const_t<T>&;
@@ -191,28 +195,40 @@ struct Array<T, 0, Proxy> {
     return *reinterpret_cast<const_pointer>(-1);
   }
 
-  KOKKOS_INLINE_FUNCTION pointer data() { return pointer(0); }
-  KOKKOS_INLINE_FUNCTION const_pointer data() const { return const_pointer(0); }
+  KOKKOS_INLINE_FUNCTION constexpr pointer data() { return nullptr; }
+  KOKKOS_INLINE_FUNCTION constexpr const_pointer data() const {
+    return nullptr;
+  }
 
-  KOKKOS_DEFAULTED_FUNCTION ~Array()            = default;
-  KOKKOS_DEFAULTED_FUNCTION Array()             = default;
-  KOKKOS_DEFAULTED_FUNCTION Array(const Array&) = default;
-  KOKKOS_DEFAULTED_FUNCTION Array& operator=(const Array&) = default;
+  friend KOKKOS_FUNCTION constexpr bool operator==(Array const&,
+                                                   Array const&) noexcept {
+    return true;
+  }
+  friend KOKKOS_FUNCTION constexpr bool operator!=(Array const&,
+                                                   Array const&) noexcept {
+    return false;
+  }
 
-  // Some supported compilers are not sufficiently C++11 compliant
-  // for default move constructor and move assignment operator.
-  // Array( Array && ) = default ;
-  // Array & operator = ( Array && ) = default ;
+ private:
+  friend KOKKOS_INLINE_FUNCTION constexpr void kokkos_swap(
+      Array<T, 0>&, Array<T, 0>&) noexcept {}
 };
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+namespace Impl {
+struct KokkosArrayContiguous {};
+struct KokkosArrayStrided {};
+}  // namespace Impl
+
 template <>
-struct Array<void, KOKKOS_INVALID_INDEX, void> {
-  struct contiguous {};
-  struct strided {};
+struct KOKKOS_DEPRECATED Array<void, KOKKOS_INVALID_INDEX, void> {
+  using contiguous = Impl::KokkosArrayContiguous;
+  using strided    = Impl::KokkosArrayStrided;
 };
 
 template <class T>
-struct Array<T, KOKKOS_INVALID_INDEX, Array<>::contiguous> {
+struct KOKKOS_DEPRECATED
+    Array<T, KOKKOS_INVALID_INDEX, Impl::KokkosArrayContiguous> {
  private:
   T* m_elem;
   size_t m_size;
@@ -227,7 +243,7 @@ struct Array<T, KOKKOS_INVALID_INDEX, Array<>::contiguous> {
   using const_pointer   = std::add_const_t<T>*;
 
   KOKKOS_INLINE_FUNCTION constexpr size_type size() const { return m_size; }
-  KOKKOS_INLINE_FUNCTION constexpr bool empty() const { return 0 != m_size; }
+  KOKKOS_INLINE_FUNCTION constexpr bool empty() const { return 0 == m_size; }
   KOKKOS_INLINE_FUNCTION constexpr size_type max_size() const { return m_size; }
 
   template <typename iType>
@@ -262,14 +278,14 @@ struct Array<T, KOKKOS_INVALID_INDEX, Array<>::contiguous> {
 
   KOKKOS_INLINE_FUNCTION
   Array& operator=(const Array& rhs) {
-    const size_t n = std::min(m_size, rhs.size());
+    const size_t n = size() < rhs.size() ? size() : rhs.size();
     for (size_t i = 0; i < n; ++i) m_elem[i] = rhs[i];
     return *this;
   }
 
   template <size_t N, class P>
   KOKKOS_INLINE_FUNCTION Array& operator=(const Array<T, N, P>& rhs) {
-    const size_t n = std::min(m_size, rhs.size());
+    const size_t n = size() < rhs.size() ? size() : rhs.size();
     for (size_t i = 0; i < n; ++i) m_elem[i] = rhs[i];
     return *this;
   }
@@ -280,7 +296,8 @@ struct Array<T, KOKKOS_INVALID_INDEX, Array<>::contiguous> {
 };
 
 template <class T>
-struct Array<T, KOKKOS_INVALID_INDEX, Array<>::strided> {
+struct KOKKOS_DEPRECATED
+    Array<T, KOKKOS_INVALID_INDEX, Impl::KokkosArrayStrided> {
  private:
   T* m_elem;
   size_t m_size;
@@ -296,7 +313,7 @@ struct Array<T, KOKKOS_INVALID_INDEX, Array<>::strided> {
   using const_pointer   = std::add_const_t<T>*;
 
   KOKKOS_INLINE_FUNCTION constexpr size_type size() const { return m_size; }
-  KOKKOS_INLINE_FUNCTION constexpr bool empty() const { return 0 != m_size; }
+  KOKKOS_INLINE_FUNCTION constexpr bool empty() const { return 0 == m_size; }
   KOKKOS_INLINE_FUNCTION constexpr size_type max_size() const { return m_size; }
 
   template <typename iType>
@@ -331,15 +348,15 @@ struct Array<T, KOKKOS_INVALID_INDEX, Array<>::strided> {
 
   KOKKOS_INLINE_FUNCTION
   Array& operator=(const Array& rhs) {
-    const size_t n = std::min(m_size, rhs.size());
-    for (size_t i = 0; i < n; ++i) m_elem[i] = rhs[i];
+    const size_t n = size() < rhs.size() ? size() : rhs.size();
+    for (size_t i = 0; i < n; ++i) m_elem[i * m_stride] = rhs[i];
     return *this;
   }
 
   template <size_t N, class P>
   KOKKOS_INLINE_FUNCTION Array& operator=(const Array<T, N, P>& rhs) {
-    const size_t n = std::min(m_size, rhs.size());
-    for (size_t i = 0; i < n; ++i) m_elem[i] = rhs[i];
+    const size_t n = size() < rhs.size() ? size() : rhs.size();
+    for (size_t i = 0; i < n; ++i) m_elem[i * m_stride] = rhs[i];
     return *this;
   }
 
@@ -347,50 +364,100 @@ struct Array<T, KOKKOS_INVALID_INDEX, Array<>::strided> {
                                          size_type arg_stride)
       : m_elem(arg_ptr), m_size(arg_size), m_stride(arg_stride) {}
 };
+#endif
+
+template <typename T, typename... Us>
+Array(T, Us...) -> Array<T, 1 + sizeof...(Us)>;
+
+namespace Impl {
+
+template <typename T, size_t N, size_t... I>
+KOKKOS_FUNCTION constexpr Array<std::remove_cv_t<T>, N> to_array_impl(
+    T (&a)[N], std::index_sequence<I...>) {
+  return {{a[I]...}};
+}
+
+template <typename T, size_t N, size_t... I>
+KOKKOS_FUNCTION constexpr Array<std::remove_cv_t<T>, N> to_array_impl(
+    T (&&a)[N], std::index_sequence<I...>) {
+  return {{std::move(a[I])...}};
+}
+
+}  // namespace Impl
+
+template <typename T, size_t N>
+KOKKOS_FUNCTION constexpr auto to_array(T (&a)[N]) {
+  return Impl::to_array_impl(a, std::make_index_sequence<N>{});
+}
+
+template <typename T, size_t N>
+KOKKOS_FUNCTION constexpr auto to_array(T (&&a)[N]) {
+  return Impl::to_array_impl(std::move(a), std::make_index_sequence<N>{});
+}
 
 }  // namespace Kokkos
 
 //<editor-fold desc="Support for structured binding">
-// guarding against bogus error 'specialization in different namespace' with
-// older GCC that do not support C++17 anyway
-#if !defined(KOKKOS_COMPILER_GNU) || (KOKKOS_COMPILER_GNU >= 710)
-#if defined(KOKKOS_COMPILER_CLANG) && KOKKOS_COMPILER_CLANG < 800
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmismatched-tags"
-#endif
 template <class T, std::size_t N>
 struct std::tuple_size<Kokkos::Array<T, N>>
     : std::integral_constant<std::size_t, N> {};
 
 template <std::size_t I, class T, std::size_t N>
 struct std::tuple_element<I, Kokkos::Array<T, N>> {
+  static_assert(I < N);
   using type = T;
 };
-#if defined(KOKKOS_COMPILER_CLANG) && KOKKOS_COMPILER_CLANG < 800
-#pragma clang diagnostic pop
-#endif
-#endif
 
 namespace Kokkos {
 
 template <std::size_t I, class T, std::size_t N>
 KOKKOS_FUNCTION constexpr T& get(Array<T, N>& a) noexcept {
+  static_assert(I < N);
   return a[I];
 }
 
 template <std::size_t I, class T, std::size_t N>
 KOKKOS_FUNCTION constexpr T const& get(Array<T, N> const& a) noexcept {
+  static_assert(I < N);
   return a[I];
 }
 
 template <std::size_t I, class T, std::size_t N>
 KOKKOS_FUNCTION constexpr T&& get(Array<T, N>&& a) noexcept {
+  static_assert(I < N);
   return std::move(a[I]);
 }
 
 template <std::size_t I, class T, std::size_t N>
 KOKKOS_FUNCTION constexpr T const&& get(Array<T, N> const&& a) noexcept {
+  static_assert(I < N);
   return std::move(a[I]);
+}
+
+}  // namespace Kokkos
+//</editor-fold>
+
+//<editor-fold desc="Support for range-based for loop">
+namespace Kokkos {
+
+template <class T, std::size_t N>
+KOKKOS_FUNCTION constexpr T const* begin(Array<T, N> const& a) noexcept {
+  return a.data();
+}
+
+template <class T, std::size_t N>
+KOKKOS_FUNCTION constexpr T* begin(Array<T, N>& a) noexcept {
+  return a.data();
+}
+
+template <class T, std::size_t N>
+KOKKOS_FUNCTION constexpr T const* end(Array<T, N> const& a) noexcept {
+  return a.data() + a.size();
+}
+
+template <class T, std::size_t N>
+KOKKOS_FUNCTION constexpr T* end(Array<T, N>& a) noexcept {
+  return a.data() + a.size();
 }
 
 }  // namespace Kokkos

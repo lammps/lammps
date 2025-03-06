@@ -29,7 +29,7 @@
 const char *ocl_prefetch_test =
 "  #if (NBOR_PREFETCH == 1)                                                \n"\
 "  inline void ucl_prefetch(const __global int *p) { prefetch(p, 1); }     \n"\
-"  #else                                                                   \n"\
+"  #elif (NBOR_PREFETCH == 2)                                              \n"\
 "  enum LSC_LDCC {LSC_LDCC_DEFAULT, LSC_LDCC_L1UC_L3UC, LSC_LDCC_L1UC_L3C, \n"\
 "                 LSC_LDCC_L1C_L3UC, LSC_LDCC_L1C_L3C, LSC_LDCC_L1S_L3UC,  \n"\
 "                 LSC_LDCC_L1S_L3C, LSC_LDCC_L1IAR_L3C, };                 \n"\
@@ -364,6 +364,12 @@ int DeviceT::init_device(MPI_Comm /*world*/, MPI_Comm replica, const int ngpu,
   } else
     _neighbor_shared.setup_auto_cell_size(false,_user_cell_size,_simd_size);
 
+  #ifndef LAL_USE_OLD_NEIGHBOR
+  _use_old_nbor_build = 0;
+  #else
+  _use_old_nbor_build = 1;
+  #endif
+
   return flag;
 }
 
@@ -510,9 +516,13 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
     gpu_nbor=1;
   else if (_gpu_mode==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
     gpu_nbor=2;
+
+  // NOTE: enforce the hybrid mode (binning on the CPU)
+  // when not using sorting on the device
   #if !defined(USE_CUDPP) && !defined(USE_HIP_DEVICE_SORT)
   if (gpu_nbor==1) gpu_nbor=2;
   #endif
+  // or when the device supports subgroups
   #ifndef LAL_USE_OLD_NEIGHBOR
   if (gpu_nbor==1) gpu_nbor=2;
   #endif
@@ -745,7 +755,14 @@ void DeviceT::estimate_gpu_overhead(const int kernel_calls,
   gpu_overhead=0.0;
   gpu_driver_overhead=0.0;
 
-  for (int z=0; z<11; z++) {
+  // TODO: XXX
+  // The following estimation currently fails on Intel GPUs
+  // that do not support double precision with OpenCL error code -5.
+  // Until we have a better solution, we just skip this test in this case.
+  int zloops = 11;
+  if (!gpu->double_precision()) zloops = 0;
+
+  for (int z=0; z < zloops; z++) {
     gpu->sync();
     gpu_barrier();
     over_timer.start();
@@ -879,19 +896,31 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
       }
       if (times[5] > 0.0)
         fprintf(screen,"Device Overhead: %.4f s.\n",times[5]/_replica_size);
-      fprintf(screen,"Average split:   %.4f.\n",avg_split);
-      fprintf(screen,"Lanes / atom:    %d.\n",threads_per_atom);
-      fprintf(screen,"Vector width:    %d.\n", simd_size());
-      fprintf(screen,"Prefetch mode:   ");
-      if (_nbor_prefetch==2) fprintf(screen,"Intrinsics.\n");
-      else if (_nbor_prefetch==1) fprintf(screen,"API.\n");
-      else fprintf(screen,"None.\n");
-      fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
       if (nbor.gpu_nbor()==2)
         fprintf(screen,"CPU Neighbor:    %.4f s.\n",times[8]/_replica_size);
       fprintf(screen,"CPU Cast/Pack:   %.4f s.\n",times[4]/_replica_size);
       fprintf(screen,"CPU Driver_Time: %.4f s.\n",times[6]/_replica_size);
       fprintf(screen,"CPU Idle_Time:   %.4f s.\n",times[7]/_replica_size);
+      fprintf(screen,"Average split:   %.4f.\n",avg_split);
+      fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
+      fprintf(screen,"Prefetch mode:   ");
+      if (_nbor_prefetch==2) fprintf(screen,"Intrinsics.\n");
+      else if (_nbor_prefetch==1) fprintf(screen,"API.\n");
+      else fprintf(screen,"None.\n");
+      fprintf(screen,"Vector width:    %d.\n", simd_size());
+      fprintf(screen,"Lanes / atom:    %d.\n",threads_per_atom);
+      fprintf(screen,"Pair block:      %d.\n",_block_pair);
+      fprintf(screen,"Neigh block:     %d.\n",_block_nbor_build);
+      if (nbor.gpu_nbor()==2) {
+        fprintf(screen,"Neigh mode:      Hybrid (binning on host)");
+        if (_use_old_nbor_build == 1) fprintf(screen," - legacy\n");
+        else  fprintf(screen," with subgroup support\n");
+      } else if (nbor.gpu_nbor()==1) {
+        fprintf(screen,"Neigh mode:      Device");
+        if (_use_old_nbor_build == 1) fprintf(screen," - legacy\n");
+        else  fprintf(screen," - with subgroup support\n");
+      } else if (nbor.gpu_nbor()==0)
+        fprintf(screen,"Neigh mode:      Host\n");
 
       fprintf(screen,"-------------------------------------");
       fprintf(screen,"--------------------------------\n\n");

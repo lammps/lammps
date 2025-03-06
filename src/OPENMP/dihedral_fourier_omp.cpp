@@ -29,7 +29,7 @@
 #include "suffix.h"
 using namespace LAMMPS_NS;
 
-#define TOLERANCE 0.05
+static constexpr double TOLERANCE = 0.05;
 
 /* ---------------------------------------------------------------------- */
 

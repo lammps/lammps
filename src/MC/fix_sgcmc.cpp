@@ -235,11 +235,13 @@ int FixSemiGrandCanonicalMC::setmask()
  *********************************************************************/
 void FixSemiGrandCanonicalMC::init()
 {
-  // Make sure the user has defined only one Monte-Carlo fix.
-  int count = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"sgcmc") == 0) count++;
-  if (count > 1) error->all(FLERR, "More than one fix sgcmc defined.");
+  if (!atom->mass) error->all(FLERR, "Fix sgcmc requires per atom type masses");
+  if (atom->rmass_flag && (comm->me == 0))
+    error->warning(FLERR, "Fix sgcmc will use per atom type masses for velocity initialization");
+
+  // Make sure the user has defined only one Semi-Grand Monte-Carlo fix.
+  if (modify->get_fix_by_style("sgcmc").size() > 1)
+    error->all(FLERR, "More than one fix sgcmc defined.");
 
   // Save a pointer to the EAM potential.
   pairEAM = dynamic_cast<PairEAM*>(force->pair);
@@ -248,13 +250,12 @@ void FixSemiGrandCanonicalMC::init()
       utils::logmesg(lmp, "  SGC - Using naive total energy calculation for MC -> SLOW!\n");
 
     if (comm->nprocs > 1)
-      error->all(FLERR, "Can not run fix vcsgc with naive total energy calculation and more than one MPI process.");
+      error->all(FLERR, "Can not run fix sgcmc with naive total energy calculation "
+                 "and more than one MPI process.");
 
-    // Create a compute that will provide the total energy of the system.
+    // Get reference to a compute that will provide the total energy of the system.
     // This is needed by computeTotalEnergy().
-    char* id_pe = (char*)"thermo_pe";
-    int ipe = modify->find_compute(id_pe);
-    compute_pe = modify->compute[ipe];
+    compute_pe = modify->get_compute_by_id("thermo_pe");
   }
   interactionRadius = force->pair->cutforce;
   if (comm->me == 0) utils::logmesg(lmp, "  SGC - Interaction radius: {}\n", interactionRadius);
@@ -273,7 +274,7 @@ void FixSemiGrandCanonicalMC::init()
 
   // MPI sum to get global concentrations.
   speciesCounts.resize(atom->ntypes+1);
-  MPI_Allreduce(&localSpeciesCounts.front(), &speciesCounts.front(), localSpeciesCounts.size(),
+  MPI_Allreduce(localSpeciesCounts.data(), speciesCounts.data(), localSpeciesCounts.size(),
                 MPI_INT, MPI_SUM, world);
 }
 
@@ -370,8 +371,7 @@ void FixSemiGrandCanonicalMC::doMC()
           // Use a random number to choose the new species if there are three or more atom types.
           newSpecies = (int)(localRandom->uniform() * (atom->ntypes-1)) + 1;
           if (newSpecies >= oldSpecies) newSpecies++;
-        }
-        else {
+        } else {
           // If there are only two atom types, then the decision is clear.
           newSpecies = (oldSpecies == 1) ? 2 : 1;
         }
@@ -391,8 +391,7 @@ void FixSemiGrandCanonicalMC::doMC()
         if (serialMode && kappa != 0.0) {
           for (int i = 2; i <= atom->ntypes; i++)
             dm += (deltamu[i] + kappa / atom->natoms * (2.0 * speciesCounts[i] + deltaN[i])) * deltaN[i];
-        }
-        else {
+        } else {
           for (int i = 2; i <= atom->ntypes; i++)
             dm += deltamu[i] * deltaN[i];
         }
@@ -412,7 +411,7 @@ void FixSemiGrandCanonicalMC::doMC()
         // semi-grandcanonical method.
 
         // MPI sum of total change in number of particles.
-        MPI_Allreduce(&deltaN.front(), &deltaNGlobal.front(), deltaN.size(), MPI_INT, MPI_SUM, world);
+        MPI_Allreduce(deltaN.data(), deltaNGlobal.data(), deltaN.size(), MPI_INT, MPI_SUM, world);
 
         // Perform outer MC acceptance test.
         // This is done in sync by all processors.
@@ -433,8 +432,7 @@ void FixSemiGrandCanonicalMC::doMC()
         // Update global species counters.
         for (int i = 1; i <= atom->ntypes; i++)
           speciesCounts[i] += deltaNGlobal[i];
-      }
-      else if (serialMode) {
+      } else if (serialMode) {
         // Update the local species counters.
         for (int i = 1; i <= atom->ntypes; i++)
           speciesCounts[i] += deltaN[i];
@@ -447,8 +445,7 @@ void FixSemiGrandCanonicalMC::doMC()
         else
           flipAtomGeneric(selectedAtom, oldSpecies, newSpecies);
         nAcceptedSwapsLocal++;
-      }
-      else {
+      } else {
         nRejectedSwapsLocal++;
       }
 
@@ -479,7 +476,7 @@ void FixSemiGrandCanonicalMC::doMC()
       if (mask[i] & groupbit)
         localSpeciesCounts[*type]++;
     }
-    MPI_Allreduce(&localSpeciesCounts.front(), &speciesCounts.front(), localSpeciesCounts.size(), MPI_INT, MPI_SUM, world);
+    MPI_Allreduce(localSpeciesCounts.data(), speciesCounts.data(), localSpeciesCounts.size(), MPI_INT, MPI_SUM, world);
   }
 }
 
@@ -645,7 +642,7 @@ bool FixSemiGrandCanonicalMC::placeSamplingWindow()
   samplingWindowPosition += 1;
 
   // Compile a list of atoms that are inside the sampling window.
-  samplingWindowAtoms.resize(0);
+  samplingWindowAtoms.clear();
   samplingWindowAtoms.reserve(atom->nlocal);
   numSamplingWindowAtoms = 0;
   numFixAtomsLocal = 0;

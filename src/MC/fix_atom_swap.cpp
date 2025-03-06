@@ -35,6 +35,7 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "pair.h"
+#include "pair_hybrid.h"
 #include "random_park.h"
 #include "region.h"
 #include "update.h"
@@ -82,7 +83,7 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
 
   memory->create(type_list, atom->ntypes, "atom/swap:type_list");
   memory->create(mu, atom->ntypes + 1, "atom/swap:mu");
-  for (int i = 1; i <= atom->ntypes; i++) mu[i] = 0.0;
+  for (int i = 0; i <= atom->ntypes; i++) mu[i] = 0.0;
 
   // read options from end of input line
 
@@ -171,7 +172,7 @@ void FixAtomSwap::options(int narg, char **arg)
       while (iarg < narg) {
         if (isalpha(arg[iarg][0])) break;
         if (nswaptypes >= atom->ntypes) error->all(FLERR, "Illegal fix atom/swap command");
-        type_list[nswaptypes] = utils::numeric(FLERR, arg[iarg], false, lmp);
+        type_list[nswaptypes] = utils::expand_type_int(FLERR, arg[iarg], Atom::ATOM, lmp);
         nswaptypes++;
         iarg++;
       }
@@ -203,6 +204,10 @@ int FixAtomSwap::setmask()
 
 void FixAtomSwap::init()
 {
+  if (!atom->mass) error->all(FLERR, "Fix atom/swap requires per atom type masses");
+  if (atom->rmass_flag && (comm->me == 0))
+    error->warning(FLERR, "Fix atom/swap will use per-type masses for velocity rescaling");
+
   c_pe = modify->get_compute_by_id("thermo_pe");
 
   int *type = atom->type;
@@ -217,6 +222,28 @@ void FixAtomSwap::init()
       error->all(FLERR, "Only 2 types allowed when not using semi-grand in fix atom/swap command");
     if (nmutypes != 0)
       error->all(FLERR, "Mu not allowed when not using semi-grand in fix atom/swap command");
+  }
+
+  // check if constraints for hybrid pair styles are fulfilled
+
+  if (utils::strmatch(force->pair_style, "^hybrid")) {
+    auto *hybrid = dynamic_cast<PairHybrid *>(force->pair);
+    if (hybrid) {
+      for (int i = 0; i < nswaptypes - 1; ++i) {
+        int type1 = type_list[i];
+        for (int j = i + 1; j < nswaptypes; ++j) {
+          int type2 = type_list[j];
+          if (hybrid->nmap[type1][type1] != hybrid->nmap[type2][type2])
+            error->all(FLERR, "Pair {} substyles for atom types {} and {} are not compatible",
+                       force->pair_style, type1, type2);
+          for (int k = 0; k < hybrid->nmap[type1][type1]; ++k) {
+            if (hybrid->map[type1][type1][k] != hybrid->map[type2][type2][k])
+              error->all(FLERR, "Pair {} substyles for atom types {} and {} are not compatible",
+                         force->pair_style, type1, type2);
+          }
+        }
+      }
+    }
   }
 
   // set index and check validity of region

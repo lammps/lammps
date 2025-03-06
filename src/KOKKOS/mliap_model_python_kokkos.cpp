@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -43,7 +43,7 @@ MLIAPModelPythonKokkos<DeviceType>::MLIAPModelPythonKokkos(LAMMPS *lmp, char *co
   MLIAPModelPython(lmp,coefffilename,true),
   MLIAPModelKokkos<DeviceType>(lmp, this)
 {
-  if  (!std::is_same<DeviceType,LMPDeviceType>::value )
+  if  (!std::is_same_v<DeviceType,LMPDeviceType> )
     MLIAPModelKokkos<DeviceType>::error->all(FLERR, "MLIAP Kokkos version of the python interface is ONLY available on device");
 
   model_loaded = 0;
@@ -68,12 +68,12 @@ MLIAPModelPythonKokkos<DeviceType>::MLIAPModelPythonKokkos(LAMMPS *lmp, char *co
   // Recipe from lammps/src/pair_python.cpp :
   // add current directory to PYTHONPATH
   PyObject *py_path = PySys_GetObject((char *) "path");
-  PyList_Append(py_path, PY_STRING_FROM_STRING("."));
+  PyList_Append(py_path, PyUnicode_FromString("."));
 
   // if LAMMPS_POTENTIALS environment variable is set, add it to PYTHONPATH as well
   const char *potentials_path = getenv("LAMMPS_POTENTIALS");
   if (potentials_path != nullptr) {
-    PyList_Append(py_path, PY_STRING_FROM_STRING(potentials_path));
+    PyList_Append(py_path, PyUnicode_FromString(potentials_path));
   }
   PyGILState_Release(gstate);
   if (coefffilename) read_coeffs(coefffilename);

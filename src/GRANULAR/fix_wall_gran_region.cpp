@@ -30,8 +30,6 @@
 #include "update.h"
 #include "variable.h"
 
-#include <cstring>
-
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
 using namespace MathExtra;
@@ -120,7 +118,7 @@ void FixWallGranRegion::init()
 
 void FixWallGranRegion::post_force(int /*vflag*/)
 {
-  int i, m, nc, iwall;
+  int i, n, m, nc, iwall;
   double *forces, *torquesi;
   double meff, vwall[3], w0[3] = {0.0, 0.0, 0.0};
   bool touchflag = false;
@@ -176,7 +174,11 @@ void FixWallGranRegion::post_force(int /*vflag*/)
     region->set_velocity();
   }
 
-  if (peratom_flag) clear_stored_contacts();
+  model->calculate_svector = 0;
+  if (peratom_flag) {
+    model->calculate_svector = 1;
+    clear_stored_contacts();
+  }
 
   // Define constant wall properties (atom j)
   model->radj = 0.0;
@@ -197,10 +199,10 @@ void FixWallGranRegion::post_force(int /*vflag*/)
     if (nc > tmax) error->one(FLERR, "Too many wallgran/region contacts for one particle");
 
     // shear history maintenance
-    // update ncontact,walls,shear2many for particle I
-    //   to reflect new and persistent shear historyvalues
-    // also set c2r[] = indices into region->contact[]for each of N contacts
-    // process zero or one contact here, otherwiseinvoke update_contacts()
+    // update ncontact, walls, shear2many for particle I
+    //   to reflect new and persistent shear history values
+    // also set c2r[] = indices into region->contact[] for each of N contacts
+    // process zero or one contact here, otherwise invoke update_contacts()
 
     if (use_history) {
       if (nc == 0) {
@@ -230,6 +232,9 @@ void FixWallGranRegion::post_force(int /*vflag*/)
       model->radi = radius[i];
       model->radj = region->contact[ic].radius;
       model->r = region->contact[ic].r;
+      model->i = i;
+      model->j = ic;
+
       if (model->beyond_contact) model->touch = history_many[i][c2r[ic]][0];
 
       touchflag = model->check_contact();
@@ -282,6 +287,9 @@ void FixWallGranRegion::post_force(int /*vflag*/)
         array_atom[i][5] = x[i][1] - model->dx[1];
         array_atom[i][6] = x[i][2] - model->dx[2];
         array_atom[i][7] = radius[i];
+
+        for (n = 0; n < model->nsvector; n++)
+          array_atom[i][8 + n] = model->svector[n];
       }
     }
   }

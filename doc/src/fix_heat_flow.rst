@@ -1,12 +1,12 @@
 .. index:: fix heat/flow
 
 fix heat/flow command
-==========================
+=====================
 
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID heat/flow style values ...
 
@@ -56,13 +56,19 @@ not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
+This pair style is part of the GRANULAR package.  It is
+only enabled if LAMMPS was built with that package.
+See the :doc:`Build package <Build_package>` page for more info.
+
 This fix requires that atoms store temperature and heat flow
 as defined by the :doc:`fix property/atom <fix_property_atom>` command.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair granular <pair_granular>`, :doc:`fix property/atom <fix_property_atom>`
+:doc:`pair granular <pair_granular>`,
+:doc:`fix add/heat <fix_add_heat>`,
+:doc:`fix property/atom <fix_property_atom>`
 
 Default
 """""""

@@ -1,8 +1,8 @@
 /*
-*   This function fills in the keyword field, the number of members for each
-*   item and the number of parameters for each item
-*
-*/
+ *   This function fills in the keyword field, the number of members for each
+ *   item and the number of parameters for each item
+ *
+ */
 
 #include "msi2lmp.h"
 #include "Forcefield.h"

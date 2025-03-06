@@ -86,5 +86,4 @@ none
 
 .. _vanWijk:
 
-**(vanWijk)** M. M. van Wijk, A. Schuring, M. I. Katsnelson, and A. Fasolino,
-Physical Review Letters, 113, 135504 (2014)
+**(vanWijk)** M. M. van Wijk, A. Schuring, M. I. Katsnelson, and A. Fasolino, Physical Review Letters, 113, 135504 (2014)

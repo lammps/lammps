@@ -111,7 +111,12 @@ void FixNumDiff::init()
   // check for PE compute
 
   pe = modify->get_compute_by_id(id_pe);
-  if (!pe) error->all(FLERR, "PE compute ID for fix numdiff does not exist");
+  if (!pe) {
+    error->all(FLERR, "Potential energy compute ID {} for fix {} does not exist", id_pe, style);
+  } else {
+    if (pe->peflag == 0)
+      error->all(FLERR, "Compute ID {} for fix {} does not compute potential energy", id_pe, style);
+  }
 
   if (force->pair && force->pair->compute_flag)
     pair_compute_flag = 1;

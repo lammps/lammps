@@ -1,0 +1,1 @@
+kokkos_add_executable(launch_latency SOURCES launch_latency.cpp)

@@ -19,10 +19,13 @@
 #include "compute_mliap.h"
 
 #include "mliap_data.h"
-#include "mliap_model_linear.h"
-#include "mliap_model_quadratic.h"
 #include "mliap_descriptor_snap.h"
 #include "mliap_descriptor_so3.h"
+#ifdef MLIAP_ACE
+#include "mliap_descriptor_ace.h"
+#endif
+#include "mliap_model_linear.h"
+#include "mliap_model_quadratic.h"
 #ifdef MLIAP_PYTHON
 #include "mliap_model_python.h"
 #endif
@@ -41,17 +44,17 @@
 
 using namespace LAMMPS_NS;
 
-enum{SCALAR,VECTOR,ARRAY};
+enum { SCALAR, VECTOR, ARRAY };
 
 ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), mliaparray(nullptr),
-  mliaparrayall(nullptr), map(nullptr)
+    Compute(lmp, narg, arg), mliaparray(nullptr), mliaparrayall(nullptr), list(nullptr),
+    map(nullptr), model(nullptr), descriptor(nullptr), data(nullptr), c_pe(nullptr),
+    c_virial(nullptr)
 {
   array_flag = 1;
   extarray = 0;
 
-  if (narg < 4)
-    error->all(FLERR,"Illegal compute mliap command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "compute mliap", error);
 
   // default values
 
@@ -68,40 +71,54 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"model") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal compute mliap command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute mliap model", error);
       if (strcmp(arg[iarg+1],"linear") == 0) {
         model = new MLIAPModelLinear(lmp);
         iarg += 2;
       } else if (strcmp(arg[iarg+1],"quadratic") == 0) {
         model = new MLIAPModelQuadratic(lmp);
         iarg += 2;
-      }
 #ifdef MLIAP_PYTHON
-      else if (strcmp(arg[iarg+1],"mliappy") == 0) {
+      } else if (strcmp(arg[iarg+1],"mliappy") == 0) {
       model = new MLIAPModelPython(lmp);
       iarg += 2;
-      }
+#else
+      } else if (strcmp(arg[iarg+1],"mliappy") == 0) {
+        error->all(FLERR, "Must enable PYTHON package and -DMLIAP_PYTHON setting to use "
+                   "'mliappy' model");
 #endif
-      else error->all(FLERR,"Illegal compute mliap command");
+      } else error->all(FLERR,"Unknown compute mliap model {}", arg[iarg+1]);
       modelflag = 1;
     } else if (strcmp(arg[iarg],"descriptor") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal compute mliap command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute mliap descriptor", error);
       if (strcmp(arg[iarg+1],"sna") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal compute mliap command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"compute mliap descriptor sna", error);
+        if (lmp->kokkos) error->all(FLERR,"Cannot (yet) use KOKKOS package with SNAP descriptors");
         descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"so3") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"compute mliap descriptor so3", error);
         descriptor = new MLIAPDescriptorSO3(lmp,arg[iarg+2]);
         iarg += 3;
-      } else error->all(FLERR,"Illegal compute mliap command");
+#ifdef MLIAP_ACE
+      } else if (strcmp(arg[iarg+1],"ace") == 0) {
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"compute mliap descriptor ace", error);
+        if (lmp->kokkos) error->all(FLERR,"Cannot (yet) use KOKKOS package with ACE descriptors");
+        descriptor = new MLIAPDescriptorACE(lmp,arg[iarg+2]);
+        iarg += 3;
+#else
+      } else if (strcmp(arg[iarg+1],"ace") == 0) {
+        error->all(FLERR, "Must enable ML-PACE package and -DMLIAP_ACE setting to use"
+                   " 'ace' descriptor");
+#endif
+      } else error->all(FLERR,"Unknown compute mliap descriptor {}", arg[iarg+1]);
       descriptorflag = 1;
     } else if (strcmp(arg[iarg],"gradgradflag") == 0) {
       if (iarg+1 > narg) error->all(FLERR,"Illegal compute mliap command");
       gradgradflag = utils::logical(FLERR, arg[iarg+1], false, lmp);
       iarg += 2;
     } else
-      error->all(FLERR,"Illegal compute mliap command");
+      error->all(FLERR,"Unknown compute mliap keyword {}", arg[iarg]);
   }
 
   if (modelflag == 0 || descriptorflag == 0)
@@ -130,7 +147,6 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeMLIAP::~ComputeMLIAP()
 {
-
   modify->delete_compute(id_virial);
 
   memory->destroy(mliaparray);
@@ -180,23 +196,13 @@ void ComputeMLIAP::init()
 
   // find compute for reference energy
 
-  std::string id_pe = std::string("thermo_pe");
-  int ipe = modify->find_compute(id_pe);
-  if (ipe == -1)
-    error->all(FLERR,"compute thermo_pe does not exist.");
-  c_pe = modify->compute[ipe];
+  c_pe = modify->get_compute_by_id("thermo_pe");
+  if (!c_pe) error->all(FLERR,"Compute thermo_pe does not exist.");
 
   // add compute for reference virial tensor
 
   id_virial = id + std::string("_press");
-  std::string pcmd = id_virial + " all pressure NULL virial";
-  modify->add_compute(pcmd);
-
-  int ivirial = modify->find_compute(id_virial);
-  if (ivirial == -1)
-    error->all(FLERR,"compute mliap_press does not exist.");
-  c_virial = modify->compute[ivirial];
-
+  c_virial = modify->add_compute(id_virial + " all pressure NULL virial");
 }
 
 

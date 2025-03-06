@@ -41,10 +41,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-// same as fix_wall.cpp
-
-enum{NONE=0,EDGE,CONSTANT,VARIABLE};
-
 /* ---------------------------------------------------------------------- */
 
 PairLubricate::PairLubricate(LAMMPS *lmp) : Pair(lmp)
@@ -169,7 +165,7 @@ void PairLubricate::compute(int eflag, int vflag)
          for (int m = 0; m < wallfix->nwall; m++) {
            int dim = wallfix->wallwhich[m] / 2;
            int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->xstyle[m] == VARIABLE) {
+           if (wallfix->xstyle[m] == FixWall::VARIABLE) {
              wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
            }
            else wallcoord = wallfix->coord0[m];
@@ -531,8 +527,10 @@ void PairLubricate::coeff(int narg, char **arg)
 
 void PairLubricate::init_style()
 {
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Pair lubricate requires atom style sphere");
+  if (!atom->omega_flag)
+    error->all(FLERR,"Pair lubricate requires atom attribute omega");
+  if (!atom->radius_flag)
+    error->all(FLERR,"Pair lubricate requires atom attribute radius");
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair lubricate requires ghost atoms store velocity");
 
@@ -560,21 +558,23 @@ void PairLubricate::init_style()
   // are re-calculated at every step.
 
   shearing = flagdeform = flagwall = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"deform") == 0) {
-      shearing = flagdeform = 1;
-      if ((dynamic_cast<FixDeform *>(modify->fix[i]))->remapflag != Domain::V_REMAP)
-        error->all(FLERR,"Using pair lubricate with inconsistent "
-                   "fix deform remap option");
-    }
-    if (strstr(modify->fix[i]->style,"wall") != nullptr) {
-      if (flagwall)
-        error->all(FLERR,
-                   "Cannot use multiple fix wall commands with pair lubricate");
-      flagwall = 1; // Walls exist
-      wallfix = dynamic_cast<FixWall *>(modify->fix[i]);
-      if (wallfix->xflag) flagwall = 2; // Moving walls exist
-    }
+
+  auto fixes = modify->get_fix_by_style("^deform");
+  if (fixes.size() > 0) {
+    shearing = flagdeform = 1;
+    auto *myfix = dynamic_cast<FixDeform *>(fixes[0]);
+    if (myfix && (myfix->remapflag != Domain::V_REMAP))
+      error->all(FLERR,"Using pair lubricate with inconsistent fix deform remap option");
+  }
+  fixes = modify->get_fix_by_style("^wall");
+  if (fixes.size() > 1)
+    error->all(FLERR, "Cannot use multiple fix wall commands with pair lubricate");
+  else if (fixes.size() == 1) {
+    wallfix = dynamic_cast<FixWall *>(fixes[0]);
+    if (!wallfix)
+      error->all(FLERR, "Fix {} is not compatible with pair lubricate", fixes[0]->style);
+    flagwall = 1;
+    if (wallfix->xflag) flagwall = 2; // Moving walls exist
   }
 
   // set the isotropic constants that depend on the volume fraction
@@ -593,7 +593,7 @@ void PairLubricate::init_style()
     for (int m = 0; m < wallfix->nwall; m++) {
       int dim = wallfix->wallwhich[m] / 2;
       int side = wallfix->wallwhich[m] % 2;
-      if (wallfix->xstyle[m] == VARIABLE) {
+      if (wallfix->xstyle[m] == FixWall::VARIABLE) {
         wallfix->xindex[m] = input->variable->find(wallfix->xstr[m]);
         //Since fix->wall->init happens after pair->init_style
         wallcoord = input->variable->compute_equal(wallfix->xindex[m]);

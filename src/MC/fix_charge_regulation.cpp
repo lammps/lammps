@@ -46,6 +46,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 #include <memory>
 
 using namespace LAMMPS_NS;
@@ -66,9 +67,9 @@ static const char cite_fix_charge_regulation[] =
 enum{CONSTANT,EQUAL}; // parsing input variables
 
 // large energy value used to signal overlap
-#define MAXENERGYSIGNAL 1.0e100
-#define MAXENERGYTEST 1.0e50
-#define SMALL 0.0000001
+static constexpr double MAXENERGYSIGNAL = 1.0e100;
+static constexpr double MAXENERGYTEST = 1.0e50;
+static constexpr double SMALL = 0.0000001;
 #define NA_RHO0 0.602214 // Avogadro's constant times reference concentration  (N_A * mol / liter)  [nm^-3]
 
 /* ---------------------------------------------------------------------- */
@@ -96,8 +97,8 @@ FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   energy_stored = 0;
 
   // necessary to specify the free ion types
-  cation_type = utils::inumeric(FLERR, arg[3], false, lmp);
-  anion_type = utils::inumeric(FLERR, arg[4], false, lmp);
+  cation_type = utils::expand_type_int(FLERR, arg[3], Atom::ATOM, lmp);
+  anion_type = utils::expand_type_int(FLERR, arg[4], Atom::ATOM, lmp);
 
   // set defaults and read optional arguments
   options(narg - 5, &arg[5]);
@@ -173,9 +174,9 @@ FixChargeRegulation::~FixChargeRegulation() {
     neighbor->exclusion_group_group_delete(exclusion_group, igroupall);
   }
 
-  if (groupstrings) {
+  if (ngroups > 0) {
     for (int i = 0; i < ngroups; ++i) delete[] groupstrings[i];
-    memory->destroy(groupstrings);
+    memory->sfree(groupstrings);
   }
 }
 
@@ -190,6 +191,11 @@ int FixChargeRegulation::setmask() {
 /* ---------------------------------------------------------------------- */
 
 void FixChargeRegulation::init() {
+
+  if (!atom->mass) error->all(FLERR, "Fix charge/regulation requires per atom type masses");
+  if (atom->rmass_flag && (comm->me == 0))
+    error->warning(FLERR, "Fix charge/regulation will use per atom type masses for "
+                   "velocity initialization");
 
   triclinic = domain->triclinic;
   int ipe = modify->find_compute("thermo_pe");
@@ -212,7 +218,7 @@ void FixChargeRegulation::init() {
     int flagall = flag;
 
     MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
-    if (flagall && comm->me == 0)
+    if (flagall)
       error->all(FLERR, "fix charge/regulation cannot exchange "
                  "individual atoms (ions) belonging to a molecule");
   }
@@ -1392,11 +1398,11 @@ void FixChargeRegulation::options(int narg, char **arg) {
       iarg += 2;
     } else if (strcmp(arg[iarg], "acid_type") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
-      acid_type = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      acid_type = utils::expand_type_int(FLERR, arg[iarg + 1], Atom::ATOM, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "base_type") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
-      base_type = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      base_type = utils::expand_type_int(FLERR, arg[iarg + 1], Atom::ATOM, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "pH") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");

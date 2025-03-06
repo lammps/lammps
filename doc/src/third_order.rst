@@ -4,7 +4,7 @@
 third_order command
 ===================
 
-Accelerator Variants: third_order/kk
+Accelerator Variant: third_order/kk
 
 Syntax
 """"""

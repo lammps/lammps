@@ -28,20 +28,34 @@ Include files (varied)
   packages and hard-to-find bugs have regularly manifested in the
   past.
 
-- Header files, especially those defining a "style", should only use
-  the absolute minimum number of include files and **must not**
-  contain any ``using`` statements. Typically, that would only be the
-  header for the base class.  Instead, any include statements should
-  be put in the corresponding implementation files and forward
-  declarations be used.  For implementation files, the "include what
-  you use" principle should be employed.  However, there is the
-  notable exception that when the ``pointers.h`` header is included
-  (or one of the base classes derived from it) certain headers will
-  always be included and thus do not need to be explicitly specified.
-  These are: `mpi.h`, `cstddef`, `cstdio`, `cstdlib`, `string`,
-  `utils.h`, `vector`, `fmt/format.h`, `climits`, `cinttypes`.  This
-  also means any such file can assume that `FILE`, `NULL`, and
-  `INT_MAX` are defined.
+- Header files, especially those defining a "style", should only use the
+  absolute minimum number of include files and **must not** contain any
+  ``using`` statements. Typically, that would only be the header for the
+  base class.  Instead, any include statements should be put in the
+  corresponding implementation files and forward declarations be used.
+  For implementation files, the "include what you use" principle should
+  be employed.  However, there is the notable exception that when the
+  ``pointers.h`` header is included (or the header of one of the classes
+  derived from it), certain headers will *always* be included and thus
+  do not need to be explicitly specified.  These are: `mpi.h`,
+  `cstddef`, `cstdio`, `cstdlib`, `string`, `utils.h`, `vector`,
+  `fmt/format.h`, `climits`, `cinttypes`.  This also means any such file
+  can assume that `FILE`, `NULL`, and `INT_MAX` are defined.
+
+- Class members variables should not be initialized in the header file,
+  but instead should be initialized either in the initializer list of
+  the constructor or explicitly assigned in the body of the constructor.
+  If the member variable is relevant to the functionality of a class
+  (for example when it stores a value from a command-line argument), the
+  member variable declaration is followed by a brief comment explaining
+  its purpose and what its values can be.  Class members that are
+  pointers should always be initialized to ``nullptr`` in the
+  initializer list of the constructor.  This reduces clutter in the
+  header and avoids accessing uninitialized pointers, which leads to
+  hard to debug issues, class members are often implicitly initialized
+  to ``NULL`` on the first use (but *not* after a :doc:`clear command
+  <clear>`).  Please see the files ``reset_atoms_mol.h`` and
+  ``reset_atoms_mol.cpp`` as an example.
 
 - System headers or headers from installed libraries are included with
   angular brackets (example: ``#include <vector>``), while local
@@ -81,6 +95,39 @@ normally with a source file or a source folder as argument, they will
 list all non-conforming lines.  By adding the `-f` flag to the command
 line, they will modify the flagged files to try to remove the detected
 issues.
+
+Constants (strongly preferred)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Global or per-file constants should be declared as `static constexpr`
+variables rather than via the pre-processor with `#define`.  The name of
+constants should be all uppercase.  This has multiple advantages:
+
+- constants are easily identified as such by their all upper case name
+- rather than a pure text substitution during pre-processing, `constexpr
+  variables` have a type associated with them and are processed later in
+  the parsing process where the syntax checks and type specific
+  processing (e.g. via overloads) can be applied to them.
+- compilers can emit a warning if the constant is not used and thus can
+  be removed (we regularly check for and remove dead code like this)
+- there are no unexpected substitutions and thus confusing syntax errors
+  when compiling leading to, for instance, conflicts so that LAMMPS
+  cannot be compiled with certain combinations of packages (this *has*
+  happened multiple times in the past).
+
+Pre-processor defines should be limited to macros (but consider C++
+templates) and conditional compilation.  If a per-processor define must
+be used, it should be defined at the top of the .cpp file after the
+include statements and at all cost it should be avoided to put them into
+header files.
+
+Some sets of commonly used constants are provided in the ``MathConst``
+and ``EwaldConst`` namespaces and implemented in the files
+``math_const.h`` and ``ewald_const.h``, respectively.
+
+There are always exceptions, special cases, and legacy code in LAMMPS,
+so please contact the LAMMPS developers if you are not sure.
+
 
 Placement of braces (strongly preferred)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

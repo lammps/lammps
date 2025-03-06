@@ -25,7 +25,7 @@
 
 using namespace LAMMPS_NS;
 
-#define SMALL 0.001
+static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
@@ -89,8 +89,6 @@ void AngleCosineDelta::compute(int eflag, int vflag)
 
     s = sqrt(1.0 - c*c);
     if (s < SMALL) s = SMALL;
-    s = 1.0/s;
-
     cot = c/s;
 
     // force & energy

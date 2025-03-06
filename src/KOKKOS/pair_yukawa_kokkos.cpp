@@ -105,9 +105,9 @@ void PairYukawaKokkos<DeviceType>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
 }
 
@@ -215,10 +215,8 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairYukawaKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
+compute_fpair(const F_FLOAT &rsq, const int &, const int &,
+              const int &itype, const int &jtype) const {
   const F_FLOAT rr     = sqrt(rsq);
   // Fetch the params either off the stack or from some mapped memory?
   const F_FLOAT aa     = STACKPARAMS ? m_params[itype][jtype].a
@@ -241,10 +239,8 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairYukawaKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
+compute_evdwl(const F_FLOAT &rsq, const int &, const int &,
+              const int &itype, const int &jtype) const {
   const F_FLOAT rr     = sqrt(rsq);
   const F_FLOAT aa     = STACKPARAMS ? m_params[itype][jtype].a
                                      : params(itype,jtype).a;

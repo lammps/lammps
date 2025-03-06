@@ -38,14 +38,18 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutTIP4PCut::PairLJCutTIP4PCut(LAMMPS *lmp) : Pair(lmp)
+PairLJCutTIP4PCut::PairLJCutTIP4PCut(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), epsilon(nullptr), sigma(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr), hneigh(nullptr), newsite(nullptr)
+
 {
   single_enable = 0;
   writedata = 1;
 
   nmax = 0;
-  hneigh = nullptr;
-  newsite = nullptr;
+
+  typeH = typeO = typeA = typeB = -1;
+  alpha = qdist = 0.0;
 
   // TIP4P cannot compute virial as F dot r
   // due to finding bonded H atoms which are not near O atom
@@ -426,15 +430,15 @@ void PairLJCutTIP4PCut::settings(int narg, char **arg)
 {
   if (narg < 6 || narg > 7) error->all(FLERR,"Illegal pair_style command");
 
-  typeO = utils::inumeric(FLERR,arg[0],false,lmp);
-  typeH = utils::inumeric(FLERR,arg[1],false,lmp);
-  typeB = utils::inumeric(FLERR,arg[2],false,lmp);
-  typeA = utils::inumeric(FLERR,arg[3],false,lmp);
-  qdist = utils::numeric(FLERR,arg[4],false,lmp);
+  typeO_str = arg[0];
+  typeH_str = arg[1];
+  typeB_str = arg[2];
+  typeA_str = arg[3];
+  qdist = utils::numeric(FLERR, arg[4], false, lmp);
 
-  cut_lj_global = utils::numeric(FLERR,arg[5],false,lmp);
+  cut_lj_global = utils::numeric(FLERR, arg[5], false, lmp);
   if (narg == 6) cut_coul = cut_lj_global;
-  else cut_coul = utils::numeric(FLERR,arg[6],false,lmp);
+  else cut_coul = utils::numeric(FLERR, arg[6], false, lmp);
 
   cut_coulsq = cut_coul * cut_coul;
   cut_coulsqplus = (cut_coul + 2.0*qdist) * (cut_coul + 2.0*qdist);
@@ -456,6 +460,16 @@ void PairLJCutTIP4PCut::coeff(int narg, char **arg)
   if (narg < 4 || narg > 5)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
+
+  // set atom types from pair_style command unless we were restarted
+  // and the types are already set and the strings are empty.
+
+  if (typeO_str.size() > 0) {
+    typeO = utils::expand_type_int(FLERR, typeO_str, Atom::ATOM, lmp, true);
+    typeH = utils::expand_type_int(FLERR, typeH_str, Atom::ATOM, lmp, true);
+    typeB = utils::expand_type_int(FLERR, typeB_str, Atom::BOND, lmp, true);
+    typeA = utils::expand_type_int(FLERR, typeA_str, Atom::ANGLE, lmp, true);
+  }
 
   int ilo,ihi,jlo,jhi;
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);

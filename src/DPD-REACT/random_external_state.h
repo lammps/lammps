@@ -76,7 +76,7 @@
 // A replacement for the Kokkos Random_XorShift64 class that uses
 // an external state variable, instead of a class member variable.
 namespace random_external_state {
-typedef uint64_t es_RNG_t;
+using es_RNG_t = uint64_t;
 
 constexpr uint32_t MAX_URAND = 0xffffffffU;
 constexpr uint64_t MAX_URAND64 = 0xffffffffffffffffULL - 1;

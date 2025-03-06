@@ -35,10 +35,6 @@ class FixEnforce2D : public Fix {
   void post_force(int) override;
   void post_force_respa(int, int, int) override;
   void min_post_force(int) override;
-
- protected:
-  int nfixlist;
-  class Fix **flist;
 };
 
 }    // namespace LAMMPS_NS

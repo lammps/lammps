@@ -6,7 +6,7 @@ dump molfile command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump ID group-ID molfile N file format path
 

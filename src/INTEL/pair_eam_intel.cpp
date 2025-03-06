@@ -34,8 +34,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
-
 #define FC_PACKED1_T typename ForceConst<flt_t>::fc_packed1
 #define FC_PACKED2_T typename ForceConst<flt_t>::fc_packed2
 
@@ -236,7 +234,6 @@ void PairEAMIntel::eval(const int offload, const int vflag,
   const int istride = fc.rhor_istride();
   const int jstride = fc.rhor_jstride();
   const int fstride = fc.frho_stride();
-
   {
     #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime();
@@ -567,12 +564,10 @@ void PairEAMIntel::eval(const int offload, const int vflag,
           } else
             rhoip = rhojp;
           const flt_t z2p = (z2r_spline_t[joff].a*p +
-                             z2r_spline_t[joff].b)*p +
-            z2r_spline_t[joff].c;
+                             z2r_spline_t[joff].b)*p + z2r_spline_t[joff].c;
           const flt_t z2 = ((z2r_spline_t[joff].d*p +
                              z2r_spline_t[joff].e)*p +
-                            z2r_spline_t[joff].f)*p +
-            z2r_spline_t[joff].g;
+                            z2r_spline_t[joff].f)*p + z2r_spline_t[joff].g;
 
           const flt_t recip = (flt_t)1.0/r;
           const flt_t phi = z2*recip;
@@ -851,4 +846,3 @@ void PairEAMIntel::unpack_forward_comm(int n, int first, double *buf,
   last = first + n;
   for (i = first; i < last; i++) fp_f[i] = buf[m++];
 }
-

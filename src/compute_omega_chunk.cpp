@@ -23,7 +23,7 @@
 
 using namespace LAMMPS_NS;
 
-#define EPSILON 1.0e-6
+static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 

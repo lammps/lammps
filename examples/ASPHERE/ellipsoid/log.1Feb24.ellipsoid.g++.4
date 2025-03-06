@@ -1,0 +1,346 @@
+LAMMPS (21 Nov 2023 - Development - patch_21Nov2023-665-g17f869bf5e)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# SRD diffusion demo - ellipsoids
+
+units           lj
+atom_style      ellipsoid
+atom_modify     first big
+dimension       2
+
+# create big ellipsoidal particles
+
+lattice         sq 0.14
+Lattice spacing in x,y,z = 2.6726124 2.6726124 2.6726124
+region          box block 0 10 0 10 -0.5 0.5
+create_box      2 box
+Created orthogonal box = (0 0 -1.3363062) to (26.726124 26.726124 1.3363062)
+  2 by 2 by 1 MPI processor grid
+create_atoms    1 region box
+Created 100 atoms
+  using lattice units in orthogonal box = (0 0 -1.3363062) to (26.726124 26.726124 1.3363062)
+  create_atoms CPU = 0.001 seconds
+
+set             type 1 mass 1.0
+Setting atom values ...
+  100 settings made for mass
+set             type 1 shape 3.0 1.0 1.0
+Setting atom values ...
+  100 settings made for shape
+group           big type 1
+100 atoms in group big
+set             group big quat/random 29898
+Setting atom values ...
+  100 settings made for quat/random
+
+velocity        big create 1.44 87287 loop geom
+
+# equilibrate big particles
+
+pair_style      gayberne 1.0 3.0 1.0 4.0
+pair_coeff      1 1 1.0 1.0 1 1 1 1 1 1
+pair_coeff      1 2 1.0 1.0 1 1 1 1 1 1 0.0
+pair_coeff      2 2 1.0 1.0 1 1 1 1 1 1 0.0
+
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes
+
+fix             1 big nve/asphere
+fix             2 all enforce2d
+
+compute         rot big temp/asphere
+compute         0 all property/atom quatw quati quatj quatk shapex shapey shapez
+
+#dump           1 all custom 10 dump.ellipsoid.equil id type x y z c_0[*]
+#dump_modify    1 colname c_0[1] quatw colname c_0[2] quati colname c_0[3] quatj colname c_0[4] quatk #                 colname c_0[5] shapex colname c_0[6] shapey colname c_0[7] shapez
+
+thermo_style    custom step temp c_rot epair etotal press
+thermo          100
+
+run             1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair gayberne command: doi:10.1063/1.3058435
+
+@Article{Brown09,
+ author =  {W. M. Brown and M. K. Petersen and S. J. Plimpton and G. S. Grest},
+ title =   {Liquid Crystal Nanodroplets in Solution},
+ journal = {J.~Chem.\ Phys.},
+ year =    2009,
+ volume =  130,
+ number =  4,
+ pages =   {044901}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.3
+  ghost atom cutoff = 4.3
+  binsize = 2.15, bins = 13 13 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair gayberne, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.61 | 4.61 | 4.61 Mbytes
+   Step          Temp          c_rot          E_pair         TotEng         Press     
+         0   1.44           0.95677852     2.7038078      4.1294078      10.518912    
+       100   2.5524145      2.801098      -0.37027046     2.1566199      0.84703874   
+       200   2.6266386      2.7938164     -0.35322565     2.2471465      1.004886     
+       300   2.9987557      2.9499545     -0.58917376     2.3795944      0.73081788   
+       400   2.8557446      2.8208128     -0.39904801     2.4281391      0.91808964   
+       500   2.4399047      2.8255746     -0.40056447     2.0149412      1.0538908    
+       600   2.854258       2.9166789     -0.53424483     2.2914706      0.8117508    
+       700   2.9593679      2.8231211     -0.40051715     2.5292571      1.1630889    
+       800   2.7632972      2.9060855     -0.52075354     2.2149107      0.77106773   
+       900   2.9905599      2.8869667     -0.49099386     2.4696604      0.69616823   
+      1000   2.8470131      2.9005016     -0.51282147     2.3057215      0.68817329   
+Loop time of 0.0666302 on 4 procs for 1000 steps with 100 atoms
+
+Performance: 6483542.632 tau/day, 15008.201 timesteps/s, 1.501 Matom-step/s
+99.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.039208   | 0.042833   | 0.045871   |   1.2 | 64.29
+Neigh   | 0.00065929 | 0.00071982 | 0.00076852 |   0.0 |  1.08
+Comm    | 0.013998   | 0.017169   | 0.02087    |   1.9 | 25.77
+Output  | 0.00018817 | 0.00020663 | 0.00025962 |   0.0 |  0.31
+Modify  | 0.0035046  | 0.0035933  | 0.003701   |   0.1 |  5.39
+Other   |            | 0.002109   |            |       |  3.16
+
+Nlocal:             25 ave          27 max          24 min
+Histogram: 2 0 0 1 0 0 0 0 0 1
+Nghost:          42.25 ave          45 max          38 min
+Histogram: 1 0 0 0 0 0 0 2 0 1
+Neighs:          92.25 ave         104 max          85 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
+
+Total # of neighbors = 369
+Ave neighs/atom = 3.69
+Neighbor list builds = 174
+Dangerous builds = 0
+
+#undump         1
+unfix           1
+unfix           2
+
+# add small particles as hi density lattice
+
+region          plane block INF INF INF INF -0.001 0.001 units box
+lattice         sq 120.0
+Lattice spacing in x,y,z = 0.091287093 0.091287093 0.091287093
+create_atoms    2 region plane
+Created 85849 atoms
+  using lattice units in orthogonal box = (0 0 -1.3363062) to (26.726124 26.726124 1.3363062)
+  create_atoms CPU = 0.004 seconds
+
+set             type 2 mass 0.01
+Setting atom values ...
+  85849 settings made for mass
+group           small type 2
+85849 atoms in group small
+velocity        small create 1.0 593849 loop geom
+
+# delete overlaps
+# must set 1-2 cutoff to non-zero value
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+pair_coeff      2 2 0.0 1.0 0.0
+pair_coeff      1 2 0.0 1.0 2.0
+
+neigh_modify    one 10000
+
+delete_atoms    overlap 1.6 small big
+System init for delete_atoms ...
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 10000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 20 20 2
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) command delete_atoms, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/2d
+      bin: standard
+  (2) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d
+      bin: standard
+WARNING: Delete_atoms cutoff > minimum neighbor cutoff (src/delete_atoms.cpp:312)
+Deleted 71060 atoms, new total = 14889
+
+# SRD run
+
+reset_timestep  0
+
+neighbor        0.3 multi
+neigh_modify    delay 0 every 1 check yes
+
+comm_modify     mode multi group big vel yes
+neigh_modify    include big
+
+# no pairwise interactions with small particles
+
+pair_style      gayberne 1.0 3.0 1.0 4.0
+pair_coeff      1 1 1.0 1.0 1 1 1 1 1 1
+pair_coeff      1 2 1.0 1.0 1 1 1 1 1 1 0.0
+pair_coeff      2 2 1.0 1.0 1 1 1 1 1 1 0.0
+
+# use fix SRD to push small particles out from inside big ones
+# if comment out, big particles won't see SRD particles
+
+timestep        0.0005
+
+fix             1 big nve/asphere
+fix             2 small srd 20 big 1.0 0.25 49894 shift yes 54979                   collision noslip search 0.2 inside ignore exact no bounce 50
+fix             3 all enforce2d
+
+# diagnostics
+
+compute         tbig big temp/asphere
+variable        pebig equal pe*atoms/count(big)
+variable        ebig equal etotal*atoms/count(big)
+thermo_style    custom step temp c_rot f_2[9] etotal v_pebig v_ebig press                 f_2[1] f_2[2] f_2[3] f_2[4] f_2[5]                 f_2[6] f_2[7] f_2[8] f_2[9] f_2[10] f_2[11] f_2[12]
+
+thermo_modify   temp tbig
+WARNING: Temperature for thermo pressure is not for group all (src/thermo.cpp:530)
+thermo          1000
+
+#dump           1 all custom 1000 dump.ellipsoid id type x y z c_0[*]
+#dump_modify    1 colname c_0[1] quatw colname c_0[2] quati colname c_0[3] quatj colname c_0[4] quatk #                 colname c_0[5] shapex colname c_0[6] shapey colname c_0[7] shapez
+
+#dump           2 all image 1000 image.*.jpg type type zoom 1.6
+#dump_modify    2 pad 6 adiam 1 1 adiam 2 0.2
+
+run             10000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- neighbor multi command: doi:10.1016/j.cpc.2008.03.005, doi:10.1007/s40571-020-00361-2
+
+@Article{Intveld08,
+ author =  {in 't Veld, P. J. and S. J.~Plimpton and G. S. Grest},
+ title =   {Accurate and Efficient Methods for Modeling Colloidal
+            Mixtures in an Explicit Solvent using Molecular Dynamics},
+ journal = {Comput.\ Phys.\ Commut.},
+ year =    2008,
+ volume =  179,
+ pages =   {320--329}
+}
+
+@article{Shire2020,
+ author = {Shire, Tom and Hanley, Kevin J. and Stratford, Kevin},
+ title = {{DEM} Simulations of Polydisperse Media: Efficient Contact
+          Detection Applied to Investigate the Quasi-Static Limit},
+ journal = {Computational Particle Mechanics},
+ year = {2020}
+@article{Monti2022,
+ author = {Monti, Joseph M. and Clemmer, Joel T. and Srivastava, 
+           Ishan and Silbert, Leonardo E. and Grest, Gary S. 
+           and Lechman, Jeremy B.},
+ title = {Large-scale frictionless jamming with power-law particle 
+          size distributions},
+ journal = {Phys. Rev. E},
+ volume = {106}
+ issue = {3}
+ year = {2022}
+}
+
+- fix srd command: doi:10.1063/1.3419070
+
+@Article{Petersen10,
+ author = {M. K. Petersen and J. B. Lechman and S. J. Plimpton and
+ G. S. Grest and in 't Veld, P. J. and P. R. Schunk},
+ title =   {Mesoscale Hydrodynamics via Stochastic Rotation
+    Dynamics: Comparison with {L}ennard-{J}ones Fluid},
+ journal = {J.~Chem.\ Phys.},
+ year =    2010,
+ volume =  132,
+ pages =   174106
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+SRD info:
+  SRD/big particles = 14789 100
+  big particle diameter max/min = 3 1
+  SRD temperature & lamda = 1 0.1
+  SRD max distance & max velocity = 0.4 40
+  SRD grid counts: 107 107 1
+  SRD grid size: request, actual (xyz) = 0.25, 0.24977686 0.24977686 2.6726124
+  SRD per actual grid cell = 1.9275711
+  SRD viscosity = 0.68810145
+  big/SRD mass density ratio = 1.3736715
+  # of rescaled SRD velocities = 0
+  ave/max small velocity = 13.30933 24.335888
+  ave/max big velocity = 2.080284 5.0567191
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 10000, page size: 100000
+  master list distance cutoff = 4.3
+  ghost atom cutoff = 4.3
+  binsize = 26.726124, bins = 1 1 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair gayberne, perpetual
+      attributes: half, newton on
+      pair build: half/multi/atomonly/newton
+      stencil: half/multi/2d
+      bin: multi
+Per MPI rank memory allocation (min/avg/max) = 16.89 | 16.9 | 16.91 Mbytes
+   Step          Temp          c_rot          f_2[9]         TotEng        v_pebig         v_ebig         Press          f_2[1]         f_2[2]         f_2[3]         f_2[4]         f_2[5]         f_2[6]         f_2[7]         f_2[8]         f_2[9]        f_2[10]        f_2[11]        f_2[12]    
+         0   2.9005016      2.9005016      0              0.025582147   -0.51282147     3.8089259      0.89862191     0              0              0              0              0              0              0              0              0              0              0              0            
+      1000   2.7138279      2.7138279      0.82437872     0.023781703   -0.50274582     3.5408578      1.6816604      13758          32             34             0              274            66564          11449          4238           0.82437872     24             50             0            
+      2000   1.3183118      1.3183118      0.91362053     0.0077748292  -0.80669023     1.1575943      1.1678425      14118          23             23             0              414            66564          11449          4269           0.91362053     24             50             0            
+      3000   1.3117991      1.3117991      0.96889539     0.0065133847  -0.98480276     0.96977785     0.51801823     14675          35             36             0              588            66564          11449          4291           0.96889539     26             50             0            
+      4000   1.1034132      1.1034132      0.95899765     0.0042496304  -1.0113582      0.63272747     0.6382343      15146          38             38             0              776            66564          11449          4309           0.95899765     26             50             0            
+      5000   1.0814177      1.0814177      1.0037423      0.0047549676  -0.90334518     0.70796713     0.76138491     15275          40             40             0              973            66564          11449          4285           1.0037423      26             50             0            
+      6000   1.0515425      1.0515425      0.98728204     0.0041039749  -0.95575757     0.61104083     0.61253791     15685          34             34             0              1205           66564          11449          4328           0.98728204     26             50             0            
+      7000   0.96229389     0.96229389     1.0146054      0.0031968892  -0.95783307     0.47598483     0.4469161      15944          43             43             0              1412           66564          11449          4391           1.0146054      27             50             0            
+      8000   0.98798058     0.98798058     0.99692702     0.0037348841  -0.91600418     0.55608689     0.50558822     16250          43             43             0              1637           66564          11449          4330           0.99692702     27             50             0            
+      9000   1.0120554      1.0120554      1.0099521      0.0039518454  -0.91957229     0.58839026     0.4092229      16367          43             44             0              1899           66564          11449          4309           1.0099521      27             50             0            
+     10000   1.104152       1.104152       0.9993147      0.0053713858  -0.84544079     0.79974564     0.5119979      16331          50             50             0              2108           66564          11449          4353           0.9993147      27             50             0            
+Loop time of 2.95619 on 4 procs for 10000 steps with 14889 atoms
+
+Performance: 146134.205 tau/day, 3382.736 timesteps/s, 50.366 Matom-step/s
+99.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.48773    | 0.52727    | 0.62879    |   8.1 | 17.84
+Neigh   | 0.0070094  | 0.0072204  | 0.0076255  |   0.3 |  0.24
+Comm    | 0.12898    | 0.22553    | 0.265      |  11.8 |  7.63
+Output  | 0.0005957  | 0.00064777 | 0.00075264 |   0.0 |  0.02
+Modify  | 2.1317     | 2.1512     | 2.166      |   0.9 | 72.77
+Other   |            | 0.04427    |            |       |  1.50
+
+Nlocal:        3722.25 ave        3968 max        3389 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
+Nghost:          39.75 ave          44 max          35 min
+Histogram: 1 0 0 0 1 0 1 0 0 1
+Neighs:            101 ave         125 max          86 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
+
+Total # of neighbors = 404
+Ave neighs/atom = 0.027134126
+Neighbor list builds = 500
+Dangerous builds = 0
+Total wall time: 0:00:03

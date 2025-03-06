@@ -28,8 +28,8 @@ using namespace LAMMPS_NS;
 
 static constexpr int leadDimInteractionList = 64;
 
-#define GRIDDENSITY 8000
-#define GRIDSTART 0.1
+static constexpr int GRIDDENSITY = 8000;
+static constexpr double GRIDSTART = 0.1;
 
 /* ---------------------------------------------------------------------- */
 

@@ -68,21 +68,22 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
 
   void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
                               DAT::tdual_int_1d &indices,int nrecv,
+                              int, int,
                               ExecutionSpace space) override;
-  int pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                               int iswap_in, DAT::tdual_xfloat_1d &k_buf,
+  int pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                               DAT::tdual_xfloat_1d &k_buf,
                                int pbc_flag, int* pbc) override;
   void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
 
   int pack_reverse_comm_kokkos(int, int, DAT::tdual_xfloat_1d &) override;
-  void unpack_reverse_comm_kokkos(int, DAT::tdual_int_2d,
-                                          int, DAT::tdual_xfloat_1d &) override;
+  void unpack_reverse_comm_kokkos(int, DAT::tdual_int_1d,
+                                          DAT::tdual_xfloat_1d &) override;
   // reverse comm handled by host,
   // only happens when body and bodyown
   // are already on host
 
   void setup_pre_neighbor() override;
-  int dof(int) override;
+  bigint dof(int) override;
   void deform(int) override;
   void enforce2d() override;
   void zero_momentum() override;
@@ -141,8 +142,8 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
 
   int max_body_sent=0;
   std::map<int,int> n_body_recv, first_body;
-  std::map<int,int> n_body_sent;
-  std::map<int,IntView1D> d_body_sendlists;
+  std::map<int*,int> n_body_sent;
+  std::map<int*,IntView1D> d_body_sendlists;
 
 
   IntView1D d_sendlist;

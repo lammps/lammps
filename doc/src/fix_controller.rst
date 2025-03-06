@@ -6,7 +6,7 @@ fix controller command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID controller Nevery alpha Kp Ki Kd pvar setpoint cvar
 

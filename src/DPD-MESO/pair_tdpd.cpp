@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 
-#define EPSILON 1.0e-10
+static constexpr double EPSILON = 1.0e-10;
 
 static const char cite_pair_tdpd[] =
   "pair tdpd command: doi:10.1063/1.4923254\n\n"

@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
+  <mime-type type="text/x-application-lammps">
+    <comment>LAMMPS input file</comment>
+    <glob pattern="*.lmp"/>
+    <glob pattern="in.*"/>
+  </mime-type>
+</mime-info>

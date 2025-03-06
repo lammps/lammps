@@ -38,9 +38,9 @@ using MathConst::DEG2RAD;
 
 enum{BOND,LBOUND,ANGLE,DIHEDRAL};
 
-#define TOLERANCE 0.05
-#define SMALL 0.001
-#define DELTA 1
+static constexpr double TOLERANCE = 0.05;
+static constexpr double SMALL = 0.001;
+static constexpr int DELTA = 1;
 
 /* ---------------------------------------------------------------------- */
 
@@ -616,7 +616,7 @@ void FixRestrain::restrain_dihedral(int m)
                                     me,update->ntimestep,atom->tag[i1],
                                     atom->tag[i2],atom->tag[i3],atom->tag[i4]);
       error->warning(FLERR,str);
-      fmt::print(screen,"  1st atom: {} {} {} {}\n"
+      utils::print(screen,"  1st atom: {} {} {} {}\n"
                  "  2nd atom: {} {} {} {}\n"
                  "  3rd atom: {} {} {} {}\n"
                  "  4th atom: {} {} {} {}\n",

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meißner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
 ------------------------------------------------------------------------- */
 
 #include "fix_electrode_conq.h"
@@ -30,7 +30,7 @@ FixElectrodeConq::FixElectrodeConq(LAMMPS *lmp, int narg, char **arg) :
     FixElectrodeConp(lmp, narg, arg)
 {
   // copy const-style values across because update_psi will change group_psi
-  group_q = group_psi;
+  group_q = group_psi_const;
 
   if (symm) {
     if (num_of_groups == 1)
@@ -85,7 +85,7 @@ std::vector<double> FixElectrodeConq::constraint_correction(std::vector<double> 
   int const n = x.size();
   auto sums = std::vector<double>(num_of_groups, 0);
   for (int i = 0; i < n; i++) sums[iele_to_group_local[i]] += x[i];
-  MPI_Allreduce(MPI_IN_PLACE, &sums.front(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, sums.data(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
   for (int g = 0; g < num_of_groups; g++) {
     sums[g] -= group_q[g];
     sums[g] /= group->count(groups[g]);
@@ -103,7 +103,7 @@ std::vector<double> FixElectrodeConq::constraint_projection(std::vector<double> 
   int const n = x.size();
   auto sums = std::vector<double>(num_of_groups, 0);
   for (int i = 0; i < n; i++) sums[iele_to_group_local[i]] += x[i];
-  MPI_Allreduce(MPI_IN_PLACE, &sums.front(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, sums.data(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
   for (int g = 0; g < num_of_groups; g++) sums[g] /= group->count(groups[g]);
   for (int i = 0; i < n; i++) x[i] -= sums[iele_to_group_local[i]];
   return x;
@@ -119,6 +119,6 @@ void FixElectrodeConq::recompute_potential(std::vector<double> b, std::vector<do
   auto a = ele_ele_interaction(q_local);
   auto psi_sums = std::vector<double>(num_of_groups, 0);
   for (int i = 0; i < n; i++) { psi_sums[iele_to_group_local[i]] += (a[i] + b[i]) / evscale; }
-  MPI_Allreduce(MPI_IN_PLACE, &psi_sums.front(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, psi_sums.data(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
   for (int g = 0; g < num_of_groups; g++) group_psi[g] = psi_sums[g] / group->count(groups[g]);
 }

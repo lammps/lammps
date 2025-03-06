@@ -47,7 +47,7 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   tstr(nullptr), id_temp(nullptr), random(nullptr)
 {
-  if (narg != 7) error->all(FLERR,"Illegal fix temp/csvr command");
+  if (narg != 7) error->all(FLERR,"Incorrect number of arguments for fix {} command", style);
 
   // CSVR thermostat should be applied every step
 
@@ -75,8 +75,8 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (t_period <= 0.0) error->all(FLERR,"Illegal fix temp/csvr command");
-  if (seed <= 0) error->all(FLERR,"Illegal fix temp/csvr command");
+  if (t_period <= 0.0) error->all(FLERR,"Illegal fix {} command period value", style);
+  if (seed <= 0) error->all(FLERR,"Illegal fix {} command seed value", style);
 
   random = new RanMars(lmp,seed + comm->me);
 
@@ -84,7 +84,7 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
   // id = fix-ID + temp, compute group = fix group
 
   id_temp = utils::strdup(std::string(id) + "_temp");
-  modify->add_compute(fmt::format("{} {} temp",id_temp,group->names[igroup]));
+  modify->add_compute(fmt::format("{} {} temp", id_temp, group->names[igroup]));
   tflag = 1;
 
   nmax = -1;
@@ -95,12 +95,12 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
 
 FixTempCSVR::~FixTempCSVR()
 {
-  delete [] tstr;
+  delete[] tstr;
 
   // delete temperature if fix created it
 
   if (tflag) modify->delete_compute(id_temp);
-  delete [] id_temp;
+  delete[] id_temp;
 
   delete random;
   nmax = -1;
@@ -124,18 +124,23 @@ void FixTempCSVR::init()
   if (tstr) {
     tvar = input->variable->find(tstr);
     if (tvar < 0)
-      error->all(FLERR,"Variable name for fix temp/csvr does not exist");
+      error->all(FLERR,"Variable name {} for fix {} does not exist", tstr, style);
     if (input->variable->equalstyle(tvar)) tstyle = EQUAL;
-    else error->all(FLERR,"Variable for fix temp/csvr is invalid style");
+    else error->all(FLERR,"Variable {} for fix {} is invalid style", tstr, style);
   }
 
-  int icompute = modify->find_compute(id_temp);
-  if (icompute < 0)
-    error->all(FLERR,"Temperature ID for fix temp/csvr does not exist");
-  temperature = modify->compute[icompute];
+  temperature = modify->get_compute_by_id(id_temp);
+  if (!temperature) {
+    error->all(FLERR,"Temperature compute ID {} for fix {} does not exist", id_temp, style);
+  } else {
+    if (temperature->tempflag == 0)
+      error->all(FLERR, "Compute ID {} for fix {} does not compute a temperature", id_temp, style);
+    if (temperature->tempbias) which = BIAS;
+    else which = NOBIAS;
+  }
 
-  if (temperature->tempbias) which = BIAS;
-  else which = NOBIAS;
+  if ((modify->check_rigid_group_overlap(groupbit)) && (comm->me == 0))
+    error->warning(FLERR,"Cannot thermostat atoms in rigid bodies with fix {}", style);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -154,8 +159,8 @@ void FixTempCSVR::end_of_step()
     modify->clearstep_compute();
     t_target = input->variable->compute_equal(tvar);
     if (t_target < 0.0)
-      error->one(FLERR,
-                 "Fix temp/csvr variable returned negative temperature");
+      error->one(FLERR, "Fix {} variable {} returned negative temperature",
+                 style, input->variable->names[tvar]);
     modify->addstep_compute(update->ntimestep + nevery);
   }
 
@@ -215,17 +220,14 @@ int FixTempCSVR::modify_param(int narg, char **arg)
       modify->delete_compute(id_temp);
       tflag = 0;
     }
-    delete [] id_temp;
+    delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(id_temp);
-    if (icompute < 0)
-      error->all(FLERR,"Could not find fix_modify temperature ID");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature) error->all(FLERR,"Could not find fix_modify temperature ID {}", id_temp);
 
     if (temperature->tempflag == 0)
-      error->all(FLERR,
-                 "Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR, "Fix_modify temperature ID {} does not compute temperature", id_temp);
     if (temperature->igroup != igroup && comm->me == 0)
       error->warning(FLERR,"Group for fix_modify temp != fix group");
     return 2;

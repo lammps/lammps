@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <TestHIP_Category.hpp>
 #include <Kokkos_Core.hpp>
@@ -50,17 +22,14 @@ namespace Test {
 namespace Impl {
 
 struct HIPStreamScratchTestFunctor {
-  using team_t = Kokkos::TeamPolicy<Kokkos::Experimental::HIP>::member_type;
-  using scratch_t =
-      Kokkos::View<int64_t*, Kokkos::Experimental::HIP::scratch_memory_space>;
+  using team_t    = Kokkos::TeamPolicy<Kokkos::HIP>::member_type;
+  using scratch_t = Kokkos::View<int64_t*, Kokkos::HIP::scratch_memory_space>;
 
-  Kokkos::View<int64_t, Kokkos::Experimental::HIPSpace,
-               Kokkos::MemoryTraits<Kokkos::Atomic>>
+  Kokkos::View<int64_t, Kokkos::HIPSpace, Kokkos::MemoryTraits<Kokkos::Atomic>>
       counter;
   int N, M;
-  HIPStreamScratchTestFunctor(
-      Kokkos::View<int64_t, Kokkos::Experimental::HIPSpace> counter_, int N_,
-      int M_)
+  HIPStreamScratchTestFunctor(Kokkos::View<int64_t, Kokkos::HIPSpace> counter_,
+                              int N_, int M_)
       : counter(counter_), N(N_), M(M_) {}
 
   KOKKOS_FUNCTION
@@ -81,13 +50,11 @@ struct HIPStreamScratchTestFunctor {
 };
 
 void hip_stream_scratch_test_one(
-    int N, int T, int M_base,
-    Kokkos::View<int64_t, Kokkos::Experimental::HIPSpace> counter,
-    Kokkos::Experimental::HIP hip, int tid) {
+    int N, int T, int M_base, Kokkos::View<int64_t, Kokkos::HIPSpace> counter,
+    Kokkos::HIP hip, int tid) {
   int M = M_base + tid * 5;
-  Kokkos::TeamPolicy<Kokkos::Experimental::HIP> p(hip, T, 64);
-  using scratch_t =
-      Kokkos::View<int64_t*, Kokkos::Experimental::HIP::scratch_memory_space>;
+  Kokkos::TeamPolicy<Kokkos::HIP> p(hip, T, 64);
+  using scratch_t = Kokkos::View<int64_t*, Kokkos::HIP::scratch_memory_space>;
 
   int bytes = scratch_t::shmem_size(M);
 
@@ -97,15 +64,14 @@ void hip_stream_scratch_test_one(
   }
 }
 
-void hip_stream_scratch_test(
-    int N, int T, int M_base,
-    Kokkos::View<int64_t, Kokkos::Experimental::HIPSpace> counter) {
+void hip_stream_scratch_test(int N, int T, int M_base,
+                             Kokkos::View<int64_t, Kokkos::HIPSpace> counter) {
   int K = 4;
   hipStream_t stream[4];
-  Kokkos::Experimental::HIP hip[4];
+  Kokkos::HIP hip[4];
   for (int i = 0; i < K; i++) {
     KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamCreate(&stream[i]));
-    hip[i] = Kokkos::Experimental::HIP(stream[i]);
+    hip[i] = Kokkos::HIP(stream[i]);
   }
 // Test that growing scratch size in subsequent calls doesn't crash things
 #if defined(KOKKOS_ENABLE_OPENMP)
@@ -130,7 +96,7 @@ void hip_stream_scratch_test(
 
   Kokkos::fence();
   for (int i = 0; i < K; i++) {
-    hip[i] = Kokkos::Experimental::HIP();
+    hip[i] = Kokkos::HIP();
     KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamDestroy(stream[i]));
   }
 }
@@ -141,7 +107,7 @@ TEST(hip, team_scratch_1_streams) {
   int T      = 10;
   int M_base = 150;
 
-  Kokkos::View<int64_t, Kokkos::Experimental::HIPSpace> counter("C");
+  Kokkos::View<int64_t, Kokkos::HIPSpace> counter("C");
 
   Impl::hip_stream_scratch_test(N, T, M_base, counter);
 

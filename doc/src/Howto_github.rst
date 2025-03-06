@@ -163,7 +163,7 @@ After everything is done, add the files to the branch and commit them:
    *git rm*, *git mv* for adding, removing, renaming individual files,
    respectively, and then *git commit* to finalize the commit.
    Carefully check all pending changes with *git status* before
-   committing them.  If you find doing this on the command line too
+   committing them.  If you find doing this on the command-line too
    tedious, consider using a GUI, for example the one included in git
    distributions written in Tk, i.e. use *git gui* (on some Linux
    distributions it may be required to install an additional package to
@@ -480,11 +480,11 @@ Some recent changes to the workflow are not captured in this tutorial.
 For example, in addition to the *develop* branch, to which all new
 features should be submitted, there is also a *release*, a *stable*, and
 a *maintenance* branch; the *release* branch is updated from the
-*develop* as part of a feature release, and *stable* (together with
-*release*) are updated from *develop* when a stable release is made. In
-between stable releases, selected bug fixes and infrastructure updates
-are back-ported from the *develop* branch to the *maintenance* branch
-and occasionally merged to *stable* as an update release.
+*develop* branch as part of a "feature release", and *stable* (together
+with *release*) are updated from *develop* when a "stable release" is
+made. In between stable releases, selected bug fixes and infrastructure
+updates are back-ported from the *develop* branch to the *maintenance*
+branch and occasionally merged to *stable* as an update release.
 
 Furthermore, the naming of the release tags now follow the pattern
 "patch_<Day><Month><Year>" to simplify comparisons between releases.

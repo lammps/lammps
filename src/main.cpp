@@ -13,15 +13,13 @@
 
 #include "lammps.h"
 
+#include "exceptions.h"
 #include "input.h"
 #include "library.h"
 
-#if defined(LAMMPS_EXCEPTIONS)
-#include "exceptions.h"
-#endif
-
 #include <cstdlib>
 #include <mpi.h>
+#include <new>
 
 #if defined(LAMMPS_TRAP_FPE) && defined(_GNU_SOURCE)
 #include <fenv.h>
@@ -75,14 +73,13 @@ int main(int argc, char **argv)
   feenableexcept(FE_OVERFLOW);
 #endif
 
-#ifdef LAMMPS_EXCEPTIONS
   try {
     auto lammps = new LAMMPS(argc, argv, lammps_comm);
     lammps->input->file();
     delete lammps;
   } catch (LAMMPSAbortException &ae) {
     finalize();
-    MPI_Abort(ae.universe, 1);
+    MPI_Abort(ae.get_universe(), 1);
   } catch (LAMMPSException &) {
     finalize();
     MPI_Barrier(lammps_comm);
@@ -93,24 +90,17 @@ int main(int argc, char **argv)
     finalize();
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);
+  } catch (std::bad_alloc &ae) {
+    fprintf(stderr, "C++ memory allocation failed: %s\n", ae.what());
+    finalize();
+    MPI_Abort(MPI_COMM_WORLD, 1);
+    exit(1);
   } catch (std::exception &e) {
     fprintf(stderr, "Exception: %s\n", e.what());
     finalize();
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);
   }
-#else
-  try {
-    auto lammps = new LAMMPS(argc, argv, lammps_comm);
-    lammps->input->file();
-    delete lammps;
-  } catch (fmt::format_error &fe) {
-    fprintf(stderr, "fmt::format_error: %s\n", fe.what());
-    finalize();
-    MPI_Abort(MPI_COMM_WORLD, 1);
-    exit(1);
-  }
-#endif
   finalize();
   MPI_Barrier(lammps_comm);
   MPI_Finalize();

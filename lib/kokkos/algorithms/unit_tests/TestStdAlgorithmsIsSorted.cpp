@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <utility>
@@ -120,7 +92,7 @@ void fill_view(ViewType dest_view, const std::string& name) {
   }
 
   else {
-    throw std::runtime_error("invalid choice");
+    FAIL() << "invalid choice";
   }
 
   Kokkos::deep_copy(aux_view, v_h);
@@ -150,7 +122,8 @@ bool compute_gold(const std::string& name) {
   } else if (name == "large-b") {
     return false;
   } else {
-    throw std::runtime_error("invalid choice");
+    Kokkos::abort("invalid choice");
+    return false;  // unreachable
   }
 }
 
@@ -174,7 +147,7 @@ void run_single_scenario(const InfoType& scenario_info) {
   resultsA[3]     = KE::is_sorted("label", exespace(), view);
   const auto allA = std::all_of(resultsA.cbegin(), resultsA.cend(),
                                 [=](bool v) { return v == gold; });
-  EXPECT_TRUE(allA);
+  EXPECT_TRUE(allA) << name << ", " << view_tag_to_string(Tag{});
 
 #if !defined KOKKOS_ENABLE_OPENMPTARGET
   CustomLessThanComparator<ValueType, ValueType> comp;
@@ -182,12 +155,12 @@ void run_single_scenario(const InfoType& scenario_info) {
   resultsB[0] =
       KE::is_sorted(exespace(), KE::cbegin(view), KE::cend(view), comp);
   resultsB[1]     = KE::is_sorted("label", exespace(), KE::cbegin(view),
-                              KE::cend(view), comp);
+                                  KE::cend(view), comp);
   resultsB[2]     = KE::is_sorted(exespace(), view, comp);
   resultsB[3]     = KE::is_sorted("label", exespace(), view, comp);
   const auto allB = std::all_of(resultsB.cbegin(), resultsB.cend(),
                                 [=](bool v) { return v == gold; });
-  EXPECT_TRUE(allB);
+  EXPECT_TRUE(allB) << name << ", " << view_tag_to_string(Tag{});
 #endif
 
   Kokkos::fence();
@@ -200,9 +173,6 @@ void run_is_sorted_all_scenarios() {
       {"two-elements-b", 2}, {"small-a", 9},     {"small-b", 13},
       {"medium-a", 1003},    {"medium-b", 1003}, {"large-a", 101513},
       {"large-b", 101513}};
-
-  std::cout << "is_sorted: " << view_tag_to_string(Tag{})
-            << ", all overloads \n";
 
   for (const auto& it : scenarios) {
     run_single_scenario<Tag, ValueType>(it);

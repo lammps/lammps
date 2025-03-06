@@ -6,7 +6,7 @@ fix mdi/qmmm command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID mdi/qmmm mode keyword value(s) keyword value(s) ...
 

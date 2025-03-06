@@ -131,7 +131,7 @@ command.
 * LJ cutoff (distance units)
 
 The last two coefficients are optional and default to the global values from
-the *pair_style* command line.
+the *pair_style* command.
 
 ----------
 

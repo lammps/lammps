@@ -46,7 +46,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   hist(nullptr), histall(nullptr), typecount(nullptr), icount(nullptr), jcount(nullptr),
   duplicates(nullptr)
 {
-  if (narg < 4) error->all(FLERR,"Illegal compute rdf command");
+  if (narg < 4) utils::missing_cmd_args(FLERR,"compute rdf", error);
 
   array_flag = 1;
   extarray = 0;
@@ -67,12 +67,14 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"cutoff") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal compute rdf command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute rdf cutoff", error);
+      if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+        error->all(FLERR, "Compute rdf with custom cutoff requires neighbor style 'bin' or 'nsq'");
       cutoff_user = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutoff_user <= 0.0) cutflag = 0;
       else cutflag = 1;
       iarg += 2;
-    } else error->all(FLERR,"Illegal compute rdf command");
+    } else error->all(FLERR,"Unknown compute rdf keyword {}", arg[iarg]);
   }
 
   // pairwise args
@@ -94,16 +96,26 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   jlo = new int[npairs];
   jhi = new int[npairs];
 
-  if (nargpair == 0) {
+  if (!nargpair) {
     ilo[0] = 1; ihi[0] = ntypes;
     jlo[0] = 1; jhi[0] = ntypes;
   } else {
     iarg = 4;
     for (int ipair = 0; ipair < npairs; ipair++) {
-      utils::bounds(FLERR,arg[iarg],1,atom->ntypes,ilo[ipair],ihi[ipair],error);
-      utils::bounds(FLERR,arg[iarg+1],1,atom->ntypes,jlo[ipair],jhi[ipair],error);
-      if (ilo[ipair] > ihi[ipair] || jlo[ipair] > jhi[ipair])
-        error->all(FLERR,"Illegal compute rdf command");
+      utils::bounds_typelabel(FLERR, arg[iarg], 1, atom->ntypes, ilo[ipair], ihi[ipair], lmp, Atom::ATOM);
+      utils::bounds_typelabel(FLERR, arg[iarg+1], 1, atom->ntypes, jlo[ipair], jhi[ipair], lmp, Atom::ATOM);
+
+      // switch i,j if i > j, if wildcards were not used
+
+      if ( (ilo[ipair] == ihi[ipair]) &&
+           (jlo[ipair] == jhi[ipair]) &&
+           (ilo[ipair] > jlo[ipair]) ) {
+        jlo[ipair] = ihi[ipair];
+        ilo[ipair] = jhi[ipair];
+        ihi[ipair] = ilo[ipair];
+        jhi[ipair] = jlo[ipair];
+      }
+
       iarg += 2;
     }
   }
@@ -139,48 +151,41 @@ ComputeRDF::~ComputeRDF()
 {
   memory->destroy(rdfpair);
   memory->destroy(nrdfpair);
-  delete [] ilo;
-  delete [] ihi;
-  delete [] jlo;
-  delete [] jhi;
+  delete[] ilo;
+  delete[] ihi;
+  delete[] jlo;
+  delete[] jhi;
   memory->destroy(hist);
   memory->destroy(histall);
   memory->destroy(array);
-  delete [] typecount;
-  delete [] icount;
-  delete [] jcount;
-  delete [] duplicates;
+  delete[] typecount;
+  delete[] icount;
+  delete[] jcount;
+  delete[] duplicates;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeRDF::init()
 {
+  const double skin = neighbor->skin;
 
   if (!force->pair && !cutflag)
-    error->all(FLERR,"Compute rdf requires a pair style be defined "
-               "or cutoff specified");
+    error->all(FLERR,"Compute rdf requires a pair style or an explicit cutoff");
 
   if (cutflag) {
-    double skin = neighbor->skin;
     mycutneigh = cutoff_user + skin;
 
     double cutghost;            // as computed by Neighbor and Comm
-    if (force->pair)
-      cutghost = MAX(force->pair->cutforce+skin,comm->cutghostuser);
-    else
-      cutghost = comm->cutghostuser;
+    if (force->pair) cutghost = MAX(force->pair->cutforce+skin,comm->cutghostuser);
+    else cutghost = comm->cutghostuser;
 
     if (mycutneigh > cutghost)
-      error->all(FLERR,"Compute rdf cutoff exceeds ghost atom range - "
-                 "use comm_modify cutoff command");
-    if (force->pair && mycutneigh < force->pair->cutforce + skin)
-      if (comm->me == 0)
-        error->warning(FLERR,"Compute rdf cutoff less than neighbor cutoff - "
-                       "forcing a needless neighbor list build");
+      error->all(FLERR,"Compute rdf cutoff plus skin {} exceeds ghost atom range {} - "
+                 "use comm_modify cutoff command to increase it", mycutneigh, cutghost);
 
     delr = cutoff_user / nbin;
-  } else delr = force->pair->cutforce / nbin;
+  } delr = force->pair->cutforce / nbin;
 
   delrinv = 1.0/delr;
 
@@ -205,7 +210,11 @@ void ComputeRDF::init()
   //   than cutoff_user apart, just like a normal neighbor list does
 
   auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
-  if (cutflag) req->set_cutoff(mycutneigh);
+  if (cutflag) {
+    if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+      error->all(FLERR, "Compute rdf with custom cutoff requires neighbor style 'bin' or 'nsq'");
+    req->set_cutoff(mycutneigh);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -254,7 +263,7 @@ void ComputeRDF::init_norm()
   for (i = 0; i < npairs; i++) jcount[i] = scratch[i];
   MPI_Allreduce(duplicates,scratch,npairs,MPI_INT,MPI_SUM,world);
   for (i = 0; i < npairs; i++) duplicates[i] = scratch[i];
-  delete [] scratch;
+  delete[] scratch;
 }
 
 /* ---------------------------------------------------------------------- */

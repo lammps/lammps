@@ -59,11 +59,16 @@ class ReadData : public Command {
 
   class LabelMap *lmap;
 
-  // box info
+  // box info read from file
+
+  int triclinic, triclinic_general;
+  int xloxhi_flag, yloyhi_flag, zlozhi_flag, tilt_flag;
+  int avec_flag, bvec_flag, cvec_flag, abc_origin_flag;
 
   double boxlo[3], boxhi[3];
   double xy, xz, yz;
-  int triclinic;
+  double avec[3], bvec[3], cvec[3];
+  double abc_origin[3];
 
   // optional args
 

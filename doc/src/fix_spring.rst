@@ -6,7 +6,7 @@ fix spring command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID spring keyword values
 

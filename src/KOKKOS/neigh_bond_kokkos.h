@@ -15,9 +15,7 @@
 #ifndef LMP_NEIGH_BOND_KOKKOS_H
 #define LMP_NEIGH_BOND_KOKKOS_H
 
-#include "neighbor.h"
 #include "kokkos_type.h"
-#include "domain_kokkos.h"
 #include "pointers.h"
 #include <Kokkos_UnorderedMap.hpp>
 

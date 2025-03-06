@@ -28,12 +28,12 @@
 #include <cmath>
 #include <cstring>
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 
 #ifdef DBL_EPSILON
-  #define MY_EPSILON (10.0*DBL_EPSILON)
+static constexpr double MY_EPSILON = 10.0*DBL_EPSILON;
 #else
-  #define MY_EPSILON (10.0*2.220446049250313e-16)
+static constexpr double MY_EPSILON = 10.0*2.220446049250313e-16;
 #endif
 
 using namespace LAMMPS_NS;
@@ -134,11 +134,11 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (rx_flag) read_file(arg[7]);
-  else dHf[0] = atof(arg[7]);
+  else dHf[0] = std::stod(arg[7]);
 
   if (narg==10) {
-    energyCorr[0] = atof(arg[8]);
-    tempCorrCoeff[0] = atof(arg[9]);
+    energyCorr[0] = std::stod(arg[8]);
+    tempCorrCoeff[0] = std::stod(arg[9]);
   }
 
   comm_forward = 3;
@@ -318,7 +318,8 @@ void FixEOStableRX::read_file(char *file)
 
   // one set of params can span multiple lines
   int n,nwords,ispecies;
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int eof = 0;
 
   while (true) {
@@ -372,11 +373,11 @@ void FixEOStableRX::read_file(char *file)
       if (strcmp(words[0],&atom->dvname[ispecies][0]) == 0) break;
 
     if (ispecies < nspecies) {
-      dHf[ispecies] = atof(words[1]);
+      dHf[ispecies] = std::stod(words[1]);
       if (nwords > min_params_per_line+1) {
-        energyCorr[ispecies] = atof(words[2]);
-        tempCorrCoeff[ispecies] = atof(words[3]);
-        moleculeCorrCoeff[ispecies] = atof(words[4]);
+        energyCorr[ispecies] = std::stod(words[2]);
+        tempCorrCoeff[ispecies] = std::stod(words[3]);
+        moleculeCorrCoeff[ispecies] = std::stod(words[4]);
       }
     }
   }
@@ -414,7 +415,7 @@ void FixEOStableRX::free_table(Table *tb)
 
 void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 {
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
 
   // open file
 
@@ -481,7 +482,7 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 
     word = strtok(line," \t\n\r\f");
     word = strtok(nullptr," \t\n\r\f");
-    rtmp = atof(word);
+    rtmp = std::stod(word);
 
     for (int icolumn=0; icolumn < ncolumn; icolumn++) {
       ispecies = eosSpecies[icolumn];
@@ -490,7 +491,7 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
       Table *tbl2 = &tables2[ispecies];
 
       word = strtok(nullptr," \t\n\r\f");
-      tmpE = atof(word);
+      tmpE = std::stod(word);
 
       tbl->rfile[i] = rtmp;
       tbl->efile[i] = tmpE;
@@ -573,7 +574,7 @@ void FixEOStableRX::param_extract(Table *tb, char *line)
   char *word = strtok(line," \t\n\r\f");
   if (strcmp(word,"N") == 0) {
     word = strtok(nullptr," \t\n\r\f");
-    tb->ninput = atoi(word);
+    tb->ninput = std::stoi(word);
   } else
     error->one(FLERR,"Invalid keyword in fix eos/table/rx parameters");
   word = strtok(nullptr," \t\n\r\f");

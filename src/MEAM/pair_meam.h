@@ -14,7 +14,6 @@
 #ifdef PAIR_CLASS
 // clang-format off
 PairStyle(meam,PairMEAM);
-PairStyle(meam/c,PairMEAM);
 // clang-format on
 #else
 
@@ -55,9 +54,9 @@ class PairMEAM : public Pair {
   double **scale;    // scaling factor for adapt
 
   void allocate();
-  void read_files(const std::string &, const std::string &);
+  void read_files(const std::string &, const std::string &, int);
   void read_global_meam_file(const std::string &);
-  void read_user_meam_file(const std::string &);
+  void read_user_meam_file(const std::string &, int);
   void neigh_strip(int, int *, int *, int **);
 };
 

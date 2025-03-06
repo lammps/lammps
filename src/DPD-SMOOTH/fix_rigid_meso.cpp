@@ -29,11 +29,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_meso.h"
-#include "math_extra.h"
+
 #include "atom.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
+#include "math_extra.h"
+#include "memory.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -92,6 +93,11 @@ void FixRigidMeso::setup (int vflag) {
     conjqm[ibody][2] *= 2.0;
     conjqm[ibody][3] *= 2.0;
   }
+
+  // Cannot use vremap since its effects aren't propagated to vest
+  //   see RHEO or SPH packages for examples of patches
+  if (domain->deform_vremap)
+    error->all(FLERR, "Fix rigid/meso cannot be used with velocity remapping");
 }
 
 /* ----------------------------------------------------------------------

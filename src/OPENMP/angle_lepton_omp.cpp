@@ -16,13 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_lepton_omp.h"
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "neighbor.h"
 #include "suffix.h"
 
 #include <cmath>
+#include <exception>
 
 #include "Lepton.h"
 #include "lepton_utils.h"
@@ -91,10 +94,17 @@ void AngleLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 {
   std::vector<Lepton::CompiledExpression> angleforce;
   std::vector<Lepton::CompiledExpression> anglepot;
+  std::vector<bool> has_ref;
   try {
     for (const auto &expr : expressions) {
       auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp));
       angleforce.emplace_back(parsed.differentiate("theta").createCompiledExpression());
+      has_ref.push_back(true);
+      try {
+        angleforce.back().getVariableReference("theta");
+      } catch (Lepton::Exception &) {
+        has_ref.back() = false;
+      }
       if (EFLAG) anglepot.emplace_back(parsed.createCompiledExpression());
     }
   } catch (std::exception &e) {
@@ -146,8 +156,7 @@ void AngleLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 
     const double dtheta = acos(c) - theta0[type];
     const int idx = type2expression[type];
-    angleforce[idx].getVariableReference("theta") = dtheta;
-
+    if (has_ref[idx]) angleforce[idx].getVariableReference("theta") = dtheta;
     const double a = -angleforce[idx].evaluate() * s;
     const double a11 = a * c / rsq1;
     const double a12 = -a / (r1 * r2);
@@ -183,7 +192,11 @@ void AngleLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 
     double eangle = 0.0;
     if (EFLAG) {
-      anglepot[idx].getVariableReference("theta") = dtheta;
+      try {
+        anglepot[idx].getVariableReference("theta") = dtheta;
+      } catch (Lepton::Exception &) {
+        ;    // ignore -> constant force
+      }
       eangle = anglepot[idx].evaluate() - offset[type];
     }
     if (EVFLAG)

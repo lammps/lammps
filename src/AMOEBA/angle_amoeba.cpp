@@ -30,7 +30,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define SMALL 0.001
+static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
@@ -867,4 +867,20 @@ double AngleAmoeba::single(int type, int i1, int i2, int i3)
   energy += ba_k1[type]*dr1*dtheta + ba_k2[type]*dr2*dtheta;
 
   return energy;
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleAmoeba::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k2") == 0) return (void *) k2;
+  if (strcmp(str, "k3") == 0) return (void *) k3;
+  if (strcmp(str, "k4") == 0) return (void *) k4;
+  if (strcmp(str, "k5") == 0) return (void *) k5;
+  if (strcmp(str, "k6") == 0) return (void *) k6;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
+  return nullptr;
 }

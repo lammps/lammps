@@ -6,7 +6,7 @@ compute smd/hourglass/error command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/hourglass/error
 

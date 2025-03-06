@@ -1,0 +1,486 @@
+LAMMPS (27 Jun 2024)
+# ------ 2D oxidizing bar ------ #
+
+dimension          2
+units              lj
+atom_style         hybrid rheo/thermal bond
+boundary           m m p
+comm_modify        vel yes
+newton             off
+
+region             box block -60 60 0 80 -0.01 0.01 units box
+create_box         3 box bond/types 2 extra/bond/per/atom 20 extra/special/per/atom 50
+Created orthogonal box = (-60 0 -0.01) to (60 80 0.01)
+  2 by 2 by 1 MPI processor grid
+
+region             lbar block -15 0 3 80 EDGE EDGE units box
+region             rbar block 0 15 3 80 EDGE EDGE units box
+region             bar union 2 lbar rbar
+region             floor block EDGE EDGE EDGE 3.0 EDGE EDGE units box
+
+lattice            hex 1.0
+Lattice spacing in x,y,z = 1.0745699 1.8612097 1.0745699
+create_atoms       1 region bar
+Created 2255 atoms
+  using lattice units in orthogonal box = (-60 0 -0.01) to (60 80 0.01)
+  create_atoms CPU = 0.004 seconds
+create_atoms       3 region floor
+Created 446 atoms
+  using lattice units in orthogonal box = (-60 0 -0.01) to (60 80 0.01)
+  create_atoms CPU = 0.000 seconds
+
+set                region rbar type 2
+Setting atom values ...
+  1148 settings made for type
+group              bar type 1 2
+2255 atoms in group bar
+group              rbar type 2
+1148 atoms in group rbar
+group              floor type 3
+446 atoms in group floor
+
+set                group all sph/e 0.0
+Setting atom values ...
+  2701 settings made for sph/e
+set                group all rheo/status 1
+Setting atom values ...
+  2701 settings made for rheo/status
+
+# ------ Model parameters ------#
+
+variable           cut equal 3.0
+variable           n equal 1.0
+variable           rho0 equal 1.0
+variable           cs equal 1.0
+variable           mp equal ${rho0}/${n}
+variable           mp equal 1/${n}
+variable           mp equal 1/1
+variable           zeta equal 0.05
+variable           kappa equal 0.1*${rho0}/${mp}
+variable           kappa equal 0.1*1/${mp}
+variable           kappa equal 0.1*1/1
+variable           dt_max equal 0.1*${cut}/${cs}/3
+variable           dt_max equal 0.1*3/${cs}/3
+variable           dt_max equal 0.1*3/1/3
+variable           eta equal 0.05
+variable           Cv equal 1.0
+variable           L equal 0.1
+variable           Tf equal 1.0
+
+mass               * ${mp}
+mass               * 1
+timestep           0.1
+
+pair_style         hybrid/overlay rheo ${cut} artificial/visc ${zeta} rheo/solid
+pair_style         hybrid/overlay rheo 3 artificial/visc ${zeta} rheo/solid
+pair_style         hybrid/overlay rheo 3 artificial/visc 0.05 rheo/solid
+pair_coeff         * * rheo
+pair_coeff         * * rheo/solid 1.0 1.0 1.0
+
+special_bonds      lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        1        1       
+     0 = max # of 1-2 neighbors
+   101 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+create_bonds       many bar bar 1 0 1.5
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.3
+  ghost atom cutoff = 3.3
+  binsize = 1.65, bins = 73 49 1
+  3 neighbor lists, perpetual/occasional/extra = 2 1 0
+  (1) command create_bonds, occasional
+      attributes: full, newton off
+      pair build: full/bin
+      stencil: full/bin/2d
+      bin: standard
+  (2) pair rheo, perpetual
+      attributes: half, newton off
+      pair build: half/bin/newtoff
+      stencil: full/bin/2d
+      bin: standard
+  (3) pair rheo/solid, perpetual, trim from (2)
+      attributes: half, newton off, cut 1.3
+      pair build: trim
+      stencil: none
+      bin: none
+Added 6547 bonds, new total = 6547
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        1        1       
+     6 = max # of 1-2 neighbors
+   101 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+special_bonds      lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
+
+bond_style         hybrid bpm/spring rheo/shell t/form 100
+bond_coeff         1 bpm/spring 1.0 1.0 1.0
+bond_coeff         2 rheo/shell 0.2 0.2 0.1
+
+# ------ Apply dynamics ------#
+
+# Note: surface detection is not performed on solid bodies, so cannot use surface property
+compute         coord all rheo/property/atom coordination
+variable        surf atom c_coord<22
+group           surf dynamic all var surf every 10
+dynamic group surf defined
+
+fix             1 all rheo ${cut} quintic 0                            thermal                            shift                            surface/detection coordination 22 8
+fix             1 all rheo 3 quintic 0                            thermal                            shift                            surface/detection coordination 22 8
+fix             2 all rheo/viscosity * constant ${eta}
+fix             2 all rheo/viscosity * constant 0.05
+fix             3 all rheo/pressure * linear
+fix             4 all rheo/thermal conductivity * constant ${kappa}                                    specific/heat * constant ${Cv}                                    Tfreeze * constant ${Tf}                                    latent/heat * constant ${L}                                    react 1.5 1
+fix             4 all rheo/thermal conductivity * constant 0.1                                    specific/heat * constant ${Cv}                                    Tfreeze * constant ${Tf}                                    latent/heat * constant ${L}                                    react 1.5 1
+fix             4 all rheo/thermal conductivity * constant 0.1                                    specific/heat * constant 1                                    Tfreeze * constant ${Tf}                                    latent/heat * constant ${L}                                    react 1.5 1
+fix             4 all rheo/thermal conductivity * constant 0.1                                    specific/heat * constant 1                                    Tfreeze * constant 1                                    latent/heat * constant ${L}                                    react 1.5 1
+fix             4 all rheo/thermal conductivity * constant 0.1                                    specific/heat * constant 1                                    Tfreeze * constant 1                                    latent/heat * constant 0.1                                    react 1.5 1
+
+fix             5 rbar rheo/oxidation 1.5 2 1.0
+fix             6 all wall/harmonic ylo EDGE 2.0 1.0 1.0
+fix             7 all gravity 5e-5 vector 0 -1 0
+fix             8 floor setforce 0.0 0.0 0.0
+fix             9 surf add/heat linear 1.1 0.5
+fix             10 floor add/heat constant 0 overwrite yes # fix the temperature of the floor
+fix             11 all enforce2d
+
+compute         surf all rheo/property/atom surface
+compute         rho all rheo/property/atom rho
+compute         phase all rheo/property/atom phase
+compute         temp all rheo/property/atom temperature
+compute         eng all rheo/property/atom energy
+compute         nbond_shell all rheo/property/atom nbond/shell
+compute         nbond_solid all nbond/atom bond/type 1
+
+# ------ Output & Run ------ #
+
+thermo          200
+thermo_style    custom step time ke press atoms
+
+#dump            1 all custom 200 atomDump id type x y vx vy fx fy c_phase c_temp c_eng c_nbond_solid c_nbond_shell c_rho c_surf
+
+run             40000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- BPM bond style: doi:10.1039/D3SM01373A
+
+@Article{Clemmer2024,
+ author =  {Clemmer, Joel T. and Monti, Joseph M. and Lechman, Jeremy B.},
+ title =   {A soft departure from jamming: the compaction of deformable
+            granular matter under high pressures},
+ journal = {Soft Matter},
+ year =    2024,
+ volume =  20,
+ number =  8,
+ pages =   {1702--1718}
+}
+
+- @article{PalermoInPrep,
+ journal = {in prep},
+ title = {RHEO: A Hybrid Mesh-Free Model Framework for Dynamic Multi-Phase Flows},
+ year = {2024},
+ author = {Eric T. Palermo and Ki T. Wolf and Joel T. Clemmer and Thomas C. O'Connor},
+}
+
+- @article{ApplMathModel.130.310,
+ title = {A hybrid smoothed-particle hydrodynamics model of oxide skins on molten aluminum},
+ journal = {Applied Mathematical Modelling},
+ volume = {130},
+ pages = {310-326},
+ year = {2024},
+ issn = {0307-904X},
+ doi = {https://doi.org/10.1016/j.apm.2024.02.027},
+ author = {Joel T. Clemmer and Flint Pierce and Thomas C. O'Connor and Thomas D. Nevins and Elizabeth M.C. Jones and Jeremy B. Lechman and John Tencer},
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.3
+  ghost atom cutoff = 3.3
+  binsize = 1.65, bins = 73 49 1
+  8 neighbor lists, perpetual/occasional/extra = 7 1 0
+  (1) pair rheo, perpetual, half/full from (3)
+      attributes: half, newton off
+      pair build: halffull/newtoff
+      stencil: none
+      bin: none
+  (2) pair rheo/solid, perpetual, trim from (4)
+      attributes: half, newton off, cut 1.3
+      pair build: trim
+      stencil: none
+      bin: none
+  (3) compute RHEO/KERNEL, perpetual
+      attributes: full, newton off
+      pair build: full/bin
+      stencil: full/bin/2d
+      bin: standard
+  (4) compute RHEO/GRAD, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+  (5) compute RHEO/VSHIFT, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+  (6) compute RHEO/SURFACE, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+  (7) fix rheo/thermal, occasional, trim from (4)
+      attributes: half, newton off, cut 3
+      pair build: trim
+      stencil: none
+      bin: none
+  (8) fix rheo/oxidation, perpetual, trim from (3)
+      attributes: full, newton off, cut 1.8
+      pair build: trim
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 25.96 | 25.96 | 25.96 Mbytes
+   Step          Time          KinEng         Press         Atoms   
+         0   0              0              0                   2701 
+       200   20             4.1737457e-07  1.298459e-07        2701 
+       400   40             1.6692448e-06  4.9223021e-07       2701 
+       600   60             3.7115752e-06  1.0476692e-05       2701 
+       800   80             4.678922e-06   0.00015017477       2701 
+      1000   100            4.7534549e-06  0.00027967322       2701 
+      1200   120            3.4532974e-06  0.00045908503       2701 
+      1400   140            1.4159611e-06  0.00055855688       2701 
+      1600   160            4.5151976e-07  0.00058351591       2701 
+      1800   180            5.1656107e-07  0.00055163637       2701 
+      2000   200            1.882995e-06   0.00048349046       2701 
+      2200   220            3.3481991e-06  0.00037790487       2701 
+      2400   240            3.8173347e-06  0.00023972848       2701 
+      2600   260            3.1832818e-06  9.5696995e-05       2701 
+      2800   280            1.5994934e-06 -2.7484809e-05       2701 
+      3000   300            3.573403e-07  -8.56391e-05         2701 
+      3200   320            1.6485893e-07 -5.6974248e-05       2701 
+      3400   340            8.5665044e-07  3.473389e-06        2701 
+      3600   360            2.0801421e-06  5.7938582e-05       2701 
+      3800   380            3.1934959e-06  0.00016746888       2701 
+      4000   400            3.2540476e-06  0.00026471904       2701 
+      4200   420            2.5603544e-06  0.00037699521       2701 
+      4400   440            1.4309318e-06  0.00047456272       2701 
+      4600   460            6.5231009e-07  0.00050551979       2701 
+      4800   480            6.9010626e-07  0.00048100816       2701 
+      5000   500            1.2663499e-06  0.00042166061       2701 
+      5200   520            2.0653769e-06  0.00033547376       2701 
+      5400   540            2.2709253e-06  0.00023015884       2701 
+      5600   560            1.7864994e-06  0.00013378564       2701 
+      5800   580            9.5638493e-07  4.4666688e-05       2701 
+      6000   600            3.0331342e-07 -1.884252e-06        2701 
+      6200   620            3.451498e-07   8.3090163e-07       2701 
+      6400   640            9.5098597e-07  4.7759688e-05       2701 
+      6600   660            1.8169765e-06  0.00011801205       2701 
+      6800   680            2.3723951e-06  0.00019823562       2701 
+      7000   700            2.3542553e-06  0.00028873701       2701 
+      7200   720            1.9132157e-06  0.00036386547       2701 
+      7400   740            1.4123115e-06  0.00040731263       2701 
+      7600   760            1.2422941e-06  0.00041151319       2701 
+      7800   780            1.4355275e-06  0.00038364583       2701 
+      8000   800            1.7835754e-06  0.00032724239       2701 
+      8200   820            1.961321e-06   0.00025932051       2701 
+      8400   840            1.8005786e-06  0.00018763659       2701 
+      8600   860            1.4274768e-06  0.00012392727       2701 
+      8800   880            1.075959e-06   8.1241673e-05       2701 
+      9000   900            1.014674e-06   7.0104531e-05       2701 
+      9200   920            1.3155353e-06  8.7991534e-05       2701 
+      9400   940            1.815649e-06   0.00012975516       2701 
+      9600   960            2.2699387e-06  0.0001861001        2701 
+      9800   980            2.4916284e-06  0.00024375475       2701 
+     10000   1000           2.4741893e-06  0.00029466715       2701 
+     10200   1020           2.3835838e-06  0.00032733587       2701 
+     10400   1040           2.3816351e-06  0.00033659466       2701 
+     10600   1060           2.5177605e-06  0.00032136429       2701 
+     10800   1080           2.6973866e-06  0.00028678114       2701 
+     11000   1100           2.8219278e-06  0.00023889501       2701 
+     11200   1120           2.794743e-06   0.00019226876       2701 
+     11400   1140           2.667182e-06   0.00015100316       2701 
+     11600   1160           2.5918212e-06  0.00012484649       2701 
+     11800   1180           2.6802845e-06  0.00011912201       2701 
+     12000   1200           2.9620111e-06  0.00013336302       2701 
+     12200   1220           3.3281225e-06  0.00016262605       2701 
+     12400   1240           3.6587842e-06  0.00020175308       2701 
+     12600   1260           3.8696418e-06  0.00023984351       2701 
+     12800   1280           3.9774608e-06  0.00026981166       2701 
+     13000   1300           4.0621923e-06  0.00028706126       2701 
+     13200   1320           4.2118368e-06  0.00028639136       2701 
+     13400   1340           4.4229032e-06  0.00026844105       2701 
+     13600   1360           4.6415059e-06  0.00023789752       2701 
+     13800   1380           4.8106868e-06  0.00020524655       2701 
+     14000   1400           4.9343741e-06  0.00017392428       2701 
+     14200   1420           5.0835921e-06  0.00015013775       2701 
+     14400   1440           5.3365604e-06  0.0001413941        2701 
+     14600   1460           5.7248817e-06  0.00014521418       2701 
+     14800   1480           6.2145391e-06  0.00016109563       2701 
+     15000   1500           6.7347576e-06  0.00018481456       2701 
+     15200   1520           7.221694e-06   0.00020956545       2701 
+     15400   1540           7.6762698e-06  0.0002293694        2701 
+     15600   1560           8.1313425e-06  0.00024058679       2701 
+     15800   1580           8.6053324e-06  0.00024015877       2701 
+     16000   1600           9.1091988e-06  0.00022927412       2701 
+     16200   1620           9.6165964e-06  0.00021035982       2701 
+     16400   1640           1.0093906e-05  0.00018782673       2701 
+     16600   1660           1.0561165e-05  0.00016863993       2701 
+     16800   1680           1.1066274e-05  0.00015693261       2701 
+     17000   1700           1.1661861e-05  0.00015221008       2701 
+     17200   1720           1.236148e-05   0.00015781879       2701 
+     17400   1740           1.3124872e-05  0.00017008789       2701 
+     17600   1760           1.3924606e-05  0.00018628888       2701 
+     17800   1780           1.4733479e-05  0.0002011741        2701 
+     18000   1800           1.5558838e-05  0.00021115187       2701 
+     18200   1820           1.6415631e-05  0.00021314897       2701 
+     18400   1840           1.7287377e-05  0.00020793654       2701 
+     18600   1860           1.8202577e-05  0.00019550685       2701 
+     18800   1880           1.9126239e-05  0.00018102715       2701 
+     19000   1900           2.0074716e-05  0.0001684831        2701 
+     19200   1920           2.1090982e-05  0.00015956926       2701 
+     19400   1940           2.2180303e-05  0.00015805759       2701 
+     19600   1960           2.3330404e-05  0.00016157807       2701 
+     19800   1980           2.4557652e-05  0.00017047221       2701 
+     20000   2000           2.5841568e-05  0.00018216972       2701 
+     20200   2020           2.7188233e-05  0.00018953358       2701 
+     20400   2040           2.8576958e-05  0.00019304182       2701 
+     20600   2060           2.999218e-05   0.00019239757       2701 
+     20800   2080           3.1437794e-05  0.00018759619       2701 
+     21000   2100           3.2938831e-05  0.00017863274       2701 
+     21200   2120           3.4506515e-05  0.00016911647       2701 
+     21400   2140           3.6126713e-05  0.00016161126       2701 
+     21600   2160           3.7812343e-05  0.0001583968        2701 
+     21800   2180           3.9564996e-05  0.00016178647       2701 
+     22000   2200           4.1406387e-05  0.00016872633       2701 
+     22200   2220           4.3340255e-05  0.00017435061       2701 
+     22400   2240           4.5333317e-05  0.00017910049       2701 
+     22600   2260           4.7311785e-05  0.0001800877        2701 
+     22800   2280           4.9303605e-05  0.00017728464       2701 
+     23000   2300           5.1334424e-05  0.00017486007       2701 
+     23200   2320           5.3402091e-05  0.00016867905       2701 
+     23400   2340           5.5505853e-05  0.00016402807       2701 
+     23600   2360           5.7679415e-05  0.00016343865       2701 
+     23800   2380           5.9920078e-05  0.00016623374       2701 
+     24000   2400           6.2239328e-05  0.00017028032       2701 
+     24200   2420           6.4624902e-05  0.00017371561       2701 
+     24400   2440           6.7054046e-05  0.00017565916       2701 
+     24600   2460           6.9522453e-05  0.00017545566       2701 
+     24800   2480           7.2079202e-05  0.00017437049       2701 
+     25000   2500           7.4716585e-05  0.00017043497       2701 
+     25200   2520           7.7415627e-05  0.00016579093       2701 
+     25400   2540           8.0169507e-05  0.00016268419       2701 
+     25600   2560           8.3001779e-05  0.00016233687       2701 
+     25800   2580           8.5921287e-05  0.00016275719       2701 
+     26000   2600           8.8880908e-05  0.00016425339       2701 
+     26200   2620           9.1881788e-05  0.00016478504       2701 
+     26400   2640           9.4969348e-05  0.00016371806       2701 
+     26600   2660           9.817611e-05   0.00016339555       2701 
+     26800   2680           0.00010146396  0.00015937569       2701 
+     27000   2700           0.00010485972  0.0001562082        2701 
+     27200   2720           0.00010837565  0.00015181198       2701 
+     27400   2740           0.00011187666  0.00015162336       2701 
+     27600   2760           0.00011543324  0.0001606148        2701 
+     27800   2780           0.00011905739  0.00016161123       2701 
+     28000   2800           0.00012280117  0.00016267347       2701 
+     28200   2820           0.00012665753  0.00016393863       2701 
+     28400   2840           0.00013061568  0.00016168097       2701 
+     28600   2860           0.00013469542  0.00015439793       2701 
+     28800   2880           0.00013889392  0.00014870639       2701 
+     29000   2900           0.00014307887  0.00015020156       2701 
+     29200   2920           0.00014714875  0.00015727801       2701 
+     29400   2940           0.0001510796   0.00016230922       2701 
+     29600   2960           0.0001551489   0.00016725059       2701 
+     29800   2980           0.00015918695  0.0001556229        2701 
+     30000   3000           0.00016145717  0.00015704562       2701 
+     30200   3020           0.00016164704  0.00015902669       2701 
+     30400   3040           0.00016250791  0.00017587854       2701 
+     30600   3060           0.0001639094   0.00016958759       2701 
+     30800   3080           0.00016479103  0.00016810892       2701 
+     31000   3100           0.00016521873  0.00016027053       2701 
+     31200   3120           0.00016540216  0.00015397865       2701 
+     31400   3140           0.00016690063  0.00015955009       2701 
+     31600   3160           0.00016832002  0.00015593907       2701 
+     31800   3180           0.00016948949  0.00015690982       2701 
+     32000   3200           0.0001700061   0.00016199222       2701 
+     32200   3220           0.00017122936  0.00016220019       2701 
+     32400   3240           0.00017198531  0.00015194229       2701 
+     32600   3260           0.00017286097  0.00014880433       2701 
+     32800   3280           0.00017395847  0.00014887179       2701 
+     33000   3300           0.00017527125  0.00015338612       2701 
+     33200   3320           0.00017667877  0.00014965389       2701 
+     33400   3340           0.00017944144  0.00014195087       2701 
+     33600   3360           0.0001807053   0.00014509998       2701 
+     33800   3380           0.00018242869  0.00014683629       2701 
+     34000   3400           0.00018415985  0.00014295872       2701 
+     34200   3420           0.00018635902  0.00013823794       2701 
+     34400   3440           0.00018885401  0.00013629126       2701 
+     34600   3460           0.00019106836  0.000138816         2701 
+     34800   3480           0.00019256787  0.00014358744       2701 
+     35000   3500           0.00019410016  0.0001420669        2701 
+     35200   3520           0.00019563657  0.0001340349        2701 
+     35400   3540           0.00019734994  0.00012994197       2701 
+     35600   3560           0.00019880477  0.00013331695       2701 
+     35800   3580           0.00020014422  0.00013848097       2701 
+     36000   3600           0.00020165626  0.00013796434       2701 
+     36200   3620           0.00020297057  0.0001346407        2701 
+     36400   3640           0.00020432584  0.00012838525       2701 
+     36600   3660           0.00020530152  0.00012848442       2701 
+     36800   3680           0.00020709012  0.0001296875        2701 
+     37000   3700           0.00020939979  0.00017016832       2701 
+     37200   3720           0.00021026158  0.00017388254       2701 
+     37400   3740           0.00021203076  0.00012169741       2701 
+     37600   3760           0.00021407912  0.00012467048       2701 
+     37800   3780           0.00021652866  0.000129545         2701 
+     38000   3800           0.00021927979  0.00013537464       2701 
+     38200   3820           0.00022175274  0.00014124275       2701 
+     38400   3840           0.00022431717  0.0001456533        2701 
+     38600   3860           0.00022586947  0.00015646735       2701 
+     38800   3880           0.00021974508  0.0001467496        2701 
+     39000   3900           0.00021270891  0.0001291023        2701 
+     39200   3920           0.00020709839  0.00014468038       2701 
+     39400   3940           0.00020138943  0.000156103         2701 
+     39600   3960           0.00019579027  0.00015207179       2701 
+     39800   3980           0.00019219602  0.0001548601        2701 
+     40000   4000           0.00018931715  0.00013543387       2701 
+Loop time of 169.513 on 4 procs for 40000 steps with 2701 atoms
+
+Performance: 2038784.562 tau/day, 235.970 timesteps/s, 637.356 katom-step/s
+99.7% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 16.279     | 22.828     | 28         |  98.9 | 13.47
+Bond    | 0.88503    | 1.4645     | 2.0916     |  36.3 |  0.86
+Neigh   | 29.832     | 29.954     | 30.069     |   1.5 | 17.67
+Comm    | 1.2274     | 1.3406     | 1.4623     |   7.3 |  0.79
+Output  | 0.0041506  | 0.0054325  | 0.0062685  |   1.1 |  0.00
+Modify  | 107.8      | 113.27     | 120.23     |  47.8 | 66.82
+Other   |            | 0.6549     |            |       |  0.39
+
+Nlocal:         675.25 ave        1362 max           1 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:          94.75 ave         154 max          45 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+Neighs:          10485 ave       21200 max          18 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:      20408.5 ave       41306 max          18 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 81634
+Ave neighs/atom = 30.223621
+Ave special neighs/atom = 1.7304702
+Neighbor list builds = 39994
+Dangerous builds = 0
+Total wall time: 0:02:50

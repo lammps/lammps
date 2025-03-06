@@ -75,10 +75,10 @@ using namespace LAMMPS_NS;
 ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), id_temp(nullptr), deltaR(nullptr)
 {
-  if (narg < 4) error->all(FLERR,"Illegal compute hma command");
-  if (igroup) error->all(FLERR,"Compute hma must use group all");
+  if (narg < 4) utils::missing_cmd_args(FLERR,"compute hma", error);
+  if (igroup) error->all(FLERR, 1, "Compute hma must use group all");
   if (strcmp(arg[3],"NULL") == 0)
-    error->all(FLERR,"fix ID specifying the set temperature of canonical simulation is required");
+    error->all(FLERR, 3, "fix ID specifying the set temperature of canonical simulation is required");
   else id_temp = utils::strdup(arg[3]);
 
   create_attribute = 1;
@@ -139,7 +139,7 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
       // the first time we're called, we'll grab lattice pressure and energy
       returnAnharmonic = -1;
     } else {
-      error->all(FLERR,"Illegal compute hma command");
+      error->all(FLERR, iarg, "Unknown compute hma keyword {}", arg[iarg]);
     }
   }
 
@@ -172,9 +172,9 @@ ComputeHMA::~ComputeHMA()
 void ComputeHMA::init() {
   if (computeCv>-1) {
     if (force->pair == nullptr)
-      error->all(FLERR,"No pair style is defined for compute hma cv");
+      error->all(FLERR, Error::NOLASTLINE, "No pair style is defined for compute hma cv");
     if (force->pair->single_enable == 0)
-      error->all(FLERR,"Pair style does not support compute hma cv");
+      error->all(FLERR, Error::NOLASTLINE, "Pair style does not support compute hma cv");
   }
 
   neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
@@ -189,15 +189,19 @@ void ComputeHMA::setup()
 {
   int dummy=0;
   Fix *ifix = modify->get_fix_by_id(id_temp);
-  if (!ifix) error->all(FLERR,"Could not find compute hma temperature fix ID {}", id_temp);
+  if (!ifix)
+    error->all(FLERR, Error::NOLASTLINE, "Could not find compute hma temperature fix ID {}",
+               id_temp);
   auto  temperat = (double *) ifix->extract("t_target",dummy);
-  if (temperat == nullptr) error->all(FLERR,"Fix ID {} is not a thermostat {}", id_temp);
+  if (temperat == nullptr)
+    error->all(FLERR, Error::NOLASTLINE, "Fix ID {} is not a thermostat {}", id_temp);
   finaltemp = *temperat;
 
   // set fix which stores original atom coords
 
   fix = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(id_fix));
-  if (!fix) error->all(FLERR,"Could not find hma per-atom store fix ID {}", id_fix);
+  if (!fix)
+    error->all(FLERR, Error::NOLASTLINE, "Could not find hma per-atom store fix ID {}", id_fix);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -291,8 +295,7 @@ void ComputeHMA::compute_vector()
       double *special_coul = force->special_coul;
       int newton_pair = force->newton_pair;
 
-      if (update->firststep == update->ntimestep) neighbor->build_one(list,1);
-      else neighbor->build_one(list);
+      neighbor->build_one(list);
       int inum = list->inum;
       int *ilist = list->ilist;
       int *numneigh = list->numneigh;

@@ -41,15 +41,15 @@ int dpotrs_(char *uplo, integer *n, integer *nrhs, doublereal *a, integer *lda, 
         return 0;
     }
     if (upper) {
-        dtrsm_((char *)"Left", (char *)"Upper", (char *)"Transpose", (char *)"Non-unit", n, nrhs, &c_b9, &a[a_offset], lda,
-               &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (ftnlen)9, (ftnlen)8);
-        dtrsm_((char *)"Left", (char *)"Upper", (char *)"No transpose", (char *)"Non-unit", n, nrhs, &c_b9, &a[a_offset], lda,
-               &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (ftnlen)12, (ftnlen)8);
+        dtrsm_((char *)"L", (char *)"U", (char *)"T", (char *)"N", n, nrhs, &c_b9, &a[a_offset], lda, &b[b_offset], ldb, (ftnlen)1,
+               (ftnlen)1, (ftnlen)1, (ftnlen)1);
+        dtrsm_((char *)"L", (char *)"U", (char *)"N", (char *)"N", n, nrhs, &c_b9, &a[a_offset], lda, &b[b_offset], ldb, (ftnlen)1,
+               (ftnlen)1, (ftnlen)1, (ftnlen)1);
     } else {
-        dtrsm_((char *)"Left", (char *)"Lower", (char *)"No transpose", (char *)"Non-unit", n, nrhs, &c_b9, &a[a_offset], lda,
-               &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (ftnlen)12, (ftnlen)8);
-        dtrsm_((char *)"Left", (char *)"Lower", (char *)"Transpose", (char *)"Non-unit", n, nrhs, &c_b9, &a[a_offset], lda,
-               &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (ftnlen)9, (ftnlen)8);
+        dtrsm_((char *)"L", (char *)"L", (char *)"N", (char *)"N", n, nrhs, &c_b9, &a[a_offset], lda, &b[b_offset], ldb, (ftnlen)1,
+               (ftnlen)1, (ftnlen)1, (ftnlen)1);
+        dtrsm_((char *)"L", (char *)"L", (char *)"T", (char *)"N", n, nrhs, &c_b9, &a[a_offset], lda, &b[b_offset], ldb, (ftnlen)1,
+               (ftnlen)1, (ftnlen)1, (ftnlen)1);
     }
     return 0;
 }

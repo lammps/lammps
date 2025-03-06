@@ -1,8 +1,8 @@
 ---
 lammps_version: 17 Feb 2022
 date_generated: Fri Mar 18 22:17:31 2022
-epsilon: 2e-13
-skip_tests:
+epsilon: 5e-13
+skip_tests: gpu
 prerequisites: ! |
   atom full
   pair lj/cut/coul/cut/soft

@@ -78,9 +78,8 @@ class FixRigidSmall : public Fix {
 
   virtual void setup_pre_neighbor() override;
   virtual void pre_neighbor() override;
-  int dof(int) override;
+  bigint dof(int) override;
   void deform(int) override;
-  void enforce2d() override;
   void reset_dt() override;
   void zero_momentum() override;
   void zero_rotation() override;
@@ -92,7 +91,6 @@ class FixRigidSmall : public Fix {
   double memory_usage() override;
 
  protected:
-  int me, nprocs;
   double dtv, dtf, dtq;
   double *step_respa;
   int triclinic;
@@ -203,7 +201,8 @@ class FixRigidSmall : public Fix {
   void setup_bodies_static();
   void setup_bodies_dynamic();
   void apply_langevin_thermostat();
-  void compute_forces_and_torques();
+  virtual void compute_forces_and_torques();
+  virtual void enforce2d();
   void readfile(int, double **, int *);
   virtual void grow_body();
   virtual void reset_atom2body();

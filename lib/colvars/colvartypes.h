@@ -10,7 +10,13 @@
 #ifndef COLVARTYPES_H
 #define COLVARTYPES_H
 
+#include <sstream> // TODO specialize templates and replace this with iosfwd
 #include <vector>
+
+#ifdef COLVARS_LAMMPS
+// Use open-source Jacobi implementation
+#include "math_eigen_impl.h"
+#endif
 
 #include "colvarmodule.h"
 
@@ -53,6 +59,12 @@ public:
     }
   }
 
+  /// Explicit Copy constructor
+  inline vector1d(const vector1d&) = default;
+
+  /// Explicit Copy assignement
+  inline vector1d& operator=(const vector1d&) = default;
+
   /// Return a pointer to the data location
   inline T * c_array()
   {
@@ -65,6 +77,12 @@ public:
 
   /// Return a reference to the data
   inline std::vector<T> &data_array()
+  {
+    return data;
+  }
+
+  /// Return a reference to the data
+  inline std::vector<T> const &data_array() const
   {
     return data;
   }
@@ -493,6 +511,12 @@ public:
     return data;
   }
 
+  /// Return a reference to the data
+  inline std::vector<T> const &data_array() const
+  {
+    return data;
+  }
+
   inline row & operator [] (size_t const i)
   {
     return rows[i];
@@ -896,9 +920,6 @@ public:
     zz = zzi;
   }
 
-  /// Destructor
-  inline ~rmatrix()
-  {}
 
   inline void reset()
   {
@@ -1278,59 +1299,50 @@ public:
 
 };
 
+#ifndef COLVARS_LAMMPS
+namespace NR {
+void diagonalize_matrix(cvm::real m[4][4],
+                        cvm::real eigval[4],
+                        cvm::real eigvec[4][4]);
+}
+#endif
+
 
 /// \brief A rotation between two sets of coordinates (for the moment
 /// a wrapper for colvarmodule::quaternion)
 class colvarmodule::rotation
 {
-public:
-
-  /// \brief The rotation itself (implemented as a quaternion)
-  cvm::quaternion q;
-
-  /// \brief Eigenvalue corresponding to the optimal rotation
-  cvm::real lambda;
-
-  /// \brief Perform gradient tests
-  bool b_debug_gradients;
-
+private:
   /// Correlation matrix C (3, 3)
   cvm::rmatrix C;
 
   /// Overlap matrix S (4, 4)
-  cvm::matrix2d<cvm::real> S;
+  cvm::real S[4][4];
 
   /// Eigenvalues of S
-  cvm::vector1d<cvm::real> S_eigval;
+  cvm::real S_eigval[4];
 
   /// Eigenvectors of S
-  cvm::matrix2d<cvm::real> S_eigvec;
+  cvm::real S_eigvec[4][4];
 
   /// Used for debugging gradients
-  cvm::matrix2d<cvm::real> S_backup;
+  cvm::real S_backup[4][4];
 
-  /// Derivatives of S
-  std::vector< cvm::matrix2d<cvm::rvector> > dS_1,  dS_2;
-  /// Derivatives of leading eigenvalue
-  std::vector< cvm::rvector >                dL0_1, dL0_2;
-  /// Derivatives of leading eigenvector
-  std::vector< cvm::vector1d<cvm::rvector> > dQ0_1, dQ0_2;
+public:
+  /// \brief Perform gradient tests
+  bool b_debug_gradients;
 
-  /// Allocate space for the derivatives of the rotation
-  inline void request_group1_gradients(size_t n)
-  {
-    dS_1.resize(n, cvm::matrix2d<cvm::rvector>(4, 4));
-    dL0_1.resize(n, cvm::rvector(0.0, 0.0, 0.0));
-    dQ0_1.resize(n, cvm::vector1d<cvm::rvector>(4));
-  }
+  /// \brief The rotation itself (implemented as a quaternion)
+  cvm::quaternion q;
 
-  /// Allocate space for the derivatives of the rotation
-  inline void request_group2_gradients(size_t n)
-  {
-    dS_2.resize(n, cvm::matrix2d<cvm::rvector>(4, 4));
-    dL0_2.resize(n, cvm::rvector(0.0, 0.0, 0.0));
-    dQ0_2.resize(n, cvm::vector1d<cvm::rvector>(4));
-  }
+  template <typename T1, typename T2>
+  friend struct rotation_derivative;
+
+  template<typename T1, typename T2>
+  friend void debug_gradients(
+    cvm::rotation &rot,
+    const std::vector<T1> &pos1,
+    const std::vector<T2> &pos2);
 
   /// \brief Calculate the optimal rotation and store the
   /// corresponding eigenvalue and eigenvector in the arguments l0 and
@@ -1343,6 +1355,8 @@ public:
   /// J Comput Chem. 25(15):1849-57 (2004)
   /// DOI: 10.1002/jcc.20110  PubMed: 15376254
   void calc_optimal_rotation(std::vector<atom_pos> const &pos1,
+                             std::vector<atom_pos> const &pos2);
+  void calc_optimal_rotation(std::vector<cvm::atom> const &pos1,
                              std::vector<atom_pos> const &pos2);
 
   /// Initialize member data
@@ -1478,6 +1492,11 @@ protected:
   /// Build the correlation matrix C (used by calc_optimal_rotation())
   void build_correlation_matrix(std::vector<cvm::atom_pos> const &pos1,
                                 std::vector<cvm::atom_pos> const &pos2);
+  void build_correlation_matrix(std::vector<cvm::atom> const &pos1,
+                                std::vector<cvm::atom_pos> const &pos2);
+
+  /// \brief Actual implementation of `calc_optimal_rotation` (and called by it)
+  void calc_optimal_rotation_impl();
 
   /// Compute the overlap matrix S (used by calc_optimal_rotation())
   void compute_overlap_matrix();

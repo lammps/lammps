@@ -54,15 +54,15 @@ int zlarf_(char *side, integer *m, integer *n, doublecomplex *v, integer *incv, 
     }
     if (applyleft) {
         if (lastv > 0) {
-            zgemv_((char *)"Conjugate transpose", &lastv, &lastc, &c_b1, &c__[c_offset], ldc, &v[1], incv,
-                   &c_b2, &work[1], &c__1, (ftnlen)19);
+            zgemv_((char *)"C", &lastv, &lastc, &c_b1, &c__[c_offset], ldc, &v[1], incv, &c_b2, &work[1],
+                   &c__1, (ftnlen)1);
             z__1.r = -tau->r, z__1.i = -tau->i;
             zgerc_(&lastv, &lastc, &z__1, &v[1], incv, &work[1], &c__1, &c__[c_offset], ldc);
         }
     } else {
         if (lastv > 0) {
-            zgemv_((char *)"No transpose", &lastc, &lastv, &c_b1, &c__[c_offset], ldc, &v[1], incv, &c_b2,
-                   &work[1], &c__1, (ftnlen)12);
+            zgemv_((char *)"N", &lastc, &lastv, &c_b1, &c__[c_offset], ldc, &v[1], incv, &c_b2, &work[1],
+                   &c__1, (ftnlen)1);
             z__1.r = -tau->r, z__1.i = -tau->i;
             zgerc_(&lastc, &lastv, &z__1, &work[1], &c__1, &v[1], incv, &c__[c_offset], ldc);
         }

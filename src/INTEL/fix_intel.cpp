@@ -20,6 +20,7 @@
 #include "fix_intel.h"
 
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "neighbor.h"
@@ -124,11 +125,11 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
       iarg += 2;
     } else if (strcmp(arg[iarg], "tpc") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      _offload_tpc = atoi(arg[iarg+1]);
+      _offload_tpc = std::stoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tptask") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      _offload_threads = atoi(arg[iarg+1]);
+      _offload_threads = std::stoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"no_affinity") == 0) {
       no_affinity = 1;
@@ -149,7 +150,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
       iarg++;
     } else if (strcmp(arg[iarg],"buffers") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      _allow_separate_buffers = atoi(arg[iarg+1]);
+      _allow_separate_buffers = std::stoi(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal package intel command");
   }
@@ -209,7 +210,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   // nomp is user setting, default = 0
 
   #if defined(_OPENMP)
-  #if defined(__INTEL_COMPILER)
+  #if defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
   kmp_set_blocktime(0);
   #endif
   if (nomp != 0) {
@@ -430,7 +431,7 @@ void FixIntel::pair_init_check(const bool cdmessage)
     double *time1 = off_watch_pair();
     double *time2 = off_watch_neighbor();
     int *overflow = get_off_overflow_flag();
-    if (_offload_balance !=0.0) {
+    if (_offload_balance != 0.0) {
       #pragma offload_transfer target(mic:_cop)  \
         nocopy(time1,time2:length(1) alloc_if(1) free_if(0)) \
         in(overflow:length(5) alloc_if(1) free_if(0))
@@ -448,8 +449,8 @@ void FixIntel::pair_init_check(const bool cdmessage)
         __INTEL_COMPILER_BUILD_DATE < 20141023)
       error->warning(FLERR,"Unsupported Intel Compiler.");
     #endif
-    #if !defined(__INTEL_COMPILER)
-    error->warning(FLERR,"Unsupported Intel Compiler.");
+    #if !defined(__INTEL_COMPILER) && !defined(__INTEL_LLVM_COMPILER)
+      error->warning(FLERR,"Unsupported Intel Compiler.");
     #endif
   }
 
@@ -470,6 +471,7 @@ void FixIntel::pair_init_check(const bool cdmessage)
 
   int need_tag = 0;
   if (atom->molecular != Atom::ATOMIC || three_body_neighbor()) need_tag = 1;
+  if (domain->triclinic && force->newton_pair) need_tag = 1;
 
   // Clear buffers used for pair style
   char kmode[80];
@@ -551,6 +553,9 @@ void FixIntel::kspace_init_check()
 
   if (intel_pair == 0)
     error->all(FLERR,"Intel styles for kspace require intel pair style.");
+
+  if (utils::strmatch(update->integrate_style, "^verlet/split"))
+    error->all(FLERR,"Intel styles for kspace are not compatible with run_style verlet/split");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1193,7 +1198,7 @@ int FixIntel::set_host_affinity(const int nomp)
   if (p == nullptr) return -1;
   ncores = 0;
   while (fgets(readbuf, 512, p)) {
-    proc_list[ncores] = atoi(readbuf);
+    proc_list[ncores] = std::stoi(readbuf);
     ncores++;
   }
   pclose(p);
@@ -1213,7 +1218,7 @@ int FixIntel::set_host_affinity(const int nomp)
   if (nthreads == 0) {
     estring = getenv("OMP_NUM_THREADS");
     if (estring != nullptr) {
-      nthreads = atoi(estring);
+      nthreads = std::stoi(estring);
       if (nthreads < 2) nthreads = 1;
     } else
       nthreads = 1;
@@ -1246,7 +1251,7 @@ int FixIntel::set_host_affinity(const int nomp)
     if (p == nullptr) return -1;
 
     while (fgets(readbuf, 512, p)) {
-      lwp = atoi(readbuf);
+      lwp = std::stoi(readbuf);
       int first = coi_cores + node_rank * mpi_cores;
       CPU_ZERO(&cpuset);
       for (int i = first; i < first + mpi_cores; i++)
@@ -1282,7 +1287,7 @@ int FixIntel::set_host_affinity(const int nomp)
     if (p == nullptr) return -1;
 
     while (fgets(readbuf, 512, p)) {
-      lwp = atoi(readbuf);
+      lwp = std::stoi(readbuf);
       nlwp++;
       if (nlwp <= plwp) continue;
 

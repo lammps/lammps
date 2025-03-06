@@ -151,6 +151,10 @@ class AtomVec : protected Pointers {
   virtual int pack_data_bonus(double *, int) { return 0; }
   virtual void write_data_bonus(FILE *, int, double *, int) {}
 
+  virtual void read_data_general_to_restricted(int, int);
+  virtual void write_data_restricted_to_general();
+  virtual void write_data_restore_restricted();
+
   virtual int property_atom(const std::string &) { return -1; }
   virtual void pack_property_atom(int, double *, int, int) {}
 
@@ -167,6 +171,11 @@ class AtomVec : protected Pointers {
   int *type, *mask;
   imageint *image;
   double **x, **v, **f;
+
+  // copies of original unrotated fields for write_data for general triclinic
+
+  double **x_hold;
+  double **v_hold, **omega_hold, **angmom_hold;
 
   // standard list of peratom fields always operated on by different methods
   // common to all styles, so not listed in field strings

@@ -32,7 +32,7 @@ class ComputeTempDrude : public Compute {
   void setup() override;
   void compute_vector() override;
   double compute_scalar() override;
-  int modify_param(int, char **);
+  int modify_param(int, char **) override;
 
  private:
   class FixDrude *fix_drude;

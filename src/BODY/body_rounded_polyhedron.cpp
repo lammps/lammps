@@ -31,10 +31,10 @@
 
 using namespace LAMMPS_NS;
 
-#define EPSILON 1.0e-7
-#define MAX_FACE_SIZE 4  // maximum number of vertices per face (for now)
+static constexpr double EPSILON = 1.0e-7;
+static constexpr int MAX_FACE_SIZE = 4;  // maximum number of vertices per face (for now)
 
-enum{SPHERE,LINE};       // also in DumpImage
+enum { SPHERE, LINE };       // also in DumpImage
 
 /* ---------------------------------------------------------------------- */
 
@@ -99,10 +99,9 @@ int BodyRoundedPolyhedron::nedges(AtomVecBody::Bonus *bonus)
 {
   int nvertices = bonus->ivalue[0];
   int nedges = bonus->ivalue[1];
-  //int nfaces = bonus->ivalue[2];
   if (nvertices == 1) return 0;
   else if (nvertices == 2) return 1;
-  return nedges; //(nvertices+nfaces-2); // Euler formula: V-E+F=2
+  return nedges;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -116,6 +115,9 @@ double *BodyRoundedPolyhedron::edges(AtomVecBody::Bonus *bonus)
 
 int BodyRoundedPolyhedron::nfaces(AtomVecBody::Bonus *bonus)
 {
+  int nvertices = bonus->ivalue[0];
+  if (nvertices < 3) return 0;
+
   return bonus->ivalue[2];
 }
 
@@ -185,7 +187,7 @@ int BodyRoundedPolyhedron::unpack_border_body(AtomVecBody::Bonus *bonus, double 
 }
 
 /* ----------------------------------------------------------------------
-   populate bonus data structure with data file values
+   populate bonus data structure with data file values for one body
 ------------------------------------------------------------------------- */
 
 void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
@@ -474,7 +476,7 @@ int BodyRoundedPolyhedron::write_data_body(FILE *fp, double *buf)
 
   // atomID ninteger ndouble
 
-  fmt::print(fp,"{} {} {}\n",ubuf(buf[m]).i,ubuf(buf[m+1]).i,ubuf(buf[m+2]).i);
+  utils::print(fp,"{} {} {}\n",ubuf(buf[m]).i,ubuf(buf[m+1]).i,ubuf(buf[m+2]).i);
   m += 3;
 
   // nvert, nedge, nface
@@ -482,27 +484,27 @@ int BodyRoundedPolyhedron::write_data_body(FILE *fp, double *buf)
   const int nsub = (int) ubuf(buf[m++]).i;
   const int nedge = (int) ubuf(buf[m++]).i;
   const int nface = (int) ubuf(buf[m++]).i;
-  fmt::print(fp,"{} {} {}\n",nsub,nedge,nface);
+  utils::print(fp,"{} {} {}\n",nsub,nedge,nface);
 
   // inertia
 
-  fmt::print(fp,"{} {} {} {} {} {}\n",
+  utils::print(fp,"{} {} {} {} {} {}\n",
              buf[m+0],buf[m+1],buf[m+2],buf[m+3],buf[m+4],buf[m+5]);
   m += 6;
 
   // nsub vertices
 
   for (int i = 0; i < nsub; i++, m+=3)
-    fmt::print(fp,"{} {} {}\n",buf[m],buf[m+1],buf[m+2]);
+    utils::print(fp,"{} {} {}\n",buf[m],buf[m+1],buf[m+2]);
 
   // nedge 2-tuples and nface 4-tuples
   // unless nsub = 1 or 2
 
   if (nsub > 2) {
     for (int i = 0; i < nedge; i++, m+=2)
-      fmt::print(fp,"{} {}\n",static_cast<int> (buf[m]),static_cast<int> (buf[m+1]));
+      utils::print(fp,"{} {}\n",static_cast<int> (buf[m]),static_cast<int> (buf[m+1]));
     for (int i = 0; i < nface; i++, m+=4)
-      fmt::print(fp,"{} {} {} {}\n",
+      utils::print(fp,"{} {} {} {}\n",
                  static_cast<int> (buf[m]),static_cast<int> (buf[m+1]),
                  static_cast<int> (buf[m+2]),static_cast<int> (buf[m+3]));
   }
@@ -510,7 +512,7 @@ int BodyRoundedPolyhedron::write_data_body(FILE *fp, double *buf)
   // rounded diameter
 
   double diameter = buf[m++];
-  fmt::print(fp,"{}\n",diameter);
+  utils::print(fp,"{}\n",diameter);
 
   return m;
 }

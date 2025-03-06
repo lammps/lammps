@@ -6,7 +6,7 @@ fix oneway command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID oneway N region-ID direction
 

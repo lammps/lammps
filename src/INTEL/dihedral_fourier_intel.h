@@ -63,7 +63,7 @@ class DihedralFourierIntel : public DihedralFourier {
     fc_packed1 **fc;
 
     ForceConst() : fc(nullptr), _ndihedraltypes(0) {}
-    ~ForceConst() { set_ntypes(0, nullptr, nullptr, nullptr); }
+    ~ForceConst() noexcept(false) { set_ntypes(0, nullptr, nullptr, nullptr); }
 
     void set_ntypes(const int ndihedraltypes, int *setflag, int *nterms, Memory *memory);
 

@@ -6,7 +6,7 @@ fix_modify AtC mesh create_faceset box command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> mesh create_faceset <id> box <xmin> <xmax> <ymin> <ymax> <zmin> <zmax> <in|out> [units]
 

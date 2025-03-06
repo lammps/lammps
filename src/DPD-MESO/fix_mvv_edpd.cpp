@@ -33,6 +33,7 @@
 #include "fix_mvv_edpd.h"
 
 #include "atom.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "update.h"
@@ -71,11 +72,25 @@ int FixMvvEDPD::setmask()
 
 void FixMvvEDPD::init()
 {
+  if (!atom->edpd_flag) error->all(FLERR,"Fix mvv/edpd requires atom style edpd");
+
+  // Cannot use vremap since its effects aren't propagated to vest
+  //   see RHEO or SPH packages for examples of patches
+  if (domain->deform_vremap)
+    error->all(FLERR, "Fix mvv/edpd cannot be used with velocity remapping");
+
+  if (!force->pair_match("^edpd",0)) {
+    if (force->pair_match("^hybrid",0)) {
+      if (!force->pair_match("^edpd",0,1)) {
+        error->all(FLERR, "Must use pair style edpd with fix mvv/edpd");
+      }
+    } else {
+      error->all(FLERR, "Must use pair style edpd with fix mvv/edpd");
+    }
+  }
+
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
-
-  if (!force->pair_match("^edpd",0))
-    error->all(FLERR, "Must use pair style edpd with fix mvv/edpd");
 }
 
 /* ----------------------------------------------------------------------

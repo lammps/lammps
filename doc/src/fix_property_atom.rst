@@ -9,7 +9,7 @@ Accelerator Variants: *property/atom/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID property/atom name1 name2 ... keyword value ...
 
@@ -22,6 +22,8 @@ Syntax
        *mol* = molecule IDs
        *q* = charge
        *rmass* = per-atom mass
+       *temperature* = internal temperature of atom
+       *heatflow* = internal heat flow of atom
        i_name = new integer vector referenced by name
        d_name = new floating-point vector referenced by name
        i2_name = new integer array referenced by name
@@ -59,14 +61,18 @@ these properties for each atom in the system when a data file is read.
 This fix augments the set of per-atom properties with new custom
 ones. This can be useful in several scenarios.
 
-If the atom style does not define molecule IDs, per-atom charge, or
-per-atom mass, they can be added using the *mol*\ , *q* or *rmass*
+If the atom style does not define molecule IDs, per-atom charge,
+per-atom mass, internal temperature, or internal heat flow, they can
+be added using the *mol*\ , *q*, *rmass*, *temperature*, or *heatflow*
 keywords.  This could be useful to define "molecules" to use as rigid
 bodies with the :doc:`fix rigid <fix_rigid>` command, or to carry
 around an extra flag with atoms (stored as a molecule ID) that can be
 used by various commands like :doc:`compute chunk/atom
 <compute_chunk_atom>` to group atoms without having to use the group
 command (which is limited to a total of 32 groups including *all*\ ).
+For finite-size particles, an internal temperature and heat flow can
+be used to model heat conduction as in the
+:doc:`GRANULAR package <Howto_granular>`.
 
 Another application is to use the *rmass* flag in order to have
 per-atom masses instead of per-type masses.  This could be used to
@@ -85,9 +91,10 @@ properties that are not needed such as bond lists, which incurs some
 overhead when there are no bonds.
 
 In the future, we may add additional existing per-atom properties to
-fix property/atom, similar to *mol*\ , *q* or *rmass*\ , which
-"turn-on" specific properties defined by some atom styles, so they can
-be easily used by atom styles that do not define them.
+fix property/atom, similar to *mol*\ , *q*, *rmass*\ , *temperature*\ ,
+or *heatflow* which "turn-on" specific properties defined by some atom
+styles, so they can be easily used by atom styles that do not define
+them.
 
 More generally, the *i_name* and *d_name* options allow one or more
 new custom per-atom vectors to be defined.  Likewise the *i2_name* and

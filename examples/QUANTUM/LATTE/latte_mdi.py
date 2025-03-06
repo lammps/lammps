@@ -153,7 +153,7 @@ def mdi_engine(other_options):
 
   # engine --> driver
 
-  mdi.MDI_Register_Command("@DEFAULT","<PE")
+  mdi.MDI_Register_Command("@DEFAULT","<ENERGY")
   mdi.MDI_Register_Command("@DEFAULT","<FORCES")
   mdi.MDI_Register_Command("@DEFAULT",">LATTICE_FORCES")
   mdi.MDI_Register_Command("@DEFAULT","<STRESS")
@@ -232,10 +232,10 @@ def execute_command(command,mdicomm,object_ptr):
   # MDI commands which retreive quantum results
   # each may also trigger the quantum calculation
   
-  elif command == "<PE":
+  elif command == "<ENERGY":
     evaluate()
     ierr = mdi.MDI_Send(qm_pe,1,mdi.MDI_DOUBLE,mdicomm)
-    if ierr: error("MDI: <PE data")
+    if ierr: error("MDI: <ENERGY data")
     
   elif command == "<FORCES":
     evaluate()

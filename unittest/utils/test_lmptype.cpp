@@ -24,7 +24,7 @@ TEST(Types, ubuf)
 {
     double buf[3];
     double d1 = 0.1;
-    int i1 = -10;
+    int i1    = -10;
 #if defined(LAMMPS_SMALLSMALL)
     bigint b1 = 2048;
 #else
@@ -43,14 +43,14 @@ TEST(Types, multitype)
 {
     multitype m[7];
     int64_t b1 = (3L << 48) - 1;
-    int i1    = 20;
-    double d1 = 0.1;
+    int i1     = 20;
+    double d1  = 0.1;
 
     m[0] = b1;
     m[1] = i1;
     m[2] = d1;
 
-    m[3] = (bigint) -((1L << 40) + (1L << 50));
+    m[3] = (bigint) - ((1L << 40) + (1L << 50));
     m[4] = -1023;
     m[5] = -2.225;
 
@@ -72,7 +72,7 @@ TEST(Types, multitype)
     EXPECT_EQ(m[2].data.d, d1);
 
 #if !defined(LAMMPS_SMALLSMALL)
-    EXPECT_EQ(m[3].data.b,  -((1L << 40) + (1L << 50)));
+    EXPECT_EQ(m[3].data.b, -((1L << 40) + (1L << 50)));
 #endif
     EXPECT_EQ(m[4].data.i, -1023);
     EXPECT_EQ(m[5].data.d, -2.225);

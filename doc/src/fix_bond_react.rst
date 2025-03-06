@@ -785,3 +785,7 @@ reset_mol_ids = yes, custom_charges = no, molecule = off, modify_create = *fit a
 .. _Gissinger2020:
 
 **(Gissinger2020)** Gissinger, Jensen and Wise, Macromolecules, 53, 22, 9953-9961 (2020).
+
+.. _Gissinger2024:
+
+**(Gissinger2024)** Gissinger, Jensen and Wise, Computer Physics Communications, 304, 109287 (2024).

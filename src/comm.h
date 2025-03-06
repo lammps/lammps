@@ -87,17 +87,17 @@ class Comm : protected Pointers {
 
   // forward/reverse comm from a Pair, Bond, Fix, Compute, Dump
 
-  virtual void forward_comm(class Pair *) = 0;
-  virtual void reverse_comm(class Pair *) = 0;
-  virtual void forward_comm(class Bond *) = 0;
-  virtual void reverse_comm(class Bond *) = 0;
+  virtual void forward_comm(class Pair *, int size = 0) = 0;
+  virtual void reverse_comm(class Pair *, int size = 0) = 0;
+  virtual void forward_comm(class Bond *, int size = 0) = 0;
+  virtual void reverse_comm(class Bond *, int size = 0) = 0;
   virtual void forward_comm(class Fix *, int size = 0) = 0;
   virtual void reverse_comm(class Fix *, int size = 0) = 0;
   virtual void reverse_comm_variable(class Fix *) = 0;
-  virtual void forward_comm(class Compute *) = 0;
-  virtual void reverse_comm(class Compute *) = 0;
-  virtual void forward_comm(class Dump *) = 0;
-  virtual void reverse_comm(class Dump *) = 0;
+  virtual void forward_comm(class Compute *, int size = 0) = 0;
+  virtual void reverse_comm(class Compute *, int size = 0) = 0;
+  virtual void forward_comm(class Dump *, int size = 0) = 0;
+  virtual void reverse_comm(class Dump *, int size = 0) = 0;
 
   // forward comm of an array
 
@@ -140,12 +140,14 @@ class Comm : protected Pointers {
   int maxexchange_fix;            // static contribution to maxexchange from Fixes
   int maxexchange_fix_dynamic;    // 1 if a fix has a dynamic contribution
   int bufextra;                   // augment send buf size for an exchange atom
+  int bufextra_max;
 
   int gridflag;        // option for creating 3d grid
   int mapflag;         // option for mapping procs to 3d grid
   char xyz[4];         // xyz mapping of procs to 3d grid
   char *customfile;    // file with custom proc map
   char *outfile;       // proc grid/map output file
+  int numa_nodes;      // Number of numa domains per socket for 3d grid
 
   int otherflag;            // 1 if this partition dependent on another
   int other_style;          // style of dependency

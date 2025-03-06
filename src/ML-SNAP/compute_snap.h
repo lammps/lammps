@@ -28,6 +28,7 @@ class ComputeSnap : public Compute {
  public:
   ComputeSnap(class LAMMPS *, int, char **);
   ~ComputeSnap() override;
+
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_array() override;
@@ -56,10 +57,10 @@ class ComputeSnap : public Compute {
 
   Compute *c_pe;
   Compute *c_virial;
+  std::string id_virial;
 
   void dbdotr_compute();
 };
-
 }    // namespace LAMMPS_NS
 
 #endif

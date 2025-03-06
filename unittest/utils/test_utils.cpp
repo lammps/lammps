@@ -46,6 +46,49 @@ TEST(Utils, strdup)
     delete[] copy2;
 }
 
+TEST(Utils, strsame)
+{
+    std::string text1("some_text");
+    std::string text2("some_text");
+    ASSERT_TRUE(utils::strsame(text1, text2));
+    text1 = " some   _\ttext\n ";
+    ASSERT_TRUE(utils::strsame(text1, text2));
+    text2 = "  some _  text\n    ";
+    ASSERT_TRUE(utils::strsame(text1, text2));
+
+    text2 = "some_other_text";
+    ASSERT_FALSE(utils::strsame(text1, text2));
+    text2 = " some other_text";
+    ASSERT_FALSE(utils::strsame(text1, text2));
+}
+
+TEST(Utils, strcompress)
+{
+    auto compressed = utils::strcompress("\t some   text   ");
+    ASSERT_THAT(compressed, StrEq("some text"));
+
+    compressed = utils::strcompress("some \ntext");
+    ASSERT_THAT(compressed, StrEq("some text"));
+
+    compressed = utils::strcompress("sometext");
+    ASSERT_THAT(compressed, StrEq("sometext"));
+
+    compressed = utils::strcompress("some   text \r\n");
+    ASSERT_THAT(compressed, StrEq("some text"));
+
+    compressed = utils::strcompress("some other  text \r\n");
+    ASSERT_THAT(compressed, StrEq("some other text"));
+
+    compressed = utils::strcompress("\v some  \t\t  text \f");
+    ASSERT_THAT(compressed, StrEq("some text"));
+
+    compressed = utils::strcompress("   some\t text    ");
+    ASSERT_THAT(compressed, StrEq("some text"));
+
+    compressed = utils::strcompress("  \t\n   ");
+    ASSERT_THAT(compressed, StrEq(""));
+}
+
 TEST(Utils, trim)
 {
     auto trimmed = utils::trim("\t some text");
@@ -1061,9 +1104,19 @@ TEST(Utils, timespec2seconds_hhmmss)
     ASSERT_DOUBLE_EQ(utils::timespec2seconds("2:10:45"), 7845.0);
 }
 
+TEST(Utils, timespec2seconds_ssfraction)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("5.2"), 5.2);
+}
+
+TEST(Utils, timespec2seconds_mmfraction)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("2.5:10"), 160.0);
+}
+
 TEST(Utils, timespec2seconds_invalid)
 {
-    ASSERT_DOUBLE_EQ(utils::timespec2seconds("2:aa:45"), -1.0);
+    ASSERT_THROW(utils::timespec2seconds("2:aa:45"), TokenizerException);
 }
 
 TEST(Utils, date2num)

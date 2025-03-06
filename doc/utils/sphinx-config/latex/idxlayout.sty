@@ -1,0 +1,279 @@
+%%
+%% This is file `idxlayout.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% idxlayout.dtx  (with options: `package')
+%% 
+%% Copyright (C) 2010--2012 by Thomas Titz <thomas.titz@chello.at>
+%% 
+%% Permission is granted to distribute and/or modify this work under the
+%% terms of the LaTeX Project Public License (LPPL), version 1.3c or
+%% later.
+%% 
+%% The LPPL maintenance status of this work is "maintained".
+%% 
+%% This work consists of the files idxlayout.dtx, idxlayout.ins and
+%% README and the derived files idxlayout.pdf and idxlayout.sty.
+%% 
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{idxlayout}[2012/03/30 v0.4d Configurable index layout]
+\RequirePackage{etoolbox,kvoptions,multicol}
+\SetupKeyvalOptions{family=ila,prefix=ila@}
+\newcommand*{\ila@defradiokey}[3][]{%
+  \define@key{ila}{#2}[#1]{%
+    \ifcsname ila@#3@##1\endcsname
+      \csname ila@#3@##1\expandafter\endcsname
+    \else
+      \PackageError{idxlayout}{Unknown value ##1 for option #2}%
+    \fi
+  }%
+}
+\newcounter{idxcols}
+\define@key{ila}{columns}{\setcounter{idxcols}{#1}}
+\setkeys{ila}{columns=2}
+\@ifclassloaded{memoir}{%
+  \ifbool{onecolindex}{%
+    \setkeys{ila}{columns=1}%
+  }{%
+  }%
+  \appto{\onecolindex}{\setkeys{ila}{columns=1}}%
+  \appto{\twocolindex}{\setkeys{ila}{columns=2}}%
+}{%
+  \newlength{\indexcolsep}%
+  \setlength{\indexcolsep}{35\p@}%
+  \newlength{\indexrule}%
+  \setlength{\indexrule}{\z@}%
+}
+\define@key{ila}{columnsep}{\setlength{\indexcolsep}{#1}}
+\define@key{ila}{rule}{\setlength{\indexrule}{#1}}
+\DeclareBoolOption{unbalanced}
+\newlength{\ila@indentunit}
+\define@key{ila}{indentunit}{\setlength{\ila@indentunit}{#1}}
+\setkeys{ila}{indentunit=20\p@}
+\DeclareStringOption{hangindent}
+\DeclareStringOption{subindent}
+\DeclareStringOption{subsubindent}
+\renewcommand{\@idxitem}{\par\setlength{\hangindent}{\ila@hangindent}}
+\def\ila@it@abshang{%
+  \renewcommand*{\ila@hangindent}{2\ila@indentunit}%
+  \renewcommand*{\ila@subindent}{\ila@indentunit}%
+  \renewcommand*{\ila@subsubindent}{1.5\ila@indentunit}%
+  \renewcommand{\subitem}{\@idxitem\hspace*{\ila@subindent}}%
+  \renewcommand{\subsubitem}{\@idxitem\hspace*{\ila@subsubindent}}%
+}
+\def\ila@it@relhang{%
+  \renewcommand*{\ila@hangindent}{1.5\ila@indentunit}%
+  \renewcommand*{\ila@subindent}{\ila@indentunit}%
+  \renewcommand*{\ila@subsubindent}{2\ila@indentunit}%
+  \renewcommand{\subitem}{%
+    \par
+    \deflength{\hangindent}{\ila@hangindent + \ila@subindent}%
+    \hspace*{\ila@subindent}%
+  }%
+  \renewcommand{\subsubitem}{%
+    \par
+    \deflength{\hangindent}{\ila@hangindent + \ila@subsubindent}%
+    \hspace*{\ila@subsubindent}%
+  }%
+}
+\newcommand*{\indexsubsdelim}{; }
+\def\ila@it@singlepar{%
+  \renewcommand*{\ila@hangindent}{\ila@indentunit}%
+  \renewcommand{\subitem}{\unskip\indexsubsdelim}%
+  \renewcommand{\subsubitem}{\unskip\indexsubsdelim}%
+}
+\ila@defradiokey{itemlayout}{it}
+\setkeys{ila}{itemlayout=abshang}
+\newlength{\ila@initsep}
+\define@key{ila}{initsep}{\setlength{\ila@initsep}{#1}}
+\setkeys{ila}{initsep=10\p@ \@plus 5\p@ \@minus 3\p@}
+\DeclareStringOption[\ila@initsep]{notesep}
+\DeclareStringOption[80\p@]{minspace}
+\renewcommand{\indexspace}{\par\vspace{\ila@initsep}}
+\DeclareBoolOption{columnnote}
+\newcommand*{\indexfont}{}
+\def\ila@fo@current{\renewcommand*{\indexfont}{}}
+\def\ila@fo@normalsize{\renewcommand*{\indexfont}{\normalsize}}
+\def\ila@fo@small{\renewcommand*{\indexfont}{\small}}
+\def\ila@fo@footnotesize{\renewcommand*{\indexfont}{\footnotesize}}
+\ila@defradiokey{font}{fo}
+\setkeys{ila}{font=current}
+\newcommand*{\indexjustific}{}
+\def\ila@ju@standard{%
+  \renewcommand*{\indexjustific}{%
+    \setlength{\parindent}{\z@}%
+    \setlength{\parfillskip}{\z@ \@plus 1fil}%
+  }%
+}
+\def\ila@ju@raggedright{\renewcommand*{\indexjustific}{\raggedright}}
+\newcommand*{\ila@RaggedRight}{}
+\def\ila@ju@RaggedRight{%
+  \renewcommand*{\indexjustific}{\ila@RaggedRight}%
+}
+\AtEndPreamble{%
+  \IfFileExists{ragged2e.sty}{%
+    \RequirePackage{ragged2e}%
+    \renewcommand*{\ila@RaggedRight}{\RaggedRight}%
+  }{%
+    \PackageWarning{idxlayout}{%
+      Package ragged2e not available, therefore\MessageBreak
+      substituting command raggedright for RaggedRight\MessageBreak
+    }%
+    \renewcommand*{\ila@RaggedRight}{\raggedright}%
+  }%
+}
+\ila@defradiokey{justific}{ju}
+\setkeys{ila}{justific=standard}
+\newcommand{\ila@prenote}{}
+\newcommand{\setindexprenote}[1]{%
+  \def\ila@prenote{%
+    \begingroup#1\par\nobreak\endgroup
+    \vspace{\ila@notesep}%
+  }%
+}
+\newcommand*{\noindexprenote}{\let\ila@prenote\relax}
+\noindexprenote
+\newcommand*{\indexstheadcase}{\MakeUppercase}
+\newcommand*{\ila@classtype}{0}
+\@ifclassloaded{memoir}{%
+  \def\ila@classtype{2}%
+}{%
+  \ifundef{\KOMAClassName}{%
+  }{%
+    \def\ila@classtype{1}%
+  }%
+}
+\ifcase\ila@classtype\relax
+  \DeclareBoolOption{totoc}%
+  \def\ila@prologue{%
+    \ifundef{\chapter}{%
+      \section*{\indexname}%
+      \ifbool{ila@totoc}{%
+        \addcontentsline{toc}{section}{\indexname}%
+      }{%
+      }%
+    }{%
+      \chapter*{\indexname}%
+      \ifbool{ila@totoc}{%
+        \addcontentsline{toc}{chapter}{\indexname}%
+      }{%
+      }%
+    }%
+    \@mkboth{\indexstheadcase\indexname}{\indexstheadcase\indexname}%
+  }
+\or
+  \def\ila@tc@true{\KOMAoptions{index=totoc}}%
+  \def\ila@tc@false{\KOMAoptions{index=nottotoc}}%
+  \ila@defradiokey[true]{totoc}{tc}%
+  \providecommand{\MakeMarkcase}[1]{#1}%
+  \def\ila@prologue{%
+    \ifundef{\chapter}{%
+    }{%
+      \ifundef{\index@preamble}{%
+      }{%
+        \setchapterpreamble{\index@preamble}%
+      }%
+    }%
+    \idx@@heading{\indexname}%
+    \@mkboth{\MakeMarkcase{\indexname}}{\MakeMarkcase{\indexname}}%
+    \ifundef{\chapter}{%
+    }{%
+      \thispagestyle{\indexpagestyle}%
+    }%
+  }
+\or
+  \def\ila@tc@true{\boolfalse{noindexintoc}}%
+  \def\ila@tc@false{\booltrue{noindexintoc}}%
+  \ila@defradiokey[true]{totoc}{tc}%
+  \def\ila@prologue{%
+    \chapter*{\indexname}%
+    \ifbool{noindexintoc}{%
+    }{%
+      \addcontentsline{toc}{chapter}{\indexname}%
+    }%
+    \ifbool{artopt}{%
+    }{%
+      \thispagestyle{indextitlepagestyle}%
+    }%
+    \indexmark
+    \preindexhook
+  }
+\fi
+\@ifpackageloaded{index}{%
+  \@ifpackagelater{index}{2004/01/21}{%
+    \let\ila@packindadjust\relax
+  }{%
+    \def\ila@packindadjust{%
+      \edef\indexname{\the\@nameuse{idxtitle@\@indextype}}%
+      \ifdefempty{\index@prologue}{%
+      }{%
+        \setindexprenote{\index@prologue}%
+      }%
+    }%
+  }%
+}{%
+  \let\ila@packindadjust\relax
+}
+\ProcessKeyvalOptions*
+\newcommand*{\idxlayout}[1]{\setkeys{ila}{#1}}
+\renewenvironment{theindex}{%
+  \ifbool{@twocolumn}{%
+    \boolfalse{@restonecol}%
+    \onecolumn
+  }{%
+    \booltrue{@restonecol}%
+  }%
+  \setlength{\multicolsep}{\z@}%
+  \setlength{\columnsep}{\indexcolsep}%
+  \setlength{\columnseprule}{\indexrule}%
+  \ila@packindadjust
+  \def\ila@prologueplus{%
+    \ila@prologue
+    \indexfont
+    \ifbool{ila@columnnote}{%
+    }{%
+      \ila@prenote
+    }%
+  }%
+  \ifnumcomp{\theidxcols}{<}{\tw@}{%
+    \ila@prologueplus
+  }{%
+    \ifbool{ila@unbalanced}{%
+      \begin{multicols*}{\theidxcols}[\ila@prologueplus][\ila@minspace]%
+    }{%
+      \begin{multicols}{\theidxcols}[\ila@prologueplus][\ila@minspace]%
+    }%
+  }%
+  \setlength{\parskip}{\z@ \@plus 0.3\p@}%
+  \indexjustific
+  \ifundef{\chapter}{%
+    \ifundef{\index@preamble}{%
+    }{%
+      \index@preamble\par\nobreak
+    }%
+  }{%
+  }%
+  \ifbool{ila@columnnote}{%
+    \ila@prenote
+  }{%
+  }%
+  \let\item\@idxitem
+}{%
+  \ifnumcomp{\theidxcols}{<}{\tw@}{%
+  }{%
+    \ifbool{ila@unbalanced}{%
+      \end{multicols*}%
+    }{%
+      \end{multicols}%
+    }%
+  }%
+  \ifbool{@restonecol}{%
+  }{%
+    \twocolumn
+  }%
+}
+\endinput
+%%
+%% End of file `idxlayout.sty'.

@@ -6,7 +6,7 @@ fix_modify AtC fix_flux command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> fix_flux <field> <face_set> <value|function>
 

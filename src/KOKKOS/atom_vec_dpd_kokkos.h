@@ -36,17 +36,16 @@ class AtomVecDPDKokkos : public AtomVecKokkos, public AtomVecDPD {
   void grow(int) override;
   void grow_pointers() override;
   void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
-  int pack_comm_kokkos(const int &n, const DAT::tdual_int_2d &k_sendlist,
-                       const int & iswap,
+  int pack_comm_kokkos(const int &n, const DAT::tdual_int_1d &k_sendlist,
                        const DAT::tdual_xfloat_2d &buf,
                        const int &pbc_flag, const int pbc[]) override;
   void unpack_comm_kokkos(const int &n, const int &nfirst,
                           const DAT::tdual_xfloat_2d &buf) override;
-  int pack_comm_self(const int &n, const DAT::tdual_int_2d &list,
-                     const int & iswap, const int nfirst,
+  int pack_comm_self(const int &n, const DAT::tdual_int_1d &list,
+                     const int nfirst,
                      const int &pbc_flag, const int pbc[]) override;
-  int pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                         DAT::tdual_xfloat_2d buf,int iswap,
+  int pack_border_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                         DAT::tdual_xfloat_2d buf,
                          int pbc_flag, int *pbc, ExecutionSpace space) override;
   void unpack_border_kokkos(const int &n, const int &nfirst,
                             const DAT::tdual_xfloat_2d &buf,

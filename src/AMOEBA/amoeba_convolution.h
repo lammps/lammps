@@ -14,18 +14,8 @@
 #ifndef LMP_AMOEBA_CONVOLUTION_H
 #define LMP_AMOEBA_CONVOLUTION_H
 
+#include "lmpfftsettings.h"
 #include "pointers.h"
-
-#ifdef FFT_SINGLE
-typedef float FFT_SCALAR;
-#define LMP_FFT_PREC "single"
-#define MPI_FFT_SCALAR MPI_FLOAT
-#else
-
-typedef double FFT_SCALAR;
-#define LMP_FFT_PREC "double"
-#define MPI_FFT_SCALAR MPI_DOUBLE
-#endif
 
 namespace LAMMPS_NS {
 
@@ -37,7 +27,7 @@ class AmoebaConvolution : protected Pointers {
   int nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in;
   int nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out;
   int nxlo_fft, nxhi_fft, nylo_fft, nyhi_fft, nzlo_fft, nzhi_fft;
-  bigint nfft_global;          // nx * ny * nz
+  bigint nfft_global;              // nx * ny * nz
   FFT_SCALAR *grid_brick_start;    // lower left corner of (c)grid_brick data
 
   AmoebaConvolution(class LAMMPS *, class Pair *, int, int, int, int, int);
@@ -50,11 +40,11 @@ class AmoebaConvolution : protected Pointers {
   double time_fft;
 
  protected:
-  int which;                   // caller name for convolution being performed
-  int flag3d;                  // 1 if using 3d grid_brick, 0 for 4d cgrid_brick
-  int nbrick_owned;            // owned grid points in brick decomp
-  int nbrick_ghosts;           // owned + ghost brick grid points
-  int ngrid_either;            // max of nbrick_owned or nfft_owned
+  int which;            // caller name for convolution being performed
+  int flag3d;           // 1 if using 3d grid_brick, 0 for 4d cgrid_brick
+  int nbrick_owned;     // owned grid points in brick decomp
+  int nbrick_ghosts;    // owned + ghost brick grid points
+  int ngrid_either;     // max of nbrick_owned or nfft_owned
 
   class Pair *amoeba;
   class FFT3d *fft1, *fft2;

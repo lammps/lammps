@@ -6,7 +6,7 @@ fix nve/asphere/noforce command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID nve/asphere/noforce
 

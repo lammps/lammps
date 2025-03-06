@@ -46,9 +46,23 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   rmass_flag = 0;
   temperature_flag = 0;
   heatflow_flag = 0;
+  nmax_old = 0;
 
   nvalue = 0;
   values_peratom = 0;
+
+  // check for ghost keyword to use as add_custom() arg
+
+  border = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "ghost") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix property/atom command");
+      border = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else iarg++;
+  }
+
+  iarg = 3;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg], "mol") == 0) {
@@ -111,7 +125,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       if (index[nvalue] >= 0) error->all(FLERR, "Fix property/atom vector name already exists");
       if (ReadData::is_data_section(id))
         error->all(FLERR, "Fix property/atom fix ID must not be a data file section name");
-      index[nvalue] = atom->add_custom(&arg[iarg][2], 0, 0);
+      index[nvalue] = atom->add_custom(&arg[iarg][2], 0, 0, border);
       cols[nvalue] = 0;
       values_peratom++;
       nvalue++;
@@ -124,7 +138,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       if (index[nvalue] >= 0) error->all(FLERR, "Fix property/atom vector name already exists");
       if (ReadData::is_data_section(id))
         error->all(FLERR, "Fix property/atom fix ID must not be a data file section name");
-      index[nvalue] = atom->add_custom(&arg[iarg][2], 1, 0);
+      index[nvalue] = atom->add_custom(&arg[iarg][2], 1, 0, border);
       cols[nvalue] = 0;
       values_peratom++;
       nvalue++;
@@ -153,7 +167,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         which = 1;
         styles[nvalue] = DARRAY;
       }
-      index[nvalue] = atom->add_custom(&arg[iarg][3], which, ncols);
+      index[nvalue] = atom->add_custom(&arg[iarg][3], which, ncols, border);
       cols[nvalue] = ncols;
       values_peratom += ncols;
       nvalue++;
@@ -167,11 +181,8 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // optional args
 
-  border = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg], "ghost") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix property/atom command");
-      border = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+    if (strcmp(arg[iarg], "ghost") == 0) {    // skip here, since handled earlier
       iarg += 2;
     } else if (strcmp(arg[iarg], "writedata") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix property/atom command");
@@ -189,23 +200,32 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
     int flag = 0;
     for (int i = 0; i < nvalue; i++)
       if (styles[i] == MOLECULE || styles[i] == CHARGE || styles[i] == RMASS ||
-      styles[i] == TEMPERATURE || styles[i] == HEATFLOW) flag = 1;
+          styles[i] == TEMPERATURE || styles[i] == HEATFLOW)
+        flag = 1;
     if (flag && comm->me == 0)
-      error->warning(FLERR, "Fix property/atom mol, charge, rmass, temperature, or heatflow w/out ghost communication");
+      error->warning(FLERR,
+                     "Fix property/atom mol, charge, rmass, temperature, or heatflow w/out ghost "
+                     "communication");
   }
 
   // store current atom style
 
   astyle = utils::strdup(atom->atom_style);
 
-  // perform initial allocation of atom-based array
   // register with Atom class
 
-  nmax_old = 0;
-  if (!lmp->kokkos) FixPropertyAtom::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
   if (border) atom->add_callback(Atom::BORDER);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPropertyAtom::post_constructor()
+{
+  // perform initial allocation of atom-based array
+
+  grow_arrays(atom->nmax);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -310,8 +330,9 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf, tagint 
     try {
       ValueTokenizer values(buf);
       if ((int) values.count() != values_peratom + 1)
-        error->all(FLERR, "Incorrect format in {} section of data file: {} expected {} and got {}",
-                   keyword, buf, values_peratom + 1, values.count());
+        error->all(FLERR, "Incorrect format in {} section of data file: {}\n"
+                   "expected {} parameters and got {}{}", keyword, utils::trim(buf),
+                   values_peratom + 1, values.count(), utils::errorurl(2));
 
       itag = values.next_tagint() + id_offset;
       if (itag <= 0 || itag > map_tag_max)
@@ -522,7 +543,7 @@ void FixPropertyAtom::write_data_section(int /*mth*/, FILE *fp, int n, double **
         icol += ncol;
       }
     }
-    fmt::print(fp, line + "\n");
+    utils::print(fp, line + "\n");
   }
 }
 

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meißner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
 ------------------------------------------------------------------------- */
 
 #include "ewald_electrode.h"
@@ -36,8 +36,6 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-
-#define SMALL 0.00001
 
 /* ---------------------------------------------------------------------- */
 
@@ -921,8 +919,8 @@ void EwaldElectrode::compute_vector(double *vec, int sensor_grpbit, int source_g
     q_sin[k] = q_sin_k;
   }
 
-  MPI_Allreduce(MPI_IN_PLACE, &q_cos.front(), kcount, MPI_DOUBLE, MPI_SUM, world);
-  MPI_Allreduce(MPI_IN_PLACE, &q_sin.front(), kcount, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, q_cos.data(), kcount, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, q_sin.data(), kcount, MPI_DOUBLE, MPI_SUM, world);
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & sensor_grpbit)) continue;
@@ -1031,28 +1029,28 @@ void EwaldElectrode::compute_matrix(bigint *imat, double **matrix, bool /* timer
   displs[0] = 0;
   for (int i = 1; i < nprocs; i++) displs[i] = displs[i - 1] + recvcounts[i - 1];
   MPI_Allgatherv(csx, n, MPI_DOUBLE, csx_all, recvcounts, displs, MPI_DOUBLE, world);
-  MPI_Allgatherv(&snx[0], n, MPI_DOUBLE, snx_all, recvcounts, displs, MPI_DOUBLE, world);
+  MPI_Allgatherv(snx, n, MPI_DOUBLE, snx_all, recvcounts, displs, MPI_DOUBLE, world);
   n = (kymax + 1) * ngrouplocal;
   MPI_Allgather(&n, 1, MPI_INT, recvcounts, 1, MPI_INT, world);
   displs[0] = 0;
   for (int i = 1; i < nprocs; i++) displs[i] = displs[i - 1] + recvcounts[i - 1];
-  MPI_Allgatherv(&csy[0], n, MPI_DOUBLE, csy_all, recvcounts, displs, MPI_DOUBLE, world);
-  MPI_Allgatherv(&sny[0], n, MPI_DOUBLE, sny_all, recvcounts, displs, MPI_DOUBLE, world);
+  MPI_Allgatherv(csy, n, MPI_DOUBLE, csy_all, recvcounts, displs, MPI_DOUBLE, world);
+  MPI_Allgatherv(sny, n, MPI_DOUBLE, sny_all, recvcounts, displs, MPI_DOUBLE, world);
 
   n = (kzmax + 1) * ngrouplocal;
   MPI_Allgather(&n, 1, MPI_INT, recvcounts, 1, MPI_INT, world);
   displs[0] = 0;
   for (int i = 1; i < nprocs; i++) displs[i] = displs[i - 1] + recvcounts[i - 1];
-  MPI_Allgatherv(&csz[0], n, MPI_DOUBLE, csz_all, recvcounts, displs, MPI_DOUBLE, world);
-  MPI_Allgatherv(&snz[0], n, MPI_DOUBLE, snz_all, recvcounts, displs, MPI_DOUBLE, world);
+  MPI_Allgatherv(csz, n, MPI_DOUBLE, csz_all, recvcounts, displs, MPI_DOUBLE, world);
+  MPI_Allgatherv(snz, n, MPI_DOUBLE, snz_all, recvcounts, displs, MPI_DOUBLE, world);
 
   // gather subsets global matrix indexing
 
   MPI_Allgather(&ngrouplocal, 1, MPI_INT, recvcounts, 1, MPI_INT, world);
   displs[0] = 0;
   for (int i = 1; i < nprocs; i++) displs[i] = displs[i - 1] + recvcounts[i - 1];
-  MPI_Allgatherv(&jmat_local[0], ngrouplocal, MPI_LMP_BIGINT, jmat, recvcounts, displs,
-                 MPI_LMP_BIGINT, world);
+  MPI_Allgatherv(jmat_local, ngrouplocal, MPI_LMP_BIGINT, jmat, recvcounts, displs, MPI_LMP_BIGINT,
+                 world);
 
   memory->destroy(displs);
   memory->destroy(recvcounts);

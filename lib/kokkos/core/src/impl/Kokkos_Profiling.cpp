@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
@@ -105,8 +77,6 @@ namespace Tools {
 
 const std::string InitArguments::unset_string_option = {
     "kokkos_tools_impl_unset_option"};
-
-InitArguments tool_arguments;
 
 namespace Impl {
 void parse_command_line_arguments(int& argc, char* argv[],
@@ -205,7 +175,8 @@ Kokkos::Tools::Impl::InitializationStatus parse_environment_variables(
     args = env_tools_args;
   }
   return {
-      Kokkos::Tools::Impl::InitializationStatus::InitializationResult::success};
+      Kokkos::Tools::Impl::InitializationStatus::InitializationResult::success,
+      ""};
 }
 InitializationStatus initialize_tools_subsystem(
     const Kokkos::Tools::InitArguments& args) {
@@ -220,13 +191,13 @@ InitializationStatus initialize_tools_subsystem(
     if (!Kokkos::Tools::printHelp(final_args)) {
       std::cerr << "Tool has not provided a help message" << std::endl;
     }
-    return {InitializationStatus::InitializationResult::help_request};
+    return {InitializationStatus::InitializationResult::help_request, ""};
   }
   Kokkos::Tools::parseArgs(final_args);
 #else
   (void)args;
 #endif
-  return {InitializationStatus::InitializationResult::success};
+  return {InitializationStatus::InitializationResult::success, ""};
 }
 
 }  // namespace Impl
@@ -653,17 +624,11 @@ void initialize(const std::string& profileLibrary) {
     return;
   }
 
-  char* envProfileLibrary = const_cast<char*>(profileLibrary.c_str());
-
-  const size_t envProfileLen = strlen(envProfileLibrary) + 1;
-  const auto envProfileCopy  = std::make_unique<char[]>(envProfileLen);
-  snprintf(envProfileCopy.get(), envProfileLen, "%s", envProfileLibrary);
-
-  char* profileLibraryName = strtok(envProfileCopy.get(), ";");
-
-  if ((profileLibraryName != nullptr) &&
-      (strcmp(profileLibraryName, "") != 0)) {
-    firstProfileLibrary = dlopen(profileLibraryName, RTLD_NOW | RTLD_GLOBAL);
+  if (auto end_first_library = profileLibrary.find(';');
+      end_first_library != 0) {
+    auto profileLibraryName = profileLibrary.substr(0, end_first_library);
+    firstProfileLibrary =
+        dlopen(profileLibraryName.c_str(), RTLD_NOW | RTLD_GLOBAL);
 
     if (firstProfileLibrary == nullptr) {
       std::cerr << "Error: Unable to load KokkosP library: "
@@ -672,10 +637,6 @@ void initialize(const std::string& profileLibrary) {
                 << ", RTLD_NOW | RTLD_GLOBAL) failed with " << dlerror()
                 << '\n';
     } else {
-#ifdef KOKKOS_ENABLE_PROFILING_LOAD_PRINT
-      std::cout << "KokkosP: Library Loaded: " << profileLibraryName
-                << std::endl;
-#endif
       lookup_function(firstProfileLibrary, "kokkosp_begin_parallel_scan",
                       Experimental::current_callbacks.begin_parallel_scan);
       lookup_function(firstProfileLibrary, "kokkosp_begin_parallel_for",
@@ -1007,84 +968,6 @@ void set_callbacks(Kokkos::Tools::Experimental::EventSet new_events) {
 }
 }  // namespace Experimental
 }  // namespace Tools
-
-namespace Profiling {
-bool profileLibraryLoaded() { return Kokkos::Tools::profileLibraryLoaded(); }
-
-void beginParallelFor(const std::string& kernelPrefix, const uint32_t devID,
-                      uint64_t* kernelID) {
-  Kokkos::Tools::beginParallelFor(kernelPrefix, devID, kernelID);
-}
-void beginParallelReduce(const std::string& kernelPrefix, const uint32_t devID,
-                         uint64_t* kernelID) {
-  Kokkos::Tools::beginParallelReduce(kernelPrefix, devID, kernelID);
-}
-void beginParallelScan(const std::string& kernelPrefix, const uint32_t devID,
-                       uint64_t* kernelID) {
-  Kokkos::Tools::beginParallelScan(kernelPrefix, devID, kernelID);
-}
-void endParallelFor(const uint64_t kernelID) {
-  Kokkos::Tools::endParallelFor(kernelID);
-}
-void endParallelReduce(const uint64_t kernelID) {
-  Kokkos::Tools::endParallelReduce(kernelID);
-}
-void endParallelScan(const uint64_t kernelID) {
-  Kokkos::Tools::endParallelScan(kernelID);
-}
-
-void pushRegion(const std::string& kName) { Kokkos::Tools::pushRegion(kName); }
-void popRegion() { Kokkos::Tools::popRegion(); }
-
-void createProfileSection(const std::string& sectionName, uint32_t* secID) {
-  Kokkos::Tools::createProfileSection(sectionName, secID);
-}
-void destroyProfileSection(const uint32_t secID) {
-  Kokkos::Tools::destroyProfileSection(secID);
-}
-
-void startSection(const uint32_t secID) { Kokkos::Tools::startSection(secID); }
-
-void stopSection(const uint32_t secID) { Kokkos::Tools::stopSection(secID); }
-
-void markEvent(const std::string& eventName) {
-  Kokkos::Tools::markEvent(eventName);
-}
-void allocateData(const SpaceHandle handle, const std::string name,
-                  const void* data, const uint64_t size) {
-  Kokkos::Tools::allocateData(handle, name, data, size);
-}
-void deallocateData(const SpaceHandle space, const std::string label,
-                    const void* ptr, const uint64_t size) {
-  Kokkos::Tools::deallocateData(space, label, ptr, size);
-}
-
-void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label,
-                   const void* dst_ptr, const SpaceHandle src_space,
-                   const std::string src_label, const void* src_ptr,
-                   const uint64_t size) {
-  Kokkos::Tools::beginDeepCopy(dst_space, dst_label, dst_ptr, src_space,
-                               src_label, src_ptr, size);
-}
-void endDeepCopy() { Kokkos::Tools::endDeepCopy(); }
-
-void finalize() { Kokkos::Tools::finalize(); }
-void initialize(const std::string& profileLibrary) {
-  Kokkos::Tools::initialize(profileLibrary);
-}
-
-bool printHelp(const std::string& args) {
-  return Kokkos::Tools::printHelp(args);
-}
-void parseArgs(const std::string& args) { Kokkos::Tools::parseArgs(args); }
-void parseArgs(int _argc, char** _argv) {
-  Kokkos::Tools::parseArgs(_argc, _argv);
-}
-
-SpaceHandle make_space_handle(const char* space_name) {
-  return Kokkos::Tools::make_space_handle(space_name);
-}
-}  // namespace Profiling
 
 // Tuning
 

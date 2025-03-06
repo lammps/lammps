@@ -72,12 +72,14 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
 
   void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
                               DAT::tdual_int_1d &indices,int nrecv,
+                              int nrecv1,int nrecv1extra,
                               ExecutionSpace space) override;
 
   typename DAT::tdual_int_2d k_firstflag;
   typename DAT::tdual_float_2d k_firstvalue;
 
  private:
+  int nrecv1,nextrarecv1;
   int nlocal,nsend,beyond_contact;
 
   typename AT::t_tagint_1d tag;

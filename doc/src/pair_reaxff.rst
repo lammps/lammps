@@ -20,7 +20,7 @@ Syntax
   .. parsed-literal::
 
      keyword = *checkqeq* or *lgvdw* or *safezone* or *mincap* or *minhbonds* or *tabulate* or *list/blocking*
-       *checkqeq* value = *yes* or *no* = whether or not to require qeq/reaxff or acks2/reaxff fix
+       *checkqeq* value = *yes* or *no* = whether or not to require one of fix qeq/reaxff, fix acks2/reaxff or fix qtpie/reaxff
        *enobonds* value = *yes* or *no* = whether or not to tally energy of atoms with no bonds
        *lgvdw* value = *yes* or *no* = whether or not to use a low gradient vdW correction
        *safezone* = factor used for array allocation
@@ -43,22 +43,22 @@ Examples
 Description
 """""""""""
 
-Style *reaxff* computes the ReaxFF potential of van Duin, Goddard and
-co-workers.  ReaxFF uses distance-dependent bond-order functions to
+Pair style *reaxff* computes the ReaxFF potential of van Duin, Goddard
+and co-workers.  ReaxFF uses distance-dependent bond-order functions to
 represent the contributions of chemical bonding to the potential
-energy. There is more than one version of ReaxFF. The version
+energy.  There is more than one version of ReaxFF.  The version
 implemented in LAMMPS uses the functional forms documented in the
 supplemental information of the following paper:
-:ref:`(Chenoweth et al., 2008) <Chenoweth_20082>`.  The version integrated
-into LAMMPS matches the version of ReaxFF From Summer 2010.  For more
-technical details about the pair reaxff implementation of ReaxFF, see
-the :ref:`(Aktulga) <Aktulga>` paper. The *reaxff* style was initially
-implemented as a stand-alone C code and is now converted to C++ and
-integrated into LAMMPS as a package.
+:ref:`(Chenoweth et al., 2008) <Chenoweth_20082>` and matches the
+version of the reference ReaxFF implementation from Summer 2010.  For
+more technical details about the implementation of ReaxFF in pair style
+*reaxff*, see the :ref:`(Aktulga) <Aktulga>` paper. The *reaxff* style
+was initially implemented as a stand-alone C code and is now converted
+to C++ and integrated into LAMMPS as a package.
 
 The *reaxff/kk* style is a Kokkos version of the ReaxFF potential that
-is derived from the *reaxff* style. The Kokkos version can run on GPUs
-and can also use OpenMP multithreading. For more information about the
+is derived from the *reaxff* style.  The Kokkos version can run on GPUs
+and can also use OpenMP multithreading.  For more information about the
 Kokkos package, see :doc:`Packages details <Packages_details>` and
 :doc:`Speed kokkos <Speed_kokkos>` doc pages.  One important
 consideration when using the *reaxff/kk* style is the choice of either
@@ -72,8 +72,7 @@ from LAMMPS after the 12 December 2018 version.
 
 LAMMPS provides several different versions of ffield.reax in its
 potentials dir, each called potentials/ffield.reax.label.  These are
-documented in potentials/README.reax.  The default ffield.reax
-contains parameterizations for the following elements: C, H, O, N.
+documented in potentials/README.reax.
 
 The format of these files is identical to that used originally by van
 Duin.  We have tested the accuracy of *pair_style reaxff* potential
@@ -110,29 +109,33 @@ control variable.  The format of the control file is described below.
    not agree.
 
 Examples using *pair_style reaxff* are provided in the examples/reax
-subdirectory.
+directory and its subdirectories.
 
-Use of this pair style requires that a charge be defined for every
-atom.  See the :doc:`atom_style <atom_style>` and
-:doc:`read_data <read_data>` commands for details on how to specify
-charges.
+Use of this pair style requires using an :doc:`atom_style <atom_style>`
+that includes a per-atom charge property *or* using
+:doc:`fix property/atom q <fix_property_atom>`.  Charges can be set
+via :doc:`read_data <read_data>` or :doc:`set <set>`.  Using an initial
+charge that is close to the result of charge equilibration will speed
+up that process.
 
 The ReaxFF parameter files provided were created using a charge
 equilibration (QEq) model for handling the electrostatic interactions.
-Therefore, by default, LAMMPS requires that either the
-:doc:`fix qeq/reaxff <fix_qeq_reaxff>` or the
-:doc:`fix qeq/shielded <fix_qeq>` or :doc:`fix acks2/reaxff <fix_acks2_reaxff>`
-command be used with
-*pair_style reaxff* when simulating a ReaxFF model, to equilibrate
-the charges each timestep.
+Therefore, by default, LAMMPS requires that
+:doc:`fix qeq/reaxff <fix_qeq_reaxff>` or :doc:`fix qeq/shielded <fix_qeq>`
+or :doc:`fix acks2/reaxff <fix_acks2_reaxff>`
+or :doc:`fix qtpie/reaxff <fix_qtpie_reaxff>`
+is used with *pair_style reaxff* when simulating a ReaxFF model,
+to equilibrate the charges at each timestep.
+See the :doc:`fix qeq/reaxff <fix_qeq_reaxff>` or :doc:`fix qeq/shielded <fix_qeq>`
+or :doc:`fix acks2/reaxff <fix_acks2_reaxff>`
+or :doc:`fix qtpie/reaxff <fix_qtpie_reaxff>`
+command documentation for more details.
 
 Using the keyword *checkqeq* with the value *no* turns off the check
 for the QEq fixes, allowing a simulation to be run without charge
 equilibration. In this case, the static charges you assign to each
 atom will be used for computing the electrostatic interactions in
-the system. See the :doc:`fix qeq/reaxff <fix_qeq_reaxff>` or
-:doc:`fix qeq/shielded <fix_qeq>` or :doc:`fix acks2/reaxff <fix_acks2_reaxff>`
-command documentation for more details.
+the system.
 
 Using the optional keyword *lgvdw* with the value *yes* turns on the
 low-gradient correction of ReaxFF for long-range London Dispersion,
@@ -155,10 +158,35 @@ drops to zero.
 Optional keywords *safezone*, *mincap*, and *minhbonds* are used
 for allocating reaxff arrays.  Increasing these values can avoid memory
 problems, such as segmentation faults and bondchk failed errors, that
-could occur under certain conditions. These keywords are not used by
+could occur under certain conditions. These keywords are **not** used by
 the Kokkos version, which instead uses a more robust memory allocation
 scheme that checks if the sizes of the arrays have been exceeded and
 automatically allocates more memory.
+
+.. admonition:: Memory management problems with ReaxFF
+   :class: tip
+
+   The LAMMPS implementation of ReaxFF is adapted from a standalone MD
+   program written in C called `PuReMD
+   <https://github.com/msu-sparta/PuReMD>`_.  It inherits from this code
+   a heuristic memory management that is different from what the rest of
+   LAMMPS uses.  It assumes that a system is dense and already well
+   equilibrated, so that there are no large changes in how many and what
+   types of neighbors atoms have.  However, not all systems are like
+   that, and thus there can be errors or segmentation faults if the
+   system changes too much.  If you run into problems, here are three
+   options to avoid them:
+
+   - Use the KOKKOS version of ReaxFF (KOKKOS is not only for GPUs,
+     but can also be compiled for serial or OpenMP execution) which
+     uses a different memory management approach.
+   - Break down a run command during which memory related errors happen
+     into multiple smaller segments so that the memory management
+     heuristics are re-initialized for each segment before they become
+     invalid.
+   - Increase the values for *safezone*, *mincap*, and *minhbonds* as
+     needed.  This can lead to significant increase of memory consumption
+     through.
 
 The keyword *tabulate* controls the size of interpolation table for
 Lennard-Jones and Coulomb interactions. Tabulation may also be set in the
@@ -371,8 +399,9 @@ Related commands
 """"""""""""""""
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix qeq/reaxff <fix_qeq_reaxff>`,
-:doc:`fix acks2/reaxff <fix_acks2_reaxff>`, :doc:`fix reaxff/bonds <fix_reaxff_bonds>`,
-:doc:`fix reaxff/species <fix_reaxff_species>`
+:doc:`fix acks2/reaxff <fix_acks2_reaxff>`, :doc:`fix qtpie/reaxff <fix_qtpie_reaxff>`,
+:doc:`fix reaxff/bonds <fix_reaxff_bonds>`, :doc:`fix reaxff/species <fix_reaxff_species>`,
+:doc:`compute reaxff/atom <compute_reaxff_atom>`
 
 Default
 """""""

@@ -31,11 +31,8 @@
 
 using namespace LAMMPS_NS;
 
-#define OFFSET 16384
-#define SMALLQ 0.00001
-
-enum{REVERSE_RHO,REVERSE_AD,REVERSE_AD_PERATOM};
-enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
+static constexpr int OFFSET = 16384;
+static constexpr double SMALLQ = 0.00001;
 
 /* ---------------------------------------------------------------------- */
 
@@ -338,7 +335,7 @@ void MSMCG::particle_map()
       flag = 1;
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute MSM");
+  if (flag) error->one(FLERR,"Out of range atoms - cannot compute MSM" + utils::errorurl(4));
 }
 
 /* ----------------------------------------------------------------------

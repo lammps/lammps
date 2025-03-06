@@ -50,6 +50,7 @@ class PairLJCutTIP4PCut : public Pair {
   double **epsilon, **sigma;
   double **lj1, **lj2, **lj3, **lj4, **offset;
 
+  std::string typeH_str, typeO_str, typeA_str, typeB_str;
   int typeH, typeO;    // atom types of TIP4P water H and O atoms
   int typeA, typeB;    // angle and bond types of TIP4P water
   double alpha;        // geometric constraint parameter for TIP4P

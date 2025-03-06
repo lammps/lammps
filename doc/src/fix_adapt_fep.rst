@@ -21,13 +21,13 @@ Syntax
        *pair* args = pstyle pparam I J v_name
          pstyle = pair style name (e.g., lj/cut)
          pparam = parameter to adapt over time
-         I,J = type pair(s) to set parameter for
+         I,J = type pair(s) to set parameter for (integer or type label)
          v_name = variable with name that calculates value of pparam
        *kspace* arg = v_name
          v_name = variable with name that calculates scale factor on K-space terms
        *atom* args = aparam v_name
          aparam = parameter to adapt over time
-         I = type(s) to set parameter for
+         I = type(s) to set parameter for (integer or type label)
          v_name = variable with name that calculates value of aparam
 
 * zero or more keyword/value pairs may be appended
@@ -55,6 +55,9 @@ Examples
    fix 1 all adapt/fep 1 pair soft a 2* 3 v_prefactor
    fix 1 all adapt/fep 1 pair lj/cut epsilon * * v_scale1 coul/cut scale 3 3 v_scale2 scale yes reset yes
    fix 1 all adapt/fep 10 atom diameter 1 v_size
+
+   labelmap atom 1 c1
+   fix 1 all adapt/fep 1 pair soft a c1 c1 v_prefactor
 
 
 Example input scripts available: examples/PACKAGES/fep
@@ -113,29 +116,49 @@ style supports it.  Note that the :doc:`pair_style <pair_style>` and
 to specify these parameters initially; the fix adapt command simply
 overrides the parameters.
 
-The *pstyle* argument is the name of the pair style.  If :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is used, *pstyle* should be
-a sub-style name.  For example, *pstyle* could be specified as "soft"
-or "lubricate".  The *pparam* argument is the name of the parameter to
-change.  This is the current list of pair styles and parameters that
-can be varied by this fix.  See the doc pages for individual pair
-styles and their energy formulas for the meaning of these parameters:
+.. note::
+
+   Pair_coeff settings must be made **explicitly** in order for fix
+   adapt/fep to be able to change them.  Settings inferred from mixing
+   are not suitable.  If necessary all mixed settings can be output
+   to a file using the :doc:`write_coeff command <write_coeff>` and
+   then the desired mixed pair_coeff settings copied from that file.
+
+The *pstyle* argument is the name of the pair style.  If
+:doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is used,
+*pstyle* should be a sub-style name.  For example, *pstyle* could be
+specified as "soft" or "lubricate".  The *pparam* argument is the name
+of the parameter to change.  This is the current list of pair styles and
+parameters that can be varied by this fix.  See the doc pages for
+individual pair styles and their energy formulas for the meaning of
+these parameters:
 
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`born <pair_born>`                                                      | a,b,c                   | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`born/gauss <pair_born_gauss>`                                          | biga0,biga1,r0          | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`buck, buck/coul/cut, buck/coul/long, buck/coul/msm  <pair_buck>`       | a,c                     | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`buck/mdf <pair_mdf>`                                                   | a,c                     | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
-| :doc:`coul/cut <pair_coul>`                                                  | scale                   | type pairs |
+| :doc:`coul/cut, coul/cut/global <pair_coul>`                                 | scale                   | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`coul/cut/soft <pair_fep_soft>`                                         | lambda                  | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`coul/debye <pair_coul>`                                                | scale                   | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`coul/long, coul/msm <pair_coul>`                                       | scale                   | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`coul/long/soft <pair_fep_soft>`                                        | scale, lambda           | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
-| :doc:`eam <pair_eam>`                                                        | scale                   | type pairs |
+| :doc:`coul/slater/long <pair_coul_slater>`                                   | scale                   | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`coul/streitz <pair_coul>`                                              | scale                   | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`eam, eam/alloy, eam/fs <pair_eam>`                                     | scale                   | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`harmonic/cut <pair_harmonic_cut>`                                      | k                       | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`gauss <pair_gauss>`                                                    | a                       | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
@@ -163,6 +186,8 @@ styles and their energy formulas for the meaning of these parameters:
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`lj/sf/dipole/sf <pair_dipole>`                                         | epsilon,sigma,scale     | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`meam <pair_meam>`                                                      | scale                   | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`mie/cut <pair_mie>`                                                    | epsilon,sigma,gamR,gamA | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`morse, morse/smooth/linear <pair_morse>`                               | d0,r0,alpha             | type pairs |
@@ -173,11 +198,15 @@ styles and their energy formulas for the meaning of these parameters:
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`nm/cut/coul/cut, nm/cut/coul/long <pair_nm>`                           | e0,r0,nn,mm             | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`pace, pace/extrapolation <pair_pace>`                                  | scale                   | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`snap <pair_snap>`                                                      | scale                   | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`soft <pair_soft>`                                                      | a                       | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`ufm <pair_ufm>`                                                        | epsilon,sigma,scale     | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`wf/cut <pair_wf_cut>`                                                  | epsilon,sigma,nu,mu     | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
 
 .. note::
@@ -202,10 +231,12 @@ be specified to indicate which type pairs to apply it to.  If a global
 parameter is specified, the *I* and *J* settings still need to be
 specified, but are ignored.
 
-Similar to the :doc:`pair_coeff command <pair_coeff>`, I and J can be
-specified in one of two ways.  Explicit numeric values can be used for
-each, as in the first example above.  :math:`I \le J` is required.  LAMMPS sets
-the coefficients for the symmetric J,I interaction to the same values.
+Similar to the :doc:`pair_coeff command <pair_coeff>`, :math:`I` and
+:math:`J` can be specified in one of several ways.  Explicit numeric values
+can be used for each, as in the first example above.  Or, one or both of
+the types in the I,J pair can be a :doc:`type label <Howto_type_labels>`.
+LAMMPS sets the coefficients for the symmetric :math:`J,I` interaction to
+the same values.
 
 A wild-card asterisk can be used in place of or in conjunction with
 the :math:`I,J` arguments to set the coefficients for multiple pairs of atom
@@ -214,8 +245,9 @@ the number of atom types, then an asterisk with no numeric values means
 all types from 1 to :math:`N`.  A leading asterisk means all types from 1 to n
 (inclusive).  A trailing asterisk means all types from m to :math:`N`
 (inclusive).  A middle asterisk means all types from m to n
-(inclusive).  Note that only type pairs with :math:`I \le J` are considered; if
-asterisks imply type pairs where :math:`J < I`, they are ignored.
+(inclusive).  For the asterisk syntax, note that only type pairs with
+:math:`I \le J` are considered; if asterisks imply type pairs where
+:math:`J < I`, they are ignored.
 
 IMPROTANT NOTE: If :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is
 being used, then the *pstyle* will be a sub-style name.  You must specify
@@ -307,7 +339,9 @@ the :doc:`run <run>` command.  This fix is not invoked during
 
 Restrictions
 """"""""""""
- none
+
+The keyword "scale yes" is not supported for scaling per-atom parameters
+diameter and change. You can use :doc:`fix adapt <fix_adapt>` for those.
 
 Related commands
 """"""""""""""""

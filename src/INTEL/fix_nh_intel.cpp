@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
+#include "respa.h"
 #include "update.h"
 
 #include <cmath>
@@ -33,7 +34,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define TILTMAX 1.5
+static constexpr double TILTMAX = 1.5;
 
 enum{NOBIAS,BIAS};
 enum{ISO,ANISO,TRICLINIC};
@@ -138,9 +139,7 @@ void FixNHIntel::remap()
     }
   }
 
-  if (nrigid)
-    for (int i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(0);
+  for (auto &ifix : rfix) ifix->deform(0);
 
   // reset global and local box to new size/shape
 
@@ -321,9 +320,7 @@ void FixNHIntel::remap()
     }
   }
 
-  if (nrigid)
-    for (int i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(1);
+  for (auto &ifix : rfix) ifix->deform(1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -339,8 +336,13 @@ void FixNHIntel::reset_dt()
 
   // If using respa, then remap is performed in innermost level
 
-  if (utils::strmatch(update->integrate_style,"^respa"))
+  if (utils::strmatch(update->integrate_style,"^respa")) {
+    auto respa_ptr = dynamic_cast<Respa *>(update->integrate);
+    if (!respa_ptr) error->all(FLERR, "Failure to access Respa style {}", update->integrate_style);
+    nlevels_respa = respa_ptr->nlevels;
+    step_respa = respa_ptr->step;
     dto = 0.5*step_respa[0];
+  }
 
   if (pstat_flag)
     pdrag_factor = 1.0 - (update->dt * p_freq_max * drag / nc_pchain);

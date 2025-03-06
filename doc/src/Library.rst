@@ -80,13 +80,15 @@ run LAMMPS in serial mode.
    :class: note
 
    If the LAMMPS executable encounters an error condition, it will abort
-   after printing an error message. For a library interface this is
-   usually not desirable.  Thus LAMMPS can be compiled to to :ref:`throw
-   a C++ exception <exceptions>` instead.  If enabled, the library
-   functions will catch those exceptions and return.  The error status
-   :cpp:func:`can be queried <lammps_has_error>` and an :cpp:func:`error
-   message retrieved <lammps_get_last_error_message>`.  We thus
-   recommend enabling C++ exceptions when using the library interface,
+   after printing an error message.  It does so by catching the
+   exceptions that LAMMPS could throw.  For a C library interface this
+   is usually not desirable since the calling code might lack the
+   ability to catch such exceptions.  Thus, the library functions will
+   catch those exceptions and return from the affected functions.  The
+   error status :cpp:func:`can be queried <lammps_has_error>` and an
+   :cpp:func:`error message retrieved <lammps_get_last_error_message>`.
+   This is, for example used by the :doc:`LAMMPS python module
+   <Python_module>` and then a suitable Python exception is thrown.
 
 .. admonition:: Using the C library interface as a plugin
    :class: note
@@ -129,16 +131,15 @@ run LAMMPS in serial mode.
 
 .. _lammps_python_api:
 
-LAMMPS Python APIs
-==================
+LAMMPS Python API
+=================
 
 The LAMMPS Python module enables calling the LAMMPS C library API from
 Python by dynamically loading functions in the LAMMPS shared library through
 the `Python ctypes module <https://docs.python.org/3/library/ctypes.html>`_.
 Because of the dynamic loading, it is **required** that LAMMPS is compiled
 in :ref:`"shared" mode <exe>`.  The Python interface is object-oriented, but
-otherwise tries to be very similar to the C library API.  Three different
-Python classes to run LAMMPS are available and they build on each other.
+otherwise tries to be very similar to the C library API.
 More information on this is in the :doc:`Python_head`
 section of the manual.  Use of the LAMMPS Python module is described in
 :doc:`Python_module`.

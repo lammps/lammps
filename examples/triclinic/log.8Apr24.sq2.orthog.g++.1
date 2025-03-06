@@ -1,0 +1,76 @@
+LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-442-gf1c2a22e2d)
+# orthogonal box for 2d sq2 lattice unit cell
+
+dimension     2
+
+lattice       sq2 1.1
+Lattice spacing in x,y,z = 1.3483997 1.3483997 1.3483997
+
+region        mybox block 0 1 0 1 -0.5 0.5
+create_box    1 mybox
+Created orthogonal box = (0 0 -0.67419986) to (1.3483997 1.3483997 0.67419986)
+  1 by 1 by 1 MPI processor grid
+create_atoms  1 box
+Created 2 atoms
+  using lattice units in orthogonal box = (0 0 -0.67419986) to (1.3483997 1.3483997 0.67419986)
+  create_atoms CPU = 0.000 seconds
+
+mass          * 1.0
+
+write_data    tmp.data.sq2.orthog
+System init for write_data ...
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (../comm_brick.cpp:210)
+
+pair_style    lj/cut 1.1
+pair_coeff    * * 1.0 1.0
+
+neighbor      0.0 bin
+
+thermo_style  custom step pe avecx avecy bvecx bvecy pxx pyy vol
+
+dump          1 all custom 100 tmp.dump.sq2.orthog id type x y z
+
+run           0
+WARNING: No fixes with time integration, atoms won't move (../verlet.cpp:60)
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.1
+  ghost atom cutoff = 1.1
+  binsize = 0.55, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.046 | 3.046 | 3.046 Mbytes
+   Step         PotEng         Avecx          Avecy          Bvecx          Bvecy           Pxx            Pyy           Volume    
+         0   3.524488       1.3483997      0              0              1.3483997      58.400021      58.400021      1.8181818    
+Loop time of 9.37e-07 on 1 procs for 0 steps with 2 atoms
+
+106.7% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 9.37e-07   |            |       |100.00
+
+Nlocal:              2 ave           2 max           2 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:             11 ave          11 max          11 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              4 ave           4 max           4 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 4
+Ave neighs/atom = 2
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

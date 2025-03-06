@@ -428,7 +428,7 @@ Syntax
 * variable(s) = single name or list of names of (string style) LAMMPS
   variable(s) where a query result or parameter get result is stored.  Variables
   that do not exist will be created by the command
-* formatarg = *list, split, or index* (optional):
+* formatarg = *list* or *split* or *index* (optional)
 
   .. parsed-literal::
 
@@ -697,17 +697,18 @@ Syntax
 * variable(s) = single name or list of names of (string style) LAMMPS
   variable(s) where a query result or parameter get result is stored.  Variables
   that do not exist will be created by the command
-* formatarg = *list, split, or explicit* (optional):
+* formatarg = *list* or *split* or *explicit* (optional)
+
   .. parsed-literal::
 
      *list* = returns a single string with a list of space separated values
             (e.g. "1.0 2.0 3.0"), which is placed in a LAMMPS variable as
-            defined by the *variable* argument.
+            defined by the *variable* argument
      *split* = returns the values separately in new variables with names based
             on the prefix specified in *variable* and a number appended to
             indicate which element in the list of values is in the variable
      *explicit* = returns the values separately in one more more variable names
-            provided as arguments that precede *formatarg*\ . [default]
+            provided as arguments that precede *formatarg* (default)
 * values = new value(s) to replace the current value(s) of a KIM portable model
   parameter
 
@@ -1083,10 +1084,11 @@ the form of *key_name_key*-*key_name_value* pairs).  For example,
    kim property modify 1 key mass    source-value 26.98154
    kim property modify 1 key mass    source-unit  amu
 
-where the special keyword "key" is followed by a *key_name* ("species" or
-"mass" in the above) and one or more key-value pairs.  These key-value pairs
-may continue until either another "key" keyword is given or the end of the
-command line is reached.  Thus, the above could equivalently be written as
+where the special keyword "key" is followed by a *key_name* ("species"
+or "mass" in the above) and one or more key-value pairs.  These
+key-value pairs may continue until either another "key" keyword is given
+or the end of the line is reached.  Thus, the above could equivalently
+be written as
 
 .. code-block:: LAMMPS
 

@@ -17,7 +17,7 @@
                          Julien Tranchida (SNL)
 
    Please cite the related publication:
-   Ivanov, A. V., Uzdin, V. M., & Jónsson, H. (2019). Fast and Robust
+   Ivanov, A. V., Uzdin, V. M., & Jonsson, H. (2019). Fast and Robust
    Algorithm for the Minimisation of the Energy of Spin Systems. arXiv
    preprint arXiv:1904.02669.
 ------------------------------------------------------------------------- */
@@ -54,9 +54,8 @@ static const char cite_minstyle_spin_cg[] =
 
 // EPS_ENERGY = minimum normalization for energy tolerance
 
-#define EPS_ENERGY 1.0e-8
-
-#define DELAYSTEP 5
+static constexpr double EPS_ENERGY = 1.0e-8;
+static constexpr int DELAYSTEP = 5;
 
 /* ---------------------------------------------------------------------- */
 

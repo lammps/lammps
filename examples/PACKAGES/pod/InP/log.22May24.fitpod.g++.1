@@ -1,0 +1,163 @@
+LAMMPS (17 Apr 2024 - Development - patch_17Apr2024-176-gc2e4ad220f-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+fitpod InP_param.pod InP_data.pod
+**************** Begin of POD Potentials ****************
+species: In P 
+periodic boundary conditions: 1 1 1
+number of environment clusters: 1
+number of principal compoments: 2
+inner cut-off radius: 0.8
+outer cut-off radius: 5
+bessel polynomial degree: 4
+inverse polynomial degree: 8
+one-body potential: 1
+two-body radial basis functions: 6
+three-body radial basis functions: 5
+three-body angular degree: 4
+four-body radial basis functions: 4
+four-body angular degree: 2
+five-body radial basis functions: 0
+five-body angular degree: 0
+six-body radial basis functions: 0
+six-body angular degree: 0
+seven-body radial basis functions: 0
+seven-body angular degree: 0
+number of local descriptors per element for one-body potential: 1
+number of local descriptors per element for two-body potential: 12
+number of local descriptors per element for three-body potential: 75
+number of local descriptors per element for four-body potential: 64
+number of local descriptors per element for five-body potential: 0
+number of local descriptors per element for six-body potential: 0
+number of local descriptors per element for seven-body potential: 0
+number of local descriptors per element for all potentials: 152
+number of global descriptors: 304
+**************** End of POD Potentials ****************
+
+**************** Begin of Data File ****************
+file format: extxyz
+file extension: xyz
+path to training data set: XYZ
+path to test data set: XYZ
+path to environment configuration set: XYZ
+basename for output files: InP
+training fraction: 1
+test fraction: 1
+randomize training data set: 1
+randomize test data set: 1
+error analysis for training data set: 1
+error analysis for test data set: 0
+energy/force calculation for training data set: 0
+energy/force calculation for test data set: 0
+fitting weight for energy: 100
+fitting weight for force: 1
+fitting weight for stress: 0
+save pod descriptors: 0
+compute pod descriptors: 0
+**************** End of Data File ****************
+**************** Begin of Training Data Set ****************
+--------------------------------------------------------
+ data file  | number of configurations | number of atoms
+--------------------------------------------------------
+ Bulk.xyz   |                 1        |           8
+ EOS.xyz    |               268        |        2080
+ Shear.xyz  |               346        |        2768
+ Strain.xyz |               163        |        1304
+ aIn.xyz    |                54        |       11664
+ aP.xyz     |                21        |        4536
+ aa.xyz     |                20        |        4320
+ iIn.xyz    |                41        |        8897
+ iP.xyz     |               100        |       21700
+ s_aIn.xyz  |               121        |        7744
+ s_aP.xyz   |                72        |        4608
+ s_aa.xyz   |                18        |        1152
+ s_iIn.xyz  |               144        |        9360
+ s_iP.xyz   |               337        |       21905
+ s_vIn.xyz  |                17        |        1071
+ s_vP.xyz   |                77        |        4851
+ s_vv.xyz   |                65        |        4030
+ vP.xyz     |                10        |        2150
+ vv.xyz     |                19        |        4066
+--------------------------------------------------------
+number of files: 19
+number of configurations in all files: 1894
+number of atoms in all files: 118214
+minimum number of atoms: 4
+maximum number of atoms: 217
+**************** End of Training Data Set ****************
+**************** Begin of Memory Allocation ****************
+maximum number of atoms in periodic domain: 217
+maximum number of atoms in extended domain: 5859
+maximum number of neighbors in extended domain: 1271403
+size of double memory: 5555904
+size of descriptor matrix: 304 x 304
+**************** End of Memory Allocation ****************
+**************** Begin of Least-Squares Fitting ****************
+Configuration: # 1
+Configuration: # 101
+Configuration: # 201
+Configuration: # 301
+Configuration: # 401
+Configuration: # 501
+Configuration: # 601
+Configuration: # 701
+Configuration: # 801
+Configuration: # 901
+Configuration: # 1001
+Configuration: # 1101
+Configuration: # 1201
+Configuration: # 1301
+Configuration: # 1401
+Configuration: # 1501
+Configuration: # 1601
+Configuration: # 1701
+Configuration: # 1801
+**************** Begin of Error Calculation ****************
+Configuration: # 1
+Configuration: # 101
+Configuration: # 201
+Configuration: # 301
+Configuration: # 401
+Configuration: # 501
+Configuration: # 601
+Configuration: # 701
+Configuration: # 801
+Configuration: # 901
+Configuration: # 1001
+Configuration: # 1101
+Configuration: # 1201
+Configuration: # 1301
+Configuration: # 1401
+Configuration: # 1501
+Configuration: # 1601
+Configuration: # 1701
+Configuration: # 1801
+**************** End of Error Calculation ****************
+**************** Begin of Error Analysis for the Training Data Set ****************
+--------------------------------------------------------------------------------------------
+     File     | # configs |  # atoms  | MAE energy  | RMSE energy | MAE force  | RMSE force
+--------------------------------------------------------------------------------------------
+Bulk.xyz              1           8     0.001678      0.001678      0.000000      0.000000  
+EOS.xyz             268        2080     0.001463      0.001817      0.001107      0.015464  
+Shear.xyz           346        2768     0.000415      0.000640      0.008335      0.012863  
+Strain.xyz          163        1304     0.001129      0.001374      0.000021      0.000036  
+aIn.xyz              54       11664     0.000737      0.000796      0.007969      0.016112  
+aP.xyz               21        4536     0.001396      0.001407      0.019599      0.054174  
+aa.xyz               20        4320     0.001991      0.001991      0.016735      0.027955  
+iIn.xyz              41        8897     0.001548      0.001687      0.013910      0.025462  
+iP.xyz              100       21700     0.001090      0.001203      0.009692      0.018549  
+s_aIn.xyz           121        7744     0.000856      0.000889      0.011041      0.017399  
+s_aP.xyz             72        4608     0.002255      0.003587      0.032425      0.045878  
+s_aa.xyz             18        1152     0.001198      0.001200      0.037169      0.047713  
+s_iIn.xyz           144        9360     0.002014      0.002255      0.035374      0.050726  
+s_iP.xyz            337       21905     0.001655      0.002178      0.025130      0.038368  
+s_vIn.xyz            17        1071     0.007984      0.007992      0.023190      0.039575  
+s_vP.xyz             77        4851     0.000245      0.000281      0.018303      0.025818  
+s_vv.xyz             65        4030     0.001759      0.001986      0.039037      0.052667  
+vP.xyz               10        2150     0.000640      0.000640      0.005452      0.009834  
+vv.xyz               19        4066     0.001336      0.001403      0.020930      0.034386  
+--------------------------------------------------------------------------------------------
+All files          1894      118214     0.001288      0.001855      0.018109      0.032648  
+--------------------------------------------------------------------------------------------
+**************** End of Error Analysis for the Training Data Set ****************
+Total wall time: 0:00:27

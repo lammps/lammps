@@ -507,7 +507,7 @@ template <> struct _ucl_cast_copy<0,0> {
   }
   template <class mat1, class mat2, class mat3>
     static inline void cc(mat1 & /*dst*/, const mat2 & /*src*/, const size_t /*rows*/,
-                          const size_t cols, mat3 & /*cast_buffer*/, command_queue & /*cq*/) {
+                          const size_t /*cols*/, mat3 & /*cast_buffer*/, command_queue & /*cq*/) {
     assert(0==1);
   }
 };

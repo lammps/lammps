@@ -42,8 +42,8 @@
 using namespace LAMMPS_NS;
 using namespace MathSpecialKokkos;
 
-#define MAXLINE 1024
-#define DELTA 4
+static constexpr int MAXLINE = 1024;
+static constexpr int DELTA = 4;
 
 #ifdef DBL_EPSILON
   #define MY_EPSILON (10.0*DBL_EPSILON)
@@ -103,9 +103,9 @@ void PairExp6rxKokkos<DeviceType>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
 }
 
@@ -1702,7 +1702,8 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
   // one set of params can span multiple lines
 
   int n,nwords,ispecies;
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int eof = 0;
 
   while (true) {
@@ -1770,9 +1771,9 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
     params[nparams].potential = utils::strdup(words[1]);
 
     if (strcmp(params[nparams].potential,"exp6") == 0) {
-      params[nparams].alpha = atof(words[2]);
-      params[nparams].epsilon = atof(words[3]);
-      params[nparams].rm = atof(words[4]);
+      params[nparams].alpha = std::stod(words[2]);
+      params[nparams].epsilon = std::stod(words[3]);
+      params[nparams].rm = std::stod(words[4]);
       if (params[nparams].epsilon <= 0.0 || params[nparams].rm <= 0.0 ||
           params[nparams].alpha < 0.0)
         error->all(FLERR,"Illegal exp6/rx parameters.  Rm and Epsilon must be greater than zero.  Alpha cannot be negative.");

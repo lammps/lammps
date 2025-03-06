@@ -20,7 +20,7 @@ PairStyle(ilp/tmd,PairILPTMD);
 #ifndef LMP_PAIR_ILP_TMD_H
 #define LMP_PAIR_ILP_TMD_H
 
-#include "pair_ilp_graphene_hbn.h"
+#include "pair_ilp_graphene_hbn.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

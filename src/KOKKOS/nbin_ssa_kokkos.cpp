@@ -18,13 +18,12 @@
 ------------------------------------------------------------------------- */
 
 #include "nbin_ssa_kokkos.h"
-#include "neighbor.h"
+
 #include "atom_kokkos.h"
 #include "domain.h"
 #include "update.h"
 #include "atom_masks.h"
-
-// #include "memory_kokkos.h"
+#include "kokkos_type.h"
 
 using namespace LAMMPS_NS;
 

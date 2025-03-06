@@ -35,7 +35,7 @@ template <> struct _ucl_print<1> {
   }
   template <class mat_type>
   static inline void p(const mat_type &mat, const size_t n, std::ostream &out,
-                       const std::string delim, UCL_Device &dev) {
+                       const std::string delim, UCL_Device &/*dev*/) {
     p(mat,n,out,delim);
   }
   template <class mat_type>
@@ -59,7 +59,7 @@ template <> struct _ucl_print<1> {
   template <class mat_type>
   static inline void p(const mat_type &mat,const size_t rows,const size_t cols,
                        std::ostream &out,const std::string delim,
-                       const std::string row_delim, UCL_Device &dev) {
+                       const std::string row_delim, UCL_Device &/*dev*/) {
     p(mat,rows,cols,out,delim,row_delim);
   }
 };

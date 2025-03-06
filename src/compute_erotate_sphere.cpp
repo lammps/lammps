@@ -20,7 +20,7 @@
 
 using namespace LAMMPS_NS;
 
-#define INERTIA 0.4    // moment of inertia prefactor for sphere
+static constexpr double INERTIA = 0.4;    // moment of inertia prefactor for sphere
 
 /* ---------------------------------------------------------------------- */
 
@@ -34,7 +34,7 @@ ComputeERotateSphere::ComputeERotateSphere(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (!atom->sphere_flag) error->all(FLERR, "Compute erotate/sphere requires atom style sphere");
+  if (!atom->omega_flag) error->all(FLERR, "Compute erotate/sphere requires atom attribute omega");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -29,7 +29,6 @@
 #include "update.h"
 #include "modify_kokkos.h"
 #include "timer.h"
-#include "memory_kokkos.h"
 #include "kokkos.h"
 
 using namespace LAMMPS_NS;
@@ -78,7 +77,7 @@ void VerletKokkos::setup(int flag)
   if (comm->me == 0 && screen) {
     fputs("Setting up Verlet run ...\n",screen);
     if (flag) {
-      fmt::print(screen,"  Unit style    : {}\n"
+      utils::print(screen,"  Unit style    : {}\n"
                         "  Current step  : {}\n"
                         "  Time step     : {}\n",
                  update->unit_style,update->ntimestep,update->dt);
@@ -163,8 +162,10 @@ void VerletKokkos::setup(int flag)
 
   lmp->kokkos->auto_sync = 0;
   modify->setup(vflag);
-  output->setup(flag);
   lmp->kokkos->auto_sync = 1;
+
+  atomKK->sync(Host,ALL_MASK);
+  output->setup(flag);
   update->setupflag = 0;
 }
 
@@ -253,6 +254,7 @@ void VerletKokkos::setup_minimal(int flag)
   lmp->kokkos->auto_sync = 0;
   modify->setup(vflag);
   lmp->kokkos->auto_sync = 1;
+
   update->setupflag = 0;
 }
 

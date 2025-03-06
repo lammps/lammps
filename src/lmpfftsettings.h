@@ -16,20 +16,31 @@
 #ifndef LMP_FFT_SETTINGS_H
 #define LMP_FFT_SETTINGS_H
 
-// if user set FFTW, it means FFTW3
+// if a user sets FFTW, it means FFTW3
 
 #ifdef FFT_FFTW
 #ifndef FFT_FFTW3
+#undef FFT_FFTW
 #define FFT_FFTW3
 #endif
 #endif
 
 // set strings for library info output
 
-#if defined(FFT_FFTW3)
+#if defined(FFT_HEFFTE)
+#if defined(FFT_HEFFTE_FFTW)
+#define LMP_FFT_LIB "HeFFTe(FFTW3)"
+#elif defined(FFT_HEFFTE_MKL)
+#define LMP_FFT_LIB "HeFFTe(MKL)"
+#else
+#define LMP_FFT_LIB "HeFFTe(builtin)"
+#endif
+#elif defined(FFT_FFTW3)
 #define LMP_FFT_LIB "FFTW3"
 #elif defined(FFT_MKL)
 #define LMP_FFT_LIB "MKL FFT"
+#elif defined(FFT_MKL_GPU)
+#define LMP_FFT_LIB "MKL GPU FFT"
 #elif defined(FFT_CUFFT)
 #define LMP_FFT_LIB "cuFFT"
 #elif defined(FFT_HIPFFT)

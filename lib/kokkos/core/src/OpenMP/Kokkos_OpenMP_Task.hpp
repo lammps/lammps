@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_OPENMP_TASK_HPP
 #define KOKKOS_IMPL_OPENMP_TASK_HPP
@@ -48,16 +20,24 @@
 #include <Kokkos_Macros.hpp>
 #if defined(KOKKOS_ENABLE_OPENMP) && defined(KOKKOS_ENABLE_TASKDAG)
 
+#include <Kokkos_Atomic.hpp>
 #include <Kokkos_TaskScheduler_fwd.hpp>
 
 #include <impl/Kokkos_HostThreadTeam.hpp>
-#include <Kokkos_OpenMP.hpp>
+#include <OpenMP/Kokkos_OpenMP.hpp>
+
+#include <impl/Kokkos_TaskTeamMember.hpp>
 
 #include <type_traits>
 #include <cassert>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+// We allow using deprecated classes in this file
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
 
 namespace Kokkos {
 namespace Impl {
@@ -99,6 +79,9 @@ class TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::OpenMP, QueueType>> {
     Impl::OpenMPInternal* instance =
         execution_space().impl_internal_space_instance();
     const int pool_size = get_max_team_count(scheduler.get_execution_space());
+
+    // Serialize kernels on the same execution space instance
+    std::lock_guard<std::mutex> lock(instance->m_instance_mutex);
 
     // TODO @tasking @new_feature DSH allow team sizes other than 1
     const int team_size = 1;                      // Threads per core
@@ -213,7 +196,8 @@ class TaskQueueSpecializationConstrained<
     using task_base_type = typename scheduler_type::task_base;
     using queue_type     = typename scheduler_type::queue_type;
 
-    if (1 == OpenMP::impl_thread_pool_size()) {
+    execution_space exec;
+    if (1 == exec.impl_thread_pool_size()) {
       task_base_type* const end = (task_base_type*)task_base_type::EndTag;
 
       HostThreadTeamData& team_data_single =
@@ -258,7 +242,10 @@ class TaskQueueSpecializationConstrained<
 
     Impl::OpenMPInternal* instance =
         execution_space().impl_internal_space_instance();
-    const int pool_size = OpenMP::impl_thread_pool_size();
+    const int pool_size = instance->thread_pool_size();
+
+    // Serialize kernels on the same execution space instance
+    std::lock_guard<std::mutex> lock(instance->m_instance_mutex);
 
     const int team_size = 1;       // Threads per core
     instance->resize_thread_data(0 /* global reduce buffer */
@@ -270,6 +257,7 @@ class TaskQueueSpecializationConstrained<
                                  0 /* thread local buffer */
     );
     assert(pool_size % team_size == 0);
+
     auto& queue = scheduler.queue();
     queue.initialize_team_queues(pool_size / team_size);
 
@@ -308,7 +296,9 @@ class TaskQueueSpecializationConstrained<
 
               // If 0 == m_ready_count then set task = 0
 
-              if (*((volatile int*)&team_queue.m_ready_count) > 0) {
+              if (desul::atomic_load(&team_queue.m_ready_count,
+                                     desul::MemoryOrderAcquire(),
+                                     desul::MemoryScopeDevice()) > 0) {
                 task = end;
                 // Attempt to acquire a task
                 // Loop by priority and then type
@@ -376,6 +366,10 @@ extern template class TaskQueue<Kokkos::OpenMP,
 
 }  // namespace Impl
 }  // namespace Kokkos
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

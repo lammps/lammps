@@ -88,7 +88,7 @@ static void create_molecule_files(const std::string &h2o_filename, const std::st
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-const double EPSILON = 5.0e-14;
+static const double EPSILON = 5.0e-14;
 
 namespace LAMMPS_NS {
 using ::testing::Eq;
@@ -156,7 +156,6 @@ struct AtomState {
     int extra_dihedral_per_atom = 0;
     int extra_improper_per_atom = 0;
 
-    int sphere_flag                  = 0;
     int ellipsoid_flag               = 0;
     int line_flag                    = 0;
     int tri_flag                     = 0;
@@ -293,7 +292,6 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_EQ(atom->extra_dihedral_per_atom, expected.extra_dihedral_per_atom);
     ASSERT_EQ(atom->extra_improper_per_atom, expected.extra_improper_per_atom);
 
-    ASSERT_EQ(atom->sphere_flag, expected.sphere_flag);
     ASSERT_EQ(atom->ellipsoid_flag, expected.ellipsoid_flag);
     ASSERT_EQ(atom->line_flag, expected.line_flag);
     ASSERT_EQ(atom->tri_flag, expected.tri_flag);
@@ -349,8 +347,8 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_ARRAY_ALLOCATED(atom->x, expected.has_x);
     ASSERT_ARRAY_ALLOCATED(atom->v, expected.has_v);
     ASSERT_ARRAY_ALLOCATED(atom->f, expected.has_f);
-    ASSERT_ARRAY_ALLOCATED(atom->q, expected.q_flag);
     ASSERT_ARRAY_ALLOCATED(atom->mu, expected.mu_flag);
+    ASSERT_ARRAY_ALLOCATED(atom->q, expected.q_flag);
 
     ASSERT_ARRAY_ALLOCATED(atom->omega, expected.omega_flag);
     ASSERT_ARRAY_ALLOCATED(atom->angmom, expected.angmom_flag);
@@ -533,7 +531,7 @@ TEST_F(AtomStyleTest, atomic)
     ASSERT_NE(lmp->atom->mass_setflag, nullptr);
     ASSERT_NE(lmp->atom->sametag, nullptr);
     ASSERT_EQ(lmp->atom->map_style, Atom::MAP_HASH);
-    ASSERT_EQ(lmp->atom->map_user, 2);
+    ASSERT_EQ(lmp->atom->map_user, Atom::MAP_HASH);
     ASSERT_EQ(lmp->atom->map_tag_max, 4);
     BEGIN_HIDE_OUTPUT();
     command("pair_coeff * *");
@@ -555,8 +553,8 @@ TEST_F(AtomStyleTest, atomic)
     ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
     ASSERT_EQ(lmp->atom->ntypes, 2);
 
-    auto x   = lmp->atom->x;
-    auto v   = lmp->atom->v;
+    auto *x = lmp->atom->x;
+    auto *v = lmp->atom->v;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][2], 0.1, EPSILON);
@@ -587,7 +585,7 @@ TEST_F(AtomStyleTest, atomic)
     ASSERT_EQ(lmp->atom->mass_setflag[1], 1);
     ASSERT_EQ(lmp->atom->mass_setflag[2], 1);
     ASSERT_EQ(lmp->atom->map_style, Atom::MAP_ARRAY);
-    ASSERT_EQ(lmp->atom->map_user, 1);
+    ASSERT_EQ(lmp->atom->map_user, Atom::MAP_ARRAY);
     ASSERT_EQ(lmp->atom->map_tag_max, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
 
@@ -597,6 +595,7 @@ TEST_F(AtomStyleTest, atomic)
     command("delete_atoms group two compress no");
     command("write_restart test_atom_styles.restart");
     command("clear");
+    command("atom_modify map hash");
     command("read_restart test_atom_styles.restart");
     END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
@@ -629,11 +628,11 @@ TEST_F(AtomStyleTest, atomic)
     EXPECT_NEAR(lmp->atom->mass[2], 2.4, EPSILON);
     ASSERT_EQ(lmp->atom->mass_setflag[1], 1);
     ASSERT_EQ(lmp->atom->mass_setflag[2], 1);
-    ASSERT_EQ(lmp->atom->map_style, Atom::MAP_ARRAY);
-    ASSERT_EQ(lmp->atom->map_user, 1);
+    ASSERT_EQ(lmp->atom->map_style, Atom::MAP_HASH);
+    ASSERT_EQ(lmp->atom->map_user, Atom::MAP_HASH);
     ASSERT_EQ(lmp->atom->map_tag_max, 3);
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->map_tag_max, 2);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -643,7 +642,7 @@ TEST_F(AtomStyleTest, atomic)
     command("replicate 2 2 2");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->map_tag_max, 16);
-    x   = lmp->atom->x;
+    x = lmp->atom->x;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][2], 0.1, EPSILON);
@@ -692,6 +691,112 @@ TEST_F(AtomStyleTest, atomic)
     EXPECT_NEAR(x[GETIDX(16)][0], 10.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(16)][1], 10.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(16)][2], 7.9, EPSILON);
+}
+
+TEST_F(AtomStyleTest, no_tags)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("atom_modify id no");
+    command("create_box 2 box");
+    command("create_atoms 1 single -2.0  2.0  0.1");
+    command("create_atoms 1 single -2.0 -2.0 -0.1");
+    command("create_atoms 2 single  2.0  2.0 -0.1");
+    command("create_atoms 2 single  2.0 -2.0  0.1");
+    command("mass 1 4.0");
+    command("mass 2 2.4");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
+
+    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_NE(lmp->atom->avec, nullptr);
+    ASSERT_EQ(lmp->atom->natoms, 4);
+    ASSERT_EQ(lmp->atom->nlocal, 4);
+    ASSERT_EQ(lmp->atom->nghost, 0);
+    ASSERT_NE(lmp->atom->nmax, -1);
+    ASSERT_EQ(lmp->atom->tag_enable, 0);
+    ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
+    ASSERT_EQ(lmp->atom->ntypes, 2);
+
+    ASSERT_NE(lmp->atom->mass, nullptr);
+    ASSERT_NE(lmp->atom->mass_setflag, nullptr);
+    ASSERT_EQ(lmp->atom->sametag, nullptr);
+    ASSERT_EQ(lmp->atom->map_style, Atom::MAP_NONE);
+    ASSERT_EQ(lmp->atom->map_user, Atom::MAP_NONE);
+    ASSERT_EQ(lmp->atom->map_tag_max, -1);
+    ASSERT_EQ(lmp->atom->tag_consecutive(), 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff * *");
+    command("write_data test_atom_styles.data nocoeff");
+    command("clear");
+    command("atom_style atomic");
+    command("pair_style zero 4.0");
+    command("atom_modify id no");
+    command("units real");
+    command("read_data test_atom_styles.data");
+    END_HIDE_OUTPUT();
+    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_NE(lmp->atom->avec, nullptr);
+    ASSERT_EQ(lmp->atom->natoms, 4);
+    ASSERT_EQ(lmp->atom->nlocal, 4);
+    ASSERT_EQ(lmp->atom->nghost, 0);
+    ASSERT_NE(lmp->atom->nmax, -1);
+    ASSERT_EQ(lmp->atom->tag_enable, 0);
+    ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
+    ASSERT_EQ(lmp->atom->ntypes, 2);
+
+    ASSERT_NEAR(lmp->atom->mass[1], 4.0, EPSILON);
+    ASSERT_NEAR(lmp->atom->mass[2], 2.4, EPSILON);
+    ASSERT_EQ(lmp->atom->mass_setflag[1], 1);
+    ASSERT_EQ(lmp->atom->mass_setflag[2], 1);
+    ASSERT_EQ(lmp->atom->map_style, Atom::MAP_NONE);
+    ASSERT_EQ(lmp->atom->map_user, Atom::MAP_NONE);
+    ASSERT_EQ(lmp->atom->map_tag_max, -1);
+    ASSERT_EQ(lmp->atom->tag_consecutive(), 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff * *");
+    command("write_restart test_atom_styles.restart");
+    command("clear");
+    command("read_restart test_atom_styles.restart");
+    END_HIDE_OUTPUT();
+    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_NE(lmp->atom->avec, nullptr);
+    ASSERT_EQ(lmp->atom->natoms, 4);
+    ASSERT_EQ(lmp->atom->nlocal, 4);
+    ASSERT_EQ(lmp->atom->nghost, 0);
+    ASSERT_NE(lmp->atom->nmax, -1);
+    ASSERT_EQ(lmp->atom->tag_enable, 0);
+    ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
+    ASSERT_EQ(lmp->atom->ntypes, 2);
+    ASSERT_EQ(lmp->atom->tag_consecutive(), 0);
+
+    ASSERT_NEAR(lmp->atom->mass[1], 4.0, EPSILON);
+    ASSERT_NEAR(lmp->atom->mass[2], 2.4, EPSILON);
+    ASSERT_EQ(lmp->atom->mass_setflag[1], 1);
+    ASSERT_EQ(lmp->atom->mass_setflag[2], 1);
+    ASSERT_EQ(lmp->atom->map_style, Atom::MAP_NONE);
+    ASSERT_EQ(lmp->atom->map_user, Atom::MAP_NONE);
+    ASSERT_EQ(lmp->atom->map_tag_max, -1);
+
+    BEGIN_HIDE_OUTPUT();
+    command("comm_style tiled");
+    command("change_box all triclinic");
+    command("replicate 2 2 2");
+    END_HIDE_OUTPUT();
+
+    ASSERT_EQ(lmp->atom->natoms, 32);
+    ASSERT_EQ(lmp->atom->nlocal, 32);
+    ASSERT_EQ(lmp->atom->nghost, 0);
+    ASSERT_NE(lmp->atom->nmax, -1);
+    ASSERT_EQ(lmp->atom->tag_enable, 0);
+    ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
+    ASSERT_EQ(lmp->atom->ntypes, 2);
+    ASSERT_EQ(lmp->atom->tag_consecutive(), 0);
+    ASSERT_EQ(lmp->atom->map_tag_max, -1);
+
+    TEST_FAILURE(".*ERROR: Cannot use reset_atoms id unless atoms have IDs.*",
+                 command("reset_atoms id"););
 }
 
 TEST_F(AtomStyleTest, charge)
@@ -765,9 +870,9 @@ TEST_F(AtomStyleTest, charge)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 4);
 
-    auto x = lmp->atom->x;
-    auto v = lmp->atom->v;
-    auto q = lmp->atom->q;
+    auto *x = lmp->atom->x;
+    auto *v = lmp->atom->v;
+    auto *q = lmp->atom->q;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][2], 0.1, EPSILON);
@@ -847,7 +952,7 @@ TEST_F(AtomStyleTest, charge)
     ASSERT_EQ(lmp->atom->mass_setflag[2], 1);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     command("change_box all triclinic");
     command("replicate 2 2 2 bbox");
     END_HIDE_OUTPUT();
@@ -881,7 +986,6 @@ TEST_F(AtomStyleTest, sphere)
     expected.atom_style  = "sphere";
     expected.molecular   = Atom::ATOMIC;
     expected.tag_enable  = 1;
-    expected.sphere_flag = 1;
     expected.rmass_flag  = 1;
     expected.radius_flag = 1;
     expected.omega_flag  = 1;
@@ -952,10 +1056,10 @@ TEST_F(AtomStyleTest, sphere)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 4);
 
-    auto x     = lmp->atom->x;
-    auto v     = lmp->atom->v;
-    auto rmass = lmp->atom->rmass;
-    auto omega = lmp->atom->omega;
+    auto *x     = lmp->atom->x;
+    auto *v     = lmp->atom->v;
+    auto *rmass = lmp->atom->rmass;
+    auto *omega = lmp->atom->omega;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][2], 0.1, EPSILON);
@@ -1006,7 +1110,7 @@ TEST_F(AtomStyleTest, sphere)
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
     command("read_restart test_atom_styles.restart");
     command("replicate 1 1 2");
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("sphere"));
     ASSERT_NE(lmp->atom->avec, nullptr);
@@ -1139,13 +1243,13 @@ TEST_F(AtomStyleTest, ellipsoid)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 6);
 
-    auto x         = lmp->atom->x;
-    auto v         = lmp->atom->v;
-    auto type      = lmp->atom->type;
-    auto ellipsoid = lmp->atom->ellipsoid;
-    auto rmass     = lmp->atom->rmass;
-    auto avec      = dynamic_cast<AtomVecEllipsoid *>(lmp->atom->avec);
-    auto bonus     = avec->bonus;
+    auto *x         = lmp->atom->x;
+    auto *v         = lmp->atom->v;
+    auto *type      = lmp->atom->type;
+    auto *ellipsoid = lmp->atom->ellipsoid;
+    auto *rmass     = lmp->atom->rmass;
+    auto *avec      = dynamic_cast<AtomVecEllipsoid *>(lmp->atom->avec);
+    auto *bonus     = avec->bonus;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][2], 0.1, EPSILON);
@@ -1312,7 +1416,7 @@ TEST_F(AtomStyleTest, ellipsoid)
     EXPECT_NEAR(bonus[3].quat[3], 0.25056280708573159, EPSILON);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->nellipsoids, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -1390,7 +1494,6 @@ TEST_F(AtomStyleTest, line)
     expected.atom_style    = "line";
     expected.molecular     = Atom::ATOMIC;
     expected.tag_enable    = 1;
-    expected.sphere_flag   = 1;
     expected.molecule_flag = 1;
     expected.line_flag     = 1;
     expected.rmass_flag    = 1;
@@ -1468,13 +1571,13 @@ TEST_F(AtomStyleTest, line)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 6);
 
-    auto x     = lmp->atom->x;
-    auto v     = lmp->atom->v;
-    auto type  = lmp->atom->type;
-    auto line  = lmp->atom->line;
-    auto rmass = lmp->atom->rmass;
-    auto avec  = dynamic_cast<AtomVecLine *>(lmp->atom->avec);
-    auto bonus = avec->bonus;
+    auto *x     = lmp->atom->x;
+    auto *v     = lmp->atom->v;
+    auto *type  = lmp->atom->type;
+    auto *line  = lmp->atom->line;
+    auto *rmass = lmp->atom->rmass;
+    auto *avec  = dynamic_cast<AtomVecLine *>(lmp->atom->avec);
+    auto *bonus = avec->bonus;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][2], 0.0, EPSILON);
@@ -1603,7 +1706,7 @@ TEST_F(AtomStyleTest, line)
     EXPECT_NEAR(bonus[3].theta, MathConst::MY_PI / 6.0, EPSILON);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->nlines, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -1660,7 +1763,6 @@ TEST_F(AtomStyleTest, tri)
     expected.atom_style    = "tri";
     expected.molecular     = Atom::ATOMIC;
     expected.tag_enable    = 1;
-    expected.sphere_flag   = 1;
     expected.molecule_flag = 1;
     expected.tri_flag      = 1;
     expected.rmass_flag    = 1;
@@ -1751,14 +1853,14 @@ TEST_F(AtomStyleTest, tri)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 6);
 
-    auto x      = lmp->atom->x;
-    auto v      = lmp->atom->v;
-    auto type   = lmp->atom->type;
-    auto tri    = lmp->atom->tri;
-    auto rmass  = lmp->atom->rmass;
-    auto radius = lmp->atom->radius;
-    auto avec   = dynamic_cast<AtomVecTri *>(lmp->atom->avec);
-    auto bonus  = avec->bonus;
+    auto *x      = lmp->atom->x;
+    auto *v      = lmp->atom->v;
+    auto *type   = lmp->atom->type;
+    auto *tri    = lmp->atom->tri;
+    auto *rmass  = lmp->atom->rmass;
+    auto *radius = lmp->atom->radius;
+    auto *avec   = dynamic_cast<AtomVecTri *>(lmp->atom->avec);
+    auto *bonus  = avec->bonus;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][2], 0.1, EPSILON);
@@ -2012,7 +2114,7 @@ TEST_F(AtomStyleTest, tri)
     EXPECT_NEAR(bonus[3].c3[2], -0.15731490073748589, EPSILON);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->ntris, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -2078,7 +2180,7 @@ TEST_F(AtomStyleTest, body_nparticle)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    auto avec = dynamic_cast<AtomVecBody *>(lmp->atom->avec);
+    auto *avec = dynamic_cast<AtomVecBody *>(lmp->atom->avec);
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_NE(avec->bptr, nullptr);
     ASSERT_THAT(std::string(avec->bptr->style), Eq("nparticle"));
@@ -2163,14 +2265,14 @@ TEST_F(AtomStyleTest, body_nparticle)
     ASSERT_NE(lmp->atom->radius, nullptr);
     ASSERT_EQ(lmp->atom->mass_setflag, nullptr);
 
-    auto x      = lmp->atom->x;
-    auto v      = lmp->atom->v;
-    auto type   = lmp->atom->type;
-    auto body   = lmp->atom->body;
-    auto rmass  = lmp->atom->rmass;
-    auto radius = lmp->atom->radius;
-    auto angmom = lmp->atom->angmom;
-    auto bonus  = avec->bonus;
+    auto *x      = lmp->atom->x;
+    auto *v      = lmp->atom->v;
+    auto *type   = lmp->atom->type;
+    auto *body   = lmp->atom->body;
+    auto *rmass  = lmp->atom->rmass;
+    auto *radius = lmp->atom->radius;
+    auto *angmom = lmp->atom->angmom;
+    auto *bonus  = avec->bonus;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][2], 0.1, EPSILON);
@@ -2587,7 +2689,7 @@ TEST_F(AtomStyleTest, body_nparticle)
     ASSERT_NE(bonus[3].dvalue, nullptr);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->nbodies, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -2730,9 +2832,9 @@ TEST_F(AtomStyleTest, template)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 12);
 
-    auto molecule = lmp->atom->molecule;
-    auto molindex = lmp->atom->molindex;
-    auto molatom  = lmp->atom->molatom;
+    auto *molecule = lmp->atom->molecule;
+    auto *molindex = lmp->atom->molindex;
+    auto *molatom  = lmp->atom->molatom;
 
     ASSERT_EQ(molecule[GETIDX(1)], 1);
     ASSERT_EQ(molecule[GETIDX(2)], 1);
@@ -2831,9 +2933,9 @@ TEST_F(AtomStyleTest, template)
     ASSERT_EQ(molatom[GETIDX(11)], -1);
     ASSERT_EQ(molatom[GETIDX(12)], -1);
 
-    auto x    = lmp->atom->x;
-    auto v    = lmp->atom->v;
-    auto type = lmp->atom->type;
+    auto *x    = lmp->atom->x;
+    auto *v    = lmp->atom->v;
+    auto *type = lmp->atom->type;
 
     EXPECT_NEAR(x[GETIDX(10)][0], 2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(10)][1], -2.0, EPSILON);
@@ -2972,7 +3074,7 @@ TEST_F(AtomStyleTest, template)
     ASSERT_EQ(molatom[GETIDX(24)], -1);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 16);
@@ -3045,7 +3147,7 @@ TEST_F(AtomStyleTest, template_charge)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    auto hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
+    auto *hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_EQ(hybrid->nstyles, 2);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("template"));
@@ -3145,9 +3247,9 @@ TEST_F(AtomStyleTest, template_charge)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 12);
 
-    auto molecule = lmp->atom->molecule;
-    auto molindex = lmp->atom->molindex;
-    auto molatom  = lmp->atom->molatom;
+    auto *molecule = lmp->atom->molecule;
+    auto *molindex = lmp->atom->molindex;
+    auto *molatom  = lmp->atom->molatom;
 
     ASSERT_EQ(molecule[GETIDX(1)], 1);
     ASSERT_EQ(molecule[GETIDX(2)], 1);
@@ -3246,10 +3348,10 @@ TEST_F(AtomStyleTest, template_charge)
     ASSERT_EQ(molatom[GETIDX(11)], -1);
     ASSERT_EQ(molatom[GETIDX(12)], -1);
 
-    auto x    = lmp->atom->x;
-    auto v    = lmp->atom->v;
-    auto type = lmp->atom->type;
-    auto q    = lmp->atom->q;
+    auto *x    = lmp->atom->x;
+    auto *v    = lmp->atom->v;
+    auto *type = lmp->atom->type;
+    auto *q    = lmp->atom->q;
 
     EXPECT_NEAR(x[GETIDX(10)][0], 2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(10)][1], -2.0, EPSILON);
@@ -3400,7 +3502,7 @@ TEST_F(AtomStyleTest, template_charge)
     ASSERT_EQ(molatom[GETIDX(24)], -1);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 16);
@@ -3553,9 +3655,9 @@ TEST_F(AtomStyleTest, bond)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 6);
 
-    auto num_bond  = lmp->atom->num_bond;
-    auto bond_type = lmp->atom->bond_type;
-    auto bond_atom = lmp->atom->bond_atom;
+    auto *num_bond  = lmp->atom->num_bond;
+    auto *bond_type = lmp->atom->bond_type;
+    auto *bond_atom = lmp->atom->bond_atom;
 
     ASSERT_EQ(num_bond[GETIDX(1)], 2);
     ASSERT_EQ(num_bond[GETIDX(2)], 0);
@@ -3612,12 +3714,12 @@ TEST_F(AtomStyleTest, bond)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 6);
 
-    auto x    = lmp->atom->x;
-    auto v    = lmp->atom->v;
-    auto type = lmp->atom->type;
-    num_bond  = lmp->atom->num_bond;
-    bond_type = lmp->atom->bond_type;
-    bond_atom = lmp->atom->bond_atom;
+    auto *x    = lmp->atom->x;
+    auto *v    = lmp->atom->v;
+    auto *type = lmp->atom->type;
+    num_bond   = lmp->atom->num_bond;
+    bond_type  = lmp->atom->bond_type;
+    bond_atom  = lmp->atom->bond_atom;
 
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
@@ -3746,7 +3848,7 @@ TEST_F(AtomStyleTest, bond)
 
     BEGIN_HIDE_OUTPUT();
     command("delete_bonds all bond 2");
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 8);
@@ -3911,14 +4013,14 @@ TEST_F(AtomStyleTest, angle)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 6);
 
-    auto num_bond    = lmp->atom->num_bond;
-    auto bond_type   = lmp->atom->bond_type;
-    auto bond_atom   = lmp->atom->bond_atom;
-    auto num_angle   = lmp->atom->num_angle;
-    auto angle_type  = lmp->atom->angle_type;
-    auto angle_atom1 = lmp->atom->angle_atom1;
-    auto angle_atom2 = lmp->atom->angle_atom2;
-    auto angle_atom3 = lmp->atom->angle_atom3;
+    auto *num_bond    = lmp->atom->num_bond;
+    auto *bond_type   = lmp->atom->bond_type;
+    auto *bond_atom   = lmp->atom->bond_atom;
+    auto *num_angle   = lmp->atom->num_angle;
+    auto *angle_type  = lmp->atom->angle_type;
+    auto *angle_atom1 = lmp->atom->angle_atom1;
+    auto *angle_atom2 = lmp->atom->angle_atom2;
+    auto *angle_atom3 = lmp->atom->angle_atom3;
 
     ASSERT_EQ(num_bond[GETIDX(1)], 2);
     ASSERT_EQ(num_bond[GETIDX(2)], 0);
@@ -4005,9 +4107,9 @@ TEST_F(AtomStyleTest, angle)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 6);
 
-    auto x     = lmp->atom->x;
-    auto v     = lmp->atom->v;
-    auto type  = lmp->atom->type;
+    auto *x    = lmp->atom->x;
+    auto *v    = lmp->atom->v;
+    auto *type = lmp->atom->type;
     num_bond   = lmp->atom->num_bond;
     bond_atom  = lmp->atom->bond_atom;
     num_angle  = lmp->atom->num_angle;
@@ -4123,7 +4225,7 @@ TEST_F(AtomStyleTest, angle)
 
     BEGIN_HIDE_OUTPUT();
     command("delete_bonds all angle 2");
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 8);
@@ -4186,7 +4288,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    auto hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
+    auto *hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_EQ(hybrid->nstyles, 2);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("full"));
@@ -4296,15 +4398,15 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 6);
 
-    auto x         = lmp->atom->x;
-    auto v         = lmp->atom->v;
-    auto q         = lmp->atom->q;
-    auto type      = lmp->atom->type;
-    auto ellipsoid = lmp->atom->ellipsoid;
-    auto rmass     = lmp->atom->rmass;
+    auto *x         = lmp->atom->x;
+    auto *v         = lmp->atom->v;
+    auto *q         = lmp->atom->q;
+    auto *type      = lmp->atom->type;
+    auto *ellipsoid = lmp->atom->ellipsoid;
+    auto *rmass     = lmp->atom->rmass;
 
-    auto avec  = dynamic_cast<AtomVecEllipsoid *>(hybrid->styles[1]);
-    auto bonus = avec->bonus;
+    auto *avec  = dynamic_cast<AtomVecEllipsoid *>(hybrid->styles[1]);
+    auto *bonus = avec->bonus;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][2], 0.1, EPSILON);
@@ -4483,7 +4585,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     EXPECT_NEAR(bonus[3].quat[3], 0.25056280708573159, EPSILON);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->nellipsoids, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -4561,8 +4663,8 @@ TEST_F(AtomStyleTest, property_atom)
     expected.atom_style         = "atomic";
     expected.molecular          = Atom::ATOMIC;
     expected.tag_enable         = 1;
-    expected.map_style          = 1;
-    expected.map_user           = 1;
+    expected.map_style          = Atom::MAP_ARRAY;
+    expected.map_user           = Atom::MAP_ARRAY;
     expected.has_type           = true;
     expected.has_image          = true;
     expected.has_mask           = true;
@@ -4663,12 +4765,12 @@ TEST_F(AtomStyleTest, property_atom)
     ASSERT_NE(lmp->atom->sametag, nullptr);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_style, Atom::MAP_ARRAY);
-    ASSERT_EQ(lmp->atom->map_user, 1);
+    ASSERT_EQ(lmp->atom->map_user, Atom::MAP_ARRAY);
     ASSERT_EQ(lmp->atom->map_tag_max, 4);
 
-    auto x = lmp->atom->x;
-    auto v = lmp->atom->v;
-    auto q = lmp->atom->q;
+    auto *x = lmp->atom->x;
+    auto *v = lmp->atom->v;
+    auto *q = lmp->atom->q;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][2], 0.1, EPSILON);
@@ -4703,10 +4805,10 @@ TEST_F(AtomStyleTest, property_atom)
     ASSERT_EQ(lmp->atom->mass_setflag[1], 1);
     ASSERT_EQ(lmp->atom->mass_setflag[2], 1);
 
-    auto rmass = lmp->atom->rmass;
-    auto one   = lmp->atom->ivector[0];
-    auto two   = lmp->atom->dvector[0];
-    auto three = lmp->atom->dvector[1];
+    auto *rmass = lmp->atom->rmass;
+    auto *one   = lmp->atom->ivector[0];
+    auto *two   = lmp->atom->dvector[0];
+    auto *three = lmp->atom->dvector[1];
 
     EXPECT_NEAR(rmass[GETIDX(1)], 4.0, EPSILON);
     EXPECT_NEAR(rmass[GETIDX(2)], 4.0, EPSILON);
@@ -4751,6 +4853,7 @@ TEST_F(AtomStyleTest, property_atom)
     expected.has_ianame       = true;
     expected.has_daname       = true;
     expected.nextra_store     = 12;
+    expected.map_user         = Atom::MAP_NONE;
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
     ASSERT_NE(lmp->atom->avec, nullptr);
@@ -4778,7 +4881,7 @@ TEST_F(AtomStyleTest, property_atom)
     EXPECT_NEAR(three[GETIDX(3)], 0.5, EPSILON);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     command("change_box all triclinic");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->map_tag_max, 2);
@@ -4836,7 +4939,7 @@ TEST_F(AtomStyleTest, oxdna)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    auto hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
+    auto *hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_EQ(hybrid->nstyles, 3);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("bond"));
@@ -5049,14 +5152,14 @@ TEST_F(AtomStyleTest, oxdna)
     ASSERT_NE(lmp->atom->mass_setflag, nullptr);
     ASSERT_NE(lmp->atom->id5p, nullptr);
 
-    auto x         = lmp->atom->x;
-    auto v         = lmp->atom->v;
-    auto type      = lmp->atom->type;
-    auto ellipsoid = lmp->atom->ellipsoid;
-    auto rmass     = lmp->atom->rmass;
+    auto *x         = lmp->atom->x;
+    auto *v         = lmp->atom->v;
+    auto *type      = lmp->atom->type;
+    auto *ellipsoid = lmp->atom->ellipsoid;
+    auto *rmass     = lmp->atom->rmass;
 
-    auto avec  = dynamic_cast<AtomVecEllipsoid *>(hybrid->styles[1]);
-    auto bonus = avec->bonus;
+    auto *avec  = dynamic_cast<AtomVecEllipsoid *>(hybrid->styles[1]);
+    auto *bonus = avec->bonus;
 
     EXPECT_NEAR(x[GETIDX(1)][0], -0.33741452300167507, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], -0.43708835412476305, EPSILON);
@@ -5225,10 +5328,10 @@ TEST_F(AtomStyleTest, oxdna)
     EXPECT_NEAR(bonus[9].quat[2], 0.9849325709665359, EPSILON);
     EXPECT_NEAR(bonus[9].quat[3], -0.0516705065113425, EPSILON);
 
-    auto num_bond  = lmp->atom->num_bond;
-    auto bond_type = lmp->atom->bond_type;
-    auto bond_atom = lmp->atom->bond_atom;
-    auto id5p      = lmp->atom->id5p;
+    auto *num_bond  = lmp->atom->num_bond;
+    auto *bond_type = lmp->atom->bond_type;
+    auto *bond_atom = lmp->atom->bond_atom;
+    auto *id5p      = lmp->atom->id5p;
 
     ASSERT_EQ(num_bond[GETIDX(1)], 1);
     ASSERT_EQ(num_bond[GETIDX(2)], 1);

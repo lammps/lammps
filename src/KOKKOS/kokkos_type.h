@@ -28,11 +28,6 @@ constexpr int FULL = 1;
 constexpr int HALFTHREAD = 2;
 constexpr int HALF = 4;
 
-#if defined(KOKKOS_ENABLE_CXX11)
-#undef ISFINITE
-#define ISFINITE(x) std::isfinite(x)
-#endif
-
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
 #define LMP_KOKKOS_GPU
 #endif
@@ -45,6 +40,16 @@ constexpr int HALF = 4;
 
 #define MAX_TYPES_STACKPARAMS 12
 static constexpr LAMMPS_NS::bigint LMP_KOKKOS_AV_DELTA = 10;
+
+namespace LAMMPS_NS {
+  union d_ubuf {
+    double d;
+    int64_t i;
+    KOKKOS_INLINE_FUNCTION d_ubuf(double arg) : d(arg) {}
+    KOKKOS_INLINE_FUNCTION d_ubuf(int64_t arg) : i(arg) {}
+    KOKKOS_INLINE_FUNCTION d_ubuf(int arg) : i(arg) {}
+  };
+}
 
 namespace Kokkos {
   static auto NoInit = [](std::string const& label) {
@@ -148,12 +153,13 @@ typedef Kokkos::DefaultExecutionSpace LMPDeviceType;
 typedef Kokkos::HostSpace::execution_space LMPHostType;
 
 
-// Need to use Cuda UVM memory space for Host execution space
+// If unified memory, need to use device memory space for host execution space
 
 template<class DeviceType>
 class KKDevice {
-public:
-#if defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_CUDA_UVM)
+ public:
+#if ((defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_CUDA_UVM)) || \
+     (defined(KOKKOS_ENABLE_HIP) && defined(KOKKOS_ARCH_AMD_GFX942_APU)))
   typedef Kokkos::Device<DeviceType,LMPDeviceType::memory_space> value;
 #else
   typedef Kokkos::Device<DeviceType,typename DeviceType::memory_space> value;
@@ -170,7 +176,7 @@ template<typename DataType, typename Layout, typename Device, typename... Args>
 using KKScatterView = Kokkos::Experimental::ScatterView<DataType, Layout, Device, Args...>;
 
 
-// set ExecutionSpace stuct with variable "space"
+// set ExecutionSpace struct with variable "space"
 
 template<class Device>
 struct ExecutionSpaceFromDevice;
@@ -187,7 +193,7 @@ struct ExecutionSpaceFromDevice<Kokkos::Cuda> {
 };
 #elif defined(KOKKOS_ENABLE_HIP)
 template<>
-struct ExecutionSpaceFromDevice<Kokkos::Experimental::HIP> {
+struct ExecutionSpaceFromDevice<Kokkos::HIP> {
   static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
 };
 #elif defined(KOKKOS_ENABLE_SYCL)
@@ -206,7 +212,7 @@ struct ExecutionSpaceFromDevice<Kokkos::Experimental::OpenMPTarget> {
 #if defined(KOKKOS_ENABLE_CUDA)
 typedef Kokkos::CudaHostPinnedSpace LMPPinnedHostType;
 #elif defined(KOKKOS_ENABLE_HIP)
-typedef Kokkos::Experimental::HIPHostPinnedSpace LMPPinnedHostType;
+typedef Kokkos::HIPHostPinnedSpace LMPPinnedHostType;
 #elif defined(KOKKOS_ENABLE_SYCL)
 typedef Kokkos::Experimental::SYCLHostUSMSpace LMPPinnedHostType;
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
@@ -220,7 +226,7 @@ typedef LMPHostType LMPPinnedHostType;
 #if defined(KOKKOS_ENABLE_CUDA)
 typedef Kokkos::Cuda LMPDeviceSpace;
 #elif defined(KOKKOS_ENABLE_HIP)
-typedef Kokkos::Experimental::HIP LMPDeviceSpace;
+typedef Kokkos::HIP LMPDeviceSpace;
 #elif defined(KOKKOS_ENABLE_SYCL)
 typedef Kokkos::Experimental::SYCL LMPDeviceSpace;
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
@@ -258,7 +264,7 @@ struct AtomicDup<HALFTHREAD,Kokkos::Cuda> {
 };
 #elif defined(KOKKOS_ENABLE_HIP)
 template<>
-struct AtomicDup<HALFTHREAD,Kokkos::Experimental::HIP> {
+struct AtomicDup<HALFTHREAD,Kokkos::HIP> {
   using value = Kokkos::Experimental::ScatterAtomic;
 };
 #elif defined(KOKKOS_ENABLE_SYCL)
@@ -345,17 +351,17 @@ public:
 // define precision
 // handle global precision, force, energy, positions, kspace separately
 
-#ifndef PRECISION
-#define PRECISION 2
+#ifndef LMP_PRECISION
+#define LMP_PRECISION 2
 #endif
-#if PRECISION==1
+#if LMP_PRECISION==1
 typedef float LMP_FLOAT;
 #else
 typedef double LMP_FLOAT;
 #endif
 
 #ifndef PREC_FORCE
-#define PREC_FORCE PRECISION
+#define PREC_FORCE LMP_PRECISION
 #endif
 
 #if PREC_FORCE==1
@@ -365,7 +371,7 @@ typedef double F_FLOAT;
 #endif
 
 #ifndef PREC_ENERGY
-#define PREC_ENERGY PRECISION
+#define PREC_ENERGY LMP_PRECISION
 #endif
 
 #if PREC_ENERGY==1
@@ -459,13 +465,6 @@ struct alignas(2*sizeof(F_FLOAT)) s_FLOAT2 {
   }
 
   KOKKOS_INLINE_FUNCTION
-  s_FLOAT2(const s_FLOAT2 & rhs) {
-    for (int i = 0; i < 2; i++){
-      v[i] = rhs.v[i];
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void operator+=(const s_FLOAT2 &rhs) {
     v[0] += rhs.v[0];
     v[1] += rhs.v[1];
@@ -532,7 +531,7 @@ struct BinOp3DLAMMPS {
 };
 
 #ifndef PREC_POS
-#define PREC_POS PRECISION
+#define PREC_POS LMP_PRECISION
 #endif
 
 #if PREC_POS==1
@@ -542,7 +541,7 @@ typedef double X_FLOAT;
 #endif
 
 #ifndef PREC_VELOCITIES
-#define PREC_VELOCITIES PRECISION
+#define PREC_VELOCITIES LMP_PRECISION
 #endif
 
 #if PREC_VELOCITIES==1
@@ -586,18 +585,18 @@ struct dual_hash_type {
  }
 
   template<class DeviceType>
-  std::enable_if_t<(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),hash_type&> view() {return d_view;}
+  std::enable_if_t<(std::is_same_v<DeviceType,LMPDeviceType> || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),hash_type&> view() {return d_view;}
 
   template<class DeviceType>
-  std::enable_if_t<!(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),host_hash_type&> view() {return h_view;}
-
-  template<class DeviceType>
-  KOKKOS_INLINE_FUNCTION
-  std::enable_if_t<(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),const hash_type&> const_view() const {return d_view;}
+  std::enable_if_t<!(std::is_same_v<DeviceType,LMPDeviceType> || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),host_hash_type&> view() {return h_view;}
 
   template<class DeviceType>
   KOKKOS_INLINE_FUNCTION
-  std::enable_if_t<!(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),const host_hash_type&> const_view() const {return h_view;}
+  std::enable_if_t<(std::is_same_v<DeviceType,LMPDeviceType> || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),const hash_type&> const_view() const {return d_view;}
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  std::enable_if_t<!(std::is_same_v<DeviceType,LMPDeviceType> || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),const host_hash_type&> const_view() const {return h_view;}
 
   void modify_device()
   {
@@ -653,6 +652,14 @@ typedef tdual_int_scalar::t_dev_um t_int_scalar_um;
 typedef tdual_int_scalar::t_dev_const_um t_int_scalar_const_um;
 
 typedef Kokkos::
+  DualView<LAMMPS_NS::bigint, LMPDeviceType::array_layout, LMPDeviceType> tdual_bigint_scalar;
+typedef tdual_bigint_scalar::t_dev t_bigint_scalar;
+typedef tdual_bigint_scalar::t_dev_const t_bigint_scalar_const;
+typedef tdual_bigint_scalar::t_dev_um t_bigint_scalar_um;
+typedef tdual_bigint_scalar::t_dev_const_um t_bigint_scalar_const_um;
+typedef tdual_bigint_scalar::t_dev_const_randomread t_bigint_scalar_randomread;
+
+typedef Kokkos::
   DualView<LAMMPS_NS::tagint, LMPDeviceType::array_layout, LMPDeviceType> tdual_tagint_scalar;
 typedef tdual_tagint_scalar::t_dev t_tagint_scalar;
 typedef tdual_tagint_scalar::t_dev_const t_tagint_scalar_const;
@@ -678,6 +685,14 @@ typedef tdual_int_1d::t_dev_const_um t_int_1d_const_um;
 typedef tdual_int_1d::t_dev_const_randomread t_int_1d_randomread;
 
 typedef Kokkos::
+  DualView<LAMMPS_NS::bigint*, LMPDeviceType::array_layout, LMPDeviceType> tdual_bigint_1d;
+typedef tdual_bigint_1d::t_dev t_bigint_1d;
+typedef tdual_bigint_1d::t_dev_const t_bigint_1d_const;
+typedef tdual_bigint_1d::t_dev_um t_bigint_1d_um;
+typedef tdual_bigint_1d::t_dev_const_um t_bigint_1d_const_um;
+typedef tdual_bigint_1d::t_dev_const_randomread t_bigint_1d_randomread;
+
+typedef Kokkos::
   DualView<int*[3], Kokkos::LayoutRight, LMPDeviceType> tdual_int_1d_3;
 typedef tdual_int_1d_3::t_dev t_int_1d_3;
 typedef tdual_int_1d_3::t_dev_const t_int_1d_3_const;
@@ -700,6 +715,14 @@ typedef tdual_int_2d_dl::t_dev_const t_int_2d_const_dl;
 typedef tdual_int_2d_dl::t_dev_um t_int_2d_um_dl;
 typedef tdual_int_2d_dl::t_dev_const_um t_int_2d_const_um_dl;
 typedef tdual_int_2d_dl::t_dev_const_randomread t_int_2d_randomread_dl;
+
+typedef Kokkos::
+  DualView<int***, Kokkos::LayoutRight, LMPDeviceType> tdual_int_3d;
+typedef tdual_int_3d::t_dev t_int_3d;
+typedef tdual_int_3d::t_dev_const t_int_3d_const;
+typedef tdual_int_3d::t_dev_um t_int_3d_um;
+typedef tdual_int_3d::t_dev_const_um t_int_3d_const_um;
+typedef tdual_int_3d::t_dev_const_randomread t_int_3d_randomread;
 
 typedef Kokkos::
   DualView<LAMMPS_NS::tagint*, LMPDeviceType::array_layout, LMPDeviceType>
@@ -768,6 +791,14 @@ typedef tdual_float_3d::t_dev_const t_float_3d_const;
 typedef tdual_float_3d::t_dev_um t_float_3d_um;
 typedef tdual_float_3d::t_dev_const_um t_float_3d_const_um;
 typedef tdual_float_3d::t_dev_const_randomread t_float_3d_randomread;
+
+//4d float array n
+typedef Kokkos::DualView<LMP_FLOAT****, Kokkos::LayoutRight, LMPDeviceType> tdual_float_4d;
+typedef tdual_float_4d::t_dev t_float_4d;
+typedef tdual_float_4d::t_dev_const t_float_4d_const;
+typedef tdual_float_4d::t_dev_um t_float_4d_um;
+typedef tdual_float_4d::t_dev_const_um t_float_4d_const_um;
+typedef tdual_float_4d::t_dev_const_randomread t_float_4d_randomread;
 
 #ifdef LMP_KOKKOS_NO_LEGACY
 typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutLeft, LMPDeviceType> tdual_float_1d_4;
@@ -977,6 +1008,12 @@ typedef tdual_int_scalar::t_host_const t_int_scalar_const;
 typedef tdual_int_scalar::t_host_um t_int_scalar_um;
 typedef tdual_int_scalar::t_host_const_um t_int_scalar_const_um;
 
+typedef Kokkos::DualView<LAMMPS_NS::bigint, LMPDeviceType::array_layout, LMPDeviceType> tdual_bigint_scalar;
+typedef tdual_bigint_scalar::t_host t_bigint_scalar;
+typedef tdual_bigint_scalar::t_host_const t_bigint_scalar_const;
+typedef tdual_bigint_scalar::t_host_um t_bigint_scalar_um;
+typedef tdual_bigint_scalar::t_host_const_um t_bigint_scalar_const_um;
+
 typedef Kokkos::DualView<LAMMPS_NS::tagint, LMPDeviceType::array_layout, LMPDeviceType> tdual_tagint_scalar;
 typedef tdual_tagint_scalar::t_host t_tagint_scalar;
 typedef tdual_tagint_scalar::t_host_const t_tagint_scalar_const;
@@ -996,6 +1033,13 @@ typedef tdual_int_1d::t_host_const t_int_1d_const;
 typedef tdual_int_1d::t_host_um t_int_1d_um;
 typedef tdual_int_1d::t_host_const_um t_int_1d_const_um;
 typedef tdual_int_1d::t_host_const_randomread t_int_1d_randomread;
+
+typedef Kokkos::DualView<LAMMPS_NS::bigint*, LMPDeviceType::array_layout, LMPDeviceType> tdual_bigint_1d;
+typedef tdual_bigint_1d::t_host t_bigint_1d;
+typedef tdual_bigint_1d::t_host_const t_bigint_1d_const;
+typedef tdual_bigint_1d::t_host_um t_bigint_1d_um;
+typedef tdual_bigint_1d::t_host_const_um t_bigint_1d_const_um;
+typedef tdual_bigint_1d::t_host_const_randomread t_bigint_1d_randomread;
 
 typedef Kokkos::DualView<int*[3], Kokkos::LayoutRight, LMPDeviceType> tdual_int_1d_3;
 typedef tdual_int_1d_3::t_host t_int_1d_3;
@@ -1017,6 +1061,13 @@ typedef tdual_int_2d_dl::t_host_const t_int_2d_const_dl;
 typedef tdual_int_2d_dl::t_host_um t_int_2d_um_dl;
 typedef tdual_int_2d_dl::t_host_const_um t_int_2d_const_um_dl;
 typedef tdual_int_2d_dl::t_host_const_randomread t_int_2d_randomread_dl;
+
+typedef Kokkos::DualView<int***, Kokkos::LayoutRight, LMPDeviceType> tdual_int_3d;
+typedef tdual_int_3d::t_host t_int_3d;
+typedef tdual_int_3d::t_host_const t_int_3d_const;
+typedef tdual_int_3d::t_host_um t_int_3d_um;
+typedef tdual_int_3d::t_host_const_um t_int_3d_const_um;
+typedef tdual_int_3d::t_host_const_randomread t_int_3d_randomread;
 
 typedef Kokkos::DualView<LAMMPS_NS::tagint*, LMPDeviceType::array_layout, LMPDeviceType> tdual_tagint_1d;
 typedef tdual_tagint_1d::t_host t_tagint_1d;
@@ -1074,6 +1125,22 @@ typedef tdual_float_2d::t_host_const t_float_2d_const;
 typedef tdual_float_2d::t_host_um t_float_2d_um;
 typedef tdual_float_2d::t_host_const_um t_float_2d_const_um;
 typedef tdual_float_2d::t_host_const_randomread t_float_2d_randomread;
+
+//3d float array n
+typedef Kokkos::DualView<LMP_FLOAT***, Kokkos::LayoutRight, LMPDeviceType> tdual_float_3d;
+typedef tdual_float_3d::t_host t_float_3d;
+typedef tdual_float_3d::t_host_const t_float_3d_const;
+typedef tdual_float_3d::t_host_um t_float_3d_um;
+typedef tdual_float_3d::t_host_const_um t_float_3d_const_um;
+typedef tdual_float_3d::t_host_const_randomread t_float_3d_randomread;
+
+//4d float array n
+typedef Kokkos::DualView<LMP_FLOAT****, Kokkos::LayoutRight, LMPDeviceType> tdual_float_4d;
+typedef tdual_float_4d::t_host t_float_4d;
+typedef tdual_float_4d::t_host_const t_float_4d_const;
+typedef tdual_float_4d::t_host_um t_float_4d_um;
+typedef tdual_float_4d::t_host_const_um t_float_4d_const_um;
+typedef tdual_float_4d::t_host_const_randomread t_float_4d_randomread;
 
 #ifdef LMP_KOKKOS_NO_LEGACY
 typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutLeft, LMPDeviceType> tdual_float_1d_4;
@@ -1404,6 +1471,7 @@ typedef SNAComplex<SNAreal> SNAcomplex;
 #endif
 
 #define LAMMPS_LAMBDA KOKKOS_LAMBDA
+#define LAMMPS_CLASS_LAMBDA KOKKOS_CLASS_LAMBDA
 
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
 #define LAMMPS_DEVICE_FUNCTION __device__

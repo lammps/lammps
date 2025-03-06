@@ -70,6 +70,9 @@ File and path functions and global constants
 .. doxygenfunction:: is_console
    :project: progguide
 
+.. doxygenfunction:: disk_free
+   :project: progguide
+
 .. doxygenfunction:: path_is_directory
    :project: progguide
 

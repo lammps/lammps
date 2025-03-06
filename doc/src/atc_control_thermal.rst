@@ -6,7 +6,7 @@ fix_modify AtC control thermal command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> control <physics_type> <solution_parameter> <value>
    fix_modify <AtC fixID> control thermal <control_type> <optional_args>

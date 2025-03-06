@@ -6,7 +6,7 @@ fix python/invoke command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID python/invoke N callback function_name
 
@@ -65,6 +65,15 @@ gives access to the LAMMPS state from Python.
    While you can access the state of LAMMPS via library functions
    from these callbacks, trying to execute input script commands will in the best
    case not work or in the worst case result in undefined behavior.
+
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various :doc:`output commands <Howto_output>`.
+No parameter of this fix can be used with the *start/stop* keywords of
+the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""

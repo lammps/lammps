@@ -1,19 +1,5 @@
-.. table_from_list::
-   :columns: 3
-
-   * :doc:`General commands <Commands_all>`
-   * :doc:`Fix styles <Commands_fix>`
-   * :doc:`Compute styles <Commands_compute>`
-   * :doc:`Pair styles <Commands_pair>`
-   * :ref:`Bond styles <bond>`
-   * :ref:`Angle styles <angle>`
-   * :ref:`Dihedral styles <dihedral>`
-   * :ref:`Improper styles <improper>`
-   * :doc:`KSpace styles <Commands_kspace>`
-   * :doc:`Dump styles <Commands_dump>`
-
-Pair_style potentials
-======================
+Pair styles
+===========
 
 All LAMMPS :doc:`pair_style <pair_style>` commands.  Some styles have
 accelerated versions.  This is indicated by additional letters in
@@ -21,17 +7,17 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
-   :columns: 4
+   :columns: 3
 
    * :doc:`none <pair_none>`
    * :doc:`zero <pair_zero>`
-   * :doc:`hybrid (k) <pair_hybrid>`
-   * :doc:`hybrid/overlay (k) <pair_hybrid>`
-   * :doc:`hybrid/scaled <pair_hybrid>`
+   * :doc:`hybrid (ko) <pair_hybrid>`
+   * :doc:`hybrid/molecular (o) <pair_hybrid>`
+   * :doc:`hybrid/overlay (ko) <pair_hybrid>`
+   * :doc:`hybrid/scaled (o) <pair_hybrid>`
    * :doc:`kim <pair_kim>`
    * :doc:`list <pair_list>`
    * :doc:`tracker <pair_tracker>`
-   *
    *
    *
    *
@@ -58,7 +44,7 @@ OPT.
    * :doc:`born/coul/wolf/cs (g) <pair_cs>`
    * :doc:`born/gauss <pair_born_gauss>`
    * :doc:`bpm/spring <pair_bpm_spring>`
-   * :doc:`brownian (o) <pair_brownian>`
+   * :doc:`brownian (ko) <pair_brownian>`
    * :doc:`brownian/poly (o) <pair_brownian>`
    * :doc:`buck (giko) <pair_buck>`
    * :doc:`buck/coul/cut (giko) <pair_buck>`
@@ -73,6 +59,7 @@ OPT.
    * :doc:`comb (o) <pair_comb>`
    * :doc:`comb3 <pair_comb>`
    * :doc:`cosine/squared <pair_cosine_squared>`
+   * :doc:`coul/ctip <pair_coul>`
    * :doc:`coul/cut (gko) <pair_coul>`
    * :doc:`coul/cut/dielectric <pair_dielectric>`
    * :doc:`coul/cut/global (o) <pair_coul>`
@@ -87,16 +74,18 @@ OPT.
    * :doc:`coul/long/soft (o) <pair_fep_soft>`
    * :doc:`coul/msm (o) <pair_coul>`
    * :doc:`coul/slater/cut <pair_coul_slater>`
-   * :doc:`coul/slater/long <pair_coul_slater>`
+   * :doc:`coul/slater/long (g) <pair_coul_slater>`
    * :doc:`coul/shield <pair_coul_shield>`
    * :doc:`coul/streitz <pair_coul>`
    * :doc:`coul/tt <pair_coul_tt>`
    * :doc:`coul/wolf (ko) <pair_coul>`
    * :doc:`coul/wolf/cs <pair_cs>`
+   * :doc:`dispersion/d3 <pair_dispersion_d3>`
    * :doc:`dpd (giko) <pair_dpd>`
-   * :doc:`dpd/fdt <pair_dpd_fdt>`
+   * :doc:`dpd/coul/slater/long (g) <pair_dpd_coul_slater_long>`
    * :doc:`dpd/ext (ko) <pair_dpd_ext>`
    * :doc:`dpd/ext/tstat (ko) <pair_dpd_ext>`
+   * :doc:`dpd/fdt <pair_dpd_fdt>`
    * :doc:`dpd/fdt/energy (k) <pair_dpd_fdt>`
    * :doc:`dpd/tstat (gko) <pair_dpd>`
    * :doc:`dsmc <pair_dsmc>`
@@ -110,7 +99,7 @@ OPT.
    * :doc:`eam/he <pair_eam>`
    * :doc:`edip (o) <pair_edip>`
    * :doc:`edip/multi <pair_edip>`
-   * :doc:`edpd <pair_mesodpd>`
+   * :doc:`edpd (g) <pair_mesodpd>`
    * :doc:`eff/cut <pair_eff>`
    * :doc:`eim (o) <pair_eim>`
    * :doc:`exp6/rx (k) <pair_exp6_rx>`
@@ -126,7 +115,9 @@ OPT.
    * :doc:`gw/zbl <pair_gw>`
    * :doc:`harmonic/cut (o) <pair_harmonic_cut>`
    * :doc:`hbond/dreiding/lj (o) <pair_hbond_dreiding>`
+   * :doc:`hbond/dreiding/lj/angleoffset (o) <pair_hbond_dreiding>`
    * :doc:`hbond/dreiding/morse (o) <pair_hbond_dreiding>`
+   * :doc:`hbond/dreiding/morse/angleoffset (o) <pair_hbond_dreiding>`
    * :doc:`hdnnp <pair_hdnnp>`
    * :doc:`hippo (g) <pair_amoeba>`
    * :doc:`ilp/graphene/hbn (t) <pair_ilp_graphene_hbn>`
@@ -146,7 +137,7 @@ OPT.
    * :doc:`lj/charmm/coul/long/soft (o) <pair_fep_soft>`
    * :doc:`lj/charmm/coul/msm (o) <pair_charmm>`
    * :doc:`lj/charmmfsw/coul/charmmfsh <pair_charmm>`
-   * :doc:`lj/charmmfsw/coul/long <pair_charmm>`
+   * :doc:`lj/charmmfsw/coul/long (k) <pair_charmm>`
    * :doc:`lj/class2 (gko) <pair_class2>`
    * :doc:`lj/class2/coul/cut (ko) <pair_class2>`
    * :doc:`lj/class2/coul/cut/soft <pair_fep_soft>`
@@ -158,14 +149,14 @@ OPT.
    * :doc:`lj/cut (gikot) <pair_lj>`
    * :doc:`lj/cut/coul/cut (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/cut/dielectric (o) <pair_dielectric>`
-   * :doc:`lj/cut/coul/cut/soft (o) <pair_fep_soft>`
+   * :doc:`lj/cut/coul/cut/soft (go) <pair_fep_soft>`
    * :doc:`lj/cut/coul/debye (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/debye/dielectric (o) <pair_dielectric>`
    * :doc:`lj/cut/coul/dsf (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/long (gikot) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/long/cs <pair_cs>`
    * :doc:`lj/cut/coul/long/dielectric (o) <pair_dielectric>`
-   * :doc:`lj/cut/coul/long/soft (o) <pair_fep_soft>`
+   * :doc:`lj/cut/coul/long/soft (go) <pair_fep_soft>`
    * :doc:`lj/cut/coul/msm (go) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/msm/dielectric <pair_dielectric>`
    * :doc:`lj/cut/coul/wolf (o) <pair_lj_cut_coul>`
@@ -190,7 +181,7 @@ OPT.
    * :doc:`lj/mdf <pair_mdf>`
    * :doc:`lj/relres (o) <pair_lj_relres>`
    * :doc:`lj/spica (gko) <pair_spica>`
-   * :doc:`lj/spica/coul/long (go) <pair_spica>`
+   * :doc:`lj/spica/coul/long (gko) <pair_spica>`
    * :doc:`lj/spica/coul/msm (o) <pair_spica>`
    * :doc:`lj/sf/dipole/sf (go) <pair_dipole>`
    * :doc:`lj/smooth (go) <pair_lj_smooth>`
@@ -202,7 +193,7 @@ OPT.
    * :doc:`lubricate/poly (o) <pair_lubricate>`
    * :doc:`lubricateU <pair_lubricateU>`
    * :doc:`lubricateU/poly <pair_lubricateU>`
-   * :doc:`mdpd <pair_mesodpd>`
+   * :doc:`mdpd (g) <pair_mesodpd>`
    * :doc:`mdpd/rhosum <pair_mesodpd>`
    * :doc:`meam (k) <pair_meam>`
    * :doc:`meam/ms (k) <pair_meam>`
@@ -220,7 +211,8 @@ OPT.
    * :doc:`morse/soft <pair_fep_soft>`
    * :doc:`multi/lucy <pair_multi_lucy>`
    * :doc:`multi/lucy/rx (k) <pair_multi_lucy_rx>`
-   * :doc:`nb3b/harmonic <pair_nb3b_harmonic>`
+   * :doc:`nb3b/harmonic <pair_nb3b>`
+   * :doc:`nb3b/screened <pair_nb3b>`
    * :doc:`nm/cut (o) <pair_nm>`
    * :doc:`nm/cut/coul/cut (o) <pair_nm>`
    * :doc:`nm/cut/coul/long (o) <pair_nm>`
@@ -244,7 +236,8 @@ OPT.
    * :doc:`oxrna2/coaxstk <pair_oxrna2>`
    * :doc:`pace (k) <pair_pace>`
    * :doc:`pace/extrapolation (k) <pair_pace>`
-   * :doc:`pod <pair_pod>`
+   * :doc:`pedone (o) <pair_pedone>`
+   * :doc:`pod (k) <pair_pod>`
    * :doc:`peri/eps <pair_peri>`
    * :doc:`peri/lps (o) <pair_peri>`
    * :doc:`peri/pmb (o) <pair_peri>`
@@ -255,7 +248,10 @@ OPT.
    * :doc:`rann <pair_rann>`
    * :doc:`reaxff (ko) <pair_reaxff>`
    * :doc:`rebo (io) <pair_airebo>`
+   * :doc:`rebomos (o) <pair_rebomos>`
    * :doc:`resquared (go) <pair_resquared>`
+   * :doc:`rheo <pair_rheo>`
+   * :doc:`rheo/solid <pair_rheo_solid>`
    * :doc:`saip/metal (t) <pair_saip_metal>`
    * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
    * :doc:`smatb <pair_smatb>`
@@ -265,13 +261,13 @@ OPT.
    * :doc:`smd/tri_surface <pair_smd_triangulated_surface>`
    * :doc:`smd/ulsph <pair_smd_ulsph>`
    * :doc:`smtbq <pair_smtbq>`
-   * :doc:`snap (k) <pair_snap>`
-   * :doc:`soft (go) <pair_soft>`
-   * :doc:`sph/heatconduction <pair_sph_heatconduction>`
+   * :doc:`snap (ik) <pair_snap>`
+   * :doc:`soft (gko) <pair_soft>`
+   * :doc:`sph/heatconduction (g) <pair_sph_heatconduction>`
    * :doc:`sph/idealgas <pair_sph_idealgas>`
-   * :doc:`sph/lj <pair_sph_lj>`
+   * :doc:`sph/lj (g) <pair_sph_lj>`
    * :doc:`sph/rhosum <pair_sph_rhosum>`
-   * :doc:`sph/taitwater <pair_sph_taitwater>`
+   * :doc:`sph/taitwater (g) <pair_sph_taitwater>`
    * :doc:`sph/taitwater/morris <pair_sph_taitwater_morris>`
    * :doc:`spin/dipole/cut <pair_spin_dipole>`
    * :doc:`spin/dipole/long <pair_spin_dipole>`
@@ -300,10 +296,11 @@ OPT.
    * :doc:`tip4p/long/soft (o) <pair_fep_soft>`
    * :doc:`tri/lj <pair_tri_lj>`
    * :doc:`ufm (got) <pair_ufm>`
+   * :doc:`uf3 (k) <pair_uf3>`
    * :doc:`vashishta (gko) <pair_vashishta>`
    * :doc:`vashishta/table (o) <pair_vashishta>`
    * :doc:`wf/cut <pair_wf_cut>`
    * :doc:`ylz <pair_ylz>`
    * :doc:`yukawa (gko) <pair_yukawa>`
-   * :doc:`yukawa/colloid (go) <pair_yukawa_colloid>`
+   * :doc:`yukawa/colloid (gko) <pair_yukawa_colloid>`
    * :doc:`zbl (gko) <pair_zbl>`

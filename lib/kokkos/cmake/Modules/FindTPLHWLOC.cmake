@@ -1,1 +1,1 @@
-KOKKOS_FIND_IMPORTED(HWLOC  HEADER hwloc.h  LIBRARY hwloc)
+kokkos_find_imported(HWLOC HEADER hwloc.h LIBRARY hwloc)

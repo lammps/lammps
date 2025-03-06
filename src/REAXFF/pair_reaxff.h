@@ -25,7 +25,6 @@
 #ifdef PAIR_CLASS
 // clang-format off
 PairStyle(reaxff,PairReaxFF);
-PairStyle(reax/c,PairReaxFF);
 // clang-format on
 #else
 
@@ -54,6 +53,7 @@ class PairReaxFF : public Pair {
   int fixbond_flag, fixspecies_flag;
   int **tmpid;
   double **tmpbo, **tmpr;
+  std::vector<std::string> eletype;
 
   ReaxFF::API *api;
   typedef double rvec[3];

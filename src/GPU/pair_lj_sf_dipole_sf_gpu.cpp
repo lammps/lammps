@@ -178,8 +178,8 @@ void PairLJSFDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
   double qtmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fx, fy, fz;
   double rsq, rinv, r2inv, r6inv, r3inv, r5inv;
   double forcecoulx, forcecouly, forcecoulz, crossx, crossy, crossz;
-  double tixcoul, tiycoul, tizcoul, tjxcoul, tjycoul, tjzcoul;
-  double fq, pdotp, pidotr, pjdotr, pre1, pre2, pre3, pre4;
+  double tixcoul, tiycoul, tizcoul;
+  double fq, pdotp, pidotr, pjdotr, pre1, pre2, pre4;
   double forcelj, factor_coul, factor_lj;
   double presf, afac, bfac, pqfac, qpfac, forceljcut, forceljsf;
   double aforcecoulx, aforcecouly, aforcecoulz;
@@ -233,7 +233,6 @@ void PairLJSFDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
 
         forcecoulx = forcecouly = forcecoulz = 0.0;
         tixcoul = tiycoul = tizcoul = 0.0;
-        tjxcoul = tjycoul = tjzcoul = 0.0;
 
         if (rsq < cut_coulsq[itype][jtype]) {
 
@@ -272,7 +271,6 @@ void PairLJSFDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
             forcecoulz += 3.0 * r5inv * (aforcecoulz + bforcecoulz);
 
             pre2 = 3.0 * bfac * r5inv * pjdotr;
-            pre3 = 3.0 * bfac * r5inv * pidotr;
             pre4 = -bfac * r3inv;
 
             crossx = pre4 * (mu[i][1] * mu[j][2] - mu[i][2] * mu[j][1]);
@@ -282,9 +280,6 @@ void PairLJSFDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
             tixcoul += crossx + pre2 * (mu[i][1] * delz - mu[i][2] * dely);
             tiycoul += crossy + pre2 * (mu[i][2] * delx - mu[i][0] * delz);
             tizcoul += crossz + pre2 * (mu[i][0] * dely - mu[i][1] * delx);
-            tjxcoul += -crossx + pre3 * (mu[j][1] * delz - mu[j][2] * dely);
-            tjycoul += -crossy + pre3 * (mu[j][2] * delx - mu[j][0] * delz);
-            tjzcoul += -crossz + pre3 * (mu[j][0] * dely - mu[j][1] * delx);
           }
 
           if (mu[i][3] > 0.0 && q[j] != 0.0) {
@@ -318,9 +313,6 @@ void PairLJSFDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
             forcecoulx += pre1 * delx - pre2 * mu[j][0];
             forcecouly += pre1 * dely - pre2 * mu[j][1];
             forcecoulz += pre1 * delz - pre2 * mu[j][2];
-            tjxcoul += -pre2 * (mu[j][1] * delz - mu[j][2] * dely);
-            tjycoul += -pre2 * (mu[j][2] * delx - mu[j][0] * delz);
-            tjzcoul += -pre2 * (mu[j][0] * dely - mu[j][1] * delx);
           }
         }
 

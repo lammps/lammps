@@ -6,7 +6,7 @@ fix ffl command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID id-group ffl tau Tstart Tstop seed [flip-type]
 

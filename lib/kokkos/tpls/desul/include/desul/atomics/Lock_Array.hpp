@@ -9,19 +9,27 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #ifndef DESUL_ATOMICS_LOCK_ARRAY_HPP_
 #define DESUL_ATOMICS_LOCK_ARRAY_HPP_
 
-#include "desul/atomics/Compare_Exchange.hpp"
-#include "desul/atomics/Lock_Array_Cuda.hpp"
-#include "desul/atomics/Lock_Array_HIP.hpp"
-#include "desul/atomics/Macros.hpp"
+#include <desul/atomics/Compare_Exchange.hpp>
+#include <desul/atomics/Macros.hpp>
+#ifdef DESUL_HAVE_CUDA_ATOMICS
+#include <desul/atomics/Lock_Array_CUDA.hpp>
+#endif
+#ifdef DESUL_HAVE_HIP_ATOMICS
+#include <desul/atomics/Lock_Array_HIP.hpp>
+#endif
+#ifdef DESUL_HAVE_SYCL_ATOMICS
+#include <desul/atomics/Lock_Array_SYCL.hpp>
+#endif
 
 namespace desul {
 namespace Impl {
-struct host_locks__ {
+
+struct HostLocks {
   static constexpr uint32_t HOST_SPACE_ATOMIC_MASK = 0xFFFF;
   static constexpr uint32_t HOST_SPACE_ATOMIC_XOR_MASK = 0x5A39;
-  template <typename is_always_void = void>
+  template <class is_always_void = void>
   static int32_t* get_host_locks_() {
-    static int32_t HOST_SPACE_ATOMIC_LOCKS_DEVICE[HOST_SPACE_ATOMIC_MASK + 1] = {0};
+    static int32_t HOST_SPACE_ATOMIC_LOCKS_DEVICE[HOST_SPACE_ATOMIC_MASK + 1] = {};
     return HOST_SPACE_ATOMIC_LOCKS_DEVICE;
   }
   static inline int32_t* get_host_lock_(void* ptr) {
@@ -33,7 +41,7 @@ struct host_locks__ {
 inline void init_lock_arrays() {
   static bool is_initialized = false;
   if (!is_initialized) {
-    host_locks__::get_host_locks_();
+    HostLocks::get_host_locks_();
     is_initialized = true;
   }
 
@@ -55,17 +63,29 @@ inline void finalize_lock_arrays() {
   finalize_lock_arrays_hip();
 #endif
 }
-template <typename MemoryScope>
-inline bool lock_address(void* ptr, MemoryScope ms) {
-  return 0 ==
-         atomic_exchange(
-             host_locks__::get_host_lock_(ptr), int32_t(1), MemoryOrderSeqCst(), ms);
+
+inline void ensure_lock_arrays_on_device() {
+#ifdef DESUL_HAVE_CUDA_ATOMICS
+  ensure_cuda_lock_arrays_on_device();
+#endif
+
+#ifdef DESUL_HAVE_HIP_ATOMICS
+  ensure_hip_lock_arrays_on_device();
+#endif
 }
-template <typename MemoryScope>
+
+template <class MemoryScope>
+bool lock_address(void* ptr, MemoryScope ms) {
+  return 0 == atomic_exchange(
+                  HostLocks::get_host_lock_(ptr), int32_t(1), MemoryOrderSeqCst(), ms);
+}
+
+template <class MemoryScope>
 void unlock_address(void* ptr, MemoryScope ms) {
   (void)atomic_exchange(
-      host_locks__::get_host_lock_(ptr), int32_t(0), MemoryOrderSeqCst(), ms);
+      HostLocks::get_host_lock_(ptr), int32_t(0), MemoryOrderSeqCst(), ms);
 }
+
 }  // namespace Impl
 }  // namespace desul
 

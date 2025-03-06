@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -38,17 +37,23 @@ using namespace LAMMPS_NS;
 Dump *Dump::dumpptr;
 #endif
 
-#define BIG 1.0e20
-#define EPSILON 1.0e-6
+static constexpr double BIG = 1.0e20;
+static constexpr double EPSILON = 1.0e-6;
 
-enum{ASCEND,DESCEND};
+enum { ASCEND, DESCEND };
 
 /* ---------------------------------------------------------------------- */
 
-Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
+Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) :
+    Pointers(lmp), multiname(nullptr), idrefresh(nullptr), irefresh(nullptr), skipvar(nullptr),
+    format(nullptr), format_default(nullptr), format_line_user(nullptr), format_float_user(nullptr),
+    format_int_user(nullptr), format_bigint_user(nullptr), format_column_user(nullptr), fp(nullptr),
+    nameslist(nullptr), buf(nullptr), sbuf(nullptr), ids(nullptr), bufsort(nullptr),
+    idsort(nullptr), index(nullptr), proclist(nullptr), xpbc(nullptr), vpbc(nullptr),
+    imagepbc(nullptr), irregular(nullptr)
 {
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
+  MPI_Comm_rank(world, &me);
+  MPI_Comm_size(world, &nprocs);
 
   id = utils::strdup(arg[0]);
 
@@ -64,20 +69,11 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   first_flag = 0;
   flush_flag = 1;
 
-  format = nullptr;
-  format_default = nullptr;
-
-  format_line_user = nullptr;
-  format_float_user = nullptr;
-  format_int_user = nullptr;
-  format_bigint_user = nullptr;
-  format_column_user = nullptr;
-
   refreshflag = 0;
-  refresh = nullptr;
 
   clearstep = 0;
   sort_flag = 0;
+  sortcol = 0;
   balance_flag = 0;
   append_flag = 0;
   buffer_allow = 0;
@@ -92,25 +88,15 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   has_id = 1;
 
   skipflag = 0;
-  skipvar = nullptr;
 
   maxfiles = -1;
   numfiles = 0;
   fileidx = 0;
-  nameslist = nullptr;
 
   maxbuf = maxids = maxsort = maxproc = 0;
-  buf = bufsort = nullptr;
-  ids = idsort = nullptr;
-  index = proclist = nullptr;
-  irregular = nullptr;
-
   maxsbuf = 0;
-  sbuf = nullptr;
 
   maxpbc = -1;
-  xpbc = vpbc = nullptr;
-  imagepbc = nullptr;
 
   // parse filename for special syntax
   // if contains '%', write one file per proc and replace % with proc-ID
@@ -120,37 +106,34 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   //   else if ends in .gz or other known extensions -> compressed text file
   //   else ASCII text file
 
-  fp = nullptr;
   singlefile_opened = 0;
   compressed = 0;
   binary = 0;
   multifile = 0;
+  size_one = 0;
 
   multiproc = 0;
   nclusterprocs = nprocs;
   filewriter = 0;
   if (me == 0) filewriter = 1;
   fileproc = 0;
-  multiname = nullptr;
 
   char *ptr;
-  if ((ptr = strchr(filename,'%'))) {
-    if (strstr(style,"mpiio"))
-      error->all(FLERR,"Dump file MPI-IO output not allowed with % in filename");
+  if ((ptr = strchr(filename, '%'))) {
     multiproc = 1;
     nclusterprocs = 1;
     filewriter = 1;
     fileproc = me;
-    MPI_Comm_split(world,me,0,&clustercomm);
+    MPI_Comm_split(world, me, 0, &clustercomm);
     *ptr = '\0';
-    multiname = utils::strdup(fmt::format("{}{}{}", filename, me, ptr+1));
+    multiname = utils::strdup(fmt::format("{}{}{}", filename, me, ptr + 1));
     *ptr = '%';
   }
 
-  if (strchr(filename,'*')) multifile = 1;
+  if (strchr(filename, '*')) multifile = 1;
 
-  if (utils::strmatch(filename, "\\.bin$")
-      || utils::strmatch(filename, "\\.lammpsbin$")) binary = 1;
+  if (utils::strmatch(filename, "\\.bin$") || utils::strmatch(filename, "\\.lammpsbin$"))
+    binary = 1;
   if (platform::has_compress_extension(filename)) compressed = 1;
 }
 
@@ -170,7 +153,7 @@ Dump::~Dump()
   delete[] format_int_user;
   delete[] format_bigint_user;
 
-  delete[] refresh;
+  delete[] idrefresh;
   delete[] skipvar;
 
   // format_column_user is deallocated by child classes that use it
@@ -196,8 +179,7 @@ Dump::~Dump()
   // delete storage for caching file names
 
   if (maxfiles > 0) {
-    for (int idx=0; idx < numfiles; ++idx)
-      delete[] nameslist[idx];
+    for (int idx = 0; idx < numfiles; ++idx) delete[] nameslist[idx];
     delete[] nameslist;
   }
 
@@ -212,6 +194,8 @@ Dump::~Dump()
     fp = nullptr;
   }
 }
+
+// clang-format off
 
 /* ---------------------------------------------------------------------- */
 
@@ -233,21 +217,21 @@ void Dump::init()
     index = proclist = nullptr;
     irregular = nullptr;
     if ((has_id == 0) && (me == 0))
-      error->warning(FLERR,"Dump {} includes no atom IDs and is not sorted by ID. This may complicate "
-                     "post-processing tasks or visualization", id);
+      error->warning(FLERR,"Dump {} includes no atom IDs and is not sorted by ID. "
+                     "This may complicate post-processing tasks or visualization", id);
   }
 
   if (sort_flag) {
     if (multiproc > 1)
       error->all(FLERR,
-                 "Cannot sort dump when 'nfile' or 'fileper' keywords are set to non-default values");
+                 "Cannot sort dump when 'nfile' or 'fileper' keywords have non-default values");
     if (sortcol == 0 && atom->tag_enable == 0)
       error->all(FLERR,"Cannot sort dump on atom IDs with no atom IDs defined");
     if (sortcol && sortcol > size_one)
-      error->all(FLERR,"Dump sort column is invalid");
+      error->all(FLERR,"Dump sort column index {} is invalid", sortcol);
     if ((sortcol != 0) && (has_id == 0) && (me == 0))
-      error->warning(FLERR,"Dump {} includes no atom IDs and is not sorted by ID. This may complicate "
-                     "post-processing tasks or visualization", id);
+      error->warning(FLERR,"Dump {} includes no atom IDs and is not sorted by ID. "
+                     "This may complicate post-processing tasks or visualization", id);
     if (nprocs > 1 && irregular == nullptr)
       irregular = new Irregular(lmp);
 
@@ -305,11 +289,8 @@ void Dump::init()
   // search for refresh compute specified by dump_modify refresh
 
   if (refreshflag) {
-    int icompute;
-    for (icompute = 0; icompute < modify->ncompute; icompute++)
-      if (strcmp(refresh,modify->compute[icompute]->id) == 0) break;
-    if (icompute < modify->ncompute) irefresh = icompute;
-    else error->all(FLERR,"Dump could not find refresh compute ID");
+    irefresh = modify->get_compute_by_id(idrefresh);
+    if (!irefresh) error->all(FLERR,"Dump could not find refresh compute ID {}", idrefresh);
   }
 
   // if skipflag, check skip variable
@@ -345,8 +326,9 @@ int Dump::count()
 
 void Dump::write()
 {
-  imageint *imagehold;
-  double **xhold,**vhold;
+  imageint *imagehold = nullptr;
+  double **xhold = nullptr;
+  double **vhold = nullptr;
 
   // simulation box bounds
 
@@ -427,9 +409,9 @@ void Dump::write()
     int nlocal = atom->nlocal;
     if (nlocal > maxpbc) pbc_allocate();
     if (nlocal) {
-      memcpy(&xpbc[0][0],&atom->x[0][0],3*nlocal*sizeof(double));
-      memcpy(&vpbc[0][0],&atom->v[0][0],3*nlocal*sizeof(double));
-      memcpy(imagepbc,atom->image,nlocal*sizeof(imageint));
+      memcpy(&xpbc[0][0],&atom->x[0][0],(sizeof(double)*3*nlocal)&MEMCPYMASK);
+      memcpy(&vpbc[0][0],&atom->v[0][0],(sizeof(double)*3*nlocal)&MEMCPYMASK);
+      memcpy(imagepbc,atom->image,(nlocal*sizeof(imageint))&MEMCPYMASK);
     }
     xhold = atom->x;
     vhold = atom->v;
@@ -548,7 +530,7 @@ void Dump::write()
   // trigger post-dump refresh by specified compute
   // currently used for incremental dump files
 
-  if (refreshflag) modify->compute[irefresh]->refresh();
+  if (refreshflag) irefresh->refresh();
 
   if (filewriter && fp != nullptr) write_footer();
 
@@ -593,7 +575,7 @@ void Dump::openfile()
         nameslist[numfiles] = utils::strdup(filecurrent);
         ++numfiles;
       } else {
-        remove(nameslist[fileidx]);
+        (void) remove(nameslist[fileidx]);
         delete[] nameslist[fileidx];
         nameslist[fileidx] = utils::strdup(filecurrent);
         fileidx = (fileidx + 1) % maxfiles;

@@ -11,7 +11,7 @@
   Please cite the related publication:
   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
   "Parallel Reactive Molecular Dynamics: Numerical Methods and
-  Algorithmic Techniques", Parallel Computing, in press.
+  Algorithmic Techniques", Parallel Computing, 38 (4-5), 245-259.
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
@@ -58,7 +58,7 @@ namespace ReaxFF {
     std::string message;
   public:
     explicit control_parser_error(const std::string &format, const std::string &keyword) {
-      message = fmt::format(format, keyword);
+      message = fmt::format(fmt::runtime(format), keyword);
     }
     const char *what() const noexcept override { return message.c_str(); }
   };
@@ -95,8 +95,8 @@ namespace ReaxFF {
           throw control_parser_error("No value(s) for control parameter: {}\n", keyword);
 
         if (inactive_keywords.find(keyword) != inactive_keywords.end()) {
-          error->warning(FLERR,fmt::format("Ignoring inactive control "
-                                           "parameter: {}",keyword));
+          error->warning(FLERR, fmt::format(fmt::runtime("Ignoring inactive control parameter: {}"),
+                                            keyword));
         } else if (keyword == "nbrhood_cutoff") {
           control->bond_cut = values.next_double();
         } else if (keyword == "bond_graph_cutoff") {

@@ -6,7 +6,7 @@ fix nvt/body command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID nvt/body keyword value ...
 
@@ -84,8 +84,6 @@ bias is removed from each atom, thermostatting is performed on the
 remaining thermal degrees of freedom, and the bias is added back in.
 
 ----------
-
-.. include:: accel_styles.rst
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

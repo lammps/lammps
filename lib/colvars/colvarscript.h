@@ -16,7 +16,6 @@
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
-#include "colvarbias.h"
 #include "colvarproxy.h"
 
 
@@ -24,6 +23,8 @@
 #define COLVARSCRIPT_ERROR -1
 #define COLVARSCRIPT_OK 0
 
+
+class colvardeps;
 
 class colvarscript  {
 
@@ -161,6 +162,11 @@ public:
   /// \param cmd Name of the command's function (e.g. "cv_units")
   int get_command_n_args_max(char const *cmd);
 
+  /// Set the main command for the CLI, when it is not "cv" (e.g. LAMMPS)
+  inline void set_cmdline_main_cmd(std::string const &cmd) {
+    cmdline_main_cmd_ = cmd;
+  }
+
   /// Get help string for a command (does not specify how it is launched)
   /// \param cmd Name of the command's function (e.g. "cv_units")
   char const *get_command_full_help(char const *cmd);
@@ -262,6 +268,9 @@ private: // TODO
 
   /// Internal identifiers of command strings
   std::map<std::string, command> cmd_str_map;
+
+  /// Main command used in command line ("cv" by default)
+  std::string cmdline_main_cmd_;
 
   /// Inverse of cmd_str_map (to be exported outside this class)
   char const **cmd_names;

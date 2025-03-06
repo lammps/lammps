@@ -16,19 +16,20 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "angle_cosine_delta_omp.h"
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 
+#include <cmath>
 
+#include "omp_compat.h"
 #include "suffix.h"
 using namespace LAMMPS_NS;
 
-#define SMALL 0.001
+static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
@@ -128,8 +129,6 @@ void AngleCosineDeltaOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     s = sqrt(1.0 - c*c);
     if (s < SMALL) s = SMALL;
-    s = 1.0/s;
-
     cot = c/s;
 
     // force & energy

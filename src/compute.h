@@ -62,7 +62,7 @@ class Compute : protected Pointers {
   int size_local_rows;    // rows in local vector or array
   int size_local_cols;    // 0 = vector, N = columns in local array
 
-  int pergrid_flag;       // 0/1 if compute_pergrid() function exists
+  int pergrid_flag;    // 0/1 if compute_pergrid() function exists
 
   int extscalar;    // 0/1 if global scalar is intensive/extensive
   int extvector;    // 0/1/-1 if global vector is all int/ext/extlist
@@ -88,6 +88,7 @@ class Compute : protected Pointers {
   int maxtime;      // max # of entries time list can hold
   bigint *tlist;    // list of timesteps the Compute is called on
 
+  int initialized_flag;      // 1 if compute is initialized, 0 if not
   int invoked_flag;          // non-zero if invoked or accessed this step, 0 if not
   bigint invoked_scalar;     // last timestep on which compute_scalar() was invoked
   bigint invoked_vector;     // ditto for compute_vector()
@@ -112,8 +113,10 @@ class Compute : protected Pointers {
   Compute(class LAMMPS *, int, char **);
   ~Compute() override;
   void modify_params(int, char **);
+  virtual int modify_param(int, char **) { return 0; }
   virtual void reset_extra_dof();
 
+  void init_flags();
   virtual void init() = 0;
   virtual void init_list(int, class NeighList *) {}
   virtual void setup() {}
@@ -130,7 +133,7 @@ class Compute : protected Pointers {
   virtual int pack_reverse_comm(int, int, double *) { return 0; }
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
-  virtual void reset_grid(){};
+  virtual void reset_grid() {};
 
   virtual int get_grid_by_name(const std::string &, int &) { return -1; };
   virtual void *get_grid_by_index(int) { return nullptr; };
@@ -142,6 +145,7 @@ class Compute : protected Pointers {
   virtual void remove_bias(int, double *) {}
   virtual void remove_bias_thr(int, double *, double *) {}
   virtual void remove_bias_all() {}
+  virtual void remove_bias_all_kk() {}
   virtual void reapply_bias_all() {}
   virtual void restore_bias(int, double *) {}
   virtual void restore_bias_thr(int, double *, double *) {}
@@ -161,6 +165,8 @@ class Compute : protected Pointers {
   int matchstep(bigint);
   void clearstep();
 
+  bool is_initialized() const { return initialized_flag == 1; }
+
   virtual double memory_usage() { return 0.0; }
 
   virtual void pair_setup_callback(int, int) {}
@@ -174,7 +180,7 @@ class Compute : protected Pointers {
 
   double natoms_temp;    // # of atoms used for temperature calculation
   double extra_dof;      // extra DOF for temperature computes
-  int fix_dof;           // DOF due to fixes
+  double fix_dof;        // DOF due to fixes
   int dynamic;           // recount atoms for temperature computes
   int dynamic_user;      // user request for temp compute to be dynamic
 

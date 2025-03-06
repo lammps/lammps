@@ -24,14 +24,12 @@
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "fft3d_wrap.h"
 #include "force.h"
 #include "grid3d.h"
 #include "math_const.h"
-#include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
 #include "neighbor.h"
@@ -45,22 +43,12 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-#define MAXORDER 7
-#define OFFSET 16384
-#define LARGE 10000.0
-#define SMALL 0.00001
-#define EPS_HOC 1.0e-7
-
-enum{REVERSE_RHO};
-enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
-
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
+static constexpr int MAXORDER = 7;
+static constexpr int OFFSET = 16384;
+static constexpr double LARGE = 10000.0;
+static constexpr double SMALL = 0.00001;
+static constexpr double EPS_HOC = 1.0e-7;
+static constexpr FFT_SCALAR ZEROF = 0.0;
 
 /* ---------------------------------------------------------------------- */
 
@@ -162,11 +150,12 @@ PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
 
 void PPPM::settings(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal kspace_style {} command", force->kspace_style);
+  if (narg < 1)
+    utils::missing_cmd_args(FLERR,fmt::format("kspace_style {}", force->kspace_style), error);
 
   accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
   if (accuracy_relative > 1.0)
-    error->all(FLERR, "Invalid relative accuracy {:g} for kspace_style {}",
+    error->all(FLERR, 1, "Invalid relative accuracy {:g} for kspace_style {}",
                accuracy_relative, force->kspace_style);
 }
 
@@ -1188,7 +1177,7 @@ double PPPM::compute_qopt()
   // each proc calculates contributions from every Pth grid point
 
   bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
-  int nxy_pppm = nx_pppm * ny_pppm;
+  bigint nxy_pppm = (bigint) nx_pppm * ny_pppm;
 
   double qopt = 0.0;
 
@@ -1393,15 +1382,20 @@ void PPPM::set_grid_local()
   // npey_fft,npez_fft = # of procs in y,z dims
   // if nprocs is small enough, proc can own 1 or more entire xy planes,
   //   else proc owns 2d sub-blocks of yz plane
+  //   NOTE: commented out lines support this
+  //     need to ensure fft3d.cpp and remap.cpp support 2D planes
   // me_y,me_z = which proc (0-npe_fft-1) I am in y,z dimensions
   // nlo_fft,nhi_fft = lower/upper limit of the section
   //   of the global FFT mesh that I own in x-pencil decomposition
 
   int npey_fft,npez_fft;
-  if (nz_pppm >= nprocs) {
-    npey_fft = 1;
-    npez_fft = nprocs;
-  } else procs2grid2d(nprocs,ny_pppm,nz_pppm,&npey_fft,&npez_fft);
+
+  //if (nz_pppm >= nprocs) {
+  //  npey_fft = 1;
+  //  npez_fft = nprocs;
+  //} else procs2grid2d(nprocs,ny_pppm,nz_pppm,&npey_fft,&npez_fft);
+
+  procs2grid2d(nprocs,ny_pppm,nz_pppm,&npey_fft,&npez_fft);
 
   int me_y = me % npey_fft;
   int me_z = me / npey_fft;
@@ -1836,7 +1830,7 @@ void PPPM::particle_map()
       flag = 1;
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
+  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
 }
 
 /* ----------------------------------------------------------------------
@@ -1944,7 +1938,8 @@ void PPPM::poisson_ik()
 
   // global energy and virial contribution
 
-  double scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
+  bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
+  double scaleinv = 1.0/ngridtotal;
   double s2 = scaleinv*scaleinv;
 
   if (eflag_global || vflag_global) {
@@ -2145,7 +2140,8 @@ void PPPM::poisson_ad()
 
   // global energy and virial contribution
 
-  double scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
+  bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
+  double scaleinv = 1.0/ngridtotal;
   double s2 = scaleinv*scaleinv;
 
   if (eflag_global || vflag_global) {
@@ -3004,7 +3000,7 @@ double PPPM::memory_usage()
 
   if (group_allocate_flag) {
     bytes += (double)2 * nbrick * sizeof(FFT_SCALAR);
-    bytes += (double)2 * nfft_both * sizeof(FFT_SCALAR);;
+    bytes += (double)2 * nfft_both * sizeof(FFT_SCALAR);
   }
 
   // two Grid3d bufs
@@ -3259,7 +3255,8 @@ void PPPM::poisson_groups(int AA_flag)
   //  keep everything in reciprocal space so
   //  no inverse FFTs needed
 
-  double scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
+  bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
+  double scaleinv = 1.0/ngridtotal;
   double s2 = scaleinv*scaleinv;
 
   // energy

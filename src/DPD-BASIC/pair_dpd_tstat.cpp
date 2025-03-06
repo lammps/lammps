@@ -26,7 +26,7 @@
 
 using namespace LAMMPS_NS;
 
-#define EPSILON 1.0e-10
+static constexpr double EPSILON = 1.0e-10;
 
 /* ---------------------------------------------------------------------- */
 
@@ -47,6 +47,10 @@ void PairDPDTstat::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   ev_init(eflag,vflag);
+
+  // precompute random force scaling factors
+
+  for (int i = 0; i < 4; ++i) special_sqrt[i] = sqrt(force->special_lj[i]);
 
   // adjust sigma if target T is changing
 

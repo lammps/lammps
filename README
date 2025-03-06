@@ -23,17 +23,20 @@ more information about the code and its uses.
 The LAMMPS distribution includes the following files and directories:
 
 README                     this file
-LICENSE                    the GNU General Public License (GPL)
-bench                      benchmark problems
+LICENSE                    the GNU General Public License (GPLv2)
+CITATION.cff               Citation information for LAMMPS in CFF format
+bench                      benchmark inputs
 cmake                      CMake build files
 doc                        documentation
-examples                   simple test problems
-fortran                    Fortran wrapper for LAMMPS
+examples                   example inputs for many LAMMPS commands
+fortran                    Fortran 2003 module for LAMMPS
 lib                        additional provided or external libraries
 potentials                 interatomic potential files
-python                     Python wrappers for LAMMPS
+python                     Python module for LAMMPS
 src                        source files
 tools                      pre- and post-processing tools
+unittest                   test programs for use with CTest
+.github                    Git and GitHub related files and tools
 
 Point your browser at any of these files to get started:
 
@@ -42,6 +45,8 @@ https://docs.lammps.org/Intro.html          hi-level introduction
 https://docs.lammps.org/Build.html          how to build LAMMPS
 https://docs.lammps.org/Run_head.html       how to run LAMMPS
 https://docs.lammps.org/Commands_all.html   Table of available commands
+https://docs.lammps.org/Howto.html          Short tutorials and HowTo discussions
+https://docs.lammps.org/Errors.html         How to interpret and debug errors
 https://docs.lammps.org/Library.html        LAMMPS library interfaces
 https://docs.lammps.org/Modify.html         how to modify and extend LAMMPS
 https://docs.lammps.org/Developer.html      LAMMPS developer info

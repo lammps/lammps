@@ -6,7 +6,7 @@ fix move command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID move style args keyword values ...
 

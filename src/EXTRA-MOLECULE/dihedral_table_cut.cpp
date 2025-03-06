@@ -47,8 +47,8 @@ static const char cite_dihedral_tablecut[] =
 
 /* ---------------------------------------------------------------------- */
 
-#define TOLERANCE 0.05
-#define SMALL     0.0000001
+static constexpr double TOLERANCE = 0.05;
+static constexpr double SMALL =     0.0000001;
 
 // ------------------------------------------------------------------------
 // The following auxiliary functions were left out of the

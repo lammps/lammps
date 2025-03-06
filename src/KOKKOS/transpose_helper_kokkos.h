@@ -32,9 +32,9 @@ struct TransposeHelperKokkos {
   using t_view_dst = t_view_dst_;
   using t_view_src = t_view_src_;
 
-  static_assert(std::is_same<typename t_view_dst::value_type, typename t_view_src::value_type>::value, "Value types do not match");
-  static_assert(t_view_dst::Rank == 2, "Destination view rank != 2");
-  static_assert(t_view_src::Rank == 2, "Source view rank != 2");
+  static_assert(std::is_same_v<typename t_view_dst::value_type, typename t_view_src::value_type>, "Value types do not match");
+  static_assert(t_view_dst::rank == 2, "Destination view rank != 2");
+  static_assert(t_view_src::rank == 2, "Source view rank != 2");
 
   using dst_layout = typename t_view_dst::traits::array_layout;
   using src_layout = typename t_view_src::traits::array_layout;
@@ -78,11 +78,11 @@ struct TransposeHelperKokkos {
 
     assert(d_dst.extent(0) == d_src.extent(0) && d_dst.extent(1) == d_dst.extent(1));
 
-    if (std::is_same<dst_layout, src_layout>::value) {
+    if (std::is_same_v<dst_layout, src_layout>) {
       Kokkos::deep_copy(d_dst, d_src);
     } else {
 
-      src_is_layout_right = std::is_same<src_layout, Kokkos::LayoutRight>::value;
+      src_is_layout_right = std::is_same_v<src_layout, Kokkos::LayoutRight>;
 
       extent_tiles[0] = (d_dst.extent(0) + tile_size - 1) / tile_size;
       extent_tiles[1] = (d_dst.extent(1) + tile_size - 1) / tile_size;
@@ -125,8 +125,7 @@ struct TransposeHelperKokkos {
     elem[0] = extent_tile_id[0] * tile_size;
     elem[1] = extent_tile_id[1] * tile_size;
 
-    if (elem[0] >= d_dst.extent(0) ||
-      elem[1] >= d_dst.extent(1)) return;
+    if ((elem[0] >= (int)d_dst.extent(0)) || (elem[1] >= (int)d_dst.extent(1))) return;
 
     // determine if a row/column is a full `tile_size` in size or not
     bool perfect_pad[2];
@@ -135,35 +134,30 @@ struct TransposeHelperKokkos {
 
     // load phase
     if (src_is_layout_right) {
-      Kokkos::parallel_for(Kokkos::ThreadVectorRange(team_member, tile_size),
-        [&] (const int j) {
-
-        if (elem[1] + j < d_src.extent(1)) {
-          if (perfect_pad[0]) {
-            for (int i = 0; i < tile_size; i++)
-              buffer[i * (tile_size + bank_pad) + j] = d_src(elem[0] + i, elem[1] + j);
-          } else {
-            for (int i = 0; i < (d_src.extent(0) - elem[0]); i++)
-              buffer[i * (tile_size + bank_pad) + j] = d_src(elem[0] + i, elem[1] + j);
+      Kokkos::parallel_for(Kokkos::ThreadVectorRange(team_member, tile_size), [&] (const int j) {
+          if (elem[1] + j < (int)d_src.extent(1)) {
+            if (perfect_pad[0]) {
+              for (int i = 0; i < tile_size; i++)
+                buffer[i * (tile_size + bank_pad) + j] = d_src(elem[0] + i, elem[1] + j);
+            } else {
+              for (int i = 0; i < ((int)d_src.extent(0) - elem[0]); i++)
+                buffer[i * (tile_size + bank_pad) + j] = d_src(elem[0] + i, elem[1] + j);
+            }
           }
-        }
-      });
-
+        });
     } else {
       // src is layout left
-      Kokkos::parallel_for(Kokkos::ThreadVectorRange(team_member, tile_size),
-        [&] (const int i) {
-
-        if (elem[0] + i < d_src.extent(0)) {
-          if (perfect_pad[1]) {
-            for (int j = 0; j < tile_size; j++)
-              buffer[i * (tile_size + bank_pad) + j] = d_src(elem[0] + i, elem[1] + j);
-          } else {
-            for (int j = 0; j < (d_src.extent(1) - elem[1]); j++)
-              buffer[i * (tile_size + bank_pad) + j] = d_src(elem[0] + i, elem[1] + j);
+      Kokkos::parallel_for(Kokkos::ThreadVectorRange(team_member, tile_size), [&] (const int i) {
+          if (elem[0] + i < (int)d_src.extent(0)) {
+            if (perfect_pad[1]) {
+              for (int j = 0; j < tile_size; j++)
+                buffer[i * (tile_size + bank_pad) + j] = d_src(elem[0] + i, elem[1] + j);
+            } else {
+              for (int j = 0; j < ((int)d_src.extent(1) - elem[1]); j++)
+                buffer[i * (tile_size + bank_pad) + j] = d_src(elem[0] + i, elem[1] + j);
+            }
           }
-        }
-      });
+        });
     }
 
     // No need for an extra sync b/c there is an implicit sync at the end
@@ -171,37 +165,31 @@ struct TransposeHelperKokkos {
 
     // save phase
     if (src_is_layout_right) {
-      Kokkos::parallel_for(Kokkos::ThreadVectorRange(team_member, tile_size),
-        [&] (const int i) {
-
-        if (elem[0] + i < d_dst.extent(0)) {
-          if (perfect_pad[1]) {
-            for (int j = 0; j < tile_size; j++)
-              d_dst(elem[0] + i, elem[1] + j) = buffer[i * (tile_size + bank_pad) + j];
-          } else {
-            for (int j = 0; j < (d_dst.extent(1) - elem[1]); j++)
-              d_dst(elem[0] + i, elem[1] + j) = buffer[i * (tile_size + bank_pad) + j];
+      Kokkos::parallel_for(Kokkos::ThreadVectorRange(team_member, tile_size), [&] (const int i) {
+          if (elem[0] + i < (int)d_dst.extent(0)) {
+            if (perfect_pad[1]) {
+              for (int j = 0; j < tile_size; j++)
+                d_dst(elem[0] + i, elem[1] + j) = buffer[i * (tile_size + bank_pad) + j];
+            } else {
+              for (int j = 0; j < ((int)d_dst.extent(1) - elem[1]); j++)
+                d_dst(elem[0] + i, elem[1] + j) = buffer[i * (tile_size + bank_pad) + j];
+            }
           }
-        }
-      });
+        });
     } else {
-
       // src is layout left
-      Kokkos::parallel_for(Kokkos::ThreadVectorRange(team_member, tile_size),
-        [&] (const int j) {
-
-        if (elem[1] + j < d_dst.extent(1)) {
-          if (perfect_pad[0]) {
-            for (int i = 0; i < tile_size; i++)
-              d_dst(elem[0] + i, elem[1] + j) = buffer[i * (tile_size + bank_pad) + j];
-          } else {
-            for (int i = 0; i < (d_dst.extent(0) - elem[0]); i++)
-              d_dst(elem[0] + i, elem[1] + j) = buffer[i * (tile_size + bank_pad) + j];
+      Kokkos::parallel_for(Kokkos::ThreadVectorRange(team_member, tile_size), [&] (const int j) {
+          if (elem[1] + j < (int)d_dst.extent(1)) {
+            if (perfect_pad[0]) {
+              for (int i = 0; i < tile_size; i++)
+                d_dst(elem[0] + i, elem[1] + j) = buffer[i * (tile_size + bank_pad) + j];
+            } else {
+              for (int i = 0; i < ((int)d_dst.extent(0) - elem[0]); i++)
+                d_dst(elem[0] + i, elem[1] + j) = buffer[i * (tile_size + bank_pad) + j];
+            }
           }
-        }
-      });
+        });
     }
-
   }
 };
 

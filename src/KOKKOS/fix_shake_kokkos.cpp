@@ -14,20 +14,12 @@
 
 #include "fix_shake_kokkos.h"
 
-#include "fix_rattle.h"
 #include "atom_kokkos.h"
-#include "atom_vec.h"
-#include "molecule.h"
 #include "update.h"
-#include "respa.h"
-#include "modify.h"
 #include "domain.h"
 #include "force.h"
-#include "bond.h"
-#include "angle.h"
 #include "comm.h"
 #include "group.h"
-#include "fix_respa.h"
 #include "math_const.h"
 #include "memory_kokkos.h"
 #include "error.h"
@@ -35,16 +27,10 @@
 #include "atom_masks.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
-
-#define RVOUS 1   // 0 for irregular, 1 for all2all
-
-#define BIG 1.0e20
-#define MASSDELTA 0.1
 
 /* ---------------------------------------------------------------------- */
 
@@ -185,7 +171,6 @@ void FixShakeKokkos<DeviceType>::init()
   k_bond_distance.sync<DeviceType>();
   k_angle_distance.sync<DeviceType>();
 }
-
 
 /* ----------------------------------------------------------------------
    run setup for minimization.
@@ -407,7 +392,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
 
   need_dup = 0;
   if (neighflag != HALF)
-    need_dup = std::is_same<typename NeedDup<HALFTHREAD,DeviceType>::value,Kokkos::Experimental::ScatterDuplicated>::value;
+    need_dup = std::is_same_v<NeedDup_v<HALFTHREAD,DeviceType>,Kokkos::Experimental::ScatterDuplicated>;
 
   // allocate duplicated memory
 
@@ -474,8 +459,8 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   // free duplicated memory
 
   if (need_dup) {
-    dup_f = decltype(dup_f)();
-    dup_vatom = decltype(dup_vatom)();
+    dup_f = {};
+    dup_vatom = {};
   }
 }
 
@@ -525,7 +510,7 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakePostForce<NEIGHFLAG,EVFLA
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixShakeKokkos<DeviceType>::dof(int igroup)
+bigint FixShakeKokkos<DeviceType>::dof(int igroup)
 {
   d_mask = atomKK->k_mask.view<DeviceType>();
   d_tag = atomKK->k_tag.view<DeviceType>();
@@ -538,7 +523,7 @@ int FixShakeKokkos<DeviceType>::dof(int igroup)
   // count dof in a cluster if and only if
   // the central atom is in group and atom i is the central atom
 
-  int n = 0;
+  bigint n = 0;
   {
     // local variables for lambda capture
 
@@ -549,7 +534,7 @@ int FixShakeKokkos<DeviceType>::dof(int igroup)
     auto groupbit = group->bitmask[igroup];
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal),
-     LAMMPS_LAMBDA(const int& i, int& n) {
+     LAMMPS_LAMBDA(const int& i, bigint& n) {
       if (!(mask[i] & groupbit)) return;
       if (d_shake_flag[i] == 0) return;
       if (d_shake_atom(i,0) != tag[i]) return;
@@ -560,8 +545,8 @@ int FixShakeKokkos<DeviceType>::dof(int igroup)
     },n);
   }
 
-  int nall;
-  MPI_Allreduce(&n,&nall,1,MPI_INT,MPI_SUM,world);
+  bigint nall;
+  MPI_Allreduce(&n,&nall,1,MPI_LMP_BIGINT,MPI_SUM,world);
   return nall;
 }
 
@@ -643,7 +628,7 @@ KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::shake(int ilist, EV_FLOAT& ev) const
 {
 
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -753,7 +738,7 @@ KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::shake3(int ilist, EV_FLOAT& ev) const
 {
 
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -933,7 +918,7 @@ KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::shake4(int ilist, EV_FLOAT& ev) const
 {
 
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -1190,7 +1175,7 @@ KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::shake3angle(int ilist, EV_FLOAT& ev) const
 {
 
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -1581,8 +1566,8 @@ void FixShakeKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offs
     else offset++;
   } else {
 
-    d_buf[mysend] = nsend + offset;
     int m = nsend + offset;
+    d_buf[mysend] = m;
     d_buf[m++] = flag;
     if (flag == 1) {
       d_buf[m++] = d_shake_atom(i,0);
@@ -1703,6 +1688,8 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakeUnpackExchange, const int
 
   if (index > -1) {
     int m = d_buf[i];
+    if (i >= nrecv1)
+      m = nextrarecv1 + d_buf[nextrarecv1 + i - nrecv1];
 
     int flag = d_shake_flag[index] = static_cast<int> (d_buf[m++]);
     if (flag == 1) {
@@ -1739,6 +1726,7 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakeUnpackExchange, const int
 template <class DeviceType>
 void FixShakeKokkos<DeviceType>::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  int nrecv1, int nextrarecv1,
   ExecutionSpace /*space*/)
 {
   k_buf.sync<DeviceType>();
@@ -1748,6 +1736,9 @@ void FixShakeKokkos<DeviceType>::unpack_exchange_kokkos(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
   d_indices = k_indices.view<DeviceType>();
+
+  this->nrecv1 = nrecv1;
+  this->nextrarecv1 = nextrarecv1;
 
   k_shake_flag.template sync<DeviceType>();
   k_shake_atom.template sync<DeviceType>();
@@ -1807,12 +1798,11 @@ int FixShakeKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixShakeKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                                                        int iswap_in, DAT::tdual_xfloat_1d &k_buf,
-                                                        int pbc_flag, int* pbc)
+int FixShakeKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                                                         DAT::tdual_xfloat_1d &k_buf,
+                                                         int pbc_flag, int* pbc)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
-  iswap = iswap_in;
   d_buf = k_buf.view<DeviceType>();
 
   if (domain->triclinic == 0) {
@@ -1836,7 +1826,7 @@ template<class DeviceType>
 template<int PBC_FLAG>
 KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::operator()(TagFixShakePackForwardComm<PBC_FLAG>, const int &i) const {
-  const int j = d_sendlist(iswap, i);
+  const int j = d_sendlist(i);
 
   if (PBC_FLAG == 0) {
     d_buf[3*i] = d_xshake(j,0);

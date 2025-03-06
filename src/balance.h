@@ -41,7 +41,7 @@ class Balance : public Command {
   void init_imbalance(int);
   void set_weights();
   double imbalance_factor(double &);
-  void shift_setup(char *, int, double);
+  void shift_setup(const char *, int, double);
   int shift();
   int *bisection();
   void dumpout(bigint);
@@ -49,8 +49,6 @@ class Balance : public Command {
   static constexpr int BSTR_SIZE = 3;
 
  private:
-  int me, nprocs;
-
   double thresh;                                      // threshold to perform LB
   int style;                                          // style of LB
   int xflag, yflag, zflag;                            // xyz LB flags
@@ -59,7 +57,7 @@ class Balance : public Command {
 
   int nitermax;    // params for shift LB
   double stopthresh;
-  char bstr[BSTR_SIZE + 1];
+  std::string bstr;
 
   int shift_allocate;       // 1 if SHIFT vectors have been allocated
   int ndim;                 // length of balance string bstr
@@ -84,7 +82,7 @@ class Balance : public Command {
   int firststep;
 
   double imbalance_splits();
-  void shift_setup_static(char *);
+  void shift_setup_static(const char *);
   void tally(int, int, double *);
   int adjust(int, double *);
 #ifdef BALANCE_DEBUG

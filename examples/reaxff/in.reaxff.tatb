@@ -31,7 +31,14 @@ neigh_modify    delay 0 every 5 check no
 fix             1 all nve
 fix             2 all qeq/reaxff 1 0.0 10.0 1.0e-6 reaxff
 fix             4 all reaxff/bonds 5 bonds.reaxff
+compute         bonds all reaxff/atom bonds yes
 variable nqeq   equal f_2
+
+# dumps out the local bond information
+dump 1 all local 5 bonds_local.reaxff c_bonds[1] c_bonds[2] c_bonds[3]
+
+# dumps out the peratom bond information
+dump 2 all custom 5 bonds_atom.reaxff id type q c_bonds[*]
 
 thermo          5
 thermo_style    custom step temp epair etotal press &

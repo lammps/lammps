@@ -9,7 +9,7 @@ Accelerator Variants: *langevin/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID langevin Tstart Tstop damp seed keyword values ...
 
@@ -230,12 +230,6 @@ it is the energy exchanged between the infinite thermal reservoir and
 the particles.  As described below, this energy can then be printed
 out or added to the potential energy of the system to monitor energy
 conservation.
-
-.. note::
-
-   This accumulated energy does NOT include kinetic energy removed
-   by the *zero* flag. LAMMPS will print a warning when both options are
-   active.
 
 The keyword *zero* can be used to eliminate drift due to the
 thermostat. Because the random forces on different atoms are

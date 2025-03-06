@@ -6,7 +6,7 @@ fix_modify AtC add_molecule command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> add_molecule <small|large> <tag> <group-ID>
 

@@ -6,7 +6,7 @@ static doublereal c_b3 = -1.;
 static integer c__1 = 1;
 int dlaed8_(integer *icompq, integer *k, integer *n, integer *qsiz, doublereal *d__, doublereal *q,
             integer *ldq, integer *indxq, doublereal *rho, integer *cutpnt, doublereal *z__,
-            doublereal *dlamda, doublereal *q2, integer *ldq2, doublereal *w, integer *perm,
+            doublereal *dlambda, doublereal *q2, integer *ldq2, doublereal *w, integer *perm,
             integer *givptr, integer *givcol, doublereal *givnum, integer *indxp, integer *indx,
             integer *info)
 {
@@ -35,7 +35,7 @@ int dlaed8_(integer *icompq, integer *k, integer *n, integer *qsiz, doublereal *
     q -= q_offset;
     --indxq;
     --z__;
-    --dlamda;
+    --dlambda;
     q2_dim1 = *ldq2;
     q2_offset = 1 + q2_dim1;
     q2 -= q2_offset;
@@ -87,15 +87,15 @@ int dlaed8_(integer *icompq, integer *k, integer *n, integer *qsiz, doublereal *
     }
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
-        dlamda[i__] = d__[indxq[i__]];
+        dlambda[i__] = d__[indxq[i__]];
         w[i__] = z__[indxq[i__]];
     }
     i__ = 1;
     j = *cutpnt + 1;
-    dlamrg_(&n1, &n2, &dlamda[1], &c__1, &c__1, &indx[1]);
+    dlamrg_(&n1, &n2, &dlambda[1], &c__1, &c__1, &indx[1]);
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
-        d__[i__] = dlamda[indx[i__]];
+        d__[i__] = dlambda[indx[i__]];
         z__[i__] = w[indx[i__]];
     }
     imax = idamax_(n, &z__[1], &c__1);
@@ -183,7 +183,7 @@ L80:
         } else {
             ++(*k);
             w[*k] = z__[jlam];
-            dlamda[*k] = d__[jlam];
+            dlambda[*k] = d__[jlam];
             indxp[*k] = jlam;
             jlam = j;
         }
@@ -192,21 +192,21 @@ L80:
 L100:
     ++(*k);
     w[*k] = z__[jlam];
-    dlamda[*k] = d__[jlam];
+    dlambda[*k] = d__[jlam];
     indxp[*k] = jlam;
 L110:
     if (*icompq == 0) {
         i__1 = *n;
         for (j = 1; j <= i__1; ++j) {
             jp = indxp[j];
-            dlamda[j] = d__[jp];
+            dlambda[j] = d__[jp];
             perm[j] = indxq[indx[jp]];
         }
     } else {
         i__1 = *n;
         for (j = 1; j <= i__1; ++j) {
             jp = indxp[j];
-            dlamda[j] = d__[jp];
+            dlambda[j] = d__[jp];
             perm[j] = indxq[indx[jp]];
             dcopy_(qsiz, &q[perm[j] * q_dim1 + 1], &c__1, &q2[j * q2_dim1 + 1], &c__1);
         }
@@ -214,10 +214,10 @@ L110:
     if (*k < *n) {
         if (*icompq == 0) {
             i__1 = *n - *k;
-            dcopy_(&i__1, &dlamda[*k + 1], &c__1, &d__[*k + 1], &c__1);
+            dcopy_(&i__1, &dlambda[*k + 1], &c__1, &d__[*k + 1], &c__1);
         } else {
             i__1 = *n - *k;
-            dcopy_(&i__1, &dlamda[*k + 1], &c__1, &d__[*k + 1], &c__1);
+            dcopy_(&i__1, &dlambda[*k + 1], &c__1, &d__[*k + 1], &c__1);
             i__1 = *n - *k;
             dlacpy_((char *)"A", qsiz, &i__1, &q2[(*k + 1) * q2_dim1 + 1], ldq2, &q[(*k + 1) * q_dim1 + 1],
                     ldq, (ftnlen)1);

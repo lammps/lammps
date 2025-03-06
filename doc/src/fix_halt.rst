@@ -6,7 +6,7 @@ fix halt command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID halt N attribute operator avalue keyword value ...
 
@@ -101,7 +101,7 @@ hstyle = bondmax option.
 .. code-block:: LAMMPS
 
    compute         bdist all bond/local dist
-   compute         bmax all reduce max c_bdist
+   compute         bmax all reduce max c_bdist inputs local
    variable        bondmax equal c_bmax
 
 Thus these two versions of a fix halt command will do the same thing:
@@ -183,4 +183,4 @@ Related commands
 Default
 """""""
 
-The option defaults are error = hard, message = yes, and path = ".".
+The option defaults are error = soft, message = yes, and path = ".".

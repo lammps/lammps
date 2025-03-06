@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <gtest/gtest.h>
 
@@ -75,7 +47,7 @@ struct TestViewOperator {
   enum { N = 1000 };
   enum { D = 3 };
 
-  using view_type = Kokkos::View<T * [D], execution_space>;
+  using view_type = Kokkos::View<T *[D], execution_space>;
 
   const view_type v1;
   const view_type v2;
@@ -769,8 +741,7 @@ struct TestViewMirror {
     int equal_ptr_h2_d = a_h2.data() == a_d.data() ? 1 : 0;
 
     int is_same_memspace =
-        std::is_same<Kokkos::HostSpace,
-                     typename DeviceType::memory_space>::value
+        std::is_same_v<Kokkos::HostSpace, typename DeviceType::memory_space>
             ? 1
             : 0;
     ASSERT_EQ(equal_ptr_h_h2, 1);
@@ -796,8 +767,7 @@ struct TestViewMirror {
     int equal_ptr_h3_d = a_h3.data() == a_d.data() ? 1 : 0;
 
     int is_same_memspace =
-        std::is_same<Kokkos::HostSpace,
-                     typename DeviceType::memory_space>::value
+        std::is_same_v<Kokkos::HostSpace, typename DeviceType::memory_space>
             ? 1
             : 0;
     ASSERT_EQ(equal_ptr_h_h2, 1);
@@ -865,18 +835,15 @@ struct TestViewMirror {
                                                     view_const_cast(v));
   }
 
-  template <class MemoryTraits, class Space>
+  template <class View>
   struct CopyUnInit {
-    using mirror_view_type = typename Kokkos::Impl::MirrorViewType<
-        Space, double *, Layout, Kokkos::HostSpace, MemoryTraits>::view_type;
-
-    mirror_view_type a_d;
+    View a_d;
 
     KOKKOS_INLINE_FUNCTION
-    CopyUnInit(mirror_view_type &a_d_) : a_d(a_d_) {}
+    explicit CopyUnInit(View const &a_d_) : a_d(a_d_) {}
 
     KOKKOS_INLINE_FUNCTION
-    void operator()(const typename Space::size_type i) const {
+    void operator()(const typename View::size_type i) const {
       a_d(i) = (double)(10 - i);
     }
   };
@@ -894,8 +861,7 @@ struct TestViewMirror {
 
     int equal_ptr_h_d = (a_h.data() == a_d.data()) ? 1 : 0;
     constexpr int is_same_memspace =
-        std::is_same<Kokkos::HostSpace,
-                     typename DeviceType::memory_space>::value
+        std::is_same_v<Kokkos::HostSpace, typename DeviceType::memory_space>
             ? 1
             : 0;
 
@@ -903,7 +869,8 @@ struct TestViewMirror {
 
     Kokkos::parallel_for(
         Kokkos::RangePolicy<typename DeviceType::execution_space>(0, int(10)),
-        CopyUnInit<MemoryTraits, DeviceType>(a_d));
+        // decltype required for Intel classics, that doesn't recognize the CTAD
+        CopyUnInit<decltype(a_d)>(a_d));
 
     Kokkos::deep_copy(a_h, a_d);
 
@@ -937,10 +904,10 @@ class TestViewAPI {
 
   using dView0       = Kokkos::View<T, device>;
   using dView1       = Kokkos::View<T *, device>;
-  using dView2       = Kokkos::View<T * [N1], device>;
-  using dView3       = Kokkos::View<T * [N1][N2], device>;
-  using dView4       = Kokkos::View<T * [N1][N2][N3], device>;
-  using const_dView4 = Kokkos::View<const T * [N1][N2][N3], device>;
+  using dView2       = Kokkos::View<T *[N1], device>;
+  using dView3       = Kokkos::View<T *[N1][N2], device>;
+  using dView4       = Kokkos::View<T *[N1][N2][N3], device>;
+  using const_dView4 = Kokkos::View<const T *[N1][N2][N3], device>;
   using dView4_unmanaged =
       Kokkos::View<T ****, device, Kokkos::MemoryUnmanaged>;
   using host = typename dView0::host_mirror_space;
@@ -985,9 +952,11 @@ class TestViewAPI {
     using view_type   = Kokkos::View<int, host>;
     using mirror_type = typename view_type::HostMirror;
 
-    static_assert(std::is_same<typename view_type::memory_space,
-                               typename mirror_type::memory_space>::value,
-                  "");
+    static_assert(std::is_same_v<typename view_type::HostMirror,
+                                 typename view_type::host_mirror_type>);
+
+    static_assert(std::is_same_v<typename view_type::memory_space,
+                                 typename mirror_type::memory_space>);
 
     view_type a("a");
     mirror_type am = Kokkos::create_mirror_view(a);
@@ -1033,26 +1002,26 @@ class TestViewAPI {
     hView3 hv_3("dView3::HostMirror", N0);
     hView4 hv_4("dView4::HostMirror", N0);
 
-    dView0 dv_0_1(nullptr, 0);
+    dView0 dv_0_1(nullptr);
     dView0 dv_0_2(hv_0.label(), hv_0.layout());
 
-    dView1 dv_1_1(nullptr, 0);
+    dView1 dv_1_1(nullptr, N0);
     dView1 dv_1_2(hv_1.label(), hv_1.layout());
 
-    dView2 dv_2_1(nullptr, 0);
+    dView2 dv_2_1(nullptr, N0);
     dView2 dv_2_2(hv_2.label(), hv_2.layout());
 
-    dView3 dv_3_1(nullptr, 0);
+    dView3 dv_3_1(nullptr, N0);
     dView3 dv_3_2(hv_3.label(), hv_3.layout());
 
-    dView4 dv_4_1(nullptr, 0);
+    dView4 dv_4_1(nullptr, N0);
     dView4 dv_4_2(hv_4.label(), hv_4.layout());
   }
 
   static void run_test_contruction_from_layout_2() {
     using dView3_0 = Kokkos::View<T ***, device>;
-    using dView3_1 = Kokkos::View<T * * [N1], device>;
-    using dView3_2 = Kokkos::View<T * [N1][N2], device>;
+    using dView3_1 = Kokkos::View<T **[N2], device>;
+    using dView3_2 = Kokkos::View<T *[N1][N2], device>;
     using dView3_3 = Kokkos::View<T[N0][N1][N2], device>;
 
     dView3_0 v_0("v_0", N0, N1, N2);
@@ -1255,7 +1224,7 @@ class TestViewAPI {
       Kokkos::deep_copy(typename hView4::execution_space(), dx, hx);
       Kokkos::deep_copy(typename hView4::execution_space(), dy, dx);
       Kokkos::deep_copy(typename hView4::execution_space(), hy, dy);
-      typename dView4::execution_space().fence();
+      typename hView4::execution_space().fence();
 
       for (size_t ip = 0; ip < N0; ++ip)
         for (size_t i1 = 0; i1 < N1; ++i1)
@@ -1266,7 +1235,7 @@ class TestViewAPI {
 
       Kokkos::deep_copy(typename hView4::execution_space(), dx, T(0));
       Kokkos::deep_copy(typename hView4::execution_space(), hx, dx);
-      typename dView4::execution_space().fence();
+      typename hView4::execution_space().fence();
 
       for (size_t ip = 0; ip < N0; ++ip)
         for (size_t i1 = 0; i1 < N1; ++i1)
@@ -1368,6 +1337,40 @@ class TestViewAPI {
     ASSERT_EQ(dz.data(), nullptr);
   }
 
+  struct test_refcount_poison_copy_functor {
+    using view_type = Kokkos::View<double *>;
+    explicit test_refcount_poison_copy_functor(view_type v) : view(v) {}
+
+    test_refcount_poison_copy_functor(
+        const test_refcount_poison_copy_functor &other)
+        : view(other.view) {
+      throw std::bad_alloc();
+    }
+
+    KOKKOS_INLINE_FUNCTION void operator()(int) const {}
+
+    view_type view;
+  };
+
+  static void run_test_refcount_exception() {
+    using view_type = typename test_refcount_poison_copy_functor::view_type;
+    view_type original("original", N0);
+    ASSERT_EQ(original.use_count(), 1);
+
+    // test_refcount_poison_copy_functor throws during copy construction
+    try {
+      Kokkos::parallel_for(
+          Kokkos::RangePolicy<typename DeviceType::execution_space>(0, N0),
+          test_refcount_poison_copy_functor(original));
+    } catch (const std::bad_alloc &) {
+    }
+
+    // Ensure refcounting is enabled, we should increment here
+    auto copy = original;
+    ASSERT_EQ(original.use_count(), 2);
+    ASSERT_EQ(copy.use_count(), 2);
+  }
+
   static void run_test_deep_copy_empty() {
     // Check Deep Copy of LayoutLeft to LayoutRight
     {
@@ -1388,8 +1391,8 @@ class TestViewAPI {
 
     // Check Deep Copy of two empty 2D views
     {
-      Kokkos::View<double * [3], Kokkos::LayoutRight> d;
-      Kokkos::View<double * [3], Kokkos::LayoutRight, Kokkos::HostSpace> h;
+      Kokkos::View<double *[3], Kokkos::LayoutRight> d;
+      Kokkos::View<double *[3], Kokkos::LayoutRight, Kokkos::HostSpace> h;
       Kokkos::deep_copy(d, h);
       Kokkos::deep_copy(h, d);
     }
@@ -1567,53 +1570,6 @@ class TestViewAPI {
     const_multivector_type cmv(mv);
     typename multivector_type::const_type cmvX(cmv);
     typename const_multivector_type::const_type ccmvX(cmv);
-  }
-
-  static void run_test_error() {
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-    if (std::is_same<typename dView1::memory_space,
-                     Kokkos::Experimental::OpenMPTargetSpace>::value)
-      return;
-#endif
-// FIXME_MSVC_WITH_CUDA
-// This test doesn't behave as expected on Windows with CUDA
-#if defined(_WIN32) && defined(KOKKOS_ENABLE_CUDA)
-    if (std::is_same<typename dView1::memory_space,
-                     Kokkos::CudaUVMSpace>::value)
-      return;
-#endif
-    auto alloc_size = std::numeric_limits<size_t>::max() - 42;
-    try {
-      auto should_always_fail = dView1("hello_world_failure", alloc_size);
-    } catch (std::runtime_error const &error) {
-      // TODO once we remove the conversion to std::runtime_error, catch the
-      //      appropriate Kokkos error here
-      std::string msg = error.what();
-      ASSERT_PRED_FORMAT2(::testing::IsSubstring, "hello_world_failure", msg);
-      ASSERT_PRED_FORMAT2(::testing::IsSubstring,
-                          typename device::memory_space{}.name(), msg);
-      // Can't figure out how to make assertions either/or, so we'll just use
-      // an if statement here for now.  Test failure message will be a bit
-      // misleading, but developers should figure out what's going on pretty
-      // quickly.
-      if (msg.find("is not a valid size") != std::string::npos) {
-        ASSERT_PRED_FORMAT2(::testing::IsSubstring, "is not a valid size", msg);
-      } else
-#ifdef KOKKOS_ENABLE_SYCL
-          if (msg.find("insufficient memory") != std::string::npos)
-#endif
-      {
-        ASSERT_PRED_FORMAT2(::testing::IsSubstring, "insufficient memory", msg);
-      }
-      // SYCL cannot tell the reason why a memory allocation failed
-#ifdef KOKKOS_ENABLE_SYCL
-      else {
-        // Otherwise, there has to be some sort of "unknown error" error
-        ASSERT_PRED_FORMAT2(::testing::IsSubstring,
-                            "because of an unknown error.", msg);
-      }
-#endif
-    }
   }
 };
 

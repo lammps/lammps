@@ -232,6 +232,7 @@ TEST_F(FileOperationsTest, read_lines_from_file)
     rv = utils::read_lines_from_file(fp, 2, MAX_BUF_SIZE / 2, buf, me, world);
     ASSERT_EQ(rv, 1);
     delete[] buf;
+    if (me == 0) fclose(fp);
 }
 
 TEST_F(FileOperationsTest, logmesg)
@@ -324,7 +325,6 @@ TEST_F(FileOperationsTest, write_restart)
     command("write_restart multi-%.restart");
     command("write_restart multi2-%.restart fileper 2");
     command("write_restart multi3-%.restart nfile 1");
-    if (Info::has_package("MPIIO")) command("write_restart test.restart.mpiio");
     END_HIDE_OUTPUT();
 
     ASSERT_FILE_EXISTS("noinit.restart");
@@ -336,18 +336,6 @@ TEST_F(FileOperationsTest, write_restart)
     ASSERT_FILE_EXISTS("multi2-0.restart");
     ASSERT_FILE_EXISTS("multi3-base.restart");
     ASSERT_FILE_EXISTS("multi3-0.restart");
-    if (Info::has_package("MPIIO")) {
-        ASSERT_FILE_EXISTS("test.restart.mpiio");
-    }
-
-    if (!Info::has_package("MPIIO")) {
-        TEST_FAILURE(".*ERROR: Writing to MPI-IO filename when MPIIO package is not inst.*",
-                     command("write_restart test.restart.mpiio"););
-    } else {
-        TEST_FAILURE(".*ERROR: Restart file MPI-IO output not allowed with % in filename.*",
-                     command("write_restart test.restart-%.mpiio"););
-    }
-
     TEST_FAILURE(".*ERROR: Illegal write_restart command.*", command("write_restart"););
     TEST_FAILURE(".*ERROR: Unknown write_restart keyword: xxxx.*",
                  command("write_restart test.restart xxxx"););
@@ -401,7 +389,6 @@ TEST_F(FileOperationsTest, write_restart)
     delete_file("multi3-base.restart");
     delete_file("multi3-0.restart");
     delete_file("triclinic.restart");
-    if (Info::has_package("MPIIO")) delete_file("test.restart.mpiio");
 }
 
 TEST_F(FileOperationsTest, write_data)
@@ -525,10 +512,10 @@ TEST_F(FileOperationsTest, read_data_fix)
     lmp->atom->molecule[1] = 6;
     lmp->atom->molecule[2] = 5;
     lmp->atom->molecule[3] = 6;
-    lmp->atom->tag[0] = 9;
-    lmp->atom->tag[1] = 6;
-    lmp->atom->tag[2] = 7;
-    lmp->atom->tag[3] = 8;
+    lmp->atom->tag[0]      = 9;
+    lmp->atom->tag[1]      = 6;
+    lmp->atom->tag[2]      = 7;
+    lmp->atom->tag[3]      = 8;
     lmp->atom->map_init(1);
     lmp->atom->map_set();
     command("write_data test_mol_id_merge.data");
@@ -611,15 +598,16 @@ TEST_F(FileOperationsTest, read_data_fix)
     EXPECT_EQ(lmp->atom->tag[GETIDX(8)], 8);
     EXPECT_EQ(lmp->atom->tag[GETIDX(9)], 9);
     EXPECT_EQ(lmp->atom->tag[GETIDX(10)], 10);
+
+    // clean up
+    delete_file("test_mol_id_merge.data");
+    delete_file("test_mol_id.data");
 }
 
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
-
-    if (platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

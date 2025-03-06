@@ -4,7 +4,7 @@ HostArch=(SNB HSW SKX KNL)
 DeviceArch=(Kepler35 Kepler37 Pascal60 Pascal61 Volta70)
 if [ ! -z "$KOKKOS_HOST_ARCH_TEST" ]; then
   export KOKKOS_ARCH_TEST=1
-  HostArch=(WSM SNB HSW SKX WSM AMDAVX ARMv80 ARMv81 BDW KNC KNL BGQ Power7 Power8 Power9 Zen Zen2 Zen3 ARMv8_ThunderX ARMv8_ThunderX2)
+  HostArch=(SNB HSW SKX AMDAVX ARMv80 ARMv81 BDW KNC KNL Power8 Power9 Zen Zen2 Zen3 ARMv8_ThunderX ARMv8_ThunderX2)
   DeviceArch=()
 fi
 

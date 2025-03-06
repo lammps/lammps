@@ -27,7 +27,7 @@
 #include "suffix.h"
 using namespace LAMMPS_NS;
 
-#define EPSILON 1.0e-10
+static constexpr double EPSILON = 1.0e-10;
 
 /* ---------------------------------------------------------------------- */
 
@@ -58,6 +58,10 @@ PairDPDOMP::~PairDPDOMP()
 void PairDPDOMP::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
+
+  // precompute random force scaling factors
+
+  for (int i = 0; i < 4; ++i) special_sqrt[i] = sqrt(force->special_lj[i]);
 
   const int nall = atom->nlocal + atom->nghost;
   const int inum = list->inum;

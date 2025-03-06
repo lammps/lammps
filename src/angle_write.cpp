@@ -25,8 +25,8 @@
 #include "error.h"
 #include "force.h"
 #include "input.h"
-#include "lammps.h"
 #include "math_const.h"
+#include "safe_pointers.h"
 #include "update.h"
 
 #include <cmath>
@@ -35,7 +35,7 @@ using MathConst::DEG2RAD;
 using MathConst::RAD2DEG;
 
 static constexpr double epsilon = 6.5e-6;
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 /* ---------------------------------------------------------------------- */
 
 void AngleWrite::command(int narg, char **arg)
@@ -80,13 +80,12 @@ void AngleWrite::command(int narg, char **arg)
   // otherwise make certain that units are consistent
   // print header in format used by angle_style table
 
-  FILE *fp = nullptr;
+  SafeFilePtr fp;
   std::string coeffs_file = table_file + ".tmp.coeffs";
   if (comm->me == 0) {
 
-    fp = fopen(coeffs_file.c_str(), "w");
-    force->angle->write_data(fp);
-    fclose(fp);
+    SafeFilePtr coeffs = fopen(coeffs_file.c_str(), "w");
+    force->angle->write_data(coeffs);
 
     // units sanity check:
     // - if this is the first time we write to this potential file,
@@ -107,7 +106,7 @@ void AngleWrite::command(int narg, char **arg)
                      utils::current_date());
       fp = fopen(table_file.c_str(), "w");
       if (fp)
-        fmt::print(fp, "# DATE: {} UNITS: {} Created by angle_write\n", utils::current_date(),
+        utils::print(fp, "# DATE: {} UNITS: {} Created by angle_write\n", utils::current_date(),
                    update->unit_style);
     }
     if (fp == nullptr)
@@ -123,11 +122,9 @@ void AngleWrite::command(int narg, char **arg)
 
   if (comm->me == 0) {
     // set up new LAMMPS instance with dummy system to evaluate angle potential
-    const char *args[] = {"AngleWrite", "-nocite", "-echo",   "none",
-                          "-log",       "none",    "-screen", "none"};
-    char **argv = (char **) args;
-    int argc = sizeof(args) / sizeof(char *);
-    LAMMPS *writer = new LAMMPS(argc, argv, singlecomm);
+    LAMMPS::argv args = {"AngleWrite", "-nocite", "-echo",   "none",
+                         "-log",       "none",    "-screen", "none"};
+    LAMMPS *writer = new LAMMPS(args, singlecomm);
 
     // create dummy system replicating angle style settings
     writer->input->one(fmt::format("units {}", update->unit_style));
@@ -148,14 +145,14 @@ void AngleWrite::command(int narg, char **arg)
     writer->input->one("pair_coeff * *");
     writer->input->one("mass * 1.0");
     writer->input->one(fmt::format("angle_style {}", force->angle_style));
-    FILE *coeffs;
-    char line[MAXLINE];
-    coeffs = fopen(coeffs_file.c_str(), "r");
+    char line[MAXLINE] = {'\0'};
+    SafeFilePtr coeffs = fopen(coeffs_file.c_str(), "r");
+    if (!coeffs)
+      error->one(FLERR, "Unable to open temporary file {}: {}", coeffs_file, utils::getsyserror());
     for (int i = 0; i < atom->nangletypes; ++i) {
-      fgets(line, MAXLINE, coeffs);
+      utils::sfgets(FLERR, line, MAXLINE, coeffs, coeffs_file.c_str(), error);
       writer->input->one(fmt::format("angle_coeff {}", line));
     }
-    fclose(coeffs);
     platform::unlink(coeffs_file);
 
     // initialize system
@@ -174,9 +171,9 @@ void AngleWrite::command(int narg, char **arg)
 
     // evaluate energy and force at each of N distances
 
-    fmt::print(fp, "# Angle potential {} for angle type {}: i,theta,energy,force\n",
+    utils::print(fp, "# Angle potential {} for angle type {}: i,theta,energy,force\n",
                force->angle_style, atype);
-    fmt::print(fp, "\n{}\nN {} EQ {:.15g}\n\n", keyword, n, theta0);
+    utils::print(fp, "\n{}\nN {} EQ {:.15g}\n\n", keyword, n, theta0);
 
 #define GET_ENERGY(myphi, mytheta) \
   theta = mytheta;                 \
@@ -222,7 +219,6 @@ void AngleWrite::command(int narg, char **arg)
 
     // clean up
     delete writer;
-    fclose(fp);
   }
   MPI_Comm_free(&singlecomm);
 }

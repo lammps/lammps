@@ -20,13 +20,10 @@
 #include "force.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
-#include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "respa.h"
 #include "update.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -136,9 +133,7 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJCutKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
+compute_fpair(const F_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
 
@@ -153,9 +148,7 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJCutKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
+compute_evdwl(const F_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
 
@@ -216,9 +209,9 @@ void PairLJCutKokkos<DeviceType>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
 }
 

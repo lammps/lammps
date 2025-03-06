@@ -20,7 +20,7 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "error.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "kokkos.h"
 #include "math_const.h"
@@ -32,15 +32,8 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using namespace EwaldConst;
 using namespace MathConst;
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
 
 /* ---------------------------------------------------------------------- */
 
@@ -204,9 +197,9 @@ void PairCoulDSFKokkos<DeviceType>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
 }
 

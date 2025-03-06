@@ -38,11 +38,8 @@
 
 using namespace LAMMPS_NS;
 
-#define OFFSET 16384
-#define SMALLQ 0.00001
-
-enum{REVERSE_RHO,REVERSE_AD,REVERSE_AD_PERATOM};
-enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
+static constexpr int OFFSET = 16384;
+static constexpr double SMALLQ = 0.00001;
 
 /* ---------------------------------------------------------------------- */
 
@@ -83,7 +80,7 @@ MSMCGOMP::~MSMCGOMP()
 void MSMCGOMP::compute(int eflag, int vflag)
 {
   if (scalar_pressure_flag)
-    error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' "
+    error->all(FLERR, Error::NOLASTLINE, "Must use 'kspace_modify pressure/scalar no' "
       "with kspace_style msm/cg/omp");
 
   const double * const q = atom->q;
@@ -138,11 +135,10 @@ void MSMCGOMP::compute(int eflag, int vflag)
                    / static_cast<double>(atom->natoms);
 
     if (me == 0)
-      utils::logmesg(MSM::lmp,fmt::format("  MSM/cg optimization cutoff: {:.8}\n"
-                                          "  Total charged atoms: {:.1f}%\n"
-                                          "  Min/max charged atoms/proc: {:.1f}%"
-                                          " {:.1f}%\n",smallq,
-                                          charged_frac,charged_fmin,charged_fmax));
+      utils::logmesg(MSM::lmp,"  MSM/cg optimization cutoff: {:.8}\n"
+                     "  Total charged atoms: {:.1f}%\n"
+                     "  Min/max charged atoms/proc: {:.1f}%"
+                     " {:.1f}%\n",smallq, charged_frac,charged_fmin,charged_fmax);
   }
 
   // only need to rebuild this list after a neighbor list update
@@ -334,7 +330,7 @@ void MSMCGOMP::particle_map()
   int i;
 
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
-    error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
+    error->one(FLERR, Error::NOLASTLINE, "Non-numeric box dimensions - simulation unstable");
 
   // XXX: O(N). is it worth to add OpenMP here?
   for (int j = 0; j < num_charged; j++) {
@@ -360,7 +356,9 @@ void MSMCGOMP::particle_map()
       flag = 1;
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute MSM");
+  if (flag)
+    error->one(FLERR, Error::NOLASTLINE, "Out of range atoms - cannot compute MSM{}",
+               utils::errorurl(4));
 }
 
 /* ----------------------------------------------------------------------

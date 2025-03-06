@@ -16,12 +16,8 @@
 
 #include "atom_kokkos.h"
 #include "update.h"
-#include "modify.h"
-#include "input.h"
-#include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
-#include "kokkos_base.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

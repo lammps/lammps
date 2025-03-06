@@ -20,8 +20,6 @@
 #include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neighbor.h"
-#include "update.h"
 
 #include <cmath>
 #include <cstring>

@@ -420,6 +420,11 @@ void BaseAmoebaT::compute_udirect2b(int *host_amtype, int *host_amgroup, double 
   cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
   atom->add_extra_data();
 
+  if (_max_tep_size>_max_fieldp_size) {
+    _max_fieldp_size = _max_tep_size;
+    _fieldp.resize(_max_fieldp_size*6);
+  }
+
   *fieldp_ptr=_fieldp.host.begin();
 
   // specify the correct cutoff and alpha values

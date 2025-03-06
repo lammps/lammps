@@ -1,0 +1,120 @@
+LAMMPS (3 Aug 2023 - Development - patch_2Aug2023-790-g0fbe388cbd)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# 3d Lennard-Jones melt
+
+units           lj
+#atom_style     charge
+processors      * 1 1
+
+lattice         fcc 0.8442
+Lattice spacing in x,y,z = 1.6795962 1.6795962 1.6795962
+region          box block 0 10 0 10 0 10
+create_box      3 box
+Created orthogonal box = (0 0 0) to (16.795962 16.795962 16.795962)
+  4 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 4000 atoms
+  using lattice units in orthogonal box = (0 0 0) to (16.795962 16.795962 16.795962)
+  create_atoms CPU = 0.000 seconds
+mass            * 1.0
+
+region          long block 3 6 0 10 0 10
+set             region long type 2
+Setting atom values ...
+  1400 settings made for type
+#set type 1:2    charge 0.0
+
+velocity        all create 1.0 87287
+
+pair_style      lj/long/coul/long long off 2.5
+pair_coeff      * * 1.0 1.0 2.5
+pair_coeff      * 2 1.0 1.0 5.0
+
+kspace_style    pppm/disp 1.0e-4
+kspace_modify   gewald/disp 0.1
+
+neighbor        0.3 bin
+neigh_modify    every 2 delay 4 check yes
+
+group           fast type 1
+2600 atoms in group fast
+group           slow type 2
+1400 atoms in group slow
+fix             0 all balance 20 1.0 shift x 5 1.0                 weight group 2 fast 1.0 slow 2.0 weight time 0.66
+
+fix             1 all nve
+
+#dump           id all atom 50 dump.melt
+
+#dump           2 all image 25 image.*.jpg type type #               axes yes 0.8 0.02 view 60 -30
+#dump_modify    2 pad 3
+
+#dump           3 all movie 25 movie.mpg type type #               axes yes 0.8 0.02 view 60 -30
+#dump_modify    3 pad 3
+
+thermo          50
+run             500
+PPPMDisp initialization ...
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+  Dispersion G vector (1/distance)= 0.1
+  Dispersion grid = 2 2 2
+  Dispersion stencil order = 5
+  Dispersion estimated absolute RMS force accuracy = 1.0125082
+  Dispersion estimated relative force accuracy = 1.0125082
+  using double precision FFTW3
+  3d grid and FFT values/proc = 294 4
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 2 steps, delay = 4 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.3
+  ghost atom cutoff = 5.3
+  binsize = 2.65, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/long/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.293 | 4.424 | 4.655 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
+         0   1              52.148338      0              53.647963      94.09503       4738.2137    
+        50   17.850656      42.620113      0              69.389403      142.80556      4738.2137    
+       100   9.4607189      49.700118      0              63.887649      117.51739      4738.2137    
+       150   13.992056      47.731988      0              68.714825      140.56926      4738.2137    
+       200   11.617635      52.509395      0              69.931491      142.6933       4738.2137    
+       250   13.536262      48.330072      0              68.629389      133.91619      4738.2137    
+       300   12.620066      50.328874      0              69.25424       132.46908      4738.2137    
+       350   14.514428      50.102816      0              71.869016      143.37224      4738.2137    
+       400   12.348652      49.810405      0              68.328752      130.3274       4738.2137    
+       450   13.800185      50.987433      0              71.682536      144.38181      4738.2137    
+       500   13.255019      50.64398       0              70.521538      138.24387      4738.2137    
+Loop time of 3.81152 on 4 procs for 500 steps with 4000 atoms
+
+Performance: 56670.269 tau/day, 131.181 timesteps/s, 524.725 katom-step/s
+98.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.55832    | 1.1319     | 1.6826     |  48.2 | 29.70
+Kspace  | 0.40554    | 1.6212     | 2.7162     |  80.5 | 42.53
+Neigh   | 0.25726    | 0.85075    | 1.6088     |  63.7 | 22.32
+Comm    | 0.079895   | 0.17554    | 0.24986    |  17.5 |  4.61
+Output  | 0.00035922 | 0.00041828 | 0.00044719 |   0.0 |  0.01
+Modify  | 0.02199    | 0.024073   | 0.026861   |   1.3 |  0.63
+Other   |            | 0.007582   |            |       |  0.20
+
+Nlocal:           1000 ave        1995 max         227 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+Nghost:           7601 ave        9326 max        5900 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:         127284 ave      212972 max       45553 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 509136
+Ave neighs/atom = 127.284
+Neighbor list builds = 124
+Dangerous builds = 97
+Total wall time: 0:00:03

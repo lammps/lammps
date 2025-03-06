@@ -20,11 +20,11 @@ Syntax
   .. parsed-literal::
 
        c_ID = global scalar calculated by a compute with ID
-       c_ID[I] = Ith component of global vector calculated by a compute with ID
+       c_ID[I] = Ith component of global vector calculated by a compute with ID, I can include wildcard (see below)
        f_ID = global scalar calculated by a fix with ID
-       f_ID[I] = Ith component of global vector calculated by a fix with ID
+       f_ID[I] = Ith component of global vector calculated by a fix with ID, I can include wildcard (see below)
        v_name = global value calculated by an equal-style variable with name
-       v_name[I] = Ith component of global vector calculated by a vector-style variable with name
+       v_name[I] = Ith component of a vector-style variable with name, I can include wildcard (see below)
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *type* or *start* or *file* or *overwrite* or *title1* or *title2* or *ncorr* or *nlen* or *ncount*
@@ -63,6 +63,7 @@ Examples
    fix 1 all ave/correlate/long 1 10000 &
              c_thermo_press[1] c_thermo_press[2] c_thermo_press[3] &
              type upper title1 "My correlation data" nlen 15 ncount 3
+   fix 1 all ave/correlate/long 1 10000 c_thermo_press[*]
 
 Description
 """""""""""
@@ -80,8 +81,10 @@ specified values may represent calculations performed by computes and
 fixes which store their own "group" definitions.
 
 Each listed value can be the result of a compute or fix or the
-evaluation of an equal-style variable. See the
-:doc:`fix ave/correlate <fix_ave_correlate>` page for details.
+evaluation of an equal-style or vector-style variable.  For
+vector-style variables, the specified indices can include a wildcard
+character.  See the :doc:`fix ave/correlate <fix_ave_correlate>` page
+for details.
 
 The *Nevery* and *Nfreq* arguments specify on what time steps the input
 values will be used to calculate correlation data and the frequency

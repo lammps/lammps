@@ -6,7 +6,7 @@ fix_modify AtC write_restart command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> write_restart <file_name>
 

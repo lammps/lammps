@@ -6,7 +6,7 @@ temper command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    temper N M temp fix-ID seed1 seed2 index
 

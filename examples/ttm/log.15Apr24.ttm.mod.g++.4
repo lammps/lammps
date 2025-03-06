@@ -1,0 +1,121 @@
+LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-394-g03ab36a37d)
+  using 1 OpenMP thread(s) per MPI task
+units           metal
+atom_style      atomic
+boundary        p p p
+
+lattice diamond 5.4309
+Lattice spacing in x,y,z = 5.4309 5.4309 5.4309
+region box block 0 10 0 10 0 10
+create_box 1 box
+Created orthogonal box = (0 0 0) to (54.309 54.309 54.309)
+  1 by 2 by 2 MPI processor grid
+mass 1 28.0855
+create_atoms 1 box basis 1 1 basis 2 1 basis 3 1 basis 4 1 basis 5 1 basis 6 1 basis 7 1 basis 8 1
+Created 8000 atoms
+  using lattice units in orthogonal box = (0 0 0) to (54.309 54.309 54.309)
+  create_atoms CPU = 0.002 seconds
+
+pair_style      sw
+pair_coeff      * * Si.sw Si
+Reading sw potential file Si.sw with DATE: 2007-06-11
+
+neighbor        2.0 bin
+neigh_modify    every 5 delay 0 check yes
+
+fix             1 all nve
+fix             twotemp all ttm/mod 1354684 Si.ttm_mod 10 10 10 set 1000.0 # outfile 100 T_out.txt
+
+compute         pe all pe/atom
+compute         ke all ke/atom
+
+timestep        0.0001
+thermo          100
+
+thermo_style    custom step temp etotal f_twotemp[1] f_twotemp[2]
+                thermo_modify format float "%20.16g"
+
+run             1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix ttm/mod command: doi:10.1088/0953-8984/26/47/475401, doi:10.1002/ctpp.201310025
+
+@article{Pisarev2014,
+author = {Pisarev, V. V. and Starikov, S. V.},
+title = {Atomistic Simulation of Ion Track Formation in {UO$_2$}.},
+journal = {J.~Phys.\ Condens.\ Matter},
+volume = {26},
+number = {47},
+pages = {475401},
+year = {2014}
+}
+
+@article{Norman2013,
+author = {Norman, G. E. and Starikov, S. V. and Stegailov, V. V. and Saitov, I. M. and Zhilyaev, P. A.},
+title = {Atomistic Modeling of Warm Dense Matter in the Two-Temperature State},
+journal = {Contrib.\ Plasma Phys.},
+number = {2},
+volume = {53},
+pages = {129--139},
+year = {2013}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 5 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.77118
+  ghost atom cutoff = 5.77118
+  binsize = 2.88559, bins = 19 19 19
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair sw, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.436 | 3.436 | 3.436 Mbytes
+   Step          Temp          TotEng      f_twotemp[1]   f_twotemp[2] 
+         0                     0   -34692.79996100361   -52.79390940511979                    0
+       100      1.20337355884597   -34691.30677367127   -54.30747356568817  0.01557346850238741
+       200     1.709631732825883   -34689.83859944795    -55.7982356998371  0.02508386983502213
+       300     2.488524478071323   -34688.26307995134    -57.3977272154369  0.02664346353990833
+       400      3.38535890366476   -34686.51395648598   -59.17547816947624  0.02164200191836632
+       500     3.838163353802383   -34684.79466673204   -60.92228950760077 0.005860499116196545
+       600     4.675913079756001   -34683.03448988724   -62.72423959707044   0.0106700119158327
+       700     5.637185532827328   -34681.25888274477    -64.5491928842093  0.01568536325219336
+       800     6.316986413957468   -34679.29231578312   -66.57005328290739  0.02035373879569394
+       900     7.211479047111087   -34677.61236020172   -68.30976417874265  0.03239086895076279
+      1000     8.431725106300505   -34675.81097854214     -70.161139196977  0.01219385884660358
+Loop time of 1.73439 on 4 procs for 1000 steps with 8000 atoms
+
+Performance: 4.982 ns/day, 4.818 hours/ns, 576.572 timesteps/s, 4.613 Matom-step/s
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.127      | 1.1392     | 1.1511     |   1.0 | 65.68
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.068488   | 0.082304   | 0.094797   |   4.1 |  4.75
+Output  | 0.0024745  | 0.0025221  | 0.0025705  |   0.1 |  0.15
+Modify  | 0.50194    | 0.50329    | 0.50522    |   0.2 | 29.02
+Other   |            | 0.007117   |            |       |  0.41
+
+Nlocal:           2000 ave        2000 max        2000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:           3165 ave        3165 max        3165 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:        68000 ave       68000 max       68000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 272000
+Ave neighs/atom = 34
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:01

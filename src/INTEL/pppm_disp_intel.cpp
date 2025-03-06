@@ -39,27 +39,10 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-#define MAXORDER   7
-#define OFFSET 16384
-#define SMALL 0.00001
-#define LARGE 10000.0
-#define EPS_HOC 1.0e-7
+static constexpr int OFFSET = 16384;
+static constexpr FFT_SCALAR ZEROF = 0.0;
 
-enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};
-enum{REVERSE_RHO, REVERSE_RHO_G, REVERSE_RHO_A, REVERSE_RHO_NONE};
-enum{FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM,
-     FORWARD_IK_G, FORWARD_AD_G, FORWARD_IK_PERATOM_G, FORWARD_AD_PERATOM_G,
-     FORWARD_IK_A, FORWARD_AD_A, FORWARD_IK_PERATOM_A, FORWARD_AD_PERATOM_A,
-     FORWARD_IK_NONE, FORWARD_AD_NONE, FORWARD_IK_PERATOM_NONE,
-     FORWARD_AD_PERATOM_NONE};
-
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
+enum{ GEOMETRIC, ARITHMETIC, SIXTHPOWER };
 
 /* ---------------------------------------------------------------------- */
 
@@ -268,23 +251,23 @@ void PPPMDispIntel::compute(int eflag, int vflag)
     //perform calculations for coulomb interactions only
 
     if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-      particle_map<float,double>(delxinv, delyinv, delzinv, shift, part2grid,
-                                 nupper, nlower, nxlo_out, nylo_out, nzlo_out,
-                                 nxhi_out, nyhi_out, nzhi_out,
-                                 fix->get_mixed_buffers());
-      make_rho_c<float,double>(fix->get_mixed_buffers());
+      particle_map_intel<float,double>(delxinv, delyinv, delzinv, shift, part2grid,
+                                       nupper, nlower, nxlo_out, nylo_out, nzlo_out,
+                                       nxhi_out, nyhi_out, nzhi_out,
+                                       fix->get_mixed_buffers());
+      make_rho_c_intel<float,double>(fix->get_mixed_buffers());
     } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-      particle_map<double,double>(delxinv, delyinv, delzinv, shift, part2grid,
-                                  nupper, nlower, nxlo_out, nylo_out,
-                                  nzlo_out, nxhi_out, nyhi_out, nzhi_out,
-                                  fix->get_double_buffers());
-      make_rho_c<double,double>(fix->get_double_buffers());
+      particle_map_intel<double,double>(delxinv, delyinv, delzinv, shift, part2grid,
+                                        nupper, nlower, nxlo_out, nylo_out,
+                                        nzlo_out, nxhi_out, nyhi_out, nzhi_out,
+                                        fix->get_double_buffers());
+      make_rho_c_intel<double,double>(fix->get_double_buffers());
     } else {
-      particle_map<float,float>(delxinv, delyinv, delzinv, shift, part2grid,
-                                nupper, nlower, nxlo_out, nylo_out, nzlo_out,
-                                nxhi_out, nyhi_out, nzhi_out,
-                                fix->get_single_buffers());
-      make_rho_c<float,float>(fix->get_single_buffers());
+      particle_map_intel<float,float>(delxinv, delyinv, delzinv, shift, part2grid,
+                                      nupper, nlower, nxlo_out, nylo_out, nzlo_out,
+                                      nxhi_out, nyhi_out, nzhi_out,
+                                      fix->get_single_buffers());
+      make_rho_c_intel<float,float>(fix->get_single_buffers());
     }
 
     gc->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO,1,sizeof(FFT_SCALAR),
@@ -305,11 +288,11 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                        gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-        fieldforce_c_ad<float,double>(fix->get_mixed_buffers());
+        fieldforce_c_ad_intel<float,double>(fix->get_mixed_buffers());
       } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-        fieldforce_c_ad<double,double>(fix->get_double_buffers());
+        fieldforce_c_ad_intel<double,double>(fix->get_double_buffers());
       } else {
-        fieldforce_c_ad<float,float>(fix->get_single_buffers());
+        fieldforce_c_ad_intel<float,float>(fix->get_single_buffers());
       }
 
       if (vflag_atom)
@@ -330,11 +313,11 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                        gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-        fieldforce_c_ik<float,double>(fix->get_mixed_buffers());
+        fieldforce_c_ik_intel<float,double>(fix->get_mixed_buffers());
       } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-        fieldforce_c_ik<double,double>(fix->get_double_buffers());
+        fieldforce_c_ik_intel<double,double>(fix->get_double_buffers());
       } else {
-        fieldforce_c_ik<float,float>(fix->get_single_buffers());
+        fieldforce_c_ik_intel<float,float>(fix->get_single_buffers());
       }
 
       if (evflag_atom)
@@ -349,26 +332,26 @@ void PPPMDispIntel::compute(int eflag, int vflag)
     //perform calculations for geometric mixing
 
     if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-      particle_map<float,double>(delxinv_6, delyinv_6, delzinv_6, shift_6,
-                                 part2grid_6, nupper_6, nlower_6, nxlo_out_6,
-                                 nylo_out_6, nzlo_out_6, nxhi_out_6,
-                                 nyhi_out_6, nzhi_out_6,
-                                 fix->get_mixed_buffers());
-      make_rho_g<float,double>(fix->get_mixed_buffers());
+      particle_map_intel<float,double>(delxinv_6, delyinv_6, delzinv_6, shift_6,
+                                       part2grid_6, nupper_6, nlower_6, nxlo_out_6,
+                                       nylo_out_6, nzlo_out_6, nxhi_out_6,
+                                       nyhi_out_6, nzhi_out_6,
+                                       fix->get_mixed_buffers());
+      make_rho_g_intel<float,double>(fix->get_mixed_buffers());
     } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-      particle_map<double,double>(delxinv_6, delyinv_6, delzinv_6, shift_6,
-                                  part2grid_6, nupper_6, nlower_6, nxlo_out_6,
-                                  nylo_out_6, nzlo_out_6, nxhi_out_6,
-                                  nyhi_out_6, nzhi_out_6,
-                                  fix->get_double_buffers());
-      make_rho_g<double,double>(fix->get_double_buffers());
+      particle_map_intel<double,double>(delxinv_6, delyinv_6, delzinv_6, shift_6,
+                                        part2grid_6, nupper_6, nlower_6, nxlo_out_6,
+                                        nylo_out_6, nzlo_out_6, nxhi_out_6,
+                                        nyhi_out_6, nzhi_out_6,
+                                        fix->get_double_buffers());
+      make_rho_g_intel<double,double>(fix->get_double_buffers());
     } else {
-      particle_map<float,float>(delxinv_6, delyinv_6, delzinv_6, shift_6,
-                                part2grid_6, nupper_6, nlower_6, nxlo_out_6,
-                                nylo_out_6, nzlo_out_6, nxhi_out_6,
-                                nyhi_out_6, nzhi_out_6,
-                                fix->get_single_buffers());
-      make_rho_g<float,float>(fix->get_single_buffers());
+      particle_map_intel<float,float>(delxinv_6, delyinv_6, delzinv_6, shift_6,
+                                      part2grid_6, nupper_6, nlower_6, nxlo_out_6,
+                                      nylo_out_6, nzlo_out_6, nxhi_out_6,
+                                      nyhi_out_6, nzhi_out_6,
+                                      fix->get_single_buffers());
+      make_rho_g_intel<float,float>(fix->get_single_buffers());
     }
 
     gc6->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO_G,1,sizeof(FFT_SCALAR),
@@ -390,11 +373,11 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                         gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-        fieldforce_g_ad<float,double>(fix->get_mixed_buffers());
+        fieldforce_g_ad_intel<float,double>(fix->get_mixed_buffers());
       } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-        fieldforce_g_ad<double,double>(fix->get_double_buffers());
+        fieldforce_g_ad_intel<double,double>(fix->get_double_buffers());
       } else {
-        fieldforce_g_ad<float,float>(fix->get_single_buffers());
+        fieldforce_g_ad_intel<float,float>(fix->get_single_buffers());
       }
 
       if (vflag_atom)
@@ -415,11 +398,11 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                         gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-        fieldforce_g_ik<float,double>(fix->get_mixed_buffers());
+        fieldforce_g_ik_intel<float,double>(fix->get_mixed_buffers());
       } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-        fieldforce_g_ik<double,double>(fix->get_double_buffers());
+        fieldforce_g_ik_intel<double,double>(fix->get_double_buffers());
       } else {
-        fieldforce_g_ik<float,float>(fix->get_single_buffers());
+        fieldforce_g_ik_intel<float,float>(fix->get_single_buffers());
       }
 
       if (evflag_atom)
@@ -434,26 +417,26 @@ void PPPMDispIntel::compute(int eflag, int vflag)
     //perform calculations for arithmetic mixing
 
     if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-      particle_map<float,double>(delxinv_6, delyinv_6, delzinv_6, shift_6,
-                                 part2grid_6, nupper_6, nlower_6,
-                                 nxlo_out_6, nylo_out_6, nzlo_out_6,
-                                 nxhi_out_6, nyhi_out_6, nzhi_out_6,
-                                 fix->get_mixed_buffers());
-      make_rho_a<float,double>(fix->get_mixed_buffers());
+      particle_map_intel<float,double>(delxinv_6, delyinv_6, delzinv_6, shift_6,
+                                       part2grid_6, nupper_6, nlower_6,
+                                       nxlo_out_6, nylo_out_6, nzlo_out_6,
+                                       nxhi_out_6, nyhi_out_6, nzhi_out_6,
+                                       fix->get_mixed_buffers());
+      make_rho_a_intel<float,double>(fix->get_mixed_buffers());
     } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-      particle_map<double,double>(delxinv_6, delyinv_6, delzinv_6, shift_6,
-                                  part2grid_6, nupper_6, nlower_6, nxlo_out_6,
-                                  nylo_out_6, nzlo_out_6, nxhi_out_6,
-                                  nyhi_out_6, nzhi_out_6,
-                                  fix->get_double_buffers());
-      make_rho_a<double,double>(fix->get_double_buffers());
+      particle_map_intel<double,double>(delxinv_6, delyinv_6, delzinv_6, shift_6,
+                                        part2grid_6, nupper_6, nlower_6, nxlo_out_6,
+                                        nylo_out_6, nzlo_out_6, nxhi_out_6,
+                                        nyhi_out_6, nzhi_out_6,
+                                        fix->get_double_buffers());
+      make_rho_a_intel<double,double>(fix->get_double_buffers());
     } else {
-      particle_map<float,float>(delxinv_6, delyinv_6, delzinv_6, shift_6,
-                                part2grid_6, nupper_6, nlower_6, nxlo_out_6,
-                                nylo_out_6, nzlo_out_6, nxhi_out_6,
-                                nyhi_out_6, nzhi_out_6,
-                                fix->get_single_buffers());
-      make_rho_a<float,float>(fix->get_single_buffers());
+      particle_map_intel<float,float>(delxinv_6, delyinv_6, delzinv_6, shift_6,
+                                      part2grid_6, nupper_6, nlower_6, nxlo_out_6,
+                                      nylo_out_6, nzlo_out_6, nxhi_out_6,
+                                      nyhi_out_6, nzhi_out_6,
+                                      fix->get_single_buffers());
+      make_rho_a_intel<float,float>(fix->get_single_buffers());
     }
 
     gc->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO_A,7,sizeof(FFT_SCALAR),
@@ -486,11 +469,11 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                         gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-        fieldforce_a_ad<float,double>(fix->get_mixed_buffers());
+        fieldforce_a_ad_intel<float,double>(fix->get_mixed_buffers());
       } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-        fieldforce_a_ad<double,double>(fix->get_double_buffers());
+        fieldforce_a_ad_intel<double,double>(fix->get_double_buffers());
       } else {
-        fieldforce_a_ad<float,float>(fix->get_single_buffers());
+        fieldforce_a_ad_intel<float,float>(fix->get_single_buffers());
       }
 
       if (evflag_atom)
@@ -529,11 +512,11 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                         gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-        fieldforce_a_ik<float,double>(fix->get_mixed_buffers());
+        fieldforce_a_ik_intel<float,double>(fix->get_mixed_buffers());
       } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-        fieldforce_a_ik<double,double>(fix->get_double_buffers());
+        fieldforce_a_ik_intel<double,double>(fix->get_double_buffers());
       } else {
-        fieldforce_a_ik<float,float>(fix->get_single_buffers());
+        fieldforce_a_ik_intel<float,float>(fix->get_single_buffers());
       }
 
       if (evflag_atom)
@@ -549,26 +532,26 @@ void PPPMDispIntel::compute(int eflag, int vflag)
     // perform calculations if no mixing rule applies
 
     if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-      particle_map<float,double>(delxinv_6, delyinv_6, delzinv_6, shift_6,
-                                 part2grid_6, nupper_6, nlower_6, nxlo_out_6,
-                                 nylo_out_6, nzlo_out_6, nxhi_out_6,
-                                 nyhi_out_6, nzhi_out_6,
-                                 fix->get_mixed_buffers());
-      make_rho_none<float,double>(fix->get_mixed_buffers());
+      particle_map_intel<float,double>(delxinv_6, delyinv_6, delzinv_6, shift_6,
+                                       part2grid_6, nupper_6, nlower_6, nxlo_out_6,
+                                       nylo_out_6, nzlo_out_6, nxhi_out_6,
+                                       nyhi_out_6, nzhi_out_6,
+                                       fix->get_mixed_buffers());
+      make_rho_none_intel<float,double>(fix->get_mixed_buffers());
     } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-      particle_map<double,double>(delxinv_6, delyinv_6, delzinv_6, shift_6,
-                                  part2grid_6, nupper_6, nlower_6, nxlo_out_6,
-                                  nylo_out_6, nzlo_out_6, nxhi_out_6,
-                                  nyhi_out_6, nzhi_out_6,
-                                  fix->get_double_buffers());
-      make_rho_none<double,double>(fix->get_double_buffers());
+      particle_map_intel<double,double>(delxinv_6, delyinv_6, delzinv_6, shift_6,
+                                        part2grid_6, nupper_6, nlower_6, nxlo_out_6,
+                                        nylo_out_6, nzlo_out_6, nxhi_out_6,
+                                        nyhi_out_6, nzhi_out_6,
+                                        fix->get_double_buffers());
+      make_rho_none_intel<double,double>(fix->get_double_buffers());
     } else {
-      particle_map<float,float>(delxinv_6, delyinv_6, delzinv_6, shift_6,
-                                part2grid_6, nupper_6, nlower_6, nxlo_out_6,
-                                nylo_out_6, nzlo_out_6, nxhi_out_6,
-                                nyhi_out_6, nzhi_out_6,
-                                fix->get_single_buffers());
-      make_rho_none<float,float>(fix->get_single_buffers());
+      particle_map_intel<float,float>(delxinv_6, delyinv_6, delzinv_6, shift_6,
+                                      part2grid_6, nupper_6, nlower_6, nxlo_out_6,
+                                      nylo_out_6, nzlo_out_6, nxhi_out_6,
+                                      nyhi_out_6, nzhi_out_6,
+                                      fix->get_single_buffers());
+      make_rho_none_intel<float,float>(fix->get_single_buffers());
     }
 
     gc->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO_NONE,1,sizeof(FFT_SCALAR),
@@ -591,11 +574,11 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                         gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-        fieldforce_none_ad<float,double>(fix->get_mixed_buffers());
+        fieldforce_none_ad_intel<float,double>(fix->get_mixed_buffers());
       } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-        fieldforce_none_ad<double,double>(fix->get_double_buffers());
+        fieldforce_none_ad_intel<double,double>(fix->get_double_buffers());
       } else {
-        fieldforce_none_ad<float,float>(fix->get_single_buffers());
+        fieldforce_none_ad_intel<float,float>(fix->get_single_buffers());
       }
 
       if (vflag_atom)
@@ -620,11 +603,11 @@ void PPPMDispIntel::compute(int eflag, int vflag)
                         gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-        fieldforce_none_ik<float,double>(fix->get_mixed_buffers());
+        fieldforce_none_ik_intel<float,double>(fix->get_mixed_buffers());
       } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-        fieldforce_none_ik<double,double>(fix->get_double_buffers());
+        fieldforce_none_ik_intel<double,double>(fix->get_double_buffers());
       } else {
-        fieldforce_none_ik<float,float>(fix->get_single_buffers());
+        fieldforce_none_ik_intel<float,float>(fix->get_single_buffers());
       }
 
       if (evflag_atom)
@@ -730,11 +713,11 @@ void PPPMDispIntel::compute(int eflag, int vflag)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t>
-void PPPMDispIntel::particle_map(double delx, double dely, double delz,
-                                 double sft, int** p2g, int nup, int nlow,
-                                 int nxlo, int nylo, int nzlo,
-                                 int nxhi, int nyhi, int nzhi,
-                                 IntelBuffers<flt_t,acc_t> * /*buffers*/)
+void PPPMDispIntel::particle_map_intel(double delx, double dely, double delz,
+                                       double sft, int** p2g, int nup, int nlow,
+                                       int nxlo, int nylo, int nzlo,
+                                       int nxhi, int nyhi, int nzhi,
+                                       IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
   int nlocal = atom->nlocal;
   int nthr = comm->nthreads;
@@ -794,7 +777,7 @@ void PPPMDispIntel::particle_map(double delx, double dely, double delz,
   }
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPMDisp");
+  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPMDisp" + utils::errorurl(4));
 }
 
 /* ----------------------------------------------------------------------
@@ -805,7 +788,7 @@ void PPPMDispIntel::particle_map(double delx, double dely, double delz,
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::make_rho_c(IntelBuffers<flt_t,acc_t> * /*buffers*/)
+void PPPMDispIntel::make_rho_c_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
   // clear 3d density array
 
@@ -968,7 +951,7 @@ void PPPMDispIntel::make_rho_c(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::make_rho_g(IntelBuffers<flt_t,acc_t> * /*buffers*/)
+void PPPMDispIntel::make_rho_g_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
   // clear 3d density array
 
@@ -1134,7 +1117,7 @@ void PPPMDispIntel::make_rho_g(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::make_rho_a(IntelBuffers<flt_t,acc_t> * /*buffers*/)
+void PPPMDispIntel::make_rho_a_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
   // clear 3d density array
 
@@ -1268,7 +1251,7 @@ void PPPMDispIntel::make_rho_a(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::make_rho_none(IntelBuffers<flt_t,acc_t> * /*buffers*/)
+void PPPMDispIntel::make_rho_none_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
 
   FFT_SCALAR * _noalias global_density = &(density_brick_none[0][nzlo_out_6][nylo_out_6][nxlo_out_6]);
@@ -1428,7 +1411,7 @@ void PPPMDispIntel::make_rho_none(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::fieldforce_c_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
+void PPPMDispIntel::fieldforce_c_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
 
   // loop over my charges, interpolate electric field from nearby grid points
@@ -1478,7 +1461,7 @@ void PPPMDispIntel::fieldforce_c_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
       int nxsum = nx + nlower;
       int nysum = ny + nlower;
-      int nzsum = nz + nlower;;
+      int nzsum = nz + nlower;
 
       FFT_SCALAR dx = nx+fshiftone - (x[i][0]-lo0)*xi;
       FFT_SCALAR dy = ny+fshiftone - (x[i][1]-lo1)*yi;
@@ -1587,7 +1570,7 @@ void PPPMDispIntel::fieldforce_c_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::fieldforce_c_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
+void PPPMDispIntel::fieldforce_c_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
 
   // loop over my charges, interpolate electric field from nearby grid points
@@ -1808,7 +1791,7 @@ void PPPMDispIntel::fieldforce_c_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::fieldforce_g_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
+void PPPMDispIntel::fieldforce_g_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
 
   // loop over my charges, interpolate electric field from nearby grid points
@@ -1964,7 +1947,7 @@ void PPPMDispIntel::fieldforce_g_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::fieldforce_g_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
+void PPPMDispIntel::fieldforce_g_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
 
   // loop over my charges, interpolate electric field from nearby grid points
@@ -2180,7 +2163,7 @@ void PPPMDispIntel::fieldforce_g_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::fieldforce_a_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
+void PPPMDispIntel::fieldforce_a_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
 
   // loop over my charges, interpolate electric field from nearby grid points
@@ -2405,7 +2388,7 @@ void PPPMDispIntel::fieldforce_a_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::fieldforce_a_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
+void PPPMDispIntel::fieldforce_a_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
 
   // loop over my charges, interpolate electric field from nearby grid points
@@ -2733,7 +2716,7 @@ void PPPMDispIntel::fieldforce_a_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::fieldforce_none_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
+void PPPMDispIntel::fieldforce_none_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
 
   // loop over my charges, interpolate electric field from nearby grid points
@@ -2906,7 +2889,7 @@ void PPPMDispIntel::fieldforce_none_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 ------------------------------------------------------------------------- */
 
 template<class flt_t, class acc_t, int use_table>
-void PPPMDispIntel::fieldforce_none_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
+void PPPMDispIntel::fieldforce_none_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge

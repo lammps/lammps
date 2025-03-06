@@ -6,7 +6,7 @@ fix qbmsst command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID qbmsst dir shockvel keyword value ...
 

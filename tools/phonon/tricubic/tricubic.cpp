@@ -90,7 +90,7 @@ static void point2xyz(int p, int *x, int *y, int *z) {
   }
 }
 
-const char *tricubic_version(void) {
+const char *tricubic_version() {
   return(tricubic_version_stored);
 }
 

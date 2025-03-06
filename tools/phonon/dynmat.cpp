@@ -200,8 +200,6 @@ DynMat::DynMat(int narg, char **arg)
  
    // ask for the interpolation method
    interpolate->set_method();
- 
-   return;
 }
 
 
@@ -222,8 +220,6 @@ DynMat::~DynMat()
    memory->destroy(DM_all);
    memory->destroy(M_inv_sqrt);
    delete memory;
-
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -234,10 +230,10 @@ void DynMat::writeDMq(double *q)
    FILE *fp;
    // only ask for file name for the first time
    // other calls will append the result to the file.
-   if (dmfile == NULL){
+   if (dmfile == nullptr){
       char str[MAXLINE], *ptr;
       printf("\n");
-      while ( 1 ){
+      while ( true ){
          printf("Please input the filename to output the DM at selected q: ");
          input->read_stdin(str);
          ptr = strtok(str, " \r\t\n\f");
@@ -260,8 +256,6 @@ void DynMat::writeDMq(double *q)
    }
    fprintf(fp,"\n");
    fclose(fp);
-
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -275,7 +269,6 @@ void DynMat::writeDMq(double *q, const double qr, FILE *fp)
    for (int j = 0; j < fftdim; ++j) fprintf(fp,"%lg %lg\t", DM_q[i][j].r, DM_q[i][j].i);
 
    fprintf(fp,"\n");
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -327,8 +320,6 @@ int DynMat::geteigen(double *egv, int flag)
 void DynMat::getDMq(double *q)
 {
    interpolate->execute(q, DM_q[0]);
-
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -339,7 +330,6 @@ void DynMat::getDMq(double *q, double *wt)
    interpolate->execute(q, DM_q[0]);
 
    if (flag_skip && interpolate->UseGamma ) wt[0] = 0.;
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -359,8 +349,7 @@ void DynMat::car2dir()
          basis[i][idim] = x[0]*mat[idim] + x[1]*mat[3+idim] + x[2]*mat[6+idim];
    }
 
- return;
-}
+ }
 
 /* ----------------------------------------------------------------------------
  * private method to enforce the acoustic sum rule on force constant matrix at G
@@ -463,7 +452,6 @@ void DynMat::EnforceASR()
    }
    delete[] egvs;
    puts("\n================================================================================\n");
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -501,7 +489,6 @@ void DynMat::real2rec()
       for (int j = 0; j < sysdim; ++j) printf("%8.4f ", ibasevec[i*3+j]);
    }
    puts("\n================================================================================");
-   return;
 }
 
 /* ----------------------------------------------------------------------
@@ -590,8 +577,6 @@ void DynMat::GaussJordan(int n, double *Mat)
    delete []indxr;
    delete []indxc;
    delete []ipiv;
-
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -600,8 +585,6 @@ void DynMat::GaussJordan(int n, double *Mat)
 void DynMat::reset_interp_method()
 {
    interpolate->set_method();
-
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -644,8 +627,6 @@ void DynMat::ShowVersion()
    printf("               (__)  (_) (_)(__)(__)(_)\\_)(__)(__)\n");
    printf("\nPHonon ANAlyzer for Fix-Phonon, version 2.%02d, compiled on %s.\n", VERSION, __DATE__);
    printf("Reference: https://doi.org/10.1016/j.cpc.2011.04.019\n");
-
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -659,7 +640,7 @@ void DynMat::Define_Conversion_Factor()
 
    if (fabs(boltz - 1.) <= ZERO){        // LJ Unit
       eml2f = eml2fc = 1.;
-      delete funit;
+      delete[] funit;
       funit = new char[27];
       strcpy(funit,"sqrt(epsilon/(m.sigma^2))");
 
@@ -696,8 +677,7 @@ void DynMat::Define_Conversion_Factor()
      printf("sqrt(E/ML^2)/(2*pi) into THz, instead, I set it to 1; you should check the unit\nused by LAMMPS.\n");
      eml2f = eml2fc = 1.;
    }
-   return;
-}
+   }
 
 /* ----------------------------------------------------------------------------
  * Private method to output the information read
@@ -711,6 +691,5 @@ void DynMat::ShowInfo()
    printf("System dimension                  : %d\n", sysdim);
    printf("Boltzmann constant in used units  : %g\n", boltz);
    puts("================================================================================");
-   return;
 }
 /* --------------------------------------------------------------------*/

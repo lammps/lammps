@@ -54,14 +54,14 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
 
   PyUtils::GIL lock;
   PyObject *py_path = PySys_GetObject((char *)"path");
-  PyList_Append(py_path, PY_STRING_FROM_STRING("."));
+  PyList_Append(py_path, PyUnicode_FromString("."));
 
   // if LAMMPS_POTENTIALS environment variable is set,
   // add it to PYTHONPATH as well
 
   const char *potentials_path = getenv("LAMMPS_POTENTIALS");
   if (potentials_path != nullptr) {
-    PyList_Append(py_path, PY_STRING_FROM_STRING(potentials_path));
+    PyList_Append(py_path, PyUnicode_FromString(potentials_path));
   }
 }
 

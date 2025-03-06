@@ -30,6 +30,7 @@
 #include "update.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using MathConst::DEG2RAD;
@@ -394,4 +395,15 @@ double AngleMesoCNT::single(int type, int i1, int i2, int i3)
   // bending buckling
   else
     return kb[type] * dtheta + thetab[type] * (kh[type] * thetab[type] - kb[type]);
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleMesoCNT::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
+  return nullptr;
 }

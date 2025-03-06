@@ -74,14 +74,13 @@ static constexpr double SHIFT = 0.0;
 /* ---------------------------------------------------------------------- */
 
 FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  random(nullptr), gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr), flangevin(nullptr),
-  T_electron(nullptr), T_electron_old(nullptr), net_energy_transfer(nullptr),
-  net_energy_transfer_all(nullptr)
+    Fix(lmp, narg, arg), infile(nullptr), outfile(nullptr), random(nullptr), gfactor1(nullptr),
+    gfactor2(nullptr), ratio(nullptr), flangevin(nullptr), T_electron(nullptr),
+    T_electron_old(nullptr), net_energy_transfer(nullptr), net_energy_transfer_all(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_ttm_mod);
 
-  if (narg < 8) error->all(FLERR,"Illegal fix ttm/mod command");
+  if (narg < 8) utils::missing_cmd_args(FLERR, "fix ttm/mod", error);
 
   vector_flag = 1;
   size_vector = 2;
@@ -103,27 +102,29 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 8;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"set") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ttm/mod command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ttm/mod set", error);
       tinit = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (tinit <= 0.0)
         error->all(FLERR,"Fix ttm/mod initial temperature must be > 0.0");
       iarg += 2;
     } else if (strcmp(arg[iarg],"infile") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ttm/mod command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ttm/mod infile", error);
+      delete[] infile;
       infile = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"outfile") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix ttm/mod command");
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix ttm/mod outfile", error);
+      delete[] outfile;
       outevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       outfile = utils::strdup(arg[iarg+2]);
       iarg += 3;
-    } else error->all(FLERR,"Illegal fix ttm/mod command");
+    } else error->all(FLERR,"Unknown fix ttm/mod keyword {}", arg[iarg]);
   }
 
   // error check
 
   if (seed <= 0)
-    error->all(FLERR,"Invalid random number seed in fix ttm/mod command");
+    error->all(FLERR,"Invalid random number seed {} in fix ttm/mod command", seed);
   if (nxgrid <= 0 || nygrid <= 0 || nzgrid <= 0)
     error->all(FLERR,"Fix ttm/mod grid sizes must be > 0");
 
@@ -152,7 +153,8 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   if (v_0 < 0.0) error->all(FLERR,"Fix ttm/mod v_0 must be >= 0.0");
   if (ionic_density <= 0.0) error->all(FLERR,"Fix ttm/mod ionic_density must be > 0.0");
   if (surface_l < 0) error->all(FLERR,"Surface coordinates must be >= 0");
-  if (surface_l >= surface_r) error->all(FLERR, "Left surface coordinate must be less than right surface coordinate");
+  if (surface_l >= surface_r)
+    error->all(FLERR, "Left surface coordinate must be less than right surface coordinate");
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -168,10 +170,8 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   memory->create(T_electron_old,nzgrid,nygrid,nxgrid,"ttm/mod:T_electron_old");
   memory->create(T_electron_first,nzgrid,nygrid,nxgrid,"ttm/mod:T_electron_first");
   memory->create(T_electron,nzgrid,nygrid,nxgrid,"ttm/mod:T_electron");
-  memory->create(net_energy_transfer,nzgrid,nygrid,nxgrid,
-                 "ttm/mod:net_energy_transfer");
-  memory->create(net_energy_transfer_all,nzgrid,nygrid,nxgrid,
-                 "ttm/mod:net_energy_transfer_all");
+  memory->create(net_energy_transfer,nzgrid,nygrid,nxgrid,"ttm/mod:net_energy_transfer");
+  memory->create(net_energy_transfer_all,nzgrid,nygrid,nxgrid,"ttm/mod:net_energy_transfer_all");
 
   flangevin = nullptr;
   grow_arrays(atom->nmax);
@@ -486,12 +486,12 @@ void FixTTMMod::read_parameters(const std::string &filename)
       reader.next_line();
       intensity = reader.next_values(1).next_double();
 
-      // coordinate of 1st surface in x-direction (in box units) - constant
+      // coordinate of 1st surface in x-direction (electron grid units) - constant
 
       reader.next_line();
       surface_l = reader.next_values(1).next_int();
 
-      // coordinate of 2nd surface in x-direction (in box units) - constant
+      // coordinate of 2nd surface in x-direction (electron grid units) - constant
 
       reader.next_line();
       surface_r = reader.next_values(1).next_int();
@@ -628,7 +628,7 @@ void FixTTMMod::write_electron_temperatures(const std::string &filename)
   FILE *fp = fopen(filename.c_str(),"w");
   if (!fp) error->one(FLERR,"Fix ttm/mod could not open output file {}: {}",
                       filename, utils::getsyserror());
-  fmt::print(fp,"# DATE: {} UNITS: {} COMMENT: Electron temperature "
+  utils::print(fp,"# DATE: {} UNITS: {} COMMENT: Electron temperature "
              "{}x{}x{} grid at step {}. Created by fix {}\n", utils::current_date(),
              update->unit_style, nxgrid, nygrid, nzgrid, update->ntimestep, style);
 

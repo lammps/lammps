@@ -40,28 +40,11 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXORDER   7
-#define OFFSET 16384
-#define SMALL 0.00001
-#define LARGE 10000.0
-#define EPS_HOC 1.0e-7
-
-enum{REVERSE_RHO,REVERSE_RHO_GEOM,REVERSE_RHO_ARITH,REVERSE_RHO_NONE};
-enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM,
-     FORWARD_IK_GEOM,FORWARD_AD_GEOM,
-     FORWARD_IK_PERATOM_GEOM,FORWARD_AD_PERATOM_GEOM,
-     FORWARD_IK_ARITH,FORWARD_AD_ARITH,
-     FORWARD_IK_PERATOM_ARITH,FORWARD_AD_PERATOM_ARITH,
-     FORWARD_IK_NONE,FORWARD_AD_NONE,FORWARD_IK_PERATOM_NONE,
-     FORWARD_AD_PERATOM_NONE};
-
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
+static constexpr int MAXORDER =   7;
+static constexpr int OFFSET = 16384;
+static constexpr double SMALL = 0.00001;
+static constexpr double LARGE = 10000.0;
+static constexpr FFT_SCALAR ZEROF = 0.0;
 
 /* ---------------------------------------------------------------------- */
 
@@ -1374,6 +1357,7 @@ void PPPMDisp::init_coeffs()
 
     if (nsplit == 1) {
       delete[] B;
+      B = nullptr;
       function[3] = 0;
       function[2] = 0;
       function[1] = 1;
@@ -1387,11 +1371,13 @@ void PPPMDisp::init_coeffs()
       //function[3] = 1;
       //function[2] = 0;
       delete[] B;   // remove this when un-comment previous 2 lines
+      B = nullptr;
    }
 
     if (function[2] && (nsplit > 6)) {
       if (me == 0) utils::logmesg(lmp,"  Using 7 structure factors\n");
       delete[] B;
+      B = nullptr;
     }
 
     if (function[3]) {
@@ -4266,7 +4252,7 @@ void PPPMDisp::particle_map(double delx, double dely, double delz,
       flag = 1;
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPMDisp");
+  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPMDisp" + utils::errorurl(4));
 }
 
 /* ----------------------------------------------------------------------
@@ -4553,7 +4539,8 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
 
   // if requested, compute energy and virial contribution
 
-  double scaleinv = 1.0/(nx_p*ny_p*nz_p);
+  bigint ngridtotal = (bigint) nx_p * ny_p * nz_p;
+  double scaleinv = 1.0/ngridtotal;
   double s2 = scaleinv*scaleinv;
 
   if (eflag_global || vflag_global) {
@@ -4651,7 +4638,7 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
       for (j = nylo_i; j <= nyhi_i; j++)
         for (i = nxlo_i; i <= nxhi_i; i++) {
           vz_brick[k][j][i] = wk2[n++];
-          u_pa[k][j][i] = -wk2[n++];;
+          u_pa[k][j][i] = -wk2[n++];
         }
   }
 
@@ -4693,7 +4680,8 @@ void PPPMDisp::poisson_ad(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
 
   // if requested, compute energy and virial contribution
 
-  double scaleinv = 1.0/(nx_p*ny_p*nz_p);
+  bigint ngridtotal = (bigint) nx_p * ny_p * nz_p;
+  double scaleinv = 1.0/ngridtotal;
   double s2 = scaleinv*scaleinv;
 
   if (eflag_global || vflag_global) {
@@ -4841,7 +4829,8 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   int i,j,k,n;
   double eng;
 
-  double scaleinv = 1.0/(nx_pppm_6*ny_pppm_6*nz_pppm_6);
+  bigint ngridtotal = (bigint) nx_pppm_6 * ny_pppm_6 * nz_pppm_6;
+  double scaleinv = 1.0/ngridtotal;
 
   // transform charge/dispersion density (r -> k)
   // only one transform when energies and pressures not calculated
@@ -5014,7 +5003,8 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   int i,j,k,n;
   double eng;
 
-  double scaleinv = 1.0/(nx_pppm_6*ny_pppm_6*nz_pppm_6);
+  bigint ngridtotal = (bigint) nx_pppm_6 * ny_pppm_6 * nz_pppm_6;
+  double scaleinv = 1.0/ngridtotal;
 
   // transform charge/dispersion density (r -> k)
   // only one transform required when energies and pressures not needed
@@ -5188,7 +5178,8 @@ poisson_2s_ad(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   int i,j,k,n;
   double eng;
 
-  double scaleinv = 1.0/(nx_pppm_6*ny_pppm_6*nz_pppm_6);
+  bigint ngridtotal = (bigint) nx_pppm_6 * ny_pppm_6 * nz_pppm_6;
+  double scaleinv = 1.0/ngridtotal;
 
   // transform charge/dispersion density (r -> k)
   // only one tansform required when energies and pressures not needed
@@ -5286,7 +5277,8 @@ poisson_none_ad(int n1, int n2, FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   int i,j,k,n;
   double eng;
 
-  double scaleinv = 1.0/(nx_pppm_6*ny_pppm_6*nz_pppm_6);
+  bigint ngridtotal = (bigint) nx_pppm_6 * ny_pppm_6 * nz_pppm_6;
+  double scaleinv = 1.0/ngridtotal;
 
   // transform charge/dispersion density (r -> k)
   // only one tansform required when energies and pressures not needed

@@ -18,6 +18,7 @@ cdef extern from "mliap_data.h" namespace "LAMMPS_NS":
     cdef cppclass MLIAPData:
         # Array shapes
         int nlistatoms
+        int nlocal
         int ndescriptors
 
         # Input data

@@ -24,7 +24,7 @@
 
 #include <cstring>
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -194,7 +194,7 @@ void FixEOStable::free_table(Table *tb)
 
 void FixEOStable::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 {
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
 
   // open file
 
@@ -307,8 +307,8 @@ void FixEOStable::param_extract(Table *tb, Table *tb2, char *line)
   while (word) {
     if (strcmp(word,"N") == 0) {
       word = strtok(nullptr," \t\n\r\f");
-      tb->ninput = atoi(word);
-      tb2->ninput = atoi(word);
+      tb->ninput = std::stoi(word);
+      tb2->ninput = std::stoi(word);
     } else {
       error->one(FLERR,"Invalid keyword in fix eos/table parameters");
     }

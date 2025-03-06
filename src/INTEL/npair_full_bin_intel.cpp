@@ -38,7 +38,7 @@ NPairFullBinIntel::NPairFullBinIntel(LAMMPS *lmp) : NPairIntel(lmp) {}
 void NPairFullBinIntel::build(NeighList *list)
 {
   if (nstencil > INTEL_MAX_STENCIL_CHECK)
-    error->all(FLERR, "Too many neighbor bins for INTEL package.");
+    error->all(FLERR, "Too many neighbor bins for INTEL package" + utils::errorurl(9));
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (exclude)
@@ -62,7 +62,7 @@ fbi(NeighList *list, IntelBuffers<flt_t,acc_t> *buffers) {
   list->inum = nlocal;
   list->gnum = 0;
 
-  int host_start = _fix->host_start_neighbor();;
+  int host_start = _fix->host_start_neighbor();
   const int off_end = _fix->offload_end_neighbor();
 
   #ifdef _LMP_INTEL_OFFLOAD

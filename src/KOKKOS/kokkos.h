@@ -34,6 +34,7 @@ class KokkosLMP : protected Pointers {
   int forward_fix_comm_classic;
   int reverse_comm_classic;
   int sort_classic;
+  int atom_map_classic;
   int exchange_comm_on_host;
   int forward_comm_on_host;
   int reverse_comm_on_host;
@@ -44,6 +45,7 @@ class KokkosLMP : protected Pointers {
   int forward_fix_comm_changed;
   int reverse_comm_changed;
   int sort_changed;
+  int atom_map_changed;
   int nthreads,ngpus;
   int auto_sync;
   int gpu_aware_flag;
@@ -62,7 +64,8 @@ class KokkosLMP : protected Pointers {
   static void initialize(const Kokkos::InitializationSettings&, Error *);
   static void finalize();
   void accelerator(int, char **);
-  int neigh_count(int);
+  void newton_check();
+  bigint neigh_count(int);
 
   template<class DeviceType>
   int need_dup(int qeq_flag = 0)
@@ -72,7 +75,7 @@ class KokkosLMP : protected Pointers {
     if (qeq_flag) neighflag = this->neighflag_qeq;
 
     if (neighflag == HALFTHREAD)
-      value = std::is_same<typename NeedDup<HALFTHREAD,DeviceType>::value,Kokkos::Experimental::ScatterDuplicated>::value;
+      value = std::is_same_v<NeedDup_v<HALFTHREAD,DeviceType>,Kokkos::Experimental::ScatterDuplicated>;
 
     return value;
   }

@@ -20,6 +20,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
+#include "input.h"
 #include "lattice.h"
 #include "math_const.h"
 #include "math_extra.h"
@@ -29,6 +30,7 @@
 #include "random_park.h"
 #include "region.h"
 #include "update.h"
+#include "variable.h"
 
 #include <cmath>
 #include <cstring>
@@ -40,7 +42,7 @@ using namespace MathConst;
 enum{ATOM,MOLECULE};
 enum{DIST_UNIFORM,DIST_GAUSSIAN};
 
-#define EPSILON 1.0e6
+static constexpr double EPSILON = 1.0e6;
 
 /* ---------------------------------------------------------------------- */
 
@@ -51,15 +53,17 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 7) error->all(FLERR,"Illegal fix deposit command");
 
+  scalar_flag = 1;
+  extscalar = 0;
   restart_global = 1;
   time_depend = 1;
 
   // required args
 
-  ninsert = utils::inumeric(FLERR,arg[3],false,lmp);
-  ntype = utils::inumeric(FLERR,arg[4],false,lmp);
-  nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
-  seed = utils::inumeric(FLERR,arg[6],false,lmp);
+  ninsert = utils::inumeric(FLERR, arg[3], false, lmp);
+  ntype = utils::expand_type_int(FLERR, arg[4], Atom::ATOM, lmp);
+  nfreq = utils::inumeric(FLERR, arg[5], false, lmp);
+  seed = utils::inumeric(FLERR, arg[6], false, lmp);
 
   if (seed <= 0) error->all(FLERR,"Illegal fix deposit command");
 
@@ -204,10 +208,14 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 FixDeposit::~FixDeposit()
 {
   delete random;
-  delete [] molfrac;
-  delete [] idrigid;
-  delete [] idshake;
-  delete [] idregion;
+  delete[] molfrac;
+  delete[] idrigid;
+  delete[] idshake;
+  delete[] idregion;
+  delete[] vstr;
+  delete[] xstr;
+  delete[] ystr;
+  delete[] zstr;
   memory->destroy(coords);
   memory->destroy(imageflags);
 }
@@ -225,6 +233,8 @@ int FixDeposit::setmask()
 
 void FixDeposit::init()
 {
+  warnflag = 1;
+
   // set index and check validity of region
 
   iregion = domain->get_region_by_id(idregion);
@@ -359,6 +369,8 @@ void FixDeposit::pre_exchange()
         coord[2] = zmid + random->gaussian() * sigma;
       } while (iregion->match(coord[0],coord[1],coord[2]) == 0);
     } else error->all(FLERR,"Unknown particle distribution in fix deposit");
+
+    if (varflag && vartest(coord[0],coord[1],coord[2]) == 0) continue;
 
     // adjust vertical coord by offset
 
@@ -582,8 +594,10 @@ void FixDeposit::pre_exchange()
 
   // warn if not successful b/c too many attempts
 
-  if (!success && comm->me == 0)
-    error->warning(FLERR,"Particle deposition was unsuccessful");
+  if (warnflag && !success && comm->me == 0) {
+    error->warning(FLERR,"One or more particle depositions were unsuccessful");
+    warnflag = 0;
+  }
 
   // reset global natoms,nbonds,etc
   // increment maxtag_all and maxmol_all if necessary
@@ -616,7 +630,7 @@ void FixDeposit::pre_exchange()
   // rebuild atom map
 
   if (atom->map_style != Atom::MAP_NONE) {
-    if (success) atom->map_init();
+    atom->map_init();
     atom->map_set();
   }
 
@@ -660,6 +674,8 @@ void FixDeposit::options(int narg, char **arg)
 
   iregion = nullptr;
   idregion = nullptr;
+  varflag = 0;
+  vstr = xstr = ystr = zstr = nullptr;
   mode = ATOM;
   molfrac = nullptr;
   rigidflag = 0;
@@ -679,6 +695,7 @@ void FixDeposit::options(int narg, char **arg)
   scaleflag = 1;
   targetflag = 0;
   orientflag = 0;
+  warnflag = 1;
   rx = 0.0;
   ry = 0.0;
   rz = 0.0;
@@ -692,6 +709,27 @@ void FixDeposit::options(int narg, char **arg)
       idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
+    } else if (strcmp(arg[iarg], "var") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix deposit var", error);
+      delete[] vstr;
+      vstr = utils::strdup(arg[iarg + 1]);
+      varflag = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "set") == 0) {
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix deposit set", error);
+      if (strcmp(arg[iarg + 1], "x") == 0) {
+        delete[] xstr;
+        xstr = utils::strdup(arg[iarg + 2]);
+      } else if (strcmp(arg[iarg + 1], "y") == 0) {
+        delete[] ystr;
+        ystr = utils::strdup(arg[iarg + 2]);
+      } else if (strcmp(arg[iarg + 1], "z") == 0) {
+        delete[] zstr;
+        zstr = utils::strdup(arg[iarg + 2]);
+      } else
+        error->all(FLERR, "Unknown fix deposit set option {}", arg[iarg + 2]);
+      iarg += 3;
+
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       int imol = atom->find_molecule(arg[iarg+1]);
@@ -699,7 +737,7 @@ void FixDeposit::options(int narg, char **arg)
       mode = MOLECULE;
       onemols = &atom->molecules[imol];
       nmol = onemols[0]->nset;
-      delete [] molfrac;
+      delete[] molfrac;
       molfrac = new double[nmol];
       molfrac[0] = 1.0/nmol;
       for (int i = 1; i < nmol-1; i++) molfrac[i] = molfrac[i-1] + 1.0/nmol;
@@ -717,13 +755,13 @@ void FixDeposit::options(int narg, char **arg)
       iarg += nmol+1;
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
-      delete [] idrigid;
+      delete[] idrigid;
       idrigid = utils::strdup(arg[iarg+1]);
       rigidflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"shake") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
-      delete [] idshake;
+      delete[] idshake;
       idshake = utils::strdup(arg[iarg+1]);
       shakeflag = 1;
       iarg += 2;
@@ -814,6 +852,48 @@ void FixDeposit::options(int narg, char **arg)
       iarg += 4;
     } else error->all(FLERR,"Illegal fix deposit command");
   }
+
+  // error check and further setup for variable test
+
+  if (!vstr && (xstr || ystr || zstr))
+    error->all(FLERR, "Incomplete use of variables in fix deposit command");
+  if (vstr && (!xstr && !ystr && !zstr))
+    error->all(FLERR, "Incomplete use of variables in fix deposit command");
+
+  if (varflag) {
+    vvar = input->variable->find(vstr);
+    if (vvar < 0) error->all(FLERR, "Variable {} for fix deposit does not exist", vstr);
+    if (!input->variable->equalstyle(vvar))
+      error->all(FLERR, "Variable for fix deposit is invalid style");
+
+    if (xstr) {
+      xvar = input->variable->find(xstr);
+      if (xvar < 0) error->all(FLERR, "Variable {} for fix deposit does not exist", xstr);
+      if (!input->variable->internalstyle(xvar))
+        error->all(FLERR, "Variable for fix deposit is invalid style");
+    }
+    if (ystr) {
+      yvar = input->variable->find(ystr);
+      if (yvar < 0) error->all(FLERR, "Variable {} for fix deposit does not exist", ystr);
+      if (!input->variable->internalstyle(yvar))
+        error->all(FLERR, "Variable for fix deposit is invalid style");
+    }
+    if (zstr) {
+      zvar = input->variable->find(zstr);
+      if (zvar < 0) error->all(FLERR, "Variable {} for fix deposit does not exist", zstr);
+      if (!input->variable->internalstyle(zvar))
+        error->all(FLERR, "Variable for fix deposit is invalid style");
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   output number of successful insertions
+------------------------------------------------------------------------- */
+
+double FixDeposit::compute_scalar()
+{
+  return ninserted;
 }
 
 /* ----------------------------------------------------------------------
@@ -897,4 +977,21 @@ void *FixDeposit::extract(const char *str, int &itype)
   }
 
   return nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   test a generated atom position against variable evaluation
+   first set x,y,z values in internal variables
+------------------------------------------------------------------------- */
+
+int FixDeposit::vartest(double x, double y, double z)
+{
+  if (xstr) input->variable->internal_set(xvar, x);
+  if (ystr) input->variable->internal_set(yvar, y);
+  if (zstr) input->variable->internal_set(zvar, z);
+
+  double value = input->variable->compute_equal(vvar);
+
+  if (value == 0.0) return 0;
+  return 1;
 }

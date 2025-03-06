@@ -17,12 +17,14 @@
 #include "error.h"
 #include "my_page.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairSkip::NPairSkip(LAMMPS *lmp) : NPair(lmp) {}
+template<int TRIM>
+NPairSkipTemp<TRIM>::NPairSkipTemp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    build skip list for subset of types from parent list
@@ -32,18 +34,21 @@ NPairSkip::NPairSkip(LAMMPS *lmp) : NPair(lmp) {}
    if ghost, also store neighbors of ghost atoms & set inum,gnum correctly
 ------------------------------------------------------------------------- */
 
-void NPairSkip::build(NeighList *list)
+template<int TRIM>
+void NPairSkipTemp<TRIM>::build(NeighList *list)
 {
   int i, j, ii, jj, n, itype, jnum, joriginal;
   int *neighptr, *jlist;
 
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  tagint *molecule = atom->molecule;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   MyPage<int> *ipage = list->ipage;
+  int molskip = list->molskip;
 
   int *ilist_skip = list->listskip->ilist;
   int *numneigh_skip = list->listskip->numneigh;
@@ -57,6 +62,11 @@ void NPairSkip::build(NeighList *list)
   int inum = 0;
   ipage->reset();
 
+  double **x = atom->x;
+  double xtmp, ytmp, ztmp;
+  double delx, dely, delz, rsq;
+  double cutsq_custom = cutoff_custom * cutoff_custom;
+
   // loop over atoms in other list
   // skip I atom entirely if iskip is set for type[I]
   // skip I,J pair if ijskip is set for type[I],type[J]
@@ -64,7 +74,14 @@ void NPairSkip::build(NeighList *list)
   for (ii = 0; ii < num_skip; ii++) {
     i = ilist_skip[ii];
     itype = type[i];
-    if (iskip[itype]) continue;
+
+    if (!molskip && iskip[itype]) continue;
+
+    if (TRIM) {
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+    }
 
     n = 0;
     neighptr = ipage->vget();
@@ -77,7 +94,18 @@ void NPairSkip::build(NeighList *list)
     for (jj = 0; jj < jnum; jj++) {
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
-      if (ijskip[itype][type[j]]) continue;
+      if (!molskip && ijskip[itype][type[j]]) continue;
+      if ((molskip == NeighRequest::INTRA) && (molecule[i] != molecule[j])) continue;
+      if ((molskip == NeighRequest::INTER) && (molecule[i] == molecule[j])) continue;
+
+      if (TRIM) {
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx * delx + dely * dely + delz * delz;
+        if (rsq > cutsq_custom) continue;
+      }
+
       neighptr[n++] = joriginal;
     }
 
@@ -99,4 +127,9 @@ void NPairSkip::build(NeighList *list)
     list->inum = num;
     list->gnum = inum - num;
   }
+}
+
+namespace LAMMPS_NS {
+template class NPairSkipTemp<0>;
+template class NPairSkipTemp<1>;
 }

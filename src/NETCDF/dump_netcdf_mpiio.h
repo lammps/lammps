@@ -49,11 +49,11 @@ class DumpNetCDFMPIIO : public DumpCustom {
     int quantity;                          // type of the quantity
   };
 
-  int framei;    // current frame index
-  int blocki;    // current block index
+  MPI_Offset framei;    // current frame index
+  MPI_Offset blocki;    // current block index
   int ndata;     // number of data blocks to expect
 
-  bigint ntotalgr;    // # of atoms
+  MPI_Offset ntotalgr;    // # of atoms
 
   int n_perat;          // # of netcdf per-atom properties
   nc_perat_t *perat;    // per-atom properties

@@ -1,43 +1,17 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
 
 /*
@@ -63,13 +37,8 @@ void test_offsetview_construction() {
   using offset_view_type = Kokkos::Experimental::OffsetView<Scalar**, Device>;
   using view_type        = Kokkos::View<Scalar**, Device>;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-  Kokkos::Experimental::index_list_type range0 = {-1, 3};
-  Kokkos::Experimental::index_list_type range1 = {-2, 2};
-#else
   std::pair<int64_t, int64_t> range0 = {-1, 3};
   std::pair<int64_t, int64_t> range1 = {-2, 2};
-#endif
 
   {
     offset_view_type o1;
@@ -87,7 +56,18 @@ void test_offsetview_construction() {
   offset_view_type ov("firstOV", range0, range1);
 
   ASSERT_EQ("firstOV", ov.label());
-  ASSERT_EQ(2, ov.Rank);
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+  KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  ASSERT_EQ(2u, ov.Rank);
+#endif
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+  KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
+
+  ASSERT_EQ(2u, ov.rank());
 
   ASSERT_EQ(ov.begin(0), -1);
   ASSERT_EQ(ov.end(0), 4);
@@ -98,7 +78,6 @@ void test_offsetview_construction() {
   ASSERT_EQ(ov.extent(0), 5u);
   ASSERT_EQ(ov.extent(1), 5u);
 
-#if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)
   {
     Kokkos::Experimental::OffsetView<Scalar*, Device> offsetV1("OneDOffsetView",
                                                                range0);
@@ -180,7 +159,6 @@ void test_offsetview_construction() {
   }
 
   ASSERT_EQ(OVResult, answer) << "Bad data found in OffsetView";
-#endif
 
   {
     offset_view_type ovCopy(ov);
@@ -215,7 +193,6 @@ void test_offsetview_construction() {
     range3_type rangePolicy3DZero(point3_type{{0, 0, 0}},
                                   point3_type{{extent0, extent1, extent2}});
 
-#if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)
     int view3DSum = 0;
     Kokkos::parallel_reduce(
         rangePolicy3DZero,
@@ -238,7 +215,6 @@ void test_offsetview_construction() {
 
     ASSERT_EQ(view3DSum, offsetView3DSum)
         << "construction of OffsetView from View and begins array broken.";
-#endif
   }
   view_type viewFromOV = ov.view();
 
@@ -263,7 +239,6 @@ void test_offsetview_construction() {
     view_type aView("aView", ov.extent(0), ov.extent(1));
     Kokkos::deep_copy(aView, ov);
 
-#if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)
     int sum = 0;
     Kokkos::parallel_reduce(
         rangePolicy2D,
@@ -273,7 +248,6 @@ void test_offsetview_construction() {
         sum);
 
     ASSERT_EQ(sum, 0) << "deep_copy(view, offsetView) broken.";
-#endif
   }
 
   {  // test view to  offsetview deep copy
@@ -282,7 +256,6 @@ void test_offsetview_construction() {
     Kokkos::deep_copy(aView, 99);
     Kokkos::deep_copy(ov, aView);
 
-#if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)
     int sum = 0;
     Kokkos::parallel_reduce(
         rangePolicy2D,
@@ -292,7 +265,6 @@ void test_offsetview_construction() {
         sum);
 
     ASSERT_EQ(sum, 0) << "deep_copy(offsetView, view) broken.";
-#endif
   }
 }
 
@@ -360,46 +332,131 @@ void test_offsetview_unmanaged_construction() {
     ASSERT_EQ(bb, ib);
     ASSERT_EQ(bb, ii);
   }
+}
+
+template <typename Scalar, typename Device>
+void test_offsetview_unmanaged_construction_death() {
+  // Preallocated memory (Only need a valid address for this test)
+  Scalar s;
+
+  // Regular expression syntax on Windows is a pain. `.` does not match `\n`.
+  // Feel free to make it work if you have time to spare.
+#ifdef _WIN32
+#define SKIP_REGEX_ON_WINDOWS(REGEX) ""
+#else
+#define SKIP_REGEX_ON_WINDOWS(REGEX) REGEX
+#endif
 
   {
     using offset_view_type = Kokkos::Experimental::OffsetView<Scalar*, Device>;
 
     // Range calculations must be positive
-    ASSERT_NO_THROW(offset_view_type(&s, {0}, {1}));
-    ASSERT_NO_THROW(offset_view_type(&s, {0}, {0}));
-    ASSERT_THROW(offset_view_type(&s, {0}, {-1}), std::runtime_error);
+    (void)offset_view_type(&s, {0}, {1});
+    (void)offset_view_type(&s, {0}, {0});
+    ASSERT_DEATH(
+        offset_view_type(&s, {0}, {-1}),
+        SKIP_REGEX_ON_WINDOWS(
+            "Kokkos::Experimental::OffsetView ERROR: for unmanaged OffsetView"
+            ".*"
+            "\\(ends\\[0\\] \\(-1\\) - begins\\[0\\] \\(0\\)\\) must be "
+            "non-negative"));
   }
 
   {
     using offset_view_type = Kokkos::Experimental::OffsetView<Scalar*, Device>;
 
     // Range calculations must not overflow
-    ASSERT_NO_THROW(offset_view_type(&s, {0}, {0x7fffffffffffffffl}));
-    ASSERT_THROW(offset_view_type(&s, {-1}, {0x7fffffffffffffffl}),
-                 std::runtime_error);
-    ASSERT_THROW(
+    (void)offset_view_type(&s, {0}, {0x7fffffffffffffffl});
+    ASSERT_DEATH(
+        offset_view_type(&s, {-1}, {0x7fffffffffffffffl}),
+        SKIP_REGEX_ON_WINDOWS(
+            "Kokkos::Experimental::OffsetView ERROR: for unmanaged OffsetView"
+            ".*"
+            "\\(ends\\[0\\] \\(9223372036854775807\\) - begins\\[0\\] "
+            "\\(-1\\)\\) "
+            "overflows"));
+    ASSERT_DEATH(
         offset_view_type(&s, {-0x7fffffffffffffffl - 1}, {0x7fffffffffffffffl}),
-        std::runtime_error);
-    ASSERT_THROW(offset_view_type(&s, {-0x7fffffffffffffffl - 1}, {0}),
-                 std::runtime_error);
+        SKIP_REGEX_ON_WINDOWS(
+            "Kokkos::Experimental::OffsetView ERROR: for unmanaged OffsetView"
+            ".*"
+            "\\(ends\\[0\\] \\(9223372036854775807\\) - begins\\[0\\] "
+            "\\(-9223372036854775808\\)\\) "
+            "overflows"));
+    ASSERT_DEATH(
+        offset_view_type(&s, {-0x7fffffffffffffffl - 1}, {0}),
+        SKIP_REGEX_ON_WINDOWS(
+            "Kokkos::Experimental::OffsetView ERROR: for unmanaged OffsetView"
+            ".*"
+            "\\(ends\\[0\\] \\(0\\) - begins\\[0\\] "
+            "\\(-9223372036854775808\\)\\) "
+            "overflows"));
   }
 
   {
     using offset_view_type = Kokkos::Experimental::OffsetView<Scalar**, Device>;
 
-    // Should throw when the rank of begins and/or ends doesn't match that of
-    // OffsetView
-    ASSERT_THROW(offset_view_type(&s, {0}, {1}), std::runtime_error);
-    ASSERT_THROW(offset_view_type(&s, {0}, {1, 1}), std::runtime_error);
-    ASSERT_THROW(offset_view_type(&s, {0}, {1, 1, 1}), std::runtime_error);
-    ASSERT_THROW(offset_view_type(&s, {0, 0}, {1}), std::runtime_error);
-    ASSERT_NO_THROW(offset_view_type(&s, {0, 0}, {1, 1}));
-    ASSERT_THROW(offset_view_type(&s, {0, 0}, {1, 1, 1}), std::runtime_error);
-    ASSERT_THROW(offset_view_type(&s, {0, 0, 0}, {1}), std::runtime_error);
-    ASSERT_THROW(offset_view_type(&s, {0, 0, 0}, {1, 1}), std::runtime_error);
-    ASSERT_THROW(offset_view_type(&s, {0, 0, 0}, {1, 1, 1}),
-                 std::runtime_error);
+    // Should throw when the rank of begins and/or ends doesn't match that
+    // of OffsetView
+    ASSERT_DEATH(
+        offset_view_type(&s, {0}, {1}),
+        SKIP_REGEX_ON_WINDOWS(
+            "Kokkos::Experimental::OffsetView ERROR: for unmanaged OffsetView"
+            ".*"
+            "begins\\.size\\(\\) \\(1\\) != Rank \\(2\\)"
+            ".*"
+            "ends\\.size\\(\\) \\(1\\) != Rank \\(2\\)"));
+    ASSERT_DEATH(
+        offset_view_type(&s, {0}, {1, 1}),
+        SKIP_REGEX_ON_WINDOWS(
+            "Kokkos::Experimental::OffsetView ERROR: for unmanaged OffsetView"
+            ".*"
+            "begins\\.size\\(\\) \\(1\\) != Rank \\(2\\)"));
+    ASSERT_DEATH(
+        offset_view_type(&s, {0}, {1, 1, 1}),
+        SKIP_REGEX_ON_WINDOWS(
+            "Kokkos::Experimental::OffsetView ERROR: for unmanaged OffsetView"
+            ".*"
+            "begins\\.size\\(\\) \\(1\\) != Rank \\(2\\)"
+            ".*"
+            "ends\\.size\\(\\) \\(3\\) != Rank \\(2\\)"));
+    ASSERT_DEATH(
+        offset_view_type(&s, {0, 0}, {1}),
+        SKIP_REGEX_ON_WINDOWS(
+            "Kokkos::Experimental::OffsetView ERROR: for unmanaged OffsetView"
+            ".*"
+            "ends\\.size\\(\\) \\(1\\) != Rank \\(2\\)"));
+    (void)offset_view_type(&s, {0, 0}, {1, 1});
+    ASSERT_DEATH(
+        offset_view_type(&s, {0, 0}, {1, 1, 1}),
+        SKIP_REGEX_ON_WINDOWS(
+            "Kokkos::Experimental::OffsetView ERROR: for unmanaged OffsetView"
+            ".*"
+            "ends\\.size\\(\\) \\(3\\) != Rank \\(2\\)"));
+    ASSERT_DEATH(
+        offset_view_type(&s, {0, 0, 0}, {1}),
+        SKIP_REGEX_ON_WINDOWS(
+            "Kokkos::Experimental::OffsetView ERROR: for unmanaged OffsetView"
+            ".*"
+            "begins\\.size\\(\\) \\(3\\) != Rank \\(2\\)"
+            ".*"
+            "ends\\.size\\(\\) \\(1\\) != Rank \\(2\\)"));
+    ASSERT_DEATH(
+        offset_view_type(&s, {0, 0, 0}, {1, 1}),
+        SKIP_REGEX_ON_WINDOWS(
+            "Kokkos::Experimental::OffsetView ERROR: for unmanaged OffsetView"
+            ".*"
+            "begins\\.size\\(\\) \\(3\\) != Rank \\(2\\)"));
+    ASSERT_DEATH(
+        offset_view_type(&s, {0, 0, 0}, {1, 1, 1}),
+        SKIP_REGEX_ON_WINDOWS(
+            "Kokkos::Experimental::OffsetView ERROR: for unmanaged OffsetView"
+            ".*"
+            "begins\\.size\\(\\) \\(3\\) != Rank \\(2\\)"
+            ".*"
+            "ends\\.size\\(\\) \\(3\\) != Rank \\(2\\)"));
   }
+#undef SKIP_REGEX_ON_WINDOWS
 }
 
 template <typename Scalar, typename Device>
@@ -408,8 +465,8 @@ void test_offsetview_subview() {
     Kokkos::Experimental::OffsetView<Scalar*, Device> sliceMe("offsetToSlice",
                                                               {-10, 20});
     {
-      auto offsetSubviewa = Kokkos::Experimental::subview(sliceMe, 0);
-      ASSERT_EQ(offsetSubviewa.Rank, 0) << "subview of offset is broken.";
+      auto offsetSubview = Kokkos::Experimental::subview(sliceMe, 0);
+      ASSERT_EQ(offsetSubview.rank(), 0u) << "subview of offset is broken.";
     }
   }
   {  // test subview 2
@@ -418,13 +475,13 @@ void test_offsetview_subview() {
     {
       auto offsetSubview =
           Kokkos::Experimental::subview(sliceMe, Kokkos::ALL(), -2);
-      ASSERT_EQ(offsetSubview.Rank, 1) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 1u) << "subview of offset is broken.";
     }
 
     {
       auto offsetSubview =
           Kokkos::Experimental::subview(sliceMe, 0, Kokkos::ALL());
-      ASSERT_EQ(offsetSubview.Rank, 1) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 1u) << "subview of offset is broken.";
     }
   }
 
@@ -437,30 +494,29 @@ void test_offsetview_subview() {
     {
       auto offsetSubview = Kokkos::Experimental::subview(sliceMe, Kokkos::ALL(),
                                                          Kokkos::ALL(), 0);
-      ASSERT_EQ(offsetSubview.Rank, 2) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 2u) << "subview of offset is broken.";
     }
     {
       auto offsetSubview = Kokkos::Experimental::subview(sliceMe, Kokkos::ALL(),
                                                          0, Kokkos::ALL());
-      ASSERT_EQ(offsetSubview.Rank, 2) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 2u) << "subview of offset is broken.";
     }
 
     {
       auto offsetSubview = Kokkos::Experimental::subview(
           sliceMe, 0, Kokkos::ALL(), Kokkos::ALL());
-      ASSERT_EQ(offsetSubview.Rank, 2) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 2u) << "subview of offset is broken.";
     }
     {
       auto offsetSubview = Kokkos::Experimental::subview(
           sliceMe, 0, Kokkos::ALL(), Kokkos::make_pair(-30, -21));
-      ASSERT_EQ(offsetSubview.Rank, 2) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 2u) << "subview of offset is broken.";
 
       ASSERT_EQ(offsetSubview.begin(0), -20);
       ASSERT_EQ(offsetSubview.end(0), 31);
       ASSERT_EQ(offsetSubview.begin(1), 0);
       ASSERT_EQ(offsetSubview.end(1), 9);
 
-#if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)
       using range_type = Kokkos::MDRangePolicy<Device, Kokkos::Rank<2>,
                                                Kokkos::IndexType<int> >;
       using point_type = typename range_type::point_type;
@@ -486,25 +542,24 @@ void test_offsetview_subview() {
           sum);
 
       ASSERT_EQ(sum, 6 * (e0 - b0) * (e1 - b1));
-#endif
     }
 
     // slice 2
     {
       auto offsetSubview =
           Kokkos::Experimental::subview(sliceMe, Kokkos::ALL(), 0, 0);
-      ASSERT_EQ(offsetSubview.Rank, 1) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 1u) << "subview of offset is broken.";
     }
     {
       auto offsetSubview =
           Kokkos::Experimental::subview(sliceMe, 0, 0, Kokkos::ALL());
-      ASSERT_EQ(offsetSubview.Rank, 1) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 1u) << "subview of offset is broken.";
     }
 
     {
       auto offsetSubview =
           Kokkos::Experimental::subview(sliceMe, 0, Kokkos::ALL(), 0);
-      ASSERT_EQ(offsetSubview.Rank, 1) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 1u) << "subview of offset is broken.";
     }
   }
 
@@ -517,73 +572,72 @@ void test_offsetview_subview() {
     {
       auto offsetSubview = Kokkos::Experimental::subview(
           sliceMe, Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL(), 0);
-      ASSERT_EQ(offsetSubview.Rank, 3) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 3u) << "subview of offset is broken.";
     }
     {
       auto offsetSubview = Kokkos::Experimental::subview(
           sliceMe, Kokkos::ALL(), Kokkos::ALL(), 0, Kokkos::ALL());
-      ASSERT_EQ(offsetSubview.Rank, 3) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 3u) << "subview of offset is broken.";
     }
     {
       auto offsetSubview = Kokkos::Experimental::subview(
           sliceMe, Kokkos::ALL(), 0, Kokkos::ALL(), Kokkos::ALL());
-      ASSERT_EQ(offsetSubview.Rank, 3) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 3u) << "subview of offset is broken.";
     }
     {
       auto offsetSubview = Kokkos::Experimental::subview(
           sliceMe, 0, Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL());
-      ASSERT_EQ(offsetSubview.Rank, 3) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 3u) << "subview of offset is broken.";
     }
 
     // slice 2
     auto offsetSubview2a = Kokkos::Experimental::subview(sliceMe, Kokkos::ALL(),
                                                          Kokkos::ALL(), 0, 0);
-    ASSERT_EQ(offsetSubview2a.Rank, 2) << "subview of offset is broken.";
+    ASSERT_EQ(offsetSubview2a.rank(), 2u) << "subview of offset is broken.";
     {
       auto offsetSubview2b = Kokkos::Experimental::subview(
           sliceMe, Kokkos::ALL(), 0, Kokkos::ALL(), 0);
-      ASSERT_EQ(offsetSubview2b.Rank, 2) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview2b.rank(), 2u) << "subview of offset is broken.";
     }
     {
       auto offsetSubview2b = Kokkos::Experimental::subview(
           sliceMe, Kokkos::ALL(), 0, 0, Kokkos::ALL());
-      ASSERT_EQ(offsetSubview2b.Rank, 2) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview2b.rank(), 2u) << "subview of offset is broken.";
     }
     {
       auto offsetSubview2b = Kokkos::Experimental::subview(
           sliceMe, 0, Kokkos::ALL(), 0, Kokkos::ALL());
-      ASSERT_EQ(offsetSubview2b.Rank, 2) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview2b.rank(), 2u) << "subview of offset is broken.";
     }
     {
       auto offsetSubview2b = Kokkos::Experimental::subview(
           sliceMe, 0, 0, Kokkos::ALL(), Kokkos::ALL());
-      ASSERT_EQ(offsetSubview2b.Rank, 2) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview2b.rank(), 2u) << "subview of offset is broken.";
     }
     // slice 3
     {
       auto offsetSubview =
           Kokkos::Experimental::subview(sliceMe, Kokkos::ALL(), 0, 0, 0);
-      ASSERT_EQ(offsetSubview.Rank, 1) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 1u) << "subview of offset is broken.";
     }
     {
       auto offsetSubview =
           Kokkos::Experimental::subview(sliceMe, 0, Kokkos::ALL(), 0, 0);
-      ASSERT_EQ(offsetSubview.Rank, 1) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 1u) << "subview of offset is broken.";
     }
     {
       auto offsetSubview =
           Kokkos::Experimental::subview(sliceMe, 0, 0, Kokkos::ALL(), 0);
-      ASSERT_EQ(offsetSubview.Rank, 1) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 1u) << "subview of offset is broken.";
     }
     {
       auto offsetSubview =
           Kokkos::Experimental::subview(sliceMe, 0, 0, 0, Kokkos::ALL());
-      ASSERT_EQ(offsetSubview.Rank, 1) << "subview of offset is broken.";
+      ASSERT_EQ(offsetSubview.rank(), 1u) << "subview of offset is broken.";
     }
   }
 }
 
-#if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)
 template <class InputIt, class T, class BinaryOperation>
 KOKKOS_INLINE_FUNCTION T std_accumulate(InputIt first, InputIt last, T init,
                                         BinaryOperation op) {
@@ -617,6 +671,7 @@ void test_offsetview_offsets_rank1() {
       KOKKOS_LAMBDA(const int ii, int& lerrors) {
         offset_view_type ov(v, {ii});
         lerrors += (ov(3) != element({3 - ii}));
+        lerrors += (ov[3] != element({3 - ii}));
       },
       errors);
 
@@ -686,7 +741,6 @@ void test_offsetview_offsets_rank3() {
 
   ASSERT_EQ(0, errors);
 }
-#endif
 
 TEST(TEST_CATEGORY, offsetview_construction) {
   test_offsetview_construction<int, TEST_EXECSPACE>();
@@ -696,11 +750,15 @@ TEST(TEST_CATEGORY, offsetview_unmanaged_construction) {
   test_offsetview_unmanaged_construction<int, TEST_EXECSPACE>();
 }
 
+TEST(TEST_CATEGORY_DEATH, offsetview_unmanaged_construction) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+  test_offsetview_unmanaged_construction_death<int, TEST_EXECSPACE>();
+}
+
 TEST(TEST_CATEGORY, offsetview_subview) {
   test_offsetview_subview<int, TEST_EXECSPACE>();
 }
 
-#if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)
 TEST(TEST_CATEGORY, offsetview_offsets_rank1) {
   test_offsetview_offsets_rank1<TEST_EXECSPACE>();
 }
@@ -712,7 +770,6 @@ TEST(TEST_CATEGORY, offsetview_offsets_rank2) {
 TEST(TEST_CATEGORY, offsetview_offsets_rank3) {
   test_offsetview_offsets_rank3<TEST_EXECSPACE>();
 }
-#endif
 
 }  // namespace Test
 

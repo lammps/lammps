@@ -37,6 +37,8 @@ using MathConst::MY_CUBEROOT2;
 template<class DeviceType>
 BondFENEKokkos<DeviceType>::BondFENEKokkos(LAMMPS *lmp) : BondFENE(lmp)
 {
+  kokkosable = 1;
+
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -135,12 +137,12 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   copymode = 0;
@@ -267,10 +269,10 @@ void BondFENEKokkos<DeviceType>::coeff(int narg, char **arg)
     k_sigma.h_view[i] = sigma[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_r0.template modify<LMPHostType>();
-  k_epsilon.template modify<LMPHostType>();
-  k_sigma.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_r0.modify_host();
+  k_epsilon.modify_host();
+  k_sigma.modify_host();
 }
 
 
@@ -291,10 +293,10 @@ void BondFENEKokkos<DeviceType>::read_restart(FILE *fp)
     k_sigma.h_view[i] = sigma[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_r0.template modify<LMPHostType>();
-  k_epsilon.template modify<LMPHostType>();
-  k_sigma.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_r0.modify_host();
+  k_epsilon.modify_host();
+  k_sigma.modify_host();
 }
 
 /* ----------------------------------------------------------------------

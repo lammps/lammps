@@ -6,7 +6,7 @@ fix gcmc command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID gcmc N X M type seed T mu displace keyword values ...
 
@@ -15,7 +15,7 @@ Syntax
 * N = invoke this fix every N steps
 * X = average number of GCMC exchanges to attempt every N steps
 * M = average number of MC moves to attempt every N steps
-* type = atom type for inserted atoms (must be 0 if mol keyword used)
+* type = atom type (1-Ntypes or type label) for inserted atoms (must be 0 if mol keyword used)
 * seed = random # seed (positive integer)
 * T = temperature of the ideal gas reservoir (temperature units)
 * mu = chemical potential of the ideal gas reservoir (energy units)
@@ -45,13 +45,13 @@ Syntax
        *group* value = group-ID
          group-ID = group-ID for inserted atoms (string)
        *grouptype* values = type group-ID
-         type = atom type (int)
+         type = atom type (1-Ntypes or type label)
          group-ID = group-ID for inserted atoms (string)
        *intra_energy* value = intramolecular energy (energy units)
        *tfac_insert* value = scale up/down temperature of inserted atoms (unitless)
        *overlap_cutoff* value = maximum pair distance for overlap rejection (distance units)
-       *max* value = Maximum number of molecules allowed in the system
-       *min* value = Minimum number of molecules allowed in the system
+       *max* value = Maximum number of atoms allowed in the fix group (and region)
+       *min* value = Minimum number of atoms allowed in the fix group (and region)
 
 Examples
 """"""""
@@ -62,52 +62,47 @@ Examples
    fix 3 water gcmc 10 100 100 0 3456543 3.0 -2.5 0.1 mol my_one_water maxangle 180 full_energy
    fix 4 my_gas gcmc 1 10 10 1 123456543 300.0 -12.5 1.0 region disk
 
+   labelmap atom 1 Li
+   fix 2 ion gcmc 10 1000 1000 Li 29494 298.0 -0.5 0.01
+
 Description
 """""""""""
 
-This fix performs grand canonical Monte Carlo (GCMC) exchanges of
-atoms or molecules with an imaginary ideal gas
-reservoir at the specified T and chemical potential (mu) as discussed
-in :ref:`(Frenkel) <Frenkel2>`. It also
-attempts  Monte Carlo (MC) moves (translations and molecule
-rotations) within the simulation cell or
-region. If used with the :doc:`fix nvt <fix_nh>`
+This fix performs grand canonical Monte Carlo (GCMC) exchanges of atoms or
+molecules with an imaginary ideal gas reservoir at the specified T and
+chemical potential (mu) as discussed in :ref:`(Frenkel) <Frenkel2>`.  It
+also attempts Monte Carlo (MC) moves (translations and molecule rotations)
+within the simulation cell or region.  If used with the :doc:`fix nvt <fix_nh>`
 command, simulations in the grand canonical ensemble (muVT, constant
 chemical potential, constant volume, and constant temperature) can be
 performed.  Specific uses include computing isotherms in microporous
 materials, or computing vapor-liquid coexistence curves.
 
-Every N timesteps the fix attempts both GCMC exchanges
-(insertions or deletions) and MC moves of gas atoms or molecules.
-On those timesteps, the average number of attempted GCMC exchanges is X,
-while the average number of attempted MC moves is M.
-For GCMC exchanges of either molecular or atomic gasses,
-these exchanges can be either deletions or insertions,
-with equal probability.
+Every N timesteps the fix attempts both GCMC exchanges (insertions or
+deletions) and MC moves of gas atoms or molecules.  On those timesteps, the
+average number of attempted GCMC exchanges is X, while the average number
+of attempted MC moves is M.  For GCMC exchanges of either molecular or
+atomic gasses, these exchanges can be either deletions or insertions, with
+equal probability.
 
-The possible choices for MC moves are translation of an atom,
-translation of a molecule, and rotation of a molecule.
-The relative amounts of each are determined by the optional
-*mcmoves* keyword (see below).
-The default behavior is as follows.
-If the *mol* keyword is used, only molecule translations
-and molecule rotations are performed with equal probability.
-Conversely, if the *mol* keyword is not used, only atom
-translations are performed.
-M should typically be
-chosen to be approximately equal to the expected number of gas atoms
-or molecules of the given type within the simulation cell or region,
-which will result in roughly one MC move per atom or molecule
-per MC cycle.
+The possible choices for MC moves are translation of an atom, translation
+of a molecule, and rotation of a molecule.  The relative amounts of each are
+determined by the optional *mcmoves* keyword (see below).  The default
+behavior is as follows. If the *mol* keyword is used, only molecule
+translations and molecule rotations are performed with equal probability.
+Conversely, if the *mol* keyword is not used, only atom translations are
+performed.  M should typically be chosen to be approximately equal to the
+expected number of gas atoms or molecules of the given type within the
+simulation cell or region, which will result in roughly one MC move per
+atom or molecule per MC cycle.
 
-All inserted particles are always added to two groups: the default
-group "all" and the fix group specified in the fix command.
-In addition, particles are also added to any groups
-specified by the *group* and *grouptype* keywords.  If inserted
-particles are individual atoms, they are assigned the atom type given
-by the type argument.  If they are molecules, the type argument has no
-effect and must be set to zero. Instead, the type of each atom in the
-inserted molecule is specified in the file read by the
+All inserted particles are always added to two groups: the default group
+"all" and the fix group specified in the fix command.  In addition,
+particles are also added to any groups specified by the *group* and
+*grouptype* keywords.  If inserted particles are individual atoms, they are
+assigned the atom type given by the type argument.  If they are molecules,
+the type argument has no effect and must be set to zero. Instead, the type
+of each atom in the inserted molecule is specified in the file read by the
 :doc:`molecule <molecule>` command.
 
 .. note::
@@ -146,8 +141,8 @@ center-of-mass is inside the specified region.
 If used with :doc:`fix nvt <fix_nh>`, the temperature of the imaginary
 reservoir, T, should be set to be equivalent to the target temperature
 used in fix nvt. Otherwise, the imaginary reservoir will not be in
-thermal equilibrium with the simulation cell. Also, it is important
-that the temperature used by fix nvt be dynamic/dof, which can be
+thermal equilibrium with the simulation cell. Also, it is important that
+the temperature used by *fix nvt* is dynamically updated, which can be
 achieved as follows:
 
 .. code-block:: LAMMPS
@@ -197,15 +192,17 @@ which also appears in your input script.
 
 .. note::
 
-   If you wish the new rigid molecules (and other rigid molecules)
-   to be thermostatted correctly via :doc:`fix rigid/small/nvt <fix_rigid>`
-   or :doc:`fix rigid/small/npt <fix_rigid>`, then you need to use the
-   "fix_modify dynamic/dof yes" command for the rigid fix.  This is to
-   inform that fix that the molecule count will vary dynamically.
+   If you wish the new rigid molecules (and other rigid molecules) to be
+   thermostatted correctly via :doc:`fix rigid/small/nvt <fix_rigid>` or
+   :doc:`fix rigid/small/npt <fix_rigid>`, then you need to use the
+   :doc:`fix_modify dynamic/dof yes <fix_modify>` command for the rigid
+   fix.  This is to inform that fix that the molecule count will vary
+   dynamically.
 
 If you wish to insert molecules via the *mol* keyword, that will have
 their bonds or angles constrained via SHAKE, use the *shake* keyword,
-specifying as its value the ID of a separate :doc:`fix shake <fix_shake>` command which also appears in your input script.
+specifying as its value the ID of a separate :doc:`fix shake
+<fix_shake>` command which also appears in your input script.
 
 Optionally, users may specify the relative amounts of different MC
 moves using the *mcmoves* keyword. The values *Patomtrans*,
@@ -335,31 +332,30 @@ temperature.
 Some fixes have an associated potential energy. Examples of such fixes
 include: :doc:`efield <fix_efield>`, :doc:`gravity <fix_gravity>`,
 :doc:`addforce <fix_addforce>`, :doc:`langevin <fix_langevin>`,
-:doc:`restrain <fix_restrain>`,
-:doc:`temp/berendsen <fix_temp_berendsen>`,
-:doc:`temp/rescale <fix_temp_rescale>`, and :doc:`wall fixes <fix_wall>`.
-For that energy to be included in the total potential energy of the
-system (the quantity used when performing GCMC exchange and MC moves),
-you MUST enable
-the :doc:`fix_modify <fix_modify>` *energy* option for that fix.  The
-doc pages for individual :doc:`fix <fix>` commands specify if this
-should be done.
+:doc:`restrain <fix_restrain>`, :doc:`temp/berendsen
+<fix_temp_berendsen>`, :doc:`temp/rescale <fix_temp_rescale>`, and
+:doc:`wall fixes <fix_wall>`.  For that energy to be included in the
+total potential energy of the system (the quantity used when performing
+GCMC exchange and MC moves), you MUST enable the :doc:`fix_modify
+<fix_modify>` *energy* option for that fix.  The doc pages for
+individual :doc:`fix <fix>` commands specify if this should be done.
 
 Use the *charge* option to insert atoms with a user-specified point
-charge. Note that doing so will cause the system to become
-non-neutral.  LAMMPS issues a warning when using long-range
-electrostatics (kspace) with non-neutral systems. See the :doc:`compute group/group <compute_group_group>` documentation for more details
-about simulating non-neutral systems with kspace on.
+charge. Note that doing so will cause the system to become non-neutral.
+LAMMPS issues a warning when using long-range electrostatics (kspace)
+with non-neutral systems. See the :doc:`compute group/group
+<compute_group_group>` documentation for more details about simulating
+non-neutral systems with kspace on.
 
 Use of this fix typically will cause the number of atoms to fluctuate,
-therefore, you will want to use the
-:doc:`compute_modify dynamic/dof <compute_modify>` command to ensure that the
-current number of atoms is used as a normalizing factor each time
-temperature is computed. A simple example of this is:
+therefore, you will want to use the :doc:`compute_modify dynamic/dof
+<compute_modify>` command to ensure that the current number of atoms is
+used as a normalizing factor each time temperature is computed. A simple
+example of this is:
 
 .. code-block:: LAMMPS
 
-   compute_modify thermo_temp dynamic yes
+   compute_modify thermo_temp dynamic/dof yes
 
 A more complicated example is listed earlier on this page
 in the context of NVT dynamics.
@@ -369,31 +365,30 @@ in the context of NVT dynamics.
    If the density of the cell is initially very small or zero, and
    increases to a much larger density after a period of equilibration,
    then certain quantities that are only calculated once at the start
-   (kspace parameters) may no longer be accurate.  The
-   solution is to start a new simulation after the equilibrium density
-   has been reached.
+   (kspace parameters) may no longer be accurate.  The solution is to
+   start a new simulation after the equilibrium density has been
+   reached.
 
 With some pair_styles, such as :doc:`Buckingham <pair_buck>`,
-:doc:`Born-Mayer-Huggins <pair_born>` and :doc:`ReaxFF <pair_reaxff>`, two
-atoms placed close to each other may have an arbitrary large, negative
-potential energy due to the functional form of the potential.  While
-these unphysical configurations are inaccessible to typical dynamical
-trajectories, they can be generated by Monte Carlo moves. The
-*overlap_cutoff* keyword suppresses these moves by effectively
-assigning an infinite positive energy to all new configurations that
-place any pair of atoms closer than the specified overlap cutoff
-distance.
+:doc:`Born-Mayer-Huggins <pair_born>` and :doc:`ReaxFF <pair_reaxff>`,
+two atoms placed close to each other may have an arbitrary large,
+negative potential energy due to the functional form of the potential.
+While these unphysical configurations are inaccessible to typical
+dynamical trajectories, they can be generated by Monte Carlo moves. The
+*overlap_cutoff* keyword suppresses these moves by effectively assigning
+an infinite positive energy to all new configurations that place any
+pair of atoms closer than the specified overlap cutoff distance.
 
-The *max* and *min* keywords allow for the restriction of the number
-of atoms in the simulation. They automatically reject all insertion
-or deletion moves that would take the system beyond the set boundaries.
-Should the system already be beyond the boundary, only moves that bring
-the system closer to the bounds may be accepted.
+The *max* and *min* keywords allow for the restriction of the number of
+atoms in the fix group (and region in case the *region* keyword is
+used).  They automatically reject all insertion or deletion moves that
+would take the system beyond the set boundaries.  Should the system
+already be beyond the boundary, only moves that bring the system closer
+to the bounds may be accepted.
 
-The *group* keyword adds all inserted atoms to the
-:doc:`group <group>` of the group-ID value. The *grouptype* keyword
-adds all inserted atoms of the specified type to the
-:doc:`group <group>` of the group-ID value.
+The *group* keyword adds all inserted atoms to the :doc:`group <group>`
+of the group-ID value. The *grouptype* keyword adds all inserted atoms
+of the specified type to the :doc:`group <group>` of the group-ID value.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -419,16 +414,16 @@ This fix computes a global vector of length 8, which can be accessed
 by various :doc:`output commands <Howto_output>`.  The vector values are
 the following global cumulative quantities:
 
-* 1 = translation attempts
-* 2 = translation successes
-* 3 = insertion attempts
-* 4 = insertion successes
-* 5 = deletion attempts
-* 6 = deletion successes
-* 7 = rotation attempts
-* 8 = rotation successes
+  #. translation attempts
+  #. translation successes
+  #. insertion attempts
+  #. insertion successes
+  #. deletion attempts
+  #. deletion successes
+  #. rotation attempts
+  #. rotation successes
 
-The vector values calculated by this fix are "extensive".
+The vector values calculated by this fix are "intensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during
@@ -441,27 +436,29 @@ This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
+This fix style requires an :doc:`atom style <atom_style>` with per atom
+type masses.
+
 Do not set "neigh_modify once yes" or else this fix will never be
-called.  Reneighboring is required.
+called.  Reneighboring is **required**.
 
 Only usable for 3D simulations.
 
-Can be run in parallel, but aspects of the GCMC part will not scale
-well in parallel. Currently, molecule translations and rotations
-are not supported with more than one MPI process.
-It is still possible to do parallel molecule exchange without
-translation and rotation moves by setting MC moves to zero
-and/or by using the *mcmoves* keyword with *Pmoltrans* = *Pmolrotate* = 0 .
+This fix can be run in parallel, but aspects of the GCMC part will not
+scale well in parallel.  Currently, molecule translations and rotations
+are not supported with more than one MPI process.  It is still possible
+to do parallel molecule exchange without translation and rotation moves
+by setting MC moves to zero and/or by using the *mcmoves* keyword with
+*Pmoltrans* = *Pmolrotate* = 0 .
 
 
-When using fix gcmc in combination with fix shake or fix rigid,
-only GCMC exchange moves are supported, so the argument
-*M* must be zero.
+When using fix gcmc in combination with fix shake or fix rigid, only
+GCMC exchange moves are supported, so the argument *M* must be zero.
 
-When using fix gcmc in combination with fix rigid, deletion
-of the last remaining molecule is not allowed for technical reasons,
-and so the molecule count will never drop below 1, regardless of the
-specified chemical potential.
+When using fix gcmc in combination with fix rigid, deletion of the last
+remaining molecule is not allowed for technical reasons, and so the
+molecule count will never drop below 1, regardless of the specified
+chemical potential.
 
 Note that very lengthy simulations involving insertions/deletions of
 billions of gas molecules may run out of atom or molecule IDs and

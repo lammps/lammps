@@ -15,6 +15,7 @@ together.
    Python_call
    Python_formats
    Python_examples
+   Python_jupyter
    Python_error
    Python_trouble
 

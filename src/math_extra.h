@@ -47,6 +47,7 @@ inline void cross3(const double *v1, const double *v2, double *ans);
 
 inline void zeromat3(double m[3][3]);
 inline void zeromat3(double **m);
+inline void transpose3(const double m[3][3], double ans[3][3]);
 
 inline void col2mat(const double *ex, const double *ey, const double *ez, double m[3][3]);
 inline double det3(const double mat[3][3]);
@@ -99,6 +100,7 @@ void angmom_to_omega(double *m, double *ex, double *ey, double *ez, double *idia
 void omega_to_angmom(double *w, double *ex, double *ey, double *ez, double *idiag, double *m);
 void mq_to_omega(double *m, double *q, double *moments, double *w);
 void exyz_to_q(double *ex, double *ey, double *ez, double *q);
+void mat_to_quat(double mat[3][3], double *quat);
 void q_to_exyz(double *q, double *ex, double *ey, double *ez);
 void quat_to_mat(const double *quat, double mat[3][3]);
 void quat_to_mat_trans(const double *quat, double mat[3][3]);
@@ -761,6 +763,21 @@ inline void MathExtra::zeromat3(double **m)
   m[0][0] = m[0][1] = m[0][2] = 0.0;
   m[1][0] = m[1][1] = m[1][2] = 0.0;
   m[2][0] = m[2][1] = m[2][2] = 0.0;
+}
+
+// transpose a matrix
+
+inline void MathExtra::transpose3(const double m[3][3], double ans[3][3])
+{
+  ans[0][0] = m[0][0];
+  ans[0][1] = m[1][0];
+  ans[0][2] = m[2][0];
+  ans[1][0] = m[0][1];
+  ans[1][1] = m[1][1];
+  ans[1][2] = m[2][1];
+  ans[2][0] = m[0][2];
+  ans[2][1] = m[1][2];
+  ans[2][2] = m[2][2];
 }
 
 // add two matrices

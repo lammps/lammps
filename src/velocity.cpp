@@ -33,13 +33,12 @@
 
 using namespace LAMMPS_NS;
 
-enum{CREATE,SET,SCALE,RAMP,ZERO};
-enum{ALL,LOCAL,GEOM};
-enum{UNIFORM,GAUSSIAN};
-enum{NONE,CONSTANT,EQUAL,ATOM};
+enum { CREATE, SET, SCALE, RAMP, ZERO };
+enum { ALL, LOCAL, GEOM };
+enum { UNIFORM, GAUSSIAN };
+enum { NONE, CONSTANT, EQUAL, ATOM };
 
-#define WARMUP 100
-#define SMALL  0.001
+static constexpr int WARMUP = 100;
 
 /* ---------------------------------------------------------------------- */
 

@@ -1,55 +1,23 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
 static_assert(false,
               "Including non-public Kokkos header files is not allowed.");
-#else
-KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
-#endif
 #endif
 #ifndef KOKKOS_CORE_CONCEPTS_HPP
 #define KOKKOS_CORE_CONCEPTS_HPP
@@ -73,8 +41,7 @@ struct Dynamic {};
 // Schedule Wrapper Type
 template <class T>
 struct Schedule {
-  static_assert(std::is_same<T, Static>::value ||
-                    std::is_same<T, Dynamic>::value,
+  static_assert(std::is_same_v<T, Static> || std::is_same_v<T, Dynamic>,
                 "Kokkos: Invalid Schedule<> type.");
   using schedule_type = Schedule;
   using type          = T;
@@ -83,7 +50,7 @@ struct Schedule {
 // Specify Iteration Index Type
 template <typename T>
 struct IndexType {
-  static_assert(std::is_integral<T>::value, "Kokkos: Invalid IndexType<>.");
+  static_assert(std::is_integral_v<T>, "Kokkos: Invalid IndexType<>.");
   using index_type = IndexType;
   using type       = T;
 };
@@ -106,11 +73,14 @@ struct WorkItemProperty {
       ImplWorkItemProperty<4>();
   constexpr static const ImplWorkItemProperty<8> HintIrregular =
       ImplWorkItemProperty<8>();
-  using None_t            = ImplWorkItemProperty<0>;
-  using HintLightWeight_t = ImplWorkItemProperty<1>;
-  using HintHeavyWeight_t = ImplWorkItemProperty<2>;
-  using HintRegular_t     = ImplWorkItemProperty<4>;
-  using HintIrregular_t   = ImplWorkItemProperty<8>;
+  constexpr static const ImplWorkItemProperty<16> ImplForceGlobalLaunch =
+      ImplWorkItemProperty<16>();
+  using None_t                  = ImplWorkItemProperty<0>;
+  using HintLightWeight_t       = ImplWorkItemProperty<1>;
+  using HintHeavyWeight_t       = ImplWorkItemProperty<2>;
+  using HintRegular_t           = ImplWorkItemProperty<4>;
+  using HintIrregular_t         = ImplWorkItemProperty<8>;
+  using ImplForceGlobalLaunch_t = ImplWorkItemProperty<16>;
 };
 
 template <unsigned long pv1, unsigned long pv2>
@@ -146,8 +116,8 @@ template <unsigned int maxT = 0 /* Max threads per block */
 struct LaunchBounds {
   using launch_bounds = LaunchBounds;
   using type          = LaunchBounds<maxT, minB>;
-  static unsigned int constexpr maxTperB{maxT};
-  static unsigned int constexpr minBperSM{minB};
+  static constexpr unsigned int maxTperB{maxT};
+  static constexpr unsigned int minBperSM{minB};
 };
 
 }  // namespace Kokkos
@@ -168,10 +138,12 @@ namespace Kokkos {
                                                                \
    public:                                                     \
     static constexpr bool value =                              \
-        std::is_base_of<detected_t<have_t, T>, T>::value ||    \
-        std::is_base_of<detected_t<have_type_t, T>, T>::value; \
+        std::is_base_of_v<detected_t<have_t, T>, T> ||         \
+        std::is_base_of_v<detected_t<have_type_t, T>, T>;      \
     constexpr operator bool() const noexcept { return value; } \
-  };
+  };                                                           \
+  template <typename T>                                        \
+  inline constexpr bool is_##CONCEPT##_v = is_##CONCEPT<T>::value;
 
 // Public concept:
 
@@ -181,27 +153,13 @@ KOKKOS_IMPL_IS_CONCEPT(execution_space)
 KOKKOS_IMPL_IS_CONCEPT(execution_policy)
 KOKKOS_IMPL_IS_CONCEPT(array_layout)
 KOKKOS_IMPL_IS_CONCEPT(reducer)
+KOKKOS_IMPL_IS_CONCEPT(team_handle)
 namespace Experimental {
 KOKKOS_IMPL_IS_CONCEPT(work_item_property)
 KOKKOS_IMPL_IS_CONCEPT(hooks_policy)
 }  // namespace Experimental
 
 namespace Impl {
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-// For backward compatibility:
-
-template <typename T>
-using is_array_layout KOKKOS_DEPRECATED = Kokkos::is_array_layout<T>;
-template <typename T>
-using is_execution_policy KOKKOS_DEPRECATED = Kokkos::is_execution_policy<T>;
-template <typename T>
-using is_execution_space KOKKOS_DEPRECATED = Kokkos::is_execution_space<T>;
-template <typename T>
-using is_memory_space KOKKOS_DEPRECATED = Kokkos::is_memory_space<T>;
-template <typename T>
-using is_memory_traits KOKKOS_DEPRECATED = Kokkos::is_memory_traits<T>;
-#endif
 
 // Implementation concept:
 
@@ -281,6 +239,9 @@ struct is_device_helper<Device<ExecutionSpace, MemorySpace>> : std::true_type {
 template <typename T>
 using is_device = typename Impl::is_device_helper<std::remove_cv_t<T>>::type;
 
+template <typename T>
+inline constexpr bool is_device_v = is_device<T>::value;
+
 //----------------------------------------------------------------------------
 
 template <typename T>
@@ -330,71 +291,7 @@ struct is_space {
 
   using execution_space = typename is_exe::space;
   using memory_space    = typename is_mem::space;
-
-  // For backward compatibility, deprecated in favor of
-  // Kokkos::Impl::HostMirror<S>::host_mirror_space
-
- private:
-  // The actual definitions for host_memory_space and host_execution_spaces are
-  // in do_not_use_host_memory_space and do_not_use_host_execution_space to be
-  // able to use them within this class without deprecation warnings.
-  using do_not_use_host_memory_space = std::conditional_t<
-      std::is_same<memory_space, Kokkos::HostSpace>::value
-#if defined(KOKKOS_ENABLE_CUDA)
-          || std::is_same<memory_space, Kokkos::CudaUVMSpace>::value ||
-          std::is_same<memory_space, Kokkos::CudaHostPinnedSpace>::value
-#elif defined(KOKKOS_ENABLE_HIP)
-          || std::is_same<memory_space,
-                          Kokkos::Experimental::HIPHostPinnedSpace>::value ||
-          std::is_same<memory_space,
-                       Kokkos::Experimental::HIPManagedSpace>::value
-#elif defined(KOKKOS_ENABLE_SYCL)
-          || std::is_same<memory_space,
-                          Kokkos::Experimental::SYCLSharedUSMSpace>::value ||
-          std::is_same<memory_space,
-                       Kokkos::Experimental::SYCLHostUSMSpace>::value
-#endif
-      ,
-      memory_space, Kokkos::HostSpace>;
-
-  using do_not_use_host_execution_space = std::conditional_t<
-#if defined(KOKKOS_ENABLE_CUDA)
-      std::is_same<execution_space, Kokkos::Cuda>::value ||
-#elif defined(KOKKOS_ENABLE_HIP)
-      std::is_same<execution_space, Kokkos::Experimental::HIP>::value ||
-#elif defined(KOKKOS_ENABLE_SYCL)
-      std::is_same<execution_space, Kokkos::Experimental::SYCL>::value ||
-#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-      std::is_same<execution_space,
-                   Kokkos::Experimental::OpenMPTarget>::value ||
-#endif
-          false,
-      Kokkos::DefaultHostExecutionSpace, execution_space>;
-
- public:
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-  using host_memory_space KOKKOS_DEPRECATED = do_not_use_host_memory_space;
-  using host_execution_space KOKKOS_DEPRECATED =
-      do_not_use_host_execution_space;
-  using host_mirror_space KOKKOS_DEPRECATED = std::conditional_t<
-      std::is_same<execution_space, do_not_use_host_execution_space>::value &&
-          std::is_same<memory_space, do_not_use_host_memory_space>::value,
-      T,
-      Kokkos::Device<do_not_use_host_execution_space,
-                     do_not_use_host_memory_space>>;
-#endif
 };
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-// For backward compatibility
-
-namespace Impl {
-
-template <typename T>
-using is_space KOKKOS_DEPRECATED = Kokkos::is_space<T>;
-
-}
-#endif
 
 }  // namespace Kokkos
 
@@ -421,7 +318,7 @@ struct MemorySpaceAccess {
    *  2. All execution spaces that can access DstMemorySpace can also access
    *     SrcMemorySpace.
    */
-  enum { assignable = std::is_same<DstMemorySpace, SrcMemorySpace>::value };
+  enum { assignable = std::is_same_v<DstMemorySpace, SrcMemorySpace> };
 
   /**\brief  For all DstExecSpace::memory_space == DstMemorySpace
    *         DstExecSpace can access SrcMemorySpace.
@@ -506,26 +403,13 @@ struct SpaceAccessibility {
   // If same memory space or not accessible use the AccessSpace
   // else construct a device with execution space and memory space.
   using space = std::conditional_t<
-      std::is_same<typename AccessSpace::memory_space, MemorySpace>::value ||
+      std::is_same_v<typename AccessSpace::memory_space, MemorySpace> ||
           !exe_access::accessible,
       AccessSpace,
       Kokkos::Device<typename AccessSpace::execution_space, MemorySpace>>;
 };
 
 }  // namespace Kokkos
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-namespace Kokkos {
-namespace Impl {
-
-// For backward compatibility
-template <typename AccessSpace, typename MemorySpace>
-using SpaceAccessibility KOKKOS_DEPRECATED =
-    Kokkos::SpaceAccessibility<AccessSpace, MemorySpace>;
-
-}  // namespace Impl
-}  // namespace Kokkos
-#endif
 
 //----------------------------------------------------------------------------
 

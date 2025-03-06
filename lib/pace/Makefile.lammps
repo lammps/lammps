@@ -1,3 +1,3 @@
-pace_SYSINC =-I../../lib/pace/src/ML-PACE -I../../lib/pace/src/yaml-cpp/include -I../../lib/pace/src/wigner-cpp/include -DEXTRA_C_PROJECTIONS
+pace_SYSINC =-I../../lib/pace/src/ML-PACE -I../../lib/pace/src/yaml-cpp/include -I../../lib/pace/src/wigner-cpp/include -DEXTRA_C_PROJECTIONS -DCOMPUTE_B_GRAD
 pace_SYSLIB = -L../../lib/pace/ -lpace -L../../lib/pace/src/yaml-cpp/ -lyaml-cpp
 pace_SYSPATH =

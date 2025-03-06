@@ -27,7 +27,7 @@ FixStyle(langevin/kk/host,FixLangevinKokkos<LMPHostType>);
 #include "kokkos_type.h"
 #include "kokkos_base.h"
 #include "Kokkos_Random.hpp"
-#include "comm_kokkos.h"
+#include "rand_pool_wrap_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -67,8 +67,8 @@ namespace LAMMPS_NS {
     FixLangevinKokkos(class LAMMPS *, int, char **);
     ~FixLangevinKokkos() override;
 
-    void cleanup_copy();
     void init() override;
+    void setup(int) override;
     void initial_integrate(int) override;
     void fused_integrate(int) override;
     void post_force(int) override;
@@ -103,8 +103,6 @@ namespace LAMMPS_NS {
       void end_of_step_rmass_item(int) const;
 
   private:
-    class CommKokkos *commKK;
-
     typename ArrayTypes<DeviceType>::t_float_1d rmass;
     typename ArrayTypes<DeviceType>::t_float_1d mass;
     typename ArrayTypes<DeviceType>::tdual_double_2d k_franprev;
@@ -138,12 +136,20 @@ namespace LAMMPS_NS {
     typename tdual_double_1d_3n::t_dev d_fsumall;
     typename tdual_double_1d_3n::t_host h_fsumall;
 
-    double boltz,dt,mvv2e,ftm2v,fran_prop_const;
+    double boltz,dt,mvv2e,ftm2v,fran_prop_const,fran_prop_const_gjf;
 
     void compute_target();
 
+#ifndef LMP_KOKKOS_DEBUG_RNG
     Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
     typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
+
+    //Kokkos::Random_XorShift1024_Pool<DeviceType> rand_pool;
+    //typedef typename Kokkos::Random_XorShift1024_Pool<DeviceType>::generator_type rand_type;
+#else
+    RandPoolWrap rand_pool;
+    typedef RandWrap rand_type;
+#endif
 
   };
 
@@ -153,7 +159,7 @@ namespace LAMMPS_NS {
     FixLangevinKokkos<DeviceType> c;
 
   FixLangevinKokkosInitialIntegrateFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
-    c(*c_ptr) {c.cleanup_copy();};
+    c(*c_ptr) {c.set_copymode(1);};
 
     KOKKOS_INLINE_FUNCTION
     void operator()(const int i) const {
@@ -171,7 +177,7 @@ namespace LAMMPS_NS {
 
     FixLangevinKokkosPostForceFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
       c(*c_ptr) {}
-      ~FixLangevinKokkosPostForceFunctor() {c.cleanup_copy();}
+      ~FixLangevinKokkosPostForceFunctor() {c.set_copymode(1);}
 
       KOKKOS_INLINE_FUNCTION
       void operator()(const int i) const {
@@ -207,7 +213,7 @@ namespace LAMMPS_NS {
       FixLangevinKokkos<DeviceType> c;
 
     FixLangevinKokkosZeroForceFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
-      c(*c_ptr) {c.cleanup_copy();}
+      c(*c_ptr) {c.set_copymode(1);}
 
       KOKKOS_INLINE_FUNCTION
       void operator()(const int i) const {
@@ -221,7 +227,7 @@ namespace LAMMPS_NS {
       FixLangevinKokkos<DeviceType> c;
       typedef double value_type;
     FixLangevinKokkosTallyEnergyFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
-      c(*c_ptr) {c.cleanup_copy();}
+      c(*c_ptr) {c.set_copymode(1);}
 
       KOKKOS_INLINE_FUNCTION
       void operator()(const int i, value_type &energy) const {
@@ -244,7 +250,7 @@ namespace LAMMPS_NS {
     FixLangevinKokkos<DeviceType> c;
 
     FixLangevinKokkosEndOfStepFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
-      c(*c_ptr) {c.cleanup_copy();}
+      c(*c_ptr) {c.set_copymode(1);}
 
     KOKKOS_INLINE_FUNCTION
     void operator()(const int i) const {

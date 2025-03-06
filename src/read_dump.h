@@ -41,8 +41,6 @@ class ReadDump : public Command {
   int fields_and_keywords(int, char **);
 
  private:
-  int me, nprocs;
-
   char **files;       // list of input dump files to process
   int nfile;          // # of dump files to process (each may be parallel)
   int currentfile;    // current open file (0 to nfile-1)
@@ -59,9 +57,6 @@ class ReadDump : public Command {
                      //   (0 to multiproc_nfile-1)
   int filereader;    // 1 if this proc reads from a dump file(s)
   int parallel;      // 1 if parallel reading (e.g. via ADIOS2)
-
-  int dimension;    // same as in Domain
-  int triclinic;
 
   int boxflag;                 // overwrite simulation box with dump file box params
   int timestepflag;            // overwrite simulation timestep with dump file timestep

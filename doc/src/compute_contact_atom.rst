@@ -36,6 +36,9 @@ sum of the radii of the two particles.
 The value of the contact number will be 0.0 for atoms not in the
 specified compute group.
 
+The optional *group2-ID* argument allows to specify from which group atoms
+contribute to the coordination number. Default setting is group 'all'.
+
 Output info
 """""""""""
 
@@ -46,9 +49,6 @@ overview of LAMMPS output options.
 
 The per-atom vector values will be a number :math:`\ge 0.0`, as explained
 above.
-
-The optional *group2-ID* argument allows to specify from which group atoms
-contribute to the coordination number. Default setting is group 'all.'
 
 Restrictions
 """"""""""""
@@ -69,6 +69,3 @@ Default
 """""""
 
 *group2-ID* = all
-
-
-none

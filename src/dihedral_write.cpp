@@ -25,7 +25,6 @@
 #include "error.h"
 #include "force.h"
 #include "input.h"
-#include "lammps.h"
 #include "math_const.h"
 #include "update.h"
 
@@ -35,7 +34,7 @@ using MathConst::DEG2RAD;
 using MathConst::RAD2DEG;
 
 static constexpr double epsilon = 6.5e-6;
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 /* ---------------------------------------------------------------------- */
 
 void DihedralWrite::command(int narg, char **arg)
@@ -108,7 +107,7 @@ void DihedralWrite::command(int narg, char **arg)
                      utils::current_date());
       fp = fopen(table_file.c_str(), "w");
       if (fp)
-        fmt::print(fp, "# DATE: {} UNITS: {} Created by dihedral_write\n", utils::current_date(),
+        utils::print(fp, "# DATE: {} UNITS: {} Created by dihedral_write\n", utils::current_date(),
                    update->unit_style);
     }
     if (fp == nullptr)
@@ -124,12 +123,8 @@ void DihedralWrite::command(int narg, char **arg)
 
   if (comm->me == 0) {
     // set up new LAMMPS instance with dummy system to evaluate dihedral potential
-    //    const char *args[] = {"DihedralWrite", "-nocite", "-echo",   "none",
-    //                          "-log",          "none",    "-screen", "none"};
-    const char *args[] = {"DihedralWrite", "-nocite", "-echo", "screen", "-log", "none"};
-    char **argv = (char **) args;
-    int argc = sizeof(args) / sizeof(char *);
-    LAMMPS *writer = new LAMMPS(argc, argv, singlecomm);
+    LAMMPS::argv args = {"DihedralWrite", "-nocite", "-echo", "screen", "-log", "none"};
+    LAMMPS *writer = new LAMMPS(args, singlecomm);
 
     // create dummy system replicating dihedral style settings
     writer->input->one(fmt::format("units {}", update->unit_style));
@@ -152,10 +147,11 @@ void DihedralWrite::command(int narg, char **arg)
     writer->input->one("mass * 1.0");
     writer->input->one(fmt::format("dihedral_style {}", force->dihedral_style));
     FILE *coeffs;
-    char line[MAXLINE];
+    char line[MAXLINE] = {'\0'};
     coeffs = fopen(coeffs_file.c_str(), "r");
+    if (!coeffs) error->one(FLERR, "Unable to open temporary file {}: {}", utils::getsyserror());
     for (int i = 0; i < atom->ndihedraltypes; ++i) {
-      fgets(line, MAXLINE, coeffs);
+      utils::sfgets(FLERR, line, MAXLINE, coeffs, coeffs_file.c_str(), error);
       writer->input->one(fmt::format("dihedral_coeff {}", line));
     }
     fclose(coeffs);
@@ -173,9 +169,9 @@ void DihedralWrite::command(int narg, char **arg)
 
     // evaluate energy and force at each of N distances
 
-    fmt::print(fp, "# Dihedral potential {} for dihedral type {}: i,theta,energy,force\n",
+    utils::print(fp, "# Dihedral potential {} for dihedral type {}: i,theta,energy,force\n",
                force->dihedral_style, dtype);
-    fmt::print(fp, "\n{}\nN {} DEGREES\n\n", keyword, n);
+    utils::print(fp, "\n{}\nN {} DEGREES\n\n", keyword, n);
 
 #define GET_ENERGY(myphi, mytheta)     \
   theta = mytheta;                     \

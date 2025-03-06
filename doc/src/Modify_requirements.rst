@@ -184,15 +184,13 @@ package so that it is optional.
 Included Fortran code has to be compatible with the Fortran 2003
 standard.  Since not all platforms supported by LAMMPS provide good
 support for compiling Fortran files, it should be considered to rewrite
-these parts as C++ code, if possible and thus allow for a wider adoption
+these parts as C++ code, if possible, and thus allow for a wider adoption
 of the contribution.  As of January 2023, all previously included
 Fortran code for the LAMMPS executable has been replaced by equivalent
 C++ code.
 
-Python code must be compatible with Python 3.5 and later.  Large parts
-of LAMMPS (including the :ref:`PYTHON package <PKG-PYTHON>`) are also
-compatible with Python 2.7.  Compatibility with Python 2.7 is desirable,
-but compatibility with Python 3.5 is **required**.
+Python code currently must be compatible with Python 3.6.  If a later
+version or Python is required, it needs to be documented.
 
 Compatibility with older programming language standards is very
 important to maintain portability and availability of LAMMPS on many
@@ -208,20 +206,21 @@ Build system (strict)
 
 LAMMPS currently supports two build systems: one that is based on
 :doc:`traditional Makefiles <Build_make>` and one that is based on
-:doc:`CMake <Build_cmake>`.  Therefore, your contribution must be
-compatible with and support both build systems.
+:doc:`CMake <Build_cmake>`.  As of fall 2024, it is no longer required
+to support the traditional make build system.  New packages may choose
+to only support building with CMake.  Additions to existing packages
+must follow the requirements set by that package.
 
 For a single pair of header and implementation files that are an
 independent feature, it is usually only required to add them to
 ``src/.gitignore``.
 
 For traditional make, if your contributed files or package depend on
-other LAMMPS style files or packages also being installed
-(e.g. because your file is a derived class from the other LAMMPS
-class), then an ``Install.sh`` file is also needed to check for those
-dependencies and modifications to ``src/Depend.sh`` to trigger the checks.
-See other README and Install.sh files in other directories as
-examples.
+other LAMMPS style files or packages also being installed (e.g. because
+your file is a derived class from the other LAMMPS class), then an
+``Install.sh`` file is also needed to check for those dependencies and
+modifications to ``src/Depend.sh`` to trigger the checks.  See other
+README and Install.sh files in other directories as examples.
 
 Similarly, for CMake support, changes may need to be made to
 ``cmake/CMakeLists.txt``, some of the files in ``cmake/presets``, and

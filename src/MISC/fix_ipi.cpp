@@ -40,7 +40,7 @@ using namespace FixConst;
  * Please cite:
  * Ceriotti, M., More, J., & Manolopoulos, D. E. (2014).
  * i-PI: A Python interface for ab initio path integral molecular dynamics simulations.
- * Computer Physics Communications, 185, 1019–1026. doi:10.1016/j.cpc.2013.10.027
+ * Computer Physics Communications, 185, 1019-1026. doi:10.1016/j.cpc.2013.10.027
  * And see [https://github.com/i-pi/i-pi] to download a version of i-PI
  ******************************************************************************************/
 
@@ -48,6 +48,7 @@ using namespace FixConst;
 #ifndef _WIN32
 #include <netdb.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
@@ -78,7 +79,7 @@ static void open_socket(int &sockfd, int inet, int port, char *host, Error *erro
    error: pointer to a LAMMPS Error object
 */
 {
-  int ai_err;
+  int ai_err,flagNagle;
 
 #ifdef _WIN32
   error->one(FLERR, "i-PI socket implementation requires UNIX environment");
@@ -98,7 +99,12 @@ static void open_socket(int &sockfd, int inet, int port, char *host, Error *erro
 
     // creates socket
     sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-    if (sockfd < 0) error->one(FLERR, "Error opening socket");
+    if (sockfd < 0) error->one(FLERR, "Error creating socket for fix ipi");
+
+    // set TCP_NODELAY=1 to disable Nagle's algorithm as it slows down the small transactions for i-PI
+    flagNagle = 1;
+    int result_TCP = setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (char *)&flagNagle, sizeof(int));
+    if (result_TCP < 0) { perror("Error setting TCP_NODELAY"); }
 
     // makes connection
     if (connect(sockfd, res->ai_addr, res->ai_addrlen) < 0)
@@ -116,6 +122,7 @@ static void open_socket(int &sockfd, int inet, int port, char *host, Error *erro
 
     // creates the socket
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (sockfd < 0) error->one(FLERR, "Error creating socket for fix ipi");
 
     // connects
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
@@ -181,6 +188,7 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), irregul
   master = (comm->me == 0) ? 1 : 0;
   inet = 1;
   reset_flag = 0;
+  firsttime = 1;
 
   int iarg = 5;
   while (iarg < narg) {
@@ -246,12 +254,17 @@ void FixIPI::init()
     ipisock = 0;
   // TODO: should check for success in socket opening,
   // but the current open_socket routine dies brutally if unsuccessful
+
   // tell lammps we have assigned a socket
   socketflag = 1;
 
   // asks for evaluation of PE at first step
-  modify->compute[modify->find_compute("thermo_pe")]->invoked_scalar = -1;
-  modify->addstep_compute_all(update->ntimestep + 1);
+  auto c_pe = modify->get_compute_by_id("thermo_pe");
+  if (c_pe) {
+    c_pe->invoked_scalar = -1;
+    modify->addstep_compute_all(update->ntimestep + 1);
+  }
+
 
   kspace_flag = (force->kspace) ? 1 : 0;
 
@@ -284,17 +297,17 @@ void FixIPI::initial_integrate(int /*vflag*/)
       // while i-PI just asks for status, signal we are ready and wait
       readbuffer(ipisock, header, MSGLEN, error); header[MSGLEN]=0;
 
-      if (strcmp(header,"STATUS      ") == 0 )
+      if (strcmp(header,"STATUS      ") == 0)
         writebuffer(ipisock,"READY       ",MSGLEN, error);
       else break;
     }
 
-    if (strcmp(header,"EXIT        ") == 0 )
+    if (strcmp(header,"EXIT        ") == 0)
       error->one(FLERR, "Got EXIT message from i-PI. Now leaving!");
 
     // when i-PI signals it has positions to evaluate new forces,
     // read positions and cell data
-    if (strcmp(header,"POSDATA     ") == 0 )  {
+    if (strcmp(header,"POSDATA     ") == 0)  {
       readbuffer(ipisock, (char*) cellh, 9*8, error);
       readbuffer(ipisock, (char*) cellih, 9*8, error);
       readbuffer(ipisock, (char*) &nat, 4, error);
@@ -362,16 +375,39 @@ void FixIPI::initial_integrate(int /*vflag*/)
   // has to be be done before invoking Irregular::migrate_atoms()
   //   since it requires atoms be inside simulation box
 
+  // folds atomic coordinates close to the origin
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal);
-
   // move atoms to new processors via irregular()
   // only needed if migrate_check() says an atom moves to far
-  if (domain->triclinic) domain->x2lamda(atom->nlocal);
   if (irregular->migrate_check()) irregular->migrate_atoms();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
+
+  // ensures continuity of trajectories relative to the
+  // snapshot at neighbor list creation, minimizing the
+  // number of neighbor list updates
+  auto xhold = neighbor->get_xhold();
+  if (xhold != NULL && !firsttime) {
+    // don't wrap if xhold is not used in the NL, or the
+    // first call (because the NL is initialized from the
+    // data file that might have nothing to do with the
+    // current structure
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        auto delx = x[i][0] - xhold[i][0];
+        auto dely = x[i][1] - xhold[i][1];
+        auto delz = x[i][2] - xhold[i][2];
+
+        domain->minimum_image(delx, dely, delz);
+
+        x[i][0] = xhold[i][0] + delx;
+        x[i][1] = xhold[i][1] + dely;
+        x[i][2] = xhold[i][2] + delz;
+      }
+    }
+  }
+  firsttime = 0;
 
   // check if kspace solver is used
   if (reset_flag && kspace_flag) {
@@ -402,7 +438,7 @@ void FixIPI::final_integrate()
   char header[MSGLEN+1];
   double vir[9], pot=0.0;
   double forceconv, potconv, posconv, pressconv, posconv3;
-  char retstr[1024];
+  char retstr[1024] = { '\0' };
 
   // conversions from LAMMPS units to atomic units, which are used by i-PI
   potconv=3.1668152e-06/force->boltz;
@@ -412,8 +448,12 @@ void FixIPI::final_integrate()
   pressconv=1/force->nktv2p*potconv*posconv3;
 
   // compute for potential energy
-  pot=modify->compute[modify->find_compute("thermo_pe")]->compute_scalar();
-  pot*=potconv;
+
+  auto *c_pe = modify->get_compute_by_id("thermo_pe");
+  if (c_pe) {
+    pot = c_pe->compute_scalar();
+    pot*=potconv;
+  }
 
   // probably useless check
   if (!hasdata)
@@ -437,38 +477,42 @@ void FixIPI::final_integrate()
 
   for (int i = 0; i < 9; ++i) vir[i]=0.0;
 
-  int press_id = modify->find_compute("IPI_PRESS");
-  Compute* comp_p = modify->compute[press_id];
-  comp_p->compute_vector();
-  double myvol = domain->xprd*domain->yprd*domain->zprd/posconv3;
+  const double myvol = domain->xprd*domain->yprd*domain->zprd/posconv3;
+  Compute* comp_p = modify->get_compute_by_id("IPI_PRESS");
+  if (comp_p) {
+    comp_p->compute_vector();
 
-  vir[0] = comp_p->vector[0]*pressconv*myvol;
-  vir[4] = comp_p->vector[1]*pressconv*myvol;
-  vir[8] = comp_p->vector[2]*pressconv*myvol;
-  vir[1] = comp_p->vector[3]*pressconv*myvol;
-  vir[2] = comp_p->vector[4]*pressconv*myvol;
-  vir[5] = comp_p->vector[5]*pressconv*myvol;
-  retstr[0]=0;
+    vir[0] = comp_p->vector[0]*pressconv*myvol;
+    vir[4] = comp_p->vector[1]*pressconv*myvol;
+    vir[8] = comp_p->vector[2]*pressconv*myvol;
+    vir[1] = comp_p->vector[3]*pressconv*myvol;
+    vir[2] = comp_p->vector[4]*pressconv*myvol;
+    vir[5] = comp_p->vector[5]*pressconv*myvol;
+    retstr[0] = '\0';
+  }
 
   if (master) {
+    // check for new messages
     while (true) {
       readbuffer(ipisock, header, MSGLEN, error); header[MSGLEN]=0;
 
-      if (strcmp(header,"STATUS      ") == 0 )
+      if (strcmp(header,"STATUS      ") == 0)
         writebuffer(ipisock,"HAVEDATA    ",MSGLEN, error);
       else break;
     }
 
-    if (strcmp(header,"EXIT        ") == 0 )
+    if (strcmp(header,"EXIT        ") == 0)
       error->one(FLERR, "Got EXIT message from i-PI. Now leaving!");
 
-    if (strcmp(header,"GETFORCE    ") == 0 )  {
+    if (strcmp(header,"GETFORCE    ") == 0)  {
+      // return force and energy data
       writebuffer(ipisock,"FORCEREADY  ",MSGLEN, error);
       writebuffer(ipisock,(char*) &pot,8, error);
       writebuffer(ipisock,(char*) &nat,4, error);
       writebuffer(ipisock,(char*) buffer, bsize*8, error);
       writebuffer(ipisock,(char*) vir,9*8, error);
-      nat=strlen(retstr);  writebuffer(ipisock,(char*) &nat,4, error);
+      nat=strlen(retstr);
+      writebuffer(ipisock,(char*) &nat,4, error);
       writebuffer(ipisock,(char*) retstr, nat, error);
     }
     else
@@ -477,5 +521,3 @@ void FixIPI::final_integrate()
 
   hasdata=0;
 }
-
-

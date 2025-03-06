@@ -6,7 +6,7 @@ fix nve/dot command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID nve/dot
 

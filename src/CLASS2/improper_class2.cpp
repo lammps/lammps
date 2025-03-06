@@ -32,8 +32,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define SMALL 0.001
-
 /* ---------------------------------------------------------------------- */
 
 ImproperClass2::ImproperClass2(LAMMPS *lmp) : Improper(lmp)

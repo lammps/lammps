@@ -20,7 +20,7 @@ Syntax
        *model* values = style
          style = *linear* or *quadratic* or *mliappy*
        *descriptor* values = style filename
-         style = *sna*
+         style = *sna* or *ace*
          filename = name of file containing descriptor definitions
        *gradgradflag* value = 0/1
          toggle gradgrad method for force gradient
@@ -31,6 +31,7 @@ Examples
 .. code-block:: LAMMPS
 
    compute mliap model linear descriptor sna Ta06A.mliap.descriptor
+   compute mliap model linear descriptor ace H_N_O_ccs.yace gradgradflag 1
 
 Description
 """""""""""
@@ -40,18 +41,15 @@ of machine-learning interatomic potentials with respect to model parameters.
 It is used primarily for calculating the gradient of energy, force, and
 stress components with respect to model parameters, which is useful when
 training :doc:`mliap pair_style <pair_mliap>` models to match target data.
-It provides separate
-definitions of the interatomic potential functional form (*model*)
-and the geometric quantities that characterize the atomic positions
-(*descriptor*). By defining *model* and *descriptor* separately,
+It provides separate definitions of the interatomic potential functional
+form (*model*) and the geometric quantities that characterize the atomic
+positions (*descriptor*). By defining *model* and *descriptor* separately,
 it is possible to use many different models with a given descriptor,
-or many different descriptors with a given model. Currently, the
-compute supports just two models, *linear* and *quadratic*,
-and one descriptor, *sna*, the SNAP descriptor used by
-:doc:`pair_style snap <pair_snap>`, including the linear, quadratic,
-and chem variants. Work is currently underway to extend
-the interface to handle neural network energy models,
-and it is also straightforward to add new descriptor styles.
+or many different descriptors with a given model. Currently, the compute
+supports *linear* and *quadratic* SNAP descriptor computes used in
+:doc:`pair_style snap <pair_snap>`, *linear* SO3 descriptor computes, and
+*linear* ACE descriptor computes used in :doc:`pair_style pace <pair_pace>`,
+and it is straightforward to add new descriptor styles.
 
 The compute *mliap* command must be followed by two keywords
 *model* and *descriptor* in either order.
@@ -60,18 +58,30 @@ The *model* keyword is followed by the model style (*linear*,
 *quadratic* or *mliappy*).  The *mliappy* model is only available if
 LAMMPS is built with the *mliappy* Python module. There are
 :ref:`specific installation instructions <mliap>` for that module.
+For the *mliap* compute, specifying a *linear* model will compute the
+specified descriptors and gradients with respect to linear model parameters
+whereas *quadratic* will do the same, but for the quadratic products of
+descriptors.
 
 The *descriptor* keyword is followed by a descriptor style, and
-additional arguments.  The compute currently supports two descriptor
-styles *sna* and *so3*, but it is is straightforward to add additional
-descriptor styles.  The SNAP descriptor style *sna* is the same as that
-used by :doc:`pair_style snap <pair_snap>`, including the linear,
-quadratic, and chem variants.  A single additional argument specifies
-the descriptor filename containing the parameters and setting used by
-the SNAP descriptor.  The descriptor filename usually ends in the
+additional arguments.  The compute currently supports three descriptor
+styles: *sna*, *so3*, and *ace*, but it is is straightforward to add
+additional descriptor styles.  The SNAP descriptor style *sna* is the
+same as that used by :doc:`pair_style snap <pair_snap>`, including the
+linear, quadratic, and chem variants.  A single additional argument
+specifies the descriptor filename containing the parameters and setting used
+by the SNAP descriptor.  The descriptor filename usually ends in the
 *.mliap.descriptor* extension.  The format of this file is identical to
 the descriptor file in the :doc:`pair_style mliap <pair_mliap>`, and is
 described in detail there.
+
+The ACE descriptor style *ace* is the same as :doc:`pair_style pace <pair_pace>`.
+A single additional argument specifies the *ace* descriptor filename
+that contains parameters and settings for the ACE descriptors. This file
+format differs from the SNAP or SO3 descriptor files, and has a *.yace* or
+*.ace* extension. However, as with other mliap descriptor styles, this file
+is identical to the ace descriptor file in :doc:`pair_style mliap <pair_mliap>`,
+where it is described in further detail.
 
 .. note::
 
@@ -172,8 +182,10 @@ This compute is part of the ML-IAP package.  It is only enabled if
 LAMMPS was built with that package. In addition, building LAMMPS with
 the ML-IAP package requires building LAMMPS with the ML-SNAP package.
 The *mliappy* model also requires building LAMMPS with the PYTHON
-package.  See the :doc:`Build package <Build_package>` page for more
-info.
+package. The *ace* descriptor also requires building LAMMPS with the
+ML-PACE package. See the :doc:`Build package <Build_package>` page for
+more info. Note that `kk` (KOKKOS) accelerated variants of SNAP and
+ACE descriptors are not compatible with `mliap descriptor`.
 
 Related commands
 """"""""""""""""

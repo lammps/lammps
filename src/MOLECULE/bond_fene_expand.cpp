@@ -273,3 +273,18 @@ double BondFENEExpand::single(int type, double rsq, int /*i*/, int /*j*/, double
 
   return eng;
 }
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *BondFENEExpand::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "r0") == 0) return (void *) r0;
+  if (strcmp(str, "epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str, "sigma") == 0) return (void *) sigma;
+  if (strcmp(str, "shift") == 0) return (void *) shift;
+  return nullptr;
+}

@@ -294,20 +294,20 @@ MEAMKokkos<DeviceType>::meam_dens_init(int inum_half, int ntype, typename AT::t_
     Kokkos::Experimental::contribute(d_arho3mb, dup_arho3mb);
 
     // free duplicated memory
-    dup_rho0 = decltype(dup_rho0)();
-    dup_arho2b = decltype(dup_arho2b)();
-    dup_arho1 = decltype(dup_arho1)();
-    dup_arho2 = decltype(dup_arho2)();
-    dup_arho3 = decltype(dup_arho3)();
-    dup_arho3b = decltype(dup_arho3b)();
-    dup_t_ave = decltype(dup_t_ave)();
-    dup_tsq_ave = decltype(dup_tsq_ave)();
+    dup_rho0 = {};
+    dup_arho2b = {};
+    dup_arho1 = {};
+    dup_arho2 = {};
+    dup_arho3 = {};
+    dup_arho3b = {};
+    dup_t_ave = {};
+    dup_tsq_ave = {};
     // msmeam
-    dup_arho2mb = decltype(dup_arho2mb)();
-    dup_arho1m = decltype(dup_arho1m)();
-    dup_arho2m = decltype(dup_arho2m)();
-    dup_arho3m = decltype(dup_arho3m)();
-    dup_arho3mb = decltype(dup_arho3mb)();
+    dup_arho2mb = {};
+    dup_arho1m = {};
+    dup_arho2m = {};
+    dup_arho3m = {};
+    dup_arho3mb = {};
   }
 }
 
@@ -481,7 +481,7 @@ void
 MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d type, typename AT::t_int_1d d_map, typename AT::t_x_array x, typename AT::t_int_1d d_numneigh,
                 int offset) const
 {
-  // The rho0, etc. arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The rho0, etc. arrays are duplicated for OpenMP, atomic for GPU, and neither for Serial
   auto v_rho0 = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_rho0),decltype(ndup_rho0)>::get(dup_rho0,ndup_rho0);
   auto a_rho0 = v_rho0.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
   auto v_arho2b = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_arho2b),decltype(ndup_arho2b)>::get(dup_arho2b,ndup_arho2b);

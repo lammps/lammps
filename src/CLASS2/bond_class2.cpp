@@ -242,6 +242,9 @@ void BondClass2::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double 
 void *BondClass2::extract(const char *str, int &dim)
 {
   dim = 1;
+  if (strcmp(str, "k2") == 0) return (void *) k2;
+  if (strcmp(str, "k3") == 0) return (void *) k3;
+  if (strcmp(str, "k4") == 0) return (void *) k4;
   if (strcmp(str,"r0")==0) return (void*) r0;
   return nullptr;
 }

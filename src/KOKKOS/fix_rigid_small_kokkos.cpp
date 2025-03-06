@@ -614,7 +614,7 @@ void FixRigidSmallKokkos<DeviceType>::final_integrate()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixRigidSmallKokkos<DeviceType>::dof(int tgroup)
+bigint FixRigidSmallKokkos<DeviceType>::dof(int tgroup)
 {
   if (!setupflag) {
     int nlocal = atom->nlocal;
@@ -1042,6 +1042,7 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
                               DAT::tdual_int_1d &k_indices,int nrecv,
+                              int nrecv1, int nrecv1extra,
                               ExecutionSpace space)
 {
   Kokkos::Profiling::pushRegion("rigid/small unpack exchange");
@@ -1140,15 +1141,16 @@ void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_xfloat_2
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixRigidSmallKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                                                        int iswap, DAT::tdual_xfloat_1d &k_buf,
+int FixRigidSmallKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                                                        DAT::tdual_xfloat_1d &k_buf,
                                                         int pbc_flag, int* pbc)
 
 {
   Kokkos::Profiling::pushRegion("rigid/small pack forward");
 
-  auto d_sendlist = Kokkos::subview(k_sendlist.view<DeviceType>(), iswap, Kokkos::ALL);
+  auto d_sendlist = k_sendlist.view<DeviceType>();
   auto d_buf = k_buf.view<DeviceType>();
+  int *iswap = d_sendlist.data(); // used as key by which to store body_sendlist etc.
 
   int m = 0;
 
@@ -1451,8 +1453,8 @@ int FixRigidSmallKokkos<DeviceType>::pack_reverse_comm_kokkos(int n, int first, 
 
 
 template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::unpack_reverse_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                                          int iswap, DAT::tdual_xfloat_1d &k_buf)
+void FixRigidSmallKokkos<DeviceType>::unpack_reverse_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                                          DAT::tdual_xfloat_1d &k_buf)
 {
   if (commflag != FORCE_TORQUE) {
     error->all(FLERR, "attempting invalid reverse comm on device");
@@ -1461,7 +1463,8 @@ void FixRigidSmallKokkos<DeviceType>::unpack_reverse_comm_kokkos(int n, DAT::tdu
   auto d_buf = k_buf.view<DeviceType>();
   auto d_bodyown = this->d_bodyown;
   auto d_body = this->d_body;
-  auto d_sendlist = Kokkos::subview(k_sendlist.view<DeviceType>(), iswap, Kokkos::ALL);
+  auto d_sendlist = k_sendlist.view<DeviceType>();
+  int *iswap = d_sendlist.data();
 
   int n_body = n_body_sent[iswap];
   auto d_body_sendlist = d_body_sendlists[iswap];

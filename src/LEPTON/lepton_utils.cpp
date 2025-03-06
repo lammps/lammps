@@ -17,7 +17,6 @@
 
 #include "lepton_utils.h"
 
-#include "error.h"
 #include "input.h"
 #include "lammps.h"
 #include "pair_zbl_const.h"

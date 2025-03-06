@@ -16,9 +16,6 @@
 PairStyle(reaxff/kk,PairReaxFFKokkos<LMPDeviceType>);
 PairStyle(reaxff/kk/device,PairReaxFFKokkos<LMPDeviceType>);
 PairStyle(reaxff/kk/host,PairReaxFFKokkos<LMPHostType>);
-PairStyle(reax/c/kk,PairReaxFFKokkos<LMPDeviceType>);
-PairStyle(reax/c/kk/device,PairReaxFFKokkos<LMPDeviceType>);
-PairStyle(reax/c/kk/host,PairReaxFFKokkos<LMPHostType>);
 // clang-format on
 #else
 
@@ -133,8 +130,9 @@ class PairReaxFFKokkos : public PairReaxFF {
   void compute(int, int);
   void init_style();
   double memory_usage();
-  void FindBond(int &);
+  void FindBond(int &, int groupbit = 1);
   void PackBondBuffer(DAT::tdual_ffloat_1d, int &);
+  void PackReducedBondBuffer(DAT::tdual_ffloat_1d, int &, bool);
   void FindBondSpecies();
 
   template<int NEIGHFLAG>
@@ -180,14 +178,14 @@ class PairReaxFFKokkos : public PairReaxFF {
   // TagPairReaxBuildListsHalfBlocking, HalfBlockingPreview, HalfPreview
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void build_hb_list(F_FLOAT, int, int, int, int, int) const;
+  void build_hb_list(F_FLOAT, int, int, int, int) const;
 
   // Isolated function that builds the bond order list, reused across
   // TagPairReaxBuildListsHalfBlocking, HalfBlockingPreview, HalfPreview
   // Returns if we need to populate d_d* functions or not
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  bool build_bo_list(int, int, int, int, int, int&, int&) const;
+  bool build_bo_list(int, int, int&, int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBuildListsFull, const int&) const;
@@ -247,17 +245,17 @@ class PairReaxFFKokkos : public PairReaxFF {
 
   // Abstraction for computing SBSO2, CSBO2, dSBO1, dsBO2
   KOKKOS_INLINE_FUNCTION
-  void compute_angular_sbo(int, int, int, int) const;
+  void compute_angular_sbo(int, int, int) const;
 
   // Abstraction for counting and populating angular intermediates
   template<bool POPULATE>
   KOKKOS_INLINE_FUNCTION
-  int preprocess_angular(int, int, int, int, int) const;
+  int preprocess_angular(int, int, int, int) const;
 
   // Abstraction for counting and populating torsion intermediated
   template<bool POPULATE>
   KOKKOS_INLINE_FUNCTION
-  int preprocess_torsion(int, int, tagint, F_FLOAT, F_FLOAT, F_FLOAT, int, int, int) const;
+  int preprocess_torsion(int, int, tagint, F_FLOAT, F_FLOAT, F_FLOAT, int, int) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -287,10 +285,14 @@ class PairReaxFFKokkos : public PairReaxFF {
   void operator()(TagPairReaxFindBondZero, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void calculate_find_bond_item(int, int&) const;
+  void calculate_find_bond_item(int, int&, int) const;
 
   KOKKOS_INLINE_FUNCTION
   void pack_bond_buffer_item(int, int&, const bool&) const;
+
+  template<bool STORE_BONDS>
+  KOKKOS_INLINE_FUNCTION
+  void pack_reduced_bond_buffer_item(int, int&, const bool&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxFindBondSpeciesZero, const int&) const;
@@ -382,6 +384,7 @@ class PairReaxFFKokkos : public PairReaxFF {
     F_FLOAT *fi, F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *dril, F_FLOAT *drjl, F_FLOAT *drkl) const;
 
  protected:
+  void deallocate_views_of_views();
   void allocate();
   void allocate_array();
   void setup();
@@ -412,6 +415,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::t_f_array f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_tagint_1d_randomread tag;
+  typename AT::t_int_1d_randomread mask;
   typename AT::t_float_1d_randomread q;
   typename AT::t_tagint_1d_randomread molecule;
 
@@ -433,7 +437,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::t_ffloat_2d_dl d_C1dbo, d_C2dbo, d_C3dbo;
   typename AT::t_ffloat_2d_dl d_C1dbopi, d_C2dbopi, d_C3dbopi, d_C4dbopi;
   typename AT::t_ffloat_2d_dl d_C1dbopi2, d_C2dbopi2, d_C3dbopi2, d_C4dbopi2;
-  typename AT::t_ffloat_2d_dl d_Cdbo, d_Cdbopi, d_Cdbopi2, d_dDeltap_self;
+  typename AT::t_ffloat_2d_dl d_dDeltap_self, d_Cdbo, d_Cdbopi, d_Cdbopi2;
 
   int need_dup;
 
@@ -467,7 +471,8 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
 
-  typename AT::t_int_1d d_bo_first, d_bo_num, d_bo_list, d_hb_first, d_hb_num, d_hb_list;
+  typename AT::t_int_1d d_bo_num, d_hb_num;
+  typename AT::t_int_2d d_bo_list, d_hb_list;
 
   DAT::tdual_int_scalar k_resize_bo, k_resize_hb;
   typename AT::t_int_scalar d_resize_bo, d_resize_hb;
@@ -493,7 +498,6 @@ class PairReaxFFKokkos : public PairReaxFF {
   typedef typename tdual_LR_lookup_table_kk_2d::t_dev t_LR_lookup_table_kk_2d;
 
   tdual_LR_lookup_table_kk_2d k_LR;
-  t_LR_lookup_table_kk_2d d_LR;
 
   DAT::tdual_int_2d k_tmpid;
   DAT::tdual_ffloat_2d k_tmpbo;
@@ -521,8 +525,9 @@ template <class DeviceType>
 struct PairReaxKokkosFindBondFunctor  {
   typedef DeviceType device_type;
   typedef int value_type;
+  int groupbit;
   PairReaxFFKokkos<DeviceType> c;
-  PairReaxKokkosFindBondFunctor(PairReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
+  PairReaxKokkosFindBondFunctor(PairReaxFFKokkos<DeviceType>* c_ptr, int groupbit):groupbit(groupbit),c(*c_ptr){};
 
   KOKKOS_INLINE_FUNCTION
   void join(int &dst,
@@ -532,7 +537,7 @@ struct PairReaxKokkosFindBondFunctor  {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const int ii, int &numbonds) const {
-    c.calculate_find_bond_item(ii,numbonds);
+    c.calculate_find_bond_item(ii,numbonds,groupbit);
   }
 };
 
@@ -546,6 +551,19 @@ struct PairReaxKokkosPackBondBufferFunctor  {
   KOKKOS_INLINE_FUNCTION
   void operator()(const int ii, int &j, const bool &final) const {
     c.pack_bond_buffer_item(ii,j,final);
+  }
+};
+
+template <class DeviceType, bool STORE_BONDS>
+struct PairReaxKokkosPackReducedBondBufferFunctor  {
+  typedef DeviceType device_type;
+  typedef int value_type;
+  PairReaxFFKokkos<DeviceType> c;
+  PairReaxKokkosPackReducedBondBufferFunctor(PairReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int ii, int &j, const bool &final) const {
+    c.template pack_reduced_bond_buffer_item<STORE_BONDS>(ii,j,final);
   }
 };
 

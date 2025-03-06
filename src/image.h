@@ -28,13 +28,14 @@ class Image : protected Pointers {
   double zoom;                // zoom factor
   double persp;               // perspective factor
   double shiny;               // shininess of objects
+  int fsaa;                   // antialiasing on or off
   int ssao;                   // SSAO on or off
   int seed;                   // RN seed for SSAO
   double ssaoint;             // strength of shading from 0 to 1
   double *boxcolor;           // color to draw box outline with
   int background[3];          // RGB values of background
 
-  double ambientColor[3];     // light color settings (adjustable by caller)
+  double ambientColor[3];    // light color settings (adjustable by caller)
   double keyLightColor[3];
   double fillLightColor[3];
   double backLightColor[3];

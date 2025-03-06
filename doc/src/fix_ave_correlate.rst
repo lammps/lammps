@@ -65,7 +65,6 @@ Examples
    fix 1 all ave/correlate 1 50 10000 &
              c_thermo_press[1] c_thermo_press[2] c_thermo_press[3] &
              type upper ave running title1 "My correlation data"
-
    fix 1 all ave/correlate 1 50 10000 c_thermo_press[*]
 
 Description

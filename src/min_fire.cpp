@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Julien Guénolé, CNRS and
+   Contributing authors: Julien Guenole, CNRS and
                          Erik Bitzek, FAU Erlangen-Nuernberg
 
                          Support for ABC-FIRE:
@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 
 // EPS_ENERGY = minimum normalization for energy tolerance
 
-#define EPS_ENERGY 1.0e-8
+static constexpr double EPS_ENERGY = 1.0e-8;
 
 /* ---------------------------------------------------------------------- */
 

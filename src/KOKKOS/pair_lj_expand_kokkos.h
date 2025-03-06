@@ -97,16 +97,19 @@ class PairLJExpandKokkos : public PairLJExpand {
   int nlocal,nall,eflag,vflag;
 
   void allocate() override;
-  friend struct PairComputeFunctor<PairLJExpandKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairLJExpandKokkos,FULL,true,0>;
+  friend struct PairComputeFunctor<PairLJExpandKokkos,FULL,true,1>;
   friend struct PairComputeFunctor<PairLJExpandKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairLJExpandKokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairLJExpandKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairLJExpandKokkos,FULL,false,0>;
+  friend struct PairComputeFunctor<PairLJExpandKokkos,FULL,false,1>;
   friend struct PairComputeFunctor<PairLJExpandKokkos,HALF,false>;
   friend struct PairComputeFunctor<PairLJExpandKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,FULL,void>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,HALF,void>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,HALFTHREAD,void>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairLJExpandKokkos,void>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,FULL,0>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,FULL,1>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,HALF>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,HALFTHREAD>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairLJExpandKokkos>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairLJExpandKokkos>(PairLJExpandKokkos*);
 };
 

@@ -1,0 +1,35 @@
+### LAMMPS input file
+
+units            metal
+dimension        3
+boundary         p p p
+atom_style       charge
+
+read_data  data.NaPO3
+
+pair_style hybrid/overlay coul/dsf 0.2 12.0 table spline 20000 buck 7.0 nb3b/screened
+
+pair_coeff  * *  coul/dsf
+pair_coeff 1  3 table Table_NP.dat  Pair_P-O 7.0
+pair_coeff 2  3 table Table_NP.dat  Pair_Na-O 7.0
+pair_coeff 3  3 table Table_NP.dat  Pair_O-O 7.0
+
+# pair Buckingham
+pair_coeff  1  1  buck  5.093669  0.905598  0.0
+
+# shrm
+pair_coeff * * nb3b/screened PSiO.nb3b.screened  P NULL O
+
+neighbor         1.0  bin
+neigh_modify     every 10 delay 10 check no
+timestep         0.002
+
+thermo 100
+thermo_style custom step density lx press pe evdwl ecoul temp
+
+#dump 2 all custom 10000 NaPO3-melt.lammpstrj  id type element x y z
+#dump_modify 2 element P  Na  O
+variable temp equal 2500
+
+fix 1 all npt temp ${temp} ${temp} $(100*dt) iso 1 1 $(1000*dt)
+run 1000

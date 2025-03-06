@@ -14,6 +14,7 @@
 #ifdef PAIR_CLASS
 // clang-format off
 PairStyle(hybrid/scaled,PairHybridScaled);
+PairStyle(hybrid/scaled/omp,PairHybridScaled);
 // clang-format on
 #else
 
@@ -43,12 +44,17 @@ class PairHybridScaled : public PairHybrid {
   void init_svector() override;
   void copy_svector(int, int) override;
 
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+
  protected:
   double **fsum, **tsum;
   double *scaleval;
   int *scaleidx;
   std::vector<std::string> scalevars;
   int nmaxfsum;
+  int *atomvar;         // indices of atom-style variables
+  double *atomscale;    // vector of atom-style variable values
 };
 
 }    // namespace LAMMPS_NS

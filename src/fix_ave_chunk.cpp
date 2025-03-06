@@ -41,10 +41,11 @@ enum { ONE, RUNNING, WINDOW };
 /* ---------------------------------------------------------------------- */
 
 FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), nvalues(0), nrepeat(0), fp(nullptr), idchunk(nullptr), varatom(nullptr),
-    count_one(nullptr), count_many(nullptr), count_sum(nullptr), values_one(nullptr),
-    values_many(nullptr), values_sum(nullptr), count_total(nullptr), count_list(nullptr),
-    values_total(nullptr), values_list(nullptr)
+    Fix(lmp, narg, arg), nvalues(0), nrepeat(0), format(nullptr), tstring(nullptr),
+    sstring(nullptr), id_bias(nullptr), tbias(nullptr), fp(nullptr), chunk_volume_vec(nullptr),
+    idchunk(nullptr), cchunk(nullptr), varatom(nullptr), count_one(nullptr), count_many(nullptr),
+    count_sum(nullptr), values_one(nullptr), values_many(nullptr), values_sum(nullptr),
+    count_total(nullptr), count_list(nullptr), values_total(nullptr), values_list(nullptr)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix ave/chunk", error);
 
@@ -61,12 +62,13 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   char *group = arg[1];
 
   // expand args if any have wildcard character "*"
-
+  const int ioffset = 7;
   int expand = 0;
   char **earg;
-  int nargnew = utils::expand_args(FLERR, narg - 7, &arg[7], 1, earg, lmp);
+  int *amap = nullptr;
+  int nargnew = utils::expand_args(FLERR, narg - ioffset, &arg[ioffset], 1, earg, lmp, &amap);
 
-  if (earg != &arg[7]) expand = 1;
+  if (earg != &arg[ioffset]) expand = 1;
   arg = earg;
 
   // parse values until one isn't recognized
@@ -80,6 +82,9 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     value_t val;
     val.id = "";
     val.val.c = nullptr;
+    if (expand) val.iarg = amap[iarg] + ioffset;
+    else val.iarg = iarg + ioffset;
+
 
     if (strcmp(arg[iarg],"vx") == 0) {
       val.which = ArgInfo::V;
@@ -121,7 +126,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
       if (argi.get_type() == ArgInfo::NONE) break;
       if ((argi.get_type() == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
-        error->all(FLERR,"Unknown fix ave/chunk data value: {}", arg[iarg]);
+        error->all(FLERR, val.iarg, "Unknown fix ave/chunk data value: {}", arg[iarg]);
 
       val.which = argi.get_type();
       val.argindex = argi.get_index1();
@@ -132,7 +137,9 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nvalues = values.size();
-  if (nvalues == 0) error->all(FLERR, "No values in fix ave/chunk command");
+  if (nvalues == 0)
+    error->all(FLERR, ioffset,
+               "No values from computes, fixes, or variables used in fix ave/chunk command");
 
   // optional args
 
@@ -141,19 +148,17 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   ave = ONE;
   nwindow = 0;
   biasflag = 0;
-  id_bias = nullptr;
   adof = domain->dimension;
   cdof = 0.0;
   overwrite = 0;
-  format_user = nullptr;
-  format = (char *) " %g";
+  format = utils::strdup(" %g");
   char *title1 = nullptr;
   char *title2 = nullptr;
   char *title3 = nullptr;
 
   while (iarg < nargnew) {
     if (strcmp(arg[iarg],"norm") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/chunk norm", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/chunk norm", error);
       if (strcmp(arg[iarg+1],"all") == 0) {
         normflag = ALL;
         scaleflag = ATOM;
@@ -163,89 +168,91 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       } else if (strcmp(arg[iarg+1],"none") == 0) {
         normflag = SAMPLE;
         scaleflag = NOSCALE;
-      } else error->all(FLERR,"Unknown fix ave/chunk norm mode: {}", arg[iarg+1]);
+      } else error->all(FLERR, iarg + 1, "Unknown fix ave/chunk norm mode: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/chunk ave", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/chunk ave", error);
       if (strcmp(arg[iarg+1],"one") == 0) ave = ONE;
       else if (strcmp(arg[iarg+1],"running") == 0) ave = RUNNING;
       else if (strcmp(arg[iarg+1],"window") == 0) ave = WINDOW;
-      else error->all(FLERR,"Unknown fix ave/chunk ave mode: {}", arg[iarg+1]);
+      else error->all(FLERR, iarg + 1, "Unknown fix ave/chunk ave mode: {}", arg[iarg+1]);
       if (ave == WINDOW) {
-        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix ave/chunk ave window", error);
+        if (iarg+3 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/chunk ave window", error);
         nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-        if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/chunk number of windows: {}", nwindow);
+        if (nwindow <= 0)
+          error->all(FLERR, iarg + 2, "Illegal fix ave/chunk number of windows: {}", nwindow);
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
 
     } else if (strcmp(arg[iarg],"bias") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/chunk bias", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/chunk bias", error);
       biasflag = 1;
       id_bias = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"adof") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/chunk adof", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/chunk adof", error);
       adof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"cdof") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/chunk cdof", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/chunk cdof", error);
       cdof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"file") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/chunk file", error);
+    } else if ((strcmp(arg[iarg],"file") == 0) || (strcmp(arg[iarg],"append") == 0)) {
+      if (iarg+2 > nargnew)
+        utils::missing_cmd_args(FLERR, std::string("fix ave/chunk ")+arg[iarg], error);
       if (comm->me == 0) {
-        fp = fopen(arg[iarg+1],"w");
+        if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
+        else fp = fopen(arg[iarg+1],"a");
         if (fp == nullptr)
-          error->one(FLERR, "Cannot open fix ave/chunk file {}: {}",
-                     arg[iarg+1], utils::getsyserror());
+          error->one(FLERR, iarg+1, "Cannot open fix ave/chunk file {}: {}", arg[iarg+1],
+                     utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"overwrite") == 0) {
       overwrite = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"format") == 0) {
-      if (iarg+2 > narg)  utils::missing_cmd_args(FLERR, "fix ave/chunk format", error);
-      delete[] format_user;
-      format_user = utils::strdup(arg[iarg+1]);
-      format = format_user;
+      if (iarg+2 > nargnew)  utils::missing_cmd_args(FLERR, "fix ave/chunk format", error);
+      delete[] format;
+      format = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
-      if (iarg+2 > narg)  utils::missing_cmd_args(FLERR, "fix ave/chunk title1", error);
+      if (iarg+2 > nargnew)  utils::missing_cmd_args(FLERR, "fix ave/chunk title1", error);
       delete[] title1;
       title1 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
-      if (iarg+2 > narg)  utils::missing_cmd_args(FLERR, "fix ave/chunk title2", error);
+      if (iarg+2 > nargnew)  utils::missing_cmd_args(FLERR, "fix ave/chunk title2", error);
       delete[] title2;
       title2 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
-      if (iarg+2 > narg)  utils::missing_cmd_args(FLERR, "fix ave/chunk title3", error);
+      if (iarg+2 > nargnew)  utils::missing_cmd_args(FLERR, "fix ave/chunk title3", error);
       delete[] title3;
       title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;
-    } else error->all(FLERR,"Unknown fix ave/chunk keyword: {}", arg[iarg]);
+    } else error->all(FLERR, iarg, "Unknown fix ave/chunk keyword: {}", arg[iarg]);
   }
 
   // setup and error check
 
-  if (nevery <= 0) error->all(FLERR,"Illegal fix ave/chunk nevery value: {}", nevery);
-  if (nrepeat <= 0) error->all(FLERR,"Illegal fix ave/chunk nrepeat value: {}", nrepeat);
-  if (nfreq <= 0) error->all(FLERR,"Illegal fix ave/chunk nfreq value: {}", nfreq);
+  if (nevery <= 0) error->all(FLERR, 3, "Illegal fix ave/chunk nevery value: {}", nevery);
+  if (nrepeat <= 0) error->all(FLERR, 4, "Illegal fix ave/chunk nrepeat value: {}", nrepeat);
+  if (nfreq <= 0) error->all(FLERR, 5, "Illegal fix ave/chunk nfreq value: {}", nfreq);
   if (nfreq % nevery || nrepeat*nevery > nfreq)
-    error->all(FLERR,"Inconsistent fix ave/chunk nevery/nrepeat/nfreq values");
+    error->all(FLERR, Error::NOPOINTER, "Inconsistent fix ave/chunk nevery/nrepeat/nfreq values");
   if (ave != RUNNING && overwrite)
-    error->all(FLERR,"Fix ave/chunk overwrite keyword requires ave running setting");
+    error->all(FLERR, Error::NOPOINTER, "Fix ave/chunk overwrite keyword requires ave running setting");
 
   if (biasflag) {
     tbias = modify->get_compute_by_id(id_bias);
-    if (!tbias) error->all(FLERR,"Could not find compute ID {} for temperature bias", id_bias);
+    if (!tbias) error->all(FLERR, 6, "Could not find compute ID {} for temperature bias", id_bias);
     if (tbias->tempflag == 0)
-      error->all(FLERR,"Bias compute {} does not calculate temperature", id_bias);
+      error->all(FLERR, 6, "Bias compute {} does not calculate temperature", id_bias);
     if (tbias->tempbias == 0)
-      error->all(FLERR,"Bias compute {} does not calculate a velocity bias", id_bias);
+      error->all(FLERR, 6, "Bias compute {} does not calculate a velocity bias", id_bias);
   }
 
   for (auto &val : values) {
@@ -253,34 +260,34 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
       if (!val.val.c)
-        error->all(FLERR,"Compute ID {} for fix ave/chunk does not exist",val.id);
+        error->all(FLERR, val.iarg, "Compute ID {} for fix ave/chunk does not exist",val.id);
       if (val.val.c->peratom_flag == 0)
-        error->all(FLERR,"Fix ave/chunk compute {} does not calculate per-atom values",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk compute {} does not calculate per-atom values",val.id);
       if (val.argindex == 0 && (val.val.c->size_peratom_cols != 0))
-        error->all(FLERR,"Fix ave/chunk compute {} does not calculate a per-atom vector",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk compute {} does not calculate a per-atom vector",val.id);
       if (val.argindex && (val.val.c->size_peratom_cols == 0))
-        error->all(FLERR,"Fix ave/chunk compute {} does not calculate a per-atom array",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk compute {} does not calculate a per-atom array",val.id);
       if (val.argindex && (val.argindex > val.val.c->size_peratom_cols))
-        error->all(FLERR,"Fix ave/chunk compute {} vector is accessed out-of-range",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk compute {} vector is accessed out-of-range",val.id);
 
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
       if (!val.val.f)
-        error->all(FLERR, "Fix ID {} for fix ave/chunk does not exist",val.id);
+        error->all(FLERR, val.iarg, "Fix ID {} for fix ave/chunk does not exist",val.id);
       if (val.val.f->peratom_flag == 0)
-        error->all(FLERR, "Fix ave/chunk fix {} does not calculate per-atom values",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk fix {} does not calculate per-atom values",val.id);
       if (val.argindex == 0 && (val.val.f->size_peratom_cols != 0))
-        error->all(FLERR, "Fix ave/chunk fix {} does not calculate a per-atom vector",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk fix {} does not calculate a per-atom vector",val.id);
       if (val.argindex && (val.val.f->size_peratom_cols == 0))
-        error->all(FLERR, "Fix ave/chunk fix {} does not calculate a per-atom array",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk fix {} does not calculate a per-atom array",val.id);
       if (val.argindex && val.argindex > val.val.f->size_peratom_cols)
-        error->all(FLERR,"Fix ave/chunk fix {} vector is accessed out-of-range",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk fix {} vector is accessed out-of-range",val.id);
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
       if (val.val.v < 0)
-        error->all(FLERR,"Variable name {} for fix ave/chunk does not exist",val.id);
+        error->all(FLERR, val.iarg, "Variable name {} for fix ave/chunk does not exist",val.id);
       if (input->variable->atomstyle(val.val.v) == 0)
-        error->all(FLERR,"Fix ave/chunk variable {} is not atom-style variable",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk variable {} is not atom-style variable",val.id);
     }
   }
 
@@ -290,8 +297,8 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
   cchunk = dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
   if (!cchunk)
-    error->all(FLERR,"Chunk/atom compute {} does not exist or is "
-               "incorrect style for fix ave/chunk",idchunk);
+    error->all(FLERR, 6, "Chunk/atom compute {} does not exist or is incorrect style for fix ave/chunk",
+               idchunk);
 
   if ((nrepeat > 1) || (ave == RUNNING) || (ave == WINDOW)) cchunk->lockcount++;
   lockforever = 0;
@@ -301,8 +308,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   if (fp && comm->me == 0) {
     clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
-    else fprintf(fp,"# Chunk-averaged data for fix %s and group %s\n",
-                 id, group);
+    else fprintf(fp,"# Chunk-averaged data for fix %s and group %s\n", id, group);
     if (title2) fprintf(fp,"%s\n",title2);
     else fprintf(fp,"# Timestep Number-of-chunks Total-count\n");
     if (title3) fprintf(fp,"%s\n",title3);
@@ -326,7 +332,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       fprintf(fp,"\n");
     }
     if (ferror(fp))
-      error->one(FLERR,"Error writing file header");
+      error->one(FLERR, Error::NOPOINTER, "Error writing file header");
 
     filepos = platform::ftell(fp);
   }
@@ -412,20 +418,7 @@ FixAveChunk::~FixAveChunk()
   }
 
   delete[] idchunk;
-  fp = nullptr;
-  varatom = nullptr;
-  count_one = nullptr;
-  count_many = nullptr;
-  count_sum = nullptr;
-  count_total = nullptr;
-  count_list = nullptr;
-  values_one = nullptr;
-  values_many = nullptr;
-  values_sum = nullptr;
-  values_total = nullptr;
-  values_list = nullptr;
-  idchunk = nullptr;
-  cchunk = nullptr;
+  delete[] format;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -446,7 +439,7 @@ void FixAveChunk::init()
 
   cchunk = dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
   if (!cchunk)
-    error->all(FLERR,"Chunk/atom compute {} does not exist or is "
+    error->all(FLERR, Error::NOLASTLINE, "Chunk/atom compute {} does not exist or is "
                "incorrect style for fix ave/chunk",idchunk);
 
   if (biasflag) {
@@ -458,19 +451,23 @@ void FixAveChunk::init()
   for (auto &val : values) {
     if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
-      if (!val.val.c) error->all(FLERR,"Compute ID {} for fix ave/chunk does not exist", val.id);
+      if (!val.val.c)
+        error->all(FLERR, Error::NOLASTLINE, "Compute ID {} for fix ave/chunk does not exist", val.id);
 
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
-      if (!val.val.f) error->all(FLERR,"Fix ID {} for fix ave/chunk does not exist", val.id);
+      if (!val.val.f)
+        error->all(FLERR, Error::NOLASTLINE, "Fix ID {} for fix ave/chunk does not exist", val.id);
 
       if (nevery % val.val.f->peratom_freq)
-        error->all(FLERR, "Fix {} for fix ave/chunk not computed at compatible time", val.id);
+        error->all(FLERR, Error::NOLASTLINE, "Fix {} for fix ave/chunk not computed at compatible time",
+                   val.id);
 
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
       if (val.val.v < 0)
-        error->all(FLERR,"Variable name {} for fix ave/chunk does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE, "Variable name {} for fix ave/chunk does not exist"
+                   , val.id);
     }
   }
 
@@ -485,7 +482,7 @@ void FixAveChunk::init()
 
 /* ----------------------------------------------------------------------
    only does averaging if nvalid = current timestep
-   do not call setup_chunks(), even though fix ave/spatial called setup_bins()
+   do not call setup_chunks(), even though fix ave/chunk called setup_bins()
    b/c could cause nchunk to change if Nfreq epoch crosses 2 runs
    does mean that if change_box is used between runs to change box size,
      that nchunk may not track it
@@ -898,10 +895,10 @@ void FixAveChunk::end_of_step()
 
   if (fp && comm->me == 0) {
     clearerr(fp);
-    if (overwrite) platform::fseek(fp,filepos);
+    if (overwrite) (void) platform::fseek(fp,filepos);
     double count = 0.0;
     for (m = 0; m < nchunk; m++) count += count_total[m];
-    fmt::print(fp,"{} {} {}\n",ntimestep,nchunk,count);
+    utils::print(fp,"{} {} {}\n",ntimestep,nchunk,count);
 
     int compress = cchunk->compress;
     int *chunkID = cchunk->chunkID;
@@ -979,14 +976,14 @@ void FixAveChunk::end_of_step()
       }
     }
     if (ferror(fp))
-      error->one(FLERR,"Error writing averaged chunk data");
+      error->one(FLERR, Error::NOLASTLINE, "Error writing averaged chunk data");
 
     fflush(fp);
 
     if (overwrite) {
       bigint fileend = platform::ftell(fp);
       if ((fileend > 0) && (platform::ftruncate(fp,fileend)))
-        error->warning(FLERR,"Error while tuncating output: {}", utils::getsyserror());
+        error->warning(FLERR, "Error while tuncating output: {}", utils::getsyserror());
     }
   }
 }

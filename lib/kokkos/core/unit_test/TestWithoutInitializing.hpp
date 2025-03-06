@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <Kokkos_Core.hpp>
 
@@ -49,7 +21,7 @@
 TEST(TEST_CATEGORY, resize_realloc_no_init) {
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels());
-  Kokkos::View<int*** * [1][2][3][4], TEST_EXECSPACE> bla("bla", 5, 6, 7, 8);
+  Kokkos::View<int**** [1][2][3][4], TEST_EXECSPACE> bla("bla", 5, 6, 7, 8);
 
   auto success = validate_absence(
       [&]() {
@@ -76,7 +48,7 @@ TEST(TEST_CATEGORY, resize_realloc_no_alloc) {
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels(),
                      Config::EnableAllocs());
-  Kokkos::View<int*** * [1][2][3][4], TEST_EXECSPACE> bla("bla", 8, 7, 6, 5);
+  Kokkos::View<int**** [1][2][3][4], TEST_EXECSPACE> bla("bla", 8, 7, 6, 5);
 
   auto success = validate_absence(
       [&]() {
@@ -161,8 +133,7 @@ TEST(TEST_CATEGORY, view_alloc) {
       },
       [&](BeginFenceEvent event) {
         return MatchDiagnostic{
-            event.descriptor().find(
-                "Kokkos::Impl::ViewValueFunctor: View init/destroy fence") !=
+            event.descriptor().find("Kokkos::View::initialization") !=
             std::string::npos};
       });
   ASSERT_TRUE(success);
@@ -183,8 +154,7 @@ TEST(TEST_CATEGORY, view_alloc_exec_space) {
       },
       [&](BeginFenceEvent event) {
         return MatchDiagnostic{
-            event.descriptor().find(
-                "Kokkos::Impl::ViewValueFunctor: View init/destroy fence") !=
+            event.descriptor().find("Kokkos::View::initialization") !=
             std::string::npos};
       });
   ASSERT_TRUE(success);
@@ -205,8 +175,7 @@ TEST(TEST_CATEGORY, view_alloc_int) {
       },
       [&](BeginFenceEvent event) {
         return MatchDiagnostic{
-            event.descriptor().find(
-                "Kokkos::Impl::ViewValueFunctor: View init/destroy fence") !=
+            event.descriptor().find("Kokkos::View::initialization") !=
             std::string::npos};
       });
   ASSERT_TRUE(success);
@@ -227,8 +196,7 @@ TEST(TEST_CATEGORY, view_alloc_exec_space_int) {
       },
       [&](BeginFenceEvent event) {
         return MatchDiagnostic{
-            event.descriptor().find(
-                "Kokkos::Impl::ViewValueFunctor: View init/destroy fence") !=
+            event.descriptor().find("Kokkos::View::initialization") !=
             std::string::npos};
       });
   ASSERT_TRUE(success);
@@ -242,19 +210,41 @@ TEST(TEST_CATEGORY, deep_copy_zero_memset) {
     GTEST_SKIP() << "skipping since the OpenMPTarget backend doesn't implement "
                     "ZeroMemset";
 #endif
+// FIXME_OPENACC: The OpenACC backend doesn't implement ZeroMemset
+#ifdef KOKKOS_ENABLE_OPENACC
+  if (std::is_same<TEST_EXECSPACE, Kokkos::Experimental::OpenACC>::value)
+    GTEST_SKIP() << "skipping since the OpenACC backend doesn't implement "
+                    "ZeroMemset";
+#endif
 
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels());
   Kokkos::View<int*, TEST_EXECSPACE> bla("bla", 8);
 
-  auto success =
-      validate_absence([&]() { Kokkos::deep_copy(bla, 0); },
-                       [&](BeginParallelForEvent) {
-                         return MatchDiagnostic{true, {"Found begin event"}};
-                       },
-                       [&](EndParallelForEvent) {
-                         return MatchDiagnostic{true, {"Found end event"}};
-                       });
+  // for MI300A with unified memory, ZeroMemset uses a parallel for
+  auto success = false;
+#ifdef KOKKOS_IMPL_HIP_UNIFIED_MEMORY
+  if constexpr (!std::is_same_v<TEST_EXECSPACE::memory_space,
+                                Kokkos::HostSpace>)
+    success = validate_existence(
+        [&]() { Kokkos::deep_copy(bla, 0); },
+        [&](BeginParallelForEvent e) {
+          const bool found =
+              (e.descriptor().find("Kokkos::ZeroMemset via parallel_for") !=
+               std::string::npos);
+          return MatchDiagnostic{found, {"Found expected parallel_for label"}};
+        });
+  else
+#endif
+    success =
+        validate_absence([&]() { Kokkos::deep_copy(bla, 0); },
+                         [&](BeginParallelForEvent) {
+                           return MatchDiagnostic{true, {"Found begin event"}};
+                         },
+                         [&](EndParallelForEvent) {
+                           return MatchDiagnostic{true, {"Found end event"}};
+                         });
+
   ASSERT_TRUE(success);
   listen_tool_events(Config::DisableAll());
 }
@@ -263,7 +253,7 @@ TEST(TEST_CATEGORY, resize_exec_space) {
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableFences(),
                      Config::EnableKernels());
-  Kokkos::View<int*** * [1][2][3][4], TEST_EXECSPACE> bla("bla", 8, 7, 6, 5);
+  Kokkos::View<int**** [1][2][3][4], TEST_EXECSPACE> bla("bla", 8, 7, 6, 5);
 
   auto success = validate_absence(
       [&]() {
@@ -360,4 +350,14 @@ TEST(TEST_CATEGORY, view_allocation_exec_space_int) {
       [&](BeginFenceEvent) { return MatchDiagnostic{true}; });
   ASSERT_TRUE(success);
   listen_tool_events(Config::DisableAll());
+}
+
+struct NotDefaultConstructible {
+  NotDefaultConstructible() = delete;
+};
+
+TEST(TEST_CATEGORY, view_not_default_constructible) {
+  using Space = TEST_EXECSPACE;
+  Kokkos::View<NotDefaultConstructible, Space> my_view(Kokkos::view_alloc(
+      "not_default_constructible", Kokkos::WithoutInitializing));
 }

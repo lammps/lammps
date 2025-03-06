@@ -28,16 +28,16 @@ provides `limited support for subversion clients <svn_>`_.
 
 You can follow the LAMMPS development on 4 different git branches:
 
-* **release**  :  this branch is updated with every patch or feature release;
-  updates are always "fast-forward" merges from *develop*
-* **develop**  :  this branch follows the ongoing development and
-  is updated with every merge commit of a pull request
-* **stable**   :  this branch is updated from the *release* branch with
-  every stable release version and also has selected bug fixes with every
-  update release when the *maintenance* branch is merged into it
-* **maintenance**  :  this branch collects back-ported bug fixes from the
-  *develop* branch to the *stable* branch. It is used to update *stable*
-  for update releases and it synchronized with *stable* at each stable release.
+* **develop** : this branch follows the ongoing development and is
+  updated with every merge commit of a pull request
+* **release** : this branch is updated with every "feature release";
+   updates are always "fast-forward" merges from *develop*
+* **maintenance** : this branch collects back-ported bug fixes from the
+  *develop* branch to the *stable* branch.  It is used to update the
+  *stable* branch for "stable update releases".
+* **stable** : this branch is updated from the *release* branch with
+  every "stable release" version and also has selected bug fixes with
+  every "update release" when the *maintenance* branch is merged into it
 
 To access the git repositories on your box, use the clone command to
 create a local copy of the LAMMPS repository with a command like:
@@ -52,6 +52,7 @@ your machine and "release" is one of the 3 branches listed above.
 between them at any time using "git checkout <branch name>".)
 
 .. admonition:: Saving time and disk space when using ``git clone``
+   :class: note
 
    The complete git history of the LAMMPS project is quite large because
    it contains the entire commit history of the project since fall 2006,
@@ -60,7 +61,7 @@ between them at any time using "git checkout <branch name>".)
    files (mostly by accident).  If you do not need access to the entire
    commit history (most people don't), you can speed up the "cloning"
    process and reduce local disk space requirements by using the
-   *--depth* git command line flag.  That will create a "shallow clone"
+   ``--depth`` git command-line flag.  That will create a "shallow clone"
    of the repository, which contains only a subset of the git history.
    Using a depth of 1000 is usually sufficient to include the head
    commits of the *develop*, the *release*, and the *maintenance*
@@ -122,7 +123,7 @@ changed.  How to do this depends on the build system you are using.
 
       .. code-block:: bash
 
-         cmake . --build
+         cmake --build .
 
       CMake should auto-detect whether it needs to re-run the CMake
       configuration step and otherwise redo the build for all files

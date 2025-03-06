@@ -21,23 +21,57 @@
 
 #include <mpi.h>
 
+#include <string>
 #include <vector>    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
 // forward declarations
 class Error;
+class Input;
 class LAMMPS;
 
 namespace utils {
 
   /*! Match text against a simplified regex pattern
    *
-   *  \param text the text to be matched against the pattern
-   *  \param pattern the search pattern, which may contain regexp markers
+   *  \param  text     the text to be matched against the pattern
+   *  \param  pattern  the search pattern, which may contain regexp markers
    *  \return true if the pattern matches, false if not */
 
   bool strmatch(const std::string &text, const std::string &pattern);
+
+  /*! Compare two string while ignoring whitespace
+   *
+\verbatim embed:rst
+
+.. versionadded:: 4Feb2025
+
+This function compares two strings while skipping over any kind of whitespace
+(blank, tab, newline, carriage return, etc.).
+
+\endverbatim
+   *
+   *  \param  text1   the first text to be compared
+   *  \param  text2   the second text to be compared
+   *  \return true if the non-whitespace part of the two strings matches, false if not */
+
+  bool strsame(const std::string &text1, const std::string &text2);
+
+  /*! Compress whitespace in a string
+   *
+\verbatim embed:rst
+
+.. versionadded:: 4Feb2025
+
+This function compresses whitespace in a string to just a single blank.
+
+\endverbatim
+   *
+   *  \param  text  the text to be compressed
+   *  \return string with whitespace compressed to single blanks */
+
+  std::string strcompress(const std::string &text);
 
   /*! Find sub-string that matches a simplified regex pattern
    *
@@ -58,7 +92,27 @@ namespace utils {
 
   void missing_cmd_args(const std::string &file, int line, const std::string &cmd, Error *error);
 
-  /* Internal function handling the argument list for logmesg(). */
+  /*! Create string with last command and optionally pointing to arg with error
+   *
+\verbatim embed:rst
+
+.. versionadded:: 4Feb2025
+
+This function is a helper function for error messages.  It creates extra output
+in error messages.  It will produce either two or three lines: the original last
+input line *before* variable substitutions, the corresponding pre-processed command
+(only when different) and one or more '^' characters pointing to the faulty argument
+as indicated by the *failed* argument.  Any whitespace in the lines with the command
+output are compressed to a single blank by calling :cpp:func:`strcompress()`
+
+\endverbatim
+   *
+   *  \param input   pointer to the Input class instance (for access to last command args)
+   *  \param failed  index of the faulty argument (-1 to point to the command itself)
+   *  \return        string with two or three lines to follow error messages */
+  std::string point_to_error(Input *input, int failed);
+
+  /*! Internal function handling the argument list for logmesg(). */
 
   void fmtargs_logmesg(LAMMPS *lmp, fmt::string_view format, fmt::format_args args);
 
@@ -66,8 +120,8 @@ namespace utils {
    *
    * This function simplifies the repetitive task of outputting some
    * message to both the screen and/or the log file. The template
-   * wrapper with fmtlib format and argument processing allows
-   * this function to work similar to ``fmt::print()``.
+   * wrapper with {fmt} formatting and argument processing allows
+   * this function to work similar to :cpp:func:`utils::print() <LAMMPS_NS::utils::print>`.
    *
    *  \param lmp    pointer to LAMMPS class instance
    *  \param format format string of message to be printed
@@ -85,9 +139,39 @@ namespace utils {
 
   void logmesg(LAMMPS *lmp, const std::string &mesg);
 
+  /*! Internal function handling the argument list for print(). */
+
+  void fmtargs_print(FILE *fp, fmt::string_view format, fmt::format_args args);
+
+  /*! Write formatted message to file
+   *
+\verbatim embed:rst
+
+.. versionadded:: 4Feb2025
+
+\endverbatim
+   *
+   * This function implements a version of fprintf() that uses {fmt} formatting
+   *
+   *  \param fp     stdio FILE pointer
+   *  \param format format string of message to be printed
+   *  \param args   arguments to format string */
+
+  template <typename... Args> void print(FILE *fp, const std::string &format, Args &&...args)
+  {
+    fmtargs_print(fp, format, fmt::make_format_args(args...));
+  }
+
+  /*! \overload
+   *
+   *  \param fp     stdio FILE pointer
+   *  \param mesg   string with message to be printed */
+
+  void print(FILE *fp, const std::string &mesg);
+
   /*! Return text redirecting the user to a specific paragraph in the manual
    *
-   * The LAMMPS manual contains detailed detailed explanations for errors and
+   * The LAMMPS manual contains detailed explanations for errors and
    * warnings where a simple error message may not be sufficient.  These can
    * be reached through URLs with a numeric code.  This function creates the
    * corresponding text to be included into the error message that redirects
@@ -325,11 +409,38 @@ namespace utils {
    * \param nmax     largest allowed upper bound
    * \param nlo      lower bound
    * \param nhi      upper bound
-   * \param error    pointer to Error class for out-of-bounds messages */
+   * \param error    pointer to Error class for out-of-bounds messages
+   * \param failed   argument index with failed expansion (optional) */
 
   template <typename TYPE>
   void bounds(const char *file, int line, const std::string &str, bigint nmin, bigint nmax,
-              TYPE &nlo, TYPE &nhi, Error *error);
+              TYPE &nlo, TYPE &nhi, Error *error, int failed = -2);    // -2 = Error::NOPOINTER
+
+  /*! Same as utils::bounds(), but string may be a typelabel
+   *
+\verbatim embed:rst
+
+.. versionadded:: 27June2024
+
+This functions adds the following case to :cpp:func:`utils::bounds() <LAMMPS_NS::utils::bounds>`:
+
+   - a single type label, typestr: nlo = nhi = label2type(typestr)
+
+\endverbatim
+
+   * \param file     name of source file for error message
+   * \param line     line number in source file for error message
+   * \param str      string to be processed
+   * \param nmin     smallest possible lower bound
+   * \param nmax     largest allowed upper bound
+   * \param nlo      lower bound
+   * \param nhi      upper bound
+   * \param lmp      pointer to top-level LAMMPS class instance
+   * \param mode     select labelmap using constants from Atom class */
+
+  template <typename TYPE>
+  void bounds_typelabel(const char *file, int line, const std::string &str, bigint nmin,
+                        bigint nmax, TYPE &nlo, TYPE &nhi, LAMMPS *lmp, int mode);
 
   /*! Expand list of arguments when containing fix/compute wildcards
    *
@@ -349,35 +460,48 @@ namespace utils {
    *  caller. Otherwise arg and earg will point to the same address
    *  and no explicit de-allocation is needed by the caller.
    *
-   * \param file  name of source file for error message
-   * \param line  line number in source file for error message
-   * \param narg  number of arguments in current list
-   * \param arg   argument list, possibly containing wildcards
-   * \param mode  select between global vectors(=0) and arrays (=1)
-   * \param earg  new argument list with wildcards expanded
-   * \param lmp   pointer to top-level LAMMPS class instance
+   *  The *argmap* pointer to an int pointer may be used to accept an array
+   *  of integers mapping the arguments after the expansion to their original
+   *  index.  If this pointer is NULL (the default) than this map is not created.
+   *  Otherwise, it must be deallocated by the calling code.
+   *
+   * \param file    name of source file for error message
+   * \param line    line number in source file for error message
+   * \param narg    number of arguments in current list
+   * \param arg     argument list, possibly containing wildcards
+   * \param mode    select between global vectors(=0) and arrays (=1)
+   * \param earg    new argument list with wildcards expanded
+   * \param lmp     pointer to top-level LAMMPS class instance
+   * \param argmap  pointer to integer pointer for mapping expanded indices to input (optional)
    * \return      number of arguments in expanded list */
 
   int expand_args(const char *file, int line, int narg, char **arg, int mode, char **&earg,
-                  LAMMPS *lmp);
+                  LAMMPS *lmp, int **argmap = nullptr);
 
   /*! Expand type label string into its equivalent numeric type
    *
    *  This function checks if a given string may be a type label and
    *  then searches the labelmap type indicated by the *mode* argument
-   *  for the corresponding numeric type.  If this is found a copy of
+   *  for the corresponding numeric type.  If this is found, a copy of
    *  the numeric type string is made and returned. Otherwise a null
    *  pointer is returned.
    *  If a string is returned, the calling code must free it with delete[].
    *
-   * \param file  name of source file for error message
-   * \param line  line number in source file for error message
-   * \param str   type string to be expanded
+   * \param file   name of source file for error message
+   * \param line   line number in source file for error message
+   * \param str    type string to be expanded
    * \param mode  select labelmap using constants from Atom class
    * \param lmp   pointer to top-level LAMMPS class instance
    * \return      pointer to expanded string or null pointer */
 
   char *expand_type(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp);
+
+  /*! Expand type label string into its equivalent integer-valued numeric type
+   *
+   *  This function has the same arguments as expand_type() but returns an integer value */
+
+  int expand_type_int(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp,
+                      bool verify = false);
 
   /*! Check grid reference for valid Compute or Fix which produces per-grid data
    *
@@ -392,22 +516,25 @@ namespace utils {
    * \param ref     per-grid reference from input script, e.g. "c_10:grid:data[2]"
    * \param nevery  frequency at which caller will access fix for per-grid info,
    *                ignored when reference is to a compute
+   * \param id     ID of Compute or Fix
+   * \param igrid  which grid is referenced (0 to N-1)
+   * \param idata  which data on grid is referenced (0 to N-1)
+   * \param index  which column of data is referenced (0 for vec, 1-N for array)
    * \param lmp     pointer to top-level LAMMPS class instance
-   * \return id     ID of Compute or Fix
-   * \return igrid  which grid is referenced (0 to N-1)
-   * \return idata  which data on grid is referenced (0 to N-1)
-   * \return index  which column of data is referenced (0 for vec, 1-N for array)
    * \return        ArgINFO::COMPUTE or FIX or UNKNOWN or NONE */
 
-  int check_grid_reference(char *errstr, char *ref, int nevery,
-                           char *&id, int &igrid, int &idata, int &index, LAMMPS *lmp);
+  int check_grid_reference(char *errstr, char *ref, int nevery, char *&id, int &igrid, int &idata,
+                           int &index, LAMMPS *lmp);
 
   /*! Parse grid reference into 3 sub-strings
    *
-   * Format of grid ID reference = id:gname:dname
-   * Return vector with the 3 sub-strings
+   * Format of grid ID reference = id:gname:dname.
+   * Return vector with the 3 sub-strings.
    *
-   * \param name = complete grid ID
+   * \param file     name of source file for error message
+   * \param line     line number in source file for error message
+   * \param name     complete grid ID
+   * \param error    pointer to Error class
    * \return std::vector<std::string> containing the 3 sub-strings  */
 
   std::vector<std::string> parse_grid_id(const char *file, int line, const std::string &name,
@@ -472,7 +599,7 @@ namespace utils {
 \verbatim embed:rst
 
 This will try to undo the effect from using the :doc:`suffix command <suffix>`
-or the *-suffix/-sf* command line flag and return correspondingly modified string.
+or the *-suffix/-sf* command-line flag and return correspondingly modified string.
 
 \endverbatim
    *
@@ -482,7 +609,7 @@ or the *-suffix/-sf* command line flag and return correspondingly modified strin
 
   std::string strip_style_suffix(const std::string &style, LAMMPS *lmp);
 
-/*! Check if a string will likely have UTF-8 encoded characters
+  /*! Check if a string will likely have UTF-8 encoded characters
    *
    * UTF-8 uses the 7-bit standard ASCII table for the first 127 characters and
    * all other characters are encoded as multiple bytes.  For the multi-byte
@@ -572,7 +699,7 @@ or the *-suffix/-sf* command line flag and return correspondingly modified strin
    * This can handle strings with single and double quotes, escaped quotes,
    * and escaped codes within quotes, but due to using an STL container and
    * STL strings is rather slow because of making copies. Designed for
-   * parsing command lines and similar text and not for time critical
+   * parsing command-lines and similar text and not for time critical
    * processing.  Use a tokenizer class if performance matters.
    *
 \verbatim embed:rst

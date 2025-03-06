@@ -271,6 +271,8 @@ void PairDSMC::coeff(int narg, char **arg)
 
 void PairDSMC::init_style()
 {
+  if (!atom->mass) error->all(FLERR, "Pair style dsmc requires per atom type masses");
+
   ncellsx = ncellsy = ncellsz = 1;
   while (((domain->boxhi[0] - domain->boxlo[0])/ncellsx) > max_cell_size)
     ncellsx++;

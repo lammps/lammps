@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Pedro Antonio Santos Flórez (UNLV)
+   Contributing author: Pedro Antonio Santos Florez (UNLV)
 ------------------------------------------------------------------------- */
 
 #include "mliap_model_nn.h"
@@ -28,7 +28,7 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 
 /* ---------------------------------------------------------------------- */
 
@@ -75,7 +75,8 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
                  utils::getsyserror());
   }
 
-  char line[MAXLINE], *ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int n, eof = 0, nwords = 0;
   while (nwords == 0) {
     if (comm->me == 0) {

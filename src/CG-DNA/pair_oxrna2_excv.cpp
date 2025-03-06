@@ -17,6 +17,8 @@
 
 #include "pair_oxrna2_excv.h"
 
+#include "constants_oxdna.h"
+
 using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------
@@ -25,7 +27,9 @@ using namespace LAMMPS_NS;
 void PairOxrna2Excv::compute_interaction_sites(double e1[3], double /*e2*/[3],
   double e3[3], double rs[3], double rb[3])
 {
-  double d_cs_x=-0.4, d_cs_z=+0.2, d_cb=+0.4;
+  double d_cs_x = ConstantsOxdna::get_d_cs();
+  double d_cs_z = ConstantsOxdna::get_d_cs_z();
+  double d_cb = ConstantsOxdna::get_d_cb();
 
   rs[0] = d_cs_x*e1[0] + d_cs_z*e3[0];
   rs[1] = d_cs_x*e1[1] + d_cs_z*e3[1];

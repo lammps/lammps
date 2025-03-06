@@ -53,6 +53,7 @@ template <typename T> static GranSubMod *gran_sub_mod_creator(GranularModel *gm,
 GranularModel::GranularModel(LAMMPS *lmp) : Pointers(lmp)
 {
   limit_damping = 0;
+  synchronized_verlet = 0;
   beyond_contact = 0;
   nondefault_history_transfer = 0;
   classic_model = 0;
@@ -281,6 +282,14 @@ void GranularModel::init()
   if (limit_damping && normal_model->get_cohesive_flag())
     error->all(FLERR,"Cannot limit damping with a cohesive normal model, {}", normal_model->name);
 
+  if (synchronized_verlet && !tangential_model->allow_synchronization)
+    error->all(FLERR,"Cannot use synchronized verlet with a non-synchronized tangential model, {}",
+                     tangential_model->name);
+
+  if (synchronized_verlet && !rolling_model->allow_synchronization)
+    error->all(FLERR,"Cannot use synchronized verlet with a non-synchronized rolling model, {}",
+                     rolling_model->name);
+
   if (nondefault_history_transfer) {
     transfer_history_factor = new double[size_history];
 
@@ -430,10 +439,21 @@ void GranularModel::calculate_forces()
   rinv = 1.0 / r;
   delta = radsum - r;
   dR = delta * Reff;
-  scale3(rinv, dx, nx);
 
   // relative translational velocity
   sub3(vi, vj, vr);
+
+  if (synchronized_verlet == 1 && contact_type != WALL){
+    //Calculating half step normal for synchronized verlet
+    double temp1[3], nhalf[3];
+    scale3(rinv, dx, nx_unrotated);
+    scale3(0.5 * dt, vr, temp1);
+    sub3(dx, temp1, nhalf);
+    norm3(nhalf);
+    copy3(nhalf, nx);
+  } else {
+    scale3(rinv, dx, nx);
+  }
 
   // normal component
   vnnr = dot3(vr, nx);
@@ -470,7 +490,7 @@ void GranularModel::calculate_forces()
   add3(forces, fs, forces);
 
   // May need to eventually rethink tris..
-  cross3(nx, fs, torquesi);
+  cross3(nx, fs, torquesi); //h has been rotated to full-step so we can use nx here
   scale3(-1, torquesi);
 
   if (contact_type == PAIR) {
@@ -501,7 +521,7 @@ void GranularModel::calculate_forces()
     rolling_model->calculate_forces();
 
     double torroll[3];
-    cross3(nx, fr, torroll);
+    cross3(nx, fr, torroll); //we can use nx here as fr has been rotated to full-step
     scale3(Reff, torroll);
     add3(torquesi, torroll, torquesi);
     if (contact_type == PAIR) sub3(torquesj, torroll, torquesj);

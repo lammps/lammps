@@ -373,6 +373,9 @@ void PairGranular::coeff(int narg, char **arg)
     } else if (strcmp(arg[iarg], "limit_damping") == 0) {
       model->limit_damping = 1;
       iarg += 1;
+    } else if (strcmp(arg[iarg], "synchronized_verlet") == 0) {
+      model->synchronized_verlet = 1;
+      iarg += 1;
     } else error->all(FLERR, "Illegal pair_coeff command {}", arg[iarg]);
   }
 

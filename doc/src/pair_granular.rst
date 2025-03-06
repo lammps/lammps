@@ -30,6 +30,9 @@ Examples
    pair_coeff * * hertz/material 1e8 0.3 0.3 tangential mindlin_rescale NULL 1.0 0.4 damping tsuji
 
    pair_style granular
+   pair_coeff * * hertz/material 1e8 0.3 0.3 tangential mindlin_rescale NULL 1.0 0.4 damping coeff_restitution synchronized_verlet
+
+   pair_style granular
    pair_coeff 1 * jkr 1000.0 500.0 0.3 10 tangential mindlin 800.0 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall
    pair_coeff 2 2 hertz 200.0 100.0 tangential linear_history 300.0 1.0 0.1 rolling sds 200.0 100.0 0.1 twisting marshall
 
@@ -103,11 +106,12 @@ on particle *i* due to contact with particle *j* is given by:
    \mathbf{F}_{ne, Hooke} = k_n \delta_{ij} \mathbf{n}
 
 Where :math:`\delta_{ij} = R_i + R_j - \|\mathbf{r}_{ij}\|` is the particle
-overlap, :math:`R_i, R_j` are the particle radii, :math:`\mathbf{r}_{ij} = \mathbf{r}_i - \mathbf{r}_j` is the vector separating the two
-particle centers (note the i-j ordering so that :math:`\mathbf{F}_{ne}` is
-positive for repulsion), and :math:`\mathbf{n} = \frac{\mathbf{r}_{ij}}{\|\mathbf{r}_{ij}\|}`.  Therefore,
-for *hooke*, the units of the spring constant :math:`k_n` are
-*force*\ /\ *distance*, or equivalently *mass*\ /*time\^2*.
+overlap, :math:`R_i, R_j` are the particle radii, :math:`\mathbf{r}_{ij} =
+\mathbf{r}_i - \mathbf{r}_j` is the vector separating the two particle centers
+(note the i-j ordering so that :math:`\mathbf{F}_{ne}` is positive for repulsion),
+and :math:`\mathbf{n} = \frac{\mathbf{r}_{ij}}{\|\mathbf{r}_{ij}\|}`.  Therefore,
+for *hooke*, the units of the spring constant :math:`k_n` are *force*\ /\
+*distance*, or equivalently *mass*\ /*time\^2*.
 
 For the *hertz* model, the normal component of force is given by:
 
@@ -313,7 +317,8 @@ following general form:
 
    \mathbf{F}_{n,damp} = -\eta_n \mathbf{v}_{n,rel}
 
-Here, :math:`\mathbf{v}_{n,rel} = (\mathbf{v}_j - \mathbf{v}_i) \cdot \mathbf{n}\ \mathbf{n}` is the component of relative velocity along
+Here, :math:`\mathbf{v}_{n,rel} = (\mathbf{v}_j - \mathbf{v}_i) \cdot
+\mathbf{n}\ \mathbf{n}` is the component of relative velocity along
 :math:`\mathbf{n}`.
 
 The optional *damping* keyword to the *pair_coeff* command followed by
@@ -488,7 +493,8 @@ the normal force:
    F_{n0} = \|\mathbf{F}_n\|
 
 For cohesive models such as *jkr* and *dmt*, the critical force is
-adjusted so that the critical tangential force approaches :math:`\mu_t F_{pulloff}`, see :ref:`Marshall <Marshall2009>`, equation 43, and
+adjusted so that the critical tangential force approaches
+:math:`\mu_t F_{pulloff}`, see :ref:`Marshall <Marshall2009>`, equation 43, and
 :ref:`Thornton <Thornton1991>`.  For both models, :math:`F_{n0}` takes the
 form:
 
@@ -577,7 +583,6 @@ of :math:`a`, the radius of the contact region. The tangential force is given by
 .. math::
 
    \mathbf{F}_t =  -\min(\mu_t F_{n0}, \|-k_t a \mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
-
 
 Here, :math:`a` is the radius of the contact region, given by :math:`a =\sqrt{R\delta}`
 for all normal contact models, except for *jkr*, where it is given
@@ -694,9 +699,11 @@ the tangential force:
 
    \mathbf{F}_{roll,0} =  k_{roll} \mathbf{\xi}_{roll}  - \gamma_{roll} \mathbf{v}_{roll}
 
-Here, :math:`\mathbf{v}_{roll} = -R(\boldsymbol{\Omega}_i - \boldsymbol{\Omega}_j) \times \mathbf{n}` is the relative rolling
-velocity, as given in :ref:`Wang et al <Wang2015>` and
-:ref:`Luding <Luding2008>`. This differs from the expressions given by :ref:`Kuhn and Bagi <Kuhn2004>` and used in :ref:`Marshall <Marshall2009>`; see :ref:`Wang et al <Wang2015>` for details. The rolling displacement is given by:
+Here, :math:`\mathbf{v}_{roll} = -R(\boldsymbol{\Omega}_i - \boldsymbol{\Omega}_j)
+\times \mathbf{n}` is the relative rolling velocity, as given in
+:ref:`Wang et al <Wang2015>` and :ref:`Luding <Luding2008>`. This differs from the
+expressions given by :ref:`Kuhn and Bagi <Kuhn2004>` and used in :ref:`Marshall <Marshall2009>`;
+see :ref:`Wang et al <Wang2015>` for details. The rolling displacement is given by:
 
 .. math::
 
@@ -753,9 +760,10 @@ the most straightforward treatment:
 
    \tau_{twist,0} = -k_{twist}\xi_{twist} - \gamma_{twist}\Omega_{twist}
 
-Here :math:`\xi_{twist} = \int_{t_0}^t \Omega_{twist} (\tau) \mathrm{d}\tau` is the twisting angular displacement, and
-:math:`\Omega_{twist} = (\mathbf{\Omega}_i - \mathbf{\Omega}_j) \cdot \mathbf{n}` is the relative twisting angular velocity. The torque
-is then truncated according to:
+Here :math:`\xi_{twist} = \int_{t_0}^t \Omega_{twist} (\tau) \mathrm{d}\tau` is
+the twisting angular displacement, and
+:math:`\Omega_{twist} = (\mathbf{\Omega}_i - \mathbf{\Omega}_j) \cdot \mathbf{n}`
+is the relative twisting angular velocity. The torque is then truncated according to:
 
 .. math::
 
@@ -806,6 +814,19 @@ is a possibility that the particles could experience an effective attractive
 force due to damping. If the optional *limit_damping* keyword is used, this option
 will zero out the normal component of the force if there is an effective
 attractive force. This keyword cannot be used with the JKR or DMT models.
+
+----------
+
+The standard velocity-Verlet integration scheme's half-step staggering of
+position and velocity can introduce inaccuracies in frictional tangential
+force calculations, resulting in unphysical kinematics in certain systems.
+These effects are particularly pronounced in polydisperse frictional flows
+characterized by large-to-small size ratios exceeding three. The
+*synchronized_verlet* flag implements an alternate Velocity-Verlet integration
+scheme, as detailed in :ref:`Vyas et al <Vyas2025>`, that synchronizes position
+and velocity updates for force evaluation. By refining tangential force
+calculations, the *synchronized_verlet* method ensures physically consistent
+results without significantly impacting computational cost.
 
 ----------
 
@@ -923,8 +944,9 @@ or
 
    E_{eff,ij} = \frac{E_{ij}}{2(1-\nu_{ij}^2)}
 
-These pair styles write their information to :doc:`binary restart files <restart>`, so a pair_style command does not need to be
-specified in an input script that reads a restart file.
+These pair styles write their information to :doc:`binary restart files <restart>`,
+so a pair_style command does not need to be specified in an input script that reads
+a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
@@ -954,8 +976,8 @@ maximum number of extra quantities in a model but the order of quantities
 is determined by each model's specific set of sub-models. Any unused
 quantities are zeroed.
 
-These extra quantities can be accessed by the :doc:`compute pair/local <compute_pair_local>` command, as *p1*, *p2*, ...,
-*p12*\ .
+These extra quantities can be accessed by the :doc:`compute pair/local
+<compute_pair_local>` command, as *p1*, *p2*, ..., *p12*\ .
 
 ----------
 
@@ -1118,3 +1140,8 @@ I. Assembling process, geometry, and contact networks. Phys. Rev. E, 76, 061302.
 Heat conduction in granular materials.
 AIChE Journal, 47(5), 1052-1059.
 
+.. _Vyas2025:
+
+**(Vyas et al, 2025)**  Vyas D. R., Ottino J. M., Lueptow R. M., & Umbanhowar P. B. (2025).
+Improved Velocity-Verlet Algorithm for the Discrete Element Method.
+Computer Physics Communications, 109524.

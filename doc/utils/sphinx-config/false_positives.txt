@@ -2074,6 +2074,7 @@ lubricateU
 lucas
 lucy
 Luding
+Lueptow
 Luijten
 lunit
 Lunkad
@@ -2800,6 +2801,7 @@ orthorhombic
 Ortner
 os
 oso
+Ottino
 Otype
 Ouadfel
 Ouldridge
@@ -3934,6 +3936,7 @@ uloop
 ulsph
 Ultrafast
 uMech
+Umbanhowar
 umin
 Umin
 un

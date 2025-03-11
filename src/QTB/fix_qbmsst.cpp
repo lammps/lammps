@@ -360,7 +360,7 @@ void FixQBMSST::init()
     h_timestep=alpha*dtv;
   }
   if (comm->me == 0 && screen)
-    fmt::print(screen,"The effective maximum frequency is now {} inverse time unit "
+    utils::print(screen,"The effective maximum frequency is now {} inverse time unit "
                "with alpha value as {}!\n", 0.5/h_timestep, alpha);
 
   //gfactor is the random force \sqrt{\frac{2\gamma{}m_{i}}{\alpha*\delta{}t}}, \sqrt{12} makes the random array variance equal to unit.

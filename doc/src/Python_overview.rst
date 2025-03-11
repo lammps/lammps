@@ -44,15 +44,11 @@ Below is an example output for Python version 3.8.5.
 .. warning::
 
    The options described in this section of the manual for using Python
-   with LAMMPS currently support either Python 2 or 3.  Specifically
-   version 2.7 or later and 3.6 or later.  Since the Python community no
-   longer maintains Python 2 (see `this notice
-   <https://www.python.org/doc/sunset-python-2/>`_), we recommend use of
-   Python 3 with LAMMPS.  While Python 2 code should continue to work,
-   that is not something we can guarantee long-term.  If you notice
-   Python code in the LAMMPS distribution that is not compatible with
-   Python 3, please contact the LAMMPS developers or submit `and issue
-   on GitHub <https://github.com/lammps/lammps/issues>`_
+   with LAMMPS support only Python 3.6 or later.  For use with Python
+   2.x you will need to use an older LAMMPS version like 29 Aug 2024
+   or older.  If you notice Python code in the LAMMPS distribution that
+   is not compatible with Python 3, please contact the LAMMPS developers
+   or submit `and issue on GitHub <https://github.com/lammps/lammps/issues>`_
 
 ---------
 

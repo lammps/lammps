@@ -242,8 +242,8 @@ void FixAlchemy::setup(int vflag)
   if (universe->me == 0) {
     progress = 0;
     auto msg = fmt::format("Starting alchemical run\n");
-    if (universe->uscreen) fmt::print(universe->uscreen, msg);
-    if (universe->ulogfile) fmt::print(universe->ulogfile, msg);
+    if (universe->uscreen) utils::print(universe->uscreen, msg);
+    if (universe->ulogfile) utils::print(universe->ulogfile, msg);
   }
 
   // recheck domain decomposition, atom ordering, and synchronize positions
@@ -325,8 +325,8 @@ void FixAlchemy::post_force(int /*vflag*/)
     if ((status / 10) > (progress / 10)) {
       progress = status;
       auto msg = fmt::format("  Alchemical run progress: {:>3d}%\n", progress);
-      if (universe->uscreen) fmt::print(universe->uscreen, msg);
-      if (universe->ulogfile) fmt::print(universe->ulogfile, msg);
+      if (universe->uscreen) utils::print(universe->uscreen, msg);
+      if (universe->ulogfile) utils::print(universe->ulogfile, msg);
     }
   }
 }

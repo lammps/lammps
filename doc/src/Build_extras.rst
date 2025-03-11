@@ -1139,11 +1139,10 @@ POEMS package
 PYTHON package
 ---------------------------
 
-Building with the PYTHON package requires you have a the Python development
-headers and library available on your system, which needs to be a Python 2.7
-version or a Python 3.x version.  Since support for Python 2.x has ended,
-using Python 3.x is strongly recommended. See ``lib/python/README`` for
-additional details.
+Building with the PYTHON package requires you have a the Python
+development headers and library available on your system, which
+needs to be Python version 3.6 or later.  See ``lib/python/README``
+for additional details.
 
 .. tabs::
 
@@ -1159,7 +1158,7 @@ additional details.
       set the Python_EXECUTABLE variable to specify which Python
       interpreter should be used.  Note note that you will also need to
       have the development headers installed for this version,
-      e.g. python2-devel.
+      e.g. python3-devel.
 
    .. tab:: Traditional make
 

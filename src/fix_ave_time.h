@@ -69,7 +69,7 @@ class FixAveTime : public Fix {
   int ave, nwindow, startstep, mode;
   int noff, overwrite;
   int *offlist;
-  char *format, *format_user;
+  char *format;
   char *title1, *title2, *title3;
   bigint filepos;
 

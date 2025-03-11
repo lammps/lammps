@@ -410,7 +410,7 @@ void PairLJLongCoulLong::read_restart_settings(FILE *fp)
 void PairLJLongCoulLong::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fmt::print(fp,"{} {} {}\n",i,epsilon_read[i][i],sigma_read[i][i]);
+    utils::print(fp,"{} {} {}\n",i,epsilon_read[i][i],sigma_read[i][i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -423,10 +423,10 @@ void PairLJLongCoulLong::write_data_all(FILE *fp)
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
       if (ewald_order & (1<<6)) {
-        fmt::print(fp,"{} {} {} {}\n",i,j,
+        utils::print(fp,"{} {} {} {}\n",i,j,
                    epsilon[i][j],sigma[i][j]);
       } else {
-        fmt::print(fp,"{} {} {} {} {}\n",i,j,
+        utils::print(fp,"{} {} {} {} {}\n",i,j,
                    epsilon[i][j],sigma[i][j],cut_lj[i][j]);
       }
     }

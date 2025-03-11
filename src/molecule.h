@@ -26,6 +26,7 @@ class Molecule : protected Pointers {
   int last;    // 1 if last molecule in set, else 0
 
   std::string title;    // title string of the molecule file
+  int fileiarg;         // argument index of the current file. For error messages
 
   // number of atoms,bonds,etc in molecule
   // nibody,ndbody = # of integer/double fields in body

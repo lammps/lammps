@@ -1,6 +1,6 @@
 # Apptainer (aka Singularity) container definitions for compiling/testing LAMMPS
 
-The *.def files in this folder can be used to build container images
+The \*.def files in this folder can be used to build container images
 for [Apptainer](https://apptainer.org) (previously called
 [Singularity](https://sylabs.io)), suitable for compiling and testing
 LAMMPS on a variety of OS variants with support for most standard

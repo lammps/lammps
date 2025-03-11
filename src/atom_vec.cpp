@@ -1797,7 +1797,7 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
   int i, j, m, nn, datatype, cols;
 
   for (i = 0; i < n; i++) {
-    fmt::print(fp, "{}", ubuf(buf[i][0]).i);
+    utils::print(fp, "{}", ubuf(buf[i][0]).i);
 
     j = 1;
     for (nn = 1; nn < ndata_atom; nn++) {
@@ -1805,30 +1805,30 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
       cols = mdata_atom.cols[nn];
       if (datatype == Atom::DOUBLE) {
         if (cols == 0) {
-          fmt::print(fp, " {:.16}", buf[i][j++]);
+          utils::print(fp, " {:.16}", buf[i][j++]);
         } else {
-          for (m = 0; m < cols; m++) fmt::print(fp, " {}", buf[i][j++]);
+          for (m = 0; m < cols; m++) utils::print(fp, " {}", buf[i][j++]);
         }
       } else if (datatype == Atom::INT) {
         if (cols == 0) {
           if (atom->types_style == Atom::LABELS &&
               atom->peratom[mdata_atom.index[nn]].name == "type") {
-            fmt::print(fp, " {}", atom->lmap->typelabel[ubuf(buf[i][j++]).i - 1]);
+            utils::print(fp, " {}", atom->lmap->typelabel[ubuf(buf[i][j++]).i - 1]);
           } else
-            fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
+            utils::print(fp, " {}", ubuf(buf[i][j++]).i);
         } else {
-          for (m = 0; m < cols; m++) fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
+          for (m = 0; m < cols; m++) utils::print(fp, " {}", ubuf(buf[i][j++]).i);
         }
       } else if (datatype == Atom::BIGINT) {
         if (cols == 0) {
-          fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
+          utils::print(fp, " {}", ubuf(buf[i][j++]).i);
         } else {
-          for (m = 0; m < cols; m++) fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
+          for (m = 0; m < cols; m++) utils::print(fp, " {}", ubuf(buf[i][j++]).i);
         }
       }
     }
 
-    fmt::print(fp, " {} {} {}\n", ubuf(buf[i][j]).i, ubuf(buf[i][j + 1]).i, ubuf(buf[i][j + 2]).i);
+    utils::print(fp, " {} {} {}\n", ubuf(buf[i][j]).i, ubuf(buf[i][j + 1]).i, ubuf(buf[i][j + 2]).i);
   }
 }
 
@@ -1940,7 +1940,7 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
   int i, j, m, nn, datatype, cols;
 
   for (i = 0; i < n; i++) {
-    fmt::print(fp, "{}", ubuf(buf[i][0]).i);
+    utils::print(fp, "{}", ubuf(buf[i][0]).i);
 
     j = 1;
     for (nn = 1; nn < ndata_vel; nn++) {
@@ -1948,21 +1948,21 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
       cols = mdata_vel.cols[nn];
       if (datatype == Atom::DOUBLE) {
         if (cols == 0) {
-          fmt::print(fp, " {}", buf[i][j++]);
+          utils::print(fp, " {}", buf[i][j++]);
         } else {
-          for (m = 0; m < cols; m++) fmt::print(fp, " {}", buf[i][j++]);
+          for (m = 0; m < cols; m++) utils::print(fp, " {}", buf[i][j++]);
         }
       } else if (datatype == Atom::INT) {
         if (cols == 0) {
-          fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
+          utils::print(fp, " {}", ubuf(buf[i][j++]).i);
         } else {
-          for (m = 0; m < cols; m++) fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
+          for (m = 0; m < cols; m++) utils::print(fp, " {}", ubuf(buf[i][j++]).i);
         }
       } else if (datatype == Atom::BIGINT) {
         if (cols == 0) {
-          fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
+          utils::print(fp, " {}", ubuf(buf[i][j++]).i);
         } else {
-          for (m = 0; m < cols; m++) fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
+          for (m = 0; m < cols; m++) utils::print(fp, " {}", ubuf(buf[i][j++]).i);
         }
       }
     }
@@ -2026,7 +2026,7 @@ void AtomVec::write_bond(FILE *fp, int n, tagint **buf, int index)
   for (int i = 0; i < n; i++) {
     typestr = std::to_string(buf[i][0]);
     if (atom->types_style == Atom::LABELS) typestr = atom->lmap->btypelabel[buf[i][0] - 1];
-    fmt::print(fp, "{} {} {} {}\n", index, typestr, buf[i][1], buf[i][2]);
+    utils::print(fp, "{} {} {} {}\n", index, typestr, buf[i][1], buf[i][2]);
     index++;
   }
 }
@@ -2091,7 +2091,7 @@ void AtomVec::write_angle(FILE *fp, int n, tagint **buf, int index)
   for (int i = 0; i < n; i++) {
     typestr = std::to_string(buf[i][0]);
     if (atom->types_style == Atom::LABELS) typestr = atom->lmap->atypelabel[buf[i][0] - 1];
-    fmt::print(fp, "{} {} {} {} {}\n", index, typestr, buf[i][1], buf[i][2], buf[i][3]);
+    utils::print(fp, "{} {} {} {} {}\n", index, typestr, buf[i][1], buf[i][2], buf[i][3]);
     index++;
   }
 }
@@ -2154,7 +2154,7 @@ void AtomVec::write_dihedral(FILE *fp, int n, tagint **buf, int index)
   for (int i = 0; i < n; i++) {
     typestr = std::to_string(buf[i][0]);
     if (atom->types_style == Atom::LABELS) typestr = atom->lmap->dtypelabel[buf[i][0] - 1];
-    fmt::print(fp, "{} {} {} {} {} {}\n", index, typestr, buf[i][1], buf[i][2], buf[i][3],
+    utils::print(fp, "{} {} {} {} {} {}\n", index, typestr, buf[i][1], buf[i][2], buf[i][3],
                buf[i][4]);
     index++;
   }
@@ -2218,7 +2218,7 @@ void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
   for (int i = 0; i < n; i++) {
     typestr = std::to_string(buf[i][0]);
     if (atom->types_style == Atom::LABELS) typestr = atom->lmap->itypelabel[buf[i][0] - 1];
-    fmt::print(fp, "{} {} {} {} {} {}\n", index, typestr, buf[i][1], buf[i][2], buf[i][3],
+    utils::print(fp, "{} {} {} {} {} {}\n", index, typestr, buf[i][1], buf[i][2], buf[i][3],
                buf[i][4]);
     index++;
   }

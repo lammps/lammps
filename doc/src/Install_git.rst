@@ -52,6 +52,7 @@ your machine and "release" is one of the 3 branches listed above.
 between them at any time using "git checkout <branch name>".)
 
 .. admonition:: Saving time and disk space when using ``git clone``
+   :class: note
 
    The complete git history of the LAMMPS project is quite large because
    it contains the entire commit history of the project since fall 2006,

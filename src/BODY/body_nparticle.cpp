@@ -261,22 +261,22 @@ int BodyNparticle::write_data_body(FILE *fp, double *buf)
 
   // atomID ninteger ndouble
 
-  fmt::print(fp,"{} {} {}\n",ubuf(buf[m]).i,ubuf(buf[m+1]).i,ubuf(buf[m+2]).i);
+  utils::print(fp,"{} {} {}\n",ubuf(buf[m]).i,ubuf(buf[m+1]).i,ubuf(buf[m+2]).i);
   m += 3;
 
   const int nsub = (int) ubuf(buf[m++]).i;
-  fmt::print(fp,"{}\n",nsub);
+  utils::print(fp,"{}\n",nsub);
 
   // inertia
 
-  fmt::print(fp,"{} {} {} {} {} {}\n",
+  utils::print(fp,"{} {} {} {} {} {}\n",
              buf[m+0],buf[m+1],buf[m+2],buf[m+3],buf[m+4],buf[m+5]);
   m += 6;
 
   // nsub vertices
 
   for (int i = 0; i < nsub; i++) {
-    fmt::print(fp,"{} {} {}\n",buf[m],buf[m+1],buf[m+2]);
+    utils::print(fp,"{} {} {}\n",buf[m],buf[m+1],buf[m+2]);
     m += 3;
   }
 

@@ -124,7 +124,6 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   atomflag = YES;
   gridflag = NO;
   lineflag = triflag = bodyflag = fixflag = NO;
-  id_grid_compute = id_grid_fix = nullptr;
 
   if (atom->nbondtypes == 0) bondflag = NO;
   else {
@@ -188,10 +187,13 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
                                               igrid,idata,index,lmp);
       if (iflag < 0) error->all(FLERR,"Invalid grid reference in dump image command");
 
-      delete[] id_grid_compute;
-      delete[] id_grid_fix;
-      if (iflag == ArgInfo::COMPUTE) id_grid_compute = utils::strdup(id);
-      else if (iflag == ArgInfo::FIX) id_grid_fix = utils::strdup(id);
+      if (iflag == ArgInfo::COMPUTE) {
+        delete[] id_grid_compute;
+        id_grid_compute = utils::strdup(id);
+      } else if (iflag == ArgInfo::FIX) {
+        delete[] id_grid_fix;
+        id_grid_fix = utils::strdup(id);
+      }
       delete[] id;
       grid_igrid = igrid;
       grid_idata = idata;
@@ -465,15 +467,8 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   // local data
 
-  grid_compute = nullptr;
-  grid_fix = nullptr;
-
   maxbufcopy = 0;
-  chooseghost = nullptr;
-  bufcopy = nullptr;
-
   maxgrid = 0;
-  gbuf = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

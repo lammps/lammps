@@ -26,6 +26,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_ave_atom.h"
+#include "fix_property_atom.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
@@ -141,13 +142,6 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   }
 
   x0 = nullptr;
-  clusterID = nullptr;
-
-  int ntmp = atom->nmax;
-  memory->create(x0, ntmp, "reaxff/species:x0");
-  memory->create(clusterID, ntmp, "reaxff/species:clusterID");
-  memset(clusterID, 0, sizeof(double) * ntmp);
-  vector_atom = clusterID;
 
   nmax = 0;
   setupflag = 0;
@@ -304,7 +298,6 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
 FixReaxFFSpecies::~FixReaxFFSpecies()
 {
   memory->destroy(BOCut);
-  memory->destroy(clusterID);
   memory->destroy(x0);
 
   memory->destroy(nd);
@@ -330,6 +323,7 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
   try {
     modify->delete_compute(fmt::format("SPECATOM_{}", id));
     modify->delete_fix(fmt::format("SPECBOND_{}", id));
+    modify->delete_fix(fmt::format("clusterID_{}", id));
   } catch (std::exception &) {
   }
 }
@@ -372,9 +366,6 @@ void FixReaxFFSpecies::init()
 
   reaxff->fixspecies_flag = 1;
 
-  // reset next output timestep if not yet set or timestep has been reset
-  if (nvalid != update->ntimestep) nvalid = update->ntimestep + nfreq;
-
   if (!setupflag) {
     // create a compute to store properties
     modify->add_compute(fmt::format("SPECATOM_{} all SPEC/ATOM q x y z vx vy vz abo01 abo02 "
@@ -387,11 +378,25 @@ void FixReaxFFSpecies::init()
     auto fixcmd = fmt::format("SPECBOND_{} all ave/atom {} {} {}", id, nevery, nrepeat, nfreq);
     for (int i = 1; i < 32; ++i) fixcmd += fmt::format(" c_SPECATOM_{}[{}]", id, i);
     f_SPECBOND = dynamic_cast<FixAveAtom *>(modify->add_fix(fixcmd));
+
+    // create a fix to point to fix_property_atom for storing clusterID
+    fixcmd = fmt::format("clusterID_{} all property/atom d_clusterID ghost yes", id);
+    f_clusterID = dynamic_cast<FixPropertyAtom *>(modify->add_fix(fixcmd));
+
+    // per-atom property for clusterID
+    int flag,cols;
+    int index1 = atom->find_custom("clusterID",flag,cols);
+    clusterID = atom->dvector[index1];
+    vector_atom = clusterID;
+
+    int ntmp = atom->nmax;
+    memory->create(x0, ntmp, "reaxff/species:x0");
+
     setupflag = 1;
   }
 
   // check for valid variable name for delete Nlimit keyword
-  if (delete_Nsteps > 0) {
+  if (delete_Nsteps > 0 && delete_Nlimit_varid > -1) {
     delete_Nlimit_varid = input->variable->find(delete_Nlimit_varname.c_str());
     if (delete_Nlimit_varid < 0)
       error->all(FLERR, "Fix reaxff/species: Variable name {} does not exist",
@@ -424,10 +429,16 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
 {
   int Nmole, Nspec;
 
+  // per-atom property for clusterID
+  int flag,cols;
+  int index1 = atom->find_custom("clusterID",flag,cols);
+  clusterID = atom->dvector[index1];
+  vector_atom = clusterID;
+
   // point to fix_ave_atom
   f_SPECBOND->end_of_step();
 
-  if (ntimestep != nvalid) {
+  if (ntimestep != nvalid && nvalid != -1) {
     // push back delete_Tcount on every step
     if (delete_Nsteps > 0)
       for (int i = delete_Nsteps - 1; i > 0; i--) delete_Tcount[i] = delete_Tcount[i - 1];
@@ -439,11 +450,7 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
     memory->destroy(x0);
-    memory->destroy(clusterID);
     memory->create(x0, nmax, "reaxff/species:x0");
-    memory->create(clusterID, nmax, "reaxff/species:clusterID");
-    memset(clusterID, 0, sizeof(double) * nmax);
-    vector_atom = clusterID;
   }
 
   for (int i = 0; i < nmax; i++) { x0[i].x = x0[i].y = x0[i].z = 0.0; }
@@ -464,9 +471,14 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
     if (comm->me == 0) fflush(pos);
   }
 
-  if (delflag) DeleteSpecies(Nmole, Nspec);
+  if (delflag && nvalid != -1) {
+    DeleteSpecies(Nmole, Nspec);
 
-  nvalid += nfreq;
+    // reset molecule ID to index from 1
+    SortMolecule(Nmole);
+  }
+
+  nvalid = ntimestep + nfreq;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -794,12 +806,12 @@ void FixReaxFFSpecies::WriteFormulas(int Nmole, int Nspec)
         if (itemp != 1) molname += std::to_string(itemp);
       }
     }
-    fmt::print(fp, " {:>11}", molname);
+    utils::print(fp, " {:>11}", molname);
   }
   fputs("\n", fp);
 
-  fmt::print(fp, "{:>11} {:>11} {:>11}", ntimestep, Nmole, Nspec);
-  for (i = 0; i < Nmoltype; i++) fmt::print(fp, " {:>11}", NMol[i]);
+  utils::print(fp, "{:>11} {:>11} {:>11}", ntimestep, Nmole, Nspec);
+  for (i = 0; i < Nmoltype; i++) utils::print(fp, " {:>11}", NMol[i]);
   fputs("\n", fp);
 }
 
@@ -826,7 +838,8 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
   int count, count_tmp, m, n, k;
   int *Nameall;
   int *mask = atom->mask;
-  double avq, avq_tmp, avx[3], avx_tmp, box[3], halfbox[3];
+  double *rmass = atom->rmass;
+  double totq, totq_tmp, com[3], com_tmp, thism, totm, box[3], halfbox[3];
   double **spec_atom = f_SPECBOND->array_atom;
 
   if (multipos) OpenPos();
@@ -838,13 +851,13 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
   for (int j = 0; j < 3; j++) halfbox[j] = box[j] / 2;
 
   if (comm->me == 0) {
-    fmt::print(pos,
+    utils::print(pos,
                "Timestep {} NMole {}  NSpec {}  xlo {:f}  "
                "xhi {:f}  ylo {:f}  yhi {:f}  zlo {:f}  zhi {:f}\n",
                update->ntimestep, Nmole, Nspec, domain->boxlo[0], domain->boxhi[0],
                domain->boxlo[1], domain->boxhi[1], domain->boxlo[2], domain->boxhi[2]);
 
-    fprintf(pos, "ID\tAtom_Count\tType\tAve_q\t\tCoM_x\t\tCoM_y\t\tCoM_z\n");
+    fprintf(pos, "ID\tAtom_Count\tType\tTot_q\t\tCoM_x\t\tCoM_y\t\tCoM_z\n");
   }
 
   Nameall = nullptr;
@@ -853,8 +866,9 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
   for (m = 1; m <= Nmole; m++) {
 
     count = 0;
-    avq = 0.0;
-    for (n = 0; n < 3; n++) avx[n] = 0.0;
+    totq = 0.0;
+    totm = 0.0;
+    for (n = 0; n < 3; n++) com[n] = 0.0;
     for (n = 0; n < nutypes; n++) Name[n] = 0;
 
     for (i = 0; i < nlocal; i++) {
@@ -864,29 +878,36 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
         itype = ele2uele[atom->type[i] - 1];
         Name[itype]++;
         count++;
-        avq += spec_atom[i][0];
+        totq += spec_atom[i][0];
         if ((x0[i].x - spec_atom[i][1]) > halfbox[0]) spec_atom[i][1] += box[0];
         if ((spec_atom[i][1] - x0[i].x) > halfbox[0]) spec_atom[i][1] -= box[0];
         if ((x0[i].y - spec_atom[i][2]) > halfbox[1]) spec_atom[i][2] += box[1];
         if ((spec_atom[i][2] - x0[i].y) > halfbox[1]) spec_atom[i][2] -= box[1];
         if ((x0[i].z - spec_atom[i][3]) > halfbox[2]) spec_atom[i][3] += box[2];
         if ((spec_atom[i][3] - x0[i].z) > halfbox[2]) spec_atom[i][3] -= box[2];
-        for (n = 0; n < 3; n++) avx[n] += spec_atom[i][n + 1];
+        if (rmass) thism = rmass[i];
+        else thism = atom->mass[atom->type[i]];
+        for (n = 0; n < 3; n++) com[n] += spec_atom[i][n+1]*thism;
+        totm += thism;
       }
     }
 
-    avq_tmp = 0.0;
-    MPI_Allreduce(&avq, &avq_tmp, 1, MPI_DOUBLE, MPI_SUM, world);
-    avq = avq_tmp;
+    totq_tmp = 0.0;
+    MPI_Allreduce(&totq, &totq_tmp, 1, MPI_DOUBLE, MPI_SUM, world);
+    totq = totq_tmp;
 
     for (n = 0; n < 3; n++) {
-      avx_tmp = 0.0;
-      MPI_Reduce(&avx[n], &avx_tmp, 1, MPI_DOUBLE, MPI_SUM, 0, world);
-      avx[n] = avx_tmp;
+      com_tmp = 0.0;
+      MPI_Reduce(&com[n], &com_tmp, 1, MPI_DOUBLE, MPI_SUM, 0, world);
+      com[n] = com_tmp;
     }
 
     MPI_Reduce(&count, &count_tmp, 1, MPI_INT, MPI_SUM, 0, world);
     count = count_tmp;
+
+    com_tmp = 0.0;
+    MPI_Reduce(&totm, &com_tmp, 1, MPI_DOUBLE, MPI_SUM, 0, world);
+    totm = com_tmp;
 
     MPI_Reduce(Name, Nameall, nutypes, MPI_INT, MPI_SUM, 0, world);
     for (n = 0; n < nutypes; n++) Name[n] = Nameall[n];
@@ -900,16 +921,15 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
         }
       }
       if (count > 0) {
-        avq /= count;
         for (k = 0; k < 3; k++) {
-          avx[k] /= count;
-          if (avx[k] >= domain->boxhi[k]) avx[k] -= box[k];
-          if (avx[k] < domain->boxlo[k]) avx[k] += box[k];
+          com[k] /= totm;
+          if (com[k] >= domain->boxhi[k]) com[k] -= box[k];
+          if (com[k] < domain->boxlo[k]) com[k] += box[k];
 
-          avx[k] -= domain->boxlo[k];
-          avx[k] /= box[k];
+          com[k] -= domain->boxlo[k];
+          com[k] /= box[k];
         }
-        fprintf(pos, "\t%.8f \t%.8f \t%.8f \t%.8f", avq, avx[0], avx[1], avx[2]);
+        fprintf(pos, "\t%.8f \t%.8f \t%.8f \t%.8f", totq, com[0], com[1], com[2]);
       }
       fprintf(pos, "\n");
     }
@@ -922,21 +942,30 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
 
 void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
 {
-  int ndeletions;
+  int i, ndeletions;
   int headroom = -1;
   if (delete_Nsteps > 0) {
-    if (delete_Tcount[delete_Nsteps - 1] == -1) return;
+    if (delete_Tcount[delete_Nsteps - 1] == -1) {
+      for (i = delete_Nsteps - 1; i > 0; i--) delete_Tcount[i] = delete_Tcount[i - 1];
+      return;
+    }
     ndeletions = delete_Tcount[0] - delete_Tcount[delete_Nsteps - 1];
     if (delete_Nlimit_varid > -1)
       delete_Nlimit = input->variable->compute_equal(delete_Nlimit_varid);
     headroom = MAX(0, delete_Nlimit - ndeletions);
-    if (headroom == 0) return;
+    if (headroom == 0) {
+      for (i = delete_Nsteps - 1; i > 0; i--) delete_Tcount[i] = delete_Tcount[i - 1];
+      return;
+    }
   }
 
-  int i, j, m, n, itype, cid;
+  int j, m, n, itype, cid;
   int ndel, ndelone, count, count_tmp;
   int *Nameall;
   int *mask = atom->mask;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int *type = atom->type;
   double localmass, totalmass;
   std::string species_str;
 
@@ -985,11 +1014,12 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
       if (!(mask[i] & groupbit)) continue;
       cid = nint(clusterID[i]);
       if (cid == m) {
-        itype = ele2uele[atom->type[i] - 1];
+        itype = ele2uele[type[i] - 1];
         Name[itype]++;
         count++;
         marklist[nmarklist++] = i;
-        localmass += atom->mass[atom->type[i]];
+        if (rmass) localmass += rmass[i];
+        else localmass += mass[type[i]];
       }
     }
 
@@ -1062,7 +1092,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
       for (int m = 0; m < Nspec; m++) {
         if (deletecount[m] > 0) {
           if (printflag == 0) {
-            fmt::print(fdel, "Timestep {}", update->ntimestep);
+            utils::print(fdel, "Timestep {}", update->ntimestep);
             printflag = 1;
           }
           fprintf(fdel, " %g ", deletecount[m]);
@@ -1085,7 +1115,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
         if (deletecount[i]) writeflag = 1;
 
       if (writeflag) {
-        fmt::print(fdel, "{}", update->ntimestep);
+        utils::print(fdel, "{}", update->ntimestep);
         for (i = 0; i < ndelspec; i++) { fprintf(fdel, "\t%g", deletecount[i]); }
         fprintf(fdel, "\n");
         fflush(fdel);
@@ -1177,7 +1207,7 @@ double FixReaxFFSpecies::memory_usage()
 {
   double bytes;
 
-  bytes = 4 * nmax * sizeof(double);    // clusterID + x0
+  bytes = 3 * nmax * sizeof(double);    // x0
 
   return bytes;
 }

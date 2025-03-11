@@ -240,6 +240,7 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
       if (strcmp(elemname,descriptor->elements[jelem]) == 0)
         break;
 
+    //printf(">>> nelements: %d\n", descriptor->nelements);
     if (jelem < descriptor->nelements)
       map[i] = jelem;
     else if (strcmp(elemname,"NULL") == 0) map[i] = -1;

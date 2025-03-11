@@ -30,9 +30,9 @@ additional tools to be available and functioning.
   * A Bourne shell compatible "Unix" shell program (frequently this is ``bash``)
   * A few shell utilities: ``ls``, ``mv``, ``ln``, ``rm``, ``grep``, ``sed``, ``tr``, ``cat``, ``touch``, ``diff``, ``dirname``
   * Python (optional, required for ``make lib-<pkg>`` in the ``src``
-    folder).  Python scripts are currently tested with python 2.7 and
-    3.6 to 3.11. The procedure for :doc:`building the documentation
-    <Build_manual>` *requires* Python 3.5 or later.
+    folder).  Python scripts are currently tested with 3.6 to 3.11.
+    The procedure for :doc:`building the documentation <Build_manual>`
+    *requires* Python 3.8 or later.
 
 Getting started
 ^^^^^^^^^^^^^^^

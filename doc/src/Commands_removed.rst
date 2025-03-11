@@ -87,7 +87,7 @@ Minimize style fire/old
 .. deprecated:: 8Feb2023
 
 Minimize style *fire/old* has been removed. Its functionality can be
-reproduced with *fire* with specific options. Please see the
+reproduced with style *fire* with specific options. Please see the
 :doc:`min_modify command <min_modify>` documentation for details.
 
 Pair style mesont/tpm, compute style mesont, atom style mesont

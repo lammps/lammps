@@ -1,0 +1,109 @@
+############################### SIMULATION SETTINGS ###################################################
+
+atom_style      sphere 1
+atom_modify     map array 
+comm_modify vel yes
+units           si
+newton          off
+neighbor        2 bin
+neigh_modify    delay 0
+timestep        1e-6
+
+##################### SIMULATION BOUNDING BOX, INSERT PARTICLES, AND INTEGRATION #######################
+
+boundary f f f
+read_data spheres12.data
+fix integr all nve/sphere
+
+# create pair group for contact area outputs
+group particles_1_12 id 1 12
+
+########################### PARTICLE MATERIAL PROPERTIES AND FORCE MODEL ###############################
+
+variable atomRadius equal 0.5
+
+pair_style granular
+
+# mdr = E, nu, Y, gamma, psi_b, CoR 
+variable YoungsModulus  equal 1e9
+variable PoissonsRatio  equal 0.3
+variable YieldStress    equal 50e6
+variable SurfaceEnergy  equal 0.0
+variable psi_b          equal 0.5
+variable CoR            equal 0.5
+
+# linear_history = k_t, x_gamma,t, mu_s
+variable kt       equal 2/7*${YoungsModulus}*${atomRadius}
+variable xgammat  equal 0.0
+variable mu_s     equal 0.5
+
+pair_coeff * * mdr ${YoungsModulus} ${PoissonsRatio} ${YieldStress} ${SurfaceEnergy} ${psi_b} ${CoR} tangential linear_history ${kt} ${xgammat} ${mu_s} damping none
+
+######################################### ADD IN PLANES ################################################
+
+variable boxWidth equal 3
+variable halfBoxWidth equal ${boxWidth}/2
+
+variable plane_disp equal 0.0
+variable plane_disp_neg equal 0.0
+
+region plane_yz_pos plane ${halfBoxWidth} 0 0 -1 0 0 side in move v_plane_disp_neg NULL NULL units box
+region plane_yz_neg plane -${halfBoxWidth} 0 0 1 0 0 side in move v_plane_disp NULL NULL units box
+region plane_xz_pos plane 0 ${halfBoxWidth} 0 0 -1 0 side in move NULL v_plane_disp_neg NULL units box
+region plane_xz_neg plane 0 -${halfBoxWidth} 0 0 1 0 side in move NULL v_plane_disp NULL units box
+region plane_xy_pos plane 0 0 ${halfBoxWidth} 0 0 -1  side in move NULL NULL v_plane_disp_neg units box
+region plane_xy_neg plane 0 0 -${halfBoxWidth} 0 0 1 side in move NULL NULL v_plane_disp units box
+
+variable wall_contact_string string "granular mdr ${YoungsModulus} ${PoissonsRatio} ${YieldStress} ${SurfaceEnergy} ${psi_b} ${CoR} tangential linear_history ${kt} ${xgammat} ${mu_s} damping none"
+
+fix plane_yz_pos all wall/gran/region ${wall_contact_string} region plane_yz_pos contacts
+fix plane_yz_neg all wall/gran/region ${wall_contact_string} region plane_yz_neg contacts
+fix plane_xz_pos all wall/gran/region ${wall_contact_string} region plane_xz_pos contacts
+fix plane_xz_neg all wall/gran/region ${wall_contact_string} region plane_xz_neg contacts
+fix plane_xy_pos all wall/gran/region ${wall_contact_string} region plane_xy_pos contacts
+fix plane_xy_neg all wall/gran/region ${wall_contact_string} region plane_xy_neg contacts
+
+compute plane_xy_neg_force all reduce sum f_plane_xy_neg[4]
+variable plane_xy_neg_force equal c_plane_xy_neg_force
+
+compute plane_xz_neg_force all reduce sum f_plane_xz_neg[3]
+variable plane_xz_neg_force equal c_plane_xz_neg_force
+
+compute plane_yz_neg_force all reduce sum f_plane_yz_neg[2]
+variable plane_yz_neg_force equal c_plane_yz_neg_force
+
+fix print1 all print 1 "${plane_disp} ${plane_xy_neg_force} ${plane_xz_neg_force} ${plane_yz_neg_force}" file force_disp_triaxial12.csv screen no
+
+######################################## SCREEN OUTPUT  #################################################### 
+
+compute       1 all erotate/sphere
+thermo_style  custom dt step atoms ke c_1 vol 
+thermo        100
+thermo_modify lost ignore norm no
+
+##################################### DEFINE WALL MOVEMENT  #################################################
+
+variable disp_max equal 0.499
+variable ddisp equal 0.00001
+variable compression_steps equal round(${disp_max}/${ddisp})
+variable output_rate equal round(${compression_steps}/100)
+
+##################################### SET UP DUMP OUTPUTS  ####################################################
+ 
+dump dumpParticles all custom ${output_rate} triaxial_compaction_12.dump id type mass x y z vx vy vz fx fy fz radius
+#dump   dmp all vtk ${output_rate} post/triaxial12particles_*.vtk id type mass x y z vx vy vz fx fy fz radius
+
+#################################### COMPRESS THE PARTICLES  ##################################################
+
+run 0
+
+# print out contact area evolution for particles 1 and 12
+compute Ac_1_12 particles_1_12 pair/local p13 cutoff radius
+compute Ac_1_12_sum particles_1_12 reduce sum c_Ac_1_12 inputs local
+variable Ac_1_12 equal c_Ac_1_12_sum
+fix logArea all print 100 "${plane_disp} ${Ac_1_12}" file pair_1_12_contact_area_triaxial12.csv screen no
+
+variable plane_disp equal ${ddisp}*elapsed
+variable plane_disp_neg equal -${ddisp}*elapsed
+
+run ${compression_steps}

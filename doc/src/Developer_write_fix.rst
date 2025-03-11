@@ -96,8 +96,8 @@ Here the we specify which methods of the fix should be called during
      MPI_Allreduce(localAvgVel, globalAvgVel, 4, MPI_DOUBLE, MPI_SUM, world);
      scale3(1.0 / globalAvgVel[3], globalAvgVel);
      if ((comm->me == 0) && screen) {
-       fmt::print(screen,"{}, {}, {}\n",
-                  globalAvgVel[0], globalAvgVel[1], globalAvgVel[2]);
+       utils::print(screen, "{}, {}, {}\n",
+                    globalAvgVel[0], globalAvgVel[1], globalAvgVel[2]);
      }
    }
 

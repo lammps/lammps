@@ -189,10 +189,8 @@ of the contribution.  As of January 2023, all previously included
 Fortran code for the LAMMPS executable has been replaced by equivalent
 C++ code.
 
-Python code must be compatible with Python 3.5 and later.  Large parts
-of LAMMPS (including the :ref:`PYTHON package <PKG-PYTHON>`) are also
-compatible with Python 2.7.  Compatibility with Python 2.7 is desirable,
-but compatibility with Python 3.5 is **required**.
+Python code currently must be compatible with Python 3.6.  If a later
+version or Python is required, it needs to be documented.
 
 Compatibility with older programming language standards is very
 important to maintain portability and availability of LAMMPS on many

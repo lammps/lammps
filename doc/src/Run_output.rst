@@ -117,14 +117,19 @@ number of histogram counts is equal to the number of processors.
 
 ----------
 
-The last section gives aggregate statistics (across all processors)
-for pairwise neighbors and special neighbors that LAMMPS keeps track
-of (see the :doc:`special_bonds <special_bonds>` command).  The number
-of times neighbor lists were rebuilt is tallied, as is the number of
-potentially *dangerous* rebuilds.  If atom movement triggered neighbor
-list rebuilding (see the :doc:`neigh_modify <neigh_modify>` command),
-then dangerous reneighborings are those that were triggered on the
-first timestep atom movement was checked for.  If this count is
+The last section gives aggregate statistics (across all processors) for
+pairwise neighbors and special neighbors that LAMMPS keeps track of (see
+the :doc:`special_bonds <special_bonds>` command).  This section will
+not always contain data, for example when there has not been a neighbor
+rebuild, or the neighbor list was constructed on the GPU or when a
+hybrid pair style was used and LAMMPS cannot determine a suitable (base)
+neighbor list to draw the statistics from.
+
+The number of times neighbor lists were rebuilt is tallied, as is the
+number of potentially *dangerous* rebuilds.  If atom movement triggered
+neighbor list rebuilding (see the :doc:`neigh_modify <neigh_modify>`
+command), then dangerous reneighborings are those that were triggered on
+the first timestep atom movement was checked for.  If this count is
 non-zero you may wish to reduce the delay factor to ensure no force
 interactions are missed by atoms moving beyond the neighbor skin
 distance before a rebuild takes place.

@@ -164,6 +164,9 @@ struct _liblammpsplugin {
   int (*set_internal_variable)(void *, const char *, double);
   int (*variable_info)(void *, int, char *, int);
   double (*eval)(void *, const char *);
+  void (*clearstep_compute)(void *);
+  void (*addstep_compute)(void *, void *);
+  void (*addstep_compute_all)(void *, void *);
 
   void (*gather_atoms)(void *, const char *, int, int, void *);
   void (*gather_atoms_concat)(void *, const char *, int, int, void *);

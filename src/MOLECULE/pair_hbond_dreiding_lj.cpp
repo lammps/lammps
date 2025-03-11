@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Tod A Pascal (Caltech)
+   Contributing authors: Tod A Pascal (Caltech), Don Xu/EiPi Fun
 ------------------------------------------------------------------------- */
 
 #include "pair_hbond_dreiding_lj.h"
@@ -55,6 +55,9 @@ PairHbondDreidingLJ::PairHbondDreidingLJ(LAMMPS *lmp) : Pair(lmp)
 
   nextra = 2;
   pvector = new double[2];
+
+  angle_offset_flag = 0;
+  angle_offset_global = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -82,7 +85,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
   tagint tagprev;
   double delx,dely,delz,rsq,rsq1,rsq2,r1,r2;
   double factor_hb,force_angle,force_kernel,evdwl,eng_lj,ehbond,force_switch;
-  double c,s,a,b,ac,a11,a12,a22,vx1,vx2,vy1,vy2,vz1,vz2,d;
+  double c,s,a,b,d,ac,a11,a12,a22,vx1,vx2,vy1,vy2,vz1,vz2;
   double fi[3],fj[3],delr1[3],delr2[3];
   double r2inv,r10inv;
   double switch1,switch2;
@@ -178,6 +181,13 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
           if (c < -1.0) c = -1.0;
           ac = acos(c);
 
+          if (angle_offset_flag){
+            ac = ac + pm.angle_offset;
+            c = cos(ac);
+            if (c > 1.0) c = 1.0;
+            if (c < -1.0) c = -1.0;
+          }
+
           if (ac > pm.cut_angle && ac < (2.0*MY_PI - pm.cut_angle)) {
             s = sqrt(1.0 - c*c);
             if (s < SMALL) s = SMALL;
@@ -186,14 +196,11 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
 
             r2inv = 1.0/rsq;
             r10inv = r2inv*r2inv*r2inv*r2inv*r2inv;
-            force_kernel = r10inv*(pm.lj1*r2inv - pm.lj2)*r2inv *
-              powint(c,pm.ap);
-            force_angle = pm.ap * r10inv*(pm.lj3*r2inv - pm.lj4) *
-              powint(c,pm.ap-1)*s;
+            force_kernel = r10inv*(pm.lj1*r2inv - pm.lj2)*r2inv * powint(c,pm.ap);
+            force_angle = pm.ap * r10inv*(pm.lj3*r2inv - pm.lj4) * powint(c,pm.ap-1)*s;
+            force_switch = 0.0;
 
             eng_lj = r10inv*(pm.lj3*r2inv - pm.lj4);
-
-            force_switch=0.0;
 
             if (rsq > pm.cut_innersq) {
               switch1 = (pm.cut_outersq-rsq) * (pm.cut_outersq-rsq) *
@@ -300,12 +307,19 @@ void PairHbondDreidingLJ::allocate()
 
 void PairHbondDreidingLJ::settings(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR,"Illegal pair_style command");
+
+  // narg = 4 for standard form, narg = 5 or 6 if angleoffset LJ or Morse variants respectively (from EXTRA-MOLECULE)
+  if (narg != 4 && narg != 5) error->all(FLERR,"Illegal pair_style command");
 
   ap_global = utils::inumeric(FLERR,arg[0],false,lmp);
   cut_inner_global = utils::numeric(FLERR,arg[1],false,lmp);
   cut_outer_global = utils::numeric(FLERR,arg[2],false,lmp);
   cut_angle_global = utils::numeric(FLERR,arg[3],false,lmp) * MY_PI/180.0;
+
+  // update when using angleoffset variant
+  if (angle_offset_flag) {
+    angle_offset_global = (180.0 - utils::numeric(FLERR, arg[4], false, lmp)) * MY_PI/180.0;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -314,8 +328,14 @@ void PairHbondDreidingLJ::settings(int narg, char **arg)
 
 void PairHbondDreidingLJ::coeff(int narg, char **arg)
 {
-  if (narg < 6 || narg > 10)
+  // account for angleoffset variant in EXTRA-MOLECULE
+  int maxarg = 10;
+  if (angle_offset_flag == 1) maxarg = 11;
+
+  // check settings
+  if (narg < 6 || narg > maxarg)
     error->all(FLERR,"Incorrect args for pair coefficients");
+
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi,klo,khi;
@@ -343,16 +363,15 @@ void PairHbondDreidingLJ::coeff(int narg, char **arg)
     error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
   double cut_angle_one = cut_angle_global;
   if (narg == 10) cut_angle_one = utils::numeric(FLERR, arg[9], false, lmp) * MY_PI/180.0;
+
   // grow params array if necessary
 
   if (nparams == maxparam) {
     maxparam += CHUNK;
-    params = (Param *) memory->srealloc(params, maxparam*sizeof(Param),
-                                        "pair:params");
+    params = (Param *) memory->srealloc(params, maxparam*sizeof(Param), "pair:params");
 
     // make certain all addional allocated storage is initialized
     // to avoid false positives when checking with valgrind
-
     memset(params + nparams, 0, CHUNK*sizeof(Param));
   }
 
@@ -539,6 +558,13 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
     ac = acos(c);
+
+    if (angle_offset_flag){
+      ac = ac + pm.angle_offset;
+      c = cos(ac);
+      if (c > 1.0) c = 1.0;
+      if (c < -1.0) c = -1.0;
+    }
 
     if (ac < pm.cut_angle || ac > (2.0*MY_PI - pm.cut_angle)) return 0.0;
     s = sqrt(1.0 - c*c);

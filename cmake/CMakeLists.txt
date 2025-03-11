@@ -98,21 +98,24 @@ check_for_autogen_files(${LAMMPS_SOURCE_DIR})
 #####################################################################
 include(CheckIncludeFileCXX)
 
-# set required compiler flags, apply checks, and compiler/CPU arch specific optimizations
+# set required compiler flags and compiler/CPU arch specific optimizations
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  # Intel classic compilers version 19 are broken and fail to compile the embedded fmtlib
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 20.0)
-    message(ERROR "Intel classic compiler version ${CMAKE_CXX_COMPILER_VERSION} is too old")
-  endif()
-
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Qrestrict")
     endif()
-    set(CMAKE_TUNE_DEFAULT "/QxHost")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
+      set(CMAKE_TUNE_DEFAULT "/QxCOMMON-AVX512")
+    else()
+      set(CMAKE_TUNE_DEFAULT "/QxHost")
+    endif()
   else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
-    set(CMAKE_TUNE_DEFAULT "-xHost -fp-model fast=2 -no-prec-div -qoverride-limits -diag-disable=10441 -diag-disable=11074 -diag-disable=11076 -diag-disable=2196")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
+      set(CMAKE_TUNE_DEFAULT "-xCOMMON-AVX512")
+    else()
+      set(CMAKE_TUNE_DEFAULT "-xHost -fp-model fast=2 -no-prec-div -qoverride-limits -diag-disable=10441 -diag-disable=11074 -diag-disable=11076 -diag-disable=2196")
+    endif()
   endif()
 endif()
 
@@ -206,7 +209,7 @@ endif()
 ########################################################################
 # User input options                                                   #
 ########################################################################
-# backward compatibility with CMake before 3.12 and older LAMMPS documentation
+# backward compatibility with older LAMMPS documentation
 if (PYTHON_EXECUTABLE)
   set(Python_EXECUTABLE "${PYTHON_EXECUTABLE}")
 endif()
@@ -220,6 +223,12 @@ if(DEFINED ENV{VIRTUAL_ENV} AND NOT Python_EXECUTABLE)
   endif()
   message(STATUS "Running in virtual environment: $ENV{VIRTUAL_ENV}\n"
     "   Setting Python interpreter to: ${Python_EXECUTABLE}")
+endif()
+
+find_package(Python COMPONENTS Interpreter QUIET)
+# NOTE: RHEL 8.0 and Ubuntu 18.04LTS ship with Python 3.6, Python 3.8 was EOL in 2024
+if(Python_VERSION VERSION_LESS 3.6)
+  message(FATAL_ERROR "LAMMPS requires Python 3.6 or later")
 endif()
 
 set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary (WON'T enable any features automatically")
@@ -927,7 +936,7 @@ endif()
 include(Testing)
 include(CodeCoverage)
 include(CodingStandard)
-find_package(ClangFormat 11.0)
+find_package(ClangFormat 11.0 QUIET)
 
 if(ClangFormat_FOUND)
   add_custom_target(format-src

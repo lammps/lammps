@@ -1843,7 +1843,7 @@ void Pair::write_file(int narg, char **arg)
       utils::logmesg(lmp,"Creating table file {} with DATE: {}\n",
                      table_file, utils::current_date());
       fp = fopen(table_file.c_str(),"w");
-      if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by pair_write\n",
+      if (fp) utils::print(fp,"# DATE: {} UNITS: {} Created by pair_write\n",
                          utils::current_date(), update->unit_style);
     }
     if (fp == nullptr)

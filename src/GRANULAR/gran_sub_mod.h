@@ -31,6 +31,7 @@ namespace Granular_NS {
     virtual void mix_coeffs(double *, double *);
     virtual void coeffs_to_local(){};
     virtual void init(){};    // called after all sub models + coeffs defined
+    void rotate_rescale_vec(double *hislocal, double *n);
 
     void allocate_coeffs();
     std::string name;
@@ -43,8 +44,11 @@ namespace Granular_NS {
     int beyond_contact;         // If the sub model contact extends beyond overlap
     int allow_cohesion;         // If the sub model works with a cohesive normal force
     int contact_radius_flag;    // If the sub model requires contact radius
+    int allow_synchronization;  // If the sub model works with synchronized verlet
 
     GranularModel *gm;
+
+    int nsvector, index_svector;
 
    protected:
     int allocated;

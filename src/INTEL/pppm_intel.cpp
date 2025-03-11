@@ -404,7 +404,7 @@ void PPPMIntel::particle_map(IntelBuffers<flt_t,acc_t> *buffers)
     }
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
+  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
 }
 
 

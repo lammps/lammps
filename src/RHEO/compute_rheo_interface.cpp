@@ -114,7 +114,7 @@ void ComputeRHEOInterface::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeRHEOInterface::compute_peratom()
 {
-  int a, i, j, ii, jj, jnum, itype, jtype, fluidi, fluidj, status_match;
+  int a, i, j, ii, jj, jnum, itype, fluidi, fluidj, status_match;
   double xtmp, ytmp, ztmp, rsq, w, dot, dx[3];
 
   int inum, *ilist, *jlist, *numneigh, **firstneigh;
@@ -166,7 +166,6 @@ void ComputeRHEOInterface::compute_peratom()
       rsq = lensq3(dx);
 
       if (rsq < cutsq) {
-        jtype = type[j];
         fluidj = !(status[j] & PHASECHECK);
         w = compute_kernel->calc_w_quintic(sqrt(rsq));
 

@@ -39,8 +39,6 @@ using MathConst::RAD2DEG;
 
 enum { DEGREE, RADIAN, COSINE };
 
-static constexpr double BIG = 1.0e20;
-
 /* ----------------------------------------------------------------------
    compute angular distribution functions for I, J, K atoms
  ---------------------------------------------------------------------- */

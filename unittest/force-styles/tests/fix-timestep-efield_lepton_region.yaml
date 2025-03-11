@@ -6,7 +6,7 @@ epsilon: 2e-13
 skip_tests:
 prerequisites: ! |
   atom full
-  fix efield
+  fix efield/lepton
 pre_commands: ! ""
 post_commands: ! |
   region half block 0 EDGE EDGE EDGE EDGE EDGE

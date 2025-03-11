@@ -3,9 +3,12 @@
 #include "library.h"
 
 #include "atom.h"
+#include "compute.h"
 #include "lammps.h"
 #include "lmptype.h"
+#include "modify.h"
 #include "platform.h"
+
 #include <string>
 #include <vector>
 
@@ -667,6 +670,77 @@ TEST_F(LibraryProperties, neighlist)
         EXPECT_NE(neighbors, nullptr);
     }
 };
+
+static constexpr char lj_setup[] = "lattice         fcc 0.8442\n"
+                                   "region          box block 0 10 0 10 0 10\n"
+                                   "create_box      1 box\n"
+                                   "create_atoms    1 box\n"
+                                   "mass            1 1.0\n"
+                                   "pair_style      lj/cut 2.5\n"
+                                   "pair_coeff      1 1 1.0 1.0\n"
+                                   "fix             1 all nve\n";
+
+TEST_F(LibraryProperties, step_compute)
+{
+    ::testing::internal::CaptureStdout();
+    lammps_commands_string(lmp, lj_setup);
+    lammps_command(lmp, "compute pr all pressure thermo_temp");
+    lammps_command(lmp, "fix av all ave/time 2 1 2 c_pr mode scalar");
+    lammps_command(lmp, "run 2 post no");
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    if (lammps_has_error(lmp)) {
+        char buf[2048];
+        lammps_get_last_error_message(lmp, buf, 2048);
+        FAIL() << buf << "\n";
+    }
+    auto lammps = (LAMMPS_NS::LAMMPS *)lmp;
+    auto icomp  = lammps->modify->get_compute_by_id("pr");
+    EXPECT_EQ(icomp->ntime, 2);
+    EXPECT_EQ(icomp->tlist[0], 4);
+    EXPECT_EQ(icomp->tlist[1], 2);
+    EXPECT_EQ(icomp->invoked_flag, 0);
+    EXPECT_EQ(icomp->invoked_scalar, 2);
+    EXPECT_EQ(icomp->invoked_vector, -1);
+    lammps_clearstep_compute(lmp);
+    EXPECT_EQ(icomp->invoked_flag, 0);
+    EXPECT_EQ(icomp->invoked_scalar, 2);
+    EXPECT_EQ(icomp->invoked_vector, -1);
+    bigint nextstep = 6;
+    lammps_addstep_compute(lmp, (void *)&nextstep);
+    EXPECT_EQ(icomp->ntime, 3);
+    EXPECT_EQ(icomp->tlist[0], 6);
+    EXPECT_EQ(icomp->tlist[1], 4);
+    EXPECT_EQ(icomp->tlist[2], 2);
+    EXPECT_EQ(icomp->invoked_flag, 0);
+    EXPECT_EQ(icomp->invoked_scalar, 2);
+    EXPECT_EQ(icomp->invoked_vector, -1);
+    lammps_command(lmp, "run 4 post no");
+    EXPECT_EQ(icomp->ntime, 2);
+    EXPECT_EQ(icomp->tlist[0], 8);
+    EXPECT_EQ(icomp->tlist[1], 6);
+    EXPECT_EQ(icomp->invoked_flag, 0);
+    EXPECT_EQ(icomp->invoked_scalar, 6);
+    EXPECT_EQ(icomp->invoked_vector, -1);
+    lammps_command(lmp, "run 2 post no");
+    EXPECT_EQ(icomp->ntime, 2);
+    EXPECT_EQ(icomp->tlist[0], 10);
+    EXPECT_EQ(icomp->tlist[1], 8);
+    EXPECT_EQ(icomp->invoked_flag, 0);
+    EXPECT_EQ(icomp->invoked_scalar, 8);
+    EXPECT_EQ(icomp->invoked_vector, -1);
+    nextstep = 9;
+    lammps_addstep_compute(lmp, (void *)&nextstep);
+    lammps_command(lmp, "run 1 post no");
+    EXPECT_EQ(icomp->ntime, 2);
+    EXPECT_EQ(icomp->tlist[0], 10);
+    EXPECT_EQ(icomp->tlist[1], 9);
+    EXPECT_EQ(icomp->invoked_flag, 0);
+    EXPECT_EQ(icomp->invoked_scalar, -1);
+    EXPECT_EQ(icomp->invoked_vector, -1);
+    icomp->compute_scalar();
+    EXPECT_EQ(icomp->invoked_scalar, 9);
+}
 
 TEST_F(LibraryProperties, has_error)
 {

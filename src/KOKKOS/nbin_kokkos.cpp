@@ -109,7 +109,7 @@ void NBinKokkos<DeviceType>::bin_atoms()
     if (h_resize()) {
 
       atoms_per_bin += 16;
-      k_bins = DAT::tdual_int_2d("bins", mbins, atoms_per_bin);
+      k_bins = DAT::tdual_int_2d("Neighbor::bins", mbins, atoms_per_bin);
       bins = k_bins.view<DeviceType>();
       c_bins = bins;
     }

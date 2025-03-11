@@ -56,13 +56,14 @@ using ::testing::StartsWith;
 
 using namespace LAMMPS_NS;
 
-void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
+void cleanup_lammps(LAMMPS *&lmp, const TestConfig &cfg)
 {
     platform::unlink(cfg.basename + ".restart");
     delete lmp;
+    lmp = nullptr;
 }
 
-LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_respa = false)
+LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_respa)
 {
     LAMMPS *lmp;
 
@@ -178,7 +179,12 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 {
     // initialize system geometry
     LAMMPS::argv args = {"FixIntegrate", "-log", "none", "-echo", "screen", "-nocite"};
-    LAMMPS *lmp       = init_lammps(args, config);
+    LAMMPS *lmp       = nullptr;
+    try {
+        lmp = init_lammps(args, config, false);
+    } catch (std::exception &e) {
+        FAIL() << e.what();
+    }
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
                      "in this LAMMPS configuration:\n";
@@ -272,7 +278,14 @@ TEST(FixTimestep, plain)
     LAMMPS::argv args = {"FixTimestep", "-log", "none", "-echo", "screen", "-nocite"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp        = init_lammps(args, test_config);
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -430,14 +443,20 @@ TEST(FixTimestep, plain)
     // fix nve/limit cannot work with r-RESPA
     ifix = lmp->modify->get_fix_by_id("test");
     if (ifix && !utils::strmatch(ifix->style, "^rigid") &&
-        !utils::strmatch(ifix->style, "^nve/limit") &&
-        !utils::strmatch(ifix->style, "^recenter")) {
+        !utils::strmatch(ifix->style, "^nve/limit") && !utils::strmatch(ifix->style, "^recenter")) {
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         ::testing::internal::CaptureStdout();
-        lmp    = init_lammps(args, test_config, true);
+        LAMMPS *lmp = nullptr;
+        try {
+            lmp = init_lammps(args, test_config, true);
+        } catch (std::exception &e) {
+            output = ::testing::internal::GetCapturedStdout();
+            if (verbose) std::cout << output;
+            FAIL() << e.what();
+        }
         output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
 
@@ -572,15 +591,26 @@ TEST(FixTimestep, omp)
                          "-pk",         "omp",  "4",    "-sf",   "omp"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp        = init_lammps(args, test_config);
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
     if (!lmp) {
-        std::cerr << "One or more prerequisite styles are not available "
+        std::cerr << "One or more prerequisite styles with /omp suffix are not available "
                      "in this LAMMPS configuration:\n";
         for (auto &prerequisite : test_config.prerequisites) {
-            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+            if (prerequisite.first == "atom") {
+                std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+            } else {
+                std::cerr << prerequisite.first << "_style " << prerequisite.second << "/omp\n";
+            }
         }
         GTEST_SKIP();
     }
@@ -731,7 +761,13 @@ TEST(FixTimestep, omp)
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         ::testing::internal::CaptureStdout();
-        lmp    = init_lammps(args, test_config, true);
+        try {
+            lmp = init_lammps(args, test_config, true);
+        } catch (std::exception &e) {
+            output = ::testing::internal::GetCapturedStdout();
+            if (verbose) std::cout << output;
+            FAIL() << e.what();
+        }
         output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
 
@@ -861,13 +897,21 @@ TEST(FixTimestep, kokkos_omp)
     // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
     if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
         Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
-        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) GTEST_SKIP();
-
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
+        GTEST_SKIP() << "Cannot test KOKKOS/OpenMP with GPU support enabled";
+    }
     LAMMPS::argv args = {"FixTimestep", "-log", "none", "-echo", "screen", "-nocite",
                          "-k",          "on",   "t",    "4",     "-sf",    "kk"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp        = init_lammps(args, test_config);
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -875,7 +919,7 @@ TEST(FixTimestep, kokkos_omp)
         std::cerr << "One or more prerequisite styles with /kk suffix\n"
                      "are not available in this LAMMPS configuration:\n";
         for (auto &prerequisite : test_config.prerequisites) {
-            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+            std::cerr << prerequisite.first << "_style " << prerequisite.second << "/kk\n";
         }
         GTEST_SKIP();
     }

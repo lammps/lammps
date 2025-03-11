@@ -29,17 +29,18 @@ static const double MY_PI  = 3.14159265358979323846; // pi
 static const double MY_PI2  = 1.57079632679489661923; // pi/2
 
 template<class DeviceType, typename real_type, int vector_length>
+template<class CopyClass>
 inline
-SNAKokkos<DeviceType, real_type, vector_length>::SNAKokkos(const PairSNAPKokkos<DeviceType, real_type, vector_length>& psk)
-  : rfac0(psk.rfac0), rmin0(psk.rmin0), switch_flag(psk.switchflag),
-    bzero_flag(psk.bzeroflag), chem_flag(psk.chemflag), bnorm_flag(psk.bnormflag),
-    wselfall_flag(psk.wselfallflag), switch_inner_flag(psk.switchinnerflag),
-    quadratic_flag(psk.quadraticflag), twojmax(psk.twojmax), d_coeffelem(psk.d_coeffelem)
+SNAKokkos<DeviceType, real_type, vector_length>::SNAKokkos(const CopyClass& copy)
+  : twojmax(copy.twojmax), d_coeffelem(copy.d_coeffelem), rmin0(copy.rmin0),
+    rfac0(copy.rfac0), switch_flag(copy.switchflag), switch_inner_flag(copy.switchinnerflag),
+    chem_flag(copy.chemflag), bnorm_flag(copy.bnormflag), wselfall_flag(copy.wselfallflag),
+    quadratic_flag(copy.quadraticflag), bzero_flag(copy.bzeroflag)
 {
   wself = static_cast<real_type>(1.0);
 
   if (chem_flag)
-    nelements = psk.nelements;
+    nelements = copy.nelements;
   else
     nelements = 1;
 
@@ -611,7 +612,6 @@ void SNAKokkos<DeviceType, real_type, vector_length>::evaluate_ui_jbend(const Wi
     }
 
     ulist_wrapper.set(ma, ulist_accum);
-
     mb++;
   }
 
@@ -830,7 +830,6 @@ typename SNAKokkos<DeviceType, real_type, vector_length>::complex SNAKokkos<Devi
   int jju1 = idxu_block[j1] + (j1+1)*mb1min;
   int jju2 = idxu_block[j2] + (j2+1)*mb2max;
   int icgb = mb1min*(j2+1) + mb2max;
-
   #ifdef LMP_KK_DEVICE_COMPILE
   #pragma unroll
   #endif
@@ -897,14 +896,12 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi(const int& iato
 
   if constexpr (chemsnap) {
     int itriple = 0;
-    int idouble = 0;
     for (int elem1 = 0; elem1 < nelements; elem1++) {
       for (int elem2 = 0; elem2 < nelements; elem2++) {
         for (int elem3 = 0; elem3 < nelements; elem3++) {
           blist(iatom, itriple, jjb) = evaluate_bi(j, jjz, jju, iatom, elem1, elem2, elem3);
           itriple++;
         } // end loop over elem3
-        idouble++;
       } // end loop over elem2
     } // end loop over elem1
   } else {

@@ -273,11 +273,13 @@ double FixRHEOPressure::calc_rho(double p, int i)
     error->one(FLERR,
                "Rho calculation from pressure not yet supported for cubic pressure equation");
   } else if (pressure_style[type] == TAITWATER) {
-    rho = pow(7.0 * p + csq[type] * rho0[type], SEVENTH);
+    double tmp = 7.0 * p + csq[type] * rho0[type];
+    rho = pow(MAX(0.0, tmp), SEVENTH);
     rho *= pow(rho0[type], 6.0 * SEVENTH);
     rho *= pow(csq[type], -SEVENTH);
   } else if (pressure_style[type] == TAITGENERAL) {
-    rho = pow(tpower[type] * p + csq[type] * rho0[type], 1.0 / tpower[type]);
+    double tmp = tpower[type] * p + csq[type] * rho0[type];
+    rho = pow(MAX(0.0, tmp), 1.0 / tpower[type]);
     rho *= pow(rho0[type], 1.0 - 1.0 / tpower[type]);
     rho *= pow(csq[type], -1.0 / tpower[type]);
   } else if (pressure_style[type] == IDEAL) {

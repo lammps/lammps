@@ -207,7 +207,9 @@ accelerated styles exist.
 * :doc:`gw/zbl <pair_gw>` - Gao-Weber potential with a repulsive ZBL core
 * :doc:`harmonic/cut <pair_harmonic_cut>` - repulsive-only harmonic potential
 * :doc:`hbond/dreiding/lj <pair_hbond_dreiding>` - DREIDING hydrogen bonding LJ potential
+* :doc:`hbond/dreiding/lj/angleoffset <pair_hbond_dreiding>` - DREIDING hydrogen bonding LJ potential with offset for hbond angle
 * :doc:`hbond/dreiding/morse <pair_hbond_dreiding>` - DREIDING hydrogen bonding Morse potential
+* :doc:`hbond/dreiding/morse/angleoffset <pair_hbond_dreiding>` - DREIDING hydrogen bonding Morse potential with offset for hbond angle
 * :doc:`hdnnp <pair_hdnnp>` - High-dimensional neural network potential
 * :doc:`hippo <pair_amoeba>` -
 * :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>` - registry-dependent interlayer potential (ILP)

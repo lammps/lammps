@@ -238,6 +238,12 @@ Convenience functions
 .. doxygenfunction:: logmesg(LAMMPS *lmp, const std::string &mesg)
    :project: progguide
 
+.. doxygenfunction:: print(FILE *fp, const std::string &format, Args&&... args)
+   :project: progguide
+
+.. doxygenfunction:: print(FILE *fp, const std::string &mesg)
+   :project: progguide
+
 .. doxygenfunction:: errorurl
    :project: progguide
 

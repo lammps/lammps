@@ -87,7 +87,7 @@ values in the vector.  The *sumsq* option sums the square of the
 values in the vector into a global total.  The *avesq* setting does
 the same as *sumsq*, then divides the sum of squares by the number of
 values.  The last two options can be useful for calculating the
-variance of some quantity (e.g., variance = sumsq :math:`-` ave\
+variance of some quantity (e.g., variance = *avesq* :math:`-` *ave*\
 :math:`^2`).  The *sumabs* option sums the absolute values in the
 vector into a global total.  The *aveabs* setting does the same as
 *sumabs*, then divides the sum of absolute values by the number of

@@ -35,6 +35,8 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 
 using namespace LAMMPS_NS::RANN;
 
+static constexpr double SMALL = 1.0e-12;
+
 Fingerprint_bondscreenedspin::Fingerprint_bondscreenedspin(PairRANN *_pair) : Fingerprint(_pair)
 {
   n_body_type = 3;
@@ -320,7 +322,8 @@ void Fingerprint_bondscreenedspin::do3bodyfeatureset_singleneighborloop(double *
   i = ilist[ii];
   itype = pair->map[type[i]];
   int f = pair->net[itype].dimensions[0];
-  double expr[jnum][kmax+12];
+  std::vector<double> row(kmax+12, 0.0);
+  std::vector<std::vector<double>> expr(jnum, row);
   int p = kmax;
   int countmb=((mlength)*(mlength+1))>>1;
   double *si = sim->s[i];
@@ -360,13 +363,13 @@ void Fingerprint_bondscreenedspin::do3bodyfeatureset_singleneighborloop(double *
     expr[jj][p+1]=dely*rinvs;
     expr[jj][p+2]=delz*rinvs;
     //Hack to avoid nan when x y or z component of radial vector is exactly 0. Shouldn't affect accuracy.
-    if (expr[jj][p]*expr[jj][p]<0.000000000001) {
+    if (expr[jj][p]*expr[jj][p] < SMALL) {
       expr[jj][p] = 0.000001;
     }
-    if (expr[jj][p+1]*expr[jj][p+1]<0.000000000001) {
+    if (expr[jj][p+1]*expr[jj][p+1] < SMALL) {
       expr[jj][p+1] = 0.000001;
     }
-    if (expr[jj][p+2]*expr[jj][p+2]<0.000000000001) {
+    if (expr[jj][p+2]*expr[jj][p+2] < SMALL) {
       expr[jj][p+2] = 0.000001;
     }
     expr[jj][p+3] = -dfc*expr[jj][p]-dSikx[jj];
@@ -383,8 +386,8 @@ void Fingerprint_bondscreenedspin::do3bodyfeatureset_singleneighborloop(double *
   int kb = kmax;
   int mb = mlength;
   count = startingneuron;
-  double Bb[mb];
-  double Bbs[mb];
+  std::vector<double> Bb(mb, 0.0);
+  std::vector<double> Bbs(mb, 0.0);
   double dBbx;
   double dBby;
   double dBbz;
@@ -421,7 +424,7 @@ void Fingerprint_bondscreenedspin::do3bodyfeatureset_singleneighborloop(double *
         double *sj = sim->s[j];
         double sp = si[0]*sj[0]+si[1]*sj[1]+si[2]*sj[2];
         double yprod = expr[jj][ai];
-        double *y4 = &expr[jj][p];
+        double *y4 = expr[jj].data() + p;
         for (a2=0;a2<a;a2++) {
           yprod *= y4[M[a2+1]];
         }
@@ -432,12 +435,8 @@ void Fingerprint_bondscreenedspin::do3bodyfeatureset_singleneighborloop(double *
         }
       }
       if (atomtypes[1]!=atomtypes[2]) {//Bb!=Bg
-        double Bg[mb];
-        double Bgs[mb];
-        for (a1=0;a1<mb;a1++) {
-          Bg[a1]=0;
-          Bgs[a1]=0;
-        }
+        std::vector<double> Bg(mb, 0.0);
+        std::vector<double> Bgs(mb, 0.0);
         ai = n;
         double y1 = alpha_k[ai]/re;
         //loop over ktype to get Bg
@@ -452,7 +451,7 @@ void Fingerprint_bondscreenedspin::do3bodyfeatureset_singleneighborloop(double *
           double *sj = sim->s[j];
           double sp = si[0]*sj[0]+si[1]*sj[1]+si[2]*sj[2];
           double yprod = expr[jj][ai];
-          double *y4 = &expr[jj][p];
+          double *y4 = expr[jj].data() + p;
           for (a2=0;a2<a;a2++) {
             yprod *= y4[M[a2+1]];
           }
@@ -474,8 +473,8 @@ void Fingerprint_bondscreenedspin::do3bodyfeatureset_singleneighborloop(double *
           j = jl[jj];
           double *sj = sim->s[j];
           double sp = si[0]*sj[0]+si[1]*sj[1]+si[2]*sj[2];
-          double *y3 = &expr[jj][p+3];
-          double *y4 = &expr[jj][p];
+          double *y3 = expr[jj].data() + p + 3;
+          double *y4 = expr[jj].data() + p;
           ai = n;
           yprod = expr[jj][ai];
           for (a2=0;a2<a;a2++) {
@@ -517,8 +516,8 @@ void Fingerprint_bondscreenedspin::do3bodyfeatureset_singleneighborloop(double *
           j = jl[jj];
           double *sj = sim->s[j];
           double sp = si[0]*sj[0]+si[1]*sj[1]+si[2]*sj[2];
-          double *y3 = &expr[jj][p+3];
-          double *y4 = &expr[jj][p];
+          double *y3 = expr[jj].data() + p + 3;
+          double *y4 = expr[jj].data() + p;
           ai = n;
           yprod = expr[jj][ai];
           for (a2=0;a2<a;a2++) {
@@ -568,8 +567,8 @@ void Fingerprint_bondscreenedspin::do3bodyfeatureset_singleneighborloop(double *
           j = jl[jj];
           double *sj = sim->s[j];
           double sp = si[0]*sj[0]+si[1]*sj[1]+si[2]*sj[2];
-          double *y3 = &expr[jj][p+3];
-          double *y4 = &expr[jj][p];
+          double *y3 = expr[jj].data() + p + 3;
+          double *y4 = expr[jj].data() + p;
           ai = n;
           yprod = expr[jj][ai];
           for (a2=0;a2<a;a2++) {
@@ -641,18 +640,21 @@ void Fingerprint_bondscreenedspin::do3bodyfeatureset_doubleneighborloop(double *
   i = ilist[ii];
   itype = pair->map[type[i]];
   int f = pair->net[itype].dimensions[0];
-  double expr[jnum][kmax];
-  double y[jnum][3];
-  double ri[jnum];
-  double dfc[jnum];
+  std::vector<double> row(kmax, 0.0);
+  std::vector<std::vector<double>> expr(jnum, row);
+  std::vector<double> yrow(3, 0.0);
+  std::vector<std::vector<double>> y(jnum, yrow);
+  std::vector<double> ri(jnum, 0.0);
+  std::vector<double> dfc(jnum, 0.0);
   int kb = kmax;
   int mb = mlength;
-  double Bijk[kb][mb];
-  double c41[kmax];
-  double c51[kmax];
-  double c61[kmax];
-  double ct[kmax];
   double *si = sim->s[i];
+  std::vector<double> brow(mb, 0.0);
+  std::vector<std::vector<double>> Bijk(kb, brow);
+  std::vector<double> c41(kmax, 0.0);
+  std::vector<double> c51(kmax, 0.0);
+  std::vector<double> c61(kmax, 0.0);
+  std::vector<double> ct(kmax, 0.0);
   for (jj = 0; jj < jnum; jj++) {
     if (Bij[jj]==false) {continue;}
       jtype = tn[jj];

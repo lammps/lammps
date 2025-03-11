@@ -158,10 +158,35 @@ drops to zero.
 Optional keywords *safezone*, *mincap*, and *minhbonds* are used
 for allocating reaxff arrays.  Increasing these values can avoid memory
 problems, such as segmentation faults and bondchk failed errors, that
-could occur under certain conditions. These keywords are not used by
+could occur under certain conditions. These keywords are **not** used by
 the Kokkos version, which instead uses a more robust memory allocation
 scheme that checks if the sizes of the arrays have been exceeded and
 automatically allocates more memory.
+
+.. admonition:: Memory management problems with ReaxFF
+   :class: tip
+
+   The LAMMPS implementation of ReaxFF is adapted from a standalone MD
+   program written in C called `PuReMD
+   <https://github.com/msu-sparta/PuReMD>`_.  It inherits from this code
+   a heuristic memory management that is different from what the rest of
+   LAMMPS uses.  It assumes that a system is dense and already well
+   equilibrated, so that there are no large changes in how many and what
+   types of neighbors atoms have.  However, not all systems are like
+   that, and thus there can be errors or segmentation faults if the
+   system changes too much.  If you run into problems, here are three
+   options to avoid them:
+
+   - Use the KOKKOS version of ReaxFF (KOKKOS is not only for GPUs,
+     but can also be compiled for serial or OpenMP execution) which
+     uses a different memory management approach.
+   - Break down a run command during which memory related errors happen
+     into multiple smaller segments so that the memory management
+     heuristics are re-initialized for each segment before they become
+     invalid.
+   - Increase the values for *safezone*, *mincap*, and *minhbonds* as
+     needed.  This can lead to significant increase of memory consumption
+     through.
 
 The keyword *tabulate* controls the size of interpolation table for
 Lennard-Jones and Coulomb interactions. Tabulation may also be set in the

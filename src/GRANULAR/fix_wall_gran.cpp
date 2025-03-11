@@ -200,7 +200,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       iarg += 3;
     } else if (strcmp(arg[iarg],"contacts") == 0) {
       peratom_flag = 1;
-      size_peratom_cols = 8;
+      size_peratom_cols = 8 + model->nsvector;
       peratom_freq = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"temperature") == 0) {
@@ -365,7 +365,7 @@ void FixWallGran::setup(int vflag)
 
 void FixWallGran::post_force(int /*vflag*/)
 {
-  int i,j;
+  int i,j,n;
   double dx,dy,dz,del1,del2,delxy,delr,rwall,meff;
   double *forces, *torquesi;
   double vwall[3];
@@ -437,7 +437,9 @@ void FixWallGran::post_force(int /*vflag*/)
 
   rwall = 0.0;
 
+  model->calculate_svector = 0;
   if (peratom_flag) {
+    model->calculate_svector = 1;
     clear_stored_contacts();
   }
 
@@ -546,6 +548,9 @@ void FixWallGran::post_force(int /*vflag*/)
       array_atom[i][5] = x[i][1] - dy;
       array_atom[i][6] = x[i][2] - dz;
       array_atom[i][7] = radius[i];
+
+      for (n = 0; n < model->nsvector; n++)
+        array_atom[i][8 + n] = model->svector[n];
     }
   }
 }

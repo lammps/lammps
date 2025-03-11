@@ -433,7 +433,6 @@ void ComputeRHEOPropertyAtom::pack_cv(int n)
 
 void ComputeRHEOPropertyAtom::pack_pressure(int n)
 {
-  int *type = atom->type;
   int *mask = atom->mask;
   double *rho = atom->rho;
   int nlocal = atom->nlocal;
@@ -477,7 +476,6 @@ void ComputeRHEOPropertyAtom::pack_total_stress(int n)
   double **gradv = compute_grad->gradv;
   double *viscosity = atom->viscosity;
   double *rho = atom->rho;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int index = col_index[n];

@@ -115,7 +115,9 @@ OPT.
    * :doc:`gw/zbl <pair_gw>`
    * :doc:`harmonic/cut (o) <pair_harmonic_cut>`
    * :doc:`hbond/dreiding/lj (o) <pair_hbond_dreiding>`
+   * :doc:`hbond/dreiding/lj/angleoffset (o) <pair_hbond_dreiding>`
    * :doc:`hbond/dreiding/morse (o) <pair_hbond_dreiding>`
+   * :doc:`hbond/dreiding/morse/angleoffset (o) <pair_hbond_dreiding>`
    * :doc:`hdnnp <pair_hdnnp>`
    * :doc:`hippo (g) <pair_amoeba>`
    * :doc:`ilp/graphene/hbn (t) <pair_ilp_graphene_hbn>`

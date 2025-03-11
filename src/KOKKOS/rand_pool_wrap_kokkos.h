@@ -56,10 +56,10 @@ class RandPoolWrap : protected Pointers {
 
     RandWrap rand_wrap;
 
+#ifndef LMP_KOKKOS_GPU
     typedef Kokkos::Experimental::UniqueToken<
       LMPHostType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
 
-#ifndef LMP_KOKKOS_GPU
     unique_token_type unique_token;
     int tid = (int) unique_token.acquire();
     rand_wrap.rng = random_thr[tid];

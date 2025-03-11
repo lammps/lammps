@@ -191,7 +191,7 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
   } catch(LAMMPSException &e) {
     lammps_last_global_errormessage = e.what();
 
-    fmt::print(stderr, "LAMMPS Exception: {}", e.what());
+    utils::print(stderr, "LAMMPS Exception: {}", e.what());
     if (ptr) *ptr = nullptr;
   }
   return (void *) lmp;
@@ -3263,11 +3263,13 @@ int lammps_variable_info(void *handle, int idx, char *buffer, int buf_size) {
   return 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 /** Evaluate an immediate variable expression
  *
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 4Feb2025
 
 This function takes a string with an expression that can be used
 for :doc:`equal style variables <variable>`, evaluates it and returns
@@ -3294,6 +3296,86 @@ double lammps_eval(void *handle, const char *expr)
   END_CAPTURE
 
   return result;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Clear whether a compute has been invoked.
+ *
+\verbatim embed:rst
+
+.. versionadded:: 4Feb2025
+
+   This function clears the invoked flag of all computes.
+   Called everywhere that computes are used, before computes are invoked.
+   The invoked flag is used to avoid re-invoking same compute multiple times
+   and to flag computes that store invocation times as having been invoked
+
+*See also*
+    :cpp:func:`lammps_addstep_compute_all`
+    :cpp:func:`lammps_addstep_compute`
+
+\endverbatim
+
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ */
+void lammps_clearstep_compute(void *handle) {
+  auto lmp = (LAMMPS *) handle;
+  lmp->modify->clearstep_compute();
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Add next timestep to all computes
+ *
+\verbatim embed:rst
+
+.. versionadded:: 4Feb2025
+
+   loop over all computes
+   schedule next invocation for those that store invocation times
+   called when not sure what computes will be needed on newstep
+   do not loop only over n_timeflag, since may not be set yet
+
+*See also*
+    :cpp:func:`lammps_clearstep_compute`
+    :cpp:func:`lammps_addstep_compute`
+
+\endverbatim
+
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param newstep  pointer to bigint of next timestep the compute will be invoked
+ */
+void lammps_addstep_compute_all(void *handle, void *newstep) {
+  auto lmp = (LAMMPS *) handle;
+  auto ns = (bigint *) newstep;
+  if (lmp && lmp->modify && ns) lmp->modify->addstep_compute_all(*ns);
+}
+/* ---------------------------------------------------------------------- */
+
+/** Add next timestep to compute if it has been invoked in the current timestep
+ *
+\verbatim embed:rst
+
+.. versionadded:: 4Feb2025
+
+   loop over computes that store invocation times
+   if its invoked flag set on this timestep, schedule next invocation
+   called everywhere that computes are used, after computes are invoked
+
+*See also*
+    :cpp:func:`lammps_addstep_compute_all`
+    :cpp:func:`lammps_clearstep_compute`
+
+\endverbatim
+
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param newstep  next timestep the compute will be invoked
+ */
+void lammps_addstep_compute(void *handle, void *newstep) {
+  auto lmp = (LAMMPS *) handle;
+  auto ns = (bigint *) newstep;
+  if (lmp && lmp->modify && ns) lmp->modify->addstep_compute(*ns);
 }
 
 // ----------------------------------------------------------------------

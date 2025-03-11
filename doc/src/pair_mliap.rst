@@ -145,6 +145,7 @@ per line.
 The detail of *nn* module implementation can be found at :ref:`(Yanxon) <Yanxon2020>`.
 
 .. admonition:: Notes on mliappy models
+   :class: note
 
    When the *model* keyword is *mliappy*, if the filename ends in '.pt',
    or '.pth', it will be loaded using pytorch; otherwise, it will be

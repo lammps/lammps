@@ -196,13 +196,18 @@ LAMMPS.
 
    .. tab:: CMake build
 
-      By default CMake will use the compiler it finds according to
+      By default CMake will use the compiler it finds according to its
       internal preferences, and it will add optimization flags
       appropriate to that compiler and any :doc:`accelerator packages
       <Speed_packages>` you have included in the build.  CMake will
       check if the detected or selected compiler is compatible with the
       C++ support requirements of LAMMPS and stop with an error, if this
-      is not the case.
+      is not the case.  A C++11 compatible compiler is currently
+      required, but a transition to require C++17 is in progress and
+      planned to be completed in Summer 2025. Currently, setting
+      ``-DLAMMPS_CXX11=yes`` is required when configuring with CMake while
+      using a C++11 compatible compiler that does not support C++17,
+      otherwise setting ``-DCMAKE_CXX_STANDARD=17`` is preferred.
 
       You can tell CMake to look for a specific compiler with setting
       CMake variables (listed below) during configuration.  For a few
@@ -223,6 +228,8 @@ LAMMPS.
          -D CMAKE_C_COMPILER=name              # name of C compiler
          -D CMAKE_Fortran_COMPILER=name        # name of Fortran compiler
 
+         -D CMAKE_CXX_STANDARD=17              # put compiler in C++17 mode
+         -D LAMMPS_CXX11=yes                   # enforce compilation in C++11 mode
          -D CMAKE_CXX_FLAGS=string             # flags to use with C++ compiler
          -D CMAKE_C_FLAGS=string               # flags to use with C compiler
          -D CMAKE_Fortran_FLAGS=string         # flags to use with Fortran compiler
@@ -321,15 +328,23 @@ LAMMPS.
          you would have to install a newer compiler that supports C++11;
          either as a binary package or through compiling from source.
 
-         If you build LAMMPS with any :doc:`Speed_packages` included,
-         there may be specific compiler or linker flags that are either
-         required or recommended to enable required features and to
-         achieve optimal performance.  You need to include these in the
-         ``CCFLAGS`` and ``LINKFLAGS`` settings above.  For details, see the
-         documentation for the individual packages listed on the
-         :doc:`Speed_packages` page.  Or examine these files in the
-         ``src/MAKE/OPTIONS`` directory.  They correspond to each of the 5
-         accelerator packages and their hardware variants:
+      While a C++11 compatible compiler is currently sufficient to compile
+      LAMMPS, a transition to require C++17 is in progress and planned to
+      be completed in Summer 2025. Currently, setting ``-DLAMMPS_CXX11``
+      in the ``LMP_INC =`` line in the machine makefile is required when
+      using a C++11 compatible compiler that does not support C++17.
+      Otherwise, to enable C++17 support (if not enabled by default) using
+      a compiler flag like ``-std=c++17`` in CCFLAGS may needed.
+
+      If you build LAMMPS with any :doc:`Speed_packages` included,
+      there may be specific compiler or linker flags that are either
+      required or recommended to enable required features and to
+      achieve optimal performance.  You need to include these in the
+      ``CCFLAGS`` and ``LINKFLAGS`` settings above.  For details, see the
+      documentation for the individual packages listed on the
+      :doc:`Speed_packages` page.  Or examine these files in the
+      ``src/MAKE/OPTIONS`` directory.  They correspond to each of the 5
+      accelerator packages and their hardware variants:
 
          .. code-block:: bash
 

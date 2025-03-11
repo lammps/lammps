@@ -1,0 +1,155 @@
+LAMMPS (19 Nov 2024 - Development - patch_19Nov2024-836-ge548c656ce)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:99)
+  using 1 OpenMP thread(s) per MPI task
+variable        sname index Li.ang
+
+units           real
+newton          on
+boundary        p p p
+dielectric	1.0
+
+atom_style      electron
+
+read_data       data.${sname}
+read_data       data.Li.ang
+Reading data file ...
+  orthogonal box = (0 0 0) to (22.098442 22.098442 22.098442)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  2000 atoms
+  read_data CPU = 0.014 seconds
+#read_restart	${sname}.min.restart
+
+pair_style      eff/cut 11.049221 limit/eradius pressure/evirials
+pair_coeff      * *
+
+comm_modify	vel yes
+
+neigh_modify	one 2000 page 20000
+
+compute         peratom all stress/atom NULL
+compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
+variable        press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
+
+compute         effTemp all temp/eff
+compute         effPress all pressure effTemp
+
+compute         energies all pair eff/cut
+variable        eke equal c_energies[1]
+variable        epauli equal c_energies[2]
+variable        ecoul equal c_energies[3]
+variable        erres equal c_energies[4]
+
+thermo          100
+thermo_style    custom step etotal pe ke v_eke v_epauli v_ecoul v_erres press v_press temp
+thermo_modify	temp effTemp press effPress flush yes
+
+#min_style	cg
+#minimize	0 1e-6 100 1000
+#write_restart	${sname}.min.restart
+
+timestep	0.005
+
+velocity        all create 10.0 4928459 rot yes mom yes dist gaussian
+fix 		0 all temp/rescale/eff 1 10.0 3000.0 0.05 1.0
+#fix		0 all langevin/eff 3000.0 3000.0 10.0 699483
+fix		1 all nve/eff
+
+run		200
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+- EFF package: doi:10.1002/jcc.21637
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 20000
+  master list distance cutoff = 13.049221
+  ghost atom cutoff = 13.049221
+  binsize = 6.5246105, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eff/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.772 | 6.887 | 7.001 Mbytes
+   Step         TotEng         PotEng         KinEng         v_eke         v_epauli       v_ecoul        v_erres         Press         v_press          Temp     
+         0  -1934872.7     -1934932.3      59.586393      1973239.1      9338.8528     -3917510.2      0              119790.47      119790.47      40.06012     
+       100  -1932300.8     -1934539.4      2238.5734      1864086.1      9857.8379     -3808483.3      0             -100104.15     -105089         1505         
+       200  -1929809.8     -1934272.1      4462.2726      1834011.6      10753.334     -3779037        0             -151616.13     -158905.6       3000         
+Loop time of 6.61662 on 4 procs for 200 steps with 2000 atoms
+
+Performance: 0.013 ns/day, 1837.949 hours/ns, 30.227 timesteps/s, 60.454 katom-step/s
+99.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5.572      | 5.9389     | 6.2372     |   9.8 | 89.76
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.37051    | 0.66886    | 1.0359     |  29.2 | 10.11
+Output  | 0.00076947 | 0.00078111 | 0.00081552 |   0.0 |  0.01
+Modify  | 0.0035517  | 0.0038042  | 0.0040517  |   0.4 |  0.06
+Other   |            | 0.004249   |            |       |  0.06
+
+Nlocal:            500 ave         500 max         500 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:          10252 ave       10252 max       10252 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         424625 ave      448237 max      400021 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+
+Total # of neighbors = 1698500
+Ave neighs/atom = 849.25
+Neighbor list builds = 0
+Dangerous builds = 0
+unfix		0
+unfix		1
+
+fix		1 all nvt/eff temp 3000.0 3000.0 100.0
+compute         1 all property/atom spin eradius ervel
+dump            1 all custom 500 ${sname}.nvt.lammpstrj id type q c_1[1] c_1[2] x y z vx vy vz c_1[3]
+dump            1 all custom 500 Li.ang.nvt.lammpstrj id type q c_1[1] c_1[2] x y z vx vy vz c_1[3]
+
+run 		500
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 7.522 | 7.656 | 7.751 Mbytes
+   Step         TotEng         PotEng         KinEng         v_eke         v_epauli       v_ecoul        v_erres         Press         v_press          Temp     
+       200  -1929809.8     -1934272.1      4462.2726      1834011.6      10753.334     -3779037        0             -151616.13     -158905.6       3000         
+       300  -1929902.8     -1934223.4      4320.5724      2031898.3      11427.685     -3977549.4      0              268725.75      262717.84      2904.7345    
+       400  -1929360.3     -1935088.8      5728.4403      1850892.1      13473.172     -3799454        0             -105609.57     -118457.31      3851.2485    
+       500  -1929066.1     -1935648.1      6581.9291      1901305.5      14887.365     -3851840.9      0              7045.2102     -9644.887       4425.0518    
+       600  -1929593.6     -1934406.5      4812.986       2003446.8      16194.971     -3954048.4      0              221662.39      211620.13      3235.7857    
+       700  -1930061.3     -1933572.3      3510.9499      1811788.7      18436.004     -3763797        0             -182749.21     -186750.23      2360.4227    
+Loop time of 16.6082 on 4 procs for 500 steps with 2000 atoms
+
+Performance: 0.013 ns/day, 1845.351 hours/ns, 30.106 timesteps/s, 60.211 katom-step/s
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 12.79      | 14.632     | 16.232     |  32.8 | 88.10
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.35155    | 1.9504     | 3.7924     |  89.8 | 11.74
+Output  | 0.0034195  | 0.0035878  | 0.0038027  |   0.3 |  0.02
+Modify  | 0.01108    | 0.011237   | 0.0114     |   0.1 |  0.07
+Other   |            | 0.01046    |            |       |  0.06
+
+Nlocal:            500 ave         520 max         480 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+Nghost:          10252 ave       10272 max       10232 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+Neighs:         426287 ave      457559 max      396571 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+
+Total # of neighbors = 1705148
+Ave neighs/atom = 852.574
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Total wall time: 0:00:23

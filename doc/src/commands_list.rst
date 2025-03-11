@@ -82,6 +82,7 @@ Commands
    read_dump
    read_restart
    region
+   region2vmd
    replicate
    rerun
    reset_atoms

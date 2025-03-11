@@ -793,7 +793,10 @@ void CommKokkos::exchange()
   }
 
   atomKK->sync(Host,ALL_MASK);
+  int prev_auto_sync = lmp->kokkos->auto_sync;
+  lmp->kokkos->auto_sync = 1;
   CommBrick::exchange();
+  lmp->kokkos->auto_sync = prev_auto_sync;
   atomKK->modified(Host,ALL_MASK);
 }
 

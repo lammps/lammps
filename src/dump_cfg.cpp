@@ -142,7 +142,7 @@ void DumpCFG::write_header(bigint n)
       header += fmt::format("auxiliary[{}] = {}\n",i-5,keyword_user[i]);
     else
       header += fmt::format("auxiliary[{}] = {}\n",i-5,auxname[i-5]);
-  fmt::print(fp, header);
+  utils::print(fp, header);
 }
 
 /* ----------------------------------------------------------------------

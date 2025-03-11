@@ -397,10 +397,11 @@ void PairSRP::coeff(int narg, char **arg)
     error->all(FLERR,"PairSRP: Incorrect args for pair coeff");
   if (!allocated) allocate();
 
-  if (btype_str.size() > 0)
+  if (btype_str.size() > 0) {
     btype = utils::expand_type_int(FLERR, btype_str, Atom::BOND, lmp);
-  if ((btype > atom->nbondtypes) || (btype <= 0))
-    error->all(FLERR,"Invalid bond type {} for pair style srp", btype);
+    if ((btype > atom->nbondtypes) || (btype <= 0))
+      error->all(FLERR,"Invalid bond type {} for pair style srp", btype);
+  }
 
   if (bptype_str.size() > 0)
     bptype = utils::expand_type_int(FLERR, bptype_str, Atom::ATOM, lmp);

@@ -31,6 +31,7 @@ class FixPythonInvoke : public Fix {
   ~FixPythonInvoke() override;
   int setmask() override;
   void setup(int) override;
+  void init() override;
   void end_of_step() override;
   void post_force(int) override;
 
@@ -38,6 +39,8 @@ class FixPythonInvoke : public Fix {
   void *lmpPtr;
   void *pFunc;
   int selected_callback;
+  bigint nextvalid();
+  bigint nvalid;
 };
 
 }    // namespace LAMMPS_NS

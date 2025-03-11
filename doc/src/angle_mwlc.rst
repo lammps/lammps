@@ -21,7 +21,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Feb2025
 
 The *mwlc* angle style models a meltable wormlike chain and can be used
 to model non-linear bending elasticity of polymers, e.g. DNA.  *mwlc*

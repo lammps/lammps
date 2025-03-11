@@ -116,9 +116,9 @@ environment variable.
 Prerequisites for HTML
 ----------------------
 
-To run the HTML documentation build toolchain, python 3, git, doxygen,
-and virtualenv have to be installed locally.  Here are instructions for
-common setups:
+To run the HTML documentation build toolchain, Python 3.8 or later, git,
+doxygen, and virtualenv have to be installed locally.  Here are
+instructions for common setups:
 
 .. tabs::
 
@@ -128,13 +128,7 @@ common setups:
 
          sudo apt-get install git doxygen
 
-   .. tab:: RHEL or CentOS (Version 7.x)
-
-      .. code-block:: bash
-
-         sudo yum install git doxygen
-
-   .. tab:: Fedora or RHEL/CentOS (8.x or later)
+   .. tab:: Fedora or RHEL/AlmaLinux/RockyLinux (8.x or later)
 
       .. code-block:: bash
 
@@ -154,7 +148,36 @@ Prerequisites for PDF
 
 In addition to the tools needed for building the HTML format manual,
 a working LaTeX installation with support for PDFLaTeX and a selection
-of LaTeX styles/packages are required.  To run the PDFLaTeX translation
+of LaTeX styles/packages are required.  Apart from LaTeX packages that
+are usually installed by default, the following packages are required:
+
+.. table_from_list::
+   :columns: 11
+
+   - amsmath
+   - anysize
+   - babel
+   - capt-of
+   - cmap
+   - dvipng
+   - ellipse
+   - fncychap
+   - fontawesome
+   - framed
+   - geometry
+   - gyre
+   - hyperref
+   - hypcap
+   - needspace
+   - pict2e
+   - times
+   - tabulary
+   - titlesec
+   - upquote
+   - wrapfig
+   - xindy
+
+To run the PDFLaTeX translation
 the ``latexmk`` script needs to be installed as well.
 
 Prerequisites for ePUB and MOBI

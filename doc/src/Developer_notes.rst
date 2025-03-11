@@ -270,7 +270,10 @@ There are multiple "signatures" that can be called:
 - ``Error::all(FLERR, idx, "Error message")``: this is for argument
   parsing where "idx" is the index (starting at 0) of the argument for a
   LAMMPS command that is causing the failure (use -1 for the command
-  itself).  The output may also include the last input line *before* and
+  itself).  For index 0, you need to use the constant ``Error::ARGZERO``
+  to work around the inability of some compilers to disambiguate between
+  a NULL pointer and an integer constant 0, even with an added type cast.
+  The output may also include the last input line *before* and
   *after*, if they differ due to substituting variables.  A textual
   indicator is pointing to the specific word that failed.  Using the
   constant ``Error::NOPOINTER`` in place of the *idx* argument will

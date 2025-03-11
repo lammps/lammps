@@ -52,9 +52,9 @@ software or for people that want to modify or extend LAMMPS.
   compilers can be configured and built concurrently from the same
   source tree.
 - Simplified packaging of LAMMPS for Linux distributions, environment
-  modules, or automated build tools like `Homebrew <https://brew.sh/>`_.
-- Integration of automated unit and regression testing (the LAMMPS side
-  of this is still under active development).
+  modules, or automated build tools like `Spack <https://spack.io>`_
+  or `Homebrew <https://brew.sh/>`_.
+- Integration of automated unit and regression testing.
 
 .. _cmake_build:
 

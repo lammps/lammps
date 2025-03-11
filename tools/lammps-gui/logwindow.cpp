@@ -121,7 +121,6 @@ void LogWindow::stop_run()
 
 void LogWindow::next_warning()
 {
-    auto *doc = document();
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
     auto regex = QRegExp(QStringLiteral("^(ERROR|WARNING).*$"));
 #else

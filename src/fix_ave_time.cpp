@@ -34,16 +34,15 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{ ONE, RUNNING, WINDOW };
-enum{ SCALAR, VECTOR };
+enum { ONE, RUNNING, WINDOW };
+enum { SCALAR, VECTOR };
 
 /* ---------------------------------------------------------------------- */
 
 FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  nvalues(0), fp(nullptr), offlist(nullptr), format(nullptr), format_user(nullptr),
-  vector(nullptr), vector_total(nullptr), vector_list(nullptr),
-  column(nullptr), array(nullptr), array_total(nullptr), array_list(nullptr)
+    Fix(lmp, narg, arg), nvalues(0), fp(nullptr), offlist(nullptr), format(nullptr), vector(nullptr),
+    vector_total(nullptr), vector_list(nullptr), column(nullptr), array(nullptr),
+    array_total(nullptr), array_list(nullptr)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix ave/time", error);
 
@@ -83,7 +82,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   int expand = 0;
   char **earg;
   int *amap = nullptr;
-  nvalues = utils::expand_args(FLERR,nvalues,&arg[ioffset],mode,earg,lmp,&amap);
+  nvalues = utils::expand_args(FLERR, nvalues, &arg[ioffset], mode, earg, lmp, &amap);
   key2col.clear();
 
   if (earg != &arg[ioffset]) expand = 1;
@@ -100,9 +99,6 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     val.which = argi.get_type();
     key2col[arg[i]] = i;
 
-    if ((val.which == ArgInfo::NONE) || (val.which == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
-      error->all(FLERR, amap[i] + ioffset,"Invalid fix ave/time argument: {}", arg[i]);
-
     val.argindex = argi.get_index1();
     if (expand) val.iarg = amap[i] + ioffset;
     else val.iarg = i + ioffset;
@@ -111,16 +107,20 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     val.id = argi.get_name();
     val.val.c = nullptr;
 
+    if ((val.which == ArgInfo::NONE) || (val.which == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
+      error->all(FLERR, val.iarg, "Invalid fix ave/time argument: {}", arg[i]);
+
     values.push_back(val);
   }
   if (nvalues != (int)values.size())
-    error->all(FLERR, "Could not parse value data consistently for fix ave/time");
+    error->all(FLERR, Error::NOPOINTER,
+               "Could not parse value data consistently for fix ave/time");
 
   // set off columns now that nvalues is finalized
 
   for (int i = 0; i < noff; i++) {
     if (offlist[i] < 1 || offlist[i] > nvalues)
-      error->all(FLERR,"Invalid fix ave/time off column: {}", offlist[i]);
+      error->all(FLERR, Error::NOPOINTER, "Invalid fix ave/time off column: {}", offlist[i]);
     values[offlist[i] - 1].offcol = 1;
   }
 
@@ -132,9 +132,9 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   if (nrepeat <= 0) error->all(FLERR, 4, "Illegal fix ave/time nrepeat value: {}", nrepeat);
   if (nfreq <= 0) error->all(FLERR, 5, "Illegal fix ave/time nfreq value: {}", nfreq);
   if (nfreq % nevery || nrepeat*nevery > nfreq)
-    error->all(FLERR,"Inconsistent fix ave/time nevery/nrepeat/nfreq values");
+    error->all(FLERR, Error::NOPOINTER, "Inconsistent fix ave/time nevery/nrepeat/nfreq values");
   if (ave != RUNNING && overwrite)
-    error->all(FLERR,"Fix ave/time overwrite keyword requires ave running setting");
+    error->all(FLERR, Error::NOPOINTER, "Fix ave/time overwrite keyword requires ave running setting");
 
   for (auto &val : values) {
 
@@ -447,7 +447,7 @@ FixAveTime::~FixAveTime()
     }
   }
 
-  delete[] format_user;
+  delete[] format;
   delete[] extlist;
 
   if (fp && comm->me == 0) {
@@ -667,14 +667,14 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
       if (!yaml_header || overwrite) {
         yaml_header = true;
         fputs("keywords: ['Step', ", fp);
-        for (const auto &val : values) fmt::print(fp, "'{}', ", val.keyword);
+        for (const auto &val : values) utils::print(fp, "'{}', ", val.keyword);
         fputs("]\ndata:\n", fp);
       }
-      fmt::print(fp, "  - [{}, ", ntimestep);
-      for (i = 0; i < nvalues; i++) fmt::print(fp,"{}, ",vector_total[i]/norm);
+      utils::print(fp, "  - [{}, ", ntimestep);
+      for (i = 0; i < nvalues; i++) utils::print(fp,"{}, ",vector_total[i]/norm);
       fputs("]\n", fp);
     } else {
-      fmt::print(fp,"{}",ntimestep);
+      utils::print(fp,"{}",ntimestep);
       for (i = 0; i < nvalues; i++) fprintf(fp,format,vector_total[i]/norm);
       fprintf(fp,"\n");
       if (ferror(fp))
@@ -885,17 +885,17 @@ void FixAveTime::invoke_vector(bigint ntimestep)
       if (!yaml_header || overwrite) {
         yaml_header = true;
         fputs("keywords: [", fp);
-        for (const auto &val : values) fmt::print(fp, "'{}', ", val.keyword);
+        for (const auto &val : values) utils::print(fp, "'{}', ", val.keyword);
         fputs("]\ndata:\n", fp);
       }
-      fmt::print(fp, "  {}:\n", ntimestep);
+      utils::print(fp, "  {}:\n", ntimestep);
       for (int i = 0; i < nrows; i++) {
         fputs("  - [", fp);
-        for (int j = 0; j < nvalues; j++) fmt::print(fp,"{}, ",array_total[i][j]/norm);
+        for (int j = 0; j < nvalues; j++) utils::print(fp,"{}, ",array_total[i][j]/norm);
         fputs("]\n", fp);
       }
     } else {
-      fmt::print(fp,"{} {}\n",ntimestep,nrows);
+      utils::print(fp,"{} {}\n",ntimestep,nrows);
       for (int i = 0; i < nrows; i++) {
         fprintf(fp,"%d",i+1);
         for (int j = 0; j < nvalues; j++) fprintf(fp,format,array_total[i][j]/norm);
@@ -1050,8 +1050,7 @@ void FixAveTime::options(int iarg, int narg, char **arg)
   offlist = nullptr;
   overwrite = 0;
   yaml_flag = yaml_header = false;
-  format_user = nullptr;
-  format = (char *) " %g";
+  format = utils::strdup(" %g");
   title1 = nullptr;
   title2 = nullptr;
   title3 = nullptr;
@@ -1106,9 +1105,8 @@ void FixAveTime::options(int iarg, int narg, char **arg)
       iarg += 1;
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/time format", error);
-      delete[] format_user;
-      format_user = utils::strdup(arg[iarg+1]);
-      format = format_user;
+      delete[] format;
+      format = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/time title1", error);

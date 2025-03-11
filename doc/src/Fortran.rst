@@ -323,6 +323,12 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype set_internal_variable: subroutine
    :f eval: :f:func:`eval`
    :ftype eval: function
+   :f clearstep_compute: :f:subr:`clearstep_compute`
+   :ftype clearstep_compute: subroutine
+   :f addstep_compute: :f:subr:`addstep_compute`
+   :ftype addstep_compute: subroutine
+   :f addstep_compute_all: :f:subr:`addstep_compute_all`
+   :ftype addstep_compute_all: subroutine
    :f gather_atoms: :f:subr:`gather_atoms`
    :ftype gather_atoms: subroutine
    :f gather_atoms_concat: :f:subr:`gather_atoms_concat`
@@ -956,6 +962,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       :f:func:`extract_atom` between runs.
 
    .. admonition:: Array index order
+      :class: tip
 
       Two-dimensional arrays returned from :f:func:`extract_atom` will be
       **transposed** from equivalent arrays in C, and they will be indexed
@@ -1068,6 +1075,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    you based on data from the :cpp:class:`Compute` class.
 
    .. admonition:: Array index order
+      :class: tip
 
       Two-dimensional arrays returned from :f:func:`extract_compute` will be
       **transposed** from equivalent arrays in C, and they will be indexed
@@ -1326,6 +1334,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :rtype data: polymorphic
 
    .. admonition:: Array index order
+      :class: tip
 
       Two-dimensional global, per-atom, or local array data from
       :f:func:`extract_fix` will be **transposed** from equivalent arrays in
@@ -1450,8 +1459,59 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    an internal-style variable, an error is generated.
 
    :p character(len=*) name: name of the variable
-   :p read(c_double) val:  new value to assign to the variable
+   :p real(c_double) val:  new value to assign to the variable
    :to: :cpp:func:`lammps_set_internal_variable`
+
+--------
+
+.. f:function:: eval(expr)
+
+   This function is a wrapper around :cpp:func:`lammps_eval` that takes a
+   LAMMPS equal style variable string, evaluates it and returns the resulting
+   scalar value as a floating-point number.
+
+   .. versionadded:: 4Feb2025
+
+   :p character(len=\*) expr: string to be evaluated
+   :to: :cpp:func:`lammps_eval`
+   :r value [real(c_double)]: result of the evaluated string
+
+--------
+
+.. f:subroutine:: clearstep_compute()
+
+   Clear whether a compute has been invoked
+
+   .. versionadded:: 4Feb2025
+
+   :to: :cpp:func:`lammps_clearstep_compute`
+
+--------
+
+.. f:subroutine:: addstep_compute(nextstep)
+
+   Add timestep to list of future compute invocations
+   if the compute has been invoked on the current timestep
+
+   .. versionadded:: 4Feb2025
+
+   overloaded for 32-bit and 64-bit integer arguments
+
+   :p integer(kind=8 or kind=4) nextstep: next timestep
+   :to: :cpp:func:`lammps_addstep_compute`
+
+--------
+
+.. f:subroutine:: addstep_compute_all(nextstep)
+
+   Add timestep to list of future compute invocations
+
+   .. versionadded:: 4Feb2025
+
+   overloaded for 32-bit and 64-bit integer arguments
+
+   :p integer(kind=8 or kind=4) nextstep: next timestep
+   :to: :cpp:func:`lammps_addstep_compute_all`
 
 --------
 

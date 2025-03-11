@@ -127,6 +127,16 @@ MODULE LIBLAMMPS
     PROCEDURE :: set_string_variable    => lmp_set_string_variable
     PROCEDURE :: set_internal_variable  => lmp_set_internal_variable
     PROCEDURE :: eval                   => lmp_eval
+
+    PROCEDURE :: clearstep_compute      => lmp_clearstep_compute
+    PROCEDURE, PRIVATE :: lmp_addstep_compute_smallint
+    PROCEDURE, PRIVATE :: lmp_addstep_compute_bigint
+    GENERIC :: addstep_compute          => lmp_addstep_compute_smallint, lmp_addstep_compute_bigint
+    PROCEDURE, PRIVATE :: lmp_addstep_compute_all_smallint
+    PROCEDURE, PRIVATE :: lmp_addstep_compute_all_bigint
+    GENERIC :: addstep_compute_all      => lmp_addstep_compute_all_smallint, &
+                                           lmp_addstep_compute_all_bigint
+
     PROCEDURE, PRIVATE :: lmp_gather_atoms_int
     PROCEDURE, PRIVATE :: lmp_gather_atoms_double
     GENERIC   :: gather_atoms           => lmp_gather_atoms_int, &
@@ -625,6 +635,24 @@ MODULE LIBLAMMPS
       TYPE(c_ptr), VALUE :: handle, expr
       REAL(c_double) :: lammps_eval
     END FUNCTION lammps_eval
+
+    SUBROUTINE lammps_clearstep_compute(handle) BIND(C)
+      IMPORT :: c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle
+    END SUBROUTINE lammps_clearstep_compute
+
+    SUBROUTINE lammps_addstep_compute(handle, step) BIND(C)
+      IMPORT :: c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, step
+    END SUBROUTINE lammps_addstep_compute
+
+    SUBROUTINE lammps_addstep_compute_all(handle, step) BIND(C)
+      IMPORT :: c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, step
+    END SUBROUTINE lammps_addstep_compute_all
 
     SUBROUTINE lammps_gather_atoms(handle, name, TYPE, count, DATA) BIND(C)
       IMPORT :: c_int, c_ptr
@@ -1845,6 +1873,80 @@ CONTAINS
     lmp_eval = lammps_eval(self%handle, Cexpr)
     CALL lammps_free(Cexpr)
   END FUNCTION lmp_eval
+
+  ! equivalent subroutine to lammps_clearstep_compute
+  SUBROUTINE lmp_clearstep_compute(self)
+    CLASS(lammps), INTENT(IN) :: self
+    CALL lammps_clearstep_compute(self%handle)
+  END SUBROUTINE lmp_clearstep_compute
+
+  ! equivalent subroutine to lammps_addstep_compute
+  SUBROUTINE lmp_addstep_compute_bigint(self, nextstep)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(kind=8), INTENT(IN) :: nextstep
+    INTEGER(c_int), TARGET :: smallstep
+    INTEGER(c_int64_t), TARGET :: bigstep
+    TYPE(c_ptr) :: ptrstep
+    IF (SIZE_BIGINT == 4_c_int) THEN
+        smallstep = INT(nextstep,kind=c_int)
+        ptrstep = C_LOC(smallstep)
+    ELSE
+        bigstep = nextstep
+        ptrstep = C_LOC(bigstep)
+    END IF
+    CALL lammps_addstep_compute(self%handle, ptrstep)
+  END SUBROUTINE lmp_addstep_compute_bigint
+
+  ! equivalent subroutine to lammps_addstep_compute
+  SUBROUTINE lmp_addstep_compute_smallint(self, nextstep)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(kind=4), INTENT(IN) :: nextstep
+    INTEGER(c_int), TARGET :: smallstep
+    INTEGER(c_int64_t), TARGET :: bigstep
+    TYPE(c_ptr) :: ptrstep
+    IF (SIZE_BIGINT == 4_c_int) THEN
+        smallstep = nextstep
+        ptrstep = C_LOC(smallstep)
+    ELSE
+        bigstep = nextstep
+        ptrstep = C_LOC(bigstep)
+    END IF
+    CALL lammps_addstep_compute(self%handle, ptrstep)
+  END SUBROUTINE lmp_addstep_compute_smallint
+
+  ! equivalent subroutine to lammps_addstep_compute_all
+  SUBROUTINE lmp_addstep_compute_all_bigint(self, nextstep)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(kind=8), INTENT(IN) :: nextstep
+    INTEGER(c_int), TARGET :: smallstep
+    INTEGER(c_int64_t), TARGET :: bigstep
+    TYPE(c_ptr) :: ptrstep
+    IF (SIZE_BIGINT == 4_c_int) THEN
+        smallstep = INT(nextstep,kind=c_int)
+        ptrstep = C_LOC(smallstep)
+    ELSE
+        bigstep = nextstep
+        ptrstep = C_LOC(bigstep)
+    END IF
+    CALL lammps_addstep_compute_all(self%handle, ptrstep)
+  END SUBROUTINE lmp_addstep_compute_all_bigint
+
+  ! equivalent subroutine to lammps_addstep_compute_all
+  SUBROUTINE lmp_addstep_compute_all_smallint(self, nextstep)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(kind=4), INTENT(IN) :: nextstep
+    INTEGER(c_int), TARGET :: smallstep
+    INTEGER(c_int64_t), TARGET :: bigstep
+    TYPE(c_ptr) :: ptrstep
+    IF (SIZE_BIGINT == 4_c_int) THEN
+        smallstep = nextstep
+        ptrstep = C_LOC(smallstep)
+    ELSE
+        bigstep = nextstep
+        ptrstep = C_LOC(bigstep)
+    END IF
+    CALL lammps_addstep_compute_all(self%handle, ptrstep)
+  END SUBROUTINE lmp_addstep_compute_all_smallint
 
   ! equivalent function to lammps_gather_atoms (for integers)
   SUBROUTINE lmp_gather_atoms_int(self, name, count, data)

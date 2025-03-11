@@ -174,12 +174,6 @@ class PairSNAPKokkos : public PairSNAP {
   void compute(int, int) override;
   double memory_usage() override;
 
-  template<class TagStyle>
-  void check_team_size_for(int, int&);
-
-  template<class TagStyle>
-  void check_team_size_reduce(int, int&);
-
   // CPU and GPU backend
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -375,7 +369,6 @@ class PairSNAPKokkos : public PairSNAP {
 
   // Make SNAKokkos a friend
   friend class SNAKokkos<DeviceType, real_type, vector_length>;
-
 };
 
 

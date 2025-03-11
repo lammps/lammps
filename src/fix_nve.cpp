@@ -33,7 +33,7 @@ FixNVE::FixNVE(LAMMPS *lmp, int narg, char **arg) :
 
   auto plain_style = utils::strip_style_suffix(style, lmp);
   if (utils::strmatch(plain_style, "^nve$") && narg > 3)
-    error->all(FLERR, "Unsupported additional arguments for fix {}", style);
+    error->all(FLERR, 3, "Unsupported additional arguments for fix {}", style);
 
   dynamic_group_allow = 1;
   time_integrate = 1;

@@ -140,6 +140,7 @@ additional letter in parenthesis: k = KOKKOS.
    * :doc:`plugin <plugin>`
    * :doc:`prd <prd>`
    * :doc:`python <python>`
+   * :doc:`region2vmd <region2vmd>`
    * :doc:`tad <tad>`
    * :doc:`temper <temper>`
    * :doc:`temper/grem <temper_grem>`

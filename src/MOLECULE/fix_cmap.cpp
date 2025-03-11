@@ -1051,7 +1051,7 @@ bigint FixCMAP::read_data_skip_lines(char * /*keyword*/)
 
 void FixCMAP::write_data_header(FILE *fp, int /*mth*/)
 {
-  fmt::print(fp,"{} crossterms\n",ncmap);
+  utils::print(fp,"{} crossterms\n",ncmap);
 }
 
 /* ----------------------------------------------------------------------
@@ -1129,7 +1129,7 @@ void FixCMAP::write_data_section(int /*mth*/, FILE *fp,
                                   int n, double **buf, int index)
 {
   for (int i = 0; i < n; i++)
-    fmt::print(fp,"{} {} {} {} {} {} {}\n",
+    utils::print(fp,"{} {} {} {} {} {} {}\n",
                index+i,ubuf(buf[i][0]).i, ubuf(buf[i][1]).i, ubuf(buf[i][2]).i,
                ubuf(buf[i][3]).i,ubuf(buf[i][4]).i,ubuf(buf[i][5]).i);
 }

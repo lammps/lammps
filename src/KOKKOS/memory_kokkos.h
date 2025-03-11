@@ -101,6 +101,7 @@ template <typename TYPE, typename HTYPE>
 {
   data = TYPE(std::string(name),n1,n2);
   h_data = Kokkos::create_mirror_view(data);
+  //printf(">>> name: %s\n", name);
   return data;
 }
 
@@ -111,6 +112,7 @@ TYPE create_kokkos(TYPE &data, typename TYPE::value_type **&array,
   data = TYPE(std::string(name),n1,n2);
   bigint nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n1;
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
+  //printf(">>> name %s nbytes %d\n", name, nbytes);
 
   for (int i = 0; i < n1; i++) {
     if (n2 == 0)
@@ -118,6 +120,56 @@ TYPE create_kokkos(TYPE &data, typename TYPE::value_type **&array,
     else
       array[i] = &data.h_view(i,0);
   }
+  return data;
+}
+
+/* ----------------------------------------------------------------------
+   create a 4d array with indices 2,3,4 offset, but not first
+   2nd index from n2lo to n2hi inclusive
+   3rd index from n3lo to n3hi inclusive
+   4th index from n4lo to n4hi inclusive
+   cannot grow it
+------------------------------------------------------------------------- */
+
+template <typename TYPE>
+TYPE create4d_offset_kokkos(TYPE &data, typename TYPE::value_type ****&array,
+                             int n1, int n2lo, int n2hi, int n3lo, int n3hi, int n4lo, int n4hi,
+                             const char *name)
+{
+  //if (n1 <= 0 || n2lo > n2hi || n3lo > n3hi || n4lo > n4hi) array =  nullptr;
+
+  printf("^^^^^ memoryKK->create_4d_offset_kokkos\n");
+
+  int n2 = n2hi - n2lo + 1;
+  int n3 = n3hi - n3lo + 1;
+  int n4 = n4hi - n4lo + 1;
+  data = TYPE(std::string(name),n1,n2,n3,n4);
+  bigint nbytes = ((bigint) sizeof(typename TYPE::value_type ***)) * n1;
+  array = (typename TYPE::value_type ****) smalloc(nbytes,name);
+
+  for (int i = 0; i < n1; i++) {
+    if (n2 == 0) {
+      array[i] = nullptr;
+    } else {
+      nbytes = ((bigint) sizeof(typename TYPE::value_type **)) * n2;
+      array[i] = (typename TYPE::value_type ***) smalloc(nbytes,name);
+      for (int j = 0; j < n2; j++){
+        if (n3 == 0){
+          array[i][j] = nullptr;
+        } else {
+          nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n3;
+          array[i][j] = (typename TYPE::value_type **) smalloc(nbytes, name);
+          for (int k = 0; k < n3; k++){
+            if (n4 == 0)
+              array[i][j][k] = nullptr;
+            else
+              array[i][j][k] = &data.h_view(i,j,k,0);
+          }
+        }
+      }
+    }
+  }
+
   return data;
 }
 

@@ -54,6 +54,10 @@ void PairDPDExtTstat::compute(int eflag, int vflag)
 
   ev_init(eflag,vflag);
 
+  // precompute random force scaling factors
+
+  for (int i = 0; i < 4; ++i) special_sqrt[i] = sqrt(force->special_lj[i]);
+
   // adjust sigma if target T is changing
 
   if (t_start != t_stop) {

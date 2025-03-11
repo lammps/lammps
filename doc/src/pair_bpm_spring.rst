@@ -85,7 +85,7 @@ commands, or by mixing as described below:
 * :math:`r_c`           (distance units)
 * :math:`\gamma`        (force/velocity units)
 
-.. versionadded:: TBD
+.. versionadded:: 4Feb2025
 
 Additionally, if *anharmonic* is set to *yes*, a fourth coefficient
 must be provided:
@@ -116,6 +116,10 @@ specified in an input script that reads a restart file.
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*, *middle*, *outer* keywords.
+
+The potential energy and the single() function of this pair style returns
+:math:`k (r - r_c)^2 / 2 + k_a (r - r_c)^4 / 4` for a proxy
+of the energy of a pair interaction, ignoring any smoothing or dissipative forces.
 
 ----------
 

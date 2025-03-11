@@ -1,30 +1,46 @@
 .. index:: pair_style hbond/dreiding/lj
 .. index:: pair_style hbond/dreiding/lj/omp
+.. index:: pair_style hbond/dreiding/lj/angleoffset
+.. index:: pair_style hbond/dreiding/lj/angleoffset/omp
 .. index:: pair_style hbond/dreiding/morse
 .. index:: pair_style hbond/dreiding/morse/omp
+.. index:: pair_style hbond/dreiding/morse/angleoffset
+.. index:: pair_style hbond/dreiding/morse/angleoffset/omp
 
 pair_style hbond/dreiding/lj command
 ====================================
 
 Accelerator Variants: *hbond/dreiding/lj/omp*
 
+pair_style hbond/dreiding/lj/angleoffset command
+================================================
+
+Accelerator Variants: *hbond/dreiding/lj/angleoffset/omp*
+
 pair_style hbond/dreiding/morse command
 =======================================
 
 Accelerator Variants: *hbond/dreiding/morse/omp*
+
+pair_style hbond/dreiding/morse/angleoffset command
+===================================================
+
+Accelerator Variants: *hbond/dreiding/morse/angleoffset/omp*
+
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   pair_style style N inner_distance_cutoff outer_distance_cutoff angle_cutoff
+   pair_style style N inner_distance_cutoff outer_distance_cutoff angle_cutoff equilibrium_angle
 
-* style = *hbond/dreiding/lj* or *hbond/dreiding/morse*
+* style = *hbond/dreiding/lj* or *hbond/dreiding/morse* or *hbond/dreiding/lj/angleoffset* or *hbond/dreiding/morse/angleoffset*
 * N = power of cosine of angle theta (integer)
 * inner_distance_cutoff = global inner cutoff for Donor-Acceptor interactions (distance units)
 * outer_distance_cutoff = global cutoff for Donor-Acceptor interactions (distance units)
 * angle_cutoff = global angle cutoff for Acceptor-Hydrogen-Donor interactions (degrees)
+* (with style angleoffset) equilibrium_angle = global equilibrium angle for Acceptor-Hydrogen-Donor interactions (degrees)
 
 Examples
 """"""""
@@ -39,6 +55,9 @@ Examples
 
    labelmap atom 1 C 2 O 3 H
    pair_coeff C O hbond/dreiding/morse H i 3.88 1.7241379 2.9 2 9.0 11.0 90.0
+
+   pair_style hybrid/overlay lj/cut 10.0 hbond/dreiding/lj 4 9.0 11.0 90 170.0
+   pair_coeff 1 2 hbond/dreiding/lj 3 i 9.5 2.75 4 9.0 11.0 90.0
 
 Description
 """""""""""
@@ -74,42 +93,53 @@ hydrogen (H) and the donor atoms:
 .. image:: JPG/dreiding_hbond.jpg
    :align: center
 
-These 3-body interactions can be defined for pairs of acceptor and
-donor atoms, based on atom types.  For each donor/acceptor atom pair,
-the third atom in the interaction is a hydrogen permanently bonded to
-the donor atom, e.g. in a bond list read in from a data file via the
+These 3-body interactions can be defined for pairs of acceptor and donor
+atoms, based on atom types.  For each donor/acceptor atom pair, the
+third atom in the interaction is a hydrogen permanently bonded to the
+donor atom, e.g. in a bond list read in from a data file via the
 :doc:`read_data <read_data>` command.  The atom types of possible
 hydrogen atoms for each donor/acceptor type pair are specified by the
 :doc:`pair_coeff <pair_coeff>` command (see below).
 
 Style *hbond/dreiding/lj* is the original DREIDING potential of
-:ref:`(Mayo) <pair-Mayo>`.  It uses a LJ 12/10 functional for the Donor-Acceptor
-interactions. To match the results in the original paper, use n = 4.
+:ref:`(Mayo) <pair-Mayo>`.  It uses a LJ 12/10 functional for the
+Donor-Acceptor interactions. To match the results in the original paper,
+use n = 4.
 
 Style *hbond/dreiding/morse* is an improved version using a Morse
 potential for the Donor-Acceptor interactions. :ref:`(Liu) <Liu>` showed
 that the Morse form gives improved results for Dendrimer simulations,
 when n = 2.
 
+.. versionadded:: 4Feb2025
+
+The style variants *hbond/dreiding/lj/angleoffset* and
+*hbond/dreiding/lj/angleoffset* take the equilibrium angle of the AHD as
+input, allowing it to reach 180 degrees. This variant option was added
+to account for cases (especially in some coarse-grained models) in which
+the equilibrium state of the bonds may equal the minimum energy state.
+
 See the :doc:`Howto bioFF <Howto_bioFF>` page for more information
 on the DREIDING force field.
 
 .. note::
 
-   Because the Dreiding hydrogen bond potential is only one portion
-   of an overall force field which typically includes other pairwise
-   interactions, it is common to use it as a sub-style in a :doc:`pair_style hybrid/overlay <pair_hybrid>` command, where another pair style
-   provides the repulsive core interaction between pairs of atoms, e.g. a
-   1/r\^12 Lennard-Jones repulsion.
+   Because the Dreiding hydrogen bond potential is only one portion of
+   an overall force field which typically includes other pairwise
+   interactions, it is common to use it as a sub-style in a
+   :doc:`pair_style hybrid/overlay <pair_hybrid>` command, where another
+   pair style provides the repulsive core interaction between pairs of
+   atoms, e.g. a 1/r\^12 Lennard-Jones repulsion.
 
 .. note::
 
-   When using the hbond/dreiding pair styles with :doc:`pair_style hybrid/overlay <pair_hybrid>`, you should explicitly define pair
+   When using the hbond/dreiding pair styles with :doc:`pair_style
+   hybrid/overlay <pair_hybrid>`, you should explicitly define pair
    interactions between the donor atom and acceptor atoms, (as well as
    between these atoms and ALL other atoms in your system).  Whenever
-   :doc:`pair_style hybrid/overlay <pair_hybrid>` is used, ordinary mixing
-   rules are not applied to atoms like the donor and acceptor atoms
-   because they are typically referenced in multiple pair styles.
+   :doc:`pair_style hybrid/overlay <pair_hybrid>` is used, ordinary
+   mixing rules are not applied to atoms like the donor and acceptor
+   atoms because they are typically referenced in multiple pair styles.
    Neglecting to do this can cause difficult-to-detect physics problems.
 
 .. note::
@@ -118,6 +148,13 @@ on the DREIDING force field.
    interactions ARE allowed.  If this is desired for your model, use the
    special_bonds command (e.g. "special_bonds lj 0.0 0.0 1.0") to turn
    these interactions on.
+
+.. note::
+
+   For the *angleoffset* variants, the referenced angle offset is the
+   supplementary angle of the equilibrium angle parameter. It means if
+   the equilibrium angle is 166.6 degrees, the calculated angle offset
+   is 13.4 degrees.
 
 ----------
 
@@ -169,7 +206,10 @@ follows:
 * distance cutoff :math:`r_{out}` (distance units)
 * angle cutoff (degrees)
 
-A single hydrogen atom type K can be specified, or a wild-card asterisk
+For both the *hbond/dreiding/lj/angleoffset* and *hbond/dreiding/morse/angleoffset* styles an additional parameter is added:
+* equilibrium angle (degrees)
+
+For all styles, a single hydrogen atom type K can be specified, or a wild-card asterisk
 can be used in place of or in conjunction with the K arguments to
 select multiple types as hydrogen atoms.  This takes the form
 "\*" or "\*n" or "n\*" or "m\*n".  See the :doc:`pair_coeff <pair_coeff>`
@@ -245,8 +285,7 @@ heading) the following commands could be included in an input script:
 Restrictions
 """"""""""""
 
-This pair style can only be used if LAMMPS was built with the
-MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
+The base pair styles can only be used if LAMMPS was built with the MOLECULE package.  The *angleoffset* variant also requires the EXTRA-MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
 for more info.
 
 Related commands

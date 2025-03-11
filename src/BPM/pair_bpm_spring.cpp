@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Joel Clemmer (SNL)
+------------------------------------------------------------------------- */
+
 #include "pair_bpm_spring.h"
 
 #include "atom.h"
@@ -54,7 +58,7 @@ void PairBPMSpring::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, dr, evdwl, fpair;
-  double r, rsq, rinv, factor_lj;
+  double r, rsq, rinv, fa, factor_lj;
   int *ilist, *jlist, *numneigh, **firstneigh;
   double vxtmp, vytmp, vztmp, delvx, delvy, delvz, dot, smooth;
 
@@ -112,8 +116,12 @@ void PairBPMSpring::compute(int eflag, int vflag)
         dr = r - cut[itype][jtype];
 
         fpair = -k[itype][jtype] * dr;
-        if (anharmonic_flag)
-          fpair += -ka[itype][jtype] * dr * dr * dr;
+        if (eflag) evdwl = -0.5 * fpair * dr;
+        if (anharmonic_flag) {
+          fa = -ka[itype][jtype] * dr * dr * dr;
+          fpair += fa;
+          if (eflag) evdwl += -0.25 * fa * dr;
+        }
 
         smooth = rsq / cutsq[itype][jtype];
         smooth *= smooth;
@@ -126,7 +134,7 @@ void PairBPMSpring::compute(int eflag, int vflag)
         fpair -= gamma[itype][jtype] * dot * smooth * rinv;
 
         fpair *= factor_lj * rinv;
-        if (eflag) evdwl = 0.0;
+        if (eflag) evdwl *= factor_lj;
 
         f[i][0] += delx * fpair;
         f[i][1] += dely * fpair;
@@ -378,8 +386,13 @@ double PairBPMSpring::single(int i, int j, int itype, int jtype, double rsq, dou
 
   dr = r - cut[itype][jtype];
   fpair = -k[itype][jtype] * dr;
-  if (anharmonic_flag)
-    fpair += -ka[itype][jtype] * dr * dr * dr;
+  double energy = -0.5 * fpair * dr;
+
+  if (anharmonic_flag) {
+    double fa = -ka[itype][jtype] * dr * dr * dr;
+    fpair += fa;
+    energy += -0.25 * fa * dr;
+  }
 
   smooth = rsq / cutsq[itype][jtype];
   smooth *= smooth;
@@ -394,7 +407,8 @@ double PairBPMSpring::single(int i, int j, int itype, int jtype, double rsq, dou
   fpair -= gamma[itype][jtype] * dot * rinv * smooth;
 
   fpair *= factor_lj;
+  energy *= factor_lj;
   fforce = fpair;
 
-  return 0.0;
+  return energy;
 }

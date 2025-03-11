@@ -23,6 +23,7 @@ OPT.
    *
    * :doc:`bpm/rotational <bond_bpm_rotational>`
    * :doc:`bpm/spring <bond_bpm_spring>`
+   * :doc:`bpm/spring/plastic <bond_bpm_spring_plastic>`
    * :doc:`class2 (ko) <bond_class2>`
    * :doc:`fene (iko) <bond_fene>`
    * :doc:`fene/expand (o) <bond_fene_expand>`

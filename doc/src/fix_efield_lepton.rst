@@ -40,7 +40,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Feb2025
 
 Add an electric potential :math:`V` that applies to a group of charged atoms a force :math:`\vec{F} = q \vec{E}`,
 and to dipoles a force :math:`\vec{F} = (\vec{p} \cdot \nabla) \vec{E}` and torque :math:`\vec{T} = \vec{p} \times \vec{E}`,

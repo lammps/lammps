@@ -42,12 +42,14 @@ such as those created by pouring grains using :doc:`fix pour
 
 ----------
 
-Currently, there are two types of bonds included in the BPM package. The
+Currently, there are three types of bonds included in the BPM package. The
 first bond style, :doc:`bond bpm/spring <bond_bpm_spring>`, only applies
 pairwise, central body forces. Point particles must have :doc:`bond atom
 style <atom_style>` and may be thought of as nodes in a spring
 network. An optional multibody term can be used to adjust the network's
-Poisson's ratio. Alternatively, the second bond style, :doc:`bond bpm/rotational
+Poisson's ratio. The :doc:`bpm/spring/plastic <bond_bpm_spring_plastic>`
+bond style is similar except it adds a plastic yield strain.
+Alternatively, the third bond style, :doc:`bond bpm/rotational
 <bond_bpm_rotational>`, resolves tangential forces and torques arising
 with the shearing, bending, and twisting of the bond due to rotation or
 displacement of particles.  Particles are similar to those used in the

@@ -1,0 +1,109 @@
+BootStrap: docker
+From: fedora:41
+
+%setup
+   curl -L -o musl-gcc-f37.tar.gz https://download.lammps.org/static/musl-gcc-f37.tar.gz
+   cp musl-gcc-f37.tar.gz ${APPTAINER_ROOTFS}
+
+%post
+        dnf -y update
+        dnf -y install vim-enhanced git file make cmake patch which file \
+               ninja-build libomp-devel diffutils dos2unix findutils rsync \
+               ccache gcc-c++ gcc-gfortran gdb valgrind python3-pyyaml \
+               enchant enchant2 python3-enchant python3-virtualenv doxygen latexmk \
+               texlive-latex-fonts texlive-pslatex texlive-collection-latexrecommended \
+               texlive-latex texlive-latexconfig doxygen-latex texlive-collection-latex \
+               texlive-latex-bin texlive-lualatex-math texlive-fncychap texlive-tabulary \
+               texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of texlive-pict2e \
+               texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng texlive-xindy \
+               texlive-fontawesome texlive-ellipse texlive-tex-gyre \
+               mingw-filesystem-base mingw32-nsis mingw-binutils-generic \
+               mingw64-filesystem mingw64-pkg-config \
+               mingw64-crt mingw64-headers mingw64-binutils \
+               mingw64-cpp mingw64-gcc mingw64-gcc-gfortran mingw64-gcc-c++ \
+               mingw64-curl \
+               mingw64-libgomp \
+               mingw64-winpthreads \
+               mingw64-eigen3 \
+               mingw64-fftw \
+               mingw64-libjpeg-turbo \
+               mingw64-libpng \
+               mingw64-python3 \
+               mingw64-python3-numpy \
+               mingw64-python3-pyyaml \
+               mingw64-python3-setuptools \
+               mingw64-readline \
+               mingw64-termcap \
+               mingw64-tcl \
+               mingw64-tk \
+               mingw64-zlib \
+               mingw64-zstd \
+               mingw64-qt5-qtdeclarative \
+               mingw64-qt5-qmldevtools \
+               mingw64-qt5-qmldevtools-devel \
+               mingw64-qt5-qttools-tools \
+               mingw64-qt5-qtcharts \
+               mingw64-qt5-qttools \
+               mingw64-qt5-qmake \
+               mingw64-qt5-qtbase \
+               mingw64-qt5-qtbase-devel \
+               mingw64-qt5-qtbase-static \
+
+        dnf clean all
+
+        # install musl-libc Linux-2-Linux cross-compiler
+        tar -C /usr/ -xvf /musl-gcc-f37.tar.gz
+        rm -f /musl-gcc-f37.tar.gz
+
+        # install NSIS EnVar plugin
+        curl -L -o EnVar_plugin.zip https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip
+        unzip -d /usr/share/nsis EnVar_plugin.zip
+        rm EnVar_plugin.zip
+
+        # create missing termcap pkgconfig file
+        cat > /usr/x86_64-w64-mingw32/sys-root/mingw/lib/pkgconfig/termcap.pc <<EOF
+prefix=/usr/x86_64-w64-mingw32/sys-root/mingw
+exec_prefix=/usr/x86_64-w64-mingw32/sys-root/mingw
+libdir=/usr/x86_64-w64-mingw32/sys-root/mingw/lib
+includedir=/usr/x86_64-w64-mingw32/sys-root/mingw/include
+
+Name: Termcap
+Description: GNU/MinGW terminal feature database
+URL: ftp://ftp.gnu.org/gnu/termcap/
+Version: 1.3
+Libs: -L\${libdir} -ltermcap
+Cflags:
+EOF
+        # set custom prompt indicating the container name
+        CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
+        cat >$CUSTOM_PROMPT_ENV <<EOF
+#!/bin/bash
+PS1="[fedora41/musl-mingw:\u@\h] \W> "
+EOF
+        chmod 755 $CUSTOM_PROMPT_ENV
+
+%environment
+        # we need to reset any module variables
+        # inherited from the host.
+        unset __LMOD_REF_COUNT__LMFILES_
+        unset __LMOD_REF_COUNT_PATH
+        unset __LMOD_REF_COUNT_LD_LIBRARY_PATH
+        unset __LMOD_REF_COUNT_MANPATH
+        unset __LMOD_REF_COUNT_MODULEPATH
+        unset __LMOD_REF_COUNT_LOADEDMODULES
+        unset _LMFILES_
+        unset MODULEPATH
+        unset MODULESHOME
+        unset MODULEPATH_ROOT
+        unset LOADEDMODULES
+        unset LMOD_SYSTEM_DEFAULT_MODULES
+
+        . /etc/profile
+        # tell OpenMPI to not try using Infiniband
+        OMPI_MCA_btl="^openib"
+        # do not warn about unused components as this messes up testing
+        OMPI_MCA_btl_base_warn_component_unused="0"
+        export OMPI_MCA_btl OMPI_MCA_btl_base_warn_component_unused
+
+%labels
+        Author akohlmey

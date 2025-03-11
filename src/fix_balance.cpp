@@ -42,7 +42,7 @@ enum { SHIFT, BISECTION };
 FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), balance(nullptr), irregular(nullptr)
 {
-  if (narg < 6) error->all(FLERR,"Illegal fix balance command");
+  if (narg < 6) utils::missing_cmd_args(FLERR, "fix balance", error);
 
   box_change = BOX_CHANGE_DOMAIN;
   pre_exchange_migrate = 1;
@@ -58,7 +58,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   int dimension = domain->dimension;
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery < 0) error->all(FLERR,"Illegal fix balance command");
+  if (nevery < 0) error->all(FLERR, 3, "Illegal fix balance nevery value {}", arg[3]);
   thresh = utils::numeric(FLERR,arg[4],false,lmp);
 
   reportonly = 0;
@@ -69,7 +69,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[5],"report") == 0) {
     lbstyle = SHIFT;
     reportonly = 1;
-  } else error->all(FLERR,"Unknown fix balance style {}", arg[5]);
+  } else error->all(FLERR, 5, "Unknown fix balance style {}", arg[5]);
 
   int iarg = 5;
   if (lbstyle == SHIFT) {
@@ -84,11 +84,14 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
     } else {
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix balance shift", error);
       bstr = arg[iarg+1];
-      if (bstr.size() > Balance::BSTR_SIZE) error->all(FLERR,"Illegal fix balance shift command");
+      if (bstr.size() > Balance::BSTR_SIZE)
+        error->all(FLERR, iarg + 1, "Illegal fix balance shift argument {}", bstr);
       nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-      if (nitermax <= 0) error->all(FLERR,"Illegal fix balance command");
+      if (nitermax <= 0)
+        error->all(FLERR, iarg + 2, "Illegal fix balance shift niter argument {}", nitermax);
       stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (stopthresh < 1.0) error->all(FLERR,"Illegal fix balance command");
+      if (stopthresh < 1.0)
+        error->all(FLERR, iarg + 3, "Illegal fix balance stop threshold argument {}", stopthresh);
       iarg += 4;
     }
 
@@ -102,12 +105,12 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
     const int blen = bstr.size();
     for (int i = 0; i < blen; i++) {
       if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z')
-        error->all(FLERR,"Fix balance shift string is invalid");
+        error->all(FLERR,"Fix balance shift string {} is invalid", bstr);
       if (bstr[i] == 'z' && dimension == 2)
-        error->all(FLERR,"Fix balance shift string is invalid");
+        error->all(FLERR,"Fix balance shift string {} is invalid", bstr);
       for (int j = i+1; j < blen; j++)
         if (bstr[i] == bstr[j])
-          error->all(FLERR,"Fix balance shift string is invalid");
+          error->all(FLERR,"Fix balance shift string {} is invalid", bstr);
     }
   }
 
@@ -125,7 +128,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   sortflag = balance->sortflag;
 
   if (balance->varflag && nevery == 0)
-    error->all(FLERR,"Fix balance nevery = 0 cannot be used with weight var");
+    error->all(FLERR, 3, "Fix balance nevery = 0 cannot be used with weight var");
 
   // create instance of Irregular class
 

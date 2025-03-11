@@ -181,7 +181,7 @@ void FixPrint::end_of_step()
   if (comm->me == 0) {
     if (screenflag) utils::logmesg(lmp, std::string(copy) + "\n");
     if (fp) {
-      fmt::print(fp, "{}\n", copy);
+      utils::print(fp, "{}\n", copy);
       fflush(fp);
     }
   }

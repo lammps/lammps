@@ -29,7 +29,9 @@
 #endif
 
 namespace LAMMPS_NS {
-
+// copied from pair_snap_kokkos.h
+// pre-declare so sna_kokkos.h can refer to it
+template<class DeviceType, typename real_type_, int vector_length_> class PairSNAPKokkos;
 template<typename real_type_, int vector_length_>
 struct WignerWrapper {
   using real_type = real_type_;
@@ -170,9 +172,9 @@ class SNAKokkos {
   KOKKOS_INLINE_FUNCTION
   SNAKokkos(const SNAKokkos<DeviceType,real_type,vector_length>& sna, const typename Kokkos::TeamPolicy<DeviceType>::member_type& team);
 
+  template<class CopyClass>
   inline
-  //SNAKokkos(real_type, int, real_type, int, int, int, int, int, int, int);
-  SNAKokkos(const PairSNAPKokkos<DeviceType, real_type, vector_length>&);
+  SNAKokkos(const CopyClass&);
 
   KOKKOS_INLINE_FUNCTION
   ~SNAKokkos();

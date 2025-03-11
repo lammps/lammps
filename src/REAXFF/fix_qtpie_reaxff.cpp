@@ -223,6 +223,7 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
                                    std::to_string(exp));
         gauss_exp[itype] = exp;
       }
+      fclose(fp);
     } catch (std::exception &e) {
       error->one(FLERR,e.what());
     }

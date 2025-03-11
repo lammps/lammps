@@ -17,10 +17,9 @@
 from __future__ import print_function
 
 import os
-import sys
 from ctypes import CDLL, POINTER, RTLD_GLOBAL, CFUNCTYPE, py_object, byref, cast, sizeof, \
   create_string_buffer, c_int, c_int32, c_int64, c_double, c_void_p, c_char_p, c_char,    \
-  pythonapi, pointer
+  pythonapi
 from os.path import dirname, abspath, join
 from inspect import getsourcefile
 
@@ -83,8 +82,6 @@ class command_wrapper(object):
 
   def _wrap_args(self, x):
       if callable(x):
-          if sys.version_info <  (3,):
-            raise Exception("Passing functions or lambdas directly as arguments is only supported in Python 3 or newer")
           import hashlib
           import __main__
           sha = hashlib.sha256()
@@ -105,11 +102,6 @@ class command_wrapper(object):
     all the arguments, concatinates them to a single string, and executes it using
     :py:meth:`lammps.command`.
 
-    Starting with Python 3.6 it also supports keyword arguments. key=value is
-    transformed into 'key value'. Note, since these have come last in the
-    parameter list, only a subset of LAMMPS commands can be used with this
-    syntax.
-
     LAMMPS commands that accept callback functions (such as fix python/invoke)
     can be passed functions and lambdas directly. The first argument of such
     callbacks will be an lammps object constructed from the passed LAMMPS
@@ -120,9 +112,6 @@ class command_wrapper(object):
     """
     def handler(*args, **kwargs):
       cmd_args = [name] + [str(self._wrap_args(x)) for x in args]
-
-      if len(kwargs) > 0 and sys.version_info < (3,6):
-         raise Exception("Keyword arguments are only supported in Python 3.6 or newer")
 
       # Python 3.6+ maintains ordering of kwarg keys
       for k in kwargs.keys():
@@ -435,6 +424,10 @@ class lammps(object):
     self.lib.lammps_extract_variable_datatype.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_extract_variable_datatype.restype = c_int
 
+    self.lib.lammps_clearstep_compute.argtype = [c_void_p]
+    self.lib.lammps_addstep_compute.argtype = [c_void_p, c_void_p]
+    self.lib.lammps_addstep_compute_all.argtype = [c_void_p, c_void_p]
+
     self.lib.lammps_eval.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_eval.restype = c_double
 
@@ -539,16 +532,10 @@ class lammps(object):
 
     else:
       # magic to convert ptr to ctypes ptr
-      if sys.version_info >= (3, 0):
-        # Python 3 (uses PyCapsule API)
-        pythonapi.PyCapsule_GetPointer.restype = c_void_p
-        pythonapi.PyCapsule_GetPointer.argtypes = [py_object, c_char_p]
-        self.lmp = c_void_p(pythonapi.PyCapsule_GetPointer(ptr, None))
-      else:
-        # Python 2 (uses PyCObject API)
-        pythonapi.PyCObject_AsVoidPtr.restype = c_void_p
-        pythonapi.PyCObject_AsVoidPtr.argtypes = [py_object]
-        self.lmp = c_void_p(pythonapi.PyCObject_AsVoidPtr(ptr))
+      # Python 3 (uses PyCapsule API)
+      pythonapi.PyCapsule_GetPointer.restype = c_void_p
+      pythonapi.PyCapsule_GetPointer.argtypes = [py_object, c_char_p]
+      self.lmp = c_void_p(pythonapi.PyCapsule_GetPointer(ptr, None))
 
     # check if library initilialization failed
     if not self.lmp:
@@ -906,9 +893,8 @@ class lammps(object):
     box_change = c_int()
 
     with ExceptionCheck(self):
-      self.lib.lammps_extract_box(self.lmp,boxlo,boxhi,
-                                  byref(xy),byref(yz),byref(xz),
-                                  periodicity,byref(box_change))
+      self.lib.lammps_extract_box(self.lmp, boxlo, boxhi, byref(xy), byref(yz), byref(xz),
+                                  periodicity, byref(box_change))
 
     boxlo = boxlo[:3]
     boxhi = boxhi[:3]
@@ -1244,7 +1230,7 @@ class lammps(object):
     """
 
     tag = self.c_tagint(id)
-    return self.lib.lammps_map_atom(self.lmp, pointer(tag))
+    return self.lib.lammps_map_atom(self.lmp, byref(tag))
 
   # -------------------------------------------------------------------------
   # set reaxff force field parameter(s)
@@ -1667,6 +1653,26 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
+  def clearstep_compute(self, nextstep):
+    with ExceptionCheck(self):
+      return self.lib.lammps_clearstep_compute(self.lmp)
+
+  # -------------------------------------------------------------------------
+
+  def addstep_compute(self, nextstep):
+    with ExceptionCheck(self):
+      nextstep = self.c_bigint(nextstep)
+      return self.lib.lammps_addstep_compute(self.lmp, byref(nextstep))
+
+  # -------------------------------------------------------------------------
+
+  def addstep_compute_all(self, nextstep):
+    with ExceptionCheck(self):
+      nextstep = self.c_bigint(nextstep)
+      return self.lib.lammps_addstep_compute_all(self.lmp, byref(nextstep))
+
+  # -------------------------------------------------------------------------
+
   def flush_buffers(self):
     """Flush output buffers
 
@@ -1750,7 +1756,7 @@ class lammps(object):
   def eval(self, expr):
     """ Evaluate a LAMMPS immediate variable expression
 
-    .. versionadded:: TBD
+    .. versionadded:: 4Feb2025
 
     This function is a wrapper around the function :cpp:func:`lammps_eval`
     of the C library interface.  It evaluates and expression like in
@@ -1767,7 +1773,6 @@ class lammps(object):
 
     with ExceptionCheck(self):
       return self.lib.lammps_eval(self.lmp, newexpr)
-    return None
 
   # -------------------------------------------------------------------------
 
@@ -2054,7 +2059,7 @@ class lammps(object):
     """
 
     flags = (c_int*3)()
-    self.lib.lammps_decode_image_flags(image,byref(flags))
+    self.lib.lammps_decode_image_flags(image, byref(flags))
 
     return [int(i) for i in flags]
 
@@ -2749,7 +2754,8 @@ class lammps(object):
     c_iatom = c_int()
     c_numneigh = c_int()
     c_neighbors = POINTER(c_int)()
-    self.lib.lammps_neighlist_element_neighbors(self.lmp, idx, element, byref(c_iatom), byref(c_numneigh), byref(c_neighbors))
+    self.lib.lammps_neighlist_element_neighbors(self.lmp, idx, element, byref(c_iatom),
+                                                byref(c_numneigh), byref(c_neighbors))
     return c_iatom.value, c_numneigh.value, c_neighbors
 
   # -------------------------------------------------------------------------

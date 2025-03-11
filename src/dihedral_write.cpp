@@ -107,7 +107,7 @@ void DihedralWrite::command(int narg, char **arg)
                      utils::current_date());
       fp = fopen(table_file.c_str(), "w");
       if (fp)
-        fmt::print(fp, "# DATE: {} UNITS: {} Created by dihedral_write\n", utils::current_date(),
+        utils::print(fp, "# DATE: {} UNITS: {} Created by dihedral_write\n", utils::current_date(),
                    update->unit_style);
     }
     if (fp == nullptr)
@@ -169,9 +169,9 @@ void DihedralWrite::command(int narg, char **arg)
 
     // evaluate energy and force at each of N distances
 
-    fmt::print(fp, "# Dihedral potential {} for dihedral type {}: i,theta,energy,force\n",
+    utils::print(fp, "# Dihedral potential {} for dihedral type {}: i,theta,energy,force\n",
                force->dihedral_style, dtype);
-    fmt::print(fp, "\n{}\nN {} DEGREES\n\n", keyword, n);
+    utils::print(fp, "\n{}\nN {} DEGREES\n\n", keyword, n);
 
 #define GET_ENERGY(myphi, mytheta)     \
   theta = mytheta;                     \

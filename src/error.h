@@ -29,6 +29,7 @@ class Error : protected Pointers {
 
   static constexpr int NOPOINTER = -2;
   static constexpr int NOLASTLINE = -3;
+  static constexpr int ARGZERO = -99;
 
   // regular error calls
 

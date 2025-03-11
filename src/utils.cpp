@@ -156,7 +156,7 @@ std::string utils::strcompress(const std::string &text)
   }
 
   // remove trailing blank
-  if (output.back() == ' ') output.erase(output.size() - 1, 1);
+  if (!output.empty() && output.back() == ' ') output.erase(output.size() - 1, 1);
   return output;
 }
 
@@ -178,7 +178,8 @@ std::string utils::strfind(const std::string &text, const std::string &pattern)
 void utils::missing_cmd_args(const std::string &file, int line, const std::string &cmd,
                              Error *error)
 {
-  if (error) error->all(file, line, "Illegal {} command: missing argument(s)", cmd);
+  if (error)
+    error->all(file, line, Error::NOPOINTER, "Illegal {} command: missing argument(s)", cmd);
 }
 
 std::string utils::point_to_error(Input *input, int failed)
@@ -233,9 +234,9 @@ std::string utils::point_to_error(Input *input, int failed)
       // construct and append error indicator line
       cmdline += '\n';
       cmdline += std::string(indicator, ' ');
-      cmdline += std::string(strlen(input->arg[failed]) + quoted, '^');
+      cmdline += std::string(strlen((failed < 0) ? input->command : input->arg[failed])
+                             + quoted, '^');
       cmdline += '\n';
-
     } else {
       cmdline += lastline;
       cmdline += '\n';
@@ -259,6 +260,22 @@ void utils::fmtargs_logmesg(LAMMPS *lmp, fmt::string_view format, fmt::format_ar
     logmesg(lmp, fmt::vformat(format, args));
   } catch (fmt::format_error &e) {
     logmesg(lmp, std::string(e.what()) + "\n");
+  }
+}
+
+/* specialization for the case of just a single string argument */
+
+void utils::print(FILE *fp, const std::string &mesg)
+{
+  fputs(mesg.c_str(), fp);
+}
+
+void utils::fmtargs_print(FILE *fp, fmt::string_view format, fmt::format_args args)
+{
+  try {
+    print(fp, fmt::vformat(format, args));
+  } catch (fmt::format_error &) {
+    ; // do nothing
   }
 }
 

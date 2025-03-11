@@ -85,6 +85,7 @@ void Error::universe_one(const std::string &file, int line, const std::string &s
   std::string mesg = fmt::format("ERROR on proc {}: {} ({}:{})\n",
                                  universe->me,str,truncpath(file),line);
   if (universe->uscreen) fputs(mesg.c_str(),universe->uscreen);
+  utils::flush_buffers(lmp);
 
   // allow commands if an exception was caught in a run
   // update may be a null pointer when catching command-line errors
@@ -103,7 +104,7 @@ void Error::universe_warn(const std::string &file, int line, const std::string &
   ++numwarn;
   if ((maxwarn != 0) && ((numwarn > maxwarn) || (allwarn > maxwarn) || (maxwarn < 0))) return;
   if (universe->uscreen)
-    fmt::print(universe->uscreen,"WARNING on proc {}: {} ({}:{})\n",
+    utils::print(universe->uscreen,"WARNING on proc {}: {} ({}:{})\n",
                universe->me,str,truncpath(file),line);
 }
 
@@ -118,13 +119,20 @@ void Error::all(const std::string &file, int line, int failed, const std::string
 {
   MPI_Barrier(world);
 
+  // must get rank from communicator since "comm" instance may not yet exist
+
+  int me = 0;
+  MPI_Comm_rank(world, &me);
+
   std::string lastcmd = "(unknown)";
   std::string mesg = "ERROR: " + str + fmt::format(" ({}:{})\n",  truncpath(file), line);
 
   // add text about the input following the error message
 
   if (failed > NOLASTLINE) mesg += utils::point_to_error(input, failed);
-  if (comm->me == 0) utils::logmesg(lmp,mesg);
+  if (failed == ARGZERO) mesg += utils::point_to_error(input, 0);
+  if (me == 0) utils::logmesg(lmp,mesg);
+  utils::flush_buffers(lmp);
 
   // allow commands if an exception was caught in a run
   // update may be a null pointer when catching command-line errors
@@ -148,15 +156,21 @@ void Error::one(const std::string &file, int line, int failed, const std::string
 {
   std::string lastcmd = "(unknown)";
 
-  std::string mesg = fmt::format("ERROR on proc {}: {} ({}:{})\n", comm->me, str,
-                                 truncpath(file), line);
+  // must get rank from communicator since "comm" instance may not yet exist
+
+  int me = 0;
+  MPI_Comm_rank(world, &me);
+
+  std::string mesg = fmt::format("ERROR on proc {}: {} ({}:{})\n", me, str, truncpath(file), line);
   if (failed > NOPOINTER) mesg += utils::point_to_error(input, failed);
+  if (failed == ARGZERO) mesg += utils::point_to_error(input, 0);
   utils::logmesg(lmp,mesg);
 
   if (universe->nworlds > 1)
     if (universe->uscreen)
       fputs(mesg.c_str(),universe->uscreen);
 
+  utils::flush_buffers(lmp);
   // allow commands if an exception was caught in a run
   // update may be a null pointer when catching command-line errors
 
@@ -255,6 +269,7 @@ void Error::_message(const std::string &file, int line, fmt::string_view format,
 
 void Error::done(int status)
 {
+  utils::flush_buffers(lmp);
   MPI_Barrier(world);
 
   if (output) delete output;

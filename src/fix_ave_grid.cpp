@@ -1,4 +1,4 @@
-// clang-format off
+// clang-format on
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -34,15 +34,14 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{ALL,SAMPLE,NONORM};
-enum{ONE,RUNNING,WINDOW};
-enum{DISCARD,KEEP};
+enum { ALL, SAMPLE, NONORM };
+enum { ONE, RUNNING, WINDOW };
+enum { DISCARD, KEEP };
 
 // OFFSET avoids outside-of-box atoms being rounded to grid pts incorrectly
 
 static constexpr int OFFSET = 16384;
 
-// clang-format on
 /* ---------------------------------------------------------------------- */
 
 FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
@@ -55,42 +54,51 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
     bin(nullptr), skip(nullptr), vresult(nullptr)
 {
   if (narg < 10) utils::missing_cmd_args(FLERR, "fix ave/grid", error);
-  // clang-format off
+
   pergrid_flag = 1;
-  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
-  pergrid_freq = utils::inumeric(FLERR,arg[5],false,lmp);
+  nevery = utils::inumeric(FLERR, arg[3], false, lmp);
+  nrepeat = utils::inumeric(FLERR, arg[4], false, lmp);
+  pergrid_freq = utils::inumeric(FLERR, arg[5], false, lmp);
   time_depend = 1;
 
-  if (nevery <= 0 || nrepeat <= 0 || pergrid_freq <= 0)
-    error->all(FLERR,"Illegal fix ave/grid command");
-  if (pergrid_freq % nevery || nrepeat*nevery > pergrid_freq)
-    error->all(FLERR,"Illegal fix ave/grid command");
+  if (nevery <= 0) error->all(FLERR, 3, "Illegal fix ave/grid nevery value: {}", nevery);
+  if (nrepeat <= 0) error->all(FLERR, 4, "Illegal fix ave/grid nrepeat value: {}", nrepeat);
+  if (pergrid_freq <= 0)
+    error->all(FLERR, 5, "Illegal fix ave/grid pergrid freq value: {}", pergrid_freq);
+
+  if (pergrid_freq % nevery || nrepeat * nevery > pergrid_freq)
+    error->all(FLERR, Error::NOPOINTER,
+               "Inconsistent fix ave/grid nevery/nrepeat/pergrid_nfreq values");
 
   // NOTE: allow Dxyz as well at some point ?
 
-  nxgrid = utils::inumeric(FLERR,arg[6],false,lmp);
-  nygrid = utils::inumeric(FLERR,arg[7],false,lmp);
-  nzgrid = utils::inumeric(FLERR,arg[8],false,lmp);
+  nxgrid = utils::inumeric(FLERR, arg[6], false, lmp);
+  nygrid = utils::inumeric(FLERR, arg[7], false, lmp);
+  nzgrid = utils::inumeric(FLERR, arg[8], false, lmp);
 
   // expand args if any have wildcard character "*"
   // this can reset nvalues
 
+  const int ioffset = 9;
   int expand = 0;
   char **earg;
-  int nargnew = utils::expand_args(FLERR,narg-9,&arg[9],1,earg,lmp);
+  int *amap = nullptr;
+  int nargnew = utils::expand_args(FLERR, narg - ioffset, &arg[ioffset], 1, earg, lmp, &amap);
 
-  if (earg != &arg[9]) expand = 1;
+  if (earg != &arg[ioffset]) expand = 1;
   arg = earg;
 
   // parse values until one isn't recognized (optional keyword)
 
   which = new int[nargnew];
   argindex = new int[nargnew];
-  ids = new char*[nargnew];
+  iarg_orig = new int[nargnew];
+  ids = new char *[nargnew];
   value2index = new int[nargnew];
   value2grid = new int[nargnew];
   value2data = new int[nargnew];
+
+  // clang-format off
 
   modeatom = modegrid = 0;
   nvalues = 0;
@@ -98,6 +106,8 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 0;
   while (iarg < nargnew) {
     ids[nvalues] = nullptr;
+    if (expand) iarg_orig[iarg] = amap[iarg] + ioffset;
+    else iarg_orig[iarg] = iarg + ioffset;
 
     if (strcmp(arg[iarg],"vx") == 0) {
       which[nvalues] = ArgInfo::V;
@@ -149,7 +159,8 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
       ArgInfo argi(arg[iarg]);
       if (argi.get_type() == ArgInfo::NONE || argi.get_type() == ArgInfo::UNKNOWN) break;
-      if (argi.get_dim() > 1) error->all(FLERR,"Invalid fix ave/grid command");
+      if (argi.get_dim() > 1)
+        error->all(FLERR, iarg_orig[iarg], "Invalid fix ave/grid argument: {}", arg[iarg]);
 
       // atom value has no colon
 
@@ -167,8 +178,10 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
         int igrid,idata,index;
         int iflag =
           utils::check_grid_reference((char *) "Fix ave/grid",
-                                      arg[iarg],nevery,ids[nvalues],igrid,idata,index,lmp);
-        if (iflag < 0) error->all(FLERR,"Invalid grid reference in fix ave/grid command");
+                                      arg[iarg], nevery, ids[nvalues], igrid, idata, index, lmp);
+        if (iflag < 0)
+          error->all(FLERR, iarg_orig[iarg],
+                     "Invalid grid reference {} in fix ave/grid command", arg[iarg]);
 
         which[nvalues] = iflag;
         value2grid[nvalues] = igrid;
@@ -181,11 +194,10 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
   }
 
-  if (nvalues == 0) error->all(FLERR,"No values in fix ave/grid command");
+  if (nvalues == 0) error->all(FLERR, ioffset, "No values in fix ave/grid command");
 
   if (modeatom && modegrid)
-    error->all(FLERR,"Fix ave/grid cannot operate on per-atom and "
-               "per-grid values");
+    error->all(FLERR, "Fix ave/grid cannot operate on per-atom and per-grid values together");
 
   // optional args
 
@@ -199,54 +211,56 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < nargnew) {
     if (strcmp(arg[iarg],"discard") == 0) {
-      if (iarg+2 > nargnew) error->all(FLERR,"Illegal fix ave/grid command");
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/grid discard", error);
       if (strcmp(arg[iarg+1],"yes") == 0) discardflag = DISCARD;
       else if (strcmp(arg[iarg+1],"no") == 0) discardflag = KEEP;
-      else error->all(FLERR,"Illegal fix ave/grid command");
+      else error->all(FLERR, iarg_orig[iarg+1],
+                      "Illegal fix ave/grid discard argument: {}", arg[iarg+1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"norm") == 0) {
-      if (iarg+2 > nargnew) error->all(FLERR,"Illegal fix ave/grid command");
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/grid norm", error);
       if (strcmp(arg[iarg+1],"all") == 0) normflag = ALL;
       else if (strcmp(arg[iarg+1],"sample") == 0) normflag = SAMPLE;
       else if (strcmp(arg[iarg+1],"none") == 0) normflag = NONORM;
-      else error->all(FLERR,"Illegal fix ave/grid command");
+      else error->all(FLERR, iarg_orig[iarg+1],
+                      "Illegal fix ave/grid norm argument: {}", arg[iarg+1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"ave") == 0) {
-      if (iarg+2 > nargnew) error->all(FLERR,"Illegal fix ave/grid command");
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/grid ave", error);
       if (strcmp(arg[iarg+1],"one") == 0) aveflag = ONE;
       else if (strcmp(arg[iarg+1],"running") == 0) aveflag = RUNNING;
       else if (strcmp(arg[iarg+1],"window") == 0) aveflag = WINDOW;
-      else error->all(FLERR,"Illegal fix ave/grid command");
+      else error->all(FLERR, iarg_orig[iarg+1],
+                      "Illegal fix ave/grid ave argument: {}", arg[iarg+1]);
       if (aveflag == WINDOW) {
-        if (iarg+3 > nargnew) error->all(FLERR,"Illegal fix ave/grid command");
+        if (iarg+3 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/grid ave window", error);
         nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-        if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/grid command");
+        if (nwindow <= 0)
+          error->all(FLERR, iarg_orig[iarg+2],
+                     "Illegal fix ave/grid ave window argument: {}", arg[iarg+2]);
         iarg++;
       }
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"bias") == 0) {
-      if (iarg+2 > nargnew)
-        error->all(FLERR,"Illegal fix ave/grid command");
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/grid bias", error);
       biasflag = 1;
       delete[] id_bias;
       id_bias = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"adof") == 0) {
-      if (iarg+2 > nargnew)
-        error->all(FLERR,"Illegal fix ave/grid command");
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/grid adof", error);
       adof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"cdof") == 0) {
-      if (iarg+2 > nargnew)
-        error->all(FLERR,"Illegal fix ave/grid command");
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/grid cdof", error);
       cdof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
-    } else error->all(FLERR,"Illegal fix ave/grid command");
+    } else error->all(FLERR, iarg_orig[iarg], "Unknown fix ave/grid keyword: {}", arg[iarg]);
   }
 
   // if wildcard expansion occurred, free earg memory from exapnd_args()
@@ -254,6 +268,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   if (expand) {
     for (int i = 0; i < nvalues; i++) delete[] earg[i];
     memory->sfree(earg);
+    memory->sfree(amap);
   }
 
   // more error checks
@@ -269,11 +284,11 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   if (biasflag) {
     tbias = modify->get_compute_by_id(id_bias);
     if (!tbias)
-      error->all(FLERR,"Could not find compute ID for temperature bias");
+      error->all(FLERR,"Could not find compute ID {} for temperature bias", id_bias);
     if (tbias->tempflag == 0)
-      error->all(FLERR,"Bias compute does not calculate temperature");
+      error->all(FLERR,"Bias compute ID {} does not calculate temperature", id_bias);
     if (tbias->tempbias == 0)
-      error->all(FLERR,"Bias compute does not calculate a velocity bias");
+      error->all(FLERR,"Bias compute ID {} does not calculate a velocity bias", id_bias);
   }
 
   // error checks for ATOM mode
@@ -283,37 +298,46 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
       if (which[i] == ArgInfo::COMPUTE) {
         auto icompute = modify->get_compute_by_id(ids[i]);
         if (!icompute)
-          error->all(FLERR,"Compute {} for fix ave/grid does not exist", ids[i]);
+          error->all(FLERR, iarg_orig[i], "Compute {} for fix ave/grid does not exist", ids[i]);
         if (icompute->peratom_flag == 0)
-          error->all(FLERR, "Fix ave/atom compute {} does not calculate per-atom values", ids[i]);
+          error->all(FLERR, iarg_orig[i],
+                     "Fix ave/atom compute {} does not calculate per-atom values", ids[i]);
         if ((argindex[i] == 0) && (icompute->size_peratom_cols != 0))
-          error->all(FLERR,"Fix ave/atom compute {} does not calculate a per-atom vector", ids[i]);
+          error->all(FLERR, iarg_orig[i],
+                     "Fix ave/atom compute {} does not calculate a per-atom vector", ids[i]);
         if (argindex[i] && (icompute->size_peratom_cols == 0))
-          error->all(FLERR,"Fix ave/atom compute {} does not calculate a per-atom array", ids[i]);
+          error->all(FLERR, iarg_orig[i],
+                     "Fix ave/atom compute {} does not calculate a per-atom array", ids[i]);
         if (argindex[i] && (argindex[i] > icompute->size_peratom_cols))
-          error->all(FLERR,"Fix ave/atom compute {} array is accessed out-of-range", ids[i]);
+          error->all(FLERR, iarg_orig[i],
+                     "Fix ave/atom compute {} array is accessed out-of-range", ids[i]);
 
       } else if (which[i] == ArgInfo::FIX) {
         auto ifix = modify->get_fix_by_id(ids[i]);
         if (!ifix)
-          error->all(FLERR,"Fix {} for fix ave/atom does not exist", ids[i]);
+          error->all(FLERR, iarg_orig[i], "Fix {} for fix ave/atom does not exist", ids[i]);
         if (ifix->peratom_flag == 0)
-          error->all(FLERR,"Fix ave/atom fix {} does not calculate per-atom values", ids[i]);
+          error->all(FLERR, iarg_orig[i],
+                     "Fix ave/atom fix {} does not calculate per-atom values", ids[i]);
         if ((argindex[i] == 0) && (ifix->size_peratom_cols != 0))
-          error->all(FLERR, "Fix ave/atom fix {} does not calculate a per-atom vector", ids[i]);
+          error->all(FLERR, iarg_orig[i],
+                     "Fix ave/atom fix {} does not calculate a per-atom vector", ids[i]);
         if (argindex[i] && (ifix->size_peratom_cols == 0))
-          error->all(FLERR, "Fix ave/atom fix {} does not calculate a per-atom array", ids[i]);
+          error->all(FLERR, iarg_orig[i],
+                     "Fix ave/atom fix {} does not calculate a per-atom array", ids[i]);
         if (argindex[i] && (argindex[i] > ifix->size_peratom_cols))
-          error->all(FLERR,"Fix ave/atom fix {} array is accessed out-of-range", ids[i]);
+          error->all(FLERR, iarg_orig[i],
+                     "Fix ave/atom fix {} array is accessed out-of-range", ids[i]);
         if (nevery % ifix->peratom_freq)
-          error->all(FLERR, "Fix {} for fix ave/atom not computed at compatible time", ids[i]);
+          error->all(FLERR, iarg_orig[i],
+                     "Fix {} for fix ave/atom not computed at compatible time", ids[i]);
 
       } else if (which[i] == ArgInfo::VARIABLE) {
         int ivariable = input->variable->find(ids[i]);
         if (ivariable < 0)
-          error->all(FLERR,"Variable name for fix ave/atom does not exist");
+          error->all(FLERR, iarg_orig[i], "Variable name for fix ave/atom does not exist");
         if (input->variable->atomstyle(ivariable) == 0)
-          error->all(FLERR,"Fix ave/atom variable is not atom-style variable");
+          error->all(FLERR, iarg_orig[i], "Fix ave/atom variable is not atom-style variable");
       }
     }
   }
@@ -367,6 +391,7 @@ FixAveGrid::~FixAveGrid()
 {
   delete[] which;
   delete[] argindex;
+  delete[] iarg_orig;
   for (int m = 0; m < nvalues; m++) delete[] ids[m];
   delete[] ids;
   delete[] id_bias;
@@ -419,7 +444,7 @@ void FixAveGrid::init()
   if (biasflag) {
     tbias = modify->get_compute_by_id(id_bias);
     if (!tbias)
-      error->all(FLERR,"Could not find compute ID for temperature bias");
+      error->all(FLERR, Error::NOLASTLINE, "Could not find compute ID for temperature bias");
   }
 
   // set indices and check validity of all computes,fixes,variables
@@ -428,19 +453,19 @@ void FixAveGrid::init()
     if (which[m] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
-        error->all(FLERR,"Compute {} for fix ave/grid does not exist", ids[m]);
+        error->all(FLERR, Error::NOLASTLINE, "Compute {} for fix ave/grid does not exist", ids[m]);
       value2index[m] = icompute;
 
     } else if (which[m] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[m]);
       if (ifix < 0)
-        error->all(FLERR,"Fix {} for fix ave/grid does not exist", ids[m]);
+        error->all(FLERR, Error::NOLASTLINE, "Fix {} for fix ave/grid does not exist", ids[m]);
       value2index[m] = ifix;
 
     } else if (which[m] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
       if (ivariable < 0)
-        error->all(FLERR,"Variable name for fix ave/grid does not exist");
+        error->all(FLERR, Error::NOLASTLINE, "Variable name for fix ave/grid does not exist");
       value2index[m] = ivariable;
 
     } else value2index[m] = -1;
@@ -467,7 +492,7 @@ void FixAveGrid::init()
         }
         grid2d->get_size(nxtmp,nytmp);
         if (nxtmp != nxgrid || nytmp != nygrid)
-          error->all(FLERR,"Fix ave/grid value grid sizes do not match");
+          error->all(FLERR, Error::NOLASTLINE, "Fix ave/grid value grid sizes do not match");
 
       } else {
         if (which[m] == ArgInfo::COMPUTE) {
@@ -479,7 +504,7 @@ void FixAveGrid::init()
         }
         grid3d->get_size(nxtmp,nytmp,nztmp);
         if (nxtmp != nxgrid || nytmp != nygrid || nztmp != nzgrid)
-          error->all(FLERR,"Fix ave/grid value grid sizes do not match");
+          error->all(FLERR, Error::NOLASTLINE, "Fix ave/grid value grid sizes do not match");
       }
     }
   }
@@ -841,7 +866,7 @@ void FixAveGrid::atom2grid()
     }
   }
 
-  if (flag) error->one(FLERR,"Out of range fix ave/grid atoms");
+  if (flag) error->one(FLERR, Error::NOLASTLINE, "Out of range fix ave/grid atoms");
 
   if (triclinic) domain->lamda2x(nlocal);
 

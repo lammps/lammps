@@ -209,7 +209,7 @@ nve, nvt, npt.
 
 At the end of the timestep, fixes that contain an ``end_of_step()``
 method are invoked.  These typically perform a diagnostic calculation,
-e.g. the ave/time and ave/spatial fixes.  The final operation of the
+e.g. the ave/time and ave/chunk fixes.  The final operation of the
 timestep is to perform any requested output, via the ``write()`` method
 of the Output class.  There are 3 kinds of LAMMPS output: thermodynamic
 output to the screen and log file, snapshots of atom data to a dump

@@ -252,6 +252,8 @@
 /*rheo*.cpp
 /*rheo*.h
 
+/compute_gaussian_grid_local.cpp
+/compute_gaussian_grid_local.h
 /compute_grid.cpp
 /compute_grid.h
 /compute_grid_local.cpp
@@ -372,6 +374,8 @@
 /bond_bpm_rotational.h
 /bond_bpm_spring.cpp
 /bond_bpm_spring.h
+/bond_bpm_spring_plastic.cpp
+/bond_bpm_spring_plastic.h
 /compute_nbond_atom.cpp
 /compute_nbond_atom.h
 /fix_nve_bpm_sphere.cpp
@@ -849,6 +853,8 @@
 /fix_ffl.h
 /fix_filter_corotate.cpp
 /fix_filter_corotate.h
+/fix_granular_mdr.cpp
+/fix_granular_mdr.h
 /fix_viscosity.cpp
 /fix_viscosity.h
 /fix_ehex.cpp
@@ -1277,6 +1283,10 @@
 /pair_hbond_dreiding_lj.h
 /pair_hbond_dreiding_morse.cpp
 /pair_hbond_dreiding_morse.h
+/pair_hbond_dreiding_lj_angleoffset.cpp
+/pair_hbond_dreiding_lj_angleoffset.h
+/pair_hbond_dreiding_morse_angleoffset.cpp
+/pair_hbond_dreiding_morse_angleoffset.h
 /pair_hdnnp.cpp
 /pair_hdnnp.h
 /pair_ilp_graphene_hbn.cpp
@@ -1541,6 +1551,8 @@
 /reaxff_inline.h
 /reaxff_omp.h
 /reaxff_types.h
+/region2vmd.cpp
+/region2vmd.h
 /remap.cpp
 /remap.h
 /remap_wrap.cpp

@@ -279,7 +279,7 @@ if(APPLE)
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE_ICON_FILE lammps.icns
-    MACOSX_BUNDLE_COPYRIGHT "(c) 2003 - 2024, The LAMMPS Developers"
+    MACOSX_BUNDLE_COPYRIGHT "(c) 2003 - 2025, The LAMMPS Developers"
     MACOSX_BUNDLE TRUE
   )
   # additional targets to populate the bundle tree and create the .dmg image file

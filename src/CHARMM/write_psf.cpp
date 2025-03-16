@@ -580,9 +580,6 @@ void WritePsf::atoms()
         utils::print(fp, "{0:<8} {0:<8} {0:<8} {1:<8} {1:<4} ", molecule_id, type_id );
 
       } else {
-  std::string *segment = atom->segment;
-  std::string *residue = atom->residue;
-  std::string *name = atom->name;
 
         // segment label
         utils::print(fp, "{:<8} ", atom->segment[atom_index]);
@@ -597,7 +594,8 @@ void WritePsf::atoms()
         utils::print(fp, "{:<8} ", atom->name[atom_index]);
 
         // type label
-        utils::print(fp, "{:<4} ", atom->lmap->label(type_id, Atom::ATOM) );
+        // FIXME
+        //utils::print(fp, "{:<4} ", atom->lmap->label(type_id, Atom::ATOM) );
 
       }
 

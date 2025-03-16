@@ -55,6 +55,7 @@ void ReadPsf::command(int narg, char **arg)
     atom->add_label_map();
 
   LabelMap *lmap = atom->lmap;
+  char **lmap_arg;
   std::string *segment = atom->segment;
   std::string *residue = atom->residue;
   std::string *name = atom->name;

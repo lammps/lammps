@@ -46,6 +46,9 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   rmass_flag = 0;
   temperature_flag = 0;
   heatflow_flag = 0;
+  segment_flag = 0;
+  residue_flag = 0;
+  name_flag = 0;
   nmax_old = 0;
 
   nvalue = 0;
@@ -115,6 +118,28 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       values_peratom++;
       nvalue++;
       iarg++;
+
+      // CHARMM topology
+
+    } else if (utils::strmatch(arg[iarg], "residue")) {
+      if (atom->residue_flag)
+        error->all(FLERR, "Fix property/atom residue when atom_style already has residue attribute");
+      if (residue_flag) error->all(FLERR, "Fix property/atom cannot specify residue twice");
+      styles[nvalue] = SEGMENT;
+      cols[nvalue] = 0;
+      atom->residue_flag = residue_flag = 1;
+      values_peratom++;
+      nvalue++;
+      iarg++;
+
+
+      int flag, ncols;
+      index[nvalue] = atom->find_custom(&arg[iarg][2], flag, ncols);
+      if (index[nvalue] >= 0) error->all(FLERR, "Fix property/atom vector name already exists");
+      if (ReadData::is_data_section(id))
+        error->all(FLERR, "Fix property/atom fix ID must not be a data file section name");
+      index[nvalue] = atom->add_custom(&arg[iarg][2], 0, 0, border);
+      cols[nvalue] = 0;
 
       // custom atom vector
 

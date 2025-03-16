@@ -39,6 +39,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <string>
 
 #ifdef LMP_GPU
 #include "fix_gpu.h"
@@ -3191,6 +3192,14 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"apip_f_dyn_lambda") == 0) return (void *) apip_f_dyn_lambda;
   if (strcmp(name,"apip_lambda_const") == 0) return (void *) apip_lambda_const;
 
+  // CHARMM package
+
+  if (strcmp(name,"segment") == 0) return (void *) segment.c_str();
+  if (strcmp(name,"residue") == 0) return (void *) residue.c_str();
+  // avoid conflict between function parameter and class member variable with this->
+  if (strcmp(name,"name") == 0) return (void *) this->name.c_str();
+
+
   // end of customization section
   // --------------------------------------------------------------------
 
@@ -3354,6 +3363,13 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"apip_lambda_const") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"apip_f_const_lambda") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"apip_f_dyn_lambda") == 0) return LAMMPS_DOUBLE_2D;
+
+  // CHARMM package
+
+  if (strcmp(name,"segment") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"residue") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"name") == 0) return LAMMPS_STRING;
+
   // end of customization section
   // --------------------------------------------------------------------
 

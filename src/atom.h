@@ -20,6 +20,7 @@
 
 #include <map>
 #include <set>
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -35,7 +36,7 @@ class Atom : protected Pointers {
   enum { DOUBLE, INT, BIGINT };
   enum { GROW = 0, RESTART = 1, BORDER = 2 };
   enum { ATOMIC = 0, MOLECULAR = 1, TEMPLATE = 2 };
-  enum { ATOM = 0, BOND = 1, ANGLE = 2, DIHEDRAL = 3, IMPROPER = 4, SEGMENT = 5, RESIDUE = 6, NAME = 7 };
+  enum { ATOM = 0, BOND = 1, ANGLE = 2, DIHEDRAL = 3, IMPROPER = 4 };
   enum { NUMERIC = 0, LABELS = 1 };
   enum { MAP_NONE = 0, MAP_ARRAY = 1, MAP_HASH = 2, MAP_YES = 3 };
 
@@ -180,6 +181,11 @@ class Atom : protected Pointers {
 
   double *apip_lambda, *apip_lambda_input, *apip_lambda_input_ta, *apip_e_fast, *apip_e_precise, **apip_f_const_lambda, **apip_f_dyn_lambda, *apip_lambda_const;
   int *apip_lambda_required;
+  
+  // CHARMM package
+
+  std::string segment, residue, name;
+
 
   // end of customization section
   // --------------------------------------------------------------------
@@ -227,9 +233,15 @@ class Atom : protected Pointers {
 
   int dielectric_flag;
 
+<<<<<<< HEAD
   // APIP package
 
   int apip_lambda_flag, apip_e_fast_flag, apip_e_precise_flag, apip_lambda_input_flag, apip_lambda_input_ta_flag, apip_lambda_required_flag, apip_f_const_lambda_flag, apip_f_dyn_lambda_flag, apip_lambda_const_flag;
+=======
+  // CHARMM package
+
+  int segment_flag, residue_flag, name_flag;
+>>>>>>> 64ed5749ce (add segment, residue, name)
 
   // end of customization section
   // --------------------------------------------------------------------

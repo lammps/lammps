@@ -29,28 +29,16 @@
 #include "text_file_reader.h"
 
 #include <cstring>
+#include <string>
 #include <vector>
 
-#define MAX_PSF_LABEL_SIZE 8 // psf EXT format
+//#define MAX_PSF_LABEL_SIZE 8 // psf EXT format
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ReadPsf::ReadPsf(LAMMPS *lmp) :
-    Command(lmp)
-{
-
-  int flag,cols;
-  int index_atom_iarray = atom->find_custom("psf",flag,cols);
-
-  // if atom custom psf doesn't exist, add it
-  if( index_atom_iarray == -1 )
-    index_atom_iarray = atom->add_custom("psf",0,3,0);
-
-  atom_iarray_psf = atom->iarray[index_atom_iarray];
-
-}
+ReadPsf::ReadPsf(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -67,8 +55,9 @@ void ReadPsf::command(int narg, char **arg)
     atom->add_label_map();
 
   LabelMap *lmap = atom->lmap;
-  char **lmap_arg;
-  memory->create(lmap_arg,3,MAX_PSF_LABEL_SIZE+1,"read_psf:lmap_arg");
+  std::string *segment = atom->segment;
+  std::string *residue = atom->residue;
+  std::string *name = atom->name;
 
   int sendsize = 0;
   int **sendbuf;
@@ -98,25 +87,20 @@ void ReadPsf::command(int narg, char **arg)
         int atom_index = atom->map(atom_tag);
 
         // atom segment
-        std::string segment = values.next_string();
-        int segment_id = lmap->find_or_add_psf(segment, Atom::SEGMENT);
+        segment[atom_index] = values.next_string();
 
         // skip molecule id
         values.skip(1);
 
         // residue
-        std::string residue = values.next_string();
-        int residue_id = lmap->find_or_add_psf(residue, Atom::RESIDUE);
+        residue[atom_index] = values.next_string();
 
         // name
-        std::string name = values.next_string();
-        int name_id = lmap->find_or_add_psf(name, Atom::NAME);
+        name[atom_index] = values.next_string();
 
+/*
         // determine if this proc owns the atom
         if( atom_index != -1 ) {
-          atom_iarray_psf[atom_index][0] = segment_id;
-          atom_iarray_psf[atom_index][1] = residue_id;
-          atom_iarray_psf[atom_index][2] = name_id;
 
           // type
           int type_id = atom->type[atom_index];
@@ -134,6 +118,8 @@ void ReadPsf::command(int narg, char **arg)
           atom_types.push_back(values.next_string());
           sendsize++;
         }
+*/
+
       }
 
       // close file
@@ -149,6 +135,7 @@ void ReadPsf::command(int narg, char **arg)
     }
   }
 
+/*
   if( nprocs>1 ) {
 
     // SEND TAG/SEGMENT/RESIDUE/NAME NOT OWNED BY PROC 0 TO OTHER PROCS
@@ -244,6 +231,8 @@ void ReadPsf::command(int narg, char **arg)
     delete [] recvcounts;
     delete [] displs;
   }
+*/
+
   memory->destroy(sendbuf);
   memory->destroy(lmap_arg);
 }

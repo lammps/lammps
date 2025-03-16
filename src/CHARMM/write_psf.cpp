@@ -214,15 +214,15 @@ void WritePsf::write(const std::string &file)
 void WritePsf::header()
 {
 
-  fmt::print(fp,"PSF EXT XPLOR\n\n         5 !NTITLE\n");
+  utils::print(fp,"PSF EXT XPLOR\n\n         5 !NTITLE\n");
 
-  fmt::print(fp,"* LAMMPS psf file via write_psf, version {}, timestep = {}, units = {}\n",
+  utils::print(fp,"* LAMMPS psf file via write_psf, version {}, timestep = {}, units = {}\n",
              lmp->version, update->ntimestep, update->unit_style);
 
-  fmt::print(fp,"* II,LSEGID,LRESID,LRES,TYPE(I),IAC(I),CG(I),AMASS(I),IMOVE(I)\n");
-  fmt::print(fp,"* expanded format EXT:\n");
-  fmt::print(fp,"* (I10,1X,A8,1X,A8,1X,A8,1X,A8,1X,A4,1X,2G14.6,I8) XPLOR\n");
-  fmt::print(fp,"* [https://userguide.mdanalysis.org/stable/formats/reference/psf.html]\n");
+  utils::print(fp,"* II,LSEGID,LRESID,LRES,TYPE(I),IAC(I),CG(I),AMASS(I),IMOVE(I)\n");
+  utils::print(fp,"* expanded format EXT:\n");
+  utils::print(fp,"* (I10,1X,A8,1X,A8,1X,A8,1X,A8,1X,A4,1X,2G14.6,I8) XPLOR\n");
+  utils::print(fp,"* [https://userguide.mdanalysis.org/stable/formats/reference/psf.html]\n");
 
 }
 
@@ -260,7 +260,7 @@ void WritePsf::bonds()
     MPI_Status status;
     MPI_Request request;
 
-    fmt::print(fp,"\n {:9} !NBOND: bonds\n",nbonds);
+    utils::print(fp,"\n {:9} !NBOND: bonds\n",nbonds);
 
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
@@ -276,16 +276,16 @@ void WritePsf::bonds()
       index += recvrow;
 
       for (int i = 0; i < recvrow; i++) {
-        fmt::print(fp, " {:9} {:9}", buf[i][1], buf[i][2]);
+        utils::print(fp, " {:9} {:9}", buf[i][1], buf[i][2]);
         j++;
         if( j % 4 == 0) // newline every 4 bonds
-          fmt::print(fp, "\n");
+          utils::print(fp, "\n");
       }
 
     }
 
     if( j % 4 != 0) // newline after last bond if row not full
-      fmt::print(fp, "\n");
+      utils::print(fp, "\n");
 
 
   } else {
@@ -329,7 +329,7 @@ void WritePsf::angles()
     MPI_Status status;
     MPI_Request request;
 
-    fmt::print(fp,"\n {:9} !NTHETA: angles\n",nangles);
+    utils::print(fp,"\n {:9} !NTHETA: angles\n",nangles);
 
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
@@ -343,16 +343,16 @@ void WritePsf::angles()
       index += recvrow;
 
       for (int i = 0; i < recvrow; i++) {
-        fmt::print(fp, " {:9} {:9} {:9}", buf[i][1], buf[i][2], buf[i][3]);
+        utils::print(fp, " {:9} {:9} {:9}", buf[i][1], buf[i][2], buf[i][3]);
         j++;
         if( j % 3 == 0) // newline every 3 angles
-          fmt::print(fp, "\n");
+          utils::print(fp, "\n");
       }
 
     }
 
     if( j % 3 != 0) // newline after last angle if row not full
-      fmt::print(fp, "\n");
+      utils::print(fp, "\n");
 
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
@@ -396,7 +396,7 @@ void WritePsf::dihedrals()
     MPI_Status status;
     MPI_Request request;
 
-    fmt::print(fp,"\n {:9} !NPHI: dihedrals\n", ndihedrals);
+    utils::print(fp,"\n {:9} !NPHI: dihedrals\n", ndihedrals);
 
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
@@ -410,16 +410,16 @@ void WritePsf::dihedrals()
       index += recvrow;
 
       for (int i = 0; i < recvrow; i++) {
-        fmt::print(fp, " {:9} {:9} {:9} {:9}", buf[i][1], buf[i][2], buf[i][3], buf[i][4]);
+        utils::print(fp, " {:9} {:9} {:9} {:9}", buf[i][1], buf[i][2], buf[i][3], buf[i][4]);
         j++;
         if( j % 2 == 0) // newline every 2 dihedrals
-          fmt::print(fp, "\n");
+          utils::print(fp, "\n");
       }
 
     }
 
     if( j % 2 != 0) // newline after last dihedral if row not full
-      fmt::print(fp, "\n");
+      utils::print(fp, "\n");
 
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
@@ -463,7 +463,7 @@ void WritePsf::impropers()
     MPI_Status status;
     MPI_Request request;
 
-    fmt::print(fp,"\n {:9} !NIMPHI: impropers\n", nimpropers);
+    utils::print(fp,"\n {:9} !NIMPHI: impropers\n", nimpropers);
 
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
@@ -477,15 +477,15 @@ void WritePsf::impropers()
       index += recvrow;
 
       for (int i = 0; i < recvrow; i++) {
-        fmt::print(fp, " {:9} {:9} {:9} {:9}", buf[i][1], buf[i][2], buf[i][3], buf[i][4]);
+        utils::print(fp, " {:9} {:9} {:9} {:9}", buf[i][1], buf[i][2], buf[i][3], buf[i][4]);
         j++;
         if( j % 2 == 0) // newline every 2 dihedrals
-          fmt::print(fp, "\n");
+          utils::print(fp, "\n");
       }
     }
 
     if( j % 2 != 0) // newline after last dihedral if row not full
-      fmt::print(fp, "\n");
+      utils::print(fp, "\n");
 
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
@@ -554,7 +554,7 @@ void WritePsf::atoms()
     for (int i = 0; i < natoms; i++) order[i] = i;
     //utils::merge_sort(order, natoms, (void *)buf, compare_tags);
 
-    fmt::print(fp,"\n {:8} !NATOM\n",natoms);
+    utils::print(fp,"\n {:8} !NATOM\n",natoms);
 
     for (int i = 0; i < natoms; i++) {
 
@@ -566,7 +566,7 @@ void WritePsf::atoms()
       //int j = atom->map(atom_tag);
       tagint molecule_id = ubuf(buf[j][2]).i;
       int type_id = ubuf(buf[j][5]).i;
-      fmt::print(fp, "{:10} ", atom_tag );
+      utils::print(fp, "{:10} ", atom_tag );
       int atom_index = atom->map(atom_tag);
 
       if( atom_iarray_psf == nullptr ) {
@@ -574,32 +574,32 @@ void WritePsf::atoms()
         // defaults when atom_iarray_psf doesnt exists:
         // - molecule id for Segment ID, molecule ID, Residue ID
         // - numerical type for atom name and atom type
-        fmt::print(fp, "{0:<8} {0:<8} {0:<8} {1:<8} {1:<4} ", molecule_id, type_id );
+        utils::print(fp, "{0:<8} {0:<8} {0:<8} {1:<8} {1:<4} ", molecule_id, type_id );
 
       } else {
 
         // segment label
-        fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[atom_index][1]).i, Atom::SEGMENT) );
+        utils::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[atom_index][1]).i, Atom::SEGMENT) );
 
         // molecule id
-        fmt::print(fp, "{:<8} ", molecule_id );
+        utils::print(fp, "{:<8} ", molecule_id );
 
         // residue label
-        fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[atom_index][3]).i, Atom::RESIDUE) );
+        utils::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[atom_index][3]).i, Atom::RESIDUE) );
 
         // name label
-        fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[atom_index][4]).i, Atom::NAME) );
+        utils::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[atom_index][4]).i, Atom::NAME) );
 
         // type label
-        fmt::print(fp, "{:<4} ", atom->lmap->label(type_id, Atom::ATOM) );
+        utils::print(fp, "{:<4} ", atom->lmap->label(type_id, Atom::ATOM) );
 
       }
 
       // charge
-      fmt::print(fp, "{:12.6F}      ", buf[atom_index][6] );
+      utils::print(fp, "{:12.6F}      ", buf[atom_index][6] );
 
       // mass
-      fmt::print(fp, "{:8g}           0\n", atom->mass[type_id] );
+      utils::print(fp, "{:8g}           0\n", atom->mass[type_id] );
 
     }
     memory->destroy(order);

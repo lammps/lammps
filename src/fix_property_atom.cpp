@@ -121,25 +121,36 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
       // CHARMM topology
 
+    } else if (utils::strmatch(arg[iarg], "segment")) {
+      if (atom->segment_flag)
+        error->all(FLERR, "Fix property/atom residue when atom_style already has segment attribute");
+      if (segment_flag) error->all(FLERR, "Fix property/atom cannot specify segment twice");
+      styles[nvalue] = SEGMENT;
+      cols[nvalue] = 0;
+      atom->segment_flag = segment_flag = 1;
+      values_peratom++;
+      nvalue++;
+      iarg++;
     } else if (utils::strmatch(arg[iarg], "residue")) {
       if (atom->residue_flag)
         error->all(FLERR, "Fix property/atom residue when atom_style already has residue attribute");
       if (residue_flag) error->all(FLERR, "Fix property/atom cannot specify residue twice");
-      styles[nvalue] = SEGMENT;
+      styles[nvalue] = RESIDUE;
       cols[nvalue] = 0;
       atom->residue_flag = residue_flag = 1;
       values_peratom++;
       nvalue++;
       iarg++;
-
-
-      int flag, ncols;
-      index[nvalue] = atom->find_custom(&arg[iarg][2], flag, ncols);
-      if (index[nvalue] >= 0) error->all(FLERR, "Fix property/atom vector name already exists");
-      if (ReadData::is_data_section(id))
-        error->all(FLERR, "Fix property/atom fix ID must not be a data file section name");
-      index[nvalue] = atom->add_custom(&arg[iarg][2], 0, 0, border);
+    } else if (utils::strmatch(arg[iarg], "name")) {
+      if (atom->name_flag)
+        error->all(FLERR, "Fix property/atom name when atom_style already has name attribute");
+      if (name_flag) error->all(FLERR, "Fix property/atom cannot specify name twice");
+      styles[nvalue] = NAME;
       cols[nvalue] = 0;
+      atom->name_flag = name_flag = 1;
+      values_peratom++;
+      nvalue++;
+      iarg++;
 
       // custom atom vector
 

@@ -221,6 +221,10 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
 
   area = ed = em = epsilon = curvature = q_scaled = nullptr;
 
+  // CHARMM package
+
+  segment = residue = name = nullptr;
+
   // end of customization section
   // --------------------------------------------------------------------
 
@@ -575,6 +579,12 @@ void Atom::peratom_create()
   add_peratom("epsilon",&epsilon,DOUBLE,0);
   add_peratom("curvature",&curvature,DOUBLE,0);
   add_peratom("q_scaled",&q_scaled,DOUBLE,0);
+
+  // CHARMM package
+
+  add_peratom("segment",&segment,STRING,0);
+  add_peratom("residue",&residue,STRING,0);
+  add_peratom("name",&name,STRING,0);
 
   // end of customization section
   // --------------------------------------------------------------------
@@ -3117,10 +3127,10 @@ void *Atom::extract(const char *name)
 
   // CHARMM package
 
-  if (strcmp(name,"segment") == 0) return (void *) segment.c_str();
-  if (strcmp(name,"residue") == 0) return (void *) residue.c_str();
+  if (strcmp(name,"segment") == 0) return (void *) segment;
+  if (strcmp(name,"residue") == 0) return (void *) residue;
   // avoid conflict between function parameter and class member variable with this->
-  if (strcmp(name,"name") == 0) return (void *) this->name.c_str();
+  if (strcmp(name,"name") == 0) return (void *) this->name;
 
 
   // end of customization section
@@ -3501,6 +3511,12 @@ int Atom::extract_size(const char *name, int type)
     if (strcmp(name,"epsilon") == 0) return nall;
     if (strcmp(name,"curvature") == 0) return nall;
     if (strcmp(name,"q_unscaled") == 0) return nall;
+
+    // CHARMM package
+
+    if (strcmp(name,"segment") == 0) return nall;
+    if (strcmp(name,"residue") == 0) return nall;
+    if (strcmp(name,"name") == 0) return nall;
 
     // end of customization section
     // --------------------------------------------------------------------

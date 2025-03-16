@@ -124,8 +124,8 @@ void ReadPsf::command(int narg, char **arg)
           strcpy(lmap_arg[0], "atom");
           strcpy(lmap_arg[1],std::to_string(type_id).c_str());
           strcpy(lmap_arg[2],values.next_string().c_str());
-          //utils::logmesg(lmp, " *** lmap_arg (me==0) {} {} {}\n", lmap_arg[0], lmap_arg[1], lmap_arg[2]);
-          lmap->modify_lmap(3,lmap_arg);
+          //utils::logmesg(lmp, " *** lmap_arg (me==0) {} atom_tag {} atom_index {} type_id {} {}\n", lmap_arg[0], atom_tag, atom_index, lmap_arg[1], lmap_arg[2]);
+          if( type_id < 41 || type_id == 44 ) lmap->modify_lmap(3,lmap_arg);
         } else {
           sendbuf[sendsize][0] = atom_tag;
           sendbuf[sendsize][1] = segment_id;

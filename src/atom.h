@@ -33,7 +33,7 @@ class Atom : protected Pointers {
  public:
   char *atom_style;
   AtomVec *avec;
-  enum { DOUBLE, INT, BIGINT };
+  enum { DOUBLE, INT, BIGINT, STRING };
   enum { GROW = 0, RESTART = 1, BORDER = 2 };
   enum { ATOMIC = 0, MOLECULAR = 1, TEMPLATE = 2 };
   enum { ATOM = 0, BOND = 1, ANGLE = 2, DIHEDRAL = 3, IMPROPER = 4 };
@@ -184,7 +184,7 @@ class Atom : protected Pointers {
   
   // CHARMM package
 
-  std::string segment, residue, name;
+  std::string *segment, *residue, *name;
 
 
   // end of customization section
@@ -233,15 +233,13 @@ class Atom : protected Pointers {
 
   int dielectric_flag;
 
-<<<<<<< HEAD
   // APIP package
 
   int apip_lambda_flag, apip_e_fast_flag, apip_e_precise_flag, apip_lambda_input_flag, apip_lambda_input_ta_flag, apip_lambda_required_flag, apip_f_const_lambda_flag, apip_f_dyn_lambda_flag, apip_lambda_const_flag;
-=======
+
   // CHARMM package
 
   int segment_flag, residue_flag, name_flag;
->>>>>>> 64ed5749ce (add segment, residue, name)
 
   // end of customization section
   // --------------------------------------------------------------------

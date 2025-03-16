@@ -522,6 +522,9 @@ void WritePsf::atoms()
   tagint *molecule = atom->molecule;
   int *type = atom->type;
   double *q = atom->q;
+  std::string *segment = atom->segment;
+  std::string *residue = atom->residue;
+  std::string *name = atom->name;
 
   // atom_tag, segment_id, molecule_id, residue_id, name_id, type_id, charge
 
@@ -577,18 +580,21 @@ void WritePsf::atoms()
         utils::print(fp, "{0:<8} {0:<8} {0:<8} {1:<8} {1:<4} ", molecule_id, type_id );
 
       } else {
+  std::string *segment = atom->segment;
+  std::string *residue = atom->residue;
+  std::string *name = atom->name;
 
         // segment label
-        utils::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[atom_index][1]).i, Atom::SEGMENT) );
+        utils::print(fp, "{:<8} ", atom->segment[atom_index]);
 
         // molecule id
         utils::print(fp, "{:<8} ", molecule_id );
 
         // residue label
-        utils::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[atom_index][3]).i, Atom::RESIDUE) );
+        utils::print(fp, "{:<8} ", atom->residue[atom_index]);
 
         // name label
-        utils::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[atom_index][4]).i, Atom::NAME) );
+        utils::print(fp, "{:<8} ", atom->name[atom_index]);
 
         // type label
         utils::print(fp, "{:<4} ", atom->lmap->label(type_id, Atom::ATOM) );

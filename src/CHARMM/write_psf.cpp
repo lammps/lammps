@@ -552,7 +552,7 @@ void WritePsf::atoms()
     bigint *order;
     memory->create(order, natoms, "write_psf:order");
     for (int i = 0; i < natoms; i++) order[i] = i;
-    utils::merge_sort(order, natoms, (void *)buf, compare_tags);
+    //utils::merge_sort(order, natoms, (void *)buf, compare_tags);
 
     fmt::print(fp,"\n {:8} !NATOM\n",natoms);
 
@@ -563,45 +563,47 @@ void WritePsf::atoms()
 
       int j = order[i];
       tagint atom_tag = ubuf(buf[j][0]).i;
+      //int j = atom->map(atom_tag);
       tagint molecule_id = ubuf(buf[j][2]).i;
       int type_id = ubuf(buf[j][5]).i;
       fmt::print(fp, "{:10} ", atom_tag );
+      int atom_index = atom->map(atom_tag);
 
-        if( atom_iarray_psf == nullptr ) {
+      if( atom_iarray_psf == nullptr ) {
 
-          // defaults when atom_iarray_psf doesnt exists:
-          // - molecule id for Segment ID, molecule ID, Residue ID
-          // - numerical type for atom name and atom type
-          fmt::print(fp, "{0:<8} {0:<8} {0:<8} {1:<8} {1:<4} ", molecule_id, type_id );
+        // defaults when atom_iarray_psf doesnt exists:
+        // - molecule id for Segment ID, molecule ID, Residue ID
+        // - numerical type for atom name and atom type
+        fmt::print(fp, "{0:<8} {0:<8} {0:<8} {1:<8} {1:<4} ", molecule_id, type_id );
 
-        } else {
+      } else {
 
-          // segment label
-          fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[j][1]).i, Atom::SEGMENT) );
+        // segment label
+        fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[atom_index][1]).i, Atom::SEGMENT) );
 
-          // molecule id
-          fmt::print(fp, "{:<8} ", molecule_id );
+        // molecule id
+        fmt::print(fp, "{:<8} ", molecule_id );
 
-          // residue label
-          fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[j][3]).i, Atom::RESIDUE) );
+        // residue label
+        fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[atom_index][3]).i, Atom::RESIDUE) );
 
-          // name label
-          fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[j][4]).i, Atom::NAME) );
+        // name label
+        fmt::print(fp, "{:<8} ", atom->lmap->label(ubuf(buf[atom_index][4]).i, Atom::NAME) );
 
-          // type label
-          fmt::print(fp, "{:<4} ", atom->lmap->label(type_id, Atom::ATOM) );
-
-        }
-
-        // charge
-        fmt::print(fp, "{:12.6F}      ", buf[j][6] );
-
-        // mass
-        fmt::print(fp, "{:8g}           0\n", atom->mass[type_id] );
+        // type label
+        fmt::print(fp, "{:<4} ", atom->lmap->label(type_id, Atom::ATOM) );
 
       }
-      memory->destroy(order);
+
+      // charge
+      fmt::print(fp, "{:12.6F}      ", buf[atom_index][6] );
+
+      // mass
+      fmt::print(fp, "{:8g}           0\n", atom->mass[type_id] );
+
     }
+    memory->destroy(order);
+  }
 
   memory->destroy(buf);
   delete [] recvcounts;

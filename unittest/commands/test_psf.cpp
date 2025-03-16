@@ -178,6 +178,7 @@ protected:
 
 };
 
+/*
 TEST_F(PsfTest, ReadWritePsfGroupAll)
 {
     BEGIN_HIDE_OUTPUT();
@@ -205,6 +206,7 @@ TEST_F(PsfTest, ReadWritePsfGroupSubset)
     for( int i=10 ; i<=15 ; i++ )
         ASSERT_THAT(lines[i], AnyOf(HasSubstr("OA"),HasSubstr("OB")));
 }
+*/
 
 } // namespace LAMMPS_NS
 

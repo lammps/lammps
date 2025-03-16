@@ -58,17 +58,18 @@ void WritePDB::write_pdb(const std::string &filename) {
 
   fprintf(fp, "HEADER    LAMMPS PDB OUTPUT\n");
 
+  int *tag = atom->tag;
   int *molecule = atom->molecule;
   double **x = atom->x;
   int *type = atom->type;
-  char **name = atom->name;
-  char **segment = atom->segment;
-  char **residue = atom->residue;
+  std::string *segment = atom->segment;
+  std::string *residue = atom->residue;
+  std::string *name = atom->name;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    fprintf(fp, "ATOM  %5d  %-4s %-4s %-4s   %8.3f%8.3f%8.3f\n",
-            i+1, name[i], residue[i], segment[i], x[i][0], x[i][1], x[i][2]);
+    utils::print(fp, "ATOM  {} {}  {} {} {} {}   {:8.3f} {:8.3f} {:8.3f}\n",
+            i+1, name[i], residue[i], segment[i], molecule[i], x[i][0], x[i][1], x[i][2]);
   }
 
   fprintf(fp, "END\n");

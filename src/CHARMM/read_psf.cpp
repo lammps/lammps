@@ -232,10 +232,10 @@ void ReadPsf::command(int narg, char **arg)
     delete [] recvcounts;
     delete [] displs;
   }
-*/
-
   memory->destroy(sendbuf);
   memory->destroy(lmap_arg);
+*/
+
 }
 
 /* ----------------------------------------------------------------------

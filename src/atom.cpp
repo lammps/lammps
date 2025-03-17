@@ -669,6 +669,7 @@ void Atom::set_atomflag_defaults()
   contact_radius_flag = smd_data_9_flag = smd_stress_flag = 0;
   eff_plastic_strain_flag = eff_plastic_strain_rate_flag = 0;
   nspecial15_flag = 0;
+  segment_flag = residue_flag = name_flag = 0;
 
   pdscale = 1.0;
 }

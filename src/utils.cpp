@@ -32,6 +32,7 @@
 
 #include <cctype>
 #include <cerrno>
+#include <cstdio>
 #include <cstring>
 #include <ctime>
 #include <stdexcept>
@@ -277,8 +278,8 @@ void utils::fmtargs_print(FILE *fp, fmt::string_view format, fmt::format_args ar
 {
   try {
     print(fp, fmt::vformat(format, args));
-  } catch (fmt::format_error &) {
-    ; // do nothing
+  } catch (fmt::format_error &e) {
+    std::fprintf(stderr, "%s\n", e.what());
   }
 }
 

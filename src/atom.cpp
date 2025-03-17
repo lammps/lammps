@@ -675,6 +675,7 @@ void Atom::set_atomflag_defaults()
   eff_plastic_strain_flag = eff_plastic_strain_rate_flag = 0;
   nspecial15_flag = 0;
   apip_lambda_flag = apip_e_fast_flag = apip_e_precise_flag = apip_lambda_input_flag = apip_lambda_input_ta_flag = apip_lambda_required_flag = apip_f_const_lambda_flag = apip_f_dyn_lambda_flag = apip_lambda_const_flag = 0;
+  segment_flag = residue_flag = name_flag = 0;
 
   pdscale = 1.0;
 }

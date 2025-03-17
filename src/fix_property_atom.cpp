@@ -708,6 +708,12 @@ void FixPropertyAtom::copy_arrays(int i, int j, int /*delflag*/)
       atom->temperature[j] = atom->temperature[i];
     else if (styles[nv] == HEATFLOW)
       atom->heatflow[j] = atom->heatflow[i];
+    else if (styles[nv] == SEGMENT)
+      atom->segment[j] = atom->segment[i];
+    else if (styles[nv] == RESIDUE)
+      atom->residue[j] = atom->residue[i];
+    else if (styles[nv] == NAME)
+      atom->name[j] = atom->name[i];
     else if (styles[nv] == IVEC)
       atom->ivector[index[nv]][j] = atom->ivector[index[nv]][i];
     else if (styles[nv] == DVEC)

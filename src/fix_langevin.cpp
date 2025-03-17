@@ -14,7 +14,8 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Carolyn Phillips (U Mich), reservoir energy tally
                          Aidan Thompson (SNL) GJF formulation
-                         Charles Sievers & Niels Gronbech-Jensen (UC Davis)
+                         Tim Linke, Charles Sievers & 
+                         Niels Gronbech-Jensen (UC Davis)
                              updated GJF formulation and included
                              statistically correct 2GJ velocity
 ------------------------------------------------------------------------- */
@@ -53,8 +54,7 @@ static constexpr double EINERTIA = 0.2;    // moment of inertia prefactor for el
 
 FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), gjfflag(0), gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr),
-    tstr(nullptr), flangevin(nullptr), tforce(nullptr), franprev(nullptr), lv(nullptr),
-    id_temp(nullptr), random(nullptr)
+    tstr(nullptr), flangevin(nullptr), tforce(nullptr), lv(nullptr), id_temp(nullptr), random(nullptr)
 {
   if (narg < 7) error->all(FLERR, "Illegal fix langevin command");
 
@@ -160,12 +160,11 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   flangevin = nullptr;
   flangevin_allocated = 0;
-  franprev = nullptr;
   lv = nullptr;
   tforce = nullptr;
   maxatom1 = maxatom2 = 0;
 
-  // setup atom-based array for franprev
+  // setup atom-based array for lv
   // register with Atom class
   // no need to set peratom_flag, b/c data is for internal use only
 
@@ -173,13 +172,10 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     FixLangevin::grow_arrays(atom->nmax);
     atom->add_callback(Atom::GROW);
 
-    // initialize franprev to zero
+    // initialize lv to zero
 
     int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++) {
-      franprev[i][0] = 0.0;
-      franprev[i][1] = 0.0;
-      franprev[i][2] = 0.0;
       lv[i][0] = 0.0;
       lv[i][1] = 0.0;
       lv[i][2] = 0.0;
@@ -201,7 +197,6 @@ FixLangevin::~FixLangevin()
   memory->destroy(tforce);
 
   if (gjfflag) {
-    memory->destroy(franprev);
     memory->destroy(lv);
     if (modify->get_fix_by_id(id)) atom->delete_callback(id, Atom::GROW);
   }
@@ -212,10 +207,10 @@ FixLangevin::~FixLangevin()
 int FixLangevin::setmask()
 {
   int mask = 0;
-  if (gjfflag) mask |= INITIAL_INTEGRATE;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
   if (tallyflag || gjfflag) mask |= END_OF_STEP;
+  if (gjfflag && !osflag) mask |= INITIAL_INTEGRATE;
   return mask;
 }
 
@@ -223,10 +218,7 @@ int FixLangevin::setmask()
 
 void FixLangevin::init()
 {
-  if (gjfflag) {
-    if (t_period * 2 == update->dt)
-      error->all(FLERR, "Fix langevin gjf cannot have t_period equal to dt/2");
-
+  if (gjfflag && !osflag) {
     // warn if any integrate fix comes after this one
     int before = 1;
     int flag = 0;
@@ -236,7 +228,7 @@ void FixLangevin::init()
       else if ((modify->get_fix_mask(ifix) && utils::strmatch(ifix->style, "^nve")) && before)
         flag = 1;
     }
-    if (flag) error->all(FLERR, "Fix langevin gjf should come before fix nve");
+    if (flag) error->all(FLERR, "Fix langevin gjf vhalf should come before fix nve");
   }
 
   if (oflag && !atom->omega_flag)
@@ -291,7 +283,7 @@ void FixLangevin::init()
       gfactor1[i] = -atom->mass[i] / t_period / force->ftm2v;
       gfactor2[i] = sqrt(atom->mass[i]) / force->ftm2v;
       if (gjfflag)
-        gfactor2[i] *= sqrt(2.0 * force->boltz / t_period / update->dt / force->mvv2e);
+        gfactor2[i] *= sqrt(2.0 * update->dt * force->boltz / t_period / force->mvv2e);
       else
         gfactor2[i] *= sqrt(24.0 * force->boltz / t_period / update->dt / force->mvv2e);
       gfactor1[i] *= 1.0 / ratio[i];
@@ -310,8 +302,9 @@ void FixLangevin::init()
   }
 
   if (gjfflag) {
-    gjfa = (1.0 - update->dt / 2.0 / t_period) / (1.0 + update->dt / 2.0 / t_period);
-    gjfsib = sqrt(1.0 + update->dt / 2.0 / t_period);
+    gjfc2 = (1.0 - update->dt / 2.0 / t_period) / (1.0 + update->dt / 2.0 / t_period);
+    gjfc1 = gjfc3 = 1.0 / (1.0 + update->dt / 2.0 / t_period);
+    //printf("c2 = %g, c1 = c3 = %g\n", gjfc2, gjfc1);
   }
 }
 
@@ -319,45 +312,6 @@ void FixLangevin::init()
 
 void FixLangevin::setup(int vflag)
 {
-  if (gjfflag) {
-    double dtfm;
-    double dt = update->dt;
-    double **v = atom->v;
-    double **f = atom->f;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-    double *rmass = atom->rmass;
-    double *mass = atom->mass;
-    int *type = atom->type;
-    if (rmass) {
-      for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          dtfm = force->ftm2v * 0.5 * dt / rmass[i];
-          v[i][0] -= dtfm * f[i][0];
-          v[i][1] -= dtfm * f[i][1];
-          v[i][2] -= dtfm * f[i][2];
-          if (tbiasflag) temperature->remove_bias(i, v[i]);
-          v[i][0] /= gjfa * gjfsib * gjfsib;
-          v[i][1] /= gjfa * gjfsib * gjfsib;
-          v[i][2] /= gjfa * gjfsib * gjfsib;
-          if (tbiasflag) temperature->restore_bias(i, v[i]);
-        }
-
-    } else {
-      for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          dtfm = force->ftm2v * 0.5 * dt / mass[type[i]];
-          v[i][0] -= dtfm * f[i][0];
-          v[i][1] -= dtfm * f[i][1];
-          v[i][2] -= dtfm * f[i][2];
-          if (tbiasflag) temperature->remove_bias(i, v[i]);
-          v[i][0] /= gjfa * gjfsib * gjfsib;
-          v[i][1] /= gjfa * gjfsib * gjfsib;
-          v[i][2] /= gjfa * gjfsib * gjfsib;
-          if (tbiasflag) temperature->restore_bias(i, v[i]);
-        }
-    }
-  }
   if (utils::strmatch(update->integrate_style, "^verlet"))
     post_force(vflag);
   else {
@@ -366,61 +320,26 @@ void FixLangevin::setup(int vflag)
     post_force_respa(vflag, nlevels_respa - 1, 0);
     respa->copy_f_flevel(nlevels_respa - 1);
   }
-  if (gjfflag) {
-    double dtfm;
-    double dt = update->dt;
-    double **f = atom->f;
-    double **v = atom->v;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-    double *rmass = atom->rmass;
-    double *mass = atom->mass;
-    int *type = atom->type;
-    if (rmass) {
-      for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          dtfm = force->ftm2v * 0.5 * dt / rmass[i];
-          v[i][0] += dtfm * f[i][0];
-          v[i][1] += dtfm * f[i][1];
-          v[i][2] += dtfm * f[i][2];
-          lv[i][0] = v[i][0];
-          lv[i][1] = v[i][1];
-          lv[i][2] = v[i][2];
-        }
-      //
-    } else {
-      for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          dtfm = force->ftm2v * 0.5 * dt / mass[type[i]];
-          v[i][0] += dtfm * f[i][0];
-          v[i][1] += dtfm * f[i][1];
-          v[i][2] += dtfm * f[i][2];
-          lv[i][0] = v[i][0];
-          lv[i][1] = v[i][1];
-          lv[i][2] = v[i][2];
-        }
-    }
-  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixLangevin::initial_integrate(int /* vflag */)
+void FixLangevin::initial_integrate(int /*vflag*/)
 {
   double **v = atom->v;
-  double **f = atom->f;
+  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  //printf("Vel Atom 1 before Initial Integrate: %g %g %g\n", v[0][0], v[0][1], v[0][2]);
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      f[i][0] /= gjfa;
-      f[i][1] /= gjfa;
-      f[i][2] /= gjfa;
+      // (Re-)assign onsite velocity
       v[i][0] = lv[i][0];
       v[i][1] = lv[i][1];
       v[i][2] = lv[i][2];
     }
+  //printf("Vel Atom 1 after Initial Integrate: %g %g %g\n", v[0][0], v[0][1], v[0][2]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -578,8 +497,10 @@ void FixLangevin::post_force_templated()
 {
   double gamma1,gamma2;
 
+  double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
+  double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -614,6 +535,9 @@ void FixLangevin::post_force_templated()
   double dt = update->dt;
   double mvv2e = force->mvv2e;
   double ftm2v = force->ftm2v;
+  bigint timestep = update->ntimestep;
+
+  //printf("Solving for timestep %ld\n", timestep);
 
   compute_target();
 
@@ -637,20 +561,23 @@ void FixLangevin::post_force_templated()
 
   if (Tp_BIAS) temperature->compute_scalar();
 
+  // printf("Vel Atom 1 before Force Update: %g\n", v[0][0]);
+  // printf("Pos Atom 1 before Force Update: %g\n", x[0][0]);
+
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (Tp_TSTYLEATOM) tsqrt = sqrt(tforce[i]);
       if (Tp_RMASS) {
         gamma1 = -rmass[i] / t_period / ftm2v;
         if (Tp_GJF)
-          gamma2 = sqrt(rmass[i]) * sqrt(2.0*boltz/t_period/dt/mvv2e) / ftm2v;
+          gamma2 = sqrt(rmass[i]) * sqrt(2.0*dt*boltz/t_period/mvv2e) / ftm2v; //sqrt(2*(m/t_period)*k*T*dt)
         else
           gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
         gamma1 *= 1.0/ratio[type[i]];
-        gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
+        gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt; //target temperature
       } else {
         gamma1 = gfactor1[type[i]];
-        gamma2 = gfactor2[type[i]] * tsqrt;
+        gamma2 = gfactor2[type[i]] * tsqrt; //target temperature
       }
 
       if (Tp_GJF) {
@@ -661,6 +588,60 @@ void FixLangevin::post_force_templated()
         fran[0] = gamma2*(random->uniform()-0.5);
         fran[1] = gamma2*(random->uniform()-0.5);
         fran[2] = gamma2*(random->uniform()-0.5);
+      }
+      // if (i == 0)
+      // {
+      //   printf("Random number: %g %g %g\n", fran[0], fran[1], fran[2]);
+      //   printf("Conversion factor ftm2v = %g\n", ftm2v);
+      // }
+      
+
+      if (Tp_GJF) {
+        // NVE integrator delivers Eq. 11a, but also overshoots position integration. Calculate Eq. 11b:
+        x[i][0] -= 0.5 * dt * v[i][0];
+        x[i][1] -= 0.5 * dt * v[i][1];
+        x[i][2] -= 0.5 * dt * v[i][2];
+        // Calculate Eq. 11c:
+        if (Tp_BIAS)
+          temperature->remove_bias(i,v[i]);
+        if (Tp_RMASS) {
+          lv[i][0] = sqrt(gjfc1)*v[i][0] + ftm2v * (sqrt(gjfc3) / (2.0 * rmass[i])) * fran[0];
+          lv[i][1] = sqrt(gjfc1)*v[i][1] + ftm2v * (sqrt(gjfc3) / (2.0 * rmass[i])) * fran[1];
+          lv[i][2] = sqrt(gjfc1)*v[i][2] + ftm2v * (sqrt(gjfc3) / (2.0 * rmass[i])) * fran[2];
+          //----
+          //if (i == 0) printf("Mass: %g\n", rmass[i]);
+          //----
+        } else {
+          lv[i][0] = sqrt(gjfc1)*v[i][0] + ftm2v * (sqrt(gjfc3) / (2.0 * mass[type[i]])) * fran[0];
+          lv[i][1] = sqrt(gjfc1)*v[i][1] + ftm2v * (sqrt(gjfc3) / (2.0 * mass[type[i]])) * fran[1];
+          lv[i][2] = sqrt(gjfc1)*v[i][2] + ftm2v * (sqrt(gjfc3) / (2.0 * mass[type[i]])) * fran[2];
+          //----
+          //if (i == 0) printf("Mass: %g\n", mass[type[i]]);
+          //----
+        }
+        if (Tp_BIAS)
+          temperature->restore_bias(i,v[i]);
+        if (Tp_BIAS)
+          temperature->restore_bias(i,lv[i]);
+
+
+        // Calculate Eq. 11d:
+        if (Tp_BIAS) temperature->remove_bias(i, lv[i]);
+        if (atom->rmass) {
+          v[i][0] = (gjfc2 / sqrt(gjfc1)) * lv[i][0] + ftm2v * (0.5 / rmass[i]) * fran[0];
+          v[i][1] = (gjfc2 / sqrt(gjfc1)) * lv[i][1] + ftm2v * (0.5 / rmass[i]) * fran[1];
+          v[i][2] = (gjfc2 / sqrt(gjfc1)) * lv[i][2] + ftm2v * (0.5 / rmass[i]) * fran[2];
+        } else {
+          v[i][0] = (gjfc2 / sqrt(gjfc1)) * lv[i][0] + ftm2v * (0.5 / mass[type[i]]) * fran[0];
+          v[i][1] = (gjfc2 / sqrt(gjfc1)) * lv[i][1] + ftm2v * (0.5 / mass[type[i]]) * fran[1];
+          v[i][2] = (gjfc2 / sqrt(gjfc1)) * lv[i][2] + ftm2v * (0.5 / mass[type[i]]) * fran[2];
+        }
+        if (Tp_BIAS) temperature->restore_bias(i, lv[i]);
+        if (Tp_BIAS) temperature->restore_bias(i, v[i]);
+        // Calculate Eq. 11e. NVE integrator delivers Eq. 11f.
+        x[i][0] += 0.5 * dt * v[i][0];
+        x[i][1] += 0.5 * dt * v[i][1];
+        x[i][2] += 0.5 * dt * v[i][2];
       }
 
       if (Tp_BIAS) {
@@ -678,42 +659,13 @@ void FixLangevin::post_force_templated()
         fdrag[2] = gamma1*v[i][2];
       }
 
-      if (Tp_GJF) {
-        if (Tp_BIAS)
-          temperature->remove_bias(i,v[i]);
-        lv[i][0] = gjfsib*v[i][0];
-        lv[i][1] = gjfsib*v[i][1];
-        lv[i][2] = gjfsib*v[i][2];
-        if (Tp_BIAS)
-          temperature->restore_bias(i,v[i]);
-        if (Tp_BIAS)
-          temperature->restore_bias(i,lv[i]);
-
-        fswap = 0.5*(fran[0]+franprev[i][0]);
-        franprev[i][0] = fran[0];
-        fran[0] = fswap;
-        fswap = 0.5*(fran[1]+franprev[i][1]);
-        franprev[i][1] = fran[1];
-        fran[1] = fswap;
-        fswap = 0.5*(fran[2]+franprev[i][2]);
-        franprev[i][2] = fran[2];
-        fran[2] = fswap;
-
-        fdrag[0] *= gjfa;
-        fdrag[1] *= gjfa;
-        fdrag[2] *= gjfa;
-        fran[0] *= gjfa;
-        fran[1] *= gjfa;
-        fran[2] *= gjfa;
-        f[i][0] *= gjfa;
-        f[i][1] *= gjfa;
-        f[i][2] *= gjfa;
+      if (!Tp_GJF)
+      {
+        f[i][0] += fdrag[0] + fran[0];
+        f[i][1] += fdrag[1] + fran[1];
+        f[i][2] += fdrag[2] + fran[2];
       }
-
-      f[i][0] += fdrag[0] + fran[0];
-      f[i][1] += fdrag[1] + fran[1];
-      f[i][2] += fdrag[2] + fran[2];
-
+      
       if (Tp_ZERO) {
         fsum[0] += fran[0];
         fsum[1] += fran[1];
@@ -721,24 +673,26 @@ void FixLangevin::post_force_templated()
       }
 
       if (Tp_TALLY) {
-        if (Tp_GJF) {
-          fdrag[0] = gamma1*lv[i][0]/gjfsib/gjfsib;
-          fdrag[1] = gamma1*lv[i][1]/gjfsib/gjfsib;
-          fdrag[2] = gamma1*lv[i][2]/gjfsib/gjfsib;
-          fswap = (2*fran[0]/gjfa - franprev[i][0])/gjfsib;
-          fran[0] = fswap;
-          fswap = (2*fran[1]/gjfa - franprev[i][1])/gjfsib;
-          fran[1] = fswap;
-          fswap = (2*fran[2]/gjfa - franprev[i][2])/gjfsib;
-          fran[2] = fswap;
-        }
+        // if (Tp_GJF) {
+        //   fdrag[0] = gamma1*lv[i][0]/ sqrt(1.0 / gjfc1) / sqrt(1.0 / gjfc1);
+        //   fdrag[1] = gamma1*lv[i][1]/ sqrt(1.0 / gjfc1) / sqrt(1.0 / gjfc1);
+        //   fdrag[2] = gamma1*lv[i][2]/ sqrt(1.0 / gjfc1)/ sqrt(1.0 / gjfc1);
+        //   fswap = (2*fran[0]/gjfc2 - franprev[i][0])/ sqrt(1.0 / gjfc1);
+        //   fran[0] = fswap;
+        //   fswap = (2*fran[1]/gjfc2 - franprev[i][1])/ sqrt(1.0 / gjfc1);
+        //   fran[1] = fswap;
+        //   fswap = (2*fran[2]/gjfc2 - franprev[i][2])/ sqrt(1.0 / gjfc1);
+        //   fran[2] = fswap;
+        // }
         flangevin[i][0] = fdrag[0] + fran[0];
         flangevin[i][1] = fdrag[1] + fran[1];
         flangevin[i][2] = fdrag[2] + fran[2];
-
       }
     }
   }
+  // printf("Half-step vel Atom 1 after Force Update: %g\n", lv[0][0]);
+  // printf("Vel Atom 1 after Force Update: %g\n", v[0][0]);
+  // printf("Pos Atom 1 after Force Update: %g\n", x[0][0]);
 
   // set total force to zero
 
@@ -830,7 +784,7 @@ void FixLangevin::omega_thermostat()
   int nlocal = atom->nlocal;
 
   // rescale gamma1/gamma2 by 10/3 & sqrt(10/3) for spherical particles
-  // does not affect rotational thermosatting
+  // does not affect rotational thermostatting
   // gives correct rotational diffusivity behavior
 
   double tendivthree = 10.0/3.0;
@@ -918,65 +872,41 @@ void FixLangevin::end_of_step()
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double dtfm;
-  double dt = update->dt;
-  double *mass = atom->mass;
-  double *rmass = atom->rmass;
-  double **f = atom->f;
   int *type = atom->type;
 
-  energy_onestep = 0.0;
-
-  if (tallyflag) {
-    if (gjfflag) {
-      for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          if (tbiasflag)
-            temperature->remove_bias(i, lv[i]);
-          energy_onestep += flangevin[i][0]*lv[i][0] + flangevin[i][1]*lv[i][1] +
-                            flangevin[i][2]*lv[i][2];
-          if (tbiasflag)
-            temperature->restore_bias(i, lv[i]);
-        }
-    }
-    else
-      for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
-          energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
-                            flangevin[i][2]*v[i][2];
-  }
+  //printf("Vel Atom 1 before end of step: %g %g %g\n", v[0][0], v[0][1], v[0][2]);
 
   if (gjfflag) {
     double tmp[3];
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
+        // v has form 11f
         tmp[0] = v[i][0];
         tmp[1] = v[i][1];
         tmp[2] = v[i][2];
         if (!osflag) {
+          // Assign half-step velocity
           v[i][0] = lv[i][0];
           v[i][1] = lv[i][1];
           v[i][2] = lv[i][2];
-        } else {
-          if (atom->rmass) {
-            dtfm = force->ftm2v * 0.5 * dt / rmass[i];
-          } else {
-            dtfm = force->ftm2v * 0.5 * dt / mass[type[i]];
-          }
-          v[i][0] = 0.5 * gjfsib*gjfsib*(v[i][0] + dtfm * f[i][0] / gjfa) +
-                    dtfm * 0.5 * (gjfsib * flangevin[i][0] - franprev[i][0]) +
-                    (gjfsib * gjfa * 0.5 + dt * 0.25 / t_period / gjfsib) * lv[i][0];
-          v[i][1] = 0.5 * gjfsib*gjfsib*(v[i][1] + dtfm * f[i][1] / gjfa) +
-                    dtfm * 0.5 * (gjfsib * flangevin[i][1] - franprev[i][1]) +
-                    (gjfsib * gjfa * 0.5 + dt * 0.25 / t_period / gjfsib) * lv[i][1];
-          v[i][2] = 0.5 * gjfsib*gjfsib*(v[i][2] + dtfm * f[i][2] / gjfa) +
-                    dtfm * 0.5 * (gjfsib * flangevin[i][2] - franprev[i][2]) +
-                    (gjfsib * gjfa * 0.5 + dt * 0.25 / t_period / gjfsib) * lv[i][2];
         }
+        // Store on site velocity
         lv[i][0] = tmp[0];
         lv[i][1] = tmp[1];
         lv[i][2] = tmp[2];
       }
+  }
+
+  // printf("Vel Atom 1 after end of step: %g %g %g\n", v[0][0], v[0][1], v[0][2]);
+  // printf("Half-step vel Atom 1 after end of step: %g %g %g\n", lv[0][0], lv[0][1], lv[0][2]);
+
+  energy_onestep = 0.0;
+
+  if (tallyflag) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+        energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
+                          flangevin[i][2]*v[i][2];
   }
 
   energy += energy_onestep*update->dt;
@@ -998,15 +928,15 @@ void FixLangevin::reset_dt()
     for (int i = 1; i <= atom->ntypes; i++) {
       gfactor2[i] = sqrt(atom->mass[i]) / force->ftm2v;
       if (gjfflag)
-        gfactor2[i] *= sqrt(2.0 * force->boltz / t_period / update->dt / force->mvv2e);
+        gfactor2[i] *= sqrt(2.0 * update->dt * force->boltz / t_period / force->mvv2e); // sqrt(2*alpha*kT*dt)
       else
         gfactor2[i] *= sqrt(24.0 * force->boltz / t_period / update->dt / force->mvv2e);
       gfactor2[i] *= 1.0 / sqrt(ratio[i]);
     }
   }
   if (gjfflag) {
-    gjfa = (1.0 - update->dt / 2.0 / t_period) / (1.0 + update->dt / 2.0 / t_period);
-    gjfsib = sqrt(1.0 + update->dt / 2.0 / t_period);
+    gjfc2 = (1.0 - update->dt / 2.0 / t_period) / (1.0 + update->dt / 2.0 / t_period);
+    gjfc1 = gjfc3 = 1.0 / (1.0 + update->dt / 2.0 / t_period);
   }
 }
 
@@ -1046,22 +976,22 @@ double FixLangevin::compute_scalar()
 
   if (update->ntimestep == update->beginstep) {
     energy_onestep = 0.0;
-    if (!gjfflag) {
+    //if (!gjfflag) {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit)
           energy_onestep +=
               flangevin[i][0] * v[i][0] + flangevin[i][1] * v[i][1] + flangevin[i][2] * v[i][2];
       energy = 0.5 * energy_onestep * update->dt;
-    } else {
-      for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          if (tbiasflag) temperature->remove_bias(i, lv[i]);
-          energy_onestep +=
-              flangevin[i][0] * lv[i][0] + flangevin[i][1] * lv[i][1] + flangevin[i][2] * lv[i][2];
-          if (tbiasflag) temperature->restore_bias(i, lv[i]);
-        }
-      energy = -0.5 * energy_onestep * update->dt;
-    }
+    // } else {
+    //   for (int i = 0; i < nlocal; i++)
+    //     if (mask[i] & groupbit) {
+    //       if (tbiasflag) temperature->remove_bias(i, lv[i]);
+    //       energy_onestep +=
+    //           flangevin[i][0] * lv[i][0] + flangevin[i][1] * lv[i][1] + flangevin[i][2] * lv[i][2];
+    //       if (tbiasflag) temperature->restore_bias(i, lv[i]);
+    //     }
+    //  energy = -0.5 * energy_onestep * update->dt;
+    //}
   }
 
   // convert midstep energy back to previous fullstep energy
@@ -1091,19 +1021,18 @@ void *FixLangevin::extract(const char *str, int &dim)
 double FixLangevin::memory_usage()
 {
   double bytes = 0.0;
-  if (gjfflag) bytes += (double) atom->nmax * 6 * sizeof(double);
+  if (gjfflag) bytes += (double) atom->nmax * 3 * sizeof(double);
   if (tallyflag || osflag) bytes += (double) atom->nmax * 3 * sizeof(double);
   if (tforce) bytes += (double) atom->nmax * sizeof(double);
   return bytes;
 }
 
 /* ----------------------------------------------------------------------
-   allocate atom-based array for franprev
+   allocate atom-based array for lv
 ------------------------------------------------------------------------- */
 
 void FixLangevin::grow_arrays(int nmax)
 {
-  memory->grow(franprev, nmax, 3, "fix_langevin:franprev");
   memory->grow(lv, nmax, 3, "fix_langevin:lv");
 }
 
@@ -1113,9 +1042,6 @@ void FixLangevin::grow_arrays(int nmax)
 
 void FixLangevin::copy_arrays(int i, int j, int /*delflag*/)
 {
-  franprev[j][0] = franprev[i][0];
-  franprev[j][1] = franprev[i][1];
-  franprev[j][2] = franprev[i][2];
   lv[j][0] = lv[i][0];
   lv[j][1] = lv[i][1];
   lv[j][2] = lv[i][2];
@@ -1128,9 +1054,6 @@ void FixLangevin::copy_arrays(int i, int j, int /*delflag*/)
 int FixLangevin::pack_exchange(int i, double *buf)
 {
   int n = 0;
-  buf[n++] = franprev[i][0];
-  buf[n++] = franprev[i][1];
-  buf[n++] = franprev[i][2];
   buf[n++] = lv[i][0];
   buf[n++] = lv[i][1];
   buf[n++] = lv[i][2];
@@ -1144,9 +1067,6 @@ int FixLangevin::pack_exchange(int i, double *buf)
 int FixLangevin::unpack_exchange(int nlocal, double *buf)
 {
   int n = 0;
-  franprev[nlocal][0] = buf[n++];
-  franprev[nlocal][1] = buf[n++];
-  franprev[nlocal][2] = buf[n++];
   lv[nlocal][0] = buf[n++];
   lv[nlocal][1] = buf[n++];
   lv[nlocal][2] = buf[n++];

@@ -54,8 +54,8 @@ class FixLangevin : public Fix {
   double *gfactor1, *gfactor2, *ratio;
   double energy, energy_onestep;
   double tsqrt;
+  double gjfc1, gjfc2, gjfc3;
   int tstyle, tvar;
-  double gjfa, gjfsib;    //gjf a and gjf sqrt inverse b
   char *tstr;
 
   class AtomVecEllipsoid *avec;
@@ -63,7 +63,7 @@ class FixLangevin : public Fix {
   int maxatom1, maxatom2;
   double **flangevin;
   double *tforce;
-  double **franprev;
+  double **gjfran;
   double **lv;    //half step velocity
 
   char *id_temp;

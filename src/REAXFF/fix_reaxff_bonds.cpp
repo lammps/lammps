@@ -28,8 +28,6 @@
 #include "pair_reaxff.h"
 #include "reaxff_api.h"
 
-#include <string>
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace ReaxFF;
@@ -303,7 +301,7 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
         numbonds = nint(buf[j+4]);
 
         auto mesg = fmt::format(" {} {} {}",itag,itype,numbonds);
-        if( write_step_flag ) mesg = std::to_string(ntimestep) + mesg;
+        if( write_step_flag ) mesg = fmt::format("{}",ntimestep) + mesg;
         for (k = 5; k < 5+numbonds; k++)
           mesg += " " + std::to_string(static_cast<tagint> (buf[j+k]));
         j += (5+numbonds);

@@ -177,7 +177,7 @@ int DumpCFG::convert_string(int n, double *mybuf)
             offset += snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<int> (mybuf[m]));
           else if (vtype[j] == Dump::DOUBLE)
             offset += snprintf(&sbuf[offset],maxsize,vformat[j],mybuf[m]);
-          else if (vtype[j] == Dump::ELEMENT)
+          else if (vtype[j] == Dump::STRING)
             offset += snprintf(&sbuf[offset],maxsize,vformat[j],typenames[(int) mybuf[m]]);
           else if (vtype[j] == Dump::BIGINT)
             offset += snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<bigint> (mybuf[m]));
@@ -211,7 +211,7 @@ int DumpCFG::convert_string(int n, double *mybuf)
               snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<int> (mybuf[m]));
           else if (vtype[j] == Dump::DOUBLE)
             offset += snprintf(&sbuf[offset],maxsize,vformat[j],mybuf[m]);
-          else if (vtype[j] == Dump::ELEMENT)
+          else if (vtype[j] == Dump::STRING)
             offset +=
               snprintf(&sbuf[offset],maxsize,vformat[j],typenames[(int) mybuf[m]]);
           else if (vtype[j] == Dump::BIGINT)
@@ -261,7 +261,7 @@ void DumpCFG::write_lines(int n, double *mybuf)
             fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
           else if (vtype[j] == Dump::DOUBLE)
             fprintf(fp,vformat[j],mybuf[m]);
-          else if (vtype[j] == Dump::ELEMENT)
+          else if (vtype[j] == Dump::STRING)
             fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
           else if (vtype[j] == Dump::BIGINT)
             fprintf(fp,vformat[j],static_cast<bigint> (mybuf[m]));
@@ -287,7 +287,7 @@ void DumpCFG::write_lines(int n, double *mybuf)
             fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
           else if (vtype[j] == Dump::DOUBLE)
             fprintf(fp,vformat[j],mybuf[m]);
-          else if (vtype[j] == Dump::ELEMENT)
+          else if (vtype[j] == Dump::STRING)
             fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
           else if (vtype[j] == Dump::BIGINT)
             fprintf(fp,vformat[j],static_cast<bigint> (mybuf[m]));

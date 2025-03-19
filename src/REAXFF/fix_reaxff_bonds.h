@@ -41,7 +41,6 @@ class FixReaxFFBonds : public Fix {
   double **abo;
   FILE *fp;
   bool first_flag;
-  int write_header_flag, write_step_flag;
 
   void allocate();
   void destroy();

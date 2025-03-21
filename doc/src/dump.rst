@@ -475,6 +475,16 @@ label). This option will help many visualization programs to guess bonds
 and colors. You can use the :doc:`dump_modify types labels <dump_modify>`
 option to replace numeric atom types with :doc:`type labels <Howto_type_labels>`.
 
+By passing the optional *extxyz* attribute you can write XYZ files compatible
+with the Extended XYZ (or ExtXYZ) format as defined as defined in `the libAtoms
+specification <https://github.com/libAtoms/extxyz>`_. Specifically, the following
+information will be dumped:
+
+* timestep
+* time, if enabled with :doc:`dump_modify time yes <dump_modify>`
+* simulation box lattice and pbc conditions
+* atomic velocities and forces
+
 .. versionadded:: 22Dec2022
 
 The *grid/vtk* style writes VTK files for grid data on a regular

@@ -32,6 +32,7 @@ class DumpXYZ : public Dump {
  protected:
   int ntypes;
   char **typenames;
+  int extxyz_flag;    // 0 if classical XYZ Lammps format, 1 if extended XYZ
 
   void init_style() override;
   void write_header(bigint) override;

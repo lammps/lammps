@@ -15,6 +15,7 @@
 #include "dump_xyz.h"
 
 #include "atom.h"
+#include "domain.h"
 #include "error.h"
 #include "label_map.h"
 #include "memory.h"
@@ -32,10 +33,20 @@ static constexpr int DELTA = 1048576;
 DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   typenames(nullptr)
 {
-  if (narg != 5) error->all(FLERR,"Illegal dump xyz command");
+  if (narg < 5) error->all(FLERR,"Illegal dump xyz command");
   if (binary || multiproc) error->all(FLERR,"Invalid dump xyz filename");
 
-  size_one = 5;
+  extxyz_flag = 0;
+
+  int iarg = 5;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"extxyz") == 0) {
+      extxyz_flag = 1;
+      iarg++;
+    } else {
+      error->all(FLERR,"Invalid attribute {} in dump xyz command",arg[iarg]);
+    }
+  }
 
   buffer_allow = 1;
   buffer_flag = 1;
@@ -44,7 +55,13 @@ DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
 
   delete[] format_default;
 
-  format_default = utils::strdup("%s %g %g %g");
+  if (extxyz_flag) {
+    size_one = 11;
+    format_default = utils::strdup("%s %g %g %g %g %g %g %g %g %g");
+  } else {
+    size_one = 5;
+    format_default = utils::strdup("%s %g %g %g");
+  }
 
   ntypes = atom->ntypes;
   typenames = nullptr;
@@ -159,8 +176,22 @@ void DumpXYZ::write_header(bigint n)
   if (me == 0) {
     if (!fp) error->one(FLERR, "Must not use 'run pre no' after creating a new dump");
 
-    auto header = fmt::format("{}\n Atoms. Timestep: {}", n, update->ntimestep);
-    if (time_flag) header += fmt::format(" Time: {:.6f}", compute_time());
+    std::string header;
+
+    if (extxyz_flag) {
+      header = fmt::format("{}\nTimestep={}", n, update->ntimestep);
+      if (time_flag) header += fmt::format(" Time={:.6f}", compute_time());
+      header += fmt::format(" pbc=\"{} {} {}\"", domain->xperiodic ? "T" : "F",
+                            domain->yperiodic ? "T" : "F", domain->zperiodic ? "T" : "F");
+      header += fmt::format(" Lattice=\"{:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}\"",
+                            domain->xprd, 0., 0., domain->xy, domain->yprd, 0.,
+                            domain->xz, domain->yz, domain->zprd);
+      header += " Properties=species:S:1:pos:R:3:vel:R:3:forces:R:3";
+    } else {
+      header = fmt::format("{}\n Atoms. Timestep: {}", n, update->ntimestep);
+      if (time_flag) header += fmt::format(" Time: {:.6f}", compute_time());
+    }
+
     utils::print(fp, header + "\n");
   }
 }
@@ -175,6 +206,8 @@ void DumpXYZ::pack(tagint *ids)
   int *type = atom->type;
   int *mask = atom->mask;
   double **x = atom->x;
+  double **v = atom->v;
+  double **f = atom->f;
   int nlocal = atom->nlocal;
 
   m = n = 0;
@@ -185,6 +218,14 @@ void DumpXYZ::pack(tagint *ids)
       buf[m++] = x[i][0];
       buf[m++] = x[i][1];
       buf[m++] = x[i][2];
+      if (extxyz_flag) {
+        buf[m++] = v[i][0];
+        buf[m++] = v[i][1];
+        buf[m++] = v[i][2];
+        buf[m++] = f[i][0];
+        buf[m++] = f[i][1];
+        buf[m++] = f[i][2];
+      }
       if (ids) ids[n++] = tag[i];
     }
 }
@@ -205,8 +246,14 @@ int DumpXYZ::convert_string(int n, double *mybuf)
       memory->grow(sbuf,maxsbuf,"dump:sbuf");
     }
 
-    offset += snprintf(&sbuf[offset], maxsbuf-offset, format, typenames[static_cast<int> (mybuf[m+1])],
-                      mybuf[m+2], mybuf[m+3], mybuf[m+4]);
+    if (extxyz_flag) {
+      offset += snprintf(&sbuf[offset], maxsbuf-offset, format, typenames[static_cast<int> (mybuf[m+1])],
+                        mybuf[m+2], mybuf[m+3], mybuf[m+4], mybuf[m+5], mybuf[m+6], mybuf[m+7],
+                        mybuf[m+8], mybuf[m+9], mybuf[m+10]);
+    } else {
+      offset += snprintf(&sbuf[offset], maxsbuf-offset, format, typenames[static_cast<int> (mybuf[m+1])],
+                        mybuf[m+2], mybuf[m+3], mybuf[m+4]);
+    }
     m += size_one;
   }
 
@@ -234,9 +281,17 @@ void DumpXYZ::write_lines(int n, double *mybuf)
 {
   int m = 0;
   for (int i = 0; i < n; i++) {
-    fprintf(fp,format,
-            typenames[static_cast<int> (mybuf[m+1])],
-            mybuf[m+2],mybuf[m+3],mybuf[m+4]);
+    if (extxyz_flag) {
+      fprintf(fp,format,
+              typenames[static_cast<int> (mybuf[m+1])],
+              mybuf[m+2],mybuf[m+3],mybuf[m+4],
+              mybuf[m+5],mybuf[m+6],mybuf[m+7],
+              mybuf[m+8],mybuf[m+9],mybuf[m+10]);
+    } else {
+      fprintf(fp,format,
+              typenames[static_cast<int> (mybuf[m+1])],
+              mybuf[m+2],mybuf[m+3],mybuf[m+4]);
+    }
     m += size_one;
   }
 }

@@ -207,10 +207,10 @@ FixLangevin::~FixLangevin()
 int FixLangevin::setmask()
 {
   int mask = 0;
-  mask |= POST_FORCE;
+  if (gjfflag) mask |= INITIAL_INTEGRATE;
+  if (!gjfflag) mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
   if (tallyflag || gjfflag) mask |= END_OF_STEP;
-  if (gjfflag && !osflag) mask |= INITIAL_INTEGRATE;
   return mask;
 }
 
@@ -218,18 +218,18 @@ int FixLangevin::setmask()
 
 void FixLangevin::init()
 {
-  if (gjfflag && !osflag) {
-    // warn if any integrate fix comes after this one
-    int before = 1;
-    int flag = 0;
-    for (auto ifix : modify->get_fix_list()) {
-      if (strcmp(id, ifix->id) == 0)
-        before = 0;
-      else if ((modify->get_fix_mask(ifix) && utils::strmatch(ifix->style, "^nve")) && before)
-        flag = 1;
-    }
-    if (flag) error->all(FLERR, "Fix langevin gjf vhalf should come before fix nve");
-  }
+  // if (gjfflag) {
+  //   // warn if any integrate fix comes after this one
+  //   int before = 1;
+  //   int flag = 0;
+  //   for (auto ifix : modify->get_fix_list()) {
+  //     if (strcmp(id, ifix->id) == 0)
+  //       before = 0;
+  //     else if ((modify->get_fix_mask(ifix) && utils::strmatch(ifix->style, "^nve")) && before)
+  //       flag = 1;
+  //   }
+  //   if (flag) error->all(FLERR, "Fix langevin gjf should come before fix nve");
+  // }
 
   if (oflag && !atom->omega_flag)
     error->all(FLERR, "Fix langevin omega requires atom attribute omega");
@@ -304,7 +304,6 @@ void FixLangevin::init()
   if (gjfflag) {
     gjfc2 = (1.0 - update->dt / 2.0 / t_period) / (1.0 + update->dt / 2.0 / t_period);
     gjfc1 = gjfc3 = 1.0 / (1.0 + update->dt / 2.0 / t_period);
-    //printf("c2 = %g, c1 = c3 = %g\n", gjfc2, gjfc1);
   }
 }
 
@@ -322,24 +321,129 @@ void FixLangevin::setup(int vflag)
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   integrate position and velocity according to the GJF method
+------------------------------------------------------------------------- */
 
-void FixLangevin::initial_integrate(int /*vflag*/)
+void FixLangevin::initial_integrate(int /* vflag */)
 {
+  double gamma1,gamma2;
+
+  double **x = atom->x;
   double **v = atom->v;
+  double **f = atom->f;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  //printf("Vel Atom 1 before Initial Integrate: %g %g %g\n", v[0][0], v[0][1], v[0][2]);
 
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      // (Re-)assign onsite velocity
-      v[i][0] = lv[i][0];
-      v[i][1] = lv[i][1];
-      v[i][2] = lv[i][2];
+  double fran[3];
+
+  double boltz = force->boltz;
+  double dt = update->dt;
+  double mvv2e = force->mvv2e;
+  double ftm2v = force->ftm2v;
+
+  double dtf = 0.5 * dt * ftm2v;
+  double dtfm;
+
+  // Velocity and position correction from initial NVE integration for half-step option
+  if (!osflag) {
+    if (rmass) {
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          dtfm = dtf / rmass[i];
+          // Undo NVE integration
+          x[i][0] -= dt * v[i][0];
+          x[i][1] -= dt * v[i][1];
+          x[i][2] -= dt * v[i][2];
+          // Obtain Eq. 11a. lv[][] stores on-site velocity from previous timestep
+          v[i][0] = lv[i][0] + dtfm * f[i][0];
+          v[i][1] = lv[i][1] + dtfm * f[i][1];
+          v[i][2] = lv[i][2] + dtfm * f[i][2];
+          // Redo NVE integration with correct velocity
+          x[i][0] += dt * v[i][0];
+          x[i][1] += dt * v[i][1];
+          x[i][2] += dt * v[i][2];
+        }
+  
+    } else {
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          dtfm = dtf / mass[type[i]];
+          // Undo NVE integration
+          x[i][0] -= dt * v[i][0];
+          x[i][1] -= dt * v[i][1];
+          x[i][2] -= dt * v[i][2];
+          // Obtain Eq. 11a
+          v[i][0] = lv[i][0] + dtfm * f[i][0];
+          v[i][1] = lv[i][1] + dtfm * f[i][1];
+          v[i][2] = lv[i][2] + dtfm * f[i][2];
+          // Redo NVE integration with correct velocity
+          x[i][0] += dt * v[i][0];
+          x[i][1] += dt * v[i][1];
+          x[i][2] += dt * v[i][2];
+        }
     }
-  //printf("Vel Atom 1 after Initial Integrate: %g %g %g\n", v[0][0], v[0][1], v[0][2]);
+  }
+
+  compute_target();
+
+  if (tbiasflag == BIAS) temperature->compute_scalar();
+  
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      if (rmass) {
+        gamma2 = sqrt(rmass[i]) * sqrt(2.0*dt*boltz/t_period/mvv2e) / ftm2v; //sqrt(2*(m/t_period)*k*T*dt)
+        gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt; //target temperature
+      } else {
+        gamma2 = gfactor2[type[i]] * tsqrt; //target temperature
+      }
+      fran[0] = gamma2*random->gaussian();
+      fran[1] = gamma2*random->gaussian();
+      fran[2] = gamma2*random->gaussian();
+      
+      // NVE integrator delivers Eq. 11a, but also overshoots position integration. Calculate Eq. 11b:
+      x[i][0] -= 0.5 * dt * v[i][0];
+      x[i][1] -= 0.5 * dt * v[i][1];
+      x[i][2] -= 0.5 * dt * v[i][2];
+      // Calculate Eq. 11c:
+      if (tbiasflag == BIAS)
+        temperature->remove_bias(i,v[i]);
+      if (rmass) {
+        lv[i][0] = sqrt(gjfc1)*v[i][0] + ftm2v * (sqrt(gjfc3) / (2.0 * rmass[i])) * fran[0];
+        lv[i][1] = sqrt(gjfc1)*v[i][1] + ftm2v * (sqrt(gjfc3) / (2.0 * rmass[i])) * fran[1];
+        lv[i][2] = sqrt(gjfc1)*v[i][2] + ftm2v * (sqrt(gjfc3) / (2.0 * rmass[i])) * fran[2];
+      } else {
+        lv[i][0] = sqrt(gjfc1)*v[i][0] + ftm2v * (sqrt(gjfc3) / (2.0 * mass[type[i]])) * fran[0];
+        lv[i][1] = sqrt(gjfc1)*v[i][1] + ftm2v * (sqrt(gjfc3) / (2.0 * mass[type[i]])) * fran[1];
+        lv[i][2] = sqrt(gjfc1)*v[i][2] + ftm2v * (sqrt(gjfc3) / (2.0 * mass[type[i]])) * fran[2];
+      }
+      if (tbiasflag == BIAS)
+        temperature->restore_bias(i,v[i]);
+        if (tbiasflag == BIAS)
+        temperature->restore_bias(i,lv[i]);
+      
+      // Calculate Eq. 11d
+      if (tbiasflag == BIAS) temperature->remove_bias(i, lv[i]);
+      if (atom->rmass) {
+        v[i][0] = (gjfc2 / sqrt(gjfc1)) * lv[i][0] + ftm2v * (0.5 / rmass[i]) * fran[0];
+        v[i][1] = (gjfc2 / sqrt(gjfc1)) * lv[i][1] + ftm2v * (0.5 / rmass[i]) * fran[1];
+        v[i][2] = (gjfc2 / sqrt(gjfc1)) * lv[i][2] + ftm2v * (0.5 / rmass[i]) * fran[2];
+      } else {
+        v[i][0] = (gjfc2 / sqrt(gjfc1)) * lv[i][0] + ftm2v * (0.5 / mass[type[i]]) * fran[0];
+        v[i][1] = (gjfc2 / sqrt(gjfc1)) * lv[i][1] + ftm2v * (0.5 / mass[type[i]]) * fran[1];
+        v[i][2] = (gjfc2 / sqrt(gjfc1)) * lv[i][2] + ftm2v * (0.5 / mass[type[i]]) * fran[2];
+      }
+      if (tbiasflag == BIAS) temperature->restore_bias(i, lv[i]);
+      // Calculate Eq. 11e. NVE integrator delivers Eq. 11f.
+      x[i][0] += 0.5 * dt * v[i][0];
+      x[i][1] += 0.5 * dt * v[i][1];
+      x[i][2] += 0.5 * dt * v[i][2];
+    }
+  }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -535,9 +639,6 @@ void FixLangevin::post_force_templated()
   double dt = update->dt;
   double mvv2e = force->mvv2e;
   double ftm2v = force->ftm2v;
-  bigint timestep = update->ntimestep;
-
-  //printf("Solving for timestep %ld\n", timestep);
 
   compute_target();
 
@@ -561,88 +662,23 @@ void FixLangevin::post_force_templated()
 
   if (Tp_BIAS) temperature->compute_scalar();
 
-  // printf("Vel Atom 1 before Force Update: %g\n", v[0][0]);
-  // printf("Pos Atom 1 before Force Update: %g\n", x[0][0]);
-
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (Tp_TSTYLEATOM) tsqrt = sqrt(tforce[i]);
       if (Tp_RMASS) {
         gamma1 = -rmass[i] / t_period / ftm2v;
-        if (Tp_GJF)
-          gamma2 = sqrt(rmass[i]) * sqrt(2.0*dt*boltz/t_period/mvv2e) / ftm2v; //sqrt(2*(m/t_period)*k*T*dt)
-        else
-          gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+        gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
         gamma1 *= 1.0/ratio[type[i]];
         gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt; //target temperature
       } else {
         gamma1 = gfactor1[type[i]];
         gamma2 = gfactor2[type[i]] * tsqrt; //target temperature
       }
-
-      if (Tp_GJF) {
-        fran[0] = gamma2*random->gaussian();
-        fran[1] = gamma2*random->gaussian();
-        fran[2] = gamma2*random->gaussian();
-      } else {
-        fran[0] = gamma2*(random->uniform()-0.5);
-        fran[1] = gamma2*(random->uniform()-0.5);
-        fran[2] = gamma2*(random->uniform()-0.5);
-      }
-      // if (i == 0)
-      // {
-      //   printf("Random number: %g %g %g\n", fran[0], fran[1], fran[2]);
-      //   printf("Conversion factor ftm2v = %g\n", ftm2v);
-      // }
       
-
-      if (Tp_GJF) {
-        // NVE integrator delivers Eq. 11a, but also overshoots position integration. Calculate Eq. 11b:
-        x[i][0] -= 0.5 * dt * v[i][0];
-        x[i][1] -= 0.5 * dt * v[i][1];
-        x[i][2] -= 0.5 * dt * v[i][2];
-        // Calculate Eq. 11c:
-        if (Tp_BIAS)
-          temperature->remove_bias(i,v[i]);
-        if (Tp_RMASS) {
-          lv[i][0] = sqrt(gjfc1)*v[i][0] + ftm2v * (sqrt(gjfc3) / (2.0 * rmass[i])) * fran[0];
-          lv[i][1] = sqrt(gjfc1)*v[i][1] + ftm2v * (sqrt(gjfc3) / (2.0 * rmass[i])) * fran[1];
-          lv[i][2] = sqrt(gjfc1)*v[i][2] + ftm2v * (sqrt(gjfc3) / (2.0 * rmass[i])) * fran[2];
-          //----
-          //if (i == 0) printf("Mass: %g\n", rmass[i]);
-          //----
-        } else {
-          lv[i][0] = sqrt(gjfc1)*v[i][0] + ftm2v * (sqrt(gjfc3) / (2.0 * mass[type[i]])) * fran[0];
-          lv[i][1] = sqrt(gjfc1)*v[i][1] + ftm2v * (sqrt(gjfc3) / (2.0 * mass[type[i]])) * fran[1];
-          lv[i][2] = sqrt(gjfc1)*v[i][2] + ftm2v * (sqrt(gjfc3) / (2.0 * mass[type[i]])) * fran[2];
-          //----
-          //if (i == 0) printf("Mass: %g\n", mass[type[i]]);
-          //----
-        }
-        if (Tp_BIAS)
-          temperature->restore_bias(i,v[i]);
-        if (Tp_BIAS)
-          temperature->restore_bias(i,lv[i]);
-
-
-        // Calculate Eq. 11d:
-        if (Tp_BIAS) temperature->remove_bias(i, lv[i]);
-        if (atom->rmass) {
-          v[i][0] = (gjfc2 / sqrt(gjfc1)) * lv[i][0] + ftm2v * (0.5 / rmass[i]) * fran[0];
-          v[i][1] = (gjfc2 / sqrt(gjfc1)) * lv[i][1] + ftm2v * (0.5 / rmass[i]) * fran[1];
-          v[i][2] = (gjfc2 / sqrt(gjfc1)) * lv[i][2] + ftm2v * (0.5 / rmass[i]) * fran[2];
-        } else {
-          v[i][0] = (gjfc2 / sqrt(gjfc1)) * lv[i][0] + ftm2v * (0.5 / mass[type[i]]) * fran[0];
-          v[i][1] = (gjfc2 / sqrt(gjfc1)) * lv[i][1] + ftm2v * (0.5 / mass[type[i]]) * fran[1];
-          v[i][2] = (gjfc2 / sqrt(gjfc1)) * lv[i][2] + ftm2v * (0.5 / mass[type[i]]) * fran[2];
-        }
-        if (Tp_BIAS) temperature->restore_bias(i, lv[i]);
-        if (Tp_BIAS) temperature->restore_bias(i, v[i]);
-        // Calculate Eq. 11e. NVE integrator delivers Eq. 11f.
-        x[i][0] += 0.5 * dt * v[i][0];
-        x[i][1] += 0.5 * dt * v[i][1];
-        x[i][2] += 0.5 * dt * v[i][2];
-      }
+      fran[0] = gamma2*(random->uniform()-0.5);
+      fran[1] = gamma2*(random->uniform()-0.5);
+      fran[2] = gamma2*(random->uniform()-0.5);
+      
 
       if (Tp_BIAS) {
         temperature->remove_bias(i,v[i]);
@@ -659,12 +695,9 @@ void FixLangevin::post_force_templated()
         fdrag[2] = gamma1*v[i][2];
       }
 
-      if (!Tp_GJF)
-      {
-        f[i][0] += fdrag[0] + fran[0];
-        f[i][1] += fdrag[1] + fran[1];
-        f[i][2] += fdrag[2] + fran[2];
-      }
+      f[i][0] += fdrag[0] + fran[0];
+      f[i][1] += fdrag[1] + fran[1];
+      f[i][2] += fdrag[2] + fran[2];
       
       if (Tp_ZERO) {
         fsum[0] += fran[0];
@@ -673,26 +706,12 @@ void FixLangevin::post_force_templated()
       }
 
       if (Tp_TALLY) {
-        // if (Tp_GJF) {
-        //   fdrag[0] = gamma1*lv[i][0]/ sqrt(1.0 / gjfc1) / sqrt(1.0 / gjfc1);
-        //   fdrag[1] = gamma1*lv[i][1]/ sqrt(1.0 / gjfc1) / sqrt(1.0 / gjfc1);
-        //   fdrag[2] = gamma1*lv[i][2]/ sqrt(1.0 / gjfc1)/ sqrt(1.0 / gjfc1);
-        //   fswap = (2*fran[0]/gjfc2 - franprev[i][0])/ sqrt(1.0 / gjfc1);
-        //   fran[0] = fswap;
-        //   fswap = (2*fran[1]/gjfc2 - franprev[i][1])/ sqrt(1.0 / gjfc1);
-        //   fran[1] = fswap;
-        //   fswap = (2*fran[2]/gjfc2 - franprev[i][2])/ sqrt(1.0 / gjfc1);
-        //   fran[2] = fswap;
-        // }
         flangevin[i][0] = fdrag[0] + fran[0];
         flangevin[i][1] = fdrag[1] + fran[1];
         flangevin[i][2] = fdrag[2] + fran[2];
       }
     }
   }
-  // printf("Half-step vel Atom 1 after Force Update: %g\n", lv[0][0]);
-  // printf("Vel Atom 1 after Force Update: %g\n", v[0][0]);
-  // printf("Pos Atom 1 after Force Update: %g\n", x[0][0]);
 
   // set total force to zero
 
@@ -864,7 +883,7 @@ void FixLangevin::angmom_thermostat()
 }
 
 /* ----------------------------------------------------------------------
-   tally energy transfer to thermal reservoir
+   tally energy transfer to thermal reservoir, select velocity for GJF
 ------------------------------------------------------------------------- */
 
 void FixLangevin::end_of_step()
@@ -872,44 +891,48 @@ void FixLangevin::end_of_step()
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  int *type = atom->type;
 
-  //printf("Vel Atom 1 before end of step: %g %g %g\n", v[0][0], v[0][1], v[0][2]);
+  energy_onestep = 0.0;
 
-  if (gjfflag) {
+  if (tallyflag) {
+    if (gjfflag) {
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          if (tbiasflag)
+            temperature->remove_bias(i, lv[i]);
+          energy_onestep += flangevin[i][0]*lv[i][0] + flangevin[i][1]*lv[i][1] +
+                            flangevin[i][2]*lv[i][2];
+          if (tbiasflag)
+            temperature->restore_bias(i, lv[i]);
+        }
+    }
+    else
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit)
+          energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
+                            flangevin[i][2]*v[i][2];
+  }
+
+  energy += energy_onestep*update->dt;
+
+  if (gjfflag && !osflag) {
     double tmp[3];
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        // v has form 11f
+        // v is Eq. 11f
         tmp[0] = v[i][0];
         tmp[1] = v[i][1];
         tmp[2] = v[i][2];
-        if (!osflag) {
-          // Assign half-step velocity
-          v[i][0] = lv[i][0];
-          v[i][1] = lv[i][1];
-          v[i][2] = lv[i][2];
-        }
-        // Store on site velocity
+        // Move on with half-step velocity
+        v[i][0] = lv[i][0];
+        v[i][1] = lv[i][1];
+        v[i][2] = lv[i][2];
+        // store Eq. 11f in lv for next timestep
         lv[i][0] = tmp[0];
         lv[i][1] = tmp[1];
         lv[i][2] = tmp[2];
       }
   }
-
-  // printf("Vel Atom 1 after end of step: %g %g %g\n", v[0][0], v[0][1], v[0][2]);
-  // printf("Half-step vel Atom 1 after end of step: %g %g %g\n", lv[0][0], lv[0][1], lv[0][2]);
-
-  energy_onestep = 0.0;
-
-  if (tallyflag) {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
-        energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
-                          flangevin[i][2]*v[i][2];
-  }
-
-  energy += energy_onestep*update->dt;
 }
 
 // clang-format on
@@ -976,22 +999,22 @@ double FixLangevin::compute_scalar()
 
   if (update->ntimestep == update->beginstep) {
     energy_onestep = 0.0;
-    //if (!gjfflag) {
+    if (!gjfflag) {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit)
           energy_onestep +=
               flangevin[i][0] * v[i][0] + flangevin[i][1] * v[i][1] + flangevin[i][2] * v[i][2];
       energy = 0.5 * energy_onestep * update->dt;
-    // } else {
-    //   for (int i = 0; i < nlocal; i++)
-    //     if (mask[i] & groupbit) {
-    //       if (tbiasflag) temperature->remove_bias(i, lv[i]);
-    //       energy_onestep +=
-    //           flangevin[i][0] * lv[i][0] + flangevin[i][1] * lv[i][1] + flangevin[i][2] * lv[i][2];
-    //       if (tbiasflag) temperature->restore_bias(i, lv[i]);
-    //     }
-    //  energy = -0.5 * energy_onestep * update->dt;
-    //}
+    } else {
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          if (tbiasflag) temperature->remove_bias(i, lv[i]);
+          energy_onestep +=
+              flangevin[i][0] * lv[i][0] + flangevin[i][1] * lv[i][1] + flangevin[i][2] * lv[i][2];
+          if (tbiasflag) temperature->restore_bias(i, lv[i]);
+        }
+     energy = -0.5 * energy_onestep * update->dt;
+    }
   }
 
   // convert midstep energy back to previous fullstep energy

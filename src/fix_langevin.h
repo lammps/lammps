@@ -54,7 +54,7 @@ class FixLangevin : public Fix {
   double *gfactor1, *gfactor2, *ratio;
   double energy, energy_onestep;
   double tsqrt;
-  double gjfc1, gjfc2, gjfc3;
+  double gjfc1, gjfc2;
   int tstyle, tvar;
   char *tstr;
 
@@ -63,7 +63,6 @@ class FixLangevin : public Fix {
   int maxatom1, maxatom2;
   double **flangevin;
   double *tforce;
-  double **gjfran;
   double **lv;    //half step velocity
 
   char *id_temp;
@@ -73,7 +72,7 @@ class FixLangevin : public Fix {
   class RanMars *random;
   int seed;
 
-  template <int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY, int Tp_BIAS, int Tp_RMASS, int Tp_ZERO>
+  template <int Tp_TSTYLEATOM, int Tp_TALLY, int Tp_BIAS, int Tp_RMASS, int Tp_ZERO>
   void post_force_templated();
 
   void omega_thermostat();

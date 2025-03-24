@@ -339,7 +339,7 @@ void FixLangevin::setup(int vflag)
 
 /* ----------------------------------------------------------------------
    integrate position and velocity according to the GJF method
-    comments refer to Grønbech-Jensen, J Stat Phys 191, 137 (2024). 
+    in Grønbech-Jensen, J Stat Phys 191, 137 (2024). 
     https://doi.org/10.1007/s10955-024-03345-1
 ------------------------------------------------------------------------- */
 
@@ -460,7 +460,7 @@ void FixLangevin::initial_integrate(int /* vflag */)
         v[i][2] = (gjfc2 / sqrt(gjfc1)) * lv[i][2] + ftm2v * (0.5 / mass[type[i]]) * fran[2];
       }
       if (tbiasflag == BIAS) temperature->restore_bias(i, lv[i]);
-      // Calculate Eq. 24e. NVE integrator delivers Eq. 24f.
+      // Calculate Eq. 24e. NVE integrator then calculates Eq. 24f.
       x[i][0] += 0.5 * dt * v[i][0];
       x[i][1] += 0.5 * dt * v[i][1];
       x[i][2] += 0.5 * dt * v[i][2];
@@ -512,23 +512,11 @@ void FixLangevin::post_force(int /*vflag*/)
           if (zeroflag) post_force_templated<1,0,0,0,1>();
           else          post_force_templated<1,0,0,0,0>();
   else
-<<<<<<< HEAD
     if (tallyflag)
       if (tbiasflag == BIAS)
         if (rmass)
           if (zeroflag) post_force_templated<0,1,1,1,1>();
           else          post_force_templated<0,1,1,1,0>();
-=======
-    if (gjfflag)
-      if (tallyflag || osflag)
-        if (tbiasflag == BIAS)
-          if (rmass)
-            if (zeroflag) post_force_templated<0,1,1,1,1,1>();
-            else          post_force_templated<0,1,1,1,1,0>();
-          else
-            if (zeroflag) post_force_templated<0,1,1,1,0,1>();
-            else          post_force_templated<0,1,1,1,0,0>();
->>>>>>> adaa313990e55aeda3f2be3b716a6a8f7d3b4c53
         else
           if (zeroflag) post_force_templated<0,1,1,0,1>();
           else          post_force_templated<0,1,1,0,0>();
@@ -701,6 +689,7 @@ void FixLangevin::post_force_templated()
     }
   }
   }
+
   // thermostat omega and angmom
 
   if (oflag) omega_thermostat();

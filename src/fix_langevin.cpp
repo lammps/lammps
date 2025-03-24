@@ -180,6 +180,10 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       lv[i][1] = 0.0;
       lv[i][2] = 0.0;
     }
+    if (zeroflag || tallyflag) 
+    error->all(FLERR, "Fix langevin gjf and zero/tally are not compatible");
+    for (int i = 1; i <= atom->ntypes; i++) if(ratio[i] != 1.0) 
+    error->all(FLERR, "Fix langevin gjf and scale are not compatible");
   }
 }
 
@@ -349,19 +353,9 @@ void FixLangevin::initial_integrate(int /* vflag */)
 
   double dtf = 0.5 * dt * ftm2v;
   double dtfm;
-
-  if (tallyflag) {
-    if (atom->nmax > maxatom1) {
-      memory->destroy(flangevin);
-      maxatom1 = atom->nmax;
-      memory->create(flangevin,maxatom1,3,"langevin:flangevin");
-    }
-    flangevin_allocated = 1;
-  }
   
   // NVE integrates position and velocity according to Eq. 8a, 8b
   // This function embeds the GJF formulation into the NVE framework, which corresponds to the GJF case c1=c3.
-
 
   // The initial NVE integration should always use the on-site velocity. Therefore, a velocity correction
   // must be done when using the half-step option.
@@ -458,12 +452,6 @@ void FixLangevin::initial_integrate(int /* vflag */)
       x[i][0] += 0.5 * dt * v[i][0];
       x[i][1] += 0.5 * dt * v[i][1];
       x[i][2] += 0.5 * dt * v[i][2];
-
-      if (tallyflag) {
-        flangevin[i][0] = fran[0];
-        flangevin[i][1] = fran[1];
-        flangevin[i][2] = fran[2];
-      }
     }
   }
 
@@ -618,8 +606,9 @@ void FixLangevin::post_force_templated()
 
   if (Tp_BIAS) temperature->compute_scalar();
 
+  if (!gjfflag) {
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit & !gjfflag) {
+    if (mask[i] & groupbit) {
       if (Tp_TSTYLEATOM) tsqrt = sqrt(tforce[i]);
       if (Tp_RMASS) {
         gamma1 = -rmass[i] / t_period / ftm2v / ratio[type[i]];
@@ -670,13 +659,6 @@ void FixLangevin::post_force_templated()
   // set total force to zero
 
   if (Tp_ZERO) {
-    if (gjfflag)
-      for (int i = 0; i < nlocal; i++)
-      {
-        fsum[0] += flangevin[i][0];
-        fsum[1] += flangevin[i][1];
-        fsum[2] += flangevin[i][2];
-      }
     MPI_Allreduce(fsum,fsumall,3,MPI_DOUBLE,MPI_SUM,world);
     fsumall[0] /= count;
     fsumall[1] /= count;
@@ -694,7 +676,7 @@ void FixLangevin::post_force_templated()
       }
     }
   }
-
+  }
   // thermostat omega and angmom
 
   if (oflag) omega_thermostat();
@@ -856,22 +838,10 @@ void FixLangevin::end_of_step()
   energy_onestep = 0.0;
 
   if (tallyflag) {
-    if (gjfflag) {
-      for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          if (tbiasflag)
-            temperature->remove_bias(i, lv[i]);
-          energy_onestep += flangevin[i][0]*lv[i][0] + flangevin[i][1]*lv[i][1] +
-                            flangevin[i][2]*lv[i][2];
-          if (tbiasflag)
-            temperature->restore_bias(i, lv[i]);
-        }
-    }
-    else
-      for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
-          energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
-                            flangevin[i][2]*v[i][2];
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+        energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
+                          flangevin[i][2]*v[i][2];
   }
 
   energy += energy_onestep*update->dt;

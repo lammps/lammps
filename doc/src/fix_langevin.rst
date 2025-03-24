@@ -56,7 +56,7 @@ Examples
 Description
 """""""""""
 
-Apply a Langevin thermostat as described in :ref:`(Schneider) <Schneider1>`
+Apply a Langevin thermostat as described in :ref:`(Bruenger) <Bruenger1>`
 to a group of atoms which models an interaction with a background
 implicit solvent.  Used with :doc:`fix nve <fix_nve>`, this command
 performs Brownian dynamics (BD), since the total force on each atom
@@ -248,7 +248,7 @@ group.  As a result, the center-of-mass of a system with zero initial
 momentum will not drift over time.
 
 The keyword *gjf* can be used to run the :ref:`Gronbech-Jensen/Farago
-<Gronbech-Jensen>` time-discretization of the Langevin model.  As
+<Gronbech-Jensen-Farago>` time-discretization of the Langevin model.  As
 described in the papers cited below, the purpose of this method is to
 enable longer timesteps to be used (up to the numerical stability
 limit of the integrator), while still producing the correct Boltzmann
@@ -258,7 +258,7 @@ The current implementation provides the user with the option to output
 the velocity in one of two forms: *vfull* or *vhalf*, which replaces
 the outdated option *yes*\ . The *gjf* option *vfull* outputs the
 on-site velocity given in :ref:`Gronbech-Jensen/Farago
-<Gronbech-Jensen>`; this velocity is shown to be systematically lower
+<Gronbech-Jensen-Farago>`; this velocity is shown to be systematically lower
 than the target temperature by a small amount, which grows
 quadratically with the timestep.  The *gjf* option *vhalf* outputs the
 2GJ half-step velocity given in :ref:`Gronbech Jensen/Gronbech-Jensen
@@ -266,10 +266,12 @@ quadratically with the timestep.  The *gjf* option *vhalf* outputs the
 have any statistical errors for any stable time step.  An overview of
 statistically correct Boltzmann and Maxwell-Boltzmann sampling of true
 on-site and true half-step velocities is given in
-:ref:`Gronbech-Jensen <1Gronbech-Jensen>`.  Regardless of the choice
-of output velocity, the sampling of the configurational distribution
-of atom positions is the same, and linearly consistent with the target
-temperature.
+:ref:`Gronbech-Jensen-2020 <1Gronbech-Jensen>`. 
+
+Current implementation follows closely the GJ-I algorithm as listed in 
+Eqs. (24) and (25) in :ref:`Gronbech-Jensen-2024 <Gronbech-Jensen-2024>`, 
+including the application of Gaussian noise values, per the description in 
+:ref:`Gronbech-Jensen-2023 <Gronbech-Jensen-2023>`.
 
 ----------
 
@@ -280,11 +282,15 @@ temperature.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  Because the state of the random number generator
+No information about this fix is written to :doc:`binary restart files <restart>`.  
+For the Bruenger thermostat: Because the state of the random number generator
 is not saved in restart files, this means you cannot do "exact"
 restarts with this fix, where the simulation continues on the same as
 if no restart had taken place.  However, in a statistical sense, a
-restarted simulation should produce the same behavior.
+restarted simulation should produce the same behavior. When choosing the gjf 
+thermostat, "exact" restart is done with either vfull or vhalf velocity output 
+for as long as the choice of vfull/vhalf is the same for the simulation as it 
+is in the restart file.
 
 The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a temperature :doc:`compute <compute>`
@@ -314,8 +320,7 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-For *gjf* do not choose damp=dt/2. *gjf* is not compatible
-with run_style respa.
+*gjf* is not compatible with run_style respa.
 
 Related commands
 """"""""""""""""
@@ -334,19 +339,29 @@ types, tally = no, zero = no, gjf = no.
 
 **(Dunweg)** Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).
 
-.. _Schneider1:
+.. _Bruenger1:
 
-**(Schneider)** Schneider and Stoll, Phys Rev B, 17, 1302 (1978).
+**(Bruenger)** Bruenger, Brooks, and Karplus, Chem. Phys. Lett. 105, 495 (1982). 
+[The fix langevin algorithm was previously attributed to Schneider and Stoll, 
+Phys. Rev. B 17, 1302 (1978). The implementation remains unchanged.]
 
-.. _Gronbech-Jensen:
+.. _Gronbech-Jensen-Farago:
 
-**(Gronbech-Jensen)** Gronbech-Jensen and Farago, Mol Phys, 111, 983
-(2013); Gronbech-Jensen, Hayre, and Farago, Comp Phys Comm, 185, 524 (2014)
+**(Gronbech-Jensen/Farago)** Gronbech-Jensen and Farago, Mol Phys, 111, 983
+(2013).
 
 .. _2Gronbech-Jensen:
 
-**(Gronbech-Jensen)** Gronbech Jensen and Gronbech-Jensen, Mol Phys, 117, 2511 (2019)
+**(Gronbech Jensen/Gronbech-Jensen)** Gronbech Jensen and Gronbech-Jensen, Mol Phys, 117, 2511 (2019)
 
 .. _1Gronbech-Jensen:
 
-**(Gronbech-Jensen)** Gronbech-Jensen, Mol Phys (2019); https://doi.org/10.1080/00268976.2019.1662506
+**(Gronbech-Jensen-2020)** Gronbech-Jensen, Mol Phys 118, e1662506 (2020).
+
+.. _Gronbech-Jensen-2024:
+
+**(Gronbech-Jensen-2024)** Gronbech-Jensen, J. Stat. Phys. 191, 137 (2024).
+
+.. _Gronbech-Jensen-2023:
+
+**(Gronbech-Jensen-2023)** Gronbech-Jensen, J. Stat. Phys. 190, 96 (2023).

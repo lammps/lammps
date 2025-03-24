@@ -1,0 +1,150 @@
+LAMMPS (29 Aug 2024 - Development - 117e8768da-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:99)
+  using 1 OpenMP thread(s) per MPI task
+# GJF-2GJ thermostat
+
+units   	metal
+atom_style      full
+
+boundary 	p p p
+read_data argon.lmp
+Reading data file ...
+  orthogonal box = (0 0 0) to (32.146 32.146 32.146)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  864 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.008 seconds
+
+include ff-argon.lmp
+#############################
+#Atoms types - mass - charge#
+#############################
+#@ 1 atom types #!THIS LINE IS NECESSARY DON'T SPEND HOURS FINDING THAT OUT!#
+
+variable Ar equal 1
+
+#############
+#Atom Masses#
+#############
+
+mass ${Ar}      39.903
+mass 1      39.903
+
+###########################
+#Pair Potentials - Tersoff#
+###########################
+
+pair_style      lj/cubic
+pair_coeff      * * 0.0102701 3.42
+
+
+velocity all create 10 2357 mom yes dist gaussian
+
+neighbor 1 bin
+
+timestep 0.1
+
+fix nve all nve
+fix lang all langevin 10 10 1 26488 gjf vhalf
+
+thermo 200
+run 5000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- Type Label Framework: https://doi.org/10.1021/acs.jpcb.3c08419
+
+@Article{Gissinger24,
+ author = {Jacob R. Gissinger, Ilia Nikiforov, Yaser Afshar, Brendon Waters, Moon-ki Choi, Daniel S. Karls, Alexander Stukowski, Wonpil Im, Hendrik Heinz, Axel Kohlmeyer, and Ellad B. Tadmor},
+ title = {Type Label Framework for Bonded Force Fields in LAMMPS},
+ journal = {J. Phys. Chem. B},
+ year =    2024,
+ volume =  128,
+ number =  13,
+ pages =   {3282--3297}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.9407173
+  ghost atom cutoff = 6.9407173
+  binsize = 3.4703587, bins = 10 10 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cubic, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.481 | 6.481 | 6.481 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   10            -56.207652      0             -55.092137      33.341103    
+       200   9.8808228     -55.073602      0             -53.971382      345.62133    
+       400   9.8712815     -55.072241      0             -53.971084      345.11909    
+       600   10.528988     -55.066736      0             -53.892211      350.60112    
+       800   10.167171     -55.148312      0             -54.014149      324.73698    
+      1000   10.029026     -55.125705      0             -54.006952      331.93785    
+      1200   9.8898479     -55.086642      0             -53.983414      342.04309    
+      1400   10.610014     -55.076793      0             -53.89323       346.34338    
+      1600   9.9402137     -55.111688      0             -54.002842      335.04779    
+      1800   9.8078801     -55.140475      0             -54.046391      325.88652    
+      2000   10.472791     -55.06102       0             -53.892765      349.97306    
+      2200   9.877248      -55.191201      0             -54.089379      312.77421    
+      2400   9.9739487     -55.108904      0             -53.996295      335.9089     
+      2600   10.131803     -55.149444      0             -54.019226      325.44115    
+      2800   9.6980127     -55.118395      0             -54.036568      331.2097     
+      3000   9.7193425     -55.149785      0             -54.065577      323.32384    
+      3200   10.27638      -55.083302      0             -53.936957      342.56458    
+      3400   9.9253941     -55.082368      0             -53.975175      342.28594    
+      3600   10.665862     -55.056774      0             -53.866981      352.03551    
+      3800   10.011077     -55.084664      0             -53.967913      341.45122    
+      4000   9.4182671     -55.128803      0             -54.078181      327.81846    
+      4200   10.02466      -55.106046      0             -53.98778       336.56944    
+      4400   9.3721033     -55.146068      0             -54.100596      322.38199    
+      4600   9.5485537     -55.118577      0             -54.053421      332.04274    
+      4800   10.039726     -55.074068      0             -53.954122      344.76817    
+      5000   9.7731898     -55.150518      0             -54.060304      322.94195    
+Loop time of 2.45311 on 1 procs for 5000 steps with 864 atoms
+
+Performance: 17610.293 ns/day, 0.001 hours/ns, 2038.228 timesteps/s, 1.761 Matom-step/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.281      | 1.281      | 1.281      |   0.0 | 52.22
+Bond    | 0.00041963 | 0.00041963 | 0.00041963 |   0.0 |  0.02
+Neigh   | 0.27136    | 0.27136    | 0.27136    |   0.0 | 11.06
+Comm    | 0.057121   | 0.057121   | 0.057121   |   0.0 |  2.33
+Output  | 0.00057729 | 0.00057729 | 0.00057729 |   0.0 |  0.02
+Modify  | 0.81727    | 0.81727    | 0.81727    |   0.0 | 33.32
+Other   |            | 0.02537    |            |       |  1.03
+
+Nlocal:            864 ave         864 max         864 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1593 ave        1593 max        1593 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          18143 ave       18143 max       18143 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 18143
+Ave neighs/atom = 20.998843
+Ave special neighs/atom = 0
+Neighbor list builds = 258
+Dangerous builds = 0
+
+
+Total wall time: 0:00:02

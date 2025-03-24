@@ -67,8 +67,9 @@ std::pair<unsigned, unsigned>
 
 int s_thread_pool_size[3] = {0, 0, 0};
 
-void (*volatile s_current_function)(ThreadsInternal &, const void *);
-const void *volatile s_current_function_arg = nullptr;
+using s_current_function_type = void (*)(ThreadsInternal &, const void *);
+std::atomic<s_current_function_type> s_current_function;
+std::atomic<const void *> s_current_function_arg = nullptr;
 
 inline unsigned fan_size(const unsigned rank, const unsigned size) {
   const unsigned rank_rev = size - (rank + 1);
@@ -79,7 +80,7 @@ inline unsigned fan_size(const unsigned rank, const unsigned size) {
   return count;
 }
 
-void wait_yield(volatile ThreadState &flag, const ThreadState value) {
+void wait_yield(std::atomic<ThreadState> &flag, const ThreadState value) {
   while (value == flag) {
     std::this_thread::yield();
   }
@@ -135,11 +136,12 @@ ThreadsInternal::ThreadsInternal()
     ThreadsInternal *const nil = nullptr;
 
     // Which entry in 's_threads_exec', possibly determined from hwloc binding
-    const int entry = reinterpret_cast<size_t>(s_current_function_arg) <
-                              size_t(s_thread_pool_size[0])
-                          ? reinterpret_cast<size_t>(s_current_function_arg)
-                          : size_t(Kokkos::hwloc::bind_this_thread(
-                                s_thread_pool_size[0], s_threads_coord));
+    const int entry =
+        reinterpret_cast<size_t>(s_current_function_arg.load()) <
+                size_t(s_thread_pool_size[0])
+            ? reinterpret_cast<size_t>(s_current_function_arg.load())
+            : size_t(Kokkos::hwloc::bind_this_thread(s_thread_pool_size[0],
+                                                     s_threads_coord));
 
     // Given a good entry set this thread in the 's_threads_exec' array
     if (entry < s_thread_pool_size[0] &&
@@ -543,7 +545,7 @@ void ThreadsInternal::initialize(int thread_count_arg) {
     for (unsigned ith = 1; ith < thread_count; ++ith) {
       // Try to protect against cache coherency failure by casting to volatile.
       ThreadsInternal *const th =
-          ((ThreadsInternal * volatile *)s_threads_exec)[ith];
+          ((ThreadsInternal *volatile *)s_threads_exec)[ith];
       if (th) {
         wait_yield(th->m_pool_state, ThreadState::Active);
       } else {

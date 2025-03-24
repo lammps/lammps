@@ -94,7 +94,7 @@ void ComputePEAtom::compute_peratom()
 
   invoked_peratom = update->ntimestep;
   if (update->eflag_atom != invoked_peratom)
-    error->all(FLERR, "Per-atom energy was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Per-atom energy was not tallied on needed timestep{}", utils::errorurl(22));
 
   // grow local energy array if necessary
   // needs to be atom->nmax in length

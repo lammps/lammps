@@ -144,7 +144,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
     auto rowFrom = Kokkos::subview(sourceViewBeforeOp_h, i, Kokkos::ALL());
     auto rowDest = Kokkos::subview(stdDestView, i, Kokkos::ALL());
     auto it      = std::copy_if(KE::cbegin(rowFrom), KE::cend(rowFrom),
-                           KE::begin(rowDest), predicate);
+                                KE::begin(rowDest), predicate);
     const std::size_t stdDistance = KE::distance(KE::begin(rowDest), it);
     ASSERT_EQ(stdDistance, distancesView_h(i));
     ASSERT_TRUE(intraTeamSentinelView_h(i));

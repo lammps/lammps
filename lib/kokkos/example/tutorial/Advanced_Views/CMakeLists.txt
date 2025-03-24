@@ -1,9 +1,8 @@
+kokkos_add_example_directories(01_data_layouts)
+kokkos_add_example_directories(02_memory_traits)
+kokkos_add_example_directories(03_subviews)
+kokkos_add_example_directories(04_dualviews)
 
-KOKKOS_ADD_EXAMPLE_DIRECTORIES(01_data_layouts)
-KOKKOS_ADD_EXAMPLE_DIRECTORIES(02_memory_traits)
-KOKKOS_ADD_EXAMPLE_DIRECTORIES(03_subviews)
-KOKKOS_ADD_EXAMPLE_DIRECTORIES(04_dualviews)
-
-IF (Kokkos_ENABLE_CUDA_UVM)
-  KOKKOS_ADD_EXAMPLE_DIRECTORIES(05_NVIDIA_UVM)
-ENDIF ()
+if(Kokkos_ENABLE_CUDA_UVM)
+  kokkos_add_example_directories(05_NVIDIA_UVM)
+endif()

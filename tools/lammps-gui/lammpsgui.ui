@@ -74,6 +74,7 @@
     <addaction name="actionRun_Buffer"/>
     <addaction name="actionRun_File"/>
     <addaction name="actionStop_LAMMPS"/>
+    <addaction name="actionRestart_LAMMPS"/>
     <addaction name="separator"/>
     <addaction name="actionSet_Variables"/>
     <addaction name="separator"/>
@@ -87,6 +88,12 @@
     </property>
     <addaction name="actionTutorial1"/>
     <addaction name="actionTutorial2"/>
+    <addaction name="actionTutorial3"/>
+    <addaction name="actionTutorial4"/>
+    <addaction name="actionTutorial5"/>
+    <addaction name="actionTutorial6"/>
+    <addaction name="actionTutorial7"/>
+    <addaction name="actionTutorial8"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -264,7 +271,7 @@
     <iconset theme=":/icons/run-file.png"/>
    </property>
    <property name="text">
-    <string>&amp;Run LAMMPS from File</string>
+    <string>Run LAMMPS from &amp;File</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Return</string>
@@ -279,6 +286,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+/</string>
+   </property>
+  </action>
+  <action name="actionRestart_LAMMPS">
+   <property name="icon">
+    <iconset theme=":/icons/system-restart.png"/>
+   </property>
+   <property name="text">
+    <string>Restart &amp;LAMMPS</string>
    </property>
   </action>
   <action name="actionImage">
@@ -508,6 +523,54 @@
    </property>
    <property name="text">
     <string>Start LAMMPS Tutorial &amp;2</string>
+   </property>
+  </action>
+  <action name="actionTutorial3">
+   <property name="icon">
+    <iconset theme=":/icons/tutorial-logo.png"/>
+   </property>
+   <property name="text">
+    <string>Start LAMMPS Tutorial &amp;3</string>
+   </property>
+  </action>
+  <action name="actionTutorial4">
+   <property name="icon">
+    <iconset theme=":/icons/tutorial-logo.png"/>
+   </property>
+   <property name="text">
+    <string>Start LAMMPS Tutorial &amp;4</string>
+   </property>
+  </action>
+  <action name="actionTutorial5">
+   <property name="icon">
+    <iconset theme=":/icons/tutorial-logo.png"/>
+   </property>
+   <property name="text">
+    <string>Start LAMMPS Tutorial &amp;5</string>
+   </property>
+  </action>
+  <action name="actionTutorial6">
+   <property name="icon">
+    <iconset theme=":/icons/tutorial-logo.png"/>
+   </property>
+   <property name="text">
+    <string>Start LAMMPS Tutorial &amp;6</string>
+   </property>
+  </action>
+  <action name="actionTutorial7">
+   <property name="icon">
+    <iconset theme=":/icons/tutorial-logo.png"/>
+   </property>
+   <property name="text">
+    <string>Start LAMMPS Tutorial &amp;7</string>
+   </property>
+  </action>
+  <action name="actionTutorial8">
+   <property name="icon">
+    <iconset theme=":/icons/tutorial-logo.png"/>
+   </property>
+   <property name="text">
+    <string>Start LAMMPS Tutorial &amp;8</string>
    </property>
   </action>
   <action name="actionLAMMPS_GUI_Howto">

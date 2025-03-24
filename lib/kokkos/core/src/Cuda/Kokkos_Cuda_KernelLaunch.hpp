@@ -209,8 +209,8 @@ inline void configure_shmem_preference(const int cuda_device,
   // Use multiples of 8kB
   const size_t max_shmem_per_sm = device_props.sharedMemPerMultiprocessor;
   size_t carveout               = shmem_per_block == 0
-                        ? 0
-                        : 100 *
+                                      ? 0
+                                      : 100 *
                               (((num_blocks_desired * shmem_per_block +
                                  min_shmem_size_per_sm - 1) /
                                 min_shmem_size_per_sm) *
@@ -491,7 +491,10 @@ struct CudaParallelLaunchKernelInvoker<
             cuda_instance->m_deviceProp, block_size, shmem, desired_occupancy);
       }
 
-      auto* driver_ptr = Impl::allocate_driver_storage_for_kernel(driver);
+      auto* driver_ptr = Impl::allocate_driver_storage_for_kernel(
+          CudaSpace::impl_create(cuda_instance->m_cudaDev,
+                                 cuda_instance->m_stream),
+          driver);
 
       // Unlike in the non-graph case, we can get away with doing an async copy
       // here because the `DriverType` instance is held in the GraphNodeImpl
@@ -714,7 +717,7 @@ struct CudaParallelLaunch<DriverType, LaunchBounds, LaunchMechanism,
       CudaParallelLaunchImpl<DriverType, LaunchBounds, LaunchMechanism>;
   template <class... Args>
   CudaParallelLaunch(Args&&... args) {
-    base_t::launch_kernel((Args &&) args...);
+    base_t::launch_kernel((Args&&)args...);
   }
 };
 
@@ -728,7 +731,7 @@ struct CudaParallelLaunch<DriverType, LaunchBounds, LaunchMechanism,
       CudaParallelLaunchImpl<DriverType, LaunchBounds, LaunchMechanism>;
   template <class... Args>
   CudaParallelLaunch(Args&&... args) {
-    base_t::create_parallel_launch_graph_node((Args &&) args...);
+    base_t::create_parallel_launch_graph_node((Args&&)args...);
   }
 };
 

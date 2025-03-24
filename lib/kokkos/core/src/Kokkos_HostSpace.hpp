@@ -63,10 +63,10 @@ class HostSpace {
   //! This memory space preferred device_type
   using device_type = Kokkos::Device<execution_space, memory_space>;
 
-  HostSpace()                     = default;
-  HostSpace(HostSpace&& rhs)      = default;
-  HostSpace(const HostSpace& rhs) = default;
-  HostSpace& operator=(HostSpace&&) = default;
+  HostSpace()                            = default;
+  HostSpace(HostSpace&& rhs)             = default;
+  HostSpace(const HostSpace& rhs)        = default;
+  HostSpace& operator=(HostSpace&&)      = default;
   HostSpace& operator=(const HostSpace&) = default;
   ~HostSpace()                           = default;
 
@@ -183,18 +183,6 @@ namespace Kokkos {
 
 namespace Impl {
 
-template <>
-struct DeepCopy<HostSpace, HostSpace, DefaultHostExecutionSpace> {
-  DeepCopy(void* dst, const void* src, size_t n) {
-    hostspace_parallel_deepcopy(dst, src, n);
-  }
-
-  DeepCopy(const DefaultHostExecutionSpace& exec, void* dst, const void* src,
-           size_t n) {
-    hostspace_parallel_deepcopy_async(exec, dst, src, n);
-  }
-};
-
 template <class ExecutionSpace>
 struct DeepCopy<HostSpace, HostSpace, ExecutionSpace> {
   DeepCopy(void* dst, const void* src, size_t n) {
@@ -202,10 +190,15 @@ struct DeepCopy<HostSpace, HostSpace, ExecutionSpace> {
   }
 
   DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
-    exec.fence(
-        "Kokkos::Impl::DeepCopy<HostSpace, HostSpace, "
-        "ExecutionSpace>::DeepCopy: fence before copy");
-    hostspace_parallel_deepcopy_async(dst, src, n);
+    if constexpr (!Kokkos::SpaceAccessibility<ExecutionSpace,
+                                              Kokkos::HostSpace>::accessible) {
+      exec.fence(
+          "Kokkos::Impl::DeepCopy<HostSpace, HostSpace, "
+          "ExecutionSpace>::DeepCopy: fence before copy");
+      hostspace_parallel_deepcopy_async(dst, src, n);
+    } else {
+      hostspace_parallel_deepcopy_async(exec, dst, src, n);
+    }
   }
 };
 

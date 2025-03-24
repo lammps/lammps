@@ -140,7 +140,7 @@ int run_benchmark(const Index indicesCount, const Index dataCount,
         break;
       }
       default: {
-        throw std::runtime_error("unexpected mode");
+        Kokkos::abort("unexpected mode");
       }
     }
 

@@ -48,6 +48,7 @@ This is the list of packages that may require additional steps.
    * :ref:`LEPTON <lepton>`
    * :ref:`MACHDYN <machdyn>`
    * :ref:`MDI <mdi>`
+   * :ref:`MISC <misc>`
    * :ref:`ML-HDNNP <ml-hdnnp>`
    * :ref:`ML-IAP <mliap>`
    * :ref:`ML-PACE <ml-pace>`
@@ -209,7 +210,7 @@ necessary for ``hipcc`` and the linker to work correctly.
 Using the CHIP-SPV implementation of HIP is supported. It allows one to
 run HIP code on Intel GPUs via the OpenCL or Level Zero back ends. To use
 CHIP-SPV, you must set ``-DHIP_USE_DEVICE_SORT=OFF`` in your CMake
-command line as CHIP-SPV does not yet support hipCUB. As of Summer 2022,
+command-line as CHIP-SPV does not yet support hipCUB. As of Summer 2022,
 the use of HIP for Intel GPUs is experimental. You should only use this
 option in preparations to run on Aurora system at Argonne.
 
@@ -232,7 +233,7 @@ option in preparations to run on Aurora system at Argonne.
 
 .. code:: bash
 
-   # CUDA target (not recommended, use GPU_ARCH=cuda)
+   # CUDA target (not recommended, use GPU_API=cuda)
    # !!! DO NOT set CMAKE_CXX_COMPILER !!!
    export HIP_PLATFORM=nvcc
    export HIP_PATH=/path/to/HIP/install
@@ -254,11 +255,10 @@ Traditional make
 
 Before building LAMMPS, you must build the GPU library in ``lib/gpu``\ .
 You can do this manually if you prefer; follow the instructions in
-``lib/gpu/README``.  Note that the GPU library uses MPI calls, so you must
-use the same MPI library (or the STUBS library) settings as the main
-LAMMPS code.  This also applies to the ``-DLAMMPS_BIGBIG``\ ,
-``-DLAMMPS_SMALLBIG``\ , or ``-DLAMMPS_SMALLSMALL`` settings in whichever
-Makefile you use.
+``lib/gpu/README``.  Note that the GPU library uses MPI calls, so you
+must use the same MPI library (or the STUBS library) settings as the
+main LAMMPS code.  This also applies to the ``-DLAMMPS_BIGBIG`` or
+``-DLAMMPS_SMALLBIG`` settings in whichever Makefile you use.
 
 You can also build the library in one step from the ``lammps/src`` dir,
 using a command like these, which simply invokes the ``lib/gpu/Install.py``
@@ -421,9 +421,10 @@ minutes to hours) to build.  Of course you only need to do that once.)
       cmake build system.  The ``lib/kim/Install.py`` script supports a
       ``CMAKE`` environment variable if the cmake executable is named other
       than ``cmake`` on your system.  Additional environment variables may be
-      provided on the command line for use by cmake.  For example, to use the
-      ``cmake3`` executable and tell it to use the gnu version 11 compilers
-      to build KIM, one could use the following command line.
+      set with the ``make`` command for use by cmake.  For example, to use the
+      ``cmake3`` executable and tell it to use the GNU version 11 compilers
+      called ``g++-11``, ``gcc-11`` and ``gfortran-11`` to build KIM, one
+      could use the following command.
 
       .. code-block:: bash
 
@@ -546,16 +547,7 @@ They must be specified in uppercase.
       - Local machine
    *  - AMDAVX
       - HOST
-      - AMD 64-bit x86 CPU (AVX 1)
-   *  - ZEN
-      - HOST
-      - AMD Zen class CPU (AVX 2)
-   *  - ZEN2
-      - HOST
-      - AMD Zen2 class CPU (AVX 2)
-   *  - ZEN3
-      - HOST
-      - AMD Zen3 class CPU (AVX 2)
+      - AMD chip
    *  - ARMV80
       - HOST
       - ARMv8.0 Compatible CPU
@@ -571,105 +563,126 @@ They must be specified in uppercase.
    *  - A64FX
       - HOST
       - ARMv8.2 with SVE Support
+   *  - ARMV9_GRACE
+      - HOST
+      - ARMv9 NVIDIA Grace CPU
    *  - SNB
       - HOST
-      - Intel Sandy/Ivy Bridge CPU (AVX 1)
+      - Intel Sandy/Ivy Bridge CPUs
    *  - HSW
       - HOST
-      - Intel Haswell CPU (AVX 2)
+      - Intel Haswell CPUs
    *  - BDW
       - HOST
-      - Intel Broadwell Xeon E-class CPU (AVX 2 + transactional mem)
-   *  - SKL
-      - HOST
-      - Intel Skylake Client CPU
-   *  - SKX
-      - HOST
-      - Intel Skylake Xeon Server CPU (AVX512)
+      - Intel Broadwell Xeon E-class CPUs
    *  - ICL
       - HOST
-      - Intel Ice Lake Client CPU (AVX512)
+      - Intel Ice Lake Client CPUs (AVX512)
    *  - ICX
       - HOST
-      - Intel Ice Lake Xeon Server CPU (AVX512)
-   *  - SPR
+      - Intel Ice Lake Xeon Server CPUs (AVX512)
+   *  - SKL
       - HOST
-      - Intel Sapphire Rapids Xeon Server CPU (AVX512)
+      - Intel Skylake Client CPUs
+   *  - SKX
+      - HOST
+      - Intel Skylake Xeon Server CPUs (AVX512)
    *  - KNC
       - HOST
       - Intel Knights Corner Xeon Phi
    *  - KNL
       - HOST
       - Intel Knights Landing Xeon Phi
+   *  - SPR
+      - HOST
+      - Intel Sapphire Rapids Xeon Server CPUs (AVX512)
    *  - POWER8
       - HOST
-      - IBM POWER8 CPU
+      - IBM POWER8 CPUs
    *  - POWER9
       - HOST
-      - IBM POWER9 CPU
+      - IBM POWER9 CPUs
+   *  - ZEN
+      - HOST
+      - AMD Zen architecture
+   *  - ZEN2
+      - HOST
+      - AMD Zen2 architecture
+   *  - ZEN3
+      - HOST
+      - AMD Zen3 architecture
    *  - RISCV_SG2042
       - HOST
-      - SG2042 (RISC-V) CPU
+      - SG2042 (RISC-V) CPUs
+   *  - RISCV_RVA22V
+      - HOST
+      - RVA22V (RISC-V) CPUs
    *  - KEPLER30
       - GPU
-      - NVIDIA Kepler generation CC 3.0 GPU
+      - NVIDIA Kepler generation CC 3.0
    *  - KEPLER32
       - GPU
-      - NVIDIA Kepler generation CC 3.2 GPU
+      - NVIDIA Kepler generation CC 3.2
    *  - KEPLER35
       - GPU
-      - NVIDIA Kepler generation CC 3.5 GPU
+      - NVIDIA Kepler generation CC 3.5
    *  - KEPLER37
       - GPU
-      - NVIDIA Kepler generation CC 3.7 GPU
+      - NVIDIA Kepler generation CC 3.7
    *  - MAXWELL50
       - GPU
-      - NVIDIA Maxwell generation CC 5.0 GPU
+      - NVIDIA Maxwell generation CC 5.0
    *  - MAXWELL52
       - GPU
-      - NVIDIA Maxwell generation CC 5.2 GPU
+      - NVIDIA Maxwell generation CC 5.2
    *  - MAXWELL53
       - GPU
-      - NVIDIA Maxwell generation CC 5.3 GPU
+      - NVIDIA Maxwell generation CC 5.3
    *  - PASCAL60
       - GPU
-      - NVIDIA Pascal generation CC 6.0 GPU
+      - NVIDIA Pascal generation CC 6.0
    *  - PASCAL61
       - GPU
-      - NVIDIA Pascal generation CC 6.1 GPU
+      - NVIDIA Pascal generation CC 6.1
    *  - VOLTA70
       - GPU
-      - NVIDIA Volta generation CC 7.0 GPU
+      - NVIDIA Volta generation CC 7.0
    *  - VOLTA72
       - GPU
-      - NVIDIA Volta generation CC 7.2 GPU
+      - NVIDIA Volta generation CC 7.2
    *  - TURING75
       - GPU
-      - NVIDIA Turing generation CC 7.5 GPU
+      - NVIDIA Turing generation CC 7.5
    *  - AMPERE80
       - GPU
-      - NVIDIA Ampere generation CC 8.0 GPU
+      - NVIDIA Ampere generation CC 8.0
    *  - AMPERE86
       - GPU
-      - NVIDIA Ampere generation CC 8.6 GPU
+      - NVIDIA Ampere generation CC 8.6
    *  - ADA89
       - GPU
-      - NVIDIA Ada Lovelace generation CC 8.9 GPU
+      - NVIDIA Ada generation CC 8.9
    *  - HOPPER90
       - GPU
-      - NVIDIA Hopper generation CC 9.0 GPU
+      - NVIDIA Hopper generation CC 9.0
    *  - AMD_GFX906
       - GPU
-      - AMD GPU MI50/MI60
+      - AMD GPU MI50/60
    *  - AMD_GFX908
       - GPU
       - AMD GPU MI100
    *  - AMD_GFX90A
       - GPU
       - AMD GPU MI200
+   *  - AMD_GFX940
+      - GPU
+      - AMD GPU MI300
    *  - AMD_GFX942
       - GPU
       - AMD GPU MI300
+   *  - AMD_GFX942_APU
+      - GPU
+      - AMD APU MI300A
    *  - AMD_GFX1030
       - GPU
       - AMD GPU V620/W6800
@@ -678,7 +691,7 @@ They must be specified in uppercase.
       - AMD GPU RX7900XTX
    *  - AMD_GFX1103
       - GPU
-      - AMD Phoenix APU with Radeon 740M/760M/780M/880M/890M
+      - AMD APU Phoenix
    *  - INTEL_GEN
       - GPU
       - SPIR64-based devices, e.g. Intel GPUs, using JIT
@@ -701,7 +714,7 @@ They must be specified in uppercase.
       - GPU
       - Intel GPU Ponte Vecchio
 
-This list was last updated for version 4.3.0 of the Kokkos library.
+This list was last updated for version 4.5.1 of the Kokkos library.
 
 .. tabs::
 
@@ -1125,11 +1138,10 @@ POEMS package
 PYTHON package
 ---------------------------
 
-Building with the PYTHON package requires you have a the Python development
-headers and library available on your system, which needs to be a Python 2.7
-version or a Python 3.x version.  Since support for Python 2.x has ended,
-using Python 3.x is strongly recommended. See ``lib/python/README`` for
-additional details.
+Building with the PYTHON package requires you have a the Python
+development headers and library available on your system, which
+needs to be Python version 3.6 or later.  See ``lib/python/README``
+for additional details.
 
 .. tabs::
 
@@ -1145,7 +1157,7 @@ additional details.
       set the Python_EXECUTABLE variable to specify which Python
       interpreter should be used.  Note note that you will also need to
       have the development headers installed for this version,
-      e.g. python2-devel.
+      e.g. python3-devel.
 
    .. tab:: Traditional make
 
@@ -2018,7 +2030,7 @@ TBB and MKL.
 .. _mdi:
 
 MDI package
------------------------------
+-----------
 
 .. tabs::
 
@@ -2042,6 +2054,37 @@ MDI package
 
       The build should produce two files: ``lib/mdi/includelink/mdi.h``
       and ``lib/mdi/liblink/libmdi.so``\ .
+
+----------
+
+.. _misc:
+
+MISC package
+------------
+
+The :doc:`fix imd <fix_imd>` style in this package can be run either
+synchronously (communication with IMD clients is done in the main
+process) or asynchronously (the fix spawns a separate thread that can
+communicate with IMD clients concurrently to the LAMMPS execution).
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D LAMMPS_ASYNC_IMD=value  # Run IMD server asynchronously
+                                    # value = no (default) or yes
+
+   .. tab:: Traditional make
+
+      To enable asynchronous mode the ``-DLAMMPS_ASYNC_IMD`` define
+      needs to be added to the ``LMP_INC`` variable in the
+      ``Makefile.machine`` you are using.  For example:
+
+      .. code-block:: make
+
+         LMP_INC = -DLAMMPS_ASYNC_IMD -DLAMMPS_MEMALIGN=64
 
 ----------
 
@@ -2191,7 +2234,7 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
       from the sources in the *lib* folder (including the essential
       libqmmm.a) are not included in the static LAMMPS library and
       (currently) not installed, while their code is included in the
-      shared LAMMPS library.  Thus a typical command line to configure
+      shared LAMMPS library.  Thus a typical command to configure
       building LAMMPS for QMMM would be:
 
       .. code-block:: bash

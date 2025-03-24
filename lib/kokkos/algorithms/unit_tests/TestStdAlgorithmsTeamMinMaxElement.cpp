@@ -84,7 +84,7 @@ struct TestFunctorA {
     else if (m_apiPick == 3) {
       using value_type = typename ViewType::value_type;
       auto itPair      = KE::minmax_element(member, myRowView,
-                                       CustomLessThanComparator<value_type>{});
+                                            CustomLessThanComparator<value_type>{});
       resultDist1      = KE::distance(KE::begin(myRowView), itPair.first);
       resultDist2      = KE::distance(KE::begin(myRowView), itPair.second);
 
@@ -160,7 +160,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
       stdDistance[1] = KE::distance(KE::cbegin(myRow), itPair.second);
     } else {
       auto itPair    = std::minmax_element(KE::cbegin(myRow), KE::cend(myRow),
-                                        CustomLessThanComparator<value_type>{});
+                                           CustomLessThanComparator<value_type>{});
       stdDistance[0] = KE::distance(KE::cbegin(myRow), itPair.first);
       stdDistance[1] = KE::distance(KE::cbegin(myRow), itPair.second);
     }

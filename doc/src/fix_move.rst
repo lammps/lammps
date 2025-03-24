@@ -35,11 +35,12 @@ Syntax
          v_vx,v_vy,v_vz = 3 variable names that calculate x,y,z velocity as function of time, any component can be specified as NULL
 
 * zero or more keyword/value pairs may be appended
-* keyword = *units*
+* keyword = *units* or *update*
 
   .. parsed-literal::
 
        *units* value = *box* or *lattice*
+       *update* value = *dipole*
 
 Examples
 """"""""
@@ -49,7 +50,7 @@ Examples
    fix 1 boundary move wiggle 3.0 0.0 0.0 1.0 units box
    fix 2 boundary move rotate 0.0 0.0 0.0 0.0 0.0 1.0 5.0
    fix 2 boundary move variable v_myx v_myy NULL v_VX v_VY NULL
-   fix 3 boundary move transrot 0.1 0.1 0.0 0.0 0.0 0.0 0.0 0.0 1.0 5.0 units box
+   fix 3 boundary move transrot 0.1 0.1 0.0 0.0 0.0 0.0 0.0 0.0 1.0 5.0 units box update dipole
 
 Description
 """""""""""
@@ -216,6 +217,15 @@ are in lattice spacings.  The :doc:`lattice <lattice>` command must have
 been previously used to define the lattice spacing.  Each of these 3
 quantities may be dependent on the x,y,z dimension, since the lattice
 spacings can be different in x,y,z.
+
+.. versionadded:: TBD
+
+If the *update dipole* keyword/value pair is used together with the
+*rotate* or *transrot* style, then the orientation of the dipole moment
+of each particle is also updated appropriately to correspond with the rotation.
+This option should be used for models where a dipole moment is assigned to
+finite-size particles, e.g. spheroids via use of the :doc:`atom_style hybrid
+sphere dipole <atom_style>` command.
 
 ----------
 

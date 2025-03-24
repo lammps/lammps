@@ -455,9 +455,8 @@ struct TestMemoryPoolHuge {
 
 template <class DeviceType>
 struct TestMemoryPoolHuge<
-    DeviceType,
-    std::enable_if_t<std::is_same<Kokkos::HostSpace,
-                                  typename DeviceType::memory_space>::value>> {
+    DeviceType, std::enable_if_t<std::is_same_v<
+                    Kokkos::HostSpace, typename DeviceType::memory_space>>> {
   using ptrs_type    = Kokkos::View<uintptr_t*, DeviceType>;
   using pool_type    = Kokkos::MemoryPool<DeviceType>;
   using memory_space = typename DeviceType::memory_space;

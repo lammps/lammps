@@ -45,13 +45,12 @@ viscosities for different atom types, but a viscosity must be specified for
 every atom type.
 
 One first defines the atom *types*. A wild-card asterisk can be used in place
-of or in conjunction with the *types* argument to set the coefficients for
-multiple pairs of atom types.  This takes the form "\*" or "\*n" or "m\*"
-or "m\*n".  If :math:`N` is the number of atom types, then an asterisk with
-no numeric values means all types from 1 to :math:`N`.  A leading asterisk
-means all types from 1 to n (inclusive).  A trailing asterisk means all types
-from m to :math:`N` (inclusive).  A middle asterisk means all types from m to n
-(inclusive).
+of or in conjunction with the *types* argument to set values for multiple atom
+types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N` is
+the number of atom types, then an asterisk with no numeric values means all types
+from 1 to :math:`N`.  A leading asterisk means all types from 1 to n (inclusive).
+A trailing asterisk means all types from m to :math:`N` (inclusive).  A middle
+asterisk means all types from m to n (inclusive).
 
 The *types* definition is followed by the viscosity style, *vstyle*. Two
 options are available, *constant* and *power*. Style *constant* simply

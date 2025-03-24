@@ -6,10 +6,10 @@
 # behavior of ROCm 5.7 and later for earlier version of ROCm we set
 # AMDGPU_TARGETS and GPU_TARGETS to empty and set the values in the cache. If
 # the values are not cached, FIND_PACKAGE(rocthrust) will overwrite them.
-SET(AMDGPU_TARGETS "" CACHE STRING "AMD GPU targets to compile for")
-SET(GPU_TARGETS "" CACHE STRING "GPU targets to compile for")
-FIND_PACKAGE(rocthrust REQUIRED)
-KOKKOS_CREATE_IMPORTED_TPL(ROCTHRUST INTERFACE LINK_LIBRARIES roc::rocthrust)
+set(AMDGPU_TARGETS "" CACHE STRING "AMD GPU targets to compile for")
+set(GPU_TARGETS "" CACHE STRING "GPU targets to compile for")
+find_package(rocthrust REQUIRED)
+kokkos_create_imported_tpl(ROCTHRUST INTERFACE LINK_LIBRARIES roc::rocthrust)
 
 # Export ROCTHRUST as a Kokkos dependency
-KOKKOS_EXPORT_CMAKE_TPL(rocthrust)
+kokkos_export_cmake_tpl(rocthrust)

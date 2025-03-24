@@ -234,10 +234,12 @@ class layout_right::mapping {
 
     // Not really public, but currently needed to implement fully constexpr useable submdspan:
     template<size_t N, class SizeType, size_t ... E, size_t ... Idx>
+    MDSPAN_INLINE_FUNCTION
     constexpr index_type __get_stride(MDSPAN_IMPL_STANDARD_NAMESPACE::extents<SizeType, E...>,std::integer_sequence<size_t, Idx...>) const {
       return _MDSPAN_FOLD_TIMES_RIGHT((Idx>N? __extents.template __extent<Idx>():1),1);
     }
     template<size_t N>
+    MDSPAN_INLINE_FUNCTION
     constexpr index_type __stride() const noexcept {
       return __get_stride<N>(__extents, std::make_index_sequence<extents_type::rank()>());
     }
@@ -252,6 +254,7 @@ private:
        SliceSpecifiers... slices) const;
 
    template<class... SliceSpecifiers>
+     MDSPAN_INLINE_FUNCTION
      friend constexpr auto submdspan_mapping(
        const mapping& src, SliceSpecifiers... slices) {
          return src.submdspan_mapping_impl(slices...);

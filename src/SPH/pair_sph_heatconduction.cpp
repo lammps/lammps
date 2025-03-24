@@ -172,7 +172,7 @@ void PairSPHHeatConduction::settings(int narg, char **/*arg*/)
 void PairSPHHeatConduction::coeff(int narg, char **arg)
 {
   if (narg != 4)
-    error->all(FLERR,"Incorrect number of args for pair_style sph/heatconduction coefficients");
+    error->all(FLERR,"Incorrect number of args for pair_style sph/heatconduction coefficients" + utils::errorurl(21));
   if (!allocated)
     allocate();
 
@@ -194,7 +194,7 @@ void PairSPHHeatConduction::coeff(int narg, char **arg)
   }
 
   if (count == 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

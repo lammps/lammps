@@ -26,10 +26,10 @@
 
 #include <Kokkos_Core.hpp>
 
-//#include <Cuda/Kokkos_Cuda_Error.hpp>
-//#include <Cuda/Kokkos_Cuda_BlockSize_Deduction.hpp>
-//#include <Cuda/Kokkos_Cuda_Instance.hpp>
-//#include <Cuda/Kokkos_Cuda_UniqueToken.hpp>
+// #include <Cuda/Kokkos_Cuda_Error.hpp>
+// #include <Cuda/Kokkos_Cuda_BlockSize_Deduction.hpp>
+// #include <Cuda/Kokkos_Cuda_Instance.hpp>
+// #include <Cuda/Kokkos_Cuda_UniqueToken.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_Tools.hpp>
 #include <impl/Kokkos_CheckedIntegerOps.hpp>
@@ -687,16 +687,6 @@ void Cuda::print_configuration(std::ostream &os, bool /*verbose*/) const {
   os << "  KOKKOS_ENABLE_CUDA: yes\n";
 
   os << "Cuda Options:\n";
-  os << "  KOKKOS_ENABLE_CUDA_LAMBDA: ";
-#ifdef KOKKOS_ENABLE_CUDA_LAMBDA
-  os << "yes\n";
-#else
-  os << "no\n";
-#endif
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  os << "  KOKKOS_ENABLE_CUDA_LDG_INTRINSIC: ";
-  os << "yes\n";
-#endif
   os << "  KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE: ";
 #ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
   os << "yes\n";
@@ -705,12 +695,6 @@ void Cuda::print_configuration(std::ostream &os, bool /*verbose*/) const {
 #endif
   os << "  KOKKOS_ENABLE_CUDA_UVM: ";
 #ifdef KOKKOS_ENABLE_CUDA_UVM
-  os << "yes\n";
-#else
-  os << "no\n";
-#endif
-  os << "  KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA: ";
-#ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
   os << "yes\n";
 #else
   os << "no\n";

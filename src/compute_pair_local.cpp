@@ -38,7 +38,7 @@ enum { TYPE, RADIUS };
 ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), pstyle(nullptr), pindex(nullptr), vlocal(nullptr), alocal(nullptr)
 {
-  if (narg < 4) error->all(FLERR, "Illegal compute pair/local command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "compute pair/local", error);
 
   local_flag = 1;
   nvalues = narg - 3;
@@ -97,7 +97,7 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
   // error check
 
   if (cutstyle == RADIUS && !atom->radius_flag)
-    error->all(FLERR, "This compute pair/local requires atom attribute radius");
+    error->all(FLERR, "Compute pair/local with ID {} requires atom attribute radius", id);
 
   // set singleflag if need to call pair->single()
 

@@ -1,8 +1,8 @@
 Basics of running LAMMPS
 ========================
 
-LAMMPS is run from the command line, reading commands from a file via
-the ``-in`` command line flag, or from standard input.  Using the ``-in
+LAMMPS is run from the command-line, reading commands from a file via
+the ``-in`` command-line flag, or from standard input.  Using the ``-in
 in.file`` variant is recommended (see note below).  The name of the
 LAMMPS executable is either ``lmp`` or ``lmp_<machine>`` with
 `<machine>` being the machine string used when compiling LAMMPS.  This
@@ -25,7 +25,7 @@ build LAMMPS:
 You normally run the LAMMPS command in the directory where your input
 script is located.  That is also where output files are produced by
 default, unless you provide specific other paths in your input script or
-on the command line.  As in some of the examples above, the LAMMPS
+on the command-line.  As in some of the examples above, the LAMMPS
 executable itself can be placed elsewhere.
 
 .. note::

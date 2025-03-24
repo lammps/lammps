@@ -191,7 +191,7 @@ void PairLJClass2Soft::settings(int narg, char **arg)
 
 void PairLJClass2Soft::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -201,7 +201,7 @@ void PairLJClass2Soft::coeff(int narg, char **arg)
   double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
   double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
   double lambda_one = utils::numeric(FLERR,arg[4],false,lmp);
-  if (sigma_one <= 0.0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (sigma_one <= 0.0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   double cut_one = cut_global;
   if (narg == 6) cut_one = utils::numeric(FLERR,arg[5],false,lmp);
@@ -218,7 +218,7 @@ void PairLJClass2Soft::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

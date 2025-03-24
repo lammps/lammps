@@ -1,6 +1,5 @@
 ---
 lammps_version: 17 Apr 2024
-tags: generated
 date_generated: Fri Jun  7 18:18:25 2024
 epsilon: 5e-14
 skip_tests:

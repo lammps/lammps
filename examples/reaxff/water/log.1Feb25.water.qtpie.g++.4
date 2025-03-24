@@ -1,0 +1,114 @@
+LAMMPS (19 Nov 2024 - Development - patch_19Nov2024-1172-g920337963b-modified)
+  using 1 OpenMP thread(s) per MPI task
+# QTPIE Water
+
+boundary        p p p
+units           real
+atom_style      charge
+
+read_data       data.water
+Reading data file ...
+  orthogonal box = (0 0 0) to (31.043046 31.043046 31.043046)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  3000 atoms
+  read_data CPU = 0.008 seconds
+
+variable        x index 1
+variable        y index 1
+variable        z index 1
+
+replicate       $x $y $z
+replicate       1 $y $z
+replicate       1 1 $z
+replicate       1 1 1
+Replication is creating a 1x1x1 = 1 times larger system...
+  orthogonal box = (0 0 0) to (31.043046 31.043046 31.043046)
+  1 by 2 by 2 MPI processor grid
+  3000 atoms
+  replicate CPU = 0.002 seconds
+
+pair_style      reaxff NULL safezone 3.0 mincap 150
+pair_coeff      * * qeq_ff.water O H
+WARNING: Changed valency_val to valency_boc for X (src/REAXFF/reaxff_ffield.cpp:294)
+neighbor        0.5 bin
+neigh_modify    every 1 delay 0 check yes
+
+velocity all create 300.0 4928459 rot yes dist gaussian
+
+fix             1 all qtpie/reaxff 1 0.0 10.0 1.0e-6 reaxff gauss_exp.txt
+fix             2 all nvt temp 300 300 50.0
+
+timestep        0.5
+thermo          10
+thermo_style    custom step temp press density vol
+
+run 20
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair reaxff command: doi:10.1016/j.parco.2011.08.005
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},
+ title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ number =  {4--5},
+ pages =   {245--259}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.5
+  ghost atom cutoff = 10.5
+  binsize = 5.25, bins = 6 6 6
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reaxff, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/ghost/newtoff
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) fix qtpie/reaxff, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 260.5 | 262.2 | 263.6 Mbytes
+   Step          Temp          Press         Density         Volume    
+         0   300            10138.375      1              29915.273    
+        10   295.97879      3575.2769      1              29915.273    
+        20   292.76583      10309.128      1              29915.273    
+Loop time of 1.53381 on 4 procs for 20 steps with 3000 atoms
+
+Performance: 0.563 ns/day, 42.606 hours/ns, 13.039 timesteps/s, 39.118 katom-step/s
+99.3% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.8105     | 0.82543    | 0.84031    |   1.4 | 53.82
+Neigh   | 0.041129   | 0.041436   | 0.041966   |   0.2 |  2.70
+Comm    | 0.0019875  | 0.016866   | 0.031795   |   9.9 |  1.10
+Output  | 3.2672e-05 | 3.6427e-05 | 4.734e-05  |   0.0 |  0.00
+Modify  | 0.64934    | 0.64987    | 0.65017    |   0.0 | 42.37
+Other   |            | 0.0001691  |            |       |  0.01
+
+Nlocal:            750 ave         760 max         735 min
+Histogram: 1 0 0 0 1 0 0 0 0 2
+Nghost:         6229.5 ave        6253 max        6191 min
+Histogram: 1 0 0 0 0 0 1 0 1 1
+Neighs:         277011 ave      280900 max      271380 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
+
+Total # of neighbors = 1108044
+Ave neighs/atom = 369.348
+Neighbor list builds = 2
+Dangerous builds = 0
+Total wall time: 0:00:01

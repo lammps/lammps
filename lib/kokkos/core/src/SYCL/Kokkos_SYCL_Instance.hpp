@@ -28,7 +28,6 @@
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_Profiling.hpp>
 namespace Kokkos {
-namespace Experimental {
 namespace Impl {
 
 class SYCLInternal {
@@ -38,10 +37,10 @@ class SYCLInternal {
   SYCLInternal() = default;
   ~SYCLInternal();
 
-  SYCLInternal(const SYCLInternal&) = delete;
+  SYCLInternal(const SYCLInternal&)            = delete;
   SYCLInternal& operator=(const SYCLInternal&) = delete;
-  SYCLInternal& operator=(SYCLInternal&&) = delete;
-  SYCLInternal(SYCLInternal&&)            = delete;
+  SYCLInternal& operator=(SYCLInternal&&)      = delete;
+  SYCLInternal(SYCLInternal&&)                 = delete;
 
   Kokkos::Impl::sycl_device_ptr<void> scratch_space(const std::size_t size);
   Kokkos::Impl::sycl_device_ptr<void> scratch_flags(const std::size_t size);
@@ -76,8 +75,9 @@ class SYCLInternal {
   mutable sycl::event m_team_scratch_event[m_n_team_scratch] = {};
   mutable std::mutex m_team_scratch_mutex;
 
-  uint32_t m_instance_id = Kokkos::Tools::Experimental::Impl::idForInstance<
-      Kokkos::Experimental::SYCL>(reinterpret_cast<uintptr_t>(this));
+  uint32_t m_instance_id =
+      Kokkos::Tools::Experimental::Impl::idForInstance<Kokkos::SYCL>(
+          reinterpret_cast<uintptr_t>(this));
   std::optional<sycl::queue> m_queue;
 
   // Using std::vector<std::optional<sycl::queue>> reveals a compiler bug when
@@ -102,9 +102,9 @@ class SYCLInternal {
     explicit USMObjectMem(sycl::queue q, uint32_t instance_id) noexcept
         : m_q(std::move(q)), m_instance_id(instance_id) {}
 
-    USMObjectMem(USMObjectMem const&) = delete;
-    USMObjectMem(USMObjectMem&&)      = delete;
-    USMObjectMem& operator=(USMObjectMem&&) = delete;
+    USMObjectMem(USMObjectMem const&)            = delete;
+    USMObjectMem(USMObjectMem&&)                 = delete;
+    USMObjectMem& operator=(USMObjectMem&&)      = delete;
     USMObjectMem& operator=(USMObjectMem const&) = delete;
 
     ~USMObjectMem() { reset(); };
@@ -119,12 +119,12 @@ class SYCLInternal {
     size_t reserve(size_t n);
 
    private:
-    using AllocationSpace = std::conditional_t<
-        Kind == sycl::usm::alloc::device,
-        Kokkos::Experimental::SYCLDeviceUSMSpace,
-        std::conditional_t<Kind == sycl::usm::alloc::shared,
-                           Kokkos::Experimental::SYCLSharedUSMSpace,
-                           Kokkos::Experimental::SYCLHostUSMSpace>>;
+    using AllocationSpace =
+        std::conditional_t<Kind == sycl::usm::alloc::device,
+                           Kokkos::SYCLDeviceUSMSpace,
+                           std::conditional_t<Kind == sycl::usm::alloc::shared,
+                                              Kokkos::SYCLSharedUSMSpace,
+                                              Kokkos::SYCLHostUSMSpace>>;
 
    public:
     // Performs either sycl::memcpy (for USM device memory) or std::memcpy
@@ -144,11 +144,10 @@ class SYCLInternal {
     }
 
     void fence() {
-      SYCLInternal::fence(
-          m_last_event,
-          "Kokkos::Experimental::SYCLInternal::USMObject fence to wait for "
-          "last event to finish",
-          m_instance_id);
+      SYCLInternal::fence(m_last_event,
+                          "Kokkos::SYCLInternal::USMObject fence to wait for "
+                          "last event to finish",
+                          m_instance_id);
     }
 
     void register_event(sycl::event event) {
@@ -324,13 +323,12 @@ auto make_sycl_function_wrapper(const Functor& functor, Storage& storage) {
   return SYCLFunctionWrapper<Functor, Storage>(functor, storage);
 }
 }  // namespace Impl
-}  // namespace Experimental
 }  // namespace Kokkos
 
 #if defined(SYCL_DEVICE_COPYABLE) && defined(KOKKOS_ARCH_INTEL_GPU)
 template <typename Functor, typename Storage>
 struct sycl::is_device_copyable<
-    Kokkos::Experimental::Impl::SYCLFunctionWrapper<Functor, Storage, false>>
+    Kokkos::Impl::SYCLFunctionWrapper<Functor, Storage, false>>
     : std::true_type {};
 
 #if (defined(__INTEL_LLVM_COMPILER) && __INTEL_LLVM_COMPILER < 20240000) || \
@@ -352,8 +350,7 @@ static_assert(
 
 template <typename Functor, typename Storage>
 struct sycl::is_device_copyable<
-    const Kokkos::Experimental::Impl::SYCLFunctionWrapper<Functor, Storage,
-                                                          false>,
+    const Kokkos::Impl::SYCLFunctionWrapper<Functor, Storage, false>,
     std::enable_if_t<!sycl::is_device_copyable_v<
         const NonTriviallyCopyableAndDeviceCopyable<Functor>>>>
     : std::true_type {};

@@ -40,10 +40,10 @@ struct ChunkedArrayManager {
   using pointer_type = ValueType*;
   using track_type   = Kokkos::Impl::SharedAllocationTracker;
 
-  ChunkedArrayManager()                           = default;
-  ChunkedArrayManager(ChunkedArrayManager const&) = default;
-  ChunkedArrayManager(ChunkedArrayManager&&)      = default;
-  ChunkedArrayManager& operator=(ChunkedArrayManager&&) = default;
+  ChunkedArrayManager()                                      = default;
+  ChunkedArrayManager(ChunkedArrayManager const&)            = default;
+  ChunkedArrayManager(ChunkedArrayManager&&)                 = default;
+  ChunkedArrayManager& operator=(ChunkedArrayManager&&)      = default;
   ChunkedArrayManager& operator=(const ChunkedArrayManager&) = default;
 
   template <typename Space, typename Value>
@@ -129,10 +129,10 @@ struct ChunkedArrayManager {
   /// allocation
   template <typename Space>
   struct Destroy {
-    Destroy()               = default;
-    Destroy(Destroy&&)      = default;
-    Destroy(const Destroy&) = default;
-    Destroy& operator=(Destroy&&) = default;
+    Destroy()                          = default;
+    Destroy(Destroy&&)                 = default;
+    Destroy(const Destroy&)            = default;
+    Destroy& operator=(Destroy&&)      = default;
     Destroy& operator=(const Destroy&) = default;
 
     Destroy(std::string label, value_type** arg_chunk,
@@ -250,7 +250,7 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
 
   // It is assumed that the value_type is trivially copyable;
   // when this is not the case, potential problems can occur.
-  static_assert(std::is_void<typename traits::specialize>::value,
+  static_assert(std::is_void_v<typename traits::specialize>,
                 "DynamicView only implemented for non-specialized View type");
 
  private:
@@ -363,7 +363,7 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
 
   enum {
     reference_type_is_lvalue_reference =
-        std::is_lvalue_reference<reference_type>::value
+        std::is_lvalue_reference_v<reference_type>
   };
 
   KOKKOS_INLINE_FUNCTION constexpr bool span_is_contiguous() const {
@@ -463,11 +463,11 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
 
   //----------------------------------------------------------------------
 
-  ~DynamicView()                  = default;
-  DynamicView()                   = default;
-  DynamicView(DynamicView&&)      = default;
-  DynamicView(const DynamicView&) = default;
-  DynamicView& operator=(DynamicView&&) = default;
+  ~DynamicView()                             = default;
+  DynamicView()                              = default;
+  DynamicView(DynamicView&&)                 = default;
+  DynamicView(const DynamicView&)            = default;
+  DynamicView& operator=(DynamicView&&)      = default;
   DynamicView& operator=(const DynamicView&) = default;
 
   template <class RT, class... RP>
@@ -572,7 +572,7 @@ struct MirrorDynamicViewType {
   // Check whether it is the same memory space
   enum {
     is_same_memspace =
-        std::is_same<memory_space, typename src_view_type::memory_space>::value
+        std::is_same_v<memory_space, typename src_view_type::memory_space>
   };
   // The array_layout
   using array_layout = typename src_view_type::array_layout;
@@ -665,9 +665,9 @@ template <class Space, class T, class... P,
           typename Enable = std::enable_if_t<
               Kokkos::is_space<Space>::value &&
               std::is_void_v<typename ViewTraits<T, P...>::specialize>>>
-typename Kokkos::Impl::MirrorDynamicViewType<Space, T, P...>::view_type
-create_mirror(Kokkos::Impl::WithoutInitializing_t wi, const Space&,
-              const Kokkos::Experimental::DynamicView<T, P...>& src) {
+inline auto create_mirror(
+    Kokkos::Impl::WithoutInitializing_t wi, const Space&,
+    const Kokkos::Experimental::DynamicView<T, P...>& src) {
   return Impl::create_mirror(
       src, Kokkos::view_alloc(wi, typename Space::memory_space{}));
 }
@@ -693,14 +693,14 @@ inline auto create_mirror_view(
     const Kokkos::Experimental::DynamicView<T, P...>& src,
     [[maybe_unused]] const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop) {
   if constexpr (!Impl::ViewCtorProp<ViewCtorArgs...>::has_memory_space) {
-    if constexpr (std::is_same<typename Kokkos::Experimental::DynamicView<
-                                   T, P...>::memory_space,
-                               typename Kokkos::Experimental::DynamicView<
-                                   T, P...>::HostMirror::memory_space>::value &&
-                  std::is_same<typename Kokkos::Experimental::DynamicView<
-                                   T, P...>::data_type,
-                               typename Kokkos::Experimental::DynamicView<
-                                   T, P...>::HostMirror::data_type>::value) {
+    if constexpr (std::is_same_v<typename Kokkos::Experimental::DynamicView<
+                                     T, P...>::memory_space,
+                                 typename Kokkos::Experimental::DynamicView<
+                                     T, P...>::HostMirror::memory_space> &&
+                  std::is_same_v<typename Kokkos::Experimental::DynamicView<
+                                     T, P...>::data_type,
+                                 typename Kokkos::Experimental::DynamicView<
+                                     T, P...>::HostMirror::data_type>) {
       return
           typename Kokkos::Experimental::DynamicView<T, P...>::HostMirror(src);
     } else {
@@ -835,21 +835,17 @@ inline void deep_copy(const View<T, DP...>& dst,
   using dst_execution_space = typename ViewTraits<T, DP...>::execution_space;
   using src_memory_space    = typename ViewTraits<T, SP...>::memory_space;
 
-  enum {
-    DstExecCanAccessSrc =
-        Kokkos::SpaceAccessibility<dst_execution_space,
-                                   src_memory_space>::accessible
-  };
+  constexpr bool DstExecCanAccessSrc =
+      Kokkos::SpaceAccessibility<dst_execution_space,
+                                 src_memory_space>::accessible;
+  static_assert(
+      DstExecCanAccessSrc,
+      "deep_copy given views that would require a temporary allocation");
 
-  if (DstExecCanAccessSrc) {
-    // Copying data between views in accessible memory spaces and either
-    // non-contiguous or incompatible shape.
-    Kokkos::Impl::ViewRemap<dst_type, src_type>(dst, src);
-    Kokkos::fence("Kokkos::deep_copy(DynamicView)");
-  } else {
-    Kokkos::Impl::throw_runtime_exception(
-        "deep_copy given views that would require a temporary allocation");
-  }
+  // Copying data between views in accessible memory spaces and either
+  // non-contiguous or incompatible shape.
+  Kokkos::Impl::ViewRemap<dst_type, src_type>(dst, src);
+  Kokkos::fence("Kokkos::deep_copy(DynamicView)");
 }
 
 template <class T, class... DP, class... SP>
@@ -861,21 +857,17 @@ inline void deep_copy(const Kokkos::Experimental::DynamicView<T, DP...>& dst,
   using dst_execution_space = typename ViewTraits<T, DP...>::execution_space;
   using src_memory_space    = typename ViewTraits<T, SP...>::memory_space;
 
-  enum {
-    DstExecCanAccessSrc =
-        Kokkos::SpaceAccessibility<dst_execution_space,
-                                   src_memory_space>::accessible
-  };
+  constexpr bool DstExecCanAccessSrc =
+      Kokkos::SpaceAccessibility<dst_execution_space,
+                                 src_memory_space>::accessible;
+  static_assert(
+      DstExecCanAccessSrc,
+      "deep_copy given views that would require a temporary allocation");
 
-  if (DstExecCanAccessSrc) {
-    // Copying data between views in accessible memory spaces and either
-    // non-contiguous or incompatible shape.
-    Kokkos::Impl::ViewRemap<dst_type, src_type>(dst, src);
-    Kokkos::fence("Kokkos::deep_copy(DynamicView)");
-  } else {
-    Kokkos::Impl::throw_runtime_exception(
-        "deep_copy given views that would require a temporary allocation");
-  }
+  // Copying data between views in accessible memory spaces and either
+  // non-contiguous or incompatible shape.
+  Kokkos::Impl::ViewRemap<dst_type, src_type>(dst, src);
+  Kokkos::fence("Kokkos::deep_copy(DynamicView)");
 }
 
 namespace Impl {
@@ -964,7 +956,7 @@ struct ViewCopy<Kokkos::Experimental::DynamicView<DP...>,
 // view_alloc
 template <class... ViewCtorArgs, class T, class... P,
           class Enable = std::enable_if_t<
-              std::is_void<typename ViewTraits<T, P...>::specialize>::value>>
+              std::is_void_v<typename ViewTraits<T, P...>::specialize>>>
 auto create_mirror_view_and_copy(
     [[maybe_unused]] const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
     const Kokkos::Experimental::DynamicView<T, P...>& src) {

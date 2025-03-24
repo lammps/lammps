@@ -43,7 +43,7 @@ void WriteDump::command(int narg, char **arg)
     if (strcmp(arg[modindex], "modify") == 0) break;
 
   // create the Dump instance
-  // create dump command line with extra required args
+  // create dump command-line with extra required args
 
   // work around "fix not computed at compatible times" errors.
 

@@ -138,7 +138,7 @@ int get_device_count() {
   KOKKOS_IMPL_HIP_SAFE_CALL(hipGetDeviceCount(&count));
   return count;
 #elif defined(KOKKOS_ENABLE_SYCL)
-  return Kokkos::Experimental::Impl::get_sycl_devices().size();
+  return Kokkos::Impl::get_sycl_devices().size();
 #elif defined(KOKKOS_ENABLE_OPENACC)
   return acc_get_num_devices(
       Kokkos::Experimental::Impl::OpenACC_Traits::dev_type);
@@ -183,7 +183,7 @@ std::vector<int> const& Kokkos::Impl::get_visible_devices() {
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
   int device = omp_get_default_device();  // FIXME_OPENMPTARGET
 #elif defined(KOKKOS_ENABLE_SYCL)
-  int device = Experimental::Impl::SYCLInternal::m_syclDev;
+  int device = Impl::SYCLInternal::m_syclDev;
 #else
   int device = -1;
   return device;
@@ -271,7 +271,7 @@ int Kokkos::Impl::get_ctest_gpu(int local_rank) {
     ss << "Error: local rank " << local_rank
        << " is outside the bounds of resource groups provided by CTest. Raised"
        << " by Kokkos::Impl::get_ctest_gpu().";
-    throw_runtime_exception(ss.str());
+    abort(ss.str().c_str());
   }
 
   // Get the resource types allocated to this resource group
@@ -284,7 +284,7 @@ int Kokkos::Impl::get_ctest_gpu(int local_rank) {
     std::ostringstream ss;
     ss << "Error: " << ctest_resource_group_name << " is not specified. Raised"
        << " by Kokkos::Impl::get_ctest_gpu().";
-    throw_runtime_exception(ss.str());
+    abort(ss.str().c_str());
   }
 
   // Look for the device type specified in CTEST_KOKKOS_DEVICE_TYPE
@@ -308,7 +308,7 @@ int Kokkos::Impl::get_ctest_gpu(int local_rank) {
     ss << "Error: device type '" << ctest_kokkos_device_type
        << "' not included in " << ctest_resource_group_name
        << ". Raised by Kokkos::Impl::get_ctest_gpu().";
-    throw_runtime_exception(ss.str());
+    abort(ss.str().c_str());
   }
 
   // Get the device ID
@@ -324,7 +324,7 @@ int Kokkos::Impl::get_ctest_gpu(int local_rank) {
     std::ostringstream ss;
     ss << "Error: " << ctest_resource_group_id_name
        << " is not specified. Raised by Kokkos::Impl::get_ctest_gpu().";
-    throw_runtime_exception(ss.str());
+    abort(ss.str().c_str());
   }
 
   auto const* comma = std::strchr(resource_str, ',');
@@ -332,7 +332,7 @@ int Kokkos::Impl::get_ctest_gpu(int local_rank) {
     std::ostringstream ss;
     ss << "Error: invalid value of " << ctest_resource_group_id_name << ": '"
        << resource_str << "'. Raised by Kokkos::Impl::get_ctest_gpu().";
-    throw_runtime_exception(ss.str());
+    abort(ss.str().c_str());
   }
 
   std::string id(resource_str + 3, comma - resource_str - 3);
@@ -613,7 +613,7 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
 #endif
 
   declare_configuration_metadata("architecture", "Default Device",
-                                 typeid(Kokkos::DefaultExecutionSpace).name());
+                                 Kokkos::DefaultExecutionSpace::name());
 
 #if defined(KOKKOS_ARCH_A64FX)
   declare_configuration_metadata("architecture", "CPU architecture", "A64FX");
@@ -666,6 +666,9 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
 #elif defined(KOKKOS_ARCH_RISCV_SG2042)
   declare_configuration_metadata("architecture", "CPU architecture",
                                  "SG2042 (RISC-V)")
+#elif defined(KOKKOS_ARCH_RISCV_RVA22V)
+  declare_configuration_metadata("architecture", "CPU architecture",
+                                 "RVA22V (RISC-V)")
 #else
   declare_configuration_metadata("architecture", "CPU architecture", "none");
 #endif
@@ -738,8 +741,8 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
       declare_configuration_metadata("architecture", "GPU architecture",
                                      "HOPPER90");
 #elif defined(KOKKOS_ARCH_AMD_GFX906)
-  declare_configuration_metadata("architecture", "GPU architecture",
-                                 "AMD_GFX906");
+      declare_configuration_metadata("architecture", "GPU architecture",
+                                     "AMD_GFX906");
 #elif defined(KOKKOS_ARCH_AMD_GFX908)
   declare_configuration_metadata("architecture", "GPU architecture",
                                  "AMD_GFX908");
@@ -976,7 +979,7 @@ void Kokkos::Impl::parse_environment_variables(
       Tools::Impl::parse_environment_variables(tools_init_arguments);
   if (init_result.result ==
       Tools::Impl::InitializationStatus::environment_argument_mismatch) {
-    Impl::throw_runtime_exception(init_result.error_message);
+    Kokkos::abort(init_result.error_message.c_str());
   }
   combine(settings, tools_init_arguments);
 

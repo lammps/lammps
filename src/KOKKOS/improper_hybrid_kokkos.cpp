@@ -77,7 +77,7 @@ void ImproperHybridKokkos::compute(int eflag, int vflag)
 
     Kokkos::parallel_for(nimproperlist_orig,LAMMPS_LAMBDA(int i) {
       const int m = d_map[d_improperlist_orig(i,4)];
-      if (m >= 0) Kokkos::atomic_increment(&d_nimproperlist[m]);
+      if (m >= 0) Kokkos::atomic_inc(&d_nimproperlist[m]);
     });
 
     k_nimproperlist.modify_device();
@@ -88,7 +88,7 @@ void ImproperHybridKokkos::compute(int eflag, int vflag)
       if (h_nimproperlist[m] > maximproper_all)
         maximproper_all = h_nimproperlist[m] + EXTRA;
 
-    if (k_improperlist.d_view.extent(1) < maximproper_all)
+    if ((int)k_improperlist.d_view.extent(1) < maximproper_all)
       MemKK::realloc_kokkos(k_improperlist, "improper_hybrid:improperlist", nstyles, maximproper_all, 5);
     auto d_improperlist = k_improperlist.d_view;
 

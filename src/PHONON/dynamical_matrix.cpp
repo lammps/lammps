@@ -282,7 +282,7 @@ void DynamicalMatrix::calculateMatrix()
 
   if (me == 0 && screen) {
     fputs("Calculating Dynamical Matrix ...\n", screen);
-    fmt::print(screen,"  Total # of atoms = {}\n"
+    utils::print(screen,"  Total # of atoms = {}\n"
                       "  Atoms in group = {}\n"
                       "  Total dynamical matrix elements = {}\n",
                natoms, gcount, dynlen*dynlen);

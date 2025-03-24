@@ -39,7 +39,7 @@ struct TestBitset {
 
   TestBitset(bitset_type const& bitset) : m_bitset(bitset) {}
 
-  unsigned testit(unsigned collisions) {
+  unsigned testit(unsigned long long collisions) {
     execution_space().fence();
 
     unsigned count = 0;

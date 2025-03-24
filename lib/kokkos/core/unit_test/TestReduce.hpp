@@ -571,20 +571,37 @@ TEST(TEST_CATEGORY, mdrange_combined_reduce) {
   constexpr uint64_t nw = 1000;
 
   uint64_t nsum = (nw / 2) * (nw + 1);
+  {
+    int64_t result1 = 0;
+    int64_t result2 = 0;
+    int64_t result3 = 0;
 
-  int64_t result1 = 0;
-  int64_t result2 = 0;
-  int64_t result3 = 0;
+    Kokkos::parallel_reduce(
+        "int_combined_reduce_mdrange",
+        Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<3>>({{0, 0, 0}},
+                                                               {{nw, 1, 1}}),
+        functor_type(nw), result1, result2, result3);
 
-  Kokkos::parallel_reduce(
-      "int_combined_reduce_mdrange",
-      Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<3>>({{0, 0, 0}},
-                                                             {{nw, 1, 1}}),
-      functor_type(nw), result1, result2, result3);
+    ASSERT_EQ(nw, uint64_t(result1));
+    ASSERT_EQ(nsum, uint64_t(result2));
+    ASSERT_EQ(nsum, uint64_t(result3));
+  }
+  {
+    int64_t result1 = 0;
+    int64_t result2 = 0;
+    int64_t result3 = 0;
 
-  ASSERT_EQ(nw, uint64_t(result1));
-  ASSERT_EQ(nsum, uint64_t(result2));
-  ASSERT_EQ(nsum, uint64_t(result3));
+    Kokkos::parallel_reduce(
+        "int_combined_reduce_mdrange",
+        Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<3>,
+                              Kokkos::Schedule<Kokkos::Dynamic>>({{0, 0, 0}},
+                                                                 {{nw, 1, 1}}),
+        functor_type(nw), result1, result2, result3);
+
+    ASSERT_EQ(nw, uint64_t(result1));
+    ASSERT_EQ(nsum, uint64_t(result2));
+    ASSERT_EQ(nsum, uint64_t(result3));
+  }
 }
 
 TEST(TEST_CATEGORY, int_combined_reduce_mixed) {
@@ -637,6 +654,10 @@ struct FunctorReductionWithLargeIterationCount {
 };
 
 TEST(TEST_CATEGORY, reduction_with_large_iteration_count) {
+  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
+#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
+  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
+#endif
   if constexpr (std::is_same_v<typename TEST_EXECSPACE::memory_space,
                                Kokkos::HostSpace>) {
     GTEST_SKIP() << "Disabling for host backends";
@@ -645,8 +666,8 @@ TEST(TEST_CATEGORY, reduction_with_large_iteration_count) {
   const int64_t N = pow(2LL, 39LL) - pow(2LL, 8LL) + 1;
   Kokkos::RangePolicy<TEST_EXECSPACE, Kokkos::IndexType<int64_t>> p(0, N);
   double nu = 0;
-  EXPECT_NO_THROW(Kokkos::parallel_reduce(
-      "sample reduction", p, FunctorReductionWithLargeIterationCount(), nu));
+  Kokkos::parallel_reduce("sample reduction", p,
+                          FunctorReductionWithLargeIterationCount(), nu);
   ASSERT_DOUBLE_EQ(nu, double(N));
 }
 #endif

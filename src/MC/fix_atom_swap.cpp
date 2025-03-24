@@ -35,6 +35,7 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "pair.h"
+#include "pair_hybrid.h"
 #include "random_park.h"
 #include "region.h"
 #include "update.h"
@@ -221,6 +222,28 @@ void FixAtomSwap::init()
       error->all(FLERR, "Only 2 types allowed when not using semi-grand in fix atom/swap command");
     if (nmutypes != 0)
       error->all(FLERR, "Mu not allowed when not using semi-grand in fix atom/swap command");
+  }
+
+  // check if constraints for hybrid pair styles are fulfilled
+
+  if (utils::strmatch(force->pair_style, "^hybrid")) {
+    auto *hybrid = dynamic_cast<PairHybrid *>(force->pair);
+    if (hybrid) {
+      for (int i = 0; i < nswaptypes - 1; ++i) {
+        int type1 = type_list[i];
+        for (int j = i + 1; j < nswaptypes; ++j) {
+          int type2 = type_list[j];
+          if (hybrid->nmap[type1][type1] != hybrid->nmap[type2][type2])
+            error->all(FLERR, "Pair {} substyles for atom types {} and {} are not compatible",
+                       force->pair_style, type1, type2);
+          for (int k = 0; k < hybrid->nmap[type1][type1]; ++k) {
+            if (hybrid->map[type1][type1][k] != hybrid->map[type2][type2][k])
+              error->all(FLERR, "Pair {} substyles for atom types {} and {} are not compatible",
+                         force->pair_style, type1, type2);
+          }
+        }
+      }
+    }
   }
 
   // set index and check validity of region

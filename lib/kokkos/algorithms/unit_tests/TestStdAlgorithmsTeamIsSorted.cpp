@@ -62,7 +62,7 @@ struct TestFunctorA {
     } else if (m_apiPick == 3) {
       using value_type = typename ViewType::value_type;
       result           = KE::is_sorted(member, myRowView,
-                             CustomLessThanComparator<value_type>{});
+                                       CustomLessThanComparator<value_type>{});
       Kokkos::single(Kokkos::PerTeam(member),
                      [=, *this]() { m_returnsView(myRowIndex) = result; });
     }

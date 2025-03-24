@@ -76,7 +76,7 @@ void BondHybridKokkos::compute(int eflag, int vflag)
 
     Kokkos::parallel_for(nbondlist_orig,LAMMPS_LAMBDA(int i) {
       const int m = d_map[d_bondlist_orig(i,2)];
-      if (m >= 0) Kokkos::atomic_increment(&d_nbondlist[m]);
+      if (m >= 0) Kokkos::atomic_inc(&d_nbondlist[m]);
     });
 
     k_nbondlist.modify_device();
@@ -87,7 +87,7 @@ void BondHybridKokkos::compute(int eflag, int vflag)
       if (h_nbondlist[m] > maxbond_all)
         maxbond_all = h_nbondlist[m] + EXTRA;
 
-    if (k_bondlist.d_view.extent(1) < maxbond_all)
+    if ((int)k_bondlist.d_view.extent(1) < maxbond_all)
       MemKK::realloc_kokkos(k_bondlist, "bond_hybrid:bondlist", nstyles, maxbond_all, 3);
     auto d_bondlist = k_bondlist.d_view;
 

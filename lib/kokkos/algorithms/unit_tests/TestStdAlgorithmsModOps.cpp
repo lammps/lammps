@@ -48,7 +48,7 @@ struct MyMovableType {
 TEST(std_algorithms_mod_ops_test, move) {
   MyMovableType a;
   using move_t = decltype(std::move(a));
-  static_assert(std::is_rvalue_reference<move_t>::value);
+  static_assert(std::is_rvalue_reference_v<move_t>);
 
   // move constr
   MyMovableType b(std::move(a));

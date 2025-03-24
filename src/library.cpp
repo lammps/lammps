@@ -129,7 +129,7 @@ The :cpp:func:`lammps_open` function creates a new :cpp:class:`LAMMPS
 as if they were :doc:`command-line arguments <Run_options>` for the
 LAMMPS executable, and an MPI communicator for LAMMPS to run under.
 Since the list of arguments is **exactly** as when called from the
-command line, the first argument would be the name of the executable and
+command-line, the first argument would be the name of the executable and
 thus is otherwise ignored.  However ``argc`` may be set to 0 and then
 ``argv`` may be ``NULL``.  If MPI is not yet initialized, ``MPI_Init()``
 will be called during creation of the LAMMPS class instance.
@@ -163,8 +163,8 @@ fails a null pointer is returned.
 
 \endverbatim
  *
- * \param  argc  number of command line arguments
- * \param  argv  list of command line argument strings
+ * \param  argc  number of command-line arguments
+ * \param  argv  list of command-line argument strings
  * \param  comm  MPI communicator for this LAMMPS instance
  * \param  ptr   pointer to a void pointer variable which serves
  *               as a handle; may be ``NULL``
@@ -187,7 +187,7 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
   } catch(LAMMPSException &e) {
     lammps_last_global_errormessage = e.what();
 
-    fmt::print(stderr, "LAMMPS Exception: {}", e.what());
+    utils::print(stderr, "LAMMPS Exception: {}", e.what());
     if (ptr) *ptr = nullptr;
   }
   return (void *) lmp;
@@ -230,8 +230,8 @@ fails a null pointer is returned.
 
 \endverbatim
  *
- * \param  argc  number of command line arguments
- * \param  argv  list of command line argument strings
+ * \param  argc  number of command-line arguments
+ * \param  argv  list of command-line argument strings
  * \param  ptr   pointer to a void pointer variable
  *               which serves as a handle; may be ``NULL``
  * \return       pointer to new LAMMPS instance cast to ``void *`` */
@@ -264,8 +264,8 @@ fails a null pointer is returned.
 
 \endverbatim
  *
- * \param  argc   number of command line arguments
- * \param  argv   list of command line argument strings
+ * \param  argc   number of command-line arguments
+ * \param  argv   list of command-line argument strings
  * \param  f_comm Fortran style MPI communicator for this LAMMPS instance
  * \return        pointer to new LAMMPS instance cast to ``void *`` */
 
@@ -516,10 +516,13 @@ treated as part of the command and will **not** start a second command.
 The function returns the expanded string in a new string buffer that
 must be freed with :cpp:func:`lammps_free` after use to avoid a memory leak.
 
+*See also*
+    :cpp:func:`lammps_eval`
+
 \endverbatim
  *
  * \param  handle  pointer to a previously created LAMMPS instance
- * \param  cmd     string with a single LAMMPS input line
+ * \param  line    string with a single LAMMPS input line
  * \return         string with expanded line */
 
 char *lammps_expand(void *handle, const char *line)
@@ -592,7 +595,7 @@ This function tells LAMMPS to execute the single command in the string
 (final) newline character.  Newline characters in the body of the
 string, however, will be treated as part of the command and will **not**
 start a second command.  The function :cpp:func:`lammps_commands_string`
-processes a string with multiple command lines.
+processes a string with multiple command-lines.
 
 The function returns the name of the command on success or ``NULL`` when
 passing a string without a command.
@@ -850,7 +853,11 @@ This differs from :cpp:func:`lammps_get_thermo` in that it does **not**
 trigger an evaluation.  Instead it provides direct access to a read-only
 location of the last thermo output data and the corresponding keyword
 strings.  How to handle the return value depends on the value of the *what*
-argument string.
+argument string.  When accessing the data from a concurrent thread while
+LAMMPS is running, the cache needs to be locked first and then unlocked
+after the data is obtained, so that the data is not corrupted while
+reading in case LAMMPS wants to update it at the same time.  Outside
+of a run, the lock/unlock calls have no effect.
 
 .. note::
 
@@ -899,6 +906,14 @@ argument string.
      - actual field data for column
      - pointer to int, int64_t or double
      - yes
+   * - lock
+     - acquires lock to thermo data cache
+     - NULL pointer
+     - no
+   * - unlock
+     - releases lock to thermo data cache
+     - NULL pointer
+     - no
 
 \endverbatim
  *
@@ -954,8 +969,14 @@ void *lammps_last_thermo(void *handle, const char *what, int index)
       } else if (field.type == multitype::LAMMPS_DOUBLE) {
         val = (void *) &field.data.d;
       }
-
+    } else if (strcmp(what, "lock") == 0) {
+      th->lock_cache();
+      val = nullptr;
+    } else if (strcmp(what, "unlock") == 0) {
+      th->unlock_cache();
+      val = nullptr;
     } else val = nullptr;
+
   }
   END_CAPTURE
   return val;
@@ -2159,7 +2180,7 @@ int lammps_extract_atom_datatype(void *handle, const char *name)
  *
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 19Nov2024
 
 This function returns an integer with the size of the per-atom
 property with the specified name.  This allows to accurately determine
@@ -2902,6 +2923,121 @@ int lammps_variable_info(void *handle, int idx, char *buffer, int buf_size) {
 
   buffer[0] = '\0';
   return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Evaluate an immediate variable expression
+ *
+\verbatim embed:rst
+
+.. versionadded:: 4Feb2025
+
+This function takes a string with an expression that can be used
+for :doc:`equal style variables <variable>`, evaluates it and returns
+the resulting (scalar) value as a floating point number.
+
+*See also*
+    :cpp:func:`lammps_expand`
+
+\endverbatim
+
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param expr     string with expression
+ * \return         result from expression */
+
+double lammps_eval(void *handle, const char *expr)
+{
+  auto lmp = (LAMMPS *) handle;
+  double result = 0.0;
+
+  BEGIN_CAPTURE
+  {
+    result = lmp->input->variable->compute_equal(expr);
+  }
+  END_CAPTURE
+
+  return result;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Clear whether a compute has been invoked.
+ *
+\verbatim embed:rst
+
+.. versionadded:: 4Feb2025
+
+   This function clears the invoked flag of all computes.
+   Called everywhere that computes are used, before computes are invoked.
+   The invoked flag is used to avoid re-invoking same compute multiple times
+   and to flag computes that store invocation times as having been invoked
+
+*See also*
+    :cpp:func:`lammps_addstep_compute_all`
+    :cpp:func:`lammps_addstep_compute`
+
+\endverbatim
+
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ */
+void lammps_clearstep_compute(void *handle) {
+  auto lmp = (LAMMPS *) handle;
+  lmp->modify->clearstep_compute();
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Add next timestep to all computes
+ *
+\verbatim embed:rst
+
+.. versionadded:: 4Feb2025
+
+   loop over all computes
+   schedule next invocation for those that store invocation times
+   called when not sure what computes will be needed on newstep
+   do not loop only over n_timeflag, since may not be set yet
+
+*See also*
+    :cpp:func:`lammps_clearstep_compute`
+    :cpp:func:`lammps_addstep_compute`
+
+\endverbatim
+
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param newstep  pointer to bigint of next timestep the compute will be invoked
+ */
+void lammps_addstep_compute_all(void *handle, void *newstep) {
+  auto lmp = (LAMMPS *) handle;
+  auto ns = (bigint *) newstep;
+  if (lmp && lmp->modify && ns) lmp->modify->addstep_compute_all(*ns);
+}
+/* ---------------------------------------------------------------------- */
+
+/** Add next timestep to compute if it has been invoked in the current timestep
+ *
+\verbatim embed:rst
+
+.. versionadded:: 4Feb2025
+
+   loop over computes that store invocation times
+   if its invoked flag set on this timestep, schedule next invocation
+   called everywhere that computes are used, after computes are invoked
+
+*See also*
+    :cpp:func:`lammps_addstep_compute_all`
+    :cpp:func:`lammps_clearstep_compute`
+
+\endverbatim
+
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param newstep  next timestep the compute will be invoked
+ */
+void lammps_addstep_compute(void *handle, void *newstep) {
+  auto lmp = (LAMMPS *) handle;
+  auto ns = (bigint *) newstep;
+  if (lmp && lmp->modify && ns) lmp->modify->addstep_compute(*ns);
 }
 
 // ----------------------------------------------------------------------

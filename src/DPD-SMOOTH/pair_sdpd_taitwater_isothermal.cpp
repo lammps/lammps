@@ -269,7 +269,7 @@ void PairSDPDTaitwaterIsothermal::settings (int narg, char **arg) {
 void PairSDPDTaitwaterIsothermal::coeff (int narg, char **arg) {
   if (narg != 5)
     error->all (FLERR, "Incorrect args for pair_style "
-                "sph/taitwater/morris coefficients");
+                "sph/taitwater/morris coefficients" + utils::errorurl(21));
 
   if (!allocated) allocate();
 
@@ -300,7 +300,7 @@ void PairSDPDTaitwaterIsothermal::coeff (int narg, char **arg) {
   }
 
   if (count == 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

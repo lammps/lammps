@@ -20,6 +20,11 @@
 #define KOKKOS_IMPL_TASKNODE_HPP
 
 #include <Kokkos_Macros.hpp>
+
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#error "The tasking framework is deprecated"
+#endif
+
 #if defined(KOKKOS_ENABLE_TASKDAG)
 
 #include <Kokkos_TaskScheduler_fwd.hpp>
@@ -38,6 +43,11 @@
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+// We allow using deprecated classes in this file
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
 
 namespace Kokkos {
 namespace Impl {
@@ -174,11 +184,11 @@ class TaskNode
         m_priority(static_cast<priority_type>(priority)),
         m_is_respawning(false) {}
 
-  TaskNode()                = delete;
-  TaskNode(TaskNode const&) = delete;
-  TaskNode(TaskNode&&)      = delete;
+  TaskNode()                           = delete;
+  TaskNode(TaskNode const&)            = delete;
+  TaskNode(TaskNode&&)                 = delete;
   TaskNode& operator=(TaskNode const&) = delete;
-  TaskNode& operator=(TaskNode&&) = delete;
+  TaskNode& operator=(TaskNode&&)      = delete;
 
   KOKKOS_INLINE_FUNCTION
   bool is_aggregate() const noexcept {
@@ -651,6 +661,10 @@ class alignas(16) RunnableTask
 } /* namespace Impl */
 
 } /* namespace Kokkos */
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

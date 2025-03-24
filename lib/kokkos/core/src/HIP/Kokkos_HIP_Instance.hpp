@@ -31,7 +31,7 @@ namespace Impl {
 struct HIPTraits {
 #if defined(KOKKOS_ARCH_AMD_GFX906) || defined(KOKKOS_ARCH_AMD_GFX908) || \
     defined(KOKKOS_ARCH_AMD_GFX90A) || defined(KOKKOS_ARCH_AMD_GFX940) || \
-    defined(KOKKOS_ARCH_AMD_GFX942)
+    defined(KOKKOS_ARCH_AMD_GFX942) || defined(KOKKOS_ARCH_AMD_GFX942_APU)
   static constexpr int WarpSize       = 64;
   static constexpr int WarpIndexMask  = 0x003f; /* hexadecimal for 63 */
   static constexpr int WarpIndexShift = 6;      /* WarpSize == 1 << WarpShift*/
@@ -52,8 +52,6 @@ struct HIPTraits {
 
 //----------------------------------------------------------------------------
 
-HIP::size_type hip_internal_maximum_warp_count();
-std::array<HIP::size_type, 3> hip_internal_maximum_grid_count();
 HIP::size_type hip_internal_multiprocessor_count();
 
 HIP::size_type *hip_internal_scratch_space(const HIP &instance,
@@ -72,12 +70,6 @@ class HIPInternal {
   using size_type = ::Kokkos::HIP::size_type;
 
   static int m_hipDev;
-  static unsigned m_multiProcCount;
-  static unsigned m_maxWarpCount;
-  static std::array<size_type, 3> m_maxBlock;
-  static unsigned m_maxWavesPerCU;
-  static int m_shmemPerSM;
-  static int m_maxShmemPerBlock;
   static int m_maxThreadsPerSM;
 
   static hipDeviceProp_t m_deviceProp;

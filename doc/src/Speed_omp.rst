@@ -21,7 +21,7 @@ Building LAMMPS with the OPENMP package
 See the :ref:`Build extras <openmp>` page for
 instructions.
 
-Run with the OPENMP package from the command line
+Run with the OPENMP package from the command-line
 """""""""""""""""""""""""""""""""""""""""""""""""""
 
 These examples assume one or more 16-core nodes.

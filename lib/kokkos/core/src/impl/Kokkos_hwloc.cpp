@@ -234,7 +234,7 @@ namespace {
 
 inline void print_bitmap(std::ostream& s, const hwloc_const_bitmap_t bitmap) {
   s << "{";
-  for (int i = hwloc_bitmap_first(bitmap); - 1 != i;
+  for (int i = hwloc_bitmap_first(bitmap); -1 != i;
        i     = hwloc_bitmap_next(bitmap, i)) {
     s << " " << i;
   }

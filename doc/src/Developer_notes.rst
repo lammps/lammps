@@ -7,13 +7,7 @@ typically document what a variable stores, what a small section of
 code does, or what a function does and its input/outputs.  The topics
 on this page are intended to document code functionality at a higher level.
 
-Available topics are:
-
-- `Reading and parsing of text and text files`_
-- `Requesting and accessing neighbor lists`_
-- `Choosing between a custom atom style, fix property/atom, and fix STORE/ATOM`_
-- `Fix contributions to instantaneous energy, virial, and cumulative energy`_
-- `KSpace PPPM FFT grids`_
+.. contents::
 
 ----
 
@@ -217,6 +211,149 @@ command:
 .. code-block:: c++
 
    neighbor->add_request(this, "delete_atoms", NeighConst::REQ_FULL);
+
+
+Errors, warnings, and informational messages
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LAMMPS has specialized functionality to handle errors (which should
+terminate LAMMPS), warning messages (which should indicate possible
+problems *without* terminating LAMMPS), and informational text for
+messages about the progress and chosen settings.  We *strongly*
+encourage using these facilities and to *stay away* from using
+``printf()`` or ``fprintf()`` or ``std::cout`` or ``std::cerr`` and
+calling ``MPI_Abort()`` or ``exit()`` directly.  Warnings and
+informational messages should be printed only on MPI rank 0 to avoid
+flooding the output when running in parallel with many MPI processes.
+
+**Errors**
+
+When LAMMPS encounters an error, for example a syntax error in the
+input, then a suitable error message should be printed giving a brief,
+one line remark about the reason and then call either ``Error::all()``
+or ``Error::one()``.  ``Error::all()`` must be called when the failing
+code path is executed by *all* MPI processes and the error condition
+will appear for *all* MPI processes the same.  If desired, each MPI
+process may set a flag to either 0 or 1 and then MPI_Allreduce()
+searching for the maximum can be used to determine if there was an error
+on *any* of the MPI processes and make this information available to
+*all*.  ``Error::one()`` in contrast needs to be called when only one or
+a few MPI processes execute the code path or can have the error
+condition.  ``Error::all()`` is generally the preferred option.
+
+Calling these functions does not abort LAMMPS directly, but rather
+throws either a ``LAMMPSException`` (from ``Error::all()``) or a
+``LAMMPSAbortException`` (from ``Error::one()``).  These exceptions are
+caught by the LAMMPS ``main()`` program and then handled accordingly.
+The reason for this approach is to support applications, especially
+graphical applications like :ref:`LAMMPS-GUI <lammps_gui>`, that are
+linked to the LAMMPS library and have a mechanism to avoid that an error
+in LAMMPS terminates the application. By catching the exceptions, the
+application can delete the failing LAMMPS class instance and create a
+new one to try again.  In a similar fashion, the :doc:`LAMMPS Python
+module <Python_module>` checks for this and then re-throws corresponding
+Python exception, which in turn can be caught by the calling Python
+code.
+
+There are multiple "signatures" that can be called:
+
+- ``Error::all(FLERR, "Error message")``: this will abort LAMMPS with
+  the error message "Error message", followed by the last line of input
+  that was read and processed before the error condition happened.
+
+- ``Error::all(FLERR, Error::NOLASTLINE, "Error message")``: this is the
+  same as before but without the last line of input.  This is preferred
+  for errors that would happen *during* a :doc:`run <run>` or
+  :doc:`minimization <minimize>`, since showing the "run" or "minimize"
+  command would be the last line, but is unrelated to the error.
+
+- ``Error::all(FLERR, idx, "Error message")``: this is for argument
+  parsing where "idx" is the index (starting at 0) of the argument for a
+  LAMMPS command that is causing the failure (use -1 for the command
+  itself).  For index 0, you need to use the constant ``Error::ARGZERO``
+  to work around the inability of some compilers to disambiguate between
+  a NULL pointer and an integer constant 0, even with an added type cast.
+  The output may also include the last input line *before* and
+  *after*, if they differ due to substituting variables.  A textual
+  indicator is pointing to the specific word that failed.  Using the
+  constant ``Error::NOPOINTER`` in place of the *idx* argument will
+  suppress the marker and then the behavior is like the *idx* argument
+  is not provided.
+
+FLERR is a macro containing the filename and line where the Error class
+is called and that information is appended to the error message.  This
+allows to quickly find the relevant source code causing the error.  For
+all three signatures, the single string "Error message" may be replaced
+with a format string using '{}' placeholders and followed by a variable
+number of arguments, one for each placeholder. This format string and
+the arguments are then handed for formatting to the `{fmt} library
+<https://fmt.dev>`_ (which is bundled with LAMMPS) and thus allow
+processing similar to the "format()" functionality in Python.
+
+.. note::
+
+   For commands like :doc:`fix ave/time <fix_ave_time>` that accept
+   wildcard arguments, the :cpp:func:`utils::expand_args` function
+   may be passed as an optional argument where the function will provide
+   a map to the original arguments from the expanded argument indices.
+
+For complex errors, that can have multiple causes and which cannot be
+explained in a single line, you can append to the error message, the
+string created by :cpp:func:`utils::errorurl`, which then provides a
+URL pointing to a paragraph of the :doc:`Errors_details` that
+corresponds to the number provided. Example:
+
+.. code-block:: c++
+
+   error->all(FLERR, "Unknown identifier in data file: {}{}", keyword, utils::errorurl(1));
+
+This will output something like this:
+
+.. parsed-literal::
+
+   ERROR: Unknown identifier in data file: Massess
+   For more information see https://docs.lammps.org/err0001 (src/read_data.cpp:1482)
+   Last input line: read_data       data.peptide
+
+Where the URL points to the first paragraph with explanations on
+the :doc:`Errors_details` page in the manual.
+
+**Warnings**
+
+To print warnings, the ``Errors::warning()`` function should be used.
+It also requires the FLERR macros as first argument to easily identify
+the location of the warning in the source code.  Same as with the error
+functions above, the function has two variants: one just taking a single
+string as final argument and a second that uses the `{fmt} library
+<https://fmt.dev>`_ to make it similar to, say, ``fprintf()``.  One
+motivation to use this function is that it will output warnings with
+always the same capitalization of the leading "WARNING" string.  A
+second is that it has a built in rate limiter.  After a given number (by
+default 100), that can be set via the :doc:`thermo_modify command
+<thermo_modify>` no more warnings are printed.  Also, warnings are
+written consistently to both screen and logfile or not, depending on the
+settings for :ref:`screen <screen>` or :doc:`logfile <log>` output.
+
+.. note::
+
+   Unlike ``Error::all()``, the warning function will produce output on
+   *every* MPI process, so it typically would be prefixed with an if
+   statement testing for ``comm->me == 0``, i.e. limiting output to MPI
+   rank 0.
+
+**Informational messages**
+
+Finally, for informational message LAMMPS has the
+:cpp:func:`utils::logmesg() convenience function
+<LAMMPS_NS::utils::logmesg>`.  It also uses the `{fmt} library
+<https://fmt.dev>`_ to support using a format string followed by a
+matching number of arguments.  It will output the resulting formatted
+text to both, the screen and the logfile and will honor the
+corresponding settings about whether this output is active and to which
+file it should be send.  Same as for ``Error::warning()``, it would
+produce output for every MPI process and thus should usually be called
+only on MPI rank 0 to avoid flooding the output when running with many
+parallel processes.
 
 Choosing between a custom atom style, fix property/atom, and fix STORE/ATOM
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

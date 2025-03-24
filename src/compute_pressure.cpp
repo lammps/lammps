@@ -16,6 +16,7 @@
 
 #include "angle.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "bond.h"
 #include "dihedral.h"
 #include "domain.h"
@@ -39,7 +40,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), vptr(nullptr), id_temp(nullptr), pstyle(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR,"compute pressure", error);
-  if (igroup) error->all(FLERR,"Compute pressure must use group all");
+  if (igroup) error->all(FLERR, 1, "Compute pressure must use group all");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
@@ -57,9 +58,9 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
     id_temp = utils::strdup(arg[3]);
     auto icompute = modify->get_compute_by_id(id_temp);
     if (!icompute)
-      error->all(FLERR,"Could not find compute pressure temperature ID {}", id_temp);
+      error->all(FLERR, 3, "Could not find compute pressure temperature ID {}", id_temp);
     if (!icompute->tempflag)
-      error->all(FLERR,"Compute pressure temperature ID {} does not compute temperature", id_temp);
+      error->all(FLERR, 3, "Compute pressure temperature ID {} does not compute temperature", id_temp);
   }
 
   // process optional args
@@ -132,6 +133,11 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   vector = new double[size_vector];
   nvirial = 0;
   vptr = nullptr;
+
+  // KOKKOS
+
+  datamask_read = EMPTY_MASK;
+  datamask_modify = EMPTY_MASK;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -229,7 +235,7 @@ double ComputePressure::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
   if (update->vflag_global != invoked_scalar)
-    error->all(FLERR,"Virial was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Virial was not tallied on needed timestep{}", utils::errorurl(22));
 
   // invoke temperature if it hasn't been already
 
@@ -268,7 +274,7 @@ void ComputePressure::compute_vector()
 {
   invoked_vector = update->ntimestep;
   if (update->vflag_global != invoked_vector)
-    error->all(FLERR,"Virial was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Virial was not tallied on needed timestep{}", utils::errorurl(22));
 
   if (force->kspace && kspace_virial && force->kspace->scalar_pressure_flag)
     error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' for "

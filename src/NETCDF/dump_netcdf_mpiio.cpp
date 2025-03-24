@@ -639,8 +639,8 @@ void DumpNetCDFMPIIO::write()
   nme = count();
   int *block_sizes = new int[comm->nprocs];
   MPI_Allgather(&nme, 1, MPI_INT, block_sizes, 1, MPI_INT, world);
-  blocki = 0;
-  for (int i = 0; i < comm->me; i++)  blocki += block_sizes[i];
+  blocki = (MPI_Offset) 0;
+  for (int i = 0; i < comm->me; i++)  blocki += (MPI_Offset) (block_sizes[i]);
   delete[] block_sizes;
 
   // ensure buf is sized for packing and communicating

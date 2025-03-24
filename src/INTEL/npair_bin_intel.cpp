@@ -41,7 +41,7 @@ NPairHalfBinNewtonIntel::NPairHalfBinNewtonIntel(LAMMPS *lmp) :
 void NPairHalfBinNewtonIntel::build(NeighList *list)
 {
   if (nstencil / 2 > INTEL_MAX_STENCIL_CHECK)
-    error->all(FLERR, "Too many neighbor bins for INTEL package.");
+    error->all(FLERR, "Too many neighbor bins for INTEL package" + utils::errorurl(9));
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (exclude)
@@ -123,7 +123,7 @@ NPairHalfBinNewtonTriIntel::NPairHalfBinNewtonTriIntel(LAMMPS *lmp) :
 void NPairHalfBinNewtonTriIntel::build(NeighList *list)
 {
   if (nstencil > INTEL_MAX_STENCIL)
-    error->all(FLERR, "Too many neighbor bins for INTEL package.");
+    error->all(FLERR, "Too many neighbor bins for INTEL package" + utils::errorurl(9));
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (exclude)
@@ -202,7 +202,7 @@ NPairFullBinIntel::NPairFullBinIntel(LAMMPS *lmp) : NPairIntel(lmp) {}
 void NPairFullBinIntel::build(NeighList *list)
 {
   if (nstencil > INTEL_MAX_STENCIL_CHECK)
-    error->all(FLERR, "Too many neighbor bins for INTEL package.");
+    error->all(FLERR, "Too many neighbor bins for INTEL package" + utils::errorurl(9));
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (exclude)

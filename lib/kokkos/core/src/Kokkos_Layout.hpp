@@ -52,13 +52,17 @@ struct LayoutLeft {
   using array_layout = LayoutLeft;
 
   size_t dimension[ARRAY_LAYOUT_MAX_RANK];
+  // we don't have a constructor to set the stride directly
+  // but we will deprecate the class anyway (or at least using an instance of
+  // this class) when switching the internal implementation to use mdspan
+  size_t stride;
 
   enum : bool { is_extent_constructible = true };
 
-  LayoutLeft(LayoutLeft const&) = default;
-  LayoutLeft(LayoutLeft&&)      = default;
+  LayoutLeft(LayoutLeft const&)            = default;
+  LayoutLeft(LayoutLeft&&)                 = default;
   LayoutLeft& operator=(LayoutLeft const&) = default;
-  LayoutLeft& operator=(LayoutLeft&&) = default;
+  LayoutLeft& operator=(LayoutLeft&&)      = default;
 
   KOKKOS_INLINE_FUNCTION
   explicit constexpr LayoutLeft(size_t N0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -69,7 +73,8 @@ struct LayoutLeft {
                                 size_t N5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                                 size_t N6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                                 size_t N7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG)
-      : dimension{N0, N1, N2, N3, N4, N5, N6, N7} {}
+      : dimension{N0, N1, N2, N3, N4, N5, N6, N7},
+        stride(KOKKOS_IMPL_CTOR_DEFAULT_ARG) {}
 
   friend bool operator==(const LayoutLeft& left, const LayoutLeft& right) {
     for (unsigned int rank = 0; rank < ARRAY_LAYOUT_MAX_RANK; ++rank)
@@ -101,13 +106,17 @@ struct LayoutRight {
   using array_layout = LayoutRight;
 
   size_t dimension[ARRAY_LAYOUT_MAX_RANK];
+  // we don't have a constructor to set the stride directly
+  // but we will deprecate the class anyway (or at least using an instance of
+  // this class) when switching the internal implementation to use mdspan
+  size_t stride;
 
   enum : bool { is_extent_constructible = true };
 
-  LayoutRight(LayoutRight const&) = default;
-  LayoutRight(LayoutRight&&)      = default;
+  LayoutRight(LayoutRight const&)            = default;
+  LayoutRight(LayoutRight&&)                 = default;
   LayoutRight& operator=(LayoutRight const&) = default;
-  LayoutRight& operator=(LayoutRight&&) = default;
+  LayoutRight& operator=(LayoutRight&&)      = default;
 
   KOKKOS_INLINE_FUNCTION
   explicit constexpr LayoutRight(size_t N0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -118,7 +127,8 @@ struct LayoutRight {
                                  size_t N5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                                  size_t N6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                                  size_t N7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG)
-      : dimension{N0, N1, N2, N3, N4, N5, N6, N7} {}
+      : dimension{N0, N1, N2, N3, N4, N5, N6, N7},
+        stride{KOKKOS_IMPL_CTOR_DEFAULT_ARG} {}
 
   friend bool operator==(const LayoutRight& left, const LayoutRight& right) {
     for (unsigned int rank = 0; rank < ARRAY_LAYOUT_MAX_RANK; ++rank)
@@ -144,10 +154,10 @@ struct LayoutStride {
 
   enum : bool { is_extent_constructible = false };
 
-  LayoutStride(LayoutStride const&) = default;
-  LayoutStride(LayoutStride&&)      = default;
+  LayoutStride(LayoutStride const&)            = default;
+  LayoutStride(LayoutStride&&)                 = default;
   LayoutStride& operator=(LayoutStride const&) = default;
-  LayoutStride& operator=(LayoutStride&&) = default;
+  LayoutStride& operator=(LayoutStride&&)      = default;
 
   /** \brief  Compute strides from ordered dimensions.
    *
@@ -191,8 +201,8 @@ struct LayoutStride {
       size_t N5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG, size_t S5 = 0,
       size_t N6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG, size_t S6 = 0,
       size_t N7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG, size_t S7 = 0)
-      : dimension{N0, N1, N2, N3, N4, N5, N6, N7}, stride{S0, S1, S2, S3,
-                                                          S4, S5, S6, S7} {}
+      : dimension{N0, N1, N2, N3, N4, N5, N6, N7},
+        stride{S0, S1, S2, S3, S4, S5, S6, S7} {}
 
   friend bool operator==(const LayoutStride& left, const LayoutStride& right) {
     for (unsigned int rank = 0; rank < ARRAY_LAYOUT_MAX_RANK; ++rank)

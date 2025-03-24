@@ -35,3 +35,4 @@ jobs:
          make check-permissions
          make check-homepage
          make check-errordocs
+         make check-fmtlib

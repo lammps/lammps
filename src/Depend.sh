@@ -68,6 +68,10 @@ if (test $1 = "COLLOID") then
   depend OPENMP
 fi
 
+if (test $1 = "COLVARS") then
+  depend KOKKOS
+fi
+
 if (test $1 = "DIELECTRIC") then
   depend OPENMP
 fi

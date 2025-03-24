@@ -1,0 +1,149 @@
+##################################### SIMULATION SETTINGS ###################################################
+
+atom_style sphere 1
+atom_modify map array
+comm_modify vel yes
+units si
+newton off
+neighbor      1.0e-3 bin
+neigh_modify every 10 delay 60 check no
+timestep 4e-6
+#processors 2 2 1
+
+############################## SIMULATION BOUNDING BOX AND INSERT PARTICLES #################################
+
+boundary f f f
+read_data spheres200.data
+
+#################################### ADD DIE AND ATOM PARAMETERIZATION ######################################
+
+variable atomRadius    equal 0.44e-3*1.25
+variable atomDiameter  equal 2*${atomRadius}
+variable atomDensity   equal 1560
+variable atomMassAvg   equal ${atomDensity}*4.0/3.0*PI*${atomRadius}^3.0
+variable dieRadius     equal 4e-3
+variable dieHeight     equal 1e-2
+
+############################## PARTICLE MATERIAL PROPERTIES AND FORCE MODEL ##################################
+
+pair_style granular
+
+# mdr = E, nu, Y, gamma, psi_b, CoR
+variable YoungsModulus      equal 5e6
+variable YieldStress        equal 1.9e5
+variable PoissonsRatio      equal 0.4
+variable SurfaceEnergy      equal 2
+variable SurfaceEnergyWall  equal 0.0
+variable CoR                equal 0.5
+variable psi_b              equal 0.5
+
+# linear_history = k_t, x_gammat, mu_s
+variable kt         equal 2/7*${YoungsModulus}*${atomRadius}
+variable kt_wall    equal 2/7*${YoungsModulus}*${atomRadius}
+variable xgammat    equal 0.0 
+variable mu_s       equal 0.7
+variable mu_s_wall  equal 0.1
+
+# sds = mu_roll, k_roll, gamma_roll
+variable mu_roll     equal 0.6
+variable k_roll      equal 2.25*${mu_roll}*${mu_roll}*${YoungsModulus}*${atomRadius}
+variable gamma_roll  equal 0.0
+
+pair_coeff * * mdr ${YoungsModulus} ${PoissonsRatio} ${YieldStress} ${SurfaceEnergy} ${psi_b} ${CoR} tangential linear_history ${kt} ${xgammat} ${mu_s} rolling sds ${k_roll} ${gamma_roll} ${mu_roll} damping none
+
+######################################### ADD DIE AND PUNCH WALLS ############################################
+
+variable disp_upper      equal 0.0
+variable disp_lower      equal 0.0
+
+variable wall_contact_string string "granular mdr ${YoungsModulus} ${PoissonsRatio} ${YieldStress} ${SurfaceEnergyWall} ${psi_b} ${CoR} tangential linear_history ${kt_wall} ${xgammat} ${mu_s_wall} rolling sds ${k_roll} ${gamma_roll} ${mu_roll} damping none"
+
+variable dieHeight2 equal 2*${dieHeight}
+
+region lowerPunch plane 0 0 0 0 0 1 side in units box move NULL NULL v_disp_lower units box
+region upperPunch plane 0 0 ${dieHeight} 0 0 -1 side in move NULL NULL v_disp_upper units box
+region die cylinder z 0 0 ${dieRadius} 0 ${dieHeight2} side in units box
+
+fix lowerPunch all wall/gran/region ${wall_contact_string} region lowerPunch contacts
+fix upperPunch all wall/gran/region ${wall_contact_string} region upperPunch contacts
+fix die all wall/gran/region ${wall_contact_string} region die contacts
+
+compute avgUpperPunchForce all reduce sum f_upperPunch[4]
+variable avgUpperPunchForce equal c_avgUpperPunchForce
+compute avgLowerPunchForce all reduce sum f_lowerPunch[4]
+variable avgLowerPunchForce equal c_avgLowerPunchForce
+
+fix printFD all print 1 "${disp_upper} ${avgUpperPunchForce} ${avgLowerPunchForce}" file punch_force_disp_tableting200.csv screen no
+
+##################################### INTEGRATION AND GRAVITY #################################################
+
+fix 1 all nve/sphere
+fix grav all gravity 9.81 vector 0 0 -1
+
+########################################### SCREEN OUTPUT  ####################################################
+
+compute       1 all erotate/sphere
+thermo_style  custom dt step atoms ke vol v_disp_upper
+thermo        100
+thermo_modify lost ignore norm no
+
+##################################### SET UP DUMP OUTPUTS  ####################################################
+
+compute ke all ke/atom
+variable output_rate equal round(1e-3/dt)
+
+run 0
+
+compute sigmaxx all property/atom d_sigmaxx
+compute sigmayy all property/atom d_sigmayy
+compute sigmazz all property/atom d_sigmazz
+compute Velas all property/atom d_Velas
+
+compute sigmaxx_ave all reduce ave c_sigmaxx
+compute sigmayy_ave all reduce ave c_sigmayy
+compute sigmazz_ave all reduce ave c_sigmazz
+compute Velas_sum all reduce sum c_Velas
+
+variable sxx_ave equal c_sigmaxx_ave
+variable syy_ave equal c_sigmayy_ave
+variable szz_ave equal c_sigmazz_ave
+variable Vparticles equal c_Velas_sum
+
+fix log all print 1 "${sxx_ave} ${syy_ave} ${szz_ave} ${Vparticles}" file average_normal_stresses_tableting200.csv screen no
+dump dumpParticles all custom ${output_rate} tableting200.dump id type mass diameter x y z vx vy vz fx fy fz c_ke c_sigmaxx c_sigmayy c_sigmazz
+#dump dumpParticlesVTK all vtk ${output_rate} post/particles_*.vtk id x y z fx fy fz vx vy vz c_ke radius c_sigmaxx c_sigmayy c_sigmazz
+
+############################################## RUN SIMULATION #################################################
+
+variable upper_punch_stroke  equal 0.6733*${dieHeight}
+variable vel_upper           equal 0.25
+
+variable settling_steps      equal round(0.02/dt)
+variable compression_steps   equal 2*round(${upper_punch_stroke}/${vel_upper}/dt)
+variable ejection_steps      equal ${compression_steps}
+variable free_float_steps    equal round(0.02/dt)
+
+##### SETTLING #####
+
+run ${settling_steps}
+
+##### Compression & Release #####
+
+variable punch_frequency  equal PI/2/(dt*${compression_steps}/2)
+variable disp_upper       equal -${upper_punch_stroke}*sin(${punch_frequency}*elapsed*dt)
+variable short_release    equal round(${compression_steps}*1.0)
+run ${short_release}
+
+##### EJECTION #####
+
+variable punch_frequency  equal PI/2/(dt*${ejection_steps})
+variable disp_lower       equal ${dieHeight}*sin(${punch_frequency}*elapsed*dt)
+variable disp_upper       equal 0.9*v_disp_lower
+run ${ejection_steps}
+
+##### FREE FLOAT #####
+
+variable disp_lower  equal ${dieHeight}
+variable disp_upper  equal ${dieHeight}*0.9
+variable max_disp    equal ${dieRadius}*0.75
+run ${free_float_steps}

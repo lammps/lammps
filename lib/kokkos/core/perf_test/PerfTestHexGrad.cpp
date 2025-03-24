@@ -34,10 +34,10 @@ struct HexGrad {
   enum { NSpace = 3, NNode = 8 };
 
   using elem_coord_type =
-      Kokkos::View<CoordScalarType * [NSpace][NNode], execution_space>;
+      Kokkos::View<CoordScalarType* [NSpace][NNode], execution_space>;
 
   using elem_grad_type =
-      Kokkos::View<GradScalarType * [NSpace][NNode], execution_space>;
+      Kokkos::View<GradScalarType* [NSpace][NNode], execution_space>;
 
   elem_coord_type coords;
   elem_grad_type grad_op;

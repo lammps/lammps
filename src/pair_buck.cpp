@@ -189,7 +189,7 @@ void PairBuck::settings(int narg, char **arg)
 void PairBuck::coeff(int narg, char **arg)
 {
   if (narg < 5 || narg > 6)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -198,7 +198,7 @@ void PairBuck::coeff(int narg, char **arg)
 
   double a_one = utils::numeric(FLERR,arg[2],false,lmp);
   double rho_one = utils::numeric(FLERR,arg[3],false,lmp);
-  if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   double c_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   double cut_one = cut_global;
@@ -216,7 +216,7 @@ void PairBuck::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

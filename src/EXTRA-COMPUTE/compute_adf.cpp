@@ -133,15 +133,15 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
       utils::bounds(FLERR,arg[iarg+1],1,atom->ntypes,jlo[m],jhi[m],error);
       utils::bounds(FLERR,arg[iarg+2],1,atom->ntypes,klo[m],khi[m],error);
       if ((ilo[m] > ihi[m]) || (jlo[m] > jhi[m]) || (klo[m] > khi[m]))
-        error->all(FLERR,"Illegal compute adf command");
+        error->all(FLERR,"Illegal compute adf command index range");
       rcutinnerj[m] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       rcutouterj[m] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       if (rcutinnerj[m] < 0.0 || rcutinnerj[m] >= rcutouterj[m])
-        error->all(FLERR,"Illegal compute adf command");
+        error->all(FLERR,"Illegal compute adf command j-cutoff");
       rcutinnerk[m] = utils::numeric(FLERR,arg[iarg+5],false,lmp);
       rcutouterk[m] = utils::numeric(FLERR,arg[iarg+6],false,lmp);
       if (rcutinnerk[m] < 0.0 || rcutinnerk[m] >= rcutouterk[m])
-        error->all(FLERR,"Illegal compute adf command");
+        error->all(FLERR,"Illegal compute adf command k-cutoff");
       iarg += nargsperadf;
     }
   }
@@ -290,8 +290,8 @@ void ComputeADF::init()
     double skin = neighbor->skin;
     mycutneigh = maxouter + skin;
     if (mycutneigh > comm->cutghostuser)
-      error->all(FLERR,"Compute adf outer cutoff exceeds ghost atom range - "
-                 "use comm_modify cutoff command");
+      error->all(FLERR,"Compute adf outer cutoff {} exceeds ghost atom range {} - "
+                 "use comm_modify cutoff command", mycutneigh, comm->cutghostuser);
   }
 
   // assign ordinate values to 1st column of output array
@@ -328,6 +328,7 @@ void ComputeADF::init()
   if (mycutneigh > 0.0) {
     if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
       error->all(FLERR, "Compute adf with custom cutoffs requires neighbor style 'bin' or 'nsq'");
+
     req->set_cutoff(mycutneigh);
   }
 }

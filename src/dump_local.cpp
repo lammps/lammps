@@ -292,29 +292,29 @@ void DumpLocal::write_header(bigint ndump)
   if (me == 0) {
     if (unit_flag && !unit_count) {
       ++unit_count;
-      fmt::print(fp,"ITEM: UNITS\n{}\n",update->unit_style);
+      utils::print(fp,"ITEM: UNITS\n{}\n",update->unit_style);
     }
-    if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
+    if (time_flag) utils::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
 
-    fmt::print(fp,"ITEM: TIMESTEP\n{}\n"
+    utils::print(fp,"ITEM: TIMESTEP\n{}\n"
                "ITEM: NUMBER OF {}\n{}\n",
                update->ntimestep, label, ndump);
 
     if (domain->triclinic) {
-      fmt::print(fp,"ITEM: BOX BOUNDS xy xz yz {}\n"
+      utils::print(fp,"ITEM: BOX BOUNDS xy xz yz {}\n"
                  "{:>1.16e} {:>1.16e} {:>1.16e}\n"
                  "{:>1.16e} {:>1.16e} {:>1.16e}\n"
                  "{:>1.16e} {:>1.16e} {:>1.16e}\n",
                  boundstr,boxxlo,boxxhi,boxxy,boxylo,boxyhi,boxxz,boxzlo,boxzhi,boxyz);
     } else {
-      fmt::print(fp,"ITEM: BOX BOUNDS {}\n"
+      utils::print(fp,"ITEM: BOX BOUNDS {}\n"
                  "{:>1.16e} {:>1.16e}\n"
                  "{:>1.16e} {:>1.16e}\n"
                  "{:>1.16e} {:>1.16e}\n",
                  boundstr,boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi);
     }
 
-    fmt::print(fp,"ITEM: {} {}\n", label, columns);
+    utils::print(fp,"ITEM: {} {}\n", label, columns);
   }
 }
 

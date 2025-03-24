@@ -1,57 +1,51 @@
-INCLUDE(CMakePackageConfigHelpers)
-IF (NOT KOKKOS_HAS_TRILINOS AND NOT Kokkos_INSTALL_TESTING)
-  INCLUDE(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+if(NOT Kokkos_INSTALL_TESTING)
+  include(GNUInstallDirs)
 
   #Set all the variables needed for KokkosConfig.cmake
-  GET_PROPERTY(KOKKOS_PROP_LIBS GLOBAL PROPERTY KOKKOS_LIBRARIES_NAMES)
-  SET(KOKKOS_LIBRARIES ${KOKKOS_PROP_LIBS})
+  get_property(KOKKOS_PROP_LIBS GLOBAL PROPERTY KOKKOS_LIBRARIES_NAMES)
+  set(KOKKOS_LIBRARIES ${KOKKOS_PROP_LIBS})
 
-  INCLUDE(CMakePackageConfigHelpers)
-  CONFIGURE_PACKAGE_CONFIG_FILE(
-    cmake/KokkosConfig.cmake.in
-    "${Kokkos_BINARY_DIR}/KokkosConfig.cmake"
-    INSTALL_DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/cmake)
+  include(CMakePackageConfigHelpers)
+  configure_package_config_file(
+    cmake/KokkosConfig.cmake.in "${Kokkos_BINARY_DIR}/KokkosConfig.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/cmake
+  )
 
-  CONFIGURE_PACKAGE_CONFIG_FILE(
-	  cmake/KokkosConfigCommon.cmake.in
-	  "${Kokkos_BINARY_DIR}/KokkosConfigCommon.cmake"
-    INSTALL_DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/cmake)
+  configure_package_config_file(
+    cmake/KokkosConfigCommon.cmake.in "${Kokkos_BINARY_DIR}/KokkosConfigCommon.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/cmake
+  )
 
-  WRITE_BASIC_PACKAGE_VERSION_FILE("${Kokkos_BINARY_DIR}/KokkosConfigVersion.cmake"
-      VERSION "${Kokkos_VERSION}"
-      COMPATIBILITY AnyNewerVersion)
+  write_basic_package_version_file(
+    "${Kokkos_BINARY_DIR}/KokkosConfigVersion.cmake" VERSION "${Kokkos_VERSION}" COMPATIBILITY AnyNewerVersion
+  )
 
   # Install the KokkosConfig*.cmake files
-  install(FILES
-    "${Kokkos_BINARY_DIR}/KokkosConfig.cmake"
-    "${Kokkos_BINARY_DIR}/KokkosConfigCommon.cmake"
-    "${Kokkos_BINARY_DIR}/KokkosConfigVersion.cmake"
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Kokkos)
+  install(FILES "${Kokkos_BINARY_DIR}/KokkosConfig.cmake" "${Kokkos_BINARY_DIR}/KokkosConfigCommon.cmake"
+                "${Kokkos_BINARY_DIR}/KokkosConfigVersion.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Kokkos
+  )
   install(EXPORT KokkosTargets NAMESPACE Kokkos:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Kokkos)
   export(EXPORT KokkosTargets NAMESPACE Kokkos:: FILE ${Kokkos_BINARY_DIR}/KokkosTargets.cmake)
 
   # Required to be a TriBITS-compliant external package
   file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/cmake_packages/Kokkos)
-  file(COPY ${Kokkos_BINARY_DIR}/KokkosConfig.cmake
-            ${Kokkos_BINARY_DIR}/KokkosConfigCommon.cmake
-            ${Kokkos_BINARY_DIR}/KokkosConfigVersion.cmake
-            DESTINATION ${CMAKE_BINARY_DIR}/cmake_packages/Kokkos)
-  export(EXPORT KokkosTargets NAMESPACE Kokkos:: FILE ${CMAKE_BINARY_DIR}/cmake_packages/Kokkos/KokkosTargets.cmake)
-ELSE()
-  CONFIGURE_FILE(cmake/KokkosConfigCommon.cmake.in ${Kokkos_BINARY_DIR}/KokkosConfigCommon.cmake @ONLY)
-  file(READ ${Kokkos_BINARY_DIR}/KokkosConfigCommon.cmake KOKKOS_CONFIG_COMMON)
-  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/KokkosConfig_install.cmake" "${KOKKOS_CONFIG_COMMON}")
-  CONFIGURE_FILE(cmake/KokkosTrilinosConfig.cmake.in ${Kokkos_BINARY_DIR}/KokkosTrilinosConfig.cmake @ONLY)
-  file(READ ${Kokkos_BINARY_DIR}/KokkosTrilinosConfig.cmake KOKKOS_TRILINOS_CONFIG)
-  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/KokkosConfig_install.cmake" "${KOKKOS_TRILINOS_CONFIG}")
+  file(COPY ${Kokkos_BINARY_DIR}/KokkosConfig.cmake ${Kokkos_BINARY_DIR}/KokkosConfigCommon.cmake
+            ${Kokkos_BINARY_DIR}/KokkosConfigVersion.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake_packages/Kokkos
+  )
+  file(WRITE ${CMAKE_BINARY_DIR}/cmake_packages/Kokkos/KokkosTargets.cmake
+       "include(${Kokkos_BINARY_DIR}/KokkosTargets.cmake)"
+  )
+else()
+  configure_file(cmake/KokkosConfigCommon.cmake.in ${Kokkos_BINARY_DIR}/KokkosConfigCommon.cmake @ONLY)
 
-  WRITE_BASIC_PACKAGE_VERSION_FILE("${CMAKE_CURRENT_BINARY_DIR}/KokkosConfigVersion.cmake"
-      VERSION "${Kokkos_VERSION}"
-      COMPATIBILITY AnyNewerVersion)
+  write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/KokkosConfigVersion.cmake" VERSION "${Kokkos_VERSION}" COMPATIBILITY AnyNewerVersion
+  )
 
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/KokkosConfigVersion.cmake
-      DESTINATION "${${PROJECT_NAME}_INSTALL_LIB_DIR}/cmake/${PACKAGE_NAME}")
-ENDIF()
+          DESTINATION "${${PROJECT_NAME}_INSTALL_LIB_DIR}/cmake/Kokkos"
+  )
+endif()
 
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_config.h DESTINATION ${KOKKOS_HEADER_DIR})
-
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_config.h DESTINATION ${KOKKOS_HEADER_DIR})

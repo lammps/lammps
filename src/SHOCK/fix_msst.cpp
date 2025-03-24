@@ -248,18 +248,28 @@ void FixMSST::init()
   // set compute ptrs
 
   temperature = modify->get_compute_by_id(id_temp);
-  if (!temperature)
+  if (!temperature) {
     error->all(FLERR, "Could not find fix msst temperature compute ID {}", id_temp);
-  if (temperature->tempflag == 0)
-    error->all(FLERR, "Fix msst compute ID {} does not compute temperature", id_temp);
+  } else {
+    if (temperature->tempflag == 0)
+      error->all(FLERR, "Fix msst compute ID {} does not compute a temperature", id_temp);
+  }
+
   pressure = modify->get_compute_by_id(id_press);
-  if (!pressure) error->all(FLERR, "Could not find fix msst pressure compute ID {}", id_press);
-  if (pressure->pressflag == 0)
-    error->all(FLERR, "Fix msst compute ID {} does not compute pressure", id_press);
+  if (!pressure) {
+    error->all(FLERR, "Could not find fix msst pressure compute ID {}", id_press);
+  } else {
+    if (pressure->pressflag == 0)
+      error->all(FLERR, "Fix msst compute ID {} does not compute pressure", id_press);
+  }
+
   pe = modify->get_compute_by_id(id_pe);
-  if (!pe) error->all(FLERR, "Could not find fix msst pe compute ID {}", id_pe);
-  if (pe->peflag == 0)
-    error->all(FLERR, "Fix msst compute ID {} does not compute potential energy", id_pe);
+  if (!pe) {
+    error->all(FLERR, "Could not find fix msst pe compute ID {}", id_pe);
+  } else {
+    if (pe->peflag == 0)
+      error->all(FLERR, "Fix msst compute ID {} does not compute potential energy", id_pe);
+  }
 
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;

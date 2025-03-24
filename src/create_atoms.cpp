@@ -34,6 +34,7 @@
 #include "random_mars.h"
 #include "random_park.h"
 #include "region.h"
+#include "safe_pointers.h"
 #include "special.h"
 #include "text_file_reader.h"
 #include "variable.h"
@@ -103,7 +104,7 @@ void CreateAtoms::command(int narg, char **arg)
     style = REGION;
     if (narg < 3) utils::missing_cmd_args(FLERR, "create_atoms region", error);
     region = domain->get_region_by_id(arg[2]);
-    if (!region) error->all(FLERR, "Create_atoms region {} does not exist", arg[2]);
+    if (!region) error->all(FLERR, 2, "Create_atoms region {} does not exist", arg[2]);
     region->init();
     region->prematch();
     iarg = 3;
@@ -127,7 +128,7 @@ void CreateAtoms::command(int narg, char **arg)
       region = nullptr;
     else {
       region = domain->get_region_by_id(arg[4]);
-      if (!region) error->all(FLERR, "Create_atoms region {} does not exist", arg[4]);
+      if (!region) error->all(FLERR, 4, "Create_atoms region {} does not exist", arg[4]);
       region->init();
       region->prematch();
     }
@@ -138,7 +139,7 @@ void CreateAtoms::command(int narg, char **arg)
     meshfile = arg[2];
     iarg = 3;
   } else
-    error->all(FLERR, "Unknown create_atoms command option {}", arg[1]);
+    error->all(FLERR, 1, "Unknown create_atoms command option {}", arg[1]);
 
   // process optional keywords
 
@@ -523,7 +524,7 @@ void CreateAtoms::command(int narg, char **arg)
 
     // molcreate = # of molecules I created
 
-    tagint molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms * onemol->nmolecules;
+    tagint molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms;
 
     // increment total bonds,angles,etc
 
@@ -1082,8 +1083,9 @@ void CreateAtoms::add_mesh(const char *filename)
     molid = maxmol + 1;
   }
 
-  FILE *fp = fopen(filename, "rb");
-  if (fp == nullptr) error->one(FLERR, "Cannot open file {}: {}", filename, utils::getsyserror());
+  SafeFilePtr fp = fopen(filename, "rb");
+  if (fp == nullptr)
+    error->one(FLERR, "Cannot open STL mesh file {}: {}", filename, utils::getsyserror());
 
   // first try reading the file in ASCII format
 
@@ -1184,7 +1186,7 @@ void CreateAtoms::add_mesh(const char *filename)
         }
       }
     } else {
-      error->all(FLERR, "Error reading triangles from file {}: {}", filename, e.what());
+      error->all(FLERR, "Error reading triangles from STL mesh file {}: {}", filename, e.what());
     }
   }
 
@@ -1195,7 +1197,6 @@ void CreateAtoms::add_mesh(const char *filename)
       utils::logmesg(lmp, "  read {} triangles with {:.2f} atoms per triangle added in {} mode\n",
                      ntriangle, ratio, mesh_name[mesh_style]);
   }
-  if (fp) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

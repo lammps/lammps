@@ -44,22 +44,17 @@ class GraphNodeKernelImpl<Kokkos::HIP, PolicyType, Functor, PatternTag, Args...>
 
   // TODO use the name and executionspace
   template <typename PolicyDeduced, typename... ArgsDeduced>
-  GraphNodeKernelImpl(std::string, Kokkos::HIP const&, Functor arg_functor,
+  GraphNodeKernelImpl(std::string label_, HIP const&, Functor arg_functor,
                       PolicyDeduced&& arg_policy, ArgsDeduced&&... args)
-      : base_t(std::move(arg_functor), (PolicyDeduced &&) arg_policy,
-               (ArgsDeduced &&) args...) {}
+      : base_t(std::move(arg_functor), (PolicyDeduced&&)arg_policy,
+               (ArgsDeduced&&)args...),
+        label(std::move(label_)) {}
 
   template <typename PolicyDeduced>
   GraphNodeKernelImpl(Kokkos::HIP const& exec_space, Functor arg_functor,
                       PolicyDeduced&& arg_policy)
-      : GraphNodeKernelImpl("", exec_space, std::move(arg_functor),
-                            (PolicyDeduced &&) arg_policy) {}
-
-  ~GraphNodeKernelImpl() {
-    if (m_driver_storage) {
-      Kokkos::HIPSpace().deallocate(m_driver_storage, sizeof(base_t));
-    }
-  }
+      : GraphNodeKernelImpl("[unlabeled]", exec_space, std::move(arg_functor),
+                            (PolicyDeduced&&)arg_policy) {}
 
   void set_hip_graph_ptr(hipGraph_t* arg_graph_ptr) {
     m_graph_ptr = arg_graph_ptr;
@@ -73,18 +68,29 @@ class GraphNodeKernelImpl<Kokkos::HIP, PolicyType, Functor, PatternTag, Args...>
 
   hipGraph_t const* get_hip_graph_ptr() const { return m_graph_ptr; }
 
-  Kokkos::ObservingRawPtr<base_t> allocate_driver_memory_buffer() const {
+  Kokkos::ObservingRawPtr<base_t> allocate_driver_memory_buffer(
+      const HIP& exec) const {
     KOKKOS_EXPECTS(m_driver_storage == nullptr);
-    m_driver_storage = static_cast<base_t*>(Kokkos::HIPSpace().allocate(
-        "GraphNodeKernel global memory functor storage", sizeof(base_t)));
+    std::string alloc_label =
+        label + " - GraphNodeKernel global memory functor storage";
+    m_driver_storage = std::shared_ptr<base_t>(
+        static_cast<base_t*>(
+            HIPSpace().allocate(exec, alloc_label.c_str(), sizeof(base_t))),
+        // FIXME_HIP Custom deletor should use same 'exec' as for allocation.
+        [alloc_label](base_t* ptr) {
+          HIPSpace().deallocate(alloc_label.c_str(), ptr, sizeof(base_t));
+        });
     KOKKOS_ENSURES(m_driver_storage != nullptr);
-    return m_driver_storage;
+    return m_driver_storage.get();
   }
+
+  auto get_driver_storage() const { return m_driver_storage; }
 
  private:
   Kokkos::ObservingRawPtr<const hipGraph_t> m_graph_ptr    = nullptr;
   Kokkos::ObservingRawPtr<hipGraphNode_t> m_graph_node_ptr = nullptr;
-  Kokkos::OwningRawPtr<base_t> m_driver_storage            = nullptr;
+  mutable std::shared_ptr<base_t> m_driver_storage         = nullptr;
+  std::string label;
 };
 
 struct HIPGraphNodeAggregateKernel {
@@ -114,13 +120,14 @@ struct get_graph_node_kernel_type<KernelType, Kokkos::ParallelReduceTag>
           Kokkos::ParallelReduceTag>> {};
 
 template <typename KernelType>
-auto* allocate_driver_storage_for_kernel(KernelType const& kernel) {
+auto* allocate_driver_storage_for_kernel(const HIP& exec,
+                                         KernelType const& kernel) {
   using graph_node_kernel_t =
       typename get_graph_node_kernel_type<KernelType>::type;
   auto const& kernel_as_graph_kernel =
       static_cast<graph_node_kernel_t const&>(kernel);
 
-  return kernel_as_graph_kernel.allocate_driver_memory_buffer();
+  return kernel_as_graph_kernel.allocate_driver_memory_buffer(exec);
 }
 
 template <typename KernelType>

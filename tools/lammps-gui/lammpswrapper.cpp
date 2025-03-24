@@ -339,6 +339,15 @@ bool LammpsWrapper::config_accelerator(const char *package, const char *category
 #endif
 }
 
+bool LammpsWrapper::config_has_curl_support() const
+{
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    return ((liblammpsplugin_t *)plugin_handle)->config_has_curl_support() != 0;
+#else
+    return lammps_config_has_curl_support() != 0;
+#endif
+}
+
 bool LammpsWrapper::has_gpu_device() const
 {
 #if defined(LAMMPS_GUI_USE_PLUGIN)

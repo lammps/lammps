@@ -62,6 +62,7 @@ FixAmoebaPiTorsion::FixAmoebaPiTorsion(LAMMPS *lmp, int narg, char **arg) :
   wd_section = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
+  stores_ids = 1;
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -773,9 +774,9 @@ bigint FixAmoebaPiTorsion::read_data_skip_lines(char *keyword)
 
 void FixAmoebaPiTorsion::write_data_header(FILE *fp, int mth)
 {
-  if (mth == 0) fmt::print(fp,"{} pitorsions\n",npitorsions);
+  if (mth == 0) utils::print(fp,"{} pitorsions\n",npitorsions);
   else if (mth == 1)
-    fmt::print(fp, "{} pitorsion types\n",npitorsion_types);
+    utils::print(fp, "{} pitorsion types\n",npitorsion_types);
 }
 
 /* ----------------------------------------------------------------------

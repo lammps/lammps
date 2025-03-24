@@ -206,14 +206,14 @@ TEST(TEST_CATEGORY, view_copy_degenerated) {
   Kokkos::View<int*, TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Unmanaged>>
       v_um_def_1;
   Kokkos::View<int*, TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Unmanaged>>
-  v_um_1(reinterpret_cast<int*>(-1), 0);
+      v_um_1(reinterpret_cast<int*>(-1), 0);
   Kokkos::View<int*, TEST_EXECSPACE> v_m_def_1;
   Kokkos::View<int*, TEST_EXECSPACE> v_m_1("v_m_1", 0);
 
   Kokkos::View<int*, TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Unmanaged>>
       v_um_def_2;
   Kokkos::View<int*, TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Unmanaged>>
-  v_um_2(reinterpret_cast<int*>(-1), 0);
+      v_um_2(reinterpret_cast<int*>(-1), 0);
   Kokkos::View<int*, TEST_EXECSPACE> v_m_def_2;
   Kokkos::View<int*, TEST_EXECSPACE> v_m_2("v_m_2", 0);
 

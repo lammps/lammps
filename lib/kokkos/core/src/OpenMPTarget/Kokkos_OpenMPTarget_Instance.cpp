@@ -27,11 +27,11 @@
 // constructor. undef'ed at the end
 #define KOKKOS_IMPL_OPENMPTARGET_WORKAROUND
 
+#include <Kokkos_Core.hpp>
 #include <OpenMPTarget/Kokkos_OpenMPTarget.hpp>
 #include <OpenMPTarget/Kokkos_OpenMPTarget_UniqueToken.hpp>
 #include <OpenMPTarget/Kokkos_OpenMPTarget_Instance.hpp>
 #include <impl/Kokkos_ExecSpaceManager.hpp>
-#include <OpenMPTarget/Kokkos_OpenMPTarget_Parallel.hpp>
 
 #include <sstream>
 
@@ -105,17 +105,14 @@ void OpenMPTargetInternal::print_configuration(std::ostream& os,
 
 void OpenMPTargetInternal::impl_finalize() {
   m_is_initialized = false;
-  Kokkos::Impl::OpenMPTargetExec space;
 
-  if (space.m_uniquetoken_ptr != nullptr)
+  if (m_uniquetoken_ptr != nullptr)
     Kokkos::kokkos_free<Kokkos::Experimental::OpenMPTargetSpace>(
-        space.m_uniquetoken_ptr);
+        m_uniquetoken_ptr);
 }
 
 void OpenMPTargetInternal::impl_initialize() {
   m_is_initialized = true;
-
-  Kokkos::Impl::OpenMPTargetExec::MAX_ACTIVE_THREADS = concurrency();
 
   // FIXME_OPENMPTARGET:  Only fix the number of teams for NVIDIA architectures
   // from Pascal and upwards.
@@ -136,7 +133,75 @@ OpenMPTargetInternal* OpenMPTargetInternal::impl_singleton() {
   return &self;
 }
 
-}  // Namespace Impl
+void OpenMPTargetInternal::verify_is_process(const char* const label) {
+  // Fails if the current task is in a parallel region or is not on the host.
+  if (omp_in_parallel() && (!omp_is_initial_device())) {
+    std::string msg(label);
+    msg.append(" ERROR: in parallel or on device");
+    Kokkos::Impl::throw_runtime_exception(msg);
+  }
+}
+
+void OpenMPTargetInternal::verify_initialized(const char* const label) {
+  if (0 == Kokkos::Experimental::OpenMPTarget().impl_is_initialized()) {
+    std::string msg(label);
+    msg.append(" ERROR: not initialized");
+    Kokkos::Impl::throw_runtime_exception(msg);
+  }
+}
+
+void OpenMPTargetInternal::clear_scratch() {
+  Kokkos::Experimental::OpenMPTargetSpace space;
+  space.deallocate(m_scratch_ptr, m_scratch_size);
+  m_scratch_ptr  = nullptr;
+  m_scratch_size = 0;
+}
+
+void* OpenMPTargetInternal::get_scratch_ptr() { return m_scratch_ptr; }
+
+void OpenMPTargetInternal::resize_scratch(int64_t team_size,
+                                          int64_t shmem_size_L0,
+                                          int64_t shmem_size_L1,
+                                          int64_t league_size) {
+  Kokkos::Experimental::OpenMPTargetSpace space;
+  // Level-0 scratch when using clang/17 and higher comes from their OpenMP
+  // extension, `ompx_dyn_cgroup_mem`.
+#if defined(KOKKOS_IMPL_OPENMPTARGET_LLVM_EXTENSIONS)
+  shmem_size_L0 = 0;
+#endif
+  const int64_t shmem_size =
+      shmem_size_L0 + shmem_size_L1;  // L0 + L1 scratch memory per team.
+  const int64_t padding = shmem_size * 10 / 100;  // Padding per team.
+
+  // Maximum active teams possible.
+  // The number should not exceed the maximum in-flight teams possible or the
+  // league_size.
+  int max_active_teams =
+      std::min(OpenMPTargetInternal::concurrency() / team_size, league_size);
+
+  // max_active_teams is the number of active teams on the given hardware.
+  // We set the number of teams to be twice the number of max_active_teams for
+  // the compiler to pick the right number in its case.
+  // FIXME_OPENMPTARGET: Cray compiler did not yet implement omp_set_num_teams.
+#if !defined(KOKKOS_COMPILER_CRAY_LLVM)
+  omp_set_num_teams(max_active_teams * 2);
+#endif
+
+  // Total amount of scratch memory allocated is depenedent
+  // on the maximum number of in-flight teams possible.
+  int64_t total_size =
+      (shmem_size +
+       ::Kokkos::Impl::OpenMPTargetExecTeamMember::TEAM_REDUCE_SIZE + padding) *
+      max_active_teams * 2;
+
+  if (total_size > m_scratch_size) {
+    space.deallocate(m_scratch_ptr, m_scratch_size);
+    m_scratch_size = total_size;
+    m_scratch_ptr  = space.allocate(total_size);
+  }
+}
+
+}  // namespace Impl
 
 OpenMPTarget::OpenMPTarget()
     : m_space_instance(Impl::OpenMPTargetInternal::impl_singleton()) {}
@@ -206,9 +271,9 @@ namespace Experimental {
 
 UniqueToken<Kokkos::Experimental::OpenMPTarget,
             Kokkos::Experimental::UniqueTokenScope::Global>::
-    UniqueToken(Kokkos::Experimental::OpenMPTarget const&) {
+    UniqueToken(Kokkos::Experimental::OpenMPTarget const& space) {
 #ifdef KOKKOS_IMPL_OPENMPTARGET_WORKAROUND
-  uint32_t* ptr = Kokkos::Impl::OpenMPTargetExec::m_uniquetoken_ptr;
+  uint32_t* ptr = space.impl_internal_space_instance()->m_uniquetoken_ptr;
   int count     = Kokkos::Experimental::OpenMPTarget().concurrency();
   if (ptr == nullptr) {
     int size = count * sizeof(uint32_t);
@@ -221,7 +286,7 @@ UniqueToken<Kokkos::Experimental::OpenMPTarget,
                                                    0, omp_get_default_device(),
                                                    omp_get_initial_device()));
 
-    Kokkos::Impl::OpenMPTargetExec::m_uniquetoken_ptr = ptr;
+    space.impl_internal_space_instance()->m_uniquetoken_ptr = ptr;
   }
 #else
 // FIXME_OPENMPTARGET - 2 versions of non-working implementations to fill `ptr`
@@ -229,8 +294,7 @@ UniqueToken<Kokkos::Experimental::OpenMPTarget,
 // Version 1 - Creating a target region and filling the
 // pointer Error - CUDA error: named symbol not found
 #pragma omp target teams distribute parallel for is_device_ptr(ptr) \
-    map(to                                                          \
-        : size)
+    map(to : size)
   for (int i = 0; i < count; ++i) ptr[i] = 0;
 
   // Version 2 : Allocating a view on the device and filling it with a scalar

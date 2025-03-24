@@ -137,6 +137,7 @@
           {# the master_doc variable was renamed to root_doc in Sphinx 4 (master_doc still exists in later Sphinx versions) #}
           {%- set _logo_url = logo_url|default(pathto('_static/' + (logo or ""), 1)) %}
           {%- set _root_doc = root_doc|default(master_doc) %}
+          <div id="sidebar-top-target"></div>
           <a href="{{ pathto(_root_doc) }}"{% if not theme_logo_only %} class="icon icon-home"{% endif %}>
             {% if not theme_logo_only %}{{ project }}{% endif %}
             {%- if logo or logo_url %}
@@ -172,6 +173,15 @@
         </div>
         {%- endblock %}
       </div>
+<!--      <div style="padding: 4px;">
+        <center>
+          <a href="#sidebar-top-target"><img src="_static/up.png" alt="(Up)"/> Go to top</a>
+        </center>
+      </div>
+-->
+    <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+      <a href="#sidebar-top-target" class="fa fa-caret-up" style="color: white"> Go to top</a>
+    </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">

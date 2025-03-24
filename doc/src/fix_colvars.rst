@@ -1,7 +1,10 @@
 .. index:: fix colvars
+.. index:: fix colvars/kk
 
 fix colvars command
 ===================
+
+Accelerator Variants: *colvars/kk*
 
 Syntax
 """"""
@@ -118,6 +121,16 @@ thermostat target temperature.
 The *seed* keyword contains the seed for the random number generator
 that will be used in the colvars module.
 
+----------
+
+.. note::
+
+   Fix colvars/kk is not really ported to KOKKOS, since the colvars
+   library has not been ported to KOKKOS.  It merely has some
+   optimizations to reduce the data transfers between host and device
+   for KOKKOS with GPUs.
+
+----------
 
 Restarting
 """"""""""

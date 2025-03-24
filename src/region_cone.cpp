@@ -41,10 +41,11 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
 
   if (openflag)
     for (int i = 3; i < 6; i++)
-      if (open_faces[i]) error->all(FLERR, "Illegal region cone open face: {}", i + 1);
+      if (open_faces[i])
+        error->all(FLERR, Error::NOPOINTER, "Illegal region cone open face: {}", i + 1);
 
   if (strcmp(arg[2], "x") != 0 && strcmp(arg[2], "y") != 0 && strcmp(arg[2], "z") != 0)
-    error->all(FLERR, "Illegal region cone axis: {}", arg[2]);
+    error->all(FLERR, 2, "Illegal region cone axis: {}", arg[2]);
   axis = arg[2][0];
 
   if (axis == 'x') {
@@ -256,8 +257,8 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (radiuslo < 0.0) error->all(FLERR, "Illegal radius in region cone command");
-  if (radiushi < 0.0) error->all(FLERR, "Illegal radius in region cone command");
+  if (radiuslo < 0.0) error->all(FLERR, 5, "Illegal lower radius in region cone command");
+  if (radiushi < 0.0) error->all(FLERR, 6, "Illegal upper radius in region cone command");
   if (radiuslo == 0.0 && radiushi == 0.0)
     error->all(FLERR, "Illegal radius in region cone command");
   if (hi <= lo) error->all(FLERR, "Illegal cone length in region cone command");

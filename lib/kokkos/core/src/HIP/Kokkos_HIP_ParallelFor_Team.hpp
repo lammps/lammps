@@ -71,8 +71,8 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>, HIP> {
   }
 
  public:
-  ParallelFor()                   = delete;
-  ParallelFor(ParallelFor const&) = default;
+  ParallelFor()                              = delete;
+  ParallelFor(ParallelFor const&)            = default;
   ParallelFor& operator=(ParallelFor const&) = delete;
 
   __device__ inline void operator()() const {
@@ -120,9 +120,14 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>, HIP> {
         m_vector_size(arg_policy.impl_vector_length()) {
     auto internal_space_instance =
         m_policy.space().impl_internal_space_instance();
-    m_team_size = m_team_size >= 0 ? m_team_size
-                                   : arg_policy.team_size_recommended(
-                                         arg_functor, ParallelForTag());
+    if (m_team_size < 0) {
+      m_team_size =
+          arg_policy.team_size_recommended(arg_functor, ParallelForTag());
+      if (m_team_size <= 0)
+        Kokkos::Impl::throw_runtime_exception(
+            "Kokkos::Impl::ParallelFor<HIP, TeamPolicy> could not find a "
+            "valid execution configuration.");
+    }
 
     m_shmem_begin = (sizeof(double) * (m_team_size + 2));
     m_shmem_size =
@@ -149,8 +154,9 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>, HIP> {
                   static_cast<std::int64_t>(m_league_size))));
     }
 
-    int const shmem_size_total = m_shmem_begin + m_shmem_size;
-    if (internal_space_instance->m_maxShmemPerBlock < shmem_size_total) {
+    unsigned int const shmem_size_total = m_shmem_begin + m_shmem_size;
+    if (internal_space_instance->m_deviceProp.sharedMemPerBlock <
+        shmem_size_total) {
       Kokkos::Impl::throw_runtime_exception(std::string(
           "Kokkos::Impl::ParallelFor< HIP > insufficient shared memory"));
     }

@@ -23,7 +23,11 @@ static_assert(false,
 #define KOKKOS_EXPERIMENTAL_MDSPAN_LAYOUT_HPP
 
 #include "Kokkos_MDSpan_Extents.hpp"
-#include <impl/Kokkos_ViewDataAnalysis.hpp>
+#include <View/Kokkos_ViewDataAnalysis.hpp>
+
+// The difference between a legacy Kokkos array layout and an
+// mdspan layout is that the array layouts can have state, but don't have the
+// nested mapping. This file provides interoperability helpers.
 
 namespace Kokkos::Impl {
 
@@ -77,32 +81,7 @@ KOKKOS_INLINE_FUNCTION auto array_layout_from_mapping(
         rank > 7 ? mapping.stride(7) : 0,
     };
   } else {
-    // FIXME: Kokkos Layouts don't store stride (it's in the mapping)
-    // We could conceivably fix this by adding an extra ViewCtorProp for
-    // an abritrary padding. For now we will check for this.
-    if constexpr (rank > 1 &&
-                  (std::is_same_v<typename mapping_type::layout_type,
-                                  Kokkos::Experimental::layout_left_padded<
-                                      dynamic_extent>> ||
-                   std::is_same_v<typename mapping_type::layout_type,
-                                  Kokkos::Experimental::layout_right_padded<
-                                      dynamic_extent>>)) {
-      [[maybe_unused]] constexpr size_t strided_index =
-          std::is_same_v<
-              typename mapping_type::layout_type,
-              Kokkos::Experimental::layout_left_padded<dynamic_extent>>
-              ? 1
-              : rank - 2;
-      [[maybe_unused]] constexpr size_t extent_index =
-          std::is_same_v<
-              typename mapping_type::layout_type,
-              Kokkos::Experimental::layout_left_padded<dynamic_extent>>
-              ? 0
-              : rank - 1;
-      KOKKOS_ASSERT(mapping.stride(strided_index) == ext.extent(extent_index));
-    }
-
-    return ArrayLayout{rank > 0 ? ext.extent(0) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+    ArrayLayout layout{rank > 0 ? ext.extent(0) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                        rank > 1 ? ext.extent(1) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                        rank > 2 ? ext.extent(2) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                        rank > 3 ? ext.extent(3) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -110,10 +89,96 @@ KOKKOS_INLINE_FUNCTION auto array_layout_from_mapping(
                        rank > 5 ? ext.extent(5) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                        rank > 6 ? ext.extent(6) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                        rank > 7 ? ext.extent(7) : KOKKOS_IMPL_CTOR_DEFAULT_ARG};
+
+    if constexpr (rank > 1 &&
+                  std::is_same_v<typename mapping_type::layout_type,
+                                 Kokkos::Experimental::layout_left_padded<
+                                     dynamic_extent>>) {
+      layout.stride = mapping.stride(1);
+    }
+    if constexpr (std::is_same_v<typename mapping_type::layout_type,
+                                 Kokkos::Experimental::layout_right_padded<
+                                     dynamic_extent>>) {
+      if constexpr (rank == 2) {
+        layout.stride = mapping.stride(0);
+      }
+      if constexpr (rank > 2) {
+        if (mapping.stride(rank - 2) != mapping.extents().extent(rank - 1))
+          Kokkos::abort(
+              "Invalid conversion from layout_right_padded to LayoutRight");
+      }
+    }
+    return layout;
   }
 #ifdef KOKKOS_COMPILER_INTEL
   __builtin_unreachable();
 #endif
+}
+
+template <class MappingType, class ArrayLayout, size_t... Idx>
+KOKKOS_INLINE_FUNCTION auto mapping_from_array_layout_impl(
+    ArrayLayout layout, std::index_sequence<Idx...>) {
+  using index_type   = typename MappingType::index_type;
+  using extents_type = typename MappingType::extents_type;
+  if constexpr (std::is_same_v<typename MappingType::layout_type,
+                               layout_left> ||
+                std::is_same_v<typename MappingType::layout_type,
+                               layout_right>) {
+    return MappingType{
+        extents_type{dextents<index_type, MappingType::extents_type::rank()>{
+            layout.dimension[Idx]...}}};
+  } else {
+    if (layout.stride == KOKKOS_IMPL_CTOR_DEFAULT_ARG ||
+        extents_type::rank() < 2) {
+      return MappingType{
+          extents_type{dextents<index_type, MappingType::extents_type::rank()>{
+              layout.dimension[Idx]...}}};
+    } else {
+      if constexpr (std::is_same_v<ArrayLayout, LayoutRight> &&
+                    extents_type::rank() > 2) {
+        size_t product_of_dimensions = 1;
+        for (size_t r = 1; r < extents_type::rank(); r++)
+          product_of_dimensions *= layout.dimension[r];
+        if (product_of_dimensions != layout.stride)
+          Kokkos::abort(
+              "Invalid conversion from LayoutRight to layout_right_padded");
+      } else {
+        return MappingType{
+            extents_type{
+                dextents<index_type, MappingType::extents_type::rank()>{
+                    layout.dimension[Idx]...}},
+            layout.stride};
+      }
+    }
+  }
+}
+template <class MappingType, size_t... Idx>
+KOKKOS_INLINE_FUNCTION auto mapping_from_array_layout_impl(
+    LayoutStride layout, std::index_sequence<Idx...>) {
+  static_assert(
+      std::is_same_v<typename MappingType::layout_type, layout_stride>);
+  using index_type = typename MappingType::index_type;
+  index_type strides[MappingType::extents_type::rank()] = {
+      layout.stride[Idx]...};
+  return MappingType{
+      mdspan_non_standard_tag(),
+      static_cast<typename MappingType::extents_type>(
+          dextents<index_type, MappingType::extents_type::rank()>{
+              layout.dimension[Idx]...}),
+      strides};
+}
+
+// specialization for rank 0 to avoid empty array
+template <class MappingType>
+KOKKOS_INLINE_FUNCTION auto mapping_from_array_layout_impl(
+    LayoutStride, std::index_sequence<>) {
+  return MappingType{};
+}
+
+template <class MappingType, class ArrayLayout>
+KOKKOS_INLINE_FUNCTION auto mapping_from_array_layout(ArrayLayout layout) {
+  return mapping_from_array_layout_impl<MappingType>(
+      layout, std::make_index_sequence<MappingType::extents_type::rank()>());
 }
 
 template <class MDSpanType, class VM>

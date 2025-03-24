@@ -33,11 +33,11 @@ namespace Kokkos {
 namespace Impl {
 
 void DeepCopySYCL(void* dst, const void* src, size_t n) {
-  Experimental::Impl::SYCLInternal::singleton().m_queue->memcpy(dst, src, n);
+  Impl::SYCLInternal::singleton().m_queue->memcpy(dst, src, n);
 }
 
-void DeepCopyAsyncSYCL(const Kokkos::Experimental::SYCL& instance, void* dst,
-                       const void* src, size_t n) {
+void DeepCopyAsyncSYCL(const Kokkos::SYCL& instance, void* dst, const void* src,
+                       size_t n) {
   sycl::queue& q = *instance.impl_internal_space_instance()->m_queue;
   auto event     = q.memcpy(dst, src, n);
 #ifndef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
@@ -46,9 +46,8 @@ void DeepCopyAsyncSYCL(const Kokkos::Experimental::SYCL& instance, void* dst,
 }
 
 void DeepCopyAsyncSYCL(void* dst, const void* src, size_t n) {
-  Experimental::Impl::SYCLInternal::singleton().m_queue->memcpy(dst, src, n);
-  Experimental::SYCL().fence(
-      "Kokkos::Impl::DeepCopyAsyncSYCL: fence after memcpy");
+  Impl::SYCLInternal::singleton().m_queue->memcpy(dst, src, n);
+  SYCL().fence("Kokkos::Impl::DeepCopyAsyncSYCL: fence after memcpy");
 }
 
 }  // namespace Impl
@@ -60,12 +59,9 @@ namespace {
 
 std::string_view get_memory_space_name(sycl::usm::alloc allocation_kind) {
   switch (allocation_kind) {
-    case sycl::usm::alloc::host:
-      return Kokkos::Experimental::SYCLHostUSMSpace::name();
-    case sycl::usm::alloc::device:
-      return Kokkos::Experimental::SYCLDeviceUSMSpace::name();
-    case sycl::usm::alloc::shared:
-      return Kokkos::Experimental::SYCLSharedUSMSpace::name();
+    case sycl::usm::alloc::host: return Kokkos::SYCLHostUSMSpace::name();
+    case sycl::usm::alloc::device: return Kokkos::SYCLDeviceUSMSpace::name();
+    case sycl::usm::alloc::shared: return Kokkos::SYCLSharedUSMSpace::name();
     default:
       Kokkos::abort("bug: unknown sycl allocation type");
       return "unreachable";
@@ -75,7 +71,6 @@ std::string_view get_memory_space_name(sycl::usm::alloc allocation_kind) {
 }  // namespace
 
 namespace Kokkos {
-namespace Experimental {
 
 SYCLDeviceUSMSpace::SYCLDeviceUSMSpace()
     : m_queue(*SYCL().impl_internal_space_instance()->m_queue) {}
@@ -114,12 +109,12 @@ void* allocate_sycl(const char* arg_label, const size_t arg_alloc_size,
   return hostPtr;
 }
 
-void* SYCLDeviceUSMSpace::allocate(const Kokkos::Experimental::SYCL& exec_space,
+void* SYCLDeviceUSMSpace::allocate(const Kokkos::SYCL& exec_space,
                                    const size_t arg_alloc_size) const {
   return allocate(exec_space, "[unlabeled]", arg_alloc_size);
 }
 
-void* SYCLDeviceUSMSpace::allocate(const Kokkos::Experimental::SYCL& exec_space,
+void* SYCLDeviceUSMSpace::allocate(const Kokkos::SYCL& exec_space,
                                    const char* arg_label,
                                    const size_t arg_alloc_size,
                                    const size_t arg_logical_size) const {
@@ -244,7 +239,6 @@ void SYCLHostUSMSpace::deallocate(const char* arg_label,
                   Kokkos::Tools::make_space_handle(name()), m_queue);
 }
 
-}  // namespace Experimental
 }  // namespace Kokkos
 
 //==============================================================================
@@ -253,11 +247,11 @@ void SYCLHostUSMSpace::deallocate(const char* arg_label,
 #include <impl/Kokkos_SharedAlloc_timpl.hpp>
 
 KOKKOS_IMPL_HOST_INACCESSIBLE_SHARED_ALLOCATION_RECORD_EXPLICIT_INSTANTIATION(
-    Kokkos::Experimental::SYCLDeviceUSMSpace);
+    Kokkos::SYCLDeviceUSMSpace);
 KOKKOS_IMPL_SHARED_ALLOCATION_RECORD_EXPLICIT_INSTANTIATION(
-    Kokkos::Experimental::SYCLSharedUSMSpace);
+    Kokkos::SYCLSharedUSMSpace);
 KOKKOS_IMPL_SHARED_ALLOCATION_RECORD_EXPLICIT_INSTANTIATION(
-    Kokkos::Experimental::SYCLHostUSMSpace);
+    Kokkos::SYCLHostUSMSpace);
 
 // </editor-fold> end Explicit instantiations of CRTP Base classes }}}1
 //==============================================================================

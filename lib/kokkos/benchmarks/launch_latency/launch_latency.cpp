@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
         else if (i == 3)
           K = atoi(arg.data());
         else {
-          throw std::runtime_error("unexpected argument!");
+          Kokkos::abort("unexpected argument!");
         }
       } else if (arg == "--no-parallel-for") {
         opts.par_for = false;
@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
       } else {
         std::stringstream ss;
         ss << "unexpected argument \"" << arg << "\" at position " << i;
-        throw std::runtime_error(ss.str());
+        Kokkos::abort(ss.str().c_str());
       }
     }
 

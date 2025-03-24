@@ -246,7 +246,7 @@ if(MLIAP_ENABLE_PYTHON AND (NOT WIN32))
   add_executable(test_mliappy_unified test_mliappy_unified.cpp)
   target_link_libraries(test_mliappy_unified PRIVATE lammps GTest::GMockMain)
   add_test(NAME TestMliapPyUnified COMMAND test_mliappy_unified)
-  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "${FORCE_TEST_ENVIRONMENT}")
+  set_tests_properties(TestMliapPyUnified PROPERTIES ENVIRONMENT "${FORCE_TEST_ENVIRONMENT}")
 endif()
 
 add_executable(test_pair_list test_pair_list.cpp)

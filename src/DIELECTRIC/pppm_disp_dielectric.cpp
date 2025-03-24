@@ -582,8 +582,8 @@ void PPPMDispDielectric::qsum_qsq(int warning_flag)
   if (fabs(qsum) > SMALL) {
     std::string message = fmt::format("System is not charge neutral, net "
                                       "charge = {:.8}",qsum);
-    if (!warn_nonneutral) error->all(FLERR,message);
-    if (warn_nonneutral == 1 && comm->me == 0) error->warning(FLERR,message);
+    if (!warn_nonneutral) error->all(FLERR,message + utils::errorurl(29));
+    if (warn_nonneutral == 1 && comm->me == 0) error->warning(FLERR,message + utils::errorurl(29));
     warn_nonneutral = 2;
   }
 }
@@ -715,7 +715,7 @@ void PPPMDispDielectric::fieldforce_c_ad()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz;
-  FFT_SCALAR ekx,eky,ekz,u;
+  FFT_SCALAR ekx,eky,ekz;
   double s1,s2,s3;
   double sf = 0.0;
 

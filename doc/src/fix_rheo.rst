@@ -16,21 +16,36 @@ Syntax
 * kstyle = *quintic* or *RK0* or *RK1* or *RK2*
 * zmin = minimal number of neighbors for reproducing kernels
 * zero or more keyword/value pairs may be appended to args
-* keyword = *thermal* or *interface/reconstruct* or *surface/detection* or *shift* or *rho/sum* or *density* or *self/mass* or *speed/sound*
+* keyword = *thermal* or *interface/reconstruct* or *surface/detection* or *shift* or *rho/sum* or *density* or *speed/sound*
 
   .. parsed-literal::
 
-       *thermal* values = none, turns on thermal evolution
-       *interface/reconstruct* values = none, reconstructs interfaces with solid particles
-       *surface/detection* values = *sdstyle* *limit* *limit/splash*
-         *sdstyle* = *coordination* or *divergence*
-         *limit* = threshold for surface particles
-         *limit/splash* = threshold for splash particles
-       *shift* values = none, turns on velocity shifting
-       *rho/sum* values = none, uses the kernel to compute the density of particles
-       *self/mass* values = none, a particle uses its own mass in a rho summation
-       *density* values = *rho01*, ... *rho0N* (density)
-       *speed/sound* values = *cs0*, ... *csN* (velocity)
+       *thermal* turns on thermal evolution
+         values = none
+       *interface/reconstruct* reconstructs interfaces with solid particles
+         values = none
+       *surface/detection* detects free-surfaces with an absence of particles
+         values = *sdstyle* *limit* *limit/splash*
+           *sdstyle* = *coordination* or *divergence*
+           *limit* = threshold for surface particles
+           *limit/splash* = threshold for splash particles (unitless)
+       *shift* turns on velocity shifting
+         values = none
+         optional args = *exclude/type* or *scale/cross/type*
+           *exclude/type* values = *types*
+             *types* = list of types
+           *scale/cross/type* values = *shiftscale* *cmin* *wmin*
+             *shiftscale* = fraction of shifting in normal direction to preserve (unitless)
+             *cmin* = minimum color function value required for scaling (unitless)
+             *wmin* = minimum local same-type support required for any shifting (unitless)
+       *rho/sum* density evolution performed by a kernel summation
+         values = none
+         optional args = *self/mass*
+           *self/mass* values = none, a particle uses its own mass in summation
+       *density* specify equilibrium densities for each atom type
+         values = *rho01*, ... *rho0N* (density)
+       *speed/sound* specify speeds of sound for each atom type
+         values = *cs0*, ... *csN* (velocity)
 
 Examples
 """"""""
@@ -39,6 +54,8 @@ Examples
 
    fix 1 all rheo 3.0 quintic 0 thermal density 0.1 0.1 speed/sound 10.0 1.0
    fix 1 all rheo 3.0 RK1 10 shift surface/detection coordination 40
+   fix 1 all rheo 3.0 RK1 10 shift exclude/type 2*4 scale/cross/type 0.05 0.02 0.5
+   fix 1 all rheo 3.0 RK1 10 rhosum self/mass
 
 Description
 """""""""""
@@ -46,8 +63,10 @@ Description
 .. versionadded:: 29Aug2024
 
 Perform time integration for RHEO particles, updating positions, velocities,
-and densities. For an overview of other features available in the RHEO package,
-see :doc:`the RHEO howto <Howto_rheo>`.
+and densities. For a detailed breakdown of the integration timestep and
+numerical details, see :ref:`(Palermo) <fix_rheo_palermo>`. For an overview
+and list of other features available in the RHEO package, see
+:doc:`the RHEO howto <Howto_rheo>`.
 
 The type of kernel is specified using *kstyle* and the cutoff is *cut*. Four
 kernels are currently available. The *quintic* kernel is a standard quintic
@@ -70,16 +89,51 @@ and velocity of solid particles are alternatively reconstructed for every
 fluid-solid interaction to ensure no-slip and pressure-balanced boundaries.
 This is done by estimating the location of the fluid-solid interface and
 extrapolating fluid particle properties across the interface to calculate a
-temporary apparent density and velocity for a solid particle.
+temporary apparent density and velocity for a solid particle. The numerical
+details are the same as those described in
+:ref:`(Palermo) <fix_rheo_palermo>` except there is an additional
+restriction that the reconstructed solid density cannot be less than the
+equilibrium density. This prevents fluid particles from sticking to solid
+surfaces.
 
 A modified form of Fickian particle shifting can be enabled with the
 *shift* keyword. This effectively shifts particle positions to generate a
-more uniform spatial distribution. Shifting currently does not consider the
+more uniform spatial distribution. By default, shifting does not consider the
 type of a particle and therefore may be inappropriate in systems consisting
-of multiple fluid phases.
+of multiple atom types representing multiple fluid phases. However, two
+optional sub-arguments can follow the *shift* keyword, *exclude/type* and
+*scale/cross/type* to adjust shifting at fluid interfaces.
 
-In systems with free surfaces, the *surface/detection* keyword can be used
-to classify the location of particles as being within the bulk fluid, on a
+The *exclude/type* option lets the user specify a list of atom types which
+are not shifted, *types*. A wild-card asterisk can be used in place
+of or in conjunction with the *types* argument to toggle shifting for
+multiple atom types.  This takes the form "\*" or "\*n" or "m\*"
+or "m\*n".  If :math:`N` is the number of atom types, then an asterisk with
+no numeric values means all types from 1 to :math:`N`.  A leading asterisk
+means all types from 1 to n (inclusive).  A trailing asterisk means all types
+from m to :math:`N` (inclusive).  A middle asterisk means all types from m to n
+(inclusive).
+
+The *scale/cross/type* option is designed to handle interfaces between fluids
+made up of different atom types. Similar to the method by
+:ref:`(Yang) <fix_rheo_yang>`, a color function is calculated and used to
+estimate a local interfacial normal vector. Shifting along this normal direction
+is rescaled by a factor of *scaleshift*, such that a value of *scaleshift* of
+zero implies there is no shifting in the normal direction and a value of
+*scaleshift* of one implies no change in behavior. This scaling is only applied
+to atoms with a color function value greater than *cmin*. To handle scenarios
+of a small inclusion of one fluid type (e.g. a single atom) inside another,
+the degree of same-type support is calculated
+
+.. math::
+   W_{i,\mathrm{same}} = \sum_{j} W_{ij} \delta_{ij}
+
+where :math:`\delta_{ij}` is zero if atoms :math:`i` and :math:`j` have different
+types but unity otherwise. If :math:`W_{i,\mathrm{same}}` is ever less than the
+specified value of *wmin*, shifting is turned off for particle :math:`i`
+
+In systems with free surfaces (atom-vacuum), the *surface/detection* keyword
+can classify the location of particles as being within the bulk fluid, on a
 free surface, or isolated from other particles in a splash or droplet.
 Shifting is then disabled in the normal direction away from the free surface
 to prevent particles from diffusing away. Surface detection can also be used
@@ -101,10 +155,9 @@ threshold for this classification is set by the numerical value of
 By default, RHEO integrates particles' densities using a mass diffusion
 equation. Alternatively, one can update densities every timestep by performing
 a kernel summation of the masses of neighboring particles by specifying the *rho/sum*
-keyword.
-
-The *self/mass* keyword modifies the behavior of the density summation in *rho/sum*.
-Typically, the density :math:`\rho` of a particle is calculated as the sum over neighbors
+keyword. Following this keyword, one may include the optional *self/mass* sub-argument
+which modifies the behavior of the density summation. Typically, the density
+:math:`\rho` of a particle is calculated as the sum over neighbors
 
 .. math::
    \rho_i = \sum_{j} W_{ij} M_j
@@ -120,7 +173,9 @@ equilibrium density *rho0*.
 
 The *speed/sound* keyword is used to specify the speed of sound of each of the
 N particle types. It must be followed by N numerical values specifying each type's
-speed of sound *cs*.
+speed of sound *cs*. These values may be ignored if the pressure equation of
+state has a non-constant speed of sound, as discussed further in
+:doc:`fix rheo/pressure <fix_rheo_pressure>`.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -163,6 +218,14 @@ Default
 
 ----------
 
+.. _fix_rheo_palermo:
+
+**(Palermo)** Palermo, Wolf, Clemmer, O'Connor, Phys. Fluids, 36, 113337 (2024).
+
+.. _fix_rheo_yang:
+
+**(Yang)** Yang, Rakhsha, Hu, Negrut, J. Comp. Physics, 458, 111079 (2022).
+
 .. _fix_rheo_hu:
 
-**(Hu)** Hu, and Adams J. Comp. Physics, 213, 844-861 (2006).
+**(Hu)** Hu, and Adams, J. Comp. Physics, 213, 844-861 (2006).

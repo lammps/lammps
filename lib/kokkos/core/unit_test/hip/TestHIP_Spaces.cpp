@@ -38,7 +38,7 @@ TEST(hip, space_access) {
   static_assert(!Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace,
                                                  Kokkos::HIPSpace>::assignable);
 
-#if !defined(KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY)
+#if !defined(KOKKOS_IMPL_HIP_UNIFIED_MEMORY)
   static_assert(!Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace,
                                                  Kokkos::HIPSpace>::accessible);
 #else
@@ -154,7 +154,7 @@ TEST(hip, space_access) {
       Kokkos::SpaceAccessibility<Kokkos::HIP,
                                  Kokkos::HIPManagedSpace>::accessible);
 
-#if !defined(KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY)
+#if !defined(KOKKOS_IMPL_HIP_UNIFIED_MEMORY)
   static_assert(!Kokkos::SpaceAccessibility<Kokkos::HostSpace,
                                             Kokkos::HIPSpace>::accessible);
 #else
@@ -170,7 +170,7 @@ TEST(hip, space_access) {
       Kokkos::SpaceAccessibility<Kokkos::HostSpace,
                                  Kokkos::HIPManagedSpace>::accessible);
 
-#if !defined(KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY)
+#if !defined(KOKKOS_IMPL_HIP_UNIFIED_MEMORY)
   static_assert(std::is_same<Kokkos::Impl::HostMirror<Kokkos::HIPSpace>::Space,
                              Kokkos::HostSpace>::value);
 #else

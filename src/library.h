@@ -24,7 +24,7 @@
 /* We follow the behavior of regular LAMMPS compilation and assume
  * -DLAMMPS_SMALLBIG when no define is set. */
 
-#if !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG) && !defined(LAMMPS_SMALLSMALL)
+#if !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG)
 #define LAMMPS_SMALLBIG
 #endif
 
@@ -189,6 +189,11 @@ int lammps_set_variable(void *handle, const char *name, const char *str);
 int lammps_set_string_variable(void *handle, const char *name, const char *str);
 int lammps_set_internal_variable(void *handle, const char *name, double value);
 int lammps_variable_info(void *handle, int idx, char *buf, int bufsize);
+double lammps_eval(void *handle, const char *expr);
+
+void lammps_clearstep_compute(void *handle);
+void lammps_addstep_compute_all(void *handle, void * nextstep);
+void lammps_addstep_compute(void *handle, void * nextstep);
 
 /* ----------------------------------------------------------------------
  * Library functions for scatter/gather operations of data

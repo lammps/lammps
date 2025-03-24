@@ -76,7 +76,7 @@ struct TestFunctorA {
       });
     } else if (m_apiPick == 1) {
       auto it    = KE::replace_copy_if(member, myRowViewFrom, myRowViewDest,
-                                    predicate, m_newValue);
+                                       predicate, m_newValue);
       resultDist = KE::distance(KE::begin(myRowViewDest), it);
       Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
         m_distancesView(myRowIndex) = resultDist;
@@ -151,7 +151,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
         Kokkos::subview(cloneOfSourceViewBeforeOp_h, i, Kokkos::ALL());
     auto rowDest = Kokkos::subview(stdDestView, i, Kokkos::ALL());
     auto it      = std::replace_copy_if(KE::cbegin(rowFrom), KE::cend(rowFrom),
-                                   KE::begin(rowDest), predicate, newVal);
+                                        KE::begin(rowDest), predicate, newVal);
     const std::size_t stdDistance = KE::distance(KE::begin(rowDest), it);
     ASSERT_EQ(stdDistance, distancesView_h(i));
     ASSERT_TRUE(intraTeamSentinelView_h(i));

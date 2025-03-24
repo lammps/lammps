@@ -263,9 +263,9 @@ will be skipped if prerequisite features are not available in LAMMPS.
    time.  Preference is given to parts of the code base that are easy to
    test or commonly used.
 
-Tests as shown by the ``ctest`` program are command lines defined in the
+Tests as shown by the ``ctest`` program are commands defined in the
 ``CMakeLists.txt`` files in the ``unittest`` directory tree.  A few
-tests simply execute LAMMPS with specific command line flags and check
+tests simply execute LAMMPS with specific command-line flags and check
 the output to the screen for expected content.  A large number of unit
 tests are special tests programs using the `GoogleTest framework
 <https://github.com/google/googletest/>`_ and linked to the LAMMPS
@@ -420,7 +420,7 @@ during MD timestepping and manipulate per-atom properties like
 positions, velocities, and forces.  For those fix styles, testing can be
 done in a very similar fashion as for force fields and thus there is a
 test program `test_fix_timestep` that shares a lot of code, properties,
-and command line flags with the force field style testers described in
+and command-line flags with the force field style testers described in
 the previous section.
 
 This tester will set up a small molecular system run with verlet run
@@ -642,10 +642,10 @@ The following target are available for both, GNU make and CMake:
 
 .. _gh-cli:
 
-GitHub command line interface
+GitHub command-line interface
 -----------------------------
 
-GitHub has developed a `command line tool <https://cli.github.com>`_
+GitHub has developed a `command-line tool <https://cli.github.com>`_
 to interact with the GitHub website via a command called ``gh``.
 This is extremely convenient when working with a Git repository hosted
 on GitHub (like LAMMPS).  It is thus highly recommended to install it

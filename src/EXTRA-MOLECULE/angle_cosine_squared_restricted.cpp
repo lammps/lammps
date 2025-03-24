@@ -166,7 +166,7 @@ void AngleCosineSquaredRestricted::allocate()
 
 void AngleCosineSquaredRestricted::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR, "Incorrect args for angle coefficients");
+  if (narg != 3) error->all(FLERR, "Incorrect args for angle coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -185,7 +185,7 @@ void AngleCosineSquaredRestricted::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients" + utils::errorurl(21));
 }
 
 /* ---------------------------------------------------------------------- */

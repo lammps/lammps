@@ -85,12 +85,15 @@ struct is_layout_right_padded_mapping<_Mapping,
 
 
 template <class _LayoutExtentsType, class _PaddedLayoutMappingType>
+MDSPAN_INLINE_FUNCTION
 constexpr void check_padded_layout_converting_constructor_mandates(MDSPAN_IMPL_STANDARD_NAMESPACE::detail::with_rank<0>) {}
 
 template <class _LayoutExtentsType, class _PaddedLayoutMappingType>
+MDSPAN_INLINE_FUNCTION
 constexpr void check_padded_layout_converting_constructor_mandates(MDSPAN_IMPL_STANDARD_NAMESPACE::detail::with_rank<1>) {}
 
 template <class _LayoutExtentsType, class _PaddedLayoutMappingType, std::size_t N>
+MDSPAN_INLINE_FUNCTION
 constexpr void check_padded_layout_converting_constructor_mandates(MDSPAN_IMPL_STANDARD_NAMESPACE::detail::with_rank<N>)
 {
   using extents_type = typename _PaddedLayoutMappingType::extents_type;
@@ -110,12 +113,15 @@ constexpr void check_padded_layout_converting_constructor_mandates(MDSPAN_IMPL_S
 }
 
 template <typename _ExtentsType, typename _OtherMapping>
+MDSPAN_INLINE_FUNCTION
 constexpr void check_padded_layout_converting_constructor_preconditions(MDSPAN_IMPL_STANDARD_NAMESPACE::detail::with_rank<0>,
                                                                         const _OtherMapping&) {}
 template <typename _ExtentsType, typename _OtherMapping>
+MDSPAN_INLINE_FUNCTION
 constexpr void check_padded_layout_converting_constructor_preconditions(MDSPAN_IMPL_STANDARD_NAMESPACE::detail::with_rank<1>,
                                                                         const _OtherMapping&) {}
 template <typename _ExtentsType, typename _OtherMapping, std::size_t N>
+MDSPAN_INLINE_FUNCTION
 constexpr void check_padded_layout_converting_constructor_preconditions(MDSPAN_IMPL_STANDARD_NAMESPACE::detail::with_rank<N>,
                                                                         const _OtherMapping &other_mapping) {
   constexpr auto padded_stride_idx =

@@ -37,10 +37,11 @@ energy of the system E is given by
    E = \frac{1}{2} \sum_{i=1}^{N} \sum_{j=i_1}^{i_N} \phi_{ij} \left(r_{ij}\right) + \sum_{i=1}^{N}E_i\left(q_i,\sigma_i\right)
 
 The first term is a double pairwise sum over the J neighbors of all I
-atoms, where :math:`\phi_{ij}` is a pair potential.  The second term sums over
-the embedding energy E_i of atom I, which is a function of its charge
-q_i and the electrical potential :math:`\sigma_i` at its location.  E_i, q_i,
-and :math:`sigma_i` are calculated as
+atoms, where :math:`\phi_{ij}` is a pair potential.  The second term
+sums over the embedding energy :math:`E_i` of atom I, which is a
+function of its charge :math:`q_i` and the electrical potential
+:math:`\sigma_i` at its location.  :math:`E_i`, :math:`q_i`, and
+:math:`\sigma_i` are calculated as
 
 .. math::
 
@@ -77,7 +78,7 @@ atoms in the atomic pair.
    charge on each atom and thus requires you to assign a charge to each
    atom, e.g. the *charge* or *full* atom styles.  This is because the
    EIM potential infers the charge on an atom from the equation above for
-   q_i; you do not assign charges explicitly.
+   :math:`q_i`; you do not assign charges explicitly.
 
 ----------
 
@@ -90,15 +91,15 @@ A system with any combination of these elements can be modeled.  This
 file is parameterized in terms of LAMMPS :doc:`metal units <units>`.
 
 Note that unlike other potentials, cutoffs for EIM potentials are not
-set in the pair_style or pair_coeff command; they are specified in the
+set in the pair\_style or pair\_coeff command; they are specified in the
 EIM potential file itself.  Likewise, the EIM potential file lists
 atomic masses; thus you do not need to use the :doc:`mass <mass>`
 command to specify them.
 
-Only a single pair_coeff command is used with the *eim* style which
+Only a single pair\_coeff command is used with the *eim* style which
 specifies an EIM potential file and the element(s) to extract
 information for.  The EIM elements are mapped to LAMMPS atom types by
-specifying N additional arguments after the filename in the pair_coeff
+specifying N additional arguments after the filename in the pair\_coeff
 command, where N is the number of LAMMPS atom types:
 
 * Elem1, Elem2, ...
@@ -111,7 +112,7 @@ to specify the path for the potential file.
 As an example like one of those above, suppose you want to model a
 system with Na and Cl atoms.  If your LAMMPS simulation has 4 atoms
 types and you want the first 3 to be Na, and the fourth to be Cl, you would
-use the following pair_coeff command:
+use the following pair\_coeff command:
 
 .. code-block:: LAMMPS
 
@@ -147,9 +148,9 @@ radius (LAMMPS ignores it), ionic radius (LAMMPS ignores it), cohesive
 energy (LAMMPS ignores it), and q0 (must be 0).
 
 Lines starting with "pair:" are entered as: element 1, element 2,
-r_(c,phi), r_(c,phi) (redundant for historical reasons), E_b, r_e,
-alpha, beta, r_(c,eta), A_(eta), r_(s,eta), r_(c,psi), A_(psi), zeta,
-r_(s,psi), and p.
+r\_(c,phi), r\_(c,phi) (redundant for historical reasons), E\_b, r\_e,
+alpha, beta, r\_(c,eta), A\_(eta), r\_(s,eta), r\_(c,psi), A\_(psi), zeta,
+r\_(s,psi), and p.
 
 The lines in the file can be in any order; LAMMPS extracts the info it
 needs.

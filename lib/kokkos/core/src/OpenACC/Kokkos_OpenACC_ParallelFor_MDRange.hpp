@@ -30,10 +30,23 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateLeft,
                                      OpenACCMDRangeBegin<2> const& begin,
                                      OpenACCMDRangeEnd<2> const& end,
                                      int async_arg) {
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin0 = begin[0];
-  int end0   = end[0];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
+#if defined(KOKKOS_ENABLE_OPENACC_COLLAPSE_MDRANGE_LOOPS)
+  auto dim1  = end1 - begin1;
+  auto dim0  = end0 - begin0;
+  auto nIter = dim1 * dim0;
+// clang-format off
+#pragma acc parallel loop gang vector copyin(functor) async(async_arg)
+  // clang-format on
+  for (decltype(nIter) m = 0; m < nIter; ++m) {
+    auto i1 = m / dim0 + begin1;
+    auto i0 = m % dim0 + begin0;
+    functor(i0, i1);
+  }
+#else
 // clang-format off
 #pragma acc parallel loop gang vector collapse(2) copyin(functor) async(async_arg)
   // clang-format on
@@ -42,6 +55,7 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateLeft,
       functor(i0, i1);
     }
   }
+#endif
 }
 
 template <class Functor>
@@ -50,10 +64,23 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateRight,
                                      OpenACCMDRangeBegin<2> const& begin,
                                      OpenACCMDRangeEnd<2> const& end,
                                      int async_arg) {
-  int begin0 = begin[0];
-  int end0   = end[0];
-  int begin1 = begin[1];
-  int end1   = end[1];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+#if defined(KOKKOS_ENABLE_OPENACC_COLLAPSE_MDRANGE_LOOPS)
+  auto dim1  = end1 - begin1;
+  auto dim0  = end0 - begin0;
+  auto nIter = dim1 * dim0;
+// clang-format off
+#pragma acc parallel loop gang vector copyin(functor) async(async_arg)
+  // clang-format on
+  for (decltype(nIter) m = 0; m < nIter; ++m) {
+    auto i0 = m / dim1 + begin0;
+    auto i1 = m % dim1 + begin1;
+    functor(i0, i1);
+  }
+#else
 // clang-format off
 #pragma acc parallel loop gang vector collapse(2) copyin(functor) async(async_arg)
   // clang-format on
@@ -62,6 +89,7 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateRight,
       functor(i0, i1);
     }
   }
+#endif
 }
 
 template <class Functor>
@@ -71,12 +99,12 @@ void OpenACCParallelForMDRangePolicy(OpenACCTile, OpenACCIterateLeft,
                                      OpenACCMDRangeEnd<2> const& end,
                                      OpenACCMDRangeTile<2> const& tile,
                                      int async_arg) {
-  int tile0  = tile[0];
-  int tile1  = tile[1];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin0 = begin[0];
-  int end0   = end[0];
+  auto tile0  = tile[0];
+  auto tile1  = tile[1];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
 // clang-format off
 #pragma acc parallel loop gang vector tile(tile0,tile1) copyin(functor) async(async_arg)
   // clang-format on
@@ -94,12 +122,12 @@ void OpenACCParallelForMDRangePolicy(OpenACCTile, OpenACCIterateRight,
                                      OpenACCMDRangeEnd<2> const& end,
                                      OpenACCMDRangeTile<2> const& tile,
                                      int async_arg) {
-  int tile1  = tile[1];
-  int tile0  = tile[0];
-  int begin0 = begin[0];
-  int end0   = end[0];
-  int begin1 = begin[1];
-  int end1   = end[1];
+  auto tile1  = tile[1];
+  auto tile0  = tile[0];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
 // clang-format off
 #pragma acc parallel loop gang vector tile(tile1,tile0) copyin(functor) async(async_arg)
   // clang-format on
@@ -116,12 +144,29 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateLeft,
                                      OpenACCMDRangeBegin<3> const& begin,
                                      OpenACCMDRangeEnd<3> const& end,
                                      int async_arg) {
-  int begin2 = begin[2];
-  int end2   = end[2];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin0 = begin[0];
-  int end0   = end[0];
+  auto begin2 = begin[2];
+  auto end2   = end[2];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
+#if defined(KOKKOS_ENABLE_OPENACC_COLLAPSE_MDRANGE_LOOPS)
+  auto dim2  = end2 - begin2;
+  auto dim1  = end1 - begin1;
+  auto dim0  = end0 - begin0;
+  auto nIter = dim2 * dim1 * dim0;
+// clang-format off
+#pragma acc parallel loop gang vector copyin(functor) async(async_arg)
+  // clang-format on
+  for (decltype(nIter) m = 0; m < nIter; ++m) {
+    auto tmp1 = dim1 * dim0;
+    auto i2   = m / tmp1 + begin2;
+    auto tmp2 = m % tmp1;
+    auto i1   = tmp2 / dim0 + begin1;
+    auto i0   = tmp2 % dim0 + begin0;
+    functor(i0, i1, i2);
+  }
+#else
 // clang-format off
 #pragma acc parallel loop gang vector collapse(3) copyin(functor) async(async_arg)
   // clang-format on
@@ -132,6 +177,7 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateLeft,
       }
     }
   }
+#endif
 }
 
 template <class Functor>
@@ -140,12 +186,29 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateRight,
                                      OpenACCMDRangeBegin<3> const& begin,
                                      OpenACCMDRangeEnd<3> const& end,
                                      int async_arg) {
-  int begin0 = begin[0];
-  int end0   = end[0];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin2 = begin[2];
-  int end2   = end[2];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin2 = begin[2];
+  auto end2   = end[2];
+#if defined(KOKKOS_ENABLE_OPENACC_COLLAPSE_MDRANGE_LOOPS)
+  auto dim2  = end2 - begin2;
+  auto dim1  = end1 - begin1;
+  auto dim0  = end0 - begin0;
+  auto nIter = dim2 * dim1 * dim0;
+// clang-format off
+#pragma acc parallel loop gang vector copyin(functor) async(async_arg)
+  // clang-format on
+  for (decltype(nIter) m = 0; m < nIter; ++m) {
+    auto tmp1 = dim2 * dim1;
+    auto i0   = m / tmp1 + begin0;
+    auto tmp2 = m % tmp1;
+    auto i1   = tmp2 / dim2 + begin1;
+    auto i2   = tmp2 % dim2 + begin2;
+    functor(i0, i1, i2);
+  }
+#else
 // clang-format off
 #pragma acc parallel loop gang vector collapse(3) copyin(functor) async(async_arg)
   // clang-format on
@@ -156,6 +219,7 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateRight,
       }
     }
   }
+#endif
 }
 
 template <class Functor>
@@ -165,15 +229,15 @@ void OpenACCParallelForMDRangePolicy(OpenACCTile, OpenACCIterateLeft,
                                      OpenACCMDRangeEnd<3> const& end,
                                      OpenACCMDRangeTile<3> const& tile,
                                      int async_arg) {
-  int tile0  = tile[0];
-  int tile1  = tile[1];
-  int tile2  = tile[2];
-  int begin2 = begin[2];
-  int end2   = end[2];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin0 = begin[0];
-  int end0   = end[0];
+  auto tile0  = tile[0];
+  auto tile1  = tile[1];
+  auto tile2  = tile[2];
+  auto begin2 = begin[2];
+  auto end2   = end[2];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
 // clang-format off
 #pragma acc parallel loop gang vector tile(tile0,tile1,tile2) copyin(functor) async(async_arg)
   // clang-format on
@@ -193,15 +257,15 @@ void OpenACCParallelForMDRangePolicy(OpenACCTile, OpenACCIterateRight,
                                      OpenACCMDRangeEnd<3> const& end,
                                      OpenACCMDRangeTile<3> const& tile,
                                      int async_arg) {
-  int tile2  = tile[2];
-  int tile1  = tile[1];
-  int tile0  = tile[0];
-  int begin0 = begin[0];
-  int end0   = end[0];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin2 = begin[2];
-  int end2   = end[2];
+  auto tile2  = tile[2];
+  auto tile1  = tile[1];
+  auto tile0  = tile[0];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin2 = begin[2];
+  auto end2   = end[2];
 // clang-format off
 #pragma acc parallel loop gang vector tile(tile2,tile1,tile0) copyin(functor) async(async_arg)
   // clang-format on
@@ -220,14 +284,35 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateLeft,
                                      OpenACCMDRangeBegin<4> const& begin,
                                      OpenACCMDRangeEnd<4> const& end,
                                      int async_arg) {
-  int begin3 = begin[3];
-  int end3   = end[3];
-  int begin2 = begin[2];
-  int end2   = end[2];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin0 = begin[0];
-  int end0   = end[0];
+  auto begin3 = begin[3];
+  auto end3   = end[3];
+  auto begin2 = begin[2];
+  auto end2   = end[2];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
+#if defined(KOKKOS_ENABLE_OPENACC_COLLAPSE_MDRANGE_LOOPS)
+  auto dim3  = end3 - begin3;
+  auto dim2  = end2 - begin2;
+  auto dim1  = end1 - begin1;
+  auto dim0  = end0 - begin0;
+  auto nIter = dim3 * dim2 * dim1 * dim0;
+// clang-format off
+#pragma acc parallel loop gang vector copyin(functor) async(async_arg)
+  // clang-format on
+  for (decltype(nIter) m = 0; m < nIter; ++m) {
+    auto tmp1 = dim2 * dim1 * dim0;
+    auto i3   = m / tmp1 + begin3;
+    auto tmp2 = m % tmp1;
+    tmp1      = dim1 * dim0;
+    auto i2   = tmp2 / tmp1 + begin2;
+    tmp2      = tmp2 % tmp1;
+    auto i1   = tmp2 / dim0 + begin1;
+    auto i0   = tmp2 % dim0 + begin0;
+    functor(i0, i1, i2, i3);
+  }
+#else
 // clang-format off
 #pragma acc parallel loop gang vector collapse(4) copyin(functor) async(async_arg)
   // clang-format on
@@ -240,6 +325,7 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateLeft,
       }
     }
   }
+#endif
 }
 
 template <class Functor>
@@ -248,14 +334,35 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateRight,
                                      OpenACCMDRangeBegin<4> const& begin,
                                      OpenACCMDRangeEnd<4> const& end,
                                      int async_arg) {
-  int begin0 = begin[0];
-  int end0   = end[0];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin2 = begin[2];
-  int end2   = end[2];
-  int begin3 = begin[3];
-  int end3   = end[3];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin2 = begin[2];
+  auto end2   = end[2];
+  auto begin3 = begin[3];
+  auto end3   = end[3];
+#if defined(KOKKOS_ENABLE_OPENACC_COLLAPSE_MDRANGE_LOOPS)
+  auto dim3  = end3 - begin3;
+  auto dim2  = end2 - begin2;
+  auto dim1  = end1 - begin1;
+  auto dim0  = end0 - begin0;
+  auto nIter = dim3 * dim2 * dim1 * dim0;
+// clang-format off
+#pragma acc parallel loop gang vector copyin(functor) async(async_arg)
+  // clang-format on
+  for (decltype(nIter) m = 0; m < nIter; ++m) {
+    auto tmp1 = dim3 * dim2 * dim1;
+    auto i0   = m / tmp1 + begin0;
+    auto tmp2 = m % tmp1;
+    tmp1      = dim3 * dim2;
+    auto i1   = tmp2 / tmp1 + begin1;
+    tmp2      = tmp2 % tmp1;
+    auto i2   = tmp2 / dim3 + begin2;
+    auto i3   = tmp2 % dim3 + begin3;
+    functor(i0, i1, i2, i3);
+  }
+#else
 // clang-format off
 #pragma acc parallel loop gang vector collapse(4) copyin(functor) async(async_arg)
   // clang-format on
@@ -268,6 +375,7 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateRight,
       }
     }
   }
+#endif
 }
 
 template <class Functor>
@@ -277,18 +385,18 @@ void OpenACCParallelForMDRangePolicy(OpenACCTile, OpenACCIterateLeft,
                                      OpenACCMDRangeEnd<4> const& end,
                                      OpenACCMDRangeTile<4> const& tile,
                                      int async_arg) {
-  int tile0  = tile[0];
-  int tile1  = tile[1];
-  int tile2  = tile[2];
-  int tile3  = tile[3];
-  int begin3 = begin[3];
-  int end3   = end[3];
-  int begin2 = begin[2];
-  int end2   = end[2];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin0 = begin[0];
-  int end0   = end[0];
+  auto tile0  = tile[0];
+  auto tile1  = tile[1];
+  auto tile2  = tile[2];
+  auto tile3  = tile[3];
+  auto begin3 = begin[3];
+  auto end3   = end[3];
+  auto begin2 = begin[2];
+  auto end2   = end[2];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
 // clang-format off
 #pragma acc parallel loop gang vector tile(tile0,tile1,tile2,tile3) copyin(functor) async(async_arg)
   // clang-format on
@@ -310,18 +418,18 @@ void OpenACCParallelForMDRangePolicy(OpenACCTile, OpenACCIterateRight,
                                      OpenACCMDRangeEnd<4> const& end,
                                      OpenACCMDRangeTile<4> const& tile,
                                      int async_arg) {
-  int tile3  = tile[3];
-  int tile2  = tile[2];
-  int tile1  = tile[1];
-  int tile0  = tile[0];
-  int begin0 = begin[0];
-  int end0   = end[0];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin2 = begin[2];
-  int end2   = end[2];
-  int begin3 = begin[3];
-  int end3   = end[3];
+  auto tile3  = tile[3];
+  auto tile2  = tile[2];
+  auto tile1  = tile[1];
+  auto tile0  = tile[0];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin2 = begin[2];
+  auto end2   = end[2];
+  auto begin3 = begin[3];
+  auto end3   = end[3];
 // clang-format off
 #pragma acc parallel loop gang vector tile(tile3,tile2,tile1,tile0) copyin(functor) async(async_arg)
   // clang-format on
@@ -342,16 +450,41 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateLeft,
                                      OpenACCMDRangeBegin<5> const& begin,
                                      OpenACCMDRangeEnd<5> const& end,
                                      int async_arg) {
-  int begin4 = begin[4];
-  int end4   = end[4];
-  int begin3 = begin[3];
-  int end3   = end[3];
-  int begin2 = begin[2];
-  int end2   = end[2];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin0 = begin[0];
-  int end0   = end[0];
+  auto begin4 = begin[4];
+  auto end4   = end[4];
+  auto begin3 = begin[3];
+  auto end3   = end[3];
+  auto begin2 = begin[2];
+  auto end2   = end[2];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
+#if defined(KOKKOS_ENABLE_OPENACC_COLLAPSE_MDRANGE_LOOPS)
+  auto dim4  = end4 - begin4;
+  auto dim3  = end3 - begin3;
+  auto dim2  = end2 - begin2;
+  auto dim1  = end1 - begin1;
+  auto dim0  = end0 - begin0;
+  auto nIter = dim4 * dim3 * dim2 * dim1 * dim0;
+// clang-format off
+#pragma acc parallel loop gang vector copyin(functor) async(async_arg)
+  // clang-format on
+  for (decltype(nIter) m = 0; m < nIter; ++m) {
+    auto tmp1 = dim3 * dim2 * dim1 * dim0;
+    auto i4   = m / tmp1 + begin4;
+    auto tmp2 = m % tmp1;
+    tmp1      = dim2 * dim1 * dim0;
+    auto i3   = tmp2 / tmp1 + begin3;
+    tmp2      = tmp2 % tmp1;
+    tmp1      = dim1 * dim0;
+    auto i2   = tmp2 / tmp1 + begin2;
+    tmp2      = tmp2 % tmp1;
+    auto i1   = tmp2 / dim0 + begin1;
+    auto i0   = tmp2 % dim0 + begin0;
+    functor(i0, i1, i2, i3, i4);
+  }
+#else
 // clang-format off
 #pragma acc parallel loop gang vector collapse(5) copyin(functor) async(async_arg)
   // clang-format on
@@ -366,6 +499,7 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateLeft,
       }
     }
   }
+#endif
 }
 
 template <class Functor>
@@ -374,16 +508,41 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateRight,
                                      OpenACCMDRangeBegin<5> const& begin,
                                      OpenACCMDRangeEnd<5> const& end,
                                      int async_arg) {
-  int begin0 = begin[0];
-  int end0   = end[0];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin2 = begin[2];
-  int end2   = end[2];
-  int begin3 = begin[3];
-  int end3   = end[3];
-  int begin4 = begin[4];
-  int end4   = end[4];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin2 = begin[2];
+  auto end2   = end[2];
+  auto begin3 = begin[3];
+  auto end3   = end[3];
+  auto begin4 = begin[4];
+  auto end4   = end[4];
+#if defined(KOKKOS_ENABLE_OPENACC_COLLAPSE_MDRANGE_LOOPS)
+  auto dim4  = end4 - begin4;
+  auto dim3  = end3 - begin3;
+  auto dim2  = end2 - begin2;
+  auto dim1  = end1 - begin1;
+  auto dim0  = end0 - begin0;
+  auto nIter = dim4 * dim3 * dim2 * dim1 * dim0;
+// clang-format off
+#pragma acc parallel loop gang vector copyin(functor) async(async_arg)
+  // clang-format on
+  for (decltype(nIter) m = 0; m < nIter; ++m) {
+    auto tmp1 = dim4 * dim3 * dim2 * dim1;
+    auto i0   = m / tmp1 + begin0;
+    auto tmp2 = m % tmp1;
+    tmp1      = dim4 * dim3 * dim2;
+    auto i1   = tmp2 / tmp1 + begin1;
+    tmp2      = tmp2 % tmp1;
+    tmp1      = dim4 * dim3;
+    auto i2   = tmp2 / tmp1 + begin2;
+    tmp2      = tmp2 % tmp1;
+    auto i3   = tmp2 / dim4 + begin3;
+    auto i4   = tmp2 % dim4 + begin4;
+    functor(i0, i1, i2, i3, i4);
+  }
+#else
 // clang-format off
 #pragma acc parallel loop gang vector collapse(5) copyin(functor) async(async_arg)
   // clang-format on
@@ -398,6 +557,7 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateRight,
       }
     }
   }
+#endif
 }
 
 template <class Functor>
@@ -407,21 +567,21 @@ void OpenACCParallelForMDRangePolicy(OpenACCTile, OpenACCIterateLeft,
                                      OpenACCMDRangeEnd<5> const& end,
                                      OpenACCMDRangeTile<5> const& tile,
                                      int async_arg) {
-  int tile0  = tile[0];
-  int tile1  = tile[1];
-  int tile2  = tile[2];
-  int tile3  = tile[3];
-  int tile4  = tile[4];
-  int begin4 = begin[4];
-  int end4   = end[4];
-  int begin3 = begin[3];
-  int end3   = end[3];
-  int begin2 = begin[2];
-  int end2   = end[2];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin0 = begin[0];
-  int end0   = end[0];
+  auto tile0  = tile[0];
+  auto tile1  = tile[1];
+  auto tile2  = tile[2];
+  auto tile3  = tile[3];
+  auto tile4  = tile[4];
+  auto begin4 = begin[4];
+  auto end4   = end[4];
+  auto begin3 = begin[3];
+  auto end3   = end[3];
+  auto begin2 = begin[2];
+  auto end2   = end[2];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
 // clang-format off
 #pragma acc parallel loop gang vector tile(tile0,tile1,tile2,tile3,tile4) copyin(functor) async(async_arg)
   // clang-format on
@@ -445,21 +605,21 @@ void OpenACCParallelForMDRangePolicy(OpenACCTile, OpenACCIterateRight,
                                      OpenACCMDRangeEnd<5> const& end,
                                      OpenACCMDRangeTile<5> const& tile,
                                      int async_arg) {
-  int tile4  = tile[4];
-  int tile3  = tile[3];
-  int tile2  = tile[2];
-  int tile1  = tile[1];
-  int tile0  = tile[0];
-  int begin0 = begin[0];
-  int end0   = end[0];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin2 = begin[2];
-  int end2   = end[2];
-  int begin3 = begin[3];
-  int end3   = end[3];
-  int begin4 = begin[4];
-  int end4   = end[4];
+  auto tile4  = tile[4];
+  auto tile3  = tile[3];
+  auto tile2  = tile[2];
+  auto tile1  = tile[1];
+  auto tile0  = tile[0];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin2 = begin[2];
+  auto end2   = end[2];
+  auto begin3 = begin[3];
+  auto end3   = end[3];
+  auto begin4 = begin[4];
+  auto end4   = end[4];
 // clang-format off
 #pragma acc parallel loop gang vector tile(tile4,tile3,tile2,tile1,tile0) copyin(functor) async(async_arg)
   // clang-format on
@@ -482,18 +642,47 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateLeft,
                                      OpenACCMDRangeBegin<6> const& begin,
                                      OpenACCMDRangeEnd<6> const& end,
                                      int async_arg) {
-  int begin5 = begin[5];
-  int end5   = end[5];
-  int begin4 = begin[4];
-  int end4   = end[4];
-  int begin3 = begin[3];
-  int end3   = end[3];
-  int begin2 = begin[2];
-  int end2   = end[2];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin0 = begin[0];
-  int end0   = end[0];
+  auto begin5 = begin[5];
+  auto end5   = end[5];
+  auto begin4 = begin[4];
+  auto end4   = end[4];
+  auto begin3 = begin[3];
+  auto end3   = end[3];
+  auto begin2 = begin[2];
+  auto end2   = end[2];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
+#if defined(KOKKOS_ENABLE_OPENACC_COLLAPSE_MDRANGE_LOOPS)
+  auto dim5  = end5 - begin5;
+  auto dim4  = end4 - begin4;
+  auto dim3  = end3 - begin3;
+  auto dim2  = end2 - begin2;
+  auto dim1  = end1 - begin1;
+  auto dim0  = end0 - begin0;
+  auto nIter = dim5 * dim4 * dim3 * dim2 * dim1 * dim0;
+// clang-format off
+#pragma acc parallel loop gang vector copyin(functor) async(async_arg)
+  // clang-format on
+  for (decltype(nIter) m = 0; m < nIter; ++m) {
+    auto tmp1 = dim4 * dim3 * dim2 * dim1 * dim0;
+    auto i5   = m / tmp1 + begin5;
+    auto tmp2 = m % tmp1;
+    tmp1      = dim3 * dim2 * dim1 * dim0;
+    auto i4   = tmp2 / tmp1 + begin4;
+    tmp2      = tmp2 % tmp1;
+    tmp1      = dim2 * dim1 * dim0;
+    auto i3   = tmp2 / tmp1 + begin3;
+    tmp2      = tmp2 % tmp1;
+    tmp1      = dim1 * dim0;
+    auto i2   = tmp2 / tmp1 + begin2;
+    tmp2      = tmp2 % tmp1;
+    auto i1   = tmp2 / dim0 + begin1;
+    auto i0   = tmp2 % dim0 + begin0;
+    functor(i0, i1, i2, i3, i4, i5);
+  }
+#else
 // clang-format off
 #pragma acc parallel loop gang vector collapse(6) copyin(functor) async(async_arg)
   // clang-format on
@@ -510,6 +699,7 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateLeft,
       }
     }
   }
+#endif
 }
 
 template <class Functor>
@@ -518,18 +708,47 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateRight,
                                      OpenACCMDRangeBegin<6> const& begin,
                                      OpenACCMDRangeEnd<6> const& end,
                                      int async_arg) {
-  int begin0 = begin[0];
-  int end0   = end[0];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin2 = begin[2];
-  int end2   = end[2];
-  int begin3 = begin[3];
-  int end3   = end[3];
-  int begin4 = begin[4];
-  int end4   = end[4];
-  int begin5 = begin[5];
-  int end5   = end[5];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin2 = begin[2];
+  auto end2   = end[2];
+  auto begin3 = begin[3];
+  auto end3   = end[3];
+  auto begin4 = begin[4];
+  auto end4   = end[4];
+  auto begin5 = begin[5];
+  auto end5   = end[5];
+#if defined(KOKKOS_ENABLE_OPENACC_COLLAPSE_MDRANGE_LOOPS)
+  auto dim5  = end5 - begin5;
+  auto dim4  = end4 - begin4;
+  auto dim3  = end3 - begin3;
+  auto dim2  = end2 - begin2;
+  auto dim1  = end1 - begin1;
+  auto dim0  = end0 - begin0;
+  auto nIter = dim5 * dim4 * dim3 * dim2 * dim1 * dim0;
+// clang-format off
+#pragma acc parallel loop gang vector copyin(functor) async(async_arg)
+  // clang-format on
+  for (decltype(nIter) m = 0; m < nIter; ++m) {
+    auto tmp1 = dim5 * dim4 * dim3 * dim2 * dim1;
+    auto i0   = m / tmp1 + begin0;
+    auto tmp2 = m % tmp1;
+    tmp1      = dim5 * dim4 * dim3 * dim2;
+    auto i1   = tmp2 / tmp1 + begin1;
+    tmp2      = tmp2 % tmp1;
+    tmp1      = dim5 * dim4 * dim3;
+    auto i2   = tmp2 / tmp1 + begin2;
+    tmp2      = tmp2 % tmp1;
+    tmp1      = dim5 * dim4;
+    auto i3   = tmp2 / tmp1 + begin3;
+    tmp2      = tmp2 % tmp1;
+    auto i4   = tmp2 / dim5 + begin4;
+    auto i5   = tmp2 % dim5 + begin5;
+    functor(i0, i1, i2, i3, i4, i5);
+  }
+#else
 // clang-format off
 #pragma acc parallel loop gang vector collapse(6) copyin(functor) async(async_arg)
   // clang-format on
@@ -546,6 +765,7 @@ void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateRight,
       }
     }
   }
+#endif
 }
 
 template <class Functor>
@@ -555,24 +775,24 @@ void OpenACCParallelForMDRangePolicy(OpenACCTile, OpenACCIterateLeft,
                                      OpenACCMDRangeEnd<6> const& end,
                                      OpenACCMDRangeTile<6> const& tile,
                                      int async_arg) {
-  int tile0  = tile[0];
-  int tile1  = tile[1];
-  int tile2  = tile[2];
-  int tile3  = tile[3];
-  int tile4  = tile[4];
-  int tile5  = tile[5];
-  int begin5 = begin[5];
-  int end5   = end[5];
-  int begin4 = begin[4];
-  int end4   = end[4];
-  int begin3 = begin[3];
-  int end3   = end[3];
-  int begin2 = begin[2];
-  int end2   = end[2];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin0 = begin[0];
-  int end0   = end[0];
+  auto tile0  = tile[0];
+  auto tile1  = tile[1];
+  auto tile2  = tile[2];
+  auto tile3  = tile[3];
+  auto tile4  = tile[4];
+  auto tile5  = tile[5];
+  auto begin5 = begin[5];
+  auto end5   = end[5];
+  auto begin4 = begin[4];
+  auto end4   = end[4];
+  auto begin3 = begin[3];
+  auto end3   = end[3];
+  auto begin2 = begin[2];
+  auto end2   = end[2];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
 // clang-format off
 #pragma acc parallel loop gang vector tile(tile0,tile1,tile2,tile3,tile4,tile5) copyin(functor) async(async_arg)
   // clang-format on
@@ -598,24 +818,24 @@ void OpenACCParallelForMDRangePolicy(OpenACCTile, OpenACCIterateRight,
                                      OpenACCMDRangeEnd<6> const& end,
                                      OpenACCMDRangeTile<6> const& tile,
                                      int async_arg) {
-  int tile5  = tile[5];
-  int tile4  = tile[4];
-  int tile3  = tile[3];
-  int tile2  = tile[2];
-  int tile1  = tile[1];
-  int tile0  = tile[0];
-  int begin0 = begin[0];
-  int end0   = end[0];
-  int begin1 = begin[1];
-  int end1   = end[1];
-  int begin2 = begin[2];
-  int end2   = end[2];
-  int begin3 = begin[3];
-  int end3   = end[3];
-  int begin4 = begin[4];
-  int end4   = end[4];
-  int begin5 = begin[5];
-  int end5   = end[5];
+  auto tile5  = tile[5];
+  auto tile4  = tile[4];
+  auto tile3  = tile[3];
+  auto tile2  = tile[2];
+  auto tile1  = tile[1];
+  auto tile0  = tile[0];
+  auto begin0 = begin[0];
+  auto end0   = end[0];
+  auto begin1 = begin[1];
+  auto end1   = end[1];
+  auto begin2 = begin[2];
+  auto end2   = end[2];
+  auto begin3 = begin[3];
+  auto end3   = end[3];
+  auto begin4 = begin[4];
+  auto end4   = end[4];
+  auto begin5 = begin[5];
+  auto end5   = end[5];
 // clang-format off
 #pragma acc parallel loop gang vector tile(tile5,tile4,tile3,tile2,tile1,tile0) copyin(functor) async(async_arg)
   // clang-format on

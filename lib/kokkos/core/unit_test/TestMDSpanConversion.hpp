@@ -81,6 +81,8 @@ struct TestViewMDSpanConversion {
     for (std::size_t r = 0; r < mdspan_type::rank(); ++r) {
       ASSERT_EQ(test_view.extent(r), ref.extent(r));
       ASSERT_EQ(test_view.extent(r), exts.extent(r));
+      ASSERT_EQ(test_view.stride(r), ref.stride(r));
+      ASSERT_EQ(test_view.stride(r), mapping.stride(r));
     }
   }
 
@@ -504,4 +506,53 @@ TEST(TEST_CATEGORY, view_mdspan_conversion) {
   TestViewMDSpanConversion<int, TEST_EXECSPACE>::run_test();
 }
 
+TEST(TEST_CATEGORY, view_mdspan_conversion_with_stride) {
+  {
+    Kokkos::View<int ***, Kokkos::LayoutLeft> source("S", 20, 40, 70);
+    auto sub_v   = Kokkos::subview(source, Kokkos::pair{5, 15}, Kokkos::ALL(),
+                                   Kokkos::pair{2, 38});
+    auto sub_mds = sub_v.to_mdspan();
+    Kokkos::View<int ***, Kokkos::LayoutLeft> sub_v2(sub_mds);
+    ASSERT_EQ(static_cast<int>(sub_v.extent(0)), 10);
+    ASSERT_EQ(static_cast<int>(sub_v.extent(1)), 40);
+    ASSERT_EQ(static_cast<int>(sub_v.extent(2)), 36);
+    ASSERT_EQ(static_cast<int>(sub_v.stride(0)), 1);
+    ASSERT_EQ(static_cast<int>(sub_v.stride(1)), 20);
+    ASSERT_EQ(static_cast<int>(sub_v.stride(2)), 800);
+    ASSERT_EQ(static_cast<int>(sub_mds.extent(0)), 10);
+    ASSERT_EQ(static_cast<int>(sub_mds.extent(1)), 40);
+    ASSERT_EQ(static_cast<int>(sub_mds.extent(2)), 36);
+    ASSERT_EQ(static_cast<int>(sub_mds.stride(0)), 1);
+    ASSERT_EQ(static_cast<int>(sub_mds.stride(1)), 20);
+    ASSERT_EQ(static_cast<int>(sub_mds.stride(2)), 800);
+    ASSERT_EQ(static_cast<int>(sub_v2.extent(0)), 10);
+    ASSERT_EQ(static_cast<int>(sub_v2.extent(1)), 40);
+    ASSERT_EQ(static_cast<int>(sub_v2.extent(2)), 36);
+    ASSERT_EQ(static_cast<int>(sub_v2.stride(0)), 1);
+    ASSERT_EQ(static_cast<int>(sub_v2.stride(1)), 20);
+    ASSERT_EQ(static_cast<int>(sub_v2.stride(2)), 800);
+  }
+  {
+    // layout_right_padded<dynamic_extent> has a custom stride for
+    // stride(rank-2) LayoutRight has a custom stride for stride(0) That means
+    // the "padding" only matches up for Rank-2 Views
+    Kokkos::View<int **, Kokkos::LayoutRight> source("S", 20, 40);
+    auto sub_v =
+        Kokkos::subview(source, Kokkos::pair{5, 15}, Kokkos::pair{2, 38});
+    auto sub_mds = sub_v.to_mdspan();
+    Kokkos::View<int **, Kokkos::LayoutRight> sub_v2(sub_mds);
+    ASSERT_EQ(static_cast<int>(sub_v.extent(0)), 10);
+    ASSERT_EQ(static_cast<int>(sub_v.extent(1)), 36);
+    ASSERT_EQ(static_cast<int>(sub_v.stride(0)), 40);
+    ASSERT_EQ(static_cast<int>(sub_v.stride(1)), 1);
+    ASSERT_EQ(static_cast<int>(sub_mds.extent(0)), 10);
+    ASSERT_EQ(static_cast<int>(sub_mds.extent(1)), 36);
+    ASSERT_EQ(static_cast<int>(sub_mds.stride(0)), 40);
+    ASSERT_EQ(static_cast<int>(sub_mds.stride(1)), 1);
+    ASSERT_EQ(static_cast<int>(sub_v2.extent(0)), 10);
+    ASSERT_EQ(static_cast<int>(sub_v2.extent(1)), 36);
+    ASSERT_EQ(static_cast<int>(sub_v2.stride(0)), 40);
+    ASSERT_EQ(static_cast<int>(sub_v2.stride(1)), 1);
+  }
+}
 }  // namespace

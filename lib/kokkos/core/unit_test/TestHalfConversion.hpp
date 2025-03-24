@@ -26,7 +26,6 @@ void test_half_conversion_type() {
   T b                            = Kokkos::Experimental::cast_from_half<T>(a);
   ASSERT_LT((double(b - base) / double(base)), epsilon);
 
-#ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
   Kokkos::View<T> b_v("b_v");
   Kokkos::parallel_for(
       "TestHalfConversion", 1, KOKKOS_LAMBDA(int) {
@@ -37,7 +36,6 @@ void test_half_conversion_type() {
 
   Kokkos::deep_copy(b, b_v);
   ASSERT_LT((double(b - base) / double(base)), epsilon);
-#endif  // KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
 }
 
 template <class T>
@@ -48,7 +46,6 @@ void test_bhalf_conversion_type() {
   T b                             = Kokkos::Experimental::cast_from_bhalf<T>(a);
   ASSERT_LT((double(b - base) / double(base)), epsilon);
 
-#ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
   Kokkos::View<T> b_v("b_v");
   Kokkos::parallel_for(
       "TestHalfConversion", 1, KOKKOS_LAMBDA(int) {
@@ -59,7 +56,6 @@ void test_bhalf_conversion_type() {
 
   Kokkos::deep_copy(b, b_v);
   ASSERT_LT((double(b - base) / double(base)), epsilon);
-#endif  // KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
 }
 
 void test_half_conversion() {

@@ -56,7 +56,7 @@ struct GraphAccess {
     static_assert(
         Kokkos::Impl::is_specialization_of<NodeType, GraphNodeImpl>::value,
         "Kokkos Internal Error in graph interface");
-    return std::make_shared<NodeType>((Args &&) args...);
+    return std::make_shared<NodeType>((Args&&)args...);
   }
 
   template <class GraphImplWeakPtr, class ExecutionSpace, class Kernel,
@@ -83,7 +83,7 @@ struct GraphAccess {
                              Kokkos::Experimental::GraphNodeRef>::value,
         "Kokkos Internal Implementation error (bad argument to "
         "`GraphAccess::get_node_ptr()`)");
-    return ((NodeRef &&) node_ref).get_node_ptr();
+    return ((NodeRef&&)node_ref).get_node_ptr();
   }
 
   template <class NodeRef>
@@ -93,7 +93,7 @@ struct GraphAccess {
                              Kokkos::Experimental::GraphNodeRef>::value,
         "Kokkos Internal Implementation error (bad argument to "
         "`GraphAccess::get_graph_weak_ptr()`)");
-    return ((NodeRef &&) node_ref).get_graph_weak_ptr();
+    return ((NodeRef&&)node_ref).get_graph_weak_ptr();
   }
 
   // </editor-fold> end accessors for private members of public interface }}}2

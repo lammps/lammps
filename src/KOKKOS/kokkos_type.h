@@ -41,6 +41,16 @@ constexpr int HALF = 4;
 #define MAX_TYPES_STACKPARAMS 12
 static constexpr LAMMPS_NS::bigint LMP_KOKKOS_AV_DELTA = 10;
 
+namespace LAMMPS_NS {
+  union d_ubuf {
+    double d;
+    int64_t i;
+    KOKKOS_INLINE_FUNCTION d_ubuf(double arg) : d(arg) {}
+    KOKKOS_INLINE_FUNCTION d_ubuf(int64_t arg) : i(arg) {}
+    KOKKOS_INLINE_FUNCTION d_ubuf(int arg) : i(arg) {}
+  };
+}
+
 namespace Kokkos {
   static auto NoInit = [](std::string const& label) {
     return Kokkos::view_alloc(Kokkos::WithoutInitializing, label);
@@ -149,7 +159,7 @@ template<class DeviceType>
 class KKDevice {
  public:
 #if ((defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_CUDA_UVM)) || \
-     (defined(KOKKOS_ENABLE_HIP) && defined(KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY)))
+     (defined(KOKKOS_ENABLE_HIP) && defined(KOKKOS_ARCH_AMD_GFX942_APU)))
   typedef Kokkos::Device<DeviceType,LMPDeviceType::memory_space> value;
 #else
   typedef Kokkos::Device<DeviceType,typename DeviceType::memory_space> value;
@@ -166,7 +176,7 @@ template<typename DataType, typename Layout, typename Device, typename... Args>
 using KKScatterView = Kokkos::Experimental::ScatterView<DataType, Layout, Device, Args...>;
 
 
-// set ExecutionSpace stuct with variable "space"
+// set ExecutionSpace struct with variable "space"
 
 template<class Device>
 struct ExecutionSpaceFromDevice;
@@ -782,6 +792,14 @@ typedef tdual_float_3d::t_dev_um t_float_3d_um;
 typedef tdual_float_3d::t_dev_const_um t_float_3d_const_um;
 typedef tdual_float_3d::t_dev_const_randomread t_float_3d_randomread;
 
+//4d float array n
+typedef Kokkos::DualView<LMP_FLOAT****, Kokkos::LayoutRight, LMPDeviceType> tdual_float_4d;
+typedef tdual_float_4d::t_dev t_float_4d;
+typedef tdual_float_4d::t_dev_const t_float_4d_const;
+typedef tdual_float_4d::t_dev_um t_float_4d_um;
+typedef tdual_float_4d::t_dev_const_um t_float_4d_const_um;
+typedef tdual_float_4d::t_dev_const_randomread t_float_4d_randomread;
+
 #ifdef LMP_KOKKOS_NO_LEGACY
 typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutLeft, LMPDeviceType> tdual_float_1d_4;
 #else
@@ -1107,6 +1125,22 @@ typedef tdual_float_2d::t_host_const t_float_2d_const;
 typedef tdual_float_2d::t_host_um t_float_2d_um;
 typedef tdual_float_2d::t_host_const_um t_float_2d_const_um;
 typedef tdual_float_2d::t_host_const_randomread t_float_2d_randomread;
+
+//3d float array n
+typedef Kokkos::DualView<LMP_FLOAT***, Kokkos::LayoutRight, LMPDeviceType> tdual_float_3d;
+typedef tdual_float_3d::t_host t_float_3d;
+typedef tdual_float_3d::t_host_const t_float_3d_const;
+typedef tdual_float_3d::t_host_um t_float_3d_um;
+typedef tdual_float_3d::t_host_const_um t_float_3d_const_um;
+typedef tdual_float_3d::t_host_const_randomread t_float_3d_randomread;
+
+//4d float array n
+typedef Kokkos::DualView<LMP_FLOAT****, Kokkos::LayoutRight, LMPDeviceType> tdual_float_4d;
+typedef tdual_float_4d::t_host t_float_4d;
+typedef tdual_float_4d::t_host_const t_float_4d_const;
+typedef tdual_float_4d::t_host_um t_float_4d_um;
+typedef tdual_float_4d::t_host_const_um t_float_4d_const_um;
+typedef tdual_float_4d::t_host_const_randomread t_float_4d_randomread;
 
 #ifdef LMP_KOKKOS_NO_LEGACY
 typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutLeft, LMPDeviceType> tdual_float_1d_4;

@@ -539,9 +539,14 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_vector_size(arg_policy.impl_vector_length()) {
     auto internal_space_instance =
         m_policy.space().impl_internal_space_instance();
-    m_team_size = m_team_size >= 0 ? m_team_size
-                                   : arg_policy.team_size_recommended(
-                                         arg_functor, ParallelForTag());
+    if (m_team_size < 0) {
+      m_team_size =
+          arg_policy.team_size_recommended(arg_functor, ParallelForTag());
+      if (m_team_size <= 0)
+        Kokkos::Impl::throw_runtime_exception(
+            "Kokkos::Impl::ParallelFor<Cuda, TeamPolicy> could not find a "
+            "valid execution configuration.");
+    }
 
     m_shmem_begin = (sizeof(double) * (m_team_size + 2));
     m_shmem_size =
@@ -631,7 +636,7 @@ class ParallelReduce<CombinedFunctorReducerType,
   using reducer_type = ReducerType;
 
   static constexpr bool UseShflReduction =
-      (true && (ReducerType::static_value_size() != 0));
+      ReducerType::static_value_size() != 0;
 
  private:
   struct ShflReductionTag {};
@@ -697,16 +702,17 @@ class ParallelReduce<CombinedFunctorReducerType,
     }
   }
 
-  __device__ inline void run(SHMEMReductionTag&, const int& threadid) const {
+  __device__ inline void run(SHMEMReductionTag, const int& threadid) const {
     const integral_nonzero_constant<word_size_type,
                                     ReducerType::static_value_size() /
                                         sizeof(word_size_type)>
         word_count(m_functor_reducer.get_reducer().value_size() /
                    sizeof(word_size_type));
 
-    reference_type value = m_functor_reducer.get_reducer().init(
-        kokkos_impl_cuda_shared_memory<word_size_type>() +
-        threadIdx.y * word_count.value);
+    reference_type value =
+        m_functor_reducer.get_reducer().init(reinterpret_cast<pointer_type>(
+            kokkos_impl_cuda_shared_memory<word_size_type>() +
+            threadIdx.y * word_count.value));
 
     // Iterate this block through the league
     const int int_league_size = (int)m_league_size;
@@ -895,11 +901,16 @@ class ParallelReduce<CombinedFunctorReducerType,
         m_vector_size(arg_policy.impl_vector_length()) {
     auto internal_space_instance =
         m_policy.space().impl_internal_space_instance();
-    m_team_size = m_team_size >= 0 ? m_team_size
-                                   : arg_policy.team_size_recommended(
-                                         arg_functor_reducer.get_functor(),
-                                         arg_functor_reducer.get_reducer(),
-                                         ParallelReduceTag());
+
+    if (m_team_size < 0) {
+      m_team_size = arg_policy.team_size_recommended(
+          arg_functor_reducer.get_functor(), arg_functor_reducer.get_reducer(),
+          ParallelReduceTag());
+      if (m_team_size <= 0)
+        Kokkos::Impl::throw_runtime_exception(
+            "Kokkos::Impl::ParallelReduce<Cuda, TeamPolicy> could not find a "
+            "valid execution configuration.");
+    }
 
     m_team_begin =
         UseShflReduction

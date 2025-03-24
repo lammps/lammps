@@ -123,11 +123,11 @@ class LockBasedLIFO : private LockBasedLIFOCommon<T> {
   using intrusive_node_base_type = SimpleSinglyLinkedListNode<>;
 
  public:
-  LockBasedLIFO()                     = default;
-  LockBasedLIFO(LockBasedLIFO const&) = delete;
-  LockBasedLIFO(LockBasedLIFO&&)      = delete;
+  LockBasedLIFO()                                = default;
+  LockBasedLIFO(LockBasedLIFO const&)            = delete;
+  LockBasedLIFO(LockBasedLIFO&&)                 = delete;
   LockBasedLIFO& operator=(LockBasedLIFO const&) = delete;
-  LockBasedLIFO& operator=(LockBasedLIFO&&) = delete;
+  LockBasedLIFO& operator=(LockBasedLIFO&&)      = delete;
 
   ~LockBasedLIFO() = default;
 

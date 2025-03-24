@@ -632,7 +632,7 @@ the ``-package omp`` command-line switch or the :doc:`package omp <package>` com
 
 The :doc:`suffix <suffix>` command can also be used within an input
 script to set a suffix, or to turn off or back on any suffix setting
-made via the command line.
+made via the command-line.
 
 ----------
 

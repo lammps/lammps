@@ -91,7 +91,7 @@ template <typename ExecutionSpace, typename IteratorType, typename ValueType,
                            int> = 0>
 ValueType reduce(const ExecutionSpace& ex, IteratorType first,
                  IteratorType last, ValueType init_reduction_value) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   return Impl::reduce_default_functors_exespace_impl(
@@ -105,7 +105,7 @@ template <typename ExecutionSpace, typename IteratorType, typename ValueType,
 ValueType reduce(const std::string& label, const ExecutionSpace& ex,
                  IteratorType first, IteratorType last,
                  ValueType init_reduction_value) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   return Impl::reduce_default_functors_exespace_impl(label, ex, first, last,
@@ -119,7 +119,7 @@ template <typename ExecutionSpace, typename DataType, typename... Properties,
 ValueType reduce(const ExecutionSpace& ex,
                  const ::Kokkos::View<DataType, Properties...>& view,
                  ValueType init_reduction_value) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   namespace KE = ::Kokkos::Experimental;
@@ -137,7 +137,7 @@ template <typename ExecutionSpace, typename DataType, typename... Properties,
 ValueType reduce(const std::string& label, const ExecutionSpace& ex,
                  const ::Kokkos::View<DataType, Properties...>& view,
                  ValueType init_reduction_value) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   namespace KE = ::Kokkos::Experimental;
@@ -157,7 +157,7 @@ template <typename ExecutionSpace, typename IteratorType, typename ValueType,
 ValueType reduce(const ExecutionSpace& ex, IteratorType first,
                  IteratorType last, ValueType init_reduction_value,
                  BinaryOp joiner) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   return Impl::reduce_custom_functors_exespace_impl(
@@ -172,7 +172,7 @@ template <typename ExecutionSpace, typename IteratorType, typename ValueType,
 ValueType reduce(const std::string& label, const ExecutionSpace& ex,
                  IteratorType first, IteratorType last,
                  ValueType init_reduction_value, BinaryOp joiner) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   return Impl::reduce_custom_functors_exespace_impl(
@@ -186,7 +186,7 @@ template <typename ExecutionSpace, typename DataType, typename... Properties,
 ValueType reduce(const ExecutionSpace& ex,
                  const ::Kokkos::View<DataType, Properties...>& view,
                  ValueType init_reduction_value, BinaryOp joiner) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   namespace KE = ::Kokkos::Experimental;
@@ -204,7 +204,7 @@ template <typename ExecutionSpace, typename DataType, typename... Properties,
 ValueType reduce(const std::string& label, const ExecutionSpace& ex,
                  const ::Kokkos::View<DataType, Properties...>& view,
                  ValueType init_reduction_value, BinaryOp joiner) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   namespace KE = ::Kokkos::Experimental;
@@ -258,7 +258,7 @@ template <
 KOKKOS_FUNCTION ValueType reduce(const TeamHandleType& teamHandle,
                                  IteratorType first, IteratorType last,
                                  ValueType init_reduction_value) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   return Impl::reduce_default_functors_team_impl(teamHandle, first, last,
@@ -273,7 +273,7 @@ KOKKOS_FUNCTION ValueType
 reduce(const TeamHandleType& teamHandle,
        const ::Kokkos::View<DataType, Properties...>& view,
        ValueType init_reduction_value) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   namespace KE = ::Kokkos::Experimental;
@@ -294,7 +294,7 @@ KOKKOS_FUNCTION ValueType reduce(const TeamHandleType& teamHandle,
                                  IteratorType first, IteratorType last,
                                  ValueType init_reduction_value,
                                  BinaryOp joiner) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   return Impl::reduce_custom_functors_team_impl(teamHandle, first, last,
@@ -309,7 +309,7 @@ KOKKOS_FUNCTION ValueType
 reduce(const TeamHandleType& teamHandle,
        const ::Kokkos::View<DataType, Properties...>& view,
        ValueType init_reduction_value, BinaryOp joiner) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   namespace KE = ::Kokkos::Experimental;

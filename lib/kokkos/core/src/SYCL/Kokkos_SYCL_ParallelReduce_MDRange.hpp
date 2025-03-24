@@ -30,7 +30,7 @@
 template <class CombinedFunctorReducerType, class... Traits>
 class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
                                    Kokkos::MDRangePolicy<Traits...>,
-                                   Kokkos::Experimental::SYCL> {
+                                   Kokkos::SYCL> {
  public:
   using Policy      = Kokkos::MDRangePolicy<Traits...>;
   using FunctorType = typename CombinedFunctorReducerType::functor_type;
@@ -76,7 +76,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
         m_space(p.space()),
         m_result_ptr(v.data()),
         m_result_ptr_device_accessible(
-            MemorySpaceAccess<Kokkos::Experimental::SYCLDeviceUSMSpace,
+            MemorySpaceAccess<Kokkos::SYCLDeviceUSMSpace,
                               typename View::memory_space>::accessible) {}
 
  private:
@@ -85,7 +85,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
       const CombinedFunctorReducerWrapper& functor_reducer_wrapper,
       const sycl::event& memcpy_event) const {
     // Convenience references
-    Kokkos::Experimental::Impl::SYCLInternal& instance =
+    Kokkos::Impl::SYCLInternal& instance =
         *m_space.impl_internal_space_instance();
     sycl::queue& q = m_space.sycl_queue();
 
@@ -346,7 +346,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
   }
 
   void execute() const {
-    Kokkos::Experimental::Impl::SYCLInternal& instance =
+    Kokkos::Impl::SYCLInternal& instance =
         *m_space.impl_internal_space_instance();
 
     // Only let one instance at a time resize the instance's scratch memory
@@ -354,13 +354,11 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
     std::scoped_lock<std::mutex> scratch_buffers_lock(
         instance.m_mutexScratchSpace);
 
-    using IndirectKernelMem =
-        Kokkos::Experimental::Impl::SYCLInternal::IndirectKernelMem;
+    using IndirectKernelMem = Kokkos::Impl::SYCLInternal::IndirectKernelMem;
     IndirectKernelMem& indirectKernelMem = instance.get_indirect_kernel_mem();
 
     auto functor_reducer_wrapper =
-        Experimental::Impl::make_sycl_function_wrapper(m_functor_reducer,
-                                                       indirectKernelMem);
+        Impl::make_sycl_function_wrapper(m_functor_reducer, indirectKernelMem);
 
     sycl::event event = sycl_direct_launch(
         functor_reducer_wrapper, functor_reducer_wrapper.get_copy_event());
@@ -370,7 +368,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
  private:
   const CombinedFunctorReducerType m_functor_reducer;
   const BarePolicy m_policy;
-  const Kokkos::Experimental::SYCL& m_space;
+  const Kokkos::SYCL& m_space;
   const pointer_type m_result_ptr;
   const bool m_result_ptr_device_accessible;
 };

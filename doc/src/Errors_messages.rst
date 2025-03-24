@@ -6233,8 +6233,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Atom IDs must be positive integers.
 
 *One or more atom IDs is too big*
-   The limit on atom IDs is set by the SMALLBIG, BIGBIG, SMALLSMALL
-   setting in your LAMMPS build.  See the :doc:`Build settings <Build_settings>` page for more info.
+   The limit on atom IDs is set by the SMALLBIG, BIGBIG
+   setting in your LAMMPS build.  See the
+   :doc:`Build settings <Build_settings>` page for more info.
 
 *One or more atom IDs is zero*
    Either all atoms IDs must be zero or none of them.
@@ -7774,7 +7775,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Too few values in body section of molecule file*
    Self-explanatory.
 
-*Too many -pk arguments in command line*
+*Too many -pk arguments in command-line*
    The string formed by concatenating the arguments is too long.  Use a
    package command in the input script instead.
 

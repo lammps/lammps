@@ -21,7 +21,7 @@
 TEST(TEST_CATEGORY, resize_realloc_no_init) {
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels());
-  Kokkos::View<int*** * [1][2][3][4], TEST_EXECSPACE> bla("bla", 5, 6, 7, 8);
+  Kokkos::View<int**** [1][2][3][4], TEST_EXECSPACE> bla("bla", 5, 6, 7, 8);
 
   auto success = validate_absence(
       [&]() {
@@ -48,7 +48,7 @@ TEST(TEST_CATEGORY, resize_realloc_no_alloc) {
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels(),
                      Config::EnableAllocs());
-  Kokkos::View<int*** * [1][2][3][4], TEST_EXECSPACE> bla("bla", 8, 7, 6, 5);
+  Kokkos::View<int**** [1][2][3][4], TEST_EXECSPACE> bla("bla", 8, 7, 6, 5);
 
   auto success = validate_absence(
       [&]() {
@@ -133,8 +133,7 @@ TEST(TEST_CATEGORY, view_alloc) {
       },
       [&](BeginFenceEvent event) {
         return MatchDiagnostic{
-            event.descriptor().find(
-                "Kokkos::Impl::ViewValueFunctor: View init/destroy fence") !=
+            event.descriptor().find("Kokkos::View::initialization") !=
             std::string::npos};
       });
   ASSERT_TRUE(success);
@@ -155,8 +154,7 @@ TEST(TEST_CATEGORY, view_alloc_exec_space) {
       },
       [&](BeginFenceEvent event) {
         return MatchDiagnostic{
-            event.descriptor().find(
-                "Kokkos::Impl::ViewValueFunctor: View init/destroy fence") !=
+            event.descriptor().find("Kokkos::View::initialization") !=
             std::string::npos};
       });
   ASSERT_TRUE(success);
@@ -177,8 +175,7 @@ TEST(TEST_CATEGORY, view_alloc_int) {
       },
       [&](BeginFenceEvent event) {
         return MatchDiagnostic{
-            event.descriptor().find(
-                "Kokkos::Impl::ViewValueFunctor: View init/destroy fence") !=
+            event.descriptor().find("Kokkos::View::initialization") !=
             std::string::npos};
       });
   ASSERT_TRUE(success);
@@ -199,8 +196,7 @@ TEST(TEST_CATEGORY, view_alloc_exec_space_int) {
       },
       [&](BeginFenceEvent event) {
         return MatchDiagnostic{
-            event.descriptor().find(
-                "Kokkos::Impl::ViewValueFunctor: View init/destroy fence") !=
+            event.descriptor().find("Kokkos::View::initialization") !=
             std::string::npos};
       });
   ASSERT_TRUE(success);
@@ -225,14 +221,30 @@ TEST(TEST_CATEGORY, deep_copy_zero_memset) {
   listen_tool_events(Config::DisableAll(), Config::EnableKernels());
   Kokkos::View<int*, TEST_EXECSPACE> bla("bla", 8);
 
-  auto success =
-      validate_absence([&]() { Kokkos::deep_copy(bla, 0); },
-                       [&](BeginParallelForEvent) {
-                         return MatchDiagnostic{true, {"Found begin event"}};
-                       },
-                       [&](EndParallelForEvent) {
-                         return MatchDiagnostic{true, {"Found end event"}};
-                       });
+  // for MI300A with unified memory, ZeroMemset uses a parallel for
+  auto success = false;
+#ifdef KOKKOS_IMPL_HIP_UNIFIED_MEMORY
+  if constexpr (!std::is_same_v<TEST_EXECSPACE::memory_space,
+                                Kokkos::HostSpace>)
+    success = validate_existence(
+        [&]() { Kokkos::deep_copy(bla, 0); },
+        [&](BeginParallelForEvent e) {
+          const bool found =
+              (e.descriptor().find("Kokkos::ZeroMemset via parallel_for") !=
+               std::string::npos);
+          return MatchDiagnostic{found, {"Found expected parallel_for label"}};
+        });
+  else
+#endif
+    success =
+        validate_absence([&]() { Kokkos::deep_copy(bla, 0); },
+                         [&](BeginParallelForEvent) {
+                           return MatchDiagnostic{true, {"Found begin event"}};
+                         },
+                         [&](EndParallelForEvent) {
+                           return MatchDiagnostic{true, {"Found end event"}};
+                         });
+
   ASSERT_TRUE(success);
   listen_tool_events(Config::DisableAll());
 }
@@ -241,7 +253,7 @@ TEST(TEST_CATEGORY, resize_exec_space) {
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableFences(),
                      Config::EnableKernels());
-  Kokkos::View<int*** * [1][2][3][4], TEST_EXECSPACE> bla("bla", 8, 7, 6, 5);
+  Kokkos::View<int**** [1][2][3][4], TEST_EXECSPACE> bla("bla", 8, 7, 6, 5);
 
   auto success = validate_absence(
       [&]() {

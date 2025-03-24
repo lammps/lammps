@@ -43,8 +43,6 @@ LabelMap::LabelMap(LAMMPS *_lmp, int _natomtypes, int _nbondtypes, int _nanglety
     Pointers(_lmp), natomtypes(_natomtypes), nbondtypes(_nbondtypes), nangletypes(_nangletypes),
     ndihedraltypes(_ndihedraltypes), nimpropertypes(_nimpropertypes)
 {
-  if (lmp->citeme) lmp->citeme->add(cite_type_label_framework);
-
   lmap2lmap.atom = lmap2lmap.bond = lmap2lmap.angle = lmap2lmap.dihedral = lmap2lmap.improper =
       nullptr;
   reset_type_labels();
@@ -111,6 +109,8 @@ void LabelMap::modify_lmap(int narg, char **arg)
 {
   if ((narg < 1) || ((narg > 2) && ((narg % 2) == 0)))
     error->all(FLERR, "Incorrect number of arguments for labelmap command");
+
+  if (lmp->citeme) lmp->citeme->add(cite_type_label_framework);
 
   int ntypes;
   std::vector<std::string> *labels;
@@ -238,6 +238,8 @@ int LabelMap::find_or_create(const std::string &mylabel, std::vector<std::string
   auto search = labels_map.find(mylabel);
   if (search != labels_map.end()) return search->second;
 
+  if (lmp->citeme) lmp->citeme->add(cite_type_label_framework);
+
   // if no match found, create new label at next available index
   // label map assumed to be intialized with numeric index
   // user labels are assumed to be alphanumeric (not a number)
@@ -333,28 +335,28 @@ bool LabelMap::is_complete(int mode) const
 void LabelMap::write_data(FILE *fp)
 {
   if (is_complete(Atom::ATOM)) {
-    fmt::print(fp, "\nAtom Type Labels\n\n");
-    for (int i = 0; i < natomtypes; i++) fmt::print(fp, "{} {}\n", i + 1, typelabel[i]);
+    utils::print(fp, "\nAtom Type Labels\n\n");
+    for (int i = 0; i < natomtypes; i++) utils::print(fp, "{} {}\n", i + 1, typelabel[i]);
   }
 
   if (force->bond && is_complete(Atom::BOND)) {
-    fmt::print(fp, "\nBond Type Labels\n\n");
-    for (int i = 0; i < nbondtypes; i++) fmt::print(fp, "{} {}\n", i + 1, btypelabel[i]);
+    utils::print(fp, "\nBond Type Labels\n\n");
+    for (int i = 0; i < nbondtypes; i++) utils::print(fp, "{} {}\n", i + 1, btypelabel[i]);
   }
 
   if (force->angle && is_complete(Atom::ANGLE)) {
-    fmt::print(fp, "\nAngle Type Labels\n\n");
-    for (int i = 0; i < nangletypes; i++) fmt::print(fp, "{} {}\n", i + 1, atypelabel[i]);
+    utils::print(fp, "\nAngle Type Labels\n\n");
+    for (int i = 0; i < nangletypes; i++) utils::print(fp, "{} {}\n", i + 1, atypelabel[i]);
   }
 
   if (force->dihedral && is_complete(Atom::DIHEDRAL)) {
-    fmt::print(fp, "\nDihedral Type Labels\n\n");
-    for (int i = 0; i < ndihedraltypes; i++) fmt::print(fp, "{} {}\n", i + 1, dtypelabel[i]);
+    utils::print(fp, "\nDihedral Type Labels\n\n");
+    for (int i = 0; i < ndihedraltypes; i++) utils::print(fp, "{} {}\n", i + 1, dtypelabel[i]);
   }
 
   if (force->improper && is_complete(Atom::IMPROPER)) {
-    fmt::print(fp, "\nImproper Type Labels\n\n");
-    for (int i = 0; i < nimpropertypes; i++) fmt::print(fp, "{} {}\n", i + 1, itypelabel[i]);
+    utils::print(fp, "\nImproper Type Labels\n\n");
+    for (int i = 0; i < nimpropertypes; i++) utils::print(fp, "{} {}\n", i + 1, itypelabel[i]);
   }
 }
 
@@ -471,31 +473,31 @@ void LabelMap::write_map(const std::string &filename)
     if (typelabel_map.size() > 0) {
       fputs("labelmap atom", fp);
       for (int i = 0; i < natomtypes; ++i)
-        if (!typelabel[i].empty()) fmt::print(fp, " {} \"\"\" {} \"\"\"", i + 1, typelabel[i]);
+        if (!typelabel[i].empty()) utils::print(fp, " {} \"\"\" {} \"\"\"", i + 1, typelabel[i]);
       fputc('\n', fp);
     }
     if (btypelabel_map.size() > 0) {
       fputs("labelmap bond", fp);
       for (int i = 0; i < nbondtypes; ++i)
-        if (!btypelabel[i].empty()) fmt::print(fp, " {} \"\"\" {} \"\"\"", i + 1, btypelabel[i]);
+        if (!btypelabel[i].empty()) utils::print(fp, " {} \"\"\" {} \"\"\"", i + 1, btypelabel[i]);
       fputc('\n', fp);
     }
     if (atypelabel_map.size() > 0) {
       fputs("labelmap angle", fp);
       for (int i = 0; i < nangletypes; ++i)
-        if (!atypelabel[i].empty()) fmt::print(fp, " {} \"\"\" {} \"\"\"", i + 1, atypelabel[i]);
+        if (!atypelabel[i].empty()) utils::print(fp, " {} \"\"\" {} \"\"\"", i + 1, atypelabel[i]);
       fputc('\n', fp);
     }
     if (dtypelabel_map.size() > 0) {
       fputs("labelmap dihedral", fp);
       for (int i = 0; i < ndihedraltypes; ++i)
-        if (!dtypelabel[i].empty()) fmt::print(fp, " {} \"\"\" {} \"\"\"", i + 1, dtypelabel[i]);
+        if (!dtypelabel[i].empty()) utils::print(fp, " {} \"\"\" {} \"\"\"", i + 1, dtypelabel[i]);
       fputc('\n', fp);
     }
     if (itypelabel_map.size() > 0) {
       fputs("labelmap improper", fp);
       for (int i = 0; i < nimpropertypes; ++i)
-        if (!itypelabel[i].empty()) fmt::print(fp, " {} \"\"\" {} \"\"\"", i + 1, itypelabel[i]);
+        if (!itypelabel[i].empty()) utils::print(fp, " {} \"\"\" {} \"\"\"", i + 1, itypelabel[i]);
       fputc('\n', fp);
     }
     fclose(fp);

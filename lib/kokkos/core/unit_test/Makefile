@@ -141,7 +141,10 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
     OBJ_CUDA += TestCuda_Other.o
     OBJ_CUDA += TestCuda_MDRange_a.o TestCuda_MDRange_b.o TestCuda_MDRange_c.o TestCuda_MDRange_d.o TestCuda_MDRange_e.o
     OBJ_CUDA += TestCuda_Crs.o
-    OBJ_CUDA += TestCuda_Task.o TestCuda_WorkGraph.o
+    ifneq ($(KOKKOS_INTERNAL_DISABLE_DEPRECATED_CODE), 1)
+      OBJ_CUDA += TestCuda_Task.o
+    endif
+    OBJ_CUDA += TestCuda_WorkGraph.o
     OBJ_CUDA += TestCuda_Spaces.o
     OBJ_CUDA += TestCuda_UniqueToken.o
     OBJ_CUDA += TestCuda_LocalDeepCopy.o
@@ -221,7 +224,10 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
     OBJ_OPENMP += TestOpenMP_Other.o
     OBJ_OPENMP += TestOpenMP_MDRange_a.o TestOpenMP_MDRange_b.o TestOpenMP_MDRange_c.o TestOpenMP_MDRange_d.o TestOpenMP_MDRange_e.o
     OBJ_OPENMP += TestOpenMP_Crs.o
-    OBJ_OPENMP += TestOpenMP_Task.o TestOpenMP_WorkGraph.o
+    ifneq ($(KOKKOS_INTERNAL_DISABLE_DEPRECATED_CODE), 1)
+      OBJ_OPENMP += TestOpenMP_Task.o
+    endif
+    OBJ_OPENMP += TestOpenMP_WorkGraph.o
     OBJ_OPENMP += TestOpenMP_UniqueToken.o
     OBJ_OPENMP += TestOpenMP_LocalDeepCopy.o
 
@@ -265,7 +271,6 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMPTARGET), 1)
     #OBJ_OPENMPTARGET += TestOpenMPTarget_TeamReductionScan.o
     #OBJ_OPENMPTARGET += TestOpenMPTarget_Other.o
     #OBJ_OPENMPTARGET += TestOpenMPTarget_MDRange_a.o TestOpenMPTarget_MDRange_b.o TestOpenMPTarget_MDRange_c.o TestOpenMPTarget_MDRange_d.o TestOpenMPTarget_MDRange_d.e
-    #OBJ_OPENMPTARGET += TestOpenMPTarget_Task.o
 
     TARGETS += KokkosCore_UnitTest_OpenMPTarget
 
@@ -330,7 +335,9 @@ ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
 	OBJ_HPX += TestHPX_Other.o
 	OBJ_HPX += TestHPX_MDRange_a.o TestHPX_MDRange_b.o TestHPX_MDRange_c.o TestHPX_MDRange_d.o TestHPX_MDRange_e.o
 	OBJ_HPX += TestHPX_Crs.o
-	OBJ_HPX += TestHPX_Task.o
+	ifneq ($(KOKKOS_INTERNAL_DISABLE_DEPRECATED_CODE), 1)
+	  OBJ_HPX += TestHPX_Task.o
+	endif
 	OBJ_HPX += TestHPX_WorkGraph.o
 	OBJ_HPX += TestHPX_UniqueToken.o
 
@@ -373,7 +380,10 @@ ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
         OBJ_SERIAL += TestSerial_MDRange_a.o TestSerial_MDRange_b.o TestSerial_MDRange_c.o TestSerial_MDRange_d.o TestSerial_MDRange_e.o
     endif
     OBJ_SERIAL += TestSerial_Crs.o
-    OBJ_SERIAL += TestSerial_Task.o TestSerial_WorkGraph.o
+    ifneq ($(KOKKOS_INTERNAL_DISABLE_DEPRECATED_CODE), 1)
+      OBJ_SERIAL += TestSerial_Task.o
+    endif
+    OBJ_SERIAL += TestSerial_WorkGraph.o
     OBJ_SERIAL += TestSerial_LocalDeepCopy.o
 
     TARGETS += KokkosCore_UnitTest_Serial
@@ -392,7 +402,6 @@ ifneq ($(KOKKOS_INTERNAL_COMPILER_HCC), 1)
   OBJ_DEFAULT += TestDefaultDeviceType_a1.o TestDefaultDeviceType_b1.o TestDefaultDeviceType_c1.o
   OBJ_DEFAULT += TestDefaultDeviceType_a2.o TestDefaultDeviceType_b2.o TestDefaultDeviceType_c2.o
   OBJ_DEFAULT += TestDefaultDeviceType_a3.o TestDefaultDeviceType_b3.o TestDefaultDeviceType_c3.o
-  OBJ_DEFAULT += TestDefaultDeviceType_d.o
 endif
 endif
 

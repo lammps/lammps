@@ -56,7 +56,7 @@ using a shell like Bash or Zsh.
    Visual Studio IDE with the bundled CMake or from the Windows command prompt using
    a separately installed CMake package, both using the native Microsoft Visual C++
    compilers and (optionally) the Microsoft MPI SDK.  This tutorial, however, only
-   covers unix-like command line interfaces.
+   covers unix-like command-line interfaces.
 
 We also assume that you have downloaded and unpacked a recent LAMMPS source code package
 or used Git to create a clone of the LAMMPS sources on your compilation machine.
@@ -277,7 +277,7 @@ Setting options
 ---------------
 
 Options that enable, disable or modify settings are modified by setting
-the value of CMake variables. This is done on the command line with the
+the value of CMake variables. This is done on the command-line with the
 *-D* flag in the format ``-D VARIABLE=value``, e.g. ``-D
 CMAKE_BUILD_TYPE=Release`` or ``-D BUILD_MPI=on``.  There is one quirk:
 when used before the CMake directory, there may be a space between the
@@ -376,7 +376,7 @@ Using presets
 -------------
 
 Since LAMMPS has a lot of optional features and packages, specifying
-them all on the command line can be tedious. Or when selecting a
+them all on the command-line can be tedious. Or when selecting a
 different compiler toolchain, multiple options have to be changed
 consistently and that is rather error prone. Or when enabling certain
 packages, they require consistent settings to be operated in a
@@ -384,7 +384,7 @@ particular mode.  For this purpose, we are providing a selection of
 "preset files" for CMake in the folder ``cmake/presets``.  They
 represent a way to pre-load or override the CMake configuration cache by
 setting or changing CMake variables.  Preset files are loaded using the
-*-C* command line flag. You can combine loading multiple preset files or
+*-C* command-line flag. You can combine loading multiple preset files or
 change some variables later with additional *-D* flags.  A few examples:
 
 .. code-block:: bash

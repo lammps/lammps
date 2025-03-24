@@ -699,7 +699,7 @@ void PPPMStagger::particle_map()
       flag = 1;
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
+  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
 }
 
 /* ----------------------------------------------------------------------

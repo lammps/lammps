@@ -130,10 +130,10 @@ int HostThreadTeamData::organize_team(const int team_size) {
     //     zombi team around (for example m_pool_size = 5 and team_size = 2
     // (ii) if team_alloc > team_size then the last team might have less
     //      threads than the others
-    m_team_rank = (team_base_rank + team_size <= m_pool_size) &&
+    m_team_rank            = (team_base_rank + team_size <= m_pool_size) &&
                           (team_alloc_rank < team_size)
-                      ? team_alloc_rank
-                      : -1;
+                                 ? team_alloc_rank
+                                 : -1;
     m_team_size            = team_size;
     m_team_alloc           = team_alloc_size;
     m_league_rank          = league_rank;

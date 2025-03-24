@@ -23,6 +23,9 @@ def get_version_number():
     if __file__.find(join('python', 'lammps', '__init__.py')) > 0:
         return 0
 
+    if version_info.major < 3 or (version_info.major == 3 and version_info.minor < 6):
+        raise SystemError('LAMMPS only supports Python version 3.6 or later')
+
     vstring = None
     if version_info.major == 3 and version_info.minor >= 8:
         from importlib.metadata import version, PackageNotFoundError

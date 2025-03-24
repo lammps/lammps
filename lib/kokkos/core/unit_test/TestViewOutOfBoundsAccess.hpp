@@ -149,7 +149,7 @@ TEST(TEST_CATEGORY_DEATH, view_out_of_bounds_access) {
   }
 
 #if defined(KOKKOS_ENABLE_SYCL) && defined(NDEBUG)  // FIXME_SYCL
-  if (std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>) {
+  if (std::is_same_v<ExecutionSpace, Kokkos::SYCL>) {
     GTEST_SKIP() << "skipping SYCL device-side abort does not work when NDEBUG "
                     "is defined";
   }

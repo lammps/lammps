@@ -1,0 +1,36 @@
+atom_style              atomic
+units                   metal
+boundary                p p p
+atom_modify             sort 0 0.0
+
+lattice                 sc 1.0
+region                  box block 0 10 0 10 0 10
+create_box              1 box
+create_atoms            1 region box
+
+variable                l equal 47.6
+change_box              all x final 0 $l y final 0 $l z final 0 $l remap
+region                  world block INF INF  INF INF  INF INF
+
+### interactions
+pair_style              hybrid/overlay pace table linear 10000
+pair_coeff              * * pace potential_files/c_ace.yace C
+pair_coeff              * * table potential_files/d2.table D2 9.0
+
+mass                    1 12.011000
+velocity                all create 200 1234
+
+compute                 c1 all pair pace
+compute                 c2 all pair table
+
+# calculate the e/atom for each pair style individually
+variable                dUpace equal c_c1/atoms
+variable                dUd2 equal c_c2/atoms
+
+### run
+timestep                0.001
+fix                     1 all nvt temp 200.0 200.0 0.01
+thermo_style            custom step temp pe press etotal v_dUpace v_dUd2
+thermo                  10
+run                     100
+

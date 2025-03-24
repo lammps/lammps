@@ -58,12 +58,12 @@ struct GraphImpl : private ExecutionSpaceInstanceStorage<ExecutionSpace> {
 
   // Not movable or copyable; it spends its whole live as a shared_ptr in the
   // Graph object
-  GraphImpl()                 = default;
-  GraphImpl(GraphImpl const&) = delete;
-  GraphImpl(GraphImpl&&)      = delete;
+  GraphImpl()                            = default;
+  GraphImpl(GraphImpl const&)            = delete;
+  GraphImpl(GraphImpl&&)                 = delete;
   GraphImpl& operator=(GraphImpl const&) = delete;
-  GraphImpl& operator=(GraphImpl&&) = delete;
-  ~GraphImpl()                      = default;
+  GraphImpl& operator=(GraphImpl&&)      = delete;
+  ~GraphImpl()                           = default;
 
   explicit GraphImpl(ExecutionSpace arg_space)
       : execution_space_instance_storage_base_t(std::move(arg_space)) {}
@@ -136,16 +136,39 @@ struct GraphImpl : private ExecutionSpaceInstanceStorage<ExecutionSpace> {
     return rv;
   }
 
-  void submit() {
+  void instantiate() {
+    KOKKOS_EXPECTS(!m_has_been_instantiated);
+    m_has_been_instantiated = true;
+  }
+
+  void submit(const ExecutionSpace& exec) {
+    if (!m_has_been_instantiated) instantiate();
     // This reset is gross, but for the purposes of our simple host
     // implementation...
     for (auto& sink : m_sinks) {
       sink->reset_has_executed();
     }
+
+    // We don't know where the nodes will execute, so we need to fence the given
+    // execution space instance before proceeding. This is the simplest way
+    // of guaranteeing that the kernels in the graph are correctly "enqueued".
+    exec.fence(
+        "Kokkos::DefaultGraph::submit: fencing before launching graph nodes");
+
     for (auto& sink : m_sinks) {
-      sink->execute_node();
+      sink->execute_node(exec);
+    }
+
+    // Once all sinks have been executed, we need to fence them.
+    for (const auto& sink : m_sinks) {
+      if (sink->awaitable() && sink->get_execution_space() != exec)
+        sink->get_execution_space().fence(
+            "Kokkos::DefaultGraph::submit: fencing before ending graph submit");
     }
   }
+
+ private:
+  bool m_has_been_instantiated = false;
 
   // </editor-fold> end required customizations }}}2
   //----------------------------------------------------------------------------

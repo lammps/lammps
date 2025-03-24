@@ -46,7 +46,7 @@ Include files (varied)
   but instead should be initialized either in the initializer list of
   the constructor or explicitly assigned in the body of the constructor.
   If the member variable is relevant to the functionality of a class
-  (for example when it stores a value from a command line argument), the
+  (for example when it stores a value from a command-line argument), the
   member variable declaration is followed by a brief comment explaining
   its purpose and what its values can be.  Class members that are
   pointers should always be initialized to ``nullptr`` in the

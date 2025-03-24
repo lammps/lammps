@@ -501,7 +501,7 @@ Here are a few highlights of LAMMPS-GUI
 - Indicator for line that caused an error
 - Visualization of current state in Image Viewer (via calling :doc:`write_dump image <dump_image>`)
 - Capture of images created via :doc:`dump image <dump_image>` in Slide show window
-- Dialog to set variables, similar to the LAMMPS command line flag '-v' / '-var'
+- Dialog to set variables, similar to the LAMMPS command-line flag '-v' / '-var'
 - Support for GPU, INTEL, KOKKOS/OpenMP, OPENMAP, and OPT and accelerator packages
 
 Parallelization
@@ -550,7 +550,7 @@ will be found automatically.  2) you can download the `Flatpak file
 *flatpak* command: ``flatpak install --user
 LAMMPS-Linux-x86_64-GUI-<version>.flatpak`` and run it with ``flatpak
 run org.lammps.lammps-gui``.  The flatpak bundle also includes the
-command line version of LAMMPS and some LAMMPS tools like msi2lmp.  The
+command-line version of LAMMPS and some LAMMPS tools like msi2lmp.  The
 can be launched by using the ``--command`` flag. For example to run
 LAMMPS directly on the ``in.lj`` benchmark input you would type in the
 ``bench`` folder: ``flatpak run --command=lmp -in in.lj`` The flatpak
@@ -608,10 +608,10 @@ would be the ``examples/COUPLE/plugin`` folder of the LAMMPS
 distribution.
 
 When compiling LAMMPS-GUI with plugin support, there is an additional
-command line flag (``-p <path>`` or ``--pluginpath <path>``) which
+command-line flag (``-p <path>`` or ``--pluginpath <path>``) which
 allows to override the path to LAMMPS shared library used by the GUI.
 This is usually auto-detected on the first run and can be changed in the
-LAMMPS-GUI *Preferences* dialog.  The command line flag allows to reset
+LAMMPS-GUI *Preferences* dialog.  The command-line flag allows to reset
 this path to a valid value in case the original setting has become
 invalid.  An empty path ("") as argument restores the default setting.
 
@@ -656,7 +656,7 @@ it will create a compressed ``LAMMPS-Win10-amd64.zip`` zip file with the
 executables and required dependent .dll files.  This zip file can be
 uncompressed and ``lammps-gui.exe`` run directly from there.  The
 uncompressed folder can be added to the ``PATH`` environment and LAMMPS
-and LAMMPS-GUI can be launched from anywhere from the command line.
+and LAMMPS-GUI can be launched from anywhere from the command-line.
 
 **MinGW64 Cross-compiler**
 
@@ -876,7 +876,7 @@ the same ``LAMMPS_CACHING_DIR``. This script does the following:
  #. Start a simple local HTTP server using Python to host files for CMake
 
 Afterwards, it will print out instruction on how to modify the CMake
-command line to make sure it uses the local HTTP server.
+commands to make sure it uses the local HTTP server.
 
 To undo the environment changes and shutdown the local HTTP server,
 run the ``deactivate_caches`` command.
@@ -930,7 +930,7 @@ dependencies and redirects the download to the local cache.
 
    mkdir build
    cd build
-   cmake -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C ../cmake/presets/most.cmake ../cmake
+   cmake -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C ../cmake/presets/most.cmake -D DOWNLOAD_POTENTIALS=off ../cmake
    make -j 8
 
    deactivate_caches
@@ -1025,7 +1025,7 @@ with those in the provided log file with the same number of processors
 in the same subdirectory. If the differences between the actual and
 reference values are within specified tolerances, the test is considered
 passed.  For each test batch, that is, a set of example input scripts,
-the mpirun command, the LAMMPS command line arguments, and the
+the mpirun command, the LAMMPS command-line arguments, and the
 tolerances for individual thermo quantities can be specified in a
 configuration file in YAML format.
 

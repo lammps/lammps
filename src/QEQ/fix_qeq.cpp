@@ -41,6 +41,9 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static constexpr double QSUMSMALL = 0.00001;
+static constexpr int MIN_CAP = 50;
+static constexpr double SAFE_ZONE = 1.2;
+static constexpr bigint MIN_NBRS = 100;
 
 namespace {
   class qeq_parser_error : public std::exception {

@@ -227,17 +227,24 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(check_style, "plumed") == 0)
       error->all(FLERR, "There must be only one instance of fix plumed");
 
+    // PLUMED knows nothing about path integrals
+
+    if (utils::strmatch(check_style, "^pimd") || utils::strmatch(check_style, "^ipi"))
+      error->all(FLERR, "Fix plumed is incompatible with path-integrals");
+
     // Avoid conflict with fixes that define internal pressure computes.
     // See comment in the setup method
 
-    if (utils::strmatch(check_style, "^nph") || utils::strmatch(check_style, "^npt") ||
-        utils::strmatch(check_style, "^rigid/nph") || utils::strmatch(check_style, "^rigid/npt") ||
-        utils::strmatch(check_style, "^msst") || utils::strmatch(check_style, "^nphug") ||
-        utils::strmatch(check_style, "^ipi") || utils::strmatch(check_style, "^press/berendsen") ||
-        utils::strmatch(check_style, "^qbmsst"))
+    if (utils::strmatch(check_style, "^nph") || utils::strmatch(check_style, "^press/berendsen") ||
+        utils::strmatch(check_style, "^npt") || utils::strmatch(check_style, "^deform/pressure") ||
+        utils::strmatch(check_style, "^msst") || utils::strmatch(check_style, "^press/langevin") ||
+        utils::strmatch(check_style, "^nphug") || utils::strmatch(check_style, "^tgnpt/drude") ||
+        utils::strmatch(check_style, "^qbmsst") || utils::strmatch(check_style, "^rigid/nph") ||
+        utils::strmatch(check_style, "^rigid/npt") || utils::strmatch(check_style, "^box/relax"))
       error->all(FLERR,
-                 "Fix plumed must be defined before any other fixes, "
-                 "that compute pressure internally");
+                 "Fix plumed must be defined before any other fixes like fix {} that compute "
+                 "pressure internally",
+                 check_style);
   }
 }
 
@@ -272,6 +279,22 @@ void FixPlumed::init()
   // in a setup method
 
   for (int i = 0; i < 6; i++) virial[i] = 0.;
+
+  c_pe = modify->get_compute_by_id(id_pe);
+  if (!c_pe) {
+    error->all(FLERR, "Potential energy compute ID {} for fix plumed does not exist", id_pe);
+  } else {
+    if (c_pe->peflag == 0)
+      error->all(FLERR, "Compute ID {} does not compute potential energy", id_pe);
+  }
+
+  c_press = modify->get_compute_by_id(id_press);
+  if (!c_press) {
+    error->all(FLERR, "Pressure compute ID {} for fix plumed does not exist", id_press);
+  } else {
+    if (c_press->pressflag == 0)
+      error->all(FLERR, "Compute ID {} does not compute pressure", id_press);
+  }
 }
 
 void FixPlumed::setup(int vflag)

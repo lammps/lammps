@@ -8,18 +8,18 @@
 #ifndef FMT_OS_H_
 #define FMT_OS_H_
 
+#include <cerrno>
+#include <cstddef>
+#include <cstdio>
+#include <system_error>  // std::system_error
+
 #include "format.h"
 
-#ifndef FMT_MODULE
-#  include <cerrno>
-#  include <cstddef>
-#  include <cstdio>
-#  include <system_error>  // std::system_error
-
+#if defined __APPLE__ || defined(__FreeBSD__)
 #  if FMT_HAS_INCLUDE(<xlocale.h>)
-#    include <xlocale.h>  // LC_NUMERIC_MASK on macOS
+#    include <xlocale.h>  // for LC_NUMERIC_MASK on OS X
 #  endif
-#endif  // FMT_MODULE
+#endif
 
 #ifndef FMT_USE_FCNTL
 // UWP doesn't provide _pipe.
@@ -77,33 +77,46 @@ FMT_BEGIN_NAMESPACE
 FMT_BEGIN_EXPORT
 
 /**
- * A reference to a null-terminated string. It can be constructed from a C
- * string or `std::string`.
- *
- * You can use one of the following type aliases for common character types:
- *
- * +---------------+-----------------------------+
- * | Type          | Definition                  |
- * +===============+=============================+
- * | cstring_view  | basic_cstring_view<char>    |
- * +---------------+-----------------------------+
- * | wcstring_view | basic_cstring_view<wchar_t> |
- * +---------------+-----------------------------+
- *
- * This class is most useful as a parameter type for functions that wrap C APIs.
+  \rst
+  A reference to a null-terminated string. It can be constructed from a C
+  string or ``std::string``.
+
+  You can use one of the following type aliases for common character types:
+
+  +---------------+-----------------------------+
+  | Type          | Definition                  |
+  +===============+=============================+
+  | cstring_view  | basic_cstring_view<char>    |
+  +---------------+-----------------------------+
+  | wcstring_view | basic_cstring_view<wchar_t> |
+  +---------------+-----------------------------+
+
+  This class is most useful as a parameter type to allow passing
+  different types of strings to a function, for example::
+
+    template <typename... Args>
+    std::string format(cstring_view format_str, const Args & ... args);
+
+    format("{}", 42);
+    format(std::string("{}"), 42);
+  \endrst
  */
 template <typename Char> class basic_cstring_view {
  private:
   const Char* data_;
 
  public:
-  /// Constructs a string reference object from a C string.
+  /** Constructs a string reference object from a C string. */
   basic_cstring_view(const Char* s) : data_(s) {}
 
-  /// Constructs a string reference from an `std::string` object.
+  /**
+    \rst
+    Constructs a string reference from an ``std::string`` object.
+    \endrst
+   */
   basic_cstring_view(const std::basic_string<Char>& s) : data_(s.c_str()) {}
 
-  /// Returns the pointer to a C string.
+  /** Returns the pointer to a C string. */
   auto c_str() const -> const Char* { return data_; }
 };
 
@@ -122,30 +135,33 @@ FMT_API std::system_error vwindows_error(int error_code, string_view format_str,
                                          format_args args);
 
 /**
- * Constructs a `std::system_error` object with the description of the form
- *
- *     <message>: <system-message>
- *
- * where `<message>` is the formatted message and `<system-message>` is the
- * system message corresponding to the error code.
- * `error_code` is a Windows error code as given by `GetLastError`.
- * If `error_code` is not a valid error code such as -1, the system message
- * will look like "error -1".
- *
- * **Example**:
- *
- *     // This throws a system_error with the description
- *     //   cannot open file 'madeup': The system cannot find the file
- * specified.
- *     // or similar (system message may vary).
- *     const char *filename = "madeup";
- *     LPOFSTRUCT of = LPOFSTRUCT();
- *     HFILE file = OpenFile(filename, &of, OF_READ);
- *     if (file == HFILE_ERROR) {
- *       throw fmt::windows_error(GetLastError(),
- *                                "cannot open file '{}'", filename);
- *     }
- */
+ \rst
+ Constructs a :class:`std::system_error` object with the description
+ of the form
+
+ .. parsed-literal::
+   *<message>*: *<system-message>*
+
+ where *<message>* is the formatted message and *<system-message>* is the
+ system message corresponding to the error code.
+ *error_code* is a Windows error code as given by ``GetLastError``.
+ If *error_code* is not a valid error code such as -1, the system message
+ will look like "error -1".
+
+ **Example**::
+
+   // This throws a system_error with the description
+   //   cannot open file 'madeup': The system cannot find the file specified.
+   // or similar (system message may vary).
+   const char *filename = "madeup";
+   LPOFSTRUCT of = LPOFSTRUCT();
+   HFILE file = OpenFile(filename, &of, OF_READ);
+   if (file == HFILE_ERROR) {
+     throw fmt::windows_error(GetLastError(),
+                              "cannot open file '{}'", filename);
+   }
+ \endrst
+*/
 template <typename... Args>
 std::system_error windows_error(int error_code, string_view message,
                                 const Args&... args) {
@@ -211,11 +227,13 @@ class buffered_file {
 
   FMT_API auto descriptor() const -> int;
 
-  template <typename... T>
-  inline void print(string_view fmt, const T&... args) {
-    const auto& vargs = fmt::make_format_args(args...);
-    detail::is_locking<T...>() ? fmt::vprint_buffered(file_, fmt, vargs)
-                               : fmt::vprint(file_, fmt, vargs);
+  void vprint(string_view format_str, format_args args) {
+    fmt::vprint(file_, format_str, args);
+  }
+
+  template <typename... Args>
+  inline void print(string_view format_str, const Args&... args) {
+    vprint(format_str, fmt::make_format_args(args...));
   }
 };
 
@@ -366,7 +384,7 @@ class file_buffer final : public buffer<char> {
 
  public:
   FMT_API file_buffer(cstring_view path, const ostream_params& params);
-  FMT_API file_buffer(file_buffer&& other) noexcept;
+  FMT_API file_buffer(file_buffer&& other);
   FMT_API ~file_buffer();
 
   void flush() {
@@ -383,10 +401,11 @@ class file_buffer final : public buffer<char> {
 
 }  // namespace detail
 
-constexpr auto buffer_size = detail::buffer_size();
+// Added {} below to work around default constructor error known to
+// occur in Xcode versions 7.2.1 and 8.2.1.
+constexpr detail::buffer_size buffer_size{};
 
-/// A fast output stream for writing from a single thread. Writing from
-/// multiple threads without external synchronization may result in a data race.
+/** A fast output stream which is not thread-safe. */
 class FMT_API ostream {
  private:
   FMT_MSC_WARNING(suppress : 4251)
@@ -407,25 +426,30 @@ class FMT_API ostream {
 
   void close() { buffer_.close(); }
 
-  /// Formats `args` according to specifications in `fmt` and writes the
-  /// output to the file.
+  /**
+    Formats ``args`` according to specifications in ``fmt`` and writes the
+    output to the file.
+   */
   template <typename... T> void print(format_string<T...> fmt, T&&... args) {
-    vformat_to(appender(buffer_), fmt, fmt::make_format_args(args...));
+    vformat_to(std::back_inserter(buffer_), fmt,
+               fmt::make_format_args(args...));
   }
 };
 
 /**
- * Opens a file for writing. Supported parameters passed in `params`:
- *
- * - `<integer>`: Flags passed to [open](
- *   https://pubs.opengroup.org/onlinepubs/007904875/functions/open.html)
- *   (`file::WRONLY | file::CREATE | file::TRUNC` by default)
- * - `buffer_size=<integer>`: Output buffer size
- *
- * **Example**:
- *
- *     auto out = fmt::output_file("guide.txt");
- *     out.print("Don't {}", "Panic");
+  \rst
+  Opens a file for writing. Supported parameters passed in *params*:
+
+  * ``<integer>``: Flags passed to `open
+    <https://pubs.opengroup.org/onlinepubs/007904875/functions/open.html>`_
+    (``file::WRONLY | file::CREATE | file::TRUNC`` by default)
+  * ``buffer_size=<integer>``: Output buffer size
+
+  **Example**::
+
+    auto out = fmt::output_file("guide.txt");
+    out.print("Don't {}", "Panic");
+  \endrst
  */
 template <typename... T>
 inline auto output_file(cstring_view path, T... params) -> ostream {

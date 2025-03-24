@@ -101,6 +101,8 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
 
 RegSphere::~RegSphere()
 {
+  if (copymode) return;
+
   delete[] xstr;
   delete[] ystr;
   delete[] zstr;

@@ -279,13 +279,57 @@ class ReduceTeamFunctor {
     const int thread_size = ind.team_size() * ind.league_size();
     const int chunk       = (nwork + thread_size - 1) / thread_size;
 
-    size_type iwork           = chunk * thread_rank;
+    size_type iwork           = static_cast<size_type>(chunk) * thread_rank;
     const size_type iwork_end = iwork + chunk < nwork ? iwork + chunk : nwork;
 
     for (; iwork < iwork_end; ++iwork) {
       dst.value[0] += 1;
       dst.value[1] += iwork + 1;
       dst.value[2] += nwork - iwork;
+    }
+  }
+};
+
+template <typename ScalarType, class DeviceType, class ScheduleType>
+class ArrayReduceTeamFunctor {
+ public:
+  using execution_space = DeviceType;
+  using policy_type     = Kokkos::TeamPolicy<ScheduleType, execution_space>;
+  using size_type       = typename execution_space::size_type;
+
+  using value_type      = ScalarType[];
+  size_type value_count = 3;
+
+  size_type nwork;
+
+  KOKKOS_INLINE_FUNCTION
+  ArrayReduceTeamFunctor(const size_type &arg_nwork) : nwork(arg_nwork) {}
+
+  KOKKOS_INLINE_FUNCTION
+  void init(value_type dst) const {
+    for (size_type i = 0; i < value_count; ++i) dst[i] = 0;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void join(value_type dst, const value_type src) const {
+    for (size_type i = 0; i < value_count; ++i) dst[i] += src[i];
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const typename policy_type::member_type &team,
+                  value_type dst) const {
+    const int thread_rank =
+        team.team_rank() + team.team_size() * team.league_rank();
+    const int thread_size = team.team_size() * team.league_size();
+    const int chunk       = (nwork + thread_size - 1) / thread_size;
+
+    size_type iwork           = chunk * thread_rank;
+    const size_type iwork_end = iwork + chunk < nwork ? iwork + chunk : nwork;
+
+    for (; iwork < iwork_end; ++iwork) {
+      dst[0] += 1;
+      dst[1] += iwork + 1;
+      dst[2] += nwork - iwork;
     }
   }
 };
@@ -301,42 +345,82 @@ class TestReduceTeam {
   using policy_type     = Kokkos::TeamPolicy<ScheduleType, execution_space>;
   using size_type       = typename execution_space::size_type;
 
-  TestReduceTeam(const size_type &nwork) { run_test(nwork); }
-
   void run_test(const size_type &nwork) {
-    using functor_type =
-        Test::ReduceTeamFunctor<ScalarType, execution_space, ScheduleType>;
-    using value_type = typename functor_type::value_type;
-    using result_type =
-        Kokkos::View<value_type, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>;
-
     enum { Count = 3 };
     enum { Repeat = 100 };
-
-    value_type result[Repeat];
 
     const uint64_t nw   = nwork;
     const uint64_t nsum = nw % 2 ? nw * ((nw + 1) / 2) : (nw / 2) * (nw + 1);
 
     policy_type team_exec(nw, 1);
 
-    const unsigned team_size = team_exec.team_size_recommended(
-        functor_type(nwork), Kokkos::ParallelReduceTag());
-    const unsigned league_size = (nwork + team_size - 1) / team_size;
+    {
+      using functor_type =
+          Test::ReduceTeamFunctor<ScalarType, execution_space, ScheduleType>;
+      using value_type = typename functor_type::value_type;
+      using result_type =
+          Kokkos::View<value_type, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>;
 
-    team_exec = policy_type(league_size, team_size);
+      value_type result[Repeat];
 
-    for (unsigned i = 0; i < Repeat; ++i) {
-      result_type tmp(&result[i]);
-      Kokkos::parallel_reduce(team_exec, functor_type(nwork), tmp);
+      const unsigned team_size = team_exec.team_size_recommended(
+          functor_type(nwork), Kokkos::ParallelReduceTag());
+      const unsigned league_size = (nwork + team_size - 1) / team_size;
+
+      team_exec = policy_type(league_size, team_size);
+
+      for (unsigned i = 0; i < Repeat; ++i) {
+        result_type tmp(&result[i]);
+        Kokkos::parallel_reduce(team_exec, functor_type(nwork), tmp);
+      }
+
+      execution_space().fence();
+
+      for (unsigned i = 0; i < Repeat; ++i) {
+        for (unsigned j = 0; j < Count; ++j) {
+          const uint64_t correct = (j == 0) ? nw : nsum;
+          ASSERT_EQ((ScalarType)correct, result[i].value[j]);
+        }
+      }
     }
+  }
 
-    execution_space().fence();
+  void run_array_test(const size_type &nwork) {
+    enum { Count = 3 };
+    enum { Repeat = 100 };
 
-    for (unsigned i = 0; i < Repeat; ++i) {
-      for (unsigned j = 0; j < Count; ++j) {
-        const uint64_t correct = 0 == j % 3 ? nw : nsum;
-        ASSERT_EQ((ScalarType)correct, result[i].value[j]);
+    const uint64_t nw   = nwork;
+    const uint64_t nsum = nw % 2 ? nw * ((nw + 1) / 2) : (nw / 2) * (nw + 1);
+
+    policy_type team_exec(nw, 1);
+
+    {
+      using functor_type =
+          Test::ArrayReduceTeamFunctor<ScalarType, execution_space,
+                                       ScheduleType>;
+      using result_type = Kokkos::View<ScalarType *, Kokkos::HostSpace,
+                                       Kokkos::MemoryUnmanaged>;
+
+      ScalarType result[Repeat][Count];
+
+      const unsigned team_size = team_exec.team_size_recommended(
+          functor_type(nwork), Kokkos::ParallelReduceTag());
+      const unsigned league_size = (nwork + team_size - 1) / team_size;
+
+      team_exec = policy_type(league_size, team_size);
+
+      for (unsigned i = 0; i < Repeat; ++i) {
+        result_type tmp(&result[i][0], Count);
+        Kokkos::parallel_reduce(team_exec, functor_type(nwork), tmp);
+      }
+
+      execution_space().fence();
+
+      for (unsigned i = 0; i < Repeat; ++i) {
+        for (unsigned j = 0; j < Count; ++j) {
+          ASSERT_EQ(j ? nsum : nw, static_cast<uint64_t>(result[i][j]))
+              << "failing at repeat " << i << " and index " << j;
+        }
       }
     }
   }
@@ -381,8 +465,9 @@ class ScanTeamFunctor {
   void operator()(const typename policy_type::member_type ind,
                   value_type &error) const {
     if (0 == ind.league_rank() && 0 == ind.team_rank()) {
-      const int64_t thread_count = ind.league_size() * ind.team_size();
-      total()                    = (thread_count * (thread_count + 1)) / 2;
+      const int64_t thread_count =
+          static_cast<int64_t>(ind.league_size()) * ind.team_size();
+      total() = (thread_count * (thread_count + 1)) / 2;
     }
 
     // Team max:
@@ -595,7 +680,6 @@ struct TestSharedTeam {
 
 namespace Test {
 
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
 template <class MemorySpace, class ExecSpace, class ScheduleType>
 struct TestLambdaSharedTeam {
   TestLambdaSharedTeam() { run(); }
@@ -617,7 +701,7 @@ struct TestLambdaSharedTeam {
         std::is_same<ExecSpace, Kokkos::Experimental::OpenMPTarget>::value ? 32
                                                                            : 1;
 #else
-    int team_size = 1;
+    int team_size    = 1;
 #endif
 
 #ifdef KOKKOS_ENABLE_CUDA
@@ -676,7 +760,6 @@ struct TestLambdaSharedTeam {
     ASSERT_EQ(error_count, 0);
   }
 };
-#endif
 
 }  // namespace Test
 
@@ -807,7 +890,7 @@ struct TestScratchTeam {
             ? p_type(64 / team_size, team_size)
             : p_type(8192 / team_size, team_size);
 #else
-    team_exec          = p_type(8192 / team_size, team_size);
+    team_exec     = p_type(8192 / team_size, team_size);
 #endif
 
     Kokkos::parallel_reduce(
@@ -993,7 +1076,7 @@ struct ClassNoShmemSizeFunction {
 #ifdef KOKKOS_ENABLE_SYCL
     int team_size = 4;
 #else
-    int team_size      = 8;
+    int team_size = 8;
 #endif
     int const concurrency = ExecSpace().concurrency();
     if (team_size > concurrency) team_size = concurrency;
@@ -1117,7 +1200,6 @@ struct ClassWithShmemSizeFunction {
 
 template <class ExecSpace, class ScheduleType>
 void test_team_mulit_level_scratch_test_lambda() {
-#ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
   Kokkos::View<int, ExecSpace, Kokkos::MemoryTraits<Kokkos::Atomic>> errors;
   Kokkos::View<int, ExecSpace> d_errors("Errors");
   errors = d_errors;
@@ -1181,7 +1263,6 @@ void test_team_mulit_level_scratch_test_lambda() {
       },
       error);
   ASSERT_EQ(error, 0);
-#endif
 }
 
 }  // namespace Test
@@ -1193,9 +1274,7 @@ struct TestMultiLevelScratchTeam {
   TestMultiLevelScratchTeam() { run(); }
 
   void run() {
-#ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
     Test::test_team_mulit_level_scratch_test_lambda<ExecSpace, ScheduleType>();
-#endif
     Test::ClassNoShmemSizeFunction<ExecSpace, ScheduleType> c1;
     c1.run();
 
@@ -1440,10 +1519,10 @@ struct TestTeamBroadcast<ExecSpace, ScheduleType, T,
   }
 
   template <class ScalarType>
-  static inline std::enable_if_t<!std::is_integral<ScalarType>::value, void>
+  static inline std::enable_if_t<!std::is_integral_v<ScalarType>, void>
   compare_test(ScalarType A, ScalarType B, double epsilon_factor) {
-    if (std::is_same<ScalarType, double>::value ||
-        std::is_same<ScalarType, float>::value) {
+    if (std::is_same_v<ScalarType, double> ||
+        std::is_same_v<ScalarType, float>) {
       ASSERT_NEAR((double)A, (double)B,
                   epsilon_factor * std::abs(A) *
                       std::numeric_limits<ScalarType>::epsilon());
@@ -1453,7 +1532,7 @@ struct TestTeamBroadcast<ExecSpace, ScheduleType, T,
   }
 
   template <class ScalarType>
-  static inline std::enable_if_t<std::is_integral<ScalarType>::value, void>
+  static inline std::enable_if_t<std::is_integral_v<ScalarType>, void>
   compare_test(ScalarType A, ScalarType B, double) {
     ASSERT_EQ(A, B);
   }
@@ -1663,7 +1742,6 @@ struct TestTeamPolicyHandleByValue {
   TestTeamPolicyHandleByValue() { test(); }
 
   void test() {
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     const int M = 1, N = 1;
     Kokkos::View<scalar **, mem_space> a("a", M, N);
     Kokkos::View<scalar **, mem_space> b("b", M, N);
@@ -1678,7 +1756,6 @@ struct TestTeamPolicyHandleByValue {
           Kokkos::parallel_for(Kokkos::TeamThreadRange(team, 0, N),
                                [&](const int j) { a(i, j) += b(i, j); });
         });
-#endif
   }
 };
 
@@ -1747,6 +1824,164 @@ struct TestRepeatedTeamReduce {
   }
 
   Kokkos::View<double *, ExecutionSpace> v;
+};
+
+}  // namespace
+
+}  // namespace Test
+
+namespace Test {
+
+struct SimpleTestValueType {
+  using ScalarType = int;
+
+  ScalarType value[2];
+};
+
+struct TestTeamReducerFunctor {
+  using value_type = SimpleTestValueType;
+
+  KOKKOS_INLINE_FUNCTION
+  void init(value_type &init) const {
+    init.value[0] = 1;
+    init.value[1] = 10;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void join(value_type &dst, value_type const &src) const {
+    dst.value[0] *= src.value[0];
+    dst.value[1] += src.value[1];
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void final(value_type &dst) const {
+    dst.value[0] /= -2;
+    dst.value[1] /= -2;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int i, value_type &update) const {
+    update.value[0] *= (i + 1);
+    update.value[1] *= (i + 2);
+  }
+};
+
+struct TestTeamReducer {
+  using reducer    = TestTeamReducer;
+  using value_type = SimpleTestValueType;
+
+  KOKKOS_INLINE_FUNCTION
+  TestTeamReducer(value_type &val) : local(val) {}
+
+  KOKKOS_INLINE_FUNCTION
+  void init(value_type &init) const {
+    init.value[0] = 1;
+    init.value[1] = 10;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void join(value_type &dst, value_type const &src) const {
+    dst.value[0] *= src.value[0];
+    dst.value[1] += src.value[1];
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void final(value_type &dst) const {
+    dst.value[0] /= -2;
+    dst.value[1] /= -2;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  value_type &reference() const { return local; }
+
+  value_type &local;
+};
+
+namespace {
+
+template <typename ExecSpace>
+class TestTeamNestedReducerFunctor {
+ public:
+  using execution_space  = ExecSpace;
+  using team_policy_type = Kokkos::TeamPolicy<execution_space>;
+  using member_type      = typename team_policy_type::member_type;
+  using value_type       = SimpleTestValueType;
+  using functor_type     = TestTeamReducerFunctor;
+  using reducer_type     = TestTeamReducer;
+  using index_type       = int;
+
+  void run_test_team_thread() {
+    auto policy = KOKKOS_LAMBDA(member_type const &member, index_type count) {
+      return Kokkos::TeamThreadRange(member, count);
+    };
+    run_test_team_policies(policy);
+  };
+
+  void run_test_thread_vector() {
+    auto policy = KOKKOS_LAMBDA(member_type const &member, index_type count) {
+      return Kokkos::ThreadVectorRange(member, count);
+    };
+    run_test_team_policies(policy);
+  };
+
+  void run_test_team_vector() {
+    auto policy = KOKKOS_LAMBDA(member_type const &member, index_type count) {
+      return Kokkos::TeamVectorRange(member, count);
+    };
+    run_test_team_policies(policy);
+  };
+
+  template <typename Policy>
+  void run_test_team_policies(Policy &policy) {
+    constexpr index_type league_size = 3;
+    constexpr index_type test_count  = 8;
+
+    Kokkos::View<value_type[league_size], execution_space>
+        reducer_functor_result("reducer_functor_result");
+    Kokkos::View<value_type[league_size], execution_space> reducer_result(
+        "reducer_result");
+
+    Kokkos::parallel_for(
+        team_policy_type(league_size, Kokkos::AUTO),
+        KOKKOS_LAMBDA(member_type const &team) {
+          const int league = team.league_rank();
+
+          // Using a functor as reducer
+          value_type result1{};
+          Kokkos::parallel_reduce(policy(team, test_count), functor_type{},
+                                  result1);
+
+          // Using a reducer
+          value_type result2{};
+          reducer_type reducer(result2);
+          Kokkos::parallel_reduce(
+              policy(team, test_count),
+              [&](const int i, value_type &update) {
+                update.value[0] *= (i + 1);
+                update.value[1] *= (i + 2);
+              },
+              reducer);
+
+          Kokkos::single(Kokkos::PerTeam(team), [=]() {
+            reducer_functor_result(league).value[0] = result1.value[0];
+            reducer_functor_result(league).value[1] = result1.value[1];
+
+            reducer_result(league).value[0] = result2.value[0];
+            reducer_result(league).value[1] = result2.value[1];
+          });
+        });
+    Kokkos::fence();
+
+    auto test1 = Kokkos::create_mirror_view_and_copy(
+        Kokkos::DefaultHostExecutionSpace{}, reducer_functor_result);
+    auto test2 = Kokkos::create_mirror_view_and_copy(
+        Kokkos::DefaultHostExecutionSpace{}, reducer_result);
+
+    for (unsigned i = 0; i < test1.extent(0); ++i) {
+      EXPECT_EQ(test1(i).value[0], test2(i).value[0]);
+      EXPECT_EQ(test1(i).value[1], test2(i).value[1]);
+    }
+  }
 };
 
 }  // namespace

@@ -25,7 +25,7 @@
 
 template <class FunctorType, class... Traits>
 class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
-                                Kokkos::Experimental::SYCL> {
+                                Kokkos::SYCL> {
  public:
   using Policy = Kokkos::MDRangePolicy<Traits...>;
 
@@ -54,7 +54,7 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
     const typename Policy::index_type m_num_tiles;
     static constexpr Iterate inner_direction = Policy::inner_direction;
   } m_policy;
-  const Kokkos::Experimental::SYCL& m_space;
+  const Kokkos::SYCL& m_space;
 
   sycl::nd_range<3> compute_ranges() const {
     const auto& m_tile     = m_policy.m_tile;
@@ -180,12 +180,11 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
   }
 
   void execute() const {
-    Kokkos::Experimental::Impl::SYCLInternal::IndirectKernelMem&
-        indirectKernelMem =
-            m_space.impl_internal_space_instance()->get_indirect_kernel_mem();
+    Kokkos::Impl::SYCLInternal::IndirectKernelMem& indirectKernelMem =
+        m_space.impl_internal_space_instance()->get_indirect_kernel_mem();
 
-    auto functor_wrapper = Experimental::Impl::make_sycl_function_wrapper(
-        m_functor, indirectKernelMem);
+    auto functor_wrapper =
+        Impl::make_sycl_function_wrapper(m_functor, indirectKernelMem);
     sycl::event event =
         sycl_direct_launch(functor_wrapper, functor_wrapper.get_copy_event());
     functor_wrapper.register_event(event);

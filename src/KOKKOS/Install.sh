@@ -7,6 +7,19 @@ mode=$1
 LC_ALL=C
 export LC_ALL
 
+cat <<EOF
+WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
+WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
+
+  Support for building the KOKKOS package with the legacy build system using GNU
+  make will be removed in Summer 2025.  Please switch to using CMake to build
+  LAMMPS as soon as possible and report any problems to developers@lammps.org
+  or post a bug report issue at https://github.com/lammps/lammps/issues
+
+WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
+WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
+EOF
+
 # arg1 = file, arg2 = file it depends on
 
 action () {
@@ -106,6 +119,14 @@ action compute_composition_atom_kokkos.cpp compute_composition_atom.cpp
 action compute_composition_atom_kokkos.h compute_composition_atom.h
 action compute_orientorder_atom_kokkos.cpp
 action compute_orientorder_atom_kokkos.h
+action compute_sna_grid_kokkos.cpp compute_sna_grid.cpp
+action compute_sna_grid_kokkos.h compute_sna_grid.h
+action compute_sna_grid_kokkos_impl.h compute_sna_grid.cpp
+action compute_sna_grid_local_kokkos.cpp compute_sna_grid_local.cpp
+action compute_sna_grid_local_kokkos.h compute_sna_grid_local.h
+action compute_sna_grid_local_kokkos_impl.h compute_sna_grid_local.cpp
+action compute_gaussian_grid_local_kokkos.cpp compute_gaussian_grid_local.cpp
+action compute_gaussian_grid_local_kokkos.h compute_gaussian_grid_local.h
 action compute_temp_deform_kokkos.cpp
 action compute_temp_deform_kokkos.h
 action compute_temp_kokkos.cpp
@@ -131,6 +152,10 @@ action fft3d_kokkos.h fft3d.h
 action fftdata_kokkos.h fft3d.h
 action fix_acks2_reaxff_kokkos.cpp fix_acks2_reaxff.cpp
 action fix_acks2_reaxff_kokkos.h fix_acks2_reaxff.h
+action fix_cmap_kokkos.cpp fix_cmap.cpp
+action fix_cmap_kokkos.h fix_cmap.h
+action fix_colvars_kokkos.cpp fix_colvars.cpp
+action fix_colvars_kokkos.h fix_colvars.h
 action fix_deform_kokkos.cpp
 action fix_deform_kokkos.h
 action fix_dpd_energy_kokkos.cpp fix_dpd_energy.cpp
@@ -163,6 +188,8 @@ action fix_npt_kokkos.cpp
 action fix_npt_kokkos.h
 action fix_nve_kokkos.cpp
 action fix_nve_kokkos.h
+action fix_nve_limit_kokkos.cpp
+action fix_nve_limit_kokkos.h
 action fix_nve_sphere_kokkos.cpp
 action fix_nve_sphere_kokkos.h
 action fix_nvt_kokkos.cpp
@@ -179,6 +206,8 @@ action compute_reaxff_atom_kokkos.cpp compute_reaxff_atom.cpp
 action compute_reaxff_atom_kokkos.h compute_reaxff_atom.h
 action fix_reaxff_species_kokkos.cpp fix_reaxff_species.cpp
 action fix_reaxff_species_kokkos.h fix_reaxff_species.h
+action fix_recenter_kokkos.cpp
+action fix_recenter_kokkos.h
 action fix_rx_kokkos.cpp fix_rx.cpp
 action fix_rx_kokkos.h fix_rx.h
 action fix_setforce_kokkos.cpp
@@ -205,8 +234,11 @@ action fix_wall_lj93_kokkos.cpp
 action fix_wall_lj93_kokkos.h
 action fix_wall_reflect_kokkos.cpp
 action fix_wall_reflect_kokkos.h
+action fix_wall_region_kokkos.cpp
+action fix_wall_region_kokkos.h
 action grid3d_kokkos.cpp fft3d.h
 action grid3d_kokkos.h fft3d.h
+action group_kokkos.h
 action improper_class2_kokkos.cpp improper_class2.cpp
 action improper_class2_kokkos.h improper_class2.h
 action improper_harmonic_kokkos.cpp improper_harmonic.cpp
@@ -409,6 +441,8 @@ action rand_pool_wrap_kokkos.cpp
 action rand_pool_wrap_kokkos.h
 action region_block_kokkos.cpp
 action region_block_kokkos.h
+action region_sphere_kokkos.cpp
+action region_sphere_kokkos.h
 action remap_kokkos.cpp remap.cpp
 action remap_kokkos.h remap.h
 action sna_kokkos_impl.h sna.cpp

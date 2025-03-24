@@ -724,11 +724,11 @@ class simd<double, simd_abi::avx2_fixed_size<4>> {
   using abi_type   = simd_abi::avx2_fixed_size<4>;
   using mask_type  = simd_mask<value_type, abi_type>;
   using reference  = value_type&;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd()            = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd&&)      = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd()                       = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd const&)            = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd&&)                 = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd&&) = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd&&)      = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION static constexpr std::size_t size() {
     return 4;
   }
@@ -778,8 +778,8 @@ class simd<double, simd_abi::avx2_fixed_size<4>> {
       const {
     return m_value;
   }
-  [[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd operator-() const
-      noexcept {
+  [[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd
+  operator-() const noexcept {
     return simd(
         _mm256_sub_pd(_mm256_set1_pd(0.0), static_cast<__m256d>(m_value)));
   }
@@ -989,11 +989,11 @@ class simd<float, simd_abi::avx2_fixed_size<4>> {
   using abi_type   = simd_abi::avx2_fixed_size<4>;
   using mask_type  = simd_mask<value_type, abi_type>;
   using reference  = value_type&;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd()            = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd&&)      = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd()                       = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd const&)            = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd&&)                 = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd&&) = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd&&)      = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION static constexpr std::size_t size() {
     return 4;
   }
@@ -1041,8 +1041,8 @@ class simd<float, simd_abi::avx2_fixed_size<4>> {
       const {
     return m_value;
   }
-  [[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd operator-() const
-      noexcept {
+  [[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd
+  operator-() const noexcept {
     return simd(_mm_sub_ps(_mm_set1_ps(0.0), m_value));
   }
   [[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION friend simd operator*(
@@ -1236,11 +1236,11 @@ class simd<float, simd_abi::avx2_fixed_size<8>> {
   using abi_type   = simd_abi::avx2_fixed_size<8>;
   using mask_type  = simd_mask<value_type, abi_type>;
   using reference  = value_type&;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd()            = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd&&)      = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd()                       = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd const&)            = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd&&)                 = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd&&) = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd&&)      = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION static constexpr std::size_t size() {
     return 8;
   }
@@ -1293,8 +1293,8 @@ class simd<float, simd_abi::avx2_fixed_size<8>> {
       const {
     return m_value;
   }
-  [[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd operator-() const
-      noexcept {
+  [[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd
+  operator-() const noexcept {
     return simd(_mm256_sub_ps(_mm256_set1_ps(0.0), m_value));
   }
   [[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION friend simd operator*(
@@ -1494,11 +1494,11 @@ class simd<std::int32_t, simd_abi::avx2_fixed_size<4>> {
   using abi_type   = simd_abi::avx2_fixed_size<4>;
   using mask_type  = simd_mask<value_type, abi_type>;
   using reference  = value_type&;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd()            = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd&&)      = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd()                       = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd const&)            = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd&&)                 = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd&&) = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd&&)      = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION static constexpr std::size_t size() {
     return 4;
   }
@@ -1693,11 +1693,11 @@ class simd<std::int32_t, simd_abi::avx2_fixed_size<8>> {
   using abi_type   = simd_abi::avx2_fixed_size<8>;
   using mask_type  = simd_mask<value_type, abi_type>;
   using reference  = value_type&;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd()            = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd&&)      = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd()                       = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd const&)            = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd&&)                 = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd&&) = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd&&)      = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION static constexpr std::size_t size() {
     return 8;
   }
@@ -1896,11 +1896,11 @@ class simd<std::int64_t, simd_abi::avx2_fixed_size<4>> {
   using abi_type   = simd_abi::avx2_fixed_size<4>;
   using mask_type  = simd_mask<value_type, abi_type>;
   using reference  = value_type&;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd()            = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd&&)      = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd()                       = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd const&)            = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd&&)                 = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd&&) = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd&&)      = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION static constexpr std::size_t size() {
     return 4;
   }
@@ -1968,8 +1968,8 @@ class simd<std::int64_t, simd_abi::avx2_fixed_size<4>> {
     return m_value;
   }
 
-  [[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd operator-() const
-      noexcept {
+  [[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd
+  operator-() const noexcept {
     return simd(
         _mm256_sub_epi64(_mm256_set1_epi64x(0), static_cast<__m256i>(m_value)));
   }
@@ -2113,11 +2113,11 @@ class simd<std::uint64_t, simd_abi::avx2_fixed_size<4>> {
   using abi_type   = simd_abi::avx2_fixed_size<4>;
   using mask_type  = simd_mask<value_type, abi_type>;
   using reference  = value_type&;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd()            = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd&&)      = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd()                       = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd const&)            = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd(simd&&)                 = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd const&) = default;
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd&&) = default;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd& operator=(simd&&)      = default;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION static constexpr std::size_t size() {
     return 4;
   }

@@ -4,6 +4,12 @@
     <file>icons/lammps-icon-128x128.png</file>
     <file>icons/tutorial1-logo.png</file>
     <file>icons/tutorial2-logo.png</file>
+    <file>icons/tutorial3-logo.png</file>
+    <file>icons/tutorial4-logo.png</file>
+    <file>icons/tutorial5-logo.png</file>
+    <file>icons/tutorial6-logo.png</file>
+    <file>icons/tutorial7-logo.png</file>
+    <file>icons/tutorial8-logo.png</file>
     <file>help_index.table</file>
     <!-- This file is updated with: grep 'mycmd ==' ../../src/input.cpp | sed -e 's/^.*mycmd == "\(.*\)".*$/\1/' > lammps_internal_commands.txt -->
     <file>lammps_internal_commands.txt</file>
@@ -61,12 +67,14 @@
     <file>icons/search.png</file>
     <file>icons/system-box.png</file>
     <file>icons/system-help.png</file>
+    <file>icons/system-restart.png</file>
     <file>icons/system-run.png</file>
     <file>icons/trash.png</file>
     <file>icons/tutorial-logo.png</file>
     <file>icons/utilities-terminal.png</file>
     <file>icons/vdw-style.png</file>
     <file>icons/vmd.png</file>
+    <file>icons/warning.png</file>
     <file>icons/window-close.png</file>
     <file>icons/x-office-drawing.png</file>
     <file>icons/yaml-file-icon.png</file>

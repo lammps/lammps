@@ -28,7 +28,7 @@ int dpotri_(char *uplo, integer *n, doublereal *a, integer *lda, integer *info, 
     if (*n == 0) {
         return 0;
     }
-    dtrtri_(uplo, (char *)"Non-unit", n, &a[a_offset], lda, info, (ftnlen)1, (ftnlen)8);
+    dtrtri_(uplo, (char *)"N", n, &a[a_offset], lda, info, (ftnlen)1, (ftnlen)1);
     if (*info > 0) {
         return 0;
     }

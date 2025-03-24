@@ -681,7 +681,7 @@ MPEG or other movie file you can use:
 
 * c) Use FFmpeg
 
-  FFmpeg is a command line tool that is available on many platforms and
+  FFmpeg is a command-line tool that is available on many platforms and
   allows extremely flexible encoding and decoding of movies.
 
   .. code-block:: bash

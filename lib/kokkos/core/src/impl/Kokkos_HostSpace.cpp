@@ -76,8 +76,8 @@ void *HostSpace::impl_allocate(
   void *ptr = nullptr;
 
   if (arg_alloc_size)
-    ptr = operator new (arg_alloc_size, std::align_val_t(alignment),
-                        std::nothrow_t{});
+    ptr = operator new(arg_alloc_size, std::align_val_t(alignment),
+                       std::nothrow_t{});
 
   if (!ptr || (reinterpret_cast<uintptr_t>(ptr) == ~uintptr_t(0)) ||
       (reinterpret_cast<uintptr_t>(ptr) & alignment_mask)) {
@@ -112,8 +112,8 @@ void HostSpace::impl_deallocate(
                                         reported_size);
     }
     constexpr uintptr_t alignment = Kokkos::Impl::MEMORY_ALIGNMENT;
-    operator delete (arg_alloc_ptr, std::align_val_t(alignment),
-                     std::nothrow_t{});
+    operator delete(arg_alloc_ptr, std::align_val_t(alignment),
+                    std::nothrow_t{});
   }
 }
 

@@ -253,11 +253,11 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
   MPI_Request irequest, irequest2;
 
   if (me == 0) {
-    fmt::print(fp,"# Timestep {}\n#\n",ntimestep);
-    fmt::print(fp,"# Number of particles {}\n#\n",natoms);
-    fmt::print(fp,"# Max number of bonds per atom {} with coarse bond order cutoff {:5.3f}\n",
+    utils::print(fp,"# Timestep {}\n#\n",ntimestep);
+    utils::print(fp,"# Number of particles {}\n#\n",natoms);
+    utils::print(fp,"# Max number of bonds per atom {} with coarse bond order cutoff {:5.3f}\n",
                maxnum,cutof3);
-    fmt::print(fp,"# Particle connection table and bond orders\n"
+    utils::print(fp,"# Particle connection table and bond orders\n"
                "# id type nb id_1...id_nb mol bo_1...bo_nb abo nlp q\n");
   }
 
@@ -292,7 +292,7 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
         j += (1+numbonds);
 
         mesg += fmt::format("{:14.3f}{:14.3f}{:14.3f}\n",sbotmp,nlptmp,avqtmp);
-        fmt::print(fp, mesg);
+        utils::print(fp, mesg);
       }
     }
   } else {

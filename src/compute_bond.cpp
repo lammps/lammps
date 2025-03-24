@@ -68,7 +68,7 @@ void ComputeBond::compute_vector()
 {
   invoked_vector = update->ntimestep;
   if (update->eflag_global != invoked_vector)
-    error->all(FLERR, "Energy was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Energy was not tallied on needed timestep{}", utils::errorurl(22));
 
   for (int i = 0; i < nsub; i++) emine[i] = bond->styles[i]->energy;
 

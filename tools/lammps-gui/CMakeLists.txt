@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(lammps-gui VERSION 1.6.11 LANGUAGES CXX)
+project(lammps-gui VERSION 1.6.12 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -92,6 +92,49 @@ else()
   endif()
 endif()
 
+option(BUILD_WHAM "Download and compile WHAM executable from Grossfield Lab" YES)
+if(BUILD_WHAM)
+  set(WHAM_URL "http://membrane.urmc.rochester.edu/sites/default/files/wham/wham-release-2.1.0.tgz" CACHE STRING "URL for WHAM tarball")
+  set(WHAM_MD5 "4ed6e24254925ec124f44bb381c3b87f" CACHE STRING "MD5 checksum of WHAM tarball")
+  mark_as_advanced(WHAM_URL)
+  mark_as_advanced(WHAM_MD5)
+
+  get_filename_component(archive ${WHAM_URL} NAME)
+  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/_deps/src)
+  if(EXISTS ${CMAKE_BINARY_DIR}/_deps/${archive})
+    file(MD5 ${CMAKE_BINARY_DIR}/_deps/${archive} DL_MD5)
+  endif()
+  if(NOT "${DL_MD5}" STREQUAL "${WHAM_MD5}")
+    message(STATUS "Downloading ${WHAM_URL}")
+    file(DOWNLOAD ${WHAM_URL} ${CMAKE_BINARY_DIR}/_deps/${archive} STATUS DL_STATUS SHOW_PROGRESS)
+    file(MD5 ${CMAKE_BINARY_DIR}/_deps/${archive} DL_MD5)
+    if((NOT DL_STATUS EQUAL 0) OR (NOT "${DL_MD5}" STREQUAL "${WHAM_MD5}"))
+      message(ERROR "Download of WHAM sources from ${WHAM_URL} failed")
+    endif()
+  else()
+    message(STATUS "Using already downloaded archive ${CMAKE_BINARY_DIR}/_deps/${archive}")
+  endif()
+  message(STATUS "Unpacking and configuring ${archive}")
+
+  execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf ${CMAKE_BINARY_DIR}/_deps/${archive}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/_deps/src)
+  find_package(Patch)
+  if(PATCH_FOUND)
+    message(STATUS "Apply patch to customize WHAM using ${Patch_EXECUTABLE}")
+    execute_process(
+      COMMAND ${Patch_EXECUTABLE} -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/update-wham-2.1.0.patch
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/_deps/src/wham/
+    )
+  endif()
+  file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}/_deps/wham-src)
+  file(RENAME "${CMAKE_BINARY_DIR}/_deps/src/wham" ${CMAKE_BINARY_DIR}/_deps/wham-src)
+  file(COPY CMakeLists.wham DESTINATION ${CMAKE_BINARY_DIR}/_deps/wham-src/)
+  file(RENAME "${CMAKE_BINARY_DIR}/_deps/wham-src/CMakeLists.wham"
+    "${CMAKE_BINARY_DIR}/_deps/wham-src/CMakeLists.txt")
+  add_subdirectory("${CMAKE_BINARY_DIR}/_deps/wham-src" "${CMAKE_BINARY_DIR}/_deps/wham-build")
+  set(WHAM_EXE wham wham-2d)
+endif()
+
 set(LAMMPS_PLUGINLIB_DIR ${LAMMPS_DIR}/examples/COUPLE/plugin)
 if(LAMMPS_GUI_USE_PLUGIN)
   if(APPLE)
@@ -130,6 +173,8 @@ set(PROJECT_SOURCES
   codeeditor.h
   findandreplace.cpp
   findandreplace.h
+  flagwarnings.cpp
+  flagwarnings.h
   helpers.cpp
   highlighter.cpp
   highlighter.h
@@ -205,7 +250,7 @@ if(FLATPAK_COMMAND AND FLATPAK_BUILDER)
   file(STRINGS ${LAMMPS_DIR}/src/version.h line REGEX LAMMPS_VERSION)
   string(REGEX REPLACE "#define LAMMPS_VERSION \"([0-9]+) ([A-Za-z][A-Za-z][A-Za-z])[A-Za-z]* ([0-9]+)\""
                         "\\1\\2\\3" LAMMPS_RELEASE "${line}")
-  set(FLATPAK_BUNDLE "LAMMPS_GUI-Linux-amd64-${LAMMPS_RELEASE}.flatpak")
+  set(FLATPAK_BUNDLE "LAMMPS-Linux-x86_64-GUI-${LAMMPS_RELEASE}.flatpak")
   add_custom_target(flatpak
     COMMAND ${FLATPAK_COMMAND} --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
     COMMAND ${FLATPAK_BUILDER} --force-clean --verbose --repo=${CMAKE_CURRENT_BINARY_DIR}/flatpak-repo
@@ -234,7 +279,7 @@ if(APPLE)
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE_ICON_FILE lammps.icns
-    MACOSX_BUNDLE_COPYRIGHT "(c) 2003 - 2024, The LAMMPS Developers"
+    MACOSX_BUNDLE_COPYRIGHT "(c) 2003 - 2025, The LAMMPS Developers"
     MACOSX_BUNDLE TRUE
   )
   # additional targets to populate the bundle tree and create the .dmg image file
@@ -267,6 +312,15 @@ if(APPLE)
   else()
     message(FATAL_ERROR "Must use -D BUILD_TOOLS=yes for building app bundle")
   endif()
+  if(BUILD_WHAM)
+    add_custom_target(copy-wham
+      ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/wham ${APP_CONTENTS}/bin/
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/wham-2d ${APP_CONTENTS}/bin/
+      DEPENDS complete-bundle wham wham-2d
+      COMMENT "Copying WHAM executables into macOS app bundle tree"
+    )
+    set(WHAM_TARGET copy-wham)
+  endif()
   if(FFMPEG_EXECUTABLE)
     add_custom_target(copy-ffmpeg
       COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FFMPEG_EXECUTABLE} ${APP_CONTENTS}/bin/
@@ -277,7 +331,7 @@ if(APPLE)
   endif()
   add_custom_target(dmg
     COMMAND ${LAMMPS_DIR}/cmake/packaging/build_macos_dmg.sh ${LAMMPS_RELEASE}
-    DEPENDS complete-bundle ${FFMPEG_TARGET}
+    DEPENDS complete-bundle ${WHAM_TARGET} ${FFMPEG_TARGET}
     COMMENT "Create Drag-n-Drop installer disk image from app bundle"
     BYPRODUCT LAMMPS-macOS-multiarch-${LAMMPS_VERSION}.dmg
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
@@ -312,7 +366,7 @@ elseif((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
   install(FILES $<TARGET_RUNTIME_DLLS:lmp> TYPE BIN)
   add_custom_target(zip
     COMMAND sh -vx ${LAMMPS_DIR}/cmake/packaging/build_windows_cross_zip.sh ${CMAKE_INSTALL_PREFIX} ${LAMMPS_RELEASE}
-    DEPENDS lmp lammps-gui
+    DEPENDS lmp lammps-gui ${WHAM_EXE}
     COMMENT "Create zip file with windows binaries"
     BYPRODUCT LAMMPS-Win10-amd64-${LAMMPS_VERSION}.zip
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -349,7 +403,7 @@ elseif((CMAKE_SYSTEM_NAME STREQUAL "Linux") AND NOT LAMMPS_GUI_USE_PLUGIN)
 
   add_custom_target(tgz
     COMMAND ${LAMMPS_DIR}/cmake/packaging/build_linux_tgz.sh ${LAMMPS_RELEASE}
-    DEPENDS lammps-gui
+    DEPENDS lammps-gui ${WHAM_EXE}
     COMMENT "Create compressed tar file of LAMMPS-GUI with dependent libraries and wrapper"
     BYPRODUCT LAMMPS-Linux-amd64-${LAMMPS_RELEASE}.tar.gz
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}

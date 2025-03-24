@@ -111,6 +111,55 @@ bool utils::strmatch(const std::string &text, const std::string &pattern)
   return (pos >= 0);
 }
 
+bool utils::strsame(const std::string &text1, const std::string &text2)
+{
+  const char *ptr1 = text1.c_str();
+  const char *ptr2 = text2.c_str();
+
+  while (*ptr1 && *ptr2) {
+
+    // ignore whitespace
+    while (*ptr1 && isspace(*ptr1)) ++ptr1;
+    while (*ptr2 && isspace(*ptr2)) ++ptr2;
+
+    // strings differ
+    if (*ptr1 != *ptr2) return false;
+
+    // reached end of both strings
+    if (!*ptr1 && !*ptr2) return true;
+
+    ++ptr1;
+    ++ptr2;
+  }
+  return true;
+}
+
+std::string utils::strcompress(const std::string &text)
+{
+  const char *ptr = text.c_str();
+  std::string output;
+
+  // remove leading whitespace
+  while (*ptr && isspace(*ptr)) ++ptr;
+
+  while (*ptr) {
+    // copy non-blank characters
+    while (*ptr && !isspace(*ptr)) output += *ptr++;
+
+    if (!*ptr) break;
+
+    // add one blank only
+    if (isspace(*ptr)) output += ' ';
+
+    // skip additional blanks
+    while (*ptr && isspace(*ptr)) ++ptr;
+  }
+
+  // remove trailing blank
+  if (!output.empty() && output.back() == ' ') output.erase(output.size() - 1, 1);
+  return output;
+}
+
 /** This function is a companion function to utils::strmatch(). Arguments
  *  and logic is the same, but instead of a boolean, it returns the
  *  sub-string that matches the regex pattern.  There can be only one match.
@@ -129,7 +178,72 @@ std::string utils::strfind(const std::string &text, const std::string &pattern)
 void utils::missing_cmd_args(const std::string &file, int line, const std::string &cmd,
                              Error *error)
 {
-  if (error) error->all(file, line, "Illegal {} command: missing argument(s)", cmd);
+  if (error)
+    error->all(file, line, Error::NOPOINTER, "Illegal {} command: missing argument(s)", cmd);
+}
+
+std::string utils::point_to_error(Input *input, int failed)
+{
+  if (input && input->line && input->command) {
+    std::string lastline = utils::strcompress(input->line);
+    std::string lastargs = input->command;
+    std::string cmdline = "Last input line: ";
+
+    // extended output
+    if (failed > Error::NOPOINTER) {
+
+      // indicator points to command by default
+      int indicator = 0;
+      int quoted = 0;
+      lastargs += ' ';
+
+      // assemble pre-processed command line and update error indicator position, if needed.
+      for (int i = 0; i < input->narg; ++i) {
+        std::string inputarg = input->arg[i];
+        if (i == failed) indicator = lastargs.size();
+
+        // argument contains whitespace. add quotes. check which type of quotes, too
+        if (inputarg.find_first_of(" \t\n") != std::string::npos) {
+          if (i == failed) quoted = 2;
+          if (inputarg.find_first_of('"') != std::string::npos) {
+            lastargs += "'";
+            lastargs += inputarg;
+            lastargs += "'";
+          } else {
+            lastargs += '"';
+            lastargs += inputarg;
+            lastargs += '"';
+          }
+        } else
+          lastargs += inputarg;
+        lastargs += ' ';
+      }
+
+      indicator += cmdline.size();
+      // the string is unchanged by substitution (ignoring whitespace), print output only once
+      if (utils::strsame(lastline, lastargs)) {
+        cmdline += lastargs;
+      } else {
+        cmdline += lastline;
+        cmdline += '\n';
+        // must have the same number of chars as "Last input line: " used in the previous line
+        cmdline += "--> parsed line: ";
+        cmdline += lastargs;
+      }
+
+      // construct and append error indicator line
+      cmdline += '\n';
+      cmdline += std::string(indicator, ' ');
+      cmdline += std::string(strlen((failed < 0) ? input->command : input->arg[failed])
+                             + quoted, '^');
+      cmdline += '\n';
+    } else {
+      cmdline += lastline;
+      cmdline += '\n';
+    }
+    return cmdline;
+  } else
+    return std::string("");
 }
 
 /* specialization for the case of just a single string argument */
@@ -149,9 +263,27 @@ void utils::fmtargs_logmesg(LAMMPS *lmp, fmt::string_view format, fmt::format_ar
   }
 }
 
+/* specialization for the case of just a single string argument */
+
+void utils::print(FILE *fp, const std::string &mesg)
+{
+  fputs(mesg.c_str(), fp);
+}
+
+void utils::fmtargs_print(FILE *fp, fmt::string_view format, fmt::format_args args)
+{
+  print(fp, fmt::vformat(format, args));
+}
+
 std::string utils::errorurl(int errorcode)
 {
-  return fmt::format("\nFor more information see https://docs.lammps.org/err{:04d}", errorcode);
+  std::string url;
+  try {
+    url = fmt::format("\nFor more information see https://docs.lammps.org/err{:04d}", errorcode);
+  } catch (std::exception &) {
+    url = std::string("\nFor more information see https://docs.lammps.org/Errors_details.html");
+  }
+  return url;
 }
 
 void utils::flush_buffers(LAMMPS *lmp)
@@ -312,7 +444,7 @@ std::string utils::check_packages_for_style(const std::string &style, const std:
     if (LAMMPS::is_installed_pkg(pkg))
       errmsg += ", but seems to be missing because of a dependency";
     else
-      errmsg += " which is not enabled in this LAMMPS binary.";
+      errmsg += " which is not enabled in this LAMMPS binary." + utils::errorurl(10);
   }
   return errmsg;
 }
@@ -646,14 +778,14 @@ tagint utils::tnumeric(const char *file, int line, const char *str, bool do_abor
 // clang-format off
 template <typename TYPE>
 void utils::bounds(const char *file, int line, const std::string &str,
-                   bigint nmin, bigint nmax, TYPE &nlo, TYPE &nhi, Error *error)
+                   bigint nmin, bigint nmax, TYPE &nlo, TYPE &nhi, Error *error, int failed)
 {
   nlo = nhi = -1;
 
   // check for illegal characters
   size_t found = str.find_first_not_of("*-0123456789");
   if (found != std::string::npos) {
-    if (error) error->all(file, line, "Invalid range string: {}", str);
+    if (error) error->all(file, line, failed, "Invalid range string: {}", str);
     return;
   }
 
@@ -676,23 +808,23 @@ void utils::bounds(const char *file, int line, const std::string &str,
 
   if (error) {
     if ((nlo <= 0) || (nhi <= 0))
-      error->all(file, line, "Invalid range string: {}", str);
-
+      error->all(file, line, failed, "Invalid range string: {}", str);
+    constexpr char fmt[] = "Numeric index {} is out of bounds ({}-{}){}";
     if (nlo < nmin)
-      error->all(file, line, "Numeric index {} is out of bounds ({}-{})", nlo, nmin, nmax);
+      error->all(file, line, failed, fmt, nlo, nmin, nmax, errorurl(19));
     else if (nhi > nmax)
-      error->all(file, line, "Numeric index {} is out of bounds ({}-{})", nhi, nmin, nmax);
+      error->all(file, line, failed, fmt, nhi, nmin, nmax, errorurl(19));
     else if (nlo > nhi)
-      error->all(file, line, "Numeric index {} is out of bounds ({}-{})", nlo, nmin, nhi);
+      error->all(file, line, failed, fmt, nlo, nmin, nhi, errorurl(19));
   }
 }
 
 template void utils::bounds<>(const char *, int, const std::string &,
-                              bigint, bigint, int &, int &, Error *);
+                              bigint, bigint, int &, int &, Error *, int);
 template void utils::bounds<>(const char *, int, const std::string &,
-                              bigint, bigint, long &, long &, Error *);
+                              bigint, bigint, long &, long &, Error *, int);
 template void utils::bounds<>(const char *, int, const std::string &,
-                              bigint, bigint, long long &, long long &, Error *);
+                              bigint, bigint, long long &, long long &, Error *, int);
 
 // clang-format on
 /* ----------------------------------------------------------------------
@@ -732,7 +864,7 @@ template void utils::bounds_typelabel<>(const char *, int, const std::string &, 
 ------------------------------------------------------------------------- */
 
 int utils::expand_args(const char *file, int line, int narg, char **arg, int mode, char **&earg,
-                       LAMMPS *lmp)
+                       LAMMPS *lmp, int **argmap)
 {
   int iarg;
 
@@ -747,10 +879,18 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     return narg;
   }
 
+  // determine argument offset, if possible
+  int ioffset = 0;
+  if (lmp->input->arg) {
+    for (int i = 0; i < lmp->input->narg; ++i)
+      if (lmp->input->arg[i] == arg[0]) ioffset = i;
+  }
+
   // maxarg should always end up equal to newarg, so caller can free earg
 
   int maxarg = narg - iarg;
-  earg = (char **) lmp->memory->smalloc(maxarg * sizeof(char *), "input:earg");
+  earg = (char **) lmp->memory->smalloc(maxarg * sizeof(char *), "expand_args:earg");
+  int *amap = (int *) lmp->memory->smalloc(maxarg * sizeof(int), "expand_args:amap");
 
   int newarg = 0, expandflag, nlo, nhi, nmax;
   std::string id, wc, tail;
@@ -813,16 +953,18 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
       // expand wild card string to nlo/nhi numbers
 
       if (expandflag) {
-        utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
+        utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error, iarg + ioffset);
 
         if (newarg + nhi - nlo + 1 > maxarg) {
           maxarg += nhi - nlo + 1;
-          earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
+          earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "expand_args:earg");
+          amap = (int *) lmp->memory->srealloc(amap, maxarg * sizeof(char *), "expand_args:amap");
         }
 
         for (int index = nlo; index <= nhi; index++) {
           earg[newarg] =
               utils::strdup(fmt::format("{}:{}:{}[{}]{}", gridid[0], gridid[1], id, index, tail));
+          amap[newarg] = iarg;
           newarg++;
         }
       }
@@ -900,7 +1042,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
 
         if (index >= 0) {
           if (mode == 0 && lmp->input->variable->vectorstyle(index)) {
-            utils::bounds(file, line, wc, 1, MAXSMALLINT, nlo, nhi, lmp->error);
+            utils::bounds(file, line, wc, 1, MAXSMALLINT, nlo, nhi, lmp->error, iarg + ioffset);
             if (nhi < MAXSMALLINT) {
               nmax = nhi;
               expandflag = 1;
@@ -931,12 +1073,12 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
       if (expandflag) {
 
         // expand wild card string to nlo/nhi numbers
-
-        utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
+        utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error, iarg + ioffset);
 
         if (newarg + nhi - nlo + 1 > maxarg) {
           maxarg += nhi - nlo + 1;
-          earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
+          earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "expand_args:earg");
+          amap = (int *) lmp->memory->srealloc(amap, maxarg * sizeof(char *), "expand_args:amap");
         }
 
         for (int index = nlo; index <= nhi; index++) {
@@ -944,6 +1086,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
             earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
           else
             earg[newarg] = utils::strdup(fmt::format("{}_{}[{}]{}", word[0], id, index, tail));
+          amap[newarg] = iarg;
           newarg++;
         }
       }
@@ -954,14 +1097,21 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     if (!expandflag) {
       if (newarg == maxarg) {
         maxarg++;
-        earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
+        earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "expand_args:earg");
+        amap = (int *) lmp->memory->srealloc(amap, maxarg * sizeof(char *), "expand_args:amap");
       }
       earg[newarg] = utils::strdup(word);
+      amap[newarg] = iarg;
       newarg++;
     }
   }
 
-  // printf("NEWARG %d\n",newarg); for (int i = 0; i < newarg; i++) printf("  arg %d: %s\n",i,earg[i]);
+  if (argmap)
+    *argmap = amap;
+  else
+    lmp->memory->sfree(amap);
+
+  // fprintf(stderr, "NEWARG %d\n",newarg); for (int i = 0; i < newarg; i++) printf("  arg %d: %s %d\n",i,earg[i], amap ? amap[i] : -1);
   return newarg;
 }
 
@@ -1744,13 +1894,9 @@ double utils::timespec2seconds(const std::string &timespec)
 
   ValueTokenizer values(timespec, ":");
 
-  try {
-    for (i = 0; i < 3; i++) {
-      if (!values.has_next()) break;
-      vals[i] = values.next_double();
-    }
-  } catch (TokenizerException &) {
-    return -1.0;
+  for (i = 0; i < 3; i++) {
+    if (!values.has_next()) break;
+    vals[i] = values.next_double();
   }
 
   if (i == 3)

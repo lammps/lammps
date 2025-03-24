@@ -76,7 +76,7 @@ void DihedralHybridKokkos::compute(int eflag, int vflag)
 
     Kokkos::parallel_for(ndihedrallist_orig,LAMMPS_LAMBDA(int i) {
       const int m = d_map[d_dihedrallist_orig(i,4)];
-      if (m >= 0) Kokkos::atomic_increment(&d_ndihedrallist[m]);
+      if (m >= 0) Kokkos::atomic_inc(&d_ndihedrallist[m]);
     });
 
     k_ndihedrallist.modify_device();
@@ -87,7 +87,7 @@ void DihedralHybridKokkos::compute(int eflag, int vflag)
       if (h_ndihedrallist[m] > maxdihedral_all)
         maxdihedral_all = h_ndihedrallist[m] + EXTRA;
 
-    if (k_dihedrallist.d_view.extent(1) < maxdihedral_all)
+    if ((int)k_dihedrallist.d_view.extent(1) < maxdihedral_all)
       MemKK::realloc_kokkos(k_dihedrallist, "dihedral_hybrid:dihedrallist", nstyles, maxdihedral_all, 5);
     auto d_dihedrallist = k_dihedrallist.d_view;
 

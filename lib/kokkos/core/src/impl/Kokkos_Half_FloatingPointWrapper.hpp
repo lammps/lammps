@@ -987,13 +987,12 @@ half_t cast_to_half(unsigned long long val) { return half_t(val); }
 // example don't include char
 template <class T>
 KOKKOS_INLINE_FUNCTION std::enable_if_t<
-    std::is_same<T, float>::value || std::is_same<T, bool>::value ||
-        std::is_same<T, double>::value || std::is_same<T, short>::value ||
-        std::is_same<T, unsigned short>::value || std::is_same<T, int>::value ||
-        std::is_same<T, unsigned int>::value || std::is_same<T, long>::value ||
-        std::is_same<T, unsigned long>::value ||
-        std::is_same<T, long long>::value ||
-        std::is_same<T, unsigned long long>::value,
+    std::is_same_v<T, float> || std::is_same_v<T, bool> ||
+        std::is_same_v<T, double> || std::is_same_v<T, short> ||
+        std::is_same_v<T, unsigned short> || std::is_same_v<T, int> ||
+        std::is_same_v<T, unsigned int> || std::is_same_v<T, long> ||
+        std::is_same_v<T, unsigned long> || std::is_same_v<T, long long> ||
+        std::is_same_v<T, unsigned long long>,
     T>
 cast_from_half(half_t val) {
   return T(val);
@@ -1047,13 +1046,12 @@ bhalf_t cast_to_bhalf(unsigned long long val) { return bhalf_t(val); }
 // cast_from_bhalf
 template <class T>
 KOKKOS_INLINE_FUNCTION std::enable_if_t<
-    std::is_same<T, float>::value || std::is_same<T, bool>::value ||
-        std::is_same<T, double>::value || std::is_same<T, short>::value ||
-        std::is_same<T, unsigned short>::value || std::is_same<T, int>::value ||
-        std::is_same<T, unsigned int>::value || std::is_same<T, long>::value ||
-        std::is_same<T, unsigned long>::value ||
-        std::is_same<T, long long>::value ||
-        std::is_same<T, unsigned long long>::value,
+    std::is_same_v<T, float> || std::is_same_v<T, bool> ||
+        std::is_same_v<T, double> || std::is_same_v<T, short> ||
+        std::is_same_v<T, unsigned short> || std::is_same_v<T, int> ||
+        std::is_same_v<T, unsigned int> || std::is_same_v<T, long> ||
+        std::is_same_v<T, unsigned long> || std::is_same_v<T, long long> ||
+        std::is_same_v<T, unsigned long long>,
     T>
 cast_from_bhalf(bhalf_t val) {
   return T(val);

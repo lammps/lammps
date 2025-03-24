@@ -22,13 +22,13 @@
 namespace Kokkos {
 
 template <>
-struct default_outer_direction<Kokkos::Experimental::SYCL> {
+struct default_outer_direction<Kokkos::SYCL> {
   using type                     = Iterate;
   static constexpr Iterate value = Iterate::Left;
 };
 
 template <>
-struct default_inner_direction<Kokkos::Experimental::SYCL> {
+struct default_inner_direction<Kokkos::SYCL> {
   using type                     = Iterate;
   static constexpr Iterate value = Iterate::Left;
 };
@@ -37,8 +37,8 @@ namespace Impl {
 
 // Settings for MDRangePolicy
 template <>
-inline TileSizeProperties get_tile_size_properties<Kokkos::Experimental::SYCL>(
-    const Kokkos::Experimental::SYCL& space) {
+inline TileSizeProperties get_tile_size_properties<Kokkos::SYCL>(
+    const Kokkos::SYCL& space) {
   TileSizeProperties properties;
   properties.max_threads =
       space.impl_internal_space_instance()->m_maxWorkgroupSize;
@@ -50,8 +50,7 @@ inline TileSizeProperties get_tile_size_properties<Kokkos::Experimental::SYCL>(
 
 // Settings for TeamMDRangePolicy
 template <typename Rank, TeamMDRangeThreadAndVector ThreadAndVector>
-struct ThreadAndVectorNestLevel<Rank, Kokkos::Experimental::SYCL,
-                                ThreadAndVector>
+struct ThreadAndVectorNestLevel<Rank, Kokkos::SYCL, ThreadAndVector>
     : AcceleratorBasedNestLevel<Rank, ThreadAndVector> {};
 
 }  // namespace Impl

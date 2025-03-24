@@ -218,7 +218,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
         input_mode = PERATOM;
       else if (strcmp(arg[iarg + 1], "local") == 0)
         input_mode = LOCAL;
-      iarg += 2;
+      iarg += 1;
     } else
       error->all(FLERR, "Unknown compute {} keyword: {}", style, arg[iarg]);
   }

@@ -80,6 +80,7 @@ OPT.
    * :doc:`coul/tt <pair_coul_tt>`
    * :doc:`coul/wolf (ko) <pair_coul>`
    * :doc:`coul/wolf/cs <pair_cs>`
+   * :doc:`dispersion/d3 <pair_dispersion_d3>`
    * :doc:`dpd (giko) <pair_dpd>`
    * :doc:`dpd/coul/slater/long (g) <pair_dpd_coul_slater_long>`
    * :doc:`dpd/ext (ko) <pair_dpd_ext>`
@@ -114,7 +115,9 @@ OPT.
    * :doc:`gw/zbl <pair_gw>`
    * :doc:`harmonic/cut (o) <pair_harmonic_cut>`
    * :doc:`hbond/dreiding/lj (o) <pair_hbond_dreiding>`
+   * :doc:`hbond/dreiding/lj/angleoffset (o) <pair_hbond_dreiding>`
    * :doc:`hbond/dreiding/morse (o) <pair_hbond_dreiding>`
+   * :doc:`hbond/dreiding/morse/angleoffset (o) <pair_hbond_dreiding>`
    * :doc:`hdnnp <pair_hdnnp>`
    * :doc:`hippo (g) <pair_amoeba>`
    * :doc:`ilp/graphene/hbn (t) <pair_ilp_graphene_hbn>`

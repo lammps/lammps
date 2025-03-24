@@ -1,7 +1,10 @@
 .. index:: fix nve/limit
+.. index:: fix nve/limit/kk
 
 fix nve/limit command
 =====================
+
+Accelerator Variants: *nve/limit/kk*
 
 Syntax
 """"""
@@ -78,6 +81,12 @@ is "extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

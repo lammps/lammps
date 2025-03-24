@@ -67,7 +67,6 @@ jobs:
         -D PKG_MANIFOLD=on \
         -D PKG_MDI=on \
         -D PKG_MGPT=on \
-        -D PKG_ML-PACE=on \
         -D PKG_ML-RANN=on \
         -D PKG_MOLFILE=on \
         -D PKG_NETCDF=on \

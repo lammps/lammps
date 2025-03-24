@@ -275,7 +275,7 @@ void ImproperCvff::allocate()
 
 void ImproperCvff::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR, "Incorrect args for improper coefficients");
+  if (narg != 4) error->all(FLERR, "Incorrect args for improper coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -294,7 +294,7 @@ void ImproperCvff::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for improper coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for improper coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

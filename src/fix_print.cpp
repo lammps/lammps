@@ -38,7 +38,7 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
     nevery = 1;
   } else {
     nevery = utils::inumeric(FLERR, arg[3], false, lmp);
-    if (nevery <= 0) error->all(FLERR, "Illegal fix print nevery value {}; must be > 0", nevery);
+    if (nevery <= 0) error->all(FLERR, 3, "Illegal fix print nevery value {}; must be > 0", nevery);
   }
 
   text = utils::strdup(arg[4]);
@@ -121,12 +121,15 @@ void FixPrint::init()
   if (var_print) {
     ivar_print = input->variable->find(var_print);
     if (ivar_print < 0)
-      error->all(FLERR, "Variable {} for fix print timestep does not exist", var_print);
+      error->all(FLERR, Error::NOLASTLINE, "Variable {} for fix print timestep does not exist",
+                 var_print);
     if (!input->variable->equalstyle(ivar_print))
-      error->all(FLERR, "Variable {} for fix print timestep is invalid style", var_print);
+      error->all(FLERR, Error::NOLASTLINE, "Variable {} for fix print timestep is invalid style",
+                 var_print);
     next_print = static_cast<bigint>(input->variable->compute_equal(ivar_print));
     if (next_print <= update->ntimestep)
-      error->all(FLERR, "Fix print timestep variable {} returned a bad timestep: {}", var_print,
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Fix print timestep variable {} returned a bad timestep: {}", var_print,
                  next_print);
   } else {
     if (update->ntimestep % nevery)
@@ -178,7 +181,7 @@ void FixPrint::end_of_step()
   if (comm->me == 0) {
     if (screenflag) utils::logmesg(lmp, std::string(copy) + "\n");
     if (fp) {
-      fmt::print(fp, "{}\n", copy);
+      utils::print(fp, "{}\n", copy);
       fflush(fp);
     }
   }

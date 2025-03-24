@@ -33,12 +33,12 @@ struct is_admissible_to_kokkos_std_algorithms : std::false_type {};
 template <typename T>
 struct is_admissible_to_kokkos_std_algorithms<
     T, std::enable_if_t<::Kokkos::is_view<T>::value && T::rank() == 1 &&
-                        (std::is_same<typename T::traits::array_layout,
-                                      Kokkos::LayoutLeft>::value ||
-                         std::is_same<typename T::traits::array_layout,
-                                      Kokkos::LayoutRight>::value ||
-                         std::is_same<typename T::traits::array_layout,
-                                      Kokkos::LayoutStride>::value)>>
+                        (std::is_same_v<typename T::traits::array_layout,
+                                        Kokkos::LayoutLeft> ||
+                         std::is_same_v<typename T::traits::array_layout,
+                                        Kokkos::LayoutRight> ||
+                         std::is_same_v<typename T::traits::array_layout,
+                                        Kokkos::LayoutStride>)>>
     : std::true_type {};
 
 template <class ViewType>
@@ -102,8 +102,8 @@ struct are_random_access_iterators;
 template <class T>
 struct are_random_access_iterators<T> {
   static constexpr bool value =
-      is_iterator_v<T> && std::is_base_of<std::random_access_iterator_tag,
-                                          typename T::iterator_category>::value;
+      is_iterator_v<T> && std::is_base_of_v<std::random_access_iterator_tag,
+                                            typename T::iterator_category>;
 };
 
 template <class Head, class... Tail>
@@ -165,9 +165,8 @@ struct iterators_have_matching_difference_type<T> {
 
 template <class T1, class T2>
 struct iterators_have_matching_difference_type<T1, T2> {
-  static constexpr bool value =
-      std::is_same<typename T1::difference_type,
-                   typename T2::difference_type>::value;
+  static constexpr bool value = std::is_same_v<typename T1::difference_type,
+                                               typename T2::difference_type>;
 };
 
 template <class T1, class T2, class... Tail>

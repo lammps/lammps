@@ -239,13 +239,17 @@ void FixNHUef::init()
   if (!pstat_flag)
     if (pcomputeflag) {
       pressure = modify->get_compute_by_id(id_press);
-      if (!pressure) error->all(FLERR,"Pressure ID {} for {} doesn't exist", id_press, style);
-      if (strcmp(pressure->style,"pressure/uef") != 0)
-        error->all(FLERR,"Using fix {} without a compute pressure/uef", style);
+      if (!pressure) {
+        error->all(FLERR,"Pressure ID {} for {} doesn't exist", id_press, style);
+      } else {
+        if (strcmp(pressure->style,"pressure/uef") != 0)
+          error->all(FLERR,"Compute ID {} for fix {} must be compute pressure/uef",
+                     id_press, style);
+      }
     }
 
   if (strcmp(temperature->style,"temp/uef") != 0)
-    error->all(FLERR,"Using fix {} without a compute temp/uef", style);
+    error->all(FLERR,"Compute ID {} for fix {} must be compute temp/uef", id_temp, style);
 }
 
 /* ----------------------------------------------------------------------

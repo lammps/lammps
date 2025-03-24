@@ -81,9 +81,13 @@ class absolutes {
   auto on_host(T const& a) const {
     if constexpr (std::is_signed_v<typename T::value_type>) {
 #if defined(KOKKOS_ENABLE_DEPRECATED_CODE_4)
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
       KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
       return Kokkos::Experimental::abs(a);
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
       KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 #else
       return Kokkos::abs(a);
 #endif

@@ -64,8 +64,7 @@ class LammpsGui : public QMainWindow {
 
     friend class CodeEditor;
     friend class GeneralTab;
-    friend class Tutorial1Wizard;
-    friend class Tutorial2Wizard;
+    friend class TutorialWizard;
 
 public:
     LammpsGui(QWidget *parent = nullptr, const QString &filename = QString());
@@ -84,15 +83,9 @@ protected:
     void setDocver();
     void autoSave();
     void setFont(const QFont &newfont);
-    QWizardPage *tutorial1_intro();
-    QWizardPage *tutorial1_info();
-    QWizardPage *tutorial1_directory();
-    QWizardPage *tutorial1_finish();
-    QWizardPage *tutorial2_intro();
-    QWizardPage *tutorial2_info();
-    QWizardPage *tutorial2_directory();
-    QWizardPage *tutorial2_finish();
-    void setup_tutorial(int tutno, const QString &dir, bool purgedir, bool getsolution);
+    QWizardPage *tutorial_intro(const int ntutorial, const QString &infotext);
+    QWizardPage *tutorial_directory(const int ntutorial);
+    void setup_tutorial(int ntutorial, const QString &dir, bool purgedir, bool getsolution);
     void purge_inspect_list();
     bool eventFilter(QObject *watched, QEvent *event) override;
 
@@ -118,6 +111,7 @@ private slots:
     void findandreplace();
     void run_buffer() { do_run(true); }
     void run_file() { do_run(false); }
+    void restart_lammps() { lammps.close(); };
 
     void edit_variables();
     void render_image();
@@ -132,6 +126,12 @@ private slots:
     void tutorial_web();
     void start_tutorial1();
     void start_tutorial2();
+    void start_tutorial3();
+    void start_tutorial4();
+    void start_tutorial5();
+    void start_tutorial6();
+    void start_tutorial7();
+    void start_tutorial8();
     void howto();
     void logupdate();
     void modified();
@@ -178,20 +178,15 @@ private:
     std::vector<char *> lammps_args;
 };
 
-class Tutorial1Wizard : public QWizard {
+class TutorialWizard : public QWizard {
     Q_OBJECT
 
 public:
-    Tutorial1Wizard(QWidget *parent = nullptr);
+    TutorialWizard(int ntutorial, QWidget *parent = nullptr);
     void accept() override;
-};
 
-class Tutorial2Wizard : public QWizard {
-    Q_OBJECT
-
-public:
-    Tutorial2Wizard(QWidget *parent = nullptr);
-    void accept() override;
+private:
+    int _ntutorial;
 };
 #endif // LAMMPSGUI_H
 

@@ -63,7 +63,7 @@ struct TestFunctorA {
       });
     } else if (m_apiPick == 1) {
       auto it    = KE::generate_n(member, myRowView, m_count,
-                               GenerateFunctor<value_type>());
+                                  GenerateFunctor<value_type>());
       resultDist = KE::distance(KE::begin(myRowView), it);
       Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
         m_distancesView(myRowIndex) = resultDist;

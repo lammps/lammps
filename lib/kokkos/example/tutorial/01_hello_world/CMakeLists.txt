@@ -1,10 +1,5 @@
-
-KOKKOS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
-KOKKOS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+kokkos_include_directories(${CMAKE_CURRENT_BINARY_DIR})
+kokkos_include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # This is a tutorial, not a test, so we don't ask CTest to run it.
-KOKKOS_ADD_EXECUTABLE(
-  tutorial_01_hello_world
-  SOURCES hello_world.cpp
-)
-
+kokkos_add_executable(tutorial_01_hello_world SOURCES hello_world.cpp)

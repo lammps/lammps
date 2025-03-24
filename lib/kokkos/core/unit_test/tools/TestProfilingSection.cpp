@@ -57,7 +57,7 @@ void kokkosp_test_destroy_section(std::uint32_t id) {
 
 }  // namespace
 
-TEST(defaultdevicetype, profiling_section) {
+TEST(kokkosp, profiling_section) {
   Kokkos::Profiling::Experimental::set_create_profile_section_callback(
       kokkosp_test_create_section);
   Kokkos::Profiling::Experimental::set_destroy_profile_section_callback(
@@ -108,8 +108,8 @@ TEST(defaultdevicetype, profiling_section) {
 }
 
 using Kokkos::Profiling::ProfilingSection;
-static_assert(!std::is_default_constructible<ProfilingSection>::value);
-static_assert(!std::is_copy_constructible<ProfilingSection>::value);
-static_assert(!std::is_move_constructible<ProfilingSection>::value);
-static_assert(!std::is_copy_assignable<ProfilingSection>::value);
-static_assert(!std::is_move_assignable<ProfilingSection>::value);
+static_assert(!std::is_default_constructible_v<ProfilingSection>);
+static_assert(!std::is_copy_constructible_v<ProfilingSection>);
+static_assert(!std::is_move_constructible_v<ProfilingSection>);
+static_assert(!std::is_copy_assignable_v<ProfilingSection>);
+static_assert(!std::is_move_assignable_v<ProfilingSection>);

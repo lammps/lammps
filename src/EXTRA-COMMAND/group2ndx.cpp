@@ -93,7 +93,7 @@ void Group2Ndx::write_group(FILE *fp, int gid)
     if (gid == 0) {
       fputs("[ System ]\n", fp);
     } else {
-      fmt::print(fp, "[ {} ]\n", group->names[gid]);
+      utils::print(fp, "[ {} ]\n", group->names[gid]);
     }
     width = log10((double) atom->natoms) + 2;
     cols = 80 / width;
@@ -142,7 +142,7 @@ void Group2Ndx::write_group(FILE *fp, int gid)
   if (fp) {
     int i, j;
     for (i = 0, j = 0; i < gcount; ++i) {
-      fmt::print(fp, "{:>{}}", recvlist[i], width);
+      utils::print(fp, "{:>{}}", recvlist[i], width);
       ++j;
       if (j == cols) {
         fputs("\n", fp);

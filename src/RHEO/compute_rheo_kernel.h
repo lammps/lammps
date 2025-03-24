@@ -40,6 +40,7 @@ class ComputeRHEOKernel : public Compute {
   double calc_w(int, int, double, double, double, double);
   double calc_dw(int, int, double, double, double, double);
   double calc_w_quintic(double);
+  double calc_dw_scalar_quintic(double, double, double, double);
   double calc_dw_quintic(double, double, double, double, double *, double *);
   double calc_w_wendlandc4(double);
   double calc_dw_wendlandc4(double, double, double, double, double *, double *);
@@ -51,7 +52,7 @@ class ComputeRHEOKernel : public Compute {
   class FixRHEO *fix_rheo;
 
  private:
-  int comm_stage, comm_forward_save;
+  int comm_stage;
   int interface_flag;
   int lapack_error_flag;
   std::unordered_set<tagint> lapack_error_tags;
@@ -69,10 +70,10 @@ class ComputeRHEOKernel : public Compute {
   int check_corrections(int);
 
   double calc_w_rk0(int, int, double);
-  double calc_w_rk1(int, int, double, double, double, double);
-  double calc_w_rk2(int, int, double, double, double, double);
-  void calc_dw_rk1(int, double, double, double, double, double *);
-  void calc_dw_rk2(int, double, double, double, double, double *);
+  double calc_w_rk1(int, int, double*, double);
+  double calc_w_rk2(int, int, double*, double);
+  void calc_dw_rk1(int, double*, double, double*);
+  void calc_dw_rk2(int, double*, double, double*);
 };
 }    // namespace LAMMPS_NS
 #endif

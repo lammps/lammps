@@ -57,7 +57,7 @@ void NTopoBondPartial::build()
       if (atom1 == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR, "Bond atoms {} {} missing on proc {} at step {}", tag[i],
+          error->one(FLERR, Error::NOLASTLINE, "Bond atoms {} {} missing on proc {} at step {}" + utils::errorurl(5), tag[i],
                      bond_atom[i][m], me, update->ntimestep);
         continue;
       }
@@ -79,5 +79,5 @@ void NTopoBondPartial::build()
 
   int all;
   MPI_Allreduce(&nmissing, &all, 1, MPI_INT, MPI_SUM, world);
-  if (all && (me == 0)) error->warning(FLERR, "Bond atoms missing at step {}", update->ntimestep);
+  if (all && (me == 0)) error->warning(FLERR, "Bond atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 }

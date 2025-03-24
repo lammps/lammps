@@ -147,10 +147,13 @@ class TestResult:
 def iterate(lmp_binary, input_folder, input_list, config, results, progress_file, failure_file, walltime_ref=1, verbose=False, last_progress=None, output_buf=None):
 
     num_tests = len(input_list)
+
+    num_skipped = 0 
+    num_error = 0
+    num_timeout = 0
+    num_failed = 0
     num_completed = 0
     num_passed = 0
-    num_skipped = 0
-    num_error = 0
     num_memleak = 0
     test_id = 0
 
@@ -187,7 +190,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 msg = "   + " + input + f" ({test_id+1}/{num_tests}): skipped as specified in {configFileName}"
                 print(msg)
                 logger.info(msg)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: \"skipped\", walltime: {walltime} }}\n")
+                progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'skipped', 'walltime': '{walltime}' }} }}\n")
                 progress.close()
                 num_skipped = num_skipped + 1
                 test_id = test_id + 1
@@ -205,7 +208,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 msg = "   + " + input + f" ({test_id+1}/{num_tests}): skipped as specified in {configFileName}"
                 print(msg)
                 logger.info(msg)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: \"skipped\", walltime: {walltime} }}\n")
+                progress.write(f"{{ '{input}': {{ 'folder': {input_folder}, 'status': 'skipped', 'walltime': '{walltime}' }} }}\n")
                 progress.close()
                 num_skipped = num_skipped + 1
                 test_id = test_id + 1
@@ -300,12 +303,15 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         saved_nprocs = config['nprocs']
 
-        # if the maximum number of procs is different from the value in the configuration file
-        #      then override the setting for this particular input script
-        if max_np != int(config['nprocs']):
+        # if the nprocs value in the configuration file is empty then use max_np for this particular input script
+        if config['nprocs'] == "":
             config['nprocs'] = str(max_np)
+        else:
+            # otherwise use the nprocs value in the configuration file (4 for most examples)
+            logger.info(f"     Using {config['nprocs']} nprocs for {input_test} as enforced in the config file.")
+            logger.info(f"     WARNING: The maximum number of procs found from the reference log files is {max_np}.")
 
-        # store the value of nprocs
+        # store the value of nprocs to name the generated log file
         nprocs = int(config['nprocs'])
 
         # if valgrind is used for mem check, the run command will be
@@ -322,7 +328,12 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         result = TestResult(name=input, output="", time="", status="passed")
 
         # run the LAMMPS binary with the input script
-        cmd_str, output, error, returncode, logfilename = execute(lmp_binary, config, input_test)
+        status = execute(lmp_binary, config, input_test)
+        cmd_str = status['cmd_str']
+        output = status['stdout']
+        error = status['stderr']
+        returncode = status['returncode']
+        logfilename = status['logfilename']
 
         # restore the nprocs value in the configuration
         config['nprocs'] = saved_nprocs
@@ -352,7 +363,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             results.append(result)
             print(f"{result.status}")
 
-            msg = f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime} }}\n"
+            msg = f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}' }} }}\n"
             progress.write(msg)
             progress.close()
             failure.write(msg)
@@ -369,7 +380,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"    {output}")
             logger.info(f"    Error:\n{error}")
 
-            msg = f"{input}: {{ folder: {input_folder}, status: \"failed, no log file generated\", walltime: {walltime} }}\n"
+            msg = f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'failed, no log file generated', 'walltime': '{walltime}' }} }}\n"
             progress.write(msg)
             progress.close()
             failure.write(msg)
@@ -399,7 +410,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             result.status = msg
             results.append(result)
 
-            msg = f"{input}: {{ folder: {input_folder}, status: \"{msg}\", walltime: {walltime} }}\n"
+            msg = f"{{ '{input}': {{ 'folder': '{input_folder}', status: \"{msg}\", 'walltime': '{walltime}' }} }}\n"
             progress.write(msg)
             progress.close()
             failure.write(msg)
@@ -418,10 +429,14 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"\n    Output:\n{output}")
             logger.info(f"\n    Error:\n{error}")
 
-            msg = f"{input}: {{ folder: {input_folder}, status: \"failed, no Total wall time in the output, {error}\", walltime: {walltime} }}\n"
+            msg = f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'failed, no Total wall time in the output, {error}', 'walltime': '{walltime}' }} }}\n"
             progress.write(msg)
             progress.close()
             failure.write(msg)
+
+            returncode = int(returncode)
+            if returncode == -1:
+                num_timeout = num_timeout + 1
 
             num_error = num_error + 1
             test_id = test_id + 1
@@ -449,7 +464,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"\n    Output:\n{output}")
             logger.info(f"\n    Error:\n{error}")
 
-            msg = f"{input}: {{ folder: {input_folder}, status: \"completed, but no Step nor Loop in the output.\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n"
+            msg = f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'completed, but no Step nor Loop in the output.', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n"
             progress.write(msg)
             progress.close()
             failure.write(msg)
@@ -477,7 +492,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
             result.status = msg + f", error parsing {logfilename} into YAML"
             results.append(result)
-            progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
+            progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
             progress.close()
 
             if verbose == True:
@@ -495,14 +510,14 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             if thermo_ref:
                 num_runs_ref = len(thermo_ref)
             else:
-                # thhe thermo_ref dictionary is empty
+                # the thermo_ref dictionary is empty
                 logger.info(f"    failed, error parsing the reference log file {thermo_ref_file}.")
                 result.status = "skipped numerical checks due to parsing the reference log file"
                 results.append(result)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: \"completed, numerical checks skipped, unsupported log file format\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
+                progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'completed, numerical checks skipped, unsupported log file format', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
                 progress.close()
                 num_completed = num_completed + 1
-                num_error = num_error + 1
+                num_failed = num_failed + 1
                 test_id = test_id + 1
                 continue
         else:
@@ -521,12 +536,12 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 result.status = "skipped due to missing the reference log file"
                 results.append(result)
 
-                msg = f"{input}: {{ folder: {input_folder}, status: \"completed, numerical checks skipped due to missing the reference log file\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n"
+                msg = f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'completed, numerical checks skipped due to missing the reference log file', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n"
                 progress.write(msg)
                 progress.close()
                 failure.write(msg)
                 num_completed = num_completed + 1
-                num_error = num_error + 1
+                num_failed = num_failed + 1
                 test_id = test_id + 1
                 continue
 
@@ -539,9 +554,10 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                         " Check README in the folder, possibly due to using mpirun with partitions or parsing the wrong reference log file.")
             result.status = "failed, incomplete runs"
             results.append(result)
-            progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
+            progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
             progress.close()
-            num_error = num_error + 1
+            num_completed = num_completed + 1
+            num_failed = num_failed + 1
             test_id = test_id + 1
             continue
 
@@ -555,9 +571,10 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"     Check both log files for more details.")
             result.status = "failed, mismatched columns in the log files"
             results.append(result)
-            progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\", walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
+            progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
             progress.close()
-            num_error = num_error + 1
+            num_completed = num_completed + 1
+            num_failed = num_failed + 1
             test_id = test_id + 1
             continue
 
@@ -581,6 +598,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         failed_rel_output = []
         num_checks = 0
         mismatched_columns = False
+        mismatched_num_steps = False
 
         for irun in range(num_runs):
             num_fields = len(thermo[irun]['keywords'])
@@ -593,6 +611,13 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
             # get the total number of the thermo output lines
             nthermo_steps = len(thermo[irun]['data'])
+            nthermo_steps_ref = len(thermo_ref[irun]['data'])
+
+            if nthermo_steps_ref != nthermo_steps:
+                logger.info(f"     failed: Number of thermo steps in {logfilename} ({nthermo_steps})")
+                logger.info(f"     is different from that in the reference log ({nthermo_steps_ref}) in run {irun}.")
+                mismatched_num_steps = True   
+                continue
 
             # get the output at the last timestep
             thermo_step = nthermo_steps - 1
@@ -644,19 +669,41 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                     print(f"        {thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
 
         # after all runs completed, or are interrupted in one of the runs (mismatched_columns = True)
-
         if mismatched_columns == True:
-            msg = f"     mismatched log files after the first run. Check both log files for more details."
+            msg = f"     mismatched columns in the log files after the first run. Check both log files for more details."
             print(msg)
             logger.info(msg)
             result.status = "thermo checks failed due to mismatched log files after the first run"
+            results.append(result)
+            progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
+            progress.close()
+            num_completed = num_completed + 1
+            num_failed = num_failed + 1
+            test_id = test_id + 1
+            continue
+
+        # some runs that involve the minimize command that leads to different number of steps vs the reference log file
+        if mismatched_num_steps == True:
+            msg = f"     mismatched num steps in the log files. Check both log files for more details."
+            print(msg)
+            logger.info(msg)
+            result.status = "thermo checks failed due to mismatched log files "
+            results.append(result)
+            progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
+            progress.close()
+            num_completed = num_completed + 1
+            num_failed = num_failed + 1
+            test_id = test_id + 1
+            continue
 
         result.status = ""
         if num_abs_failed > 0:
             msg = f"     {num_abs_failed} abs diff checks failed."
             print(msg)
             logger.info(msg)
-            #result.status = f"abs_diff_failed: {num_abs_failed}, "
+            for out in failed_abs_output:
+                logger.info(f"        - {out}")
+
             if verbose == True:
                 for out in failed_abs_output:
                     print(f"        - {out}")
@@ -665,7 +712,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             msg = f"     {num_rel_failed} rel diff checks failed."
             print(msg)
             logger.info(msg)
-            #result.status += f"rel_diff_failed: {num_rel_failed}"
+            for out in failed_rel_output:
+                logger.info(f"        - {out}")
+            
             if verbose == True:
                 for out in failed_rel_output:
                     print(f"        - {out}")
@@ -674,12 +723,14 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             msg = f"     all {num_checks} checks passed."
             print(msg)
             logger.info(msg)
-            #result.status = f"all {num_checks} checks passed."
+
+            result.status = f" 'status': 'passed', 'abs_diff_failed': '{num_abs_failed}', 'rel_diff_failed': '{num_rel_failed}' "
+
             num_passed = num_passed + 1
         else:
-            num_error = num_error + 1
+            result.status = f" 'status': 'failed', 'abs_diff_failed': '{num_abs_failed}', 'rel_diff_failed': '{num_rel_failed}' "
+            num_failed = num_failed + 1
 
-        result.status = f"abs_diff_failed: {num_abs_failed}, rel_diff_failed: {num_rel_failed}"
         results.append(result)
 
         # check if memleak detects from valgrind run (need to replace "mpirun" -> valgrind --leak-check=yes mpirun")
@@ -691,12 +742,12 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 msg += ", memory leaks detected"
                 num_memleak = num_memleak + 1
 
-        progress.write(f"{input}: {{ folder: {input_folder}, status: \"{msg}\", failed_checks: {{ {result.status} }}, walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
+        progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{msg}', 'failed_checks': {{ {result.status} }}, 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
         progress.close()
 
         # write to failure if there is any numerical failed check
         if num_abs_failed > 0 or num_rel_failed > 0:
-            failure.write(f"{input}: {{ folder: {input_folder}, status: \"{msg}\", failed_checks: {{ {result.status} }}, walltime: {walltime}, walltime_norm: {walltime_norm} }}\n")
+            failure.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{msg}', 'failed_checks': '{{ {result.status} }}, 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
 
         # count the number of completed runs
         num_completed = num_completed + 1
@@ -709,6 +760,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
              'num_passed': num_passed,
              'num_skipped': num_skipped,
              'num_error': num_error,
+             'num_timeout': num_timeout,
+             'num_failed': num_failed,
              'num_memleak':  num_memleak,
            }
     return stat
@@ -886,7 +939,14 @@ def execute(lmp_binary, config, input_file_name, generate_ref=False):
 
     try:
         p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True, timeout=timeout)
-        return cmd_str, p.stdout, p.stderr, p.returncode, logfilename
+        status = { 
+            'cmd_str': cmd_str,
+            'stdout': p.stdout,
+            'stderr': p.stderr,
+            'returncode': p.returncode,
+            'logfilename': logfilename,
+        }
+        return status
 
     except subprocess.TimeoutExpired:
         msg = f"     Timeout for: {cmd_str} ({timeout}s expired)"
@@ -894,7 +954,14 @@ def execute(lmp_binary, config, input_file_name, generate_ref=False):
         print(msg)
 
     error_str = f"timeout ({timeout}s expired)"
-    return cmd_str, "", error_str, -1, logfilename
+    status = { 
+        'cmd_str': cmd_str,
+        'stdout': "",
+        'stderr': error_str,
+        'returncode': -1,
+        'logfilename': logfilename,
+    }
+    return status
 
 '''
    get the reference walltime by running the lmp_binary with config with an input script in the bench/ folder
@@ -932,6 +999,7 @@ def get_reference_walltime(lmp_binary, config):
         logger.info(msg)
         print(msg)
 
+    looptime = 1.0
     for line in output.split('\n'):
         if "Total wall time" in line:
             walltime_str = line.split('time:')[1]
@@ -940,6 +1008,14 @@ def get_reference_walltime(lmp_binary, config):
             minutes = float(hms[1])
             seconds = float(hms[2])
             walltime = hours * 3600.0 + minutes * 60.0 + seconds
+        if "Loop time" in line:
+            looptime_str = line.split(' ')[3]
+            seconds = float(looptime_str)
+            looptime = seconds
+
+    # there is case where total walltime with in.lj is reported as zero seconds, then use loop time
+    if float(walltime) < float(config['epsilon']):
+        walltime = looptime
 
     logger.info(f"     Reference walltime, sec = {walltime}")
 
@@ -1104,7 +1180,7 @@ if __name__ == "__main__":
                         help="Determine which test inputs have commands changed between a branch and the head")
     parser.add_argument("--quick-branch", dest="quick_branch", default=quick_branch,
                         help="Branch to which compare the current head to for changed styles")
-    parser.add_argument("--quick-max", dest="quick_max", default=50,
+    parser.add_argument("--quick-max", dest="quick_max", default=0,
                         help="Maximum number of inputs to randomly select")
     parser.add_argument("--quick-reference", dest="quick_reference", default=quick_reference,
                         help="Reference YAML file with progress data from full regression test run")
@@ -1351,6 +1427,13 @@ if __name__ == "__main__":
                         example_inputs.append(input)
                         num_inputscripts += 1
 
+            # allow to select randomly some input scripts at this point if quick_max is set
+            if quick_max > 0 and len(example_inputs) > quick_max:
+                example_inputs = random.sample(example_inputs, quick_max)
+                msg = "\nTesting " + str(quick_max) + " randomly selected inputs"
+                print(msg)
+                logger.info(msg)
+
             example_subfolders = folder_list
             msg = f"\nThere are {num_inputscripts} input scripts listed in {list_input}."
             print(msg)
@@ -1437,6 +1520,8 @@ if __name__ == "__main__":
     passed_tests = 0
     skipped_tests = 0
     error_tests = 0
+    timeout_tests = 0
+    failed_tests = 0
     memleak_tests = 0
 
     # default setting is to use inplace_input
@@ -1455,6 +1540,9 @@ if __name__ == "__main__":
         '''
 
         for directory in example_subfolders:
+
+            if os.path.exists(directory) is False:
+                continue
 
             # change to the directory where the input script and data files are located
             print("-"*80)
@@ -1490,6 +1578,8 @@ if __name__ == "__main__":
             skipped_tests += stat['num_skipped']
             passed_tests += stat['num_passed']
             error_tests += stat['num_error']
+            timeout_tests += stat['num_timeout']
+            failed_tests += stat['num_failed']
             memleak_tests += stat['num_memleak']
 
             # append the results to the all_results list
@@ -1509,26 +1599,34 @@ if __name__ == "__main__":
         skipped_tests = stat['num_skipped']
         passed_tests = stat['num_passed']
         error_tests = stat['num_error']
+        timeout_tests += stat['num_timeout']
+        failed_tests = stat['num_failed']
         memleak_tests = stat['num_memleak']
 
         all_results.extend(results)
 
-    # print out summary
+    # print out summary:
+    #  error_tests = number of runs that errored out
+    #  failed_tests = number of runs that failed the numerical checks, including missing the reference log files, different num runs and num steps in a run
+    #  completed_tests = number of runs that reached the end (Total wall time printed out) = failed_sests + passed_tests
+
     msg = "\nSummary:\n"
     msg += f"  Total number of input scripts: {total_tests}\n"
     msg += f"  - Skipped  : {skipped_tests}\n"
-    msg += f"  - Failed   : {error_tests}\n"
+    msg += f"  - Error    : {error_tests}\n"
+    msg += f"     - timeout  : {timeout_tests}\n"
     msg += f"  - Completed: {completed_tests}\n"
+    msg += f"     - failed   : {failed_tests}\n"
 
     # print notice to GitHub
     if 'GITHUB_STEP_SUMMARY' in os.environ:
         with open(os.environ.get('GITHUB_STEP_SUMMARY'), 'w') as f:
-            print(f"Skipped: {skipped_tests}  Failed: {error_tests}  Completed: {completed_tests}", file=f)
+            print(f"Skipped: {skipped_tests}  Error: {error_tests} Timeout: {timeout_tests} Failed: {failed_tests}  Completed: {completed_tests}", file=f)
 
     if memleak_tests < completed_tests and 'valgrind' in config['mpiexec']:
-        msg += f"    - memory leak detected  : {memleak_tests}\n"
+        msg += f"     - memory leak detected  : {memleak_tests}\n"
     if passed_tests <= completed_tests:
-        msg += f"    - numerical tests passed: {passed_tests}\n"
+        msg += f"     - numerical tests passed: {passed_tests}\n"
     msg += "\nOutput:\n"
     msg += f"  - List of failed inputs         : {failure_file}\n"
     msg += f"  - Status of the tested inputs   : {progress_file}\n"
@@ -1544,12 +1642,10 @@ if __name__ == "__main__":
         for result in all_results:
             #print(f"{result.name}: {result.status}")
             case = TestCase(name=result.name, classname=result.name)
-            if result.status == "failed":
-                case.add_failure_info(message="Actual values did not match expected ones.")
-            if result.status == "skipped":
+            if "passed" not in result.status:
+                case.add_failure_info(message=result.status)
+            if "skipped" in result.status:
                 case.add_skipped_info(message="Test was skipped.")
-            if result.status == "error":
-                case.add_skipped_info(message="Test run had errors.")
             test_cases.append(case)
 
         current_timestamp = datetime.datetime.now()

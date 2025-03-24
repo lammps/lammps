@@ -14,11 +14,17 @@
 //
 //@HEADER
 
-#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
+
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 static_assert(false,
               "Including non-public Kokkos header files is not allowed.");
 #endif
+
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#error "The tasking framework is deprecated"
+#endif
+
 #ifndef KOKKOS_FUTURE_HPP
 #define KOKKOS_FUTURE_HPP
 
@@ -41,13 +47,19 @@ static_assert(false,
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+// We allow using deprecated classes in this file
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
+
 namespace Kokkos {
 
 // For now, hack this in as a partial specialization
 // TODO @tasking @cleanup Make this the "normal" class template and make the old
 // code the specialization
 template <typename ValueType, typename ExecutionSpace, typename QueueType>
-class BasicFuture<ValueType, SimpleTaskScheduler<ExecutionSpace, QueueType>> {
+class KOKKOS_DEPRECATED
+    BasicFuture<ValueType, SimpleTaskScheduler<ExecutionSpace, QueueType>> {
  public:
   using value_type      = ValueType;
   using execution_space = ExecutionSpace;
@@ -244,7 +256,7 @@ class BasicFuture<ValueType, SimpleTaskScheduler<ExecutionSpace, QueueType>> {
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename ValueType, typename Scheduler>
-class BasicFuture {
+class KOKKOS_DEPRECATED BasicFuture {
  private:
   template <typename, typename>
   friend class BasicTaskScheduler;
@@ -413,13 +425,13 @@ class BasicFuture {
 
 // Is a Future with the given execution space
 template <typename, typename ExecSpace = void>
-struct is_future : public std::false_type {};
+struct KOKKOS_DEPRECATED is_future : public std::false_type {};
 
 template <typename ValueType, typename Scheduler, typename ExecSpace>
-struct is_future<BasicFuture<ValueType, Scheduler>, ExecSpace>
+struct KOKKOS_DEPRECATED is_future<BasicFuture<ValueType, Scheduler>, ExecSpace>
     : std::bool_constant<
-          std::is_same<ExecSpace, typename Scheduler::execution_space>::value ||
-          std::is_void<ExecSpace>::value> {};
+          std::is_same_v<ExecSpace, typename Scheduler::execution_space> ||
+          std::is_void_v<ExecSpace>> {};
 
 ////////////////////////////////////////////////////////////////////////////////
 // END OLD CODE
@@ -432,8 +444,8 @@ class ResolveFutureArgOrder {
  private:
   enum { Arg1_is_space = Kokkos::is_space<Arg1>::value };
   enum { Arg2_is_space = Kokkos::is_space<Arg2>::value };
-  enum { Arg1_is_value = !Arg1_is_space && !std::is_void<Arg1>::value };
-  enum { Arg2_is_value = !Arg2_is_space && !std::is_void<Arg2>::value };
+  enum { Arg1_is_value = !Arg1_is_space && !std::is_void_v<Arg1> };
+  enum { Arg2_is_value = !Arg2_is_space && !std::is_void_v<Arg2> };
 
   static_assert(!(Arg1_is_space && Arg2_is_space),
                 "Future cannot be given two spaces");
@@ -463,9 +475,14 @@ class ResolveFutureArgOrder {
  *
  */
 template <class Arg1 = void, class Arg2 = void>
-using Future = typename Impl::ResolveFutureArgOrder<Arg1, Arg2>::type;
+using Future KOKKOS_DEPRECATED =
+    typename Impl::ResolveFutureArgOrder<Arg1, Arg2>::type;
 
 }  // namespace Kokkos
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

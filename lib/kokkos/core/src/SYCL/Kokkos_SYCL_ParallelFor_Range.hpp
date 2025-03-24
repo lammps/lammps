@@ -67,7 +67,7 @@ struct FunctorWrapperRangePolicyParallelForCustom {
 
 template <class FunctorType, class... Traits>
 class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>,
-                                Kokkos::Experimental::SYCL> {
+                                Kokkos::SYCL> {
  public:
   using Policy = Kokkos::RangePolicy<Traits...>;
 
@@ -82,8 +82,8 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>,
   sycl::event sycl_direct_launch(const Policy& policy, const Functor& functor,
                                  const sycl::event& memcpy_event) const {
     // Convenience references
-    const Kokkos::Experimental::SYCL& space = policy.space();
-    sycl::queue& q                          = space.sycl_queue();
+    const Kokkos::SYCL& space = policy.space();
+    sycl::queue& q            = space.sycl_queue();
 
     desul::ensure_sycl_lock_arrays_on_device(q);
 
@@ -160,13 +160,13 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>,
   void execute() const {
     if (m_policy.begin() == m_policy.end()) return;
 
-    Kokkos::Experimental::Impl::SYCLInternal::IndirectKernelMem&
-        indirectKernelMem = m_policy.space()
-                                .impl_internal_space_instance()
-                                ->get_indirect_kernel_mem();
+    Kokkos::Impl::SYCLInternal::IndirectKernelMem& indirectKernelMem =
+        m_policy.space()
+            .impl_internal_space_instance()
+            ->get_indirect_kernel_mem();
 
-    auto functor_wrapper = Experimental::Impl::make_sycl_function_wrapper(
-        m_functor, indirectKernelMem);
+    auto functor_wrapper =
+        Impl::make_sycl_function_wrapper(m_functor, indirectKernelMem);
     sycl::event event = sycl_direct_launch(m_policy, functor_wrapper,
                                            functor_wrapper.get_copy_event());
     functor_wrapper.register_event(event);

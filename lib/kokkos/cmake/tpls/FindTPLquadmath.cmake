@@ -15,7 +15,4 @@
 # ************************************************************************
 # @HEADER
 
-TRIBITS_TPL_FIND_INCLUDE_DIRS_AND_LIBRARIES( quadmath
-  REQUIRED_HEADERS quadmath.h
-  REQUIRED_LIBS_NAMES quadmath
-)
+tribits_tpl_find_include_dirs_and_libraries(quadmath REQUIRED_HEADERS quadmath.h REQUIRED_LIBS_NAMES quadmath)

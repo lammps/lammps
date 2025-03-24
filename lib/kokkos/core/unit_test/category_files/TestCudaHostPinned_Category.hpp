@@ -21,8 +21,8 @@
 
 #define TEST_CATEGORY cuda_hostpinned
 #define TEST_CATEGORY_DEATH cuda_hostpinned_DeathTest
-//#define TEST_EXECSPACE
-// Kokkos::Device<Kokkos::Cuda,Kokkos::CudaHostPinnedSpace>
+// #define TEST_EXECSPACE
+//  Kokkos::Device<Kokkos::Cuda,Kokkos::CudaHostPinnedSpace>
 #define TEST_EXECSPACE Kokkos::CudaHostPinnedSpace
 
 #endif

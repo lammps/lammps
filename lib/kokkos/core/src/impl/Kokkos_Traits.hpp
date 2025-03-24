@@ -53,7 +53,7 @@ struct has_type {
 template <typename T, typename S, typename... Pack>
 struct has_type<T, S, Pack...> {
  private:
-  enum { self_value = std::is_same<T, S>::value };
+  enum { self_value = std::is_same_v<T, S> };
 
   using next = has_type<T, Pack...>;
 
@@ -102,8 +102,7 @@ struct are_integral<T, Args...> {
         // Accept std::is_integral OR std::is_enum as an integral value
         // since a simple enum value is automically convertible to an
         // integral value.
-    (std::is_integral<T>::value || std::is_enum<T>::value) &&
-    are_integral<Args...>::value
+    (std::is_integral_v<T> || std::is_enum_v<T>)&&are_integral<Args...>::value
   };
 };
 

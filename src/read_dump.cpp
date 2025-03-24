@@ -710,12 +710,14 @@ void ReadDump::read_atoms()
         while (nsend < nread) {
           lo = MAX(ofirst,rfirst);
           hi = MIN(olast,rlast);
-          if (otherproc)    // send to otherproc or copy to self
-            MPI_Send(&buf[nsend][0],(hi-lo)*nfield,MPI_DOUBLE,
+          int numel = (hi-lo)*nfield;
+          if (otherproc && numel > 0) { // send to otherproc or copy to self
+            MPI_Send(&buf[nsend][0],numel,MPI_DOUBLE,
                      otherproc,0,clustercomm);
+          }
           else
             memcpy(&fields[rfirst][0],&buf[nsend][0],
-                   (hi-lo)*nfield*sizeof(double));
+                   numel*sizeof(double));
           nsend += hi-lo;
           if (hi == olast) {
             otherproc++;

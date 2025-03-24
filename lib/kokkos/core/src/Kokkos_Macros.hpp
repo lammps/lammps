@@ -27,7 +27,7 @@
  *  KOKKOS_ENABLE_OPENMPTARGET        Kokkos::Experimental::OpenMPTarget
  *                                    execution space
  *  KOKKOS_ENABLE_HIP                 Kokkos::HIP execution space
- *  KOKKOS_ENABLE_SYCL                Kokkos::Experimental::SYCL execution space
+ *  KOKKOS_ENABLE_SYCL                Kokkos::SYCL execution space
  *  KOKKOS_ENABLE_HWLOC               HWLOC library is available.
  *  KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK  Insert array bounds checks, is expensive!
  *  KOKKOS_ENABLE_CUDA_UVM            Use CUDA UVM for Cuda memory space.
@@ -132,7 +132,7 @@
 #define KOKKOS_CLASS_LAMBDA [ =, *this ]
 #endif
 
-//#if !defined( __CUDA_ARCH__ ) // Not compiling Cuda code to 'ptx'.
+// #if !defined( __CUDA_ARCH__ ) // Not compiling Cuda code to 'ptx'.
 
 // Intel compiler for host code.
 
@@ -252,10 +252,10 @@
 // CLANG compiler macros
 
 #if defined(KOKKOS_COMPILER_CLANG)
-//#define KOKKOS_ENABLE_PRAGMA_UNROLL 1
-//#define KOKKOS_ENABLE_PRAGMA_IVDEP 1
-//#define KOKKOS_ENABLE_PRAGMA_LOOPCOUNT 1
-//#define KOKKOS_ENABLE_PRAGMA_VECTOR 1
+// #define KOKKOS_ENABLE_PRAGMA_UNROLL 1
+// #define KOKKOS_ENABLE_PRAGMA_IVDEP 1
+// #define KOKKOS_ENABLE_PRAGMA_LOOPCOUNT 1
+// #define KOKKOS_ENABLE_PRAGMA_VECTOR 1
 
 #if !defined(KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION)
 #define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION \
@@ -273,10 +273,10 @@
 // GNU Compiler macros
 
 #if defined(KOKKOS_COMPILER_GNU)
-//#define KOKKOS_ENABLE_PRAGMA_UNROLL 1
-//#define KOKKOS_ENABLE_PRAGMA_IVDEP 1
-//#define KOKKOS_ENABLE_PRAGMA_LOOPCOUNT 1
-//#define KOKKOS_ENABLE_PRAGMA_VECTOR 1
+// #define KOKKOS_ENABLE_PRAGMA_UNROLL 1
+// #define KOKKOS_ENABLE_PRAGMA_IVDEP 1
+// #define KOKKOS_ENABLE_PRAGMA_LOOPCOUNT 1
+// #define KOKKOS_ENABLE_PRAGMA_VECTOR 1
 
 #if !defined(KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION)
 #define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION \
@@ -298,7 +298,7 @@
 #if defined(KOKKOS_COMPILER_NVHPC)
 #define KOKKOS_ENABLE_PRAGMA_UNROLL 1
 #define KOKKOS_ENABLE_PRAGMA_IVDEP 1
-//#define KOKKOS_ENABLE_PRAGMA_LOOPCOUNT 1
+// #define KOKKOS_ENABLE_PRAGMA_LOOPCOUNT 1
 #define KOKKOS_ENABLE_PRAGMA_VECTOR 1
 #endif
 
@@ -357,6 +357,21 @@
 #define KOKKOS_IMPL_DEVICE_FUNCTION
 #endif
 
+// FIXME_OPENACC FIXME_OPENMPTARGET
+// Move to setup files once there is more content
+// clang-format off
+#if defined(KOKKOS_ENABLE_OPENACC)
+#define KOKKOS_IMPL_RELOCATABLE_FUNCTION @"KOKKOS_RELOCATABLE_FUNCTION is not supported for the OpenACC backend"
+#endif
+#if defined(KOKKOS_ENABLE_OPENMPTARGET)
+#define KOKKOS_IMPL_RELOCATABLE_FUNCTION @"KOKKOS_RELOCATABLE_FUNCTION is not supported for the OpenMPTarget backend"
+#endif
+// clang-format on
+
+#if !defined(KOKKOS_IMPL_RELOCATABLE_FUNCTION)
+#define KOKKOS_IMPL_RELOCATABLE_FUNCTION
+#endif
+
 //----------------------------------------------------------------------------
 // Define final version of functions. This is so that clang tidy can find these
 // macros more easily
@@ -369,10 +384,14 @@
 #define KOKKOS_FORCEINLINE_FUNCTION \
   KOKKOS_IMPL_FORCEINLINE_FUNCTION  \
   __attribute__((annotate("KOKKOS_FORCEINLINE_FUNCTION")))
+#define KOKKOS_RELOCATABLE_FUNCTION \
+  KOKKOS_IMPL_RELOCATABLE_FUNCTION  \
+  __attribute__((annotate("KOKKOS_RELOCATABLE_FUNCTION")))
 #else
 #define KOKKOS_FUNCTION KOKKOS_IMPL_FUNCTION
 #define KOKKOS_INLINE_FUNCTION KOKKOS_IMPL_INLINE_FUNCTION
 #define KOKKOS_FORCEINLINE_FUNCTION KOKKOS_IMPL_FORCEINLINE_FUNCTION
+#define KOKKOS_RELOCATABLE_FUNCTION KOKKOS_IMPL_RELOCATABLE_FUNCTION
 #endif
 
 //----------------------------------------------------------------------------
@@ -537,13 +556,16 @@ static constexpr bool kokkos_omp_on_host() { return false; }
 // If compiling with CUDA, we must use relocatable device code to enable the
 // task policy.
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
 #if defined(KOKKOS_ENABLE_CUDA)
 #if defined(KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE)
 #define KOKKOS_ENABLE_TASKDAG
 #endif
 // FIXME_SYCL Tasks not implemented
-#elif !defined(KOKKOS_ENABLE_HIP) && !defined(KOKKOS_ENABLE_SYCL)
+#elif !defined(KOKKOS_ENABLE_HIP) && !defined(KOKKOS_ENABLE_SYCL) && \
+    !defined(KOKKOS_ENABLE_OPENMPTARGET)
 #define KOKKOS_ENABLE_TASKDAG
+#endif
 #endif
 
 #if defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_DEPRECATED_CODE_4)
@@ -582,9 +604,11 @@ static constexpr bool kokkos_omp_on_host() { return false; }
 // clang-format off
 #if defined(__NVCOMPILER)
   #define KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH() \
-    _Pragma("diag_suppress 1216")
+    _Pragma("diag_suppress 1216") \
+    _Pragma("diag_suppress deprecated_entity_with_custom_message")
   #define KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP() \
-    _Pragma("diag_default 1216")
+    _Pragma("diag_default 1216") \
+    _Pragma("diag_suppress deprecated_entity_with_custom_message")
 #elif defined(__EDG__)
   #define KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH() \
     _Pragma("warning push")                              \
@@ -606,6 +630,18 @@ static constexpr bool kokkos_omp_on_host() { return false; }
 #else
   #define KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
   #define KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
+
+#if defined(__NVCOMPILER)
+#define KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_PUSH() \
+  _Pragma("diag_suppress code_is_unreachable")          \
+  _Pragma("diag_suppress initialization_not_reachable")
+#define KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_POP() \
+  _Pragma("diag_default code_is_unreachable")          \
+  _Pragma("diag_default initialization_not_reachable")
+#else
+#define KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_PUSH()
+#define KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_POP()
 #endif
 // clang-format on
 

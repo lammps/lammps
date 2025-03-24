@@ -264,6 +264,8 @@ class Fix : protected Pointers {
 
   virtual double memory_usage() { return 0.0; }
 
+  void set_copymode(int value) { copymode = value; }
+
  protected:
   int instance_me;    // which Fix class instantiation I am
 

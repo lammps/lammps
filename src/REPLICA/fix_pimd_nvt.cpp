@@ -43,8 +43,6 @@ using namespace MathConst;
 
 using MathSpecial::powint;
 
-enum { PIMD, NMPIMD, CMD };
-
 /* ---------------------------------------------------------------------- */
 
 FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
@@ -91,26 +89,28 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
         method = CMD;
       else
         error->universe_all(
-            FLERR, fmt::format("Unknown method parameter {} for fix pimd/nvt", arg[i + 1]));
+            FLERR, fmt::format("Unknown method parameter {} for fix {}", arg[i + 1], style));
     } else if (strcmp(arg[i], "fmass") == 0) {
       fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if ((fmass < 0.0) || (fmass > np))
-        error->universe_all(FLERR, fmt::format("Invalid fmass value {} for fix pimd/nvt", fmass));
+        error->universe_all(FLERR, fmt::format("Invalid fmass value {} for fix {}", fmass, style));
     } else if (strcmp(arg[i], "sp") == 0) {
       sp = utils::numeric(FLERR, arg[i + 1], false, lmp);
-      if (sp < 0.0) error->universe_all(FLERR, "Invalid sp value for fix pimd/nvt");
+      if (sp < 0.0) error->universe_all(FLERR, fmt::format("Invalid sp value for fix {}", style));
     } else if (strcmp(arg[i], "temp") == 0) {
       nhc_temp = utils::numeric(FLERR, arg[i + 1], false, lmp);
-      if (nhc_temp < 0.0) error->universe_all(FLERR, "Invalid temp value for fix pimd/nvt");
+      if (nhc_temp < 0.0)
+        error->universe_all(FLERR, fmt::format("Invalid temp value for fix {}", style));
     } else if (strcmp(arg[i], "nhc") == 0) {
       nhc_nchain = utils::inumeric(FLERR, arg[i + 1], false, lmp);
-      if (nhc_nchain < 2) error->universe_all(FLERR, "Invalid nhc value for fix pimd/nvt");
+      if (nhc_nchain < 2)
+        error->universe_all(FLERR, fmt::format("Invalid nhc value for fix {}", style));
     } else
-      error->universe_all(FLERR, fmt::format("Unknown keyword {} for fix pimd/nvt", arg[i]));
+      error->universe_all(FLERR, fmt::format("Unknown keyword {} for fix {}", arg[i], style));
   }
 
   if (strcmp(update->unit_style, "lj") == 0)
-    error->all(FLERR, "Fix pimd/nvt does not support lj units");
+    error->all(FLERR, fmt::format("Fix {} does not support lj units", style));
 
   /* Initiation */
 
@@ -189,10 +189,10 @@ int FixPIMDNVT::setmask()
 void FixPIMDNVT::init()
 {
   if (atom->map_style == Atom::MAP_NONE)
-    error->universe_all(FLERR, "Fix pimd/nvt requires an atom map, see atom_modify");
+    error->universe_all(FLERR, fmt::format("Fix {} requires an atom map, see atom_modify", style));
 
   if (universe->me == 0 && universe->uscreen)
-    fprintf(universe->uscreen, "Fix pimd/nvt initializing Path-Integral ...\n");
+    utils::print(universe->uscreen, "Fix {} initializing Path-Integral ...\n", style);
 
   // prepare the constants
 
@@ -220,7 +220,7 @@ void FixPIMDNVT::init()
   const double Plank = force->hplanck;
 
   double hbar = Plank / (2.0 * MY_PI) * sp;
-  double beta = 1.0 / (Boltzmann * nhc_temp);
+  beta = 1.0 / (Boltzmann * nhc_temp);
   double _fbond = 1.0 * np / (beta * beta * hbar * hbar);
 
   omega_np = sqrt((double) np) / (hbar * beta) * sqrt(force->mvv2e);
@@ -271,12 +271,20 @@ void FixPIMDNVT::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
+void FixPIMDNVT::prepare_coordinates()
+{
+  comm_exec(atom->x);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixPIMDNVT::post_force(int /*flag*/)
 {
   for (int i = 0; i < atom->nlocal; i++)
     for (int j = 0; j < 3; j++) atom->f[i][j] /= np;
 
-  comm_exec(atom->x);
+  prepare_coordinates();
+  pre_spring_force_estimators();
   spring_force();
 
   if (method == CMD || method == NMPIMD) {
@@ -533,6 +541,26 @@ void FixPIMDNVT::nmpimd_transform(double **src, double **des, double *vector)
 
 /* ---------------------------------------------------------------------- */
 
+void FixPIMDNVT::pre_spring_force_estimators()
+{
+  vir_estimator();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDNVT::vir_estimator()
+{
+  double **x = atom->x;
+  double **f = atom->f;
+  int nlocal = atom->nlocal;
+
+  virial = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    virial += -0.5 * (x[i][0] * f[i][0] + x[i][1] * f[i][1] + x[i][2] * f[i][2]);
+  }
+}
+/* ---------------------------------------------------------------------- */
+
 void FixPIMDNVT::spring_force()
 {
   spring_energy = 0.0;
@@ -545,8 +573,6 @@ void FixPIMDNVT::spring_force()
 
   double *xlast = buf_beads[x_last];
   double *xnext = buf_beads[x_next];
-
-  virial = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
     double delx1 = xlast[0] - x[i][0];
@@ -566,8 +592,6 @@ void FixPIMDNVT::spring_force()
     double dx = delx1 + delx2;
     double dy = dely1 + dely2;
     double dz = delz1 + delz2;
-
-    virial += -0.5 * (x[i][0] * f[i][0] + x[i][1] * f[i][1] + x[i][2] * f[i][2]);
 
     f[i][0] -= (dx) *ff;
     f[i][1] -= (dy) *ff;

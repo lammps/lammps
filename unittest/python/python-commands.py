@@ -538,6 +538,27 @@ create_atoms 1 single &
         expanded = self.lmp.expand("'xx_$(4+5)_$(PI) ${one}-${two}-${three}'")
         self.assertEqual(expanded, "'xx_$(4+5)_$(PI) ${one}-${two}-${three}'")
 
+    def test_eval(self):
+        self.lmp.commands_string(
+            """region box1 block 0 10 0 5 -0.5 0.5
+            lattice fcc 0.8
+            create_box 1 box1
+            create_atoms 1 box
+            mass * 1.0
+            pair_style lj/cut 4.0
+            pair_coeff * * 1.0 1.0
+            variable t equal 15.0
+            velocity all create 1.5 532656
+            fix 1 all nve
+            run 0 post no""")
+        self.lmp.command("variable one    index     1 2 3 4")
+        self.lmp.command("variable two    equal     2")
+
+        self.assertEqual(self.lmp.eval("4+5"), 9.0)
+        self.assertEqual(self.lmp.eval("v_one / 2.0"), 0.5)
+        self.assertEqual(self.lmp.eval("count(all)"), 36.0)
+        self.assertEqual(self.lmp.eval("pe"), -3.9848867644689534)
+
     def test_get_thermo(self):
         self.lmp.command("units lj")
         self.lmp.command("atom_style atomic")

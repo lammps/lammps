@@ -10,9 +10,9 @@ int zungl2_(integer *m, integer *n, integer *k, doublecomplex *a, integer *lda, 
     void d_lmp_cnjg(doublecomplex *, doublecomplex *);
     integer i__, j, l;
     extern int zscal_(integer *, doublecomplex *, doublecomplex *, integer *),
-        zlarf_(char *, integer *, integer *, doublecomplex *, integer *, doublecomplex *,
-               doublecomplex *, integer *, doublecomplex *, ftnlen),
-        xerbla_(char *, integer *, ftnlen), zlacgv_(integer *, doublecomplex *, integer *);
+        xerbla_(char *, integer *, ftnlen), zlacgv_(integer *, doublecomplex *, integer *),
+        zlarf1f_(char *, integer *, integer *, doublecomplex *, integer *, doublecomplex *,
+                 doublecomplex *, integer *, doublecomplex *, ftnlen);
     a_dim1 = *lda;
     a_offset = 1 + a_dim1;
     a -= a_offset;
@@ -55,13 +55,11 @@ int zungl2_(integer *m, integer *n, integer *k, doublecomplex *a, integer *lda, 
             i__1 = *n - i__;
             zlacgv_(&i__1, &a[i__ + (i__ + 1) * a_dim1], lda);
             if (i__ < *m) {
-                i__1 = i__ + i__ * a_dim1;
-                a[i__1].r = 1., a[i__1].i = 0.;
                 i__1 = *m - i__;
                 i__2 = *n - i__ + 1;
                 d_lmp_cnjg(&z__1, &tau[i__]);
-                zlarf_((char *)"Right", &i__1, &i__2, &a[i__ + i__ * a_dim1], lda, &z__1,
-                       &a[i__ + 1 + i__ * a_dim1], lda, &work[1], (ftnlen)5);
+                zlarf1f_((char *)"R", &i__1, &i__2, &a[i__ + i__ * a_dim1], lda, &z__1,
+                         &a[i__ + 1 + i__ * a_dim1], lda, &work[1], (ftnlen)1);
             }
             i__1 = *n - i__;
             i__2 = i__;

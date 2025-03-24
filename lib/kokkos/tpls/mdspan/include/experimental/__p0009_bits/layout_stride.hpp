@@ -197,28 +197,22 @@ struct layout_stride {
       }
 
       template<class IntegralType>
-      MDSPAN_INLINE_FUNCTION
       static constexpr const __strides_storage_t fill_strides(const std::array<IntegralType,extents_type::rank()>& s) {
         return __strides_storage_t{static_cast<index_type>(s[Idxs])...};
       }
 
       MDSPAN_TEMPLATE_REQUIRES(
         class IntegralType,
-        // The is_convertible condition is added to make sfinae valid
-        // the extents_type::rank() > 0 is added to avoid use of non-standard zero length c-array
-        (std::is_convertible<IntegralType, typename extents_type::index_type>::value && (extents_type::rank() > 0))
+        (std::is_convertible<IntegralType, typename extents_type::index_type>::value)
       )
       MDSPAN_INLINE_FUNCTION
-      // despite the requirement some compilers still complain about zero length array during parsing
-      // making it length 1 now, but since the thing can't be instantiated due to requirement the actual
-      // instantiation of strides_storage will not fail despite mismatching length
+      // Need to avoid zero length c-array
       static constexpr const __strides_storage_t fill_strides(mdspan_non_standard_tag, const IntegralType (&s)[extents_type::rank()>0?extents_type::rank():1]) {
         return __strides_storage_t{static_cast<index_type>(s[Idxs])...};
       }
 
 #ifdef __cpp_lib_span
       template<class IntegralType>
-      MDSPAN_INLINE_FUNCTION
       static constexpr const __strides_storage_t fill_strides(const std::span<IntegralType,extents_type::rank()>& s) {
         return __strides_storage_t{static_cast<index_type>(s[Idxs])...};
       }
@@ -242,10 +236,13 @@ struct layout_stride {
     // Can't use defaulted parameter in the __deduction_workaround template because of a bug in MSVC warning C4348.
     using __impl = __deduction_workaround<std::make_index_sequence<Extents::rank()>>;
 
+    MDSPAN_FUNCTION
     static constexpr __strides_storage_t strides_storage(detail::with_rank<0>) {
       return {};
     }
+
     template <std::size_t N>
+    MDSPAN_FUNCTION
     static constexpr __strides_storage_t strides_storage(detail::with_rank<N>) {
       __strides_storage_t s{};
 
@@ -273,7 +270,7 @@ struct layout_stride {
 
     //--------------------------------------------------------------------------------
 
-    MDSPAN_INLINE_FUNCTION_DEFAULTED constexpr mapping() noexcept
+    MDSPAN_INLINE_FUNCTION constexpr mapping() noexcept
 #if defined(_MDSPAN_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
       : __members{
 #else
@@ -299,7 +296,6 @@ struct layout_stride {
         _MDSPAN_TRAIT(std::is_nothrow_constructible, typename Extents::index_type, const std::remove_const_t<IntegralTypes>&)
       )
     )
-    MDSPAN_INLINE_FUNCTION
     constexpr
     mapping(
       extents_type const& e,
@@ -333,8 +329,7 @@ struct layout_stride {
         // MSVC 19.32 does not like using index_type here, requires the typename Extents::index_type
         // error C2641: cannot deduce template arguments for 'MDSPAN_IMPL_STANDARD_NAMESPACE::layout_stride::mapping'
         _MDSPAN_TRAIT(std::is_convertible, const std::remove_const_t<IntegralTypes>&, typename Extents::index_type) &&
-        _MDSPAN_TRAIT(std::is_nothrow_constructible, typename Extents::index_type, const std::remove_const_t<IntegralTypes>&) &&
-        (Extents::rank() > 0)
+        _MDSPAN_TRAIT(std::is_nothrow_constructible, typename Extents::index_type, const std::remove_const_t<IntegralTypes>&)
       )
     )
     MDSPAN_INLINE_FUNCTION
@@ -342,10 +337,8 @@ struct layout_stride {
     mapping(
       mdspan_non_standard_tag,
       extents_type const& e,
-      // despite the requirement some compilers still complain about zero length array during parsing
-      // making it length 1 now, but since the thing can't be instantiated due to requirement the actual
-      // instantiation of strides_storage will not fail despite mismatching length
-      IntegralTypes (&s)[extents_type::rank()>0?extents_type::rank():1]
+      // Need to avoid zero-length c-array
+      const IntegralTypes (&s)[extents_type::rank()>0?extents_type::rank():1]
     ) noexcept
 #if defined(_MDSPAN_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
       : __members{
@@ -379,7 +372,6 @@ struct layout_stride {
         _MDSPAN_TRAIT(std::is_nothrow_constructible, typename Extents::index_type, const std::remove_const_t<IntegralTypes>&)
       )
     )
-    MDSPAN_INLINE_FUNCTION
     constexpr
     mapping(
       extents_type const& e,
@@ -476,7 +468,8 @@ struct layout_stride {
     MDSPAN_INLINE_FUNCTION
     constexpr index_type required_span_size() const noexcept {
       index_type span_size = 1;
-      for(unsigned r = 0; r < extents_type::rank(); r++) {
+      // using int here to avoid warning about pointless comparison to 0
+      for(int r = 0; r < static_cast<int>(extents_type::rank()); r++) {
         // Return early if any of the extents are zero
         if(extents().extent(r)==0) return 0;
         span_size += ( static_cast<index_type>(extents().extent(r) - 1 ) * __strides_storage()[r]);
@@ -509,15 +502,18 @@ struct layout_stride {
     MDSPAN_INLINE_FUNCTION static constexpr bool is_unique() noexcept { return true; }
 
   private:
+    MDSPAN_INLINE_FUNCTION
     constexpr bool exhaustive_for_nonzero_span_size() const
     {
       return required_span_size() == __get_size(extents(), std::make_index_sequence<extents_type::rank()>());
     }
 
+    MDSPAN_INLINE_FUNCTION
     constexpr bool is_exhaustive_impl(detail::with_rank<0>) const
     {
       return true;
     }
+    MDSPAN_INLINE_FUNCTION
     constexpr bool is_exhaustive_impl(detail::with_rank<1>) const
     {
       if (required_span_size() != static_cast<index_type>(0)) {
@@ -526,6 +522,7 @@ struct layout_stride {
       return stride(0) == 1;
     }
     template <std::size_t N>
+    MDSPAN_INLINE_FUNCTION
     constexpr bool is_exhaustive_impl(detail::with_rank<N>) const
     {
       if (required_span_size() != static_cast<index_type>(0)) {
@@ -627,6 +624,7 @@ struct layout_stride {
        SliceSpecifiers... slices) const;
 
    template<class... SliceSpecifiers>
+    MDSPAN_INLINE_FUNCTION
      friend constexpr auto submdspan_mapping(
        const mapping& src, SliceSpecifiers... slices) {
       return src.submdspan_mapping_impl(slices...);
@@ -637,10 +635,12 @@ struct layout_stride {
 namespace detail {
 
 template <class Layout, class Extents, class Mapping>
+MDSPAN_INLINE_FUNCTION
 constexpr void validate_strides(with_rank<0>, Layout, const Extents&, const Mapping&)
 {}
 
 template <std::size_t N, class Layout, class Extents, class Mapping>
+MDSPAN_INLINE_FUNCTION
 constexpr void validate_strides(with_rank<N>, Layout, const Extents& ext, const Mapping& other)
 {
   static_assert(std::is_same<typename Mapping::layout_type, layout_stride>::value &&

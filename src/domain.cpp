@@ -787,7 +787,7 @@ void Domain::pbc()
   int flag = 0;
   for (i = 0; i < n3; i++)
     if (!std::isfinite(*coord++)) flag = 1;
-  if (flag) error->one(FLERR,"Non-numeric atom coords - simulation unstable");
+  if (flag) error->one(FLERR,"Non-numeric atom coords - simulation unstable" + utils::errorurl(6));
 
   // setup for PBC checks
 
@@ -1028,7 +1028,8 @@ void Domain::image_check()
       if (k == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR,"Bond atom missing in image check");
+          error->one(FLERR, Error::NOLASTLINE,
+                     "Bond atom missing in image check" + utils::errorurl(14));
         continue;
       }
 
@@ -1048,13 +1049,13 @@ void Domain::image_check()
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
   if (flagall && comm->me == 0)
-    error->warning(FLERR,"Inconsistent image flags");
+    error->warning(FLERR,"Inconsistent image flags" + utils::errorurl(27));
 
   if (lostbond == Thermo::WARN) {
     int all;
     MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
     if (all && comm->me == 0)
-      error->warning(FLERR,"Bond atom missing in image check");
+      error->warning(FLERR, "Bond atom missing in image check" + utils::errorurl(14));
   }
 
   memory->destroy(unwrap);
@@ -1127,7 +1128,8 @@ void Domain::box_too_small_check()
       if (k == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR,"Bond atom missing in box size check");
+          error->one(FLERR, Error::NOLASTLINE,
+                     "Bond atom missing in box size check" + utils::errorurl(14));
         continue;
       }
 
@@ -1144,7 +1146,7 @@ void Domain::box_too_small_check()
     int all;
     MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
     if (all && comm->me == 0)
-      error->warning(FLERR,"Bond atom missing in box size check");
+      error->warning(FLERR,"Bond atom missing in box size check" + utils::errorurl(14));
   }
 
   double maxbondall;
@@ -1668,7 +1670,7 @@ void Domain::remap(double *x)
    adjust 3 image flags encoded in image accordingly
    resulting coord must satisfy lo <= coord < hi
    MAX is important since coord - prd < lo can happen when coord = hi
-   for triclinic, point is converted to lamda coords (0-1) before doing remap
+   for triclinic, point is converted to lamda coords (0-1) within remap()
    image = 10 bits for each dimension
    increment/decrement in wrap-around fashion
 ------------------------------------------------------------------------- */
@@ -1679,9 +1681,7 @@ void Domain::remap_all()
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  if (triclinic) x2lamda(nlocal);
   for (int i = 0; i < nlocal; i++) remap(x[i],image[i]);
-  if (triclinic) lamda2x(nlocal);
 }
 
 /* ----------------------------------------------------------------------

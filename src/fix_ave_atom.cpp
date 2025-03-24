@@ -43,11 +43,13 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   // expand args if any have wildcard character "*"
   // this can reset nvalues
 
+  const int ioffset = 6;
   int expand = 0;
   char **earg;
-  int nvalues = utils::expand_args(FLERR, narg - 6, &arg[6], 1, earg, lmp);
+  int *amap = nullptr;
+  int nvalues = utils::expand_args(FLERR, narg - ioffset, &arg[ioffset], 1, earg, lmp, &amap);
 
-  if (earg != &arg[6]) expand = 1;
+  if (earg != &arg[ioffset]) expand = 1;
   arg = earg;
 
   // parse values
@@ -58,6 +60,8 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     value_t val;
     val.id = "";
     val.val.c = nullptr;
+    if (expand) val.iarg = amap[i] + ioffset;
+    else val.iarg = i + ioffset;
 
     if (strcmp(arg[i], "x") == 0) {
       val.which = ArgInfo::X;
@@ -97,7 +101,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
       val.id = argi.get_name();
 
       if ((val.which == ArgInfo::UNKNOWN) || (val.which == ArgInfo::NONE) || (argi.get_dim() > 1))
-        error->all(FLERR, "Invalid fix ave/atom argument: {}", arg[i]);
+        error->all(FLERR, val.iarg, "Invalid fix ave/atom argument: {}", arg[i]);
     }
     values.push_back(val);
   }
@@ -107,51 +111,52 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   if (expand) {
     for (int i = 0; i < nvalues; i++) delete[] earg[i];
     memory->sfree(earg);
+    memory->sfree(amap);
   }
 
   // setup and error check
   // for fix inputs, check that fix frequency is acceptable
 
-  if (nevery <= 0) error->all(FLERR,"Illegal fix ave/atom nevery value: {}", nevery);
-  if (nrepeat <= 0) error->all(FLERR,"Illegal fix ave/atom nrepeat value: {}", nrepeat);
-  if (peratom_freq <= 0) error->all(FLERR,"Illegal fix ave/atom nfreq value: {}", peratom_freq);
+  if (nevery <= 0) error->all(FLERR, 3, "Illegal fix ave/atom nevery value: {}", nevery);
+  if (nrepeat <= 0) error->all(FLERR, 4, "Illegal fix ave/atom nrepeat value: {}", nrepeat);
+  if (peratom_freq <= 0) error->all(FLERR, 5, "Illegal fix ave/atom nfreq value: {}", peratom_freq);
   if (peratom_freq % nevery || nrepeat*nevery > peratom_freq)
-    error->all(FLERR,"Inconsistent fix ave/atom nevery/nrepeat/nfreq values");
+    error->all(FLERR, Error::NOPOINTER, "Inconsistent fix ave/atom nevery/nrepeat/nfreq values");
 
   for (auto &val : values) {
 
     if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
-      if (!val.val.c) error->all(FLERR,"Compute ID {} for fix ave/atom does not exist", val.id);
+      if (!val.val.c) error->all(FLERR, val.iarg, "Compute ID {} for fix ave/atom does not exist", val.id);
       if (val.val.c->peratom_flag == 0)
-        error->all(FLERR, "Fix ave/atom compute {} does not calculate per-atom values", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom compute {} does not calculate per-atom values", val.id);
       if (val.argindex == 0 && val.val.c->size_peratom_cols != 0)
-        error->all(FLERR,"Fix ave/atom compute {} does not calculate a per-atom vector", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom compute {} does not calculate a per-atom vector", val.id);
       if (val.argindex && val.val.c->size_peratom_cols == 0)
-        error->all(FLERR,"Fix ave/atom compute {} does not calculate a per-atom array", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom compute {} does not calculate a per-atom array", val.id);
       if (val.argindex && val.argindex > val.val.c->size_peratom_cols)
-        error->all(FLERR,"Fix ave/atom compute {} array is accessed out-of-range", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom compute {} array is accessed out-of-range", val.id);
 
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
-      if (!val.val.f) error->all(FLERR, "Fix ID {} for fix ave/atom does not exist", val.id);
+      if (!val.val.f) error->all(FLERR, val.iarg, "Fix ID {} for fix ave/atom does not exist", val.id);
       if (val.val.f->peratom_flag == 0)
-        error->all(FLERR, "Fix ave/atom fix {} does not calculate per-atom values", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom fix {} does not calculate per-atom values", val.id);
       if (val.argindex == 0 && val.val.f->size_peratom_cols != 0)
-        error->all(FLERR, "Fix ave/atom fix {} does not calculate a per-atom vector", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom fix {} does not calculate a per-atom vector", val.id);
       if (val.argindex && val.val.f->size_peratom_cols == 0)
-        error->all(FLERR, "Fix ave/atom fix {} does not calculate a per-atom array", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom fix {} does not calculate a per-atom array", val.id);
       if (val.argindex && val.argindex > val.val.f->size_peratom_cols)
-        error->all(FLERR,"Fix ave/atom fix {} array is accessed out-of-range", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom fix {} array is accessed out-of-range", val.id);
       if (nevery % val.val.f->peratom_freq)
-        error->all(FLERR, "Fix {} for fix ave/atom not computed at compatible time", val.id);
+        error->all(FLERR, val.iarg, "Fix {} for fix ave/atom not computed at compatible time", val.id);
 
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
       if (val.val.v < 0)
-        error->all(FLERR,"Variable name {} for fix ave/atom does not exist", val.id);
+        error->all(FLERR, val.iarg, "Variable name {} for fix ave/atom does not exist", val.id);
       if (input->variable->atomstyle(val.val.v) == 0)
-        error->all(FLERR,"Fix ave/atom variable {} is not atom-style variable", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom variable {} is not atom-style variable", val.id);
     }
   }
 
@@ -214,16 +219,18 @@ void FixAveAtom::init()
   for (auto &val : values) {
     if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
-      if (!val.val.c) error->all(FLERR, "Compute ID {} for fix ave/atom does not exist", val.id);
+      if (!val.val.c)
+        error->all(FLERR, Error::NOLASTLINE, "Compute ID {} for fix ave/atom does not exist", val.id);
 
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
-      if (!val.val.f) error->all(FLERR, "Fix ID {} for fix ave/atom does not exist", val.id);
+      if (!val.val.f)
+        error->all(FLERR, Error::NOLASTLINE, "Fix ID {} for fix ave/atom does not exist", val.id);
 
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
       if (val.val.v < 0)
-        error->all(FLERR,"Variable name {} for fix ave/atom does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE, "Variable name {} for fix ave/atom does not exist", val.id);
     }
   }
 

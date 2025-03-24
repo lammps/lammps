@@ -20,6 +20,8 @@
 #include <omp.h>
 #include <sstream>
 #include <Kokkos_Parallel.hpp>
+#include "Kokkos_OpenMPTarget_Instance.hpp"
+#include "Kokkos_OpenMPTarget_FunctorAdapter.hpp"
 
 namespace Kokkos {
 namespace Impl {
@@ -28,36 +30,30 @@ template <class FunctorType, class... Traits>
 class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>,
                   Kokkos::Experimental::OpenMPTarget> {
  private:
-  using Policy  = Kokkos::RangePolicy<Traits...>;
-  using WorkTag = typename Policy::work_tag;
-  using Member  = typename Policy::member_type;
+  using Policy = Kokkos::RangePolicy<Traits...>;
+  using Member = typename Policy::member_type;
 
-  const FunctorType m_functor;
+  Kokkos::Experimental::Impl::FunctorAdapter<FunctorType, Policy> m_functor;
   const Policy m_policy;
 
  public:
-  void execute() const { execute_impl<WorkTag>(); }
+  void execute() const { execute_impl(); }
 
-  template <class TagType>
   void execute_impl() const {
-    OpenMPTargetExec::verify_is_process(
+    Experimental::Impl::OpenMPTargetInternal::verify_is_process(
         "Kokkos::Experimental::OpenMPTarget parallel_for");
-    OpenMPTargetExec::verify_initialized(
+    Experimental::Impl::OpenMPTargetInternal::verify_initialized(
         "Kokkos::Experimental::OpenMPTarget parallel_for");
     const auto begin = m_policy.begin();
     const auto end   = m_policy.end();
 
     if (end <= begin) return;
 
-    FunctorType a_functor(m_functor);
+    auto const a_functor(m_functor);
 
 #pragma omp target teams distribute parallel for map(to : a_functor)
     for (auto i = begin; i < end; ++i) {
-      if constexpr (std::is_void<TagType>::value) {
-        a_functor(i);
-      } else {
-        a_functor(TagType(), i);
-      }
+      a_functor(i);
     }
   }
 

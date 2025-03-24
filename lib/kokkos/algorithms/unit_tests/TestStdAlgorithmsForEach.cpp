@@ -55,7 +55,6 @@ void test_for_each(const ViewType view) {
   std::for_each(KE::begin(expected), KE::end(expected), non_mod_functor);
   compare_views(expected, view);
 
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
   const auto mod_lambda = KOKKOS_LAMBDA(value_t & i) { ++i; };
 
   // pass view, lambda takes non-const ref
@@ -79,7 +78,6 @@ void test_for_each(const ViewType view) {
   KE::for_each(exespace(), KE::cbegin(view), KE::cend(view), non_mod_lambda);
   std::for_each(KE::cbegin(expected), KE::cend(expected), non_mod_lambda);
   compare_views(expected, view);
-#endif
 }
 
 // std::for_each_n is C++17, so we cannot compare results directly

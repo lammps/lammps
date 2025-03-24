@@ -22,12 +22,12 @@ doxygen-warn.log  logfile with warnings from running doxygen
 and:
 
 github-development-workflow.md   notes on the LAMMPS development workflow
-include-file-conventions.md      notes on LAMMPS' include file conventions
 documentation_conventions.md     notes on writing documentation for LAMMPS
 
 If you downloaded a LAMMPS tarball from www.lammps.org, then the html
 folder and the PDF manual should be included. If you downloaded LAMMPS
-from GitHub then you either need to build them.
+using GitHub then you either need to build them yourself or read the
+online version at https://docs.lammps.org/
 
 You can build the HTML and PDF files yourself, by typing "make html"
 or by "make pdf", respectively.  This requires various tools and files.
@@ -39,10 +39,10 @@ environment and local folders.
 
 Installing prerequisites for the documentation build
 
-To run the HTML documention build toolchain, python 3.x, doxygen, git,
-and the venv python module have to be installed if not already available.
-Also internet access is initially required to download external files
-and tools.
+To run the HTML documention build toolchain, python 3.8 or later,
+doxygen 1.8.10 or later, git, and the venv python module have to be
+installed if not already available.  Also internet access is initially
+required to download external files and tools.
 
 Building the PDF format manual requires in addition a compatible LaTeX
 installation with support for PDFLaTeX and several add-on LaTeX packages
@@ -52,16 +52,24 @@ installed.  This includes:
 - babel
 - capt-of
 - cmap
+- dvipng
+- ellipse
 - fncychap
+- fontawesom
 - framed
 - geometry
+- gyre
 - hyperref
 - hypcap
 - needspace
+- pict2e
 - times
 - tabulary
+- titlesec
 - upquote
 - wrapfig
+- xindy
+
 Also the latexmk script is required to run PDFLaTeX and related tools.
 the required number of times to have self-consistent output and include
 updated bibliography and indices.

@@ -47,7 +47,7 @@ thermo          100
 thermo_modify   lost ignore lost/bond ignore
 #dump            1 all custom 100 atomDump id x y z c_nbond
 
-dump            2 all local 100 brokenDump f_brkbond[1] f_brkbond[2] f_brkbond[3]
-dump_modify     2 header no
+#dump            2 all local 100 brokenDump f_brkbond[1] f_brkbond[2] f_brkbond[3]
+#dump_modify     2 header no
 
 run             7500

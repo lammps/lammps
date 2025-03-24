@@ -1,0 +1,128 @@
+LAMMPS (19 Nov 2024 - Development - patch_19Nov2024-1172-g920337963b-modified)
+  using 1 OpenMP thread(s) per MPI task
+# QEq Water, CITE: Achtyl et al., Nat. Comm., 6 6539 (2015)
+
+boundary        p p s
+units           real
+atom_style      charge
+
+read_data       data.water
+Reading data file ...
+  orthogonal box = (0 0 0) to (31.043046 31.043046 31.043046)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+WARNING: Non-zero imageflag(s) in z direction for non-periodic boundary reset to zero (src/read_data.cpp:1548)
+  3000 atoms
+  read_data CPU = 0.009 seconds
+
+variable        x index 1
+variable        y index 1
+variable        z index 1
+
+replicate       $x $y $z
+replicate       1 $y $z
+replicate       1 1 $z
+replicate       1 1 1
+Replication is creating a 1x1x1 = 1 times larger system...
+  orthogonal box = (0 0 0.0012889577) to (31.043046 31.043046 31.045309)
+  1 by 1 by 1 MPI processor grid
+  3000 atoms
+  replicate CPU = 0.000 seconds
+
+pair_style      reaxff NULL safezone 3.0 mincap 150
+pair_coeff      * * qeq_ff.water O H
+WARNING: Changed valency_val to valency_boc for X (src/REAXFF/reaxff_ffield.cpp:294)
+neighbor        0.5 bin
+neigh_modify    every 1 delay 0 check yes
+
+velocity all create 300.0 4928459 rot yes dist gaussian
+
+fix             1 all qeq/reaxff 1 0.0 10.0 1.0e-6 reaxff maxiter 400
+fix             2 all nvt temp 300 300 50.0
+fix             3 all efield 0.0 0.0 1.0
+fix             4 all wall/reflect zlo EDGE zhi EDGE
+
+timestep        0.5
+thermo          10
+thermo_style    custom step temp press density vol
+
+run 20
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair reaxff command: doi:10.1016/j.parco.2011.08.005
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},
+ title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ number =  {4--5},
+ pages =   {245--259}
+}
+
+- fix qeq/reaxff command: doi:10.1016/j.parco.2011.08.005
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},
+ title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ pages =   {245--259}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.5
+  ghost atom cutoff = 10.5
+  binsize = 5.25, bins = 6 6 6
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reaxff, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/ghost/newtoff
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) fix qeq/reaxff, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 332.3 | 332.3 | 332.3 Mbytes
+   Step          Temp          Press         Density         Volume    
+         0   300            25015.837      0.99996859     29916.212    
+        10   348.83356      31131.298      0.99964273     29925.965    
+        20   414.67243      27564.999      0.99979791     29921.32     
+Loop time of 3.50891 on 1 procs for 20 steps with 3000 atoms
+
+Performance: 0.246 ns/day, 97.470 hours/ns, 5.700 timesteps/s, 17.099 katom-step/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.0529     | 2.0529     | 2.0529     |   0.0 | 58.51
+Neigh   | 0.14819    | 0.14819    | 0.14819    |   0.0 |  4.22
+Comm    | 0.00068525 | 0.00068525 | 0.00068525 |   0.0 |  0.02
+Output  | 7.7489e-05 | 7.7489e-05 | 7.7489e-05 |   0.0 |  0.00
+Modify  | 1.3066     | 1.3066     | 1.3066     |   0.0 | 37.24
+Other   |            | 0.0004355  |            |       |  0.01
+
+Nlocal:           3000 ave        3000 max        3000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           5439 ave        5439 max        5439 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         786591 ave      786591 max      786591 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 786591
+Ave neighs/atom = 262.197
+Neighbor list builds = 6
+Dangerous builds = 0
+Total wall time: 0:00:03

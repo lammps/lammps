@@ -49,7 +49,6 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
 
   scaleflag = 1;
   spatflag=0;
-  spatialid = nullptr;
   size = 0.0;
   xloflag = xhiflag = yloflag = yhiflag = zloflag = zhiflag = 0;
 
@@ -59,9 +58,6 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
   ranx = 0.0;
   rany = 0.0;
   ranz = 0.0;
-
-  randomx = nullptr;
-  randomt = nullptr;
 
   if (domain->lattice->nbasis == 0)
     error->all(FLERR,"Fix append/atoms requires a lattice be defined");
@@ -123,6 +119,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"f_") == 0)
         error->all(FLERR, "Bad fix ID in fix append/atoms command");
       spatflag = 1;
+      delete[] spatialid;
       spatialid = utils::strdup(arg[iarg+1]+2);
       spatlead = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
@@ -152,6 +149,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
       ranz = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       xseed = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
       if (xseed <= 0) error->all(FLERR,"Illegal fix append/atoms command");
+      delete randomx;
       randomx = new RanMars(lmp,xseed + comm->me);
       iarg += 5;
     } else if (strcmp(arg[iarg],"temp") == 0) {
@@ -165,7 +163,10 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
       if (t_period <= 0) error->all(FLERR,"Illegal fix append/atoms command");
       if (t_extent <= 0) error->all(FLERR,"Illegal fix append/atoms command");
       if (tseed <= 0) error->all(FLERR,"Illegal fix append/atoms command");
+      delete randomt;
       randomt = new RanMars(lmp,tseed + comm->me);
+      delete[] gfactor1;
+      delete[] gfactor2;
       gfactor1 = new double[atom->ntypes+1];
       gfactor2 = new double[atom->ntypes+1];
       iarg += 5;

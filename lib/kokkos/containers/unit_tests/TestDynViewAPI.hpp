@@ -792,9 +792,8 @@ class TestDynViewAPI {
       int equal_ptr_h2_d = a_h2.data() == a_d.data() ? 1 : 0;
 
       int is_same_memspace =
-          std::is_same<Kokkos::HostSpace, typename device::memory_space>::value
-              ? 1
-              : 0;
+          std::is_same_v<Kokkos::HostSpace, typename device::memory_space> ? 1
+                                                                           : 0;
       ASSERT_EQ(equal_ptr_h_h2, 1);
       ASSERT_EQ(equal_ptr_h_d, is_same_memspace);
       ASSERT_EQ(equal_ptr_h2_d, is_same_memspace);
@@ -817,9 +816,8 @@ class TestDynViewAPI {
       int equal_ptr_h2_d = a_h2.data() == a_d.data() ? 1 : 0;
 
       int is_same_memspace =
-          std::is_same<Kokkos::HostSpace, typename device::memory_space>::value
-              ? 1
-              : 0;
+          std::is_same_v<Kokkos::HostSpace, typename device::memory_space> ? 1
+                                                                           : 0;
       ASSERT_EQ(equal_ptr_h_h2, 1);
       ASSERT_EQ(equal_ptr_h_d, is_same_memspace);
       ASSERT_EQ(equal_ptr_h2_d, is_same_memspace);
@@ -846,9 +844,8 @@ class TestDynViewAPI {
       int equal_ptr_h2_d = a_h2.data() == a_d.data() ? 1 : 0;
 
       int is_same_memspace =
-          std::is_same<Kokkos::HostSpace, typename device::memory_space>::value
-              ? 1
-              : 0;
+          std::is_same_v<Kokkos::HostSpace, typename device::memory_space> ? 1
+                                                                           : 0;
       ASSERT_EQ(equal_ptr_h_h2, 1);
       ASSERT_EQ(equal_ptr_h_d, is_same_memspace);
       ASSERT_EQ(equal_ptr_h2_d, is_same_memspace);
@@ -879,8 +876,7 @@ class TestDynViewAPI {
       int equal_ptr_h3_d = a_h3.data() == a_d.data() ? 1 : 0;
 
       int is_same_memspace =
-          std::is_same<Kokkos::HostSpace,
-                       typename DeviceType::memory_space>::value
+          std::is_same_v<Kokkos::HostSpace, typename DeviceType::memory_space>
               ? 1
               : 0;
       ASSERT_EQ(equal_ptr_h_h2, 1);
@@ -915,8 +911,7 @@ class TestDynViewAPI {
       int equal_ptr_h3_d = a_h3.data() == a_d.data() ? 1 : 0;
 
       int is_same_memspace =
-          std::is_same<Kokkos::HostSpace,
-                       typename DeviceType::memory_space>::value
+          std::is_same_v<Kokkos::HostSpace, typename DeviceType::memory_space>
               ? 1
               : 0;
       ASSERT_EQ(equal_ptr_h_h2, 1);
@@ -942,8 +937,6 @@ class TestDynViewAPI {
         Kokkos::create_mirror_view_and_copy(DeviceType(), error_flag_host);
 
     dView0 d("d");
-
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
 
     // Rank 0
     Kokkos::resize(d);
@@ -1121,8 +1114,6 @@ class TestDynViewAPI {
     Kokkos::deep_copy(error_flag_host, error_flag);
     ASSERT_EQ(error_flag_host(), 0);
 #endif  // MDRangePolict Rank < 7
-
-#endif  // defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
   }
 
   static void run_test_scalar() {

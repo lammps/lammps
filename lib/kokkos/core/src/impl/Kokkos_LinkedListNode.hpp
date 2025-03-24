@@ -43,7 +43,7 @@ template <uintptr_t NotEnqueuedValue             = 0,
 struct SimpleSinglyLinkedListNode {
  private:
   using pointer_type =
-      typename PointerTemplate<SimpleSinglyLinkedListNode>::type;
+      typename PointerTemplate<SimpleSinglyLinkedListNode>::type;  // NOLINT
 
   pointer_type m_next = reinterpret_cast<pointer_type>(NotEnqueuedValue);
 

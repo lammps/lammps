@@ -225,7 +225,7 @@ void PairKIM::compute(int eflag, int vflag)
                              KIM_COMPUTE_ARGUMENT_NAME_particleContributing,
                              kim_particleContributing);
     if (kimerror)
-      error->all(FLERR,"Unable to set KIM particle species codes and/or contributing");
+      error->one(FLERR,"Unable to set KIM particle species codes and/or contributing");
   }
 
   // kim_particleSpecies = KIM atom species for each LAMMPS atom
@@ -250,7 +250,7 @@ void PairKIM::compute(int eflag, int vflag)
 
   // compute via KIM model
   int kimerror = KIM_Model_Compute(pkim, pargs);
-  if (kimerror) error->all(FLERR, "KIM Compute returned error {}", kimerror);
+  if (kimerror) error->one(FLERR, "KIM Compute returned error {}", kimerror);
 
   // scale results for fix adapt if needed
   if (scale_extracted) {
@@ -364,7 +364,7 @@ void PairKIM::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg < 2 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   // read args that map atom species to KIM elements
   // lmps_map_species_to_unique[i] =
@@ -407,7 +407,7 @@ void PairKIM::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   // setup mapping between LAMMPS unique elements and KIM species codes
   if (kim_particle_codes_ok) {
@@ -814,7 +814,7 @@ void PairKIM::kim_free()
   if (kim_init_ok) {
     int kimerror = KIM_Model_ComputeArgumentsDestroy(pkim, &pargs);
     if (kimerror)
-      error->all(FLERR,"Unable to destroy Compute Arguments Object");
+      error->one(FLERR,"Unable to destroy Compute Arguments Object");
 
     KIM_Model_Destroy(&pkim);
 

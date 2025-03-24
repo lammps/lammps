@@ -346,7 +346,7 @@ void PairPeriVES::compute(int eflag, int vflag)
 
 void PairPeriVES::coeff(int narg, char **arg)
 {
-  if (narg != 9) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 9) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -376,7 +376,7 @@ void PairPeriVES::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

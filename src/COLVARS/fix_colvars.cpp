@@ -129,7 +129,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
 
   if (comm->me == 0) {
 #ifdef LAMMPS_BIGBIG
-    utils::logmesg(lmp, "colvars: Warning: cannot handle atom ids > 2147483647\n");
+    error->warning(FLERR, "colvars: cannot handle atom ids > 2147483647\n");
 #endif
     proxy = new colvarproxy_lammps(lmp);
     proxy->init();

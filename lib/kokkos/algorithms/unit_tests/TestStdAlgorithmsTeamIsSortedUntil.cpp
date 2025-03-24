@@ -61,7 +61,7 @@ struct TestFunctorA {
 
     if (m_apiPick == 0) {
       auto it    = KE::is_sorted_until(member, KE::cbegin(myRowView),
-                                    KE::cend(myRowView));
+                                       KE::cend(myRowView));
       resultDist = KE::distance(KE::cbegin(myRowView), it);
       Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
         m_distancesView(myRowIndex) = resultDist;
@@ -77,8 +77,8 @@ struct TestFunctorA {
     else if (m_apiPick == 2) {
       using value_type = typename ViewType::value_type;
       auto it          = KE::is_sorted_until(member, KE::cbegin(myRowView),
-                                    KE::cend(myRowView),
-                                    CustomLessThanComparator<value_type>{});
+                                             KE::cend(myRowView),
+                                             CustomLessThanComparator<value_type>{});
       resultDist       = KE::distance(KE::cbegin(myRowView), it);
       Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
         m_distancesView(myRowIndex) = resultDist;
@@ -88,7 +88,7 @@ struct TestFunctorA {
     else if (m_apiPick == 3) {
       using value_type = typename ViewType::value_type;
       auto it          = KE::is_sorted_until(member, myRowView,
-                                    CustomLessThanComparator<value_type>{});
+                                             CustomLessThanComparator<value_type>{});
       resultDist       = KE::distance(KE::begin(myRowView), it);
       Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
         m_distancesView(myRowIndex) = resultDist;
@@ -210,7 +210,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId,
       stdDistance = KE::distance(KE::cbegin(myRow), it);
     } else {
       auto it     = std::is_sorted_until(KE::cbegin(myRow), KE::cend(myRow),
-                                     CustomLessThanComparator<ValueType>{});
+                                         CustomLessThanComparator<ValueType>{});
       stdDistance = KE::distance(KE::cbegin(myRow), it);
     }
     ASSERT_EQ(stdDistance, distancesView_h(i));

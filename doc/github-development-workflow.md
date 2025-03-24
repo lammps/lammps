@@ -6,7 +6,9 @@ choices the LAMMPS developers have agreed on. Git and GitHub provide the
 tools, but do not set policies, so it is up to the developers to come to
 an agreement as to how to define and interpret policies. This document
 is likely to change as our experiences and needs change, and we try to
-adapt it accordingly. Last change 2023-02-10.
+adapt it accordingly.
+
+Last change: 2023-02-10
 
 ## Table of Contents
 
@@ -72,7 +74,7 @@ be assigned to signal urgency to merge this pull request quickly.
 People can be assigned to review a pull request in two ways:
 
   * They can be assigned manually to review a pull request
-    by the submitter or a LAMMPS developer
+    by the submitter or a LAMMPS developer.
   * They can be automatically assigned, because a developer's GitHub
     handle matches a file pattern in the `.github/CODEOWNERS` file,
     which associates developers with the code they contributed and
@@ -86,9 +88,9 @@ required before merging, in addition to passing all automated
 compilation and unit tests.  Merging counts as implicit approval, so
 does submission of a pull request (by a LAMMPS developer). So the person
 doing the merge may not also submit an approving review.  The GitHub
-feature, that reviews from code owners are "hard" reviews (i.e. they
-must all approve before merging is allowed), is currently disabled.
-It is in the discretion of the merge maintainer to assess when a
+feature that reviews from code owners are "hard" reviews (i.e. they
+must all approve before merging is allowed) is currently disabled.
+It is at the discretion of the merge maintainer to assess when a
 sufficient degree of approval has been reached, especially from external
 collaborators.  Reviews may be (automatically) dismissed, when the
 reviewed code has been changed. Review may be requested a second time.
@@ -147,7 +149,8 @@ only contain bug fixes, feature additions to peripheral functionality,
 and documentation updates.  In between stable releases, bug fixes and
 infrastructure updates are back-ported from the "develop" branch to the
 "maintenance" branch and occasionally merged into "stable" and published
-as update releases.
+as update releases. Further explanation of LAMMPS versions can be found
+[in the documentation](https://docs.lammps.org/Manual_version.html).
 
 ## Project Management
 

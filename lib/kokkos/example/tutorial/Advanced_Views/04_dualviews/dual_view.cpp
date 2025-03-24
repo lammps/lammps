@@ -48,9 +48,9 @@ struct localsum {
   // overrides Kokkos' default execution space.
   using execution_space = ExecutionSpace;
 
-  using memory_space = typename Kokkos::Impl::if_c<
-      std::is_same<ExecutionSpace, Kokkos::DefaultExecutionSpace>::value,
-      idx_type::memory_space, idx_type::host_mirror_space>::type;
+  using memory_space = std::conditional_t<
+      std::is_same_v<ExecutionSpace, Kokkos::DefaultExecutionSpace>,
+      idx_type::memory_space, idx_type::host_mirror_space>;
 
   // Get the view types on the particular device for which the functor
   // is instantiated.

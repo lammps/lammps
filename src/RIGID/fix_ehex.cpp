@@ -434,7 +434,7 @@ bool FixEHEX::check_cluster(tagint *shake_atom, int n, Region *region)
 
       // take into account pbc
 
-      domain->minimum_image(xtemp);
+      domain->minimum_image_big(xtemp);
 
       for (int k = 0; k < 3; k++) xcom[k] += mi * (x[lid[0]][k] + xtemp[k]);
     }

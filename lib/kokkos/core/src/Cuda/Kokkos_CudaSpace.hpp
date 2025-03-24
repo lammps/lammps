@@ -73,9 +73,9 @@ class CudaSpace {
   CudaSpace(int device_id, cudaStream_t stream);
 
  public:
-  CudaSpace(CudaSpace&& rhs)      = default;
-  CudaSpace(const CudaSpace& rhs) = default;
-  CudaSpace& operator=(CudaSpace&& rhs) = default;
+  CudaSpace(CudaSpace&& rhs)                 = default;
+  CudaSpace(const CudaSpace& rhs)            = default;
+  CudaSpace& operator=(CudaSpace&& rhs)      = default;
   CudaSpace& operator=(const CudaSpace& rhs) = default;
   ~CudaSpace()                               = default;
 
@@ -174,9 +174,9 @@ class CudaUVMSpace {
   CudaUVMSpace(int device_id, cudaStream_t stream);
 
  public:
-  CudaUVMSpace(CudaUVMSpace&& rhs)      = default;
-  CudaUVMSpace(const CudaUVMSpace& rhs) = default;
-  CudaUVMSpace& operator=(CudaUVMSpace&& rhs) = default;
+  CudaUVMSpace(CudaUVMSpace&& rhs)                 = default;
+  CudaUVMSpace(const CudaUVMSpace& rhs)            = default;
+  CudaUVMSpace& operator=(CudaUVMSpace&& rhs)      = default;
   CudaUVMSpace& operator=(const CudaUVMSpace& rhs) = default;
   ~CudaUVMSpace()                                  = default;
 
@@ -266,9 +266,9 @@ class CudaHostPinnedSpace {
   CudaHostPinnedSpace(int device_id, cudaStream_t stream);
 
  public:
-  CudaHostPinnedSpace(CudaHostPinnedSpace&& rhs)      = default;
-  CudaHostPinnedSpace(const CudaHostPinnedSpace& rhs) = default;
-  CudaHostPinnedSpace& operator=(CudaHostPinnedSpace&& rhs) = default;
+  CudaHostPinnedSpace(CudaHostPinnedSpace&& rhs)                 = default;
+  CudaHostPinnedSpace(const CudaHostPinnedSpace& rhs)            = default;
+  CudaHostPinnedSpace& operator=(CudaHostPinnedSpace&& rhs)      = default;
   CudaHostPinnedSpace& operator=(const CudaHostPinnedSpace& rhs) = default;
   ~CudaHostPinnedSpace()                                         = default;
 

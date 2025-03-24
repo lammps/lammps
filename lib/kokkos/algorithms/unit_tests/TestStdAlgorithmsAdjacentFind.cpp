@@ -173,7 +173,7 @@ void fill_view(ViewType dest_view, const std::string& name) {
   }
 
   else {
-    throw std::runtime_error("invalid choice");
+    FAIL() << "invalid choice";
   }
 
   Kokkos::deep_copy(aux_view, v_h);
@@ -243,7 +243,7 @@ void run_single_scenario(const InfoType& scenario_info, Args... args) {
 
   {
     auto res_it        = KE::adjacent_find(exespace(), KE::cbegin(view),
-                                    KE::cend(view), args...);
+                                           KE::cend(view), args...);
     const auto my_diff = res_it - KE::cbegin(view);
     verify(my_diff, view, args...);
   }

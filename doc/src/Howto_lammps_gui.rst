@@ -20,8 +20,11 @@ to the online LAMMPS documentation for known LAMMPS commands and styles.
    (Ubuntu 20.04LTS or later and compatible), macOS (version 11 aka Big
    Sur or later), and Windows (version 10 or later) :ref:`are available
    <lammps_gui_install>` for download.  Non-MPI LAMMPS executables (as
-   ``lmp``) for running LAMMPS from the command line and :doc:`some
+   ``lmp``) for running LAMMPS from the command-line and :doc:`some
    LAMMPS tools <Tools>` compiled executables are also included.
+   Also, the pre-compiled LAMMPS-GUI packages include the WHAM executables
+   from http://membrane.urmc.rochester.edu/content/wham/ for use with
+   LAMMPS tutorials.
 
    The source code for LAMMPS-GUI is included in the LAMMPS source code
    distribution and can be found in the ``tools/lammps-gui`` folder.  It
@@ -29,16 +32,16 @@ to the online LAMMPS documentation for known LAMMPS commands and styles.
    <Build_cmake>`.
 
 LAMMPS-GUI tries to provide an experience similar to what people
-traditionally would have running LAMMPS using a command line window and
+traditionally would have running LAMMPS using a command-line window and
 the console LAMMPS executable but just rolled into a single executable:
 
 - writing & editing LAMMPS input files with a text editor
-- run LAMMPS on those input file with selected command line flags
+- run LAMMPS on those input file with selected command-line flags
 - extract data from the created files and visualize it with and
   external software
 
 That procedure is quite effective for people proficient in using the
-command line, as that allows them to use tools for the individual steps
+command-line, as that allows them to use tools for the individual steps
 that they are most comfortable with.  In fact, it is often *required* to
 adopt this workflow when running LAMMPS simulations on high-performance
 computing facilities.
@@ -61,13 +64,18 @@ simple LAMMPS simulations.  It is very suitable for tutorials on LAMMPS
 since you only need to learn how to use a single program for most tasks
 and thus time can be saved and people can focus on learning LAMMPS.
 The tutorials at https://lammpstutorials.github.io/ are specifically
-updated for use with LAMMPS-GUI.
+updated for use with LAMMPS-GUI and can their tutorial materials can
+be downloaded and loaded directly from the GUI.
 
 Another design goal is to keep the barrier low when replacing part of
 the functionality of LAMMPS-GUI with external tools.  That said, LAMMPS-GUI
 has some unique functionality that is not found elsewhere:
 
 - auto-adapting to features available in the integrated LAMMPS library
+- auto-completion for LAMMPS commands and options
+- context-sensitive online help
+- start and stop of simulations via mouse or keyboard
+- monitoring of simulation progress
 - interactive visualization using the :doc:`dump image <dump_image>`
   command with the option to copy-paste the resulting settings
 - automatic slide show generation from dump image out at runtime
@@ -100,10 +108,11 @@ MacOS 11 and later
 ^^^^^^^^^^^^^^^^^^
 
 After downloading the ``LAMMPS-macOS-multiarch-GUI-<version>.dmg``
-installer package, you need to double-click it and then, in the window
-that opens, drag the app bundle as indicated into the "Applications"
-folder.  The follow the instructions in the "README.txt" file to
-get access to the other included executables.
+application bundle disk image, you need to double-click it and then, in
+the window that opens, drag the app bundle as indicated into the
+"Applications" folder.  Afterwards, the disk image can be unmounted.
+Then follow the instructions in the "README.txt" file to get access to
+the other included command-line executables.
 
 Linux on x86\_64
 ^^^^^^^^^^^^^^^^
@@ -117,15 +126,25 @@ into the "LAMMPS_GUI" folder and execute "./lammps-gui" directly.
 
 The second variant uses `flatpak <https://www.flatpak.org>`_ and
 requires the flatpak management and runtime software to be installed.
-After downloading the ``LAMMPS-GUI-Linux-x86_64-GUI-<version>.tar.gz``
+After downloading the ``LAMMPS-GUI-Linux-x86_64-GUI-<version>.flatpak``
 flatpak bundle, you can install it with ``flatpak install --user
-LAMMPS-GUI-Linux-x86_64-GUI-<version>.tar.gz``.  After installation,
+LAMMPS-GUI-Linux-x86_64-GUI-<version>.flatpak``.  After installation,
 LAMMPS-GUI should be integrated into your desktop environment under
 "Applications > Science" but also can be launched from the console with
 ``flatpak run org.lammps.lammps-gui``.  The flatpak bundle also includes
 the console LAMMPS executable ``lmp`` which can be launched to run
-simulations with, for example: ``flatpak run --command=lmp
-org.lammps.lammps-gui -in in.melt``.
+simulations with, for example with:
+
+.. code-block:: sh
+
+   flatpak run --command=lmp org.lammps.lammps-gui -in in.melt
+
+Other bundled command-line executables are run the same way and can be
+listed with:
+
+.. code-block:: sh
+
+   ls $(flatpak info --show-location org.lammps.lammps-gui )/files/bin
 
 
 Compiling from Source
@@ -165,9 +184,9 @@ window is stored when exiting and restored when starting again.
 Opening Files
 ^^^^^^^^^^^^^
 
-The LAMMPS-GUI application can be launched without command line arguments
+The LAMMPS-GUI application can be launched without command-line arguments
 and then starts with an empty buffer in the *Editor* window.  If arguments
-are given LAMMPS will use first command line argument as the file name for
+are given LAMMPS will use first command-line argument as the file name for
 the *Editor* buffer and reads its contents into the buffer, if the file
 exists.  All further arguments are ignored.  Files can also be opened via
 the *File* menu, the `Ctrl-O` (`Command-O` on macOS) keyboard shortcut
@@ -261,14 +280,21 @@ Output Window
 
 By default, when starting a run, an *Output* window opens that displays
 the screen output of the running LAMMPS calculation, as shown below.
-This text would normally be seen in the command line window.
+This text would normally be seen in the command-line window.
 
 .. image:: JPG/lammps-gui-log.png
    :align: center
    :scale: 50%
 
 LAMMPS-GUI captures the screen output from LAMMPS as it is generated and
-updates the *Output* window regularly during a run.
+updates the *Output* window regularly during a run.  If there are any
+warnings or errors in the LAMMPS output, they are highlighted by using
+bold text colored in red.  There is a small panel at the bottom center
+of the *Output* window showing how many warnings and errors were
+detected and how many lines the entire output has.  By clicking on the
+button on the right with the warning symbol or by using the keyboard
+shortcut `Ctrl-N` (`Command-N` on macOS), you can jump to the next
+line with a warning or error.
 
 By default, the *Output* window is replaced each time a run is started.
 The runs are counted and the run number for the current run is displayed
@@ -398,7 +424,7 @@ below.
 Like for the *Output* and *Charts* windows, its content is continuously
 updated during a run.  It will show "(none)" if there are no variables
 defined.  Note that it is also possible to *set* :doc:`index style
-variables <variable>`, that would normally be set via command line
+variables <variable>`, that would normally be set via command-line
 flags, via the "Set Variables..." dialog from the *Run* menu.
 LAMMPS-GUI automatically defines the variable "gui_run" to the current
 value of the run counter.  That way it is possible to automatically
@@ -775,11 +801,11 @@ General Settings:
 
 - *Echo input to log:* when checked, all input commands, including
   variable expansions, are echoed to the *Output* window. This is
-  equivalent to using `-echo screen` at the command line.  There is no
+  equivalent to using `-echo screen` at the command-line.  There is no
   log *file* produced by default, since LAMMPS-GUI uses `-log none`.
 - *Include citation details:* when checked full citation info will be
   included to the log window.  This is equivalent to using `-cite
-  screen` on the command line.
+  screen` on the command-line.
 - *Show log window by default:* when checked, the screen output of a
   LAMMPS run will be collected in a log window during the run
 - *Show chart window by default:* when checked, the thermodynamic
@@ -828,7 +854,7 @@ Accelerators:
 
 This tab enables selection of an accelerator package for LAMMPS to use
 and is equivalent to using the `-suffix` and `-package` flags on the
-command line.  Only settings supported by the LAMMPS library and local
+command-line.  Only settings supported by the LAMMPS library and local
 hardware are available.  The `Number of threads` field allows setting
 the maximum number of threads for the accelerator packages that use
 threads.

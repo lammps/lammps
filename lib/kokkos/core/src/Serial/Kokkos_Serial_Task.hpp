@@ -25,9 +25,15 @@
 #include <Serial/Kokkos_Serial.hpp>
 #include <impl/Kokkos_HostThreadTeam.hpp>
 #include <impl/Kokkos_TaskQueue.hpp>
+#include <impl/Kokkos_TaskTeamMember.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+// We allow using deprecated classes in this file
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
 
 namespace Kokkos {
 namespace Impl {
@@ -102,9 +108,8 @@ class TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::Serial, QueueType>> {
 
 template <class Scheduler>
 class TaskQueueSpecializationConstrained<
-    Scheduler,
-    std::enable_if_t<std::is_same<typename Scheduler::execution_space,
-                                  Kokkos::Serial>::value>> {
+    Scheduler, std::enable_if_t<std::is_same_v<
+                   typename Scheduler::execution_space, Kokkos::Serial>>> {
  public:
   // Note: Scheduler may be an incomplete type at class scope (but not inside
   // of the methods, obviously)
@@ -214,6 +219,10 @@ extern template class TaskQueue<Kokkos::Serial,
 
 }  // namespace Impl
 }  // namespace Kokkos
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

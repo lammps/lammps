@@ -21,6 +21,6 @@
 
 #define TEST_CATEGORY sycl_shared_usm
 #define TEST_CATEGORY_DEATH sycl_shared_usm_DeathTest
-#define TEST_EXECSPACE Kokkos::Experimental::SYCLSharedUSMSpace
+#define TEST_EXECSPACE Kokkos::SYCLSharedUSMSpace
 
 #endif

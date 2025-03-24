@@ -158,7 +158,7 @@ def check_folder(directory, config, fix=False, verbose=False):
     return success
 
 def main():
-    parser = argparse.ArgumentParser(description='Utility for detecting and fixing whitespace issues in LAMMPS')
+    parser = argparse.ArgumentParser(description='Utility for detecting and correct the LAMMPS homepage URL and developer email in LAMMPS source files')
     parser.add_argument('-c', '--config', metavar='CONFIG_FILE', help='location of a optional configuration file')
     parser.add_argument('-f', '--fix', action='store_true', help='automatically fix URLs')
     parser.add_argument('-v', '--verbose', action='store_true', help='verbose output')

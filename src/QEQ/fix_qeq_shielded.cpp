@@ -33,6 +33,8 @@
 
 using namespace LAMMPS_NS;
 
+static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
+
 /* ---------------------------------------------------------------------- */
 
 FixQEqShielded::FixQEqShielded(LAMMPS *lmp, int narg, char **arg) : FixQEq(lmp, narg, arg)

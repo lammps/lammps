@@ -27,6 +27,7 @@
 #include "error.h"
 #include "fix_rheo.h"
 #include "force.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -36,20 +37,22 @@
 
 using namespace LAMMPS_NS;
 using namespace RHEO_NS;
+using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOVShift::ComputeRHEOVShift(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), vshift(nullptr), fix_rheo(nullptr), rho0(nullptr), list(nullptr),
-    compute_interface(nullptr), compute_kernel(nullptr), compute_surface(nullptr)
+    Compute(lmp, narg, arg), vshift(nullptr), fix_rheo(nullptr), rho0(nullptr), wsame(nullptr),
+    ct(nullptr), cgradt(nullptr), shift_type(nullptr), list(nullptr), compute_interface(nullptr),
+    compute_kernel(nullptr), compute_surface(nullptr)
 {
   if (narg != 3) error->all(FLERR, "Illegal compute RHEO/VShift command");
 
+  comm_forward = 0;
   comm_reverse = 3;
   surface_flag = 0;
 
-  nmax_store = atom->nmax;
-  memory->create(vshift, nmax_store, 3, "rheo:vshift");
+  nmax_store = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -73,9 +76,19 @@ void ComputeRHEOVShift::init()
   compute_surface = fix_rheo->compute_surface;
 
   rho0 = fix_rheo->rho0;
+  shift_type = fix_rheo->shift_type;
   cut = fix_rheo->cut;
   cutsq = cut * cut;
   cutthird = cut / 3.0;
+
+  cross_type_flag = fix_rheo->shift_cross_type_flag;
+  if (cross_type_flag) {
+    scale = fix_rheo->shift_scale;
+    wmin = fix_rheo->shift_wmin;
+    cmin = fix_rheo->shift_cmin;
+    comm_forward = 1;
+    comm_reverse = 4;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -120,6 +133,13 @@ void ComputeRHEOVShift::compute_peratom()
 
   if (nmax_store < atom->nmax) {
     memory->grow(vshift, atom->nmax, 3, "rheo:vshift");
+
+    if (cross_type_flag) {
+      memory->grow(ct, atom->nmax, "rheo:ct");
+      memory->grow(cgradt, atom->nmax, 3, "rheo:cgradt");
+      memory->grow(wsame, atom->nmax, "rheo:wsame");
+    }
+
     nmax_store = atom->nmax;
   }
 
@@ -224,7 +244,17 @@ void ComputeRHEOVShift::compute_peratom()
     }
   }
 
-  if (newton_pair) comm->reverse_comm(this);
+  comm_stage = 0;
+  if (newton_pair) comm->reverse_comm(this, 3);
+
+  // Zero any excluded types
+
+  for (i = 0; i < nlocal; i++)
+    if (!shift_type[type[i]])
+      for (a = 0; a < dim; a++)
+        vshift[i][a] = 0.0;
+
+  if (cross_type_flag) correct_type_interface();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -246,7 +276,6 @@ void ComputeRHEOVShift::correct_surfaces()
 
       if (status[i] & PHASECHECK) continue;
 
-      //if ((status[i] & STATUS_SURFACE) || (status[i] & STATUS_LAYER)) {
       if (status[i] & STATUS_SURFACE) {
         nx = nsurface[i][0];
         ny = nsurface[i][1];
@@ -283,16 +312,275 @@ void ComputeRHEOVShift::correct_surfaces()
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeRHEOVShift::pack_reverse_comm(int n, int first, double *buf)
+void ComputeRHEOVShift::correct_type_interface()
 {
-  int m, last;
+  int i, j, a, ii, jj, jnum, itype, jtype;
+  int fluidi, fluidj;
+  double xtmp, ytmp, ztmp, rsq, r, w;
+  double imass, jmass, voli, volj, rhoi, rhoj;
+  double dx[3];
+  int dim = domain->dimension;
+
+  int *jlist;
+  int inum, *ilist, *numneigh, **firstneigh;
+
+  int *type = atom->type;
+  int *status = atom->rheo_status;
+  double **x = atom->x;
+  double *rho = atom->rho;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+
+  int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  size_t nbytes = nmax_store * sizeof(double);
+  memset(&ct[0], 0, nbytes);
+  memset(&wsame[0], 0, nbytes);
+  memset(&cgradt[0][0], 0, 3 * nbytes);
+  double ctmp, *dWij, *dWji;
+
+  // Calculate color gradient
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+    fluidi = !(status[i] & PHASECHECK);
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+    if (rmass)
+      imass = rmass[i];
+    else
+      imass = mass[itype];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+
+      dx[0] = xtmp - x[j][0];
+      dx[1] = ytmp - x[j][1];
+      dx[2] = ztmp - x[j][2];
+
+      rsq = lensq3(dx);
+
+      if (rsq > cutsq) continue;
+
+      fluidj = !(status[j] & PHASECHECK);
+      jtype = type[j];
+      if (rmass)
+        jmass = rmass[j];
+      else
+        jmass = mass[jtype];
+      r = sqrt(rsq);
+
+      rhoi = rho[i];
+      rhoj = rho[j];
+
+      // Add corrections for walls
+      if (interface_flag) {
+        if (fluidi && (!fluidj)) {
+          rhoj = compute_interface->correct_rho(j);
+        } else if ((!fluidi) && fluidj) {
+          rhoi = compute_interface->correct_rho(i);
+        } else if ((!fluidi) && (!fluidj)) {
+          rhoi = rho0[itype];
+          rhoj = rho0[jtype];
+        }
+      }
+
+      voli = imass / rhoi;
+      volj = jmass / rhoj;
+
+      w = compute_kernel->calc_w(i, j, dx[0], dx[1], dx[2], r);
+
+      if (itype != jtype) ctmp = 1;
+      else ctmp = 0;
+
+      ct[i] += ctmp * volj * w;
+      if (newton_pair || j < nlocal)
+        ct[j] += ctmp * voli * w;
+    }
+  }
+
+  comm_stage = 1;
+  if (newton_pair) comm->reverse_comm(this, 1);
+
+  // Calculate color gradient
+  // Note: in future might want to generalize this so color function can be used
+  //   by other calculations (e.g. surface tension)
+  //   maybe can create custom "calc_grad" method that takes an arbitrary field
+  //   in ComputeRHEOGrad?
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+    fluidi = !(status[i] & PHASECHECK);
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+    imass = mass[itype];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+
+      dx[0] = xtmp - x[j][0];
+      dx[1] = ytmp - x[j][1];
+      dx[2] = ztmp - x[j][2];
+      rsq = lensq3(dx);
+
+      if (rsq > cutsq) continue;
+
+      fluidj = !(status[j] & PHASECHECK);
+      jtype = type[j];
+      if (rmass)
+        jmass = rmass[j];
+      else
+        jmass = mass[jtype];
+      r = sqrt(rsq);
+
+      rhoi = rho[i];
+      rhoj = rho[j];
+
+      // Add corrections for walls
+      if (interface_flag) {
+        if (fluidi && (!fluidj)) {
+          rhoj = compute_interface->correct_rho(j);
+        } else if ((!fluidi) && fluidj) {
+          rhoi = compute_interface->correct_rho(i);
+        } else if ((!fluidi) && (!fluidj)) {
+          rhoi = rho0[itype];
+          rhoj = rho0[jtype];
+        }
+      }
+
+      voli = imass / rhoi;
+      volj = jmass / rhoj;
+
+      w = compute_kernel->calc_w(i, j, dx[0], dx[1], dx[2], r);
+      dWij = compute_kernel->dWij;
+      dWji = compute_kernel->dWji;
+
+      if (itype != jtype) ctmp = 1;
+      else ctmp = 0;
+
+      for (a = 0; a < dim; a++) {
+        cgradt[i][a] -= ctmp * volj * dWij[a];
+        if (newton_pair || j < nlocal)
+          cgradt[j][a] -= ctmp * voli * dWji[a];
+      }
+
+      if (itype == jtype) {
+        wsame[i] += w * r;
+        if (newton_pair || j < nlocal)
+          wsame[j] += w * r;
+      }
+    }
+  }
+
+  comm_stage = 2;
+  if (newton_pair) comm->reverse_comm(this, 4);
+  comm->forward_comm(this, 1);
+
+  // Correct shifting at fluid-fluid interface
+  // remove normal shifting component for interfacial particles
+  // Based on Yang, Rakhsha, Hu, & Negrut 2022
+
+  double ntmp[3], minv, dot;
+
+  for (i = 0; i < nlocal; i++) {
+
+    // If isolated, just don't shift
+    if (wsame[i] < wmin) {
+      for (a = 0; a < dim; a++)
+        vshift[i][a] = 0.0;
+      continue;
+    }
+
+    if (ct[i] < cmin) continue;
+
+    minv = 0;
+    for (a = 0; a < dim; a++)
+      minv += cgradt[i][a] * cgradt[i][a];
+
+    if (minv != 0)
+      minv = 1 / sqrt(minv);
+
+    for (a = 0; a < dim; a++)
+      ntmp[a] = cgradt[i][a] * minv;
+
+    dot = 0.0;
+    for (a = 0; a < dim; a++)
+      dot += ntmp[a] * vshift[i][a];
+
+    // To allowing shifting into the same phase bulk
+    // if (dot > 0.0) continue;
+
+    for (a = 0; a < dim; a++)
+      vshift[i][a] -= (1.0 - scale) * ntmp[a] * dot;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int ComputeRHEOVShift::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
+{
+  int i, j, m;
+  m = 0;
+
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = wsame[j];
+  }
+
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeRHEOVShift::unpack_forward_comm(int n, int first, double *buf)
+{
+  int i, m, last;
 
   m = 0;
   last = first + n;
-  for (int i = first; i < last; i++) {
-    buf[m++] = vshift[i][0];
-    buf[m++] = vshift[i][1];
-    buf[m++] = vshift[i][2];
+  for (i = first; i < last; i++)
+    wsame[i] = buf[m++];
+}
+
+/* ---------------------------------------------------------------------- */
+
+int ComputeRHEOVShift::pack_reverse_comm(int n, int first, double *buf)
+{
+  int i, m, a, last;
+
+  m = 0;
+  last = first + n;
+  if (comm_stage == 0) {
+    for (i = first; i < last; i++) {
+      buf[m++] = vshift[i][0];
+      buf[m++] = vshift[i][1];
+      buf[m++] = vshift[i][2];
+    }
+  } else if (comm_stage == 1) {
+    for (i = first; i < last; i++)
+      buf[m++] = ct[i];
+  } else {
+    for (i = first; i < last; i++) {
+      for (a = 0; a < 3; a++)
+        buf[m++] = cgradt[i][a];
+      buf[m++] = wsame[i];
+    }
   }
   return m;
 }
@@ -301,14 +589,28 @@ int ComputeRHEOVShift::pack_reverse_comm(int n, int first, double *buf)
 
 void ComputeRHEOVShift::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i, j, m;
+  int i, j, a, m;
 
   m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
-    vshift[j][0] += buf[m++];
-    vshift[j][1] += buf[m++];
-    vshift[j][2] += buf[m++];
+  if (comm_stage == 0) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      vshift[j][0] += buf[m++];
+      vshift[j][1] += buf[m++];
+      vshift[j][2] += buf[m++];
+    }
+  } else if (comm_stage == 1) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      ct[j] += buf[m++];
+    }
+  } else {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      for (a = 0; a < 3; a++)
+        cgradt[j][a] += buf[m++];
+      wsame[j] += buf[m++];
+    }
   }
 }
 
@@ -319,5 +621,9 @@ void ComputeRHEOVShift::unpack_reverse_comm(int n, int *list, double *buf)
 double ComputeRHEOVShift::memory_usage()
 {
   double bytes = 3 * nmax_store * sizeof(double);
+
+  if (cross_type_flag)
+    bytes += 5 * nmax_store * sizeof(double);
+
   return bytes;
 }

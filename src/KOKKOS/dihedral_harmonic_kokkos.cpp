@@ -75,14 +75,14 @@ void DihedralHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    if(k_eatom.extent(0) < maxeatom) {
+    if ((int)k_eatom.extent(0) < maxeatom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"dihedral:eatom");
     d_eatom = k_eatom.view<DeviceType>();
     } else Kokkos::deep_copy(d_eatom,0.0);
   }
   if (vflag_atom) {
-    if(k_vatom.extent(0) < maxvatom) {
+    if ((int)k_vatom.extent(0) < maxvatom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"dihedral:vatom");
     d_vatom = k_vatom.view<DeviceType>();

@@ -172,6 +172,7 @@ accelerated styles exist.
 * :doc:`coul/tt <pair_coul_tt>` - damped charge-dipole Coulomb for Drude dipoles
 * :doc:`coul/wolf <pair_coul>` - Coulomb via Wolf potential
 * :doc:`coul/wolf/cs <pair_cs>` - Coulomb via Wolf potential with core/shell adjustments
+* :doc:`dispersion/d3 <pair_dispersion_d3>` - Dispersion correction for potentials derived from DFT functionals
 * :doc:`dpd <pair_dpd>` - dissipative particle dynamics (DPD)
 * :doc:`dpd/coul/slater/long <pair_dpd_coul_slater_long>` - dissipative particle dynamics (DPD) with electrostatic interactions
 * :doc:`dpd/ext <pair_dpd_ext>` - generalized force field for DPD
@@ -206,7 +207,9 @@ accelerated styles exist.
 * :doc:`gw/zbl <pair_gw>` - Gao-Weber potential with a repulsive ZBL core
 * :doc:`harmonic/cut <pair_harmonic_cut>` - repulsive-only harmonic potential
 * :doc:`hbond/dreiding/lj <pair_hbond_dreiding>` - DREIDING hydrogen bonding LJ potential
+* :doc:`hbond/dreiding/lj/angleoffset <pair_hbond_dreiding>` - DREIDING hydrogen bonding LJ potential with offset for hbond angle
 * :doc:`hbond/dreiding/morse <pair_hbond_dreiding>` - DREIDING hydrogen bonding Morse potential
+* :doc:`hbond/dreiding/morse/angleoffset <pair_hbond_dreiding>` - DREIDING hydrogen bonding Morse potential with offset for hbond angle
 * :doc:`hdnnp <pair_hdnnp>` - High-dimensional neural network potential
 * :doc:`hippo <pair_amoeba>` -
 * :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>` - registry-dependent interlayer potential (ILP)

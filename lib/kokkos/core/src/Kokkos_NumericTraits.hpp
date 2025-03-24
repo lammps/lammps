@@ -114,7 +114,7 @@ template <> struct signaling_NaN_helper<long double> { static constexpr long dou
 #endif
 template <class> struct digits_helper {};
 template <> struct digits_helper<bool> { static constexpr int value = 1; };
-template <> struct digits_helper<char> { static constexpr int value = CHAR_BIT - std::is_signed<char>::value; };
+template <> struct digits_helper<char> { static constexpr int value = CHAR_BIT - std::is_signed_v<char>; };
 template <> struct digits_helper<signed char> { static constexpr int value = CHAR_BIT - 1; };
 template <> struct digits_helper<unsigned char> { static constexpr int value = CHAR_BIT; };
 template <> struct digits_helper<short> { static constexpr int value = CHAR_BIT*sizeof(short)-1; };

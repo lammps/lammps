@@ -35,8 +35,8 @@ using namespace LAMMPS_NS;
 
 ComputePE::ComputePE(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
 {
-  if (narg < 3) error->all(FLERR, "Illegal compute pe command");
-  if (igroup) error->all(FLERR, "Compute pe must use group all");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "compute pe", error);
+  if (igroup) error->all(FLERR, 1, "Compute pe must use group all");
 
   scalar_flag = 1;
   extscalar = 1;
@@ -70,7 +70,7 @@ ComputePE::ComputePE(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg
       else if (strcmp(arg[iarg], "fix") == 0)
         fixflag = 1;
       else
-        error->all(FLERR, "Illegal compute pe command");
+        error->all(FLERR, iarg, "Unknown compute pe keyword {}", arg[iarg]);
       iarg++;
     }
   }
@@ -85,7 +85,7 @@ double ComputePE::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
   if (update->eflag_global != invoked_scalar)
-    error->all(FLERR, "Energy was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Energy was not tallied on needed timestep{}", utils::errorurl(22));
 
   double one = 0.0;
   if (pairflag && force->pair) one += force->pair->eng_vdwl + force->pair->eng_coul;

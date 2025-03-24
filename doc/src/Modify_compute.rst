@@ -45,6 +45,8 @@ class.  See compute.h for details.
 +-----------------------+------------------------------------------------------------------+
 | pair_tally_callback   | callback function for *tally*\ -style computes (optional).       |
 +-----------------------+------------------------------------------------------------------+
+| modify_param          | called when a compute_modify request is executed (optional)      |
++-----------------------+------------------------------------------------------------------+
 | memory_usage          | tally memory usage (optional)                                    |
 +-----------------------+------------------------------------------------------------------+
 

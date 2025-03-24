@@ -378,10 +378,10 @@ void CommKokkos::forward_comm(Fix *fix, int size)
 {
   if (fix->execution_space == Host || !fix->forward_comm_device || forward_fix_comm_classic) {
     k_sendlist.sync<LMPHostType>();
-    CommBrick::forward_comm(fix,size);
+    CommBrick::forward_comm(fix, size);
   } else {
     k_sendlist.sync<LMPDeviceType>();
-    forward_comm_device<LMPDeviceType>(fix,size);
+    forward_comm_device<LMPDeviceType>(fix, size);
   }
 }
 
@@ -455,10 +455,10 @@ void CommKokkos::forward_comm_device(Fix *fix, int size)
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Fix
    size/nsize used only to set recv buffer limit
-   size = 0 (default) -> use comm_forward from Fix
+   size = 0 (default) -> use comm_reverse from Fix
    size > 0 -> Fix passes max size per atom
    the latter is only useful if Fix does several comm modes,
-     some are smaller than max stored in its comm_forward
+     some are smaller than max stored in its comm_reverse
 ------------------------------------------------------------------------- */
 
 void CommKokkos::reverse_comm(Fix *fix, int size)
@@ -482,72 +482,94 @@ void CommKokkos::reverse_comm_variable(Fix *fix)
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Compute
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_forward from Compute
+   size > 0 -> Compute passes max size per atom
+   the latter is only useful if Compute does several comm modes,
+     some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommKokkos::forward_comm(Compute *compute)
+void CommKokkos::forward_comm(Compute *compute, int size)
 {
   k_sendlist.sync<LMPHostType>();
-  CommBrick::forward_comm(compute);
+  CommBrick::forward_comm(compute, size);
 }
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Bond
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_forward from Bond
+   size > 0 -> Bond passes max size per atom
+   the latter is only useful if Bond does several comm modes,
+     some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommKokkos::forward_comm(Bond *bond)
+void CommKokkos::forward_comm(Bond *bond, int size)
 {
-  CommBrick::forward_comm(bond);
+  CommBrick::forward_comm(bond, size);
 }
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Bond
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_reverse from Bond
+   size > 0 -> Bond passes max size per atom
+   the latter is only useful if Bond does several comm modes,
+     some are smaller than max stored in its comm_reverse
 ------------------------------------------------------------------------- */
 
-void CommKokkos::reverse_comm(Bond *bond)
+void CommKokkos::reverse_comm(Bond *bond, int size)
 {
-  CommBrick::reverse_comm(bond);
+  CommBrick::reverse_comm(bond, size);
 }
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Compute
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_reverse from Compute
+   size > 0 -> Compute passes max size per atom
+   the latter is only useful if Compute does several comm modes,
+     some are smaller than max stored in its comm_reverse
 ------------------------------------------------------------------------- */
 
-void CommKokkos::reverse_comm(Compute *compute)
+void CommKokkos::reverse_comm(Compute *compute, int size)
 {
   k_sendlist.sync<LMPHostType>();
-  CommBrick::reverse_comm(compute);
+  CommBrick::reverse_comm(compute, size);
 }
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Dump
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_forward from Dump
+   size > 0 -> Dump passes max size per atom
+   the latter is only useful if Dump does several comm modes,
+     some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommKokkos::forward_comm(Pair *pair)
+void CommKokkos::forward_comm(Pair *pair, int size)
 {
   if (pair->execution_space == Host || forward_pair_comm_classic) {
     k_sendlist.sync<LMPHostType>();
-    CommBrick::forward_comm(pair);
+    CommBrick::forward_comm(pair, size);
   } else {
     k_sendlist.sync<LMPDeviceType>();
-    forward_comm_device<LMPDeviceType>(pair);
+    forward_comm_device<LMPDeviceType>(pair, size);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void CommKokkos::forward_comm_device(Pair *pair)
+void CommKokkos::forward_comm_device(Pair *pair, int size)
 {
-  int iswap,n;
+  int iswap,n,nsize;
   MPI_Request request;
   DAT::tdual_xfloat_1d k_buf_tmp;
 
-  int nsize = pair->comm_forward;
+  if (size) nsize = size;
+  else nsize = pair->comm_forward;
+
   KokkosBase* pairKKBase = dynamic_cast<KokkosBase*>(pair);
 
   int nmax = max_buf_pair;
@@ -623,29 +645,30 @@ void CommKokkos::grow_buf_fix(int n) {
 
 /* ---------------------------------------------------------------------- */
 
-void CommKokkos::reverse_comm(Pair *pair)
+void CommKokkos::reverse_comm(Pair *pair, int size)
 {
   if (pair->execution_space == Host || !pair->reverse_comm_device || reverse_pair_comm_classic) {
     k_sendlist.sync<LMPHostType>();
-    CommBrick::reverse_comm(pair);
+    CommBrick::reverse_comm(pair, size);
   } else {
     k_sendlist.sync<LMPDeviceType>();
-    reverse_comm_device<LMPDeviceType>(pair);
+    reverse_comm_device<LMPDeviceType>(pair, size);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void CommKokkos::reverse_comm_device(Pair *pair)
+void CommKokkos::reverse_comm_device(Pair *pair, int size)
 {
-  int iswap,n;
+  int iswap,n,nsize;
   MPI_Request request;
   DAT::tdual_xfloat_1d k_buf_tmp;
 
   KokkosBase* pairKKBase = dynamic_cast<KokkosBase*>(pair);
 
-  int nsize = MAX(pair->comm_reverse,pair->comm_reverse_off);
+  if (size) nsize = size;
+  else nsize = MAX(pair->comm_reverse, pair->comm_reverse_off);
 
   int nmax = max_buf_pair;
   for (iswap = 0; iswap < nswap; iswap++) {
@@ -702,18 +725,18 @@ void CommKokkos::reverse_comm_device(Pair *pair)
 
 /* ---------------------------------------------------------------------- */
 
-void CommKokkos::forward_comm(Dump *dump)
+void CommKokkos::forward_comm(Dump *dump, int size)
 {
   k_sendlist.sync<LMPHostType>();
-  CommBrick::forward_comm(dump);
+  CommBrick::forward_comm(dump, size);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void CommKokkos::reverse_comm(Dump *dump)
+void CommKokkos::reverse_comm(Dump *dump, int size)
 {
   k_sendlist.sync<LMPHostType>();
-  CommBrick::reverse_comm(dump);
+  CommBrick::reverse_comm(dump, size);
 }
 
 /* ----------------------------------------------------------------------
@@ -739,6 +762,8 @@ void CommKokkos::exchange()
         auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
         if (!fix_iextra->exchange_comm_device) {
           flag = 0;
+          if (comm->me == 0)
+            error->warning(FLERR,"Fix {} not compatible with sending data in Kokkos communication", fix_iextra->style);
           break;
         }
       }
@@ -768,7 +793,10 @@ void CommKokkos::exchange()
   }
 
   atomKK->sync(Host,ALL_MASK);
+  int prev_auto_sync = lmp->kokkos->auto_sync;
+  lmp->kokkos->auto_sync = 1;
   CommBrick::exchange();
+  lmp->kokkos->auto_sync = prev_auto_sync;
   atomKK->modified(Host,ALL_MASK);
 }
 

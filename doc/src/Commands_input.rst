@@ -69,7 +69,7 @@ WARNING message is printed.  The :doc:`Errors <Errors>` page gives
 more information on what errors mean.  The documentation for each
 command lists restrictions on how the command can be used.
 
-You can use the :ref:`-skiprun <skiprun>` command line flag
+You can use the :ref:`-skiprun <skiprun>` command-line flag
 to have LAMMPS skip the execution of any ``run``, ``minimize``, or similar
 commands to check the entire input for correct syntax to avoid crashes
 on typos or syntax errors in long runs.

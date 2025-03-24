@@ -45,6 +45,7 @@ class PairRHEO : public Pair {
   int rho_damp_flag;
   int thermal_flag;
   int interface_flag;
+  int variable_csq;
 
   int harmonic_means_flag;
 

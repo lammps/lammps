@@ -33,7 +33,7 @@ struct StreamsAndDevices {
       KOKKOS_IMPL_CUDA_SAFE_CALL(cudaStreamCreate(&streams[i]));
     }
   }
-  StreamsAndDevices(const StreamsAndDevices &) = delete;
+  StreamsAndDevices(const StreamsAndDevices &)            = delete;
   StreamsAndDevices &operator=(const StreamsAndDevices &) = delete;
   ~StreamsAndDevices() {
     for (int i = 0; i < 2; ++i) {

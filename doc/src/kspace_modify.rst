@@ -412,11 +412,9 @@ slab correction has also been extended to point dipole interactions
 .. note::
 
    If you wish to apply an electric field in the Z-direction, in
-   conjunction with the *slab* keyword, you should do it by adding
-   explicit charged particles to the +/- Z surfaces.  If you do it via
-   the :doc:`fix efield <fix_efield>` command, it will not give the correct
-   dielectric constant due to the Yeh/Berkowitz :ref:`(Yeh) <Yeh>` correction
-   not being compatible with how :doc:`fix efield <fix_efield>` works.
+   conjunction with the *slab* keyword, you can do it either by
+   adding explicit oppositely charged particles to the +/- Z surfaces,
+   or by using the :doc:`fix efield <fix_efield>` command.
 
 ----------
 

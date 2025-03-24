@@ -640,28 +640,38 @@ void FixNPTCauchy::init()
   // ensure no conflict with fix deform
 
   if (pstat_flag)
-    for (int i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"deform") == 0) {
-        int *dimflag = (dynamic_cast<FixDeform *>(modify->fix[i]))->dimflag;
+    for (auto &ifix : modify->get_fix_by_style("^deform")) {
+      auto deform = dynamic_cast<FixDeform *>(ifix);
+      if (deform) {
+        int *dimflag = deform->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]) || (p_flag[3] && dimflag[3]) ||
             (p_flag[4] && dimflag[4]) || (p_flag[5] && dimflag[5]))
-          error->all(FLERR,"Cannot use fix npt/cauchy and fix deform "
-                     "on same component of stress tensor");
+          error->all(FLERR,"Cannot use fix {} and fix deform on "
+                     "same component of stress tensor", style);
       }
+    }
 
   // set temperature and pressure ptrs
 
   temperature = modify->get_compute_by_id(id_temp);
-  if (!temperature)
-    error->all(FLERR,"Temperature ID {} for fix npt/cauchy does not exist", id_temp);
-
-  if (temperature->tempbias) which = BIAS;
-  else which = NOBIAS;
+  if (!temperature) {
+    error->all(FLERR,"Temperature compute ID {} for fix {} does not exist", id_temp, style);
+  } else {
+    if (temperature->tempflag == 0)
+      error->all(FLERR, "Compute ID {} for fix {} does not compute a temperature", id_temp, style);
+    if (temperature->tempbias) which = BIAS;
+    else which = NOBIAS;
+  }
 
   if (pstat_flag) {
     pressure = modify->get_compute_by_id(id_press);
-    if (!pressure) error->all(FLERR,"Pressure ID {} for fix npt/cauchy does not exist", id_press);
+    if (!pressure) {
+      error->all(FLERR,"Pressure ID {} for fix {} does not exist", id_press, style);
+    } else {
+      if (pressure->pressflag == 0)
+        error->all(FLERR,"Compute ID {} for fix {} does not compute pressure", id_press, style);
+    }
   }
 
   // set timesteps and frequencies

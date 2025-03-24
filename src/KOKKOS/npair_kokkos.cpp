@@ -151,7 +151,11 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
   if (GHOST)
     nall += atom->nghost;
 
-  if (nall == 0) return;
+  if (nall == 0) {
+    list->inum = 0;
+    list->gnum = 0;
+    return;
+  }
 
   list->grow(nall);
 

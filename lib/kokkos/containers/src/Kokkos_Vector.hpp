@@ -172,9 +172,8 @@ class KOKKOS_DEPRECATED vector
 
  private:
   template <class T>
-  struct impl_is_input_iterator
-      : /* TODO replace this */ std::bool_constant<
-            !std::is_convertible<T, size_type>::value> {};
+  struct impl_is_input_iterator : /* TODO replace this */ std::bool_constant<
+                                      !std::is_convertible_v<T, size_type>> {};
 
  public:
   // TODO: can use detection idiom to generate better error message here later

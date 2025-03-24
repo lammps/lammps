@@ -68,12 +68,12 @@ MLIAPModelPythonKokkos<DeviceType>::MLIAPModelPythonKokkos(LAMMPS *lmp, char *co
   // Recipe from lammps/src/pair_python.cpp :
   // add current directory to PYTHONPATH
   PyObject *py_path = PySys_GetObject((char *) "path");
-  PyList_Append(py_path, PY_STRING_FROM_STRING("."));
+  PyList_Append(py_path, PyUnicode_FromString("."));
 
   // if LAMMPS_POTENTIALS environment variable is set, add it to PYTHONPATH as well
   const char *potentials_path = getenv("LAMMPS_POTENTIALS");
   if (potentials_path != nullptr) {
-    PyList_Append(py_path, PY_STRING_FROM_STRING(potentials_path));
+    PyList_Append(py_path, PyUnicode_FromString(potentials_path));
   }
   PyGILState_Release(gstate);
   if (coefffilename) read_coeffs(coefffilename);

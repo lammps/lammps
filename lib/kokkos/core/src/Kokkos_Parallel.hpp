@@ -72,19 +72,19 @@ struct FunctorPolicyExecutionSpace {
   static_assert(
       !is_detected<execution_space_t, Policy>::value ||
           !is_detected<execution_space_t, Functor>::value ||
-          std::is_same<policy_execution_space, functor_execution_space>::value,
+          std::is_same_v<policy_execution_space, functor_execution_space>,
       "A policy with an execution space and a functor with an execution space "
       "are given but the execution space types do not match!");
   static_assert(!is_detected<execution_space_t, Policy>::value ||
                     !is_detected<device_type_t, Functor>::value ||
-                    std::is_same<policy_execution_space,
-                                 functor_device_type_execution_space>::value,
+                    std::is_same_v<policy_execution_space,
+                                   functor_device_type_execution_space>,
                 "A policy with an execution space and a functor with a device "
                 "type are given but the execution space types do not match!");
   static_assert(!is_detected<device_type_t, Functor>::value ||
                     !is_detected<execution_space_t, Functor>::value ||
-                    std::is_same<functor_device_type_execution_space,
-                                 functor_execution_space>::value,
+                    std::is_same_v<functor_device_type_execution_space,
+                                   functor_execution_space>,
                 "A functor with both an execution space and device type is "
                 "given but their execution space types do not match!");
 
@@ -134,8 +134,10 @@ inline void parallel_for(const std::string& str, const ExecPolicy& policy,
                          const FunctorType& functor) {
   uint64_t kpID = 0;
 
-  ExecPolicy inner_policy = policy;
-  Kokkos::Tools::Impl::begin_parallel_for(inner_policy, functor, str, kpID);
+  /** Request a tuned policy from the tools subsystem */
+  const auto& response =
+      Kokkos::Tools::Impl::begin_parallel_for(policy, functor, str, kpID);
+  const auto& inner_policy = response.policy;
 
   auto closure =
       Kokkos::Impl::construct_with_shared_allocation_tracking_disabled<
@@ -348,9 +350,11 @@ template <class ExecutionPolicy, class FunctorType,
               std::enable_if_t<is_execution_policy<ExecutionPolicy>::value>>
 inline void parallel_scan(const std::string& str, const ExecutionPolicy& policy,
                           const FunctorType& functor) {
-  uint64_t kpID                = 0;
-  ExecutionPolicy inner_policy = policy;
-  Kokkos::Tools::Impl::begin_parallel_scan(inner_policy, functor, str, kpID);
+  uint64_t kpID = 0;
+  /** Request a tuned policy from the tools subsystem */
+  const auto& response =
+      Kokkos::Tools::Impl::begin_parallel_scan(policy, functor, str, kpID);
+  const auto& inner_policy = response.policy;
 
   auto closure =
       Kokkos::Impl::construct_with_shared_allocation_tracking_disabled<

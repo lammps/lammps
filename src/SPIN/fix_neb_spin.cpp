@@ -193,10 +193,13 @@ int FixNEBSpin::setmask()
 
 void FixNEBSpin::init()
 {
-  int icompute = modify->find_compute(id_pe);
-  if (icompute < 0)
-    error->all(FLERR,"Potential energy ID for fix neb does not exist");
-  pe = modify->compute[icompute];
+  pe = modify->get_compute_by_id(id_pe);
+  if (!pe) {
+    error->all(FLERR,"Potential energy compute ID {} for fix {} does not exist", id_pe, style);
+  } else {
+    if (pe->peflag == 0)
+      error->all(FLERR,"Compute ID {} for fix {} does not compute potential energy", id_pe, style);
+  }
 
   // turn off climbing mode, NEB command turns it on after init()
 

@@ -41,8 +41,7 @@ struct Dynamic {};
 // Schedule Wrapper Type
 template <class T>
 struct Schedule {
-  static_assert(std::is_same<T, Static>::value ||
-                    std::is_same<T, Dynamic>::value,
+  static_assert(std::is_same_v<T, Static> || std::is_same_v<T, Dynamic>,
                 "Kokkos: Invalid Schedule<> type.");
   using schedule_type = Schedule;
   using type          = T;
@@ -51,7 +50,7 @@ struct Schedule {
 // Specify Iteration Index Type
 template <typename T>
 struct IndexType {
-  static_assert(std::is_integral<T>::value, "Kokkos: Invalid IndexType<>.");
+  static_assert(std::is_integral_v<T>, "Kokkos: Invalid IndexType<>.");
   using index_type = IndexType;
   using type       = T;
 };
@@ -139,8 +138,8 @@ namespace Kokkos {
                                                                \
    public:                                                     \
     static constexpr bool value =                              \
-        std::is_base_of<detected_t<have_t, T>, T>::value ||    \
-        std::is_base_of<detected_t<have_type_t, T>, T>::value; \
+        std::is_base_of_v<detected_t<have_t, T>, T> ||         \
+        std::is_base_of_v<detected_t<have_type_t, T>, T>;      \
     constexpr operator bool() const noexcept { return value; } \
   };                                                           \
   template <typename T>                                        \
@@ -292,44 +291,6 @@ struct is_space {
 
   using execution_space = typename is_exe::space;
   using memory_space    = typename is_mem::space;
-
-  // For backward compatibility, deprecated in favor of
-  // Kokkos::Impl::HostMirror<S>::host_mirror_space
-
- private:
-  // The actual definitions for host_memory_space and host_execution_spaces are
-  // in do_not_use_host_memory_space and do_not_use_host_execution_space to be
-  // able to use them within this class without deprecation warnings.
-  using do_not_use_host_memory_space = std::conditional_t<
-      std::is_same<memory_space, Kokkos::HostSpace>::value
-#if defined(KOKKOS_ENABLE_CUDA)
-          || std::is_same<memory_space, Kokkos::CudaUVMSpace>::value ||
-          std::is_same<memory_space, Kokkos::CudaHostPinnedSpace>::value
-#elif defined(KOKKOS_ENABLE_HIP)
-          || std::is_same<memory_space, Kokkos::HIPHostPinnedSpace>::value ||
-          std::is_same<memory_space, Kokkos::HIPManagedSpace>::value
-#elif defined(KOKKOS_ENABLE_SYCL)
-          || std::is_same<memory_space,
-                          Kokkos::Experimental::SYCLSharedUSMSpace>::value ||
-          std::is_same<memory_space,
-                       Kokkos::Experimental::SYCLHostUSMSpace>::value
-#endif
-      ,
-      memory_space, Kokkos::HostSpace>;
-
-  using do_not_use_host_execution_space = std::conditional_t<
-#if defined(KOKKOS_ENABLE_CUDA)
-      std::is_same<execution_space, Kokkos::Cuda>::value ||
-#elif defined(KOKKOS_ENABLE_HIP)
-      std::is_same<execution_space, Kokkos::HIP>::value ||
-#elif defined(KOKKOS_ENABLE_SYCL)
-      std::is_same<execution_space, Kokkos::Experimental::SYCL>::value ||
-#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-      std::is_same<execution_space,
-                   Kokkos::Experimental::OpenMPTarget>::value ||
-#endif
-          false,
-      Kokkos::DefaultHostExecutionSpace, execution_space>;
 };
 
 }  // namespace Kokkos
@@ -357,7 +318,7 @@ struct MemorySpaceAccess {
    *  2. All execution spaces that can access DstMemorySpace can also access
    *     SrcMemorySpace.
    */
-  enum { assignable = std::is_same<DstMemorySpace, SrcMemorySpace>::value };
+  enum { assignable = std::is_same_v<DstMemorySpace, SrcMemorySpace> };
 
   /**\brief  For all DstExecSpace::memory_space == DstMemorySpace
    *         DstExecSpace can access SrcMemorySpace.
@@ -442,7 +403,7 @@ struct SpaceAccessibility {
   // If same memory space or not accessible use the AccessSpace
   // else construct a device with execution space and memory space.
   using space = std::conditional_t<
-      std::is_same<typename AccessSpace::memory_space, MemorySpace>::value ||
+      std::is_same_v<typename AccessSpace::memory_space, MemorySpace> ||
           !exe_access::accessible,
       AccessSpace,
       Kokkos::Device<typename AccessSpace::execution_space, MemorySpace>>;

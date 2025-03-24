@@ -100,7 +100,7 @@ int zheevd_(char *jobz, char *uplo, integer *n, doublecomplex *a, integer *lda, 
             liopt = liwmin;
         }
         work[1].r = (doublereal)lopt, work[1].i = 0.;
-        rwork[1] = (doublereal)lropt;
+        rwork[1] = (real)lropt;
         iwork[1] = liopt;
         if (*lwork < lwmin && !lquery) {
             *info = -8;
@@ -176,7 +176,7 @@ int zheevd_(char *jobz, char *uplo, integer *n, doublecomplex *a, integer *lda, 
         dscal_(&imax, &d__1, &w[1], &c__1);
     }
     work[1].r = (doublereal)lopt, work[1].i = 0.;
-    rwork[1] = (doublereal)lropt;
+    rwork[1] = (real)lropt;
     iwork[1] = liopt;
     return 0;
 }

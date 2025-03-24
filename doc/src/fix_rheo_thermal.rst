@@ -70,13 +70,13 @@ of the energy is used to shift energies. This may be inappropriate in systems
 with multiple atom types with different specific heats.
 
 For each property, one must first define a list of atom types. A wild-card
-asterisk can be used in place of or in conjunction with the *types* argument
-to set the coefficients for multiple pairs of atom types.  This takes the
-form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N` is the number of atom
-types, then an asterisk with no numeric values means all types from 1 to
-:math:`N`.  A leading asterisk means all types from 1 to n (inclusive).
-A trailing asterisk means all types from m to :math:`N` (inclusive).  A
-middle asterisk means all types from m to n (inclusive).
+asterisk can be used in place of or in conjunction with the *types* argument to
+set values for multiple atom types.  This takes the form "\*" or "\*n" or "m\*"
+or "m\*n".  If :math:`N` is the number of atom types, then an asterisk with no
+numeric values means all types from 1 to :math:`N`.  A leading asterisk means
+all types from 1 to n (inclusive). A trailing asterisk means all types from m
+to :math:`N` (inclusive).  A middle asterisk means all types from m to n
+(inclusive).
 
 The *types* definition for each property is followed by the style. Currently,
 the only option is *constant*. Style *constant* simply applies a constant value

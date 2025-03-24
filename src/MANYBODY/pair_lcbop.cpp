@@ -131,7 +131,7 @@ void PairLCBOP::coeff(int narg, char **arg)
   // only element "C" is allowed
 
   if ((nelements != 1) || (strcmp(elements[0],"C") != 0))
-      error->all(FLERR,"Incorrect args for pair coefficients");
+      error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   // read potential file and initialize fitting splines
 

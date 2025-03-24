@@ -35,7 +35,7 @@ namespace Kokkos {
 
 #ifdef KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
 namespace Impl {
-template <typename Integral, bool Signed = std::is_signed<Integral>::value>
+template <typename Integral, bool Signed = std::is_signed_v<Integral>>
 struct ArrayBoundsCheck;
 
 template <typename Integral>
@@ -195,8 +195,10 @@ struct Array<T, 0> {
     return *reinterpret_cast<const_pointer>(-1);
   }
 
-  KOKKOS_INLINE_FUNCTION pointer data() { return nullptr; }
-  KOKKOS_INLINE_FUNCTION const_pointer data() const { return nullptr; }
+  KOKKOS_INLINE_FUNCTION constexpr pointer data() { return nullptr; }
+  KOKKOS_INLINE_FUNCTION constexpr const_pointer data() const {
+    return nullptr;
+  }
 
   friend KOKKOS_FUNCTION constexpr bool operator==(Array const&,
                                                    Array const&) noexcept {
@@ -365,7 +367,7 @@ struct KOKKOS_DEPRECATED
 #endif
 
 template <typename T, typename... Us>
-Array(T, Us...)->Array<T, 1 + sizeof...(Us)>;
+Array(T, Us...) -> Array<T, 1 + sizeof...(Us)>;
 
 namespace Impl {
 
@@ -377,7 +379,7 @@ KOKKOS_FUNCTION constexpr Array<std::remove_cv_t<T>, N> to_array_impl(
 
 template <typename T, size_t N, size_t... I>
 KOKKOS_FUNCTION constexpr Array<std::remove_cv_t<T>, N> to_array_impl(
-    T(&&a)[N], std::index_sequence<I...>) {
+    T (&&a)[N], std::index_sequence<I...>) {
   return {{std::move(a[I])...}};
 }
 
@@ -389,7 +391,7 @@ KOKKOS_FUNCTION constexpr auto to_array(T (&a)[N]) {
 }
 
 template <typename T, size_t N>
-KOKKOS_FUNCTION constexpr auto to_array(T(&&a)[N]) {
+KOKKOS_FUNCTION constexpr auto to_array(T (&&a)[N]) {
   return Impl::to_array_impl(std::move(a), std::make_index_sequence<N>{});
 }
 
@@ -430,6 +432,32 @@ template <std::size_t I, class T, std::size_t N>
 KOKKOS_FUNCTION constexpr T const&& get(Array<T, N> const&& a) noexcept {
   static_assert(I < N);
   return std::move(a[I]);
+}
+
+}  // namespace Kokkos
+//</editor-fold>
+
+//<editor-fold desc="Support for range-based for loop">
+namespace Kokkos {
+
+template <class T, std::size_t N>
+KOKKOS_FUNCTION constexpr T const* begin(Array<T, N> const& a) noexcept {
+  return a.data();
+}
+
+template <class T, std::size_t N>
+KOKKOS_FUNCTION constexpr T* begin(Array<T, N>& a) noexcept {
+  return a.data();
+}
+
+template <class T, std::size_t N>
+KOKKOS_FUNCTION constexpr T const* end(Array<T, N> const& a) noexcept {
+  return a.data() + a.size();
+}
+
+template <class T, std::size_t N>
+KOKKOS_FUNCTION constexpr T* end(Array<T, N>& a) noexcept {
+  return a.data() + a.size();
 }
 
 }  // namespace Kokkos

@@ -1,0 +1,6 @@
+To run these examples, one needs to compile LAMMPS with the ML-PACE (-DPKG_ML-PACE=ON)  and the EXTRA-PAIR packages (-DPKG_EXTRA-PAIR=ON).
+
+These examples show how to combine a short-ranged ML potential with a dispersion correction scheme. Here we combine a general-purpose ACE potential for carbon (10.1021/acs.jctc.2c01149), with two different dispersion correction schemes:
+  - D2 (a pure two-body potential, here tabulated)
+  - D3 (a many-body potential, implemented in LAMMPS).
+

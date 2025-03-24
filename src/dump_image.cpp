@@ -124,7 +124,6 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   atomflag = YES;
   gridflag = NO;
   lineflag = triflag = bodyflag = fixflag = NO;
-  id_grid_compute = id_grid_fix = nullptr;
 
   if (atom->nbondtypes == 0) bondflag = NO;
   else {
@@ -184,14 +183,17 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
       char *id;
       int igrid,idata,index;
-      int iflag =
-        utils::check_grid_reference((char *) "Dump image",
-                                    arg[iarg+1],nevery,id,
-                                    igrid,idata,index,lmp);
+      int iflag = utils::check_grid_reference((char *) "Dump image", arg[iarg+1], nevery, id,
+                                              igrid,idata,index,lmp);
       if (iflag < 0) error->all(FLERR,"Invalid grid reference in dump image command");
 
-      if (iflag == ArgInfo::COMPUTE) id_grid_compute = utils::strdup(id);
-      else if (iflag == ArgInfo::FIX) id_grid_fix = utils::strdup(id);
+      if (iflag == ArgInfo::COMPUTE) {
+        delete[] id_grid_compute;
+        id_grid_compute = utils::strdup(id);
+      } else if (iflag == ArgInfo::FIX) {
+        delete[] id_grid_fix;
+        id_grid_fix = utils::strdup(id);
+      }
       delete[] id;
       grid_igrid = igrid;
       grid_idata = idata;
@@ -252,6 +254,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"view") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
       if (utils::strmatch(arg[iarg+1],"^v_")) {
+        delete[] thetastr;
         thetastr = utils::strdup(arg[iarg+1]+2);
       } else {
         const double theta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
@@ -260,6 +263,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
         image->theta = DEG2RAD * theta;
       }
       if (utils::strmatch(arg[iarg+2],"^v_")) {
+        delete[] phistr;
         phistr = utils::strdup(arg[iarg+2]+2);
       } else {
         image->phi = DEG2RAD * utils::numeric(FLERR,arg[iarg+2],false,lmp);
@@ -272,14 +276,17 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"d") == 0) cflag = DYNAMIC;
       else error->all(FLERR,"Illegal dump image command");
       if (utils::strmatch(arg[iarg+2],"^v_")) {
+        delete[] cxstr;
         cxstr = utils::strdup(arg[iarg+2]+2);
         cflag = DYNAMIC;
       } else cx = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (utils::strmatch(arg[iarg+3],"^v_")) {
+        delete[] cystr;
         cystr = utils::strdup(arg[iarg+3]+2);
         cflag = DYNAMIC;
       } else cy = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (utils::strmatch(arg[iarg+4],"^v_")) {
+        delete[] czstr;
         czstr = utils::strdup(arg[iarg+4]+2);
         cflag = DYNAMIC;
       } else cz = utils::numeric(FLERR,arg[iarg+4],false,lmp);
@@ -288,12 +295,15 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"up") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal dump image command");
       if (utils::strmatch(arg[iarg+1],"^v_")) {
+        delete[] upxstr;
         upxstr = utils::strdup(arg[iarg+1]+2);
       } else image->up[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (utils::strmatch(arg[iarg+2],"^v_")) {
+        delete[] upystr;
         upystr = utils::strdup(arg[iarg+2]+2);
       } else image->up[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (utils::strmatch(arg[iarg+3],"^v_")) {
+        delete[] upzstr;
         upzstr = utils::strdup(arg[iarg+3]+2);
       } else image->up[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
@@ -301,6 +311,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"zoom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
       if (utils::strmatch(arg[iarg+1],"^v_")) {
+        delete[] zoomstr;
         zoomstr = utils::strdup(arg[iarg+1]+2);
       } else {
         double zoom = utils::numeric(FLERR,arg[iarg+1],false,lmp);
@@ -456,15 +467,8 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   // local data
 
-  grid_compute = nullptr;
-  grid_fix = nullptr;
-
   maxbufcopy = 0;
-  chooseghost = nullptr;
-  bufcopy = nullptr;
-
   maxgrid = 0;
-  gbuf = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1097,7 +1101,7 @@ void DumpImage::create_image()
         color = colortype[itype];
       }
 
-      ibonus = body[i];
+      ibonus = body[j];
       n = bptr->image(ibonus,bodyflag1,bodyflag2,bodyvec,bodyarray);
       for (k = 0; k < n; k++) {
         if (bodyvec[k] == SPHERE)

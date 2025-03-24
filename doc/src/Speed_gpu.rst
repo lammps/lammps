@@ -31,7 +31,8 @@ Coulombics.  It has the following general features:
   (for Nvidia GPUs, AMD GPUs, Intel GPUs, and multicore CPUs).
   so that the same functionality is supported on a variety of hardware.
 
-**Required hardware/software:**
+Required hardware/software
+""""""""""""""""""""""""""
 
 To compile and use this package in CUDA mode, you currently need
 to have an NVIDIA GPU and install the corresponding NVIDIA CUDA
@@ -69,12 +70,14 @@ To compile and use this package in HIP mode, you have to have the AMD ROCm
 software installed. Versions of ROCm older than 3.5 are currently deprecated
 by AMD.
 
-**Building LAMMPS with the GPU package:**
+Building LAMMPS with the GPU package
+""""""""""""""""""""""""""""""""""""
 
 See the :ref:`Build extras <gpu>` page for
 instructions.
 
-**Run with the GPU package from the command line:**
+Run with the GPU package from the command-line
+""""""""""""""""""""""""""""""""""""""""""""""
 
 The ``mpirun`` or ``mpiexec`` command sets the total number of MPI tasks
 used by LAMMPS (one or multiple per compute node) and the number of MPI
@@ -133,7 +136,8 @@ affect the setting for bonded interactions (LAMMPS default is "on").
 The "off" setting for pairwise interaction is currently required for
 GPU package pair styles.
 
-**Or run with the GPU package by editing an input script:**
+Run with the GPU package by editing an input script
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The discussion above for the ``mpirun`` or ``mpiexec`` command, MPI
 tasks/node, and use of multiple MPI tasks/GPU is the same.
@@ -149,7 +153,8 @@ You must also use the :doc:`package gpu <package>` command to enable the
 GPU package, unless the ``-sf gpu`` or ``-pk gpu`` :doc:`command-line switches <Run_options>` were used.  It specifies the number of
 GPUs/node to use, as well as other options.
 
-**Speed-ups to expect:**
+Speed-up to expect
+""""""""""""""""""
 
 The performance of a GPU versus a multicore CPU is a function of your
 hardware, which pair style is used, the number of atoms/GPU, and the
@@ -176,10 +181,13 @@ better with multiple OMP threads because the inter-process communication
 is higher for these styles with the GPU package in order to allow
 deterministic results.
 
-**Guidelines for best performance:**
+Guidelines for best performance
+"""""""""""""""""""""""""""""""
 
-* Using multiple MPI tasks per GPU will often give the best performance,
-  as allowed my most multicore CPU/GPU configurations.
+* Using multiple MPI tasks (2-10) per GPU will often give the best
+  performance, as allowed my most multicore CPU/GPU configurations.
+  Using too many MPI tasks will result in worse performance due to
+  growing overhead with the growing number of MPI tasks.
 * If the number of particles per MPI task is small (e.g. 100s of
   particles), it can be more efficient to run with fewer MPI tasks per
   GPU, even if you do not use all the cores on the compute node.
@@ -199,12 +207,13 @@ deterministic results.
   :doc:`angle <angle_style>`, :doc:`dihedral <dihedral_style>`,
   :doc:`improper <improper_style>`, and :doc:`long-range <kspace_style>`
   calculations will not be included in the "Pair" time.
-* Since only part of the pppm kspace style is GPU accelerated, it
-  may be faster to only use GPU acceleration for Pair styles with
-  long-range electrostatics.  See the "pair/only" keyword of the
-  package command for a shortcut to do that.  The work between kspace
-  on the CPU and non-bonded interactions on the GPU can be balanced
-  through adjusting the coulomb cutoff without loss of accuracy.
+* Since only part of the pppm kspace style is GPU accelerated, it may be
+  faster to only use GPU acceleration for Pair styles with long-range
+  electrostatics.  See the "pair/only" keyword of the :doc:`package
+  command <package>` for a shortcut to do that.  The distribution of
+  work between kspace on the CPU and non-bonded interactions on the GPU
+  can be balanced through adjusting the coulomb cutoff without loss of
+  accuracy.
 * When the *mode* setting for the package gpu command is force/neigh,
   the time for neighbor list calculations on the GPU will be added into
   the "Pair" time, not the "Neigh" time.  An additional breakdown of the
@@ -220,4 +229,6 @@ deterministic results.
 Restrictions
 """"""""""""
 
-None.
+When using :doc:`hybrid pair styles <pair_hybrid>`, the neighbor list
+must be generated on the host instead of the GPU and thus the potential
+GPU acceleration is reduced.

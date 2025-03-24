@@ -122,8 +122,9 @@ struct is_team_handle_complete_trait_check {
       decltype(std::declval<U const &>().team_barrier());
 
   template <class U>
-  using TeamBroadcastArchetypeExpr = decltype(
-      std::declval<U const &>().team_broadcast(lvalueForMethodsNeedingIt_, 0));
+  using TeamBroadcastArchetypeExpr =
+      decltype(std::declval<U const &>().team_broadcast(
+          lvalueForMethodsNeedingIt_, 0));
 
   template <class U>
   using TeamBroadcastAcceptClosureArchetypeExpr =

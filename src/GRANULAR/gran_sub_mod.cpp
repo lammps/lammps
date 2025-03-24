@@ -21,11 +21,13 @@
 ----------------------------------------------------------------------- */
 
 #include "gran_sub_mod.h"
+#include "math_extra.h"
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
+using namespace MathExtra;
 
 /* ----------------------------------------------------------------------
    Parent class for all types of granular sub models
@@ -42,6 +44,11 @@ GranSubMod::GranSubMod(class GranularModel *gm, LAMMPS *lmp) : Pointers(lmp)
   beyond_contact = 0;
   num_coeffs = 0;
   contact_radius_flag = 0;
+  nsvector = 0;
+
+  // Currently only check tangential + rolling classes, which default to 0
+  //   no conflicts/checks for other modes, can extend in future
+  allow_synchronization = 1;
 
   nondefault_history_transfer = 0;
   transfer_history_factor = nullptr;
@@ -128,4 +135,27 @@ double GranSubMod::mix_geom(double val1, double val2)
 double GranSubMod::mix_mean(double val1, double val2)
 {
   return 0.5 * (val1 + val2);
+}
+
+/* ----------------------------------------------------------------------
+  rotate-rescale vector v so it is perpendicular to unit vector n
+  and has the same magnitude as before
+  ---------------------------------------------------------------------- */
+void GranSubMod::rotate_rescale_vec(double *v, double *n)
+{
+  double rsht, shrmag, prjmag, temp_dbl, temp_array[3];
+
+  rsht = dot3(v, n);
+  shrmag = len3(v);
+
+  scale3(rsht, n, temp_array);
+  sub3(v, temp_array, v);
+
+  // also rescale to preserve magnitude
+  prjmag = len3(v);
+  if (prjmag > 0)
+    temp_dbl = shrmag / prjmag;
+  else
+    temp_dbl = 0;
+  scale3(temp_dbl, v);
 }

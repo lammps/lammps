@@ -62,8 +62,8 @@ a sum of 3 terms
 
    \mathbf{f}  = & f^C + f^D + f^R \qquad \qquad r < r_c \\
    f^C      = & A_{ij} w(r) \hat{\mathbf{r}}_{ij} \\
-   f^D      = & - \gamma_{\parallel} w_{\parallel}^2(r) (\hat{\mathbf{r}}_{ij} \cdot \mathbf{v}_{ij}) \hat{\mathbf{r}}_{ij}  - \gamma_{\perp} w_{\perp}^2 (r) ( \mathbf{I} - \hat{\mathbf{r}}_{ij} \hat{\mathbf{r}}_{ij}^{\rm T} ) \mathbf{v}_{ij} \\
-   f^R      = & \sigma_{\parallel} w_{\parallel}(r) \frac{\alpha}{\sqrt{\Delta t}} \hat{\mathbf{r}}_{ij}  + \sigma_{\perp} w_{\perp} (r) ( \mathbf{I} - \hat{\mathbf{r}}_{ij} \hat{\mathbf{r}}_{ij}^{\rm T} ) \frac{\mathbf{\xi}_{ij}}{\sqrt{\Delta t}}\\
+   f^D      = & - \gamma_{\parallel} w_{\parallel}^2(r) (\hat{\mathbf{r}}_{ij} \cdot \mathbf{v}_{ij}) \hat{\mathbf{r}}_{ij}  - \gamma_{\perp} w_{\perp}^2 (r) ( \mathbf{I} - \hat{\mathbf{r}}_{ij} \hat{\mathbf{r}}_{ij}^\mathrm{T} ) \mathbf{v}_{ij} \\
+   f^R      = & \sigma_{\parallel} w_{\parallel}(r) \frac{\alpha}{\sqrt{\Delta t}} \hat{\mathbf{r}}_{ij}  + \sigma_{\perp} w_{\perp} (r) ( \mathbf{I} - \hat{\mathbf{r}}_{ij} \hat{\mathbf{r}}_{ij}^\mathrm{T} ) \frac{\mathbf{\xi}_{ij}}{\sqrt{\Delta t}}\\
    w(r)     = & 1 - r/r_c \\
 
 where :math:`\mathbf{f}^C` is a conservative force, :math:`\mathbf{f}^D`

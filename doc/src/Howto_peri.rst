@@ -197,7 +197,7 @@ The LPS model has a force scalar state
 .. math::
 
    \underline{t} = \frac{3K\theta}{m}\underline{\omega}\,\underline{x} +
-   \alpha \underline{\omega}\,\underline{e}^{\rm d}, \qquad\qquad\textrm{(3)}
+   \alpha \underline{\omega}\,\underline{e}^\mathrm{d}, \qquad\qquad\textrm{(3)}
 
 with :math:`K` the bulk modulus and :math:`\alpha` related to the shear
 modulus :math:`G` as
@@ -242,14 +242,14 @@ scalar state are defined, respectively, as
 
 .. math::
 
-   \underline{e}^{\rm i}=\frac{\theta \underline{x}}{3}, \qquad
-   \underline{e}^{\rm d} = \underline{e}- \underline{e}^{\rm i},
+   \underline{e}^\mathrm{i}=\frac{\theta \underline{x}}{3}, \qquad
+   \underline{e}^\mathrm{d} = \underline{e}- \underline{e}^\mathrm{i},
 
 
 where the arguments of the state functions and the vectors on which they
 operate are omitted for simplicity. We note that the LPS model is linear
 in the dilatation :math:`\theta`, and in the deviatoric part of the
-extension :math:`\underline{e}^{\rm d}`.
+extension :math:`\underline{e}^\mathrm{d}`.
 
 .. note::
 
@@ -738,8 +738,8 @@ command.
 
 This can be done, for example, by using the built-in visualizer of the
 :doc:`dump image or dump movie <dump_image>` command to create snapshot
-images or a movie. Below are example command lines for using dump image
-with the :ref:`example listed below <periexample>` and a set of images
+images or a movie. Below are example command for using dump image with
+the :ref:`example listed below <periexample>` and a set of images
 created for steps 300, 600, and 2000 this way.
 
 .. code-block:: LAMMPS

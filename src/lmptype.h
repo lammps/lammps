@@ -34,6 +34,13 @@
 #error LAMMPS requires a C++11 (or later) compliant compiler. Enable C++11 compatibility or upgrade the compiler.
 #endif
 
+// C++17 check
+#ifndef LAMMPS_CXX11
+#if __cplusplus < 201703L
+#error LAMMPS is planning to transition to requiring C++17. To disable this error please use a C++17 compliant compiler, enable C++17 support, or define -DLAMMPS_CXX11 in your makefile or when running cmake
+#endif
+#endif
+
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif
@@ -64,10 +71,23 @@ namespace LAMMPS_NS {
 #define HISTMASK 0xDFFFFFFF
 #define SPECIALMASK 0x3FFFFFFF
 
+// mask to curb data sizes when calling memcpy() to avoid bogus compiler warnings
+#if UINTPTR_MAX > (1UL<<63)
+static constexpr uint64_t MEMCPYMASK = (static_cast<uint64_t>(1) << 63) - 1U;
+#else
+static constexpr uint32_t MEMCPYMASK = (static_cast<uint32_t>(1) << 31) - 1U;
+#endif
+
 // default to 32-bit smallint and other ints, 64-bit bigint
 
-#if !defined(LAMMPS_SMALLSMALL) && !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG)
+#if !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG)
 #define LAMMPS_SMALLBIG
+#endif
+
+// we no longer support LAMMPS_SMALLSMALL
+
+#if defined(LAMMPS_SMALLSMALL)
+#error LAMMPS no longer supports -DLAMMPS_SMALLSMALL
 #endif
 
 // allow user override of LONGLONG to LONG, necessary for some machines/MPI
@@ -145,40 +165,6 @@ typedef int64_t bigint;
 #define IMGMAX 1048576
 #define IMGBITS 21
 #define IMG2BITS 42
-
-#endif
-
-// for machines that do not support 64-bit ints
-// 32-bit smallint/imageint/tagint/bigint
-
-#ifdef LAMMPS_SMALLSMALL
-
-typedef int smallint;
-typedef int imageint;
-typedef int tagint;
-typedef int bigint;
-
-#define MAXSMALLINT INT_MAX
-#define MAXTAGINT INT_MAX
-#define MAXBIGINT INT_MAX
-#define MAXDOUBLEINT INT_MAX
-
-#define MPI_LMP_TAGINT MPI_INT
-#define MPI_LMP_IMAGEINT MPI_INT
-#define MPI_LMP_BIGINT MPI_INT
-
-#define TAGINT_FORMAT "%d"
-#define BIGINT_FORMAT "%d"
-
-#define LAMMPS_TAGINT LAMMPS_INT
-#define LAMMPS_TAGINT_2D LAMMPS_INT_2D
-#define LAMMPS_BIGINT LAMMPS_INT
-#define LAMMPS_BIGINT_2D LAMMPS_INT_2D
-
-#define IMGMASK 1023
-#define IMGMAX 512
-#define IMGBITS 10
-#define IMG2BITS 20
 
 #endif
 
@@ -287,7 +273,7 @@ struct multitype {
     int64_t b;
   } data;
 
-  multitype() : type(LAMMPS_NONE) { data.d = 0.0; }
+  multitype() noexcept : type(LAMMPS_NONE) { data.d = 0.0; }
   multitype(const multitype &) = default;
   multitype(multitype &&) = default;
   ~multitype() = default;

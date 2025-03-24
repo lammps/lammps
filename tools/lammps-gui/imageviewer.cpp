@@ -494,7 +494,7 @@ void ImageViewer::do_recenter()
                                "variable LAMMPSGUI_CX equal (xcm(%1,x)-xlo)/lx\n"
                                "variable LAMMPSGUI_CY equal (xcm(%1,y)-ylo)/ly\n"
                                "variable LAMMPSGUI_CZ equal (xcm(%1,z)-zlo)/lz\n").arg(group);
-    lammps->commands_string(commands.toLocal8Bit());
+    lammps->commands_string(commands);
     xcenter = lammps->extract_variable("LAMMPSGUI_CX");
     ycenter = lammps->extract_variable("LAMMPSGUI_CZ");
     zcenter = lammps->extract_variable("LAMMPSGUI_CZ");
@@ -667,7 +667,7 @@ void ImageViewer::createImage()
     settings.endGroup();
 
     last_dump_cmd = dumpcmd;
-    lammps->command(dumpcmd.toLocal8Bit());
+    lammps->command(dumpcmd);
 
     QImageReader reader(dumpfile.fileName());
     reader.setAutoTransform(true);

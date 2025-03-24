@@ -295,7 +295,7 @@ void ThirdOrder::calculateMatrix()
 
   if (comm->me == 0 && screen) {
     fputs("Calculating Third Order ...\n", screen);
-    fmt::print(screen,"  Total # of atoms = {}\n"
+    utils::print(screen,"  Total # of atoms = {}\n"
                       "  Atoms in group = {}\n"
                       "  Total third order elements = {}\n",
                       natoms, gcount, dynlen*dynlen*dynlen);
@@ -432,7 +432,7 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
       for (int k = 0; k < atom->natoms; k++){
         norm = square(dynmat[k*3])+square(dynmat[k*3+1])+square(dynmat[k*3+2]);
         if (norm > 1.0e-16)
-          fmt::print(fp, "{} {} {} {} {} {:17.8f} {:17.8f} {:17.8f}\n",
+          utils::print(fp, "{} {} {} {} {} {:17.8f} {:17.8f} {:17.8f}\n",
                      i+1, a+1, j+1, b+1, k+1, dynmat[k*3] * conversion,
                      dynmat[k*3+1] * conversion, dynmat[k*3+2] * conversion);
       }
@@ -440,7 +440,7 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
       for (int k = 0; k < gcount; k++){
         norm = square(dynmat[k*3])+square(dynmat[k*3+1])+square(dynmat[k*3+2]);
         if (norm > 1.0e-16)
-          fmt::print(fp, "{} {} {} {} {} {:17.8f} {:17.8f} {:17.8f}\n",
+          utils::print(fp, "{} {} {} {} {} {:17.8f} {:17.8f} {:17.8f}\n",
                      i+1, a+1, j+1, b+1, groupmap[k]+1, dynmat[k*3] * conversion,
                      dynmat[k*3+1] * conversion, dynmat[k*3+2] * conversion);
       }

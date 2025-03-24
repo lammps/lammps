@@ -14,10 +14,7 @@ using ::testing::HasSubstr;
 using ::testing::StartsWith;
 
 extern "C" {
-#ifdef LAMMPS_SMALLSMALL
-typedef int32_t step_t;
-typedef int32_t tag_t;
-#elif LAMMPS_SMALLBIG
+#if LAMMPS_SMALLBIG
 using step_t = int64_t;
 using tag_t  = int32_t;
 #else
@@ -123,6 +120,18 @@ TEST(lammps_external, callback)
     EXPECT_DOUBLE_EQ(reduce[5], 1.4);
     EXPECT_DOUBLE_EQ(reduce[6], 1.4);
 
+    double **fext =
+        (double **)lammps_extract_fix(handle, "ext", LMP_STYLE_ATOM, LMP_TYPE_ARRAY, 0, 0);
+    EXPECT_DOUBLE_EQ(fext[0][0], 10.0);
+    EXPECT_DOUBLE_EQ(fext[0][1], 10.0);
+    EXPECT_DOUBLE_EQ(fext[0][2], 10.0);
+    EXPECT_DOUBLE_EQ(fext[3][0], 10.0);
+    EXPECT_DOUBLE_EQ(fext[3][1], 10.0);
+    EXPECT_DOUBLE_EQ(fext[3][2], 10.0);
+    EXPECT_DOUBLE_EQ(fext[7][0], 10.0);
+    EXPECT_DOUBLE_EQ(fext[7][1], 10.0);
+    EXPECT_DOUBLE_EQ(fext[7][2], 10.0);
+
     ::testing::internal::CaptureStdout();
     lammps_close(handle);
     output = ::testing::internal::GetCapturedStdout();
@@ -192,6 +201,18 @@ TEST(lammps_external, array)
     EXPECT_DOUBLE_EQ(temp, 1.0 / 30.0);
     EXPECT_DOUBLE_EQ(pe, 1.0 / 8.0);
     EXPECT_DOUBLE_EQ(press, 0.15416666666666667);
+
+    double **fext =
+        (double **)lammps_extract_fix(handle, "ext", LMP_STYLE_ATOM, LMP_TYPE_ARRAY, 0, 0);
+    EXPECT_DOUBLE_EQ(fext[0][0], 6.0);
+    EXPECT_DOUBLE_EQ(fext[0][1], 6.0);
+    EXPECT_DOUBLE_EQ(fext[0][2], 6.0);
+    EXPECT_DOUBLE_EQ(fext[3][0], 6.0);
+    EXPECT_DOUBLE_EQ(fext[3][1], 6.0);
+    EXPECT_DOUBLE_EQ(fext[3][2], 6.0);
+    EXPECT_DOUBLE_EQ(fext[7][0], 6.0);
+    EXPECT_DOUBLE_EQ(fext[7][1], 6.0);
+    EXPECT_DOUBLE_EQ(fext[7][2], 6.0);
 
     ::testing::internal::CaptureStdout();
     lammps_close(handle);

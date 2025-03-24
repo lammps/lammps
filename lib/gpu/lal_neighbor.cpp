@@ -365,7 +365,9 @@ void Neighbor::get_host(const int inum, int *ilist, int *numj,
       int i=ilist[ii];
       three_ilist[i] = ii;
     }
-    three_ilist.update_device(inum,true);
+    // needs to transfer _max_atoms because three_ilist indexes all the atoms (local and ghost)
+    // not just inum (number of neighbor list items)
+    three_ilist.update_device(_max_atoms,true);
   }
 
   time_nbor.stop();

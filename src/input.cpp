@@ -89,7 +89,7 @@ Variable class which performs computations and text substitutions.
 \verbatim embed:rst
 
 This sets up the input processing, processes the *-var* and *-echo*
-command line flags, holds the factory of commands and creates and
+command-line flags, holds the factory of commands and creates and
 initializes an instance of the Variable class.
 
 To execute a command, a specific class instance, derived from
@@ -188,7 +188,7 @@ Input::~Input()
 
 This will read lines from *infile*, parse and execute them until the end
 of the file is reached.  The *infile* pointer will usually point to
-``stdin`` or the input file given with the ``-in`` command line flag.
+``stdin`` or the input file given with the ``-in`` command-line flag.
 
 \endverbatim */
 
@@ -423,7 +423,7 @@ void Input::write_echo(const std::string &txt)
 }
 
 /* ----------------------------------------------------------------------
-   parse copy of command line by inserting string terminators
+   parse copy of command-line by inserting string terminators
    strip comment = all chars from # on
    replace all $ via variable substitution except within quotes
    command = first word
@@ -610,7 +610,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 
         while (var[i] != '\0' && var[i] != '}') i++;
 
-        if (var[i] == '\0') error->one(FLERR,"Invalid variable name");
+        if (var[i] == '\0') error->one(FLERR,"Invalid variable name {}", var);
         var[i] = '\0';
         beyond = ptr + strlen(var) + 3;
         value = variable->retrieve(var);
@@ -663,7 +663,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
       }
 
       if (value == nullptr)
-        error->one(FLERR,"Substitution for illegal variable {}",var);
+        error->one(FLERR,"Substitution for illegal variable {}"+utils::errorurl(13),var);
 
       // check if storage in str2 needs to be expanded
       // re-initialize ptr and ptr2 to the point beyond the variable.
@@ -1151,7 +1151,7 @@ void Input::partition()
 
   char *cmd = strstr(line,arg[2]);
 
-  // execute the remaining command line on requested partitions
+  // execute the remaining command-line on requested partitions
 
   if (yesflag) {
     if (universe->iworld+1 >= ilo && universe->iworld+1 <= ihi) one(cmd);

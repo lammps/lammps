@@ -385,13 +385,13 @@ void PairReaxFFKokkos<DeviceType>::init_md()
   swb = api->control->nonb_cut;
   enobondsflag = api->control->enobondsflag;
 
-  if (fabs(swa) > 0.01)
-    error->warning(FLERR,"Warning: non-zero lower Taper-radius cutoff");
+  if ((fabs(swa) > 0.01) && (comm->me == 0))
+    error->warning(FLERR, "Non-zero lower Taper-radius cutoff");
 
-  if (swb < 0)
-    error->one(FLERR,"Negative upper Taper-radius cutoff");
-  else if (swb < 5)
-    error->one(FLERR,"Warning: very low Taper-radius cutoff: {}\n", swb);
+  if (swb < 0.0) {
+    error->all(FLERR,"Negative upper Taper-radius cutoff");
+  } else if ((swb < 5.0) && (comm->me ==0))
+    error->warning(FLERR,"Very low Taper-radius cutoff: {}\n", swb);
 
   d1 = swb - swa;
   d7 = powint(d1,7);

@@ -268,7 +268,7 @@ void PairTDPD::settings(int narg, char **arg)
 void PairTDPD::coeff(int narg, char **arg)
 {
   if (narg != 7 + 3*cc_species)
-    error->all(FLERR,"Incorrect args for pair tdpd coefficients");
+    error->all(FLERR,"Incorrect args for pair tdpd coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -310,7 +310,7 @@ void PairTDPD::coeff(int narg, char **arg)
   delete[] epsilon_one;
   delete[] powercc_one;
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

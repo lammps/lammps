@@ -179,7 +179,7 @@ double ComputeForceTally::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
   if ((did_setup != invoked_scalar) || (update->eflag_global != invoked_scalar))
-    error->all(FLERR, "Stress was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Stress was not tallied on needed timestep{}", utils::errorurl(22));
 
   if ((comm->me == 0) && !force->pair->did_tally_callback())
     error->warning(FLERR, "Stress was not tallied by pair style");
@@ -198,7 +198,7 @@ void ComputeForceTally::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
   if ((did_setup != invoked_peratom) || (update->eflag_global != invoked_peratom))
-    error->all(FLERR, "Stress was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Stress was not tallied on needed timestep{}", utils::errorurl(22));
 
   if ((comm->me == 0) && !force->pair->did_tally_callback())
     error->warning(FLERR, "Stress was not tallied by pair style");

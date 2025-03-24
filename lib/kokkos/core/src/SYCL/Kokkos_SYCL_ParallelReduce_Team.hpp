@@ -29,7 +29,7 @@
 template <class CombinedFunctorReducerType, class... Properties>
 class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
                                    Kokkos::TeamPolicy<Properties...>,
-                                   Kokkos::Experimental::SYCL> {
+                                   Kokkos::SYCL> {
  public:
   using Policy      = TeamPolicy<Properties...>;
   using FunctorType = typename CombinedFunctorReducerType::functor_type;
@@ -46,7 +46,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
 
  public:
   using functor_type = FunctorType;
-  using size_type    = Kokkos::Experimental::SYCL::size_type;
+  using size_type    = Kokkos::SYCL::size_type;
 
  private:
   const CombinedFunctorReducerType m_functor_reducer;
@@ -66,8 +66,8 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
       const CombinedFunctorReducerWrapper& functor_reducer_wrapper,
       const sycl::event& memcpy_event) const {
     // Convenience references
-    const Kokkos::Experimental::SYCL& space = m_policy.space();
-    Kokkos::Experimental::Impl::SYCLInternal& instance =
+    const Kokkos::SYCL& space = m_policy.space();
+    Kokkos::Impl::SYCLInternal& instance =
         *space.impl_internal_space_instance();
     sycl::queue& q = space.sycl_queue();
 
@@ -396,7 +396,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
 
  public:
   inline void execute() {
-    Kokkos::Experimental::Impl::SYCLInternal& instance =
+    Kokkos::Impl::SYCLInternal& instance =
         *m_policy.space().impl_internal_space_instance();
 
     // Only let one instance at a time resize the instance's scratch memory
@@ -414,13 +414,11 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
             scratch_pool_id,
             static_cast<ptrdiff_t>(m_scratch_size[1]) * m_league_size));
 
-    using IndirectKernelMem =
-        Kokkos::Experimental::Impl::SYCLInternal::IndirectKernelMem;
+    using IndirectKernelMem = Kokkos::Impl::SYCLInternal::IndirectKernelMem;
     IndirectKernelMem& indirectKernelMem = instance.get_indirect_kernel_mem();
 
     auto functor_reducer_wrapper =
-        Experimental::Impl::make_sycl_function_wrapper(m_functor_reducer,
-                                                       indirectKernelMem);
+        Impl::make_sycl_function_wrapper(m_functor_reducer, indirectKernelMem);
 
     sycl::event event =
         sycl_direct_launch(global_scratch_ptr, functor_reducer_wrapper,
@@ -436,16 +434,21 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
         m_policy(arg_policy),
         m_result_ptr(arg_result.data()),
         m_result_ptr_device_accessible(
-            MemorySpaceAccess<Kokkos::Experimental::SYCLDeviceUSMSpace,
+            MemorySpaceAccess<Kokkos::SYCLDeviceUSMSpace,
                               typename ViewType::memory_space>::accessible),
         m_league_size(arg_policy.league_size()),
         m_team_size(arg_policy.team_size()),
         m_vector_size(arg_policy.impl_vector_length()) {
-    // FIXME_SYCL optimize
-    if (m_team_size < 0)
+    if (m_team_size < 0) {
       m_team_size = m_policy.team_size_recommended(
           m_functor_reducer.get_functor(), m_functor_reducer.get_reducer(),
           ParallelReduceTag{});
+      if (m_team_size <= 0)
+        Kokkos::Impl::throw_runtime_exception(
+            "Kokkos::Impl::ParallelReduce<SYCL, TeamPolicy> could not find a "
+            "valid execution configuration.");
+    }
+
     // Must be a power of two greater than two, get the one not bigger than the
     // requested one.
     if ((m_team_size & m_team_size - 1) || m_team_size < 2) {
@@ -461,7 +464,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
     m_scratch_size[0] = m_shmem_size;
     m_scratch_size[1] = m_policy.scratch_size(1, m_team_size);
 
-    const Kokkos::Experimental::Impl::SYCLInternal& instance =
+    const Kokkos::Impl::SYCLInternal& instance =
         *m_policy.space().impl_internal_space_instance();
     if (static_cast<int>(instance.m_maxShmemPerBlock) <
         m_shmem_size - m_shmem_begin) {

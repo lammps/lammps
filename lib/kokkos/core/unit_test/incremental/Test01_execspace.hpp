@@ -63,9 +63,13 @@ struct TestIncrExecSpace {
     ASSERT_GT(concurrency, 0);
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
     KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
     int in_parallel = ExecSpace::in_parallel();
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
     KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
     ASSERT_FALSE(in_parallel);
 #endif
 

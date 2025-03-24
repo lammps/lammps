@@ -102,7 +102,7 @@ class simd<T, simd_abi::scalar> {
   KOKKOS_DEFAULTED_FUNCTION simd(simd const&) = default;
   KOKKOS_DEFAULTED_FUNCTION simd(simd&&)      = default;
   KOKKOS_DEFAULTED_FUNCTION simd& operator=(simd const&) = default;
-  KOKKOS_DEFAULTED_FUNCTION simd& operator=(simd&&) = default;
+  KOKKOS_DEFAULTED_FUNCTION simd& operator=(simd&&)      = default;
   KOKKOS_FORCEINLINE_FUNCTION static constexpr std::size_t size() { return 1; }
   template <class U, std::enable_if_t<std::is_convertible_v<U, value_type>,
                                       bool> = false>

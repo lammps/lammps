@@ -162,8 +162,12 @@ void FixNPHug::init()
   // set pe ptr
 
   pe = modify->get_compute_by_id(id_pe);
-  if (!pe)
+  if (!pe) {
     error->all(FLERR, "Potential energy compute ID {} for fix {} does not exist", id_pe, style);
+  } else {
+    if (pe->peflag == 0)
+      error->all(FLERR, "Compute ID {} for fix {} does not compute potential energy", id_pe, style);
+  }
 }
 
 

@@ -81,7 +81,7 @@ TEST(std_algorithms, is_admissible_to_std_algorithms) {
                strided_view_3d_t>::value);
 }
 
-TEST(std_algorithms, expect_no_overlap) {
+TEST(std_algorithms_DeathTest, expect_no_overlap) {
   namespace KE     = Kokkos::Experimental;
   using value_type = double;
 
@@ -104,6 +104,8 @@ TEST(std_algorithms, expect_no_overlap) {
 
 // Overlapping because iterators are identical
 #if defined(KOKKOS_ENABLE_DEBUG)
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+
   auto first_s = KE::begin(static_view_1d);
   auto last_s  = first_s + extent0;
   EXPECT_DEATH({ KE::Impl::expect_no_overlap(first_s, last_s, first_s); },
@@ -148,8 +150,7 @@ TEST(std_algorithms, expect_no_overlap) {
   auto last_st0          = first_st0 + strided_view_1d_0.extent(0);
   auto first_st1         = KE::begin(strided_view_1d_1);  // [3, 15)
   // Does not overlap since offset (=3) is not divisible by stride (=2)
-  EXPECT_NO_THROW(
-      { KE::Impl::expect_no_overlap(first_st0, last_st0, first_st1); });
+  KE::Impl::expect_no_overlap(first_st0, last_st0, first_st1);
 
   // Iterating over the same range without overlapping
   Kokkos::View<value_type[2][extent0], Kokkos::LayoutLeft> static_view_2d{
@@ -160,9 +161,7 @@ TEST(std_algorithms, expect_no_overlap) {
   auto sub_last_s0          = sub_first_s0 + sub_static_view_1d_0.extent(0);
   auto sub_first_s1         = KE::begin(sub_static_view_1d_1);  // 1, 3, 5, ...
 
-  EXPECT_NO_THROW({
-    KE::Impl::expect_no_overlap(sub_first_s0, sub_last_s0, sub_first_s1);
-  });
+  KE::Impl::expect_no_overlap(sub_first_s0, sub_last_s0, sub_first_s1);
 
   Kokkos::View<value_type**, Kokkos::LayoutLeft> dynamic_view_2d{
       "std-algo-test-2d-contiguous-view-dynamic", 2, extent0};
@@ -172,9 +171,7 @@ TEST(std_algorithms, expect_no_overlap) {
   auto sub_last_d0  = sub_first_d0 + sub_dynamic_view_1d_0.extent(0);
   auto sub_first_d1 = KE::begin(sub_dynamic_view_1d_1);  // 1, 3, 5, ...
 
-  EXPECT_NO_THROW({
-    KE::Impl::expect_no_overlap(sub_first_d0, sub_last_d0, sub_first_d1);
-  });
+  KE::Impl::expect_no_overlap(sub_first_d0, sub_last_d0, sub_first_d1);
 
   Kokkos::LayoutStride layout2d{2, 3, extent0, 2 * 3};
   Kokkos::View<value_type**, Kokkos::LayoutStride> strided_view_2d{
@@ -185,9 +182,7 @@ TEST(std_algorithms, expect_no_overlap) {
   auto sub_last_st0  = sub_first_st0 + sub_strided_view_1d_0.extent(0);
   auto sub_first_st1 = KE::begin(sub_strided_view_1d_1);  // 1, 7, 13, ...
 
-  EXPECT_NO_THROW({
-    KE::Impl::expect_no_overlap(sub_first_st0, sub_last_st0, sub_first_st1);
-  });
+  KE::Impl::expect_no_overlap(sub_first_st0, sub_last_st0, sub_first_st1);
 }
 
 }  // namespace stdalgos

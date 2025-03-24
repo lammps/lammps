@@ -60,32 +60,9 @@ struct TestRange {
     Kokkos::parallel_for(Kokkos::RangePolicy<ExecSpace, ScheduleType>(0, N),
                          *this);
 
-    {
-      using ThisType = TestRange<ExecSpace, ScheduleType>;
-      std::string label("parallel_for");
-      Kokkos::Impl::ParallelConstructName<ThisType, void> pcn(label);
-      ASSERT_EQ(pcn.get(), label);
-      std::string empty_label("");
-      Kokkos::Impl::ParallelConstructName<ThisType, void> empty_pcn(
-          empty_label);
-      ASSERT_EQ(empty_pcn.get(), typeid(ThisType).name());
-    }
-
     Kokkos::parallel_for(
         Kokkos::RangePolicy<ExecSpace, ScheduleType, VerifyInitTag>(0, N),
         *this);
-
-    {
-      using ThisType = TestRange<ExecSpace, ScheduleType>;
-      std::string label("parallel_for");
-      Kokkos::Impl::ParallelConstructName<ThisType, VerifyInitTag> pcn(label);
-      ASSERT_EQ(pcn.get(), label);
-      std::string empty_label("");
-      Kokkos::Impl::ParallelConstructName<ThisType, VerifyInitTag> empty_pcn(
-          empty_label);
-      ASSERT_EQ(empty_pcn.get(), std::string(typeid(ThisType).name()) + "/" +
-                                     typeid(VerifyInitTag).name());
-    }
 
     Kokkos::deep_copy(host_flags, m_flags);
 
@@ -202,7 +179,6 @@ struct TestRange {
   }
 
   void test_dynamic_policy() {
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     auto const N_no_implicit_capture = N;
     using policy_t =
         Kokkos::RangePolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> >;
@@ -288,7 +264,6 @@ struct TestRange {
         //}
       }
     }
-#endif
   }
 };
 

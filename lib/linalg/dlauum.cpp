@@ -54,20 +54,18 @@ int dlauum_(char *uplo, integer *n, doublereal *a, integer *lda, integer *info, 
                 i__3 = nb, i__4 = *n - i__ + 1;
                 ib = min(i__3, i__4);
                 i__3 = i__ - 1;
-                dtrmm_((char *)"Right", (char *)"Upper", (char *)"Transpose", (char *)"Non-unit", &i__3, &ib, &c_b15,
-                       &a[i__ + i__ * a_dim1], lda, &a[i__ * a_dim1 + 1], lda, (ftnlen)5, (ftnlen)5,
-                       (ftnlen)9, (ftnlen)8);
-                dlauu2_((char *)"Upper", &ib, &a[i__ + i__ * a_dim1], lda, info, (ftnlen)5);
+                dtrmm_((char *)"R", (char *)"U", (char *)"T", (char *)"N", &i__3, &ib, &c_b15, &a[i__ + i__ * a_dim1], lda,
+                       &a[i__ * a_dim1 + 1], lda, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
+                dlauu2_((char *)"U", &ib, &a[i__ + i__ * a_dim1], lda, info, (ftnlen)1);
                 if (i__ + ib <= *n) {
                     i__3 = i__ - 1;
                     i__4 = *n - i__ - ib + 1;
-                    dgemm_((char *)"No transpose", (char *)"Transpose", &i__3, &ib, &i__4, &c_b15,
-                           &a[(i__ + ib) * a_dim1 + 1], lda, &a[i__ + (i__ + ib) * a_dim1], lda,
-                           &c_b15, &a[i__ * a_dim1 + 1], lda, (ftnlen)12, (ftnlen)9);
+                    dgemm_((char *)"N", (char *)"T", &i__3, &ib, &i__4, &c_b15, &a[(i__ + ib) * a_dim1 + 1], lda,
+                           &a[i__ + (i__ + ib) * a_dim1], lda, &c_b15, &a[i__ * a_dim1 + 1], lda,
+                           (ftnlen)1, (ftnlen)1);
                     i__3 = *n - i__ - ib + 1;
-                    dsyrk_((char *)"Upper", (char *)"No transpose", &ib, &i__3, &c_b15,
-                           &a[i__ + (i__ + ib) * a_dim1], lda, &c_b15, &a[i__ + i__ * a_dim1], lda,
-                           (ftnlen)5, (ftnlen)12);
+                    dsyrk_((char *)"U", (char *)"N", &ib, &i__3, &c_b15, &a[i__ + (i__ + ib) * a_dim1], lda, &c_b15,
+                           &a[i__ + i__ * a_dim1], lda, (ftnlen)1, (ftnlen)1);
                 }
             }
         } else {
@@ -77,19 +75,18 @@ int dlauum_(char *uplo, integer *n, doublereal *a, integer *lda, integer *info, 
                 i__3 = nb, i__4 = *n - i__ + 1;
                 ib = min(i__3, i__4);
                 i__3 = i__ - 1;
-                dtrmm_((char *)"Left", (char *)"Lower", (char *)"Transpose", (char *)"Non-unit", &ib, &i__3, &c_b15,
-                       &a[i__ + i__ * a_dim1], lda, &a[i__ + a_dim1], lda, (ftnlen)4, (ftnlen)5,
-                       (ftnlen)9, (ftnlen)8);
-                dlauu2_((char *)"Lower", &ib, &a[i__ + i__ * a_dim1], lda, info, (ftnlen)5);
+                dtrmm_((char *)"L", (char *)"L", (char *)"T", (char *)"N", &ib, &i__3, &c_b15, &a[i__ + i__ * a_dim1], lda,
+                       &a[i__ + a_dim1], lda, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
+                dlauu2_((char *)"L", &ib, &a[i__ + i__ * a_dim1], lda, info, (ftnlen)1);
                 if (i__ + ib <= *n) {
                     i__3 = i__ - 1;
                     i__4 = *n - i__ - ib + 1;
-                    dgemm_((char *)"Transpose", (char *)"No transpose", &ib, &i__3, &i__4, &c_b15,
-                           &a[i__ + ib + i__ * a_dim1], lda, &a[i__ + ib + a_dim1], lda, &c_b15,
-                           &a[i__ + a_dim1], lda, (ftnlen)9, (ftnlen)12);
+                    dgemm_((char *)"T", (char *)"N", &ib, &i__3, &i__4, &c_b15, &a[i__ + ib + i__ * a_dim1], lda,
+                           &a[i__ + ib + a_dim1], lda, &c_b15, &a[i__ + a_dim1], lda, (ftnlen)1,
+                           (ftnlen)1);
                     i__3 = *n - i__ - ib + 1;
-                    dsyrk_((char *)"Lower", (char *)"Transpose", &ib, &i__3, &c_b15, &a[i__ + ib + i__ * a_dim1],
-                           lda, &c_b15, &a[i__ + i__ * a_dim1], lda, (ftnlen)5, (ftnlen)9);
+                    dsyrk_((char *)"L", (char *)"T", &ib, &i__3, &c_b15, &a[i__ + ib + i__ * a_dim1], lda, &c_b15,
+                           &a[i__ + i__ * a_dim1], lda, (ftnlen)1, (ftnlen)1);
                 }
             }
         }

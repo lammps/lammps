@@ -24,7 +24,7 @@
  * Follow the behavior of regular LAMMPS compilation and assume
  * -DLAMMPS_SMALLBIG when no define is set.
  */
-#if !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG) && !defined(LAMMPS_SMALLSMALL)
+#if !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG)
 #define LAMMPS_SMALLBIG
 #endif
 
@@ -100,8 +100,6 @@ extern "C" {
 
 #if defined(LAMMPS_BIGBIG)
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
-#elif defined(LAMMPS_SMALLSMALL)
-typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
 #else
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
 #endif
@@ -163,6 +161,10 @@ struct _liblammpsplugin {
   int (*set_string_variable)(void *, const char *, const char *);
   int (*set_internal_variable)(void *, const char *, double);
   int (*variable_info)(void *, int, char *, int);
+  double (*eval)(void *, const char *);
+  void (*clearstep_compute)(void *);
+  void (*addstep_compute)(void *, void *);
+  void (*addstep_compute_all)(void *, void *);
 
   void (*gather_atoms)(void *, const char *, int, int, void *);
   void (*gather_atoms_concat)(void *, const char *, int, int, void *);

@@ -23,7 +23,7 @@ namespace stdalgos {
 
 struct random_access_iterator_test : std_algorithms_test {
  public:
-  virtual void SetUp() {
+  void SetUp() override {
     Kokkos::parallel_for(m_static_view.extent(0),
                          AssignIndexFunctor<static_view_t>(m_static_view));
 
@@ -264,6 +264,37 @@ TEST_F(random_access_iterator_test, traits_helpers) {
   static_assert(KE::Impl::are_iterators_v<T1_t, T2_t, T3_t>);
   static_assert(KE::Impl::are_random_access_iterators_v<T1_t, T2_t, T3_t>);
   static_assert(!KE::Impl::are_iterators_v<int, T2_t, T3_t>);
+
+  static_assert(std::is_same_v<decltype(KE::begin(m_static_view))::value_type,
+                               value_type>);
+  static_assert(std::is_same_v<decltype(KE::begin(m_dynamic_view))::value_type,
+                               value_type>);
+  static_assert(std::is_same_v<decltype(KE::begin(m_strided_view))::value_type,
+                               value_type>);
+
+  static_assert(
+      std::is_same_v<decltype(KE::end(m_static_view))::value_type, value_type>);
+  static_assert(std::is_same_v<decltype(KE::end(m_dynamic_view))::value_type,
+                               value_type>);
+  static_assert(std::is_same_v<decltype(KE::end(m_strided_view))::value_type,
+                               value_type>);
+
+  static_assert(
+      std::is_same_v<decltype(KE::begin(m_static_view))::value_type,
+                     decltype(KE::cbegin(m_static_view))::value_type>);
+  static_assert(
+      std::is_same_v<decltype(KE::begin(m_dynamic_view))::value_type,
+                     decltype(KE::cbegin(m_dynamic_view))::value_type>);
+  static_assert(
+      std::is_same_v<decltype(KE::begin(m_strided_view))::value_type,
+                     decltype(KE::cbegin(m_strided_view))::value_type>);
+
+  static_assert(std::is_same_v<decltype(KE::end(m_static_view))::value_type,
+                               decltype(KE::cend(m_static_view))::value_type>);
+  static_assert(std::is_same_v<decltype(KE::end(m_dynamic_view))::value_type,
+                               decltype(KE::cend(m_dynamic_view))::value_type>);
+  static_assert(std::is_same_v<decltype(KE::end(m_strided_view))::value_type,
+                               decltype(KE::cend(m_strided_view))::value_type>);
 }
 
 }  // namespace stdalgos

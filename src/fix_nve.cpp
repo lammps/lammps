@@ -15,6 +15,7 @@
 #include "fix_nve.h"
 
 #include "atom.h"
+#include "error.h"
 #include "force.h"
 #include "respa.h"
 #include "update.h"
@@ -28,7 +29,11 @@ FixNVE::FixNVE(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (!utils::strmatch(style,"^nve/sphere") && narg < 3)
-    utils::missing_cmd_args(FLERR, "fix nve", error);
+    utils::missing_cmd_args(FLERR, fmt::format("fix {}", style), error);
+
+  auto plain_style = utils::strip_style_suffix(style, lmp);
+  if (utils::strmatch(plain_style, "^nve$") && narg > 3)
+    error->all(FLERR, 3, "Unsupported additional arguments for fix {}", style);
 
   dynamic_group_allow = 1;
   time_integrate = 1;

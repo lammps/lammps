@@ -190,7 +190,7 @@ on atoms via the matrix inversion method.  A tolerance of 1.0e-6 is
 usually a good number.  Keyword *alpha* can be used to change the Slater
 type orbital exponent.
 
-.. versionadded:: TBD
+.. versionadded:: 19Nov2024
 
 The *qeq/ctip* style describes partial charges on atoms in the same way
 as style *qeq/shielded* but also enables the definition of charge
@@ -304,7 +304,7 @@ Chemistry, 95, 3358-3363 (1991).
 .. _CTIP1:
 
 **(CTIP)** G. Plummer, J. P. Tavenner, M. I. Mendelev, Z. Wu, J. W. Lawson,
-in preparation
+J Chemical Physics, 162, 054709 (2025)
 
 .. _vanDuin:
 

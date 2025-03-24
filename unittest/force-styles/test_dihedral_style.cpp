@@ -53,15 +53,16 @@ using ::testing::StartsWith;
 
 using namespace LAMMPS_NS;
 
-void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
+void cleanup_lammps(LAMMPS *&lmp, const TestConfig &cfg)
 {
     platform::unlink(cfg.basename + ".restart");
     platform::unlink(cfg.basename + ".data");
     platform::unlink(cfg.basename + "-coeffs.in");
     delete lmp;
+    lmp = nullptr;
 }
 
-LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton = true)
+LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton)
 {
     auto *lmp = new LAMMPS(args, MPI_COMM_WORLD);
 
@@ -237,7 +238,13 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // initialize system geometry
     LAMMPS::argv args = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
-    LAMMPS *lmp = init_lammps(args, config);
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, config, true);
+    } catch (std::exception &e) {
+        FAIL() << e.what();
+    }
+
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
                      "in this LAMMPS configuration:\n";
@@ -322,8 +329,14 @@ TEST(DihedralStyle, plain)
     LAMMPS::argv args = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(args, test_config, true);
-
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -372,7 +385,12 @@ TEST(DihedralStyle, plain)
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
-    lmp = init_lammps(args, test_config, false);
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // skip over these tests if newton bond is forced to be on
@@ -442,8 +460,14 @@ TEST(DihedralStyle, omp)
                          "-pk",           "omp",  "4",    "-sf",   "omp"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(args, test_config, true);
-
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -497,7 +521,12 @@ TEST(DihedralStyle, omp)
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
-    lmp = init_lammps(args, test_config, false);
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // skip over these tests if newton bond is forced to be on
@@ -544,15 +573,22 @@ TEST(DihedralStyle, kokkos_omp)
     // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
     if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
         Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
-        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) GTEST_SKIP();
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl"))
+        GTEST_SKIP() << "Cannot test KOKKOS/OpenMP with GPU support enabled";
 
     LAMMPS::argv args = {"DihedralStyle", "-log", "none", "-echo", "screen",
                          "-nocite",       "-k",   "on",   "t",     "4",
                          "-sf",           "kk"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(args, test_config, true);
-
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -606,7 +642,12 @@ TEST(DihedralStyle, kokkos_omp)
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
-    lmp = init_lammps(args, test_config, false);
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // skip over these tests if newton bond is forced to be on
@@ -655,8 +696,14 @@ TEST(DihedralStyle, numdiff)
     LAMMPS::argv args = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(args, test_config, true);
-
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 

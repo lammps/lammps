@@ -290,8 +290,7 @@ void ComputeRHEOGrad::compute_peratom()
 void ComputeRHEOGrad::forward_gradients()
 {
   comm_stage = COMMGRAD;
-  comm_forward = ncomm_grad;
-  comm->forward_comm(this);
+  comm->forward_comm(this, ncomm_grad);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -299,8 +298,7 @@ void ComputeRHEOGrad::forward_gradients()
 void ComputeRHEOGrad::forward_fields()
 {
   comm_stage = COMMFIELD;
-  comm_forward = ncomm_field;
-  comm->forward_comm(this);
+  comm->forward_comm(this, ncomm_field);
 }
 
 /* ---------------------------------------------------------------------- */

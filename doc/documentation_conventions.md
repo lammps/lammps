@@ -10,7 +10,7 @@ Last change: 2022-12-30
 
 In fall 2019, the LAMMPS documentation file format has changed from a
 home grown markup designed to generate HTML format files only, to
-[reStructuredText](https://docutils.sourceforge.io/rst.html>.  For a
+[reStructuredText](https://docutils.sourceforge.io/rst.html>).  For a
 transition period all files in the old .txt format were transparently
 converted to .rst and then processed.  The `txt2rst tool` is still
 included in the distribution to obtain an initial .rst file for legacy
@@ -45,8 +45,7 @@ what kind of information and sections are needed.
 
 ## Formatting conventions
 
-For headlines we try to follow the conventions posted here:
-https://documentation-style-guide-sphinx.readthedocs.io/en/latest/style-guide.html#headings
+For headlines we try to follow the conventions posted [here](https://documentation-style-guide-sphinx.readthedocs.io/en/latest/style-guide.html#headings).
 It seems to be sufficient to have this consistent only within
 any single file and it is not (yet) enforced strictly, but making
 this globally consistent makes it easier to move sections around.
@@ -64,7 +63,7 @@ Groups of shell commands or LAMMPS input script or C/C++/Python source
 code should be typeset into a `.. code-block::` section. A syntax
 highlighting extension for LAMMPS input scripts is provided, so `LAMMPS`
 can be used to indicate the language in the code block in addition to
-`bash`, `c`, `c++`, `console`, `csh`, `diff', `fortran`, `json`, `make`,
+`bash`, `c`, `c++`, `console`, `csh`, `diff`, `fortran`, `json`, `make`,
 `perl`, `powershell`, `python`, `sh`, or `tcl`, `text`, or `yaml`.  When
 no syntax style is indicated, no syntax highlighting is performed.  When
 typesetting commands executed on the shell, please do not prefix
@@ -84,7 +83,7 @@ block can be used, followed by multiple `.. tab::` blocks, one
 for each alternative. This is only used for HTML output. For other
 outputs, the `.. tabs::` directive is transparently removed and
 the individual `.. tab::` blocks will be replaced with an
-`.. admonition::`` block. Thus in PDF and ePUB output those will
+`.. admonition::` block. Thus in PDF and ePUB output those will
 be realized as sequential and plain notes.
 
 Special remarks can be highlighted with a `.. note::` block and

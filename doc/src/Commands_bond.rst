@@ -23,6 +23,7 @@ OPT.
    *
    * :doc:`bpm/rotational <bond_bpm_rotational>`
    * :doc:`bpm/spring <bond_bpm_spring>`
+   * :doc:`bpm/spring/plastic <bond_bpm_spring_plastic>`
    * :doc:`class2 (ko) <bond_class2>`
    * :doc:`fene (iko) <bond_fene>`
    * :doc:`fene/expand (o) <bond_fene_expand>`
@@ -90,6 +91,7 @@ OPT.
    * :doc:`lepton (o) <angle_lepton>`
    * :doc:`mesocnt <angle_mesocnt>`
    * :doc:`mm3 <angle_mm3>`
+   * :doc:`mwlc <angle_mwlc>`
    * :doc:`quartic (o) <angle_quartic>`
    * :doc:`spica (ko) <angle_spica>`
    * :doc:`table (o) <angle_table>`

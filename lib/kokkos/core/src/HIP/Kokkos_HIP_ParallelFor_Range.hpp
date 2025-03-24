@@ -53,8 +53,8 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::HIP> {
  public:
   using functor_type = FunctorType;
 
-  ParallelFor()                   = delete;
-  ParallelFor(ParallelFor const&) = default;
+  ParallelFor()                              = delete;
+  ParallelFor(ParallelFor const&)            = default;
   ParallelFor& operator=(ParallelFor const&) = delete;
 
   inline __device__ void operator()() const {

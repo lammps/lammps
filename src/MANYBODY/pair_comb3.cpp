@@ -164,7 +164,7 @@ void PairComb3::settings(int narg, char **arg)
   else error->all(FLERR,"Illegal pair_style command");
 
   if (comm->me == 0 && screen)
-    fmt::print(screen,"   PairComb3: polarization is {} \n",
+    utils::print(screen,"   PairComb3: polarization is {} \n",
                pol_flag ? "on" : "off");
 }
 

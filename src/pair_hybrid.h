@@ -28,6 +28,7 @@ namespace LAMMPS_NS {
 class PairHybrid : public Pair {
   friend class AtomVecDielectric;
   friend class ComputeSpin;
+  friend class FixAtomSwap;
   friend class FixGPU;
   friend class FixIntel;
   friend class FixNVESpin;

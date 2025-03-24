@@ -383,7 +383,7 @@ void PairSNAP::settings(int narg, char ** /* arg */)
 void PairSNAP::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
-  if (narg != 4 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 4 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   map_element2type(narg-4,arg+4);
 

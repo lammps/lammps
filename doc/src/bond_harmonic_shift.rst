@@ -31,9 +31,15 @@ the potential
 
    E = \frac{U_{\text{min}}}{(r_0-r_c)^2} \left[ (r-r_0)^2-(r_c-r_0)^2 \right]
 
-where :math:`r_0` is the equilibrium bond distance, and :math:`r_c` the critical distance.
-The potential is :math:`-U_{\text{min}}` at :math:`r0` and zero at :math:`r_c`. The spring constant is
-:math:`k = U_{\text{min}} / [ 2 (r_0-r_c)^2]`.
+where :math:`r_0` is the equilibrium bond distance, and :math:`r_c` the
+critical distance.  The potential energy has the value
+:math:`-U_{\text{min}}` at :math:`r_0` and zero at :math:`r_c`.  This
+bond style differs from :doc:`bond_style harmonic <bond_harmonic>`
+by the value of the potential energy.
+
+The equivalent spring constant value *K* for use with :doc:`bond_style
+harmonic <bond_harmonic>` can be computed using :math:`K =
+U_{\text{min}} / [(r_0-r_c)^2]`.
 
 The following coefficients must be defined for each bond type via the
 :doc:`bond_coeff <bond_coeff>` command as in the example above, or in
@@ -41,9 +47,7 @@ the data file or restart files read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands:
 
 * :math:`U_{\text{min}}` (energy)
-
 * :math:`r_0` (distance)
-
 * :math:`r_c` (distance)
 
 ----------
@@ -63,7 +67,8 @@ Related commands
 """"""""""""""""
 
 :doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`,
-:doc:`bond_harmonic <bond_harmonic>`
+:doc:`bond style harmonic <bond_harmonic>`,
+:doc:`bond style harmonic/shift/cut <bond_harmonic_shift_cut>`
 
 Default
 """""""

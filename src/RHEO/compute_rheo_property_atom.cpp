@@ -79,7 +79,7 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
     size_peratom_cols = nvalues;
 
   pressure_flag = thermal_flag = interface_flag = 0;
-  surface_flag = shift_flag = shell_flag = 0;
+  surface_flag = shift_flag = shell_flag = coordination_flag = 0;
 
   // parse input values
   // customize a new keyword by adding to if statement
@@ -109,6 +109,7 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
       surface_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_surface_divr;
     } else if (strcmp(arg[iarg], "coordination") == 0) {
+      coordination_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_coordination;
     } else if (strcmp(arg[iarg], "pressure") == 0) {
       pressure_flag = 1;
@@ -222,6 +223,11 @@ void ComputeRHEOPropertyAtom::setup()
 void ComputeRHEOPropertyAtom::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
+
+  // calculate optional values, if needed
+
+  if (coordination_flag && !(fix_rheo->coordination_flag))
+    compute_kernel->compute_coordination();
 
   // grow vector or array if necessary
 
@@ -427,14 +433,13 @@ void ComputeRHEOPropertyAtom::pack_cv(int n)
 
 void ComputeRHEOPropertyAtom::pack_pressure(int n)
 {
-  int *type = atom->type;
   int *mask = atom->mask;
   double *rho = atom->rho;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit)
-      buf[n] = fix_pressure->calc_pressure(rho[i], type[i]);
+      buf[n] = fix_pressure->calc_pressure(rho[i], i);
     else
       buf[n] = 0.0;
     n += nvalues;
@@ -471,7 +476,6 @@ void ComputeRHEOPropertyAtom::pack_total_stress(int n)
   double **gradv = compute_grad->gradv;
   double *viscosity = atom->viscosity;
   double *rho = atom->rho;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int index = col_index[n];
@@ -484,7 +488,7 @@ void ComputeRHEOPropertyAtom::pack_total_stress(int n)
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (index == index_transpose)
-        p = fix_pressure->calc_pressure(rho[i], type[i]);
+        p = fix_pressure->calc_pressure(rho[i], i);
       else
         p = 0.0;
       buf[n] = viscosity[i] * (gradv[i][index] + gradv[i][index_transpose]) + p;

@@ -210,7 +210,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   // nomp is user setting, default = 0
 
   #if defined(_OPENMP)
-  #if defined(__INTEL_COMPILER)
+  #if defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
   kmp_set_blocktime(0);
   #endif
   if (nomp != 0) {
@@ -449,8 +449,8 @@ void FixIntel::pair_init_check(const bool cdmessage)
         __INTEL_COMPILER_BUILD_DATE < 20141023)
       error->warning(FLERR,"Unsupported Intel Compiler.");
     #endif
-    #if !defined(__INTEL_COMPILER)
-    error->warning(FLERR,"Unsupported Intel Compiler.");
+    #if !defined(__INTEL_COMPILER) && !defined(__INTEL_LLVM_COMPILER)
+      error->warning(FLERR,"Unsupported Intel Compiler.");
     #endif
   }
 

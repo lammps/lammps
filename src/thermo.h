@@ -16,6 +16,7 @@
 
 #include "pointers.h"
 #include <map>
+#include <mutex>
 
 namespace LAMMPS_NS {
 
@@ -43,6 +44,8 @@ class Thermo : protected Pointers {
   int evaluate_keyword(const std::string &, double *);
 
   // for accessing cached thermo and related data
+  void lock_cache();
+  void unlock_cache();
   const int *get_line() const { return &nline; }
   const char *get_image_fname() const { return image_fname.c_str(); }
 
@@ -81,6 +84,9 @@ class Thermo : protected Pointers {
   bigint ntimestep;
   int nline;
   std::string image_fname;
+
+  // mutex for locking the cache
+  std::mutex *cache_mutex;
 
   // data used by routines that compute single values
 

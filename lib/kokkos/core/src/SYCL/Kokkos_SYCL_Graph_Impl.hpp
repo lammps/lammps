@@ -31,29 +31,28 @@
 namespace Kokkos {
 namespace Impl {
 template <>
-class GraphImpl<Kokkos::Experimental::SYCL> {
+class GraphImpl<Kokkos::SYCL> {
  public:
-  using node_details_t =
-      GraphNodeBackendSpecificDetails<Kokkos::Experimental::SYCL>;
-  using root_node_impl_t        = GraphNodeImpl<Kokkos::Experimental::SYCL,
-                                         Kokkos::Experimental::TypeErasedTag,
-                                         Kokkos::Experimental::TypeErasedTag>;
+  using node_details_t = GraphNodeBackendSpecificDetails<Kokkos::SYCL>;
+  using root_node_impl_t =
+      GraphNodeImpl<Kokkos::SYCL, Kokkos::Experimental::TypeErasedTag,
+                    Kokkos::Experimental::TypeErasedTag>;
   using aggregate_kernel_impl_t = SYCLGraphNodeAggregateKernel;
   using aggregate_node_impl_t =
-      GraphNodeImpl<Kokkos::Experimental::SYCL, aggregate_kernel_impl_t,
+      GraphNodeImpl<Kokkos::SYCL, aggregate_kernel_impl_t,
                     Kokkos::Experimental::TypeErasedTag>;
 
   // Not movable or copyable; it spends its whole life as a shared_ptr in the
   // Graph object.
-  GraphImpl()                 = delete;
-  GraphImpl(GraphImpl const&) = delete;
-  GraphImpl(GraphImpl&&)      = delete;
+  GraphImpl()                            = delete;
+  GraphImpl(GraphImpl const&)            = delete;
+  GraphImpl(GraphImpl&&)                 = delete;
   GraphImpl& operator=(GraphImpl const&) = delete;
-  GraphImpl& operator=(GraphImpl&&) = delete;
+  GraphImpl& operator=(GraphImpl&&)      = delete;
 
   ~GraphImpl();
 
-  explicit GraphImpl(Kokkos::Experimental::SYCL instance);
+  explicit GraphImpl(Kokkos::SYCL instance);
 
   void add_node(std::shared_ptr<aggregate_node_impl_t> const& arg_node_ptr);
 
@@ -63,19 +62,25 @@ class GraphImpl<Kokkos::Experimental::SYCL> {
   template <class NodeImplPtr, class PredecessorRef>
   void add_predecessor(NodeImplPtr arg_node_ptr, PredecessorRef arg_pred_ref);
 
-  void submit();
+  void submit(const Kokkos::SYCL& exec);
 
-  Kokkos::Experimental::SYCL const& get_execution_space() const noexcept;
+  Kokkos::SYCL const& get_execution_space() const noexcept;
 
   auto create_root_node_ptr();
 
   template <class... PredecessorRefs>
   auto create_aggregate_ptr(PredecessorRefs&&...);
 
- private:
-  void instantiate_graph() { m_graph_exec = m_graph.finalize(); }
+  void instantiate() {
+    KOKKOS_EXPECTS(!m_graph_exec.has_value());
+    m_graph_exec = m_graph.finalize();
+  }
 
-  Kokkos::Experimental::SYCL m_execution_space;
+  auto& sycl_graph() { return m_graph; }
+  auto& sycl_graph_exec() { return m_graph_exec; }
+
+ private:
+  Kokkos::SYCL m_execution_space;
   sycl::ext::oneapi::experimental::command_graph<
       sycl::ext::oneapi::experimental::graph_state::modifiable>
       m_graph;
@@ -84,17 +89,16 @@ class GraphImpl<Kokkos::Experimental::SYCL> {
       m_graph_exec;
 };
 
-inline GraphImpl<Kokkos::Experimental::SYCL>::~GraphImpl() {
+inline GraphImpl<Kokkos::SYCL>::~GraphImpl() {
   m_execution_space.fence("Kokkos::GraphImpl::~GraphImpl: Graph Destruction");
 }
 
-inline GraphImpl<Kokkos::Experimental::SYCL>::GraphImpl(
-    Kokkos::Experimental::SYCL instance)
+inline GraphImpl<Kokkos::SYCL>::GraphImpl(Kokkos::SYCL instance)
     : m_execution_space(std::move(instance)),
       m_graph(m_execution_space.sycl_queue().get_context(),
               m_execution_space.sycl_queue().get_device()) {}
 
-inline void GraphImpl<Kokkos::Experimental::SYCL>::add_node(
+inline void GraphImpl<Kokkos::SYCL>::add_node(
     std::shared_ptr<aggregate_node_impl_t> const& arg_node_ptr) {
   // add an empty node that needs to be set up before finalizing the graph
   arg_node_ptr->node_details_t::node = m_graph.add();
@@ -103,7 +107,7 @@ inline void GraphImpl<Kokkos::Experimental::SYCL>::add_node(
 // Requires NodeImplPtr is a shared_ptr to specialization of GraphNodeImpl
 // Also requires that the kernel has the graph node tag in its policy
 template <class NodeImpl>
-inline void GraphImpl<Kokkos::Experimental::SYCL>::add_node(
+inline void GraphImpl<Kokkos::SYCL>::add_node(
     std::shared_ptr<NodeImpl> const& arg_node_ptr) {
   static_assert(NodeImpl::kernel_type::Policy::is_graph_kernel::value);
   KOKKOS_EXPECTS(arg_node_ptr);
@@ -122,7 +126,7 @@ inline void GraphImpl<Kokkos::Experimental::SYCL>::add_node(
 // already been added to this graph and NodeImpl is a specialization of
 // GraphNodeImpl that has already been added to this graph.
 template <class NodeImplPtr, class PredecessorRef>
-inline void GraphImpl<Kokkos::Experimental::SYCL>::add_predecessor(
+inline void GraphImpl<Kokkos::SYCL>::add_predecessor(
     NodeImplPtr arg_node_ptr, PredecessorRef arg_pred_ref) {
   KOKKOS_EXPECTS(arg_node_ptr);
   auto pred_ptr = GraphAccess::get_node_ptr(arg_pred_ref);
@@ -137,19 +141,19 @@ inline void GraphImpl<Kokkos::Experimental::SYCL>::add_predecessor(
   m_graph.make_edge(*pred_node, *node);
 }
 
-inline void GraphImpl<Kokkos::Experimental::SYCL>::submit() {
+inline void GraphImpl<Kokkos::SYCL>::submit(const Kokkos::SYCL& exec) {
   if (!m_graph_exec) {
-    instantiate_graph();
+    instantiate();
   }
-  m_execution_space.sycl_queue().ext_oneapi_graph(*m_graph_exec);
+  exec.sycl_queue().ext_oneapi_graph(*m_graph_exec);
 }
 
-inline Kokkos::Experimental::SYCL const&
-GraphImpl<Kokkos::Experimental::SYCL>::get_execution_space() const noexcept {
+inline Kokkos::SYCL const& GraphImpl<Kokkos::SYCL>::get_execution_space()
+    const noexcept {
   return m_execution_space;
 }
 
-inline auto GraphImpl<Kokkos::Experimental::SYCL>::create_root_node_ptr() {
+inline auto GraphImpl<Kokkos::SYCL>::create_root_node_ptr() {
   KOKKOS_EXPECTS(!m_graph_exec);
   auto rv = std::make_shared<root_node_impl_t>(get_execution_space(),
                                                _graph_node_is_root_ctor_tag{});
@@ -158,7 +162,7 @@ inline auto GraphImpl<Kokkos::Experimental::SYCL>::create_root_node_ptr() {
 }
 
 template <class... PredecessorRefs>
-inline auto GraphImpl<Kokkos::Experimental::SYCL>::create_aggregate_ptr(
+inline auto GraphImpl<Kokkos::SYCL>::create_aggregate_ptr(
     PredecessorRefs&&...) {
   // The attachment to predecessors, which is all we really need, happens
   // in the generic layer, which calls through to add_predecessor for

@@ -35,6 +35,23 @@
 #define KOKKOS_IMPL_HOST_FUNCTION __host__
 #define KOKKOS_IMPL_DEVICE_FUNCTION __device__
 
+// clang-format off
+#ifdef KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
+#define KOKKOS_IMPL_RELOCATABLE_FUNCTION __device__ __host__
+#else
+#define KOKKOS_IMPL_RELOCATABLE_FUNCTION @"KOKKOS_RELOCATABLE_FUNCTION requires Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE=ON"
+#endif
+// clang-format on
+
+// The implementation of hipGraph in ROCm 5.2 is bugged, so we cannot use it.
+#if !((HIP_VERSION_MAJOR == 5) && (HIP_VERSION_MINOR == 2))
+#define KOKKOS_IMPL_HIP_NATIVE_GRAPH
+#endif
+
+#ifdef KOKKOS_ARCH_AMD_GFX942_APU
+#define KOKKOS_IMPL_HIP_UNIFIED_MEMORY
+#endif
+
 #endif  // #if defined( KOKKOS_ENABLE_HIP )
 
 #endif

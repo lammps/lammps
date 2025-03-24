@@ -30,6 +30,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wsuggest-override"
 
 #if defined(KOKKOS_COMPILER_CLANG)
 // Some versions of Clang fail to compile Thrust, failing with errors like
@@ -76,13 +77,10 @@ namespace Kokkos::Impl {
 
 template <typename T>
 constexpr inline bool is_admissible_to_kokkos_sort_by_key =
-    ::Kokkos::is_view<T>::value&& T::rank() == 1 &&
-    (std::is_same<typename T::traits::array_layout,
-                  Kokkos::LayoutLeft>::value ||
-     std::is_same<typename T::traits::array_layout,
-                  Kokkos::LayoutRight>::value ||
-     std::is_same<typename T::traits::array_layout,
-                  Kokkos::LayoutStride>::value);
+    ::Kokkos::is_view<T>::value && T::rank() == 1 &&
+    (std::is_same_v<typename T::traits::array_layout, Kokkos::LayoutLeft> ||
+     std::is_same_v<typename T::traits::array_layout, Kokkos::LayoutRight> ||
+     std::is_same_v<typename T::traits::array_layout, Kokkos::LayoutStride>);
 
 template <class ViewType>
 KOKKOS_INLINE_FUNCTION constexpr void
@@ -144,7 +142,7 @@ void sort_by_key_rocthrust(
 
 #if defined(KOKKOS_ENABLE_ONEDPL)
 template <class Layout>
-inline constexpr bool sort_on_device_v<Kokkos::Experimental::SYCL, Layout> =
+inline constexpr bool sort_on_device_v<Kokkos::SYCL, Layout> =
     std::is_same_v<Layout, Kokkos::LayoutLeft> ||
     std::is_same_v<Layout, Kokkos::LayoutRight>;
 
@@ -152,7 +150,7 @@ inline constexpr bool sort_on_device_v<Kokkos::Experimental::SYCL, Layout> =
 template <class KeysDataType, class... KeysProperties, class ValuesDataType,
           class... ValuesProperties, class... MaybeComparator>
 void sort_by_key_onedpl(
-    const Kokkos::Experimental::SYCL& exec,
+    const Kokkos::SYCL& exec,
     const Kokkos::View<KeysDataType, KeysProperties...>& keys,
     const Kokkos::View<ValuesDataType, ValuesProperties...>& values,
     MaybeComparator&&... maybeComparator) {
@@ -176,7 +174,7 @@ template <typename ExecutionSpace, typename PermutationView, typename ViewType>
 void applyPermutation(const ExecutionSpace& space,
                       const PermutationView& permutation,
                       const ViewType& view) {
-  static_assert(std::is_integral<typename PermutationView::value_type>::value);
+  static_assert(std::is_integral_v<typename PermutationView::value_type>);
 
   auto view_copy = Kokkos::create_mirror(
       Kokkos::view_alloc(space, typename ExecutionSpace::memory_space{},
@@ -335,7 +333,7 @@ void sort_by_key_device_view_without_comparator(
 template <class KeysDataType, class... KeysProperties, class ValuesDataType,
           class... ValuesProperties>
 void sort_by_key_device_view_without_comparator(
-    const Kokkos::Experimental::SYCL& exec,
+    const Kokkos::SYCL& exec,
     const Kokkos::View<KeysDataType, KeysProperties...>& keys,
     const Kokkos::View<ValuesDataType, ValuesProperties...>& values) {
 #ifdef KOKKOS_ONEDPL_HAS_SORT_BY_KEY
@@ -392,7 +390,7 @@ void sort_by_key_device_view_with_comparator(
 template <class ComparatorType, class KeysDataType, class... KeysProperties,
           class ValuesDataType, class... ValuesProperties>
 void sort_by_key_device_view_with_comparator(
-    const Kokkos::Experimental::SYCL& exec,
+    const Kokkos::SYCL& exec,
     const Kokkos::View<KeysDataType, KeysProperties...>& keys,
     const Kokkos::View<ValuesDataType, ValuesProperties...>& values,
     const ComparatorType& comparator) {

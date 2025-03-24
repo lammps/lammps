@@ -273,7 +273,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void calculate_q();
 
   int neighflag, pack_flag;
-  int nlocal,nall,nmax,newton_pair;
+  int nlocal,nlocal_last_allocate,nall,nmax,newton_pair;
   int count, isuccess;
   F_FLOAT alpha[2];
   F_FLOAT beta[2];

@@ -15,7 +15,6 @@
 //@HEADER
 
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Stacktrace.hpp>
 #include <cstdio>
 #include <cstdint>
 #include <sstream>
@@ -54,14 +53,14 @@ struct TestTeamScan {
                           });
   }
 
-  auto operator()(int32_t _M, int32_t _N) {
+  auto operator()(int32_t M_, int32_t N_) {
     std::stringstream ss;
-    ss << Kokkos::Impl::demangle(typeid(*this).name());
-    ss << "(/*M=*/" << _M << ", /*N=*/" << _N << ")";
+    ss << Kokkos::Impl::TypeInfo<decltype(*this)>::name();
+    ss << "(/*M=*/" << M_ << ", /*N=*/" << N_ << ")";
     std::string const test_id = ss.str();
 
-    M   = _M;
-    N   = _N;
+    M   = M_;
+    N   = N_;
     a_d = view_type("a_d", M, N);
     a_r = view_type("a_r", M, N);
 
@@ -172,14 +171,14 @@ struct TestTeamScanRetVal {
     Kokkos::single(Kokkos::PerTeam(team), [&]() { a_s(leagueRank) = accum; });
   }
 
-  auto operator()(int32_t _M, int32_t _N) {
+  auto operator()(int32_t M_, int32_t N_) {
     std::stringstream ss;
-    ss << Kokkos::Impl::demangle(typeid(*this).name());
-    ss << "(/*M=*/" << _M << ", /*N=*/" << _N << ")";
+    ss << Kokkos::Impl::TypeInfo<decltype(*this)>::name();
+    ss << "(/*M=*/" << M_ << ", /*N=*/" << N_ << ")";
     std::string const test_id = ss.str();
 
-    M   = _M;
-    N   = _N;
+    M   = M_;
+    N   = N_;
     a_d = view_2d_type("a_d", M, N);
     a_r = view_2d_type("a_r", M, N);
     a_s = view_1d_type("a_s", M);

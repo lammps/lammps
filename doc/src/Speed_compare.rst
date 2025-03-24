@@ -44,11 +44,6 @@ section below for examples where this has been done.
   system the crossover (in single precision) is often about 50K-100K
   atoms per GPU.  When performing double precision calculations the
   crossover point can be significantly smaller.
-* Both KOKKOS and GPU package compute bonded interactions (bonds, angles,
-  etc) on the CPU.  If the GPU package is running with several MPI processes
-  assigned to one GPU, the cost of computing the bonded interactions is
-  spread across more CPUs and hence the GPU package can run faster in these
-  cases.
 * When using LAMMPS with multiple MPI ranks assigned to the same GPU, its
   performance depends to some extent on the available bandwidth between
   the CPUs and the GPU. This can differ significantly based on the
@@ -85,10 +80,10 @@ section below for examples where this has been done.
   code (with a performance penalty due to having data transfers between
   host and GPU).
 * The GPU package requires neighbor lists to be built on the CPU when using
-  exclusion lists, or a triclinic simulation box.
-* The GPU package can be compiled for CUDA or OpenCL and thus supports
-  both, NVIDIA and AMD GPUs well. On NVIDIA hardware, using CUDA is typically
-  resulting in equal or better performance over OpenCL.
+  hybrid pair styles, exclusion lists, or a triclinic simulation box.
+* The GPU package can be compiled for CUDA, HIP, or OpenCL and thus supports
+  NVIDIA, AMD, and Intel GPUs well. On NVIDIA hardware, using CUDA is
+  typically resulting in equal or better performance over OpenCL.
 * OpenCL in the GPU package does theoretically also support Intel CPUs or
   Intel Xeon Phi, but the native support for those in KOKKOS (or INTEL)
   is superior.

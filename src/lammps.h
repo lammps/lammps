@@ -73,7 +73,7 @@ class LAMMPS {
 
   MPI_Comm external_comm;    // MPI comm encompassing external programs
                              // when multiple programs launched by mpirun
-                             // set by -mpicolor command line arg
+                             // set by -mpicolor command-line arg
 
   void *mdicomm;    // for use with MDI code coupling library
 

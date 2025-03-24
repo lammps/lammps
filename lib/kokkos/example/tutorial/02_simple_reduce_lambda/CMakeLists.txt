@@ -1,9 +1,4 @@
+kokkos_include_directories(${CMAKE_CURRENT_BINARY_DIR})
+kokkos_include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-KOKKOS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
-KOKKOS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
-
-KOKKOS_ADD_EXECUTABLE(
-  tutorial_02_simple_reduce_lambda
-  SOURCES simple_reduce_lambda.cpp
-)
-
+kokkos_add_executable(tutorial_02_simple_reduce_lambda SOURCES simple_reduce_lambda.cpp)

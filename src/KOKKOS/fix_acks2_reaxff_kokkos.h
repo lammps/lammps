@@ -243,7 +243,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   void calculate_Q() override;
 
   int neighflag;
-  int nlocal,nall,nmax,newton_pair;
+  int nlocal,nlocal_last_allocate,nall,nmax,newton_pair;
   int count, isuccess;
   double alpha, beta, omega, cutsq;
 

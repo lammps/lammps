@@ -1,0 +1,53 @@
+# GitHub action to build LAMMPS-GUI as a flatpak bundle
+name: "Build LAMMPS-GUI as flatpak bundle"
+
+on:
+  push:
+    branches:
+      - develop
+
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
+jobs:
+  build:
+    name: LAMMPS-GUI flatpak build
+    if: ${{ github.repository == 'lammps/lammps' }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+
+    - name: Install extra packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ccache \
+                                libeigen3-dev \
+                                libcurl4-openssl-dev \
+                                mold \
+                                ninja-build \
+                                python3-dev \
+                                flatpak \
+                                flatpak-builder
+
+    - name: Set up access to flatpak repo
+      run: flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+
+    - name: Build flatpak
+      run: |
+        mkdir flatpack-state
+        sed -i -e 's/branch:.*/branch: develop/' tools/lammps-gui/org.lammps.lammps-gui.yml
+        flatpak-builder --force-clean --verbose --repo=flatpak-repo \
+                               --install-deps-from=flathub --state-dir=flatpak-state \
+                               --user --ccache --default-branch=${{ github.ref_name }} \
+                               flatpak-build tools/lammps-gui/org.lammps.lammps-gui.yml
+        flatpak build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
+                               --verbose  flatpak-repo LAMMPS-Linux-x86_64-GUI.flatpak \
+                               org.lammps.lammps-gui ${{ github.ref_name }}
+        flatpak install -y -v --user LAMMPS-Linux-x86_64-GUI.flatpak

@@ -405,32 +405,29 @@ TEST_F(SimpleCommandsTest, Units)
     END_HIDE_OUTPUT();
     ASSERT_THAT(lmp->update->unit_style, StrEq("lj"));
 
-    TEST_FAILURE(".*ERROR: Illegal units command.*", command("units unknown"););
+    TEST_FAILURE(".*ERROR: Unknown units style unknown.*", command("units unknown"););
 }
 
 #if defined(LMP_PLUGIN)
 TEST_F(SimpleCommandsTest, Plugin)
 {
-    const char *bindir = getenv("LAMMPS_PLUGIN_BIN_DIR");
-    const char *config = getenv("CMAKE_CONFIG_TYPE");
-    if (!bindir) GTEST_SKIP() << "LAMMPS_PLUGIN_BIN_DIR not set";
-    std::string loadfmt = platform::path_join("plugin load ", bindir);
-    if (config) loadfmt = platform::path_join(loadfmt, config);
-    loadfmt = platform::path_join(loadfmt, "{}plugin.so");
+    const char *bindir = getenv("LAMMPS_PLUGIN_DIR");
+    if (!bindir) GTEST_SKIP() << "LAMMPS_PLUGIN_DIR not set";
+    std::string loadfmt = "plugin load {}/{}plugin.so";
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(loadfmt, "hello"));
+    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "hello"));
     auto text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
-    ASSERT_THAT(text, ContainsRegex(".*Loading plugin: Hello world command.*"));
+    ASSERT_THAT(text, ContainsRegex(".*\n.*Loading plugin: Hello world command.*"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(loadfmt, "xxx"));
+    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "xxx"));
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, ContainsRegex(".*Open of file .*xxx.* failed.*"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(loadfmt, "nve2"));
+    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "nve2"));
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, ContainsRegex(".*Loading plugin: NVE2 variant fix style.*"));
@@ -438,11 +435,10 @@ TEST_F(SimpleCommandsTest, Plugin)
     lmp->input->one("plugin list");
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
-    ASSERT_THAT(text, ContainsRegex(".*1: command style plugin hello"
-                                    ".*2: fix style plugin nve2.*"));
+    ASSERT_THAT(text, ContainsRegex(".*1: command style plugin hello\n.*2: fix style plugin nve2.*"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(loadfmt, "hello"));
+    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "hello"));
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, ContainsRegex(".*Ignoring load of command style hello: "

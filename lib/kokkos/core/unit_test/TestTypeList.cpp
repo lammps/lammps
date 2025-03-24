@@ -25,21 +25,21 @@ using TypeList223NoVoid = Kokkos::Impl::type_list<bool, bool, char, short, int>;
 
 // concat_type_list
 using ConcatTypeList2 = Kokkos::Impl::concat_type_list_t<TypeList2>;
-static_assert(std::is_same<TypeList2, ConcatTypeList2>::value,
+static_assert(std::is_same_v<TypeList2, ConcatTypeList2>,
               "concat_type_list of a single type_list failed");
 
 using ConcatTypeList223 =
     Kokkos::Impl::concat_type_list_t<TypeList2, TypeList2, TypeList3>;
-static_assert(std::is_same<TypeList223, ConcatTypeList223>::value,
+static_assert(std::is_same_v<TypeList223, ConcatTypeList223>,
               "concat_type_list of three type_lists failed");
 
 // filter_type_list
 using FilterTypeList223Void =
     Kokkos::Impl::filter_type_list_t<std::is_void, TypeList223>;
-static_assert(std::is_same<TypeList223Void, FilterTypeList223Void>::value,
+static_assert(std::is_same_v<TypeList223Void, FilterTypeList223Void>,
               "filter_type_list with predicate value==true failed");
 
 using FilterTypeList223NoVoid =
     Kokkos::Impl::filter_type_list_t<std::is_void, TypeList223, false>;
-static_assert(std::is_same<TypeList223NoVoid, FilterTypeList223NoVoid>::value,
+static_assert(std::is_same_v<TypeList223NoVoid, FilterTypeList223NoVoid>,
               "filter_type_list with predicate value==false failed");

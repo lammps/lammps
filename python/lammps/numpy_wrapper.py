@@ -422,45 +422,51 @@ class numpy_wrapper:
   # -------------------------------------------------------------------------
 
   def iarray(self, c_int_type, raw_ptr, nelem, dim=1):
-    if raw_ptr is None:
-      return None
+    if raw_ptr and nelem >= 0 and dim >= 0:
+      import numpy as np
+      np_int_type = self._ctype_to_numpy_int(c_int_type)
+      ptr = None
 
-    import numpy as np
-    np_int_type = self._ctype_to_numpy_int(c_int_type)
+      if dim == 1:
+        ptr = cast(raw_ptr, POINTER(c_int_type * nelem))
+      elif raw_ptr[0]:
+        ptr = cast(raw_ptr[0], POINTER(c_int_type * nelem * dim))
 
-    if dim == 1:
-      ptr = cast(raw_ptr, POINTER(c_int_type * nelem))
-    else:
-      ptr = cast(raw_ptr[0], POINTER(c_int_type * nelem * dim))
+      if ptr:
+        a = np.frombuffer(ptr.contents, dtype=np_int_type)
+      else:
+        a = np.empty(0, dtype=np_int_type)
 
-    a = np.frombuffer(ptr.contents, dtype=np_int_type)
-
-    if dim > 1:
-      a.shape = (nelem, dim)
-    else:
-      a.shape = (nelem)
-    return a
+      if dim > 1:
+        a.shape = (nelem, dim)
+      else:
+        a.shape = (nelem)
+      return a
+    return None
 
   # -------------------------------------------------------------------------
 
   def darray(self, raw_ptr, nelem, dim=1):
-    if raw_ptr is None:
-      return None
+    if raw_ptr and nelem >= 0 and dim >= 0:
+      import numpy as np
+      ptr = None
 
-    import numpy as np
+      if dim == 1:
+        ptr = cast(raw_ptr, POINTER(c_double * nelem))
+      elif raw_ptr[0]:
+        ptr = cast(raw_ptr[0], POINTER(c_double * nelem * dim))
 
-    if dim == 1:
-      ptr = cast(raw_ptr, POINTER(c_double * nelem))
-    else:
-      ptr = cast(raw_ptr[0], POINTER(c_double * nelem * dim))
+      if ptr:
+        a = np.frombuffer(ptr.contents)
+      else:
+        a = np.empty(0, c_double)
 
-    a = np.frombuffer(ptr.contents)
-
-    if dim > 1:
-      a.shape = (nelem, dim)
-    else:
-      a.shape = (nelem)
-    return a
+      if dim > 1:
+        a.shape = (nelem, dim)
+      else:
+        a.shape = (nelem)
+      return a
+    return None
 
 # -------------------------------------------------------------------------
 

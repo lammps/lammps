@@ -23,6 +23,7 @@
 #include "comm_kokkos.h"          // IWYU pragma: export
 #include "comm_tiled_kokkos.h"    // IWYU pragma: export
 #include "domain_kokkos.h"        // IWYU pragma: export
+#include "group_kokkos.h"         // IWYU pragma: export
 #include "kokkos.h"               // IWYU pragma: export
 #include "memory_kokkos.h"        // IWYU pragma: export
 #include "modify_kokkos.h"        // IWYU pragma: export
@@ -39,6 +40,7 @@
 #include "comm_brick.h"
 #include "comm_tiled.h"
 #include "domain.h"
+#include "group.h"
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
@@ -84,6 +86,11 @@ class CommTiledKokkos : public CommTiled {
 class DomainKokkos : public Domain {
  public:
   DomainKokkos(class LAMMPS *lmp) : Domain(lmp) {}
+};
+
+class GroupKokkos : public Group {
+ public:
+  GroupKokkos(class LAMMPS *lmp) : Group(lmp) {}
 };
 
 class NeighborKokkos : public Neighbor {

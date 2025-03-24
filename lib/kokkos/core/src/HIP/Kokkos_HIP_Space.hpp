@@ -58,14 +58,14 @@ class HIPSpace {
   /*--------------------------------*/
 
   HIPSpace();
-  HIPSpace(HIPSpace&& rhs)      = default;
-  HIPSpace(const HIPSpace& rhs) = default;
-  HIPSpace& operator=(HIPSpace&& rhs) = default;
+  HIPSpace(HIPSpace&& rhs)                 = default;
+  HIPSpace(const HIPSpace& rhs)            = default;
+  HIPSpace& operator=(HIPSpace&& rhs)      = default;
   HIPSpace& operator=(const HIPSpace& rhs) = default;
   ~HIPSpace()                              = default;
 
   /**\brief  Allocate untracked memory in the hip space */
-#ifdef KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY
+#ifdef KOKKOS_IMPL_HIP_UNIFIED_MEMORY
   template <typename ExecutionSpace>
   void* allocate(const ExecutionSpace&, const size_t arg_alloc_size) const {
     return allocate(arg_alloc_size);
@@ -77,15 +77,10 @@ class HIPSpace {
     return allocate(arg_label, arg_alloc_size, arg_logical_size);
   }
 #else
-  // FIXME_HIP Use execution space instance
-  void* allocate(const HIP&, const size_t arg_alloc_size) const {
-    return allocate(arg_alloc_size);
-  }
-  // FIXME_HIP Use execution space instance
-  void* allocate(const HIP&, const char* arg_label, const size_t arg_alloc_size,
-                 const size_t arg_logical_size = 0) const {
-    return allocate(arg_label, arg_alloc_size, arg_logical_size);
-  }
+  void* allocate(const HIP& exec_space, const size_t arg_alloc_size) const;
+  void* allocate(const HIP& exec_space, const char* arg_label,
+                 const size_t arg_alloc_size,
+                 const size_t arg_logical_size = 0) const;
 #endif
   void* allocate(const size_t arg_alloc_size) const;
   void* allocate(const char* arg_label, const size_t arg_alloc_size,
@@ -98,10 +93,10 @@ class HIPSpace {
                   const size_t arg_logical_size = 0) const;
 
  private:
-  void* impl_allocate(const char* arg_label, const size_t arg_alloc_size,
-                      const size_t arg_logical_size = 0,
-                      const Kokkos::Tools::SpaceHandle =
-                          Kokkos::Tools::make_space_handle(name())) const;
+  void* impl_allocate(const hipStream_t stream, const char* arg_label,
+                      const size_t arg_alloc_size,
+                      const size_t arg_logical_size,
+                      bool stream_sync_only) const;
   void impl_deallocate(const char* arg_label, void* const arg_alloc_ptr,
                        const size_t arg_alloc_size,
                        const size_t arg_logical_size = 0,
@@ -114,6 +109,7 @@ class HIPSpace {
 
  private:
   int m_device;  ///< Which HIP device
+  hipStream_t m_stream;
 };
 
 template <>
@@ -140,9 +136,9 @@ class HIPHostPinnedSpace {
   /*--------------------------------*/
 
   HIPHostPinnedSpace();
-  HIPHostPinnedSpace(HIPHostPinnedSpace&& rhs)      = default;
-  HIPHostPinnedSpace(const HIPHostPinnedSpace& rhs) = default;
-  HIPHostPinnedSpace& operator=(HIPHostPinnedSpace&& rhs) = default;
+  HIPHostPinnedSpace(HIPHostPinnedSpace&& rhs)                 = default;
+  HIPHostPinnedSpace(const HIPHostPinnedSpace& rhs)            = default;
+  HIPHostPinnedSpace& operator=(HIPHostPinnedSpace&& rhs)      = default;
   HIPHostPinnedSpace& operator=(const HIPHostPinnedSpace& rhs) = default;
   ~HIPHostPinnedSpace()                                        = default;
 
@@ -213,9 +209,9 @@ class HIPManagedSpace {
   /*--------------------------------*/
 
   HIPManagedSpace();
-  HIPManagedSpace(HIPManagedSpace&& rhs)      = default;
-  HIPManagedSpace(const HIPManagedSpace& rhs) = default;
-  HIPManagedSpace& operator=(HIPManagedSpace&& rhs) = default;
+  HIPManagedSpace(HIPManagedSpace&& rhs)                 = default;
+  HIPManagedSpace(const HIPManagedSpace& rhs)            = default;
+  HIPManagedSpace& operator=(HIPManagedSpace&& rhs)      = default;
   HIPManagedSpace& operator=(const HIPManagedSpace& rhs) = default;
   ~HIPManagedSpace()                                     = default;
 
@@ -280,7 +276,7 @@ static_assert(Kokkos::Impl::MemorySpaceAccess<HIPSpace, HIPSpace>::assignable);
 template <>
 struct MemorySpaceAccess<HostSpace, HIPSpace> {
   enum : bool { assignable = false };
-#if !defined(KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY)
+#if !defined(KOKKOS_IMPL_HIP_UNIFIED_MEMORY)
   enum : bool{accessible = false};
 #else
   enum : bool { accessible = true };

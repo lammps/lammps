@@ -43,8 +43,8 @@ using namespace MathConst;
 ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   rdfpair(nullptr), nrdfpair(nullptr), ilo(nullptr), ihi(nullptr), jlo(nullptr), jhi(nullptr),
-  hist(nullptr), histall(nullptr), typecount(nullptr), icount(nullptr), jcount(nullptr),
-  duplicates(nullptr)
+  rev(nullptr), hist(nullptr), histall(nullptr), typecount(nullptr),
+  icount(nullptr), jcount(nullptr), duplicates(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR,"compute rdf", error);
 
@@ -52,7 +52,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   extarray = 0;
 
   nbin = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nbin < 1) error->all(FLERR,"Illegal compute rdf command");
+  if (nbin < 1) error->all(FLERR, 3, "Number of bins for compute rdf must be > 0");
 
   // optional args
   // nargpair = # of pairwise args, starting at iarg = 4
@@ -69,19 +69,20 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute rdf cutoff", error);
       if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
-        error->all(FLERR, "Compute rdf with custom cutoff requires neighbor style 'bin' or 'nsq'");
+        error->all(FLERR, iarg, "Compute rdf with custom cutoff requires neighbor style 'bin' or 'nsq'");
       cutoff_user = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutoff_user <= 0.0) cutflag = 0;
       else cutflag = 1;
       iarg += 2;
-    } else error->all(FLERR,"Unknown compute rdf keyword {}", arg[iarg]);
+    } else error->all(FLERR, iarg, "Unknown compute rdf keyword {}", arg[iarg]);
   }
 
   // pairwise args
 
-  if (nargpair == 0) npairs = 1;
-  else {
-    if (nargpair % 2) error->all(FLERR,"Illegal compute rdf command");
+  if (nargpair == 0) {
+    npairs = 1;
+  } else {
+    if (nargpair % 2) error->all(FLERR, 4, "Must provide atom types in pairs for compute rdf command");
     npairs = nargpair/2;
   }
 
@@ -95,10 +96,12 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   ihi = new int[npairs];
   jlo = new int[npairs];
   jhi = new int[npairs];
+  rev = new int[npairs];
 
   if (!nargpair) {
     ilo[0] = 1; ihi[0] = ntypes;
     jlo[0] = 1; jhi[0] = ntypes;
+    rev[0] = 0;
   } else {
     iarg = 4;
     for (int ipair = 0; ipair < npairs; ipair++) {
@@ -110,11 +113,12 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
       if ( (ilo[ipair] == ihi[ipair]) &&
            (jlo[ipair] == jhi[ipair]) &&
            (ilo[ipair] > jlo[ipair]) ) {
+        rev[ipair] = 1;
         jlo[ipair] = ihi[ipair];
         ilo[ipair] = jhi[ipair];
         ihi[ipair] = ilo[ipair];
         jhi[ipair] = jlo[ipair];
-      }
+      } else rev[ipair] = 0;
 
       iarg += 2;
     }
@@ -168,30 +172,24 @@ ComputeRDF::~ComputeRDF()
 
 void ComputeRDF::init()
 {
+  const double skin = neighbor->skin;
 
   if (!force->pair && !cutflag)
-    error->all(FLERR,"Compute rdf requires a pair style or an explicit cutoff");
+    error->all(FLERR, Error::NOLASTLINE, "Compute rdf requires a pair style or an explicit cutoff");
 
   if (cutflag) {
-    double skin = neighbor->skin;
     mycutneigh = cutoff_user + skin;
 
     double cutghost;            // as computed by Neighbor and Comm
-    if (force->pair)
-      cutghost = MAX(force->pair->cutforce+skin,comm->cutghostuser);
-    else
-      cutghost = comm->cutghostuser;
+    if (force->pair) cutghost = MAX(force->pair->cutforce+skin,comm->cutghostuser);
+    else cutghost = comm->cutghostuser;
 
     if (mycutneigh > cutghost)
-      error->all(FLERR,"Compute rdf cutoff exceeds ghost atom range - "
-                 "use comm_modify cutoff command");
-    if (force->pair && mycutneigh < force->pair->cutforce + skin)
-      if (comm->me == 0)
-        error->warning(FLERR,"Compute rdf cutoff less than neighbor cutoff - "
-                       "forcing a needless neighbor list build");
+      error->all(FLERR, Error::NOLASTLINE, "Compute rdf cutoff plus skin {} exceeds ghost atom "
+                 "range {} - use comm_modify cutoff command to increase it", mycutneigh, cutghost);
 
     delr = cutoff_user / nbin;
-  } else delr = force->pair->cutforce / nbin;
+  } delr = force->pair->cutforce / nbin;
 
   delrinv = 1.0/delr;
 
@@ -218,7 +216,8 @@ void ComputeRDF::init()
   auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
   if (cutflag) {
     if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
-      error->all(FLERR, "Compute rdf with custom cutoff requires neighbor style 'bin' or 'nsq'");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Compute rdf with custom cutoff requires neighbor style 'bin' or 'nsq'");
     req->set_cutoff(mycutneigh);
   }
 }
@@ -387,18 +386,28 @@ void ComputeRDF::compute_array()
     constant = 4.0*MY_PI / (3.0*domain->xprd*domain->yprd*domain->zprd);
 
     for (m = 0; m < npairs; m++) {
-      normfac = (icount[m] > 0) ? static_cast<double>(jcount[m])
-                - static_cast<double>(duplicates[m])/icount[m] : 0.0;
+      if (rev[m]) { // swap i and j because they were entered in different order
+        normfac = (jcount[m] > 0) ? static_cast<double>(icount[m])
+          - static_cast<double>(duplicates[m])/jcount[m] : 0.0;
+      } else {
+        normfac = (icount[m] > 0) ? static_cast<double>(jcount[m])
+          - static_cast<double>(duplicates[m])/icount[m] : 0.0;
+      }
       ncoord = 0.0;
       for (ibin = 0; ibin < nbin; ibin++) {
         rlower = ibin*delr;
         rupper = (ibin+1)*delr;
         vfrac = constant * (rupper*rupper*rupper - rlower*rlower*rlower);
-        if (vfrac * normfac != 0.0)
-          gr = histall[m][ibin] / (vfrac * normfac * icount[m]);
-        else gr = 0.0;
-        if (icount[m] != 0)
-          ncoord += gr * vfrac * normfac;
+        gr = 0.0;
+        if (vfrac * normfac != 0.0) {
+          if (rev[m]) { // swap i and j because they were entered in different order
+            gr = histall[m][ibin] / (vfrac * normfac * jcount[m]);
+            if (jcount[m] != 0) ncoord += gr * vfrac * normfac;
+          } else {
+            gr = histall[m][ibin] / (vfrac * normfac * icount[m]);
+            if (icount[m] != 0) ncoord += gr * vfrac * normfac;
+          }
+        }
         array[ibin][1+2*m] = gr;
         array[ibin][2+2*m] = ncoord;
       }

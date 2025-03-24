@@ -36,7 +36,7 @@ class ComputeRHEOPropertyAtom : public Compute {
  private:
   int nvalues, nmax;
   int pressure_flag, thermal_flag, interface_flag;
-  int surface_flag, shift_flag, shell_flag;
+  int surface_flag, shift_flag, shell_flag, coordination_flag;
   int *avec_index;
   int *col_index, *col_t_index;
   double *buf;

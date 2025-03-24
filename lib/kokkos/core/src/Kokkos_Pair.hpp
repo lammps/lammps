@@ -449,7 +449,8 @@ struct KOKKOS_DEPRECATED pair<T1, void> {
 // Specialization of relational operators for Kokkos::pair<T1,void>.
 //
 
-#if defined(KOKKOS_COMPILER_GNU) && (KOKKOS_COMPILER_GNU < 1110)
+#if defined(KOKKOS_ENABLE_DEPRECATION_WARNINGS) && \
+    defined(KOKKOS_COMPILER_GNU) && (KOKKOS_COMPILER_GNU < 1110)
 KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
 #endif
 template <class T1>
@@ -487,7 +488,8 @@ KOKKOS_DEPRECATED KOKKOS_FORCEINLINE_FUNCTION constexpr bool operator>=(
     const pair<T1, void>& lhs, const pair<T1, void>& rhs) {
   return !(lhs < rhs);
 }
-#if defined(KOKKOS_COMPILER_GNU) && (KOKKOS_COMPILER_GNU < 1110)
+#if defined(KOKKOS_ENABLE_DEPRECATION_WARNINGS) && \
+    defined(KOKKOS_COMPILER_GNU) && (KOKKOS_COMPILER_GNU < 1110)
 KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
 #endif
 #endif

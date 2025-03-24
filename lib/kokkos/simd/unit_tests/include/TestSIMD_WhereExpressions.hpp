@@ -29,7 +29,7 @@ inline void host_check_where_expr_scatter_to() {
 
     std::size_t nlanes = simd_type::size();
     DataType init[]    = {11, 13, 17, 19, 23, 29, 31, 37,
-                       53, 71, 79, 83, 89, 93, 97, 103};
+                          53, 71, 79, 83, 89, 93, 97, 103};
     simd_type src;
     src.copy_from(init, Kokkos::Experimental::simd_flag_default);
 
@@ -64,7 +64,7 @@ inline void host_check_where_expr_gather_from() {
 
     std::size_t nlanes = simd_type::size();
     DataType src[]     = {11, 13, 17, 19, 23, 29, 31, 37,
-                      53, 71, 79, 83, 89, 93, 97, 103};
+                          53, 71, 79, 83, 89, 93, 97, 103};
 
     for (std::size_t idx = 0; idx < nlanes; ++idx) {
       mask_type mask(true);
@@ -113,7 +113,7 @@ KOKKOS_INLINE_FUNCTION void device_check_where_expr_scatter_to() {
 
     std::size_t nlanes = simd_type::size();
     DataType init[]    = {11, 13, 17, 19, 23, 29, 31, 37,
-                       53, 71, 79, 83, 89, 93, 97, 103};
+                          53, 71, 79, 83, 89, 93, 97, 103};
     simd_type src;
     src.copy_from(init, Kokkos::Experimental::simd_flag_default);
 
@@ -147,7 +147,7 @@ KOKKOS_INLINE_FUNCTION void device_check_where_expr_gather_from() {
 
   std::size_t nlanes = simd_type::size();
   DataType src[]     = {11, 13, 17, 19, 23, 29, 31, 37,
-                    53, 71, 79, 83, 89, 93, 97, 103};
+                        53, 71, 79, 83, 89, 93, 97, 103};
 
   for (std::size_t idx = 0; idx < nlanes; ++idx) {
     mask_type mask(true);

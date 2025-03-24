@@ -48,9 +48,9 @@ meaning that the trajectories of a restarted run will precisely match
 those produced by the original run had it continued on.
 
 Some information about a restart file can be gathered directly from the
-command line when using LAMMPS with the :ref:`-restart2info
-<restart2info>` command line flag.  On Unix-like operating systems (like
-Linux or macOS), one can also :ref:`configure the "file" command line
+command-line when using LAMMPS with the :ref:`-restart2info
+<restart2info>` command-line flag.  On Unix-like operating systems (like
+Linux or macOS), one can also :ref:`configure the "file" command-line
 program <magic>` to display basic information about a restart file
 
 The binary restart file format was not designed with backward, forward,
@@ -60,9 +60,9 @@ Changes to the architecture, compilation settings, or LAMMPS version can
 render a restart file unreadable or it may read the data incorrectly.
 If you want a more portable format, you can use the data file format as
 created by the :doc:`write_data <write_data>` command.  Binary restart
-files can also be converted into a data file from the command line by
+files can also be converted into a data file from the command-line by
 the LAMMPS executable that wrote them using the :ref:`-restart2data
-<restart2data>` command line flag.
+<restart2data>` command-line flag.
 
 Several things can prevent exact restarts due to round-off effects, in
 which case the trajectories in the 2 runs will slowly diverge.  These

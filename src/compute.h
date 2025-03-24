@@ -113,6 +113,7 @@ class Compute : protected Pointers {
   Compute(class LAMMPS *, int, char **);
   ~Compute() override;
   void modify_params(int, char **);
+  virtual int modify_param(int, char **) { return 0; }
   virtual void reset_extra_dof();
 
   void init_flags();

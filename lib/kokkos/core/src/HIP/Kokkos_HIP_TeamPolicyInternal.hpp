@@ -222,7 +222,8 @@ class TeamPolicyInternal<HIP, Properties...>
         m_tune_team_size(bool(team_size_request <= 0)),
         m_tune_vector_length(bool(vector_length_request <= 0)) {
     // Make sure league size is permissible
-    if (league_size_ >= static_cast<int>(hip_internal_maximum_grid_count()[0]))
+    const int max_grid_size_x = m_space.hip_device_prop().maxGridSize[0];
+    if (league_size_ >= max_grid_size_x)
       Impl::throw_runtime_exception(
           "Requested too large league_size for TeamPolicy on HIP execution "
           "space.");

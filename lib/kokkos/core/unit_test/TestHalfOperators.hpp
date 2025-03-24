@@ -39,6 +39,13 @@ double accept_ref_expected(const bhalf_t& a) {
 }
 #endif  // !KOKKOS_BHALF_T_IS_FLOAT
 
+struct Batch0 {};
+struct Batch1 {};
+struct Batch2 {};
+struct Batch3 {};
+struct Batch4 {};
+struct Batch5 {};
+
 enum OP_TESTS {
   ASSIGN,
   ASSIGN_CHAINED,
@@ -68,6 +75,7 @@ enum OP_TESTS {
   CDIV_S_H,
   CDIV_H_D,
   CDIV_D_H,
+  N_OP_TESTS_BATCH_0,
   ADD_H_H,
   ADD_H_S,
   ADD_S_H,
@@ -110,6 +118,7 @@ enum OP_TESTS {
   ADD_H_ULI_SZ,
   ADD_H_ULLI,
   ADD_H_ULLI_SZ,
+  N_OP_TESTS_BATCH_1,
   SUB_H_H,
   SUB_H_S,
   SUB_S_H,
@@ -152,6 +161,7 @@ enum OP_TESTS {
   SUB_H_ULI_SZ,
   SUB_H_ULLI,
   SUB_H_ULLI_SZ,
+  N_OP_TESTS_BATCH_2,
   MUL_H_H,
   MUL_H_S,
   MUL_S_H,
@@ -194,6 +204,7 @@ enum OP_TESTS {
   MUL_H_ULI_SZ,
   MUL_H_ULLI,
   MUL_H_ULLI_SZ,
+  N_OP_TESTS_BATCH_3,
   DIV_H_H,
   DIV_H_S,
   DIV_S_H,
@@ -236,6 +247,7 @@ enum OP_TESTS {
   DIV_H_ULI_SZ,
   DIV_H_ULLI,
   DIV_H_ULLI_SZ,
+  N_OP_TESTS_BATCH_4,
   NEG,
   AND,
   OR,
@@ -284,10 +296,31 @@ struct Functor_TestHalfOperators {
 
     if (std::is_same<view_type, ViewTypeHost>::value) {
       auto run_on_host = *this;
-      run_on_host(0);
+      run_on_host(Batch0{}, 0);
+      run_on_host(Batch1{}, 0);
+      run_on_host(Batch2{}, 0);
+      run_on_host(Batch3{}, 0);
+      run_on_host(Batch4{}, 0);
+      run_on_host(Batch5{}, 0);
     } else {
-      Kokkos::parallel_for("Test::Functor_TestHalfOperators",
-                           Kokkos::RangePolicy<ExecutionSpace>(0, 1), *this);
+      Kokkos::parallel_for("Test::Functor_TestHalfOperators_0",
+                           Kokkos::RangePolicy<Batch0, ExecutionSpace>(0, 1),
+                           *this);
+      Kokkos::parallel_for("Test::Functor_TestHalfOperators_1",
+                           Kokkos::RangePolicy<Batch1, ExecutionSpace>(0, 1),
+                           *this);
+      Kokkos::parallel_for("Test::Functor_TestHalfOperators_2",
+                           Kokkos::RangePolicy<Batch2, ExecutionSpace>(0, 1),
+                           *this);
+      Kokkos::parallel_for("Test::Functor_TestHalfOperators_3",
+                           Kokkos::RangePolicy<Batch3, ExecutionSpace>(0, 1),
+                           *this);
+      Kokkos::parallel_for("Test::Functor_TestHalfOperators_4",
+                           Kokkos::RangePolicy<Batch4, ExecutionSpace>(0, 1),
+                           *this);
+      Kokkos::parallel_for("Test::Functor_TestHalfOperators_5",
+                           Kokkos::RangePolicy<Batch5, ExecutionSpace>(0, 1),
+                           *this);
     }
   }
 
@@ -373,20 +406,20 @@ struct Functor_TestHalfOperators {
   }
   // END: Binary Arithmetic test helpers
 
+#if !defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
+  using half_impl_type = typename half_type::impl_type;
+#else
+  using half_impl_type = half_type;
+#endif  // !defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
+
   KOKKOS_FUNCTION
-  void operator()(int) const {
-    half_type tmp_lhs, tmp2_lhs, *tmp_ptr;
+  void operator()(Batch0, int) const {
+    half_type tmp_lhs, tmp2_lhs;
     double tmp_d_lhs;
     float tmp_s_lhs;
-#if !defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
-    using half_impl_type = typename half_type::impl_type;
-#else
-    using half_impl_type = half_type;
-#endif  // !defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
-    half_impl_type half_tmp;
 
-    // Initialze output views to catch missing test invocations
-    for (int i = 0; i < N_OP_TESTS; ++i) {
+    // Initialize output views to catch missing test invocations
+    for (int i = 0; i < N_OP_TESTS_BATCH_0; ++i) {
       actual_lhs(i)   = 1;
       expected_lhs(i) = -1;
     }
@@ -551,6 +584,15 @@ struct Functor_TestHalfOperators {
     actual_lhs(CDIV_D_H)   = tmp_d_lhs;
     expected_lhs(CDIV_D_H) = d_lhs;
     expected_lhs(CDIV_D_H) /= d_rhs;
+  }
+
+  KOKKOS_FUNCTION
+  void operator()(Batch1, int) const {
+    // Initialize output views to catch missing test invocations
+    for (int i = N_OP_TESTS_BATCH_0 + 1; i < N_OP_TESTS_BATCH_1; ++i) {
+      actual_lhs(i)   = 1;
+      expected_lhs(i) = -1;
+    }
 
     test_add<half_type, half_type, half_type>(ADD_H_H, ADD_H_H_SZ);
     test_add<float, half_type, float>(ADD_S_H, ADD_S_H_SZ);
@@ -606,6 +648,15 @@ struct Functor_TestHalfOperators {
       actual_lhs(ADD_H_ULI_SZ)  = expected_lhs(ADD_H_ULI_SZ);
       actual_lhs(ADD_H_ULLI)    = expected_lhs(ADD_H_ULLI);
       actual_lhs(ADD_H_ULLI_SZ) = expected_lhs(ADD_H_ULLI_SZ);
+    }
+  }
+
+  KOKKOS_FUNCTION
+  void operator()(Batch2, int) const {
+    // Initialize output views to catch missing test invocations
+    for (int i = N_OP_TESTS_BATCH_1 + 1; i < N_OP_TESTS_BATCH_2; ++i) {
+      actual_lhs(i)   = 1;
+      expected_lhs(i) = -1;
     }
 
     test_sub<half_type, half_type, half_type>(SUB_H_H, SUB_H_H_SZ);
@@ -663,6 +714,15 @@ struct Functor_TestHalfOperators {
       actual_lhs(SUB_H_ULLI)    = expected_lhs(SUB_H_ULLI);
       actual_lhs(SUB_H_ULLI_SZ) = expected_lhs(SUB_H_ULLI_SZ);
     }
+  }
+
+  KOKKOS_FUNCTION
+  void operator()(Batch3, int) const {
+    // Initialize output views to catch missing test invocations
+    for (int i = N_OP_TESTS_BATCH_2 + 1; i < N_OP_TESTS_BATCH_3; ++i) {
+      actual_lhs(i)   = 1;
+      expected_lhs(i) = -1;
+    }
 
     test_mul<half_type, half_type, half_type>(MUL_H_H, MUL_H_H_SZ);
     test_mul<float, half_type, float>(MUL_S_H, MUL_S_H_SZ);
@@ -718,6 +778,15 @@ struct Functor_TestHalfOperators {
       actual_lhs(MUL_H_UI_SZ)   = expected_lhs(MUL_H_UI_SZ);
       actual_lhs(MUL_H_ULI_SZ)  = expected_lhs(MUL_H_ULI_SZ);
       actual_lhs(MUL_H_ULLI_SZ) = expected_lhs(MUL_H_ULLI_SZ);
+    }
+  }
+
+  KOKKOS_FUNCTION
+  void operator()(Batch4, int) const {
+    // Initialize output views to catch missing test invocations
+    for (int i = N_OP_TESTS_BATCH_3 + 1; i < N_OP_TESTS_BATCH_4; ++i) {
+      actual_lhs(i)   = 1;
+      expected_lhs(i) = -1;
     }
 
     test_div<half_type, half_type, half_type>(DIV_H_H, DIV_H_H_SZ);
@@ -788,6 +857,18 @@ struct Functor_TestHalfOperators {
       actual_lhs(DIV_H_ULI_SZ)  = expected_lhs(DIV_H_ULI_SZ);
       actual_lhs(DIV_H_ULLI)    = expected_lhs(DIV_H_ULLI);
       actual_lhs(DIV_H_ULLI_SZ) = expected_lhs(DIV_H_ULLI_SZ);
+    }
+  }
+
+  KOKKOS_FUNCTION
+  void operator()(Batch5, int) const {
+    half_type tmp_lhs, tmp2_lhs, *tmp_ptr;
+    half_impl_type half_tmp;
+
+    // Initialize output views to catch missing test invocations
+    for (int i = N_OP_TESTS_BATCH_4 + 1; i < N_OP_TESTS; ++i) {
+      actual_lhs(i)   = 1;
+      expected_lhs(i) = -1;
     }
 
     // TODO: figure out why operator{!,&&,||} are returning __nv_bool
@@ -898,11 +979,15 @@ void __test_half_operators(half_type h_lhs, half_type h_rhs) {
   Kokkos::deep_copy(f_device_actual_lhs, f_device.actual_lhs);
   Kokkos::deep_copy(f_device_expected_lhs, f_device.expected_lhs);
   for (int op_test = 0; op_test < N_OP_TESTS; op_test++) {
-    // printf("op_test = %d\n", op_test);
-    ASSERT_NEAR(f_device_actual_lhs(op_test), f_device_expected_lhs(op_test),
-                static_cast<double>(epsilon));
-    ASSERT_NEAR(f_host.actual_lhs(op_test), f_host.expected_lhs(op_test),
-                static_cast<double>(epsilon));
+    if (op_test != N_OP_TESTS_BATCH_0 && op_test != N_OP_TESTS_BATCH_1 &&
+        op_test != N_OP_TESTS_BATCH_2 && op_test != N_OP_TESTS_BATCH_3 &&
+        op_test != N_OP_TESTS_BATCH_4) {
+      // printf("op_test = %d\n", op_test);
+      ASSERT_NEAR(f_device_actual_lhs(op_test), f_device_expected_lhs(op_test),
+                  static_cast<double>(epsilon));
+      ASSERT_NEAR(f_host.actual_lhs(op_test), f_host.expected_lhs(op_test),
+                  static_cast<double>(epsilon));
+    }
   }
 
   // is_trivially_copyable is false with the addition of explicit

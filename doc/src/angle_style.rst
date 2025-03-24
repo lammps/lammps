@@ -94,6 +94,7 @@ of (g,i,k,o,t) to indicate which accelerated styles exist.
 * :doc:`lepton <angle_lepton>` - angle potential from evaluating a string
 * :doc:`mesocnt <angle_mesocnt>` - piecewise harmonic and linear angle for bending-buckling of nanotubes
 * :doc:`mm3 <angle_mm3>` - anharmonic angle
+* :doc:`mwlc <angle_mwlc>` - meltable wormlike chain
 * :doc:`quartic <angle_quartic>` - angle with cubic and quartic terms
 * :doc:`spica <angle_spica>` - harmonic angle with repulsive SPICA pair style between 1-3 atoms
 * :doc:`table <angle_table>` - tabulated by angle

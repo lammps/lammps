@@ -136,13 +136,15 @@ void FixBondSwap::init()
   // require an atom style with molecule IDs
 
   if (atom->molecule == nullptr)
-    error->all(FLERR,
-               "Must use atom style with molecule IDs with fix bond/swap");
+    error->all(FLERR, "Must use atom style with molecule IDs with fix bond/swap");
 
-  int icompute = modify->find_compute(id_temp);
-  if (icompute < 0)
-    error->all(FLERR,"Temperature ID for fix bond/swap does not exist");
-  temperature = modify->compute[icompute];
+  temperature = modify->get_compute_by_id(id_temp);
+  if (!temperature) {
+    error->all(FLERR,"Temperature compute ID {} for fix {} does not exist", id_temp, style);
+  } else {
+    if (temperature->tempflag == 0)
+      error->all(FLERR, "Compute ID {} for fix {} does not compute a temperature", id_temp, style);
+  }
 
   // pair and bonds must be defined
   // no dihedral or improper potentials allowed
@@ -159,7 +161,7 @@ void FixBondSwap::init()
                    "topology because no angle_style is defined");
 
   if (force->dihedral || force->improper)
-    error->all(FLERR,"Fix bond/swap cannot use dihedral or improper styles");
+    error->all(FLERR,"Fix bond/swap cannot be used with dihedral or improper styles");
 
   if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 ||
       force->special_lj[3] != 1.0)

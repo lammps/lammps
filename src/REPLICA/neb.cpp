@@ -95,7 +95,7 @@ NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in, int n2step
 
 NEB::~NEB()
 {
-  MPI_Comm_free(&roots);
+  if (roots != MPI_COMM_NULL) MPI_Comm_free(&roots);
   memory->destroy(all);
   delete[] rdist;
   if (fp) {
@@ -241,19 +241,19 @@ void NEB::run()
 
   if (me_universe == 0) {
     if (uscreen) {
-      fmt::print(uscreen, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
+      utils::print(uscreen, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0", "GradV1", "GradVc", "EBF", "EBR",
                  "RDT");
 
       if (print_mode != TERSE) {
         for (int i = 1; i <= nreplica; ++i)
-          fmt::print(uscreen, "{:^14} {:^14} ", "RD" + std::to_string(i), "PE" + std::to_string(i));
+          utils::print(uscreen, "{:^14} {:^14} ", "RD" + std::to_string(i), "PE" + std::to_string(i));
       }
 
       if (print_mode == VERBOSE) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
-          fmt::print(uscreen, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
+          utils::print(uscreen, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
                      "angletangrad" + idx, "anglegrad" + idx, "gradV" + idx, "RepForce" + idx,
                      "MaxAtomForce" + idx);
         }
@@ -262,20 +262,20 @@ void NEB::run()
     }
 
     if (ulogfile) {
-      fmt::print(ulogfile, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
+      utils::print(ulogfile, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0", "GradV1", "GradVc", "EBF", "EBR",
                  "RDT");
 
       if (print_mode != TERSE) {
         for (int i = 1; i <= nreplica; ++i)
-          fmt::print(ulogfile, "{:^14} {:^14} ", "RD" + std::to_string(i),
+          utils::print(ulogfile, "{:^14} {:^14} ", "RD" + std::to_string(i),
                      "PE" + std::to_string(i));
       }
 
       if (print_mode == VERBOSE) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
-          fmt::print(ulogfile, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
+          utils::print(ulogfile, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
                      "angletangrad" + idx, "anglegrad" + idx, "gradV" + idx, "RepForce" + idx,
                      "MaxAtomForce" + idx);
         }
@@ -340,19 +340,19 @@ void NEB::run()
 
   if (me_universe == 0) {
     if (uscreen) {
-      fmt::print(uscreen, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
+      utils::print(uscreen, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0", "GradV1", "GradVc", "EBF", "EBR",
                  "RDT");
 
       if (print_mode != TERSE) {
         for (int i = 1; i <= nreplica; ++i)
-          fmt::print(uscreen, "{:^14} {:^14} ", "RD" + std::to_string(i), "PE" + std::to_string(i));
+          utils::print(uscreen, "{:^14} {:^14} ", "RD" + std::to_string(i), "PE" + std::to_string(i));
       }
 
       if (print_mode == VERBOSE) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
-          fmt::print(uscreen, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
+          utils::print(uscreen, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
                      "angletangrad" + idx, "anglegrad" + idx, "gradV" + idx, "RepForce" + idx,
                      "MaxAtomForce" + idx);
         }
@@ -361,20 +361,20 @@ void NEB::run()
     }
 
     if (ulogfile) {
-      fmt::print(ulogfile, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
+      utils::print(ulogfile, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0", "GradV1", "GradVc", "EBF", "EBR",
                  "RDT");
 
       if (print_mode != TERSE) {
         for (int i = 1; i <= nreplica; ++i)
-          fmt::print(ulogfile, "{:^14} {:^14} ", "RD" + std::to_string(i),
+          utils::print(ulogfile, "{:^14} {:^14} ", "RD" + std::to_string(i),
                      "PE" + std::to_string(i));
       }
 
       if (print_mode == VERBOSE) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
-          fmt::print(ulogfile, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
+          utils::print(ulogfile, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
                      "angletangrad" + idx, "anglegrad" + idx, "gradV" + idx, "RepForce" + idx,
                      "MaxAtomForce" + idx);
         }

@@ -8,11 +8,9 @@
 #ifndef FMT_ARGS_H_
 #define FMT_ARGS_H_
 
-#ifndef FMT_MODULE
-#  include <functional>  // std::reference_wrapper
-#  include <memory>      // std::unique_ptr
-#  include <vector>
-#endif
+#include <functional>  // std::reference_wrapper
+#include <memory>      // std::unique_ptr
+#include <vector>
 
 #include "format.h"  // std_string_view
 
@@ -30,18 +28,15 @@ auto unwrap(const std::reference_wrapper<T>& v) -> const T& {
   return static_cast<const T&>(v);
 }
 
-// node is defined outside dynamic_arg_list to workaround a C2504 bug in MSVC
-// 2022 (v17.10.0).
-//
-// Workaround for clang's -Wweak-vtables. Unlike for regular classes, for
-// templates it doesn't complain about inability to deduce single translation
-// unit for placing vtable. So node is made a fake template.
-template <typename = void> struct node {
-  virtual ~node() = default;
-  std::unique_ptr<node<>> next;
-};
-
 class dynamic_arg_list {
+  // Workaround for clang's -Wweak-vtables. Unlike for regular classes, for
+  // templates it doesn't complain about inability to deduce single translation
+  // unit for placing vtable. So storage_node_base is made a fake template.
+  template <typename = void> struct node {
+    virtual ~node() = default;
+    std::unique_ptr<node<>> next;
+  };
+
   template <typename T> struct typed_node : node<> {
     T value;
 
@@ -67,10 +62,14 @@ class dynamic_arg_list {
 }  // namespace detail
 
 /**
- * A dynamic list of formatting arguments with storage.
- *
- * It can be implicitly converted into `fmt::basic_format_args` for passing
- * into type-erased formatting functions such as `fmt::vformat`.
+  \rst
+  A dynamic version of `fmt::format_arg_store`.
+  It's equipped with a storage to potentially temporary objects which lifetimes
+  could be shorter than the format arguments object.
+
+  It can be implicitly converted into `~fmt::basic_format_args` for passing
+  into type-erased formatting functions such as `~fmt::vformat`.
+  \endrst
  */
 template <typename Context>
 class dynamic_format_arg_store
@@ -148,20 +147,22 @@ class dynamic_format_arg_store
   constexpr dynamic_format_arg_store() = default;
 
   /**
-   * Adds an argument into the dynamic store for later passing to a formatting
-   * function.
-   *
-   * Note that custom types and string types (but not string views) are copied
-   * into the store dynamically allocating memory if necessary.
-   *
-   * **Example**:
-   *
-   *     fmt::dynamic_format_arg_store<fmt::format_context> store;
-   *     store.push_back(42);
-   *     store.push_back("abc");
-   *     store.push_back(1.5f);
-   *     std::string result = fmt::vformat("{} and {} and {}", store);
-   */
+    \rst
+    Adds an argument into the dynamic store for later passing to a formatting
+    function.
+
+    Note that custom types and string types (but not string views) are copied
+    into the store dynamically allocating memory if necessary.
+
+    **Example**::
+
+      fmt::dynamic_format_arg_store<fmt::format_context> store;
+      store.push_back(42);
+      store.push_back("abc");
+      store.push_back(1.5f);
+      std::string result = fmt::vformat("{} and {} and {}", store);
+    \endrst
+  */
   template <typename T> void push_back(const T& arg) {
     if (detail::const_check(need_copy<T>::value))
       emplace_arg(dynamic_args_.push<stored_type<T>>(arg));
@@ -170,18 +171,20 @@ class dynamic_format_arg_store
   }
 
   /**
-   * Adds a reference to the argument into the dynamic store for later passing
-   * to a formatting function.
-   *
-   * **Example**:
-   *
-   *     fmt::dynamic_format_arg_store<fmt::format_context> store;
-   *     char band[] = "Rolling Stones";
-   *     store.push_back(std::cref(band));
-   *     band[9] = 'c'; // Changing str affects the output.
-   *     std::string result = fmt::vformat("{}", store);
-   *     // result == "Rolling Scones"
-   */
+    \rst
+    Adds a reference to the argument into the dynamic store for later passing to
+    a formatting function.
+
+    **Example**::
+
+      fmt::dynamic_format_arg_store<fmt::format_context> store;
+      char band[] = "Rolling Stones";
+      store.push_back(std::cref(band));
+      band[9] = 'c'; // Changing str affects the output.
+      std::string result = fmt::vformat("{}", store);
+      // result == "Rolling Scones"
+    \endrst
+  */
   template <typename T> void push_back(std::reference_wrapper<T> arg) {
     static_assert(
         need_copy<T>::value,
@@ -190,10 +193,10 @@ class dynamic_format_arg_store
   }
 
   /**
-   * Adds named argument into the dynamic store for later passing to a
-   * formatting function. `std::reference_wrapper` is supported to avoid
-   * copying of the argument. The name is always copied into the store.
-   */
+    Adds named argument into the dynamic store for later passing to a formatting
+    function. ``std::reference_wrapper`` is supported to avoid copying of the
+    argument. The name is always copied into the store.
+  */
   template <typename T>
   void push_back(const detail::named_arg<char_type, T>& arg) {
     const char_type* arg_name =
@@ -206,15 +209,19 @@ class dynamic_format_arg_store
     }
   }
 
-  /// Erase all elements from the store.
+  /** Erase all elements from the store */
   void clear() {
     data_.clear();
     named_info_.clear();
     dynamic_args_ = detail::dynamic_arg_list();
   }
 
-  /// Reserves space to store at least `new_cap` arguments including
-  /// `new_cap_named` named arguments.
+  /**
+    \rst
+    Reserves space to store at least *new_cap* arguments including
+    *new_cap_named* named arguments.
+    \endrst
+  */
   void reserve(size_t new_cap, size_t new_cap_named) {
     FMT_ASSERT(new_cap >= new_cap_named,
                "Set of arguments includes set of named arguments");

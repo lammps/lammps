@@ -74,7 +74,7 @@ struct TestFunctorA {
     else if (m_apiPick == 3) {
       using value_type = typename ViewType::value_type;
       auto it          = KE::max_element(member, myRowView,
-                                CustomLessThanComparator<value_type>{});
+                                         CustomLessThanComparator<value_type>{});
       resultDist       = KE::distance(KE::begin(myRowView), it);
       Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
         m_distancesView(myRowIndex) = resultDist;
@@ -144,7 +144,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
       stdDistance = KE::distance(KE::cbegin(myRow), it);
     } else {
       auto it     = std::max_element(KE::cbegin(myRow), KE::cend(myRow),
-                                 CustomLessThanComparator<value_type>{});
+                                     CustomLessThanComparator<value_type>{});
       stdDistance = KE::distance(KE::cbegin(myRow), it);
     }
 

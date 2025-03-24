@@ -240,7 +240,13 @@ static_assert(_MDSPAN_CPLUSPLUS >= MDSPAN_CXX_STD_14, "mdspan requires C++14 or 
 
 #ifndef MDSPAN_USE_BRACKET_OPERATOR
 #  if defined(__cpp_multidimensional_subscript)
-#    define MDSPAN_USE_BRACKET_OPERATOR 1
+// The following if/else is necessary to workaround a clang issue
+// relative to using a parameter pack inside a bracket operator in C++2b/C++23 mode
+#    if defined(_MDSPAN_COMPILER_CLANG) && ((__clang_major__ == 15) || (__clang_major__ == 16))
+#      define MDSPAN_USE_BRACKET_OPERATOR 0
+#    else
+#      define MDSPAN_USE_BRACKET_OPERATOR 1
+#    endif
 #  else
 #    define MDSPAN_USE_BRACKET_OPERATOR 0
 #  endif

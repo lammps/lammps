@@ -25,7 +25,7 @@ int dgebrd_(integer *m, integer *n, doublereal *a, integer *lda, doublereal *d__
         xerbla_(char *, integer *, ftnlen);
     extern integer ilaenv_(integer *, char *, char *, integer *, integer *, integer *, integer *,
                            ftnlen, ftnlen);
-    integer ldwrkx, ldwrky, lwkopt;
+    integer lwkmin, ldwrkx, ldwrky, lwkopt;
     logical lquery;
     a_dim1 = *lda;
     a_offset = 1 + a_dim1;
@@ -36,9 +36,16 @@ int dgebrd_(integer *m, integer *n, doublereal *a, integer *lda, doublereal *d__
     --taup;
     --work;
     *info = 0;
-    i__1 = 1, i__2 = ilaenv_(&c__1, (char *)"DGEBRD", (char *)" ", m, n, &c_n1, &c_n1, (ftnlen)6, (ftnlen)1);
-    nb = max(i__1, i__2);
-    lwkopt = (*m + *n) * nb;
+    minmn = min(*m, *n);
+    if (minmn == 0) {
+        lwkmin = 1;
+        lwkopt = 1;
+    } else {
+        lwkmin = max(*m, *n);
+        i__1 = 1, i__2 = ilaenv_(&c__1, (char *)"DGEBRD", (char *)" ", m, n, &c_n1, &c_n1, (ftnlen)6, (ftnlen)1);
+        nb = max(i__1, i__2);
+        lwkopt = (*m + *n) * nb;
+    }
     work[1] = (doublereal)lwkopt;
     lquery = *lwork == -1;
     if (*m < 0) {
@@ -47,11 +54,8 @@ int dgebrd_(integer *m, integer *n, doublereal *a, integer *lda, doublereal *d__
         *info = -2;
     } else if (*lda < max(1, *m)) {
         *info = -4;
-    } else {
-        i__1 = max(1, *m);
-        if (*lwork < max(i__1, *n) && !lquery) {
-            *info = -10;
-        }
+    } else if (*lwork < lwkmin && !lquery) {
+        *info = -10;
     }
     if (*info < 0) {
         i__1 = -(*info);
@@ -60,7 +64,6 @@ int dgebrd_(integer *m, integer *n, doublereal *a, integer *lda, doublereal *d__
     } else if (lquery) {
         return 0;
     }
-    minmn = min(*m, *n);
     if (minmn == 0) {
         work[1] = 1.;
         return 0;
@@ -72,7 +75,7 @@ int dgebrd_(integer *m, integer *n, doublereal *a, integer *lda, doublereal *d__
         i__1 = nb, i__2 = ilaenv_(&c__3, (char *)"DGEBRD", (char *)" ", m, n, &c_n1, &c_n1, (ftnlen)6, (ftnlen)1);
         nx = max(i__1, i__2);
         if (nx < minmn) {
-            ws = (*m + *n) * nb;
+            ws = lwkopt;
             if (*lwork < ws) {
                 nbmin = ilaenv_(&c__2, (char *)"DGEBRD", (char *)" ", m, n, &c_n1, &c_n1, (ftnlen)6, (ftnlen)1);
                 if (*lwork >= (*m + *n) * nbmin) {
@@ -95,14 +98,14 @@ int dgebrd_(integer *m, integer *n, doublereal *a, integer *lda, doublereal *d__
                 &taup[i__], &work[1], &ldwrkx, &work[ldwrkx * nb + 1], &ldwrky);
         i__3 = *m - i__ - nb + 1;
         i__4 = *n - i__ - nb + 1;
-        dgemm_((char *)"No transpose", (char *)"Transpose", &i__3, &i__4, &nb, &c_b21, &a[i__ + nb + i__ * a_dim1],
-               lda, &work[ldwrkx * nb + nb + 1], &ldwrky, &c_b22,
-               &a[i__ + nb + (i__ + nb) * a_dim1], lda, (ftnlen)12, (ftnlen)9);
+        dgemm_((char *)"N", (char *)"T", &i__3, &i__4, &nb, &c_b21, &a[i__ + nb + i__ * a_dim1], lda,
+               &work[ldwrkx * nb + nb + 1], &ldwrky, &c_b22, &a[i__ + nb + (i__ + nb) * a_dim1],
+               lda, (ftnlen)1, (ftnlen)1);
         i__3 = *m - i__ - nb + 1;
         i__4 = *n - i__ - nb + 1;
-        dgemm_((char *)"No transpose", (char *)"No transpose", &i__3, &i__4, &nb, &c_b21, &work[nb + 1], &ldwrkx,
+        dgemm_((char *)"N", (char *)"N", &i__3, &i__4, &nb, &c_b21, &work[nb + 1], &ldwrkx,
                &a[i__ + (i__ + nb) * a_dim1], lda, &c_b22, &a[i__ + nb + (i__ + nb) * a_dim1], lda,
-               (ftnlen)12, (ftnlen)12);
+               (ftnlen)1, (ftnlen)1);
         if (*m >= *n) {
             i__3 = i__ + nb - 1;
             for (j = i__; j <= i__3; ++j) {

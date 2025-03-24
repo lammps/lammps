@@ -197,7 +197,7 @@ void test_sort_integer_overflow() {
   // array with two extrema in reverse order to expose integer overflow bug in
   // bin calculation
   T a[2]  = {Kokkos::Experimental::finite_max<T>::value,
-            Kokkos::Experimental::finite_min<T>::value};
+             Kokkos::Experimental::finite_min<T>::value};
   auto vd = Kokkos::create_mirror_view_and_copy(
       ExecutionSpace(), Kokkos::View<T[2], Kokkos::HostSpace>(a));
   Kokkos::sort(vd);
@@ -209,6 +209,10 @@ void test_sort_integer_overflow() {
 }  // namespace SortImpl
 
 TEST(TEST_CATEGORY, SortUnsignedValueType) {
+  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
+#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
+  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
+#endif
   using ExecutionSpace = TEST_EXECSPACE;
   using key_type       = unsigned;
   constexpr int N      = 171;
@@ -224,14 +228,19 @@ TEST(TEST_CATEGORY, SortUnsignedValueType) {
 }
 
 TEST(TEST_CATEGORY, SortEmptyView) {
+  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
+#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
+  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
+#endif
   using ExecutionSpace = TEST_EXECSPACE;
 
   // does not matter if we use int or something else
   Kokkos::View<int*, ExecutionSpace> v("v", 0);
 
+  // checking that it does not throw
   // TODO check the synchronous behavior of the calls below
-  ASSERT_NO_THROW(Kokkos::sort(ExecutionSpace(), v));
-  ASSERT_NO_THROW(Kokkos::sort(v));
+  Kokkos::sort(ExecutionSpace(), v);
+  Kokkos::sort(v);
 }
 
 }  // namespace Test

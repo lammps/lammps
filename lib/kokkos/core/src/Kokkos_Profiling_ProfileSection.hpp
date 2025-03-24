@@ -32,7 +32,7 @@ class [[nodiscard]] ProfilingSection {
   uint32_t sectionID;
 
  public:
-  ProfilingSection(ProfilingSection const&) = delete;
+  ProfilingSection(ProfilingSection const&)            = delete;
   ProfilingSection& operator=(ProfilingSection const&) = delete;
 
 #if defined(__has_cpp_attribute) && __has_cpp_attribute(nodiscard) >= 201907

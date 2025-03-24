@@ -258,7 +258,7 @@ void PairNMCutCoulLong::settings(int narg, char **arg)
 void PairNMCutCoulLong::coeff(int narg, char **arg)
 {
   if (narg < 6 || narg > 7)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -286,7 +286,7 @@ void PairNMCutCoulLong::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

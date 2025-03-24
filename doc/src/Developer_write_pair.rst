@@ -310,7 +310,7 @@ the constructor and the destructor.
 
 Pair styles are different from most classes in LAMMPS that define a
 "style", as their constructor only uses the LAMMPS class instance
-pointer as an argument, but **not** the command line arguments of the
+pointer as an argument, but **not** the arguments of the
 :doc:`pair_style command <pair_style>`.  Instead, those arguments are
 processed in the ``Pair::settings()`` function (or rather the version in
 the derived class).  The constructor is the place where global defaults
@@ -891,7 +891,7 @@ originally created from mixing or not).
 These data file output functions are only useful for true pair-wise
 additive potentials, where the potential parameters can be entered
 through *multiple* :doc:`pair_coeff commands <pair_coeff>`.  Pair styles
-that require a single "pair_coeff \* \*" command line are not compatible
+that require a single "pair_coeff \* \*" command are not compatible
 with reading their parameters from data files.  For pair styles like
 *born/gauss* that do support writing to data files, the potential
 parameters will be read from the data file, if present, and
@@ -1122,7 +1122,7 @@ once.  Thus, the ``coeff()`` function has to do three tasks, each of
 which is delegated to a function in the ``PairTersoff`` class:
 
 #. map elements to atom types.  Those follow the potential file name in the
-   command line arguments and are processed by the ``map_element2type()`` function.
+   command arguments and are processed by the ``map_element2type()`` function.
 #. read and parse the potential parameter file in the ``read_file()`` function.
 #. Build data structures where the original and derived parameters are
    indexed by all possible triples of atom types and thus can be looked
@@ -1356,8 +1356,8 @@ either 0 or 1.
 
 The ``morseflag`` variable defaults to 0 and is set to 1 in the
 ``PairAIREBOMorse::settings()`` function which is called by the
-:doc:`pair_style <pair_style>` command.  This function delegates
-all command line processing and setting of other parameters to the
+:doc:`pair_style <pair_style>` command.  This function delegates all
+command argument processing and setting of other parameters to the
 ``PairAIREBO::settings()`` function of the base class.
 
 .. code-block:: c++

@@ -21,7 +21,6 @@
 #include <Kokkos_Random.hpp>
 #include <utility>
 
-#ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
 namespace Test {
 template <class Scalar>
 std::pair<double, Scalar> custom_reduction_test(int N, int R) {
@@ -130,4 +129,3 @@ BENCHMARK(CustomReduction<double>)
     ->UseManualTime();
 
 }  // namespace Test
-#endif

@@ -24,9 +24,7 @@ if(MLIAP_ENABLE_PYTHON)
   if(NOT PKG_PYTHON)
     message(FATAL_ERROR "Must enable PYTHON package for including Python support in ML-IAP")
   endif()
-  if(Python_VERSION VERSION_LESS 3.6)
-    message(FATAL_ERROR "Python support in ML-IAP requires Python 3.6 or later")
-  endif()
+  # Python version check is in main CMakeLists.txt file
 
   set(MLIAP_BINARY_DIR ${CMAKE_BINARY_DIR}/cython)
   file(GLOB MLIAP_CYTHON_SRC CONFIGURE_DEPENDS ${LAMMPS_SOURCE_DIR}/ML-IAP/*.pyx)

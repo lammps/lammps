@@ -526,7 +526,8 @@ void ReadData::command(int narg, char **arg)
       if (tilt_flag) triclinic = 1;
     } else {
       if (xloxhi_flag || yloyhi_flag || zlozhi_flag || tilt_flag)
-        error->all(FLERR,"Read_data header cannot specify simulation box lo/hi/tilt and ABC vectors");
+        error->all(FLERR,
+                   "Read_data header cannot specify simulation box lo/hi/tilt and ABC vectors");
       triclinic = triclinic_general = 1;
     }
 
@@ -538,7 +539,8 @@ void ReadData::command(int narg, char **arg)
           error->all(FLERR, "Read_data zlo/zhi for 2d simulation must straddle 0.0");
       } else if (triclinic_general == 1) {
         if (cvec[0] != 0.0 || cvec[1] != 0.0 || cvec[2] != 1.0 || abc_origin[2] != -0.5)
-          error->all(FLERR,"Read_data cvec and/or abc_origin is invalid for "
+          error->all(FLERR,
+                     "Read_data cvec and/or abc_origin is invalid for "
                      "2d simulation with general triclinic box");
       }
     }
@@ -672,7 +674,8 @@ void ReadData::command(int narg, char **arg)
         int flag_all;
         MPI_Allreduce(&iflag, &flag_all, 1, MPI_INT, MPI_SUM, world);
         if ((flag_all > 0) && (comm->me == 0))
-          error->warning(FLERR, "Non-zero image flags with growing box can produce bad coordinates");
+          error->warning(FLERR,
+                         "Non-zero image flags with growing box can produce bad coordinates");
       }
     }
 
@@ -1170,7 +1173,8 @@ void ReadData::command(int narg, char **arg)
     bigint nblocal = atom->nlocal;
     MPI_Allreduce(&nblocal, &natoms, 1, MPI_LMP_BIGINT, MPI_SUM, world);
     if (natoms != atom->natoms)
-      error->all(FLERR, "Read_data shrink wrap did not assign all atoms correctly");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Read_data shrink wrap did not assign all atoms correctly" + utils::errorurl(16));
   }
 
   // restore old styles, when reading with nocoeff flag given
@@ -1559,7 +1563,8 @@ void ReadData::atoms()
 
   if (me == 0) utils::logmesg(lmp, "  {} atoms\n", nassign);
 
-  if (sum != atom->natoms) error->all(FLERR, "Did not assign all atoms correctly");
+  if (sum != atom->natoms)
+    error->all(FLERR, "Did not assign all atoms correctly" + utils::errorurl(16));
 
   // check that atom IDs are valid
 

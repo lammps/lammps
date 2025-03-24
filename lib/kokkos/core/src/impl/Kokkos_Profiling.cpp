@@ -78,8 +78,6 @@ namespace Tools {
 const std::string InitArguments::unset_string_option = {
     "kokkos_tools_impl_unset_option"};
 
-InitArguments tool_arguments;
-
 namespace Impl {
 void parse_command_line_arguments(int& argc, char* argv[],
                                   InitArguments& arguments) {

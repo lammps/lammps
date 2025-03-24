@@ -84,12 +84,12 @@ class Crs {
   /*
    * Default Constructors, operators and destructor
    */
-  KOKKOS_DEFAULTED_FUNCTION Crs()           = default;
-  KOKKOS_DEFAULTED_FUNCTION Crs(Crs const&) = default;
-  KOKKOS_DEFAULTED_FUNCTION Crs(Crs&&)      = default;
+  KOKKOS_DEFAULTED_FUNCTION Crs()                      = default;
+  KOKKOS_DEFAULTED_FUNCTION Crs(Crs const&)            = default;
+  KOKKOS_DEFAULTED_FUNCTION Crs(Crs&&)                 = default;
   KOKKOS_DEFAULTED_FUNCTION Crs& operator=(Crs const&) = default;
-  KOKKOS_DEFAULTED_FUNCTION Crs& operator=(Crs&&) = default;
-  KOKKOS_DEFAULTED_FUNCTION ~Crs()                = default;
+  KOKKOS_DEFAULTED_FUNCTION Crs& operator=(Crs&&)      = default;
+  KOKKOS_DEFAULTED_FUNCTION ~Crs()                     = default;
 
   /** \brief Assign to a view of the rhs array.
    *         If the old view is the last view
@@ -148,7 +148,7 @@ class GetCrsTransposeCounts {
 
  public:
   KOKKOS_INLINE_FUNCTION
-  void operator()(index_type i) const { atomic_increment(&out[in.entries(i)]); }
+  void operator()(index_type i) const { atomic_inc(&out[in.entries(i)]); }
   GetCrsTransposeCounts(InCrs const& arg_in, OutCounts const& arg_out)
       : in(arg_in), out(arg_out) {
     using policy_type  = RangePolicy<index_type, execution_space>;
@@ -345,7 +345,7 @@ struct CountAndFill : public CountAndFillBase<CrsType, Functor> {
       closure.execute();
     }
     auto nentries  = Kokkos::get_crs_row_map_from_counts(this->m_crs.row_map,
-                                                        this->m_counts);
+                                                         this->m_counts);
     this->m_counts = counts_type();
     this->m_crs.entries = entries_type("entries", nentries);
     {

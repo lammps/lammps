@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 ComputeVACF::ComputeVACF(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), id_fix(nullptr)
 {
-  if (narg < 3) error->all(FLERR, "Illegal compute vacf command");
+  if (narg > 3) error->all(FLERR, 3, "Compute vacf does not accept any arguments");
 
   vector_flag = 1;
   size_vector = 4;

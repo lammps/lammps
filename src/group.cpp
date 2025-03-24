@@ -1141,10 +1141,10 @@ void Group::xcm(int igroup, double masstotal, double *cm, Region *region)
 /* ----------------------------------------------------------------------
    compute the center-of-mass velocity of group of atoms
    masstotal = total mass
-   return center-of-mass velocity in cm[]
+   return center-of-mass velocity in vcm[]
 ------------------------------------------------------------------------- */
 
-void Group::vcm(int igroup, double masstotal, double *cm)
+void Group::vcm(int igroup, double masstotal, double *vcm)
 {
   int groupbit = bitmask[igroup];
 
@@ -1176,21 +1176,21 @@ void Group::vcm(int igroup, double masstotal, double *cm)
       }
   }
 
-  MPI_Allreduce(p, cm, 3, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(p, vcm, 3, MPI_DOUBLE, MPI_SUM, world);
   if (masstotal > 0.0) {
-    cm[0] /= masstotal;
-    cm[1] /= masstotal;
-    cm[2] /= masstotal;
+    vcm[0] /= masstotal;
+    vcm[1] /= masstotal;
+    vcm[2] /= masstotal;
   }
 }
 
 /* ----------------------------------------------------------------------
    compute the center-of-mass velocity of group of atoms in region
    masstotal = total mass
-   return center-of-mass velocity in cm[]
+   return center-of-mass velocity in vcm[]
 ------------------------------------------------------------------------- */
 
-void Group::vcm(int igroup, double masstotal, double *cm, Region *region)
+void Group::vcm(int igroup, double masstotal, double *vcm, Region *region)
 {
   int groupbit = bitmask[igroup];
   region->prematch();
@@ -1224,11 +1224,11 @@ void Group::vcm(int igroup, double masstotal, double *cm, Region *region)
       }
   }
 
-  MPI_Allreduce(p, cm, 3, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(p, vcm, 3, MPI_DOUBLE, MPI_SUM, world);
   if (masstotal > 0.0) {
-    cm[0] /= masstotal;
-    cm[1] /= masstotal;
-    cm[2] /= masstotal;
+    vcm[0] /= masstotal;
+    vcm[1] /= masstotal;
+    vcm[2] /= masstotal;
   }
 }
 
@@ -1236,7 +1236,7 @@ void Group::vcm(int igroup, double masstotal, double *cm, Region *region)
    compute the total force on group of atoms
 ------------------------------------------------------------------------- */
 
-void Group::fcm(int igroup, double *cm)
+void Group::fcm(int igroup, double *fcm)
 {
   int groupbit = bitmask[igroup];
 
@@ -1254,14 +1254,14 @@ void Group::fcm(int igroup, double *cm)
       flocal[2] += f[i][2];
     }
 
-  MPI_Allreduce(flocal, cm, 3, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(flocal, fcm, 3, MPI_DOUBLE, MPI_SUM, world);
 }
 
 /* ----------------------------------------------------------------------
    compute the total force on group of atoms in region
 ------------------------------------------------------------------------- */
 
-void Group::fcm(int igroup, double *cm, Region *region)
+void Group::fcm(int igroup, double *fcm, Region *region)
 {
   int groupbit = bitmask[igroup];
   region->prematch();
@@ -1281,7 +1281,7 @@ void Group::fcm(int igroup, double *cm, Region *region)
       flocal[2] += f[i][2];
     }
 
-  MPI_Allreduce(flocal, cm, 3, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(flocal, fcm, 3, MPI_DOUBLE, MPI_SUM, world);
 }
 
 /* ----------------------------------------------------------------------

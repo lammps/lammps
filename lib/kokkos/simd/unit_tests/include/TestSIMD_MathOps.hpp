@@ -261,8 +261,8 @@ KOKKOS_INLINE_FUNCTION void device_check_math_ops() {
 
     if constexpr (!std::is_integral_v<DataType>) {
       DataType const first_args[]  = {0.1,  0.4,  0.5, 0.7, 1.0,  1.5,
-                                     -2.0, 10.0, 0.0, 1.2, -2.8, 3.0,
-                                     4.0,  -0.1, 5.0, -0.2};
+                                      -2.0, 10.0, 0.0, 1.2, -2.8, 3.0,
+                                      4.0,  -0.1, 5.0, -0.2};
       DataType const second_args[] = {1.0,   0.2,  1.1,  1.8,  -0.1, -3.0,
                                       -2.4,  1.0,  13.0, -3.2, -2.1, 3.0,
                                       -15.0, -0.5, -0.2, -0.2};
@@ -270,13 +270,13 @@ KOKKOS_INLINE_FUNCTION void device_check_math_ops() {
     } else {
       if constexpr (std::is_signed_v<DataType>) {
         DataType const first_args[]  = {1, 2, -1, 10, 0, 1, -2, 10,
-                                       0, 1, -2, -3, 7, 4, -9, -15};
+                                        0, 1, -2, -3, 7, 4, -9, -15};
         DataType const second_args[] = {1,  2,  1,  1,  1,   -3, -2, 1,
                                         13, -3, -2, 10, -15, 7,  2,  -10};
         device_check_all_math_ops<Abi>(first_args, second_args);
       } else {
         DataType const first_args[]  = {1, 2, 1, 10, 0, 1, 2, 10,
-                                       0, 1, 2, 11, 5, 8, 2, 14};
+                                        0, 1, 2, 11, 5, 8, 2, 14};
         DataType const second_args[] = {1,  2, 1, 1, 1, 3,  2, 1,
                                         13, 3, 2, 3, 6, 20, 5, 14};
         device_check_all_math_ops<Abi>(first_args, second_args);
@@ -312,6 +312,13 @@ TEST(simd, host_math_ops) {
 
 TEST(simd, device_math_ops) {
 #ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET
+  GTEST_SKIP()
+      << "skipping because of a non-deterministic failure reporting: "
+         "Failure to synchronize stream (nil): Error in "
+         "cuStreamSynchronize: an illegal memory access was encountered";
+#endif
+#if defined(KOKKOS_ENABLE_OPENACC) && \
+    defined(KOKKOS_COMPILER_CLANG)  // FIXME_CLACC
   GTEST_SKIP()
       << "skipping because of a non-deterministic failure reporting: "
          "Failure to synchronize stream (nil): Error in "

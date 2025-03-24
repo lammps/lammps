@@ -23,8 +23,6 @@
 namespace Test {
 TEST(TEST_CATEGORY, init) { ; }
 
-#ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
-
 template <class ExecSpace>
 void test_dispatch() {
   const int repeat = 100;
@@ -37,6 +35,5 @@ void test_dispatch() {
 }
 
 TEST(TEST_CATEGORY, dispatch) { test_dispatch<TEST_EXECSPACE>(); }
-#endif
 
 }  // namespace Test

@@ -17,6 +17,15 @@
 #ifndef KOKKOS_IMPL_KOKKOS_PROFILING_HPP
 #define KOKKOS_IMPL_KOKKOS_PROFILING_HPP
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_PROFILING
+#endif
+
+#include <Kokkos_Core_fwd.hpp>
+#include <Kokkos_ExecPolicy.hpp>
+#include <Kokkos_Macros.hpp>
+#include <Kokkos_Tuners.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
 #include <memory>
 #include <iosfwd>
@@ -63,6 +72,11 @@ void parse_command_line_arguments(int& narg, char* arg[],
                                   InitArguments& arguments);
 Kokkos::Tools::Impl::InitializationStatus parse_environment_variables(
     InitArguments& arguments);
+
+template <typename PolicyType, typename Functor>
+struct ToolResponse {
+  PolicyType policy;
+};
 
 }  // namespace Impl
 
@@ -187,15 +201,6 @@ void profile_fence_event(const std::string& name, DirectFenceIDHandle devIDTag,
   Kokkos::Tools::endFence(handle);
 }
 
-inline uint32_t int_for_synchronization_reason(
-    Kokkos::Tools::Experimental::SpecialSynchronizationCases reason) {
-  switch (reason) {
-    case GlobalDeviceSynchronization: return 0;
-    case DeepCopyResourceSynchronization: return 0x00ffffff;
-  }
-  return 0;
-}
-
 template <typename Space, typename FencingFunctor>
 void profile_fence_event(
     const std::string& name,
@@ -259,6 +264,8 @@ namespace Experimental {
 size_t get_new_context_id();
 size_t get_current_context_id();
 }  // namespace Experimental
+
+namespace Impl {}  // namespace Impl
 
 }  // namespace Tools
 namespace Profiling {
@@ -374,5 +381,10 @@ size_t get_new_variable_id();
 }  // namespace Tools
 
 }  // namespace Kokkos
+
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_PROFILING
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_PROFILING
+#endif
 
 #endif

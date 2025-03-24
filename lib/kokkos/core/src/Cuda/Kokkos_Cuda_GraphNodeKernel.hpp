@@ -51,7 +51,8 @@ class GraphNodeKernelImpl<Kokkos::Cuda, PolicyType, Functor, PatternTag,
   Kokkos::ObservingRawPtr<cudaGraphNode_t> m_graph_node_ptr = nullptr;
   // Basically, we have to make this mutable for the same reasons that the
   // global kernel buffers in the Cuda instance are mutable...
-  mutable Kokkos::OwningRawPtr<base_t> m_driver_storage = nullptr;
+  mutable std::shared_ptr<base_t> m_driver_storage = nullptr;
+  std::string label;
 
  public:
   using Policy       = PolicyType;
@@ -61,25 +62,20 @@ class GraphNodeKernelImpl<Kokkos::Cuda, PolicyType, Functor, PatternTag,
   //      attached to the policy?
   // TODO @graph kernel name info propagation
   template <class PolicyDeduced, class... ArgsDeduced>
-  GraphNodeKernelImpl(std::string, Kokkos::Cuda const&, Functor arg_functor,
+  GraphNodeKernelImpl(std::string label_, Cuda const&, Functor arg_functor,
                       PolicyDeduced&& arg_policy, ArgsDeduced&&... args)
       // This is super ugly, but it works for now and is the most minimal change
       // to the codebase for now...
-      : base_t(std::move(arg_functor), (PolicyDeduced &&) arg_policy,
-               (ArgsDeduced &&) args...) {}
+      : base_t(std::move(arg_functor), (PolicyDeduced&&)arg_policy,
+               (ArgsDeduced&&)args...),
+        label(std::move(label_)) {}
 
   // FIXME @graph Forward through the instance once that works in the backends
   template <class PolicyDeduced>
   GraphNodeKernelImpl(Kokkos::Cuda const& ex, Functor arg_functor,
                       PolicyDeduced&& arg_policy)
-      : GraphNodeKernelImpl("", ex, std::move(arg_functor),
-                            (PolicyDeduced &&) arg_policy) {}
-
-  ~GraphNodeKernelImpl() {
-    if (m_driver_storage) {
-      Kokkos::CudaSpace().deallocate(m_driver_storage, sizeof(base_t));
-    }
-  }
+      : GraphNodeKernelImpl("[unlabeled]", ex, std::move(arg_functor),
+                            (PolicyDeduced&&)arg_policy) {}
 
   void set_cuda_graph_ptr(cudaGraph_t* arg_graph_ptr) {
     m_graph_ptr = arg_graph_ptr;
@@ -90,13 +86,21 @@ class GraphNodeKernelImpl<Kokkos::Cuda, PolicyType, Functor, PatternTag,
   cudaGraphNode_t* get_cuda_graph_node_ptr() const { return m_graph_node_ptr; }
   cudaGraph_t const* get_cuda_graph_ptr() const { return m_graph_ptr; }
 
-  Kokkos::ObservingRawPtr<base_t> allocate_driver_memory_buffer() const {
+  Kokkos::ObservingRawPtr<base_t> allocate_driver_memory_buffer(
+      const CudaSpace& mem) const {
     KOKKOS_EXPECTS(m_driver_storage == nullptr)
-    m_driver_storage = static_cast<base_t*>(Kokkos::CudaSpace().allocate(
-        "GraphNodeKernel global memory functor storage", sizeof(base_t)));
+    std::string alloc_label =
+        label + " - GraphNodeKernel global memory functor storage";
+    m_driver_storage = std::shared_ptr<base_t>(
+        static_cast<base_t*>(mem.allocate(alloc_label.c_str(), sizeof(base_t))),
+        [alloc_label, mem](base_t* ptr) {
+          mem.deallocate(alloc_label.c_str(), ptr, sizeof(base_t));
+        });
     KOKKOS_ENSURES(m_driver_storage != nullptr)
-    return m_driver_storage;
+    return m_driver_storage.get();
   }
+
+  auto get_driver_storage() const { return m_driver_storage; }
 };
 
 struct CudaGraphNodeAggregateKernel {
@@ -128,7 +132,8 @@ struct get_graph_node_kernel_type<KernelType, Kokkos::ParallelReduceTag>
 // <editor-fold desc="get_cuda_graph_*() helper functions"> {{{1
 
 template <class KernelType>
-auto* allocate_driver_storage_for_kernel(KernelType const& kernel) {
+auto* allocate_driver_storage_for_kernel(const CudaSpace& mem,
+                                         KernelType const& kernel) {
   using graph_node_kernel_t =
       typename get_graph_node_kernel_type<KernelType>::type;
   auto const& kernel_as_graph_kernel =
@@ -136,7 +141,7 @@ auto* allocate_driver_storage_for_kernel(KernelType const& kernel) {
   // TODO @graphs we need to somehow indicate the need for a fence in the
   //              destructor of the GraphImpl object (so that we don't have to
   //              just always do it)
-  return kernel_as_graph_kernel.allocate_driver_memory_buffer();
+  return kernel_as_graph_kernel.allocate_driver_memory_buffer(mem);
 }
 
 template <class KernelType>

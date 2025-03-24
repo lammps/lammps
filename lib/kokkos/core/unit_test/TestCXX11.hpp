@@ -87,7 +87,6 @@ double AddTestFunctor() {
   return result;
 }
 
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
 template <class DeviceType, bool PWRTest>
 double AddTestLambda() {
   Kokkos::View<double**, DeviceType> a("A", 100, 5);
@@ -144,12 +143,6 @@ double AddTestLambda() {
 
   return result;
 }
-#else
-template <class DeviceType, bool PWRTest>
-double AddTestLambda() {
-  return AddTestFunctor<DeviceType, PWRTest>();
-}
-#endif
 
 template <class DeviceType>
 struct FunctorReduceTest {
@@ -224,7 +217,6 @@ double ReduceTestFunctor() {
   return result;
 }
 
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
 template <class DeviceType, bool PWRTest>
 double ReduceTestLambda() {
   using policy_type = Kokkos::TeamPolicy<DeviceType>;
@@ -277,12 +269,6 @@ double ReduceTestLambda() {
 
   return result;
 }
-#else
-template <class DeviceType, bool PWRTest>
-double ReduceTestLambda() {
-  return ReduceTestFunctor<DeviceType, PWRTest>();
-}
-#endif
 
 template <class DeviceType>
 double TestVariantLambda(int test) {
@@ -310,7 +296,6 @@ double TestVariantFunctor(int test) {
 
 template <class DeviceType>
 bool Test(int test) {
-#ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
   double res_functor = TestVariantFunctor<DeviceType>(test);
   double res_lambda  = TestVariantLambda<DeviceType>(test);
 
@@ -333,17 +318,13 @@ bool Test(int test) {
   }
 
   return passed;
-#else
-  (void)test;
-  return true;
-#endif
 }
 
 }  // namespace TestCXX11
 
 namespace Test {
 TEST(TEST_CATEGORY, cxx11) {
-  if (std::is_same<Kokkos::DefaultExecutionSpace, TEST_EXECSPACE>::value) {
+  if (std::is_same_v<Kokkos::DefaultExecutionSpace, TEST_EXECSPACE>) {
     ASSERT_TRUE((TestCXX11::Test<TEST_EXECSPACE>(1)));
     ASSERT_TRUE((TestCXX11::Test<TEST_EXECSPACE>(2)));
     ASSERT_TRUE((TestCXX11::Test<TEST_EXECSPACE>(3)));

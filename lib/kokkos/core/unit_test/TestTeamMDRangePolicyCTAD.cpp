@@ -142,8 +142,8 @@ struct TestThreadVectorMDRangeCTAD {
   using TeamHandle = TeamPolicy::member_type;
 
   template <class PolicyTypeExpected, class PolicyTypeToCheck>
-  KOKKOS_FUNCTION static void check_types([
-      [maybe_unused]] PolicyTypeToCheck const& team_handle) {
+  KOKKOS_FUNCTION static void check_types(
+      [[maybe_unused]] PolicyTypeToCheck const& team_handle) {
     static_assert(std::is_same_v<PolicyTypeExpected, PolicyTypeToCheck>);
   }
 

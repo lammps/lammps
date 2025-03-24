@@ -4,7 +4,7 @@ LAMMPS Class
 The LAMMPS class is encapsulating an MD simulation state and thus it is
 the class that needs to be created when starting a new simulation system
 state.  The LAMMPS executable essentially creates one instance of this
-class and passes the command line flags and tells it to process the
+class and passes the command-line flags and tells it to process the
 provided input (a file or ``stdin``).  It shuts the class down when
 control is returned to it and then exits.  When using LAMMPS as a
 library from another code it is required to create an instance of this

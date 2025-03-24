@@ -101,9 +101,9 @@ class SharedAllocationRecord<void, void> {
   int m_count;
   std::string m_label;
 
-  SharedAllocationRecord(SharedAllocationRecord&&)      = delete;
-  SharedAllocationRecord(const SharedAllocationRecord&) = delete;
-  SharedAllocationRecord& operator=(SharedAllocationRecord&&) = delete;
+  SharedAllocationRecord(SharedAllocationRecord&&)                 = delete;
+  SharedAllocationRecord(const SharedAllocationRecord&)            = delete;
+  SharedAllocationRecord& operator=(SharedAllocationRecord&&)      = delete;
   SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;
 
   /**\brief  Construct and insert into 'arg_root' tracking set.
@@ -266,7 +266,7 @@ class SharedAllocationRecordCommon : public SharedAllocationRecord<void, void> {
   /**\brief  Deallocate tracked memory in the space */
   static void* reallocate_tracked(void* arg_alloc_ptr, size_t arg_alloc_size);
   static auto get_record(void* alloc_ptr) -> derived_t*;
-  std::string get_label() const;
+  std::string get_label() const override;
   static void print_records(std::ostream& s, MemorySpace const&,
                             bool detail = false);
 };
@@ -330,7 +330,7 @@ class HostInaccessibleSharedAllocationRecordCommon
   static void print_records(std::ostream& s, MemorySpace const&,
                             bool detail = false);
   static auto get_record(void* alloc_ptr) -> derived_t*;
-  std::string get_label() const;
+  std::string get_label() const override;
 };
 
 #ifdef KOKKOS_ENABLE_DEBUG
@@ -418,8 +418,8 @@ class SharedAllocationRecord
             &Kokkos::Impl::deallocate<MemorySpace, DestroyFunctor>),
         m_destroy() {}
 
-  SharedAllocationRecord()                              = delete;
-  SharedAllocationRecord(const SharedAllocationRecord&) = delete;
+  SharedAllocationRecord()                                         = delete;
+  SharedAllocationRecord(const SharedAllocationRecord&)            = delete;
   SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;
 
  public:
@@ -501,8 +501,8 @@ union SharedAllocationTracker {
   }
 
   template <class MemorySpace>
-  constexpr SharedAllocationRecord<MemorySpace, void>* get_record() const
-      noexcept {
+  constexpr SharedAllocationRecord<MemorySpace, void>* get_record()
+      const noexcept {
     return (m_record_bits & DO_NOT_DEREF_FLAG)
                ? nullptr
                : static_cast<SharedAllocationRecord<MemorySpace, void>*>(

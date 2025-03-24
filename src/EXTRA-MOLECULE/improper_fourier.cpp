@@ -261,7 +261,7 @@ void ImproperFourier::allocate()
 void ImproperFourier::coeff(int narg, char **arg)
 {
 
-  if (narg != 5 && narg != 6) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (narg != 5 && narg != 6) error->all(FLERR,"Incorrect args for improper coefficients" + utils::errorurl(21));
 
   if (!allocated) allocate();
 
@@ -288,7 +288,7 @@ void ImproperFourier::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

@@ -43,8 +43,8 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, HIP> {
   const Policy m_policy;
 
  public:
-  ParallelFor()                   = delete;
-  ParallelFor(ParallelFor const&) = default;
+  ParallelFor()                              = delete;
+  ParallelFor(ParallelFor const&)            = default;
   ParallelFor& operator=(ParallelFor const&) = delete;
 
   inline __device__ void operator()() const {
@@ -57,7 +57,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, HIP> {
   inline void execute() const {
     using ClosureType = ParallelFor<FunctorType, Policy, HIP>;
     if (m_policy.m_num_tiles == 0) return;
-    auto const maxblocks = hip_internal_maximum_grid_count();
+    auto const maxblocks = m_policy.space().hip_device_prop().maxGridSize;
     if (Policy::rank == 2) {
       dim3 const block(m_policy.m_tile[0], m_policy.m_tile[1], 1);
       dim3 const grid(

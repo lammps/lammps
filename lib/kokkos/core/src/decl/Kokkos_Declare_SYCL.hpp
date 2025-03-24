@@ -35,6 +35,16 @@
 #include <SYCL/Kokkos_SYCL_ParallelScan_Range.hpp>
 #include <SYCL/Kokkos_SYCL_UniqueToken.hpp>
 #include <SYCL/Kokkos_SYCL_ZeroMemset.hpp>
+
+namespace Kokkos {
+namespace Experimental {
+using SYCLDeviceUSMSpace = ::Kokkos::SYCLDeviceUSMSpace;
+using SYCLHostUSMSpace   = ::Kokkos::SYCLHostUSMSpace;
+using SYCLSharedUSMSpace = ::Kokkos::SYCLSharedUSMSpace;
+using SYCL               = ::Kokkos::SYCL;
+}  // namespace Experimental
+}  // namespace Kokkos
+
 #endif
 
 #endif

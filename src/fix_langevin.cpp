@@ -191,6 +191,8 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
 
 FixLangevin::~FixLangevin()
 {
+  if (copymode) return;
+
   delete random;
   delete[] tstr;
   delete[] gfactor1;
@@ -222,6 +224,16 @@ int FixLangevin::setmask()
 
 void FixLangevin::init()
 {
+  if (id_temp) {
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature) {
+      error->all(FLERR, "Temperature compute ID {} for fix {} does not exist", id_temp, style);
+    } else {
+      if (temperature->tempflag == 0)
+        error->all(FLERR, "Compute ID {} for fix {} does not compute temperature", id_temp, style);
+    }
+  }
+
   if (gjfflag) {
     // warn if any integrate fix comes after this one
     int after = 1;
@@ -500,11 +512,23 @@ void FixLangevin::post_force(int /*vflag*/)
           if (zeroflag) post_force_templated<1,0,0,0,1>();
           else          post_force_templated<1,0,0,0,0>();
   else
+<<<<<<< HEAD
     if (tallyflag)
       if (tbiasflag == BIAS)
         if (rmass)
           if (zeroflag) post_force_templated<0,1,1,1,1>();
           else          post_force_templated<0,1,1,1,0>();
+=======
+    if (gjfflag)
+      if (tallyflag || osflag)
+        if (tbiasflag == BIAS)
+          if (rmass)
+            if (zeroflag) post_force_templated<0,1,1,1,1,1>();
+            else          post_force_templated<0,1,1,1,1,0>();
+          else
+            if (zeroflag) post_force_templated<0,1,1,1,0,1>();
+            else          post_force_templated<0,1,1,1,0,0>();
+>>>>>>> adaa313990e55aeda3f2be3b716a6a8f7d3b4c53
         else
           if (zeroflag) post_force_templated<0,1,1,0,1>();
           else          post_force_templated<0,1,1,0,0>();

@@ -32,30 +32,29 @@ namespace Impl {
 
 template <typename PolicyType, typename Functor, typename PatternTag,
           typename... Args>
-class GraphNodeKernelImpl<Kokkos::Experimental::SYCL, PolicyType, Functor,
-                          PatternTag, Args...>
-    : public PatternImplSpecializationFromTag<
-          PatternTag, Functor, PolicyType, Args...,
-          Kokkos::Experimental::SYCL>::type {
+class GraphNodeKernelImpl<Kokkos::SYCL, PolicyType, Functor, PatternTag,
+                          Args...>
+    : public PatternImplSpecializationFromTag<PatternTag, Functor, PolicyType,
+                                              Args..., Kokkos::SYCL>::type {
  public:
   using Policy       = PolicyType;
   using graph_kernel = GraphNodeKernelImpl;
-  using base_t       = typename PatternImplSpecializationFromTag<
-      PatternTag, Functor, Policy, Args..., Kokkos::Experimental::SYCL>::type;
+  using base_t =
+      typename PatternImplSpecializationFromTag<PatternTag, Functor, Policy,
+                                                Args..., Kokkos::SYCL>::type;
 
   // TODO use the name and executionspace
   template <typename PolicyDeduced, typename... ArgsDeduced>
-  GraphNodeKernelImpl(std::string, Kokkos::Experimental::SYCL const&,
-                      Functor arg_functor, PolicyDeduced&& arg_policy,
-                      ArgsDeduced&&... args)
-      : base_t(std::move(arg_functor), (PolicyDeduced &&) arg_policy,
-               (ArgsDeduced &&) args...) {}
+  GraphNodeKernelImpl(std::string, Kokkos::SYCL const&, Functor arg_functor,
+                      PolicyDeduced&& arg_policy, ArgsDeduced&&... args)
+      : base_t(std::move(arg_functor), (PolicyDeduced&&)arg_policy,
+               (ArgsDeduced&&)args...) {}
 
   template <typename PolicyDeduced>
-  GraphNodeKernelImpl(Kokkos::Experimental::SYCL const& exec_space,
-                      Functor arg_functor, PolicyDeduced&& arg_policy)
+  GraphNodeKernelImpl(Kokkos::SYCL const& exec_space, Functor arg_functor,
+                      PolicyDeduced&& arg_policy)
       : GraphNodeKernelImpl("", exec_space, std::move(arg_functor),
-                            (PolicyDeduced &&) arg_policy) {}
+                            (PolicyDeduced&&)arg_policy) {}
 
   void set_sycl_graph_ptr(
       sycl::ext::oneapi::experimental::command_graph<
@@ -102,14 +101,14 @@ template <typename KernelType,
           typename Tag =
               typename PatternTagFromImplSpecialization<KernelType>::type>
 struct get_graph_node_kernel_type
-    : type_identity<GraphNodeKernelImpl<
-          Kokkos::Experimental::SYCL, typename KernelType::Policy,
-          typename KernelType::functor_type, Tag>> {};
+    : type_identity<
+          GraphNodeKernelImpl<Kokkos::SYCL, typename KernelType::Policy,
+                              typename KernelType::functor_type, Tag>> {};
 
 template <typename KernelType>
 struct get_graph_node_kernel_type<KernelType, Kokkos::ParallelReduceTag>
     : type_identity<GraphNodeKernelImpl<
-          Kokkos::Experimental::SYCL, typename KernelType::Policy,
+          Kokkos::SYCL, typename KernelType::Policy,
           CombinedFunctorReducer<typename KernelType::FunctorType,
                                  typename KernelType::ReducerType>,
           Kokkos::ParallelReduceTag>> {};

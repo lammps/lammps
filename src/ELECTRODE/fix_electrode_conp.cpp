@@ -1363,10 +1363,10 @@ int FixElectrodeConp::setmask()
 void FixElectrodeConp::write_to_file(FILE *file, const std::vector<tagint> &tags,
                                      const std::vector<std::vector<double>> &mat)
 {
-  for (const auto &t : tags) fmt::print(file, "{:20}", t);
+  for (const auto &t : tags) utils::print(file, "{:20}", t);
   fputs("\n", file);
   for (const auto &vec : mat) {
-    for (const auto &x : vec) fmt::print(file, "{:20.11e}", x);
+    for (const auto &x : vec) utils::print(file, "{:20.11e}", x);
     fputs("\n", file);
   }
 }

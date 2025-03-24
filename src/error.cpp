@@ -69,7 +69,7 @@ void Error::universe_all(const std::string &file, int line, const std::string &s
   if (universe->ulogfile) fclose(universe->ulogfile);
 
   // allow commands if an exception was caught in a run
-  // update may be a null pointer when catching command line errors
+  // update may be a null pointer when catching command-line errors
 
   if (update) update->whichflag = 0;
   throw LAMMPSException(mesg);
@@ -85,9 +85,10 @@ void Error::universe_one(const std::string &file, int line, const std::string &s
   std::string mesg = fmt::format("ERROR on proc {}: {} ({}:{})\n",
                                  universe->me,str,truncpath(file),line);
   if (universe->uscreen) fputs(mesg.c_str(),universe->uscreen);
+  utils::flush_buffers(lmp);
 
   // allow commands if an exception was caught in a run
-  // update may be a null pointer when catching command line errors
+  // update may be a null pointer when catching command-line errors
 
   if (update) update->whichflag = 0;
   throw LAMMPSAbortException(mesg, universe->uworld);
@@ -103,7 +104,7 @@ void Error::universe_warn(const std::string &file, int line, const std::string &
   ++numwarn;
   if ((maxwarn != 0) && ((numwarn > maxwarn) || (allwarn > maxwarn) || (maxwarn < 0))) return;
   if (universe->uscreen)
-    fmt::print(universe->uscreen,"WARNING on proc {}: {} ({}:{})\n",
+    utils::print(universe->uscreen,"WARNING on proc {}: {} ({}:{})\n",
                universe->me,str,truncpath(file),line);
 }
 
@@ -114,37 +115,34 @@ void Error::universe_warn(const std::string &file, int line, const std::string &
    force MPI_Abort if running in multi-partition mode
 ------------------------------------------------------------------------- */
 
-void Error::all(const std::string &file, int line, const std::string &str)
+void Error::all(const std::string &file, int line, int failed, const std::string &str)
 {
   MPI_Barrier(world);
 
-  int me;
+  // must get rank from communicator since "comm" instance may not yet exist
+
+  int me = 0;
+  MPI_Comm_rank(world, &me);
+
   std::string lastcmd = "(unknown)";
+  std::string mesg = "ERROR: " + str + fmt::format(" ({}:{})\n",  truncpath(file), line);
 
-  MPI_Comm_rank(world,&me);
+  // add text about the input following the error message
 
-  if (me == 0) {
-    std::string mesg = "ERROR: " + str;
-    if (input && input->line) lastcmd = input->line;
-    try {
-      mesg += fmt::format(" ({}:{})\nLast command: {}\n", truncpath(file),line,lastcmd);
-    } catch (fmt::format_error &) {
-      ; // do nothing
-    }
-    utils::logmesg(lmp,mesg);
-  }
+  if (failed > NOLASTLINE) mesg += utils::point_to_error(input, failed);
+  if (failed == ARGZERO) mesg += utils::point_to_error(input, 0);
+  if (me == 0) utils::logmesg(lmp,mesg);
+  utils::flush_buffers(lmp);
 
   // allow commands if an exception was caught in a run
-  // update may be a null pointer when catching command line errors
+  // update may be a null pointer when catching command-line errors
 
   if (update) update->whichflag = 0;
 
-  std::string msg = fmt::format("ERROR: {} ({}:{})\n", str, truncpath(file), line);
-
   if (universe->nworlds > 1)
-    throw LAMMPSAbortException(msg, universe->uworld);
+    throw LAMMPSAbortException(mesg, universe->uworld);
   else
-    throw LAMMPSException(msg);
+    throw LAMMPSException(mesg);
 }
 
 /* ----------------------------------------------------------------------
@@ -154,50 +152,54 @@ void Error::all(const std::string &file, int line, const std::string &str)
    forces abort of entire world (and universe) if any proc in world calls
 ------------------------------------------------------------------------- */
 
-void Error::one(const std::string &file, int line, const std::string &str)
+void Error::one(const std::string &file, int line, int failed, const std::string &str)
 {
-  int me;
   std::string lastcmd = "(unknown)";
-  MPI_Comm_rank(world,&me);
 
-  if (input && input->line) lastcmd = input->line;
-  std::string mesg = fmt::format("ERROR on proc {}: {} ({}:{})\nLast command: {}\n",
-                                 me,str,truncpath(file),line,lastcmd);
+  // must get rank from communicator since "comm" instance may not yet exist
+
+  int me = 0;
+  MPI_Comm_rank(world, &me);
+
+  std::string mesg = fmt::format("ERROR on proc {}: {} ({}:{})\n", me, str, truncpath(file), line);
+  if (failed > NOPOINTER) mesg += utils::point_to_error(input, failed);
+  if (failed == ARGZERO) mesg += utils::point_to_error(input, 0);
   utils::logmesg(lmp,mesg);
 
   if (universe->nworlds > 1)
     if (universe->uscreen)
       fputs(mesg.c_str(),universe->uscreen);
 
+  utils::flush_buffers(lmp);
   // allow commands if an exception was caught in a run
-  // update may be a null pointer when catching command line errors
+  // update may be a null pointer when catching command-line errors
 
   if (update) update->whichflag = 0;
   throw LAMMPSAbortException(mesg, world);
 }
 
 /* ----------------------------------------------------------------------
-   forward vararg version to single string version
+   forward vararg versions to single string version
 ------------------------------------------------------------------------- */
 
-void Error::_all(const std::string &file, int line, fmt::string_view format,
+void Error::_all(const std::string &file, int line, int failed, fmt::string_view format,
                  fmt::format_args args)
 {
   try {
-    all(file,line,fmt::vformat(format, args));
+    all(file, line, failed, fmt::vformat(format, args));
   } catch (fmt::format_error &e) {
-    all(file,line,e.what());
+    all(file, line, NOPOINTER, e.what());
   }
   exit(1); // to trick "smart" compilers into believing this does not return
 }
 
-void Error::_one(const std::string &file, int line, fmt::string_view format,
+void Error::_one(const std::string &file, int line, int failed, fmt::string_view format,
                  fmt::format_args args)
 {
   try {
-    one(file,line,fmt::vformat(format, args));
+    one(file, line, failed, fmt::vformat(format, args));
   } catch (fmt::format_error &e) {
-    one(file,line,e.what());
+    one(file, line, NOPOINTER, e.what());
   }
   exit(1); // to trick "smart" compilers into believing this does not return
 }
@@ -267,6 +269,7 @@ void Error::_message(const std::string &file, int line, fmt::string_view format,
 
 void Error::done(int status)
 {
+  utils::flush_buffers(lmp);
   MPI_Barrier(world);
 
   if (output) delete output;

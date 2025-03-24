@@ -11,7 +11,7 @@ Syntax
    neighbor skin style
 
 * skin = extra distance beyond force cutoff (distance units)
-* style = *bin* or *nsq* or *multi* or *multi/old*
+* style = *bin* or *nsq* or *multi*
 
 Examples
 """"""""
@@ -82,16 +82,6 @@ for how to define custom collections. Whether the collection definition
 is customized or not, also see the :doc:`comm_modify mode multi
 <comm_modify>` command for communication options that further improve
 performance in a manner consistent with neighbor style multi.
-
-An alternate style, *multi/old*, sets the bin size to 1/2 of the shortest
-cutoff distance and multiple sets of bins are defined to search over for
-different atom types. This algorithm used to be the default *multi*
-algorithm in LAMMPS but was found to be significantly slower than the new
-approach. For the dense binary system, computational costs still grew as
-:math:`\lambda^{2d}` at large enough :math:`\lambda`. This is equivalent
-to the default style, albeit with a smaller prefactor. For now we are
-keeping the old option in case there are use cases where multi/old
-outperforms the new multi style.
 
 .. note::
 

@@ -84,10 +84,10 @@ energy after) and that difference may be smaller than machine epsilon
 even if atoms could move in the gradient direction to reduce forces
 further.
 
-The choice of a norm can be modified for the min styles *cg*, *sd*\
-, *quickmin*, *fire*, *fire/old*, *spin*, *spin/cg* and
-*spin/lbfgs* using the *norm* keyword.  The default *two* norm computes
-the 2-norm (Euclidean length) of the global force vector:
+The choice of a norm can be modified for the min styles *cg*, *sd*,
+*quickmin*, *fire*, *spin*, *spin/cg*, and *spin/lbfgs* using the
+*norm* keyword.  The default *two* norm computes the 2-norm
+(Euclidean length) of the global force vector:
 
 .. math::
     || \vec{F} ||_{2} = \sqrt{\vec{F}_1^2+ \cdots + \vec{F}_N^2}
@@ -98,14 +98,14 @@ all atoms
 
 .. math::
 
-   || \vec{F} ||_{max} = {\rm max}\left(||\vec{F}_1||, \cdots, ||\vec{F}_N||\right)
+   || \vec{F} ||_{max} = \mathrm{max}\left(||\vec{F}_1||, \cdots, ||\vec{F}_N||\right)
 
 The *inf* norm takes the maximum component across the forces of
 all atoms in the system:
 
 .. math::
 
-   || \vec{F} ||_{inf} = {\rm max}\left(|F_1^1|, |F_1^2|, |F_1^3| \cdots, |F_N^1|, |F_N^2|, |F_N^3|\right)
+   || \vec{F} ||_{inf} = \mathrm{max}\left(|F_1^1|, |F_1^2|, |F_1^3| \cdots, |F_N^1|, |F_N^2|, |F_N^3|\right)
 
 For the min styles *spin*, *spin/cg* and *spin/lbfgs*, the force
 norm is replaced by the spin-torque norm.
@@ -160,9 +160,9 @@ that modifies the bias and scaling of the velocities of the atoms during
 the mixing step :ref:`(Echeverri Restrepo) <EcheverriRestrepo>`.  This
 can lead to faster convergence of the minimizer.
 
-The :doc:`min_style <min_style>` *fire* is an optimized implementation of
-:doc:`min_style <min_style>` *fire/old*. It can however behave similarly
-to the *fire/old* style by using the following set of parameters:
+The :doc:`min_style <min_style>` *fire* is an optimized implementation.
+It can behave similarly to the previous version by using the following
+set of parameters:
 
 .. code-block:: LAMMPS
 

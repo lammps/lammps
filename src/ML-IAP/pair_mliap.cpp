@@ -226,7 +226,7 @@ void PairMLIAP::settings(int narg, char ** arg)
 
 void PairMLIAP::coeff(int narg, char **arg)
 {
-  if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   char** elemtypes = &arg[2];
@@ -245,7 +245,7 @@ void PairMLIAP::coeff(int narg, char **arg)
     if (jelem < descriptor->nelements)
       map[i] = jelem;
     else if (strcmp(elemname,"NULL") == 0) map[i] = -1;
-    else error->all(FLERR,"Incorrect args for pair coefficients");
+    else error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   }
 
   // clear setflag since coeff() called once with I,J = * *
@@ -265,7 +265,7 @@ void PairMLIAP::coeff(int narg, char **arg)
         count++;
       }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   // set up model, descriptor, and mliap data structures
 

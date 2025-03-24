@@ -123,8 +123,8 @@ KOKKOS_INLINE_FUNCTION constexpr char *strncat(char *dest, const char *src,
 template <class Unsigned>
 KOKKOS_FUNCTION constexpr unsigned int to_chars_len(Unsigned val) {
   unsigned int const base = 10;
-  static_assert(std::is_integral<Unsigned>::value, "implementation bug");
-  static_assert(std::is_unsigned<Unsigned>::value, "implementation bug");
+  static_assert(std::is_integral_v<Unsigned>, "implementation bug");
+  static_assert(std::is_unsigned_v<Unsigned>, "implementation bug");
   unsigned int n = 1;
   while (val >= base) {
     val /= base;
@@ -136,8 +136,8 @@ template <class Unsigned>
 KOKKOS_FUNCTION constexpr void to_chars_impl(char *first, unsigned int len,
                                              Unsigned val) {
   unsigned int const base = 10;
-  static_assert(std::is_integral<Unsigned>::value, "implementation bug");
-  static_assert(std::is_unsigned<Unsigned>::value, "implementation bug");
+  static_assert(std::is_integral_v<Unsigned>, "implementation bug");
+  static_assert(std::is_unsigned_v<Unsigned>, "implementation bug");
   unsigned int pos = len - 1;
   while (val > 0) {
     auto const num = val % base;
@@ -167,7 +167,7 @@ KOKKOS_FUNCTION constexpr to_chars_result to_chars_i(char *first, char *last,
   if (value == 0) {
     *first = '0';
     return {first + 1, {}};
-  } else if constexpr (std::is_signed<Integral>::value) {
+  } else if constexpr (std::is_signed_v<Integral>) {
     if (value < 0) {
       *first++     = '-';
       unsigned_val = Unsigned(~value) + Unsigned(1);

@@ -95,9 +95,9 @@ void PairSpinExchange::coeff(int narg, char **arg)
   // check if args correct
 
   if (strcmp(arg[2],"exchange") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if ((narg != 7) && (narg != 9))
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   int ilo,ihi,jlo,jhi;
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
@@ -117,7 +117,7 @@ void PairSpinExchange::coeff(int narg, char **arg)
     if (strcmp(arg[iarg],"offset") == 0) {
       e_offset = utils::logical(FLERR, arg[iarg+1], false, lmp);
       iarg += 2;
-    } else error->all(FLERR,"Incorrect args for pair coefficients");
+    } else error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   }
 
   int count = 0;

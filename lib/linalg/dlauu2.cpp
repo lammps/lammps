@@ -46,9 +46,9 @@ int dlauu2_(char *uplo, integer *n, doublereal *a, integer *lda, integer *info, 
                     ddot_(&i__2, &a[i__ + i__ * a_dim1], lda, &a[i__ + i__ * a_dim1], lda);
                 i__2 = i__ - 1;
                 i__3 = *n - i__;
-                dgemv_((char *)"No transpose", &i__2, &i__3, &c_b7, &a[(i__ + 1) * a_dim1 + 1], lda,
+                dgemv_((char *)"N", &i__2, &i__3, &c_b7, &a[(i__ + 1) * a_dim1 + 1], lda,
                        &a[i__ + (i__ + 1) * a_dim1], lda, &aii, &a[i__ * a_dim1 + 1], &c__1,
-                       (ftnlen)12);
+                       (ftnlen)1);
             } else {
                 dscal_(&i__, &aii, &a[i__ * a_dim1 + 1], &c__1);
             }
@@ -63,8 +63,8 @@ int dlauu2_(char *uplo, integer *n, doublereal *a, integer *lda, integer *info, 
                     ddot_(&i__2, &a[i__ + i__ * a_dim1], &c__1, &a[i__ + i__ * a_dim1], &c__1);
                 i__2 = *n - i__;
                 i__3 = i__ - 1;
-                dgemv_((char *)"Transpose", &i__2, &i__3, &c_b7, &a[i__ + 1 + a_dim1], lda,
-                       &a[i__ + 1 + i__ * a_dim1], &c__1, &aii, &a[i__ + a_dim1], lda, (ftnlen)9);
+                dgemv_((char *)"T", &i__2, &i__3, &c_b7, &a[i__ + 1 + a_dim1], lda,
+                       &a[i__ + 1 + i__ * a_dim1], &c__1, &aii, &a[i__ + a_dim1], lda, (ftnlen)1);
             } else {
                 dscal_(&i__, &aii, &a[i__ + a_dim1], lda);
             }

@@ -73,8 +73,6 @@ omp = re.compile("(.+)/omp\\s*$")
 opt = re.compile("(.+)/opt\\s*$")
 removed = re.compile("(.*)Deprecated$")
 
-accel_pattern = re.compile(r"^.. include::\s+accel_styles.rst$")
-
 def require_accel_include(path):
     found = False
     needs = False
@@ -94,6 +92,7 @@ def require_accel_include(path):
                 if kokkos.match(line): needs = True
                 if intel.match(line): needs = True
                 if opt.match(line): needs = True
+                if path == "src/fix_colvars.rst": needs = False
             m = cmd_pattern.match(line)
             if m:
                 if gpu.match(line): needs = True
@@ -167,7 +166,9 @@ def check_style(filename, dirname, pattern, styles, name, suffix=False, skip=set
         # known undocumented aliases we need to skip
         if c in skip: continue
         s = c
-        if suffix: s = add_suffix(styles, c)
+        if suffix:
+            s = add_suffix(styles, c)
+            if s == 'colvars (k)' : continue
         if not s in matches:
             if not styles[c]['removed']:
                 print(f"{name} style entry {s} is missing or incomplete in {filename}")
@@ -300,7 +301,7 @@ for command_type, entries in index.items():
 print("Total number of style index entries:", total_index)
 
 skip_angle = ('sdk')
-skip_fix = ('python', 'NEIGH_HISTORY/omp','acks2/reax','qeq/reax','reax/c/bonds','reax/c/species', 'pimd')
+skip_fix = ('python', 'NEIGH_HISTORY/omp','acks2/reax','qeq/reax','reax/c/bonds','reax/c/species', 'pimd', 'colvars/kk')
 skip_pair = ('meam/c','lj/sf','reax/c','lj/sdk','lj/sdk/coul/long','lj/sdk/coul/msm')
 skip_compute = ('pressure/cylinder')
 

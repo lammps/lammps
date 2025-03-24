@@ -310,20 +310,6 @@ When Kokkos is loaded by a downstream project, this TPL must be loaded.
 Calling this function simply appends text recording the location where the TPL was found
 and adding a `find_dependency(...)` call that will reload the CMake target.
 
-### The Great TriBITS Compromise
-
-TriBITS was a masterpiece of CMake version 2 before the modern CMake idioms of building and using.
-TriBITS greatly limited verbosity of CMake files, handled complicated dependency trees between packages, and handled automatically setting up include and linker paths for dependent libraries.
-
-Kokkos is now used by numerous projects that don't (and won't) depend on TriBITS for their build systems.
-Kokkos has to work outside of TriBITS and provide a standard CMake 3+ build system.
-At the same time, Kokkos is used by numerous projects that depend on TriBITS and don't (and won't) switch to a standard CMake 3+ build system.
-
-Instead of calling functions `TRIBITS_X(...)`, the CMake calls wrapper functions `KOKKOS_X(...)`.
-If TriBITS is available (as in Trilinos), `KOKKOS_X` will just be a thin wrapper around `TRIBITS_X`.
-If TriBITS is not available, Kokkos maps `KOKKOS_X` calls to native CMake that complies with CMake 3 idioms.
-For the time being, this seems the most sensible way to handle the competing requirements of a standalone modern CMake and TriBITS build system.
-
 ##### [LICENSE](https://github.com/kokkos/kokkos/blob/devel/LICENSE)
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)

@@ -60,13 +60,15 @@ static constexpr int MAXFUNCARG = 6;
 
 // must match enumerator in variable.h
 const std::vector<std::string> Variable::varstyles = {
-  "index", "loop", "world", "universe", "uloop", "string", "getenv",
-  "file", "atomfile", "format", "equal", "atom", "vector", "python",
-  "timer", "internal", "(unknown)"};
+    "index",  "loop",  "world", "universe", "uloop",  "string", "getenv",   "file",     "atomfile",
+    "format", "equal", "atom",  "vector",   "python", "timer",  "internal", "(unknown)"};
 
-static inline double MYROUND(double a) { return ((a - floor(a)) >= 0.5) ? ceil(a) : floor(a); }
+static inline double MYROUND(double a)
+{
+  return ((a - floor(a)) >= 0.5) ? ceil(a) : floor(a);
+}
 
-enum{ARG,OP};
+enum { ARG, OP };
 
 // customize by adding a function
 // if add before XOR:
@@ -77,20 +79,20 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
      SQRT,EXP,LN,LOG,ABS,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
      RANDOM,NORMAL,CEIL,FLOOR,ROUND,TERNARY,
      RAMP,STAGGER,LOGFREQ,LOGFREQ2,LOGFREQ3,STRIDE,STRIDE2,
-     VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,
+     VDISPLACE,SWIGGLE,CWIGGLE,SIGN,GMASK,RMASK,
      GRMASK,IS_ACTIVE,IS_DEFINED,IS_AVAILABLE,IS_FILE,EXTRACT_SETTING,
      VALUE,ATOMARRAY,TYPEARRAY,INTARRAY,BIGINTARRAY,VECTORARRAY};
 
 // customize by adding a special function
 
-enum{SUM,XMIN,XMAX,AVE,TRAP,SLOPE,SORT,RSORT,NOVECTOR};
+enum { SUM, XMIN, XMAX, AVE, TRAP, SLOPE, SORT, RSORT, NOVECTOR };
 
 static constexpr double BIG = 1.0e20;
 
 // INT64_MAX cannot be represented with a double. reduce to avoid overflow when casting back
 
 #if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
-static constexpr double MAXBIGINT_DOUBLE = (double) (MAXBIGINT-512);
+static constexpr double MAXBIGINT_DOUBLE = (double) (MAXBIGINT - 512);
 #else
 static constexpr double MAXBIGINT_DOUBLE = (double) MAXBIGINT;
 #endif
@@ -99,21 +101,14 @@ static constexpr double MAXBIGINT_DOUBLE = (double) MAXBIGINT;
 // if needed (cf. 'version') initialize in Variable class constructor.
 
 static std::unordered_map<std::string, double> constants = {
-  {"PI", MY_PI },
-  {"version", -1 },
-  {"yes", 1 },
-  {"no", 0 },
-  {"on", 1 },
-  {"off", 0 },
-  {"true", 1 },
-  {"false", 0 }
-};
+    {"PI", MY_PI}, {"version", -1}, {"yes", 1},  {"no", 0},
+    {"on", 1},     {"off", 0},      {"true", 1}, {"false", 0}};
 
 /* ---------------------------------------------------------------------- */
 
 Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
 {
-  MPI_Comm_rank(world,&me);
+  MPI_Comm_rank(world, &me);
 
   nvar = maxvar = 0;
   names = nullptr;
@@ -155,8 +150,10 @@ Variable::~Variable()
   for (int i = 0; i < nvar; i++) {
     delete[] names[i];
     delete reader[i];
-    if (style[i] == LOOP || style[i] == ULOOP) delete[] data[i][0];
-    else for (int j = 0; j < num[i]; j++) delete[] data[i][j];
+    if (style[i] == LOOP || style[i] == ULOOP)
+      delete[] data[i][0];
+    else
+      for (int j = 0; j < num[i]; j++) delete[] data[i][j];
     delete[] data[i];
     if (style[i] == VECTOR) memory->destroy(vecs[i].values);
   }
@@ -174,7 +171,6 @@ Variable::~Variable()
 
   delete randomequal;
   delete randomatom;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -190,16 +186,17 @@ void Variable::set(int narg, char **arg)
   // DELETE
   // doesn't matter if variable no longer exists
 
-  if (strcmp(arg[1],"delete") == 0) {
-    if (narg != 2)
-      error->all(FLERR,"Illegal variable delete command: expected 2 arguments but found {}", narg);
+  if (strcmp(arg[1], "delete") == 0) {
+    if (narg > 2)
+      error->all(FLERR, 2, "Illegal variable delete command: expected 2 arguments but found {}",
+                 narg);
     if (find(arg[0]) >= 0) remove(find(arg[0]));
     return;
 
-  // INDEX
-  // num = listed args, which = 1st value, data = copied args
+    // INDEX
+    // num = listed args, which = 1st value, data = copied args
 
-  } else if (strcmp(arg[1],"index") == 0) {
+  } else if (strcmp(arg[1], "index") == 0) {
     if (narg < 3) utils::missing_cmd_args(FLERR, "variable index", error);
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
@@ -207,129 +204,138 @@ void Variable::set(int narg, char **arg)
     num[nvar] = narg - 2;
     which[nvar] = 0;
     pad[nvar] = 0;
-    data[nvar] = new char*[num[nvar]];
-    copy(num[nvar],&arg[2],data[nvar]);
+    data[nvar] = new char *[num[nvar]];
+    copy(num[nvar], &arg[2], data[nvar]);
 
-  // LOOP
-  // 1 arg + pad: num = N, which = 1st value, data = single string
-  // 2 args + pad: num = N2, which = N1, data = single string
+    // LOOP
+    // 1 arg + pad: num = N, which = 1st value, data = single string
+    // 2 args + pad: num = N2, which = N1, data = single string
 
-  } else if (strcmp(arg[1],"loop") == 0) {
+  } else if (strcmp(arg[1], "loop") == 0) {
     if (narg < 3) utils::missing_cmd_args(FLERR, "variable loop", error);
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = LOOP;
-    int nfirst = 0,nlast = 0;
-    if (narg == 3 || (narg == 4 && strcmp(arg[3],"pad") == 0)) {
+    int nfirst = 0, nlast = 0;
+    if (narg == 3 || (narg == 4 && strcmp(arg[3], "pad") == 0)) {
       nfirst = 1;
-      nlast = utils::inumeric(FLERR,arg[2],false,lmp);
-      if (nlast <= 0) error->all(FLERR, "Invalid variable loop argument: {}", nlast);
-      if (narg == 4 && strcmp(arg[3],"pad") == 0) {
-        pad[nvar] = fmt::format("{}",nlast).size();
-      } else pad[nvar] = 0;
-    } else if (narg == 4 || (narg == 5 && strcmp(arg[4],"pad") == 0)) {
-      nfirst = utils::inumeric(FLERR,arg[2],false,lmp);
-      nlast = utils::inumeric(FLERR,arg[3],false,lmp);
+      nlast = utils::inumeric(FLERR, arg[2], false, lmp);
+      if (nlast <= 0) error->all(FLERR, 2, "Invalid variable loop argument: {}", nlast);
+      if (narg == 4 && strcmp(arg[3], "pad") == 0) {
+        pad[nvar] = fmt::format("{}", nlast).size();
+      } else
+        pad[nvar] = 0;
+    } else if (narg == 4 || (narg == 5 && strcmp(arg[4], "pad") == 0)) {
+      nfirst = utils::inumeric(FLERR, arg[2], false, lmp);
+      nlast = utils::inumeric(FLERR, arg[3], false, lmp);
       if (nfirst > nlast || nlast < 0)
-        error->all(FLERR,"Illegal variable loop command: {} > {}", nfirst,nlast);
-      if (narg == 5 && strcmp(arg[4],"pad") == 0) {
-        pad[nvar] = fmt::format("{}",nlast).size();
-      } else pad[nvar] = 0;
-    } else error->all(FLERR,"Illegal variable loop command: too many arguments");
+        error->all(FLERR, 2, "Illegal variable loop command: {} > {}", nfirst, nlast);
+      if (narg == 5 && strcmp(arg[4], "pad") == 0) {
+        pad[nvar] = fmt::format("{}", nlast).size();
+      } else
+        pad[nvar] = 0;
+    } else
+      error->all(FLERR, narg - 1, "Illegal variable loop command: too many arguments");
     num[nvar] = nlast;
-    which[nvar] = nfirst-1;
-    data[nvar] = new char*[1];
+    which[nvar] = nfirst - 1;
+    data[nvar] = new char *[1];
     data[nvar][0] = nullptr;
 
-  // WORLD
-  // num = listed args, which = partition this proc is in, data = copied args
-  // error check that num = # of worlds in universe
+    // WORLD
+    // num = listed args, which = partition this proc is in, data = copied args
+    // error check that num = # of worlds in universe
 
-  } else if (strcmp(arg[1],"world") == 0) {
+  } else if (strcmp(arg[1], "world") == 0) {
     if (narg < 3) utils::missing_cmd_args(FLERR, "variable world", error);
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = WORLD;
     num[nvar] = narg - 2;
     if (num[nvar] != universe->nworlds)
-      error->all(FLERR,"World variable count doesn't match # of partitions");
+      error->all(FLERR, narg - 1, "World variable count {} doesn't match # of partitions {}",
+                 narg - 2, universe->nworlds);
     which[nvar] = universe->iworld;
     pad[nvar] = 0;
-    data[nvar] = new char*[num[nvar]];
-    copy(num[nvar],&arg[2],data[nvar]);
+    data[nvar] = new char *[num[nvar]];
+    copy(num[nvar], &arg[2], data[nvar]);
 
-  // UNIVERSE and ULOOP
-  // for UNIVERSE: num = listed args, data = copied args
-  // for ULOOP: num = N, data = single string
-  // which = partition this proc is in
-  // universe proc 0 creates lock file
-  // error check that all other universe/uloop variables are same length
+    // UNIVERSE and ULOOP
+    // for UNIVERSE: num = listed args, data = copied args
+    // for ULOOP: num = N, data = single string
+    // which = partition this proc is in
+    // universe proc 0 creates lock file
+    // error check that all other universe/uloop variables are same length
 
-  } else if (strcmp(arg[1],"universe") == 0 || strcmp(arg[1],"uloop") == 0) {
-    if (strcmp(arg[1],"universe") == 0) {
+  } else if (strcmp(arg[1], "universe") == 0 || strcmp(arg[1], "uloop") == 0) {
+    if (strcmp(arg[1], "universe") == 0) {
       if (narg < 3) utils::missing_cmd_args(FLERR, "variable universe", error);
       if (find(arg[0]) >= 0) return;
       if (nvar == maxvar) grow();
       style[nvar] = UNIVERSE;
       num[nvar] = narg - 2;
       pad[nvar] = 0;
-      data[nvar] = new char*[num[nvar]];
-      copy(num[nvar],&arg[2],data[nvar]);
-    } else if (strcmp(arg[1],"uloop") == 0) {
+      data[nvar] = new char *[num[nvar]];
+      copy(num[nvar], &arg[2], data[nvar]);
+    } else if (strcmp(arg[1], "uloop") == 0) {
       if (narg < 3 || narg > 4)
-        error->all(FLERR,"Illegal variable command: expected 3 or 4 arguments but found {}", narg);
-      if (narg == 4 && strcmp(arg[3],"pad") != 0)
-        error->all(FLERR, "Invalid variable uloop argument: {}", arg[3]);
+        error->all(FLERR, 1, "Illegal variable command: expected 3 or 4 arguments but found {}: {}",
+                   narg, utils::errorurl(3));
+      if (narg == 4 && strcmp(arg[3], "pad") != 0)
+        error->all(FLERR, 3, "Invalid variable uloop argument: {}", arg[3]);
       if (find(arg[0]) >= 0) return;
       if (nvar == maxvar) grow();
       style[nvar] = ULOOP;
-      num[nvar] = utils::inumeric(FLERR,arg[2],false,lmp);
-      data[nvar] = new char*[1];
+      num[nvar] = utils::inumeric(FLERR, arg[2], false, lmp);
+      data[nvar] = new char *[1];
       data[nvar][0] = nullptr;
-      if (narg == 4) pad[nvar] = std::to_string(num[nvar]).size();
-      else pad[nvar] = 0;
+      if (narg == 4)
+        pad[nvar] = std::to_string(num[nvar]).size();
+      else
+        pad[nvar] = 0;
     }
 
     if (num[nvar] < universe->nworlds)
-      error->all(FLERR,"Universe/uloop variable count < # of partitions");
+      error->all(FLERR, 2, "Universe/uloop variable count {} < # of partitions {}", num[nvar],
+        universe->nworlds);
     which[nvar] = universe->iworld;
 
     if (universe->me == 0) {
-      FILE *fp = fopen("tmp.lammps.variable","w");
+      FILE *fp = fopen("tmp.lammps.variable", "w");
       if (fp == nullptr)
-        error->one(FLERR,"Cannot open temporary file for world counter: " + utils::getsyserror());
-      fprintf(fp,"%d\n",universe->nworlds);
+        error->one(FLERR, "Cannot open temporary file for world counter: " + utils::getsyserror());
+      fprintf(fp, "%d\n", universe->nworlds);
       fclose(fp);
       fp = nullptr;
     }
 
     for (int jvar = 0; jvar < nvar; jvar++)
-      if (num[jvar] && (style[jvar] == UNIVERSE || style[jvar] == ULOOP) &&
-          num[nvar] != num[jvar])
-        error->all(FLERR,"All universe/uloop variables must have same # of values");
+      if (num[jvar] && (style[jvar] == UNIVERSE || style[jvar] == ULOOP) && num[nvar] != num[jvar])
+        error->all(FLERR, "All universe/uloop variables must have same # of values");
 
-  // STRING
-  // replace pre-existing var if also style STRING (allows it to be reset)
-  // num = 1, which = 1st value
-  // data = 1 value, string to eval
+    // STRING
+    // replace pre-existing var if also style STRING (allows it to be reset)
+    // num = 1, which = 1st value
+    // data = 1 value, string to eval
 
-  } else if (strcmp(arg[1],"string") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
+  } else if (strcmp(arg[1], "string") == 0) {
+    if (narg != 3)
+      error->all(FLERR, "Illegal variable command: expected 3 arguments but found {}{}", narg,
+                 utils::errorurl(3));
 
     int maxcopy = strlen(arg[2]) + 1;
     int maxwork = maxcopy;
-    auto scopy = (char *) memory->smalloc(maxcopy,"var:string/copy");
-    auto work = (char *) memory->smalloc(maxwork,"var:string/work");
-    strcpy(scopy,arg[2]);
-    input->substitute(scopy,work,maxcopy,maxwork,1);
+    auto scopy = (char *) memory->smalloc(maxcopy, "var:string/copy");
+    auto work = (char *) memory->smalloc(maxwork, "var:string/work");
+    strcpy(scopy, arg[2]);
+    input->substitute(scopy, work, maxcopy, maxwork, 1);
     memory->sfree(work);
 
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != STRING)
-        error->all(FLERR,"Cannot redefine variable as a different style");
+        error->all(FLERR, 1, "Cannot redefine variable {} with a different style", arg[0]);
       delete[] data[ivar][0];
-      copy(1,&scopy,data[ivar]);
+      copy(1, &scopy, data[ivar]);
       replaceflag = 1;
     } else {
       if (nvar == maxvar) grow();
@@ -337,21 +343,23 @@ void Variable::set(int narg, char **arg)
       num[nvar] = 1;
       which[nvar] = 0;
       pad[nvar] = 0;
-      data[nvar] = new char*[num[nvar]];
-      copy(1,&scopy,data[nvar]);
+      data[nvar] = new char *[num[nvar]];
+      copy(1, &scopy, data[nvar]);
     }
     memory->sfree(scopy);
 
-  // GETENV
-  // remove pre-existing var if also style GETENV (allows it to be reset)
-  // num = 1, which = 1st value
-  // data = 1 value, string to eval
+    // GETENV
+    // remove pre-existing var if also style GETENV (allows it to be reset)
+    // num = 1, which = 1st value
+    // data = 1 value, string to eval
 
-  } else if (strcmp(arg[1],"getenv") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
+  } else if (strcmp(arg[1], "getenv") == 0) {
+    if (narg != 3)
+      error->all(FLERR, "Illegal variable command: expected 3 arguments but found {}{}", narg,
+                 utils::errorurl(3));
     if (find(arg[0]) >= 0) {
       if (style[find(arg[0])] != GETENV)
-        error->all(FLERR,"Cannot redefine variable as a different style");
+        error->all(FLERR, 1, "Cannot redefine variable {} with a different style", arg[0]);
       remove(find(arg[0]));
     }
     if (nvar == maxvar) grow();
@@ -359,57 +367,62 @@ void Variable::set(int narg, char **arg)
     num[nvar] = 2;
     which[nvar] = 0;
     pad[nvar] = 0;
-    data[nvar] = new char*[num[nvar]];
+    data[nvar] = new char *[num[nvar]];
     data[nvar][0] = utils::strdup(arg[2]);
     data[nvar][1] = utils::strdup("(undefined)");
 
-  // SCALARFILE for strings or numbers
-  // which = 1st value
-  // data = 1 value, string to eval
+    // SCALARFILE for strings or numbers
+    // which = 1st value
+    // data = 1 value, string to eval
 
-  } else if (strcmp(arg[1],"file") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
+  } else if (strcmp(arg[1], "file") == 0) {
+    if (narg != 3)
+      error->all(FLERR, "Illegal variable command: expected 3 arguments but found {}{}", narg,
+                 utils::errorurl(3));
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = SCALARFILE;
     num[nvar] = 1;
     which[nvar] = 0;
     pad[nvar] = 0;
-    data[nvar] = new char*[num[nvar]];
+    data[nvar] = new char *[num[nvar]];
     data[nvar][0] = new char[MAXLINE];
-    reader[nvar] = new VarReader(lmp,arg[0],arg[2],SCALARFILE);
+    reader[nvar] = new VarReader(lmp, arg[0], arg[2], SCALARFILE);
     int flag = reader[nvar]->read_scalar(data[nvar][0]);
-    if (flag)
-      error->all(FLERR,"File variable {} could not read value from {}", arg[0], arg[2]);
+    if (flag) error->all(FLERR, "File variable {} could not read value from {}", arg[0], arg[2]);
 
-  // ATOMFILE for numbers
-  // which = 1st value
-  // data = nullptr
+    // ATOMFILE for numbers
+    // which = 1st value
+    // data = nullptr
 
-  } else if (strcmp(arg[1],"atomfile") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
+  } else if (strcmp(arg[1], "atomfile") == 0) {
+    if (narg != 3)
+      error->all(FLERR, "Illegal variable command: expected 3 arguments but found {}{}", narg,
+                 utils::errorurl(3));
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = ATOMFILE;
     num[nvar] = 1;
     which[nvar] = 0;
     pad[nvar] = 0;
-    data[nvar] = new char*[num[nvar]];
+    data[nvar] = new char *[num[nvar]];
     data[nvar][0] = nullptr;
-    reader[nvar] = new VarReader(lmp,arg[0],arg[2],ATOMFILE);
+    reader[nvar] = new VarReader(lmp, arg[0], arg[2], ATOMFILE);
     int flag = reader[nvar]->read_peratom();
     if (flag)
-      error->all(FLERR,"Atomfile variable {} could not read values from {}", arg[0], arg[2]);
+      error->all(FLERR, "Atomfile variable {} could not read values from {}", arg[0], arg[2]);
 
-  // FORMAT
-  // num = 3, which = 1st value
-  // data = 3 values
-  //   1st is name of variable to eval, 2nd is format string,
-  //   3rd is filled on retrieval
+    // FORMAT
+    // num = 3, which = 1st value
+    // data = 3 values
+    //   1st is name of variable to eval, 2nd is format string,
+    //   3rd is filled on retrieval
 
-  } else if (strcmp(arg[1],"format") == 0) {
+  } else if (strcmp(arg[1], "format") == 0) {
     constexpr char validfmt[] = "^% ?-?[0-9]*\\.?[0-9]*[efgEFG]$";
-    if (narg != 4) error->all(FLERR,"Illegal variable command: expected 4 arguments but found {}", narg);
+    if (narg != 4)
+      error->all(FLERR, "Illegal variable command: expected 4 arguments but found {}{}", narg,
+                 utils::errorurl(3));
     int ivar = find(arg[0]);
     int jvar = find(arg[2]);
     if (jvar < 0)
@@ -418,9 +431,9 @@ void Variable::set(int narg, char **arg)
       error->all(FLERR, "Variable {}: format variable {} has incompatible style", arg[0], arg[2]);
     if (ivar >= 0) {
       if (style[ivar] != FORMAT)
-        error->all(FLERR,"Cannot redefine variable as a different style");
+        error->all(FLERR, 1, "Cannot redefine variable {} with a different style", arg[0]);
       if (!utils::strmatch(arg[3], validfmt))
-        error->all(FLERR,"Incorrect conversion in format string");
+        error->all(FLERR, "Incorrect conversion in format string");
       delete[] data[ivar][0];
       delete[] data[ivar][1];
       data[ivar][0] = utils::strdup(arg[2]);
@@ -433,26 +446,34 @@ void Variable::set(int narg, char **arg)
       which[nvar] = 0;
       pad[nvar] = 0;
       if (!utils::strmatch(arg[3], validfmt))
-        error->all(FLERR,"Incorrect conversion in format string");
-      data[nvar] = new char*[num[nvar]];
-      copy(2,&arg[2],data[nvar]);
+        error->all(FLERR, "Incorrect conversion in format string");
+      data[nvar] = new char *[num[nvar]];
+      copy(2, &arg[2], data[nvar]);
       data[nvar][2] = new char[VALUELENGTH];
-      strcpy(data[nvar][2],"(undefined)");
+      strcpy(data[nvar][2], "(undefined)");
     }
 
-  // EQUAL
-  // replace pre-existing var if also style EQUAL (allows it to be reset)
-  // num = 2, which = 1st value
-  // data = 2 values, 1st is string to eval, 2nd is filled on retrieval
+    // EQUAL
+    // replace pre-existing var if also style EQUAL (allows it to be reset)
+    // num = 2, which = 1st value
+    // data = 2 values, 1st is string to eval, 2nd is filled on retrieval
 
-  } else if (strcmp(arg[1],"equal") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
+  } else if (strcmp(arg[1], "equal") == 0) {
+    if (narg < 3) utils::missing_cmd_args(FLERR, "variable equal", error);
+
+    // combine excess arguments into single string with a blank as separator
+    std::string combined = arg[2];
+    for (int iarg = 3; iarg < narg; ++iarg) {
+      combined += ' ';
+      combined += arg[iarg];
+    }
+
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != EQUAL)
-        error->all(FLERR,"Cannot redefine variable as a different style");
+        error->all(FLERR, 1, "Cannot redefine variable {} with a different style", arg[0]);
       delete[] data[ivar][0];
-      data[ivar][0] = utils::strdup(arg[2]);
+      data[ivar][0] = utils::strdup(combined);
       replaceflag = 1;
     } else {
       if (nvar == maxvar) grow();
@@ -460,25 +481,33 @@ void Variable::set(int narg, char **arg)
       num[nvar] = 2;
       which[nvar] = 0;
       pad[nvar] = 0;
-      data[nvar] = new char*[num[nvar]];
-      data[nvar][0] = utils::strdup(arg[2]);
+      data[nvar] = new char *[num[nvar]];
+      data[nvar][0] = utils::strdup(combined);
       data[nvar][1] = new char[VALUELENGTH];
-      strcpy(data[nvar][1],"(undefined)");
+      strcpy(data[nvar][1], "(undefined)");
     }
 
-  // ATOM
-  // replace pre-existing var if also style ATOM (allows it to be reset)
-  // num = 1, which = 1st value
-  // data = 1 value, string to eval
+    // ATOM
+    // replace pre-existing var if also style ATOM (allows it to be reset)
+    // num = 1, which = 1st value
+    // data = 1 value, string to eval
 
-  } else if (strcmp(arg[1],"atom") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
+  } else if (strcmp(arg[1], "atom") == 0) {
+    if (narg < 3) utils::missing_cmd_args(FLERR, "variable atom", error);
+
+    // combine excess arguments into single string with a blank as separator
+    std::string combined = arg[2];
+    for (int iarg = 3; iarg < narg; ++iarg) {
+      combined += ' ';
+      combined += arg[iarg];
+    }
+
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != ATOM)
-        error->all(FLERR,"Cannot redefine variable as a different style");
+        error->all(FLERR, 1, "Cannot redefine variable {} with a different style", arg[0]);
       delete[] data[ivar][0];
-      data[ivar][0] = utils::strdup(arg[2]);
+      data[ivar][0] = utils::strdup(combined);
       replaceflag = 1;
     } else {
       if (nvar == maxvar) grow();
@@ -486,33 +515,41 @@ void Variable::set(int narg, char **arg)
       num[nvar] = 1;
       which[nvar] = 0;
       pad[nvar] = 0;
-      data[nvar] = new char*[num[nvar]];
-      data[nvar][0] = utils::strdup(arg[2]);
+      data[nvar] = new char *[num[nvar]];
+      data[nvar][0] = utils::strdup(combined);
     }
 
-  // VECTOR
-  // replace pre-existing var if also style VECTOR (allows it to be reset)
-  // num = 2, which = 1st value
-  // data = 2 values, 1st is string to eval, 2nd is formatted output string [1,2,3]
-  // if formula string is [value,value,...] then
-  //   immediately store it as N-length vector and set dynamic flag to 0
+    // VECTOR
+    // replace pre-existing var if also style VECTOR (allows it to be reset)
+    // num = 2, which = 1st value
+    // data = 2 values, 1st is string to eval, 2nd is formatted output string [1,2,3]
+    // if formula string is [value,value,...] then
+    //   immediately store it as N-length vector and set dynamic flag to 0
 
-  } else if (strcmp(arg[1],"vector") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
+  } else if (strcmp(arg[1], "vector") == 0) {
+    if (narg < 3) utils::missing_cmd_args(FLERR, "variable atom", error);
+
+    // combine excess arguments into single string with a blank as separator
+    std::string combined = arg[2];
+    for (int iarg = 3; iarg < narg; ++iarg) {
+      combined += ' ';
+      combined += arg[iarg];
+    }
+
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != VECTOR)
-        error->all(FLERR,"Cannot redefine variable as a different style");
+        error->all(FLERR, 1, "Cannot redefine variable {} with a different style", arg[0]);
       delete[] data[ivar][0];
       delete[] data[ivar][1];
-      data[ivar][0] = utils::strdup(arg[2]);
+      data[ivar][0] = utils::strdup(combined);
       if (data[ivar][0][0] != '[')
         vecs[ivar].dynamic = 1;
       else {
         vecs[ivar].dynamic = 0;
-        parse_vector(ivar,data[ivar][0]);
-        std::vector <double> vec(vecs[ivar].values,vecs[ivar].values + vecs[ivar].n);
-        data[ivar][1] = utils::strdup(fmt::format("[{}]", fmt::join(vec,",")));
+        parse_vector(ivar, data[ivar][0]);
+        std::vector<double> vec(vecs[ivar].values, vecs[ivar].values + vecs[ivar].n);
+        data[ivar][1] = utils::strdup(fmt::format("[{}]", fmt::join(vec, ",")));
       }
       replaceflag = 1;
     } else {
@@ -521,32 +558,33 @@ void Variable::set(int narg, char **arg)
       num[nvar] = 2;
       which[nvar] = 0;
       pad[nvar] = 0;
-      data[nvar] = new char*[num[nvar]];
-      data[nvar][0] = utils::strdup(arg[2]);
+      data[nvar] = new char *[num[nvar]];
+      data[nvar][0] = utils::strdup(combined);
       if (data[nvar][0][0] != '[') {
         vecs[nvar].dynamic = 1;
         data[nvar][1] = nullptr;
       } else {
         vecs[nvar].dynamic = 0;
-        parse_vector(nvar,data[nvar][0]);
-        std::vector <double> vec(vecs[nvar].values,vecs[nvar].values + vecs[nvar].n);
-        data[nvar][1] = utils::strdup(fmt::format("[{}]", fmt::join(vec,",")));
+        parse_vector(nvar, data[nvar][0]);
+        std::vector<double> vec(vecs[nvar].values, vecs[nvar].values + vecs[nvar].n);
+        data[nvar][1] = utils::strdup(fmt::format("[{}]", fmt::join(vec, ",")));
       }
     }
 
-  // PYTHON
-  // replace pre-existing var if also style PYTHON (allows it to be reset)
-  // num = 2, which = 1st value
-  // data = 2 values, 1st is Python func to invoke, 2nd is filled by invoke
+    // PYTHON
+    // replace pre-existing var if also style PYTHON (allows it to be reset)
+    // num = 2, which = 1st value
+    // data = 2 values, 1st is Python func to invoke, 2nd is filled by invoke
 
-  } else if (strcmp(arg[1],"python") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
-    if (!python->is_enabled())
-      error->all(FLERR,"LAMMPS is not built with Python embedded");
+  } else if (strcmp(arg[1], "python") == 0) {
+    if (narg != 3)
+      error->all(FLERR, "Illegal variable command: expected 3 arguments but found {}{}", narg,
+                 utils::errorurl(3));
+    if (!python->is_enabled()) error->all(FLERR, "LAMMPS is not built with Python embedded");
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != PYTHON)
-        error->all(FLERR,"Cannot redefine variable as a different style");
+        error->all(FLERR, 1, "Cannot redefine variable {} with a different style", arg[0]);
       delete[] data[ivar][0];
       data[ivar][0] = utils::strdup(arg[2]);
       replaceflag = 1;
@@ -556,24 +594,25 @@ void Variable::set(int narg, char **arg)
       num[nvar] = 2;
       which[nvar] = 1;
       pad[nvar] = 0;
-      data[nvar] = new char*[num[nvar]];
+      data[nvar] = new char *[num[nvar]];
       data[nvar][0] = utils::strdup(arg[2]);
       data[nvar][1] = new char[VALUELENGTH];
-      strcpy(data[nvar][1],"(undefined)");
+      strcpy(data[nvar][1], "(undefined)");
     }
 
-  // TIMER
-  // stores current walltime as a timestamp in seconds
-  // replace pre-existing var if also style TIMER (allows reset with current time)
-  // num = 1, for string representation of dvalue, set by retrieve()
-  // dvalue = numeric initialization via platform::walltime()
+    // TIMER
+    // stores current walltime as a timestamp in seconds
+    // replace pre-existing var if also style TIMER (allows reset with current time)
+    // num = 1, for string representation of dvalue, set by retrieve()
+    // dvalue = numeric initialization via platform::walltime()
 
-  } else if (strcmp(arg[1],"timer") == 0) {
-    if (narg != 2) error->all(FLERR,"Illegal variable command: expected 2 arguments but found {}", narg);
+  } else if (strcmp(arg[1], "timer") == 0) {
+    if (narg != 2)
+      error->all(FLERR, "Illegal variable command: expected 2 arguments but found {}", narg);
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != TIMER)
-        error->all(FLERR,"Cannot redefine variable as a different style");
+        error->all(FLERR, 1, "Cannot redefine variable {} with a different style", arg[0]);
       dvalue[ivar] = platform::walltime();
       replaceflag = 1;
     } else {
@@ -582,23 +621,25 @@ void Variable::set(int narg, char **arg)
       num[nvar] = 1;
       which[nvar] = 0;
       pad[nvar] = 0;
-      data[nvar] = new char*[num[nvar]];
+      data[nvar] = new char *[num[nvar]];
       data[nvar][0] = new char[VALUELENGTH];
       dvalue[nvar] = platform::walltime();
     }
 
-  // INTERNAL
-  // replace pre-existing var if also style INTERNAL (allows it to be reset)
-  // num = 1, for string representation of dvalue, set by retrieve()
-  // dvalue = numeric initialization from 2nd arg, reset by internal_set()
+    // INTERNAL
+    // replace pre-existing var if also style INTERNAL (allows it to be reset)
+    // num = 1, for string representation of dvalue, set by retrieve()
+    // dvalue = numeric initialization from 2nd arg, reset by internal_set()
 
-  } else if (strcmp(arg[1],"internal") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
+  } else if (strcmp(arg[1], "internal") == 0) {
+    if (narg != 3)
+      error->all(FLERR, "Illegal variable command: expected 3 arguments but found {}{}", narg,
+                 utils::errorurl(3));
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != INTERNAL)
-        error->all(FLERR,"Cannot redefine variable as a different style");
-      dvalue[nvar] = utils::numeric(FLERR,arg[2],false,lmp);
+        error->all(FLERR, 1, "Cannot redefine variable {} with a different style", arg[0]);
+      dvalue[nvar] = utils::numeric(FLERR, arg[2], false, lmp);
       replaceflag = 1;
     } else {
       if (nvar == maxvar) grow();
@@ -606,14 +647,15 @@ void Variable::set(int narg, char **arg)
       num[nvar] = 1;
       which[nvar] = 0;
       pad[nvar] = 0;
-      data[nvar] = new char*[num[nvar]];
+      data[nvar] = new char *[num[nvar]];
       data[nvar][0] = new char[VALUELENGTH];
-      dvalue[nvar] = utils::numeric(FLERR,arg[2],false,lmp);
+      dvalue[nvar] = utils::numeric(FLERR, arg[2], false, lmp);
     }
 
-  // unrecognized variable style
+    // unrecognized variable style
 
-  } else error->all(FLERR,"Unknown variable style: {}", arg[1]);
+  } else
+    error->all(FLERR, 1, "Unknown variable style: {}", arg[1]);
 
   // set name of variable, if not replacing one flagged with replaceflag
   // name must be all alphanumeric chars or underscores
@@ -621,7 +663,7 @@ void Variable::set(int narg, char **arg)
   if (replaceflag) return;
 
   if (!utils::is_id(arg[0]))
-    error->all(FLERR,"Variable name '{}' must have only letters, numbers, or underscores",arg[0]);
+    error->all(FLERR, "Variable name '{}' must have only letters, numbers, or underscores", arg[0]);
   names[nvar] = utils::strdup(arg[0]);
   nvar++;
 }
@@ -684,7 +726,7 @@ int Variable::next(int narg, char **arg)
 {
   int ivar;
 
-  if (narg == 0) error->all(FLERR,"Illegal next command");
+  if (narg == 0) utils::missing_cmd_args(FLERR, "next", error);
 
   // check that variables exist and are all the same style
   // exception: UNIVERSE and ULOOP variables can be mixed in same next command
@@ -692,7 +734,7 @@ int Variable::next(int narg, char **arg)
   for (int iarg = 0; iarg < narg; iarg++) {
     ivar = find(arg[iarg]);
     if (ivar < 0)
-      error->all(FLERR,"Invalid variable '{}' in next command",arg[iarg]);
+      error->all(FLERR, iarg, "Invalid variable '{}' in next command",arg[iarg]);
     if (style[ivar] == ULOOP && style[find(arg[0])] == UNIVERSE) continue;
     else if (style[ivar] == UNIVERSE && style[find(arg[0])] == ULOOP) continue;
     else if (style[ivar] != style[find(arg[0])])
@@ -707,7 +749,8 @@ int Variable::next(int narg, char **arg)
       istyle == WORLD || istyle == GETENV || istyle == ATOM ||
       istyle == VECTOR || istyle == FORMAT || istyle == PYTHON ||
       istyle == TIMER || istyle == INTERNAL)
-    error->all(FLERR,"Invalid variable style with next command");
+    error->all(FLERR, Error::ARGZERO, "Variable {} has invalid style {} for next command",
+               arg[0], varstyles[istyle]);
 
   // if istyle = UNIVERSE or ULOOP, ensure all such variables are incremented
 
@@ -796,7 +839,8 @@ int Variable::next(int narg, char **arg)
         if (fp == nullptr) goto uloop_again;
 
         buf[0] = buf[1] = '\0';
-        fread(buf,1,64,fp);
+        auto tmp = fread(buf,1,64,fp);
+        (void) tmp; // can be safely ignored, suppress compiler warning in a portable way
         fclose(fp);
 
         if (strlen(buf) > 0) {
@@ -1507,7 +1551,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
       if (utils::strmatch(word,"^[Cc]_")) {
         if (domain->box_exist == 0)
-          print_var_error(FLERR,"Variable evaluation before simulation box is defined",ivar);
+          print_var_error(FLERR,"Variable evaluation before simulation box is defined"
+                          + utils::errorurl(30),ivar);
 
         // uppercase used to access of peratom data by equal-style var
 
@@ -1578,7 +1623,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             // to allow for computes with size_vector_variable == 1
 
             if (index1 > compute->size_vector)
-              print_var_error(FLERR,"Variable formula compute vector is accessed out-of-range",ivar,0);
+              print_var_error(FLERR,"Variable formula compute vector is accessed out-of-range"
+                              + utils::errorurl(20), ivar, 0);
 
             value1 = compute->vector[index1-1];
             argstack[nargstack++] = value1;
@@ -1590,7 +1636,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (!compute->array_flag)
               print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
             if (index2 > compute->size_array_cols)
-              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
+              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range"
+                              + utils::errorurl(20), ivar, 0);
             if (!compute->is_initialized())
               print_var_error(FLERR,"Variable formula compute cannot be invoked before "
                               "initialization by a run",ivar);
@@ -1603,7 +1650,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             // to allow for computes with size_array_rows_variable == 1
 
             if (index1 > compute->size_array_rows)
-              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
+              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range"
+                              + utils::errorurl(20), ivar, 0);
 
             value1 = compute->array[index1-1][index2-1];
             argstack[nargstack++] = value1;
@@ -1636,7 +1684,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (!compute->size_peratom_cols)
               print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
             if (index2 > compute->size_peratom_cols)
-              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
+              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range"
+                              + utils::errorurl(20), ivar,0);
             if (!compute->is_initialized())
               print_var_error(FLERR,"Variable formula compute cannot be invoked before "
                               "initialization by a run",ivar);
@@ -1698,7 +1747,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               print_var_error(FLERR,"Variable formula compute cannot be invoked before "
                               "initialization by a run",ivar);
             if (index1 > compute->size_array_cols)
-              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
+              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range"
+                              + utils::errorurl(20), ivar,0);
             if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
               compute->compute_array();
               compute->invoked_flag |= Compute::INVOKED_ARRAY;
@@ -1756,7 +1806,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (!compute->size_peratom_cols)
               print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
             if (index1 > compute->size_peratom_cols)
-              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
+              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range"
+                              + utils::errorurl(20), ivar,0);
             if (!compute->is_initialized())
               print_var_error(FLERR,"Variable formula compute cannot be invoked before "
                               "initialization by a run",ivar);
@@ -1784,7 +1835,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
       } else if (utils::strmatch(word,"^[fF]_")) {
         if (domain->box_exist == 0)
-          print_var_error(FLERR,"Variable evaluation before simulation box is defined",ivar);
+          print_var_error(FLERR,"Variable evaluation before simulation box is defined"
+                          + utils::errorurl(30),ivar);
 
         // uppercase used to force access of
         // global vector vs global scalar, and global array vs global vector
@@ -1840,7 +1892,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (!fix->vector_flag)
               print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
             if (index1 > fix->size_vector && fix->size_vector_variable == 0)
-              print_var_error(FLERR,"Variable formula fix vector is accessed out-of-range",ivar,0);
+              print_var_error(FLERR,"Variable formula fix vector is accessed out-of-range"
+                              + utils::errorurl(20), ivar,0);
             if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
               print_var_error(FLERR,"Fix in variable not computed at a compatible time",ivar);
 
@@ -1858,9 +1911,11 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (!fix->array_flag)
               print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
             if (index1 > fix->size_array_rows && fix->size_array_rows_variable == 0)
-              print_var_error(FLERR,"Variable formula fix array is accessed out-of-range",ivar,0);
+              print_var_error(FLERR,"Variable formula fix array is accessed out-of-range"
+                              + utils::errorurl(20), ivar,0);
             if (index2 > fix->size_array_cols)
-              print_var_error(FLERR,"Variable formula fix array is accessed out-of-range",ivar,0);
+              print_var_error(FLERR,"Variable formula fix array is accessed out-of-range"
+                              + utils::errorurl(20), ivar,0);
             if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
               print_var_error(FLERR,"Fix in variable not computed at a compatible time",ivar);
 
@@ -1895,7 +1950,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (!fix->size_peratom_cols)
               print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
             if (index2 > fix->size_peratom_cols)
-              print_var_error(FLERR,"Variable formula fix array is accessed out-of-range",ivar,0);
+              print_var_error(FLERR,"Variable formula fix array is accessed out-of-range"
+                              + utils::errorurl(20), ivar,0);
             if (update->whichflag > 0 && update->ntimestep % fix->peratom_freq)
               print_var_error(FLERR,"Fix in variable not computed at a compatible time",ivar);
 
@@ -1949,7 +2005,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (fix->size_array_rows == 0)
               print_var_error(FLERR,"Variable formula fix array is zero length",ivar);
             if (index1 > fix->size_array_cols)
-              print_var_error(FLERR,"Variable formula fix array is accessed out-of-range",ivar,0);
+              print_var_error(FLERR,"Variable formula fix array is accessed out-of-range"
+                              + utils::errorurl(20), ivar,0);
             if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
               print_var_error(FLERR,"Fix in variable not computed at a compatible time",ivar);
 
@@ -2001,7 +2058,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (!fix->size_peratom_cols)
               print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
             if (index1 > fix->size_peratom_cols)
-              print_var_error(FLERR,"Variable formula fix array is accessed out-of-range",ivar,0);
+              print_var_error(FLERR,"Variable formula fix array is accessed out-of-range"
+                              + utils::errorurl(20), ivar,0);
             if (update->whichflag > 0 && update->ntimestep % fix->peratom_freq)
               print_var_error(FLERR,"Fix in variable not computed at compatible time",ivar);
 
@@ -2187,7 +2245,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
       } else if (utils::strmatch(word,"^[id]2?_")) {
         if (domain->box_exist == 0)
-          print_var_error(FLERR,"Variable evaluation before simulation box is defined",ivar);
+          print_var_error(FLERR,"Variable evaluation before simulation box is defined"
+                          + utils::errorurl(30),ivar);
 
         int index_custom,type_custom,cols_custom;
         if (word[1] == '2') index_custom = atom->find_custom(word+3,type_custom,cols_custom);
@@ -2321,7 +2380,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
         } else if (str[i] == '[') {
           if (domain->box_exist == 0)
-            print_var_error(FLERR,"Variable evaluation before simulation box is defined",ivar);
+            print_var_error(FLERR,"Variable evaluation before simulation box is defined"
+                            + utils::errorurl(30),ivar);
 
           ptr = &str[i];
           tagint id = int_between_brackets(ptr,1);
@@ -2335,7 +2395,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
         } else if (is_atom_vector(word)) {
           if (domain->box_exist == 0)
-            print_var_error(FLERR,"Variable evaluation before simulation box is defined",ivar);
+            print_var_error(FLERR,"Variable evaluation before simulation box is defined"
+                            + utils::errorurl(30),ivar);
 
           atom_vector(word,tree,treestack,ntreestack);
 
@@ -2358,7 +2419,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
         } else {
           if (domain->box_exist == 0)
-            print_var_error(FLERR,"Variable evaluation before simulation box is defined",ivar);
+            print_var_error(FLERR,"Variable evaluation before simulation box is defined"
+                            + utils::errorurl(30),ivar);
 
           int flag = output->thermo->evaluate_keyword(word,&value1);
           if (flag)
@@ -2554,7 +2616,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),ternary(x,y,z),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
      logfreq3(x,y,z),stride(x,y,z),stride2(x,y,z,a,b,c),vdisplace(x,y),swiggle(x,y,z),
-     cwiggle(x,y,z),gmask(x),rmask(x),grmask(x,y)
+     cwiggle(x,y,z),sign(x),gmask(x),rmask(x),grmask(x,y)
 ---------------------------------------------------------------------- */
 
 double Variable::collapse_tree(Tree *tree)
@@ -3104,6 +3166,14 @@ double Variable::collapse_tree(Tree *tree)
     return tree->value;
   }
 
+  if (tree->type == SIGN) {
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    tree->value = (arg1 >= 0.0) ? 1.0 : -1.0; // sign(arg1);
+    return tree->value;
+  }
+
   // mask functions do not become a single collapsed value
 
   if (tree->type == GMASK) return 0.0;
@@ -3122,7 +3192,7 @@ double Variable::collapse_tree(Tree *tree)
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),ternary(x,y,z),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
      logfreq3(x,y,z),stride(x,y,z),stride2(x,y,z,a,b,c),vdisplace(x,y),
-     swiggle(x,y,z),cwiggle(x,y,z),gmask(x),rmask(x),grmask(x,y)
+     swiggle(x,y,z),cwiggle(x,y,z),sign(x),gmask(x),rmask(x),grmask(x,y)
 ---------------------------------------------------------------------- */
 
 double Variable::eval_tree(Tree *tree, int i)
@@ -3438,6 +3508,9 @@ double Variable::eval_tree(Tree *tree, int i)
     return arg;
   }
 
+  if (tree->type == SIGN)
+    return (eval_tree(tree->first,i) >= 0.0) ? 1.0 : -1.0; // sign(eval_tree(tree->first,i));
+
   if (tree->type == GMASK) {
     if (atom->mask[i] & tree->ivalue) return 1.0;
     else return 0.0;
@@ -3611,7 +3684,7 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),ternary(),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
      logfreq3(x,y,z),stride(x,y,z),stride2(x,y,z,a,b,c),vdisplace(x,y),
-     swiggle(x,y,z),cwiggle(x,y,z)
+     swiggle(x,y,z),cwiggle(x,y,z),sign(x)
 ------------------------------------------------------------------------- */
 
 int Variable::math_function(char *word, char *contents, Tree **tree, Tree **treestack,
@@ -3629,7 +3702,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
       strcmp(word,"logfreq") != 0 && strcmp(word,"logfreq2") != 0 &&
       strcmp(word,"logfreq3") != 0 && strcmp(word,"stride") != 0 &&
       strcmp(word,"stride2") != 0 && strcmp(word,"vdisplace") != 0 &&
-      strcmp(word,"swiggle") != 0 && strcmp(word,"cwiggle") != 0)
+      strcmp(word,"swiggle") != 0 && strcmp(word,"cwiggle") != 0 && strcmp(word,"sign") != 0)
     return 0;
 
   // parse contents for comma-separated args
@@ -4024,6 +4097,11 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
       double value = value1 + value2*(1.0-cos(omega*delta*update->dt));
       argstack[nargstack++] = value;
     }
+  } else if (strcmp(word,"sign") == 0) {
+    if (narg != 1)
+      print_var_error(FLERR,"Invalid math function in variable formula",ivar);
+    if (tree) newtree->type = SIGN;
+    else argstack[nargstack++] = (value1 >= 0.0) ? 1.0 : -1.0; // sign(value1);
   }
 
   // delete stored args
@@ -4418,7 +4496,8 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
         nstride = 1;
       } else if (index && compute->array_flag) {
         if (index > compute->size_array_cols)
-          print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
+          print_var_error(FLERR,"Variable formula compute array is accessed out-of-range"
+                          + utils::errorurl(20), ivar,0);
         if (!compute->is_initialized())
           print_var_error(FLERR,"Variable formula compute cannot be invoked before "
                           "initialization by a run",ivar);
@@ -4458,7 +4537,8 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
         nstride = 1;
       } else if (index && fix->array_flag) {
         if (index > fix->size_array_cols)
-          print_var_error(FLERR,"Variable formula fix array is accessed out-of-range",ivar);
+          print_var_error(FLERR,"Variable formula fix array is accessed out-of-range"
+                          + utils::errorurl(20), ivar);
         if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
           print_var_error(FLERR,"Fix in variable not computed at compatible time",ivar);
         nvec = fix->size_array_rows;
@@ -4718,7 +4798,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
 
       double *result;
       memory->create(result,atom->nlocal,"variable:result");
-      memcpy(result,reader[ivar]->fixstore->vstore,atom->nlocal*sizeof(double));
+      memcpy(result,reader[ivar]->fixstore->vstore,(atom->nlocal*sizeof(double))&MEMCPYMASK);
 
       int done = reader[ivar]->read_peratom();
       if (done) remove(ivar);
@@ -5188,14 +5268,14 @@ void Variable::print_var_error(const std::string &srcfile, const int lineno,
   if ((ivar >= 0) && (ivar < nvar)) {
     std::string msg = fmt::format("Variable {}: ",names[ivar]) + errmsg;
     if (global)
-      error->all(srcfile,lineno,msg);
+      error->all(srcfile, lineno, Error::NOLASTLINE, msg);
     else
-      error->one(srcfile,lineno,msg);
+      error->one(srcfile, lineno, Error::NOLASTLINE, msg);
   } else {
     if (global)
-      error->all(srcfile,lineno,errmsg);
+      error->all(srcfile,lineno, Error::NOLASTLINE, errmsg);
     else
-      error->one(srcfile,lineno,errmsg);
+      error->one(srcfile,lineno, Error::NOLASTLINE, errmsg);
   }
 }
 

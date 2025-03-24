@@ -184,11 +184,24 @@ temp/chunk calculation to a file is to use the
 The keyword/value option pairs are used in the following ways.
 
 The *com* keyword can be used with a value of *yes* to subtract the
-velocity of the center-of-mass for each chunk from the velocity of the
-atoms in that chunk, before calculating either the global or per-chunk
-temperature.  This can be useful if the atoms are streaming or
+velocity of the center-of-mass (VCM) for each chunk from the velocity of
+the atoms in that chunk, before calculating either the global or per-chunk
+temperature. This can be useful if the atoms are streaming or
 otherwise moving collectively, and you wish to calculate only the
-thermal temperature.
+thermal temperature. This per-chunk VCM bias can be used in other fixes and
+computes that can incorporate a temperature bias. If this compute is used
+as a temperature bias in other commands then this bias is subtracted from
+each atom, the command runs with the remaining thermal velocities, and
+then the bias is added back in. This includes thermostatting
+fixes like :doc:`fix nvt <fix_nh>`,
+:doc:`fix temp/rescale <fix_temp_rescale>`,
+:doc:`fix temp/berendsen <fix_temp_berendsen>`, and
+:doc:`fix langevin <fix_langevin>`, and computes like
+:doc:`compute stress/atom <compute_stress_atom>` and
+:doc:`compute pressure <compute_pressure>`. See the input script in
+examples/stress_vcm for an example of how to use the *com* keyword in
+conjunction with compute stress/atom to create a stress profile of a rigid
+body while removing the overall motion of the rigid body.
 
 For the *bias* keyword, *bias-ID* refers to the ID of a temperature
 compute that removes a "bias" velocity from each atom.  This also

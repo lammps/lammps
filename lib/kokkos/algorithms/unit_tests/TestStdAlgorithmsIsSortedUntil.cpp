@@ -92,7 +92,7 @@ void fill_view(ViewType dest_view, const std::string& name) {
   }
 
   else {
-    throw std::runtime_error("invalid choice");
+    FAIL() << "invalid choice";
   }
 
   Kokkos::deep_copy(aux_view, v_h);
@@ -123,7 +123,8 @@ auto compute_gold(ViewType view, const std::string& name) {
   } else if (name == "large-b") {
     return KE::begin(view) + 156;
   } else {
-    throw std::runtime_error("invalid choice");
+    Kokkos::abort("invalid choice");
+    return KE::end(view);  // unreachable
   }
 }
 

@@ -509,7 +509,7 @@ void ImproperClass2::allocate()
 
 void ImproperClass2::coeff(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (narg < 2) error->all(FLERR,"Incorrect args for improper coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -518,7 +518,7 @@ void ImproperClass2::coeff(int narg, char **arg)
   int count = 0;
 
   if (strcmp(arg[1],"aa") == 0) {
-    if (narg != 8) error->all(FLERR,"Incorrect args for improper coefficients");
+    if (narg != 8) error->all(FLERR,"Incorrect args for improper coefficients" + utils::errorurl(21));
 
     double k1_one = utils::numeric(FLERR,arg[2],false,lmp);
     double k2_one = utils::numeric(FLERR,arg[3],false,lmp);
@@ -541,7 +541,7 @@ void ImproperClass2::coeff(int narg, char **arg)
     }
 
   } else {
-    if (narg != 3) error->all(FLERR,"Incorrect args for improper coefficients");
+    if (narg != 3) error->all(FLERR,"Incorrect args for improper coefficients" + utils::errorurl(21));
 
     double k0_one = utils::numeric(FLERR,arg[1],false,lmp);
     double chi0_one = utils::numeric(FLERR,arg[2],false,lmp);
@@ -556,7 +556,7 @@ void ImproperClass2::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients" + utils::errorurl(21));
 
   for (int i = ilo; i <= ihi; i++)
     if (setflag_i[i] == 1 && setflag_aa[i] == 1) setflag[i] = 1;

@@ -224,7 +224,7 @@ void PairSPHLJ::coeff(int narg, char **arg)
 {
   if (narg != 4)
     error->all(FLERR,
-        "Incorrect args for pair_style sph/lj coefficients");
+        "Incorrect args for pair_style sph/lj coefficients" + utils::errorurl(21));
   if (!allocated)
     allocate();
 
@@ -246,7 +246,7 @@ void PairSPHLJ::coeff(int narg, char **arg)
   }
 
   if (count == 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

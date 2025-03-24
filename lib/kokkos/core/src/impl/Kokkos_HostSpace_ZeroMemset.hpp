@@ -24,16 +24,15 @@
 namespace Kokkos {
 namespace Impl {
 
-template <class T, class... P>
-struct ZeroMemset<HostSpace::execution_space, View<T, P...>> {
-  ZeroMemset(const HostSpace::execution_space& exec, const View<T, P...>& dst) {
+template <>
+struct ZeroMemset<HostSpace::execution_space> {
+  ZeroMemset(const HostSpace::execution_space& exec, void* dst, size_t cnt) {
     // Host spaces, except for HPX, are synchronous and we need to fence for HPX
     // since we can't properly enqueue a std::memset otherwise.
     // We can't use exec.fence() directly since we don't have a full definition
     // of HostSpace here.
     hostspace_fence(exec);
-    using ValueType = typename View<T, P...>::value_type;
-    std::memset(dst.data(), 0, sizeof(ValueType) * dst.size());
+    std::memset(dst, 0, cnt);
   }
 };
 

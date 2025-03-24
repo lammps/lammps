@@ -106,7 +106,7 @@ An example of the test configuration `config.yaml` is given as below.
 
   ---
     lmp_binary: ""
-    nprocs: "4"
+    nprocs: ""
     args: "-cite none"
     mpiexec: "mpirun"
     mpiexec_numproc_flag: "-np"
@@ -135,7 +135,8 @@ An example of the test configuration `config.yaml` is given as below.
           abs: 1e-2
           rel: 1e-4
     skip:
-      [ in.displ,
+      [ 
+        in.displ,
         in.displ2,
         in.*_imd*,
       ]
@@ -143,6 +144,13 @@ An example of the test configuration `config.yaml` is given as below.
     nugget: 1.0
     epsilon: 1e-16
     timeout: 180
+
+Note that if nprocs is left empty "", as in the above example, the test for a given input script will use the maximum number of procs among the log files.
+For instance, for the input script examples/melt/in.melt, there are 2 log files with 1 and 4 procs. The test for in.melt will then run with 4 procs and the output is compare against the 4-proc log file.  This is the typical configuration.
+
+If nprocs is specified explicitly, for example, nprocs: "2", this value of nprocs will be used for ALL the input scripts (except for the valgrind test).
+In this case, the reference log file is again the one with the maximum number of procs, that is, 4. One example of this configuration is for KOKKOS tests where
+the runs are often `mpirun -np 2 lmp -in in.melt -k on g 2` (with the CUDA backend) or  `mpirun -np 2 lmp -in in.melt -k on t 2` (with the OpenMP backend).
 
 An example of the list of example subfolders in a text file `list_subfolders1.txt`
 

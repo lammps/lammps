@@ -259,8 +259,12 @@ void FixIPI::init()
   socketflag = 1;
 
   // asks for evaluation of PE at first step
-  modify->compute[modify->find_compute("thermo_pe")]->invoked_scalar = -1;
-  modify->addstep_compute_all(update->ntimestep + 1);
+  auto c_pe = modify->get_compute_by_id("thermo_pe");
+  if (c_pe) {
+    c_pe->invoked_scalar = -1;
+    modify->addstep_compute_all(update->ntimestep + 1);
+  }
+
 
   kspace_flag = (force->kspace) ? 1 : 0;
 
@@ -434,7 +438,7 @@ void FixIPI::final_integrate()
   char header[MSGLEN+1];
   double vir[9], pot=0.0;
   double forceconv, potconv, posconv, pressconv, posconv3;
-  char retstr[1024];
+  char retstr[1024] = { '\0' };
 
   // conversions from LAMMPS units to atomic units, which are used by i-PI
   potconv=3.1668152e-06/force->boltz;
@@ -444,8 +448,12 @@ void FixIPI::final_integrate()
   pressconv=1/force->nktv2p*potconv*posconv3;
 
   // compute for potential energy
-  pot=modify->compute[modify->find_compute("thermo_pe")]->compute_scalar();
-  pot*=potconv;
+
+  auto *c_pe = modify->get_compute_by_id("thermo_pe");
+  if (c_pe) {
+    pot = c_pe->compute_scalar();
+    pot*=potconv;
+  }
 
   // probably useless check
   if (!hasdata)
@@ -469,18 +477,19 @@ void FixIPI::final_integrate()
 
   for (int i = 0; i < 9; ++i) vir[i]=0.0;
 
-  int press_id = modify->find_compute("IPI_PRESS");
-  Compute* comp_p = modify->compute[press_id];
-  comp_p->compute_vector();
-  double myvol = domain->xprd*domain->yprd*domain->zprd/posconv3;
+  const double myvol = domain->xprd*domain->yprd*domain->zprd/posconv3;
+  Compute* comp_p = modify->get_compute_by_id("IPI_PRESS");
+  if (comp_p) {
+    comp_p->compute_vector();
 
-  vir[0] = comp_p->vector[0]*pressconv*myvol;
-  vir[4] = comp_p->vector[1]*pressconv*myvol;
-  vir[8] = comp_p->vector[2]*pressconv*myvol;
-  vir[1] = comp_p->vector[3]*pressconv*myvol;
-  vir[2] = comp_p->vector[4]*pressconv*myvol;
-  vir[5] = comp_p->vector[5]*pressconv*myvol;
-  retstr[0]=0;
+    vir[0] = comp_p->vector[0]*pressconv*myvol;
+    vir[4] = comp_p->vector[1]*pressconv*myvol;
+    vir[8] = comp_p->vector[2]*pressconv*myvol;
+    vir[1] = comp_p->vector[3]*pressconv*myvol;
+    vir[2] = comp_p->vector[4]*pressconv*myvol;
+    vir[5] = comp_p->vector[5]*pressconv*myvol;
+    retstr[0] = '\0';
+  }
 
   if (master) {
     // check for new messages
@@ -502,7 +511,8 @@ void FixIPI::final_integrate()
       writebuffer(ipisock,(char*) &nat,4, error);
       writebuffer(ipisock,(char*) buffer, bsize*8, error);
       writebuffer(ipisock,(char*) vir,9*8, error);
-      nat=strlen(retstr);  writebuffer(ipisock,(char*) &nat,4, error);
+      nat=strlen(retstr);
+      writebuffer(ipisock,(char*) &nat,4, error);
       writebuffer(ipisock,(char*) retstr, nat, error);
     }
     else

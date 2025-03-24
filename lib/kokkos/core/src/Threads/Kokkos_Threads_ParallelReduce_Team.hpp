@@ -42,7 +42,7 @@ class ParallelReduce<CombinedFunctorReducerType,
   const size_t m_shared;
 
   template <class TagType>
-  inline static std::enable_if_t<std::is_void<TagType>::value> exec_team(
+  inline static std::enable_if_t<std::is_void_v<TagType>> exec_team(
       const FunctorType &functor, Member member, reference_type update) {
     for (; member.valid_static(); member.next_static()) {
       functor(member, update);
@@ -50,7 +50,7 @@ class ParallelReduce<CombinedFunctorReducerType,
   }
 
   template <class TagType>
-  inline static std::enable_if_t<!std::is_void<TagType>::value> exec_team(
+  inline static std::enable_if_t<!std::is_void_v<TagType>> exec_team(
       const FunctorType &functor, Member member, reference_type update) {
     const TagType t{};
     for (; member.valid_static(); member.next_static()) {
@@ -106,9 +106,14 @@ class ParallelReduce<CombinedFunctorReducerType,
       policy.impl_set_vector_length(1);
     }
     if (policy.team_size() < 0) {
-      policy.impl_set_team_size(policy.team_size_recommended(
+      int team_size = policy.team_size_recommended(
           m_functor_reducer.get_functor(), m_functor_reducer.get_reducer(),
-          ParallelReduceTag{}));
+          ParallelReduceTag{});
+      if (team_size <= 0)
+        Kokkos::Impl::throw_runtime_exception(
+            "Kokkos::Impl::ParallelReduce<Threads, TeamPolicy> could not find "
+            "a valid execution configuration.");
+      policy.impl_set_team_size(team_size);
     }
     return policy;
   }

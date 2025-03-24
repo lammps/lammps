@@ -404,7 +404,8 @@ void Replicate::command(int narg, char **arg)
   }
 
   if (natoms != atom->natoms)
-    error->all(FLERR,"Replicate did not assign all atoms correctly");
+    error->all(FLERR, Error::NOLASTLINE, "Replicate did not assign all atoms correctly"
+               + utils::errorurl(16));
 
   if (me == 0) {
     const char *molstyle = "";

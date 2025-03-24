@@ -63,9 +63,14 @@ void check_distinctive([[maybe_unused]] ExecSpace exec1,
   }
 #endif
 #ifdef KOKKOS_ENABLE_SYCL
-  if constexpr (std::is_same_v<ExecSpace, Kokkos::Experimental::SYCL>) {
+  if constexpr (std::is_same_v<ExecSpace, Kokkos::SYCL>) {
     ASSERT_NE(*exec1.impl_internal_space_instance()->m_queue,
               *exec2.impl_internal_space_instance()->m_queue);
+  }
+#endif
+#ifdef KOKKOS_ENABLE_HPX
+  if constexpr (std::is_same_v<ExecSpace, Kokkos::Experimental::HPX>) {
+    ASSERT_NE(exec1.impl_instance_id(), exec2.impl_instance_id());
   }
 #endif
 }
@@ -74,6 +79,9 @@ void check_distinctive([[maybe_unused]] ExecSpace exec1,
 #ifdef KOKKOS_ENABLE_OPENMP
 template <class Lambda1, class Lambda2>
 void run_threaded_test(const Lambda1 l1, const Lambda2 l2) {
+  if (omp_get_max_threads() < 2)
+    GTEST_SKIP() << "insufficient number of supported concurrent threads";
+
 #pragma omp parallel num_threads(2)
   {
     if (omp_get_thread_num() == 0) l1();

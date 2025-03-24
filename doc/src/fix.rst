@@ -237,6 +237,7 @@ accelerated styles exist.
 * :doc:`dt/reset <fix_dt_reset>` - reset the timestep based on velocity, forces
 * :doc:`edpd/source <fix_dpd_source>` - add heat source to eDPD simulations
 * :doc:`efield <fix_efield>` - impose electric field on system
+* :doc:`efield/lepton <fix_efield_lepton>` - impose electric field on system using a Lepton expression for the potential
 * :doc:`efield/tip4p <fix_efield>` - impose electric field on system with TIP4P molecules
 * :doc:`ehex <fix_ehex>` - enhanced heat exchange algorithm
 * :doc:`electrode/conp <fix_electrode>` - impose electric potential
@@ -340,6 +341,8 @@ accelerated styles exist.
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
 * :doc:`pimd/langevin <fix_pimd>` - Feynman path-integral molecular dynamics with stochastic thermostat
 * :doc:`pimd/nvt <fix_pimd>` - Feynman path-integral molecular dynamics with Nose-Hoover thermostat
+* :doc:`pimd/langevin/bosonic <fix_pimd>` - Bosonic Feynman path-integral molecular dynamics for with stochastic thermostat
+* :doc:`pimd/nvt/bosonic <fix_pimd>` - Bosonic Feynman path-integral molecular dynamics with Nose-Hoover thermostat
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane
 * :doc:`plumed <fix_plumed>` - wrapper on PLUMED free energy library
 * :doc:`poems <fix_poems>` - constrain clusters of atoms to move as coupled rigid bodies
@@ -366,6 +369,7 @@ accelerated styles exist.
 * :doc:`qeq/slater <fix_qeq>` - charge equilibration via Slater method
 * :doc:`qmmm <fix_qmmm>` - functionality to enable a quantum mechanics/molecular mechanics coupling
 * :doc:`qtb <fix_qtb>` - implement quantum thermal bath scheme
+* :doc:`qtpie/reaxff <fix_qtpie_reaxff>` - apply QTPIE charge equilibration
 * :doc:`rattle <fix_shake>` - RATTLE constraints on bonds and/or angles
 * :doc:`reaxff/bonds <fix_reaxff_bonds>` - write out ReaxFF bond information
 * :doc:`reaxff/species <fix_reaxff_species>` - write out ReaxFF molecule information

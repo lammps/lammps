@@ -22,8 +22,7 @@
 #include <vector>
 
 template <typename... Properties>
-class Kokkos::Impl::TeamPolicyInternal<Kokkos::Experimental::SYCL,
-                                       Properties...>
+class Kokkos::Impl::TeamPolicyInternal<Kokkos::SYCL, Properties...>
     : public PolicyTraits<Properties...> {
  public:
   using execution_policy = TeamPolicyInternal;
@@ -45,7 +44,7 @@ class Kokkos::Impl::TeamPolicyInternal<Kokkos::Experimental::SYCL,
   bool m_tune_vector_length;
 
  public:
-  using execution_space = Kokkos::Experimental::SYCL;
+  using execution_space = Kokkos::SYCL;
 
   template <class... OtherProperties>
   TeamPolicyInternal(TeamPolicyInternal<OtherProperties...> const& p) {

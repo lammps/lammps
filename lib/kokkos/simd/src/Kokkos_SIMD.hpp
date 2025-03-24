@@ -154,7 +154,7 @@ struct ForSpace<Kokkos::HIP> {
 
 #ifdef KOKKOS_ENABLE_SYCL
 template <>
-struct ForSpace<Kokkos::Experimental::SYCL> {
+struct ForSpace<Kokkos::SYCL> {
   using type = scalar;
 };
 #endif

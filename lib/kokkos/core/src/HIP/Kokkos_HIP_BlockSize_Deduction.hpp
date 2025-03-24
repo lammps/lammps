@@ -113,8 +113,9 @@ unsigned hip_internal_get_block_size(const HIPInternal *hip_instance,
   const unsigned min_waves_per_eu =
       LaunchBounds::minBperSM ? LaunchBounds::minBperSM : 1;
   const unsigned min_threads_per_sm = min_waves_per_eu * HIPTraits::WarpSize;
-  const unsigned shmem_per_sm       = hip_instance->m_shmemPerSM;
-  unsigned block_size               = tperb_reg;
+  const unsigned shmem_per_sm =
+      hip_instance->m_deviceProp.maxSharedMemoryPerMultiProcessor;
+  unsigned block_size = tperb_reg;
   do {
     unsigned total_shmem = f(block_size);
     // find how many threads we can fit with this blocksize based on LDS usage

@@ -26,13 +26,16 @@ namespace LAMMPS_NS {
 
 class RegPrism : public Region {
   friend class CreateBox;
+  friend class Region2VMD;
 
  public:
   RegPrism(class LAMMPS *, int, char **);
   ~RegPrism() override;
+  void init() override;
   int inside(double, double, double) override;
   int surface_interior(double *, double) override;
   int surface_exterior(double *, double) override;
+  void shape_update() override;
 
  private:
   double xlo, xhi, ylo, yhi, zlo, zhi;
@@ -48,6 +51,16 @@ class RegPrism : public Region {
   void find_nearest(double *, double &, double &, double &);
   int inside_tri(double *, double *, double *, double *, double *);
   double closest(double *, double *, double *, double);
+
+  int xlostyle, xlovar, xhistyle, xhivar;
+  int ylostyle, ylovar, yhistyle, yhivar;
+  int zlostyle, zlovar, zhistyle, zhivar;
+  int xystyle, xyvar, xzstyle, xzvar, yzstyle, yzvar;
+  char *xlostr, *ylostr, *zlostr;
+  char *xhistr, *yhistr, *zhistr;
+  char *xystr, *xzstr, *yzstr;
+
+  void variable_check();
 };
 
 }    // namespace LAMMPS_NS

@@ -19,7 +19,7 @@
 
 // The type of a two-dimensional N x 3 array of double.
 // It lives in Kokkos' default memory space.
-using view_type = Kokkos::View<double * [3]>;
+using view_type = Kokkos::View<double *[3]>;
 
 // The "HostMirror" type corresponding to view_type above is also a
 // two-dimensional N x 3 array of double.  However, it lives in the

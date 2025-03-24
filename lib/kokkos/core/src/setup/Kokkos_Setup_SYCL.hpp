@@ -62,4 +62,12 @@ using sycl_host_ptr = sycl::host_ptr<T>;
 #endif
 }  // namespace Kokkos::Impl
 
+// clang-format off
+#ifdef KOKKOS_ENABLE_SYCL_RELOCATABLE_DEVICE_CODE
+#define KOKKOS_IMPL_RELOCATABLE_FUNCTION SYCL_EXTERNAL
+#else
+#define KOKKOS_IMPL_RELOCATABLE_FUNCTION @"KOKKOS_RELOCATABLE_FUNCTION requires Kokkos_ENABLE_SYCL_RELOCATABLE_DEVICE_CODE=ON"
+#endif
+// clang-format on
+
 #endif

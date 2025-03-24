@@ -166,7 +166,7 @@ void PairMorseSoft::allocate()
 
 void PairMorseSoft::coeff(int narg, char **arg)
 {
-  if (narg < 6 || narg > 7) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg < 6 || narg > 7) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -194,7 +194,7 @@ void PairMorseSoft::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

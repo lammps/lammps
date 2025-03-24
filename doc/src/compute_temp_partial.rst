@@ -46,7 +46,7 @@ degrees of freedom.
 
 A symmetric tensor, stored as a six-element vector, is also calculated
 by this compute for use in the computation of a pressure tensor by the
-:doc:`compute pressue <compute_pressure>` command.  The formula for
+:doc:`compute pressure <compute_pressure>` command.  The formula for
 the components of the tensor is the same as the above expression for
 :math:`E_\mathrm{kin}`, except that the 1/2 factor is NOT included and
 the :math:`v_i^2` is replaced by :math:`v_{i,x} v_{i,y}` for the

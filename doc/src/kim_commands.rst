@@ -1084,10 +1084,11 @@ the form of *key_name_key*-*key_name_value* pairs).  For example,
    kim property modify 1 key mass    source-value 26.98154
    kim property modify 1 key mass    source-unit  amu
 
-where the special keyword "key" is followed by a *key_name* ("species" or
-"mass" in the above) and one or more key-value pairs.  These key-value pairs
-may continue until either another "key" keyword is given or the end of the
-command line is reached.  Thus, the above could equivalently be written as
+where the special keyword "key" is followed by a *key_name* ("species"
+or "mass" in the above) and one or more key-value pairs.  These
+key-value pairs may continue until either another "key" keyword is given
+or the end of the line is reached.  Thus, the above could equivalently
+be written as
 
 .. code-block:: LAMMPS
 

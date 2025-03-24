@@ -85,16 +85,26 @@ class OpenACCSpace {
 template <>
 struct Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace,
                                        Kokkos::Experimental::OpenACCSpace> {
+#if defined(KOKKOS_ENABLE_OPENACC_FORCE_HOST_AS_DEVICE)
+  enum : bool{assignable = true};
+  enum : bool{accessible = true};
+#else
   enum : bool { assignable = false };
   enum : bool { accessible = false };
+#endif
   enum : bool { deepcopy = true };
 };
 
 template <>
 struct Kokkos::Impl::MemorySpaceAccess<Kokkos::Experimental::OpenACCSpace,
                                        Kokkos::HostSpace> {
+#if defined(KOKKOS_ENABLE_OPENACC_FORCE_HOST_AS_DEVICE)
+  enum : bool{assignable = true};
+  enum : bool{accessible = true};
+#else
   enum : bool { assignable = false };
   enum : bool { accessible = false };
+#endif
   enum : bool { deepcopy = true };
 };
 

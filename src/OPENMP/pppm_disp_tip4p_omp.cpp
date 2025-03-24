@@ -392,7 +392,7 @@ void PPPMDispTIP4POMP::particle_map_c(double dxinv, double dyinv,
 
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all(FLERR,"Out of range atoms - cannot compute PPPM");
+  if (flag_all) error->all(FLERR,"Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
 }
 
 /* ----------------------------------------------------------------------

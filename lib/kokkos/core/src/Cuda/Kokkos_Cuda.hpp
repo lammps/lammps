@@ -35,7 +35,6 @@ static_assert(false,
 #include <Cuda/Kokkos_Cuda_Error.hpp>  // CUDA_SAFE_CALL
 
 #include <Kokkos_Parallel.hpp>
-#include <Kokkos_TaskScheduler.hpp>
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_ScratchSpace.hpp>
 #include <Kokkos_MemoryTraits.hpp>

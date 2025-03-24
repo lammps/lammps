@@ -47,7 +47,7 @@ struct TestViewOperator {
   enum { N = 1000 };
   enum { D = 3 };
 
-  using view_type = Kokkos::View<T * [D], execution_space>;
+  using view_type = Kokkos::View<T *[D], execution_space>;
 
   const view_type v1;
   const view_type v2;
@@ -741,8 +741,7 @@ struct TestViewMirror {
     int equal_ptr_h2_d = a_h2.data() == a_d.data() ? 1 : 0;
 
     int is_same_memspace =
-        std::is_same<Kokkos::HostSpace,
-                     typename DeviceType::memory_space>::value
+        std::is_same_v<Kokkos::HostSpace, typename DeviceType::memory_space>
             ? 1
             : 0;
     ASSERT_EQ(equal_ptr_h_h2, 1);
@@ -768,8 +767,7 @@ struct TestViewMirror {
     int equal_ptr_h3_d = a_h3.data() == a_d.data() ? 1 : 0;
 
     int is_same_memspace =
-        std::is_same<Kokkos::HostSpace,
-                     typename DeviceType::memory_space>::value
+        std::is_same_v<Kokkos::HostSpace, typename DeviceType::memory_space>
             ? 1
             : 0;
     ASSERT_EQ(equal_ptr_h_h2, 1);
@@ -863,8 +861,7 @@ struct TestViewMirror {
 
     int equal_ptr_h_d = (a_h.data() == a_d.data()) ? 1 : 0;
     constexpr int is_same_memspace =
-        std::is_same<Kokkos::HostSpace,
-                     typename DeviceType::memory_space>::value
+        std::is_same_v<Kokkos::HostSpace, typename DeviceType::memory_space>
             ? 1
             : 0;
 
@@ -907,10 +904,10 @@ class TestViewAPI {
 
   using dView0       = Kokkos::View<T, device>;
   using dView1       = Kokkos::View<T *, device>;
-  using dView2       = Kokkos::View<T * [N1], device>;
-  using dView3       = Kokkos::View<T * [N1][N2], device>;
-  using dView4       = Kokkos::View<T * [N1][N2][N3], device>;
-  using const_dView4 = Kokkos::View<const T * [N1][N2][N3], device>;
+  using dView2       = Kokkos::View<T *[N1], device>;
+  using dView3       = Kokkos::View<T *[N1][N2], device>;
+  using dView4       = Kokkos::View<T *[N1][N2][N3], device>;
+  using const_dView4 = Kokkos::View<const T *[N1][N2][N3], device>;
   using dView4_unmanaged =
       Kokkos::View<T ****, device, Kokkos::MemoryUnmanaged>;
   using host = typename dView0::host_mirror_space;
@@ -955,8 +952,11 @@ class TestViewAPI {
     using view_type   = Kokkos::View<int, host>;
     using mirror_type = typename view_type::HostMirror;
 
-    static_assert(std::is_same<typename view_type::memory_space,
-                               typename mirror_type::memory_space>::value);
+    static_assert(std::is_same_v<typename view_type::HostMirror,
+                                 typename view_type::host_mirror_type>);
+
+    static_assert(std::is_same_v<typename view_type::memory_space,
+                                 typename mirror_type::memory_space>);
 
     view_type a("a");
     mirror_type am = Kokkos::create_mirror_view(a);
@@ -1020,8 +1020,8 @@ class TestViewAPI {
 
   static void run_test_contruction_from_layout_2() {
     using dView3_0 = Kokkos::View<T ***, device>;
-    using dView3_1 = Kokkos::View<T * * [N2], device>;
-    using dView3_2 = Kokkos::View<T * [N1][N2], device>;
+    using dView3_1 = Kokkos::View<T **[N2], device>;
+    using dView3_2 = Kokkos::View<T *[N1][N2], device>;
     using dView3_3 = Kokkos::View<T[N0][N1][N2], device>;
 
     dView3_0 v_0("v_0", N0, N1, N2);
@@ -1391,8 +1391,8 @@ class TestViewAPI {
 
     // Check Deep Copy of two empty 2D views
     {
-      Kokkos::View<double * [3], Kokkos::LayoutRight> d;
-      Kokkos::View<double * [3], Kokkos::LayoutRight, Kokkos::HostSpace> h;
+      Kokkos::View<double *[3], Kokkos::LayoutRight> d;
+      Kokkos::View<double *[3], Kokkos::LayoutRight, Kokkos::HostSpace> h;
       Kokkos::deep_copy(d, h);
       Kokkos::deep_copy(h, d);
     }

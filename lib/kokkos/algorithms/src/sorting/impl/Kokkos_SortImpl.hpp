@@ -34,6 +34,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wsuggest-override"
 
 #if defined(KOKKOS_COMPILER_CLANG)
 // Some versions of Clang fail to compile Thrust, failing with errors like
@@ -146,7 +147,7 @@ void sort_via_binsort(const ExecutionSpace& exec,
   bool sort_in_bins = true;
   // TODO: figure out better max_bins then this ...
   int64_t max_bins = view.extent(0) / 2;
-  if (std::is_integral<typename ViewType::non_const_value_type>::value) {
+  if (std::is_integral_v<typename ViewType::non_const_value_type>) {
     // Cast to double to avoid possible overflow when using integer
     auto const max_val = static_cast<double>(result.max_val);
     auto const min_val = static_cast<double>(result.min_val);
@@ -157,7 +158,7 @@ void sort_via_binsort(const ExecutionSpace& exec,
       sort_in_bins = false;
     }
   }
-  if (std::is_floating_point<typename ViewType::non_const_value_type>::value) {
+  if (std::is_floating_point_v<typename ViewType::non_const_value_type>) {
     KOKKOS_ASSERT(std::isfinite(static_cast<double>(result.max_val) -
                                 static_cast<double>(result.min_val)));
   }
@@ -211,11 +212,11 @@ void sort_rocthrust(const HIP& space,
 
 #if defined(KOKKOS_ENABLE_ONEDPL)
 template <class DataType, class... Properties, class... MaybeComparator>
-void sort_onedpl(const Kokkos::Experimental::SYCL& space,
+void sort_onedpl(const Kokkos::SYCL& space,
                  const Kokkos::View<DataType, Properties...>& view,
                  MaybeComparator&&... maybeComparator) {
   using ViewType = Kokkos::View<DataType, Properties...>;
-  static_assert(SpaceAccessibility<Kokkos::Experimental::SYCL,
+  static_assert(SpaceAccessibility<Kokkos::SYCL,
                                    typename ViewType::memory_space>::accessible,
                 "SYCL execution space is not able to access the memory space "
                 "of the View argument!");
@@ -268,19 +269,29 @@ void copy_to_host_run_stdsort_copy_back(
     KE::copy(exec, view, view_dc);
 
     // run sort on the mirror of view_dc
-    auto mv_h  = create_mirror_view_and_copy(Kokkos::HostSpace(), view_dc);
-    auto first = KE::begin(mv_h);
-    auto last  = KE::end(mv_h);
-    std::sort(first, last, std::forward<MaybeComparator>(maybeComparator)...);
+    auto mv_h = create_mirror_view_and_copy(Kokkos::HostSpace(), view_dc);
+    if (view.span_is_contiguous()) {
+      std::sort(mv_h.data(), mv_h.data() + mv_h.size(),
+                std::forward<MaybeComparator>(maybeComparator)...);
+    } else {
+      auto first = KE::begin(mv_h);
+      auto last  = KE::end(mv_h);
+      std::sort(first, last, std::forward<MaybeComparator>(maybeComparator)...);
+    }
     Kokkos::deep_copy(exec, view_dc, mv_h);
 
     // copy back to argument view
     KE::copy(exec, KE::cbegin(view_dc), KE::cend(view_dc), KE::begin(view));
   } else {
     auto view_h = create_mirror_view_and_copy(Kokkos::HostSpace(), view);
-    auto first  = KE::begin(view_h);
-    auto last   = KE::end(view_h);
-    std::sort(first, last, std::forward<MaybeComparator>(maybeComparator)...);
+    if (view.span_is_contiguous()) {
+      std::sort(view_h.data(), view_h.data() + view_h.size(),
+                std::forward<MaybeComparator>(maybeComparator)...);
+    } else {
+      auto first = KE::begin(view_h);
+      auto last  = KE::end(view_h);
+      std::sort(first, last, std::forward<MaybeComparator>(maybeComparator)...);
+    }
     Kokkos::deep_copy(exec, view, view_h);
   }
 }
@@ -310,7 +321,7 @@ void sort_device_view_without_comparator(
 #if defined(KOKKOS_ENABLE_ONEDPL)
 template <class DataType, class... Properties>
 void sort_device_view_without_comparator(
-    const Kokkos::Experimental::SYCL& exec,
+    const Kokkos::SYCL& exec,
     const Kokkos::View<DataType, Properties...>& view) {
   using ViewType = Kokkos::View<DataType, Properties...>;
   static_assert(
@@ -365,8 +376,7 @@ void sort_device_view_with_comparator(
 #if defined(KOKKOS_ENABLE_ONEDPL)
 template <class ComparatorType, class DataType, class... Properties>
 void sort_device_view_with_comparator(
-    const Kokkos::Experimental::SYCL& exec,
-    const Kokkos::View<DataType, Properties...>& view,
+    const Kokkos::SYCL& exec, const Kokkos::View<DataType, Properties...>& view,
     const ComparatorType& comparator) {
   using ViewType = Kokkos::View<DataType, Properties...>;
   static_assert(
@@ -397,12 +407,12 @@ sort_device_view_with_comparator(
   // and then copies data back. Potentially, this can later be changed
   // with a better solution like our own quicksort on device or similar.
 
-  using ViewType = Kokkos::View<DataType, Properties...>;
-  using MemSpace = typename ViewType::memory_space;
 // Note with HIP unified memory this code path is still the right thing to do
 // if we end up here when RocThrust is not enabled.
 // The create_mirror_view_and_copy will do the right thing (no copy).
-#ifndef KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY
+#ifndef KOKKOS_IMPL_HIP_UNIFIED_MEMORY
+  using ViewType = Kokkos::View<DataType, Properties...>;
+  using MemSpace = typename ViewType::memory_space;
   static_assert(!SpaceAccessibility<HostSpace, MemSpace>::accessible,
                 "Impl::sort_device_view_with_comparator: should not be called "
                 "on a view that is already accessible on the host");

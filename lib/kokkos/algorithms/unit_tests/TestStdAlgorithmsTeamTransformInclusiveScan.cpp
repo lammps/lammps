@@ -91,7 +91,7 @@ struct TestFunctorA {
 
       case 1: {
         auto it    = KE::transform_inclusive_scan(member, srcRow, destRow,
-                                               m_binaryOp, m_unaryOp);
+                                                  m_binaryOp, m_unaryOp);
         resultDist = KE::distance(firstDest, it);
         Kokkos::single(Kokkos::PerTeam(member),
                        [=, *this] { m_distancesView(rowIndex) = resultDist; });
@@ -111,7 +111,7 @@ struct TestFunctorA {
 
       case 3: {
         auto it    = KE::transform_inclusive_scan(member, srcRow, destRow,
-                                               m_binaryOp, m_unaryOp, initVal);
+                                                  m_binaryOp, m_unaryOp, initVal);
         resultDist = KE::distance(firstDest, it);
         Kokkos::single(Kokkos::PerTeam(member),
                        [=, *this] { m_distancesView(rowIndex) = resultDist; });

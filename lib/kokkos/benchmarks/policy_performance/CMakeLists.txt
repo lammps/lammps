@@ -1,4 +1,1 @@
-KOKKOS_ADD_EXECUTABLE(
-  policy_performance
-  SOURCES main.cpp
-)
+kokkos_add_executable(policy_performance SOURCES main.cpp)

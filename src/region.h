@@ -20,7 +20,7 @@ namespace LAMMPS_NS {
 
 class Region : protected Pointers {
  public:
-  enum { CONSTANT, VARIABLE };
+  enum { CONSTANT, VARIABLE, NONE };
 
   char *id, *style;
   Region **reglist;
@@ -47,7 +47,7 @@ class Region : protected Pointers {
     double delx, dely, delz;    // vector from surface pt to particle
     double radius;              // curvature of region at contact point
     int iwall;                  // unique id of wall for storing shear history
-    int varflag;                // 1 if wall can be variable-controlled
+    int varflag = 0;            // 1 if wall can be variable-controlled
   };
   Contact *contact;    // list of contacts
   int cmax;            // max # of contacts possible with region

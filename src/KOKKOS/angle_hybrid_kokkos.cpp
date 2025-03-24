@@ -76,7 +76,7 @@ void AngleHybridKokkos::compute(int eflag, int vflag)
 
     Kokkos::parallel_for(nanglelist_orig,LAMMPS_LAMBDA(int i) {
       const int m = d_map[d_anglelist_orig(i,3)];
-      if (m >= 0) Kokkos::atomic_increment(&d_nanglelist[m]);
+      if (m >= 0) Kokkos::atomic_inc(&d_nanglelist[m]);
     });
 
     k_nanglelist.modify_device();
@@ -87,7 +87,7 @@ void AngleHybridKokkos::compute(int eflag, int vflag)
       if (h_nanglelist[m] > maxangle_all)
         maxangle_all = h_nanglelist[m] + EXTRA;
 
-    if (k_anglelist.d_view.extent(1) < maxangle_all)
+    if ((int)k_anglelist.d_view.extent(1) < maxangle_all)
       MemKK::realloc_kokkos(k_anglelist, "angle_hybrid:anglelist", nstyles, maxangle_all, 4);
     auto d_anglelist = k_anglelist.d_view;
 

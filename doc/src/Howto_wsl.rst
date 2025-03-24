@@ -260,7 +260,7 @@ Switch into the :code:`examples/melt` folder:
 
    cd ../examples/melt
 
-To run this example in serial, use the following command line:
+To run this example in serial, use the following command:
 
 .. code-block::
 

@@ -96,16 +96,16 @@ int dsygv_(integer *itype, char *jobz, char *uplo, integer *n, doublereal *a, in
             } else {
                 *(unsigned char *)trans = 'T';
             }
-            dtrsm_((char *)"Left", uplo, trans, (char *)"Non-unit", n, &neig, &c_b16, &b[b_offset], ldb,
-                   &a[a_offset], lda, (ftnlen)4, (ftnlen)1, (ftnlen)1, (ftnlen)8);
+            dtrsm_((char *)"L", uplo, trans, (char *)"N", n, &neig, &c_b16, &b[b_offset], ldb, &a[a_offset], lda,
+                   (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
         } else if (*itype == 3) {
             if (upper) {
                 *(unsigned char *)trans = 'T';
             } else {
                 *(unsigned char *)trans = 'N';
             }
-            dtrmm_((char *)"Left", uplo, trans, (char *)"Non-unit", n, &neig, &c_b16, &b[b_offset], ldb,
-                   &a[a_offset], lda, (ftnlen)4, (ftnlen)1, (ftnlen)1, (ftnlen)8);
+            dtrmm_((char *)"L", uplo, trans, (char *)"N", n, &neig, &c_b16, &b[b_offset], ldb, &a[a_offset], lda,
+                   (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
         }
     }
     work[1] = (doublereal)lwkopt;

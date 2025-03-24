@@ -66,6 +66,15 @@ gives access to the LAMMPS state from Python.
    from these callbacks, trying to execute input script commands will in the best
    case not work or in the worst case result in undefined behavior.
 
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various :doc:`output commands <Howto_output>`.
+No parameter of this fix can be used with the *start/stop* keywords of
+the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+
 Restrictions
 """"""""""""
 

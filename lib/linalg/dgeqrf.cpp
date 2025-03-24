@@ -87,14 +87,13 @@ int dgeqrf_(integer *m, integer *n, doublereal *a, integer *lda, doublereal *tau
             dgeqr2_(&i__3, &ib, &a[i__ + i__ * a_dim1], lda, &tau[i__], &work[1], &iinfo);
             if (i__ + ib <= *n) {
                 i__3 = *m - i__ + 1;
-                dlarft_((char *)"Forward", (char *)"Columnwise", &i__3, &ib, &a[i__ + i__ * a_dim1], lda, &tau[i__],
-                        &work[1], &ldwork, (ftnlen)7, (ftnlen)10);
+                dlarft_((char *)"F", (char *)"C", &i__3, &ib, &a[i__ + i__ * a_dim1], lda, &tau[i__], &work[1],
+                        &ldwork, (ftnlen)1, (ftnlen)1);
                 i__3 = *m - i__ + 1;
                 i__4 = *n - i__ - ib + 1;
-                dlarfb_((char *)"Left", (char *)"Transpose", (char *)"Forward", (char *)"Columnwise", &i__3, &i__4, &ib,
-                        &a[i__ + i__ * a_dim1], lda, &work[1], &ldwork,
-                        &a[i__ + (i__ + ib) * a_dim1], lda, &work[ib + 1], &ldwork, (ftnlen)4,
-                        (ftnlen)9, (ftnlen)7, (ftnlen)10);
+                dlarfb_((char *)"L", (char *)"T", (char *)"F", (char *)"C", &i__3, &i__4, &ib, &a[i__ + i__ * a_dim1], lda,
+                        &work[1], &ldwork, &a[i__ + (i__ + ib) * a_dim1], lda, &work[ib + 1],
+                        &ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
             }
         }
     } else {

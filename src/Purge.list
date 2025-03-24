@@ -53,6 +53,8 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+# removed in Dec 2024
+group_kokkos.cpp
 # renamed in September 2024
 group_ndx.cpp
 group_ndx.h

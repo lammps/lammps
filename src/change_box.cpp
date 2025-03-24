@@ -381,7 +381,7 @@ void ChangeBox::command(int narg, char **arg)
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms && comm->me == 0)
     error->warning(FLERR,"Lost atoms via change_box: original {} "
-                   "current {}", atom->natoms,natoms);
+                   "current {}"+utils::errorurl(8),atom->natoms,natoms);
 }
 
 /* ----------------------------------------------------------------------

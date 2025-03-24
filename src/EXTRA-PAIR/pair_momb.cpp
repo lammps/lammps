@@ -211,7 +211,7 @@ void PairMomb::settings(int narg, char **arg)
 void PairMomb::coeff(int narg, char **arg)
 {
   if (narg < 7 || narg > 8)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   if (!allocated) allocate();
 
@@ -242,7 +242,7 @@ void PairMomb::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 

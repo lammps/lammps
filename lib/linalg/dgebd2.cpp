@@ -8,10 +8,10 @@ int dgebd2_(integer *m, integer *n, doublereal *a, integer *lda, doublereal *d__
 {
     integer a_dim1, a_offset, i__1, i__2, i__3;
     integer i__;
-    extern int dlarf_(char *, integer *, integer *, doublereal *, integer *, doublereal *,
-                      doublereal *, integer *, doublereal *, ftnlen),
-        dlarfg_(integer *, doublereal *, doublereal *, integer *, doublereal *),
-        xerbla_(char *, integer *, ftnlen);
+    extern int dlarfg_(integer *, doublereal *, doublereal *, integer *, doublereal *),
+        xerbla_(char *, integer *, ftnlen),
+        dlarf1f_(char *, integer *, integer *, doublereal *, integer *, doublereal *, doublereal *,
+                 integer *, doublereal *, ftnlen);
     a_dim1 = *lda;
     a_offset = 1 + a_dim1;
     a -= a_offset;
@@ -41,26 +41,22 @@ int dgebd2_(integer *m, integer *n, doublereal *a, integer *lda, doublereal *d__
             dlarfg_(&i__2, &a[i__ + i__ * a_dim1], &a[min(i__3, *m) + i__ * a_dim1], &c__1,
                     &tauq[i__]);
             d__[i__] = a[i__ + i__ * a_dim1];
-            a[i__ + i__ * a_dim1] = 1.;
             if (i__ < *n) {
                 i__2 = *m - i__ + 1;
                 i__3 = *n - i__;
-                dlarf_((char *)"Left", &i__2, &i__3, &a[i__ + i__ * a_dim1], &c__1, &tauq[i__],
-                       &a[i__ + (i__ + 1) * a_dim1], lda, &work[1], (ftnlen)4);
+                dlarf1f_((char *)"L", &i__2, &i__3, &a[i__ + i__ * a_dim1], &c__1, &tauq[i__],
+                         &a[i__ + (i__ + 1) * a_dim1], lda, &work[1], (ftnlen)1);
             }
-            a[i__ + i__ * a_dim1] = d__[i__];
             if (i__ < *n) {
                 i__2 = *n - i__;
                 i__3 = i__ + 2;
                 dlarfg_(&i__2, &a[i__ + (i__ + 1) * a_dim1], &a[i__ + min(i__3, *n) * a_dim1], lda,
                         &taup[i__]);
                 e[i__] = a[i__ + (i__ + 1) * a_dim1];
-                a[i__ + (i__ + 1) * a_dim1] = 1.;
                 i__2 = *m - i__;
                 i__3 = *n - i__;
-                dlarf_((char *)"Right", &i__2, &i__3, &a[i__ + (i__ + 1) * a_dim1], lda, &taup[i__],
-                       &a[i__ + 1 + (i__ + 1) * a_dim1], lda, &work[1], (ftnlen)5);
-                a[i__ + (i__ + 1) * a_dim1] = e[i__];
+                dlarf1f_((char *)"R", &i__2, &i__3, &a[i__ + (i__ + 1) * a_dim1], lda, &taup[i__],
+                         &a[i__ + 1 + (i__ + 1) * a_dim1], lda, &work[1], (ftnlen)1);
             } else {
                 taup[i__] = 0.;
             }
@@ -73,26 +69,22 @@ int dgebd2_(integer *m, integer *n, doublereal *a, integer *lda, doublereal *d__
             dlarfg_(&i__2, &a[i__ + i__ * a_dim1], &a[i__ + min(i__3, *n) * a_dim1], lda,
                     &taup[i__]);
             d__[i__] = a[i__ + i__ * a_dim1];
-            a[i__ + i__ * a_dim1] = 1.;
             if (i__ < *m) {
                 i__2 = *m - i__;
                 i__3 = *n - i__ + 1;
-                dlarf_((char *)"Right", &i__2, &i__3, &a[i__ + i__ * a_dim1], lda, &taup[i__],
-                       &a[i__ + 1 + i__ * a_dim1], lda, &work[1], (ftnlen)5);
+                dlarf1f_((char *)"R", &i__2, &i__3, &a[i__ + i__ * a_dim1], lda, &taup[i__],
+                         &a[i__ + 1 + i__ * a_dim1], lda, &work[1], (ftnlen)1);
             }
-            a[i__ + i__ * a_dim1] = d__[i__];
             if (i__ < *m) {
                 i__2 = *m - i__;
                 i__3 = i__ + 2;
                 dlarfg_(&i__2, &a[i__ + 1 + i__ * a_dim1], &a[min(i__3, *m) + i__ * a_dim1], &c__1,
                         &tauq[i__]);
                 e[i__] = a[i__ + 1 + i__ * a_dim1];
-                a[i__ + 1 + i__ * a_dim1] = 1.;
                 i__2 = *m - i__;
                 i__3 = *n - i__;
-                dlarf_((char *)"Left", &i__2, &i__3, &a[i__ + 1 + i__ * a_dim1], &c__1, &tauq[i__],
-                       &a[i__ + 1 + (i__ + 1) * a_dim1], lda, &work[1], (ftnlen)4);
-                a[i__ + 1 + i__ * a_dim1] = e[i__];
+                dlarf1f_((char *)"L", &i__2, &i__3, &a[i__ + 1 + i__ * a_dim1], &c__1, &tauq[i__],
+                         &a[i__ + 1 + (i__ + 1) * a_dim1], lda, &work[1], (ftnlen)1);
             } else {
                 tauq[i__] = 0.;
             }

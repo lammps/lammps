@@ -31,19 +31,25 @@ class ComputeRHEOVShift : public Compute {
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_peratom() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   double memory_usage() override;
   void correct_surfaces();
+  void correct_type_interface();
   double **vshift;
 
   class FixRHEO *fix_rheo;
 
  private:
-  int nmax_store;
+  int nmax_store, comm_stage;
   double dtv, cut, cutsq, cutthird;
-  int surface_flag, interface_flag;
+  double scale, wmin, cmin;
+  int surface_flag, interface_flag, cross_type_flag;
   double *rho0;
+  double *wsame, *ct, **cgradt;
+  int *shift_type;
 
   class NeighList *list;
   class ComputeRHEOInterface *compute_interface;

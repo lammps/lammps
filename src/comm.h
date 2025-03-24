@@ -87,17 +87,17 @@ class Comm : protected Pointers {
 
   // forward/reverse comm from a Pair, Bond, Fix, Compute, Dump
 
-  virtual void forward_comm(class Pair *) = 0;
-  virtual void reverse_comm(class Pair *) = 0;
-  virtual void forward_comm(class Bond *) = 0;
-  virtual void reverse_comm(class Bond *) = 0;
+  virtual void forward_comm(class Pair *, int size = 0) = 0;
+  virtual void reverse_comm(class Pair *, int size = 0) = 0;
+  virtual void forward_comm(class Bond *, int size = 0) = 0;
+  virtual void reverse_comm(class Bond *, int size = 0) = 0;
   virtual void forward_comm(class Fix *, int size = 0) = 0;
   virtual void reverse_comm(class Fix *, int size = 0) = 0;
   virtual void reverse_comm_variable(class Fix *) = 0;
-  virtual void forward_comm(class Compute *) = 0;
-  virtual void reverse_comm(class Compute *) = 0;
-  virtual void forward_comm(class Dump *) = 0;
-  virtual void reverse_comm(class Dump *) = 0;
+  virtual void forward_comm(class Compute *, int size = 0) = 0;
+  virtual void reverse_comm(class Compute *, int size = 0) = 0;
+  virtual void forward_comm(class Dump *, int size = 0) = 0;
+  virtual void reverse_comm(class Dump *, int size = 0) = 0;
 
   // forward comm of an array
 

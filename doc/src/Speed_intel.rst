@@ -1,5 +1,5 @@
 INTEL package
-==================
+=============
 
 The INTEL package is maintained by Mike Brown at Intel
 Corporation.  It provides two methods for accelerating simulations,
@@ -13,18 +13,18 @@ twice, once on the CPU and once with an offload flag. This allows
 LAMMPS to run on the CPU cores and co-processor cores simultaneously.
 
 Currently Available INTEL Styles
-"""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""
 
 * Angle Styles: charmm, harmonic
-* Bond Styles: fene, fourier, harmonic
+* Bond Styles: fene, harmonic
 * Dihedral Styles: charmm, fourier, harmonic, opls
-* Fixes: nve, npt, nvt, nvt/sllod, nve/asphere
+* Fixes: nve, npt, nvt, nvt/sllod, nve/asphere, electrode/conp, electrode/conq, electrode/thermo
 * Improper Styles: cvff, harmonic
 * Pair Styles: airebo, airebo/morse, buck/coul/cut, buck/coul/long,
   buck, dpd, eam, eam/alloy, eam/fs, gayberne, lj/charmm/coul/charmm,
   lj/charmm/coul/long, lj/cut, lj/cut/coul/long, lj/long/coul/long,
-  rebo, sw, tersoff
-* K-Space Styles: pppm, pppm/disp
+  rebo, snap, sw, tersoff
+* K-Space Styles: pppm, pppm/disp, pppm/electrode
 
 .. warning::
 
@@ -33,7 +33,7 @@ Currently Available INTEL Styles
    input requires it, LAMMPS will abort with an error message.
 
 Speed-up to expect
-"""""""""""""""""""
+""""""""""""""""""
 
 The speedup will depend on your simulation, the hardware, which
 styles are used, the number of atoms, and the floating-point
@@ -312,21 +312,21 @@ almost all cases.
    recommended, especially when running on a machine with Intel
    Hyper-Threading technology disabled.
 
-Run with the INTEL package from the command line
-"""""""""""""""""""""""""""""""""""""""""""""""""""""
+Run with the INTEL package from the command-line
+""""""""""""""""""""""""""""""""""""""""""""""""
 
-To enable INTEL optimizations for all available styles used in
-the input script, the ``-sf intel`` :doc:`command-line switch <Run_options>` can be used without any requirement for
-editing the input script. This switch will automatically append
-"intel" to styles that support it. It also invokes a default command:
-:doc:`package intel 1 <package>`. This package command is used to set
-options for the INTEL package.  The default package command will
-specify that INTEL calculations are performed in mixed precision,
-that the number of OpenMP threads is specified by the OMP_NUM_THREADS
-environment variable, and that if co-processors are present and the
-binary was built with offload support, that 1 co-processor per node
-will be used with automatic balancing of work between the CPU and the
-co-processor.
+To enable INTEL optimizations for all available styles used in the input
+script, the ``-sf intel`` :doc:`command-line switch <Run_options>` can
+be used without any requirement for editing the input script. This
+switch will automatically append "intel" to styles that support it. It
+also invokes a default command: :doc:`package intel 1 <package>`. This
+package command is used to set options for the INTEL package.  The
+default package command will specify that INTEL calculations are
+performed in mixed precision, that the number of OpenMP threads is
+specified by the OMP_NUM_THREADS environment variable, and that if
+co-processors are present and the binary was built with offload support,
+that 1 co-processor per node will be used with automatic balancing of
+work between the CPU and the co-processor.
 
 You can specify different options for the INTEL package by using
 the ``-pk intel Nphi`` :doc:`command-line switch <Run_options>` with

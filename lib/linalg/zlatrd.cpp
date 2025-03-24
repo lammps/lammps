@@ -49,18 +49,18 @@ int zlatrd_(char *uplo, integer *n, integer *nb, doublecomplex *a, integer *lda,
                 zlacgv_(&i__2, &w[i__ + (iw + 1) * w_dim1], ldw);
                 i__2 = *n - i__;
                 z__1.r = -1., z__1.i = -0.;
-                zgemv_((char *)"No transpose", &i__, &i__2, &z__1, &a[(i__ + 1) * a_dim1 + 1], lda,
+                zgemv_((char *)"N", &i__, &i__2, &z__1, &a[(i__ + 1) * a_dim1 + 1], lda,
                        &w[i__ + (iw + 1) * w_dim1], ldw, &c_b2, &a[i__ * a_dim1 + 1], &c__1,
-                       (ftnlen)12);
+                       (ftnlen)1);
                 i__2 = *n - i__;
                 zlacgv_(&i__2, &w[i__ + (iw + 1) * w_dim1], ldw);
                 i__2 = *n - i__;
                 zlacgv_(&i__2, &a[i__ + (i__ + 1) * a_dim1], lda);
                 i__2 = *n - i__;
                 z__1.r = -1., z__1.i = -0.;
-                zgemv_((char *)"No transpose", &i__, &i__2, &z__1, &w[(iw + 1) * w_dim1 + 1], ldw,
+                zgemv_((char *)"N", &i__, &i__2, &z__1, &w[(iw + 1) * w_dim1 + 1], ldw,
                        &a[i__ + (i__ + 1) * a_dim1], lda, &c_b2, &a[i__ * a_dim1 + 1], &c__1,
-                       (ftnlen)12);
+                       (ftnlen)1);
                 i__2 = *n - i__;
                 zlacgv_(&i__2, &a[i__ + (i__ + 1) * a_dim1], lda);
                 i__2 = i__ + i__ * a_dim1;
@@ -77,31 +77,31 @@ int zlatrd_(char *uplo, integer *n, integer *nb, doublecomplex *a, integer *lda,
                 i__2 = i__ - 1 + i__ * a_dim1;
                 a[i__2].r = 1., a[i__2].i = 0.;
                 i__2 = i__ - 1;
-                zhemv_((char *)"Upper", &i__2, &c_b2, &a[a_offset], lda, &a[i__ * a_dim1 + 1], &c__1, &c_b1,
-                       &w[iw * w_dim1 + 1], &c__1, (ftnlen)5);
+                zhemv_((char *)"U", &i__2, &c_b2, &a[a_offset], lda, &a[i__ * a_dim1 + 1], &c__1, &c_b1,
+                       &w[iw * w_dim1 + 1], &c__1, (ftnlen)1);
                 if (i__ < *n) {
                     i__2 = i__ - 1;
                     i__3 = *n - i__;
-                    zgemv_((char *)"Conjugate transpose", &i__2, &i__3, &c_b2, &w[(iw + 1) * w_dim1 + 1],
-                           ldw, &a[i__ * a_dim1 + 1], &c__1, &c_b1, &w[i__ + 1 + iw * w_dim1],
-                           &c__1, (ftnlen)19);
+                    zgemv_((char *)"C", &i__2, &i__3, &c_b2, &w[(iw + 1) * w_dim1 + 1], ldw,
+                           &a[i__ * a_dim1 + 1], &c__1, &c_b1, &w[i__ + 1 + iw * w_dim1], &c__1,
+                           (ftnlen)1);
                     i__2 = i__ - 1;
                     i__3 = *n - i__;
                     z__1.r = -1., z__1.i = -0.;
-                    zgemv_((char *)"No transpose", &i__2, &i__3, &z__1, &a[(i__ + 1) * a_dim1 + 1], lda,
+                    zgemv_((char *)"N", &i__2, &i__3, &z__1, &a[(i__ + 1) * a_dim1 + 1], lda,
                            &w[i__ + 1 + iw * w_dim1], &c__1, &c_b2, &w[iw * w_dim1 + 1], &c__1,
-                           (ftnlen)12);
+                           (ftnlen)1);
                     i__2 = i__ - 1;
                     i__3 = *n - i__;
-                    zgemv_((char *)"Conjugate transpose", &i__2, &i__3, &c_b2, &a[(i__ + 1) * a_dim1 + 1],
-                           lda, &a[i__ * a_dim1 + 1], &c__1, &c_b1, &w[i__ + 1 + iw * w_dim1],
-                           &c__1, (ftnlen)19);
+                    zgemv_((char *)"C", &i__2, &i__3, &c_b2, &a[(i__ + 1) * a_dim1 + 1], lda,
+                           &a[i__ * a_dim1 + 1], &c__1, &c_b1, &w[i__ + 1 + iw * w_dim1], &c__1,
+                           (ftnlen)1);
                     i__2 = i__ - 1;
                     i__3 = *n - i__;
                     z__1.r = -1., z__1.i = -0.;
-                    zgemv_((char *)"No transpose", &i__2, &i__3, &z__1, &w[(iw + 1) * w_dim1 + 1], ldw,
+                    zgemv_((char *)"N", &i__2, &i__3, &z__1, &w[(iw + 1) * w_dim1 + 1], ldw,
                            &w[i__ + 1 + iw * w_dim1], &c__1, &c_b2, &w[iw * w_dim1 + 1], &c__1,
-                           (ftnlen)12);
+                           (ftnlen)1);
                 }
                 i__2 = i__ - 1;
                 zscal_(&i__2, &tau[i__ - 1], &w[iw * w_dim1 + 1], &c__1);
@@ -130,8 +130,8 @@ int zlatrd_(char *uplo, integer *n, integer *nb, doublecomplex *a, integer *lda,
             i__2 = *n - i__ + 1;
             i__3 = i__ - 1;
             z__1.r = -1., z__1.i = -0.;
-            zgemv_((char *)"No transpose", &i__2, &i__3, &z__1, &a[i__ + a_dim1], lda, &w[i__ + w_dim1],
-                   ldw, &c_b2, &a[i__ + i__ * a_dim1], &c__1, (ftnlen)12);
+            zgemv_((char *)"N", &i__2, &i__3, &z__1, &a[i__ + a_dim1], lda, &w[i__ + w_dim1], ldw, &c_b2,
+                   &a[i__ + i__ * a_dim1], &c__1, (ftnlen)1);
             i__2 = i__ - 1;
             zlacgv_(&i__2, &w[i__ + w_dim1], ldw);
             i__2 = i__ - 1;
@@ -139,8 +139,8 @@ int zlatrd_(char *uplo, integer *n, integer *nb, doublecomplex *a, integer *lda,
             i__2 = *n - i__ + 1;
             i__3 = i__ - 1;
             z__1.r = -1., z__1.i = -0.;
-            zgemv_((char *)"No transpose", &i__2, &i__3, &z__1, &w[i__ + w_dim1], ldw, &a[i__ + a_dim1],
-                   lda, &c_b2, &a[i__ + i__ * a_dim1], &c__1, (ftnlen)12);
+            zgemv_((char *)"N", &i__2, &i__3, &z__1, &w[i__ + w_dim1], ldw, &a[i__ + a_dim1], lda, &c_b2,
+                   &a[i__ + i__ * a_dim1], &c__1, (ftnlen)1);
             i__2 = i__ - 1;
             zlacgv_(&i__2, &a[i__ + a_dim1], lda);
             i__2 = i__ + i__ * a_dim1;
@@ -157,31 +157,29 @@ int zlatrd_(char *uplo, integer *n, integer *nb, doublecomplex *a, integer *lda,
                 i__2 = i__ + 1 + i__ * a_dim1;
                 a[i__2].r = 1., a[i__2].i = 0.;
                 i__2 = *n - i__;
-                zhemv_((char *)"Lower", &i__2, &c_b2, &a[i__ + 1 + (i__ + 1) * a_dim1], lda,
+                zhemv_((char *)"L", &i__2, &c_b2, &a[i__ + 1 + (i__ + 1) * a_dim1], lda,
                        &a[i__ + 1 + i__ * a_dim1], &c__1, &c_b1, &w[i__ + 1 + i__ * w_dim1], &c__1,
-                       (ftnlen)5);
+                       (ftnlen)1);
                 i__2 = *n - i__;
                 i__3 = i__ - 1;
-                zgemv_((char *)"Conjugate transpose", &i__2, &i__3, &c_b2, &w[i__ + 1 + w_dim1], ldw,
+                zgemv_((char *)"C", &i__2, &i__3, &c_b2, &w[i__ + 1 + w_dim1], ldw,
                        &a[i__ + 1 + i__ * a_dim1], &c__1, &c_b1, &w[i__ * w_dim1 + 1], &c__1,
-                       (ftnlen)19);
+                       (ftnlen)1);
                 i__2 = *n - i__;
                 i__3 = i__ - 1;
                 z__1.r = -1., z__1.i = -0.;
-                zgemv_((char *)"No transpose", &i__2, &i__3, &z__1, &a[i__ + 1 + a_dim1], lda,
-                       &w[i__ * w_dim1 + 1], &c__1, &c_b2, &w[i__ + 1 + i__ * w_dim1], &c__1,
-                       (ftnlen)12);
+                zgemv_((char *)"N", &i__2, &i__3, &z__1, &a[i__ + 1 + a_dim1], lda, &w[i__ * w_dim1 + 1],
+                       &c__1, &c_b2, &w[i__ + 1 + i__ * w_dim1], &c__1, (ftnlen)1);
                 i__2 = *n - i__;
                 i__3 = i__ - 1;
-                zgemv_((char *)"Conjugate transpose", &i__2, &i__3, &c_b2, &a[i__ + 1 + a_dim1], lda,
+                zgemv_((char *)"C", &i__2, &i__3, &c_b2, &a[i__ + 1 + a_dim1], lda,
                        &a[i__ + 1 + i__ * a_dim1], &c__1, &c_b1, &w[i__ * w_dim1 + 1], &c__1,
-                       (ftnlen)19);
+                       (ftnlen)1);
                 i__2 = *n - i__;
                 i__3 = i__ - 1;
                 z__1.r = -1., z__1.i = -0.;
-                zgemv_((char *)"No transpose", &i__2, &i__3, &z__1, &w[i__ + 1 + w_dim1], ldw,
-                       &w[i__ * w_dim1 + 1], &c__1, &c_b2, &w[i__ + 1 + i__ * w_dim1], &c__1,
-                       (ftnlen)12);
+                zgemv_((char *)"N", &i__2, &i__3, &z__1, &w[i__ + 1 + w_dim1], ldw, &w[i__ * w_dim1 + 1],
+                       &c__1, &c_b2, &w[i__ + 1 + i__ * w_dim1], &c__1, (ftnlen)1);
                 i__2 = *n - i__;
                 zscal_(&i__2, &tau[i__], &w[i__ + 1 + i__ * w_dim1], &c__1);
                 z__3.r = -.5, z__3.i = -0.;

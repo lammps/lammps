@@ -37,7 +37,7 @@ NPairSkipTemp<TRIM>::NPairSkipTemp(LAMMPS *lmp) : NPair(lmp) {}
 template<int TRIM>
 void NPairSkipTemp<TRIM>::build(NeighList *list)
 {
-  int i, j, ii, jj, n, itype, jnum, joriginal;
+  int i, j, ii, jj, n, itype, jtype, jnum, joriginal;
   int *neighptr, *jlist;
 
   int *type = atom->type;
@@ -94,7 +94,8 @@ void NPairSkipTemp<TRIM>::build(NeighList *list)
     for (jj = 0; jj < jnum; jj++) {
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
-      if (!molskip && ijskip[itype][type[j]]) continue;
+      jtype = type[j];
+      if (!molskip && ijskip[itype][jtype]) continue;
       if ((molskip == NeighRequest::INTRA) && (molecule[i] != molecule[j])) continue;
       if ((molskip == NeighRequest::INTER) && (molecule[i] == molecule[j])) continue;
 
@@ -103,7 +104,9 @@ void NPairSkipTemp<TRIM>::build(NeighList *list)
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
         rsq = delx * delx + dely * dely + delz * delz;
-        if (rsq > cutsq_custom) continue;
+
+        double cutsq_trim = (cutsq_custom > 0.0) ? cutsq_custom : cutneighsq[itype][jtype];
+        if (rsq > cutsq_trim) continue;
       }
 
       neighptr[n++] = joriginal;

@@ -34,7 +34,7 @@
 
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_UnorderedMap_impl.hpp>
-#include <impl/Kokkos_ViewCtor.hpp>
+#include <View/Kokkos_ViewCtor.hpp>
 
 #include <cstdint>
 
@@ -746,7 +746,7 @@ class UnorderedMap {
   /// 'const value_type' via Cuda texture fetch must return by value.
   template <typename Dummy = value_type>
   KOKKOS_FORCEINLINE_FUNCTION std::enable_if_t<
-      !std::is_void<Dummy>::value,  // !is_set
+      !std::is_void_v<Dummy>,  // !is_set
       std::conditional_t<has_const_value, impl_value_type, impl_value_type &>>
   value_at(size_type i) const {
     KOKKOS_EXPECTS(i < capacity());
@@ -808,8 +808,8 @@ class UnorderedMap {
   // Re-allocate the views of the calling UnorderedMap according to src
   // capacity, and deep copy the src data.
   template <typename SKey, typename SValue, typename SDevice>
-  std::enable_if_t<std::is_same<std::remove_const_t<SKey>, key_type>::value &&
-                   std::is_same<std::remove_const_t<SValue>, value_type>::value>
+  std::enable_if_t<std::is_same_v<std::remove_const_t<SKey>, key_type> &&
+                   std::is_same_v<std::remove_const_t<SValue>, value_type>>
   create_copy_view(
       UnorderedMap<SKey, SValue, SDevice, Hasher, EqualTo> const &src) {
     if (m_hash_lists.data() != src.m_hash_lists.data()) {
@@ -821,8 +821,8 @@ class UnorderedMap {
   // Allocate views of the calling UnorderedMap with the same capacity as the
   // src.
   template <typename SKey, typename SValue, typename SDevice>
-  std::enable_if_t<std::is_same<std::remove_const_t<SKey>, key_type>::value &&
-                   std::is_same<std::remove_const_t<SValue>, value_type>::value>
+  std::enable_if_t<std::is_same_v<std::remove_const_t<SKey>, key_type> &&
+                   std::is_same_v<std::remove_const_t<SValue>, value_type>>
   allocate_view(
       UnorderedMap<SKey, SValue, SDevice, Hasher, EqualTo> const &src) {
     insertable_map_type tmp;
@@ -852,8 +852,8 @@ class UnorderedMap {
   // Deep copy view data from src. This requires that the src capacity is
   // identical to the capacity of the calling UnorderedMap.
   template <typename SKey, typename SValue, typename SDevice>
-  std::enable_if_t<std::is_same<std::remove_const_t<SKey>, key_type>::value &&
-                   std::is_same<std::remove_const_t<SValue>, value_type>::value>
+  std::enable_if_t<std::is_same_v<std::remove_const_t<SKey>, key_type> &&
+                   std::is_same_v<std::remove_const_t<SValue>, value_type>>
   deep_copy_view(
       UnorderedMap<SKey, SValue, SDevice, Hasher, EqualTo> const &src) {
 #ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4

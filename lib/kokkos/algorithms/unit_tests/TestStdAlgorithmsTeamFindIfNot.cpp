@@ -70,7 +70,7 @@ struct TestFunctorA {
     switch (m_apiPick) {
       case 0: {
         auto it    = KE::find_if_not(member, KE::cbegin(myRowViewFrom),
-                                  KE::cend(myRowViewFrom), unaryPred);
+                                     KE::cend(myRowViewFrom), unaryPred);
         resultDist = KE::distance(KE::cbegin(myRowViewFrom), it);
         Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
           m_distancesView(myRowIndex) = resultDist;

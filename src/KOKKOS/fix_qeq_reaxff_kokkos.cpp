@@ -215,9 +215,11 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   // get max number of neighbor
 
-  if (!allocated_flag || last_allocate < neighbor->lastcall) {
+  if (!allocated_flag || last_allocate < neighbor->lastcall
+      || nlocal_last_allocate != nlocal) {
     allocate_matrix();
     last_allocate = update->ntimestep;
+    nlocal_last_allocate = nlocal;
   }
 
   // compute_H
@@ -313,8 +315,6 @@ void FixQEqReaxFFKokkos<DeviceType>::num_neigh_item(int ii, bigint &totneigh) co
 template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::allocate_matrix()
 {
-  nmax = atom->nmax;
-
   // determine the total space for the H matrix
 
   m_cap_big = 0;
@@ -332,8 +332,8 @@ void FixQEqReaxFFKokkos<DeviceType>::allocate_matrix()
   d_jlist = typename AT::t_int_1d();
   d_val = typename AT::t_ffloat_1d();
 
-  d_firstnbr = typename AT::t_bigint_1d("qeq/kk:firstnbr",nmax);
-  d_numnbrs = typename AT::t_int_1d("qeq/kk:numnbrs",nmax);
+  d_firstnbr = typename AT::t_bigint_1d("qeq/kk:firstnbr",nlocal);
+  d_numnbrs = typename AT::t_int_1d("qeq/kk:numnbrs",nlocal);
   d_jlist = typename AT::t_int_1d("qeq/kk:jlist",m_cap_big);
   d_val = typename AT::t_ffloat_1d("qeq/kk:val",m_cap_big);
 }

@@ -20,6 +20,7 @@
 #include <Threads/Kokkos_Threads_State.hpp>
 
 #include <cstdint>
+#include <atomic>
 
 namespace Kokkos {
 namespace Impl {
@@ -34,7 +35,7 @@ enum class WaitMode : int {
 
 void host_thread_yield(const uint32_t i, const WaitMode mode);
 
-void spinwait_while_equal(ThreadState const volatile& flag,
+void spinwait_while_equal(std::atomic<ThreadState> const& flag,
                           ThreadState const value);
 
 }  // namespace Impl

@@ -338,9 +338,13 @@ void FixLangevin::setup(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   integrate position and velocity according to the GJF method
-    in Grønbech-Jensen, J Stat Phys 191, 137 (2024). 
-    https://doi.org/10.1007/s10955-024-03345-1
+  integrate position and velocity according to the GJF method
+  in Grønbech-Jensen, J Stat Phys 191, 137 (2024). The general workflow is
+    1. NVE Initial Integration
+    2. Langevin GJF Initial Integration
+    3. Force Update
+    4. NVE Final Integration
+    5. Velocity Choice in end_of_step()
 ------------------------------------------------------------------------- */
 
 void FixLangevin::initial_integrate(int /* vflag */)
@@ -365,12 +369,14 @@ void FixLangevin::initial_integrate(int /* vflag */)
 
   double dtf = 0.5 * dt * ftm2v;
   double dtfm;
+  double c1sqrt = sqrt(gjfc1);
   
   // NVE integrates position and velocity according to Eq. 8a, 8b
   // This function embeds the GJF formulation into the NVE framework, which corresponds to the GJF case c1=c3.
 
   // The initial NVE integration should always use the on-site velocity. Therefore, a velocity correction
   // must be done when using the half-step option.
+  //----------
   if (!osflag) {
     if (rmass) {
       for (int i = 0; i < nlocal; i++)
@@ -409,6 +415,7 @@ void FixLangevin::initial_integrate(int /* vflag */)
         }
     }
   }
+  //----------
 
   compute_target();
 
@@ -435,13 +442,13 @@ void FixLangevin::initial_integrate(int /* vflag */)
       if (tbiasflag == BIAS)
         temperature->remove_bias(i,v[i]);
       if (rmass) {
-        lv[i][0] = sqrt(gjfc1)*v[i][0] + ftm2v * (sqrt(gjfc1) / (2.0 * rmass[i])) * fran[0];
-        lv[i][1] = sqrt(gjfc1)*v[i][1] + ftm2v * (sqrt(gjfc1) / (2.0 * rmass[i])) * fran[1];
-        lv[i][2] = sqrt(gjfc1)*v[i][2] + ftm2v * (sqrt(gjfc1) / (2.0 * rmass[i])) * fran[2];
+        lv[i][0] = c1sqrt*v[i][0] + ftm2v * (c1sqrt / (2.0 * rmass[i])) * fran[0];
+        lv[i][1] = c1sqrt*v[i][1] + ftm2v * (c1sqrt / (2.0 * rmass[i])) * fran[1];
+        lv[i][2] = c1sqrt*v[i][2] + ftm2v * (c1sqrt / (2.0 * rmass[i])) * fran[2];
       } else {
-        lv[i][0] = sqrt(gjfc1)*v[i][0] + ftm2v * (sqrt(gjfc1) / (2.0 * mass[type[i]])) * fran[0];
-        lv[i][1] = sqrt(gjfc1)*v[i][1] + ftm2v * (sqrt(gjfc1) / (2.0 * mass[type[i]])) * fran[1];
-        lv[i][2] = sqrt(gjfc1)*v[i][2] + ftm2v * (sqrt(gjfc1) / (2.0 * mass[type[i]])) * fran[2];
+        lv[i][0] = c1sqrt*v[i][0] + ftm2v * (c1sqrt / (2.0 * mass[type[i]])) * fran[0];
+        lv[i][1] = c1sqrt*v[i][1] + ftm2v * (c1sqrt / (2.0 * mass[type[i]])) * fran[1];
+        lv[i][2] = c1sqrt*v[i][2] + ftm2v * (c1sqrt / (2.0 * mass[type[i]])) * fran[2];
       }
       if (tbiasflag == BIAS)
         temperature->restore_bias(i,v[i]);
@@ -451,13 +458,13 @@ void FixLangevin::initial_integrate(int /* vflag */)
       // Calculate Eq. 24d
       if (tbiasflag == BIAS) temperature->remove_bias(i, lv[i]);
       if (atom->rmass) {
-        v[i][0] = (gjfc2 / sqrt(gjfc1)) * lv[i][0] + ftm2v * (0.5 / rmass[i]) * fran[0];
-        v[i][1] = (gjfc2 / sqrt(gjfc1)) * lv[i][1] + ftm2v * (0.5 / rmass[i]) * fran[1];
-        v[i][2] = (gjfc2 / sqrt(gjfc1)) * lv[i][2] + ftm2v * (0.5 / rmass[i]) * fran[2];
+        v[i][0] = (gjfc2 / c1sqrt) * lv[i][0] + ftm2v * (0.5 / rmass[i]) * fran[0];
+        v[i][1] = (gjfc2 / c1sqrt) * lv[i][1] + ftm2v * (0.5 / rmass[i]) * fran[1];
+        v[i][2] = (gjfc2 / c1sqrt) * lv[i][2] + ftm2v * (0.5 / rmass[i]) * fran[2];
       } else {
-        v[i][0] = (gjfc2 / sqrt(gjfc1)) * lv[i][0] + ftm2v * (0.5 / mass[type[i]]) * fran[0];
-        v[i][1] = (gjfc2 / sqrt(gjfc1)) * lv[i][1] + ftm2v * (0.5 / mass[type[i]]) * fran[1];
-        v[i][2] = (gjfc2 / sqrt(gjfc1)) * lv[i][2] + ftm2v * (0.5 / mass[type[i]]) * fran[2];
+        v[i][0] = (gjfc2 / c1sqrt) * lv[i][0] + ftm2v * (0.5 / mass[type[i]]) * fran[0];
+        v[i][1] = (gjfc2 / c1sqrt) * lv[i][1] + ftm2v * (0.5 / mass[type[i]]) * fran[1];
+        v[i][2] = (gjfc2 / c1sqrt) * lv[i][2] + ftm2v * (0.5 / mass[type[i]]) * fran[2];
       }
       if (tbiasflag == BIAS) temperature->restore_bias(i, lv[i]);
       // Calculate Eq. 24e. NVE integrator then calculates Eq. 24f.
@@ -859,7 +866,8 @@ void FixLangevin::end_of_step()
 
   energy += energy_onestep*update->dt;
 
-  // After the NVE integrator delivers 24f, either the on-site or half-step velocity is used in remaining simulation tasks
+  // After the NVE integrator delivers 24f, either the on-site or half-step
+  // velocity is used in remaining simulation tasks, depending on user input
   if (gjfflag && !osflag) {
     double tmp[3];
     for (int i = 0; i < nlocal; i++)

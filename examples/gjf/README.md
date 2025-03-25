@@ -10,4 +10,4 @@ NP=4 #number of processors
 mpirun -np $NP lmp_mpi -in.gjf.vhalf
 ```
 
-## Required LAMMPS packages: MOLECULE package
+## Required LAMMPS packages: MOLECULE package, EXTRA-PAIR package

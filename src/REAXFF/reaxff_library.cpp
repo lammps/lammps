@@ -325,9 +325,11 @@ void lammps_set_reaxff_ang_parameter(void *handle, int type1, int type2, int typ
     int k = type2 - 1;
     int l = type3 - 1;
 
-    // FIXME: check if cnt>1 is possible
-    if( thbp[j][k][l].cnt != 1 )
-      lmp->error->all(FLERR,"lammps_set_reaxff_ang_parameter(): thbp[{}][{}][{}].cnt != 1.", j, k, l );
+    // check if cnt>1 is possible
+    // yes it is, eg. N-N-N gets cnt+=2
+    if( thbp[j][k][l].cnt > 2 )
+      lmp->error->all(FLERR,
+        "lammps_set_reaxff_ang_parameter(): thbp[{}][{}][{}].cnt = {} > 2.", j, k, l, thbp[j][k][l].cnt );
 
     switch(parameter_index) {
       case 0:  thbp[j][k][l].prm[0].theta_00 = thbp[l][k][j].prm[0].theta_00 = value;  break;

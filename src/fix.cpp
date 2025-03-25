@@ -48,8 +48,8 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
     error->all(FLERR,"Fix ID must be alphanumeric or underscore characters");
 
   igroup = group->find(arg[1]);
-  if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
-  groupbit = group->bitmask[igroup];
+  if (igroup == -1) error->all(FLERR,"Could not find fix {} group ID {}", arg[2], arg[1]);
+  groupbit = group->get_bitmask_by_id(FLERR, arg[1], fmt::format("fix {}",arg[2]));
 
   style = utils::strdup(arg[2]);
 

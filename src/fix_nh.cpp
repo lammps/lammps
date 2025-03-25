@@ -271,7 +271,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
         delete[] id_dilate;
         id_dilate = utils::strdup(arg[iarg+1]);
         int idilate = group->find(id_dilate);
-        if (idilate == -1)
+        if (idilate < 0)
           error->all(FLERR,"Fix {} dilate group ID {} does not exist", style, id_dilate);
       }
       iarg += 2;
@@ -629,12 +629,8 @@ void FixNH::init()
 {
   // recheck that dilate group has not been deleted
 
-  if (allremap == 0) {
-    int idilate = group->find(id_dilate);
-    if (idilate == -1)
-      error->all(FLERR,"Fix {} dilate group ID {} does not exist", style, id_dilate);
-    dilate_group_bit = group->bitmask[idilate];
-  }
+  if (allremap == 0)
+    dilate_group_bit = group->get_bitmask_by_id(FLERR, id_dilate, fmt::format("fix {}", style));
 
   // ensure no conflict with fix deform
 

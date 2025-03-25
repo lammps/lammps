@@ -58,7 +58,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) :
   id = utils::strdup(arg[0]);
 
   igroup = group->find(arg[1]);
-  groupbit = group->bitmask[igroup];
+  groupbit = group->get_bitmask_by_id(FLERR, arg[1], fmt::format("dump {}", arg[2]));
 
   style = utils::strdup(arg[2]);
 
@@ -311,6 +311,7 @@ void Dump::init()
 
 int Dump::count()
 {
+  // group all
   if (igroup == 0) return atom->nlocal;
 
   int *mask = atom->mask;

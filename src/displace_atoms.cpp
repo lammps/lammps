@@ -74,8 +74,7 @@ void DisplaceAtoms::command(int narg, char **arg)
   // group and style
 
   igroup = group->find(arg[0]);
-  if (igroup == -1) error->all(FLERR,"Could not find displace_atoms group ID");
-  groupbit = group->bitmask[igroup];
+  groupbit = group->get_bitmask_by_id(FLERR, arg[0], "displace_atoms");
 
   if (modify->check_rigid_group_overlap(groupbit))
     error->warning(FLERR,"Attempting to displace atoms in rigid bodies");

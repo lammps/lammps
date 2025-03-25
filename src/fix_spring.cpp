@@ -73,11 +73,9 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
 
     group2 = utils::strdup(arg[4]);
     igroup2 = group->find(arg[4]);
-    if (igroup2 == -1)
-      error->all(FLERR,"Fix spring couple group ID does not exist");
     if (igroup2 == igroup)
-      error->all(FLERR,"Two groups cannot be the same in fix spring couple");
-    group2bit = group->bitmask[igroup2];
+      error->all(FLERR,"The two groups cannot be the same in fix spring couple");
+    group2bit = group->get_bitmask_by_id(FLERR, arg[4], "fix spring");
 
     k_spring = utils::numeric(FLERR,arg[5],false,lmp);
     xflag = yflag = zflag = 1;
@@ -121,9 +119,7 @@ void FixSpring::init()
 
   if (group2) {
     igroup2 = group->find(group2);
-    if (igroup2 == -1)
-      error->all(FLERR,"Fix spring couple group ID does not exist");
-    group2bit = group->bitmask[igroup2];
+    group2bit = group->get_bitmask_by_id(FLERR, group2, "fix spring");
   }
 
   masstotal = group->mass(igroup);

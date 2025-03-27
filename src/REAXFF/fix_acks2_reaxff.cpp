@@ -673,6 +673,34 @@ void FixACKS2ReaxFF::sparse_matvec_acks2(sparse_matrix *H, sparse_matrix *X, dou
 
 void FixACKS2ReaxFF::calculate_Q()
 {
+  if (target_charge != 0.0) {
+    double qsum_local = 0.0;
+    int count_local = 0;
+
+    for (int ii = 0; ii < nn; ++ii) {
+      int i = ilist[ii];
+      if (atom->mask[i] & groupbit) {
+        qsum_local += s[i];
+        count_local++;
+      }
+    }
+
+    double qsum_global = 0.0;
+    int count_global = 0;
+    MPI_Allreduce(&qsum_local, &qsum_global, 1, MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(&count_local, &count_global, 1, MPI_INT, MPI_SUM, world);
+
+    if (count_global > 0) {
+      double delta = (qsum_global - target_charge) / count_global;
+      for (int ii = 0; ii < nn; ++ii) {
+        int i = ilist[ii];
+        if (atom->mask[i] & groupbit) {
+          s[i] -= delta;
+        }
+      }
+    }
+  }
+  
   pack_flag = 2;
   comm->forward_comm(this); //Dist_vector(s);
 

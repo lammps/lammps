@@ -1194,7 +1194,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2InitMatvec, const int
   // last two rows
   if (last_rows_flag && ii == 0) {
     for (int k = 0; k < 2; k++) {
-      d_b_s[2*NN+k] = 0.0;
+      d_b_s[2*NN+k] = target_charge;
       d_s[2*NN+k] = 4*(d_s_hist_last(k,0)+d_s_hist_last(k,2))-(6*d_s_hist_last(k,1)+d_s_hist_last(k,3));
     }
   }

@@ -73,8 +73,13 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   imax = 200;
   maxwarn = 1;
+  target_charge = 0.0;
 
-  if ((narg < 8) || (narg > 12)) error->all(FLERR,"Illegal fix qeq/reaxff command");
+  if (strcmp(style, "acks2/reaxff") != 0) {
+    if ((narg < 8) || (narg > 12)) error->all(FLERR,"Illegal fix qeq/reaxff command");
+  } else {
+    if ((narg < 8) || (narg > 14)) error->all(FLERR,"Illegal fix {} command", style);
+  }
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix qeq/reaxff command");
@@ -98,6 +103,13 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal fix {} command", style);
       imax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg++;
+    } else if (strcmp(arg[iarg], "target_charge") == 0) {
+      if (strcmp(style, "acks2/reaxff") != 0)
+        error->all(FLERR, "target_charge option is only supported for fix style acks2/reaxff(/kk)");
+      if (iarg+1 >= narg)
+        error->all(FLERR,"Missing value for target_charge");
+      target_charge = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix {} command", style);
     iarg++;
   }
@@ -411,8 +423,8 @@ void FixQEqReaxFF::init()
   }
   MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if ((comm->me == 0) && (fabs(qsum) > QSUMSMALL))
-    error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}", style, qsum);
+  if ((comm->me == 0) && (fabs(qsum-target_charge) > QSUMSMALL))
+    error->warning(FLERR,"Fix {} group total charge {:.8} is not equal to target charge {:.8}", style, qsum, target_charge);
 
   // get pointer to fix efield if present. there may be at most one instance of fix efield in use.
 

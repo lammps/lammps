@@ -68,11 +68,11 @@ class FixQEqReaxFF : public Fix {
   class FixEfield *efield;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
-  double swa, swb;     // lower/upper Taper cutoff radius
-  double Tap[8];       // Taper function
-  double tolerance;    // tolerance for the norm of the rel residual in CG
-
-  double *chi, *eta, *gamma;    // qeq parameters
+  double swa, swb;            // lower/upper Taper cutoff radius
+  double Tap[8];              // Taper function
+  double tolerance;           // tolerance for the norm of the rel residual in CG
+  double target_charge;       // target_charge option, default 0.0
+  double *chi, *eta, *gamma;  // qeq parameters
   double **shld;
 
   // fictitious charges

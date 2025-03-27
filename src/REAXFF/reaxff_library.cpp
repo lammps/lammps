@@ -26,6 +26,8 @@
 #include "pair_reaxff.h"
 #include "reaxff_api.h"
 
+#include <cstdio>
+
 #if defined(LMP_PYTHON)
 #include <Python.h>
 #endif
@@ -106,6 +108,8 @@ void lammps_set_reaxff_atm_parameter(void *handle, int type, int parameter_index
     auto &tbp = reax->tbp;
     int i = type - 1;
     int j, k, n = reax->num_atom_types;
+
+    fprintf(stderr, "ok 1\n");
 
     switch(parameter_index) {
 
@@ -360,13 +364,17 @@ void lammps_set_reaxff_tor_parameter(void *handle, int type1, int type2, int typ
     int l = type3 - 1;
     int m = type4 - 1;
 
-    int omin = (type1==0) ? 0 : type1;
-    int omax = (type1==0) ? ntypes-1 : type1;
-    int pmin = (type4==0) ? 0 : type4;
-    int pmax = (type4==0) ? ntypes-1 : type4;
+    fprintf(stderr, "ok 2a type1 %i type2 %i type3 %i type4 %i parameter_index %i value %f ntypes %i\n", type1, type2, type3, type4, parameter_index, value, ntypes);
+
+    int omin = (type1==0) ? 0 : type1-1;
+    int omax = (type1==0) ? ntypes-1 : type1-1;
+    int pmin = (type4==0) ? 0 : type4-1;
+    int pmax = (type4==0) ? ntypes-1 : type4-1;
+
+    fprintf(stderr, "ok 2b %i %i %i %i\n", omin, omax, pmin, pmax);
 
     for (int o=omin; o<=omax; ++o)
-      for (int p=pmin; p<=pmax; ++p)
+      for (int p=pmin; p<=pmax; ++p) {
         switch(parameter_index) {
           case 0:  fbp[o][k][l][p].prm[0].V1     = fbp[p][l][k][o].prm[0].V1     = value;  break;
           case 1:  fbp[o][k][l][p].prm[0].V2     = fbp[p][l][k][o].prm[0].V2     = value;  break;
@@ -374,7 +382,7 @@ void lammps_set_reaxff_tor_parameter(void *handle, int type1, int type2, int typ
           case 3:  fbp[o][k][l][p].prm[0].p_tor1 = fbp[p][l][k][o].prm[0].p_tor1 = value;  break;
           case 4:  fbp[o][k][l][p].prm[0].p_cot1 = fbp[p][l][k][o].prm[0].p_cot1 = value;  break;
         }
-
+      }
   }
   END_CAPTURE
 

@@ -176,6 +176,7 @@ struct reax_interaction {
   three_body_header ***thbp;
   hbond_parameters ***hbp;
   four_body_header ****fbp;
+  char ****tor_flag;
 };
 
 struct reax_atom {

@@ -56,7 +56,6 @@ namespace ReaxFF {
   void Read_Force_Field(const char *filename, reax_interaction *reax,
                         control_params *control, MPI_Comm world)
   {
-    char ****tor_flag;
     auto error = control->error_ptr;
     auto lmp = control->lmp_ptr;
     auto memory = control->lmp_ptr->memory;
@@ -131,12 +130,14 @@ namespace ReaxFF {
         auto &thbp = reax->thbp;
         auto &hbp = reax->hbp;
         auto &fbp = reax->fbp;
+        auto &tor_flag = reax->tor_flag;
 
         memory->destroy(sbp);
         memory->destroy(tbp);
         memory->destroy(thbp);
         memory->destroy(hbp);
         memory->destroy(fbp);
+        memory->destroy(tor_flag);
         memory->create(sbp,n,"reaxff:sbp");
         memory->create(tbp,n,n,"reaxff:tbp");
         memory->create(thbp,n,n,n,"reaxff:thbp");
@@ -148,7 +149,7 @@ namespace ReaxFF {
         memset(&(thbp[0][0][0]),0,sizeof(three_body_header)*n*n*n);
         memset(&(hbp[0][0][0]),0,sizeof(hbond_parameters)*n*n*n);
         memset(&(fbp[0][0][0][0]),0,sizeof(four_body_header)*n*n*n*n);
-        memset(&tor_flag[0][0][0][0],0,sizeof(char)*n*n*n*n);
+        memset(&(tor_flag[0][0][0][0]),0,sizeof(char)*n*n*n*n);
 
         // atomic parameters
         // four lines per atom type, or 5 if lgvdw != 0
@@ -576,8 +577,6 @@ namespace ReaxFF {
             hbp[j][k][l].p_hb3 = values.next_double();
           }
         }
-
-        memory->destroy(tor_flag);
       } catch (EOFException &e) {
         error->warning(FLERR, e.what());
       } catch (std::exception &e) {
@@ -600,6 +599,7 @@ namespace ReaxFF {
       memory->create(reax->thbp,n,n,n,"reaxff:thbp");
       memory->create(reax->hbp,n,n,n,"reaxff:hbp");
       memory->create(reax->fbp,n,n,n,n,"reaxff:fbp");
+      memory->create(reax->tor_flag,n,n,n,n,"reaxff:tor_flag");
     }
 
     // broadcast type specific force field data
@@ -608,6 +608,7 @@ namespace ReaxFF {
     MPI_Bcast(&(reax->thbp[0][0][0]),sizeof(three_body_header)*n*n*n,MPI_CHAR,0,world);
     MPI_Bcast(&(reax->hbp[0][0][0]),sizeof(hbond_parameters)*n*n*n,MPI_CHAR,0,world);
     MPI_Bcast(&(reax->fbp[0][0][0][0]),sizeof(four_body_header)*n*n*n*n,MPI_CHAR,0,world);
+    MPI_Bcast(&(reax->tor_flag[0][0][0][0]),sizeof(char)*n*n*n*n,MPI_CHAR,0,world);
 
     // apply global parameters to global control settings
 

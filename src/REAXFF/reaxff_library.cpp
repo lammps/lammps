@@ -109,8 +109,6 @@ void lammps_set_reaxff_atm_parameter(void *handle, int type, int parameter_index
     int i = type - 1;
     int j, k, n = reax->num_atom_types;
 
-    fprintf(stderr, "ok 1\n");
-
     switch(parameter_index) {
 
       // line one
@@ -350,37 +348,68 @@ void lammps_set_reaxff_ang_parameter(void *handle, int type1, int type2, int typ
 
 }
 
-void lammps_set_reaxff_tor_parameter(void *handle, int type1, int type2, int type3, int type4, int parameter_index, double value) {
+template <int parameter_index>
+void _set_tor_parameter(void *handle, int j, int k, int l, int m, double value) {
 
-  auto lmp = (LAMMPS *) handle;
-
+  auto lmp = static_cast<LAMMPS *>(handle);
   BEGIN_CAPTURE
   {
-    PairReaxFF *reaxff = static_cast<PairReaxFF *>(lmp->force->pair);
-    auto &fbp = reaxff->api->system->reax_param.fbp;
-    int ntypes = reaxff->api->system->reax_param.num_atom_types;
-    int j = type1 - 1;
-    int k = type2 - 1;
-    int l = type3 - 1;
-    int m = type4 - 1;
-    int omin = (type1==0) ? 0 : type1-1;
-    int omax = (type1==0) ? ntypes-1 : type1-1;
-    int pmin = (type4==0) ? 0 : type4-1;
-    int pmax = (type4==0) ? ntypes-1 : type4-1;
+    auto *reaxff = static_cast<PairReaxFF *>(lmp->force->pair);
+    auto &param = reaxff->api->system->reax_param;
+    auto &fbp = param.fbp;
 
-    for (int o=omin; o<=omax; ++o)
-      for (int p=pmin; p<=pmax; ++p) {
-        switch(parameter_index) {
-          case 0:  fbp[o][k][l][p].prm[0].V1     = fbp[p][l][k][o].prm[0].V1     = value;  break;
-          case 1:  fbp[o][k][l][p].prm[0].V2     = fbp[p][l][k][o].prm[0].V2     = value;  break;
-          case 2:  fbp[o][k][l][p].prm[0].V3     = fbp[p][l][k][o].prm[0].V3     = value;  break;
-          case 3:  fbp[o][k][l][p].prm[0].p_tor1 = fbp[p][l][k][o].prm[0].p_tor1 = value;  break;
-          case 4:  fbp[o][k][l][p].prm[0].p_cot1 = fbp[p][l][k][o].prm[0].p_cot1 = value;  break;
+    if (j >= 0 && m >= 0) {
+      if constexpr (parameter_index == 0) fbp[j][k][l][m].prm[0].V1     = fbp[m][l][k][j].prm[0].V1     = value;
+      if constexpr (parameter_index == 1) fbp[j][k][l][m].prm[0].V2     = fbp[m][l][k][j].prm[0].V2     = value;
+      if constexpr (parameter_index == 2) fbp[j][k][l][m].prm[0].V3     = fbp[m][l][k][j].prm[0].V3     = value;
+      if constexpr (parameter_index == 3) fbp[j][k][l][m].prm[0].p_tor1 = fbp[m][l][k][j].prm[0].p_tor1 = value;
+      if constexpr (parameter_index == 4) fbp[j][k][l][m].prm[0].p_cot1 = fbp[m][l][k][j].prm[0].p_cot1 = value;
+    } else {
+
+      auto &tor_flag = param.tor_flag;
+      const int ntypes = param.num_atom_types;
+
+      for (int p = 0; p < ntypes; ++p) {
+        for (int o = 0; o < ntypes; ++o) {
+
+          auto &p1 = fbp[p][k][l][o].prm[0];
+          auto &p2 = fbp[o][l][k][p].prm[0];
+
+          if( tor_flag[p][k][l][o]==0 ) {
+            if constexpr (parameter_index == 0) p1.V1     = value;
+            if constexpr (parameter_index == 1) p1.V2     = value;
+            if constexpr (parameter_index == 2) p1.V3     = value;
+            if constexpr (parameter_index == 3) p1.p_tor1 = value;
+            if constexpr (parameter_index == 4) p1.p_cot1 = value;
+          }
+          if( tor_flag[o][l][k][p]==0 ) {
+            if constexpr (parameter_index == 0) p2.V1     = value;
+            if constexpr (parameter_index == 1) p2.V2     = value;
+            if constexpr (parameter_index == 2) p2.V3     = value;
+            if constexpr (parameter_index == 3) p2.p_tor1 = value;
+            if constexpr (parameter_index == 4) p2.p_cot1 = value;
+          }
         }
       }
+    }
   }
   END_CAPTURE
+}
 
+void lammps_set_reaxff_tor_parameter(void *handle, int type1, int type2, int type3, int type4, int parameter_index, double value) {
+
+  const int j = type1 - 1;
+  const int k = type2 - 1;
+  const int l = type3 - 1;
+  const int m = type4 - 1;
+
+  switch(parameter_index) {
+    case 0: _set_tor_parameter<0>(handle, j, k, l, m, value); break;
+    case 1: _set_tor_parameter<1>(handle, j, k, l, m, value); break;
+    case 2: _set_tor_parameter<2>(handle, j, k, l, m, value); break;
+    case 3: _set_tor_parameter<3>(handle, j, k, l, m, value); break;
+    case 4: _set_tor_parameter<4>(handle, j, k, l, m, value); break;
+  }
 }
 
 void lammps_set_reaxff_hbd_parameter(void *handle, int type1, int type2, int type3, int parameter_index, double value) {

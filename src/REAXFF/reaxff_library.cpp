@@ -365,29 +365,23 @@ void _set_tor_parameter(void *handle, int j, int k, int l, int m, double value) 
       if constexpr (parameter_index == 3) fbp[j][k][l][m].prm[0].p_tor1 = fbp[m][l][k][j].prm[0].p_tor1 = value;
       if constexpr (parameter_index == 4) fbp[j][k][l][m].prm[0].p_cot1 = fbp[m][l][k][j].prm[0].p_cot1 = value;
     } else {
-
       auto &tor_flag = param.tor_flag;
       const int ntypes = param.num_atom_types;
-
       for (int p = 0; p < ntypes; ++p) {
         for (int o = 0; o < ntypes; ++o) {
-
-          auto &p1 = fbp[p][k][l][o].prm[0];
-          auto &p2 = fbp[o][l][k][p].prm[0];
-
           if( tor_flag[p][k][l][o]==0 ) {
-            if constexpr (parameter_index == 0) p1.V1     = value;
-            if constexpr (parameter_index == 1) p1.V2     = value;
-            if constexpr (parameter_index == 2) p1.V3     = value;
-            if constexpr (parameter_index == 3) p1.p_tor1 = value;
-            if constexpr (parameter_index == 4) p1.p_cot1 = value;
+            if constexpr (parameter_index == 0) fbp[p][k][l][o].prm[0].V1     = value;
+            if constexpr (parameter_index == 1) fbp[p][k][l][o].prm[0].V2     = value;
+            if constexpr (parameter_index == 2) fbp[p][k][l][o].prm[0].V3     = value;
+            if constexpr (parameter_index == 3) fbp[p][k][l][o].prm[0].p_tor1 = value;
+            if constexpr (parameter_index == 4) fbp[p][k][l][o].prm[0].p_cot1 = value;
           }
           if( tor_flag[o][l][k][p]==0 ) {
-            if constexpr (parameter_index == 0) p2.V1     = value;
-            if constexpr (parameter_index == 1) p2.V2     = value;
-            if constexpr (parameter_index == 2) p2.V3     = value;
-            if constexpr (parameter_index == 3) p2.p_tor1 = value;
-            if constexpr (parameter_index == 4) p2.p_cot1 = value;
+            if constexpr (parameter_index == 0) fbp[o][l][k][p].prm[0].V1     = value;
+            if constexpr (parameter_index == 1) fbp[o][l][k][p].prm[0].V2     = value;
+            if constexpr (parameter_index == 2) fbp[o][l][k][p].prm[0].V3     = value;
+            if constexpr (parameter_index == 3) fbp[o][l][k][p].prm[0].p_tor1 = value;
+            if constexpr (parameter_index == 4) fbp[o][l][k][p].prm[0].p_cot1 = value;
           }
         }
       }

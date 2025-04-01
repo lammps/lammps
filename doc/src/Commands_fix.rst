@@ -26,6 +26,7 @@ OPT.
    * :doc:`ave/chunk <fix_ave_chunk>`
    * :doc:`ave/correlate <fix_ave_correlate>`
    * :doc:`ave/correlate/long <fix_ave_correlate_long>`
+   * :doc:`ave/gauss <fix_ave_gauss>`
    * :doc:`ave/grid <fix_ave_grid>`
    * :doc:`ave/histo <fix_ave_histo>`
    * :doc:`ave/histo/weight <fix_ave_histo>`

@@ -205,6 +205,7 @@ accelerated styles exist.
 * :doc:`ave/chunk <fix_ave_chunk>` - compute per-chunk time-averaged quantities
 * :doc:`ave/correlate <fix_ave_correlate>` - compute/output time correlations
 * :doc:`ave/correlate/long <fix_ave_correlate_long>` - alternative to :doc:`ave/correlate <fix_ave_correlate>` that allows efficient calculation over long time windows
+* :doc:`ave/gauss <fix_ave_gauss>` - compute mean and standard deviation of quantities
 * :doc:`ave/grid <fix_ave_grid>` - compute per-grid time-averaged quantities
 * :doc:`ave/histo <fix_ave_histo>` - compute/output time-averaged histograms
 * :doc:`ave/histo/weight <fix_ave_histo>` - weighted version of fix ave/histo

@@ -237,10 +237,10 @@ void FixAveGauss::append_values(bigint ntimestep)
     auto &val = values[i];
 
     if (val.argindex == 0)
-      scalar = input->variable->compute_equal(val.val.v);
+      scalar = input->variable->compute_equal(val.v);
     else {
       double *varvec;
-      int nvec = input->variable->compute_vector(val.val.v,&varvec);
+      int nvec = input->variable->compute_vector(val.v,&varvec);
       if (val.argindex > nvec) scalar = 0.0;
       else scalar = varvec[val.argindex-1];
     }

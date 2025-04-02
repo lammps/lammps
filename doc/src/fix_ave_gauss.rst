@@ -23,7 +23,7 @@ Syntax
        v_name[I] = value calculated by a vector-style variable with name
 
 * zero or more keyword/arg pairs may be appended
-* keyword = *delay* 
+* keyword = *delay*
 
   .. parsed-literal::
 
@@ -81,7 +81,7 @@ step 15 from 5-15 and so on, forming a rolling average.
 
 ----------
 
-Variable names must be given beginning with "v\_" and the variable name 
+Variable names must be given beginning with "v\_" and the variable name
 following.  The variable must have been previously defined in the input script.
 Only equal-style or vector-style variables can be used, which both
 produce global values.  Vector-style variables require a bracketed term

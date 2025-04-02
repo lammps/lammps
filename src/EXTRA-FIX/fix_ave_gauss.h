@@ -45,7 +45,7 @@ class FixAveGauss : public Fix {
     int v;           // variable index
   };
   std::vector<value_t> values;
-  
+
   int nfreq;
   bigint nvalid, nvalid_last, nfull_next;
 
@@ -56,7 +56,7 @@ class FixAveGauss : public Fix {
   int nwindow;
   int iwindow, window_filled;
   double **window_list;
-  
+
   int nresult, iresult;
   std::vector<int> delays;
   double **result_list;

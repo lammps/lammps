@@ -13,13 +13,15 @@
 .. index:: dump atom/gz
 .. index:: dump cfg/gz
 .. index:: dump custom/gz
+.. index:: dump extxyz/gz
 .. index:: dump local/gz
 .. index:: dump xyz/gz
 .. index:: dump atom/zstd
 .. index:: dump cfg/zstd
 .. index:: dump custom/zstd
-.. index:: dump xyz/zstd
+.. index:: dump extxyz/zstd
 .. index:: dump local/zstd
+.. index:: dump xyz/zstd
 
 dump command
 ============
@@ -60,7 +62,7 @@ Syntax
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
-* style = *atom* or *atom/adios* or *atom/gz* or *atom/zstd* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/adios* or *dcd* or *extxyz* or *grid* or *grid/vtk* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *yaml*
+* style = *atom* or *atom/adios* or *atom/gz* or *atom/zstd* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/adios* or *dcd* or *extxyz* or *extxyz/gz* or *extxyz/zstd* or *grid* or *grid/vtk* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *yaml*
 * N = dump on timesteps which are multiples of N
 * file = name of file to write dump info to
 * attribute1,attribute2,... = list of attributes for a particular style
@@ -79,6 +81,8 @@ Syntax
        *custom/adios* attributes = same as *custom* attributes, discussed on :doc:`dump custom/adios <dump_adios>` page
        *dcd* attributes = none
        *extxyz* attributes = none
+       *extxyz/gz* attributes = none
+       *extxyz/zstd* attributes = none
        *h5md* attributes = discussed on :doc:`dump h5md <dump_h5md>` page
        *grid* attributes = see below
        *grid/vtk* attributes = see below

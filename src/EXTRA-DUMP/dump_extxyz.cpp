@@ -129,39 +129,46 @@ int DumpExtXYZ::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
+std::string DumpExtXYZ::header_line(bigint n)
+{
+  std::string header = fmt::format("{}\nTimestep={}", n, update->ntimestep);
+  if (time_flag) header += fmt::format(" Time={:.6f}", compute_time());
+  header += fmt::format(" pbc=\"{} {} {}\"", domain->xperiodic ? "T" : "F",
+                        domain->yperiodic ? "T" : "F", domain->zperiodic ? "T" : "F");
+  header +=
+      fmt::format(" Lattice=\"{:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}\"", domain->xprd, 0.,
+                  0., domain->xy, domain->yprd, 0., domain->xz, domain->yz, domain->zprd);
+
+  if (output && output->thermo) {
+    auto *pe = output->thermo->pe;
+    if (pe) header += fmt::format(" Potential_energy={}", pe->compute_scalar());
+
+    auto *temp = output->thermo->temperature;
+    if (temp) header += fmt::format(" Temperature={}", temp->compute_scalar());
+
+    auto *press = output->thermo->pressure;
+    if (press) {
+      press->compute_vector();
+      header +=
+          fmt::format(" Stress=\"{} {} {} {} {} {} {} {} {}\"", press->vector[0],
+                      press->vector[3], press->vector[4], press->vector[3], press->vector[1],
+                      press->vector[5], press->vector[4], press->vector[5], press->vector[2]);
+    }
+  }
+
+  header += fmt::format(" Properties={}\n", properties_string);
+  return header;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void DumpExtXYZ::write_header(bigint n)
 {
   if (me == 0) {
     if (!fp)
       error->one(FLERR, Error::NOLASTLINE, "Must not use 'run pre no' after creating a new dump");
 
-    std::string header = fmt::format("{}\nTimestep={}", n, update->ntimestep);
-    if (time_flag) header += fmt::format(" Time={:.6f}", compute_time());
-    header += fmt::format(" pbc=\"{} {} {}\"", domain->xperiodic ? "T" : "F",
-                          domain->yperiodic ? "T" : "F", domain->zperiodic ? "T" : "F");
-    header +=
-        fmt::format(" Lattice=\"{:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}\"", domain->xprd, 0.,
-                    0., domain->xy, domain->yprd, 0., domain->xz, domain->yz, domain->zprd);
-
-    if (output && output->thermo) {
-      auto *pe = output->thermo->pe;
-      if (pe) header += fmt::format(" Potential_energy={}", pe->compute_scalar());
-
-      auto *temp = output->thermo->temperature;
-      if (temp) header += fmt::format(" Temperature={}", temp->compute_scalar());
-
-      auto *press = output->thermo->pressure;
-      if (press) {
-        press->compute_vector();
-        header +=
-            fmt::format(" Stress=\"{} {} {} {} {} {} {} {} {}\"", press->vector[0],
-                        press->vector[3], press->vector[4], press->vector[3], press->vector[1],
-                        press->vector[5], press->vector[4], press->vector[5], press->vector[2]);
-      }
-    }
-
-    header += fmt::format(" Properties={}", properties_string);
-    utils::print(fp, header + "\n");
+    utils::print(fp, header_line(n));
   }
 }
 
@@ -211,6 +218,42 @@ void DumpExtXYZ::pack(tagint *ids)
     }
 }
 
+/* ---------------------------------------------------------------------- */
+
+int DumpExtXYZ::snprintf_worker(char *sbuf, int len, char *format, double *buf, int m)
+{
+  if (size_one == 5) {
+    return snprintf(sbuf, len, format,
+                    typenames[static_cast<int>(buf[m + 1])], buf[m + 2], buf[m + 3],
+                    buf[m + 4]);
+  } else if (size_one == 6) {
+    return snprintf(sbuf, len, format,
+                    typenames[static_cast<int>(buf[m + 1])], buf[m + 2], buf[m + 3],
+                    buf[m + 4], buf[m + 5]);
+  } else if (size_one == 8) {
+    return snprintf(sbuf, len, format,
+                    typenames[static_cast<int>(buf[m + 1])], buf[m + 2], buf[m + 3],
+                    buf[m + 4], buf[m + 5], buf[m + 6], buf[m + 7]);
+  } else if (size_one == 9) {
+    return snprintf(sbuf, len, format,
+                    typenames[static_cast<int>(buf[m + 1])], buf[m + 2], buf[m + 3],
+                    buf[m + 4], buf[m + 5], buf[m + 6], buf[m + 7], buf[m + 8]);
+  } else if (size_one == 11) {
+    return snprintf(sbuf, len, format,
+                    typenames[static_cast<int>(buf[m + 1])], buf[m + 2], buf[m + 3],
+                    buf[m + 4], buf[m + 5], buf[m + 6], buf[m + 7], buf[m + 8],
+                    buf[m + 9], buf[m + 10]);
+  } else if (size_one == 12) {
+    return snprintf(sbuf, len, format,
+                    typenames[static_cast<int>(buf[m + 1])], buf[m + 2], buf[m + 3],
+                    buf[m + 4], buf[m + 5], buf[m + 6], buf[m + 7], buf[m + 8],
+                    buf[m + 9], buf[m + 10], buf[m + 11]);
+  } else {
+    error->all(FLERR, "Invalid value of size_one for dump extxyz format.");
+    return 0;
+  }
+}
+
 /* ----------------------------------------------------------------------
    convert mybuf of doubles to one big formatted string in sbuf
    return -1 if strlen exceeds an int, since used as arg in MPI calls in Dump
@@ -227,35 +270,7 @@ int DumpExtXYZ::convert_string(int n, double *mybuf)
       memory->grow(sbuf, maxsbuf, "dump:sbuf");
     }
 
-    if (size_one == 5) {
-      offset += snprintf(&sbuf[offset], maxsbuf - offset, format,
-                         typenames[static_cast<int>(mybuf[m + 1])], mybuf[m + 2], mybuf[m + 3],
-                         mybuf[m + 4]);
-    } else if (size_one == 6) {
-      offset += snprintf(&sbuf[offset], maxsbuf - offset, format,
-                         typenames[static_cast<int>(mybuf[m + 1])], mybuf[m + 2], mybuf[m + 3],
-                         mybuf[m + 4], mybuf[m + 5]);
-    } else if (size_one == 8) {
-      offset += snprintf(&sbuf[offset], maxsbuf - offset, format,
-                         typenames[static_cast<int>(mybuf[m + 1])], mybuf[m + 2], mybuf[m + 3],
-                         mybuf[m + 4], mybuf[m + 5], mybuf[m + 6], mybuf[m + 7]);
-    } else if (size_one == 9) {
-      offset += snprintf(&sbuf[offset], maxsbuf - offset, format,
-                         typenames[static_cast<int>(mybuf[m + 1])], mybuf[m + 2], mybuf[m + 3],
-                         mybuf[m + 4], mybuf[m + 5], mybuf[m + 6], mybuf[m + 7], mybuf[m + 8]);
-    } else if (size_one == 11) {
-      offset += snprintf(&sbuf[offset], maxsbuf - offset, format,
-                         typenames[static_cast<int>(mybuf[m + 1])], mybuf[m + 2], mybuf[m + 3],
-                         mybuf[m + 4], mybuf[m + 5], mybuf[m + 6], mybuf[m + 7], mybuf[m + 8],
-                         mybuf[m + 9], mybuf[m + 10]);
-    } else if (size_one == 12) {
-      offset += snprintf(&sbuf[offset], maxsbuf - offset, format,
-                         typenames[static_cast<int>(mybuf[m + 1])], mybuf[m + 2], mybuf[m + 3],
-                         mybuf[m + 4], mybuf[m + 5], mybuf[m + 6], mybuf[m + 7], mybuf[m + 8],
-                         mybuf[m + 9], mybuf[m + 10], mybuf[m + 11]);
-    } else {
-      error->all(FLERR, "Invalid value of size_one for dump extxyz format.");
-    }
+    offset += snprintf_worker(&sbuf[offset], maxsbuf - offset, format, mybuf, m);
     m += size_one;
   }
 

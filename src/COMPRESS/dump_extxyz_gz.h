@@ -13,40 +13,34 @@
 
 #ifdef DUMP_CLASS
 // clang-format off
-DumpStyle(extxyz,DumpExtXYZ);
+DumpStyle(extxyz/gz,DumpExtXYZGZ);
 // clang-format on
 #else
 
-#ifndef LMP_DUMP_EXTXYZ_H
-#define LMP_DUMP_EXTXYZ_H
+#ifndef LMP_DUMP_EXTXYZ_GZ_H
+#define LMP_DUMP_EXTXYZ_GZ_H
 
-#include "dump_xyz.h"
+#include "dump_extxyz.h"
+#include "gz_file_writer.h"
 
 namespace LAMMPS_NS {
-class DumpExtXYZ : public DumpXYZ {
+
+class DumpExtXYZGZ : public DumpExtXYZ {
  public:
-  DumpExtXYZ(class LAMMPS *, int, char **);
+  DumpExtXYZGZ(class LAMMPS *, int, char **);
 
  protected:
-  int with_vel;
-  int with_forces;
-  int with_mass;
-  int with_pe;
-  int with_temp;
-  int with_press;
-  char *properties_string;
+  GzFileWriter writer;
 
-  void update_properties();
-  void init_style() override;
-  std::string header_line(bigint);
+  void openfile() override;
   void write_header(bigint) override;
-  void pack(tagint *) override;
-  int convert_string(int, double *) override;
-  int modify_param(int, char **) override;
+  void write_data(int, double *) override;
+  void write() override;
 
-  int snprintf_worker(char *, int, char *, double *, int);
-  void write_lines(int, double *) override;
+  int modify_param(int, char **) override;
 };
+
 }    // namespace LAMMPS_NS
+
 #endif
 #endif

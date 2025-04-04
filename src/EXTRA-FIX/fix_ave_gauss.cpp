@@ -64,31 +64,53 @@ FixAveGauss::FixAveGauss(LAMMPS *lmp, int narg, char **arg) :
   const int ioffset = 5;
   int iarg = ioffset;
   while (iarg < narg) {
-    if (utils::strmatch(arg[iarg],"^v_")) {
+    if (utils::strmatch(arg[iarg],"^[cvf]_")) {
       nvalues++;
       iarg++;
     } else break;
   }
 
-  if (nvalues == 0) error->all(FLERR,"No values in fix ave/gauss command");
+  if (nvalues == 0)
+    error->all(FLERR, ioffset, "No values from computes, fixes or variables in fix ave/gauss command");
 
   values.clear();
   delays.clear();
 
   options(iarg,narg,arg);
+  //
+  // expand args if any have wildcard character "*"
+  // this can reset nvalues
+
+  int expand = 0;
+  char **earg;
+  int *amap = nullptr;
+  nvalues = utils::expand_args(FLERR, nvalues, &arg[ioffset], mode, earg, lmp, &amap);
+  key2col.clear();
+
+  if (earg != &arg[ioffset]) expand = 1;
+  arg = earg;
 
   // parse values
 
+  values.clear()
   for (int i = 0; i < nvalues; i++) {
-    ArgInfo argi(arg[i + ioffset]);
+    ArgInfo argi(arg[i]);
 
     value_t val;
-    val.iarg = i + ioffset;
+    // val.iarg = i + ioffset;
+    val.keyword = arg[i];
     val.which = argi.get_type();
-    val.argindex = argi.get_index1();
-    val.id = argi.get_name();
+    key2col[arg[i]] = i;
 
-    if ((val.which != ArgInfo::VARIABLE) || (argi.get_dim() > 1))
+    val.argindex = argi.get_index1();
+    if (expand) val.iarg = amap[i] + ioffset;
+    else val.iarg = i + ioffset;
+    val.varlen = 0;
+    val.offcol = 0;
+    val.id = argi.get_name();
+    val.val.c = nullptr;
+
+    if ((val.which != ArgInfo::NONE) || (val.which == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
       error->all(FLERR, val.iarg, "Invalid fix ave/gauss argument: {}", arg[i]);
 
     values.push_back(val);
@@ -96,6 +118,17 @@ FixAveGauss::FixAveGauss(LAMMPS *lmp, int narg, char **arg) :
   if (nvalues != (int)values.size())
     error->all(FLERR, Error::NOPOINTER,
                "Could not parse value data consistently for fix ave/gauss");
+
+  // set off columns now that nvalues is finalized
+
+  for (int i = 0; i < noff; i++) {
+    if (offlist[i] < 1 || offlist[i] > nvalues)
+      error->all(FLERR, Error::NOPOINTER, "Invalid fix ave/gauss off column: {}", offlist[i]);
+    values[offlist[i] - 1].offcol = 1;
+  }
+
+ // TODO: Implement sanity checks from ave/time. See line 131.
+
 
   // setup and error check
   for (auto &val : values) {

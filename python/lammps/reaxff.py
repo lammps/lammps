@@ -35,7 +35,7 @@ class lammps_reaxff(lammps):
     self.lib.lammps_set_reaxff_ofd_parameter.argtypes = [c_void_p,c_int,c_int,c_int,c_double]
     self.lib.lammps_set_reaxff_ang_parameter.argtypes = [c_void_p,c_int,c_int,c_int,c_int,c_double]
     self.lib.lammps_set_reaxff_tor_parameter.argtypes = [c_void_p,c_int,c_int,c_int,c_int,c_int,c_double]
-    self.lib.lammps_set_reaxff_hbd_parameter.argtypes = [c_void_p,c_int,c_int,c_int,c_double]
+    self.lib.lammps_set_reaxff_hbd_parameter.argtypes = [c_void_p,c_int,c_int,c_int,c_int,c_double]
     self.lib.lammps_set_reaxff_gen_parameter.restype = None
     self.lib.lammps_set_reaxff_atm_parameter.restype = None
     self.lib.lammps_set_reaxff_bnd_parameter.restype = None

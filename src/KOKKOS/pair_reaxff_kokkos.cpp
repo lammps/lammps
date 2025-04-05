@@ -248,7 +248,7 @@ void PairReaxFFKokkos<DeviceType>::setup()
     // bond order
     k_params_sing.h_view(i).r_s = api->system->reax_param.sbp[map[i]].r_s;
     k_params_sing.h_view(i).r_pi = api->system->reax_param.sbp[map[i]].r_pi;
-    k_params_sing.h_view(i).r_pi2 = api->system->reax_param.sbp[map[i]].r_pi_pi;
+    k_params_sing.h_view(i).r_pp = api->system->reax_param.sbp[map[i]].r_pp;
     k_params_sing.h_view(i).valency = api->system->reax_param.sbp[map[i]].valency;
     k_params_sing.h_view(i).valency_val = api->system->reax_param.sbp[map[i]].valency_val;
     k_params_sing.h_view(i).valency_boc = api->system->reax_param.sbp[map[i]].valency_boc;
@@ -290,7 +290,7 @@ void PairReaxFFKokkos<DeviceType>::setup()
       // bond order
       k_params_twbp.h_view(i,j).r_s = twbp->r_s;
       k_params_twbp.h_view(i,j).r_pi = twbp->r_p;
-      k_params_twbp.h_view(i,j).r_pi2 = twbp->r_pp;
+      k_params_twbp.h_view(i,j).r_pp = twbp->r_pp;
       k_params_twbp.h_view(i,j).p_bo1 = twbp->p_bo1;
       k_params_twbp.h_view(i,j).p_bo2 = twbp->p_bo2;
       k_params_twbp.h_view(i,j).p_bo3 = twbp->p_bo3;
@@ -2019,7 +2019,7 @@ void PairReaxFFKokkos<DeviceType>::compute_bo(F_FLOAT rij, int itype, int jtype,
   const F_FLOAT p_bo5 = paramstwbp(itype,jtype).p_bo5;
   const F_FLOAT r_s = paramstwbp(itype,jtype).r_s;
   const F_FLOAT r_pi = paramstwbp(itype,jtype).r_pi;
-  const F_FLOAT r_pi2 = paramstwbp(itype,jtype).r_pi2;
+  const F_FLOAT r_pp = paramstwbp(itype,jtype).r_pp;
 
   if (paramssing(itype).r_s > 0.0  && paramssing(jtype).r_s > 0.0) {
     C12 = p_bo1 * ((p_bo2 != 0) ? (pow(rij/r_s,p_bo2)) : 1.0);
@@ -2031,8 +2031,8 @@ void PairReaxFFKokkos<DeviceType>::compute_bo(F_FLOAT rij, int itype, int jtype,
     BO_pi = exp(C34);
   } else BO_pi = C34 = 0.0;
 
-  if (paramssing(itype).r_pi2 > 0.0  && paramssing(jtype).r_pi2 > 0.0) {
-    C56 = p_bo5 * ((p_bo6 != 0) ? (pow(rij/r_pi2,p_bo6)) : 1.0);
+  if (paramssing(itype).r_pp > 0.0  && paramssing(jtype).r_pp > 0.0) {
+    C56 = p_bo5 * ((p_bo6 != 0) ? (pow(rij/r_pp,p_bo6)) : 1.0);
     BO_pi2 = exp(C56);
   } else BO_pi2 = C56 = 0.0;
 

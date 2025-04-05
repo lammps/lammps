@@ -175,8 +175,8 @@ void lammps_set_reaxff_atm_parameter(void *handle, int type, int parameter_index
 
       // line three
       case 16:
-        sbp[i].r_pi_pi = value;
-        for(j=0;j<n;++j) for(k=j;k<n;++k) tbp[k][j].r_pp=tbp[j][k].r_pp=0.5*(sbp[j].r_pi_pi+sbp[k].r_pi_pi);
+        sbp[i].r_pp = value;
+        for(j=0;j<n;++j) for(k=j;k<n;++k) tbp[k][j].r_pp=tbp[j][k].r_pp=0.5*(sbp[j].r_pp+sbp[k].r_pp);
         break;
 
       case 17:   sbp[i].p_lp2       = value;      break;

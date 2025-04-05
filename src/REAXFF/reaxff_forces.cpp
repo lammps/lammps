@@ -337,7 +337,7 @@ namespace ReaxFF {
             }
             else BO_pi = C34 = 0.0;
 
-            if (sbp_i->r_pi_pi > 0.0 && sbp_j->r_pi_pi > 0.0) {
+            if (sbp_i->r_pp > 0.0 && sbp_j->r_pp > 0.0) {
               C56 = twbp->p_bo5 * pow(r_ij / twbp->r_pp, twbp->p_bo6);
               BO_pi2= exp(C56);
             }

@@ -207,7 +207,7 @@ namespace ReaxFF {
           ++lineno;
           CHECK_COLUMNS(8);
 
-          sbp[i].r_pi_pi    = values.next_double();
+          sbp[i].r_pp       = values.next_double();
           sbp[i].p_lp2      = values.next_double();
           values.skip();
           sbp[i].b_o_131    = values.next_double();
@@ -354,7 +354,7 @@ namespace ReaxFF {
           for (j=i; j < ntypes; ++j) {
             tbp[i][j].r_s     = tbp[j][i].r_s     = 0.5*(sbp[j].r_s + sbp[i].r_s);
             tbp[i][j].r_p     = tbp[j][i].r_p     = 0.5*(sbp[j].r_pi + sbp[i].r_pi);
-            tbp[i][j].r_pp    = tbp[j][i].r_pp    = 0.5*(sbp[j].r_pi_pi + sbp[i].r_pi_pi);
+            tbp[i][j].r_pp    = tbp[j][i].r_pp    = 0.5*(sbp[j].r_pp + sbp[i].r_pp);
             tbp[i][j].p_boc3  = tbp[j][i].p_boc3  = sqrt(sbp[j].b_o_132 * sbp[i].b_o_132);
             tbp[i][j].p_boc4  = tbp[j][i].p_boc4  = sqrt(sbp[j].b_o_131 * sbp[i].b_o_131);
             tbp[i][j].p_boc5  = tbp[j][i].p_boc5  = sqrt(sbp[j].b_o_133 * sbp[i].b_o_133);

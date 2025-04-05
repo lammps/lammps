@@ -73,7 +73,7 @@ struct single_body_parameters {
   int p_hbond;    // 1 for H, 2 for hbonding atoms (O,S,P,N), 0 for others
 
   /* Line three in field file */
-  double r_pi_pi;
+  double r_pp;
   double p_lp2;
   double b_o_131;
   double b_o_132;

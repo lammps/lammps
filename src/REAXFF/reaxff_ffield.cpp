@@ -182,7 +182,7 @@ namespace ReaxFF {
           sbp[i].r_vdw      = values.next_double();
           sbp[i].epsilon    = values.next_double();
           sbp[i].gamma      = values.next_double();
-          sbp[i].r_pi       = values.next_double();
+          sbp[i].r_p        = values.next_double();
           sbp[i].valency_e  = values.next_double();
           sbp[i].nlp_opt = 0.5 * (sbp[i].valency_e-sbp[i].valency);
 
@@ -353,7 +353,7 @@ namespace ReaxFF {
         for (i=0; i < ntypes; ++i) {
           for (j=i; j < ntypes; ++j) {
             tbp[i][j].r_s     = tbp[j][i].r_s     = 0.5*(sbp[j].r_s + sbp[i].r_s);
-            tbp[i][j].r_p     = tbp[j][i].r_p     = 0.5*(sbp[j].r_pi + sbp[i].r_pi);
+            tbp[i][j].r_p     = tbp[j][i].r_p     = 0.5*(sbp[j].r_p + sbp[i].r_p);
             tbp[i][j].r_pp    = tbp[j][i].r_pp    = 0.5*(sbp[j].r_pp + sbp[i].r_pp);
             tbp[i][j].p_boc3  = tbp[j][i].p_boc3  = sqrt(sbp[j].b_o_132 * sbp[i].b_o_132);
             tbp[i][j].p_boc4  = tbp[j][i].p_boc4  = sqrt(sbp[j].b_o_131 * sbp[i].b_o_131);

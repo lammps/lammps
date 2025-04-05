@@ -58,7 +58,7 @@ struct single_body_parameters {
   double r_vdw;
   double epsilon;
   double gamma;
-  double r_pi;
+  double r_p;
   double valency_e;
   double nlp_opt;
 

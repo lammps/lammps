@@ -111,7 +111,7 @@ struct two_body_parameters {
   /* Van der Waal interaction parameters */
   double D;
   double alpha;
-  double r_vdW;
+  double r_vdw;
   double gamma_w;
   double rcore, ecore, acore;
   double lgcij, lgre;

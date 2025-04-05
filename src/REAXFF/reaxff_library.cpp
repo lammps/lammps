@@ -127,7 +127,7 @@ void lammps_set_reaxff_atm_parameter(void *handle, int type, int parameter_index
 
       case 3:
         sbp[i].r_vdw = value;
-        for(j=0;j<n;++j) for(k=j;k<n;++k) tbp[k][j].r_vdW=tbp[j][k].r_vdW=2.0*sqrt(sbp[j].r_vdw*sbp[k].r_vdw);
+        for(j=0;j<n;++j) for(k=j;k<n;++k) tbp[k][j].r_vdw=tbp[j][k].r_vdw=2.0*sqrt(sbp[j].r_vdw*sbp[k].r_vdw);
         break;
 
       case 4:
@@ -302,7 +302,7 @@ void lammps_set_reaxff_ofd_parameter(void *handle, int type1, int type2, int par
 
     switch(parameter_index) {
       case 0:  tbp[j][k].D     = tbp[k][j].D     = value;     break;
-      case 1:  tbp[j][k].r_vdW = tbp[k][j].r_vdW = 2.0*value; break;
+      case 1:  tbp[j][k].r_vdw = tbp[k][j].r_vdw = 2.0*value; break;
       case 2:  tbp[j][k].alpha = tbp[k][j].alpha = value;     break;
       case 3:  tbp[j][k].r_s   = tbp[k][j].r_s   = value;     break;
       case 4:  tbp[j][k].r_p   = tbp[k][j].r_p   = value;     break;

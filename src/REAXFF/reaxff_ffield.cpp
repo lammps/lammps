@@ -360,7 +360,7 @@ namespace ReaxFF {
             tbp[i][j].p_boc5  = tbp[j][i].p_boc5  = sqrt(sbp[j].b_o_133 * sbp[i].b_o_133);
             tbp[i][j].D       = tbp[j][i].D       = sqrt(sbp[j].epsilon * sbp[i].epsilon);
             tbp[i][j].alpha   = tbp[j][i].alpha   = sqrt(sbp[j].alpha * sbp[i].alpha);
-            tbp[i][j].r_vdW   = tbp[j][i].r_vdW   = 2.0*sqrt(sbp[j].r_vdw * sbp[i].r_vdw);
+            tbp[i][j].r_vdw   = tbp[j][i].r_vdw   = 2.0*sqrt(sbp[j].r_vdw * sbp[i].r_vdw);
             tbp[i][j].gamma_w = tbp[j][i].gamma_w = sqrt(sbp[j].gamma_w * sbp[i].gamma_w);
             tbp[i][j].gamma   = tbp[j][i].gamma   = pow(sbp[j].gamma * sbp[i].gamma,-1.5);
 
@@ -400,7 +400,7 @@ namespace ReaxFF {
             if (val > 0.0) tbp[j][k].D = tbp[k][j].D = val;
 
             val = values.next_double();
-            if (val > 0.0) tbp[j][k].r_vdW = tbp[k][j].r_vdW = 2*val;
+            if (val > 0.0) tbp[j][k].r_vdw = tbp[k][j].r_vdw = 2*val;
 
             val = values.next_double();
             if (val > 0.0) tbp[j][k].alpha = tbp[k][j].alpha = val;

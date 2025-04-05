@@ -279,7 +279,7 @@ void PairReaxFFKokkos<DeviceType>::setup()
       k_params_twbp.h_view(i,j).gamma = twbp->gamma;
       k_params_twbp.h_view(i,j).gamma_w = twbp->gamma_w;
       k_params_twbp.h_view(i,j).alpha = twbp->alpha;
-      k_params_twbp.h_view(i,j).r_vdw = twbp->r_vdW;
+      k_params_twbp.h_view(i,j).r_vdw = twbp->r_vdw;
       k_params_twbp.h_view(i,j).epsilon = twbp->D;
       k_params_twbp.h_view(i,j).acore = twbp->acore;
       k_params_twbp.h_view(i,j).ecore = twbp->ecore;
@@ -645,23 +645,23 @@ void PairReaxFFKokkos<DeviceType>::LR_vdW_Coulomb(int i, int j, double r_ij, LR_
       powgi_vdW1 = pow(1.0 / twbp->gamma_w, p_vdW1);
 
       fn13 = pow(powr_vdW1 + powgi_vdW1, p_vdW1i);
-      exp1 = exp(twbp->alpha * (1.0 - fn13 / twbp->r_vdW));
-      exp2 = exp(0.5 * twbp->alpha * (1.0 - fn13 / twbp->r_vdW));
+      exp1 = exp(twbp->alpha * (1.0 - fn13 / twbp->r_vdw));
+      exp2 = exp(0.5 * twbp->alpha * (1.0 - fn13 / twbp->r_vdw));
 
       lr->e_vdW = Tap * twbp->D * (exp1 - 2.0 * exp2);
 
       dfn13 = pow(powr_vdW1 + powgi_vdW1, p_vdW1i-1.0) * pow(r_ij, p_vdW1-2.0);
 
       lr->CEvd = dTap * twbp->D * (exp1 - 2.0 * exp2) -
-        Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) * dfn13;
+        Tap * twbp->D * (twbp->alpha / twbp->r_vdw) * (exp1 - exp2) * dfn13;
     }
   else { // no shielding
-    exp1 = exp(twbp->alpha * (1.0 - r_ij / twbp->r_vdW));
-    exp2 = exp(0.5 * twbp->alpha * (1.0 - r_ij / twbp->r_vdW));
+    exp1 = exp(twbp->alpha * (1.0 - r_ij / twbp->r_vdw));
+    exp2 = exp(0.5 * twbp->alpha * (1.0 - r_ij / twbp->r_vdw));
 
     lr->e_vdW = Tap * twbp->D * (exp1 - 2.0 * exp2);
     lr->CEvd = dTap * twbp->D * (exp1 - 2.0 * exp2) -
-      Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) / r_ij;
+      Tap * twbp->D * (twbp->alpha / twbp->r_vdw) * (exp1 - exp2) / r_ij;
   }
 
   if (api->system->reax_param.gp.vdw_type==2 || api->system->reax_param.gp.vdw_type==3)

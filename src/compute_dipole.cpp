@@ -23,7 +23,7 @@
 
 using namespace LAMMPS_NS;
 
-enum { MASSCENTER, GEOMCENTER };
+enum { MASSCENTER, GEOMCENTER, FIXEDORIGIN };
 
 /* ---------------------------------------------------------------------- */
 
@@ -46,6 +46,8 @@ ComputeDipole::ComputeDipole(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, n
       usecenter = GEOMCENTER;
     else if (strcmp(arg[3], "mass") == 0)
       usecenter = MASSCENTER;
+    else if (strcmp(arg[3], "fixedorigin") == 0)
+      usecenter = FIXEDORIGIN;
     else
       error->all(FLERR, "Illegal compute dipole command");
   }
@@ -82,32 +84,32 @@ void ComputeDipole::compute_vector()
   double massproc = 0.0;
   double chrgproc = 0.0;
 
-  for (int i = 0; i < nlocal; ++i) {
-    if (mask[i] & groupbit) {
-      double unwrap[3];
-      double massone = 1.0;    // for usecenter == GEOMCENTER
-      if (usecenter == MASSCENTER) {
-        if (rmass)
-          massone = rmass[i];
-        else
-          massone = mass[type[i]];
+  if (usecenter != FIXEDORIGIN) {
+    for (int i = 0; i < nlocal; ++i) {
+      if (mask[i] & groupbit) {
+        double unwrap[3];
+        double massone = 1.0;    // for usecenter == GEOMCENTER
+        if (usecenter == MASSCENTER) {
+          if (rmass) massone = rmass[i];
+          else massone = mass[type[i]];
+        }
+        massproc += massone;
+        if (atom->q_flag) chrgproc += q[i];
+        domain->unmap(x[i], image[i], unwrap);
+        comproc[0] += unwrap[0] * massone;
+        comproc[1] += unwrap[1] * massone;
+        comproc[2] += unwrap[2] * massone;
       }
-      massproc += massone;
-      if (atom->q_flag) chrgproc += q[i];
-      domain->unmap(x[i], image[i], unwrap);
-      comproc[0] += unwrap[0] * massone;
-      comproc[1] += unwrap[1] * massone;
-      comproc[2] += unwrap[2] * massone;
     }
-  }
-  MPI_Allreduce(&massproc, &masstotal, 1, MPI_DOUBLE, MPI_SUM, world);
-  MPI_Allreduce(&chrgproc, &chrgtotal, 1, MPI_DOUBLE, MPI_SUM, world);
-  MPI_Allreduce(comproc, com, 3, MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(&massproc, &masstotal, 1, MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(&chrgproc, &chrgtotal, 1, MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(comproc, com, 3, MPI_DOUBLE, MPI_SUM, world);
 
-  if (masstotal > 0.0) {
-    com[0] /= masstotal;
-    com[1] /= masstotal;
-    com[2] /= masstotal;
+    if (masstotal > 0.0) {
+      com[0] /= masstotal;
+      com[1] /= masstotal;
+      com[2] /= masstotal;
+    }
   }
 
   // compute dipole moment

@@ -158,7 +158,7 @@ number of iterations.
 
   If you get the error ``ERROR: comm cutoff = 12 Angstrom is smaller than distance cutoff = Inf Angstrom for overlap integrals in qtpie/reaxff. Increase comm cutoff with comm_modify (src/REAXFF/fix_qtpie_reaxff.cpp:1109)``, then it means one of the atoms has a gaussian exponent *gauss_exp* equal to 0.
 
-  If you get the same error but with ``cutoff = x smaller than distance cutoff = y`` it's because the smallest gaussian exponent for your atoms :math:`\text{gauss_exp}_{min} < 2x / log10`.
+  If you get the same error but with ``cutoff = x smaller than distance cutoff = y`` it's because the smallest gaussian exponent for your atoms :math:`\text{gauss\_exp}_{min} < 2x / log10`.
 
   :ref:`(Chen) <qtpie-Chen>` has the following values in Table 2.2:
 

@@ -232,10 +232,11 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
     Pair *pair = force->pair_match("^reaxff",0);
     if (!pair) error->all(FLERR,"No reaxff pair style for fix qtpie/reaxff");
 
-    gauss_exp = (double *) pair->extract("gauss_exp", nlocal);
-    chi = (double *) pair->extract("chi", nlocal);
-    eta = (double *) pair->extract("eta", nlocal);
-    gamma = (double *) pair->extract("gamma", nlocal);
+    int ignore;
+    gauss_exp = (double *) pair->extract("gauss_exp", ignore);
+    chi = (double *) pair->extract("chi", ignore);
+    eta = (double *) pair->extract("eta", ignore);
+    gamma = (double *) pair->extract("gamma", ignore);
 
     if ((chi == nullptr) || (eta == nullptr) || (gamma == nullptr))
       error->all(FLERR, "Fix qtpie/reaxff could not extract qtpie parameters from pair reaxff");
@@ -296,7 +297,7 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
 
     const double exp_min = find_min_exp(gauss_exp, ntypes+1);
     const int olap_cut = 10;
-    dist_cutoff = sqrt(2 * olap_cut / exp_min * log(10.0));
+    dist_cutoff_sq = 2.0 * olap_cut * log(10.0) / exp_min;
 
     memory->create(chi, ntypes+1, "qtpie/reaxff:chi");
     memory->create(eta, ntypes+1, "qtpie/reaxff:eta");

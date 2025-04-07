@@ -14,6 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Stan Moore (SNL)
+                         Mitch Murphy (add target_charge option)
 ------------------------------------------------------------------------- */
 
 #include "fix_acks2_reaxff_kokkos.h"

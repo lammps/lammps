@@ -19,6 +19,7 @@ An alphabetic list of all LAMMPS :doc:`dump <dump>` commands.
    * :doc:`custom/gz <dump>`
    * :doc:`custom/zstd <dump>`
    * :doc:`dcd <dump>`
+   * :doc:`extxyz <dump>`
    * :doc:`grid <dump>`
    * :doc:`grid/vtk <dump>`
    * :doc:`h5md <dump_h5md>`

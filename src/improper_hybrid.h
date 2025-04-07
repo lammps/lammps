@@ -40,6 +40,8 @@ class ImproperHybrid : public Improper {
   void read_restart(FILE *) override;
   double memory_usage() override;
 
+  int check_itype(int, char *);
+
  protected:
   int *map;    // which style each improper type points to
 

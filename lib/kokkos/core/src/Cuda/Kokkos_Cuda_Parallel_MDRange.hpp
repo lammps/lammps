@@ -95,8 +95,21 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, Kokkos::Cuda> {
 
   inline void execute() const {
     if (m_rp.m_num_tiles == 0) return;
-    const auto maxblocks  = m_rp.space().cuda_device_prop().maxGridSize;
+    // maximum number of blocks per grid as fetched by the API
+    [[maybe_unused]] const auto maxblocks_api =
+        m_rp.space().cuda_device_prop().maxGridSize;
+
+    // maximum numebr of blocks per grid hard-coded for unpacking on device
+    const int maxblocks[3] = {mdrange_max_blocks_x, mdrange_max_blocks,
+                              mdrange_max_blocks};
+
+    // check hard-coded values are compatible with API values
+    KOKKOS_ASSERT(maxblocks[0] <= static_cast<int>(maxblocks_api[0]));
+    KOKKOS_ASSERT(maxblocks[1] <= static_cast<int>(maxblocks_api[1]));
+    KOKKOS_ASSERT(maxblocks[2] <= static_cast<int>(maxblocks_api[2]));
+
     const auto maxthreads = m_rp.space().cuda_device_prop().maxThreadsDim;
+
     [[maybe_unused]] const auto maxThreadsPerBlock =
         m_rp.space().cuda_device_prop().maxThreadsPerBlock;
     // make sure the Z dimension (it is less than x,y limits) isn't exceeded

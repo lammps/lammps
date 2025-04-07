@@ -1,4 +1,3 @@
-
 Internal Styles
 ---------------
 
@@ -44,6 +43,14 @@ and packages <Commands_removed>` with additional explanations.
 Internal fix styles
 ^^^^^^^^^^^^^^^^^^^
 
+These provide an implementation of features that would otherwise have
+been replicated across multiple styles.  The used fix ID is generally
+derived from the compute or fix ID creating the fix with some string
+appended.  When needed, the fix can be looked up with
+``Modify::get_fix_by_id()``, which returns a pointer to the fix
+instance.  The data managed by the fix can be accessed just as for other
+fixes that can be used in input files.
+
 fix DUMMY
 """""""""
 
@@ -52,7 +59,7 @@ been created since they access data that is only available then.
 However, in some cases it is required that a fix must be at or close to
 the top of the list of all fixes.  In those cases an instance of the
 DUMMY fix style may be created by calling ``Modify::add_fix()`` and then
-later replaced by calling ``Modify::replace_fix()``.
+later replaced by the intended fix through calling ``Modify::replace_fix()``.
 
 fix STORE/ATOM
 """"""""""""""

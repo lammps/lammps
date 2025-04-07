@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(lammps-gui VERSION 1.6.12 LANGUAGES CXX)
+project(lammps-gui VERSION 1.6.13 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -94,8 +94,8 @@ endif()
 
 option(BUILD_WHAM "Download and compile WHAM executable from Grossfield Lab" YES)
 if(BUILD_WHAM)
-  set(WHAM_URL "http://membrane.urmc.rochester.edu/sites/default/files/wham/wham-release-2.0.11.tgz" CACHE STRING "URL for WHAM tarball")
-  set(WHAM_MD5 "f56751ac71a8d1c485b9ebd4ccff8dbe" CACHE STRING "MD5 checksum of WHAM tarball")
+  set(WHAM_URL "http://membrane.urmc.rochester.edu/sites/default/files/wham/wham-release-2.1.0.tgz" CACHE STRING "URL for WHAM tarball")
+  set(WHAM_MD5 "4ed6e24254925ec124f44bb381c3b87f" CACHE STRING "MD5 checksum of WHAM tarball")
   mark_as_advanced(WHAM_URL)
   mark_as_advanced(WHAM_MD5)
 
@@ -122,7 +122,7 @@ if(BUILD_WHAM)
   if(PATCH_FOUND)
     message(STATUS "Apply patch to customize WHAM using ${Patch_EXECUTABLE}")
     execute_process(
-      COMMAND ${Patch_EXECUTABLE} -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/update-wham-2.0.11.patch
+      COMMAND ${Patch_EXECUTABLE} -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/update-wham-2.1.0.patch
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/_deps/src/wham/
     )
   endif()

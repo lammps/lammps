@@ -239,7 +239,7 @@ int NPair::exclusion(int i, int j, int itype, int jtype,
 int NPair::coord2bin(double *x, int &ix, int &iy, int &iz)
 {
   if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
-    error->one(FLERR,"Non-numeric positions - simulation unstable" + utils::errorurl(7));
+    error->one(FLERR,"Non-numeric positions - simulation unstable" + utils::errorurl(6));
 
   if (x[0] >= bboxhi[0])
     ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx) + nbinx;
@@ -282,7 +282,7 @@ int NPair::coord2bin(double *x, int ic)
   int ibin;
 
   if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
-    error->one(FLERR,"Non-numeric positions - simulation unstable" + utils::errorurl(7));
+    error->one(FLERR,"Non-numeric positions - simulation unstable" + utils::errorurl(6));
 
   if (x[0] >= bboxhi[0])
     ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx_multi[ic]) + nbinx_multi[ic];

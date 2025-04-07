@@ -339,9 +339,11 @@ void ReadData::command(int narg, char **arg)
                "Reading a data file with shrinkwrap boundaries is not "
                "compatible with a MSM KSpace style");
   if (domain->box_exist && !addflag)
-    error->all(FLERR, "Cannot use read_data without add keyword after simulation box is defined");
+    error->all(FLERR, "Cannot use read_data without add keyword after simulation box is defined"
+               + utils::errorurl(34));
   if (!domain->box_exist && addflag)
-    error->all(FLERR, "Cannot use read_data add before simulation box is defined");
+    error->all(FLERR, "Cannot use read_data add before simulation box is defined"
+               + utils::errorurl(33));
   if (offsetflag) {
     if (addflag == NONE) {
       error->all(FLERR, "Cannot use read_data offset without add keyword");

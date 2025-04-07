@@ -26,6 +26,7 @@
 #include "error.h"
 #include "force.h"
 #include "group.h"
+#include "info.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "math_special.h"
@@ -466,11 +467,11 @@ void PairComb::coeff(int narg, char **arg)
 void PairComb::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style COMB requires atom IDs");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style COMB requires atom IDs");
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style COMB requires newton pair on");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style COMB requires newton pair on");
   if (!atom->q_flag)
-    error->all(FLERR,"Pair style COMB requires atom attribute q");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style COMB requires atom attribute q");
 
   // ptr to QEQ fix
 
@@ -509,7 +510,9 @@ void PairComb::init_style()
 
 double PairComb::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
   return cutmax;
 }
 

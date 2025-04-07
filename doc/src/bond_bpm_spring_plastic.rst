@@ -51,7 +51,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 2Apr2025
 
 The *bpm/spring/plastic* bond style computes forces based on
 deviations from the initial reference state of the two atoms and the

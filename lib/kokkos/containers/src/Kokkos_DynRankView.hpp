@@ -626,9 +626,8 @@ class DynRankView : private View<DataType*******, Properties...> {
     } else
 #endif
       return view_type::operator()(i0, 0, 0, 0, 0, 0, 0);
-#if defined KOKKOS_COMPILER_INTEL ||                                  \
-    (defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-     !defined(KOKKOS_COMPILER_MSVC))
+#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
+    !defined(KOKKOS_COMPILER_MSVC)
     __builtin_unreachable();
 #endif
   }
@@ -656,9 +655,8 @@ class DynRankView : private View<DataType*******, Properties...> {
     } else
 #endif
       return view_type::operator()(i0, i1, 0, 0, 0, 0, 0);
-#if defined KOKKOS_COMPILER_INTEL ||                                  \
-    (defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-     !defined(KOKKOS_COMPILER_MSVC))
+#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
+    !defined(KOKKOS_COMPILER_MSVC)
     __builtin_unreachable();
 #endif
   }
@@ -690,9 +688,8 @@ class DynRankView : private View<DataType*******, Properties...> {
     } else
 #endif
       return view_type::operator()(i0, i1, i2, 0, 0, 0, 0);
-#if defined KOKKOS_COMPILER_INTEL ||                                  \
-    (defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-     !defined(KOKKOS_COMPILER_MSVC))
+#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
+    !defined(KOKKOS_COMPILER_MSVC)
     __builtin_unreachable();
 #endif
   }
@@ -1124,57 +1121,6 @@ KOKKOS_INLINE_FUNCTION bool operator!=(const DynRankView<LT, LP...>& lhs,
 namespace Kokkos {
 namespace Impl {
 
-template <class OutputView, class Enable = void>
-struct DynRankViewFill {
-  using const_value_type = typename OutputView::traits::const_value_type;
-
-  const OutputView output;
-  const_value_type input;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const size_t i0) const {
-    const size_t n1 = output.extent(1);
-    const size_t n2 = output.extent(2);
-    const size_t n3 = output.extent(3);
-    const size_t n4 = output.extent(4);
-    const size_t n5 = output.extent(5);
-    const size_t n6 = output.extent(6);
-
-    for (size_t i1 = 0; i1 < n1; ++i1) {
-      for (size_t i2 = 0; i2 < n2; ++i2) {
-        for (size_t i3 = 0; i3 < n3; ++i3) {
-          for (size_t i4 = 0; i4 < n4; ++i4) {
-            for (size_t i5 = 0; i5 < n5; ++i5) {
-              for (size_t i6 = 0; i6 < n6; ++i6) {
-                output.access(i0, i1, i2, i3, i4, i5, i6) = input;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  DynRankViewFill(const OutputView& arg_out, const_value_type& arg_in)
-      : output(arg_out), input(arg_in) {
-    using execution_space = typename OutputView::execution_space;
-    using Policy          = Kokkos::RangePolicy<execution_space>;
-
-    Kokkos::parallel_for("Kokkos::DynRankViewFill", Policy(0, output.extent(0)),
-                         *this);
-  }
-};
-
-template <class OutputView>
-struct DynRankViewFill<OutputView, std::enable_if_t<OutputView::rank == 0>> {
-  DynRankViewFill(const OutputView& dst,
-                  const typename OutputView::const_value_type& src) {
-    Kokkos::Impl::DeepCopy<typename OutputView::memory_space,
-                           Kokkos::HostSpace>(
-        dst.data(), &src, sizeof(typename OutputView::const_value_type));
-  }
-};
-
 template <class OutputView, class InputView,
           class ExecSpace = typename OutputView::execution_space>
 struct DynRankViewRemap {
@@ -1521,9 +1467,8 @@ inline auto create_mirror(const DynRankView<T, P...>& src,
     return dst_type(prop_copy,
                     Impl::reconstructLayout(src.layout(), src.rank()));
   }
-#if defined(KOKKOS_COMPILER_INTEL) ||                                 \
-    (defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-     !defined(KOKKOS_COMPILER_MSVC))
+#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
+    !defined(KOKKOS_COMPILER_MSVC)
   __builtin_unreachable();
 #endif
 }
@@ -1611,9 +1556,8 @@ inline auto create_mirror_view(
       return Kokkos::Impl::choose_create_mirror(src, arg_prop);
     }
   }
-#if defined(KOKKOS_COMPILER_INTEL) ||                                 \
-    (defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-     !defined(KOKKOS_COMPILER_MSVC))
+#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
+    !defined(KOKKOS_COMPILER_MSVC)
   __builtin_unreachable();
 #endif
 }
@@ -1754,6 +1698,7 @@ inline void impl_resize(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
     Kokkos::Impl::DynRankViewRemap<drview_type, drview_type>(
         Impl::get_property<Impl::ExecutionSpaceTag>(prop_copy), v_resized, v);
   else {
+    // NOLINTNEXTLINE(bugprone-unused-raii)
     Kokkos::Impl::DynRankViewRemap<drview_type, drview_type>(v_resized, v);
     Kokkos::fence("Kokkos::resize(DynRankView)");
   }

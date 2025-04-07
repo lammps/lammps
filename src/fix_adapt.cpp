@@ -24,6 +24,8 @@
 #include "fix_store_atom.h"
 #include "force.h"
 #include "group.h"
+#include "improper.h"
+#include "improper_hybrid.h"
 #include "input.h"
 #include "kspace.h"
 #include "math_const.h"
@@ -41,14 +43,14 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{PAIR, KSPACE, ATOM, BOND, ANGLE};
+enum{PAIR, KSPACE, ATOM, BOND, ANGLE, IMPROPER};
 enum{DIAMETER, CHARGE};
 
 /* ---------------------------------------------------------------------- */
 
 FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), nadapt(0), anypair(0), anybond(0), anyangle(0),
-  id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
+  anyimproper(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
 {
   if (narg < 5) utils::missing_cmd_args(FLERR,"fix adapt", error);
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
@@ -81,6 +83,10 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
       iarg += 5;
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+5 > narg) utils::missing_cmd_args(FLERR,"fix adapt angle", error);
+      nadapt++;
+      iarg += 5;
+    } else if (strcmp(arg[iarg],"improper") == 0) {
+      if (iarg+5 > narg) utils::missing_cmd_args(FLERR,"fix adapt improper", error);
       nadapt++;
       iarg += 5;
     } else break;
@@ -146,6 +152,19 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
       if (utils::strmatch(arg[iarg+4],"^v_")) {
         adapt[nadapt].var = utils::strdup(arg[iarg+4]+2);
       } else error->all(FLERR,iarg+4, "Argument must be variable not {}", arg[iarg+4]);
+      nadapt++;
+      iarg += 5;
+
+    } else if (strcmp(arg[iarg],"improper") == 0) {
+      adapt[nadapt].which = IMPROPER;
+      adapt[nadapt].improper = nullptr;
+      adapt[nadapt].istyle = utils::strdup(arg[iarg+1]);
+      adapt[nadapt].iparam = utils::strdup(arg[iarg+2]);
+      utils::bounds_typelabel(FLERR, arg[iarg+3], 1, atom->nimpropertypes,
+                              adapt[nadapt].ilo, adapt[nadapt].ihi, lmp, Atom::IMPROPER);
+      if (utils::strmatch(arg[iarg+4],"^v_")) {
+        adapt[nadapt].var = utils::strdup(arg[iarg+4]+2);
+      } else error->all(FLERR,"Argument #{} must be variable not {}", iarg+5, arg[iarg+4]);
       nadapt++;
       iarg += 5;
 
@@ -224,6 +243,13 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
   n = atom->nangletypes;
   for (int m = 0; m < nadapt; ++m)
     if (adapt[m].which == ANGLE) memory->create(adapt[m].vector_orig,n+1,"adapt:vector_orig");
+
+  // allocate improper style arrays:
+
+  n = atom->nimpropertypes;
+  for (int m = 0; m < nadapt; ++m)
+    if (adapt[m].which == IMPROPER) memory->create(adapt[m].vector_orig,n+1,"adapt:vector_orig");
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -243,6 +269,10 @@ FixAdapt::~FixAdapt()
     } else if (adapt[m].which == ANGLE) {
       delete[] adapt[m].astyle;
       delete[] adapt[m].aparam;
+      memory->destroy(adapt[m].vector_orig);
+    } else if (adapt[m].which == IMPROPER) {
+      delete[] adapt[m].istyle;
+      delete[] adapt[m].iparam;
       memory->destroy(adapt[m].vector_orig);
     }
   }
@@ -338,6 +368,7 @@ void FixAdapt::init()
   anypair = 0;
   anybond = 0;
   anyangle = 0;
+  anyimproper = 0;
 
   for (int m = 0; m < nadapt; m++) {
     Adapt *ad = &adapt[m];
@@ -478,6 +509,40 @@ void FixAdapt::init()
 
       delete[] astyle;
 
+    } else if (ad->which == IMPROPER) {
+      ad->improper = nullptr;
+      anyimproper = 1;
+
+      char *istyle = utils::strdup(ad->istyle);
+      if (lmp->suffix_enable)
+        ad->improper = force->improper_match(fmt::format("{}/{}",istyle,lmp->suffix));
+
+      if (ad->improper == nullptr) ad->improper = force->improper_match(istyle);
+      if (ad->improper == nullptr )
+        error->all(FLERR,"Fix adapt improper style {} does not exist", istyle);
+
+      void *ptr = ad->improper->extract(ad->iparam,ad->idim);
+
+      if (ptr == nullptr)
+        error->all(FLERR,"Fix adapt improper style parameter {} not supported", ad->iparam);
+
+      // for improper styles, use a vector
+
+      if (ad->idim == 1) ad->vector = (double *) ptr;
+
+      if (utils::strmatch(force->improper_style,"^hybrid")) {
+        auto improper = dynamic_cast<ImproperHybrid *>(force->improper);
+        if (improper) {
+          for (i = ad->ilo; i <= ad->ihi; i++) {
+            if (!improper->check_itype(i,istyle))
+              error->all(FLERR,"Fix adapt type improper range is not valid "
+                         "for improper hybrid sub-style {}", istyle);
+          }
+        }
+      }
+
+      delete[] istyle;
+
     } else if (ad->which == KSPACE) {
       if (force->kspace == nullptr)
         error->all(FLERR, Error::NOLASTLINE,
@@ -504,7 +569,7 @@ void FixAdapt::init()
 
   if (restart_reset) restart_reset = 0;
 
-  // make copy of original pair/bond/angle array values
+  // make copy of original pair/bond/angle/improper array values
 
   for (int m = 0; m < nadapt; m++) {
     Adapt *ad = &adapt[m];
@@ -520,6 +585,10 @@ void FixAdapt::init()
         ad->vector_orig[i] = ad->vector[i];
 
     } else if (ad->which == ANGLE && ad->adim == 1) {
+      for (i = ad->ilo; i <= ad->ihi; ++i )
+        ad->vector_orig[i] = ad->vector[i];
+
+    } else if (ad->which == IMPROPER && ad->idim == 1) {
       for (i = ad->ilo; i <= ad->ihi; ++i )
         ad->vector_orig[i] = ad->vector[i];
     }
@@ -641,6 +710,18 @@ void FixAdapt::change_settings()
             ad->vector[i] = value;
       }
 
+    // set improper type array values:
+
+    } else if (ad->which == IMPROPER) {
+      if (ad->idim == 1) {
+        if (scaleflag)
+          for (i = ad->ilo; i <= ad->ihi; ++i )
+            ad->vector[i] = value*ad->vector_orig[i];
+        else
+          for (i = ad->ilo; i <= ad->ihi; ++i )
+            ad->vector[i] = value;
+      }
+
     // set kspace scale factor
 
     } else if (ad->which == KSPACE) {
@@ -716,6 +797,7 @@ void FixAdapt::change_settings()
   if (anypair) force->pair->reinit();
   if (anybond) force->bond->reinit();
   if (anyangle) force->angle->reinit();
+  if (anyimproper) force->improper->reinit();
 
   // reset KSpace charges if charges have changed
 
@@ -746,6 +828,12 @@ void FixAdapt::restore_settings()
 
     } else if (ad->which == ANGLE) {
       if (ad->adim == 1) {
+        for (int i = ad->ilo; i <= ad->ihi; i++)
+          ad->vector[i] = ad->vector_orig[i];
+      }
+
+    } else if (ad->which == IMPROPER) {
+      if (ad->idim == 1) {
         for (int i = ad->ilo; i <= ad->ihi; i++)
           ad->vector[i] = ad->vector_orig[i];
       }
@@ -790,6 +878,7 @@ void FixAdapt::restore_settings()
   if (anypair) force->pair->reinit();
   if (anybond) force->bond->reinit();
   if (anyangle) force->angle->reinit();
+  if (anyimproper) force->improper->reinit();
   if (chgflag && force->kspace) force->kspace->qsum_qsq();
 }
 

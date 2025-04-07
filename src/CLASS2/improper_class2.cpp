@@ -843,3 +843,15 @@ void ImproperClass2::write_data(FILE *fp)
             aa_theta0_1[i]*180.0/MY_PI,aa_theta0_2[i]*180.0/MY_PI,
             aa_theta0_3[i]*180.0/MY_PI);
 }
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *ImproperClass2::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k0;
+  if (strcmp(str, "chi0") == 0) return (void *) chi0;
+  return nullptr;
+}

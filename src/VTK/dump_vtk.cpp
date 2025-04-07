@@ -224,7 +224,8 @@ void DumpVTK::init_style()
       error->all(FLERR,"Could not find dump vtk fix ID {}", id_fix[i]);
     } else {
       if (nevery % fix[i]->peratom_freq)
-        error->all(FLERR,"Dump vtk and fix ID {} not called at compatible times", id_fix[i]);
+        error->all(FLERR,"Dump vtk and fix ID {} not called at compatible times{}", id_fix[i],
+                   utils::errorurl(7));
     }
   }
 
@@ -1810,7 +1811,8 @@ int DumpVTK::parse_fields(int narg, char **arg)
           if (argi.get_dim() > 0 && ifix->size_peratom_cols == 0)
             error->all(FLERR,"Dump vtk fix {} does not compute per-atom array",aname);
           if (argi.get_dim() > 0 && argi.get_index1() > ifix->size_peratom_cols)
-            error->all(FLERR,"Dump vtk fix {} vector is accessed out-of-range",aname);
+            error->all(FLERR,"Dump vtk fix {} vector is accessed out-of-range{}",
+                       aname, utils::errorurl(20));
 
           field2index[ATTRIBUTES+iarg] = add_fix(aname);
           name[ATTRIBUTES+iarg] = arg[iarg];
@@ -1850,7 +1852,8 @@ int DumpVTK::parse_fields(int narg, char **arg)
           if (!flag || !cols)
             error->all(FLERR,"Property double array {} for dump vtk does not exist",aname);
           if (argindex[ATTRIBUTES+iarg] > atom->dcols[n])
-            error->all(FLERR,"Dump vtk property array {} is accessed out-of-range",aname);
+            error->all(FLERR,"Dump vtk property array {} is accessed out-of-range{}",aname,
+                       utils::errorurl(20));
         }
         field2index[ATTRIBUTES+iarg] = add_custom(aname,1);
         name[ATTRIBUTES+iarg] = arg[iarg];
@@ -1873,7 +1876,8 @@ int DumpVTK::parse_fields(int narg, char **arg)
           if (flag || !cols)
             error->all(FLERR,"Property integer array {} for dump vtk does not exist",aname);
           if (argindex[ATTRIBUTES+iarg] > atom->icols[n])
-            error->all(FLERR,"Dump vtk property array {} is accessed out-of-range",aname);
+            error->all(FLERR,"Dump vtk property array {} is accessed out-of-range{}",aname,
+                       utils::errorurl(20));
         }
         field2index[ATTRIBUTES+iarg] = add_custom(aname,0);
         name[ATTRIBUTES+iarg] = arg[iarg];

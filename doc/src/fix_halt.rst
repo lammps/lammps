@@ -173,7 +173,7 @@ printed; the run simply exits.  The latter may be desirable for
 post-processing tools that extract thermodynamic information from log
 files.
 
-.. versionadded:: TBD
+.. versionadded:: 2Apr2025
 
 The optional *universe* keyword determines whether the halt request
 should be synchronized across the partitions of a :doc:`multi-partition

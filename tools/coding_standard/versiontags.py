@@ -49,22 +49,42 @@ def check_pending_tag(f):
 
     return errors, last_line
 
+def check_bad_tag(f):
+    pattern = re.compile(r'^ *\.\. +(version(changed|added)|deprecated):\s+\w*')
+    last_line = "\n"
+    lineno = 1
+    errors = set()
+
+    for line in f:
+        if pattern.match(line):
+            errors.add(lineno)
+        last_line = line
+        lineno += 1
+
+    return errors, last_line
+
 def check_file(path):
     encoding = 'UTF-8'
     pending_tags = set()
+    bad_tags = set()
     try:
         with open(path, 'r') as f:
             pending_tags, last_line = check_pending_tag(f)
+            f.seek(0)
+            bad_tags, last_line = check_bad_tag(f)
     except UnicodeDecodeError:
         encoding = 'ISO-8859-1'
         try:
             with open(path, 'r', encoding=encoding) as f:
                 pending_tags, last_line = check_pending_tag(f)
+                f.seek(0)
+                bad_tags, last_line = check_bad_tag(f)
         except Exception:
             encoding = 'unknown'
 
     return {
         'pending_tags': pending_tags,
+        'bad_tags': bad_tags,
         'encoding': encoding
     }
 
@@ -89,6 +109,9 @@ def check_folder(directory, config, verbose=False):
 
         for lineno in result['pending_tags']:
             print("[Error] Pending version tag @ {}:{}".format(path, lineno))
+            success = False
+        for lineno in result['bad_tags']:
+            print("[Error] Bad version tag @ {}:{}".format(path, lineno))
             success = False
 
         if result['encoding'] == 'unknown':

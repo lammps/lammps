@@ -115,6 +115,7 @@ class Compute : protected Pointers {
   void modify_params(int, char **);
   virtual int modify_param(int, char **) { return 0; }
   virtual void reset_extra_dof();
+  virtual void post_constructor() {}
 
   void init_flags();
   virtual void init() = 0;

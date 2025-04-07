@@ -257,8 +257,8 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
   nlist = h_nlist();
 
   if (h_error_flag() == 1) {
-    error->one(FLERR,"Shake atoms missing on proc "
-                                 "{} at step {}",comm->me,update->ntimestep);
+    error->one(FLERR,"Shake atoms missing on proc {} at step {}{}",
+               comm->me,update->ntimestep, utils::errorurl(5));
   }
 }
 

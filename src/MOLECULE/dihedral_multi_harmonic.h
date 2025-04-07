@@ -38,7 +38,7 @@ class DihedralMultiHarmonic : public Dihedral {
  protected:
   double *a1, *a2, *a3, *a4, *a5;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

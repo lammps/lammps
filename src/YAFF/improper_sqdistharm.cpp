@@ -267,3 +267,14 @@ void ImproperSQDistHarm::read_restart(FILE *fp)
 
   for (int i = 1; i <= atom->nimpropertypes; i++) setflag[i] = 1;
 }
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *ImproperSQDistHarm::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  return nullptr;
+}

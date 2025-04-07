@@ -788,7 +788,7 @@ class ScatterView<DataType, Layout, DeviceType, Op, ScatterNonDuplicated,
   void contribute_into(execution_space const& exec_space,
                        View<DT, RP...> const& dest) const {
     using dest_type = View<DT, RP...>;
-    static_assert(std::is_same<typename dest_type::array_layout, Layout>::value,
+    static_assert(std::is_same_v<typename dest_type::array_layout, Layout>,
                   "ScatterView contribute destination has different layout");
     static_assert(
         Kokkos::SpaceAccessibility<
@@ -1071,9 +1071,9 @@ class ScatterView<DataType, Kokkos::LayoutRight, DeviceType, Op,
   void contribute_into(execution_space const& exec_space,
                        View<DT, RP...> const& dest) const {
     using dest_type = View<DT, RP...>;
-    static_assert(std::is_same<typename dest_type::array_layout,
-                               Kokkos::LayoutRight>::value,
-                  "ScatterView deep_copy destination has different layout");
+    static_assert(
+        std::is_same_v<typename dest_type::array_layout, Kokkos::LayoutRight>,
+        "ScatterView deep_copy destination has different layout");
     static_assert(
         Kokkos::SpaceAccessibility<
             execution_space, typename dest_type::memory_space>::accessible,
@@ -1351,12 +1351,12 @@ class ScatterView<DataType, Kokkos::LayoutLeft, DeviceType, Op,
                        View<RP...> const& dest) const {
     using dest_type = View<RP...>;
     static_assert(
-        std::is_same<typename dest_type::value_type,
-                     typename original_view_type::non_const_value_type>::value,
+        std::is_same_v<typename dest_type::value_type,
+                       typename original_view_type::non_const_value_type>,
         "ScatterView deep_copy destination has wrong value_type");
-    static_assert(std::is_same<typename dest_type::array_layout,
-                               Kokkos::LayoutLeft>::value,
-                  "ScatterView deep_copy destination has different layout");
+    static_assert(
+        std::is_same_v<typename dest_type::array_layout, Kokkos::LayoutLeft>,
+        "ScatterView deep_copy destination has different layout");
     static_assert(
         Kokkos::SpaceAccessibility<
             execution_space, typename dest_type::memory_space>::accessible,

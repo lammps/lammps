@@ -182,7 +182,7 @@ double ComputeForceTally::compute_scalar()
     error->all(FLERR, Error::NOLASTLINE, "Stress was not tallied on needed timestep{}", utils::errorurl(22));
 
   if ((comm->me == 0) && !force->pair->did_tally_callback())
-    error->warning(FLERR, "Stress was not tallied by pair style");
+    error->warning(FLERR, "Stress was not tallied by pair style" + utils::errorurl(11));
 
   // sum accumulated forces across procs
 
@@ -201,7 +201,7 @@ void ComputeForceTally::compute_peratom()
     error->all(FLERR, Error::NOLASTLINE, "Stress was not tallied on needed timestep{}", utils::errorurl(22));
 
   if ((comm->me == 0) && !force->pair->did_tally_callback())
-    error->warning(FLERR, "Stress was not tallied by pair style");
+    error->warning(FLERR, "Stress was not tallied by pair style" + utils::errorurl(11));
 
   // collect contributions from ghost atoms
 

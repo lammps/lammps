@@ -45,7 +45,7 @@ struct BinOp1D {
     // For integral types the number of bins may be larger than the range
     // in which case we can exactly have one unique value per bin
     // and then don't need to sort bins.
-    if (std::is_integral<typename KeyViewType::const_value_type>::value &&
+    if (std::is_integral_v<typename KeyViewType::const_value_type> &&
         (static_cast<double>(max) - static_cast<double>(min)) <=
             static_cast<double>(max_bins)) {
       mul_ = 1.;

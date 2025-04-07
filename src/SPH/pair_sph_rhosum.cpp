@@ -18,6 +18,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -30,7 +31,8 @@ using namespace LAMMPS_NS;
 PairSPHRhoSum::PairSPHRhoSum(LAMMPS *lmp) : Pair(lmp)
 {
   if (atom->rho_flag != 1)
-    error->all(FLERR, "Pair sph/rhosum requires atom attribute density, e.g. in atom_style sph");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Pair sph/rhosum requires atom attribute density, e.g. in atom_style sph");
 
   restartinfo = 0;
 
@@ -206,7 +208,7 @@ void PairSPHRhoSum::allocate()
 void PairSPHRhoSum::settings(int narg, char **arg)
 {
   if (narg != 1)
-    error->all(FLERR,
+    error->all(FLERR, Error::NOLASTLINE,
         "Illegal number of arguments for pair_style sph/rhosum");
   nstep = utils::inumeric(FLERR,arg[0],false,lmp);
 }
@@ -247,9 +249,10 @@ void PairSPHRhoSum::coeff(int narg, char **arg)
 
 double PairSPHRhoSum::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) {
-    error->all(FLERR,"All pair sph/rhosum coeffs are not set");
-  }
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair sph/rhosum coeffs are not set. Status:\n"
+               + Info::get_pair_coeff_status(lmp));
 
   cut[j][i] = cut[i][j];
 

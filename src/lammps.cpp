@@ -694,11 +694,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       sizeof(tagint) != 8 || sizeof(bigint) != 8)
     error->all(FLERR,"Small to big integers are not sized correctly");
 #endif
-#ifdef LAMMPS_SMALLSMALL
-  if (sizeof(smallint) != 4 || sizeof(imageint) != 4 ||
-      sizeof(tagint) != 4 || sizeof(bigint) != 4)
-    error->all(FLERR,"Small to big integers are not sized correctly");
-#endif
 
   // create Kokkos class if KOKKOS installed, unless explicitly switched off
   // instantiation creates dummy Kokkos class if KOKKOS is not installed
@@ -1487,8 +1482,6 @@ void LAMMPS::print_config(FILE *fp)
   fputs("-DLAMMPS_BIGBIG\n",fp);
 #elif defined(LAMMPS_SMALLBIG)
   fputs("-DLAMMPS_SMALLBIG\n",fp);
-#else // defined(LAMMPS_SMALLSMALL)
-  fputs("-DLAMMPS_SMALLSMALL\n",fp);
 #endif
 
   utils::print(fp,"sizeof(smallint): {}-bit\n"

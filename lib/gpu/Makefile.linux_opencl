@@ -6,8 +6,8 @@
 
 EXTRAMAKE = Makefile.lammps.opencl
 
-# this setting should match LAMMPS Makefile
-# one of LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL
+# this setting should match the LAMMPS Makefile
+# either LAMMPS_SMALLBIG (default) or LAMMPS_BIGBIG
 
 LMP_INC = -DLAMMPS_SMALLBIG
 

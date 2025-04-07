@@ -188,8 +188,8 @@ void Variable::set(int narg, char **arg)
 
   if (strcmp(arg[1], "delete") == 0) {
     if (narg > 2)
-      error->all(FLERR, 2, "Illegal variable delete command: expected 2 arguments but found {}",
-                 narg);
+      error->all(FLERR, 2, "Illegal variable delete command: expected 2 arguments but found {}{}",
+                 narg, utils::errorurl(3));
     if (find(arg[0]) >= 0) remove(find(arg[0]));
     return;
 
@@ -278,7 +278,7 @@ void Variable::set(int narg, char **arg)
       copy(num[nvar], &arg[2], data[nvar]);
     } else if (strcmp(arg[1], "uloop") == 0) {
       if (narg < 3 || narg > 4)
-        error->all(FLERR, 1, "Illegal variable command: expected 3 or 4 arguments but found {}: {}",
+        error->all(FLERR, 1, "Illegal variable command: expected 3 or 4 arguments but found {}{}",
                    narg, utils::errorurl(3));
       if (narg == 4 && strcmp(arg[3], "pad") != 0)
         error->all(FLERR, 3, "Invalid variable uloop argument: {}", arg[3]);
@@ -855,7 +855,7 @@ int Variable::next(int narg, char **arg)
 
       if (nextindex < 0)
         error->one(FLERR,"Unexpected error while incrementing uloop style variable. "
-                   "Please contact the LAMMPS developers.");
+                   "Please contact the LAMMPS developers." + utils::errorurl(35));
 
       fp = fopen("tmp.lammps.variable.lock","w");
       fprintf(fp,"%d\n",nextindex+1);
@@ -1880,7 +1880,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (!fix->scalar_flag)
               print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
             if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
-              print_var_error(FLERR,"Fix in variable not computed at a compatible time",ivar);
+              print_var_error(FLERR,"Fix in variable not computed at a compatible time"
+                              + utils::errorurl(7), ivar);
 
             value1 = fix->compute_scalar();
             argstack[nargstack++] = value1;
@@ -1895,7 +1896,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               print_var_error(FLERR,"Variable formula fix vector is accessed out-of-range"
                               + utils::errorurl(20), ivar,0);
             if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
-              print_var_error(FLERR,"Fix in variable not computed at a compatible time",ivar);
+              print_var_error(FLERR,"Fix in variable not computed at a compatible time"
+                              + utils::errorurl(7) ,ivar);
 
             // if index exceeds variable vector length, use a zero value
             // this can be useful if vector length is not known a priori
@@ -1917,7 +1919,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               print_var_error(FLERR,"Variable formula fix array is accessed out-of-range"
                               + utils::errorurl(20), ivar,0);
             if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
-              print_var_error(FLERR,"Fix in variable not computed at a compatible time",ivar);
+              print_var_error(FLERR,"Fix in variable not computed at a compatible time"
+                              + utils::errorurl(7), ivar);
 
             // if index exceeds variable array rows, use a zero value
             // this can be useful if array size is not known a priori
@@ -1936,7 +1939,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
             if (update->whichflag > 0 &&
                 update->ntimestep % fix->peratom_freq)
-              print_var_error(FLERR,"Fix in variable not computed at a compatible time",ivar);
+              print_var_error(FLERR,"Fix in variable not computed at a compatible time"
+                              + utils::errorurl(7), ivar);
 
             peratom2global(1,nullptr,fix->vector_atom,1,index1,tree,
                            treestack,ntreestack,argstack,nargstack);
@@ -1953,7 +1957,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               print_var_error(FLERR,"Variable formula fix array is accessed out-of-range"
                               + utils::errorurl(20), ivar,0);
             if (update->whichflag > 0 && update->ntimestep % fix->peratom_freq)
-              print_var_error(FLERR,"Fix in variable not computed at a compatible time",ivar);
+              print_var_error(FLERR,"Fix in variable not computed at a compatible time"
+                              + utils::errorurl(7), ivar);
 
             if (fix->array_atom)
               peratom2global(1,nullptr,&fix->array_atom[0][index2-1],
@@ -1980,7 +1985,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (fix->size_vector == 0)
               print_var_error(FLERR,"Variable formula fix vector is zero length",ivar);
             if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
-              print_var_error(FLERR,"Fix in variable not computed at compatible time",ivar);
+              print_var_error(FLERR,"Fix in variable not computed at compatible time"
+                              + utils::errorurl(7), ivar);
 
             int nvec = fix->size_vector;
             double *vec;
@@ -2008,7 +2014,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               print_var_error(FLERR,"Variable formula fix array is accessed out-of-range"
                               + utils::errorurl(20), ivar,0);
             if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
-              print_var_error(FLERR,"Fix in variable not computed at a compatible time",ivar);
+              print_var_error(FLERR,"Fix in variable not computed at a compatible time"
+                              + utils::errorurl(7), ivar);
 
             int nvec = fix->size_array_rows;
             double *vec;
@@ -2041,7 +2048,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (fix->size_peratom_cols)
               print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
             if (update->whichflag > 0 && update->ntimestep % fix->peratom_freq)
-              print_var_error(FLERR,"Fix in variable not computed at compatible time",ivar);
+              print_var_error(FLERR,"Fix in variable not computed at compatible time"
+                              + utils::errorurl(7), ivar);
 
             auto newtree = new Tree();
             newtree->type = ATOMARRAY;
@@ -2061,7 +2069,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               print_var_error(FLERR,"Variable formula fix array is accessed out-of-range"
                               + utils::errorurl(20), ivar,0);
             if (update->whichflag > 0 && update->ntimestep % fix->peratom_freq)
-              print_var_error(FLERR,"Fix in variable not computed at compatible time",ivar);
+              print_var_error(FLERR,"Fix in variable not computed at compatible time"
+                              + utils::errorurl(7), ivar);
 
             auto newtree = new Tree();
             newtree->type = ATOMARRAY;
@@ -4531,6 +4540,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
           std::string mesg = "Fix with ID '";
           mesg += (args[0]+2);
           mesg += "' in variable formula not computed at compatible time";
+          mesg += utils::errorurl(7);
           print_var_error(FLERR,mesg,ivar);
         }
         nvec = fix->size_vector;
@@ -4540,7 +4550,8 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
           print_var_error(FLERR,"Variable formula fix array is accessed out-of-range"
                           + utils::errorurl(20), ivar);
         if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
-          print_var_error(FLERR,"Fix in variable not computed at compatible time",ivar);
+          print_var_error(FLERR,"Fix in variable not computed at compatible time"
+                          + utils::errorurl(7), ivar);
         nvec = fix->size_array_rows;
         nstride = fix->size_array_cols;
       } else print_var_error(FLERR,"Mismatched fix in variable formula",ivar);

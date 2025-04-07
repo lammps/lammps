@@ -120,6 +120,10 @@ struct is_specialization_of : std::false_type {};
 template <template <class...> class Template, class... Args>
 struct is_specialization_of<Template<Args...>, Template> : std::true_type {};
 
+template <typename T, template <typename...> class U>
+inline constexpr bool is_specialization_of_v =
+    is_specialization_of<T, U>::value;
+
 // </editor-fold> end is_specialization_of }}}1
 //==============================================================================
 

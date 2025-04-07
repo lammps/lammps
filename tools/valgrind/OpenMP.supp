@@ -31,7 +31,6 @@
    obj:/usr/lib*/libgomp.so.1*
    fun:GOMP_parallel
    ...
-   fun:main
 }
 {
    OpenMP_init_part3
@@ -42,7 +41,6 @@
    obj:/usr/lib*/libgomp.so.1*
    fun:omp_set_num_threads
    ...
-   fun:main
 }
 {
    OpenMP_init_part4
@@ -54,7 +52,6 @@
    obj:/usr/lib64/libomp.so
    fun:omp_set_num_threads
    ...
-   fun:_ZN9LAMMPS_NS6LAMMPSC1EiPPci
 }
 {
    OpenMP_init_part5
@@ -66,7 +63,6 @@
    obj:/usr/lib64/libomp.so
    fun:omp_set_num_threads
    ...
-   fun:main
 }
 {
    OpenMP_init_part6

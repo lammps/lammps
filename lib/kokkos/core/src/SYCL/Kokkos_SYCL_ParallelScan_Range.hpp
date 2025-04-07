@@ -199,7 +199,7 @@ class ParallelScanSYCLBase {
         value_type local_value;
         reducer.init(&local_value);
         if (global_id < size) {
-          if constexpr (std::is_void<WorkTag>::value)
+          if constexpr (std::is_void_v<WorkTag>)
             functor(global_id + begin, local_value, false);
           else
             functor(WorkTag(), global_id + begin, local_value, false);
@@ -346,7 +346,7 @@ class ParallelScanSYCLBase {
 
               reducer.join(&update, &group_results[item.get_group_linear_id()]);
 
-              if constexpr (std::is_void<WorkTag>::value)
+              if constexpr (std::is_void_v<WorkTag>)
                 functor(global_id + begin, update, true);
               else
                 functor(WorkTag(), global_id + begin, update, true);
@@ -434,7 +434,8 @@ class Kokkos::Impl::ParallelScanWithTotal<
             "Kokkos::Impl::ParallelReduce<SYCL, MDRangePolicy>::execute: "
             "result not device-accessible");
         const int size = Base::m_functor_reducer.get_reducer().value_size();
-        std::memcpy(Base::m_result_ptr, Base::m_scratch_host, size);
+        std::memcpy(static_cast<void*>(Base::m_result_ptr),
+                    static_cast<const void*>(Base::m_scratch_host), size);
       }
     });
   }

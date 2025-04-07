@@ -29,8 +29,8 @@ foreach(Tag Threads;Serial;OpenMP;HPX;Cuda;HIP;SYCL)
       Vector
       ViewCtorPropEmbeddedDim
     )
-      if(NOT Kokkos_ENABLE_DEPRECATED_CODE_4 AND Name STREQUAL "Vector")
-        continue() # skip Kokkos::vector test if deprecated code 4 is not enabled
+      if(NOT Kokkos_ENABLE_DEPRECATED_CODE_4 AND NOT Name IN_LIST "Vector,StaticCrsGraph")
+        continue() # skip Kokkos::{vector,StaticCrsGraph} tests if deprecated code 4 is not enabled
       endif()
       # Write to a temporary intermediate file and call configure_file to avoid
       # updating timestamps triggering unnecessary rebuilds on subsequent cmake runs.

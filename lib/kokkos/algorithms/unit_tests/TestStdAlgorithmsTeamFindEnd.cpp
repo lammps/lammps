@@ -227,6 +227,7 @@ void test_A(const bool sequencesExist, std::size_t numTeams,
 
         break;
       }
+      default: Kokkos::abort("unreachable");
     }
 
     if (sequencesExist) {

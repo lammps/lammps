@@ -337,3 +337,16 @@ void ImproperCvff::write_data(FILE *fp)
   for (int i = 1; i <= atom->nimpropertypes; i++)
     fprintf(fp, "%d %g %d %d\n", i, k[i], sign[i], multiplicity[i]);
 }
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *ImproperCvff::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "d") == 0) return (void *) sign;
+  if (strcmp(str, "n") == 0) return (void *) multiplicity;
+  return nullptr;
+}

@@ -24,6 +24,7 @@
 #include "error.h"
 #include "fix_peri_neigh.h"
 #include "force.h"
+#include "info.h"
 #include "lattice.h"
 #include "math_const.h"
 #include "math_special.h"
@@ -397,7 +398,9 @@ void PairPeriEPS::coeff(int narg, char **arg)
 
 double PairPeriEPS::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
 
   bulkmodulus[j][i] = bulkmodulus[i][j];
   shearmodulus[j][i] = shearmodulus[i][j];

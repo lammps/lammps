@@ -225,8 +225,8 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
                    "Fix ave/correlate/long compute {} does not calculate a vector", val.id);
       if (val.argindex && val.argindex > val.val.c->size_vector)
         error->all(FLERR, val.iarg,
-                   "Fix ave/correlate/long compute {} vector is accessed out-of-range",
-                   val.id);
+                   "Fix ave/correlate/long compute {} vector is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
 
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
@@ -241,11 +241,12 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
                    "Fix ave/correlate/long fix {} does not calculate a vector", val.id);
       if (val.argindex && val.argindex > val.val.f->size_vector)
         error->all(FLERR, val.iarg,
-                   "Fix ave/correlate/long fix {} vector is accessed out-of-range", val.id);
+                   "Fix ave/correlate/long fix {} vector is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
       if (nevery % val.val.f->global_freq)
         error->all(FLERR, val.iarg,
-                   "Fix {} for fix ave/correlate/long not computed at compatible time",
-                   val.id);
+                   "Fix {} for fix ave/correlate/long not computed at compatible time{}",
+                   val.id, utils::errorurl(7));
 
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
@@ -257,8 +258,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
                    "Fix ave/correlate/long variable {} is not equal-style variable", val.id);
       if (val.argindex && input->variable->vectorstyle(val.val.v) == 0)
         error->all(FLERR, val.iarg,
-                   "Fix ave/correlate/long variable {} is not vector-style variable",
-                   val.id);
+                   "Fix ave/correlate/long variable {} is not vector-style variable", val.id);
     }
   }
 
@@ -321,6 +321,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
   if (expand) {
     for (int i = 0; i < nargnew; i++) delete[] earg[i];
     memory->sfree(earg);
+    memory->sfree(amap);
   }
 
   // allocate and initialize memory for calculated values and correlators

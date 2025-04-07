@@ -40,6 +40,7 @@ Settings howto
    Howto_walls
    Howto_nemd
    Howto_dispersion
+   Howto_bulk2slab
 
 Analysis howto
 ==============

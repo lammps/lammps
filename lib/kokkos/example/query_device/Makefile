@@ -1,3 +1,6 @@
+
+KOKKOS_USE_DEPRECATED_MAKEFILES=1
+
 KOKKOS_PATH ?= ../..
 
 MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))

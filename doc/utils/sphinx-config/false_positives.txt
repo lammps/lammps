@@ -725,6 +725,7 @@ dashpot
 dat
 datafile
 datatype
+dataset
 datums
 Davidchack
 Daw
@@ -736,6 +737,7 @@ dE
 De
 deallocate
 deallocated
+deallocation
 debye
 Debye
 Decius
@@ -856,6 +858,7 @@ DNi
 Dobnikar
 Dobson
 docenv
+docstrings
 Dodds
 dodgerblue
 dof
@@ -1336,6 +1339,7 @@ Gflop
 gfortran
 ghostneigh
 ghostwhite
+Ghahremanpour
 Giacomo
 GiB
 gif
@@ -2780,6 +2784,7 @@ omegaz
 Omelyan
 omp
 OMP
+ondulated
 oneAPI
 onebody
 onelevel
@@ -3116,9 +3121,11 @@ qE
 qeff
 qelectron
 qeq
+qeqr
 Qamar
 QeQ
 QEq
+QEqR
 qfactor
 qfile
 qi
@@ -3261,6 +3268,7 @@ resquared
 REsquared
 restartfile
 restartinfo
+reStructuredText
 Restrepo
 rethrowing
 Revenga
@@ -4011,6 +4019,7 @@ username
 usleep
 usolve
 usr
+utf
 util
 utils
 utsa

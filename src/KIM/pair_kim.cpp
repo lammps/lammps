@@ -64,6 +64,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -621,7 +622,9 @@ double PairKIM::init_one(int i, int j)
   // This is called once of each (unordered) i,j pair for each
   // "run ...", "minimize ...", etc. read from input
 
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
 
   return kim_global_influence_distance;
 }

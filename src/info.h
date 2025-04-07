@@ -54,6 +54,12 @@ class Info : public Command {
   static std::string get_gpu_device_info();
   static std::string get_accelerator_info(const std::string &pkg = "");
 
+  static std::string get_pair_coeff_status(const LAMMPS *lmp);
+  static std::string get_bond_coeff_status(const LAMMPS *lmp);
+  static std::string get_angle_coeff_status(const LAMMPS *lmp);
+  static std::string get_dihedral_coeff_status(const LAMMPS *lmp);
+  static std::string get_improper_coeff_status(const LAMMPS *lmp);
+
   void get_memory_info(double *);
   char **get_variable_names(int &num);
   std::string get_variable_info(int num);

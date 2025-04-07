@@ -1,73 +1,29 @@
-diff --git a/.gitignore b/.gitignore
-index 28ac6ef..a401160 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -6,6 +6,8 @@ doc.toc
- wham-dist.tar.gz
- 
- *.o
-+*~
- 
- wham/wham
- wham-2d/wham-2d
-+/build
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-new file mode 100644
-index 0000000..b4f0fe6
---- /dev/null
+index b4f0fe6..a61cec8 100644
+--- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -0,0 +1,38 @@
-+# Custom minimal -*- CMake -*- file for wham
-+
-+cmake_minimum_required(VERSION 3.16)
-+project(wham VERSION 2.0.11
-+  DESCRIPTION "WHAM: a fast, memory efficient implementation of the Weighted Histogram Analysis Method"
-+  LANGUAGES C
-+  HOMEPAGE_URL http://membrane.urmc.rochester.edu/content/wham/)
-+
-+include(GNUInstallDirs)
-+
-+add_executable(wham
-+  nr/ran2.c
-+  nr/locate.c
-+  wham/wham.c
-+  wham/file_read.c
-+  wham/histogram.c
-+  wham/bootstrap.c
-+)
-+target_include_directories(wham PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/wham)
-+target_link_libraries(wham PRIVATE m)
-+install(TARGETS wham DESTINATION ${CMAKE_INSTALL_BINDIR})
-+
-+add_executable(wham-2d
-+  nr/ran2.c
-+  nr/locate.c
-+  wham-2d/wham-2d.c
-+  wham-2d/file_read.c
-+  wham-2d/histogram.c
-+  wham/bootstrap.c
-+)
-+target_include_directories(wham-2d PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/wham)
-+target_link_libraries(wham-2d PRIVATE m)
-+install(TARGETS wham-2d DESTINATION ${CMAKE_INSTALL_BINDIR})
-+
-+install(FILES doc/doc.pdf
-+  TYPE DOC
-+  PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
-+)
-diff --git a/nr/locate.c b/nr/locate.c
-index 9f92dc0..f3bf294 100644
---- a/nr/locate.c
-+++ b/nr/locate.c
-@@ -11,7 +11,7 @@ void locate(double xx[], int n, double x, int *j)
- 	ascnd=(xx[n] > xx[0]);  // I think this makes it zero based
- 	while (ju-jl > 1) {
- 		jm=(ju+jl) >> 1;
--		if (x > xx[jm] == ascnd)
-+		if ((x > xx[jm]) == ascnd)
- 			jl=jm;
- 		else
- 			ju=jm;
+@@ -1,7 +1,7 @@
+ # Custom minimal -*- CMake -*- file for wham
+ 
+ cmake_minimum_required(VERSION 3.16)
+-project(wham VERSION 2.0.11
++project(wham VERSION 2.1.0
+   DESCRIPTION "WHAM: a fast, memory efficient implementation of the Weighted Histogram Analysis Method"
+   LANGUAGES C
+   HOMEPAGE_URL http://membrane.urmc.rochester.edu/content/wham/)
+diff --git a/doc/doc.tex b/doc/doc.tex
+index cf36616..84ee891 100644
+--- a/doc/doc.tex
++++ b/doc/doc.tex
+@@ -53,7 +53,7 @@ Suggestions and patches are welcome.
+ 
+ 
+ \subsection{New in release 2.1.0}
+-Two changes, both contributed by Alex Kohlmeyer. First, we switched from old
++Two changes, both contributed by Axel Kohlmeyer. First, we switched from old
+ make to CMake for the build. Second, we changed how energy units are set; where
+ it used to be a compile-time option, now it is set on the command line.
+ 
 diff --git a/wham-2d/histogram.c b/wham-2d/histogram.c
 index 1bd1329..b5d1c01 100644
 --- a/wham-2d/histogram.c
@@ -127,99 +83,10 @@ index 1bd1329..b5d1c01 100644
 -
 -
 diff --git a/wham-2d/wham-2d.c b/wham-2d/wham-2d.c
-index fb6e059..a6b8483 100644
+index 76389ac..05fe7cf 100644
 --- a/wham-2d/wham-2d.c
 +++ b/wham-2d/wham-2d.c
-@@ -25,7 +25,7 @@
- #include <time.h>
- #include "wham-2d.h"
- 
--#define COMMAND_LINE "Command line:  wham-2d Px[=0|pi|val] hist_min_x hist_max_x num_bins_x Py[=0|pi|val] hist_min_y hist_max_y num_bins_y tol temperature numpad metadatafile freefile use_mask\n"
-+#define COMMAND_LINE "Command line:  wham-2d [units <real|metal|lj|...>] Px[=0|pi|val] hist_min_x hist_max_x num_bins_x Py[=0|pi|val] hist_min_y hist_max_y num_bins_y tol temperature numpad metadatafile freefile use_mask\n"
- double HIST_MAXx,HIST_MINx,BIN_WIDTHx;
- double HIST_MAXy,HIST_MINy,BIN_WIDTHy;
- double TOL;
-@@ -35,7 +35,7 @@ int  NUM_BINSx, NUM_BINSy;
- int PERIODICx, PERIODICy;
- double PERIODx, PERIODy;
- double *data1,**num,***bias;
--
-+double k_B = k_B_DEFAULT;
- 
- int main(int argc, char *argv[])
- {
-@@ -57,7 +57,7 @@ double sum;
- int iteration;
- int max_iteration = 100000;
- int numpad;
--int **mask;
-+int **mask = NULL;
- int use_mask;
- 
- cpu1 = ((double) clock())/CLOCKS_PER_SEC;
-@@ -76,6 +76,61 @@ for (i=0; i<argc; i++)
-     }
- printf("\n");
- 
-+// set k_B according to LAMMPS units settings
-+if (strcmp(argv[1],"units") == 0)
-+    {
-+        if (argc < 3)
-+        {
-+            printf( COMMAND_LINE );
-+            exit(-1);
-+        }
-+
-+        if (strcmp(argv[2], "lj") == 0)
-+        {
-+            k_B = 1.0;
-+        }
-+        else if (strcmp(argv[2], "real") == 0)
-+        {
-+            k_B = 0.0019872067;
-+        }
-+        else if (strcmp(argv[2], "metal") == 0)
-+        {
-+            k_B = 8.617343e-5;
-+        }
-+        else if (strcmp(argv[2], "si") == 0)
-+        {
-+            k_B = 1.3806504e-23;
-+        }
-+        else if (strcmp(argv[2], "cgs") == 0)
-+        {
-+            k_B = 1.3806504e-16;
-+        }
-+        else if (strcmp(argv[2], "electron") == 0)
-+        {
-+            k_B = 3.16681534e-6;
-+        }
-+        else if (strcmp(argv[2], "micro") == 0)
-+        {
-+            k_B = 1.3806504e-8;
-+        }
-+        else if (strcmp(argv[2], "nano") == 0)
-+        {
-+            k_B = 0.013806504;
-+        }
-+        else if (strcmp(argv[2], "default") == 0)
-+        {
-+            k_B = k_B_DEFAULT;
-+        }
-+        else
-+        {
-+            printf("Unknown unit style: %s\n%s", argv[2], COMMAND_LINE);
-+            exit(-1);
-+        }
-+        printf("# Setting value of k_B to = %.15g\n", k_B);
-+        argc -= 2;
-+        argv += 2;
-+    }
-+
- PERIODICx = parse_periodic(argv[1], &PERIODx);
- if (PERIODICx)
-     {
-@@ -360,8 +415,8 @@ while ( ! iConverged || first)
+@@ -417,8 +417,8 @@ while ( ! iConverged || first)
              for (j=0; j< NUM_BINSy; j++)
                  {
                  calc_coor(i,j,coor);
@@ -230,7 +97,7 @@ index fb6e059..a6b8483 100644
                  }
              }
  
-@@ -444,8 +499,9 @@ if (!FREEFILE)
+@@ -501,8 +501,9 @@ if (!FREEFILE)
          for (j=0; j< NUM_BINSy; j++)
              {
              calc_coor(i,j,coor);
@@ -242,7 +109,7 @@ index fb6e059..a6b8483 100644
              }
          }
      exit(errno);
-@@ -461,25 +517,28 @@ else
+@@ -518,25 +519,28 @@ else
          for (j=-numpad; j<0; j++)
              {
              calc_coor(i,j,coor);
@@ -280,7 +147,7 @@ index fb6e059..a6b8483 100644
              }
          fprintf(FREEFILE, "\n");
          }
-@@ -490,25 +549,28 @@ else
+@@ -547,25 +551,28 @@ else
          for (j=-numpad; j<0; j++)
              {
              calc_coor(i,j,coor);
@@ -318,7 +185,7 @@ index fb6e059..a6b8483 100644
              }
          fprintf(FREEFILE, "\n");
          }
-@@ -519,25 +581,28 @@ else
+@@ -576,25 +583,28 @@ else
          for (j=-numpad; j<0; j++)
              {
              calc_coor(NUM_BINSx+i,j,coor);
@@ -356,30 +223,6 @@ index fb6e059..a6b8483 100644
              }
          fprintf(FREEFILE, "\n");
          }
-diff --git a/wham-2d/wham-2d.h b/wham-2d/wham-2d.h
-index b17e4bd..5fc17ff 100644
---- a/wham-2d/wham-2d.h
-+++ b/wham-2d/wham-2d.h
-@@ -20,15 +20,15 @@ extern int    NUM_BINSy;
- 
- extern int    PERIODICx,PERIODICy;  // flags to turn on periodicity
- extern double PERIODx, PERIODy;     // flags to control periodic interval
-+extern double k_B;
- 
- // A couple of predefined periodic units
- #define DEGREES   360.0
- #define RADIANS   6.28318530717959
- 
--#define k_B 0.001982923700 // Boltzmann's constant in kcal/mol K
--//#define k_B  0.0083144621 // Boltzmann's constant kJ/mol-K
--//#define k_B 1.0  // Boltzmann's constant in reduced units
--
-+#define k_B_DEFAULT 0.001982923700 // Boltzmann's constant in kcal/mol K
-+//#define k_B_DEFAULT 0.0083144621 // Boltzmann's constant kJ/mol-K
-+//#define k_B_DEFAULT 1.0  // Boltzmann's constant in reduced units
- 
- 
- // Value inserted for the free energy of masked values
 diff --git a/wham/histogram.c b/wham/histogram.c
 index bc52d74..635b39f 100644
 --- a/wham/histogram.c
@@ -432,7 +275,7 @@ index bc52d74..635b39f 100644
 +return HIST_MIN + BIN_WIDTH*((double)i+0.5);
  }
 diff --git a/wham/wham.c b/wham/wham.c
-index 487871b..edb8125 100644
+index 19cf695..7bdbce1 100644
 --- a/wham/wham.c
 +++ b/wham/wham.c
 @@ -1,4 +1,4 @@
@@ -441,25 +284,11 @@ index 487871b..edb8125 100644
   * WHAM -- Weighted Histogram Analysis Method
   *
   * Reference 1: Computer Physics Communications, 91(1995) 275-282, Benoit Roux
-@@ -21,7 +21,7 @@
- #include "wham.h"
- 
- 
--#define COMMAND_LINE "Command line: wham [P|Ppi|Pval] hist_min hist_max num_bins tol temperature numpad metadatafile freefile [num_MC_trials randSeed]\n"
-+#define COMMAND_LINE "Command line: wham [units <real|metal|lj|...>] [P|Ppi|Pval] hist_min hist_max num_bins tol temperature numpad metadatafile freefile [num_MC_trials randSeed]\n"
- 
- double HIST_MAX,HIST_MIN,BIN_WIDTH,TOL;
- double *HISTOGRAM;
-@@ -29,6 +29,7 @@ double kT;
- int  NUM_BINS;
- int PERIODIC;
- double PERIOD;
-+double k_B = k_B_DEFAULT;
- 
- int main(int argc, char *argv[])
- {
-@@ -41,7 +42,7 @@ int first;
- int bin_min;
+@@ -39,10 +39,9 @@ double kT; // temperature
+ int i,j;
+ int len;
+ int first;
+-int bin_min;
  int have_energy;
  char *freefile;
 -FILE *METAFILE, *FREEFILE; 
@@ -467,69 +296,7 @@ index 487871b..edb8125 100644
  struct hist_group *hist_group;
  struct histogram  *hp;
  double coor;
-@@ -82,6 +83,61 @@ for (i=0; i<argc; i++)
-     }
- printf("\n");
- 
-+// set k_B according to LAMMPS units settings
-+if (strcmp(argv[1],"units") == 0)
-+    {
-+        if (argc < 3)
-+        {
-+            printf( COMMAND_LINE );
-+            exit(-1);
-+        }
-+
-+        if (strcmp(argv[2], "lj") == 0)
-+        {
-+            k_B = 1.0;
-+        }
-+        else if (strcmp(argv[2], "real") == 0)
-+        {
-+            k_B = 0.0019872067;
-+        }
-+        else if (strcmp(argv[2], "metal") == 0)
-+        {
-+            k_B = 8.617343e-5;
-+        }
-+        else if (strcmp(argv[2], "si") == 0)
-+        {
-+            k_B = 1.3806504e-23;
-+        }
-+        else if (strcmp(argv[2], "cgs") == 0)
-+        {
-+            k_B = 1.3806504e-16;
-+        }
-+        else if (strcmp(argv[2], "electron") == 0)
-+        {
-+            k_B = 3.16681534e-6;
-+        }
-+        else if (strcmp(argv[2], "micro") == 0)
-+        {
-+            k_B = 1.3806504e-8;
-+        }
-+        else if (strcmp(argv[2], "nano") == 0)
-+        {
-+            k_B = 0.013806504;
-+        }
-+        else if (strcmp(argv[2], "default") == 0)
-+        {
-+            k_B = k_B_DEFAULT;
-+        }
-+        else
-+        {
-+            printf("Unknown unit style: %s\n%s", argv[2], COMMAND_LINE);
-+            exit(-1);
-+        }
-+        printf("# Setting value of k_B to = %.15g\n", k_B);
-+        argc -= 2;
-+        argv += 2;
-+    }
-+
- if (toupper(argv[1][0]) == 'P')
-     {
-     PERIODIC = 1;
-@@ -123,7 +179,7 @@ if (argc != 9 && argc !=11)
+@@ -179,7 +178,7 @@ if (argc != 9 && argc !=11)
      printf( COMMAND_LINE );
      exit(-1);
      }
@@ -538,7 +305,7 @@ index 487871b..edb8125 100644
  HIST_MIN = atof(argv[1]);
  HIST_MAX = atof(argv[2]);
  NUM_BINS = atoi(argv[3]);
-@@ -213,13 +269,13 @@ if (!ave_pdf2)
+@@ -269,13 +268,13 @@ if (!ave_pdf2)
      printf("couldn't allocate space for ave_pdf2: %s\n", strerror(errno));
      exit(errno);
      }
@@ -554,7 +321,7 @@ index 487871b..edb8125 100644
  
  i = get_numwindows(METAFILE);
  printf("#Number of windows = %d\n", i);
-@@ -248,7 +304,7 @@ assert(i == hist_group->num_windows);
+@@ -304,7 +303,7 @@ assert(i == hist_group->num_windows);
  // Figure out if we have trajectories at different temperatures.
  // Missing temperatures are set to -1 in read_metadata, and
  // since we require that either all trajectories specify a temperature
@@ -563,7 +330,7 @@ index 487871b..edb8125 100644
  // have to check one of them
  if (hist_group->kT[0] > 0)
      {
-@@ -257,7 +313,7 @@ if (hist_group->kT[0] > 0)
+@@ -313,7 +312,7 @@ if (hist_group->kT[0] > 0)
  else
      {
      have_energy = 0;
@@ -572,7 +339,7 @@ index 487871b..edb8125 100644
          {
          hist_group->kT[i] = kT;
          }
-@@ -269,7 +325,7 @@ if (!final_f)
+@@ -325,7 +324,7 @@ if (!final_f)
      {
      printf("couldn't allocate space for final_f: %s\n", strerror(errno));
      exit(errno);
@@ -581,7 +348,7 @@ index 487871b..edb8125 100644
  
  free(HISTOGRAM);
  
-@@ -305,7 +361,8 @@ while (! is_converged(hist_group) || first )
+@@ -361,7 +360,8 @@ while (! is_converged(hist_group) || first )
          for (i=0; i< NUM_BINS; i++)
              {
              coor = calc_coor(i);
@@ -591,7 +358,7 @@ index 487871b..edb8125 100644
              }
          printf("\n");
  
-@@ -319,7 +376,7 @@ while (! is_converged(hist_group) || first )
+@@ -375,7 +375,7 @@ while (! is_converged(hist_group) || first )
              }
          }
      // Cheesy bailout if we're going on too long
@@ -600,7 +367,16 @@ index 487871b..edb8125 100644
          {
          printf("Too many iterations: %d\n", iteration);
          break;
-@@ -383,11 +440,11 @@ for (i=0; i< num_mc_runs; i++)
+@@ -408,7 +408,7 @@ for (i=0; i < NUM_BINS; i++)
+     }
+ 
+ // Compute the free energy from the normalized probability
+-bin_min = calc_free(free_ene, prob,kT);
++   calc_free(free_ene, prob,kT);
+ 
+ // Do the requested number of bootstrap monte carlo error analysis runs.
+ if (num_mc_runs <= 0)
+@@ -439,11 +439,11 @@ for (i=0; i< num_mc_runs; i++)
          //printf("Faking %d: %d  %d\n", i,j,hp->num_points);
          num_used = hp->last - hp->first + 1;
          mk_new_hist(hp->cum, hp->data, num_used, hp->num_mc_samples, &idum);
@@ -614,7 +390,7 @@ index 487871b..edb8125 100644
        // perform WHAM iterations on the fake data sets
        iteration = 0;
        first = 1;
-@@ -403,7 +460,7 @@ for (i=0; i< num_mc_runs; i++)
+@@ -459,7 +459,7 @@ for (i=0; i< num_mc_runs; i++)
            printf("Too many iterations: %d\n", iteration);
            break;
            }
@@ -623,7 +399,7 @@ index 487871b..edb8125 100644
        printf("#MC trial %d: %d iterations\n", i, iteration);
        printf("#PMF values\n");
        // accumulate the average and stdev of the resulting probabilities
-@@ -419,18 +476,19 @@ for (i=0; i< num_mc_runs; i++)
+@@ -475,18 +475,19 @@ for (i=0; i< num_mc_runs; i++)
        for (j=0; j < NUM_BINS; j++)
            {
            pdf = -kT*log(prob[j]);
@@ -647,7 +423,7 @@ index 487871b..edb8125 100644
   for (i=0; i < NUM_BINS; i++)
     {
     ave_p[i] /= (double)num_mc_runs;
-@@ -457,12 +515,12 @@ if (!FREEFILE)
+@@ -513,12 +514,12 @@ if (!FREEFILE)
      for (i=0; i< NUM_BINS; i++)
          {
          coor = calc_coor(i);
@@ -663,7 +439,7 @@ index 487871b..edb8125 100644
          }
  
      exit(errno);
-@@ -470,38 +528,37 @@ if (!FREEFILE)
+@@ -526,38 +527,37 @@ if (!FREEFILE)
  else
      {
      // write out header
@@ -714,7 +490,7 @@ index 487871b..edb8125 100644
          }
      }
  
-@@ -515,7 +572,7 @@ exit(0);
+@@ -571,7 +571,7 @@ exit(0);
  /*
   *  Perform a single WHAM iteration
   */
@@ -723,7 +499,7 @@ index 487871b..edb8125 100644
                     int have_energy)
  {
  int i,j;
-@@ -535,9 +592,9 @@ for (i=0; i<NUM_BINS; i++)
+@@ -591,9 +591,9 @@ for (i=0; i<NUM_BINS; i++)
          num += (double) get_histval( &(hist_group->hists[j]),i);
          bias = calc_bias(hist_group,j,coor);
          bf = exp((hist_group->F_old[j] - bias) / hist_group->kT[j]);
@@ -736,27 +512,3 @@ index 487871b..edb8125 100644
           * number of points.
           */
          if (have_energy)
-diff --git a/wham/wham.h b/wham/wham.h
-index aacc1e8..7d509f2 100644
---- a/wham/wham.h
-+++ b/wham/wham.h
-@@ -15,14 +15,16 @@ extern double kT;
- extern int    NUM_BINS;
- extern int    PERIODIC;
- extern double PERIOD;
-+extern double k_B;
-+
- 
- // Some predefined periodic units
- #define DEGREES   360.0
- #define RADIANS   6.28318530717959
- 
--#define k_B 0.001982923700 // Boltzmann's constant in kcal/mol K
--//#define k_B  0.0083144621 // Boltzmann's constant kJ/mol-K
--//#define k_B 1.0  // Boltzmann's constant in reduced units
-+#define k_B_DEFAULT 0.001982923700 // Boltzmann's constant in kcal/mol K
-+//#define k_B_DEFAULT  0.0083144621 // Boltzmann's constant kJ/mol-K
-+//#define k_B_DEFAULT 1.0  // Boltzmann's constant in reduced units
- 
- 
- // global (untrimmed) histogram, global to prevent reallocation

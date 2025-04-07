@@ -50,6 +50,8 @@ LMP_VAR_ATOM       = 1
 LMP_VAR_VECTOR     = 2
 LMP_VAR_STRING     = 3
 
+# default buffer size for string buffers
+LMP_BUFSIZE        = 1024
 # -------------------------------------------------------------------------
 
 def get_ctypes_int(size):

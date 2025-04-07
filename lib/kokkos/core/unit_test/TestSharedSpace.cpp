@@ -118,9 +118,9 @@ TEST(defaultdevicetype, shared_space) {
 
   const unsigned int numRepetitions      = 10;
   const unsigned int numDeviceHostCycles = 3;
-  double threshold                       = 1.5;
-  unsigned int numPages                  = 100;
-  size_t numBytes                        = numPages * getBytesPerPage();
+  const double threshold                 = 1.5;
+  const size_t numPages                  = 100;
+  const size_t numBytes                  = numPages * getBytesPerPage();
 
   using DeviceExecutionSpace = Kokkos::DefaultExecutionSpace;
   using HostExecutionSpace   = Kokkos::DefaultHostExecutionSpace;

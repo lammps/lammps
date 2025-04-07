@@ -95,7 +95,7 @@ NEBSpin::~NEBSpin()
 void NEBSpin::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR,"NEBSpin command before simulation box is defined");
+    error->all(FLERR,"NEBSpin command before simulation box is defined" + utils::errorurl(33));
 
   if (narg < 6) error->universe_all(FLERR,"Illegal NEBSpin command");
 

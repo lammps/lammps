@@ -874,22 +874,16 @@ class UnorderedMap {
     if (m_hash_lists.data() != src.m_hash_lists.data()) {
       Kokkos::deep_copy(m_available_indexes, src.m_available_indexes);
 
-      using raw_deep_copy =
-          Kokkos::Impl::DeepCopy<typename device_type::memory_space,
-                                 typename SDevice::memory_space>;
+      // do the other deep copies asynchronously if possible
+      typename device_type::execution_space exec_space{};
 
-      raw_deep_copy(m_hash_lists.data(), src.m_hash_lists.data(),
-                    sizeof(size_type) * src.m_hash_lists.extent(0));
-      raw_deep_copy(m_next_index.data(), src.m_next_index.data(),
-                    sizeof(size_type) * src.m_next_index.extent(0));
-      raw_deep_copy(m_keys.data(), src.m_keys.data(),
-                    sizeof(key_type) * src.m_keys.extent(0));
+      Kokkos::deep_copy(exec_space, m_hash_lists, src.m_hash_lists);
+      Kokkos::deep_copy(exec_space, m_next_index, src.m_next_index);
+      Kokkos::deep_copy(exec_space, m_keys, src.m_keys);
       if (!is_set) {
-        raw_deep_copy(m_values.data(), src.m_values.data(),
-                      sizeof(impl_value_type) * src.m_values.extent(0));
+        Kokkos::deep_copy(exec_space, m_values, src.m_values);
       }
-      raw_deep_copy(m_scalars.data(), src.m_scalars.data(),
-                    sizeof(int) * num_scalars);
+      Kokkos::deep_copy(exec_space, m_scalars, src.m_scalars);
 
       Kokkos::fence(
           "Kokkos::UnorderedMap::deep_copy_view: fence after copy to dst.");
@@ -901,33 +895,27 @@ class UnorderedMap {
   bool modified() const { return get_flag(modified_idx); }
 
   void set_flag(int flag) const {
-    using raw_deep_copy =
-        Kokkos::Impl::DeepCopy<typename device_type::memory_space,
-                               Kokkos::HostSpace>;
-    const int true_ = true;
-    raw_deep_copy(m_scalars.data() + flag, &true_, sizeof(int));
+    auto scalar = Kokkos::subview(m_scalars, flag);
+    Kokkos::deep_copy(typename device_type::execution_space{}, scalar,
+                      static_cast<int>(true));
     Kokkos::fence(
         "Kokkos::UnorderedMap::set_flag: fence after copying flag from "
         "HostSpace");
   }
 
   void reset_flag(int flag) const {
-    using raw_deep_copy =
-        Kokkos::Impl::DeepCopy<typename device_type::memory_space,
-                               Kokkos::HostSpace>;
-    const int false_ = false;
-    raw_deep_copy(m_scalars.data() + flag, &false_, sizeof(int));
+    auto scalar = Kokkos::subview(m_scalars, flag);
+    Kokkos::deep_copy(typename device_type::execution_space{}, scalar,
+                      static_cast<int>(false));
     Kokkos::fence(
         "Kokkos::UnorderedMap::reset_flag: fence after copying flag from "
         "HostSpace");
   }
 
   bool get_flag(int flag) const {
-    using raw_deep_copy =
-        Kokkos::Impl::DeepCopy<Kokkos::HostSpace,
-                               typename device_type::memory_space>;
-    int result = false;
-    raw_deep_copy(&result, m_scalars.data() + flag, sizeof(int));
+    const auto scalar = Kokkos::subview(m_scalars, flag);
+    int result;
+    Kokkos::deep_copy(typename device_type::execution_space{}, result, scalar);
     Kokkos::fence(
         "Kokkos::UnorderedMap::get_flag: fence after copy to return value in "
         "HostSpace");

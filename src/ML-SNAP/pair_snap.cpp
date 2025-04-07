@@ -18,6 +18,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -453,10 +454,11 @@ void PairSNAP::init_style()
 
 double PairSNAP::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
   scale[j][i] = scale[i][j];
-  return (radelem[map[i]] +
-          radelem[map[j]])*rcutfac;
+  return (radelem[map[i]] + radelem[map[j]])*rcutfac;
 }
 
 /* ---------------------------------------------------------------------- */

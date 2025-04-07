@@ -707,3 +707,12 @@ void PairLJ96Cut::born_matrix(int /*i*/, int /*j*/, int itype, int jtype, double
   du2pair = factor_lj * du2;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void *PairLJ96Cut::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str, "epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str, "sigma") == 0) return (void *) sigma;
+  return nullptr;
+}

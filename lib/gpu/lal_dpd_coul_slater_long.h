@@ -65,7 +65,7 @@ class DPDCoulSlaterLong : public BaseDPD<numtyp, acctyp> {
   /// coeff.x = a0, coeff.y = gamma, coeff.z = sigma, coeff.w = cut_dpd
   UCL_D_Vec<numtyp4> coeff;
 
-  /// cutsq.x = cutsq, cutsq.y = cut_dpdsq, cutsq.w = cut_slatersq
+  /// cutsq.x = cutsq, cutsq.y = cut_dpdsq, cutsq.z = cut_slatersq
   UCL_D_Vec<numtyp4> cutsq;
 
   /// Special LJ values

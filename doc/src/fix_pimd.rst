@@ -89,7 +89,7 @@ partition function for the original system to a classical partition
 function for a ring-polymer system is exploited, to efficiently sample
 configurations from the canonical ensemble :ref:`(Feynman) <Feynman>`.
 
-.. versionadded:: TBD
+.. versionadded:: 2Apr2025
 
    Fix *pimd/langevin/bosonic* and *pimd/nvt/bosonic* were added.
 

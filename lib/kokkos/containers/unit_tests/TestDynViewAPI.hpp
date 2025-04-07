@@ -130,7 +130,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 7> {
                 for (unsigned i0 = 0; i0 < unsigned(left.extent(0)); ++i0) {
                   const long j = &left(i0, i1, i2, i3, i4, i5, i6) -
                                  &left(0, 0, 0, 0, 0, 0, 0);
-                  if (j <= offset || left_alloc <= j) {
+                  if (j < offset || left_alloc <= j) {
                     update |= 1;
                   }
                   offset = j;
@@ -146,7 +146,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 7> {
                 for (unsigned i6 = 0; i6 < unsigned(right.extent(6)); ++i6) {
                   const long j = &right(i0, i1, i2, i3, i4, i5, i6) -
                                  &right(0, 0, 0, 0, 0, 0, 0);
-                  if (j <= offset || right_alloc <= j) {
+                  if (j < offset || right_alloc <= j) {
                     update |= 2;
                   }
                   offset = j;
@@ -212,7 +212,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 6> {
               for (unsigned i0 = 0; i0 < unsigned(left.extent(0)); ++i0) {
                 const long j =
                     &left(i0, i1, i2, i3, i4, i5) - &left(0, 0, 0, 0, 0, 0);
-                if (j <= offset || left_alloc <= j) {
+                if (j < offset || left_alloc <= j) {
                   update |= 1;
                 }
                 offset = j;
@@ -227,7 +227,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 6> {
               for (unsigned i5 = 0; i5 < unsigned(right.extent(5)); ++i5) {
                 const long j =
                     &right(i0, i1, i2, i3, i4, i5) - &right(0, 0, 0, 0, 0, 0);
-                if (j <= offset || right_alloc <= j) {
+                if (j < offset || right_alloc <= j) {
                   update |= 2;
                 }
                 offset = j;
@@ -298,7 +298,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 5> {
           for (unsigned i1 = 0; i1 < unsigned(left.extent(1)); ++i1)
             for (unsigned i0 = 0; i0 < unsigned(left.extent(0)); ++i0) {
               const long j = &left(i0, i1, i2, i3, i4) - &left(0, 0, 0, 0, 0);
-              if (j <= offset || left_alloc <= j) {
+              if (j < offset || left_alloc <= j) {
                 update |= 1;
               }
               offset = j;
@@ -316,7 +316,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 5> {
           for (unsigned i3 = 0; i3 < unsigned(right.extent(3)); ++i3)
             for (unsigned i4 = 0; i4 < unsigned(right.extent(4)); ++i4) {
               const long j = &right(i0, i1, i2, i3, i4) - &right(0, 0, 0, 0, 0);
-              if (j <= offset || right_alloc <= j) {
+              if (j < offset || right_alloc <= j) {
                 update |= 2;
               }
               offset = j;
@@ -383,7 +383,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 4> {
         for (unsigned i1 = 0; i1 < unsigned(left.extent(1)); ++i1)
           for (unsigned i0 = 0; i0 < unsigned(left.extent(0)); ++i0) {
             const long j = &left(i0, i1, i2, i3) - &left(0, 0, 0, 0);
-            if (j <= offset || left_alloc <= j) {
+            if (j < offset || left_alloc <= j) {
               update |= 1;
             }
             offset = j;
@@ -395,7 +395,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 4> {
         for (unsigned i2 = 0; i2 < unsigned(right.extent(2)); ++i2)
           for (unsigned i3 = 0; i3 < unsigned(right.extent(3)); ++i3) {
             const long j = &right(i0, i1, i2, i3) - &right(0, 0, 0, 0);
-            if (j <= offset || right_alloc <= j) {
+            if (j < offset || right_alloc <= j) {
               update |= 2;
             }
             offset = j;
@@ -462,7 +462,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 3> {
       for (unsigned i1 = 0; i1 < unsigned(left.extent(1)); ++i1)
         for (unsigned i0 = 0; i0 < unsigned(left.extent(0)); ++i0) {
           const long j = &left(i0, i1, i2) - &left(0, 0, 0);
-          if (j <= offset || left_alloc <= j) {
+          if (j < offset || left_alloc <= j) {
             update |= 1;
           }
           offset = j;
@@ -477,7 +477,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 3> {
       for (unsigned i1 = 0; i1 < unsigned(right.extent(1)); ++i1)
         for (unsigned i2 = 0; i2 < unsigned(right.extent(2)); ++i2) {
           const long j = &right(i0, i1, i2) - &right(0, 0, 0);
-          if (j <= offset || right_alloc <= j) {
+          if (j < offset || right_alloc <= j) {
             update |= 2;
           }
           offset = j;
@@ -551,7 +551,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 2> {
     for (unsigned i1 = 0; i1 < unsigned(left.extent(1)); ++i1)
       for (unsigned i0 = 0; i0 < unsigned(left.extent(0)); ++i0) {
         const long j = &left(i0, i1) - &left(0, 0);
-        if (j <= offset || left_alloc <= j) {
+        if (j < offset || left_alloc <= j) {
           update |= 1;
         }
         offset = j;
@@ -561,7 +561,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 2> {
     for (unsigned i0 = 0; i0 < unsigned(right.extent(0)); ++i0)
       for (unsigned i1 = 0; i1 < unsigned(right.extent(1)); ++i1) {
         const long j = &right(i0, i1) - &right(0, 0);
-        if (j <= offset || right_alloc <= j) {
+        if (j < offset || right_alloc <= j) {
           update |= 2;
         }
         offset = j;
@@ -1563,7 +1563,7 @@ class TestDynViewAPI {
     // an lvalue reference due to retrieving through texture cache
     // therefore not allowed to query the underlying pointer.
 #if defined(KOKKOS_ENABLE_CUDA)
-    if (!std::is_same<typename device::execution_space, Kokkos::Cuda>::value)
+    if (!std::is_same_v<typename device::execution_space, Kokkos::Cuda>)
 #endif
     {
       ASSERT_EQ(x.data(), xr.data());

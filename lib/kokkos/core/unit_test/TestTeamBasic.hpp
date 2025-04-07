@@ -346,11 +346,11 @@ TEST(TEST_CATEGORY, team_broadcast_float) {
 
     // FIXME_CUDA
 #ifdef KOKKOS_ENABLE_CUDA
-    if (!std::is_same<TEST_EXECSPACE, Kokkos::Cuda>::value)
+    if (!std::is_same_v<TEST_EXECSPACE, Kokkos::Cuda>)
 #endif
     // FIXME_HIP
 #ifdef KOKKOS_ENABLE_HIP
-      if (!std::is_same<TEST_EXECSPACE, Kokkos::HIP>::value)
+      if (!std::is_same_v<TEST_EXECSPACE, Kokkos::HIP>)
 #endif
       {
         TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
@@ -380,11 +380,11 @@ TEST(TEST_CATEGORY, team_broadcast_double) {
 
     // FIXME_CUDA
 #ifdef KOKKOS_ENABLE_CUDA
-    if (!std::is_same<TEST_EXECSPACE, Kokkos::Cuda>::value)
+    if (!std::is_same_v<TEST_EXECSPACE, Kokkos::Cuda>)
 #endif
     // FIXME_HIP
 #ifdef KOKKOS_ENABLE_HIP
-      if (!std::is_same<TEST_EXECSPACE, Kokkos::HIP>::value)
+      if (!std::is_same_v<TEST_EXECSPACE, Kokkos::HIP>)
 #endif
       {
         TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,

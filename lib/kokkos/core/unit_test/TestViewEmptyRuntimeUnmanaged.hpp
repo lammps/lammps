@@ -25,12 +25,6 @@ void test_empty_view_runtime_unmanaged() {
   T d{};
   auto* p = reinterpret_cast<T*>(0xABADBABE);
 
-  (void)Kokkos::View<T>(p);
-  (void)Kokkos::View<T>(&d);
-  (void)Kokkos::View<T>(nullptr);
-  (void)Kokkos::View<T>(NULL);  // NOLINT(modernize-use-nullptr)
-  (void)Kokkos::View<T>(0);     // NOLINT(modernize-use-nullptr)
-
   (void)Kokkos::View<T*>(p, 0);
   (void)Kokkos::View<T*>(&d, 0);
   (void)Kokkos::View<T*>(nullptr, 0);

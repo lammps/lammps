@@ -217,6 +217,7 @@ void test_A(const bool ensureAdjacentFindCanFind, std::size_t numTeams,
 
         break;
       }
+      default: Kokkos::abort("unreachable");
     }
   }
 }

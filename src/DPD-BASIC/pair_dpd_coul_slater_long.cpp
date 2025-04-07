@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -353,7 +354,9 @@ void PairDPDCoulSlaterLong::init_style()
 
 double PairDPDCoulSlaterLong::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   sigma[i][j] = sqrt(2.0*force->boltz*temperature*gamma[i][j]);
 
@@ -473,7 +476,8 @@ void PairDPDCoulSlaterLong::read_restart_settings(FILE *fp)
 void PairDPDCoulSlaterLong::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g\n",i,a0[i][i],gamma[i][i]);
+    fprintf(fp,"%d %g %g %s %g\n",i,a0[i][i],gamma[i][i],
+              (cut_slatersq[i][i] == 0.0) ? "no" : "yes", cut_dpd[i][i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -485,7 +489,7 @@ void PairDPDCoulSlaterLong::write_data_all(FILE *fp)
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
       fprintf(fp,"%d %d %g %g %s %g\n",i,j,a0[i][j],gamma[i][j],
-              (cut_slatersq[i][j] == 0.0) ? "yes" : "no", cut_dpd[i][j]);
+              (cut_slatersq[i][j] == 0.0) ? "no" : "yes", cut_dpd[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */

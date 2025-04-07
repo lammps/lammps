@@ -32,6 +32,7 @@
 #include <Cuda/Kokkos_Cuda_ReduceScan.hpp>
 #include <Cuda/Kokkos_Cuda_BlockSize_Deduction.hpp>
 #include <Cuda/Kokkos_Cuda_Team.hpp>
+#include <Kokkos_BitManipulation.hpp>
 #include <Kokkos_MinMax.hpp>
 #include <Kokkos_Vectorization.hpp>
 
@@ -172,24 +173,11 @@ class TeamPolicyInternal<Kokkos::Cuda, Properties...>
 
   inline static int vector_length_max() { return Impl::CudaTraits::WarpSize; }
 
-  inline static int verify_requested_vector_length(
-      int requested_vector_length) {
-    int test_vector_length =
-        std::min(requested_vector_length, vector_length_max());
-
-    // Allow only power-of-two vector_length
-    if (!(is_integral_power_of_two(test_vector_length))) {
-      int test_pow2 = 1;
-      for (int i = 0; i < 5; i++) {
-        test_pow2 = test_pow2 << 1;
-        if (test_pow2 > test_vector_length) {
-          break;
-        }
-      }
-      test_vector_length = test_pow2 >> 1;
-    }
-
-    return test_vector_length;
+  inline static int impl_determine_vector_length(int requested) {
+    // restrict requested between 1 and max
+    unsigned vector_length = std::clamp(requested, 1, vector_length_max());
+    // return the largest integral power of 2 not greater than requested
+    return Kokkos::bit_floor(vector_length);
   }
 
   inline static int scratch_size_max(int level) {
@@ -203,7 +191,8 @@ class TeamPolicyInternal<Kokkos::Cuda, Properties...>
         (max_possible_team_size + 2) * sizeof(double) + sizeof(int64_t);
     // arbitrarily setting level 1 scratch limit to 20MB, for a
     // Volta V100 that would give us about 3.2GB for 2 teams per SM
-    constexpr size_t max_l1_scratch_size = 20 * 1024 * 1024;
+    constexpr size_t max_l1_scratch_size =
+        static_cast<size_t>(20) * 1024 * 1024;
 
     size_t max_shmem = Cuda().cuda_device_prop().sharedMemPerBlock;
     return (level == 0 ? max_shmem - max_reserved_shared_mem_per_team
@@ -252,10 +241,7 @@ class TeamPolicyInternal<Kokkos::Cuda, Properties...>
       : m_space(space_),
         m_league_size(league_size_),
         m_team_size(team_size_request),
-        m_vector_length(
-            (vector_length_request > 0)
-                ? verify_requested_vector_length(vector_length_request)
-                : verify_requested_vector_length(1)),
+        m_vector_length(impl_determine_vector_length(vector_length_request)),
         m_team_scratch_size{0, 0},
         m_thread_scratch_size{0, 0},
         m_chunk_size(Impl::CudaTraits::WarpSize),
@@ -412,15 +398,16 @@ __device__ inline int64_t cuda_get_scratch_index(Cuda::size_type league_size,
     int64_t const wraparound_len = Kokkos::max(
         int64_t(1),
         Kokkos::min(int64_t(league_size),
-                    int64_t(num_scratch_locks) / (blockDim.x * blockDim.y)));
+                    int64_t(num_scratch_locks) /
+                        (static_cast<int64_t>(blockDim.x) * blockDim.y)));
     threadid = (blockIdx.x * blockDim.z + threadIdx.z) % wraparound_len;
-    threadid *= blockDim.x * blockDim.y;
+    threadid *= static_cast<int64_t>(blockDim.x) * blockDim.y;
     int done = 0;
     while (!done) {
       done = (0 == atomicCAS(&scratch_locks[threadid], 0, 1));
       if (!done) {
-        threadid += blockDim.x * blockDim.y;
-        if (int64_t(threadid + blockDim.x * blockDim.y) >=
+        threadid += static_cast<int64_t>(blockDim.x) * blockDim.y;
+        if ((threadid + static_cast<int64_t>(blockDim.x) * blockDim.y) >=
             wraparound_len * blockDim.x * blockDim.y)
           threadid = 0;
       }
@@ -477,13 +464,13 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
   size_t m_num_scratch_locks;
 
   template <class TagType>
-  __device__ inline std::enable_if_t<std::is_void<TagType>::value> exec_team(
+  __device__ inline std::enable_if_t<std::is_void_v<TagType>> exec_team(
       const Member& member) const {
     m_functor(member);
   }
 
   template <class TagType>
-  __device__ inline std::enable_if_t<!std::is_void<TagType>::value> exec_team(
+  __device__ inline std::enable_if_t<!std::is_void_v<TagType>> exec_team(
       const Member& member) const {
     m_functor(TagType(), member);
   }
@@ -505,7 +492,8 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
       this->template exec_team<WorkTag>(typename Policy::member_type(
           kokkos_impl_cuda_shared_memory<void>(), m_shmem_begin, m_shmem_size,
           (void*)(((char*)m_scratch_ptr[1]) +
-                  ptrdiff_t(threadid / (blockDim.x * blockDim.y)) *
+                  ptrdiff_t(threadid /
+                            (static_cast<int64_t>(blockDim.x) * blockDim.y)) *
                       m_scratch_size[1]),
           m_scratch_size[1], league_rank, m_league_size));
     }
@@ -673,13 +661,13 @@ class ParallelReduce<CombinedFunctorReducerType,
   const size_type m_vector_size;
 
   template <class TagType>
-  __device__ inline std::enable_if_t<std::is_void<TagType>::value> exec_team(
+  __device__ inline std::enable_if_t<std::is_void_v<TagType>> exec_team(
       const Member& member, reference_type update) const {
     m_functor_reducer.get_functor()(member, update);
   }
 
   template <class TagType>
-  __device__ inline std::enable_if_t<!std::is_void<TagType>::value> exec_team(
+  __device__ inline std::enable_if_t<!std::is_void_v<TagType>> exec_team(
       const Member& member, reference_type update) const {
     m_functor_reducer.get_functor()(TagType(), member, update);
   }

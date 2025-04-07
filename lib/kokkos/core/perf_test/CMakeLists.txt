@@ -133,3 +133,4 @@ if(NOT KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
 endif()
 
 kokkos_add_benchmark(PerformanceTest_Atomic SOURCES test_atomic.cpp)
+kokkos_add_benchmark(PerformanceTest_Reduction SOURCES test_reduction.cpp)

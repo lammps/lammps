@@ -98,11 +98,7 @@ TEST_F(LAMMPS_thermo, last_thermo)
     thermostr = (char *)f_lammps_last_thermo_string(6);
     EXPECT_STREQ(thermostr, "Press");
     free(thermostr);
-#if defined(LAMMPS_SMALLSMALL)
-    EXPECT_EQ(f_lammps_last_thermo_type(1), multitype::LAMMPS_INT);
-#else
     EXPECT_EQ(f_lammps_last_thermo_type(1), multitype::LAMMPS_INT64);
-#endif
     EXPECT_EQ(f_lammps_last_thermo_int(1), 15);
     EXPECT_EQ(f_lammps_last_thermo_type(2), multitype::LAMMPS_DOUBLE);
     EXPECT_EQ(f_lammps_last_thermo_type(3), multitype::LAMMPS_DOUBLE);

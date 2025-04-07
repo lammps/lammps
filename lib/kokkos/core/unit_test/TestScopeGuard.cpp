@@ -18,31 +18,16 @@
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
 
+#include "KokkosExecutionEnvironmentNeverInitializedFixture.hpp"
+
 namespace {
 
-/**
- * Fixture that checks Kokkos is neither initialized nor finalized before and
- * after the test.
- */
-class AssertEnvironmentTest : public ::testing::Test {
- protected:
-  void SetUp() override {
-    ASSERT_FALSE(Kokkos::is_initialized());
-    ASSERT_FALSE(Kokkos::is_finalized());
-  }
-
-  void TearDown() override {
-    ASSERT_FALSE(Kokkos::is_initialized());
-    ASSERT_FALSE(Kokkos::is_finalized());
-  }
-};
-
-using scope_guard_DeathTest = AssertEnvironmentTest;
+using ScopeGuard_DeathTest = KokkosExecutionEnvironmentNeverInitialized;
 
 /**
  * Test to create a scope guard normally.
  */
-TEST_F(scope_guard_DeathTest, create) {
+TEST_F(ScopeGuard_DeathTest, create) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   // run it in a different process so side effects are not kept
   EXPECT_EXIT(
@@ -65,7 +50,7 @@ TEST_F(scope_guard_DeathTest, create) {
 /**
  * Test to create a scope guard with an argument.
  */
-TEST_F(scope_guard_DeathTest, create_argument) {
+TEST_F(ScopeGuard_DeathTest, create_argument) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   // run it in a different process so side effects are not kept
   EXPECT_EXIT(
@@ -83,7 +68,7 @@ TEST_F(scope_guard_DeathTest, create_argument) {
 /**
  * Test to create another scope guard when one has been created.
  */
-TEST_F(scope_guard_DeathTest, create_while_initialize) {
+TEST_F(ScopeGuard_DeathTest, create_while_initialize) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   EXPECT_DEATH(
       {
@@ -98,7 +83,7 @@ TEST_F(scope_guard_DeathTest, create_while_initialize) {
 /**
  * Test to create a scope guard when initialization has been done manually.
  */
-TEST_F(scope_guard_DeathTest, create_after_initialize) {
+TEST_F(ScopeGuard_DeathTest, create_after_initialize) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   EXPECT_DEATH(
       {
@@ -113,7 +98,7 @@ TEST_F(scope_guard_DeathTest, create_after_initialize) {
 /**
  * Test to create another scope guard when one has been destroyed.
  */
-TEST_F(scope_guard_DeathTest, create_after_finalize) {
+TEST_F(ScopeGuard_DeathTest, create_after_finalize) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   EXPECT_DEATH(
       {
@@ -129,7 +114,7 @@ TEST_F(scope_guard_DeathTest, create_after_finalize) {
 /**
  * Test to destroy a scope guard when finalization has been done manually.
  */
-TEST_F(scope_guard_DeathTest, destroy_after_finalize) {
+TEST_F(ScopeGuard_DeathTest, destroy_after_finalize) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   EXPECT_DEATH(
       {
@@ -145,11 +130,11 @@ TEST_F(scope_guard_DeathTest, destroy_after_finalize) {
  */
 
 // Test scope guard is not copyable.
-static_assert(!std::is_copy_assignable<Kokkos::ScopeGuard>());
-static_assert(!std::is_copy_constructible<Kokkos::ScopeGuard>());
+static_assert(!std::is_copy_assignable_v<Kokkos::ScopeGuard>);
+static_assert(!std::is_copy_constructible_v<Kokkos::ScopeGuard>);
 
 // Test scope guard is not movable.
-static_assert(!std::is_move_assignable<Kokkos::ScopeGuard>());
-static_assert(!std::is_move_constructible<Kokkos::ScopeGuard>());
+static_assert(!std::is_move_assignable_v<Kokkos::ScopeGuard>);
+static_assert(!std::is_move_constructible_v<Kokkos::ScopeGuard>);
 
 }  // namespace

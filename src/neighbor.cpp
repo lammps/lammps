@@ -1144,7 +1144,7 @@ int Neighbor::init_pair()
   }
   if (count == 100)
     error->all(FLERR,  Error::NOLASTLINE, "Failed to reorder neighbor lists to satisfy "
-               "constraints - Contact the LAMMPS developers for assistance");
+               "constraints - Please contact the LAMMPS developers." + utils::errorurl(35));
 
   // debug output
 
@@ -2646,7 +2646,8 @@ void Neighbor::set(int narg, char **arg)
     style = Neighbor::MULTI_OLD;
     if (me == 0)
       error->warning(FLERR, "Neighbor list style 'multi/old' is deprecated and will be removed "
-                     "soon.\nContact the LAMMPS developers if that creates problems for you.");
+                     "soon.\nPlease contact the LAMMPS developers if you cannot use style 'multi'."
+                     + utils::errorurl(35));
   } else error->all(FLERR, 1, "Unknown neighbor {} argument: {}", arg[0], arg[1]);
 
   if (style == Neighbor::MULTI_OLD && lmp->citeme) lmp->citeme->add(cite_neigh_multi_old);

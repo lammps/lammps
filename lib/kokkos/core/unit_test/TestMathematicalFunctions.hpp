@@ -30,9 +30,8 @@
 #define MATHEMATICAL_FUNCTIONS_HAVE_LONG_DOUBLE_OVERLOADS
 #endif
 
-#if defined KOKKOS_COMPILER_INTEL ||                                  \
-    (defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-     !defined(KOKKOS_COMPILER_MSVC))
+#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
+    !defined(KOKKOS_COMPILER_MSVC)
 #define MATHEMATICAL_FUNCTIONS_TEST_UNREACHABLE __builtin_unreachable();
 #else
 #define MATHEMATICAL_FUNCTIONS_TEST_UNREACHABLE
@@ -1329,10 +1328,10 @@ struct TestAbsoluteValueFunction {
     static_assert(std::is_same_v<decltype(abs(1)), int>);
     static_assert(std::is_same_v<decltype(abs(2l)), long>);
     static_assert(std::is_same_v<decltype(abs(3ll)), long long>);
-    static_assert(std::is_same<decltype(abs(static_cast<KE::half_t>(4.f))),
-                               KE::half_t>::value);
-    static_assert(std::is_same<decltype(abs(static_cast<KE::bhalf_t>(4.f))),
-                               KE::bhalf_t>::value);
+    static_assert(std::is_same_v<decltype(abs(static_cast<KE::half_t>(4.f))),
+                                 KE::half_t>);
+    static_assert(std::is_same_v<decltype(abs(static_cast<KE::bhalf_t>(4.f))),
+                                 KE::bhalf_t>);
     static_assert(std::is_same_v<decltype(abs(4.f)), float>);
     static_assert(std::is_same_v<decltype(abs(5.)), double>);
 #ifdef MATHEMATICAL_FUNCTIONS_HAVE_LONG_DOUBLE_OVERLOADS
@@ -1387,10 +1386,10 @@ struct TestFloatingPointAbsoluteValueFunction {
       Kokkos::printf("failed fabs(floating_point) special values\n");
     }
 
-    static_assert(std::is_same<decltype(fabs(static_cast<KE::half_t>(4.f))),
-                               KE::half_t>::value);
-    static_assert(std::is_same<decltype(fabs(static_cast<KE::bhalf_t>(4.f))),
-                               KE::bhalf_t>::value);
+    static_assert(std::is_same_v<decltype(fabs(static_cast<KE::half_t>(4.f))),
+                                 KE::half_t>);
+    static_assert(std::is_same_v<decltype(fabs(static_cast<KE::bhalf_t>(4.f))),
+                                 KE::bhalf_t>);
     static_assert(std::is_same_v<decltype(fabs(4.f)), float>);
     static_assert(std::is_same_v<decltype(fabs(5.)), double>);
 #ifdef MATHEMATICAL_FUNCTIONS_HAVE_LONG_DOUBLE_OVERLOADS
@@ -1456,12 +1455,12 @@ struct TestFloatingPointRemainderFunction : FloatingPointComparison {
       Kokkos::printf("failed fmod(floating_point) special values\n");
     }
 
-    static_assert(std::is_same<decltype(fmod(static_cast<KE::half_t>(4.f),
-                                             static_cast<KE::half_t>(4.f))),
-                               KE::half_t>::value);
-    static_assert(std::is_same<decltype(fmod(static_cast<KE::bhalf_t>(4.f),
-                                             static_cast<KE::bhalf_t>(4.f))),
-                               KE::bhalf_t>::value);
+    static_assert(std::is_same_v<decltype(fmod(static_cast<KE::half_t>(4.f),
+                                               static_cast<KE::half_t>(4.f))),
+                                 KE::half_t>);
+    static_assert(std::is_same_v<decltype(fmod(static_cast<KE::bhalf_t>(4.f),
+                                               static_cast<KE::bhalf_t>(4.f))),
+                                 KE::bhalf_t>);
     static_assert(std::is_same_v<decltype(fmod(4.f, 4.f)), float>);
     static_assert(std::is_same_v<decltype(fmod(5., 5.)), double>);
 #ifdef MATHEMATICAL_FUNCTIONS_HAVE_LONG_DOUBLE_OVERLOADS

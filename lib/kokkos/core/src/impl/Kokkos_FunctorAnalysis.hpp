@@ -852,44 +852,7 @@ struct FunctorAnalysis {
     enum : bool { value = true };
   };
 
-  //----------------------------------------
-
-  template <class F = Functor, typename = void>
-  struct DeduceTeamShmem {
-    enum : bool { value = false };
-
-    static size_t team_shmem_size(F const&, int) { return 0; }
-  };
-
-  template <class F>
-  struct DeduceTeamShmem<F, std::enable_if_t<0 < sizeof(&F::team_shmem_size)>> {
-    enum : bool { value = true };
-
-    static size_t team_shmem_size(F const* const f, int team_size) {
-      return f->team_shmem_size(team_size);
-    }
-  };
-
-  template <class F>
-  struct DeduceTeamShmem<F,
-                         std::enable_if_t<(0 < sizeof(&F::shmem_size)) &&
-                                          !(0 < sizeof(&F::team_shmem_size))>> {
-    enum : bool { value = true };
-
-    static size_t team_shmem_size(F const* const f, int team_size) {
-      return f->shmem_size(team_size);
-    }
-  };
-
-  //----------------------------------------
-
  public:
-  inline static size_t team_shmem_size(Functor const& f) {
-    return DeduceTeamShmem<>::team_shmem_size(f);
-  }
-
-  //----------------------------------------
-
   enum { has_join_member_function = DeduceJoin<>::value };
   enum { has_init_member_function = DeduceInit<>::value };
   enum { has_final_member_function = DeduceFinal<>::value };

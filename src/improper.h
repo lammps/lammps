@@ -37,6 +37,9 @@ class Improper : protected Pointers {
                              // CENTROID_AVAIL = different and implemented
                              // CENTROID_NOTAVAIL = different, not yet implemented
 
+  int reinitflag;    // 0 if not compatible with fix adapt
+                     // extract() method may still need to be added
+
   int symmatoms[4];    // symmetry atom(s) of improper style
                        // value of 0: interchangable atoms
                        // value of 1: central atom
@@ -67,6 +70,8 @@ class Improper : protected Pointers {
     du = 0.0;
     du2 = 0.0;
   }
+  virtual void *extract(const char *, int &) { return nullptr; }
+  void reinit();
 
  protected:
   int suffix_flag;    // suffix compatibility flag

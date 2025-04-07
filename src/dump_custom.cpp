@@ -68,13 +68,15 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   clearstep = 1;
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery <= 0) error->all(FLERR,"Illegal dump {} command: output frequency must be > 0", style);
+  if (nevery <= 0)
+    error->all(FLERR, 3, "Illegal dump {} command: output frequency must be > 0", style);
 
   // expand args if any have wildcard character "*"
   // ok to include trailing optional args,
   //   so long as they do not have "*" between square brackets
   // nfield may be shrunk below if extra optional args exist
 
+  int ioffset = 5;
   expand = 0;
   nfield = nargnew = utils::expand_args(FLERR,narg-5,&arg[5],1,earg,lmp);
   if (earg != &arg[5]) expand = 1;
@@ -446,7 +448,8 @@ void DumpCustom::init_style()
     fix[i] = modify->get_fix_by_id(id_fix[i]);
     if (!fix[i]) error->all(FLERR,"Could not find dump {} fix ID {}", style, id_fix[i]);
     if (nevery % fix[i]->peratom_freq)
-      error->all(FLERR,"Dump {} and fix not computed at compatible times", style);
+      error->all(FLERR,"Dump {} and fix not computed at compatible times{}", style,
+                 utils::errorurl(7));
   }
 
   for (i = 0; i < nvariable; i++) {
@@ -460,7 +463,7 @@ void DumpCustom::init_style()
   for (int i = 0; i < ncustom; i++) {
     icustom = atom->find_custom(id_custom[i],flag,cols);
     if (icustom < 0)
-      error->all(FLERR,"Could not find dump {} atom property name", style);
+      error->all(FLERR, "Could not find dump {} atom property name", style);
     custom[i] = icustom;
     if (!flag && !cols) custom_flag[i] = IVEC;
     else if (flag && !cols) custom_flag[i] = DVEC;
@@ -482,7 +485,8 @@ void DumpCustom::init_style()
 
 void DumpCustom::write_header(bigint ndump)
 {
-  if (!header_choice) error->all(FLERR, "Must not use 'run pre no' after creating a new dump");
+  if (!header_choice)
+    error->all(FLERR, Error::NOLASTLINE, "Must not use 'run pre no' after creating a new dump");
 
   if (multiproc) (this->*header_choice)(ndump);
   else if (me == 0) (this->*header_choice)(ndump);
@@ -742,7 +746,8 @@ int DumpCustom::count()
   if (ncompute) {
     for (i = 0; i < ncompute; i++) {
       if (!compute[i]->is_initialized())
-        error->all(FLERR,"Dump compute ID {} cannot be invoked before initialization by a run",
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Dump compute ID {} cannot be invoked before initialization by a run",
           compute[i]->id);
       if (!(compute[i]->invoked_flag & Compute::INVOKED_PERATOM)) {
         compute[i]->compute_peratom();
@@ -800,7 +805,7 @@ int DumpCustom::count()
         nstride = 1;
       } else if (thresh_array[ithresh] == MOL) {
         if (!atom->molecule_flag)
-          error->all(FLERR,
+          error->all(FLERR, Error::NOLASTLINE,
                      "Threshold for an atom property that isn't allocated");
         tagint *molecule = atom->molecule;
         for (i = 0; i < nlocal; i++) dchoose[i] = molecule[i];
@@ -1074,39 +1079,44 @@ int DumpCustom::count()
 
       } else if (thresh_array[ithresh] == Q) {
         if (!atom->q_flag)
-          error->all(FLERR,"Threshold for an atom property that isn't allocated");
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Threshold for an atom property that isn't allocated");
         ptr = atom->q;
         nstride = 1;
       } else if (thresh_array[ithresh] == MUX) {
         if (!atom->mu_flag)
-          error->all(FLERR,"Threshold for an atom property that isn't allocated");
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Threshold for an atom property that isn't allocated");
         ptr = &atom->mu[0][0];
         nstride = 4;
       } else if (thresh_array[ithresh] == MUY) {
         if (!atom->mu_flag)
-          error->all(FLERR,"Threshold for an atom property that isn't allocated");
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Threshold for an atom property that isn't allocated");
         ptr = &atom->mu[0][1];
         nstride = 4;
       } else if (thresh_array[ithresh] == MUZ) {
         if (!atom->mu_flag)
-          error->all(FLERR,"Threshold for an atom property that isn't allocated");
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Threshold for an atom property that isn't allocated");
         ptr = &atom->mu[0][2];
         nstride = 4;
       } else if (thresh_array[ithresh] == MU) {
         if (!atom->mu_flag)
-          error->all(FLERR,"Threshold for an atom property that isn't allocated");
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Threshold for an atom property that isn't allocated");
         ptr = &atom->mu[0][3];
         nstride = 4;
 
       } else if (thresh_array[ithresh] == RADIUS) {
         if (!atom->radius_flag)
-          error->all(FLERR,
+          error->all(FLERR, Error::NOLASTLINE,
                      "Threshold for an atom property that isn't allocated");
         ptr = atom->radius;
         nstride = 1;
       } else if (thresh_array[ithresh] == DIAMETER) {
         if (!atom->radius_flag)
-          error->all(FLERR,
+          error->all(FLERR, Error::NOLASTLINE,
                      "Threshold for an atom property that isn't allocated");
         double *radius = atom->radius;
         for (i = 0; i < nlocal; i++) dchoose[i] = 2.0*radius[i];
@@ -1114,55 +1124,55 @@ int DumpCustom::count()
         nstride = 1;
       } else if (thresh_array[ithresh] == OMEGAX) {
         if (!atom->omega_flag)
-          error->all(FLERR,
+          error->all(FLERR, Error::NOLASTLINE,
                      "Threshold for an atom property that isn't allocated");
         ptr = &atom->omega[0][0];
         nstride = 3;
       } else if (thresh_array[ithresh] == OMEGAY) {
         if (!atom->omega_flag)
-          error->all(FLERR,
+          error->all(FLERR, Error::NOLASTLINE,
                      "Threshold for an atom property that isn't allocated");
         ptr = &atom->omega[0][1];
         nstride = 3;
       } else if (thresh_array[ithresh] == OMEGAZ) {
         if (!atom->omega_flag)
-          error->all(FLERR,
+          error->all(FLERR, Error::NOLASTLINE,
                      "Threshold for an atom property that isn't allocated");
         ptr = &atom->omega[0][2];
         nstride = 3;
       } else if (thresh_array[ithresh] == ANGMOMX) {
         if (!atom->angmom_flag)
-          error->all(FLERR,
+          error->all(FLERR, Error::NOLASTLINE,
                      "Threshold for an atom property that isn't allocated");
         ptr = &atom->angmom[0][0];
         nstride = 3;
       } else if (thresh_array[ithresh] == ANGMOMY) {
         if (!atom->angmom_flag)
-          error->all(FLERR,
+          error->all(FLERR, Error::NOLASTLINE,
                      "Threshold for an atom property that isn't allocated");
         ptr = &atom->angmom[0][1];
         nstride = 3;
       } else if (thresh_array[ithresh] == ANGMOMZ) {
         if (!atom->angmom_flag)
-          error->all(FLERR,
+          error->all(FLERR, Error::NOLASTLINE,
                      "Threshold for an atom property that isn't allocated");
         ptr = &atom->angmom[0][2];
         nstride = 3;
       } else if (thresh_array[ithresh] == TQX) {
         if (!atom->torque_flag)
-          error->all(FLERR,
+          error->all(FLERR, Error::NOLASTLINE,
                      "Threshold for an atom property that isn't allocated");
         ptr = &atom->torque[0][0];
         nstride = 3;
       } else if (thresh_array[ithresh] == TQY) {
         if (!atom->torque_flag)
-          error->all(FLERR,
+          error->all(FLERR, Error::NOLASTLINE,
                      "Threshold for an atom property that isn't allocated");
         ptr = &atom->torque[0][1];
         nstride = 3;
       } else if (thresh_array[ithresh] == TQZ) {
         if (!atom->torque_flag)
-          error->all(FLERR,
+          error->all(FLERR, Error::NOLASTLINE,
                      "Threshold for an atom property that isn't allocated");
         ptr = &atom->torque[0][2];
         nstride = 3;

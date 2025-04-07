@@ -58,4 +58,4 @@ thermo_style custom step temp press density f_myrxns[*] # cumulative reaction co
 run 200
 
 # write_restart restart_longrun
-# write_data restart_longrun.data
+# write_data restart_longrun.data nofix

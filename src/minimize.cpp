@@ -35,7 +35,7 @@ void Minimize::command(int narg, char **arg)
     error->all(FLERR, "Illegal minimize command: expected 4 arguments but found {}", narg);
 
   if (domain->box_exist == 0)
-    error->all(FLERR, "Minimize command before simulation box is defined");
+    error->all(FLERR, "Minimize command before simulation box is defined" + utils::errorurl(33));
 
   // ignore minimize command, if walltime limit was already reached
   if (timer->is_timeout()) return;

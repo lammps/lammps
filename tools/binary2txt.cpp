@@ -23,7 +23,7 @@
 #include <cstring>
 
 // these must match settings in src/lmptype.h which builds LAMMPS with
-//   -DLAMMPS_SMALLBIG (the default), -DLAMMPS_BIGBIG, or -DLAMMPS_SMALLSMALL
+//   -DLAMMPS_SMALLBIG (the default) or -DLAMMPS_BIGBIG
 // you can edit the tools/Makefile to enforce the same setting
 //   for the build of binary2txt, e.g.
 //   g++ -g -DLAMMPS_BIGBIG binarytxt.o -o binary2txt
@@ -36,7 +36,7 @@
 #define PRId64 "ld"
 #endif
 
-#if !defined(LAMMPS_SMALLSMALL) && !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG)
+#if !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG)
 #define LAMMPS_SMALLBIG
 #endif
 
@@ -44,10 +44,6 @@
 typedef int tagint;
 typedef int64_t bigint;
 #define BIGINT_FORMAT "%" PRId64
-#elif defined(LAMMPS_SMALLSMALL)
-typedef int tagint;
-typedef int bigint;
-#define BIGINT_FORMAT "%d"
 #else /* LAMMPS_BIGBIG */
 typedef int64_t tagint;
 typedef int64_t bigint;

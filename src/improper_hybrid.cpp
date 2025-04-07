@@ -320,6 +320,14 @@ void ImproperHybrid::init_style()
     if (styles[m]) styles[m]->init_style();
 }
 
+/* ---------------------------------------------------------------------- */
+
+int ImproperHybrid::check_itype(int itype, char *substyle)
+{
+  if (strcmp(keywords[map[itype]], substyle) == 0) return 1;
+  return 0;
+}
+
 /* ----------------------------------------------------------------------
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */

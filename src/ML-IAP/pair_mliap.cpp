@@ -35,6 +35,7 @@
 #include "atom.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neighbor.h"
 
@@ -46,7 +47,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairMLIAP::PairMLIAP(LAMMPS *lmp) :
-    Pair(lmp), map(nullptr), model(nullptr), descriptor(nullptr), data(nullptr)
+    Pair(lmp), model(nullptr), descriptor(nullptr), data(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -54,8 +55,6 @@ PairMLIAP::PairMLIAP(LAMMPS *lmp) :
   manybody_flag = 1;
   is_child = false;
   centroidstressflag = CENTROID_NOTAVAIL;
-  model=nullptr;
-  descriptor=nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -357,7 +356,10 @@ void PairMLIAP::init_style()
 
 double PairMLIAP::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
+
   double cutmax = sqrt(descriptor->cutsq[map[i]][map[j]]);
   cutghost[i][j] = cutghost[j][i] = 2.0 * cutmax + neighbor->skin;
   return cutmax;

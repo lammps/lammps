@@ -26,17 +26,17 @@ TEST(TEST_CATEGORY, view_remap) {
   enum { N0 = 3, N1 = 2, N2 = 8, N3 = 9 };
 
 #if defined(KOKKOS_ENABLE_CUDA)
-#define EXECSPACE                                                     \
-  std::conditional<std::is_same<TEST_EXECSPACE, Kokkos::Cuda>::value, \
-                   Kokkos::CudaHostPinnedSpace, TEST_EXECSPACE>::type
+#define EXECSPACE                                                  \
+  std::conditional_t<std::is_same_v<TEST_EXECSPACE, Kokkos::Cuda>, \
+                     Kokkos::CudaHostPinnedSpace, TEST_EXECSPACE>
 #elif defined(KOKKOS_ENABLE_HIP)
-#define EXECSPACE                                                    \
-  std::conditional<std::is_same<TEST_EXECSPACE, Kokkos::HIP>::value, \
-                   Kokkos::HIPHostPinnedSpace, TEST_EXECSPACE>::type
+#define EXECSPACE                                                 \
+  std::conditional_t<std::is_same_v<TEST_EXECSPACE, Kokkos::HIP>, \
+                     Kokkos::HIPHostPinnedSpace, TEST_EXECSPACE>
 #elif defined(KOKKOS_ENABLE_SYCL)
-#define EXECSPACE                                                     \
-  std::conditional<std::is_same<TEST_EXECSPACE, Kokkos::SYCL>::value, \
-                   Kokkos::SYCLHostUSMSpace, TEST_EXECSPACE>::type
+#define EXECSPACE                                                  \
+  std::conditional_t<std::is_same_v<TEST_EXECSPACE, Kokkos::SYCL>, \
+                     Kokkos::SYCLHostUSMSpace, TEST_EXECSPACE>
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
 #define EXECSPACE Kokkos::HostSpace
 #else

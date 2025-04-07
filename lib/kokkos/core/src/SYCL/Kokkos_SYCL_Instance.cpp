@@ -23,6 +23,8 @@
 #include <impl/Kokkos_CheckedIntegerOps.hpp>
 #include <impl/Kokkos_Error.hpp>
 
+// FIXME_SYCL
+// NOLINTBEGIN(bugprone-unchecked-optional-access)
 namespace Kokkos {
 namespace Impl {
 
@@ -393,3 +395,4 @@ template class SYCLInternal::USMObjectMem<sycl::usm::alloc::host>;
 
 }  // namespace Impl
 }  // namespace Kokkos
+   // NOLINTEND(bugprone-unchecked-optional-access)

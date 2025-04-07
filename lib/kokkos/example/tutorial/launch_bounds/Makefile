@@ -24,6 +24,7 @@ KOKKOS_DEVICES = "OpenMP"
 KOKKOS_ARCH = "SNB"
 endif
 
+KOKKOS_USE_DEPRECATED_MAKEFILES=1
 
 # WAR for "undefined memcpy" w/ Ubuntu + CUDA 7.5
 CXXFLAGS += -D_FORCE_INLINES

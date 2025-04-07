@@ -259,15 +259,7 @@ KOKKOS_FUNCTION void runtime_check_memory_access_violation(
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
-// Getting ICE in Trilinos in Sacado and Intrepid in deep_copy
-// See issue https://github.com/kokkos/kokkos/issues/5290
-// Simply taking string by value did not resolve the issue
-#ifdef KOKKOS_COMPILER_INTEL
-void fence();
-void fence(const std::string &name);
-#else
 void fence(const std::string &name = "Kokkos::fence: Unnamed Global Fence");
-#endif
 }  // namespace Kokkos
 
 //----------------------------------------------------------------------------

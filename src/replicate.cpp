@@ -52,7 +52,7 @@ void Replicate::command(int narg, char **arg)
   int i,n;
 
   if (domain->box_exist == 0)
-    error->all(FLERR,"Replicate command before simulation box is defined");
+    error->all(FLERR,"Replicate command before simulation box is defined" + utils::errorurl(33));
 
   if (narg < 3 || narg > 4) error->all(FLERR,"Illegal replicate command");
 

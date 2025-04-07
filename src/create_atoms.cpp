@@ -73,7 +73,7 @@ CreateAtoms::CreateAtoms(LAMMPS *lmp) : Command(lmp), basistype(nullptr) {}
 void CreateAtoms::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR, "Create_atoms command before simulation box is defined");
+    error->all(FLERR, "Create_atoms command before simulation box is defined" + utils::errorurl(33));
   if (modify->nfix_restart_peratom)
     error->all(FLERR, "Cannot create_atoms after reading restart file with per-atom info");
 

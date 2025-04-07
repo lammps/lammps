@@ -310,7 +310,8 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
                      "Fix ave/atom compute {} does not calculate a per-atom array", ids[i]);
         if (argindex[i] && (argindex[i] > icompute->size_peratom_cols))
           error->all(FLERR, iarg_orig[i],
-                     "Fix ave/atom compute {} array is accessed out-of-range", ids[i]);
+                     "Fix ave/atom compute {} array is accessed out-of-range{}", ids[i],
+                     utils::errorurl(20));
 
       } else if (which[i] == ArgInfo::FIX) {
         auto ifix = modify->get_fix_by_id(ids[i]);
@@ -327,10 +328,12 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
                      "Fix ave/atom fix {} does not calculate a per-atom array", ids[i]);
         if (argindex[i] && (argindex[i] > ifix->size_peratom_cols))
           error->all(FLERR, iarg_orig[i],
-                     "Fix ave/atom fix {} array is accessed out-of-range", ids[i]);
+                     "Fix ave/atom fix {} array is accessed out-of-range{}", ids[i],
+                     utils::errorurl(20));
         if (nevery % ifix->peratom_freq)
           error->all(FLERR, iarg_orig[i],
-                     "Fix {} for fix ave/atom not computed at compatible time", ids[i]);
+                     "Fix {} for fix ave/atom not computed at compatible time{}", ids[i],
+                     utils::errorurl(7));
 
       } else if (which[i] == ArgInfo::VARIABLE) {
         int ivariable = input->variable->find(ids[i]);

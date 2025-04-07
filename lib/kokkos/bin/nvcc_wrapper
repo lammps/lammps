@@ -317,7 +317,7 @@ do
   # End of Werror handling
   #Handle unsupported standard flags
   --std=c++1y|-std=c++1y|--std=gnu++1y|-std=gnu++1y|--std=c++1z|-std=c++1z|--std=gnu++1z|-std=gnu++1z|--std=c++2a|-std=c++2a)
-    fallback_std_flag="-std=c++14"
+    fallback_std_flag="-std=c++17"
     # this is hopefully just occurring in a downstream project during CMake feature tests
     # we really have no choice here but to accept the flag and change  to an accepted C++ standard
     echo "nvcc_wrapper does not accept standard flags $1 since partial standard flags and standards after C++17 are not supported. nvcc_wrapper will use $fallback_std_flag instead. It is undefined behavior to use this flag. This should only be occurring during CMake configuration."
@@ -346,35 +346,17 @@ do
     # NVCC only has C++20 from version 12 on
     cuda_main_version=$([[ $(${nvcc_compiler} --version) =~ V([0-9]+) ]] && echo ${BASH_REMATCH[1]})
     if [ ${cuda_main_version} -lt 12 ]; then
-      fallback_std_flag="-std=c++14"
+      fallback_std_flag="-std=c++17"
       # this is hopefully just occurring in a downstream project during CMake feature tests
       # we really have no choice here but to accept the flag and change  to an accepted C++ standard
-      echo "nvcc_wrapper does not accept standard flags $1 since partial standard flags and standards after C++14 are not supported. nvcc_wrapper will use $fallback_std_flag instead. It is undefined behavior to use this flag. This should only be occurring during CMake configuration."
+      echo "nvcc_wrapper does not accept standard flags $1 since partial standard flags and standards after C++17 are not supported. nvcc_wrapper will use $fallback_std_flag instead. It is undefined behavior to use this flag. This should only be occurring during CMake configuration."
       std_flag=$fallback_std_flag
     else
       std_flag=$1
     fi
     shared_args="$shared_args $std_flag"
     ;;
-  --std=c++17|-std=c++17)
-    if [ -n "$std_flag" ]; then
-      warn_std_flag
-      shared_args=${shared_args/ $std_flag/}
-    fi
-    # NVCC only has C++17 from version 11 on
-    cuda_main_version=$([[ $(${nvcc_compiler} --version) =~ V([0-9]+) ]] && echo ${BASH_REMATCH[1]})
-    if [ ${cuda_main_version} -lt 11 ]; then
-      fallback_std_flag="-std=c++14"
-      # this is hopefully just occurring in a downstream project during CMake feature tests
-      # we really have no choice here but to accept the flag and change  to an accepted C++ standard
-      echo "nvcc_wrapper does not accept standard flags $1 since partial standard flags and standards after C++14 are not supported. nvcc_wrapper will use $fallback_std_flag instead. It is undefined behavior to use this flag. This should only be occurring during CMake configuration."
-      std_flag=$fallback_std_flag
-    else
-      std_flag=$1
-    fi
-    shared_args="$shared_args $std_flag"
-    ;;
-  --std=c++11|-std=c++11|--std=c++14|-std=c++14)
+  --std=c++11|-std=c++11|--std=c++14|-std=c++14|--std=c++17|-std=c++17)
     if [ -n "$std_flag" ]; then
        warn_std_flag
        shared_args=${shared_args/ $std_flag/}
@@ -499,6 +481,20 @@ do
   -Wl,*)
     xlinker_args="$xlinker_args -Xlinker ${1:4:${#1}}"
     host_linker_args="$host_linker_args ${1:4:${#1}}"
+    ;;
+  #Handle host assembler options
+  -Wa,*)
+    #To pass the -Wa options to the host compiler via -Xcompiler it is necessary
+    #to use '\\,' for each comma in the options. As users might already add escapes
+    #to the comma by themselves, the escapes are first removed and then only the
+    #required number of \ are added back.
+    xcompiler_args_wa=$(echo -e "$1" | sed -E 's/\\\+,/,/g' | sed -E 's/,/\\\\\\\,/g')
+    if [ $first_xcompiler_arg -eq 1 ]; then
+      xcompiler_args="$xcompiler_args_wa"
+      first_xcompiler_arg=0
+    else
+      xcompiler_args="$xcompiler_args,$xcompiler_args_wa"
+    fi
     ;;
   #Handle object files: -x cu applies to all input files, so give them to linker, except if only linking
   *.a|*.so|*.o|*.obj)

@@ -574,9 +574,6 @@ class View : public ViewTraits<DataType, Properties...> {
       return m_map.m_impl_handle[i0 * m_map.m_impl_offset.m_stride.S0 +
                                  i1 * m_map.m_impl_offset.m_stride.S1];
     }
-#if defined KOKKOS_COMPILER_INTEL
-    __builtin_unreachable();
-#endif
   }
 
   // Rank 0 -> 8 operator() except for rank-1 and rank-2 with default map which
@@ -690,9 +687,6 @@ class View : public ViewTraits<DataType, Properties...> {
       return m_map.m_impl_handle[i0 * m_map.m_impl_offset.m_stride.S0 +
                                  i1 * m_map.m_impl_offset.m_stride.S1];
     }
-#if defined KOKKOS_COMPILER_INTEL
-    __builtin_unreachable();
-#endif
   }
 
   //------------------------------
@@ -1007,7 +1001,7 @@ class View : public ViewTraits<DataType, Properties...> {
         !alloc_prop::execution_space::impl_is_initialized()) {
       // If initializing view data then
       // the execution space must be initialized.
-      Kokkos::Impl::throw_runtime_exception(
+      Kokkos::abort(
           "Constructing View and initializing data with uninitialized "
           "execution space");
     }
@@ -1031,8 +1025,8 @@ class View : public ViewTraits<DataType, Properties...> {
       const std::string& alloc_name =
           Impl::get_property<Impl::LabelTag>(prop_copy);
       Impl::runtime_check_rank(
-          *this, std::is_same<typename traits::specialize, void>::value, i0, i1,
-          i2, i3, i4, i5, i6, i7, alloc_name.c_str());
+          *this, std::is_same_v<typename traits::specialize, void>, i0, i1, i2,
+          i3, i4, i5, i6, i7, alloc_name.c_str());
     }
 #endif
 
@@ -1059,8 +1053,8 @@ class View : public ViewTraits<DataType, Properties...> {
         ,
         m_map(arg_prop, arg_layout) {
     static_assert(
-        std::is_same<pointer_type,
-                     typename Impl::ViewCtorProp<P...>::pointer_type>::value,
+        std::is_same_v<pointer_type,
+                       typename Impl::ViewCtorProp<P...>::pointer_type>,
         "Constructing View to wrap user memory must supply matching pointer "
         "type");
 
@@ -1081,8 +1075,8 @@ class View : public ViewTraits<DataType, Properties...> {
       size_t i7 = arg_layout.dimension[7];
 
       Impl::runtime_check_rank(
-          *this, std::is_same<typename traits::specialize, void>::value, i0, i1,
-          i2, i3, i4, i5, i6, i7, "UNMANAGED");
+          *this, std::is_same_v<typename traits::specialize, void>, i0, i1, i2,
+          i3, i4, i5, i6, i7, "UNMANAGED");
     }
 #endif
   }
@@ -1487,114 +1481,7 @@ KOKKOS_INLINE_FUNCTION bool operator!=(const View<LT, LP...>& lhs,
 
 } /* namespace Kokkos */
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-namespace Kokkos {
-namespace Impl {
-
-template <class Specialize, typename A, typename B>
-struct CommonViewValueType;
-
-template <typename A, typename B>
-struct CommonViewValueType<void, A, B> {
-  using value_type = std::common_type_t<A, B>;
-};
-
-template <class Specialize, class ValueType>
-struct CommonViewAllocProp;
-
-template <class ValueType>
-struct CommonViewAllocProp<void, ValueType> {
-  using value_type        = ValueType;
-  using scalar_array_type = ValueType;
-
-  template <class... Views>
-  KOKKOS_INLINE_FUNCTION CommonViewAllocProp(const Views&...) {}
-};
-
-template <class... Views>
-struct DeduceCommonViewAllocProp;
-
-// Base case must provide types for:
-// 1. specialize  2. value_type  3. is_view  4. prop_type
-template <class FirstView>
-struct DeduceCommonViewAllocProp<FirstView> {
-  using specialize = typename FirstView::traits::specialize;
-
-  using value_type = typename FirstView::traits::value_type;
-
-  enum : bool { is_view = is_view<FirstView>::value };
-
-  using prop_type = CommonViewAllocProp<specialize, value_type>;
-};
-
-template <class FirstView, class... NextViews>
-struct DeduceCommonViewAllocProp<FirstView, NextViews...> {
-  using NextTraits = DeduceCommonViewAllocProp<NextViews...>;
-
-  using first_specialize = typename FirstView::traits::specialize;
-  using first_value_type = typename FirstView::traits::value_type;
-
-  enum : bool { first_is_view = is_view<FirstView>::value };
-
-  using next_specialize = typename NextTraits::specialize;
-  using next_value_type = typename NextTraits::value_type;
-
-  enum : bool { next_is_view = NextTraits::is_view };
-
-  // common types
-
-  // determine specialize type
-  // if first and next specialize differ, but are not the same specialize, error
-  // out
-  static_assert(!(!std::is_same_v<first_specialize, next_specialize> &&
-                  !std::is_void_v<first_specialize> &&
-                  !std::is_void_v<next_specialize>),
-                "Kokkos DeduceCommonViewAllocProp ERROR: Only one non-void "
-                "specialize trait allowed");
-
-  // otherwise choose non-void specialize if either/both are non-void
-  using specialize =
-      std::conditional_t<std::is_same_v<first_specialize, next_specialize>,
-                         first_specialize,
-                         std::conditional_t<(std::is_void_v<first_specialize> &&
-                                             !std::is_void_v<next_specialize>),
-                                            next_specialize, first_specialize>>;
-
-  using value_type = typename CommonViewValueType<specialize, first_value_type,
-                                                  next_value_type>::value_type;
-
-  enum : bool { is_view = (first_is_view && next_is_view) };
-
-  using prop_type = CommonViewAllocProp<specialize, value_type>;
-};
-
-}  // end namespace Impl
-
-template <class... Views>
-using DeducedCommonPropsType =
-    typename Impl::DeduceCommonViewAllocProp<Views...>::prop_type;
-
-// This function is required in certain scenarios where users customize
-// Kokkos View internals. One example are dynamic length embedded ensemble
-// types. The function is used to propagate necessary information
-// (like the ensemble size) when creating new views.
-// However, most of the time it is called with a single view.
-// Furthermore, the propagated information is not just for view allocations.
-// From what I can tell, the type of functionality provided by
-// common_view_alloc_prop is the equivalent of propagating accessors in mdspan,
-// a mechanism we will eventually use to replace this clunky approach here, when
-// we are finally mdspan based.
-// TODO: get rid of this when we have mdspan
-template <class... Views>
-KOKKOS_INLINE_FUNCTION DeducedCommonPropsType<Views...> common_view_alloc_prop(
-    Views const&... views) {
-  return DeducedCommonPropsType<Views...>(views...);
-}
-
-}  // namespace Kokkos
-
+#include <View/Kokkos_ViewCommonType.hpp>
 #include <View/Kokkos_ViewUniformType.hpp>
 #include <View/Kokkos_ViewAtomic.hpp>
 

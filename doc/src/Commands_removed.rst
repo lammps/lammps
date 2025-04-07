@@ -1,7 +1,7 @@
 Removed commands and packages
 =============================
 
-.. contents::
+.. contents:: \
 
 ------
 
@@ -171,7 +171,7 @@ and the :ref:`GPU package <PKG-GPU>` are maintained
 and allow running LAMMPS with GPU acceleration.
 
 Compute atom/molecule
-_____________________
+---------------------
 
 .. deprecated:: 11 Dec2015
 

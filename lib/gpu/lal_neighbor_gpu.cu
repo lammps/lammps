@@ -28,9 +28,6 @@
 #define tagint int64_t
 #endif
 #endif
-#ifdef LAMMPS_SMALLSMALL
-#define tagint int
-#endif
 #ifndef _DOUBLE_DOUBLE
 _texture( pos_tex,float4);
 #else
@@ -139,9 +136,6 @@ __kernel void kernel_calc_cell_counts(const unsigned *restrict cell_id,
 #endif
 #ifdef LAMMPS_BIGBIG
 #define tagint long
-#endif
-#ifdef LAMMPS_SMALLSMALL
-#define tagint int
 #endif
 #endif
 

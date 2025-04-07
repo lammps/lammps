@@ -14,26 +14,22 @@
 //
 //@HEADER
 
-#include <cstdio>
-#include <sstream>
-#include <iostream>
+#include <gtest/gtest.h>
 
 #include <Kokkos_Core.hpp>
 
-namespace Test {
-TEST(TEST_CATEGORY, init) { ; }
-
-template <class ExecSpace>
-void test_dispatch() {
-  const int repeat = 100;
-  for (int i = 0; i < repeat; ++i) {
-    for (int j = 0; j < repeat; ++j) {
-      Kokkos::parallel_for(Kokkos::RangePolicy<TEST_EXECSPACE>(0, j),
-                           KOKKOS_LAMBDA(int){});
-    }
+/**
+ * Fixture that checks Kokkos is neither initialized nor finalized before and
+ * after each test.
+ */
+class KokkosExecutionEnvironmentNeverInitialized : public ::testing::Test {
+  static void checkNeverInitialized() {
+    ASSERT_FALSE(Kokkos::is_initialized());
+    ASSERT_FALSE(Kokkos::is_finalized());
   }
-}
 
-TEST(TEST_CATEGORY, dispatch) { test_dispatch<TEST_EXECSPACE>(); }
+ protected:
+  void SetUp() override { checkNeverInitialized(); }
 
-}  // namespace Test
+  void TearDown() override { checkNeverInitialized(); }
+};

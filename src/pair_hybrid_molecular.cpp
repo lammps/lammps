@@ -15,6 +15,7 @@
 
 #include "atom.h"
 #include "error.h"
+#include "info.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 
@@ -31,9 +32,11 @@ PairHybridMolecular::PairHybridMolecular(LAMMPS *lmp) : PairHybridOverlay(lmp) {
 void PairHybridMolecular::init_style()
 {
   if (!atom->molecule_flag)
-    error->all(FLERR, "Pair style hybrid/molecular requires atom attribute molecule");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Pair style hybrid/molecular requires atom attribute molecule");
   if (manybody_flag)
-    error->all(FLERR, "Pair style hybrid/molecular is not compatible with manybody potentials");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Pair style hybrid/molecular is not compatible with manybody potentials");
 
   PairHybridOverlay::init_style();
 
@@ -62,7 +65,9 @@ double PairHybridMolecular::init_one(int i, int j)
   // plus I,I and J,J need the same number of substyles
 
   if (setflag[i][j] == 0) {
-    if (nmap[i][i] != nmap[j][j]) error->one(FLERR, "All pair coeffs are not set");
+    if (nmap[i][i] != nmap[j][j])
+      error->one(FLERR, Error::NOLASTLINE,
+                 "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
     int num = 0;
     for (int k = 0; k < nmap[i][i]; ++k) {
       for (int l = 0; l < nmap[j][j]; ++l) {
@@ -73,7 +78,9 @@ double PairHybridMolecular::init_one(int i, int j)
         }
       }
     }
-    if (nmap[i][i] != nmap[i][j]) error->one(FLERR, "All pair coeffs are not set");
+    if (nmap[i][i] != nmap[i][j])
+      error->one(FLERR, Error::NOLASTLINE,
+                 "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
   }
   nmap[j][i] = nmap[i][j];
 

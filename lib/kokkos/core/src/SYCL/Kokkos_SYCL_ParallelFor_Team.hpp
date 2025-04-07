@@ -76,7 +76,7 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
             global_scratch_ptr + item.get_group(1) * scratch_size[1],
             scratch_size[1], item, item.get_group_linear_id(),
             item.get_group_range(1));
-        if constexpr (std::is_void<work_tag>::value)
+        if constexpr (std::is_void_v<work_tag>)
           functor_wrapper.get_functor()(team_member);
         else
           functor_wrapper.get_functor()(work_tag(), team_member);
@@ -106,7 +106,8 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
 #endif
       cgh.parallel_for(
           sycl::nd_range<2>(
-              sycl::range<2>(m_team_size, m_league_size * final_vector_size),
+              sycl::range<2>(m_team_size, static_cast<size_t>(m_league_size) *
+                                              final_vector_size),
               sycl::range<2>(m_team_size, final_vector_size)),
           lambda);
     };

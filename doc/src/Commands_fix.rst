@@ -186,6 +186,7 @@ OPT.
    * :doc:`qeq/fire <fix_qeq>`
    * :doc:`qeq/point <fix_qeq>`
    * :doc:`qeq/reaxff (ko) <fix_qeq_reaxff>`
+   * :doc:`qeq/rel/reaxff <fix_qeq_rel_reaxff>`
    * :doc:`qeq/shielded <fix_qeq>`
    * :doc:`qeq/slater <fix_qeq>`
    * :doc:`qmmm <fix_qmmm>`

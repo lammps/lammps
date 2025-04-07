@@ -92,7 +92,7 @@ struct TestTeamScan {
       for (int32_t j = 0; j < N; ++j) {
         scan_ref += a_i(i, j);
         scan_calc = a_o(i, j);
-        if (std::is_integral<value_type>::value) {
+        if (std::is_integral_v<value_type>) {
           ASSERT_EQ(scan_ref, scan_calc)
               << test_id
               << " calculated scan output value differs from reference at "
@@ -214,7 +214,7 @@ struct TestTeamScanRetVal {
       for (int32_t j = 0; j < N; ++j) {
         scan_ref += a_i(i, j);
         scan_calc = a_o(i, j);
-        if (std::is_integral<value_type>::value) {
+        if (std::is_integral_v<value_type>) {
           ASSERT_EQ(scan_ref, scan_calc)
               << test_id
               << " calculated scan output value differs from reference at "
@@ -230,7 +230,7 @@ struct TestTeamScanRetVal {
         }
       }
       // Validate return value from parallel_scan
-      if (std::is_integral<value_type>::value) {
+      if (std::is_integral_v<value_type>) {
         ASSERT_EQ(scan_ref, a_os(i));
       } else {
         ASSERT_NEAR(scan_ref, a_os(i), abs_err);

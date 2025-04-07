@@ -43,7 +43,7 @@ DihedralMultiHarmonic::DihedralMultiHarmonic(LAMMPS *_lmp) : Dihedral(_lmp)
 
 DihedralMultiHarmonic::~DihedralMultiHarmonic()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(a1);
     memory->destroy(a2);

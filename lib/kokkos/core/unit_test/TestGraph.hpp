@@ -91,11 +91,11 @@ struct TEST_CATEGORY_FIXTURE(graph) : public ::testing::Test {
   using view_type          = Kokkos::View<int, TEST_EXECSPACE>;
   using atomic_view_type   = typename count_functor::template atomic_view<int>;
   using view_host          = Kokkos::View<int, Kokkos::HostSpace>;
-  atomic_view_type count{"count"};
-  atomic_view_type bugs{"bugs"};
+  TEST_EXECSPACE ex{};
+  atomic_view_type count{Kokkos::view_alloc("count", ex)};
+  atomic_view_type bugs{Kokkos::view_alloc("bugs", ex)};
   view_host count_host{"count_host"};
   view_host bugs_host{"bugs_host"};
-  TEST_EXECSPACE ex{};
 
  protected:
   void SetUp() override {
@@ -175,6 +175,7 @@ TEST_F(TEST_CATEGORY_FIXTURE_DEATH(graph), can_instantiate_only_once) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   {
     bool checked_assertions = false;
+    // NOLINTNEXTLINE(bugprone-assignment-in-if-condition)
     KOKKOS_ASSERT(checked_assertions = true);
     if (!checked_assertions) {
       GTEST_SKIP() << "Preconditions are not checked.";
@@ -503,7 +504,8 @@ TEST_F(TEST_CATEGORY_FIXTURE(graph), force_global_launch) {
         return MatchDiagnostic{true};
       }));
 
-  graph->instantiate();
+  EXPECT_TRUE(static_cast<bool>(graph));
+  graph->instantiate();  // NOLINT(bugprone-unchecked-optional-access)
 
   // Fencing the default execution space instance, as the node policy
   // was created without giving an instance (it used the default one).
@@ -511,7 +513,7 @@ TEST_F(TEST_CATEGORY_FIXTURE(graph), force_global_launch) {
       "Ensure that kernel dispatch to global memory is finished "
       "before submission.");
 
-  graph->submit(ex);
+  graph->submit(ex);  // NOLINT(bugprone-unchecked-optional-access)
   ASSERT_TRUE(contains(ex, data, functor_t::count));
 
   ASSERT_TRUE(validate_event_set(
@@ -536,6 +538,49 @@ TEST_F(TEST_CATEGORY_FIXTURE(graph), empty_graph_default_host_exec) {
   graph.instantiate();
   graph.submit();
   graph.get_execution_space().fence();
+}
+
+template <typename ViewType>
+struct IncrementAndCombineFunctor {
+  ViewType data;
+  ViewType buffer;
+
+  template <typename T>
+  KOKKOS_FUNCTION void operator()(const T index) const {
+    ++buffer(index);
+    ++data(index);
+    data(index) += buffer(index);
+  }
+};
+
+// Ensure that the graph always stores the node.
+TEST_F(TEST_CATEGORY_FIXTURE(graph), node_lifetime) {
+  constexpr size_t size = 128;
+
+  using view_t    = Kokkos::View<int[size], TEST_EXECSPACE>;
+  using functor_t = IncrementAndCombineFunctor<view_t>;
+
+  view_t data(Kokkos::view_alloc("data", ex));
+
+  std::optional<Kokkos::Experimental::Graph<TEST_EXECSPACE>> graph =
+      Kokkos::Experimental::create_graph(ex, [&](const auto& root) {
+        // If the node lifetime is not bound to the graph's lifetime, the
+        // internal buffer view will get out of scope before graph submission.
+        const auto node = root.then_parallel_for(
+            size,
+            functor_t{data, view_t(Kokkos::view_alloc("internal buffer", ex))});
+      });
+
+  ASSERT_EQ(data.use_count(), 2) << "The node should be holding one count.";
+
+  EXPECT_TRUE(static_cast<bool>(graph));
+  graph->submit(ex);  // NOLINT(bugprone-unchecked-optional-access)
+
+  ASSERT_TRUE(contains(ex, Kokkos::subview(data, size - 1), 2));
+
+  graph.reset();
+
+  ASSERT_EQ(data.use_count(), 1);
 }
 
 template <typename ViewType, size_t TargetIndex, size_t NumIndices = 0>
@@ -737,6 +782,138 @@ TEST_F(TEST_CATEGORY_FIXTURE(graph), end_of_submit_control_flow) {
   ASSERT_EQ(data_host(index_E()), value_B + value_E);
   ASSERT_EQ(data_host(index_F()),
             value_A + 2 * value_B + value_C + value_D + value_E + value_F);
+}
+
+// Helper for testing the 'then' node.
+template <typename ViewType>
+struct ThenFunctor {
+  static_assert(ViewType::rank() == 0);
+
+  ViewType data;
+  typename ViewType::value_type value;
+
+  KOKKOS_FUNCTION void operator()() const { data() += value; }
+};
+
+template <typename Exec>
+struct GraphNodeTypes {
+  // Type of a root node.
+  using node_ref_root_t =
+      Kokkos::Experimental::GraphNodeRef<Exec,
+                                         Kokkos::Experimental::TypeErasedTag,
+                                         Kokkos::Experimental::TypeErasedTag>;
+
+  // Type of a kernel node built using a Kokkos parallel construct.
+  using kernel_t =
+      Kokkos::Impl::GraphNodeKernelImpl<Exec, Kokkos::RangePolicy<Exec>,
+                                        CountTestFunctor<Exec>,
+                                        Kokkos::ParallelForTag>;
+
+  // Type of an aggregate node.
+  using aggregate_t = typename Kokkos::Impl::GraphImpl<Exec>::aggregate_impl_t;
+
+  // Type of a then node.
+  using then_t =
+      Kokkos::Impl::GraphNodeThenImpl<Exec, ThenFunctor<Kokkos::View<int>>>;
+};
+
+constexpr bool test_is_graph_kernel() {
+  using types = GraphNodeTypes<TEST_EXECSPACE>;
+  static_assert(Kokkos::Impl::is_graph_kernel_v<types::kernel_t>);
+  static_assert(!Kokkos::Impl::is_graph_kernel_v<types::aggregate_t>);
+  static_assert(Kokkos::Impl::is_graph_kernel_v<types::then_t>,
+                "This should be verified until the 'then' has its own path to "
+                "the driver.");
+  return true;
+}
+static_assert(test_is_graph_kernel());
+
+// This test checks the node types before/after a 'when_all'.
+TEST(TEST_CATEGORY, when_all_type) {
+  using types = GraphNodeTypes<TEST_EXECSPACE>;
+
+  using kernel_functor_t = CountTestFunctor<TEST_EXECSPACE>;
+  using graph_t          = Kokkos::Experimental::Graph<TEST_EXECSPACE>;
+  using graph_impl_t     = Kokkos::Impl::GraphImpl<TEST_EXECSPACE>;
+
+  using node_kernel_impl_t = Kokkos::Impl::GraphNodeKernelImpl<
+      TEST_EXECSPACE,
+      Kokkos::RangePolicy<TEST_EXECSPACE, Kokkos::Impl::IsGraphKernelTag>,
+      kernel_functor_t, Kokkos::ParallelForTag>;
+  using node_ref_first_layer_t =
+      Kokkos::Experimental::GraphNodeRef<TEST_EXECSPACE, node_kernel_impl_t,
+                                         typename types::node_ref_root_t>;
+  using node_ref_agg_t = Kokkos::Experimental::GraphNodeRef<
+      TEST_EXECSPACE, typename graph_impl_t::aggregate_impl_t,
+      Kokkos::Experimental::TypeErasedTag>;
+  using node_ref_tail_t =
+      Kokkos::Experimental::GraphNodeRef<TEST_EXECSPACE, node_kernel_impl_t,
+                                         node_ref_agg_t>;
+
+  auto graph  = Kokkos::Experimental::create_graph(TEST_EXECSPACE{});
+  auto root   = Kokkos::Impl::GraphAccess::create_root_ref(graph);
+  auto node_A = root.then_parallel_for(1, kernel_functor_t{});
+  auto node_B = root.then_parallel_for(1, kernel_functor_t{});
+  auto agg    = Kokkos::Experimental::when_all(node_A, node_B);
+  auto tail   = agg.then_parallel_for(1, kernel_functor_t{});
+
+  static_assert(std::is_same_v<decltype(graph), graph_t>);
+  static_assert(
+      std::is_same_v<decltype(root), typename types::node_ref_root_t>);
+  static_assert(std::is_same_v<decltype(node_A), node_ref_first_layer_t>);
+  static_assert(std::is_same_v<decltype(node_B), node_ref_first_layer_t>);
+  static_assert(std::is_same_v<decltype(agg), node_ref_agg_t>);
+  static_assert(std::is_same_v<decltype(tail), node_ref_tail_t>);
+}
+
+TEST(TEST_CATEGORY, graph_then) {
+  using types = GraphNodeTypes<TEST_EXECSPACE>;
+
+  using view_t   = Kokkos::View<int, TEST_EXECSPACE>;
+  using memset_t = SetViewToValueFunctor<TEST_EXECSPACE, int>;
+  using then_t   = ThenFunctor<view_t>;
+  using policy_t =
+      Kokkos::RangePolicy<TEST_EXECSPACE, Kokkos::Impl::IsGraphKernelTag>;
+
+  using node_memset_t =
+      Kokkos::Impl::GraphNodeKernelImpl<TEST_EXECSPACE, policy_t, memset_t,
+                                        Kokkos::ParallelForTag>;
+  using node_ref_memset_t =
+      Kokkos::Experimental::GraphNodeRef<TEST_EXECSPACE, node_memset_t,
+                                         typename types::node_ref_root_t>;
+  using node_then_t = Kokkos::Impl::GraphNodeThenImpl<TEST_EXECSPACE, then_t>;
+  using node_ref_then_t =
+      Kokkos::Experimental::GraphNodeRef<TEST_EXECSPACE, node_then_t,
+                                         node_ref_memset_t>;
+
+  constexpr int value_memset = 123;
+  constexpr int value_then   = 456;
+
+  const TEST_EXECSPACE exec{};
+
+  const view_t data(Kokkos::view_alloc(exec, "data used in 'then'"));
+
+  auto graph = Kokkos::Experimental::create_graph(exec, [&](const auto& root) {
+    const auto memset = root.then_parallel_for(
+        Kokkos::RangePolicy<TEST_EXECSPACE>(0, data.size()),
+        memset_t{data, value_memset});
+    const auto then =
+        memset.then("my nice node - with a 'then'", then_t{data, value_then});
+    static_assert(std::is_same_v<decltype(then), const node_ref_then_t>);
+  });
+
+  // At this stage, no kernel was launched yet.
+  ASSERT_TRUE(contains(exec, data, 0));
+
+  // The 'data' view is shared by:
+  //  - this scope
+  //  - the memset node
+  //  - the then node
+  ASSERT_EQ(data.use_count(), 3);
+
+  graph.submit(exec);
+
+  ASSERT_TRUE(contains(exec, data, value_memset + value_then));
 }
 
 }  // end namespace Test

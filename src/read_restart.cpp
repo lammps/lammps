@@ -52,7 +52,7 @@ void ReadRestart::command(int narg, char **arg)
   if (narg != 1 && narg != 2) error->all(FLERR,"Illegal read_restart command");
 
   if (domain->box_exist)
-    error->all(FLERR,"Cannot read_restart after simulation box is defined");
+    error->all(FLERR,"Cannot read_restart after simulation box is defined" + utils::errorurl(34));
 
   MPI_Barrier(world);
   double time1 = platform::walltime();

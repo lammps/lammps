@@ -99,6 +99,7 @@ void test_dynamic_view_sort_impl(unsigned int n) {
       Kokkos::Experimental::DynamicView<KeyType*, ExecutionSpace>;
   using KeyViewType = Kokkos::View<KeyType*, ExecutionSpace>;
 
+  // NOLINTNEXTLINE(bugprone-implicit-widening-of-multiplication-result)
   const size_t upper_bound    = 2 * n;
   const size_t min_chunk_size = 1024;
 

@@ -426,9 +426,10 @@ class ThreadsExecTeamMember {
         m_instance->set_work_range(m_league_rank, m_league_end, m_chunk_size);
         m_instance->reset_steal_target(m_team_size);
       }
-      if (std::is_same<typename TeamPolicyInternal<
-                           Kokkos::Threads, Properties...>::schedule_type::type,
-                       Kokkos::Dynamic>::value) {
+      if (std::is_same_v<
+              typename TeamPolicyInternal<Kokkos::Threads,
+                                          Properties...>::schedule_type::type,
+              Kokkos::Dynamic>) {
         m_instance->barrier();
       }
     } else {
@@ -765,7 +766,7 @@ class TeamPolicyInternal<Kokkos::Threads, Properties...>
  private:
   /** \brief finalize chunk_size if it was set to AUTO*/
   inline void set_auto_chunk_size() {
-    int64_t concurrency = space().concurrency() / m_team_alloc;
+    int concurrency = space().concurrency() / m_team_alloc;
     if (concurrency == 0) concurrency = 1;
 
     if (m_chunk_size > 0) {

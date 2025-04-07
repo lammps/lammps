@@ -40,6 +40,17 @@ struct GraphAccess {
         std::make_shared<GraphImpl<ExecutionSpace>>(std::move(ex))};
     //----------------------------------------//
   }
+
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
+    defined(KOKKOS_ENABLE_SYCL)
+  template <class Exec, typename T>
+  static auto construct_graph_from_native(Exec&& ex, T&& native_graph) {
+    return Kokkos::Experimental::Graph<Kokkos::Impl::remove_cvref_t<Exec>>{
+        std::make_shared<GraphImpl<Kokkos::Impl::remove_cvref_t<Exec>>>(
+            std::forward<Exec>(ex), std::forward<T>(native_graph))};
+  }
+#endif
+
   template <class ExecutionSpace>
   static auto create_root_ref(
       Kokkos::Experimental::Graph<ExecutionSpace>& arg_graph) {

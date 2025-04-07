@@ -55,13 +55,18 @@
   </provides>
 
   <releases>
-    <release version="1.6.12" timestamp="1734890080">
+    <release version="1.6.13" timestamp="1743734509">
+      <description>
+        Change working directory to user's home dir if initial directory is "/" or the Application folder
+        Add preferences option to set https proxy, if not already set via environment variable
+      </description>
+    </release>
+     <release version="1.6.12" timestamp="1734890080">
       <description>
         Update Tutorial menu entries to cover all 8 tutorials
         Highlight warnings and error messages in Output window
         Make Tutorial wizards more compact
         Include download and compilation of WHAM software from Alan Grossfield
-        Add dialog to run WHAM directly from LAMMPS-GUI
         Add entry to Run menu to restart the LAMMPS instance
         Use mutex to avoid corruption of thermo data
       </description>

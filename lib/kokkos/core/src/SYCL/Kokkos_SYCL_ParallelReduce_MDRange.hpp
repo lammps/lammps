@@ -153,7 +153,8 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
       // maximum number of work groups, also see
       // https://github.com/intel/llvm/blob/756ba2616111235bba073e481b7f1c8004b34ee6/sycl/source/detail/reduction.cpp#L51-L62
       size_t max_work_groups =
-          2 * q.get_device().get_info<sycl::info::device::max_compute_units>();
+          static_cast<size_t>(2) *
+          q.get_device().get_info<sycl::info::device::max_compute_units>();
       int values_per_thread = 1;
       size_t n_wgroups      = n_tiles;
       while (n_wgroups > max_work_groups) {
@@ -332,7 +333,8 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
       m_space.fence(
           "Kokkos::Impl::ParallelReduce<SYCL, MDRangePolicy>::execute: result "
           "not device-accessible");
-      std::memcpy(m_result_ptr, host_result_ptr,
+      std::memcpy(static_cast<void*>(m_result_ptr),
+                  static_cast<const void*>(host_result_ptr),
                   sizeof(value_type) * value_count);
     }
 

@@ -125,4 +125,24 @@ static void ViewFill_Raw(benchmark::State& state) {
   }
 }
 
+[[maybe_unused]] static void ViewFill_Rank1Strided(benchmark::State& state) {
+  const size_t N8 = std::pow(state.range(0), 8);
+
+  // This benchmark allocates more data in order to measure a view fill
+  // of the same size as the contiguous benchmarks, so in cases where they
+  // can be run, this one may fail to allocate data (e.g., on a small CI runner)
+  try {
+    // allocate 2x the size since layout only has 1/2 the elements
+    Kokkos::View<double*> a("A1", N8 * 2);
+
+    Kokkos::LayoutStride layout(N8 / 2, 2);
+    Kokkos::View<double*, Kokkos::LayoutStride> a_stride(a.data(), layout);
+
+    fill_view(a_stride, 1.1, state);
+
+  } catch (const std::runtime_error& e) {
+    state.SkipWithError(e.what());
+  }
+}
+
 }  // namespace Test

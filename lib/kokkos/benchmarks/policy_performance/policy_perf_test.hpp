@@ -367,7 +367,7 @@ void test_policy(int team_range, int thread_range, int vector_range,
     // parallel_for RangePolicy: range = team_size*team_range
     if (test_type == 300) {
       Kokkos::parallel_for(
-          "300 outer for", team_size * team_range,
+          "300 outer for", static_cast<size_t>(team_size) * team_range,
           KOKKOS_LAMBDA(const int idx) {
             v1(idx) = idx;
             // prevent compiler from optimizing away the loop
@@ -376,14 +376,15 @@ void test_policy(int team_range, int thread_range, int vector_range,
     // parallel_reduce RangePolicy: range = team_size*team_range
     if (test_type == 400) {
       Kokkos::parallel_reduce(
-          "400 outer reduce", team_size * team_range,
+          "400 outer reduce", static_cast<size_t>(team_size) * team_range,
           KOKKOS_LAMBDA(const int idx, double& val) { val += idx; }, result);
       result_expect =
           0.5 * (team_size * team_range) * (team_size * team_range - 1);
     }
     // parallel_scan RangePolicy: range = team_size*team_range
     if (test_type == 500) {
-      Kokkos::parallel_scan("500 outer scan", team_size * team_range,
+      Kokkos::parallel_scan("500 outer scan",
+                            static_cast<size_t>(team_size) * team_range,
                             ParallelScanFunctor<ViewType1>(v1)
 #if 0
         // This does not compile with pre Cuda 8.0 - see Github Issue #913 for explanation

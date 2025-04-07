@@ -262,32 +262,40 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       if (!val.val.c)
         error->all(FLERR, val.iarg, "Compute ID {} for fix ave/chunk does not exist",val.id);
       if (val.val.c->peratom_flag == 0)
-        error->all(FLERR, val.iarg, "Fix ave/chunk compute {} does not calculate per-atom values",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk compute {} does not calculate per-atom values",
+                   val.id);
       if (val.argindex == 0 && (val.val.c->size_peratom_cols != 0))
-        error->all(FLERR, val.iarg, "Fix ave/chunk compute {} does not calculate a per-atom vector",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk compute {} does not calculate a per-atom vector",
+                   val.id);
       if (val.argindex && (val.val.c->size_peratom_cols == 0))
-        error->all(FLERR, val.iarg, "Fix ave/chunk compute {} does not calculate a per-atom array",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk compute {} does not calculate a per-atom array",
+                   val.id);
       if (val.argindex && (val.argindex > val.val.c->size_peratom_cols))
-        error->all(FLERR, val.iarg, "Fix ave/chunk compute {} vector is accessed out-of-range",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk compute {} vector is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
 
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
       if (!val.val.f)
         error->all(FLERR, val.iarg, "Fix ID {} for fix ave/chunk does not exist",val.id);
       if (val.val.f->peratom_flag == 0)
-        error->all(FLERR, val.iarg, "Fix ave/chunk fix {} does not calculate per-atom values",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk fix {} does not calculate per-atom values",
+                   val.id);
       if (val.argindex == 0 && (val.val.f->size_peratom_cols != 0))
-        error->all(FLERR, val.iarg, "Fix ave/chunk fix {} does not calculate a per-atom vector",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk fix {} does not calculate a per-atom vector",
+                   val.id);
       if (val.argindex && (val.val.f->size_peratom_cols == 0))
-        error->all(FLERR, val.iarg, "Fix ave/chunk fix {} does not calculate a per-atom array",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk fix {} does not calculate a per-atom array",
+                   val.id);
       if (val.argindex && val.argindex > val.val.f->size_peratom_cols)
-        error->all(FLERR, val.iarg, "Fix ave/chunk fix {} vector is accessed out-of-range",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk fix {} vector is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
       if (val.val.v < 0)
-        error->all(FLERR, val.iarg, "Variable name {} for fix ave/chunk does not exist",val.id);
+        error->all(FLERR, val.iarg, "Variable name {} for fix ave/chunk does not exist", val.id);
       if (input->variable->atomstyle(val.val.v) == 0)
-        error->all(FLERR, val.iarg, "Fix ave/chunk variable {} is not atom-style variable",val.id);
+        error->all(FLERR, val.iarg, "Fix ave/chunk variable {} is not atom-style variable", val.id);
     }
   }
 
@@ -297,8 +305,8 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
   cchunk = dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
   if (!cchunk)
-    error->all(FLERR, 6, "Chunk/atom compute {} does not exist or is incorrect style for fix ave/chunk",
-               idchunk);
+    error->all(FLERR, 6, "Chunk/atom compute {} does not exist or is incorrect style for "
+               "fix ave/chunk", idchunk);
 
   if ((nrepeat > 1) || (ave == RUNNING) || (ave == WINDOW)) cchunk->lockcount++;
   lockforever = 0;
@@ -347,6 +355,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   if (expand) {
     for (int i = 0; i < nargnew; i++) delete[] earg[i];
     memory->sfree(earg);
+    memory->sfree(amap);
   }
 
   // this fix produces a global array
@@ -445,7 +454,8 @@ void FixAveChunk::init()
   if (biasflag) {
     tbias = modify->get_compute_by_id(id_bias);
     if (!tbias)
-      error->all(FLERR,"Could not find compute ID {} for temperature bias", id_bias);
+      error->all(FLERR, Error::NOLASTLINE, "Could not find compute ID {} for temperature bias",
+                 id_bias);
   }
 
   for (auto &val : values) {
@@ -460,8 +470,8 @@ void FixAveChunk::init()
         error->all(FLERR, Error::NOLASTLINE, "Fix ID {} for fix ave/chunk does not exist", val.id);
 
       if (nevery % val.val.f->peratom_freq)
-        error->all(FLERR, Error::NOLASTLINE, "Fix {} for fix ave/chunk not computed at compatible time",
-                   val.id);
+        error->all(FLERR, Error::NOLASTLINE, "Fix {} for fix ave/chunk not computed at "
+                   "compatible time{}", val.id, utils::errorurl(7));
 
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());

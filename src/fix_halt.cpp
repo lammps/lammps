@@ -294,6 +294,7 @@ void FixHalt::end_of_step()
     for (int i = 0; i < universe->nworlds; ++i) {
       if (universe->me == universe->root_proc[i]) continue;
       MPI_Wait(req + i, MPI_STATUS_IGNORE);
+      MPI_Request_free(req + i);
     }
   }
 

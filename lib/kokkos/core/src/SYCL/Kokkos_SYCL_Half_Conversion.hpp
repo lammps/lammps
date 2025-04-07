@@ -51,56 +51,54 @@ KOKKOS_INLINE_FUNCTION
 half_t cast_to_half(unsigned long val) { return half_t::impl_type(val); }
 
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, float>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, float>, T>
 cast_from_half(half_t val) {
   return static_cast<T>(half_t::impl_type(val));
 }
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, double>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, double>, T>
 cast_from_half(half_t val) {
   return static_cast<T>(half_t::impl_type(val));
 }
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, short>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, short>, T>
 cast_from_half(half_t val) {
   return static_cast<T>(half_t::impl_type(val));
 }
 template <class T>
-KOKKOS_INLINE_FUNCTION
-    std::enable_if_t<std::is_same<T, unsigned short>::value, T>
-    cast_from_half(half_t val) {
-  return static_cast<T>(half_t::impl_type(val));
-}
-template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, int>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, unsigned short>, T>
 cast_from_half(half_t val) {
   return static_cast<T>(half_t::impl_type(val));
 }
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, unsigned int>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, int>, T>
 cast_from_half(half_t val) {
   return static_cast<T>(half_t::impl_type(val));
 }
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, long long>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, unsigned int>, T>
 cast_from_half(half_t val) {
   return static_cast<T>(half_t::impl_type(val));
 }
 template <class T>
-KOKKOS_INLINE_FUNCTION
-    std::enable_if_t<std::is_same<T, unsigned long long>::value, T>
-    cast_from_half(half_t val) {
-  return static_cast<T>(half_t::impl_type(val));
-}
-template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, long>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, long long>, T>
 cast_from_half(half_t val) {
   return static_cast<T>(half_t::impl_type(val));
 }
 template <class T>
 KOKKOS_INLINE_FUNCTION
-    std::enable_if_t<std::is_same<T, unsigned long>::value, T>
+    std::enable_if_t<std::is_same_v<T, unsigned long long>, T>
     cast_from_half(half_t val) {
+  return static_cast<T>(half_t::impl_type(val));
+}
+template <class T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, long>, T>
+cast_from_half(half_t val) {
+  return static_cast<T>(half_t::impl_type(val));
+}
+template <class T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, unsigned long>, T>
+cast_from_half(half_t val) {
   return static_cast<T>(half_t::impl_type(val));
 }
 }  // namespace Experimental
@@ -162,56 +160,54 @@ KOKKOS_INLINE_FUNCTION
 bhalf_t cast_to_bhalf(unsigned long val) { return bhalf_t::impl_type(val); }
 
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, float>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, float>, T>
 cast_from_bhalf(bhalf_t val) {
   return static_cast<T>(bhalf_t::impl_type(val));
 }
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, double>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, double>, T>
 cast_from_bhalf(bhalf_t val) {
   return static_cast<T>(bhalf_t::impl_type(val));
 }
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, short>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, short>, T>
 cast_from_bhalf(bhalf_t val) {
   return static_cast<T>(bhalf_t::impl_type(val));
 }
 template <class T>
-KOKKOS_INLINE_FUNCTION
-    std::enable_if_t<std::is_same<T, unsigned short>::value, T>
-    cast_from_bhalf(bhalf_t val) {
-  return static_cast<T>(bhalf_t::impl_type(val));
-}
-template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, int>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, unsigned short>, T>
 cast_from_bhalf(bhalf_t val) {
   return static_cast<T>(bhalf_t::impl_type(val));
 }
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, unsigned int>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, int>, T>
 cast_from_bhalf(bhalf_t val) {
   return static_cast<T>(bhalf_t::impl_type(val));
 }
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, long long>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, unsigned int>, T>
 cast_from_bhalf(bhalf_t val) {
   return static_cast<T>(bhalf_t::impl_type(val));
 }
 template <class T>
-KOKKOS_INLINE_FUNCTION
-    std::enable_if_t<std::is_same<T, unsigned long long>::value, T>
-    cast_from_bhalf(bhalf_t val) {
-  return static_cast<T>(bhalf_t::impl_type(val));
-}
-template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, long>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, long long>, T>
 cast_from_bhalf(bhalf_t val) {
   return static_cast<T>(bhalf_t::impl_type(val));
 }
 template <class T>
 KOKKOS_INLINE_FUNCTION
-    std::enable_if_t<std::is_same<T, unsigned long>::value, T>
+    std::enable_if_t<std::is_same_v<T, unsigned long long>, T>
     cast_from_bhalf(bhalf_t val) {
+  return static_cast<T>(bhalf_t::impl_type(val));
+}
+template <class T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, long>, T>
+cast_from_bhalf(bhalf_t val) {
+  return static_cast<T>(bhalf_t::impl_type(val));
+}
+template <class T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, unsigned long>, T>
+cast_from_bhalf(bhalf_t val) {
   return static_cast<T>(bhalf_t::impl_type(val));
 }
 }  // namespace Experimental

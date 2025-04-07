@@ -21,6 +21,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 
@@ -216,7 +217,8 @@ void PairLepton::settings(int narg, char **arg)
 
 void PairLepton::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4) error->all(FLERR, "Incorrect number of args for pair coefficients" + utils::errorurl(21));
+  if (narg < 3 || narg > 4)
+    error->all(FLERR, "Incorrect number of args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -277,7 +279,9 @@ void PairLepton::coeff(int narg, char **arg)
 
 double PairLepton::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   offset[i][j] = 0.0;
   if (offset_flag) {

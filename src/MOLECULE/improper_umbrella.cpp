@@ -322,3 +322,16 @@ void ImproperUmbrella::write_data(FILE *fp)
   for (int i = 1; i <= atom->nimpropertypes; i++)
     fprintf(fp, "%d %g %g\n", i, kw[i], RAD2DEG * w0[i]);
 }
+
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *ImproperUmbrella::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) kw;
+  if (strcmp(str, "w0") == 0) return (void *) w0;
+  return nullptr;
+}

@@ -347,3 +347,13 @@ double PairLJCubic::single(int /*i*/, int /*j*/, int itype, int jtype, double rs
 
   return factor_lj * philj;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void *PairLJCubic::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str, "epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str, "sigma") == 0) return (void *) sigma;
+  return nullptr;
+}

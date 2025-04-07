@@ -33,7 +33,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 2Apr2025
 
 Write a `VMD <https://ks.uiuc.edu/Research/vmd/>`_ Tcl script file with
 commands that aim to create a visualization of :doc:`regions <region>`.

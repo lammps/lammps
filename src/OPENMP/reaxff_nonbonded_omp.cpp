@@ -139,8 +139,8 @@ namespace ReaxFF {
                 powgi_vdW1 = pow(1.0 / twbp->gamma_w, p_vdW1);
 
                 fn13 = pow(powr_vdW1 + powgi_vdW1, p_vdW1i);
-                exp1 = exp(twbp->alpha * (1.0 - fn13 / twbp->r_vdW));
-                exp2 = exp(0.5 * twbp->alpha * (1.0 - fn13 / twbp->r_vdW));
+                exp1 = exp(twbp->alpha * (1.0 - fn13 / twbp->r_vdw));
+                exp2 = exp(0.5 * twbp->alpha * (1.0 - fn13 / twbp->r_vdw));
 
                 e_vdW = twbp->D * (exp1 - 2.0 * exp2);
                 total_EvdW += Tap * e_vdW;
@@ -149,17 +149,17 @@ namespace ReaxFF {
                   pow(r_ij, p_vdW1 - 2.0);
 
                 CEvd = dTap * e_vdW -
-                  Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) * dfn13;
+                  Tap * twbp->D * (twbp->alpha / twbp->r_vdw) * (exp1 - exp2) * dfn13;
               }
             else { // no shielding
-              exp1 = exp(twbp->alpha * (1.0 - r_ij / twbp->r_vdW));
-              exp2 = exp(0.5 * twbp->alpha * (1.0 - r_ij / twbp->r_vdW));
+              exp1 = exp(twbp->alpha * (1.0 - r_ij / twbp->r_vdw));
+              exp2 = exp(0.5 * twbp->alpha * (1.0 - r_ij / twbp->r_vdw));
 
               e_vdW = twbp->D * (exp1 - 2.0 * exp2);
               total_EvdW += Tap * e_vdW;
 
               CEvd = dTap * e_vdW -
-                Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) / r_ij;
+                Tap * twbp->D * (twbp->alpha / twbp->r_vdw) * (exp1 - exp2) / r_ij;
             }
 
             if (system->reax_param.gp.vdw_type==2 || system->reax_param.gp.vdw_type==3)

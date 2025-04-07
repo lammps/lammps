@@ -196,7 +196,7 @@ namespace ReaxFF {
           sbp[i].gamma_w     = values.next_double();
           sbp[i].valency_boc = values.next_double();
           sbp[i].p_ovun5     = values.next_double();
-          sbp[i].gauss_exp   = values.next_double();
+          sbp[i].gauss_exp   = values.next_double();  // for QTPIE
           sbp[i].chi         = values.next_double();
           sbp[i].eta         = 2.0*values.next_double();
           sbp[i].p_hbond     = (int) values.next_double();

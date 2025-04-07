@@ -85,7 +85,7 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   maxwarn = 1;
   scale = 1.0;
 
-  if ((narg < 9) || (narg > 14)) error->all(FLERR,"Illegal fix {} command", style);
+  if ((narg < 8) || (narg > 14)) error->all(FLERR,"Illegal fix {} command", style);
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix {} command", style);
@@ -232,14 +232,20 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
     Pair *pair = force->pair_match("^reaxff",0);
     if (!pair) error->all(FLERR,"No reaxff pair style for fix qtpie/reaxff");
 
-    int ignore;
-    gauss_exp = (double *) pair->extract("gauss_exp", ignore);
-    chi = (double *) pair->extract("chi", ignore);
-    eta = (double *) pair->extract("eta", ignore);
-    gamma = (double *) pair->extract("gamma", ignore);
+    int ignore_dim;
+    gauss_exp = (double *) pair->extract("gauss_exp", ignore_dim);
+    chi = (double *) pair->extract("chi", ignore_dim);
+    eta = (double *) pair->extract("eta", ignore_dim);
+    gamma = (double *) pair->extract("gamma", ignore_dim);
 
-    if ((chi == nullptr) || (eta == nullptr) || (gamma == nullptr))
+    if ((gauss_exp == nullptr) || (chi == nullptr) || (eta == nullptr) || (gamma == nullptr))
       error->all(FLERR, "Fix qtpie/reaxff could not extract qtpie parameters from pair reaxff");
+
+    for (int itype = 1; itype <= ntypes; itype++) {
+      if (gauss_exp[itype] < 0.0)
+        error->all(FLERR, "Fix qtpie/reaxff: Invalid negative orbital exponent {} for atom type {}", gauss_exp[itype], itype);
+      gauss_exp[itype] *= ANGSTROM_TO_BOHRRADIUS_SQ;
+    }
 
     int tmp = 0, tmp_all = 0;
     for (int i = 0; i < nlocal; ++i) {
@@ -295,10 +301,6 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
 
     MPI_Bcast(gauss_exp, ntypes+1, MPI_DOUBLE, 0, world);
 
-    const double exp_min = find_min_exp(gauss_exp, ntypes+1);
-    const int olap_cut = 10;
-    dist_cutoff_sq = 2.0 * olap_cut * log(10.0) / exp_min;
-
     memory->create(chi, ntypes+1, "qtpie/reaxff:chi");
     memory->create(eta, ntypes+1, "qtpie/reaxff:eta");
     memory->create(gamma, ntypes+1, "qtpie/reaxff:gamma");
@@ -336,6 +338,11 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
   } else {
     error->all(FLERR, "Unknown fix qtpie/reaxff keyword {}", arg);
   }
+
+  const double exp_min = find_min_exp(gauss_exp, ntypes+1);
+  const int olap_cut = 10;
+  dist_cutoff_sq = 2.0 * olap_cut * log(10.0) / exp_min;
+
 }
 
 /* ---------------------------------------------------------------------- */

@@ -20,9 +20,11 @@
 #include <Kokkos_SIMD.hpp>
 #include <SIMDTesting_Utilities.hpp>
 
+using Kokkos::Experimental::all_of;
+
 template <typename Abi, typename DataType>
 inline void host_test_simd_traits() {
-  using simd_type = Kokkos::Experimental::simd<DataType, Abi>;
+  using simd_type = Kokkos::Experimental::basic_simd<DataType, Abi>;
 
   static_assert(std::is_nothrow_default_constructible_v<simd_type>);
   static_assert(std::is_nothrow_copy_assignable_v<simd_type>);
@@ -41,7 +43,7 @@ inline void host_test_simd_traits() {
 
 template <typename Abi, typename DataType>
 inline void host_test_mask_traits() {
-  using mask_type = Kokkos::Experimental::simd_mask<DataType, Abi>;
+  using mask_type = Kokkos::Experimental::basic_simd_mask<DataType, Abi>;
 
   static_assert(std::is_nothrow_default_constructible_v<mask_type>);
   static_assert(std::is_nothrow_copy_assignable_v<mask_type>);
@@ -49,20 +51,48 @@ inline void host_test_mask_traits() {
   static_assert(std::is_nothrow_move_assignable_v<mask_type>);
   static_assert(std::is_nothrow_move_constructible_v<mask_type>);
 
-  mask_type default_mask, result;
+  mask_type default_mask(false);
+  mask_type result(false);
   mask_type test_mask(KOKKOS_LAMBDA(std::size_t i) { return (i % 2 == 0); });
   mask_type copy_mask(test_mask);
   mask_type move_mask(std::move(copy_mask));
   default_mask = std::move(move_mask);
   result       = default_mask;
-  EXPECT_EQ(test_mask, result);
+  EXPECT_TRUE(all_of(test_mask == result));
+}
+
+template <typename Abi, typename DataType>
+inline void host_test_simd_alias() {
+  using basic_simd_type = Kokkos::Experimental::basic_simd<DataType, Abi>;
+  using native_fixed_abi =
+      Kokkos::Experimental::simd_abi::Impl::native_fixed_abi<>;
+  using native_abi =
+      Kokkos::Experimental::simd_abi::Impl::native_abi<basic_simd_type::size()>;
+
+  if constexpr (std::is_same_v<Abi, native_fixed_abi>) {
+    using simd_type      = Kokkos::Experimental::simd<DataType>;
+    using simd_mask_type = Kokkos::Experimental::simd_mask<DataType>;
+    static_assert(std::is_same_v<basic_simd_type, simd_type>);
+    static_assert(
+        std::is_same_v<typename basic_simd_type::mask_type, simd_mask_type>);
+  }
+  if constexpr (std::is_same_v<Abi, native_abi>) {
+    using simd_type =
+        Kokkos::Experimental::simd<DataType, basic_simd_type::size()>;
+    using simd_mask_type =
+        Kokkos::Experimental::simd_mask<DataType, basic_simd_type::size()>;
+    static_assert(std::is_same_v<basic_simd_type, simd_type>);
+    static_assert(
+        std::is_same_v<typename basic_simd_type::mask_type, simd_mask_type>);
+  }
 }
 
 template <typename Abi, typename DataType>
 inline void host_check_construction() {
-  if constexpr (is_type_v<Kokkos::Experimental::simd<DataType, Abi>>) {
+  if constexpr (is_type_v<Kokkos::Experimental::basic_simd<DataType, Abi>>) {
     host_test_simd_traits<Abi, DataType>();
     host_test_mask_traits<Abi, DataType>();
+    host_test_simd_alias<Abi, DataType>();
   }
 }
 
@@ -81,7 +111,7 @@ inline void host_check_construction_all_abis(
 
 template <typename Abi, typename DataType>
 KOKKOS_INLINE_FUNCTION void device_test_simd_traits() {
-  using simd_type = Kokkos::Experimental::simd<DataType, Abi>;
+  using simd_type = Kokkos::Experimental::basic_simd<DataType, Abi>;
 
   simd_type default_simd, result;
   simd_type test_simd(KOKKOS_LAMBDA(std::size_t i) { return (i % 2 == 0); });
@@ -96,9 +126,10 @@ KOKKOS_INLINE_FUNCTION void device_test_simd_traits() {
 
 template <typename Abi, typename DataType>
 KOKKOS_INLINE_FUNCTION void device_test_mask_traits() {
-  using mask_type = Kokkos::Experimental::simd_mask<DataType, Abi>;
+  using mask_type = Kokkos::Experimental::basic_simd_mask<DataType, Abi>;
 
-  mask_type default_mask, result;
+  mask_type default_mask(false);
+  mask_type result(false);
   mask_type test_mask(KOKKOS_LAMBDA(std::size_t i) { return (i % 2 == 0); });
   mask_type copy_mask(test_mask);
   mask_type move_mask(std::move(copy_mask));
@@ -106,12 +137,12 @@ KOKKOS_INLINE_FUNCTION void device_test_mask_traits() {
   result       = default_mask;
 
   kokkos_checker checker;
-  checker.truth(test_mask == result);
+  checker.truth(all_of(test_mask == result));
 }
 
 template <typename Abi, typename DataType>
 KOKKOS_INLINE_FUNCTION void device_check_construction() {
-  if constexpr (is_type_v<Kokkos::Experimental::simd<DataType, Abi>>) {
+  if constexpr (is_type_v<Kokkos::Experimental::basic_simd<DataType, Abi>>) {
     device_test_simd_traits<Abi, DataType>();
     device_test_mask_traits<Abi, DataType>();
   }

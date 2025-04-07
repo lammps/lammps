@@ -55,7 +55,7 @@ factor, and :math:`f_n^{damp}` are damping functions.
    contributions, according to, for example, the Axilrod-Teller-Muto
    model.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Apr2025
 
    renamed *zero* keyword to *original* to avoid conflicts with
    :doc:`pair style zero <pair_zero>` when used as :doc:`hybrid

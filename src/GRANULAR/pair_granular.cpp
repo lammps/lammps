@@ -334,7 +334,7 @@ void PairGranular::coeff(int narg, char **arg)
   double cutoff_one = -1;
 
   if (narg < 3)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   if (!allocated) allocate();
 
@@ -397,7 +397,7 @@ void PairGranular::coeff(int narg, char **arg)
   // If there are > ntype^2 models, delete unused models
   if (nmodels == maxmodels) prune_models();
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

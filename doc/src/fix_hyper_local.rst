@@ -111,7 +111,7 @@ requirement, and thus a bias potential :math:`V^{max}_{ij}` will be
 applied to many bonds on the same timestep.
 
 In LHD, all bonds store a :math:`C_{ij}` prefactor which appears in
-the :math:`V^{max}_{ij}` and :math:`F^{max}_{ij}equations above.  Note
+the :math:`V^{max}_{ij}` and :math:`F^{max}_{ij}` equations above.  Note
 that the :math:`C_{ij}` factor scales the strength of the bias energy
 and forces whenever bond *ij* is the maximum strain bond in its neighborhood.
 
@@ -269,7 +269,7 @@ inverse of the alpha parameter discussed in
 
 The *Btarget* argument is the desired time boost factor (a value > 1)
 that all the atoms in the system will experience.  The elapsed time
-t_hyper for an LHD simulation running for *N* timesteps is simply
+:math:`t_{hyper}` for an LHD simulation running for *N* timesteps is simply
 
 .. math::
 
@@ -294,7 +294,7 @@ is the specified temperature of the system
 
 Note that if *Btarget* is set smaller than this, the LHD simulation
 will run correctly.  There will just be fewer events because the hyper
-time (t_hyper equation above) will be shorter.
+time (:math:`t_{hyper}` equation above) will be shorter.
 
 .. note::
 

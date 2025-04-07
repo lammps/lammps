@@ -41,3 +41,4 @@ tag:  4.4.00     date: 08:08:2024    master: 6ecdf605    release: 6068673c
 tag:  4.4.01     date: 09:12:2024    master: 08ceff92    release: 2d60c039
 tag:  4.5.00     date: 11:11:2024    master: 15dc143e    release: 5164f2f6
 tag:  4.5.01     date: 12:19:2024    master: 09e775bf    release: e0d656f9
+tag:  4.6.00     date: 03:26:2025    master: 175257a5    release: 7caa940d

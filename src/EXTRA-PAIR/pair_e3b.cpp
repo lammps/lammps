@@ -22,6 +22,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -601,7 +602,9 @@ void PairE3B::presetParam(const int flag, bool &repeatFlag, double &bondL)
 //pair.cpp::init uses this to set cutsq array, used for neighboring, etc
 double PairE3B::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   return cutmax;
 }

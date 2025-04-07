@@ -26,7 +26,7 @@ template <class ExecutionSpace>
 struct GraphNodeKernelDefaultImpl;
 
 template <class ExecutionSpace>
-struct GraphNodeAggregateKernelDefaultImpl;
+struct GraphNodeAggregateDefaultImpl;
 
 }  // end namespace Impl
 }  // end namespace Kokkos

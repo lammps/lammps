@@ -39,7 +39,7 @@ ResetAtomsImage::ResetAtomsImage(LAMMPS *lmp) : Command(lmp) {}
 void ResetAtomsImage::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR, "Reset_atoms image command before simulation box is defined");
+    error->all(FLERR, "Reset_atoms image command before simulation box is defined" + utils::errorurl(33));
   if (atom->tag_enable == 0)
     error->all(FLERR, "Cannot use reset_atoms image unless atoms have IDs");
   if (atom->avec->bonds_allow == 0)

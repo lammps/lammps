@@ -34,9 +34,10 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, nar
   nstop = utils::inumeric(FLERR, arg[4], false, lmp);
   nskip = utils::inumeric(FLERR, arg[5], false, lmp);
 
-  if (nstart < 1) error->all(FLERR, "Invalid compute slice nstart value {} < 1", nstart);
-  if (nstop < nstart) error->all(FLERR, "Invalid compute slice nstop value {} < {}", nstop, nstart);
-  if (nskip < 1) error->all(FLERR, "Invalid compute slice nskip value < 1: {}", nskip);
+  if (nstart < 1) error->all(FLERR, 3, "Invalid compute slice nstart value {} < 1", nstart);
+  if (nstop < nstart)
+    error->all(FLERR, 4, "Invalid compute slice nstop value {} < {}", nstop, nstart);
+  if (nskip < 1) error->all(FLERR, 5, "Invalid compute slice nskip value < 1: {}", nskip);
 
   // parse values
 
@@ -47,11 +48,12 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, nar
     value_t val;
     val.which = argi.get_type();
     val.argindex = argi.get_index1();
+    val.iarg = iarg;
     val.id = argi.get_name();
     val.val.c = nullptr;
 
     if ((val.which == ArgInfo::UNKNOWN) || (val.which == ArgInfo::NONE) || (argi.get_dim() > 1))
-      error->all(FLERR, "Illegal compute slice argument: {}", arg[iarg]);
+      error->all(FLERR, iarg, "Illegal compute slice argument: {}", arg[iarg]);
 
     values.push_back(val);
   }
@@ -61,49 +63,63 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, nar
   for (auto &val : values) {
     if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
-      if (!val.val.c) error->all(FLERR, "Compute ID {} for compute slice does not exist", val.id);
+      if (!val.val.c)
+        error->all(FLERR, val.iarg, "Compute ID {} for compute slice does not exist", val.id);
       if (val.val.c->vector_flag) {
         if (val.argindex)
-          error->all(FLERR, "Compute slice compute {} does not calculate a global array", val.id);
+          error->all(FLERR, val.iarg, "Compute slice compute {} does not calculate a global array",
+                     val.id);
         if (nstop > val.val.c->size_vector)
-          error->all(FLERR, "Compute slice compute {} vector is accessed out-of-range", val.id);
+          error->all(FLERR, val.iarg, "Compute slice compute {} vector is accessed out-of-range{}",
+                     val.id, utils::errorurl(20));
       } else if (val.val.c->array_flag) {
         if (val.argindex == 0)
-          error->all(FLERR, "Compute slice compute {} does not calculate a global vector", val.id);
+          error->all(FLERR, val.iarg, "Compute slice compute {} does not calculate a global vector",
+                     val.id);
         if (val.argindex > val.val.c->size_array_cols)
-          error->all(FLERR, "Compute slice compute {} array is accessed out-of-range", val.id);
+          error->all(FLERR, val.iarg, "Compute slice compute {} array is accessed out-of-range{}",
+                     val.id, utils::errorurl(20));
         if (nstop > val.val.c->size_array_rows)
-          error->all(FLERR, "Compute slice compute {} array is accessed out-of-range", val.id);
+          error->all(FLERR, val.iarg, "Compute slice compute {} array is accessed out-of-range{}",
+                     val.id, utils::errorurl(20));
       } else {
-        error->all(FLERR, "Compute slice compute {} does not calculate global vector or array",
-                   val.id);
+        error->all(FLERR, val.iarg, "Compute slice compute {} does not calculate global vector or "
+                   "array", val.id);
       }
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
-      if (!val.val.f) error->all(FLERR, "Fix ID {} for compute slice does not exist", val.id);
+      if (!val.val.f)
+        error->all(FLERR, val.iarg, "Fix ID {} for compute slice does not exist", val.id);
       if (val.val.f->vector_flag) {
         if (val.argindex)
-          error->all(FLERR, "Compute slice fix {} does not calculate a global array", val.id);
+          error->all(FLERR, val.iarg, "Compute slice fix {} does not calculate a global array",
+                     val.id);
         if (nstop > val.val.f->size_vector)
-          error->all(FLERR, "Compute slice fix {} vector is accessed out-of-range", val.id);
+          error->all(FLERR, val.iarg, "Compute slice fix {} vector is accessed out-of-range{}",
+                     val.id, utils::errorurl(20));
       } else if (val.val.f->array_flag) {
         if (val.argindex == 0)
-          error->all(FLERR, "Compute slice fix {} does not calculate a global vector", val.id);
+          error->all(FLERR, val.iarg, "Compute slice fix {} does not calculate a global vector",
+                     val.id);
         if (val.argindex > val.val.f->size_array_cols)
-          error->all(FLERR, "Compute slice fix {} array is accessed out-of-range", val.id);
+          error->all(FLERR, val.iarg, "Compute slice fix {} array is accessed out-of-range{}",
+                     val.id, utils::errorurl(20));
         if (nstop > val.val.f->size_array_rows)
-          error->all(FLERR, "Compute slice fix {} array is accessed out-of-range", val.id);
+          error->all(FLERR, val.iarg, "Compute slice fix {} array is accessed out-of-range{}",
+                     val.id, utils::errorurl(20));
       } else {
-        error->all(FLERR, "Compute slice fix {} does not calculate global vector or array", val.id);
+        error->all(FLERR, val.iarg, "Compute slice fix {} does not calculate global vector or "
+                   "array", val.id);
       }
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
       if (val.val.v < 0)
-        error->all(FLERR, "Variable name {} for compute slice does not exist", val.id);
+        error->all(FLERR, val.iarg, "Variable name {} for compute slice does not exist", val.id);
       if (val.argindex == 0 && input->variable->vectorstyle(val.val.v) == 0)
-        error->all(FLERR, "Compute slice variable {} is not vector-style variable", val.id);
+        error->all(FLERR, val.iarg, "Compute slice variable {} is not vector-style variable",
+                   val.id);
       if (val.argindex)
-        error->all(FLERR, "Compute slice vector variable {} cannot be indexed", val.id);
+        error->all(FLERR, val.iarg, "Compute slice vector variable {} cannot be indexed", val.id);
     }
   }
 
@@ -195,14 +211,18 @@ void ComputeSlice::init()
   for (auto &val : values) {
     if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
-      if (!val.val.c) error->all(FLERR, "Compute ID {} for compute slice does not exist", val.id);
+      if (!val.val.c)
+        error->all(FLERR, Error::NOLASTLINE, "Compute ID {} for compute slice does not exist",
+                   val.id);
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
-      if (!val.val.f) error->all(FLERR, "Fix ID {} for compute slice does not exist", val.id);
+      if (!val.val.f)
+        error->all(FLERR, Error::NOLASTLINE, "Fix ID {} for compute slice does not exist", val.id);
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
       if (val.val.v < 0)
-        error->all(FLERR, "Variable name {} for compute slice does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE, "Variable name {} for compute slice does not exist",
+                   val.id);
     }
   }
 }
@@ -267,7 +287,8 @@ void ComputeSlice::extract_one(int m, double *vec, int stride)
 
   } else if (val.which == ArgInfo::FIX) {
     if (update->ntimestep % val.val.f->global_freq)
-      error->all(FLERR, "Fix {} used in compute slice not computed at compatible time", val.id);
+      error->all(FLERR, Error::NOLASTLINE, "Fix {} used in compute slice not computed at "
+                 "compatible time{}", val.id, utils::errorurl(7));
 
     if (val.argindex == 0) {
       int j = 0;
@@ -289,7 +310,8 @@ void ComputeSlice::extract_one(int m, double *vec, int stride)
   } else if (val.which == ArgInfo::VARIABLE) {
     double *varvec;
     int nvec = input->variable->compute_vector(val.val.v, &varvec);
-    if (nvec < nstop) error->all(FLERR, "Compute slice variable {} is not long enough", val.id);
+    if (nvec < nstop)
+      error->all(FLERR, Error::NOLASTLINE, "Compute slice variable {} is not long enough", val.id);
     int j = 0;
     for (int i = nstart; i < nstop; i += nskip) {
       vec[j] = varvec[i - 1];

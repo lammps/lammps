@@ -28,7 +28,8 @@ namespace Impl {
 void zero_with_hip_kernel(const HIP& exec_space, void* dst, size_t cnt) {
   Kokkos::parallel_for(
       "Kokkos::ZeroMemset via parallel_for",
-      Kokkos::RangePolicy<Kokkos::HIP>(exec_space, 0, cnt),
+      Kokkos::RangePolicy<Kokkos::HIP, Kokkos::IndexType<size_t>>(exec_space, 0,
+                                                                  cnt),
       KOKKOS_LAMBDA(size_t i) { static_cast<char*>(dst)[i] = 0; });
 }
 

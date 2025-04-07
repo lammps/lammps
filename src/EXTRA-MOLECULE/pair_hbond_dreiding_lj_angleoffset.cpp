@@ -54,7 +54,7 @@ PairHbondDreidingLJAngleoffset::PairHbondDreidingLJAngleoffset(LAMMPS *lmp)
 void PairHbondDreidingLJAngleoffset::coeff(int narg, char **arg)
 {
   if (narg < 6 || narg > 11)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi,klo,khi;
@@ -65,7 +65,7 @@ void PairHbondDreidingLJAngleoffset::coeff(int narg, char **arg)
   int donor_flag;
   if (strcmp(arg[3],"i") == 0) donor_flag = 0;
   else if (strcmp(arg[3],"j") == 0) donor_flag = 1;
-  else error->all(FLERR,"Incorrect args for pair coefficients");
+  else error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   double epsilon_one = utils::numeric(FLERR, arg[4], false, lmp);
   double sigma_one = utils::numeric(FLERR, arg[5], false, lmp);
@@ -126,5 +126,5 @@ void PairHbondDreidingLJAngleoffset::coeff(int narg, char **arg)
       }
   nparams++;
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }

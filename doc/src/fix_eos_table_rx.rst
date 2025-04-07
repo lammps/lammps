@@ -49,7 +49,7 @@ computed according to the following relation:
 
 where *m* is the number of species, :math:`c_{i,j}` is the
 concentration of species *j* in particle *i*, :math:`u_j` is the
-internal energy of species j, :math:`\Delta H_{f,j} is the heat of
+internal energy of species j, :math:`\Delta H_{f,j}` is the heat of
 formation of species *j*, N is the number of molecules represented
 by the coarse-grained particle, :math:`k_B` is the Boltzmann constant,
 and :math:`T` is the temperature of the system.  Additionally, it is

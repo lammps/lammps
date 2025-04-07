@@ -74,7 +74,7 @@ void TAD::command(int narg, char **arg)
   // error checks
 
   if (domain->box_exist == 0)
-    error->all(FLERR,"Tad command before simulation box is defined");
+    error->all(FLERR,"Tad command before simulation box is defined" + utils::errorurl(33));
   if (universe->nworlds == 1)
     error->all(FLERR,"Cannot use TAD with a single replica for NEB");
   if (universe->nworlds != universe->nprocs)

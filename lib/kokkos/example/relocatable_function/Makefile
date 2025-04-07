@@ -3,6 +3,8 @@ KOKKOS_SRC_PATH = ${KOKKOS_PATH}
 SRC = $(wildcard ${KOKKOS_SRC_PATH}/example/relocatable_function/*.cpp)
 vpath %.cpp $(sort $(dir $(SRC)))
 
+KOKKOS_USE_DEPRECATED_MAKEFILES=1
+
 default: build
 	echo "Start Build"
 

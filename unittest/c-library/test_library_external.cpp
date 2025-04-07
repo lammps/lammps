@@ -14,10 +14,7 @@ using ::testing::HasSubstr;
 using ::testing::StartsWith;
 
 extern "C" {
-#ifdef LAMMPS_SMALLSMALL
-typedef int32_t step_t;
-typedef int32_t tag_t;
-#elif LAMMPS_SMALLBIG
+#if LAMMPS_SMALLBIG
 using step_t = int64_t;
 using tag_t  = int32_t;
 #else

@@ -174,6 +174,9 @@ void Preferences::accept()
     spin = tabWidget->findChild<QSpinBox *>("updchart");
     if (spin) settings->setValue("updchart", spin->value());
 
+    field = tabWidget->findChild<QLineEdit *>("proxyval");
+    if (field) settings->setValue("https_proxy", field->text());
+
     if (need_relaunch) {
         QMessageBox msg(QMessageBox::Information, QString("Relaunching LAMMPS-GUI"),
                         QString("LAMMPS library plugin path was changed.\n"
@@ -262,7 +265,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     connect(getallfont, &QPushButton::released, this, &GeneralTab::newallfont);
     connect(gettextfont, &QPushButton::released, this, &GeneralTab::newtextfont);
 
-    auto *freqlabel = new QLabel("Data update interval (ms)");
+    auto *freqlabel = new QLabel("Data update interval (ms):");
     auto *freqval   = new QSpinBox;
     freqval->setRange(1, 1000);
     freqval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
@@ -271,7 +274,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     gridlayout->addWidget(freqlabel, 1, 0);
     gridlayout->addWidget(freqval, 1, 1);
 
-    auto *chartlabel = new QLabel("Charts update interval (ms)");
+    auto *chartlabel = new QLabel("Charts update interval (ms):");
     auto *chartval   = new QSpinBox;
     chartval->setRange(1, 5000);
     chartval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
@@ -279,6 +282,19 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     chartval->setObjectName("updchart");
     gridlayout->addWidget(chartlabel, 2, 0);
     gridlayout->addWidget(chartval, 2, 1);
+
+    auto *proxylabel = new QLabel("HTTPS proxy setting (empty for no proxy):");
+    gridlayout->addWidget(proxylabel, 3, 0);
+
+    auto https_proxy = QString::fromLocal8Bit(qgetenv("https_proxy"));
+    if (https_proxy.isEmpty()) {
+        https_proxy = settings->value("https_proxy", "").toString();
+        auto *proxyedit = new QLineEdit(https_proxy);
+        proxyedit->setObjectName("proxyval");
+        gridlayout->addWidget(proxyedit, 3, 1);
+    } else {
+        gridlayout->addWidget(new QLabel(https_proxy), 3, 1);
+    }
 
     layout->addWidget(echo);
     layout->addWidget(cite);

@@ -487,10 +487,10 @@ updates are back-ported from the *develop* branch to the *maintenance*
 branch and occasionally merged to *stable* as an update release.
 
 Furthermore, the naming of the release tags now follow the pattern
-"patch_<Day><Month><Year>" to simplify comparisons between releases.
-For stable releases additional "stable_<Day><Month><Year>" tags are
+"patch\_<Day><Month><Year>" to simplify comparisons between releases.
+For stable releases additional "stable\_<Day><Month><Year>" tags are
 applied and update releases are tagged with
-"stable_<Day><Month><Year>_update<Number>", Finally, all releases and
+"stable\_<Day><Month><Year>\_update<Number>", Finally, all releases and
 submissions are subject to automatic testing and code checks to make
 sure they compile with a variety of compilers and popular operating
 systems.  Some unit and regression testing is applied as well.

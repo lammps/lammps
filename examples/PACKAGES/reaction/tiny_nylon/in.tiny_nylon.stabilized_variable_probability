@@ -62,4 +62,4 @@ thermo_style custom step temp press density v_prob1 v_prob2 f_myrxns[*]
 run ${runsteps}
 
 # write_restart restart_longrun
-# write_data restart_longrun.data
+# write_data restart_longrun.data nofix

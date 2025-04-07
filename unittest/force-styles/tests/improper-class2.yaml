@@ -14,7 +14,9 @@ improper_coeff: ! |
   1  75.0 169
   2  45.0  10
   *  aa 75 42 31 125.4 130.01 115.06
-extract: ! ""
+extract: ! |
+  k 1
+  chi0 1
 natoms: 29
 init_energy: 1375.7372366975192
 init_stress: ! |-

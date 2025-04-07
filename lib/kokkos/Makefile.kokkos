@@ -1,18 +1,26 @@
 # Default settings common options.
 
-#SPARTA specific settings:
+#LAMMPS specific settings:
+
+KOKKOS_USE_DEPRECATED_MAKEFILES=1
+
 ifndef KOKKOS_PATH
   KOKKOS_PATH=../../lib/kokkos
 endif
 
 CXXFLAGS=$(CCFLAGS)
 ifeq ($(mode),shared)
-CXXFLAGS += $(SHFLAGS)
+  CXXFLAGS += $(SHFLAGS)
+endif
+
+
+ifneq ($(KOKKOS_USE_DEPRECATED_MAKEFILES), 1)
+  $(error Makefile support is deprecated. Only CMake builds will be supported from Kokkos 5 on. Set KOKKOS_USE_DEPRECATED_MAKEFILES=1 to silence this error.)
 endif
 
 KOKKOS_VERSION_MAJOR = 4
-KOKKOS_VERSION_MINOR = 5
-KOKKOS_VERSION_PATCH = 1
+KOKKOS_VERSION_MINOR = 6
+KOKKOS_VERSION_PATCH = 0
 KOKKOS_VERSION = $(shell echo $(KOKKOS_VERSION_MAJOR)*10000+$(KOKKOS_VERSION_MINOR)*100+$(KOKKOS_VERSION_PATCH) | bc)
 
 # Options: Cuda,HIP,SYCL,OpenMPTarget,OpenMP,Threads,Serial
@@ -24,7 +32,7 @@ KOKKOS_DEVICES ?= "OpenMP"
 # ARM:      ARMv80,ARMv81,ARMv8-ThunderX,ARMv8-TX2,A64FX,ARMv9-Grace
 # IBM:      Power8,Power9
 # AMD-GPUS: AMD_GFX906,AMD_GFX908,AMD_GFX90A,AMD_GFX940,AMD_GFX942,AMD_GFX942_APU,AMD_GFX1030,AMD_GFX1100,AMD_GFX1103
-# AMD-CPUS: AMDAVX,Zen,Zen2,Zen3
+# AMD-CPUS: AMDAVX,Zen,Zen2,Zen3,Zen4
 # Intel-GPUs: Intel_Gen,Intel_Gen9,Intel_Gen11,Intel_Gen12LP,Intel_DG1,Intel_XeHP,Intel_PVC
 KOKKOS_ARCH ?= ""
 # Options: yes,no
@@ -442,11 +450,14 @@ KOKKOS_INTERNAL_USE_ARCH_IBM := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_
 
 # AMD based.
 KOKKOS_INTERNAL_USE_ARCH_AMDAVX := $(call kokkos_has_string,$(KOKKOS_ARCH),AMDAVX)
+KOKKOS_INTERNAL_USE_ARCH_ZEN4 := $(call kokkos_has_string,$(KOKKOS_ARCH),Zen4)
 KOKKOS_INTERNAL_USE_ARCH_ZEN3 := $(call kokkos_has_string,$(KOKKOS_ARCH),Zen3)
 KOKKOS_INTERNAL_USE_ARCH_ZEN2 := $(call kokkos_has_string,$(KOKKOS_ARCH),Zen2)
-ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN3), 0)
-  ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN2), 0)
-    KOKKOS_INTERNAL_USE_ARCH_ZEN := $(call kokkos_has_string,$(KOKKOS_ARCH),Zen)
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN4), 0)
+  ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN3), 0)
+    ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN2), 0)
+      KOKKOS_INTERNAL_USE_ARCH_ZEN := $(call kokkos_has_string,$(KOKKOS_ARCH),Zen)
+    endif
   endif
 endif
 
@@ -463,8 +474,10 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX90A), 0)
   KOKKOS_INTERNAL_USE_ARCH_AMD_GFX90A := $(call kokkos_has_string,$(KOKKOS_ARCH),VEGA90A)
 endif
 KOKKOS_INTERNAL_USE_ARCH_AMD_GFX940 := $(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX940)
-KOKKOS_INTERNAL_USE_ARCH_AMD_GFX942 := $(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX942)
 KOKKOS_INTERNAL_USE_ARCH_AMD_GFX942_APU := $(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX942_APU)
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX942_APU), 0)
+  KOKKOS_INTERNAL_USE_ARCH_AMD_GFX942 := $(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX942)
+endif
 KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1030 := $(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX1030)
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1030), 0)
   KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1030 := $(call kokkos_has_string,$(KOKKOS_ARCH),NAVI1030)
@@ -854,6 +867,19 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN3), 1)
   else
     KOKKOS_CXXFLAGS += -march=znver3 -mtune=znver3
     KOKKOS_LDFLAGS += -march=znver3 -mtune=znver3
+  endif
+endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN4), 1)
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_ZEN4")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AVX512XEON")
+
+  ifeq ($(KOKKOS_INTERNAL_COMPILER_INTEL), 1)
+    KOKKOS_CXXFLAGS += -xCORE-AVX512
+    KOKKOS_LDFLAGS += -xCORE-AVX512
+  else
+    KOKKOS_CXXFLAGS += -march=znver4 -mtune=znver4
+    KOKKOS_LDFLAGS += -march=znver4 -mtune=znver4
   endif
 endif
 

@@ -1138,7 +1138,7 @@ void PPPMKokkos<DeviceType>::particle_map()
   k_flag.template sync<DeviceType>();
 
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
-    error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
+    error->one(FLERR,"Non-numeric box dimensions - simulation unstable" + utils::errorurl(6));
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_particle_map>(0,nlocal),*this);
@@ -1147,7 +1147,7 @@ void PPPMKokkos<DeviceType>::particle_map()
   k_flag.template modify<DeviceType>();
   k_flag.template sync<LMPHostType>();
   if (k_flag.h_view())
-    error->one(FLERR,"Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
+    error->one(FLERR, Error::NOLASTLINE, "Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
 }
 
 template<class DeviceType>

@@ -120,7 +120,7 @@ void PairCosineSquared::settings(int narg, char **arg)
 void PairCosineSquared::coeff(int narg, char **arg)
 {
   if (narg < 4 || narg > 6)
-    error->all(FLERR, "Incorrect args for pair coefficients (too few or too many)");
+    error->all(FLERR, "Incorrect args for pair coefficients (too few or too many)" + utils::errorurl(21));
 
   if (!allocated)
     allocate();
@@ -139,7 +139,7 @@ void PairCosineSquared::coeff(int narg, char **arg)
     if (strcmp(arg[5], "wca") == 0) {
       wca_one = 1;
     } else {
-      error->all(FLERR, "Incorrect args for pair coefficients (unknown option)");
+      error->all(FLERR, "Incorrect args for pair coefficients (unknown option)" + utils::errorurl(21));
     }
   } else if (narg == 5) {
     if (strcmp(arg[4], "wca") == 0) {
@@ -150,12 +150,12 @@ void PairCosineSquared::coeff(int narg, char **arg)
   }
 
   if (cut_one < sigma_one) {
-    error->all(FLERR, "Incorrect args for pair coefficients (cutoff < sigma)");
+    error->all(FLERR, "Incorrect args for pair coefficients (cutoff < sigma)" + utils::errorurl(21));
   } else if (cut_one == sigma_one) {
     if (wca_one == 0) {
-      error->all(FLERR, "Incorrect args for pair coefficients (cutoff = sigma w/o wca)");
+      error->all(FLERR, "Incorrect args for pair coefficients (cutoff = sigma w/o wca)" + utils::errorurl(21));
     } else {
-      error->warning(FLERR, "Cosine/squared set to WCA only (cutoff = sigma)");
+      error->warning(FLERR, "Cosine/squared set to WCA only (cutoff = sigma)" + utils::errorurl(21));
     }
   }
 
@@ -172,7 +172,7 @@ void PairCosineSquared::coeff(int narg, char **arg)
   }
 
   if (count == 0)
-    error->all(FLERR, "Incorrect args for pair coefficients (none set)");
+    error->all(FLERR, "Incorrect args for pair coefficients (none set)" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

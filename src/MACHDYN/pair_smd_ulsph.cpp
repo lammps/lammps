@@ -29,6 +29,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -932,385 +933,385 @@ void PairULSPH::settings(int narg, char **arg) {
  ------------------------------------------------------------------------- */
 
 void PairULSPH::coeff(int narg, char **arg) {
-        int ioffset, iarg, iNextKwd, itype, jtype;
-        std::string s, t;
+  int ioffset, iarg, iNextKwd, itype, jtype;
+  std::string s, t;
 
-        if (narg < 3) utils::missing_cmd_args(FLERR, "pair ulsph", error);
+  if (narg < 3) utils::missing_cmd_args(FLERR, "pair ulsph", error);
 
-        if (!allocated) allocate();
+  if (!allocated) allocate();
+
+  /*
+   * if parameters are give in i,i form, i.e., no a cross interaction, set material parameters
+   */
+
+  if (utils::inumeric(FLERR, arg[0], false, lmp) == utils::inumeric(FLERR, arg[1], false, lmp)) {
+
+    itype = utils::inumeric(FLERR, arg[0],false,lmp);
+    eos[itype] = viscosity[itype] = strength[itype] = NONE;
+
+    if (comm->me == 0) {
+      printf("\n>>========>>========>>========>>========>>========>>========>>========>>========\n");
+      printf("...SMD / ULSPH PROPERTIES OF PARTICLE TYPE %d\n\n", itype);
+    }
+
+    /*
+     * read parameters which are common -- regardless of material / eos model
+     */
+
+    ioffset = 2;
+    if (strcmp(arg[ioffset], "*COMMON") != 0) error->all(FLERR, "common keyword missing!");
+
+    t = string("*");
+    iNextKwd = -1;
+    for (iarg = ioffset + 1; iarg < narg; iarg++) {
+      s = string(arg[iarg]);
+      if (s.compare(0, t.length(), t) == 0) {
+        iNextKwd = iarg;
+        break;
+      }
+    }
+
+    if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *COMMON");
+
+    if (iNextKwd - ioffset != 5 + 1)
+      error->all(FLERR, "expected 5 arguments following *COMMON but got {}\n", iNextKwd - ioffset - 1);
+
+    Lookup[REFERENCE_DENSITY][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+    Lookup[REFERENCE_SOUNDSPEED][itype] = utils::numeric(FLERR, arg[ioffset + 2],false,lmp);
+    Q1[itype] = utils::numeric(FLERR, arg[ioffset + 3],false,lmp);
+    Lookup[HEAT_CAPACITY][itype] = utils::numeric(FLERR, arg[ioffset + 4],false,lmp);
+    Lookup[HOURGLASS_CONTROL_AMPLITUDE][itype] = utils::numeric(FLERR, arg[ioffset + 5],false,lmp);
+
+    Lookup[BULK_MODULUS][itype] = Lookup[REFERENCE_SOUNDSPEED][itype] * Lookup[REFERENCE_SOUNDSPEED][itype]
+      * Lookup[REFERENCE_DENSITY][itype];
+
+    if (comm->me == 0) {
+      printf("material unspecific properties for SMD/ULSPH definition of particle type %d:\n", itype);
+      printf(FORMAT1, "reference density", Lookup[REFERENCE_DENSITY][itype]);
+      printf(FORMAT1, "reference speed of sound", Lookup[REFERENCE_SOUNDSPEED][itype]);
+      printf(FORMAT1, "linear viscosity coefficient", Q1[itype]);
+      printf(FORMAT1, "heat capacity [energy / (mass * temperature)]", Lookup[HEAT_CAPACITY][itype]);
+      printf(FORMAT1, "bulk modulus", Lookup[BULK_MODULUS][itype]);
+      printf(FORMAT1, "hourglass control amplitude", Lookup[HOURGLASS_CONTROL_AMPLITUDE][itype]);
+    }
+
+    /*
+     * read following material cards
+     */
+
+    while (true) {
+      if (strcmp(arg[iNextKwd], "*END") == 0) {
+        break;
+      }
+
+      ioffset = iNextKwd;
+      if (strcmp(arg[ioffset], "*EOS_TAIT") == 0) {
 
         /*
-         * if parameters are give in i,i form, i.e., no a cross interaction, set material parameters
+         * Tait EOS
          */
 
-        if (utils::inumeric(FLERR, arg[0], false, lmp) == utils::inumeric(FLERR, arg[1], false, lmp)) {
-
-                itype = utils::inumeric(FLERR, arg[0],false,lmp);
-                eos[itype] = viscosity[itype] = strength[itype] = NONE;
-
-                if (comm->me == 0) {
-                        printf("\n>>========>>========>>========>>========>>========>>========>>========>>========\n");
-                        printf("...SMD / ULSPH PROPERTIES OF PARTICLE TYPE %d\n\n", itype);
-                }
-
-                /*
-                 * read parameters which are common -- regardless of material / eos model
-                 */
-
-                ioffset = 2;
-                if (strcmp(arg[ioffset], "*COMMON") != 0) error->all(FLERR, "common keyword missing!");
-
-                t = string("*");
-                iNextKwd = -1;
-                for (iarg = ioffset + 1; iarg < narg; iarg++) {
-                        s = string(arg[iarg]);
-                        if (s.compare(0, t.length(), t) == 0) {
-                                iNextKwd = iarg;
-                                break;
-                        }
-                }
-
-                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *COMMON");
-
-                if (iNextKwd - ioffset != 5 + 1)
-                  error->all(FLERR, "expected 5 arguments following *COMMON but got {}\n", iNextKwd - ioffset - 1);
-
-                Lookup[REFERENCE_DENSITY][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
-                Lookup[REFERENCE_SOUNDSPEED][itype] = utils::numeric(FLERR, arg[ioffset + 2],false,lmp);
-                Q1[itype] = utils::numeric(FLERR, arg[ioffset + 3],false,lmp);
-                Lookup[HEAT_CAPACITY][itype] = utils::numeric(FLERR, arg[ioffset + 4],false,lmp);
-                Lookup[HOURGLASS_CONTROL_AMPLITUDE][itype] = utils::numeric(FLERR, arg[ioffset + 5],false,lmp);
-
-                Lookup[BULK_MODULUS][itype] = Lookup[REFERENCE_SOUNDSPEED][itype] * Lookup[REFERENCE_SOUNDSPEED][itype]
-                                * Lookup[REFERENCE_DENSITY][itype];
-
-                if (comm->me == 0) {
-                        printf("material unspecific properties for SMD/ULSPH definition of particle type %d:\n", itype);
-                        printf(FORMAT1, "reference density", Lookup[REFERENCE_DENSITY][itype]);
-                        printf(FORMAT1, "reference speed of sound", Lookup[REFERENCE_SOUNDSPEED][itype]);
-                        printf(FORMAT1, "linear viscosity coefficient", Q1[itype]);
-                        printf(FORMAT1, "heat capacity [energy / (mass * temperature)]", Lookup[HEAT_CAPACITY][itype]);
-                        printf(FORMAT1, "bulk modulus", Lookup[BULK_MODULUS][itype]);
-                        printf(FORMAT1, "hourglass control amplitude", Lookup[HOURGLASS_CONTROL_AMPLITUDE][itype]);
-                }
-
-                /*
-                 * read following material cards
-                 */
-
-                while (true) {
-                        if (strcmp(arg[iNextKwd], "*END") == 0) {
-                                break;
-                        }
-
-                        ioffset = iNextKwd;
-                        if (strcmp(arg[ioffset], "*EOS_TAIT") == 0) {
-
-                                /*
-                                 * Tait EOS
-                                 */
-
-                                eos[itype] = EOS_TAIT;
-
-                                t = string("*");
-                                iNextKwd = -1;
-                                for (iarg = ioffset + 1; iarg < narg; iarg++) {
-                                        s = string(arg[iarg]);
-                                        if (s.compare(0, t.length(), t) == 0) {
-                                                iNextKwd = iarg;
-                                                break;
-                                        }
-                                }
-
-                                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *EOS_TAIT");
-
-                                if (iNextKwd - ioffset != 1 + 1)
-                                        error->all(FLERR, "expected 1 arguments following *EOS_TAIT but got {}\n", iNextKwd - ioffset - 1);
-
-                                Lookup[EOS_TAIT_EXPONENT][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
-
-                                if (comm->me == 0) {
-                                        printf(FORMAT2, "Tait EOS");
-                                        printf(FORMAT1, "Exponent", Lookup[EOS_TAIT_EXPONENT][itype]);
-                                }
-                        } // end Tait EOS
-
-                        else if (strcmp(arg[ioffset], "*EOS_PERFECT_GAS") == 0) {
-
-                                /*
-                                 * Perfect Gas EOS
-                                 */
-
-                                eos[itype] = EOS_PERFECT_GAS;
-
-                                t = string("*");
-                                iNextKwd = -1;
-                                for (iarg = ioffset + 1; iarg < narg; iarg++) {
-                                        s = string(arg[iarg]);
-                                        if (s.compare(0, t.length(), t) == 0) {
-                                                iNextKwd = iarg;
-                                                break;
-                                        }
-                                }
-
-                                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *EOS_PERFECT_GAS");
-                                if (iNextKwd - ioffset != 1 + 1)
-                                  error->all(FLERR, "expected 1 arguments following *EOS_PERFECT_GAS but got {}\n", iNextKwd - ioffset - 1);
-
-                                Lookup[EOS_PERFECT_GAS_GAMMA][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
-
-                                if (comm->me == 0) {
-                                        printf(FORMAT2, "Perfect Gas EOS");
-                                        printf(FORMAT1, "Heat Capacity Ratio Gamma", Lookup[EOS_PERFECT_GAS_GAMMA][itype]);
-                                }
-                        } // end Perfect Gas EOS
-                        else if (strcmp(arg[ioffset], "*EOS_LINEAR") == 0) {
-
-                                /*
-                                 * Linear EOS
-                                 */
-
-                                eos[itype] = EOS_LINEAR;
-
-                                t = string("*");
-                                iNextKwd = -1;
-                                for (iarg = ioffset + 1; iarg < narg; iarg++) {
-                                        s = string(arg[iarg]);
-                                        if (s.compare(0, t.length(), t) == 0) {
-                                                iNextKwd = iarg;
-                                                break;
-                                        }
-                                }
-
-                                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *EOS_LINEAR");
-                                if (iNextKwd - ioffset != 0 + 1)
-                                        error->all(FLERR, "expected 0 arguments following *EOS_LINEAR but got {}\n", iNextKwd - ioffset - 1);
-
-                                if (comm->me == 0) {
-                                        printf(FORMAT2, "Linear EOS");
-                                        printf(FORMAT1, "Bulk modulus", Lookup[BULK_MODULUS][itype]);
-                                }
-                        } // end Linear EOS
-                        else if (strcmp(arg[ioffset], "*STRENGTH_LINEAR_PLASTIC") == 0) {
-
-                                if (!velocity_gradient) {
-                                        error->all(FLERR, "A strength model was requested but *VELOCITY_GRADIENT is not set");
-                                }
-
-                                /*
-                                 * linear elastic / ideal plastic material model with strength
-                                 */
-
-                                strength[itype] = STRENGTH_LINEAR_PLASTIC;
-                                velocity_gradient_required = true;
-
-                                t = string("*");
-                                iNextKwd = -1;
-                                for (iarg = ioffset + 1; iarg < narg; iarg++) {
-                                        s = string(arg[iarg]);
-                                        if (s.compare(0, t.length(), t) == 0) {
-                                                iNextKwd = iarg;
-                                                break;
-                                        }
-                                }
-
-                                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *STRENGTH_LINEAR_PLASTIC");
-                                if (iNextKwd - ioffset != 3 + 1)
-                                        error->all(FLERR, "expected 3 arguments following *STRENGTH_LINEAR_PLASTIC but got {}\n", iNextKwd - ioffset - 1);
-
-                                Lookup[SHEAR_MODULUS][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
-                                Lookup[YIELD_STRENGTH][itype] = utils::numeric(FLERR, arg[ioffset + 2],false,lmp);
-                                Lookup[HARDENING_PARAMETER][itype] = utils::numeric(FLERR, arg[ioffset + 3],false,lmp);
-
-                                if (comm->me == 0) {
-                                        printf(FORMAT2, "linear elastic / ideal plastic material mode");
-                                        printf(FORMAT1, "yield_strength", Lookup[YIELD_STRENGTH][itype]);
-                                        printf(FORMAT1, "constant hardening parameter", Lookup[HARDENING_PARAMETER][itype]);
-                                        printf(FORMAT1, "shear modulus", Lookup[SHEAR_MODULUS][itype]);
-                                }
-                        } // end *STRENGTH_LINEAR_PLASTIC
-                        else if (strcmp(arg[ioffset], "*STRENGTH_LINEAR") == 0) {
-
-                                if (!velocity_gradient) {
-                                        error->all(FLERR, "A strength model was requested but *VELOCITY_GRADIENT is not set");
-                                }
-
-                                /*
-                                 * linear elastic / ideal plastic material model with strength
-                                 */
-
-                                strength[itype] = STRENGTH_LINEAR;
-                                t = string("*");
-                                iNextKwd = -1;
-                                for (iarg = ioffset + 1; iarg < narg; iarg++) {
-                                        s = string(arg[iarg]);
-                                        if (s.compare(0, t.length(), t) == 0) {
-                                                iNextKwd = iarg;
-                                                break;
-                                        }
-                                }
-
-                                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *STRENGTH_LINEAR");
-                                if (iNextKwd - ioffset != 1 + 1)
-                                        error->all(FLERR, "expected 1 arguments following *STRENGTH_LINEAR but got {}\n", iNextKwd - ioffset - 1);
-
-                                Lookup[SHEAR_MODULUS][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
-
-                                if (comm->me == 0) {
-                                        printf(FORMAT2, "linear elastic strength model");
-                                        printf(FORMAT1, "shear modulus", Lookup[SHEAR_MODULUS][itype]);
-                                }
-                        } // end *STRENGTH_LINEAR
-                        else if (strcmp(arg[ioffset], "*VISCOSITY_NEWTON") == 0) {
-
-                                if (!velocity_gradient) {
-                                        error->all(FLERR, "A viscosity model was requested but *VELOCITY_GRADIENT is not set");
-                                }
-
-                                /*
-                                 * linear elastic / ideal plastic material model with strength
-                                 */
-
-                                viscosity[itype] = VISCOSITY_NEWTON;
-                                t = string("*");
-                                iNextKwd = -1;
-                                for (iarg = ioffset + 1; iarg < narg; iarg++) {
-                                        s = string(arg[iarg]);
-                                        if (s.compare(0, t.length(), t) == 0) {
-                                                iNextKwd = iarg;
-                                                break;
-                                        }
-                                }
-
-                                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *VISCOSITY_NEWTON");
-                                if (iNextKwd - ioffset != 1 + 1)
-                                        error->all(FLERR, "expected 1 arguments following *VISCOSITY_NEWTON but got {}\n", iNextKwd - ioffset - 1);
-
-                                Lookup[VISCOSITY_MU][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
-
-                                if (comm->me == 0) {
-                                        printf(FORMAT2, "Newton viscosity model");
-                                        printf(FORMAT1, "viscosity mu", Lookup[VISCOSITY_MU][itype]);
-                                }
-                        } // end *STRENGTH_VISCOSITY_NEWTON
-
-                        else if (strcmp(arg[ioffset], "*ARTIFICIAL_PRESSURE") == 0) {
-
-                                /*
-                                 * use Monaghan's artificial pressure to prevent particle clumping
-                                 */
-
-                                t = string("*");
-                                iNextKwd = -1;
-                                for (iarg = ioffset + 1; iarg < narg; iarg++) {
-                                        s = string(arg[iarg]);
-                                        if (s.compare(0, t.length(), t) == 0) {
-                                                iNextKwd = iarg;
-                                                break;
-                                        }
-                                }
-
-                                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *ARTIFICIAL_PRESSURE");
-                                if (iNextKwd - ioffset != 1 + 1)
-                                        error->all(FLERR, "expected 1 arguments following *ARTIFICIAL_PRESSURE but got {}\n", iNextKwd - ioffset - 1);
-
-                                artificial_pressure[itype][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
-
-                                if (comm->me == 0) {
-                                        printf(FORMAT2, "Artificial Pressure is enabled.");
-                                        printf(FORMAT1, "Artificial Pressure amplitude", artificial_pressure[itype][itype]);
-                                }
-                        } // end *ARTIFICIAL_PRESSURE
-
-                        else if (strcmp(arg[ioffset], "*ARTIFICIAL_STRESS") == 0) {
-
-                                /*
-                                 * use Monaghan's artificial stress to prevent particle clumping
-                                 */
-
-                                t = string("*");
-                                iNextKwd = -1;
-                                for (iarg = ioffset + 1; iarg < narg; iarg++) {
-                                        s = string(arg[iarg]);
-                                        if (s.compare(0, t.length(), t) == 0) {
-                                                iNextKwd = iarg;
-                                                break;
-                                        }
-                                }
-
-                                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *ARTIFICIAL_STRESS");
-                                if (iNextKwd - ioffset != 1 + 1)
-                                        error->all(FLERR, "expected 1 arguments following *ARTIFICIAL_STRESS but got {}\n", iNextKwd - ioffset - 1);
-
-                                artificial_stress[itype][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
-
-                                if (comm->me == 0) {
-                                        printf(FORMAT2, "Artificial Stress is enabled.");
-                                        printf(FORMAT1, "Artificial Stress amplitude", artificial_stress[itype][itype]);
-                                }
-                        } // end *ARTIFICIAL_STRESS
-
-                        else error->all(FLERR, "unknown *KEYWORD: {}", arg[ioffset]);
-                }
-
-                /*
-                 * copy data which is looked up in inner pairwise loops from slow maps to fast arrays
-                 */
-
-                rho0[itype] = Lookup[REFERENCE_DENSITY][itype];
-                c0_type[itype] = Lookup[REFERENCE_SOUNDSPEED][itype];
-                setflag[itype][itype] = 1;
-
-                /*
-                 * error checks
-                 */
-
-                if ((viscosity[itype] != NONE) && (strength[itype] != NONE))
-                  error->all(FLERR, "cannot have both a strength and viscosity model for particle type {}", itype);
-
-                if (eos[itype] == NONE)
-                  error->all(FLERR, "must specify an EOS for particle type {}", itype);
-
-        } else {
-                /*
-                 * we are reading a cross-interaction line for particle types i, j
-                 */
-
-                itype = utils::inumeric(FLERR, arg[0],false,lmp);
-                jtype = utils::inumeric(FLERR, arg[1],false,lmp);
-
-                if (strcmp(arg[2], "*CROSS") != 0)
-                        error->all(FLERR, "ulsph cross interaction between particle type {} and {} requested, however, *CROSS keyword is missing",
-                                        itype, jtype);
-
-                if (setflag[itype][itype] != 1)
-                        error->all(FLERR, "ulsph cross interaction between particle type {} and {} requested, however, properties of type {}  have not yet been specified", itype, jtype, itype);
-
-                if (setflag[jtype][jtype] != 1)
-                        error->all(FLERR, "ulsph cross interaction between particle type {} and {} requested, however, properties of type {}  have not yet been specified", itype, jtype, jtype);
-
-                setflag[itype][jtype] = 1;
-                setflag[jtype][itype] = 1;
-
-                if ((artificial_pressure[itype][itype] > 0.0) && (artificial_pressure[jtype][jtype] > 0.0)) {
-                        artificial_pressure[itype][jtype] = 0.5 * (artificial_pressure[itype][itype] + artificial_pressure[jtype][jtype]);
-                        artificial_pressure[jtype][itype] = artificial_pressure[itype][jtype];
-                } else {
-                        artificial_pressure[itype][jtype] = artificial_pressure[jtype][itype] = 0.0;
-                }
-
-                if ((artificial_stress[itype][itype] > 0.0) && (artificial_stress[jtype][jtype] > 0.0)) {
-                        artificial_stress[itype][jtype] = 0.5 * (artificial_stress[itype][itype] + artificial_stress[jtype][jtype]);
-                        artificial_stress[jtype][itype] = artificial_stress[itype][jtype];
-                } else {
-                        artificial_stress[itype][jtype] = artificial_stress[jtype][itype] = 0.0;
-                }
-
-                if (comm->me == 0) {
-                        printf(">>========>>========>>========>>========>>========>>========>>========>>========\n");
-                }
-
+        eos[itype] = EOS_TAIT;
+
+        t = string("*");
+        iNextKwd = -1;
+        for (iarg = ioffset + 1; iarg < narg; iarg++) {
+          s = string(arg[iarg]);
+          if (s.compare(0, t.length(), t) == 0) {
+            iNextKwd = iarg;
+            break;
+          }
         }
+
+        if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *EOS_TAIT");
+
+        if (iNextKwd - ioffset != 1 + 1)
+          error->all(FLERR, "expected 1 arguments following *EOS_TAIT but got {}\n", iNextKwd - ioffset - 1);
+
+        Lookup[EOS_TAIT_EXPONENT][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+
+        if (comm->me == 0) {
+          printf(FORMAT2, "Tait EOS");
+          printf(FORMAT1, "Exponent", Lookup[EOS_TAIT_EXPONENT][itype]);
+        }
+      } // end Tait EOS
+
+      else if (strcmp(arg[ioffset], "*EOS_PERFECT_GAS") == 0) {
+
+        /*
+         * Perfect Gas EOS
+         */
+
+        eos[itype] = EOS_PERFECT_GAS;
+
+        t = string("*");
+        iNextKwd = -1;
+        for (iarg = ioffset + 1; iarg < narg; iarg++) {
+          s = string(arg[iarg]);
+          if (s.compare(0, t.length(), t) == 0) {
+            iNextKwd = iarg;
+            break;
+          }
+        }
+
+        if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *EOS_PERFECT_GAS");
+        if (iNextKwd - ioffset != 1 + 1)
+          error->all(FLERR, "expected 1 arguments following *EOS_PERFECT_GAS but got {}\n", iNextKwd - ioffset - 1);
+
+        Lookup[EOS_PERFECT_GAS_GAMMA][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+
+        if (comm->me == 0) {
+          printf(FORMAT2, "Perfect Gas EOS");
+          printf(FORMAT1, "Heat Capacity Ratio Gamma", Lookup[EOS_PERFECT_GAS_GAMMA][itype]);
+        }
+      } // end Perfect Gas EOS
+      else if (strcmp(arg[ioffset], "*EOS_LINEAR") == 0) {
+
+        /*
+         * Linear EOS
+         */
+
+        eos[itype] = EOS_LINEAR;
+
+        t = string("*");
+        iNextKwd = -1;
+        for (iarg = ioffset + 1; iarg < narg; iarg++) {
+          s = string(arg[iarg]);
+          if (s.compare(0, t.length(), t) == 0) {
+            iNextKwd = iarg;
+            break;
+          }
+        }
+
+        if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *EOS_LINEAR");
+        if (iNextKwd - ioffset != 0 + 1)
+          error->all(FLERR, "expected 0 arguments following *EOS_LINEAR but got {}\n", iNextKwd - ioffset - 1);
+
+        if (comm->me == 0) {
+          printf(FORMAT2, "Linear EOS");
+          printf(FORMAT1, "Bulk modulus", Lookup[BULK_MODULUS][itype]);
+        }
+      } // end Linear EOS
+      else if (strcmp(arg[ioffset], "*STRENGTH_LINEAR_PLASTIC") == 0) {
+
+        if (!velocity_gradient) {
+          error->all(FLERR, "A strength model was requested but *VELOCITY_GRADIENT is not set");
+        }
+
+        /*
+         * linear elastic / ideal plastic material model with strength
+         */
+
+        strength[itype] = STRENGTH_LINEAR_PLASTIC;
+        velocity_gradient_required = true;
+
+        t = string("*");
+        iNextKwd = -1;
+        for (iarg = ioffset + 1; iarg < narg; iarg++) {
+          s = string(arg[iarg]);
+          if (s.compare(0, t.length(), t) == 0) {
+            iNextKwd = iarg;
+            break;
+          }
+        }
+
+        if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *STRENGTH_LINEAR_PLASTIC");
+        if (iNextKwd - ioffset != 3 + 1)
+          error->all(FLERR, "expected 3 arguments following *STRENGTH_LINEAR_PLASTIC but got {}\n", iNextKwd - ioffset - 1);
+
+        Lookup[SHEAR_MODULUS][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+        Lookup[YIELD_STRENGTH][itype] = utils::numeric(FLERR, arg[ioffset + 2],false,lmp);
+        Lookup[HARDENING_PARAMETER][itype] = utils::numeric(FLERR, arg[ioffset + 3],false,lmp);
+
+        if (comm->me == 0) {
+          printf(FORMAT2, "linear elastic / ideal plastic material mode");
+          printf(FORMAT1, "yield_strength", Lookup[YIELD_STRENGTH][itype]);
+          printf(FORMAT1, "constant hardening parameter", Lookup[HARDENING_PARAMETER][itype]);
+          printf(FORMAT1, "shear modulus", Lookup[SHEAR_MODULUS][itype]);
+        }
+      } // end *STRENGTH_LINEAR_PLASTIC
+      else if (strcmp(arg[ioffset], "*STRENGTH_LINEAR") == 0) {
+
+        if (!velocity_gradient) {
+          error->all(FLERR, "A strength model was requested but *VELOCITY_GRADIENT is not set");
+        }
+
+        /*
+         * linear elastic / ideal plastic material model with strength
+         */
+
+        strength[itype] = STRENGTH_LINEAR;
+        t = string("*");
+        iNextKwd = -1;
+        for (iarg = ioffset + 1; iarg < narg; iarg++) {
+          s = string(arg[iarg]);
+          if (s.compare(0, t.length(), t) == 0) {
+            iNextKwd = iarg;
+            break;
+          }
+        }
+
+        if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *STRENGTH_LINEAR");
+        if (iNextKwd - ioffset != 1 + 1)
+          error->all(FLERR, "expected 1 arguments following *STRENGTH_LINEAR but got {}\n", iNextKwd - ioffset - 1);
+
+        Lookup[SHEAR_MODULUS][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+
+        if (comm->me == 0) {
+          printf(FORMAT2, "linear elastic strength model");
+          printf(FORMAT1, "shear modulus", Lookup[SHEAR_MODULUS][itype]);
+        }
+      } // end *STRENGTH_LINEAR
+      else if (strcmp(arg[ioffset], "*VISCOSITY_NEWTON") == 0) {
+
+        if (!velocity_gradient) {
+          error->all(FLERR, "A viscosity model was requested but *VELOCITY_GRADIENT is not set");
+        }
+
+        /*
+         * linear elastic / ideal plastic material model with strength
+         */
+
+        viscosity[itype] = VISCOSITY_NEWTON;
+        t = string("*");
+        iNextKwd = -1;
+        for (iarg = ioffset + 1; iarg < narg; iarg++) {
+          s = string(arg[iarg]);
+          if (s.compare(0, t.length(), t) == 0) {
+            iNextKwd = iarg;
+            break;
+          }
+        }
+
+        if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *VISCOSITY_NEWTON");
+        if (iNextKwd - ioffset != 1 + 1)
+          error->all(FLERR, "expected 1 arguments following *VISCOSITY_NEWTON but got {}\n", iNextKwd - ioffset - 1);
+
+        Lookup[VISCOSITY_MU][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+
+        if (comm->me == 0) {
+          printf(FORMAT2, "Newton viscosity model");
+          printf(FORMAT1, "viscosity mu", Lookup[VISCOSITY_MU][itype]);
+        }
+      } // end *STRENGTH_VISCOSITY_NEWTON
+
+      else if (strcmp(arg[ioffset], "*ARTIFICIAL_PRESSURE") == 0) {
+
+        /*
+         * use Monaghan's artificial pressure to prevent particle clumping
+         */
+
+        t = string("*");
+        iNextKwd = -1;
+        for (iarg = ioffset + 1; iarg < narg; iarg++) {
+          s = string(arg[iarg]);
+          if (s.compare(0, t.length(), t) == 0) {
+            iNextKwd = iarg;
+            break;
+          }
+        }
+
+        if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *ARTIFICIAL_PRESSURE");
+        if (iNextKwd - ioffset != 1 + 1)
+          error->all(FLERR, "expected 1 arguments following *ARTIFICIAL_PRESSURE but got {}\n", iNextKwd - ioffset - 1);
+
+        artificial_pressure[itype][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+
+        if (comm->me == 0) {
+          printf(FORMAT2, "Artificial Pressure is enabled.");
+          printf(FORMAT1, "Artificial Pressure amplitude", artificial_pressure[itype][itype]);
+        }
+      } // end *ARTIFICIAL_PRESSURE
+
+      else if (strcmp(arg[ioffset], "*ARTIFICIAL_STRESS") == 0) {
+
+        /*
+         * use Monaghan's artificial stress to prevent particle clumping
+         */
+
+        t = string("*");
+        iNextKwd = -1;
+        for (iarg = ioffset + 1; iarg < narg; iarg++) {
+          s = string(arg[iarg]);
+          if (s.compare(0, t.length(), t) == 0) {
+            iNextKwd = iarg;
+            break;
+          }
+        }
+
+        if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *ARTIFICIAL_STRESS");
+        if (iNextKwd - ioffset != 1 + 1)
+          error->all(FLERR, "expected 1 arguments following *ARTIFICIAL_STRESS but got {}\n", iNextKwd - ioffset - 1);
+
+        artificial_stress[itype][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+
+        if (comm->me == 0) {
+          printf(FORMAT2, "Artificial Stress is enabled.");
+          printf(FORMAT1, "Artificial Stress amplitude", artificial_stress[itype][itype]);
+        }
+      } // end *ARTIFICIAL_STRESS
+
+      else error->all(FLERR, "unknown *KEYWORD: {}", arg[ioffset]);
+    }
+
+    /*
+     * copy data which is looked up in inner pairwise loops from slow maps to fast arrays
+     */
+
+    rho0[itype] = Lookup[REFERENCE_DENSITY][itype];
+    c0_type[itype] = Lookup[REFERENCE_SOUNDSPEED][itype];
+    setflag[itype][itype] = 1;
+
+    /*
+     * error checks
+     */
+
+    if ((viscosity[itype] != NONE) && (strength[itype] != NONE))
+      error->all(FLERR, "cannot have both a strength and viscosity model for particle type {}", itype);
+
+    if (eos[itype] == NONE)
+      error->all(FLERR, "must specify an EOS for particle type {}", itype);
+
+  } else {
+    /*
+     * we are reading a cross-interaction line for particle types i, j
+     */
+
+    itype = utils::inumeric(FLERR, arg[0],false,lmp);
+    jtype = utils::inumeric(FLERR, arg[1],false,lmp);
+
+    if (strcmp(arg[2], "*CROSS") != 0)
+      error->all(FLERR, "ulsph cross interaction between particle type {} and {} requested, however, *CROSS keyword is missing",
+                 itype, jtype);
+
+    if (setflag[itype][itype] != 1)
+      error->all(FLERR, "ulsph cross interaction between particle type {} and {} requested, however, properties of type {}  have not yet been specified", itype, jtype, itype);
+
+    if (setflag[jtype][jtype] != 1)
+      error->all(FLERR, "ulsph cross interaction between particle type {} and {} requested, however, properties of type {}  have not yet been specified", itype, jtype, jtype);
+
+    setflag[itype][jtype] = 1;
+    setflag[jtype][itype] = 1;
+
+    if ((artificial_pressure[itype][itype] > 0.0) && (artificial_pressure[jtype][jtype] > 0.0)) {
+      artificial_pressure[itype][jtype] = 0.5 * (artificial_pressure[itype][itype] + artificial_pressure[jtype][jtype]);
+      artificial_pressure[jtype][itype] = artificial_pressure[itype][jtype];
+    } else {
+      artificial_pressure[itype][jtype] = artificial_pressure[jtype][itype] = 0.0;
+    }
+
+    if ((artificial_stress[itype][itype] > 0.0) && (artificial_stress[jtype][jtype] > 0.0)) {
+      artificial_stress[itype][jtype] = 0.5 * (artificial_stress[itype][itype] + artificial_stress[jtype][jtype]);
+      artificial_stress[jtype][itype] = artificial_stress[itype][jtype];
+    } else {
+      artificial_stress[itype][jtype] = artificial_stress[jtype][itype] = 0.0;
+    }
+
+    if (comm->me == 0) {
+      printf(">>========>>========>>========>>========>>========>>========>>========>>========\n");
+    }
+
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1319,17 +1320,19 @@ void PairULSPH::coeff(int narg, char **arg) {
 
 double PairULSPH::init_one(int i, int j) {
 
-        if (!allocated) allocate();
+  if (!allocated) allocate();
 
-        if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
 // cutoff = sum of max I,J radii for
 // dynamic/dynamic & dynamic/frozen interactions, but not frozen/frozen
 
-        double cutoff = maxrad_dynamic[i] + maxrad_dynamic[j];
-        cutoff = MAX(cutoff, maxrad_frozen[i] + maxrad_dynamic[j]);
-        cutoff = MAX(cutoff, maxrad_dynamic[i] + maxrad_frozen[j]);
-        return cutoff;
+  double cutoff = maxrad_dynamic[i] + maxrad_dynamic[j];
+  cutoff = MAX(cutoff, maxrad_frozen[i] + maxrad_dynamic[j]);
+  cutoff = MAX(cutoff, maxrad_dynamic[i] + maxrad_frozen[j]);
+  return cutoff;
 }
 
 /* ----------------------------------------------------------------------

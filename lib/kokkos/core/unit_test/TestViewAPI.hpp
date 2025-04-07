@@ -1002,19 +1002,20 @@ class TestViewAPI {
     hView3 hv_3("dView3::HostMirror", N0);
     hView4 hv_4("dView4::HostMirror", N0);
 
-    dView0 dv_0_1(nullptr);
+    dView0 dummy("dummy");
+    dView0 dv_0_1(dummy.data());
     dView0 dv_0_2(hv_0.label(), hv_0.layout());
 
-    dView1 dv_1_1(nullptr, N0);
+    dView1 dv_1_1(dummy.data(), N0);
     dView1 dv_1_2(hv_1.label(), hv_1.layout());
 
-    dView2 dv_2_1(nullptr, N0);
+    dView2 dv_2_1(dummy.data(), N0);
     dView2 dv_2_2(hv_2.label(), hv_2.layout());
 
-    dView3 dv_3_1(nullptr, N0);
+    dView3 dv_3_1(dummy.data(), N0);
     dView3 dv_3_2(hv_3.label(), hv_3.layout());
 
-    dView4 dv_4_1(nullptr, N0);
+    dView4 dv_4_1(dummy.data(), N0);
     dView4 dv_4_2(hv_4.label(), hv_4.layout());
   }
 
@@ -1358,12 +1359,11 @@ class TestViewAPI {
     ASSERT_EQ(original.use_count(), 1);
 
     // test_refcount_poison_copy_functor throws during copy construction
-    try {
-      Kokkos::parallel_for(
-          Kokkos::RangePolicy<typename DeviceType::execution_space>(0, N0),
-          test_refcount_poison_copy_functor(original));
-    } catch (const std::bad_alloc &) {
-    }
+    ASSERT_THROW(
+        Kokkos::parallel_for(
+            Kokkos::RangePolicy<typename DeviceType::execution_space>(0, N0),
+            test_refcount_poison_copy_functor(original));
+        , std::bad_alloc);
 
     // Ensure refcounting is enabled, we should increment here
     auto copy = original;
@@ -1423,7 +1423,7 @@ class TestViewAPI {
     // an lvalue reference due to retrieving through texture cache
     // therefore not allowed to query the underlying pointer.
 #if defined(KOKKOS_ENABLE_CUDA)
-    if (!std::is_same<typename device::execution_space, Kokkos::Cuda>::value)
+    if (!std::is_same_v<typename device::execution_space, Kokkos::Cuda>)
 #endif
     {
       ASSERT_EQ(x.data(), xr.data());

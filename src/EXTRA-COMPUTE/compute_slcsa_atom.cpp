@@ -81,12 +81,12 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
 
   int twojmax = utils::inumeric(FLERR, arg[3], false, lmp);
   if (twojmax < 0)
-    error->all(FLERR, "Illegal compute slcsa/atom command: twojmax must be a non-negative integer");
+    error->all(FLERR, 3, "Illegal compute slcsa/atom command: twojmax must be >= 0");
   ncomps = compute_ncomps(twojmax);
 
   nclasses = utils::inumeric(FLERR, arg[4], false, lmp);
   if (nclasses < 2)
-    error->all(FLERR, "Illegal compute slcsa/atom command: nclasses must be greater than 1");
+    error->all(FLERR, 4, "Illegal compute slcsa/atom command: nclasses must be greater than 1");
 
   database_mean_descriptor_file = arg[5];
   lda_scalings_file = arg[6];
@@ -103,40 +103,32 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
     utils::logmesg(lmp, mesg);
   }
 
-  int expand = 0;
-  char **earg;
-  int nvalues = utils::expand_args(FLERR, narg - 10, &arg[10], 1, earg, lmp);
-  if (earg != &arg[10]) expand = 1;
-  arg = earg;
-
-  ArgInfo argi(arg[0]);
+  ArgInfo argi(arg[10]);
   value_t val;
   val.id = "";
   val.val.c = nullptr;
   val.which = argi.get_type();
   val.argindex = argi.get_index1();
   val.id = argi.get_name();
+
   if ((val.which == ArgInfo::FIX) || (val.which == ArgInfo::VARIABLE) ||
       (val.which == ArgInfo::UNKNOWN) || (val.which == ArgInfo::NONE) || (argi.get_dim() > 1))
-    error->all(FLERR, "Invalid compute slcsa/atom argument: {}", arg[0]);
-
-  // if wildcard expansion occurred, free earg memory from exapnd_args()
-
-  if (expand) {
-    for (int i = 0; i < nvalues; i++) delete[] earg[i];
-    memory->sfree(earg);
-  }
+    error->all(FLERR, 10, "Invalid compute slcsa/atom argument: {}", arg[0]);
 
   val.val.c = modify->get_compute_by_id(val.id);
-  if (!val.val.c) error->all(FLERR, "Compute ID {} for fix slcsa/atom does not exist", val.id);
+  if (!val.val.c) error->all(FLERR, 10, "Compute ID {} for fix slcsa/atom does not exist", val.id);
   if (val.val.c->peratom_flag == 0)
-    error->all(FLERR, "Compute slcsa/atom compute {} does not calculate per-atom values", val.id);
+    error->all(FLERR, 10, "Compute slcsa/atom compute {} does not calculate per-atom values",
+               val.id);
   if (val.argindex == 0 && val.val.c->size_peratom_cols != 0)
-    error->all(FLERR, "Compute slcsa/atom compute {} does not calculate a per-atom vector", val.id);
+    error->all(FLERR, 10, "Compute slcsa/atom compute {} does not calculate a per-atom vector",
+               val.id);
   if (val.argindex && val.val.c->size_peratom_cols == 0)
-    error->all(FLERR, "Compute slcsa/atom compute {} does not calculate a per-atom array", val.id);
+    error->all(FLERR, 10, "Compute slcsa/atom compute {} does not calculate a per-atom array",
+               val.id);
   if (val.argindex && val.argindex > val.val.c->size_peratom_cols)
-    error->all(FLERR, "Compute slcsa/atom compute {} array is accessed out-of-range", val.id);
+    error->all(FLERR, 10, "Compute slcsa/atom compute {} array is accessed out-of-range{}", val.id,
+               utils::errorurl(20));
   descriptorval = val;
   memory->create(database_mean_descriptor, ncomps, "slcsa/atom:database_mean_descriptor");
   memory->create(lda_scalings, ncomps, nclasses - 1, "slcsa/atom:lda_scalings");
@@ -150,7 +142,7 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
   if (comm->me == 0) {
 
     if (strcmp(database_mean_descriptor_file, "NULL") == 0) {
-      error->one(FLERR,
+      error->one(FLERR, Error::NOLASTLINE,
                  "Cannot open database mean descriptor file {}: ", database_mean_descriptor_file,
                  utils::getsyserror());
     } else {
@@ -165,8 +157,8 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
     }
 
     if (strcmp(lda_scalings_file, "NULL") == 0) {
-      error->one(FLERR, "Cannot open database linear discriminant analysis scalings file {}: ",
-                 lda_scalings_file, utils::getsyserror());
+      error->one(FLERR, Error::NOLASTLINE, "Cannot open database linear discriminant analysis "
+                 "scalings file {}: ", lda_scalings_file, utils::getsyserror());
     } else {
       PotentialFileReader reader(lmp, lda_scalings_file, "lda scalings file");
       int nread = 0;
@@ -180,8 +172,8 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
     }
 
     if (strcmp(lr_decision_file, "NULL") == 0) {
-      error->one(FLERR, "Cannot open logistic regression decision file {}: ", lr_decision_file,
-                 utils::getsyserror());
+      error->one(FLERR, Error::NOLASTLINE, "Cannot open logistic regression decision file {}: ",
+                 lr_decision_file, utils::getsyserror());
     } else {
       PotentialFileReader reader(lmp, lr_decision_file, "lr decision file");
       int nread = 0;
@@ -195,8 +187,8 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
     }
 
     if (strcmp(lr_bias_file, "NULL") == 0) {
-      error->one(FLERR, "Cannot open logistic regression bias file {}: ", lr_bias_file,
-                 utils::getsyserror());
+      error->one(FLERR, Error::NOLASTLINE, "Cannot open logistic regression bias file {}: ",
+                 lr_bias_file, utils::getsyserror());
     } else {
       PotentialFileReader reader(lmp, lr_bias_file, "lr bias file");
       auto values = reader.next_values(nclasses);
@@ -207,7 +199,8 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
     }
 
     if (strcmp(maha_file, "NULL") == 0) {
-      error->one(FLERR, "Cannot open mahalanobis stats file {}: ", maha_file, utils::getsyserror());
+      error->one(FLERR, Error::NOLASTLINE, "Cannot open mahalanobis stats file {}: ", maha_file,
+                 utils::getsyserror());
     } else {
       PotentialFileReader reader(lmp, maha_file, "mahalanobis stats file");
       int nvalues = nclasses * ((nclasses - 1) * (nclasses - 1) + nclasses);

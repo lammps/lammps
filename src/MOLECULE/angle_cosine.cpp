@@ -155,7 +155,7 @@ void AngleCosine::allocate()
 
 void AngleCosine::coeff(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR, "Incorrect args for angle coefficients");
+  if (narg != 2) error->all(FLERR, "Incorrect args for angle coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -170,7 +170,7 @@ void AngleCosine::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients" + utils::errorurl(21));
 }
 
 /* ---------------------------------------------------------------------- */

@@ -419,6 +419,8 @@
 /compute_hexorder_atom.h
 /dump_dcd.cpp
 /dump_dcd.h
+/dump_extxyz.cpp
+/dump_extxyz.h
 /fix_controller.cpp
 /fix_controller.h
 /fix_drag.cpp
@@ -996,6 +998,8 @@
 /fix_qeq_fire.h
 /fix_qeq_reaxff.cpp
 /fix_qeq_reaxff.h
+/fix_qeq_rel_reaxff.cpp
+/fix_qeq_rel_reaxff.h
 /fix_qmmm.cpp
 /fix_qmmm.h
 /fix_qtpie_reaxff.cpp
@@ -1661,10 +1665,14 @@
 /fix_pimd.h
 /fix_pimd_langevin.cpp
 /fix_pimd_langevin.h
+/fix_pimd_langevin_bosonic.cpp
+/fix_pimd_langevin_bosonic.h
 /fix_alchemy.cpp
 /fix_alchemy.h
 /fix_pimd_nvt.cpp
 /fix_pimd_nvt.h
+/fix_pimd_nvt_bosonic.cpp
+/fix_pimd_nvt_bosonic.h
 /fix_qbmsst.cpp
 /fix_qbmsst.h
 /fix_qtb.cpp

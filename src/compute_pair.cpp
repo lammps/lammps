@@ -113,7 +113,8 @@ double ComputePair::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
   if (update->eflag_global != invoked_scalar)
-    error->all(FLERR, "Energy was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Energy was not tallied on needed timestep{}",
+               utils::errorurl(22));
 
   double eng;
   if (evalue == EPAIR)
@@ -133,7 +134,8 @@ void ComputePair::compute_vector()
 {
   invoked_vector = update->ntimestep;
   if (update->eflag_global != invoked_vector)
-    error->all(FLERR, "Energy was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Energy was not tallied on needed timestep{}",
+               utils::errorurl(22));
 
   for (int i = 0; i < npair; i++) one[i] = pair->pvector[i];
   MPI_Allreduce(one, vector, npair, MPI_DOUBLE, MPI_SUM, world);

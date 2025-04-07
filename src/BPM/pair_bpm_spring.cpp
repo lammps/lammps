@@ -199,7 +199,7 @@ void PairBPMSpring::settings(int narg, char ** arg)
 void PairBPMSpring::coeff(int narg, char **arg)
 {
   if ((!anharmonic_flag && narg != 5) || (anharmonic_flag && narg != 6))
-    error->all(FLERR, "Incorrect args for pair coefficients");
+    error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -214,7 +214,7 @@ void PairBPMSpring::coeff(int narg, char **arg)
   if (anharmonic_flag)
     ka_one = utils::numeric(FLERR, arg[5], false, lmp);
 
-  if (cut_one <= 0.0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (cut_one <= 0.0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -229,7 +229,7 @@ void PairBPMSpring::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

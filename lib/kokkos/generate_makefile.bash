@@ -156,6 +156,7 @@ display_help_text() {
       echo "                 ZEN             = AMD Zen-Core CPU"
       echo "                 ZEN2            = AMD Zen2-Core CPU"
       echo "                 ZEN3            = AMD Zen3-Core CPU"
+      echo "                 ZEN4            = AMD Zen4-Core CPU"
       echo "               [AMD: GPU]"
       echo "                 AMD_GFX906      = AMD GPU MI50/MI60 GFX906"
       echo "                 AMD_GFX908      = AMD GPU MI100 GFX908"

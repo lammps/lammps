@@ -40,7 +40,7 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   group2(nullptr)
 {
-  if (narg < 9) error->all(FLERR,"Illegal fix spring command");
+  if (narg < 9) utils::missing_cmd_args(FLERR, "fix spring", error);
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -53,8 +53,9 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  if (strcmp(arg[3],"tether") == 0) {
-    if (narg != 9) error->all(FLERR,"Illegal fix spring command");
+  if (strcmp(arg[3], "tether") == 0) {
+    if (narg != 9)
+      error->all(FLERR, Error::NOPOINTER, "Incorrect number of arguments for tether mode");
     styleflag = TETHER;
     k_spring = utils::numeric(FLERR,arg[4],false,lmp);
     xflag = yflag = zflag = 1;
@@ -65,19 +66,20 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[7],"NULL") == 0) zflag = 0;
     else zc = utils::numeric(FLERR,arg[7],false,lmp);
     r0 = utils::numeric(FLERR,arg[8],false,lmp);
-    if (r0 < 0) error->all(FLERR,"R0 < 0 for fix spring command");
+    if (r0 < 0) error->all(FLERR, 8, "R0 < 0 for fix spring command");
 
   } else if (strcmp(arg[3],"couple") == 0) {
-    if (narg != 10) error->all(FLERR,"Illegal fix spring command");
+    if (narg != 10)
+      error->all(FLERR, Error::NOPOINTER, "Incorrect number of arguments for couple mode");
     styleflag = COUPLE;
 
     group2 = utils::strdup(arg[4]);
-    igroup2 = group->find(arg[4]);
-    if (igroup2 == -1)
-      error->all(FLERR,"Fix spring couple group ID does not exist");
+    igroup2 = group->find(group2);
+    if (igroup2 < 0)
+      error->all(FLERR, 4, "Could not find fix spring couple second group ID {}", group2);
     if (igroup2 == igroup)
-      error->all(FLERR,"Two groups cannot be the same in fix spring couple");
-    group2bit = group->bitmask[igroup2];
+      error->all(FLERR,"The two groups cannot be the same in fix spring couple");
+    group2bit = group->get_bitmask_by_id(FLERR, group2, "fix spring");
 
     k_spring = utils::numeric(FLERR,arg[5],false,lmp);
     xflag = yflag = zflag = 1;
@@ -90,7 +92,7 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
     r0 = utils::numeric(FLERR,arg[9],false,lmp);
     if (r0 < 0) error->all(FLERR,"R0 < 0 for fix spring command");
 
-  } else error->all(FLERR,"Illegal fix spring command");
+  } else error->all(FLERR, 3, "Unknown fix spring keyword {}", arg[3]);
 
   ftotal[0] = ftotal[1] = ftotal[2] = ftotal[3] = 0.0;
 }
@@ -121,9 +123,10 @@ void FixSpring::init()
 
   if (group2) {
     igroup2 = group->find(group2);
-    if (igroup2 == -1)
-      error->all(FLERR,"Fix spring couple group ID does not exist");
-    group2bit = group->bitmask[igroup2];
+    if (igroup2 < 0)
+      error->all(FLERR, Error::NOLASTLINE, "Could not find fix spring couple second group ID {}",
+                 group2);
+    group2bit = group->get_bitmask_by_id(FLERR, group2, "fix spring");
   }
 
   masstotal = group->mass(igroup);

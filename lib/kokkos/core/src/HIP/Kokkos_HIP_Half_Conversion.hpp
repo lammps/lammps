@@ -105,25 +105,25 @@ half_t cast_to_half(unsigned long val) {
 }
 
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, float>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, float>, T>
 cast_from_half(half_t val) {
   return __half2float(half_t::impl_type(val));
 }
 
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, bool>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, bool>, T>
 cast_from_half(half_t val) {
   return static_cast<T>(cast_from_half<float>(val));
 }
 
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, double>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, double>, T>
 cast_from_half(half_t val) {
   return static_cast<T>(__half2float(half_t::impl_type(val)));
 }
 
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, short>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, short>, T>
 cast_from_half(half_t val) {
 #ifdef __HIP_DEVICE_COMPILE__
   return __half2short_rz(half_t::impl_type(val));
@@ -133,9 +133,8 @@ cast_from_half(half_t val) {
 }
 
 template <class T>
-KOKKOS_INLINE_FUNCTION
-    std::enable_if_t<std::is_same<T, unsigned short>::value, T>
-    cast_from_half(half_t val) {
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, unsigned short>, T>
+cast_from_half(half_t val) {
 #ifdef __HIP_DEVICE_COMPILE__
   return __half2ushort_rz(half_t::impl_type(val));
 #else
@@ -143,7 +142,7 @@ KOKKOS_INLINE_FUNCTION
 #endif
 }
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, int>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, int>, T>
 cast_from_half(half_t val) {
 #ifdef __HIP_DEVICE_COMPILE__
   return __half2int_rz(half_t::impl_type(val));
@@ -153,7 +152,7 @@ cast_from_half(half_t val) {
 }
 
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, unsigned>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, unsigned>, T>
 cast_from_half(half_t val) {
 #ifdef __HIP_DEVICE_COMPILE__
   return __half2uint_rz(half_t::impl_type(val));
@@ -163,7 +162,7 @@ cast_from_half(half_t val) {
 }
 
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, long long>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, long long>, T>
 cast_from_half(half_t val) {
 #ifdef __HIP_DEVICE_COMPILE__
   return __half2ll_rz(half_t::impl_type(val));
@@ -174,7 +173,7 @@ cast_from_half(half_t val) {
 
 template <class T>
 KOKKOS_INLINE_FUNCTION
-    std::enable_if_t<std::is_same<T, unsigned long long>::value, T>
+    std::enable_if_t<std::is_same_v<T, unsigned long long>, T>
     cast_from_half(half_t val) {
 #ifdef __HIP_DEVICE_COMPILE__
   return __half2ull_rz(half_t::impl_type(val));
@@ -184,15 +183,14 @@ KOKKOS_INLINE_FUNCTION
 }
 
 template <class T>
-KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, long>::value, T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, long>, T>
 cast_from_half(half_t val) {
   return static_cast<T>(cast_from_half<long long>(val));
 }
 
 template <class T>
-KOKKOS_INLINE_FUNCTION
-    std::enable_if_t<std::is_same<T, unsigned long>::value, T>
-    cast_from_half(half_t val) {
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same_v<T, unsigned long>, T>
+cast_from_half(half_t val) {
   return static_cast<T>(cast_from_half<unsigned long long>(val));
 }
 }  // namespace Experimental

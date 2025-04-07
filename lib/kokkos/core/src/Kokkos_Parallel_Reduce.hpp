@@ -1410,7 +1410,7 @@ struct ParallelReduceReturnValue<
                                         value_type_scalar, value_type_array>;
 
   static return_type& return_value(ReturnType& return_val, const FunctorType&) {
-    return return_val;
+    return return_val;  // NOLINT(bugprone-return-const-ref-from-parameter)
   }
 };
 
@@ -1492,19 +1492,20 @@ struct ParallelReducePolicyType<
   }
 };
 
-template <class FunctorType, class ExecPolicy, class ValueType,
-          class ExecutionSpace>
-struct ParallelReduceFunctorType {
-  using functor_type = FunctorType;
-  static const functor_type& functor(const functor_type& functor) {
-    return functor;
-  }
-};
-
 template <class PolicyType, class FunctorType, class ReturnType>
 struct ParallelReduceAdaptor {
   using return_value_adapter =
       Impl::ParallelReduceReturnValue<void, ReturnType, FunctorType>;
+
+  // Equivalent to std::get<I>(std::tuple) but callable on the device.
+  template <bool B, class T1, class T2>
+  static KOKKOS_FUNCTION std::conditional_t<B, T1&&, T2&&> forwarding_switch(
+      T1&& v1, T2&& v2) {
+    if constexpr (B)
+      return static_cast<T1&&>(v1);
+    else
+      return static_cast<T2&&>(v2);
+  }
 
   static inline void execute_impl(const std::string& label,
                                   const PolicyType& policy,
@@ -1513,18 +1514,21 @@ struct ParallelReduceAdaptor {
     using PassedReducerType = typename return_value_adapter::reducer_type;
     uint64_t kpID           = 0;
 
-    using ReducerSelector =
-        Kokkos::Impl::if_c<std::is_same_v<InvalidType, PassedReducerType>,
-                           FunctorType, PassedReducerType>;
+    constexpr bool passed_reducer_type_is_invalid =
+        std::is_same_v<InvalidType, PassedReducerType>;
+    using TheReducerType = std::conditional_t<passed_reducer_type_is_invalid,
+                                              FunctorType, PassedReducerType>;
+
     using Analysis = FunctorAnalysis<FunctorPatternInterface::REDUCE,
-                                     PolicyType, typename ReducerSelector::type,
+                                     PolicyType, TheReducerType,
                                      typename return_value_adapter::value_type>;
     using CombinedFunctorReducerType =
         CombinedFunctorReducer<FunctorType, typename Analysis::Reducer>;
 
     CombinedFunctorReducerType functor_reducer(
         functor, typename Analysis::Reducer(
-                     ReducerSelector::select(functor, return_value)));
+                     forwarding_switch<passed_reducer_type_is_invalid>(
+                         functor, return_value)));
     const auto& response = Kokkos::Tools::Impl::begin_parallel_reduce<
         typename return_value_adapter::reducer_type>(policy, functor_reducer,
                                                      label, kpID);

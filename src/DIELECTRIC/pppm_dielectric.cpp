@@ -306,8 +306,8 @@ void PPPMDielectric::qsum_qsq(int warning_flag)
   // so issue warning or error
 
   if (fabs(qsum) > SMALL) {
-    std::string message = fmt::format("System is not charge neutral, net "
-                                      "charge = {:.8}",qsum);
+    std::string message = fmt::format("System is not charge neutral, net charge = {:.8}{}",
+                                      qsum, utils::errorurl(29));
     if (!warn_nonneutral) error->all(FLERR,message);
     if (warn_nonneutral == 1 && comm->me == 0) error->warning(FLERR,message);
     warn_nonneutral = 2;

@@ -10,7 +10,7 @@
    fun:MPIDI_OFI_init_local
    ...
    fun:PMPI_Init
-   fun:main
+   ...
 }
 {
    MPICH_MPI_init2
@@ -25,7 +25,7 @@
    fun:MPIDI_OFI_init_local
    ...
    fun:PMPI_Init
-   fun:main
+   ...
 }
 {
    MPICH_MPI_init3
@@ -37,7 +37,7 @@
    fun:MPIDI_OFI_init_local
    ...
    fun:PMPI_Init
-   fun:main
+   ...
 }
 {
    MPICH_MPI_init4
@@ -51,7 +51,7 @@
    fun:MPIDI_Init.constprop.0
    ...
    fun:PMPI_Init
-   fun:main
+   ...
 }
 {
    MPICH_MPI_init5
@@ -65,7 +65,7 @@
    fun:MPID_Init.constprop.0
    ...
    fun:PMPI_Init
-   fun:main
+   ...
 }
 {
    MPICH_MPI_init6
@@ -79,5 +79,45 @@
    ...
    obj:*
    fun:PMPI_Init
-   fun:main
+   ...
+}
+{
+   MPICH_MPI_init7
+   Memcheck:Param
+   socketcall.sendto(msg)
+   fun:__libc_send
+   fun:send
+   ...
+   fun:psmx3_sep_open
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_MPI_init8
+   Memcheck:Param
+   socketcall.sendto(msg)
+   fun:__libc_send
+   fun:send
+   ...
+   fun:psmx3_sep_close
+   ...
+   fun:MPID_Finalize
+   fun:MPII_Finalize
+   fun:*
+   fun:*
+   fun:PMPI_Finalize
+   ...
+}
+{
+   MPICH_MPI_init9
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:psmx3_recv_generic
+   ...
+   fun:MPIDI_OFI_init_local
+   ...
+   fun:PMPI_Init
+   ...
 }

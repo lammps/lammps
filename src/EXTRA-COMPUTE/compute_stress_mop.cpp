@@ -882,7 +882,7 @@ void ComputeStressMop::compute_dihedrals()
   double x_atom_4[3] = {0.0, 0.0, 0.0};
 
   // initialization
-  for (int i = 0; i < nvalues; i++) { dihedral_local[i] = 0.0; }
+  for (int i = 0; i < nvalues; i++) dihedral_local[i] = 0.0;
   double local_contribution[3] = {0.0, 0.0, 0.0};
 
   for (atom2 = 0; atom2 < nlocal; atom2++) {
@@ -1117,6 +1117,7 @@ void ComputeStressMop::compute_dihedrals()
         df[1] = sgn * (f1[1] + f3[1]);
         df[2] = sgn * (f1[2] + f3[2]);
       }
+
       local_contribution[0] += df[0] / area * nktv2p;
       local_contribution[1] += df[1] / area * nktv2p;
       local_contribution[2] += df[2] / area * nktv2p;

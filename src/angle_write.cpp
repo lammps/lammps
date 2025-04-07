@@ -43,11 +43,11 @@ void AngleWrite::command(int narg, char **arg)
   // sanity checks
 
   if (domain->box_exist == 0)
-    error->all(FLERR, "Angle_write command before simulation box is defined");
+    error->all(FLERR, "Angle_write command before simulation box is defined" + utils::errorurl(33));
   if (atom->avec->angles_allow == 0)
     error->all(FLERR, "Angle_write command when no angles allowed");
   auto angle = force->angle;
-  if (angle == nullptr) error->all(FLERR, "Angle_write command before an angle_style is defined");
+  if (angle == nullptr) error->all(FLERR, "Angle_write command before an angle_style is defined" + utils::errorurl(33));
   if (angle && (force->angle->writedata == 0))
     error->all(FLERR, "Angle style must support writing coeffs to data file for angle_write");
 

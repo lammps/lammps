@@ -13,7 +13,8 @@ improper_style: sqdistharm
 improper_coeff: ! |
   1  75.0 5.5
   2  45.0 6.2
-extract: ! ""
+extract: ! |
+  k 1
 natoms: 29
 init_energy: 3997.62616072489
 init_stress: ! |2-

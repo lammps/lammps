@@ -20,7 +20,7 @@ namespace LAMMPS_NS {
 
 class Region : protected Pointers {
  public:
-  enum { CONSTANT, VARIABLE };
+  enum { CONSTANT, VARIABLE, NONE };
 
   char *id, *style;
   Region **reglist;

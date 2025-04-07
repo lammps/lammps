@@ -42,12 +42,12 @@ void DihedralWrite::command(int narg, char **arg)
   // sanity checks
 
   if (domain->box_exist == 0)
-    error->all(FLERR, "Dihedral_write command before simulation box is defined");
+    error->all(FLERR, "Dihedral_write command before simulation box is defined" + utils::errorurl(33));
   if (atom->avec->dihedrals_allow == 0)
     error->all(FLERR, "Dihedral_write command when no dihedrals allowed");
   auto dihedral = force->dihedral;
   if (dihedral == nullptr)
-    error->all(FLERR, "Dihedral_write command before an dihedral_style is defined");
+    error->all(FLERR, "Dihedral_write command before an dihedral_style is defined" + utils::errorurl(33));
   if (dihedral && (force->dihedral->writedata == 0))
     error->all(FLERR, "Dihedral style must support writing coeffs to data file for dihedral_write");
 

@@ -587,11 +587,13 @@ struct Random_XorShift1024_State<false> {
                                             int state_idx)
       : state_(&v(state_idx, 0)), stride_(v.stride_1()) {}
 
+  // NOLINTBEGIN(bugprone-implicit-widening-of-multiplication-result)
   KOKKOS_FUNCTION
   uint64_t operator[](const int i) const { return state_[i * stride_]; }
 
   KOKKOS_FUNCTION
   uint64_t& operator[](const int i) { return state_[i * stride_]; }
+  // NOLINTEND(bugprone-implicit-widening-of-multiplication-result)
 };
 
 template <class ExecutionSpace>
@@ -670,7 +672,12 @@ struct Random_UniqueIndex<Kokkos::Device<Kokkos::SYCL, MemorySpace>> {
       View<int**, Kokkos::Device<Kokkos::SYCL, MemorySpace>>;
   KOKKOS_FUNCTION
   static int get_state_idx(const locks_view_type& locks_) {
+#if defined(KOKKOS_COMPILER_INTEL_LLVM) && \
+    KOKKOS_COMPILER_INTEL_LLVM >= 20250000
+    auto item = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
+#else
     auto item = sycl::ext::oneapi::experimental::this_nd_item<3>();
+#endif
     std::size_t threadIdx[3] = {item.get_local_id(2), item.get_local_id(1),
                                 item.get_local_id(0)};
     std::size_t blockIdx[3]  = {item.get_group(2), item.get_group(1),

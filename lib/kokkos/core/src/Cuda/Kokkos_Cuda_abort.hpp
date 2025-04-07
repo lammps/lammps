@@ -28,6 +28,7 @@ extern "C" {
 /*  Cuda runtime function, declared in <crt/device_runtime.h>
  *  Requires capability 2.x or better.
  */
+// NOLINTNEXTLINE(bugprone-reserved-identifier)
 [[noreturn]] __device__ void __assertfail(const void *message, const void *file,
                                           unsigned int line,
                                           const void *function,

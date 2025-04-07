@@ -68,7 +68,7 @@ LJ cutoff specified in the pair_style command is used.
 
 Note that :math:`\sigma` is defined in the LJ formula as the
 zero-crossing distance for the potential, *not* as the energy minimum at
-:math:`r_0 = 2^{\frac{1}{6}} \sigma`.  The _same_ potential function becomes:
+:math:`r_0 = 2^{\frac{1}{6}} \sigma`.  The *same* potential function becomes:
 
 .. math::
 

@@ -184,7 +184,7 @@ struct VerifyData {
     const auto ext = test_view_h.extent(0);
     if (ext > 0) {
       for (std::size_t i = 0; i < ext; ++i) {
-        if (std::is_same<gold_view_value_type, int>::value) {
+        if (std::is_same_v<gold_view_value_type, int>) {
           ASSERT_EQ(gold_h(i), test_view_h(i));
         } else {
           const auto error =

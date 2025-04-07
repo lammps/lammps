@@ -21,10 +21,11 @@ to the online LAMMPS documentation for known LAMMPS commands and styles.
    Sur or later), and Windows (version 10 or later) :ref:`are available
    <lammps_gui_install>` for download.  Non-MPI LAMMPS executables (as
    ``lmp``) for running LAMMPS from the command-line and :doc:`some
-   LAMMPS tools <Tools>` compiled executables are also included.
-   Also, the pre-compiled LAMMPS-GUI packages include the WHAM executables
+   LAMMPS tools <Tools>` compiled executables are also included.  Also,
+   the pre-compiled LAMMPS-GUI packages include the WHAM executables
    from http://membrane.urmc.rochester.edu/content/wham/ for use with
-   LAMMPS tutorials.
+   LAMMPS tutorials documented in this paper (:ref:`Gravelle1
+   <Gravelle1>`).
 
    The source code for LAMMPS-GUI is included in the LAMMPS source code
    distribution and can be found in the ``tools/lammps-gui`` folder.  It
@@ -720,6 +721,19 @@ output, charts, slide show, variables, or snapshot images.  The
 default settings for their visibility can be changed in the
 *Preferences* dialog.
 
+Tutorials
+^^^^^^^^^
+
+The *Tutorials* menu is to support the set of LAMMPS tutorials for
+beginners and intermediate LAMMPS users documented in (:ref:`Gravelle1
+<Gravelle1>`).  From the drop down menu you can select which of the eight
+currently available tutorial sessions you want to start and then will be
+taken to a 'wizard' dialog where you can choose in which folder you want
+to work, whether you want that folder to be cleared, and also whether
+you want to download the solutions files (can be large).  The dialog
+will then start downloading the files requested and load the first input
+file for the selected session into LAMMPS-GUI.
+
 About
 ^^^^^
 
@@ -848,6 +862,11 @@ General Settings:
   the plots in the *Charts* window in milliseconds.  The default is to
   redraw the plots every 500 milliseconds.  This is just for the drawing,
   data collection is managed with the previous setting.
+- *HTTPS proxy setting:* Allows to enter a URL for an HTTPS proxy.  This
+  may be needed when the LAMMPS input contains :doc:`geturl commands <geturl>`
+  or for downloading tutorial files from the *Tutorials* menu.  If the
+  ``https_proxy`` environment variable was set externally, its value is
+  displayed but cannot be changed.
 
 Accelerators:
 ^^^^^^^^^^^^^
@@ -976,10 +995,21 @@ available (On macOS use the Command key instead of Ctrl/Control).
      - Ctrl+Shift+T
      - LAMMPS Tutorial
 
-Further editing keybindings `are documented with the Qt documentation
+Further keybindings of the editor window `are documented with the Qt
+documentation
 <https://doc.qt.io/qt-5/qplaintextedit.html#editing-key-bindings>`_.  In
 case of conflicts the list above takes precedence.
 
 All other windows only support a subset of keyboard shortcuts listed
 above.  Typically, the shortcuts `Ctrl-/` (Stop Run), `Ctrl-W` (Close
 Window), and `Ctrl-Q` (Quit Application) are supported.
+
+-------------
+
+.. _Gravelle1:
+
+**(Gravelle1)** Gravelle, Gissinger, Kohlmeyer, `arXiv:2503.14020 \[physics.comp-ph\] <https://doi.org/10.48550/arXiv.2503.14020>`_ (2025)
+
+.. _Gravelle2:
+
+**(Gravelle2)** Gravelle https://lammpstutorials.github.io/

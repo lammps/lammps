@@ -142,7 +142,7 @@ is accordingly replaced with a square root. This approximation assumes bonds
 are evenly distributed on a spherical surface and neglects constant prefactors
 which are irrelevant since only the ratio of volumes matters. This term may be
 used to adjust the Poisson's ratio. See the simulation in the
-examples/bpm/poissons_ratio directory for a demonstration of this effect.
+``examples/bpm/poissons_ratio`` directory for a demonstration of this effect.
 
 If a bond is broken (or created), :math:`V_{0,i}` is updated by subtracting
 (or adding) that bond's contribution.
@@ -153,7 +153,7 @@ the data file or restart files read by the :doc:`read_data
 <read_data>` or :doc:`read_restart <read_restart>` commands:
 
 * :math:`k`             (force/distance units)
-* :math:`\epsilon_c`    (unit less)
+* :math:`\epsilon_c`    (unitless)
 * :math:`\gamma`        (force/velocity units)
 
 Additionally, if *volume/factor* is set to *yes*, a fourth coefficient

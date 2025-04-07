@@ -608,7 +608,7 @@ void BondBPMRotational::allocate()
 
 void BondBPMRotational::coeff(int narg, char **arg)
 {
-  if (narg != 13) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (narg != 13) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -647,7 +647,7 @@ void BondBPMRotational::coeff(int narg, char **arg)
     if (Fcr[i] / Kr[i] > max_stretch) max_stretch = Fcr[i] / Kr[i];
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

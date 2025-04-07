@@ -197,7 +197,7 @@ void PPPMGPU::compute(int eflag, int vflag)
     if (!success)
       error->one(FLERR,"Insufficient memory on accelerator");
     if (flag != 0)
-      error->one(FLERR,"Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
+      error->one(FLERR, Error::NOLASTLINE, "Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
   }
 
   // convert atoms from box to lamda coords

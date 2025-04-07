@@ -75,7 +75,7 @@ double ComputePressureAlchemy::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
   if (update->vflag_global != invoked_scalar)
-    error->all(FLERR, Error::NOLASTLINE, "Virial was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Virial was not tallied on needed timestep{}", utils::errorurl(22));
 
   compute_vector();
 
@@ -95,7 +95,7 @@ void ComputePressureAlchemy::compute_vector()
 {
   invoked_vector = update->ntimestep;
   if (update->vflag_global != invoked_vector)
-    error->all(FLERR, Error::NOLASTLINE, "Virial was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Virial was not tallied on needed timestep{}", utils::errorurl(22));
 
   int dim = 0;
   double *pressure = (double *) fix->extract("pressure", dim);

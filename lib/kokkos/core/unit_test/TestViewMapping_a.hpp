@@ -653,64 +653,66 @@ void test_view_mapping() {
     using T = Kokkos::View<int*, Space>;
     using C = Kokkos::View<const int*, Space>;
 
-    int data[N];
+    static_assert(std::is_same_v<typename T::data_type, int*>);
+    static_assert(std::is_same_v<typename T::const_data_type, const int*>);
+    static_assert(std::is_same_v<typename T::non_const_data_type, int*>);
 
-    T vr1(data, N);  // View of non-const.
-    C cr1(vr1);      // View of const from view of non-const.
-    C cr2((const int*)data, N);
+    static_assert(std::is_same_v<typename T::scalar_array_type, int*>);
+    static_assert(
+        std::is_same_v<typename T::const_scalar_array_type, const int*>);
+    static_assert(
+        std::is_same_v<typename T::non_const_scalar_array_type, int*>);
 
-    // Generate static_assert error:
-    // T tmp( cr1 );
+    static_assert(std::is_same_v<typename T::value_type, int>);
+    static_assert(std::is_same_v<typename T::const_value_type, const int>);
+    static_assert(std::is_same_v<typename T::non_const_value_type, int>);
 
-    ASSERT_EQ(vr1.span(), size_t(N));
-    ASSERT_EQ(cr1.span(), size_t(N));
-    ASSERT_EQ(vr1.data(), &data[0]);
-    ASSERT_EQ(cr1.data(), &data[0]);
+    static_assert(
+        std::is_same_v<typename T::memory_space, typename Space::memory_space>);
+    static_assert(std::is_same_v<typename T::reference_type, int&>);
 
-    ASSERT_TRUE((std::is_same_v<typename T::data_type, int*>));
-    ASSERT_TRUE((std::is_same_v<typename T::const_data_type, const int*>));
-    ASSERT_TRUE((std::is_same_v<typename T::non_const_data_type, int*>));
+    static_assert(T::rank == size_t(1));
 
-    ASSERT_TRUE((std::is_same_v<typename T::scalar_array_type, int*>));
-    ASSERT_TRUE(
-        (std::is_same_v<typename T::const_scalar_array_type, const int*>));
-    ASSERT_TRUE(
-        (std::is_same_v<typename T::non_const_scalar_array_type, int*>));
+    static_assert(std::is_same_v<typename C::data_type, const int*>);
+    static_assert(std::is_same_v<typename C::const_data_type, const int*>);
+    static_assert(std::is_same_v<typename C::non_const_data_type, int*>);
 
-    ASSERT_TRUE((std::is_same_v<typename T::value_type, int>));
-    ASSERT_TRUE((std::is_same_v<typename T::const_value_type, const int>));
-    ASSERT_TRUE((std::is_same_v<typename T::non_const_value_type, int>));
+    static_assert(std::is_same_v<typename C::scalar_array_type, const int*>);
+    static_assert(
+        std::is_same_v<typename C::const_scalar_array_type, const int*>);
+    static_assert(
+        std::is_same_v<typename C::non_const_scalar_array_type, int*>);
 
-    ASSERT_TRUE((std::is_same_v<typename T::memory_space,
-                                typename Space::memory_space>));
-    ASSERT_TRUE((std::is_same_v<typename T::reference_type, int&>));
+    static_assert(std::is_same_v<typename C::value_type, const int>);
+    static_assert(std::is_same_v<typename C::const_value_type, const int>);
+    static_assert(std::is_same_v<typename C::non_const_value_type, int>);
 
-    ASSERT_EQ(T::rank, size_t(1));
+    static_assert(
+        std::is_same_v<typename C::memory_space, typename Space::memory_space>);
+    static_assert(std::is_same_v<typename C::reference_type, const int&>);
 
-    ASSERT_TRUE((std::is_same_v<typename C::data_type, const int*>));
-    ASSERT_TRUE((std::is_same_v<typename C::const_data_type, const int*>));
-    ASSERT_TRUE((std::is_same_v<typename C::non_const_data_type, int*>));
-
-    ASSERT_TRUE((std::is_same_v<typename C::scalar_array_type, const int*>));
-    ASSERT_TRUE(
-        (std::is_same_v<typename C::const_scalar_array_type, const int*>));
-    ASSERT_TRUE(
-        (std::is_same_v<typename C::non_const_scalar_array_type, int*>));
-
-    ASSERT_TRUE((std::is_same_v<typename C::value_type, const int>));
-    ASSERT_TRUE((std::is_same_v<typename C::const_value_type, const int>));
-    ASSERT_TRUE((std::is_same_v<typename C::non_const_value_type, int>));
-
-    ASSERT_TRUE((std::is_same_v<typename C::memory_space,
-                                typename Space::memory_space>));
-    ASSERT_TRUE((std::is_same_v<typename C::reference_type, const int&>));
-
-    ASSERT_EQ(C::rank, size_t(1));
-
-    ASSERT_EQ(vr1.extent(0), size_t(N));
+    static_assert(C::rank == size_t(1));
 
     if (Kokkos::SpaceAccessibility<Kokkos::HostSpace,
-                                   typename Space::memory_space>::accessible) {
+                                   typename Space::memory_space>::accessible &&
+        Kokkos::SpaceAccessibility<typename Space::memory_space,
+                                   Kokkos::HostSpace>::assignable) {
+      int data[N];
+
+      T vr1(data, N);  // View of non-const.
+      C cr1(vr1);      // View of const from view of non-const.
+      C cr2((const int*)data, N);
+
+      // Generate static_assert error:
+      // T tmp( cr1 );
+
+      ASSERT_EQ(vr1.span(), size_t(N));
+      ASSERT_EQ(cr1.span(), size_t(N));
+      ASSERT_EQ(vr1.data(), &data[0]);
+      ASSERT_EQ(cr1.data(), &data[0]);
+
+      ASSERT_EQ(vr1.extent(0), size_t(N));
+
       for (int i = 0; i < N; ++i) data[i] = i + 1;
       for (int i = 0; i < N; ++i) ASSERT_EQ(vr1[i], i + 1);
       for (int i = 0; i < N; ++i) ASSERT_EQ(cr1[i], i + 1);
@@ -735,24 +737,24 @@ void test_view_mapping() {
     T vr1("vr1", N);
     C cr1(vr1);
 
-    ASSERT_TRUE((std::is_same_v<typename T::data_type, int*>));
-    ASSERT_TRUE((std::is_same_v<typename T::const_data_type, const int*>));
-    ASSERT_TRUE((std::is_same_v<typename T::non_const_data_type, int*>));
+    static_assert(std::is_same_v<typename T::data_type, int*>);
+    static_assert(std::is_same_v<typename T::const_data_type, const int*>);
+    static_assert(std::is_same_v<typename T::non_const_data_type, int*>);
 
-    ASSERT_TRUE((std::is_same_v<typename T::scalar_array_type, int*>));
-    ASSERT_TRUE(
-        (std::is_same_v<typename T::const_scalar_array_type, const int*>));
-    ASSERT_TRUE(
-        (std::is_same_v<typename T::non_const_scalar_array_type, int*>));
+    static_assert(std::is_same_v<typename T::scalar_array_type, int*>);
+    static_assert(
+        std::is_same_v<typename T::const_scalar_array_type, const int*>);
+    static_assert(
+        std::is_same_v<typename T::non_const_scalar_array_type, int*>);
 
-    ASSERT_TRUE((std::is_same_v<typename T::value_type, int>));
-    ASSERT_TRUE((std::is_same_v<typename T::const_value_type, const int>));
-    ASSERT_TRUE((std::is_same_v<typename T::non_const_value_type, int>));
+    static_assert(std::is_same_v<typename T::value_type, int>);
+    static_assert(std::is_same_v<typename T::const_value_type, const int>);
+    static_assert(std::is_same_v<typename T::non_const_value_type, int>);
 
-    ASSERT_TRUE((std::is_same_v<typename T::memory_space,
-                                typename Space::memory_space>));
-    ASSERT_TRUE((std::is_same_v<typename T::reference_type, int&>));
-    ASSERT_EQ(T::rank, size_t(1));
+    static_assert(
+        std::is_same_v<typename T::memory_space, typename Space::memory_space>);
+    static_assert(std::is_same_v<typename T::reference_type, int&>);
+    static_assert(T::rank == size_t(1));
 
     ASSERT_EQ(vr1.extent(0), size_t(N));
 
@@ -1108,11 +1110,10 @@ struct TestViewMapOperator {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(size_t i, int64_t& error_count) const {
-    if (std::is_same<typename ViewType::array_layout,
-                     Kokkos::LayoutLeft>::value) {
+    if (std::is_same_v<typename ViewType::array_layout, Kokkos::LayoutLeft>) {
       test_left(i, error_count);
-    } else if (std::is_same<typename ViewType::array_layout,
-                            Kokkos::LayoutRight>::value) {
+    } else if (std::is_same_v<typename ViewType::array_layout,
+                              Kokkos::LayoutRight>) {
       test_right(i, error_count);
     }
   }

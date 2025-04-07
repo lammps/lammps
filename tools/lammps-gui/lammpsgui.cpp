@@ -83,8 +83,10 @@ LammpsGui::LammpsGui(QWidget *parent, const QString &filename) :
     capturer    = new StdCapture;
     current_file.clear();
     current_dir = QDir(".").absolutePath();
-    // use $HOME if we get dropped to "/" like on macOS
-    if (current_dir == "/") current_dir = QDir::homePath();
+    // use $HOME if we get dropped to "/" like on macOS or the installation folder like on Windows
+    if ((current_dir == "/") || (current_dir.contains("AppData"))) current_dir = QDir::homePath();
+    QDir::setCurrent(current_dir);
+
     inspectList.clear();
     setAutoFillBackground(true);
 
@@ -387,6 +389,11 @@ LammpsGui::LammpsGui(QWidget *parent, const QString &filename) :
     ui->textEdit->setReformatOnReturn(settings.value("return", false).toBool());
     ui->textEdit->setAutoComplete(settings.value("automatic", true).toBool());
     settings.endGroup();
+
+    // apply https proxy setting: prefer environment variable or fall back to preferences value
+    auto https_proxy = QString::fromLocal8Bit(qgetenv("https_proxy"));
+    if (https_proxy.isEmpty()) https_proxy = settings.value("https_proxy", "").toString();
+    if (!https_proxy.isEmpty()) lammps.command(QString("shell putenv https_proxy=") + https_proxy);
 }
 
 LammpsGui::~LammpsGui()
@@ -1236,6 +1243,11 @@ void LammpsGui::do_run(bool use_buffer)
         runner->setup_run(&lammps, nullptr, fname);
     }
 
+    // apply https proxy setting: prefer environment variable or fall back to preferences value
+    auto https_proxy = QString::fromLocal8Bit(qgetenv("https_proxy"));
+    if (https_proxy.isEmpty()) https_proxy = settings.value("https_proxy", "").toString();
+    if (!https_proxy.isEmpty()) lammps.command(QString("shell putenv https_proxy=") + https_proxy);
+
     connect(runner, &LammpsRunner::resultReady, this, &LammpsGui::run_done);
     connect(runner, &LammpsRunner::finished, runner, &QObject::deleteLater);
     runner->start();
@@ -2018,9 +2030,13 @@ void LammpsGui::setup_tutorial(int tutno, const QString &dir, bool purgedir, boo
     lammps.command("clear");
     lammps.command(QString("shell cd " + dir));
 
+    // apply https proxy setting: prefer environment variable or fall back to preferences value
+    auto https_proxy = QString::fromLocal8Bit(qgetenv("https_proxy"));
+    if (https_proxy.isEmpty()) https_proxy = QSettings().value("https_proxy", "").toString();
+    if (!https_proxy.isEmpty()) lammps.command(QString("shell putenv https_proxy=") + https_proxy);
+
     // download and process manifest for selected tutorial
     // must check for error after download, e.g. when there is no network.
-
     lammps.command(geturl.arg(tutno).arg(".manifest"));
     if (lammps.has_error()) {
         lammps.get_last_error_message(errorbuf, BUFLEN);

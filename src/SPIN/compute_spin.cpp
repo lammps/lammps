@@ -105,6 +105,7 @@ void ComputeSpin::init()
   // init length of vector of ptrs to Pair/Spin styles
 
   if (npairspin > 0) {
+    delete[] spin_pairs;
     spin_pairs = new PairSpin*[npairspin];
   }
 
@@ -142,6 +143,7 @@ void ComputeSpin::init()
   nprecspin = precfixes.size();
 
   if (nprecspin > 0) {
+    delete[] lockprecessionspin;
     lockprecessionspin = new FixPrecessionSpin *[nprecspin];
     precession_spin_flag = 1;
 

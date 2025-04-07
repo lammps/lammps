@@ -48,11 +48,12 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
 
   id = utils::strdup(arg[0]);
   if (!utils::is_id(id))
-    error->all(FLERR,"Compute ID must be alphanumeric or underscore characters");
+    error->all(FLERR, Error::ARGZERO,
+               "Compute ID {} must only have alphanumeric or underscore characters", id);
 
+  groupbit = group->get_bitmask_by_id(FLERR, arg[1], fmt::format("compute {}", arg[2]));
   igroup = group->find(arg[1]);
-  if (igroup == -1) error->all(FLERR,"Could not find compute group ID");
-  groupbit = group->bitmask[igroup];
+  if (igroup == -1) error->all(FLERR, 1, "Could not find compute group ID {}", arg[1]);
 
   style = utils::strdup(arg[2]);
 
@@ -119,21 +120,24 @@ void Compute::init_flags()
   invoked_peratom = invoked_local = -1;
 
   if (scalar_flag && (extscalar < 0))
-    error->all(FLERR, "Must set 'extscalar' when setting 'scalar_flag' for compute {}.  "
-               "Contact the developer.", style);
+    error->all(FLERR, Error::NOLASTLINE,
+               "Must set 'extscalar' when setting 'scalar_flag' for compute {}.  "
+               "Please contact the LAMMPS developers.{}", style, utils::errorurl(35));
   if (vector_flag && (extvector < 0) && !extlist)
-    error->all(FLERR, "Must set 'extvector' or 'extlist' when setting 'vector_flag' for compute {}.  "
-               "Contact the developer.", style);
+    error->all(FLERR, Error::NOLASTLINE,
+               "Must set 'extvector' or 'extlist' when setting 'vector_flag' for compute {}.  "
+               "Please contact the LAMMPS developers.{}", style, utils::errorurl(35));
   if (array_flag && (extarray < 0))
-    error->all(FLERR, "Must set 'extarray' when setting 'array_flag' for compute {}.  "
-               "Contact the developer.", style);
+    error->all(FLERR, Error::NOLASTLINE,
+               "Must set 'extarray' when setting 'array_flag' for compute {}.  "
+               "Please contact the LAMMPS developers.{}", style, utils::errorurl(35));
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Compute::modify_params(int narg, char **arg)
 {
-  if (narg == 0) error->all(FLERR,"Illegal compute_modify command");
+  if (narg == 0) error->all(FLERR, Error::NOLASTLINE, "Illegal compute_modify command");
 
   int iarg = 0;
   while (iarg < narg) {
@@ -179,7 +183,7 @@ void Compute::reset_extra_dof()
 
 void Compute::reset_extra_compute_fix(const char *)
 {
-  error->all(FLERR,
+  error->all(FLERR, Error::NOLASTLINE,
              "Compute does not allow an extra compute or fix to be reset");
 }
 

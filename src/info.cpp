@@ -304,8 +304,6 @@ void Info::command(int narg, char **arg)
     fputs("-DLAMMPS_BIGBIG\n",out);
 #elif defined(LAMMPS_SMALLBIG)
     fputs("-DLAMMPS_SMALLBIG\n",out);
-#else // defined(LAMMPS_SMALLSMALL)
-    fputs("-DLAMMPS_SMALLSMALL\n",out);
 #endif
     if (has_gzip_support()) utils::print(out,"\n{}\n",platform::compress_info());
 
@@ -488,63 +486,11 @@ void Info::command(int narg, char **arg)
     Pair *pair=force->pair;
 
     fputs("\nCoeff status information:\n",out);
-    if (pair) {
-      fputs("\nPair Coeffs:\n",out);
-      for (int i=1; i <= atom->ntypes; ++i)
-        for (int j=i; j <= atom->ntypes; ++j) {
-          utils::print(out,"{:6d} {:6d}:",i,j);
-          if (pair->allocated && pair->setflag[i][j]) fputs(" is set\n",out);
-          else fputs(" is not set\n",out);
-        }
-    }
-    if (force->bond) {
-      Bond *bond=force->bond;
-
-      if (bond) {
-        fputs("\nBond Coeffs:\n",out);
-        for (int i=1; i <= atom->nbondtypes; ++i) {
-          utils::print(out,"{:6d}:",i);
-          if (bond->allocated && bond->setflag[i]) fputs(" is set\n",out);
-          else fputs (" is not set\n",out);
-        }
-      }
-    }
-    if (force->angle) {
-      Angle *angle=force->angle;
-
-      if (angle) {
-        fputs("\nAngle Coeffs:\n",out);
-        for (int i=1; i <= atom->nangletypes; ++i) {
-          utils::print(out,"{:6d}:",i);
-          if (angle->allocated && angle->setflag[i]) fputs(" is set\n",out);
-          else fputs (" is not set\n",out);
-        }
-      }
-    }
-    if (force->dihedral) {
-      Dihedral *dihedral=force->dihedral;
-
-      if (dihedral) {
-        fputs("\nDihedral Coeffs:\n",out);
-        for (int i=1; i <= atom->ndihedraltypes; ++i) {
-          utils::print(out,"{:6d}:",i);
-          if (dihedral->allocated && dihedral->setflag[i]) fputs(" is set\n",out);
-          else fputs (" is not set\n",out);
-        }
-      }
-    }
-    if (force->improper) {
-      Improper *b=force->improper;
-
-      if (b) {
-        fputs("\nImproper Coeffs:\n",out);
-        for (int i=1; i <= atom->nimpropertypes; ++i) {
-          utils::print(out,"{:6d}:",i);
-          if (b->allocated && b->setflag[i]) fputs(" is set\n",out);
-          else fputs (" is not set\n",out);
-        }
-      }
-    }
+    if (pair) utils::print(out,"\nPair coeffs\n{}", get_pair_coeff_status(lmp));
+    if (force->bond) utils::print(out,"\nBond coeffs\n{}", get_bond_coeff_status(lmp));
+    if (force->angle) utils::print(out,"\nAngle coeffs\n{}", get_angle_coeff_status(lmp));
+    if (force->dihedral) utils::print(out,"\nDihedral coeffs\n{}", get_dihedral_coeff_status(lmp));
+    if (force->improper) utils::print(out,"\nImproper coeffs\n{}", get_improper_coeff_status(lmp));
   }
 
   if (flags & GROUPS) {
@@ -1450,4 +1396,81 @@ std::string Info::get_variable_info(int num) {
     if (data[num][j]) text += fmt::format(" {}",data[num][j]);
   text += "\n";
   return text;
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string Info::get_pair_coeff_status(const LAMMPS *lmp) {
+
+  if (!lmp || !lmp->force || !lmp->force->pair || !lmp->force->pair->allocated)
+    return "Pair style not yet initialized\n";
+
+  const auto ntypes = lmp->atom->ntypes;
+  const auto setflag = lmp->force->pair->setflag;
+  std::string output = "";
+  for (int i=1; i <= ntypes; ++i) {
+    for (int j=i; j <= ntypes; ++j)
+      output += fmt::format("{:6d} {:6d}: is{}set\n", i, j, setflag[i][j] ? " " : " not ");
+  }
+  return output;
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string Info::get_bond_coeff_status(const LAMMPS *lmp) {
+
+  if (!lmp || !lmp->force || !lmp->force->bond || !lmp->force->bond->allocated)
+    return "Bond style not yet initialized\n";
+
+  const auto ntypes = lmp->atom->nbondtypes;
+  const auto setflag = lmp->force->bond->setflag;
+  std::string output = "";
+  for (int i=1; i <= ntypes; ++i)
+    output += fmt::format("{:6d}: is{}set\n", i, setflag[i] ? " " : " not ");
+  return output;
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string Info::get_angle_coeff_status(const LAMMPS *lmp) {
+
+  if (!lmp || !lmp->force || !lmp->force->angle || !lmp->force->angle->allocated)
+    return "Angle style not yet initialized\n";
+
+  const auto ntypes = lmp->atom->nangletypes;
+  const auto setflag = lmp->force->angle->setflag;
+  std::string output = "";
+  for (int i=1; i <= ntypes; ++i)
+    output += fmt::format("{:6d}: is{}set\n", i, setflag[i] ? " " : " not ");
+  return output;
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string Info::get_dihedral_coeff_status(const LAMMPS *lmp) {
+
+  if (!lmp || !lmp->force || !lmp->force->dihedral || !lmp->force->dihedral->allocated)
+    return "Dihedral style not yet initialized\n";
+
+  const auto ntypes = lmp->atom->ndihedraltypes;
+  const auto setflag = lmp->force->dihedral->setflag;
+  std::string output = "";
+  for (int i=1; i <= ntypes; ++i)
+    output += fmt::format("{:6d}: is{}set\n", i, setflag[i] ? " " : " not ");
+  return output;
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string Info::get_improper_coeff_status(const LAMMPS *lmp) {
+
+  if (!lmp || !lmp->force || !lmp->force->improper || !lmp->force->improper->allocated)
+    return "Improper style not yet initialized\n";
+
+  const auto ntypes = lmp->atom->nimpropertypes;
+  const auto setflag = lmp->force->improper->setflag;
+  std::string output = "";
+  for (int i=1; i <= ntypes; ++i)
+    output += fmt::format("{:6d}: is{}set\n", i, setflag[i] ? " " : " not ");
+  return output;
 }

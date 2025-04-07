@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -224,7 +225,7 @@ void PairNMCutCoulCut::settings(int narg, char **arg)
 
 void PairNMCutCoulCut::coeff(int narg, char **arg)
 {
-  if (narg < 6 || narg > 8) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 6 || narg > 8) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -255,7 +256,7 @@ void PairNMCutCoulCut::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -276,7 +277,9 @@ void PairNMCutCoulCut::init_style()
 
 double PairNMCutCoulCut::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
 
   double cut = MAX(cut_lj[i][j],cut_coul[i][j]);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];

@@ -2773,8 +2773,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
         END SUBROUTINE external_callback
       END INTERFACE
 
-   where ``c_bigint`` is ``c_int`` if ``-DLAMMPS_SMALLSMALL`` was used and
-   ``c_int64_t`` otherwise; and ``c_tagint`` is ``c_int64_t`` if
+   where ``c_bigint`` is ``c_int64_t`` and ``c_tagint`` is ``c_int64_t`` if
    ``-DLAMMPS_BIGBIG`` was used and ``c_int`` otherwise.
 
    The argument *caller* to :f:subr:`set_fix_external_callback` is unlimited

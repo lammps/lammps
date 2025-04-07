@@ -59,8 +59,6 @@ KOKKOS_FUNCTION constexpr bool test_array_structured_binding_support() {
 
 static_assert(test_array_structured_binding_support());
 
-// Disable ctad test for intel versions < 2021, see issue #6702
-#if !defined(KOKKOS_COMPILER_INTEL) || KOKKOS_COMPILER_INTEL >= 2021
 KOKKOS_FUNCTION constexpr bool test_array_ctad() {
   constexpr int x = 10;
   constexpr Kokkos::Array a{1, 2, 3, 5, x};
@@ -70,7 +68,6 @@ KOKKOS_FUNCTION constexpr bool test_array_ctad() {
 }
 
 static_assert(test_array_ctad());
-#endif
 
 KOKKOS_FUNCTION constexpr bool test_array_aggregate_initialization() {
   // Initialize arrays from brace-init-list as for std::array.
@@ -172,8 +169,7 @@ constexpr bool test_to_array() {
   maybe_unused(a2);
 
 // gcc8, icc, and nvcc 11.3 do not support the implicit conversion
-#if !(defined(KOKKOS_COMPILER_GNU) && (KOKKOS_COMPILER_GNU < 910)) &&      \
-    !(defined(KOKKOS_COMPILER_INTEL) && (KOKKOS_COMPILER_INTEL < 2021)) && \
+#if !(defined(KOKKOS_COMPILER_GNU) && (KOKKOS_COMPILER_GNU < 910)) && \
     !(defined(KOKKOS_COMPILER_NVCC) && (KOKKOS_COMPILER_NVCC < 1140))
   // deduces length with element type specified
   // implicit conversion happens

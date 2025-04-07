@@ -85,7 +85,7 @@ double ComputePE::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
   if (update->eflag_global != invoked_scalar)
-    error->all(FLERR, Error::NOLASTLINE, "Energy was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Energy was not tallied on needed timestep{}", utils::errorurl(22));
 
   double one = 0.0;
   if (pairflag && force->pair) one += force->pair->eng_vdwl + force->pair->eng_coul;

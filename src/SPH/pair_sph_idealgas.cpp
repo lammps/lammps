@@ -18,6 +18,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 
@@ -30,7 +31,9 @@ using namespace LAMMPS_NS;
 PairSPHIdealGas::PairSPHIdealGas(LAMMPS *lmp) : Pair(lmp)
 {
   if ((atom->esph_flag != 1) || (atom->rho_flag != 1) || (atom->vest_flag != 1))
-    error->all(FLERR, "Pair sph/idealgas requires atom attributes energy, density, and velocity estimates, e.g. in atom_style sph");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Pair sph/idealgas requires atom attributes energy, density, and velocity estimates,"
+               " e.g. in atom_style sph");
 
   restartinfo = 0;
   single_enable = 0;
@@ -211,8 +214,7 @@ void PairSPHIdealGas::settings(int narg, char **/*arg*/)
 
 void PairSPHIdealGas::coeff(int narg, char **arg)
 {
-  if (narg != 4)
-    error->all(FLERR,"Incorrect number of args for pair_style sph/idealgas coefficients");
+  if (narg != 4) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated)
     allocate();
 
@@ -233,8 +235,7 @@ void PairSPHIdealGas::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0)
-    error->all(FLERR,"Incorrect args for pair sph/idealgas coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -243,9 +244,10 @@ void PairSPHIdealGas::coeff(int narg, char **arg)
 
 double PairSPHIdealGas::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) {
-      error->all(FLERR,"All pair sph/idealgas coeffs are not set");
-  }
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair sph/idealgas coeffs are not set. Status:\n"
+               + Info::get_pair_coeff_status(lmp));
 
   cut[j][i] = cut[i][j];
 

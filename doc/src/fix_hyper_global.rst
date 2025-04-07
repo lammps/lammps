@@ -131,14 +131,15 @@ timesteps is simply
    t_{hyper} = \sum_{i=1,N} B-i \cdot dt
 
 where *dt* is the timestep size defined by the :doc:`timestep <timestep>`
-command.  The effective time acceleration due to GHD is thus t_hyper /
-N\*dt, where N\*dt is elapsed time for a normal MD run of N timesteps.
+command.  The effective time acceleration due to GHD is thus
+:math:`t_{hyper} / N * dt`, where N\*dt is elapsed time for a normal MD run
+of N timesteps.
 
-Note that in GHD, the boost factor varies from timestep to timestep.
-Likewise, which bond has :math:`E^{max}` strain and thus which pair of
-atoms the bias potential is added to, will also vary from timestep to timestep.
-This is in contrast to local hyperdynamics (LHD) where the boost
-factor is an input parameter; see the :doc:`fix hyper/local <fix_hyper_local>` page for details.
+Note that in GHD, the boost factor varies from timestep to timestep.  Likewise,
+which bond has :math:`E^{max}` strain and thus which pair of atoms the bias
+potential is added to, will also vary from timestep to timestep.  This is in
+contrast to local hyperdynamics (LHD) where the boost factor is an input
+parameter; see the :doc:`fix hyper/local <fix_hyper_local>` page for details.
 
 ----------
 
@@ -178,7 +179,7 @@ time-accurate trajectory of the system.
 
 Note that if *Vmax* is set too small, the GHD simulation will run
 correctly.  There will just be fewer events because the hyper time
-(t_hyper equation above) will be shorter.
+(:math:`t_{hyper}` equation above) will be shorter.
 
 .. note::
 

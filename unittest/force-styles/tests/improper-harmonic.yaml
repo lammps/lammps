@@ -13,7 +13,9 @@ improper_style: harmonic
 improper_coeff: ! |
   1  75.0 120.2
   2  45.0  59.5
-extract: ! ""
+extract: ! |
+  k 1
+  chi0 1
 natoms: 29
 init_energy: 369.34096479618404
 init_stress: ! |2-

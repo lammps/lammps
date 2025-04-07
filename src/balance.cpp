@@ -113,7 +113,7 @@ Balance::~Balance()
 void Balance::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR, -1, "Balance command before simulation box is defined");
+    error->all(FLERR, -1, "Balance command before simulation box is defined" + utils::errorurl(33));
 
   if (comm->me == 0) utils::logmesg(lmp,"Balancing ...\n");
 
@@ -377,8 +377,8 @@ void Balance::command(int narg, char **arg)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms)
-    error->all(FLERR,"Lost atoms via balance: original {}  current {}",
-               atom->natoms,natoms);
+    error->all(FLERR,Error::NOLASTLINE,"Lost atoms via balance: original {}  current {}"
+               +utils::errorurl(8),atom->natoms,natoms);
 
   // imbfinal = final imbalance
   // set disable = 1, so weights no longer migrate with atoms

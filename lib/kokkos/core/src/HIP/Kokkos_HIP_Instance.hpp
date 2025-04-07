@@ -22,8 +22,12 @@
 #include <HIP/Kokkos_HIP_Space.hpp>
 #include <HIP/Kokkos_HIP_Error.hpp>
 
+#include <hip/hip_runtime_api.h>
+
 #include <atomic>
+#include <map>
 #include <mutex>
+#include <set>
 
 namespace Kokkos {
 namespace Impl {
@@ -69,7 +73,7 @@ class HIPInternal {
  public:
   using size_type = ::Kokkos::HIP::size_type;
 
-  static int m_hipDev;
+  int m_hipDev = -1;
   static int m_maxThreadsPerSM;
 
   static hipDeviceProp_t m_deviceProp;
@@ -102,11 +106,10 @@ class HIPInternal {
 
   bool was_finalized = false;
 
-  // FIXME_HIP: these want to be per-device, not per-stream...  use of 'static'
-  // here will break once there are multiple devices though
-  static unsigned long *constantMemHostStaging;
-  static hipEvent_t constantMemReusable;
-  static std::mutex constantMemMutex;
+  static std::set<int> hip_devices;
+  static std::map<int, unsigned long *> constantMemHostStaging;
+  static std::map<int, hipEvent_t> constantMemReusable;
+  static std::map<int, std::mutex> constantMemMutex;
 
   static HIPInternal &singleton();
 
@@ -127,6 +130,142 @@ class HIPInternal {
   ~HIPInternal();
 
   HIPInternal() = default;
+
+  // Using HIP API function/objects will be w.r.t. device 0 unless
+  // hipSetDevice(device_id) is called with the correct device_id.
+  // The correct device_id is stored in the variable
+  // HIPInternal::m_hipDev set in HIP::impl_initialize(). In the case
+  // where multiple HIP instances are used, or threads are launched
+  // using non-default HIP execution space after initialization, all HIP
+  // API calls must follow a call to hipSetDevice(device_id) when an
+  // execution space or HIPInternal object is provided to ensure all
+  // computation is done on the correct device.
+
+  // FIXME: Not all HIP API calls require us to set device. Potential
+  // performance gain by selectively setting device.
+
+  // Set the device in to the device stored by this instance for HIP API calls.
+  void set_hip_device() const {
+    verify_is_initialized("set_hip_device");
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipSetDevice(m_hipDev));
+  }
+
+  // HIP API wrappers where we set the correct device id before calling the HIP
+  // API functions.
+  hipError_t hip_event_create_wrapper(hipEvent_t *event) const {
+    set_hip_device();
+    return hipEventCreate(event);
+  }
+
+  hipError_t hip_event_record_wrapper(hipEvent_t event) const {
+    set_hip_device();
+    return hipEventRecord(event, m_stream);
+  }
+
+  hipError_t hip_event_synchronize_wrapper(hipEvent_t event) const {
+    set_hip_device();
+    return hipEventSynchronize(event);
+  }
+
+  hipError_t hip_free_wrapper(void *ptr) const {
+    set_hip_device();
+    return hipFree(ptr);
+  }
+
+  hipError_t hip_graph_add_dependencies_wrapper(hipGraph_t graph,
+                                                const hipGraphNode_t *from,
+                                                const hipGraphNode_t *to,
+                                                size_t numDependencies) const {
+    set_hip_device();
+    return hipGraphAddDependencies(graph, from, to, numDependencies);
+  }
+
+  hipError_t hip_graph_add_empty_node_wrapper(
+      hipGraphNode_t *pGraphNode, hipGraph_t graph,
+      const hipGraphNode_t *pDependencies, size_t numDependencies) const {
+    set_hip_device();
+    return hipGraphAddEmptyNode(pGraphNode, graph, pDependencies,
+                                numDependencies);
+  }
+
+  hipError_t hip_graph_add_kernel_node_wrapper(
+      hipGraphNode_t *pGraphNode, hipGraph_t graph,
+      const hipGraphNode_t *pDependencies, size_t numDependencies,
+      const hipKernelNodeParams *pNodeParams) const {
+    set_hip_device();
+    return hipGraphAddKernelNode(pGraphNode, graph, pDependencies,
+                                 numDependencies, pNodeParams);
+  }
+
+  hipError_t hip_graph_create_wrapper(hipGraph_t *pGraph,
+                                      unsigned int flags) const {
+    set_hip_device();
+    return hipGraphCreate(pGraph, flags);
+  }
+
+  hipError_t hip_graph_destroy_wrapper(hipGraph_t graph) const {
+    set_hip_device();
+    return hipGraphDestroy(graph);
+  }
+
+  hipError_t hip_graph_exec_destroy_wrapper(hipGraphExec_t graphExec) const {
+    set_hip_device();
+    return hipGraphExecDestroy(graphExec);
+  }
+
+  hipError_t hip_graph_instantiate_wrapper(hipGraphExec_t *pGraphExec,
+                                           hipGraph_t graph,
+                                           hipGraphNode_t *pErrorNode,
+                                           char *pLogBuffer,
+                                           size_t bufferSize) const {
+    set_hip_device();
+    return hipGraphInstantiate(pGraphExec, graph, pErrorNode, pLogBuffer,
+                               bufferSize);
+  }
+
+  hipError_t hip_graph_launch_wrapper(hipGraphExec_t graphExec) const {
+    set_hip_device();
+    return hipGraphLaunch(graphExec, m_stream);
+  }
+
+  hipError_t hip_host_malloc_wrapper(
+      void **ptr, size_t size,
+      unsigned int flags = hipHostMallocDefault) const {
+    set_hip_device();
+    return hipHostMalloc(ptr, size, flags);
+  }
+
+  hipError_t hip_memcpy_async_wrapper(void *dst, const void *src,
+                                      size_t sizeBytes,
+                                      hipMemcpyKind kind) const {
+    set_hip_device();
+    return hipMemcpyAsync(dst, src, sizeBytes, kind, m_stream);
+  }
+
+  hipError_t hip_memcpy_to_symbol_async_wrapper(const void *symbol,
+                                                const void *src,
+                                                size_t sizeBytes, size_t offset,
+                                                hipMemcpyKind kind) const {
+    set_hip_device();
+    return hipMemcpyToSymbolAsync(symbol, src, sizeBytes, offset, kind,
+                                  m_stream);
+  }
+
+  hipError_t hip_memset_wrapper(void *dst, int value, size_t sizeBytes) const {
+    set_hip_device();
+    return hipMemset(dst, value, sizeBytes);
+  }
+
+  hipError_t hip_memset_async_wrapper(void *dst, int value,
+                                      size_t sizeBytes) const {
+    set_hip_device();
+    return hipMemsetAsync(dst, value, sizeBytes, m_stream);
+  }
+
+  hipError_t hip_stream_create_wrapper(hipStream_t *pStream) const {
+    set_hip_device();
+    return hipStreamCreate(pStream);
+  }
 
   // Resizing of reduction related scratch spaces
   size_type *scratch_space(std::size_t const size);
@@ -164,7 +303,7 @@ std::vector<HIP> partition_space(const HIP &, Args...) {
 template <class T>
 std::vector<HIP> partition_space(const HIP &, std::vector<T> const &weights) {
   static_assert(
-      std::is_arithmetic<T>::value,
+      std::is_arithmetic_v<T>,
       "Kokkos Error: partitioning arguments must be integers or floats");
 
   // We only care about the number of instances to create and ignore weights

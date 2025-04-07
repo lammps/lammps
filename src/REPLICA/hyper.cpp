@@ -52,7 +52,7 @@ void Hyper::command(int narg, char **arg)
   // error checks
 
   if (domain->box_exist == 0)
-    error->all(FLERR,"Hyper command before simulation box is defined");
+    error->all(FLERR,"Hyper command before simulation box is defined" + utils::errorurl(33));
 
   if (narg < 4) error->all(FLERR,"Illegal hyper command");
 

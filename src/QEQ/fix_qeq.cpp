@@ -336,7 +336,8 @@ void FixQEq::init()
   MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
 
   if ((comm->me == 0) && (fabs(qsum) > QSUMSMALL))
-    error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}", style, qsum);
+    error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}{}",
+                   style, qsum, utils::errorurl(29));
 }
 
 /* ---------------------------------------------------------------------- */

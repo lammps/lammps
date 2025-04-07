@@ -15,7 +15,7 @@ Most of the C++ code currently requires a compiler compatible with the
 C++11 standard, the KOKKOS package currently requires C++17.  Most of
 the Python code is written to be compatible with Python 3.6 or later.
 
-.. deprecated:: TBD
+.. deprecated:: 2Apr2025
 
 Python 2.x is no longer supported and trying to use it, e.g. for the
 LAMMPS Python module should result in an error.  If you come across

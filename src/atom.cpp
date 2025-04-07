@@ -836,13 +836,15 @@ void Atom::modify_params(int narg, char **arg)
     if (strcmp(arg[iarg],"id") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "atom_modify id", error);
       if (domain->box_exist)
-        error->all(FLERR, idx, "Atom_modify id command after simulation box is defined");
+        error->all(FLERR, idx, "Atom_modify id command after simulation box is defined"
+                   + utils::errorurl(34));
       tag_enable = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"map") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "atom_modify map", error);
       if (domain->box_exist)
-        error->all(FLERR, idx, "Atom_modify map command after simulation box is defined");
+        error->all(FLERR, idx, "Atom_modify map command after simulation box is defined"
+                   + utils::errorurl(34));
       if (strcmp(arg[iarg+1],"array") == 0) map_user = MAP_ARRAY;
       else if (strcmp(arg[iarg+1],"hash") == 0) map_user = MAP_HASH;
       else if (strcmp(arg[iarg+1],"yes") == 0) map_user = MAP_YES;
@@ -2301,7 +2303,7 @@ void Atom::first_reorder()
   // nfirst = index of first atom not in firstgroup
   // when find firstgroup atom out of place, swap it with atom nfirst
 
-  int bitmask = group->bitmask[firstgroup];
+  const int bitmask = group->get_bitmask_by_id(FLERR, firstgroupname, "Atom::first_reorder");
   nfirst = 0;
   while (nfirst < nlocal && mask[nfirst] & bitmask) nfirst++;
 

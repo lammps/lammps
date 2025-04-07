@@ -21,6 +21,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
@@ -347,7 +348,7 @@ void PairSNAPIntel::settings(int narg, char ** /* arg */)
 void PairSNAPIntel::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
-  if (narg != 4 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 4 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   map_element2type(narg-4,arg+4);
 
@@ -424,7 +425,9 @@ void PairSNAPIntel::init_style()
 
 double PairSNAPIntel::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
   scale[j][i] = scale[i][j];
   return (radelem[map[i]] +
           radelem[map[j]])*rcutfac;

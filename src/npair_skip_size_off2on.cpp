@@ -102,7 +102,7 @@ void NPairSkipSizeOff2onTemp<TRIM>::build(NeighList *list)
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
         rsq = delx * delx + dely * dely + delz * delz;
-        if (rsq > cutsq_custom) continue;
+        if ((cutsq_custom > 0.0) && (rsq > cutsq_custom)) continue;
       }
 
       neighptr[n++] = joriginal;

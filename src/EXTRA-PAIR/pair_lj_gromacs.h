@@ -39,6 +39,7 @@ class PairLJGromacs : public Pair {
   void write_data(FILE *) override;
   void write_data_all(FILE *) override;
   double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double cut_inner_global, cut_global;

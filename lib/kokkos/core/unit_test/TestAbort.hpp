@@ -87,7 +87,7 @@ void test_abort_from_device() {
     TestAbortCausingAbnormalProgramTerminationAndPrinting<ExecutionSpace>();
   }
 #elif defined(KOKKOS_ENABLE_SYCL)     // FIXME_SYCL
-  if (std::is_same<ExecutionSpace, Kokkos::SYCL>::value) {
+  if (std::is_same_v<ExecutionSpace, Kokkos::SYCL>) {
 #ifdef NDEBUG
     TestAbortPrintingToStdout<ExecutionSpace>();
 #else

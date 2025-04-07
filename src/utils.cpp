@@ -272,16 +272,16 @@ void utils::print(FILE *fp, const std::string &mesg)
 
 void utils::fmtargs_print(FILE *fp, fmt::string_view format, fmt::format_args args)
 {
-  try {
-    print(fp, fmt::vformat(format, args));
-  } catch (fmt::format_error &) {
-    ; // do nothing
-  }
+  print(fp, fmt::vformat(format, args));
 }
 
 std::string utils::errorurl(int errorcode)
 {
-  return fmt::format("\nFor more information see https://docs.lammps.org/err{:04d}", errorcode);
+  if (errorcode == 0)
+    return "\nFor more information see https://docs.lammps.org/Errors_details.html";
+  else if (errorcode > 0)
+    return fmt::format("\nFor more information see https://docs.lammps.org/err{:04d}", errorcode);
+  else return ""; // negative numbers are reserved for future use pointing to a different URL
 }
 
 void utils::flush_buffers(LAMMPS *lmp)
@@ -442,7 +442,7 @@ std::string utils::check_packages_for_style(const std::string &style, const std:
     if (LAMMPS::is_installed_pkg(pkg))
       errmsg += ", but seems to be missing because of a dependency";
     else
-      errmsg += " which is not enabled in this LAMMPS binary.";
+      errmsg += " which is not enabled in this LAMMPS binary." + utils::errorurl(10);
   }
   return errmsg;
 }
@@ -807,13 +807,13 @@ void utils::bounds(const char *file, int line, const std::string &str,
   if (error) {
     if ((nlo <= 0) || (nhi <= 0))
       error->all(file, line, failed, "Invalid range string: {}", str);
-
+    constexpr char fmt[] = "Numeric index {} is out of bounds ({}-{}){}";
     if (nlo < nmin)
-      error->all(file, line, failed, "Numeric index {} is out of bounds ({}-{})", nlo, nmin, nmax);
+      error->all(file, line, failed, fmt, nlo, nmin, nmax, errorurl(19));
     else if (nhi > nmax)
-      error->all(file, line, failed, "Numeric index {} is out of bounds ({}-{})", nhi, nmin, nmax);
+      error->all(file, line, failed, fmt, nhi, nmin, nmax, errorurl(19));
     else if (nlo > nhi)
-      error->all(file, line, failed, "Numeric index {} is out of bounds ({}-{})", nlo, nmin, nhi);
+      error->all(file, line, failed, fmt, nlo, nmin, nhi, errorurl(19));
   }
 }
 
@@ -1244,8 +1244,8 @@ int utils::check_grid_reference(char *errstr, char *ref, int nevery, char *&id, 
         lmp->error->all(FLERR, "{} compute {} data {} is not per-grid array", errstr, idcompute,
                         dname);
       if (argi.get_dim() && argi.get_index1() > ncol)
-        lmp->error->all(FLERR, "{} compute {} array {} is accessed out-of-range", errstr, idcompute,
-                        dname);
+        lmp->error->all(FLERR, "{} compute {} array {} is accessed out-of-range{}", errstr,
+                        idcompute, dname, errorurl(20));
 
       id = utils::strdup(idcompute);
       return ArgInfo::COMPUTE;
@@ -1267,7 +1267,8 @@ int utils::check_grid_reference(char *errstr, char *ref, int nevery, char *&id, 
       if (ifix->pergrid_flag == 0)
         lmp->error->all(FLERR, "{} fix {} does not compute per-grid info", errstr, idfix);
       if (nevery % ifix->pergrid_freq)
-        lmp->error->all(FLERR, "{} fix {} not computed at compatible time", errstr, idfix);
+        lmp->error->all(FLERR, "{} fix {} not computed at compatible time{}", errstr, idfix,
+                        errorurl(7));
 
       int dim;
       igrid = ifix->get_grid_by_name(gname, dim);
@@ -1284,7 +1285,8 @@ int utils::check_grid_reference(char *errstr, char *ref, int nevery, char *&id, 
       if (argi.get_dim() > 0 && ncol == 0)
         lmp->error->all(FLERR, "{} fix {} data {} is not per-grid array", errstr, idfix, dname);
       if (argi.get_dim() > 0 && argi.get_index1() > ncol)
-        lmp->error->all(FLERR, "{} fix {} array {} is accessed out-of-range", errstr, idfix, dname);
+        lmp->error->all(FLERR, "{} fix {} array {} is accessed out-of-range{}", errstr, idfix,
+                        dname, errorurl(20));
 
       id = utils::strdup(idfix);
       return ArgInfo::FIX;

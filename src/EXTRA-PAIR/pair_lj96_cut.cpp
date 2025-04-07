@@ -450,7 +450,7 @@ void PairLJ96Cut::settings(int narg, char **arg)
 void PairLJ96Cut::coeff(int narg, char **arg)
 {
   if (narg < 4 || narg > 5)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -474,7 +474,7 @@ void PairLJ96Cut::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -707,3 +707,12 @@ void PairLJ96Cut::born_matrix(int /*i*/, int /*j*/, int itype, int jtype, double
   du2pair = factor_lj * du2;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void *PairLJ96Cut::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str, "epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str, "sigma") == 0) return (void *) sigma;
+  return nullptr;
+}

@@ -224,6 +224,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
         break;
       }
 #endif
+      default: Kokkos::abort("unreachable");
     }
 
 #undef exclusive_scan

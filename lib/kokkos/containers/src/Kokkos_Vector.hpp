@@ -69,14 +69,14 @@ class KOKKOS_DEPRECATED vector
  public:
 #ifdef KOKKOS_ENABLE_CUDA_UVM
   KOKKOS_INLINE_FUNCTION reference operator()(int i) const {
-    return DV::h_view(i);
+    return DV::view_host()(i);
   };
   KOKKOS_INLINE_FUNCTION reference operator[](int i) const {
-    return DV::h_view(i);
+    return DV::view_host()(i);
   };
 #else
-  inline reference operator()(int i) const { return DV::h_view(i); };
-  inline reference operator[](int i) const { return DV::h_view(i); };
+  inline reference operator()(int i) const { return DV::view_host()(i); };
+  inline reference operator[](int i) const { return DV::view_host()(i); };
 #endif
 
   /* Member functions which behave like std::vector functions */
@@ -111,13 +111,13 @@ class KOKKOS_DEPRECATED vector
     /* Assign value either on host or on device */
 
     if (DV::template need_sync<typename DV::t_dev::device_type>()) {
-      set_functor_host f(DV::h_view, val);
+      set_functor_host f(DV::view_host(), val);
       parallel_for("Kokkos::vector::assign", n, f);
       typename DV::t_host::execution_space().fence(
           "Kokkos::vector::assign: fence after assigning values");
       DV::template modify<typename DV::t_host::device_type>();
     } else {
-      set_functor f(DV::d_view, val);
+      set_functor f(DV::view_device(), val);
       parallel_for("Kokkos::vector::assign", n, f);
       typename DV::t_dev::execution_space().fence(
           "Kokkos::vector::assign: fence after assigning values");
@@ -136,7 +136,7 @@ class KOKKOS_DEPRECATED vector
       DV::resize(new_size);
     }
 
-    DV::h_view(_size) = val;
+    DV::view_host()(_size) = val;
     _size++;
   }
 
@@ -209,27 +209,27 @@ class KOKKOS_DEPRECATED vector
   size_type span() const { return DV::span(); }
   bool empty() const { return _size == 0; }
 
-  pointer data() const { return DV::h_view.data(); }
+  pointer data() const { return DV::view_host().data(); }
 
-  iterator begin() const { return DV::h_view.data(); }
+  iterator begin() const { return DV::view_host().data(); }
 
-  const_iterator cbegin() const { return DV::h_view.data(); }
+  const_iterator cbegin() const { return DV::view_host().data(); }
 
   iterator end() const {
-    return _size > 0 ? DV::h_view.data() + _size : DV::h_view.data();
+    return _size > 0 ? DV::view_host().data() + _size : DV::view_host().data();
   }
 
   const_iterator cend() const {
-    return _size > 0 ? DV::h_view.data() + _size : DV::h_view.data();
+    return _size > 0 ? DV::view_host().data() + _size : DV::view_host().data();
   }
 
-  reference front() { return DV::h_view(0); }
+  reference front() { return DV::view_host()(0); }
 
-  reference back() { return DV::h_view(_size - 1); }
+  reference back() { return DV::view_host()(_size - 1); }
 
-  const_reference front() const { return DV::h_view(0); }
+  const_reference front() const { return DV::view_host()(0); }
 
-  const_reference back() const { return DV::h_view(_size - 1); }
+  const_reference back() const { return DV::view_host()(_size - 1); }
 
   /* std::algorithms which work originally with iterators, here they are
    * implemented as member functions */
@@ -245,10 +245,10 @@ class KOKKOS_DEPRECATED vector
       return theEnd;
     }
 
-    Scalar lower_val = DV::h_view(lower);
-    Scalar upper_val = DV::h_view(upper);
+    Scalar lower_val = DV::view_host()(lower);
+    Scalar upper_val = DV::view_host()(upper);
     size_t idx       = (upper + lower) / 2;
-    Scalar val       = DV::h_view(idx);
+    Scalar val       = DV::view_host()(idx);
     if (val > upper_val) return upper;
     if (val < lower_val) return start;
 
@@ -259,14 +259,14 @@ class KOKKOS_DEPRECATED vector
         upper = idx;
       }
       idx = (upper + lower) / 2;
-      val = DV::h_view(idx);
+      val = DV::view_host()(idx);
     }
     return idx;
   }
 
   bool is_sorted() {
     for (int i = 0; i < _size - 1; i++) {
-      if (DV::h_view(i) > DV::h_view(i + 1)) return false;
+      if (DV::view_host()(i) > DV::view_host()(i + 1)) return false;
     }
     return true;
   }
@@ -279,26 +279,27 @@ class KOKKOS_DEPRECATED vector
     upper   = _size - 1;
     lower   = 0;
 
-    if ((val < DV::h_view(0)) || (val > DV::h_view(_size - 1))) return end();
+    if ((val < DV::view_host()(0)) || (val > DV::view_host()(_size - 1)))
+      return end();
 
     while (upper > lower) {
-      if (val > DV::h_view(current))
+      if (val > DV::view_host()(current))
         lower = current + 1;
       else
         upper = current;
       current = (upper + lower) / 2;
     }
 
-    if (val == DV::h_view(current))
-      return &DV::h_view(current);
+    if (val == DV::view_host()(current))
+      return &DV::view_host()(current);
     else
       return end();
   }
 
   /* Additional functions for data management */
 
-  void device_to_host() { deep_copy(DV::h_view, DV::d_view); }
-  void host_to_device() const { deep_copy(DV::d_view, DV::h_view); }
+  void device_to_host() { deep_copy(DV::view_host(), DV::view_device()); }
+  void host_to_device() const { deep_copy(DV::view_device(), DV::view_host()); }
 
   void on_host() { DV::template modify<typename DV::t_host::device_type>(); }
   void on_device() { DV::template modify<typename DV::t_dev::device_type>(); }

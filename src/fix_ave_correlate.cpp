@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 enum { ONE, RUNNING };
-enum { AUTO, UPPER, LOWER, AUTOUPPER, AUTOLOWER, FULL };
+enum { AUTO, UPPER, LOWER, AUTOUPPER, AUTOLOWER, FULL, FIRST };
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,9 +55,10 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
 
   // expand args if any have wildcard character "*"
 
-  const int ioffset = 6;
+  int ioffset = 6;
   int expand = 0;
   char **earg;
+  char **oarg = arg;
   int *amap = nullptr;
   int nargnew = utils::expand_args(FLERR, narg - ioffset, &arg[ioffset], 0, earg, lmp, &amap);
 
@@ -99,7 +100,16 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
   char *title2 = nullptr;
   char *title3 = nullptr;
 
+  // get argument offset if optional arguments are present
+  if (iarg < nargnew) {
+    for (int i = 0; i < narg; ++i) {
+      if (strcmp(oarg[i],arg[iarg]) == 0)
+        ioffset = i - iarg;
+    }
+  }
+
   while (iarg < nargnew) {
+    int errptr = iarg + ioffset;
     if (strcmp(arg[iarg],"type") == 0) {
       if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate type", error);
       if (strcmp(arg[iarg+1],"auto") == 0) type = AUTO;
@@ -108,13 +118,14 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"auto/upper") == 0) type = AUTOUPPER;
       else if (strcmp(arg[iarg+1],"auto/lower") == 0) type = AUTOLOWER;
       else if (strcmp(arg[iarg+1],"full") == 0) type = FULL;
-      else error->all(FLERR, iarg+1, "Unknown fix ave/correlate type: {}");
+      else if (strcmp(arg[iarg+1], "first") == 0) type = FIRST;
+      else error->all(FLERR, errptr + 1, "Unknown fix ave/correlate type: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
       if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate ave", error);
       if (strcmp(arg[iarg+1],"one") == 0) ave = ONE;
       else if (strcmp(arg[iarg+1],"running") == 0) ave = RUNNING;
-      else error->all(FLERR, iarg+1, "Unknown fix ave/correlate ave mode: {}", arg[iarg+1]);
+      else error->all(FLERR, errptr+1, "Unknown fix ave/correlate ave mode: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate start", error);
@@ -129,7 +140,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
       if (comm->me == 0) {
         fp = fopen(arg[iarg+1],"w");
         if (fp == nullptr)
-          error->one(FLERR, iarg+1, "Cannot open fix ave/correlate file {}:"" {}", arg[iarg+1],
+          error->one(FLERR, errptr+1, "Cannot open fix ave/correlate file {}:"" {}", arg[iarg+1],
                      utils::getsyserror());
       }
       iarg += 2;
@@ -151,7 +162,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
       delete[] title3;
       title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;
-    } else error->all(FLERR, iarg, "Unkown fix ave/correlate keyword: {}", arg[iarg]);
+    } else error->all(FLERR, errptr, "Unkown fix ave/correlate keyword: {}", arg[iarg]);
   }
 
   // setup and error check
@@ -176,7 +187,8 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
       if (val.argindex && val.val.c->vector_flag == 0)
         error->all(FLERR, val.iarg, "Fix ave/correlate compute {} does not calculate a vector", val.id);
       if (val.argindex && val.argindex > val.val.c->size_vector)
-        error->all(FLERR, val.iarg, "Fix ave/correlate compute {} vector is accessed out-of-range", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/correlate compute {} vector is accessed "
+                   "out-of-range{}", val.id, utils::errorurl(20));
 
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
@@ -186,9 +198,11 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
       if (val.argindex && val.val.f->vector_flag == 0)
         error->all(FLERR, val.iarg, "Fix ave/correlate fix {} does not calculate a vector", val.id);
       if (val.argindex && val.argindex > val.val.f->size_vector)
-        error->all(FLERR, val.iarg, "Fix ave/correlate fix {} vector is accessed out-of-range", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/correlate fix {} vector is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
       if (nevery % val.val.f->global_freq)
-        error->all(FLERR, val.iarg, "Fix {} for fix ave/correlate not computed at compatible time", val.id);
+        error->all(FLERR, val.iarg, "Fix {} for fix ave/correlate not computed at compatible "
+                   "time{}", val.id, utils::errorurl(7));
 
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
@@ -203,7 +217,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
 
   // npair = # of correlation pairs to calculate
 
-  if (type == AUTO) npair = nvalues;
+  if (type == AUTO || type == FIRST) npair = nvalues;
   if (type == UPPER || type == LOWER) npair = nvalues*(nvalues-1)/2;
   if (type == AUTOUPPER || type == AUTOLOWER) npair = nvalues*(nvalues+1)/2;
   if (type == FULL) npair = nvalues*nvalues;
@@ -242,6 +256,9 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
         for (int i = 0; i < nvalues; i++)
           for (int j = 0; j < nvalues; j++)
             fprintf(fp," %s*%s",earg[i],earg[j]);
+      else if (type == FIRST)
+        for (int i = 0; i < nvalues; i++)
+          fprintf(fp," %s*%s",earg[0],earg[i]);
       fprintf(fp,"\n");
     }
     if (ferror(fp))
@@ -260,6 +277,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
   if (expand) {
     for (int i = 0; i < nargnew; i++) delete[] earg[i];
     memory->sfree(earg);
+    memory->sfree(amap);
   }
 
   // allocate and initialize memory for averaging
@@ -576,6 +594,16 @@ void FixAveCorrelate::accumulate()
       for (i = 0; i < nvalues; i++)
         for (j = 0; j < nvalues; j++)
           corr[k][ipair++] += cvalues[m][i]*cvalues[n][j];
+      m--;
+      if (m < 0) m = nrepeat-1;
+    }
+  } else if (type == FIRST) {
+    m = n = lastindex;
+    for (k = 0; k < nsample; k++) {
+      ipair = 0;
+      for (i = 0; i < nvalues; i++) {
+        corr[k][ipair++] += cvalues[m][0]*cvalues[n][i];
+      }
       m--;
       if (m < 0) m = nrepeat-1;
     }

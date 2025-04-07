@@ -283,7 +283,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
       if (val.argindex && val.val.c->size_local_cols == 0)
         error->all(FLERR, val.iarg, "{} compute {} does not calculate a local array", mycmd, val.id);
       if (val.argindex && val.argindex > val.val.c->size_local_cols)
-        error->all(FLERR, val.iarg, "{} compute {} array is accessed out-of-range", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} compute {} array is accessed out-of-range{}", mycmd,
+                   val.id, utils::errorurl(20));
 
     } else if (val.which == ArgInfo::FIX && kind == GLOBAL && mode == SCALAR) {
       if (val.argindex == 0 && val.val.f->scalar_flag == 0)
@@ -291,9 +292,11 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
       if (val.argindex && val.val.f->vector_flag == 0)
         error->all(FLERR, val.iarg, "{} fix {} does not calculate a global vector", mycmd, val.id);
       if (val.argindex && val.argindex > val.val.f->size_vector)
-        error->all(FLERR, val.iarg, "{} fix {} vector is accessed out-of-range", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix {} vector is accessed out-of-range{}", mycmd,
+                   val.id, utils::errorurl(20));
       if (nevery % val.val.f->global_freq)
-        error->all(FLERR, val.iarg, "Fix {} for {} not computed at compatible time", val.id, mycmd);
+        error->all(FLERR, val.iarg, "Fix {} for {} not computed at compatible time{}",
+                   val.id, mycmd, utils::errorurl(7));
 
     } else if (val.which == ArgInfo::FIX && kind == GLOBAL && mode == VECTOR) {
       if (val.argindex == 0 && val.val.f->vector_flag == 0)
@@ -301,9 +304,11 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
       if (val.argindex && val.val.f->array_flag == 0)
         error->all(FLERR, val.iarg, "{} fix {} does not calculate a global array", mycmd, val.id);
       if (val.argindex && val.argindex > val.val.f->size_array_cols)
-        error->all(FLERR, val.iarg, "{} fix {} array is accessed out-of-range", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix {} array is accessed out-of-range{}", mycmd, val.id,
+                   utils::errorurl(20));
       if (nevery % val.val.f->global_freq)
-        error->all(FLERR, val.iarg, "Fix {} for {} not computed at compatible time", val.id, mycmd);
+        error->all(FLERR, val.iarg, "Fix {} for {} not computed at compatible time{}",
+                   val.id, mycmd, utils::errorurl(7));
 
     } else if (val.which == ArgInfo::FIX && kind == PERATOM) {
       if (val.val.f->peratom_flag == 0)
@@ -313,9 +318,11 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
       if (val.argindex && val.val.f->size_peratom_cols == 0)
         error->all(FLERR, val.iarg, "{} fix {} does not ""calculate a per-atom array", mycmd, val.id);
       if (val.argindex && val.argindex > val.val.f->size_peratom_cols)
-        error->all(FLERR, val.iarg, "{} fix {} array is accessed out-of-range", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix {} array is accessed out-of-range{}", mycmd, val.id,
+                   utils::errorurl(20));
       if (nevery % val.val.f->global_freq)
-        error->all(FLERR, val.iarg, "Fix {} for {} not computed at compatible time", val.id, mycmd);
+        error->all(FLERR, val.iarg, "Fix {} for {} not computed at compatible time{}", val.id,
+                   mycmd, utils::errorurl(7));
 
     } else if (val.which == ArgInfo::FIX && kind == LOCAL) {
       if (val.val.f->local_flag == 0)
@@ -325,9 +332,11 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
       if (val.argindex && val.val.f->size_local_cols == 0)
         error->all(FLERR, val.iarg, "{} fix does not calculate a local array", mycmd, val.id);
       if (val.argindex && val.argindex > val.val.f->size_local_cols)
-        error->all(FLERR, val.iarg, "{} fix {} array is accessed out-of-range", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix {} array is accessed out-of-range{}", mycmd,
+                   val.id, utils::errorurl(20));
       if (nevery % val.val.f->global_freq)
-        error->all(FLERR, val.iarg, "Fix {} for {} not computed at compatible time", val.id, mycmd);
+        error->all(FLERR, val.iarg, "Fix {} for {} not computed at compatible time{}", val.id,
+                   mycmd, utils::errorurl(7));
 
     } else if (val.which == ArgInfo::VARIABLE && kind == GLOBAL && mode == SCALAR) {
       if (val.argindex == 0 && input->variable->equalstyle(val.val.v) == 0)

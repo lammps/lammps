@@ -102,6 +102,7 @@ class Stacktrace {
           trace[i] = std::string(symbols[i]);
         }
       }
+      // NOLINTNEXTLINE(bugprone-multi-level-implicit-pointer-conversion)
       free(symbols);
       return trace;
     }

@@ -103,15 +103,7 @@ class GraphNodeKernelImpl<Kokkos::Cuda, PolicyType, Functor, PatternTag,
   auto get_driver_storage() const { return m_driver_storage; }
 };
 
-struct CudaGraphNodeAggregateKernel {
-  using graph_kernel = CudaGraphNodeAggregateKernel;
-
-  // Aggregates don't need a policy, but for the purposes of checking the static
-  // assertions about graph kerenls,
-  struct Policy {
-    using is_graph_kernel = std::true_type;
-  };
-};
+struct CudaGraphNodeAggregate {};
 
 template <class KernelType,
           class Tag =

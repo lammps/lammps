@@ -1710,12 +1710,6 @@ struct TestComplexBesselH1Function {
     h_ref_ch11(24) =
         Kokkos::complex<double>(-5.430453818237824e-02, -1.530182458039000e-02);
 
-    // FIXME_HIP Disable the test when using ROCm 5.5, 5.6, and 6.2 due to a
-    // known compiler bug
-#if !(defined(KOKKOS_ENABLE_HIP) &&                          \
-      ((HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR == 5) || \
-       (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR == 6) || \
-       (HIP_VERSION_MAJOR == 6 && HIP_VERSION_MINOR == 2)))
     EXPECT_EQ(h_ref_ch10(0), h_ch10(0));
     int upper_limit_10 = N;
 // FIXME_SYCL Failing for Intel GPUs, 17 is the first failing test case
@@ -1739,7 +1733,6 @@ struct TestComplexBesselH1Function {
                 Kokkos::abs(h_ref_ch11(i)) * 1e-13)
           << "at index " << i;
     }
-#endif
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -1978,6 +1971,13 @@ TEST(TEST_CATEGORY, mathspecialfunc_cbesselj1y1) {
     GTEST_SKIP() << "skipping since test is known to fail with OpenMPTarget on "
                     "Intel GPUs";  // FIXME_OPENMPTARGET
 #endif
+#if defined(KOKKOS_ENABLE_HIP) &&                         \
+    (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR == 3) && \
+    defined(KOKKOS_ARCH_AMD_GFX908)
+  if (std::is_same_v<TEST_EXECSPACE, Kokkos::HIP>)
+    GTEST_SKIP()
+        << "skipping since test is known to fail on MI100 with ROCm 5.3";
+#endif
   TestComplexBesselJ1Y1Function<TEST_EXECSPACE> test;
   test.testit();
 }
@@ -2007,6 +2007,17 @@ TEST(TEST_CATEGORY, mathspecialfunc_cbesselh1stkind) {
   if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>)
     GTEST_SKIP() << "skipping since test is known to fail with OpenMPTarget on "
                     "Intel GPUs";  // FIXME_OPENMPTARGET
+#endif
+    // Disable the test when using ROCm 5.5, 5.6, and 6.2 due to a
+    // known compiler bug. The test always fails on MI100.
+#if defined(KOKKOS_ENABLE_HIP) &&                            \
+    (((HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR == 5) ||  \
+      (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR == 6) ||  \
+      (HIP_VERSION_MAJOR == 6 && HIP_VERSION_MINOR == 2)) || \
+     defined(KOKKOS_ARCH_AMD_GFX908))
+  if (std::is_same_v<TEST_EXECSPACE, Kokkos::HIP>)
+    GTEST_SKIP() << "skipping since test is known to fail on MI100 and for "
+                    "some versions of ROCm";
 #endif
   TestComplexBesselH1Function<TEST_EXECSPACE> test;
   test.testit();

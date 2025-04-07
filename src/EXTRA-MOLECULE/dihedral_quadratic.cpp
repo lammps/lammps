@@ -267,7 +267,7 @@ void DihedralQuadratic::allocate()
 
 void DihedralQuadratic::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (narg != 3) error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -288,7 +288,7 @@ void DihedralQuadratic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

@@ -304,7 +304,7 @@ Chemistry, 95, 3358-3363 (1991).
 .. _CTIP1:
 
 **(CTIP)** G. Plummer, J. P. Tavenner, M. I. Mendelev, Z. Wu, J. W. Lawson,
-in preparation
+J Chemical Physics, 162, 054709 (2025)
 
 .. _vanDuin:
 

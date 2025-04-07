@@ -180,7 +180,7 @@ force is added.
 
 By default, no additional forces act on the first and last replicas
 during the NEB relaxation, so these replicas simply relax toward their
-respective local minima.  By using the key word *end*, additional forces
+respective local minima.  By using the keyword *end*, additional forces
 can be applied to the first and/or last replicas, to enable them to
 relax toward a MEP while constraining their energy E to the target
 energy ETarget.

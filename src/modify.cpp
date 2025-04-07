@@ -295,7 +295,8 @@ void Modify::init()
   int checkall;
   MPI_Allreduce(&check, &checkall, 1, MPI_INT, MPI_SUM, world);
   if (comm->me == 0 && checkall)
-    error->warning(FLERR, "One or more atoms are time integrated more than once");
+    error->warning(FLERR, "One or more atoms are time integrated more than once"
+                   + utils::errorurl(32));
 }
 
 /* ----------------------------------------------------------------------
@@ -1005,19 +1006,22 @@ Fix *Modify::add_fix(const std::string &fixcmd, int trysuffix)
 Fix *Modify::replace_fix(const char *replaceID, int narg, char **arg, int trysuffix)
 {
   auto oldfix = get_fix_by_id(replaceID);
-  if (!oldfix) error->all(FLERR, "Modify replace_fix ID {} could not be found", replaceID);
+  if (!oldfix) error->all(FLERR, Error::NOLASTLINE,
+                          "Modify replace_fix ID {} could not be found", replaceID);
 
   // change ID, igroup, style of fix being replaced to match new fix
   // requires some error checking on arguments for new fix
 
-  if (narg < 3) error->all(FLERR, "Not enough arguments for replace_fix invocation");
+  if (narg < 3)
+    error->all(FLERR, Error::NOLASTLINE, "Not enough arguments for replace_fix invocation");
   if (get_fix_by_id(arg[0])) error->all(FLERR, "Replace_fix ID {} is already in use", arg[0]);
 
   delete[] oldfix->id;
   oldfix->id = utils::strdup(arg[0]);
 
   int jgroup = group->find(arg[1]);
-  if (jgroup == -1) error->all(FLERR, "Could not find replace_fix group ID {}", arg[1]);
+  if (jgroup == -1) error->all(FLERR, Error::NOLASTLINE,
+                               "Could not find replace_fix group ID {}", arg[1]);
   oldfix->igroup = jgroup;
 
   delete[] oldfix->style;
@@ -1051,7 +1055,7 @@ void Modify::modify_fix(int narg, char **arg)
   if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify", error);
 
   auto ifix = get_fix_by_id(arg[0]);
-  if (!ifix) error->all(FLERR, "Could not find fix_modify ID {}", arg[0]);
+  if (!ifix) error->all(FLERR, Error::NOLASTLINE, "Could not find fix_modify ID {}", arg[0]);
   ifix->modify_params(narg - 1, &arg[1]);
 }
 
@@ -1063,7 +1067,7 @@ void Modify::modify_fix(int narg, char **arg)
 void Modify::delete_fix(const std::string &id)
 {
   int ifix = find_fix(id);
-  if (ifix < 0) error->all(FLERR, "Could not find fix ID {} to delete", id);
+  if (ifix < 0) error->all(FLERR, Error::NOLASTLINE, "Could not find fix ID {} to delete", id);
   delete_fix(ifix);
 }
 
@@ -1290,10 +1294,21 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
   }
 
   if (compute[ncompute] == nullptr)
-    error->all(FLERR, utils::check_packages_for_style("compute", arg[2], lmp));
+    error->all(FLERR, Error::NOLASTLINE, utils::check_packages_for_style("compute", arg[2], lmp));
 
   compute_list = std::vector<Compute *>(compute, compute + ncompute + 1);
-  return compute[ncompute++];
+
+  // post_constructor() can call virtual methods in parent or child
+  //   which would otherwise not yet be visible in child class
+  // post_constructor() allows new compute to create other computes
+  // ncompute increment must come first so recursive call to add_compute within
+  //   post_constructor() will see updated ncompute
+
+  auto *newcompute = compute[ncompute];
+  ++ncompute;
+  newcompute->post_constructor();
+
+  return newcompute;
 }
 
 /* ----------------------------------------------------------------------
@@ -1320,7 +1335,8 @@ void Modify::modify_compute(int narg, char **arg)
   // lookup Compute ID
 
   auto icompute = get_compute_by_id(arg[0]);
-  if (!icompute) error->all(FLERR, "Could not find compute_modify ID {}", arg[0]);
+  if (!icompute)
+    error->all(FLERR, Error::NOLASTLINE, "Could not find compute_modify ID {}", arg[0]);
   icompute->modify_params(narg - 1, &arg[1]);
 }
 
@@ -1331,7 +1347,8 @@ void Modify::modify_compute(int narg, char **arg)
 void Modify::delete_compute(const std::string &id)
 {
   int icompute = find_compute(id);
-  if (icompute < 0) error->all(FLERR, "Could not find compute ID {} to delete", id);
+  if (icompute < 0)
+    error->all(FLERR, Error::NOLASTLINE, "Could not find compute ID {} to delete", id);
   delete_compute(icompute);
 }
 
@@ -1430,7 +1447,7 @@ void Modify::addstep_compute(bigint newstep)
   }
 
   for (int icompute = 0; icompute < n_timeflag; icompute++)
-    if (compute[list_timeflag[icompute]]->invoked_flag)
+    if (compute[list_timeflag[icompute]]->invoked_flag >=0)
       compute[list_timeflag[icompute]]->addstep(newstep);
 }
 

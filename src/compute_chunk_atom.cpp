@@ -56,7 +56,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     fchunk(nullptr), varatom(nullptr), id_fix(nullptr), fixstore(nullptr), lockfix(nullptr),
     chunk(nullptr), exclude(nullptr), hash(nullptr)
 {
-  if (narg < 4) error->all(FLERR, "Illegal compute chunk/atom command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "compute chunk/atom", error);
 
   peratom_flag = 1;
   scalar_flag = 1;
@@ -101,7 +101,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     which = ArgInfo::BINSPHERE;
     ncoord = 1;
     iarg = 4;
-    if (iarg + 6 > narg) error->all(FLERR, "Illegal compute chunk/atom command");
+    if (iarg + 6 > narg) utils::missing_cmd_args(FLERR, "compute chunk/atom bin/sphere", error);
     sorigin_user[0] = utils::numeric(FLERR, arg[iarg], false, lmp);
     sorigin_user[1] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
     sorigin_user[2] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
@@ -126,7 +126,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       cdim1 = 0;
       cdim2 = 1;
     }
-    if (iarg + 5 > narg) error->all(FLERR, "Illegal compute chunk/atom command");
+    if (iarg + 5 > narg) utils::missing_cmd_args(FLERR, "compute chunk/atom bin/cylinder", error);
     corigin_user[dim[0]] = 0.0;
     corigin_user[cdim1] = utils::numeric(FLERR, arg[iarg], false, lmp);
     corigin_user[cdim2] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
@@ -151,7 +151,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     cfvid = argi.copy_name();
 
     if ((which == ArgInfo::UNKNOWN) || (which == ArgInfo::NONE) || (argi.get_dim() > 1))
-      error->all(FLERR, "Illegal compute chunk/atom command");
+      error->all(FLERR, 3, "Invalid compute chunk/atom argument {}", arg[3]);
     iarg = 4;
   }
 
@@ -178,40 +178,42 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg], "region") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute chunk/atom command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute chunk/atom region", error);
       if (!domain->get_region_by_id(arg[iarg + 1]))
-        error->all(FLERR, "Region {} for compute chunk/atom does not exist", arg[iarg + 1]);
+        error->all(FLERR, iarg + 1, "Region {} for compute chunk/atom does not exist",
+                   arg[iarg + 1]);
       idregion = utils::strdup(arg[iarg + 1]);
       regionflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "nchunk") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute chunk/atom command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute chunk/atom nchunk", error);
       if (strcmp(arg[iarg + 1], "once") == 0)
         nchunkflag = ONCE;
       else if (strcmp(arg[iarg + 1], "every") == 0)
         nchunkflag = EVERY;
       else
-        error->all(FLERR, "Illegal compute chunk/atom command");
+        error->all(FLERR, iarg + 1, "Unknown compute chunk/atom nchunk argument {}", arg[iarg + 1]);
       nchunksetflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "limit") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute chunk/atom command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute chunk/atom limit", error);
       limit = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (limit < 0) error->all(FLERR, "Illegal compute chunk/atom command");
+      if (limit < 0)
+        error->all(FLERR, iarg + 1, "Illegal compute chunk/atom limit value {}", limit);
       if (limit && !compress) limitfirst = 1;
       iarg += 2;
       if (limit) {
-        if (iarg > narg) error->all(FLERR, "Illegal compute chunk/atom command");
+        if (iarg > narg) utils::missing_cmd_args(FLERR, "compute chunk/atom limit", error);
         if (strcmp(arg[iarg], "max") == 0)
           limitstyle = LIMITMAX;
         else if (strcmp(arg[iarg], "exact") == 0)
           limitstyle = LIMITEXACT;
         else
-          error->all(FLERR, "Illegal compute chunk/atom command");
+          error->all(FLERR, iarg, "Unknown compute chunk/atom limit keyword {}", arg[iarg]);
         iarg++;
       }
     } else if (strcmp(arg[iarg], "ids") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute chunk/atom command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute chunk/atom ids", error);
       if (strcmp(arg[iarg + 1], "once") == 0)
         idsflag = ONCE;
       else if (strcmp(arg[iarg + 1], "nfreq") == 0)
@@ -219,14 +221,14 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg + 1], "every") == 0)
         idsflag = EVERY;
       else
-        error->all(FLERR, "Illegal compute chunk/atom command");
+        error->all(FLERR, iarg + 1, "Unknown compute chunk/atom ids argument {}", arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "compress") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute chunk/atom command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute chunk/atom compress", error);
       compress = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "discard") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute chunk/atom command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute chunk/atom discard", error);
       if (strcmp(arg[iarg + 1], "mixed") == 0)
         discard = MIXED;
       else if (strcmp(arg[iarg + 1], "no") == 0)
@@ -234,11 +236,12 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg + 1], "yes") == 0)
         discard = YESDISCARD;
       else
-        error->all(FLERR, "Illegal compute chunk/atom command");
+        error->all(FLERR, iarg + 1, "Unknown compute chunk/atom discard argument {}",
+                   arg[iarg + 1]);
       discardsetflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "bound") == 0) {
-      if (iarg + 4 > narg) error->all(FLERR, "Illegal compute chunk/atom command");
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "compute chunk/atom bound", error);
       int idim = 0;
       if (strcmp(arg[iarg + 1], "x") == 0)
         idim = 0;
@@ -247,7 +250,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg + 1], "z") == 0)
         idim = 2;
       else
-        error->all(FLERR, "Illegal compute chunk/atom command");
+        error->all(FLERR, iarg + 1, "Unknown compute chunk/atom bound argument {}", arg[iarg + 1]);
       minflag[idim] = COORD;
       if (strcmp(arg[iarg + 2], "lower") == 0)
         minflag[idim] = LOWER;
@@ -260,7 +263,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
         maxvalue[idim] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       iarg += 4;
     } else if (strcmp(arg[iarg], "units") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute chunk/atom command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute chunk/atom units", error);
       if (strcmp(arg[iarg + 1], "box") == 0)
         scaleflag = BOX;
       else if (strcmp(arg[iarg + 1], "lattice") == 0)
@@ -268,14 +271,14 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg + 1], "reduced") == 0)
         scaleflag = REDUCED;
       else
-        error->all(FLERR, "Illegal compute chunk/atom command");
+        error->all(FLERR, iarg + 1, "Unknown compute chunk/atom units argument {}", arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "pbc") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute chunk/atom command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute chunk/atom pbc", error);
       pbcflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal compute chunk/atom command");
+      error->all(FLERR, iarg, "Unknown compute chunk/atom keyword {}", arg[iarg]);
   }
 
   // set nchunkflag and discard to default values if not explicitly set
@@ -309,74 +312,82 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   // error checks
 
   if (which == ArgInfo::MOLECULE && !atom->molecule_flag)
-    error->all(FLERR, "Compute chunk/atom molecule for non-molecular system");
+    error->all(FLERR, Error::NOLASTLINE, "Compute chunk/atom molecule for non-molecular system");
 
   if (!binflag && discard == MIXED)
-    error->all(FLERR,
-               "Compute chunk/atom without bins "
-               "cannot use discard mixed");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Compute chunk/atom without bins cannot use discard mixed");
   if (which == ArgInfo::BIN1D && delta[0] <= 0.0)
-    error->all(FLERR, "Illegal compute chunk/atom command");
+    error->all(FLERR, Error::NOLASTLINE, "Illegal compute chunk/atom bin/1d command");
   if (which == ArgInfo::BIN2D && (delta[0] <= 0.0 || delta[1] <= 0.0))
-    error->all(FLERR, "Illegal compute chunk/atom command");
+    error->all(FLERR, Error::NOLASTLINE, "Illegal compute chunk/atom bin/2d command");
   if (which == ArgInfo::BIN2D && (dim[0] == dim[1]))
-    error->all(FLERR, "Illegal compute chunk/atom command");
+    error->all(FLERR, Error::NOLASTLINE, "Illegal compute chunk/atom bin/2d command");
   if (which == ArgInfo::BIN3D && (delta[0] <= 0.0 || delta[1] <= 0.0 || delta[2] <= 0.0))
-    error->all(FLERR, "Illegal compute chunk/atom command");
+    error->all(FLERR, Error::NOLASTLINE, "Illegal compute chunk/atom bin/3d command");
   if (which == ArgInfo::BIN3D && (dim[0] == dim[1] || dim[1] == dim[2] || dim[0] == dim[2]))
-    error->all(FLERR, "Illegal compute chunk/atom command");
+    error->all(FLERR, Error::NOLASTLINE, "Illegal compute chunk/atom bin/3d command");
   if (which == ArgInfo::BINSPHERE) {
     if (domain->dimension == 2 && sorigin_user[2] != 0.0)
-      error->all(FLERR, "Compute chunk/atom sphere z origin must be 0.0 for 2d");
+      error->all(FLERR, Error::NOLASTLINE, "Compute chunk/atom sphere z origin must be 0.0 for 2d");
     if (sradmin_user < 0.0 || sradmin_user >= sradmax_user || nsbin < 1)
-      error->all(FLERR, "Illegal compute chunk/atom command");
+      error->all(FLERR, Error::NOLASTLINE, "Illegal compute chunk/atom bin/sphere command");
   }
   if (which == ArgInfo::BINCYLINDER) {
-    if (delta[0] <= 0.0) error->all(FLERR, "Illegal compute chunk/atom command");
+    if (delta[0] <= 0.0)
+      error->all(FLERR, Error::NOLASTLINE, "Illegal compute chunk/atom bin/cylinder command");
     if (domain->dimension == 2 && dim[0] != 2)
-      error->all(FLERR, "Compute chunk/atom cylinder axis must be z for 2d");
+      error->all(FLERR, Error::NOLASTLINE, "Compute chunk/atom cylinder axis must be z for 2d");
     if (cradmin_user < 0.0 || cradmin_user >= cradmax_user || ncbin < 1)
-      error->all(FLERR, "Illegal compute chunk/atom command");
+      error->all(FLERR, Error::NOLASTLINE, "Illegal compute chunk/atom bin/cylinder command");
   }
 
   if (which == ArgInfo::COMPUTE) {
     cchunk = modify->get_compute_by_id(cfvid);
-    if (!cchunk) error->all(FLERR, "Compute ID {} for compute chunk /atom does not exist", cfvid);
+    if (!cchunk)
+      error->all(FLERR, 3, "Compute ID {} for compute chunk /atom does not exist", cfvid);
     if (cchunk->peratom_flag == 0)
-      error->all(FLERR, "Compute chunk/atom compute does not calculate per-atom values");
+      error->all(FLERR, 3, "Compute chunk/atom compute {} does not calculate per-atom values",
+                 cfvid);
     if ((argindex == 0) && (cchunk->size_peratom_cols != 0))
-      error->all(FLERR, "Compute chunk/atom compute does not calculate a per-atom vector");
+      error->all(FLERR, 3, "Compute chunk/atom compute {} does not calculate a per-atom vector",
+                 cfvid);
     if (argindex && (cchunk->size_peratom_cols == 0))
-      error->all(FLERR, "Compute chunk/atom compute does not calculate a per-atom array");
+      error->all(FLERR, 3, "Compute chunk/atom compute {} does not calculate a per-atom array",
+                 cfvid);
     if (argindex && argindex > cchunk->size_peratom_cols)
-      error->all(FLERR, "Compute chunk/atom compute array is accessed out-of-range");
+      error->all(FLERR, 3, "Compute chunk/atom compute {} array is accessed out-of-range{}", cfvid,
+                 utils::errorurl(20));
   }
 
   if (which == ArgInfo::FIX) {
     fchunk = modify->get_fix_by_id(cfvid);
-    if (!fchunk) error->all(FLERR, "Fix ID {} for compute chunk/atom does not exist", cfvid);
+    if (!fchunk) error->all(FLERR, 3, "Fix ID {} for compute chunk/atom does not exist", cfvid);
     if (fchunk->peratom_flag == 0)
-      error->all(FLERR, "Compute chunk/atom fix does not calculate per-atom values");
+      error->all(FLERR, 3, "Compute chunk/atom fix {} does not calculate per-atom values", cfvid);
     if (argindex == 0 && fchunk->size_peratom_cols != 0)
-      error->all(FLERR, "Compute chunk/atom fix does not calculate a per-atom vector");
+      error->all(FLERR, 3, "Compute chunk/atom fix {} does not calculate a per-atom vector", cfvid);
     if (argindex && fchunk->size_peratom_cols == 0)
-      error->all(FLERR, "Compute chunk/atom fix does not calculate a per-atom array");
+      error->all(FLERR, 3, "Compute chunk/atom fix {} does not calculate a per-atom array", cfvid);
     if (argindex && argindex > fchunk->size_peratom_cols)
-      error->all(FLERR, "Compute chunk/atom fix array is accessed out-of-range");
+      error->all(FLERR, 3, "Compute chunk/atom fix {} array is accessed out-of-range{}", cfvid,
+                 utils::errorurl(20));
   }
 
   if (which == ArgInfo::VARIABLE) {
     int ivariable = input->variable->find(cfvid);
-    if (ivariable < 0) error->all(FLERR, "Variable name for compute chunk/atom does not exist");
+    if (ivariable < 0)
+      error->all(FLERR, 3, "Variable name {} for compute chunk/atom does not exist", cfvid);
     if (input->variable->atomstyle(ivariable) == 0)
-      error->all(FLERR, "Compute chunk/atom variable is not atom-style variable");
+      error->all(FLERR, 3, "Compute chunk/atom variable {} is not atom-style variable", cfvid);
   }
 
   // setup scaling
 
   if (binflag) {
     if (domain->triclinic == 1 && scaleflag != REDUCED)
-      error->all(FLERR, "Compute chunk/atom for triclinic boxes requires units reduced");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Compute chunk/atom for triclinic boxes requires units reduced");
   }
 
   if (scaleflag == LATTICE) {
@@ -512,20 +523,27 @@ void ComputeChunkAtom::init()
 
   if (regionflag) {
     region = domain->get_region_by_id(idregion);
-    if (!region) error->all(FLERR, "Region {} for compute chunk/atom does not exist", idregion);
+    if (!region)
+      error->all(FLERR, Error::NOLASTLINE, "Region {} for compute chunk/atom does not exist",
+                 idregion);
   }
 
   // set compute,fix,variable
 
   if (which == ArgInfo::COMPUTE) {
     cchunk = modify->get_compute_by_id(cfvid);
-    if (!cchunk) error->all(FLERR, "Compute ID {} for compute chunk/atom does not exist", cfvid);
+    if (!cchunk)
+      error->all(FLERR, Error::NOLASTLINE, "Compute ID {} for compute chunk/atom does not exist",
+                 cfvid);
   } else if (which == ArgInfo::FIX) {
     fchunk = modify->get_fix_by_id(cfvid);
-    if (!fchunk) error->all(FLERR, "Fix ID {} for compute chunk/atom does not exist", cfvid);
+    if (!fchunk)
+      error->all(FLERR, Error::NOLASTLINE, "Fix ID {} for compute chunk/atom does not exist",
+                 cfvid);
   } else if (which == ArgInfo::VARIABLE) {
     int ivariable = input->variable->find(cfvid);
-    if (ivariable < 0) error->all(FLERR, "Variable name for compute chunk/atom does not exist");
+    if (ivariable < 0)
+      error->all(FLERR, Error::NOLASTLINE, "Variable name for compute chunk/atom does not exist");
     vchunk = ivariable;
   }
 
@@ -540,7 +558,8 @@ void ComputeChunkAtom::init()
       if (molecule[i] > maxone) maxone = molecule[i];
     tagint maxall;
     MPI_Allreduce(&maxone, &maxall, 1, MPI_LMP_TAGINT, MPI_MAX, world);
-    if (maxall > MAXSMALLINT) error->all(FLERR, "Molecule IDs too large for compute chunk/atom");
+    if (maxall > MAXSMALLINT)
+      error->all(FLERR, Error::NOLASTLINE, "Molecule IDs too large for compute chunk/atom");
   }
 
   // for binning, if nchunkflag not already set, set it to ONCE or EVERY
@@ -560,7 +579,7 @@ void ComputeChunkAtom::init()
   // can't check until now since nchunkflag may have been adjusted in init()
 
   if (idsflag == ONCE && nchunkflag != ONCE)
-    error->all(FLERR, "Compute chunk/atom ids once but nchunk is not once");
+    error->all(FLERR, Error::NOLASTLINE, "Compute chunk/atom ids once but nchunk is not once");
 
   // create/destroy fix STORE for persistent chunk IDs as needed
   // need to do this if idsflag = ONCE or locks will be used by other commands
@@ -658,9 +677,8 @@ void ComputeChunkAtom::lock(Fix *fixptr, bigint startstep, bigint stopstep)
   }
 
   if (startstep != lockstart || stopstep != lockstop)
-    error->all(FLERR,
-               "Two fix commands using "
-               "same compute chunk/atom command in incompatible ways");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Two fix commands using same compute chunk/atom command in incompatible ways");
 
   // set lock to last calling Fix, since it will be last to unlock()
 
@@ -910,7 +928,9 @@ void ComputeChunkAtom::assign_chunk_ids()
 
   if (regionflag) {
     region = domain->get_region_by_id(idregion);
-    if (!region) error->all(FLERR, "Region {} for compute chunk/atom does not exist", idregion);
+    if (!region)
+      error->all(FLERR, Error::NOLASTLINE, "Region {} for compute chunk/atom does not exist",
+                 idregion);
     region->prematch();
   }
 
@@ -989,9 +1009,9 @@ void ComputeChunkAtom::assign_chunk_ids()
 
   } else if (which == ArgInfo::FIX) {
     if (update->ntimestep % fchunk->peratom_freq)
-      error->all(FLERR,
-                 "Fix used in compute chunk/atom not "
-                 "computed at compatible time");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Fix {} used in compute chunk/atom not computed at compatible time{}",
+                 fchunk->id, utils::errorurl(7));
 
     if (argindex == 0) {
       double *vec = fchunk->vector_atom;
@@ -1245,7 +1265,7 @@ int ComputeChunkAtom::setup_xyz_bins()
       hi = origin[m] - n * delta[m];
     }
 
-    if (lo > hi) error->all(FLERR, "Invalid bin bounds in compute chunk/atom");
+    if (lo > hi) error->all(FLERR, Error::NOLASTLINE, "Invalid bin bounds in compute chunk/atom");
 
     offset[m] = lo;
     nlayers[m] = static_cast<int>((hi - lo) * invdelta[m] + 0.5);
@@ -1324,9 +1344,8 @@ int ComputeChunkAtom::setup_sphere_bins()
     if (periodicity[1] && sradmax > prd_half[1]) flag = 1;
     if (domain->dimension == 3 && periodicity[2] && sradmax > prd_half[2]) flag = 1;
     if (flag)
-      error->all(FLERR,
-                 "Compute chunk/atom bin/sphere radius "
-                 "is too large for periodic box");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Compute chunk/atom bin/sphere radius is too large for periodic box");
   }
 
   sinvrad = nsbin / (sradmax - sradmin);
@@ -1388,9 +1407,8 @@ int ComputeChunkAtom::setup_cylinder_bins()
     if (periodicity[cdim1] && sradmax > prd_half[cdim1]) flag = 1;
     if (periodicity[cdim2] && sradmax > prd_half[cdim2]) flag = 1;
     if (flag)
-      error->all(FLERR,
-                 "Compute chunk/atom bin/cylinder radius "
-                 "is too large for periodic box");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Compute chunk/atom bin/cylinder radius is too large for periodic box");
   }
 
   cinvrad = ncbin / (cradmax - cradmin);
@@ -2002,7 +2020,7 @@ void ComputeChunkAtom::atom2bincylinder()
 
 void ComputeChunkAtom::readdim(int narg, char **arg, int iarg, int idim)
 {
-  if (narg < iarg + 3) error->all(FLERR, "Illegal compute chunk/atom command");
+  if (narg < iarg + 3) utils::missing_cmd_args(FLERR, "compute chunk/atom", error);
   if (strcmp(arg[iarg], "x") == 0)
     dim[idim] = 0;
   else if (strcmp(arg[iarg], "y") == 0)
@@ -2010,10 +2028,10 @@ void ComputeChunkAtom::readdim(int narg, char **arg, int iarg, int idim)
   else if (strcmp(arg[iarg], "z") == 0)
     dim[idim] = 2;
   else
-    error->all(FLERR, "Illegal compute chunk/atom command");
+    error->all(FLERR, iarg, "Illegal compute chunk/atom dimension {}", arg[iarg]);
 
   if (dim[idim] == 2 && domain->dimension == 2)
-    error->all(FLERR, "Cannot use compute chunk/atom bin z for 2d model");
+    error->all(FLERR, iarg, "Cannot use compute chunk/atom bin z for 2d model");
 
   if (strcmp(arg[iarg + 1], "lower") == 0)
     originflag[idim] = LOWER;

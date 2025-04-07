@@ -134,7 +134,7 @@ void BondClass2::allocate()
 
 void BondClass2::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all(FLERR,"Incorrect args for bond coefficients");
+  if (narg != 5) error->all(FLERR,"Incorrect args for bond coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -155,7 +155,7 @@ void BondClass2::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

@@ -154,7 +154,7 @@ double ComputeTI::compute_scalar()
 
   invoked_scalar = update->ntimestep;
   if (update->eflag_global != invoked_scalar)
-    error->all(FLERR,"Energy was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Energy was not tallied on needed timestep{}", utils::errorurl(22));
 
   const int nlocal = atom->nlocal;
   const int * const type = atom->type;

@@ -325,7 +325,7 @@ void BondRHEOShell::allocate()
 
 void BondRHEOShell::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (narg != 4) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -346,7 +346,7 @@ void BondRHEOShell::coeff(int narg, char **arg)
     if (1.0 + ecrit[i] > max_stretch) max_stretch = 1.0 + ecrit[i];
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

@@ -19,6 +19,12 @@
 
 #if defined(KOKKOS_ENABLE_HIP)
 
+#if defined(KOKKOS_ARCH_AMD_GFX942) && defined(KOKKOS_ARCH_AMD_GFX942_APU)
+static_assert(false,
+              "Kokkos detected both `KOKKOS_ARCH_AMD_GFX942` and "
+              "`KOKKOS_ARCH_AMD_GFX942_APU` which is not allowed.");
+#endif
+
 #define KOKKOS_IMPL_HIP_CLANG_WORKAROUND
 
 #include <hip/hip_runtime.h>

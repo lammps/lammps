@@ -13,7 +13,7 @@
   create_atoms      1 box
 
   pair_style        eam/alloy
-  pair_coeff        * * ../../../../potentials/Cu_mishin1.eam.alloy Cu
+  pair_coeff        * * Cu_mishin1.eam.alloy Cu
 #------------------------------------------------------------------------------#
 
 

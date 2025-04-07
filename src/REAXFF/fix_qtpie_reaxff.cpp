@@ -16,7 +16,7 @@
    Contributing authors:
       Efstratios M Kritikos, California Institute of Technology
       (Implemented original version in LAMMMPS Aug 2019)
-      Navraj S Lalli, Imperial College London
+      Navraj S Lalli, Imperial College London (navrajsinghlalli@gmail.com)
       (Reimplemented QTPIE as a new fix in LAMMPS Aug 2024 and extended functionality)
       Mitch Murphy, alphataubio at gmail
       (gauss_exp ffield unused ATM line 2 pos 5 to enable FitSNAP-ReaxFF)
@@ -25,6 +25,7 @@
 #include "fix_qtpie_reaxff.h"
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -52,7 +53,20 @@ using namespace FixConst;
 
 static constexpr double CONV_TO_EV = 14.4;
 static constexpr double QSUMSMALL = 0.00001;
-static constexpr double ANGSTROM_TO_BOHRRADIUS = 1.8897261259;
+static constexpr double ANGSTROM_TO_BOHRRADIUS_SQ = 3.571064831;
+
+static const char cite_fix_qtpie_reax[] =
+  "fix qtpie/reaxff command: \n\n"
+  "@Article{Kritikos20,\n"
+  " author = {E. Kritikos and A. Giusti},\n"
+  " title = {Reactive Molecular Dynamics Investigation of Toluene Oxidation under Electrostatic Fields: Effect of the Modeling of Local Charge Distribution},\n"
+  " journal = {The Journal of Physical Chemistry A},\n"
+  " volume = {124},\n"
+  " number = {51},\n"
+  " pages = {10705--10716},\n"
+  " year = {2020},\n"
+  " publisher = {ACS Publications}\n"
+  "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -69,8 +83,9 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
 
   imax = 200;
   maxwarn = 1;
+  scale = 1.0;
 
-  if ((narg < 9) || (narg > 12)) error->all(FLERR,"Illegal fix {} command", style);
+  if ((narg < 9) || (narg > 14)) error->all(FLERR,"Illegal fix {} command", style);
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix {} command", style);
@@ -95,10 +110,17 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal fix {} command", style);
       imax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg++;
+    } else if (strcmp(arg[iarg],"scale") == 0) {
+      if (iarg+1 > narg-1)
+        error->all(FLERR,"Illegal fix {} command", style);
+      scale = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      iarg++;
     } else error->all(FLERR,"Illegal fix {} command", style);
     iarg++;
   }
   shld = nullptr;
+  prefactor = nullptr;
+  expfactor = nullptr;
 
   nn = nt = n_cap = 0;
   nmax = 0;
@@ -159,10 +181,11 @@ FixQtpieReaxFF::~FixQtpieReaxFF()
   FixQtpieReaxFF::deallocate_matrix();
 
   memory->destroy(shld);
+  memory->destroy(prefactor);
+  memory->destroy(expfactor);
 
   if (!reaxflag) {
     delete[] gauss_file;
-    memory->destroy(gauss_exp);
     memory->destroy(chi);
     memory->destroy(eta);
     memory->destroy(gamma);
@@ -173,6 +196,9 @@ FixQtpieReaxFF::~FixQtpieReaxFF()
 
 void FixQtpieReaxFF::post_constructor()
 {
+  if (utils::strmatch(style,"^qtpie/reax"))
+    if (lmp->citeme) lmp->citeme->add(cite_fix_qtpie_reax);
+
   grow_arrays(atom->nmax);
   for (int i = 0; i < atom->nmax; i++)
     for (int j = 0; j < nprev; ++j)
@@ -205,14 +231,16 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
     reaxflag = 1;
     Pair *pair = force->pair_match("^reaxff",0);
     if (!pair) error->all(FLERR,"No reaxff pair style for fix qtpie/reaxff");
-    int tmp, tmp_all;
-    gauss_exp = (double *) pair->extract("gauss_exp",tmp);
-    chi = (double *) pair->extract("chi",tmp);
-    eta = (double *) pair->extract("eta",tmp);
-    gamma = (double *) pair->extract("gamma",tmp);
+
+    gauss_exp = (double *) pair->extract("gauss_exp", nlocal);
+    chi = (double *) pair->extract("chi", nlocal);
+    eta = (double *) pair->extract("eta", nlocal);
+    gamma = (double *) pair->extract("gamma", nlocal);
+
     if ((chi == nullptr) || (eta == nullptr) || (gamma == nullptr))
       error->all(FLERR, "Fix qtpie/reaxff could not extract qtpie parameters from pair reaxff");
-    tmp = tmp_all = 0;
+
+    int tmp = 0, tmp_all = 0;
     for (int i = 0; i < nlocal; ++i) {
       if (mask[i] & groupbit) {
         if ((chi[type[i]] == 0.0) && (eta[type[i]] == 0.0) && (gamma[type[i]] == 0.0))
@@ -222,88 +250,91 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
     MPI_Allreduce(&tmp, &tmp_all, 1, MPI_INT, MPI_MAX, world);
     if (tmp_all)
       error->all(FLERR, "No qtpie parameters for atom type {} provided by pair reaxff", tmp_all);
+
   } else if (utils::strmatch(arg,"^reax/c")) {
     error->all(FLERR, "Fix qtpie/reaxff keyword 'reax/c' is obsolete; please use 'reaxff'");
+
   } else if (platform::file_is_readable(arg)) {
     reaxflag = 0;
-    // -------- READ GAUSS FILE --------
-    memory->create(gauss_exp,ntypes+1,"qtpie/reaxff:gauss_exp");
+
+    memory->create(gauss_exp, ntypes+1, "qtpie/reaxff:gauss_exp");
     gauss_exp[0] = 0.0;
-    try {
-      FILE *fp = utils::open_potential(gauss_file, lmp, nullptr);
-      if (!fp) throw TokenizerException("Fix qtpie/reaxff: could not open gauss file", gauss_file);
-      TextFileReader reader(fp,"qtpie/reaxff gaussian exponents");
-      reader.ignore_comments = true;
-      for (int i = 1; i <= ntypes; i++) {
-        const char *line = reader.next_line();
-        if (!line)
-          throw TokenizerException("Fix qtpie/reaxff: Incorrect number of atom types in gauss file","");
-        ValueTokenizer values(line);
 
-        if (values.count() != 2)
-          throw TokenizerException("Fix qtpie/reaxff: Incorrect number of values per line "
-                                   "in gauss file",std::to_string(values.count()));
+    if (comm->me == 0) {
+      try {
+        FILE *fp = utils::open_potential(gauss_file, lmp, nullptr);
+        if (!fp) throw TokenizerException("Fix qtpie/reaxff: could not open gauss file", gauss_file);
 
-        int itype = values.next_int();
-        if ((itype < 1) || (itype > ntypes))
-          throw TokenizerException("Fix qtpie/reaxff: Invalid atom type in gauss file",
-                                   std::to_string(itype));
+        TextFileReader reader(fp,"qtpie/reaxff gaussian exponents");
+        reader.ignore_comments = true;
+        for (int i = 1; i <= ntypes; i++) {
+          const char *line = reader.next_line();
+          if (!line) throw TokenizerException("Fix qtpie/reaxff: Incorrect number of atom types in gauss file", "");
 
-        double exp = values.next_double();
-        if (exp < 0)
-          throw TokenizerException("Fix qtpie/reaxff: Invalid orbital exponent in gauss file",
-                                   std::to_string(exp));
-        gauss_exp[itype] = exp;
+          ValueTokenizer values(line);
+          if (values.count() != 2)
+            throw TokenizerException("Fix qtpie/reaxff: Incorrect number of values per line in gauss file",
+                                     std::to_string(values.count()));
+
+          int itype = values.next_int();
+          if ((itype < 1) || (itype > ntypes))
+            throw TokenizerException("Fix qtpie/reaxff: Invalid atom type in gauss file", std::to_string(itype));
+
+          double exp = values.next_double();
+          if (exp < 0)
+            throw TokenizerException("Fix qtpie/reaxff: Invalid orbital exponent in gauss file", std::to_string(exp));
+
+          gauss_exp[itype] = exp * ANGSTROM_TO_BOHRRADIUS_SQ;
+        }
+        fclose(fp);
+      } catch (std::exception &e) {
+        error->one(FLERR, e.what());
       }
-      fclose(fp);
-    } catch (std::exception &e) {
-      error->one(FLERR,e.what());
     }
-    // -------- READ PARAM FILE --------
-    // read chi, eta and gamma
-    memory->create(chi,ntypes+1,"qtpie/reaxff:chi");
-    memory->create(eta,ntypes+1,"qtpie/reaxff:eta");
-    memory->create(gamma,ntypes+1,"qtpie/reaxff:gamma");
-    chi[0] = eta[0] = gamma[0] = 0.0;
-    try {
-      TextFileReader reader(arg,"qtpie/reaxff parameter");
-      reader.ignore_comments = false;
-      for (int i = 1; i <= ntypes; i++) {
-        const char *line = reader.next_line();
-        if (!line)
-          throw TokenizerException("Fix qtpie/reaxff: Invalid param file format","");
-        ValueTokenizer values(line);
 
-        if (values.count() != 4)
-          throw TokenizerException("Fix qtpie/reaxff: Incorrect format of param file","");
+    MPI_Bcast(gauss_exp, ntypes+1, MPI_DOUBLE, 0, world);
 
-        int itype = values.next_int();
-        if ((itype < 1) || (itype > ntypes))
-          throw TokenizerException("Fix qtpie/reaxff: Invalid atom type in param file",
-                                   std::to_string(itype));
+    const double exp_min = find_min_exp(gauss_exp, ntypes+1);
+    const int olap_cut = 10;
+    dist_cutoff = sqrt(2 * olap_cut / exp_min * log(10.0));
 
-        chi[itype] = values.next_double();
-        eta[itype] = values.next_double();
-        gamma[itype] = values.next_double();
+    memory->create(chi, ntypes+1, "qtpie/reaxff:chi");
+    memory->create(eta, ntypes+1, "qtpie/reaxff:eta");
+    memory->create(gamma, ntypes+1, "qtpie/reaxff:gamma");
+
+    if (comm->me == 0) {
+      chi[0] = eta[0] = gamma[0] = 0.0;
+      try {
+        TextFileReader reader(arg, "qtpie/reaxff parameter");
+        reader.ignore_comments = false;
+        for (int i = 1; i <= ntypes; i++) {
+          const char *line = reader.next_line();
+          if (!line) throw TokenizerException("Fix qtpie/reaxff: Invalid param file format", "");
+
+          ValueTokenizer values(line);
+          if (values.count() != 4)
+            throw TokenizerException("Fix qtpie/reaxff: Incorrect format of param file", "");
+
+          int itype = values.next_int();
+          if ((itype < 1) || (itype > ntypes))
+            throw TokenizerException("Fix qtpie/reaxff: Invalid atom type in param file", std::to_string(itype));
+
+          chi[itype] = values.next_double();
+          eta[itype] = values.next_double();
+          gamma[itype] = values.next_double();
+        }
+      } catch (std::exception &e) {
+        error->one(FLERR, e.what());
       }
-    } catch (std::exception &e) {
-      error->one(FLERR,e.what());
     }
+
+    MPI_Bcast(chi, ntypes+1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(eta, ntypes+1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(gamma, ntypes+1, MPI_DOUBLE, 0, world);
+
   } else {
     error->all(FLERR, "Unknown fix qtpie/reaxff keyword {}", arg);
   }
-
-  MPI_Bcast(gauss_exp,ntypes+1,MPI_DOUBLE,0,world);
-
-  // define a cutoff distance (in atomic units) beyond which overlap integrals are neglected
-  // in calc_chi_eff()
-  const double exp_min = find_min_exp(gauss_exp,ntypes+1);
-  const int olap_cut = 10; // overlap integrals are neglected if less than pow(10,-olap_cut)
-  dist_cutoff = sqrt(2*olap_cut/exp_min*log(10.0));
-
-  MPI_Bcast(chi,ntypes+1,MPI_DOUBLE,0,world);
-  MPI_Bcast(eta,ntypes+1,MPI_DOUBLE,0,world);
-  MPI_Bcast(gamma,ntypes+1,MPI_DOUBLE,0,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -437,7 +468,7 @@ void FixQtpieReaxFF::init()
   MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
 
   if ((comm->me == 0) && (fabs(qsum) > QSUMSMALL))
-    error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}", style, qsum);
+    error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}" + utils::errorurl(29), style, qsum);
 
   // get pointer to fix efield if present. there may be at most one instance of fix efield in use.
   efield = nullptr;
@@ -463,7 +494,12 @@ void FixQtpieReaxFF::init()
     if (efield->varflag == FixEfield::ATOM && efield->pstyle != FixEfield::ATOM)
       error->all(FLERR,"Atom-style external electric field requires atom-style "
                        "potential variable when used with fix {}", style);
+  } else {
+    if (utils::strmatch(style,"^qeqr/reax") && comm->me == 0)
+      error->warning(FLERR, "Use fix qeq/reaxff instead of fix {} when not using fix efield\n",
+                     style);
   }
+
 
   // we need a half neighbor list w/ Newton off
   // built whenever re-neighboring occurs
@@ -472,6 +508,7 @@ void FixQtpieReaxFF::init()
 
   init_shielding();
   init_taper();
+  init_olap();
 
   if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
@@ -535,6 +572,31 @@ void FixQtpieReaxFF::init_taper()
   Tap[1] = 140.0 * swa3 * swb3 / d7;
   Tap[0] = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 -
             7.0*swa*swb3*swb3 + swb3*swb3*swb) / d7;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixQtpieReaxFF::init_olap()
+{
+  int i,j;
+  int ntypes;
+  double expa,expb,expsum,expnorm;
+
+  ntypes = atom->ntypes;
+  if (prefactor == nullptr)
+    memory->create(prefactor,ntypes+1,ntypes+1,"qtpie:overlap_prefactor");
+  if (expfactor == nullptr)
+    memory->create(expfactor,ntypes+1,ntypes+1,"qtpie:overlap_expfactor");
+
+  for (i = 1; i <= ntypes; ++i)
+    for (j = 1; j <= ntypes; ++j) {
+      expa = gauss_exp[i];
+      expb = gauss_exp[j];
+      expsum = expa + expb;
+      expnorm = expa * expb / expsum;
+      prefactor[i][j] = pow((4.0 * expnorm / expsum), 0.75);
+      expfactor[i][j] = expnorm;
+    }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1101,15 +1163,16 @@ void FixQtpieReaxFF::calc_chi_eff()
   const auto x = (const double * const *)atom->x;
   const int *type = atom->type;
 
-  double dist,overlap,sum_n,sum_d,expa,expb,chia,chib,phia,phib,p,m;
+  double dx,dy,dz,dist_sq,overlap,sum_n,sum_d,chia,chib,phia,phib;
   int i,j;
 
   // check ghost atoms are stored up to the distance cutoff for overlap integrals
   const double comm_cutoff = MAX(neighbor->cutneighmax,comm->cutghostuser);
-  if(comm_cutoff < dist_cutoff/ANGSTROM_TO_BOHRRADIUS) {
-    error->all(FLERR,"comm cutoff = {} Angstrom is smaller than distance cutoff = {} Angstrom "
-               "for overlap integrals in {}. Increase comm cutoff with comm_modify",
-               comm_cutoff, dist_cutoff/ANGSTROM_TO_BOHRRADIUS, style);
+  if(comm_cutoff*comm_cutoff < dist_cutoff_sq) {
+    error->all(FLERR, Error::NOLASTLINE,
+               "Comm cutoff {} is smaller than distance cutoff {} for overlap integrals in fix {}. "
+               "Increase accordingly using comm_modify cutoff",
+               comm_cutoff, sqrt(dist_cutoff_sq), style);
   }
 
   // efield energy is in real units of kcal/mol, factor needed for conversion to eV
@@ -1123,7 +1186,6 @@ void FixQtpieReaxFF::calc_chi_eff()
 
   // compute chi_eff for each local atom
   for (i = 0; i < nn; i++) {
-    expa = gauss_exp[type[i]];
     chia = chi[type[i]];
     if (efield) {
       if (efield->varflag != FixEfield::ATOM) {
@@ -1137,16 +1199,16 @@ void FixQtpieReaxFF::calc_chi_eff()
     sum_d = 0.0;
 
     for (j = 0; j < nt; j++) {
-      dist = distance(x[i],x[j])*ANGSTROM_TO_BOHRRADIUS; // in atomic units
+      dx = x[i][0] - x[j][0];
+      dy = x[i][1] - x[j][1];
+      dz = x[i][2] - x[j][2];
+      dist_sq = (dx*dx + dy*dy + dz*dz);
 
-      if (dist < dist_cutoff) {
-        expb = gauss_exp[type[j]];
+      if (dist_sq < dist_cutoff_sq) {
         chib = chi[type[j]];
 
         // overlap integral of two normalised 1s Gaussian type orbitals
-        p = expa + expb;
-        m = expa * expb / p;
-        overlap = pow((4.0*m/p),0.75) * exp(-m*dist*dist);
+        overlap = prefactor[type[i]][type[j]] * exp(-expfactor[type[i]][type[j]] * dist_sq);
 
         if (efield) {
           if (efield->varflag != FixEfield::ATOM) {
@@ -1154,7 +1216,7 @@ void FixQtpieReaxFF::calc_chi_eff()
           } else { // atom-style potential from FixEfield
             phib = efield->efield[j][3];
           }
-          sum_n += (chia - chib + phia - phib) * overlap;
+          sum_n += (chia - chib + scale * (phia - phib)) * overlap;
         } else {
           sum_n += (chia - chib) * overlap;
         }
@@ -1178,15 +1240,4 @@ double FixQtpieReaxFF::find_min_exp(const double *array, const int array_length)
       exp_min = array[i];
   }
   return exp_min;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double FixQtpieReaxFF::distance(const double *posa, const double *posb)
-{
-  double dx, dy, dz;
-  dx = posb[0] - posa[0];
-  dy = posb[1] - posa[1];
-  dz = posb[2] - posa[2];
-  return sqrt(dx*dx + dy*dy + dz*dz);
 }

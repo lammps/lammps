@@ -105,11 +105,11 @@ std::enable_if_t<!use_shuffle_based_algorithm<ReducerType>> workgroup_reduction(
     const unsigned int n_subgroups = sg.get_group_range()[0];
     const int max_subgroup_size    = sg.get_max_local_range()[0];
     auto* result_ = &local_mem[id_in_sg * max_subgroup_size * value_count];
-    // In case the number of subgroups is larger than the range of
+    // In case the number of subgroup results is larger than the range of
     // the first subgroup, we first combine the items with a higher
     // index.
-    for (unsigned int offset = local_range; offset < n_subgroups;
-         offset += local_range)
+    for (unsigned int offset = local_range;
+         offset < std::min(n_subgroups, max_size); offset += local_range)
       if (id_in_sg + offset < n_subgroups)
         final_reducer.join(
             result_,

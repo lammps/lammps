@@ -47,26 +47,20 @@ struct GraphImpl<Kokkos::Cuda> {
   cudaGraph_t m_graph          = nullptr;
   cudaGraphExec_t m_graph_exec = nullptr;
 
+  bool m_graph_owning = false;
+
   using cuda_graph_flags_t = unsigned int;
 
   using node_details_t = GraphNodeBackendSpecificDetails<Kokkos::Cuda>;
 
-  // Store drivers for the kernel nodes that launch in global memory.
-  // This is required as lifetime of drivers must be bounded to this instance's
-  // lifetime.
-  std::vector<std::shared_ptr<void>> m_driver_storage;
+  std::vector<std::shared_ptr<node_details_t>> m_nodes;
 
  public:
   void instantiate() {
     KOKKOS_EXPECTS(!m_graph_exec);
-    constexpr size_t error_log_size = 256;
-    cudaGraphNode_t error_node      = nullptr;
-    char error_log[error_log_size];
     KOKKOS_IMPL_CUDA_SAFE_CALL(
         (m_execution_space.impl_internal_space_instance()
-             ->cuda_graph_instantiate_wrapper(&m_graph_exec, m_graph,
-                                              &error_node, error_log,
-                                              error_log_size)));
+             ->cuda_graph_instantiate_wrapper(&m_graph_exec, m_graph)));
     KOKKOS_ENSURES(m_graph_exec);
     // TODO @graphs print out errors
   }
@@ -74,9 +68,9 @@ struct GraphImpl<Kokkos::Cuda> {
   using root_node_impl_t =
       GraphNodeImpl<Kokkos::Cuda, Kokkos::Experimental::TypeErasedTag,
                     Kokkos::Experimental::TypeErasedTag>;
-  using aggregate_kernel_impl_t = CudaGraphNodeAggregateKernel;
+  using aggregate_impl_t = CudaGraphNodeAggregate;
   using aggregate_node_impl_t =
-      GraphNodeImpl<Kokkos::Cuda, aggregate_kernel_impl_t,
+      GraphNodeImpl<Kokkos::Cuda, aggregate_impl_t,
                     Kokkos::Experimental::TypeErasedTag>;
 
   // Not movable or copyable; it spends its whole life as a shared_ptr in the
@@ -97,16 +91,25 @@ struct GraphImpl<Kokkos::Cuda> {
           (m_execution_space.impl_internal_space_instance()
                ->cuda_graph_exec_destroy_wrapper(m_graph_exec)));
     }
-    KOKKOS_IMPL_CUDA_SAFE_CALL(
-        (m_execution_space.impl_internal_space_instance()
-             ->cuda_graph_destroy_wrapper(m_graph)));
+    if (m_graph_owning) {
+      KOKKOS_IMPL_CUDA_SAFE_CALL(
+          (m_execution_space.impl_internal_space_instance()
+               ->cuda_graph_destroy_wrapper(m_graph)));
+    }
   };
 
   explicit GraphImpl(Kokkos::Cuda arg_instance)
-      : m_execution_space(std::move(arg_instance)) {
+      : m_execution_space(std::move(arg_instance)), m_graph_owning(true) {
     KOKKOS_IMPL_CUDA_SAFE_CALL(
         (m_execution_space.impl_internal_space_instance()
              ->cuda_graph_create_wrapper(&m_graph, cuda_graph_flags_t{0})));
+  }
+
+  explicit GraphImpl(Kokkos::Cuda arg_instance, cudaGraph_t graph)
+      : m_execution_space(std::move(arg_instance)),
+        m_graph(graph),
+        m_graph_owning(false) {
+    KOKKOS_EXPECTS(graph != nullptr);
   }
 
   void add_node(std::shared_ptr<aggregate_node_impl_t> const& arg_node_ptr) {
@@ -121,10 +124,11 @@ struct GraphImpl<Kokkos::Cuda> {
   }
 
   template <class NodeImpl>
-  //  requires NodeImplPtr is a shared_ptr to specialization of GraphNodeImpl
-  //  Also requires that the kernel has the graph node tag in its policy
-  void add_node(std::shared_ptr<NodeImpl> const& arg_node_ptr) {
-    static_assert(NodeImpl::kernel_type::Policy::is_graph_kernel::value);
+  std::enable_if_t<
+      Kokkos::Impl::is_graph_kernel_v<typename NodeImpl::kernel_type>>
+  add_node(std::shared_ptr<NodeImpl> const& arg_node_ptr) {
+    static_assert(
+        Kokkos::Impl::is_specialization_of_v<NodeImpl, GraphNodeImpl>);
     KOKKOS_EXPECTS(bool(arg_node_ptr));
     // The Kernel launch from the execute() method has been shimmed to insert
     // the node into the graph
@@ -136,8 +140,7 @@ struct GraphImpl<Kokkos::Cuda> {
     kernel.set_cuda_graph_node_ptr(&cuda_node);
     kernel.execute();
     KOKKOS_ENSURES(bool(cuda_node));
-    if (std::shared_ptr<void> tmp = kernel.get_driver_storage())
-      m_driver_storage.push_back(std::move(tmp));
+    m_nodes.push_back(arg_node_ptr);
   }
 
   template <class NodeImplPtr, class PredecessorRef>
@@ -168,6 +171,8 @@ struct GraphImpl<Kokkos::Cuda> {
   }
 
   void submit(const execution_space& exec) {
+    desul::ensure_cuda_lock_arrays_on_device();
+
     if (!bool(m_graph_exec)) {
       instantiate();
     }
@@ -203,8 +208,7 @@ struct GraphImpl<Kokkos::Cuda> {
     // each predecessor ref, so all we need to do here is create the (trivial)
     // aggregate node.
     return std::make_shared<aggregate_node_impl_t>(
-        m_execution_space, _graph_node_kernel_ctor_tag{},
-        aggregate_kernel_impl_t{});
+        m_execution_space, _graph_node_kernel_ctor_tag{}, aggregate_impl_t{});
   }
 
   cudaGraph_t cuda_graph() { return m_graph; }

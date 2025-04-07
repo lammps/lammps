@@ -256,6 +256,41 @@ TEST_F(GroupTest, Molecular)
                  command("group three include xxx"););
 }
 
+TEST_F(GroupTest, Bitmap)
+{
+    atomic_system();
+
+    BEGIN_HIDE_OUTPUT();
+    command("group one region left");
+    command("group two region right");
+    command("group three empty");
+    command("group four region left");
+    command("group four region right");
+    command("group six subtract four one");
+    END_HIDE_OUTPUT();
+
+    int bm_one   = group->get_bitmask_by_id(FLERR, "one", "unittest 1");
+    int bm_two   = group->get_bitmask_by_id(FLERR, "two", "unittest 2");
+    int bm_three = group->get_bitmask_by_id(FLERR, "three", "unittest 3");
+    int bm_four  = group->get_bitmask_by_id(FLERR, "four", "unittest 4");
+    int bm_six   = group->get_bitmask_by_id(FLERR, "six", "unittest 6");
+    int nlocal   = lmp->atom->natoms;
+    auto mask    = lmp->atom->mask;
+
+    for (int i = 0; i < nlocal; ++i) {
+        if ((mask[i] & bm_one) && (mask[i] & bm_two)) {
+            EXPECT_NE((mask[i] & bm_four), 0);
+        }
+        if (mask[i] & bm_two) {
+            EXPECT_NE((mask[i] & bm_six), 0);
+        }
+        EXPECT_EQ((mask[i] & bm_three), 0);
+    }
+
+    TEST_FAILURE(".*ERROR: Group ID five requested by unittest 5 does not exist.*",
+                 group->get_bitmask_by_id(FLERR, "five", "unittest 5"););
+}
+
 TEST_F(GroupTest, Dynamic)
 {
     atomic_system();

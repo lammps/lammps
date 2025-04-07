@@ -17,8 +17,7 @@
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
 
-#if 1 != ((defined(KOKKOS_COMPILER_INTEL) ? 1 : 0) +      \
-          (defined(KOKKOS_COMPILER_INTEL_LLVM) ? 1 : 0) + \
+#if 1 != ((defined(KOKKOS_COMPILER_INTEL_LLVM) ? 1 : 0) + \
           (defined(KOKKOS_COMPILER_CRAYC) ? 1 : 0) +      \
           (defined(KOKKOS_COMPILER_CRAY_LLVM) ? 1 : 0) +  \
           (defined(KOKKOS_COMPILER_APPLECC) ? 1 : 0) +    \

@@ -272,7 +272,7 @@ void AngleClass2::allocate()
 
 void AngleClass2::coeff(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (narg < 2) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -281,7 +281,7 @@ void AngleClass2::coeff(int narg, char **arg)
   int count = 0;
 
   if (strcmp(arg[1],"bb") == 0) {
-    if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients");
+    if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 
     double bb_k_one = utils::numeric(FLERR,arg[2],false,lmp);
     double bb_r1_one = utils::numeric(FLERR,arg[3],false,lmp);
@@ -296,7 +296,7 @@ void AngleClass2::coeff(int narg, char **arg)
     }
 
   } else if (strcmp(arg[1],"ba") == 0) {
-    if (narg != 6) error->all(FLERR,"Incorrect args for angle coefficients");
+    if (narg != 6) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 
     double ba_k1_one = utils::numeric(FLERR,arg[2],false,lmp);
     double ba_k2_one = utils::numeric(FLERR,arg[3],false,lmp);
@@ -313,7 +313,7 @@ void AngleClass2::coeff(int narg, char **arg)
     }
 
   } else {
-    if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients");
+    if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 
     double theta0_one = utils::numeric(FLERR,arg[1],false,lmp);
     double k2_one = utils::numeric(FLERR,arg[2],false,lmp);
@@ -332,7 +332,7 @@ void AngleClass2::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 
   for (int i = ilo; i <= ihi; i++)
     if (setflag_a[i] == 1 && setflag_bb[i] == 1 && setflag_ba[i] == 1)

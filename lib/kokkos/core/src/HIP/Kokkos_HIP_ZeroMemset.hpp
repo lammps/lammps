@@ -18,6 +18,7 @@
 
 #include <Kokkos_Macros.hpp>
 #include <HIP/Kokkos_HIP.hpp>
+#include <HIP/Kokkos_HIP_Instance.hpp>
 #include <impl/Kokkos_ZeroMemset_fwd.hpp>
 
 namespace Kokkos {
@@ -29,14 +30,17 @@ void zero_with_hip_kernel(const HIP& exec_space, void* dst, size_t cnt);
 template <>
 struct ZeroMemset<HIP> {
   ZeroMemset(const HIP& exec_space, void* dst, size_t cnt) {
-    // in ROCm <= 6.2.0, hipMemsetAsync on a host-allocated pointer
-    // returns an invalid value error, but accessing the data via a
-    // GPU kernel works.
+    // We allow user on an AMD APU with unified memory to `malloc` and wrap that
+    // in an unmanaged SharedSpace view. In ROCm <= 6.2.1 (and possibly later),
+    // hipMemsetAsync on a host-allocated pointer returns an invalid value
+    // error, but accessing the data via a GPU kernel works as long as xnack is
+    // present and enabled (HSA_XNACK=1)
 #if defined(KOKKOS_IMPL_HIP_UNIFIED_MEMORY)
     zero_with_hip_kernel(exec_space, dst, cnt);
 #else
     KOKKOS_IMPL_HIP_SAFE_CALL(
-        hipMemsetAsync(dst, 0, cnt, exec_space.hip_stream()));
+        exec_space.impl_internal_space_instance()->hip_memset_async_wrapper(
+            dst, 0, cnt));
 #endif
   }
 };

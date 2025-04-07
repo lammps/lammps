@@ -15,6 +15,8 @@ LAMMPS-GUI TODO list:
   colors to individual atom types.
 - Support color by property (e.g. scan computes or fixes with per-atom data), define colormaps etc.
 - Add a "Diameters" dialog where diamaters can by specified by atom type
+- figure out how widgets can be resized to fraction of available screen size.
+- figure out stacking order of frames and whether it can be more flexible
 
 - implement indenting regions for (nested) loops?
 - implement data file manager GUI with the following features:

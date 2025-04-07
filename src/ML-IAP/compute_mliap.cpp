@@ -188,10 +188,8 @@ void ComputeMLIAP::init()
 
   // allocate memory for global array
 
-  memory->create(mliaparray,size_array_rows,size_array_cols,
-                 "compute_mliap:mliaparray");
-  memory->create(mliaparrayall,size_array_rows,size_array_cols,
-                 "compute_mliap:mliaparrayall");
+  memory->create(mliaparray,size_array_rows,size_array_cols, "compute_mliap:mliaparray");
+  memory->create(mliaparrayall,size_array_rows,size_array_cols, "compute_mliap:mliaparrayall");
   array = mliaparrayall;
 
   // find compute for reference energy

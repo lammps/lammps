@@ -69,6 +69,7 @@ class SYCL {
   }
 
   sycl::queue& sycl_queue() const noexcept {
+    // NOLINTNEXTLINE(bugprone-unchecked-optional-access)
     return *m_space_instance->m_queue;
   }
 
@@ -150,8 +151,7 @@ std::vector<SYCL> partition_space(const SYCL& sycl_space, Args...) {
       "Kokkos Error: partitioning arguments must be integers or floats");
 
   sycl::context context = sycl_space.sycl_queue().get_context();
-  sycl::device device =
-      sycl_space.impl_internal_space_instance()->m_queue->get_device();
+  sycl::device device   = sycl_space.sycl_queue().get_device();
   std::vector<SYCL> instances;
   instances.reserve(sizeof...(Args));
   for (unsigned int i = 0; i < sizeof...(Args); ++i)
@@ -164,12 +164,11 @@ template <class T>
 std::vector<SYCL> partition_space(const SYCL& sycl_space,
                                   std::vector<T> const& weights) {
   static_assert(
-      std::is_arithmetic<T>::value,
+      std::is_arithmetic_v<T>,
       "Kokkos Error: partitioning arguments must be integers or floats");
 
   sycl::context context = sycl_space.sycl_queue().get_context();
-  sycl::device device =
-      sycl_space.impl_internal_space_instance()->m_queue->get_device();
+  sycl::device device   = sycl_space.sycl_queue().get_device();
   std::vector<SYCL> instances;
 
   // We only care about the number of instances to create and ignore weights

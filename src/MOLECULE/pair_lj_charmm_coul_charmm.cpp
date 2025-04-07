@@ -243,7 +243,7 @@ void PairLJCharmmCoulCharmm::settings(int narg, char **arg)
 void PairLJCharmmCoulCharmm::coeff(int narg, char **arg)
 {
   if (narg != 4 && narg != 6)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -271,7 +271,7 @@ void PairLJCharmmCoulCharmm::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

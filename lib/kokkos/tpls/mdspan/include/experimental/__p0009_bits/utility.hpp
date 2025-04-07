@@ -115,7 +115,7 @@ struct tuple_idx_matcher {
   using type = tuple_member<T, Idx>;
   template<class Other>
   MDSPAN_FUNCTION
-  constexpr auto operator | (Other v) const {
+  constexpr auto operator | ([[maybe_unused]] Other v) const {
     if constexpr (Idx == SearchIdx) { return *this; }
     else { return v; }
   }

@@ -87,15 +87,7 @@ class GraphNodeKernelImpl<Kokkos::SYCL, PolicyType, Functor, PatternTag,
       m_graph_node_ptr = nullptr;
 };
 
-struct SYCLGraphNodeAggregateKernel {
-  using graph_kernel = SYCLGraphNodeAggregateKernel;
-
-  // Aggregates don't need a policy, but for the purposes of checking the static
-  // assertions about graph kernels,
-  struct Policy {
-    using is_graph_kernel = std::true_type;
-  };
-};
+struct SYCLGraphNodeAggregate {};
 
 template <typename KernelType,
           typename Tag =

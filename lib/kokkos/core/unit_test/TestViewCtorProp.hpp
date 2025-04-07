@@ -73,7 +73,10 @@ TEST(TEST_CATEGORY, view_alloc_can_perfect_forward_label) {
 
   auto prop = Kokkos::view_alloc(std::move(label));
 
-  ASSERT_TRUE(label.empty());
+  // This is not actually guaranteed in the C++ standard
+  // https://eel.is/c++draft/basic.string#string.cons-24
+  // > left in a valid but unspecified state
+  ASSERT_TRUE(label.empty());  // NOLINT(bugprone-use-after-move)
   ASSERT_EQ(Kokkos::Impl::get_property<Kokkos::Impl::LabelTag>(prop),
             "our label");
 }
@@ -89,6 +92,15 @@ TEST(TEST_CATEGORY, vcp_label_copy_constructor) {
   ASSERT_EQ(Kokkos::Impl::get_property<Kokkos::Impl::LabelTag>(prop),
             "our label");
   ASSERT_EQ(Kokkos::Impl::get_property<Kokkos::Impl::LabelTag>(prop_copy),
+            "our label");
+}
+
+TEST(TEST_CATEGORY, vcp_pointer_add_property) {
+  double dummy        = 1.;
+  auto properties     = Kokkos::view_wrap(&dummy);
+  auto new_properties = Kokkos::Impl::with_properties_if_unset(
+      properties, std::string("our label"));
+  ASSERT_EQ(Kokkos::Impl::get_property<Kokkos::Impl::LabelTag>(new_properties),
             "our label");
 }
 

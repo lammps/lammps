@@ -405,7 +405,7 @@ void BondBPMSpring::allocate()
 void BondBPMSpring::coeff(int narg, char **arg)
 {
   if ((!volume_flag && narg != 4) || (volume_flag && narg != 5))
-    error->all(FLERR, "Incorrect args for bond coefficients");
+    error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -430,7 +430,7 @@ void BondBPMSpring::coeff(int narg, char **arg)
     if (1.0 + ecrit[i] > max_stretch) max_stretch = 1.0 + ecrit[i];
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

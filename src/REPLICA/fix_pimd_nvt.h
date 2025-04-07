@@ -30,6 +30,8 @@ class FixPIMDNVT : public Fix {
   FixPIMDNVT(class LAMMPS *, int, char **);
   ~FixPIMDNVT() override;
 
+  enum { PIMD, NMPIMD, CMD };
+
   int setmask() override;
 
   void init() override;
@@ -53,7 +55,6 @@ class FixPIMDNVT : public Fix {
   void unpack_forward_comm(int, int, double *) override;
 
  protected:
-
   int method;
   int np;
   double inverse_np;
@@ -62,8 +63,10 @@ class FixPIMDNVT : public Fix {
 
   double omega_np, fbond, spring_energy, sp, virial;
   int x_last, x_next;
-
-  void spring_force();
+  virtual void prepare_coordinates();
+  virtual void pre_spring_force_estimators();
+  virtual void spring_force();
+  void vir_estimator();
 
   /* fictitious mass */
 
@@ -101,6 +104,7 @@ class FixPIMDNVT : public Fix {
   int nhc_nchain;
   bool nhc_ready;
   double nhc_temp, dtv, dtf, t_sys;
+  double beta;
 
   double **nhc_eta;        /* coordinates of NH chains for ring-polymer beads */
   double **nhc_eta_dot;    /* velocities of NH chains                         */

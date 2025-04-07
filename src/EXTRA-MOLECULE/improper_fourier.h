@@ -33,6 +33,7 @@ class ImproperFourier : public Improper {
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
   void write_data(FILE *) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double *k, *C0, *C1, *C2;

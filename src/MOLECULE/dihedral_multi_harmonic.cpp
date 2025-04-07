@@ -43,7 +43,7 @@ DihedralMultiHarmonic::DihedralMultiHarmonic(LAMMPS *_lmp) : Dihedral(_lmp)
 
 DihedralMultiHarmonic::~DihedralMultiHarmonic()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(a1);
     memory->destroy(a2);
@@ -251,7 +251,7 @@ void DihedralMultiHarmonic::allocate()
 
 void DihedralMultiHarmonic::coeff(int narg, char **arg)
 {
-  if (narg != 6) error->all(FLERR, "Incorrect args for dihedral coefficients");
+  if (narg != 6) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -274,7 +274,7 @@ void DihedralMultiHarmonic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

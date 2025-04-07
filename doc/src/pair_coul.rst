@@ -241,9 +241,9 @@ summation method, described in :ref:`Wolf <Wolf1>`, given by:
 .. math::
 
    E_i = \frac{1}{2} \sum_{j \neq i}
-   \frac{q_i q_j {\rm erfc}(\alpha r_{ij})}{r_{ij}} +
+   \frac{q_i q_j \mathrm{erfc}(\alpha r_{ij})}{r_{ij}} +
    \frac{1}{2} \sum_{j \neq i}
-   \frac{q_i q_j {\rm erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
+   \frac{q_i q_j \mathrm{erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
 
 where :math:`\alpha` is the damping parameter, and *erf()* and *erfc()*
 are error-function and complementary error-function terms.  This
@@ -471,7 +471,7 @@ Phys, 110, 8254 (1999).
 .. _Plummer1:
 
 **(Plummer)** G. Plummer, J. P. Tavenner, M. I. Mendelev, Z. Wu, J. W. Lawson,
-in preparation
+J Chemical Physics, 162, 054709 (2025).
 
 .. _Jorgensen3:
 

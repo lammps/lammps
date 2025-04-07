@@ -92,7 +92,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
             nsub = utils::inumeric(FLERR,arg[iarg],false,lmp);
             ++iarg;
             if (nsub <= 0)
-              error->all(FLERR,"Illegal compute pressure command");
+              error->all(FLERR, iarg, "Illegal compute pressure hybrid sub-style index {}", nsub);
           }
         }
 
@@ -105,7 +105,8 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
         }
 
         if (!pairhybrid)
-          error->all(FLERR,"Unrecognized pair style in compute pressure command");
+          error->all(FLERR, iarg - (nsub ? 1 : 0),
+                     "Unrecognized pair style {} in compute pressure command", pstyle);
 
         pairhybridflag = 1;
       }
@@ -120,7 +121,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
         pairflag = 1;
         bondflag = angleflag = dihedralflag = improperflag = 1;
         kspaceflag = fixflag = 1;
-      } else error->all(FLERR,"Illegal compute pressure command");
+      } else error->all(FLERR, iarg, "Unknown compute pressure keyword {}", arg[iarg]);
       iarg++;
     }
   }
@@ -128,7 +129,8 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   // error check
 
   if (keflag && id_temp == nullptr)
-    error->all(FLERR,"Compute pressure requires temperature ID to include kinetic energy");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Compute pressure requires temperature ID to include kinetic energy");
 
   vector = new double[size_vector];
   nvirial = 0;
@@ -164,7 +166,8 @@ void ComputePressure::init()
   if (keflag) {
     temperature = modify->get_compute_by_id(id_temp);
     if (!temperature)
-      error->all(FLERR,"Could not find compute pressure temperature ID {}", id_temp);
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Could not find compute pressure temperature ID {}", id_temp);
   }
 
   // recheck if pair style with and without suffix exists
@@ -178,7 +181,8 @@ void ComputePressure::init()
     }
 
     if (!pairhybrid)
-      error->all(FLERR,"Unrecognized pair style in compute pressure command");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Unrecognized pair style {} in compute pressure command", pstyle);
   }
 
   // detect contributions to virial
@@ -235,7 +239,8 @@ double ComputePressure::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
   if (update->vflag_global != invoked_scalar)
-    error->all(FLERR,"Virial was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Virial was not tallied on needed timestep"
+               + utils::errorurl(22));
 
   // invoke temperature if it hasn't been already
 
@@ -274,10 +279,11 @@ void ComputePressure::compute_vector()
 {
   invoked_vector = update->ntimestep;
   if (update->vflag_global != invoked_vector)
-    error->all(FLERR,"Virial was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Virial was not tallied on needed timestep" + utils::errorurl(22));
 
   if (force->kspace && kspace_virial && force->kspace->scalar_pressure_flag)
-    error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' for "
+    error->all(FLERR, Error::NOLASTLINE, "Must use 'kspace_modify pressure/scalar no' for "
                "tensor components with kspace_style msm");
 
   // invoke temperature if it hasn't been already

@@ -192,6 +192,19 @@ public:
 
   int dev;
 
+  //forward_exchange writes into ghosts
+  template <typename CommType>
+  void forward_exchange(CommType* copy_from, CommType* copy_to, const int vec_len){
+    pairmliap->forward_comm(copy_from, copy_to, vec_len);
+  }
+
+  //reverse_exchange adds from ghosts and zeros out ghosts afterwards
+  template <typename CommType>
+  void reverse_exchange(CommType* copy_from, CommType* copy_to, const int vec_len){
+    pairmliap->reverse_comm(copy_from, copy_to, vec_len);
+  }
+
+
 #ifdef LMP_KOKKOS_GPU
   MLIAPDataKokkosDevice(MLIAPDataKokkos<LMPHostType> &base) : ndescriptors(-1),nparams(-1),nelements(-1),ntotal(-1),nlistatoms(-1),nlocal(-1),natomneigh(-1),
       nneigh_max(-1),npairs(-1)

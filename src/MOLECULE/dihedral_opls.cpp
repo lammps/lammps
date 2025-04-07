@@ -264,7 +264,7 @@ void DihedralOPLS::allocate()
 
 void DihedralOPLS::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all(FLERR, "Incorrect args for dihedral coefficients");
+  if (narg != 5) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -287,7 +287,7 @@ void DihedralOPLS::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

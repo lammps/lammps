@@ -249,23 +249,23 @@ as follows:
 
 .. math::
 
-  a   = & {\rm lx} \\
-  b^2 = &  {\rm ly}^2 +  {\rm xy}^2 \\
-  c^2 = &  {\rm lz}^2 +  {\rm xz}^2 +  {\rm yz}^2 \\
-  \cos{\alpha} = & \frac{{\rm xy}*{\rm xz} + {\rm ly}*{\rm yz}}{b*c} \\
-  \cos{\beta}  = & \frac{\rm xz}{c} \\
-  \cos{\gamma} = & \frac{\rm xy}{b} \\
+  a   = & \mathrm{lx} \\
+  b^2 = &  \mathrm{ly}^2 + \mathrm{xy}^2 \\
+  c^2 = &  \mathrm{lz}^2 + \mathrm{xz}^2 + \mathrm{yz}^2 \\
+  \cos{\alpha} = & \frac{\mathrm{xy}*\mathrm{xz} + \mathrm{ly}*\mathrm{yz}}{b*c} \\
+  \cos{\beta}  = & \frac{\mathrm{xz}}{c} \\
+  \cos{\gamma} = & \frac{\mathrm{xy}}{b} \\
 
 The inverse relationship can be written as follows:
 
 .. math::
 
-  {\rm lx}   = & a \\
-  {\rm xy}   = & b \cos{\gamma}  \\
-  {\rm xz}   = & c \cos{\beta}\\
-  {\rm ly}^2 = & b^2 - {\rm xy}^2 \\
-  {\rm yz}   = & \frac{b*c \cos{\alpha} - {\rm xy}*{\rm xz}}{\rm ly} \\
-  {\rm lz}^2 = & c^2 - {\rm xz}^2 - {\rm yz}^2 \\
+  \mathrm{lx}   = & a \\
+  \mathrm{xy}   = & b \cos{\gamma}  \\
+  \mathrm{xz}   = & c \cos{\beta}\\
+  \mathrm{ly}^2 = & b^2 - \mathrm{xy}^2 \\
+  \mathrm{yz}   = & \frac{b*c \cos{\alpha} - \mathrm{xy}*\mathrm{xz}}{\mathrm{ly}} \\
+  \mathrm{lz}^2 = & c^2 - \mathrm{xz}^2 - \mathrm{yz}^2 \\
 
 The values of *a*, *b*, *c*, :math:`\alpha` , :math:`\beta`, and
 :math:`\gamma` can be printed out or accessed by computes using the

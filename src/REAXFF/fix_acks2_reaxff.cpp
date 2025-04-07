@@ -13,7 +13,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Stan Moore (Sandia)
+   Contributing authors: Stan Moore (Sandia)
+                         Mitch Murphy (add target_charge option)
 ------------------------------------------------------------------------- */
 
 #include "fix_acks2_reaxff.h"
@@ -700,7 +701,7 @@ void FixACKS2ReaxFF::calculate_Q()
       }
     }
   }
-  
+
   pack_flag = 2;
   comm->forward_comm(this); //Dist_vector(s);
 

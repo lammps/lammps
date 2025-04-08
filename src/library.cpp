@@ -1701,6 +1701,10 @@ report the "native" data type.  The following tables are provided:
      - Type
      - Length
      - Description
+   * - boxxlo
+     - double
+     - 1
+     - lower box boundary in x-direction; see :doc:`create_box`.
    * - boxxhi
      - double
      - 1
@@ -1721,6 +1725,14 @@ report the "native" data type.  The following tables are provided:
      - double
      - 1
      - upper box boundary in z-direction; see :doc:`create_box`.
+   * - boxlo
+     - double
+     - 3
+     - box lower boundaries
+   * - boxhi
+     - double
+     - 3
+     - box upper boundaries
    * - sublo
      - double
      - 3

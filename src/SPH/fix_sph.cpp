@@ -13,10 +13,13 @@
  ------------------------------------------------------------------------- */
 
 #include "fix_sph.h"
+
 #include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "update.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -24,11 +27,10 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixSPH::FixSPH(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg) {
-
-  if ((atom->esph_flag != 1) || (atom->rho_flag != 1))
-    error->all(FLERR,
-        "Fix sph command requires atom_style with both energy and density");
+  Fix(lmp, narg, arg)
+{
+  if ((atom->esph_flag != 1) || (atom->rho_flag != 1) || (atom->vest_flag != 1))
+    error->all(FLERR, "Fix sph requires atom attributes energy, density, and velocity estimates, e.g. in atom_style sph");
 
   if (narg != 3)
     error->all(FLERR,"Illegal number of arguments for fix sph command");
@@ -38,7 +40,8 @@ FixSPH::FixSPH(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-int FixSPH::setmask() {
+int FixSPH::setmask()
+{
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
@@ -48,13 +51,20 @@ int FixSPH::setmask() {
 
 /* ---------------------------------------------------------------------- */
 
-void FixSPH::init() {
+void FixSPH::init()
+{
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void FixSPH::setup_pre_force(int /*vflag*/)
 {
+  remap_v_flag = domain->deform_vremap;
+  if (remap_v_flag && (!comm->ghost_velocity))
+    error->all(FLERR, "Fix sph requires ghost atoms store velocity when deforming with remap v");
+
   // set vest equal to v
   double **v = atom->v;
   double **vest = atom->vest;
@@ -76,7 +86,8 @@ void FixSPH::setup_pre_force(int /*vflag*/)
  allow for both per-type and per-atom mass
  ------------------------------------------------------------------------- */
 
-void FixSPH::initial_integrate(int /*vflag*/) {
+void FixSPH::initial_integrate(int /*vflag*/)
+{
   // update v and x and rho and e of atoms in group
 
   double **x = atom->x;
@@ -112,9 +123,16 @@ void FixSPH::initial_integrate(int /*vflag*/) {
       rho[i] += dtf * drho[i]; // ... and density
 
       // extrapolate velocity for use with velocity-dependent potentials, e.g. SPH
-      vest[i][0] = v[i][0] + 2.0 * dtfm * f[i][0];
-      vest[i][1] = v[i][1] + 2.0 * dtfm * f[i][1];
-      vest[i][2] = v[i][2] + 2.0 * dtfm * f[i][2];
+      // if velocities are remapped, perform this extrapolation after communication
+      if (remap_v_flag) {
+        vest[i][0] = dtfm * f[i][0];
+        vest[i][1] = dtfm * f[i][1];
+        vest[i][2] = dtfm * f[i][2];
+      } else {
+        vest[i][0] = v[i][0] + 2.0 * dtfm * f[i][0];
+        vest[i][1] = v[i][1] + 2.0 * dtfm * f[i][1];
+        vest[i][2] = v[i][2] + 2.0 * dtfm * f[i][2];
+      }
 
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];
@@ -129,8 +147,33 @@ void FixSPH::initial_integrate(int /*vflag*/) {
 
 /* ---------------------------------------------------------------------- */
 
-void FixSPH::final_integrate() {
+void FixSPH::pre_force(int /*vflag*/)
+{
+  // if velocities are remapped, calculate estimates here
+  // note that vest currently stores dtfm * force
+  if (!remap_v_flag) return;
 
+  double **v = atom->v;
+  double **vest = atom->vest;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup)
+    nlocal = atom->nfirst;
+
+  int nall = nlocal + atom->nghost;
+  for (int i = 0; i < nall; i++) {
+    if (mask[i] & groupbit) {
+      vest[i][0] += v[i][0];
+      vest[i][1] += v[i][1];
+      vest[i][2] += v[i][2];
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixSPH::final_integrate()
+{
   // update v, rho, and e of atoms in group
 
   double **v = atom->v;
@@ -169,7 +212,8 @@ void FixSPH::final_integrate() {
 
 /* ---------------------------------------------------------------------- */
 
-void FixSPH::reset_dt() {
+void FixSPH::reset_dt()
+{
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 }

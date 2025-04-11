@@ -66,14 +66,14 @@ class LAMMPS {
   int suffix_enable;         // 1 if suffixes are enabled, 0 if disabled
   int pair_only_flag;        // 1 if only force field pair styles are accelerated, 0 if all
   const char *non_pair_suffix() const;
-  char *exename;             // pointer to argv[0]
+  char *exename;    // pointer to argv[0]
 
   char ***packargs;    // arguments for cmdline package commands
   int num_package;     // number of cmdline package commands
 
   MPI_Comm external_comm;    // MPI comm encompassing external programs
                              // when multiple programs launched by mpirun
-                             // set by -mpicolor command line arg
+                             // set by -mpicolor command-line arg
 
   void *mdicomm;    // for use with MDI code coupling library
 
@@ -87,9 +87,9 @@ class LAMMPS {
   static const char *git_descriptor();
 
   using argv = std::vector<std::string>;
-  static std::vector<char*> argv_pointers(argv & args);
+  static std::vector<char *> argv_pointers(argv &args);
 
-  LAMMPS(argv & args, MPI_Comm);
+  LAMMPS(argv &args, MPI_Comm);
   LAMMPS(int, char **, MPI_Comm);
   ~LAMMPS() noexcept(false);
   void create();
@@ -103,9 +103,9 @@ class LAMMPS {
   void init_pkg_lists();
   void help();
   /// Default constructor. Declared private to prohibit its use
-  LAMMPS(){};
+  LAMMPS() {};
   /// Copy constructor. Declared private to prohibit its use
-  LAMMPS(const LAMMPS &){};
+  LAMMPS(const LAMMPS &) {};
 };
 
 }    // namespace LAMMPS_NS

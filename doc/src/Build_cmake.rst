@@ -8,7 +8,7 @@ packages.  Links to those pages on the :doc:`Build overview <Build>`
 page.
 
 The following text assumes some familiarity with CMake and focuses on
-using the command line tool ``cmake`` and what settings are supported
+using the command-line tool ``cmake`` and what settings are supported
 for building LAMMPS.  A more detailed tutorial on how to use CMake
 itself, the text mode or graphical user interface, to change the
 generated output files for different build tools and development
@@ -16,7 +16,7 @@ environments is on a :doc:`separate page <Howto_cmake>`.
 
 .. note::
 
-   LAMMPS currently requires that CMake version 3.16 or later is available.
+   LAMMPS currently requires that CMake version 3.20 or later is available.
 
 .. warning::
 
@@ -32,29 +32,29 @@ environments is on a :doc:`separate page <Howto_cmake>`.
 Advantages of using CMake
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-CMake is an alternative to compiling LAMMPS in the traditional way
-through :doc:`(manually customized) makefiles <Build_make>`.  Using
-CMake has multiple advantages that are specifically helpful for
-people with limited experience in compiling software or for people
-that want to modify or extend LAMMPS.
+CMake is the preferred way of compiling LAMMPS in contrast to the legacy
+build system based on GNU make and through :doc:`(manually customized)
+makefiles <Build_make>`.  Using CMake has multiple advantages that are
+specifically helpful for people with limited experience in compiling
+software or for people that want to modify or extend LAMMPS.
 
 - CMake can detect available hardware, tools, features, and libraries
   and adapt the LAMMPS default build configuration accordingly.
 - CMake can generate files for different build tools and integrated
   development environments (IDE).
-- CMake supports customization of settings with a command line, text
+- CMake supports customization of settings with a command-line, text
   mode, or graphical user interface.  No manual editing of files,
-  knowledge of file formats or complex command line syntax is required.
+  knowledge of file formats or complex command-line syntax is required.
 - All enabled components are compiled in a single build operation.
 - Automated dependency tracking for all files and configuration options.
-- Support for true out-of-source compilation. Multiple configurations
+- Support for true out-of-source compilation.  Multiple configurations
   and settings with different choices of LAMMPS packages, settings, or
   compilers can be configured and built concurrently from the same
   source tree.
 - Simplified packaging of LAMMPS for Linux distributions, environment
-  modules, or automated build tools like `Homebrew <https://brew.sh/>`_.
-- Integration of automated unit and regression testing (the LAMMPS side
-  of this is still under active development).
+  modules, or automated build tools like `Spack <https://spack.io>`_
+  or `Homebrew <https://brew.sh/>`_.
+- Integration of automated unit and regression testing.
 
 .. _cmake_build:
 
@@ -68,7 +68,7 @@ that purpose you can use either the command-line utility ``cmake`` (or
 graphical utility ``cmake-gui``, or use them interchangeably.  The
 second step is then the compilation and linking of all objects,
 libraries, and executables using the selected build tool.  Here is a
-minimal example using the command line version of CMake to build LAMMPS
+minimal example using the command-line version of CMake to build LAMMPS
 with no add-on packages enabled and no customization:
 
 .. code-block:: bash
@@ -119,6 +119,13 @@ configured) and additional files like LAMMPS API headers, manpages,
 potential and force field files.  The location of the installation tree
 defaults to ``${HOME}/.local``.
 
+.. note::
+
+   If you have set `-D CMAKE_INSTALL_PREFIX` to install LAMMPS into a
+   system location on a Linux machine , you may also have to run (as
+   root) the `ldconfig` program to update the cache file for fast lookup
+   of system shared libraries.
+
 .. _cmake_options:
 
 Configuration and build options
@@ -131,21 +138,21 @@ file called ``CMakeLists.txt`` (for LAMMPS it is located in the
 configuration step.  The cache file contains all current CMake settings.
 
 To modify settings, enable or disable features, you need to set
-*variables* with either the *-D* command line flag (``-D
+*variables* with either the ``-D`` command-line flag (``-D
 VARIABLE1_NAME=value``) or change them in the text mode of the graphical
-user interface.  The *-D* flag can be used several times in one command.
+user interface.  The ``-D`` flag can be used several times in one command.
 
 For your convenience, we provide :ref:`CMake presets <cmake_presets>`
 that combine multiple settings to enable optional LAMMPS packages or use
-a different compiler tool chain.  Those are loaded with the *-C* flag
+a different compiler tool chain.  Those are loaded with the ``-C`` flag
 (``-C ../cmake/presets/basic.cmake``).  This step would only be needed
 once, as the settings from the preset files are stored in the
 ``CMakeCache.txt`` file. It is also possible to customize the build
-by adding one or more *-D* flags to the CMake command line.
+by adding one or more ``-D`` flags to the CMake command.
 
 Generating files for alternate build tools (e.g. Ninja) and project files
-for IDEs like Eclipse, CodeBlocks, or Kate can be selected using the *-G*
-command line flag.  A list of available generator settings for your
+for IDEs like Eclipse, CodeBlocks, or Kate can be selected using the ``-G``
+command-line flag.  A list of available generator settings for your
 specific CMake version is given when running ``cmake --help``.
 
 .. _cmake_multiconfig:
@@ -171,7 +178,7 @@ files. E.g.  with:
 In that case the resulting binaries are not in the build folder directly
 but in subdirectories corresponding to the build type (i.e. Release in
 the example from above).  Similarly, for running unit tests the
-configuration is selected with the *-C* flag:
+configuration is selected with the ``-C`` flag:
 
 .. code-block:: bash
 

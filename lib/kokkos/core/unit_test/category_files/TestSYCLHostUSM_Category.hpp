@@ -21,6 +21,6 @@
 
 #define TEST_CATEGORY sycl_host_usm
 #define TEST_CATEGORY_DEATH sycl_host_usm_DeathTest
-#define TEST_EXECSPACE Kokkos::Experimental::SYCLHostUSMSpace
+#define TEST_EXECSPACE Kokkos::SYCLHostUSMSpace
 
 #endif

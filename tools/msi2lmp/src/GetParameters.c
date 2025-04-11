@@ -44,7 +44,7 @@ void GetParameters()
 
   for (i=0; i < no_atom_types; i++) {
     backwards = -1;
-    strncpy(potential_types[0],atomtypes[i].potential,5);
+    memcpy(potential_types[0],atomtypes[i].potential,5);
     k = find_match(1,potential_types,ff_atomtypes,&backwards);
     if (k < 0) {
       printf(" Unable to find mass for %s\n",atomtypes[i].potential);
@@ -63,7 +63,7 @@ void GetParameters()
   for (i=0; i < no_atom_types; i++) {
     backwards = 0;
     for (j=0; j < 2; j++) atomtypes[i].params[j] = 0.0;
-    strncpy(potential_types[0],atomtypes[i].potential,5);
+    memcpy(potential_types[0],atomtypes[i].potential,5);
     k = find_match(1,potential_types,ff_vdw,&backwards);
     if (k < 0) {
       get_equivs(1,potential_types,equiv_types);
@@ -101,7 +101,7 @@ void GetParameters()
     printf("\n Atom Types, Masses and VDW Parameters\n");
     for (i=0; i < no_atom_types; i++) {
       printf(" %3s %8.4f %8.4f %8.4f\n",
-             atomtypes[i].potential,atomtypes[i].mass, atomtypes[i].params[0],atomtypes[i].params[1]);
+             atomtypes[i].potential,atomtypes[i].mass,atomtypes[i].params[0],atomtypes[i].params[1]);
     }
   }
 
@@ -115,8 +115,7 @@ void GetParameters()
     backwards = 0;
     for (j=0; j < 4; j++) bondtypes[i].params[j] = 0.0;
     for (j=0; j < 2; j++)
-      strncpy(potential_types[j],
-              atomtypes[bondtypes[i].types[j]].potential,5);
+      memcpy(potential_types[j],atomtypes[bondtypes[i].types[j]].potential,5);
     k = find_match(2,potential_types,ff_bond,&backwards);
     if (k < 0) {
       get_equivs(2,potential_types,equiv_types);
@@ -172,7 +171,7 @@ void GetParameters()
     backwards = 0;
     for (j=0; j < 4; j++) angletypes[i].params[j] = 0.0;
     for (j=0; j < 3; j++)
-      strncpy(potential_types[j],atomtypes[angletypes[i].types[j]].potential,5);
+      memcpy(potential_types[j],atomtypes[angletypes[i].types[j]].potential,5);
     k = find_match(3,potential_types,ff_ang,&backwards);
     if (k < 0) {
       get_equivs(3,potential_types,equiv_types);
@@ -295,8 +294,7 @@ void GetParameters()
     for (j=0; j < 6; j++)
       dihedraltypes[i].params[j] = 0.0;
     for (j=0; j < 4; j++)
-      strncpy(potential_types[j],
-              atomtypes[dihedraltypes[i].types[j]].potential,5);
+      memcpy(potential_types[j],atomtypes[dihedraltypes[i].types[j]].potential,5);
     backwards = 0;
     k = find_match(4,potential_types,ff_tor,&backwards);
 
@@ -614,8 +612,7 @@ void GetParameters()
     for (i=0; i < no_oop_types; i++) {
       for (j=0; j < 3; j++) ooptypes[i].params[j] = 0.0;
       for (j=0; j < 4; j++)
-        strncpy(potential_types[j],
-                atomtypes[ooptypes[i].types[j]].potential,5);
+        memcpy(potential_types[j],atomtypes[ooptypes[i].types[j]].potential,5);
 
       k = find_improper_body_data(potential_types,ff_oop,&rearrange);
       if (k < 0) {
@@ -658,8 +655,7 @@ void GetParameters()
       for (j=0; j < 3; j++)
         ooptypes[i].params[j] = 0.0;
       for (j=0; j < 4; j++)
-        strncpy(potential_types[j],
-                atomtypes[ooptypes[i].types[j]].potential,5);
+        memcpy(potential_types[j],atomtypes[ooptypes[i].types[j]].potential,5);
       k = find_trigonal_body_data(potential_types,ff_oop);
       if (k < 0) {
         get_equivs(5,potential_types,equiv_types);
@@ -715,8 +711,7 @@ void GetParameters()
       for (j=0; j < 6; j++) ooptypes[i].angleangle_params[j] = 0.0;
 
       for (j=0; j < 4; j++)
-        strncpy(potential_types[j],
-                atomtypes[ooptypes[i].types[j]].potential,5);
+        memcpy(potential_types[j],atomtypes[ooptypes[i].types[j]].potential,5);
 
 
       tabc = get_t0(ooptypes[i].types[0],
@@ -763,8 +758,7 @@ void GetParameters()
     for (i=0; i < no_angleangle_types; i++) {
       for (j=0; j < 6; j++) angleangletypes[i].params[j] = 0.0;
       for (j=0; j < 4; j++)
-        strncpy(potential_types[j],
-                atomtypes[angleangletypes[i].types[j]].potential,5);
+        memcpy(potential_types[j],atomtypes[angleangletypes[i].types[j]].potential,5);
 
       tabc = get_t0(angleangletypes[i].types[0],
                     angleangletypes[i].types[1],
@@ -841,44 +835,44 @@ int find_improper_body_data(char types1[][5],struct FrcFieldItem item,
   /* a b d c */
 
   *rearrange_ptr = 1;
-  strncpy(mirror_types[0],types1[0],5);
-  strncpy(mirror_types[1],types1[1],5);
-  strncpy(mirror_types[2],types1[3],5);
-  strncpy(mirror_types[3],types1[2],5);
+  memcpy(mirror_types[0],types1[0],5);
+  memcpy(mirror_types[1],types1[1],5);
+  memcpy(mirror_types[2],types1[3],5);
+  memcpy(mirror_types[3],types1[2],5);
   k = find_match(4,mirror_types,item,&backwards);
   if (k >= 0) return k;
 
   /* d b a c */
 
   *rearrange_ptr = 2;
-  strncpy(mirror_types[0],types1[3],5);
-  strncpy(mirror_types[2],types1[0],5);
-  strncpy(mirror_types[3],types1[2],5);
+  memcpy(mirror_types[0],types1[3],5);
+  memcpy(mirror_types[2],types1[0],5);
+  memcpy(mirror_types[3],types1[2],5);
   k = find_match(4,mirror_types,item,&backwards);
   if (k >= 0) return k;
 
   /* d b c a */
 
   *rearrange_ptr = 3;
-  strncpy(mirror_types[2],types1[2],5);
-  strncpy(mirror_types[3],types1[0],5);
+  memcpy(mirror_types[2],types1[2],5);
+  memcpy(mirror_types[3],types1[0],5);
   k = find_match(4,mirror_types,item,&backwards);
   if (k >= 0) return k;
 
   /* c b a d */
 
   *rearrange_ptr = 4;
-  strncpy(mirror_types[0],types1[2],5);
-  strncpy(mirror_types[2],types1[0],5);
-  strncpy(mirror_types[3],types1[3],5);
+  memcpy(mirror_types[0],types1[2],5);
+  memcpy(mirror_types[2],types1[0],5);
+  memcpy(mirror_types[3],types1[3],5);
   k = find_match(4,mirror_types,item,&backwards);
   if (k >= 0) return k;
 
   /* c b d a */
 
   *rearrange_ptr = 5;
-  strncpy(mirror_types[2],types1[3],5);
-  strncpy(mirror_types[3],types1[0],5);
+  memcpy(mirror_types[2],types1[3],5);
+  memcpy(mirror_types[3],types1[0],5);
   k = find_match(4,mirror_types,item,&backwards);
   return k;
 }
@@ -973,39 +967,39 @@ int find_trigonal_body_data(char types1[][5],struct FrcFieldItem item)
 
   /* a b d c */
 
-  strncpy(mirror_types[0],types1[0],5);
-  strncpy(mirror_types[1],types1[1],5);
-  strncpy(mirror_types[2],types1[3],5);
-  strncpy(mirror_types[3],types1[2],5);
+  memcpy(mirror_types[0],types1[0],5);
+  memcpy(mirror_types[1],types1[1],5);
+  memcpy(mirror_types[2],types1[3],5);
+  memcpy(mirror_types[3],types1[2],5);
   k = find_match(4,mirror_types,item,&backwards);
   if (k >= 0) return k;
 
   /* d b a c */
 
-  strncpy(mirror_types[0],types1[3],5);
-  strncpy(mirror_types[2],types1[0],5);
-  strncpy(mirror_types[3],types1[2],5);
+  memcpy(mirror_types[0],types1[3],5);
+  memcpy(mirror_types[2],types1[0],5);
+  memcpy(mirror_types[3],types1[2],5);
   k = find_match(4,mirror_types,item,&backwards);
   if (k >= 0) return k;
 
   /* d b c a */
 
-  strncpy(mirror_types[2],types1[2],5);
-  strncpy(mirror_types[3],types1[0],5);
+  memcpy(mirror_types[2],types1[2],5);
+  memcpy(mirror_types[3],types1[0],5);
   k = find_match(4,mirror_types,item,&backwards);
   if (k >= 0) return k;
   /* c b a d */
 
-  strncpy(mirror_types[0],types1[2],5);
-  strncpy(mirror_types[2],types1[0],5);
-  strncpy(mirror_types[3],types1[3],5);
+  memcpy(mirror_types[0],types1[2],5);
+  memcpy(mirror_types[2],types1[0],5);
+  memcpy(mirror_types[3],types1[3],5);
   k = find_match(4,mirror_types,item,&backwards);
   if (k >= 0) return k;
 
   /* c b d a */
 
-  strncpy(mirror_types[2],types1[3],5);
-  strncpy(mirror_types[3],types1[0],5);
+  memcpy(mirror_types[2],types1[3],5);
+  memcpy(mirror_types[3],types1[0],5);
   k = find_match(4,mirror_types,item,&backwards);
   return k;
 }
@@ -1015,41 +1009,41 @@ int find_angleangle_data(char types1[][5],struct FrcFieldItem item,int kloc[3])
   int k,backwards = -1;
   char mirror_types[4][5];
 
-  strncpy(mirror_types[1],types1[1],5);
+  memcpy(mirror_types[1],types1[1],5);
 
   /* go for first parameter a b c d or d b c a */
 
   k = find_match(4,types1,item,&backwards);
   if (k < 0) {
-    strncpy(mirror_types[0],types1[3],5);
-    strncpy(mirror_types[2],types1[2],5);
-    strncpy(mirror_types[3],types1[0],5);
+    memcpy(mirror_types[0],types1[3],5);
+    memcpy(mirror_types[2],types1[2],5);
+    memcpy(mirror_types[3],types1[0],5);
     k = find_match(4,mirror_types,item,&backwards);
   }
   kloc[0] = k;
 
   /* go for second parameter d b a c or c b a d */
 
-  strncpy(mirror_types[0],types1[3],5);
-  strncpy(mirror_types[2],types1[0],5);
-  strncpy(mirror_types[3],types1[2],5);
+  memcpy(mirror_types[0],types1[3],5);
+  memcpy(mirror_types[2],types1[0],5);
+  memcpy(mirror_types[3],types1[2],5);
   k = find_match(4,mirror_types,item,&backwards);
   if (k < 0) {
-    strncpy(mirror_types[0],types1[2],5);
-    strncpy(mirror_types[3],types1[3],5);
+    memcpy(mirror_types[0],types1[2],5);
+    memcpy(mirror_types[3],types1[3],5);
     k = find_match(4,mirror_types,item,&backwards);
   }
   kloc[1] = k;
 
   /* go for third parameter a b d c or c b d a */
 
-  strncpy(mirror_types[0],types1[0],5);
-  strncpy(mirror_types[2],types1[3],5);
-  strncpy(mirror_types[3],types1[2],5);
+  memcpy(mirror_types[0],types1[0],5);
+  memcpy(mirror_types[2],types1[3],5);
+  memcpy(mirror_types[3],types1[2],5);
   k = find_match(4,mirror_types,item,&backwards);
   if (k < 0) {
-    strncpy(mirror_types[0],types1[2],5);
-    strncpy(mirror_types[3],types1[0],5);
+    memcpy(mirror_types[0],types1[2],5);
+    memcpy(mirror_types[3],types1[0],5);
     k = find_match(4,mirror_types,item,&backwards);
   }
   kloc[2] = k;
@@ -1250,25 +1244,25 @@ void get_equivs(int ic,char potential_types[][5],char equiv_types[][5])
   switch (ic) {
   case 1:
     k = find_equiv_type(potential_types[0]);
-    if (k > -1) strncpy(equiv_types[0],equivalence.data[k].ff_types[1],5);
+    if (k > -1) memcpy(equiv_types[0],equivalence.data[k].ff_types[1],5);
     break;
 
   case 2:
     for (i=0; i < 2; i++) {
       k = find_equiv_type(potential_types[i]);
-      if (k > -1) strncpy(equiv_types[i],equivalence.data[k].ff_types[2],5);
+      if (k > -1) memcpy(equiv_types[i],equivalence.data[k].ff_types[2],5);
     }
     break;
   case 3:
     for (i=0; i < 3; i++) {
       k = find_equiv_type(potential_types[i]);
-      if (k > -1) strncpy(equiv_types[i],equivalence.data[k].ff_types[3],5);
+      if (k > -1) memcpy(equiv_types[i],equivalence.data[k].ff_types[3],5);
     }
     break;
   case 4:
     for (i=0; i < 4; i++) {
       k = find_equiv_type(potential_types[i]);
-      if (k > -1) strncpy(equiv_types[i],equivalence.data[k].ff_types[4],5);
+      if (k > -1) memcpy(equiv_types[i],equivalence.data[k].ff_types[4],5);
     }
     break;
 
@@ -1276,7 +1270,7 @@ void get_equivs(int ic,char potential_types[][5],char equiv_types[][5])
     for (i=0; i < 4; i++) {
       k = find_equiv_type(potential_types[i]);
       if (k > -1)
-        strncpy(equiv_types[i],equivalence.data[k].ff_types[5],5);
+        memcpy(equiv_types[i],equivalence.data[k].ff_types[5],5);
     }
     break;
   default:

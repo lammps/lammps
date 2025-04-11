@@ -48,18 +48,18 @@ struct MyMovableType {
 TEST(std_algorithms_mod_ops_test, move) {
   MyMovableType a;
   using move_t = decltype(std::move(a));
-  static_assert(std::is_rvalue_reference<move_t>::value);
+  static_assert(std::is_rvalue_reference_v<move_t>);
 
   // move constr
   MyMovableType b(std::move(a));
   ASSERT_EQ(b.m_value, 11);
-  ASSERT_EQ(a.m_value, -2);
+  ASSERT_EQ(a.m_value, -2);  // NOLINT(bugprone-use-after-move)
 
   // move assign
   MyMovableType c;
   c = std::move(b);
   ASSERT_EQ(c.m_value, 11);
-  ASSERT_EQ(b.m_value, -4);
+  ASSERT_EQ(b.m_value, -4);  // NOLINT(bugprone-use-after-move)
 }
 
 template <class ViewType>
@@ -70,7 +70,7 @@ struct StdAlgoModSeqOpsTestMove {
   void operator()(const int index) const {
     typename ViewType::value_type a{11};
     using move_t = decltype(std::move(a));
-    static_assert(std::is_rvalue_reference<move_t>::value);
+    static_assert(std::is_rvalue_reference_v<move_t>);
     m_view(index) = std::move(a);
   }
 

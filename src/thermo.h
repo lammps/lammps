@@ -16,12 +16,13 @@
 
 #include "pointers.h"
 #include <map>
+#include <mutex>
 
 namespace LAMMPS_NS {
 
 class Thermo : protected Pointers {
-  friend class MinCG;    // accesses compute_pe
-
+  friend class MinCG;      // accesses compute_pe
+  friend class DumpExtXYZ; // accesses compute_temp, compute_press, compute_pe
  public:
   char *style;
   int normflag;    // 0 if do not normalize by atoms, 1 if normalize
@@ -43,6 +44,8 @@ class Thermo : protected Pointers {
   int evaluate_keyword(const std::string &, double *);
 
   // for accessing cached thermo and related data
+  void lock_cache();
+  void unlock_cache();
   const int *get_line() const { return &nline; }
   const char *get_image_fname() const { return image_fname.c_str(); }
 
@@ -54,10 +57,13 @@ class Thermo : protected Pointers {
   void set_line(int _nline) { nline = _nline; }
   void set_image_fname(const std::string &fname) { image_fname = fname; }
 
+ protected:
+  class Compute *temperature, *pressure, *pe;
+
  private:
   int nfield, nfield_initial;
   int *vtype;
-  int triclinic_general;   // set by thermo_modify
+  int triclinic_general;    // set by thermo_modify
 
   std::string line;
   std::vector<std::string> keyword, format, format_column_user, keyword_user;
@@ -82,6 +88,9 @@ class Thermo : protected Pointers {
   int nline;
   std::string image_fname;
 
+  // mutex for locking the cache
+  std::mutex *cache_mutex;
+
   // data used by routines that compute single values
 
   int ivalue;          // integer value to print
@@ -98,7 +107,6 @@ class Thermo : protected Pointers {
   // Compute * = ptrs to the Compute objects
 
   int index_temp, index_press_scalar, index_press_vector, index_pe;
-  class Compute *temperature, *pressure, *pe;
   double press_tensor[3][3];
 
   int ncompute;                // # of Compute objects called by thermo
@@ -237,7 +245,6 @@ class Thermo : protected Pointers {
 
   void compute_nbuild();
   void compute_ndanger();
-
 };
 
 }    // namespace LAMMPS_NS

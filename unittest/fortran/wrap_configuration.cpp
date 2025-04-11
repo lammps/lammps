@@ -39,7 +39,7 @@ int f_lammps_has_id(const char *, const char *);
 int f_lammps_id_count(const char *);
 char *f_lammps_id_name(const char *, int);
 int f_lammps_plugin_count();
-int f_lammps_plugin_name();
+int f_lammps_plugin_name(int, const char*, const char*);
 }
 namespace LAMMPS_NS {
 
@@ -136,8 +136,8 @@ TEST_F(LAMMPS_configuration, has_package)
     };
     // clang-format on
 
-    for (std::size_t i = 0; i < pkg_name.size(); i++)
-        EXPECT_EQ(f_lammps_has_package(pkg_name[i].c_str()), Info::has_package(pkg_name[i]));
+    for (const auto &i : pkg_name)
+        EXPECT_EQ(f_lammps_has_package(i.c_str()), Info::has_package(i));
 }
 
 TEST_F(LAMMPS_configuration, package_count)
@@ -347,7 +347,7 @@ TEST_F(LAMMPS_configuration, plugins)
 #else
     int nplugins = f_lammps_plugin_count();
     for (int n = 0; n < nplugins; n++) {
-        lammpsplugin_t *plugin = plugin_get_info(n);
+        auto *plugin = plugin_get_info(n);
         EXPECT_EQ(f_lammps_plugin_name(n + 1, plugin->style, plugin->name), 1);
     }
 #endif

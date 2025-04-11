@@ -110,7 +110,7 @@ class ScratchMemorySpace {
     // Note: for team scratch m_offset is 0, since every
     // thread will get back the same shared pointer
     void* tmp           = m_iter + m_offset * size;
-    uintptr_t increment = size * m_multiplier;
+    uintptr_t increment = static_cast<uintptr_t>(size) * m_multiplier;
 
     // Cast to uintptr_t to avoid problems with pointer arithmetic using SYCL
     const auto end_iter =

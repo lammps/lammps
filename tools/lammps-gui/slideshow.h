@@ -33,6 +33,7 @@ public:
 
 private slots:
     void quit();
+    void delete_images();
     void stop_run();
     void movie();
     void first();

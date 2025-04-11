@@ -1846,7 +1846,7 @@ void PairMGPT::coeff(int narg, char **arg)
 
   // Make sure I,J args are * *
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   double vol;
   if (sscanf(arg[4], "%lg", &vol) != 1 || vol <= 0.0)
@@ -1862,7 +1862,7 @@ void PairMGPT::coeff(int narg, char **arg)
     while (iarg < narg) {
       if (strcmp(arg[iarg],"volpress") == 0) { /* Volumetric pressure flag */
         if (iarg+2 > narg)
-          error->all(FLERR,"Incorrect args for pair coefficients");
+          error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
         if (strcmp(arg[iarg+1],"yes") == 0) volpres_flag = 1;
         else if (strcmp(arg[iarg+1],"no") == 0) volpres_flag = 0;
         else {
@@ -1876,7 +1876,7 @@ void PairMGPT::coeff(int narg, char **arg)
         if (comm->me == 0) printf("* volpress: volpres_flag = %d [%s %s]\n",volpres_flag,arg[iarg-2],arg[iarg-1]);
       } else if (strcmp(arg[iarg],"nbody") == 0) {
         if (iarg+2 > narg)
-          error->all(FLERR,"Incorrect args for pair coefficients");
+          error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
         if (strspn(arg[iarg+1],"1234") == strlen(arg[iarg+1])) {
           nbody_flag = 0;
           for (int i = 0; i<4; i++)
@@ -1897,7 +1897,7 @@ void PairMGPT::coeff(int narg, char **arg)
         iarg += 2;
       } else if (strcmp(arg[iarg],"precision") == 0) {
         if (iarg+2 > narg)
-          error->all(FLERR,"Incorrect args for pair coefficients");
+          error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
         if (strcmp(arg[iarg+1],"single") == 0) single_precision = 1;
         else if (strcmp(arg[iarg+1],"double") == 0) single_precision = 0;
         else {

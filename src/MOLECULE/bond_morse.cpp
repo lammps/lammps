@@ -126,7 +126,7 @@ void BondMorse::allocate()
 
 void BondMorse::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (narg != 4) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -145,7 +145,7 @@ void BondMorse::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -227,6 +227,8 @@ void BondMorse::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double &
 void *BondMorse::extract(const char *str, int &dim)
 {
   dim = 1;
+  if (strcmp(str, "d0") == 0) return (void *) d0;
+  if (strcmp(str, "alpha") == 0) return (void *) alpha;
   if (strcmp(str, "r0") == 0) return (void *) r0;
   return nullptr;
 }

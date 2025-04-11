@@ -17,14 +17,22 @@ q_ref = float(ref_line[3])
 inv11_ref = float(ref_line[4])
 inv12_ref = float(ref_line[5])
 b1_ref = float(ref_line[6])
+felec1_ref = float(ref_line[8])
+felyt1_ref = float(ref_line[10])
+press_ref = float(ref_line[12])
 
 # out.csv
 with open(sys.argv[2]) as f:
     out_line = f.readlines()[-1].split(", ")
 e_out = float(out_line[0])
 q_out = float(out_line[1])
+press_out = float(out_line[2])
 
-out_lines = [("energy", e_ref, e_out), ("charge", q_ref, q_out)]
+out_lines = [
+    ("energy", e_ref, e_out),
+    ("charge", q_ref, q_out),
+    ("pressure", press_ref, press_out),
+]
 
 # vec.csv
 vec_file = "vec.csv"
@@ -43,6 +51,14 @@ if op.isfile(inv_file):
     inv11_out = float(inv_line[0])
     inv12_out = float(inv_line[1])
     out_lines.append(("inv11", inv11_ref, inv11_out))
+
+# forces.lammpstrj
+force_file = "forces.lammpstrj"
+with open(force_file) as f:
+    lines = f.readlines()[9:]
+    for name, i, f_ref in [("felec1", "1", felec1_ref), ("felyt1", "3", felyt1_ref)]:
+        f_out = next(float(y[3]) for x in lines if (y := x.split()) and y[0] == i)
+        out_lines.append((name, f_ref, f_out))
 
 lines = []
 for label, ref, out in out_lines:

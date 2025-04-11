@@ -1,0 +1,118 @@
+# GitHub action to build LAMMPS on Linux and run selected regression tests
+name: "Quick Regression Test"
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
+jobs:
+  build:
+    name: Build LAMMPS
+    # restrict to official LAMMPS repository
+    if: ${{ github.repository == 'lammps/lammps' }}
+    runs-on: ubuntu-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+    strategy:
+      max-parallel: 4
+      matrix:
+        idx: [ 0, 1, 2, 3 ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        show-progress: false
+
+    - name: Install extra packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ccache ninja-build libeigen3-dev \
+                     libcurl4-openssl-dev python3-dev \
+                     mpi-default-bin mpi-default-dev
+
+    - name: Create Build Environment
+      run: mkdir build
+
+    - name: Set up ccache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: linux-quick-ccache-${{ github.sha }}
+        restore-keys: linux-quick-ccache-
+
+    - name: Building LAMMPS via CMake
+      shell: bash
+      run: |
+        ccache -z
+        python3 -m venv linuxenv
+        source linuxenv/bin/activate
+        python3 -m pip install --upgrade pip
+        python3 -m pip install numpy pyyaml junit_xml
+        cmake -S cmake -B build \
+              -C cmake/presets/gcc.cmake \
+              -C cmake/presets/most.cmake \
+              -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+              -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+              -D BUILD_SHARED_LIBS=off \
+              -D DOWNLOAD_POTENTIALS=off \
+              -D PKG_MANIFOLD=on \
+              -D PKG_ML-PACE=on \
+              -D PKG_ML-RANN=on \
+              -D PKG_RHEO=on \
+              -D PKG_PTM=on \
+              -D PKG_PYTHON=on \
+              -D PKG_QTB=on \
+              -D PKG_SMTBQ=on \
+              -G Ninja
+        cmake --build build
+        ccache -s
+
+    - name: Run Regression Tests for Modified Styles
+      shell: bash
+      run: |
+        source linuxenv/bin/activate
+        python3 tools/regression-tests/run_tests.py \
+               --lmp-bin=build/lmp \
+               --config-file=tools/regression-tests/config_quick.yaml \
+               --examples-top-level=examples \
+               --quick-reference=tools/regression-tests/reference.yaml \
+               --quick --quick-branch=origin/develop --quick-max=100 --num-workers=4
+
+        if [ -f input-list-${{ matrix.idx }}.txt ]
+        then \
+           python3 tools/regression-tests/run_tests.py \
+               --lmp-bin=build/lmp \
+               --config-file=tools/regression-tests/config_quick.yaml \
+               --list-input=input-list-${{ matrix.idx }}.txt \
+               --output-file=output-${{ matrix.idx }}.xml \
+               --progress-file=progress-${{ matrix.idx }}.yaml \
+               --log-file=run-${{ matrix.idx }}.log
+        fi
+
+        tar -cvf quick-regression-test-${{ matrix.idx }}.tar run-${{ matrix.idx }}.log progress-${{ matrix.idx }}.yaml output-${{ matrix.idx }}.xml
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: quick-regression-test-artifact-${{ matrix.idx }}
+        path: quick-regression-test-${{ matrix.idx }}.tar
+
+  merge:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Merge Artifacts
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: merged-quick-regresssion-artifact
+          pattern: quick-regression-test-artifact-*
+

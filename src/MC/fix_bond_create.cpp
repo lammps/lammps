@@ -408,15 +408,15 @@ void FixBondCreate::post_integrate()
   int *mask = atom->mask;
   int *type = atom->type;
 
-  if (constrainflag) {
-    // communicate partner and 1-2 special neighbors
-    // to correctly handle angle constraints
+  // communicate partner and 1-2 special neighbors
+  // to correctly handle angle constraints
 
+  if (constrainflag) {
     commflag = 3;
     comm->forward_comm(this);
   }
 
-  neighbor->build_one(list,1);
+  neighbor->build_one(list);
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;

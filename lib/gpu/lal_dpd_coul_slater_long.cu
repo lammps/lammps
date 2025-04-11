@@ -186,15 +186,13 @@ __kernel void k_dpd_coul_slater_long(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   __local numtyp sp_cl[4];
-  ///local_allocate_store_charge();
-
   sp_cl[0]=sp_cl_in[0];
   sp_cl[1]=sp_cl_in[1];
   sp_cl[2]=sp_cl_in[2];
   sp_cl[3]=sp_cl_in[3];
 
   int n_stride;
-  local_allocate_store_pair();
+  local_allocate_store_charge();
 
   acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
@@ -289,16 +287,16 @@ __kernel void k_dpd_coul_slater_long(const __global numtyp4 *restrict x_,
       
         // apply Slater electrostatic force if distance below Slater cutoff 
         // and the two species have a slater coeff
-        // cutsq[mtype].z -> Coulombic squared cutoff
-        if ( cutsq[mtype].z != 0.0 && rsq < cutsq[mtype].z){
+        // cutsq[mtype].z -> Slater cutoff
+        // extra[j].x -> q[j] ; particle j charge
+        if ( rsq < cutsq[mtype].z ){
           numtyp r2inv=ucl_recip(rsq);
           numtyp _erfc;
           numtyp grij = g_ewald * r;
           numtyp expm2 = ucl_exp(-grij*grij);
           numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
           _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-          numtyp prefactor = extra[j].x;
-          prefactor *= qqrd2e * cutsq[mtype].z * qtmp/r;
+          numtyp prefactor = qqrd2e * extra[j].x * qtmp / r;
           numtyp rlamdainv = r * lamdainv;
           numtyp exprlmdainv = ucl_exp((numtyp)-2.0*rlamdainv);
           numtyp slater_term = exprlmdainv*((numtyp)1.0 + ((numtyp)2.0*rlamdainv*((numtyp)1.0+rlamdainv)));
@@ -308,9 +306,9 @@ __kernel void k_dpd_coul_slater_long(const __global numtyp4 *restrict x_,
 
           if (EVFLAG && eflag) {
             numtyp e_slater = ((numtyp)1.0 + rlamdainv)*exprlmdainv;
-            numtyp e = prefactor*(_erfc-e_slater);
-            if (factor_coul > (numtyp)0) e -= factor_coul*prefactor*((numtyp)1.0 - e_slater);
-            e_coul += e;
+            numtyp e_sf = prefactor*(_erfc-e_slater);
+            if (factor_coul > (numtyp)0) e_sf -= factor_coul*prefactor*((numtyp)1.0 - e_slater);
+            e_coul += e_sf;
           }
         } // if cut_coulsq
 
@@ -332,8 +330,7 @@ __kernel void k_dpd_coul_slater_long(const __global numtyp4 *restrict x_,
 
     } // for nbor
   } // if ii
-  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                ans,engv);
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,ans,engv);
 }
 
 __kernel void k_dpd_coul_slater_long_fast(const __global numtyp4 *restrict x_,
@@ -378,7 +375,7 @@ __kernel void k_dpd_coul_slater_long_fast(const __global numtyp4 *restrict x_,
   
 
   int n_stride;
-  local_allocate_store_pair();
+  local_allocate_store_charge();
 
   acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
@@ -474,16 +471,16 @@ __kernel void k_dpd_coul_slater_long_fast(const __global numtyp4 *restrict x_,
       
         // apply Slater electrostatic force if distance below Slater cutoff 
         // and the two species have a slater coeff
-        // cutsq[mtype].z -> Coulombic squared cutoff
-        if ( cutsq[mtype].z != 0.0 && rsq < cutsq[mtype].z){
+        // cutsq[mtype].z -> Slater cutoff
+        // extra[j].x -> q[j] ; particle j charge
+        if ( rsq < cutsq[mtype].z ){
           numtyp r2inv=ucl_recip(rsq);
           numtyp _erfc;
           numtyp grij = g_ewald * r;
           numtyp expm2 = ucl_exp(-grij*grij);
           numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
           _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-          numtyp prefactor = extra[j].x;
-          prefactor *= qqrd2e * cutsq[mtype].z * qtmp/r;
+          numtyp prefactor = qqrd2e * extra[j].x * qtmp / r;
           numtyp rlamdainv = r * lamdainv;
           numtyp exprlmdainv = ucl_exp((numtyp)-2.0*rlamdainv);
           numtyp slater_term = exprlmdainv*((numtyp)1.0 + ((numtyp)2.0*rlamdainv*((numtyp)1.0+rlamdainv)));
@@ -517,7 +514,6 @@ __kernel void k_dpd_coul_slater_long_fast(const __global numtyp4 *restrict x_,
 
     } // for nbor
   } // if ii
-  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                ans,engv);
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,ans,engv);
 }
 

@@ -40,6 +40,11 @@
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+// We allow using deprecated classes in this file
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
+
 namespace Kokkos {
 
 namespace Impl {
@@ -284,17 +289,18 @@ class SimpleTaskScheduler
                                       scheduler_type>
   spawn(Impl::TaskPolicyWithPredecessor<TaskEnum, DepFutureType>&& arg_policy,
         FunctorType&& arg_functor) {
-    static_assert(std::is_same<typename DepFutureType::scheduler_type,
-                               scheduler_type>::value,
-                  "Can't create a task policy from a scheduler and a future "
-                  "from a different scheduler");
+    static_assert(
+        std::is_same_v<typename DepFutureType::scheduler_type, scheduler_type>,
+        "Can't create a task policy from a scheduler and a future "
+        "from a different scheduler");
 
     using task_type = runnable_task_type<FunctorType>;
     typename task_type::function_type const ptr = task_type::apply;
     typename task_type::destroy_type const dtor = task_type::destroy;
 
+    auto const priority = arg_policy.priority();
     return _spawn_impl<TaskEnum>(std::move(arg_policy).predecessor().m_task,
-                                 arg_policy.priority(), ptr, dtor,
+                                 priority, ptr, dtor,
                                  std::forward<FunctorType>(arg_functor));
   }
 
@@ -411,11 +417,18 @@ class SimpleTaskScheduler
     static_assert(is_future<generated_type>::value,
                   "when_all function must return a Kokkos future (an instance "
                   "of Kokkos::BasicFuture)");
+
+    // see #7779
+    // There are issues with the implementation of std::is_base_of in NVCC
+    // <= 12.5 for C++ 20
+#if defined(KOKKOS_ENABLE_CXX17) || \
+    (!defined(KOKKOS_COMPILER_NVCC) || KOKKOS_COMPILER_NVCC >= 1250)
     static_assert(
-        std::is_base_of<scheduler_type,
-                        typename generated_type::scheduler_type>::value,
+        std::is_base_of_v<scheduler_type,
+                          typename generated_type::scheduler_type>,
         "when_all function must return a Kokkos::BasicFuture of a compatible "
         "scheduler type");
+#endif
 
     auto* aggregate_task =
         m_queue->template allocate_and_construct_with_vla_emulation<
@@ -457,6 +470,10 @@ inline void wait(SimpleTaskScheduler<ExecSpace, QueueType> const& scheduler) {
 }
 
 }  // namespace Kokkos
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
 //----------------------------------------------------------------------------
 //---------------------------------------------------------------------------#endif

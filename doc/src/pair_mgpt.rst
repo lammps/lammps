@@ -33,7 +33,7 @@ elemental bulk material in the form
 
 .. math::
 
-   E_{\rm tot}({\bf R}_1 \ldots {\bf R}_N) = NE_{\rm vol}(\Omega )
+   E_\mathrm{tot}(\mathbf{R}_1 \ldots \mathbf{R}_N) = NE_\mathrm{vol}(\Omega )
    + \frac{1}{2} \sum _{i,j} \mbox{}^\prime \ v_2(ij;\Omega )
    + \frac{1}{6} \sum _{i,j,k} \mbox{}^\prime \ v_3(ijk;\Omega )
    + \frac{1}{24} \sum _{i,j,k,l} \mbox{}^\prime \ v_4(ijkl;\Omega )
@@ -111,8 +111,8 @@ routines.  For x-86 machines, there is a provided Makefile.mgptfast
 which enables the fast algebra routines, i.e. build LAMMPS with "make
 mgptfast".  The user will be informed in the output files of the
 matrix kernels in use. To further improve speed, on x86 the option
-precision single can be added to the :doc:`pair_coeff <pair_coeff>`
-command line, which improves speed (up to a factor of two) at the cost
+*precision single* can be added to the :doc:`pair_coeff <pair_coeff>`
+command, which improves speed (up to a factor of two) at the cost
 of doing matrix calculations with 7 digit precision instead of the
 default 16. For consistency the default option can be specified
 explicitly by the option precision double.

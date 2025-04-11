@@ -27,6 +27,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "interlayer_taper.h"
 #include "memory.h"
 #include "my_page.h"
@@ -164,8 +165,11 @@ void PairKolmogorovCrespiFull::coeff(int narg, char **arg)
 
 double PairKolmogorovCrespiFull::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
-  if (!offset_flag) error->all(FLERR, "Must use 'pair_modify shift yes' with this pair style");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
+  if (!offset_flag)
+    error->all(FLERR, Error::NOLASTLINE, "Must use 'pair_modify shift yes' with this pair style");
 
   if (offset_flag && (cut_global > 0.0)) {
     int iparam_ij = elem2param[map[i]][map[j]];

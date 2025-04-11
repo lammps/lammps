@@ -20,12 +20,20 @@ acceleration.
 .. _lws: https://www.lammps.org
 .. _omp: https://www.openmp.org
 
-LAMMPS is written in C++ and requires a compiler that is at least
-compatible with the C++-11 standard.  Earlier versions were written in
-F77, F90, and C++-98.  See the `History page
+LAMMPS is written in C++ and currently requires a compiler that is at
+least compatible with the C++-11 standard.  Earlier versions were
+written in F77, F90, and C++-98.  See the `History page
 <https://www.lammps.org/history.html>`_ of the website for details.  All
 versions can be downloaded as source code from the `LAMMPS website
 <lws_>`_.
+
+Through a :ref:`C language API <lammps_c_api>` LAMMPS functionality can
+be accessed and managed from other programming languages rather than
+running the LAMMPS executable.  Ready to use modules for :ref:`Python
+<lammps_python_api>` and :ref:`Fortran <lammps_fortran_api>` exist, and
+an example :ref:`SWIG interface file <swig>` as well as example C files
+for dynamically loading LAMMPS as a shared library into other
+executables are provided.
 
 LAMMPS is designed to be easy to modify or extend with new capabilities,
 such as new force fields, atom types, boundary conditions, or

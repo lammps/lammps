@@ -228,7 +228,7 @@ TEST(TEST_CATEGORY, bit_manip_countr_zero) {
 #endif
 #if defined(KOKKOS_ENABLE_SYCL) && \
     !defined(KOKKOS_ARCH_INTEL_GPU)  // FIXME_SYCL returns wrong result
-    if (!std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::SYCL>)
+    if (!std::is_same_v<TEST_EXECSPACE, Kokkos::SYCL>)
 #endif
       test_bit_manip_countr_zero<unsigned char>();
     test_bit_manip_countr_zero<unsigned short>();
@@ -274,7 +274,7 @@ TEST(TEST_CATEGORY, bit_manip_countr_one) {
 #endif
 #if defined(KOKKOS_ENABLE_SYCL) && \
     !defined(KOKKOS_ARCH_INTEL_GPU)  // FIXME_SYCL returns wrong result
-    if (!std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::SYCL>)
+    if (!std::is_same_v<TEST_EXECSPACE, Kokkos::SYCL>)
 #endif
       test_bit_manip_countr_one<unsigned char>();
     test_bit_manip_countr_one<unsigned short>();
@@ -827,12 +827,6 @@ struct TestBitCastFunction {
       }
     }
 
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC 23.7
-    if constexpr (std::is_same_v<Space, Kokkos::Cuda>) {
-      return;
-    }
-#endif
     struct S {
       int i;
 

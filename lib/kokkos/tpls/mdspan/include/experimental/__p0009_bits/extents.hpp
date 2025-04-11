@@ -16,12 +16,15 @@
 
 #pragma once
 #include "dynamic_extent.hpp"
+#include "utility.hpp"
 
 #ifdef __cpp_lib_span
 #include <span>
 #endif
 #include <array>
+#include <type_traits>
 
+#include <cassert>
 #include <cinttypes>
 
 namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
@@ -30,6 +33,7 @@ namespace detail {
 // Function used to check compatibility of extents in converting constructor
 // can't be a private member function for some reason.
 template <size_t... Extents, size_t... OtherExtents>
+MDSPAN_INLINE_FUNCTION
 static constexpr std::integral_constant<bool, false> __check_compatible_extents(
     std::integral_constant<bool, false>,
     std::integer_sequence<size_t, Extents...>,
@@ -46,8 +50,9 @@ struct __compare_extent_compatible : std::integral_constant<bool,
 {};
 
 template <size_t... Extents, size_t... OtherExtents>
+MDSPAN_INLINE_FUNCTION
 static constexpr std::integral_constant<
-    bool, _MDSPAN_FOLD_AND(__compare_extent_compatible<Extents, OtherExtents>::value)>
+    bool, MDSPAN_IMPL_FOLD_AND(__compare_extent_compatible<Extents, OtherExtents>::value)>
 __check_compatible_extents(
     std::integral_constant<bool, true>,
     std::integer_sequence<size_t, Extents...>,
@@ -59,8 +64,8 @@ template<class IndexType, class ... Arguments>
 MDSPAN_INLINE_FUNCTION
 static constexpr bool are_valid_indices() {
     return
-      (std::is_convertible<Arguments, IndexType>::value && ... && true) &&
-      (std::is_nothrow_constructible<IndexType, Arguments>::value && ... && true);
+      MDSPAN_IMPL_FOLD_AND(std::is_convertible<Arguments, IndexType>::value) &&
+      MDSPAN_IMPL_FOLD_AND(std::is_nothrow_constructible<IndexType, Arguments>::value);
 }
 
 // ------------------------------------------------------------------
@@ -149,7 +154,7 @@ struct index_sequence_scan_impl<R, FirstVal, Values...> {
 template <size_t R, size_t FirstVal>
 struct index_sequence_scan_impl<R, FirstVal> {
 #if defined(__NVCC__) || defined(__NVCOMPILER) ||                              \
-    defined(_MDSPAN_COMPILER_INTEL)
+    defined(MDSPAN_IMPL_COMPILER_INTEL)
   // NVCC warns about pointless comparison with 0 for R==0 and r being const
   // evaluatable and also 0.
   MDSPAN_INLINE_FUNCTION
@@ -209,10 +214,10 @@ private:
   using static_vals_t = static_array<TStatic, Values...>;
   constexpr static size_t m_size = sizeof...(Values);
   constexpr static size_t m_size_dynamic =
-      _MDSPAN_FOLD_PLUS_RIGHT((Values == dyn_tag), 0);
+      MDSPAN_IMPL_FOLD_PLUS_RIGHT((Values == dyn_tag), 0);
 
   // Dynamic values member
-  _MDSPAN_NO_UNIQUE_ADDRESS possibly_empty_array<TDynamic, m_size_dynamic>
+  MDSPAN_IMPL_NO_UNIQUE_ADDRESS possibly_empty_array<TDynamic, m_size_dynamic>
       m_dyn_vals;
 
   // static mapping of indices to the position in the dynamic values array
@@ -354,8 +359,11 @@ public:
   MDSPAN_INLINE_FUNCTION
   constexpr TDynamic value(size_t r) const {
     TStatic static_val = static_vals_t::get(r);
-    return static_val == dyn_tag ? m_dyn_vals[dyn_map_t::get(r)]
-                                        : static_cast<TDynamic>(static_val);
+
+    // FIXME: workaround for nvhpc OpenACC compiler bug
+    TStatic dyn_tag_copy = dyn_tag;
+    return static_val == dyn_tag_copy ? m_dyn_vals[dyn_map_t::get(r)]
+                                     : static_cast<TDynamic>(static_val);
   }
   MDSPAN_INLINE_FUNCTION
   constexpr TDynamic operator[](size_t r) const { return value(r); }
@@ -393,12 +401,12 @@ public:
 private:
   constexpr static rank_type m_rank = sizeof...(Extents);
   constexpr static rank_type m_rank_dynamic =
-      _MDSPAN_FOLD_PLUS_RIGHT((Extents == dynamic_extent), /* + ... + */ 0);
+      MDSPAN_IMPL_FOLD_PLUS_RIGHT((Extents == dynamic_extent), /* + ... + */ 0);
 
   // internal storage type using maybe_static_array
   using vals_t =
       detail::maybe_static_array<IndexType, size_t, dynamic_extent, Extents...>;
-  _MDSPAN_NO_UNIQUE_ADDRESS vals_t m_vals;
+  MDSPAN_IMPL_NO_UNIQUE_ADDRESS vals_t m_vals;
 
 public:
   // [mdspan.extents.obs], observers of multidimensional index space
@@ -423,9 +431,9 @@ public:
   MDSPAN_TEMPLATE_REQUIRES(
       class... OtherIndexTypes,
       /* requires */ (
-          _MDSPAN_FOLD_AND(_MDSPAN_TRAIT(std::is_convertible, OtherIndexTypes,
+          MDSPAN_IMPL_FOLD_AND(MDSPAN_IMPL_TRAIT(std::is_convertible, OtherIndexTypes,
                                          index_type) /* && ... */) &&
-          _MDSPAN_FOLD_AND(_MDSPAN_TRAIT(std::is_nothrow_constructible, index_type,
+          MDSPAN_IMPL_FOLD_AND(MDSPAN_IMPL_TRAIT(std::is_nothrow_constructible, index_type,
                                          OtherIndexTypes) /* && ... */) &&
           (sizeof...(OtherIndexTypes) == m_rank ||
            sizeof...(OtherIndexTypes) == m_rank_dynamic)))
@@ -437,8 +445,8 @@ public:
       class OtherIndexType, size_t N,
       /* requires */
       (
-          _MDSPAN_TRAIT(std::is_convertible, const OtherIndexType&, index_type) &&
-          _MDSPAN_TRAIT(std::is_nothrow_constructible, index_type,
+          MDSPAN_IMPL_TRAIT(std::is_convertible, const OtherIndexType&, index_type) &&
+          MDSPAN_IMPL_TRAIT(std::is_nothrow_constructible, index_type,
               const OtherIndexType&) &&
           (N == m_rank || N == m_rank_dynamic)))
   MDSPAN_INLINE_FUNCTION
@@ -450,8 +458,8 @@ public:
   MDSPAN_TEMPLATE_REQUIRES(
       class OtherIndexType, size_t N,
       /* requires */
-      (_MDSPAN_TRAIT(std::is_convertible, const OtherIndexType&, index_type) &&
-       _MDSPAN_TRAIT(std::is_nothrow_constructible, index_type, const OtherIndexType&) &&
+      (MDSPAN_IMPL_TRAIT(std::is_convertible, const OtherIndexType&, index_type) &&
+       MDSPAN_IMPL_TRAIT(std::is_nothrow_constructible, index_type, const OtherIndexType&) &&
        (N == m_rank || N == m_rank_dynamic)))
   MDSPAN_INLINE_FUNCTION
   MDSPAN_CONDITIONAL_EXPLICIT(N != m_rank_dynamic)
@@ -538,14 +546,9 @@ public:
   MDSPAN_INLINE_FUNCTION friend constexpr bool
   operator==(const extents &lhs,
              const extents<OtherIndexType, OtherExtents...> &rhs) noexcept {
-    if constexpr (rank() != extents<OtherIndexType, OtherExtents...>::rank()) {
-      return false;
-    } else {
-      using common_t = std::common_type_t<index_type, OtherIndexType>;
-      for (size_type r = 0; r < m_rank; r++)
-        if(static_cast<common_t>(rhs.extent(r)) != static_cast<common_t>(lhs.extent(r))) return false;
-    }
-    return true;
+    return
+      rank() == extents<OtherIndexType, OtherExtents...>::rank() &&
+      detail::rankwise_equal(detail::with_rank<rank()>{}, rhs, lhs, detail::extent);
   }
 
 #if !(MDSPAN_HAS_CXX_20)
@@ -590,7 +593,7 @@ template <class IndexType, size_t Rank>
 using dextents = typename detail::__make_dextents<IndexType, Rank>::type;
 
 // Deduction guide for extents
-#if defined(_MDSPAN_USE_CLASS_TEMPLATE_ARGUMENT_DEDUCTION)
+#if defined(MDSPAN_IMPL_USE_CLASS_TEMPLATE_ARGUMENT_DEDUCTION)
 template <class... IndexTypes>
 extents(IndexTypes...)
     -> extents<size_t,
@@ -613,6 +616,81 @@ inline
 static
 #endif
 constexpr bool __is_extents_v = __is_extents<T>::value;
+
+template<class InputIndexType, class ExtentsIndexType>
+MDSPAN_INLINE_FUNCTION
+constexpr void
+check_lower_bound(InputIndexType user_index,
+                  ExtentsIndexType /* current_extent */,
+                  std::true_type /* is_signed */)
+{
+  (void) user_index; // prevent unused variable warning
+#ifdef _MDSPAN_DEBUG
+  assert(static_cast<ExtentsIndexType>(user_index) >= 0);
+#endif
+}
+
+template<class InputIndexType, class ExtentsIndexType>
+MDSPAN_INLINE_FUNCTION
+constexpr void
+check_lower_bound(InputIndexType /* user_index */,
+                  ExtentsIndexType /* current_extent */,
+                  std::false_type /* is_signed */)
+{}
+
+template<class InputIndexType, class ExtentsIndexType>
+MDSPAN_INLINE_FUNCTION
+constexpr void
+check_upper_bound(InputIndexType user_index,
+                  ExtentsIndexType current_extent)
+{
+  (void) user_index; // prevent unused variable warnings
+  (void) current_extent;
+#ifdef _MDSPAN_DEBUG
+  assert(static_cast<ExtentsIndexType>(user_index) < current_extent);
+#endif
+}
+
+// Returning true to use AND fold instead of comma
+// CPP14 mode doesn't like the use of void expressions
+// with the way the MDSPAN_IMPL_FOLD_AND is set up
+template<class InputIndex, class ExtentsIndexType>
+MDSPAN_INLINE_FUNCTION
+constexpr bool
+check_one_index(InputIndex user_index,
+                ExtentsIndexType current_extent)
+{
+  check_lower_bound(user_index, current_extent,
+    std::integral_constant<bool, std::is_signed<ExtentsIndexType>::value>{});
+  check_upper_bound(user_index, current_extent);
+  return true;
+}
+
+template<size_t ... RankIndices,
+         class ExtentsIndexType, size_t ... Exts,
+         class ... Indices>
+MDSPAN_INLINE_FUNCTION
+constexpr void
+check_all_indices_helper(std::index_sequence<RankIndices...>,
+                         const extents<ExtentsIndexType, Exts...>& exts,
+                         Indices... indices)
+{
+  // Suppress warning about statement has no effect
+  (void) MDSPAN_IMPL_FOLD_AND(
+    (check_one_index(indices, exts.extent(RankIndices)))
+  );
+}
+
+template<class ExtentsIndexType, size_t ... Exts,
+         class ... Indices>
+MDSPAN_INLINE_FUNCTION
+constexpr void
+check_all_indices(const extents<ExtentsIndexType, Exts...>& exts,
+                  Indices... indices)
+{
+  check_all_indices_helper(std::make_index_sequence<sizeof...(Indices)>(),
+                           exts, indices...);
+}
 
 } // namespace detail
 } // namespace MDSPAN_IMPL_STANDARD_NAMESPACE

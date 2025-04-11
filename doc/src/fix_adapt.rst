@@ -14,7 +14,7 @@ Syntax
 * adapt = style name of this fix command
 * N = adapt simulation settings every this many timesteps
 * one or more attribute/arg pairs may be appended
-* attribute = *pair* or *bond* or *angle* or *kspace* or *atom*
+* attribute = *pair* or *bond* or *angle* or *improper* or *kspace* or *atom*
 
   .. parsed-literal::
 
@@ -33,6 +33,11 @@ Syntax
          aparam = parameter to adapt over time
          I = type angle to set parameter for (integer or type label)
          v_name = variable with name that calculates value of aparam
+       *improper* args = istyle iparam I v_name
+         istyle = improper style name (e.g., cvff)
+         iparam = parameter to adapt over time
+         I = type improper to set parameter for (integer or type label)
+         v_name = variable with name that calculates value of iparam
        *kspace* arg = v_name
          v_name = variable with name that calculates scale factor on :math:`k`-space terms
        *atom* args = atomparam v_name
@@ -119,6 +124,14 @@ style supports it.  Note that the :doc:`pair_style <pair_style>` and
 to specify these parameters initially; the fix adapt command simply
 overrides the parameters.
 
+.. note::
+
+   Pair_coeff settings must be made **explicitly** in order for fix
+   adapt to be able to change them.  Settings inferred from mixing
+   are not suitable.  If necessary all mixed settings can be output
+   to a file using the :doc:`write_coeff command <write_coeff>` and
+   then the desired mixed pair_coeff settings copied from that file.
+
 The *pstyle* argument is the name of the pair style.  If
 :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is used,
 *pstyle* should be a sub-style name.  If there are multiple
@@ -170,9 +183,13 @@ formulas for the meaning of these parameters:
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`lennard/mdf <pair_mdf>`                                                | A,B                                              | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
+| :doc:`lj96/cut <pair_lj96>`                                                  | epsilon,sigma                                    | type pairs  |
++------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`lj/class2 <pair_class2>`                                               | epsilon,sigma                                    | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`lj/class2/coul/cut, lj/class2/coul/long <pair_class2>`                 | epsilon,sigma,coulombic_cutoff                   | type pairs  |
++------------------------------------------------------------------------------+--------------------------------------------------+-------------+
+| :doc:`lj/cubic <pair_lj_cubic>`                                              | epsilon,sigma                                    | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`lj/cut <pair_lj>`                                                      | epsilon,sigma                                    | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
@@ -187,6 +204,8 @@ formulas for the meaning of these parameters:
 | :doc:`lj/cut/soft <pair_fep_soft>`                                           | epsilon,sigma,lambda                             | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`lj/expand <pair_lj_expand>`                                            | epsilon,sigma,delta                              | type pairs  |
++------------------------------------------------------------------------------+--------------------------------------------------+-------------+
+| :doc:`lj/lj/gromacs <pair_gromacs>`                                          | epsilon,sigma                                    | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`lj/mdf <pair_mdf>`                                                     | epsilon,sigma                                    | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
@@ -208,6 +227,8 @@ formulas for the meaning of these parameters:
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`pace, pace/extrapolation <pair_pace>`                                  | scale                                            | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
+| :doc:`pedone <pair_pedone>`                                                  | c0,d0,r0,alpha                                   | type pairs  |
++------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`quip <pair_quip>`                                                      | scale                                            | type global |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`snap <pair_snap>`                                                      | scale                                            | type pairs  |
@@ -227,6 +248,8 @@ formulas for the meaning of these parameters:
 | :doc:`ufm <pair_ufm>`                                                        | epsilon,sigma,scale                              | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`wf/cut <pair_wf_cut>`                                                  | epsilon,sigma,nu,mu                              | type pairs  |
++------------------------------------------------------------------------------+--------------------------------------------------+-------------+
+| :doc:`yukawa <pair_yukawa>`                                                  | alpha                                            | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 
 .. note::
@@ -319,25 +342,36 @@ all types from 1 to :math:`N`.  A leading asterisk means all types from
 :math:`N` (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
-Currently *bond* does not support bond_style hybrid nor bond_style
-hybrid/overlay as bond styles. The bond styles that currently work
-with fix_adapt are
+If :doc:`bond_style hybrid <bond_hybrid>` is used, *bstyle* should be a
+sub-style name. The bond styles that currently work with fix adapt are:
 
-+------------------------------------+------------+------------+
-| :doc:`class2 <bond_class2>`        | r0         | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`fene <bond_fene>`            | k,r0       | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`fene/nm <bond_fene>`         | k,r0       | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`gromos <bond_gromos>`        | k,r0       | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`harmonic <bond_harmonic>`    | k,r0       | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`morse <bond_morse>`          | r0         | type bonds |
-+------------------------------------+------------+------------+
-| :doc:`nonlinear <bond_nonlinear>`  | epsilon,r0 | type bonds |
-+------------------------------------+------------+------------+
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`class2 <bond_class2>`                         | k2,k3,k4,r0               | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`fene <bond_fene>`                             | k,r0                      | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`fene/expand <bond_fene_expand>`               | k,r0,epsilon,sigma,shift  | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`fene/nm <bond_fene>`                          | k,r0                      | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`gaussian <bond_gaussian>`                     | alpha,width,r0            | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`gromos <bond_gromos>`                         | k,r0                      | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`harmonic <bond_harmonic>`                     | k,r0                      | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`harmonic/restrain <bond_harmonic_restrain>`   | k                         | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`harmonic/shift <bond_harmonic_shift>`         | k,r0,r1                   | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`harmonic/shift/cut <bond_harmonic_shift_cut>` | k,r0,r1                   | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`mm3 <bond_mm3>`                               | k,r0                      | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`morse <bond_morse>`                           | d0,alpha,r0               | type bonds |
++-----------------------------------------------------+---------------------------+------------+
+| :doc:`nonlinear <bond_nonlinear>`                   | lamda,epsilon,r0          | type bonds |
++-----------------------------------------------------+---------------------------+------------+
 
 ----------
 
@@ -357,18 +391,95 @@ all types from 1 to :math:`N`.  A leading asterisk means all types from
 :math:`N` (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
-Currently *angle* does not support angle_style hybrid nor angle_style
-hybrid/overlay as angle styles. The angle styles that currently work
-with fix_adapt are
+If :doc:`angle_style hybrid <angle_hybrid>` is used, *astyle* should be a
+sub-style name. The angle styles that currently work with fix adapt are:
 
-+------------------------------------+----------+-------------+
-| :doc:`harmonic <angle_harmonic>`   | k,theta0 | type angles |
-+------------------------------------+----------+-------------+
-| :doc:`cosine <angle_cosine>`       | k        | type angles |
-+------------------------------------+----------+-------------+
++--------------------------------------------------------------------+--------------------+-------------+
+| :doc:`harmonic <angle_harmonic>`                                   | k,theta0           | type angles |
++--------------------------------------------------------------------+--------------------+-------------+
+| :doc:`charmm <angle_charmm>`                                       | k,theta0           | type angles |
++--------------------------------------------------------------------+--------------------+-------------+
+| :doc:`class2 <angle_class2>`                                       | k2,k3,k4,theta0    | type angles |
++--------------------------------------------------------------------+--------------------+-------------+
+| :doc:`cosine <angle_cosine>`                                       | k                  | type angles |
++--------------------------------------------------------------------+--------------------+-------------+
+| :doc:`cosine/delta <angle_cosine_delta>`                           | k                  | type angles |
++--------------------------------------------------------------------+--------------------+-------------+
+| :doc:`cosine/periodic <angle_cosine_periodic>`                     | k,b,n              | type angles |
++--------------------------------------------------------------------+--------------------+-------------+
+| :doc:`cosine/squared <angle_cosine_squared>`                       | k,theta0           | type angles |
++--------------------------------------------------------------------+--------------------+-------------+
+| :doc:`cosine/squared/restricted <angle_cosine_squared_restricted>` | k,theta0           | type angles |
++--------------------------------------------------------------------+--------------------+-------------+
+| :doc:`dipole <angle_dipole>`                                       | k,gamma0           | type angles |
++--------------------------------------------------------------------+--------------------+-------------+
+| :doc:`fourier <angle_fourier>`                                     | k,c0,c1,c2         | type angles |
++--------------------------------------------------------------------+--------------------+-------------+
+| :doc:`fourier/simple <angle_fourier_simple>`                       | k,c,n              | type angles |
++--------------------------------------------------------------------+--------------------+-------------+
+| :doc:`gaussian <angle_gaussian>`                                   | alpha,width,theta0 | type angles |
++--------------------------------------------------------------------+--------------------+-------------+
+| :doc:`mm3 <angle_mm3>`                                             | k,theta0           | type angles |
++--------------------------------------------------------------------+--------------------+-------------+
+| :doc:`mwlc <angle_mwlc>`                                           | k1,k2,mu,T         | type angles |
++--------------------------------------------------------------------+--------------------+-------------+
+| :doc:`quartic <angle_quartic>`                                     | k2,k3,k4,theta0    | type angles |
++--------------------------------------------------------------------+--------------------+-------------+
+| :doc:`spica <angle_spica>`                                         | k,theta0           | type angles |
++--------------------------------------------------------------------+--------------------+-------------+
 
 Note that internally, theta0 is stored in radians, so the variable
 this fix uses to reset theta0 needs to generate values in radians.
+
+----------
+
+.. versionadded:: 2Apr2025
+
+The *improper* keyword uses the specified variable to change the value of
+an improper coefficient over time, very similar to how the *angle* keyword
+operates. The only difference is that now an improper coefficient for a
+given improper type is adapted.
+
+A wild-card asterisk can be used in place of or in conjunction with the
+improper type argument to set the coefficients for multiple improper types.
+This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N` is
+the number of improper types, then an asterisk with no numeric values means
+all types from 1 to :math:`N`.  A leading asterisk means all types from
+1 to n (inclusive).  A trailing asterisk means all types from m to
+:math:`N` (inclusive).  A middle asterisk means all types from m to n
+(inclusive).
+
+If :doc:`improper_style hybrid <improper_hybrid>` is used, *istyle* should be a
+sub-style name. The improper styles that currently work with fix adapt are:
+
++---------------------------------------------------------+----------------+----------------+
+| :doc:`amoeba <improper_amoeba>`                         | k              | type impropers |
++---------------------------------------------------------+----------------+----------------+
+| :doc:`class2 <improper_class2>`                         | k,chi0         | type impropers |
++---------------------------------------------------------+----------------+----------------+
+| :doc:`cossq <improper_cossq>`                           | k,chi0         | type impropers |
++---------------------------------------------------------+----------------+----------------+
+| :doc:`cvff <improper_cvff>`                             | k,d,n          | type impropers |
++---------------------------------------------------------+----------------+----------------+
+| :doc:`distance <improper_distance>`                     | k2,k4          | type impropers |
++---------------------------------------------------------+----------------+----------------+
+| :doc:`distharm <improper_distharm>`                     | k,d0           | type impropers |
++---------------------------------------------------------+----------------+----------------+
+| :doc:`fourier <improper_fourier>`                       | k,C0,C1,C2     | type impropers |
++---------------------------------------------------------+----------------+----------------+
+| :doc:`harmonic <improper_harmonic>`                     | k,chi0         | type impropers |
++---------------------------------------------------------+----------------+----------------+
+| :doc:`inversion/harmonic <improper_inversion_harmonic>` | k,w0           | type impropers |
++---------------------------------------------------------+----------------+----------------+
+| :doc:`ring <improper_ring>`                             | k,theta0       | type impropers |
++---------------------------------------------------------+----------------+----------------+
+| :doc:`umbrella <improper_umbrella>`                     | k,w0           | type impropers |
++---------------------------------------------------------+----------------+----------------+
+| :doc:`sqdistharm <improper_sqdistharm>`                 | k              | type impropers |
++---------------------------------------------------------+----------------+----------------+
+
+Note that internally, chi0 and theta0 are stored in radians, so the variable
+this fix use to reset chi0 or theta0 needs to generate values in radians.
 
 ----------
 

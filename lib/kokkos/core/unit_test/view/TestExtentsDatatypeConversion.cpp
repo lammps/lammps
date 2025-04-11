@@ -23,15 +23,14 @@ namespace {
 
 // Helper to make static tests more succinct
 template <typename DataType, typename Extent>
-constexpr bool datatype_matches_extent =
-    std::is_same_v<typename Kokkos::Experimental::Impl::ExtentsFromDataType<
-                       std::size_t, DataType>::type,
-                   Extent>;
+constexpr bool datatype_matches_extent = std::is_same_v<
+    typename Kokkos::Impl::ExtentsFromDataType<std::size_t, DataType>::type,
+    Extent>;
 
 template <typename DataType, typename BaseType, typename Extents>
 constexpr bool extent_matches_datatype =
-    std::is_same_v<DataType, typename Kokkos::Experimental::Impl::
-                                 DataTypeFromExtents<BaseType, Extents>::type>;
+    std::is_same_v<DataType, typename Kokkos::Impl::DataTypeFromExtents<
+                                 BaseType, Extents>::type>;
 
 // Conversion from DataType to extents
 // 0-rank view
@@ -50,9 +49,9 @@ static_assert(
 
 // Both dynamic and static
 static_assert(datatype_matches_extent<
-              double* * [3][2][8],
+              double** [3][2][8],
               Kokkos::extents<std::size_t, Kokkos::dynamic_extent,
-                              Kokkos::dynamic_extent, std::size_t{3},
+                              Kokkos::dynamic_extent, std::size_t { 3 },
                               std::size_t{2}, std::size_t{8}>>);
 
 // Conversion from extents to DataType
@@ -73,7 +72,7 @@ static_assert(extent_matches_datatype<double[7][5][3], double,
 
 // both dynamic and static
 static_assert(
-    extent_matches_datatype<double** * [20][45], double,
+    extent_matches_datatype<double*** [20][45], double,
                             Kokkos::extents<std::size_t, Kokkos::dynamic_extent,
                                             Kokkos::dynamic_extent,
                                             Kokkos::dynamic_extent, 20, 45>>);

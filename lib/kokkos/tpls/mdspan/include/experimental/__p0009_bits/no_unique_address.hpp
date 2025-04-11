@@ -30,7 +30,7 @@ struct __no_unique_address_emulation {
   MDSPAN_FORCE_INLINE_FUNCTION constexpr _T const &__ref() const noexcept {
     return __v;
   }
-  MDSPAN_FORCE_INLINE_FUNCTION _MDSPAN_CONSTEXPR_14 _T &__ref() noexcept {
+  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 _T &__ref() noexcept {
     return __v;
   }
 };
@@ -41,12 +41,12 @@ struct __no_unique_address_emulation {
 template <class _T, size_t _Disambiguator>
 struct __no_unique_address_emulation<
     _T, _Disambiguator,
-    std::enable_if_t<_MDSPAN_TRAIT(std::is_empty, _T) &&
+    std::enable_if_t<MDSPAN_IMPL_TRAIT(std::is_empty, _T) &&
                 // If the type isn't trivially destructible, its destructor
                 // won't be called at the right time, so don't use this
                 // specialization
-                _MDSPAN_TRAIT(std::is_trivially_destructible, _T)>> :
-#ifdef _MDSPAN_COMPILER_MSVC
+                MDSPAN_IMPL_TRAIT(std::is_trivially_destructible, _T)>> :
+#ifdef MDSPAN_IMPL_COMPILER_MSVC
     // MSVC doesn't allow you to access public static member functions of a type
     // when you *happen* to privately inherit from that type.
     protected
@@ -62,7 +62,7 @@ struct __no_unique_address_emulation<
   MDSPAN_FORCE_INLINE_FUNCTION constexpr _T const &__ref() const noexcept {
     return *static_cast<_T const *>(this);
   }
-  MDSPAN_FORCE_INLINE_FUNCTION _MDSPAN_CONSTEXPR_14 _T &__ref() noexcept {
+  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 _T &__ref() noexcept {
     return *static_cast<_T *>(this);
   }
 
@@ -75,10 +75,10 @@ struct __no_unique_address_emulation<
   constexpr __no_unique_address_emulation(
       __no_unique_address_emulation &&) noexcept = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  _MDSPAN_CONSTEXPR_14_DEFAULTED __no_unique_address_emulation &
+  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED __no_unique_address_emulation &
   operator=(__no_unique_address_emulation const &) noexcept = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  _MDSPAN_CONSTEXPR_14_DEFAULTED __no_unique_address_emulation &
+  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED __no_unique_address_emulation &
   operator=(__no_unique_address_emulation &&) noexcept = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
   ~__no_unique_address_emulation() noexcept = default;

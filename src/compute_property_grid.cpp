@@ -255,8 +255,8 @@ void ComputePropertyGrid::allocate_grid()
 
   } else {
     grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid);
-    grid3d->setup_grid(nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in,
-                       nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
+    grid3d->setup_grid(nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in, nxlo_out, nxhi_out,
+                       nylo_out, nyhi_out, nzlo_out, nzhi_out);
     if (nvalues == 1)
       memory->create3d_offset(vec3d, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
                               "property/grid:vec3d");
@@ -342,13 +342,11 @@ void ComputePropertyGrid::pack_proc(int n)
     if (nvalues == 1) {
       for (int iz = nzlo_in; iz <= nzhi_in; iz++)
         for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            vec3d[iz][iy][ix] = me;
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++) vec3d[iz][iy][ix] = me;
     } else {
       for (int iz = nzlo_in; iz <= nzhi_in; iz++)
         for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            array3d[iz][iy][ix][n] = me;
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++) array3d[iz][iy][ix][n] = me;
     }
   }
 }
@@ -452,7 +450,7 @@ template <int POS, int MODE, int IDIM> void ComputePropertyGrid::pack_coords(int
           }
       }
 
-    // only for coords which are triclinic AND unscaled
+      // only for coords which are triclinic AND unscaled
 
     } else {
 
@@ -462,11 +460,15 @@ template <int POS, int MODE, int IDIM> void ComputePropertyGrid::pack_coords(int
 
       if (nvalues == 1) {
         for (int iy = nylo_in; iy <= nyhi_in; iy++) {
-          if (POS == LOW) lamda[1] = iy * dy;
-          else lamda[1] = (iy + 0.5) * dy;
+          if (POS == LOW)
+            lamda[1] = iy * dy;
+          else
+            lamda[1] = (iy + 0.5) * dy;
           for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-            if (POS == LOW) lamda[0] = ix * dx;
-            else lamda[0] = (ix + 0.5) * dx;
+            if (POS == LOW)
+              lamda[0] = ix * dx;
+            else
+              lamda[0] = (ix + 0.5) * dx;
             domain->lamda2x(lamda, xone);
             if (IDIM == 0) vec2d[iy][ix] = xone[0];
             if (IDIM == 1) vec2d[iy][ix] = xone[1];
@@ -475,11 +477,15 @@ template <int POS, int MODE, int IDIM> void ComputePropertyGrid::pack_coords(int
 
       } else {
         for (int iy = nylo_in; iy <= nyhi_in; iy++) {
-          if (POS == LOW) lamda[1] = iy * dy;
-          else lamda[1] = (iy + 0.5) * dy;
+          if (POS == LOW)
+            lamda[1] = iy * dy;
+          else
+            lamda[1] = (iy + 0.5) * dy;
           for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-            if (POS == LOW) lamda[0] = ix * dx;
-            else lamda[0] = (ix + 0.5) * dx;
+            if (POS == LOW)
+              lamda[0] = ix * dx;
+            else
+              lamda[0] = (ix + 0.5) * dx;
             domain->lamda2x(lamda, xone);
             if (IDIM == 0) array2d[iy][ix][n] = xone[0];
             if (IDIM == 1) array2d[iy][ix][n] = xone[1];
@@ -488,7 +494,7 @@ template <int POS, int MODE, int IDIM> void ComputePropertyGrid::pack_coords(int
       }
     }
 
-  // 3d grid
+    // 3d grid
 
   } else if (dimension == 3) {
 
@@ -542,7 +548,7 @@ template <int POS, int MODE, int IDIM> void ComputePropertyGrid::pack_coords(int
             }
       }
 
-    // only for coords which are triclinic AND unscaled
+      // only for coords which are triclinic AND unscaled
 
     } else {
 
@@ -552,14 +558,20 @@ template <int POS, int MODE, int IDIM> void ComputePropertyGrid::pack_coords(int
 
       if (nvalues == 1) {
         for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
-          if (POS == LOW) lamda[2] = iz * dz;
-          else lamda[2] = (iz + 0.5) * dz;
+          if (POS == LOW)
+            lamda[2] = iz * dz;
+          else
+            lamda[2] = (iz + 0.5) * dz;
           for (int iy = nylo_in; iy <= nyhi_in; iy++) {
-            if (POS == LOW) lamda[1] = iy * dy;
-            else lamda[1] = (iy + 0.5) * dy;
+            if (POS == LOW)
+              lamda[1] = iy * dy;
+            else
+              lamda[1] = (iy + 0.5) * dy;
             for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-              if (POS == LOW) lamda[0] = ix * dx;
-              else lamda[0] = (ix + 0.5) * dx;
+              if (POS == LOW)
+                lamda[0] = ix * dx;
+              else
+                lamda[0] = (ix + 0.5) * dx;
               domain->lamda2x(lamda, xone);
               if (IDIM == 0) vec3d[iz][iy][ix] = xone[0];
               if (IDIM == 1) vec3d[iz][iy][ix] = xone[1];
@@ -570,14 +582,20 @@ template <int POS, int MODE, int IDIM> void ComputePropertyGrid::pack_coords(int
 
       } else {
         for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
-          if (POS == LOW) lamda[2] = iz * dz;
-          else lamda[2] = (iz + 0.5) * dz;
+          if (POS == LOW)
+            lamda[2] = iz * dz;
+          else
+            lamda[2] = (iz + 0.5) * dz;
           for (int iy = nylo_in; iy <= nyhi_in; iy++) {
-            if (POS == LOW) lamda[1] = iy * dy;
-            else lamda[1] = (iy + 0.5) * dy;
+            if (POS == LOW)
+              lamda[1] = iy * dy;
+            else
+              lamda[1] = (iy + 0.5) * dy;
             for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-              if (POS == LOW) lamda[0] = ix * dx;
-              else lamda[0] = (ix + 0.5) * dx;
+              if (POS == LOW)
+                lamda[0] = ix * dx;
+              else
+                lamda[0] = (ix + 0.5) * dx;
               domain->lamda2x(lamda, xone);
               if (IDIM == 0) array3d[iz][iy][ix][n] = xone[0];
               if (IDIM == 1) array3d[iz][iy][ix][n] = xone[1];

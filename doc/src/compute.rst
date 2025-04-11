@@ -236,6 +236,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`fep/ta <compute_fep_ta>` - compute free energies for a test area perturbation
 * :doc:`force/tally <compute_tally>` - force between two groups of atoms via the tally callback mechanism
 * :doc:`fragment/atom <compute_cluster_atom>` - fragment ID for each atom
+* :doc:`gaussian/grid/local <compute_gaussian_grid_local>` - local array of Gaussian atomic contributions on a regular grid
 * :doc:`global/atom <compute_global_atom>` - assign global values to each atom from arrays of global values
 * :doc:`group/group <compute_group_group>` - energy/force between two groups of atoms
 * :doc:`gyration <compute_gyration>` - radius of gyration of group of atoms
@@ -290,6 +291,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`reduce <compute_reduce>` - combine per-atom quantities into a single global value
 * :doc:`reduce/chunk <compute_reduce_chunk>` - reduce per-atom quantities within each chunk
 * :doc:`reduce/region <compute_reduce>` - same as compute reduce, within a region
+* :doc:`rheo/property/atom <compute_rheo_property_atom>` - convert atom attributes in RHEO package to per-atom vectors/arrays
 * :doc:`rigid/local <compute_rigid_local>` - extract rigid body attributes
 * :doc:`saed <compute_saed>` - electron diffraction intensity on a mesh of reciprocal lattice nodes
 * :doc:`slcsa/atom <compute_slcsa_atom>` - perform Supervised Learning Crystal Structure Analysis (SL-CSA)
@@ -354,6 +356,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`ti <compute_ti>` - thermodynamic integration free energy values
 * :doc:`torque/chunk <compute_torque_chunk>` - torque applied on each chunk
 * :doc:`vacf <compute_vacf>` - velocity auto-correlation function of group of atoms
+* :doc:`vacf/chunk <compute_vacf_chunk>` - velocity auto-correlation for the center of mass velocities of chunks of atoms
 * :doc:`vcm/chunk <compute_vcm_chunk>` - velocity of center-of-mass for each chunk
 * :doc:`viscosity/cos <compute_viscosity_cos>` - velocity profile under cosine-shaped acceleration
 * :doc:`voronoi/atom <compute_voronoi_atom>` - Voronoi volume and neighbors for each atom
@@ -361,7 +364,8 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 
 Restrictions
 """"""""""""
- none
+
+none
 
 Related commands
 """"""""""""""""

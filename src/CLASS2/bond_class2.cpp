@@ -134,7 +134,7 @@ void BondClass2::allocate()
 
 void BondClass2::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all(FLERR,"Incorrect args for bond coefficients");
+  if (narg != 5) error->all(FLERR,"Incorrect args for bond coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -155,7 +155,7 @@ void BondClass2::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -242,6 +242,9 @@ void BondClass2::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double 
 void *BondClass2::extract(const char *str, int &dim)
 {
   dim = 1;
+  if (strcmp(str, "k2") == 0) return (void *) k2;
+  if (strcmp(str, "k3") == 0) return (void *) k3;
+  if (strcmp(str, "k4") == 0) return (void *) k4;
   if (strcmp(str,"r0")==0) return (void*) r0;
   return nullptr;
 }

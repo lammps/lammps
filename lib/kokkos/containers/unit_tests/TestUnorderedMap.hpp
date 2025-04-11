@@ -68,7 +68,7 @@ struct TestInsert {
     } while (rehash_on_fail && failed_count > 0u);
 
     // Trigger the m_size mutable bug.
-    typename map_type::HostMirror map_h;
+    auto map_h = create_mirror(map);
     execution_space().fence();
     Kokkos::deep_copy(map_h, map);
     execution_space().fence();
@@ -367,7 +367,7 @@ void test_deep_copy(uint32_t num_nodes) {
     }
   }
 
-  host_map_type hmap;
+  auto hmap = create_mirror(map);
   Kokkos::deep_copy(hmap, map);
 
   ASSERT_EQ(map.size(), hmap.size());
@@ -380,6 +380,7 @@ void test_deep_copy(uint32_t num_nodes) {
   }
 
   map_type mmap;
+  mmap.allocate_view(hmap);
   Kokkos::deep_copy(mmap, hmap);
 
   const_map_type cmap = mmap;
@@ -424,7 +425,7 @@ TEST(TEST_CATEGORY, UnorderedMap_valid_empty) {
   Map n{};
   n = Map{m.capacity()};
   n.rehash(m.capacity());
-  Kokkos::deep_copy(n, m);
+  n.create_copy_view(m);
   ASSERT_TRUE(m.is_allocated());
   ASSERT_TRUE(n.is_allocated());
 }
@@ -459,7 +460,7 @@ struct UnorderedMapInsert {
 
   //! Insert multiple values.
   template <typename... Args>
-  void insert(Args &&... args) const {
+  void insert(Args &&...args) const {
     static_assert(sizeof...(Args) > 1, "Prefer the single value version");
     constexpr size_t size = sizeof...(Args);
     Kokkos::Array<typename map_type::key_type, size> values{
@@ -533,8 +534,6 @@ TEST(TEST_CATEGORY, UnorderedMap_shallow_copyable_on_device) {
   ASSERT_EQ(1u, test_map_copy.m_map.size());
 }
 
-#if !defined(KOKKOS_ENABLE_CUDA) || \
-    (defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_CUDA_LAMBDA))
 void test_unordered_map_device_capture() {
   TestMapCopy::map_type map;
 
@@ -548,7 +547,6 @@ void test_unordered_map_device_capture() {
 TEST(TEST_CATEGORY, UnorderedMap_lambda_capturable) {
   test_unordered_map_device_capture();
 }
-#endif
 
 /**
  * @test This test ensures that an @ref UnorderedMap can be built

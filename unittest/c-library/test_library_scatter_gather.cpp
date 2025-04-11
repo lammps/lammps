@@ -67,7 +67,7 @@ TEST_F(GatherProperties, gather_bonds_newton_on)
     bigint nbonds = *(bigint *)lammps_extract_global(lmp, "nbonds");
     EXPECT_EQ(nbonds, 24);
 
-    tagint *bonds = new tagint[3 * nbonds];
+    auto *bonds = new tagint[3 * nbonds];
     lammps_gather_bonds(lmp, bonds);
 
 #define CHECK_BOND(idx, type, atom1, atom2)                                 \
@@ -108,7 +108,7 @@ TEST_F(GatherProperties, gather_bonds_newton_off)
     bigint nbonds = *(bigint *)lammps_extract_global(lmp, "nbonds");
     EXPECT_EQ(nbonds, 24);
 
-    tagint *bonds = new tagint[3 * nbonds];
+    auto *bonds = new tagint[3 * nbonds];
     lammps_gather_bonds(lmp, bonds);
 
 #define CHECK_BOND(idx, type, atom1, atom2)                                 \
@@ -149,7 +149,7 @@ TEST_F(GatherProperties, gather_angles_newton_on)
     bigint nangles = *(bigint *)lammps_extract_global(lmp, "nangles");
     EXPECT_EQ(nangles, 30);
 
-    tagint *angles = new tagint[4 * nangles];
+    auto *angles = new tagint[4 * nangles];
     lammps_gather_angles(lmp, angles);
 
 #define CHECK_ANGLE(idx, type, atom1, atom2, atom3)                          \
@@ -192,7 +192,7 @@ TEST_F(GatherProperties, gather_angles_newton_off)
     bigint nangles = *(bigint *)lammps_extract_global(lmp, "nangles");
     EXPECT_EQ(nangles, 30);
 
-    tagint *angles = new tagint[4 * nangles];
+    auto *angles = new tagint[4 * nangles];
     lammps_gather_angles(lmp, angles);
 
 #define CHECK_ANGLE(idx, type, atom1, atom2, atom3)                          \
@@ -235,7 +235,7 @@ TEST_F(GatherProperties, gather_dihedrals_newton_on)
     bigint ndihedrals = *(bigint *)lammps_extract_global(lmp, "ndihedrals");
     EXPECT_EQ(ndihedrals, 31);
 
-    tagint *dihedrals = new tagint[5 * ndihedrals];
+    auto *dihedrals = new tagint[5 * ndihedrals];
     lammps_gather_dihedrals(lmp, dihedrals);
 
 #define CHECK_DIHEDRAL(idx, type, atom1, atom2, atom3, atom4)                     \
@@ -276,7 +276,7 @@ TEST_F(GatherProperties, gather_dihedrals_newton_off)
     bigint ndihedrals = *(bigint *)lammps_extract_global(lmp, "ndihedrals");
     EXPECT_EQ(ndihedrals, 31);
 
-    tagint *dihedrals = new tagint[5 * ndihedrals];
+    auto *dihedrals = new tagint[5 * ndihedrals];
     lammps_gather_dihedrals(lmp, dihedrals);
 
 #define CHECK_DIHEDRAL(idx, type, atom1, atom2, atom3, atom4)                     \
@@ -316,7 +316,7 @@ TEST_F(GatherProperties, gather_impropers_newton_on)
     bigint nimpropers = *(bigint *)lammps_extract_global(lmp, "nimpropers");
     EXPECT_EQ(nimpropers, 2);
 
-    tagint *impropers = new tagint[5 * nimpropers];
+    auto *impropers = new tagint[5 * nimpropers];
     lammps_gather_impropers(lmp, impropers);
 
 #define CHECK_IMPROPER(idx, type, atom1, atom2, atom3, atom4)                     \
@@ -349,7 +349,7 @@ TEST_F(GatherProperties, gather_impropers_newton_off)
     bigint nimpropers = *(bigint *)lammps_extract_global(lmp, "nimpropers");
     EXPECT_EQ(nimpropers, 2);
 
-    tagint *impropers = new tagint[5 * nimpropers];
+    auto *impropers = new tagint[5 * nimpropers];
     lammps_gather_impropers(lmp, impropers);
 
 #define CHECK_IMPROPER(idx, type, atom1, atom2, atom3, atom4)                     \

@@ -20,6 +20,11 @@
 //----------------------------------------------------------------------------
 
 #include <Kokkos_Macros.hpp>
+
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#error "The tasking framework is deprecated"
+#endif
+
 #if defined(KOKKOS_ENABLE_TASKDAG)
 
 #include <Kokkos_Core_fwd.hpp>
@@ -52,8 +57,7 @@ class TaskTeamMemberAdapter : public TeamMember {
   // type that we're adapting
   template <typename... Args>
   KOKKOS_INLINE_FUNCTION explicit TaskTeamMemberAdapter(
-      std::enable_if_t<std::is_constructible<TeamMember, Args...>::value,
-                       Scheduler>
+      std::enable_if_t<std::is_constructible_v<TeamMember, Args...>, Scheduler>
           arg_scheduler,
       Args&&... args)  // TODO @tasking @minor DSH noexcept specification
       : TeamMember(std::forward<Args>(args)...),

@@ -12,13 +12,13 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID bond/create Nevery itype jtype Rmin bondtype keyword values ...
+   fix ID group-ID style Nevery itype jtype Rmin bondtype keyword values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* bond/create = style name of this fix command
+* style = *bond/create* or *bond/create/angle*
 * Nevery = attempt bond creation every this many steps
 * itype,jtype = atoms of itype can bond to atoms of jtype (1-Ntypes or type label)
-* Rmin = 2 atoms separated by less than Rmin can bond (distance units)
+* Rmin = two atoms separated by less than Rmin can bond (distance units)
 * bondtype = type of created bonds (integer or type label)
 * zero or more keyword/value pairs may be appended to args
 * keyword = *iparam* or *jparam* or *prob* or *atype* or *dtype* or *itype* or *aconstrain*

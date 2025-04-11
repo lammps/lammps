@@ -47,7 +47,7 @@ struct IterationPatternTrait : TraitSpecificationBase<IterationPatternTrait> {
         show_extra_iteration_pattern_erroneously_given_to_execution_policy<
             typename base_t::iteration_pattern>{};
     static_assert(
-        std::is_void<typename base_t::iteration_pattern>::value,
+        std::is_void_v<typename base_t::iteration_pattern>,
         "Kokkos Error: More than one index type given. Search "
         "compiler output for 'show_extra_iteration_pattern' to see the "
         "type of the errant tag.");

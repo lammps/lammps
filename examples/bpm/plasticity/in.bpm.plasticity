@@ -1,0 +1,103 @@
+# Load then unload four cantilevers with different plastic yield strains
+#   model from DOI: 10.1016/j.powtec.2024.120563
+
+units           lj
+dimension       3
+boundary        p s s
+atom_style      bond
+special_bonds   lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
+newton          on off
+comm_modify     vel yes cutoff 2.6
+lattice         fcc 1.41
+region          box block 0 20 -1 41 -5 5 units box
+create_box      4 box bond/types 4 extra/bond/per/atom 20 extra/special/per/atom 50
+mass            * 1.0
+
+# Create initial disordered geometry somewhat near jamming
+
+region          cantilever block 3.0 12.0 0 40 -2.5 2.5 units box
+region          cantileverw block 2.0 13.0 -1 41 -3.5 3.5 units box
+create_atoms    1 region cantilever
+
+velocity        all create 0.1 345910
+
+pair_style      bpm/spring
+pair_coeff      * * 1.0 1.0 1.0
+
+fix             1 all nve
+fix             wtemp all wall/region cantileverw harmonic 1.0 1.0 1.0
+
+thermo_style    custom step ke pe pxx pyy pzz
+thermo          100
+
+timestep        0.1
+run             20000
+unfix           wtemp
+
+# Replicate cylinder and add bonds
+
+replicate       4 1 1
+
+region          r1 block 0.0  20.0 EDGE EDGE EDGE EDGE side in units box
+region          r2 block 20.0 40.0 EDGE EDGE EDGE EDGE side in units box
+region          r3 block 40.0 60.0 EDGE EDGE EDGE EDGE side in units box
+region          r4 block 60.0 80.0 EDGE EDGE EDGE EDGE side in units box
+
+group           c1 region r1
+group           c2 region r2
+group           c3 region r3
+group           c4 region r4
+
+set             group c2 type 2
+set             group c3 type 3
+set             group c4 type 4
+
+velocity        all set 0.0 0.0 0.0
+neighbor        1.0 bin
+
+create_bonds    many c1 c1 1 0.0 1.5
+create_bonds    many c2 c2 2 0.0 1.5
+create_bonds    many c3 c3 3 0.0 1.5
+create_bonds    many c4 c4 4 0.0 1.5
+
+neighbor        0.3 bin
+special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
+
+bond_style      bpm/spring/plastic break no smooth no
+bond_coeff      1 1.0 0 1.0 1.0
+bond_coeff      2 1.0 0 1.0 0.022
+bond_coeff      3 1.0 0 1.0 0.0185
+bond_coeff      4 1.0 0 1.0 0.017
+
+# apply load
+
+region          anchor block EDGE EDGE EDGE 2.0 EDGE EDGE units box
+region          load block EDGE EDGE 38.0 EDGE EDGE EDGE units box
+group           anchor region anchor
+group           load region load
+
+variable        fload equal ramp(0.0,-0.0005)
+fix             2 anchor setforce 0.0 0.0 0.0
+fix             3 load addforce 0.0 0.0 v_fload
+fix             4 all viscous 0.0016
+
+compute         zmin1 c1 reduce min z
+compute         zmin2 c2 reduce min z
+compute         zmin3 c3 reduce min z
+compute         zmin4 c4 reduce min z
+
+thermo_style    custom step ke c_zmin1 c_zmin2 c_zmin3 c_zmin4
+#dump            1 all custom 1000 atomDump id type x y z
+
+run             30000
+
+# hold load
+
+unfix           3
+fix             3 load addforce 0.0 0.0 -0.0005
+run             50000
+
+# remove load
+
+unfix           3
+run             60000

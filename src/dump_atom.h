@@ -33,9 +33,9 @@ class DumpAtom : public Dump {
   const int ENDIAN = 0x0001;
 
  protected:
-  int scale_flag;        // 1 if atom coords are scaled, 0 if no
-  int image_flag;        // 1 if append box count to atom coords, 0 if no
-  int triclinic_general; // 1 if output box & coords for general triclinic, 0 if no
+  int scale_flag;           // 1 if atom coords are scaled, 0 if no
+  int image_flag;           // 1 if append box count to atom coords, 0 if no
+  int triclinic_general;    // 1 if output box & coords for general triclinic, 0 if no
 
   std::string columns;    // column labels
 

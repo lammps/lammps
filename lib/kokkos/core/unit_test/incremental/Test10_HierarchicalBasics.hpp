@@ -56,8 +56,8 @@ struct HierarchicalBasics {
     Kokkos::fence();
     auto h_v = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), v);
 
-    size_t check = 0;
-    size_t ref   = nP * nT;
+    int check = 0;
+    int ref   = nP * nT;
     for (int i = 0; i < nP; ++i)
       for (int j = 0; j < nT; ++j) check += h_v(i, j);
 

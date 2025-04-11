@@ -37,7 +37,7 @@
 
 template <int V>
 struct TestFunctor {
-  double values[V];
+  double values[V] = {};
   Kokkos::View<double*> a;
   int K;
   TestFunctor(Kokkos::View<double*> a_, int K_) : a(a_), K(K_) {}
@@ -50,7 +50,7 @@ struct TestFunctor {
 
 template <int V>
 struct TestRFunctor {
-  double values[V];
+  double values[V] = {};
   Kokkos::View<double*> a;
   int K;
   TestRFunctor(Kokkos::View<double*> a_, int K_) : a(a_), K(K_) {}
@@ -247,14 +247,17 @@ int main(int argc, char* argv[]) {
       // anything that doesn't start with --
       if (arg.size() < 2 ||
           (arg.size() >= 2 && arg[0] != '-' && arg[1] != '-')) {
+        // signing off that arg.data() is null terminated
+        // NOLINTBEGIN(bugprone-suspicious-stringview-data-usage)
         if (i == 1)
           N = atoi(arg.data());
         else if (i == 2)
           M = atoi(arg.data());
         else if (i == 3)
           K = atoi(arg.data());
+        // NOLINTEND(bugprone-suspicious-stringview-data-usage)
         else {
-          throw std::runtime_error("unexpected argument!");
+          Kokkos::abort("unexpected argument!");
         }
       } else if (arg == "--no-parallel-for") {
         opts.par_for = false;
@@ -265,7 +268,7 @@ int main(int argc, char* argv[]) {
       } else {
         std::stringstream ss;
         ss << "unexpected argument \"" << arg << "\" at position " << i;
-        throw std::runtime_error(ss.str());
+        Kokkos::abort(ss.str().c_str());
       }
     }
 

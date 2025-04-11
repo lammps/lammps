@@ -44,7 +44,7 @@ class Angle : protected Pointers {
 
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
-  int copymode;
+  int copymode, kokkosable;
 
   Angle(class LAMMPS *);
   ~Angle() override;
@@ -52,12 +52,12 @@ class Angle : protected Pointers {
   virtual void compute(int, int) = 0;
   virtual void settings(int, char **);
   virtual void coeff(int, char **) = 0;
-  virtual void init_style(){};
+  virtual void init_style() {};
   virtual double equilibrium_angle(int) = 0;
   virtual void write_restart(FILE *) = 0;
   virtual void read_restart(FILE *) = 0;
-  virtual void write_restart_settings(FILE *){};
-  virtual void read_restart_settings(FILE *){};
+  virtual void write_restart_settings(FILE *) {};
+  virtual void read_restart_settings(FILE *) {};
   virtual void write_data(FILE *) {}
   virtual double single(int, int, int, int) = 0;
   virtual void born_matrix(int /*atype*/, int /*at1*/, int /*at2*/, int /*at3*/, double &du,

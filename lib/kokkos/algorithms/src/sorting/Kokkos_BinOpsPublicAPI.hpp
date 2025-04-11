@@ -35,19 +35,19 @@ struct BinOp1D {
 #endif
 
   // Construct BinOp with number of bins, minimum value and maximum value
-  BinOp1D(int max_bins__, typename KeyViewType::const_value_type min,
+  BinOp1D(int max_bins, typename KeyViewType::const_value_type min,
           typename KeyViewType::const_value_type max)
-      : max_bins_(max_bins__ + 1),
+      : max_bins_(max_bins + 1),
         // Cast to double to avoid possible overflow when using integer
-        mul_(static_cast<double>(max_bins__) /
+        mul_(static_cast<double>(max_bins) /
              (static_cast<double>(max) - static_cast<double>(min))),
         min_(static_cast<double>(min)) {
     // For integral types the number of bins may be larger than the range
     // in which case we can exactly have one unique value per bin
     // and then don't need to sort bins.
-    if (std::is_integral<typename KeyViewType::const_value_type>::value &&
+    if (std::is_integral_v<typename KeyViewType::const_value_type> &&
         (static_cast<double>(max) - static_cast<double>(min)) <=
-            static_cast<double>(max_bins__)) {
+            static_cast<double>(max_bins)) {
       mul_ = 1.;
     }
   }
@@ -82,16 +82,16 @@ struct BinOp3D {
   BinOp3D() = delete;
 #endif
 
-  BinOp3D(int max_bins__[], typename KeyViewType::const_value_type min[],
+  BinOp3D(int max_bins[], typename KeyViewType::const_value_type min[],
           typename KeyViewType::const_value_type max[]) {
-    max_bins_[0] = max_bins__[0];
-    max_bins_[1] = max_bins__[1];
-    max_bins_[2] = max_bins__[2];
-    mul_[0]      = static_cast<double>(max_bins__[0]) /
+    max_bins_[0] = max_bins[0];
+    max_bins_[1] = max_bins[1];
+    max_bins_[2] = max_bins[2];
+    mul_[0]      = static_cast<double>(max_bins[0]) /
               (static_cast<double>(max[0]) - static_cast<double>(min[0]));
-    mul_[1] = static_cast<double>(max_bins__[1]) /
+    mul_[1] = static_cast<double>(max_bins[1]) /
               (static_cast<double>(max[1]) - static_cast<double>(min[1]));
-    mul_[2] = static_cast<double>(max_bins__[2]) /
+    mul_[2] = static_cast<double>(max_bins[2]) /
               (static_cast<double>(max[2]) - static_cast<double>(min[2]));
     min_[0] = static_cast<double>(min[0]);
     min_[1] = static_cast<double>(min[1]);

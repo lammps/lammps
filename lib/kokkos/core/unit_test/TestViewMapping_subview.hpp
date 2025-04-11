@@ -40,16 +40,16 @@ struct TestViewMappingSubview {
   using BS = Kokkos::Subview<BT, range, range, range>;
 
   enum { CN0 = 10, CN1 = 11, CN2 = 12 };
-  using CT = Kokkos::View<int** * [13][14], ExecSpace>;
+  using CT = Kokkos::View<int*** [13][14], ExecSpace>;
   // changing CS to CTS here because when compiling with nvshmem, there is a
   // define for CS that makes this fail...
   using CTS = Kokkos::Subview<CT, range, range, range, int, int>;
 
   enum { DN0 = 10, DN1 = 11, DN2 = 12, DN3 = 13, DN4 = 14 };
-  using DT = Kokkos::View<int** * [DN3][DN4], ExecSpace>;
+  using DT = Kokkos::View<int*** [DN3][DN4], ExecSpace>;
   using DS = Kokkos::Subview<DT, int, range, range, range, int>;
 
-  using DLT  = Kokkos::View<int** * [13][14], Kokkos::LayoutLeft, ExecSpace>;
+  using DLT  = Kokkos::View<int*** [13][14], Kokkos::LayoutLeft, ExecSpace>;
   using DLS1 = Kokkos::Subview<DLT, range, int, int, int, int>;
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 1000
@@ -60,7 +60,7 @@ struct TestViewMappingSubview {
       "LayoutLeft");
 #endif
 
-  using DRT  = Kokkos::View<int** * [13][14], Kokkos::LayoutRight, ExecSpace>;
+  using DRT  = Kokkos::View<int*** [13][14], Kokkos::LayoutRight, ExecSpace>;
   using DRS1 = Kokkos::Subview<DRT, int, int, int, int, range>;
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 1000

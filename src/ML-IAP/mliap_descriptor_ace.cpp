@@ -57,7 +57,6 @@ MLIAPDescriptorACE::MLIAPDescriptorACE(LAMMPS *_lmp, char *yacefilename) :
 {
 
   acemlimpl = new ACE_ML_impl;
-  allocated_elements = 0;
   //read in file with CG coefficients or c_tilde coefficients
   ctilde_file = yacefilename;
   delete acemlimpl->basis_set;

@@ -136,11 +136,13 @@ void test_stacktrace(bool bTerminate, bool bCustom = true) {
 TEST(defaultdevicetype, stacktrace_normal) { test_stacktrace(false); }
 
 TEST(defaultdevicetype_DeathTest, stacktrace_terminate) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   ASSERT_DEATH({ test_stacktrace(true); },
                "I am the custom std::terminate handler.");
 }
 
 TEST(defaultdevicetype_DeathTest, stacktrace_generic_term) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   ASSERT_DEATH({ test_stacktrace(true, false); },
                "Kokkos observes that std::terminate has been called");
 }

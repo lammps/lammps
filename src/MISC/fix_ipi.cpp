@@ -40,7 +40,7 @@ using namespace FixConst;
  * Please cite:
  * Ceriotti, M., More, J., & Manolopoulos, D. E. (2014).
  * i-PI: A Python interface for ab initio path integral molecular dynamics simulations.
- * Computer Physics Communications, 185, 1019–1026. doi:10.1016/j.cpc.2013.10.027
+ * Computer Physics Communications, 185, 1019-1026. doi:10.1016/j.cpc.2013.10.027
  * And see [https://github.com/i-pi/i-pi] to download a version of i-PI
  ******************************************************************************************/
 
@@ -188,6 +188,7 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), irregul
   master = (comm->me == 0) ? 1 : 0;
   inet = 1;
   reset_flag = 0;
+  firsttime = 1;
 
   int iarg = 5;
   while (iarg < narg) {
@@ -253,12 +254,17 @@ void FixIPI::init()
     ipisock = 0;
   // TODO: should check for success in socket opening,
   // but the current open_socket routine dies brutally if unsuccessful
+
   // tell lammps we have assigned a socket
   socketflag = 1;
 
   // asks for evaluation of PE at first step
-  modify->compute[modify->find_compute("thermo_pe")]->invoked_scalar = -1;
-  modify->addstep_compute_all(update->ntimestep + 1);
+  auto c_pe = modify->get_compute_by_id("thermo_pe");
+  if (c_pe) {
+    c_pe->invoked_scalar = -1;
+    modify->addstep_compute_all(update->ntimestep + 1);
+  }
+
 
   kspace_flag = (force->kspace) ? 1 : 0;
 
@@ -373,13 +379,20 @@ void FixIPI::initial_integrate(int /*vflag*/)
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
+  // move atoms to new processors via irregular()
+  // only needed if migrate_check() says an atom moves to far
+  if (irregular->migrate_check()) irregular->migrate_atoms();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // ensures continuity of trajectories relative to the
   // snapshot at neighbor list creation, minimizing the
   // number of neighbor list updates
   auto xhold = neighbor->get_xhold();
-  if (xhold != NULL) { // don't wrap if xhold is not used in the NL
+  if (xhold != NULL && !firsttime) {
+    // don't wrap if xhold is not used in the NL, or the
+    // first call (because the NL is initialized from the
+    // data file that might have nothing to do with the
+    // current structure
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         auto delx = x[i][0] - xhold[i][0];
@@ -394,11 +407,7 @@ void FixIPI::initial_integrate(int /*vflag*/)
       }
     }
   }
-  // move atoms to new processors via irregular()
-  // only needed if migrate_check() says an atom moves to far
-  if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  if (irregular->migrate_check()) irregular->migrate_atoms();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal);
+  firsttime = 0;
 
   // check if kspace solver is used
   if (reset_flag && kspace_flag) {
@@ -429,7 +438,7 @@ void FixIPI::final_integrate()
   char header[MSGLEN+1];
   double vir[9], pot=0.0;
   double forceconv, potconv, posconv, pressconv, posconv3;
-  char retstr[1024];
+  char retstr[1024] = { '\0' };
 
   // conversions from LAMMPS units to atomic units, which are used by i-PI
   potconv=3.1668152e-06/force->boltz;
@@ -439,8 +448,12 @@ void FixIPI::final_integrate()
   pressconv=1/force->nktv2p*potconv*posconv3;
 
   // compute for potential energy
-  pot=modify->compute[modify->find_compute("thermo_pe")]->compute_scalar();
-  pot*=potconv;
+
+  auto *c_pe = modify->get_compute_by_id("thermo_pe");
+  if (c_pe) {
+    pot = c_pe->compute_scalar();
+    pot*=potconv;
+  }
 
   // probably useless check
   if (!hasdata)
@@ -464,18 +477,19 @@ void FixIPI::final_integrate()
 
   for (int i = 0; i < 9; ++i) vir[i]=0.0;
 
-  int press_id = modify->find_compute("IPI_PRESS");
-  Compute* comp_p = modify->compute[press_id];
-  comp_p->compute_vector();
-  double myvol = domain->xprd*domain->yprd*domain->zprd/posconv3;
+  const double myvol = domain->xprd*domain->yprd*domain->zprd/posconv3;
+  Compute* comp_p = modify->get_compute_by_id("IPI_PRESS");
+  if (comp_p) {
+    comp_p->compute_vector();
 
-  vir[0] = comp_p->vector[0]*pressconv*myvol;
-  vir[4] = comp_p->vector[1]*pressconv*myvol;
-  vir[8] = comp_p->vector[2]*pressconv*myvol;
-  vir[1] = comp_p->vector[3]*pressconv*myvol;
-  vir[2] = comp_p->vector[4]*pressconv*myvol;
-  vir[5] = comp_p->vector[5]*pressconv*myvol;
-  retstr[0]=0;
+    vir[0] = comp_p->vector[0]*pressconv*myvol;
+    vir[4] = comp_p->vector[1]*pressconv*myvol;
+    vir[8] = comp_p->vector[2]*pressconv*myvol;
+    vir[1] = comp_p->vector[3]*pressconv*myvol;
+    vir[2] = comp_p->vector[4]*pressconv*myvol;
+    vir[5] = comp_p->vector[5]*pressconv*myvol;
+    retstr[0] = '\0';
+  }
 
   if (master) {
     // check for new messages
@@ -497,7 +511,8 @@ void FixIPI::final_integrate()
       writebuffer(ipisock,(char*) &nat,4, error);
       writebuffer(ipisock,(char*) buffer, bsize*8, error);
       writebuffer(ipisock,(char*) vir,9*8, error);
-      nat=strlen(retstr);  writebuffer(ipisock,(char*) &nat,4, error);
+      nat=strlen(retstr);
+      writebuffer(ipisock,(char*) &nat,4, error);
       writebuffer(ipisock,(char*) retstr, nat, error);
     }
     else

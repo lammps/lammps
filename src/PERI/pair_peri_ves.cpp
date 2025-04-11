@@ -24,6 +24,7 @@
 #include "error.h"
 #include "fix_peri_neigh.h"
 #include "force.h"
+#include "info.h"
 #include "lattice.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -346,7 +347,7 @@ void PairPeriVES::compute(int eflag, int vflag)
 
 void PairPeriVES::coeff(int narg, char **arg)
 {
-  if (narg != 9) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 9) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -376,7 +377,7 @@ void PairPeriVES::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -385,7 +386,9 @@ void PairPeriVES::coeff(int narg, char **arg)
 
 double PairPeriVES::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
 
   bulkmodulus[j][i] = bulkmodulus[i][j];
   shearmodulus[j][i] = shearmodulus[i][j];

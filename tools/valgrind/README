@@ -5,15 +5,34 @@ and fixing real issues. When using CMake, these are automatically included
 when running "ctest -T memcheck". To manually add them to do a memory check
 on running LAMMPS, use a command line like following:
 
-valgrind --show-leak-kinds=all --track-origins=yes \
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes \
    --suppressions=/path/to/lammps/tools/valgrind/OpenMP.supp \
    --suppressions=/path/to/lammps/tools/valgrind/OpenMPI.supp \
    --suppressions=/path/to/lammps/tools/valgrind/MPICH.supp \
+   --suppressions=/path/to/lammps/tools/valgrind/LLVM.supp \
    --suppressions=/path/to/lammps/tools/valgrind/Python3.supp \
    --suppressions=/path/to/lammps/tools/valgrind/GTest.supp \
+   --suppressions=/path/to/lammps/tools/valgrind/Kokkos.supp \
    --suppressions=/path/to/lammps/tools/valgrind/FlexiBLAS.supp \
    --suppressions=/path/to/lammps/tools/valgrind/readline.supp \
     lmp -in in.melt
 
-Last update: 2022-08-11
+Or you can create a file $HOME/.valgrindrc with one option per line:
 
+--leak-check=full
+--show-leak-kinds=all
+--track-origins=yes
+--suppressions=/path/to/lammps/tools/valgrind/OpenMP.supp
+--suppressions=/path/to/lammps/tools/valgrind/OpenMPI.supp
+--suppressions=/path/to/lammps/tools/valgrind/MPICH.supp
+--suppressions=/path/to/lammps/tools/valgrind/LLVM.supp
+--suppressions=/path/to/lammps/tools/valgrind/GTest.supp
+--suppressions=/path/to/lammps/tools/valgrind/Kokkos.supp
+--suppressions=/path/to/lammps/tools/valgrind/FlexiBLAS.supp
+--suppressions=/path/to/lammps/tools/valgrind/readline.supp
+--suppressions=/path/to/lammps/tools/valgrind/Python3.supp
+
+These options will be automatically added to the valgrind
+command line, so it becomes: valgrind lmp -in in.melt
+
+Last update: 2025-04-04

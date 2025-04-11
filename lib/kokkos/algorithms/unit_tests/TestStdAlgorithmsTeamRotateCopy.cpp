@@ -136,7 +136,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, std::size_t pivotShift,
 
     auto pivot = KE::cbegin(myRowFrom) + pivotShift;
     auto it    = std::rotate_copy(KE::cbegin(myRowFrom), pivot,
-                               KE::cend(myRowFrom), KE::begin(myRowDest));
+                                  KE::cend(myRowFrom), KE::begin(myRowDest));
     const std::size_t stdDistance = KE::distance(KE::begin(myRowDest), it);
     ASSERT_EQ(stdDistance, distancesView_h(i));
     ASSERT_TRUE(intraTeamSentinelView_h(i));

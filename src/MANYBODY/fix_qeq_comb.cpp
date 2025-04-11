@@ -143,7 +143,7 @@ void FixQEQComb::init()
   MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
 
   if ((comm->me == 0) && (fabs(qsum) > QSUMSMALL))
-    error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}", style, qsum);
+    error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}" + utils::errorurl(29), style, qsum);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -203,7 +203,7 @@ void FixQEQComb::post_force(int /*vflag*/)
   // charge-equilibration loop
 
   if (me == 0 && fp)
-    fmt::print(fp,"Charge equilibration on step {}\n", update->ntimestep);
+    utils::print(fp,"Charge equilibration on step {}\n", update->ntimestep);
 
   heatpq = 0.05;
   qmass  = 0.016;
@@ -268,7 +268,7 @@ void FixQEQComb::post_force(int /*vflag*/)
     if (enegchk <= precision && enegmax <= 100.0*precision) break;
 
     if (me == 0 && fp)
-      fmt::print(fp,"  iteration: {}, enegtot {:.6g}, "
+      utils::print(fp,"  iteration: {}, enegtot {:.6g}, "
                  "enegmax {:.6g}, fq deviation: {:.6g}\n",
                  iloop,enegtot,enegmax,enegchk);
 
@@ -281,9 +281,9 @@ void FixQEQComb::post_force(int /*vflag*/)
 
   if (me == 0 && fp) {
     if (iloop == loopmax)
-      fmt::print(fp,"Charges did not converge in {} iterations\n",iloop);
+      utils::print(fp,"Charges did not converge in {} iterations\n",iloop);
     else
-      fmt::print(fp,"Charges converged in {} iterations to {:.10f} tolerance\n",
+      utils::print(fp,"Charges converged in {} iterations to {:.10f} tolerance\n",
                  iloop,enegchk);
   }
 }

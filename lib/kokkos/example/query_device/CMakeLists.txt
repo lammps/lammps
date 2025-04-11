@@ -1,12 +1,7 @@
+kokkos_include_directories(${CMAKE_CURRENT_BINARY_DIR})
+kokkos_include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-KOKKOS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
-KOKKOS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+set(SOURCES "")
+file(GLOB SOURCES *.cpp)
 
-SET(SOURCES "")
-FILE(GLOB SOURCES *.cpp)
-
-KOKKOS_ADD_EXECUTABLE(
-  query_device
-  SOURCES ${SOURCES}
-)
-
+kokkos_add_executable(query_device SOURCES ${SOURCES})

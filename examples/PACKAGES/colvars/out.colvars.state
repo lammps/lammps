@@ -1,17 +1,17 @@
 configuration {
   step          200
   dt 2.000000e+00
-  version 2020-07-07
+  version 2024-06-04
 }
 
 colvar {
   name one
-  x  1.00127732034965e+01
+  x       10.012773203962
 }
 
 colvar {
   name two
-  x  9.62235997490241e+00
+  x       9.6223599748448
 }
 
 restraint {

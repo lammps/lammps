@@ -10,7 +10,7 @@ Syntax
 
    pair_write itype jtype N style inner outer file keyword Qi Qj
 
-* itype,jtype = 2 atom types
+* itype,jtype = 2 atom types (numeric or type label)
 * N = # of values
 * style = *r* or *rsq* or *bitmap*
 * inner,outer = inner and outer cutoff (distance units)
@@ -25,6 +25,9 @@ Examples
 
    pair_write 1 3 500 r 1.0 10.0 table.txt LJ
    pair_write 1 1 1000 rsq 2.0 8.0 table.txt Yukawa_1_1 -0.5 0.5
+
+   labelmap atom 1 C 2 H
+   pair_write C H 500 r 1.0 10.0 table.txt LJ
 
 Description
 """""""""""
@@ -42,7 +45,7 @@ compared against the entry in the file, if present, and pair_write
 will refuse to add a table if the units are not the same.
 
 The energy and force values are computed at distances from inner to
-outer for 2 interacting atoms of type itype and jtype, using the
+outer for 2 interacting atoms of type *itype* and *jtype*, using the
 appropriate :doc:`pair_coeff <pair_coeff>` coefficients.  If the style
 is *r*, then N distances are used, evenly spaced in r; if the style is
 *rsq*, N distances are used, evenly spaced in r\^2.

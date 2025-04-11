@@ -13,14 +13,16 @@
  ------------------------------------------------------------------------- */
 
 #include "pair_sph_heatconduction.h"
-#include <cmath>
-#include "atom.h"
-#include "force.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_list.h"
-#include "domain.h"
 
+#include "atom.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "info.h"
+#include "memory.h"
+#include "neigh_list.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -28,12 +30,16 @@ using namespace LAMMPS_NS;
 
 PairSPHHeatConduction::PairSPHHeatConduction(LAMMPS *lmp) : Pair(lmp)
 {
+  if ((atom->esph_flag != 1) || (atom->rho_flag != 1))
+    error->all(FLERR, "Pair sph/heatconduction requires atom attributes energy and density, e.g. in atom_style sph");
+
   restartinfo = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHHeatConduction::~PairSPHHeatConduction() {
+PairSPHHeatConduction::~PairSPHHeatConduction()
+{
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -44,7 +50,8 @@ PairSPHHeatConduction::~PairSPHHeatConduction() {
 
 /* ---------------------------------------------------------------------- */
 
-void PairSPHHeatConduction::compute(int eflag, int vflag) {
+void PairSPHHeatConduction::compute(int eflag, int vflag)
+{
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz;
 
@@ -124,7 +131,6 @@ void PairSPHHeatConduction::compute(int eflag, int vflag) {
         if (newton_pair || j < nlocal) {
           desph[j] -= deltaE;
         }
-
       }
     }
   }
@@ -134,7 +140,8 @@ void PairSPHHeatConduction::compute(int eflag, int vflag) {
  allocate all arrays
  ------------------------------------------------------------------------- */
 
-void PairSPHHeatConduction::allocate() {
+void PairSPHHeatConduction::allocate()
+{
   allocated = 1;
   int n = atom->ntypes;
 
@@ -152,7 +159,8 @@ void PairSPHHeatConduction::allocate() {
  global settings
  ------------------------------------------------------------------------- */
 
-void PairSPHHeatConduction::settings(int narg, char **/*arg*/) {
+void PairSPHHeatConduction::settings(int narg, char **/*arg*/)
+{
   if (narg != 0)
     error->all(FLERR,
         "Illegal number of arguments for pair_style sph/heatconduction");
@@ -162,9 +170,10 @@ void PairSPHHeatConduction::settings(int narg, char **/*arg*/) {
  set coeffs for one or more type pairs
  ------------------------------------------------------------------------- */
 
-void PairSPHHeatConduction::coeff(int narg, char **arg) {
+void PairSPHHeatConduction::coeff(int narg, char **arg)
+{
   if (narg != 4)
-    error->all(FLERR,"Incorrect number of args for pair_style sph/heatconduction coefficients");
+    error->all(FLERR,"Incorrect number of args for pair_style sph/heatconduction coefficients" + utils::errorurl(21));
   if (!allocated)
     allocate();
 
@@ -178,7 +187,6 @@ void PairSPHHeatConduction::coeff(int narg, char **arg) {
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      //printf("setting cut[%d][%d] = %f\n", i, j, cut_one);
       cut[i][j] = cut_one;
       alpha[i][j] = alpha_one;
       setflag[i][j] = 1;
@@ -187,18 +195,20 @@ void PairSPHHeatConduction::coeff(int narg, char **arg) {
   }
 
   if (count == 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
  init for one type pair i,j and corresponding j,i
  ------------------------------------------------------------------------- */
 
-double PairSPHHeatConduction::init_one(int i, int j) {
+double PairSPHHeatConduction::init_one(int i, int j)
+{
 
-  if (setflag[i][j] == 0) {
-    error->all(FLERR,"All pair sph/heatconduction coeffs are not set");
-  }
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair sph/heatconduction coeffs are not set. Status:\n"
+               + Info::get_pair_coeff_status(lmp));
 
   cut[j][i] = cut[i][j];
   alpha[j][i] = alpha[i][j];
@@ -209,7 +219,8 @@ double PairSPHHeatConduction::init_one(int i, int j) {
 /* ---------------------------------------------------------------------- */
 
 double PairSPHHeatConduction::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/,
-    double /*rsq*/, double /*factor_coul*/, double /*factor_lj*/, double &fforce) {
+    double /*rsq*/, double /*factor_coul*/, double /*factor_lj*/, double &fforce)
+{
   fforce = 0.0;
 
   return 0.0;

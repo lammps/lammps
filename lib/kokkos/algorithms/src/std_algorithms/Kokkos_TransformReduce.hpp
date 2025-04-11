@@ -117,7 +117,7 @@ ValueType transform_reduce(const ExecutionSpace& ex, IteratorType1 first1,
                            ValueType init_reduction_value,
                            BinaryJoinerType joiner,
                            BinaryTransform transformer) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   return Impl::transform_reduce_custom_functors_exespace_impl(
@@ -136,7 +136,7 @@ ValueType transform_reduce(const std::string& label, const ExecutionSpace& ex,
                            IteratorType2 first2, ValueType init_reduction_value,
                            BinaryJoinerType joiner,
                            BinaryTransform transformer) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   return Impl::transform_reduce_custom_functors_exespace_impl(
@@ -157,7 +157,7 @@ ValueType transform_reduce(
     ValueType init_reduction_value, BinaryJoinerType joiner,
     BinaryTransform transformer) {
   namespace KE = ::Kokkos::Experimental;
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(first_view);
@@ -182,7 +182,7 @@ ValueType transform_reduce(
     ValueType init_reduction_value, BinaryJoinerType joiner,
     BinaryTransform transformer) {
   namespace KE = ::Kokkos::Experimental;
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(first_view);
@@ -208,7 +208,7 @@ ValueType transform_reduce(const ExecutionSpace& ex, IteratorType first1,
                            IteratorType last1, ValueType init_reduction_value,
                            BinaryJoinerType joiner,
                            UnaryTransform transformer) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   return Impl::transform_reduce_custom_functors_exespace_impl(
@@ -228,7 +228,7 @@ ValueType transform_reduce(const std::string& label, const ExecutionSpace& ex,
                            ValueType init_reduction_value,
                            BinaryJoinerType joiner,
                            UnaryTransform transformer) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   return Impl::transform_reduce_custom_functors_exespace_impl(
@@ -248,7 +248,7 @@ ValueType transform_reduce(const ExecutionSpace& ex,
                            BinaryJoinerType joiner,
                            UnaryTransform transformer) {
   namespace KE = ::Kokkos::Experimental;
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view);
@@ -270,7 +270,7 @@ ValueType transform_reduce(const std::string& label, const ExecutionSpace& ex,
                            BinaryJoinerType joiner,
                            UnaryTransform transformer) {
   namespace KE = ::Kokkos::Experimental;
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view);
@@ -345,7 +345,7 @@ KOKKOS_FUNCTION ValueType transform_reduce(
     const TeamHandleType& teamHandle, IteratorType1 first1, IteratorType1 last1,
     IteratorType2 first2, ValueType init_reduction_value,
     BinaryJoinerType joiner, BinaryTransform transformer) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   return Impl::transform_reduce_custom_functors_team_impl(
@@ -366,7 +366,7 @@ transform_reduce(const TeamHandleType& teamHandle,
                  ValueType init_reduction_value, BinaryJoinerType joiner,
                  BinaryTransform transformer) {
   namespace KE = ::Kokkos::Experimental;
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(first_view);
@@ -393,7 +393,7 @@ KOKKOS_FUNCTION ValueType transform_reduce(const TeamHandleType& teamHandle,
                                            ValueType init_reduction_value,
                                            BinaryJoinerType joiner,
                                            UnaryTransform transformer) {
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   return Impl::transform_reduce_custom_functors_team_impl(
@@ -412,7 +412,7 @@ transform_reduce(const TeamHandleType& teamHandle,
                  ValueType init_reduction_value, BinaryJoinerType joiner,
                  UnaryTransform transformer) {
   namespace KE = ::Kokkos::Experimental;
-  static_assert(std::is_move_constructible<ValueType>::value,
+  static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view);

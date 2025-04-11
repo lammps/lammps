@@ -459,7 +459,7 @@ void PairAWPMDCut::settings(int narg, char **arg) {
 // pair settings are as usual
 void PairAWPMDCut::coeff(int narg, char **arg)
 {
-  if (narg < 2 || narg > 3) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 2 || narg > 3) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   /*if(domain->xperiodic == 1 || domain->yperiodic == 1 ||
     domain->zperiodic == 1) {*/
@@ -496,7 +496,7 @@ void PairAWPMDCut::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

@@ -178,10 +178,10 @@ void FixAlchemy::init()
     error->universe_all(FLERR, "Fix alchemy is not compatible with load balancing");
 
   if (modify->get_fix_by_style("^alchemy").size() > 1)
-    error->universe_all(FLERR, "There may only one fix alchemy at a time");
+    error->universe_all(FLERR, "There may only be one fix alchemy at a time");
 
   if (utils::strmatch(update->integrate_style, "^respa"))
-    error->universe_all(FLERR, "Must not use run style respa with fix alchemy");
+    error->universe_all(FLERR, "Must not use run_style respa with fix alchemy");
 
   ivar = input->variable->find(id_lambda.c_str());
   if (ivar < 0)
@@ -189,6 +189,42 @@ void FixAlchemy::init()
   if (!input->variable->equalstyle(ivar))
     error->universe_one(FLERR, fmt::format("Fix alchemy variable {} is invalid style", id_lambda));
   lambda = input->variable->compute_equal(ivar);
+
+  // update and check pointers to internal compute styles
+
+  pe = modify->get_compute_by_id(id_pe);
+  if (!pe) {
+    error->universe_all(
+        FLERR,
+        fmt::format("Potential energy compute ID {} for fix {} does not exist", id_pe, style));
+  } else {
+    if (pe->peflag == 0)
+      error->universe_all(
+          FLERR,
+          fmt::format("Compute ID {} for fix {} does not compute potential energy", id_pe, style));
+  }
+
+  temp = modify->get_compute_by_id(id_temp);
+  if (!temp) {
+    error->universe_all(
+        FLERR, fmt::format("Temperature compute ID {} for fix {} does not exist", id_temp, style));
+  } else {
+    if (temp->tempflag == 0)
+      error->universe_all(
+          FLERR,
+          fmt::format("Compute ID {} for fix {} does not compute a temperature", id_temp, style));
+  }
+
+  press = modify->get_compute_by_id(id_press);
+  if (!press) {
+    error->universe_all(
+        FLERR, fmt::format("Pressure compute ID {} for fix {} does not exist", id_press, style));
+  } else {
+    if (press->pressflag == 0)
+      error->universe_all(
+          FLERR,
+          fmt::format("Compute ID {} for fix {} does not compute pressure", id_press, style));
+  }
 
   // synchronize box dimensions, determine if resync during run will be needed.
 
@@ -206,8 +242,8 @@ void FixAlchemy::setup(int vflag)
   if (universe->me == 0) {
     progress = 0;
     auto msg = fmt::format("Starting alchemical run\n");
-    if (universe->uscreen) fmt::print(universe->uscreen, msg);
-    if (universe->ulogfile) fmt::print(universe->ulogfile, msg);
+    if (universe->uscreen) utils::print(universe->uscreen, msg);
+    if (universe->ulogfile) utils::print(universe->ulogfile, msg);
   }
 
   // recheck domain decomposition, atom ordering, and synchronize positions
@@ -289,8 +325,8 @@ void FixAlchemy::post_force(int /*vflag*/)
     if ((status / 10) > (progress / 10)) {
       progress = status;
       auto msg = fmt::format("  Alchemical run progress: {:>3d}%\n", progress);
-      if (universe->uscreen) fmt::print(universe->uscreen, msg);
-      if (universe->ulogfile) fmt::print(universe->ulogfile, msg);
+      if (universe->uscreen) utils::print(universe->uscreen, msg);
+      if (universe->ulogfile) utils::print(universe->ulogfile, msg);
     }
   }
 }

@@ -35,7 +35,8 @@ enum { SCALAR, VECTOR, ARRAY };
 
 ComputePODAtom::ComputePODAtom(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), list(nullptr), podptr(nullptr), pod(nullptr), tmpmem(nullptr),
-    rij(nullptr), elements(nullptr), map(nullptr)
+    rij(nullptr), elements(nullptr), map(nullptr), ai(nullptr), aj(nullptr), ti(nullptr),
+    tj(nullptr)
 {
   int nargmin = 6;
 
@@ -167,34 +168,11 @@ void ComputePODAtom::compute_peratom()
           for (int m = 0; m < Mdesc; m++) {
             int mk = m + Mdesc*k;
             pod[i][mk] = pd[k]*bd[m];
-          //   for (int n=0; n<nij; n++) {
-          //     int ain = 3*ai[n];
-          //     int ajn = 3*aj[n];
-          //     int nm = 3*n + 3*nij*m;
-          //     int nk = 3*n + 3*nij*k;
-          //     pod[1 + ain][imk] += bdd[0 + nm]*pd[k] + bd[m]*pdd[0+nk];
-          //     pod[2 + ain][imk] += bdd[1 + nm]*pd[k] + bd[m]*pdd[1+nk];
-          //     pod[3 + ain][imk] += bdd[2 + nm]*pd[k] + bd[m]*pdd[2+nk];
-          //     pod[1 + ajn][imk] -= bdd[0 + nm]*pd[k] + bd[m]*pdd[0+nk];
-          //     pod[2 + ajn][imk] -= bdd[1 + nm]*pd[k] + bd[m]*pdd[1+nk];
-          //     pod[3 + ajn][imk] -= bdd[2 + nm]*pd[k] + bd[m]*pdd[2+nk];
-          //   }
           }
       }
       else {
         for (int m = 0; m < Mdesc; m++) {
          pod[i][m] = bd[m];
-        //  for (int n=0; n<nij; n++) {
-        //     int ain = 3*ai[n];
-        //     int ajn = 3*aj[n];
-        //     int nm = 3*n + 3*nij*m;
-        //     pod[1 + ain][im] += bdd[0 + nm];
-        //     pod[2 + ain][im] += bdd[1 + nm];
-        //     pod[3 + ain][im] += bdd[2 + nm];
-        //     pod[1 + ajn][im] -= bdd[0 + nm];
-        //     pod[2 + ajn][im] -= bdd[1 + nm];
-        //     pod[3 + ajn][im] -= bdd[2 + nm];
-        //   }
         }
       }
     }

@@ -21,6 +21,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -224,7 +225,7 @@ void PairBuckCoulCut::settings(int narg, char **arg)
 
 void PairBuckCoulCut::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 7) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 7) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -233,7 +234,7 @@ void PairBuckCoulCut::coeff(int narg, char **arg)
 
   double a_one = utils::numeric(FLERR, arg[2], false, lmp);
   double rho_one = utils::numeric(FLERR, arg[3], false, lmp);
-  if (rho_one <= 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (rho_one <= 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   double c_one = utils::numeric(FLERR, arg[4], false, lmp);
 
   double cut_lj_one = cut_lj_global;
@@ -254,7 +255,7 @@ void PairBuckCoulCut::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -274,7 +275,9 @@ void PairBuckCoulCut::init_style()
 
 double PairBuckCoulCut::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   double cut = MAX(cut_lj[i][j], cut_coul[i][j]);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];

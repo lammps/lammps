@@ -296,6 +296,8 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
 
   t_ace_3d3 f_ij;
 
+  void deallocate_views_of_views();
+
  public:
   struct SplineInterpolatorKokkos {
     int ntot, nlut, num_of_functions;

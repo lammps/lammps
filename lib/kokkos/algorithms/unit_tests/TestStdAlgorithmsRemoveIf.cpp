@@ -93,7 +93,7 @@ void fill_view(ViewType dest_view, const std::string& name) {
   }
 
   else {
-    throw std::runtime_error("invalid choice");
+    FAIL() << "invalid choice";
   }
 
   Kokkos::deep_copy(aux_view, v_h);
@@ -144,7 +144,7 @@ void run_single_scenario(const InfoType& scenario_info) {
     // make host copy BEFORE running algo
     auto data_h = create_host_space_copy(view);
     auto rit    = KE::remove_if(exespace(), KE::begin(view), KE::end(view),
-                             remove_if_even);
+                                remove_if_even);
     verify_data(data_h, view, rit, remove_if_even);
   }
 
@@ -154,7 +154,7 @@ void run_single_scenario(const InfoType& scenario_info) {
     // make host copy BEFORE running algo
     auto data_h = create_host_space_copy(view);
     auto rit    = KE::remove_if("label", exespace(), KE::begin(view),
-                             KE::end(view), remove_if_even);
+                                KE::end(view), remove_if_even);
     verify_data(data_h, view, rit, remove_if_even);
   }
 

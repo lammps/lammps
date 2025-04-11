@@ -503,7 +503,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 3 && narg != 11) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
+  if (narg != 3 && narg != 11) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -612,7 +612,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv" + utils::errorurl(21));
 
   count = 0;
 
@@ -638,7 +638,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv" + utils::errorurl(21));
 
   count = 0;
 
@@ -664,7 +664,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv" + utils::errorurl(21));
 
 }
 
@@ -918,15 +918,15 @@ int PairOxdnaExcv::pack_forward_comm(int n, int *list, double *buf,
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-	buf[m++] = nx[j][0];
-	buf[m++] = nx[j][1];
-	buf[m++] = nx[j][2];
-	buf[m++] = ny[j][0];
-	buf[m++] = ny[j][1];
-	buf[m++] = ny[j][2];
-	buf[m++] = nz[j][0];
-	buf[m++] = nz[j][1];
-	buf[m++] = nz[j][2];
+    buf[m++] = nx[j][0];
+    buf[m++] = nx[j][1];
+    buf[m++] = nx[j][2];
+    buf[m++] = ny[j][0];
+    buf[m++] = ny[j][1];
+    buf[m++] = ny[j][2];
+    buf[m++] = nz[j][0];
+    buf[m++] = nz[j][1];
+    buf[m++] = nz[j][2];
   }
   return m;
 }
@@ -936,19 +936,18 @@ int PairOxdnaExcv::pack_forward_comm(int n, int *list, double *buf,
 void PairOxdnaExcv::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
-
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
-	nx[i][0] = buf[m++];
-	nx[i][1] = buf[m++];
-	nx[i][2] = buf[m++];
-	ny[i][0] = buf[m++];
-	ny[i][1] = buf[m++];
-	ny[i][2] = buf[m++];
-	nz[i][0] = buf[m++];
-	nz[i][1] = buf[m++];
-	nz[i][2] = buf[m++];
+    nx[i][0] = buf[m++];
+    nx[i][1] = buf[m++];
+    nx[i][2] = buf[m++];
+    ny[i][0] = buf[m++];
+    ny[i][1] = buf[m++];
+    ny[i][2] = buf[m++];
+    nz[i][0] = buf[m++];
+    nz[i][1] = buf[m++];
+    nz[i][2] = buf[m++];
   }
 }
 

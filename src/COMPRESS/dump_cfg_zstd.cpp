@@ -119,7 +119,7 @@ void DumpCFGZstd::write_header(bigint n)
   header += fmt::format("entry_count = {}\n", nfield - 2);
   for (int i = 0; i < nfield - 5; i++) header += fmt::format("auxiliary[{}] = {}\n", i, auxname[i]);
 
-  writer.write(header.c_str(), header.length());
+  (void) writer.write(header.c_str(), header.length());
 }
 
 /* ---------------------------------------------------------------------- */
@@ -127,7 +127,7 @@ void DumpCFGZstd::write_header(bigint n)
 void DumpCFGZstd::write_data(int n, double *mybuf)
 {
   if (buffer_flag) {
-    writer.write(mybuf, n);
+    (void) writer.write(mybuf, n);
   } else {
     constexpr size_t VBUFFER_SIZE = 256;
     char vbuffer[VBUFFER_SIZE];
@@ -151,13 +151,13 @@ void DumpCFGZstd::write_data(int n, double *mybuf)
               written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<bigint>(mybuf[m]));
           }
           if (written > 0) {
-            writer.write(vbuffer, written);
+            (void) writer.write(vbuffer, written);
           } else if (written < 0) {
             error->one(FLERR, "Error while writing dump cfg/gz output");
           }
           m++;
         }
-        writer.write("\n", 1);
+        (void) writer.write("\n", 1);
       }
     } else if (unwrapflag == 1) {
       int m = 0;
@@ -182,13 +182,13 @@ void DumpCFGZstd::write_data(int n, double *mybuf)
               written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<bigint>(mybuf[m]));
           }
           if (written > 0) {
-            writer.write(vbuffer, written);
+            (void) writer.write(vbuffer, written);
           } else if (written < 0) {
             error->one(FLERR, "Error while writing dump cfg/gz output");
           }
           m++;
         }
-        writer.write("\n", 1);
+        (void) writer.write("\n", 1);
       }
     }
   }

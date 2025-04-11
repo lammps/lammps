@@ -51,7 +51,7 @@ index file.  When specifying group IDs, only those groups will be
 written to the index file.  In order to follow the Gromacs conventions,
 the group *all* will be renamed to *System* in the index file.
 
-The *ndx2group* command will create of update group definitions from
+The *ndx2group* command will create or update group definitions from
 those stored in an index file.  Without specifying any group IDs, all
 groups except *System* will be read from the index file and the
 corresponding groups recreated.  If a group of the same name already

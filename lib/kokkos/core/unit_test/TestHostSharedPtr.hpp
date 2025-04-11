@@ -105,7 +105,7 @@ TEST(TEST_CATEGORY, host_shared_ptr_get) {
     T i;
     HostSharedPtr<T> p1(&i, [](T*) {});
     HostSharedPtr<T> p2(std::move(p1));  // move construction
-    EXPECT_EQ(p1.get(), nullptr);
+    EXPECT_EQ(p1.get(), nullptr);        // NOLINT(bugprone-use-after-move)
     EXPECT_EQ(p2.get(), &i);
   }
   {
@@ -120,8 +120,8 @@ TEST(TEST_CATEGORY, host_shared_ptr_get) {
     T i;
     HostSharedPtr<T> p1(&i, [](T*) {});
     HostSharedPtr<T> p2;
-    p2 = std::move(p1);  // move assignment
-    EXPECT_EQ(p1.get(), nullptr);
+    p2 = std::move(p1);            // move assignment
+    EXPECT_EQ(p1.get(), nullptr);  // NOLINT(bugprone-use-after-move)
     EXPECT_EQ(p2.get(), &i);
   }
 }

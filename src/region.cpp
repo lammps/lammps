@@ -53,7 +53,6 @@ Region::~Region()
 
   delete[] id;
   delete[] style;
-
   delete[] xstr;
   delete[] ystr;
   delete[] zstr;
@@ -66,27 +65,39 @@ void Region::init()
 {
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all(FLERR, "Variable {} for region does not exist", xstr);
+    if (xvar < 0)
+      error->all(FLERR, Error::NOLASTLINE, "Variable {} for region {} {} does not exist", xstr,
+                 style, id);
     if (!input->variable->equalstyle(xvar))
-      error->all(FLERR, "Variable {} for region is invalid style", xstr);
+      error->all(FLERR, Error::NOLASTLINE, "Variable {} for region {} {} is invalid style", xstr,
+                 style, id);
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all(FLERR, "Variable {} for region does not exist", ystr);
+    if (yvar < 0)
+      error->all(FLERR, Error::NOLASTLINE, "Variable {} for region {} {} does not exist", ystr,
+                 style, id);
     if (!input->variable->equalstyle(yvar))
-      error->all(FLERR, "Variable {} for region is not equal style", ystr);
+      error->all(FLERR, Error::NOLASTLINE, "Variable {} for region {} {} is not equal style", ystr,
+                 style, id);
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all(FLERR, "Variable {} for region does not exist", zstr);
+    if (zvar < 0)
+      error->all(FLERR, Error::NOLASTLINE, "Variable {} for region {} {} does not exist", zstr,
+                 style, id);
     if (!input->variable->equalstyle(zvar))
-      error->all(FLERR, "Variable {} for region is not equal style", zstr);
+      error->all(FLERR, Error::NOLASTLINE, "Variable {} for region {} {} is not equal style", zstr,
+                 style, id);
   }
   if (tstr) {
     tvar = input->variable->find(tstr);
-    if (tvar < 0) error->all(FLERR, "Variable {} for region does not exist", tstr);
+    if (tvar < 0)
+      error->all(FLERR, Error::NOLASTLINE, "Variable {} for region {} {} does not exist", tstr,
+                 style, id);
     if (!input->variable->equalstyle(tvar))
-      error->all(FLERR, "Variable {} for region is not equal style", tstr);
+      error->all(FLERR, Error::NOLASTLINE, "Variable {} for region {} {} is not equal style", tstr,
+                 style, id);
   }
   vel_timestep = -1;
 }
@@ -304,6 +315,16 @@ void Region::options(int narg, char **arg)
 {
   if (narg < 0) utils::missing_cmd_args(FLERR, "region", error);
 
+  int offset = -20;
+  if (input && input->arg && arg) {
+    for (int i = 0; i < input->narg; ++i) {
+      if (arg[0] == input->arg[i]) {
+        offset = i;
+        break;
+      }
+    }
+  }
+
   // option defaults
 
   interior = 1;
@@ -322,7 +343,7 @@ void Region::options(int narg, char **arg)
       else if (strcmp(arg[iarg + 1], "lattice") == 0)
         scaleflag = 1;
       else
-        error->all(FLERR, "Illegal region units: {}", arg[iarg + 1]);
+        error->all(FLERR, iarg + 1 + offset, "Unknown region units: {}", arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "side") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "region side", error);
@@ -331,24 +352,27 @@ void Region::options(int narg, char **arg)
       else if (strcmp(arg[iarg + 1], "out") == 0)
         interior = 0;
       else
-        error->all(FLERR, "Illegal region side: {}", arg[iarg + 1]);
+        error->all(FLERR, iarg + 1 + offset, "Unknown region side setting: {}", arg[iarg + 1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "move") == 0) {
       if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "region move", error);
       if (strcmp(arg[iarg + 1], "NULL") != 0) {
         if (strstr(arg[iarg + 1], "v_") != arg[iarg + 1])
-          error->all(FLERR, "Illegal region move x displacement variable: {}", arg[iarg + 1]);
+          error->all(FLERR, iarg + 1 + offset, "Illegal region move x displacement variable: {}",
+                     arg[iarg + 1]);
         xstr = utils::strdup(&arg[iarg + 1][2]);
       }
       if (strcmp(arg[iarg + 2], "NULL") != 0) {
         if (strstr(arg[iarg + 2], "v_") != arg[iarg + 2])
-          error->all(FLERR, "Illegal region move y displacement variable: {}", arg[iarg + 2]);
+          error->all(FLERR, iarg + 2 + offset, "Illegal region move y displacement variable: {}",
+                     arg[iarg + 2]);
         ystr = utils::strdup(&arg[iarg + 2][2]);
       }
       if (strcmp(arg[iarg + 3], "NULL") != 0) {
         if (strstr(arg[iarg + 3], "v_") != arg[iarg + 3])
-          error->all(FLERR, "Illegal region move z displacement variable: {}", arg[iarg + 3]);
+          error->all(FLERR, iarg + 3 + offset, "Illegal region move z displacement variable: {}",
+                     arg[iarg + 3]);
         zstr = utils::strdup(&arg[iarg + 3][2]);
       }
       moveflag = 1;
@@ -370,19 +394,20 @@ void Region::options(int narg, char **arg)
     } else if (strcmp(arg[iarg], "open") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "region open", error);
       int iface = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (iface < 1 || iface > 6) error->all(FLERR, "Illegal region open face index: {}", iface);
+      if (iface < 1 || iface > 6)
+        error->all(FLERR, iarg + 1 + offset, "Illegal region open face index: {}", iface);
       // additional checks on valid face index are done by region classes
       open_faces[iface - 1] = 1;
       openflag = 1;
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal region command argument: {}", arg[iarg]);
+      error->all(FLERR, iarg + offset, "Unknown region command argument: {}", arg[iarg]);
   }
 
   // error check
 
   if ((moveflag || rotateflag) && (strcmp(style, "union") == 0 || strcmp(style, "intersect") == 0))
-    error->all(FLERR, "Region union or intersect cannot be dynamic");
+    error->all(FLERR, 1, "Region union or intersect cannot be dynamic");
 
   // setup scaling
 
@@ -403,7 +428,7 @@ void Region::options(int narg, char **arg)
 
   if (rotateflag) {
     double len = sqrt(axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]);
-    if (len == 0.0) error->all(FLERR, "Region cannot have 0 length rotation vector");
+    if (len == 0.0) error->all(FLERR, Error::NOPOINTER, "Region cannot have 0 length rotation vector");
     runit[0] = axis[0] / len;
     runit[1] = axis[1] / len;
     runit[2] = axis[2] / len;

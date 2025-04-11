@@ -86,7 +86,7 @@ void KimInit::command(int narg, char **arg)
   if ((narg < 2) || (narg > 3)) error->all(FLERR, "Illegal 'kim init' command");
 
   if (domain->box_exist)
-    error->all(FLERR, "Must use 'kim init' command before simulation box is defined");
+    error->all(FLERR, "Must use 'kim init' command before simulation box is defined" + utils::errorurl(33));
 
   char *model_name = utils::strdup(arg[0]);
   char *user_units = utils::strdup(arg[1]);

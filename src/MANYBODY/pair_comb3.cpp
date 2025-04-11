@@ -25,6 +25,7 @@
 #include "error.h"
 #include "force.h"
 #include "group.h"
+#include "info.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "math_special.h"
@@ -164,7 +165,7 @@ void PairComb3::settings(int narg, char **arg)
   else error->all(FLERR,"Illegal pair_style command");
 
   if (comm->me == 0 && screen)
-    fmt::print(screen,"   PairComb3: polarization is {} \n",
+    utils::print(screen,"   PairComb3: polarization is {} \n",
                pol_flag ? "on" : "off");
 }
 
@@ -208,11 +209,11 @@ void PairComb3::coeff(int narg, char **arg)
 void PairComb3::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style COMB3 requires atom IDs");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style COMB3 requires atom IDs");
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style COMB3 requires newton pair on");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style COMB3 requires newton pair on");
   if (!atom->q_flag)
-    error->all(FLERR,"Pair style COMB3 requires atom attribute q");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style COMB3 requires atom attribute q");
 
 // need a full neighbor list
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
@@ -243,7 +244,9 @@ void PairComb3::init_style()
 
 double PairComb3::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
   cutghost[j][i] = cutghost[i][j] = cutmax;
   return cutmax;
 }

@@ -23,5 +23,6 @@
 #define TEST_CATEGORY_NUMBER 4
 #define TEST_CATEGORY_DEATH openmptarget_DeathTest
 #define TEST_EXECSPACE Kokkos::Experimental::OpenMPTarget
+#define TEST_CATEGORY_FIXTURE(name) openmptarget_##name
 
 #endif

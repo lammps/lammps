@@ -80,7 +80,7 @@ TEST_F(RegionTest, NoBox)
     list = domain->get_region_list();
     EXPECT_EQ(list.size(), 9);
 
-    auto reg = domain->get_region_by_id("reg1");
+    auto *reg = domain->get_region_by_id("reg1");
     EXPECT_EQ(reg->interior, 1);
     EXPECT_EQ(reg->scaleflag, 1);
     EXPECT_EQ(reg->bboxflag, 1);
@@ -231,17 +231,17 @@ TEST_F(RegionTest, Counts)
     command("region reg10 prism 0 5 0 5 -5 5 0.0 0.0 0.0"); // same as block
     END_HIDE_OUTPUT();
 
-    auto x     = atom->x;
-    auto reg1  = domain->get_region_by_id("reg1");
-    auto reg2  = domain->get_region_by_id("reg2");
-    auto reg3  = domain->get_region_by_id("reg3");
-    auto reg4  = domain->get_region_by_id("reg4");
-    auto reg5  = domain->get_region_by_id("reg5");
-    auto reg6  = domain->get_region_by_id("reg6");
-    auto reg7  = domain->get_region_by_id("reg7");
-    auto reg8  = domain->get_region_by_id("reg8");
-    auto reg9  = domain->get_region_by_id("reg9");
-    auto reg10 = domain->get_region_by_id("reg10");
+    auto *x     = atom->x;
+    auto *reg1  = domain->get_region_by_id("reg1");
+    auto *reg2  = domain->get_region_by_id("reg2");
+    auto *reg3  = domain->get_region_by_id("reg3");
+    auto *reg4  = domain->get_region_by_id("reg4");
+    auto *reg5  = domain->get_region_by_id("reg5");
+    auto *reg6  = domain->get_region_by_id("reg6");
+    auto *reg7  = domain->get_region_by_id("reg7");
+    auto *reg8  = domain->get_region_by_id("reg8");
+    auto *reg9  = domain->get_region_by_id("reg9");
+    auto *reg10 = domain->get_region_by_id("reg10");
     int count1, count2, count3, count4, count5, count6, count7, count8, count9, count10;
     count1 = count2 = count3 = count4 = count5 = count6 = count7 = count8 = count9 = count10 = 0;
     reg1->prematch();

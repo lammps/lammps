@@ -34,10 +34,6 @@
 #include <sstream>
 #include <cstring>
 
-#ifdef KOKKOS_COMPILER_INTEL
-#include <aligned_new>
-#endif
-
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
@@ -76,25 +72,12 @@ void *HostSpace::impl_allocate(
   void *ptr = nullptr;
 
   if (arg_alloc_size)
-    ptr = operator new (arg_alloc_size, std::align_val_t(alignment),
-                        std::nothrow_t{});
+    ptr = operator new(arg_alloc_size, std::align_val_t(alignment),
+                       std::nothrow_t{});
 
-  if ((ptr == nullptr) || (reinterpret_cast<uintptr_t>(ptr) == ~uintptr_t(0)) ||
+  if (!ptr || (reinterpret_cast<uintptr_t>(ptr) == ~uintptr_t(0)) ||
       (reinterpret_cast<uintptr_t>(ptr) & alignment_mask)) {
-    Experimental::RawMemoryAllocationFailure::FailureMode failure_mode =
-        Experimental::RawMemoryAllocationFailure::FailureMode::
-            AllocationNotAligned;
-    if (ptr == nullptr) {
-      failure_mode = Experimental::RawMemoryAllocationFailure::FailureMode::
-          OutOfMemoryError;
-    }
-
-    Experimental::RawMemoryAllocationFailure::AllocationMechanism alloc_mec =
-        Experimental::RawMemoryAllocationFailure::AllocationMechanism::
-            StdMalloc;
-
-    throw Kokkos::Experimental::RawMemoryAllocationFailure(
-        arg_alloc_size, alignment, failure_mode, alloc_mec);
+    Impl::throw_bad_alloc(name(), arg_alloc_size, arg_label);
   }
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::allocateData(arg_handle, arg_label, ptr, reported_size);
@@ -109,9 +92,8 @@ void HostSpace::deallocate(void *const arg_alloc_ptr,
 
 void HostSpace::deallocate(const char *arg_label, void *const arg_alloc_ptr,
                            const size_t arg_alloc_size,
-                           const size_t
-
-                               arg_logical_size) const {
+                           const size_t arg_logical_size) const {
+  if (arg_alloc_ptr) Kokkos::fence("HostSpace::impl_deallocate before free");
   impl_deallocate(arg_label, arg_alloc_ptr, arg_alloc_size, arg_logical_size);
 }
 void HostSpace::impl_deallocate(
@@ -119,7 +101,6 @@ void HostSpace::impl_deallocate(
     const size_t arg_alloc_size, const size_t arg_logical_size,
     const Kokkos::Tools::SpaceHandle arg_handle) const {
   if (arg_alloc_ptr) {
-    Kokkos::fence("HostSpace::impl_deallocate before free");
     size_t reported_size =
         (arg_logical_size > 0) ? arg_logical_size : arg_alloc_size;
     if (Kokkos::Profiling::profileLibraryLoaded()) {
@@ -127,8 +108,8 @@ void HostSpace::impl_deallocate(
                                         reported_size);
     }
     constexpr uintptr_t alignment = Kokkos::Impl::MEMORY_ALIGNMENT;
-    operator delete (arg_alloc_ptr, std::align_val_t(alignment),
-                     std::nothrow_t{});
+    operator delete(arg_alloc_ptr, std::align_val_t(alignment),
+                    std::nothrow_t{});
   }
 }
 

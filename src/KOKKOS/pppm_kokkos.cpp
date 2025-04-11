@@ -46,9 +46,6 @@ static constexpr double SMALL = 0.00001;
 static constexpr double EPS_HOC = 1.0e-7;
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
-enum { REVERSE_RHO };
-enum { FORWARD_IK, FORWARD_IK_PERATOM };
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -794,7 +791,7 @@ void PPPMKokkos<DeviceType>::allocate()
   // 2nd FFT returns data in 3d brick decomposition
   // remap takes data from 3d brick to FFT decomposition
 
-  int collective_flag = 0; // not yet supported in Kokkos version
+  int collective_flag = force->kspace->collective_flag;
   int gpu_aware_flag = lmp->kokkos->gpu_aware_flag;
   int tmp;
 
@@ -1141,7 +1138,7 @@ void PPPMKokkos<DeviceType>::particle_map()
   k_flag.template sync<DeviceType>();
 
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
-    error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
+    error->one(FLERR,"Non-numeric box dimensions - simulation unstable" + utils::errorurl(6));
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_particle_map>(0,nlocal),*this);
@@ -1149,7 +1146,8 @@ void PPPMKokkos<DeviceType>::particle_map()
 
   k_flag.template modify<DeviceType>();
   k_flag.template sync<LMPHostType>();
-  if (k_flag.h_view()) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
+  if (k_flag.h_view())
+    error->one(FLERR, Error::NOLASTLINE, "Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
 }
 
 template<class DeviceType>

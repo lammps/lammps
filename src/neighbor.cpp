@@ -139,6 +139,7 @@ pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
   ago = -1;
 
   cutneighmax = 0.0;
+  cutneighmin = BIG;
   cutneighsq = nullptr;
   cutneighghostsq = nullptr;
   cuttype = nullptr;
@@ -162,6 +163,9 @@ pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
 
   npair_perpetual = 0;
   plist = nullptr;
+
+  npair_occasional = 0;
+  olist = nullptr;
 
   nrequest = maxrequest = 0;
   requests = nullptr;
@@ -253,6 +257,7 @@ Neighbor::~Neighbor()
 
   delete[] slist;
   delete[] plist;
+  delete[] olist;
 
   for (int i = 0; i < nrequest; i++)
     if (requests[i]) delete requests[i];
@@ -314,13 +319,16 @@ void Neighbor::init()
   // error checks
 
   if (triclinic && atom->tag_enable == 0)
-    error->all(FLERR, "Cannot build triclinic neighbor lists unless atoms have IDs");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Cannot build triclinic neighbor lists unless atoms have IDs");
 
   if (delay > 0 && (delay % every) != 0)
-    error->all(FLERR,"Neighbor delay must be 0 or multiple of every setting");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Neighbor delay must be 0 or multiple of every setting");
 
   if (pgsize < 10*oneatom)
-    error->all(FLERR,"Neighbor page size must be >= 10x the one atom setting");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Neighbor page size must be >= 10x the one atom setting");
 
   // ------------------------------------------------------------------
   // settings
@@ -384,6 +392,13 @@ void Neighbor::init()
   }
   cutneighmaxsq = cutneighmax * cutneighmax;
 
+  // update cutneighmin based on individual neighbor list requests
+
+  for (i = 0; i < nrequest; ++i) {
+    if (requests[i]->cut) cutneighmin = MIN(cutneighmin, requests[i]->cutoff +
+                                            (requests[i]->occasional ? 0.0 : skin));
+  }
+
   // Define cutoffs for multi
   if (style == Neighbor::MULTI) {
     int icollection, jcollection;
@@ -428,7 +443,8 @@ void Neighbor::init()
       }
     } else {
       if (!force->pair)
-        error->all(FLERR, "Cannot use collection/interval command without defining a pairstyle");
+        error->all(FLERR,  Error::NOLASTLINE,
+                   "Cannot use collection/interval command without defining a pairstyle");
 
       if (force->pair->finitecutflag) {
         finite_cut_flag = 1;
@@ -464,7 +480,8 @@ void Neighbor::init()
           }
 
           if (type2collection[i] == -1)
-            error->all(FLERR, "Pair cutoff exceeds interval cutoffs for multi");
+            error->all(FLERR,  Error::NOLASTLINE,
+                       "Pair cutoff exceeds interval cutoffs for multi");
         }
 
         // Define cutoffs
@@ -616,7 +633,7 @@ void Neighbor::init()
     for (i = 0; i < nex_type; i++) {
       if (ex1_type[i] <= 0 || ex1_type[i] > n ||
           ex2_type[i] <= 0 || ex2_type[i] > n)
-        error->all(FLERR,"Invalid atom type in neighbor exclusion list");
+        error->all(FLERR, Error::NOLASTLINE, "Invalid atom type in neighbor exclusion list");
       ex_type[ex1_type[i]][ex2_type[i]] = 1;
       ex_type[ex2_type[i]][ex1_type[i]] = 1;
     }
@@ -839,7 +856,8 @@ int Neighbor::init_pair()
   if (style == Neighbor::BIN) {
     for (i = 0; i < nrequest; ++i)
       if (requests[i]->occasional && requests[i]->ghost)
-        error->all(FLERR, "Cannot request an occasional binned neighbor list with ghost info");
+        error->all(FLERR,  Error::NOLASTLINE,
+                   "Cannot request an occasional binned neighbor list with ghost info");
   }
 
   // check requests with a custom neighbor list cutoff to make sure the cutoff is within
@@ -849,7 +867,8 @@ int Neighbor::init_pair()
   for (i = 0; i < nrequest; ++i) {
     if (requests[i]->cut) {
       if (comm_cutoff < (requests[i]->cutoff + (requests[i]->occasional ? 0.0 : skin)))
-        error->all(FLERR, "Custom neighbor list cutoff too large for communication cutoff");
+        error->all(FLERR,  Error::NOLASTLINE,
+                   "Custom neighbor list cutoff too large for communication cutoff");
     }
   }
 
@@ -933,17 +952,17 @@ int Neighbor::init_pair()
     flag = choose_bin(requests[i]);
     lists[i]->bin_method = flag;
     if (flag < 0)
-      error->all(FLERR,"Requested neighbor bin option does not exist");
+      error->all(FLERR, Error::NOLASTLINE, "Requested neighbor bin option does not exist");
 
     flag = choose_stencil(requests[i]);
     lists[i]->stencil_method = flag;
     if (flag < 0)
-      error->all(FLERR,"Requested neighbor stencil method does not exist");
+      error->all(FLERR, Error::NOLASTLINE, "Requested neighbor stencil method does not exist");
 
     flag = choose_pair(requests[i]);
     lists[i]->pair_method = flag;
     if (flag < 0)
-      error->all(FLERR,"Requested neighbor pair method does not exist");
+      error->all(FLERR, Error::NOLASTLINE, "Requested neighbor pair method does not exist");
   }
 
   // instantiate unique Bin,Stencil classes in neigh_bin & neigh_stencil vecs
@@ -996,7 +1015,7 @@ int Neighbor::init_pair()
     if (lists[i]->bin_method > 0) {
       neigh_stencil[nstencil]->nb = neigh_bin[requests[i]->index_bin];
       if (neigh_stencil[nstencil]->nb == nullptr)
-        error->all(FLERR,"Could not assign bin method to neighbor stencil");
+        error->all(FLERR, Error::NOLASTLINE, "Could not assign bin method to neighbor stencil");
     }
 
     requests[i]->index_stencil = nstencil;
@@ -1008,6 +1027,9 @@ int Neighbor::init_pair()
   for (i = 0; i < nrequest; i++) {
     requests[i]->index_pair = -1;
     flag = lists[i]->pair_method;
+
+    // 22 Jul 2024 NOTE, don't think flag = 0 occurs in current code
+
     if (flag == 0) {
       neigh_pair[i] = nullptr;
       continue;
@@ -1021,12 +1043,12 @@ int Neighbor::init_pair()
     if (lists[i]->bin_method > 0) {
       neigh_pair[i]->nb = neigh_bin[requests[i]->index_bin];
       if (neigh_pair[i]->nb == nullptr)
-        error->all(FLERR,"Could not assign bin method to neighbor pair");
+        error->all(FLERR, Error::NOLASTLINE, "Could not assign bin method to neighbor pair");
     }
     if (lists[i]->stencil_method > 0) {
       neigh_pair[i]->ns = neigh_stencil[requests[i]->index_stencil];
       if (neigh_pair[i]->ns == nullptr)
-        error->all(FLERR,"Could not assign stencil method to neighbor pair");
+        error->all(FLERR, Error::NOLASTLINE, "Could not assign stencil method to neighbor pair");
     }
 
     requests[i]->index_pair = i;
@@ -1054,19 +1076,25 @@ int Neighbor::init_pair()
 
   // plist = indices of perpetual NPair classes
   //         perpetual = non-occasional, re-built at every reneighboring
+  // olist = indices of occasional NPair classes
+  //         occasional = built only when requested
   // slist = indices of perpetual NStencil classes
   //         perpetual = used by any perpetual NPair class
 
-  delete[] slist;
   delete[] plist;
-  nstencil_perpetual = npair_perpetual = 0;
-  slist = new int[nstencil];
+  delete[] olist;
+  delete[] slist;
+  npair_perpetual = npair_occasional = nstencil_perpetual = 0;
   plist = new int[nlist];
+  olist = new int[nlist];
+  slist = new int[nstencil];
 
   for (i = 0; i < nlist; i++) {
     if (lists[i]->occasional == 0 && lists[i]->pair_method)
       plist[npair_perpetual++] = i;
-  }
+    if (lists[i]->occasional && lists[i]->pair_method)
+      olist[npair_occasional++] = i;
+ }
 
   for (i = 0; i < nstencil; i++) {
     flag = 0;
@@ -1086,8 +1114,10 @@ int Neighbor::init_pair()
 
   NeighList *ptr;
 
+  // use counter to avoid getting stuck
   int done = 0;
-  while (!done) {
+  int count = 0;
+  while (!done && (count < 100)) {
     done = 1;
     for (i = 0; i < npair_perpetual; i++) {
       for (k = 0; k < 3; k++) {
@@ -1096,8 +1126,9 @@ int Neighbor::init_pair()
         if (k == 1) ptr = lists[plist[i]]->listskip;
         if (k == 2) ptr = lists[plist[i]]->listfull;
         if (ptr == nullptr) continue;
-        for (m = 0; m < nrequest; m++)
+        for (m = 0; m < nrequest; m++) {
           if (ptr == lists[m]) break;
+        }
         for (j = 0; j < npair_perpetual; j++)
           if (m == plist[j]) break;
         if (j < i) continue;
@@ -1109,7 +1140,11 @@ int Neighbor::init_pair()
       }
       if (!done) break;
     }
+    ++count;
   }
+  if (count == 100)
+    error->all(FLERR,  Error::NOLASTLINE, "Failed to reorder neighbor lists to satisfy "
+               "constraints - Please contact the LAMMPS developers." + utils::errorurl(35));
 
   // debug output
 
@@ -1172,8 +1207,8 @@ void Neighbor::morph_unique()
   for (int i = 0; i < nrequest; i++) {
     irq = requests[i];
 
-    // if cut flag set by requestor and cutoff is different than default,
-    //  set unique flag, otherwise unset cut flag
+    // if cut flag set by requestor and cutoff is larger than minimum for default,
+    //   and the list is not a skip list, set unique flag; otherwise unset cut flag
     // this forces Pair,Stencil,Bin styles to be instantiated separately
     // also add skin to cutoff of perpetual lists
 
@@ -1181,7 +1216,7 @@ void Neighbor::morph_unique()
       if (!irq->occasional)
         irq->cutoff += skin;
 
-      if (irq->cutoff != cutneighmax) {
+      if ((irq->cutoff > cutneighmin) && !irq->skip) {
         irq->unique = 1;
       } else {
         irq->cut = 0;
@@ -1496,6 +1531,10 @@ void Neighbor::morph_copy_trim()
       // other list is already copied from this one
 
       if (jrq->copy && jrq->copylist == i) continue;
+
+      // cannot copy or trim if some pair-wise cutoffs are too small
+
+      if (irq->cut && !jrq->cut && (irq->cutoff > cutneighmin)) continue;
 
       // trim a list with longer cutoff
 
@@ -2078,7 +2117,8 @@ int Neighbor::choose_pair(NeighRequest *rq)
   // error check for includegroup with ghost neighbor request
 
   if (includegroup && rq->ghost)
-    error->all(FLERR,"Neighbor include group not allowed with ghost neighbors");
+    error->all(FLERR,  Error::NOLASTLINE,
+               "Neighbor include group not allowed with ghost neighbors");
 
   // convert newton request to newtflag = on or off
 
@@ -2087,7 +2127,7 @@ int Neighbor::choose_pair(NeighRequest *rq)
   else if (rq->newton == 0 && !newton_pair) newtflag = false;
   else if (rq->newton == 1) newtflag = true;
   else if (rq->newton == 2) newtflag = false;
-  else error->all(FLERR,"Illegal 'newton' flag in neighbor list request");
+  else error->all(FLERR, Error::NOLASTLINE, "Illegal 'newton' flag in neighbor list request");
 
   int molecular = atom->molecular;
 
@@ -2416,13 +2456,15 @@ void Neighbor::build(int topoflag)
 
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
+
   // rebuild collection array from scratch
+
   if (style == Neighbor::MULTI) build_collection(0);
 
   // check that using special bond flags will not overflow neigh lists
 
   if (nall > NEIGHMASK)
-    error->one(FLERR,"Too many local+ghost atoms for neighbor list");
+    error->one(FLERR, Error::NOLASTLINE, "Too many local+ghost atoms for neighbor list");
 
   // store current atom positions and box size if needed
 
@@ -2488,6 +2530,16 @@ void Neighbor::build(int topoflag)
   // skip if GPU package styles will call it explicitly to overlap with GPU computation.
 
   if ((atom->molecular != Atom::ATOMIC) && topoflag && !overlap_topo) build_topology();
+
+  // reset last_build in all occasional lists
+  // this will force them rebuild on next request
+  // all occasional lists are now out-of-date b/c
+  //   comm->exchange() occurred before neighbor->build()
+
+  for (i = 0; i < npair_occasional; i++) {
+    m = olist[i];
+    neigh_pair[m]->last_build = -1;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -2524,29 +2576,25 @@ void Neighbor::build_topology()
    called by other classes
 ------------------------------------------------------------------------- */
 
-void Neighbor::build_one(class NeighList *mylist, int preflag)
+void Neighbor::build_one(class NeighList *mylist)
 {
   // check if list structure is initialized
 
   if (mylist == nullptr)
-    error->all(FLERR,"Trying to build an occasional neighbor list before initialization complete");
+    error->all(FLERR,  Error::NOLASTLINE,
+               "Trying to build an occasional neighbor list before initialization is complete");
 
   // build_one() should never be invoked on a perpetual list
 
-  if (!mylist->occasional) error->all(FLERR,"Neighbor::build_one() invoked on perpetual list");
+  if (!mylist->occasional)
+    error->all(FLERR, Error::NOLASTLINE, "Neighbor::build_one() invoked on a perpetual list");
 
-  // no need to build if already built since last re-neighbor
-  // preflag is set by fix bond/create and fix bond/swap
-  //   b/c they invoke build_one() on same step neigh list is re-built,
-  //   but before re-build, so need to use ">" instead of ">="
+  // no need to build this occasional list if already built
+  //   since last comm->exchange() and re-neighbor which invoked build()
+  // build() method resets last_build for all occasional lists to -1
 
   NPair *np = neigh_pair[mylist->index];
-
-  if (preflag) {
-    if (np->last_build > lastcall) return;
-  } else {
-    if (np->last_build >= lastcall) return;
-  }
+  if (np->last_build >= lastcall) return;
 
   // if this is copy list and parent is occasional list,
   // or this is halffull and parent is occasional list,
@@ -2554,11 +2602,11 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
   // ensure parent is current
 
   if (mylist->listcopy && mylist->listcopy->occasional)
-    build_one(mylist->listcopy,preflag);
+    build_one(mylist->listcopy);
   if (mylist->listfull && mylist->listfull->occasional)
-    build_one(mylist->listfull,preflag);
+    build_one(mylist->listfull);
   if (mylist->listskip && mylist->listskip->occasional)
-    build_one(mylist->listskip,preflag);
+    build_one(mylist->listskip);
 
   // create stencil if hasn't been created since last setup_bins() call
 
@@ -2582,18 +2630,25 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
 
 void Neighbor::set(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR,"Illegal neighbor command: expected 2 arguments but found {}", narg);
+  if (narg != 2)
+    error->all(FLERR, Error::ARGZERO,
+               "Illegal neighbor command: expected 2 arguments but found {}", narg);
 
   skin = utils::numeric(FLERR,arg[0],false,lmp);
-  if (skin < 0.0) error->all(FLERR, "Invalid neighbor argument: {}", arg[0]);
+  if (skin < 0.0) error->all(FLERR, Error::ARGZERO, "Invalid neighbor argument: {}", arg[0]);
 
   if (strcmp(arg[1],"nsq") == 0) style = Neighbor::NSQ;
   else if (strcmp(arg[1],"bin") == 0) style = Neighbor::BIN;
   else if (strcmp(arg[1],"multi") == 0) {
     style = Neighbor::MULTI;
     ncollections = atom->ntypes;
-  } else if (strcmp(arg[1],"multi/old") == 0) style = Neighbor::MULTI_OLD;
-  else error->all(FLERR,"Unknown neighbor {} argument: {}", arg[0], arg[1]);
+  } else if (strcmp(arg[1],"multi/old") == 0) {
+    style = Neighbor::MULTI_OLD;
+    if (me == 0)
+      error->warning(FLERR, "Neighbor list style 'multi/old' is deprecated and will be removed "
+                     "soon.\nPlease contact the LAMMPS developers if you cannot use style 'multi'."
+                     + utils::errorurl(35));
+  } else error->all(FLERR, 1, "Unknown neighbor {} argument: {}", arg[0], arg[1]);
 
   if (style == Neighbor::MULTI_OLD && lmp->citeme) lmp->citeme->add(cite_neigh_multi_old);
   if (style == Neighbor::MULTI && lmp->citeme) lmp->citeme->add(cite_neigh_multi);
@@ -2631,12 +2686,14 @@ void Neighbor::modify_params(int narg, char **arg)
     if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify every", error);
       every = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (every <= 0) error->all(FLERR, "Invalid neigh_modify every argument: {}", every);
+      if (every <= 0)
+        error->all(FLERR, iarg+1, "Invalid neigh_modify every argument: {}", every);
       iarg += 2;
     } else if (strcmp(arg[iarg],"delay") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify delay", error);
       delay = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (delay < 0) error->all(FLERR, "Invalid neigh_modify delay argument: {}", delay);
+      if (delay < 0)
+        error->all(FLERR, iarg+1, "Invalid neigh_modify delay argument: {}", delay);
       iarg += 2;
     } else if (strcmp(arg[iarg],"check") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify check", error);
@@ -2670,11 +2727,13 @@ void Neighbor::modify_params(int narg, char **arg)
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify include", error);
       includegroup = group->find(arg[iarg+1]);
       if (includegroup < 0)
-        error->all(FLERR, "Invalid include keyword: group {} not found", arg[iarg+1]);
+        error->all(FLERR, iarg+1, "Invalid include keyword: group {} not found", arg[iarg+1]);
       if (atom->firstgroupname == nullptr)
-          error->all(FLERR, "Invalid include keyword: atom_modify first command must be used");
+        error->all(FLERR, iarg+1,
+                   "Invalid include keyword: atom_modify first command must be used");
       if (strcmp(arg[iarg+1],atom->firstgroupname) != 0)
-        error->all(FLERR, "Neigh_modify include group != atom_modify first group: {}", atom->firstgroupname);
+        error->all(FLERR, iarg+1,
+                   "Neigh_modify include group != atom_modify first group: {}", atom->firstgroupname);
       iarg += 2;
     } else if (strcmp(arg[iarg],"exclude") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify exclude", error);
@@ -2686,8 +2745,8 @@ void Neighbor::modify_params(int narg, char **arg)
           memory->grow(ex1_type,maxex_type,"neigh:ex1_type");
           memory->grow(ex2_type,maxex_type,"neigh:ex2_type");
         }
-        ex1_type[nex_type] = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-        ex2_type[nex_type] = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+        ex1_type[nex_type] = utils::expand_type_int(FLERR, arg[iarg+2], Atom::ATOM, lmp);
+        ex2_type[nex_type] = utils::expand_type_int(FLERR, arg[iarg+3], Atom::ATOM, lmp);
         nex_type++;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"group") == 0) {
@@ -2700,16 +2759,21 @@ void Neighbor::modify_params(int narg, char **arg)
         ex1_group[nex_group] = group->find(arg[iarg+2]);
         ex2_group[nex_group] = group->find(arg[iarg+3]);
         if (ex1_group[nex_group] == -1)
-          error->all(FLERR, "Invalid exclude group keyword: group {} not found", arg[iarg+2]);
+          error->all(FLERR, iarg+2,
+                     "Invalid exclude group keyword: group {} not found", arg[iarg+2]);
         if (ex2_group[nex_group] == -1)
-            error->all(FLERR, "Invalid exclude group keyword: group {} not found", arg[iarg+3]);
+          error->all(FLERR, iarg+3,
+                     "Invalid exclude group keyword: group {} not found", arg[iarg+3]);
+        if (group->dynamic[ex1_group[nex_group]] || group->dynamic[ex2_group[nex_group]])
+          error->all(FLERR, "Neigh_modify exclude group is not compatible with dynamic groups");
         nex_group++;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"molecule/inter") == 0 ||
                  strcmp(arg[iarg+1],"molecule/intra") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "neigh_modify exclude molecule", error);
         if (atom->molecule_flag == 0)
-          error->all(FLERR,"Neigh_modify exclude molecule requires atom attribute molecule");
+          error->all(FLERR, iarg+1,
+                     "Neigh_modify exclude molecule requires atom attribute molecule");
         if (nex_mol == maxex_mol) {
           maxex_mol += EXDELTA;
           memory->grow(ex_mol_group,maxex_mol,"neigh:ex_mol_group");
@@ -2720,7 +2784,7 @@ void Neighbor::modify_params(int narg, char **arg)
         }
         ex_mol_group[nex_mol] = group->find(arg[iarg+2]);
         if (ex_mol_group[nex_mol] == -1)
-          error->all(FLERR, "Invalid exclude keyword:group {} not found", arg[iarg+2]);
+          error->all(FLERR, iarg+1, "Invalid exclude keyword:group {} not found", arg[iarg+2]);
         if (strcmp(arg[iarg+1],"molecule/intra") == 0)
           ex_mol_intra[nex_mol] = 1;
         else
@@ -2730,7 +2794,7 @@ void Neighbor::modify_params(int narg, char **arg)
       } else if (strcmp(arg[iarg+1],"none") == 0) {
         nex_type = nex_group = nex_mol = 0;
         iarg += 2;
-      } else error->all(FLERR,"Unknown neigh_modify exclude keyword: {}", arg[iarg+1]);
+      } else error->all(FLERR, iarg+1, "Unknown neigh_modify exclude keyword: {}", arg[iarg+1]);
     } else if (strcmp(arg[iarg],"collection/interval") == 0) {
       if (style != Neighbor::MULTI)
         error->all(FLERR,"Cannot use collection/interval command without multi setting");
@@ -2739,7 +2803,8 @@ void Neighbor::modify_params(int narg, char **arg)
         utils::missing_cmd_args(FLERR, "neigh_modify collection/interval", error);
       ncollections = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ncollections < 1)
-        error->all(FLERR, "Invalid collection/interval keyword: illegal number of custom collections: {}", ncollections);
+        error->all(FLERR, iarg+1, "Invalid collection/interval keyword: illegal number of "
+                   "custom collections: {}", ncollections);
       if (iarg+2+ncollections > narg)
         error->all(FLERR, "Invalid collection/interval keyword: expected {} separate lists of types", ncollections);
 
@@ -2767,13 +2832,14 @@ void Neighbor::modify_params(int narg, char **arg)
       iarg += 2 + ncollections;
     } else if (strcmp(arg[iarg],"collection/type") == 0) {
       if (style != Neighbor::MULTI)
-        error->all(FLERR,"Cannot use collection/type command without multi setting");
+        error->all(FLERR, iarg, "Cannot use collection/type command without multi setting");
 
       if (iarg+2 > narg)
         utils::missing_cmd_args(FLERR, "neigh_modify collection/type", error);
       ncollections = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ncollections < 1)
-        error->all(FLERR, "Invalid collection/type keyword: illegal number of custom collections: {}", ncollections);
+        error->all(FLERR, iarg+1, "Invalid collection/type keyword: illegal number of "
+                   "custom collections: {}", ncollections);
       if (iarg+2+ncollections > narg)
         error->all(FLERR, "Invalid collection/type keyword: expected {} separate lists of types", ncollections);
 
@@ -2790,8 +2856,7 @@ void Neighbor::modify_params(int narg, char **arg)
 
       // Erase previous mapping
 
-      for (i = 1; i <= ntypes; i++)
-        type2collection[i] = -1;
+      for (i = 1; i <= ntypes; i++) type2collection[i] = -1;
 
       // For each custom range, define mapping for types in interval
 
@@ -2816,7 +2881,7 @@ void Neighbor::modify_params(int narg, char **arg)
       }
 
       iarg += 2 + ncollections;
-    } else error->all(FLERR,"Unknown neigh_modify keyword: {}", arg[iarg]);
+    } else error->all(FLERR, iarg, "Unknown neigh_modify keyword: {}", arg[iarg]);
   }
 }
 

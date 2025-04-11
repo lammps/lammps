@@ -103,7 +103,7 @@ OutputIteratorType exclusive_scan_custom_op_exespace_impl(
 
   // aliases
   using index_type    = typename InputIteratorType::difference_type;
-  using unary_op_type = StdNumericScanIdentityReferenceUnaryFunctor<ValueType>;
+  using unary_op_type = StdNumericScanIdentityReferenceUnaryFunctor;
   using func_type     = TransformExclusiveScanFunctorWithValueWrapper<
       ExecutionSpace, index_type, ValueType, InputIteratorType,
       OutputIteratorType, BinaryOpType, unary_op_type>;
@@ -177,7 +177,7 @@ KOKKOS_FUNCTION OutputIteratorType exclusive_scan_custom_op_team_impl(
 
   // aliases
   using exe_space     = typename TeamHandleType::execution_space;
-  using unary_op_type = StdNumericScanIdentityReferenceUnaryFunctor<ValueType>;
+  using unary_op_type = StdNumericScanIdentityReferenceUnaryFunctor;
   using index_type    = typename InputIteratorType::difference_type;
   using func_type     = TransformExclusiveScanFunctorWithoutValueWrapper<
       exe_space, index_type, ValueType, InputIteratorType, OutputIteratorType,

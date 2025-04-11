@@ -43,7 +43,7 @@ DihedralMultiHarmonic::DihedralMultiHarmonic(LAMMPS *_lmp) : Dihedral(_lmp)
 
 DihedralMultiHarmonic::~DihedralMultiHarmonic()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(a1);
     memory->destroy(a2);
@@ -251,7 +251,7 @@ void DihedralMultiHarmonic::allocate()
 
 void DihedralMultiHarmonic::coeff(int narg, char **arg)
 {
-  if (narg != 6) error->all(FLERR, "Incorrect args for dihedral coefficients");
+  if (narg != 6) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -274,7 +274,7 @@ void DihedralMultiHarmonic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -326,8 +326,8 @@ void DihedralMultiHarmonic::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void DihedralMultiHarmonic::born_matrix(int nd, int i1, int i2, int i3, int i4,
-                             double &du, double &du2)
+void DihedralMultiHarmonic::born_matrix(int nd, int i1, int i2, int i3, int i4, double &du,
+                                        double &du2)
 {
   double vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, vb3z, vb2xm, vb2ym, vb2zm;
   double sb1, sb3, rb1, rb3, c0, b1mag2, b1mag, b2mag2;

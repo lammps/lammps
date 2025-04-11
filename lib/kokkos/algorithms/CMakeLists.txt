@@ -1,7 +1,11 @@
-IF (NOT Kokkos_INSTALL_TESTING)
-  ADD_SUBDIRECTORY(src)
-ENDIF()
+if(NOT Kokkos_INSTALL_TESTING)
+  add_subdirectory(src)
+endif()
 # FIXME_OPENACC: temporarily disabled due to unimplemented features
-IF(NOT ((KOKKOS_ENABLE_OPENMPTARGET AND KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC) OR KOKKOS_ENABLE_OPENACC))
-  KOKKOS_ADD_TEST_DIRECTORIES(unit_tests)
-ENDIF()
+if(NOT ((KOKKOS_ENABLE_OPENMPTARGET AND KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC) OR KOKKOS_ENABLE_OPENACC))
+  kokkos_add_test_directories(unit_tests)
+endif()
+
+if(Kokkos_ENABLE_BENCHMARKS)
+  add_subdirectory(perf_test)
+endif()

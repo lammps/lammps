@@ -30,7 +30,7 @@ namespace Impl {
 template <class InputIterator>
 struct StdReverseFunctor {
   using index_type = typename InputIterator::difference_type;
-  static_assert(std::is_signed<index_type>::value,
+  static_assert(std::is_signed_v<index_type>,
                 "Kokkos: StdReverseFunctor requires signed index type");
 
   InputIterator m_first;

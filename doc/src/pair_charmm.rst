@@ -198,7 +198,7 @@ Note that :math:`\sigma` is defined in the LJ formula as the zero-crossing
 distance for the potential, not as the energy minimum at :math:`2^{1/6} \sigma`.
 
 The latter 2 coefficients are optional.  If they are specified, they
-are used in the LJ formula between 2 atoms of these types which are
+are used in the LJ formula between two atoms of these types which are
 also first and fourth atoms in any dihedral.  No cutoffs are specified
 because the CHARMM force field does not allow varying cutoffs for
 individual atom pairs; all pairs use the global cutoff(s) specified in

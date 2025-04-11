@@ -86,7 +86,7 @@ int dgelsd_(integer *m, integer *n, integer *nrhs, doublereal *a, integer *lda, 
     i__1 = (integer)(log((doublereal)minmn / (doublereal)(smlsiz + 1)) / log(2.)) + 1;
     nlvl = max(i__1, 0);
     if (*info == 0) {
-        maxwrk = 0;
+        maxwrk = 1;
         liwork = minmn * 3 * nlvl + minmn * 11;
         mm = *m;
         if (*m >= *n && *m >= mnthr) {

@@ -20,6 +20,7 @@
 #include <omp.h>
 #include <sstream>
 #include <Kokkos_Parallel.hpp>
+#include <OpenMPTarget/Kokkos_OpenMPTarget_FunctorAdapter.hpp>
 
 namespace Kokkos {
 namespace Impl {
@@ -30,7 +31,6 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
  protected:
   using Policy = Kokkos::RangePolicy<Traits...>;
 
-  using WorkTag  = typename Policy::work_tag;
   using Member   = typename Policy::member_type;
   using idx_type = typename Policy::index_type;
 
@@ -48,18 +48,8 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
   value_type* m_result_ptr;
   const bool m_result_ptr_device_accessible;
 
-  template <class TagType>
-  std::enable_if_t<std::is_void<TagType>::value> call_with_tag(
-      const FunctorType& f, const idx_type& idx, value_type& val,
-      const bool& is_final) const {
-    f(idx, val, is_final);
-  }
-  template <class TagType>
-  std::enable_if_t<!std::is_void<TagType>::value> call_with_tag(
-      const FunctorType& f, const idx_type& idx, value_type& val,
-      const bool& is_final) const {
-    f(WorkTag(), idx, val, is_final);
-  }
+  using FunctorAdapter =
+      Kokkos::Experimental::Impl::FunctorAdapter<FunctorType, Policy>;
 
  public:
   void impl_execute(
@@ -77,8 +67,10 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
     idx_type team_size        = 128;
 
     auto a_functor_reducer = m_functor_reducer;
-#pragma omp target teams distribute map(to \
-                                        : a_functor_reducer) num_teams(nteams)
+    auto a_functor         = FunctorAdapter(m_functor_reducer.get_functor());
+
+#pragma omp target teams distribute map(to : a_functor_reducer, a_functor) \
+    num_teams(nteams)
     for (idx_type team_id = 0; team_id < n_chunks; ++team_id) {
       const typename Analysis::Reducer& reducer =
           a_functor_reducer.get_reducer();
@@ -91,9 +83,8 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
           const idx_type idx = local_offset + i;
           value_type val;
           reducer.init(&val);
-          if (idx < N)
-            call_with_tag<WorkTag>(a_functor_reducer.get_functor(), idx, val,
-                                   false);
+          if (idx < N) a_functor(idx, val, false);
+
           element_values(team_id, i) = val;
         }
 #pragma omp barrier
@@ -120,9 +111,8 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
       }
     }
 
-#pragma omp target teams distribute map(to                                     \
-                                        : a_functor_reducer) num_teams(nteams) \
-    thread_limit(team_size)
+#pragma omp target teams distribute map(to : a_functor_reducer, a_functor) \
+    num_teams(nteams) thread_limit(team_size)
     for (idx_type team_id = 0; team_id < n_chunks; ++team_id) {
       const typename Analysis::Reducer& reducer =
           a_functor_reducer.get_reducer();
@@ -143,14 +133,9 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
             local_offset_value = element_values(team_id, i - 1);
             // FIXME_OPENMPTARGET We seem to access memory illegaly on AMD GPUs
 #if defined(KOKKOS_ARCH_AMD_GPU) && !defined(KOKKOS_ARCH_AMD_GFX1030) && \
-    !defined(KOKKOS_ARCH_AMD_GFX1100)
+    !defined(KOKKOS_ARCH_AMD_GFX1100) && !defined(KOKKOS_ARCH_AMD_GFX1103)
             if constexpr (Analysis::Reducer::has_join_member_function()) {
-              if constexpr (std::is_void_v<WorkTag>)
-                a_functor_reducer.get_functor().join(local_offset_value,
-                                                     offset_value);
-              else
-                a_functor_reducer.get_functor().join(
-                    WorkTag{}, local_offset_value, offset_value);
+              a_functor.get_functor().join(local_offset_value, offset_value);
             } else
               local_offset_value += offset_value;
 #else
@@ -158,9 +143,8 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
 #endif
           } else
             local_offset_value = offset_value;
-          if (idx < N)
-            call_with_tag<WorkTag>(a_functor_reducer.get_functor(), idx,
-                                   local_offset_value, true);
+          if (idx < N) a_functor(idx, local_offset_value, true);
+
           if (idx == N - 1 && m_result_ptr_device_accessible)
             *m_result_ptr = local_offset_value;
         }
@@ -169,13 +153,17 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
   }
 
   void execute() const {
-    OpenMPTargetExec::verify_is_process(
+    Experimental::Impl::OpenMPTargetInternal::verify_is_process(
         "Kokkos::Experimental::OpenMPTarget parallel_for");
-    OpenMPTargetExec::verify_initialized(
+    Experimental::Impl::OpenMPTargetInternal::verify_initialized(
         "Kokkos::Experimental::OpenMPTarget parallel_for");
     const idx_type N          = m_policy.end() - m_policy.begin();
     const idx_type chunk_size = 128;
     const idx_type n_chunks   = (N + chunk_size - 1) / chunk_size;
+
+    // Only let one ParallelReduce instance at a time use the scratch memory.
+    std::scoped_lock<std::mutex> scratch_memory_lock(
+        m_policy.space().impl_internal_space_instance()->m_mutex_scratch_ptr);
 
     // This could be scratch memory per team
     Kokkos::View<value_type**, Kokkos::LayoutRight,
@@ -216,15 +204,21 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
 
  public:
   void execute() const {
-    OpenMPTargetExec::verify_is_process(
+    Experimental::Impl::OpenMPTargetInternal::verify_is_process(
         "Kokkos::Experimental::OpenMPTarget parallel_for");
-    OpenMPTargetExec::verify_initialized(
+    Experimental::Impl::OpenMPTargetInternal::verify_initialized(
         "Kokkos::Experimental::OpenMPTarget parallel_for");
     const int64_t N        = base_t::m_policy.end() - base_t::m_policy.begin();
     const int chunk_size   = 128;
     const int64_t n_chunks = (N + chunk_size - 1) / chunk_size;
 
     if (N > 0) {
+      // Only let one ParallelReduce instance at a time use the scratch memory.
+      std::scoped_lock<std::mutex> scratch_memory_lock(
+          base_t::m_policy.space()
+              .impl_internal_space_instance()
+              ->m_mutex_scratch_ptr);
+
       // This could be scratch memory per team
       Kokkos::View<value_type**, Kokkos::LayoutRight,
                    Kokkos::Experimental::OpenMPTargetSpace>

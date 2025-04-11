@@ -24,30 +24,30 @@ using ::testing::Eq;
 
 TEST(FmtLib, insert_string)
 {
-    const char val[] = "word";
-    auto text        = fmt::format("word {}", val);
+    constexpr char val[] = "word";
+    auto text            = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word word"));
 }
 
 TEST(FmtLib, insert_int)
 {
-    const int val = 333;
-    auto text     = fmt::format("word {}", val);
+    constexpr int val = 333;
+    auto text         = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word 333"));
 }
 
 TEST(FmtLib, insert_neg_int)
 {
-    const int val = -333;
-    auto text     = fmt::format("word {}", val);
+    constexpr int val = -333;
+    auto text         = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word -333"));
 }
 
 TEST(FmtLib, insert_bigint)
 {
 #if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
-    const bigint val = 9945234592L;
-    auto text        = fmt::format("word {}", val);
+    constexpr bigint val = 9945234592L;
+    auto text            = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word 9945234592"));
 #else
     GTEST_SKIP();
@@ -57,8 +57,8 @@ TEST(FmtLib, insert_bigint)
 TEST(FmtLib, insert_neg_bigint)
 {
 #if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
-    const bigint val = -9945234592L;
-    auto text        = fmt::format("word {}", val);
+    constexpr bigint val = -9945234592L;
+    auto text            = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word -9945234592"));
 #else
     GTEST_SKIP();
@@ -68,8 +68,8 @@ TEST(FmtLib, insert_neg_bigint)
 TEST(FmtLib, insert_tagint)
 {
 #if defined(LAMMPS_BIGBIG)
-    const tagint val = 9945234592L;
-    auto text        = fmt::format("word {}", val);
+    constexpr tagint val = 9945234592L;
+    auto text            = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word 9945234592"));
 #else
     GTEST_SKIP();
@@ -79,8 +79,8 @@ TEST(FmtLib, insert_tagint)
 TEST(FmtLib, insert_neg_tagint)
 {
 #if defined(LAMMPS_BIGBIG)
-    const tagint val = -9945234592L;
-    auto text        = fmt::format("word {}", val);
+    constexpr tagint val = -9945234592L;
+    auto text            = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word -9945234592"));
 #else
     GTEST_SKIP();
@@ -90,8 +90,8 @@ TEST(FmtLib, insert_neg_tagint)
 TEST(FmtLib, insert_imageint)
 {
 #if defined(LAMMPS_BIGBIG)
-    const imageint val = 9945234592L;
-    auto text          = fmt::format("word {}", val);
+    constexpr imageint val = 9945234592L;
+    auto text              = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word 9945234592"));
 #else
     GTEST_SKIP();
@@ -101,8 +101,8 @@ TEST(FmtLib, insert_imageint)
 TEST(FmtLib, insert_neg_imageint)
 {
 #if defined(LAMMPS_BIGBIG)
-    const imageint val = -9945234592L;
-    auto text          = fmt::format("word {}", val);
+    constexpr imageint val = -9945234592L;
+    auto text              = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word -9945234592"));
 #else
     GTEST_SKIP();
@@ -111,26 +111,38 @@ TEST(FmtLib, insert_neg_imageint)
 
 TEST(FmtLib, insert_double)
 {
-    const double val = 1.5;
-    auto text        = fmt::format("word {}", val);
+    constexpr double val = 1.5;
+    auto text            = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word 1.5"));
 }
 
 TEST(FmtLib, insert_neg_double)
 {
-    const double val = -1.5;
-    auto text        = fmt::format("word {}", val);
+    constexpr double val = -1.5;
+    auto text            = fmt::format("word {}", val);
     ASSERT_THAT(text, Eq("word -1.5"));
 }
 
 TEST(FmtLib, int_for_double)
 {
     const double val = -1.5;
-    ASSERT_THROW(fmt::format("word {:d}", val), std::exception);
+    ASSERT_THROW(auto text = fmt::format(fmt::runtime("word {:d}"), val), std::exception);
 }
 
 TEST(FmtLib, double_for_int)
 {
     const int val = 15;
-    ASSERT_THROW(fmt::format("word {:g}", val), std::exception);
+    ASSERT_THROW(auto text = fmt::format(fmt::runtime("word {:g}"), val), std::exception);
+}
+
+TEST(FmtLib, double_for_string)
+{
+    ASSERT_THROW(auto text = fmt::format(fmt::runtime("word {:g}"), "I am not a number"),
+                 std::exception);
+}
+
+TEST(FmtLib, int_for_string)
+{
+    ASSERT_THROW(auto text = fmt::format(fmt::runtime("word {:d}"), "I am not a number"),
+                 std::exception);
 }

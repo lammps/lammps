@@ -91,7 +91,8 @@ void test_view_memory_access_violations_from_host() {
   test_view_memory_access_violation(make_view<V6>(lbl), host_exec_space, prefix + ".*" + lbl);
   test_view_memory_access_violation(make_view<V7>(lbl), host_exec_space, prefix + ".*" + lbl);
   test_view_memory_access_violation(make_view<V8>(lbl), host_exec_space, prefix + ".*" + lbl);
-  int* const ptr = nullptr;
+  V0 v0("v0");  // obtain a valid pointer for an allocation in the right space
+  int* const ptr = v0.data();
   test_view_memory_access_violation(make_view<V0>(ptr), host_exec_space, prefix + ".*UNMANAGED");
   test_view_memory_access_violation(make_view<V1>(ptr), host_exec_space, prefix + ".*UNMANAGED");
   test_view_memory_access_violation(make_view<V2>(ptr), host_exec_space, prefix + ".*UNMANAGED");
@@ -128,7 +129,8 @@ void test_view_memory_access_violations_from_device() {
   test_view_memory_access_violation(make_view<V6>(lbl), exec_space, prefix + ".*UNAVAILABLE");
   test_view_memory_access_violation(make_view<V7>(lbl), exec_space, prefix + ".*UNAVAILABLE");
   test_view_memory_access_violation(make_view<V8>(lbl), exec_space, prefix + ".*UNAVAILABLE");
-  int* const ptr = nullptr;
+  V0 v0("v0");  // obtain a valid pointer for an allocation in the right space
+  int* const ptr = v0.data();
   test_view_memory_access_violation(make_view<V0>(ptr), exec_space, prefix + ".*UNAVAILABLE");
   test_view_memory_access_violation(make_view<V1>(ptr), exec_space, prefix + ".*UNAVAILABLE");
   test_view_memory_access_violation(make_view<V2>(ptr), exec_space, prefix + ".*UNAVAILABLE");
@@ -170,7 +172,7 @@ TEST(TEST_CATEGORY_DEATH, view_memory_access_violations_from_device) {
   }
 
 #if defined(KOKKOS_ENABLE_SYCL) && defined(NDEBUG)  // FIXME_SYCL
-  if (std::is_same<ExecutionSpace, Kokkos::Experimental::SYCL>::value) {
+  if (std::is_same_v<ExecutionSpace, Kokkos::SYCL>) {
     GTEST_SKIP() << "skipping SYCL device-side abort does not work when NDEBUG "
                     "is defined";
   }

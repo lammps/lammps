@@ -564,7 +564,7 @@ void FixGCMC::init()
         if (molecule[i]) flag = 1;
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-    if (flagall && comm->me == 0)
+    if (flagall)
       error->all(FLERR, "Fix gcmc cannot exchange individual atoms belonging to a molecule");
   }
 
@@ -579,7 +579,7 @@ void FixGCMC::init()
         if (molecule[i] == 0) flag = 1;
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-    if (flagall && comm->me == 0)
+    if (flagall)
       error->all(FLERR, "All mol IDs should be set for fix gcmc group atoms");
   }
 

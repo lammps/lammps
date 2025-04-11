@@ -16,7 +16,7 @@ can be handled through the Python exception handling mechanism.
    try:
       # LAMMPS will normally terminate itself and the running process if an error
       # occurs. This would kill the Python interpreter.  The library wrapper will
-      # detect that an error has occured and throw a Python exception
+      # detect that an error has occurred and throw a Python exception
 
       lmp.command('unknown')
    except MPIAbortException as ae:

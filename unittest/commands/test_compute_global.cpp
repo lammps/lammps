@@ -103,9 +103,9 @@ TEST_F(ComputeGlobalTest, Energy)
     EXPECT_NEAR(get_scalar("pr1"), 1956948.4735454607, 0.000000005);
     EXPECT_NEAR(get_scalar("pr2"), 1956916.7725807722, 0.000000005);
     EXPECT_DOUBLE_EQ(get_scalar("pr3"), 0.0);
-    auto pr1 = get_vector("pr1");
-    auto pr2 = get_vector("pr2");
-    auto pr3 = get_vector("pr3");
+    auto *pr1 = get_vector("pr1");
+    auto *pr2 = get_vector("pr2");
+    auto *pr3 = get_vector("pr3");
     EXPECT_NEAR(pr1[0], 2150600.9207200543, 0.000000005);
     EXPECT_NEAR(pr1[1], 1466949.7512112649, 0.000000005);
     EXPECT_NEAR(pr1[2], 2253294.7487050635, 0.000000005);
@@ -127,7 +127,7 @@ TEST_F(ComputeGlobalTest, Energy)
 
     if (has_tally) {
         EXPECT_NEAR(get_scalar("pe4"), 15425.840923850392, 0.000000005);
-        auto pe5 = get_vector("pe5");
+        auto *pe5 = get_vector("pe5");
         EXPECT_NEAR(pe5[0], 23803.966677151559, 0.000000005);
         EXPECT_NEAR(pe5[1], -94.210004432380643, 0.000000005);
         EXPECT_NEAR(pe5[2], 115.58040355478101, 0.000000005);
@@ -177,12 +177,12 @@ TEST_F(ComputeGlobalTest, Geometry)
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
-    auto com1 = get_vector("com1");
-    auto com2 = get_vector("com2");
-    auto mu1  = get_vector("mu1");
-    auto mu2  = get_vector("mu2");
-    auto rg1  = get_vector("rg1");
-    auto rg2  = get_vector("rg2");
+    auto *com1 = get_vector("com1");
+    auto *com2 = get_vector("com2");
+    auto *mu1  = get_vector("mu1");
+    auto *mu2  = get_vector("mu2");
+    auto *rg1  = get_vector("rg1");
+    auto *rg2  = get_vector("rg2");
 
     EXPECT_NEAR(com1[0], 1.4300952724948282, 0.0000000005);
     EXPECT_NEAR(com1[1], -0.29759806705328351, 0.0000000005);
@@ -215,10 +215,10 @@ TEST_F(ComputeGlobalTest, Geometry)
     EXPECT_NEAR(rg2[4], -5.0315240817290841, 0.0000000005);
     EXPECT_NEAR(rg2[5], 1.1103378503822141, 0.0000000005);
     if (has_extra) {
-        auto mom1 = get_vector("mom1");
-        auto mom2 = get_vector("mom2");
-        auto mop1 = get_vector("mop1");
-        auto mop2 = get_array("mop2");
+        auto *mom1 = get_vector("mom1");
+        auto *mom2 = get_vector("mom2");
+        auto *mop1 = get_vector("mop1");
+        auto *mop2 = get_array("mop2");
         EXPECT_DOUBLE_EQ(mom1[0], 0.0054219056685341164);
         EXPECT_DOUBLE_EQ(mom1[1], -0.054897225112275558);
         EXPECT_DOUBLE_EQ(mom1[2], 0.059097392692385661);
@@ -263,11 +263,11 @@ TEST_F(ComputeGlobalTest, Reduction)
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
-    auto min = get_vector("min");
-    auto max = get_vector("max");
-    auto sum = get_vector("sum");
-    auto ave = get_vector("ave");
-    auto rep = get_vector("rep");
+    auto *min = get_vector("min");
+    auto *max = get_vector("max");
+    auto *sum = get_vector("sum");
+    auto *ave = get_vector("ave");
+    auto *rep = get_vector("rep");
 
     EXPECT_DOUBLE_EQ(get_scalar("chg"), 0.51000000000000001);
 
@@ -318,13 +318,13 @@ TEST_F(ComputeGlobalTest, Counts)
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
-    auto tsum = get_vector("tsum");
-    auto tcnt = get_vector("tcnt");
-    auto bcnt = get_vector("bcnt");
-    auto bbrk = get_scalar("bcnt");
-    auto acnt = get_vector("acnt");
-    auto dcnt = get_vector("dcnt");
-    auto icnt = get_vector("icnt");
+    auto *tsum = get_vector("tsum");
+    auto *tcnt = get_vector("tcnt");
+    auto *bcnt = get_vector("bcnt");
+    auto bbrk  = get_scalar("bcnt");
+    auto *acnt = get_vector("acnt");
+    auto *dcnt = get_vector("dcnt");
+    auto *icnt = get_vector("icnt");
 
     EXPECT_DOUBLE_EQ(tsum[0], tcnt[0]);
     EXPECT_DOUBLE_EQ(tsum[1], tcnt[1]);

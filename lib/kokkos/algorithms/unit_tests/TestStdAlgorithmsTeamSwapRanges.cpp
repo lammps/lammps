@@ -49,7 +49,7 @@ struct TestFunctorA {
 
     if (m_apiPick == 0) {
       auto it    = KE::swap_ranges(member, KE::begin(myRowView1),
-                                KE::end(myRowView1), KE::begin(myRowView2));
+                                   KE::end(myRowView1), KE::begin(myRowView2));
       resultDist = KE::distance(KE::begin(myRowView2), it);
       Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
         m_distancesView(myRowIndex) = resultDist;

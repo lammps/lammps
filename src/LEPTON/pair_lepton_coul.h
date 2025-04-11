@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 
 class PairLeptonCoul : public PairLepton {
  public:
-  PairLeptonCoul(class LAMMPS *_lmp) : PairLepton(_lmp){};
-  ~PairLeptonCoul() override{};
+  PairLeptonCoul(class LAMMPS *_lmp) : PairLepton(_lmp) {};
+  ~PairLeptonCoul() override {};
   void compute(int, int) override;
   void settings(int, char **) override;
   void init_style() override;

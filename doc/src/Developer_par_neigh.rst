@@ -149,7 +149,7 @@ supports:
 
 - Dependent on the "pair" setting of the :doc:`newton <newton>` command,
   the "half" neighbor lists may contain **all** pairs of atoms where
-  atom *j* is a ghost atom (i.e. when the newton pair setting is *off*)
+  atom *j* is a ghost atom (i.e. when the newton pair setting is *off*).
   For the newton pair *on* setting the atom *j* is only added to the
   list if its *z* coordinate is larger, or if equal the *y* coordinate
   is larger, and that is equal, too, the *x* coordinate is larger.  For

@@ -632,7 +632,7 @@ void DihedralClass2::coeff(int narg, char **arg)
   int count = 0;
 
   if (strcmp(arg[1],"mbt") == 0) {
-    if (narg != 6) error->all(FLERR,"Incorrect args for dihedral coefficients");
+    if (narg != 6) error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
 
     double f1_one = utils::numeric(FLERR,arg[2],false,lmp);
     double f2_one = utils::numeric(FLERR,arg[3],false,lmp);
@@ -650,7 +650,7 @@ void DihedralClass2::coeff(int narg, char **arg)
 
   } else if (strcmp(arg[1],"ebt") == 0) {
     if (narg != 10)
-      error->all(FLERR,"Incorrect args for dihedral coefficients");
+      error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
 
     double f1_1_one = utils::numeric(FLERR,arg[2],false,lmp);
     double f2_1_one = utils::numeric(FLERR,arg[3],false,lmp);
@@ -676,7 +676,7 @@ void DihedralClass2::coeff(int narg, char **arg)
 
   } else if (strcmp(arg[1],"at") == 0) {
     if (narg != 10)
-      error->all(FLERR,"Incorrect args for dihedral coefficients");
+      error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
 
     double f1_1_one = utils::numeric(FLERR,arg[2],false,lmp);
     double f2_1_one = utils::numeric(FLERR,arg[3],false,lmp);
@@ -703,7 +703,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
 
   } else if (strcmp(arg[1],"aat") == 0) {
-    if (narg != 5) error->all(FLERR,"Incorrect args for dihedral coefficients");
+    if (narg != 5) error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
 
     double k_one = utils::numeric(FLERR,arg[2],false,lmp);
     double theta0_1_one = utils::numeric(FLERR,arg[3],false,lmp);
@@ -720,7 +720,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
 
   } else if (strcmp(arg[1],"bb13") == 0) {
-    if (narg != 5) error->all(FLERR,"Incorrect args for dihedral coefficients");
+    if (narg != 5) error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
 
     double k_one = utils::numeric(FLERR,arg[2],false,lmp);
     double r10_one = utils::numeric(FLERR,arg[3],false,lmp);
@@ -735,7 +735,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
 
   } else {
-    if (narg != 7) error->all(FLERR,"Incorrect args for dihedral coefficients");
+    if (narg != 7) error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
 
     double k1_one = utils::numeric(FLERR,arg[1],false,lmp);
     double phi1_one = utils::numeric(FLERR,arg[2],false,lmp);
@@ -758,7 +758,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
 
   for (int i = ilo; i <= ihi; i++)
     if (setflag_d[i] == 1 && setflag_mbt[i] == 1 && setflag_ebt[i] == 1 &&

@@ -147,7 +147,7 @@ void PairMEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     auto l_numneigh_half = d_numneigh_half;
     auto l_offset = d_offset;
 
-    Kokkos::parallel_scan(inum_half, LAMMPS_LAMBDA(int ii, int &m_fill, bool final) {
+    Kokkos::parallel_scan(Kokkos::RangePolicy<DeviceType>(0,inum_half), LAMMPS_LAMBDA(int ii, int &m_fill, bool final) {
       int i = l_ilist_half[ii];
       m_fill += l_numneigh_half[i];
       if (final)

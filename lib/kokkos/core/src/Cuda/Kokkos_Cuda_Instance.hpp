@@ -91,10 +91,10 @@ class CudaInternal {
   int m_cudaDev = -1;
 
   // Device Properties
-  inline static int m_cudaArch = -1;
+  static int m_cudaArch;
   static int concurrency();
 
-  inline static cudaDeviceProp m_deviceProp;
+  static cudaDeviceProp m_deviceProp;
 
   // Scratch Spaces for Reductions
   mutable std::size_t m_scratchSpaceCount;
@@ -120,11 +120,10 @@ class CudaInternal {
   bool was_initialized = false;
   bool was_finalized   = false;
 
-  inline static std::set<int> cuda_devices = {};
-  inline static std::map<int, unsigned long*> constantMemHostStagingPerDevice =
-      {};
-  inline static std::map<int, cudaEvent_t> constantMemReusablePerDevice = {};
-  inline static std::map<int, std::mutex> constantMemMutexPerDevice     = {};
+  static std::set<int> cuda_devices;
+  static std::map<int, unsigned long*> constantMemHostStagingPerDevice;
+  static std::map<int, cudaEvent_t> constantMemReusablePerDevice;
+  static std::map<int, std::mutex> constantMemMutexPerDevice;
 
   static CudaInternal& singleton();
 
@@ -415,29 +414,6 @@ class CudaInternal {
     return cudaStreamDestroy(stream);
   }
 
-  template <bool setCudaDevice = true>
-  cudaError_t cuda_stream_synchronize_wrapper(cudaStream_t stream) const {
-    if constexpr (setCudaDevice) set_cuda_device();
-    return cudaStreamSynchronize(stream);
-  }
-
-  // The following are only available for cuda 11.2 and greater
-#if (defined(KOKKOS_ENABLE_IMPL_CUDA_MALLOC_ASYNC) && CUDART_VERSION >= 11020)
-  template <bool setCudaDevice = true>
-  cudaError_t cuda_malloc_async_wrapper(void** devPtr, size_t size,
-                                        cudaStream_t hStream = nullptr) const {
-    if constexpr (setCudaDevice) set_cuda_device();
-    return cudaMallocAsync(devPtr, size, get_input_stream(hStream));
-  }
-
-  template <bool setCudaDevice = true>
-  cudaError_t cuda_free_async_wrapper(void* devPtr,
-                                      cudaStream_t hStream = nullptr) const {
-    if constexpr (setCudaDevice) set_cuda_device();
-    return cudaFreeAsync(devPtr, get_input_stream(hStream));
-  }
-#endif
-
   // C++ API routines
   template <typename T, bool setCudaDevice = true>
   cudaError_t cuda_func_get_attributes_wrapper(cudaFuncAttributes* attr,
@@ -455,13 +431,17 @@ class CudaInternal {
 
   template <bool setCudaDevice = true>
   cudaError_t cuda_graph_instantiate_wrapper(cudaGraphExec_t* pGraphExec,
-                                             cudaGraph_t graph,
-                                             cudaGraphNode_t* pErrorNode,
-                                             char* pLogBuffer,
-                                             size_t bufferSize) const {
+                                             cudaGraph_t graph) const {
     if constexpr (setCudaDevice) set_cuda_device();
-    return cudaGraphInstantiate(pGraphExec, graph, pErrorNode, pLogBuffer,
-                                bufferSize);
+#if CUDA_VERSION < 12000
+    constexpr size_t error_log_size = 256;
+    cudaGraphNode_t error_node      = nullptr;
+    char error_log[error_log_size];
+    return cudaGraphInstantiate(pGraphExec, graph, &error_node, error_log,
+                                error_log_size);
+#else
+    return cudaGraphInstantiate(pGraphExec, graph);
+#endif
   }
 
   // Resizing of reduction related scratch spaces
@@ -499,7 +479,7 @@ std::vector<Cuda> partition_space(const Cuda&, Args...) {
 template <class T>
 std::vector<Cuda> partition_space(const Cuda&, std::vector<T> const& weights) {
   static_assert(
-      std::is_arithmetic<T>::value,
+      std::is_arithmetic_v<T>,
       "Kokkos Error: partitioning arguments must be integers or floats");
 
   // We only care about the number of instances to create and ignore weights

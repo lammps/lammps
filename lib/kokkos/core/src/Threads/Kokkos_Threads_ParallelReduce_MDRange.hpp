@@ -59,7 +59,7 @@ class ParallelReduce<CombinedFunctorReducerType,
   }
 
   template <class Schedule>
-  static std::enable_if_t<std::is_same<Schedule, Kokkos::Static>::value>
+  static std::enable_if_t<std::is_same_v<Schedule, Kokkos::Static>>
   exec_schedule(ThreadsInternal &instance, const void *arg) {
     const ParallelReduce &self = *((const ParallelReduce *)arg);
 
@@ -76,7 +76,7 @@ class ParallelReduce<CombinedFunctorReducerType,
   }
 
   template <class Schedule>
-  static std::enable_if_t<std::is_same<Schedule, Kokkos::Dynamic>::value>
+  static std::enable_if_t<std::is_same_v<Schedule, Kokkos::Dynamic>>
   exec_schedule(ThreadsInternal &instance, const void *arg) {
     const ParallelReduce &self = *((const ParallelReduce *)arg);
 
@@ -91,8 +91,8 @@ class ParallelReduce<CombinedFunctorReducerType,
     long work_index = instance.get_work_index();
 
     const ReducerType &reducer = self.m_iter.m_func.get_reducer();
-    reference_type update      = self.m_reducer.init(
-        static_cast<pointer_type>(instance.reduce_memory()));
+    reference_type update =
+        reducer.init(static_cast<pointer_type>(instance.reduce_memory()));
     while (work_index != -1) {
       const Member begin = static_cast<Member>(work_index);
       const Member end   = begin + 1 < num_tiles ? begin + 1 : num_tiles;
@@ -100,7 +100,7 @@ class ParallelReduce<CombinedFunctorReducerType,
       work_index = instance.get_work_index();
     }
 
-    instance.fan_in_reduce(self.m_reducer);
+    instance.fan_in_reduce(reducer);
   }
 
  public:

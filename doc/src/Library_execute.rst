@@ -7,6 +7,7 @@ This section documents the following functions:
 - :cpp:func:`lammps_command`
 - :cpp:func:`lammps_commands_list`
 - :cpp:func:`lammps_commands_string`
+- :cpp:func:`lammps_expand`
 
 --------------------
 
@@ -77,5 +78,10 @@ Below is a short example using some of these functions.
 -----------------------
 
 .. doxygenfunction:: lammps_commands_string
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_expand
    :project: progguide
 

@@ -32,7 +32,7 @@ Syntax
 
   .. code-block:: LAMMPS
 
-     reset atoms mol group-ID keyword value ...
+     reset_atoms mol group-ID keyword value ...
 
   * group-ID = ID of group of atoms whose molecule IDs will be reset
   * zero or more keyword/value pairs can be appended
@@ -66,16 +66,16 @@ Description
 .. versionadded:: 22Dec2022
 
 The *reset_atoms* command resets the values of a specified atom
-property.  In contrast to the set command, it does this in a
+property.  In contrast to the *set* command, it does this in a
 collective manner which resets the values for many atoms in a
-self-consistent way.  This is often useful when the simulated system
-has undergone significant modifications like adding or removing atoms
-or molecules, joining data files, changing bonds, or large-scale
+self-consistent way.  This command is often useful when the simulated
+system has undergone significant modifications like adding or removing
+atoms or molecules, joining data files, changing bonds, or large-scale
 diffusion.
 
 The new values can be thought of as a *reset*, similar to values atoms
 would have if a new data file were being read or a new simulation
-performed.  Note that the set command also resets atom properties to
+performed.  Note that the *set* command also resets atom properties to
 new values, but it treats each atom independently.
 
 The *property* setting can be *id* or *image* or *mol*.  For *id*, the
@@ -90,7 +90,7 @@ keyword/value settings are given below.
 
 ----------
 
-*Property id*
+Property: *id*
 
 Reset atom IDs for the entire system, including all the global IDs
 stored for bond, angle, dihedral, improper topology data.  This will
@@ -146,7 +146,7 @@ processor have consecutive IDs, as the :doc:`create_atoms
 
 ----------
 
-*Property image*
+Property: *image*
 
 Reset the image flags of atoms so that at least one atom in each
 molecule has an image flag of 0.  Molecular topology is respected so
@@ -191,7 +191,7 @@ flags.
 
 ----------
 
-*Property mol*
+Property: *mol*
 
 Reset molecule IDs for a specified group of atoms based on current
 bond connectivity.  This will typically create a new set of molecule
@@ -203,7 +203,7 @@ For purposes of this operation, molecules are identified by the current
 bond connectivity in the system, which may or may not be consistent with
 the current molecule IDs.  A molecule in this context is a set of atoms
 connected to each other with explicit bonds.  The specific algorithm
-used is the one of :doc:`compute fragment/atom <compute_cluster_atom>`
+used is the one of :doc:`compute fragment/atom <compute_cluster_atom>`.
 Once the molecules are identified and a new molecule ID computed for
 each, this command will update the current molecule ID for all atoms in
 the group with the new molecule ID.  Note that if the group excludes
@@ -266,7 +266,7 @@ The *image* property can only be used when the atom style supports bonds.
 Related commands
 """"""""""""""""
 
-:doc:`compute fragment/atom <compute_cluster_atom>`
+:doc:`compute fragment/atom <compute_cluster_atom>`,
 :doc:`fix bond/react <fix_bond_react>`,
 :doc:`fix bond/create <fix_bond_create>`,
 :doc:`fix bond/break <fix_bond_break>`,

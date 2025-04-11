@@ -1,6 +1,10 @@
 Removed commands and packages
 =============================
 
+.. contents:: \
+
+------
+
 This page lists LAMMPS commands and packages that have been removed from
 the distribution and provides suggestions for alternatives or
 replacements.  LAMMPS has special dummy styles implemented, that will
@@ -8,82 +12,32 @@ stop LAMMPS and print a suitable error message in most cases, when a
 style/command is used that has been removed or will replace the command
 with the direct alternative (if available) and print a warning.
 
-Fix ave/spatial and fix ave/spatial/sphere
-------------------------------------------
-
-.. deprecated:: 11Dec2015
-
-The fixes ave/spatial and ave/spatial/sphere have been removed from LAMMPS
-since they were superseded by the more general and extensible "chunk
-infrastructure".  Here the system is partitioned in one of many possible
-ways through the :doc:`compute chunk/atom <compute_chunk_atom>` command
-and then averaging is done using :doc:`fix ave/chunk <fix_ave_chunk>`.
-Please refer to the :doc:`chunk HOWTO <Howto_chunk>` section for an overview.
-
-Box command
------------
-
-.. deprecated:: 22Dec2022
-
-The *box* command has been removed and the LAMMPS code changed so it won't
-be needed.  If present, LAMMPS will ignore the command and print a warning.
-
-Reset_ids, reset_atom_ids, reset_mol_ids commands
--------------------------------------------------
-
-.. deprecated:: 22Dec2022
-
-The *reset_ids*, *reset_atom_ids*, and *reset_mol_ids* commands have
-been folded into the :doc:`reset_atoms <reset_atoms>` command.  If
-present, LAMMPS will replace the commands accordingly and print a
-warning.
-
-LATTE package
--------------
-
-.. deprecated:: 15Jun2023
-
-The LATTE package with the fix latte command was removed from LAMMPS.
-This functionality has been superseded by :doc:`fix mdi/qm <fix_mdi_qm>`
-and :doc:`fix mdi/qmmm <fix_mdi_qmmm>` from the :ref:`MDI package
-<PKG-MDI>`.  These fixes are compatible with several quantum software
-packages, including LATTE.  See the ``examples/QUANTUM`` dir and the
-:doc:`MDI coupling HOWTO <Howto_mdi>` page.  MDI supports running LAMMPS
-with LATTE as a plugin library (similar to the way fix latte worked), as
-well as on a different set of MPI processors.
-
-MEAM package
+LAMMPS shell
 ------------
 
-The MEAM package in Fortran has been replaced by a C++ implementation.
-The code in the :ref:`MEAM package <PKG-MEAM>` is a translation of the
-Fortran code of MEAM into C++, which removes several restrictions
-(e.g. there can be multiple instances in hybrid pair styles) and allows
-for some optimizations leading to better performance.  The pair style
-:doc:`meam <pair_meam>` has the exact same syntax.  For a transition
-period the C++ version of MEAM was called USER-MEAMC so it could
-coexist with the Fortran version.
+.. versionchanged:: 29Aug2024
 
-Minimize style fire/old
------------------------
+The LAMMPS shell has been removed from the LAMMPS distribution. Users
+are encouraged to use the :ref:`LAMMPS-GUI <lammps_gui>` tool instead.
 
-.. deprecated:: 8Feb2023
+i-PI tool
+---------
 
-Minimize style *fire/old* has been removed. Its functionality can be
-reproduced with *fire* with specific options. Please see the
-:doc:`min_modify command <min_modify>` documentation for details.
+.. versionchanged:: 27Jun2024
 
-Pair style mesont/tpm, compute style mesont, atom style mesont
---------------------------------------------------------------
+The i-PI tool has been removed from the LAMMPS distribution.  Instead,
+instructions to install i-PI from PyPI via pip are provided.
 
-.. deprecated:: 8Feb2023
+USER-REAXC package
+------------------
 
-Pair style *mesont/tpm*, compute style *mesont*, and atom style
-*mesont* have been removed from the :ref:`MESONT package <PKG-MESONT>`.
-The same functionality is available through
-:doc:`pair style mesocnt <pair_mesocnt>`,
-:doc:`bond style mesocnt <bond_mesocnt>` and
-:doc:`angle style mesocnt <angle_mesocnt>`.
+.. deprecated:: 7Feb2024
+
+The USER-REAXC package has been renamed to :ref:`REAXFF <PKG-REAXFF>`.
+In the process also the pair style and related fixes were renamed to use
+the "reaxff" string instead of "reax/c". For a while LAMMPS was maintaining
+backward compatibility by providing aliases for the styles.  These have
+been removed, so using "reaxff" is now *required*.
 
 MPIIO package
 -------------
@@ -103,7 +57,6 @@ Similarly, the "nfile" and "fileper" keywords exist for restarts:
 see :doc:`restart <restart>`, :doc:`read_restart <read_restart>`,
 :doc:`write_restart <write_restart>`.
 
-
 MSCG package
 ------------
 
@@ -114,8 +67,72 @@ for many years and instead superseded by the `OpenMSCG software
 <https://software.rcc.uchicago.edu/mscg/>`_ of the Voth group at the
 University of Chicago, which can be used independent from LAMMPS.
 
+LATTE package
+-------------
+
+.. deprecated:: 15Jun2023
+
+The LATTE package with the fix latte command was removed from LAMMPS.
+This functionality has been superseded by :doc:`fix mdi/qm <fix_mdi_qm>`
+and :doc:`fix mdi/qmmm <fix_mdi_qmmm>` from the :ref:`MDI package
+<PKG-MDI>`.  These fixes are compatible with several quantum software
+packages, including LATTE.  See the ``examples/QUANTUM`` dir and the
+:doc:`MDI coupling HOWTO <Howto_mdi>` page.  MDI supports running LAMMPS
+with LATTE as a plugin library (similar to the way fix latte worked), as
+well as on a different set of MPI processors.
+
+Minimize style fire/old
+-----------------------
+
+.. deprecated:: 8Feb2023
+
+Minimize style *fire/old* has been removed. Its functionality can be
+reproduced with style *fire* with specific options. Please see the
+:doc:`min_modify command <min_modify>` documentation for details.
+
+Pair style mesont/tpm, compute style mesont, atom style mesont
+--------------------------------------------------------------
+
+.. deprecated:: 8Feb2023
+
+Pair style *mesont/tpm*, compute style *mesont*, and atom style
+*mesont* have been removed from the :ref:`MESONT package <PKG-MESONT>`.
+The same functionality is available through
+:doc:`pair style mesocnt <pair_mesocnt>`,
+:doc:`bond style mesocnt <bond_mesocnt>` and
+:doc:`angle style mesocnt <angle_mesocnt>`.
+
+Box command
+-----------
+
+.. deprecated:: 22Dec2022
+
+The *box* command has been removed and the LAMMPS code changed so it won't
+be needed.  If present, LAMMPS will ignore the command and print a warning.
+
+Reset_ids, reset_atom_ids, reset_mol_ids commands
+-------------------------------------------------
+
+.. deprecated:: 22Dec2022
+
+The *reset_ids*, *reset_atom_ids*, and *reset_mol_ids* commands have
+been folded into the :doc:`reset_atoms <reset_atoms>` command.  If
+present, LAMMPS will replace the commands accordingly and print a
+warning.
+
+MESSAGE package
+---------------
+
+.. deprecated:: 4May2022
+
+The MESSAGE package has been removed since it was superseded by the
+:ref:`MDI package <PKG-MDI>`. MDI implements the same functionality
+and in a more general way with direct support for more applications.
+
 REAX package
 ------------
+
+.. deprecated:: 4Jan2019
 
 The REAX package has been removed since it was superseded by the
 :ref:`REAXFF package <PKG-REAXFF>`.  The REAXFF package has been tested
@@ -126,19 +143,24 @@ syntax compatible with the removed reax pair style, so input files will
 have to be adapted.  The REAXFF package was originally called
 USER-REAXC.
 
-USER-REAXC package
-------------------
+MEAM package
+------------
 
-.. deprecated:: 7Feb2024
+.. deprecated:: 4Jan2019
 
-The USER-REAXC package has been renamed to :ref:`REAXFF <PKG-REAXFF>`.
-In the process also the pair style and related fixes were renamed to use
-the "reaxff" string instead of "reax/c". For a while LAMMPS was maintaining
-backward compatibility by providing aliases for the styles.  These have
-been removed, so using "reaxff" is now *required*.
+The MEAM package in Fortran has been replaced by a C++ implementation.
+The code in the :ref:`MEAM package <PKG-MEAM>` is a translation of the
+Fortran code of MEAM into C++, which removes several restrictions
+(e.g. there can be multiple instances in hybrid pair styles) and allows
+for some optimizations leading to better performance.  The pair style
+:doc:`meam <pair_meam>` has the exact same syntax.  For a transition
+period the C++ version of MEAM was called USER-MEAMC so it could
+coexist with the Fortran version.
 
 USER-CUDA package
 -----------------
+
+.. deprecated:: 31May2016
 
 The USER-CUDA package had been removed, since it had been unmaintained
 for a long time and had known bugs and problems.  Significant parts of
@@ -148,20 +170,39 @@ performance characteristics on NVIDIA GPUs. Both, the KOKKOS
 and the :ref:`GPU package <PKG-GPU>` are maintained
 and allow running LAMMPS with GPU acceleration.
 
-i-PI tool
----------
+Compute atom/molecule
+---------------------
 
-.. versionchanged:: 27June2024
+.. deprecated:: 11 Dec2015
 
-The i-PI tool has been removed from the LAMMPS distribution.  Instead,
-instructions to install i-PI from PyPI via pip are provided.
+The atom/molecule command has been removed from LAMMPS since it was superseded
+by the more general and extensible "chunk infrastructure".  Here the system is
+partitioned in one of many possible ways - including using molecule IDs -
+through the :doc:`compute chunk/atom <compute_chunk_atom>` command and then
+summing is done using :doc:`compute reduce/chunk <compute_reduce_chunk>` Please
+refer to the :doc:`chunk HOWTO <Howto_chunk>` section for an overview.
+
+Fix ave/spatial and fix ave/spatial/sphere
+------------------------------------------
+
+.. deprecated:: 11Dec2015
+
+The fixes ave/spatial and ave/spatial/sphere have been removed from LAMMPS
+since they were superseded by the more general and extensible "chunk
+infrastructure".  Here the system is partitioned in one of many possible
+ways through the :doc:`compute chunk/atom <compute_chunk_atom>` command
+and then averaging is done using :doc:`fix ave/chunk <fix_ave_chunk>`.
+Please refer to the :doc:`chunk HOWTO <Howto_chunk>` section for an overview.
 
 restart2data tool
 -----------------
+
+.. deprecated:: 23Nov2013
 
 The functionality of the restart2data tool has been folded into the
 LAMMPS executable directly instead of having a separate tool.  A
 combination of the commands :doc:`read_restart <read_restart>` and
 :doc:`write_data <write_data>` can be used to the same effect.  For
 added convenience this conversion can also be triggered by
-:doc:`command line flags <Run_options>`
+:doc:`command-line flags <Run_options>`
+

@@ -31,7 +31,7 @@ class Replicate : public Command {
   Replicate(class LAMMPS *);
   void command(int, char **) override;
 
-private:
+ private:
   int bbox_flag, bond_flag;
 
   class Atom *old;

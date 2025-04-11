@@ -19,6 +19,7 @@
 #include "fix_reaxff_bonds.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
@@ -35,37 +36,27 @@ using namespace ReaxFF;
 /* ---------------------------------------------------------------------- */
 
 FixReaxFFBonds::FixReaxFFBonds(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), neighid(nullptr), abo(nullptr), fp(nullptr), lists(nullptr),
+  reaxff(nullptr), list(nullptr)
 {
-  if (narg != 5) error->all(FLERR,"Illegal fix reaxff/bonds command");
+  if (narg != 5)
+    error->all(FLERR, Error::NOPOINTER, "Fix reaxff/bonds expected 5 arguments but got {}", narg);
 
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
-  ntypes = atom->ntypes;
   nmax = atom->nmax;
   compressed = 0;
+  multifile = 0;
+  padflag = 0;
+  first_flag = true;
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  if (nevery <= 0) error->all(FLERR, 3, "Illegal fix reaxff/bonds nevery value {}", nevery);
 
-  if (nevery <= 0) error->all(FLERR,"Illegal fix reaxff/bonds command");
-
-  if (me == 0) {
-    if (platform::has_compress_extension(arg[4])) {
-      compressed = 1;
-      fp = platform::compressed_write(arg[4]);
-      if (!fp) error->one(FLERR,"Cannot open compressed file");
-    } else fp = fopen(arg[4],"w");
-
-    if (!fp) error->one(FLERR,"Cannot open fix reaxff/bonds file {}: {}",
-                        arg[4],utils::getsyserror());
-  }
+  filename = arg[4];
+  if (filename.rfind('*') != std::string::npos) multifile = 1;
+  if (platform::has_compress_extension(filename)) compressed = 1;
 
   if (atom->tag_consecutive() == 0)
-    error->all(FLERR,"Atom IDs must be consecutive for fix reaxff bonds");
-
-  abo = nullptr;
-  neighid = nullptr;
-  numneigh = nullptr;
+    error->all(FLERR, Error::NOLASTLINE, "Fix reaxff/bonds requires consecutive atom-IDs");
 
   allocate();
 }
@@ -74,11 +65,9 @@ FixReaxFFBonds::FixReaxFFBonds(LAMMPS *lmp, int narg, char **arg) :
 
 FixReaxFFBonds::~FixReaxFFBonds()
 {
-  MPI_Comm_rank(world,&me);
-
   destroy();
 
-  if (me == 0) fclose(fp);
+  if (fp) fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,7 +83,10 @@ int FixReaxFFBonds::setmask()
 
 void FixReaxFFBonds::setup(int /*vflag*/)
 {
-  end_of_step();
+  // only print output during setup() at the very beginning
+  // to avoid duplicate outputs when using multiple run statements
+  if (first_flag) end_of_step();
+  first_flag = false;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -111,7 +103,6 @@ void FixReaxFFBonds::init()
 void FixReaxFFBonds::end_of_step()
 {
   Output_ReaxFF_Bonds();
-  if (me == 0) fflush(fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -248,18 +239,35 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
   double cutof3 = reaxff->api->control->bg_cut;
   MPI_Request irequest, irequest2;
 
-  if (me == 0) {
-    fmt::print(fp,"# Timestep {}\n#\n",ntimestep);
-    fmt::print(fp,"# Number of particles {}\n#\n",natoms);
-    fmt::print(fp,"# Max number of bonds per atom {} with coarse bond order cutoff {:5.3f}\n",
+  if (comm->me == 0) {
+    std::string myfile = filename;
+    if (multifile) myfile = utils::star_subst(myfile, update->ntimestep, padflag);
+    if (multifile && fp) {
+      fclose(fp);
+      fp = nullptr;
+    }
+    if (!fp) {
+      if (compressed) {
+        fp = platform::compressed_write(myfile);
+      } else {
+        fp = fopen(myfile.c_str(), "w");
+      }
+      if (!fp)
+        error->one(FLERR, Error::NOLASTLINE,
+                   "Cannot open fix reaxff/bonds file {}: {}", myfile, utils::getsyserror());
+    }
+
+    utils::print(fp,"# Timestep {}\n#\n",ntimestep);
+    utils::print(fp,"# Number of particles {}\n#\n",natoms);
+    utils::print(fp,"# Max number of bonds per atom {} with coarse bond order cutoff {:5.3f}\n",
                maxnum,cutof3);
-    fmt::print(fp,"# Particle connection table and bond orders\n"
+    utils::print(fp,"# Particle connection table and bond orders\n"
                "# id type nb id_1...id_nb mol bo_1...bo_nb abo nlp q\n");
   }
 
   j = 2;
-  if (me == 0) {
-    for (inode = 0; inode < nprocs; inode ++) {
+  if (comm->me == 0) {
+    for (inode = 0; inode < comm->nprocs; inode ++) {
       if (inode == 0) {
         nlocal_tmp = nlocal;
       } else {
@@ -288,15 +296,17 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
         j += (1+numbonds);
 
         mesg += fmt::format("{:14.3f}{:14.3f}{:14.3f}\n",sbotmp,nlptmp,avqtmp);
-        fmt::print(fp, mesg);
+        utils::print(fp, mesg);
       }
     }
   } else {
     MPI_Isend(&buf[0],nbuf_local,MPI_DOUBLE,0,0,world,&irequest2);
     MPI_Wait(&irequest2,MPI_STATUS_IGNORE);
   }
-  if (me == 0) fputs("# \n",fp);
-
+  if (fp) {
+    fputs("# \n",fp);
+    fflush(fp);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -325,6 +335,18 @@ void FixReaxFFBonds::allocate()
   memory->create(abo,nmax,MAXREAXBOND,"reaxff/bonds:abo");
   memory->create(neighid,nmax,MAXREAXBOND,"reaxff/bonds:neighid");
   memory->create(numneigh,nmax,"reaxff/bonds:numneigh");
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixReaxFFBonds::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0], "pad") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify pad", error);
+    padflag = utils::inumeric(FLERR, arg[1], false, lmp);
+    return 2;
+  }
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */

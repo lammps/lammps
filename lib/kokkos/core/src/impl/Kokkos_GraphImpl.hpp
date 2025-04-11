@@ -40,6 +40,17 @@ struct GraphAccess {
         std::make_shared<GraphImpl<ExecutionSpace>>(std::move(ex))};
     //----------------------------------------//
   }
+
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
+    defined(KOKKOS_ENABLE_SYCL)
+  template <class Exec, typename T>
+  static auto construct_graph_from_native(Exec&& ex, T&& native_graph) {
+    return Kokkos::Experimental::Graph<Kokkos::Impl::remove_cvref_t<Exec>>{
+        std::make_shared<GraphImpl<Kokkos::Impl::remove_cvref_t<Exec>>>(
+            std::forward<Exec>(ex), std::forward<T>(native_graph))};
+  }
+#endif
+
   template <class ExecutionSpace>
   static auto create_root_ref(
       Kokkos::Experimental::Graph<ExecutionSpace>& arg_graph) {
@@ -56,7 +67,7 @@ struct GraphAccess {
     static_assert(
         Kokkos::Impl::is_specialization_of<NodeType, GraphNodeImpl>::value,
         "Kokkos Internal Error in graph interface");
-    return std::make_shared<NodeType>((Args &&) args...);
+    return std::make_shared<NodeType>((Args&&)args...);
   }
 
   template <class GraphImplWeakPtr, class ExecutionSpace, class Kernel,
@@ -83,7 +94,7 @@ struct GraphAccess {
                              Kokkos::Experimental::GraphNodeRef>::value,
         "Kokkos Internal Implementation error (bad argument to "
         "`GraphAccess::get_node_ptr()`)");
-    return ((NodeRef &&) node_ref).get_node_ptr();
+    return ((NodeRef&&)node_ref).get_node_ptr();
   }
 
   template <class NodeRef>
@@ -93,7 +104,7 @@ struct GraphAccess {
                              Kokkos::Experimental::GraphNodeRef>::value,
         "Kokkos Internal Implementation error (bad argument to "
         "`GraphAccess::get_graph_weak_ptr()`)");
-    return ((NodeRef &&) node_ref).get_graph_weak_ptr();
+    return ((NodeRef&&)node_ref).get_graph_weak_ptr();
   }
 
   // </editor-fold> end accessors for private members of public interface }}}2

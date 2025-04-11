@@ -21,6 +21,7 @@
 #include <sstream>
 #include <Kokkos_Parallel.hpp>
 #include <OpenMPTarget/Kokkos_OpenMPTarget_Parallel_Common.hpp>
+#include <OpenMPTarget/Kokkos_OpenMPTarget_Instance.hpp>
 
 namespace Kokkos {
 namespace Impl {
@@ -32,8 +33,6 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
   using Policy      = Kokkos::RangePolicy<Traits...>;
   using FunctorType = typename CombinedFunctorReducerType::functor_type;
   using ReducerType = typename CombinedFunctorReducerType::reducer_type;
-
-  using WorkTag = typename Policy::work_tag;
 
   using pointer_type   = typename ReducerType::pointer_type;
   using reference_type = typename ReducerType::reference_type;
@@ -55,14 +54,17 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
   const pointer_type m_result_ptr;
   bool m_result_ptr_on_device;
   const int m_result_ptr_num_elems;
-  // Only let one ParallelReduce instance at a time use the scratch memory.
-  // The constructor acquires the mutex which is released in the destructor.
-  std::scoped_lock<std::mutex> m_scratch_memory_lock;
-  using TagType = typename Policy::work_tag;
 
  public:
   void execute() const {
-    const FunctorType& functor = m_functor_reducer.get_functor();
+    // Only let one ParallelReduce instance at a time use the scratch memory.
+    std::scoped_lock<std::mutex> scratch_memory_lock(
+        m_policy.space().impl_internal_space_instance()->m_mutex_scratch_ptr);
+
+    auto const functor =
+        Kokkos::Experimental::Impl::FunctorAdapter<FunctorType, Policy>(
+            m_functor_reducer.get_functor());
+
     if constexpr (FunctorHasJoin) {
       // Enter this loop if the Functor has a init-join.
       ParReduceSpecialize::execute_init_join(functor, m_policy, m_result_ptr,
@@ -75,26 +77,26 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
       // Enter this loop if the reduction is on an array and the routine is
       // templated over the size of the array.
       if (m_result_ptr_num_elems <= 2) {
-        ParReduceSpecialize::template execute_array<TagType, 2>(
+        ParReduceSpecialize::template execute_array<2>(
             functor, m_policy, m_result_ptr, m_result_ptr_on_device);
       } else if (m_result_ptr_num_elems <= 4) {
-        ParReduceSpecialize::template execute_array<TagType, 4>(
+        ParReduceSpecialize::template execute_array<4>(
             functor, m_policy, m_result_ptr, m_result_ptr_on_device);
       } else if (m_result_ptr_num_elems <= 8) {
-        ParReduceSpecialize::template execute_array<TagType, 8>(
+        ParReduceSpecialize::template execute_array<8>(
             functor, m_policy, m_result_ptr, m_result_ptr_on_device);
       } else if (m_result_ptr_num_elems <= 16) {
-        ParReduceSpecialize::template execute_array<TagType, 16>(
+        ParReduceSpecialize::template execute_array<16>(
             functor, m_policy, m_result_ptr, m_result_ptr_on_device);
       } else if (m_result_ptr_num_elems <= 32) {
-        ParReduceSpecialize::template execute_array<TagType, 32>(
+        ParReduceSpecialize::template execute_array<32>(
             functor, m_policy, m_result_ptr, m_result_ptr_on_device);
       } else {
         Kokkos::abort("array reduction length must be <= 32");
       }
     } else {
       // This loop handles the basic scalar reduction.
-      ParReduceSpecialize::template execute_array<TagType, 1>(
+      ParReduceSpecialize::template execute_array<1>(
           functor, m_policy, m_result_ptr, m_result_ptr_on_device);
     }
   }
@@ -108,8 +110,7 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
         m_result_ptr_on_device(
             MemorySpaceAccess<Kokkos::Experimental::OpenMPTargetSpace,
                               typename ViewType::memory_space>::accessible),
-        m_result_ptr_num_elems(arg_result_view.size()),
-        m_scratch_memory_lock(OpenMPTargetExec::m_mutex_scratch_ptr) {}
+        m_result_ptr_num_elems(arg_result_view.size()) {}
 };
 
 }  // namespace Impl

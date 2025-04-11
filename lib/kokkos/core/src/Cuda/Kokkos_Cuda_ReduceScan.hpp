@@ -584,11 +584,13 @@ __device__ bool cuda_single_inter_block_reduce_scan2(
         "blockDim");
   }
 
+  // NOLINTBEGIN(bugprone-sizeof-expression)
   const integral_nonzero_constant<
-      size_type, std::is_pointer<typename FunctorType::reference_type>::value
+      size_type, std::is_pointer_v<typename FunctorType::reference_type>
                      ? 0
                      : sizeof(value_type) / sizeof(size_type)>
       word_count((sizeof(value_type) * functor.length()) / sizeof(size_type));
+  // NOLINTEND(bugprone-sizeof-expression)
 
   // Reduce the accumulation for the entire block.
   cuda_intra_block_reduce_scan<false>(functor, pointer_type(shared_data));
@@ -661,7 +663,7 @@ __device__ bool cuda_single_inter_block_reduce_scan(
     const FunctorType& functor, const Cuda::size_type block_id,
     const Cuda::size_type block_count, SizeType* const shared_data,
     SizeType* const global_data, Cuda::size_type* const global_flags) {
-  if (!DoScan && !std::is_pointer<typename FunctorType::reference_type>::value)
+  if (!DoScan && !std::is_pointer_v<typename FunctorType::reference_type>)
     return Kokkos::Impl::CudaReductionsFunctor<
         FunctorType, false, (sizeof(typename FunctorType::value_type) > 16)>::
         scalar_inter_block_reduction(functor, block_id, block_count,
@@ -698,7 +700,7 @@ template <typename WorkTag, typename ValueType, typename Policy,
           typename FunctorType>
 inline void check_reduced_view_shmem_size(const Policy& policy,
                                           const FunctorType& functor) {
-  size_t minBlockSize = CudaTraits::WarpSize * 1;
+  size_t minBlockSize = static_cast<size_t>(CudaTraits::WarpSize) * 1;
   unsigned reqShmemSize =
       cuda_single_inter_block_reduce_scan_shmem<false, WorkTag, ValueType>(
           functor, minBlockSize);

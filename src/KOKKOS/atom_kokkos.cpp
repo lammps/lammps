@@ -208,6 +208,8 @@ void AtomKokkos::sort()
       auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
       if (!fix_iextra->sort_device) {
         flag = 0;
+        if (comm->me == 0)
+          error->warning(FLERR,"Fix {} not compatible with Kokkos sorting on device", fix_iextra->style);
         break;
       }
     }
@@ -274,22 +276,6 @@ void AtomKokkos::sort_device()
  //  convert back to lamda coords
 
  if (domain->triclinic) domain->x2lamda(nlocal);
-}
-
-/* ----------------------------------------------------------------------
-   reallocate memory to the pointer selected by the mask
-------------------------------------------------------------------------- */
-
-void AtomKokkos::grow(unsigned int mask)
-{
-  if (mask & SPECIAL_MASK) {
-    memoryKK->destroy_kokkos(k_special, special);
-    sync(Device, mask);
-    modified(Device, mask);
-    memoryKK->grow_kokkos(k_special, special, nmax, maxspecial, "atom:special");
-    avec->grow_pointers();
-    sync(Host, mask);
-  }
 }
 
 /* ----------------------------------------------------------------------

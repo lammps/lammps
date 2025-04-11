@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 void PairCoulCutGlobal::coeff(int narg, char **arg)
 {
   if (narg != 2)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   PairCoulCut::coeff(narg,arg);
 }

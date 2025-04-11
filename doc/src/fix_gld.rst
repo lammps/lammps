@@ -60,9 +60,9 @@ With this fix active, the force on the *j*\ th atom is given as
 
 .. math::
 
-   {\bf F}_{j}(t) = & {\bf F}^C_j(t)-\int \limits_{0}^{t} \Gamma_j(t-s) {\bf v}_j(s)~\text{d}s + {\bf F}^R_j(t) \\
+   \mathbf{F}_{j}(t) = & \mathbf{F}^C_j(t)-\int \limits_{0}^{t} \Gamma_j(t-s) \mathbf{v}_j(s)~\text{d}s + \mathbf{F}^R_j(t) \\
    \Gamma_j(t-s) = & \sum \limits_{k=1}^{N_k} \frac{c_k}{\tau_k} e^{-(t-s)/\tau_k} \\
-   \langle{\bf F}^R_j(t),{\bf F}^R_j(s)\rangle = & \text{k$_\text{B}$T} ~\Gamma_j(t-s)
+   \langle\mathbf{F}^R_j(t),\mathbf{F}^R_j(s)\rangle = & \text{k$_\text{B}$T} ~\Gamma_j(t-s)
 
 Here, the first term is representative of all conservative (pairwise,
 bonded, etc) forces external to this fix, the second is the temporally

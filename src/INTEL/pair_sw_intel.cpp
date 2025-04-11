@@ -1131,8 +1131,7 @@ void PairSWIntel::init_style()
 
   #if defined(__INTEL_COMPILER)
   if (__INTEL_COMPILER_BUILD_DATE < 20141023)
-    error->all(FLERR, "Intel compiler versions before "
-               "15 Update 1 not supported for sw/intel");
+    error->all(FLERR, "Intel compiler versions before 15 Update 1 not supported for sw/intel");
   #endif
 }
 

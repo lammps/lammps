@@ -22,3 +22,4 @@
 #include <TestSIMD_GeneratorCtors.hpp>
 #include <TestSIMD_WhereExpressions.hpp>
 #include <TestSIMD_Reductions.hpp>
+#include <TestSIMD_Construction.hpp>

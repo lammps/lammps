@@ -309,10 +309,10 @@ void PairEAMAlloyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // free duplicated memory
   if (need_dup) {
-    dup_rho   = decltype(dup_rho)();
-    dup_f     = decltype(dup_f)();
-    dup_eatom = decltype(dup_eatom)();
-    dup_vatom = decltype(dup_vatom)();
+    dup_rho   = {};
+    dup_f     = {};
+    dup_eatom = {};
+    dup_vatom = {};
   }
 }
 
@@ -1229,7 +1229,7 @@ void PairEAMAlloyKokkos<DeviceType>::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

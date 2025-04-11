@@ -3,6 +3,7 @@ import sys,os,unittest,ctypes
 from lammps import lammps, LMP_VAR_ATOM, LMP_STYLE_GLOBAL, LMP_STYLE_LOCAL
 from lammps import LMP_TYPE_VECTOR, LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS
 from lammps import LAMMPS_DOUBLE_2D, LAMMPS_AUTODETECT
+import math
 
 has_manybody=False
 try:
@@ -11,6 +12,17 @@ try:
         machine=os.environ['LAMMPS_MACHINE_NAME']
     lmp=lammps(name=machine)
     has_manybody = lmp.has_style("pair","sw")
+    lmp.close()
+except:
+    pass
+
+has_streitz=False
+try:
+    machine=None
+    if 'LAMMPS_MACHINE_NAME' in os.environ:
+        machine=os.environ['LAMMPS_MACHINE_NAME']
+    lmp=lammps(name=machine)
+    has_streitz = lmp.has_style("pair","coul/streitz")
     lmp.close()
 except:
     pass
@@ -516,6 +528,37 @@ create_atoms 1 single &
         self.assertEqual(a[0], x[0]*x[0]+x[1]*x[1]+x[2]*x[2])
         self.assertEqual(a[1], x[3]*x[3]+x[4]*x[4]+x[5]*x[5])
 
+    def test_expand(self):
+        self.lmp.command("variable one    index     1 2 3 4");
+        self.lmp.command("variable two    equal     2");
+        self.lmp.command("variable three  string    three");
+
+        expanded = self.lmp.expand("xx_$(4+5)_$(PI) ${one}-${two}-${three}")
+        self.assertEqual(expanded, "xx_9_3.141592653589793116 1-2-three")
+        expanded = self.lmp.expand("'xx_$(4+5)_$(PI) ${one}-${two}-${three}'")
+        self.assertEqual(expanded, "'xx_$(4+5)_$(PI) ${one}-${two}-${three}'")
+
+    def test_eval(self):
+        self.lmp.commands_string(
+            """region box1 block 0 10 0 5 -0.5 0.5
+            lattice fcc 0.8
+            create_box 1 box1
+            create_atoms 1 box
+            mass * 1.0
+            pair_style lj/cut 4.0
+            pair_coeff * * 1.0 1.0
+            variable t equal 15.0
+            velocity all create 1.5 532656
+            fix 1 all nve
+            run 0 post no""")
+        self.lmp.command("variable one    index     1 2 3 4")
+        self.lmp.command("variable two    equal     2")
+
+        self.assertEqual(self.lmp.eval("4+5"), 9.0)
+        self.assertEqual(self.lmp.eval("v_one / 2.0"), 0.5)
+        self.assertEqual(self.lmp.eval("count(all)"), 36.0)
+        self.assertEqual(self.lmp.eval("pe"), -3.9848867644689534)
+
     def test_get_thermo(self):
         self.lmp.command("units lj")
         self.lmp.command("atom_style atomic")
@@ -644,6 +687,9 @@ create_atoms 1 single &
         self.assertEqual(self.lmp.extract_global("map_tag_max"), -1)
         self.assertEqual(self.lmp.extract_global("sortfreq"), 1000)
         self.assertEqual(self.lmp.extract_global("nextsort"), 0)
+        self.assertEqual(self.lmp.extract_global("xlattice"), 1.0)
+        self.assertEqual(self.lmp.extract_global("ylattice"), 1.0)
+        self.assertEqual(self.lmp.extract_global("zlattice"), 1.0)
 
         # set and initialize r-RESPA
         self.lmp.command("run_style respa 3 5 2 pair 2 kspace 3")
@@ -665,6 +711,49 @@ create_atoms 1 single &
         self.lmp.command("run 0 post no")
         self.lmp.command("balance 0.1 rcb")
         self.assertEqual(self.lmp.extract_global("procgrid"), None)
+
+    def test_extract_pair1(self):
+        self.lmp.command("region box block 0 1 0 1 0 1")
+        self.lmp.command("create_box 3 box")
+        self.lmp.command("mass * 1.0")
+        self.lmp.command("pair_style lj/cut 3.0")
+        self.lmp.command("pair_coeff 1 1 1.0 1.0")
+        self.lmp.command("pair_coeff 2 2 1.5 2.0")
+        self.lmp.command("pair_coeff 3 3 1.0 3.0")
+        self.lmp.command("run 0 post no")
+        self.assertEqual(self.lmp.extract_pair_dimension("epsilon"), 2)
+        self.assertEqual(self.lmp.extract_pair_dimension("sigma"), 2)
+        self.assertEqual(self.lmp.extract_pair_dimension("cut_coul"), None)
+        sigma = self.lmp.extract_pair("sigma")
+        self.assertEqual(sigma[1][1], 1.0)
+        self.assertEqual(sigma[2][2], 2.0)
+        self.assertEqual(sigma[3][3], 3.0)
+        self.assertEqual(sigma[1][2], math.sqrt(2.0))
+
+    @unittest.skipIf(not has_streitz, "Pair extract for coul/streitz test")
+    def test_extract_pair2(self):
+        self.lmp.command("units metal")
+        self.lmp.command("atom_style charge")
+        self.lmp.command("region box block 0 1 0 1 0 1")
+        self.lmp.command("create_box 2 box")
+        self.lmp.command("mass * 1.0")
+        self.lmp.command("pair_style coul/streitz 12.0 wolf 0.31")
+        self.lmp.command("pair_coeff * * AlO.streitz Al O")
+        self.lmp.command("run 0 post no")
+
+        self.assertEqual(self.lmp.extract_pair_dimension("chi"), 1)
+        self.assertEqual(self.lmp.extract_pair_dimension("scale"), 2)
+        self.assertEqual(self.lmp.extract_pair_dimension("cut_coul"), 0)
+        self.assertEqual(self.lmp.extract_pair_dimension("epsilon"), None)
+
+        self.assertEqual(self.lmp.extract_pair("cut_coul"), 12.0)
+        self.assertEqual(self.lmp.extract_pair("chi"), [0.0, 0.0, 5.484763])
+        scale = self.lmp.extract_pair("scale")
+        self.assertEqual(scale[0][0], 0.0);
+        self.assertEqual(scale[0][1], 0.0);
+        self.assertEqual(scale[1][1], 1.0);
+        self.assertEqual(scale[1][2], 1.0);
+        self.assertEqual(scale[2][2], 1.0);
 
     def test_create_atoms(self):
         self.lmp.command("boundary f p m")

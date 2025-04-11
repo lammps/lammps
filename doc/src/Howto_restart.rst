@@ -26,8 +26,8 @@ scripts are based on.  If that script had the line
 
    restart         50 tmp.restart
 
-added to it, it would produce 2 binary restart files (tmp.restart.50
-and tmp.restart.100) as it ran.
+added to it, it would produce two binary restart files (``tmp.restart.50``
+and ``tmp.restart.100``) as it ran.
 
 This script could be used to read the first restart file and re-run the
 last 50 timesteps:
@@ -47,21 +47,21 @@ last 50 timesteps:
    run             50
 
 Note that the following commands do not need to be repeated because
-their settings are included in the restart file: *units, atom_style,
-special_bonds, pair_style, bond_style*.  However, these commands do
+their settings are included in the restart file: :lammps:`units`, :lammps:`atom_style`,
+:lammps:`special_bonds`, :lammps:`pair_style`, :lammps:`bond_style`.  However, these commands do
 need to be used, since their settings are not in the restart file:
-*neighbor, fix, timestep*\ .
+:lammps:`neighbor`, :lammps:`fix`, :lammps:`timestep`.
 
 If you actually use this script to perform a restarted run, you will
 notice that the thermodynamic data match at step 50 (if you also put a
-"thermo 50" command in the original script), but do not match at step
+:lammps:`thermo 50` command in the original script), but do not match at step
 100.  This is because the :doc:`fix langevin <fix_langevin>` command
 uses random numbers in a way that does not allow for perfect restarts.
 
 As an alternate approach, the restart file could be converted to a data
 file as follows:
 
-.. code-block:: LAMMPS
+.. code-block:: bash
 
    lmp_g++ -r tmp.restart.50 tmp.restart.data
 
@@ -89,8 +89,8 @@ Then, this script could be used to re-run the last 50 steps:
    reset_timestep  50
    run             50
 
-Note that nearly all the settings specified in the original *in.chain*
-script must be repeated, except the *pair_coeff* and *bond_coeff*
+Note that nearly all the settings specified in the original ``in.chain``
+script must be repeated, except the :lammps:`pair_coeff` and :lammps:`bond_coeff`
 commands, since the new data file lists the force field coefficients.
 Also, the :doc:`reset_timestep <reset_timestep>` command is used to tell
 LAMMPS the current timestep.  This value is stored in restart files, but

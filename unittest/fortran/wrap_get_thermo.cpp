@@ -85,15 +85,20 @@ TEST_F(LAMMPS_thermo, last_thermo)
     f_lammps_last_thermo_setup();
     EXPECT_EQ(f_lammps_last_thermo_step(), 15);
     EXPECT_EQ(f_lammps_last_thermo_num(), 6);
-    EXPECT_STREQ(f_lammps_last_thermo_string(1), "Step");
-    EXPECT_STREQ(f_lammps_last_thermo_string(2), "Temp");
-    EXPECT_STREQ(f_lammps_last_thermo_string(3), "E_pair");
-    EXPECT_STREQ(f_lammps_last_thermo_string(6), "Press");
-#if defined(LAMMPS_SMALLSMALL)
-    EXPECT_EQ(f_lammps_last_thermo_type(1), multitype::LAMMPS_INT);
-#else
+    char *thermostr;
+    thermostr = (char *)f_lammps_last_thermo_string(1);
+    EXPECT_STREQ(thermostr, "Step");
+    free(thermostr);
+    thermostr = (char *)f_lammps_last_thermo_string(2);
+    EXPECT_STREQ(thermostr, "Temp");
+    free(thermostr);
+    thermostr = (char *)f_lammps_last_thermo_string(3);
+    EXPECT_STREQ(thermostr, "E_pair");
+    free(thermostr);
+    thermostr = (char *)f_lammps_last_thermo_string(6);
+    EXPECT_STREQ(thermostr, "Press");
+    free(thermostr);
     EXPECT_EQ(f_lammps_last_thermo_type(1), multitype::LAMMPS_INT64);
-#endif
     EXPECT_EQ(f_lammps_last_thermo_int(1), 15);
     EXPECT_EQ(f_lammps_last_thermo_type(2), multitype::LAMMPS_DOUBLE);
     EXPECT_EQ(f_lammps_last_thermo_type(3), multitype::LAMMPS_DOUBLE);

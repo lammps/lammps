@@ -7,6 +7,10 @@ LAMMPS shared library through the Python `ctypes <ctypes_>`_
 module.  Because of the dynamic loading, it is required that LAMMPS is
 compiled in :ref:`"shared" mode <exe>`.
 
+.. versionchanged:: 2Apr2025
+
+LAMMPS currently only supports Python version 3.6 or later.
+
 Two components are necessary for Python to be able to invoke LAMMPS code:
 
 * The LAMMPS Python Package (``lammps``) from the ``python`` folder
@@ -106,13 +110,16 @@ folder that the dynamic loader searches or inside of the installed
 
       .. code-block:: bash
 
-         python install.py -p <python package> -l <shared library> -v <version.h file> [-n]
+         python install.py -p <python package> -l <shared library> -v <version.h file> [-n] [-f]
 
       * The ``-p`` flag points to the ``lammps`` Python package folder to be installed,
       * the ``-l`` flag points to the LAMMPS shared library file to be installed,
       * the ``-v`` flag points to the LAMMPS version header file to extract the version date,
-      * and the optional ``-n`` instructs the script to only build a wheel file
-        but not attempt to install it.
+      * the optional ``-n`` instructs the script to only build a wheel file but not attempt
+        to install it,
+      * and the optional ``-f`` argument instructs the script to force installation even if
+        pip would otherwise refuse installation with an
+        :ref:`error about externally managed environments <externally_managed>`.
 
    .. tab:: Virtual environment
 
@@ -135,11 +142,6 @@ folder that the dynamic loader searches or inside of the installed
 
          # create virtual environment in folder $HOME/myenv
          python3 -m venv $HOME/myenv
-
-      For Python versions prior 3.3 you can use `virtualenv
-      <https://packaging.python.org/en/latest/key_projects/#virtualenv>`_
-      command instead of "python3 -m venv".  This step has to be done
-      only once.
 
       To activate the virtual environment type:
 
@@ -199,6 +201,10 @@ folder that the dynamic loader searches or inside of the installed
 
          The ``PYTHONPATH`` needs to point to the parent folder that contains the ``lammps`` package!
 
+In case you run into an "externally-managed-environment" error when
+trying to install the LAMMPS Python module, please refer to
+:ref:`corresponding paragraph <externally_managed>` in the Python HOWTO
+page to learn about options for handling this error.
 
 To verify if LAMMPS can be successfully started from Python, start the
 Python interpreter, load the ``lammps`` Python module and create a
@@ -245,14 +251,14 @@ make MPI calls directly from Python in your script, if you desire.
 We have tested this with `MPI for Python <https://mpi4py.readthedocs.io/>`_
 (aka mpi4py) and you will find installation instruction for it below.
 
-Installation of mpi4py (version 3.0.3 as of Sep 2020) can be done as
+Installation of mpi4py (version 4.0.1 as of Feb 2025) can be done as
 follows:
 
 - Via ``pip`` into a local user folder with:
 
   .. code-block:: bash
 
-     pip install --user mpi4py
+     python3 -m pip install --user mpi4py
 
 - Via ``dnf`` into a system folder for RedHat/Fedora systems:
 
@@ -261,20 +267,20 @@ follows:
      # for use with OpenMPI
      sudo dnf install python3-mpi4py-openmpi
      # for use with MPICH
-     sudo dnf install python3-mpi4py-openmpi
+     sudo dnf install python3-mpi4py-mpich
 
 - Via ``pip`` into a virtual environment (see above):
 
   .. code-block:: console
 
      $ source $HOME/myenv/activate
-     (myenv)$ pip install mpi4py
+     (myenv)$ python -m pip install mpi4py
 
 - Via ``pip`` into a system folder (not recommended):
 
   .. code-block:: bash
 
-     sudo pip install mpi4py
+     sudo python3 -m pip install mpi4py
 
 For more detailed installation instructions and additional options,
 please see the `mpi4py installation <https://mpi4py.readthedocs.io/en/stable/install.html>`_ page.

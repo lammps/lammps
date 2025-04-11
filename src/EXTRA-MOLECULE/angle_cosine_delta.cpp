@@ -89,8 +89,6 @@ void AngleCosineDelta::compute(int eflag, int vflag)
 
     s = sqrt(1.0 - c*c);
     if (s < SMALL) s = SMALL;
-    s = 1.0/s;
-
     cot = c/s;
 
     // force & energy

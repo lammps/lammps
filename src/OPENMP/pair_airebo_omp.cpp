@@ -385,7 +385,7 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int eflag, double *pv1, ThrData 
         // if best = 1.0, done
 
         REBO_neighs_i = REBO_firstneigh[i];
-        for (kk = 0; kk < REBO_numneigh[i] && done==0; kk++) {
+        for (kk = 0; (kk < REBO_numneigh[i]) && (done == 0); kk++) {
           k = REBO_neighs_i[kk];
           if (k == j) continue;
           ktype = map[type[k]];
@@ -397,7 +397,10 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int eflag, double *pv1, ThrData 
           if (rsq < rcmaxsq[itype][ktype]) {
             rik = sqrt(rsq);
             wik = Sp(rik,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-          } else { dwik = wik = 0.0; rikS = rik = 1.0; }
+          } else {
+            dwik = wik = 0.0;
+            rikS = rik = 1.0;
+          }
 
           if (wik > best) {
             deljk[0] = x[j][0] - x[k][0];
@@ -436,7 +439,7 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int eflag, double *pv1, ThrData 
             // if best = 1.0, done
 
             REBO_neighs_k = REBO_firstneigh[k];
-            for (mm = 0; mm < REBO_numneigh[k] && done==0; mm++) {
+            for (mm = 0; (mm < REBO_numneigh[k]) && (done == 0); mm++) {
               m = REBO_neighs_k[mm];
               if (m == i || m == j) continue;
               mtype = map[type[m]];
@@ -447,7 +450,10 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int eflag, double *pv1, ThrData 
               if (rsq < rcmaxsq[ktype][mtype]) {
                 rkm = sqrt(rsq);
                 wkm = Sp(rkm,rcmin[ktype][mtype],rcmax[ktype][mtype],dwkm);
-              } else { dwkm = wkm = 0.0; rkmS = rkm = 1.0; }
+              } else {
+                dwkm = wkm = 0.0;
+                rkmS = rkm = 1.0;
+              }
 
               if (wik*wkm > best) {
                 deljm[0] = x[j][0] - x[m][0];

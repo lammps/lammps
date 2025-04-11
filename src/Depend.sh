@@ -68,6 +68,10 @@ if (test $1 = "COLLOID") then
   depend OPENMP
 fi
 
+if (test $1 = "COLVARS") then
+  depend KOKKOS
+fi
+
 if (test $1 = "DIELECTRIC") then
   depend OPENMP
 fi
@@ -193,6 +197,10 @@ if (test $1 = "ML-SNAP") then
   depend ML-IAP
   depend KOKKOS
   depend INTEL
+fi
+
+if (test $1 = "ML-UF3") then
+  depend KOKKOS
 fi
 
 if (test $1 = "CG-SPICA") then

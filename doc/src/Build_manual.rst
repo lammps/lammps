@@ -78,8 +78,7 @@ folder.  The following ``make`` commands are available:
    make epub          # generate LAMMPS.epub in ePUB format using Sphinx
    make mobi          # generate LAMMPS.mobi in MOBI format using ebook-convert
 
-   make fasthtml      # generate approximate HTML in fasthtml dir using Sphinx
-                      # some Sphinx extensions do not work correctly with this
+   make fasthtml      # generate approximate HTML in fasthtml dir using pandoc
 
    make clean         # remove intermediate RST files created by HTML build
    make clean-all     # remove entire build folder and any cached data
@@ -116,9 +115,9 @@ environment variable.
 Prerequisites for HTML
 ----------------------
 
-To run the HTML documentation build toolchain, python 3, git, doxygen,
-and virtualenv have to be installed locally.  Here are instructions for
-common setups:
+To run the HTML documentation build toolchain, Python 3.8 or later, git,
+doxygen, and virtualenv have to be installed locally.  Here are
+instructions for common setups:
 
 .. tabs::
 
@@ -128,13 +127,7 @@ common setups:
 
          sudo apt-get install git doxygen
 
-   .. tab:: RHEL or CentOS (Version 7.x)
-
-      .. code-block:: bash
-
-         sudo yum install git doxygen
-
-   .. tab:: Fedora or RHEL/CentOS (8.x or later)
+   .. tab:: Fedora or RHEL/AlmaLinux/RockyLinux (8.x or later)
 
       .. code-block:: bash
 
@@ -154,7 +147,36 @@ Prerequisites for PDF
 
 In addition to the tools needed for building the HTML format manual,
 a working LaTeX installation with support for PDFLaTeX and a selection
-of LaTeX styles/packages are required.  To run the PDFLaTeX translation
+of LaTeX styles/packages are required.  Apart from LaTeX packages that
+are usually installed by default, the following packages are required:
+
+.. table_from_list::
+   :columns: 11
+
+   - amsmath
+   - anysize
+   - babel
+   - capt-of
+   - cmap
+   - dvipng
+   - ellipse
+   - fncychap
+   - fontawesome
+   - framed
+   - geometry
+   - gyre
+   - hyperref
+   - hypcap
+   - needspace
+   - pict2e
+   - times
+   - tabulary
+   - titlesec
+   - upquote
+   - wrapfig
+   - xindy
+
+To run the PDFLaTeX translation
 the ``latexmk`` script needs to be installed as well.
 
 Prerequisites for ePUB and MOBI
@@ -182,12 +204,42 @@ documentation is required and either existing files in the ``src``
 folder need to be updated or new files added. These files are written in
 `reStructuredText <rst_>`_ markup for translation with the Sphinx tool.
 
+Testing your contribution
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Before contributing any documentation, please check that both the HTML
-and the PDF format documentation can translate without errors.  During
-testing the html translation, you may use the ``make fasthtml`` command
-which does an approximate translation (i.e. not all Sphinx features and
-extensions will work), but runs very fast because it will only translate
-files that have been changed since the last ``make fasthtml`` command.
+and the PDF format documentation can translate without errors and that
+there are no spelling issues.  This is done with ``make html``, ``make pdf``,
+and ``make spelling``, respectively.
+
+Fast and approximate translation to HTML
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Translating the full manual to HTML or PDF can take a long time.  Thus
+there is a fast and approximate way to translate the reStructuredText to
+HTML as a quick-n-dirty way of checking your manual page.
+
+This translation uses `Pandoc <https://pandoc.org>`_ instead of Sphinx
+and thus all special Sphinx features (cross-references, advanced tables,
+embedding of Python docstrings or doxygen documentation, and so on) will
+not render correctly.  Most embedded math should render correctly.  This
+is a **very fast** way to check the syntax and layout of a documentation
+file translated to HTML while writing or updating it.
+
+To translate **all** manual pages, you can type ``make fasthtml`` at the
+command line.  The translated HTML files are then in the ``fasthtml``
+folder. All subsequent ``make fasthtml`` commands will only translate
+``.rst`` files that have been changed.  The ``make fasthtml`` command
+can be parallelized with make using the `-j` flag.  You can also
+directly translate only individual pages: e.g. to translate only the
+``doc/src/pair_lj.rst`` page type ``make fasthtml/pair_lj.html``
+
+After writing the documentation is completed, you will still need
+to verify with ``make html`` and ``make pdf`` that it translates
+correctly in both formats.
+
+Tests for consistency, completeness, and other known issues
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Please also check the output to the console for any warnings or problems.  There will
 be multiple tests run automatically:

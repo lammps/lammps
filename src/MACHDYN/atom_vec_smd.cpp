@@ -201,7 +201,7 @@ void AtomVecSMD::write_data_restricted_to_general()
 
   int nlocal = atom->nlocal;
   memory->create(x0_hold,nlocal,3,"atomvec:x0_hold");
-  if (nlocal) memcpy(&x0_hold[0][0],&x0[0][0],3*nlocal*sizeof(double));
+  if (nlocal) memcpy(&x0_hold[0][0],&x0[0][0],(sizeof(double)*3*nlocal)&MEMCPYMASK);
   for (int i = 0; i < nlocal; i++)
     domain->restricted_to_general_coords(x0[i]);
 
@@ -221,7 +221,7 @@ void AtomVecSMD::write_data_restore_restricted()
   if (!x0_hold) return;
 
   int nlocal = atom->nlocal;
-  memcpy(&x0[0][0],&x0_hold[0][0],3*nlocal*sizeof(double));
+  memcpy(&x0[0][0],&x0_hold[0][0],(sizeof(double)*3*nlocal)&MEMCPYMASK);
   memory->destroy(x0_hold);
   x0_hold = nullptr;
 }

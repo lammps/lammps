@@ -8,9 +8,9 @@
 // Colvars repository at GitHub.
 
 #include <vector>
-#include <cstdlib>
-#include <string.h>
 
+#include "colvar.h"
+#include "colvarbias.h"
 #include "colvarproxy.h"
 #include "colvardeps.h"
 #include "colvarscript.h"

@@ -44,7 +44,7 @@ file (i.e. ``Ta_param.pod``)
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 40 9 10 41
 
    * - Keyword
      - Default
@@ -139,7 +139,7 @@ in the example above):
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 38 9 10 43
 
    * - Keyword
      - Default
@@ -263,10 +263,10 @@ then the globally defined weights from the ``fitting_weight_energy`` and
 POD Potential
 """""""""""""
 
-We consider a multi-element system of *N* atoms with :math:`N_{\rm e}`
+We consider a multi-element system of *N* atoms with :math:`N_\mathrm{e}`
 unique elements.  We denote by :math:`\boldsymbol r_n` and :math:`Z_n`
 position vector and type of an atom *n* in the system,
-respectively. Note that we have :math:`Z_n \in \{1, \ldots, N_{\rm e}
+respectively. Note that we have :math:`Z_n \in \{1, \ldots, N_\mathrm{e}
 \}`, :math:`\boldsymbol R = (\boldsymbol r_1, \boldsymbol r_2, \ldots,
 \boldsymbol r_N) \in \mathbb{R}^{3N}`, and :math:`\boldsymbol Z = (Z_1,
 Z_2, \ldots, Z_N) \in \mathbb{N}^{N}`. The total energy of the

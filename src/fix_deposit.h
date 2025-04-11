@@ -67,7 +67,7 @@ class FixDeposit : public Fix {
 
   void find_maxid();
   void options(int, char **);
-  int vartest(double, double, double); // evaluate a variable with new atom position
+  int vartest(double, double, double);    // evaluate a variable with new atom position
 };
 
 }    // namespace LAMMPS_NS

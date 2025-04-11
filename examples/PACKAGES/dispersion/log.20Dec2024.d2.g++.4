@@ -1,0 +1,122 @@
+LAMMPS (19 Nov 2024 - Development - patch_19Nov2024-125-g095d33dafb)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:99)
+  using 1 OpenMP thread(s) per MPI task
+atom_style              atomic
+units                   metal
+boundary                p p p
+atom_modify             sort 0 0.0
+
+lattice                 sc 1.0
+Lattice spacing in x,y,z = 1 1 1
+region                  box block 0 10 0 10 0 10
+create_box              1 box
+Created orthogonal box = (0 0 0) to (10 10 10)
+  1 by 2 by 2 MPI processor grid
+create_atoms            1 region box
+Created 1000 atoms
+  using lattice units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.000 seconds
+
+variable                l equal 47.6
+change_box              all x final 0 $l y final 0 $l z final 0 $l remap
+change_box              all x final 0 47.6 y final 0 $l z final 0 $l remap
+change_box              all x final 0 47.6 y final 0 47.6 z final 0 $l remap
+change_box              all x final 0 47.6 y final 0 47.6 z final 0 47.6 remap
+Changing box ...
+  orthogonal box = (0 0 0) to (47.6 10 10)
+  orthogonal box = (0 0 0) to (47.6 47.6 10)
+  orthogonal box = (0 0 0) to (47.6 47.6 47.6)
+region                  world block INF INF  INF INF  INF INF
+
+### interactions
+pair_style              hybrid/overlay pace table linear 10000
+ACE version: 2023.11.25
+Recursive evaluator is used
+pair_coeff              * * pace potential_files/c_ace.yace C
+Loading potential_files/c_ace.yace
+Total number of basis functions
+	C: 20 (r=1) 455 (r>1)
+Mapping LAMMPS atom type #1(C) -> ACE species type #0
+pair_coeff              * * table potential_files/d2.table D2 9.0
+Reading pair table potential file potential_files/d2.table with DATE: 2021-12-16
+WARNING: 8063 of 20000 force values in table D2 are inconsistent with -dE/dr.
+WARNING:  Should only be flagged at inflection points (src/pair_table.cpp:466)
+WARNING: 2386 of 20000 distance values in table 1e-06 with relative error
+WARNING:  over D2 to re-computed values (src/pair_table.cpp:474)
+
+mass                    1 12.011000
+velocity                all create 200 1234
+
+compute                 c1 all pair pace
+compute                 c2 all pair table
+
+# calculate the e/atom for each pair style individually
+variable                dUpace equal c_c1/atoms
+variable                dUd2 equal c_c2/atoms
+
+### run
+timestep                0.001
+fix                     1 all nvt temp 200.0 200.0 0.01
+thermo_style            custom step temp pe press etotal v_dUpace v_dUd2
+thermo                  10
+run                     100
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 11
+  ghost atom cutoff = 11
+  binsize = 5.5, bins = 9 9 9
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair pace, perpetual
+      attributes: full, newton on, cut 7.5
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair table, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.655 | 3.655 | 3.655 Mbytes
+   Step          Temp          PotEng         Press          TotEng        v_dUpace        v_dUd2    
+         0   200           -262.26589     -9971.6713     -236.43971     -0.2577066     -0.0045592958 
+        10   198.00622     -261.95011     -9934.5046     -236.38139     -0.25738304    -0.0045670733 
+        20   199.81545     -261.06219     -9818.4051     -235.25985     -0.25647183    -0.0045903655 
+        30   200.85902     -259.76256     -9639.9086     -233.82546     -0.25513263    -0.0046299265 
+        40   195.00229     -258.4153      -9425.3772     -233.23448     -0.25372979    -0.0046855071 
+        50   198.00573     -257.57066     -9164.7658     -232.00201     -0.25281159    -0.0047590772 
+        60   206.26759     -258.09159     -8877.0162     -231.45607     -0.25323684    -0.0048547477 
+        70   219.81939     -261.10607     -8668.5789     -232.7206      -0.25612771    -0.0049783595 
+        80   250.27428     -268.27862     -8601.1343     -235.96048     -0.2631332     -0.0051454143 
+        90   308.88167     -283.24793     -8745.8792     -243.36177     -0.27785093    -0.0053969977 
+       100   427.60692     -315.05776     -9147.2389     -259.8405      -0.30933434    -0.0057234269 
+Loop time of 0.69628 on 4 procs for 100 steps with 1000 atoms
+
+Performance: 12.409 ns/day, 1.934 hours/ns, 143.620 timesteps/s, 143.620 katom-step/s
+99.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.67839    | 0.68307    | 0.69054    |   0.6 | 98.10
+Neigh   | 0.00034181 | 0.00034811 | 0.00036188 |   0.0 |  0.05
+Comm    | 0.0045334  | 0.012031   | 0.016704   |   4.4 |  1.73
+Output  | 0.00015123 | 0.00017175 | 0.0002318  |   0.0 |  0.02
+Modify  | 0.00041346 | 0.00043062 | 0.00044327 |   0.0 |  0.06
+Other   |            | 0.0002301  |            |       |  0.03
+
+Nlocal:            250 ave         261 max         246 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
+Nghost:           1250 ave        1254 max        1239 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Neighs:           6501 ave        6778 max        6320 min
+Histogram: 1 0 2 0 0 0 0 0 0 1
+FullNghs:       4421.5 ave        4595 max        4332 min
+Histogram: 1 2 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 26004
+Ave neighs/atom = 26.004
+Neighbor list builds = 1
+Dangerous builds = 0
+
+Total wall time: 0:00:00

@@ -116,8 +116,8 @@ class OpenMPTargetExecTeamMember {
   // FIXME_OPENMPTARGET this function currently ignores the reducer passed.
   template <typename ReducerType>
   KOKKOS_INLINE_FUNCTION std::enable_if_t<is_reducer<ReducerType>::value>
-  team_reduce(ReducerType const&, typename ReducerType::value_type& value) const
-      noexcept {
+  team_reduce(ReducerType const&,
+              typename ReducerType::value_type& value) const noexcept {
 #pragma omp barrier
 
     using value_type = typename ReducerType::value_type;
@@ -741,47 +741,6 @@ struct TeamVectorRangeBoundariesStruct<iType, OpenMPTargetExecTeamMember> {
 
 }  // namespace Impl
 
-}  // namespace Kokkos
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-namespace Kokkos {
-namespace Impl {
-
-//----------------------------------------------------------------------------
-/** \brief  Data for OpenMPTarget thread execution */
-
-class OpenMPTargetExec {
- public:
-  // FIXME_OPENMPTARGET - Currently the maximum number of
-  // teams possible is calculated based on NVIDIA's Volta GPU. In
-  // future this value should be based on the chosen architecture for the
-  // OpenMPTarget backend.
-  static int MAX_ACTIVE_THREADS;
-
- private:
-  static void* scratch_ptr;
-
- public:
-  static void verify_is_process(const char* const);
-  static void verify_initialized(const char* const);
-
-  static int* get_lock_array(int num_teams);
-  static void* get_scratch_ptr();
-  static void clear_scratch();
-  static void clear_lock_array();
-  static void resize_scratch(int64_t team_reduce_bytes,
-                             int64_t team_shared_bytes,
-                             int64_t thread_local_bytes, int64_t league_size);
-
-  static void* m_scratch_ptr;
-  static std::mutex m_mutex_scratch_ptr;
-  static int64_t m_scratch_size;
-  static int* m_lock_array;
-  static uint64_t m_lock_size;
-  static uint32_t* m_uniquetoken_ptr;
-};
-
-}  // namespace Impl
 }  // namespace Kokkos
 
 #endif /* KOKKOS_OPENMPTARGET_PARALLEL_HPP */

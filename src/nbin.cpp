@@ -141,7 +141,7 @@ int NBin::coord2bin(double *x)
   int ix,iy,iz;
 
   if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
-    error->one(FLERR,"Non-numeric positions - simulation unstable");
+    error->one(FLERR,"Non-numeric positions - simulation unstable" + utils::errorurl(6));
 
   if (x[0] >= bboxhi[0])
     ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx) + nbinx;
@@ -181,7 +181,7 @@ int NBin::coord2bin_multi(double *x, int ic)
   int ibin;
 
   if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
-    error->one(FLERR,"Non-numeric positions - simulation unstable");
+    error->one(FLERR,"Non-numeric positions - simulation unstable" + utils::errorurl(6));
 
   if (x[0] >= bboxhi[0])
     ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx_multi[ic]) + nbinx_multi[ic];

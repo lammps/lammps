@@ -111,7 +111,7 @@ void test_A(const bool searched_value_exist, std::size_t numTeams,
 
   using rand_pool =
       Kokkos::Random_XorShift64_Pool<Kokkos::DefaultHostExecutionSpace>;
-  rand_pool pool(lowerBound * upperBound);
+  rand_pool pool(static_cast<uint64_t>(lowerBound) * upperBound);
 
   if (searched_value_exist) {
     Kokkos::View<std::size_t*, Kokkos::DefaultHostExecutionSpace> randomIndices(

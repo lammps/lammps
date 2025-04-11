@@ -59,7 +59,7 @@ WriteRestart::WriteRestart(LAMMPS *lmp) : Command(lmp)
 void WriteRestart::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR,"Write_restart command before simulation box is defined");
+    error->all(FLERR,"Write_restart command before simulation box is defined" + utils::errorurl(33));
   if (narg < 1) utils::missing_cmd_args(FLERR, "write_restart", error);
 
   // if filename contains a "*", replace with current timestep

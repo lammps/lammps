@@ -56,8 +56,7 @@ bool is_overlapping<Kokkos::HIP>(const Kokkos::HIP&) {
 
 #if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU)
 template <>
-bool is_overlapping<Kokkos::Experimental::SYCL>(
-    const Kokkos::Experimental::SYCL&) {
+bool is_overlapping<Kokkos::SYCL>(const Kokkos::SYCL&) {
   return true;
 }
 #endif

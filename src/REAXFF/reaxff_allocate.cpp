@@ -169,16 +169,23 @@ namespace ReaxFF {
   static int Reallocate_HBonds_List(reax_system *system, reax_list *hbonds)
   {
     int i, total_hbonds;
+    LAMMPS_NS::bigint total_hbonds_big;
 
     int mincap = system->mincap;
     double saferzone = system->saferzone;
 
-    total_hbonds = 0;
+    total_hbonds_big = 0;
     for (i = 0; i < system->n; ++i)
       if ((system->my_atoms[i].Hindex) >= 0) {
-        total_hbonds += system->my_atoms[i].num_hbonds;
+        total_hbonds_big += system->my_atoms[i].num_hbonds;
       }
-    total_hbonds = (int)(MAX(total_hbonds*saferzone, mincap*system->minhbonds));
+    total_hbonds_big = (LAMMPS_NS::bigint)(MAX(total_hbonds_big*saferzone, mincap*system->minhbonds));
+
+    auto error = system->error_ptr;
+    if (total_hbonds_big > MAXSMALLINT)
+      error->one(FLERR,"Too many hydrogen bonds in pair reaxff");
+
+    total_hbonds = total_hbonds_big;
 
     Delete_List(hbonds);
     Make_List(system->Hcap, total_hbonds, TYP_HBOND, hbonds);
@@ -190,17 +197,24 @@ namespace ReaxFF {
                                     reax_list *bonds, int *total_bonds, int *est_3body)
   {
     int i;
+    LAMMPS_NS::bigint total_bonds_big;
 
     int mincap = system->mincap;
     double safezone = system->safezone;
 
-    *total_bonds = 0;
+    total_bonds_big = 0;
     *est_3body = 0;
     for (i = 0; i < system->N; ++i) {
       *est_3body += SQR(system->my_atoms[i].num_bonds);
-      *total_bonds += system->my_atoms[i].num_bonds;
+      total_bonds_big += system->my_atoms[i].num_bonds;
     }
-    *total_bonds = (int)(MAX(*total_bonds * safezone, mincap*MIN_BONDS));
+    total_bonds_big = (LAMMPS_NS::bigint)(MAX(total_bonds_big * safezone, mincap*MIN_BONDS));
+
+    auto error = system->error_ptr;
+    if (total_bonds_big > MAXSMALLINT)
+      error->one(FLERR,"Too many bonds in pair reaxff");
+
+    *total_bonds = total_bonds_big;
 
     if (system->omp_active)
       for (i = 0; i < bonds->num_intrs; ++i)

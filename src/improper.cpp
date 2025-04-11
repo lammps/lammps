@@ -18,6 +18,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "suffix.h"
 #include "update.h"
@@ -30,6 +31,7 @@ Improper::Improper(LAMMPS *_lmp) : Pointers(_lmp)
 {
   energy = 0.0;
   writedata = 0;
+  reinitflag = 1;
   for (int i = 0; i < 4; i++) symmatoms[i] = 0;
 
   allocated = 0;
@@ -47,7 +49,7 @@ Improper::Improper(LAMMPS *_lmp) : Pointers(_lmp)
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
 
-  copymode = 0;
+  copymode = kokkosable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -67,9 +69,14 @@ Improper::~Improper()
 
 void Improper::init()
 {
-  if (!allocated && atom->nimpropertypes) error->all(FLERR, "Improper coeffs are not set");
+  if (!allocated && atom->nimpropertypes)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Improper coeffs are not set. Status:\n" + Info::get_improper_coeff_status(lmp));
   for (int i = 1; i <= atom->nimpropertypes; i++)
-    if (setflag[i] == 0) error->all(FLERR, "All improper coeffs are not set");
+    if (setflag[i] == 0)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "All improper coeffs are not set. Status:\n"
+                 + Info::get_improper_coeff_status(lmp));
 
   init_style();
 }
@@ -420,4 +427,16 @@ double Improper::memory_usage()
   double bytes = (double) comm->nthreads * maxeatom * sizeof(double);
   bytes += (double) comm->nthreads * maxvatom * 6 * sizeof(double);
   return bytes;
+}
+
+/* -----------------------------------------------------------------------
+   reset all type-based improper params via init()
+-------------------------------------------------------------------------- */
+
+void Improper::reinit()
+{
+  if (!reinitflag)
+    error->all(FLERR, "Fix adapt interface to this improper style not supported");
+
+  init();
 }

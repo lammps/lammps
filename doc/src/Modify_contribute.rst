@@ -1,7 +1,7 @@
 Submitting new features for inclusion in LAMMPS
 ===============================================
 
-We encourage LAMMPS users to submit new features they wrote for LAMMPS
+We encourage LAMMPS users to submit new features they write for LAMMPS
 to be included in the LAMMPS distribution and thus become easily
 accessible to all LAMMPS users.  The LAMMPS source code is managed
 with git and public development is hosted on `GitHub

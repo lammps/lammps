@@ -272,11 +272,11 @@ void LAMMPS_NS::update_pair_energy(MLIAPDataKokkosDevice *data, double *eij)
   auto d_eatoms = data->eatoms;
   auto d_pair_i= data->pair_i;
   const auto nlocal = data->nlocal;
-  Kokkos::parallel_for(nlocal, KOKKOS_LAMBDA(int ii){
+  Kokkos::parallel_for(nlocal, KOKKOS_LAMBDA(int ii) {
     d_eatoms[ii] = 0;
   });
 
-  Kokkos::parallel_reduce(data->npairs, KOKKOS_LAMBDA(int ii, double &local_sum){
+  Kokkos::parallel_reduce(data->npairs, KOKKOS_LAMBDA(int ii, double &local_sum) {
     int i = d_pair_i[ii];
     double e = 0.5 * eij[ii];
 
@@ -294,7 +294,6 @@ void LAMMPS_NS::update_pair_energy(MLIAPDataKokkosDevice *data, double *eij)
 
 void LAMMPS_NS::update_pair_forces(MLIAPDataKokkosDevice *data, double *fij)
 {
-  const auto nlocal = data->nlocal;
   auto *f = data->f;
   auto pair_i = data->pair_i;
   auto j_atoms = data->jatoms;
@@ -378,7 +377,7 @@ void LAMMPS_NS::update_atom_energy(MLIAPDataKokkosDevice *data, double *ei)
   auto d_eatoms = data->eatoms;
   const auto nlocal = data->nlocal;
 
-  Kokkos::parallel_reduce(nlocal, KOKKOS_LAMBDA(int i, double &local_sum){
+  Kokkos::parallel_reduce(nlocal, KOKKOS_LAMBDA(int i, double &local_sum) {
     double e = ei[i];
 
     d_eatoms[i] = e;

@@ -41,7 +41,7 @@ void team_policy_check_valid_storage_level_argument(int level) {
     std::stringstream ss;
     ss << "TeamPolicy::set_scratch_size(/*level*/ " << level
        << ", ...) storage level argument must be 0 or 1 to be valid\n";
-    Impl::throw_runtime_exception(ss.str());
+    abort(ss.str().c_str());
   }
 }
 

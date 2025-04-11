@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Pedro Antonio Santos Flórez (UNLV)
+   Contributing author: Pedro Antonio Santos Florez (UNLV)
 ------------------------------------------------------------------------- */
 
 #include "mliap_model_nn.h"

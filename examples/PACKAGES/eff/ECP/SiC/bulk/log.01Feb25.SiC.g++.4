@@ -1,0 +1,118 @@
+LAMMPS (19 Nov 2024 - Development - patch_19Nov2024-836-ge548c656ce)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:99)
+  using 1 OpenMP thread(s) per MPI task
+variable	sname index SiC
+variable        nstep equal 100
+
+units		electron
+newton		on
+boundary	p p p
+
+atom_style      electron
+
+read_data       data.${sname}
+read_data       data.SiC
+Reading data file ...
+  orthogonal box = (0 0 0) to (41.1 41.1 41.1)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  5000 atoms
+  read_data CPU = 0.016 seconds
+
+pair_style      eff/cut 20.0 limit/eradius pressure/evirials ecp 1 Si 2 C
+pair_coeff	* *
+pair_coeff	1 s 0.320852 2.283269 0.814857
+pair_coeff	2 p 22.721015 0.728733 1.103199 17.695345 6.693621
+
+comm_modify	vel yes
+
+neigh_modify    one 4000 page 40000
+
+compute         energies all pair eff/cut
+variable        eke equal c_energies[1]
+variable        epauli equal c_energies[2]
+variable        ecoul equal c_energies[3]
+variable        erres equal c_energies[4]
+variable        etotalnew equal c_energies[1]+c_energies[2]+c_energies[3]+c_energies[4]
+
+thermo          ${nstep}
+thermo          100
+thermo_style    custom step etotal pe ke v_etotalnew v_eke v_epauli v_ecoul v_erres
+thermo_modify   format float %16.8f
+thermo_modify   lost warn norm yes flush yes
+
+# Minimization
+
+min_style       cg
+dump            1 all xyz ${nstep} ${sname}.min.xyz
+dump            1 all xyz 100 ${sname}.min.xyz
+dump            1 all xyz 100 SiC.min.xyz
+compute         1 all property/atom spin eradius erforce
+dump            2 all custom ${nstep} ${sname}.min.lammpstrj id type q c_1[1] c_1[2] x y z fx fy fz c_1[3]
+dump            2 all custom 100 ${sname}.min.lammpstrj id type q c_1[1] c_1[2] x y z fx fy fz c_1[3]
+dump            2 all custom 100 SiC.min.lammpstrj id type q c_1[1] c_1[2] x y z fx fy fz c_1[3]
+dump            3 all custom ${nstep} ${sname}.data.restart id type q c_1[1] c_1[2] x y z
+dump            3 all custom 100 ${sname}.data.restart id type q c_1[1] c_1[2] x y z
+dump            3 all custom 100 SiC.data.restart id type q c_1[1] c_1[2] x y z
+min_modify      line quadratic
+minimize        0 1e-8 100000 1000000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+- EFF package: doi:10.1002/jcc.21637
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 4000, page size: 40000
+  master list distance cutoff = 22
+  ghost atom cutoff = 22
+  binsize = 11, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eff/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 20.12 | 20.7 | 21.34 Mbytes
+   Step         TotEng         PotEng         KinEng      v_etotalnew       v_eke         v_epauli       v_ecoul        v_erres    
+         0       -0.61266585      -0.61266585       0.00000000   -3063.32924433    2666.66666667    2055.59661323   -7785.59252422       0.00000000
+        27       -0.87995767      -0.87995767       0.00000000   -4399.78836066    2569.46885777     446.25650389   -7415.51372232       0.00000000
+Loop time of 7.78522 on 4 procs for 27 steps with 5000 atoms
+
+99.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = force tolerance
+  Energy initial, next-to-last, final = 
+    -0.612665848866385 -0.879957672127075 -0.879957672129693
+  Force two-norm initial, final = 254.76567 6.2598998e-09
+  Force max component initial, final = 2.9077051 3.4450958e-10
+  Final line search alpha, max atom move = 1 3.4450958e-10
+  Iterations, force evaluations = 27 37
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 6.976      | 7.3573     | 7.6627     |  10.1 | 94.50
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.11037    | 0.41578    | 0.79718    |  42.4 |  5.34
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.0121     |            |       |  0.16
+
+Nlocal:           1250 ave        1250 max        1250 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:          25192 ave       25192 max       25192 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:     1.9985e+06 ave 2.14947e+06 max 1.84582e+06 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+
+Total # of neighbors = 7994000
+Ave neighs/atom = 1598.8
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Total wall time: 0:00:08

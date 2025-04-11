@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Ajinkya Hire (Univ. of Florida),
-                        Hendrik Kraß (Univ. of Constance),
+                        Hendrik Krass (Univ. of Constance),
                         Matthias Rupp (Luxembourg Institute of Science and Technology),
                         Richard Hennig (Univ of Florida)
 ---------------------------------------------------------------------- */
@@ -22,6 +22,7 @@
 // clang-format off
 PairStyle(uf3/kk,PairUF3Kokkos<LMPDeviceType>)
 PairStyle(uf3/kk/device,PairUF3Kokkos<LMPDeviceType>)
+PairStyle(uf3/kk/host,PairUF3Kokkos<LMPHostType>)
 // clang-format on
 #else
 
@@ -44,7 +45,7 @@ template <class DeviceType> class PairUF3Kokkos : public PairUF3 {
   void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;
-  void allocate();
+  void allocate() override;
   void init_style() override;
   void init_list(int, class NeighList *) override;    // needed for ptr to full neigh list
   double init_one(int, int) override;                 // needed for cutoff radius for neighbour list
@@ -117,9 +118,11 @@ template <class DeviceType> class PairUF3Kokkos : public PairUF3 {
   std::vector<F_FLOAT> get_dncoefficients(const double *knots, const double coefficient) const;
 
   template <int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
   void twobody(const int itype, const int jtype, const F_FLOAT r, F_FLOAT &evdwl,
                F_FLOAT &fpair) const;
   template <int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
   void threebody(const int itype, const int jtype, const int ktype, const F_FLOAT value_rij,
                  const F_FLOAT value_rik, const F_FLOAT value_rjk, F_FLOAT &evdwl3,
                  F_FLOAT (&fforce)[3]) const;

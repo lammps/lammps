@@ -59,7 +59,7 @@ struct TestFunctorA {
         m_distancesView(myRowIndex) = resultDist;
       });
     }
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
     else if (m_apiPick == 2) {
       using value_type = typename ViewType::value_type;
       auto it =
@@ -74,7 +74,7 @@ struct TestFunctorA {
     else if (m_apiPick == 3) {
       using value_type = typename ViewType::value_type;
       auto it          = KE::max_element(member, myRowView,
-                                CustomLessThanComparator<value_type>{});
+                                         CustomLessThanComparator<value_type>{});
       resultDist       = KE::distance(KE::begin(myRowView), it);
       Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
         m_distancesView(myRowIndex) = resultDist;
@@ -144,7 +144,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
       stdDistance = KE::distance(KE::cbegin(myRow), it);
     } else {
       auto it     = std::max_element(KE::cbegin(myRow), KE::cend(myRow),
-                                 CustomLessThanComparator<value_type>{});
+                                     CustomLessThanComparator<value_type>{});
       stdDistance = KE::distance(KE::cbegin(myRow), it);
     }
 
@@ -170,7 +170,7 @@ void run_all_scenarios() {
 }
 
 TEST(std_algorithms_max_element_team_test, test) {
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
   run_all_scenarios<DynamicTag, int>();
   run_all_scenarios<StridedTwoRowsTag, double>();
   run_all_scenarios<StridedThreeRowsTag, int>();

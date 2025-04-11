@@ -8,18 +8,18 @@ info on how to download or build any extra library it requires.  It also
 gives links to documentation, example scripts, and pictures/movies (if
 available) that illustrate use of the package.
 
-The majority of packages can be included in a LAMMPS build with a
-single setting (``-D PKG_<NAME>=on`` for CMake) or command
-(``make yes-<name>`` for make).  See the :doc:`Build package <Build_package>`
-page for more info.  A few packages may require additional steps;
-this is indicated in the descriptions below.  The :doc:`Build extras <Build_extras>`
-page gives those details.
+The majority of packages can be included in a LAMMPS build with a single
+setting (``-D PKG_<NAME>=on`` for CMake) or command (``make yes-<name>``
+for make).  See the :doc:`Build package <Build_package>` page for more
+info.  A few packages may require additional steps; this is indicated in
+the descriptions below.  The :doc:`Build extras <Build_extras>` page
+gives those details.
 
 .. note::
 
    To see the complete list of commands a package adds to LAMMPS,
-   you can examine the files in its src directory, e.g. "ls
-   src/GRANULAR".  Files with names that start with fix, compute, atom,
+   you can examine the files in its src directory, e.g. ``ls
+   src/GRANULAR``.  Files with names that start with fix, compute, atom,
    pair, bond, angle, etc correspond to commands with the same style name
    as contained in the file name.
 
@@ -103,6 +103,7 @@ page gives those details.
    * :ref:`QEQ <PKG-QEQ>`
    * :ref:`QMMM <PKG-QMMM>`
    * :ref:`QTB <PKG-QTB>`
+   * :ref:`RHEO <PKG-RHEO>`
    * :ref:`REACTION <PKG-REACTION>`
    * :ref:`REAXFF <PKG-REAXFF>`
    * :ref:`REPLICA <PKG-REPLICA>`
@@ -143,9 +144,9 @@ This package has :ref:`specific installation instructions <adios>` on the :doc:`
 
 **Supporting info:**
 
-* src/ADIOS: filenames -> commands
-* src/ADIOS/README
-* examples/PACKAGES/adios
+* ``src/ADIOS``: filenames -> commands
+* ``src/ADIOS/README``
+* ``examples/PACKAGES/adios``
 * https://github.com/ornladios/ADIOS2
 * :doc:`dump atom/adios <dump_adios>`
 * :doc:`dump custom/adios <dump_adios>`
@@ -171,7 +172,7 @@ provided by the Ponder group in their
 
 **Supporting info:**
 
-* src/AMOEBA: filenames -> commands
+* ``src/AMOEBA``: filenames -> commands
 * :doc:`AMOEBA and HIPPO howto <Howto_amoeba>`
 * :doc:`pair_style amoeba <pair_amoeba>`
 * :doc:`pair_style hippo <pair_amoeba>`
@@ -181,7 +182,7 @@ provided by the Ponder group in their
 * :doc:`fix amoeba/bitorsion <fix_amoeba_bitorsion>`
 * :doc:`fix amoeba/pitorsion <fix_amoeba_pitorsion>`
 * tools/tinker/tinker2lmp.py
-* examples/amoeba
+* ``examples/amoeba``
 
 ----------
 
@@ -197,15 +198,15 @@ particle models including ellipsoids, 2d lines, and 3d triangles.
 
 **Supporting info:**
 
-* src/ASPHERE: filenames -> commands
+* ``src/ASPHERE``: filenames -> commands
 * :doc:`Howto spherical <Howto_spherical>`
 * :doc:`pair_style gayberne <pair_gayberne>`
 * :doc:`pair_style resquared <pair_resquared>`
 * :doc:`pair_style ylz <pair_ylz>`
 * `doc/PDF/pair_gayberne_extra.pdf <PDF/pair_gayberne_extra.pdf>`_
 * `doc/PDF/pair_resquared_extra.pdf <PDF/pair_resquared_extra.pdf>`_
-* examples/ASPHERE
-* examples/ellipse
+* ``examples/ASPHERE``
+* ``examples/ellipse``
 * https://www.lammps.org/movies.html#line
 * https://www.lammps.org/movies.html#tri
 
@@ -233,10 +234,10 @@ also the :ref:`MANYBODY <PKG-MANYBODY>` package is installed.
 
 **Supporting info:**
 
-* src/ATC: filenames -> commands
-* src/ATC/README
+* ``src/ATC``: filenames -> commands
+* ``src/ATC/README``
 * :doc:`fix atc <fix_atc>`
-* examples/PACKAGES/atc
+* ``examples/PACKAGES/atc``
 * https://www.lammps.org/pictures.html#atc
 
 ----------
@@ -261,10 +262,10 @@ This package has :ref:`specific installation instructions <awpmd>` on the :doc:`
 
 **Supporting info:**
 
-* src/AWPMD: filenames -> commands
-* src/AWPMD/README
+* ``src/AWPMD``: filenames -> commands
+* ``src/AWPMD/README``
 * :doc:`pair_style awpmd/cut <pair_awpmd>`
-* examples/PACKAGES/awpmd
+* ``examples/PACKAGES/awpmd``
 
 ----------
 
@@ -297,7 +298,7 @@ Dunn, NJH; Lebold, KM; DeLyser, MR; Rudzinski, JF; Noid, WG.
 "BOCS: Bottom-Up Open-Source Coarse-Graining Software."
 J. Phys. Chem. B. 122, 13, 3363-3377 (2018).
 
-Example inputs are in the examples/PACKAGES/bocs folder.
+Example inputs are in the ``examples/PACKAGES/bocs`` folder.
 
 ----------
 
@@ -315,12 +316,12 @@ overview.
 
 **Supporting info:**
 
-* src/BODY filenames -> commands
+* ``src/BODY`` filenames -> commands
 * :doc:`Howto_body <Howto_body>`
 * :doc:`atom_style body <atom_style>`
 * :doc:`fix nve/body <fix_nve_body>`
 * :doc:`pair_style body/nparticle <pair_body_nparticle>`
-* examples/body
+* ``examples/body``
 
 ----------
 
@@ -341,7 +342,7 @@ models for mesoscale simulations of solids and fracture.  See the
 
 **Supporting info:**
 
-* src/BPM filenames -> commands
+* ``src/BPM``: filenames -> commands
 * :doc:`Howto_bpm <Howto_bpm>`
 * :doc:`atom_style bpm/sphere <atom_style>`
 * :doc:`bond_style bpm/rotational <bond_bpm_rotational>`
@@ -349,7 +350,8 @@ models for mesoscale simulations of solids and fracture.  See the
 * :doc:`compute nbond/atom <compute_nbond_atom>`
 * :doc:`fix nve/bpm/sphere <fix_nve_bpm_sphere>`
 * :doc:`pair_style bpm/spring <pair_bpm_spring>`
-* examples/bpm
+* https://www.lammps.org/movies.html#bpmpackage
+* ``examples/bpm``
 
 ----------
 
@@ -371,7 +373,7 @@ Stefan Paquay (while at Brandeis University) (initial version of fix propel/self
 
 .. versionadded:: 14May2021
 
-Example inputs are in the examples/PACKAGES/brownian folder.
+Example inputs are in the ``examples/PACKAGES/brownian`` folder.
 
 ----------
 
@@ -396,8 +398,8 @@ and :ref:`ASPHERE <PKG-ASPHERE>` packages are installed.
 
 **Supporting info:**
 
-* src/CG-DNA: filenames -> commands
-* /src/CG-DNA/README
+* ``src/CG-DNA``: filenames -> commands
+* ``src/CG-DNA/README``
 * :doc:`pair_style oxdna/\* <pair_oxdna>`
 * :doc:`pair_style oxdna2/\* <pair_oxdna2>`
 * :doc:`pair_style oxrna2/\* <pair_oxrna2>`
@@ -405,7 +407,7 @@ and :ref:`ASPHERE <PKG-ASPHERE>` packages are installed.
 * :doc:`bond_style oxdna2/\* <bond_oxdna>`
 * :doc:`bond_style oxrna2/\* <bond_oxdna>`
 * :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
-* examples/PACKAGES/cgdna
+* ``examples/PACKAGES/cgdna``
 
 ----------
 
@@ -426,11 +428,11 @@ simulation of biological or soft material systems.
 
 **Supporting info:**
 
-* src/CG-SPICA: filenames -> commands
-* src/CG-SPICA/README
+* ``src/CG-SPICA``: filenames -> commands
+* ``src/CG-SPICA/README``
 * :doc:`pair_style lj/spica/\* <pair_spica>`
 * :doc:`angle_style spica <angle_spica>`
-* examples/PACKAGES/cgspica
+* ``examples/PACKAGES/cgspica``
 * https://www.lammps.org/pictures.html#cg
 * https://www.spica-ff.org/
 
@@ -448,7 +450,7 @@ CLASS2 molecular force field.
 
 **Supporting info:**
 
-* src/CLASS2: filenames -> commands
+* ``src/CLASS2``: filenames -> commands
 * :doc:`bond_style class2 <bond_class2>`
 * :doc:`angle_style class2 <angle_class2>`
 * :doc:`dihedral_style class2 <dihedral_class2>`
@@ -475,15 +477,15 @@ Higdon's group at UIUC.
 
 **Supporting info:**
 
-* src/COLLOID: filenames -> commands
+* ``src/COLLOID``: filenames -> commands
 * :doc:`fix wall/colloid <fix_wall>`
 * :doc:`pair_style colloid <pair_colloid>`
 * :doc:`pair_style yukawa/colloid <pair_yukawa_colloid>`
 * :doc:`pair_style brownian <pair_brownian>`
 * :doc:`pair_style lubricate <pair_lubricate>`
 * :doc:`pair_style lubricateU <pair_lubricateU>`
-* examples/colloid
-* examples/srd
+* ``examples/colloid``
+* ``examples/srd``
 
 ----------
 
@@ -512,14 +514,14 @@ the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/COLVARS: filenames -> commands
+* ``src/COLVARS``: filenames -> commands
 * `doc/PDF/colvars-refman-lammps.pdf <PDF/colvars-refman-lammps.pdf>`_
-* src/COLVARS/README
-* lib/colvars/README
+* ``src/COLVARS/README``
+* ``lib/colvars/README``
 * :doc:`fix colvars <fix_colvars>`
 * :doc:`group2ndx <group2ndx>`
 * :doc:`ndx2group <group2ndx>`
-* examples/PACKAGES/colvars
+* ``examples/PACKAGES/colvars``
 
 ----------
 
@@ -544,9 +546,9 @@ This package has :ref:`specific installation instructions <compress>` on the :do
 
 **Supporting info:**
 
-* src/COMPRESS: filenames -> commands
-* src/COMPRESS/README
-* lib/compress/README
+* ``src/COMPRESS``: filenames -> commands
+* ``src/COMPRESS/README``
+* ``lib/compress/README``
 * :doc:`dump atom/gz <dump>`
 * :doc:`dump cfg/gz <dump>`
 * :doc:`dump custom/gz <dump>`
@@ -572,14 +574,14 @@ system with core/shell particles.  See the :doc:`Howto coreshell
 
 **Supporting info:**
 
-* src/CORESHELL: filenames -> commands
+* ``src/CORESHELL``: filenames -> commands
 * :doc:`Howto coreshell <Howto_coreshell>`
 * :doc:`Howto polarizable <Howto_polarizable>`
 * :doc:`compute temp/cs <compute_temp_cs>`
 * :doc:`pair_style born/coul/long/cs <pair_cs>`
 * :doc:`pair_style buck/coul/long/cs <pair_cs>`
 * :doc:`pair_style lj/cut/coul/long/cs <pair_lj>`
-* examples/coreshell
+* ``examples/coreshell``
 
 ----------
 
@@ -606,7 +608,7 @@ To use this package, also the :ref:`KSPACE <PKG-KSPACE>` and
 
 **Supporting info:**
 
-* src/DIELECTRIC: filenames -> commands
+* ``src/DIELECTRIC``: filenames -> commands
 * :doc:`atom_style dielectric <atom_style>`
 * :doc:`pair_style coul/cut/dielectric <pair_dielectric>`
 * :doc:`pair_style coul/long/dielectric <pair_dielectric>`
@@ -621,7 +623,7 @@ To use this package, also the :ref:`KSPACE <PKG-KSPACE>` and
 * :doc:`fix_style polarize/bem/gmres <fix_polarize>`
 * :doc:`fix_style polarize/functional <fix_polarize>`
 * :doc:`compute efield/atom  <compute_efield_atom>`
-* examples/PACKAGES/dielectric
+* ``examples/PACKAGES/dielectric``
 
 ----------
 
@@ -639,11 +641,11 @@ intensities based on kinematic diffraction theory.
 
 **Supporting info:**
 
-* src/DIFFRACTION: filenames -> commands
+* ``src/DIFFRACTION``: filenames -> commands
 * :doc:`compute saed <compute_saed>`
 * :doc:`compute xrd <compute_xrd>`
 * :doc:`fix saed/vtk <fix_saed_vtk>`
-* examples/PACKAGES/diffraction
+* ``examples/PACKAGES/diffraction``
 
 ----------
 
@@ -659,13 +661,13 @@ short-range or long-range interactions.
 
 **Supporting info:**
 
-* src/DIPOLE: filenames -> commands
+* ``src/DIPOLE``: filenames -> commands
 * :doc:`atom_style dipole <atom_style>`
 * :doc:`pair_style lj/cut/dipole/cut <pair_dipole>`
 * :doc:`pair_style lj/cut/dipole/long <pair_dipole>`
 * :doc:`pair_style lj/long/dipole/long <pair_dipole>`
 * :doc:`angle_style dipole <angle_dipole>`
-* examples/dipole
+* ``examples/dipole``
 
 ----------
 
@@ -688,13 +690,13 @@ Coulomb part of the interactions.
 
 **Supporting info:**
 
-* src/DPD-BASIC: filenames -> commands
+* ``src/DPD-BASIC``: filenames -> commands
 * :doc:`pair_style dpd <pair_dpd>`
 * :doc:`pair_style dpd/tstat <pair_dpd>`
 * :doc:`pair_style dpd/ext <pair_dpd_ext>`
 * :doc:`pair_style dpd/ext/tstat <pair_dpd_ext>`
 * :doc:`pair_style dpd/coul/slater/long <pair_dpd_coul_slater_long>`
-* examples/PACKAGES/dpd-basic
+* ``examples/PACKAGES/dpd-basic``
 
 ----------
 
@@ -717,14 +719,14 @@ algorithm.
 
 **Supporting info:**
 
-* src/DPD-MESO: filenames -> commands
-* src/DPD-MESO/README
+* ``src/DPD-MESO``: filenames -> commands
+* ``src/DPD-MESO/README``
 * :doc:`atom_style edpd <atom_style>`
 * :doc:`pair_style edpd <pair_mesodpd>`
 * :doc:`pair_style mdpd <pair_mesodpd>`
 * :doc:`pair_style tdpd <pair_mesodpd>`
 * :doc:`fix mvv/dpd <fix_mvv_dpd>`
-* examples/PACKAGES/mesodpd
+* ``examples/PACKAGES/mesodpd``
 * https://www.lammps.org/movies.html#mesodpd
 
 ----------
@@ -751,8 +753,8 @@ Brennan (ARL).
 
 **Supporting info:**
 
-* src/DPD-REACT: filenames -> commands
-* /src/DPD-REACT/README
+* ``src/DPD-REACT``: filenames -> commands
+* ``src/DPD-REACT/README``
 * :doc:`compute dpd <compute_dpd>`
 * :doc:`compute dpd/atom <compute_dpd_atom>`
 * :doc:`fix eos/cv <fix_eos_table>`
@@ -766,7 +768,7 @@ Brennan (ARL).
 * :doc:`pair_style exp6/rx <pair_exp6_rx>`
 * :doc:`pair_style multi/lucy <pair_multi_lucy>`
 * :doc:`pair_style multi/lucy/rx <pair_multi_lucy_rx>`
-* examples/PACKAGES/dpd-react
+* ``examples/PACKAGES/dpd-react``
 
 ----------
 
@@ -789,12 +791,12 @@ Sciences, Iran).
 
 **Supporting info:**
 
-* src/DPD-SMOOTH: filenames -> commands
-* src/DPD-SMOOTH/README
+* ``src/DPD-SMOOTH``: filenames -> commands
+* ``src/DPD-SMOOTH/README``
 * :doc:`pair_style sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
 * :doc:`fix meso/move <fix_meso_move>`
 * :doc:`fix rigid/meso <fix_rigid_meso>`
-* examples/PACKAGES/dpd-smooth
+* ``examples/PACKAGES/dpd-smooth``
 
 ----------
 
@@ -815,17 +817,17 @@ Devemy (CNRS), and Agilio Padua (ENS de Lyon).
 
 **Supporting info:**
 
-* src/DRUDE: filenames -> commands
+* ``src/DRUDE``: filenames -> commands
 * :doc:`Howto drude <Howto_drude>`
 * :doc:`Howto drude2 <Howto_drude2>`
 * :doc:`Howto polarizable <Howto_polarizable>`
-* src/DRUDE/README
+* ``src/DRUDE/README``
 * :doc:`fix drude <fix_drude>`
 * :doc:`fix drude/transform/\* <fix_drude_transform>`
 * :doc:`compute temp/drude <compute_temp_drude>`
 * :doc:`pair_style thole <pair_thole>`
 * :doc:`pair_style lj/cut/thole/long <pair_thole>`
-* examples/PACKAGES/drude
+* ``examples/PACKAGES/drude``
 * tools/drude
 
 ----------
@@ -849,8 +851,8 @@ tools/eff; see its README file.
 
 **Supporting info:**
 
-* src/EFF: filenames -> commands
-* src/EFF/README
+* ``src/EFF``: filenames -> commands
+* ``src/EFF/README``
 * :doc:`atom_style electron <atom_style>`
 * :doc:`fix nve/eff <fix_nve_eff>`
 * :doc:`fix nvt/eff <fix_nh_eff>`
@@ -859,7 +861,7 @@ tools/eff; see its README file.
 * :doc:`compute temp/eff <compute_temp_eff>`
 * :doc:`pair_style eff/cut <pair_eff>`
 * :doc:`pair_style eff/inline <pair_eff>`
-* examples/PACKAGES/eff
+* ``examples/PACKAGES/eff``
 * tools/eff/README
 * tools/eff
 * https://www.lammps.org/movies.html#eff
@@ -878,7 +880,7 @@ groups of atoms that interact with the remaining atoms as electrolyte.
 
 **Authors:** The ELECTRODE package is written and maintained by Ludwig
 Ahrens-Iwers (TUHH, Hamburg, Germany), Shern Tee (UQ, Brisbane, Australia) and
-Robert Meissner (TUHH, Hamburg, Germany).
+Robert Meissner (Helmholtz-Zentrum Hereon, Geesthacht and TUHH, Hamburg, Germany).
 
 .. versionadded:: 4May2022
 
@@ -906,7 +908,7 @@ Additional command styles that are less commonly used.
 
 **Supporting info:**
 
-* src/EXTRA-COMMAND: filenames -> commands
+* ``src/EXTRA-COMMAND``: filenames -> commands
 * :doc:`general commands <Commands_all>`
 
 ----------
@@ -922,7 +924,7 @@ Additional compute styles that are less commonly used.
 
 **Supporting info:**
 
-* src/EXTRA-COMPUTE: filenames -> commands
+* ``src/EXTRA-COMPUTE``: filenames -> commands
 * :doc:`compute <compute>`
 
 ----------
@@ -938,7 +940,7 @@ Additional dump styles that are less commonly used.
 
 **Supporting info:**
 
-* src/EXTRA-DUMP: filenames -> commands
+* ``src/EXTRA-DUMP``: filenames -> commands
 * :doc:`dump <dump>`
 
 ----------
@@ -954,7 +956,7 @@ Additional fix styles that are less commonly used.
 
 **Supporting info:**
 
-* src/EXTRA-FIX: filenames -> commands
+* ``src/EXTRA-FIX``: filenames -> commands
 * :doc:`fix <fix>`
 
 ----------
@@ -974,7 +976,7 @@ To use this package, also the :ref:`MOLECULE <PKG-MOLECULE>` package needs to be
 
 **Supporting info:**
 
-* src/EXTRA-MOLECULE: filenames -> commands
+* ``src/EXTRA-MOLECULE``: filenames -> commands
 * :doc:`molecular styles <Commands_bond>`
 
 ----------
@@ -990,8 +992,9 @@ Additional pair styles that are less commonly used.
 
 **Supporting info:**
 
-* src/EXTRA-PAIR: filenames -> commands
+* ``src/EXTRA-PAIR``: filenames -> commands
 * :doc:`pair_style <pair_style>`
+* ``examples/PACKAGES/dispersion``
 
 ----------
 
@@ -1006,18 +1009,18 @@ FEP stands for free energy perturbation.  This package provides methods
 for performing FEP simulations by using a :doc:`fix adapt/fep
 <fix_adapt_fep>` command with soft-core pair potentials, which have a
 "soft" in their style name.  There are auxiliary tools for using this
-package in tools/fep; see its README file.
+package in ``tools/fep``; see its ``README`` file.
 
 **Author:** Agilio Padua (ENS de Lyon)
 
 **Supporting info:**
 
-* src/FEP: filenames -> commands
-* src/FEP/README
+* ``src/FEP``: filenames -> commands
+* ``src/FEP/README``
 * :doc:`fix adapt/fep <fix_adapt_fep>`
 * :doc:`compute fep <compute_fep>`
 * :doc:`pair_style \*/soft <pair_fep_soft>`
-* examples/PACKAGES/fep
+* ``examples/PACKAGES/fep``
 * tools/fep/README
 * tools/fep
 
@@ -1037,8 +1040,8 @@ OpenCL, however the OpenCL variants are no longer actively maintained
 and only the CUDA versions are regularly tested.  The
 :doc:`Speed_gpu` page gives details of what hardware and GPU
 software is required on your system, and details on how to build and
-use this package.  Its styles can be invoked at run time via the "-sf
-gpu" or "-suffix gpu" :doc:`command-line switches <Run_options>`.  See
+use this package.  Its styles can be invoked at run time via the ``-sf
+gpu`` or ``-suffix gpu`` :doc:`command-line switches <Run_options>`.  See
 also the :ref:`KOKKOS <PKG-KOKKOS>` package, which has GPU-enabled styles.
 
 **Authors:** Mike Brown (Intel) while at Sandia and ORNL and Trung Nguyen
@@ -1052,9 +1055,9 @@ This package has :ref:`specific installation instructions <gpu>` on the
 
 **Supporting info:**
 
-* src/GPU: filenames -> commands
-* src/GPU/README
-* lib/gpu/README
+* ``src/GPU``: filenames -> commands
+* ``src/GPU/README``
+* ``lib/gpu/README``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`GPU package <Speed_gpu>`
 * :doc:`Section 2.6 -sf gpu <Run_options>`
@@ -1079,14 +1082,14 @@ potentials.
 
 **Supporting info:**
 
-* src/GRANULAR: filenames -> commands
+* ``src/GRANULAR``: filenames -> commands
 * :doc:`Howto granular <Howto_granular>`
 * :doc:`fix pour <fix_pour>`
 * :doc:`fix wall/gran <fix_wall_gran>`
 * :doc:`pair_style gran/hooke <pair_gran>`
 * :doc:`pair_style gran/hertz/history <pair_gran>`
-* examples/granregion
-* examples/pour
+* ``examples/granregion``
+* ``examples/pour``
 * bench/in.chute
 * https://www.lammps.org/pictures.html#jamming
 * https://www.lammps.org/movies.html#hopper
@@ -1123,9 +1126,9 @@ This package has :ref:`specific installation instructions <h5md>` on the :doc:`B
 
 **Supporting info:**
 
-* src/H5MD: filenames -> commands
-* src/H5MD/README
-* lib/h5md/README
+* ``src/H5MD``: filenames -> commands
+* ``src/H5MD/README``
+* ``lib/h5md/README``
 * :doc:`dump h5md <dump_h5md>`
 
 ----------
@@ -1142,7 +1145,7 @@ which are optimized for Intel CPUs and KNLs (Knights Landing).  All of
 them have an "intel" in their style name.  The :doc:`INTEL package
 <Speed_intel>` page gives details of what hardware and compilers are
 required on your system, and how to build and use this package.  Its
-styles can be invoked at run time via the "-sf intel" or "-suffix intel"
+styles can be invoked at run time via the ``-sf intel`` or ``-suffix intel``
 :doc:`command-line switches <Run_options>`.  Also see the :ref:`KOKKOS
 <PKG-KOKKOS>`, :ref:`OPT <PKG-OPT>`, and :ref:`OPENMP <PKG-OPENMP>`
 packages, which have styles optimized for CPUs and KNLs.
@@ -1164,8 +1167,8 @@ This package has :ref:`specific installation instructions <intel>` on the :doc:`
 
 **Supporting info:**
 
-* src/INTEL: filenames -> commands
-* src/INTEL/README
+* ``src/INTEL``: filenames -> commands
+* ``src/INTEL/README``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`INTEL package <Speed_intel>`
 * :doc:`Section 2.6 -sf intel <Run_options>`
@@ -1173,7 +1176,7 @@ This package has :ref:`specific installation instructions <intel>` on the :doc:`
 * :doc:`package intel <package>`
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`, :doc:`kspace <Commands_kspace>`) for styles followed by (i)
-* src/INTEL/TEST
+* ``src/INTEL/TEST``
 * `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 ----------
@@ -1190,9 +1193,9 @@ materials, most commonly graphene sheets (or equivalents).
 
 **Supporting info:**
 
-* src/INTERLAYER: filenames -> commands
+* ``src/INTERLAYER``: filenames -> commands
 * :doc:`Pair style <Commands_pair>` page
-* examples/PACKAGES/interlayer
+* ``examples/PACKAGES/interlayer``
 
 ----------
 
@@ -1254,10 +1257,10 @@ This package has :ref:`specific installation instructions <kim>` on the
 
 * :doc:`kim command <kim_commands>`
 * :doc:`pair_style kim <pair_kim>`
-* src/KIM: filenames -> commands
-* src/KIM/README
-* lib/kim/README
-* examples/kim
+* ``src/KIM``: filenames -> commands
+* ``src/KIM/README``
+* ``lib/kim/README``
+* ``examples/kim``
 
 ----------
 
@@ -1275,7 +1278,7 @@ CPUs, KNLs, or GPUs.  All the styles have a "kk" as a suffix in their
 style name.  The :doc:`KOKKOS package <Speed_kokkos>` page gives details
 of what hardware and software is required on your system, and how to
 build and use this package.  Its styles can be invoked at run time via
-the "-sf kk" or "-suffix kk" :doc:`command-line switches <Run_options>`.
+the ``-sf kk`` or ``-suffix kk`` :doc:`command-line switches <Run_options>`.
 Also see the :ref:`GPU <PKG-GPU>`, :ref:`OPT <PKG-OPT>`, :ref:`INTEL
 <PKG-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which have styles
 optimized for CPUs, KNLs, and GPUs.
@@ -1284,7 +1287,7 @@ You must have a C++17 compatible compiler to use this package.
 KOKKOS makes extensive use of advanced C++ features, which can
 expose compiler bugs, especially when compiling for maximum
 performance at high optimization levels. Please see the file
-lib/kokkos/README for a list of compilers and their respective
+``lib/kokkos/README`` for a list of compilers and their respective
 platforms, that are known to work.
 
 **Authors:** The KOKKOS package was created primarily by Christian Trott
@@ -1292,7 +1295,7 @@ and Stan Moore (Sandia), with contributions from other folks as well.
 It uses the open-source `Kokkos library <https://github.com/kokkos>`_
 which was developed by Carter Edwards, Christian Trott, and others at
 Sandia, and which is included in the LAMMPS distribution in
-lib/kokkos.
+``lib/kokkos``.
 
 **Install:**
 
@@ -1300,9 +1303,9 @@ This package has :ref:`specific installation instructions <kokkos>` on the :doc:
 
 **Supporting info:**
 
-* src/KOKKOS: filenames -> commands
-* src/KOKKOS/README
-* lib/kokkos/README
+* ``src/KOKKOS``: filenames -> commands
+* ``src/KOKKOS/README``
+* ``lib/kokkos/README``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`KOKKOS package <Speed_kokkos>`
 * :doc:`Section 2.6 -k on ... <Run_options>`
@@ -1323,22 +1326,23 @@ KSPACE package
 
 **Contents:**
 
-A variety of long-range Coulombic solvers, as well as pair styles
-which compute the corresponding short-range pairwise Coulombic
-interactions.  These include Ewald, particle-particle particle-mesh
-(PPPM), and multilevel summation method (MSM) solvers.
+A variety of long-range Coulombic solvers, as well as pair styles which
+compute the corresponding short-range pairwise Coulombic interactions.
+These include Ewald, particle-particle particle-mesh (PPPM), and
+multilevel summation method (MSM) solvers.
 
 **Install:**
 
-Building with this package requires a 1d FFT library be present on
-your system for use by the PPPM solvers.  This can be the KISS FFT
-library provided with LAMMPS, third party libraries like FFTW, or a
-vendor-supplied FFT library.  See the :doc:`Build settings <Build_settings>` page for details on how to select
-different FFT options for your LAMPMS build.
+Building with this package requires a 1d FFT library be present on your
+system for use by the PPPM solvers.  This can be the KISS FFT library
+provided with LAMMPS, third party libraries like FFTW, or a
+vendor-supplied FFT library.  See the :doc:`Build settings
+<Build_settings>` page for details on how to select different FFT
+options for your LAMMPS build.
 
 **Supporting info:**
 
-* src/KSPACE: filenames -> commands
+* ``src/KSPACE``: filenames -> commands
 * :doc:`kspace_style <kspace_style>`
 * `doc/PDF/kspace.pdf <PDF/kspace.pdf>`_
 * :doc:`Howto tip3p <Howto_tip3p>`
@@ -1346,7 +1350,7 @@ different FFT options for your LAMPMS build.
 * :doc:`Howto spc <Howto_spc>`
 * :doc:`pair_style coul <pair_coul>`
 * Search the :doc:`pair style <Commands_pair>` page for styles with "long" or "msm" in name
-* examples/peptide
+* ``examples/peptide``
 * bench/in.rhodo
 
 ----------
@@ -1370,12 +1374,12 @@ The LATBOLTZ package requires that LAMMPS is build in :ref:`MPI parallel mode <s
 
 **Supporting info:**
 
-* src/LATBOLTZ: filenames -> commands
-* src/LATBOLTZ/README
+* ``src/LATBOLTZ``: filenames -> commands
+* ``src/LATBOLTZ/README``
 * :doc:`fix lb/fluid <fix_lb_fluid>`
 * :doc:`fix lb/momentum <fix_lb_momentum>`
 * :doc:`fix lb/viscous <fix_lb_viscous>`
-* examples/PACKAGES/latboltz
+* ``examples/PACKAGES/latboltz``
 
 ----------
 
@@ -1410,8 +1414,8 @@ the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/LEPTON: filenames -> commands
-* lib/lepton/README.md
+* ``src/LEPTON``: filenames -> commands
+* ``lib/lepton/README``.md
 * :doc:`pair_style lepton <pair_lepton>`
 * :doc:`bond_style lepton <bond_lepton>`
 * :doc:`angle_style lepton <angle_lepton>`
@@ -1449,10 +1453,10 @@ This package has :ref:`specific installation instructions <machdyn>` on the :doc
 
 **Supporting info:**
 
-* src/MACHDYN: filenames -> commands
-* src/MACHDYN/README
+* ``src/MACHDYN``: filenames -> commands
+* ``src/MACHDYN/README``
 * `doc/PDF/MACHDYN_LAMMPS_userguide.pdf <PDF/MACHDYN_LAMMPS_userguide.pdf>`_
-* examples/PACKAGES/machdyn
+* ``examples/PACKAGES/machdyn``
 * https://www.lammps.org/movies.html#smd
 
 ----------
@@ -1477,13 +1481,13 @@ Waltham, MA, USA)
 
 **Supporting info:**
 
-* src/MANIFOLD: filenames -> commands
-* src/MANIFOLD/README
+* ``src/MANIFOLD``: filenames -> commands
+* ``src/MANIFOLD/README``
 * :doc:`Howto manifold <Howto_manifold>`
 * :doc:`fix manifoldforce <fix_manifoldforce>`
 * :doc:`fix nve/manifold/rattle <fix_nve_manifold_rattle>`
 * :doc:`fix nvt/manifold/rattle <fix_nvt_manifold_rattle>`
-* examples/PACKAGES/manifold
+* ``examples/PACKAGES/manifold``
 * https://www.lammps.org/movies.html#manifold
 
 ----------
@@ -1500,14 +1504,14 @@ A variety of many-body and bond-order potentials.  These include
 
 **Supporting info:**
 
-* src/MANYBODY: filenames -> commands
+* ``src/MANYBODY``: filenames -> commands
 * :doc:`Pair style <Commands_pair>` page
-* examples/comb
-* examples/eim
-* examples/nb3d
-* examples/shear
-* examples/streitz
-* examples/vashishta
+* ``examples/comb``
+* ``examples/eim``
+* ``examples/nb3d``
+* ``examples/shear``
+* ``examples/streitz``
+* ``examples/vashishta``
 * bench/in.eam
 
 ----------
@@ -1527,7 +1531,7 @@ conjunction with molecular dynamics (MD).
 
 **Supporting info:**
 
-* src/MC: filenames -> commands
+* ``src/MC``: filenames -> commands
 * :doc:`fix atom/swap <fix_atom_swap>`
 * :doc:`fix bond/break <fix_bond_break>`
 * :doc:`fix bond/create <fix_bond_create>`
@@ -1566,12 +1570,12 @@ the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/MDI/README
-* lib/mdi/README
+* ``src/MDI/README``
+* ``lib/mdi/README``
 * :doc:`Howto MDI <Howto_mdi>`
 * :doc:`mdi <mdi>`
 * :doc:`fix mdi/qm <fix_mdi_qm>`
-* examples/PACKAGES/mdi
+* ``examples/PACKAGES/mdi``
 
 ----------
 
@@ -1593,10 +1597,10 @@ Sandia.
 
 **Supporting info:**
 
-* src/MEAM: filenames -> commands
-* src/MEAM/README
+* ``src/MEAM``: filenames -> commands
+* ``src/MEAM/README``
 * :doc:`pair_style meam <pair_meam>`
-* examples/meam
+* ``examples/meam``
 
 ----------
 
@@ -1647,12 +1651,12 @@ Philipp Kloza (U Cambridge)
 
 **Supporting info:**
 
-* src/MESONT: filenames -> commands
-* src/MESONT/README
+* ``src/MESONT``: filenames -> commands
+* ``src/MESONT/README``
 * :doc:`bond_style mesocnt <bond_mesocnt>`
 * :doc:`angle_style mesocnt <angle_mesocnt>`
 * :doc:`pair_style mesocnt <pair_mesocnt>`
-* examples/PACKAGES/mesont
+* ``examples/PACKAGES/mesont``
 
 ----------
 
@@ -1676,10 +1680,10 @@ matrix-MGPT algorithm due to Tomas Oppelstrup at LLNL.
 
 **Supporting info:**
 
-* src/MGPT: filenames -> commands
-* src/MGPT/README
+* ``src/MGPT``: filenames -> commands
+* ``src/MGPT/README``
 * :doc:`pair_style mgpt <pair_mgpt>`
-* examples/PACKAGES/mgpt
+* ``examples/PACKAGES/mgpt``
 
 ----------
 
@@ -1692,7 +1696,7 @@ MISC package
 
 A variety of compute, fix, pair, bond styles with specialized
 capabilities that don't align with other packages.  Do a directory
-listing, "ls src/MISC", to see the list of commands.
+listing, ``ls src/MISC``, to see the list of commands.
 
 .. note::
 
@@ -1701,7 +1705,7 @@ listing, "ls src/MISC", to see the list of commands.
 
 **Supporting info:**
 
-* src/MISC: filenames -> commands
+* ``src/MISC``: filenames -> commands
 * :doc:`bond_style special <bond_special>`
 * :doc:`compute viscosity/cos <compute_viscosity_cos>`
 * :doc:`fix accelerate/cos <fix_accelerate_cos>`
@@ -1742,11 +1746,11 @@ This package has :ref:`specific installation instructions <ml-hdnnp>` on the
 
 **Supporting info:**
 
-* src/ML-HDNNP: filenames -> commands
-* src/ML-HDNNP/README
-* lib/hdnnp/README
+* ``src/ML-HDNNP``: filenames -> commands
+* ``src/ML-HDNNP/README``
+* ``lib/hdnnp/README``
 * :doc:`pair_style hdnnp <pair_hdnnp>`
-* examples/PACKAGES/hdnnp
+* ``examples/PACKAGES/hdnnp``
 
 ----------
 
@@ -1773,11 +1777,11 @@ must be installed.
 
 **Supporting info:**
 
-* src/ML-IAP: filenames -> commands
-* src/ML-IAP/README.md
+* ``src/ML-IAP``: filenames -> commands
+* ``src/ML-IAP/README.md``
 * :doc:`pair_style mliap <pair_mliap>`
 * :doc:`compute_style mliap <compute_mliap>`
-* examples/mliap (see README)
+* ``examples/mliap`` (see README)
 
 When built with the *mliappy* model this package includes an extension for
 coupling with Python models, including PyTorch. In this case, the Python
@@ -1820,13 +1824,14 @@ Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1.
 **Install:**
 
 This package has :ref:`specific installation instructions <ml-pace>` on the
-:doc:`Build extras <Build_extras>` page.
+:doc:`Build extras <Build_extras>` page.  This package may also be compiled
+as a plugin to avoid licensing conflicts when distributing binaries.
 
 **Supporting info:**
 
-* src/ML-PACE: filenames -> commands
+* ``src/ML-PACE``: filenames -> commands
 * :doc:`pair_style pace <pair_pace>`
-* examples/PACKAGES/pace
+* ``examples/PACKAGES/pace``
 
 ----------
 
@@ -1856,10 +1861,10 @@ This package has :ref:`specific installation instructions <ml-pod>` on the
 
 **Supporting info:**
 
-* src/ML-POD: filenames -> commands
+* ``src/ML-POD``: filenames -> commands
 * :doc:`pair_style pod <pair_pod>`
 * :doc:`command_style fitpod <fitpod_command>`
-* examples/PACKAGES/pod
+* ``examples/PACKAGES/pod``
 
 ----------
 
@@ -1889,10 +1894,10 @@ This package has :ref:`specific installation instructions <ml-quip>` on the
 
 **Supporting info:**
 
-* src/ML-QUIP: filenames -> commands
-* src/ML-QUIP/README
+* ``src/ML-QUIP``: filenames -> commands
+* ``src/ML-QUIP/README``
 * :doc:`pair_style quip <pair_quip>`
-* examples/PACKAGES/quip
+* ``examples/PACKAGES/quip``
 
 ----------
 
@@ -1917,9 +1922,9 @@ with contributions by Doyl Dickel, Mississippi State University.
 
 **Supporting info:**
 
-* src/ML-RANN: filenames -> commands
+* ``src/ML-RANN``: filenames -> commands
 * :doc:`pair_style rann <pair_rann>`
-* examples/PACKAGES/rann
+* ``examples/PACKAGES/rann``
 
 ----------
 
@@ -1939,14 +1944,14 @@ computes which analyze attributes of the potential.
 
 **Supporting info:**
 
-* src/ML-SNAP: filenames -> commands
+* ``src/ML-SNAP``: filenames -> commands
 * :doc:`pair_style snap <pair_snap>`
 * :doc:`compute sna/atom <compute_sna_atom>`
 * :doc:`compute sna/grid <compute_sna_atom>`
 * :doc:`compute sna/grid/local <compute_sna_atom>`
 * :doc:`compute snad/atom <compute_sna_atom>`
 * :doc:`compute snav/atom <compute_sna_atom>`
-* examples/snap
+* ``examples/snap``
 
 ----------
 
@@ -1970,9 +1975,9 @@ Richard Hennig (University of Florida)
 
 **Supporting info:**
 
-* src/ML-UF3: filenames -> commands
+* ``src/ML-UF3``: filenames -> commands
 * :doc:`pair_style uf3 <pair_uf3>`
-* examples/uf3
+* ``examples/uf3``
 * https://github.com/uf3/uf3
 
 .. _PKG-MOFFF:
@@ -1998,13 +2003,13 @@ Rochus Schmid (Ruhr-University Bochum).
 
 **Supporting info:**
 
-* src/MOFFF: filenames -> commands
-* src/MOFFF/README
+* ``src/MOFFF``: filenames -> commands
+* ``src/MOFFF/README``
 * :doc:`pair_style buck6d/coul/gauss <pair_buck6d_coul_gauss>`
 * :doc:`angle_style class2 <angle_class2>`
 * :doc:`angle_style cosine/buck6d <angle_cosine_buck6d>`
 * :doc:`improper_style inversion/harmonic <improper_inversion_harmonic>`
-* examples/PACKAGES/mofff
+* ``examples/PACKAGES/mofff``
 
 ----------
 
@@ -2022,7 +2027,7 @@ force fields, and a TIP4P water model.
 
 **Supporting info:**
 
-* src/MOLECULE: filenames -> commands
+* ``src/MOLECULE``: filenames -> commands
 * :doc:`atom_style <atom_style>`
 * :doc:`bond_style <bond_style>`
 * :doc:`angle_style <angle_style>`
@@ -2031,10 +2036,10 @@ force fields, and a TIP4P water model.
 * :doc:`pair_style hbond/dreiding/lj <pair_hbond_dreiding>`
 * :doc:`pair_style lj/charmm/coul/charmm <pair_charmm>`
 * :doc:`Howto bioFF <Howto_bioFF>`
-* examples/cmap
-* examples/dreiding
-* examples/micelle,
-* examples/peptide
+* ``examples/cmap``
+* ``examples/dreiding``
+* ``examples/micelle,``
+* ``examples/peptide``
 * bench/in.chain
 * bench/in.rhodo
 
@@ -2075,9 +2080,9 @@ This package has :ref:`specific installation instructions <molfile>` on the :doc
 
 **Supporting info:**
 
-* src/MOLFILE: filenames -> commands
-* src/MOLFILE/README
-* lib/molfile/README
+* ``src/MOLFILE``: filenames -> commands
+* ``src/MOLFILE/README``
+* ``lib/molfile/README``
 * :doc:`dump molfile <dump_molfile>`
 
 ----------
@@ -2115,9 +2120,9 @@ This package has :ref:`specific installation instructions <netcdf>` on the :doc:
 
 **Supporting info:**
 
-* src/NETCDF: filenames -> commands
-* src/NETCDF/README
-* lib/netcdf/README
+* ``src/NETCDF``: filenames -> commands
+* ``src/NETCDF/README``
+* ``lib/netcdf/README``
 * :doc:`dump netcdf <dump_netcdf>`
 
 ----------
@@ -2134,8 +2139,8 @@ kspace styles which are altered to enable threading on many-core CPUs
 via OpenMP directives.  All of them have an "omp" in their style name.
 The :doc:`OPENMP package <Speed_omp>` page gives details of what hardware
 and compilers are required on your system, and how to build and use
-this package.  Its styles can be invoked at run time via the "-sf omp"
-or "-suffix omp" :doc:`command-line switches <Run_options>`.  Also see
+this package.  Its styles can be invoked at run time via the ``-sf omp``
+or ``-suffix omp`` :doc:`command-line switches <Run_options>`.  Also see
 the :ref:`KOKKOS <PKG-KOKKOS>`, :ref:`OPT <PKG-OPT>`, and :ref:`INTEL <PKG-INTEL>`
 packages, which have styles optimized for CPUs.
 
@@ -2143,15 +2148,15 @@ packages, which have styles optimized for CPUs.
 
 .. note::
 
-   To enable multi-threading support the compile flag "-fopenmp"
-   and the link flag "-fopenmp" (for GNU compilers, you have to look up
+   To enable multi-threading support the compile flag ``-fopenmp``
+   and the link flag ``-fopenmp`` (for GNU compilers, you have to look up
    the equivalent flags for other compilers) must be used to build LAMMPS.
-   When using Intel compilers, also the "-restrict" flag is required.
+   When using Intel compilers, also the ``-restrict`` flag is required.
    The OPENMP package can be compiled without enabling OpenMP; then
    all code will be compiled as serial and the only improvement over the
    regular styles are some data access optimization. These flags should
    be added to the CCFLAGS and LINKFLAGS lines of your Makefile.machine.
-   See src/MAKE/OPTIONS/Makefile.omp for an example.
+   See ``src/MAKE/OPTIONS/Makefile``.omp for an example.
 
 Once you have an appropriate Makefile.machine, you can
 install/uninstall the package and build LAMMPS in the usual manner:
@@ -2163,12 +2168,12 @@ the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/OPENMP: filenames -> commands
-* src/OPENMP/README
+* ``src/OPENMP``: filenames -> commands
+* ``src/OPENMP/README``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`OPENMP package <Speed_omp>`
-* :doc:`Command line option -suffix/-sf omp <Run_options>`
-* :doc:`Command line option -package/-pk omp <Run_options>`
+* :doc:`Command-line option -suffix/-sf omp <Run_options>`
+* :doc:`Command-line option -package/-pk omp <Run_options>`
 * :doc:`package omp <package>`
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
@@ -2189,7 +2194,7 @@ performance on single or multiple cores.  These include EAM, LJ,
 CHARMM, and Morse potentials.  The styles have an "opt" suffix in
 their style name.  The :doc:`OPT package <Speed_opt>` page gives
 details of how to build and use this package.  Its styles can be
-invoked at run time via the "-sf opt" or "-suffix opt" :doc:`command-line switches <Run_options>`.  See also the :ref:`KOKKOS <PKG-KOKKOS>`,
+invoked at run time via the ``-sf opt`` or ``-suffix opt`` :doc:`command-line switches <Run_options>`.  See also the :ref:`KOKKOS <PKG-KOKKOS>`,
 :ref:`INTEL <PKG-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which
 have styles optimized for CPU performance.
 
@@ -2202,7 +2207,7 @@ This package has :ref:`specific installation instructions <opt>` on the :doc:`Bu
 
 **Supporting info:**
 
-* src/OPT: filenames -> commands
+* ``src/OPT``: filenames -> commands
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`OPT package <Speed_opt>`
 * :doc:`Section 2.6 -sf opt <Run_options>`
@@ -2221,7 +2226,7 @@ grain boundary migration.
 
 **Supporting info:**
 
-* src/ORIENT: filenames -> commands
+* ``src/ORIENT``: filenames -> commands
 * :doc:`fix orient/bcc <fix_orient>`
 * :doc:`fix orient/fcc <fix_orient>`
 * :doc:`fix orient/eco <fix_orient_eco>`
@@ -2246,7 +2251,7 @@ Foster (UTSA).
 
 **Supporting info:**
 
-* src/PERI: filenames -> commands
+* ``src/PERI``: filenames -> commands
 * :doc:`Peridynamics Howto <Howto_peri>`
 * `doc/PDF/PDLammps_overview.pdf <PDF/PDLammps_overview.pdf>`_
 * `doc/PDF/PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_
@@ -2255,7 +2260,7 @@ Foster (UTSA).
 * :doc:`pair_style peri/\* <pair_peri>`
 * :doc:`compute damage/atom <compute_damage_atom>`
 * :doc:`compute plasticity/atom <compute_plasticity_atom>`
-* examples/peri
+* ``examples/peri``
 * https://www.lammps.org/movies.html#peri
 
 ----------
@@ -2285,12 +2290,12 @@ and Charlie Sievers (UC Davis) for "dynamical_matrix" and "third_order"
 
 **Supporting info:**
 
-* src/PHONON: filenames -> commands
-* src/PHONON/README
+* ``src/PHONON``: filenames -> commands
+* ``src/PHONON/README``
 * :doc:`fix phonon <fix_phonon>`
 * :doc:`dynamical_matrix <dynamical_matrix>`
 * :doc:`third_order <third_order>`
-* examples/PACKAGES/phonon
+* ``examples/PACKAGES/phonon``
 
 ----------
 
@@ -2316,10 +2321,10 @@ try to load the contained plugins automatically at start-up.
 
 **Supporting info:**
 
-* src/PLUGIN: filenames -> commands
+* ``src/PLUGIN``: filenames -> commands
 * :doc:`plugin command <plugin>`
 * :doc:`Information on writing plugins <Developer_plugins>`
-* examples/plugin
+* ``examples/plugin``
 
 ----------
 
@@ -2341,14 +2346,16 @@ and Gareth Tribello.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <plumed>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <plumed>` on the
+:doc:`Build extras <Build_extras>` page.  This package may also be compiled
+as a plugin to avoid licensing conflicts when distributing binaries.
 
 **Supporting info:**
 
-* src/PLUMED/README
-* lib/plumed/README
+* ``src/PLUMED/README``
+* ``lib/plumed/README``
 * :doc:`fix plumed <fix_plumed>`
-* examples/PACKAGES/plumed
+* ``examples/PACKAGES/plumed``
 
 ----------
 
@@ -2373,11 +2380,11 @@ This package has :ref:`specific installation instructions <poems>` on the :doc:`
 
 **Supporting info:**
 
-* src/POEMS: filenames -> commands
-* src/POEMS/README
-* lib/poems/README
+* ``src/POEMS``: filenames -> commands
+* ``src/POEMS/README``
+* ``lib/poems/README``
 * :doc:`fix poems <fix_poems>`
-* examples/rigid
+* ``examples/rigid``
 
 ----------
 
@@ -2396,9 +2403,9 @@ Matching methodology.
 
 **Supporting info:**
 
-* src/PTM: filenames not starting with ptm\_ -> commands
-* src/PTM: filenames starting with ptm\_ -> supporting code
-* src/PTM/LICENSE
+* ``src/PTM``: filenames not starting with ptm\_ -> commands
+* ``src/PTM``: filenames starting with ptm\_ -> supporting code
+* ``src/PTM/LICENSE``
 * :doc:`compute ptm/atom <compute_ptm_atom>`
 
 ----------
@@ -2421,7 +2428,7 @@ ways to use LAMMPS and Python together.
 
    Building with the PYTHON package assumes you have a Python development
    environment (headers and libraries) available on your system, which needs
-   to be either Python version 2.7 or Python 3.5 and later.
+   to be Python version 3.6 or later.
 
 **Install:**
 
@@ -2429,10 +2436,10 @@ This package has :ref:`specific installation instructions <python>` on the :doc:
 
 **Supporting info:**
 
-* src/PYTHON: filenames -> commands
+* ``src/PYTHON``: filenames -> commands
 * :doc:`Python call <Python_head>`
-* lib/python/README
-* examples/python
+* ``lib/python/README``
+* ``examples/python``
 
 ----------
 
@@ -2449,10 +2456,10 @@ part of their formulation.
 
 **Supporting info:**
 
-* src/QEQ: filenames -> commands
+* ``src/QEQ``: filenames -> commands
 * :doc:`fix qeq/\* <fix_qeq>`
-* examples/qeq
-* examples/streitz
+* ``examples/qeq``
+* ``examples/streitz``
 
 ----------
 
@@ -2492,12 +2499,12 @@ on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/QMMM: filenames -> commands
-* src/QMMM/README
-* lib/qmmm/README
+* ``src/QMMM``: filenames -> commands
+* ``src/QMMM/README``
+* ``lib/qmmm/README``
 * :doc:`fix phonon <fix_phonon>`
-* lib/qmmm/example-ec/README
-* lib/qmmm/example-mc/README
+* ``lib/qmmm/example-ec/README``
+* ``lib/qmmm/example-mc/README``
 
 ----------
 
@@ -2521,11 +2528,11 @@ simulation.
 
 **Supporting info:**
 
-* src/QTB: filenames -> commands
-* src/QTB/README
+* ``src/QTB``: filenames -> commands
+* ``src/QTB/README``
 * :doc:`fix qtb <fix_qtb>`
 * :doc:`fix qbmsst <fix_qbmsst>`
-* examples/PACKAGES/qtb
+* ``examples/PACKAGES/qtb``
 
 ----------
 
@@ -2551,10 +2558,10 @@ atoms, and using LAMMPS variables for input parameters.
 
 **Supporting info:**
 
-* src/REACTION: filenames -> commands
-* src/REACTION/README
+* ``src/REACTION``: filenames -> commands
+* ``src/REACTION/README``
 * :doc:`fix bond/react <fix_bond_react>`
-* examples/PACKAGES/reaction
+* ``examples/PACKAGES/reaction``
 * `2017 LAMMPS Workshop <https://www.lammps.org/workshops/Aug17/pdf/gissinger.pdf>`_
 * `2019 LAMMPS Workshop <https://www.lammps.org/workshops/Aug19/talk_gissinger.pdf>`_
 * `2021 LAMMPS Workshop <https://www.lammps.org/workshops/Aug21/talk/jacob-gissinger/>`_
@@ -2570,7 +2577,7 @@ REAXFF package
 **Contents:**
 
 A pair style which implements the ReaxFF potential in C/C++.  ReaxFF
-is a universal reactive force field.  See the src/REAXFF/README file
+is a universal reactive force field.  See the ``src/REAXFF/README`` file
 for more info on differences between the two packages.  Also two fixes
 for monitoring molecules as bonds are created and destroyed.
 
@@ -2578,12 +2585,12 @@ for monitoring molecules as bonds are created and destroyed.
 
 **Supporting info:**
 
-* src/REAXFF: filenames -> commands
-* src/REAXFF/README
+* ``src/REAXFF``: filenames -> commands
+* ``src/REAXFF/README``
 * :doc:`pair_style reaxff <pair_reaxff>`
 * :doc:`fix reaxff/bonds <fix_reaxff_bonds>`
 * :doc:`fix reaxff/species <fix_reaxff_species>`
-* examples/reaxff
+* ``examples/reaxff``
 
 ----------
 
@@ -2605,7 +2612,7 @@ another set.
 
 **Supporting info:**
 
-* src/REPLICA: filenames -> commands
+* ``src/REPLICA``: filenames -> commands
 * :doc:`Howto replica <Howto_replica>`
 * :doc:`neb <neb>`
 * :doc:`prd <prd>`
@@ -2614,10 +2621,50 @@ another set.
 * :doc:`temper/npt <temper_npt>`,
 * :doc:`temper/grem <temper_grem>`,
 * :doc:`run_style verlet/split <run_style>`
-* examples/neb
-* examples/prd
-* examples/tad
-* examples/PACKAGES/grem
+* ``examples/neb``
+* ``examples/prd``
+* ``examples/tad``
+* ``examples/PACKAGES/grem``
+
+----------
+
+.. _PKG-RHEO:
+
+RHEO package
+------------
+
+**Contents:**
+
+Pair styles, bond styles, fixes, and computes for reproducing
+hydrodynamics and elastic objects. See the :doc:`Howto rheo
+<Howto_rheo>` page for an overview.
+
+**Install:**
+
+This package has :ref:`specific installation instructions <rheo>` on the :doc:`Build extras <Build_extras>` page.
+
+**Authors:** Joel T. Clemmer (Sandia National Labs),
+Thomas C. O'Connor (Carnegie Mellon University)
+
+.. versionadded:: 29Aug2024
+
+**Supporting info:**
+
+* ``src/RHEO`` filenames -> commands
+* :doc:`Howto_rheo <Howto_rheo>`
+* :doc:`atom_style rheo <atom_style>`
+* :doc:`atom_style rheo/thermal <atom_style>`
+* :doc:`bond_style rheo/shell <bond_rheo_shell>`
+* :doc:`compute rheo/property/atom <compute_rheo_property_atom>`
+* :doc:`fix rheo <fix_rheo>`
+* :doc:`fix rheo/oxidation <fix_rheo_oxidation>`
+* :doc:`fix rheo/pressure <fix_rheo_pressure>`
+* :doc:`fix rheo/thermal <fix_rheo_thermal>`
+* :doc:`fix rheo/viscosity <fix_rheo_viscosity>`
+* :doc:`pair_style rheo <pair_rheo>`
+* :doc:`pair_style rheo/solid <pair_rheo_solid>`
+* https://www.lammps.org/movies.html#rheopackage
+* ``examples/rheo``
 
 ----------
 
@@ -2635,13 +2682,13 @@ Also several computes which calculate properties of rigid bodies.
 
 **Supporting info:**
 
-* src/RIGID: filenames -> commands
+* ``src/RIGID``: filenames -> commands
 * :doc:`compute erotate/rigid <compute_erotate_rigid>`
 * :doc:`fix shake <fix_shake>`
 * :doc:`fix rattle <fix_shake>`
 * :doc:`fix rigid/\* <fix_rigid>`
-* examples/ASPHERE
-* examples/rigid
+* ``examples/ASPHERE``
+* ``examples/rigid``
 * bench/in.rhodo
 * https://www.lammps.org/movies.html#box
 * https://www.lammps.org/movies.html#star
@@ -2676,11 +2723,11 @@ The SCAFACOS package requires that LAMMPS is build in :ref:`MPI parallel mode <s
 
 **Supporting info:**
 
-* src/SCAFACOS: filenames -> commands
-* src/SCAFACOS/README
+* ``src/SCAFACOS``: filenames -> commands
+* ``src/SCAFACOS/README``
 * :doc:`kspace_style scafacos <kspace_style>`
 * :doc:`kspace_modify <kspace_modify>`
-* examples/PACKAGES/scafacos
+* ``examples/PACKAGES/scafacos``
 
 ----------
 
@@ -2696,13 +2743,13 @@ a material.
 
 **Supporting info:**
 
-* src/SHOCK: filenames -> commands
+* ``src/SHOCK``: filenames -> commands
 * :doc:`fix append/atoms <fix_append_atoms>`
 * :doc:`fix msst <fix_msst>`
 * :doc:`fix nphug <fix_nphug>`
 * :doc:`fix wall/piston <fix_wall_piston>`
-* examples/hugoniostat
-* examples/msst
+* ``examples/hugoniostat``
+* ``examples/msst``
 
 ----------
 
@@ -2723,11 +2770,11 @@ SMATB: Daniele Rapetti (Politecnico di Torino)
 
 **Supporting info:**
 
-* src/SMTBQ: filenames -> commands
-* src/SMTBQ/README
+* ``src/SMTBQ``: filenames -> commands
+* ``src/SMTBQ/README``
 * :doc:`pair_style smtbq <pair_smtbq>`
 * :doc:`pair_style smatb <pair_smatb>`, :doc:`pair_style smatb/single <pair_smatb>`
-* examples/PACKAGES/smtbq
+* ``examples/PACKAGES/smtbq``
 
 ----------
 
@@ -2743,25 +2790,37 @@ implements smoothed particle hydrodynamics (SPH) for liquids.  See the
 related :ref:`MACHDYN package <PKG-MACHDYN>` package for smooth Mach dynamics
 (SMD) for solids.
 
-This package contains ideal gas, Lennard-Jones equation of states,
-Tait, and full support for complete (i.e. internal-energy dependent)
-equations of state.  It allows for plain or Monaghans XSPH integration
-of the equations of motion.  It has options for density continuity or
-density summation to propagate the density field.  It has
-:doc:`set <set>` command options to set the internal energy and density
-of particles from the input script and allows the same quantities to
-be output with thermodynamic output or to dump files via the :doc:`compute property/atom <compute_property_atom>` command.
+This package contains ideal gas, Lennard-Jones equation of states, Tait,
+and full support for complete (i.e. internal-energy dependent) equations
+of state.  It allows for plain or Monaghans XSPH integration of the
+equations of motion.  It has options for density continuity or density
+summation to propagate the density field.  It has :doc:`set <set>`
+command options to set the internal energy and density of particles from
+the input script and allows the same quantities to be output with
+thermodynamic output or to dump files via the :doc:`compute
+property/atom <compute_property_atom>` command.
 
 **Author:** Georg Ganzenmuller (Fraunhofer-Institute for High-Speed
 Dynamics, Ernst Mach Institute, Germany).
 
 **Supporting info:**
 
-* src/SPH: filenames -> commands
-* src/SPH/README
+* ``src/SPH``: filenames -> commands
+* ``src/SPH/README``
 * `doc/PDF/SPH_LAMMPS_userguide.pdf <PDF/SPH_LAMMPS_userguide.pdf>`_
-* examples/PACKAGES/sph
+* ``examples/PACKAGES/sph``
 * https://www.lammps.org/movies.html#sph
+
+.. note::
+
+   Please note that the SPH PDF guide file has not been updated for
+   many years and thus does not reflect the current *syntax* of the
+   SPH package commands. For that please refer to the LAMMPS manual.
+
+.. note::
+
+   Please also note, that the :ref:`RHEO package <PKG-RHEO>` offers
+   similar functionality in a more modern and flexible implementation.
 
 ----------
 
@@ -2779,7 +2838,7 @@ the usual manner via MD.  Various pair, fix, and compute styles.
 
 **Supporting info:**
 
-* src/SPIN: filenames -> commands
+* ``src/SPIN``: filenames -> commands
 * :doc:`Howto spins <Howto_spins>`
 * :doc:`pair_style spin/dipole/cut <pair_spin_dipole>`
 * :doc:`pair_style spin/dipole/long <pair_spin_dipole>`
@@ -2793,7 +2852,7 @@ the usual manner via MD.  Various pair, fix, and compute styles.
 * :doc:`fix precession/spin <fix_precession_spin>`
 * :doc:`compute spin <compute_spin>`
 * :doc:`neb/spin <neb_spin>`
-* examples/SPIN
+* ``examples/SPIN``
 
 ----------
 
@@ -2810,11 +2869,11 @@ colloidal particles.
 
 **Supporting info:**
 
-* src/SRD: filenames -> commands
+* ``src/SRD``: filenames -> commands
 * :doc:`fix srd <fix_srd>`
 * :doc:`fix wall/srd <fix_wall_srd>`
-* examples/srd
-* examples/ASPHERE
+* ``examples/srd``
+* ``examples/ASPHERE``
 * https://www.lammps.org/movies.html#tri
 * https://www.lammps.org/movies.html#line
 * https://www.lammps.org/movies.html#poly
@@ -2836,10 +2895,10 @@ stress, etc) about individual interactions.
 
 **Supporting info:**
 
-* src/TALLY: filenames -> commands
-* src/TALLY/README
+* ``src/TALLY``: filenames -> commands
+* ``src/TALLY/README``
 * :doc:`compute \*/tally <compute_tally>`
-* examples/PACKAGES/tally
+* ``examples/PACKAGES/tally``
 
 ----------
 
@@ -2858,14 +2917,14 @@ supporting compute styles and an output option.
 
 **Supporting info:**
 
-* src/UEF: filenames -> commands
-* src/UEF/README
+* ``src/UEF``: filenames -> commands
+* ``src/UEF/README``
 * :doc:`fix nvt/uef <fix_nh_uef>`
 * :doc:`fix npt/uef <fix_nh_uef>`
 * :doc:`compute pressure/uef <compute_pressure_uef>`
 * :doc:`compute temp/uef <compute_temp_uef>`
 * :doc:`dump cfg/uef <dump_cfg_uef>`
-* examples/uef
+* ``examples/uef``
 
 ----------
 
@@ -2894,11 +2953,11 @@ This package has :ref:`specific installation instructions <voronoi>` on the :doc
 
 **Supporting info:**
 
-* src/VORONOI: filenames -> commands
-* src/VORONOI/README
-* lib/voronoi/README
+* ``src/VORONOI``: filenames -> commands
+* ``src/VORONOI/README``
+* ``lib/voronoi/README``
 * :doc:`compute voronoi/atom <compute_voronoi_atom>`
-* examples/voronoi
+* ``examples/voronoi``
 
 ----------
 
@@ -2928,9 +2987,9 @@ This package has :ref:`specific installation instructions <vtk>` on the :doc:`Bu
 
 **Supporting info:**
 
-* src/VTK: filenames -> commands
-* src/VTK/README
-* lib/vtk/README
+* ``src/VTK``: filenames -> commands
+* ``src/VTK/README``
+* ``lib/vtk/README``
 * :doc:`dump vtk <dump_vtk>`
 
 ----------
@@ -2961,7 +3020,7 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 
 **Supporting info:**
 
-* src/YAFF/README
+* ``src/YAFF/README``
 * :doc:`angle_style cross <angle_cross>`
 * :doc:`angle_style mm3 <angle_mm3>`
 * :doc:`bond_style mm3 <bond_mm3>`
@@ -2969,4 +3028,4 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 * :doc:`improper_style sqdistharm <improper_sqdistharm>`
 * :doc:`pair_style mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
 * :doc:`pair_style lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
-* examples/PACKAGES/yaff
+* ``examples/PACKAGES/yaff``

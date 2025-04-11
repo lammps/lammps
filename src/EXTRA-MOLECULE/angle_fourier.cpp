@@ -174,7 +174,7 @@ void AngleFourier::allocate()
 
 void AngleFourier::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -195,7 +195,7 @@ void AngleFourier::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -309,3 +309,16 @@ void AngleFourier::born_matrix(int type, int i1, int i2, int i3, double &du, dou
   du = k[type] * (C1[type] + 4 * C2[type] * c);
 }
 
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleFourier::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "C0") == 0) return (void *) C0;
+  if (strcmp(str, "C1") == 0) return (void *) C1;
+  if (strcmp(str, "C2") == 0) return (void *) C2;
+  return nullptr;
+}

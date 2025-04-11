@@ -52,7 +52,7 @@ struct GraphNodeBackendDetailsBeforeTypeErasure {
   GraphNodeBackendDetailsBeforeTypeErasure(
       GraphNodeBackendDetailsBeforeTypeErasure&&) = delete;
 
-  GraphNodeBackendDetailsBeforeTypeErasure& operator   =(
+  GraphNodeBackendDetailsBeforeTypeErasure& operator=(
       GraphNodeBackendDetailsBeforeTypeErasure const&) = delete;
 
   GraphNodeBackendDetailsBeforeTypeErasure& operator=(

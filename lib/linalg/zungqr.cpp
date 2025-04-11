@@ -102,14 +102,13 @@ int zungqr_(integer *m, integer *n, integer *k, doublecomplex *a, integer *lda, 
             ib = min(i__2, i__3);
             if (i__ + ib <= *n) {
                 i__2 = *m - i__ + 1;
-                zlarft_((char *)"Forward", (char *)"Columnwise", &i__2, &ib, &a[i__ + i__ * a_dim1], lda, &tau[i__],
-                        &work[1], &ldwork, (ftnlen)7, (ftnlen)10);
+                zlarft_((char *)"F", (char *)"C", &i__2, &ib, &a[i__ + i__ * a_dim1], lda, &tau[i__], &work[1],
+                        &ldwork, (ftnlen)1, (ftnlen)1);
                 i__2 = *m - i__ + 1;
                 i__3 = *n - i__ - ib + 1;
-                zlarfb_((char *)"Left", (char *)"No transpose", (char *)"Forward", (char *)"Columnwise", &i__2, &i__3, &ib,
-                        &a[i__ + i__ * a_dim1], lda, &work[1], &ldwork,
-                        &a[i__ + (i__ + ib) * a_dim1], lda, &work[ib + 1], &ldwork, (ftnlen)4,
-                        (ftnlen)12, (ftnlen)7, (ftnlen)10);
+                zlarfb_((char *)"L", (char *)"N", (char *)"F", (char *)"C", &i__2, &i__3, &ib, &a[i__ + i__ * a_dim1], lda,
+                        &work[1], &ldwork, &a[i__ + (i__ + ib) * a_dim1], lda, &work[ib + 1],
+                        &ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
             }
             i__2 = *m - i__ + 1;
             zung2r_(&i__2, &ib, &ib, &a[i__ + i__ * a_dim1], lda, &tau[i__], &work[1], &iinfo);

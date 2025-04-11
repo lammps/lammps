@@ -119,15 +119,14 @@ groups of atoms that have different charges, these charges will not be
 changed when the atom types change.
 
 Since this fix computes total potential energies before and after
-proposed swaps, so even complicated potential energy calculations are
-OK, including the following:
+proposed swaps, even complicated potential energy calculations are
+acceptable, including the following:
 
 * long-range electrostatics (:math:`k`-space)
 * many body pair styles
-* hybrid pair styles
-* eam pair styles
+* hybrid pair styles (with restrictions)
+* EAM pair styles
 * triclinic systems
-* need to include potential energy contributions from other fixes
 
 Some fixes have an associated potential energy. Examples of such fixes
 include: :doc:`efield <fix_efield>`, :doc:`gravity <fix_gravity>`,
@@ -165,8 +164,8 @@ This fix computes a global vector of length 2, which can be accessed
 by various :doc:`output commands <Howto_output>`.  The vector values are
 the following global cumulative quantities:
 
-* 1 = swap attempts
-* 2 = swap accepts
+  #. swap attempts
+  #. swap accepts
 
 The vector values calculated by this fix are "intensive".
 
@@ -180,6 +179,10 @@ Restrictions
 This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
+
+When this fix is used with a :doc:`hybrid pair style <pair_hybrid>`
+system, only swaps between atom types of the same sub-style (or
+combination of sub-styles) are permitted.
 
 This fix cannot be used with systems that do not have per-type masses
 (e.g. atom style sphere) since the implemented algorithm pre-computes

@@ -37,9 +37,6 @@ static constexpr int OFFSET = 16384;
 static constexpr double EPS_HOC = 1.0e-7;
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
-enum{ REVERSE_RHO };
-enum{ FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
-
 /* ---------------------------------------------------------------------- */
 
 PPPMStagger::PPPMStagger(LAMMPS *lmp) :
@@ -677,7 +674,7 @@ void PPPMStagger::particle_map()
   int nlocal = atom->nlocal;
 
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
-    error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
+    error->one(FLERR,"Non-numeric box dimensions - simulation unstable" + utils::errorurl(6));
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++) {
@@ -702,7 +699,7 @@ void PPPMStagger::particle_map()
       flag = 1;
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
+  if (flag) error->one(FLERR, Error::NOLASTLINE, "Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
 }
 
 /* ----------------------------------------------------------------------

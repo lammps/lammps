@@ -68,10 +68,10 @@ material or as an obstacle in a flow.  Alternatively, it can be used as a
 constraining wall around a simulation; see the discussion of the
 *side* keyword below.
 
-The *gstyle* geometry of the indenter can either be a sphere, a
-cylinder, a cone, or a plane.
+The *gstyle* keyword selects the geometry of the indenter and it can
+either have the value of *sphere*, *cylinder*, *cone*, or *plane*\ .
 
-A spherical indenter exerts a force of magnitude
+A spherical indenter (*gstyle* = *sphere*) exerts a force of magnitude
 
 .. math::
 
@@ -82,13 +82,16 @@ distance from the atom to the center of the indenter, and *R* is the
 radius of the indenter.  The force is repulsive and F(r) = 0 for *r* >
 *R*\ .
 
-A cylindrical indenter exerts the same force, except that *r* is the
-distance from the atom to the center axis of the cylinder.  The
-cylinder extends infinitely along its axis.
+A cylindrical indenter (*gstyle* = *cylinder*) follows the same formula
+for the force as a sphere, except that *r* is defined the distance
+from the atom to the center axis of the cylinder.  The cylinder extends
+infinitely along its axis.
 
-A conical indenter is similar to a cylindrical indenter except that it
-has a finite length (between *lo* and *hi*), and that two different
-radii (one at each end, *radlo* and *radhi*) can be defined.
+.. versionadded:: 17April2024
+
+A conical indenter (*gstyle* = *cone*) is similar to a cylindrical indenter
+except that it has a finite length (between *lo* and *hi*), and that two
+different radii (one at each end, *radlo* and *radhi*) can be defined.
 
 Spherical, cylindrical, and conical indenters account for periodic
 boundaries in two ways.  First, the center point of a spherical
@@ -101,15 +104,15 @@ or axis accounts for periodic boundaries.  Both of these mean that an
 indenter can effectively move through and straddle one or more
 periodic boundaries.
 
-A planar indenter is really an axis-aligned infinite-extent wall
-exerting the same force on atoms in the system, where *R* is the
-position of the plane and *r-R* is the distance from the plane.  If
-the *side* parameter of the plane is specified as *lo* then it will
-indent from the lo end of the simulation box, meaning that atoms with
-a coordinate less than the plane's current position will be pushed
-towards the hi end of the box and atoms with a coordinate higher than
-the plane's current position will feel no force.  Vice versa if *side*
-is specified as *hi*\ .
+A planar indenter (*gstyle* = *plane*) behaves like an axis-aligned
+infinite-extent wall with the same force expression on atoms in the
+system as before, but where *R* is the position of the plane and *r-R*
+is the distance of an from the plane.  If the *side* parameter of the
+plane is specified as *lo* then it will indent from the lo end of the
+simulation box, meaning that atoms with a coordinate less than the
+plane's current position will be pushed towards the hi end of the box
+and atoms with a coordinate higher than the plane's current position
+will feel no force.  Vice versa if *side* is specified as *hi*\ .
 
 Any of the 4 quantities defining a spherical indenter's geometry can
 be specified as an equal-style :doc:`variable <variable>`, namely *x*,

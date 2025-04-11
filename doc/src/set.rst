@@ -120,6 +120,8 @@ Syntax
        *angle* value = numeric angle type or angle type label, for all angles between selected atoms
        *dihedral* value = numeric dihedral type or dihedral type label, for all dihedrals between selected atoms
        *improper* value = numeric improper type or improper type label, for all impropers between selected atoms
+       *rheo/rho* value = density of RHEO particles (mass/distance\^3)
+       *rheo/status* value = status or phase of RHEO particles (unitless)
        *sph/e* value = energy of SPH particles (need units)
          value can be an atom-style variable (see below)
        *sph/cv* value = heat capacity of SPH particles (need units)
@@ -506,9 +508,19 @@ by the *bond types* (\ *angle types*, etc) field in the header of the
 data file read by the :doc:`read_data <read_data>` command.  These
 keywords do not allow use of an atom-style variable.
 
+Keywords *rheo/rho* and *rheo/status* set the density and the status of
+rheo particles. In particular, one can only set the phase in the status
+as described by the :doc:`RHEO howto page <Howto_rheo>`.
+
 Keywords *sph/e*, *sph/cv*, and *sph/rho* set the energy, heat capacity,
 and density of smoothed particle hydrodynamics (SPH) particles.  See
 `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
+
+.. note::
+
+   Please note that the SPH PDF guide file has not been updated for
+   many years and thus does not reflect the current *syntax* of the
+   SPH package commands. For that please refer to the LAMMPS manual.
 
 Keyword *smd/mass/density* sets the mass of all selected particles, but
 it is only applicable to the Smooth Mach Dynamics package MACHDYN.  It

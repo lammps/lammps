@@ -69,6 +69,7 @@ class ComputeTempDeformKokkos: public ComputeTempDeform {
   double compute_scalar() override;
   void compute_vector() override;
   void remove_bias_all() override;
+  void remove_bias_all_kk() override;
   void restore_bias_all() override;
 
   template<int RMASS>

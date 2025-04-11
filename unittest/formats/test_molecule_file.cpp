@@ -32,7 +32,7 @@ using testing::StrEq;
 
 using utils::split_words;
 
-const double EPSILON = 5.0e-14;
+static constexpr double EPSILON = 5.0e-14;
 
 #define test_name test_info_->name()
 
@@ -158,56 +158,54 @@ TEST_F(MoleculeFileTest, nofile)
 
 TEST_F(MoleculeFileTest, badid)
 {
-    TEST_FAILURE(".*Molecule template ID must have only "
-                 "alphanumeric or underscore characters.*",
-                 command("molecule @mol nofile.mol"););
+    TEST_FAILURE(
+        ".*Molecule template ID @mol must have only alphanumeric or underscore characters.*",
+        command("molecule @mol nofile.mol"););
 }
 
 TEST_F(MoleculeFileTest, badargs)
 {
-    TEST_FAILURE(".*Illegal molecule command.*",
+    TEST_FAILURE(".*Illegal molecule offset command: missing argument.*",
                  run_mol_cmd(test_name, "offset 1 2 3 4",
                              "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
     TEST_FAILURE(
-        ".*Illegal molecule command.*",
+        ".*Illegal molecule toff command: missing argument.*",
         run_mol_cmd(test_name, "toff", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
     TEST_FAILURE(
-        ".*Illegal molecule command.*",
+        ".*Illegal molecule boff command: missing argument.*",
         run_mol_cmd(test_name, "boff", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
     TEST_FAILURE(
-        ".*Illegal molecule command.*",
+        ".*Illegal molecule aoff command: missing argument.*",
         run_mol_cmd(test_name, "aoff", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
     TEST_FAILURE(
-        ".*Illegal molecule command.*",
+        ".*Illegal molecule doff command: missing argument.*",
         run_mol_cmd(test_name, "doff", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
     TEST_FAILURE(
-        ".*Illegal molecule command.*",
+        ".*Illegal molecule ioff command: missing argument.*",
         run_mol_cmd(test_name, "ioff", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
     TEST_FAILURE(
-        ".*Illegal molecule command.*",
+        ".*Illegal molecule scale command: missing argument.*",
         run_mol_cmd(test_name, "scale", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
     platform::unlink("moltest_badargs.mol");
 }
 
 TEST_F(MoleculeFileTest, noatom)
 {
-    TEST_FAILURE(".*ERROR: No atoms or invalid atom count in molecule file.*",
-                 run_mol_cmd(test_name, "",
-                             "Comment\n0 atoms\n1 bonds\n\n"
-                             " Coords\n\nBonds\n\n 1 1 2\n"););
+    TEST_FAILURE(
+        ".*No atoms or invalid atom count in molecule file.*",
+        run_mol_cmd(test_name, "", "Comment\n0 atoms\n1 bonds\n\n Coords\n\nBonds\n\n 1 1 2\n"););
     platform::unlink("moltest_noatom.mol");
 }
 
 TEST_F(MoleculeFileTest, empty)
 {
-    TEST_FAILURE(".*ERROR: Unexpected end of molecule file.*",
-                 run_mol_cmd(test_name, "", "Comment\n\n"););
+    TEST_FAILURE(".*Unexpected end of molecule file.*", run_mol_cmd(test_name, "", "Comment\n\n"););
     platform::unlink("moltest_empty.mol");
 }
 
 TEST_F(MoleculeFileTest, nospecial)
 {
-    TEST_FAILURE(".*ERROR: Cannot auto-generate special bonds before simulation box is defined.*",
+    TEST_FAILURE(".*Cannot auto-generate special bonds before simulation box is defined.*",
                  run_mol_cmd(test_name, "",
                              "Comment\n3 atoms\n\n2 bonds\n\n"
                              " Coords\n\n 1 1.0 1.0 1.0\n 2 1.0 1.0 0.0\n 3 1.0 0.0 1.0\n"
@@ -266,6 +264,59 @@ TEST_F(MoleculeFileTest, twomols)
     ASSERT_EQ(lmp->atom->nmolecule, 1);
     auto mols = lmp->atom->get_molecule_by_id(test_name);
     ASSERT_EQ(mols.size(), 1);
+}
+
+TEST_F(MoleculeFileTest, tenmols)
+{
+    BEGIN_CAPTURE_OUTPUT();
+    run_mol_cmd(test_name, "",
+                "Comment\n10 atoms\n\n"
+                " Coords\n\n"
+                " 1 0.0 0.0 0.0\n"
+                " 2 0.0 0.0 1.0\n"
+                " 3 0.0 1.0 0.0\n"
+                " 4 0.0 1.0 1.0\n"
+                " 5 1.0 0.0 0.0\n"
+                " 6 1.0 0.0 1.0\n"
+                " 7 1.0 1.0 0.0\n"
+                " 8 1.0 1.0 1.0\n"
+                " 9 0.5 0.5 0.5\n"
+                "10 0.5 0.5 0.5\n\n"
+                " Molecules\n\n"
+                " 1 1\n"
+                " 2 2\n"
+                " 3 3\n"
+                " 4 4\n"
+                " 5 5\n"
+                " 6 6\n"
+                " 7 7\n"
+                " 8 8\n"
+                " 9 9\n"
+                "10 10\n\n"
+                " Types\n\n"
+                " 1 1\n"
+                " 2 2\n"
+                " 3 1\n"
+                " 4 2\n"
+                " 5 1\n"
+                " 6 2\n"
+                " 7 1\n"
+                " 8 2\n"
+                " 9 1\n"
+                "10 2\n\n");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output,
+                ContainsRegex(".*Read molecule template.*\n.*Comment.*\n.*10 molecules.*\n"
+                              ".*0 fragments.*\n.*10 atoms with max type 2.*\n.*0 bonds.*"));
+    ASSERT_EQ(lmp->atom->nmolecule, 1);
+    auto mols = lmp->atom->get_molecule_by_id(test_name);
+    ASSERT_EQ(mols.size(), 1);
+    command("atom_style molecular");
+    command("region box block -2 2 -2 2 -2 2");
+    command("create_box 2 box");
+    command("mass * 1.0");
+    command("create_atoms 0 single 0 0 0 mol tenmols 123451");
+    command("run 0 post no");
 }
 
 TEST_F(MoleculeFileTest, twofiles)
@@ -351,7 +402,7 @@ TEST_F(MoleculeFileTest, labelmap)
     BEGIN_CAPTURE_OUTPUT();
     command("labelmap atom 1 A 2 B");
     END_CAPTURE_OUTPUT();
-    TEST_FAILURE(".*ERROR: Unknown atom type OW in Types section of molecule file: 1 OW.*",
+    TEST_FAILURE(".*Unknown atom type OW in Types section of molecule file: 1 OW.*",
                  command("molecule fail labelmap.h2o.mol"););
 }
 

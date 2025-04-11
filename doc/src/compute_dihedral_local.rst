@@ -76,7 +76,7 @@ angle in the system and output the statistics in various ways:
    compute 2 all dihedral/local phi v_cos v_cossq set phi p
    dump 1 all local 100 tmp.dump c_1[*] c_2[*]
 
-   compute 3 all reduce ave c_2[*]
+   compute 3 all reduce ave c_2[*] inputs local
    thermo_style custom step temp press c_3[*]
 
    fix 10 all ave/histo 10 10 100 -1 1 20 c_2[2] mode vector file tmp.histo

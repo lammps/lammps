@@ -37,9 +37,6 @@ struct ViewDimension;
 
 template <class T, class Dim>
 struct ViewDataType;
-}  // namespace Kokkos::Impl
-
-namespace Kokkos::Experimental::Impl {
 
 // A few things to note --
 // - mdspan allows for 0-rank extents similarly to View, so we don't need
@@ -106,6 +103,20 @@ struct DataTypeFromExtents {
   // Will cause a compile error if it is malformed (i.e. dynamic after static)
   using type = typename ::Kokkos::Impl::ViewDataType<T, dimension_type>::type;
 };
-}  // namespace Kokkos::Experimental::Impl
+
+template <class Extents, class VM, std::size_t... Indices>
+constexpr KOKKOS_INLINE_FUNCTION auto extents_from_view_mapping_impl(
+    const VM &view_mapping, std::index_sequence<Indices...>) {
+  return Extents{view_mapping.extent(Indices)...};
+}
+
+template <class Extents, class VM>
+constexpr KOKKOS_INLINE_FUNCTION auto extents_from_view_mapping(
+    const VM &view_mapping) {
+  static_assert(Extents::rank() == VM::Rank);
+  return extents_from_view_mapping_impl<Extents>(
+      view_mapping, std::make_index_sequence<Extents::rank()>{});
+}
+}  // namespace Kokkos::Impl
 
 #endif  // KOKKOS_EXPERIMENTAL_MDSPAN_EXTENTS_HPP

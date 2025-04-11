@@ -1,5 +1,5 @@
-CHARMM, AMBER, COMPASS, and DREIDING force fields
-=================================================
+CHARMM, AMBER, COMPASS, DREIDING, and OPLS force fields
+=======================================================
 
 A compact summary of the concepts, definitions, and properties of
 force fields with explicit bonded interactions (like the ones discussed
@@ -43,7 +43,7 @@ have potential energy function of the form
       }} \!\!\!\!\!\!\!\!+ \!\!\sum_{special}\! E_s + \!\!\!\!\sum_{residues} \!\!\!{\scriptstyle\mathrm{CMAP}(\phi,\psi)}
 
 
-The terms are computed by bond styles (relationship between 2 atoms),
+The terms are computed by bond styles (relationship between two atoms),
 angle styles (between 3 atoms) , dihedral/improper styles (between 4
 atoms), pair styles (non-covalently bonded pair interactions) and
 special bonds. The CMAP term (see :doc:`fix cmap <fix_cmap>` command for
@@ -73,7 +73,7 @@ with additional switching or shifting functions that ramp the energy
 and/or force smoothly to zero between an inner :math:`(a)` and outer
 :math:`(b)` cutoff. The older styles with *charmm* (not *charmmfsw* or
 *charmmfsh*\ ) in their name compute the LJ and Coulombic interactions
-with an energy switching function (esw) S(r) which ramps the energy
+with an energy switching function (esw) :math:`S(r)` which ramps the energy
 smoothly to zero between the inner and outer cutoff. This can cause
 irregularities in pairwise forces (due to the discontinuous second
 derivative of energy at the boundaries of the switching region), which
@@ -236,6 +236,40 @@ documentation for the formula it computes.
 
 * :doc:`special_bonds <special_bonds>` dreiding
 
+OPLS
+----
+
+OPLS (Optimized Potentials for Liquid Simulations) is a general force
+field for atomistic simulation of organic molecules in solvent.  It was
+developed by the `Jorgensen group
+<https://traken.chem.yale.edu/oplsaam.html>`_ at Purdue University and
+later at Yale University.  Multiple versions of the OPLS parameters
+exist for united atom representations (OPLS-UA) and for all-atom
+representations (OPLS-AA).
+
+This force field is based on atom types mapped to specific functional
+groups in organic and biological molecules.  Each atom includes a
+static, partial atomic charge reflecting the oxidation state of the
+element derived from its bonded neighbors :ref:`(Jorgensen)
+<howto-jorgensen>` and computed based on increments determined by the
+atom type of the atoms bond to it.
+
+The interaction styles listed below compute force field formulas that
+are fully or in part consistent with the OPLS style force fields.  See
+each command's documentation for the formula it computes.  Some are only
+compatible with a subset of OPLS interactions.
+
+* :doc:`bond_style <bond_harmonic>` harmonic
+* :doc:`angle_style <angle_harmonic>` harmonic
+* :doc:`dihedral_style <dihedral_opls>` opls
+* :doc:`improper_style <improper_cvff>` cvff
+* :doc:`improper_style <improper_fourier>` fourier
+* :doc:`improper_style <improper_harmonic>` harmonic
+* :doc:`pair_style <pair_lj_cut_coul>` lj/cut/coul/cut
+* :doc:`pair_style <pair_lj_cut_coul>` lj/cut/coul/long
+* :doc:`pair_modify <pair_modify>` geometric
+* :doc:`special_bonds <special_bonds>` lj/coul 0.0 0.0 0.5
+
 ----------
 
 .. _Typelabel2:
@@ -266,3 +300,6 @@ documentation for the formula it computes.
 
 **(Mayo)** Mayo, Olfason, Goddard III (1990). J Phys Chem, 94, 8897-8909. https://doi.org/10.1021/j100389a010
 
+.. _howto-Jorgensen:
+
+**(Jorgensen)** Jorgensen, Tirado-Rives (1988). J Am Chem Soc, 110, 1657-1666. https://doi.org/10.1021/ja00214a001

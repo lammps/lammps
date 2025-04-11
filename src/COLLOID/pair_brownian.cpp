@@ -54,6 +54,8 @@ PairBrownian::PairBrownian(LAMMPS *lmp) : Pair(lmp)
 
 PairBrownian::~PairBrownian()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -401,7 +403,7 @@ void PairBrownian::settings(int narg, char **arg)
 
 void PairBrownian::coeff(int narg, char **arg)
 {
-  if (narg != 2 && narg != 4) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg != 2 && narg != 4) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 
   if (!allocated) allocate();
 
@@ -426,7 +428,7 @@ void PairBrownian::coeff(int narg, char **arg)
       count++;
     }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -476,15 +478,18 @@ void PairBrownian::init_style()
   // are re-calculated at every step.
 
   flagdeform = flagwall = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style, "deform") == 0)
-      flagdeform = 1;
-    else if (strstr(modify->fix[i]->style, "wall") != nullptr) {
-      if (flagwall) error->all(FLERR, "Cannot use multiple fix wall commands with pair brownian");
-      flagwall = 1;    // Walls exist
-      wallfix = dynamic_cast<FixWall *>(modify->fix[i]);
-      if (wallfix->xflag) flagwall = 2;    // Moving walls exist
-    }
+  wallfix = nullptr;
+
+  if (modify->get_fix_by_style("^deform").size() > 0) flagdeform = 1;
+  auto fixes = modify->get_fix_by_style("^wall");
+  if (fixes.size() > 1)
+    error->all(FLERR, "Cannot use multiple fix wall commands with pair brownian");
+  else if (fixes.size() == 1) {
+    wallfix = dynamic_cast<FixWall *>(fixes[0]);
+    if (!wallfix)
+      error->all(FLERR, "Fix {} is not compatible with pair brownian", fixes[0]->style);
+    flagwall = 1;
+    if (wallfix->xflag) flagwall = 2; // Moving walls exist
   }
 
   // set the isotropic constants depending on the volume fraction

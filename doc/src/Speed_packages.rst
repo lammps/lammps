@@ -80,23 +80,30 @@ it provides, follow these general steps.  Details vary from package to
 package and are explained in the individual accelerator doc pages,
 listed above:
 
-+--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| build the accelerator library                                                                                                  | only for GPU package                                                 |
-+--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| install the accelerator package                                                                                                | make yes-opt, make yes-intel, etc                                    |
-+--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| add compile/link flags to Makefile.machine in src/MAKE                                                                         | only for INTEL, KOKKOS, OPENMP, OPT packages                         |
-+--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| re-build LAMMPS                                                                                                                | make machine                                                         |
-+--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| prepare and test a regular LAMMPS simulation                                                                                   | lmp_machine -in in.script; mpirun -np 32 lmp_machine -in in.script   |
-+--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| enable specific accelerator support via '-k on' :doc:`command-line switch <Run_options>`,                                      | only needed for KOKKOS package                                       |
-+--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| set any needed options for the package via "-pk" :doc:`command-line switch <Run_options>` or :doc:`package <package>` command, | only if defaults need to be changed                                  |
-+--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| use accelerated styles in your input via "-sf" :doc:`command-line switch <Run_options>` or :doc:`suffix <suffix>` command      | lmp_machine -in in.script -sf gpu                                    |
-+--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
++-----------------------------------------------------------+---------------------------------------------+
+| build the accelerator library                             | only for GPU package                        |
++-----------------------------------------------------------+---------------------------------------------+
+| install the accelerator package                           | ``make yes-opt``, ``make yes-intel``, etc   |
++-----------------------------------------------------------+---------------------------------------------+
+| add compile/link flags to ``Makefile.machine``            | only for INTEL, KOKKOS, OPENMP,             |
+| in ``src/MAKE``                                           | OPT packages                                |
++-----------------------------------------------------------+---------------------------------------------+
+| re-build LAMMPS                                           | ``make machine``                            |
++-----------------------------------------------------------+---------------------------------------------+
+| prepare and test a regular LAMMPS simulation              | ``lmp_machine -in in.script;``              |
+|                                                           | ``mpirun -np 32 lmp_machine -in in.script`` |
++-----------------------------------------------------------+---------------------------------------------+
+| enable specific accelerator support via ``-k on``         | only needed for KOKKOS package              |
+| :doc:`command-line switch <Run_options>`                  |                                             |
++-----------------------------------------------------------+---------------------------------------------+
+| set any needed options for the package via ``-pk``        | only if defaults need to be changed         |
+| :doc:`command-line switch <Run_options>` or               |                                             |
+| :doc:`package <package>` command                          |                                             |
++-----------------------------------------------------------+---------------------------------------------+
+| use accelerated styles in your input via ``-sf``          | ``lmp_machine -in in.script -sf gpu``       |
+| :doc:`command-line switch <Run_options>` or               |                                             |
+| :doc:`suffix <suffix>` command                            |                                             |
++-----------------------------------------------------------+---------------------------------------------+
 
 Note that the first 4 steps can be done as a single command with
 suitable make command invocations. This is discussed on the

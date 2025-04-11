@@ -13,10 +13,14 @@ Programming language standards
 
 Most of the C++ code currently requires a compiler compatible with the
 C++11 standard, the KOKKOS package currently requires C++17.  Most of
-the Python code is written to be compatible with Python 3.5 or later or
-Python 2.7.  Some Python scripts *require* Python 3 and a few others
-still need to be ported from Python 2 to Python 3.
+the Python code is written to be compatible with Python 3.6 or later.
 
+.. deprecated:: 2Apr2025
+
+Python 2.x is no longer supported and trying to use it, e.g. for the
+LAMMPS Python module should result in an error.  If you come across
+some part of the LAMMPS distribution that is not (yet) compatible with
+Python 3, please notify the LAMMPS developers.
 
 Build systems
 ^^^^^^^^^^^^^
@@ -24,25 +28,26 @@ Build systems
 LAMMPS can be compiled from source code using a (traditional) build
 system based on shell scripts, a few shell utilities (grep, sed, cat,
 tr) and the GNU make program. This requires running within a Bourne
-shell (``/bin/sh``).  Alternatively, a build system with different back ends
-can be created using CMake.  CMake must be at least version 3.16.
+shell (``/bin/sh``).  Alternatively, a build system with different back
+ends can be created using CMake.  CMake must be at least version 3.16.
 
 Operating systems
 ^^^^^^^^^^^^^^^^^
 
 The primary development platform for LAMMPS is Linux.  Thus, the chances
-for LAMMPS to compile without problems on Linux machines are the best.
+for LAMMPS to compile without problems are the best on Linux machines.
 Also, compilation and correct execution on macOS and Windows (using
-Microsoft Visual C++) is checked automatically for largest part of the
-source code.  Some (optional) features are not compatible with all
+Microsoft Visual C++) is checked automatically for the largest part of
+the source code.  Some (optional) features are not compatible with all
 operating systems, either through limitations of the corresponding
-LAMMPS source code or through source code or build system
-incompatibilities of required libraries.
+LAMMPS source code or through incompatibilities of source code or
+build system of required external libraries or packages.
 
 Executables for Windows may be created natively using either Cygwin or
 Visual Studio or with a Linux to Windows MinGW cross-compiler.
 
-Additionally, FreeBSD and Solaris have been tested successfully.
+Additionally, FreeBSD and Solaris have been tested successfully to
+run LAMMPS and produce results consistent with those on Linux.
 
 Compilers
 ^^^^^^^^^

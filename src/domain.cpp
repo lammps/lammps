@@ -787,7 +787,7 @@ void Domain::pbc()
   int flag = 0;
   for (i = 0; i < n3; i++)
     if (!std::isfinite(*coord++)) flag = 1;
-  if (flag) error->one(FLERR,"Non-numeric atom coords - simulation unstable");
+  if (flag) error->one(FLERR,"Non-numeric atom coords - simulation unstable" + utils::errorurl(6));
 
   // setup for PBC checks
 
@@ -1028,7 +1028,8 @@ void Domain::image_check()
       if (k == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR,"Bond atom missing in image check");
+          error->one(FLERR, Error::NOLASTLINE,
+                     "Bond atom missing in image check" + utils::errorurl(14));
         continue;
       }
 
@@ -1048,13 +1049,13 @@ void Domain::image_check()
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
   if (flagall && comm->me == 0)
-    error->warning(FLERR,"Inconsistent image flags");
+    error->warning(FLERR,"Inconsistent image flags" + utils::errorurl(27));
 
   if (lostbond == Thermo::WARN) {
     int all;
     MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
     if (all && comm->me == 0)
-      error->warning(FLERR,"Bond atom missing in image check");
+      error->warning(FLERR, "Bond atom missing in image check" + utils::errorurl(14));
   }
 
   memory->destroy(unwrap);
@@ -1127,7 +1128,8 @@ void Domain::box_too_small_check()
       if (k == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR,"Bond atom missing in box size check");
+          error->one(FLERR, Error::NOLASTLINE,
+                     "Bond atom missing in box size check" + utils::errorurl(14));
         continue;
       }
 
@@ -1144,7 +1146,7 @@ void Domain::box_too_small_check()
     int all;
     MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
     if (all && comm->me == 0)
-      error->warning(FLERR,"Bond atom missing in box size check");
+      error->warning(FLERR,"Bond atom missing in box size check" + utils::errorurl(14));
   }
 
   double maxbondall;
@@ -1661,6 +1663,25 @@ void Domain::remap(double *x)
   }
 
   if (triclinic) lamda2x(coord,x);
+}
+
+/* ----------------------------------------------------------------------
+   remap all points into the periodic box no matter how far away
+   adjust 3 image flags encoded in image accordingly
+   resulting coord must satisfy lo <= coord < hi
+   MAX is important since coord - prd < lo can happen when coord = hi
+   for triclinic, point is converted to lamda coords (0-1) within remap()
+   image = 10 bits for each dimension
+   increment/decrement in wrap-around fashion
+------------------------------------------------------------------------- */
+
+void Domain::remap_all()
+{
+  double **x = atom->x;
+  imageint *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) remap(x[i],image[i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -2188,6 +2209,19 @@ void Domain::lamda2x(int n)
   }
 }
 
+void Domain::lamda2x(int n, int groupbit)
+{
+  double **x = atom->x;
+  int *mask = atom->mask;
+
+  for (int i = 0; i < n; i++)
+    if (mask[i] & groupbit) {
+      x[i][0] = h[0]*x[i][0] + h[5]*x[i][1] + h[4]*x[i][2] + boxlo[0];
+      x[i][1] = h[1]*x[i][1] + h[3]*x[i][2] + boxlo[1];
+      x[i][2] = h[2]*x[i][2] + boxlo[2];
+    }
+}
+
 /* ----------------------------------------------------------------------
    convert box coords to triclinic 0-1 lamda coords for all N atoms
    lamda = H^-1 (x - x0)
@@ -2207,6 +2241,25 @@ void Domain::x2lamda(int n)
     x[i][1] = h_inv[1]*delta[1] + h_inv[3]*delta[2];
     x[i][2] = h_inv[2]*delta[2];
   }
+}
+
+void Domain::x2lamda(int n, int groupbit)
+{
+  double delta[3];
+  double **x = atom->x;
+  int *mask = atom->mask;
+
+  for (int i = 0; i < n; i++)
+    if (mask[i] & groupbit) {
+      delta[0] = x[i][0] - boxlo[0];
+      delta[1] = x[i][1] - boxlo[1];
+      delta[2] = x[i][2] - boxlo[2];
+
+      x[i][0] = h_inv[0]*delta[0] + h_inv[5]*delta[1] + h_inv[4]*delta[2];
+      x[i][1] = h_inv[1]*delta[1] + h_inv[3]*delta[2];
+      x[i][2] = h_inv[2]*delta[2];
+    }
+
 }
 
 /* ----------------------------------------------------------------------

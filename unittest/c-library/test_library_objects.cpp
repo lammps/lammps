@@ -112,75 +112,75 @@ TEST_F(LibraryObjects, variables)
     if (verbose) std::cout << output;
 
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "unknown"), -1);
-    void *ptr = lammps_extract_variable(lmp, "unknown", NULL);
+    void *ptr = lammps_extract_variable(lmp, "unknown", nullptr);
     EXPECT_EQ(ptr, nullptr);
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "one"), LMP_VAR_STRING);
-    ptr = lammps_extract_variable(lmp, "one", NULL);
+    ptr = lammps_extract_variable(lmp, "one", nullptr);
     EXPECT_NE(ptr, nullptr);
     EXPECT_THAT((char *)ptr, StrEq("1"));
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "two"), LMP_VAR_EQUAL);
-    ptr = lammps_extract_variable(lmp, "two", NULL);
+    ptr = lammps_extract_variable(lmp, "two", nullptr);
     EXPECT_NE(ptr, nullptr);
     EXPECT_THAT(*(double *)ptr, 2.0);
     lammps_free(ptr);
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "three"), LMP_VAR_STRING);
-    ptr = lammps_extract_variable(lmp, "three", NULL);
+    ptr = lammps_extract_variable(lmp, "three", nullptr);
     EXPECT_THAT((char *)ptr, StrEq("three"));
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "four1"), LMP_VAR_STRING);
-    ptr = lammps_extract_variable(lmp, "four1", NULL);
+    ptr = lammps_extract_variable(lmp, "four1", nullptr);
     EXPECT_THAT((char *)ptr, StrEq("1"));
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "four2"), LMP_VAR_STRING);
-    ptr = lammps_extract_variable(lmp, "four2", NULL);
+    ptr = lammps_extract_variable(lmp, "four2", nullptr);
     EXPECT_THAT((char *)ptr, StrEq("2"));
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "five1"), LMP_VAR_STRING);
-    ptr = lammps_extract_variable(lmp, "five1", NULL);
+    ptr = lammps_extract_variable(lmp, "five1", nullptr);
     EXPECT_THAT((char *)ptr, StrEq("001"));
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "five2"), LMP_VAR_STRING);
-    ptr = lammps_extract_variable(lmp, "five2", NULL);
+    ptr = lammps_extract_variable(lmp, "five2", nullptr);
     EXPECT_THAT((char *)ptr, StrEq("010"));
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "six"), LMP_VAR_STRING);
-    ptr = lammps_extract_variable(lmp, "six", NULL);
+    ptr = lammps_extract_variable(lmp, "six", nullptr);
     EXPECT_THAT((char *)ptr, StrEq("one"));
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "seven"), LMP_VAR_STRING);
-    ptr = lammps_extract_variable(lmp, "seven", NULL);
+    ptr = lammps_extract_variable(lmp, "seven", nullptr);
     EXPECT_THAT((char *)ptr, StrEq(" 2.00"));
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "eight"), LMP_VAR_STRING);
-    ptr = lammps_extract_variable(lmp, "eight", NULL);
+    ptr = lammps_extract_variable(lmp, "eight", nullptr);
     EXPECT_THAT((char *)ptr, StrEq(""));
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "nine"), LMP_VAR_STRING);
-    ptr = lammps_extract_variable(lmp, "nine", NULL);
+    ptr = lammps_extract_variable(lmp, "nine", nullptr);
     EXPECT_THAT((char *)ptr, StrEq("one"));
 
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "ten"), LMP_VAR_EQUAL);
-    ptr = lammps_extract_variable(lmp, "ten", NULL);
+    ptr = lammps_extract_variable(lmp, "ten", nullptr);
     EXPECT_THAT(*(double *)ptr, 1.0);
     lammps_free(ptr);
     variable->internal_set(variable->find("ten"), 2.5);
-    ptr = lammps_extract_variable(lmp, "ten", NULL);
+    ptr = lammps_extract_variable(lmp, "ten", nullptr);
     EXPECT_THAT(*(double *)ptr, 2.5);
     lammps_free(ptr);
 
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "ten1"), LMP_VAR_STRING);
-    ptr = lammps_extract_variable(lmp, "ten1", NULL);
+    ptr = lammps_extract_variable(lmp, "ten1", nullptr);
     EXPECT_THAT((char *)ptr, StrEq("1"));
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "ten2"), LMP_VAR_STRING);
-    ptr = lammps_extract_variable(lmp, "ten2", NULL);
+    ptr = lammps_extract_variable(lmp, "ten2", nullptr);
     EXPECT_THAT((char *)ptr, StrEq("1"));
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "ten3"), LMP_VAR_STRING);
-    ptr = lammps_extract_variable(lmp, "ten3", NULL);
+    ptr = lammps_extract_variable(lmp, "ten3", nullptr);
     EXPECT_THAT((char *)ptr, StrEq("1"));
 
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "ten4"), LMP_VAR_VECTOR);
-    ptr = lammps_extract_variable(lmp, "ten4", (const char *)1);
-    double *dptr = (double *)lammps_extract_variable(lmp, "ten4", NULL);
+    ptr        = lammps_extract_variable(lmp, "ten4", (const char *)1);
+    auto *dptr = (double *)lammps_extract_variable(lmp, "ten4", nullptr);
     EXPECT_EQ((*(int *)ptr), 7);
     lammps_free(ptr);
     EXPECT_EQ(dptr[0], 0);
     EXPECT_EQ(dptr[4], 5);
     EXPECT_EQ(dptr[6], 11);
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "ten5"), LMP_VAR_VECTOR);
-    ptr = lammps_extract_variable(lmp, "ten5", (const char *)1);
-    dptr = (double *)lammps_extract_variable(lmp, "ten5", NULL);
+    ptr  = lammps_extract_variable(lmp, "ten5", (const char *)1);
+    dptr = (double *)lammps_extract_variable(lmp, "ten5", nullptr);
     EXPECT_EQ((*(int *)ptr), 2);
     lammps_free(ptr);
     EXPECT_EQ(dptr[0], 0.5);
@@ -196,10 +196,10 @@ TEST_F(LibraryObjects, variables)
     EXPECT_THAT(*(double *)ptr, 0.0);
     lammps_free(ptr);
 #elif defined(__linux__)
-    ptr = lammps_extract_variable(lmp, "iswin", NULL);
+    ptr = lammps_extract_variable(lmp, "iswin", nullptr);
     EXPECT_THAT(*(double *)ptr, 0.0);
     lammps_free(ptr);
-    ptr = lammps_extract_variable(lmp, "islin", NULL);
+    ptr = lammps_extract_variable(lmp, "islin", nullptr);
     EXPECT_THAT(*(double *)ptr, 1.0);
     lammps_free(ptr);
 #else
@@ -212,4 +212,55 @@ TEST_F(LibraryObjects, variables)
 #endif
 
     LAMMPS_NS::platform::unlink("test_variable.file");
+}
+
+TEST_F(LibraryObjects, expand)
+{
+    ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "variable one    index     1 2 3 4");
+    lammps_command(lmp, "variable two    equal     2");
+    lammps_command(lmp, "variable three  string    three");
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+
+    char *ptr = lammps_expand(lmp, "xx_$(4+5)_$(PI) ${one}-${two}-${three}");
+    EXPECT_NE(ptr, nullptr);
+    EXPECT_THAT((char *)ptr, StrEq("xx_9_3.141592653589793116 1-2-three"));
+    lammps_free(ptr);
+
+    ptr = lammps_expand(lmp, "'xx_$(4+5)_$(PI) ${one}-${two}-${three}'");
+    EXPECT_NE(ptr, nullptr);
+    EXPECT_THAT((char *)ptr, StrEq("'xx_$(4+5)_$(PI) ${one}-${two}-${three}'"));
+    lammps_free(ptr);
+}
+
+TEST_F(LibraryObjects, eval)
+{
+    lammps_get_last_error_message(lmp, nullptr, 1);
+    ::testing::internal::CaptureStdout();
+    lammps_commands_string(lmp, "region box1 block 0 10 0 5 -0.5 0.5\n"
+                                "lattice fcc 0.8\n"
+                                "create_box 1 box1\n"
+                                "create_atoms 1 box\n"
+                                "mass * 1.0\n"
+                                "pair_style lj/cut 4.0\n"
+                                "pair_coeff * * 1.0 1.0\n"
+                                "variable t equal 15.0\n"
+                                "velocity all create 1.5 532656\n"
+                                "fix 1 all nve\n"
+                                "run 0 post no\n");
+    lammps_command(lmp, "variable one    index     1 2 3 4");
+    lammps_command(lmp, "variable two    equal     2");
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    ASSERT_EQ(lammps_has_error(lmp), 0);
+
+    EXPECT_DOUBLE_EQ(lammps_eval(lmp, "4+5"), 9.0);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
+    EXPECT_DOUBLE_EQ(lammps_eval(lmp, "v_one / 2.0"), 0.5);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
+    EXPECT_DOUBLE_EQ(lammps_eval(lmp, "count(all)"), 36.0);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
+    EXPECT_DOUBLE_EQ(lammps_eval(lmp, "pe"), -3.9848867644689534);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
 }

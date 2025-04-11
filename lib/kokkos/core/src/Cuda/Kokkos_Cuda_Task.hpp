@@ -31,6 +31,9 @@
 
 //----------------------------------------------------------------------------
 
+// We allow using deprecated classes in this file
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+
 #if defined(__CUDA_ARCH__)
 #define KOKKOS_IMPL_CUDA_SYNCWARP_OR_RETURN(MSG)                           \
   {                                                                        \
@@ -584,9 +587,9 @@ class TaskExec<Kokkos::Cuda, Scheduler> {
  private:
   enum : int { WarpSize = Kokkos::Impl::CudaTraits::WarpSize };
 
-  TaskExec(TaskExec&&)      = delete;
-  TaskExec(TaskExec const&) = delete;
-  TaskExec& operator=(TaskExec&&) = delete;
+  TaskExec(TaskExec&&)                 = delete;
+  TaskExec(TaskExec const&)            = delete;
+  TaskExec& operator=(TaskExec&&)      = delete;
   TaskExec& operator=(TaskExec const&) = delete;
 
   friend class Kokkos::Impl::TaskQueue<
@@ -1223,6 +1226,8 @@ KOKKOS_INLINE_FUNCTION void single(
 //----------------------------------------------------------------------------
 
 #undef KOKKOS_IMPL_CUDA_SYNCWARP_OR_RETURN
+
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
 
 #endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
 #endif /* #ifndef KOKKOS_IMPL_CUDA_TASK_HPP */

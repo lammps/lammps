@@ -97,21 +97,27 @@ center-of-mass velocity across the group in directions where streaming velocity
 is *not* subtracted. This can be altered using the *extra* option of the
 :doc:`compute_modify <compute_modify>` command.
 
-If the *out* keyword is used with a *tensor* value, which is the default,
-a kinetic energy tensor, stored as a six-element vector, is also calculated by
-this compute for use in the computation of a pressure tensor.  The formula for
-the components of the tensor is the same as the above formula, except that
-:math:`v^2` is replaced by :math:`v_x v_y` for the :math:`xy` component, and
-so on.  The six components of the vector are ordered :math:`xx`, :math:`yy`,
+If the *out* keyword is used with a *tensor* value, which is the
+default, then a symmetric tensor, stored as a six-element vector, is
+also calculated by this compute for use in the computation of a
+pressure tensor by the :doc:`compute pressue <compute_pressure>`
+command.  The formula for the components of the tensor is the same as
+the above expression for :math:`E_\mathrm{kin}`, except that the 1/2
+factor is NOT included and the :math:`v_i^2` is replaced by
+:math:`v_{i,x} v_{i,y}` for the :math:`xy` component, and so on.  Note
+that because it lacks the 1/2 factor, these tensor components are
+twice those of the traditional kinetic energy tensor.  The six
+components of the vector are ordered :math:`xx`, :math:`yy`,
 :math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`.
 
-If the *out* keyword is used with a *bin* value, the count of atoms and
-computed temperature for each bin are stored for output, as an array of values,
-as described below.  The temperature of each bin is calculated as described
-above, where the bias velocity is subtracted and only the remaining thermal
-velocity of atoms in the bin contributes to the temperature.  See the note
-below for how the temperature is normalized by the degrees-of-freedom of atoms
-in the bin.
+If the *out* keyword is used with a *bin* value, the count of atoms
+and computed temperature for each bin are stored for output, as an
+array of values, as described below.  The temperature of each bin is
+calculated as described above, where the bias velocity is subtracted
+and only the remaining thermal velocity of atoms in the bin
+contributes to the temperature.  See the note below for how the
+temperature is normalized by the degrees-of-freedom of atoms in the
+bin.
 
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the *dynamic* option of the
@@ -166,16 +172,17 @@ Output info
 This compute calculates a global scalar (the temperature).  Depending
 on the setting of the *out* keyword, it also calculates a global
 vector or array.  For *out* = *tensor*, it calculates a vector of
-length 6 (KE tensor), which can be accessed by indices 1--6.  For *out*
-= *bin* it calculates a global array which has 2 columns and :math:`N` rows,
-where :math:`N` is the number of bins.  The first column contains the number
-of atoms in that bin.  The second contains the temperature of that
-bin, calculated as described above.  The ordering of rows in the array
-is as follows.  Bins in :math:`x` vary fastest, then :math:`y`, then
-:math:`z`.  Thus for a :math:`10\times 10\times 10` 3d array of bins, there
-will be 1000 rows.  The bin with indices :math:`(i_x,i_y,i_z) = (2,3,4)` would
-map to row :math:`M = 10^2(i_z-1)  + 10(i_y-1) + i_x = 322`, where the rows are
-numbered from 1 to 1000 and the bin indices are numbered from 1 to 10 in each
+length 6 (symmetric tensor), which can be accessed by indices 1--6.
+For *out* = *bin* it calculates a global array which has 2 columns and
+:math:`N` rows, where :math:`N` is the number of bins.  The first
+column contains the number of atoms in that bin.  The second contains
+the temperature of that bin, calculated as described above.  The
+ordering of rows in the array is as follows.  Bins in :math:`x` vary
+fastest, then :math:`y`, then :math:`z`.  Thus for a :math:`10\times
+10\times 10` 3d array of bins, there will be 1000 rows.  The bin with
+indices :math:`(i_x,i_y,i_z) = (2,3,4)` would map to row :math:`M =
+10^2(i_z-1) + 10(i_y-1) + i_x = 322`, where the rows are numbered from
+1 to 1000 and the bin indices are numbered from 1 to 10 in each
 dimension.
 
 These values can be used by any command that uses global scalar or
@@ -186,9 +193,9 @@ options.
 The scalar value calculated by this compute is "intensive".  The
 vector values are "extensive".  The array values are "intensive".
 
-The scalar value will be in temperature :doc:`units <units>`.  The
-vector values will be in energy :doc:`units <units>`.  The first column
-of array values are counts; the values in the second column will be in
+The scalar value us in temperature :doc:`units <units>`.  The vector
+values are in energy :doc:`units <units>`.  The first column of array
+values are counts; the values in the second column will be in
 temperature :doc:`units <units>`.
 
 Restrictions
@@ -203,7 +210,10 @@ will be for most thermostats.
 Related commands
 """"""""""""""""
 
-:doc:`compute temp <compute_temp>`, :doc:`compute temp/ramp <compute_temp_ramp>`, :doc:`compute temp/deform <compute_temp_deform>`, :doc:`compute pressure <compute_pressure>`
+:doc:`compute temp <compute_temp>`,
+:doc:`compute temp/ramp <compute_temp_ramp>`,
+:doc:`compute temp/deform <compute_temp_deform>`,
+:doc:`compute pressure <compute_pressure>`
 
 Default
 """""""

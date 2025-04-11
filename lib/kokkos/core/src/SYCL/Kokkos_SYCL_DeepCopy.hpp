@@ -28,37 +28,34 @@ namespace Kokkos {
 namespace Impl {
 
 void DeepCopySYCL(void* dst, const void* src, size_t n);
-void DeepCopyAsyncSYCL(const Kokkos::Experimental::SYCL& instance, void* dst,
-                       const void* src, size_t n);
+void DeepCopyAsyncSYCL(const Kokkos::SYCL& instance, void* dst, const void* src,
+                       size_t n);
 void DeepCopyAsyncSYCL(void* dst, const void* src, size_t n);
 
 template <class MemSpace>
-struct DeepCopy<MemSpace, HostSpace, Kokkos::Experimental::SYCL,
+struct DeepCopy<MemSpace, HostSpace, Kokkos::SYCL,
                 std::enable_if_t<is_sycl_type_space<MemSpace>::value>> {
   DeepCopy(void* dst, const void* src, size_t n) { DeepCopySYCL(dst, src, n); }
-  DeepCopy(const Kokkos::Experimental::SYCL& instance, void* dst,
-           const void* src, size_t n) {
+  DeepCopy(const Kokkos::SYCL& instance, void* dst, const void* src, size_t n) {
     DeepCopyAsyncSYCL(instance, dst, src, n);
   }
 };
 
 template <class MemSpace>
-struct DeepCopy<HostSpace, MemSpace, Kokkos::Experimental::SYCL,
+struct DeepCopy<HostSpace, MemSpace, Kokkos::SYCL,
                 std::enable_if_t<is_sycl_type_space<MemSpace>::value>> {
   DeepCopy(void* dst, const void* src, size_t n) { DeepCopySYCL(dst, src, n); }
-  DeepCopy(const Kokkos::Experimental::SYCL& instance, void* dst,
-           const void* src, size_t n) {
+  DeepCopy(const Kokkos::SYCL& instance, void* dst, const void* src, size_t n) {
     DeepCopyAsyncSYCL(instance, dst, src, n);
   }
 };
 
 template <class MemSpace1, class MemSpace2>
-struct DeepCopy<MemSpace1, MemSpace2, Kokkos::Experimental::SYCL,
+struct DeepCopy<MemSpace1, MemSpace2, Kokkos::SYCL,
                 std::enable_if_t<is_sycl_type_space<MemSpace1>::value &&
                                  is_sycl_type_space<MemSpace2>::value>> {
   DeepCopy(void* dst, const void* src, size_t n) { DeepCopySYCL(dst, src, n); }
-  DeepCopy(const Kokkos::Experimental::SYCL& instance, void* dst,
-           const void* src, size_t n) {
+  DeepCopy(const Kokkos::SYCL& instance, void* dst, const void* src, size_t n) {
     DeepCopyAsyncSYCL(instance, dst, src, n);
   }
 };
@@ -66,10 +63,9 @@ struct DeepCopy<MemSpace1, MemSpace2, Kokkos::Experimental::SYCL,
 template <class MemSpace1, class MemSpace2, class ExecutionSpace>
 struct DeepCopy<
     MemSpace1, MemSpace2, ExecutionSpace,
-    std::enable_if_t<
-        is_sycl_type_space<MemSpace1>::value &&
-        is_sycl_type_space<MemSpace2>::value &&
-        !std::is_same<ExecutionSpace, Kokkos::Experimental::SYCL>::value>> {
+    std::enable_if_t<is_sycl_type_space<MemSpace1>::value &&
+                     is_sycl_type_space<MemSpace2>::value &&
+                     !std::is_same_v<ExecutionSpace, Kokkos::SYCL>>> {
   inline DeepCopy(void* dst, const void* src, size_t n) {
     DeepCopySYCL(dst, src, n);
   }
@@ -93,9 +89,8 @@ struct DeepCopy<
 template <class MemSpace, class ExecutionSpace>
 struct DeepCopy<
     MemSpace, HostSpace, ExecutionSpace,
-    std::enable_if_t<
-        is_sycl_type_space<MemSpace>::value &&
-        !std::is_same<ExecutionSpace, Kokkos::Experimental::SYCL>::value>> {
+    std::enable_if_t<is_sycl_type_space<MemSpace>::value &&
+                     !std::is_same_v<ExecutionSpace, Kokkos::SYCL>>> {
   inline DeepCopy(void* dst, const void* src, size_t n) {
     DeepCopySYCL(dst, src, n);
   }
@@ -118,9 +113,8 @@ struct DeepCopy<
 template <class MemSpace, class ExecutionSpace>
 struct DeepCopy<
     HostSpace, MemSpace, ExecutionSpace,
-    std::enable_if_t<
-        is_sycl_type_space<MemSpace>::value &&
-        !std::is_same<ExecutionSpace, Kokkos::Experimental::SYCL>::value>> {
+    std::enable_if_t<is_sycl_type_space<MemSpace>::value &&
+                     !std::is_same_v<ExecutionSpace, Kokkos::SYCL>>> {
   inline DeepCopy(void* dst, const void* src, size_t n) {
     DeepCopySYCL(dst, src, n);
   }

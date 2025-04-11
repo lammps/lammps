@@ -162,7 +162,7 @@ potential energy is above the threshold value :math:`-3.0`.
    compute         1 all pe/atom
    compute         2 all reduce sum c_1
    thermo_style    custom step temp pe c_2
-   run             0
+   run             0 post no
 
    variable        eatom atom "c_1 > -3.0"
    group           hienergy variable eatom
@@ -173,7 +173,7 @@ Note that these lines
 
    compute         2 all reduce sum c_1
    thermo_style    custom step temp pe c_2
-   run             0
+   run             0 post no
 
 are necessary to ensure that the "eatom" variable is current when the
 group command invokes it.  Because the eatom variable computes the

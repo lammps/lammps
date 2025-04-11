@@ -10,6 +10,8 @@
 #ifndef COLVARVALUE_H
 #define COLVARVALUE_H
 
+#include <list>
+
 #include "colvarmodule.h"
 #include "colvartypes.h"
 
@@ -120,7 +122,8 @@ public:
   /// number and always behaves like it unless you change its type
   colvarvalue();
 
-  /// Constructor from a type specification
+  /// Constructor from a type flag (note: type_vector also needs the vector length to be set)
+  /// \param[in] vti Value of the \link Type \endlink enum
   colvarvalue(Type const &vti);
 
   /// Copy constructor from real base type
@@ -297,12 +300,31 @@ public:
   /// Undefined operation
   void undef_op() const;
 
+private:
 
-  /// \brief Formatted output operator
-  friend std::ostream & operator << (std::ostream &os, colvarvalue const &q);
+  /// Generic stream writing function (formatted and not)
+  template <typename OST> void write_to_stream_template_(OST &os) const;
 
-  /// \brief Formatted input operator
-  friend std::istream & operator >> (std::istream &is, colvarvalue &q);
+public:
+
+  /// Formatted output operator
+  friend std::ostream & operator << (std::ostream &os, colvarvalue const &x);
+
+  /// Unformatted output operator
+  friend cvm::memory_stream & operator << (cvm::memory_stream &os, colvarvalue const &x);
+
+private:
+
+  /// Generic stream reading function (formatted and not)
+  template <typename IST> void read_from_stream_template_(IST &is);
+
+public:
+
+  /// Formatted input operator
+  friend std::istream & operator >> (std::istream &is, colvarvalue &x);
+
+  /// Unformatted input operator
+  friend cvm::memory_stream & operator >> (cvm::memory_stream &is, colvarvalue &x);
 
   /// Give the number of characters required to output this
   /// colvarvalue, given the current type assigned and the number of

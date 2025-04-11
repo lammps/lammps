@@ -53,8 +53,8 @@ void test_intra_block_scan() {
 }
 
 TEST(TEST_CATEGORY, scan_unit) {
-  if (std::is_same<TEST_EXECSPACE,
-                   typename Kokkos::HIPSpace::execution_space>::value) {
+  if (std::is_same_v<TEST_EXECSPACE,
+                     typename Kokkos::HIPSpace::execution_space>) {
     test_intra_block_scan<1>();
     test_intra_block_scan<2>();
     test_intra_block_scan<4>();

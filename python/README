@@ -1,20 +1,27 @@
-This directory contains Python code which wraps LAMMPS as a library
-and allows the LAMMPS library interface to be invoked from Python,
-either from a Python script or using Python interactively.
+This directory contains the LAMMPS Python module that allows the LAMMPS
+C library interface to be invoked from Python, either from a Python
+script or using Python interactively.
 
 Details on the Python interface to LAMMPS and how to build LAMMPS as a
 shared library, for use with Python, are given in
-doc/Section_python.html and in doc/Section_start.html#start_5.
+https://docs.lammps.org/Build_basics.html#exe
+and
+https://docs.lammps.org/Python_install.html
 
-Basically you need to follow these steps in the src directory:
+Basically you need to use the flag -D BUILD_SHARED_LIBS=ON when
+configuring LAMMPS with CMake and then in the build folder use the
+command % cmake --build . --target install-python
+
+or for the legacy GNU build system execute these steps in the src folder:
 
 % make g++ mode=shlib           # build for whatever machine target you wish
 % make install-python           # install into site-packages folder
 
 You can replace the last step by a one-time setting of environment
-variables in your shell script.  Or you can run the python/install.py
-script directly to give you more control over where the two relevant
-files are installed.  See doc/Python_install.html for details.
+variables in your shell environment.  Or you can run the
+python/install.py script directly to give you more control over where
+the two relevant files are installed.  See
+https://docs.lammps.org/Python_install.html for details.
 
 You should then be able to launch Python and instantiate an instance
 of LAMMPS:
@@ -24,39 +31,41 @@ of LAMMPS:
 >>> lmp = lammps()
 
 If that gives no errors, you have successfully wrapped LAMMPS with
-Python.  See doc/Section_python.html#py_7 for tests you can then use
-to run LAMMPS both in serial or parallel thru Python.
+Python.  See https://docs.lammps.org/Python_launch.html for examples how
+to run LAMMPS both in serial or parallel from Python.
 
 Note that you can also invoke Python code from within a LAMMPS input
-script, using the "python" command.  See the doc/python.html doc page
-for details.  The Python code you invoke can also call back to LAMMPS
-using the same interface described here for wrapping LAMMPS.
+script, using the "python" command.  See the
+https://docs.lammps.org/python.html doc page for details.  The Python
+code you invoke can also call back to LAMMPS using the same interface
+described here for wrapping LAMMPS.
 
 -------------------------------------------------------------------
 
 Once you have successfully wrapped LAMMPS, you can run the Python
 scripts in the examples sub-directory:
 
-trivial.py          read/run a LAMMPS input script thru Python
-demo.py             invoke various LAMMPS library interface routines
-simple.py           parallel example, mimicing examples/COUPLE/simple/simple.cpp
-split.py            parallel example
-mc.py               Monte Carlo energy relaxation wrapper on LAMMPS
-gui.py              GUI go/stop/temperature-slider to control LAMMPS
-plot.py             real-time temperature plot with GnuPlot via Pizza.py
-matplotlib_plot.py  real-time temperature plot with Matplotlib via Pizza.py
-viz_tool.py         real-time viz via some viz package
-vizplotgui_tool.py  combination of viz.py and plot.py and gui.py
+trivial.py            read/run a LAMMPS input script thru Python
+demo.py               invoke various LAMMPS library interface routines
+simple.py             parallel example, mimicing examples/COUPLE/simple/simple.cpp
+split.py              parallel example
+mc.py                 Monte Carlo energy relaxation wrapper on LAMMPS
+gui.py                GUI go/stop/temperature-slider to control LAMMPS
+plot.py               real-time temperature plot with GnuPlot via Pizza.py
+matplotlib_plot.py    real-time temperature plot with Matplotlib via Pizza.py
+viz_<tool>.py         real-time viz via some viz package
+vizplotgui_<tool>.py  combination of viz.py and plot.py and gui.py
 
-For the viz_tool.py and vizplotgui_tool.py commands, replace "tool"
-with "gl" or "atomeye" or "pymol", depending on what visualization
-package you have installed.  We hope to add a VMD option soon.
+For the viz_<tool>.py and vizplotgui_<tool>.py commands, replace
+"<tool>" with "gl" or "atomeye" or "pymol", depending on what
+visualization package you have installed.  We hope to add a VMD option
+soon.
 
 Note that for GL, you need to be able to run the Pizza.py GL tool,
 which is included in the pizza sub-directory.  See the Pizza.py doc
 pages for more info:
 
-http://www.sandia.gov/~sjplimp/pizza.html
+https://lammps.github.io/pizza/
 
 Note that for AtomEye, you need version 3, and their is a line in the
 scripts that specifies the path and name of the executable.  See
@@ -115,17 +124,14 @@ one-processor run, where both Python and LAMMPS will run on single
 processors.  Each running job will read the same input file, and write
 to same log.lammps file, which isn't too useful.
 
-However, if you have the mpi4py Python package installed and uncomment mpi4py
-code in simple.py, then the above commands will invoke 1 instance of a
-P-processor run.  Both Python and LAMMPS will run on P processors.  The job will
-read the input file and write a single log.lammps file.
+However, if you have the mpi4py Python package installed and uncomment
+mpi4py code in simple.py, then the above commands will invoke 1 instance
+of a P-processor run.  Both Python and LAMMPS will run on P processors.
+The job will read the input file and write a single log.lammps file.
 
-The split.py script can also be run in parallel.  It uses mpi4py
-version 2.0.0 (or later), which makes it possible to pass a
-communicator when creating the LAMMPS object and thus run multiple
-instances of LAMMPS at the same time, each on a different subset of
-MPI ranks.  Or run LAMMPS on one subset and some other program on the
-rest of the MPI ranks, concurrently.  See comments in the split.py
-script for more details.
-
-
+The split.py script can also be run in parallel.  It uses mpi4py version
+2.0.0 (or later), which makes it possible to pass a communicator when
+creating the LAMMPS object and thus run multiple instances of LAMMPS at
+the same time, each on a different subset of MPI ranks.  Or run LAMMPS
+on one subset and some other program on the rest of the MPI ranks,
+concurrently.  See comments in the split.py script for more details.

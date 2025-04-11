@@ -1687,7 +1687,7 @@ void AtomVec::data_atom(double *coord, imageint imagetmp, const std::vector<std:
           ivalue += cols;
           continue;
         }
-        for (m = 0; m < cols; m++)                                      \
+        for (m = 0; m < cols; m++)
           array[nlocal][m] = utils::numeric(FLERR, values[ivalue++], true, lmp);
       }
     } else if (datatype == Atom::INT) {
@@ -1797,7 +1797,7 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
   int i, j, m, nn, datatype, cols;
 
   for (i = 0; i < n; i++) {
-    fmt::print(fp, "{}", ubuf(buf[i][0]).i);
+    utils::print(fp, "{}", ubuf(buf[i][0]).i);
 
     j = 1;
     for (nn = 1; nn < ndata_atom; nn++) {
@@ -1805,30 +1805,30 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
       cols = mdata_atom.cols[nn];
       if (datatype == Atom::DOUBLE) {
         if (cols == 0) {
-          fmt::print(fp, " {:.16}", buf[i][j++]);
+          utils::print(fp, " {:.16}", buf[i][j++]);
         } else {
-          for (m = 0; m < cols; m++) fmt::print(fp, " {}", buf[i][j++]);
+          for (m = 0; m < cols; m++) utils::print(fp, " {}", buf[i][j++]);
         }
       } else if (datatype == Atom::INT) {
         if (cols == 0) {
           if (atom->types_style == Atom::LABELS &&
               atom->peratom[mdata_atom.index[nn]].name == "type") {
-            fmt::print(fp, " {}", atom->lmap->typelabel[ubuf(buf[i][j++]).i - 1]);
+            utils::print(fp, " {}", atom->lmap->typelabel[ubuf(buf[i][j++]).i - 1]);
           } else
-            fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
+            utils::print(fp, " {}", ubuf(buf[i][j++]).i);
         } else {
-          for (m = 0; m < cols; m++) fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
+          for (m = 0; m < cols; m++) utils::print(fp, " {}", ubuf(buf[i][j++]).i);
         }
       } else if (datatype == Atom::BIGINT) {
         if (cols == 0) {
-          fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
+          utils::print(fp, " {}", ubuf(buf[i][j++]).i);
         } else {
-          for (m = 0; m < cols; m++) fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
+          for (m = 0; m < cols; m++) utils::print(fp, " {}", ubuf(buf[i][j++]).i);
         }
       }
     }
 
-    fmt::print(fp, " {} {} {}\n", ubuf(buf[i][j]).i, ubuf(buf[i][j + 1]).i, ubuf(buf[i][j + 2]).i);
+    utils::print(fp, " {} {} {}\n", ubuf(buf[i][j]).i, ubuf(buf[i][j + 1]).i, ubuf(buf[i][j + 2]).i);
   }
 }
 
@@ -1940,7 +1940,7 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
   int i, j, m, nn, datatype, cols;
 
   for (i = 0; i < n; i++) {
-    fmt::print(fp, "{}", ubuf(buf[i][0]).i);
+    utils::print(fp, "{}", ubuf(buf[i][0]).i);
 
     j = 1;
     for (nn = 1; nn < ndata_vel; nn++) {
@@ -1948,21 +1948,21 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
       cols = mdata_vel.cols[nn];
       if (datatype == Atom::DOUBLE) {
         if (cols == 0) {
-          fmt::print(fp, " {}", buf[i][j++]);
+          utils::print(fp, " {}", buf[i][j++]);
         } else {
-          for (m = 0; m < cols; m++) fmt::print(fp, " {}", buf[i][j++]);
+          for (m = 0; m < cols; m++) utils::print(fp, " {}", buf[i][j++]);
         }
       } else if (datatype == Atom::INT) {
         if (cols == 0) {
-          fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
+          utils::print(fp, " {}", ubuf(buf[i][j++]).i);
         } else {
-          for (m = 0; m < cols; m++) fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
+          for (m = 0; m < cols; m++) utils::print(fp, " {}", ubuf(buf[i][j++]).i);
         }
       } else if (datatype == Atom::BIGINT) {
         if (cols == 0) {
-          fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
+          utils::print(fp, " {}", ubuf(buf[i][j++]).i);
         } else {
-          for (m = 0; m < cols; m++) fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
+          for (m = 0; m < cols; m++) utils::print(fp, " {}", ubuf(buf[i][j++]).i);
         }
       }
     }
@@ -2026,7 +2026,7 @@ void AtomVec::write_bond(FILE *fp, int n, tagint **buf, int index)
   for (int i = 0; i < n; i++) {
     typestr = std::to_string(buf[i][0]);
     if (atom->types_style == Atom::LABELS) typestr = atom->lmap->btypelabel[buf[i][0] - 1];
-    fmt::print(fp, "{} {} {} {}\n", index, typestr, buf[i][1], buf[i][2]);
+    utils::print(fp, "{} {} {} {}\n", index, typestr, buf[i][1], buf[i][2]);
     index++;
   }
 }
@@ -2091,7 +2091,7 @@ void AtomVec::write_angle(FILE *fp, int n, tagint **buf, int index)
   for (int i = 0; i < n; i++) {
     typestr = std::to_string(buf[i][0]);
     if (atom->types_style == Atom::LABELS) typestr = atom->lmap->atypelabel[buf[i][0] - 1];
-    fmt::print(fp, "{} {} {} {} {}\n", index, typestr, buf[i][1], buf[i][2], buf[i][3]);
+    utils::print(fp, "{} {} {} {} {}\n", index, typestr, buf[i][1], buf[i][2], buf[i][3]);
     index++;
   }
 }
@@ -2154,7 +2154,7 @@ void AtomVec::write_dihedral(FILE *fp, int n, tagint **buf, int index)
   for (int i = 0; i < n; i++) {
     typestr = std::to_string(buf[i][0]);
     if (atom->types_style == Atom::LABELS) typestr = atom->lmap->dtypelabel[buf[i][0] - 1];
-    fmt::print(fp, "{} {} {} {} {} {}\n", index, typestr, buf[i][1], buf[i][2], buf[i][3],
+    utils::print(fp, "{} {} {} {} {} {}\n", index, typestr, buf[i][1], buf[i][2], buf[i][3],
                buf[i][4]);
     index++;
   }
@@ -2218,7 +2218,7 @@ void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
   for (int i = 0; i < n; i++) {
     typestr = std::to_string(buf[i][0]);
     if (atom->types_style == Atom::LABELS) typestr = atom->lmap->itypelabel[buf[i][0] - 1];
-    fmt::print(fp, "{} {} {} {} {} {}\n", index, typestr, buf[i][1], buf[i][2], buf[i][3],
+    utils::print(fp, "{} {} {} {} {} {}\n", index, typestr, buf[i][1], buf[i][2], buf[i][3],
                buf[i][4]);
     index++;
   }
@@ -2269,7 +2269,7 @@ void AtomVec::write_data_restricted_to_general()
   int nlocal = atom->nlocal;
 
   memory->create(x_hold,nlocal,3,"atomvec:x_hold");
-  if (nlocal) memcpy(&x_hold[0][0],&x[0][0],3*nlocal*sizeof(double));
+  if (nlocal) memcpy(&x_hold[0][0],&x[0][0],(sizeof(double)*3*nlocal)&MEMCPYMASK);
   for (int i = 0; i < nlocal; i++)
     domain->restricted_to_general_coords(x[i]);
 
@@ -2290,17 +2290,17 @@ void AtomVec::write_data_restricted_to_general()
 
         if (array == v) {
           memory->create(v_hold,nlocal,3,"atomvec:v_hold");
-          if (nlocal) memcpy(&v_hold[0][0],&v[0][0],3*nlocal*sizeof(double));
+          if (nlocal) memcpy(&v_hold[0][0],&v[0][0],(sizeof(double)*3*nlocal)&MEMCPYMASK);
           for (int i = 0; i < nlocal; i++)
             domain->restricted_to_general_vector(v[i]);
         } else if (array == omega) {
           memory->create(omega_hold,nlocal,3,"atomvec:omega_hold");
-          if (nlocal) memcpy(&omega_hold[0][0],&omega[0][0],3*nlocal*sizeof(double));
+          if (nlocal) memcpy(&omega_hold[0][0],&omega[0][0],(sizeof(double)*3*nlocal)&MEMCPYMASK);
           for (int i = 0; i < nlocal; i++)
             domain->restricted_to_general_vector(omega[i]);
         } else if (array == angmom) {
           memory->create(angmom_hold,nlocal,3,"atomvec:angmom_hold");
-          if (nlocal) memcpy(&angmom_hold[0][0],&angmom[0][0],3*nlocal*sizeof(double));
+          if (nlocal) memcpy(&angmom_hold[0][0],&angmom[0][0],(sizeof(double)*3*nlocal)&MEMCPYMASK);
           for (int i = 0; i < nlocal; i++)
             domain->restricted_to_general_vector(angmom[i]);
         }
@@ -2321,7 +2321,7 @@ void AtomVec::write_data_restore_restricted()
   int nlocal = atom->nlocal;
 
   if (x_hold) {
-    memcpy(&x[0][0],&x_hold[0][0],3*nlocal*sizeof(double));
+    memcpy(&x[0][0],&x_hold[0][0],(sizeof(double)*3*nlocal)&MEMCPYMASK);
     memory->destroy(x_hold);
     x_hold = nullptr;
   }
@@ -2330,19 +2330,19 @@ void AtomVec::write_data_restore_restricted()
   // no other write_data Velocities fields are Nx3 double arrays
 
   if (v_hold) {
-    memcpy(&v[0][0],&v_hold[0][0],3*nlocal*sizeof(double));
+    memcpy(&v[0][0],&v_hold[0][0],(sizeof(double)*3*nlocal)&MEMCPYMASK);
     memory->destroy(v_hold);
     v_hold = nullptr;
   }
 
   if (omega_hold) {
-    memcpy(&atom->omega[0][0],&omega_hold[0][0],3*nlocal*sizeof(double));
+    memcpy(&atom->omega[0][0],&omega_hold[0][0],(sizeof(double)*3*nlocal)&MEMCPYMASK);
     memory->destroy(omega_hold);
     omega_hold = nullptr;
   }
 
   if (angmom_hold) {
-    memcpy(&atom->angmom[0][0],&angmom_hold[0][0],3*nlocal*sizeof(double));
+    memcpy(&atom->angmom[0][0],&angmom_hold[0][0],(sizeof(double)*3*nlocal)&MEMCPYMASK);
     memory->destroy(angmom_hold);
     angmom_hold = nullptr;
   }

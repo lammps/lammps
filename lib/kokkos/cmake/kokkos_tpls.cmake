@@ -1,120 +1,120 @@
-KOKKOS_CFG_DEPENDS(TPLS OPTIONS)
-KOKKOS_CFG_DEPENDS(TPLS DEVICES)
-KOKKOS_CFG_DEPENDS(TPLS COMPILER_ID)
+kokkos_cfg_depends(TPLS OPTIONS)
+kokkos_cfg_depends(TPLS DEVICES)
+kokkos_cfg_depends(TPLS COMPILER_ID)
 
-FUNCTION(KOKKOS_TPL_OPTION PKG DEFAULT)
-  CMAKE_PARSE_ARGUMENTS(PARSED
-    ""
-    "TRIBITS"
-    ""
-    ${ARGN})
+function(KOKKOS_TPL_OPTION PKG DEFAULT)
+  cmake_parse_arguments(PARSED "" "TRIBITS" "" ${ARGN})
 
-  IF (PARSED_TRIBITS)
+  if(PARSED_TRIBITS)
     #this is also a TPL option you can activate with Tribits
-    IF (NOT "${TPL_ENABLE_${PARSED_TRIBITS}}" STREQUAL "")
+    if(NOT "${TPL_ENABLE_${PARSED_TRIBITS}}" STREQUAL "")
       #Tribits brought its own default that should take precedence
-      SET(DEFAULT ${TPL_ENABLE_${PARSED_TRIBITS}})
-    ENDIF()
-  ENDIF()
+      set(DEFAULT ${TPL_ENABLE_${PARSED_TRIBITS}})
+    endif()
+  endif()
 
-  KOKKOS_ENABLE_OPTION(${PKG} ${DEFAULT} "Whether to enable the ${PKG} library")
-  KOKKOS_OPTION(${PKG}_DIR "" PATH "Location of ${PKG} library")
-  SET(KOKKOS_ENABLE_${PKG} ${KOKKOS_ENABLE_${PKG}} PARENT_SCOPE)
-  SET(KOKKOS_${PKG}_DIR  ${KOKKOS_${PKG}_DIR} PARENT_SCOPE)
+  kokkos_enable_option(${PKG} ${DEFAULT} "Whether to enable the ${PKG} library")
+  kokkos_option(${PKG}_DIR "" PATH "Location of ${PKG} library")
+  set(KOKKOS_ENABLE_${PKG} ${KOKKOS_ENABLE_${PKG}} PARENT_SCOPE)
+  set(KOKKOS_${PKG}_DIR ${KOKKOS_${PKG}_DIR} PARENT_SCOPE)
+endfunction()
 
-  IF (KOKKOS_HAS_TRILINOS
-    AND KOKKOS_ENABLE_${PKG}
-    AND NOT PARSED_TRIBITS)
-    #this TPL was enabled, but it is not valid to use inside of TriBITS
-    MESSAGE(FATAL_ERROR "Enabled TPL ${PKG} inside TriBITS build, "
-           "but this can only be enabled in a standalone build")
-  ENDIF()
-ENDFUNCTION()
-
-KOKKOS_TPL_OPTION(HWLOC   Off TRIBITS HWLOC)
-KOKKOS_TPL_OPTION(CUDA    ${Kokkos_ENABLE_CUDA} TRIBITS CUDA)
-IF(KOKKOS_ENABLE_HIP AND NOT KOKKOS_CXX_COMPILER_ID STREQUAL HIPCC AND NOT
-    KOKKOS_HAS_TRILINOS)
-  SET(ROCM_DEFAULT ON)
-ELSE()
-  SET(ROCM_DEFAULT OFF)
-ENDIF()
-IF(KOKKOS_ENABLE_HIP AND NOT KOKKOS_HAS_TRILINOS)
-  SET(ROCTHRUST_DEFAULT ON)
-ELSE()
-  SET(ROCTHRUST_DEFAULT OFF)
-ENDIF()
-KOKKOS_TPL_OPTION(ROCM    ${ROCM_DEFAULT})
-KOKKOS_TPL_OPTION(ROCTHRUST ${ROCTHRUST_DEFAULT})
-
-IF(KOKKOS_ENABLE_SYCL AND NOT KOKKOS_HAS_TRILINOS)
-  SET(ONEDPL_DEFAULT ON)
-ELSE()
-  SET(ONEDPL_DEFAULT OFF)
-ENDIF()
-KOKKOS_TPL_OPTION(ONEDPL  ${ONEDPL_DEFAULT})
-
-IF (WIN32)
-  SET(LIBDL_DEFAULT Off)
-ELSE()
-  SET(LIBDL_DEFAULT On)
-ENDIF()
-KOKKOS_TPL_OPTION(LIBDL ${LIBDL_DEFAULT} TRIBITS DLlib)
-
-IF(Trilinos_ENABLE_Kokkos AND TPL_ENABLE_HPX)
-SET(HPX_DEFAULT ON)
-ELSE()
-SET(HPX_DEFAULT OFF)
-ENDIF()
-KOKKOS_TPL_OPTION(HPX ${HPX_DEFAULT})
-
-KOKKOS_TPL_OPTION(THREADS ${Kokkos_ENABLE_THREADS} TRIBITS Pthread)
-
-IF(Trilinos_ENABLE_Kokkos AND TPL_ENABLE_quadmath)
-  SET(LIBQUADMATH_DEFAULT ON)
-ELSE()
-  SET(LIBQUADMATH_DEFAULT OFF)
-ENDIF()
-KOKKOS_TPL_OPTION(LIBQUADMATH ${LIBQUADMATH_DEFAULT} TRIBITS quadmath)
-
-#Make sure we use our local FindKokkosCuda.cmake
-KOKKOS_IMPORT_TPL(HPX INTERFACE)
-KOKKOS_IMPORT_TPL(CUDA INTERFACE)
-KOKKOS_IMPORT_TPL(HWLOC)
-KOKKOS_IMPORT_TPL(LIBDL)
-IF (NOT WIN32)
-  KOKKOS_IMPORT_TPL(THREADS INTERFACE)
-ENDIF()
-IF (NOT KOKKOS_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
-  KOKKOS_IMPORT_TPL(ROCM INTERFACE)
-ENDIF()
-KOKKOS_IMPORT_TPL(ONEDPL INTERFACE)
-KOKKOS_IMPORT_TPL(LIBQUADMATH)
-KOKKOS_IMPORT_TPL(ROCTHRUST)
-
-IF (Kokkos_ENABLE_DESUL_ATOMICS_EXTERNAL)
-  find_package(desul REQUIRED COMPONENTS atomics)
-  KOKKOS_EXPORT_CMAKE_TPL(desul REQUIRED COMPONENTS atomics)
-ENDIF()
-
-if (Kokkos_ENABLE_IMPL_MDSPAN AND Kokkos_ENABLE_MDSPAN_EXTERNAL)
-  find_package(mdspan REQUIRED)
-  KOKKOS_EXPORT_CMAKE_TPL(mdspan REQUIRED)
+kokkos_tpl_option(HWLOC Off TRIBITS HWLOC)
+kokkos_tpl_option(CUDA ${Kokkos_ENABLE_CUDA} TRIBITS CUDA)
+if(KOKKOS_ENABLE_HIP AND NOT KOKKOS_CXX_COMPILER_ID STREQUAL HIPCC)
+  set(ROCM_DEFAULT ON)
+else()
+  set(ROCM_DEFAULT OFF)
+endif()
+if(KOKKOS_ENABLE_HIP)
+  set(ROCTHRUST_DEFAULT ON)
+else()
+  set(ROCTHRUST_DEFAULT OFF)
+endif()
+kokkos_tpl_option(ROCM ${ROCM_DEFAULT})
+kokkos_tpl_option(ROCTHRUST ${ROCTHRUST_DEFAULT})
+if(Kokkos_ENABLE_ROCTHRUST)
+  include(CheckCXXSourceCompiles)
+  check_cxx_source_compiles(
+    "
+    #include <ios>
+    int main() {
+      static_assert(_GLIBCXX_RELEASE < 9);
+      return 0;
+    }
+    "
+    Kokkos_ENABLE_IMPL_SKIP_NO_RTTI_FLAG
+  )
 endif()
 
-IF (Kokkos_ENABLE_OPENMP)
-  find_package(OpenMP REQUIRED)
-  # FIXME_TRILINOS Trilinos doesn't allow for Kokkos to use find_dependency
-  # so we just append the flags here instead of linking with the OpenMP target.
-  IF(KOKKOS_HAS_TRILINOS)
-    COMPILER_SPECIFIC_FLAGS(DEFAULT ${OpenMP_CXX_FLAGS})
-  ELSE()
-    KOKKOS_EXPORT_CMAKE_TPL(OpenMP REQUIRED)
-  ENDIF()
-ENDIF()
+if(KOKKOS_ENABLE_SYCL)
+  set(ONEDPL_DEFAULT ON)
+else()
+  set(ONEDPL_DEFAULT OFF)
+endif()
+kokkos_tpl_option(ONEDPL ${ONEDPL_DEFAULT})
+
+if(WIN32)
+  set(LIBDL_DEFAULT Off)
+else()
+  set(LIBDL_DEFAULT On)
+endif()
+kokkos_tpl_option(LIBDL ${LIBDL_DEFAULT} TRIBITS DLlib)
+
+if(Trilinos_ENABLE_Kokkos AND TPL_ENABLE_HPX)
+  set(HPX_DEFAULT ON)
+else()
+  set(HPX_DEFAULT OFF)
+endif()
+kokkos_tpl_option(HPX ${HPX_DEFAULT})
+
+kokkos_tpl_option(THREADS ${Kokkos_ENABLE_THREADS} TRIBITS Pthread)
+
+if(Trilinos_ENABLE_Kokkos AND TPL_ENABLE_quadmath)
+  set(LIBQUADMATH_DEFAULT ON)
+else()
+  set(LIBQUADMATH_DEFAULT OFF)
+endif()
+kokkos_tpl_option(LIBQUADMATH ${LIBQUADMATH_DEFAULT} TRIBITS quadmath)
+
+#Make sure we use our local FindKokkosCuda.cmake
+kokkos_import_tpl(HPX INTERFACE)
+kokkos_import_tpl(CUDA INTERFACE)
+kokkos_import_tpl(HWLOC)
+kokkos_import_tpl(LIBDL)
+if(NOT WIN32)
+  kokkos_import_tpl(THREADS INTERFACE)
+endif()
+if(NOT KOKKOS_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
+  kokkos_import_tpl(ROCM INTERFACE)
+endif()
+kokkos_import_tpl(ONEDPL INTERFACE)
+kokkos_import_tpl(LIBQUADMATH)
+kokkos_import_tpl(ROCTHRUST)
+
+if(Kokkos_ENABLE_DESUL_ATOMICS_EXTERNAL)
+  find_package(desul REQUIRED COMPONENTS atomics)
+  kokkos_export_cmake_tpl(desul REQUIRED COMPONENTS atomics)
+endif()
+
+if(Kokkos_ENABLE_IMPL_MDSPAN AND Kokkos_ENABLE_MDSPAN_EXTERNAL)
+  find_package(mdspan REQUIRED)
+  kokkos_export_cmake_tpl(mdspan REQUIRED)
+endif()
+
+if(Kokkos_ENABLE_OPENMP)
+  find_package(OpenMP 3.0 REQUIRED COMPONENTS CXX)
+  kokkos_export_cmake_tpl(OpenMP REQUIRED COMPONENTS CXX)
+  if(Kokkos_ENABLE_HIP AND KOKKOS_COMPILE_LANGUAGE STREQUAL HIP)
+    global_append(KOKKOS_AMDGPU_OPTIONS ${OpenMP_CXX_FLAGS})
+  endif()
+  if(Kokkos_ENABLE_CUDA AND KOKKOS_COMPILE_LANGUAGE STREQUAL CUDA)
+    global_append(KOKKOS_CUDA_OPTIONS -Xcompiler ${OpenMP_CXX_FLAGS})
+  endif()
+endif()
 
 #Convert list to newlines (which CMake doesn't always like in cache variables)
-STRING(REPLACE ";" "\n" KOKKOS_TPL_EXPORT_TEMP "${KOKKOS_TPL_EXPORTS}")
+string(REPLACE ";" "\n" KOKKOS_TPL_EXPORT_TEMP "${KOKKOS_TPL_EXPORTS}")
 #Convert to a regular variable
-UNSET(KOKKOS_TPL_EXPORTS CACHE)
-SET(KOKKOS_TPL_EXPORTS ${KOKKOS_TPL_EXPORT_TEMP})
+unset(KOKKOS_TPL_EXPORTS CACHE)
+set(KOKKOS_TPL_EXPORTS ${KOKKOS_TPL_EXPORT_TEMP})

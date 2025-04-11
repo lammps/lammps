@@ -25,8 +25,8 @@ namespace Perf {
 template <typename ExecSpace, typename Layout, typename Duplication,
           typename Contribution>
 void test_scatter_view(int m, int n) {
-  Kokkos::View<double * [3], Layout, ExecSpace> original_view("original_view",
-                                                              n);
+  Kokkos::View<double* [3], Layout, ExecSpace> original_view("original_view",
+                                                             n);
   {
     auto scatter_view = Kokkos::Experimental::create_scatter_view<
         Kokkos::Experimental::ScatterSum, Duplication, Contribution>(
@@ -40,8 +40,8 @@ void test_scatter_view(int m, int n) {
       {
         auto num_threads = unique_token.size();
         std::cout << "num_threads " << num_threads << '\n';
-        Kokkos::View<double* * [3], Layout, ExecSpace>
-            hand_coded_duplicate_view("hand_coded_duplicate", num_threads, n);
+        Kokkos::View<double** [3], Layout, ExecSpace> hand_coded_duplicate_view(
+            "hand_coded_duplicate", num_threads, n);
         auto f2 = KOKKOS_LAMBDA(int i) {
           auto thread_id = unique_token.acquire();
           for (int j = 0; j < 10; ++j) {

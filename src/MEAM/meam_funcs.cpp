@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Sebastian Hütter (OvGU)
+   Contributing author: Sebastian Huetter (OvGU)
 ------------------------------------------------------------------------- */
 
 #include "meam.h"
@@ -44,6 +44,7 @@ double MEAM::G_gam(const double gamma, const int ibar, int &errorflag) const
         //         e.g. gsmooth_factor is 99, {:
         //         gsmooth_switchpoint = -0.99
         //         G = 0.01*(-0.99/gamma)**99
+        if (gamma == 0.0) return 0.0; // avoid division by zero. For gamma = 0.0 => G = 1 / inf
         double G = 1 / (gsmooth_factor + 1) * pow((gsmooth_switchpoint / gamma), gsmooth_factor);
         return sqrt(G);
       } else {

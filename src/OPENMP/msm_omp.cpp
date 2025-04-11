@@ -49,7 +49,7 @@ MSMOMP::MSMOMP(LAMMPS *lmp) : MSM(lmp), ThrOMP(lmp, THR_KSPACE)
 void MSMOMP::compute(int eflag, int vflag)
 {
   if (scalar_pressure_flag)
-    error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' "
+    error->all(FLERR, Error::NOLASTLINE, "Must use 'kspace_modify pressure/scalar no' "
       "with kspace_style msm/omp");
 
   MSM::compute(eflag,vflag);

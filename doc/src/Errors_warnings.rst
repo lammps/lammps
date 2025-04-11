@@ -1,11 +1,15 @@
 Warning messages
 ================
 
-This is an alphabetic list of the WARNING messages LAMMPS prints out
-and the reason why.  If the explanation here is not sufficient, the
-documentation for the offending command may help.  Warning messages
-also list the source file and line number where the warning was
-generated.  For example, a message like this:
+This is an alphabetic list of some of the WARNING messages LAMMPS prints
+out and the reason why.  If the explanation here is not sufficient, the
+documentation for the offending command may help.  This is a historic
+list and no longer updated.  Instead the LAMMPS developers are trying
+to provide more details right with the error message or link to a
+paragraph with :doc:`detailed explanations <Errors_details>`.
+
+Warning messages also list the source file and line number where the
+warning was generated.  For example, a message like this:
 
 .. parsed-literal::
 
@@ -14,7 +18,7 @@ generated.  For example, a message like this:
 means that line #187 in the file src/domain.cpp generated the error.
 Looking in the source code may help you figure out what went wrong.
 
-Doc page with :doc:`ERROR messages <Errors_messages>`
+Please also see the page with :doc:`Error messages <Errors_messages>`
 
 ----------
 
@@ -23,20 +27,14 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    adjusted to match the user-specified accuracy.
 
 *Angle atoms missing at step %ld*
-   One or more of 3 atoms needed to compute a particular angle are
+   One or more of three atoms needed to compute a particular angle are
    missing on this processor.  Typically this is because the pairwise
    cutoff is set too short or the angle has blown apart and an atom is
    too far away.
 
-*Angle style in data file differs from currently defined angle style*
-   Self-explanatory.
-
 *Angles are defined but no angle style is set*
    The topology contains angles, but there are no angle forces computed
    since there was no angle_style command.
-
-*Atom style in data file differs from currently defined atom style*
-   Self-explanatory.
 
 *Bond atom missing in box size check*
    The second atom needed to compute a particular bond is missing on this
@@ -53,9 +51,6 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
-*Bond style in data file differs from currently defined bond style*
-   Self-explanatory.
-
 *Bonds are defined but no bond style is set*
    The topology contains bonds, but there are no bond forces computed
    since there was no bond_style command.
@@ -67,9 +62,6 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    bond/angle/dihedral.  LAMMPS computes this by taking the maximum bond
    length, multiplying by the number of bonds in the interaction (e.g. 3
    for a dihedral) and adding a small amount of stretch.
-
-*Both groups in compute group/group have a net charge; the Kspace boundary correction to energy will be non-zero*
-   Self-explanatory.
 
 *Calling write_dump before a full system init.*
    The write_dump command is used before the system has been fully
@@ -85,18 +77,6 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 *Cannot count rigid body degrees-of-freedom before bodies are initialized*
    This means the temperature associated with the rigid bodies may be
    incorrect on this timestep.
-
-*Cannot include log terms without 1/r terms; setting flagHI to 1*
-   Self-explanatory.
-
-*Cannot include log terms without 1/r terms; setting flagHI to 1.*
-   Self-explanatory.
-
-*Charges are set, but coulombic solver is not used*
-   Self-explanatory.
-
-*Charges did not converge at step %ld: %lg*
-   Self-explanatory.
 
 *Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost*
    The communication cutoff defaults to the maximum of what is inferred from
@@ -122,9 +102,6 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    heuristic used to determine the estimate is not always accurate, it
    is not changed automatically and the warning may be ignored depending
    on the specific system being simulated.
-
-*Communication cutoff is too small for SNAP micro load balancing, increased to %lf*
-   Self-explanatory.
 
 *Compute cna/atom cutoff may be too large to find ghost atom neighbors*
    The neighbor cutoff used may not encompass enough ghost atoms
@@ -158,9 +135,6 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    Conformation of the 4 listed dihedral atoms is extreme; you may want
    to check your simulation geometry.
 
-*Dihedral style in data file differs from currently defined dihedral style*
-   Self-explanatory.
-
 *Dihedrals are defined but no dihedral style is set*
    The topology contains dihedrals, but there are no dihedral forces computed
    since there was no dihedral_style command.
@@ -177,9 +151,6 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 *Estimated error in splitting of dispersion coeffs is %g*
    Error is greater than 0.0001 percent.
 
-*Ewald/disp Newton solver failed, using old method to estimate g_ewald*
-   Self-explanatory. Choosing a different cutoff value may help.
-
 *FENE bond too long*
    A FENE bond has stretched dangerously far.  It's interaction strength
    will be truncated to attempt to prevent the bond from blowing up.
@@ -191,9 +162,6 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 *FENE bond too long: %ld %g*
    A FENE bond has stretched dangerously far.  It's interaction strength
    will be truncated to attempt to prevent the bond from blowing up.
-
-*Fix halt condition for fix-id %s met on step %ld with value %g*
-   Self explanatory.
 
 *Fix SRD walls overlap but fix srd overlap not set*
    You likely want to set this in your input script.
@@ -233,25 +201,16 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    style.
 
 *Fix langevin gjf using random gaussians is not implemented with kokkos*
-This will most likely cause errors in kinetic fluctuations.
+   This will most likely cause errors in kinetic fluctuations.
 
 *Fix property/atom mol or charge w/out ghost communication*
    A model typically needs these properties defined for ghost atoms.
-
-*Fix qeq CG convergence failed (%g) after %d iterations at %ld step*
-   Self-explanatory.
 
 *Fix qeq has non-zero lower Taper radius cutoff*
    Absolute value must be <= 0.01.
 
 *Fix qeq has very low Taper radius cutoff*
    Value should typically be >= 5.0.
-
-*Fix qeq/dynamic tolerance may be too small for damped dynamics*
-   Self-explanatory.
-
-*Fix qeq/fire tolerance may be too small for damped fires*
-   Self-explanatory.
 
 *Fix rattle should come after all other integration fixes*
    This fix is designed to work after all other integration fixes change
@@ -285,9 +244,6 @@ This will most likely cause errors in kinetic fluctuations.
    The user-specified force accuracy cannot be achieved unless the table
    feature is disabled by using 'pair_modify table 0'.
 
-*Geometric mixing assumed for 1/r\^6 coefficients*
-   Self-explanatory.
-
 *Group for fix_modify temp != fix group*
    The fix_modify command is specifying a temperature computation that
    computes a temperature on a different group of atoms than the fix
@@ -310,45 +266,13 @@ This will most likely cause errors in kinetic fluctuations.
    Conformation of the 4 listed improper atoms is extreme; you may want
    to check your simulation geometry.
 
-*Improper style in data file differs from currently defined improper style*
-   Self-explanatory.
-
 *Impropers are defined but no improper style is set*
    The topology contains impropers, but there are no improper forces computed
    since there was no improper_style command.
 
-*Inconsistent image flags*
-   The image flags for a pair on bonded atoms appear to be inconsistent.
-   Inconsistent means that when the coordinates of the two atoms are
-   unwrapped using the image flags, the two atoms are far apart.
-   Specifically they are further apart than half a periodic box length.
-   Or they are more than a box length apart in a non-periodic dimension.
-   This is usually due to the initial data file not having correct image
-   flags for the 2 atoms in a bond that straddles a periodic boundary.
-   They should be different by 1 in that case.  This is a warning because
-   inconsistent image flags will not cause problems for dynamics or most
-   LAMMPS simulations.  However they can cause problems when such atoms
-   are used with the fix rigid or replicate commands.  Note that if you
-   have an infinite periodic crystal with bonds then it is impossible to
-   have fully consistent image flags, since some bonds will cross
-   periodic boundaries and connect two atoms with the same image
-   flag.
-
 *Increasing communication cutoff for GPU style*
    The pair style has increased the communication cutoff to be consistent with
    the communication cutoff requirements for this pair style when run on the GPU.
-
-*KIM Model does not provide 'energy'; Potential energy will be zero*
-   Self-explanatory.
-
-*KIM Model does not provide 'forces'; Forces will be zero*
-   Self-explanatory.
-
-*KIM Model does not provide 'particleEnergy'; energy per atom will be zero*
-   Self-explanatory.
-
-*KIM Model does not provide 'particleVirial'; virial per atom will be zero*
-   Self-explanatory.
 
 *Kspace_modify slab param < 2.0 may cause unphysical behavior*
    The kspace_modify slab parameter should be larger to ensure periodic
@@ -401,19 +325,9 @@ This will most likely cause errors in kinetic fluctuations.
    box, or moved further than one processor's subdomain away before
    reneighboring.
 
-*MSM mesh too small, increasing to 2 points in each direction*
-   Self-explanatory.
-
 *Mismatch between velocity and compute groups*
    The temperature computation used by the velocity command will not be
    on the same group of atoms that velocities are being set for.
-
-*Mixing forced for lj coefficients*
-   Self-explanatory.
-
-*Molecule attributes do not match system attributes*
-   An attribute is specified (e.g. diameter, charge) that is
-   not defined for the specified atom style.
 
 *Molecule has bond topology but no special bond settings*
    This means the bonded atoms will not be excluded in pairwise
@@ -449,9 +363,6 @@ This will most likely cause errors in kinetic fluctuations.
 *More than one compute damage/atom*
    It is not efficient to use compute ke/atom more than once.
 
-*More than one compute dilatation/atom*
-   Self-explanatory.
-
 *More than one compute erotate/sphere/atom*
    It is not efficient to use compute erorate/sphere/atom more than once.
 
@@ -463,24 +374,6 @@ This will most likely cause errors in kinetic fluctuations.
 
 *More than one compute orientorder/atom*
    It is not efficient to use compute orientorder/atom more than once.
-
-*More than one compute plasticity/atom*
-   Self-explanatory.
-
-*More than one compute sna/atom*
-   Self-explanatory.
-
-*More than one compute sna/grid*
-   Self-explanatory.
-
-*More than one compute sna/grid/local*
-   Self-explanatory.
-
-*More than one compute snad/atom*
-   Self-explanatory.
-
-*More than one compute snav/atom*
-   Self-explanatory.
 
 *More than one fix poems*
    It is not efficient to use fix poems more than once.
@@ -557,20 +450,11 @@ This will most likely cause errors in kinetic fluctuations.
 *Pair COMB charge %.10f with force %.10f hit min barrier*
    Something is possibly wrong with your model.
 
-*Pair brownian needs newton pair on for momentum conservation*
-   Self-explanatory.
-
-*Pair dpd needs newton pair on for momentum conservation*
-   Self-explanatory.
-
 *Pair dsmc: num_of_collisions > number_of_A*
    Collision model in DSMC is breaking down.
 
 *Pair dsmc: num_of_collisions > number_of_B*
    Collision model in DSMC is breaking down.
-
-*Pair style in data file differs from currently defined pair style*
-   Self-explanatory.
 
 *Pair style restartinfo set but has no restart support*
    This pair style has a bug, where it does not support reading and
@@ -681,9 +565,6 @@ This will most likely cause errors in kinetic fluctuations.
    cluster specified by the fix shake command is numerically suspect.  LAMMPS
    will set it to 0.0 and continue.
 
-*Shell command '%s' failed with error '%s'*
-   Self-explanatory.
-
 *Shell command returned with non-zero status*
    This may indicate the shell command did not operate as expected.
 
@@ -694,14 +575,8 @@ This will most likely cause errors in kinetic fluctuations.
    This will lead to invalid constraint forces in the SHAKE/RATTLE
    computation.
 
-*Simulations might be very slow because of large number of structure factors*
-   Self-explanatory.
-
 *Slab correction not needed for MSM*
    Slab correction is intended to be used with Ewald or PPPM and is not needed by MSM.
-
-*Specifying an 'subset' value of '0' is equivalent to no 'subset' keyword*
-   Self-explanatory.
 
 *System is not charge neutral, net charge = %g*
    The total charge on all atoms on the system is not 0.0.
@@ -734,9 +609,6 @@ This will most likely cause errors in kinetic fluctuations.
    assumed to also be for all atoms.  Thus the pressure printed by thermo
    could be inaccurate.
 
-*The fix ave/spatial command has been replaced by the more flexible fix ave/chunk and compute chunk/atom commands -- fix ave/spatial will be removed in the summer of 2015*
-   Self-explanatory.
-
 *The minimizer does not re-orient dipoles when using fix efield*
    This means that only the atom coordinates will be minimized,
    not the orientation of the dipoles.
@@ -744,9 +616,6 @@ This will most likely cause errors in kinetic fluctuations.
 *Too many common neighbors in CNA %d times*
    More than the maximum # of neighbors was found multiple times.  This
    was unexpected.
-
-*Too many inner timesteps in fix ttm*
-   Self-explanatory.
 
 *Too many neighbors in CNA for %d atoms*
    More than the maximum # of neighbors was found multiple times.  This
@@ -774,24 +643,6 @@ This will most likely cause errors in kinetic fluctuations.
 *Using fix srd with box deformation but no SRD thermostat*
    The deformation will heat the SRD particles so this can
    be dangerous.
-
-*Using kspace solver on system with no charge*
-   Self-explanatory.
-
-*Using largest cut-off for lj/long/dipole/long long long*
-   Self-explanatory.
-
-*Using largest cutoff for buck/long/coul/long*
-   Self-explanatory.
-
-*Using largest cutoff for lj/long/coul/long*
-   Self-explanatory.
-
-*Using largest cutoff for pair_style lj/long/tip4p/long*
-   Self-explanatory.
-
-*Using package gpu without any pair style defined*
-   Self-explanatory.
 
 *Using pair potential shift with pair_modify compute no*
    The shift effects will thus not be computed.

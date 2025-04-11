@@ -24,7 +24,7 @@ Description
 """""""""""
 
 Define a computation that provides the per-particle volume and the sum
-of the per-particle volumes of the group for which the fix is defined.
+of the per-particle volumes of the group for which the compute is defined.
 
 See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to using Smooth
 Mach Dynamics in LAMMPS.
@@ -41,13 +41,14 @@ The per-particle vector values will be given in :doc:`units <units>` of
 volume.
 
 Additionally, the compute returns a scalar, which is the sum of the
-per-particle volumes of the group for which the fix is defined.
+per-particle volumes of the group for which the compute is defined.
 
 Restrictions
 """"""""""""
 
 This compute is part of the MACHDYN package.  It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
+LAMMPS was built with that package. See the :doc:`Build package
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

@@ -33,11 +33,11 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
                                   NumberType> {
  public:
   using scatter_view_type =
-      Kokkos::Experimental::ScatterView<NumberType * [12], Layout, DeviceType,
+      Kokkos::Experimental::ScatterView<NumberType* [12], Layout, DeviceType,
                                         Kokkos::Experimental::ScatterSum,
                                         Duplication, Contribution>;
 
-  using orig_view_type = Kokkos::View<NumberType * [12], Layout, DeviceType>;
+  using orig_view_type = Kokkos::View<NumberType* [12], Layout, DeviceType>;
 
   using size_type = typename Kokkos::HostSpace::size_type;
 
@@ -134,11 +134,11 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
                                   NumberType> {
  public:
   using scatter_view_type =
-      Kokkos::Experimental::ScatterView<NumberType * [3], Layout, DeviceType,
+      Kokkos::Experimental::ScatterView<NumberType* [3], Layout, DeviceType,
                                         Kokkos::Experimental::ScatterProd,
                                         Duplication, Contribution>;
 
-  using orig_view_type = Kokkos::View<NumberType * [3], Layout, DeviceType>;
+  using orig_view_type = Kokkos::View<NumberType* [3], Layout, DeviceType>;
 
   using size_type = typename Kokkos::HostSpace::size_type;
 
@@ -235,11 +235,11 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
                                   NumberType> {
  public:
   using scatter_view_type =
-      Kokkos::Experimental::ScatterView<NumberType * [3], Layout, DeviceType,
+      Kokkos::Experimental::ScatterView<NumberType* [3], Layout, DeviceType,
                                         Kokkos::Experimental::ScatterMin,
                                         Duplication, Contribution>;
 
-  using orig_view_type = Kokkos::View<NumberType * [3], Layout, DeviceType>;
+  using orig_view_type = Kokkos::View<NumberType* [3], Layout, DeviceType>;
 
   using size_type = typename Kokkos::HostSpace::size_type;
 
@@ -335,11 +335,11 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
                                   NumberType> {
  public:
   using scatter_view_type =
-      Kokkos::Experimental::ScatterView<NumberType * [3], Layout, DeviceType,
+      Kokkos::Experimental::ScatterView<NumberType* [3], Layout, DeviceType,
                                         Kokkos::Experimental::ScatterMax,
                                         Duplication, Contribution>;
 
-  using orig_view_type = Kokkos::View<NumberType * [3], Layout, DeviceType>;
+  using orig_view_type = Kokkos::View<NumberType* [3], Layout, DeviceType>;
 
   using size_type = typename Kokkos::HostSpace::size_type;
 
@@ -714,7 +714,7 @@ void test_scatter_view(int64_t n) {
     test_sv_config.run_test(n);
   }
 #ifdef KOKKOS_ENABLE_SERIAL
-  if (!std::is_same<DeviceType, Kokkos::Serial>::value) {
+  if (!std::is_same_v<DeviceType, Kokkos::Serial>) {
 #endif
     test_scatter_view_config<DeviceType, Kokkos::LayoutRight,
                              Kokkos::Experimental::ScatterNonDuplicated,
@@ -772,12 +772,12 @@ TEST(TEST_CATEGORY, scatterview) {
 
 #if defined(KOKKOS_ENABLE_SERIAL) || defined(KOKKOS_ENABLE_OPENMP)
 #if defined(KOKKOS_ENABLE_SERIAL)
-  bool is_serial = std::is_same<TEST_EXECSPACE, Kokkos::Serial>::value;
+  bool is_serial = std::is_same_v<TEST_EXECSPACE, Kokkos::Serial>;
 #else
   bool is_serial = false;
 #endif
 #if defined(KOKKOS_ENABLE_OPENMP)
-  bool is_openmp = std::is_same<TEST_EXECSPACE, Kokkos::OpenMP>::value;
+  bool is_openmp = std::is_same_v<TEST_EXECSPACE, Kokkos::OpenMP>;
 #else
   bool is_openmp = false;
 #endif
@@ -817,7 +817,7 @@ TEST(TEST_CATEGORY, scatterview_devicetype) {
   using device_memory_space    = Kokkos::HIPSpace;
   using host_accessible_space  = Kokkos::HIPManagedSpace;
 #endif
-  if (std::is_same<TEST_EXECSPACE, device_execution_space>::value) {
+  if (std::is_same_v<TEST_EXECSPACE, device_execution_space>) {
     using device_device_type =
         Kokkos::Device<device_execution_space, device_memory_space>;
     test_scatter_view<device_device_type, Kokkos::Experimental::ScatterSum,

@@ -1,7 +1,7 @@
 # LAMMPS multiple-machine -*- Makefile -*-
 
 SHELL = /bin/bash
-PYTHON = python
+PYTHON = $(word 3,$(shell type python3))
 DYN_LIB = -ldl
 
 #.IGNORE:
@@ -124,6 +124,7 @@ PACKAGE = \
 	reaction \
 	reaxff \
 	replica \
+	rheo \
 	rigid \
 	scafacos \
 	shock \
@@ -233,6 +234,7 @@ PACKLIB = \
 	plumed \
 	qmmm \
 	ml-quip \
+	rheo \
 	scafacos \
 	machdyn \
 	vtk \
@@ -254,6 +256,7 @@ PACKEXT = \
 	netcdf \
 	plumed \
 	qmmm \
+	rheo \
 	scafacos \
 	voronoi \
 	vtk \
@@ -273,7 +276,6 @@ LIBDIR = $(@:lib-%=%)
 # List of all targets
 
 help:
-	@echo ''
 	@echo 'make clean-all           delete all object files'
 	@echo 'make clean-machine       delete object files for one machine'
 	@echo 'make mpi-stubs           build dummy MPI library in STUBS'
@@ -477,7 +479,7 @@ tar:
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
 
-check: check-whitespace check-permissions check-homepage check-errordocs check-docs check-version
+check: check-whitespace check-permissions check-homepage check-errordocs check-fmtlib check-docs check-version
 
 check-whitespace:
 	$(PYTHON) ../tools/coding_standard/whitespace.py ..
@@ -503,19 +505,23 @@ check-errordocs:
 fix-errordocs:
 	$(PYTHON) ../tools/coding_standard/errordocs.py .. -f
 
+check-fmtlib:
+	$(PYTHON) ../tools/coding_standard/fmtlib.py ..
+
+fix-fmtlib:
+	$(PYTHON) ../tools/coding_standard/fmtlib.py .. -f
+
 check-docs:
 	$(MAKE) $(MFLAGS) -C ../doc anchor_check style_check package_check role_check
 
 check-version:
 	$(PYTHON) ../tools/coding_standard/versiontags.py .. || echo
 
-
 format-src:
 	clang-format -i --verbose --style=file *.cpp *.h */*.cpp */*.h
 
 format-tests:
 	clang-format -i --verbose --style=file ../unittest/*/*.cpp ../unittest/*/*.h
-
 
 # Package management
 

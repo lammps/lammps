@@ -34,7 +34,7 @@ ComputeReduceRegion::ComputeReduceRegion(LAMMPS *lmp, int narg, char **arg) :
     ComputeReduce(lmp, narg, arg)
 {
   if (input_mode == LOCAL)
-    error->all(FLERR,"Compute reduce/region cannot use local data as input");
+    error->all(FLERR, Error::NOPOINTER, "Compute reduce/region cannot use local data as input");
 }
 
 /* ----------------------------------------------------------------------
@@ -129,7 +129,8 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 
   } else if (val.which == ArgInfo::FIX) {
     if (update->ntimestep % val.val.f->peratom_freq)
-      error->all(FLERR, "Fix {} used in compute {} not computed at compatible time", val.id, style);
+      error->all(FLERR, Error::NOLASTLINE, "Fix {} used in compute {} not computed at compatible"
+                 " time{}", val.id, style, utils::errorurl(7));
 
     if (aidx == 0) {
       double *fix_vector = val.val.f->vector_atom;
@@ -150,7 +151,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
         one = fix_array[flag][aidxm1];
     }
 
-  // evaluate atom-style variable
+    // evaluate atom-style variable
 
   } else if (val.which == ArgInfo::VARIABLE) {
     if (atom->nmax > maxatom) {

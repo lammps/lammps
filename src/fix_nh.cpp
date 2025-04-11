@@ -271,7 +271,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
         delete[] id_dilate;
         id_dilate = utils::strdup(arg[iarg+1]);
         int idilate = group->find(id_dilate);
-        if (idilate == -1)
+        if (idilate < 0)
           error->all(FLERR,"Fix {} dilate group ID {} does not exist", style, id_dilate);
       }
       iarg += 2;
@@ -629,12 +629,8 @@ void FixNH::init()
 {
   // recheck that dilate group has not been deleted
 
-  if (allremap == 0) {
-    int idilate = group->find(id_dilate);
-    if (idilate == -1)
-      error->all(FLERR,"Fix {} dilate group ID {} does not exist", style, id_dilate);
-    dilate_group_bit = group->bitmask[idilate];
-  }
+  if (allremap == 0)
+    dilate_group_bit = group->get_bitmask_by_id(FLERR, id_dilate, fmt::format("fix {}", style));
 
   // ensure no conflict with fix deform
 
@@ -654,14 +650,21 @@ void FixNH::init()
   // set temperature and pressure ptrs
 
   temperature = modify->get_compute_by_id(id_temp);
-  if (!temperature) error->all(FLERR,"Temperature ID {} for fix {} does not exist", id_temp, style);
-
-  if (temperature->tempbias) which = BIAS;
-  else which = NOBIAS;
+  if (!temperature) {
+    error->all(FLERR,"Temperature compute ID {} for fix {} does not exist", id_temp, style);
+  } else {
+    if (temperature->tempflag == 0)
+      error->all(FLERR, "Compute ID {} for fix {} does not compute a temperature", id_temp, style);
+    if (temperature->tempbias) which = BIAS;
+    else which = NOBIAS;
+  }
 
   if (pstat_flag) {
     pressure = modify->get_compute_by_id(id_press);
-    if (!pressure) error->all(FLERR,"Pressure ID {} for fix {} does not exist", id_press, style);
+    if (!pressure)
+      error->all(FLERR,"Pressure compute ID {} for fix {} does not exist", id_press, style);
+    if (pressure->pressflag == 0)
+      error->all(FLERR,"Compute ID {} for fix {} does not compute pressure", id_press, style);
   }
 
   // set timesteps and frequencies
@@ -1038,7 +1041,7 @@ void FixNH::couple()
   }
 
   if (!std::isfinite(p_current[0]) || !std::isfinite(p_current[1]) || !std::isfinite(p_current[2]))
-    error->all(FLERR,"Non-numeric pressure - simulation unstable");
+    error->all(FLERR,"Non-numeric pressure - simulation unstable" + utils::errorurl(6));
 
   // switch order from xy-xz-yz to Voigt ordering
 
@@ -1048,7 +1051,7 @@ void FixNH::couple()
     p_current[5] = tensor[3];
 
     if (!std::isfinite(p_current[3]) || !std::isfinite(p_current[4]) || !std::isfinite(p_current[5]))
-      error->all(FLERR,"Non-numeric pressure - simulation unstable");
+      error->all(FLERR,"Non-numeric pressure - simulation unstable" + utils::errorurl(6));
   }
 }
 

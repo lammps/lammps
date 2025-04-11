@@ -388,7 +388,8 @@ class BinSort {
     // reasonable experimentally.
     if (use_std_sort && bin_size > 10) {
       KOKKOS_IF_ON_HOST(
-          (std::sort(&sort_order(lower_bound), &sort_order(upper_bound),
+          (std::sort(sort_order.data() + lower_bound,
+                     sort_order.data() + upper_bound,
                      [this](int p, int q) { return bin_op(keys_rnd, p, q); });))
     } else {
       for (int k = lower_bound + 1; k < upper_bound; ++k) {

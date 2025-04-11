@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -26,13 +25,10 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixNPHBody::FixNPHBody(LAMMPS *lmp, int narg, char **arg) :
-  FixNHBody(lmp, narg, arg)
+FixNPHBody::FixNPHBody(LAMMPS *lmp, int narg, char **arg) : FixNHBody(lmp, narg, arg)
 {
-  if (tstat_flag)
-    error->all(FLERR,"Temperature control can not be used with fix nph/body");
-  if (!pstat_flag)
-    error->all(FLERR,"Pressure control must be used with fix nph/body");
+  if (tstat_flag) error->all(FLERR, "Temperature control can not be used with fix nph/body");
+  if (!pstat_flag) error->all(FLERR, "Pressure control must be used with fix nph/body");
 
   // create a new compute temp style
   // id = fix-ID + temp
@@ -40,7 +36,7 @@ FixNPHBody::FixNPHBody(LAMMPS *lmp, int narg, char **arg) :
   // and thus its KE/temperature contribution should use group all
 
   id_temp = utils::strdup(std::string(id) + "_temp");
-  modify->add_compute(fmt::format("{} all temp/body",id_temp));
+  modify->add_compute(fmt::format("{} all temp/body", id_temp));
   tcomputeflag = 1;
 
   // create a new compute pressure style
@@ -48,6 +44,6 @@ FixNPHBody::FixNPHBody(LAMMPS *lmp, int narg, char **arg) :
   // pass id_temp as 4th arg to pressure constructor
 
   id_press = utils::strdup(std::string(id) + "_press");
-  modify->add_compute(fmt::format("{} all pressure {}",id_press, id_temp));
+  modify->add_compute(fmt::format("{} all pressure {}", id_press, id_temp));
   pcomputeflag = 1;
 }

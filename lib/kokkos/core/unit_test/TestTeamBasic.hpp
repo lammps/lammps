@@ -280,7 +280,7 @@ namespace Test {
 
 // Test for non-arithmetic type
 TEST(TEST_CATEGORY, team_broadcast_long_wrapper) {
-  static_assert(!std::is_arithmetic<long_wrapper>::value);
+  static_assert(!std::is_arithmetic_v<long_wrapper>);
 
   TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
                     long_wrapper>::test_teambroadcast(0, 1);
@@ -346,11 +346,11 @@ TEST(TEST_CATEGORY, team_broadcast_float) {
 
     // FIXME_CUDA
 #ifdef KOKKOS_ENABLE_CUDA
-    if (!std::is_same<TEST_EXECSPACE, Kokkos::Cuda>::value)
+    if (!std::is_same_v<TEST_EXECSPACE, Kokkos::Cuda>)
 #endif
     // FIXME_HIP
 #ifdef KOKKOS_ENABLE_HIP
-      if (!std::is_same<TEST_EXECSPACE, Kokkos::HIP>::value)
+      if (!std::is_same_v<TEST_EXECSPACE, Kokkos::HIP>)
 #endif
       {
         TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
@@ -380,11 +380,11 @@ TEST(TEST_CATEGORY, team_broadcast_double) {
 
     // FIXME_CUDA
 #ifdef KOKKOS_ENABLE_CUDA
-    if (!std::is_same<TEST_EXECSPACE, Kokkos::Cuda>::value)
+    if (!std::is_same_v<TEST_EXECSPACE, Kokkos::Cuda>)
 #endif
     // FIXME_HIP
 #ifdef KOKKOS_ENABLE_HIP
-      if (!std::is_same<TEST_EXECSPACE, Kokkos::HIP>::value)
+      if (!std::is_same_v<TEST_EXECSPACE, Kokkos::HIP>)
 #endif
       {
         TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,

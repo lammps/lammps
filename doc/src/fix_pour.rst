@@ -155,6 +155,22 @@ many timesteps until the desired # of particles has been inserted.
    the :doc:`compute_modify dynamic/dof yes <compute_modify>` command
    for the temperature compute you are using.
 
+.. admonition:: Implementation Notes
+  :class: Hint
+
+  The exact insertion procedure depends on many factors (e.g. the range of
+  diameters inserted or whether molecules are being inserted). However, in
+  the simplest scenario of monodisperse atoms, the procedure works as
+  follows. First, the number of timesteps between two insertion events is
+  calculated as the time for a particle to fall through the insertion region,
+  accounting for gravity and any region motion. Next, the target number of
+  particles inserted per event (assuming no failed insertions due to overlaps)
+  is calculated as the product of the volume fraction and the volume of the
+  insertion region divided by the volume of a particle (or area in 2D).
+  Events are repeated until all N particles have been inserted, where
+  the final event is likely interrupted upon reaching N. Estimates of this
+  process are printed to the log/screen at the start of a run.
+
 ----------
 
 All other keywords are optional with defaults as shown below.

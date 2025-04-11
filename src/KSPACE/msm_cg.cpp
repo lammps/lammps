@@ -34,9 +34,6 @@ using namespace LAMMPS_NS;
 static constexpr int OFFSET = 16384;
 static constexpr double SMALLQ = 0.00001;
 
-enum{REVERSE_RHO,REVERSE_AD,REVERSE_AD_PERATOM};
-enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
-
 /* ---------------------------------------------------------------------- */
 
 MSMCG::MSMCG(LAMMPS *lmp) : MSM(lmp),
@@ -313,7 +310,7 @@ void MSMCG::particle_map()
   int i;
 
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
-    error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
+    error->one(FLERR,"Non-numeric box dimensions - simulation unstable" + utils::errorurl(6));
 
   for (int j = 0; j < num_charged; j++) {
     i = is_charged[j];
@@ -338,7 +335,7 @@ void MSMCG::particle_map()
       flag = 1;
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute MSM");
+  if (flag) error->one(FLERR, Error::NOLASTLINE, "Out of range atoms - cannot compute MSM" + utils::errorurl(4));
 }
 
 /* ----------------------------------------------------------------------

@@ -229,6 +229,7 @@ TEST_F(GroupTest, SelectRestart)
                  command("group five subtract all half xxx"););
     TEST_FAILURE(".*ERROR: Group ID xxx does not exist.*",
                  command("group five intersect half top xxx"););
+    delete[] flags;
 }
 
 TEST_F(GroupTest, Molecular)
@@ -253,6 +254,41 @@ TEST_F(GroupTest, Molecular)
 
     TEST_FAILURE(".*ERROR: Unknown group include keyword xxx.*",
                  command("group three include xxx"););
+}
+
+TEST_F(GroupTest, Bitmap)
+{
+    atomic_system();
+
+    BEGIN_HIDE_OUTPUT();
+    command("group one region left");
+    command("group two region right");
+    command("group three empty");
+    command("group four region left");
+    command("group four region right");
+    command("group six subtract four one");
+    END_HIDE_OUTPUT();
+
+    int bm_one   = group->get_bitmask_by_id(FLERR, "one", "unittest 1");
+    int bm_two   = group->get_bitmask_by_id(FLERR, "two", "unittest 2");
+    int bm_three = group->get_bitmask_by_id(FLERR, "three", "unittest 3");
+    int bm_four  = group->get_bitmask_by_id(FLERR, "four", "unittest 4");
+    int bm_six   = group->get_bitmask_by_id(FLERR, "six", "unittest 6");
+    int nlocal   = lmp->atom->natoms;
+    auto mask    = lmp->atom->mask;
+
+    for (int i = 0; i < nlocal; ++i) {
+        if ((mask[i] & bm_one) && (mask[i] & bm_two)) {
+            EXPECT_NE((mask[i] & bm_four), 0);
+        }
+        if (mask[i] & bm_two) {
+            EXPECT_NE((mask[i] & bm_six), 0);
+        }
+        EXPECT_EQ((mask[i] & bm_three), 0);
+    }
+
+    TEST_FAILURE(".*ERROR: Group ID five requested by unittest 5 does not exist.*",
+                 group->get_bitmask_by_id(FLERR, "five", "unittest 5"););
 }
 
 TEST_F(GroupTest, Dynamic)
@@ -314,7 +350,7 @@ TEST_F(GroupTest, Dynamic)
                  command("group ramp variable grow"););
 }
 
-constexpr double EPSILON = 1.0e-13;
+static constexpr double EPSILON = 1.0e-13;
 
 TEST_F(GroupTest, VariableFunctions)
 {
@@ -341,9 +377,9 @@ TEST_F(GroupTest, VariableFunctions)
     int three = group->find("three");
     int four  = group->find("four");
 
-    auto right = domain->get_region_by_id("right");
-    auto left  = domain->get_region_by_id("left");
-    auto top   = domain->get_region_by_id("top");
+    auto *right = domain->get_region_by_id("right");
+    auto *left  = domain->get_region_by_id("left");
+    auto *top   = domain->get_region_by_id("top");
 
     EXPECT_EQ(group->count_all(), 64);
     EXPECT_EQ(group->count(one), 16);

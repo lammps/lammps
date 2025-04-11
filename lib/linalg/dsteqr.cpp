@@ -91,7 +91,7 @@ int dsteqr_(char *compz, integer *n, doublereal *d__, doublereal *e, doublereal 
     ssfmax = sqrt(safmax) / 3.;
     ssfmin = sqrt(safmin) / eps2;
     if (icompz == 2) {
-        dlaset_((char *)"Full", n, n, &c_b9, &c_b10, &z__[z_offset], ldz, (ftnlen)4);
+        dlaset_((char *)"F", n, n, &c_b9, &c_b10, &z__[z_offset], ldz, (ftnlen)1);
     }
     nmaxit = *n * 30;
     jtot = 0;

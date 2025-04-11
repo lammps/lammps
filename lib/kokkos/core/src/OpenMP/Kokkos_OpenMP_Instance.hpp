@@ -47,8 +47,6 @@ namespace Impl {
 
 class OpenMPInternal;
 
-inline int g_openmp_hardware_max_threads = 1;
-
 struct OpenMPTraits {
   static constexpr int MAX_THREAD_COUNT = 512;
 };
@@ -56,9 +54,17 @@ struct OpenMPTraits {
 class OpenMPInternal {
  private:
   OpenMPInternal(int arg_pool_size)
-      : m_pool_size{arg_pool_size}, m_level{omp_get_level()}, m_pool() {}
+      : m_pool_size{arg_pool_size}, m_level{omp_get_level()}, m_pool() {
+    // guard pushing to all_instances
+    {
+      std::scoped_lock lock(all_instances_mutex);
+      all_instances.push_back(this);
+    }
+  }
 
-  ~OpenMPInternal() { clear_thread_data(); }
+  OpenMPInternal()                                 = delete;
+  OpenMPInternal(const OpenMPInternal&)            = delete;
+  OpenMPInternal& operator=(const OpenMPInternal&) = delete;
 
   static int get_current_max_threads() noexcept;
 
@@ -66,7 +72,6 @@ class OpenMPInternal {
 
   int m_pool_size;
   int m_level;
-  int m_pool_mutex = 0;
 
   HostThreadTeamData* m_pool[OpenMPTraits::MAX_THREAD_COUNT];
 
@@ -81,13 +86,9 @@ class OpenMPInternal {
 
   void clear_thread_data();
 
+  static int max_hardware_threads() noexcept;
+
   int thread_pool_size() const { return m_pool_size; }
-
-  // Acquire lock used to protect access to m_pool
-  void acquire_lock();
-
-  // Release lock used to protect access to m_pool
-  void release_lock();
 
   void resize_thread_data(size_t pool_reduce_bytes, size_t team_reduce_bytes,
                           size_t team_shared_bytes, size_t thread_local_bytes);
@@ -107,6 +108,11 @@ class OpenMPInternal {
   bool verify_is_initialized(const char* const label) const;
 
   void print_configuration(std::ostream& s) const;
+
+  std::mutex m_instance_mutex;
+
+  static std::vector<OpenMPInternal*> all_instances;
+  static std::mutex all_instances_mutex;
 };
 
 inline bool execute_in_serial(OpenMP const& space = OpenMP()) {
@@ -132,7 +138,7 @@ template <typename T>
 inline std::vector<OpenMP> create_OpenMP_instances(
     OpenMP const& main_instance, std::vector<T> const& weights) {
   static_assert(
-      std::is_arithmetic<T>::value,
+      std::is_arithmetic_v<T>,
       "Kokkos Error: partitioning arguments must be integers or floats");
   if (weights.size() == 0) {
     Kokkos::abort("Kokkos::abort: Partition weights vector is empty.");
@@ -157,7 +163,7 @@ inline std::vector<OpenMP> create_OpenMP_instances(
         "Kokkos::abort: Partition not enough resources left to create the last "
         "instance.");
   }
-  instances[weights.size() - 1] = resources_left;
+  instances[weights.size() - 1] = OpenMP(resources_left);
 
   return instances;
 }

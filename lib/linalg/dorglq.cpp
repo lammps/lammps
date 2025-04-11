@@ -100,13 +100,13 @@ int dorglq_(integer *m, integer *n, integer *k, doublereal *a, integer *lda, dou
             ib = min(i__2, i__3);
             if (i__ + ib <= *m) {
                 i__2 = *n - i__ + 1;
-                dlarft_((char *)"Forward", (char *)"Rowwise", &i__2, &ib, &a[i__ + i__ * a_dim1], lda, &tau[i__],
-                        &work[1], &ldwork, (ftnlen)7, (ftnlen)7);
+                dlarft_((char *)"F", (char *)"R", &i__2, &ib, &a[i__ + i__ * a_dim1], lda, &tau[i__], &work[1],
+                        &ldwork, (ftnlen)1, (ftnlen)1);
                 i__2 = *m - i__ - ib + 1;
                 i__3 = *n - i__ + 1;
-                dlarfb_((char *)"Right", (char *)"Transpose", (char *)"Forward", (char *)"Rowwise", &i__2, &i__3, &ib,
-                        &a[i__ + i__ * a_dim1], lda, &work[1], &ldwork, &a[i__ + ib + i__ * a_dim1],
-                        lda, &work[ib + 1], &ldwork, (ftnlen)5, (ftnlen)9, (ftnlen)7, (ftnlen)7);
+                dlarfb_((char *)"R", (char *)"T", (char *)"F", (char *)"R", &i__2, &i__3, &ib, &a[i__ + i__ * a_dim1], lda,
+                        &work[1], &ldwork, &a[i__ + ib + i__ * a_dim1], lda, &work[ib + 1], &ldwork,
+                        (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
             }
             i__2 = *n - i__ + 1;
             dorgl2_(&ib, &i__2, &ib, &a[i__ + i__ * a_dim1], lda, &tau[i__], &work[1], &iinfo);

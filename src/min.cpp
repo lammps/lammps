@@ -197,10 +197,10 @@ void Min::init()
 void Min::setup(int flag)
 {
   if (comm->me == 0 && screen) {
-    fmt::print(screen,"Setting up {} style minimization ...\n", update->minimize_style);
+    utils::print(screen,"Setting up {} style minimization ...\n", update->minimize_style);
     if (flag) {
-      fmt::print(screen,"  Unit style    : {}\n", update->unit_style);
-      fmt::print(screen,"  Current step  : {}\n", update->ntimestep);
+      utils::print(screen,"  Unit style    : {}\n", update->unit_style);
+      utils::print(screen,"  Current step  : {}\n", update->ntimestep);
       timer->print_timeout(screen);
     }
   }
@@ -785,7 +785,7 @@ void Min::ev_set(bigint ntimestep)
   int flag;
 
   int eflag_global = 1;
-  for (auto &icompute : elist_global) icompute->matchstep(ntimestep);
+  for (auto &icompute : elist_global) (void) icompute->matchstep(ntimestep);
 
   flag = 0;
   int eflag_atom = 0;

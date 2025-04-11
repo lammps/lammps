@@ -94,31 +94,31 @@ void DumpYAML::write_header(bigint ndump)
 
   if (comm->me == 0) {
     const std::string boundary(boundstr);
-    fmt::print(fp, "---\ncreator: LAMMPS\ntimestep: {}\n", update->ntimestep);
-    if (unit_flag) fmt::print(fp, "units: {}\n", update->unit_style);
-    if (time_flag) fmt::print(fp, "time: {:.16g}\n", compute_time());
+    utils::print(fp, "---\ncreator: LAMMPS\ntimestep: {}\n", update->ntimestep);
+    if (unit_flag) utils::print(fp, "units: {}\n", update->unit_style);
+    if (time_flag) utils::print(fp, "time: {:.16g}\n", compute_time());
 
-    fmt::print(fp, "natoms: {}\n", ndump);
+    utils::print(fp, "natoms: {}\n", ndump);
     fputs("boundary: [ ", fp);
     for (const auto &bflag : boundary) {
       if (bflag == ' ') continue;
-      fmt::print(fp, "{}, ", bflag);
+      utils::print(fp, "{}, ", bflag);
     }
     fputs("]\n", fp);
 
-    if (thermo) fmt::print(fp, thermo_data);
+    if (thermo) utils::print(fp, thermo_data);
 
-    fmt::print(fp, "box:\n  - [ {}, {} ]\n", boxxlo, boxxhi);
-    fmt::print(fp, "  - [ {}, {} ]\n", boxylo, boxyhi);
-    fmt::print(fp, "  - [ {}, {} ]\n", boxzlo, boxzhi);
-    if (domain->triclinic) fmt::print(fp, "  - [ {}, {}, {} ]\n", boxxy, boxxz, boxyz);
+    utils::print(fp, "box:\n  - [ {}, {} ]\n", boxxlo, boxxhi);
+    utils::print(fp, "  - [ {}, {} ]\n", boxylo, boxyhi);
+    utils::print(fp, "  - [ {}, {} ]\n", boxzlo, boxzhi);
+    if (domain->triclinic) utils::print(fp, "  - [ {}, {}, {} ]\n", boxxy, boxxz, boxyz);
 
-    fmt::print(fp, "keywords: [ ");
+    utils::print(fp, "keywords: [ ");
     for (const auto &item : utils::split_words(columns)) {
       if (item.find_first_of(special_chars) == std::string::npos)
-        fmt::print(fp, "{}, ", item);
+        utils::print(fp, "{}, ", item);
       else
-        fmt::print(fp, "'{}', ", item);
+        utils::print(fp, "'{}', ", item);
     }
     fputs(" ]\ndata:\n", fp);
   } else    // reset so that the remainder of the output is not multi-proc

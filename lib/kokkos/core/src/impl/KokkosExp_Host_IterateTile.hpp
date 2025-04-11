@@ -1458,7 +1458,7 @@ struct Tile_Loop_Type<8, IsLeft, IType, void, void> {
 
 template <bool IsLeft, typename IType, typename Tagged>
 struct Tile_Loop_Type<1, IsLeft, IType, Tagged,
-                      std::enable_if_t<!std::is_void<Tagged>::value>> {
+                      std::enable_if_t<!std::is_void_v<Tagged>>> {
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
@@ -1477,7 +1477,7 @@ struct Tile_Loop_Type<1, IsLeft, IType, Tagged,
 
 template <bool IsLeft, typename IType, typename Tagged>
 struct Tile_Loop_Type<2, IsLeft, IType, Tagged,
-                      std::enable_if_t<!std::is_void<Tagged>::value>> {
+                      std::enable_if_t<!std::is_void_v<Tagged>>> {
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
@@ -1496,7 +1496,7 @@ struct Tile_Loop_Type<2, IsLeft, IType, Tagged,
 
 template <bool IsLeft, typename IType, typename Tagged>
 struct Tile_Loop_Type<3, IsLeft, IType, Tagged,
-                      std::enable_if_t<!std::is_void<Tagged>::value>> {
+                      std::enable_if_t<!std::is_void_v<Tagged>>> {
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
@@ -1515,7 +1515,7 @@ struct Tile_Loop_Type<3, IsLeft, IType, Tagged,
 
 template <bool IsLeft, typename IType, typename Tagged>
 struct Tile_Loop_Type<4, IsLeft, IType, Tagged,
-                      std::enable_if_t<!std::is_void<Tagged>::value>> {
+                      std::enable_if_t<!std::is_void_v<Tagged>>> {
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
@@ -1534,7 +1534,7 @@ struct Tile_Loop_Type<4, IsLeft, IType, Tagged,
 
 template <bool IsLeft, typename IType, typename Tagged>
 struct Tile_Loop_Type<5, IsLeft, IType, Tagged,
-                      std::enable_if_t<!std::is_void<Tagged>::value>> {
+                      std::enable_if_t<!std::is_void_v<Tagged>>> {
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
@@ -1553,7 +1553,7 @@ struct Tile_Loop_Type<5, IsLeft, IType, Tagged,
 
 template <bool IsLeft, typename IType, typename Tagged>
 struct Tile_Loop_Type<6, IsLeft, IType, Tagged,
-                      std::enable_if_t<!std::is_void<Tagged>::value>> {
+                      std::enable_if_t<!std::is_void_v<Tagged>>> {
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
@@ -1572,7 +1572,7 @@ struct Tile_Loop_Type<6, IsLeft, IType, Tagged,
 
 template <bool IsLeft, typename IType, typename Tagged>
 struct Tile_Loop_Type<7, IsLeft, IType, Tagged,
-                      std::enable_if_t<!std::is_void<Tagged>::value>> {
+                      std::enable_if_t<!std::is_void_v<Tagged>>> {
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
@@ -1591,7 +1591,7 @@ struct Tile_Loop_Type<7, IsLeft, IType, Tagged,
 
 template <bool IsLeft, typename IType, typename Tagged>
 struct Tile_Loop_Type<8, IsLeft, IType, Tagged,
-                      std::enable_if_t<!std::is_void<Tagged>::value>> {
+                      std::enable_if_t<!std::is_void_v<Tagged>>> {
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
@@ -1616,7 +1616,7 @@ struct HostIterateTile;
 // For ParallelFor
 template <typename RP, typename Functor, typename Tag, typename ValueType>
 struct HostIterateTile<RP, Functor, Tag, ValueType,
-                       std::enable_if_t<std::is_void<ValueType>::value>> {
+                       std::enable_if_t<std::is_void_v<ValueType>>> {
   using index_type = typename RP::index_type;
   using point_type = typename RP::point_type;
 
@@ -1635,12 +1635,11 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
       } else {
         is_full_tile = false;
         partial_tile[i] =
-            (m_rp.m_upper[i] - 1 - offset[i]) == 0
-                ? 1
-                : (m_rp.m_upper[i] - m_rp.m_tile[i]) > 0
-                      ? (m_rp.m_upper[i] - offset[i])
-                      : (m_rp.m_upper[i] -
-                         m_rp.m_lower[i]);  // when single tile encloses range
+            (m_rp.m_upper[i] - 1 - offset[i]) == 0 ? 1
+            : (m_rp.m_upper[i] - m_rp.m_tile[i]) > 0
+                ? (m_rp.m_upper[i] - offset[i])
+                : (m_rp.m_upper[i] -
+                   m_rp.m_lower[i]);  // when single tile encloses range
       }
     }
 
@@ -2000,30 +1999,28 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
 #endif
 
   template <typename... Args>
-  std::enable_if_t<(sizeof...(Args) == RP::rank && std::is_void<Tag>::value),
-                   void>
+  std::enable_if_t<(sizeof...(Args) == RP::rank && std::is_void_v<Tag>), void>
   apply(Args&&... args) const {
     m_func(args...);
   }
 
   template <typename... Args>
-  std::enable_if_t<(sizeof...(Args) == RP::rank && !std::is_void<Tag>::value),
-                   void>
+  std::enable_if_t<(sizeof...(Args) == RP::rank && !std::is_void_v<Tag>), void>
   apply(Args&&... args) const {
     m_func(m_tag, args...);
   }
 
   RP const m_rp;
   Functor const m_func;
-  std::conditional_t<std::is_void<Tag>::value, int, Tag> m_tag;
+  std::conditional_t<std::is_void_v<Tag>, int, Tag> m_tag{};
 };
 
 // For ParallelReduce
 // ValueType - scalar: For reductions
 template <typename RP, typename Functor, typename Tag, typename ValueType>
 struct HostIterateTile<RP, Functor, Tag, ValueType,
-                       std::enable_if_t<!std::is_void<ValueType>::value &&
-                                        !std::is_array<ValueType>::value>> {
+                       std::enable_if_t<!std::is_void_v<ValueType> &&
+                                        !std::is_array_v<ValueType>>> {
   using index_type = typename RP::index_type;
   using point_type = typename RP::point_type;
 
@@ -2050,12 +2047,11 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
       } else {
         is_full_tile = false;
         partial_tile[i] =
-            (m_rp.m_upper[i] - 1 - offset[i]) == 0
-                ? 1
-                : (m_rp.m_upper[i] - m_rp.m_tile[i]) > 0
-                      ? (m_rp.m_upper[i] - offset[i])
-                      : (m_rp.m_upper[i] -
-                         m_rp.m_lower[i]);  // when single tile encloses range
+            (m_rp.m_upper[i] - 1 - offset[i]) == 0 ? 1
+            : (m_rp.m_upper[i] - m_rp.m_tile[i]) > 0
+                ? (m_rp.m_upper[i] - offset[i])
+                : (m_rp.m_upper[i] -
+                   m_rp.m_lower[i]);  // when single tile encloses range
       }
     }
 
@@ -2430,7 +2426,7 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
 
   RP const m_rp;
   Functor const m_func;
-  std::conditional_t<std::is_void<Tag>::value, int, Tag> m_tag;
+  std::conditional_t<std::is_void_v<Tag>, int, Tag> m_tag{};
 };
 
 // For ParallelReduce
@@ -2438,8 +2434,8 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
 // ValueType[]: For array reductions
 template <typename RP, typename Functor, typename Tag, typename ValueType>
 struct HostIterateTile<RP, Functor, Tag, ValueType,
-                       std::enable_if_t<!std::is_void<ValueType>::value &&
-                                        std::is_array<ValueType>::value>> {
+                       std::enable_if_t<!std::is_void_v<ValueType> &&
+                                        std::is_array_v<ValueType>>> {
   using index_type = typename RP::index_type;
   using point_type = typename RP::point_type;
 
@@ -2463,12 +2459,11 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
       } else {
         is_full_tile = false;
         partial_tile[i] =
-            (m_rp.m_upper[i] - 1 - offset[i]) == 0
-                ? 1
-                : (m_rp.m_upper[i] - m_rp.m_tile[i]) > 0
-                      ? (m_rp.m_upper[i] - offset[i])
-                      : (m_rp.m_upper[i] -
-                         m_rp.m_lower[i]);  // when single tile encloses range
+            (m_rp.m_upper[i] - 1 - offset[i]) == 0 ? 1
+            : (m_rp.m_upper[i] - m_rp.m_tile[i]) > 0
+                ? (m_rp.m_upper[i] - offset[i])
+                : (m_rp.m_upper[i] -
+                   m_rp.m_lower[i]);  // when single tile encloses range
       }
     }
 
@@ -2842,7 +2837,7 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
 
   RP const m_rp;
   Functor const m_func;
-  std::conditional_t<std::is_void<Tag>::value, int, Tag> m_tag;
+  std::conditional_t<std::is_void_v<Tag>, int, Tag> m_tag{};
 };
 
 // ------------------------------------------------------------------ //

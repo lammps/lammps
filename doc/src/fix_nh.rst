@@ -208,19 +208,19 @@ The relaxation rate of the barostat is set by its inertia :math:`W`:
 
 .. math::
 
-   W = (N + 1) k_B T_{\rm target} P_{\rm damp}^2
+   W = (N + 1) k_B T_\mathrm{target} P_\mathrm{damp}^2
 
 where :math:`N` is the number of atoms, :math:`k_B` is the Boltzmann constant,
-and :math:`T_{\rm target}` is the target temperature of the barostat :ref:`(Martyna) <nh-Martyna>`.
-If a thermostat is defined, :math:`T_{\rm target}` is the target temperature
-of the thermostat. If a thermostat is not defined, :math:`T_{\rm target}`
+and :math:`T_\mathrm{target}` is the target temperature of the barostat :ref:`(Martyna) <nh-Martyna>`.
+If a thermostat is defined, :math:`T_\mathrm{target}` is the target temperature
+of the thermostat. If a thermostat is not defined, :math:`T_\mathrm{target}`
 is set to the current temperature of the system when the barostat is initialized.
 If this temperature is too low the simulation will quit with an error.
-Note: in previous versions of LAMMPS, :math:`T_{\rm target}` would default to
+Note: in previous versions of LAMMPS, :math:`T_\mathrm{target}` would default to
 a value of 1.0 for *lj* units and 300.0 otherwise if the system had a temperature
 of exactly zero.
 
-If a thermostat is not specified by this fix, :math:`T_{\rm target}` can be
+If a thermostat is not specified by this fix, :math:`T_\mathrm{target}` can be
 manually specified using the *Ptemp* parameter. This may be useful if the
 barostat is initialized when the current temperature does not reflect the
 steady state temperature of the system. This keyword may also be useful in
@@ -512,8 +512,8 @@ according to the following factorization of the Liouville propagator
 .. math::
 
    \exp \left(\mathrm{i} L \Delta t \right) = & \hat{E}
-   \exp \left(\mathrm{i} L_{\rm T\textrm{-}baro} \frac{\Delta t}{2} \right)
-   \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_\mathrm{T\textrm{-}baro} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_\mathrm{T\textrm{-}part} \frac{\Delta t}{2} \right)
    \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right)
    \exp \left(\mathrm{i} L_{2}^{(2)} \frac{\Delta t}{2} \right) \\
    &\times \left[
@@ -526,8 +526,8 @@ according to the following factorization of the Liouville propagator
    &\times
    \exp \left(\mathrm{i} L_{2}^{(2)} \frac{\Delta t}{2} \right)
    \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right)
-   \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right)
-   \exp \left(\mathrm{i} L_{\rm T\textrm{-}baro} \frac{\Delta t}{2} \right) \\
+   \exp \left(\mathrm{i} L_\mathrm{T\textrm{-}part} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_\mathrm{T\textrm{-}baro} \frac{\Delta t}{2} \right) \\
    &+ \mathcal{O} \left(\Delta t^3 \right)
 
 This factorization differs somewhat from that of Tuckerman et al, in

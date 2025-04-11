@@ -182,9 +182,9 @@ a simulation box which replicates that unit cell along each of the
    well as the atoms created by this command with their per-atom
    information (e.g. coordinates, velocities) are converted (rotated)
    from general to restricted triclinic form when the two commands are
-   invoked.  The <Howto_triclinic>` doc page also discusses other
-   LAMMPS commands which can input/output general triclinic
-   representations of the simulation box and per-atom data.
+   invoked.  The :doc:`Howto_triclinic <Howto_triclinic>` doc page also
+   discusses other LAMMPS commands which can input/output general
+   triclinic representations of the simulation box and per-atom data.
 
 The *box* style will fill the entire general triclinic box with
 particles on the lattice, as explained above.
@@ -643,5 +643,4 @@ checked, *maxtry* = 10, and *units* = lattice.
 
 .. _Roberts2019:
 
-**(Roberts)** R. Roberts (2019) "Evenly Distributing Points in a Triangle." Extreme Learning.
-`<http://extremelearning.com.au/evenly-distributing-points-in-a-triangle/>`_
+**(Roberts)** R. Roberts (2019) "Evenly Distributing Points in a Triangle." Extreme Learning.  `<http://extremelearning.com.au/evenly-distributing-points-in-a-triangle/>`_

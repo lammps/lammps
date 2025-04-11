@@ -37,6 +37,8 @@ static constexpr int BUFEXTRA = 1000;
 CommTiledKokkos::CommTiledKokkos(LAMMPS *_lmp) : CommTiled(_lmp)
 {
   sendlist = nullptr;
+  maxsendlist = nullptr;
+  nprocmaxtot = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -49,6 +51,8 @@ CommTiledKokkos::CommTiledKokkos(LAMMPS *_lmp) : CommTiled(_lmp)
 CommTiledKokkos::CommTiledKokkos(LAMMPS *_lmp, Comm *oldcomm) : CommTiled(_lmp,oldcomm)
 {
   sendlist = nullptr;
+  maxsendlist = nullptr;
+  nprocmaxtot = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -56,7 +60,9 @@ CommTiledKokkos::CommTiledKokkos(LAMMPS *_lmp, Comm *oldcomm) : CommTiled(_lmp,o
 CommTiledKokkos::~CommTiledKokkos()
 {
   memoryKK->destroy_kokkos(k_sendlist,sendlist);
+  memory->destroy(maxsendlist);
   sendlist = nullptr;
+  maxsendlist = nullptr;
   buf_send = nullptr;
   buf_recv = nullptr;
 }
@@ -417,42 +423,58 @@ void CommTiledKokkos::borders()
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Pair
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_forward from Fix
+   size > 0 -> Fix passes max size per atom
+   the latter is only useful if Fix does several comm modes,
+     some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::forward_comm(Pair *pair)
+void CommTiledKokkos::forward_comm(Pair *pair, int size)
 {
-  CommTiled::forward_comm(pair);
+  CommTiled::forward_comm(pair, size);
 }
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Pair
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_reverse from Pair
+   size > 0 -> Pair passes max size per atom
+   the latter is only useful if Pair does several comm modes,
+     some are smaller than max stored in its comm_reverse
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::reverse_comm(Pair *pair)
+void CommTiledKokkos::reverse_comm(Pair *pair, int size)
 {
-  CommTiled::reverse_comm(pair);
+  CommTiled::reverse_comm(pair, size);
 }
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Bond
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_forward from Bond
+   size > 0 -> Bond passes max size per atom
+   the latter is only useful if Bond does several comm modes,
+     some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::forward_comm(Bond *bond)
+void CommTiledKokkos::forward_comm(Bond *bond, int size)
 {
-  CommTiled::forward_comm(bond);
+  CommTiled::forward_comm(bond, size);
 }
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Bond
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_reverse from Bond
+   size > 0 -> Bond passes max size per atom
+   the latter is only useful if Bond does several comm modes,
+     some are smaller than max stored in its comm_reverse
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::reverse_comm(Bond *bond)
+void CommTiledKokkos::reverse_comm(Bond *bond, int size)
 {
-  CommTiled::reverse_comm(bond);
+  CommTiled::reverse_comm(bond, size);
 }
 
 /* ----------------------------------------------------------------------
@@ -466,21 +488,21 @@ void CommTiledKokkos::reverse_comm(Bond *bond)
 
 void CommTiledKokkos::forward_comm(Fix *fix, int size)
 {
-  CommTiled::forward_comm(fix,size);
+  CommTiled::forward_comm(fix, size);
 }
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Fix
    size/nsize used only to set recv buffer limit
-   size = 0 (default) -> use comm_forward from Fix
+   size = 0 (default) -> use comm_reverse from Fix
    size > 0 -> Fix passes max size per atom
    the latter is only useful if Fix does several comm modes,
-     some are smaller than max stored in its comm_forward
+     some are smaller than max stored in its comm_reverse
 ------------------------------------------------------------------------- */
 
 void CommTiledKokkos::reverse_comm(Fix *fix, int size)
 {
-  CommTiled::reverse_comm(fix,size);
+  CommTiled::reverse_comm(fix, size);
 }
 
 /* ----------------------------------------------------------------------
@@ -497,42 +519,58 @@ void CommTiledKokkos::reverse_comm_variable(Fix *fix)
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Compute
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_forward from Compute
+   size > 0 -> Compute passes max size per atom
+   the latter is only useful if Compute does several comm modes,
+     some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::forward_comm(Compute *compute)
+void CommTiledKokkos::forward_comm(Compute *compute, int size)
 {
-  CommTiled::forward_comm(compute);
+  CommTiled::forward_comm(compute, size);
 }
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Compute
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_reverse from Compute
+   size > 0 -> Compute passes max size per atom
+   the latter is only useful if Compute does several comm modes,
+     some are smaller than max stored in its comm_reverse
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::reverse_comm(Compute *compute)
+void CommTiledKokkos::reverse_comm(Compute *compute, int size)
 {
-  CommTiled::reverse_comm(compute);
+  CommTiled::reverse_comm(compute, size);
 }
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Dump
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_forward from Dump
+   size > 0 -> Dump passes max size per atom
+   the latter is only useful if Dump does several comm modes,
+     some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::forward_comm(Dump *dump)
+void CommTiledKokkos::forward_comm(Dump *dump, int size)
 {
-  CommTiled::forward_comm(dump);
+  CommTiled::forward_comm(dump, size);
 }
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Dump
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_reverse from Dump
+   size > 0 -> Dump passes max size per atom
+   the latter is only useful if Dump does several comm modes,
+     some are smaller than max stored in its comm_reverse
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::reverse_comm(Dump *dump)
+void CommTiledKokkos::reverse_comm(Dump *dump, int size)
 {
-  CommTiled::reverse_comm(dump);
+  CommTiled::reverse_comm(dump, size);
 }
 
 /* ----------------------------------------------------------------------
@@ -625,12 +663,11 @@ void CommTiledKokkos::grow_list(int iswap, int iwhich, int n)
   k_sendlist.sync<LMPHostType>();
   k_sendlist.modify<LMPHostType>();
 
-  if (size > (int)k_sendlist.extent(2)) {
-    memoryKK->grow_kokkos(k_sendlist,sendlist,maxswap,maxsend,size,"comm:sendlist");
+  memoryKK->grow_kokkos(k_sendlist,sendlist,maxswap,nprocmaxtot,size,"comm:sendlist");
 
-    for (int i = 0; i < maxswap; i++)
-      maxsendlist[iswap][iwhich] = size;
-  }
+  for (int i = 0; i < maxswap; i++)
+    for (int j = 0; j < nprocmaxtot; j++)
+      maxsendlist[i][j] = size;
 }
 
 /* ----------------------------------------------------------------------
@@ -660,24 +697,23 @@ void CommTiledKokkos::grow_swap_send(int i, int n, int /*nold*/)
   memory->destroy(sendbox_multiold[i]);
   memory->create(sendbox_multiold[i],n,atom->ntypes+1,6,"comm:sendbox_multiold");
 
-  delete [] maxsendlist[i];
-  maxsendlist[i] = new int[n];
-
-  for (int j = 0; j < n; j++)
-    maxsendlist[i][j] = BUFMIN;
-
-  if (sendlist && !k_sendlist.d_view.data()) {
-    for (int ii = 0; ii < maxswap; ii++) {
-      if (sendlist[ii]) {
-        for (int jj = 0; jj < nprocmax[ii]; jj++)
-          memory->destroy(sendlist[ii][jj]);
-        delete [] sendlist[ii];
-      }
-    }
+  if (sendlist && !k_sendlist.h_view.data()) {
     delete [] sendlist;
+    delete [] maxsendlist;
+
+    sendlist = nullptr;
+    maxsendlist = nullptr;
   } else {
     memoryKK->destroy_kokkos(k_sendlist,sendlist);
+    memory->destroy(maxsendlist);
   }
 
-  memoryKK->create_kokkos(k_sendlist,sendlist,maxswap,n,BUFMIN,"comm:sendlist");
+  nprocmaxtot = MAX(nprocmaxtot,n);
+
+  memoryKK->create_kokkos(k_sendlist,sendlist,maxswap,nprocmaxtot,BUFMIN,"comm:sendlist");
+  memory->create(maxsendlist,maxswap,nprocmaxtot,"comm:maxsendlist");
+
+  for (int i = 0; i < maxswap; i++)
+    for (int j = 0; j < nprocmaxtot; j++)
+      maxsendlist[i][j] = BUFMIN;
 }

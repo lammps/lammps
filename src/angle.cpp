@@ -17,6 +17,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "math_const.h"
 #include "memory.h"
 #include "suffix.h"
@@ -50,7 +51,7 @@ Angle::Angle(LAMMPS *_lmp) : Pointers(_lmp)
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
 
-  copymode = 0;
+  copymode = kokkosable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -70,9 +71,13 @@ Angle::~Angle()
 
 void Angle::init()
 {
-  if (!allocated && atom->nangletypes) error->all(FLERR, "Angle coeffs are not set");
+  if (!allocated && atom->nangletypes)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Angle coeffs are not set. Status:\n" + Info::get_angle_coeff_status(lmp));
   for (int i = 1; i <= atom->nangletypes; i++)
-    if (setflag[i] == 0) error->all(FLERR, "All angle coeffs are not set");
+    if (setflag[i] == 0)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "All angle coeffs are not set. Status:\n" + Info::get_angle_coeff_status(lmp));
 
   init_style();
 }

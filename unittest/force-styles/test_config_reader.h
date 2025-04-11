@@ -22,8 +22,8 @@ class TestConfigReader : public YamlReader<TestConfigReader> {
 
 public:
     TestConfigReader(TestConfig &config);
-    TestConfigReader() = delete;
-    const TestConfigReader & operator=(TestConfig &) = delete;
+    TestConfigReader()                              = delete;
+    const TestConfigReader &operator=(TestConfig &) = delete;
 
     void skip_tests(const yaml_event_t &event);
     void prerequisites(const yaml_event_t &event);
@@ -41,6 +41,7 @@ public:
     void run_forces(const yaml_event_t &event);
     void run_pos(const yaml_event_t &event);
     void run_vel(const yaml_event_t &event);
+    void run_torque(const yaml_event_t &event);
     void pair_style(const yaml_event_t &event);
     void pair_coeff(const yaml_event_t &event);
     void bond_style(const yaml_event_t &event);

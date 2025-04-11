@@ -174,9 +174,9 @@ FixChargeRegulation::~FixChargeRegulation() {
     neighbor->exclusion_group_group_delete(exclusion_group, igroupall);
   }
 
-  if (groupstrings) {
+  if (ngroups > 0) {
     for (int i = 0; i < ngroups; ++i) delete[] groupstrings[i];
-    memory->destroy(groupstrings);
+    memory->sfree(groupstrings);
   }
 }
 
@@ -218,7 +218,7 @@ void FixChargeRegulation::init() {
     int flagall = flag;
 
     MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
-    if (flagall && comm->me == 0)
+    if (flagall)
       error->all(FLERR, "fix charge/regulation cannot exchange "
                  "individual atoms (ions) belonging to a molecule");
   }

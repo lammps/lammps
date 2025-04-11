@@ -201,7 +201,7 @@ void AngleCosinePeriodic::allocate()
 
 void AngleCosinePeriodic::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (narg != 4) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -210,7 +210,7 @@ void AngleCosinePeriodic::coeff(int narg, char **arg)
   double c_one = utils::numeric(FLERR,arg[1],false,lmp);
   int b_one = utils::inumeric(FLERR,arg[2],false,lmp);
   int n_one = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (n_one <= 0) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (n_one <= 0) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -221,7 +221,7 @@ void AngleCosinePeriodic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -335,4 +335,17 @@ void AngleCosinePeriodic::born_matrix(int type, int i1, int i2, int i3, double &
 
   du = prefactor * sin(m_angle) / s;
   du2 = prefactor * (c * sin(m_angle) - s * cos(m_angle) * multiplicity[type]) / (s * s * s);
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleCosinePeriodic::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "b") == 0) return (void *) b;
+  if (strcmp(str, "multiplicity") == 0) return (void *) multiplicity;
+  return nullptr;
 }

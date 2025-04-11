@@ -15,7 +15,6 @@
 //@HEADER
 
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Stacktrace.hpp>
 #include <cstdio>
 #include <cstdint>
 #include <sstream>
@@ -54,14 +53,14 @@ struct TestTeamScan {
                           });
   }
 
-  auto operator()(int32_t _M, int32_t _N) {
+  auto operator()(int32_t M_, int32_t N_) {
     std::stringstream ss;
-    ss << Kokkos::Impl::demangle(typeid(*this).name());
-    ss << "(/*M=*/" << _M << ", /*N=*/" << _N << ")";
+    ss << Kokkos::Impl::TypeInfo<decltype(*this)>::name();
+    ss << "(/*M=*/" << M_ << ", /*N=*/" << N_ << ")";
     std::string const test_id = ss.str();
 
-    M   = _M;
-    N   = _N;
+    M   = M_;
+    N   = N_;
     a_d = view_type("a_d", M, N);
     a_r = view_type("a_r", M, N);
 
@@ -93,7 +92,7 @@ struct TestTeamScan {
       for (int32_t j = 0; j < N; ++j) {
         scan_ref += a_i(i, j);
         scan_calc = a_o(i, j);
-        if (std::is_integral<value_type>::value) {
+        if (std::is_integral_v<value_type>) {
           ASSERT_EQ(scan_ref, scan_calc)
               << test_id
               << " calculated scan output value differs from reference at "
@@ -172,14 +171,14 @@ struct TestTeamScanRetVal {
     Kokkos::single(Kokkos::PerTeam(team), [&]() { a_s(leagueRank) = accum; });
   }
 
-  auto operator()(int32_t _M, int32_t _N) {
+  auto operator()(int32_t M_, int32_t N_) {
     std::stringstream ss;
-    ss << Kokkos::Impl::demangle(typeid(*this).name());
-    ss << "(/*M=*/" << _M << ", /*N=*/" << _N << ")";
+    ss << Kokkos::Impl::TypeInfo<decltype(*this)>::name();
+    ss << "(/*M=*/" << M_ << ", /*N=*/" << N_ << ")";
     std::string const test_id = ss.str();
 
-    M   = _M;
-    N   = _N;
+    M   = M_;
+    N   = N_;
     a_d = view_2d_type("a_d", M, N);
     a_r = view_2d_type("a_r", M, N);
     a_s = view_1d_type("a_s", M);
@@ -215,7 +214,7 @@ struct TestTeamScanRetVal {
       for (int32_t j = 0; j < N; ++j) {
         scan_ref += a_i(i, j);
         scan_calc = a_o(i, j);
-        if (std::is_integral<value_type>::value) {
+        if (std::is_integral_v<value_type>) {
           ASSERT_EQ(scan_ref, scan_calc)
               << test_id
               << " calculated scan output value differs from reference at "
@@ -231,7 +230,7 @@ struct TestTeamScanRetVal {
         }
       }
       // Validate return value from parallel_scan
-      if (std::is_integral<value_type>::value) {
+      if (std::is_integral_v<value_type>) {
         ASSERT_EQ(scan_ref, a_os(i));
       } else {
         ASSERT_NEAR(scan_ref, a_os(i), abs_err);

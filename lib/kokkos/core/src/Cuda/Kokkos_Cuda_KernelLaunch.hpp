@@ -209,8 +209,8 @@ inline void configure_shmem_preference(const int cuda_device,
   // Use multiples of 8kB
   const size_t max_shmem_per_sm = device_props.sharedMemPerMultiprocessor;
   size_t carveout               = shmem_per_block == 0
-                        ? 0
-                        : 100 *
+                                      ? 0
+                                      : 100 *
                               (((num_blocks_desired * shmem_per_block +
                                  min_shmem_size_per_sm - 1) /
                                 min_shmem_size_per_sm) *
@@ -385,7 +385,7 @@ struct CudaParallelLaunchKernelInvoker<
                         experimental_contains_desired_occupancy) {
         int desired_occupancy =
             driver.get_policy().impl_get_desired_occupancy().value();
-        size_t block_size = block.x * block.y * block.z;
+        size_t block_size = static_cast<size_t>(block.x) * block.y * block.z;
         Impl::configure_shmem_preference<DriverType, LaunchBounds>(
             cuda_instance->m_cudaDev, base_t::get_kernel_func(),
             cuda_instance->m_deviceProp, block_size, shmem, desired_occupancy);
@@ -398,9 +398,10 @@ struct CudaParallelLaunchKernelInvoker<
       params.blockDim       = block;
       params.gridDim        = grid;
       params.sharedMemBytes = shmem;
-      params.func           = (void*)base_t::get_kernel_func();
-      params.kernelParams   = (void**)args;
-      params.extra          = nullptr;
+      // Casting a function pointer to a data pointer...
+      params.func         = reinterpret_cast<void*>(base_t::get_kernel_func());
+      params.kernelParams = const_cast<void**>(args);
+      params.extra        = nullptr;
 
       KOKKOS_IMPL_CUDA_SAFE_CALL(
           (cuda_instance->cuda_graph_add_kernel_node_wrapper(
@@ -485,13 +486,16 @@ struct CudaParallelLaunchKernelInvoker<
                         experimental_contains_desired_occupancy) {
         int desired_occupancy =
             driver.get_policy().impl_get_desired_occupancy().value();
-        size_t block_size = block.x * block.y * block.z;
+        size_t block_size = static_cast<size_t>(block.x) * block.y * block.z;
         Impl::configure_shmem_preference<DriverType, LaunchBounds>(
             cuda_instance->m_cudaDev, base_t::get_kernel_func(),
             cuda_instance->m_deviceProp, block_size, shmem, desired_occupancy);
       }
 
-      auto* driver_ptr = Impl::allocate_driver_storage_for_kernel(driver);
+      auto* driver_ptr = Impl::allocate_driver_storage_for_kernel(
+          CudaSpace::impl_create(cuda_instance->m_cudaDev,
+                                 cuda_instance->m_stream),
+          driver);
 
       // Unlike in the non-graph case, we can get away with doing an async copy
       // here because the `DriverType` instance is held in the GraphNodeImpl
@@ -508,9 +512,10 @@ struct CudaParallelLaunchKernelInvoker<
       params.blockDim       = block;
       params.gridDim        = grid;
       params.sharedMemBytes = shmem;
-      params.func           = (void*)base_t::get_kernel_func();
-      params.kernelParams   = (void**)args;
-      params.extra          = nullptr;
+      // Casting a function pointer to a data pointer...
+      params.func         = reinterpret_cast<void*>(base_t::get_kernel_func());
+      params.kernelParams = const_cast<void**>(args);
+      params.extra        = nullptr;
 
       KOKKOS_IMPL_CUDA_SAFE_CALL(
           (cuda_instance->cuda_graph_add_kernel_node_wrapper(
@@ -586,7 +591,8 @@ struct CudaParallelLaunchKernelInvoker<
     // Copy functor (synchronously) to staging buffer in pinned host memory
     unsigned long* staging =
         cuda_instance->constantMemHostStagingPerDevice[cuda_device];
-    memcpy(staging, &driver, sizeof(DriverType));
+    memcpy(static_cast<void*>(staging), static_cast<const void*>(&driver),
+           sizeof(DriverType));
 
     // Copy functor asynchronously from there to constant memory on the device
     KOKKOS_IMPL_CUDA_SAFE_CALL(
@@ -664,7 +670,7 @@ struct CudaParallelLaunchImpl<
                         experimental_contains_desired_occupancy) {
         int desired_occupancy =
             driver.get_policy().impl_get_desired_occupancy().value();
-        size_t block_size = block.x * block.y * block.z;
+        size_t block_size = static_cast<size_t>(block.x) * block.y * block.z;
         Impl::configure_shmem_preference<
             DriverType,
             Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>>(
@@ -714,7 +720,7 @@ struct CudaParallelLaunch<DriverType, LaunchBounds, LaunchMechanism,
       CudaParallelLaunchImpl<DriverType, LaunchBounds, LaunchMechanism>;
   template <class... Args>
   CudaParallelLaunch(Args&&... args) {
-    base_t::launch_kernel((Args &&) args...);
+    base_t::launch_kernel((Args&&)args...);
   }
 };
 
@@ -728,7 +734,7 @@ struct CudaParallelLaunch<DriverType, LaunchBounds, LaunchMechanism,
       CudaParallelLaunchImpl<DriverType, LaunchBounds, LaunchMechanism>;
   template <class... Args>
   CudaParallelLaunch(Args&&... args) {
-    base_t::create_parallel_launch_graph_node((Args &&) args...);
+    base_t::create_parallel_launch_graph_node((Args&&)args...);
   }
 };
 

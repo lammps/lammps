@@ -18,6 +18,11 @@
 #define KOKKOS_IMPL_TASKQUEUEMEMORYMANAGER_HPP
 
 #include <Kokkos_Macros.hpp>
+
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#error "The tasking framework is deprecated"
+#endif
+
 #if defined(KOKKOS_ENABLE_TASKDAG)
 
 #include <Kokkos_TaskScheduler_fwd.hpp>
@@ -88,7 +93,7 @@ class TaskQueueMemoryManager : public TaskQueueBase {
   KOKKOS_INLINE_FUNCTION T* _do_contruct(void* allocated,
                                          allocation_size_type allocated_size,
                                          Args&&... args) {
-    static_assert(std::is_base_of<PoolAllocatedObjectBase<int32_t>, T>::value,
+    static_assert(std::is_base_of_v<PoolAllocatedObjectBase<int32_t>, T>,
                   "TaskQueueMemoryManager can only allocate objects with "
                   "PoolAllocatedObjectBase base class");
 
@@ -146,7 +151,7 @@ class TaskQueueMemoryManager : public TaskQueueBase {
   //     && std::is_constructible_v<T, allocation_size_type, Args&&...>
   {
     static_assert(
-        std::is_base_of<ObjectWithVLAEmulation<T, VLAValueType>, T>::value,
+        std::is_base_of_v<ObjectWithVLAEmulation<T, VLAValueType>, T>,
         "Can't append emulated variable length array of type with greater "
         "alignment than"
         "  the type to which the VLA is being appended");

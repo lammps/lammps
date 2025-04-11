@@ -1,296 +1,213 @@
 #These are tribits wrappers used by all projects in the Kokkos ecosystem
 
-INCLUDE(CMakeParseArguments)
-INCLUDE(CTest)
+include(CMakeParseArguments)
+include(CTest)
 
-FUNCTION(ASSERT_DEFINED VARS)
-  FOREACH(VAR ${VARS})
-    IF(NOT DEFINED ${VAR})
-      MESSAGE(SEND_ERROR "Error, the variable ${VAR} is not defined!")
-    ENDIF()
-  ENDFOREACH()
-ENDFUNCTION()
-
-IF(NOT KOKKOS_HAS_TRILINOS)
-MACRO(APPEND_GLOB VAR)
-  FILE(GLOB LOCAL_TMP_VAR ${ARGN})
-  LIST(APPEND ${VAR} ${LOCAL_TMP_VAR})
-ENDMACRO()
-
-MACRO(GLOBAL_SET VARNAME)
-  SET(${VARNAME} ${ARGN} CACHE INTERNAL "" FORCE)
-ENDMACRO()
-
-MACRO(PREPEND_GLOBAL_SET VARNAME)
-  ASSERT_DEFINED(${VARNAME})
-  GLOBAL_SET(${VARNAME} ${ARGN} ${${VARNAME}})
-ENDMACRO()
-ENDIF()
-
-MACRO(ADD_INTERFACE_LIBRARY LIB_NAME)
-  FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp "")
-  ADD_LIBRARY(${LIB_NAME} STATIC ${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp)
-  SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES INTERFACE TRUE)
-ENDMACRO()
-
-FUNCTION(KOKKOS_ADD_TEST)
-  if (KOKKOS_HAS_TRILINOS)
-    CMAKE_PARSE_ARGUMENTS(TEST
-      "SKIP_TRIBITS"
-      "EXE;NAME;TOOL"
-      "ARGS"
-      ${ARGN})
-
-    IF(TEST_SKIP_TRIBITS)
-      MESSAGE(STATUS "Skipping test ${TEST_NAME} in TriBits")
-      RETURN()
-    ENDIF()
-
-    IF(TEST_EXE)
-      SET(EXE_ROOT ${TEST_EXE})
-    ELSE()
-      SET(EXE_ROOT ${TEST_NAME})
-    ENDIF()
-
-    TRIBITS_ADD_TEST(
-      ${EXE_ROOT}
-      NAME ${TEST_NAME}
-      COMM serial mpi
-      NUM_MPI_PROCS 1
-      ARGS ${TEST_ARGS}
-      ${TEST_UNPARSED_ARGUMENTS}
-      ADDED_TESTS_NAMES_OUT ALL_TESTS_ADDED
-    )
-
-    # We will get prepended package name here
-    SET(TEST_NAME ${PACKAGE_NAME}_${TEST_NAME})
-    SET(EXE ${PACKAGE_NAME}_${EXE_ROOT})
-
-    # The function TRIBITS_ADD_TEST() has a CATEGORIES argument that defaults
-    # to BASIC.  If a project elects to only enable tests marked as PERFORMANCE,
-    # the test won't actually be added and attempting to set a property on it below
-    # will yield an error.
-    if(TARGET ${EXE})
-      if(TEST_TOOL)
-        add_dependencies(${EXE} ${TEST_TOOL}) #make sure the exe has to build the tool
-        foreach(TEST_ADDED ${ALL_TESTS_ADDED})
-          set_property(TEST ${TEST_ADDED} APPEND PROPERTY ENVIRONMENT "KOKKOS_TOOLS_LIBS=$<TARGET_FILE:${TEST_TOOL}>")
-        endforeach()
-      endif()
+function(ASSERT_DEFINED VARS)
+  foreach(VAR ${VARS})
+    if(NOT DEFINED ${VAR})
+      message(SEND_ERROR "Error, the variable ${VAR} is not defined!")
     endif()
-  else()
-    CMAKE_PARSE_ARGUMENTS(TEST
-      "WILL_FAIL;SKIP_TRIBITS"
-      "FAIL_REGULAR_EXPRESSION;PASS_REGULAR_EXPRESSION;EXE;NAME;TOOL"
-      "CATEGORIES;ARGS"
-      ${ARGN})
-    # To match Tribits, we should always be receiving
-    # the root names of exes/libs
-    IF(TEST_EXE)
-      SET(EXE_ROOT ${TEST_EXE})
-    ELSE()
-      SET(EXE_ROOT ${TEST_NAME})
-    ENDIF()
-    # Prepend package name to the test name
-    # These should be the full target name
-    SET(TEST_NAME ${PACKAGE_NAME}_${TEST_NAME})
-    SET(EXE ${PACKAGE_NAME}_${EXE_ROOT})
-    IF(WIN32)
-      ADD_TEST(NAME ${TEST_NAME} WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH}
-        COMMAND ${EXE}${CMAKE_EXECUTABLE_SUFFIX} ${TEST_ARGS})
-    ELSE()
-      ADD_TEST(NAME ${TEST_NAME} COMMAND ${EXE} ${TEST_ARGS})
-    ENDIF()
-    IF(TEST_WILL_FAIL)
-      SET_TESTS_PROPERTIES(${TEST_NAME} PROPERTIES WILL_FAIL ${TEST_WILL_FAIL})
-    ENDIF()
-    IF(TEST_FAIL_REGULAR_EXPRESSION)
-      SET_TESTS_PROPERTIES(${TEST_NAME} PROPERTIES FAIL_REGULAR_EXPRESSION ${TEST_FAIL_REGULAR_EXPRESSION})
-    ENDIF()
-    IF(TEST_PASS_REGULAR_EXPRESSION)
-      SET_TESTS_PROPERTIES(${TEST_NAME} PROPERTIES PASS_REGULAR_EXPRESSION ${TEST_PASS_REGULAR_EXPRESSION})
-    ENDIF()
-    IF(TEST_TOOL)
-      ADD_DEPENDENCIES(${EXE} ${TEST_TOOL}) #make sure the exe has to build the tool
-      SET_PROPERTY(TEST ${TEST_NAME} APPEND_STRING PROPERTY ENVIRONMENT "KOKKOS_PROFILE_LIBRARY=$<TARGET_FILE:${TEST_TOOL}>")
-    ENDIF()
-    VERIFY_EMPTY(KOKKOS_ADD_TEST ${TEST_UNPARSED_ARGUMENTS})
-  ENDIF()
-ENDFUNCTION()
+  endforeach()
+endfunction()
 
-FUNCTION(KOKKOS_ADD_ADVANCED_TEST)
-  if (KOKKOS_HAS_TRILINOS)
-    TRIBITS_ADD_ADVANCED_TEST(${ARGN})
-  else()
-    # TODO Write this
-  endif()
-ENDFUNCTION()
+macro(APPEND_GLOB VAR)
+  file(GLOB LOCAL_TMP_VAR ${ARGN})
+  list(APPEND ${VAR} ${LOCAL_TMP_VAR})
+endmacro()
 
-MACRO(KOKKOS_CREATE_IMPORTED_TPL_LIBRARY TPL_NAME)
-  ADD_INTERFACE_LIBRARY(TPL_LIB_${TPL_NAME})
-  TARGET_LINK_LIBRARIES(TPL_LIB_${TPL_NAME} LINK_PUBLIC ${TPL_${TPL_NAME}_LIBRARIES})
-  TARGET_INCLUDE_DIRECTORIES(TPL_LIB_${TPL_NAME} INTERFACE ${TPL_${TPL_NAME}_INCLUDE_DIRS})
-ENDMACRO()
+macro(GLOBAL_SET VARNAME)
+  set(${VARNAME} ${ARGN} CACHE INTERNAL "" FORCE)
+endmacro()
 
-FUNCTION(KOKKOS_TPL_FIND_INCLUDE_DIRS_AND_LIBRARIES TPL_NAME)
-  if (KOKKOS_HAS_TRILINOS)
-    TRIBITS_TPL_FIND_INCLUDE_DIRS_AND_LIBRARIES(${TPL_NAME} ${ARGN})
-  else()
-    CMAKE_PARSE_ARGUMENTS(PARSE
-      ""
-      ""
-      "REQUIRED_HEADERS;REQUIRED_LIBS_NAMES"
-      ${ARGN})
+macro(PREPEND_GLOBAL_SET VARNAME)
+  assert_defined(${VARNAME})
+  global_set(${VARNAME} ${ARGN} ${${VARNAME}})
+endmacro()
 
-    SET(_${TPL_NAME}_ENABLE_SUCCESS TRUE)
-    IF (PARSE_REQUIRED_LIBS_NAMES)
-      FIND_LIBRARY(TPL_${TPL_NAME}_LIBRARIES NAMES ${PARSE_REQUIRED_LIBS_NAMES})
-      IF(NOT TPL_${TPL_NAME}_LIBRARIES)
-        SET(_${TPL_NAME}_ENABLE_SUCCESS FALSE)
-      ENDIF()
-    ENDIF()
-    IF (PARSE_REQUIRED_HEADERS)
-      FIND_PATH(TPL_${TPL_NAME}_INCLUDE_DIRS NAMES ${PARSE_REQUIRED_HEADERS})
-      IF(NOT TPL_${TPL_NAME}_INCLUDE_DIRS)
-        SET(_${TPL_NAME}_ENABLE_SUCCESS FALSE)
-      ENDIF()
-    ENDIF()
-    IF (_${TPL_NAME}_ENABLE_SUCCESS)
-      KOKKOS_CREATE_IMPORTED_TPL_LIBRARY(${TPL_NAME})
-    ENDIF()
-    VERIFY_EMPTY(KOKKOS_CREATE_IMPORTED_TPL_LIBRARY ${PARSE_UNPARSED_ARGUMENTS})
-  endif()
-ENDFUNCTION()
+macro(ADD_INTERFACE_LIBRARY LIB_NAME)
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp "")
+  add_library(${LIB_NAME} STATIC ${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp)
+  set_target_properties(${LIB_NAME} PROPERTIES INTERFACE TRUE)
+endmacro()
 
-MACRO(KOKKOS_TARGET_COMPILE_OPTIONS TARGET)
-if(KOKKOS_HAS_TRILINOS)
-  TARGET_COMPILE_OPTIONS(${TARGET} ${ARGN})
-else()
-  TARGET_COMPILE_OPTIONS(${TARGET} ${ARGN})
-endif()
-ENDMACRO()
-
-FUNCTION(KOKKOS_LIB_TYPE LIB RET)
-GET_TARGET_PROPERTY(PROP ${LIB} TYPE)
-IF (${PROP} STREQUAL "INTERFACE_LIBRARY")
-  SET(${RET} "INTERFACE" PARENT_SCOPE)
-ELSE()
-  SET(${RET} "PUBLIC" PARENT_SCOPE)
-ENDIF()
-ENDFUNCTION()
-
-FUNCTION(KOKKOS_TARGET_INCLUDE_DIRECTORIES TARGET)
-IF(KOKKOS_HAS_TRILINOS)
-  KOKKOS_LIB_TYPE(${TARGET} INCTYPE)
-  #don't trust tribits to do this correctly - but need to add package name
-  TARGET_INCLUDE_DIRECTORIES(${TARGET} ${INCTYPE} ${ARGN})
-ELSEIF(TARGET ${TARGET})
-  #the target actually exists - this means we are doing separate libs
-  #or this a test library
-  KOKKOS_LIB_TYPE(${TARGET} INCTYPE)
-  TARGET_INCLUDE_DIRECTORIES(${TARGET} ${INCTYPE} ${ARGN})
-ELSE()
-  GET_PROPERTY(LIBS GLOBAL PROPERTY KOKKOS_LIBRARIES_NAMES)
-  IF (${TARGET} IN_LIST LIBS)
-     SET_PROPERTY(GLOBAL APPEND PROPERTY KOKKOS_LIBRARY_INCLUDES ${ARGN})
-  ELSE()
-    MESSAGE(FATAL_ERROR "Trying to set include directories on unknown target ${TARGET}")
-  ENDIF()
-ENDIF()
-ENDFUNCTION()
-
-FUNCTION(KOKKOS_LINK_INTERNAL_LIBRARY TARGET DEPLIB)
-IF(KOKKOS_HAS_TRILINOS)
-  #do nothing
-ELSE()
-  SET(options INTERFACE)
-  SET(oneValueArgs)
-  SET(multiValueArgs)
-  CMAKE_PARSE_ARGUMENTS(PARSE
-    "INTERFACE"
-    ""
-    ""
-    ${ARGN})
-  SET(LINK_TYPE)
-  IF(PARSE_INTERFACE)
-    SET(LINK_TYPE INTERFACE)
-  ELSE()
-    SET(LINK_TYPE PUBLIC)
-  ENDIF()
-  TARGET_LINK_LIBRARIES(${TARGET} ${LINK_TYPE} ${DEPLIB})
-  VERIFY_EMPTY(KOKKOS_LINK_INTERNAL_LIBRARY ${PARSE_UNPARSED_ARGUMENTS})
-ENDIF()
-ENDFUNCTION()
-
-FUNCTION(KOKKOS_ADD_TEST_LIBRARY NAME)
-IF (KOKKOS_HAS_TRILINOS)
-  TRIBITS_ADD_LIBRARY(${NAME} ${ARGN} TESTONLY)
-ELSE()
-  SET(oneValueArgs)
-  SET(multiValueArgs HEADERS SOURCES)
-
-  CMAKE_PARSE_ARGUMENTS(PARSE
-    "STATIC;SHARED"
-    ""
-    "HEADERS;SOURCES;DEPLIBS"
-    ${ARGN})
-
-  SET(LIB_TYPE)
-  IF (PARSE_STATIC)
-    SET(LIB_TYPE STATIC)
-  ELSEIF (PARSE_SHARED)
-    SET(LIB_TYPE SHARED)
-  ENDIF()
-
-  IF(PARSE_HEADERS)
-    LIST(REMOVE_DUPLICATES PARSE_HEADERS)
-  ENDIF()
-  IF(PARSE_SOURCES)
-    LIST(REMOVE_DUPLICATES PARSE_SOURCES)
-  ENDIF()
-  ADD_LIBRARY(${NAME} ${LIB_TYPE} ${PARSE_SOURCES})
-  IF (PARSE_DEPLIBS)
-    TARGET_LINK_LIBRARIES(${NAME} PRIVATE ${PARSE_DEPLIBS})
-  ENDIF()
-ENDIF()
-ENDFUNCTION()
-
-
-FUNCTION(KOKKOS_INCLUDE_DIRECTORIES)
-IF(KOKKOS_HAS_TRILINOS)
-  TRIBITS_INCLUDE_DIRECTORIES(${ARGN})
-ELSE()
-  CMAKE_PARSE_ARGUMENTS(
-    INC
-    "REQUIRED_DURING_INSTALLATION_TESTING"
-    ""
-    ""
+function(KOKKOS_ADD_TEST)
+  cmake_parse_arguments(
+    TEST "WILL_FAIL;SKIP_TRIBITS" "FAIL_REGULAR_EXPRESSION;PASS_REGULAR_EXPRESSION;EXE;NAME;TOOL" "CATEGORIES;ARGS"
     ${ARGN}
   )
-  INCLUDE_DIRECTORIES(${INC_UNPARSED_ARGUMENTS})
-ENDIF()
-ENDFUNCTION()
-
-
-MACRO(PRINTALL match)
-get_cmake_property(_variableNames VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-  if("${_variableName}" MATCHES "${match}")
-    message(STATUS "${_variableName}=${${_variableName}}")
+  # To match Tribits, we should always be receiving
+  # the root names of exes/libs
+  if(TEST_EXE)
+    set(EXE_ROOT ${TEST_EXE})
+  else()
+    set(EXE_ROOT ${TEST_NAME})
   endif()
-endforeach()
-ENDMACRO()
+  # Prepend package name to the test name
+  # These should be the full target name
+  set(TEST_NAME ${PACKAGE_NAME}_${TEST_NAME})
 
-MACRO(SET_GLOBAL_REPLACE SUBSTR VARNAME)
-  STRING(REPLACE ${SUBSTR} ${${VARNAME}} TEMP)
-  GLOBAL_SET(${VARNAME} ${TEMP})
-ENDMACRO()
+  # For compatibility with Trilinos testing, we support:
+  #  * `-D <fullTestName>_DISABLE=ON`
+  #  * `-D <fullTestName>_EXTRA_ARGS="<arg0>;<arg1>;<arg2>;..."`
+  #  * `-D <fullTestName>_SET_RUN_SERIAL=ON`
+  if(${TEST_NAME}_DISABLE)
+    return()
+  endif()
 
-FUNCTION(GLOBAL_APPEND VARNAME)
+  set(EXE ${PACKAGE_NAME}_${EXE_ROOT})
+  if(WIN32)
+    add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH} COMMAND ${EXE}${CMAKE_EXECUTABLE_SUFFIX}
+                                                                                ${TEST_ARGS} ${${TEST_NAME}_EXTRA_ARGS}
+    )
+  else()
+    add_test(NAME ${TEST_NAME} COMMAND ${EXE} ${TEST_ARGS} ${${TEST_NAME}_EXTRA_ARGS})
+  endif()
+  # Trilinos testing benefits from labeling the tests as "Kokkos" tests
+  set_tests_properties(${TEST_NAME} PROPERTIES LABELS Kokkos)
+  if(${TEST_NAME}_SET_RUN_SERIAL)
+    set_tests_properties(${TEST_NAME} PROPERTIES RUN_SERIAL ON)
+  endif()
+  # TriBITS doesn't actually currently support `-D <fullTestName>_ENVIRONMENT`
+  # but we decided to add it anyway
+  if(${TEST_NAME}_ENVIRONMENT)
+    set_tests_properties(${TEST_NAME} PROPERTIES ENVIRONMENT "${${TEST_NAME}_ENVIRONMENT}")
+  endif()
+  if(TEST_WILL_FAIL)
+    set_tests_properties(${TEST_NAME} PROPERTIES WILL_FAIL ${TEST_WILL_FAIL})
+  endif()
+  if(TEST_FAIL_REGULAR_EXPRESSION)
+    set_tests_properties(${TEST_NAME} PROPERTIES FAIL_REGULAR_EXPRESSION ${TEST_FAIL_REGULAR_EXPRESSION})
+  endif()
+  if(TEST_PASS_REGULAR_EXPRESSION)
+    set_tests_properties(${TEST_NAME} PROPERTIES PASS_REGULAR_EXPRESSION ${TEST_PASS_REGULAR_EXPRESSION})
+  endif()
+  if(TEST_TOOL)
+    add_dependencies(${EXE} ${TEST_TOOL}) #make sure the exe has to build the tool
+    set_property(
+      TEST ${TEST_NAME} APPEND_STRING PROPERTY ENVIRONMENT "KOKKOS_PROFILE_LIBRARY=$<TARGET_FILE:${TEST_TOOL}>"
+    )
+  endif()
+  verify_empty(KOKKOS_ADD_TEST ${TEST_UNPARSED_ARGUMENTS})
+endfunction()
+
+macro(KOKKOS_CREATE_IMPORTED_TPL_LIBRARY TPL_NAME)
+  add_interface_library(TPL_LIB_${TPL_NAME})
+  target_link_libraries(TPL_LIB_${TPL_NAME} LINK_PUBLIC ${TPL_${TPL_NAME}_LIBRARIES})
+  target_include_directories(TPL_LIB_${TPL_NAME} INTERFACE ${TPL_${TPL_NAME}_INCLUDE_DIRS})
+endmacro()
+
+function(KOKKOS_TPL_FIND_INCLUDE_DIRS_AND_LIBRARIES TPL_NAME)
+  cmake_parse_arguments(PARSE "" "" "REQUIRED_HEADERS;REQUIRED_LIBS_NAMES" ${ARGN})
+
+  set(_${TPL_NAME}_ENABLE_SUCCESS TRUE)
+  if(PARSE_REQUIRED_LIBS_NAMES)
+    find_library(TPL_${TPL_NAME}_LIBRARIES NAMES ${PARSE_REQUIRED_LIBS_NAMES})
+    if(NOT TPL_${TPL_NAME}_LIBRARIES)
+      set(_${TPL_NAME}_ENABLE_SUCCESS FALSE)
+    endif()
+  endif()
+  if(PARSE_REQUIRED_HEADERS)
+    find_path(TPL_${TPL_NAME}_INCLUDE_DIRS NAMES ${PARSE_REQUIRED_HEADERS})
+    if(NOT TPL_${TPL_NAME}_INCLUDE_DIRS)
+      set(_${TPL_NAME}_ENABLE_SUCCESS FALSE)
+    endif()
+  endif()
+  if(_${TPL_NAME}_ENABLE_SUCCESS)
+    kokkos_create_imported_tpl_library(${TPL_NAME})
+  endif()
+  verify_empty(KOKKOS_CREATE_IMPORTED_TPL_LIBRARY ${PARSE_UNPARSED_ARGUMENTS})
+endfunction()
+
+function(KOKKOS_LIB_TYPE LIB RET)
+  get_target_property(PROP ${LIB} TYPE)
+  if(${PROP} STREQUAL "INTERFACE_LIBRARY")
+    set(${RET} "INTERFACE" PARENT_SCOPE)
+  else()
+    set(${RET} "PUBLIC" PARENT_SCOPE)
+  endif()
+endfunction()
+
+function(KOKKOS_TARGET_INCLUDE_DIRECTORIES TARGET)
+  if(TARGET ${TARGET})
+    #the target actually exists - this means we are doing separate libs
+    #or this a test library
+    kokkos_lib_type(${TARGET} INCTYPE)
+    target_include_directories(${TARGET} ${INCTYPE} ${ARGN})
+  else()
+    get_property(LIBS GLOBAL PROPERTY KOKKOS_LIBRARIES_NAMES)
+    if(${TARGET} IN_LIST LIBS)
+      set_property(GLOBAL APPEND PROPERTY KOKKOS_LIBRARY_INCLUDES ${ARGN})
+    else()
+      message(FATAL_ERROR "Trying to set include directories on unknown target ${TARGET}")
+    endif()
+  endif()
+endfunction()
+
+function(KOKKOS_LINK_INTERNAL_LIBRARY TARGET DEPLIB)
+  set(options INTERFACE)
+  set(oneValueArgs)
+  set(multiValueArgs)
+  cmake_parse_arguments(PARSE "INTERFACE" "" "" ${ARGN})
+  set(LINK_TYPE)
+  if(PARSE_INTERFACE)
+    set(LINK_TYPE INTERFACE)
+  else()
+    set(LINK_TYPE PUBLIC)
+  endif()
+  target_link_libraries(${TARGET} ${LINK_TYPE} ${DEPLIB})
+  verify_empty(KOKKOS_LINK_INTERNAL_LIBRARY ${PARSE_UNPARSED_ARGUMENTS})
+endfunction()
+
+function(KOKKOS_ADD_TEST_LIBRARY NAME)
+  set(oneValueArgs)
+  set(multiValueArgs HEADERS SOURCES)
+
+  cmake_parse_arguments(PARSE "STATIC;SHARED" "" "HEADERS;SOURCES;DEPLIBS" ${ARGN})
+
+  set(LIB_TYPE)
+  if(PARSE_STATIC)
+    set(LIB_TYPE STATIC)
+  elseif(PARSE_SHARED)
+    set(LIB_TYPE SHARED)
+  endif()
+
+  if(PARSE_HEADERS)
+    list(REMOVE_DUPLICATES PARSE_HEADERS)
+  endif()
+  if(PARSE_SOURCES)
+    list(REMOVE_DUPLICATES PARSE_SOURCES)
+  endif()
+  add_library(${NAME} ${LIB_TYPE} ${PARSE_SOURCES})
+  if(PARSE_DEPLIBS)
+    target_link_libraries(${NAME} PRIVATE ${PARSE_DEPLIBS})
+  endif()
+endfunction()
+
+function(KOKKOS_INCLUDE_DIRECTORIES)
+  cmake_parse_arguments(INC "REQUIRED_DURING_INSTALLATION_TESTING" "" "" ${ARGN})
+  include_directories(${INC_UNPARSED_ARGUMENTS})
+endfunction()
+
+macro(PRINTALL match)
+  get_cmake_property(_variableNames VARIABLES)
+  list(SORT _variableNames)
+  foreach(_variableName ${_variableNames})
+    if("${_variableName}" MATCHES "${match}")
+      message(STATUS "${_variableName}=${${_variableName}}")
+    endif()
+  endforeach()
+endmacro()
+
+macro(SET_GLOBAL_REPLACE SUBSTR VARNAME)
+  string(REPLACE ${SUBSTR} ${${VARNAME}} TEMP)
+  global_set(${VARNAME} ${TEMP})
+endmacro()
+
+function(GLOBAL_APPEND VARNAME)
   #We make this a function since we are setting variables
   #and want to use scope to avoid overwriting local variables
-  SET(TEMP ${${VARNAME}})
-  LIST(APPEND TEMP ${ARGN})
-  GLOBAL_SET(${VARNAME} ${TEMP})
-ENDFUNCTION()
+  set(TEMP ${${VARNAME}})
+  list(APPEND TEMP ${ARGN})
+  global_set(${VARNAME} ${TEMP})
+endfunction()

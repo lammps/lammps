@@ -39,9 +39,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-enum { REVERSE_RHO_GPU, REVERSE_RHO };
-enum { FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
-
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
 // external functions from cuda library for atom decomposition
@@ -200,7 +197,7 @@ void PPPMGPU::compute(int eflag, int vflag)
     if (!success)
       error->one(FLERR,"Insufficient memory on accelerator");
     if (flag != 0)
-      error->one(FLERR,"Out of range atoms - cannot compute PPPM");
+      error->one(FLERR, Error::NOLASTLINE, "Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
   }
 
   // convert atoms from box to lamda coords

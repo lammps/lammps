@@ -8,7 +8,7 @@
  * routines.  They have been adapted specifically for the use with the LAMMPS xtc dump
  * style to produce compressed trajectory files in the Gromacs XTC format.
  *
- * The XDR sources are avaiable under the BSD 3-clause license for example in
+ * The XDR sources are available under the BSD 3-clause license for example in
  * the MIT Kerberos 5 distribution with the following copyright notice and license.
  *
  * @(#)xdr.h    2.2 88/07/29 4.0 RPCSRC

@@ -43,7 +43,19 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
   }
 
  public:
-  inline void execute() const { this->exec(); }
+  inline void execute() const {
+    // caused a possibly codegen-related slowdown, especially in GCC 9-11
+    // with KOKKOS_ARCH_NATIVE
+    // https://github.com/kokkos/kokkos/issues/7268
+#ifndef KOKKOS_ENABLE_ATOMICS_BYPASS
+    // Make sure kernels are running sequentially even when using multiple
+    // threads
+    auto* internal_instance =
+        m_iter.m_rp.space().impl_internal_space_instance();
+    std::lock_guard<std::mutex> lock(internal_instance->m_instance_mutex);
+#endif
+    this->exec();
+  }
   template <typename Policy, typename Functor>
   static int max_tile_size_product(const Policy&, const Functor&) {
     /**
@@ -104,9 +116,16 @@ class ParallelReduce<CombinedFunctorReducerType,
 
     auto* internal_instance =
         m_iter.m_rp.space().impl_internal_space_instance();
-    // Need to lock resize_thread_team_data
-    std::lock_guard<std::mutex> lock(
-        internal_instance->m_thread_team_data_mutex);
+
+    // caused a possibly codegen-related slowdown, especially in GCC 9-11
+    // with KOKKOS_ARCH_NATIVE
+    // https://github.com/kokkos/kokkos/issues/7268
+#ifndef KOKKOS_ENABLE_ATOMICS_BYPASS
+    // Make sure kernels are running sequentially even when using multiple
+    // threads, lock resize_thread_team_data
+    std::lock_guard<std::mutex> instance_lock(
+        internal_instance->m_instance_mutex);
+#endif
     internal_instance->resize_thread_team_data(
         pool_reduce_size, team_reduce_size, team_shared_size,
         thread_local_size);

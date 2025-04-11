@@ -407,6 +407,16 @@ void FixDeformPressure::init()
 
   set_box.vol_start = domain->xprd * domain->yprd * domain->zprd;
 
+  // reset cumulative counters to match resetting "start" variables in parent
+
+  for (int i = 0; i < 7; i++) {
+    set_extra[i].cumulative_remap = 0.0;
+    set_extra[i].cumulative_shift = 0.0;
+    set_extra[i].cumulative_vshift[0] = 0.0;
+    set_extra[i].cumulative_vshift[1] = 0.0;
+    set_extra[i].cumulative_vshift[2] = 0.0;
+  }
+
   // check optional variables for PRESSURE or PMEAN style
 
   for (int i = 0; i < 7; i++) {
@@ -422,12 +432,18 @@ void FixDeformPressure::init()
 
   if (pressure_flag) {
     temperature = modify->get_compute_by_id(id_temp);
-    if (!temperature)
-      error->all(FLERR, "Temperature ID {} for fix deform/pressure does not exist", id_temp);
+    if (!temperature) {
+      error->all(FLERR, "Temperature compute ID {} for fix {} does not exist", id_temp, style);
+    } else {
+      if (temperature->tempflag == 0)
+        error->all(FLERR, "Compute ID {} for fix {} does not compute a temperature", id_temp, style);
+    }
 
     pressure = modify->get_compute_by_id(id_press);
     if (!pressure)
-      error->all(FLERR, "Pressure ID {} for fix deform/pressure does not exist", id_press);
+      error->all(FLERR,"Pressure compute ID {} for fix {} does not exist", id_press, style);
+    if (pressure->pressflag == 0)
+      error->all(FLERR,"Compute ID {} for fix {} does not compute pressure", id_press, style);
   }
 
   // if yz [3] changes and will cause box flip, then xy [5] cannot be changing

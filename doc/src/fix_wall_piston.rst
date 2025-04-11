@@ -33,7 +33,7 @@ Syntax
          *box* = the wall position is defined in simulation box units
 
 ..
-    FIXME: There are several "undocumented" key words for this fix: *rough*,
+    FIXME: There are several "undocumented" keywords for this fix: *rough*,
     *rampNL1*, *rampNL2*, *rampNL3*, *rampNL4*, and *rampNL5*.
 
 Examples

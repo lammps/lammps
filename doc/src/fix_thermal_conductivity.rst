@@ -58,7 +58,7 @@ are selected.  The two sets of Nswap atoms are paired up and their
 velocities are exchanged.  This effectively swaps their kinetic
 energies, assuming their masses are the same.  If the masses are
 different, an exchange of velocities relative to center of mass motion
-of the 2 atoms is performed, to conserve kinetic energy.  Over time,
+of the two atoms is performed, to conserve kinetic energy.  Over time,
 this induces a temperature gradient in the system which can be
 measured using commands such as the following, which writes the
 temperature profile (assuming z = edim) to the file tmp.profile:

@@ -183,7 +183,7 @@ void AngleQuartic::allocate()
 
 void AngleQuartic::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -206,7 +206,7 @@ void AngleQuartic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -324,4 +324,18 @@ void AngleQuartic::born_matrix(int type, int i1, int i2, int i3, double &du, dou
   du = -(2.0 * k2[type] * dtheta + 3.0 * k3[type] * dtheta2 + 4.0 * k4[type] * dtheta3) / s;
   du2 = (2.0 * k2[type] + 6.0 * k3[type] * dtheta + 12.0 * k4[type] * dtheta2) / (s*s) -
           (2.0 * k2[type] * dtheta + 3.0 * k3[type] * dtheta2 + 4.0 * k4[type] * dtheta3) * c / (s*s*s);
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleQuartic::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k2") == 0) return (void *) k2;
+  if (strcmp(str, "k3") == 0) return (void *) k3;
+  if (strcmp(str, "k4") == 0) return (void *) k4;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
+  return nullptr;
 }

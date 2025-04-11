@@ -34,6 +34,7 @@
 #include "fix.h"
 #include "force.h"
 #include "group.h"
+#include "info.h"
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
@@ -1553,10 +1554,11 @@ double PairTlsph::init_one(int i, int j) {
     allocate();
 
   if (setflag[i][j] == 0)
-    error->all(FLERR, "All pair coeffs are not set");
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   if (force->newton == 1)
-    error->all(FLERR, "Pair style tlsph requires newton off");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style tlsph requires newton off");
 
 // cutoff = sum of max I,J radii for
 // dynamic/dynamic & dynamic/frozen interactions, but not frozen/frozen

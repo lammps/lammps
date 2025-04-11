@@ -129,6 +129,11 @@ int colvardeps::enable(int feature_id,
   int res;
   size_t i, j;
   bool ok;
+
+  if (feature_id < 0 || feature_id >= int(features().size())) {
+    cvm::error("Error: colvardeps::enable() called with invalid feature_id " + cvm::to_str(feature_id) + "\n");
+    return COLVARS_ERROR;
+  }
   feature *f = features()[feature_id];
   feature_state *fs = &feature_states[feature_id];
 

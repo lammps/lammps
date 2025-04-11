@@ -52,6 +52,7 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
   restart_global = 1;
   restart_peratom = 1;
   first = 1;
+  stores_ids = 1;
 
   // perform initial allocation of atom-based arrays
   // register with atom class

@@ -53,9 +53,9 @@ struct NonTrivialScanFunctor {
 
   NonTrivialScanFunctor(const Kokkos::View<value_type *, ExecSpace> &data)
       : d_data(data) {}
-  NonTrivialScanFunctor(NonTrivialScanFunctor const &) = default;
-  NonTrivialScanFunctor(NonTrivialScanFunctor &&)      = default;
-  NonTrivialScanFunctor &operator=(NonTrivialScanFunctor &&) = default;
+  NonTrivialScanFunctor(NonTrivialScanFunctor const &)            = default;
+  NonTrivialScanFunctor(NonTrivialScanFunctor &&)                 = default;
+  NonTrivialScanFunctor &operator=(NonTrivialScanFunctor &&)      = default;
   NonTrivialScanFunctor &operator=(NonTrivialScanFunctor const &) = default;
   // Also make sure that it's OK if the destructor is not device-callable.
   ~NonTrivialScanFunctor() {}

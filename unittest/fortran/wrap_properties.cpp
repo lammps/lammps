@@ -77,11 +77,7 @@ TEST_F(LAMMPS_properties, get_mpi_comm)
 
 TEST_F(LAMMPS_properties, extract_setting)
 {
-#if defined(LAMMPS_SMALLSMALL)
-    EXPECT_EQ(f_lammps_extract_setting("bigint"), 4);
-#else
     EXPECT_EQ(f_lammps_extract_setting("bigint"), 8);
-#endif
 #if defined(LAMMPS_BIGBIG)
     EXPECT_EQ(f_lammps_extract_setting("tagint"), 8);
     EXPECT_EQ(f_lammps_extract_setting("imageint"), 8);

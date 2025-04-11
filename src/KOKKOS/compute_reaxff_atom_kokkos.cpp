@@ -63,6 +63,8 @@ void ComputeReaxFFAtomKokkos<DeviceType>::init()
 template<class DeviceType>
 void ComputeReaxFFAtomKokkos<DeviceType>::compute_bonds()
 {
+  invoked_bonds = update->ntimestep;
+
   if (atom->nmax > nmax) {
     memory->destroy(array_atom);
     nmax = atom->nmax;

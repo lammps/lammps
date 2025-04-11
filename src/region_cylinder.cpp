@@ -26,13 +26,12 @@ using namespace LAMMPS_NS;
 
 static constexpr double BIG = 1.0e20;
 
-enum { CONSTANT, VARIABLE };
-
 /* ---------------------------------------------------------------------- */
 
 RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
     Region(lmp, narg, arg), c1str(nullptr), c2str(nullptr), rstr(nullptr)
 {
+  c1style = c2style = CONSTANT;
   options(narg - 8, &arg[8]);
 
   // check open face settings

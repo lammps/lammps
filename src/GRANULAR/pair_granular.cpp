@@ -199,6 +199,11 @@ void PairGranular::compute(int eflag, int vflag)
       model->xj = x[j];
       model->radi = radius[i];
       model->radj = radius[j];
+      model->i = i;
+      model->j = j;
+      model->itype = itype;
+      model->jtype = jtype;
+
       if (use_history) model->touch = touch[jj];
 
       touchflag = model->check_contact();
@@ -329,7 +334,7 @@ void PairGranular::coeff(int narg, char **arg)
   double cutoff_one = -1;
 
   if (narg < 3)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   if (!allocated) allocate();
 
@@ -368,6 +373,9 @@ void PairGranular::coeff(int narg, char **arg)
     } else if (strcmp(arg[iarg], "limit_damping") == 0) {
       model->limit_damping = 1;
       iarg += 1;
+    } else if (strcmp(arg[iarg], "synchronized_verlet") == 0) {
+      model->synchronized_verlet = 1;
+      iarg += 1;
     } else error->all(FLERR, "Illegal pair_coeff command {}", arg[iarg]);
   }
 
@@ -389,7 +397,7 @@ void PairGranular::coeff(int narg, char **arg)
   // If there are > ntype^2 models, delete unused models
   if (nmodels == maxmodels) prune_models();
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -412,8 +420,10 @@ void PairGranular::init_style()
       error->all(FLERR,"Heat conduction in pair granular requires atom style with heatflow property");
   }
 
-  // allocate history and initialize models
+  // allocate history and aggregate model information
   class GranularModel* model;
+  double nsvector_total;
+  extra_svector = 0;
   int size_max[NSUBMODELS] = {0};
   for (int n = 0; n < nmodels; n++) {
     model = models_list[n];
@@ -424,11 +434,21 @@ void PairGranular::init_style()
     }
     if (model->size_history != 0) use_history = 1;
 
-    for (int i = 0; i < NSUBMODELS; i++)
+    nsvector_total = 0;
+    for (int i = 0; i < NSUBMODELS; i++) {
+      nsvector_total += model->sub_models[i]->nsvector;
       if (model->sub_models[i]->size_history > size_max[i])
         size_max[i] = model->sub_models[i]->size_history;
+    }
+    extra_svector = MAX(extra_svector, nsvector_total);
 
     if (model->nondefault_history_transfer) nondefault_history_transfer = 1;
+  }
+
+  if (extra_svector != 0) {
+    single_extra = 12 + extra_svector;
+    delete[] svector;
+    svector = new double[single_extra];
   }
 
   size_history = 0;
@@ -711,6 +731,10 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   model->xj = x[j];
   model->radi = radius[i];
   model->radj = radius[j];
+  model->i = i;
+  model->j = j;
+  model->itype = itype;
+  model->jtype = jtype;
   model->history_update = 0; // Don't update history
 
   // If history is needed
@@ -765,7 +789,9 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   model->omegaj = omega[j];
   model->history = history;
 
+  model->calculate_svector = 1;
   model->calculate_forces();
+  model->calculate_svector = 0;
 
   // apply forces & torques
   // Calculate normal component, normalized by r
@@ -784,6 +810,14 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   svector[9] = model->dx[0];
   svector[10] = model->dx[1];
   svector[11] = model->dx[2];
+
+  // add submodel-specific quantities
+  for (int n = 0; n < model->nsvector; n++)
+    svector[12 + n] = model->svector[n];
+
+  // zero any values unused by this specific model
+  for (int n = 12 + model->nsvector; n < single_extra; n++)
+    svector[n] = 0.0;
 
   return 0.0;
 }

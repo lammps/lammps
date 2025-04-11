@@ -49,7 +49,7 @@ angle.
 
 The torque on the dipole can be obtained by differentiating the
 potential using the 'chain rule' as in appendix C.3 of
-:ref:`(Allen) <Allen1>`:
+:ref:`(AllenTildesley) <Allen1>`:
 
 .. math::
 
@@ -129,5 +129,5 @@ lipid membranes, PloS ONE 6(12): e28637, 2011.
 
 .. _Allen1:
 
-**(Allen)** Allen & Tildesley, Computer Simulation of Liquids,
+**(AllenTildesley)** Allen & Tildesley, Computer Simulation of Liquids,
 Clarendon Press, Oxford, 1987.

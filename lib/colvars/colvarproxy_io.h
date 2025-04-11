@@ -10,9 +10,10 @@
 #ifndef COLVARPROXY_IO_H
 #define COLVARPROXY_IO_H
 
+#include <iosfwd>
+#include <list>
 #include <map>
 #include <string>
-#include <iosfwd>
 
 
 /// Methods for data input/output
@@ -66,22 +67,31 @@ public:
   }
 
   /// Prefix of the input state file to be read next
-  inline std::string & input_prefix()
+  inline std::string const & input_prefix() const
   {
     return input_prefix_str;
   }
 
+  /// Initialize input_prefix (NOTE: it will be erased after state file is read)
+  virtual int set_input_prefix(std::string const &prefix);
+
   /// Default prefix to be used for all output files (final configuration)
-  inline std::string & output_prefix()
+  inline std::string const & output_prefix() const
   {
     return output_prefix_str;
   }
 
+  /// Set default output prefix
+  virtual int set_output_prefix(std::string const &prefix);
+
   /// Prefix of the restart (checkpoint) file to be written next
-  inline std::string & restart_output_prefix()
+  inline std::string const & restart_output_prefix() const
   {
     return restart_output_prefix_str;
   }
+
+  /// Set default restart state file prefix
+  virtual int set_restart_output_prefix(std::string const &prefix);
 
   /// Default restart frequency (as set by the simulation engine)
   inline int default_restart_frequency() const
@@ -89,34 +99,48 @@ public:
     return restart_frequency_engine;
   }
 
-  /// Buffer from which the input state information may be read
-  inline char const * & input_buffer()
-  {
-    return input_buffer_;
-  }
+  /// Communicate/set the restart frequency of the simulation engine
+  virtual int set_default_restart_frequency(int freq);
+
+  // The input stream functions below are not virtual, because they currently
+  // rely on the fact that either std::ifstream or std::istringstream is used
 
   /// Returns a reference to given input stream, creating it if needed
   /// \param input_name File name (later only a handle)
   /// \param description Purpose of the file
   /// \param error_on_fail Raise error when failing to open (allow testing)
-  virtual std::istream &input_stream(std::string const &input_name,
-                                     std::string const description = "file/channel",
-                                     bool error_on_fail = true);
+  std::istream & input_stream(std::string const &input_name,
+                              std::string const description = "file/channel",
+                              bool error_on_fail = true);
+
+  /// Returns a reference to given input stream, creating it if needed
+  /// \param input_name Identifier of the input stream
+  /// \param content Set this string as the stream's buffer
+  /// \param description Purpose of the stream
+  std::istream & input_stream_from_string(std::string const &input_name,
+                                          std::string const &content,
+                                          std::string const description = "string");
 
   /// Check if the file/channel is open (without opening it if not)
-  virtual bool input_stream_exists(std::string const &input_name);
+  bool input_stream_exists(std::string const &input_name);
 
   /// Closes the given input stream
-  virtual int close_input_stream(std::string const &input_name);
+  int close_input_stream(std::string const &input_name);
 
   /// Closes all input streams
-  virtual int close_input_streams();
+  int close_input_streams();
+
+  /// Same as close_input_stream(), but also removes the corresponding entry from memory
+  int delete_input_stream(std::string const &input_name);
+
+  /// List all input streams that were opened at some point
+  std::list<std::string> list_input_stream_names() const;
 
   /// Returns a reference to the named output file/channel (open it if needed)
   /// \param output_name File name or identifier
   /// \param description Purpose of the file
   virtual std::ostream &output_stream(std::string const &output_name,
-                                      std::string const description = "file/channel");
+                                      std::string const description);
 
   /// Check if the file/channel is open (without opening it if not)
   virtual bool output_stream_exists(std::string const &output_name);
@@ -158,9 +182,6 @@ protected:
 
   /// Object whose reference is returned when write errors occur
   std::ostream *output_stream_error_;
-
-  /// Buffer from which the input state information may be read
-  char const *input_buffer_;
 };
 
 

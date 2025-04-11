@@ -89,8 +89,8 @@ be more robust than previous line searches we have tried.  The
 backtracking method is described in Nocedal and Wright's Numerical
 Optimization (Procedure 3.1 on p 41).
 
-The :doc:`minimization styles <min_style>` *quickmin*, *fire* and
-*fire/old* perform damped dynamics using an Euler integration step.  Thus
+The :doc:`minimization styles <min_style>` *quickmin* and *fire*
+perform damped dynamics using an Euler integration step.  Thus
 they require a :doc:`timestep <timestep>` be defined.
 
 .. note::
@@ -108,12 +108,12 @@ potential energy of the system as a function of the N atom
 coordinates:
 
 .. math::
- E(r_1,r_2, \ldots ,r_N)  = & \sum_{i,j} E_{\it pair}(r_i,r_j) +
-                              \sum_{ij} E_{\it bond}(r_i,r_j) +
-                              \sum_{ijk} E_{\it angle}(r_i,r_j,r_k) + \\
-                            & \sum_{ijkl} E_{\it dihedral}(r_i,r_j,r_k,r_l) +
-                              \sum_{ijkl} E_{\it improper}(r_i,r_j,r_k,r_l) +
-                              \sum_i E_{\it fix}(r_i)
+ E(r_1,r_2, \ldots ,r_N)  = & \sum_{i,j} E_{pair}(r_i,r_j) +
+                              \sum_{ij} E_{bond}(r_i,r_j) +
+                              \sum_{ijk} E_{angle}(r_i,r_j,r_k) + \\
+                            & \sum_{ijkl} E_{dihedral}(r_i,r_j,r_k,r_l) +
+                              \sum_{ijkl} E_{improper}(r_i,r_j,r_k,r_l) +
+                              \sum_i E_{fix}(r_i)
 
 where the first term is the sum of all non-bonded :doc:`pairwise
 interactions <pair_style>` including :doc:`long-range Coulombic

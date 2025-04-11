@@ -27,6 +27,7 @@ Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1, Matous Mrovec^1, Ralf Drau
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -439,7 +440,9 @@ void PairPACEExtrapolation::init_style()
 
 double PairPACEExtrapolation::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
   //cutoff from the basis set's radial functions settings
   scale[j][i] = scale[i][j];
   return aceimpl->basis_set->radial_functions->cut(map[i], map[j]);

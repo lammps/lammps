@@ -172,7 +172,6 @@ void FixShakeKokkos<DeviceType>::init()
   k_angle_distance.sync<DeviceType>();
 }
 
-
 /* ----------------------------------------------------------------------
    run setup for minimization.
 ------------------------------------------------------------------------- */
@@ -258,8 +257,8 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
   nlist = h_nlist();
 
   if (h_error_flag() == 1) {
-    error->one(FLERR,"Shake atoms missing on proc "
-                                 "{} at step {}",comm->me,update->ntimestep);
+    error->one(FLERR,"Shake atoms missing on proc {} at step {}{}",
+               comm->me,update->ntimestep, utils::errorurl(5));
   }
 }
 
@@ -460,8 +459,8 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   // free duplicated memory
 
   if (need_dup) {
-    dup_f = decltype(dup_f)();
-    dup_vatom = decltype(dup_vatom)();
+    dup_f = {};
+    dup_vatom = {};
   }
 }
 

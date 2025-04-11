@@ -2,7 +2,7 @@
 lammps_version: 30 Jul 2021
 tags: slow, unstable
 date_generated: Mon Aug 23 20:32:03 2021
-epsilon: 4e-12
+epsilon: 1e-11
 skip_tests:
 prerequisites: ! |
   pair reaxff

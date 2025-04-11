@@ -1,0 +1,5 @@
+This directory has multiple Makefile.lammps variant files with settings that
+allows LAMMPS to link with a BLAS/LAPACK or compatible library or the bundled
+linalg library (which is subset of BLAS/LAPACK). Copy the suitable file
+to Makefile.lammps and edit, if needed.
+This is required to use the RHEO package in a LAMMPS input script.

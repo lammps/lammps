@@ -24,6 +24,7 @@
 #include "error.h"
 #include "fix.h"
 #include "force.h"
+#include "info.h"
 #include "kokkos.h"
 #include "kokkos.h"
 #include "kokkos_few.h"
@@ -1159,7 +1160,9 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
 template<class DeviceType>
 double PairTableRXKokkos<DeviceType>::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
 
   tabindex[j][i] = tabindex[i][j];
 

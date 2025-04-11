@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meißner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
 ------------------------------------------------------------------------- */
 
 #include "slab_2d.h"
@@ -32,7 +32,7 @@ using namespace MathConst;
    Slab-geometry correction term (k=0) of EW2D. See Hu, JCTC 10:12 (2014)
    pp. 5254-5264 or metalwalls ewald and parallelization documentation.
 ------------------------------------------------------------------------- */
-Slab2d::Slab2d(LAMMPS *lmp) : BoundaryCorrection(lmp){};
+Slab2d::Slab2d(LAMMPS *lmp) : BoundaryCorrection(lmp) {};
 
 void Slab2d::compute_corr(double /*qsum*/, int eflag_atom, int eflag_global, double &energy,
                           double *eatom)
@@ -50,10 +50,10 @@ void Slab2d::compute_corr(double /*qsum*/, int eflag_atom, int eflag_global, dou
   std::vector<double> q_all = std::vector<double>(natoms);
   std::vector<int> recvcounts = gather_recvcounts(nlocal);
   std::vector<int> displs = gather_displs(recvcounts);
-  MPI_Allgatherv(q, nlocal, MPI_DOUBLE, &q_all.front(), &recvcounts.front(), &displs.front(),
+  MPI_Allgatherv(q, nlocal, MPI_DOUBLE, q_all.data(), recvcounts.data(), displs.data(), MPI_DOUBLE,
+                 world);
+  MPI_Allgatherv(z.data(), nlocal, MPI_DOUBLE, z_all.data(), recvcounts.data(), displs.data(),
                  MPI_DOUBLE, world);
-  MPI_Allgatherv(&z.front(), nlocal, MPI_DOUBLE, &z_all.front(), &recvcounts.front(),
-                 &displs.front(), MPI_DOUBLE, world);
 
   const double g_ewald_inv = 1.0 / g_ewald;
   double const scale = 1.0;
@@ -106,10 +106,10 @@ void Slab2d::vector_corr(double *vec, int sensor_grpbit, int source_grpbit, bool
   std::vector<double> q_all = std::vector<double>(n_electrolyte);
   std::vector<int> recvcounts = gather_recvcounts(n_electrolyte_local);
   std::vector<int> displs = gather_displs(recvcounts);
-  MPI_Allgatherv(&z_local.front(), n_electrolyte_local, MPI_DOUBLE, &z_all.front(),
-                 &recvcounts.front(), &displs.front(), MPI_DOUBLE, world);
-  MPI_Allgatherv(&q_local.front(), n_electrolyte_local, MPI_DOUBLE, &q_all.front(),
-                 &recvcounts.front(), &displs.front(), MPI_DOUBLE, world);
+  MPI_Allgatherv(z_local.data(), n_electrolyte_local, MPI_DOUBLE, z_all.data(), recvcounts.data(),
+                 displs.data(), MPI_DOUBLE, world);
+  MPI_Allgatherv(q_local.data(), n_electrolyte_local, MPI_DOUBLE, q_all.data(), recvcounts.data(),
+                 displs.data(), MPI_DOUBLE, world);
   double const g_ewald = force->kspace->g_ewald;
   double const area = domain->xprd * domain->yprd;
   double const prefac = 2 * MY_PIS / area;
@@ -152,8 +152,8 @@ void Slab2d::matrix_corr(bigint *imat, double **matrix)
   std::vector<int> recvcounts = gather_recvcounts(ngrouplocal);
   std::vector<int> displs = gather_displs(recvcounts);
   std::vector<double> nprd_all = std::vector<double>(ngroup);
-  MPI_Allgatherv(&nprd_local.front(), ngrouplocal, MPI_DOUBLE, &nprd_all.front(),
-                 &recvcounts.front(), &displs.front(), MPI_DOUBLE, world);
+  MPI_Allgatherv(nprd_local.data(), ngrouplocal, MPI_DOUBLE, nprd_all.data(), recvcounts.data(),
+                 displs.data(), MPI_DOUBLE, world);
 
   double const g_ewald = force->kspace->g_ewald;
   const double g_ewald_inv = 1.0 / g_ewald;

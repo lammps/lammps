@@ -43,10 +43,10 @@ void hostspace_parallel_deepcopy_async(void* dst, const void* src,
       "Kokkos::Impl::hostspace_parallel_deepcopy_async: fence after copy");
 }
 
-void hostspace_parallel_deepcopy_async(const DefaultHostExecutionSpace& exec,
-                                       void* dst, const void* src,
-                                       ptrdiff_t n) {
-  using policy_t = Kokkos::RangePolicy<Kokkos::DefaultHostExecutionSpace>;
+template <typename ExecutionSpace>
+void hostspace_parallel_deepcopy_async(const ExecutionSpace& exec, void* dst,
+                                       const void* src, ptrdiff_t n) {
+  using policy_t = Kokkos::RangePolicy<ExecutionSpace>;
 
   // If the asynchronous HPX backend is enabled, do *not* copy anything
   // synchronously. The deep copy must be correctly sequenced with respect to
@@ -55,8 +55,7 @@ void hostspace_parallel_deepcopy_async(const DefaultHostExecutionSpace& exec,
 #if !(defined(KOKKOS_ENABLE_HPX) && \
       defined(KOKKOS_ENABLE_IMPL_HPX_ASYNC_DISPATCH))
   constexpr int host_deep_copy_serial_limit = 10 * 8192;
-  if ((n < host_deep_copy_serial_limit) ||
-      (DefaultHostExecutionSpace().concurrency() == 1)) {
+  if ((n < host_deep_copy_serial_limit) || (exec.concurrency() == 1)) {
     if (0 < n) std::memcpy(dst, src, n);
     return;
   }
@@ -138,6 +137,18 @@ void hostspace_parallel_deepcopy_async(const DefaultHostExecutionSpace& exec,
   }
 }
 
+// Explicit instantiation
+template void hostspace_parallel_deepcopy_async<DefaultHostExecutionSpace>(
+    const DefaultHostExecutionSpace&, void*, const void*, ptrdiff_t);
+
+#if defined(KOKKOS_ENABLE_SERIAL) &&                                    \
+    (defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS) || \
+     defined(KOKKOS_ENABLE_HPX))
+// Instantiate only if both the Serial backend and some other host parallel
+// backend are enabled
+template void hostspace_parallel_deepcopy_async<Kokkos::Serial>(
+    const Kokkos::Serial&, void*, const void*, ptrdiff_t);
+#endif
 }  // namespace Impl
 
 }  // namespace Kokkos

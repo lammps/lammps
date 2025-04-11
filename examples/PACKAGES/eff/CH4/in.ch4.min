@@ -1,17 +1,17 @@
-variable	sname index ch4
+variable        sname index ch4
 
-units 		electron
-newton		on
+units           electron
+newton          on
 boundary        f f f
 
-atom_style	electron
+atom_style      electron
 
-read_data  	data.${sname}
+read_data       data.${sname}
 
 pair_style      eff/cut 100.0
-pair_coeff	* *
+pair_coeff      * *
 
-comm_modify	vel yes	
+comm_modify     vel yes 
 
 compute         effTemp all temp/eff
 
@@ -24,8 +24,8 @@ variable        erres equal c_energies[4]
 thermo          1
 thermo_style    custom step etotal pe ke v_eke v_epauli v_ecoul v_erres
 
-min_style	cg
+min_style       cg
 compute         1 all property/atom spin eradius erforce
-dump            2 all custom 10 ${sname}.min.lammpstrj id type q c_1[1] c_1[2] x y z fx fy fz c_1[3]
-minimize	0 1e-6 2000 4000
+#dump            2 all custom 10 ${sname}.min.lammpstrj id type q c_1[1] c_1[2] x y z fx fy fz c_1[3]
+minimize        0 1e-6 2000 4000
 

@@ -90,11 +90,11 @@ class SingleTaskQueue
   //----------------------------------------------------------------------------
   // <editor-fold desc="Constructors, destructors, and assignment"> {{{2
 
-  SingleTaskQueue()                       = delete;
-  SingleTaskQueue(SingleTaskQueue const&) = delete;
-  SingleTaskQueue(SingleTaskQueue&&)      = delete;
+  SingleTaskQueue()                                  = delete;
+  SingleTaskQueue(SingleTaskQueue const&)            = delete;
+  SingleTaskQueue(SingleTaskQueue&&)                 = delete;
   SingleTaskQueue& operator=(SingleTaskQueue const&) = delete;
-  SingleTaskQueue& operator=(SingleTaskQueue&&) = delete;
+  SingleTaskQueue& operator=(SingleTaskQueue&&)      = delete;
 
   explicit SingleTaskQueue(typename base_t::execution_space const&,
                            typename base_t::memory_space const&,
@@ -142,8 +142,8 @@ class SingleTaskQueue
   }
 
   KOKKOS_INLINE_FUNCTION
-  constexpr team_scheduler_info_type initial_team_scheduler_info(int) const
-      noexcept {
+  constexpr team_scheduler_info_type initial_team_scheduler_info(
+      int) const noexcept {
     return {};
   }
 };

@@ -14,8 +14,8 @@
 #ifndef LMP_ERROR_H
 #define LMP_ERROR_H
 
-#include "pointers.h"
 #include "exceptions.h"
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -27,18 +27,51 @@ class Error : protected Pointers {
   [[noreturn]] void universe_one(const std::string &, int, const std::string &);
   void universe_warn(const std::string &, int, const std::string &);
 
-  [[noreturn]] void all(const std::string &, int, const std::string &);
-  template <typename... Args>
-  void all(const std::string &file, int line, const std::string &format, Args &&...args)
+  static constexpr int NOPOINTER = -2;
+  static constexpr int NOLASTLINE = -3;
+  static constexpr int ARGZERO = -99;
+
+  // regular error calls
+
+  [[noreturn]] void all(const std::string &file, int line, const std::string &str)
   {
-    _all(file, line, format, fmt::make_format_args(args...));
+    all(file, line, NOPOINTER, str);
   }
 
-  [[noreturn]] void one(const std::string &, int, const std::string &);
   template <typename... Args>
-  void one(const std::string &file, int line, const std::string &format, Args &&...args)
+  [[noreturn]] void all(const std::string &file, int line, const std::string &format,
+                        Args &&...args)
   {
-    _one(file, line, format, fmt::make_format_args(args...));
+    _all(file, line, NOPOINTER, format, fmt::make_format_args(args...));
+  }
+
+  [[noreturn]] void one(const std::string &file, int line, const std::string &str)
+  {
+    one(file, line, NOPOINTER, str);
+  }
+
+  template <typename... Args>
+  [[noreturn]] void one(const std::string &file, int line, const std::string &format,
+                        Args &&...args)
+  {
+    _one(file, line, NOPOINTER, format, fmt::make_format_args(args...));
+  }
+
+  // overloaded error calls indicating faulty argument in command line
+  [[noreturn]] void all(const std::string &, int, int, const std::string &);
+  template <typename... Args>
+  [[noreturn]] void all(const std::string &file, int line, int failed, const std::string &format,
+                        Args &&...args)
+  {
+    _all(file, line, failed, format, fmt::make_format_args(args...));
+  }
+
+  [[noreturn]] void one(const std::string &, int, int, const std::string &);
+  template <typename... Args>
+  [[noreturn]] void one(const std::string &file, int line, int failed, const std::string &format,
+                        Args &&...args)
+  {
+    _one(file, line, failed, format, fmt::make_format_args(args...));
   }
 
   void warning(const std::string &, int, const std::string &);
@@ -65,15 +98,16 @@ class Error : protected Pointers {
   std::string get_last_error() const;
   ErrorType get_last_error_type() const;
   void set_last_error(const char *msg, ErrorType type = ERROR_NORMAL);
+  int set_show_error(const int flag);
 
  private:
   std::string last_error_message;
   ErrorType last_error_type;
 
-  int numwarn, maxwarn, allwarn;
+  int numwarn, maxwarn, allwarn, showerror;
   // internal versions that accept explicit fmtlib arguments
-  [[noreturn]] void _all(const std::string &, int, fmt::string_view, fmt::format_args args);
-  [[noreturn]] void _one(const std::string &, int, fmt::string_view, fmt::format_args args);
+  [[noreturn]] void _all(const std::string &, int, int, fmt::string_view, fmt::format_args args);
+  [[noreturn]] void _one(const std::string &, int, int, fmt::string_view, fmt::format_args args);
   void _warning(const std::string &, int, fmt::string_view, fmt::format_args args);
   void _message(const std::string &, int, fmt::string_view, fmt::format_args args);
 };

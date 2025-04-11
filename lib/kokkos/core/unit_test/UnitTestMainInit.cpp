@@ -15,7 +15,6 @@
 //@HEADER
 
 #include <gtest/gtest.h>
-#include <cstdlib>
 
 #include <Kokkos_Core.hpp>
 

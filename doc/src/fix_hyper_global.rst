@@ -111,15 +111,17 @@ The time boost factor for the system is given each timestep I by
 
    B_i = e^{\beta V^{max}_{ij}}
 
-where :math:`\beta = \frac{1}{kT_{equil}}`, and :math:`T_{equil}` is the temperature of the system
-and an argument to this fix.  Note that :math:`B_i >= 1` at every step.
+where :math:`\beta = \frac{1}{kT_{equil}}`, and :math:`T_{equil}` is the
+temperature of the system and an argument to this fix.  Note that
+:math:`B_i >= 1` at every step.
 
 .. note::
 
-   To run a GHD simulation, the input script must also use the :doc:`fix langevin <fix_langevin>` command to thermostat the atoms at the
-   same *Tequil* as specified by this fix, so that the system is running
-   constant-temperature (NVT) dynamics.  LAMMPS does not check that this
-   is done.
+   To run a GHD simulation, the input script must also use the :doc:`fix
+   langevin <fix_langevin>` command to thermostat the atoms at the same
+   :math:`T_{equil}` as specified by this fix, so that the system is
+   running constant-temperature (NVT) dynamics.  LAMMPS does not check
+   that this is done.
 
 The elapsed time :math:`t_{hyper}` for a GHD simulation running for *N*
 timesteps is simply
@@ -129,32 +131,33 @@ timesteps is simply
    t_{hyper} = \sum_{i=1,N} B-i \cdot dt
 
 where *dt* is the timestep size defined by the :doc:`timestep <timestep>`
-command.  The effective time acceleration due to GHD is thus t_hyper /
-N\*dt, where N\*dt is elapsed time for a normal MD run of N timesteps.
+command.  The effective time acceleration due to GHD is thus
+:math:`t_{hyper} / N * dt`, where N\*dt is elapsed time for a normal MD run
+of N timesteps.
 
-Note that in GHD, the boost factor varies from timestep to timestep.
-Likewise, which bond has :math:`E^{max}` strain and thus which pair of
-atoms the bias potential is added to, will also vary from timestep to timestep.
-This is in contrast to local hyperdynamics (LHD) where the boost
-factor is an input parameter; see the :doc:`fix hyper/local <fix_hyper_local>` page for details.
+Note that in GHD, the boost factor varies from timestep to timestep.  Likewise,
+which bond has :math:`E^{max}` strain and thus which pair of atoms the bias
+potential is added to, will also vary from timestep to timestep.  This is in
+contrast to local hyperdynamics (LHD) where the boost factor is an input
+parameter; see the :doc:`fix hyper/local <fix_hyper_local>` page for details.
 
 ----------
 
 Here is additional information on the input parameters for GHD.
 
-The *cutbond* argument is the cutoff distance for defining bonds
-between pairs of nearby atoms.  A pair of *ij* atoms in their
-equilibrium, minimum-energy configuration, which are separated by a
-distance :math:`R_{ij} < cutbond`, are flagged as a bonded pair.  Setting
+The *cutbond* argument is the cutoff distance for defining bonds between
+pairs of nearby atoms.  A pair of *ij* atoms in their equilibrium,
+minimum-energy configuration, which are separated by a distance
+:math:`R_{ij} < cutbond`, are flagged as a bonded pair.  Setting
 *cubond* to be ~25% larger than the nearest-neighbor distance in a
-crystalline lattice is a typical choice for solids, so that bonds
-exist only between nearest neighbor pairs.
+crystalline lattice is a typical choice for solids, so that bonds exist
+only between nearest neighbor pairs.
 
 The *qfactor* argument is the limiting strain at which the bias
 potential goes to 0.0.  It is dimensionless, so a value of 0.3 means a
 bond distance can be up to 30% larger or 30% smaller than the
-equilibrium (quenched) R0ij distance and the two atoms in the bond
-could still experience a non-zero bias force.
+equilibrium (quenched) :math:`R^0_{ij}` distance and the two atoms in
+the bond could still experience a non-zero bias force.
 
 If *qfactor* is set too large, then transitions from one energy basin
 to another are affected because the bias potential is non-zero at the
@@ -176,7 +179,7 @@ time-accurate trajectory of the system.
 
 Note that if *Vmax* is set too small, the GHD simulation will run
 correctly.  There will just be fewer events because the hyper time
-(t_hyper equation above) will be shorter.
+(:math:`t_{hyper}` equation above) will be shorter.
 
 .. note::
 
@@ -187,9 +190,10 @@ correctly.  There will just be fewer events because the hyper time
    rate does not change (as a function of hyper time).
 
 The *Tequil* argument is the temperature at which the system is
-simulated; see the comment above about the :doc:`fix langevin <fix_langevin>` thermostatting.  It is also part of the
-beta term in the exponential factor that determines how much boost is
-achieved as a function of the bias potential.
+simulated; see the comment above about the :doc:`fix langevin
+<fix_langevin>` thermostatting.  It is also part of the beta term in the
+exponential factor that determines how much boost is achieved as a
+function of the bias potential.
 
 In general, the lower the value of *Tequil* and the higher the value
 of *Vmax*, the more time boost will be achievable by the GHD
@@ -215,20 +219,20 @@ which can be accessed by various :doc:`output commands
 (energy units) applied on the current timestep.  The vector stores the
 following quantities:
 
-* 1 = boost factor on this step (unitless)
-* 2 = max strain :math:`E_{ij}` of any bond on this step (absolute value, unitless)
-* 3 = ID of first atom in the max-strain bond
-* 4 = ID of second atom in the max-strain bond
-* 5 = average # of bonds/atom on this step
+  #. boost factor on this step (unitless)
+  #. max strain :math:`E_{ij}` of any bond on this step (absolute value, unitless)
+  #. ID of first atom in the max-strain bond
+  #. ID of second atom in the max-strain bond
+  #. average # of bonds/atom on this step
 
-* 6 = fraction of timesteps where the biased bond has bias = 0.0 during this run
-* 7 = fraction of timesteps where the biased bond has negative strain during this run
-* 8 = max drift distance of any atom during this run (distance units)
-* 9 = max bond length during this run (distance units)
+  #. fraction of timesteps where the biased bond has bias = 0.0 during this run
+  #. fraction of timesteps where the biased bond has negative strain during this run
+  #. max drift distance of any atom during this run (distance units)
+  #. max bond length during this run (distance units)
 
-* 10 = cumulative hyper time since fix was defined (time units)
-* 11 = cumulative count of event timesteps since fix was defined
-* 12 = cumulative count of atoms in events since fix was defined
+  #. cumulative hyper time since fix was defined (time units)
+  #. cumulative count of event timesteps since fix was defined
+  #. cumulative count of atoms in events since fix was defined
 
 The first 5 quantities are for the current timestep.  Quantities 6-9
 are for the current hyper run.  They are reset each time a new hyper

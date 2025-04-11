@@ -32,19 +32,9 @@ int setenv(const char *name, const char *value, int overwrite) {
 int unsetenv(const char *name) { return _putenv_s(name, ""); }
 #endif
 
-// Needed because https://github.com/google/googletest/issues/952 has not been
-// resolved
-#define EXPECT_THROW_WITH_MESSAGE(stmt, etype, whatstring)      \
-  EXPECT_THROW(                                                 \
-      try { stmt; } catch (const etype &ex) {                   \
-        EXPECT_EQ(std::string(ex.what()).find(whatstring), 0u); \
-        throw;                                                  \
-      },                                                        \
-      etype)
-
 class ctest_environment : public ::testing::Test {
  protected:
-  void SetUp();
+  void SetUp() override;
 };
 
 void ctest_environment::SetUp() {
@@ -76,6 +66,8 @@ void ctest_environment::SetUp() {
   setenv("CTEST_RESOURCE_GROUP_9_GPUS", "id:4,slots:1", 1);
 }
 
+struct ctest_environment_DeathTest : public ctest_environment {};
+
 TEST_F(ctest_environment, no_device_type) {
   unsetenv("CTEST_KOKKOS_DEVICE_TYPE");
   EXPECT_EQ(Kokkos::Impl::get_ctest_gpu(0), 0);
@@ -86,47 +78,47 @@ TEST_F(ctest_environment, no_process_count) {
   EXPECT_EQ(Kokkos::Impl::get_ctest_gpu(0), 0);
 }
 
-TEST_F(ctest_environment, invalid_rank) {
-  EXPECT_THROW_WITH_MESSAGE(
-      Kokkos::Impl::get_ctest_gpu(10), std::runtime_error,
-      "Error: local rank 10 is outside the bounds of resource groups provided "
-      "by CTest.");
+TEST_F(ctest_environment_DeathTest, invalid_rank) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+  EXPECT_DEATH(Kokkos::Impl::get_ctest_gpu(10),
+               "Error: local rank 10 is outside the bounds of resource groups "
+               "provided by CTest.");
 }
 
-TEST_F(ctest_environment, no_type_str) {
-  EXPECT_THROW_WITH_MESSAGE(
-      Kokkos::Impl::get_ctest_gpu(0), std::runtime_error,
-      "Error: CTEST_RESOURCE_GROUP_0 is not specified. Raised by "
-      "Kokkos::Impl::get_ctest_gpu().");
+TEST_F(ctest_environment_DeathTest, no_type_str) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+  EXPECT_DEATH(Kokkos::Impl::get_ctest_gpu(0),
+               "Error: CTEST_RESOURCE_GROUP_0 is not specified. Raised by "
+               "Kokkos::Impl::get_ctest_gpu\\(\\).");
 }
 
-TEST_F(ctest_environment, missing_type) {
-  EXPECT_THROW_WITH_MESSAGE(
-      Kokkos::Impl::get_ctest_gpu(1), std::runtime_error,
+TEST_F(ctest_environment_DeathTest, missing_type) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+  EXPECT_DEATH(
+      Kokkos::Impl::get_ctest_gpu(1),
       "Error: device type 'gpus' not included in CTEST_RESOURCE_GROUP_1. "
-      "Raised by Kokkos::Impl::get_ctest_gpu().");
-  EXPECT_THROW_WITH_MESSAGE(
-      Kokkos::Impl::get_ctest_gpu(2), std::runtime_error,
+      "Raised by Kokkos::Impl::get_ctest_gpu\\(\\).");
+  EXPECT_DEATH(
+      Kokkos::Impl::get_ctest_gpu(2),
       "Error: device type 'gpus' not included in CTEST_RESOURCE_GROUP_2. "
-      "Raised by Kokkos::Impl::get_ctest_gpu().");
+      "Raised by Kokkos::Impl::get_ctest_gpu\\(\\).");
 }
 
-TEST_F(ctest_environment, no_id_str) {
-  EXPECT_THROW_WITH_MESSAGE(
-      Kokkos::Impl::get_ctest_gpu(3), std::runtime_error,
-      "Error: CTEST_RESOURCE_GROUP_3_GPUS is not specified. Raised by "
-      "Kokkos::Impl::get_ctest_gpu().");
+TEST_F(ctest_environment_DeathTest, no_id_str) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+  EXPECT_DEATH(Kokkos::Impl::get_ctest_gpu(3),
+               "Error: CTEST_RESOURCE_GROUP_3_GPUS is not specified. Raised by "
+               "Kokkos::Impl::get_ctest_gpu\\(\\).");
 }
 
-TEST_F(ctest_environment, invalid_id_str) {
-  EXPECT_THROW_WITH_MESSAGE(
-      Kokkos::Impl::get_ctest_gpu(4), std::runtime_error,
-      "Error: invalid value of CTEST_RESOURCE_GROUP_4_GPUS: 'id:2'. Raised by "
-      "Kokkos::Impl::get_ctest_gpu().");
-  EXPECT_THROW_WITH_MESSAGE(
-      Kokkos::Impl::get_ctest_gpu(5), std::runtime_error,
-      "Error: invalid value of CTEST_RESOURCE_GROUP_5_GPUS: 'slots:1,id:2'. "
-      "Raised by Kokkos::Impl::get_ctest_gpu().");
+TEST_F(ctest_environment_DeathTest, invalid_id_str) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+  EXPECT_DEATH(Kokkos::Impl::get_ctest_gpu(4),
+               "Error: invalid value of CTEST_RESOURCE_GROUP_4_GPUS: 'id:2'. "
+               "Raised by Kokkos::Impl::get_ctest_gpu\\(\\).");
+  EXPECT_DEATH(Kokkos::Impl::get_ctest_gpu(5),
+               "Error: invalid value of CTEST_RESOURCE_GROUP_5_GPUS: "
+               "'slots:1,id:2'. Raised by Kokkos::Impl::get_ctest_gpu\\(\\).");
 }
 
 TEST_F(ctest_environment, good) {

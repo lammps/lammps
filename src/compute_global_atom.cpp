@@ -37,16 +37,18 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // process index arg
 
-  int iarg = 3;
+  const int ioffset = 3;
+  int iarg = ioffset;
   ArgInfo argi(arg[iarg]);
 
   reference.which = argi.get_type();
   reference.argindex = argi.get_index1();
   reference.id = argi.get_name();
+  reference.iarg = iarg;
 
   if ((reference.which == ArgInfo::UNKNOWN) || (reference.which == ArgInfo::NONE)
       || (argi.get_dim() > 1))
-    error->all(FLERR,"Illegal compute global/atom index property: {}", arg[iarg]);
+    error->all(FLERR, iarg, "Illegal compute global/atom index property: {}", arg[iarg]);
 
   iarg++;
 
@@ -54,7 +56,8 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  int nargnew = utils::expand_args(FLERR,narg-iarg,&arg[iarg],1,earg,lmp);
+  int *amap = nullptr;
+  int nargnew = utils::expand_args(FLERR,narg-iarg,&arg[iarg],1,earg,lmp,&amap);
 
   if (earg != &arg[iarg]) expand = 1;
   arg = earg;
@@ -69,12 +72,14 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
     value_t val;
     val.which = argi2.get_type();
     val.argindex = argi2.get_index1();
+    if (expand) val.iarg = amap[iarg] + ioffset;
+    else val.iarg = iarg + ioffset;
     val.id = argi2.get_name();
     val.val.c = nullptr;
 
     if ((val.which == ArgInfo::UNKNOWN) || (val.which == ArgInfo::NONE)
         || (argi2.get_dim() > 1))
-      error->all(FLERR,"Illegal compute global/atom global property: {}", arg[iarg]);
+      error->all(FLERR, val.iarg, "Illegal compute global/atom global property: {}", arg[iarg]);
 
     values.push_back(val);
   }
@@ -84,6 +89,7 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
   if (expand) {
     for (int i = 0; i < nargnew; i++) delete [] earg[i];
     memory->sfree(earg);
+    memory->sfree(amap);
   }
 
   // setup and error check for both, index arg and values
@@ -91,85 +97,92 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
   if (reference.which == ArgInfo::COMPUTE) {
     reference.val.c = modify->get_compute_by_id(reference.id);
     if (!reference.val.c)
-      error->all(FLERR,"Compute ID {} for compute global/atom index", reference.id);
+      error->all(FLERR,reference.iarg,"Compute ID {} for compute global/atom index",reference.id);
 
     if (!reference.val.c->peratom_flag)
-      error->all(FLERR,"Compute global/atom compute {} does not calculate a per-atom "
-                 "vector or array", reference.id);
+      error->all(FLERR, reference.iarg, "Compute global/atom compute {} does not calculate a "
+                 "per-atom vector or array", reference.id);
     if ((reference.argindex == 0) && (reference.val.c->size_peratom_cols != 0))
-      error->all(FLERR,"Compute global/atom compute {} does not calculate a per-atom "
-                 "vector", reference.id);
+      error->all(FLERR, reference.iarg, "Compute global/atom compute {} does not calculate a "
+                 "per-atom vector", reference.id);
     if (reference.argindex && (reference.val.c->size_peratom_cols == 0))
-      error->all(FLERR,"Compute global/atom compute does not calculate a per-atom "
+      error->all(FLERR, reference.iarg, "Compute global/atom compute does not calculate a per-atom "
                  "array", reference.id);
     if (reference.argindex && (reference.argindex > reference.val.c->size_peratom_cols))
-      error->all(FLERR, "Compute global/atom compute array {} is accessed out-of-range",
-        reference.id);
+      error->all(FLERR, reference.iarg, "Compute global/atom compute array {} is accessed "
+                 "out-of-range{}", reference.id, utils::errorurl(20));
 
   } else if (reference.which == ArgInfo::FIX) {
     reference.val.f =modify->get_fix_by_id(reference.id);
     if (!reference.val.f)
-      error->all(FLERR,"Fix ID {} for compute global/atom does not exist", reference.id);
+      error->all(FLERR, reference.iarg, "Fix ID {} for compute global/atom does not exist",
+                 reference.id);
     if (!reference.val.f->peratom_flag)
-      error->all(FLERR,"Compute global/atom fix {} does not calculate a per-atom vector "
-                 "or array", reference.id);
+      error->all(FLERR, reference.iarg, "Compute global/atom fix {} does not calculate a per-atom "
+                 "vector or array", reference.id);
     if (reference.argindex == 0 && (reference.val.f->size_peratom_cols != 0))
-      error->all(FLERR,"Compute global/atom fix {} does not calculate a per-atom vector",
-                 reference.id);
+      error->all(FLERR, reference.iarg, "Compute global/atom fix {} does not calculate a per-atom "
+                 "vector", reference.id);
     if (reference.argindex && (reference.val.f->size_peratom_cols == 0))
-      error->all(FLERR,"Compute global/atom fix {} does not calculate a per-atom array",
-                 reference.id);
+      error->all(FLERR, reference.iarg, "Compute global/atom fix {} does not calculate a per-atom "
+                 "array", reference.id);
     if (reference.argindex && (reference.argindex > reference.val.f->size_peratom_cols))
-      error->all(FLERR, "Compute global/atom fix {} array is accessed out-of-range", reference.id);
+      error->all(FLERR, reference.iarg, "Compute global/atom fix {} array is accessed "
+                 "out-of-range{}", reference.id, utils::errorurl(20));
 
   } else if (reference.which == ArgInfo::VARIABLE) {
     reference.val.v = input->variable->find(reference.id.c_str());
     if (reference.val.v < 0)
-      error->all(FLERR,"Variable name {} for compute global/atom index does not exist",
-                 reference.id);
+      error->all(FLERR, reference.iarg, "Variable name {} for compute global/atom index does "
+                 "not exist", reference.id);
     if (input->variable->atomstyle(reference.val.v) == 0)
-      error->all(FLERR,"Compute global/atom index variable {} is not atom-style variable",
-        reference.id);
+      error->all(FLERR, reference.iarg, "Compute global/atom index variable {} is not atom-style "
+                 "variable", reference.id);
   }
 
   for (auto &val : values) {
     if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
       if (!val.val.c)
-        error->all(FLERR,"Compute ID {} for compute global/atom does not exist", val.id);
+        error->all(FLERR, val.iarg, "Compute ID {} for compute global/atom does not exist", val.id);
       if (val.argindex == 0) {
         if (!val.val.c->vector_flag)
-          error->all(FLERR,"Compute ID {} for global/atom compute does not calculate "
+          error->all(FLERR, val.iarg, "Compute ID {} for global/atom compute does not calculate "
                      "a global vector", val.id);
       } else {
         if (!val.val.c->array_flag)
-          error->all(FLERR,"Compute ID {} for global/atom compute does not calculate "
+          error->all(FLERR,  val.iarg, "Compute ID {} for global/atom compute does not calculate "
                      "a global array", val.id);
         if (val.argindex > val.val.c->size_array_cols)
-          error->all(FLERR,"Compute global/atom compute {} array is accessed out-of-range", val.id);
+          error->all(FLERR, val.iarg, "Compute global/atom compute {} array is accessed "
+                     "out-of-range{}", val.id, utils::errorurl(20));
       }
 
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
-      if (!val.val.f) error->all(FLERR,"Fix ID {} for compute global/atom does not exist", val.id);
+      if (!val.val.f)
+        error->all(FLERR, val.iarg, "Fix ID {} for compute global/atom does not exist", val.id);
       if (val.argindex == 0) {
         if (!val.val.f->vector_flag)
-          error->all(FLERR,"Fix ID {} for compute global/atom compute does not calculate "
-                     "a global vector", val.id);
+          error->all(FLERR, val.iarg, "Fix ID {} for compute global/atom compute does not "
+                     "calculate a global vector", val.id);
       } else {
         if (!val.val.f->array_flag)
-          error->all(FLERR,"Fix ID {} for compute global/atom compute does not calculate "
-                     "a global array", val.id);
+          error->all(FLERR, val.iarg, "Fix ID {} for compute global/atom compute does not "
+                     "calculate a global array", val.id);
         if (val.argindex > val.val.f->size_array_cols)
-          error->all(FLERR,"Compute global/atom fix {} array is accessed out-of-range", val.id);
+          error->all(FLERR, val.iarg, "Compute global/atom fix {} array is accessed "
+                     "out-of-range{}", val.id, utils::errorurl(20));
       }
 
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
       if (val.val.v < 0)
-        error->all(FLERR,"Variable name {} for compute global/atom does not exist", val.id);
+        error->all(FLERR, val.iarg, "Variable name {} for compute global/atom does not exist",
+                   val.id);
       if (input->variable->vectorstyle(val.val.v) == 0)
-        error->all(FLERR,"Compute global/atom variable {} is not vector-style variable", val.id);
+        error->all(FLERR, val.iarg, "Compute global/atom variable {} is not vector-style variable",
+                   val.id);
     }
   }
 
@@ -203,33 +216,38 @@ void ComputeGlobalAtom::init()
   if (reference.which == ArgInfo::COMPUTE) {
     reference.val.c = modify->get_compute_by_id(reference.id);
     if (!reference.val.c)
-      error->all(FLERR,"Compute ID {} for compute global/atom index does not exist", reference.id);
+      error->all(FLERR, Error::NOLASTLINE, "Compute ID {} for compute global/atom index does not "
+                 "exist", reference.id);
   } else if (reference.which == ArgInfo::FIX) {
     reference.val.f = modify->get_fix_by_id(reference.id);
     if (reference.val.f)
-      error->all(FLERR,"Fix ID {} for compute global/atom index does not exist", reference.id);
+      error->all(FLERR, Error::NOLASTLINE, "Fix ID {} for compute global/atom index does not exist",
+                 reference.id);
   } else if (reference.which == ArgInfo::VARIABLE) {
     reference.val.v = input->variable->find(reference.id.c_str());
     if (reference.val.v < 0)
-      error->all(FLERR,"Variable name {} for compute global/atom index does not exist",
-                 reference.id);
+      error->all(FLERR, Error::NOLASTLINE, "Variable name {} for compute global/atom index does "
+                 "not exist", reference.id);
   }
 
   for (auto &val : values) {
     if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
       if (!val.val.c)
-        error->all(FLERR,"Compute ID {} for compute global/atom does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE, "Compute ID {} for compute global/atom does not exist",
+                   val.id);
 
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
       if (!val.val.f)
-        error->all(FLERR,"Fix ID {} for compute global/atom does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE, "Fix ID {} for compute global/atom does not exist",
+                   val.id);
 
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
       if (val.val.v < 0)
-        error->all(FLERR,"Variable name {} for compute global/atom does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE, "Variable name {} for compute global/atom does not "
+                   "exist", val.id);
     }
   }
 }
@@ -288,8 +306,8 @@ void ComputeGlobalAtom::compute_peratom()
 
   } else if (reference.which == ArgInfo::FIX) {
     if (update->ntimestep % reference.val.f->peratom_freq)
-      error->all(FLERR,"Fix {} used in compute global/atom not computed at compatible time",
-                 reference.id);
+      error->all(FLERR, Error::NOLASTLINE, "Fix {} used in compute global/atom not computed at "
+                 "compatible time{}", reference.id, utils::errorurl(7));
 
     if (reference.argindex == 0) {
       double *fix_vector = reference.val.f->vector_atom;
@@ -334,8 +352,8 @@ void ComputeGlobalAtom::compute_peratom()
 
       } else if (val.which == ArgInfo::FIX) {
         if (update->ntimestep % val.val.f->peratom_freq)
-          error->all(FLERR,"Fix {} used in compute global/atom not computed at compatible time",
-            val.id);
+          error->all(FLERR, Error::NOLASTLINE, "Fix {} used in compute global/atom not computed "
+                     "at compatible time{}", val.id, utils::errorurl(7));
         vmax = reference.val.f->size_vector;
 
         if (vmax > maxvector) {
@@ -401,8 +419,8 @@ void ComputeGlobalAtom::compute_peratom()
 
       } else if (val.which == ArgInfo::FIX) {
         if (update->ntimestep % val.val.f->peratom_freq)
-          error->all(FLERR,"Fix {} used in compute global/atom not computed at compatible time",
-            val.id);
+          error->all(FLERR, Error::NOLASTLINE, "Fix {} used in compute global/atom not computed "
+                     "at compatible time{}", val.id, utils::errorurl(7));
         vmax = val.val.f->size_array_rows;
 
         if (vmax > maxvector) {

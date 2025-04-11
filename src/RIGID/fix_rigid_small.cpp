@@ -2625,9 +2625,9 @@ void FixRigidSmall::write_restart_file(const char *file)
       error->one(FLERR, "Cannot open fix {} restart file {}: {}",
                  style, outfile, utils::getsyserror());
 
-    fmt::print(fp,"# fix rigid mass, COM, inertia tensor info for "
+    utils::print(fp,"# fix rigid mass, COM, inertia tensor info for "
                "{} bodies on timestep {}\n\n",nbody,update->ntimestep);
-    fmt::print(fp,"{}\n",nbody);
+    utils::print(fp,"{}\n",nbody);
   }
 
   // communication buffer for all my rigid body info

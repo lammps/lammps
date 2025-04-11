@@ -60,32 +60,9 @@ struct TestRange {
     Kokkos::parallel_for(Kokkos::RangePolicy<ExecSpace, ScheduleType>(0, N),
                          *this);
 
-    {
-      using ThisType = TestRange<ExecSpace, ScheduleType>;
-      std::string label("parallel_for");
-      Kokkos::Impl::ParallelConstructName<ThisType, void> pcn(label);
-      ASSERT_EQ(pcn.get(), label);
-      std::string empty_label("");
-      Kokkos::Impl::ParallelConstructName<ThisType, void> empty_pcn(
-          empty_label);
-      ASSERT_EQ(empty_pcn.get(), typeid(ThisType).name());
-    }
-
     Kokkos::parallel_for(
         Kokkos::RangePolicy<ExecSpace, ScheduleType, VerifyInitTag>(0, N),
         *this);
-
-    {
-      using ThisType = TestRange<ExecSpace, ScheduleType>;
-      std::string label("parallel_for");
-      Kokkos::Impl::ParallelConstructName<ThisType, VerifyInitTag> pcn(label);
-      ASSERT_EQ(pcn.get(), label);
-      std::string empty_label("");
-      Kokkos::Impl::ParallelConstructName<ThisType, VerifyInitTag> empty_pcn(
-          empty_label);
-      ASSERT_EQ(empty_pcn.get(), std::string(typeid(ThisType).name()) + "/" +
-                                     typeid(VerifyInitTag).name());
-    }
 
     Kokkos::deep_copy(host_flags, m_flags);
 
@@ -202,14 +179,13 @@ struct TestRange {
   }
 
   void test_dynamic_policy() {
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     auto const N_no_implicit_capture = N;
     using policy_t =
-        Kokkos::RangePolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> >;
+        Kokkos::RangePolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic>>;
     int const concurrency = ExecSpace().concurrency();
 
     {
-      Kokkos::View<size_t *, ExecSpace, Kokkos::MemoryTraits<Kokkos::Atomic> >
+      Kokkos::View<size_t *, ExecSpace, Kokkos::MemoryTraits<Kokkos::Atomic>>
           count("Count", concurrency);
       Kokkos::View<int *, ExecSpace> a("A", N);
 
@@ -247,7 +223,7 @@ struct TestRange {
     }
 
     {
-      Kokkos::View<size_t *, ExecSpace, Kokkos::MemoryTraits<Kokkos::Atomic> >
+      Kokkos::View<size_t *, ExecSpace, Kokkos::MemoryTraits<Kokkos::Atomic>>
           count("Count", concurrency);
       Kokkos::View<int *, ExecSpace> a("A", N);
 
@@ -288,7 +264,6 @@ struct TestRange {
         //}
       }
     }
-#endif
   }
 };
 
@@ -296,58 +271,58 @@ struct TestRange {
 
 TEST(TEST_CATEGORY, range_for) {
   {
-    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> > f(0);
+    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>> f(0);
     f.test_for();
   }
   {
-    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(0);
-    f.test_for();
-  }
-
-  {
-    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> > f(2);
-    f.test_for();
-  }
-  {
-    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(3);
+    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>> f(0);
     f.test_for();
   }
 
   {
-    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> > f(1000);
+    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>> f(2);
     f.test_for();
   }
   {
-    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(1001);
+    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>> f(3);
+    f.test_for();
+  }
+
+  {
+    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>> f(1000);
+    f.test_for();
+  }
+  {
+    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>> f(1001);
     f.test_for();
   }
 }
 
 TEST(TEST_CATEGORY, range_reduce) {
   {
-    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> > f(0);
+    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>> f(0);
     f.test_reduce();
   }
   {
-    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(0);
-    f.test_reduce();
-  }
-
-  {
-    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> > f(2);
-    f.test_reduce();
-  }
-  {
-    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(3);
+    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>> f(0);
     f.test_reduce();
   }
 
   {
-    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static> > f(1000);
+    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>> f(2);
     f.test_reduce();
   }
   {
-    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(1001);
+    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>> f(3);
+    f.test_reduce();
+  }
+
+  {
+    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>> f(1000);
+    f.test_reduce();
+  }
+  {
+    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>> f(1001);
     f.test_reduce();
   }
 }
@@ -357,18 +332,53 @@ TEST(TEST_CATEGORY, range_dynamic_policy) {
 #if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP) && \
     !defined(KOKKOS_ENABLE_SYCL)
   {
-    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(0);
+    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>> f(0);
     f.test_dynamic_policy();
   }
   {
-    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(3);
+    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>> f(3);
     f.test_dynamic_policy();
   }
   {
-    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(1001);
+    TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>> f(1001);
     f.test_dynamic_policy();
   }
 #endif
+}
+#endif
+
+// For 32-bit builds a View can't store enough elements
+#ifndef KOKKOS_IMPL_32BIT
+void test_large_parallel_for_reduce() {
+  using ExecutionSpace              = typename TEST_EXECSPACE::execution_space;
+  constexpr long long unsigned size = 1llu << 32;
+  Kokkos::View<char *, TEST_EXECSPACE::memory_space> v(
+      Kokkos::view_alloc(Kokkos::WithoutInitializing, "v"), size);
+
+  // We want to explicitly test that using a parallel_for for filling the View
+  // works to test if our internal block size calculations do not overflow.
+  Kokkos::parallel_for(
+      Kokkos::RangePolicy<ExecutionSpace,
+                          Kokkos::IndexType<long long unsigned>>(0, size),
+      KOKKOS_LAMBDA(long long unsigned i) { v(i) = 1; });
+
+  long long unsigned sum;
+  Kokkos::parallel_reduce(
+      Kokkos::RangePolicy<ExecutionSpace,
+                          Kokkos::IndexType<long long unsigned>>(0, size),
+      KOKKOS_LAMBDA(long long unsigned, long long unsigned &partial_sum) {
+        partial_sum += 1;
+      },
+      sum);
+  ASSERT_EQ(sum, size);
+}
+
+TEST(TEST_CATEGORY, large_parallel_for_reduce) {
+  if constexpr (std::is_same_v<typename TEST_EXECSPACE::memory_space,
+                               Kokkos::HostSpace>) {
+    GTEST_SKIP() << "Disabling for host backends";
+  }
+  test_large_parallel_for_reduce();
 }
 #endif
 

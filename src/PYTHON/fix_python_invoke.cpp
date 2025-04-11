@@ -22,6 +22,7 @@
 #include "lmppython.h"
 #include "python_compat.h"
 #include "python_utils.h"
+#include "modify.h"
 #include "update.h"
 
 #include <cstring>
@@ -69,7 +70,13 @@ FixPythonInvoke::FixPythonInvoke(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Could not find Python function");
   }
 
-  lmpPtr = PY_VOID_POINTER(lmp);
+  lmpPtr = PyCapsule_New((void *)lmp, nullptr, nullptr);
+
+  // nvalid = next step on which end_of_step or post_force does something
+  // add nextvalid() to all computes that store invocation times
+  // since we don't know a priori which are invoked by python code
+  nvalid = nextvalid();
+  modify->addstep_compute_all(nvalid);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -89,8 +96,23 @@ int FixPythonInvoke::setmask()
 
 /* ---------------------------------------------------------------------- */
 
+void FixPythonInvoke::init()
+{
+  // need to reset nvalid if nvalid < ntimestep b/c minimize was performed
+
+  if (nvalid < update->ntimestep) {
+    nvalid = nextvalid();
+    modify->addstep_compute_all(nvalid);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixPythonInvoke::end_of_step()
 {
+  // python code may invoke computes so wrap with clear/add
+  modify->clearstep_compute();
+
   PyUtils::GIL lock;
 
   PyObject * result = PyObject_CallFunction((PyObject*)pFunc, (char *)"O", (PyObject*)lmpPtr);
@@ -101,6 +123,16 @@ void FixPythonInvoke::end_of_step()
   }
 
   Py_CLEAR(result);
+
+  nvalid = nextvalid();
+  modify->addstep_compute(nvalid);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPythonInvoke::setup(int vflag)
+{
+  if (selected_callback == POST_FORCE) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,6 +140,9 @@ void FixPythonInvoke::end_of_step()
 void FixPythonInvoke::post_force(int vflag)
 {
   if (update->ntimestep % nevery != 0) return;
+
+  // python code may invoke computes so wrap with clear/add
+  modify->clearstep_compute();
 
   PyUtils::GIL lock;
   char fmt[] = "Oi";
@@ -120,4 +155,14 @@ void FixPythonInvoke::post_force(int vflag)
   }
 
   Py_CLEAR(result);
+
+  nvalid = nextvalid();
+  modify->addstep_compute(nvalid);
+}
+
+/* ---------------------------------------------------------------------- */
+
+bigint FixPythonInvoke::nextvalid()
+{
+  return (update->ntimestep/nevery + 1)*nevery;
 }

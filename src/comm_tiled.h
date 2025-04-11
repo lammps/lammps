@@ -32,19 +32,19 @@ class CommTiled : public Comm {
   void exchange() override;                     // move atoms to new procs
   void borders() override;                      // setup list of atoms to comm
 
-  void forward_comm(class Pair *) override;                 // forward comm from a Pair
-  void reverse_comm(class Pair *) override;                 // reverse comm from a Pair
-  void forward_comm(class Bond *) override;                 // forward comm from a Bond
-  void reverse_comm(class Bond *) override;                 // reverse comm from a Bond
-  void forward_comm(class Fix *, int size = 0) override;    // forward comm from a Fix
-  void reverse_comm(class Fix *, int size = 0) override;    // reverse comm from a Fix
-  void reverse_comm_variable(class Fix *) override;         // variable size reverse comm from a Fix
-  void forward_comm(class Compute *) override;              // forward from a Compute
-  void reverse_comm(class Compute *) override;              // reverse from a Compute
-  void forward_comm(class Dump *) override;                 // forward comm from a Dump
-  void reverse_comm(class Dump *) override;                 // reverse comm from a Dump
+  void forward_comm(class Pair *, int size = 0) override;     // forward comm from a Pair
+  void reverse_comm(class Pair *, int size = 0) override;     // reverse comm from a Pair
+  void forward_comm(class Bond *, int size = 0) override;     // forward comm from a Bond
+  void reverse_comm(class Bond *, int size = 0) override;     // reverse comm from a Bond
+  void forward_comm(class Fix *, int size = 0) override;      // forward comm from a Fix
+  void reverse_comm(class Fix *, int size = 0) override;      // reverse comm from a Fix
+  void reverse_comm_variable(class Fix *) override;           // variable size reverse comm from a Fix
+  void forward_comm(class Compute *, int size = 0) override;  // forward from a Compute
+  void reverse_comm(class Compute *, int size = 0) override;  // reverse from a Compute
+  void forward_comm(class Dump *, int size = 0) override;     // forward comm from a Dump
+  void reverse_comm(class Dump *, int size = 0) override;     // reverse comm from a Dump
 
-  void forward_comm_array(int, double **) override;            // forward comm of array
+  void forward_comm_array(int, double **) override;    // forward comm of array
 
   void coord2proc_setup() override;
   int coord2proc(double *, int &, int &, int &) override;
@@ -146,14 +146,14 @@ class CommTiled : public Comm {
   int point_drop_tiled_recurse(double *, int, int);
   int closer_subbox_edge(int, double *);
 
-  virtual void grow_send(int, int);               // reallocate send buffer
-  virtual void grow_recv(int, int flag = 0);      // free/allocate recv buffer
-  virtual void grow_list(int, int, int);          // reallocate sendlist for one swap/proc
-  void allocate_swap(int);                // allocate swap arrays
-  virtual void grow_swap_send(int, int, int);     // grow swap arrays for send and recv
-  void grow_swap_send_multi(int, int);    // grow multi swap arrays for send and recv
+  virtual void grow_send(int, int);              // reallocate send buffer
+  virtual void grow_recv(int, int flag = 0);     // free/allocate recv buffer
+  virtual void grow_list(int, int, int);         // reallocate sendlist for one swap/proc
+  void allocate_swap(int);                       // allocate swap arrays
+  virtual void grow_swap_send(int, int, int);    // grow swap arrays for send and recv
+  void grow_swap_send_multi(int, int);           // grow multi swap arrays for send and recv
   void grow_swap_recv(int, int);
-  void deallocate_swap(int);    // deallocate swap arrays
+  void deallocate_swap(int);                     // deallocate swap arrays
 };
 
 }    // namespace LAMMPS_NS

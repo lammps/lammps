@@ -1,7 +1,10 @@
 .. index:: improper_style hybrid
+.. index:: improper_style hybrid/kk
 
 improper_style hybrid command
 =============================
+
+Accelerator Variants: *hybrid/kk*
 
 Syntax
 """"""
@@ -79,6 +82,10 @@ types.
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Restrictions
 """"""""""""
 
@@ -87,9 +94,10 @@ MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
 for more info.
 
 Unlike other improper styles, the hybrid improper style does not store
-improper coefficient info for individual sub-styles in a :doc:`binary restart files <restart>`.
-Thus when restarting a simulation from a
-restart file, you need to re-specify improper_coeff commands.
+improper coefficient info for individual sub-styles in :doc:`binary
+restart files <restart>` or :doc:`data files <write_data>`.  Thus when
+restarting a simulation, you need to re-specify the improper_coeff
+commands.
 
 Related commands
 """"""""""""""""

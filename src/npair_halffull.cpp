@@ -50,7 +50,7 @@ NPairHalffull<NEWTON, TRI, TRIM>::NPairHalffull(LAMMPS *lmp) : NPair(lmp) {}
 template<int NEWTON, int TRI, int TRIM>
 void NPairHalffull<NEWTON, TRI, TRIM>::build(NeighList *list)
 {
-  int i, j, ii, jj, n, jnum, joriginal;
+  int i, j, ii, jj, n, jnum, joriginal, itype, jtype;
   int *neighptr, *jlist;
   double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
 
@@ -58,6 +58,7 @@ void NPairHalffull<NEWTON, TRI, TRIM>::build(NeighList *list)
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
+  int *type = atom->type;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -85,6 +86,7 @@ void NPairHalffull<NEWTON, TRI, TRIM>::build(NeighList *list)
     // loop over parent full list
 
     i = ilist_full[ii];
+    itype = type[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -95,6 +97,7 @@ void NPairHalffull<NEWTON, TRI, TRIM>::build(NeighList *list)
     for (jj = 0; jj < jnum; jj++) {
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
+      jtype = type[j];
 
       if (NEWTON) {
         if (j < nlocal) {
@@ -121,7 +124,8 @@ void NPairHalffull<NEWTON, TRI, TRIM>::build(NeighList *list)
           delz = ztmp - x[j][2];
           rsq = delx * delx + dely * dely + delz * delz;
 
-          if (rsq > cutsq_custom) continue;
+          double cutsq_trim = (cutsq_custom > 0.0) ? cutsq_custom : cutneighsq[itype][jtype];
+          if (rsq > cutsq_trim) continue;
         }
 
         neighptr[n++] = joriginal;
@@ -133,7 +137,8 @@ void NPairHalffull<NEWTON, TRI, TRIM>::build(NeighList *list)
             delz = ztmp - x[j][2];
             rsq = delx * delx + dely * dely + delz * delz;
 
-            if (rsq > cutsq_custom) continue;
+            double cutsq_trim = (cutsq_custom > 0.0) ? cutsq_custom : cutneighsq[itype][jtype];
+            if (rsq > cutsq_trim) continue;
           }
 
           neighptr[n++] = joriginal;

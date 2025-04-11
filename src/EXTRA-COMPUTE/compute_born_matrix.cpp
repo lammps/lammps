@@ -113,7 +113,8 @@ static int constexpr albemunu[21][4] = {
 /* ---------------------------------------------------------------------- */
 
 ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), id_virial(nullptr), temp_x(nullptr), temp_f(nullptr)
+    Compute(lmp, narg, arg), values_local(nullptr), values_global(nullptr), list(nullptr),
+    id_virial(nullptr), compute_virial(nullptr), temp_x(nullptr), temp_f(nullptr)
 {
   if (narg < 3) error->all(FLERR, "Illegal compute born/matrix command");
 

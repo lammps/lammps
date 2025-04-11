@@ -94,12 +94,12 @@ represents what is generally referred to as an "instance of LAMMPS".  It
 is a composite holding pointers to instances of other core classes
 providing the core functionality of the MD engine in LAMMPS and through
 them abstractions of the required operations.  The constructor of the
-LAMMPS class will instantiate those instances, process the command line
+LAMMPS class will instantiate those instances, process the command-line
 flags, initialize MPI (if not already done) and set up file pointers for
 input and output.  The destructor will shut everything down and free all
 associated memory.  Thus code for the standalone LAMMPS executable in
 ``main.cpp`` simply initializes MPI, instantiates a single instance of
-LAMMPS while passing it the command line flags and input script. It
+LAMMPS while passing it the command-line flags and input script. It
 deletes the LAMMPS instance after the method reading the input returns
 and shuts down the MPI environment before it exits the executable.
 

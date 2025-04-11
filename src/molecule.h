@@ -16,6 +16,9 @@
 
 #include "pointers.h"
 
+#include "nlohmann/json.hpp"
+using json = nlohmann::json;
+
 namespace LAMMPS_NS {
 
 class Molecule : protected Pointers {
@@ -134,24 +137,30 @@ class Molecule : protected Pointers {
  private:
   int me;
   FILE *fp;
+  json jsonf;
   int *count;
   int toffset, boffset, aoffset, doffset, ioffset;
   int autospecial;
   double sizescale;
 
   void read(int);
+  void read_json(int);
   void coords(char *);
+  void coords_json();
   void types(char *);
+  void types_json();
   void molecules(char *);
+  void molecules_json();
   void fragments(char *);
   void charges(char *);
+  void charges_json();
   void diameters(char *);
   void dipoles(char *);
   void masses(char *);
-  void bonds(int, char *);
-  void angles(int, char *);
-  void dihedrals(int, char *);
-  void impropers(int, char *);
+  void bonds(int, char *, int);
+  void angles(int, char *, int);
+  void dihedrals(int, char *, int);
+  void impropers(int, char *, int);
   void nspecial_read(int, char *);
   void special_read(char *);
   void special_generate();
@@ -167,10 +176,8 @@ class Molecule : protected Pointers {
   void readline(char *);
   std::string parse_keyword(int, char *);
   void skip_lines(int, char *, const std::string &);
-
-  // void print();
 };
 
-}    // namespace LAMMPS_NS
+}
 
 #endif

@@ -64,7 +64,6 @@ class FixAveTime : public Fix {
   int all_variable_length;
   int lockforever;
   bool yaml_flag, yaml_header;
-  bool variance;
 
   int ave, nwindow, startstep, mode;
   int noff, overwrite;
@@ -83,15 +82,6 @@ class FixAveTime : public Fix {
   double **array;
   double **array_total;
   double ***array_list;
-
-  // Variance vectors and arrays
-  double *varmold, *varmnew, *varsold, *varsnew;
-  double *variance_total;
-  double **variance_list;
-  double **variance_array;
-  double **varmold_array, **varmnew_array;
-  double **varsold_array, **varsnew_array;
-  double ***variance_array_list;
 
   int column_length(int);
   void invoke_scalar(bigint);

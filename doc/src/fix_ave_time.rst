@@ -56,6 +56,7 @@ Syntax
          string = text to print as 2nd line of output file
        *title3* arg = string
          string = text to print as 3rd line of output file, only for vector mode
+       *var* arg = none = computes the variance of the values
 
 Examples
 """"""""
@@ -337,6 +338,25 @@ describes the two values that are printed at the first of each section
 of output.  In the third line the values are replaced with the
 appropriate fields from the fix ave/time command.
 
+The *var* keyword will perform the computation of the variance of the values
+using the one pass Welford’s method :ref:`(Welford) <Welford>`,:ref:`(Knuth)
+<Knuth>`. If the *ave* option is set to either running or window, the returned
+variance is the running average of the computed variances. The underlying
+hypothesis is that the covariance between each Nrepeat cycle is close to 0.
+The variances are written in the output files after each average
+values it corresponds to. For example, in scalar mode, the order would be:
+
+.. parsed-literal::
+
+   # Time-averaged data for fix ID
+   # TimeStep value1 value1.var value2 value2.var ...
+
+The default headers are modified accordingly by addind values with a `.var`
+extension.
+
+with the latest output, so that it only contains one time step worth of
+output.  This option can only be used with the *ave running* setting.
+
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info
@@ -395,3 +415,13 @@ Default
 The option defaults are mode = scalar, ave = one, start = 0, no file
 output, format = %g, title 1,2,3 = strings as described above, and no
 off settings for any input values.
+
+----------
+
+.. _Welford:
+
+**Welford** B. P. Welford Technometrics 4(3) 419–420
+
+.. _Knuth:
+
+**Knuth** D. E. Knuth  The Art of Computer Programming, vol. 2: Seminumerical Algorithms, 3rd edn., p. 232. Boston: Addison-Wesley.

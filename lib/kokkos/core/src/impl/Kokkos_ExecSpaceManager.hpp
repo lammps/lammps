@@ -123,14 +123,14 @@ template <class ExecutionSpace>
 struct ExecSpaceDerived : ExecSpaceBase {
   static_assert(check_valid_execution_space<ExecutionSpace>());
   static_assert(check_is_regular<ExecutionSpace>());
-  void initialize(InitializationSettings const& settings) final {
+  void initialize(InitializationSettings const& settings) override final {
     ExecutionSpace::impl_initialize(settings);
   }
-  void finalize() final { ExecutionSpace::impl_finalize(); }
-  void static_fence(std::string const& label) final {
+  void finalize() override final { ExecutionSpace::impl_finalize(); }
+  void static_fence(std::string const& label) override final {
     ExecutionSpace::impl_static_fence(label);
   }
-  void print_configuration(std::ostream& os, bool verbose) final {
+  void print_configuration(std::ostream& os, bool verbose) override final {
     ExecutionSpace().print_configuration(os, verbose);
   }
 };

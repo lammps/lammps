@@ -49,7 +49,7 @@ struct __type_at_assign_op_impl {
 template <size_t _I, class... _Ts, size_t... _Idxs>
 struct __type_at_large_impl<_I, __type_list<_Ts...>, std::integer_sequence<size_t, _Idxs...>>
   : decltype(
-      _MDSPAN_FOLD_ASSIGN_LEFT(__type_at_assign_op_impl{}, /* = ... = */ __type_at_entry<_I, _Idxs, _Ts>{})
+      MDSPAN_IMPL_FOLD_ASSIGN_LEFT(__type_at_assign_op_impl{}, /* = ... = */ __type_at_entry<_I, _Idxs, _Ts>{})
     )
 { };
 
@@ -84,4 +84,3 @@ struct __type_at<3, __type_list<_T0, _T1, _T2, _T3, _Ts...>> {
 //==============================================================================
 
 } // end namespace MDSPAN_IMPL_STANDARD_NAMESPACE
-

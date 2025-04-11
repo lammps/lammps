@@ -48,7 +48,7 @@ version 23 November 2023 and Kokkos version 4.2.
 
    Kokkos requires using a compiler that supports the c++17 standard. For
    some compilers, it may be necessary to add a flag to enable c++17 support.
-   For example, the GNU compiler uses the -std=c++17 flag. For a list of
+   For example, the GNU compiler uses the ``-std=c++17`` flag. For a list of
    compilers that have been tested with the Kokkos library, see the
    `requirements document of the Kokkos Wiki
    <https://kokkos.github.io/kokkos-core-wiki/requirements.html>`_.
@@ -67,6 +67,14 @@ version 23 November 2023 and Kokkos version 4.2.
    To build with Kokkos support for AMD GPUs, the AMD ROCm toolkit
    software version 5.2.0 or later must be installed on your system.
 
+.. admonition:: Intel Data Center GPU support
+   :class: note
+
+   Support for Kokkos with Intel Data Center GPU accelerators (formerly
+   known under the code name "Ponte Vecchio") in LAMMPS is still a work
+   in progress.  Only a subset of the functionality works correctly.
+   Please contact the LAMMPS developers if you run into problems.
+
 .. admonition:: CUDA and MPI library compatibility
    :class: note
 
@@ -77,16 +85,18 @@ version 23 November 2023 and Kokkos version 4.2.
    rank.  When running with multiple MPI ranks, you may see segmentation
    faults without GPU-aware MPI support. These can be avoided by adding
    the flags :doc:`-pk kokkos gpu/aware off <Run_options>` to the
-   LAMMPS command line or by using the command :doc:`package kokkos
+   LAMMPS command-line or by using the command :doc:`package kokkos
    gpu/aware off <package>` in the input file.
 
-.. admonition:: Intel Data Center GPU support
+.. admonition:: Using multiple MPI ranks per GPU
    :class: note
 
-   Support for Kokkos with Intel Data Center GPU accelerators (formerly
-   known under the code name "Ponte Vecchio") in LAMMPS is still a work
-   in progress.  Only a subset of the functionality works correctly.
-   Please contact the LAMMPS developers if you run into problems.
+   Unlike with the GPU package, there are limited benefits from using
+   multiple MPI processes per GPU with KOKKOS.  But when doing this it
+   is **required** to enable CUDA MPS (`Multi-Process Service :: GPU
+   Deployment and Management Documentation
+   <https://docs.nvidia.com/deploy/mps/index.html>`_ ) to get acceptable
+   performance.
 
 Building LAMMPS with the KOKKOS package
 """""""""""""""""""""""""""""""""""""""
@@ -111,14 +121,21 @@ for CPU acceleration, assuming one or more 16-core nodes.
 
 .. code-block:: bash
 
-   mpirun -np 16 lmp_kokkos_mpi_only -k on -sf kk -in in.lj        # 1 node, 16 MPI tasks/node, no multi-threading
-   mpirun -np 2 -ppn 1 lmp_kokkos_omp -k on t 16 -sf kk -in in.lj  # 2 nodes, 1 MPI task/node, 16 threads/task
-   mpirun -np 2 lmp_kokkos_omp -k on t 8 -sf kk -in in.lj          # 1 node,  2 MPI tasks/node, 8 threads/task
-   mpirun -np 32 -ppn 4 lmp_kokkos_omp -k on t 4 -sf kk -in in.lj  # 8 nodes, 4 MPI tasks/node, 4 threads/task
+   # 1 node, 16 MPI tasks/node, no multi-threading
+   mpirun -np 16 lmp_kokkos_mpi_only -k on -sf kk -in in.lj
 
-To run using the KOKKOS package, use the "-k on", "-sf kk" and "-pk
-kokkos" :doc:`command-line switches <Run_options>` in your mpirun
-command.  You must use the "-k on" :doc:`command-line switch <Run_options>` to enable the KOKKOS package. It takes
+   # 2 nodes, 1 MPI task/node, 16 threads/task
+   mpirun -np 2 -ppn 1 lmp_kokkos_omp -k on t 16 -sf kk -in in.lj
+
+   # 1 node,  2 MPI tasks/node, 8 threads/task
+   mpirun -np 2 lmp_kokkos_omp -k on t 8 -sf kk -in in.lj
+
+   # 8 nodes, 4 MPI tasks/node, 4 threads/task
+   mpirun -np 32 -ppn 4 lmp_kokkos_omp -k on t 4 -sf kk -in in.lj
+
+To run using the KOKKOS package, use the ``-k on``, ``-sf kk`` and ``-pk
+kokkos`` :doc:`command-line switches <Run_options>` in your ``mpirun``
+command.  You must use the ``-k on`` :doc:`command-line switch <Run_options>` to enable the KOKKOS package. It takes
 additional arguments for hardware settings appropriate to your system.
 For OpenMP use:
 
@@ -126,18 +143,18 @@ For OpenMP use:
 
    -k on t Nt
 
-The "t Nt" option specifies how many OpenMP threads per MPI task to
-use with a node. The default is Nt = 1, which is MPI-only mode.  Note
+The ``t Nt`` option specifies how many OpenMP threads per MPI task to
+use with a node. The default is ``Nt`` = 1, which is MPI-only mode.  Note
 that the product of MPI tasks \* OpenMP threads/task should not exceed
 the physical number of cores (on a node), otherwise performance will
 suffer. If Hyper-Threading (HT) is enabled, then the product of MPI
 tasks \* OpenMP threads/task should not exceed the physical number of
-cores \* hardware threads.  The "-k on" switch also issues a
-"package kokkos" command (with no additional arguments) which sets
+cores \* hardware threads.  The ``-k on`` switch also issues a
+``package kokkos`` command (with no additional arguments) which sets
 various KOKKOS options to default values, as discussed on the
 :doc:`package <package>` command doc page.
 
-The "-sf kk" :doc:`command-line switch <Run_options>` will automatically
+The ``-sf kk`` :doc:`command-line switch <Run_options>` will automatically
 append the "/kk" suffix to styles that support it.  In this manner no
 modification to the input script is needed. Alternatively, one can run
 with the KOKKOS package by editing the input script as described
@@ -146,20 +163,22 @@ below.
 .. note::
 
    When using a single OpenMP thread, the Kokkos Serial back end (i.e.
-   Makefile.kokkos_mpi_only) will give better performance than the OpenMP
-   back end (i.e. Makefile.kokkos_omp) because some of the overhead to make
+   ``Makefile.kokkos_mpi_only``) will give better performance than the OpenMP
+   back end (i.e. ``Makefile.kokkos_omp``) because some of the overhead to make
    the code thread-safe is removed.
 
 .. note::
 
-   Use the "-pk kokkos" :doc:`command-line switch <Run_options>` to
+   Use the ``-pk kokkos`` :doc:`command-line switch <Run_options>` to
    change the default :doc:`package kokkos <package>` options. See its doc
    page for details and default settings. Experimenting with its options
    can provide a speed-up for specific calculations. For example:
 
 .. code-block:: bash
 
-   mpirun -np 16 lmp_kokkos_mpi_only -k on -sf kk -pk kokkos newton on neigh half comm no -in in.lj       # Newton on, Half neighbor list, non-threaded comm
+   # Newton on, Half neighbor list, non-threaded comm
+   mpirun -np 16 lmp_kokkos_mpi_only -k on -sf kk \
+          -pk kokkos newton on neigh half comm no -in in.lj
 
 If the :doc:`newton <newton>` command is used in the input
 script, it can also override the Newton flag defaults.
@@ -172,7 +191,7 @@ small numbers of threads (i.e. 8 or less) but does increase memory
 footprint and is not scalable to large numbers of threads. An
 alternative to data duplication is to use thread-level atomic operations
 which do not require data duplication. The use of atomic operations can
-be enforced by compiling LAMMPS with the "-DLMP_KOKKOS_USE_ATOMICS"
+be enforced by compiling LAMMPS with the ``-DLMP_KOKKOS_USE_ATOMICS``
 pre-processor flag. Most but not all Kokkos-enabled pair_styles support
 data duplication. Alternatively, full neighbor lists avoid the need for
 duplication or atomic operations but require more compute operations per
@@ -190,10 +209,13 @@ they do not migrate during a simulation.
 If you are not certain MPI tasks are being bound (check the defaults
 for your MPI installation), binding can be forced with these flags:
 
-.. parsed-literal::
+.. code-block:: bash
 
-   OpenMPI 1.8:  mpirun -np 2 --bind-to socket --map-by socket ./lmp_openmpi ...
-   Mvapich2 2.0: mpiexec -np 2 --bind-to socket --map-by socket ./lmp_mvapich ...
+   # OpenMPI 1.8
+   mpirun -np 2 --bind-to socket --map-by socket ./lmp_openmpi ...
+
+   # Mvapich2 2.0
+   mpiexec -np 2 --bind-to socket --map-by socket ./lmp_mvapich ...
 
 For binding threads with KOKKOS OpenMP, use thread affinity environment
 variables to force binding. With OpenMP 3.1 (gcc 4.7 or later, intel 12
@@ -222,15 +244,24 @@ Examples of mpirun commands that follow these rules are shown below.
 
 .. code-block:: bash
 
-   # Running on an Intel KNL node with 68 cores (272 threads/node via 4x hardware threading):
-   mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -in in.lj      # 1 node, 64 MPI tasks/node, 4 threads/task
-   mpirun -np 66 lmp_kokkos_phi -k on t 4 -sf kk -in in.lj      # 1 node, 66 MPI tasks/node, 4 threads/task
-   mpirun -np 32 lmp_kokkos_phi -k on t 8 -sf kk -in in.lj      # 1 node, 32 MPI tasks/node, 8 threads/task
-   mpirun -np 512 -ppn 64 lmp_kokkos_phi -k on t 4 -sf kk -in in.lj  # 8 nodes, 64 MPI tasks/node, 4 threads/task
+   # Running on an Intel KNL node with 68 cores
+   # (272 threads/node via 4x hardware threading):
 
-The -np setting of the mpirun command sets the number of MPI
-tasks/node. The "-k on t Nt" command-line switch sets the number of
-threads/task as Nt. The product of these two values should be N, i.e.
+   # 1 node, 64 MPI tasks/node, 4 threads/task
+   mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -in in.lj
+
+   # 1 node, 66 MPI tasks/node, 4 threads/task
+   mpirun -np 66 lmp_kokkos_phi -k on t 4 -sf kk -in in.lj
+
+   # 1 node, 32 MPI tasks/node, 8 threads/task
+   mpirun -np 32 lmp_kokkos_phi -k on t 8 -sf kk -in in.lj
+
+   # 8 nodes, 64 MPI tasks/node, 4 threads/task
+   mpirun -np 512 -ppn 64 lmp_kokkos_phi -k on t 4 -sf kk -in in.lj
+
+The ``-np`` setting of the mpirun command sets the number of MPI
+tasks/node. The ``-k on t Nt`` command-line switch sets the number of
+threads/task as ``Nt``. The product of these two values should be N, i.e.
 256 or 264.
 
 .. note::
@@ -240,7 +271,7 @@ threads/task as Nt. The product of these two values should be N, i.e.
    flag to "on" for both pairwise and bonded interactions. This will
    typically be best for many-body potentials. For simpler pairwise
    potentials, it may be faster to use a "full" neighbor list with
-   Newton flag to "off".  Use the "-pk kokkos" :doc:`command-line switch
+   Newton flag to "off".  Use the ``-pk kokkos`` :doc:`command-line switch
    <Run_options>` to change the default :doc:`package kokkos <package>`
    options. See its documentation page for details and default
    settings. Experimenting with its options can provide a speed-up for
@@ -248,8 +279,12 @@ threads/task as Nt. The product of these two values should be N, i.e.
 
 .. code-block:: bash
 
-   mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -pk kokkos comm host -in in.reax      #  Newton on, half neighbor list, threaded comm
-   mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -pk kokkos newton off neigh full comm no -in in.lj      # Newton off, full neighbor list, non-threaded comm
+   #  Newton on, half neighbor list, threaded comm
+   mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -pk kokkos comm host -in in.reax
+
+   # Newton off, full neighbor list, non-threaded comm
+   mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk \
+          -pk kokkos newton off neigh full comm no -in in.lj
 
 .. note::
 
@@ -266,8 +301,8 @@ threads/task as Nt. The product of these two values should be N, i.e.
 Running on GPUs
 ^^^^^^^^^^^^^^^
 
-Use the "-k" :doc:`command-line switch <Run_options>` to specify the
-number of GPUs per node. Typically the -np setting of the mpirun command
+Use the ``-k`` :doc:`command-line switch <Run_options>` to specify the
+number of GPUs per node. Typically the ``-np`` setting of the ``mpirun`` command
 should set the number of MPI tasks/node to be equal to the number of
 physical GPUs on the node. You can assign multiple MPI tasks to the same
 GPU with the KOKKOS package, but this is usually only faster if some
@@ -290,8 +325,11 @@ one or more nodes, each with two GPUs:
 
 .. code-block:: bash
 
-   mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -in in.lj          # 1 node,   2 MPI tasks/node, 2 GPUs/node
-   mpirun -np 32 -ppn 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -in in.lj  # 16 nodes, 2 MPI tasks/node, 2 GPUs/node (32 GPUs total)
+   # 1 node,   2 MPI tasks/node, 2 GPUs/node
+   mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -in in.lj
+
+   # 16 nodes, 2 MPI tasks/node, 2 GPUs/node (32 GPUs total)
+   mpirun -np 32 -ppn 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -in in.lj
 
 .. note::
 
@@ -303,7 +341,7 @@ one or more nodes, each with two GPUs:
    neighbor lists and setting the Newton flag to "on" may be faster. For
    many pair styles, setting the neighbor binsize equal to twice the CPU
    default value will give speedup, which is the default when running on
-   GPUs. Use the "-pk kokkos" :doc:`command-line switch <Run_options>`
+   GPUs. Use the ``-pk kokkos`` :doc:`command-line switch <Run_options>`
    to change the default :doc:`package kokkos <package>` options. See
    its documentation page for details and default
    settings. Experimenting with its options can provide a speed-up for
@@ -311,7 +349,9 @@ one or more nodes, each with two GPUs:
 
 .. code-block:: bash
 
-   mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos newton on neigh half binsize 2.8 -in in.lj      # Newton on, half neighbor list, set binsize = neighbor ghost cutoff
+   # Newton on, half neighbor list, set binsize = neighbor ghost cutoff
+   mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk \
+          -pk kokkos newton on neigh half binsize 2.8 -in in.lj
 
 .. note::
 
@@ -329,37 +369,87 @@ one or more nodes, each with two GPUs:
    more), the creation of the atom map (required for molecular systems)
    on the GPU can slow down significantly or run out of GPU memory and
    thus slow down the whole calculation or cause a crash.  You can use
-   the "-pk kokkos atom/map no" :doc:`command-line switch <Run_options>`
+   the ``-pk kokkos atom/map no`` :doc:`command-line switch <Run_options>`
    of the :doc:`package kokkos atom/map no <package>` command to create
    the atom map on the CPU instead.
 
 .. note::
 
-   When using a GPU, you will achieve the best performance if your
-   input script does not use fix or compute styles which are not yet
+   When using a GPU, you will achieve the best performance if your input
+   script does not use fix or compute styles which are not yet
    Kokkos-enabled. This allows data to stay on the GPU for multiple
    timesteps, without being copied back to the host CPU. Invoking a
-   non-Kokkos fix or compute, or performing I/O for
-   :doc:`thermo <thermo_style>` or :doc:`dump <dump>` output will cause data
-   to be copied back to the CPU incurring a performance penalty.
+   non-Kokkos fix or compute, or performing I/O for :doc:`thermo
+   <thermo_style>` or :doc:`dump <dump>` output will cause data to be
+   copied back to the CPU incurring a performance penalty.
 
 .. note::
 
    To get an accurate timing breakdown between time spend in pair,
-   kspace, etc., you must set the environment variable CUDA_LAUNCH_BLOCKING=1.
+   kspace, etc., you must set the environment variable ``CUDA_LAUNCH_BLOCKING=1``.
    However, this will reduce performance and is not recommended for production runs.
+
+Troubleshooting segmentation faults on GPUs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As noted above, KOKKOS by default assumes that the MPI library is
+GPU-aware.  This is not always the case and can lead to segmentation
+faults when using more than one MPI process.  Normally, LAMMPS will
+print a warning like "*Turning off GPU-aware MPI since it is not
+detected*", or an error message like "*Kokkos with GPU-enabled backend
+assumes GPU-aware MPI is available*", OR a **segmentation fault**.  To
+confirm that a segmentation fault is caused by this, you can turn off
+the GPU-aware assumption via the :doc:`package kokkos command <package>`
+or the corresponding command-line flag.
+
+If you still get a segmentation fault, despite running with only one MPI
+process or using the command-line flag to turn off expecting a GPU-aware
+MPI library, then using the CMake compile setting
+``-DKokkos_ENABLE_DEBUG=on`` or adding ``KOKKOS_DEBUG=yes`` to your
+machine makefile for building with traditional make will generate useful
+output that can be passed to the LAMMPS developers for further
+debugging.
+
+Troubleshooting memory allocation on GPUs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Kokkos Tools <https://github.com/kokkos/kokkos-tools/>`_ provides a set
+of lightweight profiling and debugging utilities, which interface with
+instrumentation hooks (eg. `space-time-stack
+<https://github.com/kokkos/kokkos-tools/tree/develop/profiling/space-time-stack>`_)
+built directly into the Kokkos runtime.  After compiling a dynamic LAMMPS
+library, you then have to set the environment variable ``KOKKOS_TOOLS_LIBS``
+before executing your LAMMPS Kokkos run. Example:
+
+.. code-block:: bash
+
+    export KOKKOS_TOOLS_LIBS=${HOME}/kokkos-tools/src/tools/memory-events/kp_memory_event.so
+    mpirun -np 4 lmp_kokkos_cuda_openmpi -in in.lj -k on g 4 -sf kk
+
+Starting with the NVIDIA Pascal GPU architecture, CUDA supports
+`"Unified Virtual Memory" (UVM)
+<https://developer.nvidia.com/blog/unified-memory-cuda-beginners/>`_
+which enables allocating more memory than a GPU possesses by also using
+memory on the host CPU and then CUDA will transparently move data
+between CPU and GPU as needed.  The resulting LAMMPS performance depends
+on `memory access pattern, data residency, and GPU memory
+oversubscription
+<https://developer.nvidia.com/blog/improving-gpu-memory-oversubscription-performance/>`_
+. The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` or the makefile
+setting ``KOKKOS_CUDA_OPTIONS=enable_lambda,force_uvm`` enables using
+:ref:`UVM with Kokkos <kokkos>` when compiling LAMMPS.
 
 Run with the KOKKOS package by editing an input script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Alternatively the effect of the "-sf" or "-pk" switches can be
+Alternatively the effect of the ``-sf`` or ``-pk`` switches can be
 duplicated by adding the :doc:`package kokkos <package>` or :doc:`suffix kk <suffix>` commands to your input script.
 
 The discussion above for building LAMMPS with the KOKKOS package, the
 ``mpirun`` or ``mpiexec`` command, and setting appropriate thread
 properties are the same.
 
-You must still use the "-k on" :doc:`command-line switch <Run_options>`
+You must still use the ``-k on`` :doc:`command-line switch <Run_options>`
 to enable the KOKKOS package, and specify its additional arguments for
 hardware options appropriate to your system, as documented above.
 
@@ -378,7 +468,7 @@ wish to change any of its option defaults, as set by the "-k on"
 
 With the KOKKOS package, both OpenMP multi-threading and GPUs can be
 compiled and used together in a few special cases. In the makefile for
-the conventional build, the KOKKOS_DEVICES variable must include both,
+the conventional build, the ``KOKKOS_DEVICES`` variable must include both,
 "Cuda" and "OpenMP", as is the case for ``/src/MAKE/OPTIONS/Makefile.kokkos_cuda_mpi``.
 
 .. code-block:: bash
@@ -390,14 +480,14 @@ in the ``kokkos-cuda.cmake`` CMake preset file.
 
 .. code-block:: bash
 
-   cmake ../cmake -DKokkos_ENABLE_CUDA=yes -DKokkos_ENABLE_OPENMP=yes
+   cmake -DKokkos_ENABLE_CUDA=yes -DKokkos_ENABLE_OPENMP=yes ../cmake
 
 The suffix "/kk" is equivalent to "/kk/device", and for Kokkos CUDA,
-using the "-sf kk" in the command line gives the default CUDA version
+using the ``-sf kk`` in the command-line gives the default CUDA version
 everywhere.  However, if the "/kk/host" suffix is added to a specific
 style in the input script, the Kokkos OpenMP (CPU) version of that
 specific style will be used instead.  Set the number of OpenMP threads
-as "t Nt" and the number of GPUs as "g Ng"
+as ``t Nt`` and the number of GPUs as ``g Ng``
 
 .. parsed-literal::
 
@@ -409,7 +499,7 @@ For example, the command to run with 1 GPU and 8 OpenMP threads is then:
 
    mpiexec -np 1 lmp_kokkos_cuda_openmpi -in in.lj -k on g 1 t 8 -sf kk
 
-Conversely, if the "-sf kk/host" is used in the command line and then
+Conversely, if the ``-sf kk/host`` is used in the command-line and then
 the "/kk" or "/kk/device" suffix is added to a specific style in your
 input script, then only that specific style will run on the GPU while
 everything else will run on the CPU in OpenMP mode. Note that the
@@ -418,11 +508,11 @@ special case:
 
 A kspace style and/or molecular topology (bonds, angles, etc.) running
 on the host CPU can overlap with a pair style running on the
-GPU. First compile with "--default-stream per-thread" added to CCFLAGS
+GPU. First compile with ``--default-stream per-thread`` added to ``CCFLAGS``
 in the Kokkos CUDA Makefile.  Then explicitly use the "/kk/host"
 suffix for kspace and bonds, angles, etc.  in the input file and the
-"kk" suffix (equal to "kk/device") on the command line.  Also make
-sure the environment variable CUDA_LAUNCH_BLOCKING is not set to "1"
+"kk" suffix (equal to "kk/device") on the command-line.  Also make
+sure the environment variable ``CUDA_LAUNCH_BLOCKING`` is not set to "1"
 so CPU/GPU overlap can occur.
 
 Performance to expect

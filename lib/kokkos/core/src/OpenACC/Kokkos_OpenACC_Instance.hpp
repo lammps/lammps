@@ -30,11 +30,12 @@ namespace Kokkos::Experimental::Impl {
 class OpenACCInternal {
   bool m_is_initialized = false;
 
-  OpenACCInternal(const OpenACCInternal&) = default;
+  OpenACCInternal(const OpenACCInternal&)            = default;
   OpenACCInternal& operator=(const OpenACCInternal&) = default;
 
  public:
   static int m_acc_device_num;
+  static int m_concurrency;
   int m_async_arg = acc_async_noval;
 
   OpenACCInternal() = default;

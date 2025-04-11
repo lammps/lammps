@@ -87,7 +87,7 @@ void test_abort_from_device() {
     TestAbortCausingAbnormalProgramTerminationAndPrinting<ExecutionSpace>();
   }
 #elif defined(KOKKOS_ENABLE_SYCL)     // FIXME_SYCL
-  if (std::is_same<ExecutionSpace, Kokkos::Experimental::SYCL>::value) {
+  if (std::is_same_v<ExecutionSpace, Kokkos::SYCL>) {
 #ifdef NDEBUG
     TestAbortPrintingToStdout<ExecutionSpace>();
 #else
@@ -103,5 +103,14 @@ void test_abort_from_device() {
 
 TEST(TEST_CATEGORY_DEATH, abort_from_device) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+// FIXME_OPENACC FIXME_NVHPC: NVHPC fails when targetting CPUs.
+#if defined(KOKKOS_ENABLE_OPENACC) && defined(KOKKOS_COMPILER_NVHPC) && \
+    defined(KOKKOS_ENABLE_OPENACC_FORCE_HOST_AS_DEVICE)
+  if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::OpenACC>) {
+    GTEST_SKIP()
+        << "skipping since the OpenACC backend compiled by NVHPC for CPU "
+           "crashes at runtime.";
+  }
+#endif
   test_abort_from_device<TEST_EXECSPACE>();
 }

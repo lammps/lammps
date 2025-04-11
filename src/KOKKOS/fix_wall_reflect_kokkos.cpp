@@ -23,10 +23,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{XLO=0,XHI=1,YLO=2,YHI=3,ZLO=4,ZHI=5};
-enum{NONE=0,EDGE,CONSTANT,VARIABLE};
-
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>

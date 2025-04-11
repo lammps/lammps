@@ -13,20 +13,21 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Dominik Wójt (Wroclaw University of Technology)
+   Contributing author: Dominik Wojt (Wroclaw University of Technology)
      based on pair_airebo by Ase Henry (MIT)
 ------------------------------------------------------------------------- */
 
 #include "pair_lcbop.h"
 
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "my_page.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "info.h"
+#include "memory.h"
+#include "my_page.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
 #include <cmath>
 #include <cstring>
@@ -131,7 +132,7 @@ void PairLCBOP::coeff(int narg, char **arg)
   // only element "C" is allowed
 
   if ((nelements != 1) || (strcmp(elements[0],"C") != 0))
-      error->all(FLERR,"Incorrect args for pair coefficients");
+      error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   // read potential file and initialize fitting splines
 
@@ -180,7 +181,9 @@ void PairLCBOP::init_style()
 
 double PairLCBOP::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
 
   // cut3rebo = 3 SR distances
 

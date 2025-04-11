@@ -1,3 +1,4 @@
+
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -119,7 +120,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     int nlocal = atom->nlocal;
     int custom_flag = strcmp(arg[3], "custom") == 0;
     if (custom_flag) {
-      if (narg < 5) utils::missing_cmd_args(FLERR, fmt::format("fix {} custom"), error);
+      if (narg < 5) utils::missing_cmd_args(FLERR, fmt::format("fix {} custom", style), error);
 
       // determine whether atom-style variable or atom property is used
 
@@ -219,11 +220,12 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     // error if atom belongs to more than 1 rigid body
 
   } else if (strcmp(arg[3], "group") == 0) {
-    if (narg < 5) utils::missing_cmd_args(FLERR, fmt::format("fix {} group"), error);
+    if (narg < 5) utils::missing_cmd_args(FLERR, fmt::format("fix {} group", style), error);
     rstyle = GROUP;
     nbody = utils::inumeric(FLERR, arg[4], false, lmp);
     if (nbody <= 0) error->all(FLERR, "Illegal fix {} number of groups {}", style, nbody);
-    if (narg < 5 + nbody) utils::missing_cmd_args(FLERR, fmt::format("fix {} group"), error);
+    if (narg < 5 + nbody)
+      utils::missing_cmd_args(FLERR, fmt::format("fix {} group", style), error);
     iarg = 5 + nbody;
 
     int *igroups = new int[nbody];
@@ -1463,11 +1465,11 @@ void FixRigid::set_xv()
     double theta_body,theta;
     double *shape,*quatatom,*inertiaatom;
 
-    AtomVecEllipsoid::Bonus *ebonus;
+    AtomVecEllipsoid::Bonus *ebonus = nullptr;
     if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
-    AtomVecLine::Bonus *lbonus;
+    AtomVecLine::Bonus *lbonus = nullptr;
     if (avec_line) lbonus = avec_line->bonus;
-    AtomVecTri::Bonus *tbonus;
+    AtomVecTri::Bonus *tbonus = nullptr;
     if (avec_tri) tbonus = avec_tri->bonus;
     double **omega_one = atom->omega;
     double **angmom_one = atom->angmom;
@@ -2435,8 +2437,8 @@ void FixRigid::write_restart_file(const char *file)
   if (fp == nullptr)
     error->one(FLERR,"Cannot open fix rigid restart file {}: {}",outfile,utils::getsyserror());
 
-  fmt::print(fp,"# fix rigid mass, COM, inertia tensor info for {} bodies on timestep {}\n\n",nbody,update->ntimestep);
-  fmt::print(fp,"{}\n",nbody);
+  utils::print(fp,"# fix rigid mass, COM, inertia tensor info for {} bodies on timestep {}\n\n",nbody,update->ntimestep);
+  utils::print(fp,"{}\n",nbody);
 
   // compute I tensor against xyz axes from diagonalized I and current quat
   // Ispace = P Idiag P_transpose

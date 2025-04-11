@@ -114,6 +114,7 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
   memory->create(vector_total,nrows,"saed/vtk:vector_total");
 
   vector_flag = 1;
+  extvector = 0;
   size_vector = nrows;
 
   if (nOutput == 0) {
@@ -248,8 +249,8 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
 
 FixSAEDVTK::~FixSAEDVTK()
 {
-  delete [] filename;
-  delete [] ids;
+  delete[] filename;
+  delete[] ids;
   memory->destroy(vector);
   memory->destroy(vector_total);
   if (fp && comm->me == 0) fclose(fp);

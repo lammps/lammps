@@ -32,7 +32,7 @@ neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20
 
 fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
-fix             2 all langevin 0.0 0.0 0.0 48279
+fix         2 all langevin 0.0 0.0 0.001 48279
 fix 		3 all langevin/spin 200.0 0.01 321
 fix 		4 all nve/spin lattice moving
 timestep	0.001
@@ -50,4 +50,4 @@ variable 	tmag      equal c_out_mag[6]
 thermo_style    custom step time v_tmag temp v_emag ke pe etotal
 thermo          200
 
-run 		200000
+run 		20000

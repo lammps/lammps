@@ -15,115 +15,115 @@ Syntax
 
   .. parsed-literal::
 
-       *gpu* args = Ngpu keyword value ...
-         Ngpu = # of GPUs per node
-         zero or more keyword/value pairs may be appended
-         keywords = *neigh* or *newton* or *pair/only* or *binsize* or *split* or *gpuID* or *tpa* or *blocksize* or *omp* or *platform* or *device_type* or *ocl_args*
-           *neigh* value = *yes* or *no*
-             *yes* = neighbor list build on GPU (default)
-             *no* = neighbor list build on CPU
-           *newton* = *off* or *on*
-             *off* = set Newton pairwise flag off (default and required)
-             *on* = set Newton pairwise flag on (currently not allowed)
-           *pair/only* = *off* or *on*
-             *off* = apply "gpu" suffix to all available styles in the GPU package (default)
-             *on* = apply "gpu" suffix only pair styles
-           *binsize* value = size
-             size = bin size for neighbor list construction (distance units)
-           *split* = fraction
-             fraction = fraction of atoms assigned to GPU (default = 1.0)
-           *tpa* value = Nlanes
-             Nlanes = # of GPU vector lanes (CUDA threads) used per atom
-           *blocksize* value = size
-             size = thread block size for pair force computation
-           *omp* value = Nthreads
-             Nthreads = number of OpenMP threads to use on CPU (default = 0)
-           *platform* value = id
-             id = For OpenCL, platform ID for the GPU or accelerator
-           *gpuID* values = id
-             id = ID of first GPU to be used on each node
-           *device_type* value = *intelgpu* or *nvidiagpu* or *amdgpu* or *applegpu* or *generic* or *custom*,val1,val2,...
-             val1,val2,... = custom OpenCL accelerator configuration parameters (see below for details)
-           *ocl_args* value = args
-             args = List of additional OpenCL compiler arguments delimited by colons
-       *intel* args = NPhi keyword value ...
-         Nphi = # of co-processors per node
-         zero or more keyword/value pairs may be appended
-         keywords = *mode* or *omp* or *lrt* or *balance* or *ghost* or *tpc* or *tptask* or *pppm_table* or *no_affinity*
-           *mode* value = *single* or *mixed* or *double*
-             single = perform force calculations in single precision
-             mixed = perform force calculations in mixed precision
-             double = perform force calculations in double precision
-           *omp* value = Nthreads
-             Nthreads = number of OpenMP threads to use on CPU (default = 0)
-           *lrt* value = *yes* or *no*
-             *yes* = use additional thread dedicated for some PPPM calculations
-             *no* = do not dedicate an extra thread for some PPPM calculations
-           *balance* value = split
-             split = fraction of work to offload to co-processor, -1 for dynamic
-           *ghost* value = *yes* or *no*
-             *yes* = include ghost atoms for offload
-             *no* = do not include ghost atoms for offload
-           *tpc* value = Ntpc
-             Ntpc = max number of co-processor threads per co-processor core (default = 4)
-           *tptask* value = Ntptask
-             Ntptask = max number of co-processor threads per MPI task (default = 240)
-           *pppm_table* value = *yes* or *no*
-             *yes* = Precompute pppm values in table (doesn't change accuracy)
-             *no* = Compute pppm values on the fly
-           *no_affinity* values = none
-       *kokkos* args = keyword value ...
-         zero or more keyword/value pairs may be appended
-         keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *neigh/transpose* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/pair/forward* or *comm/fix/forward* or *comm/reverse* or *comm/pair/reverse* or *sort* or *atom/map* or *gpu/aware* or *pair/only*
-           *neigh* value = *full* or *half*
-             full = full neighbor list
-             half = half neighbor list built in thread-safe manner
-           *neigh/qeq* value = *full* or *half*
-             full = full neighbor list
-             half = half neighbor list built in thread-safe manner
-           *neigh/thread* value = *off* or *on*
-             *off* = thread only over atoms
-             *on* = thread over both atoms and neighbors
-           *neigh/transpose* value = *off* or *on*
-             *off* = use same memory layout for GPU neigh list build as pair style
-             *on* = use transposed memory layout for GPU neigh list build
-           *newton* = *off* or *on*
-             *off* = set Newton pairwise and bonded flags off
-             *on* = set Newton pairwise and bonded flags on
-           *binsize* value = size
-             size = bin size for neighbor list construction (distance units)
-           *comm* value = *no* or *host* or *device*
-             use value for comm/exchange and comm/forward and comm/pair/forward and comm/fix/forward and comm/reverse
-           *comm/exchange* value = *no* or *host* or *device*
-           *comm/forward* value = *no* or *host* or *device*
-           *comm/pair/forward* value = *no* or *device*
-           *comm/fix/forward* value = *no* or *device*
-           *comm/reverse* value = *no* or *host* or *device*
-             *no* = perform communication pack/unpack in non-KOKKOS mode
-             *host* = perform pack/unpack on host (e.g. with OpenMP threading)
-             *device* = perform pack/unpack on device (e.g. on GPU)
-           *comm/pair/reverse* value = *no* or *device*
-             *no* = perform communication pack/unpack in non-KOKKOS mode
-             *device* = perform pack/unpack on device (e.g. on GPU)
-           *sort* value = *no* or *device*
-             *no* = perform atom sorting in non-KOKKOS mode
-             *device* = perform atom sorting on device (e.g. on GPU)
-           *atom/map* value = *no* or *device*
-             *no* = build atom map in non-KOKKOS mode
-             *device* = build atom map on device (e.g. on GPU)
-           *gpu/aware* = *off* or *on*
-             *off* = do not use GPU-aware MPI
-             *on* = use GPU-aware MPI (default)
-           *pair/only* = *off* or *on*
-             *off* = use device acceleration (e.g. GPU) for all available styles in the KOKKOS package (default)
-             *on*  = use device acceleration only for pair styles (and host acceleration for others)
-       *omp* args = Nthreads keyword value ...
-         Nthreads = # of OpenMP threads to associate with each MPI process
-         zero or more keyword/value pairs may be appended
-         keywords = *neigh*
-           *neigh* value = *yes* or *no*
-             *yes* = threaded neighbor list build (default)
-             *no* = non-threaded neighbor list build
+    *gpu* args = Ngpu keyword value ...
+      Ngpu = # of GPUs per node
+      zero or more keyword/value pairs may be appended
+      keywords = *neigh* or *newton* or *pair/only* or *binsize* or *split* or *gpuID* or *tpa* or *blocksize* or *omp* or *platform* or *device_type* or *ocl_args*
+        *neigh* value = *yes* or *no*
+          *yes* = neighbor list build on GPU (default)
+          *no* = neighbor list build on CPU
+        *newton* = *off* or *on*
+          *off* = set Newton pairwise flag off (default and required)
+          *on* = set Newton pairwise flag on (currently not allowed)
+        *pair/only* = *off* or *on*
+          *off* = apply "gpu" suffix to all available styles in the GPU package (default)
+          *on* = apply "gpu" suffix only pair styles
+        *binsize* value = size
+          size = bin size for neighbor list construction (distance units)
+        *split* = fraction
+          fraction = fraction of atoms assigned to GPU (default = 1.0)
+        *tpa* value = Nlanes
+          Nlanes = # of GPU vector lanes (CUDA threads) used per atom
+        *blocksize* value = size
+          size = thread block size for pair force computation
+        *omp* value = Nthreads
+          Nthreads = number of OpenMP threads to use on CPU (default = 0)
+        *platform* value = id
+          id = For OpenCL, platform ID for the GPU or accelerator
+        *gpuID* values = id
+          id = ID of first GPU to be used on each node
+        *device_type* value = *intelgpu* or *nvidiagpu* or *amdgpu* or *applegpu* or *generic* or *custom*,val1,val2,...
+          val1,val2,... = custom OpenCL accelerator configuration parameters (see below for details)
+        *ocl_args* value = args
+          args = List of additional OpenCL compiler arguments delimited by colons
+    *intel* args = NPhi keyword value ...
+      Nphi = # of co-processors per node
+      zero or more keyword/value pairs may be appended
+      keywords = *mode* or *omp* or *lrt* or *balance* or *ghost* or *tpc* or *tptask* or *pppm_table* or *no_affinity*
+        *mode* value = *single* or *mixed* or *double*
+          single = perform force calculations in single precision
+          mixed = perform force calculations in mixed precision
+          double = perform force calculations in double precision
+        *omp* value = Nthreads
+          Nthreads = number of OpenMP threads to use on CPU (default = 0)
+        *lrt* value = *yes* or *no*
+          *yes* = use additional thread dedicated for some PPPM calculations
+          *no* = do not dedicate an extra thread for some PPPM calculations
+        *balance* value = split
+          split = fraction of work to offload to co-processor, -1 for dynamic
+        *ghost* value = *yes* or *no*
+          *yes* = include ghost atoms for offload
+          *no* = do not include ghost atoms for offload
+        *tpc* value = Ntpc
+          Ntpc = max number of co-processor threads per co-processor core (default = 4)
+        *tptask* value = Ntptask
+          Ntptask = max number of co-processor threads per MPI task (default = 240)
+        *pppm_table* value = *yes* or *no*
+          *yes* = Precompute pppm values in table (doesn't change accuracy)
+          *no* = Compute pppm values on the fly
+        *no_affinity* values = none
+    *kokkos* args = keyword value ...
+      zero or more keyword/value pairs may be appended
+      keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *neigh/transpose* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/pair/forward* or *comm/fix/forward* or *comm/reverse* or *comm/pair/reverse* or *sort* or *atom/map* or *gpu/aware* or *pair/only*
+        *neigh* value = *full* or *half*
+          full = full neighbor list
+          half = half neighbor list built in thread-safe manner
+        *neigh/qeq* value = *full* or *half*
+          full = full neighbor list
+          half = half neighbor list built in thread-safe manner
+        *neigh/thread* value = *off* or *on*
+          *off* = thread only over atoms
+          *on* = thread over both atoms and neighbors
+        *neigh/transpose* value = *off* or *on*
+          *off* = use same memory layout for GPU neigh list build as pair style
+          *on* = use transposed memory layout for GPU neigh list build
+        *newton* = *off* or *on*
+          *off* = set Newton pairwise and bonded flags off
+          *on* = set Newton pairwise and bonded flags on
+        *binsize* value = size
+          size = bin size for neighbor list construction (distance units)
+        *comm* value = *no* or *host* or *device*
+          use value for comm/exchange and comm/forward and comm/pair/forward and comm/fix/forward and comm/reverse
+        *comm/exchange* value = *no* or *host* or *device*
+        *comm/forward* value = *no* or *host* or *device*
+        *comm/pair/forward* value = *no* or *device*
+        *comm/fix/forward* value = *no* or *device*
+        *comm/reverse* value = *no* or *host* or *device*
+          *no* = perform communication pack/unpack in non-KOKKOS mode
+          *host* = perform pack/unpack on host (e.g. with OpenMP threading)
+          *device* = perform pack/unpack on device (e.g. on GPU)
+        *comm/pair/reverse* value = *no* or *device*
+          *no* = perform communication pack/unpack in non-KOKKOS mode
+          *device* = perform pack/unpack on device (e.g. on GPU)
+        *sort* value = *no* or *device*
+          *no* = perform atom sorting in non-KOKKOS mode
+          *device* = perform atom sorting on device (e.g. on GPU)
+        *atom/map* value = *no* or *device*
+          *no* = build atom map in non-KOKKOS mode
+          *device* = build atom map on device (e.g. on GPU)
+        *gpu/aware* = *off* or *on*
+          *off* = do not use GPU-aware MPI
+          *on* = use GPU-aware MPI (default)
+        *pair/only* = *off* or *on*
+          *off* = use device acceleration (e.g. GPU) for all available styles in the KOKKOS package (default)
+          *on*  = use device acceleration only for pair styles (and host acceleration for others)
+    *omp* args = Nthreads keyword value ...
+      Nthreads = # of OpenMP threads to associate with each MPI process
+      zero or more keyword/value pairs may be appended
+      keywords = *neigh*
+        *neigh* value = *yes* or *no*
+          *yes* = threaded neighbor list build (default)
+          *no* = non-threaded neighbor list build
 
 Examples
 """"""""
@@ -200,7 +200,7 @@ number of compute cores. If there are more devices than MPI tasks,
 the additional devices will be unused. The auto-selection of GPUs/
 accelerator devices and platforms can be restricted by specifying
 a non-zero value for *Ngpu* and / or using the *gpuID*, *platform*,
-and *device_type* keywords as described below. If there are more MPI
+and *device\_type* keywords as described below. If there are more MPI
 tasks (per node) than GPUs, multiple MPI tasks will share each GPU.
 
 Optional keyword/value pairs can also be specified.  Each has a
@@ -274,8 +274,8 @@ the other particles.
 The *gpuID* keyword is used to specify the first ID for the GPU or
 other accelerator that LAMMPS will use. For example, if the ID is
 1 and *Ngpu* is 3, GPUs 1-3 will be used. Device IDs should be
-determined from the output of nvc_get_devices, ocl_get_devices,
-or hip_get_devices
+determined from the output of nvc\_get\_devices, ocl\_get\_devices,
+or hip\_get\_devices
 as provided in the lib/gpu directory. When using OpenCL with
 accelerators that have main memory NUMA, the accelerators can be
 split into smaller virtual accelerators for more efficient use
@@ -308,15 +308,15 @@ The meaning of *Nthreads* is exactly the same for the GPU, INTEL,
 and GPU packages.
 
 The *platform* keyword is only used with OpenCL to specify the ID for
-an OpenCL platform. See the output from ocl_get_devices in the lib/gpu
+an OpenCL platform. See the output from ocl\_get\_devices in the lib/gpu
 directory. In LAMMPS only one platform can be active at a time and by
 default (id=-1) the platform is auto-selected to find the GPU with the
 most compute cores. When *Ngpu* or other keywords are specified, the
 auto-selection is appropriately restricted. For example, if *Ngpu* is
 3, only platforms with at least 3 accelerators are considered. Similar
-restrictions can be enforced by the *gpuID* and *device_type* keywords.
+restrictions can be enforced by the *gpuID* and *device\_type* keywords.
 
-The *device_type* keyword can be used for OpenCL to specify the type of
+The *device\_type* keyword can be used for OpenCL to specify the type of
 GPU to use or specify a custom configuration for an accelerator. In most
 cases this selection will be automatic and there is no need to use the
 keyword. The *applegpu* type is not specific to a particular GPU vendor,
@@ -324,25 +324,25 @@ but is separate due to the more restrictive Apple OpenCL implementation.
 For expert users, to specify a custom configuration, the *custom* keyword
 followed by the next parameters can be specified:
 
-CONFIG_ID, SIMD_SIZE, MEM_THREADS, SHUFFLE_AVAIL, FAST_MATH,
-THREADS_PER_ATOM, THREADS_PER_CHARGE, THREADS_PER_THREE, BLOCK_PAIR,
-BLOCK_BIO_PAIR, BLOCK_ELLIPSE, PPPM_BLOCK_1D, BLOCK_NBOR_BUILD,
-BLOCK_CELL_2D, BLOCK_CELL_ID, MAX_SHARED_TYPES, MAX_BIO_SHARED_TYPES,
-PPPM_MAX_SPLINE, NBOR_PREFETCH.
+CONFIG\_ID, SIMD\_SIZE, MEM\_THREADS, SHUFFLE\_AVAIL, FAST\_MATH,
+THREADS\_PER\_ATOM, THREADS\_PER\_CHARGE, THREADS\_PER\_THREE, BLOCK\_PAIR,
+BLOCK\_BIO\_PAIR, BLOCK\_ELLIPSE, PPPM\_BLOCK\_1D, BLOCK\_NBOR\_BUILD,
+BLOCK\_CELL\_2D, BLOCK\_CELL\_ID, MAX\_SHARED\_TYPES, MAX\_BIO\_SHARED\_TYPES,
+PPPM\_MAX\_SPLINE, NBOR\_PREFETCH.
 
-CONFIG_ID can be 0. SHUFFLE_AVAIL in {0,1} indicates that inline-PTX
+CONFIG\_ID can be 0. SHUFFLE\_AVAIL in {0,1} indicates that inline-PTX
 (NVIDIA) or OpenCL extensions (Intel) should be used for horizontal
-vector operations. FAST_MATH in {0,1} indicates that OpenCL fast math
+vector operations. FAST\_MATH in {0,1} indicates that OpenCL fast math
 optimizations are used during the build and hardware-accelerated
-transcendental functions are used when available. THREADS_PER_* give the
+transcendental functions are used when available. THREADS\_PER\_\* give the
 default *tpa* values for ellipsoidal models, styles using charge, and
-any other styles. The BLOCK_* parameters specify the block sizes for
-various kernel calls and the MAX_*SHARED*_ parameters are used to
+any other styles. The BLOCK\_\* parameters specify the block sizes for
+various kernel calls and the MAX\_\*SHARED\_\* parameters are used to
 determine the amount of local shared memory to use for storing model
 parameters.
 
 For OpenCL, the routines are compiled at runtime for the specified GPU
-or accelerator architecture. The *ocl_args* keyword can be used to
+or accelerator architecture. The *ocl\_args* keyword can be used to
 specify additional flags for the runtime build.
 
 ----------
@@ -381,7 +381,7 @@ force calculation.
 The *lrt* keyword can be used to enable "Long Range Thread (LRT)"
 mode. It can take a value of *yes* to enable and *no* to disable.
 LRT mode generates an extra thread (in addition to any OpenMP threads
-specified with the OMP_NUM_THREADS environment variable or the *omp*
+specified with the OMP\_NUM\_THREADS environment variable or the *omp*
 keyword). The extra thread is dedicated for performing part of the
 :doc:`PPPM solver <kspace_style>` computations and communications. This
 can improve parallel performance on processors supporting
@@ -504,7 +504,7 @@ as it is for non-accelerated pair styles
 The *binsize* keyword sets the size of bins used to bin atoms during
 neighbor list builds. The same value can be set by the
 :doc:`neigh_modify binsize <neigh_modify>` command. Making it an option
-in the package kokkos command allows it to be set from the command line.
+in the package kokkos command allows it to be set from the command-line.
 The default value for CPUs is 0.0, which means the LAMMPS default will be
 used, which is bins = 1/2 the size of the pairwise cutoff + neighbor skin
 distance. This is fine when neighbor lists are built on the CPU. For GPU
@@ -664,7 +664,7 @@ too.
    Also note that if the :doc:`-sf hybrid intel omp command-line switch <Run_options>` is used, it invokes a "package intel" command, followed by a
    "package omp" command, both with a setting of *Nthreads* = 0. Likewise
    for a hybrid suffix for gpu and omp. Note that KOKKOS also supports
-   setting the number of OpenMP threads from the command line using the
+   setting the number of OpenMP threads from the command-line using the
    "-k on" :doc:`command-line switch <Run_options>`. The default for
    KOKKOS is 1 thread per MPI task, so any other number of threads should
    be explicitly set using the "-k on" command-line switch (and this

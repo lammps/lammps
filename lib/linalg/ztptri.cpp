@@ -76,8 +76,7 @@ int ztptri_(char *uplo, char *diag, integer *n, doublecomplex *ap, integer *info
                 ajj.r = z__1.r, ajj.i = z__1.i;
             }
             i__2 = j - 1;
-            ztpmv_((char *)"Upper", (char *)"No transpose", diag, &i__2, &ap[1], &ap[jc], &c__1, (ftnlen)5,
-                   (ftnlen)12, (ftnlen)1);
+            ztpmv_((char *)"U", (char *)"N", diag, &i__2, &ap[1], &ap[jc], &c__1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
             i__2 = j - 1;
             zscal_(&i__2, &ajj, &ap[jc], &c__1);
             jc += j;
@@ -98,8 +97,8 @@ int ztptri_(char *uplo, char *diag, integer *n, doublecomplex *ap, integer *info
             }
             if (j < *n) {
                 i__1 = *n - j;
-                ztpmv_((char *)"Lower", (char *)"No transpose", diag, &i__1, &ap[jclast], &ap[jc + 1], &c__1,
-                       (ftnlen)5, (ftnlen)12, (ftnlen)1);
+                ztpmv_((char *)"L", (char *)"N", diag, &i__1, &ap[jclast], &ap[jc + 1], &c__1, (ftnlen)1, (ftnlen)1,
+                       (ftnlen)1);
                 i__1 = *n - j;
                 zscal_(&i__1, &ajj, &ap[jc + 1], &c__1);
             }

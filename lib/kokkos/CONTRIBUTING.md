@@ -7,6 +7,8 @@ We actively welcome pull requests.
 3. If you've changed APIs, update the documentation.
 4. Ensure the test suite passes.
 
+Before sending your patch for review, please try to ensure that it is formatted properly. We use clang-format version 16 for this.
+
 ## Issues
 We use GitHub issues to track public bugs. Please ensure your description is clear and has sufficient instructions to be able to reproduce the issue.
 

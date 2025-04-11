@@ -136,10 +136,10 @@ IMPORTANT: If you re-build the library, e.g. for a different precision
 Makefile.linux clean, to ensure all previous derived files are removed
 before the new build is done.
 
-NOTE: The system-specific setting LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG,
-      or LAMMPS_SMALLSMALL if specified when building LAMMPS (i.e. in
-      src/MAKE/Makefile.foo) should be consistent with that specified
-      when building libgpu.a (i.e. by LMP_INC in the lib/gpu/Makefile.bar).
+NOTE: The system-specific setting LAMMPS_SMALLBIG (default) or LAMMPS_BIGBIG
+      - if specified when building LAMMPS (i.e. in src/MAKE/Makefile.foo) -
+      should be consistent with that specified when building libgpu.a (i.e.
+      by LMP_INC in the lib/gpu/Makefile.bar).
 
 
 ------------------------------------------------------------------------------

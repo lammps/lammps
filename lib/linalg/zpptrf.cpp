@@ -46,8 +46,8 @@ int zpptrf_(char *uplo, integer *n, doublecomplex *ap, integer *info, ftnlen upl
             jj += j;
             if (j > 1) {
                 i__2 = j - 1;
-                ztpsv_((char *)"Upper", (char *)"Conjugate transpose", (char *)"Non-unit", &i__2, &ap[1], &ap[jc], &c__1,
-                       (ftnlen)5, (ftnlen)19, (ftnlen)8);
+                ztpsv_((char *)"U", (char *)"C", (char *)"N", &i__2, &ap[1], &ap[jc], &c__1, (ftnlen)1, (ftnlen)1,
+                       (ftnlen)1);
             }
             i__2 = jj;
             i__3 = j - 1;
@@ -81,7 +81,7 @@ int zpptrf_(char *uplo, integer *n, doublecomplex *ap, integer *info, ftnlen upl
                 d__1 = 1. / ajj;
                 zdscal_(&i__2, &d__1, &ap[jj + 1], &c__1);
                 i__2 = *n - j;
-                zhpr_((char *)"Lower", &i__2, &c_b16, &ap[jj + 1], &c__1, &ap[jj + *n - j + 1], (ftnlen)5);
+                zhpr_((char *)"L", &i__2, &c_b16, &ap[jj + 1], &c__1, &ap[jj + *n - j + 1], (ftnlen)1);
                 jj = jj + *n - j + 1;
             }
         }

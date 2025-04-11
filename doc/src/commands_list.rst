@@ -31,20 +31,12 @@ Commands
    dihedral_write
    dimension
    displace_atoms
-   dump
-   dump_adios
-   dump_cfg_uef
-   dump_h5md
-   dump_image
-   dump_modify
-   dump_molfile
-   dump_netcdf
-   dump_vtk
    dynamical_matrix
    echo
    fix
    fix_modify
    fitpod_command
+   geturl
    group
    group2ndx
    hyper
@@ -90,6 +82,7 @@ Commands
    read_dump
    read_restart
    region
+   region2vmd
    replicate
    rerun
    reset_atoms

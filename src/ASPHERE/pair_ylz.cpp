@@ -32,7 +32,7 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using MathConst::MY_4PI;
+using MathConst::MY_PI;
 using MathConst::MY_PI2;
 using MathConst::MY_TWOBYSIXTH;
 
@@ -239,7 +239,7 @@ void PairYLZ::settings(int narg, char **arg)
 
 void PairYLZ::coeff(int narg, char **arg)
 {
-  if (narg < 8 || narg > 8) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg < 8 || narg > 8) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -268,7 +268,7 @@ void PairYLZ::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -487,7 +487,7 @@ double PairYLZ::ylz_analytic(const int i, const int j, double a1[3][3], double a
 
     uA = -energy_well * t1 * cos_t;
     U = uA * phi;
-    dUdr = MY_4PI / (rcut - rmin) * (t1) *sin(t) * phi * energy_well;
+    dUdr = MY_PI * zt / (rcut - rmin) * (t1) *sin(t) * phi * energy_well;
     dUdphi = uA;
   }
 

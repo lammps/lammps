@@ -160,7 +160,7 @@ void AngleDipole::allocate()
 
 void AngleDipole::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR, "Incorrect args for angle coefficients");
+  if (narg != 3) error->all(FLERR, "Incorrect args for angle coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -179,7 +179,7 @@ void AngleDipole::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -262,4 +262,16 @@ double AngleDipole::single(int type, int iRef, int iDip, int /*iDummy*/)
   double kdg = k[type] * deltaGamma;
 
   return kdg * deltaGamma;    // energy
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleDipole::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "gamma0") == 0) return (void *) gamma0;
+  return nullptr;
 }

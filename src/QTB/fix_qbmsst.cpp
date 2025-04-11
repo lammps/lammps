@@ -316,18 +316,28 @@ void FixQBMSST::init()
   // set compute ptrs
 
   temperature = modify->get_compute_by_id(id_temp);
-  if (!temperature)
+  if (!temperature) {
     error->all(FLERR, "Could not find fix qbmsst temperature compute ID {}", id_temp);
-  if (temperature->tempflag == 0)
-    error->all(FLERR, "Fix qbmsst compute ID {} does not compute temperature", id_temp);
+  } else {
+    if (temperature->tempflag == 0)
+      error->all(FLERR, "Fix qbmsst compute ID {} does not compute a temperature", id_temp);
+  }
+
   pressure = modify->get_compute_by_id(id_press);
-  if (!pressure) error->all(FLERR, "Could not find fix qbmsst pressure compute ID {}", id_press);
-  if (pressure->pressflag == 0)
-    error->all(FLERR, "Fix qbmsst compute ID {} does not compute pressure", id_press);
+  if (!pressure) {
+    error->all(FLERR, "Could not find fix qbmsst pressure compute ID {}", id_press);
+  } else {
+    if (pressure->pressflag == 0)
+      error->all(FLERR, "Fix qbmsst compute ID {} does not compute pressure", id_press);
+  }
+
   pe = modify->get_compute_by_id(id_pe);
-  if (!pe) error->all(FLERR, "Could not find fix qbmsst pe compute ID {}", id_pe);
-  if (pe->peflag == 0)
-    error->all(FLERR, "Fix qbmsst compute ID {} does not compute potential energy", id_pe);
+  if (!pe) {
+    error->all(FLERR, "Could not find fix qbmsst pe compute ID {}", id_pe);
+  } else {
+    if (pe->peflag == 0)
+      error->all(FLERR, "Fix qbmsst compute ID {} does not compute potential energy", id_pe);
+  }
 
   // initiate the counter l and \mu
   counter_l=0;
@@ -350,7 +360,7 @@ void FixQBMSST::init()
     h_timestep=alpha*dtv;
   }
   if (comm->me == 0 && screen)
-    fmt::print(screen,"The effective maximum frequency is now {} inverse time unit "
+    utils::print(screen,"The effective maximum frequency is now {} inverse time unit "
                "with alpha value as {}!\n", 0.5/h_timestep, alpha);
 
   //gfactor is the random force \sqrt{\frac{2\gamma{}m_{i}}{\alpha*\delta{}t}}, \sqrt{12} makes the random array variance equal to unit.

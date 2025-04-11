@@ -112,7 +112,7 @@ void DynamicalMatrix::command(int narg, char **arg)
   MPI_Comm_rank(world,&me);
 
   if (domain->box_exist == 0)
-    error->all(FLERR,"Dynamical_matrix command before simulation box is defined");
+    error->all(FLERR,"Dynamical_matrix command before simulation box is defined" + utils::errorurl(33));
   if (narg < 2) error->all(FLERR,"Illegal dynamical_matrix command");
 
   lmp->init();
@@ -282,7 +282,7 @@ void DynamicalMatrix::calculateMatrix()
 
   if (me == 0 && screen) {
     fputs("Calculating Dynamical Matrix ...\n", screen);
-    fmt::print(screen,"  Total # of atoms = {}\n"
+    utils::print(screen,"  Total # of atoms = {}\n"
                       "  Atoms in group = {}\n"
                       "  Total dynamical matrix elements = {}\n",
                natoms, gcount, dynlen*dynlen);

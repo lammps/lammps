@@ -52,7 +52,7 @@ particle i:
 .. math::
 
     \vec{\omega}_i = -\frac{1}{\hbar} \sum_{j}^{Neighb} \vec{s}_{j}\times \left(\vec{e}_{ij}\times \vec{D} \right)
-    ~~{\rm and}~~
+    ~~\mathrm{and}~~
     \vec{F}_i = -\sum_{j}^{Neighb} \frac{1}{r_{ij}} \vec{D} \times \left( \vec{s}_{i}\times \vec{s}_{j} \right)
 
 More details about the derivation of these torques/forces are reported in
@@ -100,8 +100,6 @@ none
 
 .. _Tranchida5:
 
-**(Rohart)** Rohart and Thiaville,
-Physical Review B, 88(18), 184422. (2013).
+**(Rohart)** Rohart and Thiaville, Physical Review B, 88(18), 184422. (2013).
 
-**(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson,
-Journal of Computational Physics, 372, 406-425, (2018).
+**(Tranchida)** Tranchida, Plimpton, Thibaudeau and Thompson, Journal of Computational Physics, 372, 406-425, (2018).

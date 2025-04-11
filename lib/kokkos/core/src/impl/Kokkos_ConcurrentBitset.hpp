@@ -110,15 +110,15 @@ struct concurrent_bitset {
     // when is full at the atomic_fetch_add(+1)
     // then a release occurs before the atomic_fetch_add(-1).
 
-    const uint32_t state = (uint32_t)Kokkos::atomic_fetch_add(
-        reinterpret_cast<volatile int *>(buffer), 1);
+    const uint32_t state =
+        Kokkos::atomic_fetch_add(const_cast<uint32_t *>(buffer), 1);
 
     const uint32_t state_error = state_header != (state & state_header_mask);
 
     const uint32_t state_bit_used = state & state_used_mask;
 
     if (state_error || (bit_bound <= state_bit_used)) {
-      Kokkos::atomic_fetch_add(reinterpret_cast<volatile int *>(buffer), -1);
+      Kokkos::atomic_fetch_sub(const_cast<uint32_t *>(buffer), 1);
       return state_error ? type(-2, -2) : type(-1, -1);
     }
 
@@ -132,7 +132,8 @@ struct concurrent_bitset {
     while (1) {
       const uint32_t word = bit >> bits_per_int_lg2;
       const uint32_t mask = 1u << (bit & bits_per_int_mask);
-      const uint32_t prev = Kokkos::atomic_fetch_or(buffer + word + 1, mask);
+      const uint32_t prev = Kokkos::atomic_fetch_or(
+          const_cast<uint32_t *>(buffer) + word + 1, mask);
 
       if (!(prev & mask)) {
         // Successfully claimed 'result.first' by
@@ -194,15 +195,15 @@ struct concurrent_bitset {
     // when is full at the atomic_fetch_add(+1)
     // then a release occurs before the atomic_fetch_add(-1).
 
-    const uint32_t state = (uint32_t)Kokkos::atomic_fetch_add(
-        reinterpret_cast<volatile int *>(buffer), 1);
+    const uint32_t state =
+        Kokkos::atomic_fetch_add(const_cast<uint32_t *>(buffer), 1);
 
     const uint32_t state_error = state_header != (state & state_header_mask);
 
     const uint32_t state_bit_used = state & state_used_mask;
 
     if (state_error || (bit_bound <= state_bit_used)) {
-      Kokkos::atomic_fetch_add(reinterpret_cast<volatile int *>(buffer), -1);
+      Kokkos::atomic_fetch_sub(const_cast<uint32_t *>(buffer), 1);
       return state_error ? type(-2, -2) : type(-1, -1);
     }
 
@@ -216,7 +217,8 @@ struct concurrent_bitset {
     while (1) {
       const uint32_t word = bit >> bits_per_int_lg2;
       const uint32_t mask = 1u << (bit & bits_per_int_mask);
-      const uint32_t prev = Kokkos::atomic_fetch_or(buffer + word + 1, mask);
+      const uint32_t prev = Kokkos::atomic_fetch_or(
+          const_cast<uint32_t *>(buffer) + word + 1, mask);
 
       if (!(prev & mask)) {
         // Successfully claimed 'result.first' by
@@ -262,8 +264,8 @@ struct concurrent_bitset {
     }
 
     const uint32_t mask = 1u << (bit & bits_per_int_mask);
-    const uint32_t prev =
-        Kokkos::atomic_fetch_and(buffer + (bit >> bits_per_int_lg2) + 1, ~mask);
+    const uint32_t prev = Kokkos::atomic_fetch_and(
+        const_cast<uint32_t *>(buffer) + (bit >> bits_per_int_lg2) + 1, ~mask);
 
     if (!(prev & mask)) {
       return -1;
@@ -273,7 +275,7 @@ struct concurrent_bitset {
     Kokkos::memory_fence();
 
     const int count =
-        Kokkos::atomic_fetch_add(reinterpret_cast<volatile int *>(buffer), -1);
+        Kokkos::atomic_fetch_sub(const_cast<uint32_t *>(buffer), 1);
 
     // Flush the store-release
     Kokkos::memory_fence();
@@ -299,8 +301,8 @@ struct concurrent_bitset {
     }
 
     const uint32_t mask = 1u << (bit & bits_per_int_mask);
-    const uint32_t prev =
-        Kokkos::atomic_fetch_or(buffer + (bit >> bits_per_int_lg2) + 1, mask);
+    const uint32_t prev = Kokkos::atomic_fetch_or(
+        const_cast<uint32_t *>(buffer) + (bit >> bits_per_int_lg2) + 1, mask);
 
     if (!(prev & mask)) {
       return -1;
@@ -310,7 +312,7 @@ struct concurrent_bitset {
     Kokkos::memory_fence();
 
     const int count =
-        Kokkos::atomic_fetch_add(reinterpret_cast<volatile int *>(buffer), -1);
+        Kokkos::atomic_fetch_sub(const_cast<uint32_t *>(buffer), 1);
 
     return (count & state_used_mask) - 1;
   }

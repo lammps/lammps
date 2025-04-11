@@ -17,9 +17,9 @@
 template <class Scalar>
 struct Run<Scalar, UNROLL, STRIDE> {
   static void run(int N, int K, int R, int F, int T, int S, int Ba, int I) {
-    Kokkos::View<Scalar* * [STRIDE], Kokkos::LayoutRight> A("A", N, K);
-    Kokkos::View<Scalar* * [STRIDE], Kokkos::LayoutRight> B("B", N, K);
-    Kokkos::View<Scalar* * [STRIDE], Kokkos::LayoutRight> C("C", N, K);
+    Kokkos::View<Scalar** [STRIDE], Kokkos::LayoutRight> A("A", N, K);
+    Kokkos::View<Scalar** [STRIDE], Kokkos::LayoutRight> B("B", N, K);
+    Kokkos::View<Scalar** [STRIDE], Kokkos::LayoutRight> C("C", N, K);
 
     Kokkos::deep_copy(A, Scalar(1.5));
     Kokkos::deep_copy(B, Scalar(2.5));

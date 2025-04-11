@@ -226,7 +226,7 @@ void PairLJClass2CoulCutSoft::settings(int narg, char **arg)
 
 void PairLJClass2CoulCutSoft::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 7) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 7) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -237,7 +237,7 @@ void PairLJClass2CoulCutSoft::coeff(int narg, char **arg)
   double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
   double lambda_one = utils::numeric(FLERR,arg[4],false,lmp);
   if (sigma_one <= 0.0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   double cut_lj_one = cut_lj_global;
   double cut_coul_one = cut_coul_global;
@@ -257,7 +257,7 @@ void PairLJClass2CoulCutSoft::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

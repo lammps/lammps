@@ -34,8 +34,7 @@ int dgesv_(integer *n, integer *nrhs, doublereal *a, integer *lda, integer *ipiv
     }
     dgetrf_(n, n, &a[a_offset], lda, &ipiv[1], info);
     if (*info == 0) {
-        dgetrs_((char *)"No transpose", n, nrhs, &a[a_offset], lda, &ipiv[1], &b[b_offset], ldb, info,
-                (ftnlen)12);
+        dgetrs_((char *)"N", n, nrhs, &a[a_offset], lda, &ipiv[1], &b[b_offset], ldb, info, (ftnlen)1);
     }
     return 0;
 }

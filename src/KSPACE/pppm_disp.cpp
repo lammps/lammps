@@ -46,15 +46,6 @@ static constexpr double SMALL = 0.00001;
 static constexpr double LARGE = 10000.0;
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
-enum{REVERSE_RHO,REVERSE_RHO_GEOM,REVERSE_RHO_ARITH,REVERSE_RHO_NONE};
-enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM,
-     FORWARD_IK_GEOM,FORWARD_AD_GEOM,
-     FORWARD_IK_PERATOM_GEOM,FORWARD_AD_PERATOM_GEOM,
-     FORWARD_IK_ARITH,FORWARD_AD_ARITH,
-     FORWARD_IK_PERATOM_ARITH,FORWARD_AD_PERATOM_ARITH,
-     FORWARD_IK_NONE,FORWARD_AD_NONE,FORWARD_IK_PERATOM_NONE,
-     FORWARD_AD_PERATOM_NONE};
-
 /* ---------------------------------------------------------------------- */
 
 PPPMDisp::PPPMDisp(LAMMPS *lmp) : KSpace(lmp),
@@ -4236,7 +4227,7 @@ void PPPMDisp::particle_map(double delx, double dely, double delz,
   int nlocal = atom->nlocal;
 
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
-    error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
+    error->one(FLERR,"Non-numeric box dimensions - simulation unstable" + utils::errorurl(6));
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++) {
@@ -4261,7 +4252,7 @@ void PPPMDisp::particle_map(double delx, double dely, double delz,
       flag = 1;
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPMDisp");
+  if (flag) error->one(FLERR, Error::NOLASTLINE, "Out of range atoms - cannot compute PPPMDisp" + utils::errorurl(4));
 }
 
 /* ----------------------------------------------------------------------

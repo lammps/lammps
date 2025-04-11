@@ -17,3 +17,10 @@
 *.el
 /utils/sphinx-config/_static/mathjax
 /utils/sphinx-config/_static/polyfill.js
+/src/pairs.rst
+/src/bonds.rst
+/src/angles.rst
+/src/dihedrals.rst
+/src/impropers.rst
+/src/computes.rst
+/src/fixes.rst

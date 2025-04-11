@@ -8,6 +8,10 @@ Building LAMMPS with traditional makefiles requires that you have a
 for customizing your LAMMPS build with a number of global compilation
 options and features.
 
+This build system is slowly being phased out and may not support all
+optional features and packages in LAMMPS.  It is recommended to switch
+to the :doc:`CMake based build system <Build_cmake>`.
+
 Requirements
 ^^^^^^^^^^^^
 
@@ -25,10 +29,10 @@ additional tools to be available and functioning.
     require adding flags like ``-std=c++11`` to enable the C++11 mode.
   * A Bourne shell compatible "Unix" shell program (frequently this is ``bash``)
   * A few shell utilities: ``ls``, ``mv``, ``ln``, ``rm``, ``grep``, ``sed``, ``tr``, ``cat``, ``touch``, ``diff``, ``dirname``
-  * Python (optional, required for ``make lib-<pkg>`` in the src
-    folder).  Python scripts are currently tested with python 2.7 and
-    3.6 to 3.11. The procedure for :doc:`building the documentation
-    <Build_manual>` *requires* Python 3.5 or later.
+  * Python (optional, required for ``make lib-<pkg>`` in the ``src``
+    folder).  Python scripts are currently tested with 3.6 to 3.11.
+    The procedure for :doc:`building the documentation <Build_manual>`
+    *requires* Python 3.8 or later.
 
 Getting started
 ^^^^^^^^^^^^^^^

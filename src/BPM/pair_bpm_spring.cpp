@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Joel Clemmer (SNL)
+------------------------------------------------------------------------- */
+
 #include "pair_bpm_spring.h"
 
 #include "atom.h"
@@ -27,9 +31,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairBPMSpring::PairBPMSpring(LAMMPS *_lmp) : Pair(_lmp)
+PairBPMSpring::PairBPMSpring(LAMMPS *_lmp) : Pair(_lmp), k(nullptr), ka(nullptr), cut(nullptr), gamma(nullptr)
 {
   writedata = 1;
+  anharmonic_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -41,6 +46,7 @@ PairBPMSpring::~PairBPMSpring()
     memory->destroy(cutsq);
 
     memory->destroy(k);
+    memory->destroy(ka);
     memory->destroy(cut);
     memory->destroy(gamma);
   }
@@ -51,8 +57,8 @@ PairBPMSpring::~PairBPMSpring()
 void PairBPMSpring::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
-  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
-  double r, rsq, rinv, factor_lj;
+  double xtmp, ytmp, ztmp, delx, dely, delz, dr, evdwl, fpair;
+  double r, rsq, rinv, fa, factor_lj;
   int *ilist, *jlist, *numneigh, **firstneigh;
   double vxtmp, vytmp, vztmp, delvx, delvy, delvz, dot, smooth;
 
@@ -107,7 +113,15 @@ void PairBPMSpring::compute(int eflag, int vflag)
         r = sqrt(rsq);
 
         rinv = 1.0 / r;
-        fpair = k[itype][jtype] * (cut[itype][jtype] - r);
+        dr = r - cut[itype][jtype];
+
+        fpair = -k[itype][jtype] * dr;
+        if (eflag) evdwl = -0.5 * fpair * dr;
+        if (anharmonic_flag) {
+          fa = -ka[itype][jtype] * dr * dr * dr;
+          fpair += fa;
+          if (eflag) evdwl += -0.25 * fa * dr;
+        }
 
         smooth = rsq / cutsq[itype][jtype];
         smooth *= smooth;
@@ -120,7 +134,7 @@ void PairBPMSpring::compute(int eflag, int vflag)
         fpair -= gamma[itype][jtype] * dot * smooth * rinv;
 
         fpair *= factor_lj * rinv;
-        if (eflag) evdwl = 0.0;
+        if (eflag) evdwl *= factor_lj;
 
         f[i][0] += delx * fpair;
         f[i][1] += dely * fpair;
@@ -156,6 +170,7 @@ void PairBPMSpring::allocate()
   memory->create(cutsq, np1, np1, "pair:cutsq");
 
   memory->create(k, np1, np1, "pair:k");
+  memory->create(ka, np1, np1, "pair:ka");
   memory->create(cut, np1, np1, "pair:cut");
   memory->create(gamma, np1, np1, "pair:gamma");
 }
@@ -164,9 +179,17 @@ void PairBPMSpring::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairBPMSpring::settings(int narg, char ** /*arg*/)
+void PairBPMSpring::settings(int narg, char ** arg)
 {
-  if (narg != 0) error->all(FLERR, "Illegal pair_style command");
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "anharmonic") == 0) {
+      if (iarg + 1 >= narg)
+        utils::missing_cmd_args(FLERR, "pair_coeff bpm/spring anharmonic", error);
+      anharmonic_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else error->all(FLERR, "Illegal pair_style command {}", arg[iarg]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -175,7 +198,8 @@ void PairBPMSpring::settings(int narg, char ** /*arg*/)
 
 void PairBPMSpring::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all(FLERR, "Incorrect args for pair coefficients");
+  if ((!anharmonic_flag && narg != 5) || (anharmonic_flag && narg != 6))
+    error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -186,7 +210,11 @@ void PairBPMSpring::coeff(int narg, char **arg)
   double cut_one = utils::numeric(FLERR, arg[3], false, lmp);
   double gamma_one = utils::numeric(FLERR, arg[4], false, lmp);
 
-  if (cut_one <= 0.0) error->all(FLERR, "Incorrect args for pair coefficients");
+  double ka_one = 0.0;
+  if (anharmonic_flag)
+    ka_one = utils::numeric(FLERR, arg[5], false, lmp);
+
+  if (cut_one <= 0.0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -194,13 +222,14 @@ void PairBPMSpring::coeff(int narg, char **arg)
       k[i][j] = k_one;
       cut[i][j] = cut_one;
       gamma[i][j] = gamma_one;
+      ka[i][j] = ka_one;
 
       setflag[i][j] = 1;
       count++;
     }
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -210,7 +239,7 @@ void PairBPMSpring::coeff(int narg, char **arg)
 void PairBPMSpring::init_style()
 {
   if (comm->ghost_velocity == 0)
-    error->all(FLERR,"Pair bpm/spring requires ghost atoms store velocity");
+    error->all(FLERR, "Pair bpm/spring requires ghost atoms store velocity");
 
   neighbor->add_request(this);
 }
@@ -230,6 +259,7 @@ double PairBPMSpring::init_one(int i, int j)
   cut[j][i] = cut[i][j];
   k[j][i] = k[i][j];
   gamma[j][i] = gamma[i][j];
+  ka[j][i] = ka[i][j];
 
   return cut[i][j];
 }
@@ -250,6 +280,7 @@ void PairBPMSpring::write_restart(FILE *fp)
         fwrite(&k[i][j], sizeof(double), 1, fp);
         fwrite(&cut[i][j], sizeof(double), 1, fp);
         fwrite(&gamma[i][j], sizeof(double), 1, fp);
+        fwrite(&ka[i][j], sizeof(double), 1, fp);
       }
     }
 }
@@ -274,12 +305,35 @@ void PairBPMSpring::read_restart(FILE *fp)
           utils::sfread(FLERR, &k[i][j], sizeof(double), 1, fp, nullptr, error);
           utils::sfread(FLERR, &cut[i][j], sizeof(double), 1, fp, nullptr, error);
           utils::sfread(FLERR, &gamma[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &ka[i][j], sizeof(double), 1, fp, nullptr, error);
         }
         MPI_Bcast(&k[i][j], 1, MPI_DOUBLE, 0, world);
         MPI_Bcast(&cut[i][j], 1, MPI_DOUBLE, 0, world);
         MPI_Bcast(&gamma[i][j], 1, MPI_DOUBLE, 0, world);
+        MPI_Bcast(&ka[i][j], 1, MPI_DOUBLE, 0, world);
       }
     }
+}
+
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+------------------------------------------------------------------------- */
+
+void PairBPMSpring::write_restart_settings(FILE *fp)
+{
+  fwrite(&anharmonic_flag, sizeof(int), 1, fp);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads from restart file, bcasts
+------------------------------------------------------------------------- */
+
+void PairBPMSpring::read_restart_settings(FILE *fp)
+{
+  if (comm->me == 0)
+    utils::sfread(FLERR, &anharmonic_flag, sizeof(int), 1, fp, nullptr, error);
+  MPI_Bcast(&anharmonic_flag, 1, MPI_INT, 0, world);
 }
 
 /* ----------------------------------------------------------------------
@@ -288,8 +342,13 @@ void PairBPMSpring::read_restart(FILE *fp)
 
 void PairBPMSpring::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp, "%d %g %g %g\n", i, k[i][i], cut[i][i], gamma[i][i]);
+  if (anharmonic_flag) {
+    for (int i = 1; i <= atom->ntypes; i++)
+      fprintf(fp, "%d %g %g %g %g\n", i, k[i][i], cut[i][i], gamma[i][i], ka[i][i]);
+  } else {
+    for (int i = 1; i <= atom->ntypes; i++)
+      fprintf(fp, "%d %g %g %g\n", i, k[i][i], cut[i][i], gamma[i][i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -298,9 +357,15 @@ void PairBPMSpring::write_data(FILE *fp)
 
 void PairBPMSpring::write_data_all(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp, "%d %d %g %g %g\n", i, j, k[i][j], cut[i][j], gamma[i][j]);
+  if (anharmonic_flag) {
+    for (int i = 1; i <= atom->ntypes; i++)
+      for (int j = i; j <= atom->ntypes; j++)
+        fprintf(fp, "%d %d %g %g %g %g\n", i, j, k[i][j], cut[i][j], gamma[i][j], ka[i][j]);
+  } else {
+    for (int i = 1; i <= atom->ntypes; i++)
+      for (int j = i; j <= atom->ntypes; j++)
+        fprintf(fp, "%d %d %g %g %g\n", i, j, k[i][j], cut[i][j], gamma[i][j]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -308,7 +373,7 @@ void PairBPMSpring::write_data_all(FILE *fp)
 double PairBPMSpring::single(int i, int j, int itype, int jtype, double rsq, double /*factor_coul*/,
                              double factor_lj, double &fforce)
 {
-  double fpair, r, rinv;
+  double fpair, r, rinv, dr;
   double delx, dely, delz, delvx, delvy, delvz, dot, smooth;
 
   if (rsq > cutsq[itype][jtype]) return 0.0;
@@ -319,7 +384,15 @@ double PairBPMSpring::single(int i, int j, int itype, int jtype, double rsq, dou
   r = sqrt(rsq);
   rinv = 1.0 / r;
 
-  fpair = k[itype][jtype] * (cut[itype][jtype] - r);
+  dr = r - cut[itype][jtype];
+  fpair = -k[itype][jtype] * dr;
+  double energy = -0.5 * fpair * dr;
+
+  if (anharmonic_flag) {
+    double fa = -ka[itype][jtype] * dr * dr * dr;
+    fpair += fa;
+    energy += -0.25 * fa * dr;
+  }
 
   smooth = rsq / cutsq[itype][jtype];
   smooth *= smooth;
@@ -334,7 +407,8 @@ double PairBPMSpring::single(int i, int j, int itype, int jtype, double rsq, dou
   fpair -= gamma[itype][jtype] * dot * rinv * smooth;
 
   fpair *= factor_lj;
+  energy *= factor_lj;
   fforce = fpair;
 
-  return 0.0;
+  return energy;
 }

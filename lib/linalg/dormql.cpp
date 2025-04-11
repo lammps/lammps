@@ -128,16 +128,16 @@ int dormql_(char *side, char *trans, integer *m, integer *n, integer *k, doubler
             i__4 = nb, i__5 = *k - i__ + 1;
             ib = min(i__4, i__5);
             i__4 = nq - *k + i__ + ib - 1;
-            dlarft_((char *)"Backward", (char *)"Columnwise", &i__4, &ib, &a[i__ * a_dim1 + 1], lda, &tau[i__],
-                    &work[iwt], &c__65, (ftnlen)8, (ftnlen)10);
+            dlarft_((char *)"B", (char *)"C", &i__4, &ib, &a[i__ * a_dim1 + 1], lda, &tau[i__], &work[iwt], &c__65,
+                    (ftnlen)1, (ftnlen)1);
             if (left) {
                 mi = *m - *k + i__ + ib - 1;
             } else {
                 ni = *n - *k + i__ + ib - 1;
             }
-            dlarfb_(side, trans, (char *)"Backward", (char *)"Columnwise", &mi, &ni, &ib, &a[i__ * a_dim1 + 1], lda,
-                    &work[iwt], &c__65, &c__[c_offset], ldc, &work[1], &ldwork, (ftnlen)1,
-                    (ftnlen)1, (ftnlen)8, (ftnlen)10);
+            dlarfb_(side, trans, (char *)"B", (char *)"C", &mi, &ni, &ib, &a[i__ * a_dim1 + 1], lda, &work[iwt],
+                    &c__65, &c__[c_offset], ldc, &work[1], &ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1,
+                    (ftnlen)1);
         }
     }
     work[1] = (doublereal)lwkopt;

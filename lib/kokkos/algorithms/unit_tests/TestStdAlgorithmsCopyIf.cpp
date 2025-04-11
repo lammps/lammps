@@ -107,7 +107,7 @@ std::size_t fill_view(ViewType dest_view, const std::string& name,
   }
 
   else {
-    throw std::runtime_error("invalid choice");
+    Kokkos::abort("invalid choice");
   }
 
   Kokkos::deep_copy(aux_view, v_h);
@@ -202,7 +202,7 @@ void verify_data(const std::string& name, ViewTypeFrom view_from,
   }
 
   else {
-    throw std::runtime_error("invalid choice");
+    FAIL() << "invalid choice";
   }
 }
 
@@ -224,7 +224,7 @@ void run_single_scenario(const InfoType& scenario_info) {
     auto n         = fill_view(view_from, name, pred);
     auto view_dest = create_view<ValueType>(Tag{}, view_ext, "copy_if_dest");
     auto rit       = KE::copy_if(exespace(), KE::cbegin(view_from),
-                           KE::cend(view_from), KE::begin(view_dest), pred);
+                                 KE::cend(view_from), KE::begin(view_dest), pred);
     verify_data(name, view_from, view_dest, pred);
     ASSERT_EQ(rit, (KE::begin(view_dest) + n));
   }
@@ -233,7 +233,7 @@ void run_single_scenario(const InfoType& scenario_info) {
     auto n         = fill_view(view_from, name, pred);
     auto view_dest = create_view<ValueType>(Tag{}, view_ext, "copy_if_dest");
     auto rit       = KE::copy_if("label", exespace(), KE::cbegin(view_from),
-                           KE::cend(view_from), KE::begin(view_dest), pred);
+                                 KE::cend(view_from), KE::begin(view_dest), pred);
     verify_data(name, view_from, view_dest, pred);
     ASSERT_EQ(rit, (KE::begin(view_dest) + n));
   }

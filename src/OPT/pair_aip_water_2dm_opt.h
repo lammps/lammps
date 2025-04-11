@@ -1,4 +1,4 @@
-  /* -*- c++ -*- ----------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -20,8 +20,8 @@ PairStyle(aip/water/2dm/opt,PairAIPWATER2DMOpt);
 #ifndef LMP_PAIR_AIP_WATER_2DM_OPT_H
 #define LMP_PAIR_AIP_WATER_2DM_OPT_H
 
-#include "pair_ilp_graphene_hbn_opt.h"
 #include "pair_aip_water_2dm.h"
+#include "pair_ilp_graphene_hbn_opt.h"
 
 namespace LAMMPS_NS {
 

@@ -13,7 +13,10 @@ improper_style: cvff
 improper_coeff: ! |
   1  75.0 -1 5
   2  45.0 +1 2
-extract: ! ""
+extract: ! |
+  k 1
+  d 1
+  n 1
 natoms: 29
 init_energy: 89.33266688553577
 init_stress: ! |2-

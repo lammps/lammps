@@ -151,6 +151,10 @@ TEST_F(Advanced_utils, expand_args)
     args[7]            = utils::strdup("c_gofr[*2][2]");
     args[8]            = utils::strdup("c_gofr[*][*]");
 
+    // disable use of input->command and input->arg which point to the last run command right now
+    lmp->input->command = nullptr;
+    lmp->input->arg    = nullptr;
+
     auto narg = utils::expand_args(FLERR, oarg, args, 0, earg, lmp);
     EXPECT_EQ(narg, 16);
     EXPECT_STREQ(earg[0], "v_step");

@@ -25,6 +25,8 @@ RegionStyle(ellipsoid,RegEllipsoid);
 namespace LAMMPS_NS {
 
 class RegEllipsoid : public Region {
+  friend class Region2VMD;
+
  public:
   RegEllipsoid(class LAMMPS *, int, char **);
   ~RegEllipsoid() override;

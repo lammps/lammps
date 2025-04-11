@@ -15,7 +15,6 @@
 # ************************************************************************
 # @HEADER
 
-
 #-----------------------------------------------------------------------------
 #  Hardware locality detection and control library.
 #
@@ -26,7 +25,4 @@
 #    Version:       1.3
 #
 
-KOKKOS_TPL_FIND_INCLUDE_DIRS_AND_LIBRARIES( HWLOC
-  REQUIRED_HEADERS hwloc.h
-  REQUIRED_LIBS_NAMES "hwloc"
-  )
+kokkos_tpl_find_include_dirs_and_libraries(HWLOC REQUIRED_HEADERS hwloc.h REQUIRED_LIBS_NAMES "hwloc")

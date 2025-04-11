@@ -74,7 +74,7 @@ void TAD::command(int narg, char **arg)
   // error checks
 
   if (domain->box_exist == 0)
-    error->all(FLERR,"Tad command before simulation box is defined");
+    error->all(FLERR,"Tad command before simulation box is defined" + utils::errorurl(33));
   if (universe->nworlds == 1)
     error->all(FLERR,"Cannot use TAD with a single replica for NEB");
   if (universe->nworlds != universe->nprocs)
@@ -366,8 +366,8 @@ void TAD::command(int narg, char **arg)
   if (me_universe == 0) {
     auto mesg = fmt::format("Loop time of {} on {} procs for {} steps with {} atoms\n",
                             timer->get_wall(Timer::TOTAL), nprocs_universe, nsteps,atom->natoms);
-    if (universe->uscreen) fmt::print(universe->uscreen, mesg);
-    if (universe->ulogfile) fmt::print(universe->ulogfile, mesg);
+    if (universe->uscreen) utils::print(universe->uscreen, mesg);
+    if (universe->ulogfile) utils::print(universe->ulogfile, mesg);
   }
 
   if ((me_universe == 0) && ulogfile_neb) fclose(ulogfile_neb);
@@ -504,8 +504,8 @@ void TAD::log_event(int ievent)
                             fix_event->event_number, ievent, "E ", fix_event->ebarrier,
                             tfrac, fix_event->tlo, deltfirst);
 
-    if (universe->uscreen) fmt::print(universe->uscreen, mesg);
-    if (universe->ulogfile) fmt::print(universe->ulogfile, mesg);
+    if (universe->uscreen) utils::print(universe->uscreen, mesg);
+    if (universe->ulogfile) utils::print(universe->ulogfile, mesg);
   }
 
   // dump snapshot of quenched coords
@@ -895,8 +895,8 @@ void TAD::compute_tlo(int ievent)
                             fix_event->event_number, ievent, statstr, ebarrier, tfrac,
                             fix_event->tlo, deltlo);
 
-    if (universe->uscreen) fmt::print(universe->uscreen, mesg);
-    if (universe->ulogfile) fmt::print(universe->ulogfile, mesg);
+    if (universe->uscreen) utils::print(universe->uscreen, mesg);
+    if (universe->ulogfile) utils::print(universe->ulogfile, mesg);
   }
 }
 

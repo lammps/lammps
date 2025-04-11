@@ -54,14 +54,14 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
 
   PyUtils::GIL lock;
   PyObject *py_path = PySys_GetObject((char *)"path");
-  PyList_Append(py_path, PY_STRING_FROM_STRING("."));
+  PyList_Append(py_path, PyUnicode_FromString("."));
 
   // if LAMMPS_POTENTIALS environment variable is set,
   // add it to PYTHONPATH as well
 
   const char *potentials_path = getenv("LAMMPS_POTENTIALS");
   if (potentials_path != nullptr) {
-    PyList_Append(py_path, PY_STRING_FROM_STRING(potentials_path));
+    PyList_Append(py_path, PyUnicode_FromString(potentials_path));
   }
 }
 
@@ -244,14 +244,14 @@ void PairPython::coeff(int narg, char **arg)
   const int ntypes = atom->ntypes;
 
   if (narg != 3+ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   if (!allocated) allocate();
 
   // make sure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
 
   // check if python potential class type exists

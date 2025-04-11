@@ -17,6 +17,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "suffix.h"
 #include "update.h"
@@ -48,7 +49,7 @@ Dihedral::Dihedral(LAMMPS *_lmp) : Pointers(_lmp)
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
 
-  copymode = 0;
+  copymode = kokkosable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -68,9 +69,14 @@ Dihedral::~Dihedral()
 
 void Dihedral::init()
 {
-  if (!allocated && atom->ndihedraltypes) error->all(FLERR, "Dihedral coeffs are not set");
+  if (!allocated && atom->ndihedraltypes)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Dihedral coeffs are not set. Status:\n" + Info::get_dihedral_coeff_status(lmp));
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    if (setflag[i] == 0) error->all(FLERR, "All dihedral coeffs are not set");
+    if (setflag[i] == 0)
+            error->all(FLERR, Error::NOLASTLINE,
+                       "All dihedral coeffs are not set. Status:\n"
+                       + Info::get_dihedral_coeff_status(lmp));
   init_style();
 }
 

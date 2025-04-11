@@ -69,7 +69,7 @@ The basic LAMMPS class hierarchy which is created by the LAMMPS class
 constructor is shown in :ref:`class-topology`.  When input commands
 are processed, additional class instances are created, or deleted, or
 replaced.  Likewise, specific member functions of specific classes are
-called to trigger actions such creating atoms, computing forces,
+called to trigger actions such as creating atoms, computing forces,
 computing properties, time-propagating the system, or writing output.
 
 Compositing and Inheritance
@@ -110,9 +110,10 @@ As mentioned above, there can be multiple instances of classes derived
 from the ``Fix`` or ``Compute`` base classes.  They represent a
 different facet of LAMMPS' flexibility, as they provide methods which
 can be called at different points within a timestep, as explained in
-`Developer_flow`.  This allows the input script to tailor how a specific
-simulation is run, what diagnostic computations are performed, and how
-the output of those computations is further processed or output.
+the :doc:`How a timestep works <Developer_flow>` doc page.  This allows
+the input script to tailor how a specific simulation is run, what
+diagnostic computations are performed, and how the output of those
+computations is further processed or output.
 
 Additional code sharing is possible by creating derived classes from the
 derived classes (e.g., to implement an accelerated version of a pair
@@ -202,6 +203,7 @@ processed in the expected order before types are removed from dynamic
 dispatch.
 
 .. admonition:: Important Notes
+   :class: note
 
    In order to be able to detect incompatibilities at compile time and
    to avoid unexpected behavior, it is crucial that all member functions
@@ -299,18 +301,24 @@ Formatting with the {fmt} library
 
 The LAMMPS source code includes a copy of the `{fmt} library
 <https://fmt.dev>`_, which is preferred over formatting with the
-"printf()" family of functions.  The primary reason is that it allows
-a typesafe default format for any type of supported data.  This is
+"printf()" family of functions.  The primary reason is that it allows a
+typesafe default format for any type of supported data.  This is
 particularly useful for formatting integers of a given size (32-bit or
-64-bit) which may require different format strings depending on
-compile time settings or compilers/operating systems.  Furthermore,
-{fmt} gives better performance, has more functionality, a familiar
-formatting syntax that has similarities to ``format()`` in Python, and
-provides a facility that can be used to integrate format strings and a
-variable number of arguments into custom functions in a much simpler
-way than the varargs mechanism of the C library.  Finally, {fmt} has
-been included into the C++20 language standard, so changes to adopt it
-are future-proof.
+64-bit) which may require different format strings depending on compile
+time settings or compilers/operating systems.  Furthermore, {fmt} gives
+better performance, has more functionality, a familiar formatting syntax
+that has similarities to ``format()`` in Python, and provides a facility
+that can be used to integrate format strings and a variable number of
+arguments into custom functions in a much simpler way than the varargs
+mechanism of the C library.  Finally, {fmt} has been included into the
+C++20 language standard as ``std::format()``, so changes to adopt it are
+future-proof, for as long as they are not using any extensions that are
+not (yet) included into C++.
+
+The long-term plan is to switch to using ``std::format()`` instead of
+``fmt::format()`` when the minimum C++ standard required for LAMMPS will
+be set to C++20. See the :ref:`basic build instructions <compile>` for
+more details.
 
 Formatted strings are frequently created by calling the
 ``fmt::format()`` function, which will return a string as a
@@ -318,11 +326,13 @@ Formatted strings are frequently created by calling the
 ``printf()``, the {fmt} library uses ``{}`` to embed format descriptors.
 In the simplest case, no additional characters are needed, as {fmt} will
 choose the default format based on the data type of the argument.
-Otherwise, the ``fmt::print()`` function may be used instead of
-``printf()`` or ``fprintf()``.  In addition, several LAMMPS output
-functions, that originally accepted a single string as argument have
-been overloaded to accept a format string with optional arguments as
-well (e.g., ``Error::all()``, ``Error::one()``, ``utils::logmesg()``).
+Otherwise, the :cpp:func:`utils::print() <LAMMPS_NS::utils::print>`
+function may be used instead of ``printf()`` or ``fprintf()``.  In
+addition, several LAMMPS output functions, that originally accepted a
+single string as argument have been overloaded to accept a format string
+with optional arguments as well (e.g., ``Error::all()``,
+``Error::one()``, :cpp:func:`utils::logmesg()
+<LAMMPS_NS::utils::logmesg>`).
 
 Summary of the {fmt} format syntax
 ==================================

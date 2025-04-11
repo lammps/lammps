@@ -14,3 +14,5 @@ pair styles from the DPD-BASIC package.
 4)  'dpdext_tstat' - coarse-grained SPC/E water example for 'dpd/ext/tstat' pair style
     (in.dpdext_tstat), an initial configuration (dpdext.data) and tabulated potential
     (cg_spce_table.pot) obtained by bottom-up coarse-graining of the atomistic SPC/E water.
+
+5)  'dpd_coul_slater_long' - simple example (DPD ionic fluid) for 'dpd/coul/slater/long' pair style (in.dpd_coul_slater_long).

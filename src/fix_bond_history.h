@@ -44,6 +44,7 @@ class FixBondHistory : public Fix {
 
   void update_atom_value(int, int, int, double);
   double get_atom_value(int, int, int);
+  int get_ndata() const { return ndata; }
 
   // methods to reorder/delete elements of atom->bond_atom
   void delete_history(int, int);
@@ -52,20 +53,32 @@ class FixBondHistory : public Fix {
   void check_cache(int, int);
   void clear_cache();
 
+  // methods for bond style hybrid
+  void compress_history();
+  void uncompress_history();
+
   // if data is temporarily stored while the bond_atom array
   // is being reordered, use map of vectors with pairs for keys
   // to enable quick look up
   std::map<std::pair<tagint, tagint>, std::vector<double>> cached_histories;
 
+  int *setflag;    // Set by BondBPM, which bond types are used
   double **bondstore;
   int stored_flag;
+  int ndata;
 
  protected:
   void allocate();
 
-  int update_flag;    //Flag whether history values can evolve
+  int hybrid_flag;
+  int nbondlist_orig;
+  int *bondtype_orig;
+  double **bondstore_comp;
+  double **bondstore_orig;
+
+  int update_flag;    // Flag whether history values can evolve
   int updated_bond_flag;
-  int nbond, maxbond, ndata;
+  int nbond, maxbond;
   int index;
   char *id_fix;
   char *id_array;

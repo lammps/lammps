@@ -283,22 +283,22 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
       const X_FLOAT delz = ztmp - x(j, 2);
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 #ifdef DEBUG_SSA_PAIR_CT
-      if ((i < nlocal) && (j < nlocal)) Kokkos::atomic_increment(&(d_counters(0, 0)));
-      else Kokkos::atomic_increment(&(d_counters(0, 1)));
-      Kokkos::atomic_increment(&(d_counters(0, 2)));
+      if ((i < nlocal) && (j < nlocal)) Kokkos::atomic_inc(&(d_counters(0, 0)));
+      else Kokkos::atomic_inc(&(d_counters(0, 1)));
+      Kokkos::atomic_inc(&(d_counters(0, 2)));
       int rsqi = rsq / 8;
       if (rsqi < 0) rsqi = 0;
       else if (rsqi > 31) rsqi = 31;
-      Kokkos::atomic_increment(&(d_hist(rsqi)));
+      Kokkos::atomic_inc(&(d_hist(rsqi)));
 #endif
 
       // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
       if ((rsq < (STACKPARAMS?m_cutsq[itype][jtype]:d_cutsq(itype,jtype)))
         && (rsq >= EPSILON_SQUARED)) {
 #ifdef DEBUG_SSA_PAIR_CT
-        if ((i < nlocal) && (j < nlocal)) Kokkos::atomic_increment(&(d_counters(1, 0)));
-        else Kokkos::atomic_increment(&(d_counters(1, 1)));
-        Kokkos::atomic_increment(&(d_counters(1, 2)));
+        if ((i < nlocal) && (j < nlocal)) Kokkos::atomic_inc(&(d_counters(1, 0)));
+        else Kokkos::atomic_inc(&(d_counters(1, 1)));
+        Kokkos::atomic_inc(&(d_counters(1, 2)));
 #endif
         double r = sqrt(rsq);
         double rinv = 1.0/r;
@@ -428,22 +428,22 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
       const X_FLOAT delz = ztmp - x(j, 2);
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 #ifdef DEBUG_SSA_PAIR_CT
-      if ((i < nlocal) && (j < nlocal)) Kokkos::atomic_increment(&(d_counters(0, 0)));
-      else Kokkos::atomic_increment(&(d_counters(0, 1)));
-      Kokkos::atomic_increment(&(d_counters(0, 2)));
+      if ((i < nlocal) && (j < nlocal)) Kokkos::atomic_inc(&(d_counters(0, 0)));
+      else Kokkos::atomic_inc(&(d_counters(0, 1)));
+      Kokkos::atomic_inc(&(d_counters(0, 2)));
       int rsqi = rsq / 8;
       if (rsqi < 0) rsqi = 0;
       else if (rsqi > 31) rsqi = 31;
-      Kokkos::atomic_increment(&(d_hist(rsqi)));
+      Kokkos::atomic_inc(&(d_hist(rsqi)));
 #endif
 
       // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
       if ((rsq < (STACKPARAMS?m_cutsq[itype][jtype]:d_cutsq(itype,jtype)))
         && (rsq >= EPSILON_SQUARED)) {
 #ifdef DEBUG_SSA_PAIR_CT
-        if ((i < nlocal) && (j < nlocal)) Kokkos::atomic_increment(&(d_counters(1, 0)));
-        else Kokkos::atomic_increment(&(d_counters(1, 1)));
-        Kokkos::atomic_increment(&(d_counters(1, 2)));
+        if ((i < nlocal) && (j < nlocal)) Kokkos::atomic_inc(&(d_counters(1, 0)));
+        else Kokkos::atomic_inc(&(d_counters(1, 1)));
+        Kokkos::atomic_inc(&(d_counters(1, 2)));
 #endif
 
         double r = sqrt(rsq);

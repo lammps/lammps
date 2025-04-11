@@ -120,14 +120,14 @@ TEST_F(ComputeChunkTest, ChunkAtom)
     EXPECT_EQ(get_scalar("mols"), 6);
     EXPECT_EQ(get_scalar("types"), 5);
 
-    auto cbin1d  = get_peratom("bin1d");
-    auto cbin2d  = get_peratom("bin2d");
-    auto cbin3d  = get_peratom("bin3d");
-    auto cbinsph = get_peratom("binsph");
-    auto cbincyl = get_peratom("bincyl");
-    auto cmols   = get_peratom("mols");
-    auto ctypes  = get_peratom("types");
-    auto tag     = get_peratom("tags");
+    auto *cbin1d  = get_peratom("bin1d");
+    auto *cbin2d  = get_peratom("bin2d");
+    auto *cbin3d  = get_peratom("bin3d");
+    auto *cbinsph = get_peratom("binsph");
+    auto *cbincyl = get_peratom("bincyl");
+    auto *cmols   = get_peratom("mols");
+    auto *ctypes  = get_peratom("types");
+    auto *tag     = get_peratom("tags");
 
     for (int i = 0; i < natoms; ++i) {
         EXPECT_EQ(cbin1d[i], chunk1d[(int)tag[i]]);
@@ -180,16 +180,16 @@ TEST_F(ComputeChunkTest, PropertyChunk)
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
-    auto cprop1 = get_vector("prop1");
+    auto *cprop1 = get_vector("prop1");
     EXPECT_EQ(cprop1[0], 0);
     EXPECT_EQ(cprop1[1], 7);
     EXPECT_EQ(cprop1[2], 16);
     EXPECT_EQ(cprop1[3], 6);
     EXPECT_EQ(cprop1[4], 0);
 
-    auto cprop2 = get_vector("prop2");
-    int nempty  = 0;
-    int ncount  = 0;
+    auto *cprop2 = get_vector("prop2");
+    int nempty   = 0;
+    int ncount   = 0;
     for (int i = 0; i < 25; ++i) {
         if (cprop2[i] == 0)
             ++nempty;
@@ -199,7 +199,7 @@ TEST_F(ComputeChunkTest, PropertyChunk)
     EXPECT_EQ(nempty, 17);
     EXPECT_EQ(ncount, 29);
 
-    auto cprop3 = get_array("prop3");
+    auto *cprop3 = get_array("prop3");
     EXPECT_EQ(cprop3[0][0], 34);
     EXPECT_EQ(cprop3[1][0], 38);
     EXPECT_EQ(cprop3[2][0], 43);
@@ -250,15 +250,15 @@ TEST_F(ComputeChunkTest, ChunkComputes)
     command("fix hist2 all ave/time 1 1 1 c_tmp mode vector");
     command("run 0 post no");
     END_HIDE_OUTPUT();
-    auto cang = get_array("ang");
-    auto ccom = get_array("com");
-    auto cdip = get_array("dip");
-    auto cgyr = get_vector("gyr");
-    auto cmom = get_array("mom");
-    auto comg = get_array("omg");
-    auto ctmp = get_vector("tmp");
-    auto ctrq = get_array("trq");
-    auto cvcm = get_array("vcm");
+    auto *cang = get_array("ang");
+    auto *ccom = get_array("com");
+    auto *cdip = get_array("dip");
+    auto *cgyr = get_vector("gyr");
+    auto *cmom = get_array("mom");
+    auto *comg = get_array("omg");
+    auto *ctmp = get_vector("tmp");
+    auto *ctrq = get_array("trq");
+    auto *cvcm = get_array("vcm");
     EXPECT_NEAR(cang[0][0], -0.01906982, EPSILON);
     EXPECT_NEAR(cang[0][1], -0.02814532, EPSILON);
     EXPECT_NEAR(cang[0][2], -0.03357393, EPSILON);
@@ -329,7 +329,7 @@ TEST_F(ComputeChunkTest, ChunkTIP4PComputes)
     command("fix hist1 all ave/time 1 1 1 c_dip[*] mode vector");
     command("run 0 post no");
     END_HIDE_OUTPUT();
-    auto cdip = get_array("dip");
+    auto *cdip = get_array("dip");
     EXPECT_NEAR(cdip[0][3], 0.35912150, EPSILON);
     EXPECT_NEAR(cdip[1][3], 0.68453713, EPSILON);
     EXPECT_NEAR(cdip[2][3], 0.50272643, EPSILON);
@@ -358,11 +358,11 @@ TEST_F(ComputeChunkTest, ChunkSpreadGlobal)
 
     const int natoms = lammps_get_natoms(lmp);
 
-    auto cgyr = get_vector("gyr");
-    auto cspr = get_peratom("spr");
-    auto cglb = get_peratom("glb");
-    auto codd = get_peratom("odd");
-    auto ctag = get_peratom("tags");
+    auto *cgyr = get_vector("gyr");
+    auto *cspr = get_peratom("spr");
+    auto *cglb = get_peratom("glb");
+    auto *codd = get_peratom("odd");
+    auto *ctag = get_peratom("tags");
 
     for (int i = 0; i < natoms; ++i) {
         EXPECT_EQ(cspr[i], cgyr[chunkmol[(int)ctag[i]] - 1]);
@@ -389,8 +389,8 @@ TEST_F(ComputeChunkTest, ChunkReduce)
 
     const int nchunks = get_scalar("mols");
 
-    auto cprp = get_vector("prp");
-    auto cred = get_vector("red");
+    auto *cprp = get_vector("prp");
+    auto *cred = get_vector("red");
 
     for (int i = 0; i < nchunks; ++i)
         EXPECT_EQ(cprp[i], cred[i]);

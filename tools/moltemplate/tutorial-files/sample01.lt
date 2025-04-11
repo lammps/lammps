@@ -1,23 +1,25 @@
 # Use the OPLS-AA force field for all species.
-import /usr/local/moltemplate/moltemplate/force_fields/oplsaa.lt
+import /usr/local/moltemplate/moltemplate/force_fields/oplsaa2024.lt
 import PolyNIPAM.lt
 
 # Define the SPC water and ions as in the OPLS-AA
 Ca inherits OPLSAA {
   write("Data Atoms"){
-    $atom:a1  $mol:. @atom:354 0.0  0.00000 0.00000 0.000000
+    $atom:a1  $mol:. @atom:412 0.0  0.00000 0.00000 0.000000
   }
 }
+
 Cl inherits OPLSAA {
   write("Data Atoms"){
-    $atom:a1  $mol:. @atom:344 0.0  0.00000 0.00000 0.000000
+    $atom:a1  $mol:. @atom:401 0.0  0.00000 0.00000 0.000000
   }
 }
+
 SPC inherits OPLSAA {
   write("Data Atoms"){
-    $atom:O  $mol:. @atom:76 0.  0.0000000 0.00000 0.000000
-    $atom:H1 $mol:. @atom:77 0.  0.8164904 0.00000 0.5773590
-    $atom:H2 $mol:. @atom:77 0. -0.8164904 0.00000 0.5773590
+    $atom:O  $mol:. @atom:9991 0.  0.0000000 0.00000 0.000000
+    $atom:H1 $mol:. @atom:9990 0.  0.8164904 0.00000 0.5773590
+    $atom:H2 $mol:. @atom:9990 0. -0.8164904 0.00000 0.5773590
   }
   write("Data Bond List") {
     $bond:OH1 $atom:O $atom:H1
@@ -38,37 +40,38 @@ write_once("Data Boundary"){
   0 26 zlo zhi
 }
 
-# Define the input variables.
 write_once("In Init"){
+  boundary p p p  # "p p p" is the default. This line is optional.
+  neighbor 3 bin  # (This line is also optional in this example.)
+}
+
+# Note: The lines below in the "In Run" section are often omitted.
+
+# Run an NVT simulation.
+write_once("In Run"){
   # Input variables.
   variable run    string sample01  # output name
   variable ts     equal  2         # timestep
   variable temp   equal  298.15    # equilibrium temperature
   variable p      equal  1.        # equilibrium pressure
   variable equi   equal  30000     # equilibration steps
- 
-  # PBC (set them before the creation of the box).
-  boundary p p p
-  neighbor        3 bin
-}
 
-# Run an NVT simulation.
-write_once("In Run"){
   # Set the output.
   thermo          1000
-  thermo_style    custom step etotal evdwl ecoul elong ebond eangle edihed eimp pe ke temp press atoms vol density cpu
+  thermo_style    custom step etotal evdwl ecoul elong ebond eangle &
+  edihed eimp pe ke temp press atoms vol density cpu
   thermo_modify flush yes
   compute pe1 all pe/atom pair
   dump TRJ all custom 100 \$\{run\}.dump id xu yu zu c_pe1
-  
+
   # Minimise the input structure, just in case.
   minimize        .01 .001 1000 100000
   write_data \$\{run\}.min
-  
+
   # Set the constrains.
-  group watergroup type @atom:76 @atom:77
-  fix 0 watergroup shake 0.0001 10 0 b @bond:042_043 a @angle:043_042_043
-  
+  group watergroup type @atom:9991 @atom:9990
+  fix 0 watergroup shake 0.0001 10 0 b @bond:spcO_spcH a @angle:spcH_spcO_spcH
+
   # Short annealing.
   timestep        \$\{ts\}
   fix       1 all nvt temp \$\{temp\} \$\{temp\} \$(100*dt)
@@ -76,3 +79,4 @@ write_once("In Run"){
   run             \$\{equi\}
   unfix 1
 }
+

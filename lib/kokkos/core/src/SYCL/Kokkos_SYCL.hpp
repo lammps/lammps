@@ -39,7 +39,6 @@ static_assert(false,
 #include <impl/Kokkos_InitializationSettings.hpp>
 
 namespace Kokkos {
-namespace Experimental {
 namespace Impl {
 class SYCLInternal;
 }
@@ -70,6 +69,7 @@ class SYCL {
   }
 
   sycl::queue& sycl_queue() const noexcept {
+    // NOLINTNEXTLINE(bugprone-unchecked-optional-access)
     return *m_space_instance->m_queue;
   }
 
@@ -91,9 +91,8 @@ class SYCL {
   /** \brief Wait until all dispatched functors complete. A noop for OpenMP. */
   static void impl_static_fence(const std::string& name);
 
-  void fence(
-      const std::string& name =
-          "Kokkos::Experimental::SYCL::fence: Unnamed Instance Fence") const;
+  void fence(const std::string& name =
+                 "Kokkos::SYCL::fence: Unnamed Instance Fence") const;
 
   /// \brief Print configuration information to the given output stream.
   void print_configuration(std::ostream& os, bool verbose = false) const;
@@ -131,15 +130,13 @@ class SYCL {
   Kokkos::Impl::HostSharedPtr<Impl::SYCLInternal> m_space_instance;
 };
 
-}  // namespace Experimental
-
 namespace Tools {
 namespace Experimental {
 template <>
-struct DeviceTypeTraits<Kokkos::Experimental::SYCL> {
+struct DeviceTypeTraits<Kokkos::SYCL> {
   /// \brief An ID to differentiate (for example) Serial from OpenMP in Tooling
   static constexpr DeviceType id = DeviceType::SYCL;
-  static int device_id(const Kokkos::Experimental::SYCL& exec) {
+  static int device_id(const Kokkos::SYCL& exec) {
     return exec.impl_internal_space_instance()->m_syclDev;
   }
 };
@@ -154,8 +151,7 @@ std::vector<SYCL> partition_space(const SYCL& sycl_space, Args...) {
       "Kokkos Error: partitioning arguments must be integers or floats");
 
   sycl::context context = sycl_space.sycl_queue().get_context();
-  sycl::device device =
-      sycl_space.impl_internal_space_instance()->m_queue->get_device();
+  sycl::device device   = sycl_space.sycl_queue().get_device();
   std::vector<SYCL> instances;
   instances.reserve(sizeof...(Args));
   for (unsigned int i = 0; i < sizeof...(Args); ++i)
@@ -168,12 +164,11 @@ template <class T>
 std::vector<SYCL> partition_space(const SYCL& sycl_space,
                                   std::vector<T> const& weights) {
   static_assert(
-      std::is_arithmetic<T>::value,
+      std::is_arithmetic_v<T>,
       "Kokkos Error: partitioning arguments must be integers or floats");
 
   sycl::context context = sycl_space.sycl_queue().get_context();
-  sycl::device device =
-      sycl_space.impl_internal_space_instance()->m_queue->get_device();
+  sycl::device device   = sycl_space.sycl_queue().get_device();
   std::vector<SYCL> instances;
 
   // We only care about the number of instances to create and ignore weights
@@ -185,10 +180,11 @@ std::vector<SYCL> partition_space(const SYCL& sycl_space,
   return instances;
 }
 
+}  // namespace Experimental
+
 namespace Impl {
 std::vector<sycl::device> get_sycl_devices();
 }  // namespace Impl
-}  // namespace Experimental
 
 }  // namespace Kokkos
 

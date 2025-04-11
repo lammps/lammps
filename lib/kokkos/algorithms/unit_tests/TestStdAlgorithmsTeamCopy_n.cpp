@@ -53,7 +53,7 @@ struct TestFunctorA {
 
     if (m_apiPick == 0) {
       auto it    = KE::copy_n(member, KE::begin(myRowViewFrom), m_copyCount,
-                           KE::begin(myRowViewDest));
+                              KE::begin(myRowViewDest));
       resultDist = KE::distance(KE::begin(myRowViewDest), it);
       Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
         m_distancesView(myRowIndex) = resultDist;

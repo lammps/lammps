@@ -14,14 +14,15 @@
 //
 //@HEADER
 
+#include <cstdlib>
+#include <iostream>
 #include <string>
-
-struct Up {};
 
 int main(int argc, char* argv[]) {
   if (argc != 4 || std::string(argv[1]) != "one" ||
       std::string(argv[2]) != "2" || std::string(argv[3]) != "THREE") {
-    throw Up{};
+    std::cerr << "must be called as `<exe> one 2 THREE`\n";
+    return EXIT_FAILURE;
   }
-  return 0;
+  return EXIT_SUCCESS;
 }

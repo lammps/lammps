@@ -54,9 +54,9 @@ template <template <class, class, class> class Template, class TSrc, class USrc,
 struct is_compatible_type_erasure<
     Template<TSrc, USrc, VSrc>, Template<TDst, UDst, VDst>,
     // Because gcc thinks this is ambiguous, we need to add this:
-    std::enable_if_t<!std::is_same<TSrc, TDst>::value ||
-                     !std::is_same<USrc, UDst>::value ||
-                     !std::is_same<VSrc, VDst>::value>>
+    std::enable_if_t<!std::is_same_v<TSrc, TDst> ||
+                     !std::is_same_v<USrc, UDst> ||
+                     !std::is_same_v<VSrc, VDst>>>
     : std::bool_constant<is_compatible_type_erasure<TSrc, TDst>::value &&
                          is_compatible_type_erasure<USrc, UDst>::value &&
                          is_compatible_type_erasure<VSrc, VDst>::value> {};

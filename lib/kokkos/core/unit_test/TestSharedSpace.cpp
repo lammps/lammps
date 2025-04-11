@@ -109,16 +109,18 @@ TEST(defaultdevicetype, shared_space) {
     GTEST_SKIP()
         << "skipping because specified arch does not support page migration";
 #endif
-#if defined(KOKKOS_ENABLE_SYCL) && !defined(KOKKOS_ARCH_INTEL_GPU)
-  GTEST_SKIP()
-      << "skipping because clock_tic is only defined for sycl+intel gpu";
+#if defined(KOKKOS_ENABLE_SYCL) &&      \
+    (!defined(KOKKOS_ARCH_INTEL_GPU) || \
+     !defined(KOKKOS_ENABLE_SYCL_RELOCATABLE_DEVICE_CODE))
+  GTEST_SKIP() << "skipping because clock_tic is only defined for sycl+intel "
+                  "gpu and with rdc support";
 #endif
 
   const unsigned int numRepetitions      = 10;
   const unsigned int numDeviceHostCycles = 3;
-  double threshold                       = 1.5;
-  unsigned int numPages                  = 100;
-  size_t numBytes                        = numPages * getBytesPerPage();
+  const double threshold                 = 1.5;
+  const size_t numPages                  = 100;
+  const size_t numBytes                  = numPages * getBytesPerPage();
 
   using DeviceExecutionSpace = Kokkos::DefaultExecutionSpace;
   using HostExecutionSpace   = Kokkos::DefaultHostExecutionSpace;

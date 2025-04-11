@@ -72,25 +72,25 @@ int dsygst_(integer *itype, char *uplo, integer *n, doublereal *a, integer *lda,
                             info, (ftnlen)1);
                     if (k + kb <= *n) {
                         i__3 = *n - k - kb + 1;
-                        dtrsm_((char *)"Left", uplo, (char *)"Transpose", (char *)"Non-unit", &kb, &i__3, &c_b14,
-                               &b[k + k * b_dim1], ldb, &a[k + (k + kb) * a_dim1], lda, (ftnlen)4,
-                               (ftnlen)1, (ftnlen)9, (ftnlen)8);
+                        dtrsm_((char *)"L", uplo, (char *)"T", (char *)"N", &kb, &i__3, &c_b14, &b[k + k * b_dim1], ldb,
+                               &a[k + (k + kb) * a_dim1], lda, (ftnlen)1, (ftnlen)1, (ftnlen)1,
+                               (ftnlen)1);
                         i__3 = *n - k - kb + 1;
-                        dsymm_((char *)"Left", uplo, &kb, &i__3, &c_b16, &a[k + k * a_dim1], lda,
+                        dsymm_((char *)"L", uplo, &kb, &i__3, &c_b16, &a[k + k * a_dim1], lda,
                                &b[k + (k + kb) * b_dim1], ldb, &c_b14, &a[k + (k + kb) * a_dim1],
-                               lda, (ftnlen)4, (ftnlen)1);
+                               lda, (ftnlen)1, (ftnlen)1);
                         i__3 = *n - k - kb + 1;
-                        dsyr2k_(uplo, (char *)"Transpose", &i__3, &kb, &c_b19, &a[k + (k + kb) * a_dim1],
-                                lda, &b[k + (k + kb) * b_dim1], ldb, &c_b14,
-                                &a[k + kb + (k + kb) * a_dim1], lda, (ftnlen)1, (ftnlen)9);
+                        dsyr2k_(uplo, (char *)"T", &i__3, &kb, &c_b19, &a[k + (k + kb) * a_dim1], lda,
+                                &b[k + (k + kb) * b_dim1], ldb, &c_b14,
+                                &a[k + kb + (k + kb) * a_dim1], lda, (ftnlen)1, (ftnlen)1);
                         i__3 = *n - k - kb + 1;
-                        dsymm_((char *)"Left", uplo, &kb, &i__3, &c_b16, &a[k + k * a_dim1], lda,
+                        dsymm_((char *)"L", uplo, &kb, &i__3, &c_b16, &a[k + k * a_dim1], lda,
                                &b[k + (k + kb) * b_dim1], ldb, &c_b14, &a[k + (k + kb) * a_dim1],
-                               lda, (ftnlen)4, (ftnlen)1);
+                               lda, (ftnlen)1, (ftnlen)1);
                         i__3 = *n - k - kb + 1;
-                        dtrsm_((char *)"Right", uplo, (char *)"No transpose", (char *)"Non-unit", &kb, &i__3, &c_b14,
+                        dtrsm_((char *)"R", uplo, (char *)"N", (char *)"N", &kb, &i__3, &c_b14,
                                &b[k + kb + (k + kb) * b_dim1], ldb, &a[k + (k + kb) * a_dim1], lda,
-                               (ftnlen)5, (ftnlen)1, (ftnlen)12, (ftnlen)8);
+                               (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                     }
                 }
             } else {
@@ -103,25 +103,25 @@ int dsygst_(integer *itype, char *uplo, integer *n, doublereal *a, integer *lda,
                             info, (ftnlen)1);
                     if (k + kb <= *n) {
                         i__3 = *n - k - kb + 1;
-                        dtrsm_((char *)"Right", uplo, (char *)"Transpose", (char *)"Non-unit", &i__3, &kb, &c_b14,
-                               &b[k + k * b_dim1], ldb, &a[k + kb + k * a_dim1], lda, (ftnlen)5,
-                               (ftnlen)1, (ftnlen)9, (ftnlen)8);
+                        dtrsm_((char *)"R", uplo, (char *)"T", (char *)"N", &i__3, &kb, &c_b14, &b[k + k * b_dim1], ldb,
+                               &a[k + kb + k * a_dim1], lda, (ftnlen)1, (ftnlen)1, (ftnlen)1,
+                               (ftnlen)1);
                         i__3 = *n - k - kb + 1;
-                        dsymm_((char *)"Right", uplo, &i__3, &kb, &c_b16, &a[k + k * a_dim1], lda,
+                        dsymm_((char *)"R", uplo, &i__3, &kb, &c_b16, &a[k + k * a_dim1], lda,
                                &b[k + kb + k * b_dim1], ldb, &c_b14, &a[k + kb + k * a_dim1], lda,
-                               (ftnlen)5, (ftnlen)1);
+                               (ftnlen)1, (ftnlen)1);
                         i__3 = *n - k - kb + 1;
-                        dsyr2k_(uplo, (char *)"No transpose", &i__3, &kb, &c_b19, &a[k + kb + k * a_dim1],
-                                lda, &b[k + kb + k * b_dim1], ldb, &c_b14,
-                                &a[k + kb + (k + kb) * a_dim1], lda, (ftnlen)1, (ftnlen)12);
+                        dsyr2k_(uplo, (char *)"N", &i__3, &kb, &c_b19, &a[k + kb + k * a_dim1], lda,
+                                &b[k + kb + k * b_dim1], ldb, &c_b14,
+                                &a[k + kb + (k + kb) * a_dim1], lda, (ftnlen)1, (ftnlen)1);
                         i__3 = *n - k - kb + 1;
-                        dsymm_((char *)"Right", uplo, &i__3, &kb, &c_b16, &a[k + k * a_dim1], lda,
+                        dsymm_((char *)"R", uplo, &i__3, &kb, &c_b16, &a[k + k * a_dim1], lda,
                                &b[k + kb + k * b_dim1], ldb, &c_b14, &a[k + kb + k * a_dim1], lda,
-                               (ftnlen)5, (ftnlen)1);
+                               (ftnlen)1, (ftnlen)1);
                         i__3 = *n - k - kb + 1;
-                        dtrsm_((char *)"Left", uplo, (char *)"No transpose", (char *)"Non-unit", &i__3, &kb, &c_b14,
+                        dtrsm_((char *)"L", uplo, (char *)"N", (char *)"N", &i__3, &kb, &c_b14,
                                &b[k + kb + (k + kb) * b_dim1], ldb, &a[k + kb + k * a_dim1], lda,
-                               (ftnlen)4, (ftnlen)1, (ftnlen)12, (ftnlen)8);
+                               (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                     }
                 }
             }
@@ -133,25 +133,23 @@ int dsygst_(integer *itype, char *uplo, integer *n, doublereal *a, integer *lda,
                     i__3 = *n - k + 1;
                     kb = min(i__3, nb);
                     i__3 = k - 1;
-                    dtrmm_((char *)"Left", uplo, (char *)"No transpose", (char *)"Non-unit", &i__3, &kb, &c_b14,
-                           &b[b_offset], ldb, &a[k * a_dim1 + 1], lda, (ftnlen)4, (ftnlen)1,
-                           (ftnlen)12, (ftnlen)8);
+                    dtrmm_((char *)"L", uplo, (char *)"N", (char *)"N", &i__3, &kb, &c_b14, &b[b_offset], ldb,
+                           &a[k * a_dim1 + 1], lda, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                     i__3 = k - 1;
-                    dsymm_((char *)"Right", uplo, &i__3, &kb, &c_b52, &a[k + k * a_dim1], lda,
-                           &b[k * b_dim1 + 1], ldb, &c_b14, &a[k * a_dim1 + 1], lda, (ftnlen)5,
+                    dsymm_((char *)"R", uplo, &i__3, &kb, &c_b52, &a[k + k * a_dim1], lda,
+                           &b[k * b_dim1 + 1], ldb, &c_b14, &a[k * a_dim1 + 1], lda, (ftnlen)1,
                            (ftnlen)1);
                     i__3 = k - 1;
-                    dsyr2k_(uplo, (char *)"No transpose", &i__3, &kb, &c_b14, &a[k * a_dim1 + 1], lda,
+                    dsyr2k_(uplo, (char *)"N", &i__3, &kb, &c_b14, &a[k * a_dim1 + 1], lda,
                             &b[k * b_dim1 + 1], ldb, &c_b14, &a[a_offset], lda, (ftnlen)1,
-                            (ftnlen)12);
+                            (ftnlen)1);
                     i__3 = k - 1;
-                    dsymm_((char *)"Right", uplo, &i__3, &kb, &c_b52, &a[k + k * a_dim1], lda,
-                           &b[k * b_dim1 + 1], ldb, &c_b14, &a[k * a_dim1 + 1], lda, (ftnlen)5,
+                    dsymm_((char *)"R", uplo, &i__3, &kb, &c_b52, &a[k + k * a_dim1], lda,
+                           &b[k * b_dim1 + 1], ldb, &c_b14, &a[k * a_dim1 + 1], lda, (ftnlen)1,
                            (ftnlen)1);
                     i__3 = k - 1;
-                    dtrmm_((char *)"Right", uplo, (char *)"Transpose", (char *)"Non-unit", &i__3, &kb, &c_b14,
-                           &b[k + k * b_dim1], ldb, &a[k * a_dim1 + 1], lda, (ftnlen)5, (ftnlen)1,
-                           (ftnlen)9, (ftnlen)8);
+                    dtrmm_((char *)"R", uplo, (char *)"T", (char *)"N", &i__3, &kb, &c_b14, &b[k + k * b_dim1], ldb,
+                           &a[k * a_dim1 + 1], lda, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                     dsygs2_(itype, uplo, &kb, &a[k + k * a_dim1], lda, &b[k + k * b_dim1], ldb,
                             info, (ftnlen)1);
                 }
@@ -162,22 +160,20 @@ int dsygst_(integer *itype, char *uplo, integer *n, doublereal *a, integer *lda,
                     i__3 = *n - k + 1;
                     kb = min(i__3, nb);
                     i__3 = k - 1;
-                    dtrmm_((char *)"Right", uplo, (char *)"No transpose", (char *)"Non-unit", &kb, &i__3, &c_b14,
-                           &b[b_offset], ldb, &a[k + a_dim1], lda, (ftnlen)5, (ftnlen)1, (ftnlen)12,
-                           (ftnlen)8);
+                    dtrmm_((char *)"R", uplo, (char *)"N", (char *)"N", &kb, &i__3, &c_b14, &b[b_offset], ldb,
+                           &a[k + a_dim1], lda, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                     i__3 = k - 1;
-                    dsymm_((char *)"Left", uplo, &kb, &i__3, &c_b52, &a[k + k * a_dim1], lda,
-                           &b[k + b_dim1], ldb, &c_b14, &a[k + a_dim1], lda, (ftnlen)4, (ftnlen)1);
+                    dsymm_((char *)"L", uplo, &kb, &i__3, &c_b52, &a[k + k * a_dim1], lda, &b[k + b_dim1],
+                           ldb, &c_b14, &a[k + a_dim1], lda, (ftnlen)1, (ftnlen)1);
                     i__3 = k - 1;
-                    dsyr2k_(uplo, (char *)"Transpose", &i__3, &kb, &c_b14, &a[k + a_dim1], lda,
-                            &b[k + b_dim1], ldb, &c_b14, &a[a_offset], lda, (ftnlen)1, (ftnlen)9);
+                    dsyr2k_(uplo, (char *)"T", &i__3, &kb, &c_b14, &a[k + a_dim1], lda, &b[k + b_dim1], ldb,
+                            &c_b14, &a[a_offset], lda, (ftnlen)1, (ftnlen)1);
                     i__3 = k - 1;
-                    dsymm_((char *)"Left", uplo, &kb, &i__3, &c_b52, &a[k + k * a_dim1], lda,
-                           &b[k + b_dim1], ldb, &c_b14, &a[k + a_dim1], lda, (ftnlen)4, (ftnlen)1);
+                    dsymm_((char *)"L", uplo, &kb, &i__3, &c_b52, &a[k + k * a_dim1], lda, &b[k + b_dim1],
+                           ldb, &c_b14, &a[k + a_dim1], lda, (ftnlen)1, (ftnlen)1);
                     i__3 = k - 1;
-                    dtrmm_((char *)"Left", uplo, (char *)"Transpose", (char *)"Non-unit", &kb, &i__3, &c_b14,
-                           &b[k + k * b_dim1], ldb, &a[k + a_dim1], lda, (ftnlen)4, (ftnlen)1,
-                           (ftnlen)9, (ftnlen)8);
+                    dtrmm_((char *)"L", uplo, (char *)"T", (char *)"N", &kb, &i__3, &c_b14, &b[k + k * b_dim1], ldb,
+                           &a[k + a_dim1], lda, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                     dsygs2_(itype, uplo, &kb, &a[k + k * a_dim1], lda, &b[k + k * b_dim1], ldb,
                             info, (ftnlen)1);
                 }

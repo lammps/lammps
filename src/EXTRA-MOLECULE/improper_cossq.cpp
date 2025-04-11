@@ -249,28 +249,29 @@ void ImproperCossq::allocate()
 
 void ImproperCossq::coeff(int narg, char **arg)
 {
-   /* Check whether there exist sufficient number of arguments.
-      0: type of improper to be applied to
-      1: energetic constant
-      2: equilibrium angle in degrees */
-   if (narg != 3) error->all(FLERR,"Incorrect args for cossq improper coefficients");
-   if (!allocated) allocate();
+  /* Check whether there exist sufficient number of arguments.
+     0: type of improper to be applied to
+     1: energetic constant
+     2: equilibrium angle in degrees */
+  if (narg != 3) error->all(FLERR,"Incorrect args for improper coefficients" + utils::errorurl(21));
+  if (!allocated) allocate();
 
-   int ilo,ihi;
-   utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
+  int ilo,ihi;
+  utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
 
-   double k_one = utils::numeric(FLERR,arg[1],false,lmp);
-   double chi_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double chi_one = utils::numeric(FLERR,arg[2],false,lmp);
 
-   int count = 0;
-   for (int i = ilo; i <= ihi; i++) {
-      k[i] = k_one;
-      chi[i] = ((chi_one * MY_PI)/180.0);
-      setflag[i] = 1;
-      count++;
-   }
+  int count = 0;
+  for (int i = ilo; i <= ihi; i++) {
+    k[i] = k_one;
+    chi[i] = ((chi_one * MY_PI)/180.0);
+    setflag[i] = 1;
+    count++;
+  }
 
-   if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (count == 0)
+    error->all(FLERR, "Incorrect args for improper coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -278,8 +279,8 @@ void ImproperCossq::coeff(int narg, char **arg)
 ------------------------------------------------------------------------- */
 void ImproperCossq::write_restart(FILE *fp)
 {
-   fwrite(&k[1],sizeof(double),atom->nimpropertypes,fp);
-   fwrite(&chi[1],sizeof(double),atom->nimpropertypes,fp);
+  fwrite(&k[1],sizeof(double),atom->nimpropertypes,fp);
+  fwrite(&chi[1],sizeof(double),atom->nimpropertypes,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -307,4 +308,16 @@ void ImproperCossq::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nimpropertypes; i++)
     fprintf(fp,"%d %g %g\n",i,k[i],chi[i]/MY_PI*180.0);
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *ImproperCossq::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "chi0") == 0) return (void *) chi;
+  return nullptr;
 }

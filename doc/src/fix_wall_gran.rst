@@ -115,6 +115,18 @@ friction and twisting friction supported by the :doc:`pair_style granular <pair_
 supported for walls. These are discussed in greater detail on the doc
 page for :doc:`pair_style granular <pair_granular>`.
 
+.. note::
+   When *fstyle* *granular* is specified, the associated *fstyle_params* are taken as
+   those for a wall/particle interaction. For example, for the *hertz/material* normal
+   contact model with :math:`E = 960` and :math:`\nu = 0.2`, the effective Young's
+   modulus for a wall/particle interaction is computed as
+   :math:`E_{eff} = \frac{960}{2(1-0.2^2)} = 500`. Any pair coefficients defined by
+   :doc:`pair_style granular <pair_granular>` are not taken into consideration. To
+   model different wall/particle interactions for particles of different material
+   types, the user may define multiple fix wall/gran commands operating on separate
+   groups (e.g. based on particle type) each with a different wall/particle effective
+   Young's modulus.
+
 Note that you can choose a different force styles and/or different
 values for the wall/particle coefficients than for particle/particle
 interactions.  E.g. if you wish to model the wall as a different
@@ -210,10 +222,10 @@ restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
 If the :code:`contacts` option is used, this fix generates a per-atom array
-with 8 columns as output, containing the contact information for owned
+with at least 8 columns as output, containing the contact information for owned
 particles (nlocal on each processor). All columns in this per-atom array will
-be zero if no contact has occurred.  The values of these columns are listed in
-the following table:
+be zero if no contact has occurred.  The first 8 values of these columns are
+listed in the following table.
 
 +-------+----------------------------------------------------+----------------+
 | Index | Value                                              | Units          |
@@ -235,6 +247,14 @@ the following table:
 +-------+----------------------------------------------------+----------------+
 |     8 | Radius :math:`r` of atom                           | distance units |
 +-------+----------------------------------------------------+----------------+
+
+If a granular sub-model calculates additional contact information (e.g. the
+heat sub-models calculate the amount of heat exchanged), these quantities
+are appended to the end of this array. First, any extra values from the
+normal sub-model are appended followed by the damping, tangential, rolling,
+twisting, then heat models. See the descriptions of granular sub-models in
+the :doc:`pair granular <pair_granular>` page for information on any extra
+quantities.
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this fix.
 No parameter of this fix can be used with the *start/stop* keywords of the

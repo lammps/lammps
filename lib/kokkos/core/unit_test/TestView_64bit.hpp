@@ -20,7 +20,6 @@ namespace Test {
 
 template <class Device>
 void test_64bit() {
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
   // We are running out of device memory on Intel GPUs
 #ifdef KOKKOS_ENABLE_SYCL
   int64_t N = 4000000000;
@@ -85,7 +84,7 @@ void test_64bit() {
   {
 // We are running out of device memory on Intel GPUs
 #ifdef KOKKOS_ENABLE_SYCL
-    int64_t N0 = 1024 * 1024 * 900;
+    int N0 = 1024 * 1024 * 900;
 #else
     int N0 = 1024 * 1024 * 1500;
 #endif
@@ -106,7 +105,6 @@ void test_64bit() {
         (P * (P - 1) / 2) * int64_t(N0 / P) + (N0 % P) * (N0 % P - 1) / 2;
     ASSERT_EQ(expected, sum0);
   }
-#endif
 }
 
 #ifdef KOKKOS_ENABLE_LARGE_MEM_TESTS

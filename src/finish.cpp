@@ -62,7 +62,8 @@ Finish::Finish(LAMMPS *lmp) : Pointers(lmp) {}
 
 void Finish::end(int flag)
 {
-  int i,nneigh,nneighfull;
+  int i;
+  bigint nneigh,nneighfull;
   int histo[10];
   int minflag,prdflag,tadflag,hyperflag;
   int timeflag,fftflag,histoflag,neighflag;
@@ -120,9 +121,9 @@ void Finish::end(int flag)
     MPI_Allreduce(&cpu_loop,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     cpu_loop = tmp/nprocs;
     if (time_loop > 0.0) cpu_loop = cpu_loop/time_loop*100.0;
+    output->thermo->footer();
 
     if (me == 0) {
-      output->thermo->footer();
       int ntasks = nprocs * nthreads;
       utils::logmesg(lmp,"Loop time of {:.6g} on {} procs for {} steps with {} atoms\n\n",
                      time_loop,ntasks,update->nsteps,atom->natoms);

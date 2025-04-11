@@ -14,6 +14,7 @@
 #include "compute_temp_sphere.h"
 
 #include "atom.h"
+#include "atom_masks.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -74,10 +75,10 @@ ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (!atom->omega_flag)
-    error->all(FLERR,"Compute temp/sphere requires atom attribute omega");
-  if (!atom->radius_flag)
-    error->all(FLERR,"Compute temp/sphere requires atom attribute radius");
+  if (!atom->omega_flag) error->all(FLERR, "Compute temp/sphere requires atom attribute omega");
+  if (!atom->radius_flag) error->all(FLERR, "Compute temp/sphere requires atom attribute radius");
+
+  datamask_modify = ALL_MASK & ~X_MASK;
 }
 
 /* ---------------------------------------------------------------------- */

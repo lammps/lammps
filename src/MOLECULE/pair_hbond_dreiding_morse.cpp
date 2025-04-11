@@ -148,6 +148,13 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
           if (c < -1.0) c = -1.0;
           ac = acos(c);
 
+          if (angle_offset_flag){
+            ac = ac + pm.angle_offset;
+            c = cos(ac);
+            if (c > 1.0) c = 1.0;
+            if (c < -1.0) c = -1.0;
+          }
+
           if (ac > pm.cut_angle && ac < (2.0*MY_PI - pm.cut_angle)) {
             s = sqrt(1.0 - c*c);
             if (s < SMALL) s = SMALL;
@@ -158,6 +165,7 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
             dr = r - pm.r0;
             dexp = exp(-pm.alpha * dr);
             eng_morse = pm.d0 * (dexp*dexp - 2.0*dexp);
+
             force_kernel = pm.morse1*(dexp*dexp - dexp)/r * powint(c,pm.ap);
             force_angle = pm.ap * eng_morse * powint(c,pm.ap-1)*s;
             force_switch = 0.0;
@@ -196,12 +204,12 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
             vz1 = a11*delr1[2] + a12*delr2[2];
             vz2 = a22*delr2[2] + a12*delr1[2];
 
-            fi[0] = vx1 + (b+d)*delx;
-            fi[1] = vy1 + (b+d)*dely;
-            fi[2] = vz1 + (b+d)*delz;
-            fj[0] = vx2 - (b+d)*delx;
-            fj[1] = vy2 - (b+d)*dely;
-            fj[2] = vz2 - (b+d)*delz;
+            fi[0] = vx1 + b*delx + d*delx;
+            fi[1] = vy1 + b*dely + d*dely;
+            fi[2] = vz1 + b*delz + d*delz;
+            fj[0] = vx2 - b*delx - d*delx;
+            fj[1] = vy2 - b*dely - d*dely;
+            fj[2] = vz2 - b*delz - d*delz;
 
             f[i][0] += fi[0];
             f[i][1] += fi[1];
@@ -238,42 +246,44 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
 
 void PairHbondDreidingMorse::coeff(int narg, char **arg)
 {
-  if (narg < 7 || narg > 11)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  int maxarg = 12;
+  if (angle_offset_flag == 1) maxarg = 12;
+  if (narg < 7 || narg > maxarg)
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi,klo,khi;
-  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
-  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
-  utils::bounds(FLERR,arg[2],1,atom->ntypes,klo,khi,error);
+  utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
+  utils::bounds_typelabel(FLERR, arg[2], 1, atom->ntypes, klo, khi, lmp, Atom::ATOM);
 
   int donor_flag;
   if (strcmp(arg[3],"i") == 0) donor_flag = 0;
   else if (strcmp(arg[3],"j") == 0) donor_flag = 1;
-  else error->all(FLERR,"Incorrect args for pair coefficients");
+  else error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
-  double d0_one = utils::numeric(FLERR,arg[4],false,lmp);
-  double alpha_one = utils::numeric(FLERR,arg[5],false,lmp);
-  double r0_one = utils::numeric(FLERR,arg[6],false,lmp);
+  double d0_one = utils::numeric(FLERR, arg[4], false, lmp);
+  double alpha_one = utils::numeric(FLERR, arg[5], false, lmp);
+  double r0_one = utils::numeric(FLERR, arg[6], false, lmp);
 
   int ap_one = ap_global;
-  if (narg > 7) ap_one = utils::inumeric(FLERR,arg[7],false,lmp);
+  if (narg > 7) ap_one = utils::inumeric(FLERR, arg[7], false, lmp);
   double cut_inner_one = cut_inner_global;
   double cut_outer_one = cut_outer_global;
   if (narg > 9) {
-    cut_inner_one = utils::numeric(FLERR,arg[8],false,lmp);
-    cut_outer_one = utils::numeric(FLERR,arg[9],false,lmp);
+    cut_inner_one = utils::numeric(FLERR, arg[8], false, lmp);
+    cut_outer_one = utils::numeric(FLERR, arg[9], false, lmp);
   }
   if (cut_inner_one>cut_outer_one)
     error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
   double cut_angle_one = cut_angle_global;
-  if (narg > 10) cut_angle_one = utils::numeric(FLERR,arg[10],false,lmp) * MY_PI/180.0;
+  if (narg > 10) cut_angle_one = utils::numeric(FLERR, arg[10], false, lmp) * MY_PI/180.0;
 
   // grow params array if necessary
 
   if (nparams == maxparam) {
     maxparam += CHUNK;
-    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+    params = (Param *) memory->srealloc(params, maxparam*sizeof(Param),
                                         "pair:params");
 
     // make certain all addional allocated storage is initialized
@@ -308,7 +318,7 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
       }
   nparams++;
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -323,14 +333,14 @@ void PairHbondDreidingMorse::init_style()
   //   and computing forces on A,H which may be on different procs
 
   if (atom->molecular == Atom::ATOMIC)
-    error->all(FLERR,"Pair style hbond/dreiding requires molecular system");
+    error->all(FLERR,"Pair style hbond/dreiding/morse requires molecular system");
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style hbond/dreiding requires atom IDs");
+    error->all(FLERR,"Pair style hbond/dreiding/morse requires atom IDs");
   if (atom->map_style == Atom::MAP_NONE)
-    error->all(FLERR,"Pair style hbond/dreiding requires an atom map, "
+    error->all(FLERR,"Pair style hbond/dreiding/morse requires an atom map, "
                "see atom_modify");
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style hbond/dreiding requires newton pair on");
+    error->all(FLERR,"Pair style hbond/dreiding/morse requires newton pair on");
 
   // set donor[M]/acceptor[M] if any atom of type M is a donor/acceptor
 
@@ -346,7 +356,7 @@ void PairHbondDreidingMorse::init_style()
           acceptor[j] = 1;
         }
 
-  if (!anyflag) error->all(FLERR,"No pair hbond/dreiding coefficients set");
+  if (!anyflag) error->all(FLERR,"No pair hbond/dreiding/morse coefficients set");
 
   // set additional param values
   // offset is for Morse only, angle term is not included
@@ -442,6 +452,13 @@ double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
     ac = acos(c);
+
+    if (angle_offset_flag){
+      ac = ac + pm.angle_offset;
+      c = cos(ac);
+      if (c > 1.0) c = 1.0;
+      if (c < -1.0) c = -1.0;
+    }
 
     if (ac < pm.cut_angle || ac > (2.0*MY_PI - pm.cut_angle)) return 0.0;
     s = sqrt(1.0 - c*c);

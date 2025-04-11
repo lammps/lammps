@@ -55,7 +55,7 @@ void DomainOMP::pbc()
 #endif    // clang-format on
   for (int i = 0; i < n3; i++)
     if (!std::isfinite(coord[i])) flag = 1;
-  if (flag) error->one(FLERR, "Non-numeric atom coords - simulation unstable");
+  if (flag) error->one(FLERR, "Non-numeric atom coords - simulation unstable" + utils::errorurl(6));
 
   auto *_noalias const x = (dbl3_t *) atom->x[0];
   auto *_noalias const v = (dbl3_t *) atom->v[0];

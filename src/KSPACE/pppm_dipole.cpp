@@ -46,9 +46,6 @@ static constexpr double SMALL = 0.00001;
 static constexpr double EPS_HOC = 1.0e-7;
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
-enum { REVERSE_MU };
-enum { FORWARD_MU, FORWARD_MU_PERATOM };
-
 /* ---------------------------------------------------------------------- */
 
 PPPMDipole::PPPMDipole(LAMMPS *lmp) : PPPM(lmp),
@@ -613,8 +610,7 @@ void PPPMDipole::allocate()
   memory->create2d_offset(rho1d,3,-order/2,order/2,"pppm_dipole:rho1d");
   memory->create2d_offset(drho1d,3,-order/2,order/2,"pppm_dipole:drho1d");
   memory->create2d_offset(rho_coeff,order,(1-order)/2,order/2,"pppm_dipole:rho_coeff");
-  memory->create2d_offset(drho_coeff,order,(1-order)/2,order/2,
-                          "pppm_dipole:drho_coeff");
+  memory->create2d_offset(drho_coeff,order,(1-order)/2,order/2,"pppm_dipole:drho_coeff");
 
   // create 2 FFTs and a Remap
   // 1st FFT keeps data in FFT decomposition
@@ -669,8 +665,23 @@ void PPPMDipole::deallocate()
   memory->destroy(densityy_fft_dipole);
   memory->destroy(densityz_fft_dipole);
 
+  memory->destroy(density_fft);
+  memory->destroy(greensfn);
+  memory->destroy(work1);
+  memory->destroy(work2);
   memory->destroy(work3);
   memory->destroy(work4);
+  memory->destroy(vg);
+
+  memory->destroy1d_offset(fkx,nxlo_fft);
+  memory->destroy1d_offset(fky,nylo_fft);
+  memory->destroy1d_offset(fkz,nzlo_fft);
+
+  memory->destroy(gf_b);
+  memory->destroy2d_offset(rho1d,-order_allocated/2);
+  memory->destroy2d_offset(drho1d,-order_allocated/2);
+  memory->destroy2d_offset(rho_coeff,(1-order_allocated)/2);
+  memory->destroy2d_offset(drho_coeff,(1-order_allocated)/2);
 
   delete fft1;
   delete fft2;
@@ -678,6 +689,7 @@ void PPPMDipole::deallocate()
 
   fft1 = fft2 = nullptr;
   remap = nullptr;
+  gf_b = nullptr;
 }
 
 /* ----------------------------------------------------------------------

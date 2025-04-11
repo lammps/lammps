@@ -23,7 +23,7 @@ namespace stdalgos {
 
 struct std_algorithms_mod_seq_ops_test : std_algorithms_test {
  public:
-  virtual void SetUp() {
+  void SetUp() override {
     Kokkos::parallel_for(m_static_view.extent(0),
                          AssignIndexFunctor<static_view_t>(m_static_view));
   }

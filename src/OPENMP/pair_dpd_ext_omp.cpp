@@ -60,6 +60,10 @@ void PairDPDExtOMP::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
 
+  // precompute random force scaling factors
+
+  for (int i = 0; i < 4; ++i) special_sqrt[i] = sqrt(force->special_lj[i]);
+
   const int nall = atom->nlocal + atom->nghost;
   const int inum = list->inum;
 

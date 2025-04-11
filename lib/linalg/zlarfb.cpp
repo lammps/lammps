@@ -52,26 +52,25 @@ int zlarfb_(char *side, char *trans, char *direct, char *storev, integer *m, int
                     zcopy_(n, &c__[j + c_dim1], ldc, &work[j * work_dim1 + 1], &c__1);
                     zlacgv_(n, &work[j * work_dim1 + 1], &c__1);
                 }
-                ztrmm_((char *)"Right", (char *)"Lower", (char *)"No transpose", (char *)"Unit", n, k, &c_b1, &v[v_offset], ldv,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                ztrmm_((char *)"R", (char *)"L", (char *)"N", (char *)"U", n, k, &c_b1, &v[v_offset], ldv, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*m > *k) {
                     i__1 = *m - *k;
-                    zgemm_((char *)"Conjugate transpose", (char *)"No transpose", n, k, &i__1, &c_b1,
-                           &c__[*k + 1 + c_dim1], ldc, &v[*k + 1 + v_dim1], ldv, &c_b1,
-                           &work[work_offset], ldwork, (ftnlen)19, (ftnlen)12);
+                    zgemm_((char *)"C", (char *)"N", n, k, &i__1, &c_b1, &c__[*k + 1 + c_dim1], ldc,
+                           &v[*k + 1 + v_dim1], ldv, &c_b1, &work[work_offset], ldwork, (ftnlen)1,
+                           (ftnlen)1);
                 }
-                ztrmm_((char *)"Right", (char *)"Upper", transt, (char *)"Non-unit", n, k, &c_b1, &t[t_offset], ldt,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)1, (ftnlen)8);
+                ztrmm_((char *)"R", (char *)"U", transt, (char *)"N", n, k, &c_b1, &t[t_offset], ldt, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*m > *k) {
                     i__1 = *m - *k;
                     z__1.r = -1., z__1.i = -0.;
-                    zgemm_((char *)"No transpose", (char *)"Conjugate transpose", &i__1, n, k, &z__1,
-                           &v[*k + 1 + v_dim1], ldv, &work[work_offset], ldwork, &c_b1,
-                           &c__[*k + 1 + c_dim1], ldc, (ftnlen)12, (ftnlen)19);
+                    zgemm_((char *)"N", (char *)"C", &i__1, n, k, &z__1, &v[*k + 1 + v_dim1], ldv,
+                           &work[work_offset], ldwork, &c_b1, &c__[*k + 1 + c_dim1], ldc, (ftnlen)1,
+                           (ftnlen)1);
                 }
-                ztrmm_((char *)"Right", (char *)"Lower", (char *)"Conjugate transpose", (char *)"Unit", n, k, &c_b1, &v[v_offset],
-                       ldv, &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)19,
-                       (ftnlen)4);
+                ztrmm_((char *)"R", (char *)"L", (char *)"C", (char *)"U", n, k, &c_b1, &v[v_offset], ldv, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *k;
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *n;
@@ -88,26 +87,25 @@ int zlarfb_(char *side, char *trans, char *direct, char *storev, integer *m, int
                 for (j = 1; j <= i__1; ++j) {
                     zcopy_(m, &c__[j * c_dim1 + 1], &c__1, &work[j * work_dim1 + 1], &c__1);
                 }
-                ztrmm_((char *)"Right", (char *)"Lower", (char *)"No transpose", (char *)"Unit", m, k, &c_b1, &v[v_offset], ldv,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                ztrmm_((char *)"R", (char *)"L", (char *)"N", (char *)"U", m, k, &c_b1, &v[v_offset], ldv, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*n > *k) {
                     i__1 = *n - *k;
-                    zgemm_((char *)"No transpose", (char *)"No transpose", m, k, &i__1, &c_b1,
-                           &c__[(*k + 1) * c_dim1 + 1], ldc, &v[*k + 1 + v_dim1], ldv, &c_b1,
-                           &work[work_offset], ldwork, (ftnlen)12, (ftnlen)12);
+                    zgemm_((char *)"N", (char *)"N", m, k, &i__1, &c_b1, &c__[(*k + 1) * c_dim1 + 1], ldc,
+                           &v[*k + 1 + v_dim1], ldv, &c_b1, &work[work_offset], ldwork, (ftnlen)1,
+                           (ftnlen)1);
                 }
-                ztrmm_((char *)"Right", (char *)"Upper", trans, (char *)"Non-unit", m, k, &c_b1, &t[t_offset], ldt,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)1, (ftnlen)8);
+                ztrmm_((char *)"R", (char *)"U", trans, (char *)"N", m, k, &c_b1, &t[t_offset], ldt, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*n > *k) {
                     i__1 = *n - *k;
                     z__1.r = -1., z__1.i = -0.;
-                    zgemm_((char *)"No transpose", (char *)"Conjugate transpose", m, &i__1, k, &z__1,
-                           &work[work_offset], ldwork, &v[*k + 1 + v_dim1], ldv, &c_b1,
-                           &c__[(*k + 1) * c_dim1 + 1], ldc, (ftnlen)12, (ftnlen)19);
+                    zgemm_((char *)"N", (char *)"C", m, &i__1, k, &z__1, &work[work_offset], ldwork,
+                           &v[*k + 1 + v_dim1], ldv, &c_b1, &c__[(*k + 1) * c_dim1 + 1], ldc,
+                           (ftnlen)1, (ftnlen)1);
                 }
-                ztrmm_((char *)"Right", (char *)"Lower", (char *)"Conjugate transpose", (char *)"Unit", m, k, &c_b1, &v[v_offset],
-                       ldv, &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)19,
-                       (ftnlen)4);
+                ztrmm_((char *)"R", (char *)"L", (char *)"C", (char *)"U", m, k, &c_b1, &v[v_offset], ldv, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *k;
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *m;
@@ -127,27 +125,23 @@ int zlarfb_(char *side, char *trans, char *direct, char *storev, integer *m, int
                     zcopy_(n, &c__[*m - *k + j + c_dim1], ldc, &work[j * work_dim1 + 1], &c__1);
                     zlacgv_(n, &work[j * work_dim1 + 1], &c__1);
                 }
-                ztrmm_((char *)"Right", (char *)"Upper", (char *)"No transpose", (char *)"Unit", n, k, &c_b1,
-                       &v[*m - *k + 1 + v_dim1], ldv, &work[work_offset], ldwork, (ftnlen)5,
-                       (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                ztrmm_((char *)"R", (char *)"U", (char *)"N", (char *)"U", n, k, &c_b1, &v[*m - *k + 1 + v_dim1], ldv,
+                       &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*m > *k) {
                     i__1 = *m - *k;
-                    zgemm_((char *)"Conjugate transpose", (char *)"No transpose", n, k, &i__1, &c_b1,
-                           &c__[c_offset], ldc, &v[v_offset], ldv, &c_b1, &work[work_offset],
-                           ldwork, (ftnlen)19, (ftnlen)12);
+                    zgemm_((char *)"C", (char *)"N", n, k, &i__1, &c_b1, &c__[c_offset], ldc, &v[v_offset], ldv,
+                           &c_b1, &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1);
                 }
-                ztrmm_((char *)"Right", (char *)"Lower", transt, (char *)"Non-unit", n, k, &c_b1, &t[t_offset], ldt,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)1, (ftnlen)8);
+                ztrmm_((char *)"R", (char *)"L", transt, (char *)"N", n, k, &c_b1, &t[t_offset], ldt, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*m > *k) {
                     i__1 = *m - *k;
                     z__1.r = -1., z__1.i = -0.;
-                    zgemm_((char *)"No transpose", (char *)"Conjugate transpose", &i__1, n, k, &z__1, &v[v_offset],
-                           ldv, &work[work_offset], ldwork, &c_b1, &c__[c_offset], ldc, (ftnlen)12,
-                           (ftnlen)19);
+                    zgemm_((char *)"N", (char *)"C", &i__1, n, k, &z__1, &v[v_offset], ldv, &work[work_offset],
+                           ldwork, &c_b1, &c__[c_offset], ldc, (ftnlen)1, (ftnlen)1);
                 }
-                ztrmm_((char *)"Right", (char *)"Upper", (char *)"Conjugate transpose", (char *)"Unit", n, k, &c_b1,
-                       &v[*m - *k + 1 + v_dim1], ldv, &work[work_offset], ldwork, (ftnlen)5,
-                       (ftnlen)5, (ftnlen)19, (ftnlen)4);
+                ztrmm_((char *)"R", (char *)"U", (char *)"C", (char *)"U", n, k, &c_b1, &v[*m - *k + 1 + v_dim1], ldv,
+                       &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *k;
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *n;
@@ -165,27 +159,23 @@ int zlarfb_(char *side, char *trans, char *direct, char *storev, integer *m, int
                     zcopy_(m, &c__[(*n - *k + j) * c_dim1 + 1], &c__1, &work[j * work_dim1 + 1],
                            &c__1);
                 }
-                ztrmm_((char *)"Right", (char *)"Upper", (char *)"No transpose", (char *)"Unit", m, k, &c_b1,
-                       &v[*n - *k + 1 + v_dim1], ldv, &work[work_offset], ldwork, (ftnlen)5,
-                       (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                ztrmm_((char *)"R", (char *)"U", (char *)"N", (char *)"U", m, k, &c_b1, &v[*n - *k + 1 + v_dim1], ldv,
+                       &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*n > *k) {
                     i__1 = *n - *k;
-                    zgemm_((char *)"No transpose", (char *)"No transpose", m, k, &i__1, &c_b1, &c__[c_offset], ldc,
-                           &v[v_offset], ldv, &c_b1, &work[work_offset], ldwork, (ftnlen)12,
-                           (ftnlen)12);
+                    zgemm_((char *)"N", (char *)"N", m, k, &i__1, &c_b1, &c__[c_offset], ldc, &v[v_offset], ldv,
+                           &c_b1, &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1);
                 }
-                ztrmm_((char *)"Right", (char *)"Lower", trans, (char *)"Non-unit", m, k, &c_b1, &t[t_offset], ldt,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)1, (ftnlen)8);
+                ztrmm_((char *)"R", (char *)"L", trans, (char *)"N", m, k, &c_b1, &t[t_offset], ldt, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*n > *k) {
                     i__1 = *n - *k;
                     z__1.r = -1., z__1.i = -0.;
-                    zgemm_((char *)"No transpose", (char *)"Conjugate transpose", m, &i__1, k, &z__1,
-                           &work[work_offset], ldwork, &v[v_offset], ldv, &c_b1, &c__[c_offset],
-                           ldc, (ftnlen)12, (ftnlen)19);
+                    zgemm_((char *)"N", (char *)"C", m, &i__1, k, &z__1, &work[work_offset], ldwork, &v[v_offset],
+                           ldv, &c_b1, &c__[c_offset], ldc, (ftnlen)1, (ftnlen)1);
                 }
-                ztrmm_((char *)"Right", (char *)"Upper", (char *)"Conjugate transpose", (char *)"Unit", m, k, &c_b1,
-                       &v[*n - *k + 1 + v_dim1], ldv, &work[work_offset], ldwork, (ftnlen)5,
-                       (ftnlen)5, (ftnlen)19, (ftnlen)4);
+                ztrmm_((char *)"R", (char *)"U", (char *)"C", (char *)"U", m, k, &c_b1, &v[*n - *k + 1 + v_dim1], ldv,
+                       &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *k;
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *m;
@@ -207,26 +197,25 @@ int zlarfb_(char *side, char *trans, char *direct, char *storev, integer *m, int
                     zcopy_(n, &c__[j + c_dim1], ldc, &work[j * work_dim1 + 1], &c__1);
                     zlacgv_(n, &work[j * work_dim1 + 1], &c__1);
                 }
-                ztrmm_((char *)"Right", (char *)"Upper", (char *)"Conjugate transpose", (char *)"Unit", n, k, &c_b1, &v[v_offset],
-                       ldv, &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)19,
-                       (ftnlen)4);
+                ztrmm_((char *)"R", (char *)"U", (char *)"C", (char *)"U", n, k, &c_b1, &v[v_offset], ldv, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*m > *k) {
                     i__1 = *m - *k;
-                    zgemm_((char *)"Conjugate transpose", (char *)"Conjugate transpose", n, k, &i__1, &c_b1,
-                           &c__[*k + 1 + c_dim1], ldc, &v[(*k + 1) * v_dim1 + 1], ldv, &c_b1,
-                           &work[work_offset], ldwork, (ftnlen)19, (ftnlen)19);
+                    zgemm_((char *)"C", (char *)"C", n, k, &i__1, &c_b1, &c__[*k + 1 + c_dim1], ldc,
+                           &v[(*k + 1) * v_dim1 + 1], ldv, &c_b1, &work[work_offset], ldwork,
+                           (ftnlen)1, (ftnlen)1);
                 }
-                ztrmm_((char *)"Right", (char *)"Upper", transt, (char *)"Non-unit", n, k, &c_b1, &t[t_offset], ldt,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)1, (ftnlen)8);
+                ztrmm_((char *)"R", (char *)"U", transt, (char *)"N", n, k, &c_b1, &t[t_offset], ldt, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*m > *k) {
                     i__1 = *m - *k;
                     z__1.r = -1., z__1.i = -0.;
-                    zgemm_((char *)"Conjugate transpose", (char *)"Conjugate transpose", &i__1, n, k, &z__1,
-                           &v[(*k + 1) * v_dim1 + 1], ldv, &work[work_offset], ldwork, &c_b1,
-                           &c__[*k + 1 + c_dim1], ldc, (ftnlen)19, (ftnlen)19);
+                    zgemm_((char *)"C", (char *)"C", &i__1, n, k, &z__1, &v[(*k + 1) * v_dim1 + 1], ldv,
+                           &work[work_offset], ldwork, &c_b1, &c__[*k + 1 + c_dim1], ldc, (ftnlen)1,
+                           (ftnlen)1);
                 }
-                ztrmm_((char *)"Right", (char *)"Upper", (char *)"No transpose", (char *)"Unit", n, k, &c_b1, &v[v_offset], ldv,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                ztrmm_((char *)"R", (char *)"U", (char *)"N", (char *)"U", n, k, &c_b1, &v[v_offset], ldv, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *k;
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *n;
@@ -243,26 +232,25 @@ int zlarfb_(char *side, char *trans, char *direct, char *storev, integer *m, int
                 for (j = 1; j <= i__1; ++j) {
                     zcopy_(m, &c__[j * c_dim1 + 1], &c__1, &work[j * work_dim1 + 1], &c__1);
                 }
-                ztrmm_((char *)"Right", (char *)"Upper", (char *)"Conjugate transpose", (char *)"Unit", m, k, &c_b1, &v[v_offset],
-                       ldv, &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)19,
-                       (ftnlen)4);
+                ztrmm_((char *)"R", (char *)"U", (char *)"C", (char *)"U", m, k, &c_b1, &v[v_offset], ldv, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*n > *k) {
                     i__1 = *n - *k;
-                    zgemm_((char *)"No transpose", (char *)"Conjugate transpose", m, k, &i__1, &c_b1,
-                           &c__[(*k + 1) * c_dim1 + 1], ldc, &v[(*k + 1) * v_dim1 + 1], ldv, &c_b1,
-                           &work[work_offset], ldwork, (ftnlen)12, (ftnlen)19);
+                    zgemm_((char *)"N", (char *)"C", m, k, &i__1, &c_b1, &c__[(*k + 1) * c_dim1 + 1], ldc,
+                           &v[(*k + 1) * v_dim1 + 1], ldv, &c_b1, &work[work_offset], ldwork,
+                           (ftnlen)1, (ftnlen)1);
                 }
-                ztrmm_((char *)"Right", (char *)"Upper", trans, (char *)"Non-unit", m, k, &c_b1, &t[t_offset], ldt,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)1, (ftnlen)8);
+                ztrmm_((char *)"R", (char *)"U", trans, (char *)"N", m, k, &c_b1, &t[t_offset], ldt, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*n > *k) {
                     i__1 = *n - *k;
                     z__1.r = -1., z__1.i = -0.;
-                    zgemm_((char *)"No transpose", (char *)"No transpose", m, &i__1, k, &z__1, &work[work_offset],
-                           ldwork, &v[(*k + 1) * v_dim1 + 1], ldv, &c_b1,
-                           &c__[(*k + 1) * c_dim1 + 1], ldc, (ftnlen)12, (ftnlen)12);
+                    zgemm_((char *)"N", (char *)"N", m, &i__1, k, &z__1, &work[work_offset], ldwork,
+                           &v[(*k + 1) * v_dim1 + 1], ldv, &c_b1, &c__[(*k + 1) * c_dim1 + 1], ldc,
+                           (ftnlen)1, (ftnlen)1);
                 }
-                ztrmm_((char *)"Right", (char *)"Upper", (char *)"No transpose", (char *)"Unit", m, k, &c_b1, &v[v_offset], ldv,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                ztrmm_((char *)"R", (char *)"U", (char *)"N", (char *)"U", m, k, &c_b1, &v[v_offset], ldv, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *k;
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *m;
@@ -282,27 +270,23 @@ int zlarfb_(char *side, char *trans, char *direct, char *storev, integer *m, int
                     zcopy_(n, &c__[*m - *k + j + c_dim1], ldc, &work[j * work_dim1 + 1], &c__1);
                     zlacgv_(n, &work[j * work_dim1 + 1], &c__1);
                 }
-                ztrmm_((char *)"Right", (char *)"Lower", (char *)"Conjugate transpose", (char *)"Unit", n, k, &c_b1,
-                       &v[(*m - *k + 1) * v_dim1 + 1], ldv, &work[work_offset], ldwork, (ftnlen)5,
-                       (ftnlen)5, (ftnlen)19, (ftnlen)4);
+                ztrmm_((char *)"R", (char *)"L", (char *)"C", (char *)"U", n, k, &c_b1, &v[(*m - *k + 1) * v_dim1 + 1], ldv,
+                       &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*m > *k) {
                     i__1 = *m - *k;
-                    zgemm_((char *)"Conjugate transpose", (char *)"Conjugate transpose", n, k, &i__1, &c_b1,
-                           &c__[c_offset], ldc, &v[v_offset], ldv, &c_b1, &work[work_offset],
-                           ldwork, (ftnlen)19, (ftnlen)19);
+                    zgemm_((char *)"C", (char *)"C", n, k, &i__1, &c_b1, &c__[c_offset], ldc, &v[v_offset], ldv,
+                           &c_b1, &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1);
                 }
-                ztrmm_((char *)"Right", (char *)"Lower", transt, (char *)"Non-unit", n, k, &c_b1, &t[t_offset], ldt,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)1, (ftnlen)8);
+                ztrmm_((char *)"R", (char *)"L", transt, (char *)"N", n, k, &c_b1, &t[t_offset], ldt, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*m > *k) {
                     i__1 = *m - *k;
                     z__1.r = -1., z__1.i = -0.;
-                    zgemm_((char *)"Conjugate transpose", (char *)"Conjugate transpose", &i__1, n, k, &z__1,
-                           &v[v_offset], ldv, &work[work_offset], ldwork, &c_b1, &c__[c_offset],
-                           ldc, (ftnlen)19, (ftnlen)19);
+                    zgemm_((char *)"C", (char *)"C", &i__1, n, k, &z__1, &v[v_offset], ldv, &work[work_offset],
+                           ldwork, &c_b1, &c__[c_offset], ldc, (ftnlen)1, (ftnlen)1);
                 }
-                ztrmm_((char *)"Right", (char *)"Lower", (char *)"No transpose", (char *)"Unit", n, k, &c_b1,
-                       &v[(*m - *k + 1) * v_dim1 + 1], ldv, &work[work_offset], ldwork, (ftnlen)5,
-                       (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                ztrmm_((char *)"R", (char *)"L", (char *)"N", (char *)"U", n, k, &c_b1, &v[(*m - *k + 1) * v_dim1 + 1], ldv,
+                       &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *k;
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *n;
@@ -320,27 +304,23 @@ int zlarfb_(char *side, char *trans, char *direct, char *storev, integer *m, int
                     zcopy_(m, &c__[(*n - *k + j) * c_dim1 + 1], &c__1, &work[j * work_dim1 + 1],
                            &c__1);
                 }
-                ztrmm_((char *)"Right", (char *)"Lower", (char *)"Conjugate transpose", (char *)"Unit", m, k, &c_b1,
-                       &v[(*n - *k + 1) * v_dim1 + 1], ldv, &work[work_offset], ldwork, (ftnlen)5,
-                       (ftnlen)5, (ftnlen)19, (ftnlen)4);
+                ztrmm_((char *)"R", (char *)"L", (char *)"C", (char *)"U", m, k, &c_b1, &v[(*n - *k + 1) * v_dim1 + 1], ldv,
+                       &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*n > *k) {
                     i__1 = *n - *k;
-                    zgemm_((char *)"No transpose", (char *)"Conjugate transpose", m, k, &i__1, &c_b1,
-                           &c__[c_offset], ldc, &v[v_offset], ldv, &c_b1, &work[work_offset],
-                           ldwork, (ftnlen)12, (ftnlen)19);
+                    zgemm_((char *)"N", (char *)"C", m, k, &i__1, &c_b1, &c__[c_offset], ldc, &v[v_offset], ldv,
+                           &c_b1, &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1);
                 }
-                ztrmm_((char *)"Right", (char *)"Lower", trans, (char *)"Non-unit", m, k, &c_b1, &t[t_offset], ldt,
-                       &work[work_offset], ldwork, (ftnlen)5, (ftnlen)5, (ftnlen)1, (ftnlen)8);
+                ztrmm_((char *)"R", (char *)"L", trans, (char *)"N", m, k, &c_b1, &t[t_offset], ldt, &work[work_offset],
+                       ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (*n > *k) {
                     i__1 = *n - *k;
                     z__1.r = -1., z__1.i = -0.;
-                    zgemm_((char *)"No transpose", (char *)"No transpose", m, &i__1, k, &z__1, &work[work_offset],
-                           ldwork, &v[v_offset], ldv, &c_b1, &c__[c_offset], ldc, (ftnlen)12,
-                           (ftnlen)12);
+                    zgemm_((char *)"N", (char *)"N", m, &i__1, k, &z__1, &work[work_offset], ldwork, &v[v_offset],
+                           ldv, &c_b1, &c__[c_offset], ldc, (ftnlen)1, (ftnlen)1);
                 }
-                ztrmm_((char *)"Right", (char *)"Lower", (char *)"No transpose", (char *)"Unit", m, k, &c_b1,
-                       &v[(*n - *k + 1) * v_dim1 + 1], ldv, &work[work_offset], ldwork, (ftnlen)5,
-                       (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                ztrmm_((char *)"R", (char *)"L", (char *)"N", (char *)"U", m, k, &c_b1, &v[(*n - *k + 1) * v_dim1 + 1], ldv,
+                       &work[work_offset], ldwork, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *k;
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *m;

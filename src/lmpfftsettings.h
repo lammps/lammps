@@ -39,6 +39,8 @@
 #define LMP_FFT_LIB "FFTW3"
 #elif defined(FFT_MKL)
 #define LMP_FFT_LIB "MKL FFT"
+#elif defined(FFT_MKL_GPU)
+#define LMP_FFT_LIB "MKL GPU FFT"
 #elif defined(FFT_CUFFT)
 #define LMP_FFT_LIB "cuFFT"
 #elif defined(FFT_HIPFFT)

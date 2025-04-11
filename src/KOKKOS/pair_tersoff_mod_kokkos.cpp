@@ -283,9 +283,9 @@ void PairTersoffMODKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // free duplicated memory
   if (need_dup) {
-    dup_f     = decltype(dup_f)();
-    dup_eatom = decltype(dup_eatom)();
-    dup_vatom = decltype(dup_vatom)();
+    dup_f     = {};
+    dup_eatom = {};
+    dup_vatom = {};
   }
 }
 

@@ -21,7 +21,7 @@
 #include <cstdint>
 #include <climits>
 
-#if defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_INTEL_LLVM)
+#if defined(KOKKOS_COMPILER_INTEL_LLVM)
 #include <immintrin.h>
 #endif
 
@@ -45,7 +45,7 @@ inline int int_log2_device(unsigned i) {
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
   constexpr int shift = sizeof(unsigned) * CHAR_BIT - 1;
   return shift - __clz(i);
-#elif defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_INTEL_LLVM)
+#elif defined(KOKKOS_COMPILER_INTEL_LLVM)
   return _bit_scan_reverse(i);
 #else
   return int_log2_fallback(i);
@@ -55,7 +55,7 @@ inline int int_log2_device(unsigned i) {
 KOKKOS_IMPL_HOST_FUNCTION
 inline int int_log2_host(unsigned i) {
 // duplicating shift to avoid unused warning in else branch
-#if defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_INTEL_LLVM)
+#if defined(KOKKOS_COMPILER_INTEL_LLVM)
   constexpr int shift = sizeof(unsigned) * CHAR_BIT - 1;
   (void)shift;
   return _bit_scan_reverse(i);
@@ -70,7 +70,7 @@ inline int int_log2_host(unsigned i) {
 #endif
 }
 
-#if defined(__EDG__) && !defined(KOKKOS_COMPILER_INTEL)
+#if defined(__EDG__)
 #pragma push
 #pragma diag_suppress implicit_return_from_non_void_function
 #endif
@@ -79,7 +79,7 @@ int int_log2(unsigned i) {
   KOKKOS_IF_ON_DEVICE((return int_log2_device(i);))
   KOKKOS_IF_ON_HOST((return int_log2_host(i);))
 }
-#if defined(__EDG__) && !defined(KOKKOS_COMPILER_INTEL)
+#if defined(__EDG__)
 #pragma pop
 #endif
 
@@ -104,7 +104,7 @@ inline int bit_first_zero_device(unsigned i) noexcept {
   constexpr unsigned full = ~0u;
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
   return full != i ? __ffs(~i) - 1 : -1;
-#elif defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_INTEL_LLVM)
+#elif defined(KOKKOS_COMPILER_INTEL_LLVM)
   return full != i ? _bit_scan_forward(~i) : -1;
 #else
   (void)full;
@@ -115,7 +115,7 @@ inline int bit_first_zero_device(unsigned i) noexcept {
 KOKKOS_IMPL_HOST_FUNCTION
 inline int bit_first_zero_host(unsigned i) noexcept {
   constexpr unsigned full = ~0u;
-#if defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_INTEL_LLVM)
+#if defined(KOKKOS_COMPILER_INTEL_LLVM)
   return full != i ? _bit_scan_forward(~i) : -1;
 #elif defined(KOKKOS_COMPILER_CRAYC)
   return full != i ? _popcnt(i ^ (i + 1)) - 1 : -1;
@@ -127,7 +127,7 @@ inline int bit_first_zero_host(unsigned i) noexcept {
 #endif
 }
 
-#if defined(__EDG__) && !defined(KOKKOS_COMPILER_INTEL)
+#if defined(__EDG__)
 #pragma push
 #pragma diag_suppress implicit_return_from_non_void_function
 #endif
@@ -136,7 +136,7 @@ int bit_first_zero(unsigned i) noexcept {
   KOKKOS_IF_ON_DEVICE((return bit_first_zero_device(i);))
   KOKKOS_IF_ON_HOST((return bit_first_zero_host(i);))
 }
-#if defined(__EDG__) && !defined(KOKKOS_COMPILER_INTEL)
+#if defined(__EDG__)
 #pragma pop
 #endif
 
@@ -153,7 +153,7 @@ int bit_scan_forward_fallback(unsigned i) {
 KOKKOS_IMPL_DEVICE_FUNCTION inline int bit_scan_forward_device(unsigned i) {
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
   return __ffs(i) - 1;
-#elif defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_INTEL_LLVM)
+#elif defined(KOKKOS_COMPILER_INTEL_LLVM)
   return _bit_scan_forward(i);
 #else
   return bit_scan_forward_fallback(i);
@@ -161,7 +161,7 @@ KOKKOS_IMPL_DEVICE_FUNCTION inline int bit_scan_forward_device(unsigned i) {
 }
 
 KOKKOS_IMPL_HOST_FUNCTION inline int bit_scan_forward_host(unsigned i) {
-#if defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_INTEL_LLVM)
+#if defined(KOKKOS_COMPILER_INTEL_LLVM)
   return _bit_scan_forward(i);
 #elif defined(KOKKOS_COMPILER_CRAYC)
   return i ? _popcnt(~i & (i - 1)) : -1;
@@ -172,7 +172,7 @@ KOKKOS_IMPL_HOST_FUNCTION inline int bit_scan_forward_host(unsigned i) {
 #endif
 }
 
-#if defined(__EDG__) && !defined(KOKKOS_COMPILER_INTEL)
+#if defined(__EDG__)
 #pragma push
 #pragma diag_suppress implicit_return_from_non_void_function
 #endif
@@ -181,7 +181,7 @@ int bit_scan_forward(unsigned i) {
   KOKKOS_IF_ON_DEVICE((return bit_scan_forward_device(i);))
   KOKKOS_IF_ON_HOST((return bit_scan_forward_host(i);))
 }
-#if defined(__EDG__) && !defined(KOKKOS_COMPILER_INTEL)
+#if defined(__EDG__)
 #pragma pop
 #endif
 
@@ -200,7 +200,7 @@ int bit_count_fallback(unsigned i) {
 KOKKOS_IMPL_DEVICE_FUNCTION inline int bit_count_device(unsigned i) {
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
   return __popc(i);
-#elif defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_INTEL_LLVM)
+#elif defined(KOKKOS_COMPILER_INTEL_LLVM)
   return _popcnt32(i);
 #else
   return bit_count_fallback(i);
@@ -208,7 +208,7 @@ KOKKOS_IMPL_DEVICE_FUNCTION inline int bit_count_device(unsigned i) {
 }
 
 KOKKOS_IMPL_HOST_FUNCTION inline int bit_count_host(unsigned i) {
-#if defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_INTEL_LLVM)
+#if defined(KOKKOS_COMPILER_INTEL_LLVM)
   return _popcnt32(i);
 #elif defined(KOKKOS_COMPILER_CRAYC)
   return _popcnt(i);
@@ -219,7 +219,7 @@ KOKKOS_IMPL_HOST_FUNCTION inline int bit_count_host(unsigned i) {
 #endif
 }
 
-#if defined(__EDG__) && !defined(KOKKOS_COMPILER_INTEL)
+#if defined(__EDG__)
 #pragma push
 #pragma diag_suppress implicit_return_from_non_void_function
 #endif
@@ -228,7 +228,7 @@ int bit_count(unsigned i) {
   KOKKOS_IF_ON_DEVICE((return bit_count_device(i);))
   KOKKOS_IF_ON_HOST((return bit_count_host(i);))
 }
-#if defined(__EDG__) && !defined(KOKKOS_COMPILER_INTEL)
+#if defined(__EDG__)
 #pragma pop
 #endif
 

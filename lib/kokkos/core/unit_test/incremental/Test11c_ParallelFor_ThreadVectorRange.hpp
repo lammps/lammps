@@ -59,7 +59,7 @@ struct Hierarchical_ForLoop_C {
     auto v_H = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), v);
 
     size_t check   = 0;
-    const size_t s = sX * sY * sZ;
+    const size_t s = static_cast<size_t>(sX) * sY * sZ;
     for (int i = 0; i < sX; ++i)
       for (int j = 0; j < sY; ++j)
         for (int k = 0; k < sZ; ++k) check += v_H(i, j, k);

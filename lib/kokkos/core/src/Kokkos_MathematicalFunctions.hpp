@@ -277,12 +277,20 @@ KOKKOS_INLINE_FUNCTION long long abs(long long n) {
 #endif
 }
 KOKKOS_INLINE_FUNCTION float abs(float x) {
+#ifdef KOKKOS_ENABLE_SYCL
+  return sycl::fabs(x);  // sycl::abs is only provided for integral types
+#else
   using KOKKOS_IMPL_MATH_FUNCTIONS_NAMESPACE::abs;
   return abs(x);
+#endif
 }
 KOKKOS_INLINE_FUNCTION double abs(double x) {
+#ifdef KOKKOS_ENABLE_SYCL
+  return sycl::fabs(x);  // sycl::abs is only provided for integral types
+#else
   using KOKKOS_IMPL_MATH_FUNCTIONS_NAMESPACE::abs;
   return abs(x);
+#endif
 }
 inline long double abs(long double x) {
   using std::abs;

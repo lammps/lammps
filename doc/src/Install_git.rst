@@ -52,6 +52,7 @@ your machine and "release" is one of the 3 branches listed above.
 between them at any time using "git checkout <branch name>".)
 
 .. admonition:: Saving time and disk space when using ``git clone``
+   :class: note
 
    The complete git history of the LAMMPS project is quite large because
    it contains the entire commit history of the project since fall 2006,
@@ -60,7 +61,7 @@ between them at any time using "git checkout <branch name>".)
    files (mostly by accident).  If you do not need access to the entire
    commit history (most people don't), you can speed up the "cloning"
    process and reduce local disk space requirements by using the
-   *--depth* git command line flag.  That will create a "shallow clone"
+   ``--depth`` git command-line flag.  That will create a "shallow clone"
    of the repository, which contains only a subset of the git history.
    Using a depth of 1000 is usually sufficient to include the head
    commits of the *develop*, the *release*, and the *maintenance*
@@ -122,7 +123,7 @@ changed.  How to do this depends on the build system you are using.
 
       .. code-block:: bash
 
-         cmake . --build
+         cmake --build .
 
       CMake should auto-detect whether it needs to re-run the CMake
       configuration step and otherwise redo the build for all files

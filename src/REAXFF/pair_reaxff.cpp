@@ -30,6 +30,7 @@
 #include "error.h"
 #include "fix_reaxff.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
@@ -174,6 +175,7 @@ void PairReaxFF::allocate()
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   memory->create(cutghost,n+1,n+1,"pair:cutghost");
   map = new int[n+1];
+  for (int i = 0; i <= n; ++i) map[i] = -1;
 
   chi = new double[n+1];
   eta = new double[n+1];
@@ -277,7 +279,7 @@ void PairReaxFF::coeff(int nargs, char **args)
   if (!allocated) allocate();
 
   if (nargs != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   // read ffield file
 
@@ -327,7 +329,7 @@ void PairReaxFF::coeff(int nargs, char **args)
         count++;
       }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
 }
 
@@ -339,11 +341,14 @@ void PairReaxFF::init_style()
 
   auto acks2_fixes = modify->get_fix_by_style("^acks2/reax");
   int have_qeq = modify->get_fix_by_style("^qeq/reax").size()
-    + modify->get_fix_by_style("^qeq/shielded").size() + acks2_fixes.size();
+    + modify->get_fix_by_style("^qeq/shielded").size() + acks2_fixes.size()
+    + modify->get_fix_by_style("^qeq/rel/reax").size()
+    + modify->get_fix_by_style("^qtpie/reax").size();
 
   if (qeqflag && (have_qeq != 1))
     error->all(FLERR,"Pair style reaxff requires use of exactly one of the "
-               "fix qeq/reaxff or fix qeq/shielded or fix acks2/reaxff commands");
+               "fix qeq/reaxff or fix qeq/shielded or fix acks2/reaxff or "
+               "fix qtpie/reaxff or fix qeq/rel/reaxff commands");
 
   api->system->acks2_flag = acks2_fixes.size();
   if (api->system->acks2_flag)
@@ -439,7 +444,9 @@ void PairReaxFF::setup()
 
 double PairReaxFF::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
 
   cutghost[i][j] = cutghost[j][i] = cutmax;
   return cutmax;
@@ -694,24 +701,28 @@ void *PairReaxFF::extract(const char *str, int &dim)
 {
   dim = 1;
   if (strcmp(str,"chi") == 0 && chi) {
+    chi[0] = 0.0;
     for (int i = 1; i <= atom->ntypes; i++)
       if (map[i] >= 0) chi[i] = api->system->reax_param.sbp[map[i]].chi;
       else chi[i] = 0.0;
     return (void *) chi;
   }
   if (strcmp(str,"eta") == 0 && eta) {
+    eta[0] = 0.0;
     for (int i = 1; i <= atom->ntypes; i++)
       if (map[i] >= 0) eta[i] = api->system->reax_param.sbp[map[i]].eta;
       else eta[i] = 0.0;
     return (void *) eta;
   }
   if (strcmp(str,"gamma") == 0 && gamma) {
+    gamma[0] = 0.0;
     for (int i = 1; i <= atom->ntypes; i++)
       if (map[i] >= 0) gamma[i] = api->system->reax_param.sbp[map[i]].gamma;
       else gamma[i] = 0.0;
     return (void *) gamma;
    }
    if (strcmp(str,"bcut_acks2") == 0 && bcut_acks2) {
+    bcut_acks2[0] = 0.0;
     for (int i = 1; i <= atom->ntypes; i++)
       if (map[i] >= 0) bcut_acks2[i] = api->system->reax_param.sbp[map[i]].bcut_acks2;
       else bcut_acks2[i] = 0.0;

@@ -37,6 +37,7 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using utils::errorurl;
 
 namespace ReaxFF {
 /* ---------------------------------------------------------------------- */
@@ -155,7 +156,7 @@ namespace ReaxFF {
 /* ---------------------------------------------------------------------- */
 
   static void Validate_ListsOMP(reax_system *system, reax_list **lists,
-                         int step, int n, int N, int numH)
+                         int step, int N, int numH)
   {
     int comp, Hindex;
     reax_list *bonds, *hbonds;
@@ -182,8 +183,8 @@ namespace ReaxFF {
 
           if (End_Index(i, bonds) > comp)
             system->error_ptr->one(FLERR, fmt::format("step {}: bondchk failed: "
-                                                      "i={} end(i)={} str(i+1)={}\n",
-                                                      step,i,End_Index(i,bonds),comp));
+                                                      "i={} end(i)={} str(i+1)={}{}",
+                                                      step,i,End_Index(i,bonds),comp,errorurl(18)));
         }
       }
 
@@ -195,7 +196,7 @@ namespace ReaxFF {
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
 #endif
-        for (int i = 0; i < n; ++i) {
+        for (int i = 0; i < N; ++i) {
           Hindex = system->my_atoms[i].Hindex;
           if (Hindex > -1) {
             system->my_atoms[i].num_hbonds =
@@ -207,8 +208,9 @@ namespace ReaxFF {
 
             if (End_Index(Hindex, hbonds) > comp)
               system->error_ptr->one(FLERR, fmt::format("step {}: hbondchk failed: "
-                                                        "H={} end(H)={} str(H+1)={}\n",
-                                                        step, Hindex,End_Index(Hindex,hbonds),comp));
+                                                        "H={} end(H)={} str(H+1)={}{}",
+                                                        step, Hindex,End_Index(Hindex,hbonds),comp,
+                                                        errorurl(18)));
           }
         }
       }
@@ -457,8 +459,7 @@ namespace ReaxFF {
     workspace->realloc.num_bonds = num_bonds;
     workspace->realloc.num_hbonds = num_hbonds;
 
-    Validate_ListsOMP(system, lists, data->step,
-                      system->n, system->N, system->numH);
+    Validate_ListsOMP(system, lists, data->step, system->N, system->numH);
   }
 
 /* ---------------------------------------------------------------------- */

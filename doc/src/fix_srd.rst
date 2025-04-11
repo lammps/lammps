@@ -412,10 +412,8 @@ Chem Phys, 132, 174106 (2010).
 
 .. _Bolintineanu1:
 
-**(Bolintineanu1)**
-Bolintineanu, Lechman, Plimpton, Grest, Phys Rev E, 86, 066703 (2012).
+**(Bolintineanu1)** Bolintineanu, Lechman, Plimpton, Grest, Phys Rev E, 86, 066703 (2012).
 
 .. _Bolintineanu2:
 
-**(Bolintineanu2)** Bolintineanu, Grest, Lechman, Pierce, Plimpton,
-Schunk, Comp Particle Mechanics, 1, 321-356 (2014).
+**(Bolintineanu2)** Bolintineanu, Grest, Lechman, Pierce, Plimpton, Schunk, Comp Particle Mechanics, 1, 321-356 (2014).

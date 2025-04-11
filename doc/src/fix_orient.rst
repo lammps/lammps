@@ -62,19 +62,19 @@ The potential energy added to atom I is given by these formulas
 
 .. math::
 
-   \xi_{i} = & \sum_{j=1}^{12} \left| \mathbf{r}_{j} - \mathbf{r}_{j}^{\rm I} \right| \qquad\qquad\left(1\right) \\
+   \xi_{i} = & \sum_{j=1}^{12} \left| \mathbf{r}_{j} - \mathbf{r}_{j}^\mathrm{I} \right| \qquad\qquad\left(1\right) \\
    \\
-  \xi_{\rm IJ} = & \sum_{j=1}^{12} \left| \mathbf{r}_{j}^{\rm J} - \mathbf{r}_{j}^{\rm I} \right| \qquad\qquad\left(2\right)\\
+  \xi_\mathrm{IJ} = & \sum_{j=1}^{12} \left| \mathbf{r}_{j}^\mathrm{J} - \mathbf{r}_{j}^\mathrm{I} \right| \qquad\qquad\left(2\right)\\
   \\
-  \xi_{\rm low}  = & {\rm cutlo} \, \xi_{\rm IJ}  \qquad\qquad\qquad\left(3\right)\\
-  \xi_{\rm high}  = & {\rm cuthi} \, \xi_{\rm IJ} \qquad\qquad\qquad\left(4\right) \\
+  \xi_\mathrm{low}  = & \mathrm{cutlo} \, \xi_\mathrm{IJ}  \qquad\qquad\qquad\left(3\right)\\
+  \xi_\mathrm{high}  = & \mathrm{cuthi} \, \xi_\mathrm{IJ} \qquad\qquad\qquad\left(4\right) \\
   \\
-  \omega_{i} = & \frac{\pi}{2} \frac{\xi_{i} - \xi_{\rm low}}{\xi_{\rm high} - \xi_{\rm low}} \qquad\qquad\left(5\right)\\
+  \omega_{i} = & \frac{\pi}{2} \frac{\xi_{i} - \xi_\mathrm{low}}{\xi_\mathrm{high} - \xi_\mathrm{low}} \qquad\qquad\left(5\right)\\
   \\
-  u_{i}  = & 0 \quad\quad\qquad\qquad\qquad \textrm{ for } \qquad \xi_{i} < \xi_{\rm low}\\
-         = & {\rm dE}\,\frac{1 - \cos(2 \omega_{i})}{2}
-   \qquad \mathrm{ for }\qquad \xi_{\rm low} < \xi_{i} < \xi_{\rm high}  \quad \left(6\right) \\
-         = & {\rm dE} \quad\qquad\qquad\qquad\textrm{ for } \qquad \xi_{\rm high} < \xi_{i}
+  u_{i}  = & 0 \quad\quad\qquad\qquad\qquad \textrm{ for } \qquad \xi_{i} < \xi_\mathrm{low}\\
+         = & \mathrm{dE}\,\frac{1 - \cos(2 \omega_{i})}{2}
+   \qquad \mathrm{for }\qquad \xi_\mathrm{low} < \xi_{i} < \xi_\mathrm{high}  \quad \left(6\right) \\
+         = & \mathrm{dE} \quad\qquad\qquad\qquad\textrm{ for } \qquad \xi_\mathrm{high} < \xi_{i}
 
 which are fully explained in :ref:`(Janssens) <Janssens>`.  For fcc crystals
 this order parameter Xi for atom I in equation (1) is a sum over the

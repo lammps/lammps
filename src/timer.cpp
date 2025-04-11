@@ -16,6 +16,7 @@
 #include "comm.h"
 #include "error.h"
 #include "fmt/chrono.h"
+#include "tokenizer.h"
 
 #include <cstring>
 #include <ctime>
@@ -28,8 +29,8 @@ Timer::Timer(LAMMPS *_lmp) : Pointers(_lmp)
 {
   _level = NORMAL;
   _sync = OFF;
-  _timeout = -1;
-  _s_timeout = -1;
+  _timeout = -1.0;
+  _s_timeout = -1.0;
   _checkfreq = 10;
   _nextcheck = -1;
   this->_stamp(RESET);
@@ -78,8 +79,12 @@ void Timer::_stamp(enum ttype which)
     if (_level > NORMAL) current_cpu = platform::cputime();
     current_wall = platform::walltime();
 
-    cpu_array[SYNC] += current_cpu - previous_cpu;
-    wall_array[SYNC] += current_wall - previous_wall;
+    const double delta_cpu = current_cpu - previous_cpu;
+    const double delta_wall = current_wall - previous_wall;
+    cpu_array[SYNC] += delta_cpu;
+    wall_array[SYNC] += delta_wall;
+    cpu_array[ALL] += delta_cpu;
+    wall_array[ALL] += delta_wall;
     previous_cpu = current_cpu;
     previous_wall = current_wall;
   }
@@ -231,18 +236,25 @@ void Timer::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg], "timeout") == 0) {
       ++iarg;
       if (iarg < narg) {
-        _timeout = utils::timespec2seconds(arg[iarg]);
-      } else
-        error->all(FLERR, "Illegal timer command");
+        try {
+          _timeout = utils::timespec2seconds(arg[iarg]);
+        } catch (TokenizerException &) {
+          error->all(FLERR, "Illegal timeout time: {}", arg[iarg]);
+        }
+      } else {
+        utils::missing_cmd_args(FLERR, "timer timeout", error);
+      }
     } else if (strcmp(arg[iarg], "every") == 0) {
       ++iarg;
       if (iarg < narg) {
         _checkfreq = utils::inumeric(FLERR, arg[iarg], false, lmp);
-        if (_checkfreq <= 0) error->all(FLERR, "Illegal timer command");
-      } else
-        error->all(FLERR, "Illegal timer command");
-    } else
-      error->all(FLERR, "Illegal timer command");
+        if (_checkfreq <= 0) error->all(FLERR, "Illegal timer every frequency: {}", arg[iarg]);
+      } else {
+        utils::missing_cmd_args(FLERR, "timer every", error);
+      }
+    } else {
+      error->all(FLERR, "Unknown timer keyword {}", arg[iarg]);
+    }
     ++iarg;
   }
 
@@ -251,7 +263,7 @@ void Timer::modify_params(int narg, char **arg)
 
     // format timeout setting
     std::string timeout = "off";
-    if (_timeout >= 0) {
+    if (_timeout >= 0.0) {
       std::tm tv = fmt::gmtime((std::time_t) _timeout);
       timeout = fmt::format("{:02d}:{:%M:%S}", tv.tm_yday * 24 + tv.tm_hour, tv);
     }

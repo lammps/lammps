@@ -198,7 +198,7 @@ static void Mempool_Fill(benchmark::State& state) {
   int fill_level          = get_parameter("--fill_level=", state.range(4));
   int repeat_inner        = get_parameter("--repeat_inner=", state.range(5));
   int number_alloc        = get_number_alloc(chunk_span, min_superblock_size,
-                                      total_alloc_size, fill_level);
+                                             total_alloc_size, fill_level);
 
   for (auto _ : state) {
     TestFunctor functor(total_alloc_size, min_superblock_size, number_alloc,
@@ -225,7 +225,7 @@ static void Mempool_Alloc_Dealloc(benchmark::State& state) {
   int fill_level          = get_parameter("--fill_level=", state.range(4));
   int repeat_inner        = get_parameter("--repeat_inner=", state.range(5));
   int number_alloc        = get_number_alloc(chunk_span, min_superblock_size,
-                                      total_alloc_size, fill_level);
+                                             total_alloc_size, fill_level);
 
   for (auto _ : state) {
     TestFunctor functor(total_alloc_size, min_superblock_size, number_alloc,

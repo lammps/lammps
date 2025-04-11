@@ -39,9 +39,6 @@ using namespace MathConst;
 static constexpr int MAX_LEVELS = 10;
 static constexpr int OFFSET = 16384;
 
-enum { REVERSE_RHO, REVERSE_AD, REVERSE_AD_PERATOM };
-enum { FORWARD_RHO, FORWARD_AD, FORWARD_AD_PERATOM };
-
 /* ---------------------------------------------------------------------- */
 
 MSM::MSM(LAMMPS *lmp)
@@ -80,11 +77,12 @@ MSM::MSM(LAMMPS *lmp)
 
 void MSM::settings(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal kspace_style {} command", force->kspace_style);
+  if (narg < 1)
+    utils::missing_cmd_args(FLERR, fmt::format("kspace_style {}", force->kspace_style), error);
 
   accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
   if (accuracy_relative > 1.0)
-    error->all(FLERR, "Invalid relative accuracy {:g} for kspace_style {}",
+    error->all(FLERR, 1, "Invalid relative accuracy {:g} for kspace_style {}",
                accuracy_relative, force->kspace_style);
 }
 
@@ -127,17 +125,17 @@ void MSM::init()
 
   triclinic_check();
   if (domain->dimension == 2)
-    error->all(FLERR,"Cannot (yet) use MSM with 2d simulation");
+    error->all(FLERR, Error::NOLASTLINE, "Cannot (yet) use MSM with 2d simulation");
   if (comm->style != Comm::BRICK)
-    error->universe_all(FLERR,"MSM can only currently be used with comm_style brick");
-
-  if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
+    error->all(FLERR, Error::NOLASTLINE, "MSM can only currently be used with comm_style brick");
+  if (!atom->q_flag)
+    error->all(FLERR, Error::NOLASTLINE, "Kspace style requires atom attribute q");
 
   if ((slabflag == 1) && (me == 0))
-    error->warning(FLERR,"Slab correction not needed for MSM");
+    error->warning(FLERR, "Slab correction not needed for MSM");
 
   if ((order < 4) || (order > 10) || (order%2 != 0))
-    error->all(FLERR,"MSM order must be 4, 6, 8, or 10");
+    error->all(FLERR, Error::NOLASTLINE, "MSM order must be 4, 6, 8, or 10");
 
   // compute two charge force
 
@@ -151,7 +149,7 @@ void MSM::init()
   int itmp;
   auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
-    error->all(FLERR,"KSpace style is incompatible with Pair style");
+    error->all(FLERR, Error::NOLASTLINE, "KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
   // compute qsum & qsqsum and error if not charge-neutral
@@ -221,7 +219,7 @@ double MSM::estimate_1d_error(double h, double prd)
     cprime = 1.0/630.0;
     error_scaling = 0.013520855;
   } else {
-    error->all(FLERR,"MSM order must be 4, 6, 8, or 10");
+    error->all(FLERR, Error::NOLASTLINE, "MSM order must be 4, 6, 8, or 10");
   }
 
   // equation 4.1 from Hardy's thesis
@@ -287,7 +285,8 @@ void MSM::setup()
   // change_box may trigger MSM::setup() before MSM::init() was called
   // error out and request full initialization.
 
-  if (!delxinv) error->all(FLERR, "MSM must be fully initialized for this operation");
+  if (!delxinv)
+    error->all(FLERR, Error::NOLASTLINE, "MSM must be fully initialized for this operation");
 
   double *prd;
   double a = cutoff;
@@ -393,8 +392,8 @@ void MSM::compute(int eflag, int vflag)
 
   if (scalar_pressure_flag && vflag_either) {
     if (vflag_atom)
-      error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' to obtain "
-        "per-atom virial with kspace_style MSM");
+      error->all(FLERR, Error::NOLASTLINE, "Must use 'kspace_modify pressure/scalar no' to obtain "
+                 "per-atom virial with kspace_style MSM");
 
     // must switch on global energy computation if not already on
 
@@ -945,7 +944,7 @@ void MSM::deallocate_levels()
 void MSM::set_grid_global()
 {
   if (accuracy_relative <= 0.0)
-    error->all(FLERR,"KSpace accuracy must be > 0");
+    error->all(FLERR, Error::NOLASTLINE, "KSpace accuracy must be > 0");
 
   double xprd = domain->xprd;
   double yprd = domain->yprd;
@@ -1095,7 +1094,7 @@ void MSM::set_grid_global()
   levels = MAX(xlevels,ylevels);
   levels = MAX(levels,zlevels);
 
-  if (levels > MAX_LEVELS) error->all(FLERR,"Too many MSM grid levels");
+  if (levels > MAX_LEVELS) error->all(FLERR, Error::NOLASTLINE, "Too many MSM grid levels");
 
   // need at least 2 MSM levels for periodic systems
 
@@ -1133,7 +1132,7 @@ void MSM::set_grid_global()
   }
 
   if (nx_msm[0] >= OFFSET || ny_msm[0] >= OFFSET || nz_msm[0] >= OFFSET)
-    error->all(FLERR,"MSM grid is too large");
+    error->all(FLERR, Error::NOLASTLINE, "MSM grid is too large");
 
   // compute number of extra grid points needed for non-periodic boundary conditions
   // need to always do this, so we can handle the case of switching from periodic
@@ -1443,7 +1442,7 @@ void MSM::particle_map()
   int flag = 0;
 
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
-    error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
+    error->one(FLERR, Error::NOLASTLINE, "Non-numeric box dimensions - simulation unstable" + utils::errorurl(6));
 
   for (int i = 0; i < nlocal; i++) {
 
@@ -1466,7 +1465,9 @@ void MSM::particle_map()
         nz+nlower < nzlo_out[0] || nz+nupper > nzhi_out[0]) flag = 1;
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute MSM");
+  if (flag)
+    error->one(FLERR, Error::NOLASTLINE,
+               "Out of range atoms - cannot compute MSM" + utils::errorurl(4));
 }
 
 /* ----------------------------------------------------------------------

@@ -74,9 +74,13 @@ void NPairSkipIntel::build_t(NeighList *list, int *numhalf, int *cnumneigh,
   const int nlocal = atom->nlocal;
   const int e_nall = nlocal + atom->nghost;
   const int * _noalias const type = atom->type;
+  const tagint * _noalias const molecule = atom->molecule;
+
   int * _noalias const ilist = list->ilist;
   int * _noalias const numneigh = list->numneigh;
   int ** _noalias const firstneigh = (int ** const)list->firstneigh;  // NOLINT
+  const int molskip = list->molskip;
+
   const int * _noalias const ilist_skip = list->listskip->ilist;
   const int * _noalias const numneigh_skip = list->listskip->numneigh;
   const int ** _noalias const firstneigh_skip = (const int ** const)list->listskip->firstneigh;  // NOLINT
@@ -110,7 +114,7 @@ void NPairSkipIntel::build_t(NeighList *list, int *numhalf, int *cnumneigh,
     for (int ii = ifrom; ii < ito; ii++) {
       const int i = ilist_skip[ii];
       const int itype = type[i];
-      if (iskip[itype]) continue;
+      if (!molskip && iskip[itype]) continue;
 
       int n = 0;
       int *neighptr = ipage.vget();
@@ -142,7 +146,11 @@ void NPairSkipIntel::build_t(NeighList *list, int *numhalf, int *cnumneigh,
         for (int jj = 0; jj < jnum; jj++) {
           const int joriginal = jlist[jj];
           const int j = joriginal & NEIGHMASK;
-          if (!ijskip[itype][type[j]]) neighptr[n++] = joriginal;
+          if (!molskip && ijskip[itype][type[j]]) continue;
+          if ((molskip == NeighRequest::INTRA) && (molecule[i] != molecule[j])) continue;
+          if ((molskip == NeighRequest::INTER) && (molecule[i] == molecule[j])) continue;
+
+          neighptr[n++] = joriginal;
         }
       }
 
@@ -269,9 +277,13 @@ void NPairSkipTrimIntel::build_t(NeighList *list, int *numhalf, int *cnumneigh,
   const int e_nall = nlocal + atom->nghost;
   const ATOM_T * _noalias const x = buffers->get_x();
   const int * _noalias const type = atom->type;
+  const tagint * _noalias const molecule = atom->molecule;
+
   int * _noalias const ilist = list->ilist;
   int * _noalias const numneigh = list->numneigh;
   int ** _noalias const firstneigh = (int ** const)list->firstneigh;  // NOLINT
+  const int molskip = list->molskip;
+
   const int * _noalias const ilist_skip = list->listskip->ilist;
   const int * _noalias const numneigh_skip = list->listskip->numneigh;
   const int ** _noalias const firstneigh_skip = (const int ** const)list->listskip->firstneigh;  // NOLINT
@@ -306,7 +318,7 @@ void NPairSkipTrimIntel::build_t(NeighList *list, int *numhalf, int *cnumneigh,
     for (int ii = ifrom; ii < ito; ii++) {
       const int i = ilist_skip[ii];
       const int itype = type[i];
-      if (iskip[itype]) continue;
+      if (!molskip && iskip[itype]) continue;
 
       const flt_t xtmp = x[i].x;
       const flt_t ytmp = x[i].y;
@@ -370,7 +382,9 @@ void NPairSkipTrimIntel::build_t(NeighList *list, int *numhalf, int *cnumneigh,
           const int j = joriginal & NEIGHMASK;
 
           int addme = 1;
-          if (ijskip[itype][type[j]]) addme = 0;
+          if (!molskip && ijskip[itype][type[j]]) addme = 0;
+          if ((molskip == NeighRequest::INTRA) && (molecule[i] != molecule[j])) addme = 0;
+          if ((molskip == NeighRequest::INTER) && (molecule[i] == molecule[j])) addme = 0;
 
           // trim to shorter cutoff
 

@@ -158,9 +158,9 @@ time steps that are a multiple of :math:`N_\text{freq}`\ .  The average is over
 :math:`N_\text{repeat}` quantities, computed in the preceding portion of the
 simulation every :math:`N_\text{every}` time steps.  :math:`N_\text{freq}` must
 be a multiple of :math:`N_\text{every}` and :math:`N_\text{every}` must be
-non-zero even if :math:`N_\text{repeat} = 1`.  Also, the time steps
-contributing to the average value cannot overlap,
-i.e. Nrepeat\*Nevery can not exceed Nfreq.
+non-zero even if :math:`N_\text{repeat} = 1`. Also, the time steps
+contributing to the average value cannot overlap (i.e.,
+:math:`N_\text{repeat} \times N_\text{every}` cannot exceed :math:`N_\text{freq}`).
 
 For example, if :math:`N_\text{every}=2`, :math:`N_\text{repeat}=6`, and
 :math:`N_\text{freq}=100`, then values on time steps 90, 92, 94, 96, 98, and
@@ -304,8 +304,8 @@ output.  This option can only be used with the *ave running* setting.
 
 The *format* keyword sets the numeric format of each value when it is
 printed to a file via the *file* keyword.  Note that all values are
-floating point quantities.  The default format is %g.  You can specify
-a higher precision if desired (e.g., %20.16g).
+floating point quantities.  The default format is " %g".  You can specify
+a higher precision if desired (e.g., " %20.16g").
 
 The *title1* and *title2* and *title3* keywords allow specification of
 the strings that will be printed as the first 2 or 3 lines of the

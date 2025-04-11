@@ -18,6 +18,11 @@
 #define KOKKOS_IMPL_TASKQUEUEMULTIPLE_IMPL_HPP
 
 #include <Kokkos_Macros.hpp>
+
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#error "The tasking framework is deprecated"
+#endif
+
 #if defined(KOKKOS_ENABLE_TASKDAG)
 
 #include <impl/Kokkos_TaskQueueMultiple.hpp>

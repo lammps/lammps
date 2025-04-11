@@ -234,6 +234,12 @@ namespace ReaxFF {
           if (lgflag) {
             values = reader.next_values(0);
             ++lineno;
+
+            // if line does not start with a floating point number, i.e. is the start
+            // of the data for the next element, the file does not support lgflag != 0
+            if (!values.matches("^\\s*\\f+\\s*"))
+              THROW_ERROR("ReaxFF potential file is not compatible with 'lgvdw yes'");
+
             CHECK_COLUMNS(2);
             sbp[i].lgcij    = values.next_double();
             sbp[i].lgre     = values.next_double();

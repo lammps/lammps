@@ -14,6 +14,7 @@
 #ifdef PAIR_CLASS
 // clang-format off
 PairStyle(hybrid,PairHybrid);
+PairStyle(hybrid/omp,PairHybrid);
 // clang-format on
 #else
 
@@ -27,6 +28,7 @@ namespace LAMMPS_NS {
 class PairHybrid : public Pair {
   friend class AtomVecDielectric;
   friend class ComputeSpin;
+  friend class FixAtomSwap;
   friend class FixGPU;
   friend class FixIntel;
   friend class FixNVESpin;

@@ -451,7 +451,7 @@ void DihedralTableCut::allocate()
 
 void DihedralTableCut::coeff(int narg, char **arg)
 {
-  if (narg != 7) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (narg != 7) error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -628,5 +628,5 @@ void DihedralTableCut::coeff(int narg, char **arg)
   }
   ntables++;
 
-  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
 }

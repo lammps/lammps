@@ -54,7 +54,7 @@ the Langevin equation such as:
 
    f_P = & \frac{N k_B T_{target}}{V} + \frac{1}{V d}\sum_{i=1}^{N} \vec r_i \cdot \vec f_i - P_{target} \\
    Q\ddot{L} + \alpha{}\dot{L} = & f_P + \beta(t)\\
-   L^{n+1} = & L^{n} + bdt\dot{L}^{n} \frac{bdt^{2}}{2Q} \\
+   L^{n+1} = & L^{n} + bdt\dot{L}^{n} + \frac{bdt^{2}}{2Q} f^{n}_{P} + \frac{bdt}{2Q} \beta^{n+1}  \\
    \dot{L}^{n+1} = & \alpha\dot{L}^{n} + \frac{dt}{2Q}\left(a f^{n}_{P} + f^{n+1}_{P}\right) + \frac{b}{Q}\beta^{n+1} \\
    a = & \frac{1-\frac{\alpha{}dt}{2Q}}{1+\frac{\alpha{}dt}{2Q}} \\
    b = & \frac{1}{1+\frac{\alpha{}dt}{2Q}} \\

@@ -140,8 +140,8 @@ TEST_F(VariableTest, CreateDelete)
     command("variable ten1   universe  1 2 3 4");
     command("variable ten2   uloop     4");
     command("variable ten3   uloop     4 pad");
-    command("variable ten4   vector    [0,1,2,3,5,7,11]");
-    command("variable ten5   vector    [0.5,1.25]");
+    command("variable ten4   vector    [0,1,  2,3, 5,7,11]");
+    command("variable ten5   vector    [ 0.5, 1.25 ]");
     command("variable dummy  index     0");
     command("variable file   equal     is_file(MYFILE)");
     command("variable iswin  equal     is_os(^Windows)");
@@ -157,6 +157,7 @@ TEST_F(VariableTest, CreateDelete)
     ASSERT_THAT(variable->retrieve("three"), StrEq("four"));
     ASSERT_THAT(variable->retrieve("four2"), StrEq("2"));
     ASSERT_THAT(variable->retrieve("five1"), StrEq("001"));
+    ASSERT_THAT(variable->retrieve("five2"), StrEq("010"));
     ASSERT_THAT(variable->retrieve("seven"), StrEq(" 2.00"));
     ASSERT_THAT(variable->retrieve("ten"), StrEq("1"));
     ASSERT_THAT(variable->retrieve("eight"), StrEq(""));
@@ -205,20 +206,20 @@ TEST_F(VariableTest, CreateDelete)
     TEST_FAILURE(".*ERROR: Invalid variable loop argument: -1.*",
                  command("variable dummy loop -1"););
     TEST_FAILURE(".*ERROR: Illegal variable loop command.*", command("variable dummy loop 10 1"););
-    TEST_FAILURE(".*ERROR: Unknown variable keyword: xxx.*", command("variable dummy xxxx"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+    TEST_FAILURE(".*ERROR: Unknown variable style: xxx.*", command("variable dummy xxxx"););
+    TEST_FAILURE(".*ERROR: Cannot redefine variable two with a different style.*",
                  command("variable two string xxx"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine variable two with a different style.*",
                  command("variable two getenv xxx"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine variable one with a different style.*",
                  command("variable one equal 2"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine variable one with a different style.*",
                  command("variable one internal 2"););
     TEST_FAILURE(".*ERROR: Cannot use atomfile-style variable unless an atom map exists.*",
                  command("variable eleven    atomfile  test_variable.atomfile"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable nine1 file test_variable.xxx.*",
                  command("variable nine1  file      test_variable.xxx"););
-    TEST_FAILURE(".*ERROR: World variable count doesn't match # of partitions.*",
+    TEST_FAILURE(".*ERROR: World variable count 2 doesn't match # of partitions.*",
                  command("variable ten10 world xxx xxx"););
     TEST_FAILURE(".*ERROR: All universe/uloop variables must have same # of values.*",
                  command("variable ten6   uloop     2"););
@@ -286,12 +287,13 @@ TEST_F(VariableTest, AtomicSystem)
     ASSERT_DOUBLE_EQ(variable->compute_equal("f_press[1]"), 0.0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("c_press"), 0.0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("c_press[2]"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("c_press[1+1]"), 0.0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("1.5+3.25"), 4.75);
     ASSERT_DOUBLE_EQ(variable->compute_equal("-2.5*1.5"), -3.75);
 
-    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine variable one with a different style.*",
                  command("variable one atom x"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine variable id with a different style.*",
                  command("variable id vector f_press"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open atomfile variable ten1 file test_variable.xxx.*",
                  command("variable ten1   atomfile  test_variable.xxx"););
@@ -301,8 +303,18 @@ TEST_F(VariableTest, AtomicSystem)
                  variable->compute_equal("v_self"););
     TEST_FAILURE(".*ERROR: Variable sum2: Inconsistent lengths in vector-style variable.*",
                  variable->compute_equal("max(v_sum2)"););
-    TEST_FAILURE("ERROR: Mismatched fix in variable formula.*",
+    TEST_FAILURE(".*ERROR: Mismatched fix in variable formula.*",
                  variable->compute_equal("f_press"););
+    TEST_FAILURE(".*ERROR .*Variable formula compute vector is accessed out-of-range.*",
+                 variable->compute_equal("c_press[10]"););
+    TEST_FAILURE(".*ERROR: Non digit character between brackets in variable.*",
+                 variable->compute_equal("c_press[axy]"););
+    TEST_FAILURE(".*ERROR: Illegal value in brackets: stoll.*",
+                 variable->compute_equal("c_press[73786976294838206464]"););
+    TEST_FAILURE(".*ERROR: Index between variable brackets must be positive.*",
+                 variable->compute_equal("c_press[-2]"););
+    TEST_FAILURE(".*ERROR: Index between variable brackets must be positive.*",
+                 variable->compute_equal("c_press[0]"););
 }
 
 TEST_F(VariableTest, Expressions)
@@ -311,13 +323,13 @@ TEST_F(VariableTest, Expressions)
     BEGIN_HIDE_OUTPUT();
     command("variable one    index     1");
     command("variable two    equal     2");
-    command("variable three  equal     v_one+v_two");
+    command("variable three  equal     v_one + v_two");
     command("variable four   equal     PI");
     command("variable five   equal     version");
     command("variable six    equal     XXX");
     command("variable seven  equal     -v_one");
     command("variable eight  equal     v_three-0.5");
-    command("variable nine   equal     v_two*(v_one+v_three)");
+    command("variable nine   equal     v_two * (v_one+v_three)");
     command("variable ten    equal     (1.0/v_two)^2");
     command("variable eleven equal     v_three%2");
     command("variable twelve equal     1==2");
@@ -329,7 +341,8 @@ TEST_F(VariableTest, Expressions)
     command("variable ten8   equal     1|^0");
     command("variable ten9   equal     v_one-v_ten9");
     command("variable ten10  internal  100.0");
-    command("variable ten11  equal     (1!=1)+(2<1)+(2<=1)+(1>2)+(1>=2)+(1&&0)+(0||0)+(1|^1)+10^0");
+    command(
+        "variable ten11  equal     (1 != 1)+(2 < 1)+(2<=1)+(1>2)+(1>=2)+(1&&0)+(0||0)+(1|^1)+10^0");
     command("variable ten12  equal     yes+no+on+off+true+false");
     command("variable err1   equal     v_one/v_ten7");
     command("variable err2   equal     v_one%v_ten7");
@@ -338,7 +351,7 @@ TEST_F(VariableTest, Expressions)
     command("variable vec2   vector    v_vec1*0.5");
     command("variable vec3   equal     v_vec2[3]");
     command("variable vec4   vector    '[1, 5, 2.5, -10, -5, 20, 120, 4, 3, 3]'");
-    command("variable sort   vector    sort(v_vec4)");
+    command("variable sort   vector    sort(v_vec4 )");
     command("variable rsrt   vector    rsort(v_vec4)");
     command("variable max2   equal     sort(v_vec4)[2]");
     command("variable rmax   equal     rsort(v_vec4)[1]");
@@ -388,8 +401,9 @@ TEST_F(VariableTest, Expressions)
                  command("print \"${err2}\""););
     TEST_FAILURE(".*ERROR on proc 0: Variable err3: Invalid power expression in variable formula.*",
                  command("print \"${err3}\""););
-    TEST_FAILURE(".*ERROR: Variable one: Mis-matched special function variable in variable formula.*",
-                 command("print \"${isrt}\""););
+    TEST_FAILURE(
+        ".*ERROR: Variable one: Mis-matched special function variable in variable formula.*",
+        command("print \"${isrt}\""););
     TEST_FAILURE(".*ERROR: Variable vec4: index 11 exceeds vector size of 10.*",
                  command("print \"${xxxl}\""););
 }
@@ -613,7 +627,8 @@ TEST_F(VariableTest, NextCommand)
 
     TEST_FAILURE(".*ERROR: Illegal next command.*", command("next"););
     TEST_FAILURE(".*ERROR: Invalid variable 'xxx' in next command.*", command("next xxx"););
-    TEST_FAILURE(".*ERROR: Invalid variable style with next command.*", command("next two"););
+    TEST_FAILURE(".*ERROR: Variable two has invalid style equal for next command.*",
+                 command("next two"););
     TEST_FAILURE(".*ERROR: All variables in next command must have same style.*",
                  command("next five four"););
 }
@@ -718,8 +733,8 @@ TEST_F(VariableTest, LabelMapMolecular)
 TEST_F(VariableTest, Format)
 {
     BEGIN_HIDE_OUTPUT();
-    command("variable idx     index    -0.625");
-    command("variable one     equal    -0.625");
+    command("variable idx     index    -0.622");
+    command("variable one     equal    -0.622");
     command("variable two     equal     1.0e-20");
     command("variable three   equal    1.0e10");
     command("variable f1one   format    one \"%8.4f\"");
@@ -741,25 +756,25 @@ TEST_F(VariableTest, Format)
     command("variable g3one   format    one \"%5g\"");
     command("variable g3two   format    two \"%g\"");
     END_HIDE_OUTPUT();
-    EXPECT_THAT(variable->retrieve("one"), StrEq("-0.625"));
+    EXPECT_THAT(variable->retrieve("one"), StrEq("-0.622"));
     EXPECT_THAT(variable->retrieve("two"), StrEq("1e-20"));
-    EXPECT_THAT(variable->retrieve("f1one"), StrEq(" -0.6250"));
+    EXPECT_THAT(variable->retrieve("f1one"), StrEq(" -0.6220"));
     EXPECT_THAT(variable->retrieve("f1two"), StrEq("  0.0000"));
     EXPECT_THAT(variable->retrieve("f2one"), StrEq("-0.62"));
     EXPECT_THAT(variable->retrieve("f2two"), StrEq(" 0.0000000000000000000100000"));
-    EXPECT_THAT(variable->retrieve("f3one"), StrEq("-0.625000"));
+    EXPECT_THAT(variable->retrieve("f3one"), StrEq("-0.622000"));
     EXPECT_THAT(variable->retrieve("f3two"), StrEq("0.000000"));
-    EXPECT_THAT(variable->retrieve("e1one"), StrEq("   -6.2500e-01"));
+    EXPECT_THAT(variable->retrieve("e1one"), StrEq("   -6.2200e-01"));
     EXPECT_THAT(variable->retrieve("e1two"), StrEq("1.0000e-20    "));
-    EXPECT_THAT(variable->retrieve("e2one"), StrEq("-6.25E-01"));
+    EXPECT_THAT(variable->retrieve("e2one"), StrEq("-6.22E-01"));
     EXPECT_THAT(variable->retrieve("e2two"), StrEq(" 9.999999999999999E-21"));
-    EXPECT_THAT(variable->retrieve("e3one"), StrEq("-6.250000e-01"));
+    EXPECT_THAT(variable->retrieve("e3one"), StrEq("-6.220000e-01"));
     EXPECT_THAT(variable->retrieve("e3two"), StrEq("1.000000e-20"));
-    EXPECT_THAT(variable->retrieve("g1one"), StrEq("        -0.625"));
+    EXPECT_THAT(variable->retrieve("g1one"), StrEq("        -0.622"));
     EXPECT_THAT(variable->retrieve("g1two"), StrEq("1e-20         "));
     EXPECT_THAT(variable->retrieve("g2one"), StrEq("-0.62"));
     EXPECT_THAT(variable->retrieve("g2two"), StrEq(" 1E-20"));
-    EXPECT_THAT(variable->retrieve("g3one"), StrEq("-0.625"));
+    EXPECT_THAT(variable->retrieve("g3one"), StrEq("-0.622"));
     EXPECT_THAT(variable->retrieve("g3two"), StrEq("1e-20"));
 
     BEGIN_HIDE_OUTPUT();
@@ -769,7 +784,7 @@ TEST_F(VariableTest, Format)
     command("variable f1three  format  three %g");
     command("variable three delete");
     END_HIDE_OUTPUT();
-    EXPECT_THAT(variable->retrieve("f1one"), StrEq("-0.6250 "));
+    EXPECT_THAT(variable->retrieve("f1one"), StrEq("-0.6220 "));
 
     TEST_FAILURE(".*ERROR: Variable f1idx: format variable idx has incompatible style.*",
                  command("variable f1idx format idx %8.4f"););
@@ -779,7 +794,7 @@ TEST_F(VariableTest, Format)
                  command("variable f1idx format yyy %8.4f"););
     TEST_FAILURE(".*ERROR: Variable f1three: format variable three does not exist.*",
                  variable->retrieve("f1three"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine variable f2one with a different style.*",
                  command("variable f2one equal 0.5"););
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable xxx format \"xxx\""););
     TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",

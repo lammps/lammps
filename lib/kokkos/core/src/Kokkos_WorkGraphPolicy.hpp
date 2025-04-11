@@ -120,7 +120,7 @@ class WorkGraphPolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
                                         (std::int32_t)BEGIN_TOKEN))) {
         // Attempt to claim ready work index succeeded,
         // update the hint and return work index
-        atomic_increment(begin_hint);
+        atomic_inc(begin_hint);
         return w;
       }
       // arrive here when ready_queue[i] == BEGIN_TOKEN
@@ -169,7 +169,7 @@ class WorkGraphPolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
   void operator()(const TagCount, int i) const noexcept {
     std::int32_t* const count_queue = &m_queue[m_graph.numRows()];
 
-    atomic_increment(count_queue + m_graph.entries[i]);
+    atomic_inc(count_queue + m_graph.entries[i]);
   }
 
   KOKKOS_INLINE_FUNCTION

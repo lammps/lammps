@@ -20,6 +20,7 @@ functions.  They do not directly call the LAMMPS library.
 - :cpp:func:`lammps_force_timeout`
 - :cpp:func:`lammps_has_error`
 - :cpp:func:`lammps_get_last_error_message`
+- :cpp:func:`lammps_set_show_error`
 - :cpp:func:`lammps_python_api_version`
 
 The :cpp:func:`lammps_free` function is a clean-up function to free
@@ -106,6 +107,11 @@ where such memory buffers were allocated that require the use of
 -----------------------
 
 .. doxygenfunction:: lammps_get_last_error_message
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_set_show_error
    :project: progguide
 
 -----------------------

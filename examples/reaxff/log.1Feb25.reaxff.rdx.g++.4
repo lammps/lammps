@@ -1,0 +1,154 @@
+LAMMPS (19 Nov 2024 - Development - patch_19Nov2024-1172-g920337963b-modified)
+  using 1 OpenMP thread(s) per MPI task
+# ReaxFF potential for RDX system
+
+units           real
+
+atom_style      charge
+read_data       data.rdx
+Reading data file ...
+  orthogonal box = (35 35 35) to (48 48 48)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  21 atoms
+  read_data CPU = 0.001 seconds
+
+pair_style      reaxff control.reax_c.rdx
+WARNING: Ignoring inactive control parameter: simulation_name (src/REAXFF/reaxff_control.cpp:99)
+WARNING: Ignoring inactive control parameter: energy_update_freq (src/REAXFF/reaxff_control.cpp:99)
+WARNING: Support for writing native trajectories has been removed after LAMMPS version 8 April 2021 (src/REAXFF/reaxff_control.cpp:114)
+WARNING: Ignoring inactive control parameter: traj_title (src/REAXFF/reaxff_control.cpp:99)
+WARNING: Ignoring inactive control parameter: atom_info (src/REAXFF/reaxff_control.cpp:99)
+WARNING: Ignoring inactive control parameter: atom_forces (src/REAXFF/reaxff_control.cpp:99)
+WARNING: Ignoring inactive control parameter: atom_velocities (src/REAXFF/reaxff_control.cpp:99)
+WARNING: Ignoring inactive control parameter: bond_info (src/REAXFF/reaxff_control.cpp:99)
+WARNING: Ignoring inactive control parameter: angle_info (src/REAXFF/reaxff_control.cpp:99)
+pair_coeff      * * ffield.reax C H O N
+Reading potential file ffield.reax with DATE: 2010-02-19
+
+compute reax all pair reaxff
+
+variable eb      equal c_reax[1]
+variable ea      equal c_reax[2]
+variable elp     equal c_reax[3]
+variable emol    equal c_reax[4]
+variable ev      equal c_reax[5]
+variable epen    equal c_reax[6]
+variable ecoa    equal c_reax[7]
+variable ehb     equal c_reax[8]
+variable et      equal c_reax[9]
+variable eco     equal c_reax[10]
+variable ew      equal c_reax[11]
+variable ep      equal c_reax[12]
+variable efi     equal c_reax[13]
+variable eqeq    equal c_reax[14]
+
+neighbor        2.5 bin
+neigh_modify    every 10 delay 0 check no
+
+fix             1 all nve
+fix             2 all qeq/reaxff 1 0.0 10.0 1.0e-6 reaxff
+
+variable nqeq   equal f_2
+
+thermo          10
+thermo_style    custom step temp epair etotal press                 v_eb v_ea v_elp v_emol v_ev v_epen v_ecoa                 v_ehb v_et v_eco v_ew v_ep v_efi v_eqeq v_nqeq
+
+timestep        1.0
+
+#dump           1 all atom 10 dump.reaxff.rdx
+
+#dump           2 all image 25 image.*.jpg type type #               axes yes 0.8 0.02 view 60 -30
+#dump_modify    2 pad 3
+
+#dump           3 all movie 25 movie.mpg type type #               axes yes 0.8 0.02 view 60 -30
+#dump_modify    3 pad 3
+
+run             100
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair reaxff command: doi:10.1016/j.parco.2011.08.005
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},
+ title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ number =  {4--5},
+ pages =   {245--259}
+}
+
+- fix qeq/reaxff command: doi:10.1016/j.parco.2011.08.005
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},
+ title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ pages =   {245--259}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 10 steps, delay = 0 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12.5
+  ghost atom cutoff = 12.5
+  binsize = 6.25, bins = 3 3 3
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reaxff, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/ghost/newtoff
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) fix qeq/reaxff, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 9.353 | 10.52 | 11.73 Mbytes
+   Step          Temp          E_pair         TotEng         Press           v_eb           v_ea          v_elp          v_emol          v_ev          v_epen         v_ecoa         v_ehb           v_et          v_eco           v_ew           v_ep          v_efi          v_eqeq         v_nqeq    
+         0   0             -1884.3081     -1884.3081      27186.182     -2958.4712      79.527715      0.31082031     0              98.589783      25.846176     -0.18034154     0              16.709078     -9.1620736      938.43732     -244.79916      0              168.88381      12.5         
+        10   1288.6116     -1989.6644     -1912.8422     -19456.352     -2734.6769     -15.60722       0.20177961     0              54.629556      3.1252291     -77.7067        0              14.933901     -5.8108541      843.92073     -180.43321      0              107.75935      8            
+        20   538.95827     -1942.7037     -1910.5731     -10725.675     -2803.7395      7.9078297      0.077926636    0              81.610054      0.22951925    -57.557099      0              30.331205     -10.178049      878.99014     -159.69256      0              89.316794      7            
+        30   463.09513     -1933.5765     -1905.9686     -33255.526     -2749.8591     -8.0154533      0.027628873    0              81.62739       0.11972403    -50.262284      0              20.820312     -9.6327039      851.88722     -149.49494      0              79.205672      8            
+        40   885.49116     -1958.9126     -1906.123      -4814.6959     -2795.6441      9.1506835      0.13747507     0              70.947963      0.24360514    -57.862673      0              19.076493     -11.141218      873.73898     -159.99394      0              92.434099      11           
+        50   861.1691      -1954.4598     -1903.1202     -1896.8779     -2784.8448      3.8270203      0.1579326      0              79.851903      3.3492208     -78.066129      0              32.629013     -7.9565355      872.81826     -190.98566      0              114.75994      10           
+        60   1167.7861     -1971.8427     -1902.2238     -3482.6559     -2705.8627     -17.121772      0.22749069     0              44.507644      7.8561147     -74.788923      0              16.256476     -4.6046327      835.83036     -188.33691      0              114.19412      10           
+        70   1440.0001     -1989.3024     -1903.4551      23845.322     -2890.7895      31.958913      0.26671723     0              85.758826      3.1803176     -71.002871      0              24.357078     -10.311326      905.8676      -175.38455      0              106.79634      10           
+        80   502.39424     -1930.7541     -1900.8033     -20356.365     -2703.8112     -18.662536      0.11285996     0              99.804396      2.032884      -76.171335      0              19.237003     -6.2786875      826.47433     -166.03121      0              92.539366      9            
+        90   749.08858     -1946.9836     -1902.3258      17798.514     -2863.7575      42.068829      0.24338073     0              96.181699      0.9618465     -69.955421      0              24.615236     -11.582776      903.6881      -190.13852      0              120.69151      11           
+       100   1109.7005     -1968.5871     -1902.431      -4490.1423     -2755.8949     -7.1235131      0.21757701     0              61.80622       7.0827961     -75.645322      0              20.114715     -6.2371564      863.56266     -198.56982      0              122.09964      10.5         
+Loop time of 0.0666879 on 4 procs for 100 steps with 21 atoms
+
+Performance: 129.559 ns/day, 0.185 hours/ns, 1499.522 timesteps/s, 31.490 katom-step/s
+98.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.023807   | 0.033573   | 0.04688    |   4.6 | 50.34
+Neigh   | 0.0013829  | 0.001879   | 0.0024761  |   0.9 |  2.82
+Comm    | 0.0015767  | 0.014898   | 0.024673   |   6.9 | 22.34
+Output  | 0.00015887 | 0.00016828 | 0.00018839 |   0.0 |  0.25
+Modify  | 0.015511   | 0.01612    | 0.016628   |   0.3 | 24.17
+Other   |            | 4.966e-05  |            |       |  0.07
+
+Nlocal:           5.25 ave          15 max           0 min
+Histogram: 1 0 2 0 0 0 0 0 0 1
+Nghost:          355.5 ave         432 max         282 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+Neighs:         298.75 ave         822 max           0 min
+Histogram: 1 0 2 0 0 0 0 0 0 1
+
+Total # of neighbors = 1195
+Ave neighs/atom = 56.904762
+Neighbor list builds = 10
+Dangerous builds not checked
+Total wall time: 0:00:00

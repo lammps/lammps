@@ -33,8 +33,6 @@ class PPPMDispDielectric : public PPPMDisp {
   void slabcorr(int) override;
 
   double **efield;
-  double *phi;
-  int potflag;    // 1/0 if per-atom electrostatic potential phi is needed
 
  protected:
   void make_rho_c() override;

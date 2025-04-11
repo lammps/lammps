@@ -105,6 +105,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag, M
              MPI_Status *status);
 int MPI_Irecv(void *buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm,
               MPI_Request *request);
+int MPI_Iprobe(int source, int tag, MPI_Comm comm, int *flag, MPI_Status *status);
 int MPI_Wait(MPI_Request *request, MPI_Status *status);
 int MPI_Waitall(int n, MPI_Request *request, MPI_Status *status);
 int MPI_Waitany(int count, MPI_Request *request, int *index, MPI_Status *status);

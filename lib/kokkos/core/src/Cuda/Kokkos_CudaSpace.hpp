@@ -73,9 +73,9 @@ class CudaSpace {
   CudaSpace(int device_id, cudaStream_t stream);
 
  public:
-  CudaSpace(CudaSpace&& rhs)      = default;
-  CudaSpace(const CudaSpace& rhs) = default;
-  CudaSpace& operator=(CudaSpace&& rhs) = default;
+  CudaSpace(CudaSpace&& rhs)                 = default;
+  CudaSpace(const CudaSpace& rhs)            = default;
+  CudaSpace& operator=(CudaSpace&& rhs)      = default;
   CudaSpace& operator=(const CudaSpace& rhs) = default;
   ~CudaSpace()                               = default;
 
@@ -87,6 +87,19 @@ class CudaSpace {
   void* allocate(const size_t arg_alloc_size) const;
   void* allocate(const char* arg_label, const size_t arg_alloc_size,
                  const size_t arg_logical_size = 0) const;
+
+#if defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY)
+  template <typename ExecutionSpace>
+  void* allocate(const ExecutionSpace&, const size_t arg_alloc_size) const {
+    return allocate(arg_alloc_size);
+  }
+  template <typename ExecutionSpace>
+  void* allocate(const ExecutionSpace&, const char* arg_label,
+                 const size_t arg_alloc_size,
+                 const size_t arg_logical_size = 0) const {
+    return allocate(arg_label, arg_alloc_size, arg_logical_size);
+  }
+#endif
 
   /**\brief  Deallocate untracked memory in the cuda space */
   void deallocate(void* const arg_alloc_ptr, const size_t arg_alloc_size) const;
@@ -161,9 +174,9 @@ class CudaUVMSpace {
   CudaUVMSpace(int device_id, cudaStream_t stream);
 
  public:
-  CudaUVMSpace(CudaUVMSpace&& rhs)      = default;
-  CudaUVMSpace(const CudaUVMSpace& rhs) = default;
-  CudaUVMSpace& operator=(CudaUVMSpace&& rhs) = default;
+  CudaUVMSpace(CudaUVMSpace&& rhs)                 = default;
+  CudaUVMSpace(const CudaUVMSpace& rhs)            = default;
+  CudaUVMSpace& operator=(CudaUVMSpace&& rhs)      = default;
   CudaUVMSpace& operator=(const CudaUVMSpace& rhs) = default;
   ~CudaUVMSpace()                                  = default;
 
@@ -253,9 +266,9 @@ class CudaHostPinnedSpace {
   CudaHostPinnedSpace(int device_id, cudaStream_t stream);
 
  public:
-  CudaHostPinnedSpace(CudaHostPinnedSpace&& rhs)      = default;
-  CudaHostPinnedSpace(const CudaHostPinnedSpace& rhs) = default;
-  CudaHostPinnedSpace& operator=(CudaHostPinnedSpace&& rhs) = default;
+  CudaHostPinnedSpace(CudaHostPinnedSpace&& rhs)                 = default;
+  CudaHostPinnedSpace(const CudaHostPinnedSpace& rhs)            = default;
+  CudaHostPinnedSpace& operator=(CudaHostPinnedSpace&& rhs)      = default;
   CudaHostPinnedSpace& operator=(const CudaHostPinnedSpace& rhs) = default;
   ~CudaHostPinnedSpace()                                         = default;
 
@@ -337,7 +350,11 @@ static_assert(
 template <>
 struct MemorySpaceAccess<Kokkos::HostSpace, Kokkos::CudaSpace> {
   enum : bool { assignable = false };
-  enum : bool { accessible = false };
+#if !defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY)
+  enum : bool{accessible = false};
+#else
+  enum : bool { accessible = true };
+#endif
   enum : bool { deepcopy = true };
 };
 
@@ -485,7 +502,7 @@ template <class MemSpace1, class MemSpace2, class ExecutionSpace>
 struct DeepCopy<MemSpace1, MemSpace2, ExecutionSpace,
                 std::enable_if_t<is_cuda_type_space<MemSpace1>::value &&
                                  is_cuda_type_space<MemSpace2>::value &&
-                                 !std::is_same<ExecutionSpace, Cuda>::value>> {
+                                 !std::is_same_v<ExecutionSpace, Cuda>>> {
   inline DeepCopy(void* dst, const void* src, size_t n) {
     DeepCopyCuda(dst, src, n);
   }
@@ -509,7 +526,7 @@ struct DeepCopy<MemSpace1, MemSpace2, ExecutionSpace,
 template <class MemSpace, class ExecutionSpace>
 struct DeepCopy<MemSpace, HostSpace, ExecutionSpace,
                 std::enable_if_t<is_cuda_type_space<MemSpace>::value &&
-                                 !std::is_same<ExecutionSpace, Cuda>::value>> {
+                                 !std::is_same_v<ExecutionSpace, Cuda>>> {
   inline DeepCopy(void* dst, const void* src, size_t n) {
     DeepCopyCuda(dst, src, n);
   }
@@ -532,7 +549,7 @@ struct DeepCopy<MemSpace, HostSpace, ExecutionSpace,
 template <class MemSpace, class ExecutionSpace>
 struct DeepCopy<HostSpace, MemSpace, ExecutionSpace,
                 std::enable_if_t<is_cuda_type_space<MemSpace>::value &&
-                                 !std::is_same<ExecutionSpace, Cuda>::value>> {
+                                 !std::is_same_v<ExecutionSpace, Cuda>>> {
   inline DeepCopy(void* dst, const void* src, size_t n) {
     DeepCopyCuda(dst, src, n);
   }
@@ -558,8 +575,12 @@ struct DeepCopy<HostSpace, MemSpace, ExecutionSpace,
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
+#if !defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY)
 KOKKOS_IMPL_HOST_INACCESSIBLE_SHARED_ALLOCATION_SPECIALIZATION(
     Kokkos::CudaSpace);
+#else
+KOKKOS_IMPL_SHARED_ALLOCATION_SPECIALIZATION(Kokkos::CudaSpace);
+#endif
 KOKKOS_IMPL_SHARED_ALLOCATION_SPECIALIZATION(Kokkos::CudaUVMSpace);
 KOKKOS_IMPL_SHARED_ALLOCATION_SPECIALIZATION(Kokkos::CudaHostPinnedSpace);
 

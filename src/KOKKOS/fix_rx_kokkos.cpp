@@ -1859,7 +1859,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
 
   // loop over neighbors of my atoms
 #if 0
-  Kokkos::parallel_for ( inum,
+  Kokkos::parallel_for ( Kokkos::RangePolicy<DeviceType>(0,inum),
         LAMMPS_LAMBDA(const int ii)
         {
           // Create an atomic view of sumWeights and dpdThetaLocal. Only needed
@@ -1939,7 +1939,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
 
   // self-interaction for local temperature
 #if 0
-  Kokkos::parallel_for ( nlocal,
+  Kokkos::parallel_for ( Kokkos::RangePolicy<DeviceType>(0,nlocal),
         LAMMPS_LAMBDA(const int i)
         {
           double wij = 0.0;

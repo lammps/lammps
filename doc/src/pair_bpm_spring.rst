@@ -8,7 +8,14 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style bpm/spring
+   pair_style bpm/spring keyword value  ...
+
+* optional keyword = *anharmonic*
+
+  .. parsed-literal::
+
+       *anharmonic* value = *yes* or *no*
+          whether forces include the anharmonic term
 
 Examples
 """"""""
@@ -17,7 +24,8 @@ Examples
 
    pair_style bpm/spring
    pair_coeff * * 1.0 1.0 1.0
-   pair_coeff 1 1 1.0 1.0 1.0
+   pair_style bpm/spring anharmonic yes
+   pair_coeff 1 1 1.0 1.0 1.0 50.0
 
 Description
 """""""""""
@@ -28,12 +36,16 @@ Style *bpm/spring* computes pairwise forces with the formula
 
 .. math::
 
-   F = k (r - r_c)
+   F = k (r - r_c) + k_a (r - r_c)^3
 
-where :math:`k` is a stiffness and :math:`r_c` is the cutoff length.
-An additional damping force is also applied to interacting
-particles. The force is proportional to the difference in the
-normal velocity of particles
+where :math:`k` is a stiffness, :math:`r_c` is the cutoff
+length, and :math:`k_a` is an optional anharmonic cubic prefactor
+that can be enabled using the *anharmonic* keyword. The anharmonic
+term may be useful in scenarios that need to prevent large particle overlap.
+
+An additional damping force is also applied to interacting particles.
+The force is proportional to the difference in the normal velocity of
+particles
 
 .. math::
 
@@ -73,6 +85,12 @@ commands, or by mixing as described below:
 * :math:`r_c`           (distance units)
 * :math:`\gamma`        (force/velocity units)
 
+.. versionadded:: 4Feb2025
+
+Additionally, if *anharmonic* is set to *yes*, a fourth coefficient
+must be provided:
+
+* :math:`k_a`           (force/distance\^3 units)
 
 ----------
 
@@ -99,6 +117,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*, *middle*, *outer* keywords.
 
+The potential energy and the single() function of this pair style returns
+:math:`k (r - r_c)^2 / 2 + k_a (r - r_c)^4 / 4` for a proxy
+of the energy of a pair interaction, ignoring any smoothing or dissipative forces.
+
 ----------
 
 Restrictions
@@ -117,4 +139,5 @@ Related commands
 Default
 """""""
 
-none
+The option defaults are *anharmonic* = *no*
+

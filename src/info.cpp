@@ -261,7 +261,7 @@ void Info::command(int narg, char **arg)
         ++idx;
       }
     } else {
-      error->warning(FLERR,"Ignoring unknown or incorrect info command flag");
+      error->warning(FLERR,"Ignoring unknown or incorrect info command flag: {}",arg[idx]);
       ++idx;
     }
   }
@@ -269,43 +269,43 @@ void Info::command(int narg, char **arg)
   if (out == nullptr) return;
 
   fputs("\nInfo-Info-Info-Info-Info-Info-Info-Info-Info-Info-Info\n",out);
-  std::time_t now = std::time(nullptr);
-  fmt::print(out,"Printed on {:%a %b %d %H:%M:%S %Y}\n", fmt::localtime(now));
+  std::tm now = fmt::localtime(std::time(nullptr));
+  utils::print(out,"Printed on {}", std::asctime(&now));
 
   if (flags & CONFIG) {
-    fmt::print(out,"\nLAMMPS version: {} / {}\n", lmp->version, lmp->num_ver);
+    utils::print(out,"\nLAMMPS version: {} / {}\n", lmp->version, lmp->num_ver);
 
     if (LAMMPS::has_git_info())
-      fmt::print(out,"Git info: {} / {} / {}\n",
+      utils::print(out,"Git info: {} / {} / {}\n",
                  LAMMPS::git_branch(), LAMMPS::git_descriptor(),LAMMPS::git_commit());
 
-    fmt::print(out,"\nOS information: {}\n\n",platform::os_info());
+    utils::print(out,"\nOS information: {}\n\n",platform::os_info());
 
-    fmt::print(out,"sizeof(smallint): {}-bit\n"
+    utils::print(out,"sizeof(smallint): {}-bit\n"
                "sizeof(imageint): {}-bit\n"
                "sizeof(tagint):   {}-bit\n"
                "sizeof(bigint):   {}-bit\n",
                sizeof(smallint)*8, sizeof(imageint)*8,
                sizeof(tagint)*8, sizeof(bigint)*8);
 
-    fmt::print(out,"\nCompiler: {} with {}\nC++ standard: {}\n",
+    utils::print(out,"\nCompiler: {} with {}\nC++ standard: {}\n",
                platform::compiler_info(),platform::openmp_standard(),platform::cxx_standard());
+    fputs(get_fmt_info().c_str(), out);
 
     fputs("\nActive compile time flags:\n\n",out);
     if (has_gzip_support()) fputs("-DLAMMPS_GZIP\n",out);
     if (has_png_support()) fputs("-DLAMMPS_PNG\n",out);
     if (has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",out);
     if (has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",out);
+    if (has_curl_support()) fputs("-DLAMMPS_CURL\n",out);
     if (has_fft_single_support()) fputs("-DFFT_SINGLE\n",out);
 
 #if defined(LAMMPS_BIGBIG)
     fputs("-DLAMMPS_BIGBIG\n",out);
 #elif defined(LAMMPS_SMALLBIG)
     fputs("-DLAMMPS_SMALLBIG\n",out);
-#else // defined(LAMMPS_SMALLSMALL)
-    fputs("-DLAMMPS_SMALLSMALL\n",out);
 #endif
-    if (has_gzip_support()) fmt::print(out,"\n{}\n",platform::compress_info());
+    if (has_gzip_support()) utils::print(out,"\n{}\n",platform::compress_info());
 
     int ncword, ncline = 0;
     fputs("\nInstalled packages:\n\n",out);
@@ -315,17 +315,17 @@ void Info::command(int narg, char **arg)
         ncline = 0;
         fputs("\n",out);
       }
-      fmt::print(out,"{} ",*pkg);
+      utils::print(out,"{} ",*pkg);
       ncline += ncword + 1;
     }
     fputs("\n",out);
   }
 
   if (flags & ACCELERATOR) {
-    fmt::print(out,"\nAccelerator configuration:\n\n{}",
+    utils::print(out,"\nAccelerator configuration:\n\n{}",
                get_accelerator_info());
     if (Info::has_gpu_device())
-      fmt::print(out,"\nAvailable GPU devices:\n{}\n",get_gpu_device_info());
+      utils::print(out,"\nAvailable GPU devices:\n{}\n",get_gpu_device_info());
   }
 
   if (flags & MEMORY) {
@@ -334,18 +334,18 @@ void Info::command(int narg, char **arg)
     get_memory_info(meminfo);
 
     fputs("\nMemory allocation information (MPI rank 0):\n\n",out);
-    fmt::print(out,"Total dynamically allocated memory: {:.4} Mbyte\n",
+    utils::print(out,"Total dynamically allocated memory: {:.4} Mbyte\n",
                meminfo[0]);
 
 #if defined(_WIN32)
-    fmt::print(out,"Non-shared memory use: {:.4} Mbyte\n",meminfo[1]);
-    fmt::print(out,"Maximum working set size: {:.4} Mbyte\n",meminfo[2]);
+    utils::print(out,"Non-shared memory use: {:.4} Mbyte\n",meminfo[1]);
+    utils::print(out,"Maximum working set size: {:.4} Mbyte\n",meminfo[2]);
 #else
 #if defined(__linux__)
-    fmt::print(out,"Current reserved memory pool size: {:.4} Mbyte\n",
+    utils::print(out,"Current reserved memory pool size: {:.4} Mbyte\n",
                meminfo[1]);
 #endif
-    fmt::print(out,"Maximum resident set size: {:.4} Mbyte\n",meminfo[2]);
+    utils::print(out,"Maximum resident set size: {:.4} Mbyte\n",meminfo[2]);
 #endif
   }
 
@@ -353,18 +353,18 @@ void Info::command(int narg, char **arg)
     int major,minor;
     std::string version = platform::mpi_info(major,minor);
 
-    fmt::print(out,"\nCommunication information:\n"
+    utils::print(out,"\nCommunication information:\n"
                "MPI library level: MPI v{}.{}\n"
                "MPI version: {}\n",major,minor,version);
 
-    fmt::print(out,"Comm style = {},  Comm layout = {}\n"
+    utils::print(out,"Comm style = {},  Comm layout = {}\n"
                "Communicate velocities for ghost atoms = {}\n",
                commstyles[comm->style], commlayout[comm->layout],
                comm->ghost_velocity ? "yes" : "no");
 
     if (domain->box_exist) {
       if (comm->mode == 0)
-        fmt::print(out,"Communication mode = single\n"
+        utils::print(out,"Communication mode = single\n"
                    "Communication cutoff = {}\n",
                    comm->get_comm_cutoff());
 
@@ -379,7 +379,7 @@ void Info::command(int narg, char **arg)
           }
 
           if (comm->cutusermulti) cut = MAX(cut,comm->cutusermulti[i]);
-          fmt::print(out,"Communication cutoff for collection {} = {:.8}\n", i, cut);
+          utils::print(out,"Communication cutoff for collection {} = {:.8}\n", i, cut);
         }
       }
 
@@ -389,13 +389,13 @@ void Info::command(int narg, char **arg)
         for (int i=1; i <= atom->ntypes && neighbor->cuttype; ++i) {
           cut = neighbor->cuttype[i];
           if (comm->cutusermultiold) cut = MAX(cut,comm->cutusermultiold[i]);
-          fmt::print(out,"Communication cutoff for type {} = {:.8}\n", i, cut);
+          utils::print(out,"Communication cutoff for type {} = {:.8}\n", i, cut);
         }
       }
     }
-    fmt::print(out,"Nprocs = {},   Nthreads = {}\n",comm->nprocs,comm->nthreads);
+    utils::print(out,"Nprocs = {},   Nthreads = {}\n",comm->nprocs,comm->nthreads);
     if (domain->box_exist)
-      fmt::print(out,"Processor grid = {} x {} x {}\n",comm->procgrid[0],
+      utils::print(out,"Processor grid = {} x {} x {}\n",comm->procgrid[0],
                  comm->procgrid[1], comm->procgrid[2]);
   }
 
@@ -406,135 +406,91 @@ void Info::command(int narg, char **arg)
 
   if (flags & SYSTEM) {
     fputs("\nSystem information:\n",out);
-    fmt::print(out,"Units         = {}\n", update->unit_style);
-    fmt::print(out,"Atom style    = {}\n", atom->get_style());
-    fmt::print(out,"Atom map      = {}\n", mapstyles[atom->map_style]);
+    utils::print(out,"Units         = {}\n", update->unit_style);
+    utils::print(out,"Atom style    = {}\n", atom->get_style());
+    utils::print(out,"Atom map      = {}\n", mapstyles[atom->map_style]);
     if (atom->molecular != Atom::ATOMIC) {
       const char *msg;
       msg = (atom->molecular == Atom::TEMPLATE) ? "template" : "standard";
-      fmt::print(out,"Molecule type = {}\n",msg);
+      utils::print(out,"Molecule type = {}\n",msg);
     }
-    fmt::print(out,"Atoms     = {:12},  types = {:8d},  style = {}\n",
+    utils::print(out,"Atoms     = {:12},  types = {:8d},  style = {}\n",
                atom->natoms, atom->ntypes, force->pair_style);
+
+    if (atom->tag_enable) utils::print(out,"Atoms with atom IDs\n");
+    if (atom->molecule) utils::print(out,"Atoms with molecule IDs\n");
+    if (atom->mass) utils::print(out,"Atoms with per-type masses\n");
+    if (atom->rmass) utils::print(out,"Atoms with per-atom masses\n");
+    if (atom->q) utils::print(out,"Atoms with per-atom charges\n");
 
     if (force->pair && utils::strmatch(force->pair_style,"^hybrid")) {
       auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
-      fmt::print(out,"Hybrid sub-styles:");
+      utils::print(out,"Hybrid sub-styles:");
       for (int i=0; i < hybrid->nstyles; ++i)
-        fmt::print(out," {}", hybrid->keywords[i]);
+        utils::print(out," {}", hybrid->keywords[i]);
       fputc('\n',out);
     }
     if (atom->molecular != Atom::ATOMIC) {
       const char *msg;
       msg = force->bond_style ? force->bond_style : "none";
-      fmt::print(out,"Bonds     = {:12},  types = {:8},  style = {}\n",
+      utils::print(out,"Bonds     = {:12},  types = {:8},  style = {}\n",
                  atom->nbonds, atom->nbondtypes, msg);
 
       msg = force->angle_style ? force->angle_style : "none";
-      fmt::print(out,"Angles    = {:12},  types = {:8},  style = {}\n",
+      utils::print(out,"Angles    = {:12},  types = {:8},  style = {}\n",
                  atom->nangles, atom->nangletypes, msg);
 
       msg = force->dihedral_style ? force->dihedral_style : "none";
-      fmt::print(out,"Dihedrals = {:12},  types = {:8},  style = {}\n",
+      utils::print(out,"Dihedrals = {:12},  types = {:8},  style = {}\n",
                  atom->ndihedrals, atom->ndihedraltypes, msg);
 
       msg = force->improper_style ? force->improper_style : "none";
-      fmt::print(out,"Impropers = {:12},  types = {:8},  style = {}\n",
+      utils::print(out,"Impropers = {:12},  types = {:8},  style = {}\n",
                  atom->nimpropers, atom->nimpropertypes, msg);
 
       const double * const special_lj   = force->special_lj;
       const double * const special_coul = force->special_coul;
 
-      fmt::print(out,"Special bond factors lj =    {:<8} {:<8} {:<8}\n"
+      utils::print(out,"Special bond factors lj =    {:<8} {:<8} {:<8}\n"
                  "Special bond factors coul =  {:<8} {:<8} {:<8}\n",
                  special_lj[1],special_lj[2],special_lj[3],
                  special_coul[1],special_coul[2],special_coul[3]);
     }
 
-    fmt::print(out,"Kspace style = {}\n",
+    utils::print(out,"Kspace style = {}\n",
                force->kspace ? force->kspace_style : "none");
 
     if (domain->box_exist) {
-      fmt::print(out,"\nDimensions = {}\n",domain->dimension);
-      fmt::print(out,"{} box = {:.8} x {:.8} x {:.8}\n",
+      utils::print(out,"\nDimensions = {}\n",domain->dimension);
+      utils::print(out,"{} box = {:.8} x {:.8} x {:.8}\n",
                  domain->triclinic ? "Triclinic" : "Orthogonal",
                  domain->xprd, domain->yprd, domain->zprd);
-      fmt::print(out,"Boundaries = {},{} {},{} {},{}\n",
+      utils::print(out,"Boundaries = {},{} {},{} {},{}\n",
                  bstyles[domain->boundary[0][0]],bstyles[domain->boundary[0][1]],
                  bstyles[domain->boundary[1][0]],bstyles[domain->boundary[1][1]],
                  bstyles[domain->boundary[2][0]],bstyles[domain->boundary[2][1]]);
-      fmt::print(out,"xlo, xhi = {:.8}, {:.8}\n", domain->boxlo[0], domain->boxhi[0]);
-      fmt::print(out,"ylo, yhi = {:.8}, {:.8}\n", domain->boxlo[1], domain->boxhi[1]);
-      fmt::print(out,"zlo, zhi = {:.8}, {:.8}\n", domain->boxlo[2], domain->boxhi[2]);
+      utils::print(out,"xlo, xhi = {:.8}, {:.8}\n", domain->boxlo[0], domain->boxhi[0]);
+      utils::print(out,"ylo, yhi = {:.8}, {:.8}\n", domain->boxlo[1], domain->boxhi[1]);
+      utils::print(out,"zlo, zhi = {:.8}, {:.8}\n", domain->boxlo[2], domain->boxhi[2]);
       if (domain->triclinic)
-        fmt::print(out,"Xy, xz, yz = {:.8}, {:.8}, {:.8}\n",
+        utils::print(out,"Xy, xz, yz = {:.8}, {:.8}, {:.8}\n",
                    domain->xy, domain->xz, domain->yz);
     } else {
       fputs("\nBox has not yet been created\n",out);
     }
+    utils::print(out,"\nCurrent timestep number = {}\n", update->ntimestep);
+    utils::print(out,"Current timestep size = {}\n", update->dt);
   }
 
   if (domain->box_exist && (flags & COEFFS)) {
     Pair *pair=force->pair;
 
     fputs("\nCoeff status information:\n",out);
-    if (pair) {
-      fputs("\nPair Coeffs:\n",out);
-      for (int i=1; i <= atom->ntypes; ++i)
-        for (int j=i; j <= atom->ntypes; ++j) {
-          fmt::print(out,"{:6d} {:6d}:",i,j);
-          if (pair->allocated && pair->setflag[i][j]) fputs(" is set\n",out);
-          else fputs(" is not set\n",out);
-        }
-    }
-    if (force->bond) {
-      Bond *bond=force->bond;
-
-      if (bond) {
-        fputs("\nBond Coeffs:\n",out);
-        for (int i=1; i <= atom->nbondtypes; ++i) {
-          fmt::print(out,"{:6d}:",i);
-          if (bond->allocated && bond->setflag[i]) fputs(" is set\n",out);
-          else fputs (" is not set\n",out);
-        }
-      }
-    }
-    if (force->angle) {
-      Angle *angle=force->angle;
-
-      if (angle) {
-        fputs("\nAngle Coeffs:\n",out);
-        for (int i=1; i <= atom->nangletypes; ++i) {
-          fmt::print(out,"{:6d}:",i);
-          if (angle->allocated && angle->setflag[i]) fputs(" is set\n",out);
-          else fputs (" is not set\n",out);
-        }
-      }
-    }
-    if (force->dihedral) {
-      Dihedral *dihedral=force->dihedral;
-
-      if (dihedral) {
-        fputs("\nDihedral Coeffs:\n",out);
-        for (int i=1; i <= atom->ndihedraltypes; ++i) {
-          fmt::print(out,"{:6d}:",i);
-          if (dihedral->allocated && dihedral->setflag[i]) fputs(" is set\n",out);
-          else fputs (" is not set\n",out);
-        }
-      }
-    }
-    if (force->improper) {
-      Improper *b=force->improper;
-
-      if (b) {
-        fputs("\nImproper Coeffs:\n",out);
-        for (int i=1; i <= atom->nimpropertypes; ++i) {
-          fmt::print(out,"{:6d}:",i);
-          if (b->allocated && b->setflag[i]) fputs(" is set\n",out);
-          else fputs (" is not set\n",out);
-        }
-      }
-    }
+    if (pair) utils::print(out,"\nPair coeffs\n{}", get_pair_coeff_status(lmp));
+    if (force->bond) utils::print(out,"\nBond coeffs\n{}", get_bond_coeff_status(lmp));
+    if (force->angle) utils::print(out,"\nAngle coeffs\n{}", get_angle_coeff_status(lmp));
+    if (force->dihedral) utils::print(out,"\nDihedral coeffs\n{}", get_dihedral_coeff_status(lmp));
+    if (force->improper) utils::print(out,"\nImproper coeffs\n{}", get_improper_coeff_status(lmp));
   }
 
   if (flags & GROUPS) {
@@ -544,7 +500,7 @@ void Info::command(int narg, char **arg)
     fputs("\nGroup information:\n",out);
     for (int i=0; i < ngroup; ++i) {
       if (names[i])
-        fmt::print(out,"Group[{:2d}]:     {:16} ({})\n",
+        utils::print(out,"Group[{:2d}]:     {:16} ({})\n",
                    i, names[i], dynamic[i] ? "dynamic" : "static");
     }
   }
@@ -553,11 +509,11 @@ void Info::command(int narg, char **arg)
     fputs("\nRegion information:\n",out);
     int i=0;
     for (auto &reg : domain->get_region_list()) {
-      fmt::print(out,"Region[{:3d}]:  {:16}  style = {:16}  side = {}\n",
+      utils::print(out,"Region[{:3d}]:  {:16}  style = {:16}  side = {}\n",
                  i, std::string(reg->id)+',', std::string(reg->style)+',',
                  reg->interior ? "in" : "out");
       if (reg->bboxflag)
-        fmt::print(out,"   Boundary:  lo {:.8} {:.8} {:.8}  hi {:.8} {:.8} {:.8}\n",
+        utils::print(out,"   Boundary:  lo {:.8} {:.8} {:.8}  hi {:.8} {:.8} {:.8}\n",
                    reg->extent_xlo, reg->extent_ylo,
                    reg->extent_zlo, reg->extent_xhi,
                    reg->extent_yhi, reg->extent_zhi);
@@ -570,7 +526,7 @@ void Info::command(int narg, char **arg)
     char **names = group->names;
     fputs("\nCompute information:\n",out);
     for (const auto &compute : modify->get_compute_list())
-      fmt::print(out,"Compute[{:3d}]:  {:16}  style = {:16}  group = {}\n", i++,
+      utils::print(out,"Compute[{:3d}]:  {:16}  style = {:16}  group = {}\n", i++,
                  std::string(compute->id)+',',std::string(compute->style)+',',
                  names[compute->igroup]);
   }
@@ -583,13 +539,13 @@ void Info::command(int narg, char **arg)
     char **names = group->names;
     fputs("\nDump information:\n",out);
     for (int i=0; i < ndump; ++i) {
-      fmt::print(out,"Dump[{:3d}]:     {:16}  file = {:16}  style = {:16}  group = {:16}  ",
+      utils::print(out,"Dump[{:3d}]:     {:16}  file = {:16}  style = {:16}  group = {:16}  ",
                  i, std::string(dump[i]->id)+',',std::string(dump[i]->filename)+',',
                  std::string(dump[i]->style)+',',std::string(names[dump[i]->igroup])+',');
       if (nevery[i]) {
-        fmt::print(out,"every = {}\n", nevery[i]);
+        utils::print(out,"every = {}\n", nevery[i]);
       } else {
-        fmt::print(out,"every = {}\n", vnames[i]);
+        utils::print(out,"every = {}\n", vnames[i]);
       }
     }
   }
@@ -599,7 +555,7 @@ void Info::command(int narg, char **arg)
     char **names = group->names;
     fputs("\nFix information:\n",out);
     for (const auto &fix : modify->get_fix_list())
-      fmt::print(out, "Fix[{:3d}]:      {:16}  style = {:16}  group = {}\n",i++,
+      utils::print(out, "Fix[{:3d}]:      {:16}  style = {:16}  group = {}\n",i++,
                  std::string(fix->id)+',',std::string(fix->style)+',',names[fix->igroup]);
   }
 
@@ -608,7 +564,7 @@ void Info::command(int narg, char **arg)
     fputs("\nVariable information:\n",out);
     for (int i=0; i < nvar; ++i) {
       auto vinfo = get_variable_info(i);
-      fmt::print(out, get_variable_info(i));
+      utils::print(out, get_variable_info(i));
     }
   }
 
@@ -625,7 +581,7 @@ void Info::command(int narg, char **arg)
     wallclock = (wallclock - walls) / 60.0;
     wallm = fmod(wallclock,60.0);
     wallh = (wallclock - wallm) / 60.0;
-    fmt::print(out,"\nTotal time information (MPI rank 0):\n"
+    utils::print(out,"\nTotal time information (MPI rank 0):\n"
                "  CPU time: {:4d}:{:02d}:{:02d}\n"
                " Wall time: {:4d}:{:02d}:{:02d}\n",
                cpuh,cpum,cpus,wallh,wallm,walls);
@@ -857,6 +813,8 @@ bool Info::is_available(const char *category, const char *name)
       return has_jpeg_support();
     } else if (strcmp(name,"ffmpeg") == 0) {
       return has_ffmpeg_support();
+    } else if (strcmp(name,"curl") == 0) {
+      return has_curl_support();
     } else if (strcmp(name,"fft_single") == 0) {
       return has_fft_single_support();
     } else if (strcmp(name,"exceptions") == 0) {
@@ -1071,6 +1029,14 @@ bool Info::has_jpeg_support() {
 
 bool Info::has_ffmpeg_support() {
 #ifdef LAMMPS_FFMPEG
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool Info::has_curl_support() {
+#ifdef LAMMPS_CURL
   return true;
 #else
   return false;
@@ -1297,6 +1263,10 @@ std::string Info::get_fft_info()
 #else
   fft_info += "FFT library = MKL\n";
 #endif
+#elif defined(FFT_MKL_GPU)
+  fft_info += "FFT library = MKL GPU\n";
+#elif defined(FFT_NVPL)
+  fft_info += "FFT library = NVPL\n";
 #elif defined(FFT_FFTW3)
 #if defined(FFT_FFTW_THREADS)
   fft_info += "FFT library = FFTW3 with threads\n";
@@ -1319,17 +1289,33 @@ std::string Info::get_fft_info()
 #else
   fft_info += "KOKKOS FFT library = FFTW3\n";
 #endif
+#elif defined(FFT_KOKKOS_NVPL)
+  fft_info += "KOKKOS FFT library = NVPL\n";
 #elif defined(FFT_KOKKOS_MKL)
 #if defined(FFT_KOKKOS_MKL_THREADS)
   fft_info += "KOKKOS FFT library = MKL with threads\n";
 #else
   fft_info += "KOKKOS FFT library = MKL\n";
 #endif
+#elif defined(FFT_KOKKOS_MKL_GPU)
+  fft_info += "KOKKOS FFT library = MKL GPU\n";
 #else
   fft_info += "KOKKOS FFT library = KISS\n";
 #endif
 #endif
   return fft_info;
+}
+
+/* ---------------------------------------------------------------------- */
+
+static constexpr int fmt_ver_major = FMT_VERSION / 10000;
+static constexpr int fmt_ver_minor = (FMT_VERSION % 10000) / 100;
+static constexpr int fmt_ver_patch = FMT_VERSION % 100;
+
+std::string Info::get_fmt_info()
+{
+  return fmt::format("Embedded fmt library version: {}.{}.{}\n",
+                     fmt_ver_major, fmt_ver_minor, fmt_ver_patch);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1410,4 +1396,81 @@ std::string Info::get_variable_info(int num) {
     if (data[num][j]) text += fmt::format(" {}",data[num][j]);
   text += "\n";
   return text;
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string Info::get_pair_coeff_status(const LAMMPS *lmp) {
+
+  if (!lmp || !lmp->force || !lmp->force->pair || !lmp->force->pair->allocated)
+    return "Pair style not yet initialized\n";
+
+  const auto ntypes = lmp->atom->ntypes;
+  const auto setflag = lmp->force->pair->setflag;
+  std::string output = "";
+  for (int i=1; i <= ntypes; ++i) {
+    for (int j=i; j <= ntypes; ++j)
+      output += fmt::format("{:6d} {:6d}: is{}set\n", i, j, setflag[i][j] ? " " : " not ");
+  }
+  return output;
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string Info::get_bond_coeff_status(const LAMMPS *lmp) {
+
+  if (!lmp || !lmp->force || !lmp->force->bond || !lmp->force->bond->allocated)
+    return "Bond style not yet initialized\n";
+
+  const auto ntypes = lmp->atom->nbondtypes;
+  const auto setflag = lmp->force->bond->setflag;
+  std::string output = "";
+  for (int i=1; i <= ntypes; ++i)
+    output += fmt::format("{:6d}: is{}set\n", i, setflag[i] ? " " : " not ");
+  return output;
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string Info::get_angle_coeff_status(const LAMMPS *lmp) {
+
+  if (!lmp || !lmp->force || !lmp->force->angle || !lmp->force->angle->allocated)
+    return "Angle style not yet initialized\n";
+
+  const auto ntypes = lmp->atom->nangletypes;
+  const auto setflag = lmp->force->angle->setflag;
+  std::string output = "";
+  for (int i=1; i <= ntypes; ++i)
+    output += fmt::format("{:6d}: is{}set\n", i, setflag[i] ? " " : " not ");
+  return output;
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string Info::get_dihedral_coeff_status(const LAMMPS *lmp) {
+
+  if (!lmp || !lmp->force || !lmp->force->dihedral || !lmp->force->dihedral->allocated)
+    return "Dihedral style not yet initialized\n";
+
+  const auto ntypes = lmp->atom->ndihedraltypes;
+  const auto setflag = lmp->force->dihedral->setflag;
+  std::string output = "";
+  for (int i=1; i <= ntypes; ++i)
+    output += fmt::format("{:6d}: is{}set\n", i, setflag[i] ? " " : " not ");
+  return output;
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string Info::get_improper_coeff_status(const LAMMPS *lmp) {
+
+  if (!lmp || !lmp->force || !lmp->force->improper || !lmp->force->improper->allocated)
+    return "Improper style not yet initialized\n";
+
+  const auto ntypes = lmp->atom->nimpropertypes;
+  const auto setflag = lmp->force->improper->setflag;
+  std::string output = "";
+  for (int i=1; i <= ntypes; ++i)
+    output += fmt::format("{:6d}: is{}set\n", i, setflag[i] ? " " : " not ");
+  return output;
 }

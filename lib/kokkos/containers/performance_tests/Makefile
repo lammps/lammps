@@ -18,6 +18,8 @@ LINK ?= $(CXX)
 LDFLAGS ?=
 override LDFLAGS += -lpthread
 
+KOKKOS_USE_DEPRECATED_MAKEFILES=1
+
 include $(KOKKOS_PATH)/Makefile.kokkos
 
 KOKKOS_CXXFLAGS += -I$(GTEST_PATH) -I${KOKKOS_PATH}/containers/performance_tests

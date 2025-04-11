@@ -24,17 +24,6 @@
 
 namespace LAMMPS_NS {
 
-union d_ubuf {
-  double d;
-  int64_t i;
-  KOKKOS_INLINE_FUNCTION
-  d_ubuf(double arg) : d(arg) {}
-  KOKKOS_INLINE_FUNCTION
-  d_ubuf(int64_t arg) : i(arg) {}
-  KOKKOS_INLINE_FUNCTION
-  d_ubuf(int arg) : i(arg) {}
-};
-
 class AtomVecKokkos : virtual public AtomVec {
  public:
   AtomVecKokkos(class LAMMPS *);
@@ -142,28 +131,6 @@ class AtomVecKokkos : virtual public AtomVec {
 
   #ifdef LMP_KOKKOS_GPU
   template<class ViewType>
-  Kokkos::View<typename ViewType::data_type,
-               typename ViewType::array_layout,
-               LMPPinnedHostType,
-               Kokkos::MemoryTraits<Kokkos::Unmanaged> >
-  create_async_copy(const ViewType& src) {
-    typedef Kokkos::View<typename ViewType::data_type,
-                 typename ViewType::array_layout,
-                 typename std::conditional<
-                   std::is_same_v<typename ViewType::execution_space,LMPDeviceType>,
-                   LMPPinnedHostType,typename ViewType::memory_space>::type,
-                 Kokkos::MemoryTraits<Kokkos::Unmanaged> > mirror_type;
-    if (buffer_size == 0) {
-       buffer = Kokkos::kokkos_malloc<LMPPinnedHostType>(src.span());
-       buffer_size = src.span();
-    } else if (buffer_size < src.span()) {
-       buffer = Kokkos::kokkos_realloc<LMPPinnedHostType>(buffer,src.span());
-       buffer_size = src.span();
-    }
-    return mirror_type(buffer, src.d_view.layout());
-  }
-
-  template<class ViewType>
   void perform_async_copy(ViewType& src, unsigned int space) {
     typedef Kokkos::View<typename ViewType::data_type,
                  typename ViewType::array_layout,
@@ -172,11 +139,11 @@ class AtomVecKokkos : virtual public AtomVec {
                    LMPPinnedHostType,typename ViewType::memory_space>::type,
                  Kokkos::MemoryTraits<Kokkos::Unmanaged> > mirror_type;
     if (buffer_size == 0) {
-       buffer = Kokkos::kokkos_malloc<LMPPinnedHostType>(src.span()*sizeof(typename ViewType::value_type));
-       buffer_size = src.span();
-    } else if (buffer_size < src.span()) {
-       buffer = Kokkos::kokkos_realloc<LMPPinnedHostType>(buffer,src.span()*sizeof(typename ViewType::value_type));
-       buffer_size = src.span();
+       buffer_size = src.span()*sizeof(typename ViewType::value_type);
+       buffer = Kokkos::kokkos_malloc<LMPPinnedHostType>(buffer_size);
+    } else if (buffer_size < src.span()*sizeof(typename ViewType::value_type)) {
+       buffer_size = src.span()*sizeof(typename ViewType::value_type);
+       buffer = Kokkos::kokkos_realloc<LMPPinnedHostType>(buffer,buffer_size);
     }
     mirror_type tmp_view((typename ViewType::value_type*)buffer, src.d_view.layout());
 

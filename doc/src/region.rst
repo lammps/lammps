@@ -3,6 +3,8 @@
 region command
 ==============
 
+Accelerator Variants: *block/kk*, *sphere/kk*
+
 Syntax
 """"""
 
@@ -18,13 +20,13 @@ Syntax
        *delete* = no args
        *block* args = xlo xhi ylo yhi zlo zhi
          xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
-         xlo,xhi,ylo,yhi,zlo,zhi can be a variable
+           xlo,xhi,ylo,yhi,zlo,zhi can be a variable (see below)
        *cone* args = dim c1 c2 radlo radhi lo hi
          dim = *x* or *y* or *z* = axis of cone
          c1,c2 = coords of cone axis in other 2 dimensions (distance units)
          radlo,radhi = cone radii at lo and hi end (distance units)
          lo,hi = bounds of cone in dim (distance units)
-         c1,c2,radlo,radhi,lo,hi can be a variable (see below)
+           c1,c2,radlo,radhi,lo,hi can be a variable (see below)
        *cylinder* args = dim c1 c2 radius lo hi
          dim = *x* or *y* or *z* = axis of cylinder
          c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
@@ -38,11 +40,13 @@ Syntax
        *plane* args = px py pz nx ny nz
          px,py,pz = point on the plane (distance units)
          nx,ny,nz = direction normal to plane (distance units)
+           px,py,pz,nx,ny,nz can be a variable (see below)
        *prism* args = xlo xhi ylo yhi zlo zhi xy xz yz
          xlo,xhi,ylo,yhi,zlo,zhi = bounds of untilted prism (distance units)
          xy = distance to tilt y in x direction (distance units)
          xz = distance to tilt z in x direction (distance units)
          yz = distance to tilt z in y direction (distance units)
+           xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz can be a variable (see below)
        *sphere* args = x y z radius
          x,y,z = center of sphere (distance units)
          radius = radius of sphere (distance units)
@@ -73,7 +77,7 @@ Syntax
          Rx,Ry,Rz = axis of rotation vector
        *open* value = integer from 1-6 corresponding to face index (see below)
 
-* accelerated styles (with same args) = *block/kk*
+* accelerated styles (with same args) = *block/kk, sphere/kk*
 
 Examples
 """"""""
@@ -166,7 +170,7 @@ extending in the y-direction from -5.0 to the upper box boundary.
 
 .. versionadded:: 4May2022
 
-For style *ellipsoid*, an axis-aligned ellipsoid is defined. The
+For style *ellipsoid*, an axis-aligned ellipsoid is defined.  The
 ellipsoid has its center at (x,y,z) and is defined by 3 axis-aligned
 vectors given by A = (a,0,0); B = (0,b,0); C = (0,0,c).  Note that
 although the ellipsoid is specified as axis-aligned it can be rotated
@@ -206,9 +210,12 @@ parameters a,b,c for style *ellipsoid*, can each be specified as an
 equal-style :doc:`variable <variable>`.  Likewise, for style *sphere*
 and *ellipsoid* the x-, y-, and z- coordinates of the center of the
 sphere/ellipsoid can be specified as an equal-style variable.  And for
-style *cylinder* the two center positions c1 and c2 for the location
-of the cylinder axes can be specified as a equal-style variable. For style *cone*
-all properties can be defined via equal-style variables.
+style *cylinder* the two center positions c1 and c2 for the location of
+the cylinder axes can be specified as a equal-style variable.  For styles
+*block*, *cone*, *prism*, and *plane* all properties can be defined via
+equal-style variables.  For style *plane*, the components of the direction
+vector normal to plane should be either all constants or all defined by
+equal-style variables.
 
 If the value is a variable, it should be specified as v_name, where
 name is the variable name.  In this case, the variable will be
@@ -220,6 +227,21 @@ functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent radius or have
 a time dependent position of the sphere or cylinder region.
+
+.. note::
+
+   Whenever a region property, such as a coordinate or an upper/lower
+   bound, is defined via an equal-style variable, the variable should
+   not cause any of the region boundaries to move
+   too far within a single timestep. Otherwise, bad dynamics will occur.
+   "Too far" means a small fraction of the approximate distance of
+   closest approach between two particles, which for the case of Lennard-Jones
+   particles is the distance of the energy minimum while for granular
+   particles it is their diameter. An example is a rapidly varying direction
+   vector in region plane since a small change in the normal to plane will
+   shift the region surface far away from the region point by a large displacement.
+   Similarly, bad dynamics can also occur for fast changing variables employed
+   in the move/rotate options.
 
 See the :doc:`Howto tricilinc <Howto_triclinic>` page for a
 geometric description of triclinic boxes, as defined by LAMMPS, and
@@ -399,9 +421,9 @@ sub-regions can be defined with the *open* keyword.
 
 .. note::
 
-  Currently, only *block* style regions are supported by Kokkos.  The
+  Currently, only *block* and *sphere* style regions are supported by KOKKOS.  The
   code using the region (such as a fix or compute) must also be
-  supported by Kokkos or no acceleration will occur.
+  supported by KOKKOS or no acceleration will occur.
 
 ----------
 

@@ -29,6 +29,9 @@ class NeighRequest : protected Pointers {
   friend class NPairSkipTrimIntel;
   friend class FixIntel;
 
+ public:
+  enum { REGULAR, INTRA, INTER };
+
  protected:
   void *requestor;           // class that made request
   int requestor_instance;    // instance of that class (only Fix, Compute, Pair)
@@ -88,6 +91,7 @@ class NeighRequest : protected Pointers {
   int skip;        // 1 if this list skips atom types from another list
   int *iskip;      // iskip[i] if atoms of type I are not in list
   int **ijskip;    // ijskip[i][j] if pairs of type I,J are not in list
+  int molskip;     // 0 reqular list, 1 keep only intra-molecular entries, 2 keep inter-molecular
 
   // command_style only set if command = 1
   // allows print_pair_info() to access command name
@@ -137,6 +141,7 @@ class NeighRequest : protected Pointers {
   void set_kokkos_device(int);
   void set_kokkos_host(int);
   void set_skip(int *, int **);
+  void set_molskip(int);
   void enable_full();
   void enable_ghost();
   void enable_intel();

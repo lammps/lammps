@@ -426,8 +426,8 @@ The *meam* and *meam/ms* pair styles are provided in the MEAM
 package. They are only enabled if LAMMPS was built with that package.
 See the :doc:`Build package <Build_package>` page for more info.
 
-The maximum number of elements, that can be read from the MEAM library
-file, is determined at compile time. The default is 8.  If you need
+The maximum number of elements that can be read from the MEAM library
+file is determined at compile time. The default is 8.  If you need
 support for more elements, you have to change the the constant 'MAXELT'
 at the beginning of the file ``src/MEAM/meam.h`` and update/recompile
 LAMMPS.  There is no limit on the number of atoms types.

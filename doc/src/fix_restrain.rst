@@ -18,19 +18,19 @@ Syntax
   .. parsed-literal::
 
        *bond* args = atom1 atom2 Kstart Kstop r0start (r0stop)
-         atom1,atom2 = IDs of 2 atoms in bond
+         atom1,atom2 = IDs of two atoms in bond
          Kstart,Kstop = restraint coefficients at start/end of run (energy units)
          r0start = equilibrium bond distance at start of run (distance units)
          r0stop = equilibrium bond distance at end of run (optional) (distance units). If not
            specified it is assumed to be equal to r0start
        *lbound* args = atom1 atom2 Kstart Kstop r0start (r0stop)
-         atom1,atom2 = IDs of 2 atoms in bond
+         atom1,atom2 = IDs of two atoms in bond
          Kstart,Kstop = restraint coefficients at start/end of run (energy units)
          r0start = equilibrium bond distance at start of run (distance units)
          r0stop = equilibrium bond distance at end of run (optional) (distance units). If not
            specified it is assumed to be equal to r0start
        *angle* args = atom1 atom2 atom3 Kstart Kstop theta0
-         atom1,atom2,atom3 = IDs of 3 atoms in angle, atom2 = middle atom
+         atom1,atom2,atom3 = IDs of three atoms in angle, atom2 = middle atom
          Kstart,Kstop = restraint coefficients at start/end of run (energy units)
          theta0 = equilibrium angle theta (degrees)
        *dihedral* args = atom1 atom2 atom3 atom4 Kstart Kstop phi0 keyword/value
@@ -246,9 +246,9 @@ The scalar is the total potential energy for *all* the restraints as
 discussed above. The vector values are the sum of contributions to the
 following individual categories:
 
-* 1 = bond energy
-* 2 = angle energy
-* 3 = dihedral energy
+  #. bond energy
+  #. angle energy
+  #. dihedral energy
 
 The scalar and vector values calculated by this fix are "extensive".
 

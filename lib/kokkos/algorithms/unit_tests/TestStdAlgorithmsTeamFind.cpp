@@ -51,7 +51,7 @@ struct TestFunctorA {
     switch (m_apiPick) {
       case 0: {
         auto it    = KE::find(member, KE::cbegin(myRowViewFrom),
-                           KE::cend(myRowViewFrom), searchedValue);
+                              KE::cend(myRowViewFrom), searchedValue);
         resultDist = KE::distance(KE::cbegin(myRowViewFrom), it);
         Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
           m_distancesView(myRowIndex) = resultDist;

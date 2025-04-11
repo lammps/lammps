@@ -466,37 +466,33 @@ void FixBocs::init()
 
   // set temperature and pressure ptrs
   temperature = modify->get_compute_by_id(id_temp);
-  if (!temperature)
-    error->all(FLERR,"Temperature compute ID {} for fix bocs does not exist", id_temp);
-
-  if (temperature->tempbias) which = BIAS;
-  else which = NOBIAS;
+  if (!temperature) {
+    error->all(FLERR,"Temperature compute ID {} for fix {} does not exist", id_temp, style);
+  } else {
+    if (temperature->tempflag == 0)
+      error->all(FLERR, "Compute ID {} for fix {} does not compute a temperature", id_temp, style);
+    if (temperature->tempbias) which = BIAS;
+    else which = NOBIAS;
+  }
 
   if (pstat_flag) {
     pressure = modify->get_compute_by_id(id_press);
     if (!pressure)
-      error->all(FLERR,"Pressure compute ID {} for fix bocs does not exist", id_press);
+      error->all(FLERR,"Pressure compute ID {} for fix {} does not exist", id_press, style);
+    if (pressure->pressflag == 0)
+      error->all(FLERR,"Compute ID {} for fix {} does not compute pressure", id_press, style);
   }
 
-
-  if (pstat_flag)
-  {
-    if (p_match_flag) // MRD NJD
-    {
+  if (pstat_flag) {
+    if (p_match_flag) { // MRD NJD
       auto pressure_bocs = dynamic_cast<ComputePressureBocs *>(pressure);
-      if (pressure_bocs)
-      {
-        if (p_basis_type == BASIS_ANALYTIC)
-        {
+      if (pressure_bocs) {
+        if (p_basis_type == BASIS_ANALYTIC) {
           pressure_bocs->send_cg_info(p_basis_type, N_p_match, p_match_coeffs, N_mol, vavg);
-        }
-        else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE)
-        {
+        } else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE) {
           pressure_bocs->send_cg_info(p_basis_type, splines, spline_length);
         }
-      }
-      else
-      {
+      } else {
         error->all(FLERR,"Unable to find compatible pressure compute");
       }
     }
@@ -656,8 +652,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     if (numBadVolumeIntervals > 0 && comm->me == 0) {
       error->message(FLERR, "INFO: total number bad volume intervals = {}", numBadVolumeIntervals);
     }
-  }
-  else {
+  } else {
     error->all(FLERR,"ERROR: Unable to open file: {}", filename);
   }
 
@@ -955,8 +950,9 @@ void FixBocs::final_integrate()
   tdof = temperature->dof;
 
   if (pstat_flag) {
-    if (pstyle == ISO) pressure->compute_scalar();
-    else {
+    if (pstyle == ISO) {
+      pressure->compute_scalar();
+    } else {
       temperature->compute_vector();
       pressure->compute_vector();
     }
@@ -1093,7 +1089,7 @@ void FixBocs::couple()
   }
 
   if (!std::isfinite(p_current[0]) || !std::isfinite(p_current[1]) || !std::isfinite(p_current[2]))
-    error->all(FLERR,"Non-numeric pressure - simulation unstable");
+    error->all(FLERR,"Non-numeric pressure - simulation unstable" + utils::errorurl(6));
 
   // switch order from xy-xz-yz to Voigt
 
@@ -1103,7 +1099,7 @@ void FixBocs::couple()
     p_current[5] = tensor[3];
 
     if (!std::isfinite(p_current[3]) || !std::isfinite(p_current[4]) || !std::isfinite(p_current[5]))
-      error->all(FLERR,"Non-numeric pressure - simulation unstable");
+      error->all(FLERR,"Non-numeric pressure - simulation unstable" + utils::errorurl(6));
   }
 }
 

@@ -25,13 +25,14 @@ Syntax
 * operator = "<" or "<=" or ">" or ">=" or "==" or "!=" or "\|\^"
 * avalue = numeric value to compare attribute to
 * zero or more keyword/value pairs may be appended
-* keyword = *error* or *message* or *path*
+* keyword = *error* or *message* or *path* or *universe*
 
   .. parsed-literal::
 
        *error* value = *hard* or *soft* or *continue*
        *message* value = *yes* or *no*
        *path* value = path to check for free space (may be in quotes)
+       *universe* value = *yes* or *no*
 
 
 Examples
@@ -40,8 +41,10 @@ Examples
 .. code-block:: LAMMPS
 
    fix 10 all halt 1 bondmax > 1.5
-   fix 10 all halt 10 v_myCheck != 0 error soft
+   fix 10 all halt 10 v_myCheck != 0 error soft message no
    fix 10 all halt 100 diskfree < 100000.0 path "dump storage/."
+   fix  2 all halt 100 v_curtime > ${maxtime} universe yes
+
 
 Description
 """""""""""
@@ -101,7 +104,7 @@ hstyle = bondmax option.
 .. code-block:: LAMMPS
 
    compute         bdist all bond/local dist
-   compute         bmax all reduce max c_bdist
+   compute         bmax all reduce max c_bdist inputs local
    variable        bondmax equal c_bmax
 
 Thus these two versions of a fix halt command will do the same thing:
@@ -141,33 +144,52 @@ The optional *error* keyword determines how the current run is halted.
 If its value is *hard*, then LAMMPS will stop with an error message.
 
 If its value is *soft*, LAMMPS will exit the current run, but continue
-to execute subsequent commands in the input script.  However,
-additional :doc:`run <run>` or :doc:`minimize <minimize>` commands will be
-skipped.  For example, this allows a script to output the current
-state of the system, e.g. via a :doc:`write_dump <write_dump>` or
-:doc:`write_restart <write_restart>` command.
+to execute subsequent commands in the input script.  However, additional
+:doc:`run <run>` or :doc:`minimize <minimize>` commands will be skipped.
+For example, this allows a script to output the current state of the
+system, e.g. via a :doc:`write_dump <write_dump>` or :doc:`write_restart
+<write_restart>` command.  To re-enable regular runs after *fix halt*
+stopped a run, you need to issue a :doc:`timer timeout unlimited
+<timer>` command.
 
 If its value is *continue*, the behavior is the same as for *soft*,
 except subsequent :doc:`run <run>` or :doc:`minimize <minimize>` commands
 are executed.  This allows your script to remedy the condition that
-triggered the halt, if necessary.  Note that you may wish use the
-:doc:`unfix <unfix>` command on the fix halt ID, so that the same
-condition is not immediately triggered in a subsequent run.
+triggered the halt, if necessary.  This is the equivalent of stopping
+with *error soft* and followed by :doc:`timer timeout unlimited
+<timer>` command.  This can have undesired consequences, when a
+:doc:`run command <run>` uses the *every* keyword, so using *error soft*
+and resetting the timer manually may be the preferred option.
+
+You may wish use the :doc:`unfix <unfix>` command on the *fix halt* ID
+before starting a subsequent run, so that the same condition is not
+immediately triggered again.
 
 The optional *message* keyword determines whether a message is printed
 to the screen and logfile when the halt condition is triggered.  If
 *message* is set to yes, a one line message with the values that
-triggered the halt is printed.  If *message* is set to no, no message
-is printed; the run simply exits.  The latter may be desirable for
+triggered the halt is printed.  If *message* is set to no, no message is
+printed; the run simply exits.  The latter may be desirable for
 post-processing tools that extract thermodynamic information from log
 files.
+
+.. versionadded:: 2Apr2025
+
+The optional *universe* keyword determines whether the halt request
+should be synchronized across the partitions of a :doc:`multi-partition
+run <Run_options>`.  If *universe* is set to yes, fix halt will check if
+there is a specific message received from any of the other partitions
+requesting to stop the run on this partition as well.  Consequently, if
+fix halt determines to halt the simulation, the fix will send messages
+to all other partitions so they stop their runs, too.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various :doc:`output commands <Howto_output>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
+relevant to this fix.  No global or per-atom quantities are stored by
+this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
 
@@ -183,4 +205,4 @@ Related commands
 Default
 """""""
 
-The option defaults are error = soft, message = yes, and path = ".".
+The option defaults are error = soft, message = yes, path = ".", and universe = no.

@@ -200,7 +200,7 @@ force :math:`F_{ij}^C` are expressed as
   \mathbf{F}_{ij}^{D} & = -\gamma {\omega_{D}}(r_{ij})(\mathbf{e}_{ij} \cdot \mathbf{v}_{ij})\mathbf{e}_{ij}  \\
   \mathbf{F}_{ij}^{R} & = \sigma {\omega_{R}}(r_{ij}){\xi_{ij}}\Delta t^{-1/2} \mathbf{e}_{ij} \\
   \omega_{C}(r) & = 1 - r/r_c \\
-  \omega_{D}(r) & = \omega^2_{R}(r) = (1-r/r_c)^{\rm power_f} \\
+  \omega_{D}(r) & = \omega^2_{R}(r) = (1-r/r_c)^\mathrm{power_f} \\
   \sigma^2 = 2\gamma k_B T
 
 The concentration flux between two tDPD particles includes the Fickian
@@ -211,7 +211,7 @@ by
 
    Q_{ij}^D & = -\kappa_{ij} w_{DC}(r_{ij}) \left( C_i - C_j \right) \\
    Q_{ij}^R & = \epsilon_{ij}\left( C_i + C_j \right) w_{RC}(r_{ij}) \xi_{ij} \\
-   w_{DC}(r_{ij}) & =w^2_{RC}(r_{ij}) = (1 - r/r_{cc})^{\rm power_{cc}} \\
+   w_{DC}(r_{ij}) & =w^2_{RC}(r_{ij}) = (1 - r/r_{cc})^\mathrm{power_{cc}} \\
    \epsilon_{ij}^2 & = m_s^2\kappa_{ij}\rho
 
 where the parameters kappa and epsilon determine the strength of the
@@ -284,6 +284,10 @@ concentration profiles of the two chemical species as
 
 .. image:: JPG/examples_tdpd.jpg
    :align: center
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

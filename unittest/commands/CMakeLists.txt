@@ -2,8 +2,8 @@
 
 add_executable(test_simple_commands test_simple_commands.cpp)
 
-# tests for the plugin command require the PLUGIN package and won't work on windows
-if((NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows")) AND PKG_PLUGIN)
+# tests for the plugin command require the PLUGIN package
+if(PKG_PLUGIN)
   add_subdirectory(${LAMMPS_DIR}/examples/plugins ${CMAKE_BINARY_DIR}/build-plugins)
   add_dependencies(test_simple_commands plugins)
   target_compile_definitions(test_simple_commands PRIVATE -DLMP_PLUGIN)
@@ -11,8 +11,17 @@ endif()
 
 target_link_libraries(test_simple_commands PRIVATE lammps GTest::GMock)
 add_test(NAME SimpleCommands COMMAND test_simple_commands)
-set_tests_properties(SimpleCommands PROPERTIES
-          ENVIRONMENT "LAMMPS_PLUGIN_BIN_DIR=${CMAKE_BINARY_DIR}")
+if(CMAKE_VERSION VERSION_LESS 3.20)
+  set_tests_properties(SimpleCommands PROPERTIES
+                       ENVIRONMENT "LAMMPS_PLUGIN_DIR=${CMAKE_BINARY_DIR}")
+else()
+  cmake_path(SET LAMMPS_PLUGIN_BIN_DIR NORMALIZE ${CMAKE_BINARY_DIR})
+  if(CMAKE_CONFIG_TYPE)
+    cmake_path(APPEND LAMMPS_PLUGIN_BIN_DIR ${CMAKE_CONFIG_TYPE})
+  endif()
+  set_tests_properties(SimpleCommands PROPERTIES
+                       ENVIRONMENT "LAMMPS_PLUGIN_DIR=${LAMMPS_PLUGIN_BIN_DIR}")
+endif()
 
 add_executable(test_lattice_region test_lattice_region.cpp)
 target_link_libraries(test_lattice_region PRIVATE lammps GTest::GMock)

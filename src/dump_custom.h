@@ -34,9 +34,9 @@ class DumpCustom : public Dump {
   const int ENDIAN = 0x0001;
 
  protected:
-  int nevery;        // dump frequency for output
-  char *idregion;    // region ID, nullptr if no region
-  int triclinic_general;  // 1 if output box & per-atom info for general triclinic
+  int nevery;               // dump frequency for output
+  char *idregion;           // region ID, nullptr if no region
+  int triclinic_general;    // 1 if output box & per-atom info for general triclinic
 
   int nthresh;                        // # of defined thresholds
   int nthreshlast;                    // # of defined thresholds with value = LAST

@@ -100,6 +100,7 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
 
 FixWallRegion::~FixWallRegion()
 {
+  if (copymode) return;
   delete[] idregion;
 }
 
@@ -127,7 +128,8 @@ void FixWallRegion::init()
   // ensure all particles in group are extended particles
 
   if (style == COLLOID) {
-    if (!atom->radius_flag) error->all(FLERR, "Fix wall/region colloid requires atom attribute radius");
+    if (!atom->radius_flag)
+      error->all(FLERR, "Fix wall/region colloid requires atom attribute radius");
 
     double *radius = atom->radius;
     int *mask = atom->mask;

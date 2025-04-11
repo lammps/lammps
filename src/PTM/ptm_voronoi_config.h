@@ -162,8 +162,8 @@ constexpr double optimal_particles = 5.6;
  * contacted. */
 #define VOROPP_INTERNAL_ERROR 3
 
-/** Voro++ returns this status code if it could not interpret the command line
- * arguments passed to the command line utility. */
+/** Voro++ returns this status code if it could not interpret the command-line
+ * arguments passed to the command-line utility. */
 #define VOROPP_CMD_LINE_ERROR 4
 
 }    // namespace ptm_voro

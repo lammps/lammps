@@ -110,17 +110,20 @@ void FixTempRescale::init()
   if (tstr) {
     tvar = input->variable->find(tstr);
     if (tvar < 0)
-      error->all(FLERR,"Variable name {} for fix temp/rescale does not exist", tstr);
+      error->all(FLERR,"Variable name {} for fix {} does not exist", tstr, style);
     if (input->variable->equalstyle(tvar)) tstyle = EQUAL;
-    else error->all(FLERR,"Variable {} for fix temp/rescale is invalid style", tstr);
+    else error->all(FLERR,"Variable {} for fix {} is invalid style", tstr, style);
   }
 
   temperature = modify->get_compute_by_id(id_temp);
-  if (!temperature)
-    error->all(FLERR,"Temperature ID {} for fix temp/rescale does not exist", id_temp);
-
-  if (temperature->tempbias) which = BIAS;
-  else which = NOBIAS;
+  if (!temperature) {
+    error->all(FLERR,"Temperature compute ID {} for fix {} does not exist", id_temp, style);
+  } else {
+    if (temperature->tempflag == 0)
+      error->all(FLERR, "Compute ID {} for fix {} does not compute a temperature", id_temp, style);
+    if (temperature->tempbias) which = BIAS;
+    else which = NOBIAS;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

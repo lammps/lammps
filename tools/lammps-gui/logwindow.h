@@ -16,24 +16,34 @@
 
 #include <QPlainTextEdit>
 
+class FlagWarnings;
+class QLabel;
+
 class LogWindow : public QPlainTextEdit {
     Q_OBJECT
 
 public:
     LogWindow(const QString &filename, QWidget *parent = nullptr);
+    ~LogWindow() override;
 
 private slots:
+    void extract_yaml();
     void quit();
     void save_as();
     void stop_run();
+    void next_warning();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
     void contextMenuEvent(QContextMenuEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
+    bool check_yaml();
 
 private:
     QString filename;
+    static const QString yaml_regex;
+    FlagWarnings *warnings;
+    QLabel *summary;
 };
 
 #endif

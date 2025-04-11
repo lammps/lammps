@@ -39,7 +39,7 @@ static constexpr int BUF_SIZE = 256;
 void WriteCoeff::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR, "Write_coeff command before simulation box is defined");
+    error->all(FLERR, "Write_coeff command before simulation box is defined" + utils::errorurl(33));
 
   if (narg != 1) utils::missing_cmd_args(FLERR, "write_coeff", error);
 
@@ -152,7 +152,7 @@ void WriteCoeff::command(int narg, char **arg)
           }
 
           // parse type number and skip over it
-          int type = atoi(str);
+          int type = std::stoi(str);
           char *p = str;
           while ((*p != '\0') && (*p == ' ')) ++p;
           while ((*p != '\0') && isdigit(*p)) ++p;

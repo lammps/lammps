@@ -26,7 +26,7 @@ class Imbalance : protected Pointers {
   // parse options. return number of arguments consumed (required)
   virtual int options(int, char **) = 0;
   // reinitialize internal data (needed for fix balance) (optional)
-  virtual void init(int){};
+  virtual void init(int) {};
   // compute and apply weight factors to local atom array (required)
   virtual void compute(double *) = 0;
   // print information about the state of this imbalance compute (required)

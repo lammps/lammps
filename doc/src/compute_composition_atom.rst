@@ -88,6 +88,10 @@ too frequently.
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Output info
 """""""""""
 

@@ -457,9 +457,9 @@ mass *4 ${wheel_mass}
 variable dx equal 1.0
 variable density equal 0.001184
 
-neighbor 0.5 bin            
+neighbor 0.5 bin
 neigh_modify delay 0 every 1 check yes
-comm_modify cutoff 3.0     
+comm_modify cutoff 3.0
 
 pair_style lj/cut 1.2
 pair_coeff * * 0.0 0.0
@@ -474,7 +474,7 @@ reset_timestep 0
 #variable node_force equal "v_total_force / 178"
 #fix drag all addforce 0.0 0.0 0.0
 
-velocity all set 0.0 -7.5.0 0.0 units box
+velocity all set 0.0 -7.5 0.0 units box
 
 # viscosity of air is 0.0001847
 

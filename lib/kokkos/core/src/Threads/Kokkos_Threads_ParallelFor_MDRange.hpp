@@ -51,7 +51,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
   }
 
   template <class Schedule>
-  static std::enable_if_t<std::is_same<Schedule, Kokkos::Static>::value>
+  static std::enable_if_t<std::is_same_v<Schedule, Kokkos::Static>>
   exec_schedule(ThreadsInternal &instance, const void *arg) {
     const ParallelFor &self = *((const ParallelFor *)arg);
 
@@ -65,7 +65,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
   }
 
   template <class Schedule>
-  static std::enable_if_t<std::is_same<Schedule, Kokkos::Dynamic>::value>
+  static std::enable_if_t<std::is_same_v<Schedule, Kokkos::Dynamic>>
   exec_schedule(ThreadsInternal &instance, const void *arg) {
     const ParallelFor &self = *((const ParallelFor *)arg);
 

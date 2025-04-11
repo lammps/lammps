@@ -2,9 +2,10 @@
 
 APP_NAME=lammps-gui
 DESTDIR=${PWD}/../LAMMPS_GUI
+VERSION="$1"
 
 echo "Delete old files, if they exist"
-rm -rf ${DESTDIR} ../LAMMPS_GUI-Linux-amd64.tar.gz
+rm -rf ${DESTDIR} ../LAMMPS_GUI-Linux-amd64*.tar.gz
 
 echo "Create staging area for deployment and populate"
 DESTDIR=${DESTDIR} cmake --install .  --prefix "/"
@@ -59,17 +60,19 @@ done
 
 echo "Set up wrapper script"
 MYDIR=$(dirname "$0")
+cp ${MYDIR}/xdg-open ${DESTDIR}/bin
 cp ${MYDIR}/linux_wrapper.sh ${DESTDIR}/bin
 for s in ${DESTDIR}/bin/*
 do \
         EXE=$(basename $s)
         test ${EXE} = linux_wrapper.sh && continue
         test ${EXE} = qt.conf && continue
+        test ${EXE} = xdg-open && continue
         ln -s bin/linux_wrapper.sh ${DESTDIR}/${EXE}
 done
 
 pushd ..
-tar -czvvf LAMMPS_GUI-Linux-amd64.tar.gz LAMMPS_GUI
+tar -czvvf LAMMPS_GUI-Linux-amd64-${VERSION}.tar.gz LAMMPS_GUI
 popd
 
 echo "Cleanup dir"

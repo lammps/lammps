@@ -48,14 +48,7 @@ DihedralHybrid::~DihedralHybrid()
     delete[] keywords;
   }
 
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(map);
-    delete[] ndihedrallist;
-    delete[] maxdihedral;
-    for (int i = 0; i < nstyles; i++) memory->destroy(dihedrallist[i]);
-    delete[] dihedrallist;
-  }
+  deallocate();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -172,6 +165,20 @@ void DihedralHybrid::allocate()
   for (int m = 0; m < nstyles; m++) dihedrallist[m] = nullptr;
 }
 
+void DihedralHybrid::deallocate()
+{
+  if (!allocated) return;
+
+  allocated = 0;
+
+  memory->destroy(setflag);
+  memory->destroy(map);
+  delete[] ndihedrallist;
+  delete[] maxdihedral;
+  for (int i = 0; i < nstyles; i++) memory->destroy(dihedrallist[i]);
+  delete[] dihedrallist;
+}
+
 /* ----------------------------------------------------------------------
    create one dihedral style for each arg in list
 ------------------------------------------------------------------------- */
@@ -191,15 +198,7 @@ void DihedralHybrid::settings(int narg, char **arg)
     delete[] keywords;
   }
 
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(map);
-    delete[] ndihedrallist;
-    delete[] maxdihedral;
-    for (i = 0; i < nstyles; i++) memory->destroy(dihedrallist[i]);
-    delete[] dihedrallist;
-  }
-  allocated = 0;
+  deallocate();
 
   // allocate list of sub-styles
 
@@ -365,7 +364,7 @@ void DihedralHybrid::read_restart(FILE *fp)
     keywords[m] = new char[n];
     if (me == 0) utils::sfread(FLERR, keywords[m], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(keywords[m], n, MPI_CHAR, 0, world);
-    styles[m] = force->new_dihedral(keywords[m], 0, dummy);
+    styles[m] = force->new_dihedral(keywords[m], 1, dummy);
     styles[m]->read_restart_settings(fp);
   }
 }

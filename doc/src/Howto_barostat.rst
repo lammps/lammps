@@ -10,20 +10,21 @@ and/or pressure (P) is specified by the user, and the thermostat or
 barostat attempts to equilibrate the system to the requested T and/or
 P.
 
-Barostatting in LAMMPS is performed by :doc:`fixes <fix>`.  Two
+Barostatting in LAMMPS is performed by :doc:`fixes <fix>`.  Three
 barostatting methods are currently available: Nose-Hoover (npt and
-nph) and Berendsen:
+nph), Berendsen, and various linear controllers in deform/pressure:
 
 * :doc:`fix npt <fix_nh>`
 * :doc:`fix npt/sphere <fix_npt_sphere>`
 * :doc:`fix npt/asphere <fix_npt_asphere>`
 * :doc:`fix nph <fix_nh>`
 * :doc:`fix press/berendsen <fix_press_berendsen>`
+* :doc:`fix deform/pressure <fix_deform_pressure>`
 
 The :doc:`fix npt <fix_nh>` commands include a Nose-Hoover thermostat
 and barostat.  :doc:`Fix nph <fix_nh>` is just a Nose/Hoover barostat;
-it does no thermostatting.  Both :doc:`fix nph <fix_nh>` and :doc:`fix press/berendsen <fix_press_berendsen>` can be used in conjunction
-with any of the thermostatting fixes.
+it does no thermostatting.  The fixes :doc:`nph <fix_nh>`, :doc:`press/berendsen <fix_press_berendsen>`, and :doc:`deform/pressure <fix_deform_pressure>`
+can be used in conjunction with any of the thermostatting fixes.
 
 As with the :doc:`thermostats <Howto_thermostat>`, :doc:`fix npt <fix_nh>`
 and :doc:`fix nph <fix_nh>` only use translational motion of the
@@ -44,9 +45,9 @@ a temperature or pressure compute to a barostatting fix.
 .. note::
 
    As with the thermostats, the Nose/Hoover methods (:doc:`fix npt <fix_nh>` and :doc:`fix nph <fix_nh>`) perform time integration.
-   :doc:`Fix press/berendsen <fix_press_berendsen>` does NOT, so it should
-   be used with one of the constant NVE fixes or with one of the NVT
-   fixes.
+   :doc:`Fix press/berendsen <fix_press_berendsen>` and :doc:`fix deform/pressure <fix_deform_pressure>`
+   do NOT, so they should be used with one of the constant NVE fixes or with
+   one of the NVT fixes.
 
 Thermodynamic output, which can be setup via the
 :doc:`thermo_style <thermo_style>` command, often includes pressure

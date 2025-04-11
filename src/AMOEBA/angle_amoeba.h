@@ -36,6 +36,7 @@ class AngleAmoeba : public Angle {
   void read_restart(FILE *) override;
   void write_data(FILE *) override;
   double single(int, int, int, int) override;
+  void *extract(const char *, int &) override;
 
  protected:
   int *pflag, *ubflag;

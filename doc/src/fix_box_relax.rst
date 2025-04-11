@@ -159,10 +159,7 @@ these 4 keywords:
 
 .. parsed-literal::
 
-   x Ptarget
-   y Ptarget
-   z Ptarget
-   couple xyz
+   x Ptarget y Ptarget z Ptarget couple xyz
 
 The keyword *aniso* means *x*, *y*, and *z* dimensions are controlled
 independently using the *Pxx*, *Pyy*, and *Pzz* components of the
@@ -172,10 +169,7 @@ keywords:
 
 .. parsed-literal::
 
-   x Ptarget
-   y Ptarget
-   z Ptarget
-   couple none
+   x Ptarget y Ptarget z Ptarget couple none
 
 The keyword *tri* means *x*, *y*, *z*, *xy*, *xz*, and *yz* dimensions
 are controlled independently using their individual stress components
@@ -185,13 +179,7 @@ these 7 keywords:
 
 .. parsed-literal::
 
-   x Ptarget
-   y Ptarget
-   z Ptarget
-   xy 0.0
-   yz 0.0
-   xz 0.0
-   couple none
+   x Ptarget y Ptarget z Ptarget xy 0.0 yz 0.0 xz 0.0 couple none
 
 ----------
 

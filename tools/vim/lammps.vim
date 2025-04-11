@@ -11,7 +11,7 @@ set iskeyword+=/
 
 syn keyword     lammpsOutput    log write_data write_dump write_coeff info shell write_restart restart dump undump thermo thermo_modify
 syn keyword     lammpsOutput    thermo_style print timer
-syn keyword     lammpsRead      include read_restart read_data read_dump molecule
+syn keyword     lammpsRead      include read_restart read_data read_dump molecule geturl
 syn keyword     lammpsLattice   boundary units atom_style lattice region create_box create_atoms dielectric
 syn keyword     lammpsLattice   delete_atoms displace_atoms change_box dimension replicate
 syn keyword     lammpsParticle  pair_coeff pair_style pair_modify pair_write mass velocity angle_coeff angle_style angle_write

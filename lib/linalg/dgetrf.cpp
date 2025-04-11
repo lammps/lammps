@@ -70,15 +70,14 @@ int dgetrf_(integer *m, integer *n, doublereal *a, integer *lda, integer *ipiv, 
                 i__4 = j + jb - 1;
                 dlaswp_(&i__3, &a[(j + jb) * a_dim1 + 1], lda, &j, &i__4, &ipiv[1], &c__1);
                 i__3 = *n - j - jb + 1;
-                dtrsm_((char *)"Left", (char *)"Lower", (char *)"No transpose", (char *)"Unit", &jb, &i__3, &c_b16,
-                       &a[j + j * a_dim1], lda, &a[j + (j + jb) * a_dim1], lda, (ftnlen)4,
-                       (ftnlen)5, (ftnlen)12, (ftnlen)4);
+                dtrsm_((char *)"L", (char *)"L", (char *)"N", (char *)"U", &jb, &i__3, &c_b16, &a[j + j * a_dim1], lda,
+                       &a[j + (j + jb) * a_dim1], lda, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 if (j + jb <= *m) {
                     i__3 = *m - j - jb + 1;
                     i__4 = *n - j - jb + 1;
-                    dgemm_((char *)"No transpose", (char *)"No transpose", &i__3, &i__4, &jb, &c_b19,
-                           &a[j + jb + j * a_dim1], lda, &a[j + (j + jb) * a_dim1], lda, &c_b16,
-                           &a[j + jb + (j + jb) * a_dim1], lda, (ftnlen)12, (ftnlen)12);
+                    dgemm_((char *)"N", (char *)"N", &i__3, &i__4, &jb, &c_b19, &a[j + jb + j * a_dim1], lda,
+                           &a[j + (j + jb) * a_dim1], lda, &c_b16, &a[j + jb + (j + jb) * a_dim1],
+                           lda, (ftnlen)1, (ftnlen)1);
                 }
             }
         }

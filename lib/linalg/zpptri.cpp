@@ -39,7 +39,7 @@ int zpptri_(char *uplo, integer *n, doublecomplex *ap, integer *info, ftnlen upl
     if (*n == 0) {
         return 0;
     }
-    ztptri_(uplo, (char *)"Non-unit", n, &ap[1], info, (ftnlen)1, (ftnlen)8);
+    ztptri_(uplo, (char *)"N", n, &ap[1], info, (ftnlen)1, (ftnlen)1);
     if (*info > 0) {
         return 0;
     }
@@ -51,7 +51,7 @@ int zpptri_(char *uplo, integer *n, doublecomplex *ap, integer *info, ftnlen upl
             jj += j;
             if (j > 1) {
                 i__2 = j - 1;
-                zhpr_((char *)"Upper", &i__2, &c_b8, &ap[jc], &c__1, &ap[1], (ftnlen)5);
+                zhpr_((char *)"U", &i__2, &c_b8, &ap[jc], &c__1, &ap[1], (ftnlen)1);
             }
             i__2 = jj;
             ajj = ap[i__2].r;
@@ -69,8 +69,8 @@ int zpptri_(char *uplo, integer *n, doublecomplex *ap, integer *info, ftnlen upl
             ap[i__2].r = d__1, ap[i__2].i = 0.;
             if (j < *n) {
                 i__2 = *n - j;
-                ztpmv_((char *)"Lower", (char *)"Conjugate transpose", (char *)"Non-unit", &i__2, &ap[jjn], &ap[jj + 1],
-                       &c__1, (ftnlen)5, (ftnlen)19, (ftnlen)8);
+                ztpmv_((char *)"L", (char *)"C", (char *)"N", &i__2, &ap[jjn], &ap[jj + 1], &c__1, (ftnlen)1, (ftnlen)1,
+                       (ftnlen)1);
             }
             jj = jjn;
         }

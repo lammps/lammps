@@ -38,6 +38,7 @@ static constexpr double SMALL = 0.001;
 template<class DeviceType>
 AngleCharmmKokkos<DeviceType>::AngleCharmmKokkos(LAMMPS *lmp) : AngleCharmm(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -125,12 +126,12 @@ void AngleCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   copymode = 0;
@@ -284,10 +285,10 @@ void AngleCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
     k_r_ub.h_view[i] = r_ub[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_theta0.template modify<LMPHostType>();
-  k_k_ub.template modify<LMPHostType>();
-  k_r_ub.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_theta0.modify_host();
+  k_k_ub.modify_host();
+  k_r_ub.modify_host();
 
   k_k.template sync<DeviceType>();
   k_theta0.template sync<DeviceType>();
@@ -322,10 +323,10 @@ void AngleCharmmKokkos<DeviceType>::read_restart(FILE *fp)
     k_r_ub.h_view[i] = r_ub[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_theta0.template modify<LMPHostType>();
-  k_k_ub.template modify<LMPHostType>();
-  k_r_ub.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_theta0.modify_host();
+  k_k_ub.modify_host();
+  k_r_ub.modify_host();
 
   k_k.template sync<DeviceType>();
   k_theta0.template sync<DeviceType>();

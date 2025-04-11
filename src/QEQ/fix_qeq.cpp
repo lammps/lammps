@@ -27,7 +27,9 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
+#include "pair.h"
 #include "respa.h"
+#include "suffix.h"
 #include "text_file_reader.h"
 #include "update.h"
 
@@ -39,6 +41,9 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static constexpr double QSUMSMALL = 0.00001;
+static constexpr int MIN_CAP = 50;
+static constexpr double SAFE_ZONE = 1.2;
+static constexpr bigint MIN_NBRS = 100;
 
 namespace {
   class qeq_parser_error : public std::exception {
@@ -53,7 +58,7 @@ namespace {
 
 FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), list(nullptr), chi(nullptr), eta(nullptr),
-  gamma(nullptr), zeta(nullptr), zcore(nullptr), chizj(nullptr), shld(nullptr),
+  gamma(nullptr), zeta(nullptr), zcore(nullptr), qmin(nullptr), qmax(nullptr), omega(nullptr), chizj(nullptr), shld(nullptr),
   s(nullptr), t(nullptr), s_hist(nullptr), t_hist(nullptr), Hdia_inv(nullptr), b_s(nullptr),
   b_t(nullptr), p(nullptr), q(nullptr), r(nullptr), d(nullptr),
   qf(nullptr), q1(nullptr), q2(nullptr), qv(nullptr)
@@ -75,9 +80,9 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix qeq command");
 
   // must have charges
+
   if (!atom->q_flag) error->all(FLERR, "Fix {} requires atom attribute q", style);
 
-  alpha = 0.20;
   swa = 0.0;
   swb = cutoff;
 
@@ -115,6 +120,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   q2 = nullptr;
   streitz_flag = 0;
   reax_flag = 0;
+  ctip_flag = 0;
   qv = nullptr;
 
   comm_forward = comm_reverse = 1;
@@ -134,6 +140,8 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
     streitz_flag = 1;
   } else if (utils::strmatch(arg[7],"^reax..")) {
     reax_flag = 1;
+  } else if (strcmp(arg[7],"coul/ctip") == 0) {
+    ctip_flag = 1;
   } else {
     read_file(arg[7]);
   }
@@ -144,7 +152,6 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
 FixQEq::~FixQEq()
 {
   // unregister callbacks to this fix from Atom class
-
   if (modify->get_fix_by_id(id)) atom->delete_callback(id,Atom::GROW);
 
   memory->destroy(s_hist);
@@ -155,12 +162,15 @@ FixQEq::~FixQEq()
 
   memory->destroy(shld);
 
-  if (!streitz_flag && !reax_flag) {
+  if (!streitz_flag && !reax_flag && !ctip_flag) {
     memory->destroy(chi);
     memory->destroy(eta);
     memory->destroy(gamma);
     memory->destroy(zeta);
     memory->destroy(zcore);
+    memory->destroy(qmin);
+    memory->destroy(qmax);
+    memory->destroy(omega);
   }
 }
 
@@ -237,8 +247,9 @@ void FixQEq::reallocate_storage()
 
 void FixQEq::allocate_matrix()
 {
-  int i,ii,inum,m;
+  int i,ii,inum;
   int *ilist, *numneigh;
+  bigint m;
 
   int mincap;
   double safezone;
@@ -261,7 +272,10 @@ void FixQEq::allocate_matrix()
     i = ilist[ii];
     m += numneigh[i];
   }
-  m_cap = MAX((int)(m * safezone), mincap * MIN_NBRS);
+  bigint m_cap_big = (bigint)MAX(m * safezone, mincap * MIN_NBRS);
+  if (m_cap_big > MAXSMALLINT)
+    error->one(FLERR,"Too many neighbors in fix {}",style);
+  m_cap = m_cap_big;
 
   H.n = n_cap;
   H.m = m_cap;
@@ -322,7 +336,8 @@ void FixQEq::init()
   MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
 
   if ((comm->me == 0) && (fabs(qsum) > QSUMSMALL))
-    error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}", style, qsum);
+    error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}{}",
+                   style, qsum, utils::errorurl(29));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -752,6 +767,9 @@ void FixQEq::read_file(char *file)
   memory->create(gamma,ntypes+1,"qeq:gamma");
   memory->create(zeta,ntypes+1,"qeq:zeta");
   memory->create(zcore,ntypes+1,"qeq:zcore");
+  memory->create(qmin,ntypes+1,"qeq:qmin");
+  memory->create(qmax,ntypes+1,"qeq:qmax");
+  memory->create(omega,ntypes+1,"qeq:omega");
 
   // read each line out of file, skipping blank lines or leading '#'
   // store line of params if all 3 element tags are in element list
@@ -760,14 +778,15 @@ void FixQEq::read_file(char *file)
     int *setflag = new int[ntypes+1];
     for (int n=0; n <= ntypes; ++n) {
       setflag[n] = 0;
-      chi[n] = eta[n] = gamma[n] = zeta[n] = zcore[n] = 0.0;
+      chi[n] = eta[n] = gamma[n] = zeta[n] = zcore[n] = qmin[n] = qmax[n] = omega[n] = 0.0;
     }
 
+    FILE *fp = nullptr;
     try {
       int nlo,nhi;
       double val;
 
-      FILE *fp = utils::open_potential(file,lmp,nullptr);
+      fp = utils::open_potential(file,lmp,nullptr);
       if (fp == nullptr)
         throw qeq_parser_error(fmt::format("Cannot open fix qeq parameter file {}: {}",
                                            file,utils::getsyserror()));
@@ -777,8 +796,13 @@ void FixQEq::read_file(char *file)
         auto values = reader.next_values(0);
 
         if (values.count() == 0) continue;
-        if (values.count() < 6)
-          throw qeq_parser_error("Invalid qeq parameter file");
+        if (ctip_flag) {
+          if (values.count() < 9)
+            throw qeq_parser_error(fmt::format("Invalid qeq parameter file for {}", style));
+        } else {
+          if (values.count() < 6)
+            throw qeq_parser_error(fmt::format("Invalid qeq parameter file for {}", style));
+        }
 
         auto word = values.next_string();
         utils::bounds(FLERR,word,1,ntypes,nlo,nhi,nullptr);
@@ -795,17 +819,25 @@ void FixQEq::read_file(char *file)
         for (int n=nlo; n <= nhi; ++n) zeta[n] = val;
         val = values.next_double();
         for (int n=nlo; n <= nhi; ++n) zcore[n] = val;
+        if (ctip_flag) {
+          val = values.next_double();
+          for (int n=nlo; n <= nhi; ++n) qmin[n] = val;
+          val = values.next_double();
+          for (int n=nlo; n <= nhi; ++n) qmax[n] = val;
+          val = values.next_double();
+          for (int n=nlo; n <= nhi; ++n) omega[n] = val;
+        }
         for (int n=nlo; n <= nhi; ++n) setflag[n] = 1;
       }
     } catch (EOFException &) {
-      ; // catch and ignore to exit loop
+      fclose(fp);
     } catch (std::exception &e) {
       error->one(FLERR,e.what());
     }
 
     for (int n=1; n <= ntypes; ++n)
       if (setflag[n] == 0)
-        error->one(FLERR,"Parameters for atom type {} missing in qeq parameter file", n);
+        error->one(FLERR, "Parameters for atom type {} missing in qeq parameter file", n);
     delete[] setflag;
   }
 
@@ -814,4 +846,7 @@ void FixQEq::read_file(char *file)
   MPI_Bcast(gamma,ntypes+1,MPI_DOUBLE,0,world);
   MPI_Bcast(zeta,ntypes+1,MPI_DOUBLE,0,world);
   MPI_Bcast(zcore,ntypes+1,MPI_DOUBLE,0,world);
+  MPI_Bcast(qmin,ntypes+1,MPI_DOUBLE,0,world);
+  MPI_Bcast(qmax,ntypes+1,MPI_DOUBLE,0,world);
+  MPI_Bcast(omega,ntypes+1,MPI_DOUBLE,0,world);
 }

@@ -10,7 +10,7 @@ Syntax
 
    bond_style style args
 
-* style = *none* or *zero* or *hybrid* or *bpm/rotational* or *bpm/spring* or *class2* or *fene* or *fene/expand* or *fene/nm* or *gaussian* or *gromos* or *harmonic* or *harmonic/restrain* *harmonic/shift* or *harmonic/shift/cut* or *lepton* or *morse* or *nonlinear* or *oxdna/fene* or *oxdena2/fene* or *oxrna2/fene* or *quartic* or *special* or *table*
+* style = *none* or *zero* or *hybrid* or *bpm/rotational* or *bpm/spring* or *bpm/spring/plastic* or *class2* or *fene* or *fene/expand* or *fene/nm* or *gaussian* or *gromos* or *harmonic* or *harmonic/restrain* *harmonic/shift* or *harmonic/shift/cut* or *lepton* or *morse* or *nonlinear* or *oxdna/fene* or *oxdena2/fene* or *oxrna2/fene* or *quartic* or *special* or *table*
 
 * args = none for any style except *hybrid*
 
@@ -59,10 +59,10 @@ coefficients need to be re-specified.
    When both a bond and pair style is defined, the
    :doc:`special_bonds <special_bonds>` command often needs to be used to
    turn off (or weight) the pairwise interaction that would otherwise
-   exist between 2 bonded atoms.
+   exist between two bonded atoms.
 
 In the formulas listed for each bond style, *r* is the distance
-between the 2 atoms in the bond.
+between the two atoms in the bond.
 
 ----------
 
@@ -86,6 +86,7 @@ accelerated styles exist.
 
 * :doc:`bpm/rotational <bond_bpm_rotational>` - breakable bond with forces and torques based on deviation from reference state
 * :doc:`bpm/spring <bond_bpm_spring>` - breakable bond with forces based on deviation from reference length
+* :doc:`bpm/spring/plastic <bond_bpm_spring_plastic>` - a similar breakable bond with plastic yield
 * :doc:`class2 <bond_class2>` - COMPASS (class 2) bond
 * :doc:`fene <bond_fene>` - FENE (finite-extensible non-linear elastic) bond
 * :doc:`fene/expand <bond_fene_expand>` - FENE bonds with variable size particles
@@ -105,6 +106,7 @@ accelerated styles exist.
 * :doc:`oxdna2/fene <bond_oxdna>` - same as oxdna but used with different pair styles
 * :doc:`oxrna2/fene <bond_oxdna>` - modified FENE bond suitable for RNA modeling
 * :doc:`quartic <bond_quartic>` - breakable quartic bond
+* :doc:`rheo/shell <bond_rheo_shell>` - shell bond for oxidation modeling in RHEO
 * :doc:`special <bond_special>` - enable special bond exclusions for 1-5 pairs and beyond
 * :doc:`table <bond_table>` - tabulated by bond length
 

@@ -20,6 +20,11 @@
 #define KOKKOS_IMPL_TASKQUEUEMULTIPLE_HPP
 
 #include <Kokkos_Macros.hpp>
+
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#error "The tasking framework is deprecated"
+#endif
+
 #if defined(KOKKOS_ENABLE_TASKDAG)
 
 #include <Kokkos_TaskScheduler_fwd.hpp>
@@ -39,6 +44,11 @@
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+// We allow using deprecated classes in this file
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
 
 namespace Kokkos {
 namespace Impl {
@@ -178,11 +188,11 @@ class LeagueQueueCollection {
   int m_size = static_cast<int>(KOKKOS_INVALID_INDEX);
 
  public:
-  LeagueQueueCollection()                             = delete;
-  LeagueQueueCollection(LeagueQueueCollection const&) = delete;
-  LeagueQueueCollection(LeagueQueueCollection&&)      = delete;
+  LeagueQueueCollection()                                        = delete;
+  LeagueQueueCollection(LeagueQueueCollection const&)            = delete;
+  LeagueQueueCollection(LeagueQueueCollection&&)                 = delete;
   LeagueQueueCollection& operator=(LeagueQueueCollection const&) = delete;
-  LeagueQueueCollection& operator=(LeagueQueueCollection&&) = delete;
+  LeagueQueueCollection& operator=(LeagueQueueCollection&&)      = delete;
 
   ~LeagueQueueCollection() {
     // destroy only the initialized queues that we own
@@ -234,6 +244,10 @@ class LeagueQueueCollection {
 
 } /* namespace Impl */
 } /* namespace Kokkos */
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

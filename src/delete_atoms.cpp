@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_bond_history.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
@@ -51,7 +52,7 @@ DeleteAtoms::DeleteAtoms(LAMMPS *lmp) : Command(lmp) {}
 void DeleteAtoms::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR, "Delete_atoms command before simulation box is defined");
+    error->all(FLERR, "Delete_atoms command before simulation box is defined" + utils::errorurl(33));
   if (narg < 1) utils::missing_cmd_args(FLERR, "delete_atoms", error);
   if (atom->tag_enable == 0) error->all(FLERR, "Cannot use delete_atoms unless atoms have IDs");
 
@@ -86,8 +87,8 @@ void DeleteAtoms::command(int narg, char **arg)
     error->all(FLERR, "Unknown delete_atoms sub-command: {}", arg[0]);
 
   if (allflag) {
-    int igroup = group->find("all");
-    if ((igroup >= 0) && modify->check_rigid_group_overlap(group->bitmask[igroup]))
+    int igroupbit = group->get_bitmask_by_id(FLERR, "all", "delete_atoms");
+    if (modify->check_rigid_group_overlap(igroupbit))
       error->warning(FLERR, "Attempting to delete atoms in rigid bodies");
   } else {
     if (modify->check_rigid_list_overlap(dlist))
@@ -215,8 +216,7 @@ void DeleteAtoms::delete_group(int narg, char **arg)
 {
   if (narg < 2) utils::missing_cmd_args(FLERR, "delete_atoms group", error);
 
-  int igroup = group->find(arg[1]);
-  if (igroup == -1) error->all(FLERR, "Could not find delete_atoms group ID {}", arg[1]);
+  int groupbit = group->get_bitmask_by_id(FLERR, arg[1], "delete_atoms");
   options(narg - 2, &arg[2]);
 
   // check for special case of group = all
@@ -233,8 +233,6 @@ void DeleteAtoms::delete_group(int narg, char **arg)
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
 
   int *mask = atom->mask;
-  int groupbit = group->bitmask[igroup];
-
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) dlist[i] = 1;
 }
@@ -280,17 +278,10 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   const double cut = utils::numeric(FLERR, arg[1], false, lmp);
   const double cutsq = cut * cut;
+  const int group1bit = group->get_bitmask_by_id(FLERR, arg[2], "delete_atoms");
+  const int group2bit = group->get_bitmask_by_id(FLERR, arg[3], "delete_atoms");
 
-  int igroup1 = group->find(arg[2]);
-  if (igroup1 < 0)
-    error->all(FLERR, "Could not find delete_atoms overlap first group ID {}", arg[2]);
-  int igroup2 = group->find(arg[3]);
-  if (igroup2 < 0)
-    error->all(FLERR, "Could not find delete_atoms overlap second group ID {}", arg[3]);
   options(narg - 4, &arg[4]);
-
-  const int group1bit = group->bitmask[igroup1];
-  const int group2bit = group->bitmask[igroup2];
 
   if (comm->me == 0) utils::logmesg(lmp, "System init for delete_atoms ...\n");
 
@@ -453,9 +444,7 @@ void DeleteAtoms::delete_random(int narg, char **arg)
     error->all(FLERR, "Unknown delete_atoms random style: {}", arg[1]);
   }
 
-  int igroup = group->find(arg[4]);
-  if (igroup == -1) error->all(FLERR, "Could not find delete_atoms random group ID {}", arg[4]);
-
+  int groupbit = group->get_bitmask_by_id(FLERR, arg[4], "delete_atoms");
   auto region = domain->get_region_by_id(arg[5]);
   if (!region && (strcmp(arg[5], "NULL") != 0))
     error->all(FLERR, "Could not find delete_atoms random region ID {}", arg[5]);
@@ -476,7 +465,6 @@ void DeleteAtoms::delete_random(int narg, char **arg)
   double **x = atom->x;
   int *mask = atom->mask;
 
-  int groupbit = group->bitmask[igroup];
   if (region) region->prematch();
 
   // delete approximate fraction of atoms in both group and region
@@ -754,6 +742,10 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
 
   int nlocal = daptr->atom->nlocal;
 
+  // find instances of bond history to delete data
+  auto histories = daptr->modify->get_fix_by_style("BOND_HISTORY");
+  int n_histories = histories.size();
+
   // cbuf = list of N deleted atom IDs from other proc, put them in hash
 
   hash->clear();
@@ -771,6 +763,11 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
         if (hash->find(bond_atom[i][m]) != hash->end()) {
           bond_type[i][m] = bond_type[i][n - 1];
           bond_atom[i][m] = bond_atom[i][n - 1];
+          if (n_histories > 0)
+            for (auto &ihistory : histories) {
+              dynamic_cast<FixBondHistory *>(ihistory)->shift_history(i, m, n - 1);
+              dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i, n - 1);
+            }
           n--;
         } else
           m++;

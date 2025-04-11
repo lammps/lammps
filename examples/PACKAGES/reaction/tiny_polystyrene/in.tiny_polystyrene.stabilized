@@ -41,6 +41,7 @@ molecule mol6 chain_chain_reacted.molecule_template
 thermo 100
 
 # dump 1 all xyz 5 test_vis.xyz
+# dump_modify 1 types labels
 
 fix rxn1 all bond/react stabilization yes statted_grp .03 &
  react rxn1 all 1 0 3.0 mol1 mol2 2styrene_map stabilize_steps 100 &
@@ -55,5 +56,5 @@ thermo_style custom step temp press density f_rxn1[*]
 
 run 10000
 
-# write_restart restart_longrun nofix
-# write_data restart_longrun.data
+# write_restart restart_longrun
+# write_data restart_longrun.data nofix

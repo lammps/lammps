@@ -135,7 +135,7 @@ directions for the forces. Only the direction of the vector is
 important; its length is ignored (the entered vectors are
 normalized).
 
-Those styles can be combined within one single command line.
+Those styles can be combined within one single command.
 
 .. note::
 

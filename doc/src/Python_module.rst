@@ -10,19 +10,11 @@ be installed into a Python system folder or a user folder with ``make
 install-python``.  Components of the module can then loaded into a Python
 session with the ``import`` command.
 
-There are multiple Python interface classes in the :py:mod:`lammps` module:
+.. warning::
 
-- the :py:class:`lammps <lammps.lammps>` class. This is a wrapper around
-  the C-library interface and its member functions try to replicate the
-  :ref:`C-library API <lammps_c_api>` closely.  This is the most
-  feature-complete Python API.
-- the :py:class:`PyLammps <lammps.PyLammps>` class. This is a more high-level
-  and more Python style class implemented on top of the
-  :py:class:`lammps <lammps.lammps>` class.
-- the :py:class:`IPyLammps <lammps.IPyLammps>` class is derived from
-  :py:class:`PyLammps <lammps.PyLammps>` and adds embedded graphics
-  features to conveniently include LAMMPS into `Jupyter
-  <https://jupyter.org/>`_ notebooks.
+   Alternative interfaces such as :py:class:`PyLammps <lammps.PyLammps>` and
+   :py:class:`IPyLammps <lammps.IPyLammps>` classes have been deprecated and
+   will be removed in a future version of LAMMPS.
 
 .. _mpi4py_url: https://mpi4py.readthedocs.io
 
@@ -49,7 +41,7 @@ The ``lammps`` class API
 ========================
 
 The :py:class:`lammps <lammps.lammps>` class is the core of the LAMMPS
-Python interfaces.  It is a wrapper around the :ref:`LAMMPS C library
+Python interface.  It is a wrapper around the :ref:`LAMMPS C library
 API <lammps_c_api>` using the `Python ctypes module
 <https://docs.python.org/3/library/ctypes.html>`_ and a shared library
 compiled from the LAMMPS sources code.  The individual methods in this
@@ -64,40 +56,7 @@ functions. Below is a detailed documentation of the API.
 .. autoclass:: lammps.numpy_wrapper::numpy_wrapper
    :members:
 
-----------
-
-The ``PyLammps`` class API
-==========================
-
-The :py:class:`PyLammps <lammps.PyLammps>` class is a wrapper that creates a
-simpler, more "Pythonic" interface to common LAMMPS functionality. LAMMPS
-data structures are exposed through objects and properties. This makes Python
-scripts shorter and more concise. See the :doc:`PyLammps Tutorial
-<Howto_pylammps>` for an introduction on how to use this interface.
-
-.. autoclass:: lammps.PyLammps
-   :members:
-
-.. autoclass:: lammps.AtomList
-   :members:
-
-.. autoclass:: lammps.Atom
-   :members:
-
-.. autoclass:: lammps.Atom2D
-   :members:
-
-----------
-
-The ``IPyLammps`` class API
-===========================
-
-The :py:class:`IPyLammps <lammps.PyLammps>` class is an extension of
-:py:class:`PyLammps <lammps.PyLammps>`, adding additional functions to
-quickly display visualizations such as images and videos inside of IPython.
-See the :doc:`PyLammps Tutorial <Howto_pylammps>` for examples.
-
-.. autoclass:: lammps.IPyLammps
+.. autoclass:: lammps.ipython::wrapper
    :members:
 
 ----------

@@ -9,11 +9,9 @@
 
 
 #include <vector>
-#include <cstdlib>
-#include <stdlib.h>
-#include <string.h>
 
 #include "colvarproxy.h"
+#include "colvarbias.h"
 #include "colvardeps.h"
 #include "colvarscript.h"
 #include "colvarscript_commands.h"

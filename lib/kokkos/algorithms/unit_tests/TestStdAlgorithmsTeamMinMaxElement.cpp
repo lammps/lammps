@@ -66,7 +66,7 @@ struct TestFunctorA {
         m_distancesView(myRowIndex, 1) = resultDist2;
       });
     }
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
     else if (m_apiPick == 2) {
       using value_type = typename ViewType::value_type;
       auto itPair =
@@ -84,7 +84,7 @@ struct TestFunctorA {
     else if (m_apiPick == 3) {
       using value_type = typename ViewType::value_type;
       auto itPair      = KE::minmax_element(member, myRowView,
-                                       CustomLessThanComparator<value_type>{});
+                                            CustomLessThanComparator<value_type>{});
       resultDist1      = KE::distance(KE::begin(myRowView), itPair.first);
       resultDist2      = KE::distance(KE::begin(myRowView), itPair.second);
 
@@ -160,7 +160,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
       stdDistance[1] = KE::distance(KE::cbegin(myRow), itPair.second);
     } else {
       auto itPair    = std::minmax_element(KE::cbegin(myRow), KE::cend(myRow),
-                                        CustomLessThanComparator<value_type>{});
+                                           CustomLessThanComparator<value_type>{});
       stdDistance[0] = KE::distance(KE::cbegin(myRow), itPair.first);
       stdDistance[1] = KE::distance(KE::cbegin(myRow), itPair.second);
     }
@@ -188,7 +188,7 @@ void run_all_scenarios() {
 }
 
 TEST(std_algorithms_minmax_element_team_test, test) {
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
   run_all_scenarios<DynamicTag, int>();
   run_all_scenarios<StridedTwoRowsTag, double>();
   run_all_scenarios<StridedThreeRowsTag, int>();

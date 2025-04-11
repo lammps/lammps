@@ -284,9 +284,9 @@ void ComputeStressCartesian::compute_array()
   // calculate number density and kinetic contribution to pressure
   if (compute_ke) {
     for (int i = 0; i < nlocal; i++) {
-      int bin1 = (int) ((x[i][dir1] - boxlo[dir1]) / bin_width1) % nbins1;
+      int bin1 = (int) floor((x[i][dir1] - boxlo[dir1]) / bin_width1) % nbins1;
       int bin2 = 0;
-      if (dims == 2) bin2 = (int) ((x[i][dir2] - boxlo[dir2]) / bin_width2) % nbins2;
+      if (dims == 2) bin2 = (int) floor((x[i][dir2] - boxlo[dir2]) / bin_width2) % nbins2;
 
       // Apply periodic boundary conditions and avoid out of range access
       if (domain->periodicity[dir1] == 1) {
@@ -453,27 +453,6 @@ void ComputeStressCartesian::compute_pressure(double fpair, double xi, double yi
     int bin1 = next_bin1;
     int bin2 = next_bin2;
 
-    double l1;
-    if (rij1 > 0)
-      l1 = ((bin1 + 1) * bin_width1 - xi) / rij1;
-    else
-      l1 = (bin1 * bin_width1 - xi) / rij1;
-
-    double l2;
-    if (rij2 > 0)
-      l2 = ((bin2 + 1) * bin_width2 - yi) / rij2;
-    else
-      l2 = (bin2 * bin_width2 - yi) / rij2;
-
-    if ((l1 < l2 || l2 < lb + SMALL) && l1 <= 1.0 && l1 > lb) {
-      lb = l1;
-      next_bin1 = bin1 + (int) (rij1 / fabs(rij1));
-    } else if (l2 <= 1.0 && l2 > lb) {
-      lb = l2;
-      next_bin2 = bin2 + (int) (rij2 / fabs(rij2));
-    } else
-      lb = 1.0;
-
     // Periodic boundary conditions
     if (domain->periodicity[dir1] == 1) {
       if (bin1 < 0)
@@ -494,6 +473,33 @@ void ComputeStressCartesian::compute_pressure(double fpair, double xi, double yi
       bin2 = 0;
     else if (bin2 >= nbins2)
       bin2 = nbins2 - 1;
+
+    double l1;
+    double tmp1[3] = {0.0, 0.0, 0.0};
+    if (rij1 > 0)
+      tmp1[dir1] = (bin1 + 1) * bin_width1 - xi;
+    else
+      tmp1[dir1] = bin1 * bin_width1 - xi;
+    domain->minimum_image(tmp1[0],tmp1[1],tmp1[2]);
+    l1 = tmp1[dir1] / rij1;
+
+    double l2;
+    double tmp2[3] = {0.0, 0.0, 0.0};
+    if (rij2 > 0)
+      tmp2[dir2] = (bin2 + 1) * bin_width2 - yi;
+    else
+      tmp2[dir2] = bin2 * bin_width2 - yi;
+    domain->minimum_image(tmp2[0],tmp2[1],tmp2[2]);
+    l2 = tmp2[dir2] / rij2;
+
+    if ((dims == 1 || l1 < l2 || l2 < lb + SMALL) && l1 <= 1.0 && l1 > lb) {
+      lb = l1;
+      next_bin1 = bin1 + (int) (rij1 / fabs(rij1));
+    } else if (dims == 2 && l2 <= 1.0 && l2 > lb) {
+      lb = l2;
+      next_bin2 = bin2 + (int) (rij2 / fabs(rij2));
+    } else
+      lb = 1.0;
 
     if (bin1 + bin2 * nbins1 > nbins1 * nbins2) error->all(FLERR, "Bin outside: lb={:.16g}", lb);
 

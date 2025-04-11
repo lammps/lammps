@@ -396,3 +396,14 @@ double AngleMesoCNT::single(int type, int i1, int i2, int i3)
   else
     return kb[type] * dtheta + thetab[type] * (kh[type] * thetab[type] - kb[type]);
 }
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleMesoCNT::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
+  return nullptr;
+}

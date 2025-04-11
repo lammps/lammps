@@ -46,8 +46,8 @@ int dtrti2_(char *uplo, char *diag, integer *n, doublereal *a, integer *lda, int
                 ajj = -1.;
             }
             i__2 = j - 1;
-            dtrmv_((char *)"Upper", (char *)"No transpose", diag, &i__2, &a[a_offset], lda, &a[j * a_dim1 + 1],
-                   &c__1, (ftnlen)5, (ftnlen)12, (ftnlen)1);
+            dtrmv_((char *)"U", (char *)"N", diag, &i__2, &a[a_offset], lda, &a[j * a_dim1 + 1], &c__1, (ftnlen)1,
+                   (ftnlen)1, (ftnlen)1);
             i__2 = j - 1;
             dscal_(&i__2, &ajj, &a[j * a_dim1 + 1], &c__1);
         }
@@ -61,8 +61,8 @@ int dtrti2_(char *uplo, char *diag, integer *n, doublereal *a, integer *lda, int
             }
             if (j < *n) {
                 i__1 = *n - j;
-                dtrmv_((char *)"Lower", (char *)"No transpose", diag, &i__1, &a[j + 1 + (j + 1) * a_dim1], lda,
-                       &a[j + 1 + j * a_dim1], &c__1, (ftnlen)5, (ftnlen)12, (ftnlen)1);
+                dtrmv_((char *)"L", (char *)"N", diag, &i__1, &a[j + 1 + (j + 1) * a_dim1], lda,
+                       &a[j + 1 + j * a_dim1], &c__1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 i__1 = *n - j;
                 dscal_(&i__1, &ajj, &a[j + 1 + j * a_dim1], &c__1);
             }

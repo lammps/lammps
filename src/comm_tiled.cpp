@@ -943,9 +943,11 @@ void CommTiled::exchange()
   // only need to reset if a fix can dynamically add to size of single atom
 
   if (maxexchange_fix_dynamic) {
-    int bufextra_old = bufextra;
     init_exchange();
-    if (bufextra > bufextra_old) grow_send(maxsend+bufextra,2);
+    if (bufextra > bufextra_max) {
+      grow_send(maxsend+bufextra,2);
+      bufextra = bufextra_max;
+    }
   }
 
   // domain properties used in exchange method and methods it calls
@@ -1380,14 +1382,19 @@ void CommTiled::borders()
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Pair
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_forward from Pair
+   size > 0 -> Pair passes max size per atom
+   the latter is only useful if Pair does several comm modes,
+     some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommTiled::forward_comm(Pair *pair)
+void CommTiled::forward_comm(Pair *pair, int size)
 {
-  int i,irecv,n,nsend,nrecv;
+  int i,irecv,n,nsize,nsend,nrecv;
 
-  int nsize = pair->comm_forward;
+  if (size) nsize = size;
+  else nsize = pair->comm_forward;
 
   for (int iswap = 0; iswap < nswap; iswap++) {
     nsend = nsendproc[iswap] - sendself[iswap];
@@ -1424,14 +1431,19 @@ void CommTiled::forward_comm(Pair *pair)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Pair
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_reverse from Fix
+   size > 0 -> Fix passes max size per atom
+   the latter is only useful if Fix does several comm modes,
+     some are smaller than max stored in its comm_reverse
 ------------------------------------------------------------------------- */
 
-void CommTiled::reverse_comm(Pair *pair)
+void CommTiled::reverse_comm(Pair *pair, int size)
 {
-  int i,irecv,n,nsend,nrecv;
+  int i,irecv,n,nsize,nsend,nrecv;
 
-  int nsize = MAX(pair->comm_reverse,pair->comm_reverse_off);
+  if (size) nsize = MAX(pair->comm_reverse, pair->comm_reverse_off);
+  else nsize = pair->comm_reverse;
 
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     nsend = nsendproc[iswap] - sendself[iswap];
@@ -1464,14 +1476,18 @@ void CommTiled::reverse_comm(Pair *pair)
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Bond
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_forward from Bond
+   size > 0 -> Bond passes max size per atom
+   the latter is only useful if Bond does several comm modes,
+     some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
-
-void CommTiled::forward_comm(Bond *bond)
+void CommTiled::forward_comm(Bond *bond, int size)
 {
-  int i,irecv,n,nsend,nrecv;
+  int i,irecv,n,nsize,nsend,nrecv;
 
-  int nsize = bond->comm_forward;
+  if (size) nsize = size;
+  else nsize = bond->comm_forward;
 
   for (int iswap = 0; iswap < nswap; iswap++) {
     nsend = nsendproc[iswap] - sendself[iswap];
@@ -1508,14 +1524,19 @@ void CommTiled::forward_comm(Bond *bond)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Bond
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_reverse from Bond
+   size > 0 -> Bond passes max size per atom
+   the latter is only useful if Bond does several comm modes,
+     some are smaller than max stored in its comm_reverse
 ------------------------------------------------------------------------- */
 
-void CommTiled::reverse_comm(Bond *bond)
+void CommTiled::reverse_comm(Bond *bond, int size)
 {
-  int i,irecv,n,nsend,nrecv;
+  int i,irecv,n,nsize,nsend,nrecv;
 
-  int nsize = MAX(bond->comm_reverse,bond->comm_reverse_off);
+  if (size) nsize = size;
+  else nsize = MAX(bond->comm_reverse,bond->comm_reverse_off);
 
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     nsend = nsendproc[iswap] - sendself[iswap];
@@ -1596,10 +1617,10 @@ void CommTiled::forward_comm(Fix *fix, int size)
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Fix
    size/nsize used only to set recv buffer limit
-   size = 0 (default) -> use comm_forward from Fix
+   size = 0 (default) -> use comm_reverse from Fix
    size > 0 -> Fix passes max size per atom
    the latter is only useful if Fix does several comm modes,
-     some are smaller than max stored in its comm_forward
+     some are smaller than max stored in its comm_reverse
 ------------------------------------------------------------------------- */
 
 void CommTiled::reverse_comm(Fix *fix, int size)
@@ -1652,14 +1673,19 @@ void CommTiled::reverse_comm_variable(Fix * /*fix*/)
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Compute
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_forward from Compute
+   size > 0 -> Compute passes max size per atom
+   the latter is only useful if Compute does several comm modes,
+     some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommTiled::forward_comm(Compute *compute)
+void CommTiled::forward_comm(Compute *compute, int size)
 {
-  int i,irecv,n,nsend,nrecv;
+  int i,irecv,n,nsize,nsend,nrecv;
 
-  int nsize = compute->comm_forward;
+  if (size) nsize = size;
+  else nsize = compute->comm_forward;
 
   for (int iswap = 0; iswap < nswap; iswap++) {
     nsend = nsendproc[iswap] - sendself[iswap];
@@ -1695,14 +1721,19 @@ void CommTiled::forward_comm(Compute *compute)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Compute
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_reverse from Compute
+   size > 0 -> Compute passes max size per atom
+   the latter is only useful if Compute does several comm modes,
+     some are smaller than max stored in its comm_reverse
 ------------------------------------------------------------------------- */
 
-void CommTiled::reverse_comm(Compute *compute)
+void CommTiled::reverse_comm(Compute *compute, int size)
 {
-  int i,irecv,n,nsend,nrecv;
+  int i,irecv,n,nsize,nsend,nrecv;
 
-  int nsize = compute->comm_reverse;
+  if (size) nsize = size;
+  else nsize = compute->comm_reverse;
 
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     nsend = nsendproc[iswap] - sendself[iswap];
@@ -1736,14 +1767,19 @@ void CommTiled::reverse_comm(Compute *compute)
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Dump
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_forward from Dump
+   size > 0 -> Dump passes max size per atom
+   the latter is only useful if Dump does several comm modes,
+     some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommTiled::forward_comm(Dump *dump)
+void CommTiled::forward_comm(Dump *dump, int size)
 {
-  int i,irecv,n,nsend,nrecv;
+  int i,irecv,n,nsize,nsend,nrecv;
 
-  int nsize = dump->comm_forward;
+  if (size) nsize = size;
+  else nsize = dump->comm_forward;
 
   for (int iswap = 0; iswap < nswap; iswap++) {
     nsend = nsendproc[iswap] - sendself[iswap];
@@ -1779,14 +1815,19 @@ void CommTiled::forward_comm(Dump *dump)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Dump
-   nsize used only to set recv buffer limit
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_reverse from Dump
+   size > 0 -> Dump passes max size per atom
+   the latter is only useful if Dump does several comm modes,
+     some are smaller than max stored in its comm_reverse
 ------------------------------------------------------------------------- */
 
-void CommTiled::reverse_comm(Dump *dump)
+void CommTiled::reverse_comm(Dump *dump, int size)
 {
-  int i,irecv,n,nsend,nrecv;
+  int i,irecv,n,nsize,nsend,nrecv;
 
-  int nsize = dump->comm_reverse;
+  if (size) nsize = size;
+  else nsize = dump->comm_reverse;
 
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     nsend = nsendproc[iswap] - sendself[iswap];
@@ -2466,7 +2507,8 @@ void CommTiled::deallocate_swap(int n)
     memory->destroy(sendbox_multi[i]);
     memory->destroy(sendbox_multiold[i]);
 
-    delete [] maxsendlist[i];
+    if (maxsendlist)
+      delete [] maxsendlist[i];
 
     if (sendlist && sendlist[i]) {
       for (int j = 0; j < nprocmax[i]; j++) memory->destroy(sendlist[i][j]);

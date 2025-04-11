@@ -63,6 +63,7 @@ Update::Update(LAMMPS *lmp) :
   restrict_output = 0;
   setupflag = 0;
   multireplica = 0;
+  nsteps = 0;
 
   eflag_global = vflag_global = -1;
   eflag_atom = vflag_atom = 0;
@@ -307,7 +308,7 @@ void Update::set_units(const char *style)
     neighbor->skin = 0.1;
 
   } else
-    error->all(FLERR, "Illegal units command");
+    error->all(FLERR, "Unknown units style {}", style);
 
   delete[] unit_style;
   unit_style = utils::strdup(style);
@@ -324,11 +325,12 @@ void Update::set_units(const char *style)
 
 void Update::create_integrate(int narg, char **arg, int trysuffix)
 {
-  if (narg < 1) error->all(FLERR, "Illegal run_style command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "run_style", error);
 
   delete[] integrate_style;
   delete integrate;
-  integrate_style = nullptr;
+  // temporarily assign the style name without suffix (for error messages during creation)
+  integrate_style = utils::strdup(arg[0]);
   integrate = nullptr;
 
   int sflag;
@@ -349,6 +351,7 @@ void Update::create_integrate(int narg, char **arg, int trysuffix)
     else if ((sflag == 3) && lmp->non_pair_suffix())
       estyle += lmp->non_pair_suffix();
   }
+  delete[] integrate_style;
   integrate_style = utils::strdup(estyle);
 }
 
@@ -387,22 +390,20 @@ void Update::new_integrate(char *style, int narg, char **arg, int trysuffix, int
     return;
   }
 
-  error->all(FLERR, "Illegal integrate style");
+  error->all(FLERR, "Unknown integrate style {}", style);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Update::create_minimize(int narg, char **arg, int trysuffix)
 {
-  if (narg < 1) error->all(FLERR, "Illegal minimize_style command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "minimize_style", error);
 
   delete[] minimize_style;
   delete minimize;
-  minimize_style = nullptr;
-  minimize = nullptr;
-
   // temporarily assign the style name without suffix (for error messages during creation)
-  minimize_style = arg[0];
+  minimize_style = utils::strdup(arg[0]);
+  minimize = nullptr;
 
   int sflag;
   new_minimize(arg[0], narg - 1, &arg[1], trysuffix, sflag);
@@ -417,6 +418,7 @@ void Update::create_minimize(int narg, char **arg, int trysuffix)
     else if ((sflag == 3) && lmp->non_pair_suffix())
       estyle += lmp->non_pair_suffix();
   }
+  delete[] minimize_style;
   minimize_style = utils::strdup(estyle);
 }
 
@@ -455,7 +457,7 @@ void Update::new_minimize(char *style, int /* narg */, char ** /* arg */, int tr
     return;
   }
 
-  error->all(FLERR, "Illegal minimize style");
+  error->all(FLERR, "Unknown minimize style {}", style);
 }
 
 /* ----------------------------------------------------------------------

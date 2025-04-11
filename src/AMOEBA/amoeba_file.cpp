@@ -149,8 +149,8 @@ void PairAmoeba::read_prmfile(char *filename)
           }
 
           // skip two lines following section head keyword
-          fgets(line, MAXLINE, fptr);
-          fgets(line, MAXLINE, fptr);
+          (void) fgets(line, MAXLINE, fptr);
+          (void) fgets(line, MAXLINE, fptr);
           nline += 2;
           break;
         }

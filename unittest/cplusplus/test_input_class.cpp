@@ -22,9 +22,9 @@ protected:
     LAMMPS *lmp;
     Input_commands()
     {
-        const char * args[] = {"LAMMPS_test", nullptr};
-        char ** argv = (char**)args;
-        int argc = 1;
+        const char *args[] = {"LAMMPS_test", nullptr};
+        char **argv        = (char **)args;
+        int argc           = 1;
 
         int flag;
         MPI_Initialized(&flag);

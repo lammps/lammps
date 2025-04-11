@@ -33,6 +33,7 @@ class FixUpdateSpecialBonds : public Fix {
   void setup(int) override;
   void pre_exchange() override;
   void pre_force(int) override;
+  void post_run() override;
   void add_broken_bond(int, int);
   void add_created_bond(int, int);
   void write_restart(FILE *) override;

@@ -217,7 +217,7 @@ void ImproperDistHarm::allocate()
 void ImproperDistHarm::coeff(int narg, char **arg)
 {
 //  if (which > 0) return;
-  if (narg != 3) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (narg != 3) error->all(FLERR,"Incorrect args for improper coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -226,18 +226,15 @@ void ImproperDistHarm::coeff(int narg, char **arg)
   double k_one = utils::numeric(FLERR,arg[1],false,lmp);
   double chi_one = utils::numeric(FLERR,arg[2],false,lmp);
 
-  // convert chi from degrees to radians
-
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
-    //chi[i] = chi_one/180.0 * PI;
     chi[i] = chi_one;
     setflag[i] = 1;
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -266,4 +263,16 @@ void ImproperDistHarm::read_restart(FILE *fp)
   MPI_Bcast(&chi[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
 
   for (int i = 1; i <= atom->nimpropertypes; i++) setflag[i] = 1;
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *ImproperDistHarm::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "d0") == 0) return (void *) chi;
+  return nullptr;
 }

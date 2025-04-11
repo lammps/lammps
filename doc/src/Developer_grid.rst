@@ -433,7 +433,7 @@ from owned to ghost cells, or ghost to owned cells, respectively, as
 described above.  The *caller* argument should be one of these values
 -- Grid3d::COMPUTE, Grid3d::FIX, Grid3d::KSPACE, Grid3d::PAIR --
 depending on the style of the caller class.  The *ptr* argument is the
-"this" pointer to the caller class.  These 2 arguments are used to
+"this" pointer to the caller class.  These two arguments are used to
 call back to pack()/unpack() functions in the caller class, as
 explained below.
 

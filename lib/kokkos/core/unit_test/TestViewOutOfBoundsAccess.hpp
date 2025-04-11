@@ -107,6 +107,7 @@ template <class ExecutionSpace>
 void test_view_out_of_bounds_access() {
   ExecutionSpace const exec_space{};
   // clang-format off
+  using V0 = Kokkos::View<int,         ExecutionSpace>;
   using V1 = Kokkos::View<int*,        ExecutionSpace>;
   using V2 = Kokkos::View<int**,       ExecutionSpace>;
   using V3 = Kokkos::View<int***,      ExecutionSpace>;
@@ -125,7 +126,8 @@ void test_view_out_of_bounds_access() {
   TestViewOutOfBoundAccess(make_view<V6>(lbl), exec_space, prefix + ".*" + lbl);
   TestViewOutOfBoundAccess(make_view<V7>(lbl), exec_space, prefix + ".*" + lbl);
   TestViewOutOfBoundAccess(make_view<V8>(lbl), exec_space, prefix + ".*" + lbl);
-  int* const ptr = nullptr;
+  V0 v0("v0");  // obtain a valid pointer for an allocation in the right space
+  int* const ptr = v0.data();  
   TestViewOutOfBoundAccess(make_view<V1>(ptr), exec_space, prefix + ".*UNMANAGED");
   TestViewOutOfBoundAccess(make_view<V2>(ptr), exec_space, prefix + ".*UNMANAGED");
   TestViewOutOfBoundAccess(make_view<V3>(ptr), exec_space, prefix + ".*UNMANAGED");
@@ -149,7 +151,7 @@ TEST(TEST_CATEGORY_DEATH, view_out_of_bounds_access) {
   }
 
 #if defined(KOKKOS_ENABLE_SYCL) && defined(NDEBUG)  // FIXME_SYCL
-  if (std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>) {
+  if (std::is_same_v<ExecutionSpace, Kokkos::SYCL>) {
     GTEST_SKIP() << "skipping SYCL device-side abort does not work when NDEBUG "
                     "is defined";
   }

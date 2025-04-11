@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Joel Clemmer (SNL)
+------------------------------------------------------------------------- */
+
 #include "bond_bpm_rotational.h"
 
 #include "atom.h"
@@ -51,6 +55,10 @@ BondBPMRotational::BondBPMRotational(LAMMPS *_lmp) :
   partial_flag = 1;
   smooth_flag = 1;
   normalize_flag = 0;
+  writedata = 0;
+
+  nhistory = 4;
+  id_fix_bond_history = utils::strdup("HISTORY_BPM_ROTATIONAL");
 
   single_extra = 7;
   svector = new double[7];
@@ -150,7 +158,7 @@ void BondBPMRotational::store_data()
       type = bond_type[i][m];
 
       //Skip if bond was turned off
-      if (type < 0) continue;
+      if (type <= 0) continue;
 
       // map to find index n for tag
       j = atom->map(atom->bond_atom[i][m]);
@@ -277,10 +285,8 @@ double BondBPMRotational::elastic_forces(int i1, int i2, int type, double r_mag,
 
   temp = sqrt(q21[0] * q21[0] + q21[3] * q21[3]);
   if (temp != 0.0) {
-    c = q21[0] / temp;
-    psi = 2.0 * acos_limit(c);
+    psi = 2.0 * acos_limit(q21[0] / temp);
   } else {
-    c = 0.0;
     psi = 0.0;
   }
 
@@ -293,7 +299,7 @@ double BondBPMRotational::elastic_forces(int i1, int i2, int type, double r_mag,
   c = q21[0] * q21[0] - q21[1] * q21[1] - q21[2] * q21[2] + q21[3] * q21[3];
   theta = acos_limit(c);
 
-  // Separately calculte magnitude of quaternion in x-y and out of x-y planes
+  // Separately calculate magnitude of quaternion in x-y and out of x-y planes
   // to avoid dividing by zero
   mag_out_plane = (q21[0] * q21[0] + q21[3] * q21[3]);
   mag_in_plane = (q21[1] * q21[1] + q21[2] * q21[2]);
@@ -452,11 +458,12 @@ void BondBPMRotational::damping_forces(int i1, int i2, int type, double *rhat, d
 
 void BondBPMRotational::compute(int eflag, int vflag)
 {
-
   if (!fix_bond_history->stored_flag) {
     fix_bond_history->stored_flag = true;
     store_data();
   }
+
+  if (hybrid_flag) fix_bond_history->compress_history();
 
   int i1, i2, itmp, n, type;
   double r[3], r0[3], rhat[3];
@@ -520,7 +527,7 @@ void BondBPMRotational::compute(int eflag, int vflag)
     breaking = elastic_forces(i1, i2, type, r_mag, r0_mag, r_mag_inv, rhat, r, r0, force1on2,
                               torque1on2, torque2on1);
 
-    if (breaking >= 1.0) {
+    if ((breaking >= 1.0) && break_flag) {
       bondlist[n][2] = 0;
       process_broken(i1, i2);
       continue;
@@ -539,30 +546,36 @@ void BondBPMRotational::compute(int eflag, int vflag)
     //  Apply forces and torques to particles
     // ------------------------------------------------------//
 
-    if (newton_bond || i1 < nlocal) {
-      f[i1][0] -= force1on2[0] * smooth;
-      f[i1][1] -= force1on2[1] * smooth;
-      f[i1][2] -= force1on2[2] * smooth;
+    MathExtra::scale3(smooth, force1on2);
 
-      torque[i1][0] += torque2on1[0] * smooth;
-      torque[i1][1] += torque2on1[1] * smooth;
-      torque[i1][2] += torque2on1[2] * smooth;
+    if (newton_bond || i1 < nlocal) {
+      f[i1][0] -= force1on2[0];
+      f[i1][1] -= force1on2[1];
+      f[i1][2] -= force1on2[2];
+
+      MathExtra::scale3(smooth, torque2on1);
+      torque[i1][0] += torque2on1[0];
+      torque[i1][1] += torque2on1[1];
+      torque[i1][2] += torque2on1[2];
     }
 
     if (newton_bond || i2 < nlocal) {
-      f[i2][0] += force1on2[0] * smooth;
-      f[i2][1] += force1on2[1] * smooth;
-      f[i2][2] += force1on2[2] * smooth;
+      f[i2][0] += force1on2[0];
+      f[i2][1] += force1on2[1];
+      f[i2][2] += force1on2[2];
 
-      torque[i2][0] += torque1on2[0] * smooth;
-      torque[i2][1] += torque1on2[1] * smooth;
-      torque[i2][2] += torque1on2[2] * smooth;
+      MathExtra::scale3(smooth, torque1on2);
+      torque[i2][0] += torque1on2[0];
+      torque[i2][1] += torque1on2[1];
+      torque[i2][2] += torque1on2[2];
     }
 
     if (evflag)
-      ev_tally_xyz(i1, i2, nlocal, newton_bond, 0.0, -force1on2[0] * smooth, -force1on2[1] * smooth,
-                   -force1on2[2] * smooth, r[0], r[1], r[2]);
+      ev_tally_xyz(i1, i2, nlocal, newton_bond, 0.0, -force1on2[0], -force1on2[1],
+                   -force1on2[2], r[0], r[1], r[2]);
   }
+
+  if (hybrid_flag) fix_bond_history->uncompress_history();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -595,7 +608,7 @@ void BondBPMRotational::allocate()
 
 void BondBPMRotational::coeff(int narg, char **arg)
 {
-  if (narg != 13) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (narg != 13) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -634,7 +647,7 @@ void BondBPMRotational::coeff(int narg, char **arg)
     if (Fcr[i] / Kr[i] > max_stretch) max_stretch = Fcr[i] / Kr[i];
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -652,14 +665,6 @@ void BondBPMRotational::init_style()
 
   if (domain->dimension == 2)
     error->warning(FLERR, "Bond style bpm/rotational not intended for 2d use");
-
-  if (!id_fix_bond_history) {
-    id_fix_bond_history = utils::strdup("HISTORY_BPM_ROTATIONAL");
-    fix_bond_history = dynamic_cast<FixBondHistory *>(modify->replace_fix(
-        id_fix_dummy2, fmt::format("{} all BOND_HISTORY 0 4", id_fix_bond_history), 1));
-    delete[] id_fix_dummy2;
-    id_fix_dummy2 = nullptr;
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -683,6 +688,9 @@ void BondBPMRotational::settings(int narg, char **arg)
       error->all(FLERR, "Illegal bond bpm command, invalid argument {}", arg[iarg]);
     }
   }
+
+  if (smooth_flag && !break_flag)
+    error->all(FLERR, "Illegal bond bpm command, must turn off smoothing with break no option");
 }
 
 /* ----------------------------------------------------------------------
@@ -771,7 +779,6 @@ void BondBPMRotational::read_restart_settings(FILE *fp)
 
 double BondBPMRotational::single(int type, double rsq, int i, int j, double &fforce)
 {
-  // Not yet enabled
   if (type <= 0) return 0.0;
 
   int flipped = 0;
@@ -817,21 +824,22 @@ double BondBPMRotational::single(int type, double rsq, int i, int j, double &ffo
 
   // set single_extra quantities
 
+  MathExtra::scale3(smooth, force1on2);
   svector[0] = r0_mag;
   if (flipped) {
     svector[1] = -r0[0];
     svector[2] = -r0[1];
     svector[3] = -r0[2];
-    svector[4] = force1on2[0] * smooth;
-    svector[5] = force1on2[1] * smooth;
-    svector[6] = force1on2[2] * smooth;
+    svector[4] = force1on2[0];
+    svector[5] = force1on2[1];
+    svector[6] = force1on2[2];
   } else {
     svector[1] = r0[0];
     svector[2] = r0[1];
     svector[3] = r0[2];
-    svector[4] = -force1on2[0] * smooth;
-    svector[5] = -force1on2[1] * smooth;
-    svector[6] = -force1on2[2] * smooth;
+    svector[4] = -force1on2[0];
+    svector[5] = -force1on2[1];
+    svector[6] = -force1on2[2];
   }
 
   return 0.0;

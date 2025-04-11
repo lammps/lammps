@@ -1,3 +1,5 @@
+# FindVTK requires that C support is enabled when looking for MPI support
+enable_language(C)
 find_package(VTK REQUIRED NO_MODULE)
 target_compile_definitions(lammps PRIVATE -DLAMMPS_VTK)
 if (VTK_MAJOR_VERSION VERSION_LESS 9.0)

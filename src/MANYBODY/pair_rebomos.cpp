@@ -33,6 +33,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "math_special.h"
 #include "memory.h"
 #include "my_page.h"
@@ -154,12 +155,12 @@ void PairREBOMoS::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   // read args that map atom types to Mo and S
   // map[i] = which element (0,1) the Ith atom type is, -1 if NULL
@@ -174,7 +175,7 @@ void PairREBOMoS::coeff(int narg, char **arg)
       map[i-2] = 0;
     } else if (strcmp(arg[i],"S") == 0) {
       map[i-2] = 1;
-    } else error->all(FLERR,"Incorrect args for pair coefficients");
+    } else error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   }
 
   // read potential file and initialize fitting splines
@@ -198,7 +199,7 @@ void PairREBOMoS::coeff(int narg, char **arg)
         count++;
       }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -242,7 +243,9 @@ void PairREBOMoS::init_style()
 
 double PairREBOMoS::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
 
   // convert to Mo,S types
 

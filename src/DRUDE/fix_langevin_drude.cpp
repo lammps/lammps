@@ -108,9 +108,9 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
 FixLangevinDrude::~FixLangevinDrude()
 {
   delete random_core;
-  delete [] tstr_core;
+  delete[] tstr_core;
   delete random_drude;
-  delete [] tstr_drude;
+  delete[] tstr_drude;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -144,22 +144,22 @@ void FixLangevinDrude::init()
     else error->all(FLERR,"Variable for fix langevin/drude is invalid style");
   }
 
-  int ifix;
-  for (ifix = 0; ifix < modify->nfix; ifix++)
-    if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
-  if (ifix == modify->nfix) error->all(FLERR, "fix langevin/drude requires fix drude");
-  fix_drude = dynamic_cast<FixDrude *>(modify->fix[ifix]);
+  auto fdrude = modify->get_fix_by_style("^drude$");
+  if (fdrude.size() < 1) error->all(FLERR, "Fix {} requires fix drude", style);
+  if (fdrude.size() > 1) error->all(FLERR, "There must be only one fix drude");
+  fix_drude = dynamic_cast<FixDrude *>(fdrude[0]);
+  if (!fix_drude) error->all(FLERR, "Fix {} requires fix drude", style);
+
+  if (!utils::strmatch(update->integrate_style,"^verlet"))
+    error->all(FLERR,"Run style respa is not compatible with fix langevin/drude");
+  if (!comm->ghost_velocity)
+    error->all(FLERR,"fix langevin/drude requires ghost velocities. Use comm_modify vel yes");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixLangevinDrude::setup(int /*vflag*/)
 {
-  if (!utils::strmatch(update->integrate_style,"^verlet"))
-    error->all(FLERR,"RESPA style not compatible with fix langevin/drude");
-  if (!comm->ghost_velocity)
-    error->all(FLERR,"fix langevin/drude requires ghost velocities. Use comm_modify vel yes");
-
   if (zero) {
       int *mask = atom->mask;
       int nlocal = atom->nlocal;

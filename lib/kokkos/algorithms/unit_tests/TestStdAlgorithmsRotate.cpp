@@ -117,7 +117,7 @@ void fill_view(ViewType dest_view, const std::string& name) {
   }
 
   else {
-    throw std::runtime_error("invalid choice");
+    FAIL() << "invalid choice";
   }
 
   Kokkos::deep_copy(aux_view, v_h);
@@ -196,7 +196,7 @@ void run_single_scenario(const InfoType& scenario_info,
     // create host copy BEFORE rotate or view will be modified
     auto view_h = create_host_space_copy(view);
     auto rit    = KE::rotate(exespace(), view, rotation_point);
-    // verify_data(rit, view, view_h, rotation_point);
+    verify_data(rit, view, view_h, rotation_point);
   }
 
   {

@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondHarmonicRestrain::BondHarmonicRestrain(LAMMPS *_lmp) : Bond(_lmp), initial(nullptr)
+BondHarmonicRestrain::BondHarmonicRestrain(LAMMPS *_lmp) : Bond(_lmp), k(nullptr), initial(nullptr)
 {
   writedata = 0;
   natoms = -1;
@@ -133,7 +133,7 @@ void BondHarmonicRestrain::allocate()
 
 void BondHarmonicRestrain::coeff(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (narg != 2) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -148,7 +148,7 @@ void BondHarmonicRestrain::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

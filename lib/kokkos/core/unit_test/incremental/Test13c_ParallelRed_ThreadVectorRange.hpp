@@ -48,7 +48,7 @@ struct Hierarchical_Red_C {
                 Kokkos::parallel_reduce(
                     Kokkos::ThreadVectorRange(team, sY),
                     [=](const int k, int &tmp_inner) {
-                      tmp_inner += n * sX * v.extent(0) + sX * i + k;
+                      tmp_inner += n * sX * v.extent_int(0) + sX * i + k;
                     },
                     out_inner);
 

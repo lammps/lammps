@@ -187,15 +187,15 @@ void FixNVTManifoldRattle::init()
   // Makes sure the manifold params are set initially.
   update_var_params();
 
-  int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) {
-    error->all(FLERR,"Temperature ID for fix nvt/manifold/rattle "
-               "does not exist");
+  temperature = modify->get_compute_by_id(id_temp);
+  if (!temperature) {
+    error->all(FLERR,"Temperature compute ID {} for fix {} does not exist", id_temp, style);
+  } else {
+    if (temperature->tempflag == 0)
+      error->all(FLERR, "Compute ID {} for fix {} does not compute a temperature", id_temp, style);
+    if (temperature->tempbias) which = BIAS;
+    else which = NOBIAS;
   }
-  temperature = modify->compute[icompute];
-  if (temperature->tempbias) which = BIAS;
-  else                        which = NOBIAS;
-
 }
 
 void FixNVTManifoldRattle::setup(int /*vflag*/)

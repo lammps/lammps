@@ -221,8 +221,12 @@ void FixRigidNHSmall::init()
 
   if (tcomputeflag) {
     temperature = modify->get_compute_by_id(id_temp);
-    if (!temperature)
-      error->all(FLERR,"Temperature ID {} for fix {} does not exist", id_temp, style);
+    if (!temperature) {
+      error->all(FLERR,"Temperature compute ID {} for fix {} does not exist", id_temp, style);
+    } else {
+      if (temperature->tempflag == 0)
+        error->all(FLERR, "Compute ID {} for fix {} does not compute a temperature", id_temp, style);
+    }
   }
 
   if (pstat_flag) {
@@ -237,7 +241,8 @@ void FixRigidNHSmall::init()
         int *dimflag = deform->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]))
-          error->all(FLERR,"Cannot use fix {} and fix deform on same component of stress tensor", style);
+          error->all(FLERR,"Cannot use fix {} and fix deform on same component of stress tensor",
+                     style);
       }
     }
 
@@ -259,7 +264,12 @@ void FixRigidNHSmall::init()
     // set pressure compute ptr
 
     pressure = modify->get_compute_by_id(id_press);
-    if (!pressure) error->all(FLERR,"Pressure ID {} for fix {} does not exist", id_press, style);
+    if (!pressure) {
+      error->all(FLERR,"Pressure compute ID {} for fix {} does not exist", id_press, style);
+    } else {
+      if (pressure->pressflag == 0)
+        error->all(FLERR,"Compute ID {} for fix {} does not compute pressure", id_press, style);
+    }
 
     // detect if any rigid fixes exist so rigid bodies move on remap
     // this will include self

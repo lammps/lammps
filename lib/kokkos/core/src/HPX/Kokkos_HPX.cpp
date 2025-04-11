@@ -153,7 +153,7 @@ void HPX::impl_instance_fence_locked(const std::string &name) const {
         auto &s = impl_get_sender();
 
         hpx::this_thread::experimental::sync_wait(std::move(s));
-        s = hpx::execution::experimental::unique_any_sender(
+        s = hpx::execution::experimental::unique_any_sender<>(
             hpx::execution::experimental::just());
       });
 }
@@ -184,7 +184,7 @@ void HPX::impl_static_fence(const std::string &name) {
         }
 
         hpx::this_thread::experimental::sync_wait(std::move(s));
-        s = hpx::execution::experimental::unique_any_sender(
+        s = hpx::execution::experimental::unique_any_sender<>(
             hpx::execution::experimental::just());
       });
 }

@@ -1,0 +1,820 @@
+%%
+%% This is file `pict2e.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% pict2e.dtx  (with options: `package')
+%% 
+%% Copyright (C) 2003-2016
+%% Rolf Niepraschk, Rolf.Niepraschk@gmx.de
+%% Hubert Gaesslein,
+%% Josef Tkadlec, j.tkadlec@email.cz
+%% 
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   http://www.latex-project.org/lppl.txt
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 2003/12/01 or later.
+%% 
+%% This work has the LPPL maintenance status "author-maintained".
+%% 
+%% This work consists of all files listed in `manifest.txt'.
+%% 
+\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+\ProvidesPackage{pict2e}[2020/09/30 v0.4b Improved picture commands (HjG,RN,JT)]
+\edef\Gin@codes{%
+ \catcode`\noexpand\^^A\the\catcode`\^^A\relax
+ \catcode`\noexpand\"\the\catcode`\"\relax
+ \catcode`\noexpand\!\the\catcode`\!\relax
+ \catcode`\noexpand\:\the\catcode`\:\relax}
+\catcode`\^^A=\catcode`\%
+\@makeother\"%
+\@makeother\!%
+\@makeother\:%
+\def\@defaultunitsset#1#2#3{%
+  \@defaultunits#1\dimexpr#2#3\relax\relax\@nnil}
+\newcommand*\pIIe@mode{-1}
+\newcommand*\pIIe@code[1]{}
+\providecommand*\Gin@driver{}
+\newcommand*\pIIe@tempa{}
+\newcommand*\pIIe@tempb{}
+\newcommand*\pIIe@tempc{}
+\DeclareOption{dvips}{\def\Gin@driver{dvips.def}}
+\DeclareOption{xdvi}{\ExecuteOptions{dvips}}
+\DeclareOption{dvipdf}{\def\Gin@driver{dvipdf.def}}
+\DeclareOption{dvipdfm}{\def\Gin@driver{dvipdfm.def}}
+\DeclareOption{dvipdfmx}{\def\Gin@driver{dvipdfmx.def}}
+\DeclareOption{pdftex}{\def\Gin@driver{pdftex.def}}
+\DeclareOption{luatex}{\def\Gin@driver{luatex.def}}
+\DeclareOption{xetex}{\def\Gin@driver{xetex.def}}
+\DeclareOption{dvipsone}{\def\Gin@driver{dvipsone.def}}
+\DeclareOption{dviwindo}{\ExecuteOptions{dvipsone}}
+\DeclareOption{oztex}{\ExecuteOptions{dvips}}
+\DeclareOption{textures}{\def\Gin@driver{textures.def}}
+\DeclareOption{pctexps}{\def\Gin@driver{pctexps.def}}
+\DeclareOption{pctex32}{\def\Gin@driver{pctex32.def}}
+\DeclareOption{vtex}{\def\Gin@driver{vtex.def}}
+\DeclareOption{original}{\def\pIIe@mode{0}}
+\newif\ifpIIe@pdfliteral@ok
+\pIIe@pdfliteral@oktrue
+\ifx\pIIe@pdfliteral\@undefined
+  \ifx\pdfliteral\@undefined
+    \pIIe@pdfliteral@okfalse
+    \def\pIIe@pdfliteral#1{%
+      \PackageWarning{pict2e}{pdfliteral not supported}%
+    }%
+  \else
+    \let\pIIe@pdfliteral\pdfliteral
+  \fi
+\fi
+\def\pIIe@buttcap{%
+  \ifpIIe@pdfliteral@ok
+    \buttcap
+  \fi
+}
+\newcommand*\pIIe@FAL{1.52}%
+\newcommand*\pIIe@FAW{3.2}%
+\newcommand*\pIIe@CAW{1.5pt}%
+\newcommand*\pIIe@FAI{0.25}%
+\newcommand*\ltxarrows{%
+  \let\pIIe@vector=\pIIe@vector@ltx
+}
+\newcommand*\pstarrows{%
+  \let\pIIe@vector=\pIIe@vector@pst
+}
+\DeclareOption{ltxarrows}{\AtEndOfPackage{\ltxarrows}}
+\DeclareOption{pstarrows}{\AtEndOfPackage{\pstarrows}}
+\newcommand*\pIIe@debug@comment{}
+\DeclareOption{debug}{%
+  \def\pIIe@debug@comment{^^J^^J\@percentchar\space >>> pict2e <<<^^J}%
+  \begingroup
+    \@ifundefined{pdfcompresslevel}{}{\global\pdfcompresslevel\z@}%
+  \endgroup}
+\DeclareOption{hide}{\AtEndOfPackage{%
+  \let\pIIe@code\@gobble
+}}
+\DeclareOption*{\ExecuteOptions{original}}
+\ExecuteOptions{ltxarrows}
+\InputIfFileExists{pict2e.cfg}{}{}
+\ProcessOptions\relax
+\ifnum\pIIe@mode=\z@
+  \PackageInfo{pict2e}{Package option `original' requested}
+\else
+  \if!\Gin@driver!
+    \PackageError{pict2e}
+      {No driver specified at all}
+      {You should make a default driver option in a file\MessageBreak
+       pict2e.cfg\MessageBreak eg: \protect\ExecuteOptions{dvips}}%
+  \else
+    \PackageInfo{pict2e}{Driver file: \Gin@driver}
+    \@ifundefined{ver@\Gin@driver}{\input{\Gin@driver}}{}
+    \PackageInfo{pict2e}{Driver file for pict2e: p2e-\Gin@driver}
+    \InputIfFileExists{p2e-\Gin@driver}{}{%
+      \PackageError{pict2e}%
+        {Driver file ``p2e-\Gin@driver'' not found}%
+        {Q: Is the file properly installed? A: No!}}
+  \fi
+\fi
+\ifnum\pIIe@mode>\z@
+  \ifnum\pIIe@mode<\thr@@
+    \RequirePackage{trig}
+    \let\pIIe@oldline\line
+    \let\pIIe@old@sline\@sline
+    \let\pIIe@oldvector\vector
+    \let\pIIe@old@circle\@circle
+    \let\pIIe@old@dot\@dot
+    \let\pIIe@old@bezier\@bezier
+    \AtBeginDocument{%
+      \@ifundefined{@cbezier}{%
+        \def\pIIe@old@cbezier[#1](#2,#3)(#4,#5)(#6,#7)(#8,#9){}%
+        }{\let\pIIe@old@cbezier\@cbezier}}
+    \let\pIIe@oldoval\oval
+    \let\pIIe@old@oval\@oval
+    \newcommand*\OriginalPictureCmds{%
+      \let\@sline\pIIe@old@sline
+      \let\line\pIIe@oldline
+      \let\vector\pIIe@oldvector
+      \let\@circle\pIIe@old@circle
+      \let\@dot\pIIe@old@dot
+      \let\@bezier\pIIe@old@bezier
+      \let\@cbezier\pIIe@old@cbezier
+      \renewcommand*\oval[1][]{\pIIe@oldoval}%
+      \let\@oval\pIIe@old@oval
+    }
+  \else
+    \PackageError{pict2e}
+      {Unsupported mode (\pIIe@mode) specified}
+      {The driver you specified requested a mode\MessageBreak
+       not supported by this version of this package}
+  \fi
+\else
+  \ifnum\pIIe@mode<\z@
+    \PackageError{pict2e}
+      {No suitable driver specified}
+      {You should make a default driver option in a file\MessageBreak
+       pict2e.cfg\MessageBreak eg: \protect\ExecuteOptions{dvips}}
+  \fi
+\fi
+\ifnum\pIIe@mode>\z@
+  \ifcase\pIIe@mode\relax
+  \or
+    \newcommand*\pIIe@moveto@op{moveto}
+    \newcommand*\pIIe@lineto@op{lineto}
+    \newcommand*\pIIe@setlinewidth@op{setlinewidth}
+    \newcommand*\pIIe@stroke@op{stroke}
+    \newcommand*\pIIe@fill@op{fill}
+    \newcommand*\pIIe@curveto@op{curveto}
+    \newcommand*\pIIe@concat@op{concat}
+    \newcommand*\pIIe@closepath@op{closepath}
+  \or
+    \newcommand*\pIIe@moveto@op{m}
+    \newcommand*\pIIe@lineto@op{l}
+    \newcommand*\pIIe@setlinewidth@op{w}
+    \newcommand*\pIIe@stroke@op{S}
+    \newcommand*\pIIe@fill@op{f}
+    \newcommand*\pIIe@curveto@op{c}
+    \newcommand*\pIIe@concat@op{cm}
+    \newcommand*\pIIe@closepath@op{h}
+  \fi
+  \@ifdefinable\pIIe@GRAPH{\newtoks\pIIe@GRAPH}
+  \newcommand*\pIIe@addtoGraph[1]{%
+    \begingroup
+      \edef\x{\the\pIIe@GRAPH\space#1}%
+      \global\pIIe@GRAPH\expandafter{\x}%
+    \endgroup}
+  \newcommand*\pIIe@fillGraph{\begingroup \@tempswatrue\pIIe@drawGraph}
+  \newcommand*\pIIe@strokeGraph{\begingroup \@tempswafalse\pIIe@drawGraph}
+  \newcommand*\pIIe@drawGraph{%
+      \edef\x{\pIIe@debug@comment\space
+              \pIIe@scale@PTtoBP}%
+      \if@tempswa
+        \edef\y{\pIIe@fill@op}%
+      \else
+        \edef\x{\x\space
+          \strip@pt\@wholewidth\space\pIIe@setlinewidth@op
+          \pIIe@linecap\pIIe@linejoin\space}%
+        \edef\y{\pIIe@stroke@op}%
+      \fi
+      \expandafter\pIIe@code\expandafter{%
+        \expandafter\x\the\pIIe@GRAPH\space\y}%
+      \global\pIIe@GRAPH{}\xdef\pIIe@CPx{}\xdef\pIIe@CPy{}%
+    \endgroup}
+  \newcommand*\pIIe@CPx{} \newcommand*\pIIe@CPy{}
+  \newcommand*\pIIe@add@CP[2]{%
+    \begingroup
+      \@tempdima#1\xdef\pIIe@CPx{\the\@tempdima}%
+      \@tempdimb#2\xdef\pIIe@CPy{\the\@tempdimb}%
+      \pIIe@addtoGraph{\strip@pt\@tempdima\space\strip@pt\@tempdimb}%
+    \endgroup}
+  \newcommand*\pIIe@add@nums[2]{%
+    \begingroup
+      \@tempdima#1\relax
+      \@tempdimb#2\relax
+      \pIIe@addtoGraph{\strip@pt\@tempdima\space\strip@pt\@tempdimb}%
+    \endgroup}
+  \newcommand*\pIIe@add@num[1]{%
+    \begingroup
+      \@tempdima#1\relax
+      \pIIe@addtoGraph{\strip@pt\@tempdima}%
+    \endgroup}
+  \newcommand*\pIIe@PTtoBP{0.99626401 }
+  \ifcase\pIIe@mode\relax
+  \or
+    \newcommand*\pIIe@concat[6]{%
+      \begingroup
+        \pIIe@addtoGraph{[}%
+        \@tempdima#1\relax \@tempdimb#2\relax
+        \pIIe@add@nums\@tempdima\@tempdimb
+        \@tempdima#3\relax \@tempdimb#4\relax
+        \pIIe@add@nums\@tempdima\@tempdimb
+        \@tempdima#5\relax \@tempdimb#6\relax
+        \pIIe@add@nums\@tempdima\@tempdimb
+        \pIIe@addtoGraph{] \pIIe@concat@op}%
+      \endgroup}
+    \newcommand*\pIIe@translate[2]{\pIIe@add@nums{#1}{#2}\pIIe@addtoGraph{translate}}
+    \newcommand*\pIIe@rotate[1]{\pIIe@add@num{#1}\pIIe@addtoGraph{rotate}}
+    \newcommand*\pIIe@scale[2]{\pIIe@add@nums{#1}{#2}\pIIe@addtoGraph{scale}}
+    \newcommand*\pIIe@scale@PTtoBP{\pIIe@PTtoBP \pIIe@PTtoBP scale}
+  \or
+    \newcommand*\pIIe@concat[6]{%
+      \begingroup
+        \@tempdima#1\relax \@tempdimb#2\relax
+        \pIIe@add@nums\@tempdima\@tempdimb
+        \@tempdima#3\relax \@tempdimb#4\relax
+        \pIIe@add@nums\@tempdima\@tempdimb
+        \@tempdima#5\relax \@tempdimb#6\relax
+        \pIIe@add@nums\@tempdima\@tempdimb
+        \pIIe@addtoGraph\pIIe@concat@op
+      \endgroup}
+    \newcommand*\pIIe@translate[2]{\pIIe@concat\p@\z@\z@\p@{#1}{#2}}
+    \newcommand*\pIIe@rotate[1]{%
+      \begingroup
+        \@tempdima#1\relax
+        \edef\pIIe@tempa{\strip@pt\@tempdima}%
+        \CalculateSin\pIIe@tempa
+        \CalculateCos\pIIe@tempa
+        \edef\pIIe@tempb{\UseSin\pIIe@tempa}%
+        \edef\pIIe@tempc{\UseCos\pIIe@tempa}%
+        \pIIe@concat{\pIIe@tempc\p@}{\pIIe@tempb\p@}%
+          {-\pIIe@tempb\p@}{\pIIe@tempc\p@}\z@\z@
+      \endgroup}
+    \newcommand*\pIIe@scale[2]{\pIIe@concat{#1}\z@\z@{#2}\z@\z@}
+    \newcommand*\pIIe@scale@PTtoBP{\pIIe@PTtoBP 0 0 \pIIe@PTtoBP 0 0 \pIIe@concat@op}
+  \fi
+  \newcommand*\pIIe@moveto[2]{%
+    \pIIe@add@CP{#1}{#2}\pIIe@addtoGraph\pIIe@moveto@op}
+  \newcommand*\pIIe@lineto[2]{%
+    \pIIe@add@CP{#1}{#2}\pIIe@addtoGraph\pIIe@lineto@op}
+  \ifcase\pIIe@mode\relax
+  \or
+    \newcommand*\pIIe@rcurveto[6]{%
+      \begingroup
+        \@tempdima#1\relax \@tempdimb#2\relax
+        \pIIe@add@nums\@tempdima\@tempdimb
+        \@tempdima#3\relax \@tempdimb#4\relax
+        \pIIe@add@nums\@tempdima\@tempdimb
+        \@tempdima#5\relax \@tempdimb#6\relax
+        \pIIe@add@CP\@tempdima\@tempdimb
+        \pIIe@addtoGraph{rcurveto}%
+      \endgroup}
+  \or
+    \newcommand*\pIIe@rcurveto[6]{%
+      \begingroup
+        \@tempdima#1\advance\@tempdima\pIIe@CPx\relax
+        \@tempdimb#2\advance\@tempdimb\pIIe@CPy\relax
+        \pIIe@add@nums\@tempdima\@tempdimb
+        \@tempdima#3\advance\@tempdima\pIIe@CPx\relax
+        \@tempdimb#4\advance\@tempdimb\pIIe@CPy\relax
+        \pIIe@add@nums\@tempdima\@tempdimb
+        \@tempdima#5\advance\@tempdima\pIIe@CPx\relax
+        \@tempdimb#6\advance\@tempdimb\pIIe@CPy\relax
+        \pIIe@add@CP\@tempdima\@tempdimb
+        \pIIe@addtoGraph\pIIe@curveto@op
+      \endgroup}
+  \fi
+  \newcommand*\pIIe@curveto[6]{%
+    \begingroup
+      \@tempdima#1\relax \@tempdimb#2\relax
+      \pIIe@add@nums\@tempdima\@tempdimb
+      \@tempdima#3\relax \@tempdimb#4\relax
+      \pIIe@add@nums\@tempdima\@tempdimb
+      \@tempdima#5\relax \@tempdimb#6\relax
+      \pIIe@add@CP\@tempdima\@tempdimb
+      \pIIe@addtoGraph\pIIe@curveto@op
+    \endgroup}
+  \newcommand*\pIIe@closepath{\pIIe@addtoGraph\pIIe@closepath@op}
+  \newcommand*\pIIe@pyth[3]{%
+    \begingroup
+      \@tempdima=#1\relax
+      \ifnum\@tempdima<\z@\@tempdima=-\@tempdima\fi
+      \@tempdimb=#2\relax
+      \ifnum\@tempdimb<\z@\@tempdimb=-\@tempdimb\fi
+      \advance\@tempdimb\@tempdima
+      \ifnum\@tempdimb=\z@
+        \@tempdimc=\z@
+      \else
+        \multiply\@tempdima 8\relax
+        \pIIe@divide\@tempdima\@tempdimb\@tempdimc
+        \advance\@tempdimc -4pt
+        \multiply\@tempdimc 2
+        \edef\pIIe@tempa{\strip@pt\@tempdimc}%
+        \@tempdima=\pIIe@tempa\@tempdimc
+        \advance\@tempdima 64pt
+        \divide\@tempdima 2\relax
+        \@dashdim=7pt
+        \pIIe@@pyth\pIIe@@pyth\pIIe@@pyth
+        \edef\pIIe@tempa{\strip@pt\@dashdim}%
+        \@tempdimc=\pIIe@tempa\@tempdimb
+        \global\divide\@tempdimc 8
+      \fi
+      \edef\x{\endgroup#3=\the\@tempdimc}%
+    \x}
+  \newcommand*\pIIe@@pyth{%
+    \pIIe@divide\@tempdima\@dashdim\@tempdimc
+    \advance\@dashdim\@tempdimc
+    \divide\@dashdim\tw@}
+  \newcommand*\pIIe@divide[3]{%
+    \begingroup
+    \dimendef\Numer=254\relax \dimendef\Denom=252\relax
+    \countdef\Num=254\relax   \countdef\Den=252\relax
+    \countdef\I=250\relax     \countdef\Numb=248\relax
+    \Numer #1\relax \Denom #2\relax
+    \ifdim\Denom<\z@ \Denom -\Denom \Numer=-\Numer \fi
+    \ifdim\Numer<\z@ \def\sign{-}\Numer=-\Numer \else \def\sign{}\fi
+    \ifdim\Denom=\z@
+      \edef\Q{\strip@pt\maxdimen}%
+      \PackageWarning{pict2e}%
+        {Division by 0, \sign\strip@pt\maxdimen\space used}{}%
+    \else
+      \Num=\Numer \Den=\Denom
+      \Numb=\Num \divide\Numb\Den
+      \ifnum\Numb>16383
+        \edef\Q{\strip@pt\maxdimen}%
+        \PackageWarning{pict2e}%
+          {Division overflow, \sign\strip@pt\maxdimen\space used}{}%
+      \else
+        \edef\Q{\number\Numb.}%
+        \multiply \Numb\Den \advance\Num -\Numb
+        \I=6\relax
+        \@whilenum \I>\z@ \do{\pIIe@@divide\advance\I\m@ne}%
+      \fi
+    \fi
+    \edef\tempend{\noexpand\endgroup\noexpand#3=\sign\Q\p@}%
+    \tempend}
+  \def\pIIe@@divide{%
+    \@whilenum \Num>214748364 \do{\divide\Num\tw@ \divide\Den\tw@}%
+    \multiply \Num 10
+    \Numb=\Num \divide\Numb\Den
+    \edef\Q{\Q\number\Numb}%
+    \multiply \Numb\Den \advance \Num -\Numb
+    \ifnum\Num>\z@\else\I=0\fi}
+  \newcommand*\pIIe@checkslopeargsline[2]{%
+    \pIIe@checkslopeargs{#1}{#2}{16383}}
+  \newcommand*\pIIe@checkslopeargsvector[2]{%
+    \pIIe@checkslopeargs{#1}{#2}{1000}}
+  \newcommand*\pIIe@checkslopeargs[3]{%
+    \edef\@tempa{#1}\expandafter\pIIe@checkslopearg\@tempa.:{#3}%
+    \edef\@tempa{#2}\expandafter\pIIe@checkslopearg\@tempa.:{#3}%
+    \ifdim #1\p@=\z@ \ifdim #2\p@=\z@ \@badlinearg \fi\fi}
+  \def\pIIe@checkslopearg #1.#2:#3{%
+    \def\@tempa{#1}%
+    \ifx\@tempa\empty\def\@tempa{0}\fi
+    \ifx\@tempa\space\def\@tempa{0}\fi
+    \ifnum\ifnum\@tempa<\z@-\fi\@tempa>#3 \@badlinearg \fi}
+  \def\@badlinearg{\PackageError
+    {pict2e}{Bad \protect\line\space or \protect\vector\space argument}{}}
+  \def\line(#1,#2)#3{%
+    \begingroup
+    \pIIe@checkslopeargsline{#1}{#2}%
+    \@tempdima=#1pt\relax \@tempdimb=#2pt\relax
+    \@defaultunitsset\@linelen{#3}\unitlength
+    \ifdim\@linelen<\z@ \@badlinearg \else
+      \pIIe@sline
+      \pIIe@moveto\z@\z@
+      \pIIe@lineto\@xdim\@ydim
+      \pIIe@strokeGraph
+      \box\@tempboxa
+    \fi
+    \endgroup}
+  \newcommand*\pIIe@sline{%
+    \ifdim\@tempdima=\z@
+      \ifdim\@tempdimb<\z@\@linelen-\@linelen\fi
+      \@ydim=\@linelen
+      \@xdim=\z@
+    \else
+      \ifdim\@tempdima<\z@\@linelen-\@linelen\fi
+      \ifdim\@tempdimb=\z@
+        \@xdim=\@linelen
+        \@ydim=\z@
+      \else
+        \pIIe@divide\@tempdimb\@tempdima\dimen@
+        \@ydim=\strip@pt\dimen@\@linelen
+        \@xdim=\@linelen
+      \fi
+    \fi
+    \@ovxx=\ifnum\@xdim=\z@ \z@\else\@linelen\fi
+    \@ovyy=\ifnum\@ydim<\z@ \z@\else\@ydim\fi
+    \@ovdy=\ifnum\@ydim<\z@ -\@ydim\else\z@\fi
+    \setbox\@tempboxa\hbox{%
+      \vrule\@height \@ovyy \@depth \@ovdy \@width \z@
+      \vrule\@height \z@ \@depth \z@ \@width \@ovxx}}
+  \def\vector(#1,#2)#3{%
+    \begingroup
+    \pIIe@checkslopeargsvector{#1}{#2}%
+    \@tempdima=#1pt\relax \@tempdimb=#2pt\relax
+    \@defaultunitsset\@linelen{#3}\unitlength
+    \ifdim\@linelen<\z@ \@badlinearg \else
+      \pIIe@sline
+      \@defaultunitsset\@linelen{#3}\unitlength
+      \pIIe@pyth{\@tempdima}{\@tempdimb}\dimen@
+      \ifdim\@tempdima=\z@ \else
+        \ifdim\@tempdimb=\z@ \else
+          \pIIe@divide\dimen@{\@tempdima}\@xdim
+          \@linelen\strip@pt\@xdim\@linelen
+          \ifdim\@linelen<\z@\@linelen-\@linelen\fi
+        \fi
+      \fi
+      \pIIe@divide{\@tempdimb}\dimen@\@ydim
+      \pIIe@divide{\@tempdima}\dimen@\@xdim
+      \pIIe@concat\@xdim\@ydim{-\@ydim}\@xdim\z@\z@
+      \pIIe@vector
+      \pIIe@fillGraph
+      \box\@tempboxa
+    \fi
+    \endgroup}
+  \newcommand*\pIIe@vector{}
+  \newcommand*\pIIe@vector@ltx{%
+    \@ydim\pIIe@FAW\@wholewidth \advance\@ydim\pIIe@CAW\relax
+    \@ovxx\pIIe@FAL\@ydim
+    \@xdim\@linelen \advance\@xdim-\@ovxx
+    \divide\@ydim\tw@
+    \divide\@ovxx\tw@ \advance\@ovxx\@xdim
+    \@ovyy\@ydim
+    \divide\@ovyy\tw@ \advance\@ovyy-\pIIe@FAI\@ydim
+    \pIIe@bezier@QtoC\@linelen\@ovxx\@ovro
+    \pIIe@bezier@QtoC\z@\@ovyy\@ovri
+    \pIIe@bezier@QtoC\@xdim\@ovxx\@clnwd
+    \pIIe@bezier@QtoC\@ydim\@ovyy\@clnht
+    \pIIe@moveto\@linelen\z@
+    \pIIe@curveto\@ovro{-\@ovri}\@clnwd{-\@clnht}\@xdim{-\@ydim}%
+    \ifdim\@xdim>\z@
+      \pIIe@lineto\@xdim{-\@halfwidth}%
+      \pIIe@lineto\z@{-\@halfwidth}%
+      \pIIe@lineto\z@{\@halfwidth}%
+      \pIIe@lineto\@xdim{\@halfwidth}%
+    \fi
+    \pIIe@lineto\@xdim\@ydim
+    \pIIe@curveto\@clnwd\@clnht\@ovro\@ovri\@linelen\z@}
+  \newcommand*\pIIe@vector@pst{%
+    \@ydim\pIIe@FAW\@wholewidth \advance\@ydim\pIIe@CAW\relax
+    \@ovxx\pIIe@FAL\@ydim
+    \@xdim\@linelen \advance\@xdim-\@ovxx
+    \divide\@ydim\tw@
+    \@ovyy\@ydim \advance\@ovyy-\@halfwidth
+    \@ovdx\pIIe@FAI\@ovxx
+    \pIIe@divide\@ovdx\@ydim\@tempdimc
+    \@ovxx\strip@pt\@ovyy\@tempdimc
+    \advance\@ovxx\@xdim
+    \advance\@ovdx\@xdim
+    \pIIe@moveto\@linelen\z@
+    \pIIe@lineto\@xdim{-\@ydim}%
+    \ifdim\@xdim>\z@
+      \pIIe@lineto\@ovxx{-\@halfwidth}%
+      \pIIe@lineto\z@{-\@halfwidth}%
+      \pIIe@lineto\z@{\@halfwidth}%
+      \pIIe@lineto\@ovxx{\@halfwidth}%
+    \else
+      \pIIe@lineto\@ovdx\z@
+    \fi
+    \pIIe@lineto\@xdim\@ydim
+    \pIIe@lineto\@linelen\z@}
+    \def\@circle#1{\begingroup \@tempswafalse\pIIe@circ{#1}}
+    \def\@dot#1{\begingroup \@tempswatrue\pIIe@circ{#1}}
+  \newcommand*\pIIe@circ[1]{%
+      \@defaultunitsset\pIIe@tempdima{#1}\unitlength
+      \ifdim\pIIe@tempdima<\z@ \pIIe@badcircarg \fi
+      \divide\pIIe@tempdima\tw@
+      \pIIe@circle\pIIe@tempdima
+      \if@tempswa \pIIe@fillGraph \else \buttcap \pIIe@strokeGraph \fi
+    \endgroup}
+  \newcommand*\pIIe@circle[1]{%
+    \pIIe@qcircle[1]\z@{#1}\pIIe@qcircle  \@ne{#1}%
+    \pIIe@qcircle  \tw@{#1}\pIIe@qcircle\thr@@{#1}\pIIe@closepath}
+  \newcommand*\pIIe@qcircle[3][0]{%
+    \begingroup
+      \@ovro#3\relax \@ovri0.55228474983\@ovro
+      \@tempdimc\@ovri \advance\@tempdimc-\@ovro
+      \ifnum#1>\z@ \@tempswatrue \else \@tempswafalse \fi
+      \ifcase#2\relax
+        \pIIe@@qcircle\@ovro\z@\z@\@ovri\@tempdimc\@ovro{-\@ovro}\@ovro
+      \or
+        \pIIe@@qcircle\z@\@ovro{-\@ovri}\z@{-\@ovro}\@tempdimc{-\@ovro}{-\@ovro}%
+      \or
+        \pIIe@@qcircle{-\@ovro}\z@\z@{-\@ovri}{-\@tempdimc}{-\@ovro}\@ovro{-\@ovro}%
+      \or
+        \pIIe@@qcircle\z@{-\@ovro}\@ovri\z@\@ovro{-\@tempdimc}\@ovro\@ovro
+      \fi
+    \endgroup}
+  \newcommand*\pIIe@@qcircle[8]{%
+    \if@tempswa\pIIe@moveto{#1}{#2}\fi \pIIe@rcurveto{#3}{#4}{#5}{#6}{#7}{#8}}
+  \newcommand*\pIIe@badcircarg{%
+    \PackageError{pict2e}%
+      {Illegal argument in \protect\circle(*), \protect\oval, \protect\arc(*) or
+      \protect\circlearc.}%
+      {The radius of a circle, dot, arc or oval corner must be greater than zero.}}%
+  \newcommand*\maxovalrad{20pt}
+  \newcommand*\pIIe@defaultUL[2]{%
+    \@defaultunitsset\pIIe@tempdima{#2}\unitlength
+    \edef#1{\the\pIIe@tempdima}}
+  \newcommand*\pIIe@def@UL{}
+  \def\pIIe@def@UL#1\relax#2#3{%
+    \edef#2{\the\dimen@}}
+  \newcommand*\pIIe@maxovalrad{}
+  \newcommand*\pIIe@oval{}
+  \def\pIIe@oval#1(#2,#3){\@ifnextchar[{\@oval(#2,#3)}{\@oval(#2,#3)[]}}
+  \renewcommand*\oval[1][\maxovalrad]{%
+    \begingroup \pIIe@defaultUL\pIIe@maxovalrad{#1}%
+      \ifdim\pIIe@maxovalrad<\z@ \pIIe@badcircarg \fi
+      \pIIe@oval}
+  \def\@oval(#1,#2)[#3]{%
+    \@defaultunitsset\pIIe@tempdima{#1}\unitlength \divide\pIIe@tempdima\tw@
+    \@defaultunitsset\pIIe@tempdimb{#2}\unitlength \divide\pIIe@tempdimb\tw@
+    \pIIe@tempdimc \ifdim\pIIe@tempdimb>\pIIe@tempdima \pIIe@tempdima \else \pIIe@tempdimb \fi
+    \ifdim\pIIe@maxovalrad<\pIIe@tempdimc \pIIe@tempdimc\pIIe@maxovalrad\relax \fi
+    \pIIe@tempdimd\pIIe@tempdima \advance\pIIe@tempdimd-\pIIe@tempdimc
+    \pIIe@tempdime\pIIe@tempdimb \advance\pIIe@tempdime-\pIIe@tempdimc
+    \pIIe@get@quadrants{#3}%
+    \ifnum15=\@tempcnta \pIIe@buttcap \fi
+    \@tempswatrue
+    \ifnum9=\@tempcnta
+      \pIIe@qoval\z@{-\pIIe@tempdimb}{\pIIe@tempdimd}{-\pIIe@tempdimb}%
+        \thr@@\pIIe@tempdimc\pIIe@tempdima\z@
+      \@tempcnta\@ne
+    \fi
+    \pIIe@qoval\pIIe@tempdima\z@\pIIe@tempdima\pIIe@tempdime%
+      \z@\pIIe@tempdimc\z@\pIIe@tempdimb
+    \pIIe@qoval\z@\pIIe@tempdimb{-\pIIe@tempdimd}\pIIe@tempdimb%
+      \@ne\pIIe@tempdimc{-\pIIe@tempdima}\z@
+    \pIIe@qoval{-\pIIe@tempdima}\z@{-\pIIe@tempdima}{-\pIIe@tempdime}%
+      \tw@\pIIe@tempdimc\z@{-\pIIe@tempdimb}%
+    \pIIe@qoval\z@{-\pIIe@tempdimb}{\pIIe@tempdimd}{-\pIIe@tempdimb}%
+      \thr@@\pIIe@tempdimc\pIIe@tempdima\z@
+    \pIIe@strokeGraph
+    \endgroup}
+  \newcommand*\pIIe@qoval[8]{%
+    \ifodd\@tempcnta
+      \if@tempswa\pIIe@moveto{#1}{#2}\fi
+      \pIIe@lineto{#3}{#4}\pIIe@qcircle{#5}{#6}\pIIe@lineto{#7}{#8}%
+      \@tempswafalse
+    \else
+      \@tempswatrue
+    \fi
+    \divide\@tempcnta\tw@}
+  \newcommand*\pIIe@get@quadrants[1]{%
+    \@ovttrue \@ovbtrue \@ovltrue \@ovrtrue \@tempcnta\z@
+    \@tfor\reserved@a:=#1\do{\csname @ov\reserved@a false\endcsname}%
+    \if@ovr \if@ovb\@setfpsbit2\fi \if@ovt\@setfpsbit4\fi \fi
+    \if@ovl \if@ovb\@setfpsbit1\fi \if@ovt\@setfpsbit8\fi \fi}
+  \def\@bezier#1(#2,#3)(#4,#5)(#6,#7){%
+    \ifnum #1=\z@
+      \@killglue
+      \begingroup
+      \@defaultunitsset\pIIe@tempdima{#2}\unitlength
+      \@defaultunitsset\pIIe@tempdimb{#3}\unitlength
+      \@defaultunitsset\pIIe@tempdimc{#4}\unitlength
+      \@defaultunitsset\pIIe@tempdimd{#5}\unitlength
+      \@defaultunitsset\pIIe@tempdime{#6}\unitlength
+      \@defaultunitsset\pIIe@tempdimf{#7}\unitlength
+      \pIIe@bezier@QtoC\pIIe@tempdima\pIIe@tempdimc\@ovro
+      \pIIe@bezier@QtoC\pIIe@tempdimb\pIIe@tempdimd\@ovri
+      \pIIe@bezier@QtoC\pIIe@tempdime\pIIe@tempdimc\@clnwd
+      \pIIe@bezier@QtoC\pIIe@tempdimf\pIIe@tempdimd\@clnht
+      \pIIe@moveto\pIIe@tempdima\pIIe@tempdimb
+      \pIIe@curveto\@ovro\@ovri\@clnwd\@clnht\pIIe@tempdime\pIIe@tempdimf
+      \pIIe@strokeGraph
+      \endgroup
+      \ignorespaces
+    \else
+      \pIIe@old@bezier{#1}(#2,#3)(#4,#5)(#6,#7)
+    \fi}
+  \newcommand*\pIIe@bezier@QtoC[3]{%
+    \@tempdimc#1\relax      \advance\@tempdimc-#2\relax
+    \divide\@tempdimc\thr@@ \advance\@tempdimc #2\relax
+    #3\@tempdimc}
+  \ifx\undefined\@arclen \newdimen\@arclen \fi
+  \ifx\undefined\@arcrad \newdimen\@arcrad \fi
+  \ifx\undefined\pIIe@tempdima \newdimen\pIIe@tempdima \fi
+  \ifx\undefined\pIIe@tempdimb \newdimen\pIIe@tempdimb \fi
+  \ifx\undefined\pIIe@tempdimc \newdimen\pIIe@tempdimc \fi
+  \ifx\undefined\pIIe@tempdimd \newdimen\pIIe@tempdimd \fi
+  \ifx\undefined\pIIe@tempdime \newdimen\pIIe@tempdime \fi
+  \ifx\undefined\pIIe@tempdimf \newdimen\pIIe@tempdimf \fi
+  \newcommand*\pIIe@arc[6][0]{%
+    \@arcrad #4\relax
+    \ifdim \@arcrad<\z@ \pIIe@badcircarg \else
+      \@arclen #6\p@ \advance\@arclen -#5\p@
+      \ifdim \@arclen<\z@ \def\sign{-}\else\def\sign{}\fi
+      \ifdim \sign\@arclen>720\p@
+        \PackageWarning {pict2e}{The arc angle is reduced to -720..720}%
+        \@whiledim \sign\@arclen>720\p@ \do {\advance\@arclen-\sign360\p@}%
+        \@tempdima #5\p@ \advance\@tempdima \@arclen
+        \edef\@angleend{\strip@pt\@tempdima}%
+        \pIIe@@arc{#1}{#2}{#3}{#4}{#5}{\@angleend}%
+      \else
+        \pIIe@@arc{#1}{#2}{#3}{#4}{#5}{#6}%
+      \fi
+    \fi}
+  \newcommand*\pIIe@@arc[6]{%
+    \begingroup
+    \ifdim \sign\@arclen>90\p@
+      \divide\@arclen 2
+      \@tempdima #5\p@ \advance\@tempdima \@arclen
+      \edef\@anglemid{\strip@pt\@tempdima}%
+      \def\@temp{\pIIe@@arc{#1}{#2}{#3}{#4}{#5}}%
+      \expandafter\@temp\expandafter{\@anglemid}%
+      \def\@temp{\pIIe@@arc{2}{#2}{#3}{#4}}%
+      \expandafter\@temp\expandafter{\@anglemid}{#6}%
+    \else
+      \CalculateSin{#5}\CalculateCos{#5}%
+      \@tempdima\UseCos{#5}\@arcrad \advance\@tempdima #2\relax
+      \@tempdimb\UseSin{#5}\@arcrad \advance\@tempdimb #3\relax
+      \ifcase #1\relax
+          \pIIe@lineto\@tempdima\@tempdimb
+      \or \pIIe@moveto\@tempdima\@tempdimb
+      \or
+      \else \PackageWarning {pict2e}%
+            {Illegal obligatory argument in \protect\circlearc.}%
+      \fi
+      \@tempdimc\@arclen \divide\@tempdimc\@iv
+      \edef\@angle{\strip@pt\@tempdimc}\CalculateTan{\@angle}%
+      \@linelen\UseTan{\@angle}\@arcrad \@linelen4\@linelen \divide\@linelen\thr@@
+      \advance\@tempdima-\UseSin{#5}\@linelen
+      \advance\@tempdimb \UseCos{#5}\@linelen
+      \pIIe@add@nums\@tempdima\@tempdimb
+      \CalculateSin{#6}\CalculateCos{#6}%
+      \@tempdima \UseCos{#6}\@arcrad \advance\@tempdima #2\relax
+      \@tempdimb \UseSin{#6}\@arcrad \advance\@tempdimb #3\relax
+      \@tempdimc \UseSin{#6}\@linelen \advance\@tempdimc \@tempdima
+      \pIIe@tempdimd-\UseCos{#6}\@linelen \advance\pIIe@tempdimd \@tempdimb
+      \pIIe@add@nums\@tempdimc\pIIe@tempdimd
+      \pIIe@add@CP\@tempdima\@tempdimb
+      \pIIe@addtoGraph\pIIe@curveto@op
+    \fi
+    \endgroup}
+  \newcommand*\pIIearc
+    {\@ifstar{\@tempswatrue\pIIe@arc@}{\@tempswafalse\pIIe@arc@}}
+  \newcommand*\pIIe@arc@[2][0,360]{\pIIe@arc@@(#1){#2}}
+  \def\pIIe@arc@@(#1,#2)#3{%
+    \@defaultunitsset\pIIe@tempdima{#3}\unitlength
+    \if@tempswa
+      \pIIe@moveto\z@\z@
+      \pIIe@arc{\z@}{\z@}{\pIIe@tempdima}{#1}{#2}%
+      \pIIe@closepath\pIIe@fillGraph
+    \else
+      \pIIe@arc[1]{\z@}{\z@}{\pIIe@tempdima}{#1}{#2}%
+      \pIIe@strokeGraph
+    \fi}
+  \ifx\undefined\arc
+  \else
+      \PackageWarning{pict2e}{\protect\arc\space redefined}%
+  \fi
+  \let\arc\pIIearc
+  \let\lp@r( \let\rp@r)
+  \def\Line(#1,#2)(#3,#4){\polyline(#1,#2)(#3,#4)}
+  \def\polyline(#1,#2){%
+    \@killglue
+    \@defaultunitsset\pIIe@tempdima{#1}\unitlength
+    \@defaultunitsset\pIIe@tempdimb{#2}\unitlength
+    \pIIe@moveto{\pIIe@tempdima}{\pIIe@tempdimb}%
+    \@ifnextchar\lp@r{\@polyline}{\PackageWarning{pict2e}%
+      {Polygonal lines require at least two vertices!}%
+    \ignorespaces}}
+  \def\@polyline(#1,#2){%
+    \@defaultunitsset\pIIe@tempdima{#1}\unitlength
+    \@defaultunitsset\pIIe@tempdimb{#2}\unitlength
+    \pIIe@lineto{\pIIe@tempdima}{\pIIe@tempdimb}%
+    \@ifnextchar\lp@r{\@polyline}{\pIIe@strokeGraph\ignorespaces}}
+  \def\Vector(#1,#2)(#3,#4){\polyvector(#1,#2)(#3,#4)}
+  \def\polyvector(#1,#2){%
+    \@killglue
+    \@ifnextchar\lp@r{\begingroup\@polyvector(#1,#2)}{%
+      \PackageWarning{pict2e}%
+      {Polygonal vectors require at least two vertices!}\ignorespaces}}
+  \def\@polyvector(#1,#2)(#3,#4){%
+    \@defaultunitsset\pIIe@tempdima{#1}\unitlength
+    \@defaultunitsset\pIIe@tempdimb{#2}\unitlength
+    \@defaultunitsset\pIIe@tempdimc{#3}\unitlength
+    \@defaultunitsset\pIIe@tempdimd{#4}\unitlength
+    \advance\pIIe@tempdimc-\pIIe@tempdima \advance\pIIe@tempdimd-\pIIe@tempdimb
+    \ifdim\pIIe@tempdimc=\z@ \@linelen\pIIe@tempdimd \else
+      \ifdim\pIIe@tempdimd=\z@ \@linelen\pIIe@tempdimc \else
+        \pIIe@pyth\pIIe@tempdimc\pIIe@tempdimd\@linelen
+      \fi
+    \fi
+    \ifdim\@linelen<\z@ \@linelen-\@linelen\fi
+    \pIIe@divide{\pIIe@tempdimc}\@linelen\pIIe@tempdime
+    \pIIe@divide{\pIIe@tempdimd}\@linelen\pIIe@tempdimf
+    \pIIe@concat\pIIe@tempdime\pIIe@tempdimf{-\pIIe@tempdimf}\pIIe@tempdime\pIIe@tempdima\pIIe@tempdimb
+    \pIIe@vector \pIIe@fillGraph
+    \@ifnextchar\lp@r{\@polyvector(#3,#4)}{\endgroup\ignorespaces}}
+  \def\polygon{%
+    \@killglue
+    \@ifstar{\begingroup\@tempswatrue\@polygon}%
+      {\begingroup\@tempswafalse\@polygon}}
+  \def\@polygon(#1,#2){%
+    \@defaultunitsset\pIIe@tempdima{#1}\unitlength
+    \@defaultunitsset\pIIe@tempdimb{#2}\unitlength
+    \pIIe@moveto{\pIIe@tempdima}{\pIIe@tempdimb}%
+    \@ifnextchar\lp@r{\@@polygon}{\PackageWarning{pict2e}%
+      {Polygons require at least two vertices!}%
+    \ignorespaces}}
+  \def\@@polygon(#1,#2){%
+    \@defaultunitsset\pIIe@tempdima{#1}\unitlength
+    \@defaultunitsset\pIIe@tempdimb{#2}\unitlength
+    \pIIe@lineto{\pIIe@tempdima}{\pIIe@tempdimb}%
+    \@ifnextchar\lp@r{\@@polygon}{\pIIe@closepath
+      \if@tempswa\pIIe@fillGraph\else\pIIe@strokeGraph\fi
+      \endgroup
+      \ignorespaces}}
+  \def\moveto(#1,#2){%
+    \@killglue
+    \@defaultunitsset\pIIe@tempdima{#1}\unitlength
+    \@defaultunitsset\pIIe@tempdimb{#2}\unitlength
+    \pIIe@moveto{\pIIe@tempdima}{\pIIe@tempdimb}%
+    \ignorespaces}
+  \def\lineto(#1,#2){%
+    \@killglue
+    \@defaultunitsset\pIIe@tempdima{#1}\unitlength
+    \@defaultunitsset\pIIe@tempdimb{#2}\unitlength
+    \pIIe@lineto{\pIIe@tempdima}{\pIIe@tempdimb}%
+    \ignorespaces}
+  \def\curveto(#1,#2)(#3,#4)(#5,#6){%
+    \@killglue
+    \@defaultunitsset\pIIe@tempdima{#1}\unitlength
+    \@defaultunitsset\pIIe@tempdimb{#2}\unitlength
+    \@defaultunitsset\pIIe@tempdimc{#3}\unitlength
+    \@defaultunitsset\pIIe@tempdimd{#4}\unitlength
+    \@defaultunitsset\pIIe@tempdime{#5}\unitlength
+    \@defaultunitsset\pIIe@tempdimf{#6}\unitlength
+    \pIIe@curveto{\pIIe@tempdima}{\pIIe@tempdimb}{\pIIe@tempdimc}%
+      {\pIIe@tempdimd}{\pIIe@tempdime}{\pIIe@tempdimf}%
+    \ignorespaces}
+  \newcommand*\circlearc[6][0]{%
+    \@killglue
+    \@defaultunitsset\pIIe@tempdima{#2}\unitlength
+    \@defaultunitsset\pIIe@tempdimb{#3}\unitlength
+    \@defaultunitsset\pIIe@tempdimc{#4}\unitlength
+    \pIIe@arc[#1]{\pIIe@tempdima}{\pIIe@tempdimb}{\pIIe@tempdimc}{#5}{#6}%
+    \ignorespaces}
+  \def\closepath{\pIIe@closepath}
+  \def\strokepath{\pIIe@strokeGraph}
+  \def\fillpath{\pIIe@fillGraph}
+  \ifcase\pIIe@mode\relax
+  \or
+    \newcommand*\pIIe@linecap@op{setlinecap}
+    \newcommand*\pIIe@linejoin@op{setlinejoin}
+  \or
+    \newcommand*\pIIe@linecap@op{J}
+    \newcommand*\pIIe@linejoin@op{j}
+  \fi
+  \def\pIIe@linecap{}
+  \def\pIIe@linejoin{}
+  \def\buttcap{\edef\pIIe@linecap{ 0 \pIIe@linecap@op}}
+  \def\roundcap{\edef\pIIe@linecap{ 1 \pIIe@linecap@op}}
+  \def\squarecap{\edef\pIIe@linecap{ 2 \pIIe@linecap@op}}
+  \def\miterjoin{\edef\pIIe@linejoin{ 0 \pIIe@linejoin@op}}
+  \def\roundjoin{\edef\pIIe@linejoin{ 1 \pIIe@linejoin@op}}
+  \def\beveljoin{\edef\pIIe@linejoin{ 2 \pIIe@linejoin@op}}
+  \AtBeginDocument{\@ifundefined{cbezier}{\newcommand}{\renewcommand}*%
+      \cbezier[2][0]{\pIIe@@cbezier[#1]#2}%
+    \@ifdefinable\pIIe@@cbezier{}%
+    \def\pIIe@@cbezier#1)#2(#3)#4(#5)#6({\@cbezier#1)(#3)(#5)(}%
+    \def\@cbezier[#1](#2,#3)(#4,#5)(#6,#7)(#8,#9){%
+      \@killglue
+      \@defaultunitsset\pIIe@tempdima{#2}\unitlength
+      \@defaultunitsset\pIIe@tempdimb{#3}\unitlength
+      \pIIe@moveto{\pIIe@tempdima}{\pIIe@tempdimb}%
+      \@defaultunitsset\pIIe@tempdima{#4}\unitlength
+      \@defaultunitsset\pIIe@tempdimb{#5}\unitlength
+      \@defaultunitsset\pIIe@tempdimc{#6}\unitlength
+      \@defaultunitsset\pIIe@tempdimd{#7}\unitlength
+      \@defaultunitsset\pIIe@tempdime{#8}\unitlength
+      \@defaultunitsset\pIIe@tempdimf{#9}\unitlength
+      \pIIe@curveto{\pIIe@tempdima}{\pIIe@tempdimb}{\pIIe@tempdimc}%
+        {\pIIe@tempdimd}{\pIIe@tempdime}{\pIIe@tempdimf}%
+      \pIIe@strokeGraph
+      \ignorespaces}%
+  }
+\else
+  \renewcommand*\oval[1][]{\pIIe@oldoval}
+  \newcommand*\maxovalrad{20pt}
+  \newcommand*\OriginalPictureCmds{}
+\fi
+\Gin@codes
+\let\Gin@codes\relax
+\endinput
+%%
+%% End of file `pict2e.sty'.

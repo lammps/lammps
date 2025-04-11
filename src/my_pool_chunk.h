@@ -14,12 +14,14 @@
 #ifndef LAMMPS_MY_POOL_CHUNK_H
 #define LAMMPS_MY_POOL_CHUNK_H
 
+#include "lmptype.h"
+
 namespace LAMMPS_NS {
 
 template <class T> class MyPoolChunk {
  public:
-  int ndatum;    // total # of stored datums
-  int nchunk;    // total # of stored chunks
+  bigint ndatum;    // total # of stored datums
+  int nchunk;       // total # of stored chunks
 
   MyPoolChunk(int user_minchunk = 1, int user_maxchunk = 1, int user_nbin = 1,
               int user_chunkperpage = 1024, int user_pagedelta = 1);

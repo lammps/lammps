@@ -1,0 +1,160 @@
+LAMMPS (4 Feb 2025 - Development - patch_4Feb2025-106-g5d02e140d4)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:99)
+  using 1 OpenMP thread(s) per MPI task
+# flat membrane demo
+variable     r0 equal  0.97
+variable     d1 equal  ${r0}
+variable     d1 equal  0.97
+variable     d2 equal  sqrt(3.0)*${r0}
+variable     d2 equal  sqrt(3.0)*0.97
+variable     d3 equal  3.0*${r0}
+variable     d3 equal  3.0*0.97
+variable     ro equal  2./${d1}/${d2}/${d3}
+variable     ro equal  2./0.97/${d2}/${d3}
+variable     ro equal  2./0.97/1.68008928334181/${d3}
+variable     ro equal  2./0.97/1.68008928334181/2.91
+
+variable     T  equal  0.23
+variable     LD equal  1.0
+
+units        lj
+atom_style   ellipsoid
+
+boundary     p p p
+
+lattice      custom ${ro} a1 ${d1}  0.0 0.0 a2 0.0 ${d2}  0.0              a3 0.0 0.0 ${d3}  basis 0.0 0.0 0.0 basis 0.5  0.5  0.0
+lattice      custom 0.421728460751825 a1 ${d1}  0.0 0.0 a2 0.0 ${d2}  0.0              a3 0.0 0.0 ${d3}  basis 0.0 0.0 0.0 basis 0.5  0.5  0.0
+lattice      custom 0.421728460751825 a1 0.97  0.0 0.0 a2 0.0 ${d2}  0.0              a3 0.0 0.0 ${d3}  basis 0.0 0.0 0.0 basis 0.5  0.5  0.0
+lattice      custom 0.421728460751825 a1 0.97  0.0 0.0 a2 0.0 1.68008928334181  0.0              a3 0.0 0.0 ${d3}  basis 0.0 0.0 0.0 basis 0.5  0.5  0.0
+lattice      custom 0.421728460751825 a1 0.97  0.0 0.0 a2 0.0 1.68008928334181  0.0              a3 0.0 0.0 2.91  basis 0.0 0.0 0.0 basis 0.5  0.5  0.0
+Lattice spacing in x,y,z = 0.97 1.6800893 2.91
+
+
+region       box block   0 40  0 24  -20  20
+create_box   1 box
+Created orthogonal box = (0 0 -58.2) to (38.8 40.322143 58.2)
+  1 by 1 by 4 MPI processor grid
+region       membrane block  0 40  0 24 -0.5 0.5
+create_atoms 1 region membrane
+Created 1920 atoms
+  using lattice units in orthogonal box = (0 0 -58.2) to (38.8 40.322143 58.2)
+  create_atoms CPU = 0.001 seconds
+
+group        membrane  region membrane
+1920 atoms in group membrane
+
+set type 1 mass  1.0
+Setting atom values ...
+  1920 settings made for mass
+
+set type 1 shape  1 0.99 0.99
+Setting atom values ...
+  1920 settings made for shape
+
+set          group all quat 0 -1 0  90
+Setting atom values ...
+  1920 settings made for quat
+
+#compute      memb  all temp/com
+#compute      rot all temp/asphere bias memb
+velocity     all create ${T} 87287 loop geom
+velocity     all create 0.23 87287 loop geom
+
+pair_style   ylz  2.6
+pair_coeff   *  *   1.0  1.0  4  3  0.0  2.6
+neighbor     1.0 bin
+
+
+thermo_style custom step temp press pxx pyy
+thermo       200
+
+timestep     0.01
+
+#dump         1 all atom 10 dump_onlymembrane.lammpstrj
+
+fix          1 all langevin ${T} ${T}  ${LD}  48279
+fix          1 all langevin 0.23 ${T}  ${LD}  48279
+fix          1 all langevin 0.23 0.23  ${LD}  48279
+fix          1 all langevin 0.23 0.23  1  48279
+
+
+fix          2 all nve/asphere
+run          3000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair ylz command:
+
+@Article{Yuan10,
+ author =  {H. Yuan, C. Huang, J. Li, G. Lykotrafitis, and S. Zhang},
+ title =   {One-particle-thick, solvent-free, coarse-grained model for biological and biomimetic fluid membranes},
+ journal = {Phys. Rev. E},
+ year =    2010,
+ volume =  82,
+ pages =   {011905}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.6
+  ghost atom cutoff = 3.6
+  binsize = 1.8, bins = 22 23 65
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair ylz, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.182 | 4.794 | 5.472 Mbytes
+   Step          Temp          Press           Pxx            Pyy      
+         0   0.23          -0.0073508785  -0.012283389   -0.012234574  
+       200   0.21866566    -0.0011213114  -0.0017540296  -0.0017008786 
+       400   0.22409469    -0.00055137604 -0.00050366017 -0.0012846672 
+       600   0.21623646    -0.0004808564  -0.00063496522 -0.00071617302
+       800   0.22248339    -0.00066333806 -0.00093812145 -0.00099410261
+      1000   0.22367907    -0.0003439459  -0.00076259578 -0.00013354375
+      1200   0.23276206     8.5764334e-06 -0.00036165178  0.00038543803
+      1400   0.23129049    -5.1997966e-06 -0.00040514787  0.00017093646
+      1600   0.22074564    -0.0001604642  -0.00053959031  9.0463391e-05
+      1800   0.2276062     -0.00015655254 -0.00042925633  5.4938379e-05
+      2000   0.22469391    -3.6198836e-05 -1.8538296e-06 -0.00010464749
+      2200   0.22737515    -1.8967356e-05  0.0001341006  -0.00022739894
+      2400   0.22607533     0.00014650382 -2.4871789e-05  0.00058296255
+      2600   0.24044743     0.00045066449  0.00049153595  0.00078042437
+      2800   0.23346628     0.00017994019 -5.0897724e-05  0.00046011801
+      3000   0.22427206     0.00040437022  0.00049580531  0.00046259202
+Loop time of 5.04539 on 4 procs for 3000 steps with 1920 atoms
+
+Performance: 513736.789 tau/day, 594.603 timesteps/s, 1.142 Matom-step/s
+99.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.1163     | 4.2634     | 4.4004     |   6.5 | 84.50
+Neigh   | 0.00088605 | 0.032793   | 0.083516   |  19.1 |  0.65
+Comm    | 0.006704   | 0.20003    | 0.40672    |  42.5 |  3.96
+Output  | 0.00033812 | 0.0012192  | 0.0020905  |   2.3 |  0.02
+Modify  | 0.00035967 | 0.20167    | 0.42535    |  45.0 |  4.00
+Other   |            | 0.3462     |            |       |  6.86
+
+Nlocal:            480 ave        1052 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+Nghost:          854.5 ave        1801 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+Neighs:        11684.2 ave       31145 max           0 min
+Histogram: 2 0 0 0 0 1 0 0 0 1
+
+Total # of neighbors = 46737
+Ave neighs/atom = 24.342188
+Neighbor list builds = 98
+Dangerous builds = 0
+
+
+Total wall time: 0:00:05

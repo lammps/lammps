@@ -19,4 +19,8 @@ compute qtop top reduce sum v_q
 compute compute_pe all pe
 variable vpe equal c_compute_pe
 variable charge equal c_qtop
-fix fxprint all print 1 "${vpe}, ${charge}" file "out.csv"
+compute press all pressure NULL virial
+variable p3 equal c_press[3]
+fix fxprint all print 1 "${vpe}, ${charge}, ${p3}" file "out.csv"
+
+dump dump_forces all custom 1 forces.lammpstrj id fx fy fz

@@ -80,7 +80,7 @@ Obtaining i-PI
 """"""""""""""
 
 Here are the commands to set up a virtual environment and install
-i-PI into it with all its dependencies via the PyPi repository and
+i-PI into it with all its dependencies via the PyPI repository and
 the pip package manager.
 
 .. code-block:: sh

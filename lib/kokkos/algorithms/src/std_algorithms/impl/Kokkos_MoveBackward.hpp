@@ -30,7 +30,7 @@ namespace Impl {
 template <class IteratorType1, class IteratorType2>
 struct StdMoveBackwardFunctor {
   using index_type = typename IteratorType1::difference_type;
-  static_assert(std::is_signed<index_type>::value,
+  static_assert(std::is_signed_v<index_type>,
                 "Kokkos: StdMoveBackwardFunctor requires signed index type");
 
   IteratorType1 m_last;

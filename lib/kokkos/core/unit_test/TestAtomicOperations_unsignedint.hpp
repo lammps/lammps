@@ -18,6 +18,10 @@
 
 namespace Test {
 TEST(TEST_CATEGORY, atomic_operations_unsigned) {
+  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
+#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
+  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
+#endif
   const int start = 0;
   const int end   = 11;
   for (int i = start; i < end; ++i) {

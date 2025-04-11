@@ -23,7 +23,7 @@
 #include <HIP/Kokkos_HIP_SharedAllocationRecord.hpp>
 #include <impl/Kokkos_SharedAlloc_timpl.hpp>
 
-#ifndef KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY
+#ifndef KOKKOS_IMPL_HIP_UNIFIED_MEMORY
 KOKKOS_IMPL_HOST_INACCESSIBLE_SHARED_ALLOCATION_RECORD_EXPLICIT_INSTANTIATION(
     Kokkos::HIPSpace);
 #else

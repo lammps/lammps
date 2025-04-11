@@ -33,6 +33,7 @@ class ImproperClass2 : public Improper {
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
   void write_data(FILE *) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double *k0, *chi0;

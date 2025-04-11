@@ -84,7 +84,15 @@ PairPACEKokkos<DeviceType>::~PairPACEKokkos()
   memoryKK->destroy_kokkos(k_eatom,eatom);
   memoryKK->destroy_kokkos(k_vatom,vatom);
 
-  // deallocate views of views in serial to prevent issues in Kokkos tools
+  deallocate_views_of_views();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairPACEKokkos<DeviceType>::deallocate_views_of_views()
+{
+  // deallocate views of views in serial to prevent race conditions
 
   if (k_splines_gk.h_view.data()) {
     for (int i = 0; i < nelements; i++) {
@@ -240,15 +248,7 @@ void PairPACEKokkos<DeviceType>::copy_splines()
 {
   auto basis_set = aceimpl->basis_set;
 
-  if (k_splines_gk.d_view.data()) {
-    for (int i = 0; i < nelements; i++) {
-      for (int j = 0; j < nelements; j++) {
-        k_splines_gk.h_view(i, j).deallocate();
-        k_splines_rnl.h_view(i, j).deallocate();
-        k_splines_hc.h_view(i, j).deallocate();
-      }
-    }
-  }
+  deallocate_views_of_views();
 
   k_splines_gk = Kokkos::DualView<SplineInterpolatorKokkos**, DeviceType>("pace:splines_gk", nelements, nelements);
   k_splines_rnl = Kokkos::DualView<SplineInterpolatorKokkos**, DeviceType>("pace:splines_rnl", nelements, nelements);
@@ -753,8 +753,8 @@ void PairPACEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // free duplicated memory
   if (need_dup) {
-    dup_f     = decltype(dup_f)();
-    dup_vatom = decltype(dup_vatom)();
+    dup_f     = {};
+    dup_vatom = {};
   }
 }
 

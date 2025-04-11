@@ -123,6 +123,12 @@ also be potentially mitigated by using more multiple walls.
   conservative as possible (every timestep if needed).  Those are the
   default settings.
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

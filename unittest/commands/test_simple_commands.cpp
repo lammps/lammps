@@ -19,6 +19,7 @@
 #include "info.h"
 #include "input.h"
 #include "output.h"
+#include "platform.h"
 #include "update.h"
 #include "utils.h"
 #include "variable.h"
@@ -214,9 +215,9 @@ TEST_F(SimpleCommandsTest, Quit)
     TEST_FAILURE(".*ERROR: Expected integer .*", command("quit xxx"););
 
     // the following tests must be skipped with OpenMPI or MPICH 4.1 and later due to using threads
-    if (platform::mpi_vendor() == "Open MPI") GTEST_SKIP();
+    if (platform::mpi_vendor() == "Open MPI") GTEST_SKIP() << "OpenMPI";
 #if defined(MPICH_NUMVERSION)
-    if (MPICH_NUMVERSION >= 40100000) GTEST_SKIP();
+    if (MPICH_NUMVERSION >= 40100000) GTEST_SKIP() << "MPICH with threads";
 #endif
     ASSERT_EXIT(command("quit"), ExitedWithCode(0), "");
     ASSERT_EXIT(command("quit 9"), ExitedWithCode(9), "");
@@ -404,32 +405,29 @@ TEST_F(SimpleCommandsTest, Units)
     END_HIDE_OUTPUT();
     ASSERT_THAT(lmp->update->unit_style, StrEq("lj"));
 
-    TEST_FAILURE(".*ERROR: Illegal units command.*", command("units unknown"););
+    TEST_FAILURE(".*ERROR: Unknown units style unknown.*", command("units unknown"););
 }
 
 #if defined(LMP_PLUGIN)
 TEST_F(SimpleCommandsTest, Plugin)
 {
-    const char *bindir = getenv("LAMMPS_PLUGIN_BIN_DIR");
-    const char *config = getenv("CMAKE_CONFIG_TYPE");
-    if (!bindir) GTEST_SKIP();
-    std::string loadfmt = platform::path_join("plugin load ", bindir);
-    if (config) loadfmt = platform::path_join(loadfmt, config);
-    loadfmt = platform::path_join(loadfmt, "{}plugin.so");
+    const char *bindir = getenv("LAMMPS_PLUGIN_DIR");
+    if (!bindir) GTEST_SKIP() << "LAMMPS_PLUGIN_DIR not set";
+    std::string loadfmt = "plugin load {}/{}plugin.so";
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(loadfmt, "hello"));
+    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "hello"));
     auto text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
-    ASSERT_THAT(text, ContainsRegex(".*Loading plugin: Hello world command.*"));
+    ASSERT_THAT(text, ContainsRegex(".*\n.*Loading plugin: Hello world command.*"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(loadfmt, "xxx"));
+    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "xxx"));
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, ContainsRegex(".*Open of file .*xxx.* failed.*"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(loadfmt, "nve2"));
+    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "nve2"));
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, ContainsRegex(".*Loading plugin: NVE2 variant fix style.*"));
@@ -437,11 +435,10 @@ TEST_F(SimpleCommandsTest, Plugin)
     lmp->input->one("plugin list");
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
-    ASSERT_THAT(text, ContainsRegex(".*1: command style plugin hello"
-                                    ".*2: fix style plugin nve2.*"));
+    ASSERT_THAT(text, ContainsRegex(".*1: command style plugin hello\n.*2: fix style plugin nve2.*"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(loadfmt, "hello"));
+    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "hello"));
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, ContainsRegex(".*Ignoring load of command style hello: "
@@ -556,6 +553,50 @@ TEST_F(SimpleCommandsTest, CiteMe)
     // no new citation. no CITE-CITE-CITE- lines
     ASSERT_THAT(text, Not(ContainsRegex(".*CITE-CITE-CITE-CITE.*")));
 }
+
+TEST_F(SimpleCommandsTest, Geturl)
+{
+    if (!LAMMPS::is_installed_pkg("EXTRA-COMMAND")) GTEST_SKIP();
+    platform::unlink("index.html");
+    platform::unlink("myindex.html");
+    if (Info::has_curl_support()) {
+        BEGIN_CAPTURE_OUTPUT();
+        command("geturl https://www.lammps.org/index.html");
+        command("geturl https://www.lammps.org/index.html output myindex.html");
+        END_CAPTURE_OUTPUT();
+        EXPECT_TRUE(platform::file_is_readable("index.html"));
+        EXPECT_TRUE(platform::file_is_readable("myindex.html"));
+        FILE *fp = fopen("index.html", "wb");
+        fputs("just testing\n", fp);
+        fclose(fp);
+        BEGIN_CAPTURE_OUTPUT();
+        command("geturl https://www.lammps.org/index.html overwrite no");
+        END_CAPTURE_OUTPUT();
+        char checkme[20];
+        fp = fopen("index.html", "rb");
+        fgets(checkme, 19, fp);
+        fclose(fp);
+        EXPECT_EQ(strcmp(checkme, "just testing\n"), 0);
+        BEGIN_CAPTURE_OUTPUT();
+        command("geturl https://www.lammps.org/index.html overwrite yes");
+        END_CAPTURE_OUTPUT();
+        fp = fopen("index.html", "rb");
+        fgets(checkme, 19, fp);
+        fclose(fp);
+        EXPECT_NE(strcmp(checkme, "just testing\n"), 0);
+        TEST_FAILURE(".*ERROR: Illegal geturl command: missing argument.*", command("geturl "););
+        TEST_FAILURE(".*ERROR: URL 'dummy' is not a supported URL.*", command("geturl dummy"););
+        TEST_FAILURE(".*ERROR on proc 0: Download of xxx.txt failed with: "
+                     "HTTP response code said error 404.*",
+                     command("geturl https://www.lammps.org/xxx.txt"););
+    } else {
+        TEST_FAILURE(".*ERROR: LAMMPS has not been compiled with libcurl support*",
+                     command("geturl https:://www.lammps.org/index.html"););
+    }
+    platform::unlink("index.html");
+    platform::unlink("myindex.html");
+}
+
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

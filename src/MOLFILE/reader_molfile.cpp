@@ -322,7 +322,7 @@ void ReaderMolfile::read_atoms(int n, int nfield, double **fields)
     ++nid;
 
     if (mf->property(MFI::P_TYPE,nid-1,buf) != MFI::P_NONE) {
-      mytype = atoi(buf);
+      mytype = std::stoi(buf);
     } else mytype = 0;
 
     for (m = 0; m < nfield; m++) {

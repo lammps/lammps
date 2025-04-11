@@ -23,10 +23,11 @@ namespace Kokkos {
 namespace Experimental {
 namespace Impl {
 
-template <class ValueType>
 struct StdNumericScanIdentityReferenceUnaryFunctor {
-  KOKKOS_FUNCTION
-  constexpr const ValueType& operator()(const ValueType& a) const { return a; }
+  template <class T>
+  KOKKOS_FUNCTION constexpr T&& operator()(T&& t) const {
+    return static_cast<T&&>(t);
+  }
 };
 
 }  // namespace Impl

@@ -350,7 +350,14 @@ void FixMesoMove::init () {
 }
 
 void FixMesoMove::setup_pre_force (int /*vflag*/) {
+
+  // Cannot use vremap since its effects aren't propagated to vest
+  //   see RHEO or SPH packages for examples of patches
+  if (domain->deform_vremap)
+    error->all(FLERR, "Fix meso/move cannot be used with velocity remapping");
+
   // set vest equal to v
+
   double **v = atom->v;
   double **vest = atom->vest;
   int *mask = atom->mask;

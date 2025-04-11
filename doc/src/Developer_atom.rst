@@ -2,7 +2,7 @@ Accessing per-atom data
 -----------------------
 
 This page discusses how per-atom data is managed in LAMMPS, how it can
-be accessed, what communication patters apply, and some of the utility
+be accessed, what communication patterns apply, and some of the utility
 functions that exist for a variety of purposes.
 
 
@@ -14,11 +14,11 @@ As described on the :doc:`parallel partitioning algorithms
 simulation domain, either in a *brick* or *tiled* manner.  Each MPI
 process *owns* exactly one subdomain and the atoms within it. To compute
 forces for tuples of atoms that are spread across sub-domain boundaries,
-also a "halo" of *ghost* atoms are maintained within a the communication
+also a "halo" of *ghost* atoms are maintained within the communication
 cutoff distance of its subdomain.
 
 The total number of atoms is stored in `Atom::natoms` (within any
-typical class this can be referred to at `atom->natoms`. The number of
+typical class this can be referred to at `atom->natoms`). The number of
 *owned* (or "local" atoms) are stored in `Atom::nlocal`; the number of
 *ghost* atoms is stored in `Atom::nghost`.  The sum of `Atom::nlocal`
 over all MPI processes should be `Atom::natoms`. This is by default
@@ -27,8 +27,8 @@ LAMMPS stops with a "lost atoms" error.  For convenience also the
 property `Atom::nmax` is available, this is the maximum of
 `Atom::nlocal + Atom::nghost` across all MPI processes.
 
-Per-atom properties are either managed by the atom style, or individual
-classes.  or as custom arrays by the individual classes. If only access
+Per-atom properties are either managed by the atom style, individual
+classes,  or as custom arrays by the individual classes. If only access
 to *owned* atoms is needed, they are usually allocated to be of size
 `Atom::nlocal`, otherwise of size `Atom::nmax`. Please note that not all
 per-atom properties are available or updated on *ghost* atoms. For
@@ -61,7 +61,7 @@ can be found via the `Atom::sametag` array. It points to the next atom
 index with the same tag or -1 if there are no more atoms with the same
 tag.  The list will be exhaustive when starting with an index of an
 *owned* atom, since the atom IDs are unique, so there can only be one
-such atom.  Example code to count atoms with same atom ID in subdomain:
+such atom.  Example code to count atoms with same atom ID in a subdomain:
 
 .. code-block:: c++
 

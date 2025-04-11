@@ -212,8 +212,8 @@ void PairDPDExtTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
 
   // free duplicated memory
   if (need_dup) {
-    dup_f     = decltype(dup_f)();
-    dup_vatom = decltype(dup_vatom)();
+    dup_f     = {};
+    dup_vatom = {};
   }
 }
 

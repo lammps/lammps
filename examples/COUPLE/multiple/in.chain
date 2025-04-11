@@ -1,5 +1,5 @@
 # FENE beadspring benchmark
-
+variable        t index 1.0
 units		lj
 atom_style	bond
 special_bonds   fene

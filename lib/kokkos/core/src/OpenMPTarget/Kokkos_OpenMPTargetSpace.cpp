@@ -54,9 +54,11 @@ void* OpenMPTargetSpace::impl_allocate(
   static_assert(sizeof(void*) == sizeof(uintptr_t),
                 "Error sizeof(void*) != sizeof(uintptr_t)");
 
-  void* ptr;
+  void* ptr = omp_target_alloc(arg_alloc_size, omp_get_default_device());
 
-  ptr = omp_target_alloc(arg_alloc_size, omp_get_default_device());
+  if (!ptr) {
+    Kokkos::Impl::throw_bad_alloc(name(), arg_alloc_size, arg_label);
+  }
 
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     const size_t reported_size =

@@ -13,27 +13,29 @@
 ------------------------------------------------------------------------- */
 
 #include "npair.h"
-#include <cmath>
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "nbin.h"
-#include "nstencil.h"
+
 #include "atom.h"
-#include "update.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "nbin.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "nstencil.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPair::NPair(LAMMPS *lmp)
-  : Pointers(lmp), nb(nullptr), ns(nullptr), bins(nullptr), stencil(nullptr)
+NPair::NPair(LAMMPS *lmp) : Pointers(lmp), nb(nullptr), ns(nullptr), bins(nullptr), stencil(nullptr)
 {
   last_build = -1;
   mycutneighsq = nullptr;
   molecular = atom->molecular;
   copymode = 0;
+  cutoff_custom = 0.0;
   execution_space = Host;
 }
 
@@ -50,7 +52,6 @@ NPair::~NPair()
 
 void NPair::post_constructor(NeighRequest *nrq)
 {
-  cutoff_custom = 0.0;
   if (nrq->cut) cutoff_custom = nrq->cutoff;
 }
 
@@ -189,6 +190,7 @@ void NPair::build_setup()
   if (ns) copy_stencil_info();
 
   // set here, since build_setup() always called before build()
+
   last_build = update->ntimestep;
 }
 
@@ -237,7 +239,7 @@ int NPair::exclusion(int i, int j, int itype, int jtype,
 int NPair::coord2bin(double *x, int &ix, int &iy, int &iz)
 {
   if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
-    error->one(FLERR,"Non-numeric positions - simulation unstable");
+    error->one(FLERR,"Non-numeric positions - simulation unstable" + utils::errorurl(6));
 
   if (x[0] >= bboxhi[0])
     ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx) + nbinx;
@@ -280,7 +282,7 @@ int NPair::coord2bin(double *x, int ic)
   int ibin;
 
   if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
-    error->one(FLERR,"Non-numeric positions - simulation unstable");
+    error->one(FLERR,"Non-numeric positions - simulation unstable" + utils::errorurl(6));
 
   if (x[0] >= bboxhi[0])
     ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx_multi[ic]) + nbinx_multi[ic];

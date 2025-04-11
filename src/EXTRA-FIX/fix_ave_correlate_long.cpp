@@ -42,7 +42,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using MathSpecial::powint;
 
-enum { AUTO, UPPER, LOWER, AUTOUPPER, AUTOLOWER, FULL };
+enum { AUTO, UPPER, LOWER, AUTOUPPER, AUTOLOWER, FULL, FIRST };
 
 static const char cite_fix_ave_correlate_long[] =
     "fix ave/correlate/long command: doi:10.1063/1.3491098\n\n"
@@ -79,9 +79,11 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
 
   // expand args if any have wildcard character "*"
 
+  const int ioffset = 5;
   int expand = 0;
   char **earg;
-  int nargnew = utils::expand_args(FLERR, narg - 5, &arg[5], 0, earg, lmp);
+  int *amap = nullptr;
+  int nargnew = utils::expand_args(FLERR, narg - 5, &arg[5], 0, earg, lmp, &amap);
 
   if (earg != &arg[5]) expand = 1;
   arg = earg;
@@ -93,9 +95,12 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
     ArgInfo argi(arg[iarg]);
     value_t val;
 
+    if (expand) val.iarg = amap[iarg] + ioffset;
+    else val.iarg = iarg + ioffset;
+
     if (argi.get_type() == ArgInfo::NONE) break;
     if ((argi.get_type() == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
-      error->all(FLERR, "Unknown fix ave/correlate/long data type: {}", arg[iarg]);
+      error->all(FLERR, val.iarg, "Unknown fix ave/correlate/long data type: {}", arg[iarg]);
 
     val.which = argi.get_type();
     val.argindex = argi.get_index1();
@@ -120,6 +125,9 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
   char *title2 = nullptr;
 
   while (iarg < nargnew) {
+    int iarg_orig = iarg + ioffset;
+    if (expand) iarg_orig = amap[iarg] + ioffset;
+
     if (strcmp(arg[iarg], "type") == 0) {
       if (iarg + 2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate/long type", error);
       if (strcmp(arg[iarg + 1], "auto") == 0)
@@ -134,49 +142,58 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
         type = AUTOLOWER;
       else if (strcmp(arg[iarg + 1], "full") == 0)
         type = FULL;
+      else if (strcmp(arg[iarg + 1], "first") == 0)
+        type = FIRST;
       else
-        error->all(FLERR, "Unknown fix ave/correlate/long type: {}");
+        error->all(FLERR, iarg_orig + 1, "Unknown fix ave/correlate/long type: {}");
       iarg += 2;
     } else if (strcmp(arg[iarg], "start") == 0) {
-      if (iarg + 2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate/long start", error);
+      if (iarg + 2 > nargnew)
+        utils::missing_cmd_args(FLERR, "fix ave/correlate/long start", error);
       startstep = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "ncorr") == 0) {
-      if (iarg + 2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate/long ncorr", error);
+      if (iarg + 2 > nargnew)
+        utils::missing_cmd_args(FLERR, "fix ave/correlate/long ncorr", error);
       numcorrelators = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "nlen") == 0) {
-      if (iarg + 2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate/long nlen", error);
+      if (iarg + 2 > nargnew)
+        utils::missing_cmd_args(FLERR, "fix ave/correlate/long nlen", error);
       p = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "ncount") == 0) {
-      if (iarg + 2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate/long ncount", error);
+      if (iarg + 2 > nargnew)
+        utils::missing_cmd_args(FLERR, "fix ave/correlate/long ncount", error);
       m = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "file") == 0) {
-      if (iarg + 2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate/long file", error);
+      if (iarg + 2 > nargnew)
+        utils::missing_cmd_args(FLERR, "fix ave/correlate/long file", error);
       if (comm->me == 0) {
         fp = fopen(arg[iarg + 1], "w");
         if (fp == nullptr)
-          error->one(FLERR, "Cannot open fix ave/correlate/long file {}: {}", arg[iarg + 1],
-                     utils::getsyserror());
+          error->one(FLERR, iarg_orig + 1, "Cannot open fix ave/correlate/long file {}: {}",
+                     arg[iarg + 1], utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg], "overwrite") == 0) {
       overwrite = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg], "title1") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate/long title1", error);
+      if (iarg + 2 > nargnew)
+        utils::missing_cmd_args(FLERR, "fix ave/correlate/long title1", error);
       delete[] title1;
       title1 = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "title2") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate/long title2", error);
+      if (iarg + 2 > nargnew)
+        utils::missing_cmd_args(FLERR, "fix ave/correlate/long title2", error);
       delete[] title2;
       title2 = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else
-      error->all(FLERR, "Unknown fix ave/correlate/long keyword: {}", arg[iarg]);
+      error->all(FLERR, iarg_orig, "Unknown fix ave/correlate/long keyword: {}", arg[iarg]);
   }
 
   if (p % m != 0) error->all(FLERR, "Fix ave/correlate/long: nlen must be divisible by ncount");
@@ -188,53 +205,66 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
   // setup and error check
   // for fix inputs, check that fix frequency is acceptable
 
-  if (nevery <= 0) error->all(FLERR, "Illegal fix ave/correlate/long nevery value: {}", nevery);
-  if (nfreq <= 0) error->all(FLERR, "Illegal fix ave/correlate/long nfreq value: {}", nfreq);
-  if (nfreq % nevery) error->all(FLERR, "Inconsistent fix ave/correlate/long nevery/nfreq values");
+  if (nevery <= 0) error->all(FLERR, 3, "Illegal fix ave/correlate/long nevery value: {}", nevery);
+  if (nfreq <= 0) error->all(FLERR, 4, "Illegal fix ave/correlate/long nfreq value: {}", nfreq);
+  if (nfreq % nevery)
+    error->all(FLERR, Error::NOPOINTER, "Inconsistent fix ave/correlate/long nevery/nfreq values");
 
   for (auto &val : values) {
 
     if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
       if (!val.val.c)
-        error->all(FLERR, "Compute ID {} for fix ave/correlate/long does not exist", val.id);
+        error->all(FLERR, val.iarg,
+                   "Compute ID {} for fix ave/correlate/long does not exist", val.id);
       if (val.argindex == 0 && val.val.c->scalar_flag == 0)
-        error->all(FLERR, "Fix ave/correlate/long compute {} does not calculate a scalar", val.id);
+        error->all(FLERR, val.iarg,
+                   "Fix ave/correlate/long compute {} does not calculate a scalar", val.id);
       if (val.argindex && val.val.c->vector_flag == 0)
-        error->all(FLERR, "Fix ave/correlate/long compute {} does not calculate a vector", val.id);
+        error->all(FLERR, val.iarg,
+                   "Fix ave/correlate/long compute {} does not calculate a vector", val.id);
       if (val.argindex && val.argindex > val.val.c->size_vector)
-        error->all(FLERR, "Fix ave/correlate/long compute {} vector is accessed out-of-range",
-                   val.id);
+        error->all(FLERR, val.iarg,
+                   "Fix ave/correlate/long compute {} vector is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
 
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
       if (!val.val.f)
-        error->all(FLERR, "Fix ID {} for fix ave/correlate/long does not exist", val.id);
+        error->all(FLERR, val.iarg,
+                   "Fix ID {} for fix ave/correlate/long does not exist", val.id);
       if (val.argindex == 0 && val.val.f->scalar_flag == 0)
-        error->all(FLERR, "Fix ave/correlate/long fix {} does not calculate a scalar", val.id);
+        error->all(FLERR, val.iarg,
+                   "Fix ave/correlate/long fix {} does not calculate a scalar", val.id);
       if (val.argindex && val.val.f->vector_flag == 0)
-        error->all(FLERR, "Fix ave/correlate/long fix {} does not calculate a vector", val.id);
+        error->all(FLERR, val.iarg,
+                   "Fix ave/correlate/long fix {} does not calculate a vector", val.id);
       if (val.argindex && val.argindex > val.val.f->size_vector)
-        error->all(FLERR, "Fix ave/correlate/long fix {} vector is accessed out-of-range", val.id);
+        error->all(FLERR, val.iarg,
+                   "Fix ave/correlate/long fix {} vector is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
       if (nevery % val.val.f->global_freq)
-        error->all(FLERR, "Fix {} for fix ave/correlate/long not computed at compatible time",
-                   val.id);
+        error->all(FLERR, val.iarg,
+                   "Fix {} for fix ave/correlate/long not computed at compatible time{}",
+                   val.id, utils::errorurl(7));
 
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
       if (val.val.v < 0)
-        error->all(FLERR, "Variable name {} for fix ave/correlate/long does not exist", val.id);
+        error->all(FLERR, val.iarg,
+                   "Variable name {} for fix ave/correlate/long does not exist", val.id);
       if (val.argindex == 0 && input->variable->equalstyle(val.val.v) == 0)
-        error->all(FLERR, "Fix ave/correlate/long variable {} is not equal-style variable", val.id);
+        error->all(FLERR, val.iarg,
+                   "Fix ave/correlate/long variable {} is not equal-style variable", val.id);
       if (val.argindex && input->variable->vectorstyle(val.val.v) == 0)
-        error->all(FLERR, "Fix ave/correlate/long variable {} is not vector-style variable",
-                   val.id);
+        error->all(FLERR, val.iarg,
+                   "Fix ave/correlate/long variable {} is not vector-style variable", val.id);
     }
   }
 
   // npair = # of correlation pairs to calculate
 
-  if (type == AUTO) npair = nvalues;
+  if (type == AUTO || type == FIRST) npair = nvalues;
   if (type == UPPER || type == LOWER) npair = nvalues * (nvalues - 1) / 2;
   if (type == AUTOUPPER || type == AUTOLOWER) npair = nvalues * (nvalues + 1) / 2;
   if (type == FULL) npair = nvalues * nvalues;
@@ -271,10 +301,13 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
         for (int i = 0; i < nvalues; i++)
           for (int j = 0; j < nvalues; j++)
             fprintf(fp," %s*%s",earg[i],earg[j]);
+      else if (type == FIRST)
+        for (int i = 0; i < nvalues; i++)
+          fprintf(fp," %s*%s",earg[0],earg[i]);
       fprintf(fp,"\n");
     }
     if (ferror(fp))
-      error->one(FLERR,"Error writing ave/correlate/long header: {}", utils::getsyserror());
+      error->one(FLERR, "Error writing ave/correlate/long header: {}", utils::getsyserror());
 
     filepos = platform::ftell(fp);
   }
@@ -288,6 +321,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
   if (expand) {
     for (int i = 0; i < nargnew; i++) delete[] earg[i];
     memory->sfree(earg);
+    memory->sfree(amap);
   }
 
   // allocate and initialize memory for calculated values and correlators
@@ -377,17 +411,20 @@ void FixAveCorrelateLong::init()
     if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
       if (!val.val.c)
-        error->all(FLERR, "Compute ID {} for fix ave/correlate/long does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Compute ID {} for fix ave/correlate/long does not exist", val.id);
 
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
       if (!val.val.f)
-        error->all(FLERR,"Fix ID {} for fix ave/correlate/long does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Fix ID {} for fix ave/correlate/long does not exist", val.id);
 
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
       if (val.val.v < 0)
-        error->all(FLERR,"Variable name {} for fix ave/correlate/long does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Variable name {} for fix ave/correlate/long does not exist", val.id);
     }
   }
 
@@ -488,8 +525,8 @@ void FixAveCorrelateLong::end_of_step()
 
   if (fp && comm->me == 0) {
     clearerr(fp);
-    if (overwrite) platform::fseek(fp,filepos);
-    fmt::print(fp,"# Timestep: {}\n", ntimestep);
+    if (overwrite) (void) platform::fseek(fp,filepos);
+    utils::print(fp,"# Timestep: {}\n", ntimestep);
     for (unsigned int i=0; i < npcorr; ++i) {
       fprintf(fp, "%lg ", t[i]*update->dt*nevery);
       for (int j=0; j < npair; ++j) {
@@ -498,14 +535,15 @@ void FixAveCorrelateLong::end_of_step()
       fprintf(fp, "\n");
     }
     if (ferror(fp))
-      error->one(FLERR,"Error writing out fix ave/correlate/long data: {}", utils::getsyserror());
+      error->one(FLERR, Error::NOLASTLINE,
+                 "Error writing out fix ave/correlate/long data: {}", utils::getsyserror());
 
     fflush(fp);
 
     if (overwrite) {
       bigint fileend = platform::ftell(fp);
       if ((fileend > 0) && (platform::ftruncate(fp,fileend)))
-        error->warning(FLERR,"Error while truncating output: {}", utils::getsyserror());
+        error->warning(FLERR, "Error while truncating output: {}", utils::getsyserror());
     }
   }
 }
@@ -580,6 +618,8 @@ void FixAveCorrelateLong::accumulate()
         if (i == j) add(ipair++,cvalues[i]);
         else add(ipair++,cvalues[i],cvalues[j]);
       }
+  } else if (type == FIRST) {
+    for (i=0; i < nvalues; i++) add(i,cvalues[0],cvalues[i]);
   }
   last_accumulated_step = update->ntimestep;
 }
@@ -778,7 +818,8 @@ void FixAveCorrelateLong::restart(char *buf)
   last_accumulated_step = static_cast<int>(list[n++]);
 
   if ((npairin!=npair) || (numcorrelatorsin!=numcorrelators) || (pin!=(int)p) || (min!=(int)m))
-    error->all(FLERR, "Fix ave/correlate/long: restart and input data are different");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Fix ave/correlate/long: restart and input data are different");
 
   for (int i=0; i < npair; i++)
     for (int j=0; j < numcorrelators; j++) {

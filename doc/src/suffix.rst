@@ -30,7 +30,7 @@ Description
 
 This command allows you to use variants of various styles if they
 exist.  In that respect it operates the same as the :doc:`-suffix command-line switch <Run_options>`.  It also has options to turn
-off or back on any suffix setting made via the command line.
+off or back on any suffix setting made via the command-line.
 
 The specified style can be *gpu*, *intel*, *kk*, *omp*, *opt* or
 *hybrid*\ . These refer to optional packages that LAMMPS can be built

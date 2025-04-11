@@ -6,11 +6,10 @@ Creating or deleting a LAMMPS object
 ====================================
 
 With the Python interface the creation of a :cpp:class:`LAMMPS
-<LAMMPS_NS::LAMMPS>` instance is included in the constructors for the
-:py:class:`lammps <lammps.lammps>`, :py:class:`PyLammps <lammps.PyLammps>`,
-and :py:class:`IPyLammps <lammps.IPyLammps>` classes.
-Internally it will call either :cpp:func:`lammps_open` or :cpp:func:`lammps_open_no_mpi` from the C
-library API to create the class instance.
+<LAMMPS_NS::LAMMPS>` instance is included in the constructor for the
+:py:class:`lammps <lammps.lammps>` class. Internally it will call either
+:cpp:func:`lammps_open` or :cpp:func:`lammps_open_no_mpi` from the C library
+API to create the class instance.
 
 All arguments are optional.  The *name* argument allows loading a
 LAMMPS shared library that is named ``liblammps_machine.so`` instead of
@@ -26,108 +25,25 @@ to run the Python module like the library interface on a subset of the
 MPI ranks after splitting the communicator.
 
 
-Here are simple examples using all three Python interfaces:
+Here is a simple example using the LAMMPS Python interface:
 
-.. tabs::
+.. code-block:: python
 
-   .. tab:: lammps API
+   from lammps import lammps
 
-      .. code-block:: python
+   # NOTE: argv[0] is set by the lammps class constructor
+   args = ["-log", "none"]
 
-         from lammps import lammps
+   # create LAMMPS instance
+   lmp = lammps(cmdargs=args)
 
-         # NOTE: argv[0] is set by the lammps class constructor
-         args = ["-log", "none"]
+   # get and print numerical version code
+   print("LAMMPS Version: ", lmp.version())
 
-         # create LAMMPS instance
-         lmp = lammps(cmdargs=args)
+   # explicitly close and delete LAMMPS instance (optional)
+   lmp.close()
 
-         # get and print numerical version code
-         print("LAMMPS Version: ", lmp.version())
-
-         # explicitly close and delete LAMMPS instance (optional)
-         lmp.close()
-
-   .. tab:: PyLammps API
-
-      The :py:class:`PyLammps <lammps.PyLammps>` class is a wrapper around the
-      :py:class:`lammps <lammps.lammps>` class and all of its lower level functions.
-      By default, it will create a new instance of :py:class:`lammps <lammps.lammps>` passing
-      along all arguments to the constructor of :py:class:`lammps <lammps.lammps>`.
-
-      .. code-block:: python
-
-         from lammps import PyLammps
-
-         # NOTE: argv[0] is set by the lammps class constructor
-         args = ["-log", "none"]
-
-         # create LAMMPS instance
-         L = PyLammps(cmdargs=args)
-
-         # get and print numerical version code
-         print("LAMMPS Version: ", L.version())
-
-         # explicitly close and delete LAMMPS instance (optional)
-         L.close()
-
-      :py:class:`PyLammps <lammps.PyLammps>` objects can also be created on top of an existing
-      :py:class:`lammps <lammps.lammps>` object:
-
-      .. code-block:: python
-
-         from lammps import lammps, PyLammps
-         ...
-         # create LAMMPS instance
-         lmp = lammps(cmdargs=args)
-
-         # create PyLammps instance using previously created LAMMPS instance
-         L = PyLammps(ptr=lmp)
-
-      This is useful if you have to create the :py:class:`lammps <lammps.lammps>`
-      instance is a specific way, but want to take advantage of the
-      :py:class:`PyLammps <lammps.PyLammps>` interface.
-
-   .. tab:: IPyLammps API
-
-      The :py:class:`IPyLammps <lammps.IPyLammps>` class is an extension of the
-      :py:class:`PyLammps <lammps.PyLammps>` class. It has the same construction behavior. By
-      default, it will create a new instance of :py:class:`lammps` passing
-      along all arguments to the constructor of :py:class:`lammps`.
-
-      .. code-block:: python
-
-         from lammps import IPyLammps
-
-         # NOTE: argv[0] is set by the lammps class constructor
-         args = ["-log", "none"]
-
-         # create LAMMPS instance
-         L = IPyLammps(cmdargs=args)
-
-         # get and print numerical version code
-         print("LAMMPS Version: ", L.version())
-
-         # explicitly close and delete LAMMPS instance (optional)
-         L.close()
-
-      You can also initialize IPyLammps on top of an existing :py:class:`lammps` or :py:class:`PyLammps` object:
-
-      .. code-block:: python
-
-         from lammps import lammps, IPyLammps
-         ...
-         # create LAMMPS instance
-         lmp = lammps(cmdargs=args)
-
-         # create PyLammps instance using previously created LAMMPS instance
-         L = PyLammps(ptr=lmp)
-
-      This is useful if you have to create the :py:class:`lammps <lammps.lammps>`
-      instance is a specific way, but want to take advantage of the
-      :py:class:`IPyLammps <lammps.IPyLammps>` interface.
-
-In all of the above cases, same as with the :ref:`C library API <lammps_c_api>`, this will use the
+Same as with the :ref:`C library API <lammps_c_api>`, this will use the
 ``MPI_COMM_WORLD`` communicator for the MPI library that LAMMPS was
 compiled with.
 

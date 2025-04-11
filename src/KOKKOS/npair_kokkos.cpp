@@ -151,7 +151,11 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
   if (GHOST)
     nall += atom->nghost;
 
-  if (nall == 0) return;
+  if (nall == 0) {
+    list->inum = 0;
+    list->gnum = 0;
+    return;
+  }
 
   list->grow(nall);
 
@@ -1438,7 +1442,6 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
     for (int k = 0; k < nstencil; k++) {
       const int jbin = ibin + stencil[k];
 
-      if (ibin == jbin) continue;
       if (HalfNeigh && Newton && !Tri && (ibin == jbin)) continue;
 
       bincount_current = c_bincount[jbin];

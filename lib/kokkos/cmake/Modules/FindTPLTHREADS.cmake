@@ -1,15 +1,14 @@
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE(Threads)
+include(FindPackageHandleStandardArgs)
+find_package(Threads)
 
-IF (TARGET Threads::Threads)
-  SET(FOUND_THREADS TRUE)
-ELSE()
-  SET(FOUND_THREADS FALSE)
-ENDIF()
+if(TARGET Threads::Threads)
+  set(FOUND_THREADS TRUE)
+else()
+  set(FOUND_THREADS FALSE)
+endif()
 
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(TPLTHREADS DEFAULT_MSG FOUND_THREADS)
+find_package_handle_standard_args(TPLTHREADS DEFAULT_MSG FOUND_THREADS)
 #Only create the TPL if we succeed
-IF (FOUND_THREADS)
-  KOKKOS_CREATE_IMPORTED_TPL(THREADS INTERFACE LINK_OPTIONS
-          ${CMAKE_THREAD_LIBS_INIT})
-ENDIF()
+if(FOUND_THREADS)
+  kokkos_create_imported_tpl(THREADS INTERFACE LINK_OPTIONS ${CMAKE_THREAD_LIBS_INIT})
+endif()

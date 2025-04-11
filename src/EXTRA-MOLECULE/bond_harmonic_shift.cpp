@@ -128,7 +128,7 @@ void BondHarmonicShift::allocate()
 
 void BondHarmonicShift::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR,"Incorrect args for bond coefficients");
+  if (narg != 4) error->all(FLERR,"Incorrect args for bond coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -149,7 +149,7 @@ void BondHarmonicShift::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -227,4 +227,17 @@ void BondHarmonicShift::born_matrix(int type, double rsq, int /*i*/, int /*j*/, 
   du = 0.0;
   du2 = 2 * k[type];
   if (r > 0.0) du = du2 * dr;
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *BondHarmonicShift::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "r0") == 0) return (void *) r0;
+  if (strcmp(str, "r1") == 0) return (void *) r1;
+  return nullptr;
 }

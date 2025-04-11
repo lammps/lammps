@@ -1,21 +1,33 @@
 .. index:: pair_style hybrid
 .. index:: pair_style hybrid/kk
+.. index:: pair_style hybrid/omp
+.. index:: pair_style hybrid/molecular
+.. index:: pair_style hybrid/molecular/omp
 .. index:: pair_style hybrid/overlay
+.. index:: pair_style hybrid/overlay/omp
 .. index:: pair_style hybrid/overlay/kk
 .. index:: pair_style hybrid/scaled
+.. index:: pair_style hybrid/scaled/omp
 
 pair_style hybrid command
 =========================
 
-Accelerator Variants: *hybrid/kk*
+Accelerator Variants: *hybrid/kk*, *hybrid/omp*
+
+pair_style hybrid/molecular command
+===================================
+
+Accelerator Variant: *hybrid/molecular/omp*
 
 pair_style hybrid/overlay command
 =================================
 
-Accelerator Variants: *hybrid/overlay/kk*
+Accelerator Variants: *hybrid/overlay/kk*, *hybrid/overlay/omp*
 
 pair_style hybrid/scaled command
 ==================================
+
+Accelerator Variant: *hybrid/scaled/omp*
 
 Syntax
 """"""
@@ -23,6 +35,7 @@ Syntax
 .. code-block:: LAMMPS
 
    pair_style hybrid style1 args style2 args ...
+   pair_style hybrid/molecular factor1 style1 args factor2 style 2 args
    pair_style hybrid/overlay style1 args style2 args ...
    pair_style hybrid/scaled factor1 style1 args factor2 style 2 args ...
 
@@ -47,26 +60,45 @@ Examples
    pair_coeff * * tersoff Si.tersoff Si
    pair_coeff * * sw Si.sw Si
 
+   pair_style hybrid/molecular lj/cut 2.5 lj/cut 2.5
+   pair_coeff * * lj/cut 1 1.0 1.0
+   pair_coeff * * lj/cut 2 1.5 1.0
+
    variable one equal ramp(1.0,0.0)
    variable two equal 1.0-v_one
    pair_style hybrid/scaled v_one lj/cut 2.5 v_two morse 2.5
    pair_coeff 1 1 lj/cut 1.0 1.0 2.5
    pair_coeff 1 1 morse 1.0 1.0 1.0 2.5
 
+   variable peratom1 atom 1/(1+exp(-$k*vx^2)
+   variable peratom2 atom 1-v_peratom1
+   pair_style hybrid/scaled v_peratom1 lj/cut 2.5 v_peratom2 morse 2.5
+   pair_coeff 1 1 lj/cut 1.0 1.0 2.5
+   pair_coeff 1 1 morse 1.0 1.0 1.0 2.5
+
 Description
 """""""""""
 
-The *hybrid*, *hybrid/overlay*, and *hybrid/scaled* styles enable the
-use of multiple pair styles in one simulation.  With the *hybrid* style,
-exactly one pair style is assigned to each pair of atom types.  With the
-*hybrid/overlay* and *hybrid/scaled* styles, one or more pair styles can
-be assigned to each pair of atom types.  The assignment of pair styles
-to type pairs is made via the :doc:`pair_coeff <pair_coeff>` command.
-The major difference between the *hybrid/overlay* and *hybrid/scaled*
-styles is that the *hybrid/scaled* adds a scale factor for each
-sub-style contribution to forces, energies and stresses.  Because of the
-added complexity, the *hybrid/scaled* style has more overhead and thus
-may be slower than *hybrid/overlay*.
+The *hybrid*, *hybrid/overlay*, *hybrid/molecular*, and *hybrid/scaled*
+styles enable the use of multiple pair styles in one simulation.  With
+the *hybrid* style, exactly one pair style is assigned to each pair of
+atom types.  With the *hybrid/overlay* and *hybrid/scaled* styles, one
+or more pair styles can be assigned to each pair of atom types.  With
+the *hybrid/molecular* style, pair styles are assigned to either intra-
+or inter-molecular interactions.
+
+The assignment of pair styles to type pairs is made via the
+:doc:`pair_coeff <pair_coeff>` command.  The major difference between
+the *hybrid/overlay* and *hybrid/scaled* styles is that the
+*hybrid/scaled* adds a scale factor for each sub-style contribution to
+forces, energies and stresses.  Because of the added complexity, the
+*hybrid/scaled* style has more overhead and thus may be slower than
+*hybrid/overlay*.
+
+The *hybrid/molecular* pair style accepts *only* two sub-styles: the
+first is assigned to intra-molecular interactions (i.e. both atoms
+have the same molecule ID), the second to inter-molecular interactions
+(i.e. interacting atoms have different molecule IDs).
 
 Here are two examples of hybrid simulations.  The *hybrid* style could
 be used for a simulation of a metal droplet on a LJ surface.  The metal
@@ -88,16 +120,26 @@ restrictions discussed below.
 
 If the *hybrid/scaled* style is used instead of *hybrid/overlay*,
 contributions from sub-styles are weighted by their scale factors, which
-may be fractional or even negative.  Furthermore the scale factors may
-be variables that may change during a simulation.  This enables
+may be fractional or even negative.  Furthermore the scale factor for
+each sub-style may a constant, an *equal* style variable, or an *atom*
+style variable. Variable scale factors may change during the simulation.
+Different sub-styles may use different scale factor styles.
+In the case of a sub-style scale factor that is an *atom* style variable,
+the force contribution to each atom from that sub-style is weighted
+by the value of the variable for that atom, while the contribution
+from that sub-style to the global potential energy is zero.
+All other contributions to the per-atom energy, per-atom
+virial, and global virial (if not obtained from forces)
+from that sub-style are zero.
+This enables
 switching smoothly between two different pair styles or two different
 parameter sets during a run in a similar fashion as could be done
 with :doc:`fix adapt <fix_adapt>` or :doc:`fix alchemy <fix_alchemy>`.
-
 All pair styles that will be used are listed as "sub-styles" following
 the *hybrid* or *hybrid/overlay* keyword, in any order.  In case of the
 *hybrid/scaled* pair style, each sub-style is prefixed with a scale
-factor.  The scale factor is either a floating point number or an equal
+factor.  The scale factor is either a floating point number or an
+*equal* or *atom*
 style (or equivalent) variable.  Each sub-style's name is followed by
 its usual arguments, as illustrated in the examples above.  See the doc
 pages of the individual pair styles for a listing and explanation of the
@@ -348,7 +390,7 @@ between all atoms of types 1,3,4 will be computed by that potential.
 Pair_style hybrid allows interactions between type pairs 2-2, 1-2,
 2-3, 2-4 to be specified for computation by other pair styles.  You
 could even add a second interaction for 1-1 to be computed by another
-pair style, assuming pair_style hybrid/overlay is used.
+pair style, assuming pair_style *hybrid/overlay* is used.
 
 But you should not, as a general rule, attempt to exclude the many-body
 interactions for some subset of the type pairs within the set of 1,3,4
@@ -388,7 +430,7 @@ passed to the Tersoff potential, which means it would compute no
 3-body interactions containing both type 1 and 2 atoms.
 
 Here is another example to use 2 many-body potentials together in an
-overlapping manner using hybrid/overlay.  Imagine you have CNT (C atoms)
+overlapping manner using *hybrid/overlay*.  Imagine you have CNT (C atoms)
 on a Si surface.  You want to use Tersoff for Si/Si and Si/C
 interactions, and AIREBO for C/C interactions.  Si atoms are type 1; C
 atoms are type 2.  Something like this will work:
@@ -453,11 +495,12 @@ For the hybrid pair styles, the list of sub-styles and their respective
 settings are written to :doc:`binary restart files <restart>`, so a
 :doc:`pair_style <pair_style>` command does not need to specified in an
 input script that reads a restart file.  However, the coefficient
-information is not stored in the restart file.  Thus, pair_coeff
-commands need to be re-specified in the restart input script.  For pair
-style *hybrid/scaled* also the names of any variables used as scale
-factors are restored, but not the variables themselves, so those may
-need to be redefined when continuing from a restart.
+information is not stored in the restart file.  The same is true for
+:doc:`data files <write_data>`.  Thus, pair_coeff commands need to be
+re-specified in the restart input script.  For pair style
+*hybrid/scaled* also the names of any variables used as scale factors
+are restored, but not the variables themselves, so those may need to be
+redefined when continuing from a restart.
 
 These pair styles support the use of the *inner*, *middle*, and
 *outer* keywords of the :doc:`run_style respa <run_style>` command, if
@@ -475,6 +518,8 @@ the same or else LAMMPS will generate an error.
 
 Pair style *hybrid/scaled* currently only works for non-accelerated
 pair styles and pair styles from the OPT package.
+
+Pair style *hybrid/molecular* is not compatible with manybody potentials.
 
 When using pair styles from the GPU package they must not be listed
 multiple times.  LAMMPS will detect this and abort.

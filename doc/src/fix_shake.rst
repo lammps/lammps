@@ -27,9 +27,9 @@ Syntax
 
   .. parsed-literal::
 
-       *b* values = one or more bond types
-       *a* values = one or more angle types
-       *t* values = one or more atom types
+       *b* values = one or more bond types (may use type labels)
+       *a* values = one or more angle types  (may use type labels)
+       *t* values = one or more atom types (may use type labels)
        *m* value = one or more mass values
 
 * zero or more keyword/value pairs may be appended
@@ -123,7 +123,7 @@ single processor, to enable good parallel performance.  A cluster is
 defined as a central atom connected to others in the cluster by
 constrained bonds.  LAMMPS allows for the following kinds of clusters
 to be constrained: one central atom bonded to 1 or 2 or 3 atoms, or
-one central atom bonded to 2 others and the angle between the 3 atoms
+one central atom bonded to 2 others and the angle between the three atoms
 also constrained.  This means water molecules or CH2 or CH3 groups may
 be constrained, but not all the C-C backbone bonds of a long polymer
 chain.
@@ -137,7 +137,17 @@ constrained (within a fudge factor of MASSDELTA specified in
 both bonds in the angle are constrained then the angle will also be
 constrained if its type is in the list.
 
-For all constraints, a particular bond is only constrained if both
+.. versionchanged:: 29Aug2024
+
+The types may be given as type labels *only* if there is no atom, bond,
+or angle type label named *b*, *a*, *t*, or *m* defined in the
+simulation.  If that is the case, type labels cannot be used as
+constraint type index with these two fixes, because the type labels
+would be incorrectly treated as a new type of constraint instead.
+Thus, LAMMPS will print a warning and type label handling is disabled
+and numeric types must be used.
+
+For all constraints, a particular bond is only constrained if *both*
 atoms in the bond are in the group specified with the SHAKE fix.
 
 The degrees-of-freedom removed by SHAKE bonds and angles are accounted

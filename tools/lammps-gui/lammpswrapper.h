@@ -14,6 +14,9 @@
 #ifndef LAMMPSWRAPPER_H
 #define LAMMPSWRAPPER_H
 
+#include <QString>
+#include <string>
+
 class LammpsWrapper {
 public:
     LammpsWrapper();
@@ -23,8 +26,14 @@ public:
     void close();
     void finalize();
 
+    void file(const QString &fname) { file(fname.toStdString()); }
+    void file(const std::string &fname) { file(fname.c_str()); }
     void file(const char *);
+    void command(const QString &cmd) { command(cmd.toStdString()); }
+    void command(const std::string &cmd) { command(cmd.c_str()); }
     void command(const char *);
+    void commands_string(const QString &cmd) { commands_string(cmd.toStdString()); }
+    void commands_string(const std::string &cmd) { commands_string(cmd.c_str()); }
     void commands_string(const char *);
 
     void force_timeout();
@@ -32,7 +41,9 @@ public:
     int version();
     int extract_setting(const char *keyword);
     void *extract_global(const char *keyword);
+    void *extract_pair(const char *keyword);
     void *extract_atom(const char *keyword);
+    double extract_variable(const char *keyword);
 
     int id_count(const char *idtype);
     int id_name(const char *idtype, int idx, char *buf, int buflen);
@@ -51,6 +62,7 @@ public:
 
     bool config_accelerator(const char *package, const char *category, const char *setting) const;
     bool config_has_package(const char *pkg) const;
+    bool config_has_curl_support() const;
     bool has_gpu_device() const;
 
     bool load_lib(const char *lammpslib);

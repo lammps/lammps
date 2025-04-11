@@ -85,11 +85,7 @@ TEST_F(LAMMPS_extract_global, units)
 TEST_F(LAMMPS_extract_global, ntimestep)
 {
     f_lammps_setup_extract_global();
-#ifdef LAMMPS_SMALLSMALL
-    EXPECT_EQ(f_lammps_extract_global_ntimestep(), 0);
-#else
     EXPECT_EQ(f_lammps_extract_global_ntimestep_big(), 0l);
-#endif
 };
 
 TEST_F(LAMMPS_extract_global, dt)
@@ -134,17 +130,10 @@ TEST_F(LAMMPS_extract_global, boxprops)
 TEST_F(LAMMPS_extract_global, atomprops)
 {
     f_lammps_setup_extract_global();
-#ifdef LAMMPS_SMALLSMALL
-    EXPECT_EQ(f_lammps_extract_global_natoms(), 2);
-    EXPECT_EQ(f_lammps_extract_global_nbonds(), 0);
-    EXPECT_EQ(f_lammps_extract_global_nangles(), 0);
-    EXPECT_EQ(f_lammps_extract_global_ndihedrals(), 0);
-#else
     EXPECT_EQ(f_lammps_extract_global_natoms_big(), 2l);
     EXPECT_EQ(f_lammps_extract_global_nbonds_big(), 0l);
     EXPECT_EQ(f_lammps_extract_global_nangles_big(), 0l);
     EXPECT_EQ(f_lammps_extract_global_ndihedrals_big(), 0l);
-#endif
 
     EXPECT_EQ(f_lammps_extract_global_ntypes(), 1);
     EXPECT_EQ(f_lammps_extract_global_nlocal(), 2);
@@ -163,15 +152,8 @@ TEST_F(LAMMPS_extract_global, fullprops)
     if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
     // This is not currently the world's most convincing test....
     f_lammps_setup_full_extract_global();
-#ifdef LAMMPS_SMALLSMALL
-    EXPECT_EQ(f_lammps_extract_global_natoms(), 2);
-    EXPECT_EQ(f_lammps_extract_global_nbonds(), 0);
-    EXPECT_EQ(f_lammps_extract_global_nangles(), 0);
-    EXPECT_EQ(f_lammps_extract_global_ndihedrals(), 0);
-#else
     EXPECT_EQ(f_lammps_extract_global_natoms_big(), 2l);
     EXPECT_EQ(f_lammps_extract_global_nbonds_big(), 0l);
     EXPECT_EQ(f_lammps_extract_global_nangles_big(), 0l);
     EXPECT_EQ(f_lammps_extract_global_ndihedrals_big(), 0l);
-#endif
 }

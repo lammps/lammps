@@ -18,7 +18,7 @@ void f_lammps_close();
 void f_lammps_setup_fix_external_callback();
 void f_lammps_setup_fix_external_array();
 void f_lammps_set_fix_external_callbacks();
-void f_lammps_get_force(int, double*);
+void f_lammps_get_force(int, double *);
 void f_lammps_reverse_direction();
 void f_lammps_find_forces();
 void f_lammps_add_energy();
@@ -59,11 +59,11 @@ TEST_F(LAMMPS_fixexternal, callback)
     f_lammps_set_fix_external_callbacks();
     lammps_command(lmp, "run 0");
     double f[3];
-    f_lammps_get_force(1,f);
+    f_lammps_get_force(1, f);
     EXPECT_DOUBLE_EQ(f[0], 3.0);
     EXPECT_DOUBLE_EQ(f[1], -3.0);
     EXPECT_DOUBLE_EQ(f[2], 3.75);
-    f_lammps_get_force(2,f);
+    f_lammps_get_force(2, f);
     EXPECT_DOUBLE_EQ(f[0], -3.0);
     EXPECT_DOUBLE_EQ(f[1], 3.0);
     EXPECT_DOUBLE_EQ(f[2], -3.75);
@@ -71,11 +71,11 @@ TEST_F(LAMMPS_fixexternal, callback)
     f_lammps_reverse_direction();
     f_lammps_set_fix_external_callbacks();
     lammps_command(lmp, "run 0");
-    f_lammps_get_force(1,f);
+    f_lammps_get_force(1, f);
     EXPECT_DOUBLE_EQ(f[0], -1.0);
     EXPECT_DOUBLE_EQ(f[1], 1.0);
     EXPECT_DOUBLE_EQ(f[2], -1.25);
-    f_lammps_get_force(2,f);
+    f_lammps_get_force(2, f);
     EXPECT_DOUBLE_EQ(f[0], 1.0);
     EXPECT_DOUBLE_EQ(f[1], -1.0);
     EXPECT_DOUBLE_EQ(f[2], 1.25);
@@ -85,7 +85,7 @@ TEST_F(LAMMPS_fixexternal, array)
 {
     f_lammps_setup_fix_external_array();
     double **f;
-    f = (double**) lammps_extract_atom(lmp, "f");
+    f = (double **)lammps_extract_atom(lmp, "f");
     f_lammps_find_forces();
     lammps_command(lmp, "run 0");
     EXPECT_DOUBLE_EQ(f[0][0], 14.0);
@@ -112,19 +112,19 @@ TEST_F(LAMMPS_fixexternal, virial_global)
     double virial[6], volume;
     f_lammps_set_virial();
     lammps_command(lmp, "run 0");
-    volume = lammps_get_thermo(lmp, "vol");
+    volume    = lammps_get_thermo(lmp, "vol");
     virial[0] = lammps_get_thermo(lmp, "pxx");
     virial[1] = lammps_get_thermo(lmp, "pyy");
     virial[2] = lammps_get_thermo(lmp, "pzz");
     virial[3] = lammps_get_thermo(lmp, "pxy");
     virial[4] = lammps_get_thermo(lmp, "pxz");
     virial[5] = lammps_get_thermo(lmp, "pyz");
-    EXPECT_DOUBLE_EQ(virial[0], 1.0/volume);
-    EXPECT_DOUBLE_EQ(virial[1], 2.0/volume);
-    EXPECT_DOUBLE_EQ(virial[2], 2.5/volume);
-    EXPECT_DOUBLE_EQ(virial[3], -1.0/volume);
-    EXPECT_DOUBLE_EQ(virial[4], -2.25/volume);
-    EXPECT_DOUBLE_EQ(virial[5], -3.02/volume);
+    EXPECT_DOUBLE_EQ(virial[0], 1.0 / volume);
+    EXPECT_DOUBLE_EQ(virial[1], 2.0 / volume);
+    EXPECT_DOUBLE_EQ(virial[2], 2.5 / volume);
+    EXPECT_DOUBLE_EQ(virial[3], -1.0 / volume);
+    EXPECT_DOUBLE_EQ(virial[4], -2.25 / volume);
+    EXPECT_DOUBLE_EQ(virial[5], -3.02 / volume);
 };
 
 TEST_F(LAMMPS_fixexternal, energy_peratom)
@@ -135,13 +135,12 @@ TEST_F(LAMMPS_fixexternal, energy_peratom)
     double energy;
     lammps_command(lmp, "run 0");
     int nlocal = lammps_extract_setting(lmp, "nlocal");
-    for (int i = 1; i <= nlocal; i++)
-    {
+    for (int i = 1; i <= nlocal; i++) {
         energy = f_lammps_find_peratom_energy(i);
         if (i == 1)
-          EXPECT_DOUBLE_EQ(energy, 1.0);
+            EXPECT_DOUBLE_EQ(energy, 1.0);
         else
-          EXPECT_DOUBLE_EQ(energy, 10.0);
+            EXPECT_DOUBLE_EQ(energy, 10.0);
     }
 };
 
@@ -153,26 +152,22 @@ TEST_F(LAMMPS_fixexternal, virial_peratom)
     double virial[6];
     lammps_command(lmp, "run 0");
     int nlocal = lammps_extract_setting(lmp, "nlocal");
-    for (int i = 1; i <= nlocal; i++)
-    {
+    for (int i = 1; i <= nlocal; i++) {
         f_lammps_find_peratom_virial(virial, i);
-        if (i == 1)
-        {
-          EXPECT_DOUBLE_EQ(virial[0], -1.0);
-          EXPECT_DOUBLE_EQ(virial[1], -2.0);
-          EXPECT_DOUBLE_EQ(virial[2], 1.0);
-          EXPECT_DOUBLE_EQ(virial[3], 2.0);
-          EXPECT_DOUBLE_EQ(virial[4], -3.0);
-          EXPECT_DOUBLE_EQ(virial[5], 3.0);
-        }
-        else
-        {
-          EXPECT_DOUBLE_EQ(virial[0], -10.0);
-          EXPECT_DOUBLE_EQ(virial[1], -20.0);
-          EXPECT_DOUBLE_EQ(virial[2], 10.0);
-          EXPECT_DOUBLE_EQ(virial[3], 20.0);
-          EXPECT_DOUBLE_EQ(virial[4], -30.0);
-          EXPECT_DOUBLE_EQ(virial[5], 30.0);
+        if (i == 1) {
+            EXPECT_DOUBLE_EQ(virial[0], -1.0);
+            EXPECT_DOUBLE_EQ(virial[1], -2.0);
+            EXPECT_DOUBLE_EQ(virial[2], 1.0);
+            EXPECT_DOUBLE_EQ(virial[3], 2.0);
+            EXPECT_DOUBLE_EQ(virial[4], -3.0);
+            EXPECT_DOUBLE_EQ(virial[5], 3.0);
+        } else {
+            EXPECT_DOUBLE_EQ(virial[0], -10.0);
+            EXPECT_DOUBLE_EQ(virial[1], -20.0);
+            EXPECT_DOUBLE_EQ(virial[2], 10.0);
+            EXPECT_DOUBLE_EQ(virial[3], 20.0);
+            EXPECT_DOUBLE_EQ(virial[4], -30.0);
+            EXPECT_DOUBLE_EQ(virial[5], 30.0);
         }
     }
 };
@@ -184,11 +179,9 @@ TEST_F(LAMMPS_fixexternal, vector)
     f_lammps_fixexternal_set_vector();
     lammps_command(lmp, "run 0");
     double *v;
-    for (int i = 0; i < 8; i++)
-    {
-      v = (double*) lammps_extract_fix(lmp, "ext2", LMP_STYLE_GLOBAL,
-        LMP_TYPE_VECTOR, i, 1);
-      EXPECT_DOUBLE_EQ(i+1, *v);
-      std::free(v);
+    for (int i = 0; i < 8; i++) {
+        v = (double *)lammps_extract_fix(lmp, "ext2", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, i, 1);
+        EXPECT_DOUBLE_EQ(i + 1, *v);
+        std::free(v);
     }
 };

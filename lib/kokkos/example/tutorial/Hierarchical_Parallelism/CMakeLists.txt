@@ -1,6 +1,4 @@
-
-KOKKOS_ADD_EXAMPLE_DIRECTORIES(01_thread_teams)
-KOKKOS_ADD_EXAMPLE_DIRECTORIES(01_thread_teams_lambda)
-KOKKOS_ADD_EXAMPLE_DIRECTORIES(02_nested_parallel_for)
-KOKKOS_ADD_EXAMPLE_DIRECTORIES(03_vectorization)
-
+kokkos_add_example_directories(01_thread_teams)
+kokkos_add_example_directories(01_thread_teams_lambda)
+kokkos_add_example_directories(02_nested_parallel_for)
+kokkos_add_example_directories(03_vectorization)

@@ -105,6 +105,11 @@ if(Python_EXECUTABLE)
     set_tests_properties(PythonPyLammps PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
   endif()
 
+  add_test(NAME PythonCmdWrapper
+           COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-cmdwrapper.py -v
+           WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+  set_tests_properties(PythonCmdWrapper PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+
   add_test(NAME PythonFormats
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-formats.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})

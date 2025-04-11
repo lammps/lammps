@@ -118,8 +118,8 @@ struct FunctorAnalysis {
   using functor_has_space = has_execution_space<Functor>;
 
   static_assert(!policy_has_space::value || !functor_has_space::value ||
-                    std::is_same<typename policy_has_space::type,
-                                 typename functor_has_space::type>::value,
+                    std::is_same_v<typename policy_has_space::type,
+                                   typename functor_has_space::type>,
                 "Execution Policy and Functor execution space must match");
 
   //----------------------------------------
@@ -136,9 +136,8 @@ struct FunctorAnalysis {
                         typename std::is_void<typename F::value_type>::type> {
     using type = typename F::value_type;
 
-    static_assert(!std::is_reference<type>::value &&
-                      std::rank<type>::value <= 1 &&
-                      std::extent<type>::value == 0,
+    static_assert(!std::is_reference_v<type> && std::rank_v<type> <= 1 &&
+                      std::extent_v<type> == 0,
                   "Kokkos Functor::value_type is T or T[]");
   };
 
@@ -149,7 +148,7 @@ struct FunctorAnalysis {
 
   template <typename F, typename P = PatternInterface,
             typename V = typename has_value_type<F>::type,
-            bool T     = std::is_void<Tag>::value>
+            bool T     = std::is_void_v<Tag>>
   struct deduce_value_type {
     using type = V;
   };
@@ -290,8 +289,8 @@ struct FunctorAnalysis {
   using candidate_type = typename deduce_value_type<Functor>::type;
 
   enum {
-    candidate_is_void  = std::is_void<candidate_type>::value,
-    candidate_is_array = std::rank<candidate_type>::value == 1
+    candidate_is_void  = std::is_void_v<candidate_type>,
+    candidate_is_array = std::rank_v<candidate_type> == 1
   };
 
   //----------------------------------------
@@ -306,7 +305,7 @@ struct FunctorAnalysis {
 
   using value_type = std::remove_extent_t<candidate_type>;
 
-  static_assert(!std::is_const<value_type>::value,
+  static_assert(!std::is_const_v<value_type>,
                 "Kokkos functor operator reduce argument cannot be const");
 
  private:
@@ -614,21 +613,20 @@ struct FunctorAnalysis {
   };
 
   template <class F>
-  struct DeduceJoinNoTag<F, std::enable_if_t<(is_reducer<F>::value ||
-                                              (!is_reducer<F>::value &&
-                                               std::is_void<Tag>::value)) &&
-                                             detected_join_no_tag<F>::value>>
+  struct DeduceJoinNoTag<
+      F, std::enable_if_t<(is_reducer<F>::value ||
+                           (!is_reducer<F>::value && std::is_void_v<Tag>)) &&
+                          detected_join_no_tag<F>::value>>
       : public has_join_no_tag_function<F> {
     enum : bool { value = true };
   };
 
   template <class F>
   struct DeduceJoinNoTag<
-      F,
-      std::enable_if_t<(is_reducer<F>::value ||
-                        (!is_reducer<F>::value && std::is_void<Tag>::value)) &&
-                       (!detected_join_no_tag<F>::value &&
-                        detected_volatile_join_no_tag<F>::value)>>
+      F, std::enable_if_t<(is_reducer<F>::value ||
+                           (!is_reducer<F>::value && std::is_void_v<Tag>)) &&
+                          (!detected_join_no_tag<F>::value &&
+                           detected_volatile_join_no_tag<F>::value)>>
       : public has_volatile_join_no_tag_function<F> {
     enum : bool { value = true };
     static_assert(Impl::dependent_false_v<F>,
@@ -735,8 +733,8 @@ struct FunctorAnalysis {
 
   template <class F>
   struct DeduceInitNoTag<
-      F, std::enable_if_t<is_reducer<F>::value || (!is_reducer<F>::value &&
-                                                   std::is_void<Tag>::value),
+      F, std::enable_if_t<is_reducer<F>::value ||
+                              (!is_reducer<F>::value && std::is_void_v<Tag>),
                           decltype(has_init_no_tag_function<F>::enable_if(
                               &F::init))>>
       : public has_init_no_tag_function<F> {
@@ -835,8 +833,8 @@ struct FunctorAnalysis {
 
   template <class F>
   struct DeduceFinalNoTag<
-      F, std::enable_if_t<is_reducer<F>::value || (!is_reducer<F>::value &&
-                                                   std::is_void<Tag>::value),
+      F, std::enable_if_t<is_reducer<F>::value ||
+                              (!is_reducer<F>::value && std::is_void_v<Tag>),
                           decltype(has_final_no_tag_function<F>::enable_if(
                               &F::final))>>
       : public has_final_no_tag_function<F> {
@@ -854,44 +852,7 @@ struct FunctorAnalysis {
     enum : bool { value = true };
   };
 
-  //----------------------------------------
-
-  template <class F = Functor, typename = void>
-  struct DeduceTeamShmem {
-    enum : bool { value = false };
-
-    static size_t team_shmem_size(F const&, int) { return 0; }
-  };
-
-  template <class F>
-  struct DeduceTeamShmem<F, std::enable_if_t<0 < sizeof(&F::team_shmem_size)>> {
-    enum : bool { value = true };
-
-    static size_t team_shmem_size(F const* const f, int team_size) {
-      return f->team_shmem_size(team_size);
-    }
-  };
-
-  template <class F>
-  struct DeduceTeamShmem<F,
-                         std::enable_if_t<(0 < sizeof(&F::shmem_size)) &&
-                                          !(0 < sizeof(&F::team_shmem_size))>> {
-    enum : bool { value = true };
-
-    static size_t team_shmem_size(F const* const f, int team_size) {
-      return f->shmem_size(team_size);
-    }
-  };
-
-  //----------------------------------------
-
  public:
-  inline static size_t team_shmem_size(Functor const& f) {
-    return DeduceTeamShmem<>::team_shmem_size(f);
-  }
-
-  //----------------------------------------
-
   enum { has_join_member_function = DeduceJoin<>::value };
   enum { has_init_member_function = DeduceInit<>::value };
   enum { has_final_member_function = DeduceFinal<>::value };
@@ -906,14 +867,14 @@ struct FunctorAnalysis {
     Functor m_functor;
 
     template <bool IsArray>
-    KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<IsArray, int> len() const
-        noexcept {
+    KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<IsArray, int> len()
+        const noexcept {
       return m_functor.value_count;
     }
 
     template <bool IsArray>
-    KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<!IsArray, int> len() const
-        noexcept {
+    KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<!IsArray, int> len()
+        const noexcept {
       return candidate_is_void ? 0 : 1;
     }
 
@@ -973,8 +934,8 @@ struct FunctorAnalysis {
       DeduceJoin<>::join(&m_functor, dst, src);
     }
 
-    KOKKOS_INLINE_FUNCTION reference_type init(ValueType* const dst) const
-        noexcept {
+    KOKKOS_INLINE_FUNCTION reference_type
+    init(ValueType* const dst) const noexcept {
       DeduceInit<>::init(&m_functor, dst);
       return reference(dst);
     }
@@ -987,11 +948,11 @@ struct FunctorAnalysis {
     KOKKOS_INLINE_FUNCTION
     const Functor& get_functor() const { return m_functor; }
 
-    Reducer(Reducer const&) = default;
-    Reducer(Reducer&&)      = default;
+    Reducer(Reducer const&)            = default;
+    Reducer(Reducer&&)                 = default;
     Reducer& operator=(Reducer const&) = delete;
-    Reducer& operator=(Reducer&&) = delete;
-    ~Reducer()                    = default;
+    Reducer& operator=(Reducer&&)      = delete;
+    ~Reducer()                         = default;
 
     KOKKOS_INLINE_FUNCTION explicit constexpr Reducer(
         Functor const& arg_functor) noexcept

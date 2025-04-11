@@ -39,10 +39,8 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
   force_reneighbor = 1;
   next_reneighbor = -1;
 
-  if (narg < 4) error->all(FLERR,"Illegal fix wall/piston command");
+  if (narg < 4) utils::missing_cmd_args(FLERR,"fix wall/piston", error);
 
-  randomt = nullptr;
-  gfactor1 = gfactor2 = nullptr;
   tempflag = 0;
   scaleflag = 1;
   roughflag = 0;
@@ -92,6 +90,9 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
       if (t_period <= 0) error->all(FLERR,"Illegal fix wall/piston command");
       if (t_extent <= 0) error->all(FLERR,"Illegal fix wall/piston command");
       if (tseed <= 0) error->all(FLERR,"Illegal fix wall/piston command");
+      delete randomt;
+      delete[] gfactor1;
+      delete[] gfactor2;
       randomt = new RanMars(lmp,tseed + comm->me);
       gfactor1 = new double[atom->ntypes+1];
       gfactor2 = new double[atom->ntypes+1];

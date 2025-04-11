@@ -26,7 +26,7 @@ namespace Test {
 TEST(sycl, raw_sycl_interop) {
   // Make sure all queues use the same context
   Kokkos::initialize();
-  Kokkos::Experimental::SYCL default_space;
+  Kokkos::SYCL default_space;
   sycl::context default_context = default_space.sycl_queue().get_context();
 
   sycl::queue queue(default_context, sycl::default_selector_v,

@@ -4,8 +4,7 @@ Communication
 Following the selected partitioning scheme, all per-atom data is
 distributed across the MPI processes, which allows LAMMPS to handle very
 large systems provided it uses a correspondingly large number of MPI
-processes.  Since The per-atom data (atom IDs, positions, velocities,
-types, etc.)  To be able to compute the short-range interactions, MPI
+processes.  To be able to compute the short-range interactions, MPI
 processes need not only access to the data of atoms they "own" but also
 information about atoms from neighboring subdomains, in LAMMPS referred
 to as "ghost" atoms.  These are copies of atoms storing required
@@ -37,7 +36,7 @@ be larger than half the simulation domain.
 
 Efficient communication patterns are needed to update the "ghost" atom
 data, since that needs to be done at every MD time step or minimization
-step.  The diagrams of the `ghost-atom-comm` figure illustrate how ghost
+step.  The diagrams of the :ref:`ghost-atom-comm` figure illustrate how ghost
 atom communication is performed in two stages for a 2d simulation (three
 in 3d) for both a regular and irregular partitioning of the simulation
 box.  For the regular case (left) atoms are exchanged first in the

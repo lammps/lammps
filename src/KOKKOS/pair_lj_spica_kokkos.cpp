@@ -70,7 +70,6 @@ void PairLJSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
   ev_init(eflag,vflag,0);
@@ -108,6 +107,8 @@ void PairLJSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // loop over neighbors of my atoms
 
+  copymode = 1;
+
   EV_FLOAT ev = pair_compute<PairLJSPICAKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
 
   if (eflag) eng_vdwl += ev.evdwl;
@@ -132,45 +133,24 @@ void PairLJSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
+  copymode = 0;
 }
+
+/* ----------------------------------------------------------------------
+   compute pair force between atoms i and j
+   ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJSPICAKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
+compute_fpair(const F_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const int ljt = (STACKPARAMS?m_params[itype][jtype].lj_type:params(itype,jtype).lj_type);
 
   const F_FLOAT lj_1 =  (STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1);
   const F_FLOAT lj_2 =  (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2);
 
-  /*if (ljt == LJ12_4) {
-
-    const F_FLOAT r4inv=r2inv*r2inv;
-    return r4inv*(lj_1*r4inv*r4inv - lj_2) * r2inv;
-
-  } else if (ljt == LJ9_6) {
-
-    const F_FLOAT r3inv = r2inv*sqrt(r2inv);
-    const F_FLOAT r6inv = r3inv*r3inv;
-    return r6inv*(lj_1*r3inv - lj_2) * r2inv;
-
-  } else if (ljt == LJ12_6) {
-
-    const double r6inv = r2inv*r2inv*r2inv;
-    return r6inv*(lj_1*r6inv - lj_2) * r2inv;
-
-  } else if (ljt == LJ12_5) {
-
-    const F_FLOAT r5inv = r2inv*r2inv*sqrt(r2inv);
-    const F_FLOAT r7inv = r5inv*r2inv;
-    return r5inv*(lj_1*r7inv - lj_2) * r2inv;
-
-  }
-  if (ljt!=LJ12_4 && ljt!=LJ9_6 && ljt!=LJ12_6 && ljt!=LJ12_5) return 0.0;*/
   const F_FLOAT r4inv=r2inv*r2inv;
   const F_FLOAT r6inv=r2inv*r4inv;
   const F_FLOAT a = ljt==LJ12_4?r4inv:(ljt==LJ12_5?r4inv*sqrt(r2inv):r6inv);
@@ -178,13 +158,15 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
   return a* ( lj_1*r6inv*b - lj_2 * r2inv);
 }
 
+/* ----------------------------------------------------------------------
+   compute pair potential energy between atoms i and j
+   ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJSPICAKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
+compute_evdwl(const F_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const int ljt = (STACKPARAMS?m_params[itype][jtype].lj_type:params(itype,jtype).lj_type);
 
@@ -194,18 +176,14 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
 
   if (ljt == LJ12_4) {
     const F_FLOAT r4inv=r2inv*r2inv;
-
     return r4inv*(lj_3*r4inv*r4inv - lj_4) - offset;
-
   } else if (ljt == LJ9_6) {
     const F_FLOAT r3inv = r2inv*sqrt(r2inv);
     const F_FLOAT r6inv = r3inv*r3inv;
     return r6inv*(lj_3*r3inv - lj_4) - offset;
-
   } else if (ljt == LJ12_6) {
     const double r6inv = r2inv*r2inv*r2inv;
     return r6inv*(lj_3*r6inv - lj_4) - offset;
-
   } else if (ljt == LJ12_5) {
     const F_FLOAT r5inv = r2inv*r2inv*sqrt(r2inv);
     const F_FLOAT r7inv = r5inv*r2inv;
@@ -300,8 +278,6 @@ double PairLJSPICAKokkos<DeviceType>::init_one(int i, int j)
 
   return cutone;
 }
-
-
 
 namespace LAMMPS_NS {
 template class PairLJSPICAKokkos<LMPDeviceType>;

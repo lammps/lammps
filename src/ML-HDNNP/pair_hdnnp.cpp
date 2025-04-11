@@ -189,10 +189,10 @@ void PairHDNNP::coeff(int narg, char **arg)
 
   if (!allocated) allocate();
 
-  if (narg != 2 + n) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg != 2 + n) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 
   if (strcmp(arg[0], "*") != 0 || strcmp(arg[1], "*") != 0)
-    error->all(FLERR, "Incorrect args for pair coefficients");
+    error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 
   int *map = new int[n + 1];
   for (int i = 0; i < n; i++) map[i] = 0;
@@ -214,7 +214,7 @@ void PairHDNNP::coeff(int narg, char **arg)
         count++;
       }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 
   delete[] map;
 }

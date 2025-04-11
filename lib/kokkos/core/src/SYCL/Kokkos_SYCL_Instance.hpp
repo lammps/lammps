@@ -28,7 +28,6 @@
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_Profiling.hpp>
 namespace Kokkos {
-namespace Experimental {
 namespace Impl {
 
 class SYCLInternal {
@@ -38,18 +37,17 @@ class SYCLInternal {
   SYCLInternal() = default;
   ~SYCLInternal();
 
-  SYCLInternal(const SYCLInternal&) = delete;
+  SYCLInternal(const SYCLInternal&)            = delete;
   SYCLInternal& operator=(const SYCLInternal&) = delete;
-  SYCLInternal& operator=(SYCLInternal&&) = delete;
-  SYCLInternal(SYCLInternal&&)            = delete;
+  SYCLInternal& operator=(SYCLInternal&&)      = delete;
+  SYCLInternal(SYCLInternal&&)                 = delete;
 
-  sycl::device_ptr<void> scratch_space(const std::size_t size);
-  sycl::device_ptr<void> scratch_flags(const std::size_t size);
-  sycl::host_ptr<void> scratch_host(const std::size_t size);
+  Kokkos::Impl::sycl_device_ptr<void> scratch_space(const std::size_t size);
+  Kokkos::Impl::sycl_device_ptr<void> scratch_flags(const std::size_t size);
+  Kokkos::Impl::sycl_host_ptr<void> scratch_host(const std::size_t size);
   int acquire_team_scratch_space();
-  sycl::device_ptr<void> resize_team_scratch_space(int scratch_pool_id,
-                                                   std::int64_t bytes,
-                                                   bool force_shrink = false);
+  Kokkos::Impl::sycl_device_ptr<void> resize_team_scratch_space(
+      int scratch_pool_id, std::int64_t bytes, bool force_shrink = false);
   void register_team_scratch_event(int scratch_pool_id, sycl::event event);
 
   uint32_t impl_get_instance_id() const;
@@ -59,25 +57,27 @@ class SYCLInternal {
   uint32_t m_maxConcurrency   = 0;
   uint64_t m_maxShmemPerBlock = 0;
 
-  std::size_t m_scratchSpaceCount            = 0;
-  sycl::device_ptr<size_type> m_scratchSpace = nullptr;
-  std::size_t m_scratchHostCount             = 0;
-  sycl::host_ptr<size_type> m_scratchHost    = nullptr;
-  std::size_t m_scratchFlagsCount            = 0;
-  sycl::device_ptr<size_type> m_scratchFlags = nullptr;
+  std::size_t m_scratchSpaceCount                         = 0;
+  Kokkos::Impl::sycl_device_ptr<size_type> m_scratchSpace = nullptr;
+  std::size_t m_scratchHostCount                          = 0;
+  Kokkos::Impl::sycl_host_ptr<size_type> m_scratchHost    = nullptr;
+  std::size_t m_scratchFlagsCount                         = 0;
+  Kokkos::Impl::sycl_device_ptr<size_type> m_scratchFlags = nullptr;
   // mutex to access shared memory
   mutable std::mutex m_mutexScratchSpace;
 
   // Team Scratch Level 1 Space
-  static constexpr int m_n_team_scratch                               = 10;
-  mutable int64_t m_team_scratch_current_size[m_n_team_scratch]       = {};
-  mutable sycl::device_ptr<void> m_team_scratch_ptr[m_n_team_scratch] = {};
-  mutable int m_current_team_scratch                                  = 0;
-  mutable sycl::event m_team_scratch_event[m_n_team_scratch]          = {};
+  static constexpr int m_n_team_scratch                         = 10;
+  mutable int64_t m_team_scratch_current_size[m_n_team_scratch] = {};
+  mutable Kokkos::Impl::sycl_device_ptr<void>
+      m_team_scratch_ptr[m_n_team_scratch]                   = {};
+  mutable int m_current_team_scratch                         = 0;
+  mutable sycl::event m_team_scratch_event[m_n_team_scratch] = {};
   mutable std::mutex m_team_scratch_mutex;
 
-  uint32_t m_instance_id = Kokkos::Tools::Experimental::Impl::idForInstance<
-      Kokkos::Experimental::SYCL>(reinterpret_cast<uintptr_t>(this));
+  uint32_t m_instance_id =
+      Kokkos::Tools::Experimental::Impl::idForInstance<Kokkos::SYCL>(
+          reinterpret_cast<uintptr_t>(this));
   std::optional<sycl::queue> m_queue;
 
   // Using std::vector<std::optional<sycl::queue>> reveals a compiler bug when
@@ -102,9 +102,9 @@ class SYCLInternal {
     explicit USMObjectMem(sycl::queue q, uint32_t instance_id) noexcept
         : m_q(std::move(q)), m_instance_id(instance_id) {}
 
-    USMObjectMem(USMObjectMem const&) = delete;
-    USMObjectMem(USMObjectMem&&)      = delete;
-    USMObjectMem& operator=(USMObjectMem&&) = delete;
+    USMObjectMem(USMObjectMem const&)            = delete;
+    USMObjectMem(USMObjectMem&&)                 = delete;
+    USMObjectMem& operator=(USMObjectMem&&)      = delete;
     USMObjectMem& operator=(USMObjectMem const&) = delete;
 
     ~USMObjectMem() { reset(); };
@@ -119,12 +119,12 @@ class SYCLInternal {
     size_t reserve(size_t n);
 
    private:
-    using AllocationSpace = std::conditional_t<
-        Kind == sycl::usm::alloc::device,
-        Kokkos::Experimental::SYCLDeviceUSMSpace,
-        std::conditional_t<Kind == sycl::usm::alloc::shared,
-                           Kokkos::Experimental::SYCLSharedUSMSpace,
-                           Kokkos::Experimental::SYCLHostUSMSpace>>;
+    using AllocationSpace =
+        std::conditional_t<Kind == sycl::usm::alloc::device,
+                           Kokkos::SYCLDeviceUSMSpace,
+                           std::conditional_t<Kind == sycl::usm::alloc::shared,
+                                              Kokkos::SYCLSharedUSMSpace,
+                                              Kokkos::SYCLHostUSMSpace>>;
 
    public:
     // Performs either sycl::memcpy (for USM device memory) or std::memcpy
@@ -144,11 +144,10 @@ class SYCLInternal {
     }
 
     void fence() {
-      SYCLInternal::fence(
-          m_last_event,
-          "Kokkos::Experimental::SYCLInternal::USMObject fence to wait for "
-          "last event to finish",
-          m_instance_id);
+      SYCLInternal::fence(m_last_event,
+                          "Kokkos::SYCLInternal::USMObject fence to wait for "
+                          "last event to finish",
+                          m_instance_id);
     }
 
     void register_event(sycl::event event) {
@@ -251,20 +250,18 @@ class SYCLFunctionWrapper<Functor, Storage, false> {
   union TrivialWrapper {
     TrivialWrapper(){};
 
-    TrivialWrapper(const Functor& f) { std::memcpy(&m_f, &f, sizeof(m_f)); }
+    TrivialWrapper(const Functor& f) {
+      std::memcpy(static_cast<void*>(&m_f), static_cast<const void*>(&f),
+                  sizeof(m_f));
+    }
 
     TrivialWrapper(const TrivialWrapper& other) {
-      std::memcpy(&m_f, &other.m_f, sizeof(m_f));
-    }
-    TrivialWrapper(TrivialWrapper&& other) {
-      std::memcpy(&m_f, &other.m_f, sizeof(m_f));
+      std::memcpy(static_cast<void*>(&m_f),
+                  static_cast<const void*>(&other.m_f), sizeof(m_f));
     }
     TrivialWrapper& operator=(const TrivialWrapper& other) {
-      std::memcpy(&m_f, &other.m_f, sizeof(m_f));
-      return *this;
-    }
-    TrivialWrapper& operator=(TrivialWrapper&& other) {
-      std::memcpy(&m_f, &other.m_f, sizeof(m_f));
+      std::memcpy(static_cast<void*>(&m_f),
+                  static_cast<const void*>(&other.m_f), sizeof(m_f));
       return *this;
     }
     ~TrivialWrapper(){};
@@ -324,13 +321,12 @@ auto make_sycl_function_wrapper(const Functor& functor, Storage& storage) {
   return SYCLFunctionWrapper<Functor, Storage>(functor, storage);
 }
 }  // namespace Impl
-}  // namespace Experimental
 }  // namespace Kokkos
 
 #if defined(SYCL_DEVICE_COPYABLE) && defined(KOKKOS_ARCH_INTEL_GPU)
 template <typename Functor, typename Storage>
 struct sycl::is_device_copyable<
-    Kokkos::Experimental::Impl::SYCLFunctionWrapper<Functor, Storage, false>>
+    Kokkos::Impl::SYCLFunctionWrapper<Functor, Storage, false>>
     : std::true_type {};
 
 #if (defined(__INTEL_LLVM_COMPILER) && __INTEL_LLVM_COMPILER < 20240000) || \
@@ -352,8 +348,7 @@ static_assert(
 
 template <typename Functor, typename Storage>
 struct sycl::is_device_copyable<
-    const Kokkos::Experimental::Impl::SYCLFunctionWrapper<Functor, Storage,
-                                                          false>,
+    const Kokkos::Impl::SYCLFunctionWrapper<Functor, Storage, false>,
     std::enable_if_t<!sycl::is_device_copyable_v<
         const NonTriviallyCopyableAndDeviceCopyable<Functor>>>>
     : std::true_type {};

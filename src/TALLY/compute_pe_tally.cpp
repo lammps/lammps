@@ -167,10 +167,11 @@ double ComputePETally::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
   if ((did_setup != invoked_scalar) || (update->eflag_global != invoked_scalar))
-    error->all(FLERR, "Energy was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Energy was not tallied on needed timestep" + utils::errorurl(22));
 
   if ((comm->me == 0) && !force->pair->did_tally_callback())
-    error->warning(FLERR, "Energy was not tallied by pair style");
+    error->warning(FLERR, "Energy was not tallied by pair style" + utils::errorurl(11));
 
   // sum accumulated energies across procs
 
@@ -186,10 +187,11 @@ void ComputePETally::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
   if ((did_setup != invoked_peratom) || (update->eflag_global != invoked_peratom))
-    error->all(FLERR, "Energy was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Energy was not tallied on needed timestep" + utils::errorurl(22));
 
   if ((comm->me == 0) && !force->pair->did_tally_callback())
-    error->warning(FLERR, "Energy was not tallied by pair style");
+    error->warning(FLERR, "Energy was not tallied by pair style" + utils::errorurl(11));
 
   // collect contributions from ghost atoms
 

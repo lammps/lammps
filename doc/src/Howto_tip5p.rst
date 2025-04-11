@@ -32,9 +32,9 @@ The table below lists the force field parameters (in real :doc:`units
 <Mahoney>` and the TIP5P-E model :ref:`(Rick) <Rick>` for use with a
 long-range Coulombic solver (e.g. Ewald or PPPM in LAMMPS).
 
-   .. list-table::
+.. list-table::
       :header-rows: 1
-      :widths: auto
+      :widths: 50 25 25
 
       * - Parameter
         - TIP5P

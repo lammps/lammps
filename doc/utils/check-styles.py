@@ -61,15 +61,49 @@ region = {}
 total = 0
 
 index_pattern = re.compile(r"^.. index:: (compute|fix|pair_style|angle_style|bond_style|dihedral_style|improper_style|kspace_style|dump)\s+([a-zA-Z0-9/_]+)$")
+accel_pattern = re.compile(r"^.. include::\s+accel_styles.rst$")
 style_pattern = re.compile(r"(.+)Style\((.+),(.+)\)")
+cmd_pattern = re.compile(r"^.. index:: ([a-zA-Z0-9/_]+)$")
 upper = re.compile("[A-Z]+")
-gpu = re.compile("(.+)/gpu$")
-intel = re.compile("(.+)/intel$")
-kokkos = re.compile("(.+)/kk$")
-kokkos_skip = re.compile("(.+)/kk/(host|device)$")
-omp = re.compile("(.+)/omp$")
-opt = re.compile("(.+)/opt$")
+gpu = re.compile("(.+)/gpu\\s*$")
+intel = re.compile("(.+)/intel\\s*$")
+kokkos = re.compile("(.+)/kk$\\s*")
+kokkos_skip = re.compile("(.+)/kk/(host|device)\\s*$")
+omp = re.compile("(.+)/omp\\s*$")
+opt = re.compile("(.+)/opt\\s*$")
 removed = re.compile("(.*)Deprecated$")
+
+def require_accel_include(path):
+    found = False
+    needs = False
+    # handle exceptions
+    if path == "src/min_style.rst" : needs = True
+    if path == "src/atom_style.rst" : needs = True
+    if path == "src/region.rst" : needs = True
+    # check file
+    with open(path, 'r') as reader:
+        for line in reader:
+            m = accel_pattern.match(line)
+            if m: found = True
+            m = index_pattern.match(line)
+            if m:
+                if gpu.match(line): needs = True
+                if omp.match(line): needs = True
+                if kokkos.match(line): needs = True
+                if intel.match(line): needs = True
+                if opt.match(line): needs = True
+                if path == "src/fix_colvars.rst": needs = False
+            m = cmd_pattern.match(line)
+            if m:
+                if gpu.match(line): needs = True
+                if omp.match(line): needs = True
+                if kokkos.match(line): needs = True
+                if intel.match(line): needs = True
+                if opt.match(line): needs = True
+    if needs and not found:
+        print("Missing '.. include:: accel_style.rst' in file ", path)
+    if not needs and found:
+        print("Have '.. include:: accel_style.rst' without accelerated styles in file ", path)
 
 def load_index_entries_in_file(path):
     entries = []
@@ -81,6 +115,11 @@ def load_index_entries_in_file(path):
                 style = m.group(2)
                 entries.append((command_type, style))
     return entries
+
+def check_accel_includes():
+    rst_files = glob(os.path.join(doc_dir, '*.rst'))
+    for f in rst_files:
+        require_accel_include(f)
 
 def load_index_entries():
     index = {'compute': set(), 'fix': set(), 'pair_style': set(), 'angle_style': set(),
@@ -127,7 +166,9 @@ def check_style(filename, dirname, pattern, styles, name, suffix=False, skip=set
         # known undocumented aliases we need to skip
         if c in skip: continue
         s = c
-        if suffix: s = add_suffix(styles, c)
+        if suffix:
+            s = add_suffix(styles, c)
+            if s == 'colvars (k)' : continue
         if not s in matches:
             if not styles[c]['removed']:
                 print(f"{name} style entry {s} is missing or incomplete in {filename}")
@@ -249,6 +290,8 @@ Total number of styles (including suffixes): %d""" \
        len(fix), len(improper), len(integrate), len(kspace), \
        len(minimize), len(pair), len(reader), len(region), total))
 
+check_accel_includes()
+
 index = load_index_entries()
 
 total_index = 0
@@ -258,7 +301,7 @@ for command_type, entries in index.items():
 print("Total number of style index entries:", total_index)
 
 skip_angle = ('sdk')
-skip_fix = ('python', 'NEIGH_HISTORY/omp','acks2/reax','qeq/reax','reax/c/bonds','reax/c/species', 'pimd')
+skip_fix = ('python', 'NEIGH_HISTORY/omp','acks2/reax','qeq/reax','reax/c/bonds','reax/c/species', 'pimd', 'colvars/kk')
 skip_pair = ('meam/c','lj/sf','reax/c','lj/sdk','lj/sdk/coul/long','lj/sdk/coul/msm')
 skip_compute = ('pressure/cylinder')
 

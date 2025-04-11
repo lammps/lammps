@@ -41,7 +41,7 @@ Rerun::Rerun(LAMMPS *lmp) : Command(lmp) {}
 void Rerun::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR,"Rerun command before simulation box is defined");
+    error->all(FLERR,"Rerun command before simulation box is defined" + utils::errorurl(33));
 
   if (narg < 2) error->all(FLERR,"Illegal rerun command");
 

@@ -16,20 +16,32 @@
 
 #include <QMainWindow>
 
+#include <QEvent>
 #include <QGridLayout>
 #include <QList>
 #include <QPair>
 #include <QSpacerItem>
 #include <QString>
+#include <QWizard>
+#include <string>
 #include <vector>
 
 #include "lammpswrapper.h"
 
+// identifier for LAMMPS restart files
+#if !defined(LAMMPS_MAGIC)
+#define LAMMPS_MAGIC "LammpS RestartT"
+#endif
+
 // forward declarations
 
-class GeneralTab;
-class LammpsRunner;
-class LogWindow;
+class QFont;
+class QLabel;
+class QPlainTextEdit;
+class QProgressBar;
+class QTimer;
+class QWidget;
+class QWizardPage;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -37,36 +49,45 @@ class LammpsGui;
 }
 QT_END_NAMESPACE
 
-class QLabel;
-class QPlainTextEdit;
-class QProgressBar;
-class QTimer;
-
-class Highlighter;
-class StdCapture;
-class Preferences;
-class ImageViewer;
 class ChartWindow;
+class GeneralTab;
+class Highlighter;
+class ImageViewer;
+class LammpsRunner;
+class LogWindow;
+class Preferences;
 class SlideShow;
+class StdCapture;
 
 class LammpsGui : public QMainWindow {
     Q_OBJECT
 
     friend class CodeEditor;
     friend class GeneralTab;
+    friend class TutorialWizard;
 
 public:
-    LammpsGui(QWidget *parent = nullptr, const char *filename = nullptr);
+    LammpsGui(QWidget *parent = nullptr, const QString &filename = QString());
     ~LammpsGui() override;
 
 protected:
     void open_file(const QString &filename);
+    void view_file(const QString &filename);
+    void inspect_file(const QString &filename);
     void write_file(const QString &filename);
     void update_recents(const QString &filename = "");
     void update_variables();
     void do_run(bool use_buffer);
     void start_lammps();
     void run_done();
+    void setDocver();
+    void autoSave();
+    void setFont(const QFont &newfont);
+    QWizardPage *tutorial_intro(const int ntutorial, const QString &infotext);
+    QWizardPage *tutorial_directory(const int ntutorial);
+    void setup_tutorial(int ntutorial, const QString &dir, bool purgedir, bool getsolution);
+    void purge_inspect_list();
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 public slots:
     void quit();
@@ -75,7 +96,10 @@ public slots:
 private slots:
     void new_document();
     void open();
+    void view();
+    void inspect();
     void open_recent();
+    void get_directory();
     void start_exe();
     void save();
     void save_as();
@@ -84,8 +108,10 @@ private slots:
     void paste();
     void undo();
     void redo();
+    void findandreplace();
     void run_buffer() { do_run(true); }
     void run_file() { do_run(false); }
+    void restart_lammps() { lammps.close(); };
 
     void edit_variables();
     void render_image();
@@ -97,6 +123,15 @@ private slots:
     void about();
     void help();
     void manual();
+    void tutorial_web();
+    void start_tutorial1();
+    void start_tutorial2();
+    void start_tutorial3();
+    void start_tutorial4();
+    void start_tutorial5();
+    void start_tutorial6();
+    void start_tutorial7();
+    void start_tutorial8();
     void howto();
     void logupdate();
     void modified();
@@ -120,6 +155,14 @@ private:
     Preferences *prefdialog;
     QLabel *lammpsstatus;
     QLabel *varwindow;
+    QWizard *wizard;
+
+    struct InspectData {
+        QWidget *info;
+        QWidget *data;
+        QWidget *image;
+    };
+    QList<InspectData *> inspectList;
 
     QString current_file;
     QString current_dir;
@@ -128,10 +171,22 @@ private:
 
     LammpsWrapper lammps;
     LammpsRunner *runner;
-    std::string plugin_path;
+    QString docver;
+    QString plugin_path;
     bool is_running;
     int run_counter;
     std::vector<char *> lammps_args;
+};
+
+class TutorialWizard : public QWizard {
+    Q_OBJECT
+
+public:
+    TutorialWizard(int ntutorial, QWidget *parent = nullptr);
+    void accept() override;
+
+private:
+    int _ntutorial;
 };
 #endif // LAMMPSGUI_H
 

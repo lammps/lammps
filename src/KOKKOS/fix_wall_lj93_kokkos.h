@@ -33,38 +33,37 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  typedef double value_type[];
 
   FixWallLJ93Kokkos(class LAMMPS *, int, char **);
+  ~FixWallLJ93Kokkos() override;
+  void precompute(int) override;
+  void post_force(int) override;
   void wall_particle(int, int, double) override;
 
   int m;
 
+  typedef double value_type[];
+  const int value_count = 13;
+
   KOKKOS_INLINE_FUNCTION
-  void wall_particle_item(int, value_type) const;
+  void operator()(const int&, value_type) const;
 
  private:
   int dim,side;
   double coord;
 
-  typename AT::t_x_array x;
-  typename AT::t_f_array f;
-  typename AT::t_int_1d mask;
-};
+  typename AT::t_x_array d_x;
+  typename AT::t_f_array d_f;
+  typename AT::t_int_1d d_mask;
 
-template <class DeviceType>
-struct FixWallLJ93KokkosFunctor  {
-  typedef DeviceType device_type ;
-  typedef double value_type[];
-  const int value_count;
+  DAT::tdual_virial_array k_vatom;
+  typename AT::t_virial_array d_vatom;
 
-  FixWallLJ93Kokkos<DeviceType> c;
-  FixWallLJ93KokkosFunctor(FixWallLJ93Kokkos<DeviceType>* c_ptr):
-    value_count(c_ptr->m+1), c(*c_ptr) {}
+  typename AT::tdual_ffloat_1d k_cutoff,k_coeff1,k_coeff2,k_coeff3,k_coeff4,k_offset;
+  typename AT::t_ffloat_1d d_cutoff,d_coeff1,d_coeff2,d_coeff3,d_coeff4,d_offset;
+
   KOKKOS_INLINE_FUNCTION
-  void operator()(const int i, value_type ewall) const {
-    c.wall_particle_item(i,ewall);
-  }
+  void v_tally(value_type, int, int, double) const;
 };
 
 }

@@ -23,9 +23,6 @@
 #include "inttypes.h"
 #define tagint int64_t
 #endif
-#ifdef LAMMPS_SMALLSMALL
-#define tagint int
-#endif
 #ifndef _DOUBLE_DOUBLE
 _texture( pos_tex,float4);
 _texture( q_tex,float);
@@ -42,9 +39,6 @@ _texture( q_tex,int2);
 #endif
 #ifdef LAMMPS_BIGBIG
 #define tagint long
-#endif
-#ifdef LAMMPS_SMALLSMALL
-#define tagint int
 #endif
 
 #endif // defined(NV_KERNEL) || defined(USE_HIP)

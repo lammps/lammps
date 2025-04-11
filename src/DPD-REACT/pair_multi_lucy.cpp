@@ -29,6 +29,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -327,7 +328,9 @@ void PairMultiLucy::coeff(int narg, char **arg)
 
 double PairMultiLucy::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   tabindex[j][i] = tabindex[i][j];
 
@@ -481,20 +484,20 @@ void PairMultiLucy::param_extract(Table *tb, char *line)
   while (word) {
     if (strcmp(word,"N") == 0) {
       word = strtok(nullptr," \t\n\r\f");
-      tb->ninput = atoi(word);
+      tb->ninput = std::stoi(word);
     } else if (strcmp(word,"R") == 0 || strcmp(word,"RSQ") == 0) {
       if (strcmp(word,"R") == 0) tb->rflag = RLINEAR;
       else if (strcmp(word,"RSQ") == 0) tb->rflag = RSQ;
       word = strtok(nullptr," \t\n\r\f");
-      tb->rlo = atof(word);
+      tb->rlo = std::stod(word);
       word = strtok(nullptr," \t\n\r\f");
-      tb->rhi = atof(word);
+      tb->rhi = std::stod(word);
     } else if (strcmp(word,"FP") == 0) {
       tb->fpflag = 1;
       word = strtok(nullptr," \t\n\r\f");
-      tb->fplo = atof(word);
+      tb->fplo = std::stod(word);
       word = strtok(nullptr," \t\n\r\f");
-      tb->fphi = atof(word);
+      tb->fphi = std::stod(word);
     } else {
       printf("WORD: %s\n",word);
       error->one(FLERR,"Invalid keyword in pair table parameters");

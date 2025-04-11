@@ -21,6 +21,7 @@
 
 #include <mpi.h>
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -63,7 +64,7 @@ int main(int narg, char **arg)
   nprocs_lammps = atoi(arg[1]);
   if (nprocs_lammps > nprocs) {
     if (me == 0)
-      printf("ERROR: LAMMPS cannot use more procs than available\n");
+      printf("ERROR: LAMMPS cannot use more procs than available: %d\n", nprocs);
     MPI_Abort(MPI_COMM_WORLD,1);
   }
 
@@ -76,7 +77,7 @@ int main(int narg, char **arg)
   if (me == 0) {
     fp = fopen(arg[2],"r");
     if (fp == NULL) {
-      printf("ERROR: Could not open LAMMPS input script\n");
+      printf("ERROR: Could not open LAMMPS input script %s: %s\n", arg[2], strerror(errno));
       MPI_Abort(MPI_COMM_WORLD,1);
     }
   }
@@ -87,9 +88,10 @@ int main(int narg, char **arg)
      all LAMMPS procs call lammps_command() on the line */
 
   if (lammps == 1) {
+    errno = 0;
     plugin = liblammpsplugin_load(arg[3]);
     if (plugin == NULL) {
-      if (me == 0) printf("ERROR: Could not load shared LAMMPS library\n");
+      if (me == 0) printf("ERROR: Could not load shared LAMMPS library file %s: %s\n", arg[3], strerror(errno));
       MPI_Abort(MPI_COMM_WORLD,1);
     }
     /* must match the plugin ABI version */

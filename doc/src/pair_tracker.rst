@@ -33,13 +33,13 @@ Syntax
 
   .. parsed-literal::
 
-          id1, id2 = IDs of the 2 atoms in each pair interaction
-          time/created = the timestep that the 2 atoms began interacting
-          time/broken = the timestep that the 2 atoms stopped interacting
-          time/total = the total number of timesteps the 2 atoms interacted
-          r/min = the minimum radial distance between the 2 atoms during the interaction (distance units)
-          r/ave = the average radial distance between the 2 atoms during the interaction (distance units)
-          x, y, z = the center of mass position of the 2 atoms when they stopped interacting (distance units)
+          id1, id2 = IDs of the two atoms in each pair interaction
+          time/created = the timestep that the two atoms began interacting
+          time/broken = the timestep that the two atoms stopped interacting
+          time/total = the total number of timesteps the two atoms interacted
+          r/min = the minimum radial distance between the two atoms during the interaction (distance units)
+          r/ave = the average radial distance between the two atoms during the interaction (distance units)
+          x, y, z = the center of mass position of the two atoms when they stopped interacting (distance units)
 
 Examples
 """"""""

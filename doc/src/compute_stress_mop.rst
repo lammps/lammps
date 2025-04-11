@@ -129,6 +129,9 @@ package <Build_package>` doc page on for more info.
 The method is implemented for orthogonal simulation boxes whose
 size does not change in time, and axis-aligned planes.
 
+Contributions from bonds, angles, and dihedrals are not compatible
+with MPI parallel runs.
+
 The method only works with two-body pair interactions, because it
 requires the class method ``Pair::single()`` to be implemented, which is
 not possible for manybody potentials.  In particular, compute

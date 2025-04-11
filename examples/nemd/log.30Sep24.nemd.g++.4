@@ -1,0 +1,111 @@
+LAMMPS (29 Aug 2024 - Development - patch_29Aug2024-394-g75f86a68a7-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# 2d NEMD simulation
+
+units           lj
+atom_style      atomic
+dimension       2
+
+lattice         sq2 0.8442
+Lattice spacing in x,y,z = 1.5391903 1.5391903 1.5391903
+region          box prism 0 10 0 8 -0.5 0.5 0 0 0
+create_box      2 box
+Created triclinic box = (0 0 -0.76959516) to (15.391903 12.313523 0.76959516) with tilt (0 0 0)
+  2 by 2 by 1 MPI processor grid
+create_atoms    1 box
+Created 160 atoms
+  using lattice units in triclinic box = (0 0 -0.76959516) to (15.391903 12.313523 0.76959516) with tilt (0 0 0)
+  create_atoms CPU = 0.001 seconds
+mass            * 1.0
+
+velocity        all create 1.44 87287 loop geom
+
+region          slice block 4 6 INF INF INF INF
+set             region slice type 2
+Setting atom values ...
+  40 settings made for type
+
+pair_style      lj/cut 4.0
+pair_coeff      * * 1.0 1.0
+
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1
+
+fix             1 all nvt/sllod temp 1.0 1.0 1.0 tchain 1
+fix             2 all deform 1 xy erate 0.01 remap v
+
+#dump           1 all custom 500 dump.nemd id type x y z
+
+#dump           2 all image 100 image.*.jpg type type adiam 1.2
+#dump_modify    2 pad 5
+
+#dump           3 all movie 100 movie.mpg type type adiam 1.2
+#dump_modify    3 pad 5
+
+thermo          50
+
+run             1000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.3
+  ghost atom cutoff = 4.3
+  binsize = 2.15, bins = 8 6 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton/tri
+      stencil: half/bin/2d/tri
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.064 | 3.064 | 3.064 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
+         0   1.44          -2.6548731      0             -1.2238731      1.9354912      189.52855    
+        50   0.97904822    -2.1934929      0             -1.2205637      5.0001562      189.52855    
+       100   0.96423603    -2.1711413      0             -1.2129318      5.3040025      189.52855    
+       150   0.96430794    -2.153062       0             -1.194781       5.3988945      189.52855    
+       200   1.056585      -2.2379316      0             -1.1879503      5.0007883      189.52855    
+       250   1.0183256     -2.1921531      0             -1.1801921      5.5370076      189.52855    
+       300   0.96855552    -2.140465       0             -1.177963       5.7188412      189.52855    
+       350   1.0115567     -2.1883272      0             -1.1830927      5.4437104      189.52855    
+       400   0.93743103    -2.1230826      0             -1.1915105      5.7059909      189.52855    
+       450   1.1120368     -2.3041274      0             -1.1990408      4.646396       189.52855    
+       500   0.99611106    -2.2039016      0             -1.2140162      5.1526658      189.52855    
+       550   1.1075519     -2.3349751      0             -1.2343453      4.0671355      189.52855    
+       600   1.0550783     -2.3126484      0             -1.2641644      4.5423735      189.52855    
+       650   0.98516169    -2.2664919      0             -1.2874875      4.8365475      189.52855    
+       700   0.97899201    -2.2815136      0             -1.3086403      4.5415389      189.52855    
+       750   1.0107776     -2.3375258      0             -1.3330656      4.3655082      189.52855    
+       800   0.97711804    -2.3221241      0             -1.3511131      4.2153988      189.52855    
+       850   0.8984454     -2.258341       0             -1.3655108      4.6759265      189.52855    
+       900   0.85409237    -2.2157566      0             -1.3670024      5.0180073      189.52855    
+       950   0.90195434    -2.2500988      0             -1.3537817      4.8189466      189.52855    
+      1000   1.0047283     -2.3359434      0             -1.3374947      4.0788763      189.52855    
+Loop time of 0.0158907 on 4 procs for 1000 steps with 160 atoms
+
+Performance: 27185684.597 tau/day, 62929.825 timesteps/s, 10.069 Matom-step/s
+98.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0044606  | 0.004562   | 0.0047619  |   0.2 | 28.71
+Neigh   | 0.0023154  | 0.0023979  | 0.002494   |   0.1 | 15.09
+Comm    | 0.0051743  | 0.0054807  | 0.0056638  |   0.3 | 34.49
+Output  | 7.5535e-05 | 8.9889e-05 | 0.00012988 |   0.0 |  0.57
+Modify  | 0.002223   | 0.0023624  | 0.0026372  |   0.3 | 14.87
+Other   |            | 0.0009979  |            |       |  6.28
+
+Nlocal:             40 ave          42 max          38 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+Nghost:          163.5 ave         166 max         162 min
+Histogram: 2 0 0 0 0 1 0 0 0 1
+Neighs:         970.25 ave        1016 max         942 min
+Histogram: 1 1 0 0 1 0 0 0 0 1
+
+Total # of neighbors = 3881
+Ave neighs/atom = 24.25625
+Neighbor list builds = 106
+Dangerous builds = 0
+Total wall time: 0:00:00

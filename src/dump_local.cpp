@@ -19,6 +19,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
+#include "input.h"
 #include "memory.h"
 #include "modify.h"
 #include "update.h"
@@ -43,10 +44,10 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   clearstep = 1;
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery <= 0) error->all(FLERR,"Illegal dump local command");
+  if (nevery <= 0) error->all(FLERR, 3, "Dump local nevery value {} must be > 0", nevery);
 
   if (binary)
-    error->all(FLERR,"Binary files are not supported with dump local");
+    error->all(FLERR, 2, "Binary files are not supported with dump local");
 
   nfield = narg - 5;
 
@@ -170,7 +171,7 @@ void DumpLocal::init_style()
   columns = utils::strdup(combined);
 
   if (sort_flag && sortcol == 0)
-    error->all(FLERR,"Dump local cannot sort by atom ID");
+    error->all(FLERR, Error::NOLASTLINE, "Dump local cannot sort by atom ID");
 
   // format = copy of default or user-specified line format
 
@@ -185,7 +186,7 @@ void DumpLocal::init_style()
 
   auto words = utils::split_words(format);
   if ((int) words.size() <  size_one)
-    error->all(FLERR,"Dump_modify format line is too short: {}", format);
+    error->all(FLERR, Error::NOLASTLINE, "Dump_modify format line is too short: {}", format);
 
   int i=0;
   for (const auto &word : words) {
@@ -218,14 +219,17 @@ void DumpLocal::init_style()
 
   for (i = 0; i < ncompute; i++) {
     compute[i] = modify->get_compute_by_id(id_compute[i]);
-    if (!compute[i]) error->all(FLERR,"Could not find dump local compute ID {}",id_compute[i]);
+    if (!compute[i])
+      error->all(FLERR, Error::NOLASTLINE, "Could not find dump local compute ID {}",id_compute[i]);
   }
 
   for (i = 0; i < nfix; i++) {
     fix[i] = modify->get_fix_by_id(id_fix[i]);
-    if (!fix[i]) error->all(FLERR,"Could not find dump local fix ID {}", id_fix[i]);
+    if (!fix[i])
+      error->all(FLERR, Error::NOLASTLINE, "Could not find dump local fix ID {}", id_fix[i]);
     if (nevery % fix[i]->local_freq)
-      error->all(FLERR,"Dump local and fix {} not computed at compatible times", id_fix[i]);
+      error->all(FLERR, Error::NOLASTLINE, "Dump local and fix {} not computed at "
+                 "compatible times{}", id_fix[i], utils::errorurl(7));
   }
 
   // open single file, one time only
@@ -237,13 +241,17 @@ void DumpLocal::init_style()
 
 int DumpLocal::modify_param(int narg, char **arg)
 {
+  // determine offset in list of arguments for error pointer. also handle the no match case.
+  int argoff = 0;
+  while (input && input->arg[argoff] && (strcmp(input->arg[argoff], arg[0]) != 0)) argoff++;
+
   if (strcmp(arg[0],"label") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR,"dump_modify label", error);
     delete[] label;
     label = utils::strdup(arg[1]);
     return 2;
   } else if (strcmp(arg[0],"format") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify format", error);
 
     if (strcmp(arg[1],"none") == 0) {
       // just clear format_column_user allocated by this dump child class
@@ -262,11 +270,11 @@ int DumpLocal::modify_param(int narg, char **arg)
       // use of &str[1] removes leading '%' from BIGINT_FORMAT string
       char *ptr = strchr(format_int_user,'d');
       if (ptr == nullptr)
-        error->all(FLERR, "Dump_modify int format does not contain d character");
+        error->all(FLERR, argoff + 2, "Dump_modify int format does not contain d character");
       char str[8];
-      sprintf(str,"%s",BIGINT_FORMAT);
+      snprintf(str,8,"%s",BIGINT_FORMAT);
       *ptr = '\0';
-      sprintf(format_bigint_user,"%s%s%s",format_int_user,&str[1],ptr+1);
+      snprintf(format_bigint_user,n,"%s%s%s",format_int_user,&str[1],ptr+1);
       *ptr = 'd';
 
     } else if (strcmp(arg[1],"float") == 0) {
@@ -276,7 +284,7 @@ int DumpLocal::modify_param(int narg, char **arg)
     } else {
       int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
       if (i < 0 || i >= nfield)
-        error->all(FLERR,"Illegal dump_modify command");
+        error->all(FLERR, 1, "Illegal dump_modify format column number {}", i);
       delete[] format_column_user[i];
       format_column_user[i] = utils::strdup(arg[2]);
     }
@@ -292,29 +300,29 @@ void DumpLocal::write_header(bigint ndump)
   if (me == 0) {
     if (unit_flag && !unit_count) {
       ++unit_count;
-      fmt::print(fp,"ITEM: UNITS\n{}\n",update->unit_style);
+      utils::print(fp,"ITEM: UNITS\n{}\n",update->unit_style);
     }
-    if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
+    if (time_flag) utils::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
 
-    fmt::print(fp,"ITEM: TIMESTEP\n{}\n"
+    utils::print(fp,"ITEM: TIMESTEP\n{}\n"
                "ITEM: NUMBER OF {}\n{}\n",
                update->ntimestep, label, ndump);
 
     if (domain->triclinic) {
-      fmt::print(fp,"ITEM: BOX BOUNDS xy xz yz {}\n"
+      utils::print(fp,"ITEM: BOX BOUNDS xy xz yz {}\n"
                  "{:>1.16e} {:>1.16e} {:>1.16e}\n"
                  "{:>1.16e} {:>1.16e} {:>1.16e}\n"
                  "{:>1.16e} {:>1.16e} {:>1.16e}\n",
                  boundstr,boxxlo,boxxhi,boxxy,boxylo,boxyhi,boxxz,boxzlo,boxzhi,boxyz);
     } else {
-      fmt::print(fp,"ITEM: BOX BOUNDS {}\n"
+      utils::print(fp,"ITEM: BOX BOUNDS {}\n"
                  "{:>1.16e} {:>1.16e}\n"
                  "{:>1.16e} {:>1.16e}\n"
                  "{:>1.16e} {:>1.16e}\n",
                  boundstr,boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi);
     }
 
-    fmt::print(fp,"ITEM: {} {}\n", label, columns);
+    utils::print(fp,"ITEM: {} {}\n", label, columns);
   }
 }
 
@@ -330,8 +338,9 @@ int DumpLocal::count()
   if (ncompute) {
     for (i = 0; i < ncompute; i++) {
       if (!compute[i]->is_initialized())
-        error->all(FLERR,"Dump compute ID {} cannot be invoked before initialization by a run",
-          compute[i]->id);
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Dump compute ID {} cannot be invoked before initialization by a run",
+                   compute[i]->id);
       if (!(compute[i]->invoked_flag & Compute::INVOKED_LOCAL)) {
         compute[i]->compute_local();
         compute[i]->invoked_flag |= Compute::INVOKED_LOCAL;
@@ -347,14 +356,14 @@ int DumpLocal::count()
   for (i = 0; i < ncompute; i++) {
     if (nmine < 0) nmine = compute[i]->size_local_rows;
     else if (nmine != compute[i]->size_local_rows)
-      error->one(FLERR,
+      error->one(FLERR, Error::NOLASTLINE,
                  "Dump local count is not consistent across input fields");
   }
 
   for (i = 0; i < nfix; i++) {
     if (nmine < 0) nmine = fix[i]->size_local_rows;
     else if (nmine != fix[i]->size_local_rows)
-      error->one(FLERR,
+      error->one(FLERR, Error::NOLASTLINE,
                  "Dump local count is not consistent across input fields");
   }
 
@@ -387,17 +396,18 @@ int DumpLocal::convert_string(int n, double *mybuf)
     }
 
     for (j = 0; j < size_one; j++) {
+      const auto maxsize = maxsbuf - offset;
       if (vtype[j] == Dump::INT)
-        offset += sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
+        offset += snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<int> (mybuf[m]));
       else if (vtype[j] == Dump::DOUBLE)
-        offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
+        offset += snprintf(&sbuf[offset],maxsize,vformat[j],mybuf[m]);
       else if (vtype[j] == Dump::BIGINT)
-        offset += sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
+        offset += snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<bigint> (mybuf[m]));
       else
-        offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
+        offset += snprintf(&sbuf[offset],maxsize,vformat[j],mybuf[m]);
       m++;
     }
-    offset += sprintf(&sbuf[offset],"\n");
+    offset += snprintf(&sbuf[offset],maxsbuf-offset,"\n");
   }
 
   return offset;
@@ -441,11 +451,16 @@ void DumpLocal::write_lines(int n, double *mybuf)
 
 void DumpLocal::parse_fields(int narg, char **arg)
 {
+  // determine offset in list of arguments for error pointer.
+  int argoff = 0;
+  while (input && input->arg[argoff] && (strcmp(input->arg[argoff], arg[0]) != 0)) argoff++;
+
   int computefixflag = 0;
 
   // customize by adding to if statement
 
   for (int iarg = 0; iarg < narg; iarg++) {
+    int errptr = iarg + argoff;
 
     if (strcmp(arg[iarg],"index") == 0) {
       pack_choice[iarg] = &DumpLocal::pack_index;
@@ -469,15 +484,16 @@ void DumpLocal::parse_fields(int narg, char **arg)
         pack_choice[iarg] = &DumpLocal::pack_compute;
 
         icompute = modify->get_compute_by_id(name);
-        if (!icompute) error->all(FLERR,"Could not find dump local compute ID {}",name);
+        if (!icompute) error->all(FLERR, errptr, "Could not find dump local compute ID {}", name);
         if (icompute->local_flag == 0)
-          error->all(FLERR,"Dump local compute {} does not compute local info", name);
+          error->all(FLERR, errptr, "Dump local compute {} does not compute local info", name);
         if (argi.get_dim() == 0 && icompute->size_local_cols > 0)
-          error->all(FLERR,"Dump local compute {} does not calculate local vector", name);
+          error->all(FLERR, errptr, "Dump local compute {} does not calculate local vector", name);
         if (argi.get_index1() > 0 && icompute->size_local_cols == 0)
-          error->all(FLERR,"Dump local compute {} does not calculate local array", name);
+          error->all(FLERR, errptr, "Dump local compute {} does not calculate local array", name);
         if (argi.get_index1() > 0 && argi.get_index1() > icompute->size_local_cols)
-          error->all(FLERR,"Dump local compute {} vector is accessed out-of-range", name);
+          error->all(FLERR, errptr, "Dump local compute {} vector is accessed out-of-range{}",
+                     name, utils::errorurl(20));
 
         field2index[iarg] = add_compute(name);
         break;
@@ -489,15 +505,16 @@ void DumpLocal::parse_fields(int narg, char **arg)
         pack_choice[iarg] = &DumpLocal::pack_fix;
 
         ifix = modify->get_fix_by_id(name);
-        if (!ifix) error->all(FLERR,"Could not find dump local fix ID {}", name);
+        if (!ifix) error->all(FLERR, errptr, "Could not find dump local fix ID {}", name);
         if (ifix->local_flag == 0)
-          error->all(FLERR,"Dump local fix {} does not compute local info", name);
+          error->all(FLERR, errptr, "Dump local fix {} does not compute local info", name);
         if (argi.get_dim() == 0 && ifix->size_local_cols > 0)
-          error->all(FLERR,"Dump local fix {} does not compute local vector", name);
+          error->all(FLERR, errptr, "Dump local fix {} does not compute local vector", name);
         if (argi.get_index1() > 0 && ifix->size_local_cols == 0)
-          error->all(FLERR,"Dump local fix {} does not compute local array", name);
+          error->all(FLERR, errptr, "Dump local fix {} does not compute local array", name);
         if (argi.get_index1() > 0 && argi.get_index1() > ifix->size_local_cols)
-          error->all(FLERR,"Dump local fix {} vector is accessed out-of-range", name);
+          error->all(FLERR, errptr, "Dump local fix {} vector is accessed out-of-range{}", name,
+                     utils::errorurl(20));
 
         field2index[iarg] = add_fix(name);
         break;
@@ -505,14 +522,14 @@ void DumpLocal::parse_fields(int narg, char **arg)
       case ArgInfo::NONE:       // fallthrough
       case ArgInfo::UNKNOWN:    // fallthrough
       default:
-        error->all(FLERR,"Invalid attribute {} in dump local command",arg[iarg]);
+        error->all(FLERR, errptr, "Invalid attribute {} in dump local command",arg[iarg]);
         break;
       }
     }
   }
 
   if (computefixflag == 0)
-    error->all(FLERR,"Dump local attributes contain no compute or fix");
+    error->all(FLERR, Error::NOPOINTER, "Dump local attributes contain no compute or fix");
 }
 
 /* ----------------------------------------------------------------------

@@ -149,7 +149,6 @@ struct ErrorReporterDriver : public ErrorReporterDriverBase<DeviceType> {
   }
 };
 
-#if !defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_CUDA_LAMBDA)
 template <typename DeviceType>
 struct ErrorReporterDriverUseLambda
     : public ErrorReporterDriverBase<DeviceType> {
@@ -178,7 +177,6 @@ struct ErrorReporterDriverUseLambda
     driver_base::check_expectations(reporter_capacity, test_size);
   }
 };
-#endif
 
 #ifdef KOKKOS_ENABLE_OPENMP
 struct ErrorReporterDriverNativeOpenMP
@@ -205,8 +203,7 @@ struct ErrorReporterDriverNativeOpenMP
 
 // FIXME_MSVC MSVC just gets confused when using the base class in the
 // KOKKOS_CLASS_LAMBDA
-#if !defined(KOKKOS_COMPILER_MSVC) && \
-    (!defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_CUDA_LAMBDA))
+#ifndef KOKKOS_COMPILER_MSVC
 TEST(TEST_CATEGORY, ErrorReporterViaLambda) {
   TestErrorReporter<ErrorReporterDriverUseLambda<TEST_EXECSPACE>>();
 }

@@ -49,7 +49,7 @@ class PairREBOMoS : public Pair {
   int *REBO_numneigh;       // # of pair neighbors for each atom
   int **REBO_firstneigh;    // ptr to 1st neighbor of each atom
 
-  double *nM, *nS;          // sum of weighting fns with REBO neighs
+  double *nM, *nS;    // sum of weighting fns with REBO neighs
 
   double rcmin[2][2], rcmax[2][2], rcmaxsq[2][2], rcmaxp[2][2];
   double Q[2][2], alpha[2][2], A[2][2], BIJc[2][2], Beta[2][2];

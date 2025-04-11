@@ -55,7 +55,7 @@ class PairPACE : public Pair {
   int nmax_corerep;
 
   virtual void allocate();
-  double *corerep_factor;                    //per-atom core-rep factor (= 1 - fcut)
+  double *corerep_factor;    //per-atom core-rep factor (= 1 - fcut)
   int flag_corerep_factor;
 
   double **scale;

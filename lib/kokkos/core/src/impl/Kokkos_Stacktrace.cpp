@@ -78,12 +78,12 @@ std::string demangle(const std::string& name) {
 
 class Stacktrace {
  public:
-  Stacktrace()                  = delete;
-  Stacktrace(const Stacktrace&) = delete;
+  Stacktrace()                             = delete;
+  Stacktrace(const Stacktrace&)            = delete;
   Stacktrace& operator=(const Stacktrace&) = delete;
   Stacktrace(Stacktrace&&)                 = delete;
-  Stacktrace& operator=(Stacktrace&&) = delete;
-  ~Stacktrace()                       = delete;
+  Stacktrace& operator=(Stacktrace&&)      = delete;
+  ~Stacktrace()                            = delete;
 
   // These are public only to avoid wasting an extra stacktrace line.
   // See save_stacktrace below.
@@ -102,6 +102,7 @@ class Stacktrace {
           trace[i] = std::string(symbols[i]);
         }
       }
+      // NOLINTNEXTLINE(bugprone-multi-level-implicit-pointer-conversion)
       free(symbols);
       return trace;
     }

@@ -97,8 +97,8 @@ TEST(MPI, sub_box)
     EXPECT_EQ(boxhi[1], 2.0);
     EXPECT_EQ(boxhi[2], 2.0);
 
-    double *sublo = (double *)lammps_extract_global(lmp, "sublo");
-    double *subhi = (double *)lammps_extract_global(lmp, "subhi");
+    auto *sublo = (double *)lammps_extract_global(lmp, "sublo");
+    auto *subhi = (double *)lammps_extract_global(lmp, "subhi");
 
     ASSERT_NE(sublo, nullptr);
     ASSERT_NE(subhi, nullptr);
@@ -172,8 +172,8 @@ TEST(MPI, multi_partition)
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &me);
 
-    const char *args[] = {"LAMMPS_test", "-log",   "none",    "-partition", "4x1",
-                          "-echo",       "screen", "-nocite", "-in",        "none", nullptr};
+    const char *args[] = {"LAMMPS_test", "-log",    "none", "-partition", "4x1",  "-echo",
+                          "screen",      "-nocite", "-in",  "none",       nullptr};
     char **argv        = (char **)args;
     int argc           = (sizeof(args) / sizeof(char *)) - 1;
     void *lmp          = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr);
@@ -258,7 +258,7 @@ TEST_F(MPITest, size_rank)
 
 TEST_F(MPITest, gather)
 {
-    int64_t natoms = (int64_t)lammps_get_natoms(lmp);
+    auto natoms = (int64_t)lammps_get_natoms(lmp);
     ASSERT_EQ(natoms, 32);
     int *p_nlocal = (int *)lammps_extract_global(lmp, "nlocal");
     int nlocal    = *p_nlocal;
@@ -266,11 +266,11 @@ TEST_F(MPITest, gather)
     EXPECT_EQ(nlocal, 8);
 
     // get the entire x on all procs
-    double *x = new double[natoms * 3];
+    auto *x = new double[natoms * 3];
     lammps_gather(lmp, (char *)"x", 1, 3, x);
 
-    int *tag         = (int *)lammps_extract_atom(lmp, "id");
-    double **x_local = (double **)lammps_extract_atom(lmp, "x");
+    int *tag       = (int *)lammps_extract_atom(lmp, "id");
+    auto **x_local = (double **)lammps_extract_atom(lmp, "x");
 
     // each proc checks its local atoms
     for (int i = 0; i < nlocal; i++) {
@@ -287,10 +287,10 @@ TEST_F(MPITest, gather)
 
 TEST_F(MPITest, scatter)
 {
-    int *p_nlocal    = (int *)lammps_extract_global(lmp, "nlocal");
-    int nlocal       = *p_nlocal;
-    double *x_orig   = new double[3 * nlocal];
-    double **x_local = (double **)lammps_extract_atom(lmp, "x");
+    int *p_nlocal  = (int *)lammps_extract_global(lmp, "nlocal");
+    int nlocal     = *p_nlocal;
+    auto *x_orig   = new double[3 * nlocal];
+    auto **x_local = (double **)lammps_extract_atom(lmp, "x");
 
     // make copy of original local x vector
     for (int i = 0; i < nlocal; i++) {
@@ -301,8 +301,8 @@ TEST_F(MPITest, scatter)
     }
 
     // get the entire x on all procs
-    int64_t natoms = (int64_t)lammps_get_natoms(lmp);
-    double *x      = new double[natoms * 3];
+    auto natoms = (int64_t)lammps_get_natoms(lmp);
+    auto *x     = new double[natoms * 3];
     lammps_gather(lmp, (char *)"x", 1, 3, x);
 
     // shift all coordinates by 0.001

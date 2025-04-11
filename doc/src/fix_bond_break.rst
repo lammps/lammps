@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * bond/break = style name of this fix command
 * Nevery = attempt bond breaking every this many steps
-* bondtype = type of bonds to break
+* bondtype = type of bonds to break (integer or type label)
 * Rmax = bond longer than Rmax can break (distance units)
 * zero or more keyword/value pairs may be appended
 * keyword = *prob*

@@ -107,7 +107,7 @@ void PairLJCutTIP4PLongOpt::eval()
   double r,rsq,r2inv,r6inv,forcecoul,forcelj,cforce;
   double factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
-  double v[6];
+  double v[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   double fdx,fdy,fdz,fOx,fOy,fOz,fHx,fHy,fHz;
   const double *x1,*x2,*xH1,*xH2;
 

@@ -59,20 +59,20 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>, HIP> {
   size_t m_num_scratch_locks;
 
   template <typename TagType>
-  __device__ inline std::enable_if_t<std::is_void<TagType>::value> exec_team(
+  __device__ inline std::enable_if_t<std::is_void_v<TagType>> exec_team(
       const member_type& member) const {
     m_functor(member);
   }
 
   template <typename TagType>
-  __device__ inline std::enable_if_t<!std::is_void<TagType>::value> exec_team(
+  __device__ inline std::enable_if_t<!std::is_void_v<TagType>> exec_team(
       const member_type& member) const {
     m_functor(TagType(), member);
   }
 
  public:
-  ParallelFor()                   = delete;
-  ParallelFor(ParallelFor const&) = default;
+  ParallelFor()                              = delete;
+  ParallelFor(ParallelFor const&)            = default;
   ParallelFor& operator=(ParallelFor const&) = delete;
 
   __device__ inline void operator()() const {
@@ -88,9 +88,11 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>, HIP> {
          league_rank += gridDim.x) {
       this->template exec_team<work_tag>(typename Policy::member_type(
           kokkos_impl_hip_shared_memory<void>(), m_shmem_begin, m_shmem_size,
-          static_cast<void*>(static_cast<char*>(m_scratch_ptr[1]) +
-                             ptrdiff_t(threadid / (blockDim.x * blockDim.y)) *
-                                 m_scratch_size[1]),
+          static_cast<void*>(
+              static_cast<char*>(m_scratch_ptr[1]) +
+              ptrdiff_t(threadid /
+                        static_cast<size_t>(blockDim.x * blockDim.y)) *
+                  m_scratch_size[1]),
           m_scratch_size[1], league_rank, m_league_size));
     }
     if (m_scratch_size[1] > 0) {
@@ -120,9 +122,14 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>, HIP> {
         m_vector_size(arg_policy.impl_vector_length()) {
     auto internal_space_instance =
         m_policy.space().impl_internal_space_instance();
-    m_team_size = m_team_size >= 0 ? m_team_size
-                                   : arg_policy.team_size_recommended(
-                                         arg_functor, ParallelForTag());
+    if (m_team_size < 0) {
+      m_team_size =
+          arg_policy.team_size_recommended(arg_functor, ParallelForTag());
+      if (m_team_size <= 0)
+        Kokkos::Impl::throw_runtime_exception(
+            "Kokkos::Impl::ParallelFor<HIP, TeamPolicy> could not find a "
+            "valid execution configuration.");
+    }
 
     m_shmem_begin = (sizeof(double) * (m_team_size + 2));
     m_shmem_size =
@@ -149,8 +156,9 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>, HIP> {
                   static_cast<std::int64_t>(m_league_size))));
     }
 
-    int const shmem_size_total = m_shmem_begin + m_shmem_size;
-    if (internal_space_instance->m_maxShmemPerBlock < shmem_size_total) {
+    unsigned int const shmem_size_total = m_shmem_begin + m_shmem_size;
+    if (internal_space_instance->m_deviceProp.sharedMemPerBlock <
+        shmem_size_total) {
       Kokkos::Impl::throw_runtime_exception(std::string(
           "Kokkos::Impl::ParallelFor< HIP > insufficient shared memory"));
     }

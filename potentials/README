@@ -87,8 +87,10 @@ adp           ADP angular dependent potential
 airebo        AI-REBO potentials
 bop.table     BOP potential, tabulated form
 cdeam         concentration-dependent EAM
+cgdna         potential files for styles in the CG-DNA package
 comb          COMB potential
 comb3         COMB3 potential
+ctip          Coulombic portion of CTIP potential
 eam           embedded atom method (EAM) single element, DYNAMO funcfl format
 eam.alloy     EAM multi-element alloy, DYNAMO setfl format
 eam.fs        Finnis-Sinclair EAM format (single element or alloy)
@@ -118,4 +120,5 @@ sw            Stillinger-Weber potential
 tersoff       Tersoff potential
 tersoff.mod   modified Tersoff potential
 tersoff.zbl   Tersoff with ZBL core
+uf3           UF3 potential
 vashishta     Vashishta 2-body and 3-body potential

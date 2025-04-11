@@ -9,9 +9,9 @@ int dorgl2_(integer *m, integer *n, integer *k, doublereal *a, integer *lda, dou
     doublereal d__1;
     integer i__, j, l;
     extern int dscal_(integer *, doublereal *, doublereal *, integer *),
-        dlarf_(char *, integer *, integer *, doublereal *, integer *, doublereal *, doublereal *,
-               integer *, doublereal *, ftnlen),
-        xerbla_(char *, integer *, ftnlen);
+        xerbla_(char *, integer *, ftnlen),
+        dlarf1f_(char *, integer *, integer *, doublereal *, integer *, doublereal *, doublereal *,
+                 integer *, doublereal *, ftnlen);
     a_dim1 = *lda;
     a_offset = 1 + a_dim1;
     a -= a_offset;
@@ -50,11 +50,10 @@ int dorgl2_(integer *m, integer *n, integer *k, doublereal *a, integer *lda, dou
     for (i__ = *k; i__ >= 1; --i__) {
         if (i__ < *n) {
             if (i__ < *m) {
-                a[i__ + i__ * a_dim1] = 1.;
                 i__1 = *m - i__;
                 i__2 = *n - i__ + 1;
-                dlarf_((char *)"Right", &i__1, &i__2, &a[i__ + i__ * a_dim1], lda, &tau[i__],
-                       &a[i__ + 1 + i__ * a_dim1], lda, &work[1], (ftnlen)5);
+                dlarf1f_((char *)"R", &i__1, &i__2, &a[i__ + i__ * a_dim1], lda, &tau[i__],
+                         &a[i__ + 1 + i__ * a_dim1], lda, &work[1], (ftnlen)1);
             }
             i__1 = *n - i__;
             d__1 = -tau[i__];

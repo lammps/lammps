@@ -48,9 +48,9 @@ struct localsum {
   // overrides Kokkos' default execution space.
   using execution_space = ExecutionSpace;
 
-  using memory_space = typename Kokkos::Impl::if_c<
-      std::is_same<ExecutionSpace, Kokkos::DefaultExecutionSpace>::value,
-      idx_type::memory_space, idx_type::host_mirror_space>::type;
+  using memory_space = std::conditional_t<
+      std::is_same_v<ExecutionSpace, Kokkos::DefaultExecutionSpace>,
+      idx_type::memory_space, idx_type::host_mirror_space>;
 
   // Get the view types on the particular device for which the functor
   // is instantiated.
@@ -131,7 +131,7 @@ int main(int narg, char* arg[]) {
   {
     ParticleTypes test("Test");
     Kokkos::fence();
-    test.h_view(0) = ParticleType(-1e4, 1);
+    test.view_host()(0) = ParticleType(-1e4, 1);
     Kokkos::fence();
 
     int size = 1000000;
@@ -146,7 +146,7 @@ int main(int narg, char* arg[]) {
 
     // Get a reference to the host view of idx directly (equivalent to
     // idx.view<idx_type::host_mirror_space>() )
-    idx_type::t_host h_idx = idx.h_view;
+    idx_type::t_host h_idx = idx.view_host();
     using size_type        = view_type::size_type;
     for (int i = 0; i < size; ++i) {
       for (size_type j = 0; j < static_cast<size_type>(h_idx.extent(1)); ++j) {

@@ -9,6 +9,7 @@
 
 #include "colvarbias_histogram_reweight_amd.h"
 #include "colvarproxy.h"
+#include "colvars_memstream.h"
 
 colvarbias_reweightaMD::colvarbias_reweightaMD(char const *key)
   : colvarbias_histogram(key), grid_count(NULL), grid_dV(NULL),
@@ -343,23 +344,37 @@ void colvarbias_reweightaMD::compute_cumulant_expansion_factor(
   }
 }
 
-std::ostream & colvarbias_reweightaMD::write_state_data(std::ostream& os)
+
+template <typename OST> OST & colvarbias_reweightaMD::write_state_data_template_(OST& os)
 {
   std::ios::fmtflags flags(os.flags());
   os.setf(std::ios::fmtflags(0), std::ios::floatfield);
-  os << "grid\n";
+  write_state_data_key(os, "grid");
   grid->write_raw(os, 8);
-  os << "grid_count\n";
+  write_state_data_key(os, "grid_count");
   grid_count->write_raw(os, 8);
-  os << "grid_dV\n";
+  write_state_data_key(os, "grid_dV");
   grid_dV->write_raw(os, 8);
-  os << "grid_dV_square\n";
+  write_state_data_key(os, "grid_dV_square");
   grid_dV_square->write_raw(os, 8);
   os.flags(flags);
   return os;
 }
 
-std::istream & colvarbias_reweightaMD::read_state_data(std::istream& is)
+
+std::ostream & colvarbias_reweightaMD::write_state_data(std::ostream& os)
+{
+  return write_state_data_template_<std::ostream>(os);
+}
+
+
+cvm::memory_stream & colvarbias_reweightaMD::write_state_data(cvm::memory_stream& os)
+{
+  return write_state_data_template_<cvm::memory_stream>(os);
+}
+
+
+template <typename IST> IST & colvarbias_reweightaMD::read_state_data_template_(IST& is)
 {
   if (! read_state_data_key(is, "grid")) {
     return is;
@@ -386,4 +401,16 @@ std::istream & colvarbias_reweightaMD::read_state_data(std::istream& is)
     return is;
   }
   return is;
+}
+
+
+std::istream & colvarbias_reweightaMD::read_state_data(std::istream& is)
+{
+  return read_state_data_template_<std::istream>(is);
+}
+
+
+cvm::memory_stream & colvarbias_reweightaMD::read_state_data(cvm::memory_stream& is)
+{
+  return read_state_data_template_<cvm::memory_stream>(is);
 }

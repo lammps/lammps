@@ -1,0 +1,52 @@
+# Demonstrate bispectrum computes
+
+# initialize simulation
+
+variable 	nsteps index 0
+variable 	nrep equal 2
+variable 	a equal 2.0
+units		metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable 	nx equal ${nrep}
+variable 	ny equal ${nrep}
+variable 	nz equal ${nrep}
+
+boundary	p p p
+
+atom_modify	map hash
+lattice         bcc $a
+region		box block 0 ${nx} 0 ${ny} 0 ${nz}
+create_box	2 box
+create_atoms	2 box
+
+mass 		* 180.88
+
+displace_atoms 	all random 0.1 0.1 0.1 123456
+
+# set up dummy potential to satisfy cutoff
+variable 	rcutfac equal 6.0
+pair_style 	zero ${rcutfac}
+pair_coeff 	* *
+
+# set up per-atom computes
+
+compute ld all pod/atom Ta_param.pod Ta_coefficients.pod Ta Ta
+compute dd all podd/atom Ta_param.pod Ta_coefficients.pod Ta Ta
+
+# set up compute snap generating global array
+
+compute gdd all pod/global Ta_param.pod Ta_coefficients.pod Ta Ta
+#fix 		gdd all ave/time 1 1 1 c_gdd[*] file pod.gdd.dat mode vector
+
+compute ldd all pod/local Ta_param.pod Ta_coefficients.pod Ta Ta
+#fix 		ldd all ave/time 1 1 1 c_ldd[*] file pod.ldd.dat mode vector
+
+#dump 		mydump_ld all custom 1000 dump_ld id c_ld[*]
+#dump 		mydump_dd all custom 1000 dump_dd id c_dd[*]
+
+variable sample_ld1 equal C_ld[1][10]  # Arbitrary local descriptor
+fix ldprint all print 1 "${sample_ld1}" 
+
+run             ${nsteps}

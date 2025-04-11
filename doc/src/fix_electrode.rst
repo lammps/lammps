@@ -38,7 +38,7 @@ Syntax
        *electrode/thermo* args = potential eta *temp* values
             potential = electrode potential
             charge = electrode charge
-            eta = reciprocal width of electrode charge smearing
+            eta = reciprocal width of electrode charge smearing (can be NULL if eta keyword is used)
             *temp* values = T_v tau_v rng_v
                 T_v = temperature of thermo-potentiostat
                 tau_v = time constant of thermo-potentiostat
@@ -110,7 +110,7 @@ electrostatic configurations:
   :ref:`(Deissenbeck)<Deissenbeck>` between two electrodes
 
   * (resulting in changing charges and potentials with appropriate
-     average potential difference and thermal variance)
+    average potential difference and thermal variance)
 
 The first group-ID provided to each fix specifies the first electrode
 group, and more group(s) are added using the *couple* keyword for each
@@ -287,8 +287,18 @@ The *fix_modify tf* option enables the Thomas-Fermi metallicity model
    fix_modify ID tf type length voronoi
 
 
-If this option is used parameters must be set for all atom types of the
-electrode.
+If this option is used, these two parameters must be set for
+all atom types of the electrode:
+
+* `tf` is the Thomas-Fermi length :math:`l_{TF}`
+* `voronoi` is the Voronoi volume per atom in units of length cubed
+
+Different types may have different `tf` and `voronoi` values.
+The following self-energy term is then added for all electrode atoms:
+
+.. math::
+
+  A_{ii} += \frac{1}{4 \pi \epsilon_0} \times \frac{4 \pi l_{TF}^2}{\mathrm{Voronoi volume}}
 
 The *fix_modify timer* option turns on (off) additional timer outputs in the log
 file, for code developers to track optimization.
@@ -321,9 +331,11 @@ The global array has *N* rows and *2N+1* columns, where the fix manages
 array, the elements are:
 
 * array[I][1] = total charge that group *I* would have had *if it were
-  at 0 V applied potential* * array[I][2 to *N* + 1] = the *N* entries
+  at 0 V applied potential*
+* array[I][2 to *N* + 1] = the *N* entries
   of the *I*-th row of the electrode capacitance matrix (definition
-  follows) * array[I][*N* + 2 to *2N* + 1] = the *N* entries of the
+  follows)
+* array[I][*N* + 2 to *2N* + 1] = the *N* entries of the
   *I*-th row of the electrode elastance matrix (the inverse of the
   electrode capacitance matrix)
 

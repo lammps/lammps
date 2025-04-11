@@ -20,6 +20,11 @@
 #define KOKKOS_IMPL_TASKQUEUE_HPP
 
 #include <Kokkos_Macros.hpp>
+
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#error "The tasking framework is deprecated"
+#endif
+
 #if defined(KOKKOS_ENABLE_TASKDAG)
 
 #include <Kokkos_TaskScheduler_fwd.hpp>
@@ -39,6 +44,11 @@
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+// We allow using deprecated classes in this file
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
 
 namespace Kokkos {
 namespace Impl {
@@ -87,10 +97,10 @@ class TaskQueue : public TaskQueueBase {
   //----------------------------------------
 
   ~TaskQueue();
-  TaskQueue()                 = delete;
-  TaskQueue(TaskQueue&&)      = delete;
-  TaskQueue(TaskQueue const&) = delete;
-  TaskQueue& operator=(TaskQueue&&) = delete;
+  TaskQueue()                            = delete;
+  TaskQueue(TaskQueue&&)                 = delete;
+  TaskQueue(TaskQueue const&)            = delete;
+  TaskQueue& operator=(TaskQueue&&)      = delete;
   TaskQueue& operator=(TaskQueue const&) = delete;
 
   TaskQueue(const memory_pool& arg_memory_pool);
@@ -205,6 +215,10 @@ class TaskQueue : public TaskQueueBase {
 
 } /* namespace Impl */
 } /* namespace Kokkos */
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

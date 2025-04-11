@@ -2,7 +2,7 @@
 
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "LAMMPS Programmer's Guide"
-PROJECT_NUMBER         = "4 May 2022"
+PROJECT_NUMBER         = "19 November 2024"
 PROJECT_BRIEF          = "Documentation of the LAMMPS library interface and Python wrapper"
 PROJECT_LOGO           = lammps-logo.png
 CREATE_SUBDIRS         = NO

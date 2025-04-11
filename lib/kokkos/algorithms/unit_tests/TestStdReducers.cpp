@@ -72,7 +72,7 @@ auto create_host_view_with_reduction_order_indices(
     result(8) = 7;
     result(9) = 5;
   } else {
-    throw std::runtime_error("test: Invalid enum");
+    Kokkos::abort("test: Invalid enum");
   }
 
   return result;
@@ -80,7 +80,7 @@ auto create_host_view_with_reduction_order_indices(
 
 template <int flag, class ExeSpace, class IndexType, class ViewType>
 auto run_min_or_max_test(ViewType view, StdReducersTestEnumOrder enValue) {
-  static_assert(std::is_same<ExeSpace, Kokkos::HostSpace>::value,
+  static_assert(std::is_same_v<ExeSpace, Kokkos::HostSpace>,
                 "test is only enabled for HostSpace");
 
   using view_value_type = typename ViewType::value_type;
@@ -191,7 +191,7 @@ template <class ExeSpace, class IndexType, class ViewType, class ValuesPair,
           class IndexPair>
 void run_min_max_test(ViewType view, StdReducersTestEnumOrder enValue,
                       const ValuesPair gold_values, const IndexPair gold_locs) {
-  static_assert(std::is_same<ExeSpace, Kokkos::HostSpace>::value,
+  static_assert(std::is_same_v<ExeSpace, Kokkos::HostSpace>,
                 "test is only enabled for HostSpace");
 
   using view_value_type = typename ViewType::value_type;

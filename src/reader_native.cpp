@@ -139,10 +139,10 @@ void ReaderNative::skip()
 
     // invoke read_lines() in chunks no larger than MAXSMALLINT
 
-    int nchunk;
+    bigint nchunk;
     while (nremain) {
       nchunk = MIN(nremain,MAXSMALLINT);
-      read_lines(nchunk);
+      read_lines((int)nchunk);
       nremain -= nchunk;
     }
   }
@@ -254,7 +254,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
     triclinic = 0;
     box[0][2] = box[1][2] = box[2][2] = 0.0;
     read_lines(1);
-    if (line[strlen("ITEM: BOX BOUNDS ")] == 'x') triclinic = 1;
+    if (utils::strmatch(line,"ITEM: BOX BOUNDS.*xy\\s+xz\\s+yz")) triclinic = 1;
 
     try {
       read_lines(1);
@@ -484,7 +484,7 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
       // convert selected fields to floats
 
       for (int m = 0; m < nfield; m++)
-        fields[i][m] = atof(words[fieldindex[m]].c_str());
+        fields[i][m] = std::stod(words[fieldindex[m]]);
     }
   }
 }
@@ -542,7 +542,7 @@ void ReaderNative::skip_buf(size_t size)
 {
   bigint pos = platform::ftell(fp);
   pos += size;
-  platform::fseek(fp,pos);
+  (void) platform::fseek(fp,pos);
 }
 
 bool ReaderNative::is_known_magic_str() const

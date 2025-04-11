@@ -59,11 +59,11 @@ int TersoffZT::init(const int ntypes, const int nlocal, const int nall,
                     const double global_a_0, const double global_epsilon_0,
                     const double* host_cutsq)
 {
-  int oldparam=-1;
   int onetype=-1;
   int onetype3=0;
-  int mtypes=0;
   #ifdef USE_OPENCL
+  int oldparam=-1;
+  int mtypes=0;
   for (int ii=1; ii<ntypes; ii++) {
     const int i=host_map[ii];
     for (int jj=1; jj<ntypes; jj++) {

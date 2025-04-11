@@ -1,22 +1,14 @@
-IF (NOT Kokkos_INSTALL_TESTING)
-  ADD_SUBDIRECTORY(src)
-ENDIF()
+if(NOT Kokkos_INSTALL_TESTING)
+  add_subdirectory(src)
+endif()
 
-FUNCTION(KOKKOS_ADD_BENCHMARK_DIRECTORY DIR_NAME)
-  IF(NOT Kokkos_ENABLE_BENCHMARKS)
-    RETURN()
-  ENDIF()
+function(KOKKOS_ADD_BENCHMARK_DIRECTORY DIR_NAME)
+  if(NOT Kokkos_ENABLE_BENCHMARKS)
+    return()
+  endif()
 
-  IF(KOKKOS_HAS_TRILINOS)
-    message(
-      STATUS
-      "Benchmarks are not supported when building as part of Trilinos"
-    )
-    RETURN()
-  ENDIF()
+  add_subdirectory(${DIR_NAME})
+endfunction()
 
-  ADD_SUBDIRECTORY(${DIR_NAME})
-ENDFUNCTION()
-
-KOKKOS_ADD_TEST_DIRECTORIES(unit_test)
-KOKKOS_ADD_BENCHMARK_DIRECTORY(perf_test)
+kokkos_add_test_directories(unit_test)
+kokkos_add_benchmark_directory(perf_test)

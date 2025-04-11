@@ -36,10 +36,6 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 static constexpr int MAXORDER = 7;
-
-enum { REVERSE_MU };
-enum { FORWARD_MU, FORWARD_MU_PERATOM };
-
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
 /* ---------------------------------------------------------------------- */

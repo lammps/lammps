@@ -332,7 +332,7 @@ void ComputeXRD::compute_array()
 
 // Setting up OMP
 #if defined(_OPENMP)
-  if ((me == 0) && echo) utils::logmesg(lmp," using {} OMP threads\n",comm->nthreads);
+  if ((me == 0) && echo) utils::logmesg(lmp," using {} OMP thread(s)\n",comm->nthreads);
 #endif
 
   if ((me == 0) && echo) {
@@ -482,7 +482,7 @@ void ComputeXRD::compute_array()
         }
       } // End of pragma omp for region
     } // End of if LP=1 check
-    delete [] f;
+    delete[] f;
   } // End of pragma omp parallel region
 
   auto scratch = new double[2*size_array_rows];
@@ -503,10 +503,10 @@ void ComputeXRD::compute_array()
     utils::logmesg(lmp," 100% \nTime elapsed during compute_xrd = {:.2f} sec "
                    "using {:.2f} Mbytes/processor\n-----\n", t2-t0, bytes/1024.0/1024.0);
 
-  delete [] scratch;
-  delete [] Fvec;
-  delete [] xlocal;
-  delete [] typelocal;
+  delete[] scratch;
+  delete[] Fvec;
+  delete[] xlocal;
+  delete[] typelocal;
 }
 
 /* ----------------------------------------------------------------------

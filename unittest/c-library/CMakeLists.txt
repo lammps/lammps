@@ -3,6 +3,7 @@
 add_executable(test_library_open test_library_open.cpp test_main.cpp)
 target_link_libraries(test_library_open PRIVATE lammps GTest::GMock)
 add_test(NAME LibraryOpen COMMAND test_library_open)
+set_tests_properties(LibraryOpen PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=4;OMP_PROC_BIND=false")
 
 add_executable(test_library_commands test_library_commands.cpp test_main.cpp)
 target_link_libraries(test_library_commands PRIVATE lammps GTest::GMock)
@@ -16,7 +17,13 @@ add_executable(test_library_properties test_library_properties.cpp test_main.cpp
 target_link_libraries(test_library_properties PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_library_properties PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME LibraryProperties COMMAND test_library_properties)
-set_tests_properties(LibraryProperties PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+set_tests_properties(LibraryProperties PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};OMP_NUM_THREADS=4;OMP_PROC_BIND=false")
+
+add_executable(test_library_objects test_library_objects.cpp test_main.cpp)
+target_link_libraries(test_library_objects PRIVATE lammps GTest::GMock)
+target_compile_definitions(test_library_objects PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME LibraryObjects COMMAND test_library_objects)
+set_tests_properties(LibraryObjects PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
 add_executable(test_library_scatter_gather test_library_scatter_gather.cpp test_main.cpp)
 target_link_libraries(test_library_scatter_gather PRIVATE lammps GTest::GMock)

@@ -68,7 +68,8 @@ FixElectronStoppingFit::FixElectronStoppingFit(LAMMPS *lmp, int narg, char **arg
      error->all(FLERR,"Incorrect number of fix electron/stopping/fit arguments");
   }
 
-  scalar_flag = 1;
+  scalar_flag = 1; // intensive total energy loss since start of run
+  extscalar = 0;
   global_freq = 1;
 
   energy_coh_in = new double[atom->ntypes+1];

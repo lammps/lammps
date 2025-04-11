@@ -19,7 +19,7 @@
 
 #include <Kokkos_Macros.hpp>
 
-//#define USE_MPI
+// #define USE_MPI
 #if defined(USE_MPI)
 #include <mpi.h>
 #endif

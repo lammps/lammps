@@ -94,7 +94,7 @@ submitted to a force :math:`\vec{F}_{i}` for spin-lattice calculations (see
 
    \vec{\omega}_{i} = \frac{1}{\hbar} \sum_{j}^{Neighb} {J}
    \left(r_{ij} \right)\,\vec{s}_{j}
-   ~~{\rm and}~~
+   ~~\mathrm{and}~~
    \vec{F}_{i} = \sum_{j}^{Neighb} \frac{\partial {J} \left(r_{ij} \right)}{
    \partial r_{ij}} \left( \vec{s}_{i}\cdot \vec{s}_{j} \right) \vec{e}_{ij}
 

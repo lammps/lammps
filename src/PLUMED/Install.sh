@@ -7,6 +7,19 @@ mode=$1
 LC_ALL=C
 export LC_ALL
 
+cat <<EOF
+WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
+WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
+
+  Support for building the PLUMED package with the legacy build system using GNU
+  make will be removed in Summer 2025.  Please switch to using CMake to build
+  LAMMPS as soon as possible and report any problems to developers@lammps.org
+  or post a bug report issue at https://github.com/lammps/lammps/issues
+
+WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
+WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
+EOF
+
 # arg1 = file, arg2 = file it depends on
 
 action () {

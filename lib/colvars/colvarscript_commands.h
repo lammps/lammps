@@ -47,14 +47,10 @@
 // If CVSCRIPT is not defined, this file yields the function prototypes
 #ifndef CVSCRIPT
 
-#ifdef __cplusplus
 #define CVSCRIPT_COMM_PROTO(COMM)                                       \
   extern "C" int CVSCRIPT_COMM_FNAME(COMM)(void *,                      \
-                                           int, unsigned char *const *);
-#else
-#define CVSCRIPT_COMM_PROTO(COMM)                                       \
-  int CVSCRIPT_COMM_FNAME(COMM)(void *, int, unsigned char *const *);
-#endif
+                                           int,                         \
+                                           unsigned char *const *);
 
 #define CVSCRIPT(COMM,HELP,N_ARGS_MIN,N_ARGS_MAX,ARGS,FN_BODY)  \
   CVSCRIPT_COMM_PROTO(COMM)
@@ -454,7 +450,8 @@ CVSCRIPT(cv_listcommands,
          )
 
 CVSCRIPT(cv_listindexfiles,
-         "Get a list of the index files loaded in this session",
+         "Get a list of the index files loaded in this session\n"
+         "list : sequence of strings - List of index file names",
          0, 0,
          "",
          int const n_files = script->module()->index_file_names.size();
@@ -467,19 +464,36 @@ CVSCRIPT(cv_listindexfiles,
          return COLVARS_OK;
          )
 
+CVSCRIPT(cv_listinputfiles,
+         "Get a list of all input/configuration files loaded in this session\n"
+         "list : sequence of strings - List of file names",
+         0, 0,
+         "",
+         std::list<std::string> const l =
+           script->proxy()->list_input_stream_names();
+         std::string result;
+         for (std::list<std::string>::const_iterator li = l.begin();
+              li != l.end(); li++) {
+           if (li != l.begin()) result.append(1, ' ');
+           result.append(*li);
+         }
+         script->set_result_str(result);
+         return COLVARS_OK;
+         )
+
 CVSCRIPT(cv_load,
          "Load data from a state file into all matching colvars and biases",
          1, 1,
          "prefix : string - Path to existing state file or input prefix",
          char const *arg =
            script->obj_to_str(script->get_module_cmd_arg(0, objc, objv));
-         script->proxy()->input_prefix() = cvm::state_file_prefix(arg);
-         if (script->module()->setup_input() == COLVARS_OK) {
-           return COLVARS_OK;
-         } else {
+         int error_code =
+           script->proxy()->set_input_prefix(cvm::state_file_prefix(arg));
+         error_code |= script->module()->setup_input();
+         if (error_code != COLVARS_OK) {
            script->add_error_msg("Error loading state file");
-           return COLVARSCRIPT_ERROR;
          }
+         return error_code;
          )
 
 CVSCRIPT(cv_loadfromstring,
@@ -488,7 +502,8 @@ CVSCRIPT(cv_loadfromstring,
          "buffer : string - String buffer containing the state information",
          char const *arg =
            script->obj_to_str(script->get_module_cmd_arg(0, objc, objv));
-         script->proxy()->input_buffer() = arg;
+         script->proxy()->input_stream_from_string("input state string",
+                                                   std::string(arg));
          if (script->module()->setup_input() == COLVARS_OK) {
            return COLVARS_OK;
          } else {
@@ -560,8 +575,7 @@ CVSCRIPT(cv_save,
          "prefix : string - Output prefix with trailing \".colvars.state\" gets removed)",
          std::string const prefix =
            cvm::state_file_prefix(script->obj_to_str(script->get_module_cmd_arg(0, objc, objv)));
-         script->proxy()->output_prefix() = prefix;
-         int error_code = COLVARS_OK;
+         int error_code = script->proxy()->set_output_prefix(prefix);
          error_code |= script->module()->setup_output();
          error_code |= script->module()->write_restart_file(prefix+
                                                             ".colvars.state");
@@ -578,16 +592,30 @@ CVSCRIPT(cv_savetostring,
          )
 
 CVSCRIPT(cv_targettemperature,
-         "Get/set target temperature, overriding what the MD engine provides\n"
+         "Get/set target temperature, overriding internally what the MD engine reports\n"
          "T : float - Current target temperature in K",
          0, 1,
-         "T : float - New target temperature in K",
+         "T : float - New target temperature in K (internal use)",
          char const *Targ =
            script->obj_to_str(script->get_module_cmd_arg(0, objc, objv));
          if (Targ == NULL) {
            return script->set_result_real(script->proxy()->target_temperature());
          } else {
            return script->proxy()->set_target_temperature(strtod(Targ, NULL));
+         }
+         )
+
+CVSCRIPT(cv_timestep,
+         "Get/set integration timestep, overriding internally what the MD engine reports\n"
+         "dt : float - Current integration timestep in MD engine units",
+         0, 1,
+         "dt : float - New integration timestep in MD engine units",
+         char const *arg =
+           script->obj_to_str(script->get_module_cmd_arg(0, objc, objv));
+         if (arg == NULL) {
+           return script->set_result_real(script->proxy()->dt());
+         } else {
+           return script->proxy()->set_integration_timestep(strtod(arg, NULL));
          }
          )
 

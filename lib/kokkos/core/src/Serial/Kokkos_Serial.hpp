@@ -34,7 +34,6 @@ static_assert(false,
 #include <mutex>
 #include <thread>
 #include <Kokkos_Core_fwd.hpp>
-#include <Kokkos_TaskScheduler.hpp>
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_HostSpace.hpp>
 #include <Kokkos_ScratchSpace.hpp>
@@ -60,7 +59,10 @@ class SerialInternal {
 
   static SerialInternal& singleton();
 
-  std::mutex m_thread_team_data_mutex;
+  std::mutex m_instance_mutex;
+
+  static std::vector<SerialInternal*> all_instances;
+  static std::mutex all_instances_mutex;
 
   // Resize thread team data scratch memory
   void resize_thread_team_data(size_t pool_reduce_bytes,
@@ -113,7 +115,15 @@ class Serial {
 
   Serial();
 
-  Serial(NewInstance);
+  explicit Serial(NewInstance);
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  template <typename T = void>
+  KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Serial execution space should be constructed explicitly.")
+  Serial(NewInstance)
+      : Serial(NewInstance{}) {}
+#endif
 
   /// \brief True if and only if this method is being called in a
   ///   thread-parallel function.
@@ -133,20 +143,52 @@ class Serial {
   /// method does not return until all dispatched functors on this
   /// device have completed.
   static void impl_static_fence(const std::string& name) {
-    Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::Serial>(
-        name,
-        Kokkos::Tools::Experimental::SpecialSynchronizationCases::
-            GlobalDeviceSynchronization,
-        []() {});  // TODO: correct device ID
+#ifdef KOKKOS_ENABLE_ATOMICS_BYPASS
+    auto fence = []() {};
+#else
+    auto fence = []() {
+      std::lock_guard<std::mutex> lock_all_instances(
+          Impl::SerialInternal::all_instances_mutex);
+      for (auto* instance_ptr : Impl::SerialInternal::all_instances) {
+        std::lock_guard<std::mutex> lock_instance(
+            instance_ptr->m_instance_mutex);
+      }
+    };
+#endif
+    if (Kokkos::Tools::profileLibraryLoaded()) {
+      Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::Serial>(
+          name,
+          Kokkos::Tools::Experimental::SpecialSynchronizationCases::
+              GlobalDeviceSynchronization,
+          fence);  // TODO: correct device ID
+    } else {
+      fence();
+    }
+#ifndef KOKKOS_ENABLE_ATOMICS_BYPASS
     Kokkos::memory_fence();
+#endif
   }
 
   void fence(const std::string& name =
                  "Kokkos::Serial::fence: Unnamed Instance Fence") const {
-    Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::Serial>(
-        name, Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{1},
-        []() {});  // TODO: correct device ID
+#ifdef KOKKOS_ENABLE_ATOMICS_BYPASS
+    auto fence = []() {};
+#else
+    auto fence = [this]() {
+      auto* internal_instance = this->impl_internal_space_instance();
+      std::lock_guard<std::mutex> lock(internal_instance->m_instance_mutex);
+    };
+#endif
+    if (Kokkos::Tools::profileLibraryLoaded()) {
+      Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::Serial>(
+          name, Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{1},
+          fence);  // TODO: correct device ID
+    } else {
+      fence();
+    }
+#ifndef KOKKOS_ENABLE_ATOMICS_BYPASS
     Kokkos::memory_fence();
+#endif
   }
 
   /** \brief  Return the maximum amount of concurrency.  */
@@ -246,7 +288,7 @@ template <class T>
 std::vector<Serial> partition_space(const Serial&,
                                     std::vector<T> const& weights) {
   static_assert(
-      std::is_arithmetic<T>::value,
+      std::is_arithmetic_v<T>,
       "Kokkos Error: partitioning arguments must be integers or floats");
 
   // We only care about the number of instances to create and ignore weights
@@ -263,7 +305,9 @@ std::vector<Serial> partition_space(const Serial&,
 #include <Serial/Kokkos_Serial_Parallel_Range.hpp>
 #include <Serial/Kokkos_Serial_Parallel_MDRange.hpp>
 #include <Serial/Kokkos_Serial_Parallel_Team.hpp>
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
 #include <Serial/Kokkos_Serial_Task.hpp>
+#endif
 #include <Serial/Kokkos_Serial_UniqueToken.hpp>
 
 #endif  // defined( KOKKOS_ENABLE_SERIAL )

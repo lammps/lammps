@@ -163,13 +163,13 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
 FixTTM::~FixTTM()
 {
-  delete [] infile;
-  delete [] outfile;
+  delete[] infile;
+  delete[] outfile;
 
   delete random;
 
-  delete [] gfactor1;
-  delete [] gfactor2;
+  delete[] gfactor1;
+  delete[] gfactor2;
 
   memory->destroy(flangevin);
 
@@ -523,7 +523,7 @@ void FixTTM::write_electron_temperatures(const std::string &filename)
   FILE *fp = fopen(filename.c_str(),"w");
   if (!fp) error->one(FLERR,"Fix ttm could not open output file {}: {}",
                       filename,utils::getsyserror());
-  fmt::print(fp,"# DATE: {} UNITS: {} COMMENT: Electron temperature on "
+  utils::print(fp,"# DATE: {} UNITS: {} COMMENT: Electron temperature on "
              "{}x{}x{} grid at step {} - created by fix {}\n", utils::current_date(),
              update->unit_style, nxgrid, nygrid, nzgrid, update->ntimestep, style);
 

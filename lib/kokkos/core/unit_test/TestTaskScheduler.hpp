@@ -24,6 +24,11 @@
 #include <iostream>
 #include <cmath>
 
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+// We allow using deprecated classes in this file
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
+
 //==============================================================================
 // <editor-fold desc="TestFib"> {{{1
 
@@ -190,7 +195,7 @@ struct TestTaskDependence {
 
       Kokkos::respawn(this, f);
     } else if (1 == m_count) {
-      Kokkos::atomic_increment(&m_accum());
+      Kokkos::atomic_inc(&m_accum());
     }
   }
 
@@ -823,50 +828,12 @@ struct TestMultipleDependence {
 #undef TEST_SCHEDULER_SUFFIX
 #endif
 
-#if 0
-#define TEST_SCHEDULER_SUFFIX _fixed_mempool
-#define TEST_SCHEDULER                                                      \
-  Kokkos::SimpleTaskScheduler<                                              \
-      TEST_EXECSPACE,                                                       \
-      Kokkos::Impl::SingleTaskQueue<                                        \
-          TEST_EXECSPACE,                                                   \
-          Kokkos::Impl::default_tasking_memory_space_for_execution_space_t< \
-              TEST_EXECSPACE>,                                              \
-          Kokkos::Impl::TaskQueueTraitsLockBased,                           \
-          Kokkos::Impl::FixedBlockSizeMemoryPool<                           \
-              Kokkos::Device<                                               \
-                  TEST_EXECSPACE,                                           \
-                  Kokkos::Impl::                                            \
-                      default_tasking_memory_space_for_execution_space_t<   \
-                          TEST_EXECSPACE>>,                                 \
-              128, 16>>>
-#include "TestTaskScheduler_single.hpp"
-#undef TEST_SCHEDULER
-#undef TEST_SCHEDULER_SUFFIX
-
-#define TEST_SCHEDULER_SUFFIX _fixed_mempool_multiple
-#define TEST_SCHEDULER                                                      \
-  Kokkos::SimpleTaskScheduler<                                              \
-      TEST_EXECSPACE,                                                       \
-      Kokkos::Impl::MultipleTaskQueue<                                      \
-          TEST_EXECSPACE,                                                   \
-          Kokkos::Impl::default_tasking_memory_space_for_execution_space_t< \
-              TEST_EXECSPACE>,                                              \
-          Kokkos::Impl::TaskQueueTraitsLockBased,                           \
-          Kokkos::Impl::FixedBlockSizeMemoryPool<                           \
-              Kokkos::Device<                                               \
-                  TEST_EXECSPACE,                                           \
-                  Kokkos::Impl::                                            \
-                      default_tasking_memory_space_for_execution_space_t<   \
-                          TEST_EXECSPACE>>,                                 \
-              128, 16>>>
-#include "TestTaskScheduler_single.hpp"
-#undef TEST_SCHEDULER
-#undef TEST_SCHEDULER_SUFFIX
-#endif
-
 #undef KOKKOS_TEST_WITH_SUFFIX
 #undef KOKKOS_PP_CAT_IMPL
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
 #endif  // #if defined( KOKKOS_ENABLE_TASKDAG )
 #endif  // #ifndef KOKKOS_UNITTEST_TASKSCHEDULER_HPP

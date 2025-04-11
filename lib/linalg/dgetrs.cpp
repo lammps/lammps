@@ -47,15 +47,15 @@ int dgetrs_(char *trans, integer *n, integer *nrhs, doublereal *a, integer *lda,
     }
     if (notran) {
         dlaswp_(nrhs, &b[b_offset], ldb, &c__1, n, &ipiv[1], &c__1);
-        dtrsm_((char *)"Left", (char *)"Lower", (char *)"No transpose", (char *)"Unit", n, nrhs, &c_b12, &a[a_offset], lda,
-               &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (ftnlen)12, (ftnlen)4);
-        dtrsm_((char *)"Left", (char *)"Upper", (char *)"No transpose", (char *)"Non-unit", n, nrhs, &c_b12, &a[a_offset], lda,
-               &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (ftnlen)12, (ftnlen)8);
+        dtrsm_((char *)"L", (char *)"L", (char *)"N", (char *)"U", n, nrhs, &c_b12, &a[a_offset], lda, &b[b_offset], ldb, (ftnlen)1,
+               (ftnlen)1, (ftnlen)1, (ftnlen)1);
+        dtrsm_((char *)"L", (char *)"U", (char *)"N", (char *)"N", n, nrhs, &c_b12, &a[a_offset], lda, &b[b_offset], ldb, (ftnlen)1,
+               (ftnlen)1, (ftnlen)1, (ftnlen)1);
     } else {
-        dtrsm_((char *)"Left", (char *)"Upper", (char *)"Transpose", (char *)"Non-unit", n, nrhs, &c_b12, &a[a_offset], lda,
-               &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (ftnlen)9, (ftnlen)8);
-        dtrsm_((char *)"Left", (char *)"Lower", (char *)"Transpose", (char *)"Unit", n, nrhs, &c_b12, &a[a_offset], lda,
-               &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (ftnlen)9, (ftnlen)4);
+        dtrsm_((char *)"L", (char *)"U", (char *)"T", (char *)"N", n, nrhs, &c_b12, &a[a_offset], lda, &b[b_offset], ldb, (ftnlen)1,
+               (ftnlen)1, (ftnlen)1, (ftnlen)1);
+        dtrsm_((char *)"L", (char *)"L", (char *)"T", (char *)"U", n, nrhs, &c_b12, &a[a_offset], lda, &b[b_offset], ldb, (ftnlen)1,
+               (ftnlen)1, (ftnlen)1, (ftnlen)1);
         dlaswp_(nrhs, &b[b_offset], ldb, &c__1, n, &ipiv[1], &c_n1);
     }
     return 0;

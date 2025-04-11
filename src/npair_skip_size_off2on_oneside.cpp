@@ -104,7 +104,7 @@ void NPairSkipSizeOff2onOnesideTemp<TRIM>::build(NeighList *list)
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
         rsq = delx * delx + dely * dely + delz * delz;
-        if (rsq > cutsq_custom) continue;
+        if ((cutsq_custom > 0.0) && (rsq > cutsq_custom)) continue;
       }
 
       // flip I,J if necessary to satisfy onesided constraint
@@ -163,7 +163,7 @@ void NPairSkipSizeOff2onOnesideTemp<TRIM>::build(NeighList *list)
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
         rsq = delx * delx + dely * dely + delz * delz;
-        if (rsq > cutsq_custom) continue;
+        if ((cutsq_custom > 0.0) && (rsq > cutsq_custom)) continue;
       }
 
       // flip I,J if necessary to satisfy onesided constraint

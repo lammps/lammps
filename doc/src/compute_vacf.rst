@@ -76,7 +76,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute msd <compute_msd>`
+:doc:`compute msd <compute_msd>`, :doc:`compute vacf/chunk <compute_vacf_chunk>`
 
 Default
 """""""

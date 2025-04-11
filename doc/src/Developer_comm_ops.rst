@@ -79,19 +79,19 @@ containing ``double`` values.  To correctly store integers that may be
 64-bit (bigint, tagint, imageint) in the buffer, you need to use the
 :ref:`ubuf union <communication_buffer_coding_with_ubuf>` construct.
 
-The *Fix*, *Compute*, and *Dump* classes can also invoke the same kind
-of forward and reverse communication operations using the same *Comm*
-class methods.  Likewise, the same pack/unpack methods and
+The *Fix*, *Bond*, *Compute*, and *Dump* classes can also invoke the
+same kind of forward and reverse communication operations using the
+same *Comm* class methods.  Likewise, the same pack/unpack methods and
 comm_forward/comm_reverse variables must be defined by the calling
-*Fix*, *Compute*, or *Dump* class.
+*Fix*, *Bond*, *Compute*, or *Dump* class.
 
-For *Fix* classes, there is an optional second argument to the
+For all of these classes, there is an optional second argument to the
 *forward_comm()* and *reverse_comm()* call which can be used when the
-fix performs multiple modes of communication, with different numbers
-of values per atom.  The fix should set the *comm_forward* and
+class performs multiple modes of communication, with different numbers
+of values per atom.  The class should set the *comm_forward* and
 *comm_reverse* variables to the maximum value, but can invoke the
 communication for a particular mode with a smaller value.  For this
-to work, the *pack_forward_comm()*, etc methods typically use a class
+to work, the *pack_forward_comm()*, etc. methods typically use a class
 member variable to choose which values to pack/unpack into/from the
 buffer.
 

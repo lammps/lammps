@@ -39,7 +39,7 @@
 //
 // The first dimension of the View is the dimension over which it is
 // efficient for Kokkos to parallelize.
-using view_type = Kokkos::View<double * [3]>;
+using view_type = Kokkos::View<double* [3]>;
 
 // parallel_for functor that fills the View given to its constructor.
 // The View must already have been allocated.

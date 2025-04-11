@@ -61,7 +61,7 @@ ResetAtomsMol::~ResetAtomsMol()
 void ResetAtomsMol::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR, "Reset_atoms mol command before simulation box is defined");
+    error->all(FLERR, "Reset_atoms mol command before simulation box is defined" + utils::errorurl(33));
   if (atom->tag_enable == 0) error->all(FLERR, "Cannot use reset_atoms mol unless atoms have IDs");
   if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR, "Can only use reset_atoms mol on molecular systems");

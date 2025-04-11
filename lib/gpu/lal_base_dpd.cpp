@@ -57,7 +57,7 @@ int BaseDPDT::init_atomic(const int nlocal, const int nall,
                           const double cell_size, const double gpu_split,
                           FILE *_screen, const void *pair_program,
                           const char *k_name, const int onetype,
-                          const int extra_fields) {
+                          const int extra_fields, bool need_charges) {
   screen=_screen;
 
   int gpu_nbor=0;
@@ -73,7 +73,7 @@ int BaseDPDT::init_atomic(const int nlocal, const int nall,
 
   _threads_per_atom=device->threads_per_atom();
 
-  bool charge = false;
+  bool charge = need_charges;
   bool rot = false;
   bool vel = true;
   _extra_fields = extra_fields;

@@ -216,10 +216,8 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairYukawaColloidKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
+compute_fpair(const F_FLOAT &rsq, const int &i, const int &j,
+              const int &itype, const int &jtype) const {
   const F_FLOAT radi   = radius[i];
   const F_FLOAT radj   = radius[j];
   const F_FLOAT rr     = sqrt(rsq);
@@ -242,10 +240,8 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairYukawaColloidKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
+compute_evdwl(const F_FLOAT &rsq, const int &i, const int &j,
+              const int &itype, const int &jtype) const {
   const F_FLOAT radi   = radius[i];
   const F_FLOAT radj   = radius[j];
   const F_FLOAT rr     = sqrt(rsq);

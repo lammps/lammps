@@ -25,6 +25,7 @@ PairStyle(hbond/dreiding/lj,PairHbondDreidingLJ);
 namespace LAMMPS_NS {
 
 class PairHbondDreidingLJ : public Pair {
+
  public:
   PairHbondDreidingLJ(class LAMMPS *);
   ~PairHbondDreidingLJ() override;
@@ -38,6 +39,8 @@ class PairHbondDreidingLJ : public Pair {
  protected:
   double cut_inner_global, cut_outer_global, cut_angle_global;
   int ap_global;
+  int angle_offset_flag;          // 1 if angle offset variant used
+  double angle_offset_global;          // updated if angle offset variant used
 
   struct Param {
     double epsilon, sigma;
@@ -45,7 +48,7 @@ class PairHbondDreidingLJ : public Pair {
     double d0, alpha, r0;
     double morse1;
     double denom_vdw;
-    double cut_inner, cut_outer, cut_innersq, cut_outersq, cut_angle, offset;
+    double cut_inner, cut_outer, cut_innersq, cut_outersq, cut_angle, offset, angle_offset;
     int ap;
   };
 

@@ -180,7 +180,7 @@ void AngleMM3::allocate()
 
 void AngleMM3::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (narg != 3) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -200,7 +200,7 @@ void AngleMM3::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 
 }
 
@@ -326,4 +326,16 @@ void AngleMM3::born_matrix(int type, int i1, int i2, int i3, double &du, double 
 
   du = -k2[type] * df / s;
   du2 = k2[type] * (d2f - df  * c / s) / (s * s) ;
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleMM3::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k2") == 0) return (void *) k2;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
+  return nullptr;
 }

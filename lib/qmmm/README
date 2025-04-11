@@ -101,7 +101,7 @@ Makefile.gfortran-cmake and make adjustments to the makefile variables
 according to the comments in the file.  You probably need to adjust
 the QETOPDIR variable to point to the location of your QE
 compilation/installation.
-Please also check that the command "pkgconf liblammps --libs" works.
+Please also check that the command "pkg-config --libs liblammps" works.
 Then you should be able to compile the QM/MM executable with:
 
   make -f Makefile.gfortran-cmake pwqmmm.x

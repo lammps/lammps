@@ -39,7 +39,6 @@ using namespace EwaldConst;
 PairCoulSlaterLong::PairCoulSlaterLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
-  qdist = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -182,7 +181,7 @@ void PairCoulSlaterLong::settings(int narg, char **arg)
 
 void PairCoulSlaterLong::coeff(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 2) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -198,7 +197,7 @@ void PairCoulSlaterLong::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -232,7 +231,7 @@ void PairCoulSlaterLong::init_style()
 double PairCoulSlaterLong::init_one(int i, int j)
 {
   scale[j][i] = scale[i][j];
-  return cut_coul+2.0*qdist;
+  return cut_coul;
 }
 
 /* ----------------------------------------------------------------------

@@ -143,7 +143,7 @@ struct AnalyzeExecPolicyUseMatcher<void, type_list<>, Trait, Traits...> {
   static constexpr auto trigger_error_message =
       show_name_of_invalid_execution_policy_trait<Trait>{};
   static_assert(
-      /* always false: */ std::is_void<Trait>::value,
+      /* always false: */ std::is_void_v<Trait>,
       "Unknown execution policy trait. Search compiler output for "
       "'show_name_of_invalid_execution_policy_trait' to see the type of the "
       "invalid trait.");

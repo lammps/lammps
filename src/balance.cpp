@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -50,8 +51,6 @@ double EPSNEIGH = 1.0e-3;
 enum { XYZ, SHIFT, BISECTION };
 enum { NONE, UNIFORM, USER };
 enum { X, Y, Z };
-
-// clang-format off
 
 /* ---------------------------------------------------------------------- */
 
@@ -114,13 +113,13 @@ Balance::~Balance()
 void Balance::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR,"Balance command before simulation box is defined");
+    error->all(FLERR, -1, "Balance command before simulation box is defined" + utils::errorurl(33));
 
   if (comm->me == 0) utils::logmesg(lmp,"Balancing ...\n");
 
   // parse required arguments
 
-  if (narg < 2) error->all(FLERR,"Illegal balance command");
+  if (narg < 2) utils::missing_cmd_args(FLERR,"balance", error);
 
   thresh = utils::numeric(FLERR,arg[0],false,lmp);
 
@@ -132,16 +131,15 @@ void Balance::command(int narg, char **arg)
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"x") == 0) {
-      if (style != -1 && style != XYZ)
-        error->all(FLERR,"Illegal balance command");
+      if ((style != -1) && (style != XYZ))
+        error->all(FLERR, iarg, "Must not combine multiple balancing styles");
       style = XYZ;
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"balance x", error);
       if (strcmp(arg[iarg+1],"uniform") == 0) {
-        if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
         xflag = UNIFORM;
         iarg += 2;
       } else {
-        if (1 + procgrid[0]-1 > narg)
-          error->all(FLERR,"Illegal balance command");
+        if (iarg + procgrid[0]-1 > narg) utils::missing_cmd_args(FLERR,"balance x", error);
         xflag = USER;
         delete[] user_xsplit;
         user_xsplit = new double[procgrid[0]+1];
@@ -152,16 +150,15 @@ void Balance::command(int narg, char **arg)
         user_xsplit[procgrid[0]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"y") == 0) {
-      if (style != -1 && style != XYZ)
-        error->all(FLERR,"Illegal balance command");
+      if ((style != -1) && (style != XYZ))
+        error->all(FLERR, iarg, "Must not combine multiple balancing styles");
       style = XYZ;
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"balance y", error);
       if (strcmp(arg[iarg+1],"uniform") == 0) {
-        if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
         yflag = UNIFORM;
         iarg += 2;
       } else {
-        if (1 + procgrid[1]-1 > narg)
-          error->all(FLERR,"Illegal balance command");
+        if (iarg + procgrid[1]-1 > narg) utils::missing_cmd_args(FLERR,"balance y", error);
         yflag = USER;
         delete[] user_ysplit;
         user_ysplit = new double[procgrid[1]+1];
@@ -172,16 +169,15 @@ void Balance::command(int narg, char **arg)
         user_ysplit[procgrid[1]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"z") == 0) {
-      if (style != -1 && style != XYZ)
-        error->all(FLERR,"Illegal balance command");
+      if ((style != -1) && (style != XYZ))
+        error->all(FLERR, iarg, "Must not combine multiple balancing styles");
       style = XYZ;
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"balance z", error);
       if (strcmp(arg[iarg+1],"uniform") == 0) {
-        if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
         zflag = UNIFORM;
         iarg += 2;
       } else {
-        if (1 + procgrid[2]-1 > narg)
-          error->all(FLERR,"Illegal balance command");
+        if (iarg + procgrid[2]-1 > narg) utils::missing_cmd_args(FLERR,"balance z", error);
         zflag = USER;
         delete[] user_zsplit;
         user_zsplit = new double[procgrid[2]+1];
@@ -193,19 +189,21 @@ void Balance::command(int narg, char **arg)
       }
 
     } else if (strcmp(arg[iarg],"shift") == 0) {
-      if (style != -1) error->all(FLERR,"Illegal balance command");
+      if (style != -1) error->all(FLERR, iarg, "Must not combine multiple balancing styles");
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "balance shift", error);
       style = SHIFT;
       bstr = arg[iarg+1];
-      if (bstr.size() > BSTR_SIZE) error->all(FLERR,"Illegal balance shift command");
+      if (bstr.size() > BSTR_SIZE) error->all(FLERR, iarg + 1, "Illegal balance shift command");
       nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-      if (nitermax <= 0) error->all(FLERR,"Illegal balance command");
+      if (nitermax <= 0)
+        error->all(FLERR,iarg+2,"Illegal balance shift value {}", arg[iarg+2]);
       stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (stopthresh < 1.0) error->all(FLERR,"Illegal balance command");
+      if (stopthresh < 1.0)
+        error->all(FLERR,iarg+3,"Illegal balance stop threshold value {}", arg[iarg+3]);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"rcb") == 0) {
-      if (style != -1) error->all(FLERR,"Illegal balance command");
+      if (style != -1) error->all(FLERR,"Must not combine multiple balancing styles");
       style = BISECTION;
       iarg++;
 
@@ -221,32 +219,32 @@ void Balance::command(int narg, char **arg)
     if (xflag == USER)
       for (int i = 1; i <= procgrid[0]; i++)
         if (user_xsplit[i-1] >= user_xsplit[i])
-          error->all(FLERR,"Illegal balance command");
+          error->all(FLERR,"Slices for balance x command must be in ascending order");
     if (yflag == USER)
       for (int i = 1; i <= procgrid[1]; i++)
         if (user_ysplit[i-1] >= user_ysplit[i])
-          error->all(FLERR,"Illegal balance command");
+          error->all(FLERR,"Slices for balance y command must be in ascending order");
     if (zflag == USER)
       for (int i = 1; i <= procgrid[2]; i++)
         if (user_zsplit[i-1] >= user_zsplit[i])
-          error->all(FLERR,"Illegal balance command");
+          error->all(FLERR,"Slices for balance z command must be in ascending order");
   }
 
   if (style == SHIFT) {
     const int blen = bstr.size();
     for (int i = 0; i < blen; i++) {
       if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z')
-        error->all(FLERR,"Balance shift string is invalid");
+        error->all(FLERR,"Balance shift string {} is invalid", bstr);
       if (bstr[i] == 'z' && dimension == 2)
-        error->all(FLERR,"Balance shift string is invalid");
+        error->all(FLERR,"Balance shift string {} is invalid", bstr);
       for (int j = i+1; j < blen; j++)
         if (bstr[i] == bstr[j])
-          error->all(FLERR,"Balance shift string is invalid");
+          error->all(FLERR,"Balance shift string {} is invalid", bstr);
     }
   }
 
   if (style == BISECTION && comm->style == Comm::BRICK)
-    error->all(FLERR,"Balance rcb cannot be used with comm_style brick");
+    error->all(FLERR, Error::ARGZERO, "Balance rcb cannot be used with comm_style brick");
 
   // process remaining optional args
 
@@ -379,8 +377,8 @@ void Balance::command(int narg, char **arg)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms)
-    error->all(FLERR,"Lost atoms via balance: original {}  current {}",
-               atom->natoms,natoms);
+    error->all(FLERR,Error::NOLASTLINE,"Lost atoms via balance: original {}  current {}"
+               +utils::errorurl(8),atom->natoms,natoms);
 
   // imbfinal = final imbalance
   // set disable = 1, so weights no longer migrate with atoms
@@ -467,16 +465,16 @@ void Balance::options(int iarg, int narg, char **arg, int sortflag_default)
         nopt = imb->options(narg-iarg,arg+iarg+2);
         imbalances[nimbalance++] = imb;
       } else {
-        error->all(FLERR,"Unknown (fix) balance weight method: {}", arg[iarg+1]);
+        error->all(FLERR, iarg + 1, "Unknown (fix) balance weight method: {}", arg[iarg+1]);
       }
       iarg += 2+nopt;
 
     } else if (strcmp(arg[iarg],"sort") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "balance sort", error);
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "(fix) balance sort", error);
       sortflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"out") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal (fix) balance command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"(fix) balance out", error);
       outflag = 1;
       outarg = iarg+1;
       iarg += 2;
@@ -485,7 +483,7 @@ void Balance::options(int iarg, int narg, char **arg, int sortflag_default)
       oldrcb = 1;
       iarg++;
 
-    } else error->all(FLERR,"Illegal (fix) balance command");
+    } else error->all(FLERR, iarg, "Unknown (fix) balance keyword {}", arg[iarg]);
   }
 
   // output file
@@ -493,8 +491,8 @@ void Balance::options(int iarg, int narg, char **arg, int sortflag_default)
   if (outflag && comm->me == 0) {
     fp = fopen(arg[outarg],"w");
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open (fix) balance output file {}: {}",
-                                   arg[outarg], utils::getsyserror());
+      error->one(FLERR, outarg, "Cannot open (fix) balance output file {}: {}",
+                 arg[outarg], utils::getsyserror());
   }
 }
 
@@ -1219,7 +1217,7 @@ void Balance::dumpout(bigint tstep)
   double *boxlo = domain->boxlo;
   double *boxhi = domain->boxhi;
 
-  fmt::print(fp,"ITEM: TIMESTEP\n{}\n",tstep);
+  utils::print(fp,"ITEM: TIMESTEP\n{}\n",tstep);
   fprintf(fp,"ITEM: NUMBER OF NODES\n");
   if (dimension == 2) fprintf(fp,"%d\n",4*nprocs);
   else fprintf(fp,"%d\n",8*nprocs);
@@ -1294,7 +1292,7 @@ void Balance::dumpout(bigint tstep)
 
   // write out one square/cube per processor for 2d/3d
 
-  fmt::print(fp,"ITEM: TIMESTEP\n{}\n",tstep);
+  utils::print(fp,"ITEM: TIMESTEP\n{}\n",tstep);
   if (dimension == 2) fprintf(fp,"ITEM: NUMBER OF SQUARES\n");
   else fprintf(fp,"ITEM: NUMBER OF CUBES\n");
   fprintf(fp,"%d\n",nprocs);
@@ -1339,13 +1337,13 @@ void Balance::debug_shift_output(int idim, int m, int np, double *split)
   fprintf(stderr,"Dimension %s, Iteration %d\n",dim,m);
 
   fprintf(stderr,"  Count:");
-  for (i = 0; i <= np; i++) fmt::print(stderr," {}",count[i]);
+  for (i = 0; i <= np; i++) utils::print(stderr," {}",count[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Sum:");
-  for (i = 0; i <= np; i++) fmt::print(stderr," {}",sum[i]);
+  for (i = 0; i <= np; i++) utils::print(stderr," {}",sum[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Target:");
-  for (i = 0; i <= np; i++) fmt::print(stderr," {}",target[i]);
+  for (i = 0; i <= np; i++) utils::print(stderr," {}",target[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Actual cut:");
   for (i = 0; i <= np; i++)
@@ -1358,13 +1356,13 @@ void Balance::debug_shift_output(int idim, int m, int np, double *split)
   for (i = 0; i <= np; i++) fprintf(stderr," %g",lo[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Low-sum:");
-  for (i = 0; i <= np; i++) fmt::print(stderr," {}",losum[i]);
+  for (i = 0; i <= np; i++) utils::print(stderr," {}",losum[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Hi:");
   for (i = 0; i <= np; i++) fprintf(stderr," %g",hi[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Hi-sum:");
-  for (i = 0; i <= np; i++) fmt::print(stderr," {}",hisum[i]);
+  for (i = 0; i <= np; i++) utils::print(stderr," {}",hisum[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Delta:");
   for (i = 0; i < np; i++) fprintf(stderr," %g",split[i+1]-split[i]);

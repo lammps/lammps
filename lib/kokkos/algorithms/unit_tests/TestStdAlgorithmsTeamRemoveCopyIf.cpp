@@ -65,8 +65,8 @@ struct TestFunctorA {
     GreaterThanValueFunctor predicate(m_threshold);
     if (m_apiPick == 0) {
       auto it    = KE::remove_copy_if(member, KE::cbegin(myRowViewFrom),
-                                   KE::cend(myRowViewFrom),
-                                   KE::begin(myRowViewDest), predicate);
+                                      KE::cend(myRowViewFrom),
+                                      KE::begin(myRowViewDest), predicate);
       resultDist = KE::distance(KE::begin(myRowViewDest), it);
       Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
         m_distancesView(myRowIndex) = resultDist;

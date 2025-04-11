@@ -106,7 +106,7 @@ void DumpAtomGZ::write_header(bigint ndump)
     }
     header += fmt::format("ITEM: ATOMS {}\n", columns);
 
-    writer.write(header.c_str(), header.length());
+    (void) writer.write(header.c_str(), header.length());
   }
 }
 
@@ -115,7 +115,7 @@ void DumpAtomGZ::write_header(bigint ndump)
 void DumpAtomGZ::write_data(int n, double *mybuf)
 {
   if (buffer_flag == 1) {
-    writer.write(mybuf, n);
+    (void) writer.write(mybuf, n);
   } else {
     constexpr size_t VBUFFER_SIZE = 256;
     char vbuffer[VBUFFER_SIZE];
@@ -133,7 +133,7 @@ void DumpAtomGZ::write_data(int n, double *mybuf)
                      static_cast<int>(mybuf[m + 1]), mybuf[m + 2], mybuf[m + 3], mybuf[m + 4]);
       }
       if (written > 0) {
-        writer.write(vbuffer, written);
+        (void) writer.write(vbuffer, written);
       } else if (written < 0) {
         error->one(FLERR, "Error while writing dump atom/gz output");
       }

@@ -48,8 +48,19 @@ class HIP {
   using scratch_memory_space = ScratchMemorySpace<HIP>;
 
   HIP();
-  HIP(hipStream_t stream,
-      Impl::ManageStream manage_stream = Impl::ManageStream::no);
+
+  explicit HIP(hipStream_t stream) : HIP(stream, Impl::ManageStream::no) {}
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  template <typename T = void>
+  KOKKOS_DEPRECATED_WITH_COMMENT(
+      "HIP execution space should be constructed explicitly.")
+  HIP(hipStream_t stream)
+      : HIP(stream) {}
+#endif
+
+  HIP(hipStream_t stream, Impl::ManageStream manage_stream);
+
   KOKKOS_DEPRECATED HIP(hipStream_t stream, bool manage_stream);
 
   //@}

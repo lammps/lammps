@@ -1,8 +1,9 @@
 Dump Styles
-###############
+###########
 
 .. toctree::
    :maxdepth: 1
    :glob:
 
-   dump*
+   dump
+   dump_*

@@ -148,6 +148,7 @@ void NeighList::post_constructor(NeighRequest *nq)
   copy = nq->copy;
   trim = nq->trim;
   id = nq->id;
+  molskip = nq->molskip;
 
   if (nq->copy) {
     listcopy = neighbor->lists[nq->copylist];
@@ -157,14 +158,16 @@ void NeighList::post_constructor(NeighRequest *nq)
 
   if (nq->skip) {
     listskip = neighbor->lists[nq->skiplist];
-    int ntypes = atom->ntypes;
-    iskip = new int[ntypes+1];
-    memory->create(ijskip,ntypes+1,ntypes+1,"neigh_list:ijskip");
-    int i,j;
-    for (i = 1; i <= ntypes; i++) iskip[i] = nq->iskip[i];
-    for (i = 1; i <= ntypes; i++)
-      for (j = 1; j <= ntypes; j++)
-        ijskip[i][j] = nq->ijskip[i][j];
+    if (!molskip) {
+      int ntypes = atom->ntypes;
+      iskip = new int[ntypes+1];
+      memory->create(ijskip,ntypes+1,ntypes+1,"neigh_list:ijskip");
+      int i,j;
+      for (i = 1; i <= ntypes; i++) iskip[i] = nq->iskip[i];
+      for (i = 1; i <= ntypes; i++)
+        for (j = 1; j <= ntypes; j++)
+          ijskip[i][j] = nq->ijskip[i][j];
+    }
   }
 
   if (nq->halffull)

@@ -321,6 +321,7 @@ T LoopVariant(int loop, int test) {
     case 1: return AddLoop<T>(loop);
     case 2: return CASLoop<T>(loop);
     case 3: return ExchLoop<T>(loop);
+    default: Kokkos::abort("unreachable");
   }
   return 0;
 }
@@ -331,6 +332,7 @@ T LoopVariantSerial(int loop, int test) {
     case 1: return AddLoopSerial<T>(loop);
     case 2: return CASLoopSerial<T>(loop);
     case 3: return ExchLoopSerial<T>(loop);
+    default: Kokkos::abort("unreachable");
   }
   return 0;
 }
@@ -341,6 +343,7 @@ T LoopVariantNonAtomic(int loop, int test) {
     case 1: return AddLoopNonAtomic<T>(loop);
     case 2: return CASLoopNonAtomic<T>(loop);
     case 3: return ExchLoopNonAtomic<T>(loop);
+    default: Kokkos::abort("unreachable");
   }
   return 0;
 }
@@ -390,7 +393,7 @@ static void Test_Atomic(benchmark::State& state) {
 
 static constexpr int LOOP = 100'000;
 
-BENCHMARK(Test_Atomic<int>)->Arg(LOOP)->Iterations(10);
+BENCHMARK(Test_Atomic<int>)->Arg(30'000)->Iterations(10);
 BENCHMARK(Test_Atomic<long int>)->Arg(LOOP)->Iterations(10);
 BENCHMARK(Test_Atomic<long long int>)->Arg(LOOP)->Iterations(10);
 BENCHMARK(Test_Atomic<unsigned int>)->Arg(LOOP)->Iterations(10);
@@ -398,4 +401,3 @@ BENCHMARK(Test_Atomic<unsigned long int>)->Arg(LOOP)->Iterations(10);
 BENCHMARK(Test_Atomic<unsigned long long int>)->Arg(LOOP)->Iterations(10);
 BENCHMARK(Test_Atomic<float>)->Arg(LOOP)->Iterations(10);
 BENCHMARK(Test_Atomic<double>)->Arg(LOOP)->Iterations(10);
-BENCHMARK(Test_Atomic<int>)->Arg(LOOP)->Iterations(10);

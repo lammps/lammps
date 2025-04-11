@@ -95,7 +95,7 @@ NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in, int n2step
 
 NEB::~NEB()
 {
-  MPI_Comm_free(&roots);
+  if (roots != MPI_COMM_NULL) MPI_Comm_free(&roots);
   memory->destroy(all);
   delete[] rdist;
   if (fp) {
@@ -113,7 +113,7 @@ NEB::~NEB()
 void NEB::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->universe_all(FLERR, "NEB command before simulation box is defined");
+    error->universe_all(FLERR, "NEB command before simulation box is defined" + utils::errorurl(33));
 
   if (narg < 6) error->universe_all(FLERR, "Illegal NEB command: missing argument(s)");
 
@@ -198,7 +198,7 @@ void NEB::run()
   if (me == 0)
     color = 0;
   else
-    color = 1;
+    color = MPI_UNDEFINED;
   MPI_Comm_split(uworld, color, 0, &roots);
 
   auto fixes = modify->get_fix_by_style("^neb$");
@@ -241,19 +241,19 @@ void NEB::run()
 
   if (me_universe == 0) {
     if (uscreen) {
-      fmt::print(uscreen, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
+      utils::print(uscreen, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0", "GradV1", "GradVc", "EBF", "EBR",
                  "RDT");
 
       if (print_mode != TERSE) {
         for (int i = 1; i <= nreplica; ++i)
-          fmt::print(uscreen, "{:^14} {:^14} ", "RD" + std::to_string(i), "PE" + std::to_string(i));
+          utils::print(uscreen, "{:^14} {:^14} ", "RD" + std::to_string(i), "PE" + std::to_string(i));
       }
 
       if (print_mode == VERBOSE) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
-          fmt::print(uscreen, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
+          utils::print(uscreen, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
                      "angletangrad" + idx, "anglegrad" + idx, "gradV" + idx, "RepForce" + idx,
                      "MaxAtomForce" + idx);
         }
@@ -262,20 +262,20 @@ void NEB::run()
     }
 
     if (ulogfile) {
-      fmt::print(ulogfile, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
+      utils::print(ulogfile, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0", "GradV1", "GradVc", "EBF", "EBR",
                  "RDT");
 
       if (print_mode != TERSE) {
         for (int i = 1; i <= nreplica; ++i)
-          fmt::print(ulogfile, "{:^14} {:^14} ", "RD" + std::to_string(i),
+          utils::print(ulogfile, "{:^14} {:^14} ", "RD" + std::to_string(i),
                      "PE" + std::to_string(i));
       }
 
       if (print_mode == VERBOSE) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
-          fmt::print(ulogfile, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
+          utils::print(ulogfile, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
                      "angletangrad" + idx, "anglegrad" + idx, "gradV" + idx, "RepForce" + idx,
                      "MaxAtomForce" + idx);
         }
@@ -340,19 +340,19 @@ void NEB::run()
 
   if (me_universe == 0) {
     if (uscreen) {
-      fmt::print(uscreen, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
+      utils::print(uscreen, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0", "GradV1", "GradVc", "EBF", "EBR",
                  "RDT");
 
       if (print_mode != TERSE) {
         for (int i = 1; i <= nreplica; ++i)
-          fmt::print(uscreen, "{:^14} {:^14} ", "RD" + std::to_string(i), "PE" + std::to_string(i));
+          utils::print(uscreen, "{:^14} {:^14} ", "RD" + std::to_string(i), "PE" + std::to_string(i));
       }
 
       if (print_mode == VERBOSE) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
-          fmt::print(uscreen, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
+          utils::print(uscreen, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
                      "angletangrad" + idx, "anglegrad" + idx, "gradV" + idx, "RepForce" + idx,
                      "MaxAtomForce" + idx);
         }
@@ -361,20 +361,20 @@ void NEB::run()
     }
 
     if (ulogfile) {
-      fmt::print(ulogfile, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
+      utils::print(ulogfile, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0", "GradV1", "GradVc", "EBF", "EBR",
                  "RDT");
 
       if (print_mode != TERSE) {
         for (int i = 1; i <= nreplica; ++i)
-          fmt::print(ulogfile, "{:^14} {:^14} ", "RD" + std::to_string(i),
+          utils::print(ulogfile, "{:^14} {:^14} ", "RD" + std::to_string(i),
                      "PE" + std::to_string(i));
       }
 
       if (print_mode == VERBOSE) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
-          fmt::print(ulogfile, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
+          utils::print(ulogfile, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
                      "angletangrad" + idx, "anglegrad" + idx, "gradV" + idx, "RepForce" + idx,
                      "MaxAtomForce" + idx);
         }
@@ -608,17 +608,20 @@ void NEB::open(char *file)
 void NEB::print_status()
 {
   double fnorm2 = sqrt(update->minimize->fnorm_sqr());
-  double fmaxreplica;
-  MPI_Allreduce(&fnorm2, &fmaxreplica, 1, MPI_DOUBLE, MPI_MAX, roots);
   double fnorminf = update->minimize->fnorm_inf();
-  double fmaxatom;
-  MPI_Allreduce(&fnorminf, &fmaxatom, 1, MPI_DOUBLE, MPI_MAX, roots);
+  double fmaxreplica = 0.0;
+  double fmaxatom = 0.0;
 
-  if (print_mode == VERBOSE) {
-    freplica = new double[nreplica];
-    MPI_Allgather(&fnorm2, 1, MPI_DOUBLE, &freplica[0], 1, MPI_DOUBLE, roots);
-    fmaxatomInRepl = new double[nreplica];
-    MPI_Allgather(&fnorminf, 1, MPI_DOUBLE, &fmaxatomInRepl[0], 1, MPI_DOUBLE, roots);
+  if (me == 0) {
+    MPI_Allreduce(&fnorm2, &fmaxreplica, 1, MPI_DOUBLE, MPI_MAX, roots);
+    MPI_Allreduce(&fnorminf, &fmaxatom, 1, MPI_DOUBLE, MPI_MAX, roots);
+
+    if (print_mode == VERBOSE) {
+      freplica = new double[nreplica];
+      MPI_Allgather(&fnorm2, 1, MPI_DOUBLE, &freplica[0], 1, MPI_DOUBLE, roots);
+      fmaxatomInRepl = new double[nreplica];
+      MPI_Allgather(&fnorminf, 1, MPI_DOUBLE, &fmaxatomInRepl[0], 1, MPI_DOUBLE, roots);
+    }
   }
 
   double one[7];
@@ -703,7 +706,7 @@ void NEB::print_status()
       fflush(universe->ulogfile);
     }
   }
-  if (print_mode == VERBOSE) {
+  if ((me == 0) && (print_mode == VERBOSE)) {
     delete[] freplica;
     delete[] fmaxatomInRepl;
   }

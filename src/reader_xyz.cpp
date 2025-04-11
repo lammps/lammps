@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -18,12 +17,15 @@
 
 #include "reader_xyz.h"
 
-#include "memory.h"
+#include "atom.h"
 #include "error.h"
+#include "label_map.h"
+#include "memory.h"
+#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 
-static constexpr int MAXLINE = 1024;        // max line length in dump file
+static constexpr int MAXLINE = 1024;    // max line length in dump file
 
 /* ---------------------------------------------------------------------- */
 
@@ -50,22 +52,21 @@ ReaderXYZ::~ReaderXYZ()
 
 int ReaderXYZ::read_time(bigint &ntimestep)
 {
-  char *eof = fgets(line,MAXLINE,fp);
+  char *eof = fgets(line, MAXLINE, fp);
   if (eof == nullptr) return 1;
 
   // first line has to have the number of atoms
   // truncate the string to the first whitespace,
   //   so force->bnumeric() does not hiccup
 
-  for (int i=0; (i < MAXLINE) && (eof[i] != '\0'); ++i) {
+  for (int i = 0; (i < MAXLINE) && (eof[i] != '\0'); ++i) {
     if (eof[i] == '\n' || eof[i] == '\r' || eof[i] == ' ' || eof[i] == '\t') {
       eof[i] = '\0';
       break;
     }
   }
-  natoms = utils::bnumeric(FLERR,line,false,lmp);
-  if (natoms < 1)
-    error->one(FLERR,"Dump file is incorrectly formatted");
+  natoms = utils::bnumeric(FLERR, line, false, lmp);
+  if (natoms < 1) error->one(FLERR, "Dump file is incorrectly formatted");
 
   // skip over comment/title line
 
@@ -90,11 +91,11 @@ void ReaderXYZ::skip()
 {
   // invoke read_lines() in chunks no larger than MAXSMALLINT
 
-  int nchunk;
+  bigint nchunk;
   bigint nremain = natoms;
   while (nremain) {
-    nchunk = MIN(nremain,MAXSMALLINT);
-    read_lines(nchunk);
+    nchunk = MIN(nremain, MAXSMALLINT);
+    read_lines((int) nchunk);
     nremain -= nchunk;
   }
 }
@@ -113,11 +114,10 @@ void ReaderXYZ::skip()
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-bigint ReaderXYZ::read_header(double /*box*/[3][3], int &boxinfo, int &/*triclinic*/,
-                              int fieldinfo, int nfield,
-                              int *fieldtype, char **/*fieldlabel*/,
-                              int scaleflag, int wrapflag, int &fieldflag,
-                              int &xflag, int &yflag, int &zflag)
+bigint ReaderXYZ::read_header(double /*box*/[3][3], int &boxinfo, int & /*triclinic*/,
+                              int fieldinfo, int nfield, int *fieldtype, char ** /*fieldlabel*/,
+                              int scaleflag, int wrapflag, int &fieldflag, int &xflag, int &yflag,
+                              int &zflag)
 {
 
   nid = 0;
@@ -130,24 +130,21 @@ bigint ReaderXYZ::read_header(double /*box*/[3][3], int &boxinfo, int &/*triclin
 
   if (!fieldinfo) return natoms;
 
-  memory->create(fieldindex,nfield,"read_dump:fieldindex");
+  memory->create(fieldindex, nfield, "read_dump:fieldindex");
 
   // for xyz we know nothing about the style of coordinates,
   // so caller has to set the proper flags
 
-  xflag = 2*scaleflag + wrapflag + 1;
-  yflag = 2*scaleflag + wrapflag + 1;
-  zflag = 2*scaleflag + wrapflag + 1;
+  xflag = 2 * scaleflag + wrapflag + 1;
+  yflag = 2 * scaleflag + wrapflag + 1;
+  zflag = 2 * scaleflag + wrapflag + 1;
 
   // copy fieldtype list for supported fields
 
   fieldflag = 0;
   for (int i = 0; i < nfield; i++) {
-    if ( (fieldtype[i] == X) ||
-         (fieldtype[i] == Y) ||
-         (fieldtype[i] == Z) ||
-         (fieldtype[i] == ID) ||
-         (fieldtype[i] == TYPE)) {
+    if ((fieldtype[i] == X) || (fieldtype[i] == Y) || (fieldtype[i] == Z) || (fieldtype[i] == ID) ||
+        (fieldtype[i] == TYPE)) {
       fieldindex[i] = fieldtype[i];
     } else {
       fieldflag = 1;
@@ -166,43 +163,55 @@ bigint ReaderXYZ::read_header(double /*box*/[3][3], int &boxinfo, int &/*triclin
 
 void ReaderXYZ::read_atoms(int n, int nfield, double **fields)
 {
-  int i,m,rv;
+  int i, m;
   char *eof;
   int mytype;
   double myx, myy, myz;
 
-  for (i = 0; i < n; i++) {
-    eof = fgets(line,MAXLINE,fp);
-    if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
+  try {
+    for (i = 0; i < n; i++) {
+      eof = fgets(line, MAXLINE, fp);
+      if (eof == nullptr) error->one(FLERR, "Unexpected end of dump file");
 
-    ++nid;
-    rv = sscanf(line,"%*s%lg%lg%lg", &myx, &myy, &myz);
-    if (rv != 3) error->one(FLERR,"Dump file is incorrectly formatted");
+      ++nid;
 
-    // XXX: we could insert an element2type translation here
-    // XXX: for now we flag unrecognized types as type 0,
-    // XXX: which should trigger an error, if LAMMPS uses it.
-    mytype = atoi(line);
+      auto values = ValueTokenizer(line);
+      auto label = values.next_string();
 
-    for (m = 0; m < nfield; m++) {
-      switch (fieldindex[m]) {
-      case X:
-        fields[i][m] = myx;
-        break;
-      case Y:
-        fields[i][m] = myy;
-        break;
-      case Z:
-        fields[i][m] = myz;
-        break;
-      case ID:
-        fields[i][m] = nid;
-        break;
-      case TYPE:
-        fields[i][m] = mytype;
-        break;
+      // must have a complete atom type label map to parse xyz files with string labels
+      if (!utils::is_integer(label)) {
+        if (!atom->labelmapflag || !atom->lmap->is_complete(Atom::ATOM))
+          error->one(FLERR, "Must define atom labelmap to parse XYZ files with strings for types");
+      }
+      mytype = utils::expand_type_int(FLERR, label, Atom::ATOM, lmp);
+      myx = values.next_double();
+      myy = values.next_double();
+      myz = values.next_double();
+
+      for (m = 0; m < nfield; m++) {
+        switch (fieldindex[m]) {
+          case X:
+            fields[i][m] = myx;
+            break;
+          case Y:
+            fields[i][m] = myy;
+            break;
+          case Z:
+            fields[i][m] = myz;
+            break;
+          case ID:
+            fields[i][m] = nid;
+            break;
+          case TYPE:
+            fields[i][m] = mytype;
+            break;
+        }
       }
     }
+  } catch (TokenizerException &e) {
+    error->one(FLERR, "Error reading xyz file: {}", e.what());
+  } catch (LAMMPSAbortException &e) {
+    throw e;
   }
 }
 
@@ -216,6 +225,6 @@ void ReaderXYZ::read_lines(int n)
 {
   char *eof = nullptr;
   if (n <= 0) return;
-  for (int i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);
-  if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
+  for (int i = 0; i < n; i++) eof = fgets(line, MAXLINE, fp);
+  if (eof == nullptr) error->one(FLERR, "Unexpected end of dump file");
 }

@@ -80,7 +80,7 @@ The two Hookean styles use this formula:
 
    F_{hk} = (k_n \delta \mathbf{n}_{ij} -
    m_{eff} \gamma_n\mathbf{ v}_n) -
-   (k_t \mathbf{ \Delta s}_t +
+   (k_t \boldsymbol{\Delta} \mathbf{s}_t +
    m_{eff} \gamma_t \mathbf{v}_t)
 
 The Hertzian style uses this formula:
@@ -91,7 +91,7 @@ The Hertzian style uses this formula:
      \sqrt{\delta} \sqrt{\frac{R_i R_j}{R_i + R_j}}
      \Big[ (k_n \delta \mathbf{n}_{ij} -
        m_{eff} \: \gamma_n \mathbf{ v}_n) -
-       (k_t \mathbf{ \Delta s}_t +
+       (k_t \boldsymbol{\Delta} \mathbf{s}_t +
        m_{eff} \: \gamma_t \mathbf{v}_t) \Big]
 
 In both equations the first parenthesized term is the normal force
@@ -114,7 +114,7 @@ The other quantities in the equations are as follows:
 * :math:`\gamma_n` = viscoelastic damping constant for normal contact
 * :math:`\gamma_t` = viscoelastic damping constant for tangential contact
 * :math:`m_{eff} = M_i M_j / (M_i + M_j) =` effective mass of 2 particles of mass M_i and M_j
-* :math:`\mathbf{\Delta s}_t =` tangential displacement vector between 2 particles       which is truncated to satisfy a frictional yield criterion
+* :math:`\boldsymbol{\Delta} \mathbf{s}_t =` tangential displacement vector between 2 particles which is truncated to satisfy a frictional yield criterion
 * :math:`n_{ij} =` unit vector along the line connecting the centers of the 2 particles
 * :math:`V_n =` normal component of the relative velocity of the 2 particles
 * :math:`V_t =` tangential component of the relative velocity of the 2 particles

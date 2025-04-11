@@ -277,7 +277,7 @@ TEST_F(LAMMPS_gather_scatter, gather_compute)
     lammps_command(lmp, "run 0");
     int natoms = lmp->atom->natoms;
     int *tag   = lmp->atom->tag;
-    double *pe = (double *)lammps_extract_compute(lmp, "pe", LMP_STYLE_ATOM, LMP_TYPE_VECTOR);
+    auto *pe   = (double *)lammps_extract_compute(lmp, "pe", LMP_STYLE_ATOM, LMP_TYPE_VECTOR);
     for (int i = 0; i < natoms; i++)
         EXPECT_DOUBLE_EQ(f_lammps_gather_pe_atom(tag[i]), pe[i]);
 #endif
@@ -292,7 +292,7 @@ TEST_F(LAMMPS_gather_scatter, gather_compute_concat)
     lammps_command(lmp, "run 0");
     int natoms = lmp->atom->natoms;
     int *tag   = lmp->atom->tag;
-    double *pe = (double *)lammps_extract_compute(lmp, "pe", LMP_STYLE_ATOM, LMP_TYPE_VECTOR);
+    auto *pe   = (double *)lammps_extract_compute(lmp, "pe", LMP_STYLE_ATOM, LMP_TYPE_VECTOR);
     for (int i = 0; i < natoms; i++)
         EXPECT_DOUBLE_EQ(f_lammps_gather_pe_atom(tag[i]), pe[i]);
 #endif
@@ -305,11 +305,11 @@ TEST_F(LAMMPS_gather_scatter, gather_compute_subset)
 #else
     f_lammps_setup_gather_scatter();
     lammps_command(lmp, "run 0");
-    int ids[2]    = {3, 1};
-    int *tag      = lmp->atom->tag;
-    double pe[2]  = {0.0, 0.0};
-    int nlocal    = lammps_extract_setting(lmp, "nlocal");
-    double *pa_pe = (double *)lammps_extract_compute(lmp, "pe", LMP_STYLE_ATOM, LMP_TYPE_VECTOR);
+    int ids[2]   = {3, 1};
+    int *tag     = lmp->atom->tag;
+    double pe[2] = {0.0, 0.0};
+    int nlocal   = lammps_extract_setting(lmp, "nlocal");
+    auto *pa_pe  = (double *)lammps_extract_compute(lmp, "pe", LMP_STYLE_ATOM, LMP_TYPE_VECTOR);
 
     for (int i = 0; i < nlocal; i++) {
         if (tag[i] == ids[0]) pe[0] = pa_pe[i];
@@ -330,10 +330,10 @@ TEST_F(LAMMPS_gather_scatter, scatter_compute)
 #else
     f_lammps_setup_gather_scatter();
     int natoms = lmp->atom->natoms;
-    double *pe = new double[natoms];
+    auto *pe   = new double[natoms];
     lammps_command(lmp, "run 0");
     lammps_gather(lmp, "c_pe", 1, 1, pe);
-    double *old_pe = new double[natoms];
+    auto *old_pe = new double[natoms];
     for (int i = 0; i < natoms; i++)
         old_pe[i] = pe[i];
     EXPECT_DOUBLE_EQ(pe[0], old_pe[0]);
@@ -356,10 +356,10 @@ TEST_F(LAMMPS_gather_scatter, scatter_subset_compute)
 #else
     f_lammps_setup_gather_scatter();
     int natoms = lmp->atom->natoms;
-    double *pe = new double[natoms];
+    auto *pe   = new double[natoms];
     lammps_command(lmp, "run 0");
     lammps_gather(lmp, "c_pe", 1, 1, pe);
-    double *old_pe = new double[natoms];
+    auto *old_pe = new double[natoms];
     for (int i = 0; i < natoms; i++)
         old_pe[i] = pe[i];
     EXPECT_DOUBLE_EQ(pe[0], old_pe[0]);

@@ -154,7 +154,7 @@ void fill_view(ViewType dest_view, ValueType value, std::size_t count,
   }
 
   else {
-    throw std::runtime_error("Kokkos: test: search_n: this should not happen");
+    FAIL() << "Kokkos: test: search_n: this should not happen";
   }
 
   Kokkos::deep_copy(aux_view, v_h);
@@ -208,7 +208,7 @@ void run_single_scenario(const InfoType& scenario_info, std::size_t count,
 
   {
     auto myrit        = KE::search_n("label", exespace(), KE::cbegin(view),
-                              KE::cend(view), count, value, args...);
+                                     KE::cend(view), count, value, args...);
     const auto mydiff = myrit - KE::cbegin(view);
     ASSERT_EQ(mydiff, stddiff);
   }

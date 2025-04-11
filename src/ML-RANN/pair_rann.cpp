@@ -302,8 +302,8 @@ void PairRANN::coeff(int narg, char **arg)
   int i,j;
   deallocate();//clear allocation from any previous coeff
   map = new int[atom->ntypes+1];
-  if (narg != 3 + atom->ntypes) error->one(FLERR,"Incorrect args for pair coefficients");
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0) error->one(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 3 + atom->ntypes) error->one(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
+  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0) error->one(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   nelements = -1;
   read_file(arg[2]);
   // read args that map atom types to elements in potential file
@@ -338,7 +338,7 @@ void PairRANN::coeff(int narg, char **arg)
       }
     }
   }
-  if (count == 0) error->one(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->one(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   for (i=0;i<nelementsp;i++) {
     for (j=0;j<fingerprintperelement[i];j++) {
       fingerprints[i][j]->allocate();

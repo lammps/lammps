@@ -58,7 +58,7 @@ struct TestFunctorA {
     } else if (m_apiPick == 2) {
       using value_type = typename ViewType::value_type;
       auto it    = KE::unique(member, KE::begin(myRowView), KE::end(myRowView),
-                           CustomEqualityComparator<value_type>{});
+                              CustomEqualityComparator<value_type>{});
       resultDist = KE::distance(KE::begin(myRowView), it);
       Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
         m_distancesView(myRowIndex) = resultDist;
@@ -138,7 +138,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
       stdDistance = KE::distance(KE::begin(myRow), it);
     } else {
       auto it     = std::unique(KE::begin(myRow), KE::end(myRow),
-                            CustomEqualityComparator<value_type>{});
+                                CustomEqualityComparator<value_type>{});
       stdDistance = KE::distance(KE::begin(myRow), it);
     }
     ASSERT_EQ(stdDistance, distancesView_h(i));

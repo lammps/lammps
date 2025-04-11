@@ -71,7 +71,7 @@ void PPPMDispTIP4P::particle_map_c(double delx, double dely, double delz,
   int nlocal = atom->nlocal;
 
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
-    error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
+    error->one(FLERR,"Non-numeric box dimensions - simulation unstable" + utils::errorurl(6));
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++) {
@@ -100,7 +100,7 @@ void PPPMDispTIP4P::particle_map_c(double delx, double dely, double delz,
       flag = 1;
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
+  if (flag) error->one(FLERR, Error::NOLASTLINE, "Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
 }
 
 /* ----------------------------------------------------------------------

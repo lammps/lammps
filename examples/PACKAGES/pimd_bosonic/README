@@ -1,0 +1,11 @@
+This directory contains example input files for the pimd/nvt/bosonic and pimd/langevin/bosonic fix commands.
+The demonstrated system is that of 3 non-interacting bosons in a harmonic trap.
+The input files initiate a simulation of 100 steps using 4 beads. The expected output log files are included.
+
+The input files can be edited to provide a physically meaningful output, by extending the simulations to a few nanoseconds 
+and increasing the number of beads (32 beads should be enough).
+The total energy can be computed by summing the potential energy and either the virial or primitive kinetic energy estimator, and averaging over time.
+Notice that for pimd/langevin/bosonic the summed value of either kinetic estimator is printed across all log files. 
+It should be taken from a single log file, with all files providing the same output.
+For pimd/nvt/bosonic, one has to sum over the output of all log files. For the potential energy, summing over log files is required for both fix commands.
+The obtained energy should be compared to the analytical value of 0.00058031 Hartree.

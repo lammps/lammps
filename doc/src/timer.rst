@@ -87,7 +87,7 @@ negative, if the timeout time is expired and positive if there
 is time remaining and in this case the value of the variable are
 the number of seconds remaining.
 
-When the *timeout* key word is used a second time, the timer is
+When the *timeout* keyword is used a second time, the timer is
 restarted with a new time limit. The timeout *elapse* value can
 be specified as *off* or *unlimited* to impose a no timeout condition
 (which is the default).  The *elapse* setting can be specified as

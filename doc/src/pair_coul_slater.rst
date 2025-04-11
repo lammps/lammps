@@ -43,7 +43,7 @@ Examples
 Description
 """""""""""
 
-Styles *coul/slater* compute electrostatic interactions in mesoscopic models
+Styles *coul/slater/** compute electrostatic interactions in mesoscopic models
 which employ potentials without explicit excluded-volume interactions.
 The goal is to prevent artificial ionic pair formation by including a charge
 distribution in the Coulomb potential, following the formulation of
@@ -74,6 +74,10 @@ commands:
 * :math:`r_c` (distance units)
 
 The global decay length of the charge (:math:`\lambda`) specified in the pair_style command is used for all pairs.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -11,22 +11,23 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "pair_meam_ms_kokkos.h"
-#include "oldmeam.h"
+#ifdef PAIR_CLASS
+// clang-format off
+PairStyle(meam/old/ms,PairMEAMOldMS);
+// clang-format on
+#else
 
-using namespace LAMMPS_NS;
+#ifndef LMP_PAIR_MEAM_OLD_MS_H
+#define LMP_PAIR_MEAM_OLD_MS_H
 
-/* ---------------------------------------------------------------------- */
-template<class DeviceType>
-PairMEAMMSKokkos<DeviceType>::PairMEAMMSKokkos(LAMMPS *lmp) : PairMEAMKokkos<DeviceType>(lmp)
-{
-  this->meam_inst->msmeamflag = this->msmeamflag = 1;
-  this->myname = "meam/ms/kk";
-}
+#include "pair_meam_old.h"
 
 namespace LAMMPS_NS {
-template class PairMEAMMSKokkos<LMPDeviceType>;
-#ifdef LMP_KOKKOS_GPU
-template class PairMEAMMSKokkos<LMPHostType>;
+
+class PairMEAMOldMS : public PairMEAMOld {
+ public:
+  PairMEAMOldMS(class LAMMPS *);
+};
+}    // namespace LAMMPS_NS
 #endif
-}
+#endif

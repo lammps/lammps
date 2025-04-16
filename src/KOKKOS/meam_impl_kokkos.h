@@ -24,7 +24,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-MEAMKokkos<DeviceType>::MEAMKokkos(Memory *mem) : MEAM(mem)
+MEAMKokkos<DeviceType>::MEAMKokkos(Memory *mem) : MEAMOld(mem)
 {
   d_errorflag = typename AT::t_int_scalar("meam:errorflag");
 }

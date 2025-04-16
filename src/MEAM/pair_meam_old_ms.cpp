@@ -11,22 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "pair_meam_ms_kokkos.h"
+#include "pair_meam_old_ms.h"
+
 #include "oldmeam.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
-template<class DeviceType>
-PairMEAMMSKokkos<DeviceType>::PairMEAMMSKokkos(LAMMPS *lmp) : PairMEAMKokkos<DeviceType>(lmp)
-{
-  this->meam_inst->msmeamflag = this->msmeamflag = 1;
-  this->myname = "meam/ms/kk";
-}
 
-namespace LAMMPS_NS {
-template class PairMEAMMSKokkos<LMPDeviceType>;
-#ifdef LMP_KOKKOS_GPU
-template class PairMEAMMSKokkos<LMPHostType>;
-#endif
+PairMEAMOldMS::PairMEAMOldMS(LAMMPS *lmp) : PairMEAMOld(lmp)
+{
+  meam_inst->msmeamflag = msmeamflag = 1;
+  myname = "meam/ms";
 }

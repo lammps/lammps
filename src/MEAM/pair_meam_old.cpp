@@ -15,13 +15,13 @@
    Contributing author: Greg Wagner (SNL)
 ------------------------------------------------------------------------- */
 
-#include "pair_meam.h"
+#include "pair_meam_old.h"
 
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "meam.h"
+#include "oldmeam.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -29,8 +29,8 @@
 #include "potential_file_reader.h"
 
 #include <algorithm>
-#include <exception>
 #include <cstring>
+#include <memory>
 
 using namespace LAMMPS_NS;
 
@@ -45,7 +45,7 @@ static const char *keywords[] = {
 
 /* ---------------------------------------------------------------------- */
 
-PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
+PairMEAMOld::PairMEAMOld(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -57,7 +57,7 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
 
   nlibelements = 0;
 
-  meam_inst = new MEAM(memory);
+  meam_inst = new MEAMOld(memory);
   meam_inst->msmeamflag = msmeamflag = 0;
   myname = "meam";
 
@@ -69,7 +69,7 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
    check if allocated, since class can be destructed when incomplete
 ------------------------------------------------------------------------- */
 
-PairMEAM::~PairMEAM()
+PairMEAMOld::~PairMEAMOld()
 {
   if (copymode) return;
 
@@ -84,7 +84,7 @@ PairMEAM::~PairMEAM()
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAM::compute(int eflag, int vflag)
+void PairMEAMOld::compute(int eflag, int vflag)
 {
   int i, ii, n, inum_half, errorflag;
   int *ilist_half, *numneigh_half, **firstneigh_half;
@@ -160,7 +160,7 @@ void PairMEAM::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAM::allocate()
+void PairMEAMOld::allocate()
 {
   allocated = 1;
   int np1 = atom->ntypes + 1;
@@ -176,10 +176,8 @@ void PairMEAM::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairMEAM::settings(int narg, char ** /*arg*/)
+void PairMEAMOld::settings(int narg, char ** /*arg*/)
 {
-  error->warning(FLERR,"Using experimental rewrite of pair_style {}, report all errors or differences in results!", myname);
-
   if (narg != 0) error->all(FLERR, "Illegal pair_style {} command", myname);
 
   // set comm size needed by this Pair
@@ -197,7 +195,7 @@ void PairMEAM::settings(int narg, char ** /*arg*/)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairMEAM::coeff(int narg, char **arg)
+void PairMEAMOld::coeff(int narg, char **arg)
 {
   int m, n;
 
@@ -322,7 +320,7 @@ void PairMEAM::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairMEAM::init_style()
+void PairMEAMOld::init_style()
 {
   if (force->newton_pair == 0)
     error->all(FLERR, Error::NOLASTLINE, "Pair style {} requires newton pair on", myname);
@@ -338,7 +336,7 @@ void PairMEAM::init_style()
    half or full
 ------------------------------------------------------------------------- */
 
-void PairMEAM::init_list(int id, NeighList *ptr)
+void PairMEAMOld::init_list(int id, NeighList *ptr)
 {
   if (id == 1)
     listfull = ptr;
@@ -350,7 +348,7 @@ void PairMEAM::init_list(int id, NeighList *ptr)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairMEAM::init_one(int i, int j)
+double PairMEAMOld::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) scale[i][j] = 1.0;
   scale[j][i] = scale[i][j];
@@ -359,7 +357,7 @@ double PairMEAM::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAM::read_files(const std::string &globalfile, const std::string &userfile, int uidx)
+void PairMEAMOld::read_files(const std::string &globalfile, const std::string &userfile, int uidx)
 {
   read_global_meam_file(globalfile);
   read_user_meam_file(userfile, uidx);
@@ -367,12 +365,12 @@ void PairMEAM::read_files(const std::string &globalfile, const std::string &user
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAM::read_global_meam_file(const std::string &globalfile)
+void PairMEAMOld::read_global_meam_file(const std::string &globalfile)
 {
 
   // allocate parameter arrays
 
-  std::vector<MEAM::lattice_t> lat(nlibelements);
+  std::vector<lattice_t> lat(nlibelements);
   std::vector<int> ielement(nlibelements);
   std::vector<int> ibar(nlibelements);
   std::vector<double> z(nlibelements);
@@ -404,7 +402,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
   // open global meamf file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, globalfile, "MEAM", " library");
+    PotentialFileReader reader(lmp, globalfile, "MEAMOld", " library");
     char *line;
 
     constexpr int params_per_line = 19;
@@ -435,7 +433,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         // map lat string to an integer
         std::string lattice_type = values.next_string();
 
-        if (!MEAM::str_to_lat(lattice_type, true, lat[index]))
+        if (!MEAMOld::str_to_lat(lattice_type, true, lat[index]))
           error->one(FLERR, 4, "Unrecognized lattice type in MEAM library file: {}", lattice_type);
 
         // store parameters
@@ -472,7 +470,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
           error->one(FLERR, 4, "Unsupported parameter in MEAM library file: t0 != 1");
 
         // z given is ignored: if this is mismatched, we definitely won't do what the user said -> fatal error
-        if (z[index] != MEAM::get_Zij(lat[index]))
+        if (z[index] != MEAMOld::get_Zij(lat[index]))
           error->one(FLERR, 4, "Mismatched parameter in MEAM library file: z != lat");
 
         nset++;
@@ -544,7 +542,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAM::read_user_meam_file(const std::string &userfile, int uidx)
+void PairMEAMOld::read_user_meam_file(const std::string &userfile, int uidx)
 {
   // done if user param file is "NULL"
 
@@ -554,7 +552,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile, int uidx)
 
   PotentialFileReader *reader = nullptr;
 
-  if (comm->me == 0) reader = new PotentialFileReader(lmp, userfile, "MEAM");
+  if (comm->me == 0) reader = new PotentialFileReader(lmp, userfile, "MEAMOld");
 
   // read settings
   // pass them one at a time to MEAM package
@@ -603,8 +601,8 @@ void PairMEAM::read_user_meam_file(const std::string &userfile, int uidx)
     // map lattce_meam value to an integer
     if (which == 4) {
       std::string lattice_type = values.next_string();
-      MEAM::lattice_t latt;
-      if (!MEAM::str_to_lat(lattice_type, false, latt))
+      lattice_t latt;
+      if (!MEAMOld::str_to_lat(lattice_type, false, latt))
         error->all(FLERR, uidx, "Unrecognized lattice type {} in MEAM parameter file {}:{}",
                    lattice_type, userfile, lineno);
       value = latt;
@@ -637,7 +635,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile, int uidx)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMEAM::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
+int PairMEAMOld::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int i, j, k, m;
 
@@ -696,7 +694,7 @@ int PairMEAM::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAM::unpack_forward_comm(int n, int first, double *buf)
+void PairMEAMOld::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, k, m, last;
 
@@ -753,7 +751,7 @@ void PairMEAM::unpack_forward_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMEAM::pack_reverse_comm(int n, int first, double *buf)
+int PairMEAMOld::pack_reverse_comm(int n, int first, double *buf)
 {
   int i, k, m, last;
 
@@ -804,7 +802,7 @@ int PairMEAM::pack_reverse_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAM::unpack_reverse_comm(int n, int *list, double *buf)
+void PairMEAMOld::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i, j, k, m;
 
@@ -855,7 +853,7 @@ void PairMEAM::unpack_reverse_comm(int n, int *list, double *buf)
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
-double PairMEAM::memory_usage()
+double PairMEAMOld::memory_usage()
 {
   double bytes = 11 * meam_inst->nmax * sizeof(double);
   bytes += (double) (3 + 6 + 10 + 3 + 3 + 3) * meam_inst->nmax * sizeof(double);
@@ -865,12 +863,12 @@ double PairMEAM::memory_usage()
 
 /* ----------------------------------------------------------------------
    strip special bond flags from neighbor list entries
-   are not used with MEAM
+   are not used with MEAMOld
    need to do here so Fortran lib doesn't see them
    done once per reneighbor so that neigh_f2c and neigh_c2f don't see them
 ------------------------------------------------------------------------- */
 
-void PairMEAM::neigh_strip(int inum, int *ilist, int *numneigh, int **firstneigh)
+void PairMEAMOld::neigh_strip(int inum, int *ilist, int *numneigh, int **firstneigh)
 {
   int i, j, ii, jnum;
   int *jlist;
@@ -885,7 +883,7 @@ void PairMEAM::neigh_strip(int inum, int *ilist, int *numneigh, int **firstneigh
 
 /* ---------------------------------------------------------------------- */
 
-void *PairMEAM::extract(const char *str, int &dim)
+void *PairMEAMOld::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str, "scale") == 0) return (void *) scale;

@@ -17,7 +17,7 @@
 template<class DeviceType>
 void MEAMKokkos<DeviceType>::meam_setup_done(double* cutmax)
 {
-  MEAM::meam_setup_done(cutmax);
+  MEAMOld::meam_setup_done(cutmax);
 
   MemKK::realloc_kokkos(d_phir, "pair:phir", (neltypes * (neltypes + 1)) / 2, nr);
   MemKK::realloc_kokkos(d_phirar, "pair:phirar", (neltypes * (neltypes + 1)) / 2, nr);

@@ -15,7 +15,7 @@
 #define LMP_MEAMKOKKOS_H
 
 #include "kokkos.h"
-#include "meam.h"
+#include "oldmeam.h"
 #include "memory_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor_kokkos.h"
@@ -31,7 +31,7 @@ struct TagMEAMZero {};
 template <int NEIGHFLAG> struct TagMEAMForce {
 };
 
-template <class DeviceType> class MEAMKokkos : public MEAM {
+template <class DeviceType> class MEAMKokkos : public MEAMOld {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;

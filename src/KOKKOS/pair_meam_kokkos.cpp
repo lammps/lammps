@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-PairMEAMKokkos<DeviceType>::PairMEAMKokkos(LAMMPS *lmp) : PairMEAM(lmp)
+PairMEAMKokkos<DeviceType>::PairMEAMKokkos(LAMMPS *lmp) : PairMEAMOld(lmp)
 {
   respa_enable = 0;
 
@@ -290,7 +290,7 @@ void PairMEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 template<class DeviceType>
 void PairMEAMKokkos<DeviceType>::coeff(int narg, char **arg)
 {
-  PairMEAM::coeff(narg,arg);
+  PairMEAMOld::coeff(narg,arg);
 
   // sync map and scale
 
@@ -316,7 +316,7 @@ void PairMEAMKokkos<DeviceType>::coeff(int narg, char **arg)
 template<class DeviceType>
 void PairMEAMKokkos<DeviceType>::init_style()
 {
-  PairMEAM::init_style();
+  PairMEAMOld::init_style();
 
   // adjust neighbor list request for KOKKOS
 

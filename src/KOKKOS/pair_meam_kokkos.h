@@ -25,7 +25,7 @@ PairStyle(meam/kk/host,PairMEAMKokkos<LMPHostType>);
 
 #include "kokkos_base.h"
 #include "pair_kokkos.h"
-#include "pair_meam.h"
+#include "pair_meam_old.h"
 #include "meam_kokkos.h"
 
 namespace LAMMPS_NS {
@@ -41,7 +41,7 @@ template<class DeviceType>
 class MEAMKokkos;
 
 template<class DeviceType>
-class PairMEAMKokkos : public PairMEAM, public KokkosBase {
+class PairMEAMKokkos : public PairMEAMOld, public KokkosBase {
  public:
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=0};

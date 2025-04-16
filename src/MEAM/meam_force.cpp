@@ -112,12 +112,12 @@ void MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global,
         phip = (phirar6[ind][kk] * pp + phirar5[ind][kk]) * pp + phirar4[ind][kk];
 
         if (eflag_either != 0) {
-          double phi_sc = phi * scaleij;
+          double phi_sc = phi * scaleij * sij;
           if (eflag_global != 0)
-            *eng_vdwl = *eng_vdwl + phi_sc * sij;
+            *eng_vdwl = *eng_vdwl + phi_sc;
           if (eflag_atom != 0) {
-            eatom[i] = eatom[i] + 0.5 * phi_sc * sij;
-            eatom[j] = eatom[j] + 0.5 * phi_sc * sij;
+            eatom[i] = eatom[i] + 0.5 * phi_sc;
+            eatom[j] = eatom[j] + 0.5 * phi_sc;
           }
         }
 

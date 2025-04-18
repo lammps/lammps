@@ -148,8 +148,8 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
   int len = strlen(filename);
   int jflag = 0;
   char *file_ext = strstr(filename, "json");
-  
-  // check the file extension 
+
+  // check the file extension
 
   if(file_ext != NULL && strcmp(file_ext, "json") == 0)
     jflag = 1;
@@ -162,14 +162,14 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
       error->one(FLERR, fileiarg, "Cannot open molecule file {}: {}", filename,
                 utils::getsyserror());
   }
-  
+
   if (jflag) {
     jsonf = json::parse(fp);
     read_json(0);
   }
 
   else Molecule::read(0);
-  
+
   if (me == 0) fclose(fp);
   Molecule::allocate();
 
@@ -181,7 +181,7 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
   else Molecule::read(1);
 
   if (me == 0) fclose(fp);
-  
+
   // stats
 
   if (title.empty()) title = "(no title)";
@@ -454,8 +454,8 @@ void Molecule::read_json(int flag)
     }
 
     if(jsonf["molecule-template"].contains("Angles")) {
-      angleflag = tag_require = 1; 
-      nangles = jsonf["molecule-template"]["Angles"]["num_angles"]; 
+      angleflag = tag_require = 1;
+      nangles = jsonf["molecule-template"]["Angles"]["num_angles"];
     }
 
     if(jsonf["molecule-template"].contains("Fragments")) {
@@ -512,7 +512,7 @@ void Molecule::read_json(int flag)
 
       special_generate();
       specialflag = 1;
-      nspecialflag = 1; 
+      nspecialflag = 1;
     }
   }
 
@@ -850,7 +850,7 @@ void Molecule::coords_json() {
   std::string id;
 
   for (int i = 0; i < natoms; i++) count[i] = 0;
-  
+
   for(int iatom = 0; iatom < natoms; iatom++) {
     id = std::to_string(iatom+1);
     x[iatom][0] = coords_section[id][0];
@@ -1310,7 +1310,7 @@ void Molecule::bonds(int flag, char *line, int jflag)
       atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
       atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
     }
-    
+
     else {
       json bonds_json = jsonf["molecule-template"]["Bonds"];
       std::string id = std::to_string(i+1);
@@ -1419,7 +1419,7 @@ void Molecule::angles(int flag, char *line, int jflag)
       atom2 = angles_json[id][2];
       atom3 = angles_json[id][3];
     }
-    
+
     switch (utils::is_type(typestr)) {
       case 0: {    // numeric
         itype = utils::inumeric(FLERR, typestr, false, lmp);
@@ -1489,7 +1489,7 @@ void Molecule::angles(int flag, char *line, int jflag)
    store each with all 4 atoms if newton_bond = 0
    if flag = 0, just count dihedrals/atom
    if flag = 1, store them with atoms
-   if json = 0, reading from normal file 
+   if json = 0, reading from normal file
    if json = 1, reading from json file
 ------------------------------------------------------------------------- */
 
@@ -1666,7 +1666,7 @@ void Molecule::impropers(int flag, char *line, int jflag)
       atom3 = improper_json[id][3];
       atom4 = improper_json[id][4];
     }
-    
+
     switch (utils::is_type(typestr)) {
       case 0: {    // numeric
         itype = utils::inumeric(FLERR, typestr, false, lmp);

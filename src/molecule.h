@@ -17,7 +17,6 @@
 #include "pointers.h"
 
 #include "nlohmann/json.hpp"
-using json = nlohmann::json;
 
 namespace LAMMPS_NS {
 
@@ -137,7 +136,7 @@ class Molecule : protected Pointers {
  private:
   int me;
   FILE *fp;
-  json jsonf;
+  nlohmann::json jsonf;
   int *count;
   int toffset, boffset, aoffset, doffset, ioffset;
   int autospecial;

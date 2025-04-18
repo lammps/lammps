@@ -1701,6 +1701,18 @@ report the "native" data type.  The following tables are provided:
      - Type
      - Length
      - Description
+   * - boxlo
+     - double
+     - 3
+     - lower box boundaries in x-, y-, and z-direction; see :doc:`create_box`.
+   * - boxhi
+     - double
+     - 3
+     - lower box boundaries in x-, y-, and z-direction; see :doc:`create_box`.
+   * - boxxlo
+     - double
+     - 1
+     - lower box boundary in x-direction; see :doc:`create_box`.
    * - boxxhi
      - double
      - 1
@@ -1724,19 +1736,19 @@ report the "native" data type.  The following tables are provided:
    * - sublo
      - double
      - 3
-     - subbox lower boundaries
+     - subbox lower boundaries in x-, y-, and z-direction
    * - subhi
      - double
      - 3
-     - subbox upper boundaries
+     - subbox upper boundaries in x-, y-, and z-direction
    * - sublo_lambda
      - double
      - 3
-     - subbox lower boundaries in fractional coordinates (for triclinic cells)
+     - subbox lower boundaries in fractional coordinates (for triclinic cells only)
    * - subhi_lambda
      - double
      - 3
-     - subbox upper boundaries in fractional coordinates (for triclinic cells)
+     - subbox upper boundaries in fractional coordinates (for triclinic cells only)
    * - periodicity
      - int
      - 3

@@ -431,3 +431,17 @@ void DihedralOPLS::born_matrix(int nd, int i1, int i2, int i3, int i4, double &d
          16.0 * k4[type] * si * cos(4.0 * phi) - 4.0 * k4[type] * sin(4.0 * phi)) /
       (si * si * si);
 }
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *DihedralOPLS::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k1") == 0) return (void *) k1;
+  if (strcmp(str, "k2") == 0) return (void *) k2;
+  if (strcmp(str, "k3") == 0) return (void *) k3;
+  if (strcmp(str, "k4") == 0) return (void *) k4;
+  return nullptr;
+}

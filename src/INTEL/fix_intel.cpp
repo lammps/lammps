@@ -942,7 +942,7 @@ void FixIntel::add_off_results(const ft * _noalias const f_in,
   int nlocal = atom->nlocal;
   if (neighbor->ago == 0) {
     if (_off_overflow_flag[LMP_OVERFLOW])
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+      error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
     _offload_nlocal = _off_overflow_flag[LMP_LOCAL_MAX] + 1;
     _offload_min_ghost = _off_overflow_flag[LMP_GHOST_MIN];
     _offload_nghost = _off_overflow_flag[LMP_GHOST_MAX] + 1 -

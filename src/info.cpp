@@ -34,6 +34,7 @@
 #include "group.h"
 #include "improper.h"
 #include "input.h"
+#include "json.h"
 #include "lmpfftsettings.h"
 #include "modify.h"
 #include "neighbor.h"
@@ -291,6 +292,7 @@ void Info::command(int narg, char **arg)
     utils::print(out,"\nCompiler: {} with {}\nC++ standard: {}\n",
                platform::compiler_info(),platform::openmp_standard(),platform::cxx_standard());
     fputs(get_fmt_info().c_str(), out);
+    fputs(get_json_info().c_str(), out);
 
     fputs("\nActive compile time flags:\n\n",out);
     if (has_gzip_support()) fputs("-DLAMMPS_GZIP\n",out);
@@ -1316,6 +1318,16 @@ std::string Info::get_fmt_info()
 {
   return fmt::format("Embedded fmt library version: {}.{}.{}\n",
                      fmt_ver_major, fmt_ver_minor, fmt_ver_patch);
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string Info::get_json_info()
+{
+  return fmt::format("Embedded JSON class version: {}.{}.{}\n",
+                     NLOHMANN_JSON_VERSION_MAJOR,
+                     NLOHMANN_JSON_VERSION_MINOR,
+                     NLOHMANN_JSON_VERSION_PATCH);
 }
 
 /* ---------------------------------------------------------------------- */

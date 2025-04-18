@@ -741,9 +741,9 @@ double Pair::mix_distance(double sig1, double sig2)
 
 /* ---------------------------------------------------------------------- */
 
-void Pair::compute_dummy(int eflag, int vflag)
+void Pair::compute_dummy(int eflag, int vflag, int alloc)
 {
-  ev_init(eflag,vflag);
+  ev_init(eflag,vflag,alloc);
 }
 
 /* ---------------------------------------------------------------------- */

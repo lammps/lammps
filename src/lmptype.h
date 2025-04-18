@@ -234,13 +234,13 @@ union ubuf {
    std::string str;
    for (int i = 0; i < 5; ++i) {
        switch (m[i].type) {
-           case multitype::DOUBLE:
+           case multitype::LAMMPS_DOUBLE:
                str += std::to_string(m[i].data.d) + ' ';
                break;
-           case multitype::INT:
+           case multitype::LAMMPS_INT:
                str += std::to_string(m[i].data.i) + ' ';
                break;
-           case multitype::BIGINT:
+           case multitype::LAMMPS_INT64:
                str += std::to_string(m[i].data.b) + ' ';
                break;
            default:

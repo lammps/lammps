@@ -122,8 +122,7 @@ void VerletKokkos::setup(int flag)
     atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
     force->pair->compute(eflag,vflag);
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
-  }
-  else if (force->pair) force->pair->compute_dummy(eflag,vflag);
+  } else if (force->pair) force->pair->compute_dummy(eflag,vflag,0);
 
   if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) {
@@ -154,7 +153,7 @@ void VerletKokkos::setup(int flag)
       atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
       force->kspace->compute(eflag,vflag);
       atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
-    } else force->kspace->compute_dummy(eflag,vflag);
+    } else force->kspace->compute_dummy(eflag,vflag,0);
   }
 
   modify->setup_pre_reverse(eflag,vflag);
@@ -213,8 +212,7 @@ void VerletKokkos::setup_minimal(int flag)
     atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
     force->pair->compute(eflag,vflag);
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
-  }
-  else if (force->pair) force->pair->compute_dummy(eflag,vflag);
+  } else if (force->pair) force->pair->compute_dummy(eflag,vflag,0);
 
   if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) {
@@ -245,7 +243,7 @@ void VerletKokkos::setup_minimal(int flag)
       atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
       force->kspace->compute(eflag,vflag);
       atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
-    } else force->kspace->compute_dummy(eflag,vflag);
+    } else force->kspace->compute_dummy(eflag,vflag,0);
   }
 
   modify->setup_pre_reverse(eflag,vflag);

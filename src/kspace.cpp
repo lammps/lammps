@@ -181,9 +181,9 @@ void KSpace::triclinic_check()
 
 /* ---------------------------------------------------------------------- */
 
-void KSpace::compute_dummy(int eflag, int vflag)
+void KSpace::compute_dummy(int eflag, int vflag, int alloc)
 {
-  ev_init(eflag,vflag);
+  ev_init(eflag,vflag,alloc);
 }
 
 /* ----------------------------------------------------------------------

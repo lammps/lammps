@@ -140,7 +140,7 @@ class Pair : protected Pointers {
   void write_file(int, char **);
   void init_bitmap(double, double, int, int &, int &, int &, int &);
   virtual void modify_params(int, char **);
-  void compute_dummy(int, int);
+  void compute_dummy(int eflag, int vflag, int alloc = 1);
 
   // need to be public, so can be called by pair_style reaxc
 

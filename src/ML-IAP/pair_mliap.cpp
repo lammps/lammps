@@ -72,8 +72,8 @@ PairMLIAP::~PairMLIAP()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    memory->destroy(cutghost);
     memory->destroy(map);
+    memory->destroy(cutghost);
   }
 }
 
@@ -125,8 +125,8 @@ void PairMLIAP::allocate()
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  memory->create(cutghost,n+1,n+1,"pair:cutghost");
   memory->create(map,n+1,"pair:map");
+  if (ghostneigh) memory->create(cutghost, n+1, n+1, "pair:cutghost");
 }
 
 /* ----------------------------------------------------------------------
@@ -338,7 +338,7 @@ void PairMLIAP::v_tally(int i, int j, double *fij, double *rij)
 void PairMLIAP::init_style()
 {
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style MLIAP requires newton pair on");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style mliap requires newton pair on");
 
   // need a full neighbor list
 
@@ -361,7 +361,7 @@ double PairMLIAP::init_one(int i, int j)
                "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
 
   double cutmax = sqrt(descriptor->cutsq[map[i]][map[j]]);
-  cutghost[i][j] = cutghost[j][i] = 2.0 * cutmax + neighbor->skin;
+  if (ghostneigh) cutghost[i][j] =  cutghost[j][i] = cutmax;
   return cutmax;
 }
 
@@ -376,7 +376,6 @@ double PairMLIAP::memory_usage()
   int n = atom->ntypes+1;
   bytes += (double)n*n*sizeof(int);            // setflag
   bytes += (double)n*n*sizeof(int);            // cutsq
-  bytes += (double)n*n*sizeof(int);            // cutghost
   bytes += (double)n*sizeof(int);              // map
   bytes += descriptor->memory_usage(); // Descriptor object
   bytes += model->memory_usage();      // Model object

@@ -33,18 +33,17 @@ using namespace LAMMPS_NS;
  *
  * The settings *maxchunk*, *pagesize*, and *pagedelta* control
  * the memory allocation strategy.  The *maxchunk* value represents
- * the expected largest number of items per chunk.  If there is
- * less space left on the current page, a new page is allocated
- * for the next chunk.  The *pagesize* value represents how many
- * items can fit on a single page.  It should have space for multiple
- * chunks of size *maxchunk*.  The combination of these two
- * parameters determines how much memory is wasted by either switching
- * to the next page too soon or allocating too large pages that never
- * get properly used.  An error is issued if a requested chunk is larger
- * than *maxchunk*.  The *pagedelta* parameter determines how many
- * pages are allocated in one go.  In combination with the *pagesize*
- * setting, this determines how often blocks of memory get allocated
- * (fewer allocations will result in faster execution).
+ * the largest number of items per chunk allowed; using more will
+ * trigger an error.  If there is less space than *maxchunk* left
+ * on the current page, a new page is allocated for the next chunk.
+ * The *pagesize* value represents how many items can fit on a single
+ * page.  It should have space for multiple chunks of size *maxchunk*.
+ * The combination of these two parameters determines how much memory
+ * is wasted by either switching to the next page too soon or allocating
+ * too large pages that never get fully used.  The *pagedelta* parameter
+ * determines how many pages are allocated in one go.  In combination
+ * with the *pagesize* setting, this determines how often blocks of memory
+ * get allocated (fewer allocations will result in faster execution).
  *
  * \note
  * This is a template class with explicit instantiation. If the class
@@ -71,7 +70,7 @@ template <class T> MyPage<T>::~MyPage()
  * This also frees all previously allocated storage and allocates
  * the first page(s).
  *
- * \param  user_maxchunk   Expected maximum number of items for one chunk
+ * \param  user_maxchunk   Maximum allowed number of items for one chunk
  * \param  user_pagesize   Number of items on a single memory page
  * \param  user_pagedelta  Number of pages to allocate with one malloc
  * \return                 1 if there were invalid parameters, 2 if there was an allocation error or 0 if successful */

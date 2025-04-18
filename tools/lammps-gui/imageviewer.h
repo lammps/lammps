@@ -60,6 +60,7 @@ private slots:
     void do_recenter();
     void cmd_to_clipboard();
     void change_group(int);
+    void change_molecule(int);
 
 public:
     void createImage();
@@ -89,6 +90,7 @@ private:
 
     LammpsWrapper *lammps;
     QString group;
+    QString molecule;
     QString filename;
     QString last_dump_cmd;
     int xsize, ysize;

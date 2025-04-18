@@ -164,7 +164,7 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
   }
   
   if (jflag) {
-    jsonf = nlohmann::json::parse(fp);
+    jsonf = json::parse(fp);
     read_json(0);
   }
 
@@ -846,7 +846,7 @@ void Molecule::read(int flag)
 ------------------------------------------------------------------------- */
 
 void Molecule::coords_json() {
-  nlohmann::json coords_section = jsonf["molecule-template"]["Coords"];
+  json coords_section = jsonf["molecule-template"]["Coords"];
   std::string id;
 
   for (int i = 0; i < natoms; i++) count[i] = 0;
@@ -881,7 +881,7 @@ void Molecule::coords_json() {
 ------------------------------------------------------------------------- */
 
 void Molecule::types_json() {
-  nlohmann::json types_section = jsonf["molecule-template"]["Types"];
+  json types_section = jsonf["molecule-template"]["Types"];
   std::string typestr, id;
 
   for (int i = 0; i < natoms; i++) count[i] = 0;
@@ -909,7 +909,7 @@ void Molecule::types_json() {
 ------------------------------------------------------------------------- */
 
 void Molecule::molecules_json() {
-  nlohmann::json mols_section = jsonf["molecule-template"]["Molecules"];
+  json mols_section = jsonf["molecule-template"]["Molecules"];
   std::string id;
 
   for (int i = 0; i < natoms; i++) count[i] = 0;
@@ -937,7 +937,7 @@ void Molecule::molecules_json() {
 ------------------------------------------------------------------------- */
 
 void Molecule::charges_json() {
-  nlohmann::json charges_section = jsonf["molecule-template"]["Charges"];
+  json charges_section = jsonf["molecule-template"]["Charges"];
   std::string id;
 
   for (int i = 0; i < natoms; i++) count[i] = 0;
@@ -1312,7 +1312,7 @@ void Molecule::bonds(int flag, char *line, int jflag)
     }
     
     else {
-      nlohmann::json bonds_json = jsonf["molecule-template"]["Bonds"];
+      json bonds_json = jsonf["molecule-template"]["Bonds"];
       std::string id = std::to_string(i+1);
       typestr = bonds_json[id][0];
       atom1 = bonds_json[id][1];
@@ -1412,7 +1412,7 @@ void Molecule::angles(int flag, char *line, int jflag)
     }
 
     else {
-      nlohmann::json angles_json = jsonf["molecule-template"]["Angles"];
+      json angles_json = jsonf["molecule-template"]["Angles"];
       std::string id = std::to_string(i+1);
       typestr = angles_json[id][0];
       atom1 = angles_json[id][1];
@@ -1528,7 +1528,7 @@ void Molecule::dihedrals(int flag, char *line, int jflag)
     }
 
     else {
-      nlohmann::json dihedral_json = jsonf["molecule-template"]["Dihedrals"];
+      json dihedral_json = jsonf["molecule-template"]["Dihedrals"];
       std::string id = std::to_string(i+1);
       typestr = dihedral_json[id][0];
       atom1 = dihedral_json[id][1];
@@ -1659,7 +1659,7 @@ void Molecule::impropers(int flag, char *line, int jflag)
 
     else {
       std::string id = std::to_string(i+1);
-      nlohmann::json improper_json = jsonf["molecule-template"]["Impropers"];
+      json improper_json = jsonf["molecule-template"]["Impropers"];
       typestr = improper_json[id][0];
       atom1 = improper_json[id][1];
       atom2 = improper_json[id][2];

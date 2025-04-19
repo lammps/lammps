@@ -179,4 +179,3 @@ class Molecule : protected Pointers {
 }
 
 #endif
-s

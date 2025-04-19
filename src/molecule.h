@@ -16,8 +16,6 @@
 
 #include "pointers.h"
 
-#include "json.h"
-
 namespace LAMMPS_NS {
 
 class Molecule : protected Pointers {
@@ -136,7 +134,6 @@ class Molecule : protected Pointers {
  private:
   int me;
   FILE *fp;
-  json jsonf;
   int *count;
   int toffset, boffset, aoffset, doffset, ioffset;
   int autospecial;
@@ -175,6 +172,8 @@ class Molecule : protected Pointers {
   void readline(char *);
   std::string parse_keyword(int, char *);
   void skip_lines(int, char *, const std::string &);
+  
+  struct JsonImpl *json_impl;     // pointer to json PIMPL struct
 };
 
 }

@@ -67,7 +67,7 @@ struct single_body_parameters {
   double gamma_w;
   double valency_boc;
   double p_ovun5;
-  double gauss_exp;  // for QTPIE (only supported in LAMMPS)
+  double p_xel2;   // ereaxff
   double chi;
   double eta;
   int p_hbond;    // 1 for H, 2 for hbonding atoms (O,S,P,N), 0 for others
@@ -75,14 +75,17 @@ struct single_body_parameters {
   /* Line three in field file */
   double r_pp;
   double p_lp2;
+  double gauss_exp;   // for QTPIE (only supported in LAMMPS)
   double b_o_131;
   double b_o_132;
   double b_o_133;
-  double bcut_acks2;    // ACKS2 bond cutoff
+  double bcut_acks2;  // ACKS2 bond cutoff
+  double ealpha;      // ereaxff (NOT TO BE CONFUSED WITH VDW ALPHA)
 
   /* Line four in the field file */
   double p_ovun2;
   double p_val3;
+  double ebeta;       // ereaxff
   double valency_val;
   double p_val5;
   double rcore2;
@@ -120,6 +123,9 @@ struct two_body_parameters {
   double gamma;    // note: this parameter is gamma^-3 and not gamma.
 
   double v13cor, ovc;
+
+  /* ereaxff */
+  double p_xel1;
 };
 
 struct dbond_coefficients {

@@ -196,7 +196,7 @@ namespace ReaxFF {
           sbp[i].gamma_w     = values.next_double();
           sbp[i].valency_boc = values.next_double();
           sbp[i].p_ovun5     = values.next_double();
-          sbp[i].gauss_exp   = values.next_double();  // for QTPIE
+          sbp[i].p_xel2      = values.next_double();  // for ereaxff
           sbp[i].chi         = values.next_double();
           sbp[i].eta         = 2.0*values.next_double();
           sbp[i].p_hbond     = (int) values.next_double();
@@ -209,11 +209,12 @@ namespace ReaxFF {
 
           sbp[i].r_pp       = values.next_double();
           sbp[i].p_lp2      = values.next_double();
-          values.skip();
+          sbp[i].gauss_exp  = values.next_double();  // for QTPIE 
           sbp[i].b_o_131    = values.next_double();
           sbp[i].b_o_132    = values.next_double();
           sbp[i].b_o_133    = values.next_double();
           sbp[i].bcut_acks2 = values.next_double();
+          sbp[i].ealpha     = values.next_double();  // for ereaxff
 
           // line four
 
@@ -221,14 +222,14 @@ namespace ReaxFF {
           ++lineno;
           CHECK_COLUMNS(8);
 
-          sbp[i].p_ovun2    = values.next_double();
-          sbp[i].p_val3     = values.next_double();
-          values.skip();
-          sbp[i].valency_val= values.next_double();
-          sbp[i].p_val5     = values.next_double();
-          sbp[i].rcore2     = values.next_double();
-          sbp[i].ecore2     = values.next_double();
-          sbp[i].acore2     = values.next_double();
+          sbp[i].p_ovun2     = values.next_double();
+          sbp[i].p_val3      = values.next_double();
+          sbp[i].ebeta       = values.next_double();  // for ereaxff
+          sbp[i].valency_val = values.next_double();
+          sbp[i].p_val5      = values.next_double();
+          sbp[i].rcore2      = values.next_double();
+          sbp[i].ecore2      = values.next_double();
+          sbp[i].acore2      = values.next_double();
 
           // read line five only when lgflag != 0
 
@@ -342,12 +343,12 @@ namespace ReaxFF {
           CHECK_COLUMNS(7);
 
           if ((j < ntypes) && (k < ntypes)) {
-            tbp[j][k].p_be2 = tbp[k][j].p_be2 = values.next_double();
-            tbp[j][k].p_bo3 = tbp[k][j].p_bo3 = values.next_double();
-            tbp[j][k].p_bo4 = tbp[k][j].p_bo4 = values.next_double();
-            values.skip();
-            tbp[j][k].p_bo1 = tbp[k][j].p_bo1 = values.next_double();
-            tbp[j][k].p_bo2 = tbp[k][j].p_bo2 = values.next_double();
+            tbp[j][k].p_be2  = tbp[k][j].p_be2  = values.next_double();
+            tbp[j][k].p_bo3  = tbp[k][j].p_bo3  = values.next_double();
+            tbp[j][k].p_bo4  = tbp[k][j].p_bo4  = values.next_double();
+            tbp[j][k].p_xel1 = tbp[k][j].p_xel1 = values.next_double();  // for ereaxff
+            tbp[j][k].p_bo1  = tbp[k][j].p_bo1  = values.next_double();
+            tbp[j][k].p_bo2  = tbp[k][j].p_bo2  = values.next_double();
             // if the 8th value is missing use 0.0
             if (values.has_next())
               tbp[j][k].ovc   = tbp[k][j].ovc   = values.next_double();

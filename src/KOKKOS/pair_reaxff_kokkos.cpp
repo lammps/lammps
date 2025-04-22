@@ -905,8 +905,14 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // Bond order
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBondOrder1>(0,ignum),*this);
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBondOrder2>(0,ignum),*this);
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBondOrder3>(0,ignum),*this);
+
+  if( api->control->ereaxff_flag ) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBondOrder2<1>>(0,ignum),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBondOrder3<1>>(0,ignum),*this);
+  } else {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBondOrder2<0>>(0,ignum),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBondOrder3<0>>(0,ignum),*this);
+  }
 
   // Bond energy
   if (neighflag == HALF) {
@@ -2055,8 +2061,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder1, const int &
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+template<int EREAXFF_FLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2<EREAXFF_FLAG>, const int &ii) const {
 
   F_FLOAT exp_p1i, exp_p2i, exp_p1j, exp_p2j, f1, f2, f3, u1_ij, u1_ji, Cf1A_ij, Cf1B_ij, Cf1_ij, Cf1_ji;
   F_FLOAT f4, f5, exp_f4, exp_f5, f4f5, Cf45_ij, Cf45_ji;
@@ -2180,15 +2187,22 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+template<int EREAXFF_FLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder3, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder3<EREAXFF_FLAG>, const int &ii) const {
   // bot part of BO()
 
   const int i = d_ilist[ii];
   const int itype = type(i);
   F_FLOAT nlp_temp;
 
-  d_Delta[i] = d_total_bo[i] - paramssing(itype).valency;
+  if(EREAXFF_FLAG) {
+
+    d_Delta[i] = d_total_bo[i] - paramssing(itype).valency;
+
+  } else
+    d_Delta[i] = d_total_bo[i] - paramssing(itype).valency;
+
   const F_FLOAT Delta_e = d_total_bo[i] - paramssing(itype).valency_e;
   d_Delta_boc[i] = d_total_bo[i] - paramssing(itype).valency_boc;
 

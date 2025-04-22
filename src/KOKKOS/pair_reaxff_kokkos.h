@@ -69,8 +69,10 @@ struct TagPairReaxZero{};
 
 struct TagPairReaxBondOrder1{};
 
+template<int EREAXFF_FLAG>
 struct TagPairReaxBondOrder2{};
 
+template<int EREAXFF_FLAG>
 struct TagPairReaxBondOrder3{};
 
 template<int NEIGHFLAG>
@@ -202,11 +204,13 @@ class PairReaxFFKokkos : public PairReaxFF {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBondOrder1, const int&) const;
 
+  template<int EREAXFF_FLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxBondOrder2, const int&) const;
+  void operator()(TagPairReaxBondOrder2<EREAXFF_FLAG>, const int&) const;
 
+  template<int EREAXFF_FLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxBondOrder3, const int&) const;
+  void operator()(TagPairReaxBondOrder3<EREAXFF_FLAG>, const int&) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION

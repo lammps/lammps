@@ -34,7 +34,7 @@ public:
    public:
       MoleculeJson(class LAMMPS *, int, char **, int &);
       ~MoleculeJson();
-      
+
    private:
       void read(int) override;
       void coords();

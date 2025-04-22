@@ -38,7 +38,7 @@ MoleculeJsonCommand::MoleculeJson::MoleculeJson(LAMMPS *lmp, int narg, char **ar
   json_impl = new JsonImpl();
 }
 
-MoleculeJsonCommand::MoleculeJson::~MoleculeJson() 
+MoleculeJsonCommand::MoleculeJson::~MoleculeJson()
 {
   delete json_impl;
 }

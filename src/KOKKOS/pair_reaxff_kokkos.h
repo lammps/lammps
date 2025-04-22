@@ -307,29 +307,26 @@ class PairReaxFFKokkos : public PairReaxFF {
   struct params_sing {
     KOKKOS_INLINE_FUNCTION
     params_sing() {mass=0;chi=0;eta=0;r_s=0;r_p=0;r_pp=0;valency=0;valency_val=0;valency_e=0;valency_boc=0;nlp_opt=0;
-      p_lp2=0;p_ovun2=0;p_ovun5=0;p_val3=0;p_val5=0;p_hbond=0;bcut_acks2=0;};
+      p_lp2=0;p_ovun2=0;p_ovun5=0;p_val3=0;p_val5=0;p_hbond=0;bcut_acks2=0;p_xel2=0;ealpha=0;ebeta=0;};
     KOKKOS_INLINE_FUNCTION
     params_sing(int /*i*/) {mass=0;chi=0;eta=0;r_s=0;r_p=0;r_pp=0;valency=0;valency_val=0;valency_e=0;valency_boc=0;nlp_opt=0;
-      p_lp2=0;p_ovun2=0;p_ovun5=0;p_val3=0;p_val5=0;p_hbond=0;bcut_acks2=0;};
+      p_lp2=0;p_ovun2=0;p_ovun5=0;p_val3=0;p_val5=0;p_hbond=0;bcut_acks2=0;p_xel2=0;ealpha=0;ebeta=0;};
     F_FLOAT mass,chi,eta,r_s,r_p,r_pp,valency,valency_val,valency_e,valency_boc,nlp_opt,
-      p_lp2,p_ovun2,p_ovun5, p_val3, p_val5, p_hbond, bcut_acks2;
+      p_lp2,p_ovun2,p_ovun5, p_val3, p_val5, p_hbond, bcut_acks2, p_xel2, ealpha, ebeta;
   };
 
   struct params_twbp {
     KOKKOS_INLINE_FUNCTION
     params_twbp() {gamma=0;gamma_w=0;alpha=0;r_vdw=0;epsilon=0;acore=0;ecore=0;rcore=0;lgre=0;lgcij=0;
       r_s=0;r_p=0;r_pp=0;p_bo1=0;p_bo2=0;p_bo3=0;p_bo4=0;p_bo5=0;p_bo6=0;ovc=0;v13cor=0;
-      p_boc3=0;p_boc4=0;p_boc5=0;p_be1=0,p_be2=0,De_s=0,De_p=0;De_pp=0;
-          p_ovun1=0;};
+      p_boc3=0;p_boc4=0;p_boc5=0;p_be1=0,p_be2=0,De_s=0,De_p=0;De_pp=0;p_ovun1=0;p_xel1=0;};
     KOKKOS_INLINE_FUNCTION
     params_twbp(int /*i*/) {gamma=0;gamma_w=0;alpha=0;r_vdw=0;epsilon=0;acore=0;ecore=0;rcore=0;lgre=0;lgcij=0;
       r_s=0;r_p=0;r_pp=0;p_bo1=0;p_bo2=0;p_bo3=0;p_bo4=0;p_bo5=0;p_bo6=0;ovc=0;v13cor=0;
-      p_boc3=0;p_boc4=0;p_boc5=0;p_be1=0,p_be2=0,De_s=0,De_p=0;De_pp=0;
-          p_ovun1=0;};
+      p_boc3=0;p_boc4=0;p_boc5=0;p_be1=0,p_be2=0,De_s=0,De_p=0;De_pp=0;p_ovun1=0;p_xel1=0;};
     F_FLOAT gamma,gamma_w,alpha,r_vdw,epsilon,acore,ecore,rcore,lgre,lgcij,
       r_s,r_p,r_pp,p_bo1,p_bo2,p_bo3,p_bo4,p_bo5,p_bo6,ovc,v13cor,
-      p_boc3,p_boc4,p_boc5,p_be1,p_be2,De_s,De_p,De_pp,
-      p_ovun1;
+      p_boc3,p_boc4,p_boc5,p_be1,p_be2,De_s,De_p,De_pp,p_ovun1,p_xel1;
   };
 
   struct params_thbp {

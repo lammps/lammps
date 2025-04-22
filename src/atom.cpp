@@ -2143,7 +2143,9 @@ void Atom::add_molecule(int narg, char **arg)
   while (true) {
     molecules = (Molecule **)
       memory->srealloc(molecules,(nmolecule+1)*sizeof(Molecule *), "atom::molecules");
+
     molecules[nmolecule] = new Molecule(lmp,narg,arg,index);
+    molecules[nmolecule]->scan(arg);
     molecules[nmolecule]->nset = 0;
     molecules[nmolecule-ifile+1]->nset++;
     nmolecule++;

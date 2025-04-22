@@ -10,7 +10,7 @@ Syntax
 
    bond_style bpm/spring keyword value attribute1 attribute2 ...
 
-* optional keyword = *overlay/pair* or *store/local* or *smooth* or *break* or *volume/factor*
+* optional keyword = *overlay/pair* or *store/local* or *smooth* or *normalize* or *break* or *volume/factor*
 
   .. parsed-literal::
 
@@ -141,7 +141,8 @@ calculated using bond lengths squared and the cube root in the above equation
 is accordingly replaced with a square root. This approximation assumes bonds
 are evenly distributed on a spherical surface and neglects constant prefactors
 which are irrelevant since only the ratio of volumes matters. This term may be
-used to adjust the Poisson's ratio.
+used to adjust the Poisson's ratio. See the simulation in the
+``examples/bpm/poissons_ratio`` directory for a demonstration of this effect.
 
 If a bond is broken (or created), :math:`V_{0,i}` is updated by subtracting
 (or adding) that bond's contribution.
@@ -152,7 +153,7 @@ the data file or restart files read by the :doc:`read_data
 <read_data>` or :doc:`read_restart <read_restart>` commands:
 
 * :math:`k`             (force/distance units)
-* :math:`\epsilon_c`    (unit less)
+* :math:`\epsilon_c`    (unitless)
 * :math:`\gamma`        (force/velocity units)
 
 Additionally, if *volume/factor* is set to *yes*, a fourth coefficient
@@ -214,11 +215,11 @@ for an overview of LAMMPS output options.
 The vector or array will be floating point values that correspond to
 the specified attribute.
 
-The single() function of this bond style returns 0.0 for the energy
-of a bonded interaction, since energy is not conserved in these
-dissipative potentials.  The single() function also calculates an
-extra bond quantity, the initial distance :math:`r_0`. This
-extra quantity can be accessed by the
+The potential energy and the single() function of this bond style return
+:math:`k (r - r_0)^2 / 2` as a proxy of the energy of a bonded interaction,
+ignoring any volumetric/smoothing factors or dissipative forces.  The single()
+function also calculates an extra bond quantity, the initial distance
+:math:`r_0`. This extra quantity can be accessed by the
 :doc:`compute bond/local <compute_bond_local>` command as *b1*\ .
 
 Restrictions

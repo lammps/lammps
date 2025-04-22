@@ -16,7 +16,10 @@ dihedral_coeff: ! |
   3  56 10 32
   4  23 80 61
   5  19 90 13
-extract: ! ""
+extract: ! |
+  a 1
+  b 1
+  c 1
 natoms: 29
 init_energy: 4634.436545707672
 init_stress: ! |-

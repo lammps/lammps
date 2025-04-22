@@ -204,6 +204,7 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
     ADDSYM(has_error);
     ADDSYM(get_last_error_message);
   }
+  ADDSYM(set_show_error);
 
   ADDSYM(python_api_version);
   return lmp;

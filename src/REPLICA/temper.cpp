@@ -64,7 +64,7 @@ void Temper::command(int narg, char **arg)
   if (universe->nworlds == 1)
     error->universe_all(FLERR,"More than one processor partition required for temper command");
   if (domain->box_exist == 0)
-    error->universe_all(FLERR,"Temper command before simulation box is defined");
+    error->universe_all(FLERR,"Temper command before simulation box is defined" + utils::errorurl(33));
   if (narg != 6 && narg != 7) error->universe_all(FLERR,"Illegal temper command");
 
   int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);

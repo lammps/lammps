@@ -52,7 +52,7 @@ void ReadRestart::command(int narg, char **arg)
   if (narg != 1 && narg != 2) error->all(FLERR,"Illegal read_restart command");
 
   if (domain->box_exist)
-    error->all(FLERR,"Cannot read_restart after simulation box is defined");
+    error->all(FLERR,"Cannot read_restart after simulation box is defined" + utils::errorurl(34));
 
   MPI_Barrier(world);
   double time1 = platform::walltime();
@@ -441,7 +441,8 @@ void ReadRestart::command(int narg, char **arg)
     utils::logmesg(lmp,"  {} atoms\n",natoms);
 
   if (natoms != atom->natoms)
-    error->all(FLERR,"Did not assign all restart atoms correctly");
+    error->all(FLERR, Error::NOLASTLINE, "Did not assign all restart atoms correctly"
+               +utils::errorurl(16));
 
   if ((atom->molecular == Atom::TEMPLATE) && (me == 0)) {
     std::string mesg;
@@ -788,6 +789,7 @@ void ReadRestart::header()
     } else if (flag == TRICLINIC_GENERAL) {
       domain->triclinic_general = read_int();
     } else if (flag == ROTATE_G2R) {
+      read_int();
       read_double_vec(9,&domain->rotate_g2r[0][0]);
       MathExtra::transpose3(domain->rotate_g2r,domain->rotate_r2g);
 

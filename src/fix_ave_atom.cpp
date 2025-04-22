@@ -127,29 +127,40 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 
     if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
-      if (!val.val.c) error->all(FLERR, val.iarg, "Compute ID {} for fix ave/atom does not exist", val.id);
+      if (!val.val.c)
+        error->all(FLERR, val.iarg, "Compute ID {} for fix ave/atom does not exist", val.id);
       if (val.val.c->peratom_flag == 0)
-        error->all(FLERR, val.iarg, "Fix ave/atom compute {} does not calculate per-atom values", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom compute {} does not calculate per-atom values",
+                   val.id);
       if (val.argindex == 0 && val.val.c->size_peratom_cols != 0)
-        error->all(FLERR, val.iarg, "Fix ave/atom compute {} does not calculate a per-atom vector", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom compute {} does not calculate a per-atom vector",
+                   val.id);
       if (val.argindex && val.val.c->size_peratom_cols == 0)
-        error->all(FLERR, val.iarg, "Fix ave/atom compute {} does not calculate a per-atom array", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom compute {} does not calculate a per-atom array",
+                   val.id);
       if (val.argindex && val.argindex > val.val.c->size_peratom_cols)
-        error->all(FLERR, val.iarg, "Fix ave/atom compute {} array is accessed out-of-range", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom compute {} array is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
 
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
-      if (!val.val.f) error->all(FLERR, val.iarg, "Fix ID {} for fix ave/atom does not exist", val.id);
+      if (!val.val.f)
+        error->all(FLERR, val.iarg, "Fix ID {} for fix ave/atom does not exist", val.id);
       if (val.val.f->peratom_flag == 0)
-        error->all(FLERR, val.iarg, "Fix ave/atom fix {} does not calculate per-atom values", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom fix {} does not calculate per-atom values",
+                   val.id);
       if (val.argindex == 0 && val.val.f->size_peratom_cols != 0)
-        error->all(FLERR, val.iarg, "Fix ave/atom fix {} does not calculate a per-atom vector", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom fix {} does not calculate a per-atom vector",
+                   val.id);
       if (val.argindex && val.val.f->size_peratom_cols == 0)
-        error->all(FLERR, val.iarg, "Fix ave/atom fix {} does not calculate a per-atom array", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom fix {} does not calculate a per-atom array",
+                   val.id);
       if (val.argindex && val.argindex > val.val.f->size_peratom_cols)
-        error->all(FLERR, val.iarg, "Fix ave/atom fix {} array is accessed out-of-range", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/atom fix {} array is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
       if (nevery % val.val.f->peratom_freq)
-        error->all(FLERR, val.iarg, "Fix {} for fix ave/atom not computed at compatible time", val.id);
+        error->all(FLERR, val.iarg, "Fix {} for fix ave/atom not computed at compatible time{}",
+                   val.id, utils::errorurl(7));
 
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());

@@ -62,7 +62,9 @@ class OpenMPInternal {
     }
   }
 
-  ~OpenMPInternal() { clear_thread_data(); }
+  OpenMPInternal()                                 = delete;
+  OpenMPInternal(const OpenMPInternal&)            = delete;
+  OpenMPInternal& operator=(const OpenMPInternal&) = delete;
 
   static int get_current_max_threads() noexcept;
 
@@ -136,7 +138,7 @@ template <typename T>
 inline std::vector<OpenMP> create_OpenMP_instances(
     OpenMP const& main_instance, std::vector<T> const& weights) {
   static_assert(
-      std::is_arithmetic<T>::value,
+      std::is_arithmetic_v<T>,
       "Kokkos Error: partitioning arguments must be integers or floats");
   if (weights.size() == 0) {
     Kokkos::abort("Kokkos::abort: Partition weights vector is empty.");

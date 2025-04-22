@@ -300,6 +300,14 @@ int MPI_Irecv(void *buf, int count, MPI_Datatype datatype, int source, int tag, 
 
 /* ---------------------------------------------------------------------- */
 
+int MPI_Iprobe(int, int, MPI_Comm, int *flag, MPI_Status *)
+{
+  if (flag) *flag = 0;
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 int MPI_Wait(MPI_Request *request, MPI_Status *status)
 {
   static int callcount = 0;

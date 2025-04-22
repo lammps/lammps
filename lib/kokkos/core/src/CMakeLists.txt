@@ -111,6 +111,10 @@ if(NOT desul_FOUND)
     append_glob(KOKKOS_CORE_SRCS ${KOKKOS_SOURCE_DIR}/tpls/desul/src/Lock_Array_HIP.cpp)
   elseif(KOKKOS_ENABLE_SYCL)
     append_glob(KOKKOS_CORE_SRCS ${KOKKOS_SOURCE_DIR}/tpls/desul/src/Lock_Array_SYCL.cpp)
+    # The compiler implicitly generates a file that uses a zero size array for device global variables
+    set_source_files_properties(
+      ${KOKKOS_SOURCE_DIR}/tpls/desul/src/Lock_Array_SYCL.cpp PROPERTIES COMPILE_FLAGS "-Wno-zero-length-array"
+    )
   endif()
   append_glob(KOKKOS_CORE_HEADERS ${KOKKOS_SOURCE_DIR}/tpls/desul/include/desul/*.hpp)
   append_glob(KOKKOS_CORE_HEADERS ${KOKKOS_SOURCE_DIR}/tpls/desul/include/desul/*/*.hpp)

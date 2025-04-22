@@ -596,8 +596,8 @@ void FixShake::pre_neighbor()
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
         if (atom1 == -1 || atom2 == -1)
-          error->one(FLERR,"Shake atoms {} {} missing on proc {} at step {}",shake_atom[i][0],
-                     shake_atom[i][1],comm->me,update->ntimestep);
+          error->one(FLERR,"Shake atoms {} {} missing on proc {} at step {}{}",shake_atom[i][0],
+                     shake_atom[i][1],comm->me,update->ntimestep,utils::errorurl(5));
         atom1 = domain->closest_image(i, atom1);
         atom2 = domain->closest_image(i, atom2);
         if (i <= atom1 && i <= atom2) {
@@ -611,9 +611,9 @@ void FixShake::pre_neighbor()
         atom2 = atom->map(shake_atom[i][1]);
         atom3 = atom->map(shake_atom[i][2]);
         if (atom1 == -1 || atom2 == -1 || atom3 == -1)
-          error->one(FLERR,"Shake atoms {} {} {} missing on proc {} at step {}",shake_atom[i][0],
-                                       shake_atom[i][1],shake_atom[i][2],
-                                       comm->me,update->ntimestep);
+          error->one(FLERR,"Shake atoms {} {} {} missing on proc {} at step {}{}",shake_atom[i][0],
+                     shake_atom[i][1],shake_atom[i][2],comm->me,update->ntimestep,
+                     utils::errorurl(5));
         atom1 = domain->closest_image(i, atom1);
         atom2 = domain->closest_image(i, atom2);
         atom3 = domain->closest_image(i, atom3);
@@ -630,9 +630,9 @@ void FixShake::pre_neighbor()
         atom3 = atom->map(shake_atom[i][2]);
         atom4 = atom->map(shake_atom[i][3]);
         if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
-          error->one(FLERR,"Shake atoms {} {} {} {} missing on proc {} at step {}",shake_atom[i][0],
-                                       shake_atom[i][1],shake_atom[i][2],
-                                       shake_atom[i][3],comm->me,update->ntimestep);
+          error->one(FLERR,"Shake atoms {} {} {} {} missing on proc {} at step {}{}",
+                     shake_atom[i][0],shake_atom[i][1],shake_atom[i][2],shake_atom[i][3],
+                     comm->me,update->ntimestep,utils::errorurl(5));
         atom1 = domain->closest_image(i, atom1);
         atom2 = domain->closest_image(i, atom2);
         atom3 = domain->closest_image(i, atom3);

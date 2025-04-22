@@ -917,7 +917,7 @@ void PairEffCut::coeff(int narg, char **arg)
         count++;
       }
     }
-    if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+    if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   } else {
     int ecp;
     ecp = utils::inumeric(FLERR,arg[0],false,lmp);

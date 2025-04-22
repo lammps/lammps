@@ -148,7 +148,7 @@ spin i, :math:`\omega_i^{\nu}` is a rotation angle defined as:
 
 .. math::
 
-   \omega_i^{\nu} = (\nu - 1) \Delta \omega_i {\rm ~~and~~} \Delta \omega_i = \frac{\omega_i}{Q-1}
+   \omega_i^{\nu} = (\nu - 1) \Delta \omega_i \mathrm{~~and~~} \Delta \omega_i = \frac{\omega_i}{Q-1}
 
 with :math:`\nu` the image number, Q the total number of images, and
 :math:`\omega_i` the total rotation between the initial and final spins.

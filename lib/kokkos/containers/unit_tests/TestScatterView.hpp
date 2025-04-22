@@ -772,12 +772,12 @@ TEST(TEST_CATEGORY, scatterview) {
 
 #if defined(KOKKOS_ENABLE_SERIAL) || defined(KOKKOS_ENABLE_OPENMP)
 #if defined(KOKKOS_ENABLE_SERIAL)
-  bool is_serial = std::is_same<TEST_EXECSPACE, Kokkos::Serial>::value;
+  bool is_serial = std::is_same_v<TEST_EXECSPACE, Kokkos::Serial>;
 #else
   bool is_serial = false;
 #endif
 #if defined(KOKKOS_ENABLE_OPENMP)
-  bool is_openmp = std::is_same<TEST_EXECSPACE, Kokkos::OpenMP>::value;
+  bool is_openmp = std::is_same_v<TEST_EXECSPACE, Kokkos::OpenMP>;
 #else
   bool is_openmp = false;
 #endif
@@ -817,7 +817,7 @@ TEST(TEST_CATEGORY, scatterview_devicetype) {
   using device_memory_space    = Kokkos::HIPSpace;
   using host_accessible_space  = Kokkos::HIPManagedSpace;
 #endif
-  if (std::is_same<TEST_EXECSPACE, device_execution_space>::value) {
+  if (std::is_same_v<TEST_EXECSPACE, device_execution_space>) {
     using device_device_type =
         Kokkos::Device<device_execution_space, device_memory_space>;
     test_scatter_view<device_device_type, Kokkos::Experimental::ScatterSum,

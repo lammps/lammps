@@ -57,7 +57,7 @@ void Verlet::init()
     if (fix->time_integrate) do_time_integrate = true;
 
   if (!do_time_integrate && (comm->me == 0))
-    error->warning(FLERR,"No fixes with time integration, atoms won't move");
+    error->warning(FLERR,"No fixes with time integration, atoms won't move" + utils::errorurl(28));
 
   // virial_style:
   // VIRIAL_PAIR if computed explicitly in pair via sum over pair interactions

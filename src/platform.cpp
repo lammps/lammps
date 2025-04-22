@@ -1053,6 +1053,32 @@ bool platform::file_is_readable(const std::string &path)
   }
   return false;
 }
+
+/* ----------------------------------------------------------------------
+   try to open file for writing to prove if it can be written to
+------------------------------------------------------------------------- */
+
+bool platform::file_is_writable(const std::string &path)
+{
+  // if the file exists, try to append and don't delete
+
+  if (file_is_readable(path)) {
+    FILE *fp = fopen(path.c_str(), "a");
+    if (fp) {
+      fclose(fp);
+      return true;
+    }
+  } else {
+    FILE *fp = fopen(path.c_str(), "w");
+    if (fp) {
+      fclose(fp);
+      unlink(path);
+      return true;
+    }
+  }
+  return false;
+}
+
 /* ----------------------------------------------------------------------
    determine available disk space, if supported. Return -1 if not.
 ------------------------------------------------------------------------- */
@@ -1123,6 +1149,7 @@ FILE *platform::compressed_write(const std::string &file)
 #if defined(LAMMPS_GZIP)
   const auto &compress = find_compress_type(file);
   if (compress.style == ::compress_info::NONE) return nullptr;
+  if (!file_is_writable(file)) return nullptr;
 
   if (find_exe_path(compress.command).size())
     // put quotes around file name so that they may contain blanks

@@ -38,12 +38,15 @@ void deepcopy_view(ViewTypeA& a, ViewTypeB& b, benchmark::State& state) {
   }
 }
 
-template <class LayoutA, class LayoutB>
+template <
+    class LayoutA, class LayoutB,
+    class MemorySpaceA = typename Kokkos::DefaultExecutionSpace::memory_space,
+    class MemorySpaceB = typename Kokkos::DefaultExecutionSpace::memory_space>
 static void ViewDeepCopy_Rank1(benchmark::State& state) {
   const int N8 = std::pow(state.range(0), 8);
 
-  Kokkos::View<double*, LayoutA> a("A1", N8);
-  Kokkos::View<double*, LayoutB> b("B1", N8);
+  Kokkos::View<double*, LayoutA, MemorySpaceA> a("A1", N8);
+  Kokkos::View<double*, LayoutB, MemorySpaceB> b("B1", N8);
 
   deepcopy_view(a, b, state);
 }
@@ -142,6 +145,29 @@ static void ViewDeepCopy_Raw(benchmark::State& state) {
         N8, KOKKOS_LAMBDA(const int& i) { a_ptr[i] = b_ptr[i]; });
     Kokkos::fence();
     KokkosBenchmark::report_results(state, a, DATA_RATIO, timer.seconds());
+  }
+}
+
+template <typename DstMemorySpace, typename SrcMemorySpace>
+static void ViewDeepCopy_Rank1Strided(benchmark::State& state) {
+  const size_t N8 = std::pow(state.range(0), 8);
+
+  // This benchmark allocates more data in order to measure a deep_copy
+  // of the same size as the contiguous benchmarks, so in cases where they
+  // can be run, this one may fail to allocate data (e.g., on a small CI runner)
+  try {
+    // allocate 2x the size since layout only has 1/2 the elements
+    Kokkos::View<double*, DstMemorySpace> a("A1", N8 * 2);
+    Kokkos::View<double*, SrcMemorySpace> b("B1", N8 * 2);
+
+    Kokkos::LayoutStride layout(N8 / 2, 2);
+    Kokkos::View<double*, Kokkos::LayoutStride, DstMemorySpace> a_stride(
+        a.data(), layout);
+    Kokkos::View<double*, Kokkos::LayoutStride, SrcMemorySpace> b_stride(
+        b.data(), layout);
+    deepcopy_view(a_stride, b_stride, state);
+  } catch (const std::runtime_error& e) {
+    state.SkipWithError(e.what());
   }
 }
 

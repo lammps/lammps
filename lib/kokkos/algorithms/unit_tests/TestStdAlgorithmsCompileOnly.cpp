@@ -507,6 +507,20 @@ struct TestStruct {
   }
 };
 
+#ifndef KOKKOS_ENABLE_CXX17
+template <typename ViewType>
+constexpr bool
+test_kokkos_iterator_satify_std_random_access_iterator_concept() {
+  return std::random_access_iterator<
+      Kokkos::Experimental::Impl::RandomAccessIterator<ViewType>>;
+}
+
+static_assert(test_kokkos_iterator_satify_std_random_access_iterator_concept<
+              Kokkos::View<int *>>());
+static_assert(test_kokkos_iterator_satify_std_random_access_iterator_concept<
+              Kokkos::View<const int *>>());
+#endif
+
 }  // namespace compileonly
 }  // namespace stdalgos
 }  // namespace Test

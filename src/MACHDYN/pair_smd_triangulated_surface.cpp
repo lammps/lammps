@@ -34,6 +34,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -334,37 +335,37 @@ void PairTriSurf::settings(int narg, char **arg) {
  ------------------------------------------------------------------------- */
 
 void PairTriSurf::coeff(int narg, char **arg) {
-        if (narg != 3)
-                error->all(FLERR, "Incorrect args for pair coefficients");
-        if (!allocated)
-                allocate();
+  if (narg != 3)
+    error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
+  if (!allocated)
+    allocate();
 
-        int ilo, ihi, jlo, jhi;
-        utils::bounds(FLERR,arg[0], 1,atom->ntypes, ilo, ihi, error);
-        utils::bounds(FLERR,arg[1], 1,atom->ntypes, jlo, jhi, error);
+  int ilo, ihi, jlo, jhi;
+  utils::bounds(FLERR,arg[0], 1,atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR,arg[1], 1,atom->ntypes, jlo, jhi, error);
 
-        double bulkmodulus_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double bulkmodulus_one = utils::numeric(FLERR,arg[2],false,lmp);
 
-        // set short-range force constant
-        double kn_one = 0.0;
-        if (domain->dimension == 3) {
-                kn_one = (16. / 15.) * bulkmodulus_one; //assuming poisson ratio = 1/4 for 3d
-        } else {
-                kn_one = 0.251856195 * (2. / 3.) * bulkmodulus_one; //assuming poisson ratio = 1/3 for 2d
-        }
+  // set short-range force constant
+  double kn_one = 0.0;
+  if (domain->dimension == 3) {
+    kn_one = (16. / 15.) * bulkmodulus_one; //assuming poisson ratio = 1/4 for 3d
+  } else {
+    kn_one = 0.251856195 * (2. / 3.) * bulkmodulus_one; //assuming poisson ratio = 1/3 for 2d
+  }
 
-        int count = 0;
-        for (int i = ilo; i <= ihi; i++) {
-                for (int j = MAX(jlo, i); j <= jhi; j++) {
-                        bulkmodulus[i][j] = bulkmodulus_one;
-                        kn[i][j] = kn_one;
-                        setflag[i][j] = 1;
-                        count++;
-                }
-        }
+  int count = 0;
+  for (int i = ilo; i <= ihi; i++) {
+    for (int j = MAX(jlo, i); j <= jhi; j++) {
+      bulkmodulus[i][j] = bulkmodulus_one;
+      kn[i][j] = kn_one;
+      setflag[i][j] = 1;
+      count++;
+    }
+  }
 
-        if (count == 0)
-                error->all(FLERR, "Incorrect args for pair coefficients");
+  if (count == 0)
+    error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -373,26 +374,26 @@ void PairTriSurf::coeff(int narg, char **arg) {
 
 double PairTriSurf::init_one(int i, int j) {
 
-        if (!allocated)
-                allocate();
+  if (!allocated)
+    allocate();
 
-        if (setflag[i][j] == 0)
-                error->all(FLERR, "All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
-        bulkmodulus[j][i] = bulkmodulus[i][j];
-        kn[j][i] = kn[i][j];
+  bulkmodulus[j][i] = bulkmodulus[i][j];
+  kn[j][i] = kn[i][j];
 
-        // cutoff = sum of max I,J radii for
-        // dynamic/dynamic & dynamic/frozen interactions, but not frozen/frozen
+  // cutoff = sum of max I,J radii for
+  // dynamic/dynamic & dynamic/frozen interactions, but not frozen/frozen
 
-        double cutoff = maxrad_dynamic[i] + maxrad_dynamic[j];
-        cutoff = MAX(cutoff, maxrad_frozen[i] + maxrad_dynamic[j]);
-        cutoff = MAX(cutoff, maxrad_dynamic[i] + maxrad_frozen[j]);
+  double cutoff = maxrad_dynamic[i] + maxrad_dynamic[j];
+  cutoff = MAX(cutoff, maxrad_frozen[i] + maxrad_dynamic[j]);
+  cutoff = MAX(cutoff, maxrad_dynamic[i] + maxrad_frozen[j]);
 
-        if (comm->me == 0) {
-                printf("cutoff for pair smd/smd/tri_surface = %f\n", cutoff);
-        }
-        return cutoff;
+  if (comm->me == 0) utils::logmesg(lmp, "cutoff for pair smd/smd/tri_surface = {}\n", cutoff);
+
+  return cutoff;
 }
 
 /* ----------------------------------------------------------------------

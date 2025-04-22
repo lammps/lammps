@@ -21,6 +21,7 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "timer.h"
+#include "universe.h"
 #include "update.h"
 #include "variable.h"
 
@@ -34,6 +35,7 @@ enum { BONDMAX, TLIMIT, DISKFREE, VARIABLE };
 enum { LT, LE, GT, GE, EQ, NEQ, XOR };
 enum { HARD, SOFT, CONTINUE };
 enum { NOMSG = 0, YESMSG = 1 };
+static constexpr int UTAG = 999;
 
 /* ---------------------------------------------------------------------- */
 
@@ -42,11 +44,10 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix halt", error);
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
-  if (nevery <= 0) error->all(FLERR, "Illegal fix halt command: nevery must be > 0");
+  if (nevery <= 0) error->all(FLERR, 3, "Illegal fix halt command: nevery must be > 0");
 
   // comparison args
 
-  idvar = nullptr;
   int iarg = 4;
 
   if (strcmp(arg[iarg], "tlimit") == 0) {
@@ -56,20 +57,22 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
     dlimit_path = utils::strdup(".");
   } else if (strcmp(arg[iarg], "bondmax") == 0) {
     attribute = BONDMAX;
-  } else {
+  } else if (utils::strmatch(arg[iarg], "^v_")) {
     ArgInfo argi(arg[iarg], ArgInfo::VARIABLE);
 
     if ((argi.get_type() == ArgInfo::UNKNOWN) || (argi.get_type() == ArgInfo::NONE) ||
         (argi.get_dim() != 0))
-      error->all(FLERR, "Invalid fix halt attribute {}", arg[iarg]);
+      error->all(FLERR, iarg, "Invalid fix halt attribute {}", arg[iarg]);
 
     attribute = VARIABLE;
     idvar = argi.copy_name();
     ivar = input->variable->find(idvar);
 
-    if (ivar < 0) error->all(FLERR, "Could not find fix halt variable name");
+    if (ivar < 0) error->all(FLERR, iarg, "Could not find fix halt variable name {}", idvar);
     if (input->variable->equalstyle(ivar) == 0)
-      error->all(FLERR, "Fix halt variable is not equal-style variable");
+      error->all(FLERR, iarg, "Fix halt variable is not equal-style variable");
+  } else {
+    error->all(FLERR, iarg, "Unknown fix halt keyword {}", arg[iarg]);
   }
 
   // clang-format off
@@ -81,7 +84,7 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
   else if (strcmp(arg[iarg],"==") == 0) operation = EQ;
   else if (strcmp(arg[iarg],"!=") == 0) operation = NEQ;
   else if (strcmp(arg[iarg],"|^") == 0) operation = XOR;
-  else error->all(FLERR,"Invalid fix halt operator");
+  else error->all(FLERR, iarg, "Invalid fix halt operator {}", arg[iarg]);
 
   ++iarg;
   value = utils::numeric(FLERR, arg[iarg], false, lmp);
@@ -90,6 +93,7 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
 
   eflag = SOFT;
   msgflag = YESMSG;
+  uflag = NOMSG;
   ++iarg;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "error") == 0) {
@@ -97,14 +101,18 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg + 1], "hard") == 0) eflag = HARD;
       else if (strcmp(arg[iarg + 1], "soft") == 0) eflag = SOFT;
       else if (strcmp(arg[iarg + 1], "continue") == 0) eflag = CONTINUE;
-      else error->all(FLERR, "Unknown fix halt error condition {}", arg[iarg]);
+      else error->all(FLERR, iarg + 1, "Unknown fix halt error condition {}", arg[iarg]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "message") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix halt message", error);
       msgflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
+    } else if (strcmp(arg[iarg], "universe") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix halt universe", error);
+      uflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
     } else if (strcmp(arg[iarg], "path") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix halt error", error);
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix halt path", error);
       ++iarg;
       delete[] dlimit_path;
       // strip off outer quotes, if present
@@ -157,9 +165,10 @@ void FixHalt::init()
 
   if (attribute == VARIABLE) {
     ivar = input->variable->find(idvar);
-    if (ivar < 0) error->all(FLERR, "Could not find fix halt variable {}", idvar);
+    if (ivar < 0)
+      error->all(FLERR, Error::NOLASTLINE, "Could not find fix halt variable {}", idvar);
     if (input->variable->equalstyle(ivar) == 0)
-      error->all(FLERR, "Fix halt variable {} is not equal-style variable", idvar);
+      error->all(FLERR, Error::NOLASTLINE, "Fix halt variable {} is not equal-style", idvar);
   }
 
   // settings used by TLIMIT
@@ -172,7 +181,7 @@ void FixHalt::init()
 
   if (attribute == DISKFREE) {
     if (!dlimit_path || platform::disk_free(dlimit_path) < 0.0)
-      error->all(FLERR, "Disk limit not supported by OS or illegal path");
+      error->all(FLERR, Error::NOLASTLINE, "Disk limit not supported by OS or illegal path");
   }
 }
 
@@ -189,6 +198,50 @@ void FixHalt::min_post_force(int /* vflag */)
 
 void FixHalt::end_of_step()
 {
+  // check if another partition has exited and we need to exit, too.
+
+  if (uflag) {
+    MPI_Status status;
+    int partition = -1;
+    int flag = 0;
+    if (comm->me == 0) {
+
+      // probe if any stop request from another partition is pending
+
+      MPI_Iprobe(MPI_ANY_SOURCE, UTAG, universe->uworld, &flag, &status);
+
+      if (flag) {
+        // determine which partition sent the stop request and receive the message
+        for (int i = 0; i < universe->nworlds; ++i)
+          if (universe->root_proc[i] == status.MPI_SOURCE) partition = i + 1;
+
+        MPI_Recv(&flag, 1, MPI_INT, status.MPI_SOURCE, UTAG, universe->uworld, MPI_STATUS_IGNORE);
+      }
+    }
+
+    // broadcast stop request partition to all processes in our partition
+
+    MPI_Bcast(&partition, 1, MPI_INT, 0, world);
+
+    // exit request pending handle the same as below
+
+    if (partition > 0) {
+
+      // hard halt -> exit LAMMPS
+      // soft/continue halt -> trigger timer to break from run loop
+      // print message with ID of fix halt in case multiple instances
+
+      auto message = fmt::format("Received universe halt request from partition {} for fix-id {} on step {}",
+                                 partition, id, update->ntimestep);
+      if (eflag == HARD) {
+        error->all(FLERR, message);
+      } else if ((eflag == SOFT) || (eflag == CONTINUE)) {
+        if ((comm->me == 0) && (msgflag == YESMSG)) error->message(FLERR, message);
+        timer->force_timeout();
+      }
+    }
+  }
+
   // variable evaluation may invoke computes so wrap with clear/add
 
   double attvalue;
@@ -226,6 +279,23 @@ void FixHalt::end_of_step()
     if (attvalue == value) return;
   } else if (operation == XOR) {
     if ((attvalue == 0.0 && value == 0.0) || (attvalue != 0.0 && value != 0.0)) return;
+  }
+
+  // send message to all other root processes to trigger exit across universe, if requested
+
+  if (uflag && (comm->me == 0)) {
+    MPI_Request *req = new MPI_Request[universe->nworlds];
+    for (int i = 0; i < universe->nworlds; ++i) {
+      if (universe->me == universe->root_proc[i]) continue;
+      MPI_Isend(&eflag, 1, MPI_INT, universe->root_proc[i], UTAG, universe->uworld, req + i);
+    }
+
+    // wait for all sends to complete, so MPI_Finalize() will be happy
+    for (int i = 0; i < universe->nworlds; ++i) {
+      if (universe->me == universe->root_proc[i]) continue;
+      MPI_Wait(req + i, MPI_STATUS_IGNORE);
+      MPI_Request_free(req + i);
+    }
   }
 
   // hard halt -> exit LAMMPS

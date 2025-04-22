@@ -143,30 +143,52 @@ class Serial {
   /// method does not return until all dispatched functors on this
   /// device have completed.
   static void impl_static_fence(const std::string& name) {
-    Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::Serial>(
-        name,
-        Kokkos::Tools::Experimental::SpecialSynchronizationCases::
-            GlobalDeviceSynchronization,
-        []() {
-          std::lock_guard<std::mutex> lock_all_instances(
-              Impl::SerialInternal::all_instances_mutex);
-          for (auto* instance_ptr : Impl::SerialInternal::all_instances) {
-            std::lock_guard<std::mutex> lock_instance(
-                instance_ptr->m_instance_mutex);
-          }
-        });  // TODO: correct device ID
+#ifdef KOKKOS_ENABLE_ATOMICS_BYPASS
+    auto fence = []() {};
+#else
+    auto fence = []() {
+      std::lock_guard<std::mutex> lock_all_instances(
+          Impl::SerialInternal::all_instances_mutex);
+      for (auto* instance_ptr : Impl::SerialInternal::all_instances) {
+        std::lock_guard<std::mutex> lock_instance(
+            instance_ptr->m_instance_mutex);
+      }
+    };
+#endif
+    if (Kokkos::Tools::profileLibraryLoaded()) {
+      Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::Serial>(
+          name,
+          Kokkos::Tools::Experimental::SpecialSynchronizationCases::
+              GlobalDeviceSynchronization,
+          fence);  // TODO: correct device ID
+    } else {
+      fence();
+    }
+#ifndef KOKKOS_ENABLE_ATOMICS_BYPASS
     Kokkos::memory_fence();
+#endif
   }
 
   void fence(const std::string& name =
                  "Kokkos::Serial::fence: Unnamed Instance Fence") const {
-    Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::Serial>(
-        name, Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{1},
-        [this]() {
-          auto* internal_instance = this->impl_internal_space_instance();
-          std::lock_guard<std::mutex> lock(internal_instance->m_instance_mutex);
-        });  // TODO: correct device ID
+#ifdef KOKKOS_ENABLE_ATOMICS_BYPASS
+    auto fence = []() {};
+#else
+    auto fence = [this]() {
+      auto* internal_instance = this->impl_internal_space_instance();
+      std::lock_guard<std::mutex> lock(internal_instance->m_instance_mutex);
+    };
+#endif
+    if (Kokkos::Tools::profileLibraryLoaded()) {
+      Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::Serial>(
+          name, Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{1},
+          fence);  // TODO: correct device ID
+    } else {
+      fence();
+    }
+#ifndef KOKKOS_ENABLE_ATOMICS_BYPASS
     Kokkos::memory_fence();
+#endif
   }
 
   /** \brief  Return the maximum amount of concurrency.  */

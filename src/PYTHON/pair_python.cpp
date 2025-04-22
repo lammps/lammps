@@ -244,14 +244,14 @@ void PairPython::coeff(int narg, char **arg)
   const int ntypes = atom->ntypes;
 
   if (narg != 3+ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   if (!allocated) allocate();
 
   // make sure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
 
   // check if python potential class type exists

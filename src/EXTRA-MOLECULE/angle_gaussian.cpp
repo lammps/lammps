@@ -236,7 +236,7 @@ void AngleGaussian::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients" + utils::errorurl(21));
 }
 
 /* ---------------------------------------------------------------------- */

@@ -53,7 +53,7 @@ ResetAtomsID::ResetAtomsID(LAMMPS *lmp) : Command(lmp)
 void ResetAtomsID::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR, "Reset_atoms id command before simulation box is defined");
+    error->all(FLERR, "Reset_atoms id command before simulation box is defined" + utils::errorurl(33));
   if (atom->tag_enable == 0) error->all(FLERR, "Cannot use reset_atoms id unless atoms have IDs");
 
   for (const auto &ifix : modify->get_fix_list())

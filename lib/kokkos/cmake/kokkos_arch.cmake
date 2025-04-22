@@ -67,6 +67,7 @@ declare_and_check_host_arch(POWER9 "IBM POWER9 CPUs")
 declare_and_check_host_arch(ZEN "AMD Zen architecture")
 declare_and_check_host_arch(ZEN2 "AMD Zen2 architecture")
 declare_and_check_host_arch(ZEN3 "AMD Zen3 architecture")
+declare_and_check_host_arch(ZEN4 "AMD Zen4 architecture")
 declare_and_check_host_arch(RISCV_SG2042 "SG2042 (RISC-V) CPUs")
 declare_and_check_host_arch(RISCV_RVA22V "RVA22V (RISC-V) CPUs")
 
@@ -163,16 +164,11 @@ if(KOKKOS_ENABLE_COMPILER_WARNINGS)
     endif()
   endif()
 
-  # ICPC doesn't support -Wsuggest-override
-  if(KOKKOS_CXX_COMPILER_ID STREQUAL Intel)
-    list(REMOVE_ITEM COMMON_WARNINGS "-Wsuggest-override")
-  endif()
-
   if(KOKKOS_CXX_COMPILER_ID STREQUAL Clang)
     list(APPEND COMMON_WARNINGS "-Wimplicit-fallthrough")
   endif()
 
-  set(GNU_WARNINGS "-Wempty-body" "-Wclobbered" "-Wignored-qualifiers" ${COMMON_WARNINGS})
+  set(GNU_WARNINGS "-Wempty-body" "-Wignored-qualifiers" ${COMMON_WARNINGS})
   if(KOKKOS_CXX_COMPILER_ID STREQUAL GNU)
     list(APPEND GNU_WARNINGS "-Wimplicit-fallthrough")
   endif()
@@ -349,12 +345,27 @@ endif()
 
 if(KOKKOS_ARCH_ARMV9_GRACE)
   set(KOKKOS_ARCH_ARM_NEON ON)
-  check_cxx_compiler_flag("-mcpu=neoverse-n2" COMPILER_SUPPORTS_NEOVERSE_N2)
-  check_cxx_compiler_flag("-msve-vector-bits=128" COMPILER_SUPPORTS_SVE_VECTOR_BITS)
-  if(COMPILER_SUPPORTS_NEOVERSE_N2 AND COMPILER_SUPPORTS_SVE_VECTOR_BITS)
-    compiler_specific_flags(COMPILER_ID KOKKOS_CXX_HOST_COMPILER_ID DEFAULT -mcpu=neoverse-n2 -msve-vector-bits=128)
+  if(KOKKOS_CXX_HOST_COMPILER_ID STREQUAL NVHPC)
+    check_cxx_compiler_flag("-tp=grace" COMPILER_SUPPORTS_GRACE_AS_TARGET_PROCESSOR)
   else()
-    message(WARNING "Compiler does not support ARMv9 Grace architecture")
+    check_cxx_compiler_flag("-mcpu=neoverse-n2" COMPILER_SUPPORTS_NEOVERSE_N2)
+    check_cxx_compiler_flag("-msve-vector-bits=128" COMPILER_SUPPORTS_SVE_VECTOR_BITS)
+  endif()
+  if(COMPILER_SUPPORTS_NEOVERSE_N2 AND COMPILER_SUPPORTS_SVE_VECTOR_BITS OR COMPILER_SUPPORTS_GRACE_AS_TARGET_PROCESSOR)
+    compiler_specific_flags(
+      COMPILER_ID
+      KOKKOS_CXX_HOST_COMPILER_ID
+      NVHPC
+      -tp=grace
+      DEFAULT
+      -mcpu=neoverse-n2
+      -msve-vector-bits=128
+    )
+  else()
+    message(SEND_ERROR "Your compiler does not appear to support the ARMv9 Grace architecture.
+Please ensure you are using a compatible compiler and toolchain.
+Alternatively, try configuring with -DKokkos_ARCH_NATIVE=ON to use the native architecture of your system."
+    )
   endif()
 endif()
 
@@ -362,8 +373,6 @@ if(KOKKOS_ARCH_ZEN)
   compiler_specific_flags(
     COMPILER_ID
     KOKKOS_CXX_HOST_COMPILER_ID
-    Intel
-    -mavx2
     MSVC
     /arch:AVX2
     NVHPC
@@ -380,8 +389,6 @@ if(KOKKOS_ARCH_ZEN2)
   compiler_specific_flags(
     COMPILER_ID
     KOKKOS_CXX_HOST_COMPILER_ID
-    Intel
-    -mavx2
     MSVC
     /arch:AVX2
     NVHPC
@@ -398,18 +405,32 @@ if(KOKKOS_ARCH_ZEN3)
   compiler_specific_flags(
     COMPILER_ID
     KOKKOS_CXX_HOST_COMPILER_ID
-    Intel
-    -mavx2
     MSVC
     /arch:AVX2
     NVHPC
-    -tp=zen2
+    -tp=zen3
     DEFAULT
     -march=znver3
     -mtune=znver3
   )
   set(KOKKOS_ARCH_AMD_ZEN3 ON)
   set(KOKKOS_ARCH_AVX2 ON)
+endif()
+
+if(KOKKOS_ARCH_ZEN4)
+  compiler_specific_flags(
+    COMPILER_ID
+    KOKKOS_CXX_HOST_COMPILER_ID
+    MSVC
+    /arch:AVX512
+    NVHPC
+    -tp=zen4
+    DEFAULT
+    -march=znver4
+    -mtune=znver4
+  )
+  set(KOKKOS_ARCH_AMD_ZEN4 ON)
+  set(KOKKOS_ARCH_AVX512XEON ON)
 endif()
 
 if(KOKKOS_ARCH_SNB OR KOKKOS_ARCH_AMDAVX)
@@ -419,8 +440,6 @@ if(KOKKOS_ARCH_SNB OR KOKKOS_ARCH_AMDAVX)
     KOKKOS_CXX_HOST_COMPILER_ID
     Cray
     NO-VALUE-SPECIFIED
-    Intel
-    -mavx
     MSVC
     /arch:AVX
     NVHPC
@@ -437,8 +456,6 @@ if(KOKKOS_ARCH_HSW)
     KOKKOS_CXX_HOST_COMPILER_ID
     Cray
     NO-VALUE-SPECIFIED
-    Intel
-    -xCORE-AVX2
     MSVC
     /arch:AVX2
     NVHPC
@@ -477,8 +494,6 @@ if(KOKKOS_ARCH_BDW)
     KOKKOS_CXX_HOST_COMPILER_ID
     Cray
     NO-VALUE-SPECIFIED
-    Intel
-    -xCORE-AVX2
     MSVC
     /arch:AVX2
     NVHPC
@@ -498,8 +513,6 @@ if(KOKKOS_ARCH_KNL)
     KOKKOS_CXX_HOST_COMPILER_ID
     Cray
     NO-VALUE-SPECIFIED
-    Intel
-    -xMIC-AVX512
     MSVC
     /arch:AVX512
     NVHPC
@@ -520,8 +533,6 @@ if(KOKKOS_ARCH_SKL)
     KOKKOS_CXX_HOST_COMPILER_ID
     Cray
     NO-VALUE-SPECIFIED
-    Intel
-    -xSKYLAKE
     MSVC
     /arch:AVX2
     NVHPC
@@ -539,8 +550,6 @@ if(KOKKOS_ARCH_SKX)
     KOKKOS_CXX_HOST_COMPILER_ID
     Cray
     NO-VALUE-SPECIFIED
-    Intel
-    -xCORE-AVX512
     MSVC
     /arch:AVX512
     NVHPC
@@ -1193,9 +1202,8 @@ if(KOKKOS_ENABLE_HIP AND NOT AMDGPU_ARCH_ALREADY_SPECIFIED AND NOT KOKKOS_IMPL_A
     )
   else()
     execute_process(COMMAND ${ROCM_ENUMERATOR} OUTPUT_VARIABLE GPU_ARCHS)
-    string(LENGTH "${GPU_ARCHS}" len_str)
-    # enumerator always output gfx000 as the first line
-    if(${len_str} LESS 8)
+    # Exits early if no GPU was detected
+    if("${GPU_ARCHS}" STREQUAL "")
       message(SEND_ERROR "HIP enabled but no AMD GPU architecture could be automatically detected. "
                          "Please manually specify one AMD GPU architecture via -DKokkos_ARCH_{..}=ON'."
       )

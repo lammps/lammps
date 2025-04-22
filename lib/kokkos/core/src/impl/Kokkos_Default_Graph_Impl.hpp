@@ -45,6 +45,8 @@ struct GraphImpl : private ExecutionSpaceInstanceStorage<ExecutionSpace> {
       GraphNodeImpl<ExecutionSpace, Kokkos::Experimental::TypeErasedTag,
                     Kokkos::Experimental::TypeErasedTag>;
 
+  using aggregate_impl_t = GraphNodeAggregateDefaultImpl<ExecutionSpace>;
+
  private:
   using execution_space_instance_storage_base_t =
       ExecutionSpaceInstanceStorage<ExecutionSpace>;
@@ -80,9 +82,9 @@ struct GraphImpl : private ExecutionSpaceInstanceStorage<ExecutionSpace> {
   // <editor-fold desc="required customizations"> {{{2
 
   template <class NodeImpl>
-  //  requires NodeImplPtr is a shared_ptr to specialization of GraphNodeImpl
   void add_node(std::shared_ptr<NodeImpl> const& arg_node_ptr) {
-    static_assert(NodeImpl::kernel_type::Policy::is_graph_kernel::value);
+    static_assert(
+        Kokkos::Impl::is_specialization_of_v<NodeImpl, GraphNodeImpl>);
     // Since this is always called before any calls to add_predecessor involving
     // it, we can treat this node as a sink until we discover otherwise.
     arg_node_ptr->node_details_t::set_kernel(arg_node_ptr->get_kernel());
@@ -119,14 +121,12 @@ struct GraphImpl : private ExecutionSpaceInstanceStorage<ExecutionSpace> {
     // in the generic layer, which calls through to add_predecessor for
     // each predecessor ref, so all we need to do here is create the (trivial)
     // aggregate node.
-    using aggregate_kernel_impl_t =
-        GraphNodeAggregateKernelDefaultImpl<ExecutionSpace>;
     using aggregate_node_impl_t =
-        GraphNodeImpl<ExecutionSpace, aggregate_kernel_impl_t,
+        GraphNodeImpl<ExecutionSpace, aggregate_impl_t,
                       Kokkos::Experimental::TypeErasedTag>;
     return GraphAccess::make_node_shared_ptr<aggregate_node_impl_t>(
         this->execution_space_instance(), _graph_node_kernel_ctor_tag{},
-        aggregate_kernel_impl_t{});
+        aggregate_impl_t{});
   }
 
   auto create_root_node_ptr() {

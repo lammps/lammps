@@ -79,8 +79,12 @@ void Timer::_stamp(enum ttype which)
     if (_level > NORMAL) current_cpu = platform::cputime();
     current_wall = platform::walltime();
 
-    cpu_array[SYNC] += current_cpu - previous_cpu;
-    wall_array[SYNC] += current_wall - previous_wall;
+    const double delta_cpu = current_cpu - previous_cpu;
+    const double delta_wall = current_wall - previous_wall;
+    cpu_array[SYNC] += delta_cpu;
+    wall_array[SYNC] += delta_wall;
+    cpu_array[ALL] += delta_cpu;
+    wall_array[ALL] += delta_wall;
     previous_cpu = current_cpu;
     previous_wall = current_wall;
   }

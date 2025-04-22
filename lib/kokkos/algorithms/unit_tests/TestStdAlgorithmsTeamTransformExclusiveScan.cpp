@@ -203,6 +203,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
         ASSERT_EQ(stdDistance, distancesView_h(i));
         break;
       }
+      default: Kokkos::abort("unreachable");
     }
 
 #undef transform_exclusive_scan

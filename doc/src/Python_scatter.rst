@@ -3,17 +3,16 @@ Scatter/gather operations
 
 .. code-block:: python
 
-   data = lmp.gather_atoms(name,type,count)  # return per-atom property of all atoms gathered into data, ordered by atom ID
-                                             # name = "x", "charge", "type", etc
-   data = lmp.gather_atoms_concat(name,type,count)  # ditto, but concatenated atom values from each proc (unordered)
-   data = lmp.gather_atoms_subset(name,type,count,ndata,ids)  # ditto, but for subset of Ndata atoms with IDs
+   data = lmp.gather_atoms(name,dtype,count)  # return per-atom property of all atoms gathered into data, ordered by atom ID
+                                              # name = "x", "q", "type", etc
+   data = lmp.gather_atoms_concat(name,dtype,count)  # ditto, but concatenated atom values from each proc (unordered)
+   data = lmp.gather_atoms_subset(name,dtype,count,ndata,ids)  # ditto, but for subset of Ndata atoms with IDs
 
-   lmp.scatter_atoms(name,type,count,data)   # scatter per-atom property to all atoms from data, ordered by atom ID
-                                             # name = "x", "charge", "type", etc
-                                             # count = # of per-atom values, 1 or 3, etc
+   lmp.scatter_atoms(name,dtype,count,data)   # scatter per-atom property to all atoms from data, ordered by atom ID
+                                              # name = "x", "q", "type", etc
+                                              # count = # of per-atom values, 1 or 3, etc
 
-   lmp.scatter_atoms_subset(name,type,count,ndata,ids,data)  # ditto, but for subset of Ndata atoms with IDs
-
+   lmp.scatter_atoms_subset(name,dtype,count,ndata,ids,data)  # ditto, but for subset of Ndata atoms with IDs
 
 The gather methods collect peratom info of the requested type (atom
 coords, atom types, forces, etc) from all processors, and returns the
@@ -21,6 +20,12 @@ same vector of values to each calling processor.  The scatter
 functions do the inverse.  They distribute a vector of peratom values,
 passed by all calling processors, to individual atoms, which may be
 owned by different processors.
+
+The *dtype* parameter is 0 for ``int`` values and 1 for ``double``
+values.  The *count* parameter is 1 for per-atom vectors like "type"
+or "q" and 3 for per-atom arrays like "x", "v", "f". Use *count* = 3
+with name = "image" if you want the single integer storing the image
+flags unpacked into 3 components ("x", "y", and "z").
 
 Note that the data returned by the gather methods,
 e.g. :py:meth:`gather_atoms("x") <lammps.lammps.gather_atoms()>`, is

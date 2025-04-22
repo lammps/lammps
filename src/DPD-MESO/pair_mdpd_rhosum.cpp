@@ -25,6 +25,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -63,7 +64,7 @@ PairMDPDRhoSum::~PairMDPDRhoSum() {
 void PairMDPDRhoSum::init_style()
 {
   if (!atom->rho_flag)
-    error->all(FLERR,"Pair style mdpd/rhosum requires atom attribute rho");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style mdpd/rhosum requires atom attribute rho");
 
   // need a full neighbor list
   neighbor->add_request(this, NeighConst::REQ_FULL);
@@ -190,7 +191,7 @@ void PairMDPDRhoSum::settings(int narg, char **/*arg*/) {
 
 void PairMDPDRhoSum::coeff(int narg, char **arg) {
   if (narg != 3)
-    error->all(FLERR,"Incorrect number of args for mdpd/rhosum coefficients");
+    error->all(FLERR,"Incorrect number of args for mdpd/rhosum coefficients" + utils::errorurl(21));
   if (!allocated)
     allocate();
 
@@ -210,7 +211,7 @@ void PairMDPDRhoSum::coeff(int narg, char **arg) {
   }
 
   if (count == 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -218,9 +219,9 @@ void PairMDPDRhoSum::coeff(int narg, char **arg) {
  ------------------------------------------------------------------------- */
 
 double PairMDPDRhoSum::init_one(int i, int j) {
-  if (setflag[i][j] == 0) {
-    error->all(FLERR,"All pair mdpd/rhosum coeffs are not set");
-  }
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE, "All pair mdpd/rhosum coeffs are not set. Status:\n"
+               + Info::get_pair_coeff_status(lmp));
 
   cut[j][i] = cut[i][j];
 

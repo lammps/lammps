@@ -48,7 +48,7 @@ class PairDispersionD3 : public Pair {
   double rthr;      // R^2 distance to cutoff for D3_calculation
   double cn_thr;    // R^2 distance to cutoff for CN_calculation
 
-  std::string damping_type;              // damping function type
+  int dampingCode;
   double s6, s8, s18, rs6, rs8, rs18;    // XC parameters
   double a1, a2, alpha, alpha6, alpha8;
 

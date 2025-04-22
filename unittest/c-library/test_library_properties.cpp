@@ -127,15 +127,9 @@ TEST_F(LibraryProperties, thermo)
     const char *key = (const char *)lammps_last_thermo(lmp, "keyword", 0);
     EXPECT_THAT(key, StrEq("Step"));
     ival = *(int *)lammps_last_thermo(lmp, "type", 0);
-#if defined(LAMMPS_SMALLSMALL)
-    EXPECT_EQ(ival, LAMMPS_INT);
-    ival = *(int *)lammps_last_thermo(lmp, "data", 0);
-    EXPECT_EQ(ival, 2);
-#else
     EXPECT_EQ(ival, LAMMPS_INT64);
     bval = *(bigint *)lammps_last_thermo(lmp, "data", 0);
     EXPECT_EQ(bval, 2);
-#endif
 
     key = (const char *)lammps_last_thermo(lmp, "keyword", 1);
     EXPECT_THAT(key, StrEq("Temp"));
@@ -253,11 +247,7 @@ TEST_F(LibraryProperties, box)
 
 TEST_F(LibraryProperties, setting)
 {
-#if defined(LAMMPS_SMALLSMALL)
-    EXPECT_EQ(lammps_extract_setting(lmp, "bigint"), 4);
-#else
     EXPECT_EQ(lammps_extract_setting(lmp, "bigint"), 8);
-#endif
 #if defined(LAMMPS_BIGBIG)
     EXPECT_EQ(lammps_extract_setting(lmp, "tagint"), 8);
     EXPECT_EQ(lammps_extract_setting(lmp, "imageint"), 8);
@@ -375,15 +365,9 @@ TEST_F(LibraryProperties, global)
     char *c_ptr = (char *)lammps_extract_global(lmp, "units");
     EXPECT_THAT(c_ptr, StrEq("real"));
 
-#if defined(LAMMPS_SMALLSMALL)
-    EXPECT_EQ(lammps_extract_global_datatype(lmp, "ntimestep"), LAMMPS_INT);
-    int *i_ptr = (int *)lammps_extract_global(lmp, "ntimestep");
-    EXPECT_EQ((*i_ptr), 2);
-#else
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "ntimestep"), LAMMPS_INT64);
     auto *b_ptr = (int64_t *)lammps_extract_global(lmp, "ntimestep");
     EXPECT_EQ((*b_ptr), 2);
-#endif
 
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "dt"), LAMMPS_DOUBLE);
     auto *d_ptr = (double *)lammps_extract_global(lmp, "dt");

@@ -143,3 +143,165 @@
   fun:PyUnicode_FromKindAndData
   ...
 }
+{
+  Python3_init_1
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  ...
+  fun:PyMem_Malloc
+  fun:PyModule_ExecDef
+  ...
+  fun:pycore_interp_init
+  ...
+  fun:Py_InitializeFromConfig
+  ...
+}
+{
+  Python3_init_2
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:realloc
+  fun:_Py_EncodeUTF8Ex
+  fun:encode_wstr_utf8
+  ...
+  fun:py_interp_main
+  fun:pyinit_main
+  fun:Py_InitializeFromConfig
+  ...
+}
+{
+  Python3_init_3
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  fun:_PyMem_RawStrdup
+  ...
+  fun:py_interp_main
+  fun:pyinit_main
+  fun:Py_InitializeFromConfig
+  ...
+}
+{
+  Python3_init_4
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  fun:*
+  fun:_extensions_cache_find_unlocked
+  ...
+  fun:_PyImport_FixupBuiltin
+  fun:_PySys_Create
+  fun:pycore_interp_init
+  ...
+  fun:Py_InitializeFromConfig
+  ...
+}
+{
+  Python3_init_5
+  Memcheck:Leak
+  match-leak-kinds: possible
+  fun:calloc
+  ...
+  fun:PyMem_Calloc
+  fun:PyList_New
+  fun:_PyWideStringList_AsList
+  fun:*
+  fun:interpreter_update_config
+  fun:init_interp_main
+  fun:pyinit_main
+  fun:Py_InitializeFromConfig
+  ...
+}
+{
+  Python3_init_6
+  Memcheck:Leak
+  match-leak-kinds: possible
+  fun:calloc
+  ...
+  fun:PyMem_Calloc
+  fun:PyList_New
+  fun:*
+  fun:_PyEval_EvalFrameDefault
+  ...
+  fun:PyObject_CallFunction
+  fun:PyImport_Import
+  fun:PyImport_ImportModule
+  ...
+  fun:init_interp_main
+}
+{
+  Python3_init_7
+  Memcheck:Leak
+  match-leak-kinds: possible
+  fun:calloc
+  ...
+  fun:PyMem_Calloc
+  fun:PyList_New
+  fun:*
+  fun:_PyEval_EvalFrameDefault
+  fun:PyEval_EvalCode
+  ...
+  fun:PyObject_CallFunction
+  fun:PyImport_Import
+  fun:PyImport_ImportModule
+  ...
+}
+{
+  Python3_init_8
+  Memcheck:Leak
+  match-leak-kinds: possible
+  fun:calloc
+  ...
+  fun:PyMem_Calloc
+  fun:PyList_New
+  fun:*
+  fun:_PyEval_EvalFrameDefault
+  fun:*
+  fun:object_vacall
+  fun:PyObject_CallMethodObjArgs
+  ...
+  fun:_PyEval_EvalFrameDefault
+  fun:*
+  fun:object_vacall
+  fun:PyObject_CallMethodObjArgs
+  fun:*
+  fun:PyImport_ImportModuleLevelObject
+}
+{
+  Python3_init_9
+  Memcheck:Leak
+  match-leak-kinds: possible
+  fun:calloc
+  ...
+  fun:PyMem_Calloc
+  fun:PyList_New
+  fun:*
+  fun:_PyEval_EvalFrameDefault
+  fun:*
+  fun:object_vacall
+  fun:PyObject_CallMethodObjArgs
+  ...
+  fun:_PyEval_EvalFrameDefault
+  fun:PyEval_EvalCode
+  ...
+}
+{
+  Python3_init_10
+  Memcheck:Leak
+  match-leak-kinds: possible
+  fun:calloc
+  ...
+  fun:PyMem_Calloc
+  fun:PyList_New
+  fun:*
+  fun:_PyEval_EvalFrameDefault
+  ...
+  fun:PyObject_Vectorcall
+  fun:_PyEval_EvalFrameDefault
+  fun:PyEval_EvalCode
+  fun:*
+  fun:builtin_exec
+  ...
+  fun:_PyEval_EvalFrameDefault
+}

@@ -155,6 +155,7 @@ struct ChunkedArrayManager {
       }
       // Destroy the linked allocation if we have one.
       if (m_linked != nullptr) {
+        // NOLINTNEXTLINE(bugprone-multi-level-implicit-pointer-conversion)
         Space().deallocate(m_label.c_str(), m_linked,
                            (sizeof(value_type*) * (m_chunk_max + 2)));
       }
@@ -195,11 +196,13 @@ struct ChunkedArrayManager {
   void deep_copy_to(
       const ExecutionSpace& exec_space,
       ChunkedArrayManager<OtherMemorySpace, ValueType> const& other) const {
-    if (other.m_chunks != m_chunks) {
-      Kokkos::Impl::DeepCopy<OtherMemorySpace, MemorySpace, ExecutionSpace>(
-          exec_space, other.m_chunks, m_chunks,
-          sizeof(pointer_type) * (m_chunk_max + 2));
-    }
+    // use of ad-hoc unmanaged views
+    Kokkos::deep_copy(
+        exec_space,
+        Kokkos::View<uintptr_t*, OtherMemorySpace>(
+            reinterpret_cast<uintptr_t*>(other.m_chunks), m_chunk_max + 2),
+        Kokkos::View<uintptr_t*, MemorySpace>(
+            reinterpret_cast<uintptr_t*>(m_chunks), m_chunk_max + 2));
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -621,9 +624,8 @@ inline auto create_mirror(const Kokkos::Experimental::DynamicView<T, P...>& src,
 
     return ret;
   }
-#if defined(KOKKOS_COMPILER_INTEL) ||                                 \
-    (defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-     !defined(KOKKOS_COMPILER_MSVC))
+#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
+    !defined(KOKKOS_COMPILER_MSVC)
   __builtin_unreachable();
 #endif
 }
@@ -718,9 +720,8 @@ inline auto create_mirror_view(
       return Kokkos::Impl::choose_create_mirror(src, arg_prop);
     }
   }
-#if defined(KOKKOS_COMPILER_INTEL) ||                                 \
-    (defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-     !defined(KOKKOS_COMPILER_MSVC))
+#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
+    !defined(KOKKOS_COMPILER_MSVC)
   __builtin_unreachable();
 #endif
 }
@@ -789,9 +790,9 @@ inline void deep_copy(const Kokkos::Experimental::DynamicView<T, DP...>& dst,
                                  dst_memory_space>::accessible;
 
   if (DstExecCanAccessSrc)
-    Kokkos::Impl::ViewRemap<dst_type, src_type, dst_execution_space>(dst, src);
+    Kokkos::Impl::ViewRemap<dst_type, src_type>(dst, src);
   else if (SrcExecCanAccessDst)
-    Kokkos::Impl::ViewRemap<dst_type, src_type, src_execution_space>(dst, src);
+    Kokkos::Impl::ViewRemap<dst_type, src_type>(dst, src);
   else
     src.impl_get_chunks().deep_copy_to(dst_execution_space{},
                                        dst.impl_get_chunks());
@@ -819,9 +820,9 @@ inline void deep_copy(const ExecutionSpace& exec,
 
   // FIXME use execution space
   if (DstExecCanAccessSrc)
-    Kokkos::Impl::ViewRemap<dst_type, src_type, dst_execution_space>(dst, src);
+    Kokkos::Impl::ViewRemap<dst_type, src_type>(dst, src);
   else if (SrcExecCanAccessDst)
-    Kokkos::Impl::ViewRemap<dst_type, src_type, src_execution_space>(dst, src);
+    Kokkos::Impl::ViewRemap<dst_type, src_type>(dst, src);
   else
     src.impl_get_chunks().deep_copy_to(exec, dst.impl_get_chunks());
 }
@@ -873,7 +874,7 @@ inline void deep_copy(const Kokkos::Experimental::DynamicView<T, DP...>& dst,
 namespace Impl {
 template <class Arg0, class... DP, class... SP>
 struct CommonSubview<Kokkos::Experimental::DynamicView<DP...>,
-                     Kokkos::Experimental::DynamicView<SP...>, 1, Arg0> {
+                     Kokkos::Experimental::DynamicView<SP...>, Arg0> {
   using DstType          = Kokkos::Experimental::DynamicView<DP...>;
   using SrcType          = Kokkos::Experimental::DynamicView<SP...>;
   using dst_subview_type = DstType;
@@ -885,8 +886,7 @@ struct CommonSubview<Kokkos::Experimental::DynamicView<DP...>,
 };
 
 template <class... DP, class SrcType, class Arg0>
-struct CommonSubview<Kokkos::Experimental::DynamicView<DP...>, SrcType, 1,
-                     Arg0> {
+struct CommonSubview<Kokkos::Experimental::DynamicView<DP...>, SrcType, Arg0> {
   using DstType          = Kokkos::Experimental::DynamicView<DP...>;
   using dst_subview_type = DstType;
   using src_subview_type = typename Kokkos::Subview<SrcType, Arg0>;
@@ -897,8 +897,7 @@ struct CommonSubview<Kokkos::Experimental::DynamicView<DP...>, SrcType, 1,
 };
 
 template <class DstType, class... SP, class Arg0>
-struct CommonSubview<DstType, Kokkos::Experimental::DynamicView<SP...>, 1,
-                     Arg0> {
+struct CommonSubview<DstType, Kokkos::Experimental::DynamicView<SP...>, Arg0> {
   using SrcType          = Kokkos::Experimental::DynamicView<SP...>;
   using dst_subview_type = typename Kokkos::Subview<DstType, Arg0>;
   using src_subview_type = SrcType;

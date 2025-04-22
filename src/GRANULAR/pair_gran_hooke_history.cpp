@@ -407,7 +407,7 @@ void PairGranHookeHistory::settings(int narg, char **arg)
 
 void PairGranHookeHistory::coeff(int narg, char **arg)
 {
-  if (narg > 2) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg > 2) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -422,7 +422,7 @@ void PairGranHookeHistory::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

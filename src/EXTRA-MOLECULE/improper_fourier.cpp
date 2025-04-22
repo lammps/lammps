@@ -261,7 +261,7 @@ void ImproperFourier::allocate()
 void ImproperFourier::coeff(int narg, char **arg)
 {
 
-  if (narg != 5 && narg != 6) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (narg != 5 && narg != 6) error->all(FLERR,"Incorrect args for improper coefficients" + utils::errorurl(21));
 
   if (!allocated) allocate();
 
@@ -288,7 +288,7 @@ void ImproperFourier::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -336,4 +336,18 @@ void ImproperFourier::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nimpropertypes; i++)
     fprintf(fp,"%d %g %g %g %g %d\n",i,k[i],C0[i],C1[i],C2[i],all[i]);
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *ImproperFourier::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "C0") == 0) return (void *) C0;
+  if (strcmp(str, "C1") == 0) return (void *) C1;
+  if (strcmp(str, "C2") == 0) return (void *) C2;
+  return nullptr;
 }

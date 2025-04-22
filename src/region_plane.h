@@ -45,6 +45,10 @@ class RegPlane : public Region {
   int zstyle, zvar;
   char *xstr, *ystr, *zstr;
 
+  int nstyle;
+  int nxvar, nyvar, nzvar;
+  char *nxstr, *nystr, *nzstr;
+
   void variable_check();
 };
 

@@ -21,6 +21,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "table_file_reader.h"
@@ -341,7 +342,9 @@ void PairTable::coeff(int narg, char **arg)
 
 double PairTable::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   tabindex[j][i] = tabindex[i][j];
 
@@ -1035,7 +1038,9 @@ double PairTable::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
 void *PairTable::extract(const char *str, int &dim)
 {
   if (strcmp(str, "cut_coul") != 0) return nullptr;
-  if (ntables == 0) error->all(FLERR, "All pair coeffs are not set");
+  if (ntables == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   // only check for cutoff consistency if claiming to be KSpace compatible
 
@@ -1043,7 +1048,8 @@ void *PairTable::extract(const char *str, int &dim)
     double cut_coul = tables[0].cut;
     for (int m = 1; m < ntables; m++)
       if (tables[m].cut != cut_coul)
-        error->all(FLERR, "Pair table cutoffs must all be equal to use with KSpace");
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Pair table cutoffs must all be equal to use with KSpace");
     dim = 0;
     return &tables[0].cut;
   } else

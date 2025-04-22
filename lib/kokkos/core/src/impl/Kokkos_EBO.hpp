@@ -109,11 +109,13 @@ template <class T, template <class...> class CTorsNotOnDevice>
 struct EBOBaseImpl<T, false, CTorsNotOnDevice> {
   T m_ebo_object;
 
+  // NOLINTBEGIN(modernize-type-traits)
   template <class... Args, class _ignored = void,
             std::enable_if_t<std::is_void_v<_ignored> &&
                                  !CTorsNotOnDevice<Args...>::value &&
                                  std::is_constructible_v<T, Args...>,
                              int> = 0>
+  // NOLINTEND(modernize-type-traits)
   KOKKOS_FORCEINLINE_FUNCTION constexpr explicit EBOBaseImpl(
       Args&&... args) noexcept(noexcept(T(std::forward<Args>(args)...)))
       : m_ebo_object(std::forward<Args>(args)...) {}

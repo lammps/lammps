@@ -184,7 +184,7 @@ void PairLJCubic::settings(int narg, char ** /*arg*/)
 
 void PairLJCubic::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg != 4) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -207,7 +207,7 @@ void PairLJCubic::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -346,4 +346,14 @@ double PairLJCubic::single(int /*i*/, int /*j*/, int itype, int jtype, double rs
     philj = epsilon[itype][jtype] * (PHIS + DPHIDS * t - A3 * t * t * t / 6.0);
 
   return factor_lj * philj;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairLJCubic::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str, "epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str, "sigma") == 0) return (void *) sigma;
+  return nullptr;
 }

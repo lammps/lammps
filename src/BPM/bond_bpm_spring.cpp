@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Joel Clemmer (SNL)
+------------------------------------------------------------------------- */
+
 #include "bond_bpm_spring.h"
 
 #include "atom.h"
@@ -124,7 +128,7 @@ void BondBPMSpring::store_data()
       type = bond_type[i][m];
 
       //Skip if bond was turned off
-      if (type < 0) continue;
+      if (type <= 0) continue;
 
       // map to find index n
       j = atom->map(atom->bond_atom[i][m]);
@@ -197,7 +201,7 @@ void BondBPMSpring::compute(int eflag, int vflag)
 
   int i1, i2, itmp, n, type;
   double delx, dely, delz, delvx, delvy, delvz;
-  double e, rsq, r, r0, rinv, smooth, fbond, dot;
+  double e, rsq, r, r0, rinv, smooth, fbond, ebond, dot;
   double vol_sum, vol0_sum, vol_temp;
 
   ev_init(eflag, vflag);
@@ -264,7 +268,9 @@ void BondBPMSpring::compute(int eflag, int vflag)
     if (normalize_flag)
       fbond = -k[type] * e;
     else
-      fbond = k[type] * (r0 - r);
+      fbond = -k[type] * (r - r0);
+
+    if (eflag) ebond = -0.5 * fbond * (r - r0);
 
     if (volume_flag) {
       vol_sum = vol[i1] + vol[i2];
@@ -300,7 +306,7 @@ void BondBPMSpring::compute(int eflag, int vflag)
       f[i2][2] -= delz * fbond;
     }
 
-    if (evflag) ev_tally(i1, i2, nlocal, newton_bond, 0.0, fbond, delx, dely, delz);
+    if (evflag) ev_tally(i1, i2, nlocal, newton_bond, ebond, fbond, delx, dely, delz);
   }
 
   // Update vol0 to account for any broken bonds
@@ -399,7 +405,7 @@ void BondBPMSpring::allocate()
 void BondBPMSpring::coeff(int narg, char **arg)
 {
   if ((!volume_flag && narg != 4) || (volume_flag && narg != 5))
-    error->all(FLERR, "Incorrect args for bond coefficients");
+    error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -424,7 +430,7 @@ void BondBPMSpring::coeff(int narg, char **arg)
     if (1.0 + ecrit[i] > max_stretch) max_stretch = 1.0 + ecrit[i];
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -574,7 +580,9 @@ double BondBPMSpring::single(int type, double rsq, int i, int j, double &fforce)
   if (normalize_flag)
     fforce = -k[type] * e;
   else
-    fforce = k[type] * (r0 - r);
+    fforce = -k[type] * (r - r0);
+
+  double ebond = -0.5 * fforce * (r - r0);
 
   if (volume_flag) {
     double invdim = 1.0 / domain->dimension;
@@ -610,7 +618,7 @@ double BondBPMSpring::single(int type, double rsq, int i, int j, double &fforce)
 
   svector[0] = r0;
 
-  return 0.0;
+  return ebond;
 }
 
 /* ---------------------------------------------------------------------- */

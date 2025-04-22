@@ -83,13 +83,13 @@ class ParallelScanHIPBase {
 
  private:
   template <class TagType>
-  __device__ inline std::enable_if_t<std::is_void<TagType>::value> exec_range(
+  __device__ inline std::enable_if_t<std::is_void_v<TagType>> exec_range(
       const Member& i, reference_type update, const bool final_result) const {
     m_functor_reducer.get_functor()(i, update, final_result);
   }
 
   template <class TagType>
-  __device__ inline std::enable_if_t<!std::is_void<TagType>::value> exec_range(
+  __device__ inline std::enable_if_t<!std::is_void_v<TagType>> exec_range(
       const Member& i, reference_type update, const bool final_result) const {
     m_functor_reducer.get_functor()(TagType(), i, update, final_result);
   }

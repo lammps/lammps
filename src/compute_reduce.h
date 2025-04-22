@@ -41,6 +41,7 @@ class ComputeReduce : public Compute {
   struct value_t {
     int which;
     int argindex;
+    int iarg;
     std::string id;
     union {
       class Compute *c;

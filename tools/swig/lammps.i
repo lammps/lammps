@@ -222,6 +222,7 @@ extern int    lammps_is_running(void *handle);
 extern void   lammps_force_timeout(void *handle);
 extern int    lammps_has_error(void *handle);
 extern int    lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
+extern int    lammps_set_show_error(void *handle, const int flag);
 extern int    lammps_python_api_version();
 
 %}
@@ -418,6 +419,7 @@ extern int    lammps_is_running(void *handle);
 extern void   lammps_force_timeout(void *handle);
 extern int    lammps_has_error(void *handle);
 extern int    lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
+extern int    lammps_set_show_error(void *handle, const int flag);
 extern int    lammps_python_api_version();
 
 /* last revised on 3 October 2022 */

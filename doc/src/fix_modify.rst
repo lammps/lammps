@@ -12,7 +12,7 @@ Syntax
 
 * fix-ID = ID of the fix to modify
 * one or more keyword/value pairs may be appended
-* keyword = *bodyforces* or *colname* or *dynamic/dof* or *energy* or *press* or *respa* or *temp* or *virial*
+* keyword = *bodyforces* or *colname* or *dynamic/dof* or *energy* or *pad* or *press* or *respa* or *temp* or *virial*
 
   .. parsed-literal::
 
@@ -25,6 +25,7 @@ Syntax
        *dynamic/dof* value = *yes* or *no*
          yes/no = do or do not re-compute the number of degrees of freedom (DOF) contributing to the temperature
        *energy* value = *yes* or *no*
+       *pad*    arg = Nchar = # of characters to convert timestep to
        *press* value = compute ID that calculates a pressure
        *respa* value = *1* to *max respa level* or *0* (for outermost level)
        *temp* value = compute ID that calculates a temperature
@@ -184,6 +185,18 @@ replaces the string for that specific keyword. The *colname* keyword can
 be used multiple times. If multiple *colname* settings refer to the same
 keyword, the last setting has precedence.
 
+.. versionadded:: 2Apr2025
+
+The *pad* keyword only applies when a fix produces a file and the output
+filename is specified with a wildcard "\*" character which becomes the
+timestep.  If *pad* is 0, which is the default, the timestep is
+converted into a string of unpadded length (e.g., 100 or 12000 or
+2000000).  When *pad* is specified with *Nchar* :math:`>` 0, the string
+is padded with leading zeroes so they are all the same length = *Nchar*\
+.  For example, pad 7 would yield 0000100, 0012000, 2000000.  This can
+be useful so that post-processing programs can easily read the files in
+ascending timestep order.  Please see the documentation of the individual
+fix styles if this keyword is supported.
 
 Restrictions
 """"""""""""

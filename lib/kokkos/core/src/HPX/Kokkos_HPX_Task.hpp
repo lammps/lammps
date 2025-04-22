@@ -128,8 +128,8 @@ class TaskQueueSpecialization<
 template <class Scheduler>
 class TaskQueueSpecializationConstrained<
     Scheduler,
-    std::enable_if_t<std::is_same<typename Scheduler::execution_space,
-                                  Kokkos::Experimental::HPX>::value>> {
+    std::enable_if_t<std::is_same_v<typename Scheduler::execution_space,
+                                    Kokkos::Experimental::HPX>>> {
  public:
   void setup() const {
     const int num_worker_threads = Kokkos::Experimental::HPX().concurrency();

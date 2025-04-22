@@ -27,7 +27,7 @@ void test_dyn_rank_view_team_scratch() {
   using policy_type     = Kokkos::TeamPolicy<execution_space>;
   using team_type       = policy_type::member_type;
 
-  int N0 = 10, N1 = 4, N2 = 3;
+  size_t N0 = 10, N1 = 4, N2 = 3;
   size_t shmem_size = drv_type::shmem_size(N0, N1, N2);
   ASSERT_GE(shmem_size, N0 * N1 * N2 * sizeof(int));
 
@@ -40,9 +40,9 @@ void test_dyn_rank_view_team_scratch() {
         drv_type scr(team.team_scratch(0), N0, N1, N2);
         // Control that the code ran at all
         if (scr.rank() != 3) errors() |= 1u;
-        if (scr.extent_int(0) != N0) errors() |= 2u;
-        if (scr.extent_int(1) != N1) errors() |= 4u;
-        if (scr.extent_int(2) != N2) errors() |= 8u;
+        if (scr.extent(0) != N0) errors() |= 2u;
+        if (scr.extent(1) != N1) errors() |= 4u;
+        if (scr.extent(2) != N2) errors() |= 8u;
         Kokkos::parallel_for(
             Kokkos::TeamThreadMDRange(team, N0, N1, N2),
             [=](int i, int j, int k) { scr(i, j, k) = i * 100 + j * 10 + k; });

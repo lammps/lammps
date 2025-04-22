@@ -98,12 +98,13 @@ class Error : protected Pointers {
   std::string get_last_error() const;
   ErrorType get_last_error_type() const;
   void set_last_error(const char *msg, ErrorType type = ERROR_NORMAL);
+  int set_show_error(const int flag);
 
  private:
   std::string last_error_message;
   ErrorType last_error_type;
 
-  int numwarn, maxwarn, allwarn;
+  int numwarn, maxwarn, allwarn, showerror;
   // internal versions that accept explicit fmtlib arguments
   [[noreturn]] void _all(const std::string &, int, int, fmt::string_view, fmt::format_args args);
   [[noreturn]] void _one(const std::string &, int, int, fmt::string_view, fmt::format_args args);

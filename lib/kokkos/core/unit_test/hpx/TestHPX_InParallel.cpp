@@ -17,6 +17,10 @@
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
 
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
+
 // These tests specifically check that work dispatched to independent instances
 // is synchronized correctly on fences. A previous bug that this protects
 // against is work being mistakenly dispatched to the default instance, but the
@@ -181,3 +185,7 @@ TEST(hpx, in_parallel_scan_range_policy) {
   }
 }
 }  // namespace
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif

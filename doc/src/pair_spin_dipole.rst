@@ -43,7 +43,7 @@ vector omega and mechanical force between particles I and J.
 
 .. math::
 
-   \mathcal{H}_{\rm long} & =
+   \mathcal{H}_\mathrm{long} & =
    -\frac{\mu_{0} \left( \mu_B\right)^2}{4\pi}
    \sum_{i,j,i\neq j}^{N}
     \frac{g_i g_j}{r_{ij}^3}

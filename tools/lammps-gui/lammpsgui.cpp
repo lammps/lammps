@@ -83,8 +83,10 @@ LammpsGui::LammpsGui(QWidget *parent, const QString &filename) :
     capturer    = new StdCapture;
     current_file.clear();
     current_dir = QDir(".").absolutePath();
-    // use $HOME if we get dropped to "/" like on macOS
-    if (current_dir == "/") current_dir = QDir::homePath();
+    // use $HOME if we get dropped to "/" like on macOS or the installation folder like on Windows
+    if ((current_dir == "/") || (current_dir.contains("AppData"))) current_dir = QDir::homePath();
+    QDir::setCurrent(current_dir);
+
     inspectList.clear();
     setAutoFillBackground(true);
 
@@ -387,6 +389,11 @@ LammpsGui::LammpsGui(QWidget *parent, const QString &filename) :
     ui->textEdit->setReformatOnReturn(settings.value("return", false).toBool());
     ui->textEdit->setAutoComplete(settings.value("automatic", true).toBool());
     settings.endGroup();
+
+    // apply https proxy setting: prefer environment variable or fall back to preferences value
+    auto https_proxy = QString::fromLocal8Bit(qgetenv("https_proxy"));
+    if (https_proxy.isEmpty()) https_proxy = settings.value("https_proxy", "").toString();
+    if (!https_proxy.isEmpty()) lammps.command(QString("shell putenv https_proxy=") + https_proxy);
 }
 
 LammpsGui::~LammpsGui()
@@ -1236,6 +1243,11 @@ void LammpsGui::do_run(bool use_buffer)
         runner->setup_run(&lammps, nullptr, fname);
     }
 
+    // apply https proxy setting: prefer environment variable or fall back to preferences value
+    auto https_proxy = QString::fromLocal8Bit(qgetenv("https_proxy"));
+    if (https_proxy.isEmpty()) https_proxy = settings.value("https_proxy", "").toString();
+    if (!https_proxy.isEmpty()) lammps.command(QString("shell putenv https_proxy=") + https_proxy);
+
     connect(runner, &LammpsRunner::resultReady, this, &LammpsGui::run_done);
     connect(runner, &LammpsRunner::finished, runner, &QObject::deleteLater);
     runner->start();
@@ -1605,7 +1617,7 @@ QWizardPage *LammpsGui::tutorial_directory(const int ntutorial)
                 "created if necessary and LAMMPS-GUI will download the files required for the "
                 "tutorial.  If selected, an existing directory may be cleared from old "
                 "files.</p>\n<p>Available files of the tutorial solution may be downloaded to a "
-                "sub-folder \"solution\", if requested.</p>\n")
+                "sub-folder called \"solution\", if requested.</p>\n")
             .arg(ntutorial));
     label->setWordWrap(true);
 
@@ -1645,6 +1657,7 @@ QWizardPage *LammpsGui::tutorial_directory(const int ntutorial)
     auto *solval     = new QCheckBox;
     auto *purgelabel = new QLabel("Remove existing files from directory");
     auto *sollabel   = new QLabel("Download solutions");
+
     purgeval->setCheckState(Qt::Unchecked);
     purgeval->setObjectName("t_dirpurge");
     solval->setCheckState(Qt::Unchecked);
@@ -1655,6 +1668,18 @@ QWizardPage *LammpsGui::tutorial_directory(const int ntutorial)
     grid->addWidget(sollabel, 1, 1, Qt::AlignVCenter);
     grid->setColumnStretch(0, 0);
     grid->setColumnStretch(1, 100);
+
+    // we have tutorials 1 to 7 currently available online
+
+    QCheckBox *webval = nullptr;
+    if ((ntutorial > 0) && (ntutorial < 8)) {
+        grid->addWidget(new QLabel, 2, 0, 1, 2, Qt::AlignVCenter);
+        webval = new QCheckBox;
+        webval->setCheckState(Qt::Checked);
+        webval->setObjectName("t_webopen");
+        grid->addWidget(webval, 3, 0, Qt::AlignVCenter);
+        grid->addWidget(new QLabel("Open tutorial webpage in web browser"), 3, 1, Qt::AlignVCenter);
+    }
 
     auto *label2 = new QLabel(
         QString("<hr width=\"33%\">\n<p align=\"center\">Click on "
@@ -1996,7 +2021,8 @@ static const QString geturl =
     "geturl https://raw.githubusercontent.com/lammpstutorials/"
     "lammpstutorials-article/refs/heads/main/files/tutorial%1/%2 output %2 verify no";
 
-void LammpsGui::setup_tutorial(int tutno, const QString &dir, bool purgedir, bool getsolution)
+void LammpsGui::setup_tutorial(int tutno, const QString &dir, bool purgedir, bool getsolution,
+                               bool openwebpage)
 {
     constexpr int BUFLEN = 1024;
     char errorbuf[BUFLEN];
@@ -2011,6 +2037,36 @@ void LammpsGui::setup_tutorial(int tutno, const QString &dir, bool purgedir, boo
     QDir directory(dir);
     directory.cd(dir);
 
+    if (openwebpage) {
+        QString weburl = "https://lammpstutorials.github.io/sphinx/build/html/tutorial%1/%2.html";
+        switch (tutno) {
+        case 1:
+            weburl = weburl.arg(tutno).arg("lennard-jones-fluid");
+            break;
+        case 2:
+            weburl = weburl.arg(tutno).arg("breaking-a-carbon-nanotube");
+            break;
+        case 3:
+            weburl = weburl.arg(tutno).arg("polymer-in-water");
+            break;
+        case 4:
+            weburl = weburl.arg(tutno).arg("nanosheard-electrolyte");
+            break;
+        case 5:
+            weburl = weburl.arg(tutno).arg("reactive-silicon-dioxide");
+            break;
+        case 6:
+            weburl = weburl.arg(tutno).arg("water-adsorption-in-silica");
+            break;
+        case 7:
+            weburl = weburl.arg(tutno).arg("free-energy-calculation");
+            break;
+        default:
+            weburl = "https://lammpstutorials.github.io/";
+        }
+        QDesktopServices::openUrl(QUrl(weburl));
+    }
+
     if (purgedir) purge_directory(dir);
     if (getsolution) directory.mkpath("solution");
 
@@ -2018,9 +2074,13 @@ void LammpsGui::setup_tutorial(int tutno, const QString &dir, bool purgedir, boo
     lammps.command("clear");
     lammps.command(QString("shell cd " + dir));
 
+    // apply https proxy setting: prefer environment variable or fall back to preferences value
+    auto https_proxy = QString::fromLocal8Bit(qgetenv("https_proxy"));
+    if (https_proxy.isEmpty()) https_proxy = QSettings().value("https_proxy", "").toString();
+    if (!https_proxy.isEmpty()) lammps.command(QString("shell putenv https_proxy=") + https_proxy);
+
     // download and process manifest for selected tutorial
     // must check for error after download, e.g. when there is no network.
-
     lammps.command(geturl.arg(tutno).arg(".manifest"));
     if (lammps.has_error()) {
         lammps.get_last_error_message(errorbuf, BUFLEN);
@@ -2122,9 +2182,13 @@ void TutorialWizard::accept()
     auto *dirname    = findChild<QLineEdit *>("t_directory");
     auto *dirpurge   = findChild<QCheckBox *>("t_dirpurge");
     auto *getsol     = findChild<QCheckBox *>("t_getsolution");
+    auto *webopen    = findChild<QCheckBox *>("t_webopen");
     bool purgedir    = false;
     bool getsolution = false;
+    bool openwebpage = false;
     QString curdir;
+
+    if (webopen) openwebpage = (webopen->checkState() == Qt::Checked);
 
     // create and populate directory.
     if (dirname) {
@@ -2149,7 +2213,7 @@ void TutorialWizard::accept()
         LammpsGui *main = nullptr;
         for (QWidget *widget : QApplication::topLevelWidgets())
             if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
-        if (main) main->setup_tutorial(_ntutorial, curdir, purgedir, getsolution);
+        if (main) main->setup_tutorial(_ntutorial, curdir, purgedir, getsolution, openwebpage);
     }
 }
 

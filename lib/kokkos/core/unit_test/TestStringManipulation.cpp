@@ -36,10 +36,8 @@ KOKKOS_FUNCTION constexpr bool test_strcmp() {
   constexpr char cat3[] = "Hobbes";
   constexpr char cat4[] = "Garfield";
   static_assert(strcmp(cat1, cat1) == 0);
-#if (!defined(KOKKOS_COMPILER_NVCC) ||                                 \
-     ((__CUDACC_VER_MAJOR__ >= 11) && (__CUDACC_VER_MINOR__ >= 3))) && \
-    (!defined(__INTEL_COMPILER_BUILD_DATE) ||                          \
-     (__INTEL_COMPILER_BUILD_DATE >= 20210228))
+#if (!defined(KOKKOS_COMPILER_NVCC) || \
+     ((__CUDACC_VER_MAJOR__ >= 11) && (__CUDACC_VER_MINOR__ >= 3)))
   static_assert(strcmp(cat1, cat2) < 0);
   static_assert(strcmp(cat1, cat3) < 0);
 #endif

@@ -1,7 +1,7 @@
 Removed commands and packages
 =============================
 
-.. contents::
+.. contents:: \
 
 ------
 
@@ -169,6 +169,18 @@ the design were transferred to the
 performance characteristics on NVIDIA GPUs. Both, the KOKKOS
 and the :ref:`GPU package <PKG-GPU>` are maintained
 and allow running LAMMPS with GPU acceleration.
+
+Compute atom/molecule
+---------------------
+
+.. deprecated:: 11 Dec2015
+
+The atom/molecule command has been removed from LAMMPS since it was superseded
+by the more general and extensible "chunk infrastructure".  Here the system is
+partitioned in one of many possible ways - including using molecule IDs -
+through the :doc:`compute chunk/atom <compute_chunk_atom>` command and then
+summing is done using :doc:`compute reduce/chunk <compute_reduce_chunk>` Please
+refer to the :doc:`chunk HOWTO <Howto_chunk>` section for an overview.
 
 Fix ave/spatial and fix ave/spatial/sphere
 ------------------------------------------

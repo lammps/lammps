@@ -48,17 +48,14 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::Cuda> {
   const FunctorType m_functor;
   const Policy m_policy;
 
-  ParallelFor()                              = delete;
-  ParallelFor& operator=(const ParallelFor&) = delete;
-
   template <class TagType>
-  inline __device__ std::enable_if_t<std::is_void<TagType>::value> exec_range(
+  inline __device__ std::enable_if_t<std::is_void_v<TagType>> exec_range(
       const Member i) const {
     m_functor(i);
   }
 
   template <class TagType>
-  inline __device__ std::enable_if_t<!std::is_void<TagType>::value> exec_range(
+  inline __device__ std::enable_if_t<!std::is_void_v<TagType>> exec_range(
       const Member i) const {
     m_functor(TagType(), i);
   }
@@ -66,17 +63,22 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::Cuda> {
  public:
   using functor_type = FunctorType;
 
+  ParallelFor()                              = delete;
+  ParallelFor(const ParallelFor&)            = default;
+  ParallelFor& operator=(const ParallelFor&) = delete;
+
   Policy const& get_policy() const { return m_policy; }
 
   inline __device__ void operator()() const {
-    const Member work_stride = blockDim.y * gridDim.x;
-    const Member work_end    = m_policy.end();
+    const auto work_stride = Member(blockDim.y) * gridDim.x;
+    const Member work_end  = m_policy.end();
 
-    for (Member iwork =
-             m_policy.begin() + threadIdx.y + blockDim.y * blockIdx.x;
+    for (Member iwork = m_policy.begin() + threadIdx.y +
+                        static_cast<Member>(blockDim.y) * blockIdx.x;
          iwork < work_end;
-         iwork = iwork < work_end - work_stride ? iwork + work_stride
-                                                : work_end) {
+         iwork = iwork < static_cast<Member>(work_end - work_stride)
+                     ? iwork + work_stride
+                     : work_end) {
       this->template exec_range<WorkTag>(iwork);
     }
   }
@@ -175,13 +177,13 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
 
   // Make the exec_range calls call to Reduce::DeviceIterateTile
   template <class TagType>
-  __device__ inline std::enable_if_t<std::is_void<TagType>::value> exec_range(
+  __device__ inline std::enable_if_t<std::is_void_v<TagType>> exec_range(
       const Member& i, reference_type update) const {
     m_functor_reducer.get_functor()(i, update);
   }
 
   template <class TagType>
-  __device__ inline std::enable_if_t<!std::is_void<TagType>::value> exec_range(
+  __device__ inline std::enable_if_t<!std::is_void_v<TagType>> exec_range(
       const Member& i, reference_type update) const {
     m_functor_reducer.get_functor()(TagType(), i, update);
   }
@@ -296,11 +298,6 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
 
       KOKKOS_ASSERT(block_size > 0);
 
-      // TODO: down casting these uses more space than required?
-      m_scratch_space = (word_size_type*)cuda_internal_scratch_space(
-          m_policy.space(), m_functor_reducer.get_reducer().value_size() *
-                                block_size /* block_size == max block_count */);
-
       // Intentionally do not downcast to word_size_type since we use Cuda
       // atomics in Kokkos_Cuda_ReduceScan.hpp
       m_scratch_flags = cuda_internal_scratch_flags(m_policy.space(),
@@ -311,10 +308,15 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
 
       // REQUIRED ( 1 , N , 1 )
       dim3 block(1, block_size, 1);
-      // Required grid.x <= block.y
-      dim3 grid(std::min(index_type(block.y),
-                         index_type((nwork + block.y - 1) / block.y)),
-                1, 1);
+      auto cc = m_policy.space().concurrency() / block_size;
+      dim3 grid(
+          std::min(index_type(cc), index_type((nwork + block.y - 1) / block.y)),
+          1, 1);
+
+      // TODO: down casting these uses more space than required?
+      m_scratch_space = (word_size_type*)cuda_internal_scratch_space(
+          m_policy.space(),
+          m_functor_reducer.get_reducer().value_size() * grid.x);
 
       // TODO @graph We need to effectively insert this in to the graph
       const int shmem =
@@ -438,13 +440,13 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::Cuda> {
 #endif
 
   template <class TagType>
-  __device__ inline std::enable_if_t<std::is_void<TagType>::value> exec_range(
+  __device__ inline std::enable_if_t<std::is_void_v<TagType>> exec_range(
       const Member& i, reference_type update, const bool final_result) const {
     m_functor_reducer.get_functor()(i, update, final_result);
   }
 
   template <class TagType>
-  __device__ inline std::enable_if_t<!std::is_void<TagType>::value> exec_range(
+  __device__ inline std::enable_if_t<!std::is_void_v<TagType>> exec_range(
       const Member& i, reference_type update, const bool final_result) const {
     m_functor_reducer.get_functor()(TagType(), i, update, final_result);
   }
@@ -757,13 +759,13 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
 #endif
 
   template <class TagType>
-  __device__ inline std::enable_if_t<std::is_void<TagType>::value> exec_range(
+  __device__ inline std::enable_if_t<std::is_void_v<TagType>> exec_range(
       const Member& i, reference_type update, const bool final_result) const {
     m_functor_reducer.get_functor()(i, update, final_result);
   }
 
   template <class TagType>
-  __device__ inline std::enable_if_t<!std::is_void<TagType>::value> exec_range(
+  __device__ inline std::enable_if_t<!std::is_void_v<TagType>> exec_range(
       const Member& i, reference_type update, const bool final_result) const {
     m_functor_reducer.get_functor()(TagType(), i, update, final_result);
   }
@@ -1015,7 +1017,8 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
         if (!m_result_ptr_device_accessible)
           DeepCopy<HostSpace, CudaSpace, Cuda>(
               m_policy.space(), m_result_ptr,
-              m_scratch_space + (grid_x - 1) * size / sizeof(word_size_type),
+              m_scratch_space + (static_cast<ptrdiff_t>(grid_x) - 1) * size /
+                                    sizeof(word_size_type),
               size);
       }
     }

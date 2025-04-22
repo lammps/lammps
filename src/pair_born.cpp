@@ -18,16 +18,17 @@
 
 #include "pair_born.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "info.h"
 #include "neigh_list.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -197,7 +198,7 @@ void PairBorn::settings(int narg, char **arg)
 
 void PairBorn::coeff(int narg, char **arg)
 {
-  if (narg < 7 || narg > 8) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 7 || narg > 8) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -207,7 +208,7 @@ void PairBorn::coeff(int narg, char **arg)
   double a_one = utils::numeric(FLERR,arg[2],false,lmp);
   double rho_one = utils::numeric(FLERR,arg[3],false,lmp);
   double sigma_one = utils::numeric(FLERR,arg[4],false,lmp);
-  if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   double c_one = utils::numeric(FLERR,arg[5],false,lmp);
   double d_one = utils::numeric(FLERR,arg[6],false,lmp);
 
@@ -228,7 +229,7 @@ void PairBorn::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -237,7 +238,9 @@ void PairBorn::coeff(int narg, char **arg)
 
 double PairBorn::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   rhoinv[i][j] = 1.0/rho[i][j];
   born1[i][j] = a[i][j]/rho[i][j];

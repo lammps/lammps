@@ -1027,8 +1027,8 @@ struct ViewOffset<
     KOKKOS_INLINE_FUNCTION
     static constexpr size_t stride(size_t const N) {
       return ((align != 0) &&
-              ((static_cast<int>(Kokkos::Impl::MEMORY_ALIGNMENT_THRESHOLD) *
-                static_cast<int>(align)) < N) &&
+              ((static_cast<size_t>(Kokkos::Impl::MEMORY_ALIGNMENT_THRESHOLD) *
+                align) < N) &&
               ((N % div_ok) != 0))
                  ? N + align - (N % div_ok)
                  : N;
@@ -1713,8 +1713,8 @@ struct ViewOffset<
     KOKKOS_INLINE_FUNCTION
     static constexpr size_t stride(size_t const N) {
       return ((align != 0) &&
-              ((static_cast<int>(Kokkos::Impl::MEMORY_ALIGNMENT_THRESHOLD) *
-                static_cast<int>(align)) < N) &&
+              ((static_cast<size_t>(Kokkos::Impl::MEMORY_ALIGNMENT_THRESHOLD) *
+                align) < N) &&
               ((N % div_ok) != 0))
                  ? N + align - (N % div_ok)
                  : N;
@@ -3353,6 +3353,9 @@ KOKKOS_FUNCTION bool within_range(Map const& map,
   return (((std::size_t)indices < map.extent(Enumerate)) && ...);
 }
 
+// Disabled when using MDSpan because the MDSpan implementation has its own
+// version
+#ifndef KOKKOS_ENABLE_IMPL_MDSPAN
 template <class... Indices>
 KOKKOS_FUNCTION constexpr char* append_formatted_multidimensional_index(
     char* dest, Indices... indices) {
@@ -3370,6 +3373,7 @@ KOKKOS_FUNCTION constexpr char* append_formatted_multidimensional_index(
   d[strlen(d) - 1] = ']';  // overwrite trailing comma
   return dest;
 }
+#endif
 
 template <class Map, class... Indices, std::size_t... Enumerate>
 KOKKOS_FUNCTION void print_extents(char* dest, Map const& map,

@@ -255,13 +255,6 @@ class RangePolicy : public Impl::PolicyTraits<Properties...> {
     if constexpr (std::is_convertible_v<member_type, IndexType>) {
 #if !defined(KOKKOS_ENABLE_DEPRECATED_CODE_4) || \
     defined(KOKKOS_ENABLE_DEPRECATION_WARNINGS)
-
-      std::string msg =
-          "Kokkos::RangePolicy bound type error: an unsafe implicit conversion "
-          "is performed on a bound (" +
-          std::to_string(bound) +
-          "), which may "
-          "not preserve its original value.\n";
       bool warn = false;
 
       if constexpr (std::is_arithmetic_v<member_type> &&
@@ -283,6 +276,12 @@ class RangePolicy : public Impl::PolicyTraits<Properties...> {
           (static_cast<IndexType>(static_cast<member_type>(bound)) != bound);
 
       if (warn) {
+        std::string msg =
+            "Kokkos::RangePolicy bound type error: an unsafe implicit "
+            "conversion is performed on a bound (" +
+            std::to_string(bound) +
+            "), which may not preserve its original value.\n";
+
 #ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
         Kokkos::abort(msg.c_str());
 #endif
@@ -685,17 +684,18 @@ class TeamPolicy
 
  public:
   inline TeamPolicy& set_chunk_size(int chunk) {
-    static_assert(std::is_same<decltype(internal_policy::set_chunk_size(chunk)),
-                               internal_policy&>::value,
-                  "internal set_chunk_size should return a reference");
+    static_assert(
+        std::is_same_v<decltype(internal_policy::set_chunk_size(chunk)),
+                       internal_policy&>,
+        "internal set_chunk_size should return a reference");
     return static_cast<TeamPolicy&>(internal_policy::set_chunk_size(chunk));
   }
 
   inline TeamPolicy& set_scratch_size(const int& level,
                                       const Impl::PerTeamValue& per_team) {
-    static_assert(std::is_same<decltype(internal_policy::set_scratch_size(
-                                   level, per_team)),
-                               internal_policy&>::value,
+    static_assert(std::is_same_v<decltype(internal_policy::set_scratch_size(
+                                     level, per_team)),
+                                 internal_policy&>,
                   "internal set_chunk_size should return a reference");
 
     team_policy_check_valid_storage_level_argument(level);

@@ -356,6 +356,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`ti <compute_ti>` - thermodynamic integration free energy values
 * :doc:`torque/chunk <compute_torque_chunk>` - torque applied on each chunk
 * :doc:`vacf <compute_vacf>` - velocity auto-correlation function of group of atoms
+* :doc:`vacf/chunk <compute_vacf_chunk>` - velocity auto-correlation for the center of mass velocities of chunks of atoms
 * :doc:`vcm/chunk <compute_vcm_chunk>` - velocity of center-of-mass for each chunk
 * :doc:`viscosity/cos <compute_viscosity_cos>` - velocity profile under cosine-shaped acceleration
 * :doc:`voronoi/atom <compute_voronoi_atom>` - Voronoi volume and neighbors for each atom

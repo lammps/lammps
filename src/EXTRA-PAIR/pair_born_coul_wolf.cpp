@@ -18,16 +18,18 @@
 
 #include "pair_born_coul_wolf.h"
 
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "info.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -240,7 +242,7 @@ void PairBornCoulWolf::settings(int narg, char **arg)
 void PairBornCoulWolf::coeff(int narg, char **arg)
 {
   if (narg < 7 || narg > 8)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -250,7 +252,7 @@ void PairBornCoulWolf::coeff(int narg, char **arg)
   double a_one = utils::numeric(FLERR,arg[2],false,lmp);
   double rho_one = utils::numeric(FLERR,arg[3],false,lmp);
   double sigma_one = utils::numeric(FLERR,arg[4],false,lmp);
-  if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   double c_one = utils::numeric(FLERR,arg[5],false,lmp);
   double d_one = utils::numeric(FLERR,arg[6],false,lmp);
 
@@ -271,7 +273,7 @@ void PairBornCoulWolf::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -294,7 +296,9 @@ void PairBornCoulWolf::init_style()
 
 double PairBornCoulWolf::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   double cut = MAX(cut_lj[i][j],cut_coul);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];

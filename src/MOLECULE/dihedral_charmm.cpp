@@ -307,7 +307,7 @@ void DihedralCharmm::allocate()
 
 void DihedralCharmm::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all(FLERR, "Incorrect args for dihedral coefficients");
+  if (narg != 5) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -340,7 +340,7 @@ void DihedralCharmm::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -431,4 +431,17 @@ void DihedralCharmm::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
     fprintf(fp, "%d %g %d %d %g\n", i, k[i], multiplicity[i], shift[i], weight[i]);
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *DihedralCharmm::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "n") == 0) return (void *) multiplicity;
+  if (strcmp(str, "d") == 0) return (void *) shift;
+  return nullptr;
 }

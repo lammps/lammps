@@ -24,7 +24,7 @@
 /* We follow the behavior of regular LAMMPS compilation and assume
  * -DLAMMPS_SMALLBIG when no define is set. */
 
-#if !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG) && !defined(LAMMPS_SMALLSMALL)
+#if !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG)
 #define LAMMPS_SMALLBIG
 #endif
 
@@ -287,10 +287,8 @@ void lammps_decode_image_flags(int64_t image, int *flags);
 
 #if defined(LAMMPS_BIGBIG)
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
-#elif defined(LAMMPS_SMALLBIG)
-typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
 #else
-typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
+typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
 #endif
 
 void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalFnPtr funcptr,
@@ -312,6 +310,7 @@ void lammps_force_timeout(void *handle);
 
 int lammps_has_error(void *handle);
 int lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
+int lammps_set_show_error(void *handle, const int flag);
 
 int lammps_python_api_version();
 

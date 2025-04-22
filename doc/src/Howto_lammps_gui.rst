@@ -1,35 +1,25 @@
 Using LAMMPS-GUI
 ================
 
+LAMMPS-GUI is a graphical text editor programmed using the `Qt Framework
+<https://www.qt.io/>`_ and customized for editing LAMMPS input files.  It
+is linked to the :ref:`LAMMPS library <lammps_c_api>` and thus can run
+LAMMPS directly using the contents of the editor's text buffer as input.
+
+It *differs* from other known interfaces to LAMMPS in that it can
+retrieve and display information from LAMMPS *while it is running*,
+display visualizations created with the :doc:`dump image command
+<dump_image>`, can launch the online LAMMPS documentation for known
+LAMMPS commands and styles, and directly integrates with a collection
+of LAMMPS tutorials (:ref:`Gravelle1 <Gravelle1>`).
+
 This document describes **LAMMPS-GUI version 1.6**.
 
 -----
 
-LAMMPS-GUI is a graphical text editor customized for editing LAMMPS
-input files that is linked to the :ref:`LAMMPS library <lammps_c_api>`
-and thus can run LAMMPS directly using the contents of the editor's text
-buffer as input.  It can retrieve and display information from LAMMPS
-while it is running, display visualizations created with the :doc:`dump
-image command <dump_image>`, and is adapted specifically for editing
-LAMMPS input files through text completion and reformatting, and linking
-to the online LAMMPS documentation for known LAMMPS commands and styles.
+.. contents::
 
-.. note::
-
-   Pre-compiled, ready-to-use LAMMPS-GUI executables for Linux x86\_64
-   (Ubuntu 20.04LTS or later and compatible), macOS (version 11 aka Big
-   Sur or later), and Windows (version 10 or later) :ref:`are available
-   <lammps_gui_install>` for download.  Non-MPI LAMMPS executables (as
-   ``lmp``) for running LAMMPS from the command-line and :doc:`some
-   LAMMPS tools <Tools>` compiled executables are also included.
-   Also, the pre-compiled LAMMPS-GUI packages include the WHAM executables
-   from http://membrane.urmc.rochester.edu/content/wham/ for use with
-   LAMMPS tutorials.
-
-   The source code for LAMMPS-GUI is included in the LAMMPS source code
-   distribution and can be found in the ``tools/lammps-gui`` folder.  It
-   can be compiled alongside LAMMPS when :doc:`compiling with CMake
-   <Build_cmake>`.
+----
 
 LAMMPS-GUI tries to provide an experience similar to what people
 traditionally would have running LAMMPS using a command-line window and
@@ -64,8 +54,8 @@ simple LAMMPS simulations.  It is very suitable for tutorials on LAMMPS
 since you only need to learn how to use a single program for most tasks
 and thus time can be saved and people can focus on learning LAMMPS.
 The tutorials at https://lammpstutorials.github.io/ are specifically
-updated for use with LAMMPS-GUI and can their tutorial materials can
-be downloaded and loaded directly from the GUI.
+updated for use with LAMMPS-GUI and their tutorial materials can
+be downloaded and edited directly from the GUI.
 
 Another design goal is to keep the barrier low when replacing part of
 the functionality of LAMMPS-GUI with external tools.  That said, LAMMPS-GUI
@@ -78,9 +68,30 @@ has some unique functionality that is not found elsewhere:
 - monitoring of simulation progress
 - interactive visualization using the :doc:`dump image <dump_image>`
   command with the option to copy-paste the resulting settings
-- automatic slide show generation from dump image out at runtime
-- automatic plotting of thermodynamics data at runtime
+- automatic slide show generation from dump image output at runtime
+- automatic plotting of thermodynamic data at runtime
 - inspection of binary restart files
+
+.. admonition:: Download LAMMPS-GUI for your platform
+   :class: Hint
+
+   Pre-compiled, ready-to-use LAMMPS-GUI executables for Linux x86\_64
+   (Ubuntu 20.04LTS or later and compatible), macOS (version 11 aka Big
+   Sur or later), and Windows (version 10 or later) :ref:`are available
+   <lammps_gui_install>` for download.  Non-MPI LAMMPS executables (as
+   ``lmp``) for running LAMMPS from the command-line and :doc:`some
+   LAMMPS tools <Tools>` compiled executables are also included.  Also,
+   the pre-compiled LAMMPS-GUI packages include the WHAM executables
+   from http://membrane.urmc.rochester.edu/content/wham/ for use with
+   LAMMPS tutorials documented in this paper (:ref:`Gravelle1
+   <Gravelle1>`).
+
+   The source code for LAMMPS-GUI is included in the LAMMPS source code
+   distribution and can be found in the ``tools/lammps-gui`` folder.  It
+   can be compiled alongside LAMMPS when :doc:`compiling with CMake
+   <Build_cmake>`.
+
+-----
 
 The following text provides a detailed tour of the features and
 functionality of LAMMPS-GUI.  Suggestions for new features and
@@ -92,9 +103,12 @@ channels as for LAMMPS itself <Errors_bugs>` for that purpose.
 Installing Pre-compiled LAMMPS-GUI Packages
 -------------------------------------------
 
-LAMMPS-GUI is available as pre-compiled binary packages for Linux
-x86\_64, macOS 11 and later, and Windows 10 and later.  Alternately, it
-can be compiled from source.
+LAMMPS-GUI is available for download as pre-compiled binary packages for
+Linux x86\_64 (Ubuntu 20.04LTS or later and compatible), macOS (version
+11 aka Big Sur or later), and Windows (version 10 or later) from the
+`LAMMPS release pages on GitHub <https://github.com/lammps/lammps/releases/>`_.
+A backup download location is at https://download.lammps.org/static/
+Alternately, LAMMPS-GUI can be compiled from source when building LAMMPS.
 
 Windows 10 and later
 ^^^^^^^^^^^^^^^^^^^^
@@ -349,8 +363,13 @@ data or both.  The smoothing uses a `Savitzky-Golay convolution filter
 window width (left) and order (right) parameters can be set in the boxes
 next to the drop down menu.  Default settings are 10 and 4 which means
 that the smoothing window includes 10 points each to the left and the
-right of the current data point and a fourth order polynomial is fit to
-the data in the window.
+right of the current data point for a total of 21 points and a fourth
+order polynomial is fitted to the data in the window.
+
+The "Title:" and "Y:" input boxes allow to edit the text shown as the
+plot title and the y-axis label, respectively.  The text entered in the
+"Title:" box is applied to *all* charts, while the "Y:" text changes
+only the y-axis label of the currently *selected* plot.
 
 You can use the mouse to zoom into the graph (hold the left button and
 drag to mark an area) or zoom out (right click) and you can reset the
@@ -381,6 +400,11 @@ from the *Charts* window differs from that of the *Output* window:
 here you get the compounded data set starting with the last change of
 output fields or timestep setting, while the export from the log will
 contain *all* YAML output but *segmented* into individual runs.
+
+The *Preferences* dialog has a *Charts* tab, where you can configure
+multiple chart-related settings, like the default title, colors for the
+graphs, default choice of the raw / smooth graph selection, and the
+default chart graph size.
 
 Image Slide Show
 ----------------
@@ -461,11 +485,11 @@ correspond to (via their mass) and then colorize them in the image and
 set their atom diameters accordingly.  If this is not possible, for
 instance when using reduced (= 'lj') :doc:`units <units>`, then
 LAMMPS-GUI will check the current pair style and if it is a
-Lennard-Jones type potential, it will extract the *sigma* parameter
-for each atom type and assign atom diameters from those numbers.
-For cases where atom diameters are not auto-detected, the *Atom size* field
-can be edited and a suitable value set manually. The default value
-is inferred from the x-direction lattice spacing.
+Lennard-Jones type potential, it will extract the *sigma* parameter for
+each atom type and assign atom diameters from those numbers.  For cases
+where atom diameters are not auto-detected, the *Atom size* field can be
+edited and a suitable value set manually. The default value is inferred
+from the x-direction lattice spacing.
 
 If elements cannot be detected the default sequence of colors of the
 :doc:`dump image <dump_image>` command is assigned to the different atom
@@ -480,22 +504,31 @@ types.
 |gui-image1|  |gui-image2|
 
 The default image size, some default image quality settings, the view
-style and some colors can be changed in the *Preferences* dialog
-window.  From the image viewer window further adjustments can be made:
-actual image size, high-quality (SSAO) rendering, anti-aliasing, view
-style, display of box or axes, zoom factor.  The view of the system can
-be rotated horizontally and vertically.  It is also possible to only
-display the atoms within a group defined in the input script (default is
-"all").  The image can also be re-centered on the center of mass of the
-selected group.  After each change, the image is rendered again and the
-display updated.  The small palette icon on the top left is colored
-while LAMMPS is running to render the new image; it is grayed out when
-LAMMPS is finished.  When there are many atoms to render and high
-quality images with anti-aliasing are requested, re-rendering may take
-several seconds.  From the *File* menu of the image window, the
-current image can be saved to a file (keyboard shortcut `Ctrl-S`) or
-copied to the clipboard (keyboard shortcut `Ctrl-C`) for pasting the
-image into another application.
+style and some colors can be changed in the *Preferences* dialog window.
+From the image viewer window further adjustments can be made: actual
+image size, high-quality (SSAO) rendering, anti-aliasing, view style,
+display of box or axes, zoom factor.  The view of the system can be
+rotated horizontally and vertically.
+
+It is also possible to display only the atoms within a :doc:`group
+defined in the input script <group>` (default is "all").  The available
+groups can be selected from the drop down list next to the "Group:"
+label.  Similarly, if there are :doc:`molecules defined in the input
+<molecule>`, it is possible to select one of them (default is "none")
+and visualize it (it will be shown at the center of the simulation box).
+While a molecule is selected, the group selection is disabled.  It can
+be restored by selecting the molecule "none".
+
+The image can also be re-centered on the center of mass of the selected
+group.  After each change, the image is rendered again and the display
+updated.  The small palette icon on the top left is colored while LAMMPS
+is running to render the new image; it is grayed out when LAMMPS is
+finished.  When there are many atoms to render and high quality images
+with anti-aliasing are requested, re-rendering may take several seconds.
+From the *File* menu of the image window, the current image can be saved
+to a file (keyboard shortcut `Ctrl-S`) or copied to the clipboard
+(keyboard shortcut `Ctrl-C`) for pasting the image into another
+application.
 
 From the *File* menu it is also possible to copy the current
 :doc:`dump image <dump_image>` and :doc:`dump_modify <dump_image>`
@@ -720,6 +753,22 @@ output, charts, slide show, variables, or snapshot images.  The
 default settings for their visibility can be changed in the
 *Preferences* dialog.
 
+Tutorials
+^^^^^^^^^
+
+The *Tutorials* menu is to support the set of LAMMPS tutorials for
+beginners and intermediate LAMMPS users documented in (:ref:`Gravelle1
+<Gravelle1>`).  From the drop down menu you can select which of the
+eight currently available tutorial sessions you want to begin.  This
+opens a 'wizard' dialog where you can choose in which folder you want to
+work, whether you want that folder to be wiped from *any* files, whether
+you want to download the solutions files (which can be large) to a
+``solution`` sub-folder, and whether you want the corresponding
+tutorial's online version opened in your web browser.  The dialog will
+then start downloading the files requested (download progress is
+reported in the status line) and load the first input file for the
+selected session into LAMMPS-GUI.
+
 About
 ^^^^^
 
@@ -783,18 +832,21 @@ look of LAMMPS-GUI.  The settings are grouped and each group is
 displayed within a tab.
 
 .. |guiprefs1| image:: JPG/lammps-gui-prefs-general.png
-   :width: 24%
+   :width: 19%
 
 .. |guiprefs2| image:: JPG/lammps-gui-prefs-accel.png
-   :width: 24%
+   :width: 19%
 
 .. |guiprefs3| image:: JPG/lammps-gui-prefs-image.png
-   :width: 24%
+   :width: 19%
 
 .. |guiprefs4| image:: JPG/lammps-gui-prefs-editor.png
-   :width: 24%
+   :width: 19%
 
-|guiprefs1|  |guiprefs2|  |guiprefs3|  |guiprefs4|
+.. |guiprefs5| image:: JPG/lammps-gui-prefs-charts.png
+   :width: 19%
+
+|guiprefs1|  |guiprefs2|  |guiprefs3|  |guiprefs4|  |guiprefs5|
 
 General Settings:
 ^^^^^^^^^^^^^^^^^
@@ -848,6 +900,11 @@ General Settings:
   the plots in the *Charts* window in milliseconds.  The default is to
   redraw the plots every 500 milliseconds.  This is just for the drawing,
   data collection is managed with the previous setting.
+- *HTTPS proxy setting:* Allows to enter a URL for an HTTPS proxy.  This
+  may be needed when the LAMMPS input contains :doc:`geturl commands <geturl>`
+  or for downloading tutorial files from the *Tutorials* menu.  If the
+  ``https_proxy`` environment variable was set externally, its value is
+  displayed but cannot be changed.
 
 Accelerators:
 ^^^^^^^^^^^^^
@@ -884,7 +941,7 @@ lists to select the background and box colors.
 Editor Settings:
 ^^^^^^^^^^^^^^^^
 
-This tab allows tweaking settings of the editor window.  Specifically
+This tab allows tweaking settings of the editor window.  Specifically,
 the amount of padding to be added to LAMMPS commands, types or type
 ranges, IDs (e.g. for fixes), and names (e.g. for groups).  The value
 set is the minimum width for the text element and it can be chosen in
@@ -895,6 +952,16 @@ reformatting when hitting the 'Enter' key, the automatic display of
 the completion pop-up window, and whether auto-save mode is enabled.
 In auto-save mode the editor buffer is saved before a run or before
 exiting LAMMPS-GUI.
+
+Charts Settings:
+----------------
+
+This tab allows tweaking settings of the *Charts* window.  Specifically,
+one can set the default chart title (if the title contains '%f' it will
+be replaced with the name of the current input file), one can select
+whether by default the raw data, the smoothed data or both will be
+plotted, one can set the colors for the two lines, the default smoothing
+parameters, and the default size of the chart graph in pixels.
 
 -----------
 
@@ -976,10 +1043,25 @@ available (On macOS use the Command key instead of Ctrl/Control).
      - Ctrl+Shift+T
      - LAMMPS Tutorial
 
-Further editing keybindings `are documented with the Qt documentation
+Further keybindings of the editor window `are documented with the Qt
+documentation
 <https://doc.qt.io/qt-5/qplaintextedit.html#editing-key-bindings>`_.  In
 case of conflicts the list above takes precedence.
 
 All other windows only support a subset of keyboard shortcuts listed
 above.  Typically, the shortcuts `Ctrl-/` (Stop Run), `Ctrl-W` (Close
 Window), and `Ctrl-Q` (Quit Application) are supported.
+
+-------------
+
+.. _Gravelle1:
+
+**(Gravelle1)** Gravelle, Gissinger, Kohlmeyer, `arXiv:2503.14020 \[physics.comp-ph\] <https://doi.org/10.48550/arXiv.2503.14020>`_ (2025)
+
+.. _Gravelle2:
+
+**(Gravelle2)** Gravelle https://lammpstutorials.github.io/
+
+.. raw:: latex
+
+   \clearpage

@@ -18,6 +18,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "safe_pointers.h"
@@ -80,9 +81,13 @@ Bond::~Bond()
 
 void Bond::init()
 {
-  if (!allocated && atom->nbondtypes) error->all(FLERR, "Bond coeffs are not set");
+  if (!allocated && atom->nbondtypes)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Bond coeffs are not set. Status:\n" + Info::get_bond_coeff_status(lmp));
   for (int i = 1; i <= atom->nbondtypes; i++)
-    if (setflag[i] == 0) error->all(FLERR, "All bond coeffs are not set");
+    if (setflag[i] == 0)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "All bond coeffs are not set. Status:\n" + Info::get_bond_coeff_status(lmp));
   init_style();
 }
 

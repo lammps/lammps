@@ -78,7 +78,7 @@ void ImproperZero::allocate()
 void ImproperZero::coeff(int narg, char **arg)
 {
   if ((narg < 1) || (coeffflag && narg > 1))
-    error->all(FLERR, "Incorrect args for improper coefficients");
+    error->all(FLERR, "Incorrect args for improper coefficients" + utils::errorurl(21));
 
   if (!allocated) allocate();
 
@@ -91,7 +91,7 @@ void ImproperZero::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for improper coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for improper coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

@@ -129,7 +129,7 @@
   <div class="wy-grid-for-nav">
     {#- SIDE NAV, TOGGLES ON MOBILE #}
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
+      <div class="wy-side-scroll" id="lammps-navbar">
         <div class="wy-side-nav-search" {% if theme_style_nav_header_background %} style="background: {{theme_style_nav_header_background}}" {% endif %}>
           {%- block sidebartitle %}
 
@@ -137,6 +137,7 @@
           {# the master_doc variable was renamed to root_doc in Sphinx 4 (master_doc still exists in later Sphinx versions) #}
           {%- set _logo_url = logo_url|default(pathto('_static/' + (logo or ""), 1)) %}
           {%- set _root_doc = root_doc|default(master_doc) %}
+          <div id="sidebar-top-target"></div>
           <a href="{{ pathto(_root_doc) }}"{% if not theme_logo_only %} class="icon icon-home"{% endif %}>
             {% if not theme_logo_only %}{{ project }}{% endif %}
             {%- if logo or logo_url %}
@@ -172,6 +173,15 @@
         </div>
         {%- endblock %}
       </div>
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">

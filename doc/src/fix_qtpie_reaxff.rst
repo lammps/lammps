@@ -21,8 +21,10 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *maxiter*
+     keyword = *scale* or *maxiter* or *nowarn*
+       *scale* beta = set value of scaling factor *beta* (determines strength of electric polarization)
        *maxiter* N = limit the number of iterations to *N*
+       *nowarn* = do not print a warning message if the maximum number of iterations is reached
 
 Examples
 """"""""
@@ -30,7 +32,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all qtpie/reaxff 1 0.0 10.0 1.0e-6 reaxff exp.qtpie
-   fix 1 all qtpie/reaxff 1 0.0 10.0 1.0e-6 params.qtpie exp.qtpie maxiter 500
+   fix 1 all qtpie/reaxff 1 0.0 10.0 1.0e-6 params.qtpie exp.qtpie scale 1.5 maxiter 500 nowarn
 
 Description
 """""""""""
@@ -46,7 +48,7 @@ same way as the QEq method but where the absolute electronegativity,
 electronegativity given by :ref:`(Chen) <qtpie-Chen>`
 
 .. math::
-   \chi_{\mathrm{eff},i} = \frac{\sum_{j=1}^{N} (\chi_i - \chi_j) S_{ij}}
+   \tilde{\chi}_{i} = \frac{\sum_{j=1}^{N} (\chi_i - \chi_j) S_{ij}}
                                 {\sum_{m=1}^{N}S_{im}},
 
 which acts to penalize long-range charge transfer seen with the QEq charge
@@ -61,11 +63,11 @@ electric field by using the effective electronegativity given in
 :ref:`(Gergs) <Gergs>`:
 
 .. math::
-   \chi_{\mathrm{eff},i} = \frac{\sum_{j=1}^{N} (\chi_i - \chi_j + \phi_i - \phi_j) S_{ij}}
+   \tilde{\chi}_{\mathrm{r}i} = \frac{\sum_{j=1}^{N} (\chi_i - \chi_j + \beta(\phi_i - \phi_j)) S_{ij}}
                                 {\sum_{m=1}^{N}S_{im}},
 
-where :math:`\phi_i` and :math:`\phi_j` are the electric
-potentials at the positions of atom :math:`i` and :math:`j`
+where :math:`\beta` is a scaling factor and :math:`\phi_i` and :math:`\phi_j`
+are the electric potentials at the positions of atoms :math:`i` and :math:`j`
 due to the external electric field.
 
 This fix is typically used in conjunction with the ReaxFF force
@@ -74,9 +76,12 @@ command, but it can be used with any potential in LAMMPS, so long as it
 defines and uses charges on each atom. For more technical details about the
 charge equilibration performed by `fix qtpie/reaxff`, which is the same as in
 :doc:`fix qeq/reaxff <fix_qeq_reaxff>` except for the use of
-:math:`\chi_{\mathrm{eff},i}`, please refer to :ref:`(Aktulga) <qeq-Aktulga2>`.
+:math:`\tilde{\chi}_{i}` or :math:`\tilde{\chi}_{\mathrm{r}i}`,
+please refer to :ref:`(Aktulga) <qeq-Aktulga2>`.
 To be explicit, this fix replaces :math:`\chi_k` of eq. 3 in
-:ref:`(Aktulga) <qeq-Aktulga2>` with :math:`\chi_{\mathrm{eff},k}`.
+:ref:`(Aktulga) <qeq-Aktulga2>` with :math:`\tilde{\chi}_{k}` when no external
+electric field is applied and with :math:`\tilde{\chi}_{\mathrm{r}k}` when an
+external electric field is applied.
 
 This fix requires the absolute electronegativity, :math:`\chi`, in eV, the
 self-Coulomb potential, :math:`\eta`, in eV, and the shielded Coulomb
@@ -97,7 +102,7 @@ respectively:
 where *itype* is the atom type from 1 to Ntypes. Note that eta is
 defined here as twice the eta value in the ReaxFF file.
 
-The overlap integrals in the equation for :math:`\chi_{\mathrm{eff},i}`
+The overlap integrals :math:`S_{ij}`
 are computed by using normalized 1s Gaussian type orbitals. The Gaussian
 orbital exponents, :math:`\alpha`, that are needed to compute the overlap
 integrals are taken from the file given by *gfile*.
@@ -120,15 +125,26 @@ Empty lines or any text following the pound sign (#) are ignored. An example
     1  0.2240  # O
     2  0.5434  # H
 
+The optional *scale* keyword sets the value of :math:`\beta` in the equation for
+:math:`\tilde{\chi}_{\mathrm{r}i}`. This keyword only affects the computed charges
+when :doc:`fix efield <fix_efield>` is used. The default value is 1.0.
+
 The optional *maxiter* keyword allows changing the max number
 of iterations in the linear solver. The default value is 200.
+
+The optional *nowarn* keyword silences the warning message printed
+when the maximum number of iterations is reached.  This can be
+useful for comparing serial and parallel results where having the
+same fixed number of iterations is desired, which can be achieved
+by using a very small tolerance and setting *maxiter* to the desired
+number of iterations.
 
 .. note::
 
    In order to solve the self-consistent equations for electronegativity
    equalization, LAMMPS imposes the additional constraint that all the
-   charges in the fix group must add up to zero.  The initial charge
-   assignments should also satisfy this constraint.  LAMMPS will print a
+   charges in the fix group must add up to zero. The initial charge
+   assignments should also satisfy this constraint. LAMMPS will print a
    warning if that is not the case.
 
 Restart, fix_modify, output, run start/stop, minimize info
@@ -170,12 +186,13 @@ Related commands
 """"""""""""""""
 
 :doc:`pair_style reaxff <pair_reaxff>`, :doc:`fix qeq/reaxff <fix_qeq_reaxff>`,
-:doc:`fix acks2/reaxff <fix_acks2_reaxff>`
+:doc:`fix acks2/reaxff <fix_acks2_reaxff>`,
+:doc:`fix qeq/rel/reaxff <fix_qeq_rel_reaxff>`
 
 Default
 """""""
 
-maxiter 200
+scale = 1.0 and maxiter = 200
 
 ----------
 

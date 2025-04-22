@@ -194,9 +194,9 @@ summation method, described in :ref:`Wolf <Wolf3>`, given by:
 .. math::
 
    E_i = \frac{1}{2} \sum_{j \neq i}
-   \frac{q_i q_j {\rm erfc}(\alpha r_{ij})}{r_{ij}} +
+   \frac{q_i q_j \mathrm{erfc}(\alpha r_{ij})}{r_{ij}} +
    \frac{1}{2} \sum_{j \neq i}
-   \frac{q_i q_j {\rm erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
+   \frac{q_i q_j \mathrm{erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
 
 where :math:`\alpha` is the damping parameter, and erfc() is the
 complementary error-function terms.  This potential is essentially a

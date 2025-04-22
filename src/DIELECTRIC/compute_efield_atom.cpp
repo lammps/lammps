@@ -133,7 +133,7 @@ void ComputeEfieldAtom::compute_peratom()
 
   invoked_peratom = update->ntimestep;
   if (update->vflag_atom != invoked_peratom)
-    error->all(FLERR, "Per-atom virial was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Per-atom virial was not tallied on needed timestep{}", utils::errorurl(22));
 
   // grow local stress array if necessary
   // needs to be atom->nmax in length

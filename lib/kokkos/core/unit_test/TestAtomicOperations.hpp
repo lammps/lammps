@@ -551,6 +551,7 @@ bool AtomicOperationsTestIntegralType(int old_val_in, int update_in, int test) {
 #endif
 
           atomic_op_test<LoadStoreAtomicTest, T, ExecSpace>(old_val, update);
+    default: Kokkos::abort("unreachable");
   }
 
   return true;
@@ -566,6 +567,7 @@ bool AtomicOperationsTestUnsignedIntegralType(int old_val_in, int update_in,
       return atomic_op_test<IncModAtomicTest, T, ExecSpace>(old_val, update);
     case 2:
       return atomic_op_test<DecModAtomicTest, T, ExecSpace>(old_val, update);
+    default: Kokkos::abort("unreachable");
   }
 
   return true;
@@ -598,6 +600,7 @@ bool AtomicOperationsTestNonIntegralType(int old_val_in, int update_in,
 #endif
     case 6:
       return atomic_op_test<LoadStoreAtomicTest, T, ExecSpace>(old_val, update);
+    default: Kokkos::abort("unreachable");
   }
 
   return true;

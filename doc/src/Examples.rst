@@ -54,7 +54,7 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | body        | body particles, 2d system                                        |
 +-------------+------------------------------------------------------------------+
-| bpm         | BPM simulations of pouring elastic grains and plate impact       |
+| bpm         | simulations of solid elastic/plastic deformation and fracture    |
 +-------------+------------------------------------------------------------------+
 | cmap        | CMAP 5-body contributions to CHARMM force field                  |
 +-------------+------------------------------------------------------------------+

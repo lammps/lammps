@@ -10,7 +10,7 @@ Syntax
 
    pair_style dispersion/d3 damping functional cutoff cn_cutoff
 
-* damping = damping function: *zero*, *zerom*, *bj*, or *bjm*
+* damping = damping function: *original*, *zerom*, *bj*, or *bjm*
 * functional = XC functional form: *pbe*, *pbe0*, ... (see list below)
 * cutoff = global cutoff (distance units)
 * cn_cutoff = coordination number cutoff (distance units)
@@ -20,7 +20,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   pair_style dispersion/d3 zero pbe 30.0 20.0
+   pair_style dispersion/d3 original pbe 30.0 20.0
    pair_coeff * * C
 
 Description
@@ -55,9 +55,16 @@ factor, and :math:`f_n^{damp}` are damping functions.
    contributions, according to, for example, the Axilrod-Teller-Muto
    model.
 
-Available damping functions are the original "zero-damping"
-:ref:`(Grimme1) <Grimme1>`, Becke-Johnson damping :ref:`(Grimme2)
-<Grimme2>`, and their revised forms :ref:`(Sherrill) <Sherrill>`.
+.. versionchanged:: 2Apr2025
+
+   renamed *zero* keyword to *original* to avoid conflicts with
+   :doc:`pair style zero <pair_zero>` when used as :doc:`hybrid
+   sub-style <pair_hybrid>`.
+
+Available damping functions are the original "zero-damping" (*original*)
+:ref:`(Grimme1) <Grimme1>`, Becke-Johnson damping (*bj*) :ref:`(Grimme2)
+<Grimme2>`, and their revised forms (*zerom* and *bjm*, respectively)
+:ref:`(Sherrill) <Sherrill>`.
 
 Available XC functional scaling factors are listed in the table below,
 and depend on the selected damping function.
@@ -67,7 +74,7 @@ and depend on the selected damping function.
 +==================+================================================================================+
 | |                | | slater-dirac-exchange, b-lyp, b-p, b97-d, revpbe, pbe, pbesol, rpw86-pbe,    |
 | |                | | rpbe, tpss, b3-lyp, pbe0, hse06, revpbe38, pw6b95, tpss0, b2-plyp, pwpb95,   |
-| | zero           | | b2gp-plyp, ptpss, hf, mpwlyp, bpbe, bh-lyp, tpssh, pwb6k, b1b95, bop, o-lyp, |
+| | original       | | b2gp-plyp, ptpss, hf, mpwlyp, bpbe, bh-lyp, tpssh, pwb6k, b1b95, bop, o-lyp, |
 | |                | | o-pbe, ssb, revssb, otpss, b3pw91, revpbe0, pbe38, mpw1b95, mpwb1k, bmk,     |
 | |                | | cam-b3lyp, lc-wpbe, m05, m052x, m06l, m06, m062x, m06hf, hcth120             |
 +------------------+--------------------------------------------------------------------------------+
@@ -121,6 +128,8 @@ Restrictions
 Style *dispersion/d3* is part of the EXTRA-PAIR package. It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build
 package <Build_package>` page for more info.
+
+The compiled in parameters require the use of :doc:`metal units <units>`.
 
 It is currently *not* possible to calculate three-body dispersion
 contributions according to, for example, the Axilrod-Teller-Muto model.

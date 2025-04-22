@@ -3,6 +3,7 @@
 .. index:: dump cfg
 .. index:: dump custom
 .. index:: dump dcd
+.. index:: dump extxyz
 .. index:: dump grid
 .. index:: dump grid/vtk
 .. index:: dump local
@@ -59,7 +60,7 @@ Syntax
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
-* style = *atom* or *atom/adios* or *atom/gz* or *atom/zstd* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/adios* or *dcd* or *grid* or *grid/vtk* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *yaml*
+* style = *atom* or *atom/adios* or *atom/gz* or *atom/zstd* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/adios* or *dcd* or *extxyz* or *grid* or *grid/vtk* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *yaml*
 * N = dump on timesteps which are multiples of N
 * file = name of file to write dump info to
 * attribute1,attribute2,... = list of attributes for a particular style
@@ -77,6 +78,7 @@ Syntax
        *custom*, *custom/gz*, *custom/zstd* attributes = see below
        *custom/adios* attributes = same as *custom* attributes, discussed on :doc:`dump custom/adios <dump_adios>` page
        *dcd* attributes = none
+       *extxyz* attributes = none
        *h5md* attributes = discussed on :doc:`dump h5md <dump_h5md>` page
        *grid* attributes = see below
        *grid/vtk* attributes = see below
@@ -242,28 +244,29 @@ all the processors or multiple smaller files.
    frames consistently to the same atom.  This can lead to incorrect
    visualizations or results.  LAMMPS will print a warning in such cases.
 
-For the *atom*, *custom*, *cfg*, *grid*, and *local* styles, sorting
-is off by default.  For the *dcd*, *grid/vtk*, *xtc*, *xyz*, and
+For the *atom*, *custom*, *cfg*, *grid*, and *local* styles, sorting is
+off by default.  For the *dcd*, *extxyz*, *grid/vtk*, *xtc*, *xyz*, and
 *molfile* styles, sorting by atom ID or grid ID is on by default. See
 the :doc:`dump_modify <dump_modify>` page for details.
 
 The *style* keyword determines what kind of data is written to the
 dump file(s) and in what format.
 
-Note that *atom*, *custom*, *dcd*, *xtc*, *xyz*, and *yaml* style dump
-files can be read directly by `VMD <https://www.ks.uiuc.edu/Research/vmd>`_,
-a popular tool for visualizing and analyzing trajectories from atomic
-and molecular systems.  For reading *netcdf* style dump files, the
-netcdf plugin needs to be recompiled from source using a NetCDF version
-compatible with the one used by LAMMPS.  The bundled plugin binary
-uses a very old version of NetCDF that is not compatible with LAMMPS.
+Note that *atom*, *custom*, *dcd*, *extxyz*, *xtc*, *xyz*, and *yaml*
+style dump files can be read directly by `VMD
+<https://www.ks.uiuc.edu/Research/vmd>`_, a popular tool for visualizing
+and analyzing trajectories from atomic and molecular systems.  For
+reading *netcdf* style dump files, the netcdf plugin needs to be
+recompiled from source using a NetCDF version compatible with the one
+used by LAMMPS.  The bundled plugin binary uses a very old version of
+NetCDF that is not compatible with LAMMPS.
 
 Likewise the `OVITO visualization package <https://www.ovito.org>`_,
-popular for materials modeling, can read the *atom*, *custom*,
+popular for materials modeling, can read the *atom*, *custom*, *extxyz*,
 *local*, *xtc*, *cfg*, *netcdf*, and *xyz* style atom dump files
-directly.  With version 3.8 and above, OVITO can also read and
-visualize *grid* style dump files with grid cell data, including
-iso-surface images of the grid cell values.
+directly.  With version 3.8 and above, OVITO can also read and visualize
+*grid* style dump files with grid cell data, including iso-surface
+images of the grid cell values.
 
 Note that settings made via the :doc:`dump_modify <dump_modify>`
 command can also alter the format of individual values and content of
@@ -475,6 +478,24 @@ label). This option will help many visualization programs to guess bonds
 and colors. You can use the :doc:`dump_modify types labels <dump_modify>`
 option to replace numeric atom types with :doc:`type labels <Howto_type_labels>`.
 
+.. versionadded:: 2Apr2025
+
+The *extxyz* style writes XYZ files compatible with the Extended XYZ (or
+ExtXYZ) format as defined as defined in `the libAtoms specification
+<https://github.com/libAtoms/extxyz>`_. Specifically, the following
+information will be dumped:
+
+* timestep
+* time, which can be disabled with :doc:`dump_modify time no <dump_modify>`
+* simulation box lattice and pbc conditions
+* atomic forces, which can be disabled with :doc:`dump_modify forces no <dump_modify>`
+* atomic velocities, which can be disabled with :doc:`dump_modify vel no <dump_modify>`
+* atomic masses, if enabled with :doc:`dump_modify mass yes <dump_modify>`
+
+Dump style *extxyz* requires either that a :doc:`type label map for atoms types
+<labelmap>` is defined or :doc:`dump_modify element <dump_modify>` is used to
+set up an atom type number to atom name mapping.
+
 .. versionadded:: 22Dec2022
 
 The *grid/vtk* style writes VTK files for grid data on a regular
@@ -607,8 +628,8 @@ with the processor ID from :math:`0` to :math:`P-1`.  For example,
 tmp.dump.% becomes tmp.dump.0, tmp.dump.1, ... tmp.dump.:math:`P-1`,
 etc.  This creates smaller files and can be a fast mode of output on
 parallel machines that support parallel I/O for output. This option is
-**not** available for the *dcd*, *xtc*, *xyz*, *grid/vtk*, and *yaml*
-styles.
+**not** available for the *dcd*, *extxyz*, *xtc*, *xyz*, *grid/vtk*, and
+*yaml* styles.
 
 By default, :math:`P` is the the number of processors, meaning one file per
 processor, but :math:`P` can be set to a smaller value via the *nfile* or
@@ -1017,9 +1038,9 @@ the COMPRESS package.  They are only enabled if LAMMPS was built with
 that package.  See the :doc:`Build package <Build_package>` page for
 more info.
 
-The *xtc*, *dcd*, and *yaml* styles are part of the EXTRA-DUMP package.
-They are only enabled if LAMMPS was built with that package.  See the
-:doc:`Build package <Build_package>` page for more info.
+The *dcd*, *extxyz*, *xtc*, and *yaml* styles are part of the EXTRA-DUMP
+package.  They are only enabled if LAMMPS was built with that package.
+See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

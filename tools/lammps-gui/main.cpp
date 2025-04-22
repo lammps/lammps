@@ -20,6 +20,7 @@
 #include <QSettings>
 #include <QString>
 #include <QStringList>
+#include <QtGlobal>
 
 #include <cstdio>
 #include <cstring>
@@ -35,9 +36,10 @@ int main(int argc, char *argv[])
     qRegisterMetaTypeStreamOperators<QList<QString>>("QList<QString>");
 #endif
 
+    // enforce using the plain ASCII C locale with UTF-8 encoding within the GUI.
+    qputenv("LC_ALL", "C.UTF-8");
+
     QApplication app(argc, argv);
-    // enforce using the plain ASCII C locale within the GUI.
-    QLocale::setDefault(QLocale::c());
     QCoreApplication::setOrganizationName("The LAMMPS Developers");
     QCoreApplication::setOrganizationDomain("lammps.org");
     QCoreApplication::setApplicationName("LAMMPS-GUI - QT" stringify(QT_VERSION_MAJOR));

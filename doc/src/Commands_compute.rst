@@ -178,6 +178,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`ti <compute_ti>`
    * :doc:`torque/chunk <compute_torque_chunk>`
    * :doc:`vacf <compute_vacf>`
+   * :doc:`vacf/chunk <compute_vacf_chunk>`
    * :doc:`vcm/chunk <compute_vcm_chunk>`
    * :doc:`viscosity/cos <compute_viscosity_cos>`
    * :doc:`voronoi/atom <compute_voronoi_atom>`

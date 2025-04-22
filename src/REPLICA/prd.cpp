@@ -60,7 +60,7 @@ void PRD::command(int narg, char **arg)
   // error checks
 
   if (domain->box_exist == 0)
-    error->all(FLERR,"PRD command before simulation box is defined");
+    error->all(FLERR,"PRD command before simulation box is defined" + utils::errorurl(33));
   if (universe->nworlds != universe->nprocs &&
       atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Cannot use PRD with multi-processor replicas "

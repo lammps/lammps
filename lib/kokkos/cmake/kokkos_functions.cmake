@@ -799,7 +799,6 @@ function(COMPILER_SPECIFIC_OPTIONS_HELPER)
       NVHPC
       DEFAULT
       Cray
-      Intel
       Clang
       AppleClang
       IntelLLVM

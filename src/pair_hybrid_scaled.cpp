@@ -585,7 +585,7 @@ void PairHybridScaled::born_matrix(int i, int j, int itype, int jtype, double rs
 
 void PairHybridScaled::coeff(int narg, char **arg)
 {
-  if (narg < 3) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg < 3) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -604,7 +604,7 @@ void PairHybridScaled::coeff(int narg, char **arg)
     if (strcmp(arg[2], keywords[m]) == 0) {
       if (multiple[m]) {
         multflag = 1;
-        if (narg < 4) error->all(FLERR, "Incorrect args for pair coefficients");
+        if (narg < 4) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
         int index = utils::inumeric(FLERR, arg[3], false, lmp);
         if (index == multiple[m])
           break;
@@ -634,7 +634,7 @@ void PairHybridScaled::coeff(int narg, char **arg)
 
   if (!none && styles[m]->one_coeff)
     if ((strcmp(arg[0], "*") != 0) || (strcmp(arg[1], "*") != 0))
-      error->all(FLERR, "Incorrect args for pair coefficients");
+      error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 
   // invoke sub-style coeff() starting with 1st remaining arg
 
@@ -664,7 +664,7 @@ void PairHybridScaled::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

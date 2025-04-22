@@ -367,7 +367,6 @@ struct TestComplexSpecialFunctions {
   KOKKOS_INLINE_FUNCTION
   void operator()(const int & /*i*/) const {
     Kokkos::complex<double> a(1.5, 2.5);
-    Kokkos::complex<double> b(3.25, 5.75);
     double c = 9.3;
 
     d_results(0)  = Kokkos::complex<double>(Kokkos::real(a), Kokkos::imag(a));
@@ -687,6 +686,46 @@ TEST(TEST_CATEGORY, complex_structured_bindings) {
   TestComplexStructuredBindings<TEST_EXECSPACE> test;
   test.testit();
 }
+
+#define CHECK_COMPLEX(_value_, _real_, _imag_) \
+  (void)_value_;                               \
+  if (_value_.real() != _real_) return false;  \
+  if (_value_.imag() != _imag_) return false;
+
+constexpr bool can_appear_in_constant_expressions() {
+  const Kokkos::complex<double> from_single{1.2};
+  const Kokkos::complex<double> from_both{1.2, 3.4};
+  const Kokkos::complex<double> from_none{};
+
+  CHECK_COMPLEX(from_single, 1.2, 0.);
+  CHECK_COMPLEX(from_both, 1.2, 3.4);
+  CHECK_COMPLEX(from_none, 0., 0.);
+
+  Kokkos::complex<double> from_copy_assign;
+  from_copy_assign = from_both;
+  const auto from_copy_constr(from_both);
+
+  CHECK_COMPLEX(from_copy_assign, 1.2, 3.4);
+  CHECK_COMPLEX(from_copy_constr, 1.2, 3.4);
+
+  Kokkos::complex<double> from_move_assign;
+  from_move_assign = std::move(from_both);
+  const auto from_move_constr(std::move(from_copy_assign));
+
+  CHECK_COMPLEX(from_move_assign, 1.2, 3.4);
+  CHECK_COMPLEX(from_move_constr, 1.2, 3.4);
+
+  Kokkos::complex<double> from_real;
+  from_real = 4.;
+
+  CHECK_COMPLEX(from_real, 4., 0.);
+
+  return true;
+}
+
+#undef CHECK_COMPLEX
+
+static_assert(can_appear_in_constant_expressions());
 
 }  // namespace Test
 

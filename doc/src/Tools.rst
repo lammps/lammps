@@ -930,7 +930,7 @@ dependencies and redirects the download to the local cache.
 
    mkdir build
    cd build
-   cmake -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C ../cmake/presets/most.cmake ../cmake
+   cmake -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C ../cmake/presets/most.cmake -D DOWNLOAD_POTENTIALS=off ../cmake
    make -j 8
 
    deactivate_caches
@@ -1276,11 +1276,13 @@ Those scripts were written by Steve Plimpton sjplimp at gmail.com
 valgrind tool
 -------------
 
-The ``valgrind`` folder contains additional suppressions fur LAMMPS when using
-valgrind's memcheck tool to search for memory access violation and memory
-leaks. These suppressions are automatically invoked when running tests through
-CMake "ctest -T memcheck". See the provided README file to add these
-suppressions when running LAMMPS.
+The ``valgrind`` folder contains additional suppressions fur LAMMPS when
+using `valgrind's <https://valgrind.org/>`_ ` `memcheck tool
+<https://valgrind.org/info/tools.html#memcheck>`_ to search for memory
+access violation and memory leaks.  These suppressions are automatically
+invoked when running tests through CMake "ctest -T memcheck".  See the
+instruction in the ``README`` file to add these suppressions when using
+valgrind with LAMMPS or other programs.
 
 ----------
 

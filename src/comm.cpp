@@ -308,7 +308,8 @@ void Comm::modify_params(int narg, char **arg)
       } else if (strcmp(arg[iarg+1],"multi/old") == 0) {
         if (me == 0)
           error->warning(FLERR, "Comm mode 'multi/old' is deprecated and will be removed soon.\n"
-                         "Contact the LAMMPS developers if that creates problems for you.");
+                         "Please contact the LAMMPS developers if you cannot use mode 'multi'."
+                         + utils::errorurl(35));
         if (neighbor->style == Neighbor::MULTI)
           error->all(FLERR, iarg+1,
                      "Cannot use comm mode 'multi/old' with 'multi' style neighbor lists");
@@ -372,7 +373,8 @@ void Comm::modify_params(int narg, char **arg)
       double cut;
       if (me == 0)
         error->warning(FLERR, "Comm mode 'multi/old' is deprecated and will be removed soon.\n"
-                       "Contact the LAMMPS developers if that creates problems for you.");
+                       "Please contact the LAMMPS developers if you cannot use mode 'multi'."
+                       + utils::errorurl(35));
       if (mode == Comm::SINGLE)
         error->all(FLERR, iarg, "Use cutoff keyword to set cutoff in single mode");
       if (mode == Comm::MULTI)

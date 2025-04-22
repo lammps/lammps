@@ -7,7 +7,7 @@ typically document what a variable stores, what a small section of
 code does, or what a function does and its input/outputs.  The topics
 on this page are intended to document code functionality at a higher level.
 
-.. contents::
+.. contents:: Available notes
 
 ----
 

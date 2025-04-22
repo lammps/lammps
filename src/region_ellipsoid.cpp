@@ -38,8 +38,8 @@ static constexpr double EPSILON = std::numeric_limits<double>::epsilon() * 2.0;
 /* ---------------------------------------------------------------------- */
 
 RegEllipsoid::RegEllipsoid(LAMMPS *lmp, int narg, char **arg) :
-    Region(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr), astr(nullptr),
-    bstr(nullptr), cstr(nullptr)
+  Region(lmp, narg, arg), xvar(-1), yvar(-1), zvar(-1), avar(-1), bvar(-1), cvar(-1),
+  xstr(nullptr), ystr(nullptr), zstr(nullptr), astr(nullptr), bstr(nullptr), cstr(nullptr)
 {
   options(narg - 8, &arg[8]);
 

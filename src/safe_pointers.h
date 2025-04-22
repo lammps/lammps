@@ -17,7 +17,6 @@
 // collection of smart pointers for specific purposes
 
 #include <cstdio>
-#include <utility>
 
 namespace LAMMPS_NS {
 
@@ -37,7 +36,7 @@ class SafeFilePtr {
   SafeFilePtr(FILE *_fp) : fp(_fp) {};
 
   SafeFilePtr(const SafeFilePtr &) = delete;
-  SafeFilePtr(SafeFilePtr &&o) noexcept : fp(std::exchange(o.fp, nullptr)) {}
+  SafeFilePtr(SafeFilePtr &&o) noexcept : fp(o.fp) { o.fp = nullptr; }
   SafeFilePtr &operator=(const SafeFilePtr &) = delete;
 
   ~SafeFilePtr()

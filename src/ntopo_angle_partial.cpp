@@ -60,7 +60,7 @@ void NTopoAnglePartial::build()
       if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR, "Angle atoms {} {} {} missing on proc {} at step {}", angle_atom1[i][m],
+          error->one(FLERR, Error::NOLASTLINE, "Angle atoms {} {} {} missing on proc {} at step {}" + utils::errorurl(5), angle_atom1[i][m],
                      angle_atom2[i][m], angle_atom3[i][m], me, update->ntimestep);
         continue;
       }
@@ -85,5 +85,5 @@ void NTopoAnglePartial::build()
 
   int all;
   MPI_Allreduce(&nmissing, &all, 1, MPI_INT, MPI_SUM, world);
-  if (all && (me == 0)) error->warning(FLERR, "Angle atoms missing at step {}", update->ntimestep);
+  if (all && (me == 0)) error->warning(FLERR, "Angle atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 }

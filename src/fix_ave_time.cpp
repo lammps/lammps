@@ -148,8 +148,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, val.iarg, "Fix ave/time compute {} does not calculate a vector", val.id);
       if (val.argindex && (val.argindex > val.val.c->size_vector) &&
           (val.val.c->size_vector_variable == 0))
-        error->all(FLERR, val.iarg, "Fix ave/time compute {} vector is accessed out-of-range",
-                   val.id);
+        error->all(FLERR, val.iarg, "Fix ave/time compute {} vector is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
       if (val.argindex && val.val.c->size_vector_variable) val.varlen = 1;
 
     } else if ((val.which == ArgInfo::COMPUTE) && (mode == VECTOR)) {
@@ -161,8 +161,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       if (val.argindex && (val.val.c->array_flag == 0))
         error->all(FLERR, val.iarg, "Fix ave/time compute {} does not calculate an array", val.id);
       if (val.argindex && (val.argindex > val.val.c->size_array_cols))
-        error->all(FLERR, val.iarg, "Fix ave/time compute {} array is accessed out-of-range",
-                   val.id);
+        error->all(FLERR, val.iarg, "Fix ave/time compute {} array is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
       if ((val.argindex == 0) && (val.val.c->size_vector_variable)) val.varlen = 1;
       if (val.argindex && (val.val.c->size_array_rows_variable)) val.varlen = 1;
 
@@ -176,10 +176,11 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       if (val.argindex && (val.val.f->size_vector_variable))
         error->all(FLERR, val.iarg, "Fix ave/time fix {} vector cannot be variable length", val.id);
       if (val.argindex && (val.argindex > val.val.f->size_vector))
-        error->all(FLERR, val.iarg, "Fix ave/time fix {} vector is accessed out-of-range", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/time fix {} vector is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
       if (nevery % val.val.f->global_freq)
-        error->all(FLERR, val.iarg, "Fix {} for fix ave/time not computed at compatible time",
-                   val.id);
+        error->all(FLERR, val.iarg, "Fix {} for fix ave/time not computed at compatible time{}",
+                   val.id, utils::errorurl(7));
 
     } else if ((val.which == ArgInfo::FIX) && (mode == VECTOR)) {
       val.val.f = modify->get_fix_by_id(val.id);
@@ -193,10 +194,11 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, val.iarg, "Fix ave/time fix {} array cannot have variable row length",
                    val.id);
       if (val.argindex && (val.argindex > val.val.f->size_array_cols))
-        error->all(FLERR, val.iarg, "Fix ave/time fix {} array is accessed out-of-range", val.id);
+        error->all(FLERR, val.iarg, "Fix ave/time fix {} array is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
       if (nevery % val.val.f->global_freq)
-        error->all(FLERR, val.iarg, "Fix {} for fix ave/time not computed at compatible time",
-                   val.id);
+        error->all(FLERR, val.iarg, "Fix {} for fix ave/time not computed at compatible time{}",
+                   val.id, utils::errorurl(7));
 
     } else if ((val.which == ArgInfo::VARIABLE) && (mode == SCALAR)) {
       int ivariable = input->variable->find(val.id.c_str());

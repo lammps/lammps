@@ -47,7 +47,7 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
   const Policy m_policy;
 
   template <class TagType>
-  inline static std::enable_if_t<std::is_void<TagType>::value> exec_range(
+  inline static std::enable_if_t<std::is_void_v<TagType>> exec_range(
       const FunctorType& functor, const Member ibeg, const Member iend,
       reference_type update, const bool final) {
     for (Member iwork = ibeg; iwork < iend; ++iwork) {
@@ -56,7 +56,7 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
   }
 
   template <class TagType>
-  inline static std::enable_if_t<!std::is_void<TagType>::value> exec_range(
+  inline static std::enable_if_t<!std::is_void_v<TagType>> exec_range(
       const FunctorType& functor, const Member ibeg, const Member iend,
       reference_type update, const bool final) {
     const TagType t{};
@@ -173,7 +173,7 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
   const pointer_type m_result_ptr;
 
   template <class TagType>
-  inline static std::enable_if_t<std::is_void<TagType>::value> exec_range(
+  inline static std::enable_if_t<std::is_void_v<TagType>> exec_range(
       const FunctorType& functor, const Member ibeg, const Member iend,
       reference_type update, const bool final) {
     for (Member iwork = ibeg; iwork < iend; ++iwork) {
@@ -182,7 +182,7 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
   }
 
   template <class TagType>
-  inline static std::enable_if_t<!std::is_void<TagType>::value> exec_range(
+  inline static std::enable_if_t<!std::is_void_v<TagType>> exec_range(
       const FunctorType& functor, const Member ibeg, const Member iend,
       reference_type update, const bool final) {
     const TagType t{};

@@ -265,12 +265,6 @@ TEST(TEST_CATEGORY, exec_space_thread_safety_mdrange_reduce) {
          "race conditions during shared allocation reference counting";
   THREAD_SAFETY_TEST_UNREACHABLE();
 #endif
-// FIXME_INTEL
-#if defined(KOKKOS_COMPILER_INTEL) && defined(KOKKOS_ENABLE_OPENMP)
-  if (std::is_same_v<TEST_EXECSPACE, Kokkos::OpenMP>)
-    GTEST_SKIP() << "skipping since test is known to fail for OpenMP using the "
-                    "legacy Intel compiler";
-#endif
   run_exec_space_thread_safety_mdrange_reduce();
 }
 

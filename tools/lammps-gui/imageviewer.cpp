@@ -139,8 +139,8 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     QDialog(parent), menuBar(new QMenuBar), imageLabel(new QLabel), scrollArea(new QScrollArea),
     buttonBox(nullptr), scaleFactor(1.0), atomSize(1.0), saveAsAct(nullptr), copyAct(nullptr),
     cmdAct(nullptr), zoomInAct(nullptr), zoomOutAct(nullptr), normalSizeAct(nullptr),
-    lammps(_lammps), group("all"), filename(fileName), useelements(false), usediameter(false),
-    usesigma(false)
+    lammps(_lammps), group("all"), molecule("none"), filename(fileName), useelements(false),
+    usediameter(false), usesigma(false)
 {
     imageLabel->setBackgroundRole(QPalette::Base);
     imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -239,17 +239,28 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     recenter->setToolTip("Recenter on group");
     auto *reset = new QPushButton(QIcon(":/icons/gtk-zoom-fit.png"), "");
     reset->setToolTip("Reset view to defaults");
-    auto *combo = new QComboBox;
-    combo->setObjectName("group");
-    combo->setToolTip("Select group to display");
-    combo->setObjectName("group");
-    int ngroup           = lammps->id_count("group");
+
     constexpr int BUFLEN = 256;
     char gname[BUFLEN];
+    auto *combo = new QComboBox;
+    combo->setToolTip("Select group to display");
+    combo->setObjectName("group");
+    int ngroup = lammps->id_count("group");
     for (int i = 0; i < ngroup; ++i) {
         memset(gname, 0, BUFLEN);
         lammps->id_name("group", i, gname, BUFLEN);
         combo->addItem(gname);
+    }
+
+    auto *molbox = new QComboBox;
+    molbox->setToolTip("Select molecule to display");
+    molbox->setObjectName("molecule");
+    molbox->addItem("none");
+    int nmols = lammps->id_count("molecule");
+    for (int i = 0; i < nmols; ++i) {
+        memset(gname, 0, BUFLEN);
+        lammps->id_name("molecule", i, gname, BUFLEN);
+        molbox->addItem(gname);
     }
 
     auto *menuLayout   = new QHBoxLayout;
@@ -272,6 +283,8 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     menuLayout->addWidget(dummy1);
     menuLayout->addWidget(new QLabel(" Group: "));
     menuLayout->addWidget(combo);
+    menuLayout->addWidget(new QLabel(" Molecule: "));
+    menuLayout->addWidget(molbox);
     buttonLayout->addWidget(dummy2);
     buttonLayout->addWidget(dossao);
     buttonLayout->addWidget(doanti);
@@ -304,6 +317,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     connect(recenter, &QPushButton::released, this, &ImageViewer::do_recenter);
     connect(reset, &QPushButton::released, this, &ImageViewer::reset_view);
     connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(change_group(int)));
+    connect(molbox, SIGNAL(currentIndexChanged(int)), this, SLOT(change_molecule(int)));
 
     mainLayout->addLayout(topLayout);
     mainLayout->addWidget(scrollArea);
@@ -529,15 +543,67 @@ void ImageViewer::cmd_to_clipboard()
 void ImageViewer::change_group(int)
 {
     auto *box = findChild<QComboBox *>("group");
-    if (box) group = box->currentText();
+    group     = box ? box->currentText() : "all";
+
+    // reset molecule to "none" when changing group
+    box = findChild<QComboBox *>("molecule");
+    if (box && (box->currentIndex() > 0)) {
+        box->setCurrentIndex(0); // triggers call to createImage()
+    } else {
+        createImage();
+    }
+}
+
+void ImageViewer::change_molecule(int)
+{
+    auto *box = findChild<QComboBox *>("molecule");
+    molecule  = box ? box->currentText() : "none";
+
+    box = findChild<QComboBox *>("group");
+    if (molecule == "none") {
+        box->setEnabled(true);
+    } else {
+        box->setEnabled(false);
+    }
+
     createImage();
 }
+
+// This function creates a visualization of the current system using the
+// "dump image" command and reads and displays the renderd image.
+// To visualize molecules we create new atoms with create_atoms and
+// put them into a new, temporary group and then visualize that group.
+// After rendering the image, the atoms and group are deleted.
+// to update bond data, we also need to issue a "run 0" command.
 
 void ImageViewer::createImage()
 {
     auto *renderstatus = findChild<QLabel *>("renderstatus");
     if (renderstatus) renderstatus->setEnabled(true);
     repaint();
+
+    QString oldgroup = group;
+
+    if (molecule != "none") {
+
+        // get center of box
+        double *boxlo, *boxhi, xmid, ymid, zmid;
+        boxlo = (double *)lammps->extract_global("boxlo");
+        boxhi = (double *)lammps->extract_global("boxhi");
+        if (boxlo && boxhi) {
+            xmid = 0.5 * (boxhi[0] + boxlo[0]);
+            ymid = 0.5 * (boxhi[1] + boxlo[1]);
+            zmid = 0.5 * (boxhi[2] + boxlo[2]);
+        } else {
+            xmid = ymid = zmid = 0.0;
+        }
+
+        QString molcreate = "create_atoms 0 single %1 %2 %3 mol %4 312944 group %5 units box";
+        group             = "imgviewer_tmp_mol";
+        lammps->command(molcreate.arg(xmid).arg(ymid).arg(zmid).arg(molecule).arg(group));
+        lammps->command(QString("neigh_modify exclude group all %1").arg(group));
+        lammps->command("run 0 post no");
+    }
 
     QSettings settings;
     QString dumpcmd = QString("write_dump ") + group + " image ";
@@ -683,6 +749,13 @@ void ImageViewer::createImage()
     imageLabel->adjustSize();
     if (renderstatus) renderstatus->setEnabled(false);
     repaint();
+
+    if (molecule != "none") {
+        lammps->command("neigh_modify exclude none");
+        lammps->command(QString("delete_atoms group %1 compress no").arg(group));
+        lammps->command(QString("group %1 delete").arg(group));
+        group = oldgroup;
+    }
 }
 
 void ImageViewer::saveAs()

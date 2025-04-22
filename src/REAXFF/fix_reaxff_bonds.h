@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -35,11 +34,12 @@ class FixReaxFFBonds : public Fix {
   void end_of_step() override;
 
  protected:
-  int me, nprocs, nmax, ntypes, maxsize, compressed;
+  int nmax, compressed, multifile, padflag;
   int *numneigh;
   tagint **neighid;
   double **abo;
   FILE *fp;
+  std::string filename;
   bool first_flag;
 
   void allocate();
@@ -49,6 +49,7 @@ class FixReaxFFBonds : public Fix {
   void PassBuffer(double *, int &);
   void RecvBuffer(double *, int, int, int, int);
   int nint(const double &);
+  int modify_param(int, char **) override;
   double memory_usage() override;
 
   struct _reax_list *lists;

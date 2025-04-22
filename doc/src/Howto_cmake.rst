@@ -285,7 +285,7 @@ when used before the CMake directory, there may be a space between the
 can have boolean values (on/off, yes/no, or 1/0 are all valid) or are
 strings representing a choice, or a path, or are free format. If the
 string would contain whitespace, it must be put in quotes, for example
-``-D CMAKE_TUNE_FLAGS="-ftree-vectorize -ffast-math"``.
+``-D CMAKE_CXX_FLAGS="-O3 -Wall -ftree-vectorize -ffast-math"``.
 
 CMake variables fall into two categories: 1) common CMake variables that
 are used by default for any CMake configuration setup and 2) project
@@ -341,8 +341,6 @@ Some common LAMMPS specific variables
      - compile some additional executables from the ``tools`` folder (default: ``off``)
    * - ``BUILD_DOC``
      - include building the HTML format documentation for packaging/installing (default: ``off``)
-   * - ``CMAKE_TUNE_FLAGS``
-     - common compiler flags, for optimization or instrumentation (default:)
    * - ``LAMMPS_MACHINE``
      - when set to ``name`` the LAMMPS executable and library will be called ``lmp_name`` and ``liblammps_name.a``
    * - ``FFT``

@@ -207,19 +207,19 @@ TEST_F(VariableTest, CreateDelete)
                  command("variable dummy loop -1"););
     TEST_FAILURE(".*ERROR: Illegal variable loop command.*", command("variable dummy loop 10 1"););
     TEST_FAILURE(".*ERROR: Unknown variable style: xxx.*", command("variable dummy xxxx"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine variable two with a different style.*",
                  command("variable two string xxx"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine variable two with a different style.*",
                  command("variable two getenv xxx"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine variable one with a different style.*",
                  command("variable one equal 2"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine variable one with a different style.*",
                  command("variable one internal 2"););
     TEST_FAILURE(".*ERROR: Cannot use atomfile-style variable unless an atom map exists.*",
                  command("variable eleven    atomfile  test_variable.atomfile"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable nine1 file test_variable.xxx.*",
                  command("variable nine1  file      test_variable.xxx"););
-    TEST_FAILURE(".*ERROR: World variable count doesn't match # of partitions.*",
+    TEST_FAILURE(".*ERROR: World variable count 2 doesn't match # of partitions.*",
                  command("variable ten10 world xxx xxx"););
     TEST_FAILURE(".*ERROR: All universe/uloop variables must have same # of values.*",
                  command("variable ten6   uloop     2"););
@@ -291,9 +291,9 @@ TEST_F(VariableTest, AtomicSystem)
     ASSERT_DOUBLE_EQ(variable->compute_equal("1.5+3.25"), 4.75);
     ASSERT_DOUBLE_EQ(variable->compute_equal("-2.5*1.5"), -3.75);
 
-    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine variable one with a different style.*",
                  command("variable one atom x"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine variable id with a different style.*",
                  command("variable id vector f_press"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open atomfile variable ten1 file test_variable.xxx.*",
                  command("variable ten1   atomfile  test_variable.xxx"););
@@ -341,7 +341,8 @@ TEST_F(VariableTest, Expressions)
     command("variable ten8   equal     1|^0");
     command("variable ten9   equal     v_one-v_ten9");
     command("variable ten10  internal  100.0");
-    command("variable ten11  equal     (1 != 1)+(2 < 1)+(2<=1)+(1>2)+(1>=2)+(1&&0)+(0||0)+(1|^1)+10^0");
+    command(
+        "variable ten11  equal     (1 != 1)+(2 < 1)+(2<=1)+(1>2)+(1>=2)+(1&&0)+(0||0)+(1|^1)+10^0");
     command("variable ten12  equal     yes+no+on+off+true+false");
     command("variable err1   equal     v_one/v_ten7");
     command("variable err2   equal     v_one%v_ten7");
@@ -626,7 +627,8 @@ TEST_F(VariableTest, NextCommand)
 
     TEST_FAILURE(".*ERROR: Illegal next command.*", command("next"););
     TEST_FAILURE(".*ERROR: Invalid variable 'xxx' in next command.*", command("next xxx"););
-    TEST_FAILURE(".*ERROR: Invalid variable style with next command.*", command("next two"););
+    TEST_FAILURE(".*ERROR: Variable two has invalid style equal for next command.*",
+                 command("next two"););
     TEST_FAILURE(".*ERROR: All variables in next command must have same style.*",
                  command("next five four"););
 }
@@ -792,7 +794,7 @@ TEST_F(VariableTest, Format)
                  command("variable f1idx format yyy %8.4f"););
     TEST_FAILURE(".*ERROR: Variable f1three: format variable three does not exist.*",
                  variable->retrieve("f1three"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine variable f2one with a different style.*",
                  command("variable f2one equal 0.5"););
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable xxx format \"xxx\""););
     TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",

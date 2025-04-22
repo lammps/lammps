@@ -344,8 +344,7 @@ TEST(std_algorithms_numeric_ops_test, transform_exclusive_scan_functor) {
   using view_type = Kokkos::View<int*, exespace>;
   view_type dummy_view("dummy_view", 0);
   using unary_op_type =
-      Kokkos::Experimental::Impl::StdNumericScanIdentityReferenceUnaryFunctor<
-          int>;
+      Kokkos::Experimental::Impl::StdNumericScanIdentityReferenceUnaryFunctor;
   using functor_type =
       Kokkos::Experimental::Impl::TransformExclusiveScanFunctorWithValueWrapper<
           exespace, int, int, view_type, view_type, MultiplyFunctor<int>,

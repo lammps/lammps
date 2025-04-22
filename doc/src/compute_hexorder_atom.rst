@@ -40,7 +40,7 @@ is a complex number (stored as two real numbers) defined as follows:
 
 .. math::
 
-   q_n = \frac{1}{nnn}\sum_{j = 1}^{nnn} e^{n i \theta({\bf r}_{ij})}
+   q_n = \frac{1}{nnn}\sum_{j = 1}^{nnn} e^{n i \theta({\textbf{r}}_{ij})}
 
 where the sum is over the *nnn* nearest neighbors
 of the central atom. The angle :math:`\theta`

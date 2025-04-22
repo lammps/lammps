@@ -1,10 +1,11 @@
 .. index:: dihedral_style multi/harmonic
+.. index:: dihedral_style multi/harmonic/kk
 .. index:: dihedral_style multi/harmonic/omp
 
 dihedral_style multi/harmonic command
 =====================================
 
-Accelerator Variants: *multi/harmonic/omp*
+Accelerator Variants: *multi/harmonic/kk*, *multi/harmonic/omp*
 
 Syntax
 """"""

@@ -118,7 +118,7 @@ void ThirdOrder::command(int narg, char **arg)
   MPI_Comm_rank(world,&me);
 
   if (domain->box_exist == 0)
-    error->all(FLERR,"third_order command before simulation box is defined");
+    error->all(FLERR,"third_order command before simulation box is defined" + utils::errorurl(33));
   if (narg < 2) error->all(FLERR,"Illegal third_order command");
 
   // request a full neighbor list for use by this command

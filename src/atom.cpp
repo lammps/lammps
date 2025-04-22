@@ -768,7 +768,7 @@ void Atom::init()
   if (firstgroupname) {
     firstgroup = group->find(firstgroupname);
     if (firstgroup < 0)
-      error->all(FLERR,"Could not find atom_modify first group ID {}", firstgroupname);
+      error->all(FLERR, Error::NOLASTLINE, "Could not find atom_modify first group ID {}", firstgroupname);
   } else firstgroup = -1;
 
   // init AtomVec
@@ -831,21 +831,25 @@ void Atom::modify_params(int narg, char **arg)
   if (narg == 0) utils::missing_cmd_args(FLERR, "atom_modify", error);
 
   int iarg = 0;
+  int idx;
   while (iarg < narg) {
+    idx = iarg ? iarg : Error::ARGZERO;
     if (strcmp(arg[iarg],"id") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "atom_modify id", error);
       if (domain->box_exist)
-        error->all(FLERR,"Atom_modify id command after simulation box is defined");
+        error->all(FLERR, idx, "Atom_modify id command after simulation box is defined"
+                   + utils::errorurl(34));
       tag_enable = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"map") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "atom_modify map", error);
       if (domain->box_exist)
-        error->all(FLERR,"Atom_modify map command after simulation box is defined");
+        error->all(FLERR, idx, "Atom_modify map command after simulation box is defined"
+                   + utils::errorurl(34));
       if (strcmp(arg[iarg+1],"array") == 0) map_user = MAP_ARRAY;
       else if (strcmp(arg[iarg+1],"hash") == 0) map_user = MAP_HASH;
       else if (strcmp(arg[iarg+1],"yes") == 0) map_user = MAP_YES;
-      else error->all(FLERR,"Illegal atom_modify map command argument {}", arg[iarg+1]);
+      else error->all(FLERR, iarg + 1, "Illegal atom_modify map command argument {}", arg[iarg+1]);
       map_style = map_user;
       iarg += 2;
     } else if (strcmp(arg[iarg],"first") == 0) {
@@ -862,12 +866,12 @@ void Atom::modify_params(int narg, char **arg)
       if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "atom_modify sort", error);
       sortfreq = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       userbinsize = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      if (sortfreq < 0) error->all(FLERR,"Illegal atom_modify sort frequency {}", sortfreq);
-      if (userbinsize < 0.0) error->all(FLERR,"Illegal atom_modify sort bin size {}", userbinsize);
+      if (sortfreq < 0) error->all(FLERR, iarg + 1, "Illegal atom_modify sort frequency {}", sortfreq);
+      if (userbinsize < 0.0) error->all(FLERR, iarg + 2, "Illegal atom_modify sort bin size {}", userbinsize);
       if ((sortfreq >= 0) && firstgroupname)
-        error->all(FLERR,"Atom_modify sort and first options cannot be used together");
+        error->all(FLERR, idx, "Atom_modify sort and first options cannot be used together");
       iarg += 3;
-    } else error->all(FLERR,"Illegal atom_modify command argument: {}", arg[iarg]);
+    } else error->all(FLERR, idx, "Illegal atom_modify command argument: {}", arg[iarg]);
   }
 }
 
@@ -2300,7 +2304,7 @@ void Atom::first_reorder()
   // nfirst = index of first atom not in firstgroup
   // when find firstgroup atom out of place, swap it with atom nfirst
 
-  int bitmask = group->bitmask[firstgroup];
+  const int bitmask = group->get_bitmask_by_id(FLERR, firstgroupname, "Atom::first_reorder");
   nfirst = 0;
   while (nfirst < nlocal && mask[nfirst] & bitmask) nfirst++;
 

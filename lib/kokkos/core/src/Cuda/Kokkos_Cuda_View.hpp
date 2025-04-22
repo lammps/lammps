@@ -70,21 +70,20 @@ namespace Impl {
  */
 template <class Traits>
 class ViewDataHandle<
-    Traits, std::enable_if_t<(
-                // Is Cuda memory space
-                (std::is_same<typename Traits::memory_space,
-                              Kokkos::CudaSpace>::value ||
-                 std::is_same<typename Traits::memory_space,
-                              Kokkos::CudaUVMSpace>::value) &&
-                // Is a trivial const value of 4, 8, or 16 bytes
-                std::is_trivial<typename Traits::const_value_type>::value &&
-                std::is_same<typename Traits::const_value_type,
-                             typename Traits::value_type>::value &&
-                (sizeof(typename Traits::const_value_type) == 4 ||
-                 sizeof(typename Traits::const_value_type) == 8 ||
-                 sizeof(typename Traits::const_value_type) == 16) &&
-                // Random access trait
-                (Traits::memory_traits::is_random_access != 0))>> {
+    Traits,
+    std::enable_if_t<(
+        // Is Cuda memory space
+        (std::is_same_v<typename Traits::memory_space, Kokkos::CudaSpace> ||
+         std::is_same_v<typename Traits::memory_space, Kokkos::CudaUVMSpace>)&&
+        // Is a trivial const value of 4, 8, or 16 bytes
+        std::is_trivial_v<typename Traits::const_value_type> &&
+        std::is_same_v<typename Traits::const_value_type,
+                       typename Traits::value_type> &&
+        (sizeof(typename Traits::const_value_type) == 4 ||
+         sizeof(typename Traits::const_value_type) == 8 ||
+         sizeof(typename Traits::const_value_type) == 16) &&
+        // Random access trait
+        (Traits::memory_traits::is_random_access != 0))>> {
  public:
   using track_type = Kokkos::Impl::SharedAllocationTracker;
 

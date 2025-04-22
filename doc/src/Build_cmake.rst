@@ -119,6 +119,13 @@ configured) and additional files like LAMMPS API headers, manpages,
 potential and force field files.  The location of the installation tree
 defaults to ``${HOME}/.local``.
 
+.. note::
+
+   If you have set `-D CMAKE_INSTALL_PREFIX` to install LAMMPS into a
+   system location on a Linux machine , you may also have to run (as
+   root) the `ldconfig` program to update the cache file for fast lookup
+   of system shared libraries.
+
 .. _cmake_options:
 
 Configuration and build options

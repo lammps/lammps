@@ -217,7 +217,7 @@ void ImproperHarmonic::allocate()
 
 void ImproperHarmonic::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR, "Incorrect args for improper coefficients");
+  if (narg != 3) error->all(FLERR, "Incorrect args for improper coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -236,7 +236,7 @@ void ImproperHarmonic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for improper coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for improper coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -275,4 +275,16 @@ void ImproperHarmonic::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nimpropertypes; i++)
     fprintf(fp, "%d %g %g\n", i, k[i], RAD2DEG * chi[i]);
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *ImproperHarmonic::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "chi0") == 0) return (void *) chi;
+  return nullptr;
 }

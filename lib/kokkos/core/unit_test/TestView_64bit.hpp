@@ -84,7 +84,7 @@ void test_64bit() {
   {
 // We are running out of device memory on Intel GPUs
 #ifdef KOKKOS_ENABLE_SYCL
-    int64_t N0 = 1024 * 1024 * 900;
+    int N0 = 1024 * 1024 * 900;
 #else
     int N0 = 1024 * 1024 * 1500;
 #endif

@@ -47,6 +47,7 @@ struct SuperScalar {
 
   KOKKOS_INLINE_FUNCTION
   SuperScalar& operator=(const SuperScalar& src) {
+    if (&src == this) return *this;
     for (int i = 0; i < N; i++) {
       val[i] = src.val[i];
     }
@@ -55,6 +56,7 @@ struct SuperScalar {
 
   KOKKOS_INLINE_FUNCTION
   SuperScalar& operator=(const volatile SuperScalar& src) {
+    if (&src == this) return *this;
     for (int i = 0; i < N; i++) {
       val[i] = src.val[i];
     }
@@ -63,6 +65,7 @@ struct SuperScalar {
 
   KOKKOS_INLINE_FUNCTION
   void operator=(const SuperScalar& src) volatile {
+    if (&src == this) return;
     for (int i = 0; i < N; i++) {
       val[i] = src.val[i];
     }
@@ -418,6 +421,7 @@ T LoopVariant(int loop, int test) {
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
     case 4: return DeprecatedCASLoop<T, DeviceType>(loop);
 #endif
+    default: Kokkos::abort("unreachable");
   }
 
   Kokkos::abort("unreachable");
@@ -433,6 +437,7 @@ T LoopVariantSerial(int loop, int test) {
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
     case 4: return CASLoopSerial<T>(loop);
 #endif
+    default: Kokkos::abort("unreachable");
   }
 
   Kokkos::abort("unreachable");

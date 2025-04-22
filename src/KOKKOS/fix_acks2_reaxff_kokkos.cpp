@@ -58,12 +58,6 @@ FixACKS2ReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   allocated_flag = 0;
   nprev = 4;
 
-  memory->destroy(s_hist);
-  memory->destroy(s_hist_X);
-  memory->destroy(s_hist_last);
-  grow_arrays(atom->nmax);
-  memoryKK->create_kokkos(k_s_hist_last,s_hist_last,2,nprev,"acks2/reax:s_hist_last");
-  d_s_hist_last = k_s_hist_last.template view<DeviceType>();
   buf = new double[2*nprev];
   prev_last_rows_rank = 0;
 
@@ -83,6 +77,19 @@ FixACKS2ReaxFFKokkos<DeviceType>::~FixACKS2ReaxFFKokkos()
   delete [] buf;
 
   deallocate_array();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixACKS2ReaxFFKokkos<DeviceType>::post_constructor()
+{
+  memory->destroy(s_hist);
+  grow_arrays(atom->nmax);
+  memoryKK->create_kokkos(k_s_hist_last,s_hist_last,2,nprev,"acks2/reax:s_hist_last");
+  d_s_hist_last = k_s_hist_last.template view<DeviceType>();
+
+  pertype_parameters(pertype_option);
 }
 
 /* ---------------------------------------------------------------------- */

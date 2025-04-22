@@ -249,7 +249,7 @@ void AngleSPICA::allocate()
 void AngleSPICA::coeff(int narg, char **arg)
 {
   if ((narg < 3) || (narg > 6))
-    error->all(FLERR,"Incorrect args for angle coefficients");
+    error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 
   if (!allocated) allocate();
 
@@ -270,7 +270,7 @@ void AngleSPICA::coeff(int narg, char **arg)
     if (repscale_one > 0.0) repscale_one = 1.0;
   } else if (narg == 4) repscale_one = utils::numeric(FLERR,arg[3],false,lmp);
   else if (narg == 3) repscale_one = 1.0;
-  else error->all(FLERR,"Incorrect args for angle coefficients");
+  else error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 
   // convert theta0 from degrees to radians and store coefficients
 
@@ -283,7 +283,7 @@ void AngleSPICA::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

@@ -51,7 +51,7 @@ void Velocity::command(int narg, char **arg)
   if (narg < 2) utils::missing_cmd_args(FLERR, "velocity", error);
 
   if (domain->box_exist == 0)
-    error->all(FLERR,"Velocity command before simulation box is defined");
+    error->all(FLERR,"Velocity command before simulation box is defined" + utils::errorurl(33));
   if (atom->natoms == 0)
     error->all(FLERR,"Velocity command with no atoms existing");
 

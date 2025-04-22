@@ -277,6 +277,7 @@ double TestVariantLambda(int test) {
     case 2: return AddTestLambda<DeviceType, true>();
     case 3: return ReduceTestLambda<DeviceType, false>();
     case 4: return ReduceTestLambda<DeviceType, true>();
+    default: Kokkos::abort("unreachable");
   }
 
   return 0;
@@ -289,6 +290,7 @@ double TestVariantFunctor(int test) {
     case 2: return AddTestFunctor<DeviceType, true>();
     case 3: return ReduceTestFunctor<DeviceType, false>();
     case 4: return ReduceTestFunctor<DeviceType, true>();
+    default: Kokkos::abort("unreachable");
   }
 
   return 0;

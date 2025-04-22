@@ -82,7 +82,7 @@ MLIAPDescriptorACE::MLIAPDescriptorACE(LAMMPS *_lmp, char *yacefilename) :
     for (int iielem = 0; iielem < nelements; iielem++) delete[] elements[iielem];
     delete[] elements;
     allocated_elements = 0;
-  } else if (not allocated_elements) {
+  } else if (!allocated_elements) {
     elements = new char *[nelements];
     for (int iielem = 0; iielem < nelements; iielem++) {
       elements[iielem] = utils::strdup(acemlimpl->basis_set->elements_name[iielem]);

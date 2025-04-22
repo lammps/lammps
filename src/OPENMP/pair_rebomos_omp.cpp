@@ -186,7 +186,7 @@ void PairREBOMoSOMP::REBO_neigh_thr()
       REBO_numneigh[i] = n;
       ipg.vgot(n);
       if (ipg.status())
-        error->one(FLERR,"REBO list overflow, boost neigh_modify one");
+        error->one(FLERR, Error::NOLASTLINE, "REBO list overflow, boost neigh_modify one" + utils::errorurl(36));
     }
   }
 }

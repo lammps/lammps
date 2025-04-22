@@ -34,6 +34,7 @@ class DihedralOPLS : public Dihedral {
   void read_restart(FILE *) override;
   void write_data(FILE *) override;
   void born_matrix(int, int, int, int, int, double &, double &) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double *k1, *k2, *k3, *k4;

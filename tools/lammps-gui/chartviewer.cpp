@@ -27,6 +27,7 @@
 #include <QLabel>
 #include <QLayout>
 #include <QLineSeries>
+#include <QList>
 #include <QMenu>
 #include <QMenuBar>
 #include <QPushButton>
@@ -43,11 +44,23 @@
 
 using namespace QtCharts;
 
+// brush color index must be kept in sync with preferences
+
+static const QList<QBrush> mybrushes = {
+    QBrush(QColor(0, 0, 0)),       // black
+    QBrush(QColor(100, 150, 255)), // blue
+    QBrush(QColor(255, 125, 125)), // red
+    QBrush(QColor(100, 200, 100)), // green
+    QBrush(QColor(120, 120, 120)), // grey
+};
+
 ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     QWidget(parent), menu(new QMenuBar), file(new QMenu("&File")), saveAsAct(nullptr),
     exportCsvAct(nullptr), exportDatAct(nullptr), exportYamlAct(nullptr), closeAct(nullptr),
-    stopAct(nullptr), quitAct(nullptr), filename(_filename)
+    stopAct(nullptr), quitAct(nullptr), smooth(nullptr), window(nullptr), order(nullptr),
+    chartTitle(nullptr), chartYlabel(nullptr), filename(_filename)
 {
+    QSettings settings;
     auto *top = new QHBoxLayout;
     menu->addMenu(file);
     menu->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
@@ -56,24 +69,47 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     auto *dummy = new QPushButton(QIcon(), "");
     dummy->hide();
 
-    do_raw    = true;
-    do_smooth = true;
-    smooth    = new QComboBox;
+    // plot title and axis labels
+    settings.beginGroup("charts");
+    chartTitle =
+        new QLineEdit(settings.value("title", "Thermo: %f").toString().replace("%f", filename));
+    chartYlabel = new QLineEdit("");
+
+    // plot smoothing
+    int smoothchoice = settings.value("smoothchoice", 2).toInt();
+    switch (smoothchoice) {
+        case 0:
+            do_raw    = true;
+            do_smooth = false;
+            break;
+        case 1:
+            do_raw    = false;
+            do_smooth = true;
+            break;
+        case 2: // fallthrough
+        default:
+            do_raw    = true;
+            do_smooth = true;
+            break;
+    }
+    // list of choices must be kepy in sync with list in preferences
+    smooth = new QComboBox;
     smooth->addItem("Raw");
     smooth->addItem("Smooth");
     smooth->addItem("Both");
-    smooth->setCurrentIndex(2);
+    smooth->setCurrentIndex(smoothchoice);
     smooth->show();
     window = new QSpinBox;
     window->setRange(5, 999);
-    window->setValue(10);
+    window->setValue(settings.value("smoothwindow", 10).toInt());
     window->setEnabled(true);
     window->setToolTip("Smoothing Window Size");
     order = new QSpinBox;
     order->setRange(1, 20);
-    order->setValue(4);
+    order->setValue(settings.value("smoothorder", 4).toInt());
     order->setEnabled(true);
     order->setToolTip("Smoothing Order");
+    settings.endGroup();
 
     auto *normal = new QPushButton(QIcon(":/icons/gtk-zoom-fit.png"), "");
     normal->setToolTip("Reset zoom to normal");
@@ -82,6 +118,10 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     top->addWidget(menu);
     top->addSpacerItem(new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Minimum));
     top->addWidget(dummy);
+    top->addWidget(new QLabel("Title:"));
+    top->addWidget(chartTitle);
+    top->addWidget(new QLabel("Y:"));
+    top->addWidget(chartYlabel);
     top->addWidget(new QLabel("Plot:"));
     top->addWidget(smooth);
     top->addWidget(new QLabel(" Smooth:"));
@@ -113,6 +153,8 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     layout->addLayout(top);
     setLayout(layout);
 
+    connect(chartTitle, &QLineEdit::editingFinished, this, &ChartWindow::update_tlabel);
+    connect(chartYlabel, &QLineEdit::editingFinished, this, &ChartWindow::update_ylabel);
     connect(smooth, SIGNAL(currentIndexChanged(int)), this, SLOT(select_smooth(int)));
     connect(window, &QAbstractSpinBox::editingFinished, this, &ChartWindow::update_smooth);
     connect(order, &QAbstractSpinBox::editingFinished, this, &ChartWindow::update_smooth);
@@ -122,7 +164,6 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     connect(columns, SIGNAL(currentIndexChanged(int)), this, SLOT(change_chart(int)));
     installEventFilter(this);
 
-    QSettings settings;
     resize(settings.value("chartx", 500).toInt(), settings.value("charty", 320).toInt());
 }
 
@@ -160,8 +201,16 @@ void ChartWindow::add_chart(const QString &title, int index)
     columns->addItem(title, index);
     columns->show();
     // hide all but the first chart added
-    if (charts.size() > 0) chart->hide();
+    if (charts.size() > 0) {
+        chart->hide();
+    } else {
+        // must initialize QLineEdit with first title
+        // will be automatically updated when changing charts.
+        chartYlabel->setText(title);
+    }
     charts.append(chart);
+    update_tlabel();
+    select_smooth(0);
 }
 
 void ChartWindow::add_data(int step, double data, int index)
@@ -224,6 +273,19 @@ void ChartWindow::update_smooth()
 
     for (auto &c : charts)
         c->smooth_param(do_raw, do_smooth, wval, oval);
+}
+
+void ChartWindow::update_tlabel()
+{
+    for (auto &c : charts)
+        c->set_tlabel(chartTitle->text());
+}
+
+void ChartWindow::update_ylabel()
+{
+    for (auto &c : charts) {
+        if (c->isVisible()) c->set_ylabel(chartYlabel->text());
+    }
 }
 
 void ChartWindow::saveAs()
@@ -343,10 +405,13 @@ void ChartWindow::change_chart(int)
 {
     int choice = columns->currentData().toInt();
     for (auto &c : charts) {
-        if (choice == c->get_index())
+        if (choice == c->get_index()) {
             c->show();
-        else
+            chartTitle->setText(c->get_tlabel());
+            chartYlabel->setText(c->get_ylabel());
+        } else {
             c->hide();
+        }
     }
 }
 
@@ -390,6 +455,7 @@ ChartViewer::ChartViewer(const QString &title, int _index, QWidget *parent) :
     chart->legend()->hide();
     chart->addAxis(xaxis, Qt::AlignBottom);
     chart->addAxis(yaxis, Qt::AlignLeft);
+    chart->setTitle("");
     xaxis->setTitleText("Time step");
     xaxis->setTickCount(5);
     xaxis->setLabelFormat("%d");
@@ -516,17 +582,39 @@ void ChartViewer::smooth_param(bool _do_raw, bool _do_smooth, int _window, int _
 
 /* -------------------------------------------------------------------- */
 
+void ChartViewer::set_tlabel(const QString &tlabel)
+{
+    chart->setTitle(tlabel);
+}
+
+/* -------------------------------------------------------------------- */
+
+void ChartViewer::set_ylabel(const QString &ylabel)
+{
+    yaxis->setTitleText(ylabel);
+}
+
+/* -------------------------------------------------------------------- */
+
 // update smooth plot data
 
 static QList<QPointF> calc_sgsmooth(const QList<QPointF> &input, const int window, const int order);
 
 void ChartViewer::update_smooth()
 {
+    QSettings settings;
+    settings.beginGroup("charts");
+    int rawidx    = settings.value("rawbrush", 1).toInt();
+    int smoothidx = settings.value("smoothbrush", 2).toInt();
+    if ((rawidx < 0) || (rawidx >= mybrushes.size())) rawidx = 0;
+    if ((smoothidx < 0) || (smoothidx >= mybrushes.size())) smoothidx = 0;
+    settings.endGroup();
+
     auto allseries = chart->series();
     if (do_raw) {
         // add raw data if not in chart
         if (!allseries.contains(series)) {
-            series->setPen(QPen(QBrush(QColor(100, 150, 255)), 3, Qt::SolidLine, Qt::RoundCap));
+            series->setPen(QPen(mybrushes[rawidx], 3, Qt::SolidLine, Qt::RoundCap));
             chart->addSeries(series);
             series->attachAxis(xaxis);
             series->attachAxis(yaxis);
@@ -537,7 +625,7 @@ void ChartViewer::update_smooth()
         if (series->count() > (2 * window)) {
             if (!smooth) {
                 smooth = new QLineSeries;
-                smooth->setPen(QPen(QBrush(QColor(255, 125, 125)), 3, Qt::SolidLine, Qt::RoundCap));
+                smooth->setPen(QPen(mybrushes[smoothidx], 3, Qt::SolidLine, Qt::RoundCap));
                 chart->addSeries(smooth);
                 smooth->attachAxis(xaxis);
                 smooth->attachAxis(yaxis);

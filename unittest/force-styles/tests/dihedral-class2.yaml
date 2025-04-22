@@ -17,7 +17,13 @@ dihedral_coeff: ! |
   *  at   75 42 31 75 42 31 120 50
   *  aat  75 120 160
   *  bb13 75 1.4 1.4
-extract: ! ""
+extract: ! |
+  k1 1
+  k2 1
+  k3 1
+  phi1 1
+  phi2 1
+  phi3 1
 natoms: 29
 init_energy: 3355.0074717375933
 init_stress: ! |2-

@@ -17,13 +17,11 @@
 #include "input.h"
 #include "library.h"
 
+#include "json.h"
+
 #include <cstdlib>
 #include <mpi.h>
 #include <new>
-
-#if defined(LAMMPS_TRAP_FPE) && defined(_GNU_SOURCE)
-#include <fenv.h>
-#endif
 
 // import MolSSI Driver Interface library
 #if defined(LMP_MDI)
@@ -62,17 +60,6 @@ int main(int argc, char **argv)
     if (MDI_MPI_get_world_comm(&lammps_comm)) MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 
-#if defined(LAMMPS_TRAP_FPE) && defined(_GNU_SOURCE)
-  // enable trapping selected floating point exceptions.
-  // this uses GNU extensions and is only tested on Linux
-  // therefore we make it depend on -D_GNU_SOURCE, too.
-  fesetenv(FE_NOMASK_ENV);
-  fedisableexcept(FE_ALL_EXCEPT);
-  feenableexcept(FE_DIVBYZERO);
-  feenableexcept(FE_INVALID);
-  feenableexcept(FE_OVERFLOW);
-#endif
-
   try {
     auto lammps = new LAMMPS(argc, argv, lammps_comm);
     lammps->input->file();
@@ -87,6 +74,11 @@ int main(int argc, char **argv)
     exit(1);
   } catch (fmt::format_error &fe) {
     fprintf(stderr, "\nfmt::format_error: %s%s\n", fe.what(), utils::errorurl(12).c_str());
+    finalize();
+    MPI_Abort(MPI_COMM_WORLD, 1);
+    exit(1);
+  } catch (json::exception &je) {
+    fprintf(stderr, "\nJSON library error %d: %s\n", je.id, je.what());
     finalize();
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);

@@ -378,6 +378,7 @@ void PairCoulLongKokkos<DeviceType>::init_style()
   PairCoulLong::init_style();
 
   Kokkos::deep_copy(d_cut_coulsq,cut_coulsq);
+  Kokkos::deep_copy(d_cut_ljsq,cut_coulsq);
 
   // error if rRESPA with inner levels
 
@@ -415,6 +416,7 @@ double PairCoulLongKokkos<DeviceType>::init_one(int i, int j)
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
     m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsq;
+    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_coulsq;
   }
 
   k_cutsq.h_view(i,j) = cutone*cutone;

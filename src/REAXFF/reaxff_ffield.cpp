@@ -209,7 +209,7 @@ namespace ReaxFF {
 
           sbp[i].r_pp       = values.next_double();
           sbp[i].p_lp2      = values.next_double();
-          sbp[i].gauss_exp  = values.next_double();  // for QTPIE 
+          sbp[i].gauss_exp  = values.next_double();  // for QTPIE
           sbp[i].b_o_131    = values.next_double();
           sbp[i].b_o_132    = values.next_double();
           sbp[i].b_o_133    = values.next_double();

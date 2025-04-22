@@ -243,6 +243,8 @@ struct control_params {
   LAMMPS_NS::Error *error_ptr;
   LAMMPS_NS::LAMMPS *lmp_ptr;
   int me;
+
+  int ereaxff_flag;
 };
 
 struct energy_data {

@@ -223,6 +223,7 @@ void PairReaxFF::settings(int narg, char **arg)
   api->system->minhbonds = REAX_MIN_HBONDS;
   api->system->safezone = REAX_SAFE_ZONE;
   api->system->saferzone = REAX_SAFER_ZONE;
+  api->control->ereaxff_flag = 0;
 
   // process optional keywords
 
@@ -269,6 +270,10 @@ void PairReaxFF::settings(int narg, char **arg)
       api->control->tabulate = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (api->control->tabulate < 0)
         error->all(FLERR,"Illegal pair_style reaxff tabulate command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"ereaxff") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reaxff command");
+      api->control->ereaxff_flag = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal pair_style reaxff command");
   }

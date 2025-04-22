@@ -93,6 +93,16 @@ private:
     QSettings *settings;
 };
 
+class ChartsTab : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit ChartsTab(QSettings *settings, QWidget *parent = nullptr);
+
+private:
+    QSettings *settings;
+};
+
 #endif
 
 // Local Variables:

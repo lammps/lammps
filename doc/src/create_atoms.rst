@@ -28,7 +28,7 @@ Syntax
          region-ID = create atoms within this region, use NULL for entire simulation box
 
 * zero or more keyword/value pairs may be appended
-* keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *radscale* or *meshmode* or *rotate* or *overlap* or *maxtry* or *units*
+* keyword = *mol* or *basis* or *ratio* or *subset* or *group* or *remap* or *var* or *set* or *radscale* or *meshmode* or *rotate* or *overlap* or *maxtry* or *units*
 
   .. parsed-literal::
 
@@ -44,6 +44,7 @@ Syntax
        *subset* values = Nsubset seed
          Nsubset = # of lattice sites to populate randomly
          seed = random # seed (positive integer)
+       *group* value = group name
        *remap* value = *yes* or *no*
        *var* value = name = variable name to evaluate for test of atom creation
        *set* values = dim name
@@ -83,7 +84,7 @@ Examples
 
    create_atoms 3 region regsphere basis 2 3
    create_atoms 3 region regsphere basis 2 3 ratio 0.5 74637
-   create_atoms 3 single 0 0 5
+   create_atoms 3 single 0 0 5 group newatom
    create_atoms 1 box var v set x xpos set y ypos
    create_atoms 2 random 50 12345 NULL overlap 2.0 maxtry 50
    create_atoms 1 mesh open_box.stl meshmode qrand 0.1 units box
@@ -394,6 +395,14 @@ chosen randomly.  An iterative algorithm is used that ensures the
 correct number of particles are inserted, in a perfectly random
 fashion.  Which lattice sites are selected will change with the number
 of processors used.
+
+.. versionadded:: TBD
+
+The *group* keyword adds the newly created atoms to the named
+:doc:`group <group>`.  If the group does not yet exist it will be
+created.  There can be only one such group, thus if the *group* keyword
+is used multiple times, only the last one will be used.  All created
+atoms are always added to the group "all".
 
 The *remap* keyword only applies to the *single* style.  If it is set
 to *yes*, then if the specified position is outside the simulation

@@ -105,46 +105,33 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Qrestrict")
     endif()
     if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
-      set(CMAKE_TUNE_DEFAULT "/QxCOMMON-AVX512")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /QxCOMMON-AVX512")
     else()
-      set(CMAKE_TUNE_DEFAULT "/QxHost")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /QxHost")
     endif()
   else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
-      set(CMAKE_TUNE_DEFAULT "-xCOMMON-AVX512")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xCOMMON-AVX512")
     else()
-      set(CMAKE_TUNE_DEFAULT "-xHost -fp-model fast=2 -no-prec-div -qoverride-limits -diag-disable=10441 -diag-disable=11074 -diag-disable=11076 -diag-disable=2196")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xHost -fp-model fast=2 -no-prec-div -qoverride-limits -diag-disable=10441 -diag-disable=11074 -diag-disable=11076 -diag-disable=2196")
     endif()
   endif()
 endif()
 
 # silence excessive warnings for new Intel Compilers
 if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
-  set(CMAKE_TUNE_DEFAULT "-fp-model precise -Wno-tautological-constant-compare -Wno-unused-command-line-argument")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model precise -Wno-tautological-constant-compare -Wno-unused-command-line-argument")
 endif()
 
 # silence excessive warnings for PGI/NVHPC compilers
 if((CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "PGI"))
-  set(CMAKE_TUNE_DEFAULT "-Minform=severe")
-endif()
-
-# this hack is required to compile fmt lib with CrayClang version 15.0.2
-# CrayClang is only directly recognized by version 3.28 and later
-if(CMAKE_VERSION VERSION_LESS 3.28)
-  get_filename_component(_exe "${CMAKE_CXX_COMPILER}" NAME)
-  if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (_exe STREQUAL "crayCC"))
-    set(CMAKE_TUNE_DEFAULT "-DFMT_STATIC_THOUSANDS_SEPARATOR")
-  endif()
-else()
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "CrayClang")
-    set(CMAKE_TUNE_DEFAULT "-DFMT_STATIC_THOUSANDS_SEPARATOR")
-  endif()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Minform=severe")
 endif()
 
 # silence nvcc warnings
 if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND NOT (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
-  set(CMAKE_TUNE_DEFAULT "${CMAKE_TUNE_DEFAULT}" "-Xcudafe --diag_suppress=unrecognized_pragma,--diag_suppress=128")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" "-Xcudafe --diag_suppress=unrecognized_pragma,--diag_suppress=128")
 endif()
 
 # we *require* C++11 without extensions but prefer C++17.
@@ -450,6 +437,19 @@ if(NOT ${LAMMPS_MEMALIGN} STREQUAL "0")
   target_compile_definitions(lammps PRIVATE -DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
 endif()
 
+# this hack is required to compile fmt lib with CrayClang version 15.0.2
+# CrayClang is only directly recognized by CMake version 3.28 and later
+if(CMAKE_VERSION VERSION_LESS 3.28)
+  get_filename_component(_exe "${CMAKE_CXX_COMPILER}" NAME)
+  if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (_exe STREQUAL "crayCC"))
+    target_compile_definitions(lammps PRIVATE -DFMT_STATIC_THOUSANDS_SEPARATOR)
+  endif()
+else()
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "CrayClang")
+    target_compile_definitions(lammps PRIVATE -DFMT_STATIC_THOUSANDS_SEPARATOR)
+  endif()
+endif()
+
 # "hard" dependencies between packages resulting
 # in an error instead of skipping over files
 pkg_depends(ML-IAP ML-SNAP)
@@ -507,13 +507,13 @@ if(BUILD_OMP)
   if(CMAKE_VERSION VERSION_LESS 3.28)
     get_filename_component(_exe "${CMAKE_CXX_COMPILER}" NAME)
     if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (_exe STREQUAL "crayCC"))
-      set(CMAKE_SHARED_LINKER_FLAGS_${BTYPE} "${CMAKE_SHARED_LINKER_FLAGS_${BTYPE}} -fopenmp")
-      set(CMAKE_STATIC_LINKER_FLAGS_${BTYPE} "${CMAKE_STATIC_LINKER_FLAGS_${BTYPE}} -fopenmp")
+      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fopenmp")
+      set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -fopenmp")
     endif()
   else()
     if(CMAKE_CXX_COMPILER_ID STREQUAL "CrayClang")
-      set(CMAKE_SHARED_LINKER_FLAGS_${BTYPE} "${CMAKE_SHARED_LINKER_FLAGS_${BTYPE}} -fopenmp")
-      set(CMAKE_STATIC_LINKER_FLAGS_${BTYPE} "${CMAKE_STATIC_LINKER_FLAGS_${BTYPE}} -fopenmp")
+      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fopenmp")
+      set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -fopenmp")
     endif()
   endif()
 endif()
@@ -628,10 +628,6 @@ if(WITH_SWIG)
   add_subdirectory(${LAMMPS_SWIG_DIR} swig)
 endif()
 
-set(CMAKE_TUNE_FLAGS "${CMAKE_TUNE_DEFAULT}" CACHE STRING "Compiler and machine specific optimization flags (compilation only)")
-separate_arguments(CMAKE_TUNE_FLAGS)
-target_compile_options(lammps PRIVATE ${CMAKE_TUNE_FLAGS})
-target_compile_options(lmp PRIVATE ${CMAKE_TUNE_FLAGS})
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################

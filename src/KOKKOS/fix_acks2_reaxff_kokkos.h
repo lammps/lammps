@@ -64,8 +64,9 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   typedef double value_type;
   typedef ArrayTypes<DeviceType> AT;
   FixACKS2ReaxFFKokkos(class LAMMPS *, int, char **);
-  ~FixACKS2ReaxFFKokkos();
+  ~FixACKS2ReaxFFKokkos() override;
 
+  void post_constructor() override;
   void init() override;
   void setup_pre_force(int) override;
   void pre_force(int) override;

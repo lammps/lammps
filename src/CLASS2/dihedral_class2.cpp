@@ -946,3 +946,18 @@ void DihedralClass2::write_data(FILE *fp)
             at_theta0_1[i]*180.0/MY_PI,at_theta0_2[i]*180.0/MY_PI);
 }
 
+/* ----------------------------------------------------------------------
+    return ptr to internal members upon request
+ ------------------------------------------------------------------------ */
+
+ void *DihedralClass2::extract(const char *str, int &dim)
+ {
+   dim = 1;
+   if (strcmp(str, "k1") == 0) return (void *) k1;
+   if (strcmp(str, "k2") == 0) return (void *) k2;
+   if (strcmp(str, "k3") == 0) return (void *) k3;
+   if (strcmp(str, "phi1") == 0) return (void *) phi1;
+   if (strcmp(str, "phi2") == 0) return (void *) phi2;
+   if (strcmp(str, "phi3") == 0) return (void *) phi3;
+   return nullptr;
+ }

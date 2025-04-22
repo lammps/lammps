@@ -772,7 +772,7 @@ void PairComb3::Short_neigh()
     sht_num[i] = nj;
     ipage->vgot(nj);
     if (ipage->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+      error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
   }
 
   // communicating coordination number to all nodes

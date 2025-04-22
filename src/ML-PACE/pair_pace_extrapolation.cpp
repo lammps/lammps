@@ -131,7 +131,9 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
   double delx, dely, delz, evdwl;
   double fij[3];
   int *ilist, *jlist, *numneigh, **firstneigh;
-  ev_init(eflag, vflag);
+
+  if (copymode) ev_init(eflag, vflag, 0);
+  else ev_init(eflag, vflag, 1);
 
   // downwards modified by YL
 

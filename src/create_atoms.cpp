@@ -23,6 +23,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "group.h"
 #include "input.h"
 #include "irregular.h"
 #include "lattice.h"
@@ -64,18 +65,43 @@ enum { NONE, RATIO, SUBSET };
 enum { BISECTION, QUASIRANDOM };
 
 static constexpr const char *mesh_name[] = {"recursive bisection", "quasi-random"};
+
 /* ---------------------------------------------------------------------- */
 
-CreateAtoms::CreateAtoms(LAMMPS *lmp) : Command(lmp), basistype(nullptr) {}
+CreateAtoms::CreateAtoms(LAMMPS *lmp) :
+    Command(lmp), basistype(nullptr), xmol(nullptr), vstr(nullptr), xstr(nullptr), ystr(nullptr),
+    zstr(nullptr), groupname(nullptr), region(nullptr), onemol(nullptr), ranmol(nullptr),
+    ranlatt(nullptr)
+{
+}
+
+/* ---------------------------------------------------------------------- */
+
+CreateAtoms::~CreateAtoms()
+{
+  delete[] basistype;
+  memory->destroy(xmol);
+
+  delete[] vstr;
+  delete[] xstr;
+  delete[] ystr;
+  delete[] zstr;
+  delete[] groupname;
+
+  delete ranmol;
+  delete ranlatt;
+}
 
 /* ---------------------------------------------------------------------- */
 
 void CreateAtoms::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR, "Create_atoms command before simulation box is defined" + utils::errorurl(33));
+    error->all(FLERR, Error::NOLASTLINE,
+               "Create_atoms command before simulation box is defined" + utils::errorurl(33));
   if (modify->nfix_restart_peratom)
-    error->all(FLERR, "Cannot create_atoms after reading restart file with per-atom info");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Cannot create_atoms after reading restart file with per-atom info");
 
   // check for compatible lattice
 
@@ -83,10 +109,10 @@ void CreateAtoms::command(int narg, char **arg)
   if (domain->dimension == 2) {
     if (latsty == Lattice::SC || latsty == Lattice::BCC || latsty == Lattice::FCC ||
         latsty == Lattice::HCP || latsty == Lattice::DIAMOND)
-      error->all(FLERR, "Lattice style incompatible with simulation dimension");
+      error->all(FLERR, Error::NOLASTLINE, "Lattice style incompatible with simulation dimension");
   } else {
     if (latsty == Lattice::SQ || latsty == Lattice::SQ2 || latsty == Lattice::HEX)
-      error->all(FLERR, "Lattice style incompatible with simulation dimension");
+      error->all(FLERR, Error::NOLASTLINE, "Lattice style incompatible with simulation dimension");
   }
 
   // parse arguments
@@ -115,15 +141,16 @@ void CreateAtoms::command(int narg, char **arg)
     xone[1] = utils::numeric(FLERR, arg[3], false, lmp);
     xone[2] = utils::numeric(FLERR, arg[4], false, lmp);
     if (domain->dimension == 2 && xone[2] != 0.0)
-      error->all(FLERR, "Create_atoms single for 2d simulation requires z coord = 0.0");
+      error->all(FLERR, 4, "Create_atoms single for 2d simulation requires z coord = 0.0");
     iarg = 5;
   } else if (strcmp(arg[1], "random") == 0) {
     style = RANDOM;
     if (narg < 5) utils::missing_cmd_args(FLERR, "create_atoms random", error);
     nrandom = utils::inumeric(FLERR, arg[2], false, lmp);
-    if (nrandom < 0) error->all(FLERR, "Illegal create_atoms number of random atoms {}", nrandom);
+    if (nrandom < 0)
+      error->all(FLERR, 2, "Illegal create_atoms number of random atoms {}", nrandom);
     seed = utils::inumeric(FLERR, arg[3], false, lmp);
-    if (seed <= 0) error->all(FLERR, "Illegal create_atoms random seed {}", seed);
+    if (seed <= 0) error->all(FLERR, 3, "Illegal create_atoms random seed {}", seed);
     if (strcmp(arg[4], "NULL") == 0)
       region = nullptr;
     else {
@@ -162,8 +189,10 @@ void CreateAtoms::command(int narg, char **arg)
   mesh_density = 1.0;
 
   nbasis = domain->lattice->nbasis;
-  basistype = new int[nbasis];
-  for (int i = 0; i < nbasis; i++) basistype[i] = ntype;
+  if (nbasis > 0) {
+    basistype = new int[nbasis];
+    for (int i = 0; i < nbasis; i++) basistype[i] = ntype;
+  }
 
   while (iarg < narg) {
     if (strcmp(arg[iarg], "basis") == 0) {
@@ -171,8 +200,8 @@ void CreateAtoms::command(int narg, char **arg)
       int ibasis = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       int itype = utils::expand_type_int(FLERR, arg[iarg + 2], Atom::ATOM, lmp);
       if (ibasis <= 0 || ibasis > nbasis || itype <= 0 || itype > atom->ntypes)
-        error->all(FLERR, "Out of range basis setting '{} {}' in create_atoms command", ibasis,
-                   itype);
+        error->all(FLERR, iarg + 1, "Out of range basis setting '{} {}' in create_atoms command",
+                   ibasis, itype);
       basistype[ibasis - 1] = itype;
       iarg += 3;
     } else if (strcmp(arg[iarg], "remap") == 0) {
@@ -183,7 +212,8 @@ void CreateAtoms::command(int narg, char **arg)
       if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms mol", error);
       int imol = atom->find_molecule(arg[iarg + 1]);
       if (imol == -1)
-        error->all(FLERR, "Molecule template ID {} for create_atoms does not exist", arg[iarg + 1]);
+        error->all(FLERR, iarg + 1, "Molecule template ID {} for create_atoms does not exist",
+                   arg[iarg + 1]);
       if ((atom->molecules[imol]->nset > 1) && (comm->me == 0))
         error->warning(FLERR,
                        "Molecule template for create_atoms has multiple molecule sets. "
@@ -199,11 +229,11 @@ void CreateAtoms::command(int narg, char **arg)
       else if (strcmp(arg[iarg + 1], "lattice") == 0)
         scaleflag = 1;
       else
-        error->all(FLERR, "Unknown create_atoms units option {}", arg[iarg + 1]);
+        error->all(FLERR, iarg + 1, "Unknown create_atoms units option {}", arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "var") == 0) {
       if (style == SINGLE)
-        error->all(FLERR, "Cannot use 'var' keyword with 'single' style for create_atoms");
+        error->all(FLERR, iarg, "Cannot use 'var' keyword with 'single' style for create_atoms");
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms var", error);
       delete[] vstr;
       vstr = utils::strdup(arg[iarg + 1]);
@@ -221,7 +251,7 @@ void CreateAtoms::command(int narg, char **arg)
         delete[] zstr;
         zstr = utils::strdup(arg[iarg + 2]);
       } else
-        error->all(FLERR, "Unknown create_atoms set option {}", arg[iarg + 2]);
+        error->all(FLERR, iarg + 2, "Unknown create_atoms set option {}", arg[iarg + 2]);
       iarg += 3;
     } else if (strcmp(arg[iarg], "rotate") == 0) {
       if (iarg + 5 > narg) utils::missing_cmd_args(FLERR, "create_atoms rotate", error);
@@ -233,9 +263,9 @@ void CreateAtoms::command(int narg, char **arg)
       axisone[1] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       axisone[2] = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
       if (axisone[0] == 0.0 && axisone[1] == 0.0 && axisone[2] == 0.0)
-        error->all(FLERR, "Illegal create_atoms rotate arguments");
+        error->all(FLERR, Error::NOPOINTER, "Illegal create_atoms rotate arguments");
       if (domain->dimension == 2 && (axisone[0] != 0.0 || axisone[1] != 0.0))
-        error->all(FLERR, "Invalid create_atoms rotation vector for 2d model");
+        error->all(FLERR, Error::NOPOINTER, "Invalid create_atoms rotation vector for 2d model");
       MathExtra::norm3(axisone);
       MathExtra::axisangle_to_quat(axisone, thetaone, quatone);
       iarg += 5;
@@ -245,7 +275,7 @@ void CreateAtoms::command(int narg, char **arg)
       subsetfrac = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       subsetseed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       if (subsetfrac <= 0.0 || subsetfrac > 1.0 || subsetseed <= 0)
-        error->all(FLERR, "Illegal create_atoms ratio settings");
+        error->all(FLERR, Error::NOPOINTER, "Illegal create_atoms ratio settings");
       iarg += 3;
     } else if (strcmp(arg[iarg], "subset") == 0) {
       if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms subset", error);
@@ -253,26 +283,36 @@ void CreateAtoms::command(int narg, char **arg)
       nsubset = utils::bnumeric(FLERR, arg[iarg + 1], false, lmp);
       subsetseed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       if ((nsubset <= 0) || (subsetseed <= 0))
-        error->all(FLERR, "Illegal create_atoms subset settings");
+        error->all(FLERR, Error::NOPOINTER, "Illegal create_atoms subset settings");
       iarg += 3;
+    } else if (strcmp(arg[iarg], "group") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms group", error);
+      if (strcmp(arg[iarg + 1], "none") == 0) {
+        delete[] groupname;
+        groupname = nullptr;
+      } else {
+        groupname = utils::strdup(arg[iarg + 1]);
+      }
+      iarg += 2;
     } else if (strcmp(arg[iarg], "overlap") == 0) {
       if (style != RANDOM)
-        error->all(FLERR, "Create_atoms overlap can only be used with random style");
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
+        error->all(FLERR, iarg, "Create_atoms overlap can only be used with random style");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms overlap", error);
       overlap = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      if (overlap <= 0) error->all(FLERR, "Illegal create_atoms overlap value: {}", overlap);
+      if (overlap <= 0)
+        error->all(FLERR, iarg + 1, "Illegal create_atoms overlap value: {}", overlap);
       overlapflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "maxtry") == 0) {
       if (style != RANDOM)
-        error->all(FLERR, "Create_atoms maxtry can only be used with random style");
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
+        error->all(FLERR, iarg, "Create_atoms maxtry can only be used with random style");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms maxtry", error);
       maxtry = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (maxtry <= 0) error->all(FLERR, "Illegal create_atoms command");
+      if (maxtry <= 0) error->all(FLERR, iarg + 1, "Illegal create_atoms maxtry value {}", maxtry);
       iarg += 2;
     } else if (strcmp(arg[iarg], "meshmode") == 0) {
       if (style != MESH)
-        error->all(FLERR, "Create_atoms meshmode can only be used with mesh style");
+        error->all(FLERR, iarg, "Create_atoms meshmode can only be used with mesh style");
       if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms meshmode", error);
       if (strcmp(arg[iarg + 1], "bisect") == 0) {
         mesh_style = BISECTION;
@@ -281,16 +321,17 @@ void CreateAtoms::command(int narg, char **arg)
         mesh_style = QUASIRANDOM;
         mesh_density = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       } else
-        error->all(FLERR, "Unknown create_atoms meshmode {}", arg[iarg + 2]);
+        error->all(FLERR, iarg + 2, "Unknown create_atoms meshmode {}", arg[iarg + 2]);
       iarg += 3;
     } else if (strcmp(arg[iarg], "radscale") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms radscale", error);
       if (style != MESH)
-        error->all(FLERR, "Create_atoms radscale can only be used with mesh style");
+        error->all(FLERR, iarg, "Create_atoms radscale can only be used with mesh style");
       if (!atom->radius_flag)
-        error->all(FLERR, "Must have atom attribute radius to set radscale factor");
+        error->all(FLERR, iarg, "Must have atom attribute radius to set radscale factor");
       radscale = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      if (radscale <= 0.0) error->all(FLERR, "Illegal create_atoms radscale value: {}", radscale);
+      if (radscale <= 0.0)
+        error->all(FLERR, iarg + 1, "Illegal create_atoms radscale value: {}", radscale);
       iarg += 2;
     } else
       error->all(FLERR, "Illegal create_atoms command option {}", arg[iarg]);
@@ -300,16 +341,20 @@ void CreateAtoms::command(int narg, char **arg)
 
   if (mode == ATOM) {
     if ((ntype <= 0) || (ntype > atom->ntypes))
-      error->all(FLERR, "Invalid atom type in create_atoms command");
+      error->all(FLERR, Error::NOLASTLINE, "Invalid atom type in create_atoms command");
   } else if (mode == MOLECULE) {
-    if (onemol->xflag == 0) error->all(FLERR, "Create_atoms molecule must have coordinates");
-    if (onemol->typeflag == 0) error->all(FLERR, "Create_atoms molecule must have atom types");
+    if (onemol->xflag == 0)
+      error->all(FLERR, Error::NOLASTLINE, "Create_atoms molecule must have coordinates");
+    if (onemol->typeflag == 0)
+      error->all(FLERR, Error::NOLASTLINE, "Create_atoms molecule must have atom types");
     if (ntype + onemol->ntypes <= 0 || ntype + onemol->ntypes > atom->ntypes)
-      error->all(FLERR, "Invalid atom type in create_atoms mol command");
+      error->all(FLERR, Error::NOLASTLINE, "Invalid atom type in create_atoms mol command");
     if (onemol->tag_require && !atom->tag_enable)
-      error->all(FLERR, "Create_atoms molecule has atom IDs, but system does not");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Create_atoms molecule has atom IDs, but system does not");
     if (atom->molecular == Atom::TEMPLATE && onemol != atom->avec->onemols[0])
-      error->all(FLERR, "Create_atoms molecule template ID must be same as atom style template ID");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Create_atoms molecule template ID must be same as atom style template ID");
 
     onemol->check_attributes();
 
@@ -323,8 +368,10 @@ void CreateAtoms::command(int narg, char **arg)
 
   if (style == MESH) {
     if (mode == MOLECULE)
-      error->all(FLERR, "Create_atoms mesh is not compatible with the 'mol' option");
-    if (scaleflag) error->all(FLERR, "Create_atoms mesh must use 'units box' option");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Create_atoms mesh is not compatible with the 'mol' option");
+    if (scaleflag)
+      error->all(FLERR, Error::NOLASTLINE, "Create_atoms mesh must use 'units box' option");
   }
 
   ranlatt = nullptr;
@@ -333,40 +380,44 @@ void CreateAtoms::command(int narg, char **arg)
   // error check and further setup for variable test
 
   if (!vstr && (xstr || ystr || zstr))
-    error->all(FLERR, "Incomplete use of variables in create_atoms command");
+    error->all(FLERR, Error::NOLASTLINE, "Incomplete use of variables in create_atoms command");
   if (vstr && (!xstr && !ystr && !zstr))
-    error->all(FLERR, "Incomplete use of variables in create_atoms command");
+    error->all(FLERR, Error::NOLASTLINE, "Incomplete use of variables in create_atoms command");
 
   if (varflag) {
     vvar = input->variable->find(vstr);
     if (vvar < 0) error->all(FLERR, "Variable {} for create_atoms does not exist", vstr);
     if (!input->variable->equalstyle(vvar))
-      error->all(FLERR, "Variable for create_atoms is invalid style");
+      error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms is invalid style", vstr);
 
     if (xstr) {
       xvar = input->variable->find(xstr);
-      if (xvar < 0) error->all(FLERR, "Variable {} for create_atoms does not exist", xstr);
+      if (xvar < 0)
+        error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms does not exist", xstr);
       if (!input->variable->internalstyle(xvar))
-        error->all(FLERR, "Variable for create_atoms is invalid style");
+        error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms is invalid style", xstr);
     }
     if (ystr) {
       yvar = input->variable->find(ystr);
-      if (yvar < 0) error->all(FLERR, "Variable {} for create_atoms does not exist", ystr);
+      if (yvar < 0)
+        error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms does not exist", ystr);
       if (!input->variable->internalstyle(yvar))
-        error->all(FLERR, "Variable for create_atoms is invalid style");
+        error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms is invalid style", ystr);
     }
     if (zstr) {
       zvar = input->variable->find(zstr);
-      if (zvar < 0) error->all(FLERR, "Variable {} for create_atoms does not exist", zstr);
+      if (zvar < 0)
+        error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms does not exist", zstr);
       if (!input->variable->internalstyle(zvar))
-        error->all(FLERR, "Variable for create_atoms is invalid style");
+        error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms is invalid style", zstr);
     }
   }
 
   // require non-none lattice be defined for BOX or REGION styles
 
   if ((style == BOX) || (style == REGION)) {
-    if (nbasis == 0) error->all(FLERR, "Cannot create atoms with undefined lattice");
+    if (nbasis == 0)
+      error->all(FLERR, Error::NOLASTLINE, "Cannot create atoms with undefined lattice");
   }
 
   // apply scaling factor for styles that use distance-dependent factors
@@ -492,7 +543,8 @@ void CreateAtoms::command(int narg, char **arg)
 
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal, &atom->natoms, 1, MPI_LMP_BIGINT, MPI_SUM, world);
-  if (atom->natoms < 0 || atom->natoms >= MAXBIGINT) error->all(FLERR, "Too many total atoms");
+  if ((atom->natoms < 0) || (atom->natoms >= MAXBIGINT))
+    error->all(FLERR, Error::NOLASTLINE, "Too many total atoms");
 
   // add IDs for newly created atoms
   // check that atom IDs are valid
@@ -644,18 +696,6 @@ void CreateAtoms::command(int narg, char **arg)
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
   }
 
-  // clean up
-
-  delete ranmol;
-  delete ranlatt;
-
-  delete[] basistype;
-  delete[] vstr;
-  delete[] xstr;
-  delete[] ystr;
-  delete[] zstr;
-  if (mode == MOLECULE) memory->destroy(xmol);
-
   // for MOLECULE mode:
   // create special bond lists for molecular systems,
   //   but not for atom style template
@@ -666,6 +706,13 @@ void CreateAtoms::command(int narg, char **arg)
       Special special(lmp);
       special.build();
     }
+  }
+
+  // add atoms to group
+
+  if (groupname) {
+    int groupbit = group->bitmask[group->find_or_create(groupname)];
+    for (int i = nlocal_previous; i < atom->nlocal; ++i) atom->mask[i] |= groupbit;
   }
 
   // print status
@@ -778,7 +825,7 @@ void CreateAtoms::add_random()
   }
 
   if (xlo > xhi || ylo > yhi || zlo > zhi)
-    error->all(FLERR, "No overlap of box and region for create_atoms");
+    error->all(FLERR, Error::NOLASTLINE, "No overlap of box and region for create_atoms");
 
   // insert Nrandom new atom/molecule into simulation box
 
@@ -1085,7 +1132,8 @@ void CreateAtoms::add_mesh(const char *filename)
 
   SafeFilePtr fp = fopen(filename, "rb");
   if (fp == nullptr)
-    error->one(FLERR, "Cannot open STL mesh file {}: {}", filename, utils::getsyserror());
+    error->one(FLERR, Error::NOLASTLINE, "Cannot open STL mesh file {}: {}", filename,
+               utils::getsyserror());
 
   // first try reading the file in ASCII format
 
@@ -1159,7 +1207,8 @@ void CreateAtoms::add_mesh(const char *filename)
       title[79] = '\0';
       count = fread(&ntri, sizeof(ntri), 1, fp);
       if (count <= 0) {
-        error->all(FLERR, "Error reading STL file {}: {}", filename, utils::getsyserror());
+        error->all(FLERR, Error::NOLASTLINE, "Error reading STL file {}: {}", filename,
+                   utils::getsyserror());
       } else {
         if (comm->me == 0)
           utils::logmesg(lmp, "Reading STL object {} from binary file {}\n", utils::trim(title),
@@ -1169,7 +1218,8 @@ void CreateAtoms::add_mesh(const char *filename)
       for (uint32_t i = 0U; i < ntri; ++i) {
         count = fread(triangle, sizeof(float), 12, fp);
         if (count != 12)
-          error->all(FLERR, "Error reading STL file {}: {}", filename, utils::getsyserror());
+          error->all(FLERR, Error::NOLASTLINE, "Error reading STL file {}: {}", filename,
+                     utils::getsyserror());
         count = fread(&attr, sizeof(attr), 1, fp);
 
         for (int j = 0; j < 3; ++j)
@@ -1186,7 +1236,8 @@ void CreateAtoms::add_mesh(const char *filename)
         }
       }
     } else {
-      error->all(FLERR, "Error reading triangles from STL mesh file {}: {}", filename, e.what());
+      error->all(FLERR, Error::NOLASTLINE, "Error reading triangles from STL mesh file {}: {}",
+                 filename, e.what());
     }
   }
 
@@ -1209,10 +1260,11 @@ void CreateAtoms::add_lattice()
   // verify lattice was defined with triclinic/general option
 
   if (!domain->triclinic_general && domain->lattice->is_general_triclinic())
-    error->all(FLERR,
+    error->all(FLERR, Error::NOLASTLINE,
                "Create_atoms for non general triclinic box cannot use triclinic/general lattice");
   if (domain->triclinic_general && !domain->lattice->is_general_triclinic())
-    error->all(FLERR, "Create_atoms for general triclinic box requires triclinic/general lattice");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Create_atoms for general triclinic box requires triclinic/general lattice");
 
   // convert 8 corners of my subdomain from box coords to lattice coords
   // for orthogonal, use corner pts of my subbox
@@ -1353,7 +1405,8 @@ void CreateAtoms::add_lattice()
 
   int overflow;
   MPI_Allreduce(&nlatt_overflow, &overflow, 1, MPI_INT, MPI_SUM, world);
-  if (overflow) error->all(FLERR, "Create_atoms lattice size overflow on 1 or more procs");
+  if (overflow)
+    error->all(FLERR, Error::NOLASTLINE, "Create_atoms lattice size overflow on 1 or more procs");
 
   bigint nadd;
 
@@ -1367,7 +1420,8 @@ void CreateAtoms::add_lattice()
     bigint bnlattall;
     MPI_Allreduce(&bnlatt, &bnlattall, 1, MPI_LMP_BIGINT, MPI_SUM, world);
     if (subsetflag == RATIO) nsubset = static_cast<bigint>(subsetfrac * bnlattall);
-    if (nsubset > bnlattall) error->all(FLERR, "Create_atoms subset size > # of lattice sites");
+    if (nsubset > bnlattall)
+      error->all(FLERR, Error::NOLASTLINE, "Create_atoms subset size > # of lattice sites");
     if (comm->nprocs == 1)
       nadd = nsubset;
     else
@@ -1438,7 +1492,8 @@ void CreateAtoms::loop_lattice(int action)
             domain->general_to_restricted_coords(x);
             if (dimension == 2) {
               if (fabs(x[2]) > EPS_ZCOORD)
-                error->all(FLERR, "Create_atoms atom z coord is non-zero for 2d simulation");
+                error->all(FLERR, Error::NOLASTLINE,
+                           "Create_atoms atom z coord is non-zero for 2d simulation");
               x[2] = 0.0;
             }
           }

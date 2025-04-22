@@ -19,6 +19,8 @@
 #include "atom.h"
 #include "bond.h"
 #include "bond_hybrid.h"
+#include "dihedral.h"
+#include "dihedral_hybrid.h"
 #include "domain.h"
 #include "error.h"
 #include "fix_store_atom.h"
@@ -43,14 +45,14 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{PAIR, KSPACE, ATOM, BOND, ANGLE, IMPROPER};
+enum{PAIR, KSPACE, ATOM, BOND, ANGLE, DIHEDRAL, IMPROPER};
 enum{DIAMETER, CHARGE};
 
 /* ---------------------------------------------------------------------- */
 
 FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), nadapt(0), anypair(0), anybond(0), anyangle(0),
-  anyimproper(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
+  anydihedral(0), anyimproper(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
 {
   if (narg < 5) utils::missing_cmd_args(FLERR,"fix adapt", error);
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
@@ -83,6 +85,10 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
       iarg += 5;
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+5 > narg) utils::missing_cmd_args(FLERR,"fix adapt angle", error);
+      nadapt++;
+      iarg += 5;
+    } else if (strcmp(arg[iarg],"dihedral") == 0) {
+      if (iarg+5 > narg) utils::missing_cmd_args(FLERR,"fix adapt dihedral", error);
       nadapt++;
       iarg += 5;
     } else if (strcmp(arg[iarg],"improper") == 0) {
@@ -152,6 +158,19 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
       if (utils::strmatch(arg[iarg+4],"^v_")) {
         adapt[nadapt].var = utils::strdup(arg[iarg+4]+2);
       } else error->all(FLERR,iarg+4, "Argument must be variable not {}", arg[iarg+4]);
+      nadapt++;
+      iarg += 5;
+
+    } else if (strcmp(arg[iarg],"dihedral") == 0) {
+      adapt[nadapt].which = DIHEDRAL;
+      adapt[nadapt].dihedral = nullptr;
+      adapt[nadapt].dstyle = utils::strdup(arg[iarg+1]);
+      adapt[nadapt].dparam = utils::strdup(arg[iarg+2]);
+      utils::bounds_typelabel(FLERR, arg[iarg+3], 1, atom->ndihedraltypes,
+                              adapt[nadapt].ilo, adapt[nadapt].ihi, lmp, Atom::DIHEDRAL);
+      if (utils::strmatch(arg[iarg+4],"^v_")) {
+        adapt[nadapt].var = utils::strdup(arg[iarg+4]+2);
+      } else error->all(FLERR,"Argument #{} must be variable not {}", iarg+5, arg[iarg+4]);
       nadapt++;
       iarg += 5;
 
@@ -246,6 +265,12 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate improper style arrays:
 
+  n = atom->ndihedraltypes;
+  for (int m = 0; m < nadapt; ++m)
+    if (adapt[m].which == DIHEDRAL) memory->create(adapt[m].vector_orig,n+1,"adapt:vector_orig");
+
+  // allocate improper style arrays:
+
   n = atom->nimpropertypes;
   for (int m = 0; m < nadapt; ++m)
     if (adapt[m].which == IMPROPER) memory->create(adapt[m].vector_orig,n+1,"adapt:vector_orig");
@@ -269,6 +294,10 @@ FixAdapt::~FixAdapt()
     } else if (adapt[m].which == ANGLE) {
       delete[] adapt[m].astyle;
       delete[] adapt[m].aparam;
+      memory->destroy(adapt[m].vector_orig);
+    } else if (adapt[m].which == DIHEDRAL) {
+      delete[] adapt[m].dstyle;
+      delete[] adapt[m].dparam;
       memory->destroy(adapt[m].vector_orig);
     } else if (adapt[m].which == IMPROPER) {
       delete[] adapt[m].istyle;
@@ -368,6 +397,7 @@ void FixAdapt::init()
   anypair = 0;
   anybond = 0;
   anyangle = 0;
+  anydihedral = 0;
   anyimproper = 0;
 
   for (int m = 0; m < nadapt; m++) {
@@ -509,6 +539,40 @@ void FixAdapt::init()
 
       delete[] astyle;
 
+    } else if (ad->which == DIHEDRAL) {
+      ad->dihedral = nullptr;
+      anydihedral = 1;
+
+      char *dstyle = utils::strdup(ad->dstyle);
+      if (lmp->suffix_enable)
+        ad->dihedral = force->dihedral_match(fmt::format("{}/{}",dstyle,lmp->suffix));
+
+      if (ad->dihedral == nullptr) ad->dihedral = force->dihedral_match(dstyle);
+      if (ad->dihedral == nullptr )
+        error->all(FLERR,"Fix adapt dihedral style {} does not exist", dstyle);
+
+      void *ptr = ad->dihedral->extract(ad->dparam,ad->ddim);
+
+      if (ptr == nullptr)
+        error->all(FLERR,"Fix adapt dihedral style parameter {} not supported", ad->dparam);
+
+      // for dihedral styles, use a vector
+
+      if (ad->ddim == 1) ad->vector = (double *) ptr;
+
+      if (utils::strmatch(force->dihedral_style,"^hybrid")) {
+        auto dihedral = dynamic_cast<DihedralHybrid *>(force->dihedral);
+        if (dihedral) {
+          for (i = ad->ilo; i <= ad->ihi; i++) {
+            if (!dihedral->check_itype(i,dstyle))
+              error->all(FLERR,"Fix adapt type dihedral range is not valid "
+                         "for dihedral hybrid sub-style {}", dstyle);
+          }
+        }
+      }
+
+      delete[] dstyle;
+
     } else if (ad->which == IMPROPER) {
       ad->improper = nullptr;
       anyimproper = 1;
@@ -569,7 +633,7 @@ void FixAdapt::init()
 
   if (restart_reset) restart_reset = 0;
 
-  // make copy of original pair/bond/angle/improper array values
+  // make copy of original pair/bond/angle/dihedral/improper array values
 
   for (int m = 0; m < nadapt; m++) {
     Adapt *ad = &adapt[m];
@@ -585,6 +649,10 @@ void FixAdapt::init()
         ad->vector_orig[i] = ad->vector[i];
 
     } else if (ad->which == ANGLE && ad->adim == 1) {
+      for (i = ad->ilo; i <= ad->ihi; ++i )
+        ad->vector_orig[i] = ad->vector[i];
+
+    } else if (ad->which == DIHEDRAL && ad->ddim == 1) {
       for (i = ad->ilo; i <= ad->ihi; ++i )
         ad->vector_orig[i] = ad->vector[i];
 
@@ -710,6 +778,18 @@ void FixAdapt::change_settings()
             ad->vector[i] = value;
       }
 
+    // set dihedral type array values:
+
+  } else if (ad->which == DIHEDRAL) {
+    if (ad->ddim == 1) {
+      if (scaleflag)
+        for (i = ad->ilo; i <= ad->ihi; ++i )
+          ad->vector[i] = value*ad->vector_orig[i];
+      else
+        for (i = ad->ilo; i <= ad->ihi; ++i )
+          ad->vector[i] = value;
+    }
+
     // set improper type array values:
 
     } else if (ad->which == IMPROPER) {
@@ -797,6 +877,7 @@ void FixAdapt::change_settings()
   if (anypair) force->pair->reinit();
   if (anybond) force->bond->reinit();
   if (anyangle) force->angle->reinit();
+  if (anydihedral) force->dihedral->reinit();
   if (anyimproper) force->improper->reinit();
 
   // reset KSpace charges if charges have changed
@@ -828,6 +909,12 @@ void FixAdapt::restore_settings()
 
     } else if (ad->which == ANGLE) {
       if (ad->adim == 1) {
+        for (int i = ad->ilo; i <= ad->ihi; i++)
+          ad->vector[i] = ad->vector_orig[i];
+      }
+
+    } else if (ad->which == DIHEDRAL) {
+      if (ad->ddim == 1) {
         for (int i = ad->ilo; i <= ad->ihi; i++)
           ad->vector[i] = ad->vector_orig[i];
       }
@@ -878,6 +965,7 @@ void FixAdapt::restore_settings()
   if (anypair) force->pair->reinit();
   if (anybond) force->bond->reinit();
   if (anyangle) force->angle->reinit();
+  if (anydihedral) force->dihedral->reinit();
   if (anyimproper) force->improper->reinit();
   if (chgflag && force->kspace) force->kspace->qsum_qsq();
 }

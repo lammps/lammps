@@ -411,6 +411,8 @@ cdef public object mliap_unified_connect(char *fname, MLIAPDummyModel * model,
     unified_int.descriptor.set_elements(elements, nelements)
     unified_int.model.nelements = nelements
 
+    for i, elem in enumerate(unified.element_types):
+        free(elements[i])
     free(elements)
     return unified_int
 

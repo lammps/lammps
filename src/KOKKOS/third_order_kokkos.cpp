@@ -118,7 +118,7 @@ void ThirdOrderKokkos::setup()
     force->pair->compute(eflag,vflag);
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
   }
-  else if (force->pair) force->pair->compute_dummy(eflag,vflag);
+  else if (force->pair) force->pair->compute_dummy(eflag,vflag,0);
   update->setupflag = 0;
 
   lmp->kokkos->auto_sync = 0;

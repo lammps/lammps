@@ -135,6 +135,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   modify(nullptr), group(nullptr), output(nullptr), timer(nullptr), kokkos(nullptr),
   atomKK(nullptr), memoryKK(nullptr), python(nullptr), citeme(nullptr)
 {
+  in_args = arg;
+  num_in_arg = narg;
+
   memory = new Memory(this);
   error = new Error(this);
   universe = new Universe(this,communicator);

@@ -1,0 +1,52 @@
+# 3d Lennard-Jones melt
+
+variable    nspare      index 1
+variable    fail_rank   index 1
+
+variable    x           index 1
+variable    y           index 1
+variable    z           index 1
+
+variable    xx          equal 20*$x
+variable    yy          equal 20*$y
+variable    zz          equal 20*$z
+
+units       lj
+atom_style  atomic
+
+# Checkpoint to memory on iterations 50,100,...
+# When a failure occurs, execution starts over at the top of the file, but when
+#  we reach the fenix command a second time it will recover from the latest
+#  checkpoint and run 'jump SELF restart'
+# Upon reaching this command for the first time, ${nspare} ranks are trapped by
+#  fenix. The LAMMPS world is rebuilt without them, and instead they are used to
+#  rebuild the LAMMPS world when other ranks fail.
+fenix checkpoint_every 50 &
+      restart_jump SELF restart &
+      spares ${nspare}
+
+lattice         fcc 0.8442
+region          box block 0 ${xx} 0 ${yy} 0 ${zz}
+create_box      1 box
+create_atoms    1 box
+mass            1 1.0
+
+velocity        all create 1.44 87287 loop geom
+
+label restart
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0 2.5
+
+neighbor        0.3 bin
+neigh_modify    delay 0 every 20 check no
+
+fix             1 all nve
+
+# Rank ${fail_rank} will end its process at timestep 51 in the run command
+# By default, fix/fail will ignore requested failures if that rank failed
+#  in the most recent recovery. So we will run to completion on our second
+#  attempt for this example
+if "${fail_rank} != -1" then "fix 2 all fail rank ${fail_rank} timestep 51"
+
+run             75 upto

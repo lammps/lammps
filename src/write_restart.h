@@ -29,9 +29,9 @@ class WriteRestart : public Command {
   WriteRestart(class LAMMPS *);
   void command(int, char **) override;
   void multiproc_options(int, int, char **);
-  void write(const std::string &);
+  virtual void write(const std::string &);
 
- private:
+ protected:
   int me, nprocs;
   FILE *fp;
   bigint natoms;    // natoms (sum of nlocal) to write into file

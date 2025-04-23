@@ -95,6 +95,5 @@ int main(int argc, char **argv)
     exit(1);
   }
   finalize();
-  MPI_Barrier(lammps_comm);
   MPI_Finalize();
 }

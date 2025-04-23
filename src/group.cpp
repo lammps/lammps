@@ -39,7 +39,6 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr int MAX_GROUP = 32;
 static constexpr double EPSILON = 1.0e-6;
 
 enum { NONE, TYPE, MOLECULE, ID };

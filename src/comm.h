@@ -19,6 +19,8 @@
 namespace LAMMPS_NS {
 
 class Comm : protected Pointers {
+  friend class FenixCheckpoint;
+
  public:
   enum { BRICK, TILED };
   int style;    // BRICK = 6-way stencil communication

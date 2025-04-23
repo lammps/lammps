@@ -23,6 +23,8 @@ class Group : protected Pointers {
   friend class FixGroup;
 
  public:
+  static constexpr int MAX_GROUP = 32;
+
   int ngroup;          // # of defined groups
   char **names;        // name of each group
   int *bitmask;        // one-bit mask for each group

@@ -415,6 +415,20 @@ tagint tnumeric(const char *file, int line, const std::string &str, bool do_abor
 
 tagint tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 
+/*! Convert fix function name(s) into bitmask
+ *
+ *  This function converts fix function names into a bitmask of those functions.
+ *  Multiple names can be masked together by separating them with an ampersand.
+ *  An asterisk matches all function names.
+ *
+ *  \param file     name of source file for error message
+ *  \param line     line number in source file for error message
+ *  \param str      string to be converted to mask
+ *  \param do_abort determines whether to call Error::one() or Error::all()
+ *  \param lmp      pointer to top-level LAMMPS class instance
+ *  \return         integer function mask */
+int fixmask(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp);
+
 /*! Compute index bounds derived from a string with a possible wildcard
  *
  * This functions processes the string in *str* and set the values of *nlo*

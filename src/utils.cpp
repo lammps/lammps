@@ -784,6 +784,65 @@ tagint utils::tnumeric(const char *file, int line, const char *str, bool do_abor
 }
 
 /* ----------------------------------------------------------------------
+   Bitmask of the Fix function names listed in a string
+------------------------------------------------------------------------- */
+
+int utils::fixmask(const char* file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
+{
+  using namespace FixConst;
+  int mask = 0;
+
+  std::string names = str;
+  std::string name;
+  int split_pos = 0;
+  while(split_pos != std::string::npos){
+    split_pos = names.rfind('&');
+    if(split_pos != std::string::npos){
+      name = names.substr(split_pos);
+      names.resize(split_pos);
+    } else {
+      name = names;
+    }
+
+    if(name == "*") mask |= -1;
+    else if(name == "initial_integrate") mask |= INITIAL_INTEGRATE;
+    else if(name == "post_integrate") mask |= POST_INTEGRATE;
+    else if(name == "pre_exchange") mask |= PRE_EXCHANGE;
+    else if(name == "pre_neighbor") mask |= PRE_NEIGHBOR;
+    else if(name == "post_neighbor") mask |= POST_NEIGHBOR;
+    else if(name == "pre_force") mask |= PRE_FORCE;
+    else if(name == "pre_reverse") mask |= PRE_REVERSE;
+    else if(name == "post_force") mask |= POST_FORCE;
+    else if(name == "final_integrate") mask |= FINAL_INTEGRATE;
+    else if(name == "end_of_step") mask |= END_OF_STEP;
+    else if(name == "post_run") mask |= POST_RUN;
+    else if(name == "initial_integrate_respa") mask |= INITIAL_INTEGRATE_RESPA;
+    else if(name == "post_integrate_respa") mask |= POST_INTEGRATE_RESPA;
+    else if(name == "pre_force_respa") mask |= PRE_FORCE_RESPA;
+    else if(name == "post_force_respa") mask |= POST_FORCE_RESPA;
+    else if(name == "final_integrate_respa") mask |= FINAL_INTEGRATE_RESPA;
+    else if(name == "min_pre_exchange") mask |= MIN_PRE_EXCHANGE;
+    else if(name == "min_pre_neighbor") mask |= MIN_PRE_NEIGHBOR;
+    else if(name == "min_post_neighbor") mask |= MIN_POST_NEIGHBOR;
+    else if(name == "min_pre_force") mask |= MIN_PRE_FORCE;
+    else if(name == "min_pre_reverse") mask |= MIN_PRE_REVERSE;
+    else if(name == "min_post_force") mask |= MIN_POST_FORCE;
+    else if(name == "min_energy") mask |= MIN_ENERGY;
+    else {
+      std::string msg;
+      if(name != str)
+        msg = fmt::format("Name \"{}\" from \"{}\" is not a valid fix function name", name, str);
+      else
+        msg = fmt::format("Name \"{}\" is not a valid fix function name", name);
+      if(do_abort) lmp->error->one(file, line, msg);
+      else lmp->error->all(file, line, msg);
+    }
+  }
+
+  return mask;
+}
+
+/* ----------------------------------------------------------------------
    compute bounds implied by numeric str with a possible wildcard asterisk
 ------------------------------------------------------------------------- */
 // clang-format off

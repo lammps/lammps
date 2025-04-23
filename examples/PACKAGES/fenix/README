@@ -1,0 +1,13 @@
+Example of using Fenix for online process recovery.
+Generates an artificial failure to demonstrate recovery.
+
+Input files
+in.memory   : Checkpoints to memory (using Fenix's buddy-rank checkpointing)
+in.file     : Checkpoints to file, uses Fenix only for online recovery
+              Note: in.file requires line 45 to be uncommented for restart files
+               to actually be written
+
+Relevant Variables
+nspare      : How many spare ranks to allocate
+fail_rank   : Which rank(s) to generate failures on
+x, y, z     : Input region size in each dimension (x20)

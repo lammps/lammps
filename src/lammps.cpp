@@ -135,6 +135,12 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   modify(nullptr), group(nullptr), output(nullptr), timer(nullptr), kokkos(nullptr),
   atomKK(nullptr), memoryKK(nullptr), python(nullptr), citeme(nullptr)
 {
+  num_in_arg = narg;
+  in_args = new char*[num_in_arg];
+  for (int i = 0; i < num_in_arg; i++) {
+    in_args[i] = utils::strdup(arg[i]);
+  }
+
   memory = new Memory(this);
   error = new Error(this);
   universe = new Universe(this,communicator);
@@ -837,6 +843,11 @@ LAMMPS::~LAMMPS() noexcept(false)
 
   delete pkg_lists;
   delete[] exename;
+
+  if (num_in_arg) {
+    for (int i = 0; i < num_in_arg; i++) delete in_args[i];
+    delete in_args;
+  }
 }
 
 /* ----------------------------------------------------------------------

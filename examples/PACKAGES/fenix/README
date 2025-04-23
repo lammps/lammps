@@ -1,0 +1,10 @@
+Example of using Fenix for online process recovery.
+
+Input files
+in.file     : Checkpoints to file, uses Fenix only for online recovery
+              Note: in.file requires line 45 to be uncommented for restart files
+               to actually be written
+
+Relevant Variables
+nspare      : How many spare ranks to allocate
+x, y, z     : Input region size in each dimension (x20)

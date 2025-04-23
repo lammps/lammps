@@ -68,6 +68,9 @@ class LAMMPS {
   [[nodiscard]] const char *non_pair_suffix() const;
   char *exename;    // pointer to argv[0]
 
+  char** in_args;      // arguments passed to constructor
+  int num_in_arg;      // number of arguments passed to constructor
+
   char ***packargs;    // arguments for cmdline package commands
   int num_package;     // number of cmdline package commands
 

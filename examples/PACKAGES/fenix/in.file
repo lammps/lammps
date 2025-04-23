@@ -1,0 +1,52 @@
+# 3d Lennard-Jones melt
+
+variable    nspare      index 1
+
+variable    x           index 1
+variable    y           index 1
+variable    z           index 1
+
+variable    xx          equal 20*$x
+variable    yy          equal 20*$y
+variable    zz          equal 20*$z
+
+units       lj
+atom_style  atomic
+
+# Upon reaching this command, ${nspare} ranks are trapped by fenix. The LAMMPS
+# comm is rebuilt without them, and instead they are used to rebuild the LAMMPS
+# comm when other ranks fail.
+# When a failure occurs, execution starts over entirely (as if the lammps
+# command were called anew) but input immediately skips ahead to the restart
+# label. Failed ranks are replaced with spares, so long as spares remain
+# available.
+fenix spares ${nspare} restart_label restart
+
+lattice         fcc 0.8442
+region          box block 0 ${xx} 0 ${yy} 0 ${zz}
+create_box      1 box
+create_atoms    1 box
+mass            1 1.0
+
+velocity        all create 1.44 87287 loop geom
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0 2.5
+
+# Skip read_restart unless we jump straight to the restart label
+jump SELF skip_restart
+label restart
+    units        lj
+    atom_style   atomic
+    read_restart lj.chkpt.*
+label skip_restart
+
+# We will checkpoint to file on iterations 50,100,...
+restart 50 lj.chkpt.*
+
+neighbor        0.3 bin
+neigh_modify    delay 0 every 20 check no
+
+fix             1 all nve
+
+run             75 upto

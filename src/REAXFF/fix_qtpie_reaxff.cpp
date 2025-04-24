@@ -19,7 +19,7 @@
       Navraj S Lalli, Imperial College London (navrajsinghlalli@gmail.com)
       (Reimplemented QTPIE as a new fix in LAMMPS Aug 2024 and extended functionality)
       Mitch Murphy, alphataubio at gmail
-      (gauss_exp ffield unused ATM line 2 pos 5 to enable FitSNAP-ReaxFF)
+      (gauss_exp ffield unused ATM line 3 pos 3 to enable FitSNAP-ReaxFF)
 ------------------------------------------------------------------------- */
 
 #include "fix_qtpie_reaxff.h"

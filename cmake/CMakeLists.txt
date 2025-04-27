@@ -634,7 +634,8 @@ endif()
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
-if (NOT ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")))
+if (NOT ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM") OR
+         (CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC")))
   check_include_file_cxx(cmath FOUND_CMATH)
   if(NOT FOUND_CMATH)
     message(FATAL_ERROR "Could not find the required 'cmath' header")

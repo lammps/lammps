@@ -131,7 +131,10 @@ endif()
 
 # silence nvcc warnings
 if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND NOT (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" "-Xcudafe --diag_suppress=unrecognized_pragma,--diag_suppress=128")
+  add_compile_options(
+    -Xcudafe=--diag_suppress=unrecognized_pragma
+    -Xcudafe=--diag_suppress=128
+  )
 endif()
 
 # we *require* C++11 without extensions but prefer C++17.

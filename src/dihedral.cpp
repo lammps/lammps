@@ -33,6 +33,7 @@ Dihedral::Dihedral(LAMMPS *_lmp) : Pointers(_lmp)
 {
   energy = 0.0;
   writedata = 0;
+  reinitflag = 1;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
@@ -427,4 +428,16 @@ double Dihedral::memory_usage()
   bytes += (double) comm->nthreads * maxvatom * 6 * sizeof(double);
   bytes += (double) comm->nthreads * maxcvatom * 9 * sizeof(double);
   return bytes;
+}
+
+/* -----------------------------------------------------------------------
+   reset all type-based dihedral params via init()
+-------------------------------------------------------------------------- */
+
+void Dihedral::reinit()
+{
+  if (!reinitflag)
+    error->all(FLERR, "Fix adapt interface to this dihedral style not supported");
+
+  init();
 }

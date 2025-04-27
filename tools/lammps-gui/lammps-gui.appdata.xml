@@ -59,6 +59,10 @@
       <description>
         Change working directory to user's home dir if initial directory is "/" or the Application folder
         Add preferences option to set https proxy, if not already set via environment variable
+        Add option to visualize molecules defined through the molecule command
+        Add text fields for editing plot title and axis labels for charts
+        Add option to automatically open tutorial websites (enabled by default)
+        Add preferences tab for charts to set default for title, plot colors, smooth/raw plot, smooth params
       </description>
     </release>
      <release version="1.6.12" timestamp="1734890080">

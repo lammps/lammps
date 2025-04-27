@@ -1,0 +1,13 @@
+This folder contains copies of third-party software.
+These packages may be either included in the source
+code tarball or downloaded on-the-fly during compilation
+as needed.  In some cases, some small customizations
+are made to avoid namespace conflicts where the
+included third party software needs workarounds for
+issues on platforms (OS or compiler related) to
+function consistently with LAMMPS.
+
+The following software source packages are included
+
+Folder:           Package:               Version:   Original URL
+nlohmann/json     JSON for Modern C++    3.12.0     https://github.com/nlohmann/json/releases/tag/v3.12.0

@@ -179,6 +179,7 @@ OPT.
    * :doc:`lj/long/dipole/long <pair_dipole>`
    * :doc:`lj/long/tip4p/long (o) <pair_lj_long>`
    * :doc:`lj/mdf <pair_mdf>`
+   * :doc:`lj/pirani (o) <pair_lj_pirani>`
    * :doc:`lj/relres (o) <pair_lj_relres>`
    * :doc:`lj/spica (gko) <pair_spica>`
    * :doc:`lj/spica/coul/long (gko) <pair_spica>`

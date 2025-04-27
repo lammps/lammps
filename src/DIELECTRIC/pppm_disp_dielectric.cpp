@@ -556,7 +556,7 @@ void PPPMDispDielectric::qsum_qsq(int warning_flag)
   double qsqsume;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(shared) reduction(+:qsum_local,qsqsum_local)
+#pragma omp parallel for default(shared) reduction(+:qsum_local,qsqsum_local,qsqsume_local)
 #endif
   for (int i = 0; i < nlocal; i++) {
     qsum_local += q[i];

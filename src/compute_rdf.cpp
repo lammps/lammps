@@ -159,6 +159,7 @@ ComputeRDF::~ComputeRDF()
   delete[] ihi;
   delete[] jlo;
   delete[] jhi;
+  delete[] rev;
   memory->destroy(hist);
   memory->destroy(histall);
   memory->destroy(array);

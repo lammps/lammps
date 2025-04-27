@@ -24,6 +24,7 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
+#include "command.h"
 #include "compute.h"
 #include "domain.h"
 #include "dump.h"
@@ -42,6 +43,7 @@
 #include "molecule.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "neigh_request.h"
 #include "output.h"
 #include "pair.h"
 #if defined(LMP_PLUGIN)
@@ -1701,6 +1703,18 @@ report the "native" data type.  The following tables are provided:
      - Type
      - Length
      - Description
+   * - boxlo
+     - double
+     - 3
+     - lower box boundaries in x-, y-, and z-direction; see :doc:`create_box`.
+   * - boxhi
+     - double
+     - 3
+     - lower box boundaries in x-, y-, and z-direction; see :doc:`create_box`.
+   * - boxxlo
+     - double
+     - 1
+     - lower box boundary in x-direction; see :doc:`create_box`.
    * - boxxhi
      - double
      - 1
@@ -1724,19 +1738,19 @@ report the "native" data type.  The following tables are provided:
    * - sublo
      - double
      - 3
-     - subbox lower boundaries
+     - subbox lower boundaries in x-, y-, and z-direction
    * - subhi
      - double
      - 3
-     - subbox upper boundaries
+     - subbox upper boundaries in x-, y-, and z-direction
    * - sublo_lambda
      - double
      - 3
-     - subbox lower boundaries in fractional coordinates (for triclinic cells)
+     - subbox lower boundaries in fractional coordinates (for triclinic cells only)
    * - subhi_lambda
      - double
      - 3
-     - subbox upper boundaries in fractional coordinates (for triclinic cells)
+     - subbox upper boundaries in fractional coordinates (for triclinic cells only)
    * - periodicity
      - int
      - 3
@@ -6103,6 +6117,96 @@ int lammps_find_compute_neighlist(void *handle, const char *id, int reqid) {
   END_CAPTURE
 
   return -1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+// helper Command class for a single neighbor list build
+
+namespace LAMMPS_NS {
+  class NeighProxy : protected Command
+  {
+ public:
+  NeighProxy(class LAMMPS *lmp) : Command(lmp), neigh_idx(-1) {};
+
+  void command(int, char **) override;
+  int get_index() const { return neigh_idx; }
+ protected:
+  int neigh_idx;
+};
+}
+
+void NeighProxy::command(int narg, char **arg)
+{
+  neigh_idx = -1;
+  if (narg != 3) return;
+  auto *req = neighbor->add_request(this, arg[0]);
+  int flags = atoi(arg[1]);
+  double cutoff = atof(arg[2]);
+  req->apply_flags(flags);
+  if (cutoff > 0.0) req->set_cutoff(cutoff);
+  lmp->init();
+
+  // setup domain, communication and neighboring
+  // acquire ghosts and build standard neighbor lists
+
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  domain->pbc();
+  domain->reset_box();
+  comm->setup();
+  if (neighbor->style) neighbor->setup_bins();
+  comm->exchange();
+  comm->borders();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
+  neighbor->build(1);
+
+  // build neighbor list this command needs based on earlier request
+
+  auto list = neighbor->find_list(this);
+  neighbor->build_one(list);
+
+  // find neigh list
+  for (int i = 0; i < neighbor->nlist; i++) {
+    NeighList *list = neighbor->lists[i];
+    if (this == list->requestor) {
+      neigh_idx = i;
+      break;
+    }
+  }
+}
+
+/** Build a single neighbor list in between runs and return its index
+ *
+ * A neighbor list request is created and the neighbor list built from a
+ * proxy command. The request ID is typically 0, but will be
+ * > 0 in case a compute has multiple neighbor list requests.
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param id       Identifier of neighbor list request
+ * \param flags    Neighbor list flags
+ * \param cutoff   Custom neighbor list cutoff if > 0, use default cutoff if < 0
+ * \return         return neighbor list index if valid, otherwise -1 */
+
+int lammps_request_single_neighlist(void *handle, const char *id, int flags, double cutoff) {
+  auto lmp = (LAMMPS *)handle;
+  int idx = -1;
+  if (!lmp || !lmp->error || !lmp->neighbor) {
+    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    return -1;
+  }
+
+  BEGIN_CAPTURE
+  {
+    NeighProxy proxy(lmp);
+    std::vector<std::string> args = {id, std::to_string(flags), std::to_string(cutoff)};
+    std::vector<char *> c_args;
+    std::transform(args.begin(), args.end(), std::back_inserter(c_args),
+                   [](const std::string& s) { return (char *)s.c_str(); });
+    proxy.command(static_cast<int>(c_args.size()), c_args.data());
+    idx = proxy.get_index();
+  }
+  END_CAPTURE
+  return idx;
 }
 
 /* ---------------------------------------------------------------------- */

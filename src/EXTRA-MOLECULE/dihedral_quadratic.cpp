@@ -435,3 +435,15 @@ void DihedralQuadratic::born_matrix(int nd, int i1, int i2, int i3, int i4,
   du = - 2.0 * k[type] * dphi * siinv;
   du2 = 2.0 * k[type] * siinv * siinv * ( 1.0 - dphi * c * siinv) ;
 }
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *DihedralQuadratic::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "phi0") == 0) return (void *) phi0;
+  return nullptr;
+}

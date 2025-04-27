@@ -128,7 +128,7 @@ void NPairSkipSizeOff2onOnesideTemp<TRIM>::build(NeighList *list)
   for (i = 0; i < nlocal; i++) {
     if (numneigh[i] == 0) continue;
     firstneigh[i] = ipage->get(numneigh[i]);
-    if (ipage->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
   }
 
   // second loop over atoms in other list to store neighbors

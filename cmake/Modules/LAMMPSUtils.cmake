@@ -30,7 +30,7 @@ function(check_omp_h_include)
   if(OpenMP_CXX_FOUND)
     set(CMAKE_REQUIRED_FLAGS ${OpenMP_CXX_FLAGS})
     set(CMAKE_REQUIRED_INCLUDES ${OpenMP_CXX_INCLUDE_DIRS})
-    set(CMAKE_REQUIRED_LINK_OPTIONS ${OpenMP_CXX_FLAGS})
+    separate_arguments(CMAKE_REQUIRED_LINK_OPTIONS NATIVE_COMMAND ${OpenMP_CXX_FLAGS}) # needs to be a list
     set(CMAKE_REQUIRED_LIBRARIES ${OpenMP_CXX_LIBRARIES})
     # there are all kinds of problems with finding omp.h
     # for Clang and derived compilers so we pretend it is there.

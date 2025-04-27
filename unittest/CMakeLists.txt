@@ -33,10 +33,6 @@ mark_as_advanced(SKIP_DEATH_TESTS)
 if(SKIP_DEATH_TESTS)
   add_compile_definitions(LAMMPS_SKIP_DEATH_TESTS)
 endif()
-# import
-foreach(_FLAG ${CMAKE_TUNE_FLAGS})
-  add_compile_options(${_FLAG})
-endforeach()
 
 # must repeat handling coverage for older CMake
 if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND ENABLE_COVERAGE)

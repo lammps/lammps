@@ -128,7 +128,8 @@ void PairPACE::compute(int eflag, int vflag)
   double fij[3];
   int *ilist, *jlist, *numneigh, **firstneigh;
 
-  ev_init(eflag, vflag);
+  if (copymode) ev_init(eflag, vflag, 0);
+  else ev_init(eflag, vflag, 1);
 
   double **x = atom->x;
   double **f = atom->f;

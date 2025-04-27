@@ -407,3 +407,19 @@ void DihedralMultiHarmonic::born_matrix(int nd, int i1, int i2, int i3, int i4, 
   du = a2[type] + c * (2.0 * a3[type] + c * (3.0 * a4[type] + c * 4.0 * a5[type]));
   du2 = 2.0 * a3[type] + 6.0 * c * (a4[type] + 2.0 * a5[type] * c);
 }
+
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *DihedralMultiHarmonic::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "a1") == 0) return (void *) a1;
+  if (strcmp(str, "a2") == 0) return (void *) a2;
+  if (strcmp(str, "a3") == 0) return (void *) a3;
+  if (strcmp(str, "a4") == 0) return (void *) a4;
+  if (strcmp(str, "a5") == 0) return (void *) a5;
+  return nullptr;
+}

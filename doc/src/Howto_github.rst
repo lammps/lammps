@@ -498,3 +498,7 @@ systems.  Some unit and regression testing is applied as well.
 A detailed discussion of the LAMMPS developer GitHub workflow can be
 found in the file `doc/github-development-workflow.md
 <https://github.com/lammps/lammps/blob/develop/doc/github-development-workflow.md>`_
+
+.. raw:: latex
+
+   \clearpage

@@ -40,7 +40,8 @@ class ComputeRHEOInterface : public Compute {
   double correct_rho(int);
   void store_forces();
 
-  double *chi, **fp_store;
+  double *chi;
+  int index_fp_store;
   class FixRHEO *fix_rheo;
 
  private:

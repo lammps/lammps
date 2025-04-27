@@ -220,6 +220,8 @@ double ComputeRHEOKernel::calc_dw(int i, int j, double delx, double dely, double
     return calc_dw_wendlandc4(delx, dely, delz, r, dWij, dWji);
   if (kernel_style == QUINTIC)
     return calc_dw_quintic(delx, dely, delz, r, dWij, dWji);
+  if (kernel_style == RK0)
+    return calc_dw_quintic(delx, dely, delz, r, dWij, dWji);
 
   double wp;
   int corrections_i = check_corrections(i);

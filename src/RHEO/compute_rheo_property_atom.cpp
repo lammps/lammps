@@ -502,7 +502,7 @@ void ComputeRHEOPropertyAtom::pack_total_stress(int n)
 
 void ComputeRHEOPropertyAtom::pack_nbond_shell(int n)
 {
-  int *nbond = fix_oxidation->nbond;
+  int *nbond = atom->ivector[fix_oxidation->index_nb];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 

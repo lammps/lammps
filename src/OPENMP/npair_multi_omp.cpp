@@ -232,9 +232,9 @@ void NPairMultiOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
                 if (molecular != Atom::ATOMIC) {
                   if (!moltemplate)
                     which = find_special(special[i], nspecial[i], tag[j]);
-                  else if (imol >= 0)
-                    which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
-                                         tag[j] - tagprev);
+                  else if ((imol >= 0) && onemols[imol]->special)
+                    which = find_special(onemols[imol]->special[iatom],
+                                         onemols[imol]->nspecial[iatom], tag[j] - tagprev);
                   else
                     which = 0;
                   if (which == 0)
@@ -255,9 +255,9 @@ void NPairMultiOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
                 if (molecular != Atom::ATOMIC) {
                   if (!moltemplate)
                     which = find_special(special[i], nspecial[i], tag[j]);
-                  else if (imol >= 0)
-                    which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
-                                         tag[j] - tagprev);
+                  else if ((imol >= 0) && onemols[imol]->special)
+                    which = find_special(onemols[imol]->special[iatom],
+                                         onemols[imol]->nspecial[iatom], tag[j] - tagprev);
                   else
                     which = 0;
                   if (which == 0)
@@ -279,7 +279,7 @@ void NPairMultiOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage.vgot(n);
-    if (ipage.status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
+    if (ipage.status()) error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
   }
   NPAIR_OMP_CLOSE;
   list->inum = nlocal;

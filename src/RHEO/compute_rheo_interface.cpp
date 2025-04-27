@@ -39,12 +39,10 @@ using namespace LAMMPS_NS;
 using namespace RHEO_NS;
 using namespace MathExtra;
 
-static constexpr double EPSILON = 1e-1;
-
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOInterface::ComputeRHEOInterface(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), chi(nullptr), fp_store(nullptr), fix_rheo(nullptr), rho0(nullptr),
+    Compute(lmp, narg, arg), chi(nullptr), fix_rheo(nullptr), rho0(nullptr),
     norm(nullptr), normwf(nullptr), id_fix_pa(nullptr), list(nullptr), compute_kernel(nullptr),
     fix_pressure(nullptr)
 
@@ -64,13 +62,12 @@ ComputeRHEOInterface::ComputeRHEOInterface(LAMMPS *lmp, int narg, char **arg) :
   // between timesteps (fix property atom will handle callbacks)
 
   int tmp1, tmp2;
-  int index = atom->find_custom("fp_store", tmp1, tmp2);
-  if (index == -1) {
+  index_fp_store = atom->find_custom("fp_store", tmp1, tmp2);
+  if (index_fp_store == -1) {
     id_fix_pa = utils::strdup(id + std::string("_fix_property_atom"));
     modify->add_fix(fmt::format("{} all property/atom d2_fp_store 3", id_fix_pa));
-    index = atom->find_custom("fp_store", tmp1, tmp2);
+    index_fp_store = atom->find_custom("fp_store", tmp1, tmp2);
   }
-  fp_store = atom->darray[index];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -114,7 +111,7 @@ void ComputeRHEOInterface::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeRHEOInterface::compute_peratom()
 {
-  int a, i, j, ii, jj, jnum, itype, fluidi, fluidj, status_match;
+  int a, i, j, ii, jj, jnum, fluidi, fluidj, status_match;
   double xtmp, ytmp, ztmp, rsq, w, dot, dx[3];
 
   int inum, *ilist, *jlist, *numneigh, **firstneigh;
@@ -126,6 +123,7 @@ void ComputeRHEOInterface::compute_peratom()
   int newton = force->newton;
   int *status = atom->rheo_status;
   double *rho = atom->rho;
+  double **fp_store = atom->darray[index_fp_store];
 
   inum = list->inum;
   ilist = list->ilist;
@@ -151,7 +149,6 @@ void ComputeRHEOInterface::compute_peratom()
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    itype = type[i];
     fluidi = !(status[i] & PHASECHECK);
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -212,9 +209,10 @@ void ComputeRHEOInterface::compute_peratom()
     if (status[i] & PHASECHECK) {
       if (normwf[i] != 0.0) {
         // Stores rho for solid particles 1+Pw in Adami Adams 2012
-        rho[i] = MAX(EPSILON, fix_pressure->calc_rho(rho[i] / normwf[i], i));
+        //   cap out at a tenth of equilibrium
+        rho[i] = MAX(0.1 * rho0[type[i]], fix_pressure->calc_rho(rho[i] / normwf[i], i));
       } else {
-        rho[i] = rho0[itype];
+        rho[i] = rho0[type[i]];
       }
     }
   }
@@ -230,6 +228,7 @@ int ComputeRHEOInterface::pack_forward_comm(int n, int *list, double *buf, int /
 {
   int m = 0;
   double *rho = atom->rho;
+  double **fp_store = atom->darray[index_fp_store];
 
   for (int i = 0; i < n; i++) {
     int j = list[i];
@@ -250,6 +249,8 @@ int ComputeRHEOInterface::pack_forward_comm(int n, int *list, double *buf, int /
 void ComputeRHEOInterface::unpack_forward_comm(int n, int first, double *buf)
 {
   double *rho = atom->rho;
+  double **fp_store = atom->darray[index_fp_store];
+
   int m = 0;
   int last = first + n;
   for (int i = first; i < last; i++) {
@@ -335,6 +336,7 @@ void ComputeRHEOInterface::store_forces()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   double **f = atom->f;
+  double **fp_store = atom->darray[index_fp_store];
 
   // When this is called, fp_store stores the pressure force
   // After this method, fp_store instead stores non-pressure forces

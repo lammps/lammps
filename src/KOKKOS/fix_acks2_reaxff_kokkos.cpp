@@ -41,7 +41,7 @@ using namespace FixConst;
 
 static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 FixACKS2ReaxFFKokkos<DeviceType>::
@@ -62,12 +62,11 @@ FixACKS2ReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   nprev = 4;
 
   buf = new double[2*nprev];
-  prev_last_rows_rank = 0;
 
   d_mfill_offset = typename AT::t_bigint_scalar("acks2/kk:mfill_offset");
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 FixACKS2ReaxFFKokkos<DeviceType>::~FixACKS2ReaxFFKokkos()
@@ -79,7 +78,7 @@ FixACKS2ReaxFFKokkos<DeviceType>::~FixACKS2ReaxFFKokkos()
   deallocate_array();
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::post_constructor()
@@ -88,7 +87,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::post_constructor()
   pertype_parameters(pertype_option);
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::init()
@@ -125,7 +124,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::init()
   init_shielding_k();
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::init_shielding_k()
@@ -163,7 +162,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::init_shielding_k()
   k_tap.template sync<DeviceType>();
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::setup_pre_force(int vflag)
@@ -171,7 +170,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::setup_pre_force(int vflag)
   pre_force(vflag);
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
@@ -262,13 +261,6 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
     }
   }
 
-  need_dup = lmp->kokkos->need_dup<DeviceType>(1);
-
-  if (need_dup)
-    dup_X_diag = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated> (d_X_diag); // allocate duplicated memory
-  else
-    ndup_X_diag = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated> (d_X_diag);
-
   // compute_X
 
   Kokkos::deep_copy(d_X_diag,0.0);
@@ -308,14 +300,6 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
     }
   }
 
-  if (need_dup) {
-    Kokkos::Experimental::contribute(d_X_diag, dup_X_diag);
-
-    // free duplicated memory
-
-    dup_X_diag = {};
-  }
-
   if (neighflag != FULL) {
     pack_flag = 4;
     //comm->reverse_comm(this); //Coll_Vector( X_diag );
@@ -342,7 +326,8 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   // bicgstab solve over b_s, s
 
-  bicgstab_solve();
+  // FIXME
+  //bicgstab_solve();
 
   calculate_Q();
 
@@ -356,7 +341,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
   k_s.modify<DeviceType>();
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
@@ -366,7 +351,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::num_neigh_item(int ii, bigint &totneigh) 
   totneigh += d_numneigh[i];
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::allocate_matrix()
@@ -408,7 +393,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::allocate_matrix()
   d_val_X = typename AT::t_ffloat_1d("acks2/kk:val_X",m_cap_big);
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::allocate_array()
@@ -467,7 +452,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::allocate_array()
 
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::deallocate_array()
@@ -481,7 +466,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::deallocate_array()
   memoryKK->destroy_kokkos(k_z,z);
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
@@ -501,7 +486,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Zero, const int &ii) 
 
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 template <int NEIGHFLAG>
@@ -563,7 +548,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_item(int ii, bigint &m_fill, co
   }
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 // Calculate Qeq matrix H where H is a sparse matrix and H[i][j] represents the electrostatic interaction coefficients on atom-i with atom-j
 // d_val     - contains the non-zero entries of sparse matrix H
@@ -775,7 +760,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_team(
       });
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
@@ -797,13 +782,14 @@ double FixACKS2ReaxFFKokkos<DeviceType>::calculate_H_k(const F_FLOAT &r, const F
   return taper * EV_TO_KCAL_PER_MOL / denom;
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 template <int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_item(int ii, bigint &m_fill, const bool &final) const
 {
+
   // The X_diag array is duplicated for OpenMP, atomic for GPU, and neither for Serial
   auto v_X_diag = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_X_diag),decltype(ndup_X_diag)>::get(dup_X_diag,ndup_X_diag);
   auto a_X_diag = v_X_diag.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -873,7 +859,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_item(int ii, bigint &m_fill, co
   }
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template <class DeviceType>
 template <int NEIGHFLAG>
@@ -1092,7 +1078,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_team(
       });
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
@@ -1107,7 +1093,7 @@ double FixACKS2ReaxFFKokkos<DeviceType>::calculate_X_k( const double &r, const d
   return bond_softness*d3*omd6;
 }
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
@@ -1142,177 +1128,8 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2InitMatvec, const int
 
 }
 
-/* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
-{
-  int i;
-  F_FLOAT my_norm,norm_sqr,my_dot,dot_sqr;
-  double tmp, sigma, rho, rho_old, rnorm, bnorm;
 
-  // sparse_matvec( &H, &X, x, d );
-  sparse_matvec_acks2(d_s, d_d);
-
-  pack_flag = 1;
-  k_d.template modify<DeviceType>();
-  k_d.template sync<LMPHostType>();
-  if (neighflag != FULL)
-    comm->reverse_comm(this); //Coll_vector( d );
-  more_reverse_comm(k_d.h_view.data());
-  k_d.template modify<LMPHostType>();
-  k_d.template sync<DeviceType>();
-
-  // vector_sum( r , 1.,  b, -1., d, nn );
-  // bnorm = parallel_norm( b, nn );
-  my_norm = 0.0;
-  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagACKS2Norm1>(0,nn),*this,my_norm);
-  norm_sqr = 0.0;
-  MPI_Allreduce( &my_norm, &norm_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
-  bnorm = sqrt(norm_sqr);
-
-  // rnorm = parallel_norm( r, nn);
-  my_norm = 0.0;
-  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagACKS2Norm2>(0,nn),*this,my_norm);
-  norm_sqr = 0.0;
-  MPI_Allreduce( &my_norm, &norm_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
-  rnorm = sqrt(norm_sqr);
-
-  if (bnorm == 0.0 ) bnorm = 1.0;
-  Kokkos::deep_copy(d_r_hat,d_r);
-  omega = 1.0;
-  rho = 1.0;
-
-  for (i = 1; i < imax && rnorm / bnorm > tolerance; ++i) {
-    // rho = parallel_dot( r_hat, r, nn);
-    my_dot = 0.0;
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagACKS2Dot1>(0,nn),*this,my_dot);
-    dot_sqr = 0.0;
-    MPI_Allreduce( &my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
-    rho = dot_sqr;
-    if (rho == 0.0) break;
-
-    if (i > 1) {
-      beta = (rho / rho_old) * (alpha / omega);
-
-      // vector_sum( p , 1., r, beta, q, nn);
-      // vector_sum( q , 1., p, -omega, z, nn);
-      // pre-conditioning
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagACKS2Precon1A>(0,nn),*this);
-    } else {
-
-      // vector_copy( p , r nn);
-      // pre-conditioning
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagACKS2Precon1B>(0,nn),*this);
-    }
-
-    pack_flag = 1;
-    // comm->forward_comm(this); //Dist_vector( d );
-    k_d.template modify<DeviceType>();
-    k_d.template sync<LMPHostType>();
-    comm->forward_comm(this);
-    more_forward_comm(k_d.h_view.data());
-    k_d.template modify<LMPHostType>();
-    k_d.template sync<DeviceType>();
-
-    // sparse_matvec( &H, &X, d, z );
-    sparse_matvec_acks2(d_d, d_z);
-
-    pack_flag = 2;
-    k_z.template modify<DeviceType>();
-    k_z.template sync<LMPHostType>();
-    if (neighflag != FULL)
-      comm->reverse_comm(this); //Coll_vector( z );
-    more_reverse_comm(k_z.h_view.data());
-    k_z.template modify<LMPHostType>();
-    k_z.template sync<DeviceType>();
-
-    // tmp = parallel_dot( r_hat, z, nn);
-    my_dot = dot_sqr = 0.0;
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagACKS2Dot2>(0,nn),*this,my_dot);
-    MPI_Allreduce( &my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
-    tmp = dot_sqr;
-    alpha = rho / tmp;
-
-    // vector_sum( q, 1., r, -alpha, z, nn);
-    // tmp = parallel_dot( q, q, nn);
-    my_dot = dot_sqr = 0.0;
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagACKS2Dot3>(0,nn),*this,my_dot);
-    MPI_Allreduce( &my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
-    tmp = dot_sqr;
-
-    // early convergence check
-    if (tmp < tolerance) {
-      // vector_add( x, alpha, d, nn);
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagACKS2Add>(0,nn),*this);
-      break;
-    }
-
-    // pre-conditioning
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagACKS2Precon2>(0,nn),*this);
-
-    // sparse_matvec( &H, &X, q_hat, y );
-    pack_flag = 3;
-    // comm->forward_comm(this); //Dist_vector( q_hat );
-    k_q_hat.template modify<DeviceType>();
-    k_q_hat.template sync<LMPHostType>();
-    comm->forward_comm(this);
-    more_forward_comm(k_q_hat.h_view.data());
-    k_q_hat.template modify<LMPHostType>();
-    k_q_hat.template sync<DeviceType>();
-
-    sparse_matvec_acks2(d_q_hat, d_y);
-
-    pack_flag = 3;
-    k_y.template modify<DeviceType>();
-    k_y.template sync<LMPHostType>();
-    if (neighflag != FULL)
-      comm->reverse_comm(this); //Coll_vector( y );
-    more_reverse_comm(k_y.h_view.data());
-    k_y.template modify<LMPHostType>();
-    k_y.template sync<DeviceType>();
-
-    // sigma = parallel_dot( y, q, nn);
-    my_dot = dot_sqr = 0.0;
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagACKS2Dot4>(0,nn),*this,my_dot);
-    MPI_Allreduce( &my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
-    sigma = dot_sqr;
-
-    // tmp = parallel_dot( y, y, nn);
-    my_dot = dot_sqr = 0.0;
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagACKS2Dot5>(0,nn),*this,my_dot);
-    MPI_Allreduce( &my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
-    tmp = dot_sqr;
-
-    omega = sigma / tmp;
-
-    // vector_sum( g , alpha, d, omega, q_hat, nn);
-    // vector_add( x, 1., g, nn);
-    // vector_sum( r , 1., q, -omega, y, nn);
-    // rnorm = parallel_norm( r, nn);
-    my_dot = dot_sqr = 0.0;
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagACKS2Norm3>(0,nn),*this,my_dot);
-    MPI_Allreduce( &my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
-    rnorm = sqrt(dot_sqr);
-
-    if (omega == 0) break;
-    rho_old = rho;
-  }
-
-  if (comm->me == 0) {
-    if (omega == 0 || rho == 0) {
-      error->warning(FLERR,"Fix acks2/reaxff/kk BiCGStab numerical breakdown, omega = {:.8}, rho = {:.8}",
-                      omega,rho);
-    } else if (i >= imax) {
-      error->warning(FLERR,"Fix acks2/reaxff/kk BiCGStab convergence failed after {} iterations "
-                           "at step {}", i, update->ntimestep);
-    }
-  }
-
-  return i;
-}
-
-/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::calculate_Q()
@@ -1333,7 +1150,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::calculate_Q()
 
 
 
-/* ---------------------------------------------------------------------- */
+
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
@@ -1347,39 +1164,11 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2CalculateQ, const int
 
 }
 
-/* ---------------------------------------------------------------------- */
-
 template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::cleanup_copy()
 {
   id = style = nullptr;
 }
-
-/* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-double FixACKS2ReaxFFKokkos<DeviceType>::memory_usage()
-{
-  double bytes;
-
-  int size = 2*nmax + 2;
-
-  bytes += nmax*4 * sizeof(double); // storage
-  bytes += size*11 * sizeof(double); // storage
-  bytes += n_cap*4 * sizeof(int); // matrix...
-  bytes += m_cap_big*2 * sizeof(int);
-  bytes += m_cap_big*2 * sizeof(double);
-
-  return bytes;
-}
-
-
-
-
-
-/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::get_chi_field()
@@ -1389,8 +1178,6 @@ void FixACKS2ReaxFFKokkos<DeviceType>::get_chi_field()
   k_chi_field.modify_host();
   k_chi_field.sync_device();
 }
-
-/* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
 template class FixACKS2ReaxFFKokkos<LMPDeviceType>;

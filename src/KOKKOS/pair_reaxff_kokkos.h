@@ -315,6 +315,11 @@ class PairReaxFFKokkos : public PairReaxFF {
       p_lp2,p_ovun2,p_ovun5, p_val3, p_val5, p_hbond, bcut_acks2, p_xel2, ealpha, ebeta;
   };
 
+  /* constant-memory tables */
+  Kokkos::View<const F_FLOAT*, DeviceType, Kokkos::MemoryTraits<Kokkos::RandomAccess>> c_paramssing;
+  Kokkos::View<const F_FLOAT*, DeviceType, Kokkos::MemoryTraits<Kokkos::RandomAccess>> c_paramstwbp;
+
+
   struct params_twbp {
     KOKKOS_INLINE_FUNCTION
     params_twbp() {gamma=0;gamma_w=0;alpha=0;r_vdw=0;epsilon=0;acore=0;ecore=0;rcore=0;lgre=0;lgcij=0;

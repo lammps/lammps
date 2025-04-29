@@ -88,7 +88,7 @@ The *phase* property indicates whether the particle is in a fluid state,
 a value of 0, or a solid state, a value of 1.
 
 The *surface* property indicates the surface designation produced by
-the *interface/reconstruct* option of :doc:`fix rheo <fix_rheo>`. Bulk
+the *surface/detection* option of :doc:`fix rheo <fix_rheo>`. Bulk
 particles have a value of 0, surface particles have a value of 1, and
 splash particles have a value of 2. The *surface/r* property is the
 distance from the surface, up to the kernel cutoff length. Surface particles

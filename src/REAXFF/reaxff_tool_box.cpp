@@ -101,6 +101,6 @@ void sfree(void *ptr)
   if (ptr == nullptr) return;
 
   free(ptr);
-  ptr = nullptr;
+  ptr = nullptr;  // NOTE: this has no effect
 }
 }    // namespace ReaxFF

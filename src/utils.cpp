@@ -20,7 +20,9 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
+#ifndef FMT_STATIC_THOUSANDS_SEPARATOR
 #include "fmt/chrono.h"
+#endif
 #include "input.h"
 #include "label_map.h"
 #include "memory.h"
@@ -1953,8 +1955,15 @@ int utils::date2num(const std::string &date)
 std::string utils::current_date()
 {
   time_t tv = time(nullptr);
+#if defined(FMT_STATIC_THOUSANDS_SEPARATOR)
+  char outstr[200];
+  struct tm *today = localtime(&tv);
+  strftime(outstr, 200, "%Y-%m-%d", today);
+  return std::string(outstr);
+#else
   std::tm today = fmt::localtime(tv);
   return fmt::format("{:%Y-%m-%d}", today);
+#endif
 }
 
 /* ----------------------------------------------------------------------

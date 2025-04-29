@@ -11,50 +11,47 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef BOND_CLASS
+#ifdef PAIR_CLASS
 // clang-format off
-BondStyle(rheo/shell,BondRHEOShell);
+PairStyle(lj/pirani,PairLJPirani);
 // clang-format on
 #else
 
-#ifndef LMP_BOND_RHEO_SHELL_H
-#define LMP_BOND_RHEO_SHELL_H
+#ifndef LMP_PAIR_LJ_PIRANI_H
+#define LMP_PAIR_LJ_PIRANI_H
 
-#include "bond_bpm.h"
+#include "pair.h"
 
 namespace LAMMPS_NS {
 
-class BondRHEOShell : public BondBPM {
+class PairLJPirani : public Pair {
  public:
-  BondRHEOShell(class LAMMPS *);
-  ~BondRHEOShell() override;
+  PairLJPirani(class LAMMPS *);
+  virtual ~PairLJPirani() override;
   void compute(int, int) override;
+  void settings(int, char **) override;
   void coeff(int, char **) override;
   void init_style() override;
-  void settings(int, char **) override;
-  double equilibrium_distance(int) override;
+  double init_one(int, int) override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
   void write_restart_settings(FILE *) override;
   void read_restart_settings(FILE *) override;
-  int pack_reverse_comm(int, int, double *) override;
-  void unpack_reverse_comm(int, int *, double *) override;
-  double single(int, double, int, int, double &) override;
+  void write_data(FILE *) override;
+  void write_data_all(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &) override;
+  void compute_inner() override;
+  void compute_middle() override;
+  void compute_outer(int, int) override;
 
  protected:
-  double *k, *ecrit, *gamma;
-  double tform, rmax, rsurf;
-
-  int *dbond;
-  int index_nb, nmax_store;
-  char *id_fix;
-
-  class ComputeRHEOSurface *compute_surface;
-
-  void process_ineligibility(int, int);
-  void allocate();
-  void store_data();
-  double store_bond(int, int, int);
+  double cut_global;
+  double **cut;
+  double **alpha, **beta, **gamma, **rm, **epsilon;
+  double **offset;
+  double *cut_respa;
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

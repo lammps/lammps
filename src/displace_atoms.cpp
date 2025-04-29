@@ -125,7 +125,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     else if (strcmp(arg[2],"y") == 0) d_dim = 1;
     else if (strcmp(arg[2],"z") == 0) d_dim = 2;
     else error->all(FLERR, 2, "Unknown displace_atoms ramp dimension {}", arg[2]);
-    if ((domain->dimension == 2) && (d_dim = 2))
+    if ((domain->dimension == 2) && (d_dim == 2))
       error->all(FLERR, 2, "Must not displace atoms in z-direction with 2d system");
 
     double d_lo,d_hi;

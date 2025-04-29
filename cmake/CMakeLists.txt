@@ -44,6 +44,7 @@ set(LAMMPS_DOC_DIR        ${LAMMPS_DIR}/doc)
 set(LAMMPS_TOOLS_DIR      ${LAMMPS_DIR}/tools)
 set(LAMMPS_PYTHON_DIR     ${LAMMPS_DIR}/python)
 set(LAMMPS_POTENTIALS_DIR ${LAMMPS_DIR}/potentials)
+set(LAMMPS_THIRDPARTY_DIR ${LAMMPS_DIR}/third_party)
 
 set(LAMMPS_DOWNLOADS_URL "https://download.lammps.org" CACHE STRING "Base URL for LAMMPS downloads")
 set(LAMMPS_POTENTIALS_URL "${LAMMPS_DOWNLOADS_URL}/potentials")
@@ -373,6 +374,7 @@ endforeach()
 # packages with special compiler needs or external libs
 ######################################################
 target_include_directories(lammps PUBLIC $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}>)
+target_include_directories(lammps PUBLIC $<BUILD_INTERFACE:${LAMMPS_THIRDPARTY_DIR}>)
 
 if(PKG_ADIOS)
   # The search for ADIOS2 must come before MPI because

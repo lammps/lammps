@@ -161,7 +161,6 @@ void PairExTeP::SR_neigh()
         }
       }
     }
-  //printf("SR_neigh : N[%d] = %f\n",i,N[i]);
 
     ipage->vgot(n);
     if (ipage->status())

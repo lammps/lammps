@@ -46,6 +46,8 @@ Here is a brief list of some the class methods in the Pair class that
 +---------------------------------+------------------------------------------------------------------------+
 | compute_inner/middle/outer      | versions of compute used by rRESPA                                     |
 +---------------------------------+------------------------------------------------------------------------+
+| compute_atomic_energy           | energy of one atom, equivalent to per-atom energy                      |
++---------------------------------+------------------------------------------------------------------------+
 | memory_usage                    | return estimated amount of memory used by the pair style               |
 +---------------------------------+------------------------------------------------------------------------+
 | modify_params                   | process arguments to pair_modify command                               |
@@ -121,4 +123,6 @@ setting.
 | dipoleflag                      | 1 if compatible with dipole kspace_style                    | 0       |
 +---------------------------------+-------------------------------------------------------------+---------+
 | spinflag                        | 1 if compatible with spin kspace_style                      | 0       |
++---------------------------------+-------------------------------------------------------------+---------+
+| atomic_energy_enable            | 1 if compute_atomic_energy() routine exists                 | 0       |
 +---------------------------------+-------------------------------------------------------------+---------+

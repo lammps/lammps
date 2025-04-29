@@ -188,13 +188,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   typename AT::t_int_1d d_sendlist;
   typename AT::t_xfloat_1d_um v_buf;
 
-  void grow_arrays(int) override;
-  void copy_arrays(int, int, int) override;
-  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
-  int pack_exchange(int, double *) override;
-  int unpack_exchange(int, double *) override;
   void get_chi_field() override;
-  double memory_usage() override;
 
   void sparse_matvec_acks2(typename AT::t_ffloat_1d &, typename AT::t_ffloat_1d &);
 };

@@ -82,8 +82,6 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void compute_x_team(const typename Kokkos::TeamPolicy <DeviceType> ::member_type &team, int, int) const;
 
-
-
   KOKKOS_INLINE_FUNCTION
   void operator()(TagACKS2Add, const int&) const;
 
@@ -155,7 +153,17 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   typename AT::t_ffloat_1d d_p, d_q, d_r, d_d, d_g, d_q_hat, d_r_hat, d_y, d_z, d_bb, d_xx;
   typename AT::t_ffloat_1d_randomread r_p, r_r, r_d;
 
+  DAT::tdual_ffloat_2d k_shield, k_s_hist, k_s_hist_X, k_s_hist_last;
+  typename AT::t_ffloat_2d d_shield, d_s_hist, d_s_hist_X, d_s_hist_last;
+  typename AT::t_ffloat_2d_randomread r_s_hist, r_s_hist_X, r_s_hist_last;
+
   using KKDeviceType = typename KKDevice<DeviceType>::value;
+
+  template<typename DataType, typename Layout>
+  using DupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterDuplicated>;
+
+  template<typename DataType, typename Layout>
+  using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
 
   DupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> dup_X_diag;
   NonDupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> ndup_X_diag;
@@ -164,6 +172,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   NonDupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> ndup_bb;
 
   void init_shielding_k();
+  void init_hist();
   void allocate_matrix() override;
   void allocate_array();
   void deallocate_array();

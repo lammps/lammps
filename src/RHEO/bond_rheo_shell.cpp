@@ -44,7 +44,7 @@ using namespace RHEO_NS;
 /* ---------------------------------------------------------------------- */
 
 BondRHEOShell::BondRHEOShell(LAMMPS *_lmp) :
-    BondBPM(_lmp), k(nullptr), ecrit(nullptr), gamma(nullptr), dbond(nullptr), nbond(nullptr),
+    BondBPM(_lmp), k(nullptr), ecrit(nullptr), gamma(nullptr), dbond(nullptr),
     id_fix(nullptr), compute_surface(nullptr)
 {
   partial_flag = 1;
@@ -71,7 +71,6 @@ BondRHEOShell::BondRHEOShell(LAMMPS *_lmp) :
     modify->add_fix(fmt::format("{} all property/atom i_shell_nbond", id_fix));
     index_nb = atom->find_custom("shell_nbond", tmp1, tmp2);
   }
-  nbond = atom->ivector[index_nb];
 
   //Store non-persistent per atom quantities, intermediate
 
@@ -181,6 +180,7 @@ void BondRHEOShell::compute(int eflag, int vflag)
   double **v = atom->v;
   double **f = atom->f;
   tagint *tag = atom->tag;
+  int *nbond = atom->ivector[index_nb];
   int *status = atom->rheo_status;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;

@@ -115,7 +115,7 @@ void PairRHEO::compute(int eflag, int vflag)
 
   double **fp_store, *chi;
   if (compute_interface) {
-    fp_store = compute_interface->fp_store;
+    fp_store = atom->darray[compute_interface->index_fp_store];
     chi = compute_interface->chi;
 
     for (i = 0; i < atom->nmax; i++) {
@@ -539,7 +539,7 @@ double PairRHEO::init_one(int i, int j)
 
 int PairRHEO::pack_reverse_comm(int n, int first, double *buf)
 {
-  double **fp_store = compute_interface->fp_store;
+  double **fp_store = atom->darray[compute_interface->index_fp_store];
   int m = 0;
   int last = first + n;
   for (int i = first; i < last; i++) {
@@ -555,7 +555,7 @@ int PairRHEO::pack_reverse_comm(int n, int first, double *buf)
 
 void PairRHEO::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  double **fp_store = compute_interface->fp_store;
+  double **fp_store = atom->darray[compute_interface->index_fp_store];
   int m = 0;
   for (int i = 0; i < n; i++) {
     int j = list[i];

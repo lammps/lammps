@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
+#include "update.h"
 
 #include <cmath>
 #include <cstring>
@@ -218,6 +219,7 @@ void BondBPMSpring::compute(int eflag, int vflag)
   double invdim = 1.0 / dim;
 
   double **bondstore = fix_bond_history->bondstore;
+  const bool allow_breaks = (update->setupflag == 0) && break_flag;
 
   for (n = 0; n < nbondlist; n++) {
 
@@ -249,7 +251,7 @@ void BondBPMSpring::compute(int eflag, int vflag)
     r = sqrt(rsq);
     e = (r - r0) / r0;
 
-    if ((fabs(e) > ecrit[type]) && break_flag) {
+    if ((fabs(e) > ecrit[type]) && allow_breaks) {
       bondlist[n][2] = 0;
       process_broken(i1, i2);
 

@@ -44,6 +44,7 @@ set(LAMMPS_DOC_DIR        ${LAMMPS_DIR}/doc)
 set(LAMMPS_TOOLS_DIR      ${LAMMPS_DIR}/tools)
 set(LAMMPS_PYTHON_DIR     ${LAMMPS_DIR}/python)
 set(LAMMPS_POTENTIALS_DIR ${LAMMPS_DIR}/potentials)
+set(LAMMPS_THIRDPARTY_DIR ${LAMMPS_DIR}/third_party)
 
 set(LAMMPS_DOWNLOADS_URL "https://download.lammps.org" CACHE STRING "Base URL for LAMMPS downloads")
 set(LAMMPS_POTENTIALS_URL "${LAMMPS_DOWNLOADS_URL}/potentials")
@@ -131,7 +132,7 @@ endif()
 
 # silence nvcc warnings
 if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND NOT (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" "-Xcudafe --diag_suppress=unrecognized_pragma,--diag_suppress=128")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xcudafe --diag_suppress=unrecognized_pragma,--diag_suppress=128")
 endif()
 
 # we *require* C++11 without extensions but prefer C++17.
@@ -370,6 +371,7 @@ endforeach()
 # packages with special compiler needs or external libs
 ######################################################
 target_include_directories(lammps PUBLIC $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}>)
+target_include_directories(lammps PUBLIC $<BUILD_INTERFACE:${LAMMPS_THIRDPARTY_DIR}>)
 
 if(PKG_ADIOS)
   # The search for ADIOS2 must come before MPI because

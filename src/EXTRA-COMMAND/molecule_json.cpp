@@ -54,34 +54,35 @@ void MoleculeJsonCommand::MoleculeJson::read(int flag)
   if (flag == 0) {
     json_impl->jsonf = json::parse(fp);
 
-    natoms = json_impl->jsonf["num_atoms"];
-
     if(json_impl->jsonf.contains("bonds")) {
       bondflag = tag_require = 1;
-      nbonds = json_impl->jsonf["bonds"]["num_bonds"];
+      nbonds = json_impl->jsonf["bonds"]["data"].size();
     }
 
     if(json_impl->jsonf.contains("angles")) {
       angleflag = tag_require = 1;
-      nangles = json_impl->jsonf["angles"]["num_angles"];
+      nangles = json_impl->jsonf["angles"]["data"].size();
     }
 
     if(json_impl->jsonf.contains("fragments")) {
-      nfragments = json_impl->jsonf["fragments"]["num_fragments"];
+      nfragments = json_impl->jsonf["fragments"]["data"].size();
       fragmentflag = 1;
     }
 
     if(json_impl->jsonf.contains("dihedrals")) {
       dihedralflag = tag_require = 1;
-      ndihedrals = json_impl->jsonf["dihedrals"]["num_dihedrals"];
+      ndihedrals = json_impl->jsonf["dihedrals"]["data"].size();
     }
 
     if(json_impl->jsonf.contains("impropers")) {
       improperflag = tag_require = 1;
-      nimpropers = json_impl->jsonf["impropers"]["num_impropers"];
+      nimpropers = json_impl->jsonf["impropers"]["data"].size();
     }
 
-    if(json_impl->jsonf.contains("coords")) xflag = 1;
+    if(json_impl->jsonf.contains("coords")) {
+      natoms = json_impl->jsonf["coords"]["data"].size();
+      xflag = 1;
+    }
 
     if(json_impl->jsonf.contains("charges")) qflag = 1;
 

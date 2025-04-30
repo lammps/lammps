@@ -2,9 +2,9 @@
     "application": "LAMMPS",
     "format": "molecule",
     "revision": 1,
-    "num_atoms": 18,
+    "schema": "https://docs.lammps.org/molecule.html",
     "coords": {
-        "format": "[atomID, x, y, z]",
+        "format": ["atomID", "x", "y", "z"],
         "data": [
             [1, -5.522237178, -0.752722499, 1.631158408],
             [2, -5.170398325, -0.545733378, 0.178129978],
@@ -27,7 +27,7 @@
         ]
     },
     "types": {
-        "format": "[atomID, type]",
+        "format": ["atomID", "type"],
         "data": [
             [1, "n"],
             [2, "c2"],
@@ -50,7 +50,7 @@
         ]
     },
     "molecules": {
-        "format": "[atomID, molecule-ID]",
+        "format": ["atomID", "molecule-ID"],
         "data": [
             [1, 1],
             [2, 1],
@@ -73,8 +73,7 @@
         ]
     },
     "bonds": {
-        "num_bonds": 17,
-        "format": "[bondID, bond-type, atom1, atom2]",
+        "format": ["bondID", "bond-type", "atom1", "atom2"],
         "data": [
             [1, "n-c2", 1, 2],
             [2, "n-hn", 1, 4],
@@ -96,8 +95,7 @@
         ]
     },
     "angles": {
-        "num_angles": 31,
-        "format": "[angleID, angle-type, atom1, atom2, atom3]",
+        "format": ["angleID", "angle-type", "atom1", "atom2"],
         "data": [
             [1, "c2-n-hn", 2, 1, 4],
             [2, "c2-n-hn", 2, 1, 5],
@@ -133,8 +131,7 @@
         ]
     },
     "dihedrals": {
-        "num_dihedrals": 39,
-        "format": "[dihedralID, dihedral-type, atom1, atom2, atom3, atom4]",
+        "format": ["dihedralID", "dihedral-type", "atom1", "atom2", "atom3", "atom4"],
         "data": [
             [1, "hn-n-c2-c2", 4, 1, 2, 3],
             [2, "hn-n-c2-hc", 4, 1, 2, 6],
@@ -176,8 +173,5 @@
             [38, "o_1-c_1-o-ho", 11, 10, 12, 15],
             [39, "n-c_1-o-ho", 1, 10, 12, 15]
         ]
-    },
-    "impropers": {
-        "num_impropers": 0
     }
 }

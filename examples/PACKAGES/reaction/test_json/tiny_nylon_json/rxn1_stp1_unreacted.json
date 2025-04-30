@@ -2,9 +2,9 @@
     "application": "LAMMPS",
     "format": "molecule",
     "revision": 1,
-    "num_atoms": 18,
+    "schema": "https://docs.lammps.org/molecule.html",
     "coords": {
-        "format": "[atomID, x, y, z]",
+        "format": ["atomID", "x", "y", "z"],
         "data": [
             [1, -4.922858499, -0.946981747, 1.146055346],
             [2, -5.047194816, -0.935266843, -0.358172771],
@@ -27,7 +27,7 @@
         ]
     },
     "types": {
-        "format": "[atomID, type]",
+        "format": ["atomID", "type"],
         "data": [
             [1, "na"],
             [2, "c2"],
@@ -50,7 +50,7 @@
         ]
     },
     "molecules": {
-        "format": "[atomID, molecule-ID]",
+        "format": ["atomID", "molecule-ID"],
         "data": [
             [1, 1],
             [2, 1],
@@ -73,8 +73,7 @@
         ]
     },
     "bonds": {
-        "num_bonds": 16,
-        "format": "[bondID, bond-type, atom1, atom2]",
+        "format": ["bondID", "bond-type", "atom1", "atom2"],
         "data": [
             [1, "na-c2", 1, 2],
             [2, "na-hn", 1, 4],
@@ -95,8 +94,7 @@
         ]
     },
     "angles": {
-        "num_angles": 25,
-        "format": "[angleID, angle-type, atom1, atom2, atom3]",
+        "format": ["angleID", "angle-type", "atom1", "atom2"],
         "data": [
             [1, "c2-na-hn", 2, 1, 4],
             [2, "c2-na-hn", 2, 1, 5],
@@ -126,8 +124,7 @@
         ]
     },
     "dihedrals": {
-        "num_dihedrals": 23,
-        "format": "[dihedralID, dihedral-type, atom1, atom2, atom3, atom4]",
+        "format": ["dihedralID", "dihedral-type", "atom1", "atom2", "atom3", "atom4"],
         "data": [
             [1, "hn-na-c2-c2", 4, 1, 2, 3],
             [2, "hn-na-c2-hc", 4, 1, 2, 6],
@@ -155,7 +152,7 @@
         ]
     },
     "charges": {
-        "format": "[atomID, q]",
+        "format": ["atomID", "q"],
         "data": [
             [1, -0.3],
             [2, 0.0],
@@ -178,8 +175,7 @@
         ]
     },
     "impropers": {
-        "num_impropers": 2,
-        "format": "[improperID, improper-type, atom1, atom2, atom3, atom4]",
+        "format": ["improperID", "improper-type", "atom1", "atom2", "atom3", "atom4"],
         "data": [
             [1, "c2-na-hn-hn", 2, 1, 4, 5],
             [2, "c2-c_1-o_1-o", 9, 10, 11, 12]

@@ -133,6 +133,93 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp)
 
+########################################################################
+# Start of Kokkos-Kernels configuration
+option(EXTERNAL_KOKKOS_KERNELS "Build against external kokkos-kernels library" OFF)
+option(DOWNLOAD_KOKKOS_KERNELS "Download the Kokkos-Kernels library instead of using the bundled one" OFF)
+
+if(DOWNLOAD_KOKKOS_KERNELS)
+  # extract Kokkos-Kernels-related variables and values for forwarding
+  get_cmake_property(_VARS VARIABLES)
+  list(FILTER _VARS INCLUDE REGEX ^KokkosKernels_)
+  foreach(_VAR IN LISTS _VARS)
+    list(APPEND KOKKOS_KERNELS_LIB_BUILD_ARGS "-D${_VAR}=${${_VAR}}")
+  endforeach()
+  message(STATUS "KOKKOS-KERNELS download requested - we will build our own")
+  list(APPEND KOKKOS_KERNELS_LIB_BUILD_ARGS "-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>")
+  # build KOKKOS-KERNELS downloaded libraries as static libraries but with PIC, if needed
+  list(APPEND KOKKOS_KERNELS_LIB_BUILD_ARGS "-DBUILD_SHARED_LIBS=OFF")
+  if(CMAKE_REQUEST_PIC)
+    list(APPEND KOKKOS_KERNELS_LIB_BUILD_ARGS ${CMAKE_REQUEST_PIC})
+  endif()
+  # append other CMake variables that need to be forwarded to CMAKE_ARGS
+  list(APPEND KOKKOS_KERNELS_LIB_BUILD_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+  list(APPEND KOKKOS_KERNELS_LIB_BUILD_ARGS "-DCMAKE_INSTALL_LIBDIR=lib")
+  list(APPEND KOKKOS_KERNELS_LIB_BUILD_ARGS "-DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}")
+  list(APPEND KOKKOS_KERNELS_LIB_BUILD_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
+  list(APPEND KOKKOS_KERNELS_LIB_BUILD_ARGS "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}")
+  list(APPEND KOKKOS_KERNELS_LIB_BUILD_ARGS "-DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}")
+  list(APPEND KOKKOS_KERNELS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
+  include(ExternalProject)
+  set(KOKKOS_KERNELS_URL "https://github.com/kokkos/kokkos-kernels/archive/4.6.00.tar.gz" CACHE STRING "URL for KOKKOS-KERNELS tarball")
+  set(KOKKOS_KERNELS_MD5 "" CACHE STRING "MD5 checksum of KOKKOS-KERNELS tarball")
+  mark_as_advanced(KOKKOS_KERNELS_URL)
+  mark_as_advanced(KOKKOS_KERNELS_MD5)
+  GetFallbackURL(KOKKOS_KERNELS_URL KOKKOS_KERNELS_FALLBACK)
+
+  ExternalProject_Add(kokkos_kernels_build
+    URL     ${KOKKOS_KERNELS_URL} ${KOKKOS_KERNELS_FALLBACK}
+    URL_MD5 ${KOKKOS_KERNELS_MD5}
+    CMAKE_ARGS ${KOKKOS_KERNELS_LIB_BUILD_ARGS}
+    BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libkokkoskernels.a
+  )
+  ExternalProject_get_property(kokkos_kernels_build INSTALL_DIR)
+  file(MAKE_DIRECTORY ${INSTALL_DIR}/include)
+  add_library(LAMMPS::KOKKOSKERNELS UNKNOWN IMPORTED)
+  set_target_properties(LAMMPS::KOKKOSKERNELS PROPERTIES
+    IMPORTED_LOCATION "${INSTALL_DIR}/lib/libkokkoskernels.a"
+    INTERFACE_INCLUDE_DIRECTORIES "${INSTALL_DIR}/include"
+    INTERFACE_LINK_LIBRARIES LAMMPS::KOKKOSCORE)
+  target_link_libraries(lammps PRIVATE LAMMPS::KOKKOSKERNELS)
+  add_dependencies(LAMMPS::KOKKOSKERNELS kokkos_kernels_build)
+elseif(EXTERNAL_KOKKOS_KERNELS)
+  find_package(KokkosKernels 4.6.00 REQUIRED CONFIG)
+  target_link_libraries(lammps PRIVATE Kokkos::kokkoskernels)
+else()
+  # Use local or bundled kokkos-kernels source
+  if(DEFINED BUILD_EXTERNAL_KOKKOS_KERNELS_DIR)
+    set(LAMMPS_LIB_KOKKOS_KERNELS_SRC_DIR ${BUILD_EXTERNAL_KOKKOS_KERNELS_DIR})
+  else()
+    set(LAMMPS_LIB_KOKKOS_KERNELS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos-kernels)
+  endif()
+  set(LAMMPS_LIB_KOKKOS_KERNELS_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/kokkos-kernels)
+  
+  # Build kokkos-kernels as static libraries but with PIC if needed
+  if(BUILD_SHARED_LIBS)
+    set(BUILD_SHARED_LIBS_KERNELS_WAS_ON YES)
+    set(BUILD_SHARED_LIBS OFF)
+  endif()
+  if(CMAKE_REQUEST_PIC)
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+  endif()
+  
+  # Add kokkos-kernels as a subdirectory
+  add_subdirectory(${LAMMPS_LIB_KOKKOS_KERNELS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_KERNELS_BIN_DIR} EXCLUDE_FROM_ALL)
+  
+  # Set include directories and link the library
+  set(KokkosKernels_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_KERNELS_SRC_DIR}/include
+                                 ${LAMMPS_LIB_KOKKOS_KERNELS_SRC_DIR}/src
+                                 ${LAMMPS_LIB_KOKKOS_KERNELS_BIN_DIR})
+  target_include_directories(lammps PRIVATE ${KokkosKernels_INCLUDE_DIRS})
+  target_link_libraries(lammps PRIVATE kokkoskernels)
+  
+  if(BUILD_SHARED_LIBS_KERNELS_WAS_ON)
+    set(BUILD_SHARED_LIBS ON)
+  endif()
+endif()
+# End of Kokkos-Kernels configuration
+########################################################################
+
 # fix wall/gran has been refactored in an incompatible way. Use old version of base class for now
 if(PKG_GRANULAR)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fix_wall_gran_old.cpp)

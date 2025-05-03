@@ -33,8 +33,11 @@ ComputeESPGrid::ComputeESPGrid(LAMMPS *lmp,int narg,char **arg) :
   }
 
   scalar_flag=1;
+  extscalar=1;
   vector_flag=1;
+  extvector=0;
   pergrid_flag=1;
+  invoked_pergrid=-1; // make sure invoked with run 0
 
   allocate_grid();
 
@@ -72,7 +75,8 @@ void ComputeESPGrid::allocate_grid()
   
   // Set up vector interface
   size_vector = nx * ny * nz;
-  vector = (double *)reference;
+  vector = &(reference[0][0][0]);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -144,7 +148,7 @@ void ComputeESPGrid::compute_pergrid()
           continue;
         }
         weight[iz][iy][ix]=compute_weight(r,rcut);
-       
+
         for(int i=0;i<nlocal;++i){
           double dx=gx-x[i][0],dy=gy-x[i][1],dz=gz-x[i][2];
           double r2=dx*dx+dy*dy+dz*dz+1e-12;
@@ -160,7 +164,6 @@ void ComputeESPGrid::compute_pergrid()
 
 void ComputeESPGrid::compute_vector()
 {
-  if (invoked_pergrid != update->ntimestep) compute_pergrid();
   invoked_vector = update->ntimestep;
   // vector pointer is already set to reference in allocate_grid()
 }
@@ -177,8 +180,9 @@ double ComputeESPGrid::compute_scalar()
   for(int iz=0;iz<nz;++iz){
     for(int iy=0;iy<ny;++iy){
       for(int ix=0;ix<nx;++ix){
-        double diff=esp[iz][iy][ix]-reference[iz][iy][ix];
         double w=weight[iz][iy][ix];
+        if(w==0.0) continue;
+        double diff=esp[iz][iy][ix]-reference[iz][iy][ix];
         loss_sum+=w*diff*diff;
         weight_sum+=w;
       }
@@ -186,6 +190,7 @@ double ComputeESPGrid::compute_scalar()
   }
 
   scalar = (weight_sum>0.0)?loss_sum/weight_sum:0.0;
+  utils::logmesg(lmp, "*** ok 8c scalar {}\n", scalar);
   return scalar;
 
 }

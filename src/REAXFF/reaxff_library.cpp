@@ -32,7 +32,16 @@
 #include <Python.h>
 #endif
 
+/// string buffer for error messages of global errors
+static std::string lammps_last_global_errormessage;
+
 using namespace LAMMPS_NS;
+
+// __func__ is supposed to be portable for compilers also supporting C99: MSVC, GCC, Clang.
+#if defined(FNERR)
+#undef FNERR
+#endif
+#define FNERR __func__
 
 // ----------------------------------------------------------------------
 // utility macros
@@ -429,3 +438,46 @@ void lammps_set_reaxff_hbd_parameter(void *handle, int type1, int type2, int typ
   END_CAPTURE
 
 }
+
+void lammps_reset_box_single(void *handle, double *boxlo, double *boxhi,
+                      double xy, double yz, double xz)
+{
+  auto *lmp = (LAMMPS *) handle;
+  if (!lmp || !lmp->error || !lmp->domain || !lmp->comm) {
+    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    return;
+  }
+  Domain *domain = lmp->domain;
+
+  BEGIN_CAPTURE
+  {
+
+    if (lmp->comm->nprocs > 1)
+      lmp->error->all(FLERR, Error::NOLASTLINE,
+                      "Calling lammps_reset_box_single() with more than one processor");
+
+    // warn and do nothing if no box exists
+    if (lmp->domain->box_exist == 0) {
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR, "Call to lammps_reset_box() without a box ignored");
+      return;
+    }
+
+    domain->boxlo[0] = boxlo[0];
+    domain->boxlo[1] = boxlo[1];
+    domain->boxlo[2] = boxlo[2];
+    domain->boxhi[0] = boxhi[0];
+    domain->boxhi[1] = boxhi[1];
+    domain->boxhi[2] = boxhi[2];
+
+    domain->xy = xy;
+    domain->yz = yz;
+    domain->xz = xz;
+
+    domain->set_global_box();
+    //lmp->comm->set_proc_grid();
+    domain->set_local_box();
+  }
+  END_CAPTURE
+}
+

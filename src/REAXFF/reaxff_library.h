@@ -29,6 +29,8 @@ void lammps_set_reaxff_ang_parameter(void *, int, int, int, int, double);
 void lammps_set_reaxff_tor_parameter(void *, int, int, int, int, int, double);
 void lammps_set_reaxff_hbd_parameter(void *, int, int, int, int, double);
 
+void lammps_reset_box_single(void *, double *, double *, double, double, double);
+
 #ifdef __cplusplus
 }
 #endif

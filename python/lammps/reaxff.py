@@ -17,11 +17,13 @@
 ###########################################################################
 
 from lammps.core import lammps, ExceptionCheck
-from ctypes import c_void_p, c_int, c_double
+from ctypes import c_void_p, c_int, c_double, POINTER
 
 # -------------------------------------------------------------------------
 
 class lammps_reaxff(lammps):
+
+  # -------------------------------------------------------------------------
 
   def __init__(self,name='',cmdargs=None,ptr=None,comm=None):
 
@@ -44,6 +46,11 @@ class lammps_reaxff(lammps):
     self.lib.lammps_set_reaxff_tor_parameter.restype = None
     self.lib.lammps_set_reaxff_hbd_parameter.restype = None
 
+    self.lib.lammps_reset_box_single.argtypes = \
+      [c_void_p,POINTER(c_double),POINTER(c_double),c_double,c_double,c_double]
+    self.lib.lammps_reset_box_single.restype = None
+
+  # -------------------------------------------------------------------------
 
   def set_reaxff_parameters(self, parameters, values):
 
@@ -81,3 +88,26 @@ class lammps_reaxff(lammps):
         if p_block_index == 6:
           self.lib.lammps_set_reaxff_hbd_parameter(self.lmp,p[1],p[2],p[3],p[4],v)
 
+  # -------------------------------------------------------------------------
+
+  def reset_box_single(self,boxlo,boxhi,xy,yz,xz):
+    """Reset simulation box parameters
+
+    This is a wrapper around the :cpp:func:`lammps_reset_box_single` function
+    of the C-library reaxff interface.
+
+    :param boxlo: new lower box boundaries
+    :type boxlo: list of 3 floating point numbers
+    :param boxhi: new upper box boundaries
+    :type boxhi: list of 3 floating point numbers
+    :param xy: xy tilt factor
+    :type xy: float
+    :param yz: yz tilt factor
+    :type yz: float
+    :param xz: xz tilt factor
+    :type xz: float
+    """
+    cboxlo = (3*c_double)(*boxlo)
+    cboxhi = (3*c_double)(*boxhi)
+    with ExceptionCheck(self):
+      self.lib.lammps_reset_box_single(self.lmp,cboxlo,cboxhi,xy,yz,xz)

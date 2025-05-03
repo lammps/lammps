@@ -31,18 +31,30 @@ class ComputeESPGrid : public Compute {
 
   void init() override;
   double compute_scalar() override;
-  void *extract_reference();
+  void compute_vector() override;
+  void compute_pergrid() override;
+  void reset_grid() override;
+
+  int get_grid_by_name(const std::string &, int &) override;
+  void *get_grid_by_index(int) override;
+  int get_griddata_by_name(int, const std::string &, int &) override;
+  void *get_griddata_by_index(int) override;
 
  private:
   double spacing;
   int nx, ny, nz;
   double xlo, ylo, zlo;
 
-  double ***esp_ref;   // to be filled externally
-  double *bcut_acks2;  // per-type ACKS2 outer cutoff
+  class Grid3d *esp_grid, *reference_grid;
+  double ***esp, ***reference, ***weight;
+  double *bcut_acks2;
   int reaxflag;
 
-  inline double weight(double r, double rcut) const;
+  void allocate_grid();
+  void deallocate_grid();
+
+  inline double compute_weight(double r, double rcut) const;
+
 };
 
 }  // namespace LAMMPS_NS

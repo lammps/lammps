@@ -32,16 +32,20 @@ private slots:
     void save_as();
     void stop_run();
     void next_warning();
+    void open_errorurl();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
     void contextMenuEvent(QContextMenuEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
     bool check_yaml();
 
 private:
     QString filename;
+    QString errorurl;
     static const QString yaml_regex;
+    static const QString url_regex;
     FlagWarnings *warnings;
     QLabel *summary;
 };

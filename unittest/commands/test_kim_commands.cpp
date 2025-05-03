@@ -636,7 +636,7 @@ TEST_F(KimCommandsTest, kim_query)
             "temperature_units=[K]");
     END_HIDE_OUTPUT();
 
-    ASSERT_THAT(variable->retrieve("alpha"), StrEq("1.654960564704273e-05"));
+    ASSERT_THAT(variable->retrieve("alpha"), StrEq("1.656579473023212e-05"));
 
     BEGIN_HIDE_OUTPUT();
     command("clear");

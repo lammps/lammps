@@ -18,6 +18,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QDesktopServices>
 #include <QFile>
 #include <QFileDialog>
 #include <QGridLayout>
@@ -37,6 +38,7 @@
 
 const QString LogWindow::yaml_regex =
     QStringLiteral("^(keywords:.*$|data:$|---$|\\.\\.\\.$|  - \\[.*\\]$)");
+const QString LogWindow::url_regex = QStringLiteral("^.*(https://docs.lammps.org/err[0-9]+).*$");
 
 LogWindow::LogWindow(const QString &_filename, QWidget *parent) :
     QPlainTextEdit(parent), filename(_filename), warnings(nullptr)
@@ -198,8 +200,53 @@ void LogWindow::extract_yaml()
     file.close();
 }
 
+void LogWindow::open_errorurl()
+{
+    if (!errorurl.isEmpty()) QDesktopServices::openUrl(QUrl(errorurl));
+}
+
+void LogWindow::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton) {
+        // select the entire word (non-space text) under the cursor
+        // we need to do it in this complicated way, since QTextCursor does not recognize
+        // special characters as part of a word.
+        auto cursor = textCursor();
+        auto line   = cursor.block().text();
+        int begin   = qMin(cursor.positionInBlock(), line.length() - 1);
+
+        while (begin >= 0) {
+            if (line[begin].isSpace()) break;
+            --begin;
+        }
+
+        int end = begin + 1;
+        while (end < line.length()) {
+            if (line[end].isSpace()) break;
+            ++end;
+        }
+        cursor.setPosition(cursor.position() - cursor.positionInBlock() + begin + 1);
+        cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, end - begin - 1);
+
+        auto text = cursor.selectedText();
+        auto url  = QRegularExpression(url_regex).match(text);
+        if (url.hasMatch()) {
+            errorurl = url.captured(1);
+            if (!errorurl.isEmpty()) {
+                QDesktopServices::openUrl(QUrl(errorurl));
+                return;
+            }
+        }
+    }
+    // forward event to parent class for all unhandled cases
+    QPlainTextEdit::mouseDoubleClickEvent(event);
+}
+
 void LogWindow::contextMenuEvent(QContextMenuEvent *event)
 {
+    // reposition the cursor here, but only if there is no active selection
+    if (!textCursor().hasSelection()) setTextCursor(cursorForPosition(event->pos()));
+
     // show augmented context menu
     auto *menu = createStandardContextMenu();
     menu->addSeparator();
@@ -213,6 +260,15 @@ void LogWindow::contextMenuEvent(QContextMenuEvent *event)
         action->setIcon(QIcon(":/icons/yaml-file-icon.png"));
         action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Y));
         connect(action, &QAction::triggered, this, &LogWindow::extract_yaml);
+    }
+
+    // process line of text where the cursor is
+    auto text = textCursor().block().text().replace('\t', ' ').trimmed();
+    auto url  = QRegularExpression(url_regex).match(text);
+    if (url.hasMatch()) {
+        errorurl = url.captured(1);
+        action   = menu->addAction("Open &URL in Web Browser", this, &LogWindow::open_errorurl);
+        action->setIcon(QIcon(":/icons/help-browser.png"));
     }
     action = menu->addAction("&Jump to next warning or error", this, &LogWindow::next_warning);
     action->setIcon(QIcon(":/icons/warning.png"));

@@ -39,7 +39,7 @@ using MathSpecial::square;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJPirani::PairLJPirani(LAMMPS *lmp) : Pair(lmp)
+PairLJPirani::PairLJPirani(LAMMPS *lmp) : Pair(lmp), cut_respa(nullptr)
 {
   respa_enable = 1;
   born_matrix_enable = 0;
@@ -95,7 +95,7 @@ void PairLJPirani::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
-  double rsq, forcelj, factor_lj;
+  double rsq, factor_lj;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   double r, rx, n_x;
@@ -208,13 +208,12 @@ void PairLJPirani::compute_inner()
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, fpair;
-  double rsq, r2inv, r6inv, forcelj, factor_lj, rsw;
+  double rsq, factor_lj, rsw;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   double r, rx, n_x;
   double pow_rx_n_x, pow_rx_gamma;
   double filj1, filj2, filj3, filj4, filj5, filj6, forceilj;
-  double ilj1, ilj2;
   double fxtmp, fytmp, fztmp;
 
   double **x = atom->x;
@@ -315,13 +314,12 @@ void PairLJPirani::compute_middle()
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, fpair;
-  double rsq, r2inv, r6inv, forcelj, factor_lj, rsw;
+  double rsq, factor_lj, rsw;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   double r, rx, n_x;
   double pow_rx_n_x, pow_rx_gamma;
   double filj1, filj2, filj3, filj4, filj5, filj6, forceilj;
-  double ilj1, ilj2;
   double fxtmp, fytmp, fztmp;
 
   double **x = atom->x;
@@ -430,7 +428,7 @@ void PairLJPirani::compute_outer(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
-  double rsq, r2inv, r6inv, forcelj, factor_lj, rsw;
+  double rsq, factor_lj, rsw;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   double r, rx, n_x;

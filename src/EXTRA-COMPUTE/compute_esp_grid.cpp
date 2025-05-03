@@ -14,10 +14,12 @@
 
 using namespace LAMMPS_NS;
 
+/* ---------------------------------------------------------------------- */
+
 ComputeESPGrid::ComputeESPGrid(LAMMPS *lmp,int narg,char **arg) :
   Compute(lmp,narg,arg),
-  spacing(0.3),nx(0),ny(0),nz(0),
-  esp_ref(nullptr),bcut_acks2(nullptr),reaxflag(0)
+  spacing(1.0),nx(0),ny(0),nz(0),
+  bcut_acks2(nullptr),esp(nullptr),reference(nullptr),reaxflag(0)
 {
   if(narg<4) error->all(FLERR,"Illegal compute esp/grid command");
 
@@ -29,27 +31,71 @@ ComputeESPGrid::ComputeESPGrid(LAMMPS *lmp,int narg,char **arg) :
       iarg+=2;
     } else error->all(FLERR,"Unknown keyword in compute esp/grid");
   }
+
   scalar_flag=1;
+  vector_flag=1;
+  pergrid_flag=1;
+
+  allocate_grid();
+
 }
+
+/* ---------------------------------------------------------------------- */
 
 ComputeESPGrid::~ComputeESPGrid()
 {
-  memory->destroy(esp_ref);
+  deallocate_grid();
   if(!reaxflag) memory->destroy(bcut_acks2);
 }
 
-void ComputeESPGrid::init()
+/* ---------------------------------------------------------------------- */
+
+void ComputeESPGrid::allocate_grid()
 {
+  // Get current box dimensions
   xlo=domain->boxlo[0];
   ylo=domain->boxlo[1];
   zlo=domain->boxlo[2];
 
+  // Calculate grid dimensions
   nx=std::max(1,int(std::ceil(domain->prd[0]/spacing)));
   ny=std::max(1,int(std::ceil(domain->prd[1]/spacing)));
   nz=std::max(1,int(std::ceil(domain->prd[2]/spacing)));
 
-  memory->create3d_offset(esp_ref,0,nz-1,0,ny-1,0,nx-1,"esp/ref");
+  utils::logmesg(lmp, "*** xlo ylo zlo {} {} {} prd {} {} {} spacing {} nx ny nz {} {} {}\n",
+    xlo, ylo, zlo, domain->prd[0], domain->prd[1], domain->prd[2], spacing, nx, ny, nz);
 
+  // Allocate memory
+  memory->create3d_offset(esp,0,nz-1,0,ny-1,0,nx-1,"esp/grid:esp");
+  memory->create3d_offset(reference,0,nz-1,0,ny-1,0,nx-1,"esp/grid:reference");
+  memory->create3d_offset(weight,0,nz-1,0,ny-1,0,nx-1,"esp/grid:weight");
+  
+  // Set up vector interface
+  size_vector = nx * ny * nz;
+  vector = (double *)reference;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeESPGrid::deallocate_grid()
+{
+  memory->destroy(esp);
+  memory->destroy(reference);
+  memory->destroy(weight);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeESPGrid::reset_grid()
+{
+  deallocate_grid();
+  allocate_grid();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeESPGrid::init()
+{
   int flag=0;
   Pair *pair=force->pair_match("^reaxff",0);
   if(pair){
@@ -63,16 +109,16 @@ void ComputeESPGrid::init()
   }
 }
 
-double ComputeESPGrid::compute_scalar()
+/* ---------------------------------------------------------------------- */
+
+void ComputeESPGrid::compute_pergrid()
 {
-  invoked_scalar=update->ntimestep;
+  invoked_pergrid = update->ntimestep;
 
   double **x=atom->x;
   double *q =atom->q;
   int   *type=atom->type;
   int    nlocal=atom->nlocal;
-
-  double loss_sum=0.0,weight_sum=0.0;
 
   for(int iz=0;iz<nz;++iz){
     double gz=zlo+(iz+0.5)*spacing;
@@ -83,36 +129,68 @@ double ComputeESPGrid::compute_scalar()
 
         double rmin2=1e60;
         int tnear=-1;
-        for(int a=0;a<nlocal;++a){
-          double dx=gx-x[a][0],dy=gy-x[a][1],dz=gz-x[a][2];
+        for(int i=0;i<nlocal;++i){
+          double dx=gx-x[i][0],dy=gy-x[i][1],dz=gz-x[i][2];
           double r2=dx*dx+dy*dy+dz*dz;
-          if(r2<rmin2){rmin2=r2;tnear=type[a];}
+          if(r2<rmin2){rmin2=r2;tnear=type[i];}
         }
         if(tnear<0) continue;
 
         double rcut=reaxflag?bcut_acks2[tnear]:bcut_acks2[0];
         double r=std::sqrt(rmin2);
-        if(r<1.4||r>rcut) continue;
-
-        double Vmodel=0.0;
-        for(int a=0;a<nlocal;++a){
-          double dx=gx-x[a][0],dy=gy-x[a][1],dz=gz-x[a][2];
+        esp[iz][iy][ix]=0.0;
+        if(r<1.4||r>rcut) {
+          weight[iz][iy][ix]=0.0;
+          continue;
+        }
+        weight[iz][iy][ix]=compute_weight(r,rcut);
+       
+        for(int i=0;i<nlocal;++i){
+          double dx=gx-x[i][0],dy=gy-x[i][1],dz=gz-x[i][2];
           double r2=dx*dx+dy*dy+dz*dz+1e-12;
-          Vmodel+=q[a]/std::sqrt(r2);
+          esp[iz][iy][ix]+=q[i]/std::sqrt(r2);
         }
 
-        double diff=Vmodel-esp_ref[iz][iy][ix];
-        double w=weight(r,rcut);
+      }
+    }
+  }
+}
 
+/* ---------------------------------------------------------------------- */
+
+void ComputeESPGrid::compute_vector()
+{
+  if (invoked_pergrid != update->ntimestep) compute_pergrid();
+  invoked_vector = update->ntimestep;
+  // vector pointer is already set to reference in allocate_grid()
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeESPGrid::compute_scalar()
+{
+  if (invoked_pergrid != update->ntimestep) compute_pergrid();
+  invoked_scalar=update->ntimestep;
+
+  double loss_sum=0.0,weight_sum=0.0;
+
+  for(int iz=0;iz<nz;++iz){
+    for(int iy=0;iy<ny;++iy){
+      for(int ix=0;ix<nx;++ix){
+        double diff=esp[iz][iy][ix]-reference[iz][iy][ix];
+        double w=weight[iz][iy][ix];
         loss_sum+=w*diff*diff;
         weight_sum+=w;
       }
     }
   }
-  return (weight_sum>0.0)?loss_sum/weight_sum:0.0;
+
+  scalar = (weight_sum>0.0)?loss_sum/weight_sum:0.0;
+  return scalar;
+
 }
 
-inline double ComputeESPGrid::weight(double r,double rcut) const
+inline double ComputeESPGrid::compute_weight(double r,double rcut) const
 {
   double w=1.0/(r*r);
   w*=1.0-std::exp(-std::pow((r-1.4)/0.3,6));
@@ -120,7 +198,42 @@ inline double ComputeESPGrid::weight(double r,double rcut) const
   return w;
 }
 
-void *ComputeESPGrid::extract_reference()
+int ComputeESPGrid::get_grid_by_name(const std::string &name, int &dim)
 {
-  return static_cast<void *>(esp_ref);
+  if (name == "esp")
+    return 0;
+  else if (name == "reference")
+    return 1;
+
+  return -1;
+}
+
+void *ComputeESPGrid::get_grid_by_index(int index)
+{
+  if (index == 0)
+    return esp_grid;
+  else if (index == 1)
+    return reference_grid;
+
+  return nullptr;
+}
+
+int ComputeESPGrid::get_griddata_by_name(int igrid, const std::string &name, int &ncol)
+{
+  if (((igrid == 0) || (igrid == 1)) && (name == "data")) {
+    ncol = 0;
+    return 0;
+  }
+
+  return -1;
+}
+
+void *ComputeESPGrid::get_griddata_by_index(int index)
+{
+  if (index == 0)
+    return esp;
+  else if (index == 1)
+    return reference;
+
+  return nullptr;
 }

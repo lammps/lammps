@@ -72,7 +72,7 @@ void ComputeESPGrid::allocate_grid()
   memory->create3d_offset(esp,0,nz-1,0,ny-1,0,nx-1,"esp/grid:esp");
   memory->create3d_offset(reference,0,nz-1,0,ny-1,0,nx-1,"esp/grid:reference");
   memory->create3d_offset(weight,0,nz-1,0,ny-1,0,nx-1,"esp/grid:weight");
-  
+
   // Set up vector interface
   size_vector = nx * ny * nz;
   vector = &(reference[0][0][0]);

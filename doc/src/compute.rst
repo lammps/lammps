@@ -230,6 +230,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`erotate/rigid <compute_erotate_rigid>` - rotational energy of rigid bodies
 * :doc:`erotate/sphere <compute_erotate_sphere>` - rotational energy of spherical particles
 * :doc:`erotate/sphere/atom <compute_erotate_sphere_atom>` - rotational energy for each spherical particle
+* :doc:`esp/grid <compute_esp_grid>` - electrostatic potential on a grid
 * :doc:`event/displace <compute_event_displace>` - detect event on atom displacement
 * :doc:`fabric <compute_fabric>` - calculates fabric tensors from pair interactions
 * :doc:`fep <compute_fep>` - compute free energies for alchemical transformation from perturbation theory

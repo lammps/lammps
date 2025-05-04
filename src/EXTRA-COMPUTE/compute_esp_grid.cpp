@@ -190,7 +190,7 @@ double ComputeESPGrid::compute_scalar()
   }
 
   scalar = (weight_sum>0.0)?loss_sum/weight_sum:0.0;
-  utils::logmesg(lmp, "*** ok 8c scalar {}\n", scalar);
+  utils::logmesg(lmp, "*** scalar {}\n", scalar);
   return scalar;
 
 }
@@ -205,7 +205,7 @@ inline double ComputeESPGrid::compute_weight(double r,double rcut) const
 
 int ComputeESPGrid::get_grid_by_name(const std::string &name, int &dim)
 {
-  if (name == "esp")
+  if (name == "grid")
     return 0;
   else if (name == "reference")
     return 1;

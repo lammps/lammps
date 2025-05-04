@@ -95,6 +95,17 @@ enum _LMP_VAR_CONST {
   LMP_VAR_STRING = 3        /*!< return value will be a string (catch-all) */
 };
 
+/** Neighbor list settings constants
+ *
+ * Must be kept in sync with the equivalent constants in ``python/lammps/constants.py``,
+ * ``fortran/lammps.f90``, ``tools/swig/lammps.i``, and
+ * ``examples/COUPLE/plugin/liblammpsplugin.h`` */
+
+enum _LMP_NEIGH_CONST {
+  LMP_NEIGH_HALF = 0,  /*!< request (default) half neighbor list */
+  LMP_NEIGH_FULL = 1,  /*!< request full neighbor list */
+};
+
 /*
  extern void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr);
 */
@@ -143,32 +154,34 @@ extern int    lammps_set_string_variable(void *, const char *, const char *);
 extern int    lammps_set_internal_variable(void *, const char *, double);
 extern int    lammps_variable_info(void *handle, int idx, char *buf, int bufsize);
 extern double lammps_eval(void *handle, const char *expr);
+
 extern void   lammps_clearstep_compute(void *handle);
 extern void   lammps_addstep_compute(void *handle, void *nstep);
 extern void   lammps_addstep_compute_all(void *handle, void *nstep);
 
-extern void   lammps_gather_atoms(void *, char *, int, int, void *);
-extern void   lammps_gather_atoms_concat(void *, char *, int, int, void *);
-extern void   lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *);
-extern void   lammps_scatter_atoms(void *, char *, int, int, void *);
-extern void   lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
+extern void   lammps_gather_atoms(void *, const char *, int, int, void *);
+extern void   lammps_gather_atoms_concat(void *, const char *, int, int, void *);
+extern void   lammps_gather_atoms_subset(void *, const char *, int, int, int, int *, void *);
+extern void   lammps_scatter_atoms(void *, const char *, int, int, void *);
+extern void   lammps_scatter_atoms_subset(void *, const char *, int, int, int, int *, void *);
 extern void   lammps_gather_bonds(void *handle, void *data);
 extern void   lammps_gather_angles(void *handle, void *data);
 extern void   lammps_gather_dihedrals(void *handle, void *data);
 extern void   lammps_gather_impropers(void *handle, void *data);
-extern void   lammps_gather(void *, char *, int, int, void *);
-extern void   lammps_gather_concat(void *, char *, int, int, void *);
-extern void   lammps_gather_subset(void *, char *, int, int, int, int *, void *);
-extern void   lammps_scatter(void *, char *, int, int, void *);
-extern void   lammps_scatter_subset(void *, char *, int, int, int, int *, void *);
-extern int    lammps_create_atoms(void *handle, int n, int *id, int *type,
-                           double *x, double *v, int *image, int bexpand);
+extern void   lammps_gather(void *, const char *, int, int, void *);
+extern void   lammps_gather_concat(void *, const char *, int, int, void *);
+extern void   lammps_gather_subset(void *, const char *, int, int, int, int *, void *);
+extern void   lammps_scatter(void *, const char *, int, int, void *);
+extern void   lammps_scatter_subset(void *, const char *, int, int, int, int *, void *);
+extern int    lammps_create_atoms(void *handle, int n, const int *id, const int *type,
+                                  const double *x, const double *v, const int *image, int bexpand);
 /*
  extern int    lammps_create_atoms(void *handle, int n, int64_t *id, int *type, */
-extern int    lammps_find_pair_neighlist(void*, char *, int, int, int);
-extern int    lammps_find_fix_neighlist(void*, char *, int);
-extern int    lammps_find_compute_neighlist(void*, char *, int);
-extern int    lammps_neighlist_num_elements(void*, int);
+extern int    lammps_find_pair_neighlist(void *, const char *, int, int, int);
+extern int    lammps_find_fix_neighlist(void *, const char *, int);
+extern int    lammps_find_compute_neighlist(void *, const char *, int);
+extern int    lammps_request_single_neighlist(void *, const char *, int, double);
+extern int    lammps_neighlist_num_elements(void *, int);
 extern void   lammps_neighlist_element_neighbors(void *, int, int, int *, int *, int ** );
 
 extern int    lammps_version(void *handle);
@@ -344,27 +357,28 @@ extern void   lammps_clearstep_compute(void *handle);
 extern void   lammps_addstep_compute(void *handle, void *nstep);
 extern void   lammps_addstep_compute_all(void *handle, void *nstep);
 
-extern void   lammps_gather_atoms(void *, char *, int, int, void *);
-extern void   lammps_gather_atoms_concat(void *, char *, int, int, void *);
-extern void   lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *);
-extern void   lammps_scatter_atoms(void *, char *, int, int, void *);
-extern void   lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
+extern void   lammps_gather_atoms(void *, const char *, int, int, void *);
+extern void   lammps_gather_atoms_concat(void *, const char *, int, int, void *);
+extern void   lammps_gather_atoms_subset(void *, const char *, int, int, int, int *, void *);
+extern void   lammps_scatter_atoms(void *, const char *, int, int, void *);
+extern void   lammps_scatter_atoms_subset(void *, const char *, int, int, int, int *, void *);
 extern void   lammps_gather_bonds(void *handle, void *data);
 extern void   lammps_gather_angles(void *handle, void *data);
 extern void   lammps_gather_dihedrals(void *handle, void *data);
 extern void   lammps_gather_impropers(void *handle, void *data);
-extern void   lammps_gather(void *, char *, int, int, void *);
-extern void   lammps_gather_concat(void *, char *, int, int, void *);
-extern void   lammps_gather_subset(void *, char *, int, int, int, int *, void *);
-extern void   lammps_scatter(void *, char *, int, int, void *);
-extern void   lammps_scatter_subset(void *, char *, int, int, int, int *, void *);
-extern int    lammps_create_atoms(void *handle, int n, int *id, int *type,
-                           double *x, double *v, int *image, int bexpand);
+extern void   lammps_gather(void *, const char *, int, int, void *);
+extern void   lammps_gather_concat(void *, const char *, int, int, void *);
+extern void   lammps_gather_subset(void *, const char *, int, int, int, int *, void *);
+extern void   lammps_scatter(void *, const char *, int, int, void *);
+extern void   lammps_scatter_subset(void *, const char *, int, int, int, int *, void *);
+extern int    lammps_create_atoms(void *handle, int n, const int *id, const int *type,
+                                  const double *x, const double *v, const int *image, int bexpand);
 /*
  extern int    lammps_create_atoms(void *handle, int n, int64_t *id, int *type, */
-extern int    lammps_find_pair_neighlist(void*, char *, int, int, int);
-extern int    lammps_find_fix_neighlist(void*, char *, int);
-extern int    lammps_find_compute_neighlist(void*, char *, int);
+extern int    lammps_find_pair_neighlist(void*, const char *, int, int, int);
+extern int    lammps_find_fix_neighlist(void*, const char *, int);
+extern int    lammps_find_compute_neighlist(void*, const char *, int);
+extern int    lammps_request_single_neighlist(void *, const char *, int, double);
 extern int    lammps_neighlist_num_elements(void*, int);
 extern void   lammps_neighlist_element_neighbors(void *, int, int, int *, int *, int ** );
 

@@ -1,7 +1,7 @@
 Removed commands and packages
 =============================
 
-.. contents:: \
+.. contents::
 
 ------
 
@@ -15,7 +15,7 @@ with the direct alternative (if available) and print a warning.
 LAMMPS shell
 ------------
 
-.. versionchanged:: 29Aug2024
+.. deprecated:: 29Aug2024
 
 The LAMMPS shell has been removed from the LAMMPS distribution. Users
 are encouraged to use the :ref:`LAMMPS-GUI <lammps_gui>` tool instead.
@@ -23,7 +23,7 @@ are encouraged to use the :ref:`LAMMPS-GUI <lammps_gui>` tool instead.
 i-PI tool
 ---------
 
-.. versionchanged:: 27Jun2024
+.. deprecated:: 27Jun2024
 
 The i-PI tool has been removed from the LAMMPS distribution.  Instead,
 instructions to install i-PI from PyPI via pip are provided.

@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/pirani,PairLJPirani);
+PairStyle(lj/pirani/omp,PairLJPiraniOMP);
 // clang-format on
 #else
 

@@ -136,7 +136,12 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
 ########################################################################
 # Start of Kokkos-Kernels configuration
 option(EXTERNAL_KOKKOS_KERNELS "Build against external kokkos-kernels library" OFF)
-option(DOWNLOAD_KOKKOS_KERNELS "Download the Kokkos-Kernels library instead of using the bundled one" OFF)
+
+if(DEFINED BUILD_EXTERNAL_KOKKOS_KERNELS_DIR)
+  option(DOWNLOAD_KOKKOS_KERNELS "Download the Kokkos-Kernels library instead of using the bundled one" OFF)
+else()
+  option(DOWNLOAD_KOKKOS_KERNELS "Download the Kokkos-Kernels library instead of using the bundled one" ON)
+endif()
 
 if(DOWNLOAD_KOKKOS_KERNELS)
   # extract Kokkos-Kernels-related variables and values for forwarding

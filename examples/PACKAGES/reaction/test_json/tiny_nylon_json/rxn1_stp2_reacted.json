@@ -82,7 +82,7 @@
         ]
     },
     "angles": {
-        "format": ["angleID", "angle-type", "atom1", "atom2"],
+        "format": ["angleID", "angle-type", "atom1", "atom2", "atom3"],
         "data": [
             [1, "c2-n-hn", 2, 1, 5],
             [2, "c2-n-c_1", 2, 1, 10],

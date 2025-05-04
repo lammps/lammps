@@ -15,8 +15,6 @@
 #ifndef LMP_PAIR_REAXFF_INIT_KOKKOS_HPP
 #define LMP_PAIR_REAXFF_INIT_KOKKOS_HPP
 
-#include "pair_reaxff_kokkos.h"
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>

@@ -52,6 +52,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`erotate/rigid <compute_erotate_rigid>`
    * :doc:`erotate/sphere (k) <compute_erotate_sphere>`
    * :doc:`erotate/sphere/atom <compute_erotate_sphere_atom>`
+   * :doc:`esp/grid (k) <compute_esp_grid>`
    * :doc:`event/displace <compute_event_displace>`
    * :doc:`fabric <compute_fabric>`
    * :doc:`fep <compute_fep>`

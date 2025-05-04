@@ -68,6 +68,8 @@
 
 static const QString blank(" ");
 static constexpr int BUFLEN = 256;
+static const QString citeme("# When using LAMMPS-GUI in your project, please cite: "
+                            "https://arxiv.org/abs/2503.14020\n");
 
 LammpsGui::LammpsGui(QWidget *parent, const QString &filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
@@ -78,6 +80,8 @@ LammpsGui::LammpsGui(QWidget *parent, const QString &filename) :
 {
     docver = "";
     ui->setupUi(this);
+    ui->textEdit->document()->setPlainText(citeme);
+    ui->textEdit->document()->setModified(false);
     this->setCentralWidget(ui->textEdit);
     highlighter = new Highlighter(ui->textEdit->document());
     capturer    = new StdCapture;
@@ -413,7 +417,8 @@ LammpsGui::~LammpsGui()
 void LammpsGui::new_document()
 {
     current_file.clear();
-    ui->textEdit->document()->setPlainText(QString());
+    ui->textEdit->document()->setPlainText(citeme);
+    ui->textEdit->document()->setModified(false);
 
     if (lammps.is_running()) {
         stop_run();
@@ -1487,10 +1492,10 @@ void LammpsGui::about()
         info       = std::string(info, start, end - start);
     }
 
+    info += citeme.toStdString();
     to_clipboard += info.c_str();
 #if QT_CONFIG(clipboard)
     QGuiApplication::clipboard()->setText(to_clipboard);
-    info += "(Note: this text has been copied to the clipboard)\n";
 #endif
 
     QMessageBox msg;

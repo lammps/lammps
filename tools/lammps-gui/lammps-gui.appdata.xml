@@ -62,7 +62,10 @@
         Add option to visualize molecules defined through the molecule command
         Add text fields for editing plot title and axis labels for charts
         Add option to automatically open tutorial websites (enabled by default)
+        Add citation reminder comment to empty documents and the About dialog currently pointing to arXiv.
         Add preferences tab for charts to set default for title, plot colors, smooth/raw plot, smooth params
+        Highlight error URLs with pointers to additional explanations in log window
+        Double-click on highlighted URL opens it in web browser. Also available via context menu.
       </description>
     </release>
      <release version="1.6.12" timestamp="1734890080">

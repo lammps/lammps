@@ -159,13 +159,17 @@ angle, dihedral, or improper with just one atom in the actual
 sub-domain.  Typically, this cutoff is set to the largest cutoff from
 the :doc:`pair style(s) <pair_style>` plus the :doc:`neighbor list skin
 distance <neighbor>` and will typically be sufficient for all bonded
-interactions.  But if the pair style cutoff is small, this may not be
-enough.  LAMMPS will print a warning in this case using some heuristic
-based on the equilibrium bond length, but that still may not be
-sufficient for cases where the force constants are small and thus bonds
-may be stretched very far.  The communication cutoff can be adjusted
-with :doc:`comm_modify cutoff \<value\> <comm_modify>`, but setting this
-too large will waste CPU time and memory.
+interactions.  But if the pair style cutoff is small (e.g. with a
+repulsive-only Lennard-Jones potential) this may not be enough.  It is
+even worse if there is no pair style defined (or the pair style is set
+to "none"), since then there will be no ghost atoms created at all.
+
+The communication cutoff can be set or adjusted with :doc:`comm_modify
+cutoff \<value\> <comm_modify>`, but setting this too large will waste
+CPU time and memory.  LAMMPS will print warnings in these cases.  For
+bonds it uses some heuristic based on the equilibrium bond length, but
+that still may not be sufficient for cases where the force constants are
+small and thus bonds may be stretched very far.
 
 .. _hint09:
 

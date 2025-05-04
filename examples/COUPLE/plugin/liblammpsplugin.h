@@ -94,6 +94,17 @@ enum _LMP_VAR_CONST {
   LMP_VAR_STRING = 3  /*!< return value will be a string (catch-all) */
 };
 
+/** Neighbor list settings constants
+ *
+ * Must be kept in sync with the equivalent constants in ``python/lammps/constants.py``,
+ * ``fortran/lammps.f90``, ``tools/swig/lammps.i``, and
+ * ``examples/COUPLE/plugin/liblammpsplugin.h`` */
+
+enum _LMP_NEIGH_CONST {
+  LMP_NEIGH_HALF = 0,  /*!< request (default) half neighbor list */
+  LMP_NEIGH_FULL = 1,  /*!< request full neighbor list */
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -189,14 +200,17 @@ struct _liblammpsplugin {
  * caller must match to how LAMMPS library is built */
 
 #if !defined(LAMMPS_BIGBIG)
- int (*create_atoms)(void *, int, int *, int *, double *, double *, int *, int);
+ int (*create_atoms)(void *, int, const int *, const int *, const double *, const double *,
+                     const int *, int);
 #else
-  int (*create_atoms)(void *, int, int64_t *, int *, double *, double *, int64_t *, int);
+  int (*create_atoms)(void *, int, const int64_t *, const int *, const double *, const double *,
+                      const int64_t *, int);
 #endif
 
   int (*find_pair_neighlist)(void *, const char *, int, int, int);
   int (*find_fix_neighlist)(void *, const char *, int);
   int (*find_compute_neighlist)(void *, const char *, int);
+  int (*request_single_neighlist)(void *, const char *, int, double);
   int (*neighlist_num_elements)(void *, int);
   void (*neighlist_element_neighbors)(void *, int, int, int *, int *, int **);
 

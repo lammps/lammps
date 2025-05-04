@@ -74,7 +74,7 @@ electrostatic interactions.  If these are desired, this pair style
 should be used along with a Coulomb pair style like
 :doc:`pair styles coul/cut or coul/long <pair_coul>` by using
 :doc:`pair style hybrid/overlay <pair_hybrid>` and a suitable
-kspace style :doc:`<kspace_style>`, if needed.
+:doc:`kspace style <kspace_style>`, if needed.
 
 As discussed in :ref:`(Pirani) <Pirani>`, analysis of a variety of
 systems showed that :math:`\alpha= 4` generally works very well.  In

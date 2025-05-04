@@ -308,7 +308,10 @@ of the *Output* window showing how many warnings and errors were
 detected and how many lines the entire output has.  By clicking on the
 button on the right with the warning symbol or by using the keyboard
 shortcut `Ctrl-N` (`Command-N` on macOS), you can jump to the next
-line with a warning or error.
+line with a warning or error.  If there is a URL pointing to additional
+explanations in the online manual, that URL will be highlighted and
+double-clicking on it shall open the corresponding manual page in
+the web browser.  The option is also available from the context menu.
 
 By default, the *Output* window is replaced each time a run is started.
 The runs are counted and the run number for the current run is displayed

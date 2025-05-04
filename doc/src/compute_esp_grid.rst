@@ -64,16 +64,17 @@ For access by other commands, the name of the single grid produced by this comma
 Restrictions
 """"""""""""
 
-This compute is part of the EXTRA-COMPUTE package.  They are only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package
-<Build_package>` page for more info.
+This compute is part of the EXTRA-COMPUTE package.  They are only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`compute property/grid <compute_property_grid>`, :doc:`dump grid <dump_grid>`
+:doc:`compute property/grid <compute_property_grid>`, :doc:`dump grid <dump>`
 
-----------
+Default
+"""""""
+
+none
 
 
 

@@ -193,7 +193,7 @@ else()
     set(LAMMPS_LIB_KOKKOS_KERNELS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos-kernels)
   endif()
   set(LAMMPS_LIB_KOKKOS_KERNELS_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/kokkos-kernels)
-  
+
   # Build kokkos-kernels as static libraries but with PIC if needed
   if(BUILD_SHARED_LIBS)
     set(BUILD_SHARED_LIBS_KERNELS_WAS_ON YES)
@@ -202,17 +202,17 @@ else()
   if(CMAKE_REQUEST_PIC)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
   endif()
-  
+
   # Add kokkos-kernels as a subdirectory
   add_subdirectory(${LAMMPS_LIB_KOKKOS_KERNELS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_KERNELS_BIN_DIR} EXCLUDE_FROM_ALL)
-  
+
   # Set include directories and link the library
   set(KokkosKernels_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_KERNELS_SRC_DIR}/include
                                  ${LAMMPS_LIB_KOKKOS_KERNELS_SRC_DIR}/src
                                  ${LAMMPS_LIB_KOKKOS_KERNELS_BIN_DIR})
   target_include_directories(lammps PRIVATE ${KokkosKernels_INCLUDE_DIRS})
   target_link_libraries(lammps PRIVATE kokkoskernels)
-  
+
   if(BUILD_SHARED_LIBS_KERNELS_WAS_ON)
     set(BUILD_SHARED_LIBS ON)
   endif()

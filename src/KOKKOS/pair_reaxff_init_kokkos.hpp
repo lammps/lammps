@@ -139,11 +139,11 @@ void PairReaxFFKokkos<DeviceType>::init_style()
     if (!ifix->kokkosable)
       error->all(FLERR,"Must use Kokkos version of acks2/reaxff with pair reaxff/kk");
     if (ifix->execution_space == Host) {
-      auto k_s = ((FixACKS2ReaxFFKokkos<LMPHostType>*) ifix)->get_s();
+      auto k_s = ((FixACKS2ReaxFFLegacyKokkos<LMPHostType>*) ifix)->get_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     } else {
-      auto k_s = ((FixACKS2ReaxFFKokkos<LMPDeviceType>*) ifix)->get_s();
+      auto k_s = ((FixACKS2ReaxFFLegacyKokkos<LMPDeviceType>*) ifix)->get_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     }

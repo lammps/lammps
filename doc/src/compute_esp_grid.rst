@@ -74,7 +74,7 @@ Related commands
 Default
 """""""
 
-none
+The default value for the *spacing* keyword is 0.3A.
 
 
 

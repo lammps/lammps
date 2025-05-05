@@ -22,8 +22,8 @@ FixStyle(acks2/reax/legacy/kk/host,FixACKS2ReaxFFLegacyKokkos<LMPHostType>);
 // clang-format on
 #else
 // clang-format off
-#ifndef LMP_FIX_ACKS2_REAXFF_KOKKOS_H
-#define LMP_FIX_ACKS2_REAXFF_KOKKOS_H
+#ifndef LMP_FIX_ACKS2_REAXFF_LEGACY_KOKKOS_H
+#define LMP_FIX_ACKS2_REAXFF_LEGACY_KOKKOS_H
 
 #include "fix_acks2_reaxff.h"
 #include "kokkos_type.h"

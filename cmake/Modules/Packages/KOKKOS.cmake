@@ -309,6 +309,10 @@ set_property(GLOBAL PROPERTY "KOKKOS_PKG_SOURCES" "${KOKKOS_PKG_SOURCES}")
 # detects styles which have KOKKOS version
 RegisterStylesExt(${KOKKOS_PKG_SOURCES_DIR} kokkos KOKKOS_PKG_SOURCES)
 
+# Manually register the legacy ACKS2 fix header so its _kokkos variant is detected
+RegisterFixStyle(${KOKKOS_PKG_SOURCES_DIR}/fix_acks2_reaxff_legacy_kokkos.h)
+target_sources(lammps PRIVATE ${KOKKOS_PKG_SOURCES_DIR}/fix_acks2_reaxff_legacy_kokkos.cpp)
+
 # register kokkos-only styles
 RegisterNBinStyle(${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.h)
 RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.h)

@@ -104,7 +104,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
       imax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg++;
     } else if (strcmp(arg[iarg], "target_charge") == 0) {
-      if (strcmp(style, "acks2/reaxff") != 0)
+      if (!utils::strmatch(style,"^acks2/reaxff"))
         error->all(FLERR, "target_charge option is only supported for fix style acks2/reaxff(/kk)");
       if (iarg+1 >= narg)
         error->all(FLERR,"Missing value for target_charge");

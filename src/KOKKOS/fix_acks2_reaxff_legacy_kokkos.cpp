@@ -17,7 +17,7 @@
                          Mitch Murphy (add target_charge option)
 ------------------------------------------------------------------------- */
 
-#include "fix_acks2_reaxff_kokkos.h"
+#include "fix_acks2_reaxff_legacy_kokkos.h"
 
 #include "atom.h"
 #include "atom_kokkos.h"

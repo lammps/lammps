@@ -43,9 +43,13 @@ class ComputeESPGrid : public Compute {
  private:
   double spacing;
   int nx, ny, nz;
+
+  int ixlo, ixhi, iylo, iyhi, izlo, izhi;
+  int oxlo, oxhi, oylo, oyhi, ozlo, ozhi;
+
   double xlo, ylo, zlo;
 
-  class Grid3d *esp_grid, *reference_grid;
+  class Grid3d *esp_grid;
   double ***esp, ***reference, ***weight;
   double *bcut_acks2;
   int reaxflag;

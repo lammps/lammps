@@ -32,7 +32,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "fix_acks2_reaxff_kokkos.h"
+#include "fix_acks2_reaxff_legacy_kokkos.h"
 #include "kokkos.h"
 #include "math_const.h"
 #include "math_special.h"
@@ -102,11 +102,11 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (acks2_flag) {
     auto ifix = modify->get_fix_by_style("^acks2/reax").front();
     if (ifix->execution_space == Host) {
-      auto k_s = ((FixACKS2ReaxFFKokkos<LMPHostType>*) ifix)->get_s();
+      auto k_s = ((FixACKS2ReaxFFLegacyKokkos<LMPHostType>*) ifix)->get_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     } else {
-      auto k_s = ((FixACKS2ReaxFFKokkos<LMPDeviceType>*) ifix)->get_s();
+      auto k_s = ((FixACKS2ReaxFFLegacyKokkos<LMPDeviceType>*) ifix)->get_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     }

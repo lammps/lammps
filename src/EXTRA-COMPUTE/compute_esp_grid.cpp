@@ -137,7 +137,7 @@ void ComputeESPGrid::compute_pergrid()
   double dz = (ozhi - ozlo) / std::max(1, izhi - izlo);
   
   // Debug grid spacing
-  utils::logmesg(lmp, "*** Grid spacing: dx={:.6f}, dy={:.6f}, dz={:.6f}\n", dx, dy, dz);
+  // utils::logmesg(lmp, "*** Grid spacing: dx={:.6f}, dy={:.6f}, dz={:.6f}\n", dx, dy, dz);
 
   for (int iz = izlo; iz <= izhi; ++iz) {
     double gz = ozlo + (iz - izlo + 0.5) * dz;
@@ -219,7 +219,7 @@ double ComputeESPGrid::compute_scalar()
         double diff = esp[iz][iy][ix] - reference[iz][iy][ix];
         loss_sum += w * diff * diff;
         weight_sum += w;
-        utils::logmesg(lmp, "*** iz iy ix {} {} {} weight {} esp {} reference {}\n", iz, iy, ix, w, esp[iz][iy][ix], reference[iz][iy][ix] );
+        //utils::logmesg(lmp, "*** iz iy ix {} {} {} weight {} esp {} reference {}\n", iz, iy, ix, w, esp[iz][iy][ix], reference[iz][iy][ix] );
       }
     }
   }

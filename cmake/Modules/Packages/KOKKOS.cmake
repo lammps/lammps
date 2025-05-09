@@ -144,6 +144,24 @@ else()
 endif()
 
 if(DOWNLOAD_KOKKOS_KERNELS)
+  # Handle dependency on Kokkos
+  if(NOT DOWNLOAD_KOKKOS AND NOT EXTERNAL_KOKKOS)
+    # Using bundled Kokkos - just point to its build directory where it generates its config
+    list(APPEND KOKKOS_KERNELS_LIB_BUILD_ARGS "-DKokkos_DIR=${LAMMPS_LIB_KOKKOS_BIN_DIR}")
+    set(KOKKOS_KERNELS_DEPENDS kokkos)
+    set(KOKKOS_LINK_TARGET kokkos)  # Set the target name for bundled Kokkos
+  elseif(DOWNLOAD_KOKKOS)
+    # Both downloading - make sure Kokkos builds first
+    set(KOKKOS_KERNELS_DEPENDS kokkos_build)
+    ExternalProject_get_property(kokkos_build INSTALL_DIR)
+    list(APPEND KOKKOS_KERNELS_LIB_BUILD_ARGS "-DCMAKE_PREFIX_PATH=${INSTALL_DIR}")
+    set(KOKKOS_LINK_TARGET LAMMPS::KOKKOSCORE)  # Set the target name for downloaded Kokkos
+  elseif(EXTERNAL_KOKKOS)
+    # Using external Kokkos - should already be findable
+    find_package(Kokkos REQUIRED)
+    set(KOKKOS_LINK_TARGET Kokkos::kokkos)  # Set the target name for external Kokkos
+  endif()
+  
   # extract Kokkos-Kernels-related variables and values for forwarding
   get_cmake_property(_VARS VARIABLES)
   list(FILTER _VARS INCLUDE REGEX ^KokkosKernels_)
@@ -173,6 +191,7 @@ if(DOWNLOAD_KOKKOS_KERNELS)
   GetFallbackURL(KOKKOS_KERNELS_URL KOKKOS_KERNELS_FALLBACK)
 
   ExternalProject_Add(kokkos_kernels_build
+    DEPENDS ${KOKKOS_KERNELS_DEPENDS}
     URL     ${KOKKOS_KERNELS_URL} ${KOKKOS_KERNELS_FALLBACK}
     URL_MD5 ${KOKKOS_KERNELS_MD5}
     CMAKE_ARGS ${KOKKOS_KERNELS_LIB_BUILD_ARGS}
@@ -181,14 +200,15 @@ if(DOWNLOAD_KOKKOS_KERNELS)
   ExternalProject_get_property(kokkos_kernels_build INSTALL_DIR)
   file(MAKE_DIRECTORY ${INSTALL_DIR}/include)
   add_library(LAMMPS::KOKKOSKERNELS UNKNOWN IMPORTED)
+  # Use the correct target name based on which Kokkos configuration we're using
   set_target_properties(LAMMPS::KOKKOSKERNELS PROPERTIES
     IMPORTED_LOCATION "${INSTALL_DIR}/lib/libkokkoskernels.a"
     INTERFACE_INCLUDE_DIRECTORIES "${INSTALL_DIR}/include"
-    INTERFACE_LINK_LIBRARIES LAMMPS::KOKKOSCORE)
+    INTERFACE_LINK_LIBRARIES ${KOKKOS_LINK_TARGET})
   target_link_libraries(lammps PRIVATE LAMMPS::KOKKOSKERNELS)
   add_dependencies(LAMMPS::KOKKOSKERNELS kokkos_kernels_build)
 elseif(EXTERNAL_KOKKOS_KERNELS)
-  find_package(KokkosKernels 4.6.00 REQUIRED CONFIG)
+  find_package(KokkosKernels REQUIRED CONFIG)
   target_link_libraries(lammps PRIVATE Kokkos::kokkoskernels)
 else()
   # Use local or bundled kokkos-kernels source

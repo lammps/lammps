@@ -86,6 +86,12 @@ cdef extern from "mliap_data_kokkos.h" namespace "LAMMPS_NS":
 
         void forward_exchange[CommType]  (CommType * copy_from, CommType * copy_to, int vec_len) except +
         void reverse_exchange[CommType] (CommType * copy_from, CommType * copy_to, int vec_len) except +
+    
+cdef extern from "mliap_xla_bindings_kokkos.h":
+    cdef void* xla_forward_exchange_fp32_ptr()
+    cdef void* xla_reverse_exchange_fp32_ptr()
+    cdef void* xla_forward_exchange_fp64_ptr()
+    cdef void* xla_reverse_exchange_fp64_ptr()
 
 cdef extern from "mliap_unified_kokkos.h" namespace "LAMMPS_NS":
     cdef cppclass MLIAPDummyDescriptor:
@@ -152,6 +158,24 @@ cdef class MLIAPDataPy:
 
     def __cinit__(self):
         self.data = NULL
+
+    def register_jax_ffi_exchange(self):
+        import jax
+
+        bindings = {
+            "forward_exchange_fp32": <uintptr_t>xla_forward_exchange_fp32_ptr(),
+            "reverse_exchange_fp32": <uintptr_t>xla_reverse_exchange_fp32_ptr(),
+            "forward_exchange_fp64": <uintptr_t>xla_forward_exchange_fp64_ptr(),
+            "reverse_exchange_fp64": <uintptr_t>xla_reverse_exchange_fp64_ptr(),
+        }
+
+        for name, ptr in bindings.items():
+            if ptr == 0:
+                raise ValueError("It looks like lammps was not compiled with JAX support")
+            jax.ffi.register_ffi_target(name=name, fn=jax.ffi.pycapsule(ptr), platform="CUDA")
+
+    def get_pair_handle(self):
+        return <uintptr_t>self.data.pairmliap
 
     def update_pair_energy_cpu(self, eij):
         cdef double[:] eij_arr

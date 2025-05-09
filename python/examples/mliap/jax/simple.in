@@ -1,0 +1,25 @@
+units           metal
+atom_style      atomic
+atom_modify     map array
+boundary p p p
+
+#box tilt large
+read_data   ini.pos
+#velocity    all create 300 42
+
+# Basic LJ
+#pair_style lj/cut 5.0
+#pair_coeff * * 1 1
+pair_style      mliap unified my_model.pkl 0
+pair_coeff      * * H C O
+
+timestep 1e-3  #1fs
+# Thermostat
+#fix 1 all nvt temp 300.0 300.0 $(100.0*dt)
+
+# Output
+dump dump0 all custom 1 config.xyz id type x y z fx fy fz
+
+#thermo 100
+#thermo_style custom step temp pe etotal press vol
+run 1

@@ -1,0 +1,4 @@
+build
+*.egg-info
+__pycache__
+*.pkl

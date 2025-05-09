@@ -240,6 +240,42 @@ if(PKG_ML-IAP)
       list(APPEND KOKKOS_PKG_SOURCES ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.cpp)
     endforeach()
   endif()
+
+  # Check if JAX is installed in the current Python environment
+  execute_process(
+    COMMAND python -c "import importlib.util; print('YES' if importlib.util.find_spec('jax') else 'NO')"
+    OUTPUT_VARIABLE JAX_INSTALLED
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE JAX_CHECK_RESULT)
+
+  # Define WITH_JAX based on JAX availability
+  if(JAX_CHECK_RESULT EQUAL 0 AND JAX_INSTALLED STREQUAL "YES")
+    set(WITH_JAX TRUE)
+    message(STATUS "JAX detected: XLA FFI bindings will be compiled")
+    
+    # This import is needed for the JAX, XLA FFI bindings.
+    # More infos at https://docs.jax.dev/en/latest/ffi.html
+    # For the following code, having jax cpu version installed is sufficient
+    # $ pip install jax
+    execute_process(
+      COMMAND python -c "from jax.extend import ffi; print(ffi.include_dir())"
+      OUTPUT_VARIABLE JAX_FFI_DIR
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    
+    if(JAX_FFI_DIR)
+      target_include_directories(lammps PRIVATE ${JAX_FFI_DIR})
+
+      # Define the WITH_JAX compile definition for conditional code compilation
+      target_compile_definitions(lammps PRIVATE -DWITH_JAX)
+    else()
+      message(WARNING "JAX installed but ffi.include_dir() failed - skipping XLA FFI bindings")
+      set(WITH_JAX FALSE)
+    endif()
+  else()
+    message(STATUS "JAX not detected: XLA FFI bindings will be skipped")
+    set(WITH_JAX FALSE)
+  endif()
+
 endif()
 
 if(PKG_PHONON)

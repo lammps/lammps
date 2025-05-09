@@ -40,7 +40,7 @@ class ComputeESPGrid : public Compute {
   int get_griddata_by_name(int, const std::string &, int &) override;
   void *get_griddata_by_index(int) override;
 
- private:
+ protected:
   double spacing, delta_x, delta_y, delta_z;
 
   int ixlo, ixhi, iylo, iyhi, izlo, izhi;

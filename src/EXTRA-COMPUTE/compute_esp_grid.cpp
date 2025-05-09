@@ -20,7 +20,8 @@ using namespace LAMMPS_NS;
 
 ComputeESPGrid::ComputeESPGrid(LAMMPS *lmp,int narg,char **arg) :
   Compute(lmp,narg,arg),
-  spacing(1.0),nx(0),ny(0),nz(0),bcut_acks2(nullptr),reaxflag(0),
+  spacing(1.0),delta_x(1.0),delta_y(1.0),delta_z(1.0),
+  reaxflag(0),bcut_acks2(nullptr),
   esp_grid(nullptr),esp(nullptr),reference(nullptr),weight(nullptr)
 {
   if(narg<4) error->all(FLERR,"Illegal compute esp/grid command");
@@ -63,9 +64,16 @@ void ComputeESPGrid::allocate_grid()
   zlo=domain->boxlo[2];
 
   // Calculate grid dimensions
-  nx=std::max(1,int(std::ceil(domain->prd[0]/spacing)));
-  ny=std::max(1,int(std::ceil(domain->prd[1]/spacing)));
-  nz=std::max(1,int(std::ceil(domain->prd[2]/spacing)));
+  int nx=std::max(1,int(std::ceil(domain->prd[0]/spacing)));
+  int ny=std::max(1,int(std::ceil(domain->prd[1]/spacing)));
+  int nz=std::max(1,int(std::ceil(domain->prd[2]/spacing)));
+
+  delta_x = domain->prd[0] / nx;
+  delta_y = domain->prd[1] / ny;
+  delta_z = domain->prd[2] / nz;
+
+  //utils::logmesg(lmp, "*** xlo {} ylo {} zlo {} nx {} ny {} nz {} spacing {} \n",
+  //  xlo, ylo, zlo, nx, ny, nz, spacing );
 
   // Allocate grid
   esp_grid = new Grid3d(lmp, world, nx, ny, nz);
@@ -73,6 +81,9 @@ void ComputeESPGrid::allocate_grid()
     ixlo, ixhi, iylo, iyhi, izlo, izhi,
     oxlo, oxhi, oylo, oyhi, ozlo, ozhi
   );
+
+  //utils::logmesg(lmp, "*** ix {} {} iy {} {} iz {} {} ox {} {} oy {} {} oz {} {} \n",
+  //  ixlo, ixhi, iylo, iyhi, izlo, izhi, oxlo, oxhi, oylo, oyhi, ozlo, ozhi);
 
   // Allocate memory
   memory->create3d_offset(esp, izlo, izhi, iylo, iyhi, ixlo, ixhi, "esp/grid:esp");
@@ -131,20 +142,12 @@ void ComputeESPGrid::compute_pergrid()
   int nghost = atom->nghost;
   int ntotal = nlocal + nghost;
   
-  // FIXED: Explicitly calculate grid spacing - do not compute inside the loop
-  double dx = (oxhi - oxlo) / std::max(1, ixhi - ixlo);
-  double dy = (oyhi - oylo) / std::max(1, iyhi - iylo);
-  double dz = (ozhi - ozlo) / std::max(1, izhi - izlo);
-  
-  // Debug grid spacing
-  // utils::logmesg(lmp, "*** Grid spacing: dx={:.6f}, dy={:.6f}, dz={:.6f}\n", dx, dy, dz);
-
   for (int iz = izlo; iz <= izhi; ++iz) {
-    double gz = ozlo + (iz - izlo + 0.5) * dz;
+    double gz = zlo + (iz - izlo + 0.5) * delta_z;
     for (int iy = iylo; iy <= iyhi; ++iy) {
-      double gy = oylo + (iy - iylo + 0.5) * dy;
+      double gy = ylo + (iy - iylo + 0.5) * delta_y;
       for (int ix = ixlo; ix <= ixhi; ++ix) {
-        double gx = oxlo + (ix - ixlo + 0.5) * dx;
+        double gx = xlo + (ix - ixlo + 0.5) * delta_x;
 
         // Initialize ESP and weight values for this cell
         esp[iz][iy][ix] = 0.0;
@@ -189,6 +192,9 @@ void ComputeESPGrid::compute_pergrid()
           double r2 = dx*dx + dy*dy + dz*dz + 1e-12;
           esp[iz][iy][ix] += q[i] / std::sqrt(r2);
         }
+
+        //utils::logmesg(lmp, "*** iz iy ix {} {} {} gz gy gx {} {} {} r {} esp {} reference {}\n", iz, iy, ix, gz, gy, gx, r, esp[iz][iy][ix], reference[iz][iy][ix] );
+
       }
     }
   }
@@ -219,7 +225,6 @@ double ComputeESPGrid::compute_scalar()
         double diff = esp[iz][iy][ix] - reference[iz][iy][ix];
         loss_sum += w * diff * diff;
         weight_sum += w;
-        //utils::logmesg(lmp, "*** iz iy ix {} {} {} weight {} esp {} reference {}\n", iz, iy, ix, w, esp[iz][iy][ix], reference[iz][iy][ix] );
       }
     }
   }

@@ -41,8 +41,7 @@ class ComputeESPGrid : public Compute {
   void *get_griddata_by_index(int) override;
 
  private:
-  double spacing;
-  int nx, ny, nz;
+  double spacing, delta_x, delta_y, delta_z;
 
   int ixlo, ixhi, iylo, iyhi, izlo, izhi;
   int oxlo, oxhi, oylo, oyhi, ozlo, ozhi;

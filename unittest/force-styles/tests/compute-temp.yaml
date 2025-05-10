@@ -1,0 +1,18 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Sat May 10 12:06:54 2025
+epsilon: 1e-15
+skip_tests:
+prerequisites: ! |
+  atom full
+  compute temp
+pre_commands: ! ""
+post_commands: ! |
+  compute test all temp
+input_file: in.fourmol
+natoms: 29
+global_scalar: 28.04278038585299
+global_vector: ! |-
+  6 1.241439369846223 1.8881174335267896 1.5514944864562206 0.532677973653587 -0.09957039491333645 -0.22800261954862094
+...

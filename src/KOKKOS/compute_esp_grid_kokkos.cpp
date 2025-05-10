@@ -158,29 +158,17 @@ void ComputeESPGridKokkos<DeviceType>::compute_pergrid()
   
   // Use hierarchical parallelism with TeamPolicy
   // Each team handles a chunk of grid points, vector lanes handle atom loops
-  int team_size = 8;  // Default team size, adjusted below
-  int vector_length = 8;  // Default vector length, adjusted below
-  
-  // Get optimal team size and vector length
-  using team_policy_type = Kokkos::TeamPolicy<DeviceType>;
-  using member_type = typename team_policy_type::member_type;
-  
-  // Calculate optimal team & vector sizes for the device
-  team_policy_type team_policy(1, 1, 1);
-  team_size = team_policy.team_size_max(
-    KOKKOS_LAMBDA(const member_type& member) {
-      // Kernel with similar workload to estimate resources
-      double sum = 0.0;
-      for (int i = 0; i < ntotal; i++) {
-        sum += d_q(i);
-      }
-      return sum;
-    });
-  
+  int team_size = 0; // Let Kokkos choose automatically
+  int vector_length = 32; // Often 32 for NVIDIA GPUs, 16 for AMD
+
   // Define number of teams - enough to cover all grid points
   int points_per_team = 4;  // Process multiple grid points per team for better efficiency
   int num_teams = (num_grid_points + points_per_team - 1) / points_per_team;
-  
+
+  using team_policy_type = Kokkos::TeamPolicy<DeviceType>;
+  using member_type = typename team_policy_type::member_type;
+  team_policy_type team_policy(num_teams, team_size, vector_length);
+
   // Launch compute_pergrid kernel with TeamPolicy
   Kokkos::parallel_for("ComputeESPGridKokkos::compute_pergrid", 
     team_policy_type(num_teams, team_size, vector_length),
@@ -348,86 +336,56 @@ double ComputeESPGridKokkos<DeviceType>::compute_scalar()
   auto d_reference = k_reference.d_view;
   
   // Create TeamPolicy for reduction
-  using team_policy_type = Kokkos::TeamPolicy<DeviceType>;
-  using member_type = typename team_policy_type::member_type;
-  
-  // Calculate optimal team & vector sizes for the device
-  int team_size = 8;  // Default team size
-  int vector_length = 8;  // Default vector length
-  
-  // Calculate optimal team size for reduction
-  team_policy_type team_policy(1, 1, 1);
-  team_size = team_policy.team_size_max(
-    KOKKOS_LAMBDA(const member_type& member) {
-      // Kernel with similar workload to estimate resources
-      double sum = 0.0;
-      double weight_sum = 0.0;
-      return sum;
-    });
-  
+  int team_size = 0; // Let Kokkos choose automatically
+  int vector_length = 32; // Often 32 for NVIDIA GPUs, 16 for AMD
+
   // Calculate number of teams for reduction
   int points_per_team = 16;  // Process multiple grid points per team
   int num_grid_points = (izhi-izlo+1) * (iyhi-iylo+1) * (ixhi-ixlo+1);
   int num_teams = (num_grid_points + points_per_team - 1) / points_per_team;
-  
-  // Allocate reduction result
-  double result[2] = {0.0, 0.0};
-  
-  // Launch reduction kernel with TeamPolicy
-  Kokkos::parallel_reduce("ComputeESPGridKokkos::compute_scalar", 
+
+  using team_policy_type = Kokkos::TeamPolicy<DeviceType>;
+  using member_type = typename team_policy_type::member_type;
+
+  double local_loss = 0.0;
+  double local_weight = 0.0;
+
+  Kokkos::parallel_reduce("ComputeESPGridKokkos::compute_scalar",
     team_policy_type(num_teams, team_size, vector_length),
-    KOKKOS_LAMBDA(const member_type& team_member, double& loss_sum, double& weight_sum) {
-      // Each team processes multiple grid points
+    KOKKOS_LAMBDA(const member_type& team_member, double& team_loss, double& team_weight) {
       const int team_idx = team_member.league_rank();
       const int start_idx = team_idx * points_per_team;
       const int end_idx = Kokkos::min(start_idx + points_per_team, num_grid_points);
-      
-      // Thread-local reduction values
-      double team_loss = 0.0;
-      double team_weight = 0.0;
-      
-      // Loop over assigned grid points
+
+      double thread_loss = 0.0;
+      double thread_weight = 0.0;
+
       for (int point_idx = start_idx; point_idx < end_idx; ++point_idx) {
-        // Convert flat index to 3D grid coordinates
         int ix_len = ixhi - ixlo + 1;
         int iy_len = iyhi - iylo + 1;
-        
+
         int ix = point_idx % ix_len;
         int iy = (point_idx / ix_len) % iy_len;
         int iz = point_idx / (ix_len * iy_len);
-        
+
         double w = d_weight(iz, iy, ix);
         if (w == 0.0) continue;
-        
+
         double diff = d_esp(iz, iy, ix) - d_reference(iz, iy, ix);
-        team_loss += w * diff * diff;
-        team_weight += w;
+        thread_loss += w * diff * diff;
+        thread_weight += w;
       }
-      
-      // Combine team results using a team reduction
-      double team_total_loss = 0.0;
-      double team_total_weight = 0.0;
-      
-      Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team_member, 1),
-        [&] (const int&, double& loss_local) {
-          loss_local += team_loss;
-        }, team_total_loss);
-        
-      Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team_member, 1),
-        [&] (const int&, double& weight_local) {
-          weight_local += team_weight;
-        }, team_total_weight);
-      
-      // Add team results to total
-      loss_sum += team_total_loss;
-      weight_sum += team_total_weight;
-    }, result[0], result[1]);
-  
-  double local_result[2] = {result[0], result[1]};
+
+      team_loss += thread_loss;
+      team_weight += thread_weight;
+    },
+    local_loss, local_weight
+  );
+
+  double local_result[2] = {local_loss, local_weight};
   double global_result[2];
-  
   MPI_Allreduce(local_result, global_result, 2, MPI_DOUBLE, MPI_SUM, world);
-  
+
   scalar = (global_result[1] > 0.0) ? global_result[0] / global_result[1] : 0.0;
   if (comm->me == 0) utils::logmesg(lmp, "*** scalar {}\n", scalar);
   

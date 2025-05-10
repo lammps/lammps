@@ -1,0 +1,45 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Sat May 10 13:14:52 2025
+epsilon: 0
+skip_tests:
+prerequisites: ! |
+  atom full
+  compute coord/atom
+pre_commands: ! ""
+post_commands: ! |
+  compute test all coord/atom cutoff 6.0 1
+input_file: in.fourmol
+natoms: 29
+peratom_vector: ! |2
+   1 5
+   2 5
+   3 4
+   4 5
+   5 5
+   6 4
+   7 5
+   8 5
+   9 5
+   10 4
+   11 5
+   12 4
+   13 5
+   14 5
+   15 5
+   16 4
+   17 5
+   18 4
+   19 4
+   20 4
+   21 3
+   22 3
+   23 3
+   24 2
+   25 4
+   26 1
+   27 2
+   28 3
+   29 4
+...

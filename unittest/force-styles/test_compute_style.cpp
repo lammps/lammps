@@ -189,6 +189,21 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
                 block += fmt::format(" {}", icompute->vector[i]);
             writer.emit_block("global_vector", block);
         }
+
+        // per-atom vector
+        if (icompute->peratom_flag && icompute->size_peratom_cols == 0) {
+
+            block.clear();
+            icompute->compute_peratom();
+
+            for (int i = 1; i <= natoms; ++i) {
+                const int j = lmp->atom->map(i);
+                if (j >= 0 && j < lmp->atom->nlocal)
+                    block += fmt::format(" {} {}\n", i, icompute->vector_atom[j]);
+            }
+            writer.emit_block("peratom_vector", block);
+        }
+
     }
 
     cleanup_lammps(lmp, config);
@@ -262,6 +277,21 @@ TEST(ComputeStyle, plain)
             for (int i = 0; i < num; ++i)
                 EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], icompute->vector[i],
                                       epsilon);
+        }
+
+        // per-atom vector
+        if (icompute->peratom_flag && icompute->size_peratom_cols == 0) {
+            icompute->compute_peratom();
+
+            for (const auto &entry : test_config.peratom_vector) {
+                int index = entry.first;
+                double value = entry.second;
+                
+                int j = lmp->atom->map(index);
+                if (j >= 0 && j < lmp->atom->nlocal) {
+                    EXPECT_FP_LE_WITH_EPS(value, icompute->vector_atom[j], epsilon);
+                }
+            }
         }
 
         if (print_stats && stats.has_data())
@@ -347,6 +377,21 @@ TEST(ComputeStyle, kokkos_omp)
             for (int i = 0; i < num; ++i)
                 EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], icompute->vector[i],
                                       epsilon);
+        }
+
+        // per-atom vector
+        if (icompute->peratom_flag && icompute->size_peratom_cols == 0) {
+            icompute->compute_peratom();
+
+            for (const auto &entry : test_config.peratom_vector) {
+                int index = entry.first;
+                double value = entry.second;
+                
+                int j = lmp->atom->map(index);
+                if (j >= 0 && j < lmp->atom->nlocal) {
+                    EXPECT_FP_LE_WITH_EPS(value, icompute->vector_atom[j], epsilon);
+                }
+            }
         }
 
         if (print_stats && stats.has_data())

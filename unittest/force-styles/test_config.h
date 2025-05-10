@@ -64,6 +64,7 @@ public:
     stress_t run_stress;
     double global_scalar;
     std::vector<double> global_vector;
+    std::vector<std::pair<int, double>> peratom_vector;
     std::vector<coord_t> init_forces;
     std::vector<coord_t> run_forces;
     std::vector<coord_t> run_pos;
@@ -97,6 +98,7 @@ public:
         restart_vel.clear();
         run_torque.clear();
         global_vector.clear();
+        peratom_vector.clear();
     }
     TestConfig(const TestConfig &)            = delete;
     TestConfig &operator=(const TestConfig &) = delete;

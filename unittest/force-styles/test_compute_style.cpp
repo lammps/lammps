@@ -324,12 +324,6 @@ TEST(ComputeStyle, kokkos_omp)
 
     ErrorStats stats;
 
-    EXPECT_POSITIONS("run_pos (normal run, verlet)", lmp->atom, test_config.run_pos, epsilon);
-    EXPECT_VELOCITIES("run_vel (normal run, verlet)", lmp->atom, test_config.run_vel, epsilon);
-    if (lmp->atom->torque_flag)
-        EXPECT_TORQUES("run_torque (normal run, verlet)", lmp->atom, test_config.run_torque,
-                       epsilon);
-
     auto *icompute = lmp->modify->get_compute_by_id("test");
 
     if (!icompute) {

@@ -243,6 +243,24 @@ foreach(TEST ${IMPROPER_TESTS})
   set_tests_properties(${TNAME} PROPERTIES LABELS "${TEST_TAGS}")
 endforeach()
 
+# compute style tester
+add_executable(test_compute_style test_compute_style.cpp)
+target_link_libraries(test_compute_style PRIVATE lammps style_tests)
+
+file(GLOB COMPUTE_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/compute-*.yaml)
+foreach(TEST ${COMPUTE_TESTS})
+  string(REGEX REPLACE "^.*compute-(.*)\.yaml" "ComputeStyle:\\1" TNAME ${TEST})
+  extract_tags(TEST_TAGS ${TEST})
+  list(FIND TEST_TAGS "no${CMAKE_SYSTEM_NAME}" _SKIPME)
+  if(_SKIPME GREATER_EQUAL 0)
+    continue()
+  endif()
+  add_test(NAME ${TNAME} COMMAND test_compute_style ${TEST})
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "${FORCE_TEST_ENVIRONMENT}")
+  set_tests_properties(${TNAME} PROPERTIES LABELS "${TEST_TAGS}")
+endforeach()
+
+
 if(MLIAP_ENABLE_PYTHON AND (NOT WIN32))
   add_executable(test_mliappy_unified test_mliappy_unified.cpp)
   target_link_libraries(test_mliappy_unified PRIVATE lammps GTest::GMockMain)

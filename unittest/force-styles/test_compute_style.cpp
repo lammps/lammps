@@ -134,8 +134,6 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
     command("run 0 post no");
     command("thermo 2");
     command("run 4 post no start 0 stop 8");
-    command("write_restart " + cfg.basename + ".restart");
-    command("run 4 post no start 0 stop 8");
     return lmp;
 }
 
@@ -186,8 +184,9 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         if (icompute->vector_flag) {
             int num = icompute->size_vector;
             block   = std::to_string(num);
+            icompute->compute_vector();
             for (int i = 0; i < num; ++i)
-                block += fmt::format(" {}", icompute->compute_vector(i));
+                block += fmt::format(" {}", icompute->vector[i]);
             writer.emit_block("global_vector", block);
         }
     }
@@ -258,8 +257,10 @@ TEST(ComputeStyle, plain)
             int num = icompute->size_vector;
             EXPECT_EQ(num, test_config.global_vector.size());
 
+            icompute->compute_vector();
+
             for (int i = 0; i < num; ++i)
-                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], icompute->compute_vector(i),
+                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], icompute->vector[i],
                                       epsilon);
         }
 
@@ -347,8 +348,10 @@ TEST(ComputeStyle, kokkos_omp)
             int num = icompute->size_vector;
             EXPECT_EQ(num, test_config.global_vector.size());
 
+            icompute->compute_vector();
+
             for (int i = 0; i < num; ++i)
-                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], icompute->compute_vector(i),
+                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], icompute->vector[i],
                                       epsilon);
         }
 

@@ -66,6 +66,7 @@ public:
     std::vector<double> global_vector;
     std::vector<std::pair<int, double>> peratom_vector;
     std::vector<std::pair<int, std::vector<double>>> peratom_array;
+    std::vector<std::vector<double>> local_array;
     std::vector<coord_t> init_forces;
     std::vector<coord_t> run_forces;
     std::vector<coord_t> run_pos;
@@ -101,6 +102,7 @@ public:
         global_vector.clear();
         peratom_vector.clear();
         peratom_array.clear();
+        local_array.clear();
     }
     TestConfig(const TestConfig &)            = delete;
     TestConfig &operator=(const TestConfig &) = delete;

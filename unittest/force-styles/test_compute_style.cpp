@@ -139,7 +139,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
     command("timestep 0.25");
     command("run 0 post no");
     command("thermo 2");
-    command("run 4 post no start 0 stop 8");
+    if (!reaxff_flag) command("run 4 post no start 0 stop 8");
     return lmp;
 }
 
@@ -213,8 +213,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         // per-atom array
         if (icompute->peratom_flag && icompute->size_peratom_cols > 0) {
 
-            block = std::to_string(icompute->size_peratom_cols) + "\n";
             icompute->compute_peratom();
+            block = std::to_string(icompute->size_peratom_cols) + "\n";
 
             for (int i = 1; i <= natoms; ++i) {
                 const int j = lmp->atom->map(i);
@@ -226,6 +226,22 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
                 }
             }
             writer.emit_block("peratom_array", block);
+        }
+
+        // local array
+        if (icompute->local_flag && icompute->size_local_cols > 0) {
+
+            icompute->compute_local();
+            int nrows = icompute->size_local_rows;
+            int ncols = icompute->size_local_cols;
+            block = fmt::format("{} {}\n", nrows, ncols);
+
+            for (int i = 0; i < nrows; ++i) {
+                for (int j = 0; j < ncols; ++j)
+                    block += fmt::format(" {}", icompute->array_local[i][j]);
+                block += "\n";
+            }
+            writer.emit_block("local_array", block);
         }
 
     }
@@ -333,6 +349,23 @@ TEST(ComputeStyle, plain)
                     for (int k = 0; k < ncols; ++k) {
                         EXPECT_FP_LE_WITH_EPS(values[k], icompute->array_atom[j][k], epsilon);
                     }
+                }
+            }
+        }
+
+
+        // local array
+        if (icompute->local_flag && icompute->size_local_cols > 0) {
+            icompute->compute_local();
+            int nrows = icompute->size_local_rows;
+            int ncols = icompute->size_local_cols;
+            ASSERT_EQ(test_config.local_array.size(), nrows);
+            
+            for (int i = 0; i < nrows; ++i) {
+            const auto values = test_config.local_array[i];
+                ASSERT_EQ(values.size(), ncols);
+                for (int j = 0; j < ncols; ++j) {
+                    EXPECT_FP_LE_WITH_EPS(values[j], icompute->array_local[i][j], epsilon);
                 }
             }
         }
@@ -453,6 +486,37 @@ TEST(ComputeStyle, kokkos_omp)
                         EXPECT_FP_LE_WITH_EPS(values[k], icompute->array_atom[j][k], epsilon);
                     }
                 }
+            }
+        }
+
+        // local array (need to sort expected/actual local arrays to match in KOKKOS)
+        if (icompute->local_flag && icompute->size_local_cols > 0) {
+            icompute->compute_local();
+            int nrows = icompute->size_local_rows;
+            int ncols = icompute->size_local_cols;
+            ASSERT_EQ(static_cast<int>(test_config.local_array.size()), nrows);
+    
+            // Create sorted copies of both arrays
+            std::vector<std::vector<double>> expected_sorted = test_config.local_array;
+            std::vector<std::vector<double>> actual_sorted;
+
+            // Copy actual array to vector for sorting
+            for (int i = 0; i < nrows; ++i) {
+                std::vector<double> row(ncols);
+                for (int j = 0; j < ncols; ++j)
+                    row[j] = icompute->array_local[i][j];
+                actual_sorted.push_back(row);
+            }
+    
+            // Sort both arrays
+            std::sort(expected_sorted.begin(), expected_sorted.end());
+            std::sort(actual_sorted.begin(), actual_sorted.end());
+
+            // Compare sorted arrays
+            for (int i = 0; i < nrows; ++i) {
+                ASSERT_EQ(expected_sorted[i].size(), static_cast<size_t>(ncols));
+                for (int j = 0; j < ncols; ++j)
+                    EXPECT_FP_LE_WITH_EPS(expected_sorted[i][j], actual_sorted[i][j], epsilon);
             }
         }
 

@@ -61,6 +61,7 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
     consumers["global_vector"] = &TestConfigReader::global_vector;
     consumers["peratom_vector"] = &TestConfigReader::peratom_vector;
     consumers["peratom_array"] = &TestConfigReader::peratom_array;
+    consumers["local_array"] = &TestConfigReader::local_array;
 
     consumers["bond_style"]     = &TestConfigReader::bond_style;
     consumers["bond_coeff"]     = &TestConfigReader::bond_coeff;
@@ -416,6 +417,23 @@ void TestConfigReader::peratom_array(const yaml_event_t &event)
             atom_data.second.push_back(value);
         }
         config.peratom_array.push_back(std::move(atom_data));
+    }
+}
+
+void TestConfigReader::local_array(const yaml_event_t &event)
+{
+    std::stringstream data((char *)event.data.scalar.value);
+    config.local_array.clear();
+    std::size_t nrows, ncols;
+    data >> nrows >>ncols;
+    for (std::size_t i = 0; i < nrows; ++i) {
+        std::vector<double> local_data;
+        for (std::size_t j = 0; j < ncols; ++j) {
+            double value;
+            data >> value;
+            local_data.push_back(value);
+        }
+        config.local_array.push_back(std::move(local_data));
     }
 }
 

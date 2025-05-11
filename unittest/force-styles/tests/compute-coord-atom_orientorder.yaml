@@ -1,0 +1,47 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Sun May 11 13:03:37 2025
+epsilon: 0
+skip_tests:
+prerequisites: ! |
+  atom full
+  compute orientorder/atom
+  compute coord/atom
+pre_commands: ! ""
+post_commands: ! |
+  compute foo all orientorder/atom components 6
+  compute test all coord/atom orientorder foo 0.5
+input_file: in.fourmol
+natoms: 29
+peratom_vector: ! |2
+   1 2
+   2 4
+   3 1
+   4 0
+   5 2
+   6 2
+   7 1
+   8 3
+   9 3
+   10 2
+   11 1
+   12 2
+   13 0
+   14 0
+   15 2
+   16 2
+   17 1
+   18 2
+   19 2
+   20 4
+   21 1
+   22 0
+   23 1
+   24 2
+   25 2
+   26 3
+   27 2
+   28 2
+   29 1
+...

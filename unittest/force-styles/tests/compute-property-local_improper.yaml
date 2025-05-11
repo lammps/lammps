@@ -1,0 +1,21 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Sun May 11 12:43:00 2025
+epsilon: 1e-15
+skip_tests:
+prerequisites: ! |
+  atom full
+  compute property/local
+pre_commands: ! ""
+post_commands: ! |
+  improper_style harmonic
+  improper_coeff * 100.0 0
+  compute test solute property/local iatom1 iatom2 iatom3 iatom4 itype
+input_file: in.fourmol
+natoms: 29
+local_array: ! |
+  2 5
+   6 3 8 7 1
+   8 6 10 9 2
+...

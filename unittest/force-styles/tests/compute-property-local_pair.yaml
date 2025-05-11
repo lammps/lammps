@@ -1,0 +1,48 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Sun May 11 12:35:54 2025
+epsilon: 1e-15
+skip_tests:
+prerequisites: ! |
+  atom full
+  compute property/local
+pre_commands: ! ""
+post_commands: ! |
+  compute test solvent property/local patom1 patom2 ptype1 ptype2
+input_file: in.fourmol
+natoms: 29
+local_array: ! |
+  31 4
+   21 22 5 2
+   21 23 5 2
+   21 19 5 2
+   21 18 5 4
+   22 23 2 2
+   22 19 2 2
+   22 18 2 4
+   23 19 2 2
+   23 18 2 4
+   23 20 2 2
+   19 18 2 4
+   19 20 2 2
+   19 24 2 5
+   19 25 2 2
+   19 26 2 2
+   18 20 4 2
+   18 24 4 5
+   18 25 4 2
+   18 26 4 2
+   20 21 2 5
+   20 22 2 2
+   20 24 2 5
+   20 25 2 2
+   20 26 2 2
+   24 25 5 2
+   24 26 5 2
+   24 19 5 2
+   24 20 5 2
+   25 26 2 2
+   26 19 2 2
+   26 20 2 2
+...

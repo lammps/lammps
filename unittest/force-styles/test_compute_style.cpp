@@ -199,7 +199,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         // per-atom vector
         if (icompute->peratom_flag && icompute->size_peratom_cols == 0) {
 
-            block = std::to_string(icompute->size_peratom_cols);
+            block.clear();
             icompute->compute_peratom();
          
             for (int i = 1; i <= natoms; ++i) {

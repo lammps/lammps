@@ -405,12 +405,12 @@ void TestConfigReader::peratom_array(const yaml_event_t &event)
 {
     std::stringstream data((char *)event.data.scalar.value);
     config.peratom_array.clear();
-    std::size_t num;
-    data >> num;
+    std::size_t ncols;
+    data >> ncols;
     for (std::size_t i = 0; i < config.natoms; ++i) {
         std::pair<int, std::vector<double>> atom_data;
         data >> atom_data.first;
-        for (std::size_t j = 0; j < num; ++j) {
+        for (std::size_t j = 0; j < ncols; ++j) {
             double value;
             data >> value;
             atom_data.second.push_back(value);

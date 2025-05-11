@@ -36,7 +36,9 @@ Examples
    compute 1 all coord/atom cutoff 6.0 1 2
    compute 1 all coord/atom cutoff 6.0 2*4 5*8 *
    compute 1 solute coord/atom cutoff 2.0 group solvent
-   compute 1 all coord/atom orientorder 2 0.5
+
+   compute 1 all orientorder/atom components 6
+   compute 2 all coord/atom orientorder 1 0.5
 
 Description
 """""""""""

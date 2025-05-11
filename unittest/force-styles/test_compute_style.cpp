@@ -70,6 +70,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
     // check if prerequisite styles are available
     Info *info = new Info(lmp);
     int nfail  = 0;
+    int reaxff_flag = 0;
     for (const auto &prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
@@ -81,6 +82,9 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
                 style += lmp->suffix;
             }
         }
+
+        if (prerequisite.first == "pair" && prerequisite.second == "reaxff")
+            reaxff_flag = 1;
 
         if (!info->has_style(prerequisite.first, style)) ++nfail;
     }
@@ -104,29 +108,31 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
 
     if (use_respa) command("run_style respa 2 1 bond 1 pair 2");
 
-    // set up molecular system force field
+    if (!reaxff_flag) {
+        // set up molecular system force field
 
-    command("pair_style lj/cut 8.0");
-    command("pair_coeff  1 1  0.02   2.5");
-    command("pair_coeff  2 2  0.005  1.0");
-    command("pair_coeff  2 4  0.005  0.5");
-    command("pair_coeff  3 3  0.02   3.2");
-    command("pair_coeff  4 4  0.015  3.1");
-    command("pair_coeff  5 5  0.015  3.1");
-    command("bond_style harmonic");
-    command("bond_coeff  1 250.0 1.5");
-    command("bond_coeff  2 300.0 1.1");
-    command("bond_coeff  3 350.0 1.3");
-    command("bond_coeff  4 650.0 1.2");
-    command("bond_coeff  5 450.0 1.0");
-    command("angle_style harmonic");
-    command("angle_coeff  1  75.0 110.1");
-    command("angle_coeff  2  45.0 111.0");
-    command("angle_coeff  3  50.0 120.0");
-    command("angle_coeff  4 100.0 108.5");
-    command("group solute  molecule 1:2");
-    command("group solvent molecule 3:5");
-
+        command("pair_style lj/cut 8.0");
+        command("pair_coeff  1 1  0.02   2.5");
+        command("pair_coeff  2 2  0.005  1.0");
+        command("pair_coeff  2 4  0.005  0.5");
+        command("pair_coeff  3 3  0.02   3.2");
+        command("pair_coeff  4 4  0.015  3.1");
+        command("pair_coeff  5 5  0.015  3.1");
+        command("bond_style harmonic");
+        command("bond_coeff  1 250.0 1.5");
+        command("bond_coeff  2 300.0 1.1");
+        command("bond_coeff  3 350.0 1.3");
+        command("bond_coeff  4 650.0 1.2");
+        command("bond_coeff  5 450.0 1.0");
+        command("angle_style harmonic");
+        command("angle_coeff  1  75.0 110.1");
+        command("angle_coeff  2  45.0 111.0");
+        command("angle_coeff  3  50.0 120.0");
+        command("angle_coeff  4 100.0 108.5");
+        command("group solute  molecule 1:2");
+        command("group solvent molecule 3:5");
+    }
+    
     for (const auto &post_command : cfg.post_commands)
         command(post_command);
 
@@ -207,7 +213,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         // per-atom array
         if (icompute->peratom_flag && icompute->size_peratom_cols > 0) {
 
-            block.clear();
+            block = std::to_string(icompute->size_peratom_cols) + "\n";
             icompute->compute_peratom();
 
             for (int i = 1; i <= natoms; ++i) {

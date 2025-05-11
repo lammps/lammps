@@ -1,0 +1,50 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Sun May 11 12:42:09 2025
+epsilon: 1e-15
+skip_tests:
+prerequisites: ! |
+  atom full
+  compute property/local
+pre_commands: ! ""
+post_commands: ! |
+  dihedral_style harmonic
+  dihedral_coeff * 80.0 1 2
+  compute test solute property/local datom1 datom2 datom3 datom4 dtype
+input_file: in.fourmol
+natoms: 29
+local_array: ! |
+  31 5
+   8 10 12 13 5
+   8 10 12 14 1
+   8 10 12 15 5
+   8 10 16 17 4
+   11 10 12 13 5
+   11 10 12 14 5
+   11 10 12 15 5
+   11 10 16 17 2
+   12 10 16 17 2
+   16 10 12 13 5
+   16 10 12 14 5
+   16 10 12 15 5
+   1 3 6 8 1
+   1 3 6 7 1
+   4 3 6 8 5
+   4 3 6 7 5
+   5 3 6 8 5
+   5 3 6 7 5
+   3 6 8 9 4
+   3 6 8 10 3
+   7 6 8 9 3
+   7 6 8 10 4
+   6 8 10 12 2
+   6 8 10 16 2
+   6 8 10 11 2
+   9 8 10 12 2
+   9 8 10 16 4
+   9 8 10 11 5
+   2 1 3 6 2
+   2 1 3 4 2
+   2 1 3 5 3
+...

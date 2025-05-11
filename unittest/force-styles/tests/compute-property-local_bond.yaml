@@ -1,0 +1,23 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Sun May 11 12:36:30 2025
+epsilon: 1e-15
+skip_tests:
+prerequisites: ! |
+  atom full
+  compute property/local
+pre_commands: ! ""
+post_commands: ! |
+  compute test solvent property/local batom1 batom2 btype
+input_file: in.fourmol
+natoms: 29
+local_array: ! |
+  6 3
+   21 22 5
+   21 23 5
+   18 19 5
+   18 20 5
+   24 25 5
+   24 26 5
+...

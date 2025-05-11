@@ -193,15 +193,33 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         // per-atom vector
         if (icompute->peratom_flag && icompute->size_peratom_cols == 0) {
 
-            block.clear();
+            block = std::to_string(icompute->size_peratom_cols);
             icompute->compute_peratom();
-
+         
             for (int i = 1; i <= natoms; ++i) {
                 const int j = lmp->atom->map(i);
                 if (j >= 0 && j < lmp->atom->nlocal)
                     block += fmt::format(" {} {}\n", i, icompute->vector_atom[j]);
             }
             writer.emit_block("peratom_vector", block);
+        }
+
+        // per-atom array
+        if (icompute->peratom_flag && icompute->size_peratom_cols > 0) {
+
+            block.clear();
+            icompute->compute_peratom();
+
+            for (int i = 1; i <= natoms; ++i) {
+                const int j = lmp->atom->map(i);
+                if (j >= 0 && j < lmp->atom->nlocal) {
+                    block += fmt::format(" {}", i);
+                    for (int k = 0; k < icompute->size_peratom_cols; ++k)
+                        block += fmt::format(" {}", icompute->array_atom[j][k]);
+                    block += "\n";
+                }
+            }
+            writer.emit_block("peratom_array", block);
         }
 
     }
@@ -290,6 +308,25 @@ TEST(ComputeStyle, plain)
                 int j = lmp->atom->map(index);
                 if (j >= 0 && j < lmp->atom->nlocal) {
                     EXPECT_FP_LE_WITH_EPS(value, icompute->vector_atom[j], epsilon);
+                }
+            }
+        }
+
+        // per-atom array
+        if (icompute->peratom_flag && icompute->size_peratom_cols > 0) {
+            icompute->compute_peratom();
+            int ncols = icompute->size_peratom_cols;
+            
+            for (const auto &entry : test_config.peratom_array) {
+                int i = entry.first;
+                const auto &values = entry.second;
+                
+                int j = lmp->atom->map(i);
+                if (j >= 0 && j < lmp->atom->nlocal) {
+                    ASSERT_EQ(values.size(), ncols);
+                    for (int k = 0; k < ncols; ++k) {
+                        EXPECT_FP_LE_WITH_EPS(values[k], icompute->array_atom[j][k], epsilon);
+                    }
                 }
             }
         }
@@ -390,6 +427,25 @@ TEST(ComputeStyle, kokkos_omp)
                 int j = lmp->atom->map(index);
                 if (j >= 0 && j < lmp->atom->nlocal) {
                     EXPECT_FP_LE_WITH_EPS(value, icompute->vector_atom[j], epsilon);
+                }
+            }
+        }
+
+        // per-atom array
+        if (icompute->peratom_flag && icompute->size_peratom_cols > 0) {
+            icompute->compute_peratom();
+            int ncols = icompute->size_peratom_cols;
+            
+            for (const auto &entry : test_config.peratom_array) {
+                int i = entry.first;
+                const auto &values = entry.second;
+                
+                int j = lmp->atom->map(i);
+                if (j >= 0 && j < lmp->atom->nlocal) {
+                    ASSERT_EQ(values.size(), ncols);
+                    for (int k = 0; k < ncols; ++k) {
+                        EXPECT_FP_LE_WITH_EPS(values[k], icompute->array_atom[j][k], epsilon);
+                    }
                 }
             }
         }

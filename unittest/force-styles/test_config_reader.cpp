@@ -60,6 +60,7 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
     consumers["global_scalar"] = &TestConfigReader::global_scalar;
     consumers["global_vector"] = &TestConfigReader::global_vector;
     consumers["peratom_vector"] = &TestConfigReader::peratom_vector;
+    consumers["peratom_array"] = &TestConfigReader::peratom_array;
 
     consumers["bond_style"]     = &TestConfigReader::bond_style;
     consumers["bond_coeff"]     = &TestConfigReader::bond_coeff;
@@ -397,6 +398,24 @@ void TestConfigReader::peratom_vector(const yaml_event_t &event)
         data >> index;
         data >> value;
         config.peratom_vector.push_back(std::make_pair(index, value));
+    }
+}
+
+void TestConfigReader::peratom_array(const yaml_event_t &event)
+{
+    std::stringstream data((char *)event.data.scalar.value);
+    config.peratom_array.clear();
+    std::size_t num;
+    data >> num;
+    for (std::size_t i = 0; i < config.natoms; ++i) {
+        std::pair<int, std::vector<double>> atom_data;
+        data >> atom_data.first;
+        for (std::size_t j = 0; j < num; ++j) {
+            double value;
+            data >> value;
+            atom_data.second.push_back(value);
+        }
+        config.peratom_array.push_back(std::move(atom_data));
     }
 }
 

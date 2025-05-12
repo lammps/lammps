@@ -64,6 +64,7 @@ public:
     void global_array(const yaml_event_t &event);
     void peratom_vector(const yaml_event_t &event);
     void peratom_array(const yaml_event_t &event);
+    void local_vector(const yaml_event_t &event);
     void local_array(const yaml_event_t &event);
     void pergrid_name(const yaml_event_t &event);
     void pergrid_data(const yaml_event_t &event);

@@ -62,6 +62,7 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
     consumers["global_array"] = &TestConfigReader::global_array;
     consumers["peratom_vector"] = &TestConfigReader::peratom_vector;
     consumers["peratom_array"] = &TestConfigReader::peratom_array;
+    consumers["local_vector"] = &TestConfigReader::local_vector;
     consumers["local_array"] = &TestConfigReader::local_array;
     consumers["pergrid_name"] = &TestConfigReader::pergrid_name;
     consumers["pergrid_data"] = &TestConfigReader::pergrid_data;
@@ -439,6 +440,19 @@ void TestConfigReader::peratom_array(const yaml_event_t &event)
             array_data.second.push_back(value);
         }
         config.peratom_array.push_back(std::move(array_data));
+    }
+}
+
+void TestConfigReader::local_vector(const yaml_event_t &event)
+{
+    std::stringstream data((char *)event.data.scalar.value);
+    config.local_vector.clear();
+    std::size_t num;
+    data >> num;
+    for (std::size_t i = 0; i < num; ++i) {
+        double value;
+        data >> value;
+        config.local_vector.push_back(value);
     }
 }
 

@@ -259,6 +259,16 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
             writer.emit_block("peratom_array", block);
         }
 
+        // local vector
+        if (icompute->local_flag && icompute->size_local_cols == 0) {
+            icompute->compute_local();
+            int nrows = icompute->size_local_rows;
+            block = fmt::format("{}\n", nrows);
+            for (int i = 0; i < nrows; ++i)
+                block += fmt::format(" {}", icompute->vector_local[i]);
+            writer.emit_block("local_vector", block);
+        }
+
         // local array
         if (icompute->local_flag && icompute->size_local_cols > 0) {
             icompute->compute_local();
@@ -424,7 +434,6 @@ TEST(ComputeStyle, plain)
             for (const auto &entry : test_config.peratom_array) {
                 int i = entry.first;
                 const auto &values = entry.second;
-                
                 int j = lmp->atom->map(i);
                 if (j >= 0 && j < lmp->atom->nlocal) {
                     ASSERT_EQ(values.size(), ncols);
@@ -433,6 +442,15 @@ TEST(ComputeStyle, plain)
                     }
                 }
             }
+        }
+
+        // local vector
+        if (icompute->local_flag && icompute->size_local_cols == 0) {
+            icompute->compute_local();
+            int nrows = icompute->size_local_rows;
+            ASSERT_EQ(test_config.local_vector.size(), nrows);
+            for (int i = 0; i < nrows; ++i)
+                EXPECT_FP_LE_WITH_EPS(test_config.local_vector[i], icompute->vector_local[i], epsilon);
         }
 
         // local array
@@ -613,6 +631,15 @@ TEST(ComputeStyle, kokkos_omp)
             }
         }
 
+        // local vector
+        if (icompute->local_flag && icompute->size_local_cols == 0) {
+            icompute->compute_local();
+            int nrows = icompute->size_local_rows;
+            ASSERT_EQ(test_config.local_vector.size(), nrows);
+            for (int i = 0; i < nrows; ++i)
+                EXPECT_FP_LE_WITH_EPS(test_config.local_vector[i], icompute->vector_local[i], epsilon);
+        }
+
         // local array (need to sort expected/actual local arrays to match in KOKKOS)
         if (icompute->local_flag && icompute->size_local_cols > 0) {
             icompute->compute_local();
@@ -627,8 +654,10 @@ TEST(ComputeStyle, kokkos_omp)
             // Copy actual array to vector for sorting
             for (int i = 0; i < nrows; ++i) {
                 std::vector<double> row(ncols);
-                for (int j = 0; j < ncols; ++j)
+                for (int j = 0; j < ncols; ++j) {
                     row[j] = icompute->array_local[i][j];
+                    std::cerr << fmt::format("*** icompute->array_local[{}][{}] {}\n", i, j, icompute->array_local[i][j]);
+                }
                 actual_sorted.push_back(row);
             }
     
@@ -639,8 +668,9 @@ TEST(ComputeStyle, kokkos_omp)
             // Compare sorted arrays
             for (int i = 0; i < nrows; ++i) {
                 ASSERT_EQ(expected_sorted[i].size(), static_cast<size_t>(ncols));
-                for (int j = 0; j < ncols; ++j)
+                for (int j = 0; j < ncols; ++j) {
                     EXPECT_FP_LE_WITH_EPS(expected_sorted[i][j], actual_sorted[i][j], epsilon);
+                }
             }
         }
 

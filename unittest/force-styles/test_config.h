@@ -67,6 +67,7 @@ public:
     std::vector<std::vector<double>> global_array;
     std::vector<std::pair<int, double>> peratom_vector;
     std::vector<std::pair<int, std::vector<double>>> peratom_array;
+    std::vector<double> local_vector;
     std::vector<std::vector<double>> local_array;
     std::string pergrid_name;
     std::string pergrid_data;
@@ -108,6 +109,7 @@ public:
         global_array.clear();
         peratom_vector.clear();
         peratom_array.clear();
+        local_vector.clear();
         local_array.clear();
         pergrid_vector.clear();
         pergrid_array.clear();

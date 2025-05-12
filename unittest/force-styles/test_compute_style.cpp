@@ -288,7 +288,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
             icompute->compute_pergrid();
             writer.emit("pergrid_name", config.pergrid_name);
             writer.emit("pergrid_data", config.pergrid_data);
-            int dimension, nx, ny, nz, nxlo, nxhi, nylo, nyhi, nzlo, nzhi, nvalues;
+            int dimension, nx, ny, nz, nxlo, nxhi, nylo, nyhi, nzlo, nzhi, ncol;
             int index = icompute->get_grid_by_name(config.pergrid_name, dimension);
             if( dimension == 2 ) {
                 std::cerr << "ERROR: only Grid3D supported for unit testing.\n";
@@ -297,10 +297,10 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
             Grid3d *grid3d = static_cast<Grid3d*>(icompute->get_grid_by_index(index));
             grid3d->get_size(nx, ny, nz);
             grid3d->get_bounds_owned(nxlo, nxhi, nylo, nyhi, nzlo, nzhi);
-            icompute->get_griddata_by_name(index, config.pergrid_data, nvalues);
-            block = fmt::format("{} {} {} {} {}\n", dimension, nx, ny, nz, nvalues);
+            icompute->get_griddata_by_name(index, config.pergrid_data, ncol);
 
-            if (nvalues == 1) {
+            if (ncol == 0) {
+                block = fmt::format("{} {} {} {}\n", dimension, nx, ny, nz);
                 double ***vec3d = static_cast<double ***>(icompute->get_griddata_by_index(index));
                 for (int iz = nzlo; iz <= nzhi; iz++)
                     for (int iy = nylo; iy <= nyhi; iy++)
@@ -308,11 +308,12 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
                             block += fmt::format(" {}\n", vec3d[iz][iy][ix]);
                 writer.emit_block("pergrid_vector", block);
             } else {
+                block = fmt::format("{} {} {} {} {}\n", dimension, nx, ny, nz, ncol);
                 double ****array3d = static_cast<double ****>(icompute->get_griddata_by_index(index));
                 for (int iz = nzlo; iz <= nzhi; iz++)
                     for (int iy = nylo; iy <= nyhi; iy++)
                         for (int ix = nxlo; ix <= nxhi; ix++) {
-                            for (int n = 0; n < nvalues; n++)
+                            for (int n = 0; n < ncol; n++)
                                 block += fmt::format(" {}", array3d[iz][iy][ix][n]);
                             block += "\n";
                         }
@@ -467,7 +468,7 @@ TEST(ComputeStyle, plain)
         // pergrid vector/array
         if (icompute->pergrid_flag) {
             icompute->compute_pergrid();
-            int dimension, nx, ny, nz, nxlo, nxhi, nylo, nyhi, nzlo, nzhi, nvalues;
+            int dimension, nx, ny, nz, nxlo, nxhi, nylo, nyhi, nzlo, nzhi, ncol;
             int index = icompute->get_grid_by_name(test_config.pergrid_name, dimension);
             if( dimension == 2 ) {
                 std::cerr << "ERROR: only Grid3D supported for unit testing.\n";
@@ -476,8 +477,8 @@ TEST(ComputeStyle, plain)
             Grid3d *grid3d = static_cast<Grid3d*>(icompute->get_grid_by_index(index));
             grid3d->get_size(nx, ny, nz);
             grid3d->get_bounds_owned(nxlo, nxhi, nylo, nyhi, nzlo, nzhi);
-            icompute->get_griddata_by_name(index, test_config.pergrid_data, nvalues);
-            if (nvalues == 1) {
+            icompute->get_griddata_by_name(index, test_config.pergrid_data, ncol);
+            if (ncol == 0) {
                 double ***vec3d = static_cast<double ***>(icompute->get_griddata_by_index(index));
                 for (int iz = nzlo; iz <= nzhi; iz++)
                     for (int iy = nylo; iy <= nyhi; iy++)
@@ -490,7 +491,7 @@ TEST(ComputeStyle, plain)
                 for (int iz = nzlo; iz <= nzhi; iz++)
                     for (int iy = nylo; iy <= nyhi; iy++)
                         for (int ix = nxlo; ix <= nxhi; ix++) {
-                            for (int n = 0; n < nvalues; n++)
+                            for (int n = 0; n < ncol; n++)
                                 EXPECT_FP_LE_WITH_EPS(
                                     test_config.pergrid_array[(iz*ny + iy)*nx + ix][n],
                                     array3d[iz][iy][ix][n], epsilon );
@@ -672,7 +673,7 @@ TEST(ComputeStyle, kokkos_omp)
         // pergrid vector/array
         if (icompute->pergrid_flag) {
             icompute->compute_pergrid();
-            int dimension, nx, ny, nz, nxlo, nxhi, nylo, nyhi, nzlo, nzhi, nvalues;
+            int dimension, nx, ny, nz, nxlo, nxhi, nylo, nyhi, nzlo, nzhi, ncol;
             int index = icompute->get_grid_by_name(test_config.pergrid_name, dimension);
             if( dimension == 2 ) {
                 std::cerr << "ERROR: only Grid3D supported for unit testing.\n";
@@ -681,8 +682,8 @@ TEST(ComputeStyle, kokkos_omp)
             Grid3d *grid3d = static_cast<Grid3d*>(icompute->get_grid_by_index(index));
             grid3d->get_size(nx, ny, nz);
             grid3d->get_bounds_owned(nxlo, nxhi, nylo, nyhi, nzlo, nzhi);
-            icompute->get_griddata_by_name(index, test_config.pergrid_data, nvalues);
-            if (nvalues == 1) {
+            icompute->get_griddata_by_name(index, test_config.pergrid_data, ncol);
+            if (ncol == 0) {
                 double ***vec3d = static_cast<double ***>(icompute->get_griddata_by_index(index));
                 for (int iz = nzlo; iz <= nzhi; iz++)
                     for (int iy = nylo; iy <= nyhi; iy++)
@@ -695,7 +696,7 @@ TEST(ComputeStyle, kokkos_omp)
                 for (int iz = nzlo; iz <= nzhi; iz++)
                     for (int iy = nylo; iy <= nyhi; iy++)
                         for (int ix = nxlo; ix <= nxhi; ix++) {
-                            for (int n = 0; n < nvalues; n++)
+                            for (int n = 0; n < ncol; n++)
                                 EXPECT_FP_LE_WITH_EPS(
                                     test_config.pergrid_array[(iz*ny + iy)*nx + ix][n],
                                     array3d[iz][iy][ix][n], epsilon );

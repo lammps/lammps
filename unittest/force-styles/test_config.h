@@ -68,6 +68,9 @@ public:
     std::vector<std::pair<int, double>> peratom_vector;
     std::vector<std::pair<int, std::vector<double>>> peratom_array;
     std::vector<std::vector<double>> local_array;
+    std::string pergrid_name;
+    std::string pergrid_data;
+    std::vector<double> pergrid_vector;
     std::vector<coord_t> init_forces;
     std::vector<coord_t> run_forces;
     std::vector<coord_t> run_pos;
@@ -81,7 +84,7 @@ public:
         pair_style("zero"), bond_style("zero"), angle_style("zero"), dihedral_style("zero"),
         improper_style("zero"), kspace_style("none"), natoms(0), init_energy(0), run_energy(0),
         init_vdwl(0), run_vdwl(0), init_coul(0), run_coul(0), init_stress({0, 0, 0, 0, 0, 0}),
-        run_stress({0, 0, 0, 0, 0, 0}), global_scalar(0)
+        run_stress({0, 0, 0, 0, 0, 0}), global_scalar(0), pergrid_name(""), pergrid_data("")
     {
         skip_tests.clear();
         prerequisites.clear();
@@ -105,6 +108,7 @@ public:
         peratom_vector.clear();
         peratom_array.clear();
         local_array.clear();
+        pergrid_vector.clear();
     }
     TestConfig(const TestConfig &)            = delete;
     TestConfig &operator=(const TestConfig &) = delete;

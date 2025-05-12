@@ -1,7 +1,7 @@
 ---
 lammps_version: 2 Apr 2025
 tags: generated
-date_generated: Sat May 10 12:06:54 2025
+date_generated: Mon May 12 15:10:06 2025
 epsilon: 1e-15
 skip_tests:
 prerequisites: ! |
@@ -9,10 +9,10 @@ prerequisites: ! |
   compute temp
 pre_commands: ! ""
 post_commands: ! |
-  compute test all temp
+  compute test solute temp
 input_file: in.fourmol
 natoms: 29
-global_scalar: 28.04278038585299
+global_scalar: 24.062280650878606
 global_vector: ! |-
-  6 1.241439369846223 1.8881174335267896 1.5514944864562206 0.532677973653587 -0.09957039491333645 -0.22800261954862094
+  6 0.5787878852271744 0.8978555523696383 0.8185593780850904 0.3051431575109786 -0.027630638466753333 0.29129231796593424
 ...

@@ -179,6 +179,18 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // write yaml header
     write_yaml_header(&writer, &test_config, lmp->version);
 
+    if ( !config.pair_style.empty() && config.pair_style != "zero" ) {
+        // pair_style
+        writer.emit("pair_style", config.pair_style);
+
+        // pair_coeff
+        block.clear();
+        for (auto pair_coeff : config.pair_coeff) {
+            block += pair_coeff + "\n";
+        }
+        writer.emit_block("pair_coeff", block);
+    }
+    
     // natoms
     writer.emit("natoms", natoms);
 

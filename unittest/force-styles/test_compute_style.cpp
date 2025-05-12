@@ -141,7 +141,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
         command("group solute  molecule 1:2");
         command("group solvent molecule 3:5");
     }
-    
+
     for (const auto &post_command : cfg.post_commands)
         command(post_command);
 
@@ -191,7 +191,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         }
         writer.emit_block("pair_coeff", block);
     }
-    
+
     // natoms
     writer.emit("natoms", natoms);
 
@@ -401,7 +401,6 @@ TEST(ComputeStyle, plain)
             int nrows = icompute->size_array_rows;
             int ncols = icompute->size_array_cols;
             ASSERT_EQ(test_config.global_array.size(), nrows);
-            
             for (int i = 0; i < nrows; ++i) {
             const auto values = test_config.global_array[i];
                 ASSERT_EQ(values.size(), ncols);
@@ -414,11 +413,9 @@ TEST(ComputeStyle, plain)
         // per-atom vector
         if (icompute->peratom_flag && icompute->size_peratom_cols == 0) {
             icompute->compute_peratom();
-
             for (const auto &entry : test_config.peratom_vector) {
                 int index = entry.first;
                 double value = entry.second;
-                
                 int j = lmp->atom->map(index);
                 if (j >= 0 && j < lmp->atom->nlocal) {
                     EXPECT_FP_LE_WITH_EPS(value, icompute->vector_atom[j], epsilon);
@@ -430,7 +427,6 @@ TEST(ComputeStyle, plain)
         if (icompute->peratom_flag && icompute->size_peratom_cols > 0) {
             icompute->compute_peratom();
             int ncols = icompute->size_peratom_cols;
-            
             for (const auto &entry : test_config.peratom_array) {
                 int i = entry.first;
                 const auto &values = entry.second;
@@ -459,7 +455,6 @@ TEST(ComputeStyle, plain)
             int nrows = icompute->size_local_rows;
             int ncols = icompute->size_local_cols;
             ASSERT_EQ(test_config.local_array.size(), nrows);
-            
             for (int i = 0; i < nrows; ++i) {
                 const auto values = test_config.local_array[i];
                 ASSERT_EQ(values.size(), ncols);
@@ -646,7 +641,7 @@ TEST(ComputeStyle, kokkos_omp)
             int nrows = icompute->size_local_rows;
             int ncols = icompute->size_local_cols;
             ASSERT_EQ(static_cast<int>(test_config.local_array.size()), nrows);
-    
+
             // Create sorted copies of both arrays
             std::vector<std::vector<double>> expected_sorted = test_config.local_array;
             std::vector<std::vector<double>> actual_sorted;
@@ -660,7 +655,7 @@ TEST(ComputeStyle, kokkos_omp)
                 }
                 actual_sorted.push_back(row);
             }
-    
+
             // Sort both arrays
             std::sort(expected_sorted.begin(), expected_sorted.end());
             std::sort(actual_sorted.begin(), actual_sorted.end());

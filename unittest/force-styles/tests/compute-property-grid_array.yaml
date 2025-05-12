@@ -1,7 +1,7 @@
 ---
 lammps_version: 2 Apr 2025
 tags: generated
-date_generated: Mon May 12 13:48:56 2025
+date_generated: Mon May 12 15:24:25 2025
 epsilon: 1e-15
 skip_tests:
 prerequisites: ! |
@@ -9,7 +9,7 @@ prerequisites: ! |
   compute property/grid
 pre_commands: ! ""
 post_commands: ! |
-  compute test all property/grid 2 3 4 ix iy iz x y z xs ys zs xc yc zc xsc ysc zsc
+  compute test solute property/grid 2 3 4 ix iy iz x y z xs ys zs xc yc zc xsc ysc zsc
 input_file: in.fourmol
 natoms: 29
 pergrid_name: grid

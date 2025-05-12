@@ -71,6 +71,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
     Info *info = new Info(lmp);
     int nfail  = 0;
     int reaxff_flag = 0;
+    int snap_flag = 0;
     for (const auto &prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
@@ -85,6 +86,9 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
 
         if (prerequisite.first == "pair" && prerequisite.second == "reaxff")
             reaxff_flag = 1;
+
+        if (prerequisite.first == "pair" && prerequisite.second == "snap")
+            snap_flag = 1;
 
         if (!info->has_style(prerequisite.first, style)) ++nfail;
     }
@@ -106,11 +110,15 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
     std::string input_file = platform::path_join(INPUT_FOLDER, cfg.input_file);
     lmp->input->file(input_file.c_str());
 
-    if (use_respa) command("run_style respa 2 1 bond 1 pair 2");
+    if ( !cfg.pair_style.empty() && cfg.pair_style != "zero" ) {
 
-    if (!reaxff_flag) {
-        // set up molecular system force field
+        command("pair_style " + cfg.pair_style);
 
+        for (const auto &pair_coeff : cfg.pair_coeff)
+            command("pair_coeff " + pair_coeff);
+
+    } else {
+        // set up molecular system force field as default
         command("pair_style lj/cut 8.0");
         command("pair_coeff  1 1  0.02   2.5");
         command("pair_coeff  2 2  0.005  1.0");
@@ -139,7 +147,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
     command("timestep 0.25");
     command("run 0 post no");
     command("thermo 2");
-    if (!reaxff_flag) command("run 4 post no start 0 stop 8");
+    if (!reaxff_flag && !snap_flag) command("run 4 post no start 0 stop 8");
     return lmp;
 }
 
@@ -194,6 +202,21 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
             for (int i = 0; i < num; ++i)
                 block += fmt::format(" {}", icompute->vector[i]);
             writer.emit_block("global_vector", block);
+        }
+
+        // global array
+        if (icompute->array_flag) {
+            icompute->compute_array();
+            int nrows = icompute->size_array_rows;
+            int ncols = icompute->size_array_cols;
+            block = fmt::format("{} {}\n", nrows, ncols);
+
+            for (int i = 0; i < nrows; ++i) {
+                for (int j = 0; j < ncols; ++j)
+                    block += fmt::format(" {}", icompute->array[i][j]);
+                block += "\n";
+            }
+            writer.emit_block("global_array", block);
         }
 
         // per-atom vector
@@ -319,6 +342,22 @@ TEST(ComputeStyle, plain)
                                       epsilon);
         }
 
+        // global array
+        if (icompute->array_flag) {
+            icompute->compute_array();
+            int nrows = icompute->size_array_rows;
+            int ncols = icompute->size_array_cols;
+            ASSERT_EQ(test_config.global_array.size(), nrows);
+            
+            for (int i = 0; i < nrows; ++i) {
+            const auto values = test_config.global_array[i];
+                ASSERT_EQ(values.size(), ncols);
+                for (int j = 0; j < ncols; ++j) {
+                    EXPECT_FP_LE_WITH_EPS(values[j], icompute->array[i][j], epsilon);
+                }
+            }
+        }
+
         // per-atom vector
         if (icompute->peratom_flag && icompute->size_peratom_cols == 0) {
             icompute->compute_peratom();
@@ -352,7 +391,6 @@ TEST(ComputeStyle, plain)
                 }
             }
         }
-
 
         // local array
         if (icompute->local_flag && icompute->size_local_cols > 0) {
@@ -453,6 +491,22 @@ TEST(ComputeStyle, kokkos_omp)
             for (int i = 0; i < num; ++i)
                 EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], icompute->vector[i],
                                       epsilon);
+        }
+
+        // global array
+        if (icompute->array_flag) {
+            icompute->compute_array();
+            int nrows = icompute->size_array_rows;
+            int ncols = icompute->size_array_cols;
+            ASSERT_EQ(test_config.global_array.size(), nrows);
+            
+            for (int i = 0; i < nrows; ++i) {
+            const auto values = test_config.global_array[i];
+                ASSERT_EQ(values.size(), ncols);
+                for (int j = 0; j < ncols; ++j) {
+                    EXPECT_FP_LE_WITH_EPS(values[j], icompute->array[i][j], epsilon);
+                }
+            }
         }
 
         // per-atom vector

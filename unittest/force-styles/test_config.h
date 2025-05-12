@@ -64,6 +64,7 @@ public:
     stress_t run_stress;
     double global_scalar;
     std::vector<double> global_vector;
+    std::vector<std::vector<double>> global_array;
     std::vector<std::pair<int, double>> peratom_vector;
     std::vector<std::pair<int, std::vector<double>>> peratom_array;
     std::vector<std::vector<double>> local_array;
@@ -100,6 +101,7 @@ public:
         restart_vel.clear();
         run_torque.clear();
         global_vector.clear();
+        global_array.clear();
         peratom_vector.clear();
         peratom_array.clear();
         local_array.clear();

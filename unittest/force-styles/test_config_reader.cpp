@@ -59,6 +59,7 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
 
     consumers["global_scalar"] = &TestConfigReader::global_scalar;
     consumers["global_vector"] = &TestConfigReader::global_vector;
+    consumers["global_array"] = &TestConfigReader::global_array;
     consumers["peratom_vector"] = &TestConfigReader::peratom_vector;
     consumers["peratom_array"] = &TestConfigReader::peratom_array;
     consumers["local_array"] = &TestConfigReader::local_array;
@@ -389,6 +390,23 @@ void TestConfigReader::global_vector(const yaml_event_t &event)
     }
 }
 
+void TestConfigReader::global_array(const yaml_event_t &event)
+{
+    std::stringstream data((char *)event.data.scalar.value);
+    config.global_array.clear();
+    std::size_t nrows, ncols;
+    data >> nrows >>ncols;
+    for (std::size_t i = 0; i < nrows; ++i) {
+        std::vector<double> array_data;
+        for (std::size_t j = 0; j < ncols; ++j) {
+            double value;
+            data >> value;
+            array_data.push_back(value);
+        }
+        config.global_array.push_back(std::move(array_data));
+    }
+}
+
 void TestConfigReader::peratom_vector(const yaml_event_t &event)
 {
     std::stringstream data((char *)event.data.scalar.value);
@@ -409,14 +427,14 @@ void TestConfigReader::peratom_array(const yaml_event_t &event)
     std::size_t ncols;
     data >> ncols;
     for (std::size_t i = 0; i < config.natoms; ++i) {
-        std::pair<int, std::vector<double>> atom_data;
-        data >> atom_data.first;
+        std::pair<int, std::vector<double>> array_data;
+        data >> array_data.first;
         for (std::size_t j = 0; j < ncols; ++j) {
             double value;
             data >> value;
-            atom_data.second.push_back(value);
+            array_data.second.push_back(value);
         }
-        config.peratom_array.push_back(std::move(atom_data));
+        config.peratom_array.push_back(std::move(array_data));
     }
 }
 
@@ -427,13 +445,13 @@ void TestConfigReader::local_array(const yaml_event_t &event)
     std::size_t nrows, ncols;
     data >> nrows >>ncols;
     for (std::size_t i = 0; i < nrows; ++i) {
-        std::vector<double> local_data;
+        std::vector<double> array_data;
         for (std::size_t j = 0; j < ncols; ++j) {
             double value;
             data >> value;
-            local_data.push_back(value);
+            array_data.push_back(value);
         }
-        config.local_array.push_back(std::move(local_data));
+        config.local_array.push_back(std::move(array_data));
     }
 }
 

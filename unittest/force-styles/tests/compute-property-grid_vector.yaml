@@ -1,0 +1,43 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Mon May 12 13:16:09 2025
+epsilon: 1e-15
+skip_tests:
+prerequisites: ! |
+  atom full
+  compute property/grid
+pre_commands: ! ""
+post_commands: ! |
+  compute test all property/grid 2 3 4 id
+input_file: in.fourmol
+natoms: 29
+pergrid_name: grid
+pergrid_data: data
+pergrid_vector: ! |
+  3 2 3 4
+   1
+   2
+   3
+   4
+   5
+   6
+   7
+   8
+   9
+   10
+   11
+   12
+   13
+   14
+   15
+   16
+   17
+   18
+   19
+   20
+   21
+   22
+   23
+   24
+...

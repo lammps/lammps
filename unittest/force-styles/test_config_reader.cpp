@@ -66,6 +66,7 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
     consumers["pergrid_name"] = &TestConfigReader::pergrid_name;
     consumers["pergrid_data"] = &TestConfigReader::pergrid_data;
     consumers["pergrid_vector"] = &TestConfigReader::pergrid_vector;
+    consumers["pergrid_array"] = &TestConfigReader::pergrid_array;
 
     consumers["bond_style"]     = &TestConfigReader::bond_style;
     consumers["bond_coeff"]     = &TestConfigReader::bond_coeff;
@@ -478,6 +479,23 @@ void TestConfigReader::pergrid_vector(const yaml_event_t &event)
         double value;
         data >> value;
         config.pergrid_vector.push_back(value);
+    }
+}
+
+void TestConfigReader::pergrid_array(const yaml_event_t &event)
+{
+    std::stringstream data((char *)event.data.scalar.value);
+    config.pergrid_array.clear();
+    std::size_t dimension, nx, ny, nz, nvalues;
+    data >> dimension >> nx >> ny >> nz >> nvalues;
+    for (std::size_t i = 0; i < nx*ny*nz; ++i) {
+        std::vector<double> array_data;
+        for (std::size_t n = 0; n < nvalues; ++n) {
+            double value;
+            data >> value;
+            array_data.push_back(value);
+        }
+        config.pergrid_array.push_back(std::move(array_data));
     }
 }
 

@@ -223,7 +223,6 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
             int nrows = icompute->size_array_rows;
             int ncols = icompute->size_array_cols;
             block = fmt::format("{} {}\n", nrows, ncols);
-
             for (int i = 0; i < nrows; ++i) {
                 for (int j = 0; j < ncols; ++j)
                     block += fmt::format(" {}", icompute->array[i][j]);
@@ -234,10 +233,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
         // per-atom vector
         if (icompute->peratom_flag && icompute->size_peratom_cols == 0) {
-
             block.clear();
             icompute->compute_peratom();
-         
             for (int i = 1; i <= natoms; ++i) {
                 const int j = lmp->atom->map(i);
                 if (j >= 0 && j < lmp->atom->nlocal)
@@ -248,10 +245,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
         // per-atom array
         if (icompute->peratom_flag && icompute->size_peratom_cols > 0) {
-
             icompute->compute_peratom();
             block = std::to_string(icompute->size_peratom_cols) + "\n";
-
             for (int i = 1; i <= natoms; ++i) {
                 const int j = lmp->atom->map(i);
                 if (j >= 0 && j < lmp->atom->nlocal) {
@@ -266,12 +261,10 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
         // local array
         if (icompute->local_flag && icompute->size_local_cols > 0) {
-
             icompute->compute_local();
             int nrows = icompute->size_local_rows;
             int ncols = icompute->size_local_cols;
             block = fmt::format("{} {}\n", nrows, ncols);
-
             for (int i = 0; i < nrows; ++i) {
                 for (int j = 0; j < ncols; ++j)
                     block += fmt::format(" {}", icompute->array_local[i][j]);
@@ -280,9 +273,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
             writer.emit_block("local_array", block);
         }
 
-        // pergrid vector
+        // pergrid vector/array
         if (icompute->pergrid_flag) {
-
             icompute->compute_pergrid();
             writer.emit("pergrid_name", config.pergrid_name);
             writer.emit("pergrid_data", config.pergrid_data);
@@ -292,21 +284,30 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
                 std::cerr << "ERROR: only Grid3D supported for unit testing.\n";
                 exit(1);
             }
-            std::cerr << fmt::format("*** {} {} {} {}\n",
-              config.pergrid_name, config.pergrid_data, dimension, index);
             Grid3d *grid3d = static_cast<Grid3d*>(icompute->get_grid_by_index(index));
             grid3d->get_size(nx, ny, nz);
             grid3d->get_bounds_owned(nxlo, nxhi, nylo, nyhi, nzlo, nzhi);
-            block = fmt::format("{} {} {} {}\n", dimension, nx, ny, nz);
             icompute->get_griddata_by_name(index, config.pergrid_data, nvalues);
-            double ***vec3d = static_cast<double ***>(icompute->get_griddata_by_index(index));
+            block = fmt::format("{} {} {} {} {}\n", dimension, nx, ny, nz, nvalues);
 
-            for (int iz = nzlo; iz <= nzhi; iz++)
-                for (int iy = nylo; iy <= nyhi; iy++)
-                    for (int ix = nxlo; ix <= nxhi; ix++)
-                        block += fmt::format(" {}\n", vec3d[iz][iy][ix]);
-            
-            writer.emit_block("pergrid_vector", block);
+            if (nvalues == 1) {
+                double ***vec3d = static_cast<double ***>(icompute->get_griddata_by_index(index));
+                for (int iz = nzlo; iz <= nzhi; iz++)
+                    for (int iy = nylo; iy <= nyhi; iy++)
+                        for (int ix = nxlo; ix <= nxhi; ix++)
+                            block += fmt::format(" {}\n", vec3d[iz][iy][ix]);
+                writer.emit_block("pergrid_vector", block);
+            } else {
+                double ****array3d = static_cast<double ****>(icompute->get_griddata_by_index(index));
+                for (int iz = nzlo; iz <= nzhi; iz++)
+                    for (int iy = nylo; iy <= nyhi; iy++)
+                        for (int ix = nxlo; ix <= nxhi; ix++) {
+                            for (int n = 0; n < nvalues; n++)
+                                block += fmt::format(" {}", array3d[iz][iy][ix][n]);
+                            block += "\n";
+                        }
+                writer.emit_block("pergrid_array", block);
+            }
         }
 
     }
@@ -450,7 +451,7 @@ TEST(ComputeStyle, plain)
             }
         }
 
-        // pergrid vector
+        // pergrid vector/array
         if (icompute->pergrid_flag) {
             icompute->compute_pergrid();
             int dimension, nx, ny, nz, nxlo, nxhi, nylo, nyhi, nzlo, nzhi, nvalues;
@@ -463,14 +464,25 @@ TEST(ComputeStyle, plain)
             grid3d->get_size(nx, ny, nz);
             grid3d->get_bounds_owned(nxlo, nxhi, nylo, nyhi, nzlo, nzhi);
             icompute->get_griddata_by_name(index, test_config.pergrid_data, nvalues);
-            double ***vec3d = static_cast<double ***>(icompute->get_griddata_by_index(index));
-
-            for (int iz = nzlo; iz <= nzhi; iz++)
-                for (int iy = nylo; iy <= nyhi; iy++)
-                    for (int ix = nxlo; ix <= nxhi; ix++)
-                        EXPECT_FP_LE_WITH_EPS(
-                          test_config.pergrid_vector[iz*ny*nx + iy*nx + ix],
-                          vec3d[iz][iy][ix], epsilon );
+            if (nvalues == 1) {
+                double ***vec3d = static_cast<double ***>(icompute->get_griddata_by_index(index));
+                for (int iz = nzlo; iz <= nzhi; iz++)
+                    for (int iy = nylo; iy <= nyhi; iy++)
+                        for (int ix = nxlo; ix <= nxhi; ix++)
+                          EXPECT_FP_LE_WITH_EPS(
+                            test_config.pergrid_vector[(iz*ny + iy)*nx + ix],
+                            vec3d[iz][iy][ix], epsilon );
+            } else {
+                double ****array3d = static_cast<double ****>(icompute->get_griddata_by_index(index));
+                for (int iz = nzlo; iz <= nzhi; iz++)
+                    for (int iy = nylo; iy <= nyhi; iy++)
+                        for (int ix = nxlo; ix <= nxhi; ix++) {
+                            for (int n = 0; n < nvalues; n++)
+                                EXPECT_FP_LE_WITH_EPS(
+                                    test_config.pergrid_array[(iz*ny + iy)*nx + ix][n],
+                                    array3d[iz][iy][ix][n], epsilon );
+                        }
+            }
         }
 
         if (print_stats && stats.has_data())
@@ -550,9 +562,7 @@ TEST(ComputeStyle, kokkos_omp)
         if (icompute->vector_flag) {
             int num = icompute->size_vector;
             EXPECT_EQ(num, test_config.global_vector.size());
-
             icompute->compute_vector();
-
             for (int i = 0; i < num; ++i)
                 EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], icompute->vector[i],
                                       epsilon);
@@ -564,7 +574,6 @@ TEST(ComputeStyle, kokkos_omp)
             int nrows = icompute->size_array_rows;
             int ncols = icompute->size_array_cols;
             ASSERT_EQ(test_config.global_array.size(), nrows);
-            
             for (int i = 0; i < nrows; ++i) {
             const auto values = test_config.global_array[i];
                 ASSERT_EQ(values.size(), ncols);
@@ -577,11 +586,9 @@ TEST(ComputeStyle, kokkos_omp)
         // per-atom vector
         if (icompute->peratom_flag && icompute->size_peratom_cols == 0) {
             icompute->compute_peratom();
-
             for (const auto &entry : test_config.peratom_vector) {
                 int index = entry.first;
                 double value = entry.second;
-                
                 int j = lmp->atom->map(index);
                 if (j >= 0 && j < lmp->atom->nlocal) {
                     EXPECT_FP_LE_WITH_EPS(value, icompute->vector_atom[j], epsilon);
@@ -593,11 +600,9 @@ TEST(ComputeStyle, kokkos_omp)
         if (icompute->peratom_flag && icompute->size_peratom_cols > 0) {
             icompute->compute_peratom();
             int ncols = icompute->size_peratom_cols;
-            
             for (const auto &entry : test_config.peratom_array) {
                 int i = entry.first;
                 const auto &values = entry.second;
-                
                 int j = lmp->atom->map(i);
                 if (j >= 0 && j < lmp->atom->nlocal) {
                     ASSERT_EQ(values.size(), ncols);
@@ -639,7 +644,7 @@ TEST(ComputeStyle, kokkos_omp)
             }
         }
 
-        // pergrid vector
+        // pergrid vector/array
         if (icompute->pergrid_flag) {
             icompute->compute_pergrid();
             int dimension, nx, ny, nz, nxlo, nxhi, nylo, nyhi, nzlo, nzhi, nvalues;
@@ -652,14 +657,25 @@ TEST(ComputeStyle, kokkos_omp)
             grid3d->get_size(nx, ny, nz);
             grid3d->get_bounds_owned(nxlo, nxhi, nylo, nyhi, nzlo, nzhi);
             icompute->get_griddata_by_name(index, test_config.pergrid_data, nvalues);
-            double ***vec3d = static_cast<double ***>(icompute->get_griddata_by_index(index));
-
-            for (int iz = nzlo; iz <= nzhi; iz++)
-                for (int iy = nylo; iy <= nyhi; iy++)
-                    for (int ix = nxlo; ix <= nxhi; ix++)
-                        EXPECT_FP_LE_WITH_EPS(
-                          test_config.pergrid_vector[iz*ny*nx + iy*nx + ix],
-                          vec3d[iz][iy][ix], epsilon );
+            if (nvalues == 1) {
+                double ***vec3d = static_cast<double ***>(icompute->get_griddata_by_index(index));
+                for (int iz = nzlo; iz <= nzhi; iz++)
+                    for (int iy = nylo; iy <= nyhi; iy++)
+                        for (int ix = nxlo; ix <= nxhi; ix++)
+                          EXPECT_FP_LE_WITH_EPS(
+                            test_config.pergrid_vector[(iz*ny + iy)*nx + ix],
+                            vec3d[iz][iy][ix], epsilon );
+            } else {
+                double ****array3d = static_cast<double ****>(icompute->get_griddata_by_index(index));
+                for (int iz = nzlo; iz <= nzhi; iz++)
+                    for (int iy = nylo; iy <= nyhi; iy++)
+                        for (int ix = nxlo; ix <= nxhi; ix++) {
+                            for (int n = 0; n < nvalues; n++)
+                                EXPECT_FP_LE_WITH_EPS(
+                                    test_config.pergrid_array[(iz*ny + iy)*nx + ix][n],
+                                    array3d[iz][iy][ix][n], epsilon );
+                        }
+            }
         }
 
         if (print_stats && stats.has_data())

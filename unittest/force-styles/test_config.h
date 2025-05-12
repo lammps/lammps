@@ -71,6 +71,7 @@ public:
     std::string pergrid_name;
     std::string pergrid_data;
     std::vector<double> pergrid_vector;
+    std::vector<std::vector<double>> pergrid_array;
     std::vector<coord_t> init_forces;
     std::vector<coord_t> run_forces;
     std::vector<coord_t> run_pos;
@@ -109,6 +110,7 @@ public:
         peratom_array.clear();
         local_array.clear();
         pergrid_vector.clear();
+        pergrid_array.clear();
     }
     TestConfig(const TestConfig &)            = delete;
     TestConfig &operator=(const TestConfig &) = delete;

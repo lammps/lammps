@@ -652,7 +652,6 @@ TEST(ComputeStyle, kokkos_omp)
                 std::vector<double> row(ncols);
                 for (int j = 0; j < ncols; ++j) {
                     row[j] = icompute->array_local[i][j];
-                    std::cerr << fmt::format("*** icompute->array_local[{}][{}] {}\n", i, j, icompute->array_local[i][j]);
                 }
                 actual_sorted.push_back(row);
             }

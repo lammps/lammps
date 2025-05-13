@@ -2,8 +2,8 @@
 lammps_version: 2 Apr 2025
 tags: generated
 date_generated: Mon May 12 14:37:46 2025
-epsilon: 5e-13
-skip_tests: kokkos_omp
+epsilon: 1e-13
+skip_tests:
 prerequisites: ! |
   pair snap
   pair zbl

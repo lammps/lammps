@@ -128,10 +128,6 @@ void ComputeGaussianGridLocalKokkos<DeviceType>::init()
 template<class DeviceType>
 void ComputeGaussianGridLocalKokkos<DeviceType>::compute_local()
 {
-  if (host_flag) {
-    return;
-  }
-
   invoked_local = update->ntimestep;
 
   copymode = 1;

@@ -1,0 +1,33 @@
+---
+lammps_version: 2 Apr 2025
+tags: 
+date_generated: Tue May 13 08:39:38 2025
+epsilon: 1e-14
+skip_tests:
+prerequisites: ! |
+  pair lj/cut/sphere
+  atom sphere
+  compute erotate/sphere
+pre_commands: ! |
+  echo screen
+  atom_modify     map array
+  units           lj
+  atom_style      sphere
+  lattice         fcc 0.8442
+  region          box block 0 2 0 2 0 2
+  create_box      1 box
+  create_atoms    1 box
+  displace_atoms  all random 0.1 0.1 0.1 623426
+  set group all diameter 1.0
+  set group all mass 1.0
+  set group all omega 1.0 2.0 3.0
+  velocity all create 3.0 4534624 loop geom
+post_commands: ! |
+  compute test all erotate/sphere
+input_file: in.empty
+pair_style: lj/cut/sphere 2.5
+pair_coeff: ! |
+  1 1  1.0
+natoms: 32
+global_scalar: 22.400000000000002
+...

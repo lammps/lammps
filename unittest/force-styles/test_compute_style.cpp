@@ -73,6 +73,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
     int nfail  = 0;
     int reaxff_flag = 0;
     int snap_flag = 0;
+    int pace_flag = 0;
     for (const auto &prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
@@ -90,6 +91,9 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
 
         if (prerequisite.first == "pair" && prerequisite.second == "snap")
             snap_flag = 1;
+
+        if (prerequisite.first == "compute" && prerequisite.second == "pace")
+            pace_flag = 1;
 
         if (!info->has_style(prerequisite.first, style)) ++nfail;
     }
@@ -118,7 +122,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
         for (const auto &pair_coeff : cfg.pair_coeff)
             command("pair_coeff " + pair_coeff);
 
-    } else {
+    } else if (!pace_flag) {
         // set up molecular system force field as default
         command("pair_style lj/cut 8.0");
         command("pair_coeff  1 1  0.02   2.5");
@@ -148,7 +152,8 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
     command("timestep 0.25");
     command("run 0 post no");
     command("thermo 2");
-    if (!reaxff_flag && !snap_flag) command("run 4 post no start 0 stop 8");
+    if (!reaxff_flag && !snap_flag && !pace_flag)
+        command("run 4 post no start 0 stop 8");
     return lmp;
 }
 

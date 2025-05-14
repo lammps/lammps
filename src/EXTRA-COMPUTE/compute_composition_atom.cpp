@@ -198,7 +198,7 @@ void ComputeCompositionAtom::compute_peratom()
       // local comp fractions per element
 
       double lfac = 1.0 / count;
-      for (int n = 1; n < size_peratom_cols; n++) result[i][n + 1] *= lfac;
+      for (int n = 1; n < size_peratom_cols; n++) result[i][n] *= lfac;
     }
   }
 }

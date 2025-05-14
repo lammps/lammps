@@ -156,7 +156,7 @@ void ComputeCompositionAtomKokkos<DeviceType>::operator()(TagComputeCompositionA
 
     double lfac = 1.0 / count;
 
-    for (int n = 1; n < size_peratom_cols; n++) {
+    for (int n = 2; n < size_peratom_cols; n++) {
       d_result(i,n) *= lfac;
     }
   }

@@ -1,0 +1,23 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Wed May 14 13:02:54 2025
+epsilon: 1e-15
+skip_tests:
+prerequisites: ! |
+  atom full
+  improper hybrid
+  improper harmonic
+  improper cvff
+  compute improper
+pre_commands: ! ""
+post_commands: ! |
+  improper_style hybrid harmonic cvff
+  improper_coeff 1 harmonic 120.0 30
+  improper_coeff 2 cvff 20.0 -1 2
+  compute test solute improper
+input_file: in.fourmol
+natoms: 29
+global_vector: ! |-
+  2 32.325331279652865 0.30534231519535826
+...

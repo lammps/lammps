@@ -263,6 +263,12 @@ public:
   /// Init defaults for grid options
   int init_grid_parameters(std::string const &conf);
 
+  /// Consistency check for the grid paramaters
+  int check_grid_parameters();
+
+  /// Read legacy wall keyword (these are biases now)
+  int parse_legacy_wall_params(std::string const &conf);
+
   /// Init extended Lagrangian parameters
   int init_extended_Lagrangian(std::string const &conf);
 
@@ -633,6 +639,7 @@ public:
   class euler_psi;
   class euler_theta;
   class neuralNetwork;
+  class torchANN;
   class customColvar;
 
   // non-scalar components
@@ -753,7 +760,7 @@ inline colvarvalue const & colvar::total_force() const
 
 inline void colvar::add_bias_force(colvarvalue const &force)
 {
-  check_enabled(f_cv_gradient,
+  check_enabled(f_cv_apply_force,
                 std::string("applying a force to the variable \""+name+"\""));
   if (cvm::debug()) {
     cvm::log("Adding biasing force "+cvm::to_str(force)+" to colvar \""+name+"\".\n");
@@ -776,6 +783,12 @@ inline void colvar::reset_bias_force() {
   fb.reset();
   fb_actual.type(value());
   fb_actual.reset();
+}
+
+
+namespace {
+  // Tolerance parameter to decide when two boundaries coincide
+  constexpr cvm::real colvar_boundaries_tol = 1.0e-10;
 }
 
 #endif

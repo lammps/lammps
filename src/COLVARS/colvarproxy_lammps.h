@@ -45,9 +45,6 @@ class colvarproxy_lammps : public colvarproxy {
 
   std::vector<int> atoms_types;
 
-  MPI_Comm inter_comm;        // MPI comm with 1 root proc from each world
-  int inter_me, inter_num;    // rank for the inter replica comm
-
  public:
   friend class cvm::atom;
 
@@ -59,9 +56,6 @@ class colvarproxy_lammps : public colvarproxy {
   /// Set the internal seed used by \link rand_gaussian() \endlink
   void set_random_seed(int seed);
 
-  /// Set the multiple replicas communicator
-  void set_replicas_communicator(MPI_Comm root2root);
-
   int setup() override;
 
   // disable default and copy constructor
@@ -72,7 +66,8 @@ class colvarproxy_lammps : public colvarproxy {
   // methods for lammps to move data or trigger actions in the proxy
  public:
   bool total_forces_enabled() const override { return total_force_requested; };
-  bool total_forces_same_step() const override { return true; };
+  // Total forces are saved at end of step, only processed at the next step
+  bool total_forces_same_step() const override { return false; };
   bool want_exit() const { return do_exit; };
 
   // perform colvars computation. returns biasing energy
@@ -102,14 +97,6 @@ class colvarproxy_lammps : public colvarproxy {
   int check_atom_id(int atom_number) override;
 
   inline std::vector<int> *modify_atom_types() { return &atoms_types; }
-
-  int replica_enabled() override;
-  int replica_index() override;
-  int num_replicas() override;
-
-  void replica_comm_barrier() override;
-  int replica_comm_recv(char *msg_data, int buf_len, int src_rep) override;
-  int replica_comm_send(char *msg_data, int msg_len, int dest_rep) override;
 };
 
 #endif

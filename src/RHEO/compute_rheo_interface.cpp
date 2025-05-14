@@ -344,31 +344,22 @@ void ComputeRHEOInterface::store_forces()
   // If forces are overwritten by a fix, there are no pressure forces
   // so just normalize
   auto fixlist = modify->get_fix_by_style("setforce");
-  if (fixlist.size() != 0) {
-    for (const auto &fix : fixlist) {
-      for (int i = 0; i < atom->nlocal; i++) {
-        if (rmass)
-          minv = 1.0 / rmass[i];
-        else
-          minv = 1.0 / mass[type[i]];
-        if (mask[i] & fix->groupbit)
-          for (int a = 0; a < 3; a++) fp_store[i][a] = f[i][a] * minv;
-        else
-          for (int a = 0; a < 3; a++) fp_store[i][a] = (f[i][a] - fp_store[i][a]) * minv;
-      }
-    }
-  } else {
-    if (rmass) {
-      for (int i = 0; i < atom->nlocal; i++) {
-        minv = 1.0 / rmass[i];
-        for (int a = 0; a < 3; a++) fp_store[i][a] = (f[i][a] - fp_store[i][a]) * minv;
-      }
-    } else {
-      for (int i = 0; i < atom->nlocal; i++) {
-        minv = 1.0 / mass[type[i]];
-        for (int a = 0; a < 3; a++) fp_store[i][a] = (f[i][a] - fp_store[i][a]) * minv;
-      }
-    }
+  int skip_from_setforce;
+  for (int i = 0; i < atom->nlocal; i++) {
+    if (rmass)
+      minv = 1.0 / rmass[i];
+    else
+      minv = 1.0 / mass[type[i]];
+
+    skip_from_setforce = 0;
+    for (const auto &fix : fixlist)
+      if (mask[i] & fix->groupbit)
+        skip_from_setforce = 1;
+
+    if (skip_from_setforce)
+      for (int a = 0; a < 3; a++) fp_store[i][a] = f[i][a] * minv;
+    else
+      for (int a = 0; a < 3; a++) fp_store[i][a] = (f[i][a] - fp_store[i][a]) * minv;
   }
 
   // Forward comm forces

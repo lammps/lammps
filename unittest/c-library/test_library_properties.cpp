@@ -303,6 +303,15 @@ TEST_F(LibraryProperties, setting)
     EXPECT_EQ(lammps_extract_setting(lmp, "ndihedraltypes"), 0);
     EXPECT_EQ(lammps_extract_setting(lmp, "nimpropertypes"), 0);
 
+    EXPECT_EQ(lammps_extract_setting(lmp, "neigh_every"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "neigh_delay"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "neigh_dist_check"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "neigh_ago"), -1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "nbondlist"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "nanglelist"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "ndihedrallist"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "nimproperlist"), 0);
+
     EXPECT_EQ(lammps_extract_setting(lmp, "molecule_flag"), 0);
     EXPECT_EQ(lammps_extract_setting(lmp, "q_flag"), 0);
     EXPECT_EQ(lammps_extract_setting(lmp, "mu_flag"), 0);
@@ -313,7 +322,7 @@ TEST_F(LibraryProperties, setting)
         std::string input = path_join(INPUT_DIR, "in.fourmol");
         if (!verbose) ::testing::internal::CaptureStdout();
         lammps_file(lmp, input.c_str());
-        lammps_command(lmp, "run 2 post no");
+        lammps_command(lmp, "run 3 post no");
         if (!verbose) ::testing::internal::GetCapturedStdout();
         EXPECT_EQ(lammps_extract_setting(lmp, "triclinic"), 0);
         EXPECT_EQ(lammps_extract_setting(lmp, "box_exist"), 1);
@@ -327,6 +336,15 @@ TEST_F(LibraryProperties, setting)
         EXPECT_EQ(lammps_extract_setting(lmp, "nangletypes"), 4);
         EXPECT_EQ(lammps_extract_setting(lmp, "ndihedraltypes"), 5);
         EXPECT_EQ(lammps_extract_setting(lmp, "nimpropertypes"), 2);
+
+        EXPECT_EQ(lammps_extract_setting(lmp, "neigh_every"), 2);
+        EXPECT_EQ(lammps_extract_setting(lmp, "neigh_delay"), 2);
+        EXPECT_EQ(lammps_extract_setting(lmp, "neigh_dist_check"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "neigh_ago"), 1);
+        EXPECT_EQ(lammps_extract_setting(lmp, "nbondlist"), 24);
+        EXPECT_EQ(lammps_extract_setting(lmp, "nanglelist"), 30);
+        EXPECT_EQ(lammps_extract_setting(lmp, "ndihedrallist"), 31);
+        EXPECT_EQ(lammps_extract_setting(lmp, "nimproperlist"), 2);
 
         EXPECT_EQ(lammps_extract_setting(lmp, "molecule_flag"), 1);
         EXPECT_EQ(lammps_extract_setting(lmp, "q_flag"), 1);
@@ -584,17 +602,36 @@ TEST_F(LibraryProperties, neighlist)
     EXPECT_DOUBLE_EQ(minval, 1.0);
     EXPECT_DOUBLE_EQ(maxval, 2.1);
 
+    char errbuf[128];
+    lammps_set_show_error(lmp, 0);
     const int nlocal = lammps_extract_setting(lmp, "nlocal");
     EXPECT_EQ(nlocal, numatoms);
     EXPECT_NE(lammps_find_pair_neighlist(lmp, "sw", 1, 0, 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
     EXPECT_NE(lammps_find_pair_neighlist(lmp, "morse", 1, 0, 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
     EXPECT_NE(lammps_find_pair_neighlist(lmp, "lj/cut", 1, 1, 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
     EXPECT_NE(lammps_find_pair_neighlist(lmp, "lj/cut", 1, 2, 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
     EXPECT_EQ(lammps_find_pair_neighlist(lmp, "lj/cut", 1, 0, 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 1);
+    EXPECT_EQ(lammps_get_last_error_message(lmp, errbuf, 128), 1);
+    errbuf[69] = '\0';
+    EXPECT_THAT(std::string(errbuf),
+                StrEq("ERROR: lammps_find_pair_neighlist(): Pair style lj/cut does not exist"));
     EXPECT_EQ(lammps_find_pair_neighlist(lmp, "hybrid/overlay", 1, 0, 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
     EXPECT_NE(lammps_find_compute_neighlist(lmp, "dist", 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
     EXPECT_EQ(lammps_find_fix_neighlist(lmp, "dist", 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
     EXPECT_EQ(lammps_find_compute_neighlist(lmp, "xxx", 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 1);
+    EXPECT_EQ(lammps_get_last_error_message(lmp, errbuf, 128), 1);
+    errbuf[66] = '\0';
+    EXPECT_THAT(std::string(errbuf),
+                StrEq("ERROR: lammps_find_compute_neighlist(): Compute xxx does not exist"));
 
     // full neighbor list for 4 type 1 atoms
     // all have 3 type 1 atom neighbors

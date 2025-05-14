@@ -188,8 +188,8 @@ pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
 
   // topology lists
 
+  nbondlist = nanglelist = ndihedrallist = nimproperlist = 0;
   bondwhich = anglewhich = dihedralwhich = improperwhich = NONE;
-
   neigh_bond = nullptr;
   neigh_angle = nullptr;
   neigh_dihedral = nullptr;

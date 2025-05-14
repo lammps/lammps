@@ -22,6 +22,62 @@
 #include "colvars_memstream.h"
 
 
+template <class T>
+colvar_grid<T>::colvar_grid(std::string const &filename, size_t mult_i)
+{
+std::istream &is = cvm::main()->proxy->input_stream(filename, "multicol grid file");
+if (!is) {
+  return;
+}
+
+// Data in the header: nColvars, then for each
+// xiMin, dXi, nPoints, periodic flag
+
+std::string  hash;
+size_t i;
+
+if ( !(is >> hash) || (hash != "#") ) {
+  cvm::error("Error reading grid at position "+
+              cvm::to_str(static_cast<size_t>(is.tellg()))+
+              " in stream(read \"" + hash + "\")\n");
+  return;
+}
+
+is >> nd;
+mult = (mult_i == 0) ? nd : mult_i;
+
+std::vector<cvm::real> lower_in(nd), widths_in(nd);
+std::vector<int>       nx_in(nd);
+std::vector<int>       periodic_in(nd);
+
+for (i = 0; i < nd; i++ ) {
+  if ( !(is >> hash) || (hash != "#") ) {
+    cvm::error("Error reading grid at position "+
+                cvm::to_str(static_cast<size_t>(is.tellg()))+
+                " in stream(read \"" + hash + "\")\n");
+    return;
+  }
+
+  is >> lower_in[i] >> widths_in[i] >> nx_in[i] >> periodic_in[i];
+}
+
+this->setup(nx_in, 0., mult);
+
+widths = widths_in;
+
+for (i = 0; i < nd; i++ ) {
+  lower_boundaries.push_back(colvarvalue(lower_in[i]));
+  periodic.push_back(static_cast<bool>(periodic_in[i]));
+}
+
+// Reset the istream for read_multicol, which expects the whole file
+is.clear();
+is.seekg(0);
+read_multicol(is);
+cvm::main()->proxy->close_input_stream(filename);
+}
+
+
 template <class T, class IST> IST &read_restart_template_(colvar_grid<T> &g, IST &is)
 {
   auto const start_pos = is.tellg();
@@ -203,14 +259,16 @@ template <class T> int colvar_grid<T>::parse_params(std::string const &conf,
                           lower_boundaries, lower_boundaries, colvarparse::parse_silent);
   colvarparse::get_keyval(conf, "upper_boundaries",
                           upper_boundaries, upper_boundaries, colvarparse::parse_silent);
+  // plural form is used in state file
+  colvarparse::get_keyval(conf, "widths", widths, widths, colvarparse::parse_silent);
 
   // camel case keywords are used in config file
-  colvarparse::get_keyval(conf, "lowerBoundaries",
+  colvarparse::get_keyval(conf, "lowerBoundary",
                           lower_boundaries, lower_boundaries, parse_mode);
-  colvarparse::get_keyval(conf, "upperBoundaries",
+  colvarparse::get_keyval(conf, "upperBoundary",
                           upper_boundaries, upper_boundaries, parse_mode);
 
-  colvarparse::get_keyval(conf, "widths", widths, widths, parse_mode);
+  colvarparse::get_keyval(conf, "width", widths, widths, parse_mode);
 
   // only used in state file
   colvarparse::get_keyval(conf, "sizes", nx, nx, colvarparse::parse_silent);

@@ -12,6 +12,17 @@ stop LAMMPS and print a suitable error message in most cases, when a
 style/command is used that has been removed or will replace the command
 with the direct alternative (if available) and print a warning.
 
+GJF formulation in fix langevin
+-------------------------------
+
+.. deprecated:: TBD
+
+The *gjf* keyword in fix langevin is deprecated and will be removed
+soon.  The GJF functionality has been moved to its own fix style
+:doc:`fix gjf <fix_gjf>` and it is strongly recommended to use that
+fix instead.
+
+
 LAMMPS shell
 ------------
 

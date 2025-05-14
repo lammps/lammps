@@ -162,7 +162,7 @@ void ThirdOrder::command(int narg, char **arg)
   conversion = 1;
   folded = 0;
 
-  // set Neigborlist attributes to NULL
+  // set Neighborlist attributes to NULL
   ijnum = nullptr;
   neighbortags = nullptr;
 

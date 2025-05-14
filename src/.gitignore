@@ -875,6 +875,8 @@
 /fix_freeze.h
 /fix_gcmc.cpp
 /fix_gcmc.h
+/fix_gjf.cpp
+/fix_gjf.h
 /fix_gld.cpp
 /fix_gld.h
 /fix_gle.cpp

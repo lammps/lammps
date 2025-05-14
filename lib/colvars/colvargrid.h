@@ -19,23 +19,40 @@
 #include "colvarparse.h"
 
 
-/// \brief Grid of values of a function of several collective
-/// variables \param T The data type
-///
-/// Only scalar colvars supported so far: vector colvars are treated as arrays
-template <class T> class colvar_grid : public colvarparse {
+/// \brief Unified base class for grid of values of a function of several collective
+/// variables
+class colvar_grid_params  {
 
-  //protected:
-public: // TODO create accessors for these after all instantiations work
-
+public:
   /// Number of dimensions
-  size_t nd;
+  size_t nd = 0;
 
   /// Number of points along each dimension
   std::vector<int> nx;
 
   /// Cumulative number of points along each dimension
   std::vector<int> nxc;
+
+  /// Lower boundaries of the colvars in this grid
+  std::vector<colvarvalue>  lower_boundaries;
+
+  /// Upper boundaries of the colvars in this grid
+  std::vector<colvarvalue>  upper_boundaries;
+
+  /// Widths of the colvars in this grid
+  std::vector<cvm::real>    widths;
+};
+
+
+/// \brief Grid of values of a function of several collective
+/// variables \param T The data type
+///
+/// Only scalar colvars supported so far: vector colvars are treated as arrays
+/// All common, type-independent members are collected in the base class colvar_grid_base
+template <class T> class colvar_grid : public colvar_grid_params, public colvarparse {
+
+  //protected:
+public: // TODO create accessors for these after all instantiations work
 
   /// \brief Multiplicity of each datum (allow the binning of
   /// non-scalar types such as atomic gradients)
@@ -73,13 +90,6 @@ public: // TODO create accessors for these after all instantiations work
   }
 
 public:
-
-  /// Lower boundaries of the colvars in this grid
-  std::vector<colvarvalue> lower_boundaries;
-
-  /// Upper boundaries of the colvars in this grid
-  std::vector<colvarvalue> upper_boundaries;
-
   /// Whether some colvars are periodic
   std::vector<bool>        periodic;
 
@@ -88,9 +98,6 @@ public:
 
   /// Whether some colvars have hard upper boundaries
   std::vector<bool>        hard_upper_boundaries;
-
-  /// Widths of the colvars in this grid
-  std::vector<cvm::real>   widths;
 
   /// True if this is a count grid related to another grid of data
   bool has_parent_data;
@@ -218,19 +225,15 @@ public:
   /// \brief "Almost copy-constructor": only copies configuration
   /// parameters from another grid, but doesn't reallocate stuff;
   /// setup() must be called after that;
-  colvar_grid(colvar_grid<T> const &g) : colvarparse(),
-                                         nd(g.nd),
-                                         nx(g.nx),
+  colvar_grid(colvar_grid<T> const &g) : colvar_grid_params(colvar_grid_params(g)),
+                                         colvarparse(),
                                          mult(g.mult),
                                          data(),
                                          cv(g.cv),
                                          use_actual_value(g.use_actual_value),
-                                         lower_boundaries(g.lower_boundaries),
-                                         upper_boundaries(g.upper_boundaries),
                                          periodic(g.periodic),
                                          hard_lower_boundaries(g.hard_lower_boundaries),
                                          hard_upper_boundaries(g.hard_upper_boundaries),
-                                         widths(g.widths),
                                          has_parent_data(false),
                                          has_data(false)
   {}
@@ -247,22 +250,31 @@ public:
     this->setup(nx_i, t, mult_i);
   }
 
-  /// \brief Constructor from a vector of colvars
+  /// \brief Constructor from a vector of colvars or an optional grid config string
   /// \param add_extra_bin requests that non-periodic dimensions are extended
   /// by 1 bin to accommodate the integral (PMF) of another gridded quantity (gradient)
   colvar_grid(std::vector<colvar *> const &colvars,
               T const &t = T(),
               size_t mult_i = 1,
-              bool add_extra_bin = false)
+              bool add_extra_bin = false,
+              std::shared_ptr<const colvar_grid_params> params = nullptr,
+              std::string config = std::string())
     : has_parent_data(false), has_data(false)
   {
     (void) t;
-    this->init_from_colvars(colvars, mult_i, add_extra_bin);
+    this->init_from_colvars(colvars, mult_i, add_extra_bin, params, config);
   }
+
+  /// \brief Constructor from a multicol file
+  /// \param filename multicol file containing data to be read
+  /// \param multi_i multiplicity of the data - if 0, assume gradient multiplicity (mult = nd)
+  colvar_grid(std::string const &filename, size_t mult_i = 1);
 
   int init_from_colvars(std::vector<colvar *> const &colvars,
                         size_t mult_i = 1,
-                        bool add_extra_bin = false)
+                        bool add_extra_bin = false,
+                        std::shared_ptr<const colvar_grid_params> params = nullptr,
+                        std::string config = std::string())
   {
     if (cvm::debug()) {
       cvm::log("Reading grid configuration from collective variables.\n");
@@ -279,8 +291,7 @@ public:
                " collective variables, multiplicity = "+cvm::to_str(mult_i)+".\n");
     }
 
-    for (i =  0; i < cv.size(); i++) {
-
+    for (i =  0; i < nd; i++) {
       if (cv[i]->value().type() != colvarvalue::type_scalar) {
         cvm::error("Colvar grids can only be automatically "
                    "constructed for scalar variables.  "
@@ -298,7 +309,6 @@ public:
       widths.push_back(cv[i]->width);
       hard_lower_boundaries.push_back(cv[i]->is_enabled(colvardeps::f_cv_hard_lower_boundary));
       hard_upper_boundaries.push_back(cv[i]->is_enabled(colvardeps::f_cv_hard_upper_boundary));
-      periodic.push_back(cv[i]->periodic_boundaries());
 
       // By default, get reported colvar value (for extended Lagrangian colvars)
       use_actual_value.push_back(false);
@@ -310,22 +320,55 @@ public:
         use_actual_value[i-1] = true;
       }
 
+      // This needs to work if the boundaries are undefined in the colvars
+      lower_boundaries.push_back(cv[i]->lower_boundary);
+      upper_boundaries.push_back(cv[i]->upper_boundary);
+    }
+
+    // Replace widths and boundaries with optional custom configuration
+    if (!config.empty()) {
+      this->parse_params(config);
+      this->check_keywords(config, "grid");
+
+      if (params) {
+        cvm::error("Error: init_from_colvars was passed both a grid config and a template grid.", COLVARS_BUG_ERROR);
+        return COLVARS_BUG_ERROR;
+      }
+    } else if (params) {
+      // Match grid sizes with template
+
+      if (params->nd != nd) {
+        cvm::error("Trying to initialize grid from template with wrong dimension (" +
+                    cvm::to_str(params->nd) + " instead of " +
+                    cvm::to_str(this->nd) + ").");
+        return COLVARS_ERROR;
+      }
+
+      widths =params->widths;
+      lower_boundaries =params->lower_boundaries;
+      upper_boundaries =params->upper_boundaries;
+    }
+
+    // Only now can we determine periodicity
+    for (i =  0; i < nd; i++) {
+      periodic.push_back(cv[i]->periodic_boundaries(lower_boundaries[i].real_value,
+                                                    upper_boundaries[i].real_value));
+
       if (add_extra_bin) {
+        // Shift the grid by half the bin width (values at edges instead of center of bins)
+        lower_boundaries[i] -= 0.5 * widths[i];
+
         if (periodic[i]) {
-          // Shift the grid by half the bin width (values at edges instead of center of bins)
-          lower_boundaries.push_back(cv[i]->lower_boundary.real_value - 0.5 * widths[i]);
-          upper_boundaries.push_back(cv[i]->upper_boundary.real_value - 0.5 * widths[i]);
+          // Just shift
+          upper_boundaries[i] -= 0.5 * widths[i];
         } else {
-          // Make this grid larger by one bin width
-          lower_boundaries.push_back(cv[i]->lower_boundary.real_value - 0.5 * widths[i]);
-          upper_boundaries.push_back(cv[i]->upper_boundary.real_value + 0.5 * widths[i]);
+          // Widen grid by one bin width
+          upper_boundaries[i] += 0.5 * widths[i];
         }
-      } else {
-        lower_boundaries.push_back(cv[i]->lower_boundary);
-        upper_boundaries.push_back(cv[i]->upper_boundary);
       }
     }
 
+    // Reset grid sizes based on widths and boundaries
     this->init_from_boundaries();
     return this->setup();
   }
@@ -966,14 +1009,12 @@ public:
   virtual ~colvar_grid_count()
   {}
 
-  /// Constructor
-  colvar_grid_count(std::vector<int> const &nx_i,
-                    size_t const           &def_count = 0);
-
-  /// Constructor from a vector of colvars
+  /// Constructor from a vector of colvars or a config string
   colvar_grid_count(std::vector<colvar *>  &colvars,
-                    size_t const           &def_count = 0,
-                    bool                   add_extra_bin = false);
+                    std::shared_ptr<const colvar_grid_params> params = nullptr);
+
+  colvar_grid_count(std::vector<colvar *>  &colvars,
+                    std::string            config);
 
   /// Increment the counter at given position
   inline void incr_count(std::vector<int> const &ix)
@@ -1255,12 +1296,14 @@ public:
   /// Destructor
   virtual ~colvar_grid_scalar();
 
-  /// Constructor from specific sizes arrays
-  colvar_grid_scalar(std::vector<int> const &nx_i);
-
   /// Constructor from a vector of colvars
   colvar_grid_scalar(std::vector<colvar *> &colvars,
-                     bool add_extra_bin = false);
+                     std::shared_ptr<const colvar_grid_params> params = nullptr,
+                     bool add_extra_bin = false,
+                     std::string config = std::string());
+
+  /// Constructor from a multicol file
+  colvar_grid_scalar(std::string const &filename);
 
   /// Accumulate the value
   inline void acc_value(std::vector<int> const &ix,
@@ -1334,8 +1377,8 @@ public:
 
   /// \brief Return the gradient of the scalar field from finite differences
   /// Input coordinates are those of gradient grid, shifted wrt scalar grid
-  /// Should not be called on edges of scalar grid, provided the latter has margins
-  /// wrt gradient grid
+  /// Should not be called on edges of scalar grid, provided the latter has
+  /// margins (extra bins) wrt gradient grid
   inline void vector_gradient_finite_diff( const std::vector<int> &ix0, std::vector<cvm::real> &grad)
   {
     cvm::real A0, A1;
@@ -1566,17 +1609,21 @@ public:
   virtual ~colvar_grid_gradient()
   {}
 
-  /// Constructor from specific sizes arrays
-  colvar_grid_gradient(std::vector<int> const &nx_i);
+  // /// Constructor from specific sizes arrays
+  // colvar_grid_gradient(std::vector<int> const &nx_i);
 
-  /// Constructor from a vector of colvars
-  colvar_grid_gradient(std::vector<colvar *>  &colvars);
+  // /// Constructor from a vector of colvars
+  // colvar_grid_gradient(std::vector<colvar *>  &colvars,
+  //                      std::string config = std::string());
 
   /// Constructor from a multicol file
-  colvar_grid_gradient(std::string &filename);
+  colvar_grid_gradient(std::string const &filename);
 
   /// Constructor from a vector of colvars and a pointer to the count grid
-  colvar_grid_gradient(std::vector<colvar *> &colvars, std::shared_ptr<colvar_grid_count> samples_in);
+  colvar_grid_gradient(std::vector<colvar *> &colvars,
+                       std::shared_ptr<colvar_grid_count> samples_in = nullptr,
+                       std::shared_ptr<const colvar_grid_params> params = nullptr,
+                       std::string config = std::string());
 
   /// Parameters for smoothing data with low sampling
   int full_samples;
@@ -1829,7 +1876,8 @@ class integrate_potential : public colvar_grid_scalar
   {}
 
   /// Constructor from a vector of colvars + gradient grid
-  integrate_potential(std::vector<colvar *> &colvars, std::shared_ptr<colvar_grid_gradient> gradients);
+  integrate_potential(std::vector<colvar *> &colvars,
+                      std::shared_ptr<colvar_grid_gradient> gradients);
 
   /// Constructor from a gradient grid (for processing grid files without a Colvars config)
   integrate_potential(std::shared_ptr<colvar_grid_gradient> gradients);

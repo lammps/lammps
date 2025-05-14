@@ -1409,6 +1409,11 @@ void FixRigidSmall::set_xv()
         MathExtra::omega_to_angmom(b->omega,exone,eyone,ezone,
                                    inertiaatom,angmom[i]);
       }
+      if (atom->quat_flag) {
+        quatatom = atom->quat[i];
+        MathExtra::quatquat(b->quat,orient[i],quatatom);
+        MathExtra::qnormalize(quatatom);
+      }
       if (eflags[i] & DIPOLE) {
         MathExtra::quat_to_mat(b->quat,p);
         MathExtra::matvec(p,dorient[i],mu[i]);
@@ -1849,7 +1854,7 @@ void FixRigidSmall::setup_bodies_static()
   }
 
   // grow extended arrays and set extended flags for each particle
-  // orientflag = 4 if any particle stores ellipsoid or tri orientation
+  // orientflag = 4 if any particle stores ellipsoid or tri orientation or quat
   // orientflag = 1 if any particle stores line orientation
   // dorientflag = 1 if any particle stores dipole orientation
 
@@ -1857,6 +1862,7 @@ void FixRigidSmall::setup_bodies_static()
     if (atom->ellipsoid_flag) orientflag = 4;
     if (atom->line_flag) orientflag = 1;
     if (atom->tri_flag) orientflag = 4;
+    if (atom->quat_flag) orientflag = 4;
     if (atom->mu_flag) dorientflag = 1;
     grow_arrays(atom->nmax);
 
@@ -2209,7 +2215,12 @@ void FixRigidSmall::setup_bodies_static()
                                 delta,displace[i]);
 
     if (extended) {
-      if (eflags[i] & ELLIPSOID) {
+      if (atom->quat_flag) {
+        quatatom = atom->quat[i];
+        MathExtra::qconjugate(b->quat,qc);
+        MathExtra::quatquat(qc,quatatom,orient[i]);
+        MathExtra::qnormalize(orient[i]);
+      } else if (eflags[i] & ELLIPSOID) {
         quatatom = ebonus[ellipsoid[i]].quat;
         MathExtra::qconjugate(b->quat,qc);
         MathExtra::quatquat(qc,quatatom,orient[i]);

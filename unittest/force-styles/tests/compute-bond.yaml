@@ -1,0 +1,23 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Wed May 14 12:33:18 2025
+epsilon: 1e-15
+skip_tests:
+prerequisites: ! |
+  atom full
+  bond hybrid
+  bond harmonic
+  bond fene
+  compute bond
+pre_commands: ! ""
+post_commands: ! |
+  bond_style hybrid harmonic fene
+  bond_coeff 1 harmonic 80.0 1.2
+  bond_coeff 2* fene 30.0 1.5 1.0 1.0
+  compute test solute bond
+input_file: in.fourmol
+natoms: 29
+global_vector: ! |-
+  2 26.923561530661814 596.2268333274176
+...

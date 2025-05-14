@@ -1,0 +1,31 @@
+# Use the correct kokkos settings. `neigh half` does not imply the use of a half
+# neighbor list, only a change in how contributions are summed together.
+# cf https://github.com/lammps/lammps/pull/4412
+package kokkos newton on neigh half
+
+units metal
+boundary p p p
+
+atom_style atomic/kk
+lattice fcc 3.6
+region box block 0 2 0 2 0 2
+create_box 1 box
+create_atoms 1 box
+
+mass 1 58.693
+
+velocity all create 123 42
+
+pair_style metatomic/kk nickel-lj.pt
+pair_coeff * * 28
+
+timestep 0.001
+run_style verlet/kk
+fix 1 all npt temp 123 123 $(100 * dt) iso 0 0 $(1000 * dt) drag 1.0
+
+thermo 10
+thermo_style custom step temp pe etotal press vol
+
+# dump 1 all atom 10 dump.metatomic
+
+run 100

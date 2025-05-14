@@ -203,6 +203,10 @@ if(PKG_ML-IAP)
   endif()
 endif()
 
+if(PKG_ML-METATOMIC)
+  list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/metatomic_system_kokkos.cpp)
+endif()
+
 if(PKG_PHONON)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/dynamical_matrix_kokkos.cpp)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/third_order_kokkos.cpp)

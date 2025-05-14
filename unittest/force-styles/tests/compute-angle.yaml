@@ -1,0 +1,23 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Wed May 14 12:30:21 2025
+epsilon: 1e-15
+skip_tests:
+prerequisites: ! |
+  atom full
+  angle hybrid
+  angle harmonic
+  angle cosine
+  compute angle
+pre_commands: ! ""
+post_commands: ! |
+  angle_style hybrid harmonic cosine
+  angle_coeff 1 harmonic 80.0 30.0
+  angle_coeff 2* cosine 50.0
+  compute test solute angle
+input_file: in.fourmol
+natoms: 29
+global_vector: ! |-
+  2 870.6489389012938 753.3447130138237
+...

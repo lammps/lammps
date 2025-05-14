@@ -1,0 +1,18 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Wed May 14 13:01:55 2025
+epsilon: 1e-15
+skip_tests:
+prerequisites: ! |
+  atom full
+  compute improper/local
+pre_commands: ! ""
+post_commands: ! |
+  compute test solute improper/local chi
+input_file: in.fourmol
+natoms: 29
+local_vector: ! |-
+  2
+   0.2625652878567723 5.012336533312335
+...

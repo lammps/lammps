@@ -1,0 +1,37 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Thu May 15 11:29:54 2025
+epsilon: 1e-14
+skip_tests:
+prerequisites: ! |
+  atom hybrid
+  atom ellipsoid
+  atom tri
+  compute property/atom
+pre_commands: ! |
+  atom_style hybrid ellipsoid tri
+  atom_modify map array
+  region box block 0 2 0 2 0 2
+  create_box 2 box
+  comm_modify cutoff 1.0
+post_commands: ! |
+  variable r equal random(0,1,12345)
+  create_atoms 1 random 2 12345 NULL
+  set atom 1 shape $r $r $r angmom $r $r $r quat/random 12345
+  set atom 2 shape $r $r $r angmom $r $r $r quat/random 12345
+  create_atoms 2 random 2 12345 NULL
+  set atom 3 tri $r quat/random 12345
+  set atom 4 tri $r quat/random 12345
+  compute test all property/atom shapex shapey shapez angmomx angmomy angmomz quatw quati quatj quatk corner1x corner1y corner1z corner2x corner2y corner2z corner3x corner3y corner3z
+input_file: in.empty
+pair_style: none
+pair_coeff: ! ""
+natoms: 4
+peratom_array: ! |
+  19
+   1 0.869953095912933 0.0104259252548218 0.293567836284637 0.0206428170204163 0.0766798257827759 0.302656888961792 -0.986752233231194 0.031489960453082166 -0.04426555193953993 -0.15286913853162967 0 0 0 0 0 0 0 0 0
+   2 0.644248425960541 0.601558685302734 0.389818847179413 0.553407073020935 0.0462492704391479 0.367279469966888 -0.08507067514664725 0.0038169064860699097 -0.3214118680043483 -0.9431027635209887 0 0 0 0 0 0 0 0 0
+   3 1 1 1 0 0 0 1 0 0 0 1.5980433416788613 0.4248169772024395 2.0005058136503906 2.1460379993155247 0.5973527419679948 1.944522072185914 1.7198330279889325 0.9866297834597246 1.948212819246466
+   4 1 1 1 0 0 0 1 0 0 0 2.2369224763498985 1.9530804914598034 0.012927382846386795 1.6196761747346973 2.052045140504732 -0.025833003484561967 1.8399316750436572 1.580065605582523 0.3220350740463016
+...

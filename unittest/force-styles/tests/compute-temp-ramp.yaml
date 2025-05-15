@@ -1,0 +1,18 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Thu May 15 07:52:34 2025
+epsilon: 1e-14
+skip_tests:
+prerequisites: ! |
+  atom full
+  compute temp/ramp
+pre_commands: ! ""
+post_commands: ! |
+  compute test solute temp/ramp vx 0 8 y 2 12 units lattice
+input_file: in.fourmol
+natoms: 29
+global_scalar: 107775.3236042537
+global_vector: ! |-
+  6 10278.532152799518 0.8978555523696383 0.8185593780850904 -40.91109517263504 -23.328998654048124 0.29129231796593424
+...

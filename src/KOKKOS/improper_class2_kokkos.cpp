@@ -38,7 +38,7 @@ ImproperClass2Kokkos<DeviceType>::ImproperClass2Kokkos(LAMMPS *lmp) : ImproperCl
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_read = X_MASK | F_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
   k_warning_flag = DAT::tdual_int_scalar("Dihedral:warning_flag");
@@ -86,7 +86,7 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //}
   }
 
-  //atomKK->sync(execution_space,datamask_read);
+  atomKK->sync(execution_space,datamask_read);
   k_k0.template sync<DeviceType>();
   k_chi0.template sync<DeviceType>();
   k_aa_k1.template sync<DeviceType>();
@@ -98,9 +98,8 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_setflag.template sync<DeviceType>();
   k_setflag_i.template sync<DeviceType>();
   k_setflag_aa.template sync<DeviceType>();
-
-  //if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  //else atomKK->modified(execution_space,F_MASK);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
@@ -136,6 +135,15 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   }
   if (eflag_global) energy += ev.evdwl;
+
+  if (vflag_global) {
+    virial[0] += ev.v[0];
+    virial[1] += ev.v[1];
+    virial[2] += ev.v[2];
+    virial[3] += ev.v[3];
+    virial[4] += ev.v[4];
+    virial[5] += ev.v[5];
+  }
 
   // error check
 
@@ -181,6 +189,7 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   copymode = 0;
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -263,33 +272,10 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
     costheta[2] = (delr[0][0]*delr[2][0] + delr[0][1]*delr[2][1] +
                    delr[0][2]*delr[2][2]) / (rmag[0]*rmag[2]);
 
-    // sin and cos of improper
-
-    F_FLOAT s1 = 1.0 - costheta[1]*costheta[1];
-    if (s1 < SMALL) s1 = SMALL;
-    s1 = 1.0 / s1;
-
-    F_FLOAT s2 = 1.0 - costheta[2]*costheta[2];
-    if (s2 < SMALL) s2 = SMALL;
-    s2 = 1.0 / s2;
-
-    F_FLOAT s12 = sqrt(s1*s2);
-    F_FLOAT c = (costheta[1]*costheta[2] + costheta[0]) * s12;
-
     // error check
 
-    /*
-    if ((c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) && !d_warning_flag())
-      d_warning_flag() = 1;
-    */
     if ((costheta[0] == -1.0 || costheta[1] == -1.0 || costheta[2] == -1.0) && !d_warning_flag())
       d_warning_flag() = 1;
-
-    if (c > 1.0) c = 1.0;
-    if (c < -1.0) c = -1.0;
-
-    F_FLOAT s = sqrt(1.0 - c*c);
-    if (s < SMALL) s = SMALL;
 
     for (i = 0; i < 3; i++) {
       if (costheta[i] > 1.0)  costheta[i] = 1.0;

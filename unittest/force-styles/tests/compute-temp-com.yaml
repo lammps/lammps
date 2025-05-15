@@ -1,0 +1,17 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Thu May 15 07:49:54 2025
+epsilon: 1e-14
+skip_tests:
+prerequisites: ! |
+  atom full
+  compute temp/com
+pre_commands: ! ""
+post_commands: ! "velocity all create 3.0 12345\ncompute test solute temp/com \n"
+input_file: in.fourmol
+natoms: 29
+global_scalar: 3.5449829855903037
+global_vector: ! |-
+  6 0.11426735318523558 0.08714339849094006 0.13673071746067497 0.032508364183033024 -0.018640275187182285 -0.0076270604316939035
+...

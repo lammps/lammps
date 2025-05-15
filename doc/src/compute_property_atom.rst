@@ -22,11 +22,12 @@ Syntax
                              q, mux, muy, muz, mu,
                              spx, spy, spz, sp, fmx, fmy, fmz,
                              nbonds,
+                             tqx, tqy, tqz,
                              radius, diameter, omegax, omegay, omegaz,
                              temperature, heatflow,
                              angmomx, angmomy, angmomz,
                              shapex, shapey, shapez,
-                             quatw, quati, quatj, quatk, tqx, tqy, tqz,
+                             quatw, quati, quatj, quatk,
                              end1x, end1y, end1z, end2x, end2y, end2z,
                              corner1x, corner1y, corner1z,
                              corner2x, corner2y, corner2z,
@@ -49,22 +50,12 @@ Syntax
            *vx,vy,vz* = atom velocities
            *fx,fy,fz* = forces on atoms
            *q* = atom charge
-           *mux,muy,muz* = orientation of dipole moment of atom
-           *mu* = magnitude of dipole moment of atom
-           *spx, spy, spz* = direction of the atomic magnetic spin
-           *sp* = magintude of atomic magnetic spin moment
-           *fmx, fmy, fmz* = magnetic force
            *nbonds* = number of bonds assigned to an atom
+           *tqx,tqy,tqz* = torque on finite-size particles
            *radius,diameter* = radius,diameter of spherical particle
            *omegax,omegay,omegaz* = angular velocity of spherical particle
            *temperature* = internal temperature of spherical particle
            *heatflow* = internal heat flow of spherical particle
-           *angmomx,angmomy,angmomz* = angular momentum of aspherical particle
-           *shapex,shapey,shapez* = 3 diameters of aspherical particle
-           *quatw,quati,quatj,quatk* = quaternion components for aspherical or body particles
-           *tqx,tqy,tqz* = torque on finite-size particles
-           *end12x, end12y, end12z* = end points of line segment
-           *corner123x, corner123y, corner123z* = corner points of triangle
            *i_name* = custom integer vector with name
            *d_name* = custom floating point vector with name
            *i2_name[I]* = Ith column of custom integer array with name
@@ -72,9 +63,31 @@ Syntax
 
   .. parsed-literal::
 
+           ASPHERE package per-atom properties:
+           *angmomx,angmomy,angmomz* = angular momentum of aspherical particle
+           *shapex,shapey,shapez* = 3 diameters of aspherical particle
+           *quatw,quati,quatj,quatk* = quaternion components for aspherical or body particles
+           *end12x, end12y, end12z* = end points of line segment
+           *corner123x, corner123y, corner123z* = corner points of triangle
+
+  .. parsed-literal::
+
+           DIPOLE package per-atom properties:
+           *mux,muy,muz* = orientation of dipole moment of atom
+           *mu* = magnitude of dipole moment of atom
+
+  .. parsed-literal::
+
            PERI package per-atom properties:
            vfrac = volume fraction
            s0 = max stretch of any bond a particle is part of
+
+  .. parsed-literal::
+
+           SPIN package per-atom properties:
+           *spx, spy, spz* = direction of the atomic magnetic spin
+           *sp* = magintude of atomic magnetic spin moment
+           *fmx, fmy, fmz* = magnetic force
 
   .. parsed-literal::
 

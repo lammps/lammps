@@ -1,0 +1,39 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Thu May 15 12:17:36 2025
+epsilon: 1e-14
+skip_tests:
+prerequisites: ! |
+  atom sphere
+  fix property/atom
+  fix heat/flow
+  compute property/atom
+pre_commands: ! |
+  atom_style sphere
+  atom_modify map array
+  region box block 0 2 0 2 0 2
+  create_box 1 box
+  comm_modify cutoff 1.0 vel yes
+  fix 1 all property/atom temperature heatflow
+  fix 2 all add/heat linear 10.0 1.0
+  fix 4 all nve/sphere
+post_commands: ! |
+  variable r equal random(0,1,12345)
+  create_atoms 1 random 3 12345 NULL
+  set atom 1 diameter $r omega $r $r $r temperature $r
+  set atom 2 diameter $r omega $r $r $r temperature $r
+  set atom 3 diameter $r omega $r $r $r temperature $r
+  thermo_style custom step temp
+  compute test all property/atom radius diameter omegax omegay omegaz temperature heatflow
+input_file: in.empty
+pair_style: granular
+pair_coeff: ! |
+  * * hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping mass_velocity
+natoms: 3
+peratom_array: ! |
+  7
+   1 0.4349765479564665 0.869953095912933 0.0104259252548218 0.293567836284637 0.0206428170204163 0.0766798257827759 39.6932806968689
+   2 0.151328444480896 0.302656888961792 0.644248425960541 0.601558685302734 0.389818847179413 0.553407073020935 37.78637170791626
+   3 0.02312463521957395 0.0462492704391479 0.367279469966888 0.577235579490662 0.626330077648163 0.417571663856506 38.329713344573975
+...

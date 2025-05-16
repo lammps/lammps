@@ -166,6 +166,7 @@ if(DOWNLOAD_KOKKOS_KERNELS)
   get_cmake_property(_VARS VARIABLES)
   list(FILTER _VARS INCLUDE REGEX ^KokkosKernels_)
   foreach(_VAR IN LISTS _VARS)
+    message(STATUS _VAR)
     list(APPEND KOKKOS_KERNELS_LIB_BUILD_ARGS "-D${_VAR}=${${_VAR}}")
   endforeach()
   message(STATUS "KOKKOS-KERNELS download requested - we will build our own")
@@ -241,6 +242,11 @@ else()
   if(BUILD_SHARED_LIBS_KERNELS_WAS_ON)
     set(BUILD_SHARED_LIBS ON)
   endif()
+
+  set(KokkosKernels_ADD_DEFAULT_ETI OFF)
+  set(KokkosKernels_ENABLE_ALL_COMPONENTS OFF)
+  set(KokkosKernels_ENABLE_COMPONENT_BATCHED ON)
+
 endif()
 # End of Kokkos-Kernels configuration
 ########################################################################

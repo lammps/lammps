@@ -14,32 +14,32 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(SPEC/ATOM,ComputeSpecAtom);
+ComputeStyle(SPECIES/ATOM,ComputeSpeciesAtom);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_SPEC_ATOM_H
-#define LMP_COMPUTE_SPEC_ATOM_H
+#ifndef LMP_COMPUTE_SPECIES_ATOM_H
+#define LMP_COMPUTE_SPECIES_ATOM_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeSpecAtom : public Compute {
+class ComputeSpeciesAtom : public Compute {
  public:
-  ComputeSpecAtom(class LAMMPS *, int, char **);
-  ~ComputeSpecAtom() override;
+  ComputeSpeciesAtom(class LAMMPS *, int, char **);
+  ~ComputeSpeciesAtom() override;
   void init() override {}
   void compute_peratom() override;
   double memory_usage() override;
 
- private:
+ protected:
   int nvalues;
   int nmax;
   double *buf;
   double *vbuf;
 
-  typedef void (ComputeSpecAtom::*FnPtrPack)(int);
+  typedef void (ComputeSpeciesAtom::*FnPtrPack)(int);
   FnPtrPack *pack_choice;
 
   void pack_q(int);
@@ -74,6 +74,8 @@ class ComputeSpecAtom : public Compute {
   void pack_abo22(int);
   void pack_abo23(int);
   void pack_abo24(int);
+
+  unsigned int get_property_type(FnPtrPack) const;
 
   class PairReaxFF *reaxff;
 };

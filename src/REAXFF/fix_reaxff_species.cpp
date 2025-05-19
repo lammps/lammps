@@ -321,8 +321,8 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
   }
 
   try {
-    modify->delete_compute(fmt::format("SPECATOM_{}", id));
-    modify->delete_fix(fmt::format("SPECBOND_{}", id));
+    modify->delete_compute(fmt::format("SPECIESATOM_{}", id));
+    modify->delete_fix(fmt::format("SPECIESBOND_{}", id));
     modify->delete_fix(fmt::format("clusterID_{}", id));
   } catch (std::exception &) {
   }
@@ -368,16 +368,16 @@ void FixReaxFFSpecies::init()
 
   if (!setupflag) {
     // create a compute to store properties
-    modify->add_compute(fmt::format("SPECATOM_{} all SPEC/ATOM q x y z vx vy vz abo01 abo02 "
+    modify->add_compute(fmt::format("SPECIESATOM_{} all SPECIES/ATOM q x y z vx vy vz abo01 abo02 "
                                     "abo03 abo04 abo05 abo06 abo07 abo08 abo09 abo10 abo11 "
                                     "abo12 abo13 abo14 abo15 abo16 abo17 abo18 abo19 abo20 "
                                     "abo21 abo22 abo23 abo24",
                                     id));
 
     // create a fix to point to fix_ave_atom for averaging stored properties
-    auto fixcmd = fmt::format("SPECBOND_{} all ave/atom {} {} {}", id, nevery, nrepeat, nfreq);
-    for (int i = 1; i < 32; ++i) fixcmd += fmt::format(" c_SPECATOM_{}[{}]", id, i);
-    f_SPECBOND = dynamic_cast<FixAveAtom *>(modify->add_fix(fixcmd));
+    auto fixcmd = fmt::format("SPECIESBOND_{} all ave/atom {} {} {}", id, nevery, nrepeat, nfreq);
+    for (int i = 1; i < 32; ++i) fixcmd += fmt::format(" c_SPECIESATOM_{}[{}]", id, i);
+    f_SPECIESBOND = dynamic_cast<FixAveAtom *>(modify->add_fix(fixcmd));
 
     // create a fix to point to fix_property_atom for storing clusterID
     fixcmd = fmt::format("clusterID_{} all property/atom d_clusterID ghost yes", id);
@@ -436,7 +436,7 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
   vector_atom = clusterID;
 
   // point to fix_ave_atom
-  f_SPECBOND->end_of_step();
+  f_SPECIESBOND->end_of_step();
 
   if (ntimestep != nvalid && nvalid != -1) {
     // push back delete_Tcount on every step
@@ -506,7 +506,7 @@ void FixReaxFFSpecies::FindMolecule()
   int *mask = atom->mask;
   int *ilist;
   double bo_tmp, bo_cut;
-  double **spec_atom = f_SPECBOND->array_atom;
+  double **spec_atom = f_SPECIESBOND->array_atom;
 
   inum = reaxff->list->inum;
   ilist = reaxff->list->ilist;
@@ -840,7 +840,7 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
   int *mask = atom->mask;
   double *rmass = atom->rmass;
   double totq, totq_tmp, com[3], com_tmp, thism, totm, box[3], halfbox[3];
-  double **spec_atom = f_SPECBOND->array_atom;
+  double **spec_atom = f_SPECIESBOND->array_atom;
 
   if (multipos) OpenPos();
 

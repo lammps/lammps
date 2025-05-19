@@ -87,7 +87,7 @@ class FixReaxFFSpecies : public Fix {
   bigint nvalid;
 
   class NeighList *list;
-  class FixAveAtom *f_SPECBOND;
+  class FixAveAtom *f_SPECIESBOND;
   class FixPropertyAtom *f_clusterID;
   class PairReaxFF *reaxff;
 };

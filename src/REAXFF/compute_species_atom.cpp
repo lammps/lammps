@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "compute_spec_atom.h"
+#include "compute_species_atom.h"
 
 #include "atom.h"
 #include "error.h"
@@ -29,7 +29,7 @@ enum{KEYWORD,COMPUTE,FIX,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
-ComputeSpecAtom::ComputeSpecAtom(LAMMPS *lmp, int narg, char **arg) :
+ComputeSpeciesAtom::ComputeSpeciesAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute spec/atom command");
@@ -50,71 +50,71 @@ ComputeSpecAtom::ComputeSpecAtom(LAMMPS *lmp, int narg, char **arg) :
 
     // standard lammps attributes
     if (strcmp(arg[iarg],"q") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_q;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_q;
 
     } else if (strcmp(arg[iarg],"x") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_x;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_x;
     } else if (strcmp(arg[iarg],"y") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_y;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_y;
     } else if (strcmp(arg[iarg],"z") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_z;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_z;
 
     } else if (strcmp(arg[iarg],"vx") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_vx;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_vx;
     } else if (strcmp(arg[iarg],"vy") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_vy;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_vy;
     } else if (strcmp(arg[iarg],"vz") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_vz;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_vz;
 
     // from pair_reaxff
     } else if (strcmp(arg[iarg],"abo01") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo01;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo01;
     } else if (strcmp(arg[iarg],"abo02") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo02;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo02;
     } else if (strcmp(arg[iarg],"abo03") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo03;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo03;
     } else if (strcmp(arg[iarg],"abo04") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo04;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo04;
     } else if (strcmp(arg[iarg],"abo05") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo05;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo05;
     } else if (strcmp(arg[iarg],"abo06") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo06;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo06;
     } else if (strcmp(arg[iarg],"abo07") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo07;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo07;
     } else if (strcmp(arg[iarg],"abo08") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo08;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo08;
     } else if (strcmp(arg[iarg],"abo09") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo09;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo09;
     } else if (strcmp(arg[iarg],"abo10") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo10;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo10;
     } else if (strcmp(arg[iarg],"abo11") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo11;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo11;
     } else if (strcmp(arg[iarg],"abo12") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo12;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo12;
     } else if (strcmp(arg[iarg],"abo13") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo13;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo13;
     } else if (strcmp(arg[iarg],"abo14") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo14;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo14;
     } else if (strcmp(arg[iarg],"abo15") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo15;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo15;
     } else if (strcmp(arg[iarg],"abo16") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo16;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo16;
     } else if (strcmp(arg[iarg],"abo17") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo17;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo17;
     } else if (strcmp(arg[iarg],"abo18") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo18;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo18;
     } else if (strcmp(arg[iarg],"abo19") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo19;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo19;
     } else if (strcmp(arg[iarg],"abo20") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo20;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo20;
     } else if (strcmp(arg[iarg],"abo21") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo21;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo21;
     } else if (strcmp(arg[iarg],"abo22") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo22;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo22;
     } else if (strcmp(arg[iarg],"abo23") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo23;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo23;
     } else if (strcmp(arg[iarg],"abo24") == 0) {
-      pack_choice[i] = &ComputeSpecAtom::pack_abo24;
+      pack_choice[i] = &ComputeSpeciesAtom::pack_abo24;
 
     } else error->all(FLERR,"Invalid keyword in compute spec/atom command");
   }
@@ -127,7 +127,7 @@ ComputeSpecAtom::ComputeSpecAtom(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-ComputeSpecAtom::~ComputeSpecAtom()
+ComputeSpeciesAtom::~ComputeSpeciesAtom()
 {
   delete [] pack_choice;
   memory->destroy(vector);
@@ -136,7 +136,7 @@ ComputeSpecAtom::~ComputeSpecAtom()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::compute_peratom()
+void ComputeSpeciesAtom::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
 
@@ -173,7 +173,7 @@ void ComputeSpecAtom::compute_peratom()
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-double ComputeSpecAtom::memory_usage()
+double ComputeSpeciesAtom::memory_usage()
 {
   double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
@@ -187,7 +187,7 @@ double ComputeSpecAtom::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_q(int n)
+void ComputeSpeciesAtom::pack_q(int n)
 {
   double *q = atom->q;
   int *mask = atom->mask;
@@ -204,7 +204,7 @@ void ComputeSpecAtom::pack_q(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_x(int n)
+void ComputeSpeciesAtom::pack_x(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -221,7 +221,7 @@ void ComputeSpecAtom::pack_x(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_y(int n)
+void ComputeSpeciesAtom::pack_y(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -238,7 +238,7 @@ void ComputeSpecAtom::pack_y(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_z(int n)
+void ComputeSpeciesAtom::pack_z(int n)
 {
   double **x = atom->x;
   int *mask = atom->mask;
@@ -255,7 +255,7 @@ void ComputeSpecAtom::pack_z(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_vx(int n)
+void ComputeSpeciesAtom::pack_vx(int n)
 {
   double **v = atom->v;
   int *mask = atom->mask;
@@ -272,7 +272,7 @@ void ComputeSpecAtom::pack_vx(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_vy(int n)
+void ComputeSpeciesAtom::pack_vy(int n)
 {
   double **v = atom->v;
   int *mask = atom->mask;
@@ -289,7 +289,7 @@ void ComputeSpecAtom::pack_vy(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_vz(int n)
+void ComputeSpeciesAtom::pack_vz(int n)
 {
   double **v = atom->v;
   int *mask = atom->mask;
@@ -306,7 +306,7 @@ void ComputeSpecAtom::pack_vz(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo01(int n)
+void ComputeSpeciesAtom::pack_abo01(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -320,7 +320,7 @@ void ComputeSpecAtom::pack_abo01(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo02(int n)
+void ComputeSpeciesAtom::pack_abo02(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -334,7 +334,7 @@ void ComputeSpecAtom::pack_abo02(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo03(int n)
+void ComputeSpeciesAtom::pack_abo03(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -348,7 +348,7 @@ void ComputeSpecAtom::pack_abo03(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo04(int n)
+void ComputeSpeciesAtom::pack_abo04(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -362,7 +362,7 @@ void ComputeSpecAtom::pack_abo04(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo05(int n)
+void ComputeSpeciesAtom::pack_abo05(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -376,7 +376,7 @@ void ComputeSpecAtom::pack_abo05(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo06(int n)
+void ComputeSpeciesAtom::pack_abo06(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -390,7 +390,7 @@ void ComputeSpecAtom::pack_abo06(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo07(int n)
+void ComputeSpeciesAtom::pack_abo07(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -404,7 +404,7 @@ void ComputeSpecAtom::pack_abo07(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo08(int n)
+void ComputeSpeciesAtom::pack_abo08(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -418,7 +418,7 @@ void ComputeSpecAtom::pack_abo08(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo09(int n)
+void ComputeSpeciesAtom::pack_abo09(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -432,7 +432,7 @@ void ComputeSpecAtom::pack_abo09(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo10(int n)
+void ComputeSpeciesAtom::pack_abo10(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -446,7 +446,7 @@ void ComputeSpecAtom::pack_abo10(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo11(int n)
+void ComputeSpeciesAtom::pack_abo11(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -460,7 +460,7 @@ void ComputeSpecAtom::pack_abo11(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo12(int n)
+void ComputeSpeciesAtom::pack_abo12(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -474,7 +474,7 @@ void ComputeSpecAtom::pack_abo12(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo13(int n)
+void ComputeSpeciesAtom::pack_abo13(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -488,7 +488,7 @@ void ComputeSpecAtom::pack_abo13(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo14(int n)
+void ComputeSpeciesAtom::pack_abo14(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -502,7 +502,7 @@ void ComputeSpecAtom::pack_abo14(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo15(int n)
+void ComputeSpeciesAtom::pack_abo15(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -516,7 +516,7 @@ void ComputeSpecAtom::pack_abo15(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo16(int n)
+void ComputeSpeciesAtom::pack_abo16(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -530,7 +530,7 @@ void ComputeSpecAtom::pack_abo16(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo17(int n)
+void ComputeSpeciesAtom::pack_abo17(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -544,7 +544,7 @@ void ComputeSpecAtom::pack_abo17(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo18(int n)
+void ComputeSpeciesAtom::pack_abo18(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -558,7 +558,7 @@ void ComputeSpecAtom::pack_abo18(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo19(int n)
+void ComputeSpeciesAtom::pack_abo19(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -572,7 +572,7 @@ void ComputeSpecAtom::pack_abo19(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo20(int n)
+void ComputeSpeciesAtom::pack_abo20(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -586,7 +586,7 @@ void ComputeSpecAtom::pack_abo20(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo21(int n)
+void ComputeSpeciesAtom::pack_abo21(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -600,7 +600,7 @@ void ComputeSpecAtom::pack_abo21(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo22(int n)
+void ComputeSpeciesAtom::pack_abo22(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -614,7 +614,7 @@ void ComputeSpecAtom::pack_abo22(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo23(int n)
+void ComputeSpeciesAtom::pack_abo23(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -628,7 +628,7 @@ void ComputeSpecAtom::pack_abo23(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSpecAtom::pack_abo24(int n)
+void ComputeSpeciesAtom::pack_abo24(int n)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -638,6 +638,44 @@ void ComputeSpecAtom::pack_abo24(int n)
     else buf[n] = 0.0;
     n += nvalues;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+unsigned int ComputeSpeciesAtom::get_property_type(FnPtrPack func_ptr) const
+{
+  if (func_ptr == &ComputeSpeciesAtom::pack_q) return 1;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_x) return 2;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_y) return 3;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_z) return 4;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_vx) return 5;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_vy) return 6;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_vz) return 7;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo01) return 8;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo02) return 9;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo03) return 10;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo04) return 11;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo05) return 12;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo06) return 13;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo07) return 14;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo08) return 15;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo09) return 16;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo10) return 17;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo11) return 18;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo12) return 19;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo13) return 20;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo14) return 21;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo15) return 22;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo16) return 23;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo17) return 24;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo18) return 25;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo19) return 26;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo20) return 27;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo21) return 28;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo22) return 29;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo23) return 30;
+  else if (func_ptr == &ComputeSpeciesAtom::pack_abo24) return 31;
+  return 0; // Default/unknown type
 }
 
 /* ---------------------------------------------------------------------- */

@@ -66,7 +66,7 @@ void FixReaxFFSpeciesKokkos::FindMolecule()
   int change,done,anychange;
   int *mask = atom->mask;
   double bo_tmp,bo_cut;
-  double **spec_atom = f_SPECBOND->array_atom;
+  double **species_atom = f_SPECIESBOND->array_atom;
 
   inum = reaxff->list->inum;
   typename ArrayTypes<LMPHostType>::t_int_1d ilist;
@@ -84,9 +84,9 @@ void FixReaxFFSpeciesKokkos::FindMolecule()
     i = ilist[ii];
     if (mask[i] & groupbit) {
       clusterID[i] = atom->tag[i];
-      x0[i].x = spec_atom[i][1];
-      x0[i].y = spec_atom[i][2];
-      x0[i].z = spec_atom[i][3];
+      x0[i].x = species_atom[i][1];
+      x0[i].y = species_atom[i][2];
+      x0[i].z = species_atom[i][3];
     }
     else clusterID[i] = 0.0;
   }

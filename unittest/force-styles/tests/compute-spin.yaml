@@ -1,0 +1,32 @@
+---
+lammps_version: 2 Apr 2025
+tags: generated
+date_generated: Mon May 19 10:23:17 2025
+epsilon: 1e-14
+skip_tests:
+prerequisites: ! |
+  atom spin
+  fix nve/spin
+  compute spin
+pre_commands: ! |
+  units metal
+  atom_style spin
+  atom_modify map array
+  lattice bcc 2.8665
+  region box block 0 3 0 3 0 3
+  create_box 1 box
+  create_atoms 1 box
+  mass 1 55.845
+  set group all spin/atom/random 31 2.2
+  comm_modify cutoff 12.0
+post_commands: ! |
+  fix 1 all nve/spin lattice moving
+  compute test all spin
+input_file: in.empty
+pair_style: spin/dipole/cut 10.0
+pair_coeff: ! |
+  * * 10.0
+natoms: 54
+global_vector: ! |-
+  6 -0.1190301964305294 0.1300249709514782 -0.012754115304234226 0.17674090695256958 6.889023460579432e-05 -12.442668402682871
+...

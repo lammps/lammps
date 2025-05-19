@@ -117,7 +117,7 @@ void FixReaxFFSpeciesKokkos::FindMolecule()
 
           jtype = atom->type[j];
           bo_cut = BOCut[itype][jtype];
-          bo_tmp = spec_atom[i][jj+7];
+          bo_tmp = species_atom[i][jj+7];
 
           if (bo_tmp > bo_cut) {
             clusterID[i] = clusterID[j] = MIN(clusterID[i], clusterID[j]);

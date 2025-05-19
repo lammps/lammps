@@ -162,7 +162,11 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
 void generate_yaml_file(const char *outfile, const TestConfig &config)
 {
     // initialize system geometry
+
     LAMMPS::argv args = {"ComputeStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
+    //LAMMPS::argv args = {"ComputeStyle", "-log", "none", "-echo", "screen", "-nocite", "-k",          "on",   "t",    "4",     "-sf",    "kk"};
+
     LAMMPS *lmp       = nullptr;
     try {
         lmp = init_lammps(args, config, false);

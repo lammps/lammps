@@ -389,6 +389,8 @@ class PairReaxFFKokkos : public PairReaxFF {
   void v_tally4(EV_FLOAT_REAX &ev, const int &i, const int &j, const int &k, const int &l,
     F_FLOAT *fi, F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *dril, F_FLOAT *drjl, F_FLOAT *drkl) const;
 
+  DAT::tdual_ffloat_2d k_tmpbo; // needed by compute species/atom/kk
+
  protected:
   void deallocate_views_of_views();
   void allocate();
@@ -506,7 +508,6 @@ class PairReaxFFKokkos : public PairReaxFF {
   tdual_LR_lookup_table_kk_2d k_LR;
 
   DAT::tdual_int_2d k_tmpid;
-  DAT::tdual_ffloat_2d k_tmpbo;
   DAT::tdual_int_scalar k_error_flag;
 
   typename AT::t_int_1d d_numneigh_bonds;

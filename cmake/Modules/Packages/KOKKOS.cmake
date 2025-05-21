@@ -143,6 +143,21 @@ else()
   option(DOWNLOAD_KOKKOS_KERNELS "Download the Kokkos-Kernels library instead of using the bundled one" ON)
 endif()
 
+set(KokkosKernels_ENABLE_COMPONENT_BATCHED ON)
+set(KokkosKernels_ENABLE_COMPONENT_GRAPH ON)
+set(KokkosKernels_ENABLE_EXPLICIT_INSTANTIATION OFF)
+set(KokkosKernels_ADD_DEFAULT_ETI OFF)
+set(KokkosKernels_ENABLE_ALL_COMPONENTS OFF)
+set(KokkosKernels_INST_DOUBLE OFF)
+set(KokkosKernels_INST_EXECSPACE_OPENMP OFF)
+set(KokkosKernels_INST_EXECSPACE_SERIAL OFF)
+set(KokkosKernels_INST_LAYOUTLEFT OFF)
+set(KokkosKernels_INST_MEMSPACE_HOSTSPACE OFF)
+set(KokkosKernels_INST_OFFSET_INT OFF)
+set(KokkosKernels_INST_OFFSET_SIZE_T OFF)
+set(KokkosKernels_INST_ORDINAL_INT OFF)
+set(KokkosKernels_INST_EXECSPACE_CUDA OFF)
+
 if(DOWNLOAD_KOKKOS_KERNELS)
   # Handle dependency on Kokkos
   if(NOT DOWNLOAD_KOKKOS AND NOT EXTERNAL_KOKKOS)
@@ -166,7 +181,6 @@ if(DOWNLOAD_KOKKOS_KERNELS)
   get_cmake_property(_VARS VARIABLES)
   list(FILTER _VARS INCLUDE REGEX ^KokkosKernels_)
   foreach(_VAR IN LISTS _VARS)
-    message(STATUS _VAR)
     list(APPEND KOKKOS_KERNELS_LIB_BUILD_ARGS "-D${_VAR}=${${_VAR}}")
   endforeach()
   message(STATUS "KOKKOS-KERNELS download requested - we will build our own")
@@ -243,11 +257,29 @@ else()
     set(BUILD_SHARED_LIBS ON)
   endif()
 
+  set(KokkosKernels_ENABLE_COMPONENT_BATCHED ON)
+  set(KokkosKernels_ENABLE_COMPONENT_GRAPH ON)
+  set(KokkosKernels_ENABLE_EXPLICIT_INSTANTIATION OFF)
   set(KokkosKernels_ADD_DEFAULT_ETI OFF)
   set(KokkosKernels_ENABLE_ALL_COMPONENTS OFF)
-  set(KokkosKernels_ENABLE_COMPONENT_BATCHED ON)
+  set(KokkosKernels_INST_DOUBLE OFF)
+  set(KokkosKernels_INST_EXECSPACE_OPENMP OFF)
+  set(KokkosKernels_INST_EXECSPACE_SERIAL OFF)
+  set(KokkosKernels_INST_LAYOUTLEFT OFF)
+  set(KokkosKernels_INST_MEMSPACE_HOSTSPACE OFF)
+  set(KokkosKernels_INST_OFFSET_INT OFF)
+  set(KokkosKernels_INST_OFFSET_SIZE_T OFF)
+  set(KokkosKernels_INST_ORDINAL_INT OFF)
+  set(KokkosKernels_INST_EXECSPACE_CUDA OFF)
 
 endif()
+
+get_cmake_property(_VARS VARIABLES)
+list(FILTER _VARS INCLUDE REGEX ^KokkosKernels_)
+foreach(_VAR IN LISTS _VARS)
+  message(STATUS "-D${_VAR}=${${_VAR}}")
+endforeach()
+
 # End of Kokkos-Kernels configuration
 ########################################################################
 
@@ -334,10 +366,6 @@ set_property(GLOBAL PROPERTY "KOKKOS_PKG_SOURCES" "${KOKKOS_PKG_SOURCES}")
 
 # detects styles which have KOKKOS version
 RegisterStylesExt(${KOKKOS_PKG_SOURCES_DIR} kokkos KOKKOS_PKG_SOURCES)
-
-# Manually register the legacy ACKS2 fix header so its _kokkos variant is detected
-RegisterFixStyle(${KOKKOS_PKG_SOURCES_DIR}/fix_acks2_reaxff_legacy_kokkos.h)
-target_sources(lammps PRIVATE ${KOKKOS_PKG_SOURCES_DIR}/fix_acks2_reaxff_legacy_kokkos.cpp)
 
 # register kokkos-only styles
 RegisterNBinStyle(${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.h)

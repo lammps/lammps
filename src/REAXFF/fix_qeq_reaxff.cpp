@@ -71,7 +71,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
 {
   scalar_flag = 1;
   extscalar = 0;
-  imax = 200;
+  maxiter = 200;
   maxwarn = 1;
   target_charge = 0.0;
 
@@ -101,7 +101,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg],"maxiter") == 0) {
       if (iarg+1 > narg-1)
         error->all(FLERR,"Illegal fix {} command", style);
-      imax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      maxiter = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg++;
     } else if (strcmp(arg[iarg], "target_charge") == 0) {
       if (!utils::strmatch(style,"^acks2/reaxff"))
@@ -781,7 +781,7 @@ int FixQEqReaxFF::CG(double *b, double *x)
   b_norm = parallel_norm(b, nn);
   sig_new = parallel_dot(r, d, nn);
 
-  for (i = 1; i < imax && sqrt(sig_new) / b_norm > tolerance; ++i) {
+  for (i = 1; i < maxiter && sqrt(sig_new) / b_norm > tolerance; ++i) {
     comm->forward_comm(this); //Dist_vector(d);
     sparse_matvec(&H, d, q);
     comm->reverse_comm(this); //Coll_vector(q);
@@ -806,7 +806,7 @@ int FixQEqReaxFF::CG(double *b, double *x)
     vector_sum(d, 1., p, beta, d, nn);
   }
 
-  if ((i >= imax) && maxwarn && (comm->me == 0))
+  if ((i >= maxiter) && maxwarn && (comm->me == 0))
     error->warning(FLERR, "Fix qeq/reaxff CG convergence failed after {} iterations at step {}",
                    i,update->ntimestep);
   return i;

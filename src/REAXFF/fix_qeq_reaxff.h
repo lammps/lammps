@@ -97,7 +97,7 @@ class FixQEqReaxFF : public Fix {
 
   //CG storage
   double *p, *q, *r, *d;
-  int imax, maxwarn;
+  int maxiter, maxwarn;
 
   char *pertype_option;    // argument to determine how per-type info is obtained
   virtual void pertype_parameters(char *);

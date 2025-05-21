@@ -37,16 +37,11 @@ FixStyle(qeq/reaxff/kk/host,FixQEqReaxFFKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
-struct TagQEqZero{};
-struct TagQEqInitMatvec{};
-struct TagQEqUpdate{};
-
 template<class DeviceType>
 class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  //typedef EV_FLOAT value_type;
 
   FixQEqReaxFFKokkos(class LAMMPS *, int, char **);
   ~FixQEqReaxFFKokkos() override;
@@ -54,15 +49,6 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void init() override;
   void setup_pre_force(int) override;
   void pre_force(int) override;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagQEqZero, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagQEqInitMatvec, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagQEqUpdate, const int&) const;
 
   double memory_usage() override;
   void grow_arrays(int) override;
@@ -85,8 +71,8 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   //int pack_exchange(int, double *) override;
   //int unpack_exchange(int, double *) override;
-  //int pack_forward_comm(int, int *, double *, int, int *) override;
-  //void unpack_forward_comm(int, int, double *) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
   //int pack_reverse_comm(int, int, double *) override;
   //void unpack_reverse_comm(int, int *, double *) override;
 
@@ -100,10 +86,9 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   typename AT::t_int_1d d_ilist, d_numneigh;
 
   DAT::tdual_float_1d k_chi_field;
-  typename AT::t_int_1d d_mask, d_type;
-  typename AT::t_float_1d d_q, d_chi_field;
+  typename AT::t_float_1d d_chi_field;
 
-  void allocate_array();
+  void resize_views();
   void get_chi_field();
 
   // -------- Mixed precision --------
@@ -116,11 +101,13 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   typedef typename tdual_compute_1d::t_dev t_compute_1d;
   typedef typename tdual_accumulation_1d::t_dev t_accumulation_1d;
 
-  // -------- Extended Lagrangian variables --------
+  // -------- Extended Lagrangian --------
 
   tdual_compute_1d k_theta, k_theta_dot;
   t_compute_1d d_theta, d_theta_dot;
-  double omega, K;
+  double dt, dt_half, dt2_half, omega, omega2, K;
+
+  void update_extended_lagrangian();
 
   // -------- QEQ parameters --------
 
@@ -139,10 +126,12 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   DAT::tdual_float_2d k_shield;
   typename AT::t_float_2d d_shield;
-  DAT::tdual_float_1d k_tap;
-  typename AT::t_float_1d d_tap;
+
+  double tap0, tap1, tap2, tap3, tap4, tap5, tap6, tap7;
 
   // -------- CRS matrix --------
+
+  bool matrix_sparsity_initialized, crs_matrix_allocated;
 
   typedef KokkosSparse::CrsMatrix<kk_compute, int, DeviceType> CRSMatrixType;
   CRSMatrixType crs_matrix;
@@ -152,23 +141,16 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   void init_shielding_k();
   void build_crs_matrix();
+  void update_crs_matrix_values();
 
   // -------- Schur CG --------
 
-  tdual_compute_1d k_o;
-  t_compute_1d d_o;
-  
-  t_compute_1d d_r;         // Residual vector
-  t_compute_1d d_p;         // Preconditioned vector
-  t_compute_1d d_d;         // Direction vector
-  t_compute_1d d_Hdia_inv;  // Diagonal preconditioner
-  t_compute_1d d_b;         // RHS vector
+  tdual_compute_1d k_o, k_s;
+  t_compute_1d d_o, d_s, d_r, d_p, d_d, d_Hdia_inv, d_b;
 
-  tdual_compute_1d k_s;
-  t_compute_1d d_s;
-
+  void init_matvec();
   void sparse_matvec(t_compute_1d &in, t_compute_1d &out);
-  void one_cg_iter();
+  void cg_solve();
   void calculate_q();
 
 };

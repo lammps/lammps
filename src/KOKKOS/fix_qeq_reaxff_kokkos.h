@@ -54,32 +54,49 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
   void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
-  
-  int pack_exchange_kokkos(const int &nsend, DAT::tdual_xfloat_2d &k_buf,
-                          DAT::tdual_int_1d k_exchange_sendlist,
-                          DAT::tdual_int_1d k_copylist,
-                          ExecutionSpace space);
-  void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
-                             DAT::tdual_int_1d &k_indices, int nrecv,
-                             int nrecv1, int nextrarecv1,
-                             ExecutionSpace space);
 
-  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d,
-                              DAT::tdual_xfloat_1d &,
-                              int, int *) override;
-  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d &) override;
+  // -------- Exchange --------
 
   //int pack_exchange(int, double *) override;
   //int unpack_exchange(int, double *) override;
+
+  int pack_exchange_kokkos(const int &nsend, DAT::tdual_xfloat_2d &k_buf,
+                           DAT::tdual_int_1d k_exchange_sendlist,
+                           DAT::tdual_int_1d k_copylist,
+                           ExecutionSpace space);
+
+  void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+                              DAT::tdual_int_1d &k_indices,
+                              int nrecv, int nrecv1, int nextrarecv1,
+                              ExecutionSpace space);
+
+  // -------- Forward comm --------
+
   int pack_forward_comm(int, int *, double *, int, int *) override;
+
+  int pack_forward_comm_kokkos(int,
+                               DAT::tdual_int_1d,
+                               DAT::tdual_xfloat_1d &,
+                               int, int *) override;
+
   void unpack_forward_comm(int, int, double *) override;
-  //int pack_reverse_comm(int, int, double *) override;
-  //void unpack_reverse_comm(int, int *, double *) override;
+
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d &) override;
+
+  // -------- Reverse comm --------
+
+  int pack_reverse_comm(int, int, double *) override;
+
+  int pack_reverse_comm_kokkos(int, int, DAT::tdual_xfloat_1d &) override;
+
+  void unpack_reverse_comm(int, int *, double *) override;
+  
+  void unpack_reverse_comm_kokkos(int,
+                                  DAT::tdual_int_1d,
+                                  DAT::tdual_xfloat_1d &) override;
 
  private:
   int neighflag, allocated_flag, last_allocate;
-  //int pack_flag;
-
   double cutsq;
 
   typename AT::t_neighbors_2d d_neighbors;

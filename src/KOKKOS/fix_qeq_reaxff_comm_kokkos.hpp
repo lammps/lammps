@@ -324,6 +324,54 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_reverse_comm_kokkos(int n,
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+int FixQEqReaxFFKokkos<DeviceType>::pack_exchange(int i, double *buf)
+{
+  // Pack extended Lagrangian data for atom i being exchanged/moved
+  // This happens during atom migration or internal LAMMPS reorganization
+  // We must preserve both theta and theta_dot to maintain dynamics continuity
+  
+  // Sync extended Lagrangian variables to host for packing
+  k_theta.template sync<LMPHostType>();
+  k_theta_dot.template sync<LMPHostType>();
+  
+  // Pack the auxiliary charge state for atom i
+  // These values are essential for the extended Lagrangian QEq method
+  buf[0] = k_theta.h_view(i);      // Current auxiliary charge position
+  buf[1] = k_theta_dot.h_view(i);  // Current auxiliary charge velocity
+  
+  // Always return 2 - we pack exactly 2 values per atom
+  return 2;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixQEqReaxFFKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
+{
+  // Unpack extended Lagrangian data for atom arriving at position nlocal
+  // This restores the auxiliary charge state when an atom arrives from
+  // another processor or gets moved during internal reorganization
+  
+  // Sync to host for modification
+  k_theta.template sync<LMPHostType>();
+  k_theta_dot.template sync<LMPHostType>();
+  
+  // Restore the auxiliary charge state for the atom at position nlocal
+  // This maintains continuity of the extended Lagrangian dynamics
+  k_theta.h_view(nlocal) = buf[0];      // Restore auxiliary charge position
+  k_theta_dot.h_view(nlocal) = buf[1];  // Restore auxiliary charge velocity
+  
+  // Mark arrays as modified on host so changes sync to device when needed
+  k_theta.template modify<LMPHostType>();
+  k_theta_dot.template modify<LMPHostType>();
+  
+  // Always return 2 - we unpacked exactly 2 values per atom
+  return 2;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
 int FixQEqReaxFFKokkos<DeviceType>::pack_exchange_kokkos(
    const int &nsend, DAT::tdual_xfloat_2d &k_buf,
    DAT::tdual_int_1d k_exchange_sendlist, DAT::tdual_int_1d k_copylist,

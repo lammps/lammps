@@ -57,8 +57,8 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   // -------- Exchange --------
 
-  //int pack_exchange(int, double *) override;
-  //int unpack_exchange(int, double *) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
   int pack_exchange_kokkos(const int &nsend, DAT::tdual_xfloat_2d &k_buf,
                            DAT::tdual_int_1d k_exchange_sendlist,

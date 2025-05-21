@@ -325,7 +325,6 @@ void FixACKS2ReaxFFKokkos<DeviceType>::schur_cg_solve()
 {
   const int n = nlocal;
   const int block_size = 2;
-  const int maxiter = imax;
   const double tol = tolerance;
   
   // For mixed precision optimization, we'll use float for some intermediate calculations

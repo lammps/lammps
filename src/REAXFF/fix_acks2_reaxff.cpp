@@ -518,7 +518,7 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
   omega = 1.0;
   rho = 1.0;
 
-  for (i = 1; i < imax && rnorm / bnorm > tolerance; ++i) {
+  for (i = 1; i < maxiter && rnorm / bnorm > tolerance; ++i) {
     rho = parallel_dot(r_hat, r, nn);
     if (rho == 0.0) break;
 
@@ -604,7 +604,7 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
     if (omega == 0 || rho == 0) {
       error->warning(FLERR,"Fix acks2/reaxff BiCGStab numerical breakdown, omega = {:.8}, rho = {:.8}",
                       omega,rho);
-    } else if (i >= imax) {
+    } else if (i >= maxiter) {
       error->warning(FLERR,"Fix acks2/reaxff BiCGStab convergence failed after {} iterations "
                            "at step {}", i, update->ntimestep);
     }

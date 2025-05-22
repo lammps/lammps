@@ -15,6 +15,79 @@
    Contributing authors: Mitch Murphy (alphataubio at gmail)
 ------------------------------------------------------------------------- */
 
+
+#include <iostream>
+#include <iomanip>
+#include "Kokkos_Core.hpp"
+#include "KokkosSparse_CrsMatrix.hpp"
+
+using Scalar = double;
+using Ordinal = int;
+using Offset = size_t;
+using Layout = Kokkos::LayoutLeft;
+
+template<typename ViewType>
+void print_1d_view(const ViewType& view, const char* label, int max_elements = 10) {
+    auto h_view = Kokkos::create_mirror_view(view);
+    Kokkos::deep_copy(h_view, view);
+    
+    printf("%s[%d]: ", label, (int)view.extent(0));
+    int n = std::min(max_elements, (int)view.extent(0));
+    for (int i = 0; i < n; i++) {
+        printf("%10.6f ", (double)h_view(i));
+    }
+    if (view.extent(0) > max_elements) printf("...");
+    printf("\n");
+}
+
+
+template<typename MatrixType>
+void print_crs_matrix(const MatrixType& matrix, const char* label = "CRS Matrix") {
+    
+    int numRows = matrix.numRows();
+    int numCols = matrix.numCols();
+    
+    printf("\n=== %s (%d x %d) ===\n", label, numRows, numCols);
+    
+    // Print column headers
+    printf("     ");
+    for (int j = 0; j < numCols; j++) {
+        printf("%10d ", j);
+    }
+    printf("\n");
+    
+    // Simple host loop - let Kokkos handle device access
+    for (int i = 0; i < numRows; i++) {
+        printf("%3d: ", i);
+        
+        // Get sparse row view for this row
+        auto row = matrix.row(i);
+        
+        // For each column, search for the value in sparse row
+        for (int j = 0; j < numCols; j++) {
+            float value = 0.0f;  // Default to zero
+            
+            // Search through this row's entries
+            for (int k = 0; k < row.length; k++) {
+                if (row.colidx(k) == j) {
+                    value = row.value(k);
+                    break;
+                }
+            }
+            
+            printf("%10.6f ", value);
+        }
+        printf("\n");
+    }
+    
+    printf("========================\n\n");
+}
+
+
+
+
+
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -38,142 +111,145 @@ template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::build_crs_matrix()
 {
   if (crs_matrix_allocated) {
-    // Clean up previous allocations to avoid memory leaks
-    // Note: In Kokkos, Views are reference counted and will be deallocated automatically
-    // When new views are assigned, but we'll explicitly ensure cleanup
-    crs_matrix = CRSMatrixType(); // This should trigger cleanup of previous allocation
+    crs_matrix = CRSMatrixType();
   }
 
-  // Direct construction of CRS matrix for QEq
   int nlocal = atomKK->nlocal;
-
-  // First, count interactions to allocate arrays
-  Kokkos::View<int*, DeviceType> d_row_nnz("row_nnz", nlocal);
-  Kokkos::deep_copy(d_row_nnz, 0); // Initialize to zero
-
+  auto d_tag = atomKK->k_tag.template view<DeviceType>();
   auto d_x = atomKK->k_x.template view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
   auto d_type = atomKK->k_type.template view<DeviceType>();
 
-  // Count nonzeros per row
-  Kokkos::parallel_for("CountNNZ", Kokkos::RangePolicy<DeviceType>(0, nlocal),
-    KOKKOS_LAMBDA(const int i) {
-      // Bug fix: Initialize ALL rows, not just active ones
-      // Initialize with diagonal element
-      d_row_nnz(i) = 1;
-      
-      // Only count off-diagonals for atoms in group
+  constexpr double EPSILON = 0.0001;
+
+  // Count phase - store counts per row
+  Kokkos::View<int*, DeviceType> d_row_nnz("row_nnz", nlocal);
+  
+  Kokkos::parallel_for("Count", Kokkos::RangePolicy<DeviceType>(0, nn),
+    KOKKOS_LAMBDA(const int ii) {
+      const int i = d_ilist[ii];
       if (d_mask[i] & groupbit) {
+        int count = 1; // diagonal
         const int jnum = d_numneigh[i];
+        
         for (int jj = 0; jj < jnum; jj++) {
-          int j = d_neighbors(i, jj);
-          j &= NEIGHMASK;
+          int j = d_neighbors(i, jj) & NEIGHMASK;
+          const double dx = d_x(j,0) - d_x(i,0);
+          const double dy = d_x(j,1) - d_x(i,1);
+          const double dz = d_x(j,2) - d_x(i,2);
+          const double rsq = dx*dx + dy*dy + dz*dz;
           
-          // Only include atoms that are part of the group and are local
-          if ((d_mask[j] & groupbit) && j < nlocal) {
-            const double delx = d_x(j,0) - d_x(i,0);
-            const double dely = d_x(j,1) - d_x(i,1);
-            const double delz = d_x(j,2) - d_x(i,2);
-            const double rsq = delx*delx + dely*dely + delz*delz;
-            if (rsq <= cutsq) d_row_nnz(i)++;
+          if (rsq <= cutsq) {
+            bool include = (j < nlocal) || 
+                         (d_tag[i] < d_tag[j]) ||
+                         (d_tag[i] == d_tag[j] && 
+                          (dz > EPSILON || 
+                           (fabs(dz) < EPSILON && 
+                            (dy > EPSILON || 
+                             (fabs(dy) < EPSILON && dx > EPSILON)))));
+            if (include) count++;
           }
         }
+        d_row_nnz(i) = count;
       }
     });
   
-  // Create row map from row_nnz (exclusive scan)
+  // Build proper row map with exclusive scan
   typename CRSMatrixType::row_map_type::non_const_type row_map("crs_row_map", nlocal + 1);
   
-  // Set first element to 0
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, 1),
-    KOKKOS_LAMBDA(const int) { row_map(0) = 0; });
-
-  // Exclusive scan to compute row offsets
-  Kokkos::parallel_scan(Kokkos::RangePolicy<DeviceType>(0, nlocal),
-    KOKKOS_LAMBDA(const int i, typename CRSMatrixType::size_type& update, const bool final) {
-      const typename CRSMatrixType::size_type val = d_row_nnz(i);
-      if (final) row_map(i+1) = update + val;
-      update += val;
+  Kokkos::parallel_for("InitRowMap", 1, KOKKOS_LAMBDA(const int) {
+    row_map(0) = 0;
+  });
+  
+  Kokkos::parallel_scan("BuildRowMap", Kokkos::RangePolicy<DeviceType>(0, nlocal),
+    KOKKOS_LAMBDA(const int i, typename CRSMatrixType::size_type& partial_sum, const bool final) {
+      if (final) row_map(i+1) = partial_sum + d_row_nnz(i);
+      partial_sum += d_row_nnz(i);
     });
   
-  // Get total number of nonzeros
-  typename CRSMatrixType::size_type total_nnz = 0;
+  typename CRSMatrixType::size_type total_nnz;
   Kokkos::deep_copy(total_nnz, Kokkos::subview(row_map, nlocal));
   
-  // Allocate column indices and values
+  // Allocate final storage
   typename CRSMatrixType::index_type::non_const_type columns("crs_columns", total_nnz);
   typename CRSMatrixType::values_type::non_const_type values("crs_values", total_nnz);
 
-  // Keep track of next position for each row
-  Kokkos::View<int*, DeviceType> d_row_fill("row_fill", nlocal);
-  
-  // Initialize row_fill with row_map values
-  Kokkos::parallel_for("InitFill", Kokkos::RangePolicy<DeviceType>(0, nlocal),
-    KOKKOS_LAMBDA(const int i) {
-      d_row_fill(i) = row_map(i);
-    });
-
-  // Fill in matrix entries
-  Kokkos::parallel_for("FillCRSMatrix", Kokkos::RangePolicy<DeviceType>(0, nlocal),
-    KOKKOS_LAMBDA(const int i) {
-      const int itype = d_type(i);
-      
-      // Add diagonal element first (for all atoms)
-      int pos = Kokkos::atomic_fetch_add(&d_row_fill(i), 1);
-      columns(pos) = i;
-      values(pos) = d_params(itype).eta;
-      
-      // Add off-diagonal elements only for atoms in group
+  // Fill phase - each thread fills its assigned rows
+  Kokkos::parallel_for("Fill", Kokkos::RangePolicy<DeviceType>(0, nn),
+    KOKKOS_LAMBDA(const int ii) {
+      const int i = d_ilist[ii];
       if (d_mask[i] & groupbit) {
+        const int itype = d_type(i);
+        int pos = row_map(i);
+        
+        // Diagonal first
+        columns(pos) = i;
+        values(pos) = d_params(itype).eta;
+        pos++;
+        
+        // Off-diagonal
         const int jnum = d_numneigh[i];
         for (int jj = 0; jj < jnum; jj++) {
-          int j = d_neighbors(i, jj);
-          j &= NEIGHMASK;
+          int j = d_neighbors(i, jj) & NEIGHMASK;
+          const double dx = d_x(j,0) - d_x(i,0);
+          const double dy = d_x(j,1) - d_x(i,1);
+          const double dz = d_x(j,2) - d_x(i,2);
+          const double rsq = dx*dx + dy*dy + dz*dz;
           
-          // Only include atoms that are part of the group and are local
-          if ((d_mask[j] & groupbit) && j < nlocal) {
-            const double delx = d_x(j,0) - d_x(i,0);
-            const double dely = d_x(j,1) - d_x(i,1);
-            const double delz = d_x(j,2) - d_x(i,2);
-            const double rsq = delx*delx + dely*dely + delz*delz;
+          if (rsq <= cutsq) {
+            bool include = (j < nlocal) || 
+                         (d_tag[i] < d_tag[j]) ||
+                         (d_tag[i] == d_tag[j] && 
+                          (dz > EPSILON || 
+                           (fabs(dz) < EPSILON && 
+                            (dy > EPSILON || 
+                             (fabs(dy) < EPSILON && dx > EPSILON)))));
             
-            if (rsq <= cutsq) {
+            if (include) {
               const double r = sqrt(rsq);
               const double shldij = d_shield(itype, d_type(j));
-              const double hval = calculate_H_k(r, shldij);
-              
-              // Use atomic to safely update the matrix
-              pos = Kokkos::atomic_fetch_add(&d_row_fill(i), 1);
-              
-              // Bug fix: Add buffer overflow check
-              if (pos < total_nnz) {
-                columns(pos) = j;
-                values(pos) = hval;
-              } else {
-                // Indicate overflow - in production code this would need proper handling
-                // e.g., resize buffers or abort with error message
-                // For simplicity, we ignore overflow here
-              }
+              columns(pos) = j;
+              values(pos) = calculate_H_k(r, shldij);
+              pos++;
             }
           }
         }
       }
     });
   
-  // Bug fix: Verify that matrix rows are consistent (for debugging)
-  /*
-  Kokkos::parallel_for("VerifyMatrix", Kokkos::RangePolicy<DeviceType>(0, nlocal),
-    KOKKOS_LAMBDA(const int i) {
-      if (d_row_fill(i) != row_map(i+1)) {
-        // Inconsistent row - would need proper error handling
-        // This indicates a bug in counting vs. filling nonzeros
-      }
-    });
-  */
-  
-  // Create the CRS matrix
   crs_matrix = CRSMatrixType("H_crs", nlocal, nlocal, total_nnz, values, row_map, columns);
   crs_matrix_allocated = true;
+}
+
+/* ---------------------------------------------------------------------- */
+
+
+template<class DeviceType>
+void FixQEqReaxFFKokkos<DeviceType>::sparse_matvec(t_compute_1d &in, t_compute_1d &out)
+{
+  int nlocal = atomKK->nlocal;
+  int nall = nlocal + atomKK->nghost;
+  
+  // Initialize ALL atoms to zero (including ghosts)
+  Kokkos::deep_copy(out, 0.0);
+  
+  // Apply matrix to local part
+  auto in_view = Kokkos::subview(in, std::make_pair(0, nall));
+  auto out_nlocal = Kokkos::subview(out, std::make_pair(0, nlocal));
+  
+  // Custom SpMV that can handle ghost columns
+  Kokkos::parallel_for("SpMV", Kokkos::RangePolicy<DeviceType>(0, nlocal),
+    KOKKOS_LAMBDA(const int i) {
+      const int row_start = crs_matrix.graph.row_map(i);
+      const int row_end = crs_matrix.graph.row_map(i+1);
+      
+      kk_compute sum = 0.0;
+      for (int k = row_start; k < row_end; k++) {
+        const int j = crs_matrix.graph.entries(k);
+        sum += crs_matrix.values(k) * in_view(j);
+      }
+      out_nlocal(i) = sum;
+    });
 }
 
 /* ---------------------------------------------------------------------- */
@@ -218,99 +294,6 @@ void FixQEqReaxFFKokkos<DeviceType>::update_crs_matrix_values()
           const double shldij = d_shield(itype, d_type(j));
           values(pos) = calculate_H_k(r, shldij);
         }
-      }
-    });
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixQEqReaxFFKokkos<DeviceType>::sparse_matvec(t_compute_1d &in, t_compute_1d &out)
-{
-  int nlocal = atomKK->nlocal;
-  int nall = nlocal + atomKK->nghost;
-
-  auto in_nlocal = Kokkos::subview(in, std::make_pair(0,nlocal));
-  auto out_nlocal = Kokkos::subview(out, std::make_pair(0,nlocal));
-
-  // Optimized SpMV using KokkosSparse with CRS matrix for local-local interactions
-  KokkosSparse::spmv("N",           // No transpose
-                     1.0,           // alpha
-                     crs_matrix,    // CRS matrix
-                     in_nlocal,            // x vector
-                     0.0,           // beta
-                     out_nlocal);          // y vector
-
-  auto d_x = atomKK->k_x.template view<DeviceType>();
-  auto d_mask = atomKK->k_mask.template view<DeviceType>();
-  auto d_type = atomKK->k_type.template view<DeviceType>();
-
-  // Zero ghost atom output values
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(nlocal, nall),
-    KOKKOS_LAMBDA(const int i) {
-      if (d_mask[i] & groupbit) out(i) = 0.0;
-    });
-  
-  // Optimization: Batch ghost atom calculations for better cache utilization
-  // This reduces thread divergence on GPUs
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, nn),
-    KOKKOS_LAMBDA(const int ii) {
-      const int i = d_ilist[ii];
-      if (d_mask[i] & groupbit) {
-        const int itype = d_type(i);
-        kk_compute sum_ghost = 0.0;
-        
-        // Get neighbor info
-        const int jnum = d_numneigh[i];
-        
-        // Optimization: Prefetch neighbor data
-        // Process neighbors in blocks for better memory access pattern
-        static constexpr int BLOCK_SIZE = 16; // Tunable parameter
-        
-        for (int jj = 0; jj < jnum; jj += BLOCK_SIZE) {
-          // Process a block of neighbors
-          const int block_end = MIN(jj + BLOCK_SIZE, jnum);
-          
-          // First pass: prefetch data for this block
-          for (int jb = jj; jb < block_end; jb++) {
-            const int j = d_neighbors(i, jb) & NEIGHMASK;
-            // Prefetch neighbor data if supported
-            // Note: This is architecture-dependent
-            #ifdef KOKKOS_ENABLE_CUDA
-            if (j >= nlocal) {
-              // On CUDA, use intrinsics for prefetching
-              __prefetch_global_l1(&in(j));
-              __prefetch_global_l1(&d_x(j,0));
-              __prefetch_global_l1(&d_type(j));
-            }
-            #endif
-          }
-          
-          // Second pass: actually process the block
-          for (int jb = jj; jb < block_end; jb++) {
-            const int j = d_neighbors(i, jb) & NEIGHMASK;
-            
-            // Only handle ghost atoms here
-            if (j >= nlocal && (d_mask[j] & groupbit)) {
-              const double delx = d_x(j,0) - d_x(i,0);
-              const double dely = d_x(j,1) - d_x(i,1);
-              const double delz = d_x(j,2) - d_x(i,2);
-              const double rsq = delx*delx + dely*dely + delz*delz;
-              
-              if (rsq <= cutsq) {
-                const double r = sqrt(rsq);
-                const double shldij = d_shield(itype, d_type(j));
-                const double hval = calculate_H_k(r, shldij);
-                
-                // Accumulate contribution from ghost atom
-                sum_ghost += hval * in(j);
-              }
-            }
-          }
-        }
-        
-        // Add ghost contributions to local atom - use atomic for safety
-        Kokkos::atomic_add(&out(i), sum_ghost);
       }
     });
 }
@@ -377,7 +360,13 @@ void FixQEqReaxFFKokkos<DeviceType>::cg_solve()
   if (initial_rnorm < tolerance) return;
 
   double alpha, beta, rnorm2_old;
-  
+
+  print_crs_matrix(crs_matrix);
+  print_1d_view(d_Hdia_inv, "d_Hdia_inv", nn);
+  print_1d_view(d_p, "d_p", nn);
+  print_1d_view(d_r, "d_r", nn);
+  print_1d_view(d_d, "d_d", nn);
+
   // Optimization: Allow adaptive number of iterations with convergence check
   for (int iter = 0; iter < maxiter; iter++) {
     // Compute alpha = r*d / (d*H*d)
@@ -428,3 +417,38 @@ void FixQEqReaxFFKokkos<DeviceType>::cg_solve()
       });
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxFFKokkos<DeviceType>::calculate_q()
+{
+  auto d_q = atomKK->k_q.view<DeviceType>();
+  auto d_mask = atomKK->k_mask.template view<DeviceType>();
+
+  copymode = 1;
+
+  // Update charges with the final solution
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, nn),
+    KOKKOS_LAMBDA(const int ii) {
+      const int i = d_ilist[ii];
+      if (d_mask[i] & groupbit) d_q(i) = d_s(i);  // Use s directly for charge
+    });
+
+  copymode = 0;
+
+  atomKK->modified(execution_space, Q_MASK);
+
+  print_1d_view(d_q, "d_q", nn);
+
+  // Forward communicate charges
+  pack_flag = 2;
+  comm->forward_comm(this);
+}
+
+
+
+
+
+
+

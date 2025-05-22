@@ -72,8 +72,6 @@ FixQEqReaxFFKokkos<DeviceType>::FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char *
   matrix_sparsity_initialized = false;
   crs_matrix_allocated = false;
 
-  // Extended Lagrangian parameters FIXME: make it an option
-  K = 2.0;  // recommended value from Niklasson papers
 
 }
 
@@ -84,8 +82,8 @@ FixQEqReaxFFKokkos<DeviceType>::~FixQEqReaxFFKokkos()
 {
   if (copymode) return;
   memoryKK->destroy_kokkos(k_s);
-  memoryKK->destroy_kokkos(k_theta);
-  memoryKK->destroy_kokkos(k_theta_dot);
+  //memoryKK->destroy_kokkos(k_theta);
+  //memoryKK->destroy_kokkos(k_theta_dot);
   memoryKK->destroy_kokkos(k_chi_field, chi_field);
   memoryKK->destroy_kokkos(k_o);
   memoryKK->destroy_kokkos(d_r);
@@ -101,33 +99,14 @@ template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::post_constructor()
 {
   FixQEqReaxFF::pertype_parameters(pertype_option);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixQEqReaxFFKokkos<DeviceType>::init()
-{
-  atomKK->sync(execution_space, Q_MASK);
-
-  FixQEqReaxFF::init();
-
-  // adjust neighbor list request for KOKKOS
-  neighflag = lmp->kokkos->neighflag_qeq;
-  auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
-                           !std::is_same_v<DeviceType,LMPDeviceType>);
-  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
-  if (neighflag == FULL) request->enable_full();
+  utils::logmesg(lmp, "*** post_constructor atom->nmax {}\n", atom->nmax);
 
   nmax = atom->nmax;
 
-  // chi field
-  memoryKK->create_kokkos(k_chi_field, chi_field, nmax, "qeq/reaxff/kk:chi_field");
-  d_chi_field = k_chi_field.template view<DeviceType>();
-  if (efield) get_chi_field();
-
   // extended lagrangian
+
+  // FIXME: make it an option
+  K = 2.0; // recommended value from Niklasson papers
 
   dt = update->dt;
   dt_half = 0.5 * dt;
@@ -146,6 +125,36 @@ void FixQEqReaxFFKokkos<DeviceType>::init()
 
   k_theta.template modify<LMPHostType>();
   k_theta_dot.template modify<LMPHostType>();
+
+
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxFFKokkos<DeviceType>::init()
+{
+
+  utils::logmesg(lmp, "*** init atom->nmax {}\n", atom->nmax);
+
+  atomKK->sync(execution_space, Q_MASK);
+
+  FixQEqReaxFF::init();
+
+  // adjust neighbor list request for KOKKOS
+  neighflag = lmp->kokkos->neighflag_qeq;
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
+  if (neighflag == FULL) request->enable_full();
+
+  nmax = atom->nmax;
+
+  // chi field
+  memoryKK->create_kokkos(k_chi_field, chi_field, nmax, "qeq/reaxff/kk:chi_field");
+  d_chi_field = k_chi_field.template view<DeviceType>();
+  if (efield) get_chi_field();
 
   // schur cg
 
@@ -318,6 +327,8 @@ void FixQEqReaxFFKokkos<DeviceType>::update_extended_lagrangian()
   auto d_q = atomKK->k_q.view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
 
+  copymode = 1;
+
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, nn),
     KOKKOS_LAMBDA(const int ii) {
       const int i = d_ilist[ii];
@@ -341,6 +352,8 @@ void FixQEqReaxFFKokkos<DeviceType>::update_extended_lagrangian()
     }
   });
 
+  copymode = 0;
+
   k_theta.template modify<DeviceType>();
   k_theta_dot.template modify<DeviceType>();
 }
@@ -348,28 +361,6 @@ void FixQEqReaxFFKokkos<DeviceType>::update_extended_lagrangian()
 /* ---------------------------------------------------------------------- */
 
 #include "fix_qeq_reaxff_schur_kokkos.hpp"
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixQEqReaxFFKokkos<DeviceType>::calculate_q()
-{
-  auto d_q = atomKK->k_q.view<DeviceType>();
-  auto d_mask = atomKK->k_mask.template view<DeviceType>();
-
-  // Update charges with the final solution
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, nn),
-    KOKKOS_LAMBDA(const int ii) {
-      const int i = d_ilist[ii];
-      if (d_mask[i] & groupbit) d_q(i) = d_s(i);  // Use s directly for charge
-    });
-  
-  atomKK->modified(execution_space, Q_MASK);
-
-  // Forward communicate charges
-  pack_flag = 2;
-  comm->forward_comm(this);
-}
 
 /* ---------------------------------------------------------------------- */
 

@@ -55,21 +55,6 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void copy_arrays(int, int, int) override;
   void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
 
-  // -------- Exchange --------
-
-  int pack_exchange(int, double *) override;
-  int unpack_exchange(int, double *) override;
-
-  int pack_exchange_kokkos(const int &nsend, DAT::tdual_xfloat_2d &k_buf,
-                           DAT::tdual_int_1d k_exchange_sendlist,
-                           DAT::tdual_int_1d k_copylist,
-                           ExecutionSpace space);
-
-  void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
-                              DAT::tdual_int_1d &k_indices,
-                              int nrecv, int nrecv1, int nextrarecv1,
-                              ExecutionSpace space);
-
   // -------- Forward comm --------
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
@@ -94,6 +79,21 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void unpack_reverse_comm_kokkos(int,
                                   DAT::tdual_int_1d,
                                   DAT::tdual_xfloat_1d &) override;
+
+  // -------- Exchange --------
+
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+
+  int pack_exchange_kokkos(const int &nsend, DAT::tdual_xfloat_2d &k_buf,
+                           DAT::tdual_int_1d k_exchange_sendlist,
+                           DAT::tdual_int_1d k_copylist,
+                           ExecutionSpace space);
+
+  void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+                              DAT::tdual_int_1d &k_indices,
+                              int nrecv, int nrecv1, int nextrarecv1,
+                              ExecutionSpace space);
 
  private:
   int neighflag, allocated_flag, last_allocate;

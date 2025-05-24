@@ -110,13 +110,18 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   // -------- Mixed precision --------
 
-  typedef float kk_compute;
-  typedef double kk_accumulation;
+  typedef float compute_t;
+  typedef double accumulate_t;
 
-  typedef Kokkos::DualView<kk_compute*, typename DeviceType::array_layout, DeviceType> tdual_compute_1d;
-  typedef Kokkos::DualView<kk_accumulation*, typename DeviceType::array_layout, DeviceType> tdual_accumulation_1d;
+  using Layout = typename DeviceType::array_layout;
+
+  using tdual_compute_1d = Kokkos::DualView<compute_t*, Layout, DeviceType>;
+  using tdual_accumulate_1d = Kokkos::DualView<accumulate_t*, Layout, DeviceType>;
+
   typedef typename tdual_compute_1d::t_dev t_compute_1d;
-  typedef typename tdual_accumulation_1d::t_dev t_accumulation_1d;
+  typedef typename tdual_accumulate_1d::t_dev t_accumulate_1d;
+
+  using t_compute_2d = Kokkos::View<compute_t**, Layout, DeviceType>;
 
   // -------- Extended Lagrangian --------
 
@@ -150,7 +155,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   bool matrix_sparsity_initialized, crs_matrix_allocated;
 
-  typedef KokkosSparse::CrsMatrix<kk_compute, int, DeviceType> CRSMatrixType;
+  typedef KokkosSparse::CrsMatrix<compute_t, int, DeviceType> CRSMatrixType;
   CRSMatrixType crs_matrix;
 
   KOKKOS_INLINE_FUNCTION
@@ -163,7 +168,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   // -------- Schur CG --------
 
   tdual_compute_1d k_o, k_s;
-  t_compute_1d d_o, d_s, d_r, d_p, d_d, d_Hdia_inv, d_b;
+  t_compute_1d d_o, d_s, d_t, d_r, d_p, d_d, d_Hdia_inv, d_b_s, d_b_t;
 
   void init_matvec();
   void sparse_matvec(t_compute_1d &in, t_compute_1d &out);

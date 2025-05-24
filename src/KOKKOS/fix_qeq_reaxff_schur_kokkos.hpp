@@ -19,25 +19,28 @@
 #include <iostream>
 #include <iomanip>
 #include "Kokkos_Core.hpp"
+#include "KokkosBlas1_dot.hpp"
+#include "KokkosBatched_CG.hpp"
 #include "KokkosSparse_CrsMatrix.hpp"
 
-using Scalar = double;
-using Ordinal = int;
-using Offset = size_t;
-using Layout = Kokkos::LayoutLeft;
+static constexpr double QSUMSMALL = 0.00001;
+
+//#include <iostream>
+//#include <iomanip>
 
 template<typename ViewType>
 void print_1d_view(const ViewType& view, const char* label, int max_elements = 10) {
     auto h_view = Kokkos::create_mirror_view(view);
     Kokkos::deep_copy(h_view, view);
     
-    printf("%s[%d]: ", label, (int)view.extent(0));
+    //printf("%s[%d]: ", label, (int)view.extent(0));
+    printf("%s: ", label);
     int n = std::min(max_elements, (int)view.extent(0));
     for (int i = 0; i < n; i++) {
-        printf("%10.6f ", (double)h_view(i));
+        printf("%8.6f ", (double)h_view(i));
     }
-    if (view.extent(0) > max_elements) printf("...");
-    printf("\n");
+    //if (view.extent(0) > max_elements) printf("...");
+    printf("\n\n");
 }
 
 
@@ -50,16 +53,16 @@ void print_crs_matrix(const MatrixType& matrix, const char* label = "CRS Matrix"
     printf("\n=== %s (%d x %d) ===\n", label, numRows, numCols);
     
     // Print column headers
-    printf("     ");
+    printf("    ");
     for (int j = 0; j < numCols; j++) {
-        printf("%10d ", j);
+        printf("%9d ", j);
     }
     printf("\n");
     
     // Simple host loop - let Kokkos handle device access
     for (int i = 0; i < numRows; i++) {
-        printf("%3d: ", i);
-        
+        printf("%2d: ", i);
+
         // Get sparse row view for this row
         auto row = matrix.row(i);
         
@@ -75,7 +78,7 @@ void print_crs_matrix(const MatrixType& matrix, const char* label = "CRS Matrix"
                 }
             }
             
-            printf("%10.6f ", value);
+            printf("%9.6f ", value);
         }
         printf("\n");
     }
@@ -243,7 +246,7 @@ void FixQEqReaxFFKokkos<DeviceType>::sparse_matvec(t_compute_1d &in, t_compute_1
       const int row_start = crs_matrix.graph.row_map(i);
       const int row_end = crs_matrix.graph.row_map(i+1);
       
-      kk_compute sum = 0.0;
+      compute_t sum = 0.0;
       for (int k = row_start; k < row_end; k++) {
         const int j = crs_matrix.graph.entries(k);
         sum += crs_matrix.values(k) * in_view(j);
@@ -301,24 +304,33 @@ void FixQEqReaxFFKokkos<DeviceType>::update_crs_matrix_values()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::init_matvec()
 {
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
   auto d_type = atomKK->k_type.view<DeviceType>();
 
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, nn),
+  Kokkos::parallel_for("init_matvec", Kokkos::RangePolicy<DeviceType>(0, nn),
     KOKKOS_LAMBDA(const int ii) {
       const int i = d_ilist[ii];
       const int itype = d_type(i);
       if (d_mask[i] & groupbit) {
         d_Hdia_inv[i] = 1.0 / d_params(itype).eta;
-        d_b[i] = -d_params(itype).chi - d_chi_field[i];
-        d_s(i) = d_theta(i);  // Use auxiliary charge as initial guess
-        d_o(i) = 0.0;
-        d_r(i) = 0.0;
-        d_p(i) = 0.0;
-        d_d(i) = 0.0;
+        
+        // Two separate RHS vectors
+        d_b_s(i) = -d_params(itype).chi - d_chi_field[i];
+        d_b_t(i) = -1.0;
+        
+        // Always use theta for extended Lagrangian initialization
+        if (update->ntimestep > 0) {
+          // Use theta to approximate initial s and t
+          // Since q = s - u*t and theta ≈ q, use simple initialization
+          d_s(i) = d_theta(i);
+          d_t(i) = 1.0;  // Neutral guess
+        } else {
+          // Standard initialization
+          d_s(i) = 0.0;
+          d_t(i) = 0.0;
+        }
       }
     });
 }
@@ -328,94 +340,144 @@ void FixQEqReaxFFKokkos<DeviceType>::init_matvec()
 template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::cg_solve()
 {
-  // r = b - H*s
-  sparse_matvec(d_s, d_o);  // H*s -> o
+  int nlocal = atomKK->nlocal;
+  int nall = nlocal + atomKK->nghost;
+  constexpr int nvec = 2; // s and t vectors
   
-  if (neighflag != FULL) {
-    k_o.template modify<DeviceType>();
-    comm->reverse_comm(this);
-    k_o.template sync<DeviceType>();
-  }
+  // Use reduced iterations after first timestep (extended Lagrangian always active)
+  int max_iter = (update->ntimestep > 0) ? 10 : maxiter;
 
+  // Allocate batched working arrays using compute_t
+  t_compute_2d d_sol("solution_batched", nall, nvec); // [s, t] solution vectors
+  t_compute_2d d_rhs("rhs_batched", nall, nvec);      // [b_s, b_t] RHS vectors
+  
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
-
-  // Compute initial residual
-  // r = b - o
-  // d = r * Hdia_inv (preconditioned residual)
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, nn),
+  
+  // Initialize batched system with current s, t values and standard RHS
+  Kokkos::parallel_for("init_batched_cg", Kokkos::RangePolicy<DeviceType>(0, nn),
     KOKKOS_LAMBDA(const int ii) {
       const int i = d_ilist[ii];
       if (d_mask[i] & groupbit) {
-        d_r(i) = d_b(i) - d_o(i);
-        d_d(i) = d_r(i) * d_Hdia_inv[i];
-        d_p(i) = d_d(i);  // Initial conjugate direction is same as steepest descent
+        // Set initial guess
+        d_sol(i, 0) = static_cast<compute_t>(d_s(i));  // s vector
+        d_sol(i, 1) = static_cast<compute_t>(d_t(i));  // t vector
+        
+        // Set standard RHS vectors
+        d_rhs(i, 0) = static_cast<compute_t>(d_b_s(i)); // b_s
+        d_rhs(i, 1) = static_cast<compute_t>(d_b_t(i)); // b_t
       }
     });
   
-  // Compute initial residual norm
-  double rnorm2 = KokkosBlas::dot(d_r, d_d);
-  double initial_rnorm = sqrt(rnorm2);
+  // Create diagonal preconditioner view
+  t_compute_1d d_diag_inv("diag_inv", nall);
+  Kokkos::parallel_for("setup_preconditioner", Kokkos::RangePolicy<DeviceType>(0, nn),
+    KOKKOS_LAMBDA(const int ii) {
+      const int i = d_ilist[ii];
+      if (d_mask[i] & groupbit) {
+        d_diag_inv(i) = static_cast<compute_t>(d_Hdia_inv[i]);
+      }
+    });
   
-  // Early termination if residual is already small
-  if (initial_rnorm < tolerance) return;
-
-  double alpha, beta, rnorm2_old;
-
-  print_crs_matrix(crs_matrix);
-  print_1d_view(d_Hdia_inv, "d_Hdia_inv", nn);
-  print_1d_view(d_p, "d_p", nn);
-  print_1d_view(d_r, "d_r", nn);
-  print_1d_view(d_d, "d_d", nn);
-
-  // Optimization: Allow adaptive number of iterations with convergence check
-  for (int iter = 0; iter < maxiter; iter++) {
-    // Compute alpha = r*d / (d*H*d)
-    sparse_matvec(d_p, d_o);  // H*p -> o
-
-    if (neighflag != FULL) {
-      k_o.template modify<DeviceType>();
-      comm->reverse_comm(this);
-      k_o.template sync<DeviceType>();
-    }
-
-    // Compute dHd = d·o
-    double dHd = KokkosBlas::dot(d_p, d_o);
+  // Custom matrix-vector operation functor for KokkosBatched::CG
+  struct BatchedMatVec {
+    CRSMatrixType matrix;
+    int nlocal;
+    int nall;
     
-    // Bug fix: Check for division by zero
-    if (fabs(dHd) < COMPARE_TOLERANCE) break;
+    BatchedMatVec(const CRSMatrixType& A, int nl, int na) 
+      : matrix(A), nlocal(nl), nall(na) {}
     
-    alpha = rnorm2 / dHd;
-    
-    // Update solution and residual: s += alpha*p, r -= alpha*H*p
-    rnorm2_old = rnorm2;
-    
-    // Optimization: Fuse vector operations to reduce memory access
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, nn),
-      KOKKOS_LAMBDA(const int ii) {
-        const int i = d_ilist[ii];
-        if (d_mask[i] & groupbit) {
-          d_s(i) += alpha * d_p(i);
-          d_r(i) -= alpha * d_o(i);
-          d_d(i) = d_r(i) * d_Hdia_inv[i];  // Preconditioned residual
+    KOKKOS_FUNCTION
+    void operator()(const t_compute_2d& sol, t_compute_2d& result) const {
+      // Apply matrix to each column
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, nlocal), [&](const int i) {
+        const int row_start = matrix.graph.row_map(i);
+        const int row_end = matrix.graph.row_map(i+1);
+        
+        for (int col = 0; col < sol.extent(1); col++) {
+          compute_t sum = 0.0;
+          for (int k = row_start; k < row_end; k++) {
+            const int j = matrix.graph.entries(k);
+            if (j < nall) {
+              sum = Kokkos::fma(static_cast<compute_t>(matrix.values(k)), 
+                               sol(j, col), sum);
+            }
+          }
+          result(i, col) = sum;
         }
       });
+    }
+  };
+  
+  // Custom preconditioner functor
+  struct DiagonalPreconditioner {
+    t_compute_1d diag_inv;
+    int nn_local;
     
-    // Compute new residual norm
-    rnorm2 = KokkosBlas::dot(d_r, d_d);
+    DiagonalPreconditioner(const t_compute_1d& d, int n) : diag_inv(d), nn_local(n) {}
     
-    // Check for convergence
-    if (sqrt(rnorm2) / initial_rnorm < tolerance) break;
-
-    // Compute beta = rnorm2 / rnorm2_old
-    beta = rnorm2 / rnorm2_old;
-    
-    // Update conjugate direction: p = d + beta*p
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, nn),
-      KOKKOS_LAMBDA(const int ii) {
-        const int i = d_ilist[ii];
-        if (d_mask[i] & groupbit) d_p(i) = d_d(i) + beta * d_p(i);
+    KOKKOS_FUNCTION
+    void operator()(const t_compute_2d& r, t_compute_2d& z) const {
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, nn_local), [&](const int i) {
+        for (int col = 0; col < r.extent(1); col++) {
+          z(i, col) = r(i, col) * diag_inv(i);
+        }
       });
+    }
+  };
+  
+  // Set up KokkosBatched::CG solver
+  BatchedMatVec matvec_op(crs_matrix, nlocal, nall);
+  DiagonalPreconditioner precond_op(d_diag_inv, nn);
+  
+  // CG solver parameters
+  KokkosBatched::CG::Parameters params;
+  params.max_iterations = max_iter;
+  params.tolerance = tolerance;
+  params.verbose = 0;
+  
+  // Solve batched system: A * sol = rhs for both s and t
+  int total_iter = 0;
+  auto result = KokkosBatched::CG::solve(
+    matvec_op,           // Matrix-vector operation
+    precond_op,          // Preconditioner operation  
+    d_sol,               // Solution vectors [s, t]
+    d_rhs,               // RHS vectors [b_s, b_t]
+    params               // Solver parameters
+  );
+  
+  total_iter = result.num_iterations;
+  
+  // Handle communication if needed
+  if (neighflag != FULL) {
+    // Convert back to separate views for communication
+    Kokkos::parallel_for("extract_s", Kokkos::RangePolicy<DeviceType>(0, nall),
+      KOKKOS_LAMBDA(const int i) {
+        d_s(i) = static_cast<double>(d_sol(i, 0));
+      });
+    pack_flag = 1;
+    comm->forward_comm(this);
+    
+    Kokkos::parallel_for("extract_t", Kokkos::RangePolicy<DeviceType>(0, nall),
+      KOKKOS_LAMBDA(const int i) {
+        d_t(i) = static_cast<double>(d_sol(i, 1));
+      });
+    pack_flag = 2;
+    comm->forward_comm(this);
   }
+  
+  // Convert final solution back to double precision in d_s and d_t
+  Kokkos::parallel_for("finalize_batched_cg", Kokkos::RangePolicy<DeviceType>(0, nn),
+    KOKKOS_LAMBDA(const int ii) {
+      const int i = d_ilist[ii];
+      if (d_mask[i] & groupbit) {
+        d_s(i) = static_cast<double>(d_sol(i, 0));
+        d_t(i) = static_cast<double>(d_sol(i, 1));
+      }
+    });
+
+  // FIXME: compute_scalar()
+  //return total_iter;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -426,29 +488,45 @@ void FixQEqReaxFFKokkos<DeviceType>::calculate_q()
   auto d_q = atomKK->k_q.view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
 
-  copymode = 1;
+  // Calculate sums using Kokkos reductions
+  double s_sum = 0.0, t_sum = 0.0;
+  
+  Kokkos::parallel_reduce("sum_s_t", Kokkos::RangePolicy<DeviceType>(0, nn),
+    KOKKOS_LAMBDA(const int ii, double& s_local, double& t_local) {
+      const int i = d_ilist[ii];
+      if (d_mask[i] & groupbit) {
+        s_local += d_s(i);
+        t_local += d_t(i);
+      }
+    }, s_sum, t_sum);
+  
+  double s_sum_global = 0.0, t_sum_global = 0.0;
+  MPI_Allreduce(&s_sum, &s_sum_global, 1, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(&t_sum, &t_sum_global, 1, MPI_DOUBLE, MPI_SUM, world);
+  
+  // Simple target charge implementation: modify u calculation
+  double u;
+  if (fabs(target_charge) > QSUMSMALL) {
+    // u = (sum(s) - target_charge) / sum(t) to satisfy sum(q) = target_charge
+    u = (s_sum_global - target_charge) / t_sum_global;
+  } else {
+    // Standard case: u = sum(s) / sum(t)
+    u = s_sum_global / t_sum_global;
+  }
 
-  // Update charges with the final solution
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, nn),
+  // Calculate charges: q = s - u*t
+  Kokkos::parallel_for("calculate_charges", Kokkos::RangePolicy<DeviceType>(0, nn),
     KOKKOS_LAMBDA(const int ii) {
       const int i = d_ilist[ii];
-      if (d_mask[i] & groupbit) d_q(i) = d_s(i);  // Use s directly for charge
+      if (d_mask[i] & groupbit) {
+        d_q(i) = Kokkos::fma(-u, d_t(i), d_s(i));
+      }
     });
 
-  copymode = 0;
-
   atomKK->modified(execution_space, Q_MASK);
-
-  print_1d_view(d_q, "d_q", nn);
-
+  
   // Forward communicate charges
-  pack_flag = 2;
+  pack_flag = 4;
   comm->forward_comm(this);
 }
-
-
-
-
-
-
 

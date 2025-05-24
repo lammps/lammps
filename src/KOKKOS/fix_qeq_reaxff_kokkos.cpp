@@ -82,15 +82,8 @@ FixQEqReaxFFKokkos<DeviceType>::~FixQEqReaxFFKokkos()
 {
   if (copymode) return;
   memoryKK->destroy_kokkos(k_s);
-  //memoryKK->destroy_kokkos(k_theta);
-  //memoryKK->destroy_kokkos(k_theta_dot);
   memoryKK->destroy_kokkos(k_chi_field, chi_field);
   memoryKK->destroy_kokkos(k_o);
-  memoryKK->destroy_kokkos(d_r);
-  memoryKK->destroy_kokkos(d_p);
-  memoryKK->destroy_kokkos(d_d);
-  memoryKK->destroy_kokkos(d_Hdia_inv);
-  memoryKK->destroy_kokkos(d_b);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -125,8 +118,6 @@ void FixQEqReaxFFKokkos<DeviceType>::post_constructor()
 
   k_theta.template modify<LMPHostType>();
   k_theta_dot.template modify<LMPHostType>();
-
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -134,9 +125,6 @@ void FixQEqReaxFFKokkos<DeviceType>::post_constructor()
 template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::init()
 {
-
-  utils::logmesg(lmp, "*** init atom->nmax {}\n", atom->nmax);
-
   atomKK->sync(execution_space, Q_MASK);
 
   FixQEqReaxFF::init();
@@ -167,7 +155,8 @@ void FixQEqReaxFFKokkos<DeviceType>::init()
   d_p = t_compute_1d("qeq/reaxff/kk:p", nmax);
   d_d = t_compute_1d("qeq/reaxff/kk:d", nmax);
   d_Hdia_inv = t_compute_1d("qeq/reaxff/kk:Hdia_inv", nmax);
-  d_b = t_compute_1d("qeq/reaxff/kk:b", nmax);
+  d_b_s = t_compute_1d("qeq/reaxff/kk:b_s", nmax);
+  d_b_t = t_compute_1d("qeq/reaxff/kk:b_t", nmax);
 
   // qeq parameters
 
@@ -314,7 +303,8 @@ void FixQEqReaxFFKokkos<DeviceType>::resize_views()
   Kokkos::resize(d_p, nmax);
   Kokkos::resize(d_d, nmax);
   Kokkos::resize(d_Hdia_inv, nmax);
-  Kokkos::resize(d_b, nmax);
+  Kokkos::resize(d_b_s, nmax);
+  Kokkos::resize(d_b_t, nmax);
 
 }
 
@@ -385,16 +375,16 @@ double FixQEqReaxFFKokkos<DeviceType>::memory_usage()
   double bytes = 0.0;
   
   // Extended Lagrangian variables
-  bytes += atom->nmax * sizeof(kk_compute);     // theta
-  bytes += atom->nmax * sizeof(kk_compute);     // theta_dot
+  bytes += atom->nmax * sizeof(compute_t);     // theta
+  bytes += atom->nmax * sizeof(compute_t);     // theta_dot
   
   // CG solver vectors
-  bytes += (double)atom->nmax * 6 * sizeof(kk_compute); // storage
-  
+  bytes += (double)atom->nmax * 7 * sizeof(compute_t); // storage
+
   // CRS matrix memory usage
   if (crs_matrix_allocated) {
     size_t nnz = crs_matrix.nnz();
-    bytes += nnz * sizeof(kk_compute);              // Values
+    bytes += nnz * sizeof(compute_t);              // Values
     bytes += nnz * sizeof(int);                     // Column indices
     bytes += (atomKK->nlocal + 1) * sizeof(size_t); // Row pointers
   }

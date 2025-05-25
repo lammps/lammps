@@ -15,81 +15,6 @@
    Contributing authors: Mitch Murphy (alphataubio at gmail)
 ------------------------------------------------------------------------- */
 
-/*
-   EXPLANATION OF WHY THESE FUNCTIONS ARE NEEDED:
-
-   In parallel sparse matrix-vector multiplication with half neighbor lists:
-
-   1. Each processor computes H*s for its local atoms
-   2. Due to half neighbor lists, some interactions are "owned" by processor A
-      but affect atoms owned by processor B
-   3. Processor A computes these contributions but can't directly update
-      processor B's atoms
-   4. REVERSE COMMUNICATION solves this:
-      - pack_reverse_comm: Processor A packs contributions for atoms owned by B
-      - These get sent to processor B
-      - unpack_reverse_comm: Processor B accumulates these contributions
-        into its local result
-
-   The key insight: Forward communication distributes data, reverse communication
-   accumulates results.
-
-   Example with 2 processors:
-   - Proc 0 owns atoms 1-1000, has ghosts 1001-1010
-   - Proc 1 owns atoms 1001-2000, has ghosts 991-1000
-   
-   When Proc 0 computes H*s:
-   - It computes contributions for atoms 1-1000 (local) ✓
-   - It also computes contributions for atoms 1001-1010 (ghosts)
-   - These ghost contributions must be sent back to Proc 1
-   - Proc 1 then adds these to its local computation for atoms 1001-1010
-
-  UNDERSTANDING THE MATHEMATICAL FLOW:
-
-   Think of reverse communication as solving this distributed computing problem:
-   "I computed some results that belong to atoms owned by other processors -
-   how do I get those results to where they belong and combine them properly?"
-
-   Here's the step-by-step flow during matrix-vector multiplication H*s:
-
-   1. COMPUTATION PHASE: Each processor computes H*s for its local atoms
-      - Some interactions involve ghost atoms (owned by other processors)
-      - These computations produce partial contributions for those ghost atoms
-
-   2. PACK PHASE (pack_reverse_comm_kokkos):
-      - Each processor packs up the partial contributions it computed
-      - These are contributions for atoms it doesn't own but computed interactions with
-      - Think: "Here are the partial results I computed for your atoms"
-
-   3. COMMUNICATION PHASE (handled by LAMMPS communication infrastructure):
-      - MPI sends these packed contributions to the processors that own those atoms
-      - Multiple processors might send contributions for the same atom
-
-   4. UNPACK PHASE (unpack_reverse_comm_kokkos):
-      - Each processor receives contributions for atoms it owns
-      - These contributions get ADDED together (not replaced!)
-      - Think: "I'm collecting all the partial results computed for my atoms"
-
-   The atomic_add operation is crucial because multiple processors might have
-   computed contributions for the same atom, and we need to sum them all up
-   to get the correct total contribution.
-
-   WHY LAMBDAS ARE BETTER HERE:
-
-   1. READABILITY: The logic is right there in the function, easy to understand
-   2. MAINTAINABILITY: No need to hunt through the code for operator() definitions
-   3. FLEXIBILITY: Each lambda can capture exactly what it needs
-   4. DEBUGGING: Easier to set breakpoints and inspect values
-   5. MODERN C++: Follows current best practices for Kokkos development
-
-   The named kernels ("QEq::pack_reverse_comm") help with profiling and debugging -
-   when you look at performance traces, you'll see exactly which kernels are
-   taking time.
-
-*/
-
-/* ---------------------------------------------------------------------- */
-
 template<class DeviceType>
 int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
                                                       int /*pbc_flag*/, int * /*pbc*/)
@@ -176,8 +101,6 @@ template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::unpack_forward_comm_kokkos(
     int n, int first_in, DAT::tdual_xfloat_1d &k_buf)
 {
-  // Current pack flag determines what data to unpack
-  int current_pack_flag = pack_flag;
   
   // Sync buffer
   k_buf.template sync<DeviceType>();
@@ -186,7 +109,7 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_forward_comm_kokkos(
   // Store first index (offset for ghost atoms)
   int first = first_in;
   
-  if (current_pack_flag == 1) {
+  if (pack_flag == 1) {
     // Sync s values
     k_s.template sync<DeviceType>();
     auto d_s = k_s.template view<DeviceType>();
@@ -197,7 +120,7 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_forward_comm_kokkos(
 
     // Mark as modified
     k_s.template modify<DeviceType>();
-  } else if (current_pack_flag == 2) {
+  } else if (pack_flag == 2) {
     // Sync charge values
     atomKK->sync(Device,Q_MASK);
 
@@ -427,7 +350,7 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_exchange_kokkos(
   // Sync buffer if needed based on execution space
   k_buf.template modify<DeviceType>();
   if (space == Host) k_buf.template sync<LMPHostType>();
-  else k_buf.template sync<LMPDeviceType>();
+  else k_buf.template sync<DeviceType>();
   
   // Return the number of values packed (2 per atom)
   return nsend*2;

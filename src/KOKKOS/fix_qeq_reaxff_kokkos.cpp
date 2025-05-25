@@ -372,6 +372,10 @@ void FixQEqReaxFFKokkos<DeviceType>::get_chi_field()
 template<class DeviceType>
 double FixQEqReaxFFKokkos<DeviceType>::memory_usage()
 {
+
+  // FIXME: update to latest kokkos views
+
+
   double bytes = 0.0;
   
   // Extended Lagrangian variables

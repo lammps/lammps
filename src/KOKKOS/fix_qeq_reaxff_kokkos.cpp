@@ -51,7 +51,7 @@ using namespace FixConst;
 static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
 
 // Optimization: Pre-define constants for common operations
-static constexpr double COMPARE_TOLERANCE = 1.0e-10;  // Tolerance for floating-point comparisons
+//static constexpr double COMPARE_TOLERANCE = 1.0e-10;  // Tolerance for floating-point comparisons
 
 /* ---------------------------------------------------------------------- */
 
@@ -71,8 +71,6 @@ FixQEqReaxFFKokkos<DeviceType>::FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char *
   last_allocate = -1;
   matrix_sparsity_initialized = false;
   crs_matrix_allocated = false;
-
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -155,8 +153,9 @@ void FixQEqReaxFFKokkos<DeviceType>::init()
   d_p = t_compute_1d("qeq/reaxff/kk:p", nmax);
   d_d = t_compute_1d("qeq/reaxff/kk:d", nmax);
   d_Hdia_inv = t_compute_1d("qeq/reaxff/kk:Hdia_inv", nmax);
-  d_b_s = t_compute_1d("qeq/reaxff/kk:b_s", nmax);
-  d_b_t = t_compute_1d("qeq/reaxff/kk:b_t", nmax);
+  
+  d_sol = t_compute_2d("qeq/reaxff/kk:sol", nmax, 2);
+  d_rhs = t_compute_2d("qeq/reaxff/kk:rhs", nmax, 2);
 
   // qeq parameters
 
@@ -303,8 +302,8 @@ void FixQEqReaxFFKokkos<DeviceType>::resize_views()
   Kokkos::resize(d_p, nmax);
   Kokkos::resize(d_d, nmax);
   Kokkos::resize(d_Hdia_inv, nmax);
-  Kokkos::resize(d_b_s, nmax);
-  Kokkos::resize(d_b_t, nmax);
+  Kokkos::resize(d_sol, nmax, 2);
+  Kokkos::resize(d_rhs, nmax, 2);
 
 }
 

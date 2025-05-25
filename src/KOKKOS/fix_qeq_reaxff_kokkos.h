@@ -114,7 +114,6 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   typedef double accumulate_t;
 
   using Layout = typename DeviceType::array_layout;
-
   using tdual_compute_1d = Kokkos::DualView<compute_t*, Layout, DeviceType>;
   using tdual_accumulate_1d = Kokkos::DualView<accumulate_t*, Layout, DeviceType>;
 
@@ -168,7 +167,8 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   // -------- Schur CG --------
 
   tdual_compute_1d k_o, k_s;
-  t_compute_1d d_o, d_s, d_t, d_r, d_p, d_d, d_Hdia_inv, d_b_s, d_b_t;
+  t_compute_1d d_o, d_s, d_t, d_r, d_p, d_d, d_Hdia_inv;
+  t_compute_2d d_sol, d_rhs;
 
   void init_matvec();
   void sparse_matvec(t_compute_1d &in, t_compute_1d &out);

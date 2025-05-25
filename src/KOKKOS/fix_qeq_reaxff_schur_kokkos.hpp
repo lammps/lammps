@@ -86,11 +86,6 @@ void print_crs_matrix(const MatrixType& matrix, const char* label = "CRS Matrix"
     printf("========================\n\n");
 }
 
-
-
-
-
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -226,37 +221,6 @@ void FixQEqReaxFFKokkos<DeviceType>::build_crs_matrix()
 
 /* ---------------------------------------------------------------------- */
 
-
-template<class DeviceType>
-void FixQEqReaxFFKokkos<DeviceType>::sparse_matvec(t_compute_1d &in, t_compute_1d &out)
-{
-  int nlocal = atomKK->nlocal;
-  int nall = nlocal + atomKK->nghost;
-  
-  // Initialize ALL atoms to zero (including ghosts)
-  Kokkos::deep_copy(out, 0.0);
-  
-  // Apply matrix to local part
-  auto in_view = Kokkos::subview(in, std::make_pair(0, nall));
-  auto out_nlocal = Kokkos::subview(out, std::make_pair(0, nlocal));
-  
-  // Custom SpMV that can handle ghost columns
-  Kokkos::parallel_for("SpMV", Kokkos::RangePolicy<DeviceType>(0, nlocal),
-    KOKKOS_LAMBDA(const int i) {
-      const int row_start = crs_matrix.graph.row_map(i);
-      const int row_end = crs_matrix.graph.row_map(i+1);
-      
-      compute_t sum = 0.0;
-      for (int k = row_start; k < row_end; k++) {
-        const int j = crs_matrix.graph.entries(k);
-        sum += crs_matrix.values(k) * in_view(j);
-      }
-      out_nlocal(i) = sum;
-    });
-}
-
-/* ---------------------------------------------------------------------- */
-
 template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::update_crs_matrix_values()
 {
@@ -306,6 +270,7 @@ void FixQEqReaxFFKokkos<DeviceType>::update_crs_matrix_values()
 template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::init_matvec()
 {
+  auto d_q = atomKK->k_q.template view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
   auto d_type = atomKK->k_type.view<DeviceType>();
 
@@ -314,22 +279,22 @@ void FixQEqReaxFFKokkos<DeviceType>::init_matvec()
       const int i = d_ilist[ii];
       const int itype = d_type(i);
       if (d_mask[i] & groupbit) {
-        d_Hdia_inv[i] = 1.0 / d_params(itype).eta;
-        
+        d_Hdia_inv(i) = 1.0 / d_params(itype).eta;
+
         // Two separate RHS vectors
-        d_b_s(i) = -d_params(itype).chi - d_chi_field[i];
-        d_b_t(i) = -1.0;
+        d_rhs(i, 0) = -d_params(itype).chi - d_chi_field[i];
+        d_rhs(i, 1) = -1.0;
         
         // Always use theta for extended Lagrangian initialization
         if (update->ntimestep > 0) {
           // Use theta to approximate initial s and t
           // Since q = s - u*t and theta ≈ q, use simple initialization
-          d_s(i) = d_theta(i);
-          d_t(i) = 1.0;  // Neutral guess
+          d_sol(i, 0) = d_theta(i);
+          d_sol(i, 1) = 1.0;  // Neutral guess
         } else {
           // Standard initialization
-          d_s(i) = 0.0;
-          d_t(i) = 0.0;
+          d_sol(i, 0) = d_q(i);
+          d_sol(i, 1) = 0.0;
         }
       }
     });
@@ -337,85 +302,144 @@ void FixQEqReaxFFKokkos<DeviceType>::init_matvec()
 
 /* ---------------------------------------------------------------------- */
 
+// Move this OUTSIDE of cg_solve() function - place it in the class scope
+// Use the correct template signature that KokkosBatched CG expects
+template<class DeviceType>
+struct BatchedMatVec {
+
+    typedef float compute_t;
+    // Use the actual LAMMPS types - adjust these to match your class members
+    using CRSMatrixType = KokkosSparse::CrsMatrix<compute_t, int, DeviceType>;  // or your matrix type
+    using t_compute_2d = Kokkos::View<compute_t**, typename DeviceType::array_layout, DeviceType>;
+    
+    CRSMatrixType matrix;
+    int nlocal, nall;
+
+    BatchedMatVec(const CRSMatrixType& A, int nl, int na) 
+      : matrix(A), nlocal(nl), nall(na) {}
+    
+    // Method 1: Basic apply (3 arguments) - output = A * input
+    // Use int template parameters instead of class types to avoid C++20 requirement
+    template<int TransType, int ModeType, typename MemberType>
+    KOKKOS_INLINE_FUNCTION
+    void apply(const MemberType& member, 
+               const t_compute_2d& input, 
+               t_compute_2d& output) const {
+        
+        // Use team-level parallelism for matrix-vector multiply
+        Kokkos::parallel_for(Kokkos::TeamThreadRange(member, nlocal), [&](const int i) {
+            const int row_start = matrix.graph.row_map(i);
+            const int row_end = matrix.graph.row_map(i+1);
+            
+            compute_t sum0 = 0.0;
+            compute_t sum1 = 0.0;
+            
+            for (int k = row_start; k < row_end; k++) {
+                const int j = matrix.graph.entries(k);
+                if (j < nall) {
+                    sum0 = Kokkos::fma(matrix.values(k), input(j, 0), sum0);
+                    sum1 = Kokkos::fma(matrix.values(k), input(j, 1), sum1);
+                }
+            }
+            
+            output(i, 0) = sum0;
+            output(i, 1) = sum1;
+        });
+        
+        // Synchronize team members
+        member.team_barrier();
+    }
+    
+    // Method 2: AXPY apply (5 arguments) - output = alpha * A * input + beta * output
+    template<int TransType, int ModeType, typename MemberType>
+    KOKKOS_INLINE_FUNCTION
+    void apply(const MemberType& member, 
+               const t_compute_2d& input, 
+               t_compute_2d& output,
+               const compute_t alpha,
+               const compute_t beta) const {
+        
+        // Use team-level parallelism for matrix-vector multiply with AXPY
+        Kokkos::parallel_for(Kokkos::TeamThreadRange(member, nlocal), [&](const int i) {
+            const int row_start = matrix.graph.row_map(i);
+            const int row_end = matrix.graph.row_map(i+1);
+            
+            compute_t sum0 = 0.0;
+            compute_t sum1 = 0.0;
+            
+            for (int k = row_start; k < row_end; k++) {
+                const int j = matrix.graph.entries(k);
+                if (j < nall) {
+                    sum0 = Kokkos::fma(matrix.values(k), input(j, 0), sum0);
+                    sum1 = Kokkos::fma(matrix.values(k), input(j, 1), sum1);
+                }
+            }
+            
+            // AXPY operation: output = alpha * A * input + beta * output
+            output(i, 0) = alpha * sum0 + beta * output(i, 0);
+            output(i, 1) = alpha * sum1 + beta * output(i, 1);
+        });
+        
+        // Synchronize team members
+        member.team_barrier();
+    }
+};
+
+// ALTERNATIVE APPROACH: If the template approach still fails, try this simpler version
+// that accepts any template arguments but ignores them:
+/*
+template<class DeviceType>
+struct SimpleBatchedMatVec {
+    CRSMatrixType matrix;
+    int nlocal, nall;
+
+    SimpleBatchedMatVec(const CRSMatrixType& A, int nl, int na) 
+      : matrix(A), nlocal(nl), nall(na) {}
+    
+    // Catch-all template method that accepts any template arguments
+    template<typename... Args, typename MemberType>
+    KOKKOS_INLINE_FUNCTION
+    void apply(const MemberType& member, 
+               const t_compute_2d& input, 
+               t_compute_2d& output) const {
+        // Your 3-argument matrix-vector multiply here
+    }
+    
+    template<typename... Args, typename MemberType>
+    KOKKOS_INLINE_FUNCTION  
+    void apply(const MemberType& member,
+               const t_compute_2d& input,
+               t_compute_2d& output,
+               const compute_t alpha,
+               const compute_t beta) const {
+        // Your 5-argument AXPY matrix-vector multiply here  
+    }
+};
+*/
+
+// Then in your cg_solve() function, use it like this:
+// BatchedMatVec<DeviceType> matvec_op(crs_matrix, nlocal, nall);
+
+
+
+// Then in your cg_solve() function, use it like this:
+// BatchedMatVec<DeviceType> matvec_op(crs_matrix, nlocal, nall);
+
 template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::cg_solve()
 {
   int nlocal = atomKK->nlocal;
   int nall = nlocal + atomKK->nghost;
-  constexpr int nvec = 2; // s and t vectors
-  
-  // Use reduced iterations after first timestep (extended Lagrangian always active)
-  int max_iter = (update->ntimestep > 0) ? 10 : maxiter;
 
-  // Allocate batched working arrays using compute_t
-  t_compute_2d d_sol("solution_batched", nall, nvec); // [s, t] solution vectors
-  t_compute_2d d_rhs("rhs_batched", nall, nvec);      // [b_s, b_t] RHS vectors
-  
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
-  
-  // Initialize batched system with current s, t values and standard RHS
-  Kokkos::parallel_for("init_batched_cg", Kokkos::RangePolicy<DeviceType>(0, nn),
-    KOKKOS_LAMBDA(const int ii) {
-      const int i = d_ilist[ii];
-      if (d_mask[i] & groupbit) {
-        // Set initial guess
-        d_sol(i, 0) = static_cast<compute_t>(d_s(i));  // s vector
-        d_sol(i, 1) = static_cast<compute_t>(d_t(i));  // t vector
-        
-        // Set standard RHS vectors
-        d_rhs(i, 0) = static_cast<compute_t>(d_b_s(i)); // b_s
-        d_rhs(i, 1) = static_cast<compute_t>(d_b_t(i)); // b_t
-      }
-    });
-  
-  // Create diagonal preconditioner view
-  t_compute_1d d_diag_inv("diag_inv", nall);
-  Kokkos::parallel_for("setup_preconditioner", Kokkos::RangePolicy<DeviceType>(0, nn),
-    KOKKOS_LAMBDA(const int ii) {
-      const int i = d_ilist[ii];
-      if (d_mask[i] & groupbit) {
-        d_diag_inv(i) = static_cast<compute_t>(d_Hdia_inv[i]);
-      }
-    });
-  
-  // Custom matrix-vector operation functor for KokkosBatched::CG
-  struct BatchedMatVec {
-    CRSMatrixType matrix;
-    int nlocal;
-    int nall;
-    
-    BatchedMatVec(const CRSMatrixType& A, int nl, int na) 
-      : matrix(A), nlocal(nl), nall(na) {}
-    
-    KOKKOS_FUNCTION
-    void operator()(const t_compute_2d& sol, t_compute_2d& result) const {
-      // Apply matrix to each column
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, nlocal), [&](const int i) {
-        const int row_start = matrix.graph.row_map(i);
-        const int row_end = matrix.graph.row_map(i+1);
-        
-        for (int col = 0; col < sol.extent(1); col++) {
-          compute_t sum = 0.0;
-          for (int k = row_start; k < row_end; k++) {
-            const int j = matrix.graph.entries(k);
-            if (j < nall) {
-              sum = Kokkos::fma(static_cast<compute_t>(matrix.values(k)), 
-                               sol(j, col), sum);
-            }
-          }
-          result(i, col) = sum;
-        }
-      });
-    }
-  };
-  
+
   // Custom preconditioner functor
   struct DiagonalPreconditioner {
     t_compute_1d diag_inv;
     int nn_local;
     
-    DiagonalPreconditioner(const t_compute_1d& d, int n) : diag_inv(d), nn_local(n) {}
-    
+    DiagonalPreconditioner(t_compute_1d &d, int n) : diag_inv(d), nn_local(n) {}
+
     KOKKOS_FUNCTION
     void operator()(const t_compute_2d& r, t_compute_2d& z) const {
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, nn_local), [&](const int i) {
@@ -427,28 +451,42 @@ void FixQEqReaxFFKokkos<DeviceType>::cg_solve()
   };
   
   // Set up KokkosBatched::CG solver
-  BatchedMatVec matvec_op(crs_matrix, nlocal, nall);
-  DiagonalPreconditioner precond_op(d_diag_inv, nn);
-  
+  BatchedMatVec<DeviceType> matvec_op(crs_matrix, nlocal, nall);
+  DiagonalPreconditioner precond_op(d_Hdia_inv, nn);
+
   // CG solver parameters
-  KokkosBatched::CG::Parameters params;
-  params.max_iterations = max_iter;
-  params.tolerance = tolerance;
-  params.verbose = 0;
-  
-  // Solve batched system: A * sol = rhs for both s and t
-  int total_iter = 0;
-  auto result = KokkosBatched::CG::solve(
-    matvec_op,           // Matrix-vector operation
-    precond_op,          // Preconditioner operation  
-    d_sol,               // Solution vectors [s, t]
-    d_rhs,               // RHS vectors [b_s, b_t]
-    params               // Solver parameters
-  );
-  
-  total_iter = result.num_iterations;
-  
-  // Handle communication if needed
+
+  using Layout = typename DeviceType::array_layout;
+  using NormViewType = Kokkos::View<accumulate_t**, Layout, DeviceType>;
+  using IntViewType = Kokkos::View<int*, Layout, DeviceType>;
+  using ViewType3D = Kokkos::View<compute_t***, Layout, DeviceType>;
+  using KrylovHandleType = KokkosBatched::KrylovHandle<NormViewType, IntViewType, ViewType3D>;
+  KrylovHandleType handle(2, 1, maxiter, false);
+  handle.set_max_iteration(maxiter);
+  handle.set_tolerance(tolerance);
+
+  using ExecutionSpace = typename DeviceType::execution_space;
+  using policy_type = Kokkos::TeamPolicy<ExecutionSpace>;
+  policy_type policy(2, Kokkos::AUTO());
+
+  // Use KOKKOS_LAMBDA instead of functor - much cleaner!
+  Kokkos::parallel_for("CG_Solve", policy, KOKKOS_LAMBDA(const typename policy_type::member_type& member) {
+
+    KokkosBatched::TeamCG<typename policy_type::member_type>::invoke(
+        member,
+        matvec_op,
+        d_rhs,
+        d_sol,
+        handle
+    );
+  });
+
+  // FIXME: preconditioner
+  // FIXME: int total_iter = result.num_iterations;
+
+
+/*
+ // Handle communication if needed
   if (neighflag != FULL) {
     // Convert back to separate views for communication
     Kokkos::parallel_for("extract_s", Kokkos::RangePolicy<DeviceType>(0, nall),
@@ -465,6 +503,10 @@ void FixQEqReaxFFKokkos<DeviceType>::cg_solve()
     pack_flag = 2;
     comm->forward_comm(this);
   }
+
+*/
+
+
   
   // Convert final solution back to double precision in d_s and d_t
   Kokkos::parallel_for("finalize_batched_cg", Kokkos::RangePolicy<DeviceType>(0, nn),
@@ -488,8 +530,8 @@ void FixQEqReaxFFKokkos<DeviceType>::calculate_q()
   auto d_q = atomKK->k_q.view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
 
-  // Calculate sums using Kokkos reductions
-  double s_sum = 0.0, t_sum = 0.0;
+  // Calculate local sums using Kokkos reductions
+  double s_sum_local = 0.0, t_sum_local = 0.0;
   
   Kokkos::parallel_reduce("sum_s_t", Kokkos::RangePolicy<DeviceType>(0, nn),
     KOKKOS_LAMBDA(const int ii, double& s_local, double& t_local) {
@@ -498,30 +540,25 @@ void FixQEqReaxFFKokkos<DeviceType>::calculate_q()
         s_local += d_s(i);
         t_local += d_t(i);
       }
-    }, s_sum, t_sum);
+    }, s_sum_local, t_sum_local);
   
-  double s_sum_global = 0.0, t_sum_global = 0.0;
-  MPI_Allreduce(&s_sum, &s_sum_global, 1, MPI_DOUBLE, MPI_SUM, world);
-  MPI_Allreduce(&t_sum, &t_sum_global, 1, MPI_DOUBLE, MPI_SUM, world);
-  
-  // Simple target charge implementation: modify u calculation
-  double u;
-  if (fabs(target_charge) > QSUMSMALL) {
-    // u = (sum(s) - target_charge) / sum(t) to satisfy sum(q) = target_charge
-    u = (s_sum_global - target_charge) / t_sum_global;
-  } else {
-    // Standard case: u = sum(s) / sum(t)
-    u = s_sum_global / t_sum_global;
-  }
+  // Calculate local u parameter with target charge consideration
+  double u_local = (fabs(target_charge) > QSUMSMALL) ? 
+                   (s_sum_local - target_charge) / t_sum_local :
+                   s_sum_local / t_sum_local;
 
-  // Calculate charges: q = s - u*t
+  // Calculate charges locally: q = s - u*t
   Kokkos::parallel_for("calculate_charges", Kokkos::RangePolicy<DeviceType>(0, nn),
     KOKKOS_LAMBDA(const int ii) {
       const int i = d_ilist[ii];
       if (d_mask[i] & groupbit) {
-        d_q(i) = Kokkos::fma(-u, d_t(i), d_s(i));
+        d_q(i) = Kokkos::fma(-u_local, d_t(i), d_s(i));
       }
     });
+
+  // Single MPI reduction to synchronize charges across all processes
+  double* q_ptr = d_q.data();
+  MPI_Allreduce(MPI_IN_PLACE, q_ptr, atom->nlocal, MPI_DOUBLE, MPI_SUM, world);
 
   atomKK->modified(execution_space, Q_MASK);
   
@@ -529,4 +566,3 @@ void FixQEqReaxFFKokkos<DeviceType>::calculate_q()
   pack_flag = 4;
   comm->forward_comm(this);
 }
-

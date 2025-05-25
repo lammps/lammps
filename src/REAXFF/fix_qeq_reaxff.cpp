@@ -64,6 +64,55 @@ static const char cite_fix_qeq_reaxff[] =
   " pages =   {245--259}\n"
   "}\n\n";
 
+
+void FixQEqReaxFF::print_1d_array(const double *array, const char* label, int max_elements = 10) {
+
+    //printf("%s[%d]: ", label, (int)max_elements);
+    printf("%s: ", label);
+    for (int i = 0; i < max_elements; i++) {
+        printf("%8.6f ", array[i]);
+    }
+    //if (view.extent(0) > max_elements) printf("...");
+    printf("\n\n");
+}
+
+void FixQEqReaxFF::print_sparse_matrix(sparse_matrix &H, const char* label = "H Matrix") {
+    printf("\n=== %s (%d x %d) ===\n", label, H.n, H.m);
+    
+    // Print column headers
+    printf("    ");
+    for (int j = 0; j < H.m; j++) {
+        printf("%9d ", j);
+    }
+    printf("\n");
+    
+    // Print matrix rows
+    for (int i = 0; i < H.n; i++) {
+        printf("%2d: ", i);
+
+        // Create dense row by filling from sparse data
+        for (int j = 0; j < H.m; j++) {
+            double value = 0.0;  // Default to zero
+            
+            // Look for this column in the sparse row
+            int start_idx = H.firstnbr[i];
+            int num_entries = H.numnbrs[i];
+            
+            for (int k = 0; k < num_entries; k++) {
+                int col = H.jlist[start_idx + k];
+                if (col == j) {
+                    value = H.val[start_idx + k];
+                    break;
+                }
+            }
+            
+            printf("%9.6f ", value);
+        }
+        printf("\n");
+    }
+    printf("========================\n\n");
+}
+
 /* ---------------------------------------------------------------------- */
 
 FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
@@ -648,6 +697,9 @@ void FixQEqReaxFF::init_matvec()
   /* fill-in H matrix */
   compute_H();
 
+  H.n = H.m = nn;
+  print_sparse_matrix(H);
+
   int ii, i;
 
   for (ii = 0; ii < nn; ++ii) {
@@ -781,6 +833,12 @@ int FixQEqReaxFF::CG(double *b, double *x)
   b_norm = parallel_norm(b, nn);
   sig_new = parallel_dot(r, d, nn);
 
+  print_1d_array(Hdia_inv, "Hdia_inv", nn);
+  print_1d_array(p, "p", nn);
+  print_1d_array(r, "r", nn);
+  print_1d_array(d, "d", nn);
+  print_1d_array(b, "b", nn);
+
   for (i = 1; i < maxiter && sqrt(sig_new) / b_norm > tolerance; ++i) {
     comm->forward_comm(this); //Dist_vector(d);
     sparse_matvec(&H, d, q);
@@ -871,6 +929,8 @@ void FixQEqReaxFF::calculate_Q()
       t_hist[i][0] = t[i];
     }
   }
+
+  print_1d_array(q, "q", nn);
 
   pack_flag = 4;
   comm->forward_comm(this); //Dist_vector(atom->q);
@@ -1175,3 +1235,4 @@ void FixQEqReaxFF::get_chi_field()
     }
   }
 }
+

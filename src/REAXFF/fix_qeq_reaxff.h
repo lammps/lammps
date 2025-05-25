@@ -56,6 +56,7 @@ class FixQEqReaxFF : public Fix {
 
   double compute_scalar() override;
 
+
  protected:
   int nevery, reaxflag;
   int matvecs;
@@ -88,6 +89,9 @@ class FixQEqReaxFF : public Fix {
     int *jlist;
     double *val;
   } sparse_matrix;
+
+  void print_sparse_matrix(sparse_matrix&, const char*);
+  void print_1d_array(const double*, const char*, int);
 
   sparse_matrix H;
   double *Hdia_inv;

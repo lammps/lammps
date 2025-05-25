@@ -26,4 +26,7 @@ timestep        0.5
 thermo          10
 thermo_style    custom step temp press density vol
 
-run 20
+group delete id 10:3000
+delete_atoms group delete
+
+run 0

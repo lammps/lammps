@@ -40,7 +40,7 @@ class BondFENE : public Bond {
   void *extract(const char *, int &) override;
 
  protected:
-  double *k, *r0, *epsilon, *sigma;
+  double *k, *r0, *epsilon, *sigma; *bflag
 
   virtual void allocate();
 };

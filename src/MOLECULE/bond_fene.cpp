@@ -45,6 +45,7 @@ BondFENE::~BondFENE()
     memory->destroy(r0);
     memory->destroy(epsilon);
     memory->destroy(sigma);
+    memory->destroy(bflag);
   }
 }
 
@@ -81,15 +82,24 @@ void BondFENE::compute(int eflag, int vflag)
     r0sq = r0[type] * r0[type];
     rlogarg = 1.0 - rsq / r0sq;
 
+    // if bflag is set to true:
     // if r -> r0, then rlogarg < 0.0 which is an error
     // issue a warning and reset rlogarg = epsilon
     // if r > 2*r0 something serious is wrong, abort
 
+    // if bflag is set to False:
+    // completely restrict bonds from extending past r0, do not reset rlogarg but still issue warning
+    // when rlogarg < 0.1
     if (rlogarg < 0.1) {
       error->warning(FLERR, "FENE bond too long: {} {} {} {}", update->ntimestep, atom->tag[i1],
                      atom->tag[i2], sqrt(rsq));
-      if (rlogarg <= -3.0) error->one(FLERR, "Bad FENE bond");
-      rlogarg = 0.1;
+      if (bflag[type]){
+        if (rlogarg <= -3.0) error->one(FLERR, "Bad FENE bond");
+        rlogarg = 0.1;
+      } else {
+        if (rlogarg <= 0) error->one(FLERR, "Bad FENE bond");
+      }
+
     }
 
     fbond = -k[type] / rlogarg;
@@ -139,6 +149,7 @@ void BondFENE::allocate()
   memory->create(r0, np1, "bond:r0");
   memory->create(epsilon, np1, "bond:epsilon");
   memory->create(sigma, np1, "bond:sigma");
+  memory->create(bflag, np1, "bond:bflag");
   memory->create(setflag, np1, "bond:setflag");
   for (int i = 1; i < np1; i++) setflag[i] = 0;
 }
@@ -159,6 +170,7 @@ void BondFENE::coeff(int narg, char **arg)
   double r0_one = utils::numeric(FLERR, arg[2], false, lmp);
   double epsilon_one = utils::numeric(FLERR, arg[3], false, lmp);
   double sigma_one = utils::numeric(FLERR, arg[4], false, lmp);
+  double bflag_one = utils::numeric(FLERR, arg[5], false, lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -166,6 +178,7 @@ void BondFENE::coeff(int narg, char **arg)
     r0[i] = r0_one;
     epsilon[i] = epsilon_one;
     sigma[i] = sigma_one;
+    bflag[i] = bflag_one
     setflag[i] = 1;
     count++;
   }
@@ -203,6 +216,7 @@ void BondFENE::write_restart(FILE *fp)
   fwrite(&r0[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&epsilon[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&sigma[1], sizeof(double), atom->nbondtypes, fp);
+  fwrite(&bflag[1], sizeof(double), atom->nbondtypes, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -218,11 +232,13 @@ void BondFENE::read_restart(FILE *fp)
     utils::sfread(FLERR, &r0[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &epsilon[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &sigma[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
+    utils::sfread(FLERR, &bflag[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
   }
   MPI_Bcast(&k[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&r0[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&epsilon[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&sigma[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&bflag[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
 
   for (int i = 1; i <= atom->nbondtypes; i++) setflag[i] = 1;
 }
@@ -234,7 +250,7 @@ void BondFENE::read_restart(FILE *fp)
 void BondFENE::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nbondtypes; i++)
-    fprintf(fp, "%d %g %g %g %g\n", i, k[i], r0[i], epsilon[i], sigma[i]);
+    fprintf(fp, "%d %g %g %g %g %g\n", i, k[i], r0[i], epsilon[i], sigma[i], bflag);
 }
 
 /* ---------------------------------------------------------------------- */

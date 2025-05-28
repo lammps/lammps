@@ -68,11 +68,11 @@ FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char
 
   grow_arrays(atom->nmax);
 
-  //TODO
   // for now, keep these 0 so communication uses super class methods
-  //exchange_comm_device = 1;
-  //forward_comm_device = 1;
-  //reverse_comm_device = 1;
+  // during initialization
+  // exchange_comm_device = 1;
+  // forward_comm_device = 1;
+  // reverse_comm_device = 1;
 }
 
 
@@ -81,16 +81,9 @@ FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char
 template<class DeviceType>
 FixRigidSmallKokkos<DeviceType>::~FixRigidSmallKokkos()
 {
-  // TODO: Anything?
   if (copymode) return;
 
   atomKK->sync(Host, ALL_MASK);
-  /*
-  for(int ibody = 0; ibody < nlocal_body; ibody++){
-    print_body(d_body(ibody), comm->me, ibody, atom->x);
-  }
-  fflush(stdout);
-  */
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,8 +94,6 @@ void FixRigidSmallKokkos<DeviceType>::init()
   FixRigidSmall::init();
   if (utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Cannot yet use respa with Kokkos");
-
-  // TODO: Anything else?
 }
 
 /* ----------------------------------------------------------------------
@@ -123,12 +114,12 @@ void FixRigidSmallKokkos<DeviceType>::init()
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
 {
-  atomKK->sync(Host, datamask_read); // TODO: update to device
+  atomKK->sync(Host, datamask_read);
 
   FixRigidSmall::setup_pre_neighbor();
 
-  atomKK->modified(Host, datamask_modify); // TODO: update to device
-  atomKK->sync(execution_space, datamask_read); // TODO: update to device
+  atomKK->modified(Host, datamask_modify);
+  atomKK->sync(execution_space, datamask_read);
 }
 
 /* ----------------------------------------------------------------------
@@ -139,11 +130,11 @@ void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::setup(int vflag)
 {
-  atomKK->sync(Host, datamask_read); // TODO: update to device
+  atomKK->sync(Host, datamask_read);
 
   FixRigidSmall::setup(vflag);
 
-  atomKK->modified(Host, datamask_modify); // TODO: update to device
+  atomKK->modified(Host, datamask_modify);
 
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
@@ -270,11 +261,11 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
   auto d_bodyown = this->d_bodyown;
   int nlocal_body = this->nlocal_body;
   Kokkos::parallel_reduce(
-    "pre_neighbor sanity check",
+    "fix rigid/small/kk pre_neighbor sanity check",
     Range1D(0, nlocal),
     KOKKOS_LAMBDA(const int i, int &count) {
       if (d_bodyown(i) >= 0) count++;
-#ifndef KOKKOS_ENABLE_CUDA
+#ifndef LMP_KOKKOS_GPU
       if (d_bodyown(i) >= 0 && nlocal_body==0) {
         error->one(FLERR, "atom {} has bodyown {} but no bodies", i, d_bodyown(i));
       }
@@ -287,29 +278,8 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
     computed_nlocal_body
   );
   if (nlocal_body != computed_nlocal_body) {
-    printf("rank %d nlocal_body: %d vs %d\n", comm->me, nlocal_body, computed_nlocal_body);
-    error->one(FLERR, "disagree!");
+    error->one(FLERR, "rank {} nlocal_body: {} vs {}\n", comm->me, nlocal_body, computed_nlocal_body);
   }
-  fflush(stdout);
-
-  /*
-  printf("rank %d bodytag:", comm->me);
-  for(int i = 0; i < atom->nlocal; i++){
-    if (d_bodytag(i) <= 0) continue;
-
-    printf(" %d:%d", i, d_bodytag(i));
-  }
-  printf("\n");
-  fflush(stdout);
-  printf("rank %d atom2body:", comm->me);
-  for(int i = 0; i < atom->nlocal; i++){
-    if (d_atom2body(i) < 0) continue;
-
-    printf(" %d:%d", i, d_atom2body(i));
-  }
-  printf("\n");
-  fflush(stdout);
-  */
 
   image_shift();
   Kokkos::Profiling::popRegion();
@@ -386,6 +356,7 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagInitialIntegrate, const int 
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::apply_langevin_thermostat_kokkos()
 {
+  // TODO: Test/warn
   copy_body_host();
   FixRigidSmall::apply_langevin_thermostat();
   auto h_langextra = Kokkos::create_mirror_view(d_langextra);
@@ -462,7 +433,6 @@ void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques_kokkos()
   auto d_x = atomKK->k_x.view<DeviceType>();
   auto d_f = atomKK->k_f.view<DeviceType>();
   int nlocal = atom->nlocal;
-  int nghost = atom->nghost;
 
   auto d_body = this->d_body;
 
@@ -539,9 +509,9 @@ void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques_kokkos()
 
   // add gravity force to COM of each body
 
-  // TODO
+  // TODO?
   if (id_gravity) {
-    error->all(FLERR, "gravity not implemented");
+    error->all(FLERR, "gravity not implemented for fix rigid/small/kk");
     double mass;
     for (int ibody = 0; ibody < nlocal_body; ibody++) {
       mass = body[ibody].mass;
@@ -561,8 +531,6 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::final_integrate()
 {
   Kokkos::Profiling::pushRegion("rigid/small final integrate");
-
-  //check(3);
 
   if (!earlyflag) compute_forces_and_torques_kokkos();
 
@@ -616,6 +584,7 @@ void FixRigidSmallKokkos<DeviceType>::final_integrate()
 template<class DeviceType>
 bigint FixRigidSmallKokkos<DeviceType>::dof(int tgroup)
 {
+  // TODO: check, uses atom2body etc.
   if (!setupflag) {
     int nlocal = atom->nlocal;
     copy_body_host();
@@ -922,6 +891,7 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
 
   // TODO: Optimize with parallel scan,
   // see fix shake/kk
+  // warning: would require thinking of nrecv1extra in unpack
   Kokkos::parallel_reduce(
     "fix rigid/small pack exchange",
     Range1D(0, nsend),
@@ -941,18 +911,11 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
 
         if (d_bodyown(i) < 0) {
           d_buf(m++) = 0;
-        }
-        else {
+        } else {
           d_buf(m++) = 1;
           memcpy(&d_buf(m),&d_body(d_bodyown(i)),sizeof(Body));
-        }
-        if(d_bodyown(i) >= 0){
-          // mark this slot as free for incoming bodies
           d_body(d_bodyown(i)).natoms = -1;
           n_deleted_bodies++;
-          // d_bodyown(i) = -1;
-          // d_bodytag(i) = -1;
-          // d_atom2body(i) = -1;
         }
       }
 
@@ -962,7 +925,7 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
       d_bodytag(i) = d_bodytag(j);
       d_xcmimage(i) = d_xcmimage(j);
       d_bodyown(i) = d_bodyown(j);
-#ifndef KOKKOS_ENABLE_CUDA
+#ifndef LMP_KOKKOS_GPU
       if(d_bodyown(i) >= nlocal_body){
         error->one(FLERR, "rank {} atom {} has bodyown {} but nlocal body {}",
             comm->me, i, d_bodyown(i), nlocal_body);
@@ -997,17 +960,15 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
     "fix rigid/small count bodies to move",
     Range1D(new_nlocal_body, nlocal_body),
     KOKKOS_LAMBDA(const int ibody, int &count, const bool is_final){
-      if (is_final && d_body(ibody).natoms > 0) {
-        from_indices(count) = ibody;
-        // error->message(FLERR, "rank {} needs to move body from {}, this is #{}", comm->me, ibody, count);
+      if (d_body(ibody).natoms > 0) {
+        if (is_final) {
+          from_indices(count) = ibody;
+        }
+        count++;
       }
-      if (d_body(ibody).natoms > 0) count++;
     },
     n_to_move
   );
-
-  // printf("rank %d has %d bodies, deleting %d, moving %d\n", comm->me, nlocal_body, n_deleted_bodies, n_to_move);
-  fflush(stdout);
 
 
   // count open slots, fill in corresponding body
@@ -1020,8 +981,6 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
         if (is_final) {
           copy_body(&d_body(i), &d_body(from_indices(count)));
           d_bodyown(d_body(i).ilocal) = i;
-          // error->message(FLERR, "rank {} moving body #{} from {} to {}, nlocal={}, ndeleted={}, ntomove={}", comm->me, count, from_indices(count), i, nlocal_body, n_deleted_bodies, n_to_move);
-          // fflush(stdout);
         }
         count++;
       }
@@ -1061,8 +1020,6 @@ void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_xfloat_2
   auto d_bodyown = this->d_bodyown;
   int exchange_size = this->maxexchange;
 
-  // TODO: make this parallel scan to get body indices,
-  // then do parallel_for over new bodies
   int n_new_body = 0;
   Kokkos::parallel_reduce(
     "fix rigid/small count incoming bodies",
@@ -1087,9 +1044,6 @@ void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_xfloat_2
     },
     n_new_body
   );
-
-  // printf("rank %d has %d bodies, receiving %d\n", comm->me, nlocal_body, n_new_body);
-  // fflush(stdout);
 
   while (nlocal_body + n_new_body > nmax_body) {
     grow_body();
@@ -1122,16 +1076,8 @@ void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_xfloat_2
   );
 
 
-  // error->warning(FLERR, "rank {} receiving {} bodies", comm->me, n_new_body);
   this->nlocal_body += n_new_body;
 
-  /*
-  printf("rank %d now has %d local bodies\n", comm->me, nlocal_body);
-  for(int i = 0; i < nlocal_body; i++){
-    print_body(d_body(i), comm->me, i, atom->x);
-  }
-  fflush(stdout);
-  */
   Kokkos::Profiling::popRegion();
 }
 
@@ -1158,7 +1104,6 @@ int FixRigidSmallKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_
   auto d_bodyown = this->d_bodyown;
 
   if (commflag == INITIAL) {
-    auto bodysize = this->bodysize;
     int n_body = n_body_sent[iswap];
     auto d_body_sendlist = d_body_sendlists[iswap];
     Kokkos::parallel_for("fix rigid/small pack forward comm initial",
@@ -1202,7 +1147,6 @@ int FixRigidSmallKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_
     return 29*n_body;
   }
   if (commflag == FINAL) {
-    auto bodysize = this->bodysize;
     int n_body = n_body_sent[iswap];
     auto d_body_sendlist = d_body_sendlists[iswap];
     Kokkos::parallel_for("fix rigid/small pack forward comm final",
@@ -1243,7 +1187,6 @@ int FixRigidSmallKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_
     return bodysize*n_body;
   } else if (commflag == BODY_SENDLIST) {
     int n_sent = 0;
-    // TODO: parallel_scan
     Kokkos::parallel_reduce(
       "fix rigid/small count bodies sent",
       Range1D(0, n),
@@ -1381,7 +1324,6 @@ void FixRigidSmallKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int firs
     Kokkos::Profiling::popRegion();
   } else if (commflag == BODY_SENDLIST) {
     Kokkos::Profiling::pushRegion("unpack forward body sendlist");
-    auto bodysize = this->bodysize;
     int n_curr_bodies = this->nlocal_body + this->nghost_body;
     first_body[first] = n_curr_bodies;
     int n_incoming_bodies = 0;
@@ -1415,6 +1357,7 @@ void FixRigidSmallKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int firs
   }
   Kokkos::Profiling::popRegion();
 }
+
 template<class DeviceType>
 int FixRigidSmallKokkos<DeviceType>::pack_reverse_comm_kokkos(int n, int first, DAT::tdual_xfloat_1d &k_buf)
 {

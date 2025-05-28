@@ -28,6 +28,7 @@
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
+
 template <class DeviceType>
 MLIAPDescriptorSO3Kokkos<DeviceType>::MLIAPDescriptorSO3Kokkos(LAMMPS *lmp, char *paramfilename)
  // TODO: why take self as param, shouldn't be needed
@@ -35,6 +36,14 @@ MLIAPDescriptorSO3Kokkos<DeviceType>::MLIAPDescriptorSO3Kokkos(LAMMPS *lmp, char
 {
   // TODO: the MLIAP_SO3 object likely needs a kokkos-ified version
   so3ptr_kokkos = new MLIAP_SO3Kokkos<DeviceType>(lmp, rcutfac, lmax, nmax, alpha);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class DeviceType>
+MLIAPDescriptorSO3Kokkos<DeviceType>::~MLIAPDescriptorSO3Kokkos()
+{
+  delete so3ptr_kokkos;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -48,8 +48,8 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
     error->all(FLERR,"Fix ID must be alphanumeric or underscore characters");
 
   igroup = group->find(arg[1]);
-  if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
-  groupbit = group->bitmask[igroup];
+  if (igroup == -1) error->all(FLERR,"Could not find fix {} group ID {}", arg[2], arg[1]);
+  groupbit = group->get_bitmask_by_id(FLERR, arg[1], fmt::format("fix {}",arg[2]));
 
   style = utils::strdup(arg[2]);
 
@@ -133,13 +133,13 @@ void Fix::init_flags()
 {
    if (scalar_flag && (extscalar < 0))
     error->all(FLERR, "Must set 'extscalar' when setting 'scalar_flag' for fix {}.  "
-               "Contact the developer.", style);
+               "Please contact the LAMMPS developers.{}", style, utils::errorurl(35));
   if (vector_flag && (extvector < 0) && !extlist)
     error->all(FLERR, "Must set 'extvector' or 'extlist' when setting 'vector_flag' for fix {}.  "
-               "Contact the developer.", style);
+               "Please contact the LAMMPS developers.{}", style, utils::errorurl(35));
   if (array_flag && (extarray < 0))
     error->all(FLERR, "Must set 'extarray' when setting 'array_flag' for fix {}.  "
-               "Contact the developer.", style);
+               "Please contact the LAMMPS developers.{}", style, utils::errorurl(35));
 }
 
 /* ----------------------------------------------------------------------

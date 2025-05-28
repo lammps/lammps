@@ -7,7 +7,7 @@ LAMMPS shared library through the Python `ctypes <ctypes_>`_
 module.  Because of the dynamic loading, it is required that LAMMPS is
 compiled in :ref:`"shared" mode <exe>`.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Apr2025
 
 LAMMPS currently only supports Python version 3.6 or later.
 
@@ -110,13 +110,16 @@ folder that the dynamic loader searches or inside of the installed
 
       .. code-block:: bash
 
-         python install.py -p <python package> -l <shared library> -v <version.h file> [-n]
+         python install.py -p <python package> -l <shared library> -v <version.h file> [-n] [-f]
 
       * The ``-p`` flag points to the ``lammps`` Python package folder to be installed,
       * the ``-l`` flag points to the LAMMPS shared library file to be installed,
       * the ``-v`` flag points to the LAMMPS version header file to extract the version date,
-      * and the optional ``-n`` instructs the script to only build a wheel file
-        but not attempt to install it.
+      * the optional ``-n`` instructs the script to only build a wheel file but not attempt
+        to install it,
+      * and the optional ``-f`` argument instructs the script to force installation even if
+        pip would otherwise refuse installation with an
+        :ref:`error about externally managed environments <externally_managed>`.
 
    .. tab:: Virtual environment
 
@@ -198,6 +201,10 @@ folder that the dynamic loader searches or inside of the installed
 
          The ``PYTHONPATH`` needs to point to the parent folder that contains the ``lammps`` package!
 
+In case you run into an "externally-managed-environment" error when
+trying to install the LAMMPS Python module, please refer to
+:ref:`corresponding paragraph <externally_managed>` in the Python HOWTO
+page to learn about options for handling this error.
 
 To verify if LAMMPS can be successfully started from Python, start the
 Python interpreter, load the ``lammps`` Python module and create a

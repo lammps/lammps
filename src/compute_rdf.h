@@ -41,7 +41,7 @@ class ComputeRDF : public Compute {
   double mycutneigh;       // user-specified cutoff + neighbor skin
   int ***rdfpair;          // map 2 type pair to rdf pair for each histo
   int **nrdfpair;          // # of histograms for each type pair
-  int *ilo, *ihi, *jlo, *jhi;
+  int *ilo, *ihi, *jlo, *jhi, *rev;
   double **hist;       // histogram bins
   double **histall;    // summed histogram bins across all procs
 

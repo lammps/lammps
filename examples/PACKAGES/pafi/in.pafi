@@ -9,7 +9,7 @@ read_data pafipath.4.data fix pa NULL PafiPath
 
 ## EAM potential
 pair_style    eam/fs
-pair_coeff * * ../../../../potentials/Fe_mm.eam.fs Fe
+pair_coeff * * Fe_mm.eam.fs Fe
 
 mass * 55.85
 thermo 100

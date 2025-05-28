@@ -36,7 +36,7 @@ NPairSkipRespaTemp<TRIM>::NPairSkipRespaTemp(LAMMPS *lmp) : NPair(lmp) {}
 template<int TRIM>
 void NPairSkipRespaTemp<TRIM>::build(NeighList *list)
 {
-  int i, j, ii, jj, n, itype, jnum, joriginal, n_inner, n_middle;
+  int i, j, ii, jj, n, itype, jtype, jnum, joriginal, n_inner, n_middle;
   int *neighptr, *jlist, *neighptr_inner, *neighptr_middle;
 
   int *type = atom->type;
@@ -117,7 +117,8 @@ void NPairSkipRespaTemp<TRIM>::build(NeighList *list)
     for (jj = 0; jj < jnum; jj++) {
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
-      if (!molskip && ijskip[itype][type[j]]) continue;
+      jtype = type[j];
+      if (!molskip && ijskip[itype][jtype]) continue;
       if ((molskip == NeighRequest::INTRA) && (molecule[i] != molecule[j])) continue;
       if ((molskip == NeighRequest::INTER) && (molecule[i] == molecule[j])) continue;
 
@@ -126,7 +127,9 @@ void NPairSkipRespaTemp<TRIM>::build(NeighList *list)
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
         rsq = delx * delx + dely * dely + delz * delz;
-        if (rsq > cutsq_custom) continue;
+
+        double cutsq_trim = (cutsq_custom > 0.0) ? cutsq_custom : cutneighsq[itype][jtype];
+        if (rsq > cutsq_trim) continue;
       }
 
       neighptr[n++] = joriginal;
@@ -140,7 +143,8 @@ void NPairSkipRespaTemp<TRIM>::build(NeighList *list)
     for (jj = 0; jj < jnum; jj++) {
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
-      if (!molskip && ijskip[itype][type[j]]) continue;
+      jtype = type[j];
+      if (!molskip && ijskip[itype][jtype]) continue;
       if ((molskip == NeighRequest::INTRA) && (molecule[i] != molecule[j])) continue;
       if ((molskip == NeighRequest::INTER) && (molecule[i] == molecule[j])) continue;
 
@@ -149,7 +153,9 @@ void NPairSkipRespaTemp<TRIM>::build(NeighList *list)
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
         rsq = delx * delx + dely * dely + delz * delz;
-        if (rsq > cutsq_custom) continue;
+
+        double cutsq_trim = (cutsq_custom > 0.0) ? cutsq_custom : cut_inner_sq;
+        if (rsq > cutsq_trim) continue;
       }
 
       neighptr_inner[n_inner++] = joriginal;
@@ -164,7 +170,8 @@ void NPairSkipRespaTemp<TRIM>::build(NeighList *list)
       for (jj = 0; jj < jnum; jj++) {
         joriginal = jlist[jj];
         j = joriginal & NEIGHMASK;
-        if (!molskip && ijskip[itype][type[j]]) continue;
+        jtype = type[j];
+        if (!molskip && ijskip[itype][jtype]) continue;
         if ((molskip == NeighRequest::INTRA) && (molecule[i] != molecule[j])) continue;
         if ((molskip == NeighRequest::INTER) && (molecule[i] == molecule[j])) continue;
 
@@ -173,7 +180,9 @@ void NPairSkipRespaTemp<TRIM>::build(NeighList *list)
           dely = ytmp - x[j][1];
           delz = ztmp - x[j][2];
           rsq = delx * delx + dely * dely + delz * delz;
-          if (rsq > cutsq_custom) continue;
+
+          double cutsq_trim = (cutsq_custom > 0.0) ? cutsq_custom : cut_middle_sq;
+          if (rsq > cutsq_trim) continue;
         }
 
         neighptr_middle[n_middle++] = joriginal;
@@ -184,20 +193,20 @@ void NPairSkipRespaTemp<TRIM>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     ipage_inner->vgot(n);
-    if (ipage_inner->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
+    if (ipage_inner->status()) error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
 
     if (respamiddle) {
       ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       ipage_middle->vgot(n);
-      if (ipage_middle->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
+      if (ipage_middle->status()) error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
     }
 
     inum++;

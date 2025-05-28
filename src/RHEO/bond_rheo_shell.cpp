@@ -44,7 +44,7 @@ using namespace RHEO_NS;
 /* ---------------------------------------------------------------------- */
 
 BondRHEOShell::BondRHEOShell(LAMMPS *_lmp) :
-    BondBPM(_lmp), k(nullptr), ecrit(nullptr), gamma(nullptr), dbond(nullptr), nbond(nullptr),
+    BondBPM(_lmp), k(nullptr), ecrit(nullptr), gamma(nullptr), dbond(nullptr),
     id_fix(nullptr), compute_surface(nullptr)
 {
   partial_flag = 1;
@@ -71,7 +71,6 @@ BondRHEOShell::BondRHEOShell(LAMMPS *_lmp) :
     modify->add_fix(fmt::format("{} all property/atom i_shell_nbond", id_fix));
     index_nb = atom->find_custom("shell_nbond", tmp1, tmp2);
   }
-  nbond = atom->ivector[index_nb];
 
   //Store non-persistent per atom quantities, intermediate
 
@@ -181,6 +180,7 @@ void BondRHEOShell::compute(int eflag, int vflag)
   double **v = atom->v;
   double **f = atom->f;
   tagint *tag = atom->tag;
+  int *nbond = atom->ivector[index_nb];
   int *status = atom->rheo_status;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
@@ -325,7 +325,7 @@ void BondRHEOShell::allocate()
 
 void BondRHEOShell::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (narg != 4) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -346,7 +346,7 @@ void BondRHEOShell::coeff(int narg, char **arg)
     if (1.0 + ecrit[i] > max_stretch) max_stretch = 1.0 + ecrit[i];
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

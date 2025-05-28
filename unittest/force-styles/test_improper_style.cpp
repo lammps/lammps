@@ -720,3 +720,44 @@ TEST(ImproperStyle, numdiff)
     cleanup_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 }
+
+TEST(ImproperStyle, extract)
+{
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    LAMMPS::argv args = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles are not available "
+                     "in this LAMMPS configuration:\n";
+        for (auto prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    auto *improper = lmp->force->improper;
+    void *ptr   = nullptr;
+    int dim     = 0;
+    for (auto extract : test_config.extract) {
+        ptr = improper->extract(extract.first.c_str(), dim);
+        EXPECT_NE(ptr, nullptr);
+        EXPECT_EQ(dim, extract.second);
+    }
+    ptr = improper->extract("does_not_exist", dim);
+    EXPECT_EQ(ptr, nullptr);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+}

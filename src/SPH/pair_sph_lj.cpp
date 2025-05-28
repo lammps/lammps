@@ -18,6 +18,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 
@@ -224,7 +225,7 @@ void PairSPHLJ::coeff(int narg, char **arg)
 {
   if (narg != 4)
     error->all(FLERR,
-        "Incorrect args for pair_style sph/lj coefficients");
+        "Incorrect args for pair_style sph/lj coefficients" + utils::errorurl(21));
   if (!allocated)
     allocate();
 
@@ -246,7 +247,7 @@ void PairSPHLJ::coeff(int narg, char **arg)
   }
 
   if (count == 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -256,7 +257,9 @@ void PairSPHLJ::coeff(int narg, char **arg)
 double PairSPHLJ::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
-    error->all(FLERR,"All pair sph/lj coeffs are not set");
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair sph/lj coeffs are not set. Status:\n"
+               + Info::get_pair_coeff_status(lmp));
   }
 
   cut[j][i] = cut[i][j];
@@ -264,30 +267,6 @@ double PairSPHLJ::init_one(int i, int j)
 
   return cut[i][j];
 }
-
-/*double PairSPHLJ::LJEOS2(double rho, double e, double cv) {
-
-
-  double T = e / cv;
-  if (T < 1.e-2) T = 1.e-2;
-  //printf("%f %f\n", T, rho);
-  double iT = 0.1e1 / T;
-  //double itpow1_4 = exp(0.25 * log(iT)); //pow(iT, 0.1e1 / 0.4e1);
-  double itpow1_4 = pow(iT, 0.1e1 / 0.4e1);
-  double x = rho * itpow1_4;
-  double xsq = x * x;
-  double xpow3 = xsq * x;
-  double xpow4 = xsq * xsq;
-  double xpow9 = xpow3 * xpow3 * xpow3;
-
-
-  return (0.1e1 + rho * (0.3629e1 + 0.7264e1 * x + 0.104925e2 * xsq + 0.11460e2
-      * xpow3 + 0.21760e1 * xpow9 - itpow1_4 * itpow1_4 * (0.5369e1 + 0.13160e2
-      * x + 0.18525e2 * xsq - 0.17076e2 * xpow3 + 0.9320e1 * xpow4) + iT
-      * (-0.3492e1 + 0.18698e2 * x - 0.35505e2 * xsq + 0.31816e2 * xpow3
-          - 0.11195e2 * xpow4)) * itpow1_4) * rho * T;
-}*/
-
 
 /* --------------------------------------------------------------------------------------------- */
 /* Lennard-Jones EOS,

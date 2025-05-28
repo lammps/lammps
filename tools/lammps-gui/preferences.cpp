@@ -67,6 +67,7 @@ Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
     tabWidget->addTab(new AcceleratorTab(settings, lammps), "&Accelerators");
     tabWidget->addTab(new SnapshotTab(settings), "&Snapshot Image");
     tabWidget->addTab(new EditorTab(settings), "&Editor Settings");
+    tabWidget->addTab(new ChartsTab(settings), "Cha&rts Settings");
 
     connect(buttonBox, &QDialogButtonBox::accepted, this, &Preferences::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -77,7 +78,7 @@ Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
     setLayout(layout);
     setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     setWindowTitle("LAMMPS-GUI - Preferences");
-    resize(600, 450);
+    resize(700, 500);
 }
 
 Preferences::~Preferences()
@@ -174,6 +175,9 @@ void Preferences::accept()
     spin = tabWidget->findChild<QSpinBox *>("updchart");
     if (spin) settings->setValue("updchart", spin->value());
 
+    field = tabWidget->findChild<QLineEdit *>("proxyval");
+    if (field) settings->setValue("https_proxy", field->text());
+
     if (need_relaunch) {
         QMessageBox msg(QMessageBox::Information, QString("Relaunching LAMMPS-GUI"),
                         QString("LAMMPS library plugin path was changed.\n"
@@ -203,6 +207,27 @@ void Preferences::accept()
     box = tabWidget->findChild<QCheckBox *>("savval");
     if (box) settings->setValue("autosave", box->isChecked());
     settings->endGroup();
+
+    // chart window settings
+
+    settings->beginGroup("charts");
+    field = tabWidget->findChild<QLineEdit *>("title");
+    if (field) settings->setValue("title", field->text());
+    combo = tabWidget->findChild<QComboBox *>("smoothchoice");
+    if (combo) settings->setValue("smoothchoice", combo->currentIndex());
+    combo = tabWidget->findChild<QComboBox *>("rawbrush");
+    if (combo) settings->setValue("rawbrush", combo->currentIndex());
+    combo = tabWidget->findChild<QComboBox *>("smoothbrush");
+    if (combo) settings->setValue("smoothbrush", combo->currentIndex());
+    spin = tabWidget->findChild<QSpinBox *>("smoothwindow");
+    if (spin) settings->setValue("smoothwindow", spin->value());
+    spin = tabWidget->findChild<QSpinBox *>("smoothorder");
+    if (spin) settings->setValue("smoothorder", spin->value());
+    settings->endGroup();
+    spin = tabWidget->findChild<QSpinBox *>("chartx");
+    if (spin) settings->setValue("chartx", spin->value());
+    spin = tabWidget->findChild<QSpinBox *>("charty");
+    if (spin) settings->setValue("charty", spin->value());
 
     QDialog::accept();
 }
@@ -262,7 +287,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     connect(getallfont, &QPushButton::released, this, &GeneralTab::newallfont);
     connect(gettextfont, &QPushButton::released, this, &GeneralTab::newtextfont);
 
-    auto *freqlabel = new QLabel("Data update interval (ms)");
+    auto *freqlabel = new QLabel("Data update interval (ms):");
     auto *freqval   = new QSpinBox;
     freqval->setRange(1, 1000);
     freqval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
@@ -271,7 +296,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     gridlayout->addWidget(freqlabel, 1, 0);
     gridlayout->addWidget(freqval, 1, 1);
 
-    auto *chartlabel = new QLabel("Charts update interval (ms)");
+    auto *chartlabel = new QLabel("Charts update interval (ms):");
     auto *chartval   = new QSpinBox;
     chartval->setRange(1, 5000);
     chartval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
@@ -279,6 +304,19 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     chartval->setObjectName("updchart");
     gridlayout->addWidget(chartlabel, 2, 0);
     gridlayout->addWidget(chartval, 2, 1);
+
+    auto *proxylabel = new QLabel("HTTPS proxy setting (empty for no proxy):");
+    gridlayout->addWidget(proxylabel, 3, 0);
+
+    auto https_proxy = QString::fromLocal8Bit(qgetenv("https_proxy"));
+    if (https_proxy.isEmpty()) {
+        https_proxy     = settings->value("https_proxy", "").toString();
+        auto *proxyedit = new QLineEdit(https_proxy);
+        proxyedit->setObjectName("proxyval");
+        gridlayout->addWidget(proxyedit, 3, 1);
+    } else {
+        gridlayout->addWidget(new QLabel(https_proxy), 3, 1);
+    }
 
     layout->addWidget(echo);
     layout->addWidget(cite);
@@ -606,9 +644,98 @@ EditorTab::EditorTab(QSettings *_settings, QWidget *parent) : QWidget(parent), s
     grid->addWidget(retval, i++, 1, Qt::AlignVCenter);
     grid->addWidget(autolbl, i, 0, Qt::AlignTop);
     grid->addWidget(autoval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(new QLabel(" "), i++, 0);
     grid->addWidget(savlbl, i, 0, Qt::AlignTop);
     grid->addWidget(savval, i++, 1, Qt::AlignVCenter);
 
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 0);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 1);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), i, 2);
+    setLayout(grid);
+}
+
+ChartsTab::ChartsTab(QSettings *_settings, QWidget *parent) : QWidget(parent), settings(_settings)
+{
+    auto *grid     = new QGridLayout;
+    auto *chartlbl = new QLabel("Charts default settings:");
+
+    settings->beginGroup("charts");
+    auto *titlelbl = new QLabel("Default chart title:");
+    auto *titletxt = new QLineEdit(settings->value("title", "Thermo: %f").toString());
+    auto *titlehlp = new QLabel("(use %f for current input file)");
+
+    // list of choices must be kepy in sync with list in chartviewer
+    auto *smoothlbl = new QLabel("Default plot data choice:");
+    auto *smoothval = new QComboBox;
+    smoothval->addItem("Raw");
+    smoothval->addItem("Smooth");
+    smoothval->addItem("Both");
+    smoothval->setObjectName("smoothchoice");
+    smoothval->setCurrentIndex(settings->value("smoothchoice", 2).toInt());
+
+    auto *rawbrlbl = new QLabel("Raw plot color:");
+    auto *rawbrush = new QComboBox;
+    rawbrush->addItem("Black");
+    rawbrush->addItem("Blue");
+    rawbrush->addItem("Red");
+    rawbrush->addItem("Green");
+    rawbrush->addItem("Gray");
+    rawbrush->setObjectName("rawbrush");
+    rawbrush->setCurrentIndex(settings->value("rawbrush", 1).toInt());
+
+    auto *smoothbrlbl = new QLabel("Smooth plot color:");
+    auto *smoothbrush = new QComboBox;
+    smoothbrush->addItem("Black");
+    smoothbrush->addItem("Blue");
+    smoothbrush->addItem("Red");
+    smoothbrush->addItem("Green");
+    smoothbrush->addItem("Gray");
+    smoothbrush->setObjectName("smoothbrush");
+    smoothbrush->setCurrentIndex(settings->value("smoothbrush", 2).toInt());
+
+    auto *smwindlbl = new QLabel("Default smoothing window:");
+    auto *smwindval = new QSpinBox;
+    smwindval->setRange(5, 999);
+    smwindval->setValue(settings->value("smoothwindow", 10).toInt());
+    smwindval->setObjectName("smoothwindow");
+
+    auto *smordrlbl = new QLabel("Default smoothing order:");
+    auto *smordrval = new QSpinBox;
+    smordrval->setRange(1, 20);
+    smordrval->setValue(settings->value("smoothorder", 4).toInt());
+    smordrval->setObjectName("smoothorder");
+    settings->endGroup();
+
+    auto *chartxlbl = new QLabel("Chart default width:");
+    auto *chartxval = new QSpinBox;
+    chartxval->setRange(400, 40000);
+    chartxval->setValue(settings->value("chartx", 500).toInt());
+    chartxval->setObjectName("chartx");
+    auto *chartylbl = new QLabel("Chart default height:");
+    auto *chartyval = new QSpinBox;
+    chartyval->setRange(300, 30000);
+    chartyval->setValue(settings->value("charty", 320).toInt());
+    chartyval->setObjectName("charty");
+
+    int i = 0;
+    grid->addWidget(chartlbl, i++, 0, 1, 2, Qt::AlignTop | Qt::AlignHCenter);
+    grid->addWidget(titlelbl, i, 0, Qt::AlignTop);
+    grid->addWidget(titletxt, i, 1, Qt::AlignTop);
+    grid->addWidget(titlehlp, i++, 2, Qt::AlignTop);
+    grid->addWidget(smoothlbl, i, 0, Qt::AlignTop);
+    grid->addWidget(smoothval, i++, 1, Qt::AlignTop);
+    grid->addWidget(rawbrlbl, i, 0, Qt::AlignTop);
+    grid->addWidget(rawbrush, i++, 1, Qt::AlignTop);
+    grid->addWidget(smoothbrlbl, i, 0, Qt::AlignTop);
+    grid->addWidget(smoothbrush, i++, 1, Qt::AlignTop);
+    grid->addWidget(smwindlbl, i, 0, Qt::AlignTop);
+    grid->addWidget(smwindval, i++, 1, Qt::AlignTop);
+    grid->addWidget(smordrlbl, i, 0, Qt::AlignTop);
+    grid->addWidget(smordrval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(chartxlbl, i, 0, Qt::AlignTop);
+    grid->addWidget(chartxval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(chartylbl, i, 0, Qt::AlignTop);
+    grid->addWidget(chartyval, i++, 1, Qt::AlignVCenter);
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 0);
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 1);
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), i, 2);

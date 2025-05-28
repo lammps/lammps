@@ -20,9 +20,6 @@
 
 #include <TestDefaultDeviceType_Category.hpp>
 
-template <size_t... Ds>
-using _sizes = std::integer_sequence<size_t, Ds...>;
-
 template <class>
 struct TestViewAPI;
 template <class DataType, class Layout, size_t... DynamicSizes,
@@ -60,50 +57,53 @@ using Kokkos::LayoutLeft;
 using Kokkos::LayoutRight;
 using Kokkos::LayoutStride;
 
+template <size_t... Ints>
+using IdxSeq = std::index_sequence<Ints...>;
+
 using compatible_extents_test_types = ::testing::Types<
     // LayoutLeft
-    std::tuple<int, LayoutLeft, _sizes<>, _sizes<>>,
-    std::tuple<int[5], LayoutLeft, _sizes<>, _sizes<5>>,
-    std::tuple<int*, LayoutLeft, _sizes<5>, _sizes<5>>,
-    std::tuple<int[5][10], LayoutLeft, _sizes<>, _sizes<5, 10>>,
-    std::tuple<int* [10], LayoutLeft, _sizes<5>, _sizes<5, 10>>,
-    std::tuple<int**, LayoutLeft, _sizes<5, 10>, _sizes<5, 10>>,
-    std::tuple<int[5][10][15], LayoutLeft, _sizes<>, _sizes<5, 10, 15>>,
-    std::tuple<int* [10][15], LayoutLeft, _sizes<5>, _sizes<5, 10, 15>>,
-    std::tuple<int** [15], LayoutLeft, _sizes<5, 10>, _sizes<5, 10, 15>>,
-    std::tuple<int***, LayoutLeft, _sizes<5, 10, 15>, _sizes<5, 10, 15>>,
+    std::tuple<int, LayoutLeft, IdxSeq<>, IdxSeq<>>,
+    std::tuple<int[5], LayoutLeft, IdxSeq<>, IdxSeq<5>>,
+    std::tuple<int*, LayoutLeft, IdxSeq<5>, IdxSeq<5>>,
+    std::tuple<int[5][10], LayoutLeft, IdxSeq<>, IdxSeq<5, 10>>,
+    std::tuple<int* [10], LayoutLeft, IdxSeq<5>, IdxSeq<5, 10>>,
+    std::tuple<int**, LayoutLeft, IdxSeq<5, 10>, IdxSeq<5, 10>>,
+    std::tuple<int[5][10][15], LayoutLeft, IdxSeq<>, IdxSeq<5, 10, 15>>,
+    std::tuple<int* [10][15], LayoutLeft, IdxSeq<5>, IdxSeq<5, 10, 15>>,
+    std::tuple<int** [15], LayoutLeft, IdxSeq<5, 10>, IdxSeq<5, 10, 15>>,
+    std::tuple<int***, LayoutLeft, IdxSeq<5, 10, 15>, IdxSeq<5, 10, 15>>,
     // LayoutRight
-    std::tuple<int, LayoutRight, _sizes<>, _sizes<>>,
-    std::tuple<int[5], LayoutRight, _sizes<>, _sizes<5>>,
-    std::tuple<int*, LayoutRight, _sizes<5>, _sizes<5>>,
-    std::tuple<int[5][10], LayoutRight, _sizes<>, _sizes<5, 10>>,
-    std::tuple<int* [10], LayoutRight, _sizes<5>, _sizes<5, 10>>,
-    std::tuple<int**, LayoutRight, _sizes<5, 10>, _sizes<5, 10>>,
-    std::tuple<int[5][10][15], LayoutRight, _sizes<>, _sizes<5, 10, 15>>,
-    std::tuple<int* [10][15], LayoutRight, _sizes<5>, _sizes<5, 10, 15>>,
-    std::tuple<int** [15], LayoutRight, _sizes<5, 10>, _sizes<5, 10, 15>>,
-    std::tuple<int***, LayoutRight, _sizes<5, 10, 15>, _sizes<5, 10, 15>>,
+    std::tuple<int, LayoutRight, IdxSeq<>, IdxSeq<>>,
+    std::tuple<int[5], LayoutRight, IdxSeq<>, IdxSeq<5>>,
+    std::tuple<int*, LayoutRight, IdxSeq<5>, IdxSeq<5>>,
+    std::tuple<int[5][10], LayoutRight, IdxSeq<>, IdxSeq<5, 10>>,
+    std::tuple<int* [10], LayoutRight, IdxSeq<5>, IdxSeq<5, 10>>,
+    std::tuple<int**, LayoutRight, IdxSeq<5, 10>, IdxSeq<5, 10>>,
+    std::tuple<int[5][10][15], LayoutRight, IdxSeq<>, IdxSeq<5, 10, 15>>,
+    std::tuple<int* [10][15], LayoutRight, IdxSeq<5>, IdxSeq<5, 10, 15>>,
+    std::tuple<int** [15], LayoutRight, IdxSeq<5, 10>, IdxSeq<5, 10, 15>>,
+    std::tuple<int***, LayoutRight, IdxSeq<5, 10, 15>, IdxSeq<5, 10, 15>>,
     // LayoutStride
-    std::tuple<int, LayoutStride, _sizes<>, _sizes<>>,
-    std::tuple<int[5], LayoutStride, _sizes<>, _sizes<5>>,
-    std::tuple<int*, LayoutStride, _sizes<5>, _sizes<5>>,
-    std::tuple<int[5][10], LayoutStride, _sizes<>, _sizes<5, 10>>,
-    std::tuple<int* [10], LayoutStride, _sizes<5>, _sizes<5, 10>>,
-    std::tuple<int**, LayoutStride, _sizes<5, 10>, _sizes<5, 10>>,
-    std::tuple<int[5][10][15], LayoutStride, _sizes<>, _sizes<5, 10, 15>>,
-    std::tuple<int* [10][15], LayoutStride, _sizes<5>, _sizes<5, 10, 15>>,
-    std::tuple<int** [15], LayoutStride, _sizes<5, 10>, _sizes<5, 10, 15>>,
-    std::tuple<int***, LayoutStride, _sizes<5, 10, 15>, _sizes<5, 10, 15>>,
+    std::tuple<int, LayoutStride, IdxSeq<>, IdxSeq<>>,
+    std::tuple<int[5], LayoutStride, IdxSeq<>, IdxSeq<5>>,
+    std::tuple<int*, LayoutStride, IdxSeq<5>, IdxSeq<5>>,
+    std::tuple<int[5][10], LayoutStride, IdxSeq<>, IdxSeq<5, 10>>,
+    std::tuple<int* [10], LayoutStride, IdxSeq<5>, IdxSeq<5, 10>>,
+    std::tuple<int**, LayoutStride, IdxSeq<5, 10>, IdxSeq<5, 10>>,
+    std::tuple<int[5][10][15], LayoutStride, IdxSeq<>, IdxSeq<5, 10, 15>>,
+    std::tuple<int* [10][15], LayoutStride, IdxSeq<5>, IdxSeq<5, 10, 15>>,
+    std::tuple<int** [15], LayoutStride, IdxSeq<5, 10>, IdxSeq<5, 10, 15>>,
+    std::tuple<int***, LayoutStride, IdxSeq<5, 10, 15>, IdxSeq<5, 10, 15>>,
     // Degenerated Sizes
-    std::tuple<int*, LayoutLeft, _sizes<0>, _sizes<0>>,
-    std::tuple<int* [10], LayoutLeft, _sizes<0>, _sizes<0, 10>>,
-    std::tuple<int** [15], LayoutLeft, _sizes<0, 0>, _sizes<0, 0, 15>>,
-    std::tuple<int*, LayoutRight, _sizes<0>, _sizes<0>>,
-    std::tuple<int* [10], LayoutRight, _sizes<0>, _sizes<0, 10>>,
-    std::tuple<int** [15], LayoutRight, _sizes<0, 0>, _sizes<0, 0, 15>>,
-    std::tuple<int*, LayoutStride, _sizes<0>, _sizes<0>>,
-    std::tuple<int* [10], LayoutStride, _sizes<0>, _sizes<0, 10>>,
-    std::tuple<int** [15], LayoutStride, _sizes<0, 0>, _sizes<0, 0, 15>>>;
+    std::tuple<int*, LayoutLeft, IdxSeq<0>, IdxSeq<0>>,
+    std::tuple<int* [10], LayoutLeft, IdxSeq<0>, IdxSeq<0, 10>>,
+    std::tuple<int** [15], LayoutLeft, IdxSeq<0, 0>, IdxSeq<0, 0, 15>>,
+    std::tuple<int*, LayoutRight, IdxSeq<0>, IdxSeq<0>>,
+    std::tuple<int* [10], LayoutRight, IdxSeq<0>, IdxSeq<0, 10>>,
+    std::tuple<int** [15], LayoutRight, IdxSeq<0, 0>, IdxSeq<0, 0, 15>>,
+    std::tuple<int*, LayoutStride, IdxSeq<0>, IdxSeq<0>>,
+    std::tuple<int* [10], LayoutStride, IdxSeq<0>, IdxSeq<0, 10>>,
+    std::tuple<int** [15], LayoutStride, IdxSeq<0, 0>, IdxSeq<0, 0, 15>>>;
 
 TYPED_TEST_SUITE(TestViewAPI, compatible_extents_test_types, );
 

@@ -249,6 +249,7 @@ void test_A(const bool viewsAreEqual, std::size_t numTeams, std::size_t numCols,
 
         break;
       }
+      default: Kokkos::abort("unreachable");
     }
   }
 }

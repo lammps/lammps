@@ -234,9 +234,9 @@ void PairMEAM::coeff(int narg, char **arg)
   }
   if (paridx < 0) {
     if (msmeamflag)
-      error->all(FLERR, Error::NOPOINTER, "No MS-MEAM parameter file in pair coefficients");
+      error->all(FLERR, Error::NOPOINTER, "No MS-MEAM parameter file in pair coefficients" + utils::errorurl(21));
     else
-      error->all(FLERR, Error::NOPOINTER, "No MEAM parameter file in pair coefficients");
+      error->all(FLERR, Error::NOPOINTER, "No MEAM parameter file in pair coefficients" + utils::errorurl(21));
   }
   if ((narg - paridx - 1) != atom->ntypes)
     error->all(FLERR, Error::NOPOINTER, "Expected {} but found {} args for pair style {} "
@@ -252,7 +252,7 @@ void PairMEAM::coeff(int narg, char **arg)
   }
 
   nlibelements = paridx - 3;
-  if (nlibelements < 1) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (nlibelements < 1) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (nlibelements > MAXELT)
     error->all(FLERR,
                "Too many elements extracted from MEAM library (current limit: {}). "

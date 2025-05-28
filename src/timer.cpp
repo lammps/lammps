@@ -15,7 +15,9 @@
 
 #include "comm.h"
 #include "error.h"
+#ifndef FMT_STATIC_THOUSANDS_SEPARATOR
 #include "fmt/chrono.h"
+#endif
 #include "tokenizer.h"
 
 #include <cstring>
@@ -79,8 +81,12 @@ void Timer::_stamp(enum ttype which)
     if (_level > NORMAL) current_cpu = platform::cputime();
     current_wall = platform::walltime();
 
-    cpu_array[SYNC] += current_cpu - previous_cpu;
-    wall_array[SYNC] += current_wall - previous_wall;
+    const double delta_cpu = current_cpu - previous_cpu;
+    const double delta_wall = current_wall - previous_wall;
+    cpu_array[SYNC] += delta_cpu;
+    wall_array[SYNC] += delta_wall;
+    cpu_array[ALL] += delta_cpu;
+    wall_array[ALL] += delta_wall;
     previous_cpu = current_cpu;
     previous_wall = current_wall;
   }
@@ -260,8 +266,15 @@ void Timer::modify_params(int narg, char **arg)
     // format timeout setting
     std::string timeout = "off";
     if (_timeout >= 0.0) {
+#if defined(FMT_STATIC_THOUSANDS_SEPARATOR)
+      char outstr[200];
+      struct tm *tv = gmtime(&((time_t) _timeout));
+      strftime(outstr, 200, "%02d:%M:%S", tv);
+      timeout = outstr;
+#else
       std::tm tv = fmt::gmtime((std::time_t) _timeout);
       timeout = fmt::format("{:02d}:{:%M:%S}", tv.tm_yday * 24 + tv.tm_hour, tv);
+#endif
     }
 
     utils::logmesg(lmp, "New timer settings: style={}  mode={}  timeout={}\n", timer_style[_level],

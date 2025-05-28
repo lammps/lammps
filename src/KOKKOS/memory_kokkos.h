@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -11,6 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+// clang-format off
 
 #ifndef LMP_MEMORY_KOKKOS_H
 #define LMP_MEMORY_KOKKOS_H
@@ -35,8 +35,7 @@ class MemoryKokkos : public Memory {
 ------------------------------------------------------------------------- */
 
 template <typename TYPE>
-TYPE create_kokkos(TYPE &data, typename TYPE::value_type *&array,
-                   int n1, const char *name)
+TYPE create_kokkos(TYPE &data, typename TYPE::value_type *&array, int n1, const char *name)
 {
   data = TYPE(name,n1);
   array = data.h_view.data();
@@ -44,8 +43,7 @@ TYPE create_kokkos(TYPE &data, typename TYPE::value_type *&array,
 }
 
 template <typename TYPE, typename HTYPE>
-  TYPE create_kokkos(TYPE &data, HTYPE &h_data,
-                     typename TYPE::value_type *&array, int n1,
+  TYPE create_kokkos(TYPE &data, HTYPE &h_data, typename TYPE::value_type *&array, int n1,
                      const char *name)
 {
   data = TYPE(std::string(name),n1);
@@ -56,8 +54,7 @@ template <typename TYPE, typename HTYPE>
 
 
 template <typename TYPE, typename HTYPE>
-  TYPE create_kokkos(TYPE &data, HTYPE &h_data,
-                     int n1, const char *name)
+  TYPE create_kokkos(TYPE &data, HTYPE &h_data, int n1, const char *name)
 {
   data = TYPE(std::string(name),n1);
   h_data = Kokkos::create_mirror_view(data);
@@ -69,8 +66,7 @@ template <typename TYPE, typename HTYPE>
 ------------------------------------------------------------------------- */
 
 template <typename TYPE>
-TYPE grow_kokkos(TYPE &data, typename TYPE::value_type *&array,
-                 int n1, const char *name)
+TYPE grow_kokkos(TYPE &data, typename TYPE::value_type *&array, int n1, const char *name)
 {
   if (array == nullptr) return create_kokkos(data,array,n1,name);
 
@@ -96,12 +92,11 @@ void destroy_kokkos(TYPE data, typename TYPE::value_type* &array)
 ------------------------------------------------------------------------- */
 
 template <typename TYPE, typename HTYPE>
-  TYPE create_kokkos(TYPE &data, HTYPE &h_data, int n1, int n2,
-                     const char *name)
+  TYPE create_kokkos(TYPE &data, HTYPE &h_data, int n1, int n2, const char *name)
 {
   data = TYPE(std::string(name),n1,n2);
   h_data = Kokkos::create_mirror_view(data);
-  //printf(">>> name: %s\n", name);
+
   return data;
 }
 
@@ -112,7 +107,6 @@ TYPE create_kokkos(TYPE &data, typename TYPE::value_type **&array,
   data = TYPE(std::string(name),n1,n2);
   bigint nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n1;
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
-  //printf(">>> name %s nbytes %d\n", name, nbytes);
 
   for (int i = 0; i < n1; i++) {
     if (n2 == 0)

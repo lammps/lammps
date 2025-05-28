@@ -31,13 +31,14 @@ Syntax
 
   .. parsed-literal::
 
-       *type* arg = *auto* or *upper* or *lower* or *auto/upper* or *auto/lower* or *full*
+       *type* arg = *auto* or *upper* or *lower* or *auto/upper* or *auto/lower* or *full* or *first*
          auto = correlate each value with itself
          upper = correlate each value with each succeeding value
          lower = correlate each value with each preceding value
          auto/upper = auto + upper
          auto/lower = auto + lower
          full = correlate each value with every other value, including itself = auto + upper + lower
+         first = correlate each value with the first value
        *start* args = Nstart
          Nstart = start accumulating correlations on this time step
        *file* arg = filename

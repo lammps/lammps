@@ -475,9 +475,13 @@ beginners to start with LAMMPS, it is also the expectation that
 LAMMPS-GUI users will eventually transition to workflows that most
 experienced LAMMPS users employ.
 
-All features have been extensively exposed to keyboard shortcuts, so
-that there is also appeal for experienced LAMMPS users for prototyping
-and testing simulation setups.
+.. image:: JPG/lammps-gui-screen.png
+   :align: center
+   :scale: 50%
+
+Features have been extensively exposed to keyboard shortcuts, so that
+there is also appeal for experienced LAMMPS users for prototyping and
+testing simulation setups.
 
 Features
 ^^^^^^^^
@@ -502,7 +506,7 @@ Here are a few highlights of LAMMPS-GUI
 - Visualization of current state in Image Viewer (via calling :doc:`write_dump image <dump_image>`)
 - Capture of images created via :doc:`dump image <dump_image>` in Slide show window
 - Dialog to set variables, similar to the LAMMPS command-line flag '-v' / '-var'
-- Support for GPU, INTEL, KOKKOS/OpenMP, OPENMAP, and OPT and accelerator packages
+- Support for GPU, INTEL, KOKKOS/OpenMP, OPENMP, and OPT accelerator packages
 
 Parallelization
 ^^^^^^^^^^^^^^^
@@ -523,8 +527,8 @@ with CMake is required.
 The LAMMPS-GUI has been successfully compiled and tested on:
 
 - Ubuntu Linux 20.04LTS x86_64 using GCC 9, Qt version 5.12
-- Fedora Linux 40 x86\_64 using GCC 14 and Clang 17, Qt version 5.15LTS
-- Fedora Linux 40 x86\_64 using GCC 14, Qt version 6.7
+- Fedora Linux 41 x86\_64 using GCC 14 and Clang 17, Qt version 5.15LTS
+- Fedora Linux 41 x86\_64 using GCC 14, Qt version 6.8
 - Apple macOS 12 (Monterey) and macOS 13 (Ventura) with Xcode on arm64 and x86\_64, Qt version 5.15LTS
 - Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.36, Qt version 5.15LTS
 - Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.40, Qt version 6.7
@@ -930,7 +934,7 @@ dependencies and redirects the download to the local cache.
 
    mkdir build
    cd build
-   cmake -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C ../cmake/presets/most.cmake ../cmake
+   cmake -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C ../cmake/presets/most.cmake -D DOWNLOAD_POTENTIALS=off ../cmake
    make -j 8
 
    deactivate_caches
@@ -1250,10 +1254,10 @@ tabulate tool
 
 .. versionadded:: 22Dec2022
 
-The ``tabulate`` folder contains Python scripts scripts to generate tabulated
-potential files for LAMMPS.  The bulk of the code is in the ``tabulate`` module
-in the ``tabulate.py`` file.  Some example files demonstrating its use are
-included.  See the README file for more information.
+The ``tabulate`` folder contains Python scripts scripts to generate and
+visualize tabulated potential files for LAMMPS.  The bulk of the code is in the
+``tabulate`` module in the ``tabulate.py`` file.  Some example files
+demonstrating its use are included.  See the README file for more information.
 
 ----------
 
@@ -1276,11 +1280,13 @@ Those scripts were written by Steve Plimpton sjplimp at gmail.com
 valgrind tool
 -------------
 
-The ``valgrind`` folder contains additional suppressions fur LAMMPS when using
-valgrind's memcheck tool to search for memory access violation and memory
-leaks. These suppressions are automatically invoked when running tests through
-CMake "ctest -T memcheck". See the provided README file to add these
-suppressions when running LAMMPS.
+The ``valgrind`` folder contains additional suppressions for LAMMPS when
+using `valgrind's <https://valgrind.org/>`_ ` `memcheck tool
+<https://valgrind.org/info/tools.html#memcheck>`_ to search for memory
+access violation and memory leaks.  These suppressions are automatically
+invoked when running tests through CMake "ctest -T memcheck".  See the
+instruction in the ``README`` file to add these suppressions when using
+valgrind with LAMMPS or other programs.
 
 ----------
 

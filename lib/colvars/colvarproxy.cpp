@@ -243,7 +243,7 @@ void colvarproxy_atom_groups::compute_max_atom_groups_applied_force()
 
 colvarproxy_smp::colvarproxy_smp()
 {
-  b_smp_active = true; // May be disabled by user option
+  smp_mode = smp_mode_t::cvcs; // May be disabled by user option
   omp_lock_state = NULL;
 #if defined(_OPENMP)
   if (omp_get_thread_num() == 0) {
@@ -265,41 +265,45 @@ colvarproxy_smp::~colvarproxy_smp()
 #endif
 }
 
-
-int colvarproxy_smp::check_smp_enabled()
-{
+colvarproxy::smp_mode_t colvarproxy_smp::get_smp_mode() const {
 #if defined(_OPENMP)
-  if (b_smp_active) {
-    return COLVARS_OK;
-  }
-  return COLVARS_ERROR;
+  return smp_mode;
 #else
-  return COLVARS_NOT_IMPLEMENTED;
+  return colvarproxy::smp_mode_t::none;
+#endif
+}
+
+int colvarproxy_smp::set_smp_mode(smp_mode_t mode) {
+#if defined(_OPENMP)
+  smp_mode = mode;
+  return COLVARS_OK;
+#else
+  if (mode != colvarproxy::smp_mode_t::none) {
+    return COLVARS_NOT_IMPLEMENTED;
+  } else {
+    smp_mode = colvarproxy::smp_mode_t::none;
+  }
+  return COLVARS_OK;
 #endif
 }
 
 
-int colvarproxy_smp::smp_colvars_loop()
+int colvarproxy_smp::smp_loop(int n_items, std::function<int (int)> const &worker)
 {
+  int error_code = COLVARS_OK;
 #if defined(_OPENMP)
-  colvarmodule *cv = cvm::main();
-  colvarproxy *proxy = cv->proxy;
+  cvm::increase_depth();
 #pragma omp parallel for
-  for (int i = 0; i < static_cast<int>(cv->variables_active_smp()->size()); i++) {
-    colvar *x = (*(cv->variables_active_smp()))[i];
-    int x_item = (*(cv->variables_active_smp_items()))[i];
-    if (cvm::debug()) {
-      cvm::log("["+cvm::to_str(proxy->smp_thread_id())+"/"+
-               cvm::to_str(proxy->smp_num_threads())+
-               "]: calc_colvars_items_smp(), i = "+cvm::to_str(i)+", cv = "+
-               x->name+", cvc = "+cvm::to_str(x_item)+"\n");
-    }
-    x->calc_cvcs(x_item, 1);
+  for (int i = 0; i < n_items; i++) {
+    int const retcode = worker(i);
+#pragma omp atomic
+    error_code |= retcode;
   }
-  return cvm::get_error();
+  cvm::decrease_depth();
 #else
-  return COLVARS_NOT_IMPLEMENTED;
+  error_code |= COLVARS_NOT_IMPLEMENTED;
 #endif
+  return error_code;
 }
 
 
@@ -470,8 +474,8 @@ colvarproxy::~colvarproxy()
 
 bool colvarproxy::io_available()
 {
-  return (check_smp_enabled() == COLVARS_OK && smp_thread_id() == 0) ||
-    (check_smp_enabled() != COLVARS_OK);
+  return ((get_smp_mode() != smp_mode_t::none) && smp_thread_id() == 0) ||
+    (get_smp_mode() == smp_mode_t::none);
 }
 
 

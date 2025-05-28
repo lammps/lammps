@@ -23,18 +23,9 @@
 
 #include <Kokkos_Macros.hpp>
 
-// Intel C++ Compiler Classic version 2021.2.0 works but 2021.1.2 doesn't
-// Both have __INTEL_COMPILER defined to 2021 so using
-// __INTEL_COMPILER_BUILD_DATE to discriminate.
-// Experimenting on the compiler explorer gave
-//     icc version | __INTEL_COMPILER | __INTEL_COMPILER_BUILD_DATE
-//     2021.1.2    | 2021             | 20201208
-//     2021.2.0    | 2021             | 20210228
 // NVCC versions less than 11.3.0 segfault when that header is included
 // NVCC+MSVC doesn't work at all - it simply reports "T" inside type_name
-#if (!defined(KOKKOS_COMPILER_INTEL) ||                                   \
-     (__INTEL_COMPILER_BUILD_DATE >= 20210228)) &&                        \
-    (!defined(KOKKOS_COMPILER_NVCC) || (KOKKOS_COMPILER_NVCC >= 1130)) && \
+#if (!defined(KOKKOS_COMPILER_NVCC) || (KOKKOS_COMPILER_NVCC >= 1130)) && \
     (!(defined(KOKKOS_COMPILER_NVCC) && defined(KOKKOS_COMPILER_MSVC)))
 
 #define KOKKOS_ENABLE_IMPL_TYPEINFO

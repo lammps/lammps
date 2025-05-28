@@ -23,6 +23,7 @@
 #include "error.h"
 #include "fix.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
@@ -275,7 +276,7 @@ void PairDPDfdt::settings(int narg, char **arg)
 
 void PairDPDfdt::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -301,7 +302,7 @@ void PairDPDfdt::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -332,7 +333,9 @@ void PairDPDfdt::init_style()
 
 double PairDPDfdt::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   cut[j][i] = cut[i][j];
   a0[j][i] = a0[i][j];

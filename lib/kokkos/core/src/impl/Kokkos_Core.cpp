@@ -328,7 +328,7 @@ int Kokkos::Impl::get_ctest_gpu(int local_rank) {
   }
 
   auto const* comma = std::strchr(resource_str, ',');
-  if (!comma || strncmp(resource_str, "id:", 3)) {
+  if (!comma || strncmp(resource_str, "id:", 3) != 0) {
     std::ostringstream ss;
     ss << "Error: invalid value of " << ctest_resource_group_id_name << ": '"
        << resource_str << "'. Raised by Kokkos::Impl::get_ctest_gpu().";
@@ -513,11 +513,6 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
                                  std::to_string(KOKKOS_COMPILER_GNU));
   declare_configuration_metadata("tools_only", "compiler_family", "gnu");
 #endif
-#ifdef KOKKOS_COMPILER_INTEL
-  declare_configuration_metadata("compiler_version", "KOKKOS_COMPILER_INTEL",
-                                 std::to_string(KOKKOS_COMPILER_INTEL));
-  declare_configuration_metadata("tools_only", "compiler_family", "intel");
-#endif
 #ifdef KOKKOS_COMPILER_INTEL_LLVM
   declare_configuration_metadata("compiler_version",
                                  "KOKKOS_COMPILER_INTEL_LLVM",
@@ -629,6 +624,9 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
 #elif defined(KOKKOS_ARCH_ARMV8_THUNDERX2)
   declare_configuration_metadata("architecture", "CPU architecture",
                                  "ARMV8_THUNDERX2");
+#elif defined(KOKKOS_ARCH_ARMV9_GRACE)
+  declare_configuration_metadata("architecture", "CPU architecture",
+                                 "ARMV9_GRACE");
 #elif defined(KOKKOS_ARCH_BDW)
   declare_configuration_metadata("architecture", "CPU architecture", "BDW");
 #elif defined(KOKKOS_ARCH_HSW)
@@ -663,6 +661,9 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
 #elif defined(KOKKOS_ARCH_AMD_ZEN3)
   declare_configuration_metadata("architecture", "CPU architecture",
                                  "AMD_ZEN3");
+#elif defined(KOKKOS_ARCH_AMD_ZEN4)
+  declare_configuration_metadata("architecture", "CPU architecture",
+                                 "AMD_ZEN4");
 #elif defined(KOKKOS_ARCH_RISCV_SG2042)
   declare_configuration_metadata("architecture", "CPU architecture",
                                  "SG2042 (RISC-V)")
@@ -738,17 +739,17 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
 #elif defined(KOKKOS_ARCH_ADA89)
   declare_configuration_metadata("architecture", "GPU architecture", "ADA89");
 #elif defined(KOKKOS_ARCH_HOPPER90)
-      declare_configuration_metadata("architecture", "GPU architecture",
-                                     "HOPPER90");
+  declare_configuration_metadata("architecture", "GPU architecture",
+                                 "HOPPER90");
 #elif defined(KOKKOS_ARCH_AMD_GFX906)
-      declare_configuration_metadata("architecture", "GPU architecture",
-                                     "AMD_GFX906");
+  declare_configuration_metadata("architecture", "GPU architecture",
+                                 "AMD_GFX906");
 #elif defined(KOKKOS_ARCH_AMD_GFX908)
-  declare_configuration_metadata("architecture", "GPU architecture",
-                                 "AMD_GFX908");
+      declare_configuration_metadata("architecture", "GPU architecture",
+                                     "AMD_GFX908");
 #elif defined(KOKKOS_ARCH_AMD_GFX90A)
-  declare_configuration_metadata("architecture", "GPU architecture",
-                                 "AMD_GFX90A");
+      declare_configuration_metadata("architecture", "GPU architecture",
+                                     "AMD_GFX90A");
 #elif defined(KOKKOS_ARCH_AMD_GFX1030)
   declare_configuration_metadata("architecture", "GPU architecture",
                                  "AMD_GFX1030");
@@ -1099,9 +1100,6 @@ void Kokkos::finalize() {
   post_finalize_internal();
 }
 
-#ifdef KOKKOS_COMPILER_INTEL
-void Kokkos::fence() { fence("Kokkos::fence: Unnamed Global Fence"); }
-#endif
 void Kokkos::fence(const std::string& name) { fence_internal(name); }
 
 namespace {

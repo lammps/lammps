@@ -32,13 +32,14 @@ Syntax
 
   .. parsed-literal::
 
-       *type* arg = *auto* or *upper* or *lower* or *auto/upper* or *auto/lower* or *full*
+       *type* arg = *auto* or *upper* or *lower* or *auto/upper* or *auto/lower* or *full* or *first*
          auto = correlate each value with itself
          upper = correlate each value with each succeeding value
          lower = correlate each value with each preceding value
          auto/upper = auto + upper
          auto/lower = auto + lower
          full = correlate each value with every other value, including itself = auto + upper + lower
+         first = correlate each value with the first value
        *ave* args = *one* or *running*
          one = zero the correlation accumulation every Nfreq steps
          running = accumulate correlations continuously
@@ -257,6 +258,9 @@ time.
 * If *type* is set to *full* then each input value is correlated with
   itself and every other value (i.e., :math:`C_{ij} = V_i V_j` for
   :math:`\{i,j\} = \{1,N\}`, so :math:`N_\text{pair} = N^2`).
+* If *type* is set to *first* then each input value is correlated with
+  the first input value (i.e., :math:`C_{ij} = V_1 V_j` for
+  :math:`\{j\} = \{1,N\}`, so :math:`N_\text{pair} = N`).
 
 The *ave* keyword determines what happens to the accumulation of correlation
 samples every :math:`N_\text{freq}` timesteps.  If the *ave* setting is *one*,
@@ -369,6 +373,8 @@ above.
 * For *type* = *full*, the :math:`N_\text{pair} = N^2` columns are ordered:
   :math:`C_{11}, C_{12}, \dotsc, C_{1N}, C_{21}, C_{22}, \dotsc, C_{2N},
   C_{31}, \dotsc, C_{3N}, \dotsc, C_{N1}, \dotsc, C_{N,N-1}, C_{NN}`
+* For *type* = *first*, the :math:`N_\text{pair} = N` columns are ordered:
+  :math:`C_{11}, C_{12}, \dotsc, C_{1N}`
 
 The array values calculated by this fix are treated as extensive.  If
 you need to divide them by the number of atoms, you must do this in a

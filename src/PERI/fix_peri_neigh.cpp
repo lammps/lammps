@@ -52,6 +52,7 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
   restart_global = 1;
   restart_peratom = 1;
   first = 1;
+  stores_ids = 1;
 
   // perform initial allocation of atom-based arrays
   // register with atom class
@@ -278,7 +279,7 @@ void FixPeriNeigh::setup(int /*vflag*/)
     }
   }
 
-  // sanity check: does any atom appear twice in any neigborlist?
+  // sanity check: does any atom appear twice in any neighborlist?
   // should only be possible if using pbc and domain < 2*delta
 
   if (domain->xperiodic || domain->yperiodic || domain->zperiodic) {

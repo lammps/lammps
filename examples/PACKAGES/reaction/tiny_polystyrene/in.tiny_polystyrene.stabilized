@@ -56,5 +56,5 @@ thermo_style custom step temp press density f_rxn1[*]
 
 run 10000
 
-# write_restart restart_longrun nofix
-# write_data restart_longrun.data
+# write_restart restart_longrun
+# write_data restart_longrun.data nofix

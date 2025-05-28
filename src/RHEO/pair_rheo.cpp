@@ -28,6 +28,7 @@
 #include "fix_rheo.h"
 #include "fix_rheo_pressure.h"
 #include "force.h"
+#include "info.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
@@ -114,7 +115,7 @@ void PairRHEO::compute(int eflag, int vflag)
 
   double **fp_store, *chi;
   if (compute_interface) {
-    fp_store = compute_interface->fp_store;
+    fp_store = atom->darray[compute_interface->index_fp_store];
     chi = compute_interface->chi;
 
     for (i = 0; i < atom->nmax; i++) {
@@ -451,7 +452,7 @@ void PairRHEO::settings(int narg, char **arg)
 
 void PairRHEO::coeff(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR, "Incorrect number of args for pair_style rheo coefficients");
+  if (narg != 2) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -466,7 +467,7 @@ void PairRHEO::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair rheo coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -527,7 +528,9 @@ void PairRHEO::setup()
 
 double PairRHEO::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR, "All pair rheo coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE, "All pair rheo coeffs are not set. Status:\n"
+               + Info::get_pair_coeff_status(lmp));
 
   return cutk;
 }
@@ -536,7 +539,7 @@ double PairRHEO::init_one(int i, int j)
 
 int PairRHEO::pack_reverse_comm(int n, int first, double *buf)
 {
-  double **fp_store = compute_interface->fp_store;
+  double **fp_store = atom->darray[compute_interface->index_fp_store];
   int m = 0;
   int last = first + n;
   for (int i = first; i < last; i++) {
@@ -552,7 +555,7 @@ int PairRHEO::pack_reverse_comm(int n, int first, double *buf)
 
 void PairRHEO::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  double **fp_store = compute_interface->fp_store;
+  double **fp_store = atom->darray[compute_interface->index_fp_store];
   int m = 0;
   for (int i = 0; i < n; i++) {
     int j = list[i];

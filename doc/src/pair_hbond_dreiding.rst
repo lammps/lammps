@@ -68,21 +68,21 @@ force field, given by:
 
 .. math::
 
-   E  = & \left[LJ(r) | Morse(r) \right] \qquad \qquad \qquad r < r_{\rm in} \\
-      = & S(r) * \left[LJ(r) | Morse(r) \right] \qquad \qquad r_{\rm in} < r < r_{\rm out} \\
-      = & 0 \qquad \qquad \qquad \qquad \qquad \qquad \qquad r > r_{\rm out} \\
+   E  = & \left[LJ(r) | Morse(r) \right] \qquad \qquad \qquad r < r_\mathrm{in} \\
+      = & S(r) * \left[LJ(r) | Morse(r) \right] \qquad \qquad r_\mathrm{in} < r < r_\mathrm{out} \\
+      = & 0 \qquad \qquad \qquad \qquad \qquad \qquad \qquad r > r_\mathrm{out} \\
    LJ(r)  = & AR^{-12}-BR^{-10}cos^n\theta=
          \epsilon\left\lbrace 5\left[ \frac{\sigma}{r}\right]^{12}-
          6\left[ \frac{\sigma}{r}\right]^{10}  \right\rbrace cos^n\theta\\
    Morse(r)  = & D_0\left\lbrace \chi^2 - 2\chi\right\rbrace cos^n\theta=
          D_{0}\left\lbrace e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)}
          \right\rbrace cos^n\theta \\
-   S(r)  = & \frac{ \left[r_{\rm out}^2 - r^2\right]^2
-   \left[r_{\rm out}^2 + 2r^2 - 3{r_{\rm in}^2}\right]}
-   { \left[r_{\rm out}^2 - {r_{\rm in}}^2\right]^3 }
+   S(r)  = & \frac{ \left[r_\mathrm{out}^2 - r^2\right]^2
+   \left[r_\mathrm{out}^2 + 2r^2 - 3{r_\mathrm{in}^2}\right]}
+   { \left[r_\mathrm{out}^2 - {r_\mathrm{in}}^2\right]^3 }
 
-where :math:`r_{\rm in}` is the inner spline distance cutoff,
-:math:`r_{\rm out}` is the outer distance cutoff, :math:`\theta_c` is
+where :math:`r_\mathrm{in}` is the inner spline distance cutoff,
+:math:`r_\mathrm{out}` is the outer distance cutoff, :math:`\theta_c` is
 the angle cutoff, and :math:`n` is the power of the cosine of the angle
 :math:`\theta`.
 
@@ -189,8 +189,8 @@ follows:
 * :math:`\epsilon` (energy units)
 * :math:`\sigma` (distance units)
 * *n* = exponent in formula above
-* distance cutoff :math:`r_{\rm in}` (distance units)
-* distance cutoff :math:`r_{\rm out}` (distance units)
+* distance cutoff :math:`r_\mathrm{in}` (distance units)
+* distance cutoff :math:`r_\mathrm{out}` (distance units)
 * angle cutoff (degrees)
 
 For the *hbond/dreiding/morse* style the list of coefficients is as
@@ -202,7 +202,7 @@ follows:
 * :math:`\alpha` (1/distance units)
 * :math:`r_0` (distance units)
 * *n* = exponent in formula above
-* distance cutoff :math:`r_{\rm in}` (distance units)
+* distance cutoff :math:`r_\mathrm{in}` (distance units)
 * distance cutoff :math:`r_{out}` (distance units)
 * angle cutoff (degrees)
 

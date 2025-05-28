@@ -64,6 +64,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -364,7 +365,7 @@ void PairKIM::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg < 2 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   // read args that map atom species to KIM elements
   // lmps_map_species_to_unique[i] =
@@ -407,7 +408,7 @@ void PairKIM::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   // setup mapping between LAMMPS unique elements and KIM species codes
   if (kim_particle_codes_ok) {
@@ -621,7 +622,9 @@ double PairKIM::init_one(int i, int j)
   // This is called once of each (unordered) i,j pair for each
   // "run ...", "minimize ...", etc. read from input
 
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
 
   return kim_global_influence_distance;
 }

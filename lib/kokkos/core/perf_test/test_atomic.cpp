@@ -321,6 +321,7 @@ T LoopVariant(int loop, int test) {
     case 1: return AddLoop<T>(loop);
     case 2: return CASLoop<T>(loop);
     case 3: return ExchLoop<T>(loop);
+    default: Kokkos::abort("unreachable");
   }
   return 0;
 }
@@ -331,6 +332,7 @@ T LoopVariantSerial(int loop, int test) {
     case 1: return AddLoopSerial<T>(loop);
     case 2: return CASLoopSerial<T>(loop);
     case 3: return ExchLoopSerial<T>(loop);
+    default: Kokkos::abort("unreachable");
   }
   return 0;
 }
@@ -341,6 +343,7 @@ T LoopVariantNonAtomic(int loop, int test) {
     case 1: return AddLoopNonAtomic<T>(loop);
     case 2: return CASLoopNonAtomic<T>(loop);
     case 3: return ExchLoopNonAtomic<T>(loop);
+    default: Kokkos::abort("unreachable");
   }
   return 0;
 }

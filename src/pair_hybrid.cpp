@@ -19,6 +19,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -578,7 +579,7 @@ void PairHybrid::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -718,7 +719,8 @@ double PairHybrid::init_one(int i, int j)
 
   if (setflag[i][j] == 0) {
     if (nmap[i][i] != 1 || nmap[j][j] != 1 || map[i][i][0] != map[j][j][0])
-      error->one(FLERR,"All pair coeffs are not set");
+      error->one(FLERR, Error::NOLASTLINE,
+                 "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
     nmap[i][j] = 1;
     map[i][j][0] = map[i][i][0];
   }

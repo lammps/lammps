@@ -393,7 +393,7 @@ void PairTIP4PCut::settings(int narg, char **arg)
 void PairTIP4PCut::coeff(int narg, char **arg)
 {
   if (narg != 2)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   // set atom types from pair_style command unless we were restarted
@@ -418,7 +418,7 @@ void PairTIP4PCut::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

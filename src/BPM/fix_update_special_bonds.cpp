@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Joel Clemmer (SNL)
+------------------------------------------------------------------------- */
+
 #include "fix_update_special_bonds.h"
 
 #include "atom.h"
@@ -22,6 +26,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 
+#include <set>
 #include <utility>
 
 using namespace LAMMPS_NS;
@@ -263,18 +268,40 @@ void FixUpdateSpecialBonds::post_run()
 
 void FixUpdateSpecialBonds::add_broken_bond(int i, int j)
 {
-  auto tag_pair = std::make_pair(atom->tag[i], atom->tag[j]);
+  tagint *tag = atom->tag;
+  int mintag = MIN(tag[i], tag[j]);
+  int maxtag = MAX(tag[i], tag[j]);
+  auto tag_pair = std::make_pair(mintag, maxtag);
   new_broken_pairs.push_back(tag_pair);
-  broken_pairs.push_back(tag_pair);
+
+  // cancel out if created->destroyed before nlist rebuild
+  // however, still cannot break + create in the same timestep
+  auto const &it = created_pairs.find(tag_pair);
+  if (it != created_pairs.end()) {
+    created_pairs.erase(it);
+  } else {
+    broken_pairs.insert(tag_pair);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixUpdateSpecialBonds::add_created_bond(int i, int j)
 {
-  auto tag_pair = std::make_pair(atom->tag[i], atom->tag[j]);
+  tagint *tag = atom->tag;
+  int mintag = MIN(tag[i], tag[j]);
+  int maxtag = MAX(tag[i], tag[j]);
+  auto tag_pair = std::make_pair(mintag, maxtag);
   new_created_pairs.push_back(tag_pair);
-  created_pairs.push_back(tag_pair);
+
+  // cancel out if destroyed->created before nlist rebuild
+  // however, still cannot break + create in the same timestep
+  auto const &it = broken_pairs.find(tag_pair);
+  if (it != broken_pairs.end()) {
+    broken_pairs.erase(it);
+  } else {
+    created_pairs.insert(tag_pair);
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -45,16 +45,14 @@ void ChangeBox::command(int narg, char **arg)
   int i;
 
   if (domain->box_exist == 0)
-    error->all(FLERR,"Change_box command before simulation box is defined");
+    error->all(FLERR,"Change_box command before simulation box is defined" + utils::errorurl(33));
   if (narg < 2) utils::missing_cmd_args(FLERR, "change_box", error);
 
   if (comm->me == 0) utils::logmesg(lmp,"Changing box ...\n");
 
   // group
 
-  int igroup = group->find(arg[0]);
-  if (igroup == -1) error->all(FLERR,"Could not find change_box group ID {}", arg[0]);
-  int groupbit = group->bitmask[igroup];
+  int groupbit = group->get_bitmask_by_id(FLERR, arg[0], "change_box");
 
   // parse operation arguments
   // allocate ops to max possible length
@@ -380,8 +378,8 @@ void ChangeBox::command(int narg, char **arg)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms && comm->me == 0)
-    error->warning(FLERR,"Lost atoms via change_box: original {} "
-                   "current {}", atom->natoms,natoms);
+    error->warning(FLERR,"Lost atoms via change_box: original {} current {}"+utils::errorurl(8),
+                   atom->natoms,natoms);
 }
 
 /* ----------------------------------------------------------------------

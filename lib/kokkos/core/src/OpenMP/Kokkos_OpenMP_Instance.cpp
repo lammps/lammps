@@ -55,19 +55,17 @@ void OpenMPInternal::clear_thread_data() {
 
   OpenMP::memory_space space;
 
-#pragma omp parallel num_threads(m_pool_size)
-  {
-    const int rank = omp_get_thread_num();
-
+  for (int rank = 0; rank < m_pool_size; ++rank) {
     if (nullptr != m_pool[rank]) {
       m_pool[rank]->disband_pool();
+
+      m_pool[rank]->~HostThreadTeamData();
 
       space.deallocate(m_pool[rank], old_alloc_bytes);
 
       m_pool[rank] = nullptr;
     }
   }
-  /* END #pragma omp parallel */
 }
 
 void OpenMPInternal::resize_thread_data(size_t pool_reduce_bytes,
@@ -129,9 +127,10 @@ void OpenMPInternal::resize_thread_data(size_t pool_reduce_bytes,
 
       m_pool[rank] = new (ptr) HostThreadTeamData();
 
-      m_pool[rank]->scratch_assign(((char *)ptr) + member_bytes, alloc_bytes,
-                                   pool_reduce_bytes, team_reduce_bytes,
-                                   team_shared_bytes, thread_local_bytes);
+      m_pool[rank]->scratch_assign(static_cast<char *>(ptr) + member_bytes,
+                                   alloc_bytes, pool_reduce_bytes,
+                                   team_reduce_bytes, team_shared_bytes,
+                                   thread_local_bytes);
     }
 
     HostThreadTeamData::organize_pool(m_pool, m_pool_size);
@@ -139,12 +138,8 @@ void OpenMPInternal::resize_thread_data(size_t pool_reduce_bytes,
 }
 
 OpenMPInternal &OpenMPInternal::singleton() {
-  static OpenMPInternal *self = nullptr;
-  if (self == nullptr) {
-    self = new OpenMPInternal(get_current_max_threads());
-  }
-
-  return *self;
+  static OpenMPInternal self(get_current_max_threads());
+  return self;
 }
 
 int OpenMPInternal::get_current_max_threads() noexcept {
@@ -239,9 +234,9 @@ void OpenMPInternal::initialize(int thread_count) {
 
     // New, unified host thread team data:
     {
-      size_t pool_reduce_bytes  = 32 * thread_count;
-      size_t team_reduce_bytes  = 32 * thread_count;
-      size_t team_shared_bytes  = 1024 * thread_count;
+      size_t pool_reduce_bytes  = static_cast<size_t>(32) * thread_count;
+      size_t team_reduce_bytes  = static_cast<size_t>(32) * thread_count;
+      size_t team_shared_bytes  = static_cast<size_t>(1024) * thread_count;
       size_t thread_local_bytes = 1024;
 
       instance.resize_thread_data(pool_reduce_bytes, team_reduce_bytes,
@@ -307,6 +302,8 @@ void OpenMPInternal::finalize() {
     *it = all_instances.back();
     all_instances.pop_back();
   }
+
+  clear_thread_data();
 }
 
 void OpenMPInternal::print_configuration(std::ostream &s) const {

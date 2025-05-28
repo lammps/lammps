@@ -60,6 +60,7 @@ FixSMD_TLSPH_ReferenceConfiguration::FixSMD_TLSPH_ReferenceConfiguration(LAMMPS 
   if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR, "Pair tlsph with partner list requires an atom map, see atom_modify");
 
+  stores_ids = 1;
   maxpartner = 1;
   npartner = nullptr;
   partner = nullptr;

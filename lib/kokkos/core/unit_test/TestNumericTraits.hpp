@@ -211,6 +211,7 @@ struct TestNumericTraits<
 };
 #endif
 
+// NOLINTBEGIN(bugprone-unused-raii)
 TEST(TEST_CATEGORY, numeric_traits_infinity) {
   TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::half_t, Infinity>();
   TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t, Infinity>();
@@ -431,6 +432,7 @@ TEST(TEST_CATEGORY, numeric_traits_quiet_and_signaling_nan) {
   TestNumericTraits<TEST_EXECSPACE, long double, SignalingNaN>();
 #endif
 }
+// NOLINTEND(bugprone-unused-raii)
 KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_POP()
 
 namespace NumericTraitsSFINAE {

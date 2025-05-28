@@ -24,6 +24,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "math_special.h"
@@ -88,6 +89,8 @@ Pair::Pair(LAMMPS *lmp) :
   ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   reinitflag = 1;
   centroidstressflag = CENTROID_SAME;
+
+  atomic_energy_enable = 0;
 
   // pair_modify settings
 
@@ -247,10 +250,15 @@ void Pair::init()
   // I,I coeffs must be set
   // init_one() will check if I,J is set explicitly or inferred by mixing
 
-  if (!allocated) error->all(FLERR,"All pair coeffs are not set");
-
-  for (i = 1; i <= atom->ntypes; i++)
-    if (setflag[i][i] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (!allocated) {
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
+  } else {
+    for (i = 1; i <= atom->ntypes; i++)
+      if (setflag[i][i] == 0)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
+  }
 
   // style-specific initialization
 
@@ -735,9 +743,9 @@ double Pair::mix_distance(double sig1, double sig2)
 
 /* ---------------------------------------------------------------------- */
 
-void Pair::compute_dummy(int eflag, int vflag)
+void Pair::compute_dummy(int eflag, int vflag, int alloc)
 {
-  ev_init(eflag,vflag);
+  ev_init(eflag,vflag,alloc);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -865,7 +873,7 @@ void Pair::map_element2type(int narg, char **arg, bool update_setflag)
       }
     }
 
-    if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+    if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   }
 }
 

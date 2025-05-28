@@ -446,10 +446,10 @@ TEST(FixTimestep, plain)
         !utils::strmatch(ifix->style, "^nve/limit") && !utils::strmatch(ifix->style, "^recenter")) {
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
+        delete lmp;
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         ::testing::internal::CaptureStdout();
-        LAMMPS *lmp = nullptr;
         try {
             lmp = init_lammps(args, test_config, true);
         } catch (std::exception &e) {
@@ -758,6 +758,7 @@ TEST(FixTimestep, omp)
 
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
+        delete lmp;
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         ::testing::internal::CaptureStdout();

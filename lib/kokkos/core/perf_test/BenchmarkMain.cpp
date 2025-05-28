@@ -24,6 +24,7 @@
 int main(int argc, char** argv) {
   Kokkos::initialize(argc, argv);
   benchmark::Initialize(&argc, argv);
+  // FIXME: seconds as default time unit leads to precision loss
   benchmark::SetDefaultTimeUnit(benchmark::kSecond);
   KokkosBenchmark::add_benchmark_context(true);
 

@@ -50,9 +50,9 @@ system:
 
 .. math::
 
-   {\Delta t}_{\rm max} = \frac{2\pi}{\kappa \left|\vec{\omega}_{\rm max} \right|}
+   {\Delta t}_\mathrm{max} = \frac{2\pi}{\kappa \left|\vec{\omega}_\mathrm{max} \right|}
 
-with :math:`\left|\vec{\omega}_{\rm max}\right|` the norm of the largest precession
+with :math:`\left|\vec{\omega}_\mathrm{max}\right|` the norm of the largest precession
 frequency in the system (across all processes, and across all replicas if a
 spin/neb calculation is performed).
 

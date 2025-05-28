@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 RegPlane::RegPlane(LAMMPS *lmp, int narg, char **arg) :
-    Region(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr),
+    Region(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr), nstyle(NONE),
     nxstr(nullptr), nystr(nullptr), nzstr(nullptr)
 {
   xvar = yvar = zvar = 0.0;
@@ -83,7 +83,9 @@ RegPlane::RegPlane(LAMMPS *lmp, int narg, char **arg) :
     nzstr = utils::strdup(arg[7] + 2);
     varshape = 1;
   } else {
-    error->all(FLERR, "The components of the normal vector should be either all variables or all constants");
+    error->all(
+        FLERR,
+        "The components of the normal vector should be either all variables or all constants");
   }
 
   if (varshape) {
@@ -207,7 +209,9 @@ void RegPlane::shape_update()
     // enforce unit normal
     double rsq = normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2];
 
-    if (rsq == 0.0) error->all(FLERR, "Illegal region plane normal vector: {} {} {}", normal[0], normal[1], normal[2]);
+    if (rsq == 0.0)
+      error->all(FLERR, "Illegal region plane normal vector: {} {} {}", normal[0], normal[1],
+                 normal[2]);
     normal[0] /= sqrt(rsq);
     normal[1] /= sqrt(rsq);
     normal[2] /= sqrt(rsq);

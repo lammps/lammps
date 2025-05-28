@@ -723,7 +723,7 @@ void PairAmoeba::coeff(int narg, char **arg)
 
   if (!allocated) allocate();
 
-  if ((narg < 3) || (narg > 4)) error->all(FLERR,"Incorrect args for pair coefficients");
+  if ((narg < 3) || (narg > 4)) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   // set setflag since coeff() is only called once with I,J = * *
 

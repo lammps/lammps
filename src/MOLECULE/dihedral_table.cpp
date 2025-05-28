@@ -890,7 +890,7 @@ void DihedralTable::coeff(int narg, char **arg)
   }
   ntables++;
 
-  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

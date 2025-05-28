@@ -14,9 +14,6 @@
 //
 //@HEADER
 
-#ifndef KOKKOS_TEST_@BACK_END_NAME@_@CURRENT_TEST_NAME@
-#define KOKKOS_TEST_@BACK_END_NAME@_@CURRENT_TEST_NAME@
-
 #include <gtest/gtest.h>
 #include <Kokkos_Macros.hpp>
 
@@ -24,7 +21,3 @@
 #define TEST_EXECSPACE Kokkos::@DEVICE_NAME@
 
 #include <@CURRENT_FILE_NAME@>
-
-#endif
-
-

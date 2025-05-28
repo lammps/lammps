@@ -403,7 +403,7 @@ void PairBrownian::settings(int narg, char **arg)
 
 void PairBrownian::coeff(int narg, char **arg)
 {
-  if (narg != 2 && narg != 4) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg != 2 && narg != 4) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 
   if (!allocated) allocate();
 
@@ -428,7 +428,7 @@ void PairBrownian::coeff(int narg, char **arg)
       count++;
     }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

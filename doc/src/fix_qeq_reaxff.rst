@@ -59,7 +59,7 @@ extracted from the :doc:`pair_style reaxff <pair_reaxff>` command and
 the ReaxFF force field file it reads in.  If a file name is specified
 for *params*, then the parameters are taken from the specified file
 and the file must contain one line for each atom type.  The latter
-form must be used when performing QeQ with a non-ReaxFF potential.
+form must be used when performing QEq with a non-ReaxFF potential.
 Each line should be formatted as follows:
 
 .. parsed-literal::
@@ -140,7 +140,8 @@ Related commands
 """"""""""""""""
 
 :doc:`pair_style reaxff <pair_reaxff>`, :doc:`fix qeq/shielded <fix_qeq>`,
-:doc:`fix acks2/reaxff <fix_acks2_reaxff>`, :doc:`fix qtpie/reaxff <fix_qtpie_reaxff>`
+:doc:`fix acks2/reaxff <fix_acks2_reaxff>`, :doc:`fix qtpie/reaxff <fix_qtpie_reaxff>`,
+:doc:`fix qeq/rel/reaxff <fix_qeq_rel_reaxff>`
 
 Default
 """""""

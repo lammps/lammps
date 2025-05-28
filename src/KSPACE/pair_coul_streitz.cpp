@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
@@ -162,7 +163,9 @@ double PairCoulStreitz::init_one(int i, int j)
 {
   scale[j][i] = scale[i][j];
 
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
   return cut_coul;
 }
 

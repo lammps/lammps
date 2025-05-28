@@ -27,9 +27,6 @@
 #define tagint int64_t
 #endif
 #endif
-#ifdef LAMMPS_SMALLSMALL
-#define tagint int
-#endif
 #ifndef _DOUBLE_DOUBLE
 _texture( pos_tex,float4);
 _texture( q_tex,float);
@@ -49,9 +46,6 @@ _texture( q_tex,int2);
 #include "stdint.h"
 #define tagint int64_t
 #endif
-#endif
-#ifdef LAMMPS_SMALLSMALL
-#define tagint int
 #endif
 #define pos_tex x_
 #define q_tex q_

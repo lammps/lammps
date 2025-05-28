@@ -390,8 +390,7 @@ TEST(std_algorithms_numeric_ops_test, transform_inclusive_scan_functor) {
   int dummy       = 0;
   using view_type = Kokkos::View<int*, exespace>;
   view_type dummy_view("dummy_view", 0);
-  using unary_op_type =
-      KE::Impl::StdNumericScanIdentityReferenceUnaryFunctor<int>;
+  using unary_op_type = KE::Impl::StdNumericScanIdentityReferenceUnaryFunctor;
   {
     using functor_type =
         KE::Impl::ExeSpaceTransformInclusiveScanNoInitValueFunctor<

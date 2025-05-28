@@ -651,8 +651,8 @@ class OffsetView : public View<DataType, Properties...> {
       m_begins[i] = minIndices.begin()[i];
     }
     static_assert(
-        std::is_same<pointer_type, typename Kokkos::Impl::ViewCtorProp<
-                                       P...>::pointer_type>::value,
+        std::is_same_v<pointer_type,
+                       typename Kokkos::Impl::ViewCtorProp<P...>::pointer_type>,
         "When constructing OffsetView to wrap user memory, you must supply "
         "matching pointer type");
   }
@@ -1312,9 +1312,8 @@ inline auto create_mirror(const Kokkos::Experimental::OffsetView<T, P...>& src,
     return typename Kokkos::Experimental::OffsetView<T, P...>::HostMirror(
         Kokkos::create_mirror(arg_prop, src.view()), src.begins());
   }
-#if defined(KOKKOS_COMPILER_INTEL) ||                                 \
-    (defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-     !defined(KOKKOS_COMPILER_MSVC))
+#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
+    !defined(KOKKOS_COMPILER_MSVC)
   __builtin_unreachable();
 #endif
 }
@@ -1408,9 +1407,8 @@ inline auto create_mirror_view(
       return Kokkos::Impl::choose_create_mirror(src, arg_prop);
     }
   }
-#if defined(KOKKOS_COMPILER_INTEL) ||                                 \
-    (defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-     !defined(KOKKOS_COMPILER_MSVC))
+#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
+    !defined(KOKKOS_COMPILER_MSVC)
   __builtin_unreachable();
 #endif
 }

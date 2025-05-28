@@ -185,6 +185,8 @@ KOKKOS_INLINE_FUNCTION void nested_loop(
   using TeamMDNextMode = typename NextNestingTracker::RangeMode;
 
   for (int i = 0; i != policy.boundaries[CurrentNestLevel]; ++i) {
+    // FIXME
+    // NOLINTBEGIN(bugprone-use-after-move)
     if constexpr (Rank::outer_direction == Iterate::Right) {
       nested_loop(TeamMDNextMode(), NextNestingTracker(), policy, lambda,
                   std::forward<ReducerValueType>(val), args..., i);
@@ -192,6 +194,7 @@ KOKKOS_INLINE_FUNCTION void nested_loop(
       nested_loop(TeamMDNextMode(), NextNestingTracker(), policy, lambda,
                   std::forward<ReducerValueType>(val), i, args...);
     }
+    // NOLINTEND(bugprone-use-after-move)
   }
 }
 

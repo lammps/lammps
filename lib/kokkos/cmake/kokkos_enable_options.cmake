@@ -76,7 +76,7 @@ kokkos_enable_option(
   HIP_MULTIPLE_KERNEL_INSTANTIATIONS OFF
   "Whether multiple kernels are instantiated at compile time - improve performance but increase compile time"
 )
-kokkos_enable_option(IMPL_HIP_MALLOC_ASYNC OFF "Whether to enable hipMallocAsync")
+kokkos_enable_option(IMPL_HIP_MALLOC_ASYNC ${KOKKOS_ENABLE_HIP} "Whether to enable hipMallocAsync")
 kokkos_enable_option(OPENACC_FORCE_HOST_AS_DEVICE OFF "Whether to force to use host as a target device for OpenACC")
 
 # This option will go away eventually, but allows fallback to old implementation when needed.

@@ -102,8 +102,9 @@ int cuda_kernel_arch(int device_id) {
   int *d_arch = nullptr;
 
   KOKKOS_IMPL_CUDA_SAFE_CALL(cudaSetDevice(device_id));
-  KOKKOS_IMPL_CUDA_SAFE_CALL(
-      cudaMalloc(reinterpret_cast<void **>(&d_arch), sizeof(int)));
+  void *d_arch_void_ptr = nullptr;
+  KOKKOS_IMPL_CUDA_SAFE_CALL(cudaMalloc(&d_arch_void_ptr, sizeof(int)));
+  d_arch = static_cast<int *>(d_arch_void_ptr);
   KOKKOS_IMPL_CUDA_SAFE_CALL(
       cudaMemcpy(d_arch, &arch, sizeof(int), cudaMemcpyDefault));
 
@@ -161,10 +162,7 @@ void cuda_stream_synchronize(const cudaStream_t stream, const CudaInternal *ptr,
       name,
       Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{
           ptr->impl_get_instance_id()},
-      [&]() {
-        KOKKOS_IMPL_CUDA_SAFE_CALL(
-            (ptr->cuda_stream_synchronize_wrapper(stream)));
-      });
+      [stream] { KOKKOS_IMPL_CUDA_SAFE_CALL(cudaStreamSynchronize(stream)); });
 }
 
 void cuda_internal_error_throw(cudaError e, const char *name, const char *file,
@@ -211,13 +209,18 @@ void CudaInternal::print_configuration(std::ostream &s) const {
   for (int i : get_visible_devices()) {
     cudaDeviceProp prop;
     KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDeviceProperties(&prop, i));
-    s << "Kokkos::Cuda[ " << i << " ] " << prop.name << " capability "
-      << prop.major << "." << prop.minor
-      << ", Total Global Memory: " << human_memory_size(prop.totalGlobalMem)
-      << ", Shared Memory per Block: "
-      << human_memory_size(prop.sharedMemPerBlock);
+    s << "Kokkos::Cuda[ " << i << " ] " << prop.name;
     if (m_cudaDev == i) s << " : Selected";
-    s << '\n';
+    s << '\n'
+      << "  Capability: " << prop.major << "." << prop.minor << '\n'
+      << "  Total Global Memory: " << human_memory_size(prop.totalGlobalMem)
+      << '\n'
+      << "  Shared Memory per Block: "
+      << human_memory_size(prop.sharedMemPerBlock) << '\n'
+      << "  Can access system allocated memory: " << prop.pageableMemoryAccess
+      << '\n'
+      << "    via Address Translation Service: "
+      << prop.pageableMemoryAccessUsesHostPageTables << '\n';
   }
 }
 
@@ -256,7 +259,7 @@ CudaInternal &CudaInternal::singleton() {
   return self;
 }
 void CudaInternal::fence(const std::string &name) const {
-  Impl::cuda_stream_synchronize(get_stream(), this, name);
+  Impl::cuda_stream_synchronize(m_stream, this, name);
 }
 void CudaInternal::fence() const {
   fence("Kokkos::CudaInternal::fence(): Unnamed Instance Fence");
@@ -281,10 +284,13 @@ void CudaInternal::initialize(cudaStream_t stream) {
 
   // Allocate a staging buffer for constant mem in pinned host memory
   // and an event to avoid overwriting driver for previous kernel launches
-  if (!constantMemHostStagingPerDevice[m_cudaDev])
+  if (!constantMemHostStagingPerDevice[m_cudaDev]) {
+    void *constant_memory_void_ptr = nullptr;
     KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_malloc_host_wrapper(
-        reinterpret_cast<void **>(&constantMemHostStagingPerDevice[m_cudaDev]),
-        CudaTraits::ConstantMemoryUsage)));
+        &constant_memory_void_ptr, CudaTraits::ConstantMemoryUsage)));
+    constantMemHostStagingPerDevice[m_cudaDev] =
+        static_cast<unsigned long *>(constant_memory_void_ptr);
+  }
 
   if (!constantMemReusablePerDevice[m_cudaDev])
     KOKKOS_IMPL_CUDA_SAFE_CALL(
@@ -298,11 +304,10 @@ void CudaInternal::initialize(cudaStream_t stream) {
   {
     // Maximum number of warps,
     // at most one warp per thread in a warp for reduction.
-    auto const maxWarpCount = std::min<unsigned>(
-        m_deviceProp.maxThreadsPerBlock / CudaTraits::WarpSize,
-        CudaTraits::WarpSize);
-    unsigned const reduce_block_count =
-        maxWarpCount * Impl::CudaTraits::WarpSize;
+    auto const maxWarpCount =
+        std::min<size_t>(m_deviceProp.maxThreadsPerBlock / CudaTraits::WarpSize,
+                         CudaTraits::WarpSize);
+    size_t const reduce_block_count = maxWarpCount * Impl::CudaTraits::WarpSize;
 
     (void)scratch_unified(16 * sizeof(size_type));
     (void)scratch_flags(reduce_block_count * 2 * sizeof(size_type));
@@ -314,10 +319,11 @@ void CudaInternal::initialize(cudaStream_t stream) {
     m_team_scratch_ptr[i]          = nullptr;
   }
 
-  m_num_scratch_locks = concurrency();
-  KOKKOS_IMPL_CUDA_SAFE_CALL(
-      (cuda_malloc_wrapper(reinterpret_cast<void **>(&m_scratch_locks),
-                           sizeof(int32_t) * m_num_scratch_locks)));
+  m_num_scratch_locks          = concurrency();
+  void *scratch_locks_void_ptr = nullptr;
+  KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_malloc_wrapper(
+      &scratch_locks_void_ptr, sizeof(int32_t) * m_num_scratch_locks)));
+  m_scratch_locks = static_cast<int32_t *>(scratch_locks_void_ptr);
   KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_memset_wrapper(
       m_scratch_locks, 0, sizeof(int32_t) * m_num_scratch_locks)));
 }

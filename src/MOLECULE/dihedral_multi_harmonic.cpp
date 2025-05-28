@@ -43,7 +43,7 @@ DihedralMultiHarmonic::DihedralMultiHarmonic(LAMMPS *_lmp) : Dihedral(_lmp)
 
 DihedralMultiHarmonic::~DihedralMultiHarmonic()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(a1);
     memory->destroy(a2);
@@ -251,7 +251,7 @@ void DihedralMultiHarmonic::allocate()
 
 void DihedralMultiHarmonic::coeff(int narg, char **arg)
 {
-  if (narg != 6) error->all(FLERR, "Incorrect args for dihedral coefficients");
+  if (narg != 6) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -274,7 +274,7 @@ void DihedralMultiHarmonic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -406,4 +406,20 @@ void DihedralMultiHarmonic::born_matrix(int nd, int i1, int i2, int i3, int i4, 
 
   du = a2[type] + c * (2.0 * a3[type] + c * (3.0 * a4[type] + c * 4.0 * a5[type]));
   du2 = 2.0 * a3[type] + 6.0 * c * (a4[type] + 2.0 * a5[type] * c);
+}
+
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *DihedralMultiHarmonic::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "a1") == 0) return (void *) a1;
+  if (strcmp(str, "a2") == 0) return (void *) a2;
+  if (strcmp(str, "a3") == 0) return (void *) a3;
+  if (strcmp(str, "a4") == 0) return (void *) a4;
+  if (strcmp(str, "a5") == 0) return (void *) a5;
+  return nullptr;
 }

@@ -10,7 +10,7 @@
    fun:MPIDI_OFI_init_local
    ...
    fun:PMPI_Init
-   fun:main
+   ...
 }
 {
    MPICH_MPI_init2
@@ -25,7 +25,7 @@
    fun:MPIDI_OFI_init_local
    ...
    fun:PMPI_Init
-   fun:main
+   ...
 }
 {
    MPICH_MPI_init3
@@ -37,7 +37,7 @@
    fun:MPIDI_OFI_init_local
    ...
    fun:PMPI_Init
-   fun:main
+   ...
 }
 {
    MPICH_MPI_init4
@@ -51,7 +51,7 @@
    fun:MPIDI_Init.constprop.0
    ...
    fun:PMPI_Init
-   fun:main
+   ...
 }
 {
    MPICH_MPI_init5
@@ -65,7 +65,7 @@
    fun:MPID_Init.constprop.0
    ...
    fun:PMPI_Init
-   fun:main
+   ...
 }
 {
    MPICH_MPI_init6
@@ -79,5 +79,282 @@
    ...
    obj:*
    fun:PMPI_Init
-   fun:main
+   ...
+}
+{
+   MPICH_MPI_init7
+   Memcheck:Param
+   socketcall.sendto(msg)
+   fun:__libc_send
+   fun:send
+   ...
+   fun:psmx3_sep_open
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_MPI_init8
+   Memcheck:Param
+   socketcall.sendto(msg)
+   fun:__libc_send
+   fun:send
+   ...
+   fun:psmx3_sep_close
+   ...
+   fun:MPID_Finalize
+   fun:MPII_Finalize
+   fun:*
+   fun:*
+   fun:PMPI_Finalize
+   ...
+}
+{
+   MPICH_MPI_init9
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:psmx3_recv_generic
+   ...
+   fun:MPIDI_OFI_init_local
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_MPI_init10
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:MPII_Init_thread.isra.0
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_library1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_library2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:MPIDI_OFI_init_local
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_library3
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   ...
+   fun:MPID_Comm_commit_pre_hook
+   fun:MPID_Comm_commit_internal
+   fun:MPID_Comm_commit
+   fun:MPIR_init_comm_world
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_library4
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:*
+   fun:udev_new
+   ...
+   fun:hwloc_topology_load
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_json1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:parse_json_tree
+   fun:MPIR_Csel_create_from_buf
+   fun:*
+   fun:*
+}
+{
+   MPICH_comm1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:*
+   fun:MPIR_Find_local
+   fun:*
+   fun:MPIR_Comm_commit
+   fun:MPIR_init_comm_world
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_comm2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:*
+   fun:MPIR_Find_external
+   fun:*
+   fun:MPIR_Comm_commit
+   fun:MPIR_init_comm_world
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_comm3
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:*
+   fun:MPIR_Find_local
+   fun:*
+   fun:MPIR_Comm_commit
+   fun:MPIR_init_comm_self
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_comm4
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:*
+   fun:MPIR_Find_external
+   fun:*
+   fun:MPIR_Comm_commit
+   fun:MPIR_init_comm_self
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_psm3_1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:psm3_ep_open_internal
+   fun:psm3_ep_open
+   fun:*
+   fun:psmx3_sep_open
+   fun:*
+   fun:*
+   fun:MPIDI_OFI_init_local
+   fun:*
+   fun:*
+}
+{
+   MPICH_psm3_2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:*
+   fun:psm3_strdup_internal
+   fun:psm3_hal_pre_init_cache_func
+   fun:*
+   fun:psm3_info_query
+   fun:psmx3_update_nic_info
+   ...
+   fun:MPIDI_OFI_init_local
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_psm3_3
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:*
+   fun:psm3_strdup_internal
+   fun:psm3_stats_register_type_internal.part.0.lto_priv.0
+   fun:*
+   fun:*
+   fun:ips_proto_register_stats
+   fun:psm3_ips_proto_init
+   fun:*
+   fun:psm3_ep_open_internal
+   fun:psm3_ep_open
+   fun:*
+   fun:psmx3_sep_open
+   fun:*
+   fun:*
+   fun:MPIDI_OFI_init_local
+}
+{
+   MPICH_psm3_4
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:psm3_ep_open
+   fun:*
+   fun:psmx3_sep_open
+   ...
+   fun:MPIDI_OFI_init_local
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_hwloc1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:hwloc_connect_children
+   fun:hwloc_connect_children
+   fun:hwloc_connect_children
+   fun:hwloc__reconnect
+   fun:hwloc_x86_discover
+   fun:*
+   fun:*
+   fun:hwloc_topology_load
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_hwloc2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:hwloc_connect_children
+   fun:hwloc__reconnect
+   fun:hwloc_x86_discover
+   fun:*
+   fun:*
+   fun:hwloc_topology_load
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_hwloc3
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:*
+   fun:hwloc__topology_init
+   ...
+   fun:PMPI_Init
+   ...
 }

@@ -1554,7 +1554,7 @@ void Molecule::special_generate()
         nspecial[i][0]++;
         nspecial[atom2][0]++;
         if (count[i] >= atom->maxspecial || count[atom2] >= atom->maxspecial)
-          error->all(FLERR, fileiarg, "Molecule auto special bond generation overflow");
+          error->all(FLERR, fileiarg, "Molecule auto special bond generation overflow" + utils::errorurl(23));
         tmpspecial[i][count[i]++] = atom2 + 1;
         tmpspecial[atom2][count[atom2]++] = i + 1;
       }
@@ -1566,7 +1566,7 @@ void Molecule::special_generate()
         atom1 = i;
         atom2 = bond_atom[i][j];
         if (count[atom1] >= atom->maxspecial)
-          error->all(FLERR, fileiarg, "Molecule auto special bond generation overflow");
+          error->all(FLERR, fileiarg, "Molecule auto special bond generation overflow" + utils::errorurl(23));
         tmpspecial[i][count[atom1]++] = atom2;
       }
     }
@@ -1589,7 +1589,7 @@ void Molecule::special_generate()
         }
         if (!dedup) {
           if (count[i] >= atom->maxspecial)
-            error->all(FLERR, fileiarg, "Molecule auto special bond generation overflow");
+            error->all(FLERR, fileiarg, "Molecule auto special bond generation overflow" + utils::errorurl(23));
           tmpspecial[i][count[i]++] = tmpspecial[tmpspecial[i][m] - 1][j];
           nspecial[i][1]++;
         }
@@ -1613,7 +1613,7 @@ void Molecule::special_generate()
         }
         if (!dedup) {
           if (count[i] >= atom->maxspecial)
-            error->all(FLERR, fileiarg, "Molecule auto special bond generation overflow");
+            error->all(FLERR, fileiarg, "Molecule auto special bond generation overflow" + utils::errorurl(23));
           tmpspecial[i][count[i]++] = tmpspecial[tmpspecial[i][m] - 1][j];
           nspecial[i][2]++;
         }

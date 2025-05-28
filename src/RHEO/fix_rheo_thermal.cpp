@@ -221,11 +221,6 @@ FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
 
 FixRHEOThermal::~FixRHEOThermal()
 {
-  // Remove custom property if it exists
-  int tmp1, tmp2, index;
-  index = atom->find_custom("rheo_conductivity", tmp1, tmp2);
-  if (index != -1) atom->remove_custom(index, 1, 0);
-
   memory->destroy(cv_style);
   memory->destroy(Tc_style);
   memory->destroy(kappa_style);

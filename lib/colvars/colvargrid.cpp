@@ -24,15 +24,14 @@ colvar_grid_count::colvar_grid_count()
   mult = 1;
 }
 
-colvar_grid_count::colvar_grid_count(std::vector<int> const &nx_i,
-                                     size_t const &def_count)
-  : colvar_grid<size_t>(nx_i, def_count, 1)
+colvar_grid_count::colvar_grid_count(std::vector<colvar *>  &colvars,
+                                     std::string config)
+  : colvar_grid<size_t>(colvars, 0, 1, false, nullptr, config)
 {}
 
 colvar_grid_count::colvar_grid_count(std::vector<colvar *>  &colvars,
-                                     size_t const &def_count,
-                                     bool margin)
-  : colvar_grid<size_t>(colvars, def_count, 1, margin)
+                                     std::shared_ptr<const colvar_grid_params> params)
+  : colvar_grid<size_t>(colvars, 0, 1, false, params)
 {}
 
 std::string colvar_grid_count::get_state_params() const
@@ -132,13 +131,17 @@ colvar_grid_scalar::colvar_grid_scalar(colvar_grid_scalar const &g)
 {
 }
 
-colvar_grid_scalar::colvar_grid_scalar(std::vector<int> const &nx_i)
-  : colvar_grid<cvm::real>(nx_i, 0.0, 1), samples(NULL)
+colvar_grid_scalar::colvar_grid_scalar(std::vector<colvar *> &colvars,
+                                       std::shared_ptr<const colvar_grid_params> params,
+                                       bool add_extra_bin,
+                                       std::string config)
+  : colvar_grid<cvm::real>(colvars, 0.0, 1, add_extra_bin, params, config), samples(NULL)
 {
 }
 
-colvar_grid_scalar::colvar_grid_scalar(std::vector<colvar *> &colvars, bool margin)
-  : colvar_grid<cvm::real>(colvars, 0.0, 1, margin), samples(NULL)
+colvar_grid_scalar::colvar_grid_scalar(std::string const &filename)
+  : colvar_grid<cvm::real>(filename, 1),
+    samples(nullptr)
 {
 }
 
@@ -330,89 +333,37 @@ cvm::real colvar_grid_scalar::grid_rmsd(colvar_grid_scalar const &other_grid) co
 
 
 colvar_grid_gradient::colvar_grid_gradient()
-  : colvar_grid<cvm::real>(), samples(NULL), full_samples(0), min_samples(0)
+  : colvar_grid<cvm::real>(), samples(NULL)
 {}
 
 
-colvar_grid_gradient::colvar_grid_gradient(std::vector<int> const &nx_i)
-  : colvar_grid<cvm::real>(nx_i, 0.0, nx_i.size()), samples(NULL), full_samples(0), min_samples(0)
-{}
+// colvar_grid_gradient::colvar_grid_gradient(std::vector<colvar *> &colvars, std::string config)
+//   : colvar_grid<cvm::real>(colvars, 0.0, colvars.size(), false, nullptr, config), samples(NULL)
+// {}
 
+// colvar_grid_gradient::colvar_grid_gradient(std::vector<colvar *> &colvars,
+//                                            std::shared_ptr<colvar_grid_count> samples_in)
+//   : colvar_grid<cvm::real>(colvars, 0.0, colvars.size(), false, samples_in), samples(samples_in)
+// {
+//   if (samples_in)
+//     samples_in->has_parent_data = true;
+// }
 
-colvar_grid_gradient::colvar_grid_gradient(std::vector<colvar *> &colvars)
-  : colvar_grid<cvm::real>(colvars, 0.0, colvars.size()), samples(NULL), full_samples(0), min_samples(0)
-{}
-
-
-colvar_grid_gradient::colvar_grid_gradient(std::vector<colvar *> &colvars, std::shared_ptr<colvar_grid_count> samples_in)
-  : colvar_grid<cvm::real>(colvars, 0.0, colvars.size()), samples(samples_in), full_samples(0), min_samples(0)
+colvar_grid_gradient::colvar_grid_gradient(std::vector<colvar *> &colvars,
+                                           std::shared_ptr<colvar_grid_count> samples_in,
+                                           std::shared_ptr<const colvar_grid_params> params,
+                                           std::string config)
+  : colvar_grid<cvm::real>(colvars, 0.0, colvars.size(), false, params, config), samples(samples_in)
 {
-  samples_in->has_parent_data = true;
+  if (samples_in)
+    samples_in->has_parent_data = true;
 }
 
 
-colvar_grid_gradient::colvar_grid_gradient(std::string &filename)
-  : colvar_grid<cvm::real>(),
-    samples(NULL)
+colvar_grid_gradient::colvar_grid_gradient(std::string const &filename)
+  : colvar_grid<cvm::real>(filename, 0),
+    samples(nullptr)
 {
-  std::istream &is = cvm::main()->proxy->input_stream(filename,
-                                                      "gradient file");
-  if (!is) {
-    return;
-  }
-
-  // Data in the header: nColvars, then for each
-  // xiMin, dXi, nPoints, periodic flag
-
-  std::string  hash;
-  size_t i;
-
-  if ( !(is >> hash) || (hash != "#") ) {
-    cvm::error("Error reading grid at position "+
-                cvm::to_str(static_cast<size_t>(is.tellg()))+
-                " in stream(read \"" + hash + "\")\n");
-    return;
-  }
-
-  is >> nd;
-
-  if (nd > 50) {
-    cvm::error("Error: excessive number of dimensions in file \""+
-               filename+"\".  Please ensure that the file is not corrupt.\n",
-               COLVARS_INPUT_ERROR);
-    return;
-  }
-
-  mult = nd;
-  std::vector<cvm::real> lower_in(nd), widths_in(nd);
-  std::vector<int>       nx_in(nd);
-  std::vector<int>       periodic_in(nd);
-
-  for (i = 0; i < nd; i++ ) {
-    if ( !(is >> hash) || (hash != "#") ) {
-      cvm::error("Error reading grid at position "+
-                  cvm::to_str(static_cast<size_t>(is.tellg()))+
-                  " in stream(read \"" + hash + "\")\n");
-      return;
-    }
-
-    is >> lower_in[i] >> widths_in[i] >> nx_in[i] >> periodic_in[i];
-  }
-
-  this->setup(nx_in, 0., mult);
-
-  widths = widths_in;
-
-  for (i = 0; i < nd; i++ ) {
-    lower_boundaries.push_back(colvarvalue(lower_in[i]));
-    periodic.push_back(static_cast<bool>(periodic_in[i]));
-  }
-
-  // Reset the istream for read_multicol, which expects the whole file
-  is.clear();
-  is.seekg(0);
-  read_multicol(is);
-  cvm::main()->proxy->close_input_stream(filename);
 }
 
 std::string colvar_grid_gradient::get_state_params() const
@@ -586,12 +537,13 @@ cvm::real colvar_grid_gradient::grid_rmsd(colvar_grid_gradient const &other_grid
 }
 
 
-integrate_potential::integrate_potential(std::vector<colvar *> &colvars, std::shared_ptr<colvar_grid_gradient> gradients)
-  : colvar_grid_scalar(colvars, true),
+integrate_potential::integrate_potential(std::vector<colvar *> &colvars,
+                                         std::shared_ptr<colvar_grid_gradient> gradients)
+  : colvar_grid_scalar(colvars, gradients, true),
     b_smoothed(false),
     gradients(gradients)
 {
-  // parent class colvar_grid_scalar is constructed with margin option set to true
+  // parent class colvar_grid_scalar is constructed with add_extra_bin option set to true
   // hence PMF grid is wider than gradient grid if non-PBC
 
   if (nd > 1) {

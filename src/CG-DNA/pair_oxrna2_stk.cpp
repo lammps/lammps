@@ -847,7 +847,7 @@ void PairOxrna2Stk::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 7 && narg != 27) error->all(FLERR,"Incorrect args for pair coefficients in oxrna2/stk");
+  if (narg != 7 && narg != 27) error->all(FLERR,"Incorrect args for pair coefficients in oxrna2/stk" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -1089,7 +1089,7 @@ void PairOxrna2Stk::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxrna2/stk");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxrna2/stk" + utils::errorurl(21));
 
 }
 

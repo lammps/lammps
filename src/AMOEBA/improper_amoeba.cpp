@@ -257,7 +257,7 @@ void ImproperAmoeba::allocate()
 
 void ImproperAmoeba::coeff(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (narg != 2) error->all(FLERR,"Incorrect args for improper coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -274,7 +274,7 @@ void ImproperAmoeba::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -336,4 +336,15 @@ void ImproperAmoeba::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nimpropertypes; i++)
     fprintf(fp,"%d %g\n",i,k[i]);
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *ImproperAmoeba::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  return nullptr;
 }

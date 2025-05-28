@@ -1,6 +1,7 @@
 KOKKOS_DEVICES=Serial
 KOKKOS_ARCH = ""
 
+KOKKOS_USE_DEPRECATED_MAKEFILES=1
 
 MAKEFILE_PATH := $(subst Makefile,,$(abspath $(lastword $(MAKEFILE_LIST))))
 

@@ -58,6 +58,32 @@ behave as expected.  If the argument is *no*, geturl will operate silently
 and only report the error status number provided by libcurl, in case of a
 failure.
 
+.. _geturl_proxy:
+
+.. admonition:: Using *geturl* with proxies for http or https
+   :class: note
+
+   The `libcurl library <https:://curl.se/libcurl/>`_ supports `routing
+   traffic through proxies
+   <https://everything.curl.dev/usingcurl/proxies/env.html>`_ by setting
+   suitable environment variables (e.g. ``http_proxy`` or
+   ``https_proxy``) as required by some institutional or corporate
+   security protocols.  In that case you probably also want to use the
+   *verify* *no* setting.
+
+   Using a proxy may also be needed if you are running on an HPC cluster
+   where only the login or head nodes have access to the internet, but
+   not the compute nodes.  In this case the following input can be adapted
+   and used for your local HPC environment:
+
+   .. code-block:: LAMMPS
+
+      variable headnode getenv PBS_O_HOST     # use SLURM_SUBMIT_HOST when using SLURM instead of Torque/PBS
+      shell ssh -N -f -D 8001 ${headnode}     # start SOCKS5 proxy with backgrounded ssh connection to cluster head node
+      shell putenv http_proxy=socks5://localhost:8001 https_proxy=socks5://localhost:8001
+      geturl https://download.lammps.org/tars/SHA256SUMS # download a file using proxy
+      shell head SHA256SUMS                # check if the download was successful
+
 ----------
 
 Restrictions

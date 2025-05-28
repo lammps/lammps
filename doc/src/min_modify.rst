@@ -98,14 +98,14 @@ all atoms
 
 .. math::
 
-   || \vec{F} ||_{max} = {\rm max}\left(||\vec{F}_1||, \cdots, ||\vec{F}_N||\right)
+   || \vec{F} ||_{max} = \mathrm{max}\left(||\vec{F}_1||, \cdots, ||\vec{F}_N||\right)
 
 The *inf* norm takes the maximum component across the forces of
 all atoms in the system:
 
 .. math::
 
-   || \vec{F} ||_{inf} = {\rm max}\left(|F_1^1|, |F_1^2|, |F_1^3| \cdots, |F_N^1|, |F_N^2|, |F_N^3|\right)
+   || \vec{F} ||_{inf} = \mathrm{max}\left(|F_1^1|, |F_1^2|, |F_1^3| \cdots, |F_N^1|, |F_N^2|, |F_N^3|\right)
 
 For the min styles *spin*, *spin/cg* and *spin/lbfgs*, the force
 norm is replaced by the spin-torque norm.

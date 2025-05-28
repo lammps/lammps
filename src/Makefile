@@ -1,13 +1,7 @@
 # LAMMPS multiple-machine -*- Makefile -*-
 
 SHELL = /bin/bash
-PYTHON = python
-PYTHON_VERSION=$(word 2,$(shell $(PYTHON) -V 2>&1 | tr '.' ' '))
-ifeq ($(PYTHON_VERSION),2)
-PYTHON_CHECK=@echo LAMMPS requires Python 3. Try: 'make PYTHON=python3 ...' ; exit 1
-else
-PYTHON_CHECK=@echo
-endif
+PYTHON = $(word 3,$(shell type python3))
 DYN_LIB = -ldl
 
 #.IGNORE:
@@ -282,7 +276,6 @@ LIBDIR = $(@:lib-%=%)
 # List of all targets
 
 help:
-	$(PYTHON_CHECK)
 	@echo 'make clean-all           delete all object files'
 	@echo 'make clean-machine       delete object files for one machine'
 	@echo 'make mpi-stubs           build dummy MPI library in STUBS'
@@ -384,7 +377,6 @@ gitversion:
 # shared = shared compile in Obj_shared_machine
 
 .DEFAULT:
-	$(PYTHON_CHECK)
 	@if [ $@ = "serial" ]; \
 	  then cd STUBS; $(MAKE); cd ..; fi
 	@test -f MAKE/Makefile.$@ -o -f MAKE/OPTIONS/Makefile.$@ -o \
@@ -472,7 +464,6 @@ mpi-stubs:
 
 sinclude ../lib/python/Makefile.lammps
 install-python:
-	$(PYTHON_CHECK)
 	@rm -rf ../python/build
 	@$(PYTHON) ../python/install.py -p ../python/lammps -l ../src/liblammps.so -w $(PWD) -v $(PWD)/version.h
 
@@ -491,51 +482,39 @@ tar:
 check: check-whitespace check-permissions check-homepage check-errordocs check-fmtlib check-docs check-version
 
 check-whitespace:
-	$(PYTHON_CHECK)
 	$(PYTHON) ../tools/coding_standard/whitespace.py ..
 
 fix-whitespace:
-	$(PYTHON_CHECK)
 	$(PYTHON) ../tools/coding_standard/whitespace.py .. -f
 
 check-permissions:
-	$(PYTHON_CHECK)
 	$(PYTHON) ../tools/coding_standard/permissions.py ..
 
 fix-permissions:
-	$(PYTHON_CHECK)
 	$(PYTHON) ../tools/coding_standard/permissions.py .. -f
 
 check-homepage:
-	$(PYTHON_CHECK)
 	$(PYTHON) ../tools/coding_standard/homepage.py ..
 
 fix-homepage:
-	$(PYTHON_CHECK)
 	$(PYTHON) ../tools/coding_standard/homepage.py .. -f
 
 check-errordocs:
-	$(PYTHON_CHECK)
 	$(PYTHON) ../tools/coding_standard/errordocs.py ..
 
 fix-errordocs:
-	$(PYTHON_CHECK)
 	$(PYTHON) ../tools/coding_standard/errordocs.py .. -f
 
 check-fmtlib:
-	$(PYTHON_CHECK)
 	$(PYTHON) ../tools/coding_standard/fmtlib.py ..
 
 fix-fmtlib:
-	$(PYTHON_CHECK)
 	$(PYTHON) ../tools/coding_standard/fmtlib.py .. -f
 
 check-docs:
-	$(PYTHON_CHECK)
 	$(MAKE) $(MFLAGS) -C ../doc anchor_check style_check package_check role_check
 
 check-version:
-	$(PYTHON_CHECK)
 	$(PYTHON) ../tools/coding_standard/versiontags.py .. || echo
 
 format-src:

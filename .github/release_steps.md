@@ -216,7 +216,7 @@ and using the CMake settings:
 
 ``` sh
 -D CMAKE_OSX_ARCHITECTURES=arm64;x86_64
--D CMAKE_OSX_DEPLOYMENT_TARGER=11.0
+-D CMAKE_OSX_DEPLOYMENT_TARGET=11.0
 ```
 
 This will add the compiler flags `-arch arm64 -arch x86_64
@@ -324,6 +324,47 @@ At this point it should be possible to do a fast-forward merge of
 
 ### Push branches and tags
 
-
-
 ## LAMMPS Stable Update Release
+
+After making a stable release, bugfixes from the 'develop' branch
+are selectively backported to the 'maintenance' branch.  This is
+done with "git cherry-pick \<commit hash\>' wherever possible.
+The LAMMPS\_UPDATE define in "src/version.h" is set to "Maintenance".
+
+### Prerequesites
+
+When a sufficient number of bugfixes has accumulated or an urgent
+or important bugfix needs to be distributed a new stable update
+release is made.  To make this publicly visible a pull request
+is submitted that will merge 'maintenance' into 'stable'.  Before
+merging, set LAMMPS\_UPDATE in "src/version.h" to "Update #" with
+"#" indicating the update count (1, 2, and so on).
+Also draft suitable release notes under https://github.com/lammps/lammps/releases
+
+### Fast-forward merge of 'maintenance' into 'stable', apply tag, and publish
+
+Do a fast-forward merge of 'maintenance' to 'stable' and then
+apply the stable\_DMmmYYYY\_update# tag and push branch and tag
+to GitHub. The corresponding pull request will be automatically
+closed.   Example:
+
+```
+git checkout maintenance
+git pull
+git checkout stable
+git pull
+git merge --ff-only maintenance
+git tag -s -m 'Update 2 for Stable LAMMPS version 29 August 2024' stable_29Aug2024_update2
+git push git@github.com:lammps/lammps.git --tags maintenance stable
+```
+
+Associate draft release notes with new tag and publish as "latest release".
+
+On https://ci.lammps.org/ go to "dev", "stable" and manually execute
+the "update\_release" task. This will update https://docs.lammps.org/stable
+and prepare a stable tarball.
+
+### Build and upload binary packages and source tarball to GitHub
+
+The build procedure is the same as for the feature releases, only
+that packages are built from the 'stable' branch.

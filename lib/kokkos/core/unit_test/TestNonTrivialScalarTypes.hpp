@@ -140,6 +140,11 @@ struct array_reduce {
 
   KOKKOS_INLINE_FUNCTION
   array_reduce &operator=(const array_reduce &src) {
+    // ROCm 5.5 and earlier returns the wrong result when early return is enable
+#if !defined(KOKKOS_ENABLE_HIP) || (HIP_VERSION_MAJOR > 5) || \
+    ((HIP_VERSION_MAJOR == 5) && (HIP_VERSION_MINOR >= 6))
+    if (&src == this) return *this;
+#endif
     for (int i = 0; i < N; i++) data[i] = src.data[i];
     return *this;
   }

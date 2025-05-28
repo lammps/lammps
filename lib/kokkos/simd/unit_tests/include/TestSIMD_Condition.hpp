@@ -22,8 +22,8 @@
 
 template <typename Abi, typename DataType>
 inline void host_check_condition() {
-  if constexpr (is_type_v<Kokkos::Experimental::simd<DataType, Abi>>) {
-    using simd_type = typename Kokkos::Experimental::simd<DataType, Abi>;
+  if constexpr (is_type_v<Kokkos::Experimental::basic_simd<DataType, Abi>>) {
+    using simd_type = typename Kokkos::Experimental::basic_simd<DataType, Abi>;
     using mask_type = typename simd_type::mask_type;
 
     auto condition_op = [](mask_type const& mask, simd_type const& a,
@@ -56,8 +56,8 @@ inline void host_check_condition_all_abis(
 
 template <typename Abi, typename DataType>
 KOKKOS_INLINE_FUNCTION void device_check_condition() {
-  if constexpr (is_type_v<Kokkos::Experimental::simd<DataType, Abi>>) {
-    using simd_type = typename Kokkos::Experimental::simd<DataType, Abi>;
+  if constexpr (is_type_v<Kokkos::Experimental::basic_simd<DataType, Abi>>) {
+    using simd_type = typename Kokkos::Experimental::basic_simd<DataType, Abi>;
     using mask_type = typename simd_type::mask_type;
     kokkos_checker checker;
 

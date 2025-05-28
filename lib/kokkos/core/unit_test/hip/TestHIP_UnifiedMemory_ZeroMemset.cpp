@@ -19,20 +19,18 @@
 
 namespace Test {
 
-// On MI300a with ROCM <= 6.2.0, hipMemsetAsync was failing with an error when
+// On MI300a with ROCM <= 6.2.1, hipMemsetAsync was failing with an error when
 // called on host-allocated buffers. The fix was in PR 7380 to use a
 // parallel_for to zero memory
-TEST(hip, unified_memory_zero_memset) {
-#if !defined(KOKKOS_IMPL_HIP_UNIFIED_MEMORY)
-  GTEST_SKIP()
-      << "this test should only be run with HIP unified memory enabled";
-#endif
+template <typename MemorySpace>
+void unified_memory_zero_memset() {
+  static_assert(Kokkos::is_memory_space_v<MemorySpace>);
 
-  constexpr size_t N = 1024 * 1024;  // size doesn't matter
-  std::vector<int> v(N, 1);          // initialize to non-zero
-  Kokkos::View<int*, Kokkos::HIPSpace> a(v.data(), N);
+  constexpr size_t N = static_cast<size_t>(1024 * 1024);  // size doesn't matter
+  std::vector<int> v(N, 1);  // initialize to non-zero
+  Kokkos::View<int*, MemorySpace> a(v.data(), N);
 
-  // zero with deep_copy (this is where the error occurs)
+  // zero with deep_copy (this is where the error occured)
   Kokkos::deep_copy(a, 0);
 
   // see if it was zeroed
@@ -40,5 +38,14 @@ TEST(hip, unified_memory_zero_memset) {
   Kokkos::parallel_reduce(
       N, KOKKOS_LAMBDA(int i, int& lerr) { lerr += (a[i] != 0); }, err);
   EXPECT_EQ(err, 0);
+}
+
+TEST(hip, unified_memory_zero_memset) {
+#if !defined(KOKKOS_IMPL_HIP_UNIFIED_MEMORY)
+  GTEST_SKIP()
+      << "this test should only be run with HIP unified memory enabled";
+#endif
+  unified_memory_zero_memset<Kokkos::SharedSpace>();
+  unified_memory_zero_memset<Kokkos::HIPSpace>();
 }
 }  // namespace Test

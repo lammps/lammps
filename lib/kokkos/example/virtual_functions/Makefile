@@ -6,6 +6,8 @@ KOKKOS_ARCH = "SNB,Kepler35"
 #KOKKOS_CUDA_OPTIONS=enable_lambda
 #KOKKOS_ARCH = "SNB"
 
+KOKKOS_USE_DEPRECATED_MAKEFILES=1
+
 MAKEFILE_PATH := $(subst Makefile,,$(abspath $(lastword $(MAKEFILE_LIST))))
 
 ifndef KOKKOS_PATH

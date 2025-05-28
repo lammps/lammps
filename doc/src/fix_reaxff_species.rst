@@ -207,6 +207,9 @@ No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
 This fix is not invoked during :doc:`energy minimization <minimize>`.
 
+This fix supports dynamic groups only if the *Nrepeat* setting is 1,
+i.e. there is no averaging.
+
 ----------
 
 .. include:: accel_styles.rst

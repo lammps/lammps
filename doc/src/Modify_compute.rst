@@ -1,19 +1,21 @@
 Compute styles
 ==============
 
-Classes that compute scalar and vector quantities like temperature
-and the pressure tensor, as well as classes that compute per-atom
-quantities like kinetic energy and the centro-symmetry parameter
-are derived from the Compute class.  New styles can be created
-to add new calculations to LAMMPS.
+Classes that compute scalar and vector quantities like temperature and
+the pressure tensor, as well as classes that compute per-atom quantities
+like kinetic energy and the centro-symmetry parameter are derived from
+the Compute class.  New styles can be created to add new calculations to
+LAMMPS.
 
-Compute_temp.cpp is a simple example of computing a scalar
-temperature.  Compute_ke_atom.cpp is a simple example of computing
-per-atom kinetic energy.
+The ``src/compute_temp.cpp`` file is a simple example of computing a
+scalar temperature. The ``src/compute_ke_atom.cpp`` file is a simple
+example of computing per-atom kinetic energy.
 
 Here is a brief description of methods you define in your new derived
-class.  See compute.h for details.
+class.  See ``src/compute.h`` for additional details.
 
++-----------------------+------------------------------------------------------------------+
+| post_constructor      | perform tasks that cannot be run in the constructor (optional)   |
 +-----------------------+------------------------------------------------------------------+
 | init                  | perform one time setup (required)                                |
 +-----------------------+------------------------------------------------------------------+
@@ -50,10 +52,11 @@ class.  See compute.h for details.
 | memory_usage          | tally memory usage (optional)                                    |
 +-----------------------+------------------------------------------------------------------+
 
-Tally-style computes are a special case, as their computation is done
-in two stages: the callback function is registered with the pair style
-and then called from the Pair::ev_tally() function, which is called for
-each pair after force and energy has been computed for this pair. Then
-the tallied values are retrieved with the standard compute_scalar or
-compute_vector or compute_peratom methods. The :doc:`compute styles in the TALLY package <compute_tally>`
-provide *examples* for utilizing this mechanism.
+Tally-style computes are a special case, as their computation is done in
+two stages: the callback function is registered with the pair style and
+then called from the Pair::ev_tally() function, which is called for each
+pair after force and energy has been computed for this pair. Then the
+tallied values are retrieved with the standard compute_scalar or
+compute_vector or compute_peratom methods. The :doc:`compute styles in
+the TALLY package <compute_tally>` provide *examples* for utilizing this
+mechanism.

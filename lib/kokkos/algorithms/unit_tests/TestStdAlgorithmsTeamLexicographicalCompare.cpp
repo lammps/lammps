@@ -245,6 +245,7 @@ void test_A(const TestCaseType testCase, std::size_t numTeams,
 
         break;
       }
+      default: Kokkos::abort("unreachable");
     }
   }
 }

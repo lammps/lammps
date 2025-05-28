@@ -256,6 +256,7 @@ accelerated styles exist.
 * :doc:`flow/gauss <fix_flow_gauss>` - Gaussian dynamics for constant mass flux
 * :doc:`freeze <fix_freeze>` - freeze atoms in a granular simulation
 * :doc:`gcmc <fix_gcmc>` - grand canonical insertions/deletions
+* :doc:`gjf <fix_gjf>` - statistically correct Langevin temperature control using the GJ methods
 * :doc:`gld <fix_gld>` - generalized Langevin dynamics integrator
 * :doc:`gle <fix_gle>` - generalized Langevin equation thermostat
 * :doc:`gravity <fix_gravity>` - add gravity to atoms in a granular simulation
@@ -290,6 +291,7 @@ accelerated styles exist.
 * :doc:`mvv/tdpd <fix_mvv_dpd>` - constant temperature DPD using the modified velocity-Verlet algorithm
 * :doc:`neb <fix_neb>` - nudged elastic band (NEB) spring forces
 * :doc:`neb/spin <fix_neb_spin>` - nudged elastic band (NEB) spring forces for spins
+* :doc:`neighbor/swap <fix_neighbor_swap>` - kinetic Monte Carlo (kMC) atom swapping
 * :doc:`nonaffine/displacement <fix_nonaffine_displacement>` - calculate nonaffine displacement of atoms
 * :doc:`nph <fix_nh>` - constant NPH time integration via Nose/Hoover
 * :doc:`nph/asphere <fix_nph_asphere>` - NPH for aspherical particles
@@ -341,6 +343,8 @@ accelerated styles exist.
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
 * :doc:`pimd/langevin <fix_pimd>` - Feynman path-integral molecular dynamics with stochastic thermostat
 * :doc:`pimd/nvt <fix_pimd>` - Feynman path-integral molecular dynamics with Nose-Hoover thermostat
+* :doc:`pimd/langevin/bosonic <fix_pimd>` - Bosonic Feynman path-integral molecular dynamics for with stochastic thermostat
+* :doc:`pimd/nvt/bosonic <fix_pimd>` - Bosonic Feynman path-integral molecular dynamics with Nose-Hoover thermostat
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane
 * :doc:`plumed <fix_plumed>` - wrapper on PLUMED free energy library
 * :doc:`poems <fix_poems>` - constrain clusters of atoms to move as coupled rigid bodies
@@ -363,6 +367,7 @@ accelerated styles exist.
 * :doc:`qeq/fire <fix_qeq>` - charge equilibration via FIRE minimizer
 * :doc:`qeq/point <fix_qeq>` - charge equilibration via point method
 * :doc:`qeq/reaxff <fix_qeq_reaxff>` - charge equilibration for ReaxFF potential
+* :doc:`qeq/rel/reaxff <fix_qeq_rel_reaxff>` - charge equilibration for ReaxFF potential with alternate efield implementation
 * :doc:`qeq/shielded <fix_qeq>` - charge equilibration via shielded method
 * :doc:`qeq/slater <fix_qeq>` - charge equilibration via Slater method
 * :doc:`qmmm <fix_qmmm>` - functionality to enable a quantum mechanics/molecular mechanics coupling

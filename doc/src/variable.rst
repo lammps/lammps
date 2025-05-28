@@ -51,12 +51,12 @@ Syntax
          thermo keywords = vol, ke, press, etc from :doc:`thermo_style <thermo_style>`
          math operators = (), -x, x+y, x-y, x\*y, x/y, x\^y, x%y,
                           x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x \|\| y, x \|\^ y, !x
-         math functions = sqrt(x), exp(x), ln(x), log(x), abs(x),
+         math functions = sqrt(x), exp(x), ln(x), log(x), abs(x), sign(x),
                           sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
                           random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ternary(x,y,z),
                           ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z),
                           logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c),
-                          vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z), sign(x)
+                          vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
          group functions = count(group), mass(group), charge(group),
                            xcm(group,dim), vcm(group,dim), fcm(group,dim),
                            bound(group,dir), gyration(group), ke(group),
@@ -541,7 +541,7 @@ variables.
 +------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Math operators         | (), -x, x+y, x-y, x\*y, x/y, x\^y, x%y, x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x \|\| y, x \|\^ y, !x                                                                                                                                                                                                                                       |
 +------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Math functions         | sqrt(x), exp(x), ln(x), log(x), abs(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ternary(x,y,z), ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z), sign(x)  |
+| Math functions         | sqrt(x), exp(x), ln(x), log(x), abs(x), sign(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ternary(x,y,z), ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)  |
 +------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Group functions        | count(ID), mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), inertia(ID,dimdim), omega(ID,dim)                                                                                                                                                                             |
 +------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -691,6 +691,11 @@ sqrt() of the product of one atom's y and z coordinates.
 
 Most of the math functions perform obvious operations.  The ln() is
 the natural log; log() is the base 10 log.
+
+.. versionadded:: 4Feb2025
+
+The sign(x) function returns 1.0 if the value is greater than or equal
+to 0.0, and -1.0 otherwise.
 
 The random(x,y,z) function takes 3 arguments: x = lo, y = hi, and z =
 seed.  It generates a uniform random number between lo and hi.  The
@@ -859,9 +864,6 @@ run, according to one of these formulas, where omega = 2 PI / period:
    value = value0 + Amplitude \* (1 - cos(omega\*(timestep-startstep)\*dt))
 
 where dt = the timestep size.
-
-The sign(x) function returns 1.0 if the value is greater than or equal
-to 0.0, and -1.0 otherwise.
 
 The run begins on startstep.  Startstep can span multiple runs, using
 the *start* keyword of the :doc:`run <run>` command.  See the :doc:`run

@@ -119,6 +119,17 @@ void SYCL::print_configuration(std::ostream& os, bool verbose) const {
 #else
   os << "macro  SYCL_EXT_ONEAPI_GRAPH : undefined\n";
 #endif
+#ifdef SYCL_EXT_ONEAPI_BFLOAT16
+  os << "macro  SYCL_EXT_ONEAPI_BFLOAT16 : defined\n";
+#else
+  os << "macro  SYCL_EXT_ONEAPI_BFLOAT16 : undefined\n";
+#endif
+#ifdef SYCL_EXT_ONEAPI_AUTO_LOCAL_RANGE
+  os << "macro  SYCL_EXT_ONEAPI_AUTO_LOCAL_RANGE : defined\n";
+#else
+  os << "macro  SYCL_EXT_ONEAPI_AUTO_LOCAL_RANGE : undefined\n";
+#endif
+
 #ifdef SYCL_EXT_INTEL_QUEUE_IMMEDIATE_COMMAND_LIST
   if (sycl_queue()
           .has_property<
@@ -166,13 +177,12 @@ void SYCL::print_configuration(std::ostream& os, bool verbose) const {
 
   if (verbose) {
     os << '\n';
-    SYCL::impl_sycl_info(os, m_space_instance->m_queue->get_device());
+    SYCL::impl_sycl_info(os, sycl_queue().get_device());
   }
 }
 
 void SYCL::fence(const std::string& name) const {
-  Impl::SYCLInternal::fence(*m_space_instance->m_queue, name,
-                            impl_instance_id());
+  Impl::SYCLInternal::fence(sycl_queue(), name, impl_instance_id());
 }
 
 void SYCL::impl_static_fence(const std::string& name) {

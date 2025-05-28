@@ -117,6 +117,10 @@ struct TraitSpecificationBase {
   template <class Policy, class Trait>
   using policy_with_trait =
       typename PolicyTraitAdaptor<TraitSpec, Policy, Trait>::type;
+
+ private:
+  TraitSpecificationBase() = default;
+  friend TraitSpec;
 };
 
 // </editor-fold> end CRTP Base class for trait specifications }}}1

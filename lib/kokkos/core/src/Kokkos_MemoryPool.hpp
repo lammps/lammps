@@ -29,6 +29,7 @@ static_assert(false,
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_SharedAlloc.hpp>
 
+// NOLINTBEGIN(bugprone-implicit-widening-of-multiplication-result)
 namespace Kokkos {
 namespace Impl {
 /* Report violation of size constraints:
@@ -156,8 +157,13 @@ class MemoryPool {
     size_t reserved_bytes;   ///<  Unallocated bytes in assigned superblocks
   };
 
+  // This function is templated to avoid needing a full definition of
+  // DefaultHostExecutionSpace at class instantiation
+  template <typename ExecutionSpace = Kokkos::DefaultHostExecutionSpace>
   void get_usage_statistics(usage_statistics &stats) const {
     Kokkos::HostSpace host;
+    static_assert(
+        std::is_same_v<ExecutionSpace, Kokkos::DefaultHostExecutionSpace>);
 
     const size_t alloc_size = m_hint_offset * sizeof(uint32_t);
 
@@ -166,7 +172,7 @@ class MemoryPool {
 
     if (!accessible) {
       Kokkos::Impl::DeepCopy<Kokkos::HostSpace, base_memory_space>(
-          sb_state_array, m_sb_state_array, alloc_size);
+          ExecutionSpace{}, sb_state_array, m_sb_state_array, alloc_size);
       Kokkos::fence(
           "MemoryPool::get_usage_statistics(): fence after copying state "
           "array to HostSpace");
@@ -208,8 +214,13 @@ class MemoryPool {
     }
   }
 
+  // This function is templated to avoid needing a full definition of
+  // DefaultHostExecutionSpace at class instantiation
+  template <typename ExecutionSpace = Kokkos::DefaultHostExecutionSpace>
   void print_state(std::ostream &s) const {
     Kokkos::HostSpace host;
+    static_assert(
+        std::is_same_v<ExecutionSpace, Kokkos::DefaultHostExecutionSpace>);
 
     const size_t alloc_size = m_hint_offset * sizeof(uint32_t);
 
@@ -218,7 +229,7 @@ class MemoryPool {
 
     if (!accessible) {
       Kokkos::Impl::DeepCopy<Kokkos::HostSpace, base_memory_space>(
-          sb_state_array, m_sb_state_array, alloc_size);
+          ExecutionSpace{}, sb_state_array, m_sb_state_array, alloc_size);
       Kokkos::fence(
           "MemoryPool::print_state(): fence after copying state array to "
           "HostSpace");
@@ -430,7 +441,8 @@ class MemoryPool {
 
     if (!accessible) {
       Kokkos::Impl::DeepCopy<base_memory_space, Kokkos::HostSpace>(
-          m_sb_state_array, sb_state_array, header_size);
+          typename base_memory_space::execution_space{}, m_sb_state_array,
+          sb_state_array, header_size);
       Kokkos::fence(
           "MemoryPool::MemoryPool(): fence after copying state array from "
           "HostSpace");
@@ -791,5 +803,6 @@ class MemoryPool {
 };
 
 }  // namespace Kokkos
+   // NOLINTEND(bugprone-implicit-widening-of-multiplication-result)
 
 #endif /* #ifndef KOKKOS_MEMORYPOOL_HPP */

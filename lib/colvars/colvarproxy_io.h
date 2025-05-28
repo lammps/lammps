@@ -38,6 +38,12 @@ public:
   // Returns error code
   virtual int set_frame(long int);
 
+  /// Get the current working directory of this process
+  std::string get_current_work_dir() const;
+
+  /// Join two paths using the operating system's path separation
+  std::string join_paths(std::string const &path1, std::string const &path2) const;
+
   /// \brief Rename the given file, before overwriting it
   virtual int backup_file(char const *filename);
 

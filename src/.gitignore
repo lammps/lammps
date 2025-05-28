@@ -374,6 +374,8 @@
 /bond_bpm_rotational.h
 /bond_bpm_spring.cpp
 /bond_bpm_spring.h
+/bond_bpm_spring_plastic.cpp
+/bond_bpm_spring_plastic.h
 /compute_nbond_atom.cpp
 /compute_nbond_atom.h
 /fix_nve_bpm_sphere.cpp
@@ -417,6 +419,8 @@
 /compute_hexorder_atom.h
 /dump_dcd.cpp
 /dump_dcd.h
+/dump_extxyz.cpp
+/dump_extxyz.h
 /fix_controller.cpp
 /fix_controller.h
 /fix_drag.cpp
@@ -871,6 +875,8 @@
 /fix_freeze.h
 /fix_gcmc.cpp
 /fix_gcmc.h
+/fix_gjf.cpp
+/fix_gjf.h
 /fix_gld.cpp
 /fix_gld.h
 /fix_gle.cpp
@@ -920,6 +926,8 @@
 /fix_msst.h
 /fix_neb.cpp
 /fix_neb.h
+/fix_neighbor_swap.cpp
+/fix_neighbor_swap.h
 /fix_nh_asphere.cpp
 /fix_nh_asphere.h
 /fix_nph_asphere.cpp
@@ -994,6 +1002,8 @@
 /fix_qeq_fire.h
 /fix_qeq_reaxff.cpp
 /fix_qeq_reaxff.h
+/fix_qeq_rel_reaxff.cpp
+/fix_qeq_rel_reaxff.h
 /fix_qmmm.cpp
 /fix_qmmm.h
 /fix_qtpie_reaxff.cpp
@@ -1659,10 +1669,14 @@
 /fix_pimd.h
 /fix_pimd_langevin.cpp
 /fix_pimd_langevin.h
+/fix_pimd_langevin_bosonic.cpp
+/fix_pimd_langevin_bosonic.h
 /fix_alchemy.cpp
 /fix_alchemy.h
 /fix_pimd_nvt.cpp
 /fix_pimd_nvt.h
+/fix_pimd_nvt_bosonic.cpp
+/fix_pimd_nvt_bosonic.h
 /fix_qbmsst.cpp
 /fix_qbmsst.h
 /fix_qtb.cpp
@@ -1791,4 +1805,6 @@
 /pair_smtbq.h
 /pair_vashishta*.cpp
 /pair_vashishta*.h
+/pair_lj_pirani.cpp
+/pair_lj_pirani.h
 

@@ -40,7 +40,7 @@ DeleteBonds::DeleteBonds(LAMMPS *lmp) : Command(lmp) {}
 void DeleteBonds::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR,"Delete_bonds command before simulation box is defined");
+    error->all(FLERR,"Delete_bonds command before simulation box is defined" + utils::errorurl(33));
   if (atom->natoms == 0)
     error->all(FLERR,"Delete_bonds command with no atoms existing");
   if (atom->molecular != Atom::MOLECULAR)
@@ -56,11 +56,9 @@ void DeleteBonds::command(int narg, char **arg)
 
   if (comm->me == 0) utils::logmesg(lmp,"Deleting bonds ...\n");
 
-  // identify group
+  // get group bitmask
 
-  int igroup = group->find(arg[0]);
-  if (igroup == -1) error->all(FLERR,"Cannot find delete_bonds group ID");
-  int groupbit = group->bitmask[igroup];
+  int groupbit = group->get_bitmask_by_id(FLERR, arg[0], "delete_bonds");
 
   // set style and which = type value
 

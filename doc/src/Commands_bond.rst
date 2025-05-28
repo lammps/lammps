@@ -23,6 +23,7 @@ OPT.
    *
    * :doc:`bpm/rotational <bond_bpm_rotational>`
    * :doc:`bpm/spring <bond_bpm_spring>`
+   * :doc:`bpm/spring/plastic <bond_bpm_spring_plastic>`
    * :doc:`class2 (ko) <bond_class2>`
    * :doc:`fene (iko) <bond_fene>`
    * :doc:`fene/expand (o) <bond_fene_expand>`
@@ -127,7 +128,7 @@ OPT.
    * :doc:`harmonic (iko) <dihedral_harmonic>`
    * :doc:`helix (o) <dihedral_helix>`
    * :doc:`lepton (o) <dihedral_lepton>`
-   * :doc:`multi/harmonic (o) <dihedral_multi_harmonic>`
+   * :doc:`multi/harmonic (ko) <dihedral_multi_harmonic>`
    * :doc:`nharmonic (o) <dihedral_nharmonic>`
    * :doc:`opls (iko) <dihedral_opls>`
    * :doc:`quadratic (o) <dihedral_quadratic>`

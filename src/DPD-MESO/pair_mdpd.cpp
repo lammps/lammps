@@ -24,6 +24,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -243,7 +244,7 @@ void PairMDPD::settings(int narg, char **arg)
 
 void PairMDPD::coeff(int narg, char **arg)
 {
-  if (narg != 7 ) error->all(FLERR,"Incorrect args for pair coefficients\n itype jtype A B gamma cutA cutB");
+  if (narg != 7 ) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -256,7 +257,7 @@ void PairMDPD::coeff(int narg, char **arg)
   double cut_one = utils::numeric(FLERR,arg[5],false,lmp);
   double cut_two = utils::numeric(FLERR,arg[6],false,lmp);
 
-  if (cut_one < cut_two) error->all(FLERR,"Incorrect args for pair coefficients\n cutA should be larger than cutB.");
+  if (cut_one < cut_two) error->all(FLERR, "Value for cutA should be larger than cutB.");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -270,7 +271,7 @@ void PairMDPD::coeff(int narg, char **arg)
       count++;
     }
   }
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -300,7 +301,9 @@ void PairMDPD::init_style()
 
 double PairMDPD::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   sigma[i][j] = sqrt(2.0*force->boltz*temperature*gamma[i][j]);
 

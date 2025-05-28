@@ -2,6 +2,7 @@ KOKKOS_DEVICES=Cuda
 KOKKOS_CUDA_OPTIONS=enable_lambda
 KOKKOS_ARCH = "SNB,Volta70"
 
+KOKKOS_USE_DEPRECATED_MAKEFILES=1
 
 MAKEFILE_PATH := $(subst Makefile,,$(abspath $(lastword $(MAKEFILE_LIST))))
 

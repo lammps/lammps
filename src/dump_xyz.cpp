@@ -16,6 +16,7 @@
 
 #include "atom.h"
 #include "error.h"
+#include "input.h"
 #include "label_map.h"
 #include "memory.h"
 #include "update.h"
@@ -32,8 +33,8 @@ static constexpr int DELTA = 1048576;
 DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   typenames(nullptr)
 {
-  if (narg != 5) error->all(FLERR,"Illegal dump xyz command");
-  if (binary || multiproc) error->all(FLERR,"Invalid dump xyz filename");
+  if (narg != 5) error->all(FLERR, Error::NOPOINTER, "Illegal dump {} command", style);
+  if (binary || multiproc) error->all(FLERR, 4, "Invalid dump {} filename", style);
 
   size_one = 5;
 
@@ -43,7 +44,6 @@ DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   sortcol = 0;
 
   delete[] format_default;
-
   format_default = utils::strdup("%s %g %g %g");
 
   ntypes = atom->ntypes;
@@ -103,9 +103,16 @@ void DumpXYZ::init_style()
 
 int DumpXYZ::modify_param(int narg, char **arg)
 {
+  // determine argument offset, if possible
+  int ioffset = 0;
+  if (input->arg) {
+    for (int i = 0; i < input->narg; ++i)
+      if (input->arg[i] == arg[0]) ioffset = i;
+  }
+
   if (strcmp(arg[0],"element") == 0) {
     if (narg < ntypes+1)
-      error->all(FLERR, "Dump modify element names do not match atom types");
+      error->all(FLERR, ioffset, "Dump modify element names do not match number of atom types");
 
     if (typenames) {
       for (int i = 1; i <= ntypes; i++)
@@ -120,11 +127,11 @@ int DumpXYZ::modify_param(int narg, char **arg)
       typenames[itype] = utils::strdup(arg[itype]);
     }
 
-    return ntypes+1;
+    return ntypes + 1;
   }
 
   if (strcmp(arg[0],"types") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR,"dump_modify types", error);
 
     if (typenames) {
       for (int i = 1; i <= ntypes; i++)
@@ -138,8 +145,8 @@ int DumpXYZ::modify_param(int narg, char **arg)
       return 2;
     } else if (strcmp(arg[1],"labels") == 0) {
       if (!atom->labelmapflag)
-        error->all(FLERR, "Label map must be defined when using 'types labels'");
-    } else error->all(FLERR, "Illegal option for dump_modify 'types' keyword");
+        error->all(FLERR, ioffset + 1, "Label map must be defined when using 'types labels'");
+    } else error->all(FLERR, ioffset + 1, "Unknown option {} for dump_modify 'types' keyword", arg[1]);
 
     typenames = new char*[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) {
@@ -157,7 +164,7 @@ int DumpXYZ::modify_param(int narg, char **arg)
 void DumpXYZ::write_header(bigint n)
 {
   if (me == 0) {
-    if (!fp) error->one(FLERR, "Must not use 'run pre no' after creating a new dump");
+    if (!fp) error->one(FLERR, Error::NOLASTLINE, "Must not use 'run pre no' after creating a new dump");
 
     auto header = fmt::format("{}\n Atoms. Timestep: {}", n, update->ntimestep);
     if (time_flag) header += fmt::format(" Time: {:.6f}", compute_time());

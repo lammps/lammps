@@ -240,7 +240,7 @@ void PairDSMC::settings(int narg, char **arg)
 
 void PairDSMC::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 3 || narg > 4) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -262,7 +262,7 @@ void PairDSMC::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

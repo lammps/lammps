@@ -17,6 +17,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "suffix.h"
 #include "update.h"
@@ -32,6 +33,7 @@ Dihedral::Dihedral(LAMMPS *_lmp) : Pointers(_lmp)
 {
   energy = 0.0;
   writedata = 0;
+  reinitflag = 1;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
@@ -68,9 +70,14 @@ Dihedral::~Dihedral()
 
 void Dihedral::init()
 {
-  if (!allocated && atom->ndihedraltypes) error->all(FLERR, "Dihedral coeffs are not set");
+  if (!allocated && atom->ndihedraltypes)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Dihedral coeffs are not set. Status:\n" + Info::get_dihedral_coeff_status(lmp));
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    if (setflag[i] == 0) error->all(FLERR, "All dihedral coeffs are not set");
+    if (setflag[i] == 0)
+            error->all(FLERR, Error::NOLASTLINE,
+                       "All dihedral coeffs are not set. Status:\n"
+                       + Info::get_dihedral_coeff_status(lmp));
   init_style();
 }
 
@@ -421,4 +428,16 @@ double Dihedral::memory_usage()
   bytes += (double) comm->nthreads * maxvatom * 6 * sizeof(double);
   bytes += (double) comm->nthreads * maxcvatom * 9 * sizeof(double);
   return bytes;
+}
+
+/* -----------------------------------------------------------------------
+   reset all type-based dihedral params via init()
+-------------------------------------------------------------------------- */
+
+void Dihedral::reinit()
+{
+  if (!reinitflag)
+    error->all(FLERR, "Fix adapt interface to this dihedral style not supported");
+
+  init();
 }

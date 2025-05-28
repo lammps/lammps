@@ -318,7 +318,7 @@ void BondOxdnaFene::allocate()
 
 void BondOxdnaFene::coeff(int narg, char **arg)
 {
-  if (narg != 2 && narg != 4) error->all(FLERR, "Incorrect args for bond coefficients in oxdna/fene");
+  if (narg != 2 && narg != 4) error->all(FLERR, "Incorrect args for bond coefficients in oxdna/fene" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -374,7 +374,7 @@ void BondOxdnaFene::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients in oxdna/fene");
+  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients in oxdna/fene" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

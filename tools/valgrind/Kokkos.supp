@@ -1,0 +1,26 @@
+{
+   Kokkos_OpenMP_init1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:*
+   fun:_ZNK6Kokkos9HostSpace13impl_allocateEPKcmm28Kokkos_Profiling_SpaceHandle
+   fun:_ZNK6Kokkos9HostSpace8allocateEPKcmm
+   fun:_ZN6Kokkos4Impl14OpenMPInternal18resize_thread_dataEmmmm
+   fun:_ZN6Kokkos4Impl14OpenMPInternal10initializeEi
+   fun:_ZN6Kokkos4Impl16ExecSpaceManager17initialize_spacesERKNS_22InitializationSettingsE
+   fun:initialize_backends
+   fun:initialize_internal
+   fun:_ZN6Kokkos10initializeERKNS_22InitializationSettingsE
+   fun:_ZN9LAMMPS_NS9KokkosLMPC1EPNS_6LAMMPSEiPPc
+   ...
+}
+{
+   Kokkos_OpenMP_string1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:_ZnwmSt11align_val_tRKSt9nothrow_t
+   fun:_ZNK6Kokkos9HostSpace13impl_allocateEPKcmm28Kokkos_Profiling_SpaceHandle
+   fun:_ZNK6Kokkos9HostSpace8allocateEPKcmm
+   fun:_ZN6Kokkos4Impl14OpenMPInternal18resize_thread_dataEmmmm
+   ...
+}

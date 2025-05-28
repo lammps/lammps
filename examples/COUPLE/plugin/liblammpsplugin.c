@@ -144,6 +144,7 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(find_pair_neighlist);
   ADDSYM(find_fix_neighlist);
   ADDSYM(find_compute_neighlist);
+  ADDSYM(request_single_neighlist);
   ADDSYM(neighlist_num_elements);
   ADDSYM(neighlist_element_neighbors);
 
@@ -204,6 +205,7 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
     ADDSYM(has_error);
     ADDSYM(get_last_error_message);
   }
+  ADDSYM(set_show_error);
 
   ADDSYM(python_api_version);
   return lmp;

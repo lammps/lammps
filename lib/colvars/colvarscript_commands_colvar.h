@@ -23,6 +23,7 @@ CVSCRIPT(colvar_addforce,
            script->add_error_msg("addforce : error parsing force value");
            return COLVARSCRIPT_ERROR;
          }
+         this_colvar->enable(colvardeps::f_cv_apply_force);
          this_colvar->add_bias_force(force);
          script->set_result_colvarvalue(force);
          return COLVARS_OK;

@@ -428,22 +428,19 @@ int ComputeBondLocal::compute_bonds(int flag)
           if (dstr) input->variable->internal_set(dvar, sqrt(rsq));
         }
 
-        // to make sure dx, dy and dz are always from the lower to the higher id
-        double directionCorrection = tag[atom1] > tag[atom2] ? -1.0 : 1.0;
-
         for (int n = 0; n < nvalues; n++) {
           switch (bstyle[n]) {
             case DIST:
               ptr[n] = sqrt(rsq);
               break;
             case DX:
-              ptr[n] = dx * directionCorrection;
+              ptr[n] = dx;
               break;
             case DY:
-              ptr[n] = dy * directionCorrection;
+              ptr[n] = dy;
               break;
             case DZ:
-              ptr[n] = dz * directionCorrection;
+              ptr[n] = dz;
               break;
             case ENGPOT:
               ptr[n] = engpot;

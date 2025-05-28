@@ -62,17 +62,17 @@ with :ref:`PNG, JPEG and FFMPEG output support <graphics>` enabled.
 
          cd $LAMMPS_DIR/src
 
-         # add packages if necessary
+         # add LAMMPS packages if necessary
          make yes-MOLECULE
          make yes-PYTHON
 
          # compile shared library using Makefile
          make mpi mode=shlib LMP_INC="-DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_FFMPEG" JPG_LIB="-lpng -ljpeg"
 
-Step 2: Installing the LAMMPS Python package
-""""""""""""""""""""""""""""""""""""""""""""
+Step 2: Installing the LAMMPS Python module
+"""""""""""""""""""""""""""""""""""""""""""
 
-Next install the LAMMPS Python package into your current Python installation with:
+Next install the LAMMPS Python module into your current Python installation with:
 
 .. code-block:: bash
 
@@ -88,6 +88,29 @@ privileges) or into your personal Python module folder.
 
    Recompiling the shared library requires re-installing the Python
    package.
+
+.. _externally_managed:
+
+.. admonition:: Handling an "externally-managed-environment" Error
+   :class: Hint
+
+   Some Python installations made through Linux distributions
+   (e.g. Ubuntu 24.04LTS or later) will prevent installing the LAMMPS
+   Python module into a system folder or a corresponding folder of the
+   individual user as attempted by ``make install-python`` with an error
+   stating that an *externally managed* python installation must be only
+   managed by the same package package management tool.  This is an
+   optional setting, so not all Linux distributions follow it currently
+   (Spring 2025).  The reasoning and explanations for this error can be
+   found in the `Python Packaging User Guide
+   <https://packaging.python.org/en/latest/specifications/externally-managed-environments/>`_
+
+   These guidelines suggest to create a virtual environment and install
+   the LAMMPS Python module there (see below).  This is generally a good
+   idea and the LAMMPS developers recommend this, too.  If, however, you
+   want to proceed and install the LAMMPS Python module regardless, you
+   can install the "wheel" file (see above) manually with the ``pip``
+   command by adding the ``--break-system-packages`` flag.
 
 Installation inside of a virtual environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

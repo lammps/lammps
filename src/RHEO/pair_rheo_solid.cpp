@@ -185,7 +185,7 @@ void PairRHEOSolid::settings(int narg, char ** /*arg*/)
 
 void PairRHEOSolid::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg != 5) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -196,7 +196,7 @@ void PairRHEOSolid::coeff(int narg, char **arg)
   double cut_one = utils::numeric(FLERR, arg[3], false, lmp);
   double gamma_one = utils::numeric(FLERR, arg[4], false, lmp);
 
-  if (cut_one <= 0.0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (cut_one <= 0.0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -210,7 +210,7 @@ void PairRHEOSolid::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

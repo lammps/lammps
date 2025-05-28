@@ -87,6 +87,7 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = 0;
   eflag_caller = 1;
+  stores_ids = 1;
 
   // allocate memory for CMAP data
 

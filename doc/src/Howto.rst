@@ -40,6 +40,7 @@ Settings howto
    Howto_walls
    Howto_nemd
    Howto_dispersion
+   Howto_bulk2slab
 
 Analysis howto
 ==============
@@ -65,6 +66,7 @@ Force fields howto
    :name: force_howto
    :maxdepth: 1
 
+   Howto_FFgeneral
    Howto_bioFF
    Howto_amoeba
    Howto_tip3p

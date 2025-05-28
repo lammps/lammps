@@ -5,11 +5,21 @@
 #include <type_traits>
 #include <cstring>
 
+#ifndef _noalias
+#if defined(__INTEL_COMPILER) || (defined(__PGI) && !defined(__NVCOMPILER))
+#define _noalias restrict
+#elif defined(__GNUC__) || defined(__INTEL_LLVM_COMPILER) || defined(__NVCOMPILER)
+#define _noalias __restrict
+#else
+#define _noalias
+#endif
+#endif
+
 /// \brief Helper function for loading the ia-th atom in the vector pos to x, y and z (C++11 SFINAE is used)
 template <typename T, typename std::enable_if<std::is_same<T, cvm::atom_pos>::value, bool>::type = true>
 inline void read_atom_coord(
   size_t ia, const std::vector<T>& pos,
-  cvm::real* x, cvm::real* y, cvm::real* z) {
+  cvm::real* _noalias x, cvm::real* _noalias y, cvm::real* _noalias z) {
   *x = pos[ia].x;
   *y = pos[ia].y;
   *z = pos[ia].z;
@@ -18,7 +28,7 @@ inline void read_atom_coord(
 template <typename T, typename std::enable_if<std::is_same<T, cvm::atom>::value, bool>::type = true>
 inline void read_atom_coord(
   size_t ia, const std::vector<T>& pos,
-  cvm::real* x, cvm::real* y, cvm::real* z) {
+  cvm::real* _noalias x, cvm::real* _noalias y, cvm::real* _noalias z) {
   *x = pos[ia].pos.x;
   *y = pos[ia].pos.y;
   *z = pos[ia].pos.z;
@@ -26,9 +36,9 @@ inline void read_atom_coord(
 
 /// \brief Helper enum class for specifying options in rotation_derivative::prepare_derivative
 enum class rotation_derivative_dldq {
-  /// Require the derivative of the leading eigenvalue with respect to the atom coordinats
+  /// Require the derivative of the leading eigenvalue with respect to the atom coordinates
   use_dl = 1 << 0,
-  /// Require the derivative of the leading eigenvector with respect to the atom coordinats
+  /// Require the derivative of the leading eigenvector with respect to the atom coordinates
   use_dq = 1 << 1
 };
 
@@ -327,12 +337,13 @@ struct rotation_derivative {
     *  @param[out] dq0_out The output of derivative of Q
     *  @param[out] ds_out  The output of derivative of overlap matrix S
     */
+  template <bool use_dl, bool use_dq, bool use_ds>
   void calc_derivative_impl(
     const cvm::rvector (&ds)[4][4],
-    cvm::rvector* const dl0_out,
-    cvm::vector1d<cvm::rvector>* const dq0_out,
-    cvm::matrix2d<cvm::rvector>* const ds_out) const {
-    if (ds_out != nullptr) {
+    cvm::rvector* _noalias const dl0_out,
+    cvm::vector1d<cvm::rvector>* _noalias const dq0_out,
+    cvm::matrix2d<cvm::rvector>* _noalias const ds_out) const {
+    if (use_ds) {
       // this code path is for debug_gradients, so not necessary to unroll the loop
       *ds_out = cvm::matrix2d<cvm::rvector>(4, 4);
       for (int i = 0; i < 4; ++i) {
@@ -341,7 +352,7 @@ struct rotation_derivative {
         }
       }
     }
-    if (dl0_out != nullptr) {
+    if (use_dl) {
       /* manually loop unrolling of the following loop:
         dl0_1.reset();
         for (size_t i = 0; i < 4; i++) {
@@ -367,7 +378,7 @@ struct rotation_derivative {
                  tmp_Q0Q0[3][2] * ds[3][2] +
                  tmp_Q0Q0[3][3] * ds[3][3];
     }
-    if (dq0_out != nullptr) {
+    if (use_dq) {
       // we can skip this check if a fixed-size array is used
       if (dq0_out->size() != 4) dq0_out->resize(4);
       /* manually loop unrolling of the following loop:
@@ -462,32 +473,21 @@ struct rotation_derivative {
     *  @param[out] ds_1_out  The output of derivative of overlap matrix S with
     *                        respect to ia-th atom of group 1
     */
+  template <bool use_dl, bool use_dq, bool use_ds>
   void calc_derivative_wrt_group1(
-    size_t ia, cvm::rvector* const dl0_1_out = nullptr,
-    cvm::vector1d<cvm::rvector>* const dq0_1_out = nullptr,
-    cvm::matrix2d<cvm::rvector>* const ds_1_out = nullptr) const {
-      if (dl0_1_out == nullptr && dq0_1_out == nullptr) return;
+    size_t ia, cvm::rvector* _noalias const dl0_1_out = nullptr,
+    cvm::vector1d<cvm::rvector>* _noalias const dq0_1_out = nullptr,
+    cvm::matrix2d<cvm::rvector>* _noalias const ds_1_out = nullptr) const {
+      // if (dl0_1_out == nullptr && dq0_1_out == nullptr) return;
       cvm::real a2x, a2y, a2z;
       // we can get rid of the helper function read_atom_coord if C++17 (constexpr) is available
       read_atom_coord(ia, m_pos2, &a2x, &a2y, &a2z);
-      cvm::rvector ds_1[4][4];
-      ds_1[0][0].set( a2x,  a2y,  a2z);
-      ds_1[1][0].set( 0.0,  a2z, -a2y);
-      ds_1[0][1] = ds_1[1][0];
-      ds_1[2][0].set(-a2z,  0.0,  a2x);
-      ds_1[0][2] = ds_1[2][0];
-      ds_1[3][0].set( a2y, -a2x,  0.0);
-      ds_1[0][3] = ds_1[3][0];
-      ds_1[1][1].set( a2x, -a2y, -a2z);
-      ds_1[2][1].set( a2y,  a2x,  0.0);
-      ds_1[1][2] = ds_1[2][1];
-      ds_1[3][1].set( a2z,  0.0,  a2x);
-      ds_1[1][3] = ds_1[3][1];
-      ds_1[2][2].set(-a2x,  a2y, -a2z);
-      ds_1[3][2].set( 0.0,  a2z,  a2y);
-      ds_1[2][3] = ds_1[3][2];
-      ds_1[3][3].set(-a2x, -a2y,  a2z);
-      calc_derivative_impl(ds_1, dl0_1_out, dq0_1_out, ds_1_out);
+      const cvm::rvector ds_1[4][4] = {
+        {{ a2x,  a2y,  a2z}, { 0.0, a2z,  -a2y}, {-a2z,  0.0,  a2x}, { a2y, -a2x,  0.0}},
+        {{ 0.0,  a2z, -a2y}, { a2x, -a2y, -a2z}, { a2y,  a2x,  0.0}, { a2z,  0.0,  a2x}},
+        {{-a2z,  0.0,  a2x}, { a2y,  a2x,  0.0}, {-a2x,  a2y, -a2z}, { 0.0,  a2z,  a2y}},
+        {{ a2y, -a2x,  0.0}, { a2z,  0.0,  a2x}, { 0.0,  a2z,  a2y}, {-a2x, -a2y,  a2z}}};
+      calc_derivative_impl<use_dl, use_dq, use_ds>(ds_1, dl0_1_out, dq0_1_out, ds_1_out);
     }
   /*! @brief Calculate the derivatives of S, the leading eigenvalue L and
     *         the leading eigenvector Q with respect to `m_pos2`
@@ -499,32 +499,21 @@ struct rotation_derivative {
     *  @param[out] ds_2_out  The output of derivative of overlap matrix S with
     *                        respect to ia-th atom of group 2
     */
+  template <bool use_dl, bool use_dq, bool use_ds>
   void calc_derivative_wrt_group2(
-    size_t ia, cvm::rvector* const dl0_2_out = nullptr,
-    cvm::vector1d<cvm::rvector>* const dq0_2_out = nullptr,
-    cvm::matrix2d<cvm::rvector>* const ds_2_out = nullptr) const {
-    if (dl0_2_out == nullptr && dq0_2_out == nullptr) return;
+    size_t ia, cvm::rvector* _noalias const dl0_2_out = nullptr,
+    cvm::vector1d<cvm::rvector>* _noalias const dq0_2_out = nullptr,
+    cvm::matrix2d<cvm::rvector>* _noalias const ds_2_out = nullptr) const {
+    // if (dl0_2_out == nullptr && dq0_2_out == nullptr) return;
     cvm::real a1x, a1y, a1z;
     // we can get rid of the helper function read_atom_coord if C++17 (constexpr) is available
     read_atom_coord(ia, m_pos1, &a1x, &a1y, &a1z);
-    cvm::rvector ds_2[4][4];
-    ds_2[0][0].set( a1x,  a1y,  a1z);
-    ds_2[1][0].set( 0.0, -a1z,  a1y);
-    ds_2[0][1] = ds_2[1][0];
-    ds_2[2][0].set( a1z,  0.0, -a1x);
-    ds_2[0][2] = ds_2[2][0];
-    ds_2[3][0].set(-a1y,  a1x,  0.0);
-    ds_2[0][3] = ds_2[3][0];
-    ds_2[1][1].set( a1x, -a1y, -a1z);
-    ds_2[2][1].set( a1y,  a1x,  0.0);
-    ds_2[1][2] = ds_2[2][1];
-    ds_2[3][1].set( a1z,  0.0,  a1x);
-    ds_2[1][3] = ds_2[3][1];
-    ds_2[2][2].set(-a1x,  a1y, -a1z);
-    ds_2[3][2].set( 0.0,  a1z,  a1y);
-    ds_2[2][3] = ds_2[3][2];
-    ds_2[3][3].set(-a1x, -a1y,  a1z);
-    calc_derivative_impl(ds_2, dl0_2_out, dq0_2_out, ds_2_out);
+    const cvm::rvector ds_2[4][4] = {
+      {{ a1x,  a1y,  a1z}, { 0.0, -a1z,  a1y}, { a1z,  0.0, -a1x}, {-a1y,  a1x,  0.0}},
+      {{ 0.0, -a1z,  a1y}, { a1x, -a1y, -a1z}, { a1y,  a1x,  0.0}, { a1z,  0.0,  a1x}},
+      {{ a1z,  0.0, -a1x}, { a1y,  a1x,  0.0}, {-a1x,  a1y, -a1z}, { 0.0,  a1z,  a1y}},
+      {{-a1y,  a1x,  0.0}, { a1z,  0.0,  a1x}, { 0.0,  a1z,  a1y}, {-a1x, -a1y,  a1z}}};
+    calc_derivative_impl<use_dl, use_dq, use_ds>(ds_2, dl0_2_out, dq0_2_out, ds_2_out);
   }
 };
 
@@ -585,10 +574,7 @@ void debug_gradients(
   cvm::real S_new_eigval[4];
   cvm::real S_new_eigvec[4][4];
   for (size_t ia = 0; ia < pos2.size(); ++ia) {
-    // cvm::real const &a1x = pos1[ia].x;
-    // cvm::real const &a1y = pos1[ia].y;
-    // cvm::real const &a1z = pos1[ia].z;
-    deriv.calc_derivative_wrt_group2(ia, &dl0_2, &dq0_2, &ds_2);
+    deriv.template calc_derivative_wrt_group2<true, true, true>(ia, &dl0_2, &dq0_2, &ds_2);
     // make an infitesimal move along each cartesian coordinate of
     // this atom, and solve again the eigenvector problem
     for (size_t comp = 0; comp < 3; comp++) {

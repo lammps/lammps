@@ -62,6 +62,7 @@ FixAmoebaPiTorsion::FixAmoebaPiTorsion(LAMMPS *lmp, int narg, char **arg) :
   wd_section = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
+  stores_ids = 1;
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);

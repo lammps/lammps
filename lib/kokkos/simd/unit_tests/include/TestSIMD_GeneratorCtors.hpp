@@ -22,19 +22,19 @@
 
 template <typename Abi, typename DataType>
 inline void host_check_gen_ctor() {
-  if constexpr (is_type_v<Kokkos::Experimental::simd<DataType, Abi>>) {
-    using simd_type             = Kokkos::Experimental::simd<DataType, Abi>;
-    using mask_type             = typename simd_type::mask_type;
+  if constexpr (is_type_v<Kokkos::Experimental::basic_simd<DataType, Abi>>) {
+    using simd_type = Kokkos::Experimental::basic_simd<DataType, Abi>;
+    using mask_type = typename simd_type::mask_type;
     constexpr std::size_t lanes = simd_type::size();
 
     DataType init[lanes];
     DataType expected[lanes];
-    mask_type init_mask(false);
+    bool init_mask[lanes];
 
     for (std::size_t i = 0; i < lanes; ++i) {
-      if (i % 3 == 0) init_mask[i] = true;
-      init[i]     = 7;
-      expected[i] = (init_mask[i]) ? init[i] * 9 : init[i];
+      init_mask[i] = (i % 2 == 0);
+      init[i]      = i + 1;
+      expected[i]  = (init_mask[i]) ? init[i] * 10 : init[i];
     }
 
     simd_type rhs;
@@ -48,7 +48,7 @@ inline void host_check_gen_ctor() {
       simd_type basic(KOKKOS_LAMBDA(std::size_t i) { return init[i]; });
       host_check_equality(basic, rhs, lanes);
 
-      simd_type lhs(KOKKOS_LAMBDA(std::size_t i) { return init[i] * 9; });
+      simd_type lhs(KOKKOS_LAMBDA(std::size_t i) { return init[i] * 10; });
       mask_type mask(KOKKOS_LAMBDA(std::size_t i) { return init_mask[i]; });
       simd_type result(
           KOKKOS_LAMBDA(std::size_t i) { return (mask[i]) ? lhs[i] : rhs[i]; });
@@ -58,11 +58,10 @@ inline void host_check_gen_ctor() {
       simd_type basic([=](std::size_t i) { return init[i]; });
       host_check_equality(basic, rhs, lanes);
 
-      simd_type lhs([=](std::size_t i) { return init[i] * 9; });
+      simd_type lhs([=](std::size_t i) { return init[i] * 10; });
       mask_type mask([=](std::size_t i) { return init_mask[i]; });
       simd_type result(
           [=](std::size_t i) { return (mask[i]) ? lhs[i] : rhs[i]; });
-
       host_check_equality(blend, result, lanes);
     }
 #endif
@@ -84,20 +83,25 @@ inline void host_check_gen_ctors_all_abis(
 
 template <typename Abi, typename DataType>
 KOKKOS_INLINE_FUNCTION void device_check_gen_ctor() {
-  if constexpr (is_type_v<Kokkos::Experimental::simd<DataType, Abi>>) {
-    using simd_type             = Kokkos::Experimental::simd<DataType, Abi>;
-    using mask_type             = typename simd_type::mask_type;
+  if constexpr (is_type_v<Kokkos::Experimental::basic_simd<DataType, Abi>>) {
+    using simd_type = Kokkos::Experimental::basic_simd<DataType, Abi>;
+    using mask_type = typename simd_type::mask_type;
     constexpr std::size_t lanes = simd_type::size();
 
     DataType init[lanes];
     DataType expected[lanes];
-    mask_type mask(false);
+    bool init_mask[lanes];
 
     for (std::size_t i = 0; i < lanes; ++i) {
-      if (i % 3 == 0) mask[i] = true;
+      if (i % 3 == 0) {
+        init_mask[i] = true;
+      } else {
+        init_mask[i] = false;
+      }
       init[i]     = 7;
-      expected[i] = (mask[i]) ? init[i] * 9 : init[i];
+      expected[i] = (init_mask[i]) ? init[i] * 9 : init[i];
     }
+    mask_type mask(KOKKOS_LAMBDA(std::size_t i) { return init_mask[i]; });
 
     simd_type basic(KOKKOS_LAMBDA(std::size_t i) { return init[i]; });
     simd_type rhs;

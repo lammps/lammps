@@ -459,8 +459,8 @@ output.  This option can only be used with the *ave running* setting.
 
 The *format* keyword sets the numeric format of each value when it is
 printed to a file via the *file* keyword.  Note that all values are
-floating point quantities.  The default format is %g.  You can specify
-a higher precision if desired (e.g., %20.16g).
+floating point quantities.  The default format is " %g".  You can specify
+a higher precision if desired (e.g., " %20.16g").
 
 The *title1* and *title2* and *title3* keywords allow specification of
 the strings that will be printed as the first three lines of the output

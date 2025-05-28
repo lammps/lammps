@@ -80,7 +80,7 @@ ReadDump::~ReadDump()
 void ReadDump::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR,"Read_dump command before simulation box is defined");
+    error->all(FLERR,"Read_dump command before simulation box is defined" + utils::errorurl(33));
 
   if (narg < 2) utils::missing_cmd_args(FLERR, "read_dump", error);
 
@@ -710,12 +710,14 @@ void ReadDump::read_atoms()
         while (nsend < nread) {
           lo = MAX(ofirst,rfirst);
           hi = MIN(olast,rlast);
-          if (otherproc)    // send to otherproc or copy to self
-            MPI_Send(&buf[nsend][0],(hi-lo)*nfield,MPI_DOUBLE,
+          int numel = (hi-lo)*nfield;
+          if (otherproc && numel > 0) { // send to otherproc or copy to self
+            MPI_Send(&buf[nsend][0],numel,MPI_DOUBLE,
                      otherproc,0,clustercomm);
+          }
           else
             memcpy(&fields[rfirst][0],&buf[nsend][0],
-                   (hi-lo)*nfield*sizeof(double));
+                   numel*sizeof(double));
           nsend += hi-lo;
           if (hi == olast) {
             otherproc++;

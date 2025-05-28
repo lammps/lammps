@@ -92,6 +92,15 @@ Syntax
 
        see the :doc:`dump image <dump_image>` doc page for details
 
+* these keywords apply only to the extxyz dump style
+* keyword = *forces* or *mass* or *vel*
+
+  .. parsed-literal::
+
+       *forces* arg = *yes* or *no*
+       *mass* arg = *yes* or *no*
+       *vel* arg = *yes* or *no*
+
 * these keywords apply only to the */gz* and */zstd* dump styles
 * keyword = *compression_level*
 
@@ -972,9 +981,11 @@ The option defaults are
 * fileper = # of processors
 * first = no
 * flush = yes
+* forces = yes
 * format = %d and %g for each integer or floating point value
 * image = no
 * label = ENTRIES
+* mass = no
 * maxfiles = -1
 * nfile = 1
 * pad = 0
@@ -990,6 +1001,7 @@ The option defaults are
 * types = numeric
 * units = no
 * unwrap = no
+* vel = yes
 
 * compression_level = 9 (gz variants)
 * compression_level = 0 (zstd variants)

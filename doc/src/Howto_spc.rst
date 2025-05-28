@@ -1,5 +1,5 @@
-SPC water model
-===============
+SPC and SPC/E water model
+=========================
 
 The SPC water model specifies a 3-site rigid water molecule with
 charges and Lennard-Jones parameters assigned to each of the three atoms.

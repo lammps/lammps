@@ -25,6 +25,8 @@ KOKKOS_DEVICES = "OpenMP"
 KOKKOS_ARCH = "SNB"
 endif
 
+KOKKOS_USE_DEPRECATED_MAKEFILES=1
+
 DEPFLAGS = -M
 
 OBJ = $(notdir $(SRC:.cpp=.o))

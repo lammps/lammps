@@ -49,4 +49,4 @@ variable 	tmag      equal c_out_mag[6]
 thermo_style    custom step time v_tmag temp v_emag ke pe etotal
 thermo          200
 
-run 		200000
+run 		20000

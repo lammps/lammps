@@ -47,7 +47,7 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
   const pointer_type m_result_ptr;
 
   template <class TagType>
-  inline static std::enable_if_t<std::is_void<TagType>::value> exec_range(
+  inline static std::enable_if_t<std::is_void_v<TagType>> exec_range(
       const FunctorType& functor, const Member ibeg, const Member iend,
       reference_type update) {
     for (Member iwork = ibeg; iwork < iend; ++iwork) {
@@ -56,7 +56,7 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
   }
 
   template <class TagType>
-  inline static std::enable_if_t<!std::is_void<TagType>::value> exec_range(
+  inline static std::enable_if_t<!std::is_void_v<TagType>> exec_range(
       const FunctorType& functor, const Member ibeg, const Member iend,
       reference_type update) {
     const TagType t{};
@@ -77,8 +77,8 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
       return;
     }
     enum {
-      is_dynamic = std::is_same<typename Policy::schedule_type::type,
-                                Kokkos::Dynamic>::value
+      is_dynamic =
+          std::is_same_v<typename Policy::schedule_type::type, Kokkos::Dynamic>
     };
 
     const size_t pool_reduce_bytes = reducer.value_size();
@@ -228,7 +228,6 @@ class ParallelReduce<CombinedFunctorReducerType,
                                    0  // thread_local_bytes
     );
 
-#ifndef KOKKOS_COMPILER_INTEL
     if (execute_in_serial(m_iter.m_rp.space())) {
       const pointer_type ptr =
           m_result_ptr
@@ -244,11 +243,10 @@ class ParallelReduce<CombinedFunctorReducerType,
 
       return;
     }
-#endif
 
     enum {
-      is_dynamic = std::is_same<typename Policy::schedule_type::type,
-                                Kokkos::Dynamic>::value
+      is_dynamic =
+          std::is_same_v<typename Policy::schedule_type::type, Kokkos::Dynamic>
     };
 
     const int pool_size = m_instance->thread_pool_size();
@@ -355,7 +353,7 @@ class ParallelReduce<CombinedFunctorReducerType,
   const int m_shmem_size;
 
   template <class TagType>
-  inline static std::enable_if_t<(std::is_void<TagType>::value)> exec_team(
+  inline static std::enable_if_t<(std::is_void_v<TagType>)> exec_team(
       const FunctorType& functor, HostThreadTeamData& data,
       reference_type& update, const int league_rank_begin,
       const int league_rank_end, const int league_size) {
@@ -373,7 +371,7 @@ class ParallelReduce<CombinedFunctorReducerType,
   }
 
   template <class TagType>
-  inline static std::enable_if_t<(!std::is_void<TagType>::value)> exec_team(
+  inline static std::enable_if_t<(!std::is_void_v<TagType>)> exec_team(
       const FunctorType& functor, HostThreadTeamData& data,
       reference_type& update, const int league_rank_begin,
       const int league_rank_end, const int league_size) {
@@ -394,7 +392,7 @@ class ParallelReduce<CombinedFunctorReducerType,
 
  public:
   inline void execute() const {
-    enum { is_dynamic = std::is_same<SchedTag, Kokkos::Dynamic>::value };
+    enum { is_dynamic = std::is_same_v<SchedTag, Kokkos::Dynamic> };
 
     const ReducerType& reducer = m_functor_reducer.get_reducer();
 

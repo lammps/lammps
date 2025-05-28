@@ -385,7 +385,7 @@ struct CudaParallelLaunchKernelInvoker<
                         experimental_contains_desired_occupancy) {
         int desired_occupancy =
             driver.get_policy().impl_get_desired_occupancy().value();
-        size_t block_size = block.x * block.y * block.z;
+        size_t block_size = static_cast<size_t>(block.x) * block.y * block.z;
         Impl::configure_shmem_preference<DriverType, LaunchBounds>(
             cuda_instance->m_cudaDev, base_t::get_kernel_func(),
             cuda_instance->m_deviceProp, block_size, shmem, desired_occupancy);
@@ -398,9 +398,10 @@ struct CudaParallelLaunchKernelInvoker<
       params.blockDim       = block;
       params.gridDim        = grid;
       params.sharedMemBytes = shmem;
-      params.func           = (void*)base_t::get_kernel_func();
-      params.kernelParams   = (void**)args;
-      params.extra          = nullptr;
+      // Casting a function pointer to a data pointer...
+      params.func         = reinterpret_cast<void*>(base_t::get_kernel_func());
+      params.kernelParams = const_cast<void**>(args);
+      params.extra        = nullptr;
 
       KOKKOS_IMPL_CUDA_SAFE_CALL(
           (cuda_instance->cuda_graph_add_kernel_node_wrapper(
@@ -485,7 +486,7 @@ struct CudaParallelLaunchKernelInvoker<
                         experimental_contains_desired_occupancy) {
         int desired_occupancy =
             driver.get_policy().impl_get_desired_occupancy().value();
-        size_t block_size = block.x * block.y * block.z;
+        size_t block_size = static_cast<size_t>(block.x) * block.y * block.z;
         Impl::configure_shmem_preference<DriverType, LaunchBounds>(
             cuda_instance->m_cudaDev, base_t::get_kernel_func(),
             cuda_instance->m_deviceProp, block_size, shmem, desired_occupancy);
@@ -511,9 +512,10 @@ struct CudaParallelLaunchKernelInvoker<
       params.blockDim       = block;
       params.gridDim        = grid;
       params.sharedMemBytes = shmem;
-      params.func           = (void*)base_t::get_kernel_func();
-      params.kernelParams   = (void**)args;
-      params.extra          = nullptr;
+      // Casting a function pointer to a data pointer...
+      params.func         = reinterpret_cast<void*>(base_t::get_kernel_func());
+      params.kernelParams = const_cast<void**>(args);
+      params.extra        = nullptr;
 
       KOKKOS_IMPL_CUDA_SAFE_CALL(
           (cuda_instance->cuda_graph_add_kernel_node_wrapper(
@@ -589,7 +591,8 @@ struct CudaParallelLaunchKernelInvoker<
     // Copy functor (synchronously) to staging buffer in pinned host memory
     unsigned long* staging =
         cuda_instance->constantMemHostStagingPerDevice[cuda_device];
-    memcpy(staging, &driver, sizeof(DriverType));
+    memcpy(static_cast<void*>(staging), static_cast<const void*>(&driver),
+           sizeof(DriverType));
 
     // Copy functor asynchronously from there to constant memory on the device
     KOKKOS_IMPL_CUDA_SAFE_CALL(
@@ -667,7 +670,7 @@ struct CudaParallelLaunchImpl<
                         experimental_contains_desired_occupancy) {
         int desired_occupancy =
             driver.get_policy().impl_get_desired_occupancy().value();
-        size_t block_size = block.x * block.y * block.z;
+        size_t block_size = static_cast<size_t>(block.x) * block.y * block.z;
         Impl::configure_shmem_preference<
             DriverType,
             Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>>(

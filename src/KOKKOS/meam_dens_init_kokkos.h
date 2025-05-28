@@ -236,7 +236,6 @@ MEAMKokkos<DeviceType>::meam_dens_init(int inum_half, int ntype, typename AT::t_
   this->d_neighbors_half = d_neighbors_half;
   this->d_neighbors_full = d_neighbors_full;
   this->d_offset = d_offset;
-  this->nlocal = nlocal;
 
   if (need_dup) {
     dup_rho0 = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_rho0);

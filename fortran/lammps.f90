@@ -74,7 +74,9 @@ MODULE LIBLAMMPS
     LMP_VAR_EQUAL = 0, &      ! equal-style variables (and compatible)
     LMP_VAR_ATOM = 1, &       ! atom-style variables
     LMP_VAR_VECTOR = 2, &     ! vector variables
-    LMP_VAR_STRING = 3        ! string variables (everything else)
+    LMP_VAR_STRING = 3, &     ! string variables (everything else)
+    LMP_NEIGH_HALF = 0, &     ! request (default) half neighbor list
+    LMP_NEIGH_FULL = 1        ! request full neighbor list
 
   ! Constants we set once (in the constructor) and never need to check again
   INTEGER(c_int), SAVE :: SIZE_TAGINT, SIZE_BIGINT, SIZE_IMAGEINT
@@ -195,10 +197,11 @@ MODULE LIBLAMMPS
     PROCEDURE, PRIVATE :: lmp_create_atoms_bigbig
     GENERIC   :: create_atoms           => lmp_create_atoms_int, &
                                            lmp_create_atoms_bigbig
-    PROCEDURE :: find_pair_neighlist    => lmp_find_pair_neighlist
-    PROCEDURE :: find_fix_neighlist     => lmp_find_fix_neighlist
-    PROCEDURE :: find_compute_neighlist => lmp_find_compute_neighlist
-    PROCEDURE :: neighlist_num_elements => lmp_neighlist_num_elements
+    PROCEDURE :: find_pair_neighlist         => lmp_find_pair_neighlist
+    PROCEDURE :: find_fix_neighlist          => lmp_find_fix_neighlist
+    PROCEDURE :: find_compute_neighlist      => lmp_find_compute_neighlist
+    PROCEDURE :: request_single_neighlist    => lmp_request_single_neighlist
+    PROCEDURE :: neighlist_num_elements      => lmp_neighlist_num_elements
     PROCEDURE :: neighlist_element_neighbors => lmp_neighlist_element_neighbors
     PROCEDURE :: version                => lmp_version
     PROCEDURE, NOPASS :: get_os_info    => lmp_get_os_info
@@ -248,6 +251,7 @@ MODULE LIBLAMMPS
     PROCEDURE :: force_timeout          => lmp_force_timeout
     PROCEDURE :: has_error              => lmp_has_error
     PROCEDURE :: get_last_error_message => lmp_get_last_error_message
+    PROCEDURE :: set_show_error         => lmp_set_show_error
   END TYPE lammps
 
   INTERFACE lammps
@@ -334,14 +338,6 @@ MODULE LIBLAMMPS
 
   ! Interface templates for fix external callbacks
   ABSTRACT INTERFACE
-    SUBROUTINE external_callback_smallsmall(caller, timestep, ids, x, fexternal)
-      IMPORT :: c_int, c_double
-      CLASS(*), INTENT(INOUT) :: caller
-      INTEGER(c_int), INTENT(IN) :: timestep
-      INTEGER(c_int), DIMENSION(:), INTENT(IN) :: ids
-      REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
-      REAL(c_double), DIMENSION(:,:), INTENT(OUT) :: fexternal
-    END SUBROUTINE external_callback_smallsmall
     SUBROUTINE external_callback_smallbig(caller, timestep, ids, x, fexternal)
       IMPORT :: c_int, c_double, c_int64_t
       CLASS(*), INTENT(INOUT) :: caller
@@ -363,8 +359,6 @@ MODULE LIBLAMMPS
   ! Derived type for fix external callback data
   TYPE fix_external_data
     CHARACTER(LEN=:), ALLOCATABLE :: id
-    PROCEDURE(external_callback_smallsmall), NOPASS, POINTER :: &
-      callback_smallsmall => NULL()
     PROCEDURE(external_callback_smallbig), NOPASS, POINTER :: &
       callback_smallbig => NULL()
     PROCEDURE(external_callback_bigbig), NOPASS, POINTER :: &
@@ -787,6 +781,15 @@ MODULE LIBLAMMPS
       INTEGER(c_int) :: lammps_find_compute_neighlist
     END FUNCTION lammps_find_compute_neighlist
 
+    FUNCTION lammps_request_single_neighlist(handle, id, flags, cutoff) BIND(C)
+      IMPORT :: c_int, c_double, c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, id
+      INTEGER(c_int), VALUE :: flags
+      REAL(c_double), VALUE :: cutoff
+      INTEGER(c_int) :: lammps_request_single_neighlist
+    END FUNCTION lammps_request_single_neighlist
+
     FUNCTION lammps_neighlist_num_elements(handle, idx) BIND(C)
       IMPORT :: c_ptr, c_int
       TYPE(c_ptr), VALUE :: handle
@@ -1050,6 +1053,13 @@ MODULE LIBLAMMPS
       TYPE(c_ptr), VALUE :: handle, buffer
       INTEGER(c_int), VALUE :: buf_size
     END FUNCTION lammps_get_last_error_message
+
+    INTEGER(c_int) FUNCTION lammps_set_show_error(handle,flag) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle
+      INTEGER(c_int), VALUE :: flag
+    END FUNCTION lammps_set_show_error
 
     !---------------------------------------------------------------------
     ! Utility functions imported for convenience (not in library.h)
@@ -2262,7 +2272,7 @@ CONTAINS
     CALL lammps_free(Cname)
   END SUBROUTINE lmp_scatter_atoms_subset_double
 
-  ! equivalent function to lammps_gather_bonds (LAMMPS_SMALLSMALL or SMALLBIG)
+  ! equivalent function to lammps_gather_bonds (LAMMPS_SMALLBIG)
   SUBROUTINE lmp_gather_bonds_small(self, data)
     CLASS(lammps), INTENT(IN) :: self
     INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
@@ -2304,7 +2314,7 @@ CONTAINS
     CALL lammps_gather_bonds(self%handle, Cdata)
   END SUBROUTINE lmp_gather_bonds_big
 
-  ! equivalent function to lammps_gather_angles (LAMMPS_SMALLSMALL or SMALLBIG)
+  ! equivalent function to lammps_gather_angles (LAMMPS_SMALLBIG)
   SUBROUTINE lmp_gather_angles_small(self, data)
     CLASS(lammps), INTENT(IN) :: self
     INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
@@ -2346,7 +2356,7 @@ CONTAINS
     CALL lammps_gather_angles(self%handle, Cdata)
   END SUBROUTINE lmp_gather_angles_big
 
-  ! equivalent function to lammps_gather_dihedrals (LAMMPS_SMALLSMALL or SMALLBIG)
+  ! equivalent function to lammps_gather_dihedrals (LAMMPS_SMALLBIG)
   SUBROUTINE lmp_gather_dihedrals_small(self, data)
     CLASS(lammps), INTENT(IN) :: self
     INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
@@ -2388,7 +2398,7 @@ CONTAINS
     CALL lammps_gather_dihedrals(self%handle, Cdata)
   END SUBROUTINE lmp_gather_dihedrals_big
 
-  ! equivalent function to lammps_gather_impropers (LAMMPS_SMALLSMALL or SMALLBIG)
+  ! equivalent function to lammps_gather_impropers (LAMMPS_SMALLBIG)
   SUBROUTINE lmp_gather_impropers_small(self, data)
     CLASS(lammps), INTENT(IN) :: self
     INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
@@ -2763,7 +2773,7 @@ CONTAINS
     IF (tagint_size /= 4_c_int .AND. (PRESENT(id) .OR. PRESENT(image))) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'Unable to create_atoms; your id/image array types are incompatible&
-        & with LAMMPS_SMALLBIG and LAMMPS_SMALLSMALL [Fortran/create_atoms]')
+        & with LAMMPS_SMALLBIG [Fortran/create_atoms]')
     END IF
     n = SIZE(type, KIND=c_int)
     IF (PRESENT(bexpand)) THEN
@@ -2943,6 +2953,36 @@ CONTAINS
     END IF
     CALL lammps_free(Cid)
   END FUNCTION lmp_find_compute_neighlist
+
+  ! equivalent function to lammps_request_single_neighlist
+  INTEGER(c_int) FUNCTION lmp_request_single_neighlist(self, id, flags, cutoff) RESULT(idx)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    INTEGER(c_int), INTENT(IN), OPTIONAL :: flags
+    REAL(c_double), INTENT(IN), OPTIONAL :: cutoff
+    TYPE(c_ptr) :: Cid
+    INTEGER(c_int) :: Cflags
+    REAL(c_double) :: Ccutoff
+
+    IF (PRESENT(flags)) THEN
+        Cflags = flags
+    ELSE
+        Cflags = LMP_NEIGH_HALF
+    END IF
+    IF (PRESENT(cutoff)) THEN
+        Ccutoff = cutoff
+    ELSE
+        Ccutoff = 1.0_c_double
+    END IF
+
+    Cid = f2c_string(id)
+    idx = lammps_request_single_neighlist(self%handle, Cid, Cflags, Ccutoff)
+    IF (idx < 0) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'neighbor list build failed [Fortran/request_single_neighlist]')
+    END IF
+    CALL lammps_free(Cid)
+  END FUNCTION lmp_request_single_neighlist
 
   INTEGER(c_int) FUNCTION lmp_neighlist_num_elements(self, idx) RESULT(inum)
     CLASS(lammps), INTENT(IN) :: self
@@ -3360,7 +3400,7 @@ CONTAINS
     construct_fix_external_data%id = ' '
   END FUNCTION construct_fix_external_data
 
-  ! equivalent function to lammps_set_fix_external_callback for -DSMALLSMALL
+  ! equivalent function to lammps_set_fix_external_callback
   ! note that "caller" is wrapped into a fix_external_data derived type along
   ! with the fix id and the Fortran calling function.
   SUBROUTINE lmp_set_fix_external_callback(self, id, callback, caller)
@@ -3394,11 +3434,7 @@ CONTAINS
     ext_data(this_fix)%id = id
     ext_data(this_fix)%lammps_instance => self
 
-    IF (SIZE_TAGINT == 4_c_int .AND. SIZE_BIGINT == 4_c_int) THEN
-      ! -DSMALLSMALL
-      c_callback = C_FUNLOC(callback_wrapper_smallsmall)
-      CALL set_fix_external_callback_smallsmall(this_fix, callback)
-    ELSE IF (SIZE_TAGINT == 8_c_int .AND. SIZE_BIGINT == 8_c_int) THEN
+    IF (SIZE_TAGINT == 8_c_int .AND. SIZE_BIGINT == 8_c_int) THEN
       ! -DBIGBIG
       c_callback = C_FUNLOC(callback_wrapper_bigbig)
       CALL set_fix_external_callback_bigbig(this_fix, callback)
@@ -3420,12 +3456,6 @@ CONTAINS
   END SUBROUTINE lmp_set_fix_external_callback
 
   ! Wrappers to assign callback pointers with explicit interfaces
-  SUBROUTINE set_fix_external_callback_smallsmall(id, callback)
-    INTEGER, INTENT(IN) :: id
-    PROCEDURE(external_callback_smallsmall) :: callback
-
-    ext_data(id)%callback_smallsmall => callback
-  END SUBROUTINE set_fix_external_callback_smallsmall
 
   SUBROUTINE set_fix_external_callback_smallbig(id, callback)
     INTEGER, INTENT(IN) :: id
@@ -3450,9 +3480,7 @@ CONTAINS
     DO i = 1, SIZE(ext_data) - 1
       c_id = f2c_string(ext_data(i)%id)
       c_caller = C_LOC(ext_data(i))
-      IF (SIZE_TAGINT == 4_c_int .AND. SIZE_BIGINT == 4_c_int) THEN
-        c_callback = C_FUNLOC(callback_wrapper_smallsmall)
-      ELSE IF (SIZE_TAGINT == 8_c_int .AND. SIZE_BIGINT == 8_c_int) THEN
+      IF (SIZE_TAGINT == 8_c_int .AND. SIZE_BIGINT == 8_c_int) THEN
         c_callback = C_FUNLOC(callback_wrapper_bigbig)
       ELSE
         c_callback = C_FUNLOC(callback_wrapper_smallbig)
@@ -3464,34 +3492,6 @@ CONTAINS
   END SUBROUTINE rebind_external_callback_data
 
   ! companions to lmp_set_fix_external_callback to change interface
-  SUBROUTINE callback_wrapper_smallsmall(caller, timestep, nlocal, ids, x, &
-      fexternal) BIND(C)
-    TYPE(c_ptr), INTENT(IN), VALUE :: caller
-    INTEGER(c_int), INTENT(IN), VALUE :: timestep
-    INTEGER(c_int), INTENT(IN), VALUE :: nlocal
-    TYPE(c_ptr), INTENT(IN), VALUE :: ids, x, fexternal
-    TYPE(c_ptr), DIMENSION(:), POINTER :: x0, f0
-    INTEGER(c_int), DIMENSION(:), POINTER :: f_ids => NULL()
-    REAL(c_double), DIMENSION(:,:), POINTER :: f_x => NULL(), &
-        f_fexternal => NULL()
-    TYPE(fix_external_data), POINTER :: f_caller => NULL()
-
-    CALL C_F_POINTER(ids, f_ids, [nlocal])
-    CALL C_F_POINTER(x, x0, [nlocal])
-    CALL C_F_POINTER(x0(1), f_x, [3, nlocal])
-    CALL C_F_POINTER(fexternal, f0, [nlocal])
-    CALL C_F_POINTER(f0(1), f_fexternal, [3, nlocal])
-    IF (C_ASSOCIATED(caller)) THEN
-      CALL C_F_POINTER(caller, f_caller)
-      CALL f_caller%callback_smallsmall(f_caller%caller, timestep, f_ids, &
-        f_x, f_fexternal)
-    ELSE
-      CALL lmp_error(f_caller%lammps_instance, &
-        LMP_ERROR_ALL + LMP_ERROR_WORLD, &
-        'Got null pointer from "caller"; this should never happen;&
-        & please report a bug')
-    END IF
-  END SUBROUTINE callback_wrapper_smallsmall
 
   SUBROUTINE callback_wrapper_smallbig(caller, timestep, nlocal, ids, x, &
       fexternal) BIND(C)
@@ -3715,6 +3715,14 @@ CONTAINS
       END IF
     END IF
   END SUBROUTINE lmp_get_last_error_message
+
+  ! equivalent function to lammps_set_show_error
+  INTEGER FUNCTION lmp_set_show_error(self, flag)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER, INTENT(IN) :: flag
+
+    lmp_set_show_error = lammps_set_show_error(self%handle, flag)
+  END FUNCTION lmp_set_show_error
 
   ! ----------------------------------------------------------------------
   ! functions to assign user-space pointers to LAMMPS data

@@ -39,6 +39,7 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
 {
   restartinfo = 0;
   manybody_flag = 1;
+  atomic_energy_enable = 1;
   embedstep = -1;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
@@ -340,6 +341,70 @@ void PairEAM::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
+/*********************************************************************
+ * Calculates the atomic energy of atom i
+ *********************************************************************/
+double PairEAM::compute_atomic_energy(int i, NeighList *neighborList)
+{
+  double p;
+  int m;
+  double* coeff;
+  double Ei = 0.0;
+  double rhoi = 0.0;
+
+  double xi = atom->x[i][0];
+  double yi = atom->x[i][1];
+  double zi = atom->x[i][2];
+  int itype = atom->type[i];
+
+  // loop over all neighbors of the selected atom.
+
+  int* jlist = neighborList->firstneigh[i];
+  int jnum = neighborList->numneigh[i];
+
+  for(int jj = 0; jj < jnum; jj++) {
+    int j = jlist[jj];
+
+    double delx = xi - atom->x[j][0];
+    double dely = yi - atom->x[j][1];
+    double delz = zi - atom->x[j][2];
+    double rsq = delx*delx + dely*dely + delz*delz;
+    if(rsq >= cutforcesq) continue;
+
+    int jtype = atom->type[j];
+    double r = sqrt(rsq);
+
+    p = r * rdr + 1.0;
+    m = static_cast<int>(p);
+    m = MIN(m, nr - 1);
+    p -= m;
+    p = MIN(p, 1.0);
+
+    // sum pair energy ij
+    // divide by 2 to avoid double counting energy
+
+    coeff = z2r_spline[type2z2r[jtype][itype]][m];
+    double z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+    Ei += 0.5*z2 / r;
+
+    // sum rho_ij to rho_i
+    coeff = rhor_spline[type2rhor[jtype][itype]][m];
+    rhoi += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+  }
+
+  // compute the change in embedding energy of atom i.
+
+  p = rhoi * rdrho + 1.0;
+  m = static_cast<int>(p);
+  m = MAX(1, MIN(m, nrho - 1));
+  p -= m;
+  p = MIN(p, 1.0);
+  coeff = frho_spline[type2frho[itype]][m];
+  Ei += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+
+  return Ei;
+}
+
 /* ----------------------------------------------------------------------
    allocate all arrays
 ------------------------------------------------------------------------- */
@@ -384,7 +449,7 @@ void PairEAM::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
-  if (narg != 3) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 3) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   // parse pair of atom types
 
@@ -423,7 +488,7 @@ void PairEAM::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

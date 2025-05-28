@@ -117,6 +117,10 @@ This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*, *middle*, *outer* keywords.
 
+The potential energy and the single() function of this pair style returns
+:math:`k (r - r_c)^2 / 2 + k_a (r - r_c)^4 / 4` for a proxy
+of the energy of a pair interaction, ignoring any smoothing or dissipative forces.
+
 ----------
 
 Restrictions

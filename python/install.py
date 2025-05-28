@@ -27,6 +27,8 @@ parser.add_argument("-w", "--wheeldir", required=False,
                     help="path to a directory where the created wheel will be stored")
 parser.add_argument("-v", "--versionfile", required=True,
                     help="path to the LAMMPS version.h source file")
+parser.add_argument("-f", "--force", action="store_true", required=False, default=False,
+                    help="force installation of LAMMPS Python package")
 
 args = parser.parse_args()
 
@@ -145,7 +147,10 @@ else:
   py_exe = sys.executable
 
 try:
-  txt = subprocess.check_output([py_exe, '-m', 'pip', 'install', '--force-reinstall', wheel], stderr=subprocess.STDOUT, shell=False)
+  if args.force:
+    txt = subprocess.check_output([py_exe, '-m', 'pip', 'install', '--force-reinstall', '--break-system-packages', wheel], stderr=subprocess.STDOUT, shell=False)
+  else:
+    txt = subprocess.check_output([py_exe, '-m', 'pip', 'install', '--force-reinstall', wheel], stderr=subprocess.STDOUT, shell=False)
   print(txt.decode('UTF-8'))
   sys.exit(0)
 except subprocess.CalledProcessError as err:
@@ -154,7 +159,10 @@ except subprocess.CalledProcessError as err:
     sys.exit(errmsg + "You need to uninstall the LAMMPS python module manually first.\n")
 try:
   print('Installing wheel into system site-packages folder failed. Trying user folder now')
-  txt = subprocess.check_output([sys.executable, '-m', 'pip', 'install', '--user', '--force-reinstall', wheel], stderr=subprocess.STDOUT, shell=False)
+  if args.force:
+    txt = subprocess.check_output([sys.executable, '-m', 'pip', 'install', '--user', '--force-reinstall', '--break-system-packages', wheel], stderr=subprocess.STDOUT, shell=False)
+  else:
+    txt = subprocess.check_output([sys.executable, '-m', 'pip', 'install', '--user', '--force-reinstall', wheel], stderr=subprocess.STDOUT, shell=False)
   print(txt.decode('UTF-8'))
 except:
   sys.exit('Failed to install wheel ' + wheel)

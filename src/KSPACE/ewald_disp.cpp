@@ -220,7 +220,7 @@ void EwaldDisp::init()
       error->all(FLERR,"Cannot use Ewald/disp solver on system without "
                  "charged, dipole, or LJ particles");
   if (fabs(qsum) > SMALL && comm->me == 0)
-    error->warning(FLERR,"System is not charge neutral, net charge = {:.8g}",qsum);
+    error->warning(FLERR,"System is not charge neutral, net charge = {:.8g}" + utils::errorurl(29),qsum);
 
   if (!function[1] && !function[2]) dispersionflag = 0;
   if (!function[3]) dipoleflag = 0;

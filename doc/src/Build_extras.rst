@@ -255,11 +255,10 @@ Traditional make
 
 Before building LAMMPS, you must build the GPU library in ``lib/gpu``\ .
 You can do this manually if you prefer; follow the instructions in
-``lib/gpu/README``.  Note that the GPU library uses MPI calls, so you must
-use the same MPI library (or the STUBS library) settings as the main
-LAMMPS code.  This also applies to the ``-DLAMMPS_BIGBIG``\ ,
-``-DLAMMPS_SMALLBIG``\ , or ``-DLAMMPS_SMALLSMALL`` settings in whichever
-Makefile you use.
+``lib/gpu/README``.  Note that the GPU library uses MPI calls, so you
+must use the same MPI library (or the STUBS library) settings as the
+main LAMMPS code.  This also applies to the ``-DLAMMPS_BIGBIG`` or
+``-DLAMMPS_SMALLBIG`` settings in whichever Makefile you use.
 
 You can also build the library in one step from the ``lammps/src`` dir,
 using a command like these, which simply invokes the ``lib/gpu/Install.py``
@@ -612,6 +611,9 @@ They must be specified in uppercase.
    *  - ZEN3
       - HOST
       - AMD Zen3 architecture
+   *  - ZEN4
+      - HOST
+      - AMD Zen4 architecture
    *  - RISCV_SG2042
       - HOST
       - SG2042 (RISC-V) CPUs
@@ -715,7 +717,7 @@ They must be specified in uppercase.
       - GPU
       - Intel GPU Ponte Vecchio
 
-This list was last updated for version 4.5.1 of the Kokkos library.
+This list was last updated for version 4.6.0 of the Kokkos library.
 
 .. tabs::
 

@@ -19,6 +19,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 
@@ -31,7 +32,8 @@ using namespace LAMMPS_NS;
 PairSPHTaitwaterMorris::PairSPHTaitwaterMorris(LAMMPS *lmp) : Pair(lmp)
 {
   if ((atom->esph_flag != 1) || (atom->rho_flag != 1) || (atom->vest_flag != 1))
-    error->all(FLERR, "Pair sph/taitwater/morris requires atom attributes energy, density, and velocity estimates, e.g. in atom_style sph");
+    error->all(FLERR, Error::NOLASTLINE, "Pair sph/taitwater/morris requires atom attributes "
+               "energy, density, and velocity estimates, e.g. in atom_style sph");
 
   restartinfo = 0;
   first = 1;
@@ -214,7 +216,7 @@ void PairSPHTaitwaterMorris::allocate()
 void PairSPHTaitwaterMorris::settings(int narg, char **/*arg*/)
 {
   if (narg != 0)
-    error->all(FLERR,
+    error->all(FLERR, Error::NOLASTLINE,
         "Illegal number of arguments for pair_style sph/taitwater/morris");
 }
 
@@ -226,7 +228,7 @@ void PairSPHTaitwaterMorris::coeff(int narg, char **arg)
 {
   if (narg != 6)
     error->all(FLERR,
-        "Incorrect args for pair_style sph/taitwater/morris coefficients");
+        "Incorrect args for pair_style sph/taitwater/morris coefficients" + utils::errorurl(21));
   if (!allocated)
     allocate();
 
@@ -255,7 +257,7 @@ void PairSPHTaitwaterMorris::coeff(int narg, char **arg)
   }
 
   if (count == 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -265,7 +267,9 @@ void PairSPHTaitwaterMorris::coeff(int narg, char **arg)
 double PairSPHTaitwaterMorris::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
-    error->all(FLERR,"All pair sph/taitwater/morris coeffs are not set");
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair sph/taitwater/morris coeffs are not set. Status:\n"
+               + Info::get_pair_coeff_status(lmp));
   }
 
   cut[j][i] = cut[i][j];

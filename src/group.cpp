@@ -92,7 +92,7 @@ void Group::assign(int narg, char **arg)
 {
   int i;
 
-  if (domain->box_exist == 0) error->all(FLERR, "Group command before simulation box is defined");
+  if (domain->box_exist == 0) error->all(FLERR, "Group command before simulation box is defined" + utils::errorurl(33));
   if (narg < 2) utils::missing_cmd_args(FLERR, "group", error);
 
   // delete the group if not being used elsewhere
@@ -647,6 +647,19 @@ int Group::find_unused()
   for (int igroup = 0; igroup < MAX_GROUP; igroup++)
     if (names[igroup] == nullptr) return igroup;
   return -1;
+}
+
+/* ----------------------------------------------------------------------
+   return group bitmask for given group id. Error out if group is not found.
+------------------------------------------------------------------------- */
+
+int Group::get_bitmask_by_id(const std::string &file, int line, const std::string &name,
+                             const std::string &caller)
+{
+  int igroup = find(name);
+  if (igroup < 0)
+    error->all(file, line, "Group ID {} requested by {} does not exist", name, caller);
+  return bitmask[igroup];
 }
 
 /* ----------------------------------------------------------------------

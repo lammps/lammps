@@ -67,7 +67,7 @@ following relation should also be satisfied:
 
 .. math::
 
-  r_c + r_s > 2*{\rm cutoff}
+  r_c + r_s > 2*\mathrm{cutoff}
 
 where :math:`r_c` is the cutoff distance of the potential, :math:`r_s`
 is the skin

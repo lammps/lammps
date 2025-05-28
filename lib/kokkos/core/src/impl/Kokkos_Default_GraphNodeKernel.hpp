@@ -89,14 +89,8 @@ class GraphNodeKernelImpl
 //==============================================================================
 
 template <class ExecutionSpace>
-struct GraphNodeAggregateKernelDefaultImpl
+struct GraphNodeAggregateDefaultImpl
     : GraphNodeKernelDefaultImpl<ExecutionSpace> {
-  // Aggregates don't need a policy, but for the purposes of checking the static
-  // assertions about graph kernels,
-  struct Policy {
-    using is_graph_kernel = std::true_type;
-  };
-  using graph_kernel = GraphNodeAggregateKernelDefaultImpl;
   void execute_kernel() override final {}
 };
 

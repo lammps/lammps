@@ -395,6 +395,10 @@ struct ExtendableTunerMixin {
     const auto& sub_tuner = static_cast<const Tuner*>(this)->get_tuner();
     return sub_tuner.get_point(coordinates...);
   }
+
+ private:
+  ExtendableTunerMixin() = default;
+  friend Tuner;
 };
 
 template <size_t MaxDimensionSize = 100, template <class...> class Container,

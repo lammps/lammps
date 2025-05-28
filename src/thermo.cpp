@@ -101,8 +101,8 @@ static char fmtbuf[512];
 /* ---------------------------------------------------------------------- */
 
 Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
-    Pointers(_lmp), style(nullptr), vtype(nullptr), cache_mutex(nullptr), field2index(nullptr),
-    argindex1(nullptr), argindex2(nullptr), temperature(nullptr), pressure(nullptr), pe(nullptr)
+  Pointers(_lmp), style(nullptr), temperature(nullptr), pressure(nullptr), pe(nullptr),
+  vtype(nullptr), cache_mutex(nullptr), field2index(nullptr), argindex1(nullptr), argindex2(nullptr)
 {
   style = utils::strdup(arg[0]);
 
@@ -311,8 +311,8 @@ void Thermo::init()
       error->all(FLERR, Error::NOLASTLINE, "Could not find thermo fix ID {}", id_fix[i]);
 
     if (output->thermo_every % fixes[i]->global_freq)
-      error->all(FLERR, Error::NOLASTLINE, "Thermo and fix {} not computed at compatible times",
-                 id_fix[i]);
+      error->all(FLERR, Error::NOLASTLINE, "Thermo and fix {} not computed at compatible times{}",
+                 id_fix[i], utils::errorurl(7));
   }
 
   // find current ptr for each Variable ID
@@ -515,13 +515,12 @@ bigint Thermo::lost_check()
   // error message
 
   if (lostflag == Thermo::ERROR)
-    error->all(FLERR, Error::NOLASTLINE, "Lost atoms: original {} current {}", atom->natoms,
-               ntotal[0]);
+    error->all(FLERR, Error::NOLASTLINE, "Lost atoms: original {} current {}" + utils::errorurl(8), atom->natoms, ntotal[0]);
 
   // warning message
 
   if (comm->me == 0)
-    error->warning(FLERR, "Lost atoms: original {} current {}", atom->natoms, ntotal[0]);
+    error->warning(FLERR, "Lost atoms: original {} current {}" + utils::errorurl(8), atom->natoms, ntotal[0]);
 
   // reset total atom count
 
@@ -1079,10 +1078,10 @@ void Thermo::parse_fields(const std::string &str)
 
       if ((argi.get_type() == ArgInfo::UNKNOWN) || (argi.get_type() == ArgInfo::NONE) ||
           (argi.get_dim() > 2))
-        error->all(FLERR, "Unknown keyword '{}' in thermo_style custom command", word);
+        error->all(FLERR, nfield + 1, "Unknown keyword '{}' in thermo_style custom command", word);
 
       // process zero or one or two trailing brackets
-      // argindex1,argindex2 = int inside each bracket pair, 0 if no bracket
+      // argindex1,argindex2 = int inside each bracket pair
 
       argindex1[nfield] = argi.get_index1();
       argindex2[nfield] = (argi.get_dim() > 1) ? argi.get_index2() : 0;
@@ -1090,63 +1089,99 @@ void Thermo::parse_fields(const std::string &str)
       if (argi.get_type() == ArgInfo::COMPUTE) {
         auto icompute = modify->get_compute_by_id(argi.get_name());
         if (!icompute)
-          error->all(FLERR, "Could not find thermo custom compute ID: {}", argi.get_name());
-        if (argindex1[nfield] == 0 && icompute->scalar_flag == 0)
-          error->all(FLERR, "Thermo compute does not compute scalar");
-        if (argindex1[nfield] > 0 && argindex2[nfield] == 0) {
-          if (icompute->vector_flag == 0)
-            error->all(FLERR, "Thermo compute does not compute vector");
-          if (argindex1[nfield] > icompute->size_vector && icompute->size_vector_variable == 0)
-            error->all(FLERR, "Thermo compute vector is accessed out-of-range");
-        }
-        if (argindex1[nfield] > 0 && argindex2[nfield] > 0) {
-          if (icompute->array_flag == 0) error->all(FLERR, "Thermo compute does not compute array");
-          if (argindex1[nfield] > icompute->size_array_rows &&
-              icompute->size_array_rows_variable == 0)
-            error->all(FLERR, "Thermo compute array is accessed out-of-range");
-          if (argindex2[nfield] > icompute->size_array_cols)
-            error->all(FLERR, "Thermo compute array is accessed out-of-range");
-        }
+          error->all(FLERR, nfield + 1, "Could not find thermo custom compute ID: {}",
+                     icompute->id);
+        if (argi.get_dim() == 0) { // scalar
+          if (icompute->scalar_flag == 0)
+            error->all(FLERR,  nfield + 1, "Thermo custom compute {} does not compute a scalar",
+                       icompute->id);
+          field2index[nfield] = add_compute(icompute->id, SCALAR);
 
-        if (argindex1[nfield] == 0)
-          field2index[nfield] = add_compute(argi.get_name(), SCALAR);
-        else if (argindex2[nfield] == 0)
-          field2index[nfield] = add_compute(argi.get_name(), VECTOR);
-        else
-          field2index[nfield] = add_compute(argi.get_name(), ARRAY);
+        } else if (argi.get_dim() == 1) { // vector
+          if (icompute->vector_flag == 0)
+            error->all(FLERR, nfield + 1, "Thermo custom compute {} does not compute a vector",
+                       icompute->id);
+          if ((argindex1[nfield] < 1) ||
+              ((icompute->size_vector_variable == 0) && argindex1[nfield] > icompute->size_vector))
+            error->all(FLERR, nfield + 1,
+                       "Thermo custom compute {} vector is accessed out-of-range{}",
+                       icompute->id,utils::errorurl(20));
+          field2index[nfield] = add_compute(icompute->id, VECTOR);
+
+        } else if (argi.get_dim() == 2) { // array
+          if (icompute->array_flag == 0)
+            error->all(FLERR, nfield + 1, "Thermo custom compute {} does not compute an array",
+                       icompute->id);
+          if ((argindex1[nfield] < 1) || (argindex2[nfield] < 1) ||
+              ((icompute->size_array_rows_variable == 0) &&
+               (argindex1[nfield] > icompute->size_array_rows)) ||
+              (argindex2[nfield] > icompute->size_array_cols))
+            error->all(FLERR, nfield + 1,
+                       "Thermo custom compute {} array is accessed out-of-range{}",
+                       icompute->id, utils::errorurl(20));
+          field2index[nfield] = add_compute(icompute->id, ARRAY);
+
+        } else {
+          error->all(FLERR, nfield + 1, "Thermo custom compute {} has unsupported format",
+                     icompute->id);
+        }
         addfield(word.c_str(), &Thermo::compute_compute, FLOAT);
 
       } else if (argi.get_type() == ArgInfo::FIX) {
         auto ifix = modify->get_fix_by_id(argi.get_name());
-        if (!ifix) error->all(FLERR, "Could not find thermo custom fix ID: {}", argi.get_name());
-        if (argindex1[nfield] == 0 && ifix->scalar_flag == 0)
-          error->all(FLERR, "Thermo fix does not compute scalar");
-        if (argindex1[nfield] > 0 && argindex2[nfield] == 0) {
-          if (ifix->vector_flag == 0) error->all(FLERR, "Thermo fix does not compute vector");
-          if (argindex1[nfield] > ifix->size_vector && ifix->size_vector_variable == 0)
-            error->all(FLERR, "Thermo fix vector is accessed out-of-range");
-        }
-        if (argindex1[nfield] > 0 && argindex2[nfield] > 0) {
-          if (ifix->array_flag == 0) error->all(FLERR, "Thermo fix does not compute array");
-          if (argindex1[nfield] > ifix->size_array_rows && ifix->size_array_rows_variable == 0)
-            error->all(FLERR, "Thermo fix array is accessed out-of-range");
-          if (argindex2[nfield] > ifix->size_array_cols)
-            error->all(FLERR, "Thermo fix array is accessed out-of-range");
+        if (!ifix) error->all(FLERR, nfield + 1, "Could not find thermo custom fix ID: {}",
+                              ifix->id);
+        if (argi.get_dim() == 0) { // scalar
+          if (ifix->scalar_flag == 0)
+            error->all(FLERR, nfield + 1, "Thermo custom fix {} does not compute a scalar",
+                       ifix->id);
+
+        } else if (argi.get_dim() == 1) { // vector
+          if (ifix->vector_flag == 0)
+            error->all(FLERR, nfield + 1, "Thermo custom fix {} does not compute a vector",
+                       ifix->id);
+          if ((argindex1[nfield] < 1) ||
+              ((ifix->size_vector_variable == 0) && (argindex1[nfield] > ifix->size_vector)))
+            error->all(FLERR, nfield + 1, "Thermo custom fix {} vector is accessed out-of-range{}",
+                       ifix->id, utils::errorurl(20));
+
+        } else if (argi.get_dim() == 2) { // array
+          if (ifix->array_flag == 0)
+            error->all(FLERR,  nfield + 1, "Thermo custom fix {} does not compute an array",
+                       ifix->id);
+          if ((argindex1[nfield] < 1) || (argindex2[nfield] < 1)
+              || ((ifix->size_array_rows_variable == 0) &&
+                  (argindex1[nfield] > ifix->size_array_rows))
+              || (argindex2[nfield] > ifix->size_array_cols))
+            error->all(FLERR, nfield + 1, "Thermo custom fix {} array is accessed out-of-range{}",
+                       ifix->id, utils::errorurl(20));
+        } else {
+          error->all(FLERR, nfield + 1, "Thermo custom fix {} has unsupported format", ifix->id);
         }
 
-        field2index[nfield] = add_fix(argi.get_name());
+        field2index[nfield] = add_fix(ifix->id);
         addfield(word.c_str(), &Thermo::compute_fix, FLOAT);
 
       } else if (argi.get_type() == ArgInfo::VARIABLE) {
         int n = input->variable->find(argi.get_name());
         if (n < 0)
-          error->all(FLERR, "Could not find thermo custom variable name: {}", argi.get_name());
-        if (argindex1[nfield] == 0 && input->variable->equalstyle(n) == 0)
-          error->all(FLERR, "Thermo custom variable is not equal-style variable");
-        if (argindex1[nfield] && input->variable->vectorstyle(n) == 0)
-          error->all(FLERR, "Thermo custom variable is not vector-style variable");
-        if (argindex2[nfield]) error->all(FLERR, "Thermo custom variable cannot have two indices");
-
+          error->all(FLERR, nfield + 1, "Could not find thermo custom variable name: {}",
+                     argi.get_name());
+        if (argi.get_dim() == 0) {
+          if (input->variable->equalstyle(n) == 0)
+            error->all(FLERR, nfield + 1,
+                       "Thermo custom variable {} is not an equal-style variable", argi.get_name());
+        } else if (argi.get_dim() == 1) {
+          if (input->variable->vectorstyle(n) == 0)
+            error->all(FLERR, nfield + 1,
+                       "Thermo custom variable {} is not a vector-style variable", argi.get_name());
+        } else if (argi.get_dim() == 2) {
+          error->all(FLERR,  nfield + 1, "Thermo custom variable {} cannot have two indices",
+                     argi.get_name());
+        } else {
+          error->all(FLERR, nfield + 1,
+                     "Thermo custom variable {} has unsupported format", argi.get_name());
+        }
         field2index[nfield] = add_variable(argi.get_name());
         addfield(word.c_str(), &Thermo::compute_variable, FLOAT);
       }
@@ -1234,7 +1269,7 @@ void Thermo::check_temp(const std::string &keyword)
 void Thermo::check_pe(const std::string &keyword)
 {
   if (update->eflag_global != update->ntimestep)
-    error->all(FLERR, "Energy was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Energy was not tallied on needed timestep{}", utils::errorurl(22));
   if (!pe)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init potential energy",
                keyword);
@@ -1433,7 +1468,8 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   } else if (word == "etail") {
     if (update->eflag_global != update->ntimestep)
-      error->all(FLERR, "Energy was not tallied on needed timestep for thermo keyword etail");
+      error->all(FLERR, Error::NOLASTLINE, "Energy was not tallied on needed timestep for thermo "
+                                           "keyword etail{}", utils::errorurl(22));
     compute_etail();
 
   } else if (word == "enthalpy") {
@@ -1632,14 +1668,16 @@ void Thermo::compute_compute()
   int m = field2index[ifield];
   Compute *compute = computes[m];
 
-  // check for out-of-range access if vector/array is variable length
+  // check for upper out-of-range access if vector/array is variable length
+  // we already checked for other conditions when the thermo style was defined.
 
   if (compute_which[m] == SCALAR) {
     dvalue = compute->scalar;
     if (normflag && compute->extscalar) dvalue /= natoms;
   } else if (compute_which[m] == VECTOR) {
-    if (compute->size_vector_variable && argindex1[ifield] > compute->size_vector)
-      error->all(FLERR, "Thermo compute vector is accessed out-of-range");
+    if (compute->size_vector_variable && (argindex1[ifield] > compute->size_vector))
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Thermo compute vector is accessed out-of-range" + utils::errorurl(20));
     dvalue = compute->vector[argindex1[ifield] - 1];
     if (normflag) {
       if (compute->extvector == 0)
@@ -1650,8 +1688,9 @@ void Thermo::compute_compute()
         dvalue /= natoms;
     }
   } else {
-    if (compute->size_array_rows_variable && argindex1[ifield] > compute->size_array_rows)
-      error->all(FLERR, "Thermo compute array is accessed out-of-range");
+    if (compute->size_array_rows_variable && (argindex1[ifield] > compute->size_array_rows))
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Thermo compute array is accessed out-of-range" + utils::errorurl(20));
     dvalue = compute->array[argindex1[ifield] - 1][argindex2[ifield] - 1];
     if (normflag && compute->extarray) dvalue /= natoms;
   }

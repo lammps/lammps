@@ -16,6 +16,8 @@
 
 #include <Kokkos_DetectionIdiom.hpp>
 
+#include <cstddef>
+
 void test_nonesuch() {
   using Kokkos::nonesuch;
   static_assert(!std::is_constructible_v<nonesuch>);

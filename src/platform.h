@@ -377,6 +377,13 @@ namespace platform {
 
   bool file_is_readable(const std::string &path);
 
+  /*! Check if file can be opened for writing
+   *
+   * \param path file path
+   * \return true if file can be opened for writing */
+
+  bool file_is_writable(const std::string &path);
+
   /*! Return free disk space in bytes of file system pointed to by path
    *
    * Returns -1.0 if the path is invalid or free space reporting not supported.

@@ -9,7 +9,9 @@
 // KOKKOS_VERSION % 100 is the patch level
 // KOKKOS_VERSION / 100 % 100 is the minor version
 // KOKKOS_VERSION / 10000 is the major version
-#define KOKKOS_VERSION @KOKKOS_VERSION@
+#cmakedefine KOKKOS_VERSION @KOKKOS_VERSION@
+// Not using #cmakedefine below because a "0" FOO version number 
+// yields /* undef KOKKOS_VERSION_FOO */
 #define KOKKOS_VERSION_MAJOR @KOKKOS_VERSION_MAJOR@
 #define KOKKOS_VERSION_MINOR @KOKKOS_VERSION_MINOR@
 #define KOKKOS_VERSION_PATCH @KOKKOS_VERSION_PATCH@
@@ -116,6 +118,7 @@
 #cmakedefine KOKKOS_ARCH_AMD_ZEN
 #cmakedefine KOKKOS_ARCH_AMD_ZEN2
 #cmakedefine KOKKOS_ARCH_AMD_ZEN3
+#cmakedefine KOKKOS_ARCH_AMD_ZEN4
 #cmakedefine KOKKOS_ARCH_AMD_GFX906
 #cmakedefine KOKKOS_ARCH_AMD_GFX908
 #cmakedefine KOKKOS_ARCH_AMD_GFX90A

@@ -50,9 +50,9 @@ the potential energy using the Wolf summation method, described in
 
 .. math::
    E_i = \frac{1}{2} \sum_{j \neq i}
-   \frac{q_i q_j {\rm erfc}(\alpha r_{ij})}{r_{ij}} +
+   \frac{q_i q_j \mathrm{erfc}(\alpha r_{ij})}{r_{ij}} +
    \frac{1}{2} \sum_{j \neq i}
-   \frac{q_i q_j {\rm erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
+   \frac{q_i q_j \mathrm{erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
 
 where :math:`\alpha` is the damping parameter, and *erf()* and *erfc()*
 are error-function and complementary error-function terms.  This

@@ -169,6 +169,16 @@ create_graph(Closure&& arg_closure) {
   return create_graph(ExecutionSpace{}, (Closure&&)arg_closure);
 }
 
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
+    defined(KOKKOS_ENABLE_SYCL)
+template <class Exec, typename T>
+std::enable_if_t<Kokkos::is_execution_space_v<Exec>, Graph<Exec>>
+create_graph_from_native(Exec exec, T&& native_graph) {
+  return Kokkos::Impl::GraphAccess::construct_graph_from_native(
+      std::move(exec), std::forward<T>(native_graph));
+}
+#endif
+
 // </editor-fold> end create_graph }}}1
 //==============================================================================
 
@@ -216,6 +226,7 @@ decltype(auto) Graph<ExecutionSpace>::native_graph_exec() {
 #include <Kokkos_GraphNode.hpp>
 
 #include <impl/Kokkos_GraphNodeImpl.hpp>
+#include <impl/Kokkos_GraphNodeThenImpl.hpp>
 #include <impl/Kokkos_Default_Graph_Impl.hpp>
 #include <Cuda/Kokkos_Cuda_Graph_Impl.hpp>
 #if defined(KOKKOS_ENABLE_HIP)

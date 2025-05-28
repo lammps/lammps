@@ -37,12 +37,18 @@ struct random_access_iterator_test : std_algorithms_test {
 
 TEST_F(random_access_iterator_test, constructor) {
   // just tests that constructor works
-  auto it1 = KE::Impl::RandomAccessIterator<static_view_t>(m_static_view);
-  auto it2 = KE::Impl::RandomAccessIterator<dyn_view_t>(m_dynamic_view);
-  auto it3 = KE::Impl::RandomAccessIterator<strided_view_t>(m_strided_view);
-  auto it4 = KE::Impl::RandomAccessIterator<static_view_t>(m_static_view, 3);
-  auto it5 = KE::Impl::RandomAccessIterator<dyn_view_t>(m_dynamic_view, 3);
-  auto it6 = KE::Impl::RandomAccessIterator<strided_view_t>(m_strided_view, 3);
+  [[maybe_unused]] auto it1 =
+      KE::Impl::RandomAccessIterator<static_view_t>(m_static_view);
+  [[maybe_unused]] auto it2 =
+      KE::Impl::RandomAccessIterator<dyn_view_t>(m_dynamic_view);
+  [[maybe_unused]] auto it3 =
+      KE::Impl::RandomAccessIterator<strided_view_t>(m_strided_view);
+  [[maybe_unused]] auto it4 =
+      KE::Impl::RandomAccessIterator<static_view_t>(m_static_view, 3);
+  [[maybe_unused]] auto it5 =
+      KE::Impl::RandomAccessIterator<dyn_view_t>(m_dynamic_view, 3);
+  [[maybe_unused]] auto it6 =
+      KE::Impl::RandomAccessIterator<strided_view_t>(m_strided_view, 3);
   EXPECT_TRUE(true);
 }
 

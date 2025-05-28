@@ -160,7 +160,7 @@ void BondFENE::allocate()
 
 void BondFENE::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
+  if (narg > 6 || narg < 4) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -170,7 +170,14 @@ void BondFENE::coeff(int narg, char **arg)
   double r0_one = utils::numeric(FLERR, arg[2], false, lmp);
   double epsilon_one = utils::numeric(FLERR, arg[3], false, lmp);
   double sigma_one = utils::numeric(FLERR, arg[4], false, lmp);
-  double bflag_one = utils::numeric(FLERR, arg[5], false, lmp);
+
+  // bflag is set
+  if (narg == 6){
+    double bflag_one = utils::numeric(FLERR, arg[5], false, lmp);
+
+  } else { //bflag is not set
+    double bflag_one = 1
+  }
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -178,7 +185,7 @@ void BondFENE::coeff(int narg, char **arg)
     r0[i] = r0_one;
     epsilon[i] = epsilon_one;
     sigma[i] = sigma_one;
-    bflag[i] = bflag_one
+    bflag[i] = bflag_one;
     setflag[i] = 1;
     count++;
   }

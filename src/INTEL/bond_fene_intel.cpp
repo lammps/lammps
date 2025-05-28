@@ -172,6 +172,7 @@ void BondFENEIntel::eval(const int vflag,
       const flt_t sigma = fc.fc[type].sigma;
       const flt_t sigmasq = sigma*sigma;
       const flt_t epsilon = fc.fc[type].epsilon;
+      const flt_t bflag = fc.fc[type].bflag
 
       const flt_t delx = x[i1].x - x[i2].x;
       const flt_t dely = x[i1].y - x[i2].y;
@@ -181,15 +182,35 @@ void BondFENEIntel::eval(const int vflag,
       flt_t rlogarg = (flt_t)1.0 - rsq * ir0sq;
       flt_t irsq = (flt_t)1.0 / rsq;
 
+      // if bflag is set to true:
       // if r -> r0, then rlogarg < 0.0 which is an error
       // issue a warning and reset rlogarg = epsilon
       // if r > 2*r0 something serious is wrong, abort
 
+      // if bflag is set to False:
+      // completely restrict bonds from extending past r0, do not reset rlogarg but still issue warning
+      // when rlogarg < 0.1
+          if (rlogarg < 0.1) {
+      error->warning(FLERR, "FENE bond too long: {} {} {} {}", update->ntimestep, atom->tag[i1],
+                     atom->tag[i2], sqrt(rsq));
+      if (bflag[type]){
+        if (rlogarg <= -3.0) error->one(FLERR, "Bad FENE bond");
+        rlogarg = 0.1;
+      } else {
+        if (rlogarg <= 0) error->one(FLERR, "Bad FENE bond");
+      }
+
+    }
+
       if (rlogarg < (flt_t)0.1) {
         error->warning(FLERR,"FENE bond too long: {} {} {} {:.8}",
                        update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
-        if (rlogarg <= (flt_t)-3.0) error->one(FLERR,"Bad FENE bond");
+      if (bflag[type]){
+        if (rlogarg <= (flt_t)-3.0) error->one(FLERR, "Bad FENE bond");
         rlogarg = (flt_t)0.1;
+      } else {
+        if (rlogarg <= (flt_t)0) error->one(FLERR, "Bad FENE bond");
+      }
       }
 
       flt_t fbond = -k/rlogarg;
@@ -306,6 +327,7 @@ void BondFENEIntel::pack_force_const(ForceConst<flt_t> &fc,
     fc.fc[i].ir0sq = 1.0 / (r0[i] * r0[i]);
     fc.fc[i].sigma = sigma[i];
     fc.fc[i].epsilon = epsilon[i];
+    fc.fc[i].bflag = bflag[i]
   }
 }
 

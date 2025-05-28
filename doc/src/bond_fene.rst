@@ -44,7 +44,11 @@ to define a finite extensible nonlinear elastic (FENE) potential
 :ref:`(Kremer) <fene-Kremer>`, used for bead-spring polymer models.  The first
 term is attractive, the second Lennard-Jones term is repulsive.  The
 first term extends to :math:`R_0`, the maximum extent of the bond.  The second
-term is cutoff at :math:`2^\frac{1}{6} \sigma`, the minimum of the LJ potential.
+term is cutoff at :math:`2^\frac{1}{6} \sigma`, the minimum of the LJ potential.  In order to prevent the simulation from
+crashing unreasonably, an extra parameter in the bond is included to enable bond extension past `R_0`.  If *bflag* is set to 1,
+then the bond length is allowed to extended up to `2R_0`, with the force exterted on the bonded atoms equal to
+exactly as if the bond length was `\sqrt{0.9}R_0`.  The simulation will only crash once the bond length reaches
+`2R_0`.  If *bflag* is set to 0, then the bond will not be allowed to extend past `R_0`.
 
 The *fene/nm* bond style substitutes the standard LJ potential with the generalized LJ potential
 in the same form as in pair style :doc:`nm/cut <pair_nm>`. The bond energy is then given by
@@ -64,6 +68,7 @@ restart files read by the :doc:`read_data <read_data>` or
 * :math:`R_0` (distance)
 * :math:`\epsilon` (energy)
 * :math:`\sigma` (distance)
+* :math:`bflag` sets whether to enable bond extension past `R_0`.  Default is 1
 
 For the *fene/nm* style, the following coefficients are used.  Please
 note, that the standard LJ potential and thus the regular FENE potential

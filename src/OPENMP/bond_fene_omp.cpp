@@ -108,17 +108,28 @@ void BondFENEOMP::eval(int nfrom, int nto, ThrData * const thr)
     r0sq = r0[type] * r0[type];
     rlogarg = 1.0 - rsq/r0sq;
 
+    // if bflag is set to true:
     // if r -> r0, then rlogarg < 0.0 which is an error
     // issue a warning and reset rlogarg = epsilon
     // if r > 2*r0 something serious is wrong, abort
 
+    // if bflag is set to False:
+    // completely restrict bonds from extending past r0, do not reset rlogarg but still issue warning
+    // when rlogarg < 0.1
+
     if (rlogarg < 0.1) {
       error->warning(FLERR,"FENE bond too long: {} {} {} {:.8}",
                      update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
-      if (check_error_thr((rlogarg <= -3.0),tid,FLERR,"Bad FENE bond"))
-        return;
+      if (bflag) {
+        if (check_error_thr((rlogarg <= -3.0),tid,FLERR,"Bad FENE bond"))
+          return;
 
-      rlogarg = 0.1;
+        rlogarg = 0.1;
+      } else {
+        if (check_error_thr((rlogarg <= 0),tid,FLERR,"Bad FENE bond"))
+          return;
+      }
+
     }
 
     fbond = -k[type]/rlogarg;

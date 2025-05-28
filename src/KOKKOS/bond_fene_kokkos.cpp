@@ -168,6 +168,7 @@ void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLA
   const F_FLOAT k = d_k[type];
   const F_FLOAT sigma = d_sigma[type];
   const F_FLOAT epsilon = d_epsilon[type];
+  const F_FLOAT bflag = d_bflag[type];
 
   // force from log term
 
@@ -175,16 +176,28 @@ void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLA
   const F_FLOAT r0sq = r0 * r0;
   F_FLOAT rlogarg = 1.0 - rsq/r0sq;
 
-  // if r -> r0, then rlogarg < 0.0 which is an error
-  // issue a warning and reset rlogarg = epsilon
-  // if r > 2*r0 something serious is wrong, abort
+    // if bflag is set to true:
+    // if r -> r0, then rlogarg < 0.0 which is an error
+    // issue a warning and reset rlogarg = epsilon
+    // if r > 2*r0 something serious is wrong, abort
+
+    // if bflag is set to False:
+    // completely restrict bonds from extending past r0, do not reset rlogarg but still issue warning
+    // when rlogarg < 0.1
 
   if (rlogarg < 0.1) {
-    if (rlogarg <= -3.0)
-      d_flag() = 2;
-    else
-      d_flag() = 1;
-    rlogarg = 0.1;
+    if (bflag){
+      if (rlogarg <= -3.0)
+        d_flag() = 2;
+      else
+        d_flag() = 1;
+      rlogarg = 0.1;
+    } else {
+      if (rlogarg <= 0) {
+        d_flag() = 2
+      }
+    }
+
   }
 
   F_FLOAT fbond = -k/rlogarg;
@@ -245,11 +258,13 @@ void BondFENEKokkos<DeviceType>::allocate()
   k_r0 = DAT::tdual_ffloat_1d("BondFene::r0",n+1);
   k_epsilon = DAT::tdual_ffloat_1d("BondFene::epsilon",n+1);
   k_sigma = DAT::tdual_ffloat_1d("BondFene::sigma",n+1);
+  f_bflag = DAT::tdual_ffloat_1d("BondFene::bflag",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_r0 = k_r0.template view<DeviceType>();
   d_epsilon = k_epsilon.template view<DeviceType>();
   d_sigma = k_sigma.template view<DeviceType>();
+  bflag = k_bflag.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -267,12 +282,14 @@ void BondFENEKokkos<DeviceType>::coeff(int narg, char **arg)
     k_r0.h_view[i] = r0[i];
     k_epsilon.h_view[i] = epsilon[i];
     k_sigma.h_view[i] = sigma[i];
+    k_bflag.h_view[i] = bflag[i];
   }
 
   k_k.modify_host();
   k_r0.modify_host();
   k_epsilon.modify_host();
   k_sigma.modify_host();
+  k_bflag.modify_host();
 }
 
 
@@ -291,12 +308,14 @@ void BondFENEKokkos<DeviceType>::read_restart(FILE *fp)
     k_r0.h_view[i] = r0[i];
     k_epsilon.h_view[i] = epsilon[i];
     k_sigma.h_view[i] = sigma[i];
+    k_bflag.h_view[i] = bflag[i];
   }
 
   k_k.modify_host();
   k_r0.modify_host();
   k_epsilon.modify_host();
   k_sigma.modify_host();
+  k_bflag.modify_host();
 }
 
 /* ----------------------------------------------------------------------

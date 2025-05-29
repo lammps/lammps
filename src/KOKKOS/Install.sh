@@ -212,6 +212,8 @@ action fix_rx_kokkos.cpp fix_rx.cpp
 action fix_rx_kokkos.h fix_rx.h
 action fix_setforce_kokkos.cpp
 action fix_setforce_kokkos.h
+action fix_rigid_small_kokkos.cpp fix_rigid_small.cpp
+action fix_rigid_small_kokkos.h fix_rigid_small.h
 action fix_shake_kokkos.cpp fix_shake.cpp
 action fix_shake_kokkos.h fix_shake.h
 action fix_shardlow_kokkos.cpp fix_shardlow.cpp
@@ -252,6 +254,8 @@ action kokkos_few.h
 action kokkos_type.h
 action kokkos.cpp
 action kokkos.h
+action math_extra_kokkos.cpp
+action math_extra_kokkos.h
 action math_special_kokkos.cpp
 action math_special_kokkos.h
 action meam_dens_final_kokkos.h meam_dens_final.cpp

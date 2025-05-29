@@ -29,6 +29,7 @@ OPT.
    * :doc:`ave/grid <fix_ave_grid>`
    * :doc:`ave/histo <fix_ave_histo>`
    * :doc:`ave/histo/weight <fix_ave_histo>`
+   * :doc:`ave/moments <fix_ave_moments>`
    * :doc:`ave/time <fix_ave_time>`
    * :doc:`aveforce <fix_aveforce>`
    * :doc:`balance <fix_balance>`

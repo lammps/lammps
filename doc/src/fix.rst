@@ -208,6 +208,7 @@ accelerated styles exist.
 * :doc:`ave/grid <fix_ave_grid>` - compute per-grid time-averaged quantities
 * :doc:`ave/histo <fix_ave_histo>` - compute/output time-averaged histograms
 * :doc:`ave/histo/weight <fix_ave_histo>` - weighted version of fix ave/histo
+* :doc:`ave/moments <fix_ave_moments>` - compute moments of scalar quantities
 * :doc:`ave/time <fix_ave_time>` - compute/output global time-averaged quantities
 * :doc:`aveforce <fix_aveforce>` - add an averaged force to each atom
 * :doc:`balance <fix_balance>` - perform dynamic load-balancing

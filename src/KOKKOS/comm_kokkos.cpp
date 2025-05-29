@@ -464,7 +464,7 @@ void CommKokkos::forward_comm_device(Fix *fix, int size)
     DeviceType().fence();
   }
 }
-//template void CommKokkos::forward_comm_device<LMPHostType>(Fix *fix, int size);
+template void CommKokkos::forward_comm_device<LMPHostType>(Fix *fix, int size);
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Fix
@@ -642,7 +642,6 @@ void CommKokkos::forward_comm_device(Pair *pair, int size)
     DeviceType().fence();
   }
 }
-template void CommKokkos::forward_comm_device<LMPHostType>(Fix *fix, int size);
 
 /* ---------------------------------------------------------------------- */
 

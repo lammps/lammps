@@ -10,6 +10,7 @@
 .. index:: fix rigid/nph/omp
 .. index:: fix rigid/small
 .. index:: fix rigid/small/omp
+.. index:: fix rigid/small/kk
 .. index:: fix rigid/nve/small
 .. index:: fix rigid/nvt/small
 .. index:: fix rigid/npt/small
@@ -43,7 +44,7 @@ Accelerator Variants: *rigid/nph/omp*
 fix rigid/small command
 =======================
 
-Accelerator Variants: *rigid/small/omp*
+Accelerator Variants: *rigid/small/omp*, *rigid/small/kk*
 
 fix rigid/nve/small command
 ===========================

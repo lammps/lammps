@@ -44,13 +44,6 @@ using namespace RigidConst;
 
 #define RVOUS 1   // 0 for irregular, 1 for all2all
 
-void print_body(Body &b, int rank, int ibody, double **x){
-  printf("==========\nrank %d, body %d\n", rank, ibody);
-  printf("natoms = %d | ilocal = %d | xcm = %.6f %.6f %.6f\n", b.natoms, b.ilocal, b.xcm[0], b.xcm[1], b.xcm[2]);
-  int i = b.ilocal;
-  printf("owning position: %.6f %.6f %.6f\n", x[i][0], x[i][1], x[i][2]);
-  printf("==========\n");
-}
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>

@@ -147,7 +147,7 @@ int ComputeRigidLocal::compute_rigid(int flag)
 {
   int i,m,n,ibody;
   double *ptr;
-  Body *body;
+  FixRigidSmall::Body *body;
 
   double xprd = domain->xprd;
   double yprd = domain->yprd;

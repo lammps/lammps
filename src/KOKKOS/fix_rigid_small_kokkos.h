@@ -164,8 +164,8 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
 };
 
 KOKKOS_INLINE_FUNCTION
-void copy_body(Body *dest, Body *src){
-  memcpy(dest, src, sizeof(Body));
+void copy_body(FixRigidSmall::Body *dest, FixRigidSmall::Body *src){
+  memcpy(dest, src, sizeof(FixRigidSmall::Body));
 }
 
 }    // namespace LAMMPS_NS

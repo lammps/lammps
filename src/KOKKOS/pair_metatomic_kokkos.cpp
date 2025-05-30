@@ -81,7 +81,7 @@ void PairMetatomicKokkos<DeviceType>::init_style() {
     for (const auto& ivalue: requested_nl.toList()) {
         auto options = ivalue.get().toCustomClass<metatomic_torch::NeighborListOptionsHolder>();
         auto cutoff = options->engine_cutoff(mta_data->evaluation_options->length_unit());
-        assert(cutoff <= mts_data->max_cutoff);
+        assert(cutoff <= mta_data->max_cutoff);
 
         this->system_adaptor->add_nl_request(cutoff, options);
     }
@@ -208,7 +208,7 @@ void PairMetatomicKokkos<DeviceType>::compute(int eflag, int vflag) {
             auto samples = samples_values.accessor<int32_t, 2>();
 
             int64_t n_atoms = atom->nlocal + atom->nghost;
-            assert(samples_values.sizes() == mts_data->selected_atoms_values.sizes());
+            assert(samples_values.sizes() == mta_data->selected_atoms_values.sizes());
 
             auto energies = energy_detached.accessor<double, 2>();
             for (int64_t i=0; i<energy_samples->count(); i++) {

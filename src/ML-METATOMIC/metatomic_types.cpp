@@ -88,10 +88,12 @@ void PairMetatomicData::load_model(
        }
 
        // add the model references to LAMMPS citation handling mechanism
-       for (const auto& it: metadata->references) {
-           for (const auto& ref: it.value()) {
-               lmp->citeme->add(ref + "\n");
-           }
+       if (lmp->citeme) {
+          for (const auto& it: metadata->references) {
+             for (const auto& ref: it.value()) {
+                lmp->citeme->add(ref + "\n");
+             }
+          }
        }
    }
 }

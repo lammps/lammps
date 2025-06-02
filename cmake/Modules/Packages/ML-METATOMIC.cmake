@@ -47,11 +47,11 @@ set(METATENSOR_CORE_SHA1 "9e21c48d9059d8a37618958d9d253220dedf7562")
 set(METATENSOR_TORCH_VERSION "0.7.6")
 set(METATENSOR_TORCH_SHA1 "5668f5088a42507e9ca4a7b723b3baac0286035c")
 
-set(METATOMIC_TORCH_VERSION "0.1.0")
-set(METATOMIC_TORCH_SHA1 "a9d86ba4b9b6b8c367f9f21d3363e152b73833bf")
+set(METATOMIC_TORCH_VERSION "0.1.1")
+set(METATOMIC_TORCH_SHA1 "12b830c23674339fc185ce6e94e5a445416199ff")
 
 set(DOWNLOAD_METATENSOR_DEFAULT ON)
-find_package(metatensor_torch QUIET ${METATOMIC_TORCH_VERSION})
+find_package(metatensor_torch QUIET ${METATENSOR_TORCH_VERSION})
 if (metatensor_torch_FOUND)
     set(DOWNLOAD_METATENSOR_DEFAULT OFF)
 endif()
@@ -63,8 +63,8 @@ if (metatomic_torch_FOUND)
 endif()
 
 
-option(DOWNLOAD_METATOMIC "Download metatomic package instead of using an already installed one" ${DOWNLOAD_METATOMIC_DEFAULT})
 option(DOWNLOAD_METATENSOR "Download metatensor package instead of using an already installed one" ${DOWNLOAD_METATENSOR_DEFAULT})
+option(DOWNLOAD_METATOMIC "Download metatomic package instead of using an already installed one" ${DOWNLOAD_METATOMIC_DEFAULT})
 
 if (DOWNLOAD_METATENSOR)
     include(FetchContent)
@@ -93,22 +93,16 @@ endif()
 if (DOWNLOAD_METATOMIC)
     include(FetchContent)
 
-    # set(URL_BASE "https://github.com/metatensor/metatomic/releases/download")
-    # FetchContent_Declare(metatomic-torch
-    #     URL ${URL_BASE}/metatomic-torch-v${METATOMIC_TORCH_VERSION}/metatomic-torch-cxx-${METATOMIC_TORCH_VERSION}.tar.gz
-    #     URL_HASH SHA1=${METATOMIC_TORCH_SHA1}
-    # )
-
+    set(URL_BASE "https://github.com/metatensor/metatomic/releases/download")
     FetchContent_Declare(metatomic-torch
-        GIT_REPOSITORY https://github.com/Luthaf/metatomic
-        GIT_TAG c078c2ca8f9060f9a3a384b15ba464c416ff77d0
-        SOURCE_SUBDIR metatomic-torch
+        URL ${URL_BASE}/metatomic-torch-v${METATOMIC_TORCH_VERSION}/metatomic-torch-cxx-${METATOMIC_TORCH_VERSION}.tar.gz
+        URL_HASH SHA1=${METATOMIC_TORCH_SHA1}
     )
 
     message(STATUS "Fetching metatomic-torch v${METATOMIC_TORCH_VERSION} from github")
     FetchContent_MakeAvailable(metatomic-torch)
 else()
-    # make sure to fail the configuration if cmake can not find metatensor-torch
+    # make sure to fail the configuration if cmake can not find metatomic-torch
     find_package(metatomic_torch REQUIRED ${METATOMIC_TORCH_VERSION})
 endif()
 

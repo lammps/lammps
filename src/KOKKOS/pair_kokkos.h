@@ -961,7 +961,7 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
       lastcall = fpair->lmp->update->ntimestep;
       vectorsize = GetMaxNeighs(list);
       if (vectorsize == 0) vectorsize = 1;
-      vectorsize = MathSpecial::powint(2,(int(log2(vectorsize) + 0.5))); // round to nearest power of 2
+      vectorsize = MathSpecial::powint(2.0,(int(log2(double(vectorsize)) + 0.5))); // round to nearest power of 2
 
   #if defined(KOKKOS_ENABLE_HIP)
       int max_vectorsize = 64;

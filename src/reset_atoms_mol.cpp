@@ -211,7 +211,7 @@ void ResetAtomsMol::reset()
 
     // if offset < 0 (default), reset it
     // if group = all, offset = 0
-    // else offset = largest molID of non-group atoms
+    // else offset = largest molecule ID of non-group atoms
 
     if (offset < 0) {
       if (groupbit != 1) {

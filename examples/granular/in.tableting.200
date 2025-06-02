@@ -28,19 +28,20 @@ variable dieHeight     equal 1e-2
 
 pair_style granular
 
-# mdr = E, nu, Y, gamma, psi_b, CoR
+# mdr = E, nu, Y, gamma, psi_b, damp
 variable YoungsModulus      equal 5e6
 variable YieldStress        equal 1.9e5
 variable PoissonsRatio      equal 0.4
 variable SurfaceEnergy      equal 2
 variable SurfaceEnergyWall  equal 0.0
-variable CoR                equal 0.5
 variable psi_b              equal 0.5
+variable damp               equal 0.2
+variable damp_type          equal 1
 
 # linear_history = k_t, x_gammat, mu_s
 variable kt         equal 2/7*${YoungsModulus}*${atomRadius}
 variable kt_wall    equal 2/7*${YoungsModulus}*${atomRadius}
-variable xgammat    equal 0.0 
+variable xgammat    equal 1.0
 variable mu_s       equal 0.7
 variable mu_s_wall  equal 0.1
 
@@ -49,14 +50,17 @@ variable mu_roll     equal 0.6
 variable k_roll      equal 2.25*${mu_roll}*${mu_roll}*${YoungsModulus}*${atomRadius}
 variable gamma_roll  equal 0.0
 
-pair_coeff * * mdr ${YoungsModulus} ${PoissonsRatio} ${YieldStress} ${SurfaceEnergy} ${psi_b} ${CoR} tangential linear_history ${kt} ${xgammat} ${mu_s} rolling sds ${k_roll} ${gamma_roll} ${mu_roll} damping none
+pair_coeff * * mdr ${YoungsModulus} ${PoissonsRatio} ${YieldStress} ${SurfaceEnergy} ${psi_b} ${damp} &
+    damping mdr ${damp_type} &
+    tangential linear_history ${kt} ${xgammat} ${mu_s} &
+    rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
 
 ######################################### ADD DIE AND PUNCH WALLS ############################################
 
 variable disp_upper      equal 0.0
 variable disp_lower      equal 0.0
 
-variable wall_contact_string string "granular mdr ${YoungsModulus} ${PoissonsRatio} ${YieldStress} ${SurfaceEnergyWall} ${psi_b} ${CoR} tangential linear_history ${kt_wall} ${xgammat} ${mu_s_wall} rolling sds ${k_roll} ${gamma_roll} ${mu_roll} damping none"
+variable wall_contact_string string "granular mdr ${YoungsModulus} ${PoissonsRatio} ${YieldStress} ${SurfaceEnergyWall} ${psi_b} ${damp} damping mdr ${damp_type} tangential linear_history ${kt_wall} ${xgammat} ${mu_s_wall} rolling sds ${k_roll} ${gamma_roll} ${mu_roll}"
 
 variable dieHeight2 equal 2*${dieHeight}
 
@@ -73,7 +77,7 @@ variable avgUpperPunchForce equal c_avgUpperPunchForce
 compute avgLowerPunchForce all reduce sum f_lowerPunch[4]
 variable avgLowerPunchForce equal c_avgLowerPunchForce
 
-fix printFD all print 1 "${disp_upper} ${avgUpperPunchForce} ${avgLowerPunchForce}" file punch_force_disp_tableting200.csv screen no
+#fix printFD all print 1 "${disp_upper} ${avgUpperPunchForce} ${avgLowerPunchForce}" file punch_force_disp_tableting200.csv screen no
 
 ##################################### INTEGRATION AND GRAVITY #################################################
 
@@ -109,13 +113,13 @@ variable syy_ave equal c_sigmayy_ave
 variable szz_ave equal c_sigmazz_ave
 variable Vparticles equal c_Velas_sum
 
-fix log all print 1 "${sxx_ave} ${syy_ave} ${szz_ave} ${Vparticles}" file average_normal_stresses_tableting200.csv screen no
-dump dumpParticles all custom ${output_rate} tableting200.dump id type mass diameter x y z vx vy vz fx fy fz c_ke c_sigmaxx c_sigmayy c_sigmazz
+#fix log all print 1 "${sxx_ave} ${syy_ave} ${szz_ave} ${Vparticles}" file average_normal_stresses_tableting200.csv screen no
+#dump dumpParticles all custom ${output_rate} tableting200.dump id type mass diameter x y z vx vy vz fx fy fz c_ke c_sigmaxx c_sigmayy c_sigmazz
 #dump dumpParticlesVTK all vtk ${output_rate} post/particles_*.vtk id x y z fx fy fz vx vy vz c_ke radius c_sigmaxx c_sigmayy c_sigmazz
 
 ############################################## RUN SIMULATION #################################################
 
-variable upper_punch_stroke  equal 0.6733*${dieHeight}
+variable upper_punch_stroke  equal 0.7*${dieHeight}
 variable vel_upper           equal 0.25
 
 variable settling_steps      equal round(0.02/dt)

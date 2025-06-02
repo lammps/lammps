@@ -15,6 +15,7 @@
 #define CHARTVIEWER_H
 
 #include <QComboBox>
+#include <QLineEdit>
 #include <QList>
 #include <QString>
 #include <QTime>
@@ -52,6 +53,8 @@ private slots:
     void stop_run();
     void select_smooth(int selection);
     void update_smooth();
+    void update_tlabel();
+    void update_ylabel();
 
     void saveAs();
     void exportDat();
@@ -73,6 +76,7 @@ private:
     QAction *closeAct, *stopAct, *quitAct;
     QComboBox *smooth;
     QSpinBox *window, *order;
+    QLineEdit *chartTitle, *chartYlabel;
 
     QString filename;
     QList<QtCharts::ChartViewer *> charts;
@@ -103,6 +107,11 @@ public:
     QString get_title() const { return series->name(); }
     double get_step(int index) const { return (index < 0) ? 0.0 : series->at(index).x(); }
     double get_data(int index) const { return (index < 0) ? 0.0 : series->at(index).y(); }
+    void set_tlabel(const QString &tlabel);
+    void set_ylabel(const QString &ylabel);
+    QString get_tlabel() const { return chart->title(); }
+    QString get_xlabel() const { return xaxis->titleText(); }
+    QString get_ylabel() const { return yaxis->titleText(); }
 
 private:
     int last_step, index;

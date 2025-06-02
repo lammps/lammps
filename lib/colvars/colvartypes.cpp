@@ -137,71 +137,6 @@ std::istream & operator >> (std::istream &is, colvarmodule::quaternion &q)
 }
 
 
-cvm::quaternion
-cvm::quaternion::position_derivative_inner(cvm::rvector const &pos,
-                                            cvm::rvector const &vec) const
-{
-  cvm::quaternion result(0.0, 0.0, 0.0, 0.0);
-
-
-  result.q0 =   2.0 * pos.x * q0 * vec.x
-               +2.0 * pos.y * q0 * vec.y
-               +2.0 * pos.z * q0 * vec.z
-
-               -2.0 * pos.y * q3 * vec.x
-               +2.0 * pos.z * q2 * vec.x
-
-               +2.0 * pos.x * q3 * vec.y
-               -2.0 * pos.z * q1 * vec.y
-
-               -2.0 * pos.x * q2 * vec.z
-               +2.0 * pos.y * q1 * vec.z;
-
-
-  result.q1 =  +2.0 * pos.x * q1 * vec.x
-               -2.0 * pos.y * q1 * vec.y
-               -2.0 * pos.z * q1 * vec.z
-
-               +2.0 * pos.y * q2 * vec.x
-               +2.0 * pos.z * q3 * vec.x
-
-               +2.0 * pos.x * q2 * vec.y
-               -2.0 * pos.z * q0 * vec.y
-
-               +2.0 * pos.x * q3 * vec.z
-               +2.0 * pos.y * q0 * vec.z;
-
-
-  result.q2 =  -2.0 * pos.x * q2 * vec.x
-               +2.0 * pos.y * q2 * vec.y
-               -2.0 * pos.z * q2 * vec.z
-
-               +2.0 * pos.y * q1 * vec.x
-               +2.0 * pos.z * q0 * vec.x
-
-               +2.0 * pos.x * q1 * vec.y
-               +2.0 * pos.z * q3 * vec.y
-
-               -2.0 * pos.x * q0 * vec.z
-               +2.0 * pos.y * q3 * vec.z;
-
-
-  result.q3 =  -2.0 * pos.x * q3 * vec.x
-               -2.0 * pos.y * q3 * vec.y
-               +2.0 * pos.z * q3 * vec.z
-
-               -2.0 * pos.y * q0 * vec.x
-               +2.0 * pos.z * q1 * vec.x
-
-               +2.0 * pos.x * q0 * vec.y
-               +2.0 * pos.z * q2 * vec.y
-
-               +2.0 * pos.x * q1 * vec.z
-               +2.0 * pos.y * q2 * vec.z;
-
-  return result;
-}
-
 #ifdef COLVARS_LAMMPS
 namespace {
   inline void *new_Jacobi_solver(int size) {
@@ -336,7 +271,7 @@ void colvarmodule::rotation::compute_overlap_matrix()
 #ifndef COLVARS_LAMMPS
 namespace NR {
 
-void diagonalize_matrix(cvm::real m[4][4],
+int diagonalize_matrix(cvm::real m[4][4],
                         cvm::real eigval[4],
                         cvm::real eigvec[4][4])
 {
@@ -347,9 +282,7 @@ void diagonalize_matrix(cvm::real m[4][4],
   int jac_nrot = 0;
   if (NR_Jacobi::jacobi(m, eigval, eigvec, &jac_nrot) !=
       COLVARS_OK) {
-    cvm::error("Too many iterations in jacobi diagonalization.\n"
-               "This is usually the result of an ill-defined set of atoms for "
-               "rotational alignment (RMSD, rotateReference, etc).\n");
+    return COLVARS_ERROR;
   }
   NR_Jacobi::eigsrt(eigval, eigvec);
   // jacobi saves eigenvectors by columns
@@ -367,6 +300,7 @@ void diagonalize_matrix(cvm::real m[4][4],
       eigvec[ie][i] /= norm;
     }
   }
+  return COLVARS_OK;
 }
 
 }
@@ -429,14 +363,25 @@ void colvarmodule::rotation::calc_optimal_rotation_impl() {
                                        cvm::real[4][4]> *>(jacobi);
 
   int ierror = ecalc->Diagonalize(S, S_eigval, S_eigvec);
+#else
+  int ierror = NR::diagonalize_matrix(S, S_eigval, S_eigvec);
+#endif
   if (ierror) {
+    cvm::log("Failed to diagonalize the following overlapping matrix:\n");
+    for (size_t i = 0; i < 4; ++i) {
+      for (size_t j = 0; j < 4; ++j) {
+        cvm::log(cvm::to_str(S[i][j]) + " ");
+      }
+      cvm::log("\n");
+    }
+    cvm::log("The corresponding correlation matrix is:\n");
+    cvm::log(" " + cvm::to_str(C.xx) + " " + cvm::to_str(C.xy) + " " + cvm::to_str(C.xz));
+    cvm::log(" " + cvm::to_str(C.yx) + " " + cvm::to_str(C.yy) + " " + cvm::to_str(C.yz));
+    cvm::log(" " + cvm::to_str(C.zx) + " " + cvm::to_str(C.zy) + " " + cvm::to_str(C.zz) + "\n");
     cvm::error("Too many iterations in jacobi diagonalization.\n"
                "This is usually the result of an ill-defined set of atoms for "
                "rotational alignment (RMSD, rotateReference, etc).\n");
   }
-#else
-  NR::diagonalize_matrix(S, S_eigval, S_eigvec);
-#endif
   q = cvm::quaternion{S_eigvec[0][0], S_eigvec[0][1], S_eigvec[0][2], S_eigvec[0][3]};
 
   if (cvm::rotation::monitor_crossings) {

@@ -393,3 +393,15 @@ void DihedralCosineSquaredRestricted::born_matrix(int nd, int i1, int i2, int i3
 
   du2 = 2 * k[type] * numerator / denominator;
 }
+
+/* ----------------------------------------------------------------------
+    return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *DihedralCosineSquaredRestricted::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "phi0") == 0) return (void *) phi0;
+  return nullptr;
+}

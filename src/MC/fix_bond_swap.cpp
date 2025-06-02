@@ -723,7 +723,7 @@ double FixBondSwap::dist_rsq(int i, int j)
   double delx = x[i][0] - x[j][0];
   double dely = x[i][1] - x[j][1];
   double delz = x[i][2] - x[j][2];
-  domain->minimum_image(delx,dely,delz);
+  domain->minimum_image(FLERR, delx,dely,delz);
   return (delx*delx + dely*dely + delz*delz);
 }
 

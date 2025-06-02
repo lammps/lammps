@@ -1190,7 +1190,7 @@ void FixBondReact::far_partner()
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      domain->minimum_image(delx,dely,delz); // ghost location fix
+      domain->minimum_image(FLERR, delx,dely,delz); // ghost location fix
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (var_flag[RMIN][rxnID]) {
@@ -1260,7 +1260,7 @@ void FixBondReact::close_partner()
       delx = x[i1][0] - x[i2][0];
       dely = x[i1][1] - x[i2][1];
       delz = x[i1][2] - x[i2][2];
-      domain->minimum_image(delx,dely,delz); // ghost location fix
+      domain->minimum_image(FLERR, delx,dely,delz); // ghost location fix
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (var_flag[RMIN][rxnID]) {
@@ -1475,15 +1475,14 @@ void FixBondReact::superimpose_algorithm()
 
   int rxnflag = 0;
   int *delta_rxn;
-  memory->create(delta_rxn,nreacts,"bond/react:delta_rxn");
+  memory->create(delta_rxn, nreacts, "bond/react:delta_rxn");
   if (comm->me == 0)
     for (int i = 0; i < nreacts; i++) {
       delta_rxn[i] = reaction_count[i] + ghostly_rxn_count[i];
-      reaction_count_total[i] += delta_rxn[i];
       rxnflag += delta_rxn[i];
     }
 
-  MPI_Bcast(&reaction_count_total[0], nreacts, MPI_INT, 0, world);
+  MPI_Bcast(&delta_rxn[0], nreacts, MPI_INT, 0, world);
   MPI_Bcast(&rxnflag, 1, MPI_INT, 0, world);
 
   if (!rxnflag) return;
@@ -1495,12 +1494,12 @@ void FixBondReact::superimpose_algorithm()
   // check if we overstepped our reaction limit, via either max_rxn or rate_limit
   for (int i = 0; i < nreacts; i++) {
     int overstep = 0;
-    int max_rxn_overstep = reaction_count_total[i] - max_rxn[i];
+    int max_rxn_overstep = reaction_count_total[i] + delta_rxn[i] - max_rxn[i];
     overstep = MAX(overstep,max_rxn_overstep);
     if (rate_limit[0][i] == 1) {
       int myrxn_count = store_rxn_count[rate_limit[2][i]-1][i];
       if (myrxn_count != -1) {
-        int nrxn_delta = reaction_count_total[i] - myrxn_count;
+        int nrxn_delta = reaction_count_total[i] + delta_rxn[i] - myrxn_count;
         int my_nrate;
         if (var_flag[NRATE][i] == 1) {
           my_nrate = input->variable->compute_equal(var_id[NRATE][i]);
@@ -1540,7 +1539,6 @@ void FixBondReact::superimpose_algorithm()
           else all_localkeep[rxn_by_proc[j]]++;
         }
         memory->destroy(rxn_by_proc);
-        reaction_count_total[i] -= overstep;
       }
       MPI_Scatter(&all_localkeep[0],1,MPI_INT,&nlocalkeep[i],1,MPI_INT,0,world);
       MPI_Bcast(&nghostlykeep[i],1,MPI_INT,0,world);
@@ -1548,7 +1546,6 @@ void FixBondReact::superimpose_algorithm()
       memory->destroy(all_localkeep);
     }
   }
-  MPI_Bcast(&reaction_count_total[0], nreacts, MPI_INT, 0, world);
   memory->destroy(delta_rxn);
 
   // this updates topology next step
@@ -1975,7 +1972,7 @@ int FixBondReact::check_constraints()
       delx = x1[0] - x2[0];
       dely = x1[1] - x2[1];
       delz = x1[2] - x2[2];
-      domain->minimum_image(delx,dely,delz); // ghost location fix
+      domain->minimum_image(FLERR, delx,dely,delz); // ghost location fix
       rsq = delx*delx + dely*dely + delz*delz;
       if (rsq < constraints[i][rxnID].par[0] || rsq > constraints[i][rxnID].par[1]) satisfied[i] = 0;
     } else if (constraints[i][rxnID].type == ANGLE) {
@@ -1987,7 +1984,7 @@ int FixBondReact::check_constraints()
       delx1 = x1[0] - x2[0];
       dely1 = x1[1] - x2[1];
       delz1 = x1[2] - x2[2];
-      domain->minimum_image(delx1,dely1,delz1); // ghost location fix
+      domain->minimum_image(FLERR, delx1,dely1,delz1); // ghost location fix
       rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
       r1 = sqrt(rsq1);
 
@@ -1995,7 +1992,7 @@ int FixBondReact::check_constraints()
       delx2 = x3[0] - x2[0];
       dely2 = x3[1] - x2[1];
       delz2 = x3[2] - x2[2];
-      domain->minimum_image(delx2,dely2,delz2); // ghost location fix
+      domain->minimum_image(FLERR, delx2,dely2,delz2); // ghost location fix
       rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
       r2 = sqrt(rsq2);
 
@@ -2015,22 +2012,22 @@ int FixBondReact::check_constraints()
       vb1x = x1[0] - x2[0];
       vb1y = x1[1] - x2[1];
       vb1z = x1[2] - x2[2];
-      domain->minimum_image(vb1x,vb1y,vb1z);
+      domain->minimum_image(FLERR, vb1x,vb1y,vb1z);
 
       vb2x = x3[0] - x2[0];
       vb2y = x3[1] - x2[1];
       vb2z = x3[2] - x2[2];
-      domain->minimum_image(vb2x,vb2y,vb2z);
+      domain->minimum_image(FLERR, vb2x,vb2y,vb2z);
 
       vb2xm = -vb2x;
       vb2ym = -vb2y;
       vb2zm = -vb2z;
-      domain->minimum_image(vb2xm,vb2ym,vb2zm);
+      domain->minimum_image(FLERR, vb2xm,vb2ym,vb2zm);
 
       vb3x = x4[0] - x3[0];
       vb3y = x4[1] - x3[1];
       vb3z = x4[2] - x3[2];
-      domain->minimum_image(vb3x,vb3y,vb3z);
+      domain->minimum_image(FLERR, vb3x,vb3y,vb3z);
 
       ax = vb1y*vb2zm - vb1z*vb2ym;
       ay = vb1z*vb2xm - vb1x*vb2zm;
@@ -3103,18 +3100,16 @@ void FixBondReact::update_everything()
         if (create_atoms_flag[rxnID] == 1) {
           onemol = atom->molecules[unreacted_mol[rxnID]];
           twomol = atom->molecules[reacted_mol[rxnID]];
-          if (insert_atoms_setup(update_mega_glove,update_num_mega)) {
-            inserted_atoms_flag = 1;
-          } else { // create aborted
-            reaction_count_total[rxnID]--;
-            continue;
-          }
+          if (insert_atoms_setup(update_mega_glove,update_num_mega)) inserted_atoms_flag = 1;
+          else continue;
         }
         noccur[rxnID]++;
 
         if (rescale_charges_flag[rxnID]) sim_total_charges[update_num_mega] = local_mega_glove[1][i];
         update_num_mega++;
       }
+      MPI_Allreduce(MPI_IN_PLACE, &noccur[0], nreacts, MPI_INT, MPI_SUM, world);
+      reaction_count_total[rxnID] += noccur[rxnID];
     } else if (pass == 1) {
       for (int i = 0; i < global_megasize; i++) {
         rxnID = (int) global_mega_glove[0][i];
@@ -3129,17 +3124,15 @@ void FixBondReact::update_everything()
         // we can insert atoms here, now that reactions are finalized
         // can't do it any earlier, due to skipped reactions (max_rxn)
         // for MPI build, reactions that create atoms are always treated as 'global'
+
         if (create_atoms_flag[rxnID] == 1) {
           onemol = atom->molecules[unreacted_mol[rxnID]];
           twomol = atom->molecules[reacted_mol[rxnID]];
-          if (insert_atoms_setup(update_mega_glove,update_num_mega)) {
-            inserted_atoms_flag = 1;
-          } else { // create aborted
-            reaction_count_total[rxnID]--;
-            continue;
-          }
+          if (insert_atoms_setup(update_mega_glove,update_num_mega)) inserted_atoms_flag = 1;
+          else continue;
         }
         noccur[rxnID]++;
+        reaction_count_total[rxnID]++;
 
         if (rescale_charges_flag[rxnID]) sim_total_charges[update_num_mega] = global_mega_glove[1][i];
         update_num_mega++;
@@ -3915,7 +3908,7 @@ int FixBondReact::insert_atoms_setup(tagint **my_update_mega_glove, int iupdate)
           delx = coords[m][0] - x[i][0];
           dely = coords[m][1] - x[i][1];
           delz = coords[m][2] - x[i][2];
-          domain->minimum_image(delx,dely,delz);
+          domain->minimum_image(FLERR, delx,dely,delz);
           rsq = delx*delx + dely*dely + delz*delz;
           if (rsq < overlapsq[rxnID]) {
             abortflag = 1;
@@ -3933,7 +3926,7 @@ int FixBondReact::insert_atoms_setup(tagint **my_update_mega_glove, int iupdate)
             delx = coords[m][0] - myaddatom.x[0];
             dely = coords[m][1] - myaddatom.x[1];
             delz = coords[m][2] - myaddatom.x[2];
-            domain->minimum_image(delx,dely,delz);
+            domain->minimum_image(FLERR, delx,dely,delz);
             rsq = delx*delx + dely*dely + delz*delz;
             if (rsq < overlapsq[rxnID]) {
               abortflag = 1;

@@ -24,6 +24,7 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
+#include "command.h"
 #include "compute.h"
 #include "domain.h"
 #include "dump.h"
@@ -42,6 +43,7 @@
 #include "molecule.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "neigh_request.h"
 #include "output.h"
 #include "pair.h"
 #if defined(LMP_PLUGIN)
@@ -1253,6 +1255,7 @@ be called without a valid LAMMPS object handle (it is ignored).
 * :ref:`Image masks <extract_image_masks>`
 * :ref:`System status <extract_system_status>`
 * :ref:`System sizes <extract_system_sizes>`
+* :ref:`Neighbor list settings <extract_neighbor_settings>`
 * :ref:`Atom style flags <extract_atom_flags>`
 
 .. _extract_integer_sizes:
@@ -1384,6 +1387,16 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
      - number of dihedral types
    * - nimpropertypes
      - number of improper types
+   * - bond_per_atom
+     - size of per-atom bond data arrays
+   * - angle_per_atom
+     - size of per-atom angle data arrays
+   * - dihedral_per_atom
+     - size of per-atom dihedral data arrays
+   * - improper_per_atom
+     - size of per-atom improper data arrays
+   * - maxspecial
+     - size of per-atom special data array
    * - nellipsoids
      - number of atoms that have ellipsoid data
    * - nlines
@@ -1392,6 +1405,31 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
      - number of atoms that have triangle data (see :doc:`pair style tri/lj <pair_tri_lj>`)
    * - nbodies
      - number of atoms that have body data (see :doc:`the Body particle HowTo <Howto_body>`)
+
+.. _extract_neighbor_settings:
+
+**Neighbor list settings**
+
+.. list-table::
+   :header-rows: 1
+   :widths: 17 83
+
+   * - neigh_every
+     - neighbor lists are rebuild every this many steps
+   * - neigh_delay
+     - neighbor lists are rebuild delayed this many steps
+   * - neigh_dist_check
+     - 0 if always rebuild, 1 rebuild after 1/2 skin
+   * - neigh_ago
+     - neighbor lists were rebuilt this many steps ago
+   * - nbondlist
+     - number of entries in bondlist (get list with :ref:`lammps_extract_global() <extract_neighbor_lists>`)
+   * - nanglelist
+     - number of entries in anglelist (get list with :ref:`lammps_extract_global() <extract_neighbor_lists>`)
+   * - ndihedrallist
+     - number of entries in dihedrallist (get list with :ref:`lammps_extract_global() <extract_neighbor_lists>`)
+   * - nimproperlist
+     - number of entries in improperlist (get list with :ref:`lammps_extract_global() <extract_neighbor_lists>`)
 
 .. _extract_atom_flags:
 
@@ -1477,10 +1515,24 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"nangletypes") == 0) return lmp->atom->nangletypes;
   if (strcmp(keyword,"ndihedraltypes") == 0) return lmp->atom->ndihedraltypes;
   if (strcmp(keyword,"nimpropertypes") == 0) return lmp->atom->nimpropertypes;
+  if (strcmp(keyword,"bond_per_atom") == 0) return lmp->atom->bond_per_atom;
+  if (strcmp(keyword,"angle_per_atom") == 0) return lmp->atom->angle_per_atom;
+  if (strcmp(keyword,"dihedral_per_atom") == 0) return lmp->atom->dihedral_per_atom;
+  if (strcmp(keyword,"improper_per_atom") == 0) return lmp->atom->improper_per_atom;
+  if (strcmp(keyword,"maxspecial") == 0) return lmp->atom->maxspecial;
   if (strcmp(keyword,"nellipsoids") == 0) return lmp->atom->nellipsoids;
   if (strcmp(keyword,"nlines") == 0) return lmp->atom->nlines;
   if (strcmp(keyword,"ntris") == 0) return lmp->atom->ntris;
   if (strcmp(keyword,"nbodies") == 0) return lmp->atom->nbodies;
+
+  if (strcmp(keyword,"neigh_every") == 0) return lmp->neighbor->every;
+  if (strcmp(keyword,"neigh_delay") == 0) return lmp->neighbor->delay;
+  if (strcmp(keyword,"neigh_dist_check") == 0) return lmp->neighbor->dist_check;
+  if (strcmp(keyword,"neigh_ago") == 0) return lmp->neighbor->ago;
+  if (strcmp(keyword,"nbondlist") == 0) return lmp->neighbor->nbondlist;
+  if (strcmp(keyword,"nanglelist") == 0) return lmp->neighbor->nanglelist;
+  if (strcmp(keyword,"ndihedrallist") == 0) return lmp->neighbor->ndihedrallist;
+  if (strcmp(keyword,"nimproperlist") == 0) return lmp->neighbor->nimproperlist;
 
   if (strcmp(keyword,"molecule_flag") == 0) return lmp->atom->molecule_flag;
   if (strcmp(keyword,"q_flag") == 0) return lmp->atom->q_flag;
@@ -1564,6 +1616,16 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"ntypes") == 0) return LAMMPS_INT;
   if (strcmp(name,"special_lj") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"special_coul") == 0) return LAMMPS_DOUBLE;
+
+  if (strcmp(name,"neigh_bondlist") == 0) return LAMMPS_INT_2D;
+  if (strcmp(name,"neigh_anglelist") == 0) return LAMMPS_INT_2D;
+  if (strcmp(name,"neigh_dihedrallist") == 0) return LAMMPS_INT_2D;
+  if (strcmp(name,"neigh_improperlist") == 0) return LAMMPS_INT_2D;
+
+  if (strcmp(name,"eflag_global") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"eflag_atom") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"vflag_global") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"vflag_atom") == 0) return LAMMPS_BIGINT;
 
   if (strcmp(name,"map_style") == 0) return LAMMPS_INT;
 #if defined(LAMMPS_BIGBIG)
@@ -1649,6 +1711,8 @@ report the "native" data type.  The following tables are provided:
 * :ref:`Timestep settings <extract_timestep_settings>`
 * :ref:`Simulation box settings <extract_box_settings>`
 * :ref:`System property settings <extract_system_settings>`
+* :ref:`Neighbor topology data <extract_neighbor_lists>`
+* :ref:`Energy and virial tally settings <extract_tally_settings>`
 * :ref:`Git revision and version settings <extract_git_settings>`
 * :ref:`Unit settings <extract_unit_settings>`
 
@@ -1701,6 +1765,18 @@ report the "native" data type.  The following tables are provided:
      - Type
      - Length
      - Description
+   * - boxlo
+     - double
+     - 3
+     - lower box boundaries in x-, y-, and z-direction; see :doc:`create_box`.
+   * - boxhi
+     - double
+     - 3
+     - lower box boundaries in x-, y-, and z-direction; see :doc:`create_box`.
+   * - boxxlo
+     - double
+     - 1
+     - lower box boundary in x-direction; see :doc:`create_box`.
    * - boxxhi
      - double
      - 1
@@ -1724,19 +1800,19 @@ report the "native" data type.  The following tables are provided:
    * - sublo
      - double
      - 3
-     - subbox lower boundaries
+     - subbox lower boundaries in x-, y-, and z-direction
    * - subhi
      - double
      - 3
-     - subbox upper boundaries
+     - subbox upper boundaries in x-, y-, and z-direction
    * - sublo_lambda
      - double
      - 3
-     - subbox lower boundaries in fractional coordinates (for triclinic cells)
+     - subbox lower boundaries in fractional coordinates (for triclinic cells only)
    * - subhi_lambda
      - double
      - 3
-     - subbox upper boundaries in fractional coordinates (for triclinic cells)
+     - subbox upper boundaries in fractional coordinates (for triclinic cells only)
    * - periodicity
      - int
      - 3
@@ -1786,10 +1862,10 @@ report the "native" data type.  The following tables are provided:
      - Type
      - Length
      - Description
-   * - ntypes
-     - int
+   * - natoms
+     - bigint
      - 1
-     - number of atom types
+     - total number of atoms in the simulation.
    * - nbonds
      - bigint
      - 1
@@ -1806,10 +1882,6 @@ report the "native" data type.  The following tables are provided:
      - bigint
      - 1
      - total number of impropers in the simulation.
-   * - natoms
-     - bigint
-     - 1
-     - total number of atoms in the simulation.
    * - nlocal
      - int
      - 1
@@ -1822,6 +1894,10 @@ report the "native" data type.  The following tables are provided:
      - int
      - 1
      - maximum of nlocal+nghost across all MPI ranks (for per-atom data array size).
+   * - ntypes
+     - int
+     - 1
+     - number of atom types
    * - special_lj
      - double
      - 4
@@ -1882,6 +1958,66 @@ report the "native" data type.  The following tables are provided:
      - char \*
      - 1
      - string with the current KSpace style.
+
+.. _extract_neighbor_lists:
+
+**Neighbor topology data**
+
+Get length of lists with :ref:`lammps_extract_setting() <extract_neighbor_settings>`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 12 16 52
+
+   * - Name
+     - Type
+     - Length
+     - Description
+   * - neigh_bondlist
+     - 2d int
+     - nbondlist
+     - list of bonds (atom1, atom2, type)
+   * - neigh_anglelist
+     - 2d int
+     - nanglelist
+     - list of angles (atom1, atom2, atom3, type)
+   * - neigh_dihedrallist
+     - 2d int
+     - ndihedrallist
+     - list of dihedrals (atom1, atom2, atom3, atom4, type)
+   * - neigh_improperlist
+     - 2d int
+     - nimproperlist
+     - list of impropers (atom1, atom2, atom3, atom4, type)
+
+.. _extract_tally_settings:
+
+**Energy and virial tally settings**
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 12 16 52
+
+   * - Name
+     - Type
+     - Length
+     - Description
+   * - eflag_global
+     - bigint
+     - 1
+     - timestep global energy is tallied on
+   * - eflag_atom
+     - bigint
+     - 1
+     - timestep per-atom energy is tallied on
+   * - vflag_global
+     - bigint
+     - 1
+     - timestep global virial is tallied on
+   * - vflag_atom
+     - bigint
+     - 1
+     - timestep per-atom virial is tallied on
 
 .. _extract_git_settings:
 
@@ -2080,7 +2216,6 @@ void *lammps_extract_global(void *handle, const char *name)
     return (void *) &lmp->comm->procgrid;
 
   if (strcmp(name,"natoms") == 0) return (void *) &lmp->atom->natoms;
-  if (strcmp(name,"ntypes") == 0) return (void *) &lmp->atom->ntypes;
   if (strcmp(name,"nbonds") == 0) return (void *) &lmp->atom->nbonds;
   if (strcmp(name,"nangles") == 0) return (void *) &lmp->atom->nangles;
   if (strcmp(name,"ndihedrals") == 0) return (void *) &lmp->atom->ndihedrals;
@@ -2088,10 +2223,21 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"nlocal") == 0) return (void *) &lmp->atom->nlocal;
   if (strcmp(name,"nghost") == 0) return (void *) &lmp->atom->nghost;
   if (strcmp(name,"nmax") == 0) return (void *) &lmp->atom->nmax;
+  if (strcmp(name,"ntypes") == 0) return (void *) &lmp->atom->ntypes;
   if (strcmp(name,"special_lj") == 0) return (void *) lmp->force->special_lj;
   if (strcmp(name,"special_coul") == 0) return (void *) lmp->force->special_coul;
 
   if (strcmp(name,"q_flag") == 0) return (void *) &lmp->atom->q_flag;
+
+  if (strcmp(name,"neigh_bondlist") == 0) return (void *) lmp->neighbor->bondlist;
+  if (strcmp(name,"neigh_anglelist") == 0) return (void *) lmp->neighbor->anglelist;
+  if (strcmp(name,"neigh_dihedrallist") == 0) return (void *) lmp->neighbor->dihedrallist;
+  if (strcmp(name,"neigh_improperlist") == 0) return (void *) lmp->neighbor->improperlist;
+
+  if (strcmp(name,"eflag_global") == 0) return (void *) &lmp->update->eflag_global;
+  if (strcmp(name,"eflag_atom") == 0) return (void *) &lmp->update->eflag_atom;
+  if (strcmp(name,"vflag_global") == 0) return (void *) &lmp->update->vflag_global;
+  if (strcmp(name,"vflag_atom") == 0) return (void *) &lmp->update->vflag_atom;
 
   if (strcmp(name,"map_style") == 0) return (void *) &lmp->atom->map_style;
   if (strcmp(name,"map_tag_max") == 0) return (void *) &lmp->atom->map_tag_max;
@@ -6103,6 +6249,96 @@ int lammps_find_compute_neighlist(void *handle, const char *id, int reqid) {
   END_CAPTURE
 
   return -1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+// helper Command class for a single neighbor list build
+
+namespace LAMMPS_NS {
+  class NeighProxy : protected Command
+  {
+ public:
+  NeighProxy(class LAMMPS *lmp) : Command(lmp), neigh_idx(-1) {};
+
+  void command(int, char **) override;
+  int get_index() const { return neigh_idx; }
+ protected:
+  int neigh_idx;
+};
+}
+
+void NeighProxy::command(int narg, char **arg)
+{
+  neigh_idx = -1;
+  if (narg != 3) return;
+  auto *req = neighbor->add_request(this, arg[0]);
+  int flags = atoi(arg[1]);
+  double cutoff = atof(arg[2]);
+  req->apply_flags(flags);
+  if (cutoff > 0.0) req->set_cutoff(cutoff);
+  lmp->init();
+
+  // setup domain, communication and neighboring
+  // acquire ghosts and build standard neighbor lists
+
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  domain->pbc();
+  domain->reset_box();
+  comm->setup();
+  if (neighbor->style) neighbor->setup_bins();
+  comm->exchange();
+  comm->borders();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
+  neighbor->build(1);
+
+  // build neighbor list this command needs based on earlier request
+
+  auto list = neighbor->find_list(this);
+  neighbor->build_one(list);
+
+  // find neigh list
+  for (int i = 0; i < neighbor->nlist; i++) {
+    NeighList *list = neighbor->lists[i];
+    if (this == list->requestor) {
+      neigh_idx = i;
+      break;
+    }
+  }
+}
+
+/** Build a single neighbor list in between runs and return its index
+ *
+ * A neighbor list request is created and the neighbor list built from a
+ * proxy command. The request ID is typically 0, but will be
+ * > 0 in case a compute has multiple neighbor list requests.
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param id       Identifier of neighbor list request
+ * \param flags    Neighbor list flags
+ * \param cutoff   Custom neighbor list cutoff if > 0, use default cutoff if < 0
+ * \return         return neighbor list index if valid, otherwise -1 */
+
+int lammps_request_single_neighlist(void *handle, const char *id, int flags, double cutoff) {
+  auto lmp = (LAMMPS *)handle;
+  int idx = -1;
+  if (!lmp || !lmp->error || !lmp->neighbor) {
+    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    return -1;
+  }
+
+  BEGIN_CAPTURE
+  {
+    NeighProxy proxy(lmp);
+    std::vector<std::string> args = {id, std::to_string(flags), std::to_string(cutoff)};
+    std::vector<char *> c_args;
+    std::transform(args.begin(), args.end(), std::back_inserter(c_args),
+                   [](const std::string& s) { return (char *)s.c_str(); });
+    proxy.command(static_cast<int>(c_args.size()), c_args.data());
+    idx = proxy.get_index();
+  }
+  END_CAPTURE
+  return idx;
 }
 
 /* ---------------------------------------------------------------------- */

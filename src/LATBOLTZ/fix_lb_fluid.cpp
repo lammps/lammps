@@ -2344,7 +2344,7 @@ void FixLbFluid::SetupBuffers()
                   MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &dump_file_handle_raw);
 
     MPI_File_set_size(dump_file_handle_raw, 0);
-    MPI_File_set_view(dump_file_handle_raw, 0, MPI_DOUBLE, dump_file_mpitype, "native",
+    MPI_File_set_view(dump_file_handle_raw, 0, MPI_DOUBLE, dump_file_mpitype, (char *)"native",
                       MPI_INFO_NULL);
   }
 }

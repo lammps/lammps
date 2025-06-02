@@ -64,20 +64,32 @@ All these properties are computed for the pair of atoms in a bond,
 whether the two atoms represent a simple diatomic molecule, or are part
 of some larger molecule.
 
-The value *dist* is the current length of the bond.
-The values *dx*, *dy*, and *dz* are the xyz components of the
-*distance* between the pair of atoms. This value is always the
-distance from the atom of lower to the one with the higher id.
+.. versionchanged:: TBD
+
+   The sign of *dx*, *dy*, *dz* is no longer determined by the atom IDs
+   of the bonded atoms but by their order in the bond list to be
+   consistent with *fx*, *fy*, and *fz*.
+
+The value *dist* is the current length of the bond.  The values *dx*,
+*dy*, and *dz* are the :math:`(x,y,z)` components of the distance vector
+:math:`\vec{x_i} - \vec{x_j}` between the atoms in the bond.  The order
+of the atoms is determined by the bond list and the respective atom-IDs
+can be output with :doc:`compute property/local
+<compute_property_local>`.
 
 The value *engpot* is the potential energy for the bond,
 based on the current separation of the pair of atoms in the bond.
 
-The value *force* is the magnitude of the force acting between the
-pair of atoms in the bond.
+The value *force* is the magnitude of the force acting between the pair
+of atoms in the bond, which is positive for a repulsive force and
+negative for an attractive force.
 
-The values *fx*, *fy*, and *fz* are the xyz components of
-*force* between the pair of atoms in the bond. For bond styles that apply
-non-central forces, such as :doc:`bond_style bpm/rotational
+The values *fx*, *fy*, and *fz* are the :math:`(x,y,z)` components of
+the force on the first atom *i* in the bond due to the second atom *j*.
+Mathematically, they are obtained by multiplying the value of *force*
+from above with a unit vector created from the *dx*, *dy*, and *dz*
+components of the distance vector also described above.  For bond styles
+that apply non-central forces, such as :doc:`bond_style bpm/rotational
 <bond_bpm_rotational>`, these values only include the :math:`(x,y,z)`
 components of the normal force component.
 

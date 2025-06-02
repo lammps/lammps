@@ -1,24 +1,43 @@
 units	        si
 atom_style	    sphere
+comm_modify     vel yes
+boundary    	p p p
 
-boundary    	p p f
-region		    box block 0 80e-3 0 40e-3 0 80e-3 open 3 open 4
+region		    box block -0.01 0.01 -0.01 0.01 0 0.08
 create_box	    2 box
 
-read_data	    data.particles add append
-group 		    mb type 1
+create_atoms    1 single 0.0 0.0 0.04
+create_atoms    1 single 0.0 0.0 0.04416
+set             group all diameter 0.004 density 2500
 
-pair_style granular
-pair_coeff * * hertz/material 1e6 0.8 0.4 tangential mindlin  NULL 0.0 0.5 damping coeff_restitution
-# pair_coeff * * hooke 1e6 0.5 tangential mindlin  1 1.0 0.0 damping coeff_restitution
-comm_modify     vel yes
+pair_style      granular
+pair_coeff      * * hertz/material 1e6 0.8 0.4 &
+                    tangential mindlin NULL 0.0 0.5 &
+                    damping coeff_restitution
+#pair_coeff      * * hooke 1e6 0.5 &
+#                    tangential mindlin 1 1.0 0.0 &
+#                    damping coeff_restitution
 
 timestep 	    1e-9
 fix		        1 all nve/sphere
-compute		    s all stress/atom NULL pair
 
-#dump		    1 all custom 2000000 op.dump id x y z vx vy vz
-#dump_modify     1 pad 8
-thermo_style	custom step ke
-run_style 	    verlet
-run		        10000000
+group           a1 id 1
+group           a2 id 2
+
+velocity        a1 set 0 0 1.0
+velocity        a2 set 0 0 -1.0
+
+compute         z1 a1 reduce sum z
+compute         z2 a2 reduce sum z
+compute         v1 a1 reduce sum vz
+compute         v2 a2 reduce sum vz
+compute         f1 a1 reduce sum fz
+compute         f2 a2 reduce sum fz
+variable        dz equal c_z1 - c_z2
+
+# dump		    1 all custom 2000000 op.dump id x y z vx vy vz
+
+thermo          10000
+thermo_style	custom step ke v_dz c_v1 c_v2 c_f1 c_f2
+
+run		        1000000

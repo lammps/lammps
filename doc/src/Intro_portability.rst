@@ -28,8 +28,9 @@ Build systems
 LAMMPS can be compiled from source code using a (traditional) build
 system based on shell scripts, a few shell utilities (grep, sed, cat,
 tr) and the GNU make program. This requires running within a Bourne
-shell (``/bin/sh``).  Alternatively, a build system with different back
-ends can be created using CMake.  CMake must be at least version 3.16.
+shell (``/bin/sh`` or ``/bin/bash``).  Alternatively, a build system
+with different back ends can be created using CMake.  CMake must be
+at least version 3.16.
 
 Operating systems
 ^^^^^^^^^^^^^^^^^
@@ -40,11 +41,18 @@ Also, compilation and correct execution on macOS and Windows (using
 Microsoft Visual C++) is checked automatically for the largest part of
 the source code.  Some (optional) features are not compatible with all
 operating systems, either through limitations of the corresponding
-LAMMPS source code or through incompatibilities of source code or
-build system of required external libraries or packages.
+LAMMPS source code or through incompatibilities or build system
+limitations of required external libraries or packages.
 
-Executables for Windows may be created natively using either Cygwin or
-Visual Studio or with a Linux to Windows MinGW cross-compiler.
+Executables for Windows may be created either natively using Cygwin,
+MinGW, Intel, Clang, or Microsoft Visual C++ compilers, or with a Linux
+to Windows MinGW cross-compiler.  Native compilation is supported using
+Microsoft Visual Studio or a terminal window (using the CMake build
+system).
+
+Executables for macOS may be created either using Xcode or GNU compilers
+installed with Homebrew.  In the latter case, building of LAMMPS through
+Homebrew instead of a manual compile is also possible.
 
 Additionally, FreeBSD and Solaris have been tested successfully to
 run LAMMPS and produce results consistent with those on Linux.
@@ -61,8 +69,9 @@ CPU architectures
 ^^^^^^^^^^^^^^^^^
 
 The primary CPU architecture for running LAMMPS is 64-bit x86, but also
-32-bit x86, and 64-bit ARM and PowerPC (64-bit, Little Endian) are
-regularly tested.
+64-bit ARM and PowerPC (64-bit, Little Endian) are currently regularly
+tested.  Further architectures are tested by Linux distributions that
+bundle LAMMPS.
 
 Portability compliance
 ^^^^^^^^^^^^^^^^^^^^^^

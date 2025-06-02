@@ -116,7 +116,7 @@ void NPairTrimIntel::build_t(NeighList *list,
 
       ipage.vgot(n);
       if (ipage.status())
-        error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+        error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
     }
   }
   list->inum = inum_copy;

@@ -1,7 +1,7 @@
 Running LAMMPS and Python in serial
 -----------------------------------
 
-To run a LAMMPS in serial, type these lines into Python
+To run a LAMMPS input in serial, type these lines into Python
 interactively from the ``bench`` directory:
 
 .. code-block:: python

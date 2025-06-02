@@ -252,22 +252,22 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
       vb1x = x[atom1][0] - x[atom2][0];
       vb1y = x[atom1][1] - x[atom2][1];
       vb1z = x[atom1][2] - x[atom2][2];
-      domain->minimum_image(vb1x, vb1y, vb1z);
+      domain->minimum_image(FLERR, vb1x, vb1y, vb1z);
 
       vb2x = x[atom3][0] - x[atom2][0];
       vb2y = x[atom3][1] - x[atom2][1];
       vb2z = x[atom3][2] - x[atom2][2];
-      domain->minimum_image(vb2x, vb2y, vb2z);
+      domain->minimum_image(FLERR, vb2x, vb2y, vb2z);
 
       vb2xm = -vb2x;
       vb2ym = -vb2y;
       vb2zm = -vb2z;
-      domain->minimum_image(vb2xm, vb2ym, vb2zm);
+      domain->minimum_image(FLERR, vb2xm, vb2ym, vb2zm);
 
       vb3x = x[atom4][0] - x[atom3][0];
       vb3y = x[atom4][1] - x[atom3][1];
       vb3z = x[atom4][2] - x[atom3][2];
-      domain->minimum_image(vb3x, vb3y, vb3z);
+      domain->minimum_image(FLERR, vb3x, vb3y, vb3z);
 
       ax = vb1y * vb2zm - vb1z * vb2ym;
       ay = vb1z * vb2xm - vb1x * vb2zm;

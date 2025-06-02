@@ -51,6 +51,8 @@ action fix_charge_regulation.cpp
 action fix_charge_regulation.h
 action fix_gcmc.cpp
 action fix_gcmc.h
+action fix_neighbor_swap.cpp  compute_voronoi_atom.cpp
+action fix_neighbor_swap.h    compute_voronoi_atom.h
 action fix_mol_swap.cpp
 action fix_mol_swap.h
 action fix_sgcmc.cpp   pair_eam.cpp

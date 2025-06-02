@@ -78,8 +78,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   int ioffset = 5;
   expand = 0;
-  nfield = nargnew = utils::expand_args(FLERR,narg-5,&arg[5],1,earg,lmp);
-  if (earg != &arg[5]) expand = 1;
+  nfield = nargnew = utils::expand_args(FLERR,narg-ioffset,&arg[ioffset],1,earg,lmp);
+  if (earg != &arg[ioffset]) expand = 1;
 
   // allocate field vectors
 

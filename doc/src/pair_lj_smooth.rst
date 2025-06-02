@@ -48,13 +48,19 @@ At the inner cutoff the force and its first derivative
 will match the non-smoothed LJ formula.  At the outer cutoff the force
 and its first derivative will be 0.0.  The inner cutoff cannot be 0.0.
 
+Explicit expressions for the coefficients C1, C2, C3, C4, as well as the
+energy discontinuity at the cutoff can be found here :ref:`(Leoni_1) <Leoni_1>`
+and here :ref:`(Leoni_2) <Leoni_2>`
+
 .. note::
 
    this force smoothing causes the energy to be discontinuous both
    in its values and first derivative.  This can lead to poor energy
-   conservation and may require the use of a thermostat.  Plot the energy
-   and force resulting from this formula via the
-   :doc:`pair_write <pair_write>` command to see the effect.
+   conservation and may require the use of a thermostat.  The energy
+   value discontinuity can be eliminated by shifting the potential
+   energy to be zero at the outer cutoff using the pair_modify shift
+   option. With or without shifting, you can plot the resulting energy
+   and force via the :doc:`pair_write <pair_write>` command to see the effect.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -122,3 +128,14 @@ Default
 """""""
 
 none
+
+----------
+
+.. _Leoni_1:
+
+**(Leoni_1)** F. Leoni et al., Phys Rev Lett, 134, 128201 (2025).
+
+.. _Leoni_2:
+
+**(Leoni_2)** F. Leoni et al., Phys Rev Lett, 134, Supplementary Material (2025).
+

@@ -1136,7 +1136,7 @@ void Domain::box_too_small_check()
       delx = x[i][0] - x[k][0];
       dely = x[i][1] - x[k][1];
       delz = x[i][2] - x[k][2];
-      minimum_image(delx,dely,delz);
+      minimum_image(FLERR, delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       maxbondme = MAX(maxbondme,rsq);
     }
@@ -1205,6 +1205,7 @@ void Domain::subbox_too_small_check(double thresh)
                    "could lead to lost atoms");
 }
 
+// clang-format on
 /* ----------------------------------------------------------------------
    minimum image convention in periodic dimensions
    use 1/2 of box size as test
@@ -1218,39 +1219,45 @@ void Domain::subbox_too_small_check(double thresh)
 ------------------------------------------------------------------------- */
 
 static constexpr double MAXIMGCOUNT = 16;
-
-void Domain::minimum_image(double &dx, double &dy, double &dz) const
+void Domain::minimum_image(const std::string &file, int line, double &dx, double &dy,
+                           double &dz) const
 {
   if (triclinic == 0) {
     if (xperiodic) {
       if (fabs(dx) > (MAXIMGCOUNT * xprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       while (fabs(dx) > xprd_half) {
-        if (dx < 0.0) dx += xprd;
-        else dx -= xprd;
+        if (dx < 0.0)
+          dx += xprd;
+        else
+          dx -= xprd;
       }
     }
     if (yperiodic) {
       if (fabs(dy) > (MAXIMGCOUNT * yprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       while (fabs(dy) > yprd_half) {
-        if (dy < 0.0) dy += yprd;
-        else dy -= yprd;
+        if (dy < 0.0)
+          dy += yprd;
+        else
+          dy -= yprd;
       }
     }
     if (zperiodic) {
       if (fabs(dz) > (MAXIMGCOUNT * zprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       while (fabs(dz) > zprd_half) {
-        if (dz < 0.0) dz += zprd;
-        else dz -= zprd;
+        if (dz < 0.0)
+          dz += zprd;
+        else
+          dz -= zprd;
       }
     }
 
   } else {
     if (zperiodic) {
       if (fabs(dz) > (MAXIMGCOUNT * zprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       while (fabs(dz) > zprd_half) {
         if (dz < 0.0) {
           dz += zprd;
@@ -1265,7 +1272,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz) const
     }
     if (yperiodic) {
       if (fabs(dy) > (MAXIMGCOUNT * yprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       while (fabs(dy) > yprd_half) {
         if (dy < 0.0) {
           dy += yprd;
@@ -1278,10 +1285,12 @@ void Domain::minimum_image(double &dx, double &dy, double &dz) const
     }
     if (xperiodic) {
       if (fabs(dx) > (MAXIMGCOUNT * xprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       while (fabs(dx) > xprd_half) {
-        if (dx < 0.0) dx += xprd;
-        else dx -= xprd;
+        if (dx < 0.0)
+          dx += xprd;
+        else
+          dx -= xprd;
       }
     }
   }
@@ -1298,61 +1307,63 @@ void Domain::minimum_image(double &dx, double &dy, double &dz) const
      this applies for example to fix rigid/small
 ------------------------------------------------------------------------- */
 
-void Domain::minimum_image_big(double &dx, double &dy, double &dz) const
+void Domain::minimum_image_big(const std::string &file, int line, double &dx, double &dy,
+                               double &dz) const
 {
   if (triclinic == 0) {
     if (xperiodic) {
-      double dfactor = dx/xprd + 0.5;
+      double dfactor = dx / xprd + 0.5;
       if (dx < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       dx -= xprd * static_cast<int>(dfactor);
     }
     if (yperiodic) {
-      double dfactor = dy/yprd + 0.5;
+      double dfactor = dy / yprd + 0.5;
       if (dy < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       dy -= yprd * static_cast<int>(dfactor);
     }
     if (zperiodic) {
-      double dfactor = dz/zprd + 0.5;
+      double dfactor = dz / zprd + 0.5;
       if (dz < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       dz -= zprd * static_cast<int>(dfactor);
     }
 
   } else {
     if (zperiodic) {
-      double dfactor = dz/zprd + 0.5;
+      double dfactor = dz / zprd + 0.5;
       if (dz < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       int factor = static_cast<int>(dfactor);
       dz -= zprd * factor;
       dy -= yz * factor;
       dx -= xz * factor;
     }
     if (yperiodic) {
-      double dfactor = dy/yprd + 0.5;
+      double dfactor = dy / yprd + 0.5;
       if (dy < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       int factor = static_cast<int>(dfactor);
       dy -= yprd * factor;
       dx -= xy * factor;
     }
     if (xperiodic) {
-      double dfactor = dx/xprd + 0.5;
+      double dfactor = dx / xprd + 0.5;
       if (dx < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       dx -= xprd * static_cast<int>(dfactor);
     }
   }
 }
 
+// clang-format off
 /* ----------------------------------------------------------------------
    return local index of atom J or any of its images that is closest to atom I
    if J is not a valid index like -1, just return it

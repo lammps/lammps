@@ -131,7 +131,9 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
   double delx, dely, delz, evdwl;
   double fij[3];
   int *ilist, *jlist, *numneigh, **firstneigh;
-  ev_init(eflag, vflag);
+
+  if (copymode) ev_init(eflag, vflag, 0);
+  else ev_init(eflag, vflag, 1);
 
   // downwards modified by YL
 
@@ -149,7 +151,7 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
   // ilist: list of "i" atoms for which neighbor lists exist
   ilist = list->ilist;
 
-  //numneigh: the length of each these neigbor list
+  //numneigh: the length of each these neighbor list
   numneigh = list->numneigh;
 
   // the pointer to the list of neighbors of "i"

@@ -54,6 +54,8 @@ class Pair : protected Pointers {
   int single_enable;              // 1 if single() routine exists
   int born_matrix_enable;         // 1 if born_matrix() routine exists
   int single_hessian_enable;      // 1 if single_hessian() routine exists
+  int atomic_energy_enable;       // 1 if compute_atomic_energy() routine exists
+
   int restartinfo;                // 1 if pair style writes restart info
   int respa_enable;               // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                  // 1 if allows only one coeff * * call
@@ -140,7 +142,7 @@ class Pair : protected Pointers {
   void write_file(int, char **);
   void init_bitmap(double, double, int, int &, int &, int &, int &);
   virtual void modify_params(int, char **);
-  void compute_dummy(int, int);
+  void compute_dummy(int eflag, int vflag, int alloc = 1);
 
   // need to be public, so can be called by pair_style reaxc
 
@@ -156,6 +158,7 @@ class Pair : protected Pointers {
   virtual void compute_inner() {}
   virtual void compute_middle() {}
   virtual void compute_outer(int, int) {}
+  virtual double compute_atomic_energy(int, NeighList *) { return 0.0; }
 
   virtual double single(int, int, int, int, double, double, double, double &fforce)
   {

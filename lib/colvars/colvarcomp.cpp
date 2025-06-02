@@ -261,7 +261,6 @@ int colvar::cvc::init_dependencies() {
     require_feature_children(f_cvc_explicit_gradient, f_ag_explicit_gradient);
 
     init_feature(f_cvc_inv_gradient, "inverse_gradient", f_type_dynamic);
-    require_feature_self(f_cvc_inv_gradient, f_cvc_gradient);
 
     init_feature(f_cvc_debug_gradient, "debug_gradient", f_type_user);
     require_feature_self(f_cvc_debug_gradient, f_cvc_gradient);
@@ -525,7 +524,7 @@ void colvar::cvc::calc_force_invgrads()
 
 void colvar::cvc::calc_Jacobian_derivative()
 {
-  cvm::error("Error: calculation of inverse gradients is not implemented "
+  cvm::error("Error: calculation of Jacobian derivatives is not implemented "
              "for colvar components of type \""+function_type()+"\".\n",
              COLVARS_NOT_IMPLEMENTED);
 }
@@ -533,8 +532,10 @@ void colvar::cvc::calc_Jacobian_derivative()
 
 void colvar::cvc::calc_fit_gradients()
 {
-  for (size_t ig = 0; ig < atom_groups.size(); ig++) {
-    atom_groups[ig]->calc_fit_gradients();
+  if (is_enabled(f_cvc_explicit_gradient)) {
+    for (size_t ig = 0; ig < atom_groups.size(); ig++) {
+      atom_groups[ig]->calc_fit_gradients();
+    }
   }
 }
 

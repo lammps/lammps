@@ -2874,6 +2874,8 @@ void Atom::remove_custom(int index, int flag, int cols)
   }
 }
 
+// TODO: complete list of exported properties.
+
 /** Provide access to internal data of the Atom class by keyword
  *
 \verbatim embed:rst
@@ -3035,7 +3037,6 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"x") == 0) return (void *) x;
   if (strcmp(name,"v") == 0) return (void *) v;
   if (strcmp(name,"f") == 0) return (void *) f;
-  if (strcmp(name,"molecule") == 0) return (void *) molecule;
   if (strcmp(name,"q") == 0) return (void *) q;
   if (strcmp(name,"mu") == 0) return (void *) mu;
   if (strcmp(name,"omega") == 0) return (void *) omega;
@@ -3050,6 +3051,33 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"quat") == 0) return (void *) quat;
   if (strcmp(name,"temperature") == 0) return (void *) temperature;
   if (strcmp(name,"heatflow") == 0) return (void *) heatflow;
+
+  // MOLECULE PACKAGE
+
+  if (strcmp(name,"molecule") == 0) return (void *) molecule;
+  if (strcmp(name,"molindex") == 0) return (void *) molindex;
+  if (strcmp(name,"nspecial") == 0) return (void *) nspecial;
+  if (strcmp(name,"special") == 0) return (void *) special;
+  if (strcmp(name,"num_bond") == 0) return (void *) num_bond;
+  if (strcmp(name,"bond_type") == 0) return (void *) bond_type;
+  if (strcmp(name,"bond_atom") == 0) return (void *) bond_atom;
+  if (strcmp(name,"num_angle") == 0) return (void *) num_angle;
+  if (strcmp(name,"angle_type") == 0) return (void *) angle_type;
+  if (strcmp(name,"angle_atom1") == 0) return (void *) angle_atom1;
+  if (strcmp(name,"angle_atom2") == 0) return (void *) angle_atom2;
+  if (strcmp(name,"angle_atom3") == 0) return (void *) angle_atom3;
+  if (strcmp(name,"num_dihedral") == 0) return (void *) num_dihedral;
+  if (strcmp(name,"dihedral_type") == 0) return (void *) dihedral_type;
+  if (strcmp(name,"dihedral_atom1") == 0) return (void *) dihedral_atom1;
+  if (strcmp(name,"dihedral_atom2") == 0) return (void *) dihedral_atom2;
+  if (strcmp(name,"dihedral_atom3") == 0) return (void *) dihedral_atom3;
+  if (strcmp(name,"dihedral_atom4") == 0) return (void *) dihedral_atom4;
+  if (strcmp(name,"num_improper") == 0) return (void *) num_improper;
+  if (strcmp(name,"improper_type") == 0) return (void *) improper_type;
+  if (strcmp(name,"improper_atom1") == 0) return (void *) improper_atom1;
+  if (strcmp(name,"improper_atom2") == 0) return (void *) improper_atom2;
+  if (strcmp(name,"improper_atom3") == 0) return (void *) improper_atom3;
+  if (strcmp(name,"improper_atom4") == 0) return (void *) improper_atom4;
 
   // PERI PACKAGE
 
@@ -3172,7 +3200,6 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"x") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"v") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"f") == 0) return LAMMPS_DOUBLE_2D;
-  if (strcmp(name,"molecule") == 0) return LAMMPS_TAGINT;
   if (strcmp(name,"q") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"mu") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"omega") == 0) return LAMMPS_DOUBLE_2D;
@@ -3187,6 +3214,34 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"quat") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"temperature") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"heatflow") == 0) return LAMMPS_DOUBLE;
+
+  // MOLECULE package
+
+  if (strcmp(name,"molecule") == 0) return LAMMPS_TAGINT;
+  if (strcmp(name,"molindex") == 0) return LAMMPS_INT;
+  if (strcmp(name,"molatom") == 0) return LAMMPS_INT;
+  if (strcmp(name,"nspecial") == 0) return LAMMPS_INT_2D;
+  if (strcmp(name,"special") == 0) return LAMMPS_TAGINT_2D;
+  if (strcmp(name,"num_bond") == 0) return LAMMPS_INT;
+  if (strcmp(name,"bond_type") == 0) return LAMMPS_INT_2D;
+  if (strcmp(name,"bond_atom") == 0) return LAMMPS_TAGINT_2D;
+  if (strcmp(name,"num_angle") == 0) return LAMMPS_INT;
+  if (strcmp(name,"angle_type") == 0) return LAMMPS_INT_2D;
+  if (strcmp(name,"angle_atom1") == 0) return LAMMPS_TAGINT_2D;
+  if (strcmp(name,"angle_atom2") == 0) return LAMMPS_TAGINT_2D;
+  if (strcmp(name,"angle_atom3") == 0) return LAMMPS_TAGINT_2D;
+  if (strcmp(name,"num_dihedral") == 0) return LAMMPS_INT;
+  if (strcmp(name,"dihedral_type") == 0) return LAMMPS_INT_2D;
+  if (strcmp(name,"dihedral_atom1") == 0) return LAMMPS_TAGINT_2D;
+  if (strcmp(name,"dihedral_atom2") == 0) return LAMMPS_TAGINT_2D;
+  if (strcmp(name,"dihedral_atom3") == 0) return LAMMPS_TAGINT_2D;
+  if (strcmp(name,"dihedral_atom4") == 0) return LAMMPS_TAGINT_2D;
+  if (strcmp(name,"num_improper") == 0) return LAMMPS_INT;
+  if (strcmp(name,"improper_type") == 0) return LAMMPS_INT_2D;
+  if (strcmp(name,"improper_atom1") == 0) return LAMMPS_TAGINT_2D;
+  if (strcmp(name,"improper_atom2") == 0) return LAMMPS_TAGINT_2D;
+  if (strcmp(name,"improper_atom3") == 0) return LAMMPS_TAGINT_2D;
+  if (strcmp(name,"improper_atom4") == 0) return LAMMPS_TAGINT_2D;
 
   // PERI package (and in part MACHDYN)
 

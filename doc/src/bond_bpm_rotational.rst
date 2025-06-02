@@ -215,6 +215,9 @@ for an overview of LAMMPS output options.
 The vector or array will be floating point values that correspond to
 the specified attribute.
 
+Any settings with the *store/local* option are not saved to a restart
+file and must be redefined.
+
 The single() function of this bond style returns 0.0 for the energy
 of a bonded interaction, since energy is not conserved in these
 dissipative potentials.  It also returns only the normal component of

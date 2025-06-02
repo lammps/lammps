@@ -401,7 +401,7 @@ void FixDeposit::pre_exchange()
           delx = coord[0] - x[i][0];
           dely = coord[1] - x[i][1];
           delz = 0.0;
-          domain->minimum_image(delx,dely,delz);
+          domain->minimum_image(FLERR, delx,dely,delz);
           if (dimension == 2) rsq = delx*delx;
           else rsq = delx*delx + dely*dely;
           if (rsq > deltasq) continue;
@@ -476,7 +476,7 @@ void FixDeposit::pre_exchange()
         delx = coords[m][0] - x[i][0];
         dely = coords[m][1] - x[i][1];
         delz = coords[m][2] - x[i][2];
-        domain->minimum_image(delx,dely,delz);
+        domain->minimum_image(FLERR, delx,dely,delz);
         rsq = delx*delx + dely*dely + delz*delz;
         if (rsq < nearsq) flag = 1;
       }

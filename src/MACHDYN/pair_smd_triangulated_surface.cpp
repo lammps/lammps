@@ -154,7 +154,7 @@ void PairTriSurf::compute(int eflag, int vflag) {
                         x4(2) = x[particle][2];
                         dx = x_center - x4; //
                         if (periodic) {
-                                domain->minimum_image(dx(0), dx(1), dx(2));
+                                domain->minimum_image(FLERR, dx(0), dx(1), dx(2));
                         }
                         rsq = dx.squaredNorm();
 

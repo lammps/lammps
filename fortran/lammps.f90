@@ -74,7 +74,9 @@ MODULE LIBLAMMPS
     LMP_VAR_EQUAL = 0, &      ! equal-style variables (and compatible)
     LMP_VAR_ATOM = 1, &       ! atom-style variables
     LMP_VAR_VECTOR = 2, &     ! vector variables
-    LMP_VAR_STRING = 3        ! string variables (everything else)
+    LMP_VAR_STRING = 3, &     ! string variables (everything else)
+    LMP_NEIGH_HALF = 0, &     ! request (default) half neighbor list
+    LMP_NEIGH_FULL = 1        ! request full neighbor list
 
   ! Constants we set once (in the constructor) and never need to check again
   INTEGER(c_int), SAVE :: SIZE_TAGINT, SIZE_BIGINT, SIZE_IMAGEINT
@@ -195,10 +197,11 @@ MODULE LIBLAMMPS
     PROCEDURE, PRIVATE :: lmp_create_atoms_bigbig
     GENERIC   :: create_atoms           => lmp_create_atoms_int, &
                                            lmp_create_atoms_bigbig
-    PROCEDURE :: find_pair_neighlist    => lmp_find_pair_neighlist
-    PROCEDURE :: find_fix_neighlist     => lmp_find_fix_neighlist
-    PROCEDURE :: find_compute_neighlist => lmp_find_compute_neighlist
-    PROCEDURE :: neighlist_num_elements => lmp_neighlist_num_elements
+    PROCEDURE :: find_pair_neighlist         => lmp_find_pair_neighlist
+    PROCEDURE :: find_fix_neighlist          => lmp_find_fix_neighlist
+    PROCEDURE :: find_compute_neighlist      => lmp_find_compute_neighlist
+    PROCEDURE :: request_single_neighlist    => lmp_request_single_neighlist
+    PROCEDURE :: neighlist_num_elements      => lmp_neighlist_num_elements
     PROCEDURE :: neighlist_element_neighbors => lmp_neighlist_element_neighbors
     PROCEDURE :: version                => lmp_version
     PROCEDURE, NOPASS :: get_os_info    => lmp_get_os_info
@@ -777,6 +780,15 @@ MODULE LIBLAMMPS
       INTEGER(c_int), VALUE :: reqid
       INTEGER(c_int) :: lammps_find_compute_neighlist
     END FUNCTION lammps_find_compute_neighlist
+
+    FUNCTION lammps_request_single_neighlist(handle, id, flags, cutoff) BIND(C)
+      IMPORT :: c_int, c_double, c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, id
+      INTEGER(c_int), VALUE :: flags
+      REAL(c_double), VALUE :: cutoff
+      INTEGER(c_int) :: lammps_request_single_neighlist
+    END FUNCTION lammps_request_single_neighlist
 
     FUNCTION lammps_neighlist_num_elements(handle, idx) BIND(C)
       IMPORT :: c_ptr, c_int
@@ -2941,6 +2953,36 @@ CONTAINS
     END IF
     CALL lammps_free(Cid)
   END FUNCTION lmp_find_compute_neighlist
+
+  ! equivalent function to lammps_request_single_neighlist
+  INTEGER(c_int) FUNCTION lmp_request_single_neighlist(self, id, flags, cutoff) RESULT(idx)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    INTEGER(c_int), INTENT(IN), OPTIONAL :: flags
+    REAL(c_double), INTENT(IN), OPTIONAL :: cutoff
+    TYPE(c_ptr) :: Cid
+    INTEGER(c_int) :: Cflags
+    REAL(c_double) :: Ccutoff
+
+    IF (PRESENT(flags)) THEN
+        Cflags = flags
+    ELSE
+        Cflags = LMP_NEIGH_HALF
+    END IF
+    IF (PRESENT(cutoff)) THEN
+        Ccutoff = cutoff
+    ELSE
+        Ccutoff = 1.0_c_double
+    END IF
+
+    Cid = f2c_string(id)
+    idx = lammps_request_single_neighlist(self%handle, Cid, Cflags, Ccutoff)
+    IF (idx < 0) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'neighbor list build failed [Fortran/request_single_neighlist]')
+    END IF
+    CALL lammps_free(Cid)
+  END FUNCTION lmp_request_single_neighlist
 
   INTEGER(c_int) FUNCTION lmp_neighlist_num_elements(self, idx) RESULT(inum)
     CLASS(lammps), INTENT(IN) :: self

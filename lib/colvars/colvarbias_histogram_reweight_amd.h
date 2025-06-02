@@ -68,9 +68,9 @@ protected:
 
   /// Use cumulant expansion to second order?
   bool b_use_cumulant_expansion;
-  colvar_grid_scalar* grid_count;
-  colvar_grid_scalar* grid_dV;
-  colvar_grid_scalar* grid_dV_square;
+  std::shared_ptr<colvar_grid_scalar> grid_count;
+  std::unique_ptr<colvar_grid_scalar> grid_dV;
+  std::unique_ptr<colvar_grid_scalar> grid_dV_square;
 
   /// Number of timesteps between recording data in history files (if non-zero)
   size_t history_freq;
@@ -90,10 +90,10 @@ protected:
 
 private:
   /// temporary grids for evaluating PMFs
-  colvar_grid_scalar  *pmf_grid_exp_avg;
-  colvar_grid_scalar  *pmf_grid_cumulant;
-  colvar_grid_gradient *grad_grid_exp_avg;
-  colvar_grid_gradient *grad_grid_cumulant;
+  std::unique_ptr<colvar_grid_scalar> pmf_grid_exp_avg;
+  std::unique_ptr<colvar_grid_scalar> pmf_grid_cumulant;
+  std::unique_ptr<colvar_grid_gradient> grad_grid_exp_avg;
+  std::unique_ptr<colvar_grid_gradient> grad_grid_cumulant;
 };
 
 #endif // COLVARBIAS_HISTOGRAM_REWEIGHT_AMD

@@ -153,7 +153,7 @@ class PythonNumpy(unittest.TestCase):
         self.assertEqual(values[0,0], 0.5)
         self.assertEqual(values[0,3], -0.5)
         self.assertEqual(values[1,0], 1.5)
-        self.assertEqual(values[1,3], 1.5)
+        self.assertEqual(values[1,3], -1.5)
 
     def testExtractAtom(self):
         self.lmp.command("units lj")

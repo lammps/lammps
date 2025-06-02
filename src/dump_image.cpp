@@ -1245,7 +1245,7 @@ void DumpImage::create_image()
         delz = x[atom2][2] - x[atom1][2];
 
         if (bcolor == ATOM || domain->minimum_image_check(delx,dely,delz)) {
-          domain->minimum_image(delx,dely,delz);
+          domain->minimum_image(FLERR, delx,dely,delz);
           xmid[0] = x[atom1][0] + 0.5*delx;
           xmid[1] = x[atom1][1] + 0.5*dely;
           xmid[2] = x[atom1][2] + 0.5*delz;

@@ -59,8 +59,7 @@ and atom :math:`j`.
 The effect of an external electric field can be incorporated into the QTPIE
 method by modifying the absolute or effective electronegativities of each
 atom :ref:`(Chen) <qtpie-Chen>`. This fix models the effect of an external
-electric field by using the effective electronegativity given in
-:ref:`(Gergs) <Gergs>`:
+electric field by using the effective electronegativity :ref:`(Lalli) <lalli>`
 
 .. math::
    \tilde{\chi}_{\mathrm{r}i} = \frac{\sum_{j=1}^{N} (\chi_i - \chi_j + \beta(\phi_i - \phi_j)) S_{ij}}
@@ -68,7 +67,8 @@ electric field by using the effective electronegativity given in
 
 where :math:`\beta` is a scaling factor and :math:`\phi_i` and :math:`\phi_j`
 are the electric potentials at the positions of atoms :math:`i` and :math:`j`
-due to the external electric field.
+due to the external electric field. Additional details regarding the
+implementation and performance of this fix are provided in :ref:`Lalli <lalli>`.
 
 This fix is typically used in conjunction with the ReaxFF force
 field model as implemented in the :doc:`pair_style reaxff <pair_reaxff>`
@@ -206,10 +206,9 @@ scale = 1.0 and maxiter = 200
 **(Chen)** Chen, Jiahao. Theory and applications of fluctuating-charge models.
 University of Illinois at Urbana-Champaign, 2009.
 
-.. _Gergs:
+.. _lalli:
 
-**(Gergs)** Gergs, Dirkmann and Mussenbrock.
-Journal of Applied Physics 123.24 (2018).
+**(Lalli)** Lalli and Giusti, Journal of Chemical Physics, 162, 174311 (2025).
 
 .. _qeq-Aktulga2:
 

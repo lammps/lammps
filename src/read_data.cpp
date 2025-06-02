@@ -174,13 +174,13 @@ void ReadData::command(int narg, char **arg)
         addflag = VALUE;
         bigint offset = utils::bnumeric(FLERR, arg[iarg + 1], false, lmp);
         if (offset > MAXTAGINT)
-          error->all(FLERR, "Read data add atomID offset {} is too big", offset);
+          error->all(FLERR, "Read data add IDoffset {} is too big", offset);
         id_offset = offset;
 
         if (atom->molecule_flag) {
           offset = utils::bnumeric(FLERR, arg[iarg + 2], false, lmp);
           if (offset > MAXTAGINT)
-            error->all(FLERR, "Read data add molID offset {} is too big", offset);
+            error->all(FLERR, "Read data add MOLoffset {} is too big", offset);
           mol_offset = offset;
           iarg++;
         }

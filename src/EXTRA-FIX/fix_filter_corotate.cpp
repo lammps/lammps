@@ -547,17 +547,17 @@ void FixFilterCorotate::pre_neighbor()
           del1[0] = x[atom1][0]-x[oxy][0];
           del1[1] = x[atom1][1]-x[oxy][1];
           del1[2] = x[atom1][2]-x[oxy][2];
-          domain->minimum_image(del1);
+          domain->minimum_image(FLERR, del1);
 
           del2[0] = x[atom2][0]-x[atom1][0];
           del2[1] = x[atom2][1]-x[atom1][1];
           del2[2] = x[atom2][2]-x[atom1][2];
-          domain->minimum_image(del2);
+          domain->minimum_image(FLERR, del2);
 
           del3[0] = x[atom3][0]-x[atom1][0];
           del3[1] = x[atom3][1]-x[atom1][1];
           del3[2] = x[atom3][2]-x[atom1][2];
-          domain->minimum_image(del3);
+          domain->minimum_image(FLERR, del3);
 
           double a = (del2[1])*(del3[2]) - (del2[2])*(del3[1]);
           double b = (del2[2])*(del3[0]) - (del2[0])*(del3[2]);
@@ -620,17 +620,17 @@ void FixFilterCorotate::pre_neighbor()
         del1[0] = x[atom1][0]-x[oxy][0];
         del1[1] = x[atom1][1]-x[oxy][1];
         del1[2] = x[atom1][2]-x[oxy][2];
-        domain->minimum_image(del1);
+        domain->minimum_image(FLERR, del1);
 
         del2[0] = x[atom2][0]-x[atom1][0];
         del2[1] = x[atom2][1]-x[atom1][1];
         del2[2] = x[atom2][2]-x[atom1][2];
-        domain->minimum_image(del2);
+        domain->minimum_image(FLERR, del2);
 
         del3[0] = x[atom3][0]-x[atom1][0];
         del3[1] = x[atom3][1]-x[atom1][1];
         del3[2] = x[atom3][2]-x[atom1][2];
-        domain->minimum_image(del3);
+        domain->minimum_image(FLERR, del3);
 
         double a = (del2[1])*(del3[2]) - (del2[2])*(del3[1]);
         double b = (del2[2])*(del3[0]) - (del2[0])*(del3[2]);
@@ -1414,7 +1414,7 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
     del[i][0] = x[list_cluster[i]][0] - x[list_cluster[0]][0];
     del[i][1] = x[list_cluster[i]][1] - x[list_cluster[0]][1];
     del[i][2] = x[list_cluster[i]][2] - x[list_cluster[0]][2];
-    domain->minimum_image(del[i]);
+    domain->minimum_image(FLERR, del[i]);
     r[i] = 1.0/sqrt(del[i][0]*del[i][0]+del[i][1]*del[i][1]+
       del[i][2]*del[i][2]);
   }

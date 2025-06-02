@@ -144,7 +144,7 @@ void MetatomicSystemAdaptorKokkos<DeviceType>::setup_neighbors_remap_kk(metatomi
     auto x = system->positions().detach();
     auto cell_inverse = system->cell().detach().inverse();
 
-    // convert from LAMMPS NL format to metatensor NL format
+    // convert from LAMMPS NL format to metatomic NL format
     auto expanded_arange = torch::arange(
         max_number_of_neighbors,
         torch::TensorOptions().dtype(torch::kInt32).device(this->device_)
@@ -165,7 +165,7 @@ void MetatomicSystemAdaptorKokkos<DeviceType>::setup_neighbors_remap_kk(metatomi
     auto neighbors_original_id = original_id.index_select(0, neighbors_id);
 
     // The following code is a direct translation of the code in the non-Kokkos
-    // version (MetaTensorSystemAdaptor::setup_neighbors_remap), but rewritten
+    // version (MetatomicSystemAdaptor::setup_neighbors_remap), but rewritten
     // in torch to use the GPU
     for (auto& cache: caches_) {
         // current values of various tensors, these change depending on full/half setting
@@ -229,7 +229,7 @@ void MetatomicSystemAdaptorKokkos<DeviceType>::setup_neighbors_remap_kk(metatomi
                 auto half_list_cell_mask = centers_original_id_filt > neighbors_original_id_filt;
                 auto pair_with_image_mask = centers_original_id_filt == neighbors_original_id_filt;
                 auto negative_half_space_mask = torch::sum(cell_shifts, 1) < 0;
-                // reproduce this mask (from MetaTensorSystemAdaptor::setup_neighbors_remap) with torch:
+                // reproduce this mask (from MetatomicSystemAdaptor::setup_neighbors_remap) with torch:
                 // if ((shift[0] + shift[1] + shift[2] == 0) && (shift[2] < 0 || (shift[2] == 0 && shift[1] < 0)))
                 auto edge_mask = (
                     (torch::sum(cell_shifts, 1) == 0) & (
@@ -359,7 +359,7 @@ metatomic_torch::System MetatomicSystemAdaptorKokkos<DeviceType>::system_from_lm
     // While Metatomic models can support mixed PBC settings, we currently
     // assume that the system is fully periodic and we throw an error otherwise
     if (!domain->xperiodic || !domain->yperiodic || !domain->zperiodic) {
-        error->all(FLERR, "metatensor/kk currently requires a fully periodic system");
+        error->all(FLERR, "metatomic/kk currently requires a fully periodic system");
     }
     auto pbc = torch::tensor(
         {domain->xperiodic, domain->yperiodic, domain->zperiodic},
@@ -378,7 +378,7 @@ metatomic_torch::System MetatomicSystemAdaptorKokkos<DeviceType>::system_from_lm
         assert(kk_list != nullptr);
         this->setup_neighbors_remap_kk(system, kk_list);
     } else {
-        error->all(FLERR, "the kokkos version of metatensor requires remap_pairs to be true");
+        error->all(FLERR, "the kokkos version of metatomic requires remap_pairs to be true");
     }
 
     return system;

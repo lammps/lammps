@@ -18,7 +18,6 @@
 #include "pair_metatomic_kokkos.h"
 
 #include "error.h"
-#include "kokkos.h"
 #include "neigh_request.h"
 #include "atom_masks.h"
 
@@ -42,10 +41,7 @@ template<typename T, class DeviceType>
 using UnmanagedView = Kokkos::View<T, Kokkos::LayoutRight, DeviceType, Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
 
 template<class DeviceType>
-PairMetatomicKokkos<DeviceType>::PairMetatomicKokkos(LAMMPS* lmp): PairMetatomic(lmp) {
-    // this will allow us to receive the NL in a GPU-friendly format
-    this->lmp->kokkos->neigh_transpose = 1;
-}
+PairMetatomicKokkos<DeviceType>::PairMetatomicKokkos(LAMMPS* lmp): PairMetatomic(lmp) {}
 
 template<class DeviceType>
 PairMetatomicKokkos<DeviceType>::~PairMetatomicKokkos() {}

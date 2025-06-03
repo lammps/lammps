@@ -109,7 +109,7 @@ void MetatomicSystemAdaptorKokkos<DeviceType>::setup_neighbors_remap_kk(metatomi
         torch::TensorOptions().dtype(torch::kInt32).device(torch::kCPU)
     ).to(this->device_);
 
-    auto neighbors_kk = list->d_neighbors_transpose;
+    auto neighbors_kk = list->d_neighbors;
     auto max_number_of_neighbors = list->maxneighs;
 
     auto neighbors = torch::zeros(

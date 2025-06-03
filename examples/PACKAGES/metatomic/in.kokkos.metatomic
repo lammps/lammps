@@ -19,6 +19,10 @@ velocity all create 123 42
 pair_style metatomic/kk nickel-lj.pt
 pair_coeff * * 28
 
+# pair_style hybrid/overlay/kk metatomic_1/kk nickel-lj.pt metatomic_2/kk nickel-lj.pt
+# pair_coeff * * metatomic_1/kk 28
+# pair_coeff * * metatomic_2/kk 28
+
 timestep 0.001
 run_style verlet/kk
 fix 1 all npt temp 123 123 $(100 * dt) iso 0 0 $(1000 * dt) drag 1.0

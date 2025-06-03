@@ -13,6 +13,18 @@
 #ifdef PAIR_CLASS
 // clang-format off
 PairStyle(metatomic/kk, PairMetatomicKokkos<LMPDeviceType>);
+
+// additional versions of pair_style metatomic/kk, to be used with pair_style
+// hybrid when combining multiple metatomic potentials together
+PairStyle(metatomic_1/kk, PairMetatomicKokkos<LMPDeviceType>);
+PairStyle(metatomic_2/kk, PairMetatomicKokkos<LMPDeviceType>);
+PairStyle(metatomic_3/kk, PairMetatomicKokkos<LMPDeviceType>);
+PairStyle(metatomic_4/kk, PairMetatomicKokkos<LMPDeviceType>);
+PairStyle(metatomic_5/kk, PairMetatomicKokkos<LMPDeviceType>);
+PairStyle(metatomic_6/kk, PairMetatomicKokkos<LMPDeviceType>);
+PairStyle(metatomic_7/kk, PairMetatomicKokkos<LMPDeviceType>);
+PairStyle(metatomic_8/kk, PairMetatomicKokkos<LMPDeviceType>);
+PairStyle(metatomic_9/kk, PairMetatomicKokkos<LMPDeviceType>);
 // clang-format on
 #else
 

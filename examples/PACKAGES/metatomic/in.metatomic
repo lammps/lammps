@@ -16,6 +16,10 @@ pair_style metatomic nickel-lj.pt
 # pair_style metatomic nickel-lj-extensions.pt extensions collected-extensions/
 pair_coeff * * 28
 
+# pair_style hybrid/scaled 0.5 metatomic_1 nickel-lj.pt 0.5 metatomic_2 nickel-lj.pt
+# pair_coeff * * metatomic_1 28
+# pair_coeff * * metatomic_2 28
+
 timestep 0.001
 fix 1 all npt temp 123 123 $(100 * dt) iso 0 0 $(1000 * dt) drag 1.0
 

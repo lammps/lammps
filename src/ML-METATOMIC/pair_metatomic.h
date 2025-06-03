@@ -13,6 +13,18 @@
 #ifdef PAIR_CLASS
 // clang-format off
 PairStyle(metatomic, PairMetatomic);
+
+// additional versions of pair_style metatomic, to be used with pair_style
+// hybrid when combining multiple metatomic potentials together
+PairStyle(metatomic_1, PairMetatomic);
+PairStyle(metatomic_2, PairMetatomic);
+PairStyle(metatomic_3, PairMetatomic);
+PairStyle(metatomic_4, PairMetatomic);
+PairStyle(metatomic_5, PairMetatomic);
+PairStyle(metatomic_6, PairMetatomic);
+PairStyle(metatomic_7, PairMetatomic);
+PairStyle(metatomic_8, PairMetatomic);
+PairStyle(metatomic_9, PairMetatomic);
 // clang-format on
 #else
 

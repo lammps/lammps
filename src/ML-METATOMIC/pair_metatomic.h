@@ -76,6 +76,8 @@ protected:
     int32_t *type_mapping;
     // adaptor from LAMMPS system to metatomic's
     std::unique_ptr<MetatomicSystemAdaptor> system_adaptor;
+
+    double scale;
 };
 
 }    // namespace LAMMPS_NS

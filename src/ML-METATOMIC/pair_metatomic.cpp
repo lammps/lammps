@@ -49,7 +49,8 @@ using namespace LAMMPS_NS;
 PairMetatomic::PairMetatomic(LAMMPS *lmp):
     Pair(lmp),
     type_mapping(nullptr),
-    system_adaptor(nullptr)
+    system_adaptor(nullptr),
+    scale(1.0)
 {
     std::string energy_unit;
     std::string length_unit;
@@ -162,6 +163,12 @@ void PairMetatomic::settings(int argc, char ** argv) {
                 error->all(FLERR, "expected string after 'device' in pair_style metatomic, got nothing");
             }
             requested_device = argv[i + 1];
+            i += 1;
+        } else if (strcmp(argv[i], "scale") == 0) {
+            if (i == argc - 1) {
+                error->all(FLERR, "expected a number after 'scale' in pair_style metatomic, got nothing");
+            }
+            this->scale = utils::numeric(FLERR, argv[i + 1], false, lmp);
             i += 1;
         } else {
             error->all(FLERR, "unexpected argument to pair_style metatomic: '{}'", argv[i]);
@@ -554,7 +561,7 @@ void PairMetatomic::compute(int eflag, int vflag) {
                 // the per-atom energy tensor
                 auto atom_i = samples[i][1];
                 assert(atom_i < n_atoms);
-                eatom[atom_i] += energies[i][0];
+                eatom[atom_i] += this->scale * energies[i][0];
             }
 
             global_energy = energy_detached.sum(0);
@@ -568,7 +575,7 @@ void PairMetatomic::compute(int eflag, int vflag) {
         }
 
         if (eflag_global) {
-            eng_vdwl += global_energy.item<double>();
+            eng_vdwl += this->scale * global_energy.item<double>();
         }
 
         // store forces/virial
@@ -583,9 +590,9 @@ void PairMetatomic::compute(int eflag, int vflag) {
 
         auto forces = forces_tensor.accessor<double, 2>();
         for (int i=0; i<num_forces_to_update; i++) {
-            atom->f[i][0] += forces[i][0];
-            atom->f[i][1] += forces[i][1];
-            atom->f[i][2] += forces[i][2];
+            atom->f[i][0] += this->scale * forces[i][0];
+            atom->f[i][1] += this->scale * forces[i][1];
+            atom->f[i][2] += this->scale * forces[i][2];
         }
 
         assert(!vflag_fdotr);
@@ -594,13 +601,13 @@ void PairMetatomic::compute(int eflag, int vflag) {
             assert(virial_tensor.is_cpu() && virial_tensor.scalar_type() == torch::kFloat64);
             auto predicted_virial = virial_tensor.accessor<double, 2>();
 
-            virial[0] += predicted_virial[0][0];
-            virial[1] += predicted_virial[1][1];
-            virial[2] += predicted_virial[2][2];
+            virial[0] += this->scale * predicted_virial[0][0];
+            virial[1] += this->scale * predicted_virial[1][1];
+            virial[2] += this->scale * predicted_virial[2][2];
 
-            virial[3] += 0.5 * (predicted_virial[1][0] + predicted_virial[0][1]);
-            virial[4] += 0.5 * (predicted_virial[2][0] + predicted_virial[0][2]);
-            virial[5] += 0.5 * (predicted_virial[2][1] + predicted_virial[1][2]);
+            virial[3] += this->scale * 0.5 * (predicted_virial[1][0] + predicted_virial[0][1]);
+            virial[4] += this->scale * 0.5 * (predicted_virial[2][0] + predicted_virial[0][2]);
+            virial[5] += this->scale * 0.5 * (predicted_virial[2][1] + predicted_virial[1][2]);
         }
 
         if (vflag_atom) {

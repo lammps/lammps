@@ -230,7 +230,7 @@ void PairMetatomicKokkos<DeviceType>::compute(int eflag, int vflag) {
                 // the per-atom energy tensor
                 auto atom_i = samples[i][1];
                 assert(atom_i < n_atoms);
-                eatom[atom_i] += energies[i][0];
+                eatom[atom_i] += this->scale * energies[i][0];
             }
 
             global_energy = energy_detached.sum(0);
@@ -244,7 +244,7 @@ void PairMetatomicKokkos<DeviceType>::compute(int eflag, int vflag) {
         }
 
         if (eflag_global) {
-            eng_vdwl += global_energy.item<double>();
+            eng_vdwl += this->scale * global_energy.item<double>();
         }
 
         // store forces/virial
@@ -264,12 +264,13 @@ void PairMetatomicKokkos<DeviceType>::compute(int eflag, int vflag) {
             num_forces_to_update = atomKK->nlocal + atomKK->nghost;
         }
 
+        double scale = this->scale;  // the GPU can't access the `this` pointer
         Kokkos::parallel_for(
             num_forces_to_update,
             KOKKOS_LAMBDA(size_t i) {
-                forces_lammps_kk(i, 0) += forces_metatensor_kk(i, 0);
-                forces_lammps_kk(i, 1) += forces_metatensor_kk(i, 1);
-                forces_lammps_kk(i, 2) += forces_metatensor_kk(i, 2);
+                forces_lammps_kk(i, 0) += scale * forces_metatensor_kk(i, 0);
+                forces_lammps_kk(i, 1) += scale * forces_metatensor_kk(i, 1);
+                forces_lammps_kk(i, 2) += scale * forces_metatensor_kk(i, 2);
             }
         );
 
@@ -279,13 +280,13 @@ void PairMetatomicKokkos<DeviceType>::compute(int eflag, int vflag) {
             assert(virial_tensor.is_cpu() && virial_tensor.scalar_type() == torch::kFloat64);
             auto predicted_virial = virial_tensor.template accessor<double, 2>();
 
-            virial[0] += predicted_virial[0][0];
-            virial[1] += predicted_virial[1][1];
-            virial[2] += predicted_virial[2][2];
+            virial[0] += this->scale * predicted_virial[0][0];
+            virial[1] += this->scale * predicted_virial[1][1];
+            virial[2] += this->scale * predicted_virial[2][2];
 
-            virial[3] += 0.5 * (predicted_virial[1][0] + predicted_virial[0][1]);
-            virial[4] += 0.5 * (predicted_virial[2][0] + predicted_virial[0][2]);
-            virial[5] += 0.5 * (predicted_virial[2][1] + predicted_virial[1][2]);
+            virial[3] += this->scale * 0.5 * (predicted_virial[1][0] + predicted_virial[0][1]);
+            virial[4] += this->scale * 0.5 * (predicted_virial[2][0] + predicted_virial[0][2]);
+            virial[5] += this->scale * 0.5 * (predicted_virial[2][1] + predicted_virial[1][2]);
         }
 
         if (vflag_atom) {

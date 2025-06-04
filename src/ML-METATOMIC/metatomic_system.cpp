@@ -36,7 +36,7 @@ MetatomicSystemAdaptor::MetatomicSystemAdaptor(LAMMPS *lmp, MetatomicSystemOptio
     auto tensor_options = torch::TensorOptions()
         .dtype(torch::kFloat64)
         .device(torch::kCPU)
-        .requires_grad(true);
+        .requires_grad(options_.requires_grad);
 
     this->strain = torch::eye(3, tensor_options);
 }
@@ -495,7 +495,7 @@ metatomic_torch::System MetatomicSystemAdaptor::system_from_lmp(
     this->positions = torch::from_blob(
         *x, {total_n_atoms, 3},
         // requires_grad=true since we always need gradients w.r.t. positions
-        tensor_options.requires_grad(true)
+        tensor_options.requires_grad(options_.requires_grad)
     );
 
     auto cell = torch::zeros({3, 3}, tensor_options);

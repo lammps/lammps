@@ -35,6 +35,8 @@ struct MetatomicSystemOptions {
     double interaction_range;
     // should we run extra checks on the neighbor lists?
     bool check_consistency;
+    // should the positions and strain require grad?
+    bool requires_grad;
 };
 
 // data for metatensor neighbors lists

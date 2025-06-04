@@ -67,6 +67,7 @@ void PairMetatomicKokkos<DeviceType>::init_style() {
         this->type_mapping_kk.data(),
         mta_data->max_cutoff,
         mta_data->check_consistency,
+        !(mta_data->non_conservative),
     };
 
     // override the system adaptor with the kokkos version
@@ -176,14 +177,30 @@ void PairMetatomicKokkos<DeviceType>::compute(int eflag, int vflag) {
     auto energy_block = metatensor_torch::TensorMapHolder::block_by_id(energy, 0);
     auto energy_tensor = energy_block->values();
 
-    // compute forces/virial on device with backward propagation
-    {
+    torch::Tensor forces_tensor;
+    torch::Tensor virial_tensor;
+
+    if (mta_data->non_conservative) {
+        auto forces = result.at("non_conservative_forces").toCustomClass<metatensor_torch::TensorMapHolder>();;
+        auto forces_block = metatensor_torch::TensorMapHolder::block_by_id(forces, 0);
+        forces_tensor = forces_block->values().squeeze(-1);
+        forces_tensor = forces_tensor.to(torch::kFloat64);
+        auto stress = result.at("non_conservative_stress").toCustomClass<metatensor_torch::TensorMapHolder>();;
+        auto stress_block = metatensor_torch::TensorMapHolder::block_by_id(stress, 0);
+        auto stress_tensor = stress_block->values().squeeze(0).squeeze(-1);
+        virial_tensor = - stress_tensor * torch::abs(torch::det(system->cell()));
+        virial_tensor = virial_tensor.to(torch::kCPU).to(torch::kFloat64);
+    } else {
+        // compute forces/virial on device with backward propagation
         // reset gradients to zero before calling backward
         this->system_adaptor->positions.mutable_grad() = torch::Tensor();
         this->system_adaptor->strain.mutable_grad() = torch::Tensor();
 
         auto _ = MetatomicTimer("running Model::backward");
         energy_tensor.backward(-torch::ones_like(energy_tensor));
+
+        forces_tensor = this->system_adaptor->positions.grad();
+        virial_tensor = this->system_adaptor->strain.grad().to(torch::kCPU);
     }
 
     {
@@ -231,8 +248,8 @@ void PairMetatomicKokkos<DeviceType>::compute(int eflag, int vflag) {
         }
 
         // store forces/virial
-        auto forces_tensor = this->system_adaptor->positions.grad().contiguous();
         assert(forces_tensor.scalar_type() == torch::kFloat64);
+        forces_tensor = forces_tensor.contiguous();
 
         auto forces_lammps_kk = this->atomKK->k_f.template view<DeviceType>();
         auto forces_metatensor_kk = UnmanagedView<double**, DeviceType>(
@@ -240,8 +257,15 @@ void PairMetatomicKokkos<DeviceType>::compute(int eflag, int vflag) {
             forces_tensor.size(0), 3
         );
 
+        int num_forces_to_update;
+        if (mta_data->non_conservative) {
+            num_forces_to_update = atomKK->nlocal;
+        } else {
+            num_forces_to_update = atomKK->nlocal + atomKK->nghost;
+        }
+
         Kokkos::parallel_for(
-            system->size(),
+            num_forces_to_update,
             KOKKOS_LAMBDA(size_t i) {
                 forces_lammps_kk(i, 0) += forces_metatensor_kk(i, 0);
                 forces_lammps_kk(i, 1) += forces_metatensor_kk(i, 1);
@@ -252,7 +276,6 @@ void PairMetatomicKokkos<DeviceType>::compute(int eflag, int vflag) {
         assert(!vflag_fdotr);
 
         if (vflag_global) {
-            auto virial_tensor = this->system_adaptor->strain.grad().to(torch::kCPU);
             assert(virial_tensor.is_cpu() && virial_tensor.scalar_type() == torch::kFloat64);
             auto predicted_virial = virial_tensor.template accessor<double, 2>();
 

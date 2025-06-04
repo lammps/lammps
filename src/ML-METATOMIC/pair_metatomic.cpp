@@ -126,6 +126,31 @@ void PairMetatomic::settings(int argc, char ** argv) {
             }
 
             i += 1;
+        } else if (strcmp(argv[i], "non_conservative") == 0) {
+            if (i == argc - 1) {
+                error->all(FLERR, "expected <on/off> after 'non_conservative' in pair_style metatensor, got nothing");
+            } else if (strcmp(argv[i + 1], "on") == 0) {
+                mta_data->non_conservative = true;
+                // add the non-conservative forces and stress to the requested outputs
+                auto output_nc_forces = torch::make_intrusive<metatomic_torch::ModelOutputHolder>();
+                output_nc_forces->explicit_gradients = {};
+                output_nc_forces->set_quantity("force");
+                output_nc_forces->set_unit(mta_data->evaluation_options->outputs.at("energy")->unit() + "/" + mta_data->evaluation_options->length_unit());
+                output_nc_forces->per_atom = true;
+                mta_data->evaluation_options->outputs.insert("non_conservative_forces", output_nc_forces);
+                auto output_nc_stress = torch::make_intrusive<metatomic_torch::ModelOutputHolder>();
+                output_nc_stress->explicit_gradients = {};
+                output_nc_stress->set_quantity("pressure");
+                output_nc_stress->set_unit(mta_data->evaluation_options->outputs.at("energy")->unit() + "/" + mta_data->evaluation_options->length_unit() + "^3");
+                output_nc_stress->per_atom = false;
+                mta_data->evaluation_options->outputs.insert("non_conservative_stress", output_nc_stress);
+            } else if (strcmp(argv[i + 1], "off") == 0) {
+                mta_data->non_conservative = false;
+            } else {
+                error->all(FLERR, "expected <on/off> after 'non_conservative' in pair_style metatensor, got '{}'", argv[i + 1]);
+            }
+
+            i += 1;
         } else if (strcmp(argv[i], "extensions") == 0) {
             if (i == argc - 1) {
                 error->all(FLERR, "expected <path> after 'extensions' in pair_style metatomic, got nothing");
@@ -379,6 +404,7 @@ void PairMetatomic::init_style() {
         this->type_mapping,
         mta_data->max_cutoff,
         mta_data->check_consistency,
+        !(mta_data->non_conservative),
     };
     this->system_adaptor = std::make_unique<MetatomicSystemAdaptor>(lmp, options);
 
@@ -476,14 +502,29 @@ void PairMetatomic::compute(int eflag, int vflag) {
     auto energy_block = metatensor_torch::TensorMapHolder::block_by_id(energy, 0);
     auto energy_tensor = energy_block->values();
 
-    // compute forces/virial on device with backward propagation
-    {
+    torch::Tensor forces_tensor;
+    torch::Tensor virial_tensor;
+
+    if (mta_data->non_conservative) {
+        auto forces = result.at("non_conservative_forces").toCustomClass<metatensor_torch::TensorMapHolder>();;
+        auto forces_block = metatensor_torch::TensorMapHolder::block_by_id(forces, 0);
+        forces_tensor = forces_block->values().squeeze(-1);
+        forces_tensor = forces_tensor.to(torch::kCPU).to(torch::kFloat64);
+        auto stress = result.at("non_conservative_stress").toCustomClass<metatensor_torch::TensorMapHolder>();;
+        auto stress_block = metatensor_torch::TensorMapHolder::block_by_id(stress, 0);
+        auto stress_tensor = stress_block->values().squeeze(0).squeeze(-1);
+        virial_tensor = - stress_tensor * torch::abs(torch::det(system->cell()));
+        virial_tensor = virial_tensor.to(torch::kCPU).to(torch::kFloat64);
+    } else {
         // reset gradients to zero before calling backward
         this->system_adaptor->positions.mutable_grad() = torch::Tensor();
         this->system_adaptor->strain.mutable_grad() = torch::Tensor();
 
         auto _ = MetatomicTimer("running Model::backward");
         energy_tensor.backward(-torch::ones_like(energy_tensor));
+
+        forces_tensor = this->system_adaptor->positions.grad();
+        virial_tensor = this->system_adaptor->strain.grad();
     }
 
     {
@@ -531,11 +572,17 @@ void PairMetatomic::compute(int eflag, int vflag) {
         }
 
         // store forces/virial
-        auto forces_tensor = this->system_adaptor->positions.grad();
         assert(forces_tensor.is_cpu() && forces_tensor.scalar_type() == torch::kFloat64);
 
+        int num_forces_to_update;
+        if (mta_data->non_conservative) {
+            num_forces_to_update = atom->nlocal;
+        } else {
+            num_forces_to_update = atom->nlocal + atom->nghost;
+        }
+
         auto forces = forces_tensor.accessor<double, 2>();
-        for (int i=0; i<atom->nlocal + atom->nghost; i++) {
+        for (int i=0; i<num_forces_to_update; i++) {
             atom->f[i][0] += forces[i][0];
             atom->f[i][1] += forces[i][1];
             atom->f[i][2] += forces[i][2];
@@ -544,7 +591,6 @@ void PairMetatomic::compute(int eflag, int vflag) {
         assert(!vflag_fdotr);
 
         if (vflag_global) {
-            auto virial_tensor = this->system_adaptor->strain.grad();
             assert(virial_tensor.is_cpu() && virial_tensor.scalar_type() == torch::kFloat64);
             auto predicted_virial = virial_tensor.accessor<double, 2>();
 

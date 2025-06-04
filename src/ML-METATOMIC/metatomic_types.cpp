@@ -26,6 +26,7 @@ PairMetatomicData::PairMetatomicData(std::string length_unit, std::string energy
     device(torch::kCPU),
     check_consistency(false),
     remap_pairs(true),
+    non_conservative(false),
     max_cutoff(-1)
 {
     auto options = torch::TensorOptions().dtype(torch::kInt32);

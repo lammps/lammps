@@ -42,7 +42,7 @@ MetatomicSystemAdaptorKokkos<DeviceType>::MetatomicSystemAdaptorKokkos(LAMMPS *l
     auto tensor_options = torch::TensorOptions()
         .dtype(torch::kFloat64)
         .device(this->device_)
-        .requires_grad(true);
+        .requires_grad(options_.requires_grad);
 
     this->strain = torch::eye(3, tensor_options);
 }
@@ -329,7 +329,7 @@ metatomic_torch::System MetatomicSystemAdaptorKokkos<DeviceType>::system_from_lm
     this->positions = torch::from_blob(
         k_x.data(), {total_n_atoms, 3},
         // requires_grad=true since we always need gradients w.r.t. positions
-        tensor_options.requires_grad(true)
+        tensor_options.requires_grad(options_.requires_grad)
     );
 
     auto cell = torch::zeros({3, 3}, tensor_options);

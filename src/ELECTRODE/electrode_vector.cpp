@@ -37,9 +37,9 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-ElectrodeVector::ElectrodeVector(LAMMPS *lmp, int sensor_group, int source_group, double eta,
-                                 bool invert_source) :
-    Pointers(lmp)
+ElectrodeVector::ElectrodeVector(LAMMPS *lmp, int narg, char **arg, int sensor_group,
+                                 int source_group, double eta, bool invert_source) :
+    Fix(lmp, narg, arg)
 {
   igroup = sensor_group;                // group of all atoms at which we calculate potential
   this->source_group = source_group;    // group of all atoms influencing potential
@@ -56,6 +56,7 @@ ElectrodeVector::ElectrodeVector(LAMMPS *lmp, int sensor_group, int source_group
   pair_time_total = 0;
   boundary_time_total = 0;
   b_time_total = 0;
+  comm_reverse = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -75,8 +76,15 @@ ElectrodeVector::~ElectrodeVector()
 
 /* ---------------------------------------------------------------------- */
 
-void ElectrodeVector::setup(Pair *fix_pair, class NeighList *fix_neighlist, bool pairflag,
-                            bool timer_flag)
+int ElectrodeVector::setmask()
+{
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ElectrodeVector::setup_general(Pair *fix_pair, class NeighList *fix_neighlist, bool pairflag,
+                                    bool timer_flag)
 {
   Pair *pair = fix_pair;
   cutsq = pair->cutsq;
@@ -126,7 +134,7 @@ void ElectrodeVector::setup_eta(int index)
 
 /* ---------------------------------------------------------------------- */
 
-void ElectrodeVector::compute_vector(double *vector)
+void ElectrodeVector::compute_pot(double *vector)
 {
   MPI_Barrier(world);
   double start_time = MPI_Wtime();
@@ -156,6 +164,9 @@ void ElectrodeVector::compute_vector(double *vector)
     boundary_time_total += MPI_Wtime() - boundary_start_time;
   }
   b_time_total += MPI_Wtime() - start_time;
+  pot = vector;
+  if (force->newton_pair) comm->reverse_comm(this);
+  vector = pot;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -282,3 +293,22 @@ void ElectrodeVector::hardness_contribution(double *vector)
   if (warn && comm->me == 0)
     error->warning(FLERR, "Hardness smaller than zero. Qeq might not converge.");
 }
+
+/* ---------------------------------------------------------------------- */
+
+int ElectrodeVector::pack_reverse_comm(int n, int first, double *buf)
+{
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; i++) { buf[m++] = pot[i]; }
+
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ElectrodeVector::unpack_reverse_comm(int n, int *list, double *buf)
+{
+  for (int i = 0; i < n; i++) { pot[list[i]] += buf[i]; }
+}
+

@@ -28,15 +28,13 @@ FixStyle(electrode/conq, FixElectrodeConq);
 
 #include "fix_electrode_conp.h"
 
+
 namespace LAMMPS_NS {
 
 class FixElectrodeConq : public FixElectrodeConp {
  public:
   FixElectrodeConq(class LAMMPS *, int, char **);
-  void update_psi() override;
-  void recompute_potential(std::vector<double>, std::vector<double>) override;
-  std::vector<double> constraint_projection(std::vector<double>) override;
-  std::vector<double> constraint_correction(std::vector<double>) override;
+  virtual void update_psi_set_constraint() override;
 
  private:
   std::vector<double> group_q;

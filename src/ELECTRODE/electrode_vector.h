@@ -18,20 +18,24 @@
 #ifndef LMP_ELECTRODE_VECTOR_H
 #define LMP_ELECTRODE_VECTOR_H
 
-#include "pointers.h"
+//#include "pointers.h"
+#include "fix.h"
 #include <map>
 
 namespace LAMMPS_NS {
 
-class ElectrodeVector : protected Pointers {
+class ElectrodeVector : public Fix {
  public:
-  ElectrodeVector(class LAMMPS *, int, int, double, bool);
+  ElectrodeVector(class LAMMPS *, int, char **, int, int, double, bool);
   ~ElectrodeVector() override;
-  void setup(class Pair *, class NeighList *, bool, bool);
+  int setmask() override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  void setup_general(class Pair *, class NeighList *, bool, bool);
   void setup_tf(const std::map<int, double> &);
   void setup_hardness(int index);
   void setup_eta(int);
-  void compute_vector(double *);
+  void compute_pot(double *);
   int igroup, source_group;
 
  private:
@@ -61,6 +65,8 @@ class ElectrodeVector : protected Pointers {
   double pair_time_total;
   double boundary_time_total;
   double b_time_total;
+
+  double *pot;             // potentials, i-indexed (0 for non-electrode atoms)
 
   bool timer_flag;
 };

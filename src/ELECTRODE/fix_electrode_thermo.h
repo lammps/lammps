@@ -34,16 +34,11 @@ class FixElectrodeThermo : public FixElectrodeConp {
  public:
   FixElectrodeThermo(class LAMMPS *, int, char **);
   ~FixElectrodeThermo() override;
-  void update_psi() override;
-  void pre_update() override;
+  virtual void update_psi_set_constraint() override;
 
- protected:
  private:
-  void compute_macro_matrices() override;
   class RanMars *thermo_random;
-  double delta_psi_0;
-  double group_q_old[2];
-  double vac_cap;
+  double delta_v_0; // target voltage
 };
 
 }    // namespace LAMMPS_NS

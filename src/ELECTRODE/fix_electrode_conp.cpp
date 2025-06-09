@@ -99,6 +99,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   write_inv = write_mat = write_vec = read_inv = read_mat = false;
   symm = false;
   ffield = false;
+  gauss_fflag = true;
   thermo_time = 0.;
 
   top_group = 0;
@@ -238,6 +239,8 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
       symm = utils::logical(FLERR, arg[++iarg], false, lmp);
     } else if ((strcmp(arg[iarg], "ffield") == 0)) {
       ffield = utils::logical(FLERR, arg[++iarg], false, lmp);
+    } else if ((strcmp(arg[iarg], "gauss_fflag") == 0)) {
+      gauss_fflag = utils::logical(FLERR, arg[++iarg], false, lmp);
     } else {
       error->all(FLERR, "Unknown keyword {} for fix {} command", arg[iarg], style);
     }

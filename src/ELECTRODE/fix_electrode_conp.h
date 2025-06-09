@@ -98,6 +98,7 @@ class FixElectrodeConp : public Fix {
   double thermo_temp, thermo_time;                       // used by electrode/thermo only
   int thermo_init;                                       // initializer for rng in electrode/thermo
   bool ffield;                                           // possibly tweak electrode/conq's version
+  bool gauss_fflag;                                      // flag for modifying forces in gausscorr
   std::string fixname;    // used by electrode/ffield to set up internal efield
   bool intelflag;
   inline virtual void intel_pack_buffers() {}

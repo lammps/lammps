@@ -52,7 +52,7 @@ static constexpr double EPS_HOC = 1.0e-7;
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
 static const char cite_pppm_electrode[] =
-    "kspace_style pppm/electrode command:\n\n"
+    "kspace_style pppm/electrode command: https://doi.org/10.1063/5.0063381\n\n"
     "@article{Ahrens2021,\n"
     "author = {Ahrens-Iwers, Ludwig J.V. and Mei{\\ss}ner, Robert H.},\n"
     "doi = {10.1063/5.0063381},\n"

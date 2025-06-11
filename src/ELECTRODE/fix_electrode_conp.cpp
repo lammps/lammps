@@ -53,7 +53,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 static const char cite_fix_electrode[] =
-    "fix electrode command:\n\n"
+    "fix electrode command: https://doi.org/10.1063/5.0099239\n\n"
     "@article{Ahrens2022\n"
     "author = {Ahrens-Iwers, Ludwig J.V. and Janssen, Mahijs and Tee, Shern R. and Mei{\\ss}ner, "
     "Robert H.},\n"

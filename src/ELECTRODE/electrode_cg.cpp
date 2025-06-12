@@ -21,9 +21,11 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "modify.h"
 #include "update.h"
 
 #include <cassert>
+#include <string>
 
 using namespace LAMMPS_NS;
 
@@ -39,6 +41,8 @@ ElectrodeCG::ElectrodeCG(LAMMPS *lmp) :
   nmax = 0;
   memory->create(potential_i, nmax, "ElectrodeCG:potential_i");
   elyt_step = -1;
+  predictor_cols = predictor_count = 0;
+  predictor_index = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,19 +76,49 @@ int ElectrodeCG::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void ElectrodeCG::setup_solver(double cg_threshold, ElectrodeVector *vec)
+void ElectrodeCG::setup_solver(double cg_threshold, ElectrodeVector *vec, int predictor_cols)
 {
-  setup_cg(cg_threshold);
+  setup_cg(cg_threshold, predictor_cols);
   elec_vec = vec;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ElectrodeCG::setup_cg(double cg_threshold)
+void ElectrodeCG::setup_cg(double cg_threshold, int predictor_cols)
 {
   setup = true;
   evscale = force->qe2f / force->qqrd2e;
   threshold = cg_threshold;
+  this->predictor_cols = predictor_cols;
+  // setup atom/property array to store prior charges
+  if (predictor_cols) {
+    std::string property_call = "fx_electrode_cg_predictor all property/atom d2_predict_array " +
+        std::to_string(predictor_cols);
+    modify->add_fix(property_call, 1);
+    int is_double, cols;
+    predictor_index = atom->find_custom("predict_array", is_double, cols);
+    if (predictor_index == -1)
+      error->all(FLERR, "Failed to setup property/atom array for conjugate gradient predictor");
+    assert(is_double);
+    assert(predictor_cols == cols);
+  }
+  // prepare predictor weights of ASPC, cf. Kolafa 2003
+  predictor_weights = std::vector<std::vector<double>>();
+  for (int k = 0; k < predictor_cols; k++) {
+    auto weights = std::vector<double>();    // weights[0] = B_1, ...
+    int sign = 1;
+    for (int i = 1; i <= k + 2; i++) {
+      double num = 1;
+      double denom = k + 3;
+      for (int j = 0; j < i - 1; j++) {
+        num *= k + 1 - j;
+        denom *= k + 4 + j;
+      }
+      weights.push_back(sign * i * (4 * k + 6) * num / denom);
+      sign *= -1;
+    }
+    predictor_weights.push_back(weights);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -168,13 +202,40 @@ double ElectrodeCG::get_potential(int igroup)
 }
 
 /* ----------------------------------------------------------------------
-    predict with current charges
+    if possible, extrapolate charges based on previous steps, else predict with current charges
 ------------------------------------------------------------------------- */
 
 void ElectrodeCG::predict_q()
 {
+  assert(predictor_count <= predictor_cols);
+  assert(predictor_weights.size() == predictor_cols);
   double *q = atom->q;
   for (int i = 0; i < nele; i++) q_ele[i] = q[atom->map(taglist[i])];
+  if (!predictor_count) {    // predict with current charges
+    for (int i = 0; i < nele; i++) q_ele[i] = q[atom->map(taglist[i])];
+  } else {    // ASPC method, cf. Kolafa 2003
+    int const k = predictor_count - 1;
+    double **qold = atom->darray[predictor_index];
+    auto weights = predictor_weights[k];    // weights[0] = B_1, ...
+    for (int i = 0; i < nele; i++) {
+      int const ii = atom->map(taglist[i]);
+      double qi = weights[0] * q[ii];
+      for (int j = 1; j <= k + 1; j++) qi += weights[j] * qold[ii][j - 1];
+      q_ele[i] = qi;
+    }
+  }
+
+  // move current charges to predictor array for following steps
+  if (predictor_cols) {
+    int const nlocal = atom->nlocal;
+    double **qold = atom->darray[predictor_index];
+    for (int i = predictor_count; i > 0; i--) {
+      if (i == predictor_cols) continue;    // forget last column
+      for (int j = 0; j < nlocal; j++) { qold[j][i] = qold[j][i - 1]; }
+    }
+    for (int j = 0; j < nlocal; j++) qold[j][0] = q[j];
+    if (predictor_count < predictor_cols) predictor_count++;
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -101,6 +101,8 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   intelflag = false;
   tfflag = false;
   etapropflag = enflag = hardnessflag = false;
+  predictor_cols = 1;
+  bool predictor_set = false;
   pairflag = false;
   timer_flag = false;
 
@@ -259,6 +261,11 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
         hardness_index = index;
         hardnessflag = true;
       }
+    } else if (strcmp(arg[iarg], "predictor") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Need one argument after predictor command");
+      predictor_set = true;
+      predictor_cols = utils::inumeric(FLERR, arg[++iarg], false, lmp);
+      if (predictor_cols < 0) error->all(FLERR, "predictor value must not be negative");
     }
     // toggle parameters
     else if ((strcmp(arg[iarg], "etypes") == 0)) {
@@ -347,6 +354,8 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   assert(groups.size() == group_psi_var_styles.size());
   assert(groups.size() == group_psi_var_names.size());
   assert(igroup == elyt_vector->igroup);
+  if (predictor_set && algo != Algo::CG && algo != Algo::MATRIX_CG)
+    error->all(FLERR, "Selected algorithm does not support predictor keyword");
   if (need_elec_vector) assert(igroup == elec_vector->igroup);
   if (algo != Algo::MATRIX_INV) {
     if (read_inv || write_inv)
@@ -644,13 +653,13 @@ void FixElectrodeConp::setup_post_neighbor()
     case Algo::MATRIX_CG: {
       ElectrodeMatCG *mat_cg = new ElectrodeMatCG(lmp);
       mat_cg->set_elastance(ngroup, matrix);
-      mat_cg->setup_solver(cg_threshold, electrode_taglist->get_tag_to_iele());
+      mat_cg->setup_solver(cg_threshold, electrode_taglist->get_tag_to_iele(), predictor_cols);
       charge_solver = mat_cg;
       break;
     }
     case Algo::CG: {
       ElectrodeCG *cg = new ElectrodeCG(lmp);
-      cg->setup_solver(cg_threshold, elec_vector);
+      cg->setup_solver(cg_threshold, elec_vector, predictor_cols);
       charge_solver = cg;
       break;
     }

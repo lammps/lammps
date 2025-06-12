@@ -59,10 +59,11 @@ void ElectrodeMatCG::set_elastance(int nele_world, double **elastance)
 
 /* ---------------------------------------------------------------------- */
 
-void ElectrodeMatCG::setup_solver(double cg_threshold, std::unordered_map<tagint, int> tag_to_iele)
+void ElectrodeMatCG::setup_solver(double cg_threshold, std::unordered_map<tagint, int> tag_to_iele,
+                                  int predictor_cols)
 {
   assert(matrix_set);
-  ElectrodeCG::setup_cg(cg_threshold);
+  ElectrodeCG::setup_cg(cg_threshold, predictor_cols);
   this->tag_to_iele = tag_to_iele;
 }
 

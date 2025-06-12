@@ -119,13 +119,14 @@ class FixElectrodeConp : public Fix {
   bool tfflag;
   void add_electronegativity(double *);
   bool enflag, hardnessflag;                  // qeq parameters set
-  int eta_index, hardness_index, en_index;    // index of atom property for eta
   bool etapropflag;                           // eta specified as atom property
+  int eta_index, hardness_index, en_index;    // index of atom properties
   bool pairflag;                              // whether a pair style is specified
   std::string pair_str;
   bool timer_flag;
   std::map<int, double> tf_types;
   void set_charges(std::vector<double>);
+  int predictor_cols;
 
   // fix-specific electrode ID storage system:
   bool taglist_constructed;

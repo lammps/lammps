@@ -45,7 +45,7 @@ class ElectrodeCG : public Fix, public ChargeSolver {
   double vacuum_capacitance() override;
 
   //setup
-  void setup_solver(double, ElectrodeVector *);
+  void setup_solver(double, ElectrodeVector *, int);
 
   // fix methods
   int setmask() override;
@@ -54,7 +54,7 @@ class ElectrodeCG : public Fix, public ChargeSolver {
 
  protected:
   int nele, nele_world;
-  virtual void setup_cg(double);
+  virtual void setup_cg(double, int);
   virtual std::vector<double> ele_ele_interaction(const std::vector<double> &);
 
  private:
@@ -65,6 +65,8 @@ class ElectrodeCG : public Fix, public ChargeSolver {
   double evscale, threshold;
   ElectrodeVector *elec_vec;
   std::vector<double> q_ele;
+  int predictor_index, predictor_cols, predictor_count;
+  std::vector<std::vector<double>> predictor_weights;
   std::vector<tagint> taglist;
   std::vector<int> iele_to_group;
   double *potential_i;    // potentials, i-indexed (0 for non-electrode atoms)

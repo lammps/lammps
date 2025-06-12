@@ -76,6 +76,7 @@ Syntax
     *electronegativity* value = d_propname
         d_propname = a custom double vector defined via fix property/atom
     *pair* value = pair style name
+    *predictor* value = number of prior charges used by predictor
 
 Examples
 """"""""
@@ -298,6 +299,17 @@ per charge. The terms add quadratic and linear terms to the energy,
 respectively. The two keywords enable simulations with charge equilibration
 (:ref:`Rappe <Rappe>`).
 
+.. versionadded:: TBD
+
+The keyword *predictor* sets the number of prior charges used by the predictor
+of the conjugate gradient algorithm. An atom/property array will be
+automatically created to store atom charges of previous time steps which are
+then used to extrapolate the current charges. The extrapolation is used as
+starting point for the conjugate gradient algorithm, to reduce the number of
+minimization steps. If the predictor value is set to zero, no atom/property
+array will be created. This keyword is not compatible with the matrix inversion
+algorithm.
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -433,7 +445,7 @@ Default
 """""""
 
 The default keyword-option settings are *algo mat_inv*, *symm off*,
-*etypes off* and *ffield off*.
+*etypes off*, *ffield off* and *predictor 1*.
 
 ----------
 

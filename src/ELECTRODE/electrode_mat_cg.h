@@ -32,7 +32,7 @@ class ElectrodeMatCG : public ElectrodeCG {
   double memory_use() override;
 
   //setup
-  void setup_solver(double, std::unordered_map<tagint, int>);
+  void setup_solver(double, std::unordered_map<tagint, int>, int);
   void set_elastance(int, double **);
 
  private:

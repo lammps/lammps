@@ -160,6 +160,7 @@ class MEAM {
   double embedding(const double A, const double Ec, const double rhobar, double &dF) const;
   double invert_eam(const double r, const int a, const int b, const double Eu, const double F1, const double F2) const;
   double phi_meam(double, int, int) const;
+  double phi_2nn_pair(const int a, const int b, const double r) const;
   double phi_2nn_series(const double scrn, const int Z1, const int Z2, const int a, const int b,
                         const double r, const double arat) const;
 

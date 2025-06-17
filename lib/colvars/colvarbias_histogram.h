@@ -38,6 +38,7 @@ protected:
 
   /// n-dim histogram
   colvar_grid_scalar *grid;
+  std::string grid_conf;
   std::vector<int> bin;
   std::string out_name, out_name_dx;
 

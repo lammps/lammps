@@ -537,14 +537,14 @@ void ComputeStressMopProfile::compute_pairs()
 
             // minimum image of xi with respect to the plane
             xi[dir] -= pos;
-            domain->minimum_image(xi[0], xi[1], xi[2]);
+            domain->minimum_image(FLERR, xi[0], xi[1], xi[2]);
             xi[dir] += pos;
 
             // minimum image of xj with respect to xi
             xj[0] -= xi[0];
             xj[1] -= xi[1];
             xj[2] -= xi[2];
-            domain->minimum_image(xi[0], xi[1], xi[2]);
+            domain->minimum_image(FLERR, xj[0], xj[1], xj[2]);
             xj[0] += xi[0];
             xj[1] += xi[1];
             xj[2] += xi[2];
@@ -649,7 +649,7 @@ void ComputeStressMopProfile::compute_bonds()
         dx[1] = x[atom1][1];
         dx[2] = x[atom1][2];
         dx[dir] -= pos;
-        domain->minimum_image(dx[0], dx[1], dx[2]);
+        domain->minimum_image(FLERR, dx[0], dx[1], dx[2]);
         x_bond_1[0] = dx[0];
         x_bond_1[1] = dx[1];
         x_bond_1[2] = dx[2];
@@ -660,7 +660,7 @@ void ComputeStressMopProfile::compute_bonds()
         dx[0] = x[atom2][0] - x_bond_1[0];
         dx[1] = x[atom2][1] - x_bond_1[1];
         dx[2] = x[atom2][2] - x_bond_1[2];
-        domain->minimum_image(dx[0], dx[1], dx[2]);
+        domain->minimum_image(FLERR, dx[0], dx[1], dx[2]);
         x_bond_2[0] = x_bond_1[0] + dx[0];
         x_bond_2[1] = x_bond_1[1] + dx[1];
         x_bond_2[2] = x_bond_1[2] + dx[2];
@@ -783,7 +783,7 @@ void ComputeStressMopProfile::compute_angles()
         dx[1] = x[atom1][1];
         dx[2] = x[atom1][2];
         dx[dir] -= pos;
-        domain->minimum_image(dx[0], dx[1], dx[2]);
+        domain->minimum_image(FLERR, dx[0], dx[1], dx[2]);
         x_angle_left[0] = dx[0];
         x_angle_left[1] = dx[1];
         x_angle_left[2] = dx[2];
@@ -793,7 +793,7 @@ void ComputeStressMopProfile::compute_angles()
         dx_left[0] = x[atom2][0] - x_angle_left[0];
         dx_left[1] = x[atom2][1] - x_angle_left[1];
         dx_left[2] = x[atom2][2] - x_angle_left[2];
-        domain->minimum_image(dx_left[0], dx_left[1], dx_left[2]);
+        domain->minimum_image(FLERR, dx_left[0], dx_left[1], dx_left[2]);
         x_angle_middle[0] = x_angle_left[0] + dx_left[0];
         x_angle_middle[1] = x_angle_left[1] + dx_left[1];
         x_angle_middle[2] = x_angle_left[2] + dx_left[2];
@@ -802,7 +802,7 @@ void ComputeStressMopProfile::compute_angles()
         dx_right[0] = x[atom3][0] - x_angle_middle[0];
         dx_right[1] = x[atom3][1] - x_angle_middle[1];
         dx_right[2] = x[atom3][2] - x_angle_middle[2];
-        domain->minimum_image(dx_right[0], dx_right[1], dx_right[2]);
+        domain->minimum_image(FLERR, dx_right[0], dx_right[1], dx_right[2]);
         x_angle_right[0] = x_angle_middle[0] + dx_right[0];
         x_angle_right[1] = x_angle_middle[1] + dx_right[1];
         x_angle_right[2] = x_angle_middle[2] + dx_right[2];
@@ -971,14 +971,14 @@ void ComputeStressMopProfile::compute_dihedrals()
         x_atom_1[1] = x[atom1][1];
         x_atom_1[2] = x[atom1][2];
         x_atom_1[dir] -= pos;
-        domain->minimum_image(x_atom_1[0], x_atom_1[1], x_atom_1[2]);
+        domain->minimum_image(FLERR, x_atom_1[0], x_atom_1[1], x_atom_1[2]);
         x_atom_1[dir] += pos;
 
         // minimum image of atom2 with respect to atom1
         diffx[0] = x[atom2][0] - x_atom_1[0];
         diffx[1] = x[atom2][1] - x_atom_1[1];
         diffx[2] = x[atom2][2] - x_atom_1[2];
-        domain->minimum_image(diffx[0], diffx[1], diffx[2]);
+        domain->minimum_image(FLERR, diffx[0], diffx[1], diffx[2]);
         x_atom_2[0] = x_atom_1[0] + diffx[0];
         x_atom_2[1] = x_atom_1[1] + diffx[1];
         x_atom_2[2] = x_atom_1[2] + diffx[2];
@@ -987,7 +987,7 @@ void ComputeStressMopProfile::compute_dihedrals()
         diffx[0] = x[atom3][0] - x_atom_2[0];
         diffx[1] = x[atom3][1] - x_atom_2[1];
         diffx[2] = x[atom3][2] - x_atom_2[2];
-        domain->minimum_image(diffx[0], diffx[1], diffx[2]);
+        domain->minimum_image(FLERR, diffx[0], diffx[1], diffx[2]);
         x_atom_3[0] = x_atom_2[0] + diffx[0];
         x_atom_3[1] = x_atom_2[1] + diffx[1];
         x_atom_3[2] = x_atom_2[2] + diffx[2];
@@ -996,7 +996,7 @@ void ComputeStressMopProfile::compute_dihedrals()
         diffx[0] = x[atom4][0] - x_atom_3[0];
         diffx[1] = x[atom4][1] - x_atom_3[1];
         diffx[2] = x[atom4][2] - x_atom_3[2];
-        domain->minimum_image(diffx[0], diffx[1], diffx[2]);
+        domain->minimum_image(FLERR, diffx[0], diffx[1], diffx[2]);
         x_atom_4[0] = x_atom_3[0] + diffx[0];
         x_atom_4[1] = x_atom_3[1] + diffx[1];
         x_atom_4[2] = x_atom_3[2] + diffx[2];

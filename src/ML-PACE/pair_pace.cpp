@@ -128,7 +128,8 @@ void PairPACE::compute(int eflag, int vflag)
   double fij[3];
   int *ilist, *jlist, *numneigh, **firstneigh;
 
-  ev_init(eflag, vflag);
+  if (copymode) ev_init(eflag, vflag, 0);
+  else ev_init(eflag, vflag, 1);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -144,7 +145,7 @@ void PairPACE::compute(int eflag, int vflag)
   // ilist: list of "i" atoms for which neighbor lists exist
   ilist = list->ilist;
 
-  //numneigh: the length of each these neigbor list
+  //numneigh: the length of each these neighbor list
   numneigh = list->numneigh;
 
   // the pointer to the list of neighbors of "i"

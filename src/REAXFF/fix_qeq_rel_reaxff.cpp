@@ -101,7 +101,10 @@ void FixQEqRelReaxFF::calc_chi_eff()
           sum_d += overlap;
         }
       }
-      chi_eff[i] = chia + scale * (phia - sum_n / sum_d);
+      if (sum_d != 0.0)
+        chi_eff[i] = chia + scale * (phia - sum_n / sum_d);
+      else
+        chi_eff[i] = chia;
     }
   } else {
     for (i = 0; i < nn; i++) { chi_eff[i] = chi[type[i]]; }

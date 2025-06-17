@@ -38,14 +38,9 @@
 
 #include <cstring>
 
+// prototype repeated from base class implementation
 namespace LAMMPS_NS {
 struct ACEImpl {
-  ACEImpl() : basis_set(nullptr), ace(nullptr) {}
-  ~ACEImpl()
-  {
-    delete basis_set;
-    delete ace;
-  }
   ACECTildeBasisSet *basis_set;
   ACERecursiveEvaluator *ace;
 };

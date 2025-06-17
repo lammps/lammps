@@ -37,15 +37,9 @@
 
 #include <cstring>
 
+// prototype repeated from base class implementation
 namespace LAMMPS_NS {
   struct ACEALImpl {
-    ACEALImpl() : basis_set(nullptr), ace(nullptr) {}
-
-    ~ACEALImpl() {
-      delete basis_set;
-      delete ace;
-    }
-
     ACEBBasisSet *basis_set;
     ACEBEvaluator *ace;
   };

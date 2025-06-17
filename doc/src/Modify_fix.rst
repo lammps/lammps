@@ -1,23 +1,25 @@
 Fix styles
 ==========
 
-In LAMMPS, a "fix" is any operation that is computed during
-timestepping that alters some property of the system.  Essentially
-everything that happens during a simulation besides force computation,
-neighbor list construction, and output, is a "fix".  This includes
-time integration (update of coordinates and velocities), force
-constraints or boundary conditions (SHAKE or walls), and diagnostics
-(compute a diffusion coefficient).  New styles can be created to add
-new options to LAMMPS.
+In LAMMPS, a "fix" is any operation that is computed during timestepping
+that alters some property of the system.  Essentially everything that
+happens during a simulation besides force computation, neighbor list
+construction, and output, is a "fix".  This includes time integration
+(update of coordinates and velocities), force constraints or boundary
+conditions (SHAKE or walls), and diagnostics (compute a diffusion
+coefficient).  New styles can be created to add new options to LAMMPS.
 
-Fix_setforce.cpp is a simple example of setting forces on atoms to
-prescribed values.  There are dozens of fix options already in LAMMPS;
-choose one as a template that is similar to what you want to
-implement.
+The file ``src/fix_setforce.cpp`` is a simple example of setting forces
+on atoms to prescribed values.  There are dozens of fix options already
+in LAMMPS; choose one as a template that is similar to what you want to
+implement.  There also is a detailed discussion of :doc:`how to write
+new fix styles <Developer_write_fix>` in LAMMPS.
 
 Here is a brief description of methods you can define in your new
-derived class.  See fix.h for details.
+derived class.  See ``src/fix.h`` for additional details.
 
++---------------------------+--------------------------------------------------------------------------------------------+
+| post_constructor          | perform tasks that cannot be run in the constructor (optional)                             |
 +---------------------------+--------------------------------------------------------------------------------------------+
 | setmask                   | determines when the fix is called during the timestep (required)                           |
 +---------------------------+--------------------------------------------------------------------------------------------+
@@ -130,10 +132,11 @@ derived class.  See fix.h for details.
 
 Typically, only a small fraction of these methods are defined for a
 particular fix.  Setmask is mandatory, as it determines when the fix
-will be invoked during the timestep.  Fixes that perform time
-integration (\ *nve*, *nvt*, *npt*\ ) implement initial_integrate() and
-final_integrate() to perform velocity Verlet updates.  Fixes that
-constrain forces implement post_force().
+will be invoked during :doc:`the evolution of a timestep
+<Developer_flow>`.  Fixes that perform time integration (\ *nve*, *nvt*,
+*npt*\ ) implement initial_integrate() and final_integrate() to perform
+velocity Verlet updates.  Fixes that constrain forces implement
+post_force().
 
 Fixes that perform diagnostics typically implement end_of_step().  For
 an end_of_step fix, one of your fix arguments must be the variable
@@ -143,13 +146,13 @@ is the first argument the fix defines (after the ID, group-ID, style).
 
 If the fix needs to store information for each atom that persists from
 timestep to timestep, it can manage that memory and migrate the info
-with the atoms as they move from processors to processor by
-implementing the grow_arrays, copy_arrays, pack_exchange, and
-unpack_exchange methods.  Similarly, the pack_restart and
-unpack_restart methods can be implemented to store information about
-the fix in restart files.  If you wish an integrator or force
-constraint fix to work with rRESPA (see the :doc:`run_style <run_style>`
-command), the initial_integrate, post_force_integrate, and
-final_integrate_respa methods can be implemented.  The thermo method
-enables a fix to contribute values to thermodynamic output, as printed
-quantities and/or to be summed to the potential energy of the system.
+with the atoms as they move from processors to processor by implementing
+the grow_arrays, copy_arrays, pack_exchange, and unpack_exchange
+methods.  Similarly, the pack_restart and unpack_restart methods can be
+implemented to store information about the fix in restart files.  If you
+wish an integrator or force constraint fix to work with rRESPA (see the
+:doc:`run_style <run_style>` command), the initial_integrate,
+post_force_integrate, and final_integrate_respa methods can be
+implemented.  The thermo method enables a fix to contribute values to
+thermodynamic output, as printed quantities and/or to be summed to the
+potential energy of the system.

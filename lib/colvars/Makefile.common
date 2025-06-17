@@ -32,6 +32,7 @@ COLVARS_SRCS = \
         colvarbias_histogram_reweight_amd.cpp \
         colvarbias_meta.cpp \
         colvarbias_restraint.cpp \
+        colvarbias_opes.cpp \
         colvarcomp_alchlambda.cpp \
         colvarcomp_angles.cpp \
         colvarcomp_apath.cpp \
@@ -40,6 +41,7 @@ COLVARS_SRCS = \
         colvarcomp_distances.cpp \
         colvarcomp_gpath.cpp \
         colvarcomp_neuralnetwork.cpp \
+        colvarcomp_torchann.cpp \
         colvarcomp_combination.cpp \
         colvarcomp_protein.cpp \
         colvarcomp_rotations.cpp \

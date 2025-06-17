@@ -279,7 +279,7 @@ void FixPeriNeigh::setup(int /*vflag*/)
     }
   }
 
-  // sanity check: does any atom appear twice in any neigborlist?
+  // sanity check: does any atom appear twice in any neighborlist?
   // should only be possible if using pbc and domain < 2*delta
 
   if (domain->xperiodic || domain->yperiodic || domain->zperiodic) {

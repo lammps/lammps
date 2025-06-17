@@ -540,7 +540,7 @@ void FixPour::pre_exchange()
           delx = coords[m][0] - xnear[i][0];
           dely = coords[m][1] - xnear[i][1];
           delz = coords[m][2] - xnear[i][2];
-          domain->minimum_image(delx, dely, delz);
+          domain->minimum_image(FLERR, delx, dely, delz);
           rsq = delx * delx + dely * dely + delz * delz;
           radsum = coords[m][3] + xnear[i][3];
           if (rsq <= radsum * radsum) break;
@@ -781,7 +781,7 @@ int FixPour::overlap(int i)
       double delx = x[0] - xc;
       double dely = x[1] - yc;
       double delz = 0.0;
-      domain->minimum_image(delx, dely, delz);
+      domain->minimum_image(FLERR, delx, dely, delz);
       double rsq = delx * delx + dely * dely;
       double r = rc + delta;
       if (rsq > r * r) return 0;

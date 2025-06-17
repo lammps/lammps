@@ -384,32 +384,30 @@ void colvar::distance_dir::apply_force(colvarvalue const &force)
   cvm::real const iprod = force.rvector_value * x.rvector_value;
   cvm::rvector const force_tang = force.rvector_value - iprod * x.rvector_value;
 
-  if (!group1->noforce)
-    group1->apply_force(-1.0 * force_tang);
-
-  if (!group2->noforce)
-    group2->apply_force(       force_tang);
+  if (!group1->noforce) {
+    group1->apply_force(-1.0 / dist_v.norm() * force_tang);
+  }
+  if (!group2->noforce) {
+    group2->apply_force( 1.0 / dist_v.norm() * force_tang);
+  }
 }
 
 
-cvm::real colvar::distance_dir::dist2(colvarvalue const &x1,
-                                      colvarvalue const &x2) const
+cvm::real colvar::distance_dir::dist2(colvarvalue const &x1, colvarvalue const &x2) const
 {
-  return (x1.rvector_value - x2.rvector_value).norm2();
+  return x1.dist2(x2);
 }
 
 
-colvarvalue colvar::distance_dir::dist2_lgrad(colvarvalue const &x1,
-                                              colvarvalue const &x2) const
+colvarvalue colvar::distance_dir::dist2_lgrad(colvarvalue const &x1, colvarvalue const &x2) const
 {
-  return colvarvalue((x1.rvector_value - x2.rvector_value), colvarvalue::type_unit3vectorderiv);
+  return x1.dist2_grad(x2);
 }
 
 
-colvarvalue colvar::distance_dir::dist2_rgrad(colvarvalue const &x1,
-                                              colvarvalue const &x2) const
+colvarvalue colvar::distance_dir::dist2_rgrad(colvarvalue const &x1, colvarvalue const &x2) const
 {
-  return colvarvalue((x2.rvector_value - x1.rvector_value), colvarvalue::type_unit3vectorderiv);
+  return x2.dist2_grad(x1);
 }
 
 
@@ -1005,7 +1003,7 @@ void colvar::rmsd::calc_Jacobian_derivative()
     for (size_t ia = 0; ia < atoms->size(); ia++) {
 
       // Gradient of optimal quaternion wrt current Cartesian position
-      atoms->rot_deriv->calc_derivative_wrt_group1(ia, nullptr, &dq);
+      atoms->rot_deriv->calc_derivative_wrt_group1<false, true, false>(ia, nullptr, &dq);
 
       g11 = 2.0 * (atoms->rot.q)[1]*dq[1];
       g22 = 2.0 * (atoms->rot.q)[2]*dq[2];
@@ -1304,7 +1302,7 @@ void colvar::eigenvector::calc_Jacobian_derivative()
     // Gradient of optimal quaternion wrt current Cartesian position
     // trick: d(R^-1)/dx = d(R^t)/dx = (dR/dx)^t
     // we can just transpose the derivatives of the direct matrix
-    atoms->rot_deriv->calc_derivative_wrt_group1(ia, nullptr, &dq_1);
+    atoms->rot_deriv->calc_derivative_wrt_group1<false, true, false>(ia, nullptr, &dq_1);
 
     g11 = 2.0 * quat0[1]*dq_1[1];
     g22 = 2.0 * quat0[2]*dq_1[2];
@@ -1403,11 +1401,12 @@ void colvar::cartesian::apply_force(colvarvalue const &force)
   size_t ia, j;
   if (!atoms->noforce) {
     cvm::rvector f;
+    auto ag_force = atoms->get_group_force_object();
     for (ia = 0; ia < atoms->size(); ia++) {
       for (j = 0; j < dim; j++) {
         f[axes[j]] = force.vector1d_value[dim*ia + j];
       }
-      (*atoms)[ia].apply_force(f);
+      ag_force.add_atom_force(ia, f);
     }
   }
 }

@@ -109,6 +109,17 @@ enum _LMP_VAR_CONST {
   LMP_VAR_STRING = 3  /*!< return value will be a string (catch-all) */
 };
 
+/** Neighbor list settings constants
+ *
+ * Must be kept in sync with the equivalent constants in ``python/lammps/constants.py``,
+ * ``fortran/lammps.f90``, ``tools/swig/lammps.i``, and
+ * ``examples/COUPLE/plugin/liblammpsplugin.h`` */
+
+enum _LMP_NEIGH_CONST {
+  LMP_NEIGH_HALF = 0,  /*!< request (default) half neighbor list */
+  LMP_NEIGH_FULL = 1,  /*!< request full neighbor list */
+};
+
 /* Ifdefs to allow this file to be included in C and C++ programs */
 
 #ifdef __cplusplus
@@ -129,6 +140,7 @@ void lammps_close(void *handle);
 void lammps_mpi_init();
 void lammps_mpi_finalize();
 void lammps_kokkos_finalize();
+void lammps_plugin_finalize();
 void lammps_python_finalize();
 
 void lammps_error(void *handle, int error_type, const char *error_text);
@@ -235,6 +247,7 @@ int lammps_create_atoms(void *handle, int n, const int64_t *id, const int *type,
 int lammps_find_pair_neighlist(void *handle, const char *style, int exact, int nsub, int request);
 int lammps_find_fix_neighlist(void *handle, const char *id, int request);
 int lammps_find_compute_neighlist(void *handle, const char *id, int request);
+int lammps_request_single_neighlist(void *handle, const char *id, int flags, double cutoff);
 int lammps_neighlist_num_elements(void *handle, int idx);
 void lammps_neighlist_element_neighbors(void *handle, int idx, int element, int *iatom,
                                         int *numneigh, int **neighbors);

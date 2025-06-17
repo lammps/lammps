@@ -56,19 +56,33 @@ force cutoff distance for that interaction, as defined by the
 :doc:`pair_style <pair_style>` and :doc:`pair_coeff <pair_coeff>`
 commands.
 
-The value *dist* is the distance between the pair of atoms.
-The values *dx*, *dy*, and *dz* are the :math:`(x,y,z)` components of the
-*distance* between the pair of atoms. This value is always the
-distance from the atom of higher to the one with the lower atom ID.
+.. versionchanged:: 12Jun2025
+
+   The sign of *dx*, *dy*, *dz* is no longer determined by the value of
+   their atom-IDs but by their order in the neighbor list to be
+   consistent with *fx*, *fy*, and *fz*.
+
+The value *dist* is the distance between the pair of atoms.  The values
+*dx*, *dy*, and *dz* are the :math:`(x,y,z)` components of the distance
+vector :math:`\vec{x_i} - \vec{x_j}` between the pair of atoms.  The
+order of the atoms is determined by the neighbor list and the respective
+atom-IDs can be output with :doc:`compute property/local
+<compute_property_local>`.
 
 The value *eng* is the interaction energy for the pair of atoms.
 
 The value *force* is the force acting between the pair of atoms, which
 is positive for a repulsive force and negative for an attractive
-force.  The values *fx*, *fy*, and *fz* are the :math:`(x,y,z)` components of
-*force* on atom I. For pair styles that apply non-central forces,
-such as :doc:`granular pair styles <pair_gran>`, these values only include
-the :math:`(x,y,z)` components of the normal force component.
+force.
+
+The values *fx*, *fy*, and *fz* are the :math:`(x,y,z)` components of
+the force vector on the first atom *i* of a pair in the neighbor list
+due to the second atom *j*.  Mathematically, they are obtained by
+multiplying the value of *force* from above with a unit vector created
+from the *dx*, *dy*, and *dz* components of the distance vector also
+described above.  For pair styles that apply non-central forces, such as
+:doc:`granular pair styles <pair_gran>`, these values only include the
+:math:`(x,y,z)` components of the normal force component.
 
 A pair style may define additional pairwise quantities which can be
 accessed as *p1* to *pN*, where :math:`N` is defined by the pair style.

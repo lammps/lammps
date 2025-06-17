@@ -90,8 +90,9 @@ TEST_F(SetTest, NoBoxNoAtoms)
     ASSERT_EQ(compute->vector_atom[0], 0);
 
     TEST_FAILURE(".*ERROR: Illegal set command: need at least four.*", command("set type 1 x"););
-    TEST_FAILURE(".*ERROR: Unknown set command style: xxx.*", command("set xxx 1 x 0.0"););
-    TEST_FAILURE(".*ERROR: Set keyword or custom property yyy does not exist.*",
+    TEST_FAILURE(".*ERROR: Unknown set or fix set command style: xxx.*",
+                 command("set xxx 1 x 0.0"););
+    TEST_FAILURE(".*ERROR: Unrecognized set or fix set command keyword yyy.*",
                  command("set type 1 yyy 0.0"););
 
     TEST_FAILURE(".*ERROR: Cannot set attribute spin/atom for atom style atomic.*",
@@ -447,9 +448,9 @@ TEST_F(SetTest, EffPackage)
     EXPECT_EQ(compute->array_atom[6][1], 0.5);
     EXPECT_EQ(compute->array_atom[7][1], 1.0);
 
-    TEST_FAILURE(".*ERROR on proc 0: Incorrect value for electron spin: 0.5.*",
+    TEST_FAILURE(".*Expected integer parameter instead of '0.5' in input script.*",
                  command("set atom * spin/electron 0.5"););
-    TEST_FAILURE(".*ERROR on proc 0: Incorrect value for electron radius: -0.5.*",
+    TEST_FAILURE(".*ERROR on proc 0: Invalid electron radius -0.5 in set.*",
                  command("set atom * radius/electron -0.5"););
 }
 

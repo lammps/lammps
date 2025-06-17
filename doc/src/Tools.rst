@@ -92,6 +92,7 @@ Miscellaneous tools
    * :ref:`LAMMPS coding standards <coding_standard>`
    * :ref:`emacs <emacs>`
    * :ref:`i-PI <ipi>`
+   * :ref:`JSON support <json>`
    * :ref:`kate <kate>`
    * :ref:`LAMMPS-GUI <lammps_gui>`
    * :ref:`LAMMPS magic patterns for file(1) <magic>`
@@ -364,7 +365,7 @@ These tools were provided by Aidan Thompson at Sandia
 .. _fep:
 
 fep tool
-------------------
+--------
 
 The tools/fep directory contains Python scripts useful for
 post-processing results from performing free-energy perturbation
@@ -379,7 +380,7 @@ See README file in the tools/fep directory.
 .. _ipi:
 
 i-PI tool
--------------------
+---------
 
 .. versionchanged:: 27June2024
 
@@ -432,6 +433,87 @@ tools/createatoms tool's input file.
 
 ----------
 
+.. _json:
+
+JSON support files
+------------------
+
+.. versionadded:: 12June2025
+
+The ``tools/json`` directory contains files and tools to support
+using `JSON format <https://www.json.org/>`_ files in LAMMPS.
+Currently only the :doc:`molecule command <molecule>` supports
+files in JSON format directly, but this is planned to be expanded
+in the future.
+
+JSON file validation
+^^^^^^^^^^^^^^^^^^^^
+
+The JSON syntax is independent of its content, and thus the data in the
+file must follow suitable conventions to be correctly parsed during
+input.  This can be done in a portable fashion using a `JSON schema file
+<https://json-schema.org/>`_ (which is in JSON format as well) to define
+those conventions.  A suitable JSON validator software can then validate
+JSON files against the requirements.  Validating a particular JSON file
+against a schema ensures that both, the syntax *and* the conventions
+are followed.  This is useful when writing or editing JSON files in a
+text editor or when writing a pre-processing script or tool to create
+JSON files for a specific purpose in LAMMPS.  It **cannot** check
+whether the file contents are physically meaningful, though.
+
+One such validator tool is `check-jsonschema
+<https://check-jsonschema.readthedocs.io/>`_ which is written in Python
+and can be installed using the `pip Python package manager
+<https://pypi.org/>`_, best in a virtual environment as shown below (for
+a Bourne Shell command line):
+
+.. code-block:: sh
+
+   python -m venv validate-json
+   source validate-json/bin/activate
+   pip install --upgrade pip
+   pip install check-jsonschema
+
+To validate a specific JSON file against a provided schema (here for
+a :doc:`molecule command file <molecule>` you would then run for example:
+
+.. code-block:: sh
+
+   check-jsonschema --schemafile molecule-schema.json tip3p.json
+
+The latest schema files are also maintained and available for download
+at https://download.lammps.org/json .  This enables validation of JSON
+files even if the LAMMPS sources are not locally available. Example:
+
+.. code-block:: sh
+
+   check-jsonschema --schemafile https://download.lammps.org/json/molecule-schema.json tip3p.json
+
+JSON file format normalization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are extensions to the strict JSON format that allow for comments
+or ignore additional (dangling) commas. The ``reformat-json.cpp`` tool
+will read JSON files in relaxed format, but write it out in strict format.
+It is also possible to change the level of indentation from -1 (all data
+one long line) to any positive integer value.  The original file will be
+backed up (.bak added to file name) and then overwritten.
+
+Manual compilation (it will be automatically included in the CMake build
+if building tools is requested during CMake configuration):
+
+.. code-block:: sh
+
+   g++ -I <path/to/lammps/src> -o reformat-json reformat-json.cpp
+
+Usage:
+
+.. parsed-literal::
+
+   reformat-json <indent-width> <json-file-1> [<json-file-2> ...]
+
+----------
+
 .. _kate:
 
 kate tool
@@ -475,9 +557,13 @@ beginners to start with LAMMPS, it is also the expectation that
 LAMMPS-GUI users will eventually transition to workflows that most
 experienced LAMMPS users employ.
 
-All features have been extensively exposed to keyboard shortcuts, so
-that there is also appeal for experienced LAMMPS users for prototyping
-and testing simulation setups.
+.. image:: JPG/lammps-gui-screen.png
+   :align: center
+   :scale: 50%
+
+Features have been extensively exposed to keyboard shortcuts, so that
+there is also appeal for experienced LAMMPS users for prototyping and
+testing simulation setups.
 
 Features
 ^^^^^^^^
@@ -502,7 +588,7 @@ Here are a few highlights of LAMMPS-GUI
 - Visualization of current state in Image Viewer (via calling :doc:`write_dump image <dump_image>`)
 - Capture of images created via :doc:`dump image <dump_image>` in Slide show window
 - Dialog to set variables, similar to the LAMMPS command-line flag '-v' / '-var'
-- Support for GPU, INTEL, KOKKOS/OpenMP, OPENMAP, and OPT and accelerator packages
+- Support for GPU, INTEL, KOKKOS/OpenMP, OPENMP, and OPT accelerator packages
 
 Parallelization
 ^^^^^^^^^^^^^^^
@@ -523,8 +609,8 @@ with CMake is required.
 The LAMMPS-GUI has been successfully compiled and tested on:
 
 - Ubuntu Linux 20.04LTS x86_64 using GCC 9, Qt version 5.12
-- Fedora Linux 40 x86\_64 using GCC 14 and Clang 17, Qt version 5.15LTS
-- Fedora Linux 40 x86\_64 using GCC 14, Qt version 6.7
+- Fedora Linux 41 x86\_64 using GCC 14 and Clang 17, Qt version 5.15LTS
+- Fedora Linux 41 x86\_64 using GCC 14, Qt version 6.8
 - Apple macOS 12 (Monterey) and macOS 13 (Ventura) with Xcode on arm64 and x86\_64, Qt version 5.15LTS
 - Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.36, Qt version 5.15LTS
 - Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.40, Qt version 6.7
@@ -1250,10 +1336,10 @@ tabulate tool
 
 .. versionadded:: 22Dec2022
 
-The ``tabulate`` folder contains Python scripts scripts to generate tabulated
-potential files for LAMMPS.  The bulk of the code is in the ``tabulate`` module
-in the ``tabulate.py`` file.  Some example files demonstrating its use are
-included.  See the README file for more information.
+The ``tabulate`` folder contains Python scripts scripts to generate and
+visualize tabulated potential files for LAMMPS.  The bulk of the code is in the
+``tabulate`` module in the ``tabulate.py`` file.  Some example files
+demonstrating its use are included.  See the README file for more information.
 
 ----------
 
@@ -1276,11 +1362,13 @@ Those scripts were written by Steve Plimpton sjplimp at gmail.com
 valgrind tool
 -------------
 
-The ``valgrind`` folder contains additional suppressions fur LAMMPS when using
-valgrind's memcheck tool to search for memory access violation and memory
-leaks. These suppressions are automatically invoked when running tests through
-CMake "ctest -T memcheck". See the provided README file to add these
-suppressions when running LAMMPS.
+The ``valgrind`` folder contains additional suppressions for LAMMPS when
+using `valgrind's <https://valgrind.org/>`_ ` `memcheck tool
+<https://valgrind.org/info/tools.html#memcheck>`_ to search for memory
+access violation and memory leaks.  These suppressions are automatically
+invoked when running tests through CMake "ctest -T memcheck".  See the
+instruction in the ``README`` file to add these suppressions when using
+valgrind with LAMMPS or other programs.
 
 ----------
 

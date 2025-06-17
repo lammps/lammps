@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-PairMLIAPKokkos<DeviceType>::PairMLIAPKokkos(class LAMMPS* l) : PairMLIAP(l)
+PairMLIAPKokkos<DeviceType>::PairMLIAPKokkos(class LAMMPS *lmp) : PairMLIAP(lmp)
 {
   kokkosable = 1;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -45,7 +45,6 @@ PairMLIAPKokkos<DeviceType>::PairMLIAPKokkos(class LAMMPS* l) : PairMLIAP(l)
   is_child=true;
   reverse_comm_device = 1;
   comm_type=COMM_TYPE::UNSET;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -56,8 +55,9 @@ PairMLIAPKokkos<DeviceType>::~PairMLIAPKokkos()
   memoryKK->destroy_kokkos(k_map, map);
   memoryKK->destroy_kokkos(k_cutsq, cutsq);
   memoryKK->destroy_kokkos(k_setflag, setflag);
-  memoryKK->destroy_kokkos(k_eatom,eatom);
-  memoryKK->destroy_kokkos(k_vatom,vatom);
+  memoryKK->destroy_kokkos(k_eatom, eatom);
+  memoryKK->destroy_kokkos(k_vatom, vatom);
+  if (ghostneigh) memoryKK->destroy_kokkos(k_cutghost, cutghost);
   delete model;
   delete descriptor;
   model=nullptr;
@@ -84,15 +84,25 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
   if (data->nelements != model->nelements)
     error->all(FLERR, "Incompatible model and descriptor element count");
 
-  ev_init(eflag, vflag);
-  if (eflag_atom && (int)k_eatom.h_view.extent(0) < maxeatom) {
-     memoryKK->destroy_kokkos(k_eatom,eatom);
-     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+  ev_init(eflag, vflag, 0);
+  if (eflag_atom) {
+    if ((int)k_eatom.h_view.extent(0) < maxeatom) {
+      memoryKK->destroy_kokkos(k_eatom,eatom);
+      memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    } else {
+      Kokkos::deep_copy(k_eatom.d_view,0);
+      k_eatom.modify<DeviceType>();
+    }
   }
 
-  if (vflag_atom && (int)k_vatom.h_view.extent(0) < maxeatom) {
-    memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxeatom,6,"pair:eatom");
+  if (vflag_atom) {
+    if ((int)k_vatom.h_view.extent(0) < maxeatom) {
+      memoryKK->destroy_kokkos(k_vatom,vatom);
+      memoryKK->create_kokkos(k_vatom,vatom,maxeatom,6,"pair:eatom");
+    } else {
+      Kokkos::deep_copy(k_vatom.d_view,0);
+      k_vatom.modify<DeviceType>();
+    }
   }
 
   data->generate_neighdata(list, eflag, vflag);
@@ -148,6 +158,7 @@ void PairMLIAPKokkos<DeviceType>::allocate()
   memoryKK->create_kokkos(k_cutsq, cutsq, n+1, n+1, "pair_mliap:cutsq");
   memoryKK->create_kokkos(k_setflag, setflag, n+1, n+1, "pair_mliap:setflag");
 
+  if (ghostneigh) memoryKK->create_kokkos(k_cutghost, cutghost, n+1, n+1, "pair_mliap:cutghost");
   // this is for the base class so it doesn't double delete
   allocated = 1;
 }
@@ -217,10 +228,7 @@ void PairMLIAPKokkos<DeviceType>::settings(int narg, char ** arg)
 template<class DeviceType>
 void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
   if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
-  if (!allocated) {
-    PairMLIAP::allocate();
-    allocate();
-  }
+  if (!allocated) allocate();
 
   char* type1 = arg[0];
   char* type2 = arg[1];
@@ -242,7 +250,6 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
       if (strcmp(elemname,descriptor->elements[jelem]) == 0)
         break;
 
-    //printf(">>> nelements: %d\n", descriptor->nelements);
     if (jelem < descriptor->nelements)
       map[i] = jelem;
     else if (strcmp(elemname,"NULL") == 0) map[i] = -1;

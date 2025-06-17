@@ -687,7 +687,7 @@ void FixMDIQMMM::pre_force(int vflag)
         double delx = xqm[i][0] - xqm[j][0];
         double dely = xqm[i][1] - xqm[j][1];
         double delz = xqm[i][2] - xqm[j][2];
-        domain->minimum_image(delx, dely, delz);
+        domain->minimum_image(FLERR, delx, dely, delz);
         rsq = delx * delx + dely * dely + delz * delz;
         qpotential_mine[i] -= qqrd2e * qqm[j] / sqrt(rsq);
       }

@@ -7,7 +7,7 @@
    ...
    fun:ompi_mpi_init
    fun:PMPI_Init
-   fun:main
+   ...
 }
 {
    OpenMPI_MPI_init2
@@ -33,7 +33,7 @@
    ...
    fun:ompi_mpi_init
    fun:PMPI_Init
-   fun:main
+   ...
 }
 {
    OpenMPI_MPI_init4
@@ -43,7 +43,7 @@
    ...
    fun:ompi_mpi_init
    fun:PMPI_Init
-   fun:main
+   ...
 }
 {
    OpenMPI_MPI_init5
@@ -68,7 +68,7 @@
    fun:opal_progress
    fun:ompi_mpi_init
    fun:PMPI_Init
-   fun:main
+   ...
 }
 {
    OpenMPI_MPI_init7

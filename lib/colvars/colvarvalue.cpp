@@ -153,29 +153,6 @@ std::string const colvarvalue::type_keyword(Type t)
 }
 
 
-size_t colvarvalue::num_df(Type t)
-{
-  switch (t) {
-  case colvarvalue::type_notset:
-  default:
-    return 0; break;
-  case colvarvalue::type_scalar:
-    return 1; break;
-  case colvarvalue::type_3vector:
-    return 3; break;
-  case colvarvalue::type_unit3vector:
-  case colvarvalue::type_unit3vectorderiv:
-    return 2; break;
-  case colvarvalue::type_quaternion:
-  case colvarvalue::type_quaternionderiv:
-    return 3; break;
-  case colvarvalue::type_vector:
-    // the size of a vector is unknown without its object
-    return 0; break;
-  }
-}
-
-
 size_t colvarvalue::num_dimensions(Type t)
 {
   switch (t) {
@@ -591,34 +568,132 @@ cvm::real operator * (colvarvalue const &x1,
 }
 
 
+cvm::real colvarvalue::norm2() const
+{
+  switch (value_type) {
+  case colvarvalue::type_scalar:
+    return (this->real_value)*(this->real_value);
+  case colvarvalue::type_3vector:
+  case colvarvalue::type_unit3vector:
+  case colvarvalue::type_unit3vectorderiv:
+    return (this->rvector_value).norm2();
+  case colvarvalue::type_quaternion:
+  case colvarvalue::type_quaternionderiv:
+    return (this->quaternion_value).norm2();
+  case colvarvalue::type_vector:
+    if (elem_types.size() > 0) {
+      // if we have information about non-scalar types, use it
+      cvm::real result = 0.0;
+      size_t i;
+      for (i = 0; i < elem_types.size(); i++) {
+        result += (this->get_elem(i)).norm2();
+      }
+      return result;
+    } else {
+      return vector1d_value.norm2();
+    }
+    break;
+  case colvarvalue::type_notset:
+  default:
+    return 0.0;
+  }
+}
+
+
+cvm::real colvarvalue::sum() const
+{
+  switch (value_type) {
+  case colvarvalue::type_scalar:
+    return (this->real_value);
+  case colvarvalue::type_3vector:
+  case colvarvalue::type_unit3vector:
+  case colvarvalue::type_unit3vectorderiv:
+    return (this->rvector_value).x + (this->rvector_value).y +
+      (this->rvector_value).z;
+  case colvarvalue::type_quaternion:
+  case colvarvalue::type_quaternionderiv:
+    return (this->quaternion_value).q0 + (this->quaternion_value).q1 +
+      (this->quaternion_value).q2 + (this->quaternion_value).q3;
+  case colvarvalue::type_vector:
+    return (this->vector1d_value).sum();
+  case colvarvalue::type_notset:
+  default:
+    return 0.0;
+  }
+}
+
+
+cvm::real colvarvalue::dist2(colvarvalue const &x2) const
+{
+  colvarvalue::check_types(*this, x2);
+
+  switch (this->type()) {
+  case colvarvalue::type_scalar:
+    return (this->real_value - x2.real_value) * (this->real_value - x2.real_value);
+  case colvarvalue::type_3vector:
+    return (this->rvector_value - x2.rvector_value).norm2();
+  case colvarvalue::type_unit3vector: {
+    cvm::rvector const &v1 = this->rvector_value;
+    cvm::rvector const &v2 = x2.rvector_value;
+    cvm::real const theta = cvm::acos(v1 * v2);
+    return theta * theta;
+  }
+  case colvarvalue::type_quaternion:
+    // angle between (*this) and x2 is the distance, the quaternion
+    // object has it implemented internally
+    return this->quaternion_value.dist2(x2.quaternion_value);
+  case colvarvalue::type_vector:
+    return (this->vector1d_value - x2.vector1d_value).norm2();
+  case colvarvalue::type_unit3vectorderiv:
+  case colvarvalue::type_quaternionderiv:
+    cvm::error("Error: computing a squared-distance between two variables of type \"" +
+                   type_desc(this->type()) + "\", for which it is not defined.\n",
+               COLVARS_BUG_ERROR);
+  case colvarvalue::type_notset:
+  default:
+    this->undef_op();
+    return 0.0;
+  };
+
+  return 0.0;
+}
+
+
 colvarvalue colvarvalue::dist2_grad(colvarvalue const &x2) const
 {
   colvarvalue::check_types(*this, x2);
+
+  // Compute derivative with respect to (*this)
 
   switch (this->value_type) {
   case colvarvalue::type_scalar:
     return 2.0 * (this->real_value - x2.real_value);
   case colvarvalue::type_3vector:
     return 2.0 * (this->rvector_value - x2.rvector_value);
-  case colvarvalue::type_unit3vector:
-  case colvarvalue::type_unit3vectorderiv:
-    {
-      cvm::rvector const &v1 = this->rvector_value;
-      cvm::rvector const &v2 = x2.rvector_value;
-      cvm::real const cos_t = v1 * v2;
-      return colvarvalue(2.0 * (cos_t * v1 - v2), colvarvalue::type_unit3vectorderiv);
-    }
+  case colvarvalue::type_unit3vector: {
+    cvm::rvector const &v1 = this->rvector_value;
+    cvm::rvector const &v2 = x2.rvector_value;
+    cvm::real const cos_t = v1 * v2;
+    return colvarvalue(2.0 * cvm::acos(cos_t) * -1.0 / cvm::sqrt(1.0 - cos_t * cos_t) * v2,
+                       colvarvalue::type_unit3vectorderiv);
+  }
   case colvarvalue::type_quaternion:
-  case colvarvalue::type_quaternionderiv:
     return this->quaternion_value.dist2_grad(x2.quaternion_value);
   case colvarvalue::type_vector:
     return colvarvalue(2.0 * (this->vector1d_value - x2.vector1d_value), colvarvalue::type_vector);
     break;
+  case colvarvalue::type_unit3vectorderiv:
+  case colvarvalue::type_quaternionderiv:
+    cvm::error("Error: computing a squared-distance gradient between two variables of type \"" +
+                   type_desc(this->type()) + "\", for which it is not defined.\n",
+               COLVARS_BUG_ERROR);
   case colvarvalue::type_notset:
   default:
     this->undef_op();
     return colvarvalue(colvarvalue::type_notset);
   };
+
+  return colvarvalue(colvarvalue::type_notset);
 }
 
 

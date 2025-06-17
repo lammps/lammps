@@ -90,6 +90,8 @@ Pair::Pair(LAMMPS *lmp) :
   reinitflag = 1;
   centroidstressflag = CENTROID_SAME;
 
+  atomic_energy_enable = 0;
+
   // pair_modify settings
 
   compute_flag = 1;
@@ -741,9 +743,9 @@ double Pair::mix_distance(double sig1, double sig2)
 
 /* ---------------------------------------------------------------------- */
 
-void Pair::compute_dummy(int eflag, int vflag)
+void Pair::compute_dummy(int eflag, int vflag, int alloc)
 {
-  ev_init(eflag,vflag);
+  ev_init(eflag,vflag,alloc);
 }
 
 /* ---------------------------------------------------------------------- */

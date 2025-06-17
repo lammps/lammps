@@ -251,7 +251,7 @@ double AngleDipole::single(int type, int iRef, int iDip, int /*iDummy*/)
   double dely = x[iRef][1] - x[iDip][1];
   double delz = x[iRef][2] - x[iDip][2];
 
-  domain->minimum_image(delx, dely, delz);
+  domain->minimum_image(FLERR, delx, dely, delz);
 
   double r = sqrt(delx * delx + dely * dely + delz * delz);
   if (r < SMALL) return 0.0;

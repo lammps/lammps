@@ -119,7 +119,7 @@ void FixMinimize::reset_coords()
     dx = dx0 = x[i][0] - x0[n];
     dy = dy0 = x[i][1] - x0[n+1];
     dz = dz0 = x[i][2] - x0[n+2];
-    domain->minimum_image(dx,dy,dz);
+    domain->minimum_image(FLERR, dx,dy,dz);
     if (dx != dx0) x0[n] = x[i][0] - dx;
     if (dy != dy0) x0[n+1] = x[i][1] - dy;
     if (dz != dz0) x0[n+2] = x[i][2] - dz;

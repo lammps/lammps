@@ -40,7 +40,7 @@ class ComputeRHEOKernel : public Compute {
   double calc_w(int, int, double, double, double, double);
   double calc_dw(int, int, double, double, double, double);
   double calc_w_quintic(double);
-  double calc_dw_scalar_quintic(double, double, double, double);
+  double calc_dw_scalar_quintic(double);
   double calc_dw_quintic(double, double, double, double, double *, double *);
   double calc_w_wendlandc4(double);
   double calc_dw_wendlandc4(double, double, double, double, double *, double *);

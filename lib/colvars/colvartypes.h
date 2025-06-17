@@ -20,10 +20,6 @@
 
 #include "colvarmodule.h"
 
-#ifndef PI
-#define PI 3.14159265358979323846
-#endif
-
 // ----------------------------------------------------------------------
 /// Linear algebra functions and data types used in the collective
 /// variables implemented so far
@@ -1221,8 +1217,57 @@ public:
 
   /// \brief Multiply the given vector by the derivative of the given
   /// (rotated) position with respect to the quaternion
-  cvm::quaternion position_derivative_inner(cvm::rvector const &pos,
-                                            cvm::rvector const &vec) const;
+  /// \param pos The position \f$\mathbf{x}\f$.
+  /// \param vec The vector \f$\mathbf{v}\f$.
+  /// \return A quaternion (see the detailed documentation below).
+  ///
+  /// This function is mainly used for projecting the gradients or forces on
+  /// the rotated atoms to the forces on quaternion. Assume this rotation can
+  /// be represented as \f$R(\mathbf{q})\f$,
+  /// where \f$\mathbf{q} := (q_0, q_1, q_2, q_3)\f$
+  /// is the current quaternion, the function returns the following new
+  /// quaternion:
+  /// \f[
+  /// \left(\mathbf{v}^\mathrm{T}\frac{\partial R(\mathbf{q})}{\partial q_0}\mathbf{x},
+  ///       \mathbf{v}^\mathrm{T}\frac{\partial R(\mathbf{q})}{\partial q_1}\mathbf{x},
+  ///       \mathbf{v}^\mathrm{T}\frac{\partial R(\mathbf{q})}{\partial q_2}\mathbf{x},
+  ///       \mathbf{v}^\mathrm{T}\frac{\partial R(\mathbf{q})}{\partial q_3}\mathbf{x}\right)
+  /// \f]
+  /// where \f$\mathbf{v}\f$ is usually the gradient of \f$\xi\f$ with respect to
+  /// the rotated frame \f$\tilde{\mathbf{X}}\f$,
+  /// \f$\partial \xi / \partial \tilde{\mathbf{X}}\f$, or the force acting on it
+  /// (\f$\mathbf{F}_{\tilde{\mathbf{X}}}\f$).
+  /// By using the following loop in pseudo C++ code,
+  /// either \f$\partial \xi / \partial \tilde{\mathbf{X}}\f$
+  /// or \f$\mathbf{F}_{\tilde{\mathbf{X}}}\f$, can be projected to
+  /// \f$\partial \xi / \partial \mathbf{q}\f$ or \f$\mathbf{F}_q\f$ into `sum_dxdq`:
+  /// @code
+  /// cvm::real sum_dxdq[4] = {0, 0, 0, 0};
+  /// for (size_t i = 0; i < main_group_size(); ++i) {
+  ///   const cvm::rvector v = grad_or_force_on_rotated_main_group(i);
+  ///   const cvm::rvector x = unrotated_main_group_positions(i);
+  ///   cvm::quaternion const dxdq = position_derivative_inner(x, v);
+  ///   sum_dxdq[0] += dxdq[0];
+  ///   sum_dxdq[1] += dxdq[1];
+  ///   sum_dxdq[2] += dxdq[2];
+  ///   sum_dxdq[3] += dxdq[3];
+  /// }
+  /// @endcode
+  inline cvm::quaternion position_derivative_inner(cvm::rvector const &pos,
+                                            cvm::rvector const &vec) const {
+    return cvm::quaternion(2.0 * (vec.x * ( q0 * pos.x - q3 * pos.y + q2 * pos.z) +
+                                  vec.y * ( q3 * pos.x + q0 * pos.y - q1 * pos.z) +
+                                  vec.z * (-q2 * pos.x + q1 * pos.y + q0 * pos.z)),
+                           2.0 * (vec.x * ( q1 * pos.x + q2 * pos.y + q3 * pos.z) +
+                                  vec.y * ( q2 * pos.x - q1 * pos.y - q0 * pos.z) +
+                                  vec.z * ( q3 * pos.x + q0 * pos.y - q1 * pos.z)),
+                           2.0 * (vec.x * (-q2 * pos.x + q1 * pos.y + q0 * pos.z) +
+                                  vec.y * ( q1 * pos.x + q2 * pos.y + q3 * pos.z) +
+                                  vec.z * (-q0 * pos.x + q3 * pos.y - q2 * pos.z)),
+                           2.0 * (vec.x * (-q3 * pos.x - q0 * pos.y + q1 * pos.z) +
+                                  vec.y * ( q0 * pos.x - q3 * pos.y + q2 * pos.z) +
+                                  vec.z * ( q1 * pos.x + q2 * pos.y + q3 * pos.z)));
+  }
 
 
   /// \brief Return the cosine between the orientation frame
@@ -1301,7 +1346,7 @@ public:
 
 #ifndef COLVARS_LAMMPS
 namespace NR {
-void diagonalize_matrix(cvm::real m[4][4],
+int diagonalize_matrix(cvm::real m[4][4],
                         cvm::real eigval[4],
                         cvm::real eigvec[4][4]);
 }

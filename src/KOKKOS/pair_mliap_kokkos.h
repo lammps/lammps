@@ -31,6 +31,7 @@ PairStyle(mliap/kk/host,PairMLIAPKokkos<LMPHostType>);
 #include "kokkos_type.h"
 #include "kokkos_base.h"
 #include "comm.h"
+
 #include <variant>
 
 namespace LAMMPS_NS {
@@ -42,16 +43,16 @@ public:
   typedef ArrayTypes<DeviceType> AT;
 
   PairMLIAPKokkos(class LAMMPS*);
-  ~PairMLIAPKokkos();
-  void settings(int narg, char ** arg);
-  void init_style();
+  ~PairMLIAPKokkos() override;
+  void settings(int narg, char ** arg) override;
+  void init_style() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
   void e_tally(MLIAPData* data);
 
-  void allocate();
+  void allocate() override;
 
-  void coeff(int narg, char **arg);
+  void coeff(int narg, char **arg) override;
 
   //Outward facing functions to be invoked by the ML layer via MLIAPDataKokkosDevice
   template <typename CommType>
@@ -108,6 +109,7 @@ public:
   typename AT::t_f_array f;
   DAT::tdual_int_1d k_map;
   DAT::tdual_double_2d k_cutsq;
+  DAT::tdual_double_2d k_cutghost;
   DAT::tdual_int_2d k_setflag;
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_double_2d k_vatom;

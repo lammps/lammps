@@ -153,7 +153,7 @@ TEST_F(Advanced_utils, expand_args)
 
     // disable use of input->command and input->arg which point to the last run command right now
     lmp->input->command = nullptr;
-    lmp->input->arg    = nullptr;
+    lmp->input->arg     = nullptr;
 
     auto narg = utils::expand_args(FLERR, oarg, args, 0, earg, lmp);
     EXPECT_EQ(narg, 16);
@@ -214,8 +214,13 @@ TEST_F(Advanced_utils, expand_args)
     args[5][7] = '3';
     delete[] args[4];
     args[4] = utils::strdup("v_temp[2*]");
+    TEST_FAILURE("ERROR: Upper bound required to expand vector style variable temp.*",
+                 utils::expand_args(FLERR, oarg, args, 0, earg, lmp););
+
+    delete[] args[4];
+    args[4] = utils::strdup("v_temp[*2]");
     narg    = utils::expand_args(FLERR, oarg, args, 0, earg, lmp);
-    EXPECT_EQ(narg, 13);
+    EXPECT_EQ(narg, 14);
     EXPECT_STREQ(earg[0], "v_step");
     EXPECT_STREQ(earg[1], "c_temp");
     EXPECT_STREQ(earg[2], "f_1[1]");
@@ -224,11 +229,12 @@ TEST_F(Advanced_utils, expand_args)
     EXPECT_STREQ(earg[5], "c_temp[2]");
     EXPECT_STREQ(earg[6], "c_temp[3]");
     EXPECT_STREQ(earg[7], "c_temp[4]");
-    EXPECT_STREQ(earg[8], "v_temp[2*]");
-    EXPECT_STREQ(earg[9], "c_gofr[3*]");
-    EXPECT_STREQ(earg[10], "c_gofr[1][*]");
-    EXPECT_STREQ(earg[11], "c_gofr[*2][2]");
-    EXPECT_STREQ(earg[12], "c_gofr[*][*]");
+    EXPECT_STREQ(earg[8], "v_temp[1]");
+    EXPECT_STREQ(earg[9], "v_temp[2]");
+    EXPECT_STREQ(earg[10], "c_gofr[3*]");
+    EXPECT_STREQ(earg[11], "c_gofr[1][*]");
+    EXPECT_STREQ(earg[12], "c_gofr[*2][2]");
+    EXPECT_STREQ(earg[13], "c_gofr[*][*]");
 
     for (int i = 0; i < narg; ++i)
         delete[] earg[i];

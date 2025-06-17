@@ -124,6 +124,7 @@ FixSemiGrandCanonicalMC::FixSemiGrandCanonicalMC(LAMMPS *_lmp, int narg, char **
   // Default values for optional parameters (where applicable).
   numSamplingWindowMoves = 8;
   seed = 324234;
+  atomicenergyflag = 0;
 
   // Parse extra/optional parameters
   while (iarg < narg) {
@@ -175,7 +176,7 @@ FixSemiGrandCanonicalMC::FixSemiGrandCanonicalMC(LAMMPS *_lmp, int narg, char **
         targetConcentration[i] = utils::numeric(FLERR, arg[iarg], false, lmp);
         targetConcentration[1] -= targetConcentration[i];
       }
-      for (int i = 1; i <= atom->ntypes; i++, iarg++) {
+      for (int i = 1; i <= atom->ntypes; i++) {
         if ((targetConcentration[i] < 0.0) || (targetConcentration[i] > 1.0))
           error->all(FLERR, "Target concentration {} for species {} is out of range",
                      targetConcentration[i], i);
@@ -183,7 +184,6 @@ FixSemiGrandCanonicalMC::FixSemiGrandCanonicalMC(LAMMPS *_lmp, int narg, char **
           utils::logmesg(lmp, "  SGC - Target concentration of species {}: {}\n", i,
                          targetConcentration[i]);
       }
-
     } else if (strcmp(arg[iarg], "serial") == 0) {
       // Switch off second rejection.
       serialMode = true;
@@ -193,6 +193,12 @@ FixSemiGrandCanonicalMC::FixSemiGrandCanonicalMC(LAMMPS *_lmp, int narg, char **
 
       if (comm->nprocs != 1)
         error->all(FLERR, "Cannot use serial mode Monte Carlo in a parallel simulation.");
+
+    } else if (strcmp(arg[iarg],"atomic/energy") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} atomic/energy", style), error);
+      atomicenergyflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+
     } else {
       error->all(FLERR, "Unknown fix sgcmc keyword: {}", arg[iarg]);
     }
@@ -243,25 +249,40 @@ void FixSemiGrandCanonicalMC::init()
   if (modify->get_fix_by_style("sgcmc").size() > 1)
     error->all(FLERR, "More than one fix sgcmc defined.");
 
-  // Save a pointer to the EAM potential.
-  pairEAM = dynamic_cast<PairEAM*>(force->pair);
-  if (!pairEAM) {
-    if (comm->me == 0)
-      utils::logmesg(lmp, "  SGC - Using naive total energy calculation for MC -> SLOW!\n");
+  if (atomicenergyflag) {
+    // Save a pointer to the EAM potential.
+    if (comm->me == 0) utils::logmesg(lmp, "  SGC - Using atomic energy method for SGCMC\n");
+    if (!force->pair->atomic_energy_enable) {
+      error->all(FLERR, "SGC - Pair style does not support atomic energy method");
+    }
+  } else {
+    // Save a pointer to the EAM potential.
+    pairEAM = dynamic_cast<PairEAM*>(force->pair);
+    if (!pairEAM) {
 
-    if (comm->nprocs > 1)
-      error->all(FLERR, "Can not run fix sgcmc with naive total energy calculation "
-                 "and more than one MPI process.");
+      if (comm->me == 0)
+        utils::logmesg(lmp, "  SGC - Using naive total energy calculation for MC -> SLOW!\n");
 
-    // Get reference to a compute that will provide the total energy of the system.
-    // This is needed by computeTotalEnergy().
-    compute_pe = modify->get_compute_by_id("thermo_pe");
+      if (comm->nprocs > 1)
+        error->all(FLERR, "Can not run fix sgcmc with naive total energy calculation "
+                   "and more than one MPI process.");
+
+      // Get reference to a compute that will provide the total energy of the system.
+      // This is needed by computeTotalEnergy().
+      compute_pe = modify->get_compute_by_id("thermo_pe");
+    }
   }
+
   interactionRadius = force->pair->cutforce;
   if (comm->me == 0) utils::logmesg(lmp, "  SGC - Interaction radius: {}\n", interactionRadius);
 
+
   // This fix needs a full neighbor list.
-  neighbor->add_request(this, NeighConst::REQ_FULL);
+  if (atomicenergyflag)
+    // for atomic energy method, need ghost neighbors
+    neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
+  else
+    neighbor->add_request(this, NeighConst::REQ_FULL);
 
   // Count local number of atoms from each species.
   const int *type = atom->type;
@@ -379,11 +400,18 @@ void FixSemiGrandCanonicalMC::doMC()
         deltaN[newSpecies] = +1;
 
         // Compute the energy difference that swapping this atom would cost or gain.
-        if (pairEAM) {
-          deltaE = computeEnergyChangeEAM(selectedAtom, selectedAtomNL, oldSpecies, newSpecies);
+
+        // Atomic energy method:
+        if(atomicenergyflag) {
+          deltaE = computeEnergyChangeEatom(selectedAtom, oldSpecies, newSpecies);
         } else {
-          // Generic case:
-          deltaE = computeEnergyChangeGeneric(selectedAtom, oldSpecies, newSpecies);
+          // EAM method:
+          if (pairEAM) {
+            deltaE = computeEnergyChangeEAM(selectedAtom, selectedAtomNL, oldSpecies, newSpecies);
+          } else {
+            // Generic method
+            deltaE = computeEnergyChangeGeneric(selectedAtom, oldSpecies, newSpecies);
+          }
         }
 
         // Perform inner MC acceptance test.
@@ -440,10 +468,14 @@ void FixSemiGrandCanonicalMC::doMC()
 
       // Make accepted atom swap permanent.
       if (selectedAtom >= 0) {
-        if (pairEAM)
-          flipAtomEAM(selectedAtom, selectedAtomNL, oldSpecies, newSpecies);
-        else
-          flipAtomGeneric(selectedAtom, oldSpecies, newSpecies);
+        if(atomicenergyflag) {
+          flipAtomEatom(selectedAtom, oldSpecies, newSpecies);
+        } else {
+          if (pairEAM)
+            flipAtomEAM(selectedAtom, selectedAtomNL, oldSpecies, newSpecies);
+          else
+            flipAtomGeneric(selectedAtom, oldSpecies, newSpecies);
+        }
         nAcceptedSwapsLocal++;
       } else {
         nRejectedSwapsLocal++;
@@ -977,6 +1009,67 @@ void FixSemiGrandCanonicalMC::flipAtomEAM(int flipAtom, int flipAtomNL, int oldS
  *   The new type to be assigned to the atom.
  *********************************************************************/
 void FixSemiGrandCanonicalMC::flipAtomGeneric(int flipAtom, int oldSpecies, int newSpecies)
+{
+  atom->type[flipAtom] = newSpecies;
+
+  // Rescale particle velocity vector to conserve kinetic energy.
+  double vScaleFactor = sqrt(atom->mass[oldSpecies] / atom->mass[newSpecies]);
+  atom->v[flipAtom][0] *= vScaleFactor;
+  atom->v[flipAtom][1] *= vScaleFactor;
+  atom->v[flipAtom][2] *= vScaleFactor;
+
+  changedAtoms[flipAtom] = true;
+}
+
+/*********************************************************************
+ * Calculates the change in energy that swapping the given
+ * atom would produce. This routine uses a per-atom energy calculation
+ *********************************************************************/
+
+double FixSemiGrandCanonicalMC::computeEnergyChangeEatom(int flipAtom, int oldSpecies, int newSpecies)
+{
+  double Eold, Enew, deltaE;
+
+  // Calculate old atomic energy of selected atom
+
+  Eold = force->pair->compute_atomic_energy(flipAtom, neighborList);
+
+  // calculate the old per-atom energy of neighbors
+
+  int* jlist = neighborList->firstneigh[flipAtom];
+  int jnum = neighborList->numneigh[flipAtom];
+
+  for(int jj = 0; jj < jnum; jj++) {
+    int j = jlist[jj];
+    Eold += force->pair->compute_atomic_energy(j, neighborList);
+  }
+
+  // Calculate new per-atom energy of selected atom
+
+  atom->type[flipAtom] = newSpecies;
+
+  Enew = force->pair->compute_atomic_energy(flipAtom, neighborList);
+
+  // calculate the new per-atom energy of neighbors
+
+  for(int jj = 0; jj < jnum; jj++) {
+    int j = jlist[jj];
+    Enew += force->pair->compute_atomic_energy(j, neighborList);
+  }
+
+  atom->type[flipAtom] = oldSpecies;
+
+  deltaE = Enew - Eold;
+
+  return deltaE;
+}
+
+/*********************************************************************
+ * Flips the type of one atom.
+ * This routine is for the per-atom energy case.
+ *********************************************************************/
+
+void FixSemiGrandCanonicalMC::flipAtomEatom(int flipAtom, int oldSpecies, int newSpecies)
 {
   atom->type[flipAtom] = newSpecies;
 

@@ -19,6 +19,8 @@
 #include "fmt/format.h"
 #include "utils.h"
 
+#include <cmath>
+#include <cstdlib>
 #include <utility>
 
 using namespace LAMMPS_NS;
@@ -365,6 +367,11 @@ double ValueTokenizer::next_double()
     return val;
     // rethrow exceptions from std::stod()
   } catch (std::out_of_range const &) {
+    // could be a denormal number. try again with std::strtod().
+    char *end;
+    auto val = std::strtod(current.c_str(), &end);
+    // return value of denormal
+    if ((val > -HUGE_VAL) && (val < HUGE_VAL)) return val;
     throw InvalidFloatException(current);
   } catch (std::invalid_argument const &) {
     throw InvalidFloatException(current);

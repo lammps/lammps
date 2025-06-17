@@ -17,7 +17,6 @@ void MEAMKokkos<DeviceType>::meam_force(
 {
   EV_FLOAT ev;
 
-  this->eflag_either = eflag_either;
   this->eflag_global = eflag_global;
   this->eflag_atom = eflag_atom;
   this->vflag_global = vflag_global;

@@ -21,6 +21,7 @@ CommandStyle(info,Info);
 #define LMP_INFO_H
 
 #include "command.h"
+#include "json_fwd.h"
 
 #include <vector>
 
@@ -50,6 +51,7 @@ class Info : public Command {
                                       const std::string &);
   static std::string get_fft_info();
   static std::string get_fmt_info();
+  static std::string get_json_info();
   static bool has_gpu_device();
   static std::string get_gpu_device_info();
   static std::string get_accelerator_info(const std::string &pkg = "");

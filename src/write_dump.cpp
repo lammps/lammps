@@ -85,7 +85,7 @@ void WriteDump::command(int narg, char **arg)
   if (strcmp(arg[1], "image") == 0) (dynamic_cast<DumpImage *>(dump))->multifile_override = 1;
   if (strcmp(arg[1], "cfg") == 0) (dynamic_cast<DumpCFG *>(dump))->multifile_override = 1;
   if ((update->first_update == 0) && (comm->me == 0) && (noinitwarn == 0))
-    error->warning(FLERR, "Calling write_dump before a full system init.");
+    error->warning(FLERR, "Calling write_dump before a full system init");
 
   dump->init();
   dump->write();

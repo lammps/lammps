@@ -141,7 +141,7 @@ class KSpace : protected Pointers {
   void triclinic_check();
   void modify_params(int, char **);
   void *extract(const char *);
-  void compute_dummy(int, int);
+  void compute_dummy(int eflag, int vflag, int alloc = 1);
 
   // triclinic
 

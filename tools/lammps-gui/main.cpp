@@ -36,8 +36,13 @@ int main(int argc, char *argv[])
     qRegisterMetaTypeStreamOperators<QList<QString>>("QList<QString>");
 #endif
 
+#ifndef Q_OS_MACOS
     // enforce using the plain ASCII C locale with UTF-8 encoding within the GUI.
     qputenv("LC_ALL", "C.UTF-8");
+#else
+    // macOS does not support "C" locale with UTF-8 encoding, but Qt requires UTF-8
+    qputenv("LC_ALL", "en_US.UTF-8");
+#endif
 
     QApplication app(argc, argv);
     QCoreApplication::setOrganizationName("The LAMMPS Developers");

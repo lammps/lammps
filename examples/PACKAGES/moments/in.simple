@@ -1,0 +1,27 @@
+# Perform a simple simulation and output the moments of the total energy
+# ---------------------------------------------------------------------
+
+# create pure copper system
+units metal
+lattice fcc 3.75
+region box block 0 6 0 6 0 6
+create_box 2 box
+
+timestep 0.002
+create_atoms 1 box
+
+pair_style eam/alloy
+pair_coeff * * AlCu.eam.alloy Cu Al
+
+# Initialize to a high temperature, then cool in npt ensemble
+velocity all create 1000.0 6567345
+fix 1 all npt temp 300.0 300.0 $(500*dt) iso 0.0 0.0 $(100*dt)
+
+variable toteng equal "etotal"
+fix 2 all ave/moments 5 200 100 v_toteng mean stddev variance skew kurtosis
+
+thermo_style custom step temp press etotal f_2[*]
+
+thermo 100
+run 10000
+

@@ -100,6 +100,56 @@ first is assigned to intra-molecular interactions (i.e. both atoms
 have the same molecule ID), the second to inter-molecular interactions
 (i.e. interacting atoms have different molecule IDs).
 
+.. admonition:: When **NOT** to use a hybrid pair style
+   :class: warning
+
+   Using pair style *hybrid* can be very tempting to use if you need a
+   **many-body potential** supporting a mix of elements for which you
+   cannot find a potential file that covers *all* of them.  Regardless
+   of how this is set up, there will be *errors*.  The major use case
+   where the error is *small*, is when the many-body sub-styles are used
+   on different objects (for example a slab and a liquid, a metal and a
+   nano-machining work piece).  In that case the *mixed* terms
+   **should** be provided by a pair-wise additive potential (like
+   Lennard-Jones or Morse) to avoid unexpected behavior and reduce
+   errors.  LAMMPS cannot easily check for this condition and thus will
+   accept good and bad choices alike.
+
+   Outside of this, we *strongly* recommend *against* using pair style
+   hybrid with many-body potentials for the following reasons:
+
+   1. When trying to combine EAM or MEAM potentials, there is a *large*
+      error in the embedding term, since it is computed separately for
+      each sub-style only.
+
+   2. When trying to combine many-body potentials like Stillinger-Weber,
+      Tersoff, AIREBO, Vashishta, or similar, you have to understand
+      that the potential of a sub-style cannot be applied in a pair-wise
+      fashion but will need to be applied to multiples of atoms
+      (e.g. a Tersoff potential of elements A and B includes the
+      interactions A-A, B-B, A-B, A-A-A, A-A-B, A-B-B, A-B-A, B-A-A,
+      B-A-B, B-B-A, B-B-B; AIREBO also considers all quadruples of
+      atom elements).
+
+   3. When one of the sub-styles uses charge-equilibration (= QEq; like
+      in ReaxFF or COMB) you have inconsistent QEq behavior because
+      either you try to apply QEq to *all* atoms but then you are
+      missing the QEq parameters for the non-QEq pair style (and it
+      would be inconsistent to apply QEq for pair styles that are not
+      parameterized for QEq) or else you would have either no charges or
+      fixed charges interacting with the QEq which also leads to
+      inconsistent behavior between two sub-styles.  When attempting to
+      use multiple ReaxFF instances to combine different potential
+      files, you might be able to work around the QEq limitations, but
+      point 2. still applies.
+
+   We understand that it is frustrating to not be able to run simulations
+   due to lack of available potential files, but that does not justify
+   combining potentials in a broken way via pair style hybrid.  This is
+   not what the hybrid pair styles are designed for.
+
+----------
+
 Here are two examples of hybrid simulations.  The *hybrid* style could
 be used for a simulation of a metal droplet on a LJ surface.  The metal
 atoms interact with each other via an *eam* potential, the surface atoms
@@ -374,12 +424,11 @@ selected sub-style.
 
 ----------
 
-.. note::
-
-   Several of the potentials defined via the pair_style command in
-   LAMMPS are really many-body potentials, such as Tersoff, AIREBO, MEAM,
-   ReaxFF, etc.  The way to think about using these potentials in a
-   hybrid setting is as follows.
+Even though the command name "pair_style" would suggest that these are
+pair-wise interactions, several of the potentials defined via the
+pair_style command in LAMMPS are really many-body potentials, such as
+Tersoff, AIREBO, MEAM, ReaxFF, etc.  The way to think about using these
+potentials in a hybrid setting is as follows.
 
 A subset of atom types is assigned to the many-body potential with a
 single :doc:`pair_coeff <pair_coeff>` command, using "\* \*" to include

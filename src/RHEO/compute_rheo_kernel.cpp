@@ -220,12 +220,14 @@ double ComputeRHEOKernel::calc_dw(int i, int j, double delx, double dely, double
     return calc_dw_wendlandc4(delx, dely, delz, r, dWij, dWji);
   if (kernel_style == QUINTIC)
     return calc_dw_quintic(delx, dely, delz, r, dWij, dWji);
+  if (kernel_style == RK0)
+    return calc_dw_quintic(delx, dely, delz, r, dWij, dWji);
 
   double wp;
   int corrections_i = check_corrections(i);
   int corrections_j = check_corrections(j);
 
-  wp = calc_dw_scalar_quintic(delx, dely, delz, r);
+  wp = calc_dw_scalar_quintic(r);
 
   // Overwrite if there are corrections
   double dxij[3] = {delx, dely, delz};
@@ -277,7 +279,7 @@ double ComputeRHEOKernel::calc_w_quintic(double r)
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeRHEOKernel::calc_dw_scalar_quintic(double delx, double dely, double delz, double r)
+double ComputeRHEOKernel::calc_dw_scalar_quintic(double r)
 {
   double wp, tmp1, tmp2, tmp3, tmp1sq, tmp2sq, tmp3sq, s;
 
@@ -310,7 +312,7 @@ double ComputeRHEOKernel::calc_dw_scalar_quintic(double delx, double dely, doubl
 double ComputeRHEOKernel::calc_dw_quintic(double delx, double dely, double delz, double r,
                                           double *dW1, double *dW2)
 {
-  double wp = calc_dw_scalar_quintic(delx, dely, delz, r);
+  double wp = calc_dw_scalar_quintic(r);
   double wprinv = wp / r;
 
   dW1[0] = delx * wprinv;

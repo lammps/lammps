@@ -7,6 +7,10 @@ if(CMAKE_VERSION VERSION_LESS 3.20)
   message(WARNING "LAMMPS is planning to require at least CMake version 3.20 by Summer 2025. Please upgrade!")
 endif()
 ########################################
+# initialize version variables with project command
+if(POLICY CMP0048)
+  cmake_policy(SET CMP0048 NEW)
+endif()
 # set policy to silence warnings about ignoring <PackageName>_ROOT but use it
 if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
@@ -27,7 +31,10 @@ endif()
 
 ########################################
 
-project(lammps CXX)
+project(lammps
+        DESCRIPTION "The LAMMPS Molecular Dynamics Simulator"
+        HOMEPAGE_URL "https://www.lammps.org"
+        LANGUAGES CXX C)
 set(SOVERSION 0)
 get_property(BUILD_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
@@ -44,6 +51,7 @@ set(LAMMPS_DOC_DIR        ${LAMMPS_DIR}/doc)
 set(LAMMPS_TOOLS_DIR      ${LAMMPS_DIR}/tools)
 set(LAMMPS_PYTHON_DIR     ${LAMMPS_DIR}/python)
 set(LAMMPS_POTENTIALS_DIR ${LAMMPS_DIR}/potentials)
+set(LAMMPS_THIRDPARTY_DIR ${LAMMPS_DIR}/third_party)
 
 set(LAMMPS_DOWNLOADS_URL "https://download.lammps.org" CACHE STRING "Base URL for LAMMPS downloads")
 set(LAMMPS_POTENTIALS_URL "${LAMMPS_DOWNLOADS_URL}/potentials")
@@ -105,46 +113,35 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Qrestrict")
     endif()
     if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
-      set(CMAKE_TUNE_DEFAULT "/QxCOMMON-AVX512")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /QxCOMMON-AVX512")
     else()
-      set(CMAKE_TUNE_DEFAULT "/QxHost")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /QxHost")
     endif()
   else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
-      set(CMAKE_TUNE_DEFAULT "-xCOMMON-AVX512")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xCOMMON-AVX512")
     else()
-      set(CMAKE_TUNE_DEFAULT "-xHost -fp-model fast=2 -no-prec-div -qoverride-limits -diag-disable=10441 -diag-disable=11074 -diag-disable=11076 -diag-disable=2196")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xHost -fp-model fast=2 -no-prec-div -qoverride-limits -diag-disable=10441 -diag-disable=11074 -diag-disable=11076 -diag-disable=2196")
     endif()
   endif()
 endif()
 
 # silence excessive warnings for new Intel Compilers
 if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
-  set(CMAKE_TUNE_DEFAULT "-fp-model precise -Wno-tautological-constant-compare -Wno-unused-command-line-argument")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model precise -Wno-tautological-constant-compare -Wno-unused-command-line-argument")
 endif()
 
 # silence excessive warnings for PGI/NVHPC compilers
 if((CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "PGI"))
-  set(CMAKE_TUNE_DEFAULT "-Minform=severe")
-endif()
-
-# this hack is required to compile fmt lib with CrayClang version 15.0.2
-# CrayClang is only directly recognized by version 3.28 and later
-if(CMAKE_VERSION VERSION_LESS 3.28)
-  get_filename_component(_exe "${CMAKE_CXX_COMPILER}" NAME)
-  if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (_exe STREQUAL "crayCC"))
-    set(CMAKE_TUNE_DEFAULT "-DFMT_STATIC_THOUSANDS_SEPARATOR")
-  endif()
-else()
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "CrayClang")
-    set(CMAKE_TUNE_DEFAULT "-DFMT_STATIC_THOUSANDS_SEPARATOR")
-  endif()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Minform=severe")
 endif()
 
 # silence nvcc warnings
-if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND NOT (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
-  set(CMAKE_TUNE_DEFAULT "${CMAKE_TUNE_DEFAULT}" "-Xcudafe --diag_suppress=unrecognized_pragma,--diag_suppress=128")
+if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND NOT
+    ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+    OR (CMAKE_CXX_COMPILER_ID STREQUAL "XLClang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "CrayClang")))
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xcudafe --diag_suppress=unrecognized_pragma,--diag_suppress=128")
 endif()
 
 # we *require* C++11 without extensions but prefer C++17.
@@ -205,6 +202,10 @@ endif()
 if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND BUILD_SHARED_LIBS)
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
+
+# do not include the (obsolete) MPI C++ bindings which makes for leaner object files
+# and avoids namespace conflicts. Put this early to increase its visbility.
+set(MPI_CXX_SKIP_MPICXX TRUE CACHE BOOL "Skip MPI C++ Bindings" FORCE)
 
 ########################################################################
 # User input options                                                   #
@@ -384,12 +385,12 @@ endforeach()
 # packages with special compiler needs or external libs
 ######################################################
 target_include_directories(lammps PUBLIC $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}>)
+target_include_directories(lammps PUBLIC $<BUILD_INTERFACE:${LAMMPS_THIRDPARTY_DIR}>)
 
 if(PKG_ADIOS)
   # The search for ADIOS2 must come before MPI because
   # it includes its own MPI search with the latest FindMPI.cmake
   # script that defines the MPI::MPI_C target
-  enable_language(C)
   find_package(ADIOS2 REQUIRED)
   if(BUILD_MPI)
     if(NOT ADIOS2_HAVE_MPI)
@@ -404,21 +405,18 @@ if(PKG_ADIOS)
 endif()
 
 if(NOT CMAKE_CROSSCOMPILING)
-  find_package(MPI QUIET)
+  find_package(MPI QUIET COMPONENTS CXX)
   option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 else()
   option(BUILD_MPI "Build MPI version" OFF)
 endif()
 
 if(BUILD_MPI)
-  # do not include the (obsolete) MPI C++ bindings which makes
-  # for leaner object files and avoids namespace conflicts
-  set(MPI_CXX_SKIP_MPICXX TRUE)
   # We use a non-standard procedure to cross-compile with MPI on Windows
   if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
     include(MPI4WIN)
   else()
-    find_package(MPI REQUIRED)
+    find_package(MPI REQUIRED COMPONENTS CXX)
     option(LAMMPS_LONGLONG_TO_LONG "Workaround if your system or MPI version does not recognize 'long long' data types" OFF)
     if(LAMMPS_LONGLONG_TO_LONG)
       target_compile_definitions(lammps PRIVATE -DLAMMPS_LONGLONG_TO_LONG)
@@ -449,6 +447,19 @@ else()
 endif()
 if(NOT ${LAMMPS_MEMALIGN} STREQUAL "0")
   target_compile_definitions(lammps PRIVATE -DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
+endif()
+
+# this hack is required to compile fmt lib with CrayClang version 15.0.2
+# CrayClang is only directly recognized by CMake version 3.28 and later
+if(CMAKE_VERSION VERSION_LESS 3.28)
+  get_filename_component(_exe "${CMAKE_CXX_COMPILER}" NAME)
+  if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (_exe STREQUAL "crayCC"))
+    target_compile_definitions(lammps PRIVATE -DFMT_STATIC_THOUSANDS_SEPARATOR)
+  endif()
+else()
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "CrayClang")
+    target_compile_definitions(lammps PRIVATE -DFMT_STATIC_THOUSANDS_SEPARATOR)
+  endif()
 endif()
 
 # "hard" dependencies between packages resulting
@@ -508,13 +519,13 @@ if(BUILD_OMP)
   if(CMAKE_VERSION VERSION_LESS 3.28)
     get_filename_component(_exe "${CMAKE_CXX_COMPILER}" NAME)
     if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (_exe STREQUAL "crayCC"))
-      set(CMAKE_SHARED_LINKER_FLAGS_${BTYPE} "${CMAKE_SHARED_LINKER_FLAGS_${BTYPE}} -fopenmp")
-      set(CMAKE_STATIC_LINKER_FLAGS_${BTYPE} "${CMAKE_STATIC_LINKER_FLAGS_${BTYPE}} -fopenmp")
+      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fopenmp")
+      set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -fopenmp")
     endif()
   else()
     if(CMAKE_CXX_COMPILER_ID STREQUAL "CrayClang")
-      set(CMAKE_SHARED_LINKER_FLAGS_${BTYPE} "${CMAKE_SHARED_LINKER_FLAGS_${BTYPE}} -fopenmp")
-      set(CMAKE_STATIC_LINKER_FLAGS_${BTYPE} "${CMAKE_STATIC_LINKER_FLAGS_${BTYPE}} -fopenmp")
+      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fopenmp")
+      set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -fopenmp")
     endif()
   endif()
 endif()
@@ -532,7 +543,6 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_STANDARD GREATER_EQUA
 endif()
 
 if(PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR PKG_RHEO OR BUILD_TOOLS)
-  enable_language(C)
   if (NOT USE_INTERNAL_LINALG)
     find_package(LAPACK)
     find_package(BLAS)
@@ -629,10 +639,6 @@ if(WITH_SWIG)
   add_subdirectory(${LAMMPS_SWIG_DIR} swig)
 endif()
 
-set(CMAKE_TUNE_FLAGS "${CMAKE_TUNE_DEFAULT}" CACHE STRING "Compiler and machine specific optimization flags (compilation only)")
-separate_arguments(CMAKE_TUNE_FLAGS)
-target_compile_options(lammps PRIVATE ${CMAKE_TUNE_FLAGS})
-target_compile_options(lmp PRIVATE ${CMAKE_TUNE_FLAGS})
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################

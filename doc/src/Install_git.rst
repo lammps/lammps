@@ -12,26 +12,17 @@ several advantages:
   LAMMPS.  For that, you should first create your own :doc:`fork on
   GitHub <Howto_github>`, though.
 
-You must have `git <git_>`_ installed on your system to use the
-commands explained below to communicate with the git servers on
-GitHub.  For people still using subversion (svn), GitHub also
-provides `limited support for subversion clients <svn_>`_.
-
-.. note::
-
-   As of October 2016, the official home of public LAMMPS development is
-   on GitHub.  The previously advertised LAMMPS git repositories on
-   git.lammps.org and bitbucket.org are now offline or deprecated.
+You must have `git <git_>`_ installed on your system to use the commands
+explained below to communicate with the git servers on GitHub.
 
 .. _git: https://git-scm.com
-.. _svn: https://help.github.com/en/github/importing-your-projects-to-github/working-with-subversion-on-github
 
 You can follow the LAMMPS development on 4 different git branches:
 
 * **develop** : this branch follows the ongoing development and is
   updated with every merge commit of a pull request
-* **release** : this branch is updated with every "feature release";
-   updates are always "fast-forward" merges from *develop*
+* **release** : this branch is updated with every "feature release"
+  and updates are always "fast-forward" merges from *develop*
 * **maintenance** : this branch collects back-ported bug fixes from the
   *develop* branch to the *stable* branch.  It is used to update the
   *stable* branch for "stable update releases".

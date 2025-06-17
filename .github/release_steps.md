@@ -104,8 +104,8 @@ with a future release) from the `lammps-static` folder.
 rm -rf release-packages
 mkdir release-packages
 cd release-packages
-wget https://download.lammps.org/static/fedora41_musl.sif
-apptainer shell fedora41_musl.sif
+wget https://download.lammps.org/static/fedora41_musl_mingw.sif
+apptainer shell fedora41_musl_mingw.sif
 git clone -b release --depth 10 https://github.com/lammps/lammps.git lammps-release
 cmake -S lammps-release/cmake -B build-release -G Ninja -D CMAKE_INSTALL_PREFIX=$PWD/lammps-static -D CMAKE_TOOLCHAIN_FILE=/usr/musl/share/cmake/linux-musl.cmake -C lammps-release/cmake/presets/most.cmake -C lammps-release/cmake/presets/kokkos-openmp.cmake -D DOWNLOAD_POTENTIALS=OFF -D BUILD_MPI=OFF -D BUILD_TESTING=OFF -D CMAKE_BUILD_TYPE=Release -D PKG_ATC=ON -D PKG_AWPMD=ON -D PKG_MANIFOLD=ON -D PKG_MESONT=ON -D PKG_MGPT=ON -D PKG_ML-PACE=ON -D PKG_ML-RANN=ON -D PKG_MOLFILE=ON -D PKG_PTM=ON -D PKG_QTB=ON -D PKG_SMTBQ=ON
 cmake --build build-release --target all
@@ -204,7 +204,7 @@ cd ..
 rm -r release-packages
 ```
 
-#### Build Multi-arch App-bundle for macOS
+#### Build Multi-arch App-bundle with GUI for macOS
 
 Building app-bundles for macOS is not as easily automated and portable
 as some of the other steps.  It requires a machine actually running
@@ -251,7 +251,7 @@ attached to the GitHub release page.
 
 We are currently building the application images on macOS 12 (aka Monterey).
 
-#### Build Linux x86_64 binary tarball on Ubuntu 20.04LTS
+#### Build Linux x86_64 binary tarball with GUI on Ubuntu 20.04LTS
 
 While the flatpak Linux version uses portable runtime libraries provided
 by the flatpak environment, we also build regular Linux executables that

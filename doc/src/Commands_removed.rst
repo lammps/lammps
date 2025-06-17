@@ -1,7 +1,7 @@
 Removed commands and packages
 =============================
 
-.. contents:: \
+.. contents::
 
 ------
 
@@ -12,10 +12,21 @@ stop LAMMPS and print a suitable error message in most cases, when a
 style/command is used that has been removed or will replace the command
 with the direct alternative (if available) and print a warning.
 
+GJF formulation in fix langevin
+-------------------------------
+
+.. deprecated:: 12Jun2025
+
+The *gjf* keyword in fix langevin is deprecated and will be removed
+soon.  The GJF functionality has been moved to its own fix style
+:doc:`fix gjf <fix_gjf>` and it is strongly recommended to use that
+fix instead.
+
+
 LAMMPS shell
 ------------
 
-.. versionchanged:: 29Aug2024
+.. deprecated:: 29Aug2024
 
 The LAMMPS shell has been removed from the LAMMPS distribution. Users
 are encouraged to use the :ref:`LAMMPS-GUI <lammps_gui>` tool instead.
@@ -23,7 +34,7 @@ are encouraged to use the :ref:`LAMMPS-GUI <lammps_gui>` tool instead.
 i-PI tool
 ---------
 
-.. versionchanged:: 27Jun2024
+.. deprecated:: 27Jun2024
 
 The i-PI tool has been removed from the LAMMPS distribution.  Instead,
 instructions to install i-PI from PyPI via pip are provided.

@@ -498,7 +498,7 @@ cdef public object mliap_unified_connect_kokkos(char *fname, MLIAPDummyModel * m
         unified = LOADED_MODEL
     elif str_fname.endswith(".pt") or str_fname.endswith('.pth'):
         import torch
-        unified = torch.load(str_fname)
+        unified = torch.load(str_fname,weights_only=False)
     else:
         with open(str_fname, 'rb') as pfile:
             unified = pickle.load(pfile)
@@ -543,6 +543,8 @@ cdef public object mliap_unified_connect_kokkos(char *fname, MLIAPDummyModel * m
     unified_int.descriptor.set_elements(elements, nelements)
     unified_int.model.nelements = nelements
 
+    for i, elem in enumerate(unified.element_types):
+        free(elements[i])
     free(elements)
     return unified_int
 

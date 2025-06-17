@@ -38,6 +38,7 @@ using namespace FixConst;
 enum { NONE, CONSTANT };
 
 static const char cite_rheo_oxide[] =
+    "RHEO oxidation: doi:10.1016/j.apm.2024.02.027\n\n"
     "@article{ApplMathModel.130.310,\n"
     " title = {A hybrid smoothed-particle hydrodynamics model of oxide skins on molten aluminum},\n"
     " journal = {Applied Mathematical Modelling},\n"
@@ -109,7 +110,6 @@ void FixRHEOOxidation::init()
   int tmp1, tmp2;
   index_nb = atom->find_custom("shell_nbond", tmp1, tmp2);
   if (index_nb == -1) error->all(FLERR, "Must use bond style rheo/shell to use fix rheo/oxidation");
-  nbond = atom->ivector[index_nb];
 
   // need a half neighbor list
   auto req = neighbor->add_request(this, NeighConst::REQ_FULL);

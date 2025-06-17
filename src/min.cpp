@@ -113,7 +113,10 @@ void Min::init()
   // create fix needed for storing atom-based quantities
   // will delete it at end of run
 
-  fix_minimize = dynamic_cast<FixMinimize *>(modify->add_fix("MINIMIZE all MINIMIZE"));
+  if (lmp->kokkos)
+    fix_minimize = dynamic_cast<FixMinimize *>(modify->add_fix("MINIMIZE all MINIMIZE/kk"));
+  else
+    fix_minimize = dynamic_cast<FixMinimize *>(modify->add_fix("MINIMIZE all MINIMIZE"));
 
   // clear out extra global and per-atom dof
   // will receive requests for new per-atom dof during pair init()

@@ -348,7 +348,7 @@ void FixNEB::min_post_force(int /*vflag*/)
         delxp = x[i][0] - xprev[i][0];
         delyp = x[i][1] - xprev[i][1];
         delzp = x[i][2] - xprev[i][2];
-        domain->minimum_image(delxp, delyp, delzp);
+        domain->minimum_image(FLERR, delxp, delyp, delzp);
         plen += delxp * delxp + delyp * delyp + delzp * delzp;
         dottangrad += delxp * f[i][0] + delyp * f[i][1] + delzp * f[i][2];
         gradlen += f[i][0] * f[i][0] + f[i][1] * f[i][1] + f[i][2] * f[i][2];
@@ -368,7 +368,7 @@ void FixNEB::min_post_force(int /*vflag*/)
         delxn = xnext[i][0] - x[i][0];
         delyn = xnext[i][1] - x[i][1];
         delzn = xnext[i][2] - x[i][2];
-        domain->minimum_image(delxn, delyn, delzn);
+        domain->minimum_image(FLERR, delxn, delyn, delzn);
         nlen += delxn * delxn + delyn * delyn + delzn * delzn;
         gradnextlen +=
             fnext[i][0] * fnext[i][0] + fnext[i][1] * fnext[i][1] + fnext[i][2] * fnext[i][2];
@@ -396,13 +396,13 @@ void FixNEB::min_post_force(int /*vflag*/)
         delxp = x[i][0] - xprev[i][0];
         delyp = x[i][1] - xprev[i][1];
         delzp = x[i][2] - xprev[i][2];
-        domain->minimum_image(delxp, delyp, delzp);
+        domain->minimum_image(FLERR, delxp, delyp, delzp);
         plen += delxp * delxp + delyp * delyp + delzp * delzp;
 
         delxn = xnext[i][0] - x[i][0];
         delyn = xnext[i][1] - x[i][1];
         delzn = xnext[i][2] - x[i][2];
-        domain->minimum_image(delxn, delyn, delzn);
+        domain->minimum_image(FLERR, delxn, delyn, delzn);
 
         if (vnext > veng && veng > vprev) {
           tangent[i][0] = delxn;

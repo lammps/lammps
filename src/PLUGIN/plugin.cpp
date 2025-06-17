@@ -21,6 +21,7 @@
 #include "force.h"
 #include "input.h"
 #include "modify.h"
+#include "update.h"
 
 #include <cstring>
 #include <list>
@@ -57,6 +58,9 @@ void Plugin::command(int narg, char **arg)
   } else if (cmd == "clear") {
     plugin_clear(lmp);
 
+  } else if (cmd == "restore") {
+    plugin_restore(lmp, false);
+
   } else if (cmd == "list") {
     if (comm->me == 0) {
       int num = plugin_get_num_plugins();
@@ -67,15 +71,16 @@ void Plugin::command(int narg, char **arg)
       }
     }
   } else
-    error->all(FLERR, "Illegal plugin command");
+    error->all(FLERR, "Unknown plugin command {}", cmd);
 }
 
 // auto-load DSOs from designated folder(s)
 void plugin_auto_load(LAMMPS *lmp)
 {
 #if defined(LMP_PLUGIN)
+  bool oldverbose = verbose;
+  verbose = false;
   for (const auto &plugin_dir : platform::list_pathenv("LAMMPS_PLUGIN_PATH")) {
-    verbose = false;
     int count = 0;
     for (const auto &file : platform::list_directory(plugin_dir)) {
       if (utils::strmatch(file, "\\plugin.so$"))
@@ -83,6 +88,7 @@ void plugin_auto_load(LAMMPS *lmp)
     }
     if (lmp->comm->me == 0) utils::logmesg(lmp, "Loaded {} plugins from {}\n", count, plugin_dir);
   }
+  verbose = oldverbose;
 #endif
 }
 
@@ -249,6 +255,23 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     }
     (*command_map)[plugin->name] = (Input::CommandCreator) plugin->creator.v1;
 
+  } else if (pstyle == "run") {
+    auto integrate_map = lmp->update->integrate_map;
+    if (integrate_map->find(plugin->name) != integrate_map->end()) {
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR, "Overriding built-in run style {} from plugin", plugin->name);
+    }
+    (*integrate_map)[plugin->name] = (Update::IntegrateCreator) plugin->creator.v2;
+
+  } else if (pstyle == "min") {
+    auto minimize_map = lmp->update->minimize_map;
+    if (minimize_map->find(plugin->name) != minimize_map->end()) {
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR, "Overriding built-in minimize style {} from plugin",
+                            plugin->name);
+    }
+    (*minimize_map)[plugin->name] = (Update::MinimizeCreator) plugin->creator.v1;
+
   } else {
     utils::logmesg(lmp, "Loading plugins for {} styles not yet implemented\n", pstyle);
     pluginlist.pop_back();
@@ -272,7 +295,8 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
       (strcmp(style, "angle") != 0) && (strcmp(style, "dihedral") != 0) &&
       (strcmp(style, "improper") != 0) && (strcmp(style, "kspace") != 0) &&
       (strcmp(style, "compute") != 0) && (strcmp(style, "fix") != 0) &&
-      (strcmp(style, "region") != 0) && (strcmp(style, "command") != 0)) {
+      (strcmp(style, "region") != 0) && (strcmp(style, "command") != 0) &&
+      (strcmp(style, "run") != 0) && (strcmp(style, "min") != 0)) {
     if (me == 0)
       utils::logmesg(lmp, "Ignoring unload: {} is not a supported plugin style\n", style);
     return;
@@ -301,9 +325,6 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
   std::string pstyle = style;
   if (pstyle == "pair") {
 
-    auto found = lmp->force->pair_map->find(name);
-    if (found != lmp->force->pair_map->end()) lmp->force->pair_map->erase(found);
-
     // must delete pair style instance if in use
 
     if (lmp->force->pair_style) {
@@ -314,47 +335,55 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
       }
     }
 
-  } else if (pstyle == "bond") {
+    auto found = lmp->force->pair_map->find(name);
+    if (found != lmp->force->pair_map->end()) lmp->force->pair_map->erase(found);
 
-    auto found = lmp->force->bond_map->find(name);
-    if (found != lmp->force->bond_map->end()) lmp->force->bond_map->erase(found);
+  } else if (pstyle == "bond") {
 
     // must delete bond style instance if in use
 
     if ((lmp->force->bond_style != nullptr) && (lmp->force->bond_match(name) != nullptr))
       lmp->force->create_bond("none", 0);
 
-  } else if (pstyle == "angle") {
+    auto found = lmp->force->bond_map->find(name);
+    if (found != lmp->force->bond_map->end()) lmp->force->bond_map->erase(found);
 
-    auto found = lmp->force->angle_map->find(name);
-    if (found != lmp->force->angle_map->end()) lmp->force->angle_map->erase(found);
+  } else if (pstyle == "angle") {
 
     // must delete angle style instance if in use
 
     if ((lmp->force->angle_style != nullptr) && (lmp->force->angle_match(name) != nullptr))
       lmp->force->create_angle("none", 0);
 
-  } else if (pstyle == "dihedral") {
+    auto found = lmp->force->angle_map->find(name);
+    if (found != lmp->force->angle_map->end()) lmp->force->angle_map->erase(found);
 
-    auto found = lmp->force->dihedral_map->find(name);
-    if (found != lmp->force->dihedral_map->end()) lmp->force->dihedral_map->erase(found);
+  } else if (pstyle == "dihedral") {
 
     // must delete dihedral style instance if in use
 
     if ((lmp->force->dihedral_style) && (lmp->force->dihedral_match(name) != nullptr))
       lmp->force->create_dihedral("none", 0);
 
-  } else if (pstyle == "improper") {
+    auto found = lmp->force->dihedral_map->find(name);
+    if (found != lmp->force->dihedral_map->end()) lmp->force->dihedral_map->erase(found);
 
-    auto found = lmp->force->improper_map->find(name);
-    if (found != lmp->force->improper_map->end()) lmp->force->improper_map->erase(found);
+  } else if (pstyle == "improper") {
 
     // must delete improper style instance if in use
 
     if ((lmp->force->improper_style != nullptr) && (lmp->force->improper_match(name) != nullptr))
       lmp->force->create_improper("none", 0);
 
+    auto found = lmp->force->improper_map->find(name);
+    if (found != lmp->force->improper_map->end()) lmp->force->improper_map->erase(found);
+
   } else if (pstyle == "kspace") {
+
+    // must delete kspace style instance if in use
+
+    if ((lmp->force->kspace_style != nullptr) && (lmp->force->kspace_match(name, 1) != nullptr))
+      lmp->force->create_kspace("none", 0);
 
     auto kspace_map = lmp->force->kspace_map;
     auto found = kspace_map->find(name);
@@ -362,39 +391,65 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
 
   } else if (pstyle == "compute") {
 
-    auto compute_map = lmp->modify->compute_map;
-    auto found = compute_map->find(name);
-    if (found != compute_map->end()) compute_map->erase(name);
-
     // must delete all compute instances using this compute style
 
     for (auto &icompute : lmp->modify->get_compute_by_style(name))
       lmp->modify->delete_compute(icompute->id);
 
-  } else if (pstyle == "fix") {
+    auto compute_map = lmp->modify->compute_map;
+    auto found = compute_map->find(name);
+    if (found != compute_map->end()) compute_map->erase(name);
 
-    auto fix_map = lmp->modify->fix_map;
-    auto found = fix_map->find(name);
-    if (found != fix_map->end()) fix_map->erase(name);
+  } else if (pstyle == "fix") {
 
     // must delete all fix instances using this fix style
 
     for (auto &ifix : lmp->modify->get_fix_by_style(name)) lmp->modify->delete_fix(ifix->id);
 
+    auto fix_map = lmp->modify->fix_map;
+    auto found = fix_map->find(name);
+    if (found != fix_map->end()) fix_map->erase(name);
+
   } else if (pstyle == "region") {
+
+    // must delete all region instances using this region style
+
+    for (auto &iregion : lmp->domain->get_region_by_style(name))
+      lmp->domain->delete_region(iregion);
 
     auto region_map = lmp->domain->region_map;
     auto found = region_map->find(name);
     if (found != region_map->end()) region_map->erase(name);
-
-    for (auto &iregion : lmp->domain->get_region_by_style(name))
-      lmp->domain->delete_region(iregion);
 
   } else if (pstyle == "command") {
 
     auto command_map = lmp->input->command_map;
     auto found = command_map->find(name);
     if (found != command_map->end()) command_map->erase(name);
+
+  } else if (pstyle == "run") {
+
+    // must restore default run style if plugin style is in use
+
+    if (strcmp(name, lmp->update->integrate_style) == 0) {
+      char *str = (char *) "verlet";
+      lmp->update->create_integrate(1, &str, 1);
+    }
+    auto integrate_map = lmp->update->integrate_map;
+    auto found = integrate_map->find(name);
+    if (found != integrate_map->end()) integrate_map->erase(name);
+
+  } else if (pstyle == "min") {
+
+    // must restore default minimize style if plugin style is in use
+
+    if (strcmp(name, lmp->update->minimize_style) == 0) {
+      char *str = (char *) "cg";
+      lmp->update->create_minimize(1, &str, 1);
+    }
+    auto minimize_map = lmp->update->minimize_map;
+    auto found = minimize_map->find(name);
+    if (found != minimize_map->end()) minimize_map->erase(name);
   }
 
   // if reference count is down to zero, close DSO handle.
@@ -405,17 +460,156 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
 }
 
 /* --------------------------------------------------------------------
+   restore previously loaded plugins
+     -------------------------------------------------------------------- */
+
+void plugin_restore(LAMMPS *lmp, bool warnflag)
+{
+  for (auto &plugin : pluginlist) {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "Restoring plugin: {} by {}\n", plugin.info, plugin.author);
+
+    std::string pstyle = plugin.style;
+    if (pstyle == "pair") {
+      auto pair_map = lmp->force->pair_map;
+      if (pair_map->find(plugin.name) != pair_map->end()) {
+        if (warnflag && (lmp->comm->me == 0))
+          lmp->error->warning(FLERR, "Overriding built-in pair style {} from plugin", plugin.name);
+      }
+      (*pair_map)[plugin.name] = (Force::PairCreator) plugin.creator.v1;
+
+    } else if (pstyle == "bond") {
+      auto bond_map = lmp->force->bond_map;
+      if (bond_map->find(plugin.name) != bond_map->end()) {
+        if (warnflag && (lmp->comm->me == 0))
+          lmp->error->warning(FLERR, "Overriding built-in bond style {} from plugin", plugin.name);
+      }
+      (*bond_map)[plugin.name] = (Force::BondCreator) plugin.creator.v1;
+
+    } else if (pstyle == "angle") {
+      auto angle_map = lmp->force->angle_map;
+      if (angle_map->find(plugin.name) != angle_map->end()) {
+        if (warnflag && (lmp->comm->me == 0))
+          lmp->error->warning(FLERR, "Overriding built-in angle style {} from plugin", plugin.name);
+      }
+      (*angle_map)[plugin.name] = (Force::AngleCreator) plugin.creator.v1;
+
+    } else if (pstyle == "dihedral") {
+      auto dihedral_map = lmp->force->dihedral_map;
+      if (dihedral_map->find(plugin.name) != dihedral_map->end()) {
+        if (warnflag && (lmp->comm->me == 0))
+          lmp->error->warning(FLERR, "Overriding built-in dihedral style {} from plugin",
+                              plugin.name);
+      }
+      (*dihedral_map)[plugin.name] = (Force::DihedralCreator) plugin.creator.v1;
+
+    } else if (pstyle == "improper") {
+      auto improper_map = lmp->force->improper_map;
+      if (improper_map->find(plugin.name) != improper_map->end()) {
+        if (warnflag && (lmp->comm->me == 0))
+          lmp->error->warning(FLERR, "Overriding built-in improper style {} from plugin",
+                              plugin.name);
+      }
+      (*improper_map)[plugin.name] = (Force::ImproperCreator) plugin.creator.v1;
+
+    } else if (pstyle == "kspace") {
+      auto kspace_map = lmp->force->kspace_map;
+      if (kspace_map->find(plugin.name) != kspace_map->end()) {
+        if (warnflag && (lmp->comm->me == 0))
+          lmp->error->warning(FLERR, "Overriding built-in kspace style {} from plugin",
+                              plugin.name);
+      }
+      (*kspace_map)[plugin.name] = (Force::KSpaceCreator) plugin.creator.v1;
+
+    } else if (pstyle == "compute") {
+      auto compute_map = lmp->modify->compute_map;
+      if (compute_map->find(plugin.name) != compute_map->end()) {
+        if (warnflag && (lmp->comm->me == 0))
+          lmp->error->warning(FLERR, "Overriding built-in compute style {} from plugin",
+                              plugin.name);
+      }
+      (*compute_map)[plugin.name] = (Modify::ComputeCreator) plugin.creator.v2;
+
+    } else if (pstyle == "fix") {
+      auto fix_map = lmp->modify->fix_map;
+      if (fix_map->find(plugin.name) != fix_map->end()) {
+        if (warnflag && (lmp->comm->me == 0))
+          lmp->error->warning(FLERR, "Overriding built-in fix style {} from plugin", plugin.name);
+      }
+      (*fix_map)[plugin.name] = (Modify::FixCreator) plugin.creator.v2;
+
+    } else if (pstyle == "region") {
+      auto region_map = lmp->domain->region_map;
+      if (region_map->find(plugin.name) != region_map->end()) {
+        if (warnflag && (lmp->comm->me == 0))
+          lmp->error->warning(FLERR, "Overriding built-in region style {} from plugin",
+                              plugin.name);
+      }
+      (*region_map)[plugin.name] = (Domain::RegionCreator) plugin.creator.v2;
+
+    } else if (pstyle == "command") {
+      auto command_map = lmp->input->command_map;
+      if (command_map->find(plugin.name) != command_map->end()) {
+        if (warnflag && (lmp->comm->me == 0))
+          lmp->error->warning(FLERR, "Overriding built-in command style {} from plugin",
+                              plugin.name);
+      }
+      (*command_map)[plugin.name] = (Input::CommandCreator) plugin.creator.v1;
+
+    } else if (pstyle == "run") {
+      auto integrate_map = lmp->update->integrate_map;
+      if (integrate_map->find(plugin.name) != integrate_map->end()) {
+        if (warnflag && (lmp->comm->me == 0))
+          lmp->error->warning(FLERR, "Overriding built-in run style {} from plugin", plugin.name);
+      }
+      (*integrate_map)[plugin.name] = (Update::IntegrateCreator) plugin.creator.v2;
+
+    } else if (pstyle == "min") {
+      auto minimize_map = lmp->update->minimize_map;
+      if (minimize_map->find(plugin.name) != minimize_map->end()) {
+        if (warnflag && (lmp->comm->me == 0))
+          lmp->error->warning(FLERR, "Overriding built-in minimize style {} from plugin",
+                              plugin.name);
+      }
+      (*minimize_map)[plugin.name] = (Update::MinimizeCreator) plugin.creator.v1;
+    }
+  }
+}
+
+/* --------------------------------------------------------------------
      unload all loaded plugins
      -------------------------------------------------------------------- */
 
 void plugin_clear(LAMMPS *lmp)
 {
-  verbose = false;
+  bool oldverbose = verbose;
+  verbose = true;
   while (pluginlist.size() > 0) {
     auto p = pluginlist.begin();
     plugin_unload(p->style, p->name, lmp);
   }
-  verbose = true;
+  verbose = oldverbose;
+}
+
+/* --------------------------------------------------------------------
+     unload all shared objects
+     -------------------------------------------------------------------- */
+
+void plugin_finalize()
+{
+#if defined(LMP_PLUGIN)
+  while (pluginlist.size() > 0) {
+    auto p = pluginlist.begin();
+
+    void *handle = p->handle;
+    plugin_erase(p->style, p->name);
+
+    // if reference count is down to zero, close DSO handle.
+
+    --dso_refcounter[handle];
+    if (dso_refcounter[handle] == 0) { platform::dlclose(handle); }
+  }
+#endif
 }
 
 /* --------------------------------------------------------------------

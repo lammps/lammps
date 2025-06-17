@@ -63,6 +63,13 @@ DumpExtXYZ::DumpExtXYZ(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
+DumpExtXYZ::~DumpExtXYZ()
+{
+  delete[] properties_string;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void DumpExtXYZ::update_properties()
 {
   // How many per-atom elements we buffer

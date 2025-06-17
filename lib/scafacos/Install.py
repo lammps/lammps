@@ -16,11 +16,12 @@ parser = ArgumentParser(prog='Install.py', description="LAMMPS library build wra
 
 # settings
 
-version = "1.0.1"
+version = "1.0.4"
 
 # known checksums for different ScaFaCoS versions. used to validate the download.
 checksums = { \
-        '1.0.1' : 'bd46d74e3296bd8a444d731bb10c1738' \
+        '1.0.1' : 'bd46d74e3296bd8a444d731bb10c1738', \
+        '1.0.4' : '23867540ec32e63ce71d6ecc105278d2', \
         }
 
 # extra help message

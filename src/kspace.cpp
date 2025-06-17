@@ -33,15 +33,15 @@ static constexpr double SMALL = 0.00001;
 
 /* ---------------------------------------------------------------------- */
 
-KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
+KSpace::KSpace(LAMMPS *lmp) :
+    Pointers(lmp), eatom(nullptr), vatom(nullptr), gcons(nullptr), dgcons(nullptr)
 {
   order_allocated = 0;
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
 
   triclinic_support = 1;
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag =
-    dipoleflag = spinflag = 0;
+  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   compute_flag = 1;
   group_group_enable = 0;
   stagger_flag = 0;
@@ -83,14 +83,17 @@ KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
   accuracy_real_6 = -1.0;
   accuracy_kspace_6 = -1.0;
 
+  qqrd2e = force->qqrd2e;
+  g_ewald = g_ewald_6 = 0.0;
+  scale = 1.0;
+
   neighrequest_flag = 1;
   mixflag = 0;
 
   splittol = 1.0e-6;
+  scale = 1.0;
 
   maxeatom = maxvatom = 0;
-  eatom = nullptr;
-  vatom = nullptr;
   centroidstressflag = CENTROID_NOTAVAIL;
 
   execution_space = Host;
@@ -181,9 +184,9 @@ void KSpace::triclinic_check()
 
 /* ---------------------------------------------------------------------- */
 
-void KSpace::compute_dummy(int eflag, int vflag)
+void KSpace::compute_dummy(int eflag, int vflag, int alloc)
 {
-  ev_init(eflag,vflag);
+  ev_init(eflag,vflag,alloc);
 }
 
 /* ----------------------------------------------------------------------

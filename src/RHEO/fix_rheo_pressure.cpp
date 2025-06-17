@@ -191,14 +191,13 @@ void FixRHEOPressure::setup_pre_force(int /*vflag*/)
 void FixRHEOPressure::pre_force(int /*vflag*/)
 {
   int *mask = atom->mask;
-  int *type = atom->type;
   double *rho = atom->rho;
   double *pressure = atom->pressure;
 
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) pressure[i] = calc_pressure(rho[i], type[i]);
+    if (mask[i] & groupbit) pressure[i] = calc_pressure(rho[i], i);
 
   if (comm_forward) comm->forward_comm(this);
 }
@@ -290,7 +289,7 @@ double FixRHEOPressure::calc_rho(double p, int i)
 
 /* ---------------------------------------------------------------------- */
 
-double FixRHEOPressure::calc_csq(double p, int i)
+double FixRHEOPressure::calc_csq(double /*p*/, int i)
 {
   int type = atom->type[i];
   double csq2 = csq[type];

@@ -16,6 +16,8 @@
 
 #include "pointers.h"
 
+#include "json_fwd.h"
+
 #include <map>
 #include <set>
 
@@ -358,6 +360,7 @@ class Atom : protected Pointers {
   int shape_consistency(int, double &, double &, double &);
 
   void add_molecule(int, char **);
+  void add_molecule(const std::string &, const json &);
   int find_molecule(const char *);
   std::vector<Molecule *> get_molecule_by_id(const std::string &);
   void add_molecule_atom(Molecule *, int, int, tagint);

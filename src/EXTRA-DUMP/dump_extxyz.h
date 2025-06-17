@@ -26,6 +26,7 @@ namespace LAMMPS_NS {
 class DumpExtXYZ : public DumpXYZ {
  public:
   DumpExtXYZ(class LAMMPS *, int, char **);
+  ~DumpExtXYZ() override;
 
  protected:
   int with_vel;

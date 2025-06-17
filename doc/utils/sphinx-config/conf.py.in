@@ -370,6 +370,17 @@ latex_elements = {
 {%
   \hypersetup{pageanchor=false}% avoid duplicate destination warnings
   \begin{titlepage}%
+    \sffamily\Large
+    The LAMMPS developers are thinking about dropping the PDF format version of
+    the LAMMPS manual.  This would allow us to focus on the HTML version, use
+    HTML-only features, and skip checking if the documentation source files,
+    especially the embedded mathematical expressions, are compatible with \LaTeX{} output.
+
+    Please let us know how you feel about this change by sending an email to
+    \texttt{developers@lammps.org} stating whether you agree or disagree with
+    removing support for the PDF format version of the  manual and optionally
+    provide arguments for your preference.
+    \clearpage
     \sffamily\bfseries
     \begingroup % for PDF information dictionary
       \def\endgraf{ }\def\and{\& }%

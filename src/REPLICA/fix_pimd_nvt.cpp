@@ -579,13 +579,13 @@ void FixPIMDNVT::spring_force()
     double dely1 = xlast[1] - x[i][1];
     double delz1 = xlast[2] - x[i][2];
     xlast += 3;
-    domain->minimum_image(delx1, dely1, delz1);
+    domain->minimum_image(FLERR, delx1, dely1, delz1);
 
     double delx2 = xnext[0] - x[i][0];
     double dely2 = xnext[1] - x[i][1];
     double delz2 = xnext[2] - x[i][2];
     xnext += 3;
-    domain->minimum_image(delx2, dely2, delz2);
+    domain->minimum_image(FLERR, delx2, dely2, delz2);
 
     double ff = fbond * _mass[type[i]];
 

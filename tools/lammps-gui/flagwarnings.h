@@ -33,7 +33,9 @@ protected:
 
 private:
     QRegularExpression isWarning;
+    QRegularExpression isURL;
     QTextCharFormat formatWarning;
+    QTextCharFormat formatURL;
     QLabel *summary;
     QTextDocument *document;
     int nwarnings, nlines;

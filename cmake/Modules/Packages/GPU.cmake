@@ -189,7 +189,7 @@ if(GPU_API STREQUAL "CUDA")
   endif()
 
   add_executable(nvc_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
-  target_compile_definitions(nvc_get_devices PRIVATE -DUCL_CUDADR)
+  target_compile_definitions(nvc_get_devices PRIVATE -DUCL_CUDADR -DLAMMPS_${LAMMPS_SIZES})
   target_link_libraries(nvc_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
   target_include_directories(nvc_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
 
@@ -489,7 +489,7 @@ else()
   target_link_libraries(gpu PRIVATE mpi_stubs)
 endif()
 
-target_compile_definitions(gpu PRIVATE -DLAMMPS_${LAMMPS_SIZES})
 set_target_properties(gpu PROPERTIES OUTPUT_NAME lammps_gpu${LAMMPS_MACHINE})
+target_compile_definitions(gpu PRIVATE -DLAMMPS_${LAMMPS_SIZES})
 target_sources(lammps PRIVATE ${GPU_SOURCES})
 target_include_directories(lammps PRIVATE ${GPU_SOURCES_DIR})

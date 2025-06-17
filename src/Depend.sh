@@ -146,6 +146,7 @@ fi
 
 if (test $1 = "MC") then
   depend MISC
+  depend VORONOI
 fi
 
 if (test $1 = "MEAM") then

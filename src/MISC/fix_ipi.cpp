@@ -399,7 +399,7 @@ void FixIPI::initial_integrate(int /*vflag*/)
         auto dely = x[i][1] - xhold[i][1];
         auto delz = x[i][2] - xhold[i][2];
 
-        domain->minimum_image(delx, dely, delz);
+        domain->minimum_image(FLERR, delx, dely, delz);
 
         x[i][0] = xhold[i][0] + delx;
         x[i][1] = xhold[i][1] + dely;

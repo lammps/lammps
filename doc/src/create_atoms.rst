@@ -28,7 +28,7 @@ Syntax
          region-ID = create atoms within this region, use NULL for entire simulation box
 
 * zero or more keyword/value pairs may be appended
-* keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *radscale* or *meshmode* or *rotate* or *overlap* or *maxtry* or *units*
+* keyword = *mol* or *basis* or *ratio* or *subset* or *group* or *remap* or *var* or *set* or *radscale* or *meshmode* or *rotate* or *overlap* or *maxtry* or *units*
 
   .. parsed-literal::
 
@@ -44,6 +44,7 @@ Syntax
        *subset* values = Nsubset seed
          Nsubset = # of lattice sites to populate randomly
          seed = random # seed (positive integer)
+       *group* value = group name
        *remap* value = *yes* or *no*
        *var* value = name = variable name to evaluate for test of atom creation
        *set* values = dim name
@@ -83,7 +84,7 @@ Examples
 
    create_atoms 3 region regsphere basis 2 3
    create_atoms 3 region regsphere basis 2 3 ratio 0.5 74637
-   create_atoms 3 single 0 0 5
+   create_atoms 3 single 0 0 5 group newatom
    create_atoms 1 box var v set x xpos set y ypos
    create_atoms 2 random 50 12345 NULL overlap 2.0 maxtry 50
    create_atoms 1 mesh open_box.stl meshmode qrand 0.1 units box
@@ -395,6 +396,14 @@ correct number of particles are inserted, in a perfectly random
 fashion.  Which lattice sites are selected will change with the number
 of processors used.
 
+.. versionadded:: 12Jun2025
+
+The *group* keyword adds the newly created atoms to the named
+:doc:`group <group>`.  If the group does not yet exist it will be
+created.  There can be only one such group, thus if the *group* keyword
+is used multiple times, only the last one will be used.  All created
+atoms are always added to the group "all".
+
 The *remap* keyword only applies to the *single* style.  If it is set
 to *yes*, then if the specified position is outside the simulation
 box, it will mapped back into the box, assuming the relevant
@@ -407,24 +416,23 @@ atom, based on its coordinates.  They apply to all styles except
 *single*.  The *name* specified for the *var* keyword is the name of
 an :doc:`equal-style variable <variable>` that should evaluate to a
 zero or non-zero value based on one or two or three variables that
-will store the *x*, *y*, or *z* coordinates of an atom (one variable per
-coordinate).  If used, these other variables must be
-:doc:`internal-style variables <variable>` defined in the input
-script; their initial numeric value can be anything.  They must be
-internal-style variables, because this command resets their values
-directly.  The *set* keyword is used to identify the names of these
-other variables, one variable for the *x*-coordinate of a created atom,
-one for *y*, and one for *z*.
+will store the *x*, *y*, or *z* coordinates of an atom (one variable
+per coordinate).  If used, these other variables must be specified by
+the *set* keyword.  They are internal-style variable, because this
+command resets their values directly.  The internal-style variables do
+not need to be defined in the input script (though they can be); if
+one (or more) is not defined, then the *set* option creates an
+:doc:`internal-style variable <variable>` with the specified name.
 
 .. figure:: img/sinusoid.jpg
             :figwidth: 50%
             :align: right
             :target: _images/sinusoid.jpg
 
-When an atom is created, its :math:`(x,y,z)` coordinates become the values for
-any *set* variable that is defined.  The *var* variable is then
-evaluated.  If the returned value is 0.0, the atom is not created.  If
-it is non-zero, the atom is created.
+When an atom is about to be created, its :math:`(x,y,z)` coordinates
+become the values for any *set* variable that is defined.  The *var*
+variable is then evaluated.  If the returned value is 0.0, the atom is
+not created.  If it is non-zero, the atom is created.
 
 As an example, these commands can be used in a 2d simulation, to
 create a sinusoidal surface.  Note that the surface is "rough" due to
@@ -447,8 +455,6 @@ converts lattice spacings to distance.
    region      box block 0 $x 0 $y -0.5 0.5
    create_box  1 box
 
-   variable    xx internal 0.0
-   variable    yy internal 0.0
    variable    v equal "(0.2*v_y*ylat * cos(v_xx/xlat * 2.0*PI*4.0/v_x) + 0.5*v_y*ylat - v_yy) > 0.0"
    create_atoms  1 box var v set x xx set y yy
    write_dump  all atom sinusoid.lammpstrj

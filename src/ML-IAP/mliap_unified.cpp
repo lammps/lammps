@@ -95,17 +95,14 @@ void MLIAPDummyDescriptor::init()
   double cut;
   cutmax = 0.0;
   memory->create(cutsq, nelements, nelements, "mliap/descriptor/dummy:cutsq");
-  memory->create(cutghost, nelements, nelements, "mliap/descriptor/dummy:cutghost");
   for (int ielem = 0; ielem < nelements; ielem++) {
     // rcutfac set from python, is global cutoff for all elements
     cut = 2.0 * radelem[ielem] * rcutfac;
     if (cut > cutmax) cutmax = cut;
     cutsq[ielem][ielem] = cut * cut;
-    cutghost[ielem][ielem] = cut * cut;
     for (int jelem = ielem + 1; jelem < nelements; jelem++) {
       cut = (radelem[ielem] + radelem[jelem]) * rcutfac;
       cutsq[ielem][jelem] = cutsq[jelem][ielem] = cut * cut;
-      cutghost[ielem][jelem] = cutghost[jelem][ielem] = cut * cut;
     }
   }
 }
@@ -114,7 +111,8 @@ void MLIAPDummyDescriptor::set_elements(char **elems, int nelems)
 {
   nelements = nelems;
   elements = new char *[nelems];
-  for (int i = 0; i < nelems; i++) { elements[i] = utils::strdup(elems[i]); }
+  for (int i = 0; i < nelems; i++) elements[i] = utils::strdup(elems[i]);
+  allocated_elements = 1;
 }
 
 /* ---------------------------------------------------------------------- */

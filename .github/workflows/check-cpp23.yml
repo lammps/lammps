@@ -1,4 +1,4 @@
-# GitHub action to build LAMMPS on Linux with gcc and C++23
+# GitHub action to build LAMMPS on Linux with gcc or clang and C++23
 name: "Check for C++23 Compatibility"
 
 on:
@@ -11,11 +11,19 @@ on:
 
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
 jobs:
   build:
     name: Build with C++23 support enabled
     if: ${{ github.repository == 'lammps/lammps' }}
     runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 2
+      matrix:
+        idx: [ gcc, clang ]
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
 
@@ -29,8 +37,11 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y ccache \
-                                libeigen3-dev \
+                                clang \
                                 libcurl4-openssl-dev \
+                                libeigen3-dev \
+                                libfftw3-dev \
+                                libomp-dev \
                                 mold \
                                 mpi-default-bin \
                                 mpi-default-dev \
@@ -58,14 +69,14 @@ jobs:
         cmake -S cmake -B build \
               -C cmake/presets/most.cmake \
               -C cmake/presets/kokkos-openmp.cmake \
+              -C cmake/presets/${{ matrix.idx }}.cmake \
               -D CMAKE_CXX_STANDARD=23 \
-              -D CMAKE_CXX_COMPILER=g++ \
-              -D CMAKE_C_COMPILER=gcc \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
               -D CMAKE_BUILD_TYPE=Debug \
               -D CMAKE_CXX_FLAGS_DEBUG="-Og -g" \
               -D DOWNLOAD_POTENTIALS=off \
+              -D FFT=KISS \
               -D BUILD_MPI=on \
               -D BUILD_SHARED_LIBS=on \
               -D BUILD_TOOLS=off \

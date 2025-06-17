@@ -14,7 +14,7 @@ Syntax
 * adapt = style name of this fix command
 * N = adapt simulation settings every this many timesteps
 * one or more attribute/arg pairs may be appended
-* attribute = *pair* or *bond* or *angle* or *improper* or *kspace* or *atom*
+* attribute = *pair* or *bond* or *angle* or *dihedral* or *improper* or *kspace* or *atom*
 
   .. parsed-literal::
 
@@ -33,6 +33,11 @@ Syntax
          aparam = parameter to adapt over time
          I = type angle to set parameter for (integer or type label)
          v_name = variable with name that calculates value of aparam
+       *dihedral* args = dstyle dparam I v_name
+         dstyle = dihedral style name (e.g., quadratic)
+         dparam = parameter to adapt over time
+         I = type dihedral to set parameter for (integer or type label)
+         v_name = variable with name that calculates value of iparam
        *improper* args = istyle iparam I v_name
          istyle = improper style name (e.g., cvff)
          iparam = parameter to adapt over time
@@ -208,6 +213,8 @@ formulas for the meaning of these parameters:
 | :doc:`lj/lj/gromacs <pair_gromacs>`                                          | epsilon,sigma                                    | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`lj/mdf <pair_mdf>`                                                     | epsilon,sigma                                    | type pairs  |
++------------------------------------------------------------------------------+--------------------------------------------------+-------------+
+| :doc:`lj/pirani <pair_lj_pirani>`                                            | alpha, beta, gamma, rm, epsilon                  | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`lj/sf/dipole/sf <pair_dipole>`                                         | epsilon,sigma,scale                              | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
@@ -430,6 +437,48 @@ sub-style name. The angle styles that currently work with fix adapt are:
 
 Note that internally, theta0 is stored in radians, so the variable
 this fix uses to reset theta0 needs to generate values in radians.
+
+----------
+
+.. versionadded:: 12Jun2025
+
+The *dihedral* keyword uses the specified variable to change the value of
+a dihedral coefficient over time, very similar to how the *angle* keyword
+operates. The only difference is that now a dihedral coefficient for a
+given dihedral type is adapted.
+
+A wild-card asterisk can be used in place of or in conjunction with the
+dihedral type argument to set the coefficients for multiple dihedral types.
+This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N` is
+the number of dihedral types, then an asterisk with no numeric values means
+all types from 1 to :math:`N`.  A leading asterisk means all types from
+1 to n (inclusive).  A trailing asterisk means all types from m to
+:math:`N` (inclusive).  A middle asterisk means all types from m to n
+(inclusive).
+
+If :doc:`dihedral_style hybrid <dihedral_hybrid>` is used, *dstyle* should be a
+sub-style name. The dihedral styles that currently work with fix adapt are:
+
++------------------------------------------------------------------------+-------------------------+----------------+
+| :doc:`charmm  <dihedral_charmm>`                                       | k,n,d                   | type dihedrals |
++------------------------------------------------------------------------+-------------------------+----------------+
+| :doc:`charmmfsw <dihedral_charmm>`                                     | k,n,d                   | type dihedrals |
++------------------------------------------------------------------------+-------------------------+----------------+
+| :doc:`class2 <dihedral_class2>`                                        | k1,k2,k3,phi1,phi2,phi3 | type dihedrals |
++------------------------------------------------------------------------+-------------------------+----------------+
+| :doc:`cosine/squared/restricted <dihedral_cosine_squared_restricted>`  | k,phi0                  | type dihedrals |
++------------------------------------------------------------------------+-------------------------+----------------+
+| :doc:`helix <dihedral_helix>`                                          | a,b,c                   | type dihedrals |
++------------------------------------------------------------------------+-------------------------+----------------+
+| :doc:`multi/harmonic <dihedral_multi_harmonic>`                        | a1,a2,a3,a4,a5          | type dihedrals |
++------------------------------------------------------------------------+-------------------------+----------------+
+| :doc:`opls <dihedral_opls>`                                            | k1,k2,k3,k4             | type dihedrals |
++------------------------------------------------------------------------+-------------------------+----------------+
+| :doc:`quadratic <dihedral_quadratic>`                                  | k,phi0                  | type dihedrals |
++------------------------------------------------------------------------+-------------------------+----------------+
+
+Note that internally, phi0 is stored in radians, so the variable
+this fix use to reset phi0 needs to generate values in radians.
 
 ----------
 

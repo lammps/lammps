@@ -528,8 +528,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       if (helpflag == 0) {
         universe->ulogfile = fopen("log.lammps","w");
         if (universe->ulogfile == nullptr)
-          error->universe_warn(FLERR,"Cannot open log.lammps for writing: "
-                               + utils::getsyserror());
+          error->universe_warn(FLERR,"Cannot open log.lammps for writing: " + utils::getsyserror());
       }
     } else if (strcmp(arg[logflag],"none") == 0)
       universe->ulogfile = nullptr;
@@ -661,8 +660,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     }
 
     if ((me == 0) && (!helpflag))
-      utils::logmesg(this,"LAMMPS ({}{})\nProcessor partition = {}\n", version,
-                     update_string, universe->iworld);
+      utils::logmesg(this,"LAMMPS ({}{})\nProcessor partition = {}\n", version, update_string,
+                     universe->iworld);
   }
 
   // check consistency of datatype settings in lmptype.h
@@ -884,8 +883,9 @@ void LAMMPS::create()
 
   python = new Python(this);
 
-  // auto-load plugins
+  // restore and auto-load plugins
 #if defined(LMP_PLUGIN)
+  plugin_restore(this, true);
   plugin_auto_load(this);
 #endif
 }
@@ -992,11 +992,6 @@ void LAMMPS::init()
 
 void LAMMPS::destroy()
 {
-  // must wipe out all plugins first, if configured
-#if defined(LMP_PLUGIN)
-  plugin_clear(this);
-#endif
-
   delete update;
   update = nullptr;
 
@@ -1457,6 +1452,7 @@ void LAMMPS::print_config(FILE *fp)
              platform::compiler_info(),platform::openmp_standard(),
              platform::cxx_standard());
   fputs(Info::get_fmt_info().c_str(),fp);
+  fputs(Info::get_json_info().c_str(),fp);
 
   int major,minor;
   std::string infobuf = platform::mpi_info(major,minor);

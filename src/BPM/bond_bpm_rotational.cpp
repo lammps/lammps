@@ -28,6 +28,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
+#include "update.h"
 
 #include <cmath>
 #include <cstring>
@@ -176,7 +177,7 @@ void BondBPMRotational::store_data()
       }
 
       // Get closest image in case bonded with ghost
-      domain->minimum_image(delx, dely, delz);
+      domain->minimum_image(FLERR, delx, dely, delz);
       r = sqrt(delx * delx + dely * dely + delz * delz);
       rinv = 1.0 / r;
 
@@ -483,6 +484,7 @@ void BondBPMRotational::compute(int eflag, int vflag)
   int newton_bond = force->newton_bond;
 
   double **bondstore = fix_bond_history->bondstore;
+  const bool allow_breaks = (update->setupflag == 0) && break_flag;
 
   for (n = 0; n < nbondlist; n++) {
 
@@ -527,7 +529,7 @@ void BondBPMRotational::compute(int eflag, int vflag)
     breaking = elastic_forces(i1, i2, type, r_mag, r0_mag, r_mag_inv, rhat, r, r0, force1on2,
                               torque1on2, torque2on1);
 
-    if ((breaking >= 1.0) && break_flag) {
+    if ((breaking >= 1.0) && allow_breaks) {
       bondlist[n][2] = 0;
       process_broken(i1, i2);
       continue;
@@ -763,6 +765,7 @@ void BondBPMRotational::read_restart(FILE *fp)
 void BondBPMRotational::write_restart_settings(FILE *fp)
 {
   fwrite(&smooth_flag, sizeof(int), 1, fp);
+  fwrite(&normalize_flag, sizeof(int), 1, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -771,8 +774,12 @@ void BondBPMRotational::write_restart_settings(FILE *fp)
 
 void BondBPMRotational::read_restart_settings(FILE *fp)
 {
-  if (comm->me == 0) utils::sfread(FLERR, &smooth_flag, sizeof(int), 1, fp, nullptr, error);
+  if (comm->me == 0) {
+    utils::sfread(FLERR, &smooth_flag, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &normalize_flag, sizeof(int), 1, fp, nullptr, error);
+  }
   MPI_Bcast(&smooth_flag, 1, MPI_INT, 0, world);
+  MPI_Bcast(&normalize_flag, 1, MPI_INT, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */

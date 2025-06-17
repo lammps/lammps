@@ -585,7 +585,6 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
   int i,n,paren_count,nchars;
   char immediate[256];
   char *var,*value,*beyond;
-  int quoteflag = 0;
   char *ptrmatch;
 
   char *ptr = str;
@@ -599,7 +598,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 
     // variable substitution
 
-    if (*ptr == '$' && !quoteflag) {
+    if (*ptr == '$') {
 
       // value = ptr to expanded variable
       // variable name between curly braces, e.g. ${a}

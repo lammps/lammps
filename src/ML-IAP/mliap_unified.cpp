@@ -85,6 +85,22 @@ void MLIAPDummyDescriptor::compute_descriptor_gradients(class MLIAPData *)
   error->all(FLERR, "compute_descriptor_gradients not implemented");
 }
 
+// Runs the computation for each extra property
+void MLIAPDummyDescriptor::compute_extra_properties(class MLIAPData *data)
+{
+  for (int i = 0; i < data->num_extra_properties; i++) {
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    compute_extra_property_python(unified_interface, data, data->extra_properties_names[i].c_str(), i);
+    if (PyErr_Occurred()) {
+      PyErr_Print();
+      PyErr_Clear();
+      PyGILState_Release(gstate);
+      lmp->error->all(FLERR, "Running mliappy unified compute_extra_properties failure.");
+    }
+    PyGILState_Release(gstate);
+  }
+}
+
 void MLIAPDummyDescriptor::init()
 {
   memory->create(radelem, nelements, "mliap_dummy_descriptor:radelem");

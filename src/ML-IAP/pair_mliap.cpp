@@ -112,6 +112,10 @@ void PairMLIAP::compute(int eflag, int vflag)
   // calculate stress
 
   if (vflag_fdotr) virial_fdotr_compute();
+
+  // compute extra_properties
+
+  descriptor->compute_extra_properties(data);
 }
 
 /* ----------------------------------------------------------------------

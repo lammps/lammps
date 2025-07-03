@@ -26,6 +26,8 @@ class MLIAPDescriptor : virtual protected Pointers {
   virtual void compute_forces(class MLIAPData *) = 0;
   virtual void compute_force_gradients(class MLIAPData *) = 0;
   virtual void compute_descriptor_gradients(class MLIAPData *) = 0;
+  //Optional implementation of compute_extra_properties. Default Behavior: Do nothing
+  virtual void compute_extra_properties(class MLIAPData *) { };
   virtual void init() = 0;
   virtual double memory_usage();
 

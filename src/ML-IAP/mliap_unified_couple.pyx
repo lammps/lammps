@@ -26,6 +26,7 @@ cdef extern from "mliap_data.h" namespace "LAMMPS_NS":
         int zoffset
         int ndims_force
         int ndims_virial
+        int * extra_properties_dims # dimensions of data for each extra property
         # -END- may not need -END-
         int size_gradforce
         # ----- write only -----
@@ -86,6 +87,7 @@ cdef extern from "mliap_unified.h" namespace "LAMMPS_NS":
 
         void compute_descriptors(MLIAPData *)
         void compute_forces(MLIAPData *)
+        void compute_extra_properties(MLIAPData *)
         void set_elements(char **, int)
 
     cdef cppclass MLIAPDummyModel:
@@ -334,6 +336,9 @@ cdef class MLIAPUnifiedInterface:
     def compute_forces(self, data):
         self.unified_impl.compute_forces(data)
 
+    def compute_extra_property(self, data, name, index):
+        self.unified_impl.compute_extra_property(data, name, index)
+
 
 cdef public void compute_gradients_python(unified_int, MLIAPData *data) except * with gil:
     pydata = MLIAPDataPy()
@@ -351,6 +356,11 @@ cdef public void compute_forces_python(unified_int, MLIAPData *data) except * wi
     pydata = MLIAPDataPy()
     pydata.data = data
     unified_int.compute_forces(pydata)
+
+cdef public void compute_extra_property_python(unified_int, MLIAPData *data, const char *name) except * with gil:
+    pydata = MLIAPDataPy()
+    pydata.data = data
+    unified_int.compute_extra_property(pydata, name)
 
 
 # Create a MLIAPUnifiedInterface and connect it to the dummy model, descriptor

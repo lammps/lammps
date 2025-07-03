@@ -11,41 +11,37 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
+#ifdef COMPUTE_CLASS
 // clang-format off
-PairStyle(mliap,PairMLIAP);
+ComputeStyle(extraProperty/atom,ComputeExtraPropertyAtom);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_MLIAP_H
-#define LMP_PAIR_MLIAP_H
+#ifndef LMP_COMPUTE_EXTRA_PROPERTY_ATOM_H
+#define LMP_COMPUTE_EXTRA_PROPERTY_ATOM_H
 
-#include "pair.h"
-#include "compute_extra_property_atom.h"
+#include "compute.h"
+#include "mliap_data.h"
+#include "mliap_descriptor.h"
+#include "pair_mliap.h"
 
 namespace LAMMPS_NS {
 
-class PairMLIAP : public Pair {
+class ComputeExtraPropertyAtom : public Compute {
  public:
-  friend class ComputeExtraPropertyAtom;
-  PairMLIAP(class LAMMPS *);
-  ~PairMLIAP() override;
-  void compute(int, int) override;
-  void settings(int, char **) override;
-  void coeff(int, char **) override;
-  void e_tally(class MLIAPData *);
-  void v_tally(int, int, double *, double *);
-  void init_style() override;
-  double init_one(int, int) override;
+  ComputeExtraPropertyAtom(class LAMMPS *, int, char **);
+  ~ComputeExtraPropertyAtom() override;
+  void init() override;
+  void compute_peratom() override;
   double memory_usage() override;
 
- protected:
-  virtual void allocate();
-
-  class MLIAPModel *model;
-  class MLIAPDescriptor *descriptor;
-  class MLIAPData *data;
-  bool is_child;
+ private:
+  int nmax;
+  int extra_property_index;
+  std::string extra_property_name;
+  double **extra_property_data;
+  MLIAPDescriptor *descriptor;
+  MLIAPData *data;
 };
 
 }    // namespace LAMMPS_NS

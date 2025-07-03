@@ -267,6 +267,11 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
    }
 }
 
+template<class DeviceType>
+void MLIAPDataKokkos<DeviceType>::register_extra_property(std::string name, int dim) {
+  k_extra_properties.register_extra_property(name, dim);
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -360,6 +365,16 @@ void MLIAPDataKokkos<DeviceType>::sync(ExecutionSpace space, unsigned int mask, 
 }
 
 /* ---------------------------------------------------------------------- */
+
+int MLIAPDataKokkosDevice::get_extra_property_dim(char* name) {
+  std::string nameConverted(name);
+  return extra_properties.get_dim(nameConverted);
+}
+
+LMP_FLOAT* MLIAPDataKokkosDevice::get_extra_property_device_pointer(char* name) {
+  std::string nameConverted(name);
+  return extra_properties.get_device_pointer(nameConverted);
+}
 
 template class MLIAPDataKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU

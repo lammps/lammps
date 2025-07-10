@@ -41,7 +41,15 @@ template<typename T, class DeviceType>
 using UnmanagedView = Kokkos::View<T, Kokkos::LayoutRight, DeviceType, Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
 
 template<class DeviceType>
-PairMetatomicKokkos<DeviceType>::PairMetatomicKokkos(LAMMPS* lmp): PairMetatomic(lmp) {}
+PairMetatomicKokkos<DeviceType>::PairMetatomicKokkos(LAMMPS* lmp): PairMetatomic(lmp) {
+    respa_enable = 0;
+
+    kokkosable = 1;
+    execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+
+    datamask_read = X_MASK | F_MASK | TYPE_MASK | TAG_MASK | ENERGY_MASK | VIRIAL_MASK;
+    datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
+}
 
 template<class DeviceType>
 PairMetatomicKokkos<DeviceType>::~PairMetatomicKokkos() {}
@@ -113,8 +121,8 @@ void PairMetatomicKokkos<DeviceType>::compute(int eflag, int vflag) {
     auto _ = MetatomicTimer("PairMetatomicKokkos::compute");
 
     /// Declare what we need to read from the atomKK object and what we will modify
-    this->atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space, X_MASK | F_MASK | TAG_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK);
-    this->atomKK->modified(ExecutionSpaceFromDevice<DeviceType>::space, ENERGY_MASK | F_MASK | VIRIAL_MASK);
+    this->atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space, datamask_read);
+    this->atomKK->modified(ExecutionSpaceFromDevice<DeviceType>::space, datamask_modify);
 
     if (eflag || vflag) {
         ev_setup(eflag, vflag);

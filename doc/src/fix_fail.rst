@@ -7,7 +7,7 @@ Syntax
 """"""
 
 .. code-block:: LAMMPS
- 
+
    fix ID group-ID fail keyword args
 
 * keyword = *rank* or *timestep* or *step* or *var*

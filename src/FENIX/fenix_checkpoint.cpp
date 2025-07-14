@@ -283,52 +283,10 @@ void FenixCheckpoint::store_peratom(){
   for(int i = 0; i < atom->nlocal; i++)
     n += atom->avec->pack_restart(i, &atom_data[n]);
 
-  // TODO: Is this really necessary? If so, can we save the expensive part for
-  // the (ideally less frequent) restarts?
-  if (modify->restart_pbc_any) {
-    int triclinic = domain->triclinic;
-    double *lo,*hi,*period;
-
-    if (triclinic == 0) {
-      lo = domain->boxlo;
-      hi = domain->boxhi;
-      period = domain->prd;
-    } else {
-      lo = domain->boxlo_lamda;
-      hi = domain->boxhi_lamda;
-      period = domain->prd_lamda;
-    }
-
-    int xperiodic = domain->xperiodic;
-    int yperiodic = domain->yperiodic;
-    int zperiodic = domain->zperiodic;
-
-    double *x;
-    int m = 0;
-    for (int i = 0; i < atom->nlocal; i++) {
-      x = &atom_data[m+1];
-      if (triclinic) domain->x2lamda(x,x);
-
-      if (xperiodic) {
-        if (x[0] < lo[0]) x[0] += period[0];
-        if (x[0] >= hi[0]) x[0] -= period[0];
-        x[0] = MAX(x[0],lo[0]);
-      }
-      if (yperiodic) {
-        if (x[1] < lo[1]) x[1] += period[1];
-        if (x[1] >= hi[1]) x[1] -= period[1];
-        x[1] = MAX(x[1],lo[1]);
-      }
-      if (zperiodic) {
-        if (x[2] < lo[2]) x[2] += period[2];
-        if (x[2] >= hi[2]) x[2] -= period[2];
-        x[2] = MAX(x[2],lo[2]);
-      }
-
-      if (triclinic) domain->lamda2x(x,x);
-      m += static_cast<int> (atom_data[m]);
-    }
-  }
+  // It seems safe to ignore restart_pbc_any, since we are simply restoring
+  // the prior state on recovery - not restoring to a different number of ranks
+  // or a different set of configs etc. But if things break, fetch the code
+  // for enforcing Periodic Boundary Conditions (PBC) from write_restart
 
   safe_create_member(peratom_member, atom_data, FENIX_RESIZEABLE, MPI_CHAR);
   try{

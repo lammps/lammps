@@ -33,10 +33,10 @@ mass            1 1.0
 
 velocity        all create 1.44 87287 loop geom
 
-label restart
-
 pair_style      lj/cut 2.5
 pair_coeff      1 1 1.0 1.0 2.5
+
+label restart
 
 neighbor        0.3 bin
 neigh_modify    delay 0 every 20 check no

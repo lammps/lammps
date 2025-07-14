@@ -49,7 +49,7 @@ enum {
 };
 // clang-format on
 
-template <class DeviceType> struct ExtraProperties {
+template <class DeviceType> struct ExtraPropertiesKokkos {
   using execution_space = typename DeviceType::execution_space;
   using memory_space = typename DeviceType::memory_space;
 
@@ -58,7 +58,7 @@ template <class DeviceType> struct ExtraProperties {
   int nproperties; //May not be needed
   int nlistatoms;
 
-  ExtraProperties() : nproperties(0), nlistatoms(0) {}
+  ExtraPropertiesKokkos() : nproperties(0), nlistatoms(0) {}
                       
   int get_dim(std::string name) {
     if (dims.find(name) == dims.end()) {
@@ -127,6 +127,10 @@ template <class DeviceType> struct ExtraProperties {
   }
 };
 
+//Forward declaration due to circular reference to PairMLIAPKokkos.
+template <class DeviceType>
+class PairMLIAPKokkos;
+
 template <class DeviceType> class MLIAPDataKokkos : public MLIAPData {
  public:
   MLIAPDataKokkos(class LAMMPS *, int, int *, class MLIAPModel *, class MLIAPDescriptor *,
@@ -154,6 +158,7 @@ template <class DeviceType> class MLIAPDataKokkos : public MLIAPData {
   DAT::tdual_float_2d k_betas;          // betas for all atoms in list
   DAT::tdual_float_2d k_descriptors;    // descriptors for all atoms in list
   DAT::tdual_float_1d k_eatoms;         // energies for all atoms in list
+  ExtraPropertiesKokkos<DeviceType> k_extra_properties;   // extra_properties data structure
   DAT::tdual_float_2d k_rij;            // distance vector of each neighbor
   DAT::tdual_float_2d k_gradforce;
   DAT::tdual_float_3d k_graddesc;         // descriptor gradient w.r.t. each neighbor
@@ -173,53 +178,8 @@ template <class DeviceType> class MLIAPDataKokkos : public MLIAPData {
 class MLIAPDataKokkosDevice {
 public:
 
-  MLIAPDataKokkosDevice(MLIAPDataKokkos<LMPDeviceType> &base) :
-    size_array_rows(base.size_array_rows),
-    size_array_cols(base.size_array_cols),
-    natoms(base.natoms),
-    yoffset(base.yoffset),
-    zoffset(base.zoffset),
-    ndims_force(base.ndims_force),
-    ndims_virial(base.ndims_virial),
-    size_gradforce(base.size_gradforce),
-    f(base.f_device),
-    gradforce(base.k_gradforce.d_view.data()),
-    betas(base.k_betas.d_view.data()),
-    descriptors(base.k_descriptors.d_view.data()),
-    eatoms(base.k_eatoms.d_view.data()),
-    energy(&base.energy),
-    ndescriptors(base.ndescriptors),
-    nparams(base.nparams),
-    nelements(base.nelements),
-    gamma_nnz(base.gamma_nnz),
-    gamma(base.k_gamma.d_view.data()),
-    gamma_row_index(base.k_gamma_row_index.d_view.data()),
-    gamma_col_index(base.k_gamma_col_index.d_view.data()),
-    egradient(nullptr),
-    ntotal(base.ntotal),
-    nlistatoms(base.nlistatoms),
-    nlocal(base.nlocal),
-    natomneigh(base.natomneigh),
-    numneighs(base.numneighs),
-    iatoms(base.k_iatoms.d_view.data()),
-    pair_i(base.k_pair_i.d_view.data()),
-    ielems(base.k_ielems.d_view.data()),
-    nneigh_max(base.nneigh_max),
-    npairs(base.npairs),
-    jatoms(base.k_jatoms.d_view.data()),
-    jelems(base.k_jelems.d_view.data()),
-    elems(base.k_elems.d_view.data()),
-    rij(base.k_rij.d_view.data()),
-    graddesc(base.k_graddesc.d_view.data()),
-    eflag(base.eflag),
-    vflag(base.vflag),
-    pairmliap(dynamic_cast<PairMLIAPKokkos<LMPDeviceType> *>(base.pairmliap)),
-#if defined(KOKKOS_ENABLE_CUDA)
-    dev(1)
-#else
-    dev(0)
-#endif
-    {  }
+  MLIAPDataKokkosDevice(MLIAPDataKokkos<LMPDeviceType> &base);
+
   int size_array_rows;
   int size_array_cols;
   int natoms;
@@ -272,10 +232,10 @@ public:
 
   int dev;
 
-  ExtraProperties<LMPDeviceType> extra_properties;
-  //Wrapper functions for access to ExtraProperties struct of MLIAPDataKokkos
-  int get_extra_property_dim(char*);
-  LMP_FLOAT* get_extra_property_device_pointer(char*);
+  ExtraPropertiesKokkos<LMPDeviceType> extra_properties;
+  //Wrapper functions for access to ExtraPropertiesKokkos struct of MLIAPDataKokkos
+  int get_extra_property_dim(const char*);
+  LMP_FLOAT* get_extra_property_device_pointer(const char*);
 
   //forward_exchange writes into ghosts
   template <typename CommType>

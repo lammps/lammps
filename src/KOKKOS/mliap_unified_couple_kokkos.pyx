@@ -111,7 +111,7 @@ cdef extern from "mliap_unified_kokkos.h" namespace "LAMMPS_NS":
 
     cdef void update_pair_energy(MLIAPDataKokkosDevice *, double *) except +
     cdef void update_pair_forces(MLIAPDataKokkosDevice *, double *) except +
-    cdef void update_extra_property(MLIAPDataKokkosDevice *, char *, double *) except +
+    cdef void update_extra_property(MLIAPDataKokkosDevice *, const char *, double *) except +
 
 
 LOADED_MODEL = None
@@ -306,7 +306,9 @@ cdef class MLIAPDataPy:
             extra_property_arr = value
         except:
             extra_property_arr = value.detach().numpy().astype(np.double)
-        update_extra_property(self.data, name, &extra_property_arr[0])
+        cdef bytes c_name_bytes = name.encode('utf-8')
+        cdef const char* c_name = c_name_bytes
+        update_extra_property(self.data, c_name, &extra_property_arr[0])
 
     def update_extra_property_gpu(self, name, value):
         cdef uintptr_t extra_property_ptr;
@@ -314,7 +316,14 @@ cdef class MLIAPDataPy:
             extra_property_ptr = value.data.ptr
         except:
             extra_property_ptr = value.data_ptr()
-        update_extra_property(self.data, name, <double*>extra_property_ptr)
+        if value.dtype != torch.float64:
+          raise TypeError(f"Expected double tensor, but got {value.dtype} instead.")
+        if not value.is_contiguous():
+          print("It wasn't contiguous")
+          value = value.contiguous()
+        cdef bytes c_name_bytes = name.encode('utf-8')
+        cdef const char* c_name = c_name_bytes
+        update_extra_property(self.data, c_name, <double*>extra_property_ptr)
 
     def update_extra_property(self, name, value):
         if self.data.dev==0:

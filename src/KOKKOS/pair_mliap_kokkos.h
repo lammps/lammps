@@ -31,10 +31,15 @@ PairStyle(mliap/kk/host,PairMLIAPKokkos<LMPHostType>);
 #include "kokkos_type.h"
 #include "kokkos_base.h"
 #include "comm.h"
+#include "mliap_data_kokkos.h"
 
 #include <variant>
 
 namespace LAMMPS_NS {
+
+//Forward declaration for MLIAPDataKokkos since the getter doesn't recgonize it is a template
+template<class DeviceType>
+class MLIAPDataKokkos;
 
 template<class DeviceType>
 class PairMLIAPKokkos : public PairMLIAP, public KokkosBase  {
@@ -53,6 +58,8 @@ public:
   void allocate() override;
 
   void coeff(int narg, char **arg) override;
+
+  MLIAPDataKokkos<DeviceType>* get_k_data() const { return (MLIAPDataKokkos<DeviceType>*)data; }
 
   //Outward facing functions to be invoked by the ML layer via MLIAPDataKokkosDevice
   template <typename CommType>

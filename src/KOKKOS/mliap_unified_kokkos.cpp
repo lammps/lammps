@@ -408,15 +408,16 @@ void LAMMPS_NS::update_atom_energy(MLIAPDataKokkosDevice *data, double *ei)
    set extra property for given computed property
    ---------------------------------------------------------------------- */
 
-void LAMMPS_NS::update_extra_property(MLIAPDataKokkosDevice *data, char *name, double *extra_property_in)
+void LAMMPS_NS::update_extra_property(MLIAPDataKokkosDevice *data, const char *name, double *extra_property_in)
 {
   //Get device pointer and dim for given name
   LMP_FLOAT* extra_property_out = data->get_extra_property_device_pointer(name);
   int extra_property_dim = data->get_extra_property_dim(name);
 
-  Kokkos::parallel_for(data->nlistatoms, KOKKOS_LAMBDA (int ii) {
+  Kokkos::parallel_for(data->nlistatoms*extra_property_dim, KOKKOS_LAMBDA (int ii) {
     extra_property_out[ii] = extra_property_in[ii];
   });
+  Kokkos::fence();
 
   //This may not be the appropriate place to put these
   data->extra_properties.modify_device();

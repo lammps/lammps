@@ -366,12 +366,61 @@ void MLIAPDataKokkos<DeviceType>::sync(ExecutionSpace space, unsigned int mask, 
 
 /* ---------------------------------------------------------------------- */
 
-int MLIAPDataKokkosDevice::get_extra_property_dim(char* name) {
+MLIAPDataKokkosDevice::MLIAPDataKokkosDevice(MLIAPDataKokkos<LMPDeviceType> &base) :
+    size_array_rows(base.size_array_rows),
+    size_array_cols(base.size_array_cols),
+    natoms(base.natoms),
+    yoffset(base.yoffset),
+    zoffset(base.zoffset),
+    ndims_force(base.ndims_force),
+    ndims_virial(base.ndims_virial),
+    size_gradforce(base.size_gradforce),
+    f(base.f_device),
+    gradforce(base.k_gradforce.d_view.data()),
+    betas(base.k_betas.d_view.data()),
+    descriptors(base.k_descriptors.d_view.data()),
+    eatoms(base.k_eatoms.d_view.data()),
+    energy(&base.energy),
+    ndescriptors(base.ndescriptors),
+    nparams(base.nparams),
+    nelements(base.nelements),
+    gamma_nnz(base.gamma_nnz),
+    gamma(base.k_gamma.d_view.data()),
+    gamma_row_index(base.k_gamma_row_index.d_view.data()),
+    gamma_col_index(base.k_gamma_col_index.d_view.data()),
+    egradient(nullptr),
+    ntotal(base.ntotal),
+    nlistatoms(base.nlistatoms),
+    nlocal(base.nlocal),
+    natomneigh(base.natomneigh),
+    numneighs(base.numneighs),
+    iatoms(base.k_iatoms.d_view.data()),
+    pair_i(base.k_pair_i.d_view.data()),
+    ielems(base.k_ielems.d_view.data()),
+    nneigh_max(base.nneigh_max),
+    npairs(base.npairs),
+    jatoms(base.k_jatoms.d_view.data()),
+    jelems(base.k_jelems.d_view.data()),
+    elems(base.k_elems.d_view.data()),
+    rij(base.k_rij.d_view.data()),
+    graddesc(base.k_graddesc.d_view.data()),
+    eflag(base.eflag),
+    vflag(base.vflag),
+    pairmliap(dynamic_cast<PairMLIAPKokkos<LMPDeviceType> *>(base.pairmliap)),
+    extra_properties(base.k_extra_properties),
+#if defined(KOKKOS_ENABLE_CUDA)
+    dev(1)
+#else
+    dev(0)
+#endif
+    {  }
+
+int MLIAPDataKokkosDevice::get_extra_property_dim(const char* name) {
   std::string nameConverted(name);
   return extra_properties.get_dim(nameConverted);
 }
 
-LMP_FLOAT* MLIAPDataKokkosDevice::get_extra_property_device_pointer(char* name) {
+LMP_FLOAT* MLIAPDataKokkosDevice::get_extra_property_device_pointer(const char* name) {
   std::string nameConverted(name);
   return extra_properties.get_device_pointer(nameConverted);
 }

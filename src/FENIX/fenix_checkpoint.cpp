@@ -228,15 +228,12 @@ void FenixCheckpoint::store_global(){
     WriteRestart::type_arrays();
     WriteRestart::force_fields();
 
-    // Hacky way to get data on to all ranks
-    // Problematic for fixes that use MPI during write_restart steps
-    // A probably quickly outdated list:
-    //   MACHDYN/fix_smd_tlsph_reference_configuration.cpp:490 (maxsize_restart)
-    //   fix_neigh_history.cpp:938 (maxsize_restart)
-    //   EXTRA-FIX/fix_temp_csvr.cpp:346 (write_restart)
-    //   EXTRA-
+    // Hacky way to get global data on to all ranks and skip communicating
+    // local data
     comm->me = 0;
+    MPI_Comm old_world = world; world = MPI_COMM_SELF;
     modify->write_restart(fp);
+    world = old_world;
     comm->me = me;
 
     WriteRestart::magic_string();
@@ -652,7 +649,7 @@ void FenixCheckpoint::force_fields(Buffer& buf){
 
     try{
 
-      auto old_world = world; auto old_me = comm->me;
+      MPI_Comm old_world = world; int old_me = comm->me;
 
       if(flag == PAIR){
         force->create_pair(style, 1);

@@ -61,11 +61,17 @@ others should.
    Memory-based recovery is not precisely the same as file-based. Some steps are
    taken to remove unnecessary communication during checkpoint and restart.
 
-   During checkpoints, the value of comm->me is set to 0, to encourage all ranks
-   to save each fix's relevant checkpoint data to their local checkpoints. This
-   works well for most fixes, but some fixes use communication during checkpoint
-   writes. These few fixes will likely need to be modified - feel free to reach
-   out to the Fenix team for help with this if needed.
+   To encourage local checkpoint/restart, the lmp->world and lmp->comm->me
+   members may be temporarily changed while either checkpointing or restarting
+   certain data structures. This currently impacts the checkpointing of fixes
+   and the recovery of force fields (pair, bond, angle, dihedral, improper).
+   The aim is to be compatible with the vast majority of components, including
+   the few that communicate during C/R. However, any that communicate in unusual
+   ways during checkpoint/recovery may need some modification to be compatible.
+   Feel free to reach out to the Fenix team for help with this if needed.
+
+   Similarly, during recovery of force fields, comm->me is set to 0 and the
+   lammps world is set to MPI_COMM_SELF
 
    Memory-based checkpoints do not currently support the write_restart_file
    function. Again, feel free to reach out to the Fenix team if you need support

@@ -31,6 +31,7 @@ class MLIAPDummyDescriptorKokkos : public MLIAPDummyDescriptor, public MLIAPDesc
   void compute_forces(class MLIAPData *) override;
   void compute_force_gradients(class MLIAPData *) override;
   void compute_descriptor_gradients(class MLIAPData *) override;
+  void compute_extra_properties(class MLIAPData *) override;
   void init() override;
   void set_elements(char **, int);
 };
@@ -61,6 +62,7 @@ MLIAPBuildUnifiedKokkos_t<DeviceType> build_unified(char *, MLIAPDataKokkos<Devi
 void update_pair_energy(MLIAPDataKokkosDevice *, double *);
 void update_pair_forces(MLIAPDataKokkosDevice *, double *);
 void update_atom_energy(MLIAPDataKokkosDevice *, double *);
+void update_extra_property(MLIAPDataKokkosDevice *, char *, double *);
 
 }    // namespace LAMMPS_NS
 

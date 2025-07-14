@@ -99,6 +99,27 @@ void MLIAPDummyDescriptorKokkos<DeviceType>::compute_descriptor_gradients(class 
 }
 
 template <class DeviceType>
+void MLIAPDummyDescriptorKokkos<DeviceType>::compute_extra_properties(class MLIAPData * data)
+{
+  MLIAPDataKokkos<DeviceType>* dataCasted = dynamic_cast<MLIAPDataKokkos<DeviceType>*>(data);
+  if (dataCasted == nullptr) {
+    error->all(FLERR, "compute_extra_properties requires a Kokkos version of data. Ensure you are using the Kokkos Pair Style of mliap unifed");
+  }
+  MLIAPDataKokkosDevice raw_data(*dataCasted);
+  for (const auto& pair : dataCasted->k_extra_properties.data) {
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    compute_extra_property_python_kokkos(unified_interface, &raw_data, pair.first.c_str());
+    if (PyErr_Occurred()) {
+      PyErr_Print();
+      PyErr_Clear();
+      PyGILState_Release(gstate);
+      lmp->error->all(FLERR, "Running mliappy unified compute_forces failure.");
+    }
+    PyGILState_Release(gstate);
+  }
+}
+
+template <class DeviceType>
 void MLIAPDummyDescriptorKokkos<DeviceType>::init()
 {
   memory->create(radelem, nelements, "mliap_dummy_descriptor:radelem");
@@ -382,6 +403,25 @@ void LAMMPS_NS::update_atom_energy(MLIAPDataKokkosDevice *data, double *ei)
     local_sum += e;
   },*data->energy);
 }
+
+/* ----------------------------------------------------------------------
+   set extra property for given computed property
+   ---------------------------------------------------------------------- */
+
+void LAMMPS_NS::update_extra_property(MLIAPDataKokkosDevice *data, char *name, double *extra_property_in)
+{
+  //Get device pointer and dim for given name
+  LMP_FLOAT* extra_property_out = data->get_extra_property_device_pointer(name);
+  int extra_property_dim = data->get_extra_property_dim(name);
+
+  Kokkos::parallel_for(data->nlistatoms, KOKKOS_LAMBDA (int ii) {
+    extra_property_out[ii] = extra_property_in[ii];
+  });
+
+  //This may not be the appropriate place to put these
+  data->extra_properties.modify_device();
+}
+
 
 namespace LAMMPS_NS {
 template class MLIAPDummyModelKokkos<LMPDeviceType>;

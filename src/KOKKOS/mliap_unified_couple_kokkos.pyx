@@ -111,6 +111,7 @@ cdef extern from "mliap_unified_kokkos.h" namespace "LAMMPS_NS":
 
     cdef void update_pair_energy(MLIAPDataKokkosDevice *, double *) except +
     cdef void update_pair_forces(MLIAPDataKokkosDevice *, double *) except +
+    cdef void update_extra_property(MLIAPDataKokkosDevice *, char *, double *) except +
 
 
 LOADED_MODEL = None
@@ -299,6 +300,27 @@ cdef class MLIAPDataPy:
             raise ValueError("attempt to set NULL eatoms")
         return create_array(self.data.dev, self.data.eatoms, [self.nlistatoms],False)
 
+    def update_pair_extra_property_cpu(self, name, value):
+        cdef double[:] extra_property_arr
+        try:
+            extra_property_arr = value
+        except:
+            extra_property_arr = value.detach().numpy().astype(np.double)
+        update_extra_property(self.data, name, &extra_property_arr[0])
+
+    def update_extra_property_gpu(self, name, value):
+        cdef uintptr_t extra_property_ptr;
+        try:
+            extra_property_ptr = value.data.ptr
+        except:
+            extra_property_ptr = value.data_ptr()
+        update_extra_property(self.data, name, <double*>extra_property_ptr)
+
+    def update_extra_property(self, name, value):
+        if self.data.dev==0:
+            self.update_extra_property_cpu(name, value)
+        else:
+            self.update_extra_property_gpu(name, value)
 
     @write_only_property
     def energy(self, value):
@@ -469,6 +491,9 @@ cdef class MLIAPUnifiedInterfaceKokkos:
     def compute_forces(self, data):
         self.unified_impl.compute_forces(data)
 
+    def compute_extra_property(self, data, name):
+        self.unified_impl.compute_extra_property(data, name)
+
 
 cdef public void compute_gradients_python_kokkos(unified_int, MLIAPDataKokkosDevice *data) except * with gil:
     pydata = MLIAPDataPy()
@@ -487,6 +512,11 @@ cdef public void compute_forces_python_kokkos(unified_int, MLIAPDataKokkosDevice
     pydata.data = data
     unified_int.compute_forces(pydata)
 
+cdef public void compute_extra_property_python_kokkos(unified_int, MLIAPDataKokkosDevice *data, const char* name) except * with gil:
+    pyName = name.decode('utf-8')
+    pydata = MLIAPDataPy()
+    pydata.data = data
+    unified_int.compute_extra_property(pydata, pyName)
 
 # Create a MLIAPUnifiedInterface and connect it to the dummy model, descriptor
 cdef public object mliap_unified_connect_kokkos(char *fname, MLIAPDummyModel * model,

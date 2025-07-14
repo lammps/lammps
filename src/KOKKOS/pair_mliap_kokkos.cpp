@@ -144,6 +144,9 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
   if (vflag_fdotr) {
     pair_virial_fdotr_compute(this);
   }
+
+  // compute extra_properties
+  descriptor->compute_extra_properties(data);
 }
 
 /* ---------------------------------------------------------------------- */

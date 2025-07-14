@@ -18,6 +18,8 @@ Syntax
       *restart_jump* arg = file label
          file = the file argument to pass to a jump command
          label = the label argument to pass to a jump command
+      *restart_file* arg = filename
+         filename = the argument to pass to a read_restart command
       *spares* arg = N
          N = the number of ranks for Fenix to use as spares
 
@@ -49,9 +51,10 @@ LAMMPS and restarts the file from the beginning.
 
 When this command is reached again on subsequent passes through the file, it
 will not repeat the Fenix initialization (which is still valid). Instead, this
-command recovers from the checkpointed data if checkpoint_every was specified.
-This recovery follows roughly the same semantics as read_restart - meaning some
-commands in your input script should not be repeated, while others should.
+command recovers from the checkpointed data if checkpoint_every or restart_file
+were specified. This recovery follows roughly the same semantics as read_restart
+- meaning some commands in your input script should not be repeated, while
+others should.
 
 .. note::
 

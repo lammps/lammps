@@ -48,6 +48,8 @@ void Fenix::command(int narg, char** arg) {
   if(active_controller){
     if(active_controller->chkpt_interval){
       chkpt.recover();
+    } else if(!active_controller->restart_file.empty()){
+      input->one("read_restart " + active_controller->restart_file);
     }
     if(!active_controller->jump_cmd.empty()){
       input->one(active_controller->jump_cmd);
@@ -123,10 +125,17 @@ void Fenix::parse_args(int narg, char** arg){
       if(i+2 >= narg) utils::missing_cmd_args(FLERR, "fenix restart_jump", error);
       jump_cmd  = "jump " + std::string(arg[++i]);
       jump_cmd += " " + std::string(arg[++i]);
+    } else if(strcmp(arg[i], "restart_file") == 0) {
+      if(i+1 >= narg) utils::missing_cmd_args(FLERR, "fenix restart_file", error);
+      restart_file = arg[++i];
     } else {
       error->all(FLERR, "Invalid argument fenix {}", arg[i]);
     }
   }
+
+  if(chkpt_interval != 0 && !restart_file.empty()) error->all(FLERR,
+    "Invalid arguments fenix checkpoint_every and restart_file are incompatible"
+  );
 }
 
 /* ---------------------------------------------------------------------- */

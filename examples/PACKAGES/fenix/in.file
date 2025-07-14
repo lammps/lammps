@@ -16,11 +16,12 @@ atom_style  atomic
 
 # When a failure occurs, execution starts over at the top of the file, but when
 #  we reach the fenix command a second time it will recover from the latest
-#  checkpoint and run 'jump SELF recover'
+#  checkpoint file and run 'jump SELF restart'
 # Upon reaching this command for the first time, ${nspare} ranks are trapped by
 #  fenix. The LAMMPS world is rebuilt without them, and instead they are used to
 #  rebuild the LAMMPS world when other ranks fail.
-fenix restart_jump SELF recover &
+fenix restart_jump SELF restart &
+      restart_file lj.chkpt.*   &
       spares ${nspare}
 
 lattice         fcc 0.8442
@@ -34,15 +35,7 @@ velocity        all create 1.44 87287 loop geom
 pair_style      lj/cut 2.5
 pair_coeff      1 1 1.0 1.0 2.5
 
-# Unless we specifically jump to recover, skip it
-jump SELF post_recover
-
-# Fenix will jump to here during recovery, allowing us to read our restart file
-#  and skipping the commands that would define the simulation box and make
-#  read_restart yell at us
-label recover
-read_restart lj.chkpt.*
-label post_recover
+label restart
 
 # We will checkpoint to file on iterations 50,100,...
 #restart 50 lj.chkpt.*

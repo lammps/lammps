@@ -39,6 +39,7 @@ class Fenix : public Command {
   int spare_ranks;
   int chkpt_interval;
   std::string jump_cmd;
+  std::string restart_file;
 
   MPI_Comm resilient_world;
 

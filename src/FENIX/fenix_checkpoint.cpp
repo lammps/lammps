@@ -631,6 +631,10 @@ void FenixCheckpoint::type_arrays(Buffer& buf){
 
   On the todo list for improving, but it'll take some larger changes to LAMMPS.
   Probably manageable in a backwards compatible manner though.
+
+  First attempt to work around the MPI communication:
+    set world to MPI_COMM_SELF and comm->me to 0, so that all ranks read data
+    from the input file and broadcasts are NOOPs
 ---------------------------------------------------------------------- */
 
 void FenixCheckpoint::force_fields(Buffer& buf){
@@ -640,32 +644,47 @@ void FenixCheckpoint::force_fields(Buffer& buf){
     auto style = read<char*>(buf, error);
 
     FILE* fp = nullptr;
-    if(flag != NO_PAIR && comm->me == 0){
+    if(flag != NO_PAIR){
       // POSIX, so should be generally portable to non-windows
       // but there's not a good windows alternative tmk
       fp = fmemopen(buf.first, buf.second - buf.first, "r");
     }
 
     try{
+
+      auto old_world = world; auto old_me = comm->me;
+
       if(flag == PAIR){
         force->create_pair(style, 1);
+        world = MPI_COMM_SELF; comm->me = 0;
         force->pair->read_restart(fp);
+        world = old_world; comm->me = old_me;
       } else if(flag == NO_PAIR){
         force->create_pair("none", 0);
         force->pair_restart = style;
       } else if(flag == BOND){
         force->create_bond(style, 1);
+        world = MPI_COMM_SELF; comm->me = 0;
         force->bond->read_restart(fp);
+        world = old_world; comm->me = old_me;
       } else if(flag == ANGLE){
         force->create_angle(style, 1);
+        world = MPI_COMM_SELF; comm->me = 0;
         force->angle->read_restart(fp);
+        world = old_world; comm->me = old_me;
       } else if(flag == DIHEDRAL){
         force->create_dihedral(style, 1);
+        world = MPI_COMM_SELF; comm->me = 0;
         force->dihedral->read_restart(fp);
+        world = old_world; comm->me = old_me;
       } else if(flag == IMPROPER){
         force->create_improper(style, 1);
+        world = MPI_COMM_SELF; comm->me = 0;
         force->improper->read_restart(fp);
-      } else error->all(FLERR, "Invalid flag in checkpointed force fields");
+        world = old_world; comm->me = old_me;
+      } else {
+        error->all(FLERR, "Invalid flag in checkpointed force fields");
+      }
 
       delete[] style;
     } catch (const CommException& e){
@@ -675,13 +694,9 @@ void FenixCheckpoint::force_fields(Buffer& buf){
     }
 
     if(flag != NO_PAIR){
-      bigint offset;
-      if(comm->me == 0){
-        offset = platform::ftell(fp);
-        fclose(fp);
-      }
-      MPI_Bcast(&offset, 1, MPI_LMP_BIGINT, 0, world);
+      bigint offset = platform::ftell(fp);
       buf.first += offset;
+      fclose(fp);
     }
   }
 }

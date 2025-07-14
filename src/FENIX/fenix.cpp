@@ -23,10 +23,6 @@
 #include <signal.h>
 #include <fmt/ranges.h>
 
-int MPI_Finalize() {
-  return MPI_SUCCESS;
-}
-
 // disambiguate the Fenix object from the Fenix namespace
 namespace fenix = ::Fenix;
 

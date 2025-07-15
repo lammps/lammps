@@ -18,6 +18,22 @@
 
 namespace LAMMPS_NS {
 
+class ExtraProperties : protected Pointers {
+public:
+  std::unordered_map<std::string, double**> data;
+  std::unordered_map<std::string, int> dims;
+  int nproperties; //May not be needed
+  int nlistatoms;
+
+  ExtraProperties(class LAMMPS * lmp);
+  ~ExtraProperties();
+
+  int get_dim(std::string name);
+  double** get_pointer(std::string name);
+  void register_extra_property(const std::string& name, int dim);
+  void grow(int new_nlistatoms); 
+};
+
 class MLIAPData : protected Pointers {
 
  public:
@@ -28,6 +44,7 @@ class MLIAPData : protected Pointers {
   void init();
   virtual void generate_neighdata(class NeighList *, int = 0, int = 0);
   virtual void grow_neigharrays();
+  void register_extra_property(const std::string &, const int &);
   double memory_usage();
 
   int size_array_rows, size_array_cols;
@@ -40,6 +57,7 @@ class MLIAPData : protected Pointers {
   double **betas;          // betas for all atoms in list
   double **descriptors;    // descriptors for all atoms in list
   double *eatoms;          // energies for all atoms in list
+  ExtraProperties extra_properties;
   double energy;           // energy
   int ndescriptors;        // number of descriptors
   int nparams;             // number of model parameters per element

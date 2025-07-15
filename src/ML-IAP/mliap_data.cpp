@@ -26,10 +26,51 @@
 
 using namespace LAMMPS_NS;
 
+ExtraProperties::ExtraProperties(class LAMMPS * lmp) : nproperties(0), nlistatoms(0), Pointers(lmp) {}
+
+ExtraProperties::~ExtraProperties() {
+  for (auto& pair : data) {
+    memory->destroy(pair.second);
+  }
+}
+
+int ExtraProperties::get_dim(std::string name) {
+  if (dims.find(name) == dims.end()) {
+    return -1;
+  }
+  return dims[name];
+}
+
+double** ExtraProperties::get_pointer(std::string name) {
+  if (data.find(name) == data.end()) {
+    return nullptr;
+  }
+  return data[name];
+}
+
+void ExtraProperties::register_extra_property(const std::string& name, int dim) {
+  double** newProperty = nullptr;
+  memory->create(newProperty, nlistatoms, dim, "ExtraProperties:newProperty");
+  data[name] = newProperty;
+  dims[name] = dim;
+  nproperties++;
+}
+
+void ExtraProperties::grow(int new_nlistatoms) {
+  //Check new size, return if smaller than or equal tonmax
+  if (new_nlistatoms <= nlistatoms) return;
+  //Iterate through each extra property and expand its size
+  for (auto& pair : data) {
+    memory->grow(pair.second, new_nlistatoms, dims[pair.first], "ExtraPoperties:grow");
+  }
+  nlistatoms = new_nlistatoms;
+}
+
 MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in, class MLIAPModel *model_in,
                      class MLIAPDescriptor *descriptor_in, class PairMLIAP *pairmliap_in) :
     Pointers(lmp),
-    f(nullptr), gradforce(nullptr), betas(nullptr), descriptors(nullptr), eatoms(nullptr),
+    f(nullptr), gradforce(nullptr), betas(nullptr), descriptors(nullptr), eatoms(nullptr), 
+    extra_properties(lmp),
     gamma(nullptr), gamma_row_index(nullptr), gamma_col_index(nullptr), egradient(nullptr),
     numneighs(nullptr), iatoms(nullptr), ielems(nullptr), itypes(nullptr), pair_i(nullptr),
     jatoms(nullptr), jelems(nullptr), elems(nullptr), lmp_firstneigh(nullptr), rij(nullptr),
@@ -144,6 +185,7 @@ void MLIAPData::generate_neighdata(NeighList *list_in, int eflag_in, int vflag_i
     memory->grow(betas, nlistatoms, ndescriptors, "MLIAPData:betas");
     memory->grow(descriptors, nlistatoms, ndescriptors, "MLIAPData:descriptors");
     memory->grow(eatoms, nlistatoms, "MLIAPData:eatoms");
+    extra_properties.grow(nlistatoms);
     nlistatoms_max = nlistatoms;
   }
 
@@ -277,6 +319,11 @@ void MLIAPData::grow_neigharrays()
     if (gradgradflag == 0) memory->grow(graddesc, nneigh, ndescriptors, 3, "MLIAPData:graddesc");
     nneigh_max = nneigh;
   }
+}
+
+void MLIAPData::register_extra_property(const std::string & property_name, const int & dim)
+{
+  extra_properties.register_extra_property(property_name, dim);
 }
 
 double MLIAPData::memory_usage()

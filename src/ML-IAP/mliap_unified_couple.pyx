@@ -26,15 +26,14 @@ cdef extern from "mliap_data.h" namespace "LAMMPS_NS":
         int zoffset
         int ndims_force
         int ndims_virial
-        int * extra_properties_dims # dimensions of data for each extra property
         # -END- may not need -END-
         int size_gradforce
         # ----- write only -----
         double ** f
         double ** gradforce
-        double ** betas         # betas for all atoms in list
-        double ** descriptors   # descriptors for all atoms in list
-        double * eatoms         # energies for all atoms in list
+        double ** betas                # betas for all atoms in list
+        double ** descriptors          # descriptors for all atoms in list
+        double * eatoms                # energies for all atoms in list
         double energy
         # -END- write only -END-
         int ndescriptors        # number of descriptors
@@ -74,7 +73,6 @@ cdef extern from "mliap_data.h" namespace "LAMMPS_NS":
         int eflag               # indicates if energy is needed
         int vflag               # indicates if virial is needed
 
-
 cdef extern from "mliap_unified.h" namespace "LAMMPS_NS":
     cdef cppclass MLIAPDummyDescriptor:
         MLIAPDummyDescriptor(PyObject *, LAMMPS *) except +
@@ -100,6 +98,7 @@ cdef extern from "mliap_unified.h" namespace "LAMMPS_NS":
 
     cdef void update_pair_energy(MLIAPData *, double *) except +
     cdef void update_pair_forces(MLIAPData *, double *) except +
+    cdef void update_extra_property(MLIAPData *, const char *, double *) except +
 
 
 LOADED_MODEL = None
@@ -167,6 +166,16 @@ cdef class MLIAPDataPy:
         cdef double[:] eatoms_view = <double[:self.nlistatoms]> &self.data.eatoms[0]
         cdef double[:] value_view = value
         eatoms_view[:] = value_view
+
+    def update_extra_property(self, name, value):
+        cdef double[:,:] value_view
+        try:
+            value_view = value
+        except:
+            value_view = value.detach().numpy().as_type(np.double)
+        cdef bytes c_name_bytes = name.encode('utf-8')
+        cdef const char* c_name = c_name_bytes
+        update_extra_property(self.data, c_name, &value_view[0][0])
 
     @write_only_property
     def energy(self, value):
@@ -315,7 +324,6 @@ cdef class MLIAPDataPy:
     def vflag(self):
         return self.data.vflag
 
-
 # Interface between C and Python compute functions
 cdef class MLIAPUnifiedInterface:
     cdef MLIAPDummyModel * model
@@ -336,8 +344,8 @@ cdef class MLIAPUnifiedInterface:
     def compute_forces(self, data):
         self.unified_impl.compute_forces(data)
 
-    def compute_extra_property(self, data, name, index):
-        self.unified_impl.compute_extra_property(data, name, index)
+    def compute_extra_property(self, data, name):
+        self.unified_impl.compute_extra_property(data, name)
 
 
 cdef public void compute_gradients_python(unified_int, MLIAPData *data) except * with gil:

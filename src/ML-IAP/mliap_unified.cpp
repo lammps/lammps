@@ -88,9 +88,9 @@ void MLIAPDummyDescriptor::compute_descriptor_gradients(class MLIAPData *)
 // Runs the computation for each extra property
 void MLIAPDummyDescriptor::compute_extra_properties(class MLIAPData *data)
 {
-  for (int i = 0; i < data->num_extra_properties; i++) {
+  for (auto& pair : data->extra_properties.data) {
     PyGILState_STATE gstate = PyGILState_Ensure();
-    compute_extra_property_python(unified_interface, data, data->extra_properties_names[i].c_str(), i);
+    compute_extra_property_python(unified_interface, data, pair.first.c_str());
     if (PyErr_Occurred()) {
       PyErr_Print();
       PyErr_Clear();
@@ -295,6 +295,21 @@ void LAMMPS_NS::update_pair_forces(MLIAPData *data, double *fij)
     f[j][2] -= fij[ii3 + 2];
 
     if (data->vflag) data->pairmliap->v_tally(i, j, &fij[ii3], data->rij[ii]);
+  }
+}
+
+/* ----------------------------------------------------------------------
+    set forces for ij atom pairs
+    ---------------------------------------------------------------------- */
+
+void LAMMPS_NS::update_extra_property(MLIAPData *data, const char* name, double* value_in)
+{
+  std::string nameConverted(name);
+  double** value_out = data->extra_properties.get_pointer(nameConverted);
+  int dim = data->extra_properties.get_dim(nameConverted);
+
+  for (int ii = 0; ii < data->nlistatoms*dim; ii++) {
+    value_out[ii/dim][ii%dim] = value_in[ii];
   }
 }
 

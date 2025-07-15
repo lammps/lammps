@@ -33,14 +33,9 @@ class ComputeExtraPropertyAtom : public Compute {
   ~ComputeExtraPropertyAtom() override;
   void init() override;
   void compute_peratom() override;
-  double memory_usage() override;
 
  private:
-  int nmax;
-  int extra_property_index;
   std::string extra_property_name;
-  double **extra_property_data;
-  MLIAPDescriptor *descriptor;
   MLIAPData *data;
 };
 

@@ -64,6 +64,7 @@ struct MLIAPBuildUnified_t {
 MLIAPBuildUnified_t build_unified(char *, MLIAPData *, LAMMPS *, char * = NULL);
 void update_pair_energy(MLIAPData *, double *);
 void update_pair_forces(MLIAPData *, double *);
+void update_extra_property(MLIAPData *, const char *, double *);
 
 }    // namespace LAMMPS_NS
 

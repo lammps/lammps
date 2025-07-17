@@ -27,6 +27,93 @@
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
+
+template<class DeviceType>
+ExtraPropertiesKokkos<DeviceType>::ExtraPropertiesKokkos(class LAMMPS* lmp) : k_nproperties(0), 
+    k_nlistatoms(0), ExtraProperties(lmp) {}
+
+//template<class DeviceType>
+//ExtraPropertiesKokkos<DeviceType>::~ExtraPropertiesKokkos() {
+//  
+//}
+
+template<class DeviceType>
+int ExtraPropertiesKokkos<DeviceType>::get_dim(std::string name) {
+  if (k_dims.find(name) == k_dims.end()) {
+    return -1;
+  }
+  return k_dims[name]; 
+} 
+
+template<class DeviceType>
+LMP_FLOAT* ExtraPropertiesKokkos<DeviceType>::get_device_pointer(std::string name) {
+  if (k_data.find(name) == k_data.end()) {
+    return nullptr;
+  }              
+  return k_data[name].d_view.data();
+}
+
+template<class DeviceType>
+Kokkos::View<LMP_FLOAT**, Kokkos::LayoutRight, Kokkos::HostSpace> 
+ExtraPropertiesKokkos<DeviceType>::get_host_view(std::string name) {
+  if (k_data.find(name) == k_data.end()) {
+    return DAT::tdual_float_2d().h_view;
+  }
+  return k_data[name].h_view;
+}
+
+template<class DeviceType>
+void ExtraPropertiesKokkos<DeviceType>::register_extra_property(std::string name, int dim) {
+  k_data[name] = DAT::tdual_float_2d("extra_property_register", k_nlistatoms, dim);
+  k_dims[name] = dim;
+  k_nproperties++;
+}
+
+template<class DeviceType>
+void ExtraPropertiesKokkos<DeviceType>::grow(int new_nlistatoms) {
+  if (new_nlistatoms <= k_nlistatoms) return;
+  //Iterate through each extra property and expand its size
+  for (auto& pair : k_data) {
+    DAT::tdual_float_2d new_view("extra_property_grow", new_nlistatoms, k_dims[pair.first]);
+    if (k_nlistatoms > 0) {
+      auto newSubViewD = Kokkos::subview(new_view.d_view, std::make_pair(0, k_nlistatoms), std::make_pair(0,k_dims[pair.first]));
+      auto newSubViewH = Kokkos::subview(new_view.h_view, std::make_pair(0, k_nlistatoms), std::make_pair(0,k_dims[pair.first]));
+      Kokkos::deep_copy(newSubViewD, pair.second.d_view);
+      Kokkos::deep_copy(newSubViewH, pair.second.h_view);
+    }
+    pair.second = new_view;
+  }
+  k_nlistatoms = new_nlistatoms;
+}
+
+template<class DeviceType>
+void ExtraPropertiesKokkos<DeviceType>::modify_host() {
+  for (auto& pair : k_data) {
+    pair.second.template modify<Kokkos::HostSpace>();
+  }
+}
+
+template <class DeviceType>
+void ExtraPropertiesKokkos<DeviceType>::modify_device() {
+  for (auto& pair : k_data) {
+    pair.second.template modify<execution_space>();
+  }
+}
+
+template<class DeviceType>
+void ExtraPropertiesKokkos<DeviceType>::sync_host() {
+  for (auto& pair : k_data) {
+    pair.second.template sync<Kokkos::HostSpace>();
+  }
+}
+
+template<class DeviceType>
+void ExtraPropertiesKokkos<DeviceType>::sync_device() {
+  for (auto& pair : k_data) {
+    pair.second.template sync<execution_space>();
+  }
+}
+
 template<class DeviceType>
 MLIAPDataKokkos<DeviceType>::MLIAPDataKokkos(LAMMPS *lmp_in, int gradgradflag_in, int *map_in,
     class MLIAPModel* model_in,
@@ -34,7 +121,8 @@ MLIAPDataKokkos<DeviceType>::MLIAPDataKokkos(LAMMPS *lmp_in, int gradgradflag_in
     class PairMLIAPKokkos<DeviceType>* pairmliap_in) :
     MLIAPData(lmp_in, gradgradflag_in, map_in, model_in, descriptor_in, pairmliap_in),
     k_pairmliap(pairmliap_in),
-    lmp(lmp_in)
+    lmp(lmp_in),
+    k_extra_properties(lmp_in)
 {
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 }
@@ -426,7 +514,9 @@ LMP_FLOAT* MLIAPDataKokkosDevice::get_extra_property_device_pointer(const char* 
 }
 
 template class MLIAPDataKokkos<LMPDeviceType>;
+template class ExtraPropertiesKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU
 template class MLIAPDataKokkos<LMPHostType>;
+template class ExtraPropertiesKokkos<LMPHostType>;
 #endif
 }// namespace

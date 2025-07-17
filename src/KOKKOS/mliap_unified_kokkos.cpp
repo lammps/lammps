@@ -410,9 +410,9 @@ void LAMMPS_NS::update_atom_energy(MLIAPDataKokkosDevice *data, double *ei)
 
 void LAMMPS_NS::update_extra_property(MLIAPDataKokkosDevice *data, const char *name, double *extra_property_in)
 {
-  //Get device pointer and dim for given name
   LMP_FLOAT* extra_property_out = data->get_extra_property_device_pointer(name);
   int extra_property_dim = data->get_extra_property_dim(name);
+
 
   Kokkos::parallel_for(data->nlistatoms*extra_property_dim, KOKKOS_LAMBDA (int ii) {
     extra_property_out[ii] = extra_property_in[ii];

@@ -49,82 +49,29 @@ enum {
 };
 // clang-format on
 
-template <class DeviceType> struct ExtraPropertiesKokkos {
+template <class DeviceType> class ExtraPropertiesKokkos : public ExtraProperties {
   using execution_space = typename DeviceType::execution_space;
   using memory_space = typename DeviceType::memory_space;
 
-  std::unordered_map<std::string, DAT::tdual_float_2d> data;
-  std::unordered_map<std::string, int> dims;
-  int nproperties; //May not be needed
-  int nlistatoms;
+public:
+  std::unordered_map<std::string, DAT::tdual_float_2d> k_data;
+  std::unordered_map<std::string, int> k_dims;
+  int k_nproperties; //May not be needed
+  int k_nlistatoms;
 
-  ExtraPropertiesKokkos() : nproperties(0), nlistatoms(0) {}
-                      
-  int get_dim(std::string name) {
-    if (dims.find(name) == dims.end()) {
-      return -1;
-    }
-    return dims[name];
-  }
+  ExtraPropertiesKokkos(class LAMMPS*);
+  int get_dim(std::string);
+  LMP_FLOAT* get_device_pointer(std::string);
+  Kokkos::View<LMP_FLOAT**, Kokkos::LayoutRight, Kokkos::HostSpace> get_host_view(std::string name);
+  void register_extra_property(std::string name, int dim);
+  void grow(int new_nlistatoms);
+  void modify_host();
+  void modify_device();
+  void sync_host();
+  void sync_device();
 
-  LMP_FLOAT* get_device_pointer(std::string name) {
-    if (data.find(name) == data.end()) {
-      return nullptr;
-    }
-    return data[name].d_view.data();
-  }
-
-  Kokkos::View<LMP_FLOAT**, Kokkos::LayoutRight, Kokkos::HostSpace> get_host_view(std::string name) {
-    if (data.find(name) == data.end()) {
-      return DAT::tdual_float_2d().h_view;
-    }
-    return data[name].h_view;
-  }
-
-  void register_extra_property(std::string name, int dim) {
-    data[name] = DAT::tdual_float_2d("extra_property_register", nlistatoms, dim);
-    dims[name] = dim;
-    nproperties++;
-  }
-
-  void grow(int new_nlistatoms) {
-    //Check new size, return if smaller than or equal tonmax
-    if (new_nlistatoms <= nlistatoms) return;
-    //Iterate through each extra property and expand its size
-    for (auto& pair : data) {
-      DAT::tdual_float_2d new_view("extra_property_grow", new_nlistatoms, dims[pair.first]);
-      auto newSubViewD = Kokkos::subview(new_view.d_view, std::make_pair(0, nlistatoms), std::make_pair(0,dims[pair.first]));
-      auto newSubViewH = Kokkos::subview(new_view.h_view, std::make_pair(0, nlistatoms), std::make_pair(0,dims[pair.first]));
-      Kokkos::deep_copy(newSubViewD, pair.second.d_view);
-      Kokkos::deep_copy(newSubViewH, pair.second.h_view);
-      pair.second = new_view;
-    }
-    nlistatoms = new_nlistatoms;
-  }
-    
-  void modify_host() {
-    for (auto& pair : data) {
-      pair.second.template modify<Kokkos::HostSpace>();
-    }
-  }
-
-  void modify_device() {
-    for (auto& pair : data) {                                                                       
-      pair.second.template modify<execution_space>();
-    }
-  }
-
-  void sync_host() {
-    for (auto& pair : data) {                                                                       
-      pair.second.template sync<Kokkos::HostSpace>();
-    }
-  }
-
-  void sync_device() {
-    for (auto& pair : data) {                                                                       
-      pair.second.template sync<execution_space>();
-    }
-  }
+  //Might not be appropriate to be public
+  class LAMMPS *lmp;
 };
 
 //Forward declaration due to circular reference to PairMLIAPKokkos.
@@ -252,7 +199,7 @@ public:
 
 #ifdef LMP_KOKKOS_GPU
   MLIAPDataKokkosDevice(MLIAPDataKokkos<LMPHostType> &base) : ndescriptors(-1),nparams(-1),nelements(-1),ntotal(-1),nlistatoms(-1),nlocal(-1),natomneigh(-1),
-      nneigh_max(-1),npairs(-1)
+      nneigh_max(-1),npairs(-1), extra_properties(base.k_extra_properties.lmp)
   {
     // It cannot get here, but needed for compilation
   }

@@ -21,6 +21,7 @@
 #include "pair_mliap.h"
 #include "kokkos_type.h"
 #include <cstring>
+#include <cstdio>
 using namespace LAMMPS_NS;
 
 template <class DeviceType>
@@ -28,7 +29,6 @@ ComputeExtraPropertyAtomKokkos<DeviceType>::ComputeExtraPropertyAtomKokkos(LAMMP
     Compute(lmp, narg, arg)
 {
   kokkosable = 1;
-  //execution_space = Kokkos::HostSpace;
   peratom_flag = 1;
   //Check for args here
   int curArg = 3;
@@ -55,6 +55,10 @@ ComputeExtraPropertyAtomKokkos<DeviceType>::ComputeExtraPropertyAtomKokkos(LAMMP
   {
     error->all(FLERR, "Compute extraProperty/atom/kk missing args (Expecting name and dim).");
   }
+
+  //Initalize Member Variables
+  k_data = nullptr;
+  nlocal = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,17 +103,17 @@ void ComputeExtraPropertyAtomKokkos<DeviceType>::compute_peratom()
 {
   k_data->k_extra_properties.sync_host();
 
-  if (atom->nmax > nmax) {
-    nmax = atom->nmax;
+  if (atom->nlocal > nlocal) {
+    nlocal = atom->nlocal;
     if (array_atom != nullptr) {
       delete[] array_atom;
     }
 
     auto extra_property_view = k_data->k_extra_properties.get_host_view(extra_property_name);
 
-    array_atom = new LMP_FLOAT*[nmax];  // manually allocated
+    array_atom = new LMP_FLOAT*[nlocal];  // manually allocated
 
-    for (int i = 0; i < nmax; ++i) {
+    for (int i = 0; i < nlocal; ++i) {
       array_atom[i] = &extra_property_view(i, 0);  // each row starts at column 0
     }
   }

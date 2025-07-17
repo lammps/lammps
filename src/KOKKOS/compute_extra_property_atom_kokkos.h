@@ -40,7 +40,7 @@ class ComputeExtraPropertyAtomKokkos : public Compute {
   void compute_peratom() override;
 
  private:
-  int nmax;
+  int nlocal;
   std::string extra_property_name;
   MLIAPDataKokkos<DeviceType> *k_data;
 };

@@ -201,6 +201,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
       memoryKK->create_kokkos(k_gamma_col_index, gamma_col_index, nlistatoms, gamma_nnz, "mliap_data:gamma_col_index");
       memoryKK->destroy_kokkos(k_gamma,gamma);
       memoryKK->create_kokkos(k_gamma, gamma, nlistatoms, gamma_nnz, "mliap_data:");
+      k_extra_properties.grow(nlistatoms);
       natomgamma_max = nlistatoms;
     }
   }

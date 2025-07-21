@@ -15,7 +15,8 @@ Syntax
    .. parsed-literal::
 
       *rank* arg = fail_rank
-         fail_rank = rank allowed to fail
+         fail_rank = rank(s) allowed to fail. This can be "none", "all", or any
+           combination of CSV and ranges
       *timestep* arg = fail_timestep
          fail_timestep = simulation timestep required for a rank to fail
       *step* arg = fail_step
@@ -23,6 +24,7 @@ Syntax
       *var* args = fail_var fail_var_val
          fail_var = name of an equal-style variable to check when deciding to fail
          fail_var_val = value that fail_var must equal for a rank to fail
+      *wait_only* args = none
 
 Examples
 """"""""
@@ -34,6 +36,7 @@ Examples
    fix 2 all fail rank 1-3 timestep 10
    fix 2 all fail rank 1-2,3 timestep 10
    fix 2 all fail var should_fail 1 step *
+   fix 2 all fail rank ALL timestep 10 wait_only
 
 Description
 """""""""""
@@ -47,6 +50,10 @@ Step can be an asterisk to indicate that failure requirements should be checked 
 every step of the solver or the name of a function to use for checking for failures
 (pre_force, post_neighbor, etc.). Multiple steps can be passed separated by an
 ampersand (pre_force&post_neighbor).
+
+If wait_only is given, the identified ranks will not inject any failures. Instead, they
+will busy-loop on an MPI_Barrier until a failure occurs. This allows users to more easily
+use their own error injection strategies.
 
 
 Restrictions

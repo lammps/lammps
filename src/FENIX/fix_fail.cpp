@@ -36,7 +36,15 @@ FixFail::FixFail(LAMMPS* lmp, int narg, char** arg) :
   for(int i = 3; i < narg; i++){
     if(strcmp(arg[i], "rank") == 0){
       if(i+1 >= narg) utils::missing_cmd_args(FLERR, "fix fail rank", error);
-      std::string csv = arg[++i];
+      if(strcmp(arg[++i], "none") == 0){
+        fail_rank = -2;
+        continue;
+      }
+      if(strcmp(arg[i], "all") == 0){
+        fail_rank = comm->me;
+        continue;
+      }
+      std::string csv = arg[i];
 
       while(!csv.empty()){
         size_t comma = csv.rfind(",");
@@ -60,7 +68,8 @@ FixFail::FixFail(LAMMPS* lmp, int narg, char** arg) :
       }
     } else if(strcmp(arg[i], "timestep") == 0){
       if(i+1 >= narg) utils::missing_cmd_args(FLERR, "fix fail timestep", error);
-      fail_timestep = utils::inumeric(FLERR, arg[++i], false, lmp);
+      if(strcmp(arg[++i], "none") == 0) fail_timestep = -2;
+      else fail_timestep = utils::inumeric(FLERR, arg[i], false, lmp);
     } else if(strcmp(arg[i], "step") == 0){
       if(i+1 >= narg) utils::missing_cmd_args(FLERR, "fix fail timestep", error);
       fail_step = utils::fixmask(FLERR, arg[++i], false, lmp);
@@ -68,6 +77,8 @@ FixFail::FixFail(LAMMPS* lmp, int narg, char** arg) :
       if(i+2 >= narg) utils::missing_cmd_args(FLERR, "fix fail var", error);
       fail_var = arg[++i];
       fail_var_val = utils::numeric(FLERR, arg[++i], false, lmp);
+    } else if(strcmp(arg[i], "wait_only") == 0){
+      wait_only = true;
     } else {
       error->all(FLERR, "Invalid argument fix fail {}", arg[i]);
     }
@@ -94,5 +105,10 @@ void FixFail::check_fail(){
     if(fail_var_val != input->variable->compute_equal(var)) return;
   }
 
-  Kill::kill();
+  if(wait_only){
+    //Spin on an MPI barrier until a failure occurs
+    while(true) MPI_Barrier(world);
+  } else {
+    Kill::kill();
+  }
 }

@@ -39,6 +39,8 @@ class FixFail : public Fix  {
 
   bool skip_double_failure = true;
 
+  bool wait_only = false;
+
   int setmask() override { return fail_step; }
 
   void initial_integrate(int) override { check_fail(); }

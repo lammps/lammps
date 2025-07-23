@@ -106,7 +106,8 @@ void MLIAPDummyDescriptorKokkos<DeviceType>::compute_extra_properties(class MLIA
     error->all(FLERR, "compute_extra_properties requires a Kokkos version of data. Ensure you are using the Kokkos Pair Style of mliap unifed");
   }
   MLIAPDataKokkosDevice raw_data(*dataCasted);
-  for (const auto& pair : dataCasted->k_extra_properties.data) {
+
+  for (const auto& pair : dataCasted->k_extra_properties.k_data) {
     PyGILState_STATE gstate = PyGILState_Ensure();
     compute_extra_property_python_kokkos(unified_interface, &raw_data, pair.first.c_str());
     if (PyErr_Occurred()) {
@@ -412,7 +413,6 @@ void LAMMPS_NS::update_extra_property(MLIAPDataKokkosDevice *data, const char *n
 {
   LMP_FLOAT* extra_property_out = data->get_extra_property_device_pointer(name);
   int extra_property_dim = data->get_extra_property_dim(name);
-
 
   Kokkos::parallel_for(data->nlistatoms*extra_property_dim, KOKKOS_LAMBDA (int ii) {
     extra_property_out[ii] = extra_property_in[ii];

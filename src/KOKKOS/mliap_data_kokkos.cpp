@@ -50,16 +50,16 @@ LMP_FLOAT* ExtraPropertiesKokkos<DeviceType>::get_device_pointer(std::string nam
   if (k_data.find(name) == k_data.end()) {
     return nullptr;
   }              
-  return k_data[name].d_view.data();
+  return k_data[name].view_device().data();
 }
 
 template<class DeviceType>
 Kokkos::View<LMP_FLOAT**, Kokkos::LayoutRight, Kokkos::HostSpace> 
 ExtraPropertiesKokkos<DeviceType>::get_host_view(std::string name) {
   if (k_data.find(name) == k_data.end()) {
-    return DAT::tdual_float_2d().h_view;
+    return DAT::tdual_float_2d().view_host();
   }
-  return k_data[name].h_view;
+  return k_data[name].view_host();
 }
 
 template<class DeviceType>
@@ -76,10 +76,10 @@ void ExtraPropertiesKokkos<DeviceType>::grow(int new_nlistatoms) {
   for (auto& pair : k_data) {
     DAT::tdual_float_2d new_view("extra_property_grow", new_nlistatoms, k_dims[pair.first]);
     if (k_nlistatoms > 0) {
-      auto newSubViewD = Kokkos::subview(new_view.d_view, std::make_pair(0, k_nlistatoms), std::make_pair(0,k_dims[pair.first]));
-      auto newSubViewH = Kokkos::subview(new_view.h_view, std::make_pair(0, k_nlistatoms), std::make_pair(0,k_dims[pair.first]));
-      Kokkos::deep_copy(newSubViewD, pair.second.d_view);
-      Kokkos::deep_copy(newSubViewH, pair.second.h_view);
+      auto newSubViewD = Kokkos::subview(new_view.view_device(), std::make_pair(0, k_nlistatoms), std::make_pair(0,k_dims[pair.first]));
+      auto newSubViewH = Kokkos::subview(new_view.view_host(), std::make_pair(0, k_nlistatoms), std::make_pair(0,k_dims[pair.first]));
+      Kokkos::deep_copy(newSubViewD, pair.second.view_device());
+      Kokkos::deep_copy(newSubViewH, pair.second.view_host());
     }
     pair.second = new_view;
   }
@@ -89,28 +89,28 @@ void ExtraPropertiesKokkos<DeviceType>::grow(int new_nlistatoms) {
 template<class DeviceType>
 void ExtraPropertiesKokkos<DeviceType>::modify_host() {
   for (auto& pair : k_data) {
-    pair.second.template modify<Kokkos::HostSpace>();
+    pair.second.template modify<DAT::tdual_float_2d::host_mirror_space>();
   }
 }
 
 template <class DeviceType>
 void ExtraPropertiesKokkos<DeviceType>::modify_device() {
   for (auto& pair : k_data) {
-    pair.second.template modify<execution_space>();
+    pair.second.template modify<DAT::tdual_float_2d::execution_space>();
   }
 }
 
 template<class DeviceType>
 void ExtraPropertiesKokkos<DeviceType>::sync_host() {
   for (auto& pair : k_data) {
-    pair.second.template sync<Kokkos::HostSpace>();
+    pair.second.template sync<DAT::tdual_float_2d::host_mirror_space>();
   }
 }
 
 template<class DeviceType>
 void ExtraPropertiesKokkos<DeviceType>::sync_device() {
   for (auto& pair : k_data) {
-    pair.second.template sync<execution_space>();
+    pair.second.template sync<DAT::tdual_float_2d::execution_space>();
   }
 }
 
@@ -188,6 +188,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
     memoryKK->create_kokkos(k_descriptors, descriptors, nlistatoms, ndescriptors, "mliap_data:descriptors");
     memoryKK->destroy_kokkos(k_eatoms,eatoms);
     memoryKK->create_kokkos(k_eatoms, eatoms, nlistatoms, "mliap_data:eatoms");
+    k_extra_properties.grow(nlistatoms);
     nlistatoms_max = nlistatoms;
   }
 
@@ -496,7 +497,7 @@ MLIAPDataKokkosDevice::MLIAPDataKokkosDevice(MLIAPDataKokkos<LMPDeviceType> &bas
     eflag(base.eflag),
     vflag(base.vflag),
     pairmliap(dynamic_cast<PairMLIAPKokkos<LMPDeviceType> *>(base.pairmliap)),
-    extra_properties(base.k_extra_properties),
+    extra_properties(&base.k_extra_properties),
 #if defined(KOKKOS_ENABLE_CUDA)
     dev(1)
 #else
@@ -506,12 +507,12 @@ MLIAPDataKokkosDevice::MLIAPDataKokkosDevice(MLIAPDataKokkos<LMPDeviceType> &bas
 
 int MLIAPDataKokkosDevice::get_extra_property_dim(const char* name) {
   std::string nameConverted(name);
-  return extra_properties.get_dim(nameConverted);
+  return extra_properties->get_dim(nameConverted);
 }
 
 LMP_FLOAT* MLIAPDataKokkosDevice::get_extra_property_device_pointer(const char* name) {
   std::string nameConverted(name);
-  return extra_properties.get_device_pointer(nameConverted);
+  return extra_properties->get_device_pointer(nameConverted);
 }
 
 template class MLIAPDataKokkos<LMPDeviceType>;

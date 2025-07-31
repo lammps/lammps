@@ -103,19 +103,17 @@ void ComputeExtraPropertyAtomKokkos<DeviceType>::compute_peratom()
 {
   k_data->k_extra_properties.sync_host();
 
-  if (atom->nlocal > nlocal) {
-    nlocal = atom->nlocal;
-    if (array_atom != nullptr) {
-      delete[] array_atom;
-    }
+  nlocal = atom->nlocal;
+  if (array_atom != nullptr) {
+    delete[] array_atom;
+  }
 
-    auto extra_property_view = k_data->k_extra_properties.get_host_view(extra_property_name);
+  auto extra_property_view = k_data->k_extra_properties.get_host_view(extra_property_name);
 
-    array_atom = new LMP_FLOAT*[nlocal];  // manually allocated
+  array_atom = new LMP_FLOAT*[nlocal];  // manually allocated
 
-    for (int i = 0; i < nlocal; ++i) {
-      array_atom[i] = &extra_property_view(i, 0);  // each row starts at column 0
-    }
+  for (int i = 0; i < nlocal; ++i) {
+    array_atom[i] = &extra_property_view(i, 0);  // each row starts at column 0
   }
 }
 

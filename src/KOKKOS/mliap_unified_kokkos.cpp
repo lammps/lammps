@@ -411,16 +411,20 @@ void LAMMPS_NS::update_atom_energy(MLIAPDataKokkosDevice *data, double *ei)
 
 void LAMMPS_NS::update_extra_property(MLIAPDataKokkosDevice *data, const char *name, double *extra_property_in)
 {
-  LMP_FLOAT* extra_property_out = data->get_extra_property_device_pointer(name);
+  auto& dual_view = data->extra_properties->k_data[name];  
   int extra_property_dim = data->get_extra_property_dim(name);
 
+  dual_view.template modify<DAT::tdual_float_2d::execution_space>();
+  auto extra_property_out = dual_view.view_device();
+
   Kokkos::parallel_for(data->nlistatoms*extra_property_dim, KOKKOS_LAMBDA (int ii) {
-    extra_property_out[ii] = extra_property_in[ii];
+    extra_property_out(ii/extra_property_dim, ii%extra_property_dim) = extra_property_in[ii];
   });
   Kokkos::fence();
 
   //This may not be the appropriate place to put these
-  data->extra_properties.modify_device();
+  dual_view.template sync<DAT::tdual_float_2d::host_mirror_space>();
+  auto host_view = dual_view.view_host();
 }
 
 

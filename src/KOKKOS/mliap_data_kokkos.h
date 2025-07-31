@@ -179,7 +179,7 @@ public:
 
   int dev;
 
-  ExtraPropertiesKokkos<LMPDeviceType> extra_properties;
+  ExtraPropertiesKokkos<LMPDeviceType>* extra_properties;
   //Wrapper functions for access to ExtraPropertiesKokkos struct of MLIAPDataKokkos
   int get_extra_property_dim(const char*);
   LMP_FLOAT* get_extra_property_device_pointer(const char*);
@@ -199,7 +199,7 @@ public:
 
 #ifdef LMP_KOKKOS_GPU
   MLIAPDataKokkosDevice(MLIAPDataKokkos<LMPHostType> &base) : ndescriptors(-1),nparams(-1),nelements(-1),ntotal(-1),nlistatoms(-1),nlocal(-1),natomneigh(-1),
-      nneigh_max(-1),npairs(-1), extra_properties(base.k_extra_properties.lmp)
+      nneigh_max(-1),npairs(-1), extra_properties(nullptr)
   {
     // It cannot get here, but needed for compilation
   }

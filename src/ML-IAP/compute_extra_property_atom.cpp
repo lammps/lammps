@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "error.h"
 #include "pair_mliap.h"
+#include "pair_hybrid.h"
 #include <cstring>
 using namespace LAMMPS_NS;
 
@@ -27,6 +28,7 @@ ComputeExtraPropertyAtom::ComputeExtraPropertyAtom(LAMMPS *lmp, int narg, char *
     Compute(lmp, narg, arg), data(nullptr)
 {
   peratom_flag = 1;
+  hybridIndex = -1;
   //Check for args here
   int curArg = 3;
   int nameFlag = 0, dimFlag = 0;
@@ -37,11 +39,17 @@ ComputeExtraPropertyAtom::ComputeExtraPropertyAtom(LAMMPS *lmp, int narg, char *
       extra_property_name = arg[curArg+1];
       nameFlag = 1; 
     }
-    if(strcmp(arg[curArg], "dim") == 0) { //Parse dim
+    else if(strcmp(arg[curArg], "dim") == 0) { //Parse dim
       size_peratom_cols = atoi(arg[curArg+1]);
       dimFlag = 1;
       if (size_peratom_cols <= 0) {
-        error->all(FLERR, "Compute extra_property/atom requires dim > 0.");
+        error->all(FLERR, "Compute extraProperty/atom requires dim > 0.");
+      }
+    }
+    else if(strcmp(arg[curArg], "hybridIndex") == 0) {
+      hybridIndex = atoi(arg[curArg+1]);
+      if (hybridIndex <= 0) {
+        error->all(FLERR, "Compute extraProperty/atom requires hybridIndex > 0.");
       }
     }
     curArg += 2; //Must put inside ifs if variable length args
@@ -50,7 +58,7 @@ ComputeExtraPropertyAtom::ComputeExtraPropertyAtom(LAMMPS *lmp, int narg, char *
   //If not all essential properties were set. Error
   if (nameFlag == 0 || dimFlag == 0)
   {
-    error->all(FLERR, "Compute extra_property/atom missing args (Expecting name and dim).");
+    error->all(FLERR, "Compute extraProperty/atom missing args (Expecting name and dim).");
   }
 }
 
@@ -68,12 +76,25 @@ void ComputeExtraPropertyAtom::init()
 {
   // Check if a pair style has been defined
   if (force->pair == nullptr)
-    error->all(FLERR,"Compute extra_property/atom requires a pair style be defined");
+    error->all(FLERR,"Compute extraProperty/atom requires a pair style be defined");
 
   // Check if it is safe downcast to PairMLIAP pair style
-  PairMLIAP* castedPair = dynamic_cast<PairMLIAP *>(force->pair);
-  if (castedPair == nullptr)
-    error->all(FLERR, "Compute extra_property/atom requires pair mliap to be active");  
+  
+  PairMLIAP* castedPair;
+  if (hybridIndex == -1) {
+    castedPair = dynamic_cast<PairMLIAP *>(force->pair);
+    if (castedPair == nullptr)
+      error->all(FLERR, "Compute extraProperty/atom requires pair mliap to be active");
+  } else {
+    PairHybrid* castedPairHybrid = dynamic_cast<PairHybrid *>(force->pair);
+    if (castedPairHybrid == nullptr)
+      error->all(FLERR, "Compute extraPorperty/atom with hybridIndex requires pair hybrid to be active");
+    if (hybridIndex > castedPairHybrid->nstyles)
+      error->all(FLERR, "Compute extraProperty/atom requires hybridIndex <= number of styles in pair hybird");
+    castedPair = dynamic_cast<PairMLIAP *>(castedPairHybrid->styles[hybridIndex-1]);
+    if (castedPair == nullptr)
+      error->all(FLERR, "Compute extraProperty/atom requires pair style at hybridIndex to be a pair mliap");
+  }
 
   //Get the pointers
   data = castedPair->data;

@@ -36,6 +36,7 @@ class ComputeExtraPropertyAtom : public Compute {
 
  private:
   std::string extra_property_name;
+  int hybridIndex;
   MLIAPData *data;
 };
 

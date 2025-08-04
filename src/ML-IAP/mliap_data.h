@@ -15,6 +15,7 @@
 #define LMP_MLIAPDATA_H
 
 #include "pointers.h"
+#include <unordered_map>
 
 namespace LAMMPS_NS {
 

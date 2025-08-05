@@ -19,6 +19,7 @@
 #include "pair_mliap.h"
 
 #include "mliap_data.h"
+#include "mliap_descriptor.h"
 #include "mliap_descriptor_snap.h"
 #include "mliap_descriptor_so3.h"
 #ifdef MLIAP_ACE

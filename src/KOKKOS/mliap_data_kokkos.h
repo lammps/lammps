@@ -60,10 +60,10 @@ public:
   int k_nlistatoms;
 
   ExtraPropertiesKokkos(class LAMMPS*);
-  int get_dim(std::string);
-  LMP_FLOAT* get_device_pointer(std::string);
-  Kokkos::View<LMP_FLOAT**, Kokkos::LayoutRight, Kokkos::HostSpace> get_host_view(std::string name);
-  void register_extra_property(std::string name, int dim);
+  int get_dim(const std::string &);
+  LMP_FLOAT* get_device_pointer(const std::string &);
+  Kokkos::View<LMP_FLOAT**, Kokkos::LayoutRight, Kokkos::HostSpace> get_host_view(const std::string & name);
+  void register_extra_property(const std::string & name, int dim);
   void grow(int new_nlistatoms);
   void modify_host();
   void modify_device();
@@ -87,7 +87,7 @@ template <class DeviceType> class MLIAPDataKokkos : public MLIAPData {
 
   void generate_neighdata(class NeighList *, int = 0, int = 0) override;
   void grow_neigharrays() override;
-  void register_extra_property(std::string, int);
+  void register_extra_property(const std::string &, int);
 
   void modified(ExecutionSpace space, unsigned int mask, bool ignore_auto_sync = false);
 

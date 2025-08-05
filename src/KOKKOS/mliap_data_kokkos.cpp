@@ -38,7 +38,7 @@ ExtraPropertiesKokkos<DeviceType>::ExtraPropertiesKokkos(class LAMMPS* lmp) : k_
 //}
 
 template<class DeviceType>
-int ExtraPropertiesKokkos<DeviceType>::get_dim(std::string name) {
+int ExtraPropertiesKokkos<DeviceType>::get_dim(const std::string & name) {
   if (k_dims.find(name) == k_dims.end()) {
     return -1;
   }
@@ -46,7 +46,7 @@ int ExtraPropertiesKokkos<DeviceType>::get_dim(std::string name) {
 } 
 
 template<class DeviceType>
-LMP_FLOAT* ExtraPropertiesKokkos<DeviceType>::get_device_pointer(std::string name) {
+LMP_FLOAT* ExtraPropertiesKokkos<DeviceType>::get_device_pointer(const std::string & name) {
   if (k_data.find(name) == k_data.end()) {
     return nullptr;
   }              
@@ -55,7 +55,7 @@ LMP_FLOAT* ExtraPropertiesKokkos<DeviceType>::get_device_pointer(std::string nam
 
 template<class DeviceType>
 Kokkos::View<LMP_FLOAT**, Kokkos::LayoutRight, Kokkos::HostSpace> 
-ExtraPropertiesKokkos<DeviceType>::get_host_view(std::string name) {
+ExtraPropertiesKokkos<DeviceType>::get_host_view(const std::string & name) {
   if (k_data.find(name) == k_data.end()) {
     return DAT::tdual_float_2d().view_host();
   }
@@ -63,7 +63,7 @@ ExtraPropertiesKokkos<DeviceType>::get_host_view(std::string name) {
 }
 
 template<class DeviceType>
-void ExtraPropertiesKokkos<DeviceType>::register_extra_property(std::string name, int dim) {
+void ExtraPropertiesKokkos<DeviceType>::register_extra_property(const std::string & name, int dim) {
   k_data[name] = DAT::tdual_float_2d("extra_property_register", k_nlistatoms, dim);
   k_dims[name] = dim;
   k_nproperties++;
@@ -358,7 +358,7 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
 }
 
 template<class DeviceType>
-void MLIAPDataKokkos<DeviceType>::register_extra_property(std::string name, int dim) {
+void MLIAPDataKokkos<DeviceType>::register_extra_property(const std::string & name, int dim) {
   k_extra_properties.register_extra_property(name, dim);
 }
 

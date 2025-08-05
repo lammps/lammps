@@ -861,6 +861,8 @@
 /fix_client_md.h
 /fix_cmap.cpp
 /fix_cmap.h
+/fix_continuum_chunk.cpp
+/fix_continuum_chunk.h
 /fix_damping_cundall.cpp
 /fix_damping_cundall.h
 /fix_deform_pressure.cpp

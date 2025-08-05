@@ -48,6 +48,11 @@ class ComputeChunkAtom : public Compute {
   int setup_chunks();
   void compute_ichunk();
 
+  int get_which() const { return which; }
+  double *get_delta() { return delta; }
+  double *get_offset() { return offset; }
+  int *get_nlayers() { return nlayers; }
+
  private:
   int which, binflag;
   int regionflag, nchunksetflag, nchunkflag, discard;

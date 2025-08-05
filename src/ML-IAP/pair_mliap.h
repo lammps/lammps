@@ -21,13 +21,12 @@ PairStyle(mliap,PairMLIAP);
 #define LMP_PAIR_MLIAP_H
 
 #include "pair.h"
-#include "compute_extra_property_atom.h"
 
 namespace LAMMPS_NS {
 
 class PairMLIAP : public Pair {
  public:
-  friend class ComputeExtraPropertyAtom;
+  friend class ComputeMLIAPPropertyAtom;
   PairMLIAP(class LAMMPS *);
   ~PairMLIAP() override;
   void compute(int, int) override;

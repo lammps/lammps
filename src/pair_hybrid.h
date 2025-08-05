@@ -22,7 +22,6 @@ PairStyle(hybrid/omp,PairHybrid);
 #define LMP_PAIR_HYBRID_H
 
 #include "pair.h"
-#include "compute_extra_property_atom.h"
 
 namespace LAMMPS_NS {
 
@@ -40,7 +39,6 @@ class PairHybrid : public Pair {
   friend class PairDeprecated;
   friend class Respa;
   friend class Scafacos;
-  friend class ComputeExtraPropertyAtom;
 
  public:
   PairHybrid(class LAMMPS *);

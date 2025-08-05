@@ -232,7 +232,6 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`erotate/sphere <compute_erotate_sphere>` - rotational energy of spherical particles
 * :doc:`erotate/sphere/atom <compute_erotate_sphere_atom>` - rotational energy for each spherical particle
 * :doc:`event/displace <compute_event_displace>` - detect event on atom displacement
-* :doc:`extraProperty/atom <compute_extra_property_atom>` - computes an extra property from an ML-IAP model
 * :doc:`fabric <compute_fabric>` - calculates fabric tensors from pair interactions
 * :doc:`fep <compute_fep>` - compute free energies for alchemical transformation from perturbation theory
 * :doc:`fep/ta <compute_fep_ta>` - compute free energies for a test area perturbation
@@ -259,6 +258,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`ke/eff <compute_ke_eff>` - kinetic energy of a group of nuclei and electrons in the electron force field model
 * :doc:`ke/rigid <compute_ke_rigid>` - translational kinetic energy of rigid bodies
 * :doc:`mliap <compute_mliap>` - gradients of energy and forces with respect to model parameters and related quantities for training machine learning interatomic potentials
+* :doc:`mliap/property/atom <compute_mliap_property_atom>` - computes an extra property from an ML-IAP model
 * :doc:`momentum <compute_momentum>` - translational momentum
 * :doc:`msd <compute_msd>` - mean-squared displacement of group of atoms
 * :doc:`msd/chunk <compute_msd_chunk>` - mean-squared displacement for each chunk

@@ -13,12 +13,12 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(extraProperty/atom,ComputeExtraPropertyAtom);
+ComputeStyle(mliap/property/atom,ComputeMLIAPPropertyAtom);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_EXTRA_PROPERTY_ATOM_H
-#define LMP_COMPUTE_EXTRA_PROPERTY_ATOM_H
+#ifndef LMP_COMPUTE_MLIAP_PROPERTY_ATOM_H
+#define LMP_COMPUTE_MLIAP_PROPERTY_ATOM_H
 
 #include "compute.h"
 #include "mliap_data.h"
@@ -27,16 +27,16 @@ ComputeStyle(extraProperty/atom,ComputeExtraPropertyAtom);
 
 namespace LAMMPS_NS {
 
-class ComputeExtraPropertyAtom : public Compute {
+class ComputeMLIAPPropertyAtom : public Compute {
  public:
-  ComputeExtraPropertyAtom(class LAMMPS *, int, char **);
-  ~ComputeExtraPropertyAtom() override;
+  ComputeMLIAPPropertyAtom(class LAMMPS *, int, char **);
+  ~ComputeMLIAPPropertyAtom() override;
   void init() override;
   void compute_peratom() override;
 
  private:
-  std::string extra_property_name;
-  int hybridIndex;
+  std::string property_name;
+  int hybrid_index;
   MLIAPData *data;
 };
 

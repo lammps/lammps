@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "compute_extra_property_atom_kokkos.h"
+#include "compute_mliap_property_atom_kokkos.h"
 #include "compute.h"
 #include "atom.h"
 #include "force.h"
@@ -25,7 +25,7 @@
 using namespace LAMMPS_NS;
 
 template <class DeviceType>
-ComputeExtraPropertyAtomKokkos<DeviceType>::ComputeExtraPropertyAtomKokkos(LAMMPS *lmp, int narg, char **arg) :
+ComputeMLIAPPropertyAtomKokkos<DeviceType>::ComputeMLIAPPropertyAtomKokkos(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg)
 {
   kokkosable = 1;
@@ -37,14 +37,14 @@ ComputeExtraPropertyAtomKokkos<DeviceType>::ComputeExtraPropertyAtomKokkos(LAMMP
   //If this changes you need to do bounds checking in each argName
   {
     if(strcmp(arg[curArg], "name") == 0) { //Parse name
-      extra_property_name = arg[curArg+1];
+      property_name = arg[curArg+1];
       nameFlag = 1; 
     }
     if(strcmp(arg[curArg], "dim") == 0) { //Parse dim
       size_peratom_cols = atoi(arg[curArg+1]);
       dimFlag = 1;
       if (size_peratom_cols <= 0) {
-        error->all(FLERR, "Compute extraProperty/atom/kk requires dim > 0.");
+        error->all(FLERR, "Compute mliap/property/atom/kk requires dim > 0.");
       }
     }
     curArg += 2; //Must put inside ifs if variable length args
@@ -53,7 +53,7 @@ ComputeExtraPropertyAtomKokkos<DeviceType>::ComputeExtraPropertyAtomKokkos(LAMMP
   //If not all essential properties were set. Error
   if (nameFlag == 0 || dimFlag == 0)
   {
-    error->all(FLERR, "Compute extraProperty/atom/kk missing args (Expecting name and dim).");
+    error->all(FLERR, "Compute mliap/property/atom/kk missing args (Expecting name and dim).");
   }
 
   //Initalize Member Variables
@@ -64,7 +64,7 @@ ComputeExtraPropertyAtomKokkos<DeviceType>::ComputeExtraPropertyAtomKokkos(LAMMP
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
-ComputeExtraPropertyAtomKokkos<DeviceType>::~ComputeExtraPropertyAtomKokkos()
+ComputeMLIAPPropertyAtomKokkos<DeviceType>::~ComputeMLIAPPropertyAtomKokkos()
 {
   if (array_atom != nullptr) {
     delete[] array_atom;
@@ -76,30 +76,30 @@ ComputeExtraPropertyAtomKokkos<DeviceType>::~ComputeExtraPropertyAtomKokkos()
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
-void ComputeExtraPropertyAtomKokkos<DeviceType>::init()
+void ComputeMLIAPPropertyAtomKokkos<DeviceType>::init()
 {
   // Check if a pair style has been defined
   if (force->pair == nullptr)
-    error->all(FLERR,"Compute extraProperty/atom/kk requires a pair style be defined");
+    error->all(FLERR,"Compute mliap/property/atom/kk requires a pair style be defined");
 
   // Check if it is safe downcast to PairMLIAP pair style
   PairMLIAPKokkos<DeviceType>* castedPair = dynamic_cast<PairMLIAPKokkos<DeviceType>*>(force->pair);
   if (castedPair == nullptr)
-    error->all(FLERR, "Compute extraProperty/atom/kk requires pair mliap to be active");  
+    error->all(FLERR, "Compute mliap/property/atom/kk requires pair mliap to be active");  
 
   //Get the pointer
   k_data = castedPair->get_k_data();
   if (k_data == nullptr)
-    error->all(FLERR, "Compute extraProperty/atom/kk requires a MLIAPDataKokkos");
+    error->all(FLERR, "Compute mliap/property/atom/kk requires a MLIAPDataKokkos");
 
   //Register the extra_property compute with the data class
-  k_data->register_extra_property(extra_property_name, size_peratom_cols);
+  k_data->register_extra_property(property_name, size_peratom_cols);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
-void ComputeExtraPropertyAtomKokkos<DeviceType>::compute_peratom()
+void ComputeMLIAPPropertyAtomKokkos<DeviceType>::compute_peratom()
 {
   k_data->k_extra_properties.sync_host();
 
@@ -108,7 +108,7 @@ void ComputeExtraPropertyAtomKokkos<DeviceType>::compute_peratom()
     delete[] array_atom;
   }
 
-  auto extra_property_view = k_data->k_extra_properties.get_host_view(extra_property_name);
+  auto extra_property_view = k_data->k_extra_properties.get_host_view(property_name);
 
   array_atom = new LMP_FLOAT*[nlocal];  // manually allocated
 
@@ -117,4 +117,4 @@ void ComputeExtraPropertyAtomKokkos<DeviceType>::compute_peratom()
   }
 }
 
-template class ComputeExtraPropertyAtomKokkos<LMPDeviceType>;
+template class ComputeMLIAPPropertyAtomKokkos<LMPDeviceType>;

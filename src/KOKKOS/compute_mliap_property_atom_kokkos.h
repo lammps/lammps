@@ -13,12 +13,12 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(extraProperty/atom/kk,ComputeExtraPropertyAtomKokkos<LMPDeviceType>);
+ComputeStyle(mliap/property/atom/kk,ComputeMLIAPPropertyAtomKokkos<LMPDeviceType>);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_EXTRA_PROPERTY_ATOM_KOKKOS_H
-#define LMP_COMPUTE_EXTRA_PROPERTY_ATOM_KOKKOS_H
+#ifndef LMP_COMPUTE_MLIAP_PROPERTY_ATOM_KOKKOS_H
+#define LMP_COMPUTE_MLIAP_PROPERTY_ATOM_KOKKOS_H
 
 #include "compute.h"
 #include "mliap_data_kokkos.h"
@@ -26,22 +26,17 @@ ComputeStyle(extraProperty/atom/kk,ComputeExtraPropertyAtomKokkos<LMPDeviceType>
 
 namespace LAMMPS_NS {
 
-//TEMP: Unsure why we need to forward declare the MLIAPDataKokkos class
-//template <class DeviceType>
-//class MLIAPDataKokkos;
-
-//NOTE: I don't think it is necessary to inherit from ComputeExtraPropertyAtom
 template <class DeviceType>
-class ComputeExtraPropertyAtomKokkos : public Compute {
+class ComputeMLIAPPropertyAtomKokkos : public Compute {
  public:
-  ComputeExtraPropertyAtomKokkos(class LAMMPS *, int, char **);
-  ~ComputeExtraPropertyAtomKokkos() override;
+  ComputeMLIAPPropertyAtomKokkos(class LAMMPS *, int, char **);
+  ~ComputeMLIAPPropertyAtomKokkos() override;
   void init() override;
   void compute_peratom() override;
 
  private:
   int nlocal;
-  std::string extra_property_name;
+  std::string property_name;
   MLIAPDataKokkos<DeviceType> *k_data;
 };
 

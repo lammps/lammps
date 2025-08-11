@@ -50,10 +50,6 @@ class FixContinuumChunk : public Fix {
 
   class NeighList *list;
 
-  int volflag;        // SCALAR/VECTOR for density normalization by volume
-  double chunk_volume_scalar;
-  double *chunk_volume_vec;
-
   int ave, nwindow;
   int normcount, iwindow, window_limit;
 
@@ -79,7 +75,6 @@ class FixContinuumChunk : public Fix {
   bigint nextvalid();
   inline double calc_w(const double) const ;
   inline double calc_w_int(const double, const double, const double) const ;
-  void get_chunk_center(int, int*, double*, double*, double*);
 };
 
 }    // namespace LAMMPS_NS

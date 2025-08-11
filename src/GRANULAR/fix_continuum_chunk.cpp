@@ -133,6 +133,8 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
       values.push_back(std::make_pair(STRESS, 6));
     } else if (strcmp(arg[iarg],"syz") == 0) {
       values.push_back(std::make_pair(STRESS, 5));
+    } else {
+      break;
     }
     iarg++;
   }
@@ -233,15 +235,14 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR, "Chunk/atom compute {} does not exist or is "
                "incorrect style for fix continuum/chunk", idchunk);
 
-  dim = domain->dimension;
   int which = cchunk->get_which();
-  if ((dim == 2 && which != ArgInfo::BIN2D) ||
-      (dim == 3 && which != ArgInfo::BIN3D))
-      error->all(FLERR, "Can only use chunk/atom stles bin/2d in 2D or bin/3d in 3D with fix continuum/chunk");
+  if ((which != ArgInfo::BIN1D) && (which != ArgInfo::BIN2D) && (which != ArgInfo::BIN3D))
+      error->all(FLERR, "Can only use bin chunk/atom styles with fix continuum/chunk");
   w_cut_sq = w_cut * w_cut;
   w_sd_sq = w_sd * w_sd;
 
   // Normalization factor for truncated Gaussian
+  dim = domain->dimension;
   double exp_cut = exp(-w_cut_sq / (2.0 * w_sd_sq));
   if (dim == 2) {
     w_scale = -0.5 * w_cut_sq * exp_cut + w_sd_sq * (1.0 - exp_cut);
@@ -504,17 +505,18 @@ void FixContinuumChunk::end_of_step()
     }
   }
 
-  // invoke setup_chunks() on each sampling step
-  // nchunk will not change but bin volumes might, e.g. for NPT simulation
-  // confirm chunks contain smoothing kernel too
+  // invoke setup_chunks() on each sampling step and grab relevant values
+  // geometry could change, e.g. for NPT simulation
 
   cchunk->setup_chunks();
-  double *offset = cchunk->get_offset();
-  int *nlayers = cchunk->get_nlayers();
+  int ncoord = cchunk->ncoord;
+  double **coord = cchunk->coord;
   double *delta = cchunk->get_delta();
-  if (delta[0] < w_cut || delta[1] < w_cut || (dim == 3 && delta[2] < w_cut))
-    error->all(FLERR, "Chunk size smaller than specified cutoff {}", w_cut);
-  double invdelta[3] = {1.0 / delta[0], 1.0 / delta[1], 1.0 / delta[2]};
+  int *cdim = cchunk->get_dim();
+
+  for (m = 0; m < ncoord; m++)
+    if (delta[m] < w_cut)
+      error->all(FLERR, "Chunk size smaller than specified cutoff {}", w_cut);
 
   // zero out arrays for one sample
 
@@ -541,7 +543,7 @@ void FixContinuumChunk::end_of_step()
   // sum within each chunk, only include atoms in fix group
   // compute/fix/variable may invoke computes so wrap with clear/add
 
-  int a, b, itype;
+  int a, b, itype, style, style_index;
   double w, mi, r, rsq_bin, rsq_pair, rbin_dot_rpair, f_norm, w_int_tmp;
   double xbin[3], dx_bin[3], dx_pair[3], f_pair[3];
 
@@ -573,12 +575,14 @@ void FixContinuumChunk::end_of_step()
 
   modify->clearstep_compute();
 
-  int style, style_index;
 
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit && ichunk[i] > 0) {
-      index = ichunk[i]-1;
-      get_chunk_center(index, nlayers, delta, offset, xbin);
+      index = ichunk[i] - 1;
+
+      MathExtra::copy3(x[i], xbin);
+      for (m = 0; m < ncoord; m++)
+        xbin[cdim[m]] = coord[index][m];
 
       itype = type[i];
       if (rmass) mi = rmass[i];
@@ -586,6 +590,7 @@ void FixContinuumChunk::end_of_step()
 
       MathExtra::sub3(x[i], xbin, dx_bin);
       rsq_bin = MathExtra::lensq3(dx_bin);
+
       if (rsq_bin > w_cut_sq) continue;
       w = calc_w(sqrt(rsq_bin));
 
@@ -658,19 +663,9 @@ void FixContinuumChunk::end_of_step()
 
   MPI_Allreduce(count_one,count_many,nchunk,MPI_DOUBLE,MPI_SUM,world);
 
-  if (cchunk->chunk_volume_vec) {
-    volflag = VECTOR;
-    chunk_volume_vec = cchunk->chunk_volume_vec;
-  } else {
-    volflag = SCALAR;
-    chunk_volume_scalar = cchunk->chunk_volume_scalar;
-  }
-
   for (m = 0; m < nchunk; m++) {
-    if (count_many[m] > 0.0)
-      for (j = 0; j < nvalues; j++) {
-        values_many[m][j] += values_one[m][j]/count_many[m];
-      }
+    for (j = 0; j < nvalues; j++)
+      values_many[m][j] += values_one[m][j];
     count_sum[m] += count_many[m];
   }
 
@@ -749,6 +744,7 @@ void FixContinuumChunk::end_of_step()
 
   if (fp && comm->me == 0) {
     clearerr(fp);
+
     if (overwrite) (void) platform::fseek(fp,filepos);
     double count = 0.0;
     for (m = 0; m < nchunk; m++) count += count_total[m];
@@ -933,28 +929,4 @@ double FixContinuumChunk::memory_usage()
   bytes += (double)nwindow*maxchunk * sizeof(double);          // count_list
   bytes += (double)nwindow*maxchunk*nvalues * sizeof(double);  // values_list
   return bytes;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixContinuumChunk::get_chunk_center(int index, int* nlayers, double* delta, double* offset, double* xbin)
-{
-  int i1bin, i2bin, i3bin;
-  double lamdabin[3];
-
-  if (dim == 2) {
-    i3bin = 0;
-    i2bin = index % nlayers[1];
-    i1bin = (index - i2bin) / nlayers[1];
-  } else {
-    i3bin = index % nlayers[2];
-    i2bin = (index - i3bin) % nlayers[1];
-    i1bin = (index - i2bin * nlayers[2] - i3bin) / (nlayers[2] * nlayers[1]);
-  }
-
-  lamdabin[0] = i1bin * delta[0] + offset[0];
-  lamdabin[1] = i2bin * delta[1] + offset[1];
-  lamdabin[2] = i3bin * delta[2] + offset[2];
-
-  domain->lamda2x(lamdabin, xbin);
 }

@@ -50,8 +50,7 @@ class ComputeChunkAtom : public Compute {
 
   int get_which() const { return which; }
   double *get_delta() { return delta; }
-  double *get_offset() { return offset; }
-  int *get_nlayers() { return nlayers; }
+  int *get_dim() { return dim; }
 
  private:
   int which, binflag;

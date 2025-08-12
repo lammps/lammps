@@ -46,7 +46,7 @@ using namespace NeighConst;
 using namespace MathConst;
 
 enum { OTHER, GRANULAR };
-enum { DENSITY, VELOCITY, STRAINRATE, STRESS };
+enum { DENSITY, VELOCITY, STRAINRATE, STRESS, STRESSKE, STRESSCON, FABRIC };
 enum { SCALAR, VECTOR };
 enum { SAMPLE, ALL };
 enum { NOSCALE, ATOM };
@@ -59,10 +59,11 @@ inline double FixContinuumChunk::calc_w(double r) const
 
 inline double FixContinuumChunk::calc_w_int(double dr_dot_dr, double dr_dot_rij, double rij_dot_rij) const
 {
-  double tmp = MY_SQRT2 * sqrt(rij_dot_rij) * w_sd;
-  double w_int = erf(dr_dot_rij / tmp) + erf((rij_dot_rij - dr_dot_rij) / tmp); // actually erfi not erf... need to think
-  w_int *= exp(-(dr_dot_rij * dr_dot_rij - dr_dot_dr * rij_dot_rij) / (2.0 * rij_dot_rij * w_sd_sq));
-  w_int *= sqrt(0.5 * MY_PI) * w_sd;
+  double sqrt_rij_dot_rij = sqrt(rij_dot_rij);
+  double tmp = MY_SQRT2 * sqrt_rij_dot_rij * w_sd;
+  double w_int = erf(dr_dot_rij / tmp) + erf((rij_dot_rij - dr_dot_rij) / tmp);
+  w_int *= exp((dr_dot_rij * dr_dot_rij - dr_dot_dr * rij_dot_rij) / (tmp * tmp));
+  w_int *= sqrt(0.5 * MY_PI) * w_sd * sqrt_rij_dot_rij;
   return w_scale * w_int - w_offset;
 }
 
@@ -121,18 +122,58 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
     //} else if (strcmp(arg[iarg],"sryz") == 0) {
     //  values.push_back(std::make_pair(STRAINRATE, 5));
 
-    } else if (strcmp(arg[iarg],"sxx") == 0) {
+    } else if (strcmp(arg[iarg],"stress/xx") == 0) {
       values.push_back(std::make_pair(STRESS, 0));
-    } else if (strcmp(arg[iarg],"syy") == 0) {
+    } else if (strcmp(arg[iarg],"stress/yy") == 0) {
       values.push_back(std::make_pair(STRESS, 4));
-    } else if (strcmp(arg[iarg],"szz") == 0) {
+    } else if (strcmp(arg[iarg],"stress/zz") == 0) {
       values.push_back(std::make_pair(STRESS, 8));
-    } else if (strcmp(arg[iarg],"sxy") == 0) {
+    } else if (strcmp(arg[iarg],"stress/xy") == 0) {
       values.push_back(std::make_pair(STRESS, 3));
-    } else if (strcmp(arg[iarg],"sxz") == 0) {
+    } else if (strcmp(arg[iarg],"stress/xz") == 0) {
       values.push_back(std::make_pair(STRESS, 6));
-    } else if (strcmp(arg[iarg],"syz") == 0) {
+    } else if (strcmp(arg[iarg],"stress/yz") == 0) {
       values.push_back(std::make_pair(STRESS, 5));
+
+    } else if (strcmp(arg[iarg],"stress/ke/xx") == 0) {
+      values.push_back(std::make_pair(STRESSKE, 0));
+    } else if (strcmp(arg[iarg],"stress/ke/yy") == 0) {
+      values.push_back(std::make_pair(STRESSKE, 4));
+    } else if (strcmp(arg[iarg],"stress/ke/zz") == 0) {
+      values.push_back(std::make_pair(STRESSKE, 8));
+    } else if (strcmp(arg[iarg],"stress/ke/xy") == 0) {
+      values.push_back(std::make_pair(STRESSKE, 3));
+    } else if (strcmp(arg[iarg],"stress/ke/xz") == 0) {
+      values.push_back(std::make_pair(STRESSKE, 6));
+    } else if (strcmp(arg[iarg],"stress/ke/yz") == 0) {
+      values.push_back(std::make_pair(STRESSKE, 5));
+
+    } else if (strcmp(arg[iarg],"stress/contacts/xx") == 0) {
+      values.push_back(std::make_pair(STRESSCON, 0));
+    } else if (strcmp(arg[iarg],"stress/contacts/yy") == 0) {
+      values.push_back(std::make_pair(STRESSCON, 4));
+    } else if (strcmp(arg[iarg],"stress/contacts/zz") == 0) {
+      values.push_back(std::make_pair(STRESSCON, 8));
+    } else if (strcmp(arg[iarg],"stress/contacts/xy") == 0) {
+      values.push_back(std::make_pair(STRESSCON, 3));
+    } else if (strcmp(arg[iarg],"stress/contacts/xz") == 0) {
+      values.push_back(std::make_pair(STRESSCON, 6));
+    } else if (strcmp(arg[iarg],"stress/contacts/yz") == 0) {
+      values.push_back(std::make_pair(STRESSCON, 5));
+
+    } else if (strcmp(arg[iarg],"fabric/xx") == 0) {
+      values.push_back(std::make_pair(FABRIC, 0));
+    } else if (strcmp(arg[iarg],"fabric/yy") == 0) {
+      values.push_back(std::make_pair(FABRIC, 4));
+    } else if (strcmp(arg[iarg],"fabric/zz") == 0) {
+      values.push_back(std::make_pair(FABRIC, 8));
+    } else if (strcmp(arg[iarg],"fabric/xy") == 0) {
+      values.push_back(std::make_pair(FABRIC, 3));
+    } else if (strcmp(arg[iarg],"fabric/xz") == 0) {
+      values.push_back(std::make_pair(FABRIC, 6));
+    } else if (strcmp(arg[iarg],"fabric/yz") == 0) {
+      values.push_back(std::make_pair(FABRIC, 5));
+
     } else {
       break;
     }
@@ -544,13 +585,14 @@ void FixContinuumChunk::end_of_step()
   // compute/fix/variable may invoke computes so wrap with clear/add
 
   int a, b, itype, style, style_index;
-  double w, mi, r, rsq_bin, rsq_pair, rbin_dot_rpair, f_norm, w_int_tmp;
+  double w, mi, voli, r, rsq_bin, rsq_pair, rbin_dot_rpair, f_norm, w_int_tmp;
   double xbin[3], dx_bin[3], dx_pair[3], f_pair[3];
 
   double **x = atom->x;
   double **v = atom->v;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
+  double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -587,6 +629,9 @@ void FixContinuumChunk::end_of_step()
       itype = type[i];
       if (rmass) mi = rmass[i];
       else mi = mass[itype];
+      voli = MY_PI * radius[i] * radius[i];
+      if (dim == 3)
+        voli *= 4.0 * THIRD * radius[i];
 
       MathExtra::sub3(x[i], xbin, dx_bin);
       rsq_bin = MathExtra::lensq3(dx_bin);
@@ -607,12 +652,14 @@ void FixContinuumChunk::end_of_step()
           values_one[index][m] += mi * v[i][style_index] * w;
         } else if (style == STRAINRATE) {
           // doable? might need 2 loops
-        } else if (style == STRESS) {
+        } else if (style == STRESS || style == STRESSKE) {
           a = style_index % 3;
           b = (style_index - a) / 3;
           values_one[index][m] += mi * v[i][a] * v[i][b] * w;
+        }
 
-          // maybe add boundary terms from Weinhart, Thornton, Luding, Bokhove Granular Matter (2012)...
+        if (borderflag && (style == STRESS || style == STRESSCON)) {
+          // add boundary terms from Weinhart, Thornton, Luding, Bokhove Granular Matter (2012)
         }
 
         m++;
@@ -647,10 +694,14 @@ void FixContinuumChunk::end_of_step()
             style = val.first;
             style_index = val.second;
 
-            if (style == STRESS) {
+            if (style == STRESS || style == STRESSCON) {
               a = style_index % 3;
               b = (style_index - a) / 3;
               values_one[index][m] += f_pair[a] * dx_pair[b] * w_int_tmp;
+            } else if (style == FABRIC) {
+              a = style_index % 3;
+              b = (style_index - a) / 3;
+              values_one[index][m] += voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
             }
             m++;
           }

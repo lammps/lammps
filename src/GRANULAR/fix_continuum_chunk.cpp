@@ -552,12 +552,18 @@ void FixContinuumChunk::end_of_step()
   cchunk->setup_chunks();
   int ncoord = cchunk->ncoord;
   double **coord = cchunk->coord;
-  double *delta = cchunk->get_delta();
+  int reducedflag = cchunk->get_reducedflag();
   int *cdim = cchunk->get_dim();
+  double *delta = cchunk->get_delta();
 
-  for (m = 0; m < ncoord; m++)
-    if (delta[m] < w_cut)
-      error->all(FLERR, "Chunk size smaller than specified cutoff {}", w_cut);
+  double width;
+  for (m = 0; m < ncoord; m++) {
+    width = delta[m];
+    if (reducedflag)
+      width *= domain->prd[cdim[m]];
+    if (width < w_cut)
+      error->all(FLERR, "Chunk width {} smaller than specified cutoff {}", width, w_cut);
+  }
 
   // zero out arrays for one sample
 
@@ -623,8 +629,13 @@ void FixContinuumChunk::end_of_step()
       index = ichunk[i] - 1;
 
       MathExtra::copy3(x[i], xbin);
-      for (m = 0; m < ncoord; m++)
+      for (m = 0; m < ncoord; m++) {
         xbin[cdim[m]] = coord[index][m];
+        if (reducedflag) {
+          xbin[cdim[m]] *= domain->prd[cdim[m]];
+          xbin[cdim[m]] += domain->boxlo[cdim[m]];
+        }
+      }
 
       itype = type[i];
       if (rmass) mi = rmass[i];

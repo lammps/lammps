@@ -281,6 +281,8 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR, iarg, "Unknown compute chunk/atom keyword {}", arg[iarg]);
   }
 
+  reducedflag = scaleflag == REDUCED;
+
   // set nchunkflag and discard to default values if not explicitly set
   // for binning style, also check in init() if simulation box is static,
   //   which sets nchunkflag = ONCE

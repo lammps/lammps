@@ -20,6 +20,7 @@
 
 #include "arg_info.h"
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "compute.h"
 #include "compute_chunk_atom.h"
@@ -51,6 +52,30 @@ enum { SCALAR, VECTOR };
 enum { SAMPLE, ALL };
 enum { NOSCALE, ATOM };
 enum { ONE, RUNNING, WINDOW };
+
+static const char cite_continuum[] =
+    "Coarse-graining procedure: doi:10.1007/s10035-010-0181-z\n\n"
+    "@Article{Goldhirsch2010,\n"
+    " author = {Goldhirsch, Isaac},\n"
+    " title = {{Stress, stress asymmetry and couple stress: From discrete particles to continuous fields}},\n"
+    " journal = {Granular Matter},\n"
+    " year =    2010,\n"
+    " volume =  12,\n"
+    " number =  3,\n"
+    " pages =   {239--252}\n"
+    "}\n\n";
+
+static const char cite_borders[] =
+    "Boundary corrections: doi:10.1007/s10035-012-0317-4\n\n"
+    "@Article{Weinhart2012,\n"
+    " author = {Weinhart, Thomas and Thornton, Anthony R. and Luding, Stefan and Bokhove, Onno},\n"
+    " title = {{From discrete particles to continuum fields near a boundary}},\n"
+    " journal = {Granular Matter},\n"
+    " year =    2012,\n"
+    " volume =  14,\n"
+    " number =  2,\n"
+    " pages =   {289--294}\n"
+    "}\n\n";
 
 inline double FixContinuumChunk::calc_w(double r) const
 {
@@ -374,6 +399,12 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
   nvalid_last = -1;
   nvalid = nextvalid();
   modify->addstep_compute_all(nvalid);
+
+  if (lmp->citeme) {
+    lmp->citeme->add(cite_continuum);
+    if (borderflag)
+      lmp->citeme->add(cite_borders);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -445,7 +476,10 @@ void FixContinuumChunk::init()
   if (borderflag) {
     auto wall_fixes = modify->get_fix_by_style("wall/gran");
     if (wall_fixes.size() == 0)
-      error->all(FLERR,"Could not find any instances of fix wall/gran for border corrections");
+      error->all(FLERR, "Could not find any instances of fix wall/gran for border corrections");
+    for (auto fix : wall_fixes)
+      if (!fix->peratom_flag)
+        error->all(FLERR, "Must use contacts keyword in fix wall/gran {} for border corrections", fix->id);
   }
 
   // need to reset nvalid if nvalid < ntimestep b/c minimize was performed
@@ -591,8 +625,8 @@ void FixContinuumChunk::end_of_step()
   // compute/fix/variable may invoke computes so wrap with clear/add
 
   int a, b, itype, style, style_index;
-  double w, mi, voli, r, rsq_bin, rsq_pair, rbin_dot_rpair, f_norm, w_int_tmp;
-  double xbin[3], dx_bin[3], dx_pair[3], f_pair[3];
+  double w, mi, voli, r, rsq_bin, rsq_pair, rsq_wall, rbin_dot_r, f_norm, w_int_tmp;
+  double xbin[3], dx_bin[3], dx_pair[3], f_pair[3], f_wall[3], dx_wall[3];
 
   double **x = atom->x;
   double **v = atom->v;
@@ -605,6 +639,8 @@ void FixContinuumChunk::end_of_step()
 
   int jj, jnum;
   int *jlist, *numneigh, **firstneigh;
+
+  double **array_atom_fix;
 
   if (single_needed) {
     neighbor->build_one(list);
@@ -669,8 +705,26 @@ void FixContinuumChunk::end_of_step()
           values_one[index][m] += mi * v[i][a] * v[i][b] * w;
         }
 
+        // Boundary corrections from Weinhart et al. 2012
         if (borderflag && (style == STRESS || style == STRESSCON)) {
-          // add boundary terms from Weinhart, Thornton, Luding, Bokhove Granular Matter (2012)
+          for (auto wall_fix : wall_fixes) {
+            array_atom_fix = wall_fix->array_atom;
+
+            // Skip if not in contact
+            if (array_atom_fix[i][0] != 1.0) continue;
+            f_wall[0] = array_atom_fix[i][1];
+            f_wall[1] = array_atom_fix[i][2];
+            f_wall[2] = array_atom_fix[i][3];
+            dx_wall[0] = x[i][0] - array_atom_fix[i][4];
+            dx_wall[1] = x[i][1] - array_atom_fix[i][5];
+            dx_wall[2] = x[i][2] - array_atom_fix[i][6];
+
+            rsq_wall = MathExtra::lensq3(dx_wall);
+            rbin_dot_r = MathExtra::dot3(dx_bin, dx_pair);
+            w_int_tmp = calc_w_int(rsq_bin, rbin_dot_r, rsq_wall);
+
+            values_one[index][m] += f_wall[a] * dx_wall[b] * w_int_tmp;
+          }
         }
 
         m++;
@@ -697,8 +751,8 @@ void FixContinuumChunk::end_of_step()
             f_pair[2] += force->pair->svector[2];
           }
 
-          rbin_dot_rpair = MathExtra::dot3(dx_bin, dx_pair);
-          w_int_tmp = calc_w_int(rsq_bin, rbin_dot_rpair, rsq_pair);
+          rbin_dot_r = MathExtra::dot3(dx_bin, dx_pair);
+          w_int_tmp = calc_w_int(rsq_bin, rbin_dot_r, rsq_pair);
 
           m = 0;
           for (auto &val : values) {

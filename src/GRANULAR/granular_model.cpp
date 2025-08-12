@@ -322,6 +322,11 @@ void GranularModel::init()
     delete[] svector;
     svector = new double[nsvector];
   }
+
+  // Zero optional values
+  MathExtra::zero3(fr);
+  magtortwist = 0.0;
+  dq = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

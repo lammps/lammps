@@ -91,7 +91,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   lj_epsilon = 1;
   lj_sigma = 1;
   lj_mass = 1;
-  lj_unit_style = "lj";
+  lj_unit_style = utils::strdup("lj");
   other_planck = 1;
   other_mvv2e = 1;
   fmass = 1.0;
@@ -455,6 +455,13 @@ void FixPIMDLangevin::init()
   if (strcmp(update->unit_style, "lj") == 0) {
     double planck_star = sqrt(lj_epsilon) * sqrt(lj_mass) * lj_sigma * sqrt(other_mvv2e);
     planck = other_planck / planck_star;
+
+    std::string out = fmt::format("\nUsing LJ reduced units with LJ parameters in unit style {:s}.\n", lj_unit_style);
+    out += fmt::format("The LJ parameters are epsilon = {:.8e}, sigma = {:.8e}, mass = {:.8e}.\n", lj_epsilon, lj_sigma, lj_mass);
+    out += fmt::format("The Planck constant is h = {:.8e} in {:s} units.\n", other_planck, lj_unit_style);
+    out += fmt::format("mvv2e in {:s} units is mvv2e = {:.8e}.\n", lj_unit_style, other_mvv2e);
+    out += fmt::format("The Planck constant is set to h/(sigma*sqrt(mass*epsilon*mvv2e)) = {:.8e} in LJ reduced units.\n\n", planck);
+    if (universe->me == 0) utils::logmesg(lmp, out); 
   } else {
     planck = force->hplanck;
   }

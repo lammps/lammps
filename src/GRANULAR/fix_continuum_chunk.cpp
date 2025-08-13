@@ -47,7 +47,7 @@ using namespace NeighConst;
 using namespace MathConst;
 
 enum { OTHER, GRANULAR };
-enum { DENSITY, VELOCITY, STRAINRATE, STRESS, STRESSKE, STRESSCON, FABRIC };
+enum { DENSITY, VELOCITY, STRESS, STRESSKE, STRESSCON, FABRIC };
 enum { SCALAR, VECTOR };
 enum { SAMPLE, ALL };
 enum { NOSCALE, ATOM };
@@ -115,6 +115,7 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
   global_freq = nfreq;
   no_change_box = 1;
   time_depend = 1;
+  dim = domain->dimension;
 
   char *group = arg[1];
 
@@ -123,82 +124,19 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 9;
   values.clear();
   while (iarg < narg) {
-
-    if (strcmp(arg[iarg],"density") == 0) {
+    if (strcmp(arg[iarg], "density") == 0) {
       values.push_back(std::make_pair(DENSITY, -1));
-
-    } else if (strcmp(arg[iarg],"vx") == 0) {
-      values.push_back(std::make_pair(VELOCITY, 0));
-    } else if (strcmp(arg[iarg],"vy") == 0) {
-      values.push_back(std::make_pair(VELOCITY, 1));
-    } else if (strcmp(arg[iarg],"vz") == 0) {
-      values.push_back(std::make_pair(VELOCITY, 2));
-
-    //} else if (strcmp(arg[iarg],"srxx") == 0) {
-    //  values.push_back(std::make_pair(STRAINRATE, 0));
-    //} else if (strcmp(arg[iarg],"sryy") == 0) {
-    //  values.push_back(std::make_pair(STRAINRATE, 4));
-    //} else if (strcmp(arg[iarg],"srzz") == 0) {
-    //  values.push_back(std::make_pair(STRAINRATE, 8));
-    //} else if (strcmp(arg[iarg],"srxy") == 0) {
-    //  values.push_back(std::make_pair(STRAINRATE, 3));
-    //} else if (strcmp(arg[iarg],"srxz") == 0) {
-    //  values.push_back(std::make_pair(STRAINRATE, 6));
-    //} else if (strcmp(arg[iarg],"sryz") == 0) {
-    //  values.push_back(std::make_pair(STRAINRATE, 5));
-
-    } else if (strcmp(arg[iarg],"stress/xx") == 0) {
-      values.push_back(std::make_pair(STRESS, 0));
-    } else if (strcmp(arg[iarg],"stress/yy") == 0) {
-      values.push_back(std::make_pair(STRESS, 4));
-    } else if (strcmp(arg[iarg],"stress/zz") == 0) {
-      values.push_back(std::make_pair(STRESS, 8));
-    } else if (strcmp(arg[iarg],"stress/xy") == 0) {
-      values.push_back(std::make_pair(STRESS, 3));
-    } else if (strcmp(arg[iarg],"stress/xz") == 0) {
-      values.push_back(std::make_pair(STRESS, 6));
-    } else if (strcmp(arg[iarg],"stress/yz") == 0) {
-      values.push_back(std::make_pair(STRESS, 5));
-
-    } else if (strcmp(arg[iarg],"stress/ke/xx") == 0) {
-      values.push_back(std::make_pair(STRESSKE, 0));
-    } else if (strcmp(arg[iarg],"stress/ke/yy") == 0) {
-      values.push_back(std::make_pair(STRESSKE, 4));
-    } else if (strcmp(arg[iarg],"stress/ke/zz") == 0) {
-      values.push_back(std::make_pair(STRESSKE, 8));
-    } else if (strcmp(arg[iarg],"stress/ke/xy") == 0) {
-      values.push_back(std::make_pair(STRESSKE, 3));
-    } else if (strcmp(arg[iarg],"stress/ke/xz") == 0) {
-      values.push_back(std::make_pair(STRESSKE, 6));
-    } else if (strcmp(arg[iarg],"stress/ke/yz") == 0) {
-      values.push_back(std::make_pair(STRESSKE, 5));
-
-    } else if (strcmp(arg[iarg],"stress/contacts/xx") == 0) {
-      values.push_back(std::make_pair(STRESSCON, 0));
-    } else if (strcmp(arg[iarg],"stress/contacts/yy") == 0) {
-      values.push_back(std::make_pair(STRESSCON, 4));
-    } else if (strcmp(arg[iarg],"stress/contacts/zz") == 0) {
-      values.push_back(std::make_pair(STRESSCON, 8));
-    } else if (strcmp(arg[iarg],"stress/contacts/xy") == 0) {
-      values.push_back(std::make_pair(STRESSCON, 3));
-    } else if (strcmp(arg[iarg],"stress/contacts/xz") == 0) {
-      values.push_back(std::make_pair(STRESSCON, 6));
-    } else if (strcmp(arg[iarg],"stress/contacts/yz") == 0) {
-      values.push_back(std::make_pair(STRESSCON, 5));
-
-    } else if (strcmp(arg[iarg],"fabric/xx") == 0) {
-      values.push_back(std::make_pair(FABRIC, 0));
-    } else if (strcmp(arg[iarg],"fabric/yy") == 0) {
-      values.push_back(std::make_pair(FABRIC, 4));
-    } else if (strcmp(arg[iarg],"fabric/zz") == 0) {
-      values.push_back(std::make_pair(FABRIC, 8));
-    } else if (strcmp(arg[iarg],"fabric/xy") == 0) {
-      values.push_back(std::make_pair(FABRIC, 3));
-    } else if (strcmp(arg[iarg],"fabric/xz") == 0) {
-      values.push_back(std::make_pair(FABRIC, 6));
-    } else if (strcmp(arg[iarg],"fabric/yz") == 0) {
-      values.push_back(std::make_pair(FABRIC, 5));
-
+      labels.push_back("density");
+    } else if (utils::strmatch(arg[iarg], "^v/")) {
+      add_vector_component(arg[iarg], VELOCITY);
+    } else if (utils::strmatch(arg[iarg], "^stress/")) {
+      add_tensor_component(arg[iarg], STRESS);
+    } else if (utils::strmatch(arg[iarg], "^stress/ke/")) {
+      add_tensor_component(arg[iarg], STRESSKE);
+    } else if (utils::strmatch(arg[iarg], "^stress/contacts/")) {
+      add_tensor_component(arg[iarg], STRESSCON);
+    } else if (utils::strmatch(arg[iarg], "^fabric/")) {
+      add_tensor_component(arg[iarg], FABRIC);
     } else {
       break;
     }
@@ -308,7 +246,6 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
   w_sd_sq = w_sd * w_sd;
 
   // Normalization factor for truncated Gaussian
-  dim = domain->dimension;
   double exp_cut = exp(-w_cut_sq / (2.0 * w_sd_sq));
   if (dim == 2) {
     w_scale = -0.5 * w_cut_sq * exp_cut + w_sd_sq * (1.0 - exp_cut);
@@ -348,7 +285,7 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
         else if (ncoord == 3)
           fprintf(fp,"# Chunk OrigID Coord1 Coord2 Coord3 Ncount");
       }
-      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",arg[i + 9]);
+      for (int i = 0; i < nvalues; i++) fprintf(fp," %s", labels[i].c_str());
       fprintf(fp,"\n");
     }
     if (ferror(fp))
@@ -595,8 +532,8 @@ void FixContinuumChunk::end_of_step()
     width = delta[m];
     if (reducedflag)
       width *= domain->prd[cdim[m]];
-    if (width < w_cut)
-      error->all(FLERR, "Chunk width {} smaller than specified cutoff {}", width, w_cut);
+    if (0.5 * width < w_cut)
+      error->all(FLERR, "Chunk half width {} smaller than specified cutoff {}", 0.5 * width, w_cut);
   }
 
   // zero out arrays for one sample
@@ -659,7 +596,6 @@ void FixContinuumChunk::end_of_step()
 
   modify->clearstep_compute();
 
-
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit && ichunk[i] > 0) {
       index = ichunk[i] - 1;
@@ -693,15 +629,14 @@ void FixContinuumChunk::end_of_step()
         style = val.first;
         style_index = val.second;
 
+        a = style_index % 3;
+        b = (style_index - a) / 3;
+
         if (style == DENSITY) {
           values_one[index][m] += mi * w;
         } else if (style == VELOCITY) {
           values_one[index][m] += mi * v[i][style_index] * w;
-        } else if (style == STRAINRATE) {
-          // doable? might need 2 loops
         } else if (style == STRESS || style == STRESSKE) {
-          a = style_index % 3;
-          b = (style_index - a) / 3;
           values_one[index][m] += mi * v[i][a] * v[i][b] * w;
         }
 
@@ -759,13 +694,12 @@ void FixContinuumChunk::end_of_step()
             style = val.first;
             style_index = val.second;
 
+            a = style_index % 3;
+            b = (style_index - a) / 3;
+
             if (style == STRESS || style == STRESSCON) {
-              a = style_index % 3;
-              b = (style_index - a) / 3;
               values_one[index][m] += f_pair[a] * dx_pair[b] * w_int_tmp;
             } else if (style == FABRIC) {
-              a = style_index % 3;
-              b = (style_index - a) / 3;
               values_one[index][m] += voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
             }
             m++;
@@ -1045,4 +979,92 @@ double FixContinuumChunk::memory_usage()
   bytes += (double)nwindow*maxchunk * sizeof(double);          // count_list
   bytes += (double)nwindow*maxchunk*nvalues * sizeof(double);  // values_list
   return bytes;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixContinuumChunk::add_tensor_component(char *option, int variable)
+{
+  if (((std::string) option).back() == '*') {
+    std::vector<std::string> suffices = {"xx", "xy", "xz", "yx", "yy", "yz", "zx", "zy", "zz"};
+    std::string trimmed_option = std::string(option);
+    trimmed_option = trimmed_option.substr(0, trimmed_option.length() - 1);
+    for (int a = 0; a < 3; a++) {
+      if (dim == 2 && a == 2) continue;
+      for (int b = 0; b < 3; b++) {
+        if (dim == 2 && b == 2) continue;
+        values.push_back(std::make_pair(variable, a * 3 + b));
+        labels.push_back(trimmed_option + suffices[a * 3 + b]);
+      }
+    }
+  } else {
+    int index = -1;
+    int dim_error = 0;
+
+    if (utils::strmatch(option, "xx$")) {
+      index = 0;
+    } else if (utils::strmatch(option, "xy$")) {
+      index = 1;
+    } else if (utils::strmatch(option, "xz$")) {
+      index = 2;
+      if (dim == 2) dim_error = 1;
+    } else if (utils::strmatch(option, "yx$")) {
+      index = 3;
+    } else if (utils::strmatch(option, "yy$")) {
+      index = 4;
+    } else if (utils::strmatch(option, "yz$")) {
+      index = 5;
+      if (dim == 2) dim_error = 1;
+    } else if (utils::strmatch(option, "zx$")) {
+      index = 6;
+      if (dim == 2) dim_error = 1;
+    } else if (utils::strmatch(option, "zy$")) {
+      index = 7;
+      if (dim == 2) dim_error = 1;
+    } else if (utils::strmatch(option, "zz$")) {
+      index = 8;
+      if (dim == 2) dim_error = 1;
+    } else {
+      error->all(FLERR, "Invalid fix continuum/chunk property {}", option);
+    }
+
+    if (dim_error)
+      error->all(FLERR, "Invalid fix continuum/chunk property {} in 2D", option);
+
+    values.push_back(std::make_pair(variable, index));
+    labels.push_back(option);
+  }
+
+  return;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixContinuumChunk::add_vector_component(char *option, int variable)
+{
+  if (((std::string) option).back() == '*') {
+    std::vector<std::string> suffices = {"x", "y", "z"};
+    std::string trimmed_option = std::string(option);
+    trimmed_option = trimmed_option.substr(0, trimmed_option.length() - 1);
+    for (int a = 0; a < dim; a++) {
+      values.push_back(std::make_pair(variable, a));
+      labels.push_back(trimmed_option + suffices[a]);
+    }
+  } else {
+    int index = -1;
+    if (utils::strmatch(option, "x$")) {
+      index = 0;
+    } else if (utils::strmatch(option, "y$")) {
+      index = 1;
+    } else if (utils::strmatch(option, "z$")) {
+      if (dim == 2)
+        error->all(FLERR, "Invalid fix continuum/chunk property {} in 2D", option);
+      index = 2;
+    } else {
+      error->all(FLERR, "Invalid fix continuum/chunk property {}", option);
+    }
+
+    values.push_back(std::make_pair(variable, index));
+    labels.push_back(option);
+  }
 }

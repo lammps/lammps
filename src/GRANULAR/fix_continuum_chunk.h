@@ -38,6 +38,7 @@ class FixContinuumChunk : public Fix {
 
  private:
   std::vector<std::pair<int, int>> values;
+  std::vector<std::string> labels;
 
   int dim, pstyle, single_needed;
   double w_cut, w_cut_sq, w_sd, w_sd_sq, w_scale, w_offset;
@@ -75,6 +76,8 @@ class FixContinuumChunk : public Fix {
   bigint nextvalid();
   inline double calc_w(const double) const ;
   inline double calc_w_int(const double, const double, const double) const ;
+  void add_tensor_component(char *, int);
+  void add_vector_component(char *, int);
 };
 
 }    // namespace LAMMPS_NS

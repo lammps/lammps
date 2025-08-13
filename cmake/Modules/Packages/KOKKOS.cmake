@@ -252,16 +252,16 @@ if(PKG_ML-IAP)
   if(JAX_CHECK_RESULT EQUAL 0 AND JAX_INSTALLED STREQUAL "YES")
     set(WITH_JAX TRUE)
     message(STATUS "JAX detected: XLA FFI bindings will be compiled")
-    
+
     # This import is needed for the JAX, XLA FFI bindings.
     # More infos at https://docs.jax.dev/en/latest/ffi.html
     # For the following code, having jax cpu version installed is sufficient
     # $ pip install jax
     execute_process(
-      COMMAND python -c "from jax.extend import ffi; print(ffi.include_dir())"
+      COMMAND python -c "from jax import ffi; print(ffi.include_dir())"
       OUTPUT_VARIABLE JAX_FFI_DIR
       OUTPUT_STRIP_TRAILING_WHITESPACE)
-    
+
     if(JAX_FFI_DIR)
       target_include_directories(lammps PRIVATE ${JAX_FFI_DIR})
 

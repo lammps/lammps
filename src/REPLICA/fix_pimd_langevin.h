@@ -21,6 +21,7 @@ FixStyle(pimd/langevin,FixPIMDLangevin);
 #define FIX_PIMD_LANGEVIN_H
 
 #include "fix.h"
+#include <map>
 
 namespace LAMMPS_NS {
 

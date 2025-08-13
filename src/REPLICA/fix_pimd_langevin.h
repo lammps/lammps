@@ -58,6 +58,7 @@ class FixPIMDLangevin : public Fix {
   double temp;                             // temperature
   double hbar;                             // Planck's constant
   double lj_epsilon, lj_sigma, lj_mass;    // LJ unit energy, length, and mass scales
+  char *lj_unit_style;                     // unit style for LJ parameters, e.g. "metal", "real"
   double other_planck;
   double other_mvv2e;
   double kt;               // k_B * temp
@@ -194,6 +195,30 @@ class FixPIMDLangevin : public Fix {
   int size_restart_global();
   int pack_restart_data(double *list);
   void restart(char *buf) override;
+
+   // Planck's constant for each LAMMPS unit style
+   std::map<std::string, double> planck_map = {
+      {"lj",        1.0},     
+      {"real",      95.306976368},  
+      {"metal",     4.135667403e-3}, 
+      {"si",        6.62606896e-34},   
+      {"cgs",       6.62606896e-27},   
+      {"electron",  0.1519829846},  
+      {"micro",     6.62606896e-13},  
+      {"nano",      6.62606896e-4}   
+   };
+
+   // mvv2e conversion factor for each LAMMPS unit style
+   const std::map<std::string, double> mvv2e_map = {
+      {"lj",        1.0},      
+      {"real",      48.88821291 * 48.88821291},
+      {"metal",     1.0364269e-4},
+      {"si",        1.0},
+      {"cgs",       1.0},
+      {"electron",  1.06657236},
+      {"micro",     1.0},
+      {"nano",      1.0}
+   };
 };
 }    // namespace LAMMPS_NS
 #endif

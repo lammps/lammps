@@ -91,6 +91,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   lj_epsilon = 1;
   lj_sigma = 1;
   lj_mass = 1;
+  lj_unit_style = "lj";
   other_planck = 1;
   other_mvv2e = 1;
   fmass = 1.0;
@@ -198,9 +199,18 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
       lj_epsilon = utils::numeric(FLERR, arg[i + 1], false, lmp);
       lj_sigma = utils::numeric(FLERR, arg[i + 2], false, lmp);
       lj_mass = utils::numeric(FLERR, arg[i + 3], false, lmp);
-      other_planck = utils::numeric(FLERR, arg[i + 4], false, lmp);
-      other_mvv2e = utils::numeric(FLERR, arg[i + 5], false, lmp);
-      i += 4;
+      lj_unit_style = utils::strdup(arg[i + 4]);
+      const std::set<std::string> allowed_units =
+          {"lj", "real", "metal", "si", "cgs", "electron", "micro", "nano"};
+
+      if (!allowed_units.count(lj_unit_style)) {
+        error->universe_all(FLERR,
+          fmt::format("Invalid lj_unit_style value '{}' for fix {}", 
+                      lj_unit_style, style));
+      }
+      other_planck = planck_map.at(lj_unit_style);
+      other_mvv2e = mvv2e_map.at(lj_unit_style);
+      i += 3;
     } else if (strcmp(arg[i], "thermostat") == 0) {
       if (strcmp(arg[i + 1], "PILE_L") == 0) {
         thermostat = PILE_L;

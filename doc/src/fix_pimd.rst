@@ -62,8 +62,7 @@ Syntax
           epsilon = energy scale for reduced units (energy units)
           sigma = length scale for reduced units (length units)
           mass = mass scale for reduced units (mass units)
-          planck = Planck's constant for other unit style
-          mvv2e = mass * velocity^2 to energy conversion factor for other unit style
+          unitstyle = unit style for the LJ parameters (string; e.g.: *metal* corresponds to eV, Angstrom, and g/mol)
       *esynch* value = *yes* or *no* (only in *pimd/langevin/bosonic*)
 
 Examples
@@ -290,7 +289,7 @@ The keyword *fixcom* specifies whether the center-of-mass of the extended ring-p
 Once *fixcom* is set to be *yes*, the center-of-mass velocity will be distracted from the centroid-mode velocities in each step.
 
 The keyword *lj* should be used if :doc:`lj units <units>` is used for *fix pimd/langevin*. Typically one may want to use
-reduced units to run the simulation, and then convert the results into some physical units (for example, :doc:`metal units <units>`). In this case, the 5 quantities in the physical mass units are needed: epsilon (energy scale), sigma (length scale), mass, Planck's constant, mvv2e (mass * velocity^2 to energy conversion factor). Planck's constant and mvv2e can be found in src/update.cpp. If there is no need to convert reduced units to physical units, you can omit the keyword *lj* and these five values will be set to 1.
+reduced units to run the simulation, and then convert the results into some physical units (for example, :doc:`metal units <units>`). To appropriately set the Planck constant, the 3 LJ parameters are needed: epsilon (energy scale), sigma (length scale), and mass. One also needs to provide the unit style of the three LJ parameters. The Planck constant in the reduced unit is calculated as :math:`h^{*}=\frac{h}{\sigma\sqrt{m\varepsilon}}`. If there is no need to convert reduced units to physical units, you can omit the keyword *lj* and these three values will be set to 1.
 
 Fix *pimd/langevin/bosonic* also has a keyword not available in fix *pimd/langevin*: *esynch*, with default *yes*. If set to *no*, some time consuming synchronization of spring energies and the primitive kinetic energy estimator between processors is avoided.
 

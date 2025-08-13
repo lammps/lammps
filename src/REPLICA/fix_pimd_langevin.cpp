@@ -1241,7 +1241,6 @@ void FixPIMDLangevin::spring_force()
   int nlocal = atom->nlocal;
   tagint *tagtmp = atom->tag;
 
-  // printf("iworld = %d, x_last = %d, x_next = %d\n", universe->iworld, x_last, x_next);
   int *mask = atom->mask;
 
   // int idx_tmp = atom->map(1);

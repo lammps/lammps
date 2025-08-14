@@ -221,6 +221,7 @@ OPT.
    * :doc:`rigid/nvt (o) <fix_rigid>`
    * :doc:`rigid/nvt/small <fix_rigid>`
    * :doc:`rigid/small (o) <fix_rigid>`
+   * :doc:`rmc/partial <fix_rmc_partial>`
    * :doc:`rx (k) <fix_rx>`
    * :doc:`saed/vtk <fix_saed_vtk>`
    * :doc:`set <fix_set>`

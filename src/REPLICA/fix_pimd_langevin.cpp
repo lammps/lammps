@@ -205,7 +205,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
 
       if (!allowed_units.count(lj_unit_style)) {
         error->universe_all(FLERR,
-          fmt::format("Invalid lj_unit_style value '{}' for fix {}", 
+          fmt::format("Invalid lj_unit_style value '{}' for fix {}",
                       lj_unit_style, style));
       }
       other_planck = planck_map.at(lj_unit_style);
@@ -461,7 +461,7 @@ void FixPIMDLangevin::init()
     out += fmt::format("The Planck constant is h = {:.8e} in {:s} units.\n", other_planck, lj_unit_style);
     out += fmt::format("mvv2e in {:s} units is mvv2e = {:.8e}.\n", lj_unit_style, other_mvv2e);
     out += fmt::format("The Planck constant is set to h/(sigma*sqrt(mass*epsilon*mvv2e)) = {:.8e} in LJ reduced units.\n\n", planck);
-    if (universe->me == 0) utils::logmesg(lmp, out); 
+    if (universe->me == 0) utils::logmesg(lmp, out);
   } else {
     planck = force->hplanck;
   }

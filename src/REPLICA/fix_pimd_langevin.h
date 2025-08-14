@@ -199,19 +199,19 @@ class FixPIMDLangevin : public Fix {
 
    // Planck's constant for each LAMMPS unit style
    std::map<std::string, double> planck_map = {
-      {"lj",        1.0},     
-      {"real",      95.306976368},  
-      {"metal",     4.135667403e-3}, 
-      {"si",        6.62606896e-34},   
-      {"cgs",       6.62606896e-27},   
-      {"electron",  0.1519829846},  
-      {"micro",     6.62606896e-13},  
-      {"nano",      6.62606896e-4}   
+      {"lj",        1.0},
+      {"real",      95.306976368},
+      {"metal",     4.135667403e-3},
+      {"si",        6.62606896e-34},
+      {"cgs",       6.62606896e-27},
+      {"electron",  0.1519829846},
+      {"micro",     6.62606896e-13},
+      {"nano",      6.62606896e-4}
    };
 
    // mvv2e conversion factor for each LAMMPS unit style
    const std::map<std::string, double> mvv2e_map = {
-      {"lj",        1.0},      
+      {"lj",        1.0},
       {"real",      48.88821291 * 48.88821291},
       {"metal",     1.0364269e-4},
       {"si",        1.0},

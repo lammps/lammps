@@ -400,6 +400,7 @@ accelerated styles exist.
 * :doc:`rigid/nvt <fix_rigid>` - constrain one or more clusters of atoms to move as a rigid body with NVT integration
 * :doc:`rigid/nvt/small <fix_rigid>` - constrain many small clusters of atoms to move as a rigid body with NVT integration
 * :doc:`rigid/small <fix_rigid>` - constrain many small clusters of atoms to move as a rigid body with NVE integration
+* :doc:`rmc/partial <fix_rmc_partial>` - perform Reactive Monte Carlo Molecular Dynamics for doped organic semiconductors
 * :doc:`rx <fix_rx>` - solve reaction kinetic ODEs for a defined reaction set
 * :doc:`saed/vtk <fix_saed_vtk>` - time-average the intensities from :doc:`compute saed <compute_saed>`
 * :doc:`set <fix_set>` - reset an atom property via an atom-style variable every N steps

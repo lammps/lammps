@@ -637,7 +637,7 @@ void FixContinuumChunk::end_of_step()
         } else if (style == VELOCITY) {
           values_one[index][m] += mi * v[i][style_index] * w;
         } else if (style == STRESS || style == STRESSKE) {
-          values_one[index][m] += mi * v[i][a] * v[i][b] * w;
+          values_one[index][m] -= mi * v[i][a] * v[i][b] * w;
         }
 
         // Boundary corrections from Weinhart et al. 2012
@@ -658,7 +658,7 @@ void FixContinuumChunk::end_of_step()
             rbin_dot_r = MathExtra::dot3(dx_bin, dx_pair);
             w_int_tmp = calc_w_int(rsq_bin, rbin_dot_r, rsq_wall);
 
-            values_one[index][m] += f_wall[a] * dx_wall[b] * w_int_tmp;
+            values_one[index][m] -= f_wall[a] * dx_wall[b] * w_int_tmp;
           }
         }
 
@@ -701,7 +701,7 @@ void FixContinuumChunk::end_of_step()
             b = (style_index - a) / 3;
 
             if (style == STRESS || style == STRESSCON) {
-              values_one[index][m] += f_pair[a] * dx_pair[b] * w_int_tmp;
+              values_one[index][m] -= f_pair[a] * dx_pair[b] * w_int_tmp;
             } else if (style == FABRIC) {
               values_one[index][m] += voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
             }

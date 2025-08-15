@@ -88,7 +88,7 @@ inline double FixContinuumChunk::calc_w_int(double dr_dot_dr, double dr_dot_rij,
   double tmp = MY_SQRT2 * sqrt_rij_dot_rij * w_sd;
   double w_int = erf(dr_dot_rij / tmp) + erf((rij_dot_rij - dr_dot_rij) / tmp);
   w_int *= exp((dr_dot_rij * dr_dot_rij - dr_dot_dr * rij_dot_rij) / (tmp * tmp));
-  w_int *= sqrt(0.5 * MY_PI) * w_sd * sqrt_rij_dot_rij;
+  w_int *= sqrt(0.5 * MY_PI) * w_sd / sqrt_rij_dot_rij;
   return w_scale * w_int - w_offset;
 }
 
@@ -685,6 +685,9 @@ void FixContinuumChunk::end_of_step()
             f_pair[1] += force->pair->svector[1];
             f_pair[2] += force->pair->svector[2];
           }
+
+          if (MathExtra::lensq3(f_pair) == 0.0)
+            continue;
 
           rbin_dot_r = MathExtra::dot3(dx_bin, dx_pair);
           w_int_tmp = calc_w_int(rsq_bin, rbin_dot_r, rsq_pair);

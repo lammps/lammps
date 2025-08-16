@@ -1814,7 +1814,6 @@ void FixNH::nhc_temp_integrate()
       eta_dot[ich] += eta_dotdot[ich] * ncfac*dt4;
       eta_dot[ich] *= expfac;
     }
-
   }
 }
 

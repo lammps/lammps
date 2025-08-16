@@ -141,25 +141,6 @@ rng_type_source(device_type_source()), rng_type_destination(device_type_destinat
      }
   }
  
-  // Print them out for storage
-  //if (comm->me == 0)
-  //{
-  //  for (int i=0;i<num_charge_states;i++)
-  //  {
-  //     fmt::print(screen, "{} {}\n", "Charge State: ", charges[i]);
-  //     fmt::print(screen, "{}\n", "Semiconductor");
-  //     for (int j=0;j<semiconductor_size;j++)
-  //     {
-  //        fmt::print(screen, "{}\n", semiconductor_charges[i][j]);
-  //     }
-  //     fmt::print(screen, "{}\n", "Dopant");
-  //     for (int j=0;j<dopant_size;j++)
-  //     {
-  //        fmt::print(screen, "{}\n", dopant_charges[i][j]);
-  //     }
-  //
-  //  }
-  //}
  
   // Create and populate the delta_g list for various charge states 
   delta_g_list = new double [num_charge_states];
@@ -171,13 +152,6 @@ rng_type_source(device_type_source()), rng_type_destination(device_type_destinat
      delta_g_list[i] =  vt_barrier.next_double();
   }
 
-  //delta_g_list[0] = 0;
-  //double temp_delta_delta_g = delta_g/(num_charge_states-1.0);   
-   
-  //for (int i=0;i<num_charge_states-1;i++)
-  //{
-  //   delta_g_list[i+1] = delta_g_list[i] + temp_delta_delta_g;
-  //}
 
   // Read in the dihedrals that need to be altered
   TextFileReader dihedral_data("dihedral_list.dat", "dihedrals");
@@ -196,8 +170,7 @@ rng_type_source(device_type_source()), rng_type_destination(device_type_destinat
      dihedral_types[i] = vt1.next_int();  
   }
 
-  // Get the dihedral atom indices
-  //fmt::print(screen, "{} {}\n", "The number of dihedrals to process is ", num_dihedrals);  
+  // Get the dihedral atom indices 
   dihedral_list = new int*[num_dihedrals];
   
   for (int i=0;i<num_dihedrals;i++)
@@ -311,31 +284,7 @@ rng_type_source(device_type_source()), rng_type_destination(device_type_destinat
       num_semiconductor_charge[i] = 0;
   }
 
-  //double **combined_struct;
-  //combined_struct = new double*[semiconductor_size];
-  //for (int i=0;i<semiconductor_size;i++)
-  //{
-  //  combined_struct[i] = new double [4];
-  //  for (int j=0;j<4;j++)
-  //  {
-  //    combined_struct[i][j] = 0.0;
-  //  }
-  //}
-  //memset(combined_struct, 0, semiconductor_size*4*sizeof(double));
-  //Mol molecule = get_molecule(1, size_limit);
-  //bringMoleculeTogether(&molecule, combined_struct, semiconductor_size);
-  //if (comm->me == 0)
-  //{
-  //   for (int i=0;i<semiconductor_size;i++)
-  //   {
-  //    for (int j=0;j<4;j++)
-  //    {
-  //       fmt::print(screen, "{} ", combined_struct[i][j]);
-  //    }
-  //    fmt::print(screen, "{}", "\n");
-  // }
-  //}
-  //calculateMoleculeCOM(com, &molecule);
+  
   if (restart == 0)
   {
      for (int i=0;i<n_molecules;i++)
@@ -352,11 +301,6 @@ rng_type_source(device_type_source()), rng_type_destination(device_type_destinat
      TextFileReader molecule_charge_handle("molecule_charge.dat", "MCharge");
      molecule_charge_handle.next_dvector(molecule_charge_states, n_molecules);
      molecule_type_handle.next_dvector(molecule_type, n_molecules);
-     //for (int i=0;i<n_molecules;i++)
-     //{
-     //   fmt::print(screen, "{} {}\n", molecule_type[i], molecule_charge_states[i]);
-     //}
-     // Identify the number of semiconductors and dopants of each charge type
      
      for (int i=0;i<n_molecules;i++)
      {
@@ -386,100 +330,6 @@ rng_type_source(device_type_source()), rng_type_destination(device_type_destinat
          dopant_mol_c[i] = new double [6];
       }
     }
-
-  
-  /*
-  double **sbm;
-  sbm = new double* [dopant_size];
-  for (int i=0;i<dopant_size;i++)
-  {
-   sbm[i] = new double [dopant_size];
-   for (int j=0;j<dopant_size;j++)
-   {
-      sbm[i][j] = 0.0;
-   }
-  }
-  Mol dopant = get_molecule(1, size_limit);
-  calculateSpecialBondMatrix(sbm, &dopant, dopant_size);
-
-  if (comm->me == 0)
-  {
-  for (int i=0;i<atom->nlocal;i++)
-  {
-    fmt::print(screen, "{} {}\n\n", "Atom", atom->tag[i]);
-    fmt::print(screen, "{} {}\n", "Num 1-2", atom->nspecial[i][0]);
-    for (int k=0;k<atom->nspecial[i][0];k++)
-    {
-      fmt::print(screen, "{}\n", atom->special[i][k]);
-    }
-    fmt::print(screen, "{} {}\n", "Num 1-3", atom->nspecial[i][1]);
-    for (int k=atom->nspecial[i][0];k<atom->nspecial[i][1];k++)
-    {
-      fmt::print(screen, "{}\n", atom->special[i][k]);
-    }
-    fmt::print(screen, "{} {}\n", "Num 1-4", atom->nspecial[i][2]);
-    for (int k=atom->nspecial[i][1];k<atom->nspecial[i][2];k++)
-    {
-      fmt::print(screen, "{}\n", atom->special[i][k]);
-    }
-  }
-  fmt::print(screen, "{} {} {} {}\n", force->special_coul[0], force->special_coul[1], force->special_coul[2], force->special_coul[3]);
-
-  for (int j=0;j<dopant_size;j++)
-  {
-   for (int k=0;k<dopant_size;k++)
-   {
-      fmt::print(screen, "{} ", sbm[j][k]);
-   }
-   fmt::print(screen, "{}", "\n");
-  }
-  }
-  */
-  /*
-  Mol dopant = get_molecule(2, size_limit);
-  double **mol_struct;
-  mol_struct = new double* [dopant_size];
-  for (int i=0;i<dopant_size;i++)
-  {
-    mol_struct[i] = new double [6];
-    for (int j=0;j<6;j++)
-    {
-      mol_struct[i][j] = 0.0;
-    }
-  }
-
-  bringMoleculeTogether(&dopant, mol_struct, dopant_size);
-  double **sbm;
-  sbm = new double* [dopant_size];
-  for (int i=0;i<dopant_size;i++)
-  {
-    sbm[i] = new double [dopant_size];
-    for (int j=0; j<dopant_size;j++)
-    {
-      sbm[i][j] = 0.0;
-    }
-  }
-
-  for (int i=0;i<dopant_size;i++)
-  {
-   for (int j=0;j<dopant_size;j++)
-   {
-      //fmt::print(screen, "{} {}\n", mol_struct[i][5], mol_struct[j][5]);
-      sbm[i][j] = getSpecialBondCoefficient(mol_struct[i][5], mol_struct[j][5]);
-   }
-  }
-  if (comm->me == 0)
-  {
-   for (int i=0;i<dopant_size;i++)
-   {
-      for (int j=0;j<dopant_size;j++)
-      {
-         fmt::print(screen, "{} ", sbm[i][j]);
-      }
-      fmt::print(screen, "{}", "\n");
-   }
-  }
-  */
 
 
   if (comm->me == 0)
@@ -606,10 +456,7 @@ double FixRMCPartial::calculateColoumbSelf(double **combined_struct, int molsize
    double cpair_new =0.0;
    double dist=0.0;
    double mol_self_energy=0.0;
-   //double *pos1, *pos2;
    double sbcoeff;
-   //pos1 = new double [3];
-   //pos2 = new double [3];
    for (int i=0;i<molsize;i++)
    {
       for (int j=i+1;j<molsize;j++)
@@ -621,9 +468,6 @@ double FixRMCPartial::calculateColoumbSelf(double **combined_struct, int molsize
          cpair_new = force->qqrd2e * (sbcoeff*combined_struct[i][4]*combined_struct[j][4])/dist;
          if (comm->me == 0)
          { 
-         //fmt::print(screen, "{} {}\n", "The SBCoeff is ", sbcoeff);
-         //fmt::print(screen, "{} {}\n", "The dist is ", dist);
-         //fmt::print(screen, "{} {}\n", cpair_old, cpair_new);
          }
          mol_self_energy = mol_self_energy + cpair_new - cpair_old;
       }
@@ -698,10 +542,6 @@ double FixRMCPartial::getSpecialBondCoefficient(int iglobal, int jglobal)
 
    MPI_Allreduce(factor, global_factor, comm->nprocs, MPI_DOUBLE, MPI_SUM, world);
    
-   //if (comm->me == 0)
-   //{
-   //   fmt::print(screen, "{} {} {} {}\n", global_factor[0], global_factor[1], global_factor[2], global_factor[3]);
-   //}
    int count=0;
    for (int i=0;i<comm->nprocs;i++)
    {
@@ -724,13 +564,6 @@ double FixRMCPartial::getSpecialBondCoefficient(int iglobal, int jglobal)
    {
       final_factor = final_factor+1;
    }
-   /*
-   if (factor != -1)
-   {
-      fmt::print(screen, "{} {}\n", "Only proc", comm->me);
-      MPI_Bcast(&factor, 1, MPI_DOUBLE, comm->me, world);
-   }
-   */
 
    delete[] factor; 
    delete[] global_factor;
@@ -785,7 +618,6 @@ void FixRMCPartial::bringMoleculeTogether(struct Mol* molecule, double **combine
       local_struct[index][3] = molecule->charge[i];
       local_struct[index][4] = molecule->new_charge[i];
       local_struct[index][5] = molecule->global_tag[i];
-      //fmt::print(screen, "{}\n", molecule->charge[i]);
    }
    for (int i=0;i<molsize;i++)
    {
@@ -838,26 +670,6 @@ void FixRMCPartial::initial_integrate(int /*vflag*/)
         make_move();
      }
      nmcsteps = nmcsteps + nmoves;
-     
-     /*
-     // Calculate dynamic doping efficiency
-     for (int i=0;i<num_charge_states;i++)
-     {
-         dde[i] = (double) num_dopant_charge[i]/(double)n_dopant;
-     }
-     
-
-     if (comm->me == 0)
-     {
-        fmt::print(screen, "{}", "Dynamic Doping Efficiency: ");
-        for (int i=0;i<num_charge_states;i++)
-        {
-            fmt::print(screen, "{} ", dde[i]);
-        }
-        fmt::print(screen, "{}\n", " ");
-     }
-     MPI_Barrier(world);
-     */
      
      // Update when next to perform ReactiveMC
      perform_step = update->ntimestep + periodicity;
@@ -937,18 +749,16 @@ int FixRMCPartial::determine_charge_state(struct Mol* molecule, double d_or_s)
     {
        double test_charge = molecule->charge[0];
        int local_tag = molecule->local_tag[0];
-       //fmt::print(screen, "{}, {}, {}, {}\n", "The test charge is ", test_charge, " at local index ", local_tag); 
        
        if (d_or_s == 0)
        {
           charge_indicator[comm->me] = -1;
           for (int j=0;j<num_charge_states;j++)
           {
-             //fmt::print(screen, "{} {} {} {}\n", "Test charge:", test_charge, "atom charge:", semiconductor_charges[j][local_tag-1]);
+             
              if (fabs(test_charge - semiconductor_charges[j][local_tag-1]) < 1e-7)
              {
                 charge_indicator[comm->me] = j;
-                //fmt::print(screen, "{} {}\n", "We identified the charge state as ", j);
              }
           }
           if (charge_indicator[comm->me] == -1)
@@ -961,11 +771,9 @@ int FixRMCPartial::determine_charge_state(struct Mol* molecule, double d_or_s)
           charge_indicator[comm->me] = -1;
           for (int j=0;j<num_charge_states;j++)
           {
-            //fmt::print(screen, "{} {} {} {}\n", "Test charge:", test_charge, "atom charge:", dopant_charges[j][local_tag-1]);
             if (fabs(test_charge - dopant_charges[j][local_tag-1]) < 1e-7)
             {
                charge_indicator[comm->me] = j;
-               //fmt::print(screen, "{} {}\n", "We identified the charge state as ", j);
             }
           }
           if (charge_indicator[comm->me] == -1)
@@ -1015,8 +823,6 @@ double FixRMCPartial::change_dihedral_parameters(int molecule_id, int ending_sta
                 {
                   // switch to new type
                   
-                  //fmt::print(screen, "{} {} {} {}\n", "Found the dihedral, switching from type", 
-                  //           atom->dihedral_type[i][j], "to", dihedral_types[ending_state]);
                   atom->dihedral_type[i][j] = dihedral_types[ending_state];
                 }
              } 
@@ -1059,8 +865,6 @@ double FixRMCPartial::change_angle_parameters(int molecule_id, int ending_state)
                 {
                   // switch to new type
                   
-                  fmt::print(screen, "{} {} {} {}\n", "Found the angle, switching from type", 
-                          atom->angle_type[i][j], "to", angle_types[ending_state]);
                   atom->angle_type[i][j] = angle_types[ending_state];
                 }
              } 
@@ -1102,8 +906,6 @@ double FixRMCPartial::change_bond_parameters(int molecule_id, int ending_state)
                 {
                   // switch to new type
                   
-                  fmt::print(screen, "{} {} {} {}\n", "Found the bonds, switching from type", 
-                             atom->bond_type[i][j], "to", bond_types[ending_state]);
                   atom->bond_type[i][j] = bond_types[ending_state];
                 }
              } 
@@ -1270,8 +1072,6 @@ void FixRMCPartial::make_move()
     // Self energy terms
     double e_osc_diff, e_dopant_diff;
 
-    //memset(osc_mol_c, 0.0, semiconductor_size*4*sizeof(double));
-    //memset(dopant_mol_c, 0.0, dopant_size*4*sizeof(double));
 
     // Calculate the energy before we do any mischief
     double starting_energy = energy_full(); 
@@ -1292,7 +1092,6 @@ void FixRMCPartial::make_move()
       while (c_indicator != 0)
       {
          rand_charge = type_dist(rng_type_source);
-         //fmt::print(screen, "{} {}\n", "Candidate charge state ", rand_charge);
          if (num_semiconductor_charge[rand_charge] != 0 && num_dopant_charge[rand_charge] != 0)
          {
             c_indicator = 0;
@@ -1302,8 +1101,6 @@ void FixRMCPartial::make_move()
       int tries=0;
       while (indicator != 0) {
          rand_semi = atom_dist(rng_atom);
-         //fmt::print(screen, "{} {}\n", "The candidate molecule is ", rand_semi);
-         //fmt::print(screen, "{} {} {} {}\n", "The candidate is of type", molecule_type[rand_semi-1],"with stated charge",molecule_charge_states[rand_semi-1]);
          if (molecule_type[rand_semi-1] == 0 && fabs(molecule_charge_states[rand_semi-1] - charges[rand_charge]) < 0.001)
          {
             indicator = 0;
@@ -1313,21 +1110,9 @@ void FixRMCPartial::make_move()
          {
             error->all(FLERR, "Too many attemps at finding a semiconductor, something is going wrong!");
          }
-         //rand_semi = atom_dist(rng);
-         //if (molecule_type[rand_semi-1] == 0)
-         //{
-         //   int charge_state = molecule_charge_states[rand_semi-1] * (num_charge_states - 1);
-         //   if (num_dopant_charge[charge_state] != 0)
-         //   {
-         //      indicator = 0;
-         //   }
       }
-       //indicator = determine_dopant_or_semiconductor(rand_semi);
    }
     MPI_Bcast(&rand_semi, 1, MPI_INT, 0, world);
-
-     
-    //fmt::print(screen, "{}, {}\n", "We have randomly chosen semiconductor ", rand_semi);
     
     // Retrieve information on the chosen molecule and populate it in this struct
     Mol semiconductor = get_molecule(rand_semi, size_limit);
@@ -1335,11 +1120,6 @@ void FixRMCPartial::make_move()
     int charge_state = determine_charge_state(&semiconductor, 0);
     semiconductor.charge_state = charge_state;
 
-    
-    //fmt::print(screen, "{}, {}\n", "The semiconductor charge state is ", semiconductor.charge_state);
-    //fmt::print(screen, "{}, {}\n", "The charge is ", molecule_charge_states[rand_semi-1]);   
-    
-    // Find a dopant, whose charge state is the same as the semiconductor
     
     indicator=-1;
     int tries=0;
@@ -1364,33 +1144,12 @@ void FixRMCPartial::make_move()
        }
     }
     MPI_Bcast(&rand_dope, 1, MPI_INT, 0, world);
-       /*
-       indicator = determine_dopant_or_semiconductor(rand_dope);
-       if (indicator == 1)
-       {
-          fmt::print(screen, "{} {}, {}\n", "Picked dopant ",rand_dope, "checking the charge state for a match");
-          MPI_Barrier(world);
-          dopant = get_molecule(rand_dope, size_limit, 1);
-          fmt::print(screen, "{} {}\n", "The candidate dopant charge state is ", dopant.charge_state);
-          c_indicator = dopant.charge_state;
-          tries=tries+1;
-          if (tries > 1000) {
-            error->all(FLERR, "Max tries reached to find dopant with suitable charge state");
-          }
-       }
-       */
 
-    //MPI_Bcast(&rand_dope, 1, MPI_INT, 0, world);
-    //MPI_Barrier(world);
     
     //Retrieve information on the chosen dopant and populate it in this struct
     Mol dopant = get_molecule(rand_dope, size_limit);
     charge_state = determine_charge_state(&dopant, 1);
     dopant.charge_state = charge_state;
-    
-    //fmt::print(screen, "{}, {}\n", "We have randomly chosen dopant ", rand_dope);
-    //fmt::print(screen, "{}, {}\n", "The dopant charge state is ", dopant.charge_state);
-    //fmt::print(screen, "{}, {}\n", "The dopant charge is", molecule_charge_states[rand_dope-1]);
   
     // Verify charge states are the same
     if (dopant.charge_state != semiconductor.charge_state)
@@ -1424,14 +1183,11 @@ void FixRMCPartial::make_move()
     
     com_diff = calDistance(osc_com, dopant_com);
 
-    //calculateSpecialBondMatrix(sbm_osc, &semiconductor, semiconductor_size);
-    //calculateSpecialBondMatrix(sbm_dopant, &dopant, dopant_size);
-
     // Change the dihedral parameters to destination type 
     // and capture the dihedral energy
     edihedral = change_dihedral_parameters(rand_semi, destination_charge_state);
-    //eangle = change_angle_parameters(rand_semi, destination_charge_state);
-    //ebond = change_bond_parameters(rand_semi, destination_charge_state);
+    eangle = change_angle_parameters(rand_semi, destination_charge_state);
+    ebond = change_bond_parameters(rand_semi, destination_charge_state);
 
     // Modify charge to new type
     modify_charge(&semiconductor, semiconductor_charges[destination_charge_state]);
@@ -1457,6 +1213,8 @@ void FixRMCPartial::make_move()
     if (comm->me == 0)
     {
        fmt::print(screen, "{} {}\n", "The dihedral energy change is ", edihedral);
+       fmt::print(screen, "{} {}\n", "The angle energy change is", eangle);
+       fmt::print(screen, "{} {}\n", "The bond energy change is", ebond);
        fmt::print(screen, "{} {}\n", "The semiconductor self energy difference is ", e_osc_diff);
        fmt::print(screen, "{} {}\n", "The dopant self-energy difference is ", e_dopant_diff);
        fmt::print(screen, "{} {} {}\n", "The cross-energy before and after doping are ", interaction_energy[0], interaction_energy[1]);
@@ -1487,12 +1245,8 @@ void FixRMCPartial::make_move()
     if (comm->me == 0)
     {
        fmt::print(screen, "{} {} {} {}\n", "The new energy is ", new_energy, " and the difference is ", energy_diff);
-       //fmt::print(screen, "{} {} {}\n", "The dihedral energy difference is ", edihedral, " which was taken out of the acceptance criteria");
-       //fmt::print(screen, "{}, {}\n", "The transition probability is ", transition_probability);
-    }
 
-    
-    //fmt::print(screen, "{}, {}\n", "The transition probability is ", transition_probability);
+    }
 
     // Generate random number in one rank
     double rand_number=0;
@@ -1510,7 +1264,6 @@ void FixRMCPartial::make_move()
        if (comm->me == 0)
        {
           fmt::print(screen, "{}\n", "MOVE ACCEPTED");
-          //fmt::print(screen, "{} {}\n", "Random number: ", rand_number);
        }
      
        num_semiconductor_charge[destination_charge_state] = num_semiconductor_charge[destination_charge_state]+1;
@@ -1519,23 +1272,6 @@ void FixRMCPartial::make_move()
        num_dopant_charge[dopant.charge_state] = num_dopant_charge[dopant.charge_state]-1;
        molecule_charge_states[rand_semi-1] = charges[destination_charge_state];
        molecule_charge_states[rand_dope-1] = -charges[destination_charge_state];
-       /*
-       if (comm->me == 0)
-       {
-          for (int i=0;i<n_molecules;i++)
-          {
-            fmt::print(screen, "{} {} {} {}\n", "For molecule number ", i+1, " the charge state in rank 0 is " ,molecule_charge_states[i]);
-          }
-       }
-
-       if (comm->me == 1)
-       {
-          for (int i=0;i<n_molecules;i++)
-          {
-            fmt::print(screen, "{} {} {} {}\n", "For molecule number ", i+1, " the charge state in rank 1 is " ,molecule_charge_states[i]);
-          }
-       }
-       */
     }
     else
     {
@@ -1544,13 +1280,12 @@ void FixRMCPartial::make_move()
 
        // Revert dihedral coefficients
        edihedral = change_dihedral_parameters(rand_semi, semiconductor.charge_state);
-       //eangle = change_angle_parameters(rand_semi, semiconductor.charge_state);
-       //ebond = change_bond_parameters(rand_semi, semiconductor.charge_state);
+       eangle = change_angle_parameters(rand_semi, semiconductor.charge_state);
+       ebond = change_bond_parameters(rand_semi, semiconductor.charge_state);
 
        if (comm->me == 0)
        { 
           fmt::print(screen, "{}\n", "MOVE REJECTED");
-          //fmt::print(screen, "{} {}\n", "Random number: ", rand_number);
        }
 
        // Restore the charges to what they were
@@ -1582,22 +1317,6 @@ void FixRMCPartial::make_move()
         }
         fmt::print(screen, "{}\n", " ");
      }
-    /*
-    if (comm->me == 0)
-    {
-      fmt::print(screen, "{}\n", "Dopant numbers at the end of this step");
-      for (int i=0; i<num_charge_states;i++)
-      {
-         fmt::print(screen, "{} ", num_dopant_charge[i]);
-      }
-      fmt::print(screen, "\n{}\n", "Semiconductor numbers at the end of this step");
-      for (int i=0;i<num_charge_states;i++)
-      {
-         fmt::print(screen, "{} ", num_semiconductor_charge[i]);
-      }
-      fmt::print(screen, "{}", "\n");
-    }
-    */
 
 }
 

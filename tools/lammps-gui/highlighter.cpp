@@ -15,26 +15,6 @@
 #include "helpers.h"
 #include <QColor>
 
-// workaround for Qt-5.12
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-namespace QColorConstants {
-const QColor Red     = QColor::fromRgb(0xff, 0x00, 0x00);
-const QColor Green   = QColor::fromRgb(0x00, 0xff, 0x00);
-const QColor Blue    = QColor::fromRgb(0x00, 0x00, 0xff);
-const QColor Cyan    = QColor::fromRgb(0x00, 0xff, 0xff);
-const QColor Magenta = QColor::fromRgb(0xff, 0x00, 0xff);
-const QColor Yellow  = QColor::fromRgb(0xff, 0xff, 0x00);
-namespace Svg {
-const QColor dodgerblue   = QColor::fromRgb(0x1e, 0x90, 0xff);
-const QColor indianred    = QColor::fromRgb(0xcd, 0x5c, 0x5c);
-const QColor lightcoral   = QColor::fromRgb(0xf0, 0x80, 0x80);
-const QColor lightgray    = QColor::fromRgb(0xd3, 0xd3, 0xd3);
-const QColor lightgreen   = QColor::fromRgb(0x90, 0xee, 0x90);
-const QColor lightskyblue = QColor::fromRgb(0x87, 0xce, 0xfa);
-} // namespace Svg
-} // namespace QColorConstants
-#endif
-
 Highlighter::Highlighter(QTextDocument *parent) :
     QSyntaxHighlighter(parent),
     isLattice1(QStringLiteral("^\\s*(units|atom_style|change_box|dielectric|dimension)\\s+(\\S+)")),

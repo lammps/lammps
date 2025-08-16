@@ -36,6 +36,8 @@
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"
+#include "neighbor.h"
+#include "neigh_list.h"
 #include "output.h"
 #include "thermo.h"
 #include "tokenizer.h"
@@ -54,7 +56,7 @@ static constexpr double BIG = 1.0e20;
 enum { NUMERIC, ATOM, TYPE, ELEMENT, ATTRIBUTE };
 enum { SPHERE, LINE, TRI };    // also in some Body and Fix child classes
 enum { STATIC, DYNAMIC };
-enum { NO = 0, YES = 1 };
+enum { NO = 0, YES = 1, AUTO = 2 };
 
 /* ---------------------------------------------------------------------- */
 
@@ -161,6 +163,19 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (adiamvalue <= 0.0)
         error->all(FLERR, iarg+1, "Illegal dump image adiam value {}", adiamvalue);
       iarg += 2;
+
+    } else if (strcmp(arg[iarg],"autobond") == 0) {
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"dump image autobond", error);
+      bondflag = AUTO;
+      bcolor = ATOM;
+      bondcutoff = utils::numeric(FLERR, arg[iarg+1],false, lmp);
+      if (bondcutoff <= 0.0)
+        error->all(FLERR, iarg + 1,"Illegal dump image autobond cutoff value {}", bondcutoff);
+      bdiam = NUMERIC;
+      bdiamvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      if (bdiamvalue <= 0.0)
+        error->all(FLERR, iarg + 2,"Illegal dump image autobond diameter value {}", bdiamvalue);
+      iarg += 3;
 
     } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"dump image bond", error);
@@ -386,7 +401,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       image->ssaoint = ssaoint;
       iarg += 4;
 
-    } else error->all(FLERR,"Illegal dump image command");
+    } else error->all(FLERR,"Unknown dump image keyword {}", arg[iarg]);
   }
 
   // error checks and setup for lineflag, triflag, bodyflag, fixflag
@@ -445,7 +460,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
     else if (i % 6 == 0) colortype[i] = image->color2rgb("cyan");
   }
 
-  if (bondflag) {
+  if (bondflag == YES) {
     bdiamtype = new double[atom->nbondtypes+1];
     bcolortype = new double*[atom->nbondtypes+1];
     for (int i = 1; i <= atom->nbondtypes; i++) {
@@ -621,6 +636,22 @@ void DumpImage::init_style()
       if (diamelement[i] == 0.0)
         error->all(FLERR, Error::NOLASTLINE, "Invalid dump image element name");
     }
+  }
+
+  if (bondflag == AUTO) {
+    if (neighbor->style == Neighbor::MULTI)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Dump image autobond requires neighbor style 'bin' or 'nsq'");
+    if (force->pair == nullptr)
+      error->all(FLERR, "Dump image autobond requires a pair style to be defined");
+    if (bondcutoff > neighbor->cutneighmax)
+      error->all(FLERR, "Dump image autobond cutoff > neighbor cutoff");
+    if ((bondcutoff > neighbor->cutneighmin) && (comm->me == 0))
+      error->warning(FLERR, "Dump image autobond cutoff > minimum neighbor cutoff");
+    if ((domain->xperiodic && (bondcutoff > domain->xprd)) ||
+        (domain->yperiodic && (bondcutoff > domain->yprd)) ||
+        ((domain->dimension == 3) && domain->zperiodic && (bondcutoff > domain->zprd)))
+      error->all(FLERR, "Dump image autobond cutoff is larger than periodic domain");
   }
 }
 
@@ -912,7 +943,7 @@ void DumpImage::create_image()
   double **bodyarray,**fixarray;
   double *color,*color1,*color2;
   double *p1,*p2,*p3;
-  double xmid[3],pt1[3],pt2[3],pt3[3];
+  double pt1[3],pt2[3],pt3[3];
   double mat[3][3];
 
   // render my atoms
@@ -1133,7 +1164,7 @@ void DumpImage::create_image()
   // if bond is deleted (type = 0), do not render
   // if bond is turned off (type < 0), still render
 
-  if (bondflag) {
+  if (bondflag == YES) {
     double **x = atom->x;
     tagint *tag = atom->tag;
     tagint **bond_atom = atom->bond_atom;
@@ -1246,6 +1277,7 @@ void DumpImage::create_image()
 
         if (bcolor == ATOM || domain->minimum_image_check(delx,dely,delz)) {
           domain->minimum_image(FLERR, delx,dely,delz);
+          double xmid[3];
           xmid[0] = x[atom1][0] + 0.5*delx;
           xmid[1] = x[atom1][1] + 0.5*dely;
           xmid[2] = x[atom1][2] + 0.5*delz;
@@ -1260,6 +1292,126 @@ void DumpImage::create_image()
           else image->draw_cylinder(xmid,x[atom2],color,diameter,3);
 
         } else image->draw_cylinder(x[atom1],x[atom2],color,diameter,3);
+      }
+    }
+  }
+
+  // render dynamic bonds for my atoms
+  // both atoms in pair must be selected and closer than bond cutoff for bond to be rendered
+  // if newton_bond is off, only render bond once
+  // render bond in 2 pieces if crosses periodic boundary
+
+  if (bondflag == AUTO) {
+    // grab some suitable neighbor list, if available
+    auto *list = neighbor->get_best_pair_list();
+    if (!list) {
+      if (comm->me == 0)
+        error->warning(FLERR, "No suitable existing neighbor list for dump image autobond found");
+    } else {
+      int nlocal = atom->nlocal;
+
+      // communicate choose flag for ghost atoms to know if they are selected
+      // if bcolor/bdiam = ATOM, setup bufcopy to comm atom color/diam attributes
+
+      if (atom->nmax > maxbufcopy) {
+        maxbufcopy = atom->nmax;
+        memory->destroy(chooseghost);
+        memory->create(chooseghost,maxbufcopy,"dump:chooseghost");
+        if (comm_forward == 3) {
+          memory->destroy(bufcopy);
+          memory->create(bufcopy,maxbufcopy,2,"dump:bufcopy");
+        }
+      }
+      for (i = 0; i < nlocal; i++) chooseghost[i] = choose[i];
+
+      if (comm_forward == 3) {
+        for (i = 0; i < nlocal; i++) bufcopy[i][0] = bufcopy[i][1] = 0.0;
+        m = 0;
+        for (i = 0; i < nchoose; i++) {
+          j = clist[i];
+          bufcopy[j][0] = buf[m];
+          bufcopy[j][1] = buf[m+1];
+          m += size_one;
+        }
+      }
+
+      comm->forward_comm(this);
+
+      double **x = atom->x;
+      double *mass = atom->mass;
+      double *rmass = atom->rmass;
+      tagint *tag = atom->tag;
+      int *type = atom->type;
+
+      int *numneigh = list->numneigh;
+      int **firstneigh = list->firstneigh;
+      const double cutsq = bondcutoff * bondcutoff;
+      int newton_pair = force->newton_pair;
+      bool checkmass = false;
+
+      // check for element by mass only for units "real" or "metal"
+      if ((strcmp(update->unit_style, "real") == 0) || (strcmp(update->unit_style, "metal") == 0))
+        checkmass = true;
+
+      for (int ii = 0; ii < nchoose; ii++) {
+        atom1 = clist[ii];
+        const double xtmp = x[atom1][0];
+        const double ytmp = x[atom1][1];
+        const double ztmp = x[atom1][2];
+
+        // loop over neighbors
+        auto *jlist = firstneigh[atom1];
+        const int jnum = numneigh[atom1];
+        for (int jj = 0; jj < jnum; ++jj) {
+          atom2 = jlist[jj] & NEIGHMASK;
+          if (!chooseghost[atom2]) continue;
+          if ((newton_pair == 0) && (tag[atom1] > tag[atom2])) continue;
+          // skip hydrogen-hydrogen bonds for units real or metal based on their mass
+          // this is primarily for water and alkyl groups
+          if (checkmass) {
+            if (rmass) {
+              if ((rmass[atom1] < 3.0) && (rmass[atom2] < 3.0)) continue;
+            } else {
+              if ((mass[type[atom1]] < 3.0) && (mass[type[atom2]] < 3.0)) continue;
+            }
+          }
+          double dx = x[atom2][0] - xtmp;
+          double dy = x[atom2][1] - ytmp;
+          double dz = x[atom2][2] - ztmp;
+          const double rsq = dx*dx + dy*dy + dz*dz;
+
+          if (rsq < cutsq) {
+            if (acolor == TYPE) {
+              color1 = colortype[type[atom1]];
+              color2 = colortype[type[atom2]];
+            } else if (acolor == ELEMENT) {
+              color1 = colorelement[type[atom1]];
+              color2 = colorelement[type[atom2]];
+            } else if (acolor == ATTRIBUTE) {
+              color1 = image->map_value2color(0,bufcopy[atom1][0]);
+              color2 = image->map_value2color(0,bufcopy[atom2][0]);
+            } else {
+              color1 = image->color2rgb("white");
+              color2 = image->color2rgb("white");
+            }
+            diameter = bdiamvalue;
+
+            // draw cylinder in 2 pieces if bcolor = ATOM
+            // or bond crosses periodic boundary
+            double xmid[3];
+
+            domain->minimum_image(FLERR,dx,dy,dz);
+            xmid[0] = x[atom1][0] + 0.5*dx;
+            xmid[1] = x[atom1][1] + 0.5*dy;
+            xmid[2] = x[atom1][2] + 0.5*dz;
+            image->draw_cylinder(x[atom1],xmid,color1,diameter,3);
+
+            xmid[0] = x[atom2][0] - 0.5*dx;
+            xmid[1] = x[atom2][1] - 0.5*dy;
+            xmid[2] = x[atom2][2] - 0.5*dz;
+            image->draw_cylinder(xmid,x[atom2],color2,diameter,3);
+          }
+        }
       }
     }
   }

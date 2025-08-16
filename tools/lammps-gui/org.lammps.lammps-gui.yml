@@ -5,6 +5,7 @@ sdk: org.kde.Sdk
 command: lammps-gui
 finish-args:
   - --share=ipc
+  - --device=dri
   - --socket=fallback-x11
   - --socket=wayland
   - --filesystem=host
@@ -23,6 +24,7 @@ modules:
     subdir: cmake
     config-opts:
       - -D PKG_AMOEBA=yes
+      - -D PKG_APIP=yes
       - -D PKG_ASPHERE=yes
       - -D PKG_AWPMD=yes
       - -D PKG_BOCS=yes

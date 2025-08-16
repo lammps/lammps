@@ -20,14 +20,6 @@
 #include <QLabel>
 #include <QTextDocument>
 
-// workaround for Qt-5.12
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-namespace QColorConstants {
-const QColor Red  = QColor::fromRgb(0xff, 0x00, 0x00);
-const QColor Blue = QColor::fromRgb(0x00, 0x00, 0xff);
-} // namespace QColorConstants
-#endif
-
 FlagWarnings::FlagWarnings(QLabel *label, QTextDocument *parent) :
     QSyntaxHighlighter(parent), isWarning(QStringLiteral("^(ERROR|WARNING).*$")),
     isURL(QStringLiteral("^.*(https://docs.lammps.org/err[0-9]+).*$")), summary(label),

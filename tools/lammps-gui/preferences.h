@@ -90,6 +90,10 @@ class SnapshotTab : public QWidget {
 public:
     explicit SnapshotTab(QSettings *settings, QWidget *parent = nullptr);
 
+private slots:
+    void choose_vdw();
+    void choose_bond();
+
 private:
     QSettings *settings;
 };

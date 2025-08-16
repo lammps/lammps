@@ -150,12 +150,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   set(ICON_RC_FILE ${CMAKE_CURRENT_SOURCE_DIR}/lmpicons.rc)
 endif()
 
-# we require Qt 5 and at least version 5.12 at that.
+# we require Qt 5 and at least version 5.15 at that.
 if(NOT LAMMPS_GUI_USE_QT5)
   find_package(Qt6 6.2 QUIET COMPONENTS Widgets Charts)
 endif()
 if(NOT Qt6_FOUND)
-  find_package(Qt5 5.12 REQUIRED COMPONENTS Widgets Charts)
+  find_package(Qt5 5.15 REQUIRED COMPONENTS Widgets Charts)
   set(QT_VERSION_MAJOR 5)
 else()
   set(QT_VERSION_MAJOR 6)
@@ -408,7 +408,7 @@ elseif((CMAKE_SYSTEM_NAME STREQUAL "Linux") AND NOT LAMMPS_GUI_USE_PLUGIN)
 
   add_custom_target(tgz
     COMMAND ${LAMMPS_DIR}/cmake/packaging/build_linux_tgz.sh ${LAMMPS_RELEASE}
-    DEPENDS lammps-gui ${WHAM_EXE}
+    DEPENDS lmp lammps-gui ${WHAM_EXE}
     COMMENT "Create compressed tar file of LAMMPS-GUI with dependent libraries and wrapper"
     BYPRODUCT LAMMPS-Linux-amd64-${LAMMPS_RELEASE}.tar.gz
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}

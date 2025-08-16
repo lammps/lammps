@@ -1478,11 +1478,7 @@ void LammpsGui::render_image()
             // add a run 0 and thus create the state of the initial system without running.
             // this will allow us to create a snapshot image.
             auto saved = ui->textEdit->textCursor();
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-            if (ui->textEdit->find(QRegExp(QStringLiteral("^\\s*(run|minimize)\\s+")))) {
-#else
             if (ui->textEdit->find(QRegularExpression(QStringLiteral("^\\s*(run|minimize)\\s+")))) {
-#endif
                 auto cursor = ui->textEdit->textCursor();
                 cursor.movePosition(QTextCursor::PreviousBlock);
                 cursor.movePosition(QTextCursor::EndOfLine);
@@ -2311,7 +2307,7 @@ void LammpsGui::setup_tutorial(int tutno, const QString &dir, bool purgedir, boo
 
     start_lammps();
     lammps.command("clear");
-    lammps.command(QString("shell cd " + dir));
+    lammps.command(QString("shell cd '%1'").arg(dir));
 
     // apply https proxy setting: prefer environment variable or fall back to preferences value
     auto https_proxy = QString::fromLocal8Bit(qgetenv("https_proxy"));

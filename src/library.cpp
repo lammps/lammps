@@ -1624,7 +1624,9 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"peri_flag") == 0) return lmp->atom->peri_flag;
 
   if (strcmp(keyword,"thermo_every") == 0) return lmp->output->thermo_every;
-  if (strcmp(keyword,"thermo_norm") == 0) return lmp->output->thermo->normflag;
+  if (lmp->output->thermo) {
+    if (strcmp(keyword,"thermo_norm") == 0) return lmp->output->thermo->normflag;
+  }
 
   return -1;
 }
@@ -1697,6 +1699,9 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"special_lj") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"special_coul") == 0) return LAMMPS_DOUBLE;
 
+  if (strcmp(name,"neigh_skin") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"neigh_cutmin") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"neigh_cutmax") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"neigh_bondlist") == 0) return LAMMPS_INT_2D;
   if (strcmp(name,"neigh_anglelist") == 0) return LAMMPS_INT_2D;
   if (strcmp(name,"neigh_dihedrallist") == 0) return LAMMPS_INT_2D;
@@ -2053,6 +2058,18 @@ Get length of lists with :ref:`lammps_extract_setting() <extract_neighbor_settin
      - Type
      - Length
      - Description
+   * - neigh_skin
+     - double
+     - 1
+     - neighbor list skin
+   * - neigh_cutmin
+     - double
+     - 1
+     - minimum neighbor cutoff across all type pairs
+   * - neigh_cutmax
+     - double
+     - 1
+     - maximum neighbor cutoff across all type pairs
    * - neigh_bondlist
      - 2d int
      - nbondlist
@@ -2310,6 +2327,9 @@ void *lammps_extract_global(void *handle, const char *name)
 
   if (strcmp(name,"q_flag") == 0) return (void *) &lmp->atom->q_flag;
 
+  if (strcmp(name,"neigh_skin") == 0) return (void *) &lmp->neighbor->skin;
+  if (strcmp(name,"neigh_cutmin") == 0) return (void *) &lmp->neighbor->cutneighmin;
+  if (strcmp(name,"neigh_cutmax") == 0) return (void *) &lmp->neighbor->cutneighmax;
   if (strcmp(name,"neigh_bondlist") == 0) return (void *) lmp->neighbor->bondlist;
   if (strcmp(name,"neigh_anglelist") == 0) return (void *) lmp->neighbor->anglelist;
   if (strcmp(name,"neigh_dihedrallist") == 0) return (void *) lmp->neighbor->dihedrallist;

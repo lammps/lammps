@@ -16,6 +16,7 @@
 #include "lammpsgui.h"
 #include "lammpswrapper.h"
 #include "linenumberarea.h"
+#include "helpers.h"
 
 #include <QAbstractItemView>
 #include <QAction>
@@ -48,89 +49,6 @@
 #include <cstring>
 #include <string>
 #include <vector>
-
-// Convert string into words on whitespace while handling single and double
-// quotes. Adapted from LAMMPS_NS::utils::split_words() to preserve quotes.
-
-static std::vector<std::string> split_line(const std::string &text)
-{
-    std::vector<std::string> list;
-    const char *buf = text.c_str();
-    std::size_t beg = 0;
-    std::size_t len = 0;
-    std::size_t add = 0;
-
-    char c = *buf;
-    while (c) { // leading whitespace
-        if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f') {
-            c = *++buf;
-            ++beg;
-            continue;
-        };
-        len = 0;
-
-    // handle escaped/quoted text.
-    quoted:
-
-        if (c == '\'') { // handle single quote
-            add = 0;
-            len = 1;
-            c   = *++buf;
-            while (((c != '\'') && (c != '\0')) || ((c == '\\') && (buf[1] == '\''))) {
-                if ((c == '\\') && (buf[1] == '\'')) {
-                    ++buf;
-                    ++len;
-                }
-                c = *++buf;
-                ++len;
-            }
-            ++len;
-            c = *++buf;
-
-            // handle triple double quotation marks
-        } else if ((c == '"') && (buf[1] == '"') && (buf[2] == '"') && (buf[3] != '"')) {
-            len = 3;
-            add = 1;
-            buf += 3;
-            c = *buf;
-
-        } else if (c == '"') { // handle double quote
-            add = 0;
-            len = 1;
-            c   = *++buf;
-            while (((c != '"') && (c != '\0')) || ((c == '\\') && (buf[1] == '"'))) {
-                if ((c == '\\') && (buf[1] == '"')) {
-                    ++buf;
-                    ++len;
-                }
-                c = *++buf;
-                ++len;
-            }
-            ++len;
-            c = *++buf;
-        }
-
-        while (true) { // unquoted
-            if ((c == '\'') || (c == '"')) goto quoted;
-            // skip escaped quote
-            if ((c == '\\') && ((buf[1] == '\'') || (buf[1] == '"'))) {
-                ++buf;
-                ++len;
-                c = *++buf;
-                ++len;
-            }
-            if ((c == ' ') || (c == '\t') || (c == '\r') || (c == '\n') || (c == '\f') ||
-                (c == '\0')) {
-                if (beg < text.size()) list.push_back(text.substr(beg, len));
-                beg += len + add;
-                break;
-            }
-            c = *++buf;
-            ++len;
-        }
-    }
-    return list;
-}
 
 CodeEditor::CodeEditor(QWidget *parent) :
     QPlainTextEdit(parent), current_comp(nullptr), command_comp(new QCompleter(this)),
@@ -411,11 +329,8 @@ COMPLETER_INIT_FUNC(extra, Extra)
 void CodeEditor::setGroupList()
 {
     QStringList groups;
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-    QRegExp groupcmd(QStringLiteral("^\\s*group\\s+(\\S+)(\\s+|$)"));
-#else
     QRegularExpression groupcmd(QStringLiteral("^\\s*group\\s+(\\S+)(\\s+|$)"));
-#endif
+
     auto saved = textCursor();
     // reposition cursor to beginning of text and search for group commands
     auto cursor = textCursor();
@@ -453,11 +368,7 @@ void CodeEditor::setVarNameList()
         }
     }
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-    QRegExp varcmd(QStringLiteral("^\\s*variable\\s+(\\S+)(\\s+|$)"));
-#else
     QRegularExpression varcmd(QStringLiteral("^\\s*variable\\s+(\\S+)(\\s+|$)"));
-#endif
     auto saved = textCursor();
     // reposition cursor to beginning of text and search for group commands
     auto cursor = textCursor();
@@ -483,11 +394,8 @@ void CodeEditor::setVarNameList()
 void CodeEditor::setComputeIDList()
 {
     QStringList compid;
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-    QRegExp compcmd(QStringLiteral("^\\s*compute\\s+(\\S+)\\s+"));
-#else
     QRegularExpression compcmd(QStringLiteral("^\\s*compute\\s+(\\S+)\\s+"));
-#endif
+
     auto saved = textCursor();
     // reposition cursor to beginning of text and search for group commands
     auto cursor = textCursor();
@@ -511,11 +419,8 @@ void CodeEditor::setComputeIDList()
 void CodeEditor::setFixIDList()
 {
     QStringList fixid;
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-    QRegExp fixcmd(QStringLiteral("^\\s*fix\\s+(\\S+)\\s+"));
-#else
     QRegularExpression fixcmd(QStringLiteral("^\\s*fix\\s+(\\S+)\\s+"));
-#endif
+
     auto saved = textCursor();
     // reposition cursor to beginning of text and search for group commands
     auto cursor = textCursor();

@@ -54,9 +54,10 @@ class DumpImage : public DumpCustom {
   int fixcolor;                   // what determines color of fix objects
   double fixflag1, fixflag2;      // user-specified params for fix objects
 
-  int bondflag;         // 0/1 for draw bonds
+  int bondflag;         // NO/YES/AUTO for drawing bonds
   int bcolor, bdiam;    // what determines color/diam of bonds
   double bdiamvalue;    // bond diameter value
+  double bondcutoff;    // autobond cutoff
 
   int extraflag;                        // 0/1 for any of line/tri/body flag set
   char *thetastr, *phistr;              // variables for view theta,phi

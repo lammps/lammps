@@ -24,12 +24,13 @@ Syntax
 * color = atom attribute that determines color of each atom
 * diameter = atom attribute that determines size of each atom
 * zero or more keyword/value pairs may be appended
-* keyword = *atom* or *adiam* or *bond* or *grid* or *line* or *tri* or *body* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *subbox* or *shiny* or *fsaa* or *ssao*
+* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *body* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *subbox* or *shiny* or *fsaa* or *ssao*
 
   .. parsed-literal::
 
        *atom* = *yes* or *no* = do or do not draw atoms
        *adiam* size = numeric value for atom diameter (distance units)
+       *autobond* values = cutoff width = bond cutoff and width of bonds
        *bond* values = color width = color and width of bonds
          color = *atom* or *type* or *none*
          width = number or *atom* or *type* or *none*
@@ -245,15 +246,15 @@ details.
 
 ----------
 
-Dumps are performed on timesteps that are a multiple of :math:`N` (including
-timestep 0) and on the last timestep of a minimization if the
+Dumps are performed on timesteps that are a multiple of :math:`N`
+(including timestep 0) and on the last timestep of a minimization if the
 minimization converges.  Note that this means a dump will not be
-performed on the initial timestep after the dump command is invoked,
-if the current timestep is not a multiple of :math:`N`.  This behavior can be
-changed via the :doc:`dump_modify first <dump_modify>` command, which
-can be useful if the dump command is invoked after a minimization
-ended on an arbitrary timestep. :math:`N` can be changed between runs by
-using the :doc:`dump_modify every <dump_modify>` command.
+performed on the initial timestep after the dump command is invoked, if
+the current timestep is not a multiple of :math:`N`.  This behavior can
+be changed via the :doc:`dump_modify first <dump_modify>` command, which
+can be useful if the dump command is invoked after a minimization ended
+on an arbitrary timestep. :math:`N` can be changed between runs by using
+the :doc:`dump_modify every <dump_modify>` command.
 
 Dump *image* filenames must contain a wildcard character "\*" so that
 one image file per snapshot is written.  The "\*" character is replaced
@@ -271,13 +272,13 @@ movie will be written by the movie encoder.
 ----------
 
 The *color* and *diameter* settings determine the color and size of
-atoms rendered in the image.  They can be any atom attribute defined
-for the :doc:`dump custom <dump>` command, including *type* and
-*element*\ .  This includes per-atom quantities calculated by a
-:doc:`compute <compute>`, :doc:`fix <fix>`, or :doc:`variable <variable>`,
-which are prefixed by "c\_", "f\_", or "v\_", respectively.  Note that the
-*diameter* setting can be overridden with a numeric value applied to
-all atoms by the optional *adiam* keyword.
+atoms rendered in the image.  They can be any atom attribute defined for
+the :doc:`dump custom <dump>` command, including *type* and *element*\ .
+This includes per-atom quantities calculated by a :doc:`compute
+<compute>`, :doc:`fix <fix>`, or :doc:`variable <variable>`, which are
+prefixed by "c\_", "f\_", or "v\_", respectively.  Note that the
+*diameter* setting can be overridden with a numeric value applied to all
+atoms by the optional *adiam* keyword.
 
 If *type* is specified for the *color* setting, then the color of each
 atom is determined by its atom type.  By default the mapping of types
@@ -331,12 +332,11 @@ diameter, which can be used as the *diameter* setting.
 
 ----------
 
-The various keywords listed above control how the image is rendered.
-As listed below, all of the keywords have defaults, most of which you
-will likely not need to change.  As described below, the dump modify
-command also has options specific to the dump image style,
-particularly for assigning colors to atoms, bonds, and other image
-features.
+The various keywords listed above control how the image is rendered.  As
+listed below, all of the keywords have defaults, most of which you will
+likely not need to change.  As described below, the dump modify command
+also has options specific to the dump image style, particularly for
+assigning colors to atoms, bonds, and other image features.
 
 ----------
 
@@ -350,6 +350,24 @@ The *adiam* keyword allows you to override the *diameter* setting to
 set a single numeric *size*\ .  All atoms will be drawn with that
 diameter, e.g. 1.5, which is in whatever distance :doc:`units <units>`
 the input script defines, e.g. Angstroms.
+
+----------
+
+.. versionadded:: TBD
+
+The *autobond* keyword enables drawing bonds for systems where bonds are
+implicit, e.g. for potentials like :doc:`AIREBO <pair_airebo>` or
+:doc:`ReaxFF <pair_reaxff>`.  The first argument is the bond cutoff,
+i.e. bonds are drawn for pairs of atoms that are closer than this
+cutoff; the second argument is the bond diameter.  The implicit bonds
+are found by searching the pair-wise neighbor list for pairs of atoms
+that are closer than the bond cutoff.  The color of the bond is derived
+from the color of the atoms forming the implicit bond.  For :doc:`unit
+styles metal and real <units>` an additional condition is applied: if
+the mass of both atoms of a pair within the bond cutoff is lower than 3
+atomic mass units, a bond is **not** drawn; this prohibits displaying
+unwanted hydrogen-hydrogen bonds for alkyl or alcohol groups or for
+water with typical cutoffs suitable for displaying covalent bonds.
 
 ----------
 

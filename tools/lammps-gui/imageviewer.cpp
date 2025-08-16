@@ -137,6 +137,13 @@ int get_pte_from_mass(double mass)
 }
 
 const QString blank(" ");
+constexpr double VDW_ON       = 1.6;
+constexpr double VDW_OFF      = 0.5;
+constexpr double VDW_CUT      = 1.0;
+constexpr double SHINY_ON     = 0.6;
+constexpr double SHINY_OFF    = 0.2;
+constexpr double SHINY_CUT    = 0.4;
+constexpr double MAX_BOND_CUT = 99.0;
 } // namespace
 
 ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent) :
@@ -158,11 +165,24 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     auto *mainLayout = new QVBoxLayout;
 
     QSettings settings;
-
-    vdwfactor   = 0.5;
-    shinyfactor = 0.6;
-    auto pix    = QPixmap(":/icons/emblem-photos.png");
+    settings.beginGroup("snapshot");
+    xsize       = settings.value("xsize", "600").toInt();
+    ysize       = settings.value("ysize", "600").toInt();
+    zoom        = settings.value("zoom", 1.0).toDouble();
+    hrot        = settings.value("hrot", 60).toInt();
+    vrot        = settings.value("vrot", 30).toInt();
+    shinyfactor = settings.value("shinystyle", true).toBool() ? SHINY_ON : SHINY_OFF;
+    vdwfactor   = settings.value("vdwstyle", false).toBool() ? VDW_ON : VDW_OFF;
+    autobond    = settings.value("autobond", false).toBool();
+    bondcutoff  = settings.value("bondcutoff", 1.6).toDouble();
+    showbox     = settings.value("box", true).toBool();
+    showaxes    = settings.value("axes", false).toBool();
+    usessao     = settings.value("ssao", false).toBool();
+    antialias   = settings.value("antialias", false).toBool();
     xcenter = ycenter = zcenter = 0.5;
+    settings.endGroup();
+
+    auto pix   = QPixmap(":/icons/emblem-photos.png");
     auto bsize = QFontMetrics(QApplication::font()).size(Qt::TextSingleLine, "Height:  200");
 
     auto *renderstatus = new QLabel(QString());
@@ -177,22 +197,22 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     asize->setToolTip("Set Atom size");
     asize->setEnabled(false);
     asize->hide();
-    settings.beginGroup("snapshot");
+
     auto *xval = new QSpinBox;
     xval->setRange(100, 10000);
     xval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
-    xval->setValue(settings.value("xsize", "600").toInt());
+    xval->setValue(xsize);
     xval->setObjectName("xsize");
     xval->setToolTip("Set rendered image width");
     xval->setMinimumSize(bsize);
     auto *yval = new QSpinBox;
     yval->setRange(100, 10000);
     yval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
-    yval->setValue(settings.value("ysize", "600").toInt());
+    yval->setValue(ysize);
     yval->setObjectName("ysize");
     yval->setToolTip("Set rendered image height");
     yval->setMinimumSize(bsize);
-    settings.endGroup();
+
     connect(asize, &QLineEdit::editingFinished, this, &ImageViewer::set_atom_size);
     connect(xval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
     connect(yval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
@@ -219,6 +239,17 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     dovdw->setCheckable(true);
     dovdw->setToolTip("Toggle VDW style representation");
     dovdw->setObjectName("vdw");
+    auto *dobond = new QPushButton(QIcon(":/icons/autobonds.png"), "");
+    dobond->setCheckable(true);
+    dobond->setToolTip("Toggle dynamic bond representation");
+    dobond->setObjectName("autobond");
+    auto *bondcut = new QLineEdit(QString::number(bondcutoff));
+    bondcut->setMaxLength(5);
+    bondcut->setObjectName("bondcut");
+    bondcut->setToolTip("Set dynamic bond cutoff");
+    QFontMetrics metrics(bondcut->fontMetrics());
+    bondcut->setFixedSize(metrics.averageCharWidth() * 6, metrics.height() + 4);
+    bondcut->setEnabled(false);
     auto *dobox = new QPushButton(QIcon(":/icons/system-box.png"), "");
     dobox->setCheckable(true);
     dobox->setToolTip("Toggle displaying box");
@@ -294,6 +325,8 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     buttonLayout->addWidget(doanti);
     buttonLayout->addWidget(doshiny);
     buttonLayout->addWidget(dovdw);
+    buttonLayout->addWidget(dobond);
+    buttonLayout->addWidget(bondcut);
     buttonLayout->addWidget(dobox);
     buttonLayout->addWidget(doaxes);
     buttonLayout->addWidget(zoomin);
@@ -310,6 +343,8 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     connect(doanti, &QPushButton::released, this, &ImageViewer::toggle_anti);
     connect(doshiny, &QPushButton::released, this, &ImageViewer::toggle_shiny);
     connect(dovdw, &QPushButton::released, this, &ImageViewer::toggle_vdw);
+    connect(dobond, &QPushButton::released, this, &ImageViewer::toggle_bond);
+    connect(bondcut, &QLineEdit::editingFinished, this, &ImageViewer::set_bondcut);
     connect(dobox, &QPushButton::released, this, &ImageViewer::toggle_box);
     connect(doaxes, &QPushButton::released, this, &ImageViewer::toggle_axes);
     connect(zoomin, &QPushButton::released, this, &ImageViewer::do_zoom_in);
@@ -333,9 +368,10 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     // layout has not yet be established, so we need to fix up some pushbutton
     // properties directly since lookup in reset_view() will have failed
     dobox->setChecked(showbox);
-    doshiny->setChecked(shinyfactor > 0.4);
-    dovdw->setChecked(vdwfactor > 1.0);
+    doshiny->setChecked(shinyfactor > SHINY_CUT);
+    dovdw->setChecked(vdwfactor > VDW_CUT);
     dovdw->setEnabled(useelements || usediameter || usesigma);
+    dobond->setChecked(autobond);
     doaxes->setChecked(showaxes);
     dossao->setChecked(usessao);
     doanti->setChecked(antialias);
@@ -357,8 +393,10 @@ void ImageViewer::reset_view()
     zoom        = settings.value("zoom", 1.0).toDouble();
     hrot        = settings.value("hrot", 60).toInt();
     vrot        = settings.value("vrot", 30).toInt();
-    shinyfactor = settings.value("shinystyle", true).toBool() ? 0.6 : 0.2;
-    vdwfactor   = settings.value("vdwstyle", false).toBool() ? 1.6 : 0.5;
+    shinyfactor = settings.value("shinystyle", true).toBool() ? SHINY_ON : SHINY_OFF;
+    vdwfactor   = settings.value("vdwstyle", false).toBool() ? VDW_ON : VDW_OFF;
+    autobond    = settings.value("autobond", false).toBool();
+    bondcutoff  = settings.value("bondcutoff", 1.6).toDouble();
     showbox     = settings.value("box", true).toBool();
     showaxes    = settings.value("axes", false).toBool();
     usessao     = settings.value("ssao", false).toBool();
@@ -378,9 +416,16 @@ void ImageViewer::reset_view()
     button = findChild<QPushButton *>("antialias");
     if (button) button->setChecked(antialias);
     button = findChild<QPushButton *>("shiny");
-    if (button) button->setChecked(shinyfactor > 0.4);
+    if (button) button->setChecked(shinyfactor > SHINY_CUT);
     button = findChild<QPushButton *>("vdw");
-    if (button) button->setChecked(vdwfactor > 1.0);
+    if (button) button->setChecked(vdwfactor > VDW_CUT);
+    button = findChild<QPushButton *>("autobond");
+    if (button) button->setChecked(autobond);
+    auto *cutoff = findChild<QLineEdit *>("bondcut");
+    if (cutoff) {
+        cutoff->setEnabled(autobond);
+        cutoff->setText(QString::number(bondcutoff));
+    }
     button = findChild<QPushButton *>("box");
     if (button) button->setChecked(showbox);
     button = findChild<QPushButton *>("axes");
@@ -427,22 +472,70 @@ void ImageViewer::toggle_anti()
 void ImageViewer::toggle_shiny()
 {
     auto *button = qobject_cast<QPushButton *>(sender());
-    if (shinyfactor > 0.4)
-        shinyfactor = 0.2;
+    if (shinyfactor > SHINY_CUT)
+        shinyfactor = SHINY_OFF;
     else
-        shinyfactor = 0.6;
-    button->setChecked(shinyfactor > 0.4);
+        shinyfactor = SHINY_ON;
+    button->setChecked(shinyfactor > SHINY_CUT);
     createImage();
 }
 
 void ImageViewer::toggle_vdw()
 {
     auto *button = qobject_cast<QPushButton *>(sender());
-    if (vdwfactor > 1.0)
-        vdwfactor = 0.5;
+
+    if (button->isChecked())
+        vdwfactor = VDW_ON;
     else
-        vdwfactor = 1.6;
-    button->setChecked(vdwfactor > 1.0);
+        vdwfactor = VDW_OFF;
+
+    // when enabling VDW rendering, we must turn off autobond
+    bool do_vdw = vdwfactor > VDW_CUT;
+    if (do_vdw) {
+        autobond   = false;
+        auto *bond = findChild<QPushButton *>("autobond");
+        if (bond) bond->setChecked(false);
+        auto *cutoff = findChild<QLineEdit *>("bondcut");
+        if (cutoff) cutoff->setEnabled(false);
+    }
+
+    button->setChecked(do_vdw);
+    createImage();
+}
+
+void ImageViewer::toggle_bond()
+{
+    auto *button = qobject_cast<QPushButton *>(sender());
+    if (button) autobond = button->isChecked();
+    auto *cutoff = findChild<QLineEdit *>("bondcut");
+    if (cutoff) cutoff->setEnabled(autobond);
+    set_bondcut();
+
+    // when enabling autobond, we must turn off VDW
+    if (autobond) {
+        vdwfactor = VDW_OFF;
+        auto *vdw = findChild<QPushButton *>("vdw");
+        if (vdw) vdw->setChecked(false);
+    }
+
+    button->setChecked(autobond);
+    createImage();
+}
+
+void ImageViewer::set_bondcut()
+{
+    auto *cutoff = findChild<QLineEdit *>("bondcut");
+    if (cutoff) {
+        auto *dptr            = (double *)lammps->extract_global("neigh_cutmax");
+        double max_bondcutoff = (dptr) ? *dptr : 0.0;
+        double new_bondcutoff = cutoff->text().toDouble();
+
+        if ((max_bondcutoff > 0.1) && (new_bondcutoff > max_bondcutoff))
+            new_bondcutoff = max_bondcutoff;
+        if (new_bondcutoff > 0.1) bondcutoff = new_bondcutoff;
+
+        cutoff->setText(QString::number(bondcutoff));
+    }
     createImage();
 }
 
@@ -465,14 +558,14 @@ void ImageViewer::toggle_axes()
 void ImageViewer::do_zoom_in()
 {
     zoom = zoom * 1.1;
-    zoom = std::min(zoom, 5.0);
+    zoom = std::min(zoom, 10.0);
     createImage();
 }
 
 void ImageViewer::do_zoom_out()
 {
     zoom = zoom / 1.1;
-    zoom = std::max(zoom, 0.5);
+    zoom = std::max(zoom, 0.25);
     createImage();
 }
 
@@ -525,23 +618,31 @@ void ImageViewer::do_recenter()
 
 void ImageViewer::cmd_to_clipboard()
 {
-    auto words    = last_dump_cmd.split(" ");
-    QString blank = QStringLiteral(" ");
-    int modidx    = words.indexOf("modify");
-    int maxidx    = words.size();
+    auto words = split_line(last_dump_cmd.toStdString());
+    int modidx = 0;
+    int maxidx = words.size();
+    for (int i = 0; i < maxidx; ++i) {
+        if (words[i] == "modify") {
+            modidx = i;
+            break;
+        }
+    }
 
-    QString dumpcmd = "dump viz ";
-    dumpcmd += words[1] + " image 100 myimage-*.ppm";
+    std::string dumpcmd = "dump viz ";
+    dumpcmd += words[1];
+    dumpcmd += " image 100 myimage-*.ppm";
     for (int i = 4; i < modidx; ++i)
-        if (words[i] != "noinit") dumpcmd += blank + words[i];
+        if (words[i] != "noinit") dumpcmd += " " + words[i];
     dumpcmd += '\n';
 
     dumpcmd += "dump_modify viz pad 9";
     for (int i = modidx + 1; i < maxidx; ++i)
-        dumpcmd += blank + words[i];
+        dumpcmd += " " + words[i];
     dumpcmd += '\n';
 #if QT_CONFIG(clipboard)
-    QGuiApplication::clipboard()->setText(dumpcmd);
+    QGuiApplication::clipboard()->setText(dumpcmd.c_str());
+#else
+    fprintf(stderr, "# customized dump image command:\n%s", dumpcmd.c_str())
 #endif
 }
 
@@ -699,8 +800,9 @@ void ImageViewer::createImage()
     else
         dumpcmd += blank + settings.value("color", "type").toString();
 
+    bool do_vdw = vdwfactor > VDW_CUT;
     // diameter
-    if (usediameter && (vdwfactor > 1.0))
+    if (usediameter && do_vdw)
         dumpcmd += blank + "diameter";
     else
         dumpcmd += blank + settings.value("diameter", "type").toString();
@@ -709,7 +811,7 @@ void ImageViewer::createImage()
     dumpcmd += QString(" shiny %1 ").arg(shinyfactor);
     dumpcmd += QString(" fsaa %1").arg(antialias ? "yes" : "no");
     if (nbondtypes > 0) {
-        if (vdwfactor > 1.0)
+        if (do_vdw)
             dumpcmd += " bond none none ";
         else
             dumpcmd += " bond atom 0.5 ";
@@ -727,6 +829,8 @@ void ImageViewer::createImage()
         dumpcmd += " axes yes 0.5 0.025";
     else
         dumpcmd += " axes no 0.0 0.0";
+
+    if (autobond) dumpcmd += blank + "autobond" + blank + QString::number(bondcutoff) + " 0.5";
 
     dumpcmd += QString(" center s %1 %2 %3").arg(xcenter).arg(ycenter).arg(zcenter);
     dumpcmd += " noinit";
@@ -816,11 +920,7 @@ void ImageViewer::updateActions()
 void ImageViewer::scaleImage(double factor)
 {
     scaleFactor *= factor;
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-    imageLabel->resize(scaleFactor * imageLabel->pixmap()->size());
-#else
     imageLabel->resize(scaleFactor * imageLabel->pixmap(Qt::ReturnByValue).size());
-#endif
 
     adjustScrollBar(scrollArea->horizontalScrollBar(), factor);
     adjustScrollBar(scrollArea->verticalScrollBar(), factor);

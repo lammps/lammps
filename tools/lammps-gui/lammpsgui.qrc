@@ -15,6 +15,7 @@
     <!-- This file is updated with: grep 'mycmd ==' ../../src/input.cpp | sed -e 's/^.*mycmd == "\(.*\)".*$/\1/' > lammps_internal_commands.txt -->
     <file>lammps_internal_commands.txt</file>
     <file>icons/antialias.png</file>
+    <file>icons/autobonds.png</file>
     <file>icons/application-calc.png</file>
     <file>icons/application-exit.png</file>
     <file>icons/application-plot.png</file>

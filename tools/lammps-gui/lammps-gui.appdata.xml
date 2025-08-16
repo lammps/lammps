@@ -57,7 +57,10 @@
   <releases>
     <release version="1.7.1" timestamp="1754346906">
       <description>
-        (none)
+        Remove workarounds for compatibility with Qt 5.12 on Ubuntu 20.04LTS.
+        Qt 5.15LTS is now the minimum required version and thus Ubuntu 22.04LTS.
+        Support "dump image autobond" feature in image viewer.
+        Fix bugs when using filenames or paths with blanks.
       </description>
     </release>
     <release version="1.7.0" timestamp="1751978344">

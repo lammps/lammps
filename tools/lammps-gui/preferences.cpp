@@ -70,7 +70,7 @@ public:
         setFrameShadow(QFrame::Sunken);
     }
 };
-}
+} // namespace
 
 Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
     QDialog(parent), tabWidget(new QTabWidget),
@@ -178,6 +178,8 @@ void Preferences::accept()
     if (box) settings->setValue("axes", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("vdwstyle");
     if (box) settings->setValue("vdwstyle", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("autobond");
+    if (box) settings->setValue("autobond", box->isChecked());
     auto *combo = tabWidget->findChild<QComboBox *>("background");
     if (combo) settings->setValue("background", combo->currentText());
     combo = tabWidget->findChild<QComboBox *>("boxcolor");
@@ -683,6 +685,8 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *bbox  = new QLabel("Show Box:");
     auto *axes  = new QLabel("Show Axes:");
     auto *vdw   = new QLabel("VDW Style:");
+    auto *bond  = new QLabel("Dynamic Bonds:");
+    auto *bclbl  = new QLabel("Bond Cutoff:");
     auto *cback = new QLabel("Background Color:");
     auto *cbox  = new QLabel("Box Color:");
     settings->beginGroup("snapshot");
@@ -695,6 +699,9 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *bval = new QCheckBox;
     auto *eval = new QCheckBox;
     auto *vval = new QCheckBox;
+    auto *uval = new QCheckBox;
+    auto *bcut = new QLineEdit(settings->value("bondcut", "1.6").toString());
+
     sval->setCheckState(settings->value("ssao", false).toBool() ? Qt::Checked : Qt::Unchecked);
     sval->setObjectName("ssao");
     aval->setCheckState(settings->value("antialias", false).toBool() ? Qt::Checked : Qt::Unchecked);
@@ -707,6 +714,9 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     eval->setObjectName("axes");
     vval->setCheckState(settings->value("vdwstyle", false).toBool() ? Qt::Checked : Qt::Unchecked);
     vval->setObjectName("vdwstyle");
+    uval->setCheckState(settings->value("autobond", false).toBool() ? Qt::Checked : Qt::Unchecked);
+    uval->setObjectName("autobond");
+    bcut->setObjectName("bondcut");
 
     auto *intval = new QIntValidator(100, 100000, this);
     xval->setValidator(intval);
@@ -755,6 +765,10 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     grid->addWidget(eval, i++, 1, Qt::AlignVCenter);
     grid->addWidget(vdw, i, 0, Qt::AlignTop);
     grid->addWidget(vval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(bond, i, 0, Qt::AlignTop);
+    grid->addWidget(uval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(bclbl, i, 0, Qt::AlignTop);
+    grid->addWidget(bcut, i++, 1, Qt::AlignVCenter);
     grid->addWidget(cback, i, 0, Qt::AlignTop);
     grid->addWidget(background, i++, 1, Qt::AlignVCenter);
     grid->addWidget(cbox, i, 0, Qt::AlignTop);
@@ -764,6 +778,27 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 1);
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), i, 2);
     setLayout(grid);
+
+    connect(vval, &QCheckBox::toggled, this, &SnapshotTab::choose_vdw);
+    connect(uval, &QCheckBox::toggled, this, &SnapshotTab::choose_bond);
+}
+
+void SnapshotTab::choose_vdw()
+{
+    auto *vdw = findChild<QCheckBox *>("vdwstyle");
+    auto *bnd = findChild<QCheckBox *>("autobond");
+    if (vdw && bnd) {
+        if (vdw->isChecked()) bnd->setCheckState(Qt::Unchecked);
+    }
+}
+
+void SnapshotTab::choose_bond()
+{
+    auto *vdw = findChild<QCheckBox *>("vdwstyle");
+    auto *bnd = findChild<QCheckBox *>("autobond");
+    if (vdw && bnd) {
+        if (bnd->isChecked()) vdw->setCheckState(Qt::Unchecked);
+    }
 }
 
 EditorTab::EditorTab(QSettings *_settings, QWidget *parent) : QWidget(parent), settings(_settings)

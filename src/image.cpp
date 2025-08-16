@@ -451,10 +451,7 @@ void Image::draw_axes(double (*axes)[3], double diameter)
 
 void Image::draw_sphere(double *x, double *surfaceColor, double diameter)
 {
-  int ix,iy;
-  double projRad;
-  double xlocal[3],surface[3];
-  double depth;
+  double xlocal[3];
 
   xlocal[0] = x[0] - xctr;
   xlocal[1] = x[1] - yctr;
@@ -483,25 +480,26 @@ void Image::draw_sphere(double *x, double *surfaceColor, double diameter)
   xc += width / 2;
   yc += height / 2;
 
-  for (iy = yc - pixelRadius; iy <= yc + pixelRadius; iy++) {
-    for (ix = xc - pixelRadius; ix <= xc + pixelRadius; ix++) {
+  for (int iy = yc - pixelRadius; iy <= yc + pixelRadius; iy++) {
+    for (int ix = xc - pixelRadius; ix <= xc + pixelRadius; ix++) {
       if (iy < 0 || iy >= height || ix < 0 || ix >= width) continue;
+      double surface[3];
 
       surface[1] = ((iy - yc) - height_error) * pixelWidth;
       surface[0] = ((ix - xc) - width_error) * pixelWidth;
-      projRad = surface[0]*surface[0] + surface[1]*surface[1];
+      double projRad = surface[0]*surface[0] + surface[1]*surface[1];
 
       // outside the sphere in the projected image
 
       if (projRad > radsq) continue;
       surface[2] = sqrt(radsq - projRad);
-      depth = dist - surface[2];
+      double depth = dist - surface[2];
 
       surface[0] /= radius;
       surface[1] /= radius;
       surface[2] /= radius;
 
-      draw_pixel (ix, iy, depth, surface, surfaceColor);
+      draw_pixel(ix, iy, depth, surface, surfaceColor);
     }
   }
 }
@@ -621,7 +619,6 @@ void Image::draw_cube(double *x, double *surfaceColor, double diameter)
 void Image::draw_cylinder(double *x, double *y,
                           double *surfaceColor, double diameter, int sflag)
 {
-  double surface[3], normal[3];
   double mid[3],xaxis[3],yaxis[3],zaxis[3];
   double camLDir[3], camLRight[3], camLUp[3];
   double zmin, zmax;
@@ -703,6 +700,7 @@ void Image::draw_cylinder(double *x, double *y,
     for (int ix = xc - pixelHalfWidth; ix <= xc + pixelHalfWidth; ix ++) {
       if (iy < 0 || iy >= height || ix < 0 || ix >= width) continue;
 
+      double surface[3], normal[3];
       double sy = ((iy - yc) - height_error) * pixelWidth;
       double sx = ((ix - xc) - width_error) * pixelWidth;
       surface[0] = camLRight[0] * sx + camLUp[0] * sy;

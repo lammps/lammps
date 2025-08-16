@@ -56,6 +56,8 @@ private slots:
     void toggle_anti();
     void toggle_shiny();
     void toggle_vdw();
+    void toggle_bond();
+    void set_bondcut();
     void toggle_box();
     void toggle_axes();
     void do_zoom_in();
@@ -102,9 +104,9 @@ private:
     QString last_dump_cmd;
     int xsize, ysize;
     int hrot, vrot;
-    double zoom, vdwfactor, shinyfactor;
+    double zoom, vdwfactor, shinyfactor, bondcutoff;
     double xcenter, ycenter, zcenter;
-    bool showbox, showaxes, antialias, usessao, useelements, usediameter, usesigma;
+    bool showbox, showaxes, antialias, usessao, useelements, usediameter, usesigma, autobond;
 };
 #endif
 

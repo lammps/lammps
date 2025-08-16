@@ -2998,6 +2998,30 @@ void Neighbor::build_collection(int istart)
 }
 
 /* ----------------------------------------------------------------------
+   look up existing non-skip half or full neighbor list (used for dump image autobond)
+------------------------------------------------------------------------- */
+
+NeighList *Neighbor::get_best_pair_list()
+{
+  // find a non-skip neighbor list containing either half or full pairwise interactions
+
+  int i;
+  for (i = 0; i < old_nrequest; ++i)
+    if (old_requests[i]->half && !old_requests[i]->skip) break;
+
+  // no half list found, try for full list
+  if (i >= old_nrequest) {
+    for (i = 0; i < old_nrequest; ++i)
+      if (old_requests[i]->full && !old_requests[i]->skip) break;
+  }
+
+  // no suitable list found
+  if ((i >= old_nrequest) || lists[i]->kokkos) return nullptr;
+
+  return lists[i];
+}
+
+/* ----------------------------------------------------------------------
    for neighbor list statistics in Finish class
 ------------------------------------------------------------------------- */
 

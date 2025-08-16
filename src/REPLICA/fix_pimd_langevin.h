@@ -152,7 +152,7 @@ class FixPIMDLangevin : public Fix {
   void qc_step();    // integrate for dt/2 for the centroid mode (x <- x + v * dt/2)
   void o_step();     // integrate for dt according to O part (O-U process, for thermostating)
   void q_step();     // integrate for dt/2 for all the beads (x <- x + v * dt/2)
-  void nhc_temp_integrate(); 
+  void nhc_temp_integrate();
 
   virtual void nh_v_temp();
 

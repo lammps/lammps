@@ -325,7 +325,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   if (pstat_flag) FixPIMDLangevin::baro_init();
 
   // some initilizations
-  
+
   id_pe = utils::strdup(std::string(id) + "_pimd_pe");
   modify->add_compute(std::string(id_pe) + " all pe");
 
@@ -531,11 +531,11 @@ void FixPIMDLangevin::init()
   if (thermostat == PILE_L) {
     langevin_init();
   }
-  
+
   if (thermostat == NHC) {
     nhc_init();
   }
-  
+
   c_pe = modify->get_compute_by_id(id_pe);
   if (!c_pe) {
     error->universe_all(
@@ -625,7 +625,7 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
   }
   if (integrator == OBABO) {
     if (tstat_flag) {
-      
+
       o_step();
 
       if (removecomflag) remove_com_motion();
@@ -1229,7 +1229,7 @@ void FixPIMDLangevin::nhc_init()
           eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1] -
                       np * force->boltz * temp) / eta_mass[ich];
         }
-      } 
+      }
     }
 
     std::string out = "Initializing PI Langevin equation thermostat...\n";

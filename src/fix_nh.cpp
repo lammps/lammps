@@ -831,11 +831,7 @@ void FixNH::initial_integrate(int /*vflag*/)
 
   if (tstat_flag) {
     compute_temp_target();
-    // t_current = temperature->compute_scalar();
-    printf("0: %.30f\n", t_current);
     nhc_temp_integrate();
-    // t_current = temperature->compute_scalar();
-    printf("1: %.30f\n", t_current);
   }
 
   // need to recompute pressure to account for change in KE
@@ -861,16 +857,12 @@ void FixNH::initial_integrate(int /*vflag*/)
   }
 
   nve_v();
-  // t_current = temperature->compute_scalar();
-  printf("2: %.30f\n", t_current);
 
   // remap simulation box by 1/2 step
 
   if (pstat_flag) remap();
 
   nve_x();
-  // t_current = temperature->compute_scalar();
-  printf("3: %.30f\n", t_current);
 
   // remap simulation box by 1/2 step
   // redo KSpace coeffs since volume has changed
@@ -888,8 +880,6 @@ void FixNH::initial_integrate(int /*vflag*/)
 void FixNH::final_integrate()
 {
   nve_v();
-  // t_current = temperature->compute_scalar();
-  printf("4: %.30f\n", t_current);
 
   // re-compute temp before nh_v_press()
   // only needed for temperature computes with BIAS on reneighboring steps:
@@ -928,8 +918,6 @@ void FixNH::final_integrate()
   // update eta_press_dot
 
   if (tstat_flag) nhc_temp_integrate();
-  // t_current = temperature->compute_scalar();
-  printf("5: %.30f\n", t_current);
   if (pstat_flag && mpchain) nhc_press_integrate();
 }
 
@@ -1781,14 +1769,6 @@ void FixNH::nhc_temp_integrate()
     eta_dotdot[0] = (kecurrent - ke_target)/eta_mass[0];
   else eta_dotdot[0] = 0.0;
 
-  printf("kecurrent: %.30f\n", kecurrent);
-  printf("ke_target: %.30f\n", ke_target);
-  printf("eta_mass[0]: %.30f\n", eta_mass[0]);
-
-  printf("eta_dotdot[0]1: %.30f\n", eta_dotdot[0]);
-  printf("eta_dot[0]1: %.30f\n", eta_dot[0]);
-  printf("eta[0]1: %.30f\n", eta[0]);
-
   double ncfac = 1.0/nc_tchain;
   for (int iloop = 0; iloop < nc_tchain; iloop++) {
 
@@ -1805,10 +1785,6 @@ void FixNH::nhc_temp_integrate()
     eta_dot[0] += eta_dotdot[0] * ncfac*dt4;
     eta_dot[0] *= tdrag_factor;
     eta_dot[0] *= expfac;
-
-    printf("eta_dotdot[0]2: %.30f\n", eta_dotdot[0]);
-    printf("eta_dot[0]2: %.30f\n", eta_dot[0]);
-    printf("eta[0]2: %.30f\n", eta[0]);
 
     factor_eta = exp(-ncfac*dthalf*eta_dot[0]);
     nh_v_temp();
@@ -1830,10 +1806,6 @@ void FixNH::nhc_temp_integrate()
     eta_dot[0] += eta_dotdot[0] * ncfac*dt4;
     eta_dot[0] *= expfac;
 
-    printf("eta_dotdot[0]3: %.30f\n", eta_dotdot[0]);
-    printf("eta_dot[0]3: %.30f\n", eta_dot[0]);
-    printf("eta[0]3: %.30f\n", eta[0]);
-
     for (ich = 1; ich < mtchain; ich++) {
       expfac = exp(-ncfac*dt8*eta_dot[ich+1]);
       eta_dot[ich] *= expfac;
@@ -1842,10 +1814,6 @@ void FixNH::nhc_temp_integrate()
       eta_dot[ich] += eta_dotdot[ich] * ncfac*dt4;
       eta_dot[ich] *= expfac;
     }
-
-    printf("eta_dotdot[0]4: %.30f\n", eta_dotdot[0]);
-    printf("eta_dot[0]4: %.30f\n", eta_dot[0]);
-    printf("eta[0]4: %.30f\n", eta[0]);
 
   }
 }
@@ -2073,7 +2041,6 @@ void FixNH::nve_x()
       x[i][2] += dtv * v[i][2];
     }
   }
-  printf("x[22][0]: %.30f\n", x[22][0]);
 }
 
 /* ----------------------------------------------------------------------

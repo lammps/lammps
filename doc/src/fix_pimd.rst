@@ -49,8 +49,12 @@ Syntax
      *temp* value = temperature (temperature unit)
           temperature = target temperature of the thermostat
      *thermostat* values = style seed
-          style value = *PILE_L*
+          style value = *PILE_L* or *NHC*
           seed = random number generator seed
+     *NHC* values = Tdamp tchain tloop
+         Tdamp = temperature damping parameter (time units)
+         tchain value = length of thermostat chain (1 = single thermostat)
+         tloop value = number of sub-cycles to perform on thermostat
      *tau* value = thermostat damping parameter (time unit)
      *scale* value = scaling factor of the damping times of non-centroid modes of PILE_L thermostat
      *iso* or *aniso* values = pressure (pressure unit)
@@ -73,6 +77,7 @@ Examples
 
    fix 1 all pimd/nvt method nmpimd fmass 1.0 sp 2.0 temp 300.0 nhc 4
    fix 1 all pimd/langevin ensemble npt integrator obabo temp 113.15 thermostat PILE_L 1234 tau 1.0 iso 1.0 barostat BZP taup 1.0
+   fix 1 all pimd/langevin ensemble nvt integrator obabo temp 300.0 thermostat NHC Tdamp 0.1
    fix 1 all pimd/nvt/bosonic method pimd fmass 1.0 sp 1.0 temp 2.0 nhc 4
    fix 1 all pimd/langevin/bosonic integrator obabo temp 113.15 thermostat PILE_L 1234 tau 1.0
 
@@ -264,8 +269,13 @@ a positive floating-point number.
    For pimd simulations, a temperature values should be specified even for nve ensemble. Temperature will make a difference
    for nve pimd, since the spring elastic frequency between the beads will be affected by the temperature.
 
-The keyword *thermostat* reads *style* and *seed* of thermostat for fix style *pimd/langevin*.
-*style* can only be *PILE_L* (path integral Langevin equation local thermostat, as described in :ref:`Ceriotti <Ceriotti2>`), and *seed* should a positive integer number, which serves as the seed of the pseudo random number generator.
+The keyword *thermostat* reads *style* of thermostat for fix style *pimd/langevin*.Two thermostat styles are available: *PILE_L* or *NHC*.
+For *PILE_L* (path integral Langevin equation local thermostat, as described in :ref:`Ceriotti <Ceriotti2>`), 
+a keyword *seed* is required. *seed* should be a positive integer that serves as the seed of the pseudo-random number generator.
+For *NHC* (Nose-Hoover chains thermostat), perform time integration using Nose-Hoover non-Hamiltonian equations of motion.
+The *Tdamp* parameter is specified in time units and determines how rapidly the temperature is relaxed.
+The keyword *tchain* determines the number of thermostats and the keyword *tloop* enhances integration accuracy by splitting thermostat updates into sub-steps of size dt/tloop, 
+adding minimal computational overhead. 
 
 .. note::
 
@@ -405,6 +415,13 @@ is *nve* or *nvt*, the vector has 10 values:
 
 The first 3 are different for different log files, and the others are the same for different log files.
 
+If *thermostat* is *NHC*, the order of the output vector extended beyond the standard 10 quantities and their meaning is as follows.
+
+   #. eta[tchain] = particle thermostat displacements (unitless)
+   #. eta_dot[tchain] = particle thermostat velocities (1/time units)
+   #. PE_eta[tchain] = potential energy of each particle thermostat displacement (energy units)
+   #. KE_eta_dot[tchain] = kinetic energy of each particle thermostat velocity (energy units)
+
 If *ensemble* is *nph* or *npt*, the vector stores internal variables of the barostat. If *iso* is used,
 the vector has 15 values:
 
@@ -514,7 +531,7 @@ The keyword defaults for fix *pimd/nvt* are method = pimd, fmass = 1.0, sp
 = 1.0, temp = 300.0, and nhc = 2.
 
 The keyword defaults for fix *pimd/langevin* are integrator = obabo, method = nmpimd, ensemble = nvt, fmmode = physical, fmass = 1.0,
-scale = 1, temp = 298.15, thermostat = PILE_L, tau = 1.0, iso = 1.0, taup = 1.0, barostat = BZP, fixcom = yes, and lj = 1 for all its arguments.
+scale = 1, temp = 298.15, thermostat = PILE_L, tchain = 3, tloop = 1, tau = 1.0, iso = 1.0, taup = 1.0, barostat = BZP, fixcom = yes, and lj = 1 for all its arguments.
 
 ----------
 

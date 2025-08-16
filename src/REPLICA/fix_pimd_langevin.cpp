@@ -216,7 +216,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
         seed = utils::inumeric(FLERR, arg[i + 2], false, lmp);
         i++;
       }
-      else if (strcmp(arg[i + 1], "NHC") == 0) {   //?
+      else if (strcmp(arg[i + 1], "NHC") == 0) {
         thermostat = NHC;
       }
     } else if (strcmp(arg[i], "Tdamp") == 0) {

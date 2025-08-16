@@ -24,6 +24,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -300,7 +301,7 @@ void PairEDPD::settings(int narg, char **arg)
 void PairEDPD::coeff(int narg, char **arg)
 {
   if (narg < 9)
-    error->all(FLERR,"Incorrect args for pair edpd coefficients");
+    error->all(FLERR,"Incorrect args for pair edpd coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -321,20 +322,20 @@ void PairEDPD::coeff(int narg, char **arg)
   int n = atom->ntypes;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"power") == 0) {
-      if (iarg+5 > narg) error->all(FLERR,"Illegal pair edpd coefficients");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal pair edpd coefficients" + utils::errorurl(21));
       for (int i = 0; i < 4; i++)
         sc_one[i] = utils::numeric(FLERR,arg[iarg+i+1],false,lmp);
       iarg += 5;
       power_flag = 1;
       memory->create(sc,n+1,n+1,4,"pair:sc");
     } else if (strcmp(arg[iarg],"kappa") == 0) {
-      if (iarg+5 > narg) error->all(FLERR,"Illegal pair edpd coefficients");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal pair edpd coefficients" + utils::errorurl(21));
       for (int i = 0; i < 4; i++)
         kc_one[i] = utils::numeric(FLERR,arg[iarg+i+1],false,lmp);
       iarg += 5;
       kappa_flag = 1;
       memory->create(kc,n+1,n+1,4,"pair:kc");
-    } else error->all(FLERR,"Illegal pair edpd coefficients");
+    } else error->all(FLERR,"Illegal pair edpd coefficients" + utils::errorurl(21));
   }
 
   int count = 0;
@@ -360,7 +361,7 @@ void PairEDPD::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -387,7 +388,9 @@ void PairEDPD::init_style()
 
 double PairEDPD::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   cut[j][i]   = cut[i][j];
   cutT[j][i]  = cutT[i][j];

@@ -22,8 +22,6 @@
 
 #include <hip/hip_runtime.h>
 
-#include <ostream>
-
 namespace Kokkos {
 namespace Impl {
 
@@ -43,40 +41,5 @@ inline void hip_internal_safe_call(hipError_t e, const char* name,
 
 #define KOKKOS_IMPL_HIP_SAFE_CALL(call) \
   Kokkos::Impl::hip_internal_safe_call(call, #call, __FILE__, __LINE__)
-
-namespace Kokkos {
-namespace Experimental {
-
-class HIPRawMemoryAllocationFailure : public RawMemoryAllocationFailure {
- private:
-  hipError_t m_error_code = hipSuccess;
-
-  static FailureMode get_failure_mode(hipError_t error_code) {
-    switch (error_code) {
-      case hipErrorMemoryAllocation: return FailureMode::OutOfMemoryError;
-      case hipErrorInvalidValue: return FailureMode::InvalidAllocationSize;
-      default: return FailureMode::Unknown;
-    }
-  }
-
- public:
-  HIPRawMemoryAllocationFailure(size_t arg_attempted_size,
-                                hipError_t arg_error_code,
-                                AllocationMechanism arg_mechanism) noexcept
-      : RawMemoryAllocationFailure(
-            arg_attempted_size, /* HIPSpace doesn't handle alignment? */ 1,
-            get_failure_mode(arg_error_code), arg_mechanism),
-        m_error_code(arg_error_code) {}
-
-  void append_additional_error_information(std::ostream& o) const override {
-    if (m_error_code != hipSuccess) {
-      o << "  The HIP allocation returned the error code \""
-        << hipGetErrorName(m_error_code) << "\".";
-    }
-  }
-};
-
-}  // namespace Experimental
-}  // namespace Kokkos
 
 #endif

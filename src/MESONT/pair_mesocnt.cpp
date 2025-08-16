@@ -35,6 +35,7 @@
 #include <cmath>
 #include <cstring>
 #include <exception>
+#include <iterator>
 #include <stdexcept>
 #include <unordered_map>
 
@@ -1884,7 +1885,7 @@ void PairMesoCNT::spline_coeff(double **data, double ****coeff, double dx, doubl
 inline double PairMesoCNT::spline(double x, double xstart, double dx, double **coeff,
                                   int coeff_size)
 {
-  int i = ceil((x - xstart) / dx);
+  int i = ceil((x - xstart) / dx); // NOLINT
 
   // linear extrapolation
 
@@ -1913,7 +1914,7 @@ inline double PairMesoCNT::spline(double x, double xstart, double dx, double **c
 inline double PairMesoCNT::dspline(double x, double xstart, double dx, double **coeff,
                                    int coeff_size)
 {
-  int i = ceil((x - xstart) / dx);
+  int i = ceil((x - xstart) / dx); // NOLINT
 
   // constant extrapolation
 
@@ -1942,8 +1943,8 @@ inline double PairMesoCNT::dspline(double x, double xstart, double dx, double **
 inline double PairMesoCNT::spline(double x, double y, double xstart, double ystart, double dx,
                                   double dy, double ****coeff, int coeff_size)
 {
-  int i = ceil((x - xstart) / dx);
-  int j = ceil((y - ystart) / dy);
+  int i = ceil((x - xstart) / dx); // NOLINT
+  int j = ceil((y - ystart) / dy); // NOLINT
 
   // constant extrapolation
 
@@ -1989,8 +1990,8 @@ inline double PairMesoCNT::spline(double x, double y, double xstart, double ysta
 inline double PairMesoCNT::dxspline(double x, double y, double xstart, double ystart, double dx,
                                     double dy, double ****coeff, int coeff_size)
 {
-  int i = ceil((x - xstart) / dx);
-  int j = ceil((y - ystart) / dy);
+  int i = ceil((x - xstart) / dx); // NOLINT
+  int j = ceil((y - ystart) / dy); // NOLINT
 
   // constant extrapolation
 
@@ -2034,8 +2035,8 @@ inline double PairMesoCNT::dxspline(double x, double y, double xstart, double ys
 inline double PairMesoCNT::dyspline(double x, double y, double xstart, double ystart, double dx,
                                     double dy, double ****coeff, int coeff_size)
 {
-  int i = ceil((x - xstart) / dx);
-  int j = ceil((y - ystart) / dy);
+  int i = ceil((x - xstart) / dx); // NOLINT
+  int j = ceil((y - ystart) / dy); // NOLINT
 
   // constant extrapolation
 

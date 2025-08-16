@@ -18,11 +18,11 @@ Syntax
 
        *constant* args = *rate*
          *rate* = rate of heat flow (energy/time units)
-       *linear* args = :math:`T_{target}` *k*
-         :math:`T_{target}` = target temperature (temperature units)
+       *linear* args = *Ttarget* *k*
+         *Ttarget* = target temperature (temperature units)
          *k* = prefactor (energy/(time*temperature) units)
-       *quartic* args = :math:`T_{target}` *k*
-         :math:`T_{target}` = target temperature (temperature units)
+       *quartic* args = *Ttarget* *k*
+         *Ttarget* = target temperature (temperature units)
          *k* = prefactor (energy/(time*temperature^4) units)
 
 * zero or more keyword/value pairs may be appended to args
@@ -45,9 +45,9 @@ Examples
 Description
 """""""""""
 
-This fix adds heat to particles with the temperature attribute every timestep.
-Note that this is an internal temperature of a particle intended for use with
-non-atomistic models like the discrete element method.
+This fix adds heat to particles with the temperature attribute every timestep
+at a given rate. Note that this is an internal temperature of a particle intended
+for use with non-atomistic models like the discrete element method.
 
 For the *constant* style, heat is added at the specified rate. For the *linear* style,
 heat is added at a rate of :math:`k (T_{target} - T)` where :math:`k` is the
@@ -96,7 +96,8 @@ only enabled if LAMMPS was built with that package.
 See the :doc:`Build package <Build_package>` page for more info.
 
 This fix requires that atoms store temperature and heat flow
-as defined by the :doc:`fix property/atom <fix_property_atom>` command.
+as defined by the :doc:`fix property/atom <fix_property_atom>` command or
+included in certain atom styles, such as atom_style rheo/thermal.
 
 Related commands
 """"""""""""""""

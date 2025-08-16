@@ -19,21 +19,20 @@
 
 #include "comm.h"
 #include "error.h"
-#include "math_special.h"
 #include "memory.h"
 #include "tokenizer.h"
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
+#include <iterator>
 #include <random>
-#include <string>
 #include <unordered_map>
-#include <vector>
+#include <utility>
 
 #include "eapod.h"
 
 using namespace LAMMPS_NS;
-using MathSpecial::powint;
 
 static constexpr int MAXLINE = 1024;
 static constexpr double SMALL = 1.0e-10;
@@ -163,15 +162,15 @@ void FitPOD::command(int narg, char **arg)
           n2 = fastpodptr->nComponents * fastpodptr->nClusters * fastpodptr->nelements;
         }
 
-        fmt::print(fp, "model_coefficients: {} {} {}\n", nCoeffAll, n1, n2);
+        utils::print(fp, "model_coefficients: {} {} {}\n", nCoeffAll, n1, n2);
         for (int count = 0; count < nCoeffAll; count++) {
-          fmt::print(fp, "{:<10.{}f}\n", desc.c[count], traindata.precision);
+          utils::print(fp, "{:<10.{}f}\n", desc.c[count], traindata.precision);
         }
         for (int count = 0; count < n1; count++) {
-          fmt::print(fp, "{:<10.{}f}\n", fastpodptr->Proj[count], 14);
+          utils::print(fp, "{:<10.{}f}\n", fastpodptr->Proj[count], 14);
         }
         for (int count = 0; count < n2; count++) {
-          fmt::print(fp, "{:<10.{}f}\n", fastpodptr->Centroids[count], 14);
+          utils::print(fp, "{:<10.{}f}\n", fastpodptr->Centroids[count], 14);
         }
         fclose(fp);
       }
@@ -522,7 +521,7 @@ int FitPOD::get_number_atoms(std::vector<int> &num_atom, std::vector<int> &num_a
   }
 
   int num_atom_all = 0;
-  for (int i = 0; i < (int) num_atom.size(); i++) num_atom_all += num_atom[i];
+  for (auto i : num_atom) num_atom_all += i;
 
   return num_atom_all;
 }
@@ -757,13 +756,13 @@ void FitPOD::get_data(datastruct &data, const std::vector<std::string> &species)
   }
 
   int len = data.num_atom.size();
-  data.num_atom_min = podArrayMin(&data.num_atom[0], len);
-  data.num_atom_max = podArrayMax(&data.num_atom[0], len);
+  data.num_atom_min = podArrayMin(data.num_atom.data(), len);
+  data.num_atom_max = podArrayMax(data.num_atom.data(), len);
   data.num_atom_cumsum.resize(len + 1);
-  podCumsum(&data.num_atom_cumsum[0], &data.num_atom[0], len + 1);
+  podCumsum(data.num_atom_cumsum.data(), data.num_atom.data(), len + 1);
 
   data.num_config_cumsum.resize(nfiles + 1);
-  podCumsum(&data.num_config_cumsum[0], &data.num_config[0], nfiles + 1);
+  podCumsum(data.num_config_cumsum.data(), data.num_config.data(), nfiles + 1);
 
   // convert all structures to triclinic system
 
@@ -797,9 +796,9 @@ std::vector<int> FitPOD::linspace(int start_in, int end_in, int num_in)
 
   std::vector<int> linspaced;
 
-  double start = static_cast<double>(start_in);
-  double end = static_cast<double>(end_in);
-  double num = static_cast<double>(num_in);
+  auto start = static_cast<double>(start_in);
+  auto end = static_cast<double>(end_in);
+  auto num = static_cast<double>(num_in);
 
   int elm;
 
@@ -889,12 +888,12 @@ void FitPOD::select_data(datastruct &newdata, const datastruct &data)
     newdata.num_atom_each_file[file] = num_atom_sum;
   }
   int len = newdata.num_atom.size();
-  newdata.num_atom_min = podArrayMin(&newdata.num_atom[0], len);
-  newdata.num_atom_max = podArrayMax(&newdata.num_atom[0], len);
+  newdata.num_atom_min = podArrayMin(newdata.num_atom.data(), len);
+  newdata.num_atom_max = podArrayMax(newdata.num_atom.data(), len);
   newdata.num_atom_cumsum.resize(len + 1);
-  podCumsum(&newdata.num_atom_cumsum[0], &newdata.num_atom[0], len + 1);
+  podCumsum(newdata.num_atom_cumsum.data(), newdata.num_atom.data(), len + 1);
   newdata.num_atom_sum = newdata.num_atom_cumsum[len];
-  podCumsum(&newdata.num_config_cumsum[0], &newdata.num_config[0], nfiles + 1);
+  podCumsum(newdata.num_config_cumsum.data(), newdata.num_config.data(), nfiles + 1);
   newdata.num_config_sum = newdata.num_atom.size();
 
   int n = newdata.num_config_sum;
@@ -1492,8 +1491,6 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
           &beta, A, &Mdesc);
     MPI_Allreduce(MPI_IN_PLACE, A, Mdesc * Mdesc, MPI_DOUBLE, MPI_SUM, world);
 
-    //if (comm->me == 0) print_matrix("A", Mdesc, Mdesc, A, Mdesc);
-
     if ((comm->me == 0) && (save == 1))
       savematrix2binfile(data.filenametag + "_covariance_matrix_elem" + std::to_string(elem + 1) +
                              ".bin",
@@ -1694,7 +1691,7 @@ void FitPOD::least_squares_fit(const datastruct &data)
   fastpodptr->mknewcoeff(desc.c, nCoeffAll);
 }
 
-double latticevolume(double *lattice)
+static double latticevolume(double *lattice)
 {
   double *v1 = &lattice[0];
   double *v2 = &lattice[3];
@@ -1753,7 +1750,7 @@ void FitPOD::print_analysis(const datastruct &data, double *outarray, double *er
                   data.training ? "Training" : "Test");
 
   utils::logmesg(lmp, mystr);
-  fmt::print(fp_errors, mystr);
+  utils::print(fp_errors, mystr);
 
   std::string sa(lm + 80, '-');
   sa += '\n';
@@ -1761,12 +1758,12 @@ void FitPOD::print_analysis(const datastruct &data, double *outarray, double *er
       " {:^{}} | # configs |  # atoms  | MAE energy  | RMSE energy | MAE force  | RMSE force\n",
       "File", lm);
   utils::logmesg(lmp, sa + sb + sa);
-  fmt::print(fp_errors, sa + sb + sa);
+  utils::print(fp_errors, sa + sb + sa);
 
   int ci = 0, m = 8, nc = 0, nf = 0;
   for (int file = 0; file < nfiles; file++) {
-    fmt::print(fp_analysis, "# {}\n", data.filenames[file]);
-    fmt::print(fp_analysis,
+    utils::print(fp_analysis, "# {}\n", data.filenames[file]);
+    utils::print(fp_analysis,
                "  config   # atoms       volume        energy        DFT energy     energy error   "
                "  force          DFT force       force error\n");
 
@@ -1774,14 +1771,14 @@ void FitPOD::print_analysis(const datastruct &data, double *outarray, double *er
     int nconfigs = data.num_config[file];
     nc += nconfigs;
     for (int ii = 0; ii < nconfigs; ii++) {    // loop over each configuration in a file
-      fmt::print(fp_analysis, "{:6}   {:8}    ", outarray[m * ci], outarray[1 + m * ci]);
+      utils::print(fp_analysis, "{:6}   {:8}    ", outarray[m * ci], outarray[1 + m * ci]);
 
       double vol = latticevolume(&data.lattice[9 * ci]);
-      fmt::print(fp_analysis, "{:<15.10} ", vol);
+      utils::print(fp_analysis, "{:<15.10} ", vol);
 
       for (int count = 2; count < m; count++)
-        fmt::print(fp_analysis, "{:<15.10} ", outarray[count + m * ci]);
-      fmt::print(fp_analysis, "\n");
+        utils::print(fp_analysis, "{:<15.10} ", outarray[count + m * ci]);
+      utils::print(fp_analysis, "\n");
 
       nforceall += 3 * data.num_atom[ci];
       ci += 1;
@@ -1794,23 +1791,23 @@ void FitPOD::print_analysis(const datastruct &data, double *outarray, double *er
                     data.filenames[file], lm, nconfigs, nforceall / 3, errors[0 + 4 * q],
                     errors[1 + 4 * q], errors[2 + 4 * q], errors[3 + 4 * q]);
     utils::logmesg(lmp, s);
-    fmt::print(fp_errors, s);
+    utils::print(fp_errors, s);
   }
   utils::logmesg(lmp, sa);
-  fmt::print(fp_errors, sa);
+  utils::print(fp_errors, sa);
 
   auto s =
       fmt::format("{:<{}} {:>10} {:>11}     {:<10.6f}    {:<10.6f}    {:<10.6f}    {:<10.6f}\n",
                   "All files", lm, nc, nf / 3, errors[0], errors[1], errors[2], errors[3]);
   utils::logmesg(lmp, s + sa);
-  fmt::print(fp_errors, "{}", s + sa);
+  utils::print(fp_errors, "{}", s + sa);
 
   mystr =
       fmt::format("**************** End of Error Analysis for the {} Data Set ****************\n",
                   data.training ? "Training" : "Test");
 
   utils::logmesg(lmp, mystr);
-  fmt::print(fp_errors, mystr);
+  utils::print(fp_errors, mystr);
 
   fclose(fp_errors);
   fclose(fp_analysis);
@@ -1884,8 +1881,8 @@ void FitPOD::error_analysis(const datastruct &data, double *coeff)
     }
   }
 
-  MPI_Allreduce(MPI_IN_PLACE, &outarray[0], m * num_configs, MPI_DOUBLE, MPI_SUM, world);
-  MPI_Allreduce(MPI_IN_PLACE, &ssrarray[0], num_configs, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, outarray.data(), m * num_configs, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, ssrarray.data(), num_configs, MPI_DOUBLE, MPI_SUM, world);
 
   ci = 0;    // configuration counter
   int nc = 0, nf = 0;
@@ -2227,7 +2224,7 @@ void FitPOD::KmeansClustering(double *points, double *centroids, int *assignment
   }
 }
 
-void FitPOD::savematrix2binfile(std::string filename, double *A, int nrows, int ncols)
+void FitPOD::savematrix2binfile(const std::string &filename, double *A, int nrows, int ncols)
 {
   FILE *fp = fopen(filename.c_str(), "wb");
   double sz[2];
@@ -2238,7 +2235,7 @@ void FitPOD::savematrix2binfile(std::string filename, double *A, int nrows, int 
   fclose(fp);
 }
 
-void FitPOD::saveintmatrix2binfile(std::string filename, int *A, int nrows, int ncols)
+void FitPOD::saveintmatrix2binfile(const std::string &filename, int *A, int nrows, int ncols)
 {
   FILE *fp = fopen(filename.c_str(), "wb");
   int sz[2];
@@ -2249,21 +2246,21 @@ void FitPOD::saveintmatrix2binfile(std::string filename, int *A, int nrows, int 
   fclose(fp);
 }
 
-void FitPOD::savedata2textfile(std::string filename, std::string text, double *A, int n, int m,
-                               int dim)
+void FitPOD::savedata2textfile(const std::string &filename, const std::string &text, double *A,
+                               int n, int m, int dim)
 {
   if (comm->me == 0) {
     int precision = 15;
     FILE *fp = fopen(filename.c_str(), "w");
     if (dim == 1) {
-      fmt::print(fp, text, n);
-      for (int i = 0; i < n; i++) fmt::print(fp, "{:<10.{}f} \n", A[i], precision);
+      utils::print(fp, text, n);
+      for (int i = 0; i < n; i++) utils::print(fp, "{:<10.{}f} \n", A[i], precision);
     } else if (dim == 2) {
-      fmt::print(fp, text, n);
-      fmt::print(fp, "{} \n", m);
+      utils::print(fp, text, n);
+      utils::print(fp, "{} \n", m);
       for (int j = 0; j < n; j++) {
-        for (int i = 0; i < m; i++) fmt::print(fp, "{:<10.{}f}     ", A[j + i * n], precision);
-        fmt::print(fp, "   \n");
+        for (int i = 0; i < m; i++) utils::print(fp, "{:<10.{}f}     ", A[j + i * n], precision);
+        utils::print(fp, "   \n");
       }
     }
     fclose(fp);

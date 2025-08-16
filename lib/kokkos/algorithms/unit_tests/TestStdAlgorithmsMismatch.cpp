@@ -86,7 +86,7 @@ void run_single_scenario(ViewType view1, ViewType view2,
       v2_h(ext2 / 2) = -5;
     }
   } else {
-    throw std::runtime_error("Kokkos: stdalgo: test: mismatch: Invalid string");
+    FAIL() << "Kokkos: stdalgo: test: mismatch: Invalid string";
   }
 
   Kokkos::deep_copy(aux_view1, v1_h);

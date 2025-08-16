@@ -102,7 +102,7 @@ void NPairSkipSizeOff2onTemp<TRIM>::build(NeighList *list)
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
         rsq = delx * delx + dely * dely + delz * delz;
-        if (rsq > cutsq_custom) continue;
+        if ((cutsq_custom > 0.0) && (rsq > cutsq_custom)) continue;
       }
 
       neighptr[n++] = joriginal;
@@ -112,7 +112,7 @@ void NPairSkipSizeOff2onTemp<TRIM>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
   }
   list->inum = inum;
 }

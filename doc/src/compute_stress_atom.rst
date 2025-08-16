@@ -65,13 +65,13 @@ In case of compute *stress/atom*, the virial contribution is:
 
    W_{ab} & = \frac{1}{2} \sum_{n = 1}^{N_p} (r_{1_a} F_{1_b} + r_{2_a} F_{2_b}) + \frac{1}{2} \sum_{n = 1}^{N_b} (r_{1_a} F_{1_b} + r_{2_a} F_{2_b})  \\
   & + \frac{1}{3} \sum_{n = 1}^{N_a} (r_{1_a} F_{1_b} + r_{2_a} F_{2_b} + r_{3_a} F_{3_b}) + \frac{1}{4} \sum_{n = 1}^{N_d} (r_{1_a} F_{1_b} + r_{2_a} F_{2_b} + r_{3_a} F_{3_b} + r_{4_a} F_{4_b}) \\
-  & + \frac{1}{4} \sum_{n = 1}^{N_i} (r_{1_a} F_{1_b} + r_{2_a} F_{2_b} + r_{3_a} F_{3_b} + r_{4_a} F_{4_b}) + {\rm Kspace}(r_{i_a},F_{i_b}) + \sum_{n = 1}^{N_f} r_{i_a} F_{i_b}
+  & + \frac{1}{4} \sum_{n = 1}^{N_i} (r_{1_a} F_{1_b} + r_{2_a} F_{2_b} + r_{3_a} F_{3_b} + r_{4_a} F_{4_b}) + \mathrm{Kspace}(r_{i_a},F_{i_b}) + \sum_{n = 1}^{N_f} r_{i_a} F_{i_b}
 
 The first term is a pairwise energy contribution where :math:`n` loops
 over the :math:`N_p` neighbors of atom :math:`I`, :math:`\mathbf{r}_1`
-and :math:`\mathbf{r}_2` are the positions of the 2 atoms in the
+and :math:`\mathbf{r}_2` are the positions of the two atoms in the
 pairwise interaction, and :math:`\mathbf{F}_1` and
-:math:`\mathbf{F}_2` are the forces on the 2 atoms resulting from the
+:math:`\mathbf{F}_2` are the forces on the two atoms resulting from the
 pairwise interaction.  The second term is a bond contribution of
 similar form for the :math:`N_b` bonds which atom :math:`I` is part
 of.  There are similar terms for the :math:`N_a` angle, :math:`N_d`
@@ -97,7 +97,7 @@ In case of compute *centroid/stress/atom*, the virial contribution is:
 .. math::
 
    W_{ab} & = \sum_{n = 1}^{N_p} r_{I0_a} F_{I_b} + \sum_{n = 1}^{N_b} r_{I0_a} F_{I_b} + \sum_{n = 1}^{N_a} r_{I0_a}  F_{I_b} + \sum_{n = 1}^{N_d} r_{I0_a} F_{I_b} + \sum_{n = 1}^{N_i} r_{I0_a} F_{I_b} \\
-  & + {\rm Kspace}(r_{i_a},F_{i_b}) + \sum_{n = 1}^{N_f} r_{i_a} F_{i_b}
+  & + \mathrm{Kspace}(r_{i_a},F_{i_b}) + \sum_{n = 1}^{N_f} r_{i_a} F_{i_b}
 
 As with compute *stress/atom*, the first, second, third, fourth and
 fifth terms are pairwise, bond, angle, dihedral and improper

@@ -2,10 +2,12 @@
 
 #include "lammps.h"
 #define LAMMPS_LIB_MPI 1
+#include "info.h"
 #include "library.h"
 #include <cstdio> // for stdin, stdout
 #include <mpi.h>
 #include <string>
+#include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -77,10 +79,39 @@ TEST(lammps_open, with_args)
 
 TEST(lammps_open, with_kokkos)
 {
-    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("KOKKOS")) GTEST_SKIP();
-    const char *args[] = {"liblammps", "-k", "on", "t", "2", "-sf", "kk", "-log", "none", nullptr};
-    char **argv        = (char **)args;
-    int argc           = (sizeof(args) / sizeof(char *)) - 1;
+    if (!LAMMPS_NS::Info::has_package("KOKKOS")) GTEST_SKIP();
+    std::vector<char *> args = {(char *)"lammps", (char *)"-log", (char *)"none", (char *)"-echo",
+                                (char *)"screen", (char *)"-sf",  (char *)"kk"};
+
+    char *one  = (char *)"1";
+    char *four = (char *)"4";
+    char *tee  = (char *)"t";
+    char *gee  = (char *)"g";
+    char *kay  = (char *)"-k";
+    char *yes  = (char *)"on";
+
+    args.push_back(kay);
+    args.push_back(yes);
+
+    // when GPU support is enabled in KOKKOS, it *must* be used
+    if (lammps_config_accelerator("KOKKOS", "api", "hip") ||
+        lammps_config_accelerator("KOKKOS", "api", "cuda") ||
+        lammps_config_accelerator("KOKKOS", "api", "sycl")) {
+        args.push_back(gee);
+        args.push_back(one);
+    }
+
+    // use threads or serial
+    args.push_back(tee);
+    if (lammps_config_accelerator("KOKKOS", "api", "openmp")) {
+        args.push_back(four);
+    } else if (lammps_config_accelerator("KOKKOS", "api", "pthreads")) {
+        args.push_back(four);
+    } else {
+        args.push_back(one);
+    }
+    int argc    = args.size();
+    char **argv = args.data();
 
     ::testing::internal::CaptureStdout();
     void *alt_ptr;
@@ -137,7 +168,7 @@ TEST(lammps_open_no_mpi, no_screen)
 
 TEST(lammps_open_no_mpi, with_omp)
 {
-    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
+    if (!LAMMPS_NS::Info::has_package("OPENMP")) GTEST_SKIP();
     const char *args[] = {"liblammps", "-pk", "omp",  "2",    "neigh",   "no",
                           "-sf",       "omp", "-log", "none", "-nocite", nullptr};
     char **argv        = (char **)args;
@@ -225,4 +256,5 @@ TEST(lammps_open_no_mpi, lammps_error)
     lammps_error(handle, 0, "test_warning");
     output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, HasSubstr("WARNING: test_warning"));
+    lammps_close(handle);
 }

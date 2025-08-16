@@ -29,8 +29,9 @@
 using namespace LAMMPS_NS;
 
 static constexpr int DELTA = 16;
-
 static constexpr int OFFSET = 16384;
+
+// NOLINTBEGIN (*-float-conversion)
 
 /* ----------------------------------------------------------------------
    NOTES:
@@ -74,6 +75,11 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz) :
   shift_atom_lo = shift_atom_hi = 0.0;
   zextra = 0;
   zfactor = 1.0;
+
+  // layout_grid = how this grid instance is distributed across procs
+  // depends on comm->layout at time this Grid3d instance is created
+
+  layout_grid = comm->layout;
 }
 
 /* ----------------------------------------------------------------------
@@ -121,6 +127,11 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz,
   outyhi = oyhi;
   outzlo = ozlo;
   outzhi = ozhi;
+
+  // layout_grid = how this grid instance is distributed across procs
+  // depends on comm->layout at time this Grid3d instance is created
+
+  layout_grid = comm->layout;
 
   // additional intialization
   // other constructor invokes this from setup_grid()
@@ -375,7 +386,7 @@ void Grid3d::setup_grid(int &ixlo, int &ixhi, int &iylo, int &iyhi,
 
   double fraclo,frachi;
 
-  if (comm->layout != Comm::LAYOUT_TILED) {
+  if (layout_grid != Comm::LAYOUT_TILED) {
     fraclo = comm->xsplit[comm->myloc[0]];
     frachi = comm->xsplit[comm->myloc[0]+1];
     partition_grid(nx,fraclo,frachi,shift_grid,0,inxlo,inxhi);
@@ -579,7 +590,7 @@ void Grid3d::ghost_grid()
   // also ensure no other procs use ghost cells beyond +z limit
 
   if (zextra) {
-    if (comm->layout != Comm::LAYOUT_TILED) {
+    if (layout_grid != Comm::LAYOUT_TILED) {
       if (comm->myloc[2] == comm->procgrid[2]-1) inzhi = outzhi = nz - 1;
     } else {
       if (comm->mysplit[2][1] == 1.0) inzhi = outzhi = nz - 1;
@@ -621,7 +632,7 @@ void Grid3d::extract_comm_info()
   // xyz split = copy of 1d vectors in Comm
   // grid2proc = copy of 3d array in Comm
 
-  if (comm->layout != Comm::LAYOUT_TILED) {
+  if (layout_grid != Comm::LAYOUT_TILED) {
     procxlo = comm->procneigh[0][0];
     procxhi = comm->procneigh[0][1];
     procylo = comm->procneigh[1][0];
@@ -649,7 +660,7 @@ void Grid3d::extract_comm_info()
   // RCBinfo.cut = this proc's inlo in that dim
   // Allgather creates the tree of dims and cuts
 
-  if (comm->layout == Comm::LAYOUT_TILED) {
+  if (layout_grid == Comm::LAYOUT_TILED) {
     rcbinfo = (RCBinfo *)
       memory->smalloc(nprocs*sizeof(RCBinfo),"grid3d:rcbinfo");
     RCBinfo rcbone;
@@ -680,7 +691,7 @@ void Grid3d::extract_comm_info()
 
 void Grid3d::setup_comm(int &nbuf1, int &nbuf2)
 {
-  if (comm->layout != Comm::LAYOUT_TILED) setup_comm_brick(nbuf1,nbuf2);
+  if (layout_grid != Comm::LAYOUT_TILED) setup_comm_brick(nbuf1,nbuf2);
   else setup_comm_tiled(nbuf1,nbuf2);
 }
 
@@ -1045,9 +1056,9 @@ void Grid3d::setup_comm_tiled(int &nbuf1, int &nbuf2)
     }
   }
 
-  auto irregular = new Irregular(lmp);
+  auto *irregular = new Irregular(lmp);
   int nrecv_request = irregular->create_data(nsend_request,proclist,1);
-  auto rrequest = (Request *) memory->smalloc(nrecv_request*sizeof(Request),"grid3d:rrequest");
+  auto *rrequest = (Request *) memory->smalloc(nrecv_request*sizeof(Request),"grid3d:rrequest");
   irregular->exchange_data((char *) srequest,sizeof(Request),(char *) rrequest);
   irregular->destroy_data();
 
@@ -1086,7 +1097,7 @@ void Grid3d::setup_comm_tiled(int &nbuf1, int &nbuf2)
 
   int nsend_response = nrecv_request;
   int nrecv_response = irregular->create_data(nsend_response,proclist,1);
-  auto rresponse = (Response *) memory->smalloc(nrecv_response*sizeof(Response),"grid3d:rresponse");
+  auto *rresponse = (Response *) memory->smalloc(nrecv_response*sizeof(Response),"grid3d:rresponse");
   irregular->exchange_data((char *) sresponse,sizeof(Response),(char *) rresponse);
   irregular->destroy_data();
   delete irregular;
@@ -1207,7 +1218,7 @@ void Grid3d::setup_comm_tiled(int &nbuf1, int &nbuf2)
 
 int Grid3d::ghost_adjacent()
 {
-  if (comm->layout != Comm::LAYOUT_TILED) return ghost_adjacent_brick();
+  if (layout_grid != Comm::LAYOUT_TILED) return ghost_adjacent_brick();
   return ghost_adjacent_tiled();
 }
 
@@ -1255,7 +1266,7 @@ int Grid3d::ghost_adjacent_tiled()
 void Grid3d::forward_comm(int caller, void *ptr, int which, int nper, int nbyte,
                             void *buf1, void *buf2, MPI_Datatype datatype)
 {
-  if (comm->layout != Comm::LAYOUT_TILED) {
+  if (layout_grid != Comm::LAYOUT_TILED) {
     if (caller == KSPACE)
       forward_comm_brick<KSpace>((KSpace *) ptr,which,nper,nbyte,
                                  buf1,buf2,datatype);
@@ -1319,7 +1330,7 @@ forward_comm_tiled(T *ptr, int which, int nper, int nbyte,
 {
   int i,m,offset;
 
-  auto buf2 = (char *) vbuf2;
+  auto *buf2 = (char *) vbuf2;
 
   // post all receives
 
@@ -1360,7 +1371,7 @@ forward_comm_tiled(T *ptr, int which, int nper, int nbyte,
 void Grid3d::reverse_comm(int caller, void *ptr, int which, int nper, int nbyte,
                             void *buf1, void *buf2, MPI_Datatype datatype)
 {
-  if (comm->layout != Comm::LAYOUT_TILED) {
+  if (layout_grid != Comm::LAYOUT_TILED) {
     if (caller == KSPACE)
       reverse_comm_brick<KSpace>((KSpace *) ptr,which,nper,nbyte,
                                 buf1,buf2,datatype);
@@ -1424,7 +1435,7 @@ reverse_comm_tiled(T *ptr, int which, int nper, int nbyte,
 {
   int i,m,offset;
 
-  auto buf2 = (char *) vbuf2;
+  auto *buf2 = (char *) vbuf2;
 
   // post all receives
 
@@ -1626,7 +1637,7 @@ void Grid3d::remap_style(T *ptr, int which, int nper, int nbyte,
 {
   int i,m,offset;
 
-  auto buf2 = (char *) vbuf2;
+  auto *buf2 = (char *) vbuf2;
 
   // post all receives
 
@@ -1684,7 +1695,7 @@ void Grid3d::read_file(int caller, void *ptr, FILE *fp, int nchunk, int maxline)
 template < class T >
 void Grid3d::read_file_style(T *ptr, FILE *fp, int nchunk, int maxline)
 {
-  auto buffer = new char[nchunk * maxline];
+  auto *buffer = new char[nchunk * maxline];
   bigint ntotal = (bigint) nx * ny * nz;
   bigint nread = 0;
 
@@ -1825,7 +1836,7 @@ int Grid3d::compute_overlap(int ghostflag, int *box, int *pbc, Overlap *&overlap
     return noverlap_list;
   }
 
-  if (comm->layout != Comm::LAYOUT_TILED) {
+  if (layout_grid != Comm::LAYOUT_TILED) {
 
     // find comm->procgrid indices in each dim for box bounds
 
@@ -2153,3 +2164,5 @@ void Grid3d::partition_tiled(int proc, int proclower, int procupper, int *box)
     partition_tiled(proc,procmid,procupper,box);
   }
 }
+
+// NOLINTEND (*-float-conversion)

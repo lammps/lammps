@@ -1,22 +1,24 @@
 Calculate viscosity
 ===================
 
-The shear viscosity eta of a fluid can be measured in at least 6 ways
-using various options in LAMMPS.  See the examples/VISCOSITY directory
+The shear viscosity :math:`\eta` of a fluid can be measured in at least 6 ways
+using various options in LAMMPS.  See the ``examples/VISCOSITY`` directory
 for scripts that implement the 5 methods discussed here for a simple
 Lennard-Jones fluid model and 1 method for SPC/E water model.
 Also, see the :doc:`page on calculating thermal conductivity <Howto_kappa>`
 for an analogous discussion for thermal conductivity.
 
-Eta is a measure of the propensity of a fluid to transmit momentum in
+:math:`\eta` is a measure of the propensity of a fluid to transmit momentum in
 a direction perpendicular to the direction of velocity or momentum
 flow.  Alternatively it is the resistance the fluid has to being
 sheared.  It is given by
 
-J = -eta grad(Vstream)
+.. math::
 
-where J is the momentum flux in units of momentum per area per time.
-and grad(Vstream) is the spatial gradient of the velocity of the fluid
+   J = -\eta \cdot \text{grad}(V_{\text{stream}})
+
+where :math:`J` is the momentum flux in units of momentum per area per time.
+and :math:`\text{grad}(V_{\text{stream}})` is the spatial gradient of the velocity of the fluid
 moving in another direction, normal to the area through which the
 momentum flows.  Viscosity thus has units of pressure-time.
 
@@ -38,11 +40,11 @@ velocity to prevent the fluid from heating up.
 
 In both cases, the velocity profile setup in the fluid by this
 procedure can be monitored by the :doc:`fix ave/chunk <fix_ave_chunk>`
-command, which determines grad(Vstream) in the equation above.
-E.g. the derivative in the y-direction of the Vx component of fluid
-motion or grad(Vstream) = dVx/dy.  The Pxy off-diagonal component of
+command, which determines :math:`\text{grad}(V_{\text{stream}})` in the equation above.
+E.g. the derivative in the y-direction of the :math:`V_x` component of fluid
+motion or :math:`\text{grad}(V_{\text{stream}}) = \frac{\text{d} V_x}{\text{d} y}`.  The :math:`P_{xy}` off-diagonal component of
 the pressure or stress tensor, as calculated by the :doc:`compute pressure <compute_pressure>` command, can also be monitored, which
-is the J term in the equation above.  See the :doc:`Howto nemd <Howto_nemd>` page for details on NEMD simulations.
+is the :math:`J` term in the equation above.  See the :doc:`Howto nemd <Howto_nemd>` page for details on NEMD simulations.
 
 The third method is to perform a reverse non-equilibrium MD simulation
 using the :doc:`fix viscosity <fix_viscosity>` command which implements
@@ -55,7 +57,7 @@ See the :doc:`fix viscosity <fix_viscosity>` command for details.
 
 The fourth method is based on the Green-Kubo (GK) formula which
 relates the ensemble average of the auto-correlation of the
-stress/pressure tensor to eta.  This can be done in a fully
+stress/pressure tensor to :math:`\eta`.  This can be done in a fully
 equilibrated simulation which is in contrast to the two preceding
 non-equilibrium methods, where momentum flows continuously through the
 simulation box.

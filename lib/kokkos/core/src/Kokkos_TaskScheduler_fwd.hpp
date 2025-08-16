@@ -31,31 +31,40 @@ static_assert(false,
 #include <Kokkos_Core_fwd.hpp>
 //----------------------------------------------------------------------------
 
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+// We allow using deprecated classes in this file
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
+
 namespace Kokkos {
 
 // Forward declarations used in Impl::TaskQueue
 
 template <typename ValueType, typename Scheduler>
-class BasicFuture;
+class KOKKOS_DEPRECATED BasicFuture;
 
 template <class Space, class Queue>
-class SimpleTaskScheduler;
+class KOKKOS_DEPRECATED SimpleTaskScheduler;
 
 template <class Space, class Queue>
-class BasicTaskScheduler;
+class KOKKOS_DEPRECATED BasicTaskScheduler;
 
 template <typename Space>
-struct is_scheduler : public std::false_type {};
+struct KOKKOS_DEPRECATED is_scheduler : public std::false_type {};
 
 template <class Space, class Queue>
-struct is_scheduler<BasicTaskScheduler<Space, Queue>> : public std::true_type {
-};
+struct KOKKOS_DEPRECATED is_scheduler<BasicTaskScheduler<Space, Queue>>
+    : public std::true_type {};
 
 template <class Space, class Queue>
-struct is_scheduler<SimpleTaskScheduler<Space, Queue>> : public std::true_type {
-};
+struct KOKKOS_DEPRECATED is_scheduler<SimpleTaskScheduler<Space, Queue>>
+    : public std::true_type {};
 
-enum class TaskPriority : int { High = 0, Regular = 1, Low = 2 };
+enum class KOKKOS_DEPRECATED TaskPriority : int {
+  High    = 0,
+  Regular = 1,
+  Low     = 2
+};
 
 }  // namespace Kokkos
 
@@ -141,28 +150,28 @@ using default_tasking_memory_space_for_execution_space_t =
 namespace Kokkos {
 
 template <typename Space>
-using DeprecatedTaskScheduler = BasicTaskScheduler<
+using DeprecatedTaskScheduler KOKKOS_DEPRECATED = BasicTaskScheduler<
     Space,
     Impl::TaskQueue<
         Space,
         Impl::default_tasking_memory_space_for_execution_space_t<Space>>>;
 
 template <typename Space>
-using DeprecatedTaskSchedulerMultiple = BasicTaskScheduler<
+using DeprecatedTaskSchedulerMultiple KOKKOS_DEPRECATED = BasicTaskScheduler<
     Space,
     Impl::TaskQueueMultiple<
         Space,
         Impl::default_tasking_memory_space_for_execution_space_t<Space>>>;
 
 template <typename Space>
-using TaskScheduler = SimpleTaskScheduler<
+using TaskScheduler KOKKOS_DEPRECATED = SimpleTaskScheduler<
     Space,
     Impl::SingleTaskQueue<
         Space, Impl::default_tasking_memory_space_for_execution_space_t<Space>,
         Impl::TaskQueueTraitsLockBased>>;
 
 template <typename Space>
-using TaskSchedulerMultiple = SimpleTaskScheduler<
+using TaskSchedulerMultiple KOKKOS_DEPRECATED = SimpleTaskScheduler<
     Space,
     Impl::MultipleTaskQueue<
         Space, Impl::default_tasking_memory_space_for_execution_space_t<Space>,
@@ -172,7 +181,7 @@ using TaskSchedulerMultiple = SimpleTaskScheduler<
             Impl::default_tasking_memory_space_for_execution_space_t<Space>>>>>;
 
 template <typename Space>
-using ChaseLevTaskScheduler = SimpleTaskScheduler<
+using ChaseLevTaskScheduler KOKKOS_DEPRECATED = SimpleTaskScheduler<
     Space,
     Impl::MultipleTaskQueue<
         Space, Impl::default_tasking_memory_space_for_execution_space_t<Space>,
@@ -182,7 +191,7 @@ using ChaseLevTaskScheduler = SimpleTaskScheduler<
             Impl::default_tasking_memory_space_for_execution_space_t<Space>>>>>;
 
 template <class Space, class QueueType>
-void wait(BasicTaskScheduler<Space, QueueType> const&);
+KOKKOS_DEPRECATED void wait(BasicTaskScheduler<Space, QueueType> const&);
 
 namespace Impl {
 
@@ -203,6 +212,10 @@ struct TaskPolicyData;
 }  // end namespace Impl
 
 }  // namespace Kokkos
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
 //----------------------------------------------------------------------------
 

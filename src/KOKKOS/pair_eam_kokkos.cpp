@@ -33,8 +33,9 @@
 #include <cmath>
 using namespace LAMMPS_NS;
 
-#define MAX_CACHE_ROWS 500
-
+#ifdef KOKKOS_ENABLE_HIP
+static constexpr int MAX_CACHE_ROWS = 500;
+#endif
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -304,10 +305,10 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // free duplicated memory
   if (need_dup) {
-    dup_rho   = decltype(dup_rho)();
-    dup_f     = decltype(dup_f)();
-    dup_eatom = decltype(dup_eatom)();
-    dup_vatom = decltype(dup_vatom)();
+    dup_rho   = {};
+    dup_f     = {};
+    dup_eatom = {};
+    dup_vatom = {};
   }
 }
 
@@ -830,7 +831,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
 }
 
 /* ---------------------------------------------------------------------- */
-
+#ifdef KOKKOS_ENABLE_HIP
 ////Specialisation for Neighborlist types Half, HalfThread, Full
 template<class DeviceType>
 template<int EFLAG>
@@ -915,7 +916,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>,
     }
   }
 }
-
+#endif
 template<class DeviceType>
 template<int EFLAG>
 KOKKOS_INLINE_FUNCTION
@@ -926,7 +927,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>,
 }
 
 /* ---------------------------------------------------------------------- */
-
+#ifdef KOKKOS_ENABLE_HIP
 ////Specialisation for Neighborlist types Half, HalfThread, Full
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
@@ -1047,7 +1048,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
     a_f(i,2) += fztmp;
   }
 }
-
+#endif
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION

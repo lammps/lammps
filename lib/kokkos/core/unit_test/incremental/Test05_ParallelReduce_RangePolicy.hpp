@@ -43,10 +43,10 @@ struct NonTrivialReduceFunctor {
     UpdateSum += (i + 1) * value;
   }
 
-  NonTrivialReduceFunctor()                                = default;
-  NonTrivialReduceFunctor(NonTrivialReduceFunctor const &) = default;
-  NonTrivialReduceFunctor(NonTrivialReduceFunctor &&)      = default;
-  NonTrivialReduceFunctor &operator=(NonTrivialReduceFunctor &&) = default;
+  NonTrivialReduceFunctor()                                           = default;
+  NonTrivialReduceFunctor(NonTrivialReduceFunctor const &)            = default;
+  NonTrivialReduceFunctor(NonTrivialReduceFunctor &&)                 = default;
+  NonTrivialReduceFunctor &operator=(NonTrivialReduceFunctor &&)      = default;
   NonTrivialReduceFunctor &operator=(NonTrivialReduceFunctor const &) = default;
   // Also make sure that it's OK if the destructor is not device-callable.
   ~NonTrivialReduceFunctor() {}

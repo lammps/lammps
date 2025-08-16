@@ -10,9 +10,9 @@ int dorg2l_(integer *m, integer *n, integer *k, doublereal *a, integer *lda, dou
     doublereal d__1;
     integer i__, j, l, ii;
     extern int dscal_(integer *, doublereal *, doublereal *, integer *),
-        dlarf_(char *, integer *, integer *, doublereal *, integer *, doublereal *, doublereal *,
-               integer *, doublereal *, ftnlen),
-        xerbla_(char *, integer *, ftnlen);
+        xerbla_(char *, integer *, ftnlen),
+        dlarf1l_(char *, integer *, integer *, doublereal *, integer *, doublereal *, doublereal *,
+                 integer *, doublereal *, ftnlen);
     a_dim1 = *lda;
     a_offset = 1 + a_dim1;
     a -= a_offset;
@@ -47,11 +47,10 @@ int dorg2l_(integer *m, integer *n, integer *k, doublereal *a, integer *lda, dou
     i__1 = *k;
     for (i__ = 1; i__ <= i__1; ++i__) {
         ii = *n - *k + i__;
-        a[*m - *n + ii + ii * a_dim1] = 1.;
         i__2 = *m - *n + ii;
         i__3 = ii - 1;
-        dlarf_((char *)"Left", &i__2, &i__3, &a[ii * a_dim1 + 1], &c__1, &tau[i__], &a[a_offset], lda,
-               &work[1], (ftnlen)4);
+        dlarf1l_((char *)"L", &i__2, &i__3, &a[ii * a_dim1 + 1], &c__1, &tau[i__], &a[a_offset], lda,
+                 &work[1], (ftnlen)1);
         i__2 = *m - *n + ii - 1;
         d__1 = -tau[i__];
         dscal_(&i__2, &d__1, &a[ii * a_dim1 + 1], &c__1);

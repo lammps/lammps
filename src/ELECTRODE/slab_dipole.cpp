@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meißner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
 ------------------------------------------------------------------------- */
 
 #include "slab_dipole.h"
@@ -38,7 +38,7 @@ static constexpr double SMALL = 0.00001;
    extended to non-neutral systems (J. Chem. Phys. 131, 094107).
 -------------------------------------------------------------------------
 */
-SlabDipole::SlabDipole(LAMMPS *lmp) : BoundaryCorrection(lmp){};
+SlabDipole::SlabDipole(LAMMPS *lmp) : BoundaryCorrection(lmp) {};
 
 void SlabDipole::compute_corr(double qsum, int eflag_atom, int eflag_global, double &energy,
                               double *eatom)
@@ -93,7 +93,7 @@ void SlabDipole::compute_corr(double qsum, int eflag_atom, int eflag_global, dou
 void SlabDipole::vector_corr(double *vec, int sensor_grpbit, int source_grpbit, bool invert_source)
 {
   double const volume = get_volume();
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   double **x = atom->x;
   double *q = atom->q;
   int *mask = atom->mask;
@@ -131,8 +131,8 @@ void SlabDipole::matrix_corr(bigint *imat, double **matrix)
   std::vector<int> recvcounts = gather_recvcounts(ngrouplocal);
   std::vector<int> displs = gather_displs(recvcounts);
   std::vector<double> nprd_all = std::vector<double>(ngroup);
-  MPI_Allgatherv(&nprd_local.front(), ngrouplocal, MPI_DOUBLE, &nprd_all.front(),
-                 &recvcounts.front(), &displs.front(), MPI_DOUBLE, world);
+  MPI_Allgatherv(nprd_local.data(), ngrouplocal, MPI_DOUBLE, nprd_all.data(), recvcounts.data(),
+                 displs.data(), MPI_DOUBLE, world);
 
   std::vector<bigint> jmat = gather_jmat(imat);
   const double prefac = MY_4PI / volume;

@@ -112,6 +112,7 @@ snap:     examples for using several bundled SNAP potentials
 srd:      stochastic rotation dynamics (SRD) particles as solvent
 steinhardt: Steinhardt-Nelson Q_l and W_l parameters usng orientorder/atom
 streitz:  Streitz-Mintmire potential for Al2O3
+stress_vcm: removing binned rigid body motion from binned stress profile
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
 template: examples for using atom_style template and comparing to atom style molecular
 tersoff:  regression test input for Tersoff variants

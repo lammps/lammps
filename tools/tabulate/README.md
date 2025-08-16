@@ -27,6 +27,7 @@ Please see the individual tabulation scripts in this folder for examples:
 | wall_harmonic_tabulate.py     | creates a table for fix wall/table with a simple repulsive harmonic potential |
 | wall_multi_tabulate.py        | creates a table for fix wall/table with multiple tables                       |
 | pair_bi_tabulate.py           | creates a table from radial distribution file using Boltzmann Inversion       |
+| plot_forces.py                | plots and extracts tabulated forces from table files                          |
 
 Common command line flags:
 

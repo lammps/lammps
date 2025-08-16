@@ -52,16 +52,16 @@ struct EBOBaseImpl;
 template <class T, template <class...> class CtorNotOnDevice>
 struct EBOBaseImpl<T, true, CtorNotOnDevice> {
   template <class... Args, class _ignored = void,
-            std::enable_if_t<std::is_void<_ignored>::value &&
-                                 std::is_constructible<T, Args...>::value &&
+            std::enable_if_t<std::is_void_v<_ignored> &&
+                                 std::is_constructible_v<T, Args...> &&
                                  !CtorNotOnDevice<Args...>::value,
                              int> = 0>
   KOKKOS_FORCEINLINE_FUNCTION constexpr explicit EBOBaseImpl(
       Args&&...) noexcept {}
 
   template <class... Args, class _ignored = void,
-            std::enable_if_t<std::is_void<_ignored>::value &&
-                                 std::is_constructible<T, Args...>::value &&
+            std::enable_if_t<std::is_void_v<_ignored> &&
+                                 std::is_constructible_v<T, Args...> &&
                                  CtorNotOnDevice<Args...>::value,
                              long> = 0>
   inline constexpr explicit EBOBaseImpl(Args&&...) noexcept {}
@@ -109,19 +109,21 @@ template <class T, template <class...> class CTorsNotOnDevice>
 struct EBOBaseImpl<T, false, CTorsNotOnDevice> {
   T m_ebo_object;
 
+  // NOLINTBEGIN(modernize-type-traits)
   template <class... Args, class _ignored = void,
-            std::enable_if_t<std::is_void<_ignored>::value &&
+            std::enable_if_t<std::is_void_v<_ignored> &&
                                  !CTorsNotOnDevice<Args...>::value &&
-                                 std::is_constructible<T, Args...>::value,
+                                 std::is_constructible_v<T, Args...>,
                              int> = 0>
+  // NOLINTEND(modernize-type-traits)
   KOKKOS_FORCEINLINE_FUNCTION constexpr explicit EBOBaseImpl(
       Args&&... args) noexcept(noexcept(T(std::forward<Args>(args)...)))
       : m_ebo_object(std::forward<Args>(args)...) {}
 
   template <class... Args, class _ignored = void,
-            std::enable_if_t<std::is_void<_ignored>::value &&
+            std::enable_if_t<std::is_void_v<_ignored> &&
                                  CTorsNotOnDevice<Args...>::value &&
-                                 std::is_constructible<T, Args...>::value,
+                                 std::is_constructible_v<T, Args...>,
                              long> = 0>
   inline constexpr explicit EBOBaseImpl(Args&&... args) noexcept(
       noexcept(T(std::forward<Args>(args)...)))
@@ -167,9 +169,9 @@ struct EBOBaseImpl<T, false, CTorsNotOnDevice> {
 template <class T,
           template <class...> class CtorsNotOnDevice = NoCtorsNotOnDevice>
 struct StandardLayoutNoUniqueAddressMemberEmulation
-    : EBOBaseImpl<T, std::is_empty<T>::value, CtorsNotOnDevice> {
+    : EBOBaseImpl<T, std::is_empty_v<T>, CtorsNotOnDevice> {
  private:
-  using ebo_base_t = EBOBaseImpl<T, std::is_empty<T>::value, CtorsNotOnDevice>;
+  using ebo_base_t = EBOBaseImpl<T, std::is_empty_v<T>, CtorsNotOnDevice>;
 
  public:
   using ebo_base_t::ebo_base_t;

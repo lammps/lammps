@@ -56,16 +56,28 @@ If the filename ends with ".gz", the output file is written in gzipped
 format.  A gzipped dump file will be about 3x smaller than the text
 version, but will also take longer to write.
 
+.. versionadded:: 2Apr2025
+
+If the filename contains the wildcard character "\*", a new file is
+created on every timestep there bond information is written.  The "\*"
+character is replaced with the timestep value.  Note that the
+:doc:`fix_modify pad <fix_modify>` command can be used so that all
+timestep numbers have the same length by adding leading zeroes
+(e.g. 00010 for a pad value of 5).  The default pad value is 0, i.e. no
+leading zeroes.
+
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various :doc:`output commands <Howto_output>`.
-No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  This fix supports the :doc:`fix_modify pad <fix_modify>`
+option.  No global or per-atom quantities are stored by this fix for
+access by various :doc:`output commands <Howto_output>`.  No parameter
+of this fix can be used with the *start/stop* keywords of the :doc:`run
+<run>` command.  This fix is not invoked during :doc:`energy
+minimization <minimize>`.
 
 ----------
 
@@ -76,10 +88,10 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-The fix reaxff/bonds command requires that the :doc:`pair_style reaxff <pair_reaxff>` is invoked.  This fix is part of the
-REAXFF package.  It is only enabled if LAMMPS was built with that
-package.  See the :doc:`Build package <Build_package>` page for more
-info.
+The fix reaxff/bonds command requires that the :doc:`pair_style reaxff
+<pair_reaxff>` is invoked.  This fix is part of the REAXFF package.  It
+is only enabled if LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 To write gzipped bond files, you must compile LAMMPS with the
 -DLAMMPS_GZIP option.
@@ -92,4 +104,4 @@ Related commands
 Default
 """""""
 
-none
+pad = 0

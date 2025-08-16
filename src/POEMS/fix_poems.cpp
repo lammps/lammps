@@ -86,7 +86,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   natom2body = nullptr;
   atom2body = nullptr;
   displace = nullptr;
-  grow_arrays(atom->nmax);
+  FixPOEMS::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
   // initialize each atom to belong to no rigid bodies
@@ -354,7 +354,7 @@ void FixPOEMS::init()
 
   if (earlyflag) {
     bool pflag = false;
-    for (auto &ifix : modify->get_fix_list()) {
+    for (const auto &ifix : modify->get_fix_list()) {
       if (utils::strmatch(ifix->style, "^poems")) pflag = true;
       if (pflag && (ifix->setmask() & POST_FORCE) && !ifix->rigid_flag)
         if (comm->me == 0)
@@ -365,7 +365,7 @@ void FixPOEMS::init()
 
   // error if npt,nph fix comes before rigid fix
   bool pflag = false;
-  for (auto &ifix : modify->get_fix_list()) {
+  for (const auto &ifix : modify->get_fix_list()) {
     if (!pflag && utils::strmatch(ifix->style, "np[th]"))
       error->all(FLERR, "POEMS fix must come before NPT/NPH fix");
     if (utils::strmatch(ifix->style, "^poems")) pflag = true;
@@ -942,7 +942,7 @@ void FixPOEMS::readfile(const char *file)
   nbody = bodies.size();
   MPI_Bcast(&nbody, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxbody, 1, MPI_INT, 0, world);
-  bigint *buf = new bigint[maxbody + 1];
+  auto *buf = new bigint[maxbody + 1];
   const int nlocal = atom->nlocal;
 
   for (int i = 0; i < nbody; ++i) {

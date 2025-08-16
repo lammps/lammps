@@ -71,7 +71,6 @@ struct TestDynamicView {
       da.resize_serial(da_size);
       ASSERT_EQ(da.size(), da_size);
 
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
       Kokkos::parallel_for(
           Kokkos::RangePolicy<execution_space>(0, da_size),
           KOKKOS_LAMBDA(const int i) { da(i) = Scalar(i); });
@@ -85,7 +84,6 @@ struct TestDynamicView {
           result_sum);
 
       ASSERT_EQ(result_sum, (value_type)(da_size * (da_size - 1) / 2));
-#endif
 
       // add 3x more entries i.e. 4x larger than previous size
       // the first 1/4 should remain the same
@@ -93,7 +91,6 @@ struct TestDynamicView {
       da.resize_serial(da_resize);
       ASSERT_EQ(da.size(), da_resize);
 
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
       Kokkos::parallel_for(
           Kokkos::RangePolicy<execution_space>(da_size, da_resize),
           KOKKOS_LAMBDA(const int i) { da(i) = Scalar(i); });
@@ -108,7 +105,6 @@ struct TestDynamicView {
 
       ASSERT_EQ(new_result_sum + result_sum,
                 (value_type)(da_resize * (da_resize - 1) / 2));
-#endif
     }  // end scope
 
     // Test: Create DynamicView, initialize size (via resize), run through
@@ -123,7 +119,6 @@ struct TestDynamicView {
       da.resize_serial(da_size);
       ASSERT_EQ(da.size(), da_size);
 
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
       Kokkos::parallel_for(
           Kokkos::RangePolicy<execution_space>(0, da_size),
           KOKKOS_LAMBDA(const int i) { da(i) = Scalar(i); });
@@ -137,7 +132,6 @@ struct TestDynamicView {
           result_sum);
 
       ASSERT_EQ(result_sum, (value_type)(da_size * (da_size - 1) / 2));
-#endif
 
       // add 3x more entries i.e. 4x larger than previous size
       // the first 1/4 should remain the same
@@ -145,7 +139,6 @@ struct TestDynamicView {
       da.resize_serial(da_resize);
       ASSERT_EQ(da.size(), da_resize);
 
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
       Kokkos::parallel_for(
           Kokkos::RangePolicy<execution_space>(da_size, da_resize),
           KOKKOS_LAMBDA(const int i) { da(i) = Scalar(i); });
@@ -160,7 +153,6 @@ struct TestDynamicView {
 
       ASSERT_EQ(new_result_sum + result_sum,
                 (value_type)(da_resize * (da_resize - 1) / 2));
-#endif
     }  // end scope
 
     // Test: Create DynamicView, initialize size (via resize), run through
@@ -175,7 +167,6 @@ struct TestDynamicView {
       da.resize_serial(da_size);
       ASSERT_EQ(da.size(), da_size);
 
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
       Kokkos::parallel_for(
           Kokkos::RangePolicy<execution_space>(0, da_size),
           KOKKOS_LAMBDA(const int i) { da(i) = Scalar(i); });
@@ -189,14 +180,12 @@ struct TestDynamicView {
           result_sum);
 
       ASSERT_EQ(result_sum, (value_type)(da_size * (da_size - 1) / 2));
-#endif
 
       // remove the final 3/4 entries i.e. first 1/4 remain
       unsigned da_resize = arg_total_size / 8;
       da.resize_serial(da_resize);
       ASSERT_EQ(da.size(), da_resize);
 
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
       Kokkos::parallel_for(
           Kokkos::RangePolicy<execution_space>(0, da_resize),
           KOKKOS_LAMBDA(const int i) { da(i) = Scalar(i); });
@@ -210,7 +199,6 @@ struct TestDynamicView {
           new_result_sum);
 
       ASSERT_EQ(new_result_sum, (value_type)(da_resize * (da_resize - 1) / 2));
-#endif
     }  // end scope
 
     // Test: Reproducer to demonstrate compile-time error of deep_copy
@@ -229,7 +217,6 @@ struct TestDynamicView {
       device_dynamic_view.resize_serial(da_size);
 
       // Use parallel_for to populate device_dynamic_view and verify values
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
       Kokkos::parallel_for(
           Kokkos::RangePolicy<execution_space>(0, da_size),
           KOKKOS_LAMBDA(const int i) { device_dynamic_view(i) = Scalar(i); });
@@ -243,7 +230,6 @@ struct TestDynamicView {
           result_sum);
 
       ASSERT_EQ(result_sum, (value_type)(da_size * (da_size - 1) / 2));
-#endif
 
       // Use an on-device View as intermediate to deep_copy the
       // device_dynamic_view to host, zero out the device_dynamic_view,
@@ -251,13 +237,11 @@ struct TestDynamicView {
       Kokkos::deep_copy(device_view, device_dynamic_view);
       Kokkos::deep_copy(host_view, device_view);
       Kokkos::deep_copy(device_view, host_view);
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
       Kokkos::parallel_for(
           Kokkos::RangePolicy<execution_space>(0, da_size),
           KOKKOS_LAMBDA(const int i) { device_dynamic_view(i) = Scalar(0); });
-#endif
       Kokkos::deep_copy(device_dynamic_view, device_view);
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
+
       value_type new_result_sum = 0.0;
       Kokkos::parallel_reduce(
           Kokkos::RangePolicy<execution_space>(0, da_size),
@@ -267,21 +251,6 @@ struct TestDynamicView {
           new_result_sum);
 
       ASSERT_EQ(new_result_sum, (value_type)(da_size * (da_size - 1) / 2));
-#endif
-
-      // Try to deep_copy device_dynamic_view directly to/from host.
-      // host-to-device currently fails to compile because DP and SP are
-      // swapped in the deep_copy implementation.
-      // Once that's fixed, both deep_copy's will fail at runtime because the
-      // destination execution space cannot access the source memory space.
-      // Check if the memory spaces are different before testing the deep_copy.
-      if (!Kokkos::SpaceAccessibility<Kokkos::HostSpace,
-                                      memory_space>::accessible) {
-        ASSERT_THROW(Kokkos::deep_copy(host_view, device_dynamic_view),
-                     std::runtime_error);
-        ASSERT_THROW(Kokkos::deep_copy(device_dynamic_view, host_view),
-                     std::runtime_error);
-      }
     }
   }
 };

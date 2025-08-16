@@ -34,8 +34,26 @@ if(MSVC)
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
-# C++11 is required
-set(CMAKE_CXX_STANDARD 11)
+if(NOT CMAKE_CXX_STANDARD)
+  if(cxx_std_17 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+    set(CMAKE_CXX_STANDARD 17)
+  else()
+    set(CMAKE_CXX_STANDARD 11)
+  endif()
+endif()
+if(CMAKE_CXX_STANDARD LESS 11)
+  message(FATAL_ERROR "C++ standard must be set to at least 11")
+endif()
+if(CMAKE_CXX_STANDARD LESS 17)
+  message(WARNING "Selecting C++17 standard is preferred over C++${CMAKE_CXX_STANDARD}")
+endif()
+if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 17))
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+# turn off C++17 check in lmptype.h
+if(LAMMPS_CXX11)
+  add_compile_definitions(LAMMPS_CXX11)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Need -restrict with Intel compilers
@@ -43,6 +61,9 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
 endif()
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+
+# skip over obsolete MPI-2 C++ bindings
+set(MPI_CXX_SKIP_MPICXX TRUE)
 
 #######
 # helper functions from LAMMPSUtils.cmake
@@ -110,8 +131,7 @@ endif()
 ################################################################################
 # MPI configuration
 if(NOT CMAKE_CROSSCOMPILING)
-  set(MPI_CXX_SKIP_MPICXX TRUE)
-  find_package(MPI QUIET)
+  find_package(MPI QUIET COMPONENTS CXX)
   option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 else()
   option(BUILD_MPI "Build MPI version" OFF)
@@ -123,78 +143,38 @@ if(BUILD_MPI)
   set(MPI_CXX_SKIP_MPICXX TRUE)
   # We use a non-standard procedure to cross-compile with MPI on Windows
   if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
-    # Download and configure MinGW compatible MPICH development files for Windows
-    option(USE_MSMPI "Use Microsoft's MS-MPI SDK instead of MPICH2-1.4.1" OFF)
-    if(USE_MSMPI)
-      message(STATUS "Downloading and configuring MS-MPI 10.1 for Windows cross-compilation")
-      set(MPICH2_WIN64_DEVEL_URL "${LAMMPS_THIRDPARTY_URL}/msmpi-win64-devel.tar.gz" CACHE STRING "URL for MS-MPI (win64) tarball")
-      set(MPICH2_WIN64_DEVEL_MD5 "86314daf1bffb809f1fcbefb8a547490" CACHE STRING "MD5 checksum of MS-MPI (win64) tarball")
-      mark_as_advanced(MPICH2_WIN64_DEVEL_URL)
-      mark_as_advanced(MPICH2_WIN64_DEVEL_MD5)
+    message(STATUS "Downloading and configuring MS-MPI 10.1 for Windows cross-compilation")
+    set(MPICH2_WIN64_DEVEL_URL "${LAMMPS_THIRDPARTY_URL}/msmpi-win64-devel.tar.gz" CACHE STRING "URL for MS-MPI (win64) tarball")
+    set(MPICH2_WIN64_DEVEL_MD5 "86314daf1bffb809f1fcbefb8a547490" CACHE STRING "MD5 checksum of MS-MPI (win64) tarball")
+    mark_as_advanced(MPICH2_WIN64_DEVEL_URL)
+    mark_as_advanced(MPICH2_WIN64_DEVEL_MD5)
 
-      include(ExternalProject)
-      if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-        ExternalProject_Add(mpi4win_build
-          URL     ${MPICH2_WIN64_DEVEL_URL}
-          URL_MD5 ${MPICH2_WIN64_DEVEL_MD5}
-          CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
-          BUILD_BYPRODUCTS <SOURCE_DIR>/lib/libmsmpi.a)
-      else()
-        message(FATAL_ERROR "Only x86 64-bit builds are supported with MS-MPI")
-      endif()
-
-      ExternalProject_get_property(mpi4win_build SOURCE_DIR)
-      file(MAKE_DIRECTORY "${SOURCE_DIR}/include")
-      add_library(MPI::MPI_CXX UNKNOWN IMPORTED)
-      set_target_properties(MPI::MPI_CXX PROPERTIES
-        IMPORTED_LOCATION "${SOURCE_DIR}/lib/libmsmpi.a"
-        INTERFACE_INCLUDE_DIRECTORIES "${SOURCE_DIR}/include"
-        INTERFACE_COMPILE_DEFINITIONS "MPICH_SKIP_MPICXX")
-      add_dependencies(MPI::MPI_CXX mpi4win_build)
-
-      # set variables for status reporting at the end of CMake run
-      set(MPI_CXX_INCLUDE_PATH "${SOURCE_DIR}/include")
-      set(MPI_CXX_COMPILE_DEFINITIONS "MPICH_SKIP_MPICXX")
-      set(MPI_CXX_LIBRARIES "${SOURCE_DIR}/lib/libmsmpi.a")
+    include(ExternalProject)
+    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+      ExternalProject_Add(mpi4win_build
+        URL     ${MPICH2_WIN64_DEVEL_URL}
+        URL_MD5 ${MPICH2_WIN64_DEVEL_MD5}
+        CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
+        BUILD_BYPRODUCTS <SOURCE_DIR>/lib/libmsmpi.a)
     else()
-      # Download and configure custom MPICH files for Windows
-      message(STATUS "Downloading and configuring MPICH-1.4.1 for Windows")
-      set(MPICH2_WIN64_DEVEL_URL "${LAMMPS_THIRDPARTY_URL}/mpich2-win64-devel.tar.gz" CACHE STRING "URL for MPICH2 (win64) tarball")
-      set(MPICH2_WIN64_DEVEL_MD5 "4939fdb59d13182fd5dd65211e469f14" CACHE STRING "MD5 checksum of MPICH2 (win64) tarball")
-      mark_as_advanced(MPICH2_WIN64_DEVEL_URL)
-      mark_as_advanced(MPICH2_WIN64_DEVEL_MD5)
-
-      include(ExternalProject)
-      if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-        ExternalProject_Add(mpi4win_build
-          URL     ${MPICH2_WIN64_DEVEL_URL}
-          URL_MD5 ${MPICH2_WIN64_DEVEL_MD5}
-          CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
-          BUILD_BYPRODUCTS <SOURCE_DIR>/lib/libmpi.a)
-      else()
-        ExternalProject_Add(mpi4win_build
-          URL     ${MPICH2_WIN32_DEVEL_URL}
-          URL_MD5 ${MPICH2_WIN32_DEVEL_MD5}
-          CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
-          BUILD_BYPRODUCTS <SOURCE_DIR>/lib/libmpi.a)
-      endif()
-
-      ExternalProject_get_property(mpi4win_build SOURCE_DIR)
-      file(MAKE_DIRECTORY "${SOURCE_DIR}/include")
-      add_library(MPI::MPI_CXX UNKNOWN IMPORTED)
-      set_target_properties(MPI::MPI_CXX PROPERTIES
-        IMPORTED_LOCATION "${SOURCE_DIR}/lib/libmpi.a"
-        INTERFACE_INCLUDE_DIRECTORIES "${SOURCE_DIR}/include"
-        INTERFACE_COMPILE_DEFINITIONS "MPICH_SKIP_MPICXX")
-      add_dependencies(MPI::MPI_CXX mpi4win_build)
-
-      # set variables for status reporting at the end of CMake run
-      set(MPI_CXX_INCLUDE_PATH "${SOURCE_DIR}/include")
-      set(MPI_CXX_COMPILE_DEFINITIONS "MPICH_SKIP_MPICXX")
-      set(MPI_CXX_LIBRARIES "${SOURCE_DIR}/lib/libmpi.a")
+      message(FATAL_ERROR "Only x86 64-bit builds are supported with MS-MPI")
     endif()
+
+    ExternalProject_get_property(mpi4win_build SOURCE_DIR)
+    file(MAKE_DIRECTORY "${SOURCE_DIR}/include")
+    add_library(MPI::MPI_CXX UNKNOWN IMPORTED)
+    set_target_properties(MPI::MPI_CXX PROPERTIES
+      IMPORTED_LOCATION "${SOURCE_DIR}/lib/libmsmpi.a"
+      INTERFACE_INCLUDE_DIRECTORIES "${SOURCE_DIR}/include"
+      INTERFACE_COMPILE_DEFINITIONS "MPICH_SKIP_MPICXX=1")
+    add_dependencies(MPI::MPI_CXX mpi4win_build)
+
+    # set variables for status reporting at the end of CMake run
+    set(MPI_CXX_INCLUDE_PATH "${SOURCE_DIR}/include")
+    set(MPI_CXX_COMPILE_DEFINITIONS "MPICH_SKIP_MPICXX=1")
+    set(MPI_CXX_LIBRARIES "${SOURCE_DIR}/lib/libmsmpi.a")
   else()
-    find_package(MPI REQUIRED)
+    find_package(MPI REQUIRED COMPONENTS CXX)
     option(LAMMPS_LONGLONG_TO_LONG "Workaround if your system or MPI version does not recognize 'long long' data types" OFF)
     if(LAMMPS_LONGLONG_TO_LONG)
       target_compile_definitions(lammps INTERFACE -DLAMMPS_LONGLONG_TO_LONG)
@@ -242,8 +222,8 @@ endif()
 
 ################
 # integer size selection
-set(LAMMPS_SIZES "smallbig" CACHE STRING "LAMMPS integer sizes (smallsmall: all 32-bit, smallbig: 64-bit #atoms #timesteps, bigbig: also 64-bit imageint, 64-bit atom ids)")
-set(LAMMPS_SIZES_VALUES smallbig bigbig smallsmall)
+set(LAMMPS_SIZES "smallbig" CACHE STRING "LAMMPS integer sizes (smallbig: 64-bit #atoms #timesteps, bigbig: also 64-bit imageint, 64-bit atom ids)")
+set(LAMMPS_SIZES_VALUES smallbig bigbig)
 set_property(CACHE LAMMPS_SIZES PROPERTY STRINGS ${LAMMPS_SIZES_VALUES})
 validate_option(LAMMPS_SIZES LAMMPS_SIZES_VALUES)
 string(TOUPPER ${LAMMPS_SIZES} LAMMPS_SIZES)

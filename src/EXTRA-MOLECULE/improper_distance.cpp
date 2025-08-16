@@ -27,6 +27,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -94,31 +96,31 @@ void ImproperDistance::compute(int eflag, int vflag)
     xab = x[i2][0] - x[i1][0];
     yab = x[i2][1] - x[i1][1];
     zab = x[i2][2] - x[i1][2];
-    domain->minimum_image(xab,yab,zab);
+    domain->minimum_image(FLERR, xab,yab,zab);
 
     // bond 1->3
     xac = x[i3][0] - x[i1][0];
     yac = x[i3][1] - x[i1][1];
     zac = x[i3][2] - x[i1][2];
-    domain->minimum_image(xac,yac,zac);
+    domain->minimum_image(FLERR, xac,yac,zac);
 
     // bond 1->4
     xad = x[i4][0] - x[i1][0];
     yad = x[i4][1] - x[i1][1];
     zad = x[i4][2] - x[i1][2];
-    domain->minimum_image(xad,yad,zad);
+    domain->minimum_image(FLERR, xad,yad,zad);
 
     // bond 2-3
     xbc = x[i3][0] - x[i2][0];
     ybc = x[i3][1] - x[i2][1];
     zbc = x[i3][2] - x[i2][2];
-    domain->minimum_image(xbc,ybc,zbc);
+    domain->minimum_image(FLERR, xbc,ybc,zbc);
 
     // bond 2-4
     xbd = x[i4][0] - x[i2][0];
     ybd = x[i4][1] - x[i2][1];
     zbd = x[i4][2] - x[i2][2];
-    domain->minimum_image(xbd,ybd,zbd);
+    domain->minimum_image(FLERR, xbd,ybd,zbd);
 
     xna =   ybc*zbd - zbc*ybd;
     yna = -(xbc*zbd - zbc*xbd);
@@ -209,7 +211,7 @@ void ImproperDistance::allocate()
 void ImproperDistance::coeff(int narg, char **arg)
 {
 //  if (which > 0) return;
-  if (narg != 3) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (narg != 3) error->all(FLERR,"Incorrect args for improper coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -228,7 +230,7 @@ void ImproperDistance::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -267,4 +269,17 @@ void ImproperDistance::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nimpropertypes; i++)
     fprintf(fp,"%d %g %g\n",i,k[i],chi[i]);
+}
+
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *ImproperDistance::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k2") == 0) return (void *) k;
+  if (strcmp(str, "k4") == 0) return (void *) chi;
+  return nullptr;
 }

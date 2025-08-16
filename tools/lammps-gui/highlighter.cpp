@@ -12,6 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "highlighter.h"
+#include "helpers.h"
+#include <QColor>
 
 Highlighter::Highlighter(QTextDocument *parent) :
     QSyntaxHighlighter(parent),
@@ -23,7 +25,7 @@ Highlighter::Highlighter(QTextDocument *parent) :
                              "thermo|print|thermo_style|"
                              "timer|pair_write|bond_write|angle_write|dihedral_write)\\s+(\\S+)")),
     isOutput2(QStringLiteral("^\\s*(write_dump|shell|thermo_modify)\\s+(\\S+)\\s+(\\S+)")),
-    isRead(QStringLiteral("^\\s*(include|read_restart|read_data|read_dump|molecule)")),
+    isRead(QStringLiteral("^\\s*(include|read_restart|read_data|read_dump|molecule|geturl)\\s+(\\S+)")),
     isStyle(QStringLiteral("^\\s*(fix|compute|dump)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)")),
     isForce(QStringLiteral(
         "^\\s*(pair_style|bond_style|angle_style|dihedral_style|improper_style|kspace_style|pair_"
@@ -54,27 +56,54 @@ Highlighter::Highlighter(QTextDocument *parent) :
     isTriple(QStringLiteral("[^\"]*\"\"\"[^\"]*")),
     isString(QStringLiteral("(\".+?\"|'.+?'|\"\"\".*\"\"\")")), in_triple(false)
 {
-    formatNumber.setForeground(Qt::blue);
-    formatString.setForeground(Qt::darkGreen);
-    formatString.setFontWeight(QFont::Normal);
-    formatComment.setForeground(Qt::red);
-    formatSpecial.setForeground(Qt::darkMagenta);
-    formatSpecial.setFontWeight(QFont::Bold);
-    formatParticle.setForeground(Qt::darkRed);
-    formatParticle.setFontWeight(QFont::Bold);
-    formatRun.setForeground(Qt::darkBlue);
-    formatRun.setFontWeight(QFont::Bold);
-    formatVariable.setForeground(Qt::darkGray);
-    formatVariable.setFontWeight(QFont::Bold);
+    if (is_light_theme()) {
+        // syntax colors for light themes
+        formatNumber.setForeground(Qt::blue);
+        formatString.setForeground(Qt::darkGreen);
+        formatString.setFontWeight(QFont::Normal);
+        formatComment.setForeground(Qt::red);
+        formatSpecial.setForeground(Qt::darkMagenta);
+        formatSpecial.setFontWeight(QFont::Bold);
+        formatParticle.setForeground(Qt::darkRed);
+        formatParticle.setFontWeight(QFont::Bold);
+        formatRun.setForeground(Qt::darkBlue);
+        formatRun.setFontWeight(QFont::Bold);
+        formatVariable.setForeground(Qt::darkGray);
+        formatVariable.setFontWeight(QFont::Bold);
 
-    formatOutput.setForeground(Qt::darkYellow);
-    formatOutput.setFontWeight(QFont::Bold);
-    formatRead.setForeground(Qt::magenta);
-    formatRead.setFontWeight(QFont::Bold);
-    formatLattice.setForeground(Qt::darkGreen);
-    formatLattice.setFontWeight(QFont::Bold);
-    formatSetup.setForeground(Qt::darkCyan);
-    formatSetup.setFontWeight(QFont::Bold);
+        formatOutput.setForeground(Qt::darkYellow);
+        formatOutput.setFontWeight(QFont::Bold);
+        formatRead.setForeground(Qt::magenta);
+        formatRead.setFontWeight(QFont::Bold);
+        formatLattice.setForeground(Qt::darkGreen);
+        formatLattice.setFontWeight(QFont::Bold);
+        formatSetup.setForeground(Qt::darkCyan);
+        formatSetup.setFontWeight(QFont::Bold);
+    } else {
+        // syntax colors for dark themes
+        formatNumber.setForeground(QColorConstants::Svg::dodgerblue);
+        formatString.setForeground(QColorConstants::Green);
+        formatString.setFontWeight(QFont::Normal);
+        formatComment.setForeground(QColorConstants::Red);
+        formatComment.setFontWeight(QFont::Bold);
+        formatSpecial.setForeground(QColorConstants::Magenta);
+        formatSpecial.setFontWeight(QFont::Bold);
+        formatParticle.setForeground(QColorConstants::Svg::indianred);
+        formatParticle.setFontWeight(QFont::Bold);
+        formatRun.setForeground(QColorConstants::Svg::lightskyblue);
+        formatRun.setFontWeight(QFont::Bold);
+        formatVariable.setForeground(QColorConstants::Svg::lightgray);
+        formatVariable.setFontWeight(QFont::Bold);
+
+        formatOutput.setForeground(QColorConstants::Yellow);
+        formatOutput.setFontWeight(QFont::Bold);
+        formatRead.setForeground(QColorConstants::Svg::lightcoral);
+        formatRead.setFontWeight(QFont::Bold);
+        formatLattice.setForeground(QColorConstants::Svg::lightgreen);
+        formatLattice.setFontWeight(QFont::Bold);
+        formatSetup.setForeground(QColorConstants::Cyan);
+        formatSetup.setFontWeight(QFont::Bold);
+    }
 }
 
 void Highlighter::highlightBlock(const QString &text)

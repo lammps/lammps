@@ -47,7 +47,7 @@ KOKKOS_FUNCTION constexpr T byteswap_fallback(T x) {
       lo_mask <<= CHAR_BIT;
       hi_mask >>= CHAR_BIT;
 
-      shift -= 2 * CHAR_BIT;
+      shift -= static_cast<size_t>(2) * CHAR_BIT;
     }
     return val;
   }

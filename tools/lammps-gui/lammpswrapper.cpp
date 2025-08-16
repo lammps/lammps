@@ -102,14 +102,34 @@ void *LammpsWrapper::extract_atom(const char *keyword)
     return val;
 }
 
-int LammpsWrapper::id_count(const char *keyword)
+// note: equal style and compatible variables only
+double LammpsWrapper::extract_variable(const char *keyword)
+{
+    void *ptr = nullptr;
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        ptr = ((liblammpsplugin_t *)plugin_handle)->extract_variable(lammps_handle, keyword, nullptr);
+#else
+        ptr = lammps_extract_variable(lammps_handle, keyword, nullptr);
+#endif
+    }
+    double val = (ptr) ? *((double *)ptr) : 0.0;
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    ((liblammpsplugin_t *)plugin_handle)->free(ptr);
+#else
+    lammps_free(ptr);
+#endif
+    return val;
+}
+
+int LammpsWrapper::id_count(const char *idtype)
 {
     int val = 0;
     if (lammps_handle) {
 #if defined(LAMMPS_GUI_USE_PLUGIN)
-        val = ((liblammpsplugin_t *)plugin_handle)->id_count(lammps_handle, keyword);
+        val = ((liblammpsplugin_t *)plugin_handle)->id_count(lammps_handle, idtype);
 #else
-        val = lammps_id_count(lammps_handle, keyword);
+        val = lammps_id_count(lammps_handle, idtype);
 #endif
     }
     return val;
@@ -316,6 +336,15 @@ bool LammpsWrapper::config_accelerator(const char *package, const char *category
            0;
 #else
     return lammps_config_accelerator(package, category, setting) != 0;
+#endif
+}
+
+bool LammpsWrapper::config_has_curl_support() const
+{
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    return ((liblammpsplugin_t *)plugin_handle)->config_has_curl_support() != 0;
+#else
+    return lammps_config_has_curl_support() != 0;
 #endif
 }
 

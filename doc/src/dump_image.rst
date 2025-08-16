@@ -24,12 +24,13 @@ Syntax
 * color = atom attribute that determines color of each atom
 * diameter = atom attribute that determines size of each atom
 * zero or more keyword/value pairs may be appended
-* keyword = *atom* or *adiam* or *bond* or *grid* or *line* or *tri* or *body* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *subbox* or *shiny* or *fsaa* or *ssao*
+* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *body* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *subbox* or *shiny* or *fsaa* or *ssao*
 
   .. parsed-literal::
 
        *atom* = *yes* or *no* = do or do not draw atoms
        *adiam* size = numeric value for atom diameter (distance units)
+       *autobond* values = cutoff width = bond cutoff and width of bonds
        *bond* values = color width = color and width of bonds
          color = *atom* or *type* or *none*
          width = number or *atom* or *type* or *none*
@@ -111,10 +112,10 @@ Syntax
   .. parsed-literal::
 
        *acolor* args = type color
-         type = atom type or range of types (see below)
+         type = atom type (numeric or type label) or range of numeric types (see below)
          color = name of color or color1/color2/...
        *adiam* args = type diam
-         type = atom type or range of types (see below)
+         type = atom type (numeric or type label) or range of numeric types (see below)
          diam = diameter of atoms of that type (distance units)
        *amap* args = lo hi style delta N entry1 entry2 ... entryN
          lo = number or *min* = lower bound of range of color map
@@ -139,10 +140,10 @@ Syntax
        *backcolor* arg = color
          color = name of color for background
        *bcolor* args = type color
-         type = bond type or range of types (see below)
+         type = bond type (numeric or type label) or range of numeric types (see below)
          color = name of color or color1/color2/...
        *bdiam* args = type diam
-         type = bond type or range of types (see below)
+         type = bond type (numeric or type label) or range of numeric types (see below)
          diam = diameter of bonds of that type (distance units)
        *bitrate* arg = rate
          rate = target bitrate for movie in kbps
@@ -168,6 +169,9 @@ Examples
    dump m2 all movie 100 movie.m4v type type zoom 1.8 adiam v_value size 1280 720
 
    dump_modify 1 amap min max cf 0.0 3 min green 0.5 yellow max blue boxcolor red
+
+   labelmap atom 1 C 2 H 3 O 4 N
+   dump_modify 1 acolor C gray acolor H white acolor O red acolor N blue
 
 Description
 """""""""""
@@ -242,15 +246,15 @@ details.
 
 ----------
 
-Dumps are performed on timesteps that are a multiple of :math:`N` (including
-timestep 0) and on the last timestep of a minimization if the
+Dumps are performed on timesteps that are a multiple of :math:`N`
+(including timestep 0) and on the last timestep of a minimization if the
 minimization converges.  Note that this means a dump will not be
-performed on the initial timestep after the dump command is invoked,
-if the current timestep is not a multiple of :math:`N`.  This behavior can be
-changed via the :doc:`dump_modify first <dump_modify>` command, which
-can be useful if the dump command is invoked after a minimization
-ended on an arbitrary timestep. :math:`N` can be changed between runs by
-using the :doc:`dump_modify every <dump_modify>` command.
+performed on the initial timestep after the dump command is invoked, if
+the current timestep is not a multiple of :math:`N`.  This behavior can
+be changed via the :doc:`dump_modify first <dump_modify>` command, which
+can be useful if the dump command is invoked after a minimization ended
+on an arbitrary timestep. :math:`N` can be changed between runs by using
+the :doc:`dump_modify every <dump_modify>` command.
 
 Dump *image* filenames must contain a wildcard character "\*" so that
 one image file per snapshot is written.  The "\*" character is replaced
@@ -268,13 +272,13 @@ movie will be written by the movie encoder.
 ----------
 
 The *color* and *diameter* settings determine the color and size of
-atoms rendered in the image.  They can be any atom attribute defined
-for the :doc:`dump custom <dump>` command, including *type* and
-*element*\ .  This includes per-atom quantities calculated by a
-:doc:`compute <compute>`, :doc:`fix <fix>`, or :doc:`variable <variable>`,
-which are prefixed by "c\_", "f\_", or "v\_", respectively.  Note that the
-*diameter* setting can be overridden with a numeric value applied to
-all atoms by the optional *adiam* keyword.
+atoms rendered in the image.  They can be any atom attribute defined for
+the :doc:`dump custom <dump>` command, including *type* and *element*\ .
+This includes per-atom quantities calculated by a :doc:`compute
+<compute>`, :doc:`fix <fix>`, or :doc:`variable <variable>`, which are
+prefixed by "c\_", "f\_", or "v\_", respectively.  Note that the
+*diameter* setting can be overridden with a numeric value applied to all
+atoms by the optional *adiam* keyword.
 
 If *type* is specified for the *color* setting, then the color of each
 atom is determined by its atom type.  By default the mapping of types
@@ -328,12 +332,11 @@ diameter, which can be used as the *diameter* setting.
 
 ----------
 
-The various keywords listed above control how the image is rendered.
-As listed below, all of the keywords have defaults, most of which you
-will likely not need to change.  As described below, the dump modify
-command also has options specific to the dump image style,
-particularly for assigning colors to atoms, bonds, and other image
-features.
+The various keywords listed above control how the image is rendered.  As
+listed below, all of the keywords have defaults, most of which you will
+likely not need to change.  As described below, the dump modify command
+also has options specific to the dump image style, particularly for
+assigning colors to atoms, bonds, and other image features.
 
 ----------
 
@@ -347,6 +350,24 @@ The *adiam* keyword allows you to override the *diameter* setting to
 set a single numeric *size*\ .  All atoms will be drawn with that
 diameter, e.g. 1.5, which is in whatever distance :doc:`units <units>`
 the input script defines, e.g. Angstroms.
+
+----------
+
+.. versionadded:: TBD
+
+The *autobond* keyword enables drawing bonds for systems where bonds are
+implicit, e.g. for potentials like :doc:`AIREBO <pair_airebo>` or
+:doc:`ReaxFF <pair_reaxff>`.  The first argument is the bond cutoff,
+i.e. bonds are drawn for pairs of atoms that are closer than this
+cutoff; the second argument is the bond diameter.  The implicit bonds
+are found by searching the pair-wise neighbor list for pairs of atoms
+that are closer than the bond cutoff.  The color of the bond is derived
+from the color of the atoms forming the implicit bond.  For :doc:`unit
+styles metal and real <units>` an additional condition is applied: if
+the mass of both atoms of a pair within the bond cutoff is lower than 3
+atomic mass units, a bond is **not** drawn; this prohibits displaying
+unwanted hydrogen-hydrogen bonds for alkyl or alcohol groups or for
+water with typical cutoffs suitable for displaying covalent bonds.
 
 ----------
 
@@ -386,7 +407,7 @@ cylinders with that diameter, e.g. 1.0, which is in whatever distance
 
 If *atom* is specified for the *width* value, then each bond
 will be drawn with a width corresponding to the minimum diameter
-of the 2 atoms in the bond.
+of the two atoms in the bond.
 
 If *type* is specified for the *width* value then the diameter of each
 bond is determined by its bond type.  By default all types have
@@ -678,7 +699,7 @@ MPEG or other movie file you can use:
 
 * c) Use FFmpeg
 
-  FFmpeg is a command line tool that is available on many platforms and
+  FFmpeg is a command-line tool that is available on many platforms and
   allows extremely flexible encoding and decoding of movies.
 
   .. code-block:: bash
@@ -707,7 +728,7 @@ Play the movie:
      mplayer foo.mpg
      ffplay bar.avi
 
-* c) Use the `Pizza.py <https://lammps.github.io/pizza>`_
+* c) Use the `Pizza.py <https://lammps.github.io/pizza/>`_
   `animate tool <https://lammps.github.io/pizza/doc/animate.html>`_,
   which works directly on a series of image files.
 
@@ -739,15 +760,15 @@ The *acolor* keyword can be used with the dump image command, when its
 atom color setting is *type*, to set the color that atoms of each type
 will be drawn in the image.
 
-The specified *type* should be an integer from 1 to Ntypes = the
-number of atom types.  A wildcard asterisk can be used in place of or
-in conjunction with the *type* argument to specify a range of atom
-types.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N =
-the number of atom types, then an asterisk with no numeric values
-means all types from 1 to N.  A leading asterisk means all types from
-1 to n (inclusive).  A trailing asterisk means all types from n to N
-(inclusive).  A middle asterisk means all types from m to n
-(inclusive).
+The specified *type* should be a type label or integer from 1 to Ntypes
+= the number of atom types.  For numeric types, a wildcard asterisk can
+be used in place of or in conjunction with the *type* argument to
+specify a range of atom types.  This takes the form "\*" or "\*n" or
+"n\*" or "m\*n". If N = the number of atom types, then an asterisk with
+no numeric values means all types from 1 to N.  A leading asterisk
+means all types from 1 to n (inclusive).  A trailing asterisk means all
+types from n to N (inclusive).  A middle asterisk means all types from
+m to n (inclusive).
 
 The specified *color* can be a single color which is any of the 140
 pre-defined colors (see below) or a color name defined by the
@@ -761,11 +782,12 @@ fashion to each of the specified atom types.
 
 The *adiam* keyword can be used with the dump image command, when its
 atom diameter setting is *type*, to set the size that atoms of each
-type will be drawn in the image.  The specified *type* should be an
-integer from 1 to Ntypes.  As with the *acolor* keyword, a wildcard
-asterisk can be used as part of the *type* argument to specify a range
-of atom types.  The specified *diam* is the size in whatever distance
-:doc:`units <units>` the input script is using, e.g. Angstroms.
+type will be drawn in the image.  The specified *type* should be a type
+label or integer from 1 to Ntypes.  As with the *acolor* keyword, a
+wildcard asterisk can be used as part of the *type* argument to specify
+a range of numeric atom types.  The specified *diam* is the size in
+whatever distance :doc:`units <units>` the input script is using, e.g.
+Angstroms.
 
 ----------
 
@@ -908,14 +930,15 @@ The *bcolor* keyword can be used with the dump image command, with its
 *bond* keyword, when its color setting is *type*, to set the color
 that bonds of each type will be drawn in the image.
 
-The specified *type* should be an integer from 1 to :math:`N`, where :math:`N`
-is the number of bond types.  A wildcard asterisk can be used in place of or
-in conjunction with the *type* argument to specify a range of bond
-types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N`
-is the number of bond types, then an asterisk with no numerical values
-means all types from 1 to :math:`N`.  A leading asterisk means all types from
-1 to n (inclusive).  A trailing asterisk means all types from m to :math:`N`
-(inclusive).  A middle asterisk means all types from m to n
+The specified *type* should be a type label or integer from 1 to
+:math:`N`, where :math:`N` is the number of bond types.  For numeric
+types, a wildcard asterisk can be used in place of or in conjunction
+with the *type* argument to specify a range of bond types.  This takes
+the form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N` is the number
+of bond types, then an asterisk with no numerical values means all
+types from 1 to :math:`N`.  A leading asterisk means all types from 1
+to n (inclusive).  A trailing asterisk means all types from m to
+:math:`N` (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
 The specified *color* can be a single color which is any of the 140
@@ -931,11 +954,11 @@ of the specified bond types.
 The *bdiam* keyword can be used with the dump image command, with its
 *bond* keyword, when its *diam* setting is *type*, to set the diameter
 that bonds of each type will be drawn in the image.  The specified
-*type* should be an integer from 1 to Nbondtypes.  As with the
-*bcolor* keyword, a wildcard asterisk can be used as part of the
-*type* argument to specify a range of bond types.  The specified
-*diam* is the size in whatever distance :doc:`units <units>` you are
-using (e.g., Angstroms).
+*type* should be a type label or integer from 1 to Nbondtypes.  As with
+the *bcolor* keyword, a wildcard asterisk can be used as part of the
+*type* argument to specify a range of numeric bond types.  The
+specified *diam* is the size in whatever distance :doc:`units <units>`
+you are using (e.g., Angstroms).
 
 ----------
 

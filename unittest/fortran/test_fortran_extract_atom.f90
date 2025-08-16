@@ -24,12 +24,13 @@ END SUBROUTINE f_lammps_close
 
 SUBROUTINE f_lammps_setup_extract_atom() BIND(C)
    USE LIBLAMMPS
-   USE keepstuff, ONLY : lmp, big_input, cont_input, pair_input
+   USE keepstuff, ONLY : lmp, big_input, cont_input, pair_input, prop_input
    IMPLICIT NONE
 
    CALL lmp%commands_list(big_input)
    CALL lmp%commands_list(cont_input)
    CALL lmp%commands_list(pair_input)
+   CALL lmp%commands_list(prop_input)
 END SUBROUTINE f_lammps_setup_extract_atom
 
 FUNCTION f_lammps_extract_atom_mass() BIND(C)
@@ -43,6 +44,19 @@ FUNCTION f_lammps_extract_atom_mass() BIND(C)
    mass = lmp%extract_atom('mass')
    f_lammps_extract_atom_mass = mass(1)
 END FUNCTION f_lammps_extract_atom_mass
+
+FUNCTION f_lammps_extract_atom_mass_size() BIND(C)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
+   USE LIBLAMMPS
+   USE keepstuff, ONLY : lmp
+   IMPLICIT NONE
+   INTEGER(c_int) :: f_lammps_extract_atom_mass_size, ntypes
+   REAL(c_double), DIMENSION(:), POINTER :: mass => NULL()
+
+   ntypes = lmp%extract_setting('ntypes')
+   mass = lmp%extract_atom('mass')
+   f_lammps_extract_atom_mass_size = SIZE(mass)
+END FUNCTION f_lammps_extract_atom_mass_size
 
 FUNCTION f_lammps_extract_atom_tag_int(i) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
@@ -83,6 +97,18 @@ FUNCTION f_lammps_extract_atom_type(i) BIND(C)
    f_lammps_extract_atom_type = atype(i)
 END FUNCTION f_lammps_extract_atom_type
 
+FUNCTION f_lammps_extract_atom_type_size() BIND(C)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
+   USE LIBLAMMPS
+   USE keepstuff, ONLY : lmp
+   IMPLICIT NONE
+   INTEGER(c_int) :: f_lammps_extract_atom_type_size
+   INTEGER(c_int), DIMENSION(:), POINTER :: atype => NULL()
+
+   atype = lmp%extract_atom('type')
+   f_lammps_extract_atom_type_size = size(atype)
+END FUNCTION f_lammps_extract_atom_type_size
+
 FUNCTION f_lammps_extract_atom_mask(i) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
    USE LIBLAMMPS
@@ -109,6 +135,19 @@ SUBROUTINE f_lammps_extract_atom_x(i, x) BIND(C)
    x = xptr(:,i)
 END SUBROUTINE f_lammps_extract_atom_x
 
+FUNCTION f_lammps_extract_atom_x_size(i) BIND(C)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
+   USE LIBLAMMPS
+   USE keepstuff, ONLY : lmp
+   IMPLICIT NONE
+   INTEGER(c_int), INTENT(IN), VALUE :: i
+   INTEGER(c_int) :: f_lammps_extract_atom_x_size
+   REAL(c_double), DIMENSION(:,:), POINTER :: xptr => NULL()
+
+   xptr = lmp%extract_atom('x')
+   f_lammps_extract_atom_x_size = SIZE(xptr, i)
+END FUNCTION f_lammps_extract_atom_x_size
+
 SUBROUTINE f_lammps_extract_atom_v(i, v) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
    USE LIBLAMMPS
@@ -121,3 +160,16 @@ SUBROUTINE f_lammps_extract_atom_v(i, v) BIND(C)
    vptr = lmp%extract_atom('v')
    v = vptr(:,i)
 END SUBROUTINE f_lammps_extract_atom_v
+
+FUNCTION f_lammps_extract_atom_v_size(i) BIND(C)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
+   USE LIBLAMMPS
+   USE keepstuff, ONLY : lmp
+   IMPLICIT NONE
+   INTEGER(c_int), INTENT(IN), VALUE :: i
+   INTEGER(c_int) :: f_lammps_extract_atom_v_size
+   REAL(c_double), DIMENSION(:,:), POINTER :: xptr => NULL()
+
+   xptr = lmp%extract_atom('v')
+   f_lammps_extract_atom_v_size = SIZE(xptr, i)
+END FUNCTION f_lammps_extract_atom_v_size

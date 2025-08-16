@@ -300,5 +300,4 @@ The option defaults are zero = no.
 
 .. _Jiang1:
 
-**(Jiang1)** Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J
-Phys Chem Lett, 2, 87-92 (2011).
+**(Jiang1)** Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J Phys Chem Lett, 2, 87-92 (2011).

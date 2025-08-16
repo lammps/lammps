@@ -56,8 +56,7 @@ namespace ReaxFF {
     if (control->hbond_cut > 0)
       for (i = 0; i < system->n; ++i) {
         atom = &(system->my_atoms[i]);
-        if ((atom->type >= 0)
-            && (system->reax_param.sbp[atom->type].p_hbond == 1 && atom->type >= 0))
+        if ((atom->type >= 0) && (system->reax_param.sbp[atom->type].p_hbond == 1))
           atom->Hindex = system->numH++;
         else atom->Hindex = -1;
       }
@@ -80,15 +79,14 @@ namespace ReaxFF {
     swa = control->nonb_low;
     swb = control->nonb_cut;
 
-    if (fabs(swa) > 0.01 && control->me == 0)
+    if ((fabs(swa) > 0.01) && (control->me == 0))
       error->warning(FLERR, "Non-zero lower Taper-radius cutoff");
 
-    if (swb < 0) {
+    if (swb < 0.0) {
       error->all(FLERR,"Negative upper Taper-radius cutoff");
-    }
-    else if (swb < 5 && control->me == 0)
-      error->warning(FLERR,fmt::format("Warning: very low Taper-radius cutoff: "
-                                       "{}\n", swb));
+    } else if ((swb < 5.0) && (control->me == 0))
+      error->warning(FLERR,fmt::format("Very low Taper-radius cutoff: {}\n", swb));
+
     d1 = swb - swa;
     d7 = pow(d1, 7.0);
     swa2 = SQR(swa);

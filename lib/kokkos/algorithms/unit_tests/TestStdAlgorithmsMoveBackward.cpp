@@ -56,7 +56,7 @@ void run_single_scenario(const InfoType& scenario_info, int apiId) {
     ASSERT_EQ(dist, 5);
   } else if (apiId == 1) {
     auto rit       = KE::move_backward("mylabel", exespace(), KE::begin(v),
-                                 KE::end(v), KE::end(v2));
+                                       KE::end(v), KE::end(v2));
     const int dist = KE::distance(KE::begin(v2), rit);
     ASSERT_EQ(dist, 5);
   } else if (apiId == 2) {

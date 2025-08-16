@@ -60,6 +60,9 @@ class DihedralClass2Kokkos : public DihedralClass2 {
                           const F_FLOAT &vb2x, const F_FLOAT &vb2y, const F_FLOAT &vb2z,
                           const F_FLOAT &vb3x, const F_FLOAT &vb3y, const F_FLOAT &vb3z) const;
 
+  DAT::tdual_efloat_1d k_eatom;
+  DAT::tdual_virial_array k_vatom;
+
  protected:
 
   class NeighborKokkos *neighborKK;
@@ -67,9 +70,6 @@ class DihedralClass2Kokkos : public DihedralClass2 {
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;
   typename AT::t_int_2d dihedrallist;
-
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
   typename AT::t_efloat_1d d_eatom;
   typename AT::t_virial_array d_vatom;
 

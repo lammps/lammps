@@ -41,7 +41,7 @@ Rerun::Rerun(LAMMPS *lmp) : Command(lmp) {}
 void Rerun::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR,"Rerun command before simulation box is defined");
+    error->all(FLERR,"Rerun command before simulation box is defined" + utils::errorurl(33));
 
   if (narg < 2) error->all(FLERR,"Illegal rerun command");
 
@@ -126,7 +126,7 @@ void Rerun::command(int narg, char **arg)
   // pass list of filenames to ReadDump
   // along with post-"dump" args and post-"format" args
 
-  auto rd = new ReadDump(lmp);
+  auto *rd = new ReadDump(lmp);
 
   rd->store_files(nfile,arg);
   if (nremain)

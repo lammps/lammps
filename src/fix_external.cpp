@@ -30,31 +30,33 @@ enum{PF_CALLBACK,PF_ARRAY};
 /* ---------------------------------------------------------------------- */
 
 FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  fexternal(nullptr), caller_vector(nullptr)
+  Fix(lmp, narg, arg), fexternal(nullptr), caller_vector(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix external command");
 
   scalar_flag = 1;
   global_freq = 1;
+  peratom_flag = 1;
+  peratom_freq = 1;
+  size_peratom_cols = 3;
   extscalar = 1;
   energy_global_flag = energy_peratom_flag = 1;
   virial_global_flag = virial_peratom_flag = 1;
   thermo_energy = thermo_virial = 1;
 
   if (strcmp(arg[3],"pf/callback") == 0) {
-    if (narg != 6) error->all(FLERR,"Illegal fix external command");
+    if (narg != 6) error->all(FLERR,"Incorrect number of args for fix external pf/callback");
     mode = PF_CALLBACK;
     ncall = utils::inumeric(FLERR,arg[4],false,lmp);
     napply = utils::inumeric(FLERR,arg[5],false,lmp);
     if (ncall <= 0 || napply <= 0)
-      error->all(FLERR,"Illegal fix external command");
+      error->all(FLERR,"Illegal values for ncall or napply in fix external pf/callback");
   } else if (strcmp(arg[3],"pf/array") == 0) {
-    if (narg != 5) error->all(FLERR,"Illegal fix external command");
+    if (narg != 5) error->all(FLERR,"Incorrect number of args for fix external pf/array");
     mode = PF_ARRAY;
     napply = utils::inumeric(FLERR,arg[4],false,lmp);
-    if (napply <= 0) error->all(FLERR,"Illegal fix external command");
-  } else error->all(FLERR,"Illegal fix external command");
+    if (napply <= 0) error->all(FLERR,"Illegal value for napply for fix external pf/array");
+  } else error->all(FLERR,"Unknown fix external mode {}", arg[3]);
 
   callback = nullptr;
 
@@ -323,6 +325,7 @@ void FixExternal::grow_arrays(int nmax)
 {
   memory->grow(fexternal,nmax,3,"external:fexternal");
   memset(&fexternal[0][0], 0, sizeof(double)*3*nmax);
+  array_atom = fexternal;
 }
 
 /* ----------------------------------------------------------------------

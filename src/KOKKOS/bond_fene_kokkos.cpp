@@ -23,6 +23,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "kokkos.h"
 #include "math_const.h"
 #include "memory_kokkos.h"
 #include "neighbor_kokkos.h"
@@ -100,7 +101,11 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   copymode = 1;
 
-  // loop over neighbors of my atoms
+  // loop over the bond list
+
+  int bond_blocksize = 0;
+  if (lmp->kokkos->bond_block_size_set)
+    bond_blocksize = lmp->kokkos->bond_block_size;
 
   EV_FLOAT ev;
 
@@ -112,9 +117,15 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   } else {
     if (newton_bond) {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<1,0> >(0,nbondlist),*this);
+      if (bond_blocksize)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<1,0> >(0,nbondlist,Kokkos::ChunkSize(bond_blocksize)),*this);
+      else
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<1,0> >(0,nbondlist),*this);
     } else {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<0,0> >(0,nbondlist),*this);
+      if (bond_blocksize)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<0,0> >(0,nbondlist,Kokkos::ChunkSize(bond_blocksize)),*this);
+      else
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<0,0> >(0,nbondlist),*this);
     }
   }
 

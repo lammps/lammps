@@ -27,9 +27,9 @@ Syntax
 
   .. parsed-literal::
 
-       *b* values = one or more bond types
-       *a* values = one or more angle types
-       *t* values = one or more atom types
+       *b* values = one or more bond types (may use type labels)
+       *a* values = one or more angle types  (may use type labels)
+       *t* values = one or more atom types (may use type labels)
        *m* value = one or more mass values
 
 * zero or more keyword/value pairs may be appended
@@ -123,7 +123,7 @@ single processor, to enable good parallel performance.  A cluster is
 defined as a central atom connected to others in the cluster by
 constrained bonds.  LAMMPS allows for the following kinds of clusters
 to be constrained: one central atom bonded to 1 or 2 or 3 atoms, or
-one central atom bonded to 2 others and the angle between the 3 atoms
+one central atom bonded to 2 others and the angle between the three atoms
 also constrained.  This means water molecules or CH2 or CH3 groups may
 be constrained, but not all the C-C backbone bonds of a long polymer
 chain.
@@ -137,7 +137,17 @@ constrained (within a fudge factor of MASSDELTA specified in
 both bonds in the angle are constrained then the angle will also be
 constrained if its type is in the list.
 
-For all constraints, a particular bond is only constrained if both
+.. versionchanged:: 29Aug2024
+
+The types may be given as type labels *only* if there is no atom, bond,
+or angle type label named *b*, *a*, *t*, or *m* defined in the
+simulation.  If that is the case, type labels cannot be used as
+constraint type index with these two fixes, because the type labels
+would be incorrectly treated as a new type of constraint instead.
+Thus, LAMMPS will print a warning and type label handling is disabled
+and numeric types must be used.
+
+For all constraints, a particular bond is only constrained if *both*
 atoms in the bond are in the group specified with the SHAKE fix.
 
 The degrees-of-freedom removed by SHAKE bonds and angles are accounted
@@ -186,7 +196,7 @@ preserve the bond lengths and angles as closely as the constraints
 during the MD, they are generally close enough so that the constraints
 will be fulfilled to the desired accuracy within a few MD steps
 following the minimization. The default value for *kbond* depends on the
-:doc:`units <units>` setting and is 1.0e6*k_B.
+:doc:`units <units>` setting and is 1.0e9*k_B.
 
 ----------
 
@@ -262,10 +272,10 @@ which can lead to poor energy conservation.  You can test for this in
 your system by running a constant NVE simulation with a particular set
 of SHAKE parameters and monitoring the energy versus time.
 
-SHAKE or RATTLE should not be used to constrain an angle at 180 degrees
+SHAKE or RATTLE *cannot* not be used to constrain an angle at 180 degrees
 (e.g. a linear CO2 molecule).  This causes a divergence when solving the
 constraint equations numerically.  You can use :doc:`fix rigid or fix
-rigid/small <fix_rigid>` instead to make a linear molecule rigid.
+rigid/small <fix_rigid>` instead to simulate rigid linear molecules.
 
 When used during minimization choosing a too large value of the *kbond*
 can make minimization very inefficient and also cause stability problems

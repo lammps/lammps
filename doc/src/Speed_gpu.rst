@@ -31,17 +31,18 @@ Coulombics.  It has the following general features:
   (for Nvidia GPUs, AMD GPUs, Intel GPUs, and multicore CPUs).
   so that the same functionality is supported on a variety of hardware.
 
-**Required hardware/software:**
+Required hardware/software
+""""""""""""""""""""""""""
 
 To compile and use this package in CUDA mode, you currently need
 to have an NVIDIA GPU and install the corresponding NVIDIA CUDA
 toolkit software on your system (this is only tested on Linux
 and unsupported on Windows):
 
-* Check if you have an NVIDIA GPU: cat /proc/driver/nvidia/gpus/\*/information
+* Check if you have an NVIDIA GPU: ``cat /proc/driver/nvidia/gpus/\*/information``
 * Go to https://developer.nvidia.com/cuda-downloads
 * Install a driver and toolkit appropriate for your system (SDK is not necessary)
-* Run lammps/lib/gpu/nvc_get_devices (after building the GPU library, see below) to
+* Run ``lammps/lib/gpu/nvc_get_devices`` (after building the GPU library, see below) to
   list supported devices and properties
 
 To compile and use this package in OpenCL mode, you currently need
@@ -51,7 +52,7 @@ installed. There can be multiple of them for the same or different hardware
 (GPUs, CPUs, Accelerators) installed at the same time. OpenCL refers to those
 as 'platforms'.  The GPU library will try to auto-select the best suitable platform,
 but this can be overridden using the platform option of the :doc:`package <package>`
-command. run lammps/lib/gpu/ocl_get_devices to get a list of available
+command. run ``lammps/lib/gpu/ocl_get_devices`` to get a list of available
 platforms and devices with a suitable ICD available.
 
 To compile and use this package for Intel GPUs, OpenCL or the Intel oneAPI
@@ -63,18 +64,20 @@ provides optimized C++, MPI, and many other libraries and tools. See:
 If you do not have a discrete GPU card installed, this package can still provide
 significant speedups on some CPUs that include integrated GPUs. Additionally, for
 many macs, OpenCL is already included with the OS and Makefiles are available
-in the lib/gpu directory.
+in the ``lib/gpu`` directory.
 
 To compile and use this package in HIP mode, you have to have the AMD ROCm
 software installed. Versions of ROCm older than 3.5 are currently deprecated
 by AMD.
 
-**Building LAMMPS with the GPU package:**
+Building LAMMPS with the GPU package
+""""""""""""""""""""""""""""""""""""
 
 See the :ref:`Build extras <gpu>` page for
 instructions.
 
-**Run with the GPU package from the command line:**
+Run with the GPU package from the command-line
+""""""""""""""""""""""""""""""""""""""""""""""
 
 The ``mpirun`` or ``mpiexec`` command sets the total number of MPI tasks
 used by LAMMPS (one or multiple per compute node) and the number of MPI
@@ -94,31 +97,36 @@ shared by 4 MPI tasks.
 The GPU package also has limited support for OpenMP for both
 multi-threading and vectorization of routines that are run on the CPUs.
 This requires that the GPU library and LAMMPS are built with flags to
-enable OpenMP support (e.g. -fopenmp). Some styles for time integration
+enable OpenMP support (e.g. ``-fopenmp``). Some styles for time integration
 are also available in the GPU package. These run completely on the CPUs
 in full double precision, but exploit multi-threading and vectorization
 for faster performance.
 
-Use the "-sf gpu" :doc:`command-line switch <Run_options>`, which will
-automatically append "gpu" to styles that support it.  Use the "-pk
-gpu Ng" :doc:`command-line switch <Run_options>` to set Ng = # of
-GPUs/node to use. If Ng is 0, the number is selected automatically as
+Use the ``-sf gpu`` :doc:`command-line switch <Run_options>`, which will
+automatically append "gpu" to styles that support it.  Use the ``-pk
+gpu Ng`` :doc:`command-line switch <Run_options>` to set ``Ng`` = # of
+GPUs/node to use. If ``Ng`` is 0, the number is selected automatically as
 the number of matching GPUs that have the highest number of compute
 cores.
 
 .. code-block:: bash
 
-   lmp_machine -sf gpu -pk gpu 1 -in in.script                         # 1 MPI task uses 1 GPU
-   mpirun -np 12 lmp_machine -sf gpu -pk gpu 2 -in in.script           # 12 MPI tasks share 2 GPUs on a single 16-core (or whatever) node
-   mpirun -np 48 -ppn 12 lmp_machine -sf gpu -pk gpu 2 -in in.script   # ditto on 4 16-core nodes
+   # 1 MPI task uses 1 GPU
+   lmp_machine -sf gpu -pk gpu 1 -in in.script
 
-Note that if the "-sf gpu" switch is used, it also issues a default
+   # 12 MPI tasks share 2 GPUs on a single 16-core (or whatever) node
+   mpirun -np 12 lmp_machine -sf gpu -pk gpu 2 -in in.script
+
+   # ditto on 4 16-core nodes
+   mpirun -np 48 -ppn 12 lmp_machine -sf gpu -pk gpu 2 -in in.script
+
+Note that if the ``-sf gpu`` switch is used, it also issues a default
 :doc:`package gpu 0 <package>` command, which will result in
 automatic selection of the number of GPUs to use.
 
-Using the "-pk" switch explicitly allows for setting of the number of
+Using the ``-pk`` switch explicitly allows for setting of the number of
 GPUs/node to use and additional options.  Its syntax is the same as
-the "package gpu" command.  See the :doc:`package <package>`
+the ``package gpu`` command.  See the :doc:`package <package>`
 command page for details, including the default values used for
 all its options if it is not specified.
 
@@ -128,7 +136,8 @@ affect the setting for bonded interactions (LAMMPS default is "on").
 The "off" setting for pairwise interaction is currently required for
 GPU package pair styles.
 
-**Or run with the GPU package by editing an input script:**
+Run with the GPU package by editing an input script
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The discussion above for the ``mpirun`` or ``mpiexec`` command, MPI
 tasks/node, and use of multiple MPI tasks/GPU is the same.
@@ -141,10 +150,11 @@ Use the :doc:`suffix gpu <suffix>` command, or you can explicitly add an
    pair_style lj/cut/gpu 2.5
 
 You must also use the :doc:`package gpu <package>` command to enable the
-GPU package, unless the "-sf gpu" or "-pk gpu" :doc:`command-line switches <Run_options>` were used.  It specifies the number of
+GPU package, unless the ``-sf gpu`` or ``-pk gpu`` :doc:`command-line switches <Run_options>` were used.  It specifies the number of
 GPUs/node to use, as well as other options.
 
-**Speed-ups to expect:**
+Speed-up to expect
+""""""""""""""""""
 
 The performance of a GPU versus a multicore CPU is a function of your
 hardware, which pair style is used, the number of atoms/GPU, and the
@@ -171,10 +181,13 @@ better with multiple OMP threads because the inter-process communication
 is higher for these styles with the GPU package in order to allow
 deterministic results.
 
-**Guidelines for best performance:**
+Guidelines for best performance
+"""""""""""""""""""""""""""""""
 
-* Using multiple MPI tasks per GPU will often give the best performance,
-  as allowed my most multicore CPU/GPU configurations.
+* Using multiple MPI tasks (2-10) per GPU will often give the best
+  performance, as allowed my most multicore CPU/GPU configurations.
+  Using too many MPI tasks will result in worse performance due to
+  growing overhead with the growing number of MPI tasks.
 * If the number of particles per MPI task is small (e.g. 100s of
   particles), it can be more efficient to run with fewer MPI tasks per
   GPU, even if you do not use all the cores on the compute node.
@@ -194,12 +207,13 @@ deterministic results.
   :doc:`angle <angle_style>`, :doc:`dihedral <dihedral_style>`,
   :doc:`improper <improper_style>`, and :doc:`long-range <kspace_style>`
   calculations will not be included in the "Pair" time.
-* Since only part of the pppm kspace style is GPU accelerated, it
-  may be faster to only use GPU acceleration for Pair styles with
-  long-range electrostatics.  See the "pair/only" keyword of the
-  package command for a shortcut to do that.  The work between kspace
-  on the CPU and non-bonded interactions on the GPU can be balanced
-  through adjusting the coulomb cutoff without loss of accuracy.
+* Since only part of the pppm kspace style is GPU accelerated, it may be
+  faster to only use GPU acceleration for Pair styles with long-range
+  electrostatics.  See the "pair/only" keyword of the :doc:`package
+  command <package>` for a shortcut to do that.  The distribution of
+  work between kspace on the CPU and non-bonded interactions on the GPU
+  can be balanced through adjusting the coulomb cutoff without loss of
+  accuracy.
 * When the *mode* setting for the package gpu command is force/neigh,
   the time for neighbor list calculations on the GPU will be added into
   the "Pair" time, not the "Neigh" time.  An additional breakdown of the
@@ -215,4 +229,6 @@ deterministic results.
 Restrictions
 """"""""""""
 
-None.
+When using :doc:`hybrid pair styles <pair_hybrid>`, the neighbor list
+must be generated on the host instead of the GPU and thus the potential
+GPU acceleration is reduced.

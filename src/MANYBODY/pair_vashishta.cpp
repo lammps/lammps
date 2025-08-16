@@ -23,6 +23,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -278,7 +279,9 @@ void PairVashishta::init_style()
 
 double PairVashishta::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
 
   return cutmax;
 }
@@ -478,8 +481,7 @@ void PairVashishta::setup_params()
 
 /* ---------------------------------------------------------------------- */
 
-void PairVashishta::twobody(Param *param, double rsq, double &fforce,
-                            int eflag, double &eng)
+void PairVashishta::twobody(const Param *param, double rsq, double &fforce, int eflag, double &eng)
 {
   double r,rinvsq,r4inv,r6inv,reta,lam1r,lam4r,vc2,vc3;
 
@@ -504,9 +506,8 @@ void PairVashishta::twobody(Param *param, double rsq, double &fforce,
 
 /* ---------------------------------------------------------------------- */
 
-void PairVashishta::threebody(Param *paramij, Param *paramik, Param *paramijk,
-                       double rsq1, double rsq2,
-                       double *delr1, double *delr2,
+void PairVashishta::threebody(const Param *paramij, const Param *paramik, const Param *paramijk,
+                       double rsq1, double rsq2, double *delr1, double *delr2,
                        double *fj, double *fk, int eflag, double &eng)
 {
   double r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;

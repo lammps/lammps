@@ -108,7 +108,7 @@ void host_thread_yield(const uint32_t i, const WaitMode mode) {
 #endif /* defined( KOKKOS_ENABLE_ASM ) */
 }
 
-void spinwait_while_equal(ThreadState const volatile& flag,
+void spinwait_while_equal(std::atomic<ThreadState> const& flag,
                           ThreadState const value) {
   Kokkos::store_fence();
   uint32_t i = 0;

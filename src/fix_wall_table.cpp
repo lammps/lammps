@@ -389,7 +389,7 @@ void FixWallTable::spline(double *x, double *y, int n, double yp1, double ypn, d
 {
   int i, k;
   double p, qn, sig, un;
-  auto u = new double[n];
+  auto *u = new double[n];
 
   if (yp1 > BIGNUM)
     y2[0] = u[0] = 0.0;

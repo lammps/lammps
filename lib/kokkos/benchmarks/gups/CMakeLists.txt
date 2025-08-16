@@ -1,4 +1,1 @@
-KOKKOS_ADD_EXECUTABLE(
-  gups
-  SOURCES gups.cpp
-)
+kokkos_add_executable(gups SOURCES gups.cpp)

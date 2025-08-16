@@ -6,6 +6,10 @@ if(BUILD_TOOLS)
   add_executable(stl_bin2txt ${LAMMPS_TOOLS_DIR}/stl_bin2txt.cpp)
   install(TARGETS stl_bin2txt DESTINATION ${CMAKE_INSTALL_BINDIR})
 
+  add_executable(reformat-json ${LAMMPS_TOOLS_DIR}/json/reformat-json.cpp)
+  target_include_directories(reformat-json PRIVATE ${LAMMPS_SOURCE_DIR})
+  install(TARGETS reformat-json DESTINATION ${CMAKE_INSTALL_BINDIR})
+
   include(CheckGeneratorSupport)
   if(CMAKE_GENERATOR_SUPPORT_FORTRAN)
     include(CheckLanguage)

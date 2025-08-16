@@ -348,12 +348,20 @@ void FixBoxRelax::init()
   // set temperature and pressure ptrs
 
   temperature = modify->get_compute_by_id(id_temp);
-  if (!temperature)
-    error->all(FLERR,"Temperature compute ID {} for fix box/relax does not exist", id_temp);
+  if (!temperature) {
+    error->all(FLERR,"Temperature compute ID {} for fix {} does not exist", id_temp, style);
+  } else {
+    if (temperature->tempflag == 0)
+      error->all(FLERR, "Compute ID {} for fix {} does not compute a temperature", id_temp, style);
+  }
 
   pressure = modify->get_compute_by_id(id_press);
-  if (!pressure)
-    error->all(FLERR,"Pressure compute ID {} for fix box/relax does not exist", id_press);
+  if (!pressure) {
+    error->all(FLERR,"Pressure compute ID {} for fix {} does not exist", id_press, style);
+  } else {
+    if (pressure->pressflag == 0)
+      error->all(FLERR,"Compute ID {} for fix {} does not compute pressure", id_press, style);
+  }
 
   pv2e = 1.0 / force->nktv2p;
 
@@ -363,7 +371,7 @@ void FixBoxRelax::init()
   // detect if any rigid fixes exist so rigid bodies move when box is remapped
 
   rfix.clear();
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if (ifix->rigid_flag) rfix.push_back(ifix);
 
   // initial box dimensions
@@ -532,7 +540,7 @@ int FixBoxRelax::min_reset_ref()
   // only needed for deviatoric external stress
 
   if (deviatoric_flag && nreset_h0 > 0) {
-    int delta = update->ntimestep - update->beginstep;
+    bigint delta = update->ntimestep - update->beginstep;
     if (delta % nreset_h0 == 0) {
       compute_sigma();
       itmp = 1;
@@ -692,7 +700,7 @@ void FixBoxRelax::couple()
   }
 
   if (!std::isfinite(p_current[0]) || !std::isfinite(p_current[1]) || !std::isfinite(p_current[2]))
-    error->all(FLERR,"Non-numeric pressure - simulation unstable");
+    error->all(FLERR,"Non-numeric pressure - simulation unstable" + utils::errorurl(6));
 
   // switch order from xy-xz-yz to Voigt ordering
 
@@ -702,7 +710,7 @@ void FixBoxRelax::couple()
     p_current[5] = tensor[3];
 
     if (!std::isfinite(p_current[3]) || !std::isfinite(p_current[4]) || !std::isfinite(p_current[5]))
-      error->all(FLERR,"Non-numeric pressure - simulation unstable");
+      error->all(FLERR,"Non-numeric pressure - simulation unstable" + utils::errorurl(6));
   }
 }
 
@@ -903,7 +911,7 @@ void FixBoxRelax::compute_press_target()
   p_hydro = 0.0;
   for (int i = 0; i < 3; i++)
     if (p_flag[i]) p_hydro += p_target[i];
-  if (pflagsum) p_hydro /= pflagsum;
+  if (pflagsum != 0.0) p_hydro /= pflagsum;
 
   for (int i = 0; i < 3; i++) {
     if (p_flag[i] && fabs(p_hydro - p_target[i]) > 1.0e-6) deviatoric_flag = 1;

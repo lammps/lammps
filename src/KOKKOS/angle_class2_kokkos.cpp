@@ -38,6 +38,7 @@ static constexpr double SMALL = 0.001;
 template<class DeviceType>
 AngleClass2Kokkos<DeviceType>::AngleClass2Kokkos(LAMMPS *lmp) : AngleClass2(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -141,12 +142,12 @@ void AngleClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   copymode = 0;
@@ -386,21 +387,21 @@ void AngleClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
     k_theta0.h_view[i] = theta0[i];
   }
 
-  k_k2.template modify<LMPHostType>();
-  k_k3.template modify<LMPHostType>();
-  k_k4.template modify<LMPHostType>();
-  k_bb_k.template modify<LMPHostType>();
-  k_bb_r1.template modify<LMPHostType>();
-  k_bb_r2.template modify<LMPHostType>();
-  k_ba_k1.template modify<LMPHostType>();
-  k_ba_k2.template modify<LMPHostType>();
-  k_ba_r1.template modify<LMPHostType>();
-  k_ba_r2.template modify<LMPHostType>();
-  k_setflag.template modify<LMPHostType>();
-  k_setflag_a.template modify<LMPHostType>();
-  k_setflag_bb.template modify<LMPHostType>();
-  k_setflag_ba.template modify<LMPHostType>();
-  k_theta0.template modify<LMPHostType>();
+  k_k2.modify_host();
+  k_k3.modify_host();
+  k_k4.modify_host();
+  k_bb_k.modify_host();
+  k_bb_r1.modify_host();
+  k_bb_r2.modify_host();
+  k_ba_k1.modify_host();
+  k_ba_k2.modify_host();
+  k_ba_r1.modify_host();
+  k_ba_r2.modify_host();
+  k_setflag.modify_host();
+  k_setflag_a.modify_host();
+  k_setflag_bb.modify_host();
+  k_setflag_ba.modify_host();
+  k_theta0.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -465,21 +466,21 @@ void AngleClass2Kokkos<DeviceType>::read_restart(FILE *fp)
     k_theta0.h_view[i] = theta0[i];
   }
 
-  k_k2.template modify<LMPHostType>();
-  k_k3.template modify<LMPHostType>();
-  k_k4.template modify<LMPHostType>();
-  k_bb_k.template modify<LMPHostType>();
-  k_bb_r1.template modify<LMPHostType>();
-  k_bb_r2.template modify<LMPHostType>();
-  k_ba_k1.template modify<LMPHostType>();
-  k_ba_k2.template modify<LMPHostType>();
-  k_ba_r1.template modify<LMPHostType>();
-  k_ba_r2.template modify<LMPHostType>();
-  k_setflag.template modify<LMPHostType>();
-  k_setflag_a.template modify<LMPHostType>();
-  k_setflag_bb.template modify<LMPHostType>();
-  k_setflag_ba.template modify<LMPHostType>();
-  k_theta0.template modify<LMPHostType>();
+  k_k2.modify_host();
+  k_k3.modify_host();
+  k_k4.modify_host();
+  k_bb_k.modify_host();
+  k_bb_r1.modify_host();
+  k_bb_r2.modify_host();
+  k_ba_k1.modify_host();
+  k_ba_k2.modify_host();
+  k_ba_r1.modify_host();
+  k_ba_r2.modify_host();
+  k_setflag.modify_host();
+  k_setflag_a.modify_host();
+  k_setflag_bb.modify_host();
+  k_setflag_ba.modify_host();
+  k_theta0.modify_host();
 }
 
 /* ----------------------------------------------------------------------

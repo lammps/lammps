@@ -53,7 +53,7 @@ struct has_type {
 template <typename T, typename S, typename... Pack>
 struct has_type<T, S, Pack...> {
  private:
-  enum { self_value = std::is_same<T, S>::value };
+  enum { self_value = std::is_same_v<T, S> };
 
   using next = has_type<T, Pack...>;
 
@@ -102,8 +102,7 @@ struct are_integral<T, Args...> {
         // Accept std::is_integral OR std::is_enum as an integral value
         // since a simple enum value is automically convertible to an
         // integral value.
-    (std::is_integral<T>::value || std::is_enum<T>::value) &&
-    are_integral<Args...>::value
+    (std::is_integral_v<T> || std::is_enum_v<T>)&&are_integral<Args...>::value
   };
 };
 
@@ -119,93 +118,6 @@ namespace Kokkos {
 namespace Impl {
 
 //----------------------------------------------------------------------------
-// if_
-
-template <bool Cond, typename TrueType, typename FalseType>
-struct if_c {
-  enum : bool { value = Cond };
-
-  using type = FalseType;
-
-  using value_type = std::remove_const_t<std::remove_reference_t<type>>;
-
-  using const_value_type = std::add_const_t<value_type>;
-
-  static KOKKOS_INLINE_FUNCTION const_value_type& select(const_value_type& v) {
-    return v;
-  }
-
-  static KOKKOS_INLINE_FUNCTION value_type& select(value_type& v) { return v; }
-
-  template <class T>
-  static KOKKOS_INLINE_FUNCTION value_type& select(const T&) {
-    value_type* ptr(0);
-    return *ptr;
-  }
-
-  template <class T>
-  static KOKKOS_INLINE_FUNCTION const_value_type& select(const T&,
-                                                         const_value_type& v) {
-    return v;
-  }
-
-  template <class T>
-  static KOKKOS_INLINE_FUNCTION value_type& select(const T&, value_type& v) {
-    return v;
-  }
-};
-
-template <typename TrueType, typename FalseType>
-struct if_c<true, TrueType, FalseType> {
-  enum : bool { value = true };
-
-  using type = TrueType;
-
-  using value_type = std::remove_const_t<std::remove_reference_t<type>>;
-
-  using const_value_type = std::add_const_t<value_type>;
-
-  static KOKKOS_INLINE_FUNCTION const_value_type& select(const_value_type& v) {
-    return v;
-  }
-
-  static KOKKOS_INLINE_FUNCTION value_type& select(value_type& v) { return v; }
-
-  template <class T>
-  static KOKKOS_INLINE_FUNCTION value_type& select(const T&) {
-    value_type* ptr(0);
-    return *ptr;
-  }
-
-  template <class F>
-  static KOKKOS_INLINE_FUNCTION const_value_type& select(const_value_type& v,
-                                                         const F&) {
-    return v;
-  }
-
-  template <class F>
-  static KOKKOS_INLINE_FUNCTION value_type& select(value_type& v, const F&) {
-    return v;
-  }
-};
-
-template <typename TrueType>
-struct if_c<false, TrueType, void> {
-  enum : bool { value = false };
-
-  using type       = void;
-  using value_type = void;
-};
-
-template <typename FalseType>
-struct if_c<true, void, FalseType> {
-  enum : bool { value = true };
-
-  using type       = void;
-  using value_type = void;
-};
-
-//----------------------------------------------------------------------------
 // These 'constexpr'functions can be used as
 // both regular functions and meta-function.
 
@@ -213,33 +125,6 @@ struct if_c<true, void, FalseType> {
 KOKKOS_INLINE_FUNCTION
 constexpr bool is_integral_power_of_two(const size_t N) {
   return (0 < N) && (0 == (N & (N - 1)));
-}
-
-/**\brief  Return integral 'k' such that N = 2^k, assuming valid.  */
-KOKKOS_INLINE_FUNCTION
-constexpr unsigned integral_power_of_two_assume_valid(const size_t N) {
-  return N == 1 ? 0 : 1 + integral_power_of_two_assume_valid(N >> 1);
-}
-
-/**\brief  Return integral 'k' such that N = 2^k, if exists.
- *         If does not exist return ~0u.
- */
-KOKKOS_INLINE_FUNCTION
-constexpr unsigned integral_power_of_two(const size_t N) {
-  return is_integral_power_of_two(N) ? integral_power_of_two_assume_valid(N)
-                                     : ~0u;
-}
-
-/** \brief  If power of two then return power,
- *          otherwise return ~0u.
- */
-KOKKOS_FORCEINLINE_FUNCTION
-unsigned power_of_two_if_valid(const unsigned N) {
-  unsigned p = ~0u;
-  if (is_integral_power_of_two(N)) {
-    p = bit_scan_forward(N);
-  }
-  return p;
 }
 
 //----------------------------------------------------------------------------

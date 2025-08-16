@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <cstdint>
 
 namespace ptm {
-
+// NOLINTBEGIN
 typedef struct {
   int id;
   uint64_t hash;
@@ -23,6 +23,7 @@ typedef struct {
   int8_t canonical_labelling[PTM_MAX_POINTS];
   int8_t facets[PTM_MAX_FACETS][3];
 } graph_t;
+// NOLINTEND
 
 #define NUM_SC_GRAPHS 1
 #define NUM_ICO_GRAPHS 1

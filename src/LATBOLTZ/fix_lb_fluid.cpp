@@ -32,10 +32,11 @@
 #include "random_mars.h"
 #include "update.h"
 
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
 #include <cstring>
-#include <vector>
+#include <utility>
 
 #include "latboltz_const.h"
 
@@ -220,9 +221,11 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
 
   // Flags for fix references (i.e. quantities accessible via f_ID[n]
   vector_flag = 1;
+  extvector = 0;
   size_vector = 5;
 
   scalar_flag = 1;
+  extscalar = 0;
 
   int iarg = 6;
   while (iarg < narg) {
@@ -358,7 +361,7 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based array register
   // with Atom class
   //--------------------------------------------------------------------------
-  grow_arrays(atom->nmax);
+  FixLbFluid::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
   for (int i = 0; i < atom->nmax; i++) {
@@ -377,9 +380,8 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   //--------------------------------------------------------------------------
   if (setdx == 1) {
     double dx_lb1 = sqrt(3.0 * viscosity * dt_lb / densityinit_real);
-    double mindomain =
-        std::min(std::min(domain->xprd / comm->procgrid[0], domain->yprd / comm->procgrid[1]),
-                 domain->zprd / comm->procgrid[2]);
+    double mindomain = MIN(MIN(domain->xprd / comm->procgrid[0], domain->yprd / comm->procgrid[1]),
+                           domain->zprd / comm->procgrid[2]);
     dx_lb = mindomain / floor(mindomain / dx_lb1);
 
     if (comm->me == 0) utils::logmesg(lmp, "Setting lattice-Boltzmann dx to {:10.6f}", dx_lb);
@@ -436,9 +438,9 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   //--------------------------------------------------------------------------
   // Set the total number of grid points in each direction.
   //--------------------------------------------------------------------------
-  Nbx = (int) (domain->xprd / dx_lb + 0.5);
-  Nby = (int) (domain->yprd / dx_lb + 0.5);
-  Nbz = (int) (domain->zprd / dx_lb + 0.5);
+  Nbx = std::lround(domain->xprd / dx_lb);
+  Nby = std::lround(domain->yprd / dx_lb);
+  Nbz = std::lround(domain->zprd / dx_lb);
 
   //--------------------------------------------------------------------------
   // Set the number of grid points in each dimension for the local subgrids.
@@ -737,9 +739,9 @@ void FixLbFluid::init()
   // between runs.
   //--------------------------------------------------------------------------
   int Nbx_now, Nby_now, Nbz_now;
-  Nbx_now = (int) (domain->xprd / dx_lb + 0.5);
-  Nby_now = (int) (domain->yprd / dx_lb + 0.5);
-  Nbz_now = (int) (domain->zprd / dx_lb + 0.5);
+  Nbx_now = std::lround(domain->xprd / dx_lb);
+  Nby_now = std::lround(domain->yprd / dx_lb);
+  Nbz_now = std::lround(domain->zprd / dx_lb);
   // If there are walls in the z-direction add an extra grid point.
   if (domain->periodicity[2] == 0) { Nbz_now += 1; }
 
@@ -1024,12 +1026,13 @@ void FixLbFluid::initializeLB()
 {
   for (int i = 0; i < subNbx + 3; i++) {
 
+    // NOLINTBEGIN
     int ix;
     if (i == subNbx + 2)
       ix = round(((domain->sublo[0] - domain->boxlo[0]) / dx_lb)) - 2;
     else
       ix = round(((domain->sublo[0] - domain->boxlo[0]) / dx_lb)) + (i - 1);
-
+    // NOLINTEND
     for (int j = 0; j < subNby + 3; j++)
       for (int k = 0; k < subNbz + 3; k++) {
 
@@ -1039,12 +1042,13 @@ void FixLbFluid::initializeLB()
         else
           density_lb[i][j][k] = densityinit;
 
+        // NOLINTBEGIN
         int iz;
         if (k == subNbz + 2)
           iz = round(((domain->sublo[2] - domain->boxlo[2]) / dx_lb)) - 2;
         else
           iz = round(((domain->sublo[2] - domain->boxlo[2]) / dx_lb)) + (k - 1);
-
+        // NOLINTEND
         u_lb[i][j][k][0] = 0.0;
         if (lin_init)
           u_lb[i][j][k][1] = vwbt +
@@ -2342,7 +2346,7 @@ void FixLbFluid::SetupBuffers()
                   MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &dump_file_handle_raw);
 
     MPI_File_set_size(dump_file_handle_raw, 0);
-    MPI_File_set_view(dump_file_handle_raw, 0, MPI_DOUBLE, dump_file_mpitype, "native",
+    MPI_File_set_view(dump_file_handle_raw, 0, MPI_DOUBLE, dump_file_mpitype, (char *)"native",
                       MPI_INFO_NULL);
   }
 }
@@ -2362,7 +2366,7 @@ void FixLbFluid::dump(const bigint step)
       bigint offset = frameindex * block * (1 + 3);
       double time = dump_time_index ? update->ntimestep * dt_lb : frameindex;
 
-      fmt::print(dump_file_handle_xdmf,
+      utils::print(dump_file_handle_xdmf,
                  "      <Grid Name=\"{}\">\n"
                  "        <Time Value=\"{:f}\"/>\n\n"
                  "        <Topology TopologyType=\"3DCoRectMesh\" Dimensions=\"{} {} {}\"/>\n"
@@ -2376,7 +2380,7 @@ void FixLbFluid::dump(const bigint step)
                  "        </Geometry>\n\n",
                  step, time, fluid_global_n0[2], fluid_global_n0[1], fluid_global_n0[0],
                  domain->boxlo[2], domain->boxlo[1], domain->boxlo[0], dx_lb, dx_lb, dx_lb);
-      fmt::print(dump_file_handle_xdmf,
+      utils::print(dump_file_handle_xdmf,
                  "        <Attribute Name=\"density\">\n"
                  "          <DataItem ItemType=\"Function\" Function=\"$0 * {:f}\" "
                  "Dimensions=\"{} {} {}\">\n"
@@ -2389,7 +2393,7 @@ void FixLbFluid::dump(const bigint step)
                  dm_lb / (dx_lb * dx_lb * dx_lb), fluid_global_n0[2], fluid_global_n0[1],
                  fluid_global_n0[0], sizeof(double), offset, fluid_global_n0[2], fluid_global_n0[1],
                  fluid_global_n0[0], dump_file_name_raw.c_str());
-      fmt::print(dump_file_handle_xdmf,
+      utils::print(dump_file_handle_xdmf,
                  "        <Attribute Name=\"velocity\" AttributeType=\"Vector\">\n"
                  "          <DataItem ItemType=\"Function\" Function=\"$0 * {:f}\" "
                  "Dimensions=\"{} {} {} 3\">\n"
@@ -2402,7 +2406,7 @@ void FixLbFluid::dump(const bigint step)
                  dx_lb / dt_lb, fluid_global_n0[2], fluid_global_n0[1], fluid_global_n0[0],
                  sizeof(double), offset + block * 1, fluid_global_n0[2], fluid_global_n0[1],
                  fluid_global_n0[0], dump_file_name_raw.c_str());
-      fmt::print(dump_file_handle_xdmf, "      </Grid>\n\n");
+      utils::print(dump_file_handle_xdmf, "      </Grid>\n\n");
 
       frameindex++;
     }
@@ -2414,7 +2418,6 @@ void FixLbFluid::dump(const bigint step)
       // Transpose local arrays to fortran-order for paraview output
       std::vector<double> density_2_fort(size2);
       std::vector<double> velocity_2_fort(size2 * 3);
-      int indexc = 0;
       for (int i = 0; i < subNbx + 3; i++)
         for (int j = 0; j < subNby + 3; j++)
           for (int k = 0; k < subNbz + 3; k++) {
@@ -2422,12 +2425,11 @@ void FixLbFluid::dump(const bigint step)
             velocity_2_fort[0 + 3 * (i + (subNbx + 3) * (j + (subNby + 3) * k))] = u_lb[i][j][k][0];
             velocity_2_fort[1 + 3 * (i + (subNbx + 3) * (j + (subNby + 3) * k))] = u_lb[i][j][k][1];
             velocity_2_fort[2 + 3 * (i + (subNbx + 3) * (j + (subNby + 3) * k))] = u_lb[i][j][k][2];
-            indexc++;
           }
 
-      MPI_File_write_all(dump_file_handle_raw, &density_2_fort[0], 1, fluid_density_2_mpitype,
+      MPI_File_write_all(dump_file_handle_raw, density_2_fort.data(), 1, fluid_density_2_mpitype,
                          MPI_STATUS_IGNORE);
-      MPI_File_write_all(dump_file_handle_raw, &velocity_2_fort[0], 1, fluid_velocity_2_mpitype,
+      MPI_File_write_all(dump_file_handle_raw, velocity_2_fort.data(), 1, fluid_velocity_2_mpitype,
                          MPI_STATUS_IGNORE);
 
       // For C output use the following but switch to MPI_ORDER_C in mpiTypeXXXWrite
@@ -3726,18 +3728,18 @@ void FixLbFluid::initializeGeometry()
   if (!outfile)
     error->one(FLERR, " file {} could not be opened: {}", datfile, utils::getsyserror());
 
-  fmt::print(outfile, "\n me: {} px: {} py: {} pz: {}\n", me, comm->myloc[0], comm->myloc[1],
+  utils::print(outfile, "\n me: {} px: {} py: {} pz: {}\n", me, comm->myloc[0], comm->myloc[1],
              comm->myloc[2]);
 
   for (i = 0; i < subNbx; i++) {
-    fmt::print(outfile, "i={}\n", i);
+    utils::print(outfile, "i={}\n", i);
     for (k = subNbz - 1; k > -1; k--) {
       if (k == subNbz - 2 || k == 0) {
         for (j = 0; j < subNby + 2; j++) fputs("---", outfile);
         fputs("\n", outfile);
       }
       for (j = 0; j < subNby; j++) {
-        fmt::print(outfile, " {} ", sublattice[i][j][k].type);
+        utils::print(outfile, " {} ", sublattice[i][j][k].type);
         if (j == 0 || j == subNby - 2) fputs(" | ", outfile);
         if (j == subNby - 1) fputs("\n", outfile);
       }
@@ -3754,16 +3756,16 @@ void FixLbFluid::initializeGeometry()
   if (!outfile)
     error->one(FLERR, " file {} could not be opened: {}", datfile, utils::getsyserror());
 
-  fmt::print("\nme: {}\n", me);
+  utils::print("\nme: {}\n", me);
   for (i = 0; i < subNbx; i++) {
-    fmt::print("i={}\n", i);
+    utils::print("i={}\n", i);
     for (k = subNbz - 1; k > -1; k--) {
       if (k == subNbz - 2 || k == 0) {
         for (j = 0; j < subNby + 2; j++) fputs("---", outfile);
         fputs("\bn", outfile);
       }
       for (j = 0; j < subNby; j++) {
-        fmt::print(outfile, " {} ", sublattice[i][j][k].orientation);
+        utils::print(outfile, " {} ", sublattice[i][j][k].orientation);
         if (j == 0 || j == subNby - 2) fputs(" | ", outfile);
         if (j == subNby - 1) fputs("\n", outfile);
       }
@@ -4433,7 +4435,7 @@ void FixLbFluid::calc_MPT(double &totalmass, double totalmomentum[3], double &Ta
 bigint FixLbFluid::adjust_dof_fix() /* Based on same private method in compute class */
 {                                   /* altered to return fix_dof */
   bigint fix_dof = 0;
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if (ifix->dof_flag) fix_dof += ifix->dof(igroup);
   return fix_dof;
 }

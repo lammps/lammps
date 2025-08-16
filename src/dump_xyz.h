@@ -40,10 +40,10 @@ class DumpXYZ : public Dump {
   void write_data(int, double *) override;
   int modify_param(int, char **) override;
 
-  typedef void (DumpXYZ::*FnPtrWrite)(int, double *);
+  using FnPtrWrite = void (DumpXYZ::*)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions
   void write_string(int, double *);
-  void write_lines(int, double *);
+  virtual void write_lines(int, double *);
 };
 
 }    // namespace LAMMPS_NS

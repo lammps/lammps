@@ -382,7 +382,7 @@ void PairMEAMSpline::coeff(int narg, char **arg)
   int i,j,n;
 
   if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   // read potential file: also sets the number of elements.
   read_file(arg[2]);
@@ -428,7 +428,7 @@ void PairMEAMSpline::coeff(int narg, char **arg)
         setflag[i][j] = 1;
         count++;
       }
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   // check that each element is mapped to exactly one atom type
 
@@ -664,7 +664,7 @@ void PairMEAMSpline::SplineFunction::prepareSpline()
   h = (xmax-xmin)/(N-1);
   hsq = h*h;
 
-  auto  u = new double[N];
+  auto *  u = new double[N];
   Y2[0] = -0.5;
   u[0] = (3.0/(X[1]-X[0])) * ((Y[1]-Y[0])/(X[1]-X[0]) - deriv0);
   for (int i = 1; i <= N-2; i++) {

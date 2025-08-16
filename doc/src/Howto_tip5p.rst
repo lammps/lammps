@@ -32,9 +32,9 @@ The table below lists the force field parameters (in real :doc:`units
 <Mahoney>` and the TIP5P-E model :ref:`(Rick) <Rick>` for use with a
 long-range Coulombic solver (e.g. Ewald or PPPM in LAMMPS).
 
-   .. list-table::
+.. list-table::
       :header-rows: 1
-      :widths: auto
+      :widths: 50 25 25
 
       * - Parameter
         - TIP5P
@@ -87,7 +87,9 @@ atom style full or use :doc:`fix property/atom mol <fix_property_atom>`
 so that fix rigid/small can identify rigid bodies by their molecule ID.
 Also a :doc:`neigh_modify exclude <neigh_modify>` command is added to
 exclude computing intramolecular non-bonded interactions, since those
-are removed by the rigid fix anyway:
+are removed by the rigid fix anyway.  For simplicity and speed the
+example uses a cutoff Coulomb.  Most production simulations require
+long-range Coulomb instead.
 
 .. code-block:: LAMMPS
 

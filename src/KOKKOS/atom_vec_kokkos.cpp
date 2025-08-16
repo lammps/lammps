@@ -824,10 +824,12 @@ void AtomVecKokkos::unpack_reverse_kokkos(const int &n,
   // Choose correct reverse UnPackReverse kernel
 
   if (lmp->kokkos->reverse_comm_on_host) {
+    atomKK->sync(Host,F_MASK);
     struct AtomVecKokkos_UnPackReverse<LMPHostType> f(atomKK->k_f,buf,list);
     Kokkos::parallel_for(n,f);
     atomKK->modified(Host,F_MASK);
   } else {
+    atomKK->sync(Device,F_MASK);
     struct AtomVecKokkos_UnPackReverse<LMPDeviceType> f(atomKK->k_f,buf,list);
     Kokkos::parallel_for(n,f);
     atomKK->modified(Device,F_MASK);

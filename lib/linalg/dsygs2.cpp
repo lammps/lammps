@@ -72,8 +72,8 @@ int dsygs2_(integer *itype, char *uplo, integer *n, doublereal *a, integer *lda,
                     daxpy_(&i__2, &ct, &b[k + (k + 1) * b_dim1], ldb, &a[k + (k + 1) * a_dim1],
                            lda);
                     i__2 = *n - k;
-                    dtrsv_(uplo, (char *)"Transpose", (char *)"Non-unit", &i__2, &b[k + 1 + (k + 1) * b_dim1], ldb,
-                           &a[k + (k + 1) * a_dim1], lda, (ftnlen)1, (ftnlen)9, (ftnlen)8);
+                    dtrsv_(uplo, (char *)"T", (char *)"N", &i__2, &b[k + 1 + (k + 1) * b_dim1], ldb,
+                           &a[k + (k + 1) * a_dim1], lda, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 }
             }
         } else {
@@ -100,8 +100,8 @@ int dsygs2_(integer *itype, char *uplo, integer *n, doublereal *a, integer *lda,
                     daxpy_(&i__2, &ct, &b[k + 1 + k * b_dim1], &c__1, &a[k + 1 + k * a_dim1],
                            &c__1);
                     i__2 = *n - k;
-                    dtrsv_(uplo, (char *)"No transpose", (char *)"Non-unit", &i__2, &b[k + 1 + (k + 1) * b_dim1],
-                           ldb, &a[k + 1 + k * a_dim1], &c__1, (ftnlen)1, (ftnlen)12, (ftnlen)8);
+                    dtrsv_(uplo, (char *)"N", (char *)"N", &i__2, &b[k + 1 + (k + 1) * b_dim1], ldb,
+                           &a[k + 1 + k * a_dim1], &c__1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 }
             }
         }
@@ -112,8 +112,8 @@ int dsygs2_(integer *itype, char *uplo, integer *n, doublereal *a, integer *lda,
                 akk = a[k + k * a_dim1];
                 bkk = b[k + k * b_dim1];
                 i__2 = k - 1;
-                dtrmv_(uplo, (char *)"No transpose", (char *)"Non-unit", &i__2, &b[b_offset], ldb,
-                       &a[k * a_dim1 + 1], &c__1, (ftnlen)1, (ftnlen)12, (ftnlen)8);
+                dtrmv_(uplo, (char *)"N", (char *)"N", &i__2, &b[b_offset], ldb, &a[k * a_dim1 + 1], &c__1,
+                       (ftnlen)1, (ftnlen)1, (ftnlen)1);
                 ct = akk * .5;
                 i__2 = k - 1;
                 daxpy_(&i__2, &ct, &b[k * b_dim1 + 1], &c__1, &a[k * a_dim1 + 1], &c__1);
@@ -133,8 +133,8 @@ int dsygs2_(integer *itype, char *uplo, integer *n, doublereal *a, integer *lda,
                 akk = a[k + k * a_dim1];
                 bkk = b[k + k * b_dim1];
                 i__2 = k - 1;
-                dtrmv_(uplo, (char *)"Transpose", (char *)"Non-unit", &i__2, &b[b_offset], ldb, &a[k + a_dim1], lda,
-                       (ftnlen)1, (ftnlen)9, (ftnlen)8);
+                dtrmv_(uplo, (char *)"T", (char *)"N", &i__2, &b[b_offset], ldb, &a[k + a_dim1], lda, (ftnlen)1,
+                       (ftnlen)1, (ftnlen)1);
                 ct = akk * .5;
                 i__2 = k - 1;
                 daxpy_(&i__2, &ct, &b[k + b_dim1], ldb, &a[k + a_dim1], lda);

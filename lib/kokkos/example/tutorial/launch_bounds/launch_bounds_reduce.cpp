@@ -38,8 +38,9 @@ struct collision {
   int hash(int q) const {
     // A simple hash by Justin Sobel
     // Thanks to Arash Partow (partow.net)
-    char* fourchars = (char*)&q;
-    int hash        = 1315423911;
+    char* fourchars =
+        (char*)&q;  // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    int hash = 1315423911;
     for (int i = 0; i < 4; fourchars++, i++) {
       hash ^= ((hash << 5) + *fourchars + (hash >> 2));
     }

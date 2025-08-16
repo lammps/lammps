@@ -66,7 +66,7 @@ void TemperGrem::command(int narg, char **arg)
   if (universe->nworlds == 1)
     error->universe_all(FLERR,"More than one processor partition required for temper/grem command");
   if (domain->box_exist == 0)
-    error->universe_all(FLERR,"Temper/grem command before simulation box is defined");
+    error->universe_all(FLERR,"Temper/grem command before simulation box is defined" + utils::errorurl(33));
   if (narg != 7 && narg != 8) error->universe_all(FLERR,"Illegal temper/grem command");
 
   int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
@@ -79,7 +79,7 @@ void TemperGrem::command(int narg, char **arg)
 
   // Get and check if gREM fix exists and is correct style
 
-  auto ifix = modify->get_fix_by_id(arg[3]);
+  auto *ifix = modify->get_fix_by_id(arg[3]);
   if (!ifix) error->universe_all(FLERR,fmt::format("Tempering fix ID {} is not defined", arg[3]));
 
   fix_grem = dynamic_cast<FixGrem*>(ifix);
@@ -107,7 +107,7 @@ void TemperGrem::command(int narg, char **arg)
 
   if (pressflag) {
     int dummy;
-    auto p_start = (double *) nh->extract("p_start",dummy);
+    auto *p_start = (double *) nh->extract("p_start",dummy);
     pressref = p_start[0];
   }
 

@@ -109,4 +109,3 @@ variable           skin equal 0.3*${h}
 neighbor           ${skin} bin
 
 run                6000
-

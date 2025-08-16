@@ -25,6 +25,7 @@
 #include "error.h"
 #include "force.h"
 #include "group.h"
+#include "info.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "math_special.h"
@@ -164,7 +165,7 @@ void PairComb3::settings(int narg, char **arg)
   else error->all(FLERR,"Illegal pair_style command");
 
   if (comm->me == 0 && screen)
-    fmt::print(screen,"   PairComb3: polarization is {} \n",
+    utils::print(screen,"   PairComb3: polarization is {} \n",
                pol_flag ? "on" : "off");
 }
 
@@ -208,11 +209,11 @@ void PairComb3::coeff(int narg, char **arg)
 void PairComb3::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style COMB3 requires atom IDs");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style COMB3 requires atom IDs");
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style COMB3 requires newton pair on");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style COMB3 requires newton pair on");
   if (!atom->q_flag)
-    error->all(FLERR,"Pair style COMB3 requires atom attribute q");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style COMB3 requires atom attribute q");
 
 // need a full neighbor list
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
@@ -243,7 +244,9 @@ void PairComb3::init_style()
 
 double PairComb3::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
   cutghost[j][i] = cutghost[i][j] = cutmax;
   return cutmax;
 }
@@ -769,7 +772,7 @@ void PairComb3::Short_neigh()
     sht_num[i] = nj;
     ipage->vgot(nj);
     if (ipage->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+      error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
   }
 
   // communicating coordination number to all nodes
@@ -1910,18 +1913,16 @@ void PairComb3::coord(Param *param, double r, int i,
     if (xcntritot > maxxcn[tri_flag-1]) {
       pcorn  = vmaxxcn[tri_flag-1]+(xcntot-maxxcn[tri_flag-1])*dvmaxxcn[tri_flag-1];
       dxccij = dxchij = dxcoij = dvmaxxcn[tri_flag-1];
-    }
-    else {
+    } else {
       ixmin=int(xcccn+1.0e-12);
       iymin=int(xchcn+1.0e-12);
       izmin=int(xcocn+1.0e-12);
-      if (fabs(float(ixmin)-xcccn)>1.0e-8 ||
-          fabs(float(iymin)-xchcn)>1.0e-8 ||
-          fabs(float(izmin)-xcocn)>1.0e-8) {
+      if (fabs(double(ixmin)-xcccn)>1.0e-8 ||
+          fabs(double(iymin)-xchcn)>1.0e-8 ||
+          fabs(double(izmin)-xcocn)>1.0e-8) {
             cntri_int(tri_flag,xcccn,xchcn,xcocn,ixmin,iymin,izmin,
             pcorn,dxccij,dxchij,dxcoij,param);
-      }
-      else  {
+      } else  {
         pcorn  = pcn_grid[tri_flag-1][ixmin][iymin][izmin];
         dxccij = pcn_gridx[tri_flag-1][ixmin][iymin][izmin];
         dxchij = pcn_gridy[tri_flag-1][ixmin][iymin][izmin];
@@ -2541,10 +2542,10 @@ void PairComb3::tri_point(double rsq, int &mr1, int &mr2,
   rridr = (r-rin)/dr;
 
   mr1 = int(rridr) ;
-  dd = rridr - float(mr1);
+  dd = rridr - double(mr1);
   if (dd > 0.5) mr1 += 1;
 
-  rr1 = float(mr1)*dr;
+  rr1 = double(mr1)*dr;
   rridr = (r - rin - rr1)/dr;
   rridr2 = rridr * rridr;
 
@@ -2752,9 +2753,9 @@ void PairComb3::rad_calc(double r, Param *parami, Param *paramj,
   iymin = int(yrad+1.0e-12);
   izmin = int(zcon+1.0e-12);
   radindx=parami->rad_flag-1;
-  if (fabs(float(ixmin)-xrad)>1.0e-8 ||
-      fabs(float(iymin)-yrad)>1.0e-8 ||
-      fabs(float(izmin)-zcon)>1.0e-8) {
+  if (fabs(double(ixmin)-xrad)>1.0e-8 ||
+      fabs(double(iymin)-yrad)>1.0e-8 ||
+      fabs(double(izmin)-zcon)>1.0e-8) {
     rad_int(radindx,xrad,yrad,zcon,ixmin,iymin,izmin,
               vrad,pradx,prady,pradz);
   } else {
@@ -2942,9 +2943,9 @@ void PairComb3::tor_calc(double r, Param *parami, Param *paramj,
 
     torindx=torindx-1;
 
-    if (fabs(float(ixmin)-xtor)>1.0e-8 ||
-      fabs(float(iymin)-ytor)>1.0e-8 ||
-      fabs(float(izmin)-zcon)>1.0e-8) {
+    if (fabs(double(ixmin)-xtor)>1.0e-8 ||
+        fabs(double(iymin)-ytor)>1.0e-8 ||
+        fabs(double(izmin)-zcon)>1.0e-8) {
       tor_int(torindx,xtor,ytor,zcon,ixmin,iymin,izmin,
               vtor,dtorx,dtory,dtorz);
     } else {

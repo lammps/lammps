@@ -24,15 +24,21 @@ class colvarbias_histogram : public colvarbias {
 public:
 
   colvarbias_histogram(char const *key);
-  ~colvarbias_histogram();
+  virtual ~colvarbias_histogram();
   virtual int init(std::string const &conf);
   virtual int update();
   virtual int write_output_files();
+
+  virtual std::ostream & write_state_data(std::ostream &os);
+  virtual cvm::memory_stream & write_state_data(cvm::memory_stream &os);
+  virtual std::istream & read_state_data(std::istream &is);
+  virtual cvm::memory_stream & read_state_data(cvm::memory_stream &is);
 
 protected:
 
   /// n-dim histogram
   colvar_grid_scalar *grid;
+  std::string grid_conf;
   std::vector<int> bin;
   std::string out_name, out_name_dx;
 
@@ -40,9 +46,6 @@ protected:
   size_t colvar_array_size;
   /// If colvar_array_size is larger than 1, weigh each one by this number before accumulating the histogram
   std::vector<cvm::real> weights;
-
-  virtual std::istream & read_state_data(std::istream &is);
-  virtual std::ostream & write_state_data(std::ostream &os);
 };
 
 #endif

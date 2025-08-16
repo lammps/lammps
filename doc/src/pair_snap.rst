@@ -298,4 +298,4 @@ none
 
 .. _Cusentino20202:
 
-**(Cusentino)** Cusentino, Wood, and Thompson, J Phys Chem A, xxx, xxxxx, (2020)
+**(Cusentino)** Cusentino, Wood, Thompson, J Phys Chem A, 124, 5456, (2020)

@@ -38,38 +38,31 @@ namespace RANN {
 
   class Activation_sigI : public Activation {
    public:
-    Activation_sigI(class PairRANN *);
-    double activation_function(double) override;
-    double dactivation_function(double) override;
-    double ddactivation_function(double) override;
+    Activation_sigI(PairRANN *_pair) : Activation(_pair)
+    {
+      empty = false;
+      style = "sigI";
+    }
+
+    double activation_function(double in) override
+    {
+      if (in > 34) return in;
+      return 0.1 * in + 0.9 * log(exp(in) + 1);
+    }
+    double dactivation_function(double in) override
+    {
+      if (in > 34) return 1;
+      return 0.1 + 0.9 / (exp(in) + 1) * exp(in);
+    }
+    double ddactivation_function(double in) override
+    {
+      if (in > 34) return 0;
+      return 0.9 * exp(in) / (exp(in) + 1) / (exp(in) + 1);
+      ;
+    }
   };
-
-  Activation_sigI::Activation_sigI(PairRANN *_pair) : Activation(_pair)
-  {
-    empty = false;
-    style = "sigI";
-  }
-
-  double Activation_sigI::activation_function(double in)
-  {
-    if (in > 34) return in;
-    return 0.1 * in + 0.9 * log(exp(in) + 1);
-  }
-
-  double Activation_sigI::dactivation_function(double in)
-  {
-    if (in > 34) return 1;
-    return 0.1 + 0.9 / (exp(in) + 1) * exp(in);
-  }
-
-  double Activation_sigI::ddactivation_function(double in)
-  {
-    if (in > 34) return 0;
-    return 0.9 * exp(in) / (exp(in) + 1) / (exp(in) + 1);
-    ;
-  }
 
 }    // namespace RANN
 }    // namespace LAMMPS_NS
 
-#endif /* ACTIVATION_SIGI_H_ */
+#endif /* ACTIVATION_SIGI_H */

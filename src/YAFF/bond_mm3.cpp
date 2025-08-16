@@ -18,14 +18,15 @@
 
 #include "bond_mm3.h"
 
-#include <cmath>
 #include "atom.h"
-#include "neighbor.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -135,7 +136,7 @@ void BondMM3::allocate()
 
 void BondMM3::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Incorrect args for bond coefficients");
+  if (narg != 3) error->all(FLERR,"Incorrect args for bond coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -152,7 +153,7 @@ void BondMM3::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -237,4 +238,16 @@ void BondMM3::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double &du
 
   du = 2.0 * k2[type] * dr + 3.0 * K3 * dr2 + 4.0 * K4 * dr3;
   du2 = 2.0 * k2[type] + 6.0 * K3 * dr + 12.0 * K4 * dr2;
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *BondMM3::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k2") == 0) return (void *) k2;
+  if (strcmp(str, "r0") == 0) return (void *) r0;
+  return nullptr;
 }

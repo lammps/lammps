@@ -42,9 +42,9 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace RigidConst;
 
-typedef struct {
+using dbl3_t = struct {
   double x, y, z;
-} dbl3_t;
+};
 
 /* ---------------------------------------------------------------------- */
 
@@ -491,11 +491,11 @@ void FixRigidOMP::set_xv_thr()
     double theta_body,theta;
     double ione[3],exone[3],eyone[3],ezone[3],p[3][3];
 
-    AtomVecEllipsoid::Bonus *ebonus;
+    AtomVecEllipsoid::Bonus *ebonus = nullptr;
     if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
-    AtomVecLine::Bonus *lbonus;
+    AtomVecLine::Bonus *lbonus = nullptr;
     if (avec_line) lbonus = avec_line->bonus;
-    AtomVecTri::Bonus *tbonus;
+    AtomVecTri::Bonus *tbonus = nullptr;
     if (avec_tri) tbonus = avec_tri->bonus;
     double **omega_one = atom->omega;
     double **angmom_one = atom->angmom;

@@ -10,12 +10,17 @@
 #ifndef COLVARBIAS_META_H
 #define COLVARBIAS_META_H
 
-#include <vector>
-#include <list>
 #include <iosfwd>
+#include <list>
+#include <memory>
+#include <vector>
 
 #include "colvarbias.h"
-#include "colvargrid.h"
+
+class colvar_grid_scalar;
+class colvar_grid_gradient;
+
+
 
 /// Metadynamics bias (implementation of \link colvarbias \endlink)
 class colvarbias_meta
@@ -51,14 +56,32 @@ public:
   virtual int update_bias();
   virtual int update_grid_data();
   virtual int replica_share();
+  virtual size_t replica_share_freq() const;
 
   virtual int calc_energy(std::vector<colvarvalue> const *values);
   virtual int calc_forces(std::vector<colvarvalue> const *values);
 
   virtual std::string const get_state_params() const;
   virtual int set_state_params(std::string const &state_conf);
-  virtual std::ostream & write_state_data(std::ostream &os);
-  virtual std::istream & read_state_data(std::istream &os);
+
+  virtual std::ostream &write_state_data(std::ostream &os);
+  virtual cvm::memory_stream &write_state_data(cvm::memory_stream &os);
+  virtual std::istream &read_state_data(std::istream &is);
+  virtual cvm::memory_stream &read_state_data(cvm::memory_stream &is);
+
+private:
+
+  template <typename IST, typename GT>
+  IST &read_grid_data_template_(IST &is, std::string const &key, GT *grid, GT *backup_grid);
+
+  template <typename IST> IST &read_state_data_template_(IST &is);
+
+  template <typename OST> OST &write_state_data_template_(OST &os);
+
+public:
+
+  /// Function called by read_state_data() to execute rebinning (if requested)
+  void rebin_grids_after_restart();
 
   virtual int setup_output();
   virtual int write_output_files();
@@ -104,11 +127,23 @@ protected:
   hill_iter new_hills_off_grid_begin;
 
   /// Regenerate the hills_off_grid list
-  void recount_hills_off_grid(hill_iter h_first, hill_iter h_last,
-                               colvar_grid_scalar *ge);
+  void recount_hills_off_grid(hill_iter h_first, hill_iter h_last);
 
-  /// Read a hill from a file
+  template <typename OST> OST &write_hill_template_(OST &os, colvarbias_meta::hill const &h);
+
+  /// Write a hill to a formatted stream
+  std::ostream &write_hill(std::ostream &os, hill const &h);
+
+  /// Write a hill to an unformatted stream
+  cvm::memory_stream &write_hill(cvm::memory_stream &os, hill const &h);
+
+  template <typename IST> IST &read_hill_template_(IST &is);
+
+  /// Read a new hill from a formatted stream
   std::istream & read_hill(std::istream &is);
+
+  /// Read a new hill from an unformatted stream
+  cvm::memory_stream & read_hill(cvm::memory_stream &is);
 
   /// \brief Add a new hill; if a .hills trajectory is written,
   /// write it there; if there is more than one replica, communicate
@@ -179,7 +214,7 @@ protected:
   bool       ebmeta;
 
   /// Target distribution for EBmeta
-  colvar_grid_scalar* target_dist;
+  std::unique_ptr<colvar_grid_scalar> target_dist;
 
   /// Number of equilibration steps for EBmeta
   cvm::step_number ebmeta_equil_steps;
@@ -191,15 +226,14 @@ protected:
   bool       safely_read_restart;
 
   /// Hill energy, cached on a grid
-  colvar_grid_scalar    *hills_energy;
+  std::shared_ptr<colvar_grid_scalar> hills_energy;
 
   /// Hill forces, cached on a grid
-  colvar_grid_gradient  *hills_energy_gradients;
+  std::shared_ptr<colvar_grid_gradient> hills_energy_gradients;
 
-  /// \brief Project the selected hills onto grids
-  void project_hills(hill_iter h_first, hill_iter h_last,
-                      colvar_grid_scalar *ge, colvar_grid_gradient *gf,
-                      bool print_progress = false);
+  /// Project the selected hills onto grids
+  void project_hills(hill_iter h_first, hill_iter h_last, colvar_grid_scalar *ge,
+                     colvar_grid_gradient *gf, bool print_progress = false);
 
 
   // Multiple Replicas variables and functions
@@ -230,7 +264,7 @@ protected:
   std::vector<colvarbias_meta *> replicas;
 
   /// \brief Frequency at which data the "mirror" biases are updated
-  size_t                 replica_update_freq;
+  size_t replica_update_freq = 0;
 
   /// List of replicas (and their output list files): contents are
   /// copied into replicas_registry for convenience
@@ -258,6 +292,8 @@ protected:
   /// Position within replica_hills_file (when reading it)
   std::streampos         replica_hills_file_pos;
 
+  /// Cache of the hills trajectory
+  std::ostringstream     hills_traj_os_buf;
 };
 
 
@@ -398,9 +434,6 @@ public:
 
   /// Represent the hill ina string suitable for a trajectory file
   std::string output_traj();
-
-  /// Write the hill to an output stream
-  friend std::ostream & operator << (std::ostream &os, hill const &h);
 
 };
 

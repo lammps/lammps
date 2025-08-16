@@ -22,8 +22,6 @@ FixStyle(rheo/thermal,FixRHEOThermal)
 
 #include "fix.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class FixRHEOThermal : public Fix {
@@ -42,9 +40,9 @@ class FixRHEOThermal : public Fix {
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   void reset_dt() override;
-  double calc_cv(int, int);
-  double calc_Tc(int, int);
-  double calc_L(int, int);
+  double calc_cv(int);
+  double calc_Tc(int);
+  double calc_L(int);
 
  private:
   double *cv, *Tc, *kappa, *L;
@@ -62,7 +60,6 @@ class FixRHEOThermal : public Fix {
   class ComputeRHEOVShift *compute_vshift;
   class FixUpdateSpecialBonds *fix_update_special_bonds;
 
-  void grow_array(int);
   void break_bonds();
   void create_bonds();
 };

@@ -15,6 +15,9 @@
 #include "colvarparse.h"
 #include "colvardeps.h"
 
+template <typename T1, typename T2>
+struct rotation_derivative;
+
 
 /// \brief Stores numeric id, mass and all mutable data for an atom,
 /// mostly used by a \link colvar::cvc \endlink
@@ -167,7 +170,7 @@ public:
   atom_group(std::vector<cvm::atom> const &atoms_in);
 
   /// \brief Destructor
-  ~atom_group();
+  ~atom_group() override;
 
   /// \brief Optional name to reuse properties of this in other groups
   std::string name;
@@ -180,7 +183,7 @@ public:
   int init();
 
   /// \brief Initialize dependency tree
-  virtual int init_dependencies();
+  int init_dependencies() override;
 
   /// \brief Update data required to calculate cvc's
   int setup();
@@ -191,7 +194,7 @@ public:
 
   int add_atom_numbers(std::string const &numbers_conf);
   int add_atoms_of_group(atom_group const * ag);
-  int add_index_group(std::string const &index_group_name);
+  int add_index_group(std::string const &index_group_name, bool silent = false);
   int add_atom_numbers_range(std::string const &range_conf);
   int add_atom_name_residue_range(std::string const &psf_segid,
                                   std::string const &range_conf);
@@ -221,16 +224,13 @@ public:
   static std::vector<feature *> ag_features;
 
   /// \brief Implementation of the feature list accessor for atom group
-  virtual const std::vector<feature *> &features() const
+  const std::vector<feature *> &features() const override { return ag_features; }
+
+  std::vector<feature *> &modify_features() override { return ag_features; }
+
+  static void delete_features()
   {
-    return ag_features;
-  }
-  virtual std::vector<feature *> &modify_features()
-  {
-    return ag_features;
-  }
-  static void delete_features() {
-    for (size_t i=0; i < ag_features.size(); i++) {
+    for (size_t i = 0; i < ag_features.size(); i++) {
       delete ag_features[i];
     }
     ag_features.clear();
@@ -257,7 +257,62 @@ protected:
   /// \brief Index in the colvarproxy arrays (if the group is scalable)
   int index;
 
+  /// \brief The temporary forces acting on the main group atoms.
+  ///        Currently this is only used for calculating the fitting group forces for
+  ///        non-scalar components.
+  std::vector<cvm::rvector> group_forces;
+
 public:
+
+  /*! @class group_force_object
+   *  @brief A helper class for applying forces on an atom group in a way that
+   *         is aware of the fitting group. NOTE: you are encouraged to use
+   *         get_group_force_object() to get an instance of group_force_object
+   *         instead of constructing directly.
+   */
+  class group_force_object {
+  public:
+    /*! @brief Constructor of group_force_object
+     *  @param ag The pointer to the atom group that forces will be applied on.
+     */
+    group_force_object(cvm::atom_group* ag);
+    /*! @brief Destructor of group_force_object
+     */
+    ~group_force_object();
+    /*! @brief Apply force to atom i
+     *  @param i The i-th of atom in the atom group.
+     *  @param force The force being added to atom i.
+     *
+     * The function can be used as follows,
+     * @code
+     *       // In your colvar::cvc::apply_force() loop of a component:
+     *       auto ag_force = atoms->get_group_force_object();
+     *       for (ia = 0; ia < atoms->size(); ia++) {
+     *         const cvm::rvector f = compute_force_on_atom_ia();
+     *         ag_force.add_atom_force(ia, f);
+     *       }
+     * @endcode
+     * There are actually two scenarios under the hood:
+     * (i) If the atom group does not have a fitting group, then the force is
+     *     added to atom i directly;
+     * (ii) If the atom group has a fitting group, the force on atom i will just
+     *      be temporary stashed into ag->group_forces. At the end of the loop
+     *      of apply_force(), the destructor ~group_force_object() will be called,
+     *      which then call apply_force_with_fitting_group(). The forces on the
+     *      main group will be rotated back by multiplying ag->group_forces with
+     *      the inverse rotation. The forces on the fitting group (if
+     *      enableFitGradients is on) will be calculated by calling
+     *      calc_fit_forces.
+     */
+    void add_atom_force(size_t i, const cvm::rvector& force);
+  private:
+    cvm::atom_group* m_ag;
+    cvm::atom_group* m_group_for_fit;
+    bool m_has_fitting_force;
+    void apply_force_with_fitting_group();
+  };
+
+  group_force_object get_group_force_object();
 
   inline cvm::atom & operator [] (size_t const i)
   {
@@ -330,6 +385,9 @@ public:
   /// The rotation calculated automatically if f_ag_rotate is defined
   cvm::rotation rot;
 
+  /// Rotation derivative;
+  rotation_derivative<cvm::atom, cvm::atom_pos>* rot_deriv;
+
   /// \brief Indicates that the user has explicitly set centerToReference or
   /// rotateReference, and the corresponding reference:
   /// cvc's (eg rmsd, eigenvector) will not override the user's choice
@@ -368,6 +426,8 @@ public:
 
   /// \brief (Re)calculate the optimal roto-translation
   void calc_apply_roto_translation();
+
+  void setup_rotation_derivative();
 
   /// \brief Save aside the center of geometry of the reference positions,
   /// then subtract it from them
@@ -417,6 +477,9 @@ private:
 
   /// \brief Center of geometry before any fitting
   cvm::atom_pos cog_orig;
+
+  /// \brief Unrotated atom positions for fit gradients
+  std::vector<cvm::atom_pos> pos_unrotated;
 
 public:
 
@@ -492,6 +555,61 @@ public:
   /// \brief Calculate the derivatives of the fitting transformation
   void calc_fit_gradients();
 
+/*! @brief  Actual implementation of `calc_fit_gradients` and
+ *          `calc_fit_forces`. The template is
+ *          used to avoid branching inside the loops in case that the CPU
+ *          branch prediction is broken (or further migration to GPU code).
+ *  @tparam B_ag_center Centered the reference to origin? This should follow
+ *          the value of `is_enabled(f_ag_center)`.
+ *  @tparam B_ag_rotate Calculate the optimal rotation? This should follow
+ *          the value of `is_enabled(f_ag_rotate)`.
+ *  @tparam main_force_accessor_T The type of accessor of the main
+ *          group forces or gradients acting on the rotated frame.
+ *  @tparam fitting_force_accessor_T The type of accessor of the fitting group
+ *          forces or gradients.
+ *  @param accessor_main The accessor of the main group forces or gradients.
+ *         accessor_main(i) should return the i-th force or gradient of the
+ *         rotated main group.
+ *  @param accessor_fitting The accessor of the fitting group forces or gradients.
+ *         accessor_fitting(j, v) should store/apply the j-th atom gradient or
+ *         force in the fitting group.
+ *
+ *  This function is used to (i) project the gradients of CV with respect to
+ *  rotated main group atoms to fitting group atoms, or (ii) project the forces
+ *  on rotated main group atoms to fitting group atoms, by the following two steps
+ *  (using the goal (ii) for example):
+ *  (1) Loop over the positions of main group atoms and call cvm::quaternion::position_derivative_inner
+ *      to project the forces on rotated main group atoms to the forces on quaternion.
+ *  (2) Loop over the positions of fitting group atoms, compute the gradients of
+ *      \f$\mathbf{q}\f$ with respect to the position of each atom, and then multiply
+ *      that with the force on \f$\mathbf{q}\f$ (chain rule).
+ */
+  template <bool B_ag_center, bool B_ag_rotate,
+            typename main_force_accessor_T, typename fitting_force_accessor_T>
+  void calc_fit_forces_impl(
+    main_force_accessor_T accessor_main,
+    fitting_force_accessor_T accessor_fitting) const;
+
+/*! @brief  Calculate or apply the fitting group forces from the main group forces.
+ *  @tparam main_force_accessor_T The type of accessor of the main
+ *          group forces or gradients.
+ *  @tparam fitting_force_accessor_T The type of accessor of the fitting group
+ *          forces or gradients.
+ *  @param accessor_main The accessor of the main group forces or gradients.
+ *         accessor_main(i) should return the i-th force or gradient of the
+ *         main group.
+ *  @param accessor_fitting The accessor of the fitting group forces or gradients.
+ *         accessor_fitting(j, v) should store/apply the j-th atom gradient or
+ *         force in the fitting group.
+ *
+ *  This function just dispatches the parameters to calc_fit_forces_impl that really
+ *  performs the calculations.
+ */
+  template <typename main_force_accessor_T, typename fitting_force_accessor_T>
+  void calc_fit_forces(
+    main_force_accessor_T accessor_main,
+    fitting_force_accessor_T accessor_fitting) const;
+
   /// \brief Derivatives of the fitting transformation
   std::vector<cvm::atom_pos> fit_gradients;
 
@@ -525,7 +643,7 @@ public:
   /// Implements possible actions to be carried out
   /// when a given feature is enabled
   /// This overloads the base function in colvardeps
-  void do_feature_side_effects(int id);
+  void do_feature_side_effects(int id) override;
 };
 
 

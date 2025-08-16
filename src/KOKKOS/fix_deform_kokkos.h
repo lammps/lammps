@@ -34,13 +34,9 @@ class FixDeformKokkos : public FixDeform {
   void pre_exchange() override;
   void end_of_step() override;
 
- private:
-  class DomainKokkos *domainKK;
-
 };
 
 }
 
 #endif
 #endif
-

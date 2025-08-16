@@ -73,10 +73,10 @@ void MinKokkos::init()
 void MinKokkos::setup(int flag)
 {
   if (comm->me == 0 && screen) {
-    fmt::print(screen,"Setting up {} style minimization ...\n", update->minimize_style);
+    utils::print(screen,"Setting up {} style minimization ...\n", update->minimize_style);
     if (flag) {
-      fmt::print(screen,"  Unit style    : {}\n", update->unit_style);
-      fmt::print(screen,"  Current step  : {}\n", update->ntimestep);
+      utils::print(screen,"  Unit style    : {}\n", update->unit_style);
+      utils::print(screen,"  Current step  : {}\n", update->ntimestep);
       timer->print_timeout(screen);
     }
   }
@@ -172,7 +172,7 @@ void MinKokkos::setup(int flag)
     force->pair->compute(eflag,vflag);
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
   }
-  else if (force->pair) force->pair->compute_dummy(eflag,vflag);
+  else if (force->pair) force->pair->compute_dummy(eflag,vflag,0);
 
   if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) {
@@ -203,7 +203,7 @@ void MinKokkos::setup(int flag)
       atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
       force->kspace->compute(eflag,vflag);
       atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
-    } else force->kspace->compute_dummy(eflag,vflag);
+    } else force->kspace->compute_dummy(eflag,vflag,0);
   }
 
   modify->setup_pre_reverse(eflag,vflag);
@@ -281,7 +281,7 @@ void MinKokkos::setup_minimal(int flag)
     force->pair->compute(eflag,vflag);
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
   }
-  else if (force->pair) force->pair->compute_dummy(eflag,vflag);
+  else if (force->pair) force->pair->compute_dummy(eflag,vflag,0);
 
   if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) {
@@ -312,7 +312,7 @@ void MinKokkos::setup_minimal(int flag)
       atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
       force->kspace->compute(eflag,vflag);
       atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
-    } else force->kspace->compute_dummy(eflag,vflag);
+    } else force->kspace->compute_dummy(eflag,vflag,0);
   }
 
   modify->setup_pre_reverse(eflag,vflag);

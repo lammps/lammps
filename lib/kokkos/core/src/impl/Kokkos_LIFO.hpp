@@ -123,11 +123,11 @@ class LockBasedLIFO : private LockBasedLIFOCommon<T> {
   using intrusive_node_base_type = SimpleSinglyLinkedListNode<>;
 
  public:
-  LockBasedLIFO()                     = default;
-  LockBasedLIFO(LockBasedLIFO const&) = delete;
-  LockBasedLIFO(LockBasedLIFO&&)      = delete;
+  LockBasedLIFO()                                = default;
+  LockBasedLIFO(LockBasedLIFO const&)            = delete;
+  LockBasedLIFO(LockBasedLIFO&&)                 = delete;
   LockBasedLIFO& operator=(LockBasedLIFO const&) = delete;
-  LockBasedLIFO& operator=(LockBasedLIFO&&) = delete;
+  LockBasedLIFO& operator=(LockBasedLIFO&&)      = delete;
 
   ~LockBasedLIFO() = default;
 
@@ -139,7 +139,7 @@ class LockBasedLIFO : private LockBasedLIFOCommon<T> {
   KOKKOS_INLINE_FUNCTION
   OptionalRef<T> pop(bool abort_on_locked = false) {
     // Put this in here to avoid requiring value_type to be complete until now.
-    static_assert(std::is_base_of<intrusive_node_base_type, value_type>::value,
+    static_assert(std::is_base_of_v<intrusive_node_base_type, value_type>,
                   "Intrusive linked-list value_type must be derived from "
                   "intrusive_node_base_type");
 

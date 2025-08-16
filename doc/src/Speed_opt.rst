@@ -17,7 +17,7 @@ Building LAMMPS with the OPT package
 
 See the :ref:`Build extras <opt>` page for instructions.
 
-Run with the OPT package from the command line
+Run with the OPT package from the command-line
 """"""""""""""""""""""""""""""""""""""""""""""
 
 .. code-block:: bash

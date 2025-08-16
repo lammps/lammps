@@ -56,7 +56,7 @@ template <typename T> static Dump *dump_creator(LAMMPS *lmp, int narg, char ** a
    initialize all output
 ------------------------------------------------------------------------- */
 
-Output::Output(LAMMPS *lmp) : Pointers(lmp)
+Output::Output(LAMMPS *lmp) : Pointers(lmp), thermo(nullptr)
 {
   // create default computes for temp,pressure,pe
 
@@ -66,7 +66,7 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 
   // create default Thermo class
 
-  auto newarg = new char*[1];
+  auto *newarg = new char*[1];
   newarg[0] = (char *) "one";
   thermo = new Thermo(lmp,1,newarg);
   delete[] newarg;
@@ -77,7 +77,7 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
   ndump = 0;
   max_dump = 0;
   any_time_dumps = 0;
-  next_dump_any = next_time_dump_any = MAXBIGINT;
+  next_thermo = next_restart = next_dump_any = next_time_dump_any = MAXBIGINT;
   mode_dump = nullptr;
   every_dump = nullptr;
   every_time_dump = nullptr;
@@ -132,7 +132,7 @@ Output::~Output()
 
   delete dump_map;
 
-  if (thermo) delete thermo;
+  delete thermo;
   delete[] var_thermo;
 
 }
@@ -154,8 +154,8 @@ void Output::init()
   any_time_dumps = 0;
   for (int i = 0; i < ndump; i++) {
     if (mode_dump[i]) any_time_dumps = 1;
-    if ((mode_dump[i] == 0 && every_dump[i] == 0) ||
-        (mode_dump[i] == 1 && every_time_dump[i] == 0.0)) {
+    if (((mode_dump[i] == 0) && (every_dump[i] == 0)) ||
+        ((mode_dump[i] == 1) && (every_time_dump[i] == 0.0))) {
       ivar_dump[i] = input->variable->find(var_dump[i]);
       if (ivar_dump[i] < 0)
         error->all(FLERR,"Variable name for dump every or delta does not exist");
@@ -222,13 +222,13 @@ void Output::setup(int memflag)
 
   if (ndump && update->restrict_output == 0) {
     next_dump_any = next_time_dump_any = MAXBIGINT;
-
+    int mode_dump_any = 0;
     for (int idump = 0; idump < ndump; idump++) {
 
       // wrap step dumps that invoke computes or do variable eval with clear/add
       // see NOTE in write() about also wrapping time dumps
 
-      if (mode_dump[idump] == 0 && (dump[idump]->clearstep || var_dump[idump]))
+      if ((mode_dump[idump] == 0) && (dump[idump]->clearstep || var_dump[idump]))
         modify->clearstep_compute();
 
       // write a snapshot at setup only if any of these 3 conditions hold
@@ -274,15 +274,18 @@ void Output::setup(int memflag)
       // if dump not written now, use addstep_compute_all()
       // since don't know what computes the dump will invoke
 
-      if (mode_dump[idump] == 0 && (dump[idump]->clearstep || var_dump[idump])) {
+      if ((mode_dump[idump] == 0) && (dump[idump]->clearstep || var_dump[idump])) {
         if (writeflag) modify->addstep_compute(next_dump[idump]);
         else modify->addstep_compute_all(next_dump[idump]);
       }
 
-      if (mode_dump[idump] && (dump[idump]->clearstep || var_dump[idump]))
+      if (mode_dump[idump] && (dump[idump]->clearstep || var_dump[idump])) {
         next_time_dump_any = MIN(next_time_dump_any,next_dump[idump]);
+        mode_dump_any = 1;
+      }
       next_dump_any = MIN(next_dump_any,next_dump[idump]);
     }
+    if (mode_dump_any) modify->addstep_compute(next_time_dump_any);
 
     // if no dumps, set next_dump_any to last+1 so will not influence next
 
@@ -350,7 +353,8 @@ void Output::write(bigint ntimestep)
       next_thermo = static_cast<bigint>
         (input->variable->compute_equal(ivar_thermo));
       if (next_thermo <= ntimestep)
-        error->all(FLERR,"Thermo every variable returned a bad timestep");
+        error->all(FLERR, Error::NOLASTLINE, "Thermo every variable returned a bad timestep: {} "
+                   "vs {}", next_thermo, ntimestep);
     } else if (thermo_every) next_thermo += thermo_every;
     else next_thermo = update->laststep;
     next_thermo = MIN(next_thermo,update->laststep);
@@ -373,16 +377,15 @@ void Output::write(bigint ntimestep)
   //   can't remove an uneeded addstep from a compute, b/c don't know
   //     what other command may have added it
 
+  int mode_dump_any = 0;  // any variable time or clearstep dump
   if (next_dump_any == ntimestep) {
     next_dump_any = next_time_dump_any = MAXBIGINT;
 
     for (int idump = 0; idump < ndump; idump++) {
-
       if (next_dump[idump] == ntimestep) {
         if (last_dump[idump] == ntimestep) continue;
 
-        if (mode_dump[idump] == 0 &&
-            (dump[idump]->clearstep || var_dump[idump]))
+        if ((mode_dump[idump] == 0) && (dump[idump]->clearstep || var_dump[idump]))
           modify->clearstep_compute();
 
         // perform dump
@@ -392,16 +395,20 @@ void Output::write(bigint ntimestep)
         last_dump[idump] = ntimestep;
         calculate_next_dump(WRITE,idump,ntimestep);
 
-        if (mode_dump[idump] == 0 &&
-            (dump[idump]->clearstep || var_dump[idump]))
+
+        if ((mode_dump[idump] == 0) && (dump[idump]->clearstep || var_dump[idump]))
           modify->addstep_compute(next_dump[idump]);
       }
 
-      if (mode_dump[idump] && (dump[idump]->clearstep || var_dump[idump]))
+      if (mode_dump[idump] && (dump[idump]->clearstep || var_dump[idump])) {
+        mode_dump_any = 1;
         next_time_dump_any = MIN(next_time_dump_any,next_dump[idump]);
+      }
       next_dump_any = MIN(next_dump_any,next_dump[idump]);
     }
   }
+  // trigger computes for any time based or variable step dumps
+  if (mode_dump_any) modify->addstep_compute(next_time_dump_any);
 
   // next_restart does not force output on last step of run
   // for toggle = 0, replace "*" with current timestep in restart filename
@@ -740,17 +747,18 @@ void Output::reset_dt()
 
 Dump *Output::add_dump(int narg, char **arg)
 {
-  if (narg < 5) error->all(FLERR,"Illegal dump command");
+  if (narg < 5) utils::missing_cmd_args(FLERR,"dump", error);
 
   // error checks
 
   for (int idump = 0; idump < ndump; idump++)
-    if (strcmp(arg[0],dump[idump]->id) == 0) error->all(FLERR,"Reuse of dump ID: {}", arg[0]);
+    if (strcmp(arg[0],dump[idump]->id) == 0)
+      error->all(FLERR, Error::ARGZERO, "Reuse of dump ID: {}", arg[0]);
 
   int igroup = group->find(arg[1]);
-  if (igroup == -1) error->all(FLERR,"Could not find dump group ID: {}", arg[1]);
+  if (igroup == -1) error->all(FLERR, 1, "Could not find dump group ID: {}", arg[1]);
   if (utils::inumeric(FLERR,arg[3],false,lmp) <= 0)
-    error->all(FLERR,"Invalid dump frequency {}", arg[3]);
+    error->all(FLERR, 3, "Invalid dump frequency {}", arg[3]);
 
   // extend Dump list if necessary
 
@@ -778,8 +786,7 @@ Dump *Output::add_dump(int narg, char **arg)
   // initialize per-dump data to suitable default values
 
   mode_dump[idump] = 0;
-  every_dump[idump] = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (every_dump[idump] <= 0) error->all(FLERR,"Illegal dump command");
+  every_dump[idump] = utils::inumeric(FLERR,arg[3],false,lmp); // check for validity is above
   every_time_dump[idump] = 0.0;
   next_time_dump[idump] = -1.0;
   last_dump[idump] = -1;
@@ -802,8 +809,8 @@ void Output::modify_dump(int narg, char **arg)
 
   // find which dump it is
 
-  auto idump = get_dump_by_id(arg[0]);
-  if (!idump) error->all(FLERR,"Could not find dump_modify ID: {}", arg[0]);
+  auto *idump = get_dump_by_id(arg[0]);
+  if (!idump) error->all(FLERR, Error::ARGZERO, "Could not find dump_modify ID: {}", arg[0]);
   idump->modify_params(narg-1,&arg[1]);
 }
 
@@ -881,7 +888,8 @@ void Output::set_thermo(int narg, char **arg)
     var_thermo = utils::strdup(arg[0]+2);
   } else {
     thermo_every = utils::inumeric(FLERR,arg[0],false,lmp);
-    if (thermo_every < 0) error->all(FLERR,"Illegal thermo output frequency {}", thermo_every);
+    if (thermo_every < 0)
+      error->all(FLERR, Error::ARGZERO, "Illegal thermo output frequency {}", thermo_every);
   }
 }
 
@@ -896,7 +904,7 @@ void Output::create_thermo(int narg, char **arg)
   // don't allow this so that dipole style can safely allocate inertia vector
 
   if (domain->box_exist == 0)
-    error->all(FLERR,"Thermo_style command before simulation box is defined");
+    error->all(FLERR,"Thermo_style command before simulation box is defined" + utils::errorurl(33));
 
   // warn if previous thermo had been modified via thermo_modify command
 

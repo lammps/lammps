@@ -87,6 +87,7 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = 0;
   eflag_caller = 1;
+  stores_ids = 1;
 
   // allocate memory for CMAP data
 
@@ -127,6 +128,9 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
 
 FixCMAP::~FixCMAP()
 {
+
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
 
   atom->delete_callback(id,Atom::GROW);
@@ -413,8 +417,6 @@ void FixCMAP::post_force(int vflag)
       r43 = sqrt(vb43x*vb43x + vb43y*vb43y + vb43z*vb43z);
       a2sq = a2x*a2x + a2y*a2y + a2z*a2z;
       b2sq = b2x*b2x + b2y*b2y + b2z*b2z;
-      //if (a1sq<0.0001 || b1sq<0.0001 || a2sq<0.0001 || b2sq<0.0001)
-      //  printf("a1sq b1sq a2sq b2sq: %f %f %f %f \n",a1sq,b1sq,a2sq,b2sq);
       if (a1sq<0.0001 || b1sq<0.0001 || a2sq<0.0001 || b2sq<0.0001) continue;
       dpr21r32 = vb21x*vb32x + vb21y*vb32y + vb21z*vb32z;
       dpr34r32 = vb34x*vb32x + vb34y*vb32y + vb34z*vb32z;
@@ -593,7 +595,6 @@ void FixCMAP::post_force(int vflag)
         vcmap[5] = (vb12y*f1[2])+(vb32y*f3[2])+((vb43y+vb32y)*f4[2])+
           ((vb54y+vb43y+vb32y)*f5[2]);
         ev_tally(nlist,list,5.0,E,vcmap);
-        //ev_tally(5,list,nlocal,newton_bond,E,vcmap);
       }
   }
 }
@@ -1051,7 +1052,7 @@ bigint FixCMAP::read_data_skip_lines(char * /*keyword*/)
 
 void FixCMAP::write_data_header(FILE *fp, int /*mth*/)
 {
-  fmt::print(fp,"{} crossterms\n",ncmap);
+  utils::print(fp,"{} crossterms\n",ncmap);
 }
 
 /* ----------------------------------------------------------------------
@@ -1129,7 +1130,7 @@ void FixCMAP::write_data_section(int /*mth*/, FILE *fp,
                                   int n, double **buf, int index)
 {
   for (int i = 0; i < n; i++)
-    fmt::print(fp,"{} {} {} {} {} {} {}\n",
+    utils::print(fp,"{} {} {} {} {} {} {}\n",
                index+i,ubuf(buf[i][0]).i, ubuf(buf[i][1]).i, ubuf(buf[i][2]).i,
                ubuf(buf[i][3]).i,ubuf(buf[i][4]).i,ubuf(buf[i][5]).i);
 }

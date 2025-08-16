@@ -117,14 +117,17 @@ void FixTempBerendsen::init()
   }
 
   temperature = modify->get_compute_by_id(id_temp);
-  if (!temperature)
+  if (!temperature) {
     error->all(FLERR,"Temperature compute ID {} for fix {} does not exist", id_temp, style);
+  } else {
+    if (temperature->tempflag == 0)
+      error->all(FLERR, "Compute ID {} for fix {} does not compute a temperature", id_temp, style);
+    if (temperature->tempbias) which = BIAS;
+    else which = NOBIAS;
+  }
 
-  if (modify->check_rigid_group_overlap(groupbit))
+  if ((modify->check_rigid_group_overlap(groupbit)) && (comm->me == 0))
     error->warning(FLERR,"Cannot thermostat atoms in rigid bodies with fix {}", style);
-
-  if (temperature->tempbias) which = BIAS;
-  else which = NOBIAS;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -256,7 +259,7 @@ void FixTempBerendsen::write_restart(FILE *fp)
 
 void FixTempBerendsen::restart(char *buf)
 {
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
 
   energy = list[0];
 }

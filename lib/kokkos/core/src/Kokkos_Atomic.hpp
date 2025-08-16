@@ -47,7 +47,6 @@
 #include <Kokkos_Macros.hpp>
 
 #include <Kokkos_Atomics_Desul_Wrapper.hpp>
-#include <Kokkos_Atomics_Desul_Volatile_Wrapper.hpp>
 
 #ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_ATOMIC
 #undef KOKKOS_IMPL_PUBLIC_INCLUDE

@@ -16,13 +16,15 @@
 
 #include <Kokkos_DetectionIdiom.hpp>
 
+#include <cstddef>
+
 void test_nonesuch() {
   using Kokkos::nonesuch;
-  static_assert(!std::is_constructible<nonesuch>::value);
-  static_assert(!std::is_destructible<nonesuch>::value);
-  static_assert(!std::is_copy_constructible<nonesuch>::value);
-  static_assert(!std::is_move_constructible<nonesuch>::value);
-  static_assert(!std::is_aggregate<nonesuch>::value);
+  static_assert(!std::is_constructible_v<nonesuch>);
+  static_assert(!std::is_destructible_v<nonesuch>);
+  static_assert(!std::is_copy_constructible_v<nonesuch>);
+  static_assert(!std::is_move_constructible_v<nonesuch>);
+  static_assert(!std::is_aggregate_v<nonesuch>);
 }
 
 namespace Example {
@@ -39,7 +41,7 @@ static_assert(Kokkos::is_detected<copy_assign_t, Meow>::value,
               "Meow should be copy assignable!");
 static_assert(!Kokkos::is_detected<copy_assign_t, Purr>::value,
               "Purr should not be copy assignable!");
-static_assert(Kokkos::is_detected_exact<Meow&, copy_assign_t, Meow>::value,
+static_assert(Kokkos::is_detected_exact_v<Meow&, copy_assign_t, Meow>,
               "Copy assignment of Meow should return Meow&!");
 
 template <class T>
@@ -53,8 +55,8 @@ struct Woof {
 };
 struct Bark {};
 
-static_assert(std::is_same<difference_type<Woof>, int>::value,
+static_assert(std::is_same_v<difference_type<Woof>, int>,
               "Woof's difference_type should be int!");
-static_assert(std::is_same<difference_type<Bark>, std::ptrdiff_t>::value,
+static_assert(std::is_same_v<difference_type<Bark>, std::ptrdiff_t>,
               "Bark's difference_type should be ptrdiff_t!");
 }  // namespace Example

@@ -55,6 +55,8 @@ PairLJSPICACoulLong::PairLJSPICACoulLong(LAMMPS *lmp) :
 
 PairLJSPICACoulLong::~PairLJSPICACoulLong()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(lj_type);
@@ -183,7 +185,7 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLJSPICACoulLong::eval
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction * dftable[itable];
             forcecoul = qtmp * q[j] * table;
             if (EFLAG) ecoul = qtmp * q[j] * (etable[itable] + fraction * detable[itable]);
@@ -319,7 +321,7 @@ void PairLJSPICACoulLong::settings(int narg, char **arg)
 
 void PairLJSPICACoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 6) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -347,7 +349,7 @@ void PairLJSPICACoulLong::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -356,7 +358,7 @@ void PairLJSPICACoulLong::coeff(int narg, char **arg)
 
 void PairLJSPICACoulLong::init_style()
 {
-  if (!atom->q_flag) error->all(FLERR, "Pair style lj/cut/coul/long requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR, "Pair style lj/spica/coul/long requires atom attribute q");
 
   neighbor->add_request(this);
 
@@ -385,7 +387,8 @@ double PairLJSPICACoulLong::init_one(int i, int j)
 
   const int ljt = lj_type[i][j];
 
-  if (ljt == LJ_NOT_SET) error->all(FLERR, "unrecognized LJ parameter flag");
+  if (ljt == LJ_NOT_SET)
+    error->all(FLERR,"unrecognized LJ parameter flag");
 
   double cut = MAX(cut_lj[i][j], cut_coul);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
@@ -576,7 +579,7 @@ double PairLJSPICACoulLong::single(int i, int j, int itype, int jtype, double rs
       rsq_lookup_single.f = rsq;
       itable = rsq_lookup_single.i & ncoulmask;
       itable >>= ncoulshiftbits;
-      fraction = (rsq_lookup_single.f - rtable[itable]) * drtable[itable];
+      fraction = ((double) rsq_lookup_single.f - rtable[itable]) * drtable[itable];
       table = ftable[itable] + fraction * dftable[itable];
       forcecoul = atom->q[i] * atom->q[j] * table;
       table = etable[itable] + fraction * detable[itable];

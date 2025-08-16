@@ -25,6 +25,7 @@
 #include "neighbor.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -264,7 +265,7 @@ void DihedralOPLS::allocate()
 
 void DihedralOPLS::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all(FLERR, "Incorrect args for dihedral coefficients");
+  if (narg != 5) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -287,7 +288,7 @@ void DihedralOPLS::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -336,8 +337,7 @@ void DihedralOPLS::write_data(FILE *fp)
 
 /* ----------------------------------------------------------------------*/
 
-void DihedralOPLS::born_matrix(int nd, int i1, int i2, int i3, int i4,
-                             double &du, double &du2)
+void DihedralOPLS::born_matrix(int nd, int i1, int i2, int i3, int i4, double &du, double &du2)
 {
   double vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, vb3z, vb2xm, vb2ym, vb2zm;
   double sb1, sb3, rb1, rb3, c0, b1mag2, b1mag, b2mag2;
@@ -425,9 +425,24 @@ void DihedralOPLS::born_matrix(int nd, int i1, int i2, int i3, int i4,
   si = sin(phi);
   if (fabs(si) < SMALLER) si = SMALLER;
 
-  du = k1[type] - 2.0 * k2[type] * sin(2.0 * phi) / si + 3.0 * k3[type] * sin(3.0 * phi) / si
-          - 4.0 * k4[type] * sin(4.0 * phi) / si;
-  du2 = (4.0 * k2[type] * si * cos(2.0 * phi) - 2.0 * k2[type] * sin(2.0 * phi)
-          - 9.0 * k3[type] * si * cos(3.0 * phi) + 3.0 * k3[type] * sin(3.0 * phi)
-          + 16.0 * k4[type] * si * cos(4.0 * phi) - 4.0 * k4[type] * sin(4.0 * phi)) / (si * si * si);
+  du = k1[type] - 2.0 * k2[type] * sin(2.0 * phi) / si + 3.0 * k3[type] * sin(3.0 * phi) / si -
+      4.0 * k4[type] * sin(4.0 * phi) / si;
+  du2 = (4.0 * k2[type] * si * cos(2.0 * phi) - 2.0 * k2[type] * sin(2.0 * phi) -
+         9.0 * k3[type] * si * cos(3.0 * phi) + 3.0 * k3[type] * sin(3.0 * phi) +
+         16.0 * k4[type] * si * cos(4.0 * phi) - 4.0 * k4[type] * sin(4.0 * phi)) /
+      (si * si * si);
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *DihedralOPLS::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k1") == 0) return (void *) k1;
+  if (strcmp(str, "k2") == 0) return (void *) k2;
+  if (strcmp(str, "k3") == 0) return (void *) k3;
+  if (strcmp(str, "k4") == 0) return (void *) k4;
+  return nullptr;
 }

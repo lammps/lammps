@@ -81,6 +81,7 @@ class FixQEqReaxFF : public Fix {
   double **s_hist, **t_hist;
   int nprev;
 
+  // NOLINTBEGIN
   typedef struct {
     int n, m;
     int *firstnbr;
@@ -88,6 +89,7 @@ class FixQEqReaxFF : public Fix {
     int *jlist;
     double *val;
   } sparse_matrix;
+  // NOLINTEND
 
   sparse_matrix H;
   double *Hdia_inv;

@@ -11,82 +11,90 @@
 #   See the README file in the top-level LAMMPS directory.
 # -------------------------------------------------------------------------
 
-################################################################################
-# LAMMPS data structures
-# Written by Richard Berger <richard.berger@temple.edu>
-################################################################################
+"""
+Data structures for LAMMPS Python module
+Written by Richard Berger <richard.berger@outlook.com>
+"""
 
-class NeighList(object):
-    """This is a wrapper class that exposes the contents of a neighbor list.
+__all__ = ['NeighList']  # symbols to import with import *
 
-    It can be used like a regular Python list. Each element is a tuple of:
+class NeighList:
+  """This is a wrapper class that exposes the contents of a neighbor list.
 
-    * the atom local index
-    * its number of neighbors
-    * and a pointer to an c_int array containing local atom indices of its
-      neighbors
+  It can be used like a regular Python list. Each element is a tuple of:
 
-    Internally it uses the lower-level LAMMPS C-library interface.
+  * the atom local index
+  * its number of neighbors
+  * and a pointer to an c_int array containing local atom indices of its
+    neighbors
 
-    :param lmp: reference to instance of :py:class:`lammps`
-    :type  lmp: lammps
-    :param idx: neighbor list index
-    :type  idx: int
+  Internally it uses the lower-level LAMMPS C-library interface.
+
+  :param lmp: reference to instance of :py:class:`lammps`
+  :type  lmp: lammps
+  :param idx: neighbor list index
+  :type  idx: int
+  """
+  def __init__(self, lmp, idx):
+    self.lmp = lmp
+    self.idx = idx
+
+  def __str__(self):
+    # pylint: disable=C0209
+    return "Neighbor List ({} atoms)".format(self.size)
+
+  def __repr__(self):
+    return self.__str__()
+
+  @property
+  def size(self):
     """
-    def __init__(self, lmp, idx):
-        self.lmp = lmp
-        self.idx = idx
+    :return: number of elements in neighbor list
+    """
+    return self.lmp.get_neighlist_size(self.idx)
 
-    def __str__(self):
-        return "Neighbor List ({} atoms)".format(self.size)
+  def get(self, element):
+    """
+    Access a specific neighbor list entry. "element" must be a number from 0 to the size-1 of the list
 
-    def __repr__(self):
-        return self.__str__()
+    :return: tuple with atom local index, number of neighbors and ctypes pointer to neighbor's local atom indices
+    :rtype:  (int, int, ctypes.POINTER(c_int))
+    """
+    iatom, numneigh, neighbors = self.lmp.get_neighlist_element_neighbors(self.idx, element)
+    return iatom, numneigh, neighbors
 
-    @property
-    def size(self):
-        """
-        :return: number of elements in neighbor list
-        """
-        return self.lmp.get_neighlist_size(self.idx)
+  # the methods below implement the iterator interface, so NeighList can be used like a regular Python list
 
-    def get(self, element):
-        """
-        Access a specific neighbor list entry. "element" must be a number from 0 to the size-1 of the list
+  def __getitem__(self, element):
+    return self.get(element)
 
-        :return: tuple with atom local index, number of neighbors and ctypes pointer to neighbor's local atom indices
-        :rtype:  (int, int, ctypes.POINTER(c_int))
-        """
-        iatom, numneigh, neighbors = self.lmp.get_neighlist_element_neighbors(self.idx, element)
-        return iatom, numneigh, neighbors
+  def __len__(self):
+    return self.size
 
-    # the methods below implement the iterator interface, so NeighList can be used like a regular Python list
+  def __iter__(self):
+    inum = self.size
 
-    def __getitem__(self, element):
-        return self.get(element)
+    for ii in range(inum):
+      yield self.get(ii)
 
-    def __len__(self):
-        return self.size
+  def find(self, iatom):
+    """
+    Find the neighbor list for a specific (local) atom iatom.
+    If there is no list for iatom, (-1, None) is returned.
 
-    def __iter__(self):
-        inum = self.size
+    :return: tuple with number of neighbors and ctypes pointer to neighbor's local atom indices
+    :rtype:  (int, ctypes.POINTER(c_int))
+    """
 
-        for ii in range(inum):
-            yield self.get(ii)
+    inum = self.size
+    for ii in range(inum):
+      idx, numneigh, neighbors = self.get(ii)
+      if idx == iatom:
+        return numneigh, neighbors
 
-    def find(self, iatom):
-        """
-        Find the neighbor list for a specific (local) atom iatom.
-        If there is no list for iatom, (-1, None) is returned.
+    return -1, None
 
-        :return: tuple with number of neighbors and ctypes pointer to neighbor's local atom indices
-        :rtype:  (int, ctypes.POINTER(c_int))
-        """
-
-        inum = self.size
-        for ii in range(inum):
-            idx, numneigh, neighbors = self.get(ii)
-            if idx == iatom:
-                return numneigh, neighbors
-
-        return -1, None
+# Local Variables:
+# fill-column: 100
+# python-indent-offset: 2
+# End:

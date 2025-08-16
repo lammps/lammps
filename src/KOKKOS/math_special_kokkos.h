@@ -248,6 +248,29 @@ namespace MathSpecialKokkos {
 
     return yy;
   }
+
+  /* ----------------------------------------------------------------------
+    ans = v1 - v2
+  ------------------------------------------------------------------------- */
+
+  KOKKOS_INLINE_FUNCTION
+  static void sub3(const double *v1, const double *v2, double *ans)
+  {
+    ans[0] = v1[0] - v2[0];
+    ans[1] = v1[1] - v2[1];
+    ans[2] = v1[2] - v2[2];
+  }
+
+  /* ----------------------------------------------------------------------
+    dot product of 2 vectors
+  ------------------------------------------------------------------------- */
+
+  KOKKOS_INLINE_FUNCTION
+  static double dot3(const double *v1, const double *v2)
+  {
+    return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+  }
+
 }    // namespace MathSpecialKokkos
 }    // namespace LAMMPS_NS
 

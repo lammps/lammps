@@ -32,6 +32,7 @@
 .. index:: kspace_style msm/cg/omp
 .. index:: kspace_style msm/dielectric
 .. index:: kspace_style scafacos
+.. index:: kspace_style zero
 
 kspace_style command
 ====================
@@ -43,7 +44,7 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos*
+* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
 
   .. parsed-literal::
 
@@ -121,6 +122,7 @@ Syntax
        *scafacos* values = method accuracy
          method = fmm or p2nfft or p3m or ewald or direct
          accuracy = desired relative error in forces
+       *zero* value = none
 
 Examples
 """"""""
@@ -132,6 +134,7 @@ Examples
    kspace_style msm 1.0e-4
    kspace_style scafacos fmm 1.0e-4
    kspace_style none
+   kspace_style zero
 
 Used in input scripts:
 
@@ -315,7 +318,7 @@ pressure simulation with MSM will cause the code to run slower.
 ----------
 
 The *scafacos* style is a wrapper on the `ScaFaCoS Coulomb solver
-library <http://www.scafacos.de>`_ which provides a variety of solver
+library <http://www.scafacos.de/>`_ which provides a variety of solver
 methods which can be used with LAMMPS.  The paper by :ref:`(Sutman)
 <Sutmann2014>` gives an overview of ScaFaCoS.
 
@@ -325,9 +328,9 @@ in 2009-2012. Participants of the consortium were the Universities of
 Bonn, Chemnitz, Stuttgart, and Wuppertal as well as the
 Forschungszentrum Juelich.
 
-The library is available for download at "http://scafacos.de" or can
+The library is available for download at "http://www.scafacos.de/" or can
 be cloned from the git-repository
-"https://github.com/scafacos/scafacos.git".
+"https://github.com/scafacos/scafacos".
 
 In order to use this KSpace style, you must download and build the
 ScaFaCoS library, then build LAMMPS with the SCAFACOS package
@@ -372,6 +375,13 @@ the :doc:`kspace_modify scafacos accuracy <kspace_modify>` doc page.
 
 The :doc:`kspace_modify scafacos <kspace_modify>` command also explains
 other ScaFaCoS options currently exposed to LAMMPS.
+
+----------
+
+.. versionadded:: 12Jun2025
+
+The *zero* style does not do any calculations, but is compatible
+with all pair styles that require some version of a kspace style.
 
 ----------
 

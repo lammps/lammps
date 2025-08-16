@@ -13,14 +13,16 @@
  ------------------------------------------------------------------------- */
 
 #include "pair_sph_idealgas.h"
-#include <cmath>
-#include "atom.h"
-#include "force.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "domain.h"
 
+#include "atom.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "info.h"
+#include "memory.h"
+#include "neigh_list.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -28,12 +30,19 @@ using namespace LAMMPS_NS;
 
 PairSPHIdealGas::PairSPHIdealGas(LAMMPS *lmp) : Pair(lmp)
 {
+  if ((atom->esph_flag != 1) || (atom->rho_flag != 1) || (atom->vest_flag != 1))
+    error->all(FLERR, Error::NOLASTLINE,
+               "Pair sph/idealgas requires atom attributes energy, density, and velocity estimates,"
+               " e.g. in atom_style sph");
+
   restartinfo = 0;
+  single_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHIdealGas::~PairSPHIdealGas() {
+PairSPHIdealGas::~PairSPHIdealGas()
+{
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -45,7 +54,8 @@ PairSPHIdealGas::~PairSPHIdealGas() {
 
 /* ---------------------------------------------------------------------- */
 
-void PairSPHIdealGas::compute(int eflag, int vflag) {
+void PairSPHIdealGas::compute(int eflag, int vflag)
+{
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, fpair;
 
@@ -160,10 +170,6 @@ void PairSPHIdealGas::compute(int eflag, int vflag) {
 
         if (evflag)
           ev_tally(i, j, nlocal, newton_pair, 0.0, 0.0, fpair, delx, dely, delz);
-
-        if (evflag)
-          ev_tally(i, j, nlocal, newton_pair, 0.0, 0.0, fpair, delx, dely,
-              delz);
       }
     }
   }
@@ -175,7 +181,8 @@ void PairSPHIdealGas::compute(int eflag, int vflag) {
  allocate all arrays
  ------------------------------------------------------------------------- */
 
-void PairSPHIdealGas::allocate() {
+void PairSPHIdealGas::allocate()
+{
   allocated = 1;
   int n = atom->ntypes;
 
@@ -194,7 +201,8 @@ void PairSPHIdealGas::allocate() {
  global settings
  ------------------------------------------------------------------------- */
 
-void PairSPHIdealGas::settings(int narg, char **/*arg*/) {
+void PairSPHIdealGas::settings(int narg, char **/*arg*/)
+{
   if (narg != 0)
     error->all(FLERR,
         "Illegal number of arguments for pair_style sph/idealgas");
@@ -204,9 +212,9 @@ void PairSPHIdealGas::settings(int narg, char **/*arg*/) {
  set coeffs for one or more type pairs
  ------------------------------------------------------------------------- */
 
-void PairSPHIdealGas::coeff(int narg, char **arg) {
-  if (narg != 4)
-    error->all(FLERR,"Incorrect number of args for pair_style sph/idealgas coefficients");
+void PairSPHIdealGas::coeff(int narg, char **arg)
+{
+  if (narg != 4) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated)
     allocate();
 
@@ -221,37 +229,27 @@ void PairSPHIdealGas::coeff(int narg, char **arg) {
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       viscosity[i][j] = viscosity_one;
-      //printf("setting cut[%d][%d] = %f\n", i, j, cut_one);
       cut[i][j] = cut_one;
       setflag[i][j] = 1;
       count++;
     }
   }
 
-  if (count == 0)
-    error->all(FLERR,"Incorrect args for pair sph/idealgas coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
  init for one type pair i,j and corresponding j,i
  ------------------------------------------------------------------------- */
 
-double PairSPHIdealGas::init_one(int i, int j) {
-
-  if (setflag[i][j] == 0) {
-      error->all(FLERR,"All pair sph/idealgas coeffs are not set");
-  }
+double PairSPHIdealGas::init_one(int i, int j)
+{
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair sph/idealgas coeffs are not set. Status:\n"
+               + Info::get_pair_coeff_status(lmp));
 
   cut[j][i] = cut[i][j];
 
   return cut[i][j];
-}
-
-/* ---------------------------------------------------------------------- */
-
-double PairSPHIdealGas::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/,
-    double /*rsq*/, double /*factor_coul*/, double /*factor_lj*/, double &fforce) {
-  fforce = 0.0;
-
-  return 0.0;
 }

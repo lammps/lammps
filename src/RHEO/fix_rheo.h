@@ -41,19 +41,25 @@ class FixRHEO : public Fix {
   // Model parameters
   double cut;
   double *rho0, *csq;
-  int self_mass_flag;
   int zmin_kernel, zmin_surface, zmin_splash;
   int kernel_style, surface_style;
   double divr_surface;
 
-  // Accessory fixes/computes
+  // Settings flags
   int thermal_flag;
   int rhosum_flag;
-  int shift_flag;
   int interface_flag;
   int surface_flag;
-  int oxidation_flag;
+  int shift_flag;
+  int coordination_flag;
 
+  // Optional sub-flags/parameters
+  int rhosum_self_mass_flag;
+  int *shift_type;
+  int shift_cross_type_flag;
+  double shift_scale, shift_wmin, shift_cmin;
+
+  // Accessory fixes/computes
   int viscosity_fix_defined;
   int pressure_fix_defined;
   int thermal_fix_defined;
@@ -72,11 +78,11 @@ class FixRHEO : public Fix {
 
 namespace RHEO_NS {
 
-  enum {QUINTIC, WENDLANDC4, RK0, RK1, RK2};
-  enum {COORDINATION, DIVR};
+  enum { QUINTIC, WENDLANDC4, RK0, RK1, RK2 };
+  enum { COORDINATION, DIVR };
 
   // Status variables
-  enum Status{
+  enum Status {
     // Phase status
     STATUS_SOLID = 1 << 0,
     // Gap for future phase: STATUS_ = 1 << 1,
@@ -95,12 +101,13 @@ namespace RHEO_NS {
   };
 
   // Masks and their inverses
-  #define PHASEMASK 0xFFFFFFFC     // 11111111111111111111111111111100
-  #define PHASECHECK 0x00000003    // 00000000000000000000000000000011
-  #define SURFACEMASK 0xFFFFFFC3   // 11111111111111111111111111000011
-  #define SURFACECHECK 0x0000003C  // 00000000000000000000000000111100
-  #define OPTIONSMASK 0xFFFFFC3F   // 11111111111111111111110000111111
-
+  enum {
+    PHASECHECK = 0x00000003,      // 00000000000000000000000000000011
+    SURFACECHECK = 0x0000003C,    // 00000000000000000000000000111100
+    OPTIONSMASK = 0xFFFFFC3F,     // 11111111111111111111110000111111
+    SURFACEMASK = 0xFFFFFFC3,     // 11111111111111111111111111000011
+    PHASEMASK = 0xFFFFFFFC        // 11111111111111111111111111111100
+  };
 }    // namespace RHEO_NS
 }    // namespace LAMMPS_NS
 

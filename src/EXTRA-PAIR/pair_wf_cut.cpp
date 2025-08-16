@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
@@ -193,7 +194,7 @@ void PairWFCut::settings(int narg, char **arg)
 void PairWFCut::coeff(int narg, char **arg)
 {
   if (narg < 6 || narg > 7)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -221,7 +222,7 @@ void PairWFCut::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -230,12 +231,14 @@ void PairWFCut::coeff(int narg, char **arg)
 
 double PairWFCut::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
 
   nm[i][j] = nu[i][j]*mu[i][j];
   e0nm[i][j] = epsilon[i][j]*2.0*nu[i][j]*powint(cut[i][j]/sigma[i][j],2*mu[i][j])
-                       *powint((1+2.0*nu[i][j])/(2.0*nu[i][j])/(MathSpecial::powint(cut[i][j]/sigma[i][j],2*mu[i][j])-1.0),
-                              2*nu[i][j]+1);
+    *powint((1+2.0*nu[i][j])/(2.0*nu[i][j])
+            /(MathSpecial::powint(cut[i][j]/sigma[i][j],2*mu[i][j])-1.0),2*nu[i][j]+1);
   rcmu[i][j] = powint(cut[i][j],2*mu[i][j]);
   sigma_mu[i][j] = powint(sigma[i][j], 2*mu[i][j]);
 

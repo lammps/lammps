@@ -14,12 +14,12 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_coeff i j eps sigma
-   pair_coeff i j eps sigma cutoff
-   pair_coeff i j eps sigma wca
-   pair_coeff i j eps sigma cutoff wca
+   pair_coeff I J eps sigma
+   pair_coeff I J eps sigma cutoff
+   pair_coeff I J eps sigma wca
+   pair_coeff I J eps sigma cutoff wca
 
-* i,j = a particle type
+* I, J = a particle type
 * eps = interaction strength, i.e. the depth of the potential minimum (energy units)
 * sigma = distance of the potential minimum from 0
 * cutoff = the cutoff distance for this pair type, if different from global (distance units)

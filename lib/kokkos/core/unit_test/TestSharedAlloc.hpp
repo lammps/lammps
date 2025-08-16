@@ -31,7 +31,7 @@ struct SharedAllocDestroy {
   SharedAllocDestroy() = default;
   SharedAllocDestroy(int* arg) : count(arg) {}
 
-  void destroy_shared_allocation() { Kokkos::atomic_increment(count); }
+  void destroy_shared_allocation() { Kokkos::atomic_inc(count); }
 };
 
 template <class MemorySpace, class ExecutionSpace>
@@ -215,7 +215,7 @@ TEST(TEST_CATEGORY, impl_shared_alloc) {
 #elif (TEST_CATEGORY_NUMBER == 6)  // hip
   test_shared_alloc<Kokkos::HIPSpace, Kokkos::DefaultHostExecutionSpace>();
 #elif (TEST_CATEGORY_NUMBER == 7)  // sycl
-  test_shared_alloc<Kokkos::Experimental::SYCLDeviceUSMSpace,
+  test_shared_alloc<Kokkos::SYCLDeviceUSMSpace,
                     Kokkos::DefaultHostExecutionSpace>();
 #elif (TEST_CATEGORY_NUMBER == 8)  // openacc
   test_shared_alloc<Kokkos::Experimental::OpenACCSpace,

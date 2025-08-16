@@ -42,13 +42,7 @@ using namespace MathSpecial;
 static constexpr int OFFSET = 16384;
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
-enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};
-enum{REVERSE_RHO, REVERSE_RHO_G, REVERSE_RHO_A, REVERSE_RHO_NONE};
-enum{FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM,
-     FORWARD_IK_G, FORWARD_AD_G, FORWARD_IK_PERATOM_G, FORWARD_AD_PERATOM_G,
-     FORWARD_IK_A, FORWARD_AD_A, FORWARD_IK_PERATOM_A, FORWARD_AD_PERATOM_A,
-     FORWARD_IK_NONE, FORWARD_AD_NONE, FORWARD_IK_PERATOM_NONE,
-     FORWARD_AD_PERATOM_NONE};
+enum{ GEOMETRIC, ARITHMETIC, SIXTHPOWER };
 
 /* ---------------------------------------------------------------------- */
 
@@ -729,7 +723,7 @@ void PPPMDispIntel::particle_map_intel(double delx, double dely, double delz,
   int nthr = comm->nthreads;
 
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
-    error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
+    error->one(FLERR,"Non-numeric box dimensions - simulation unstable" + utils::errorurl(6));
 
   int flag = 0;
 
@@ -783,7 +777,7 @@ void PPPMDispIntel::particle_map_intel(double delx, double dely, double delz,
   }
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPMDisp");
+  if (flag) error->one(FLERR, Error::NOLASTLINE, "Out of range atoms - cannot compute PPPMDisp" + utils::errorurl(4));
 }
 
 /* ----------------------------------------------------------------------

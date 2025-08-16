@@ -261,7 +261,7 @@ void FixPAFI::post_force(int /*vflag*/)
       deviation[0] = x[i][0]-path[i][0]; // x-path
       deviation[1] = x[i][1]-path[i][1]; // x-path
       deviation[2] = x[i][2]-path[i][2]; // x-path
-      domain->minimum_image(deviation);
+      domain->minimum_image(FLERR, deviation);
 
       proj[3] += path[i][6]*deviation[0]; // (x-path).dn/nn = psi
       proj[3] += path[i][7]*deviation[1]; // (x-path).dn/nn = psi
@@ -424,7 +424,7 @@ void FixPAFI::min_post_force(int /*vflag*/)
       deviation[0] = x[i][0]-path[i][0]; // x-path
       deviation[1] = x[i][1]-path[i][1]; // x-path
       deviation[2] = x[i][2]-path[i][2]; // x-path
-      domain->minimum_image(deviation);
+      domain->minimum_image(FLERR, deviation);
 
       proj[3] += path[i][6]*deviation[0]; // (x-path).dn/nn = psi
       proj[3] += path[i][7]*deviation[1]; // (x-path).dn/nn = psi

@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 static constexpr double SMALL = 0.001;
-static constexpr double SMALLG = 2.0e-308;
+static constexpr double SMALLG = 2.3e-308;
 
 /* ---------------------------------------------------------------------- */
 
@@ -236,7 +236,7 @@ void AngleGaussian::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients" + utils::errorurl(21));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -325,13 +325,13 @@ double AngleGaussian::single(int type, int i1, int i2, int i3)
   double delx1 = x[i1][0] - x[i2][0];
   double dely1 = x[i1][1] - x[i2][1];
   double delz1 = x[i1][2] - x[i2][2];
-  domain->minimum_image(delx1, dely1, delz1);
+  domain->minimum_image(FLERR, delx1, dely1, delz1);
   double r1 = sqrt(delx1 * delx1 + dely1 * dely1 + delz1 * delz1);
 
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];
-  domain->minimum_image(delx2, dely2, delz2);
+  domain->minimum_image(FLERR, delx2, dely2, delz2);
   double r2 = sqrt(delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
 
   double c = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
@@ -351,4 +351,15 @@ double AngleGaussian::single(int type, int i1, int i2, int i3)
 
   if (sum_g_i < SMALL) sum_g_i = SMALL;
   return -(force->boltz * angle_temperature[type]) * log(sum_g_i);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *AngleGaussian::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"alpha") == 0) return (void *) alpha;
+  if (strcmp(str,"width") == 0) return (void *) width;
+  if (strcmp(str,"theta0") == 0) return (void *) theta0;
+  return nullptr;
 }

@@ -80,7 +80,7 @@ fix             5 rbar rheo/oxidation 1.5 2 1.0
 fix             6 all wall/harmonic ylo EDGE 2.0 1.0 1.0
 fix             7 all gravity 5e-5 vector 0 -1 0
 fix             8 floor setforce 0.0 0.0 0.0
-fix             9 surf add/heat linear 1.1 0.05
+fix             9 surf add/heat linear 1.1 0.5
 fix             10 floor add/heat constant 0 overwrite yes # fix the temperature of the floor
 fix             11 all enforce2d
 

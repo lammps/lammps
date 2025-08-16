@@ -13,44 +13,44 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-typedef NPairMultiOldOmp<0, 1, 0, 0> NPairFullMultiOldOmp;
+using NPairFullMultiOldOmp = NPairMultiOldOmp<0, 1, 0, 0>;
 NPairStyle(full/multi/old/omp,
            NPairFullMultiOldOmp,
            NP_FULL | NP_MULTI_OLD | NP_OMP |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairMultiOldOmp<1, 0, 0, 0> NPairHalfMultiOldNewtoffOmp;
+using NPairHalfMultiOldNewtoffOmp = NPairMultiOldOmp<1, 0, 0, 0>;
 NPairStyle(half/multi/old/newtoff/omp,
            NPairHalfMultiOldNewtoffOmp,
            NP_HALF | NP_MULTI_OLD | NP_OMP | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairMultiOldOmp<1, 1, 0, 0> NPairHalfMultiOldNewtonOmp;
+using NPairHalfMultiOldNewtonOmp = NPairMultiOldOmp<1, 1, 0, 0>;
 NPairStyle(half/multi/old/newton/omp,
            NPairHalfMultiOldNewtonOmp,
            NP_HALF | NP_MULTI_OLD | NP_OMP | NP_NEWTON | NP_ORTHO);
 
-typedef NPairMultiOldOmp<1, 1, 1, 0> NPairHalfMultiOldNewtonTriOmp;
+using NPairHalfMultiOldNewtonTriOmp = NPairMultiOldOmp<1, 1, 1, 0>;
 NPairStyle(half/multi/old/newton/tri/omp,
            NPairHalfMultiOldNewtonTriOmp,
            NP_HALF | NP_MULTI_OLD | NP_OMP | NP_NEWTON | NP_TRI);
 
-typedef NPairMultiOldOmp<0, 1, 0, 1> NPairFullSizeMultiOldOmp;
+using NPairFullSizeMultiOldOmp = NPairMultiOldOmp<0, 1, 0, 1>;
 NPairStyle(full/size/multi/old/omp,
            NPairFullSizeMultiOldOmp,
            NP_FULL | NP_SIZE | NP_MULTI_OLD | NP_OMP |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairMultiOldOmp<1, 0, 0, 1> NPairHalfSizeMultiOldNewtoffOmp;
+using NPairHalfSizeMultiOldNewtoffOmp = NPairMultiOldOmp<1, 0, 0, 1>;
 NPairStyle(half/size/multi/old/newtoff/omp,
            NPairHalfSizeMultiOldNewtoffOmp,
            NP_HALF | NP_SIZE | NP_MULTI_OLD | NP_OMP | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairMultiOldOmp<1, 1, 0, 1> NPairHalfSizeMultiOldNewtonOmp;
+using NPairHalfSizeMultiOldNewtonOmp = NPairMultiOldOmp<1, 1, 0, 1>;
 NPairStyle(half/size/multi/old/newton/omp,
            NPairHalfSizeMultiOldNewtonOmp,
            NP_HALF | NP_SIZE | NP_MULTI_OLD | NP_OMP | NP_NEWTON | NP_ORTHO);
 
-typedef NPairMultiOldOmp<1, 1, 1, 1> NPairHalfSizeMultiOldNewtonTriOmp;
+using NPairHalfSizeMultiOldNewtonTriOmp = NPairMultiOldOmp<1, 1, 1, 1>;
 NPairStyle(half/size/multi/old/newton/tri/omp,
            NPairHalfSizeMultiOldNewtonTriOmp,
            NP_HALF | NP_SIZE | NP_MULTI_OLD | NP_OMP | NP_NEWTON | NP_TRI);

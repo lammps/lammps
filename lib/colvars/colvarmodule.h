@@ -10,7 +10,7 @@
 #ifndef COLVARMODULE_H
 #define COLVARMODULE_H
 
-#include <cmath>
+#include <cstdint>
 
 #include "colvars_version.h"
 
@@ -18,10 +18,17 @@
 #define COLVARS_DEBUG false
 #endif
 
+#if defined(__FAST_MATH__)
+// NOTE: This is used for fixing https://github.com/Colvars/colvars/issues/767
+#define COLVARS_BOUNDED_INV_TRIGONOMETRIC_FUNC
+#endif
+
 /*! \mainpage Main page
-This is the Developer's documentation for the Collective Variables Module.
+This is the Developer's documentation for the Collective Variables module (Colvars).
 
 You can browse the class hierarchy or the list of source files.
+
+Please note that this documentation is only supported for the master branch, and its features may differ from those in a given release of a simulation package.
  */
 
 /// \file colvarmodule.h
@@ -33,26 +40,15 @@ You can browse the class hierarchy or the list of source files.
 /// shared between all object instances) to be accessed from other
 /// objects.
 
-#define COLVARS_OK 0
-#define COLVARS_ERROR   1
-#define COLVARS_NOT_IMPLEMENTED (1<<1)
-#define COLVARS_INPUT_ERROR     (1<<2) // out of bounds or inconsistent input
-#define COLVARS_BUG_ERROR       (1<<3) // Inconsistent state indicating bug
-#define COLVARS_FILE_ERROR      (1<<4)
-#define COLVARS_MEMORY_ERROR    (1<<5)
-#define COLVARS_NO_SUCH_FRAME   (1<<6) // Cannot load the requested frame
-
-#include <sstream>
+#include <cmath>
+#include <iosfwd>
 #include <string>
 #include <vector>
-#include <list>
-#include <iosfwd>
 
 class colvarparse;
 class colvar;
 class colvarbias;
 class colvarproxy;
-class colvarscript;
 class colvarvalue;
 
 
@@ -66,14 +62,6 @@ class colvarvalue;
 /// to provide a transparent interface between the MD program and the
 /// child objects
 class colvarmodule {
-
-private:
-
-  /// Impossible to initialize the main object without arguments
-  colvarmodule();
-
-  /// Integer representing the version string (allows comparisons)
-  int version_int;
 
 public:
 
@@ -89,9 +77,21 @@ public:
     return version_int;
   }
 
-  friend class colvarproxy;
-  // TODO colvarscript should be unaware of colvarmodule's internals
-  friend class colvarscript;
+  /// Get the patch version number (non-zero in patch releases of other packages)
+  int patch_version_number() const
+  {
+    return patch_version_int;
+  }
+
+private:
+
+  /// Integer representing the version string (allows comparisons)
+  int version_int = 0;
+
+  /// Patch version number (non-zero in patch releases of other packages)
+  int patch_version_int = 0;
+
+public:
 
   /// Use a 64-bit integer to store the step number
   typedef long long step_number;
@@ -152,17 +152,44 @@ public:
     return ::cos(static_cast<double>(x));
   }
 
-  /// Reimplemented to work around MS compiler issues
-  static inline real asin(real const &x)
-  {
-    return ::asin(static_cast<double>(x));
-  }
+#ifndef PI
+#define PI   3.14159265358979323846
+#endif
+#ifndef PI_2
+#define PI_2 1.57079632679489661923
+#endif
 
-  /// Reimplemented to work around MS compiler issues
-  static inline real acos(real const &x)
-  {
+/// Reimplemented to work around compiler issues; return hard-coded values for boundary conditions
+static inline real asin(real const &x)
+{
+#ifdef COLVARS_BOUNDED_INV_TRIGONOMETRIC_FUNC
+    if (x <= -1.0) {
+        return -PI_2;
+    } else if (x >= 1.0) {
+        return PI_2;
+    } else {
+        return ::asin(static_cast<double>(x));
+    }
+#else
+    return ::asin(static_cast<double>(x));
+#endif
+}
+
+/// Reimplemented to work around compiler issues; return hard-coded values for boundary conditions
+static inline real acos(real const &x)
+{
+#ifdef COLVARS_BOUNDED_INV_TRIGONOMETRIC_FUNC
+    if (x <= -1.0) {
+        return PI;
+    } else if (x >= 1.0) {
+        return 0.0;
+    } else {
+        return ::acos(static_cast<double>(x));
+    }
+#else
     return ::acos(static_cast<double>(x));
-  }
+#endif
+}
 
   /// Reimplemented to work around MS compiler issues
   static inline real atan2(real const &x, real const &y)
@@ -190,7 +217,9 @@ public:
   template <class T> class matrix2d;
   class quaternion;
   class rotation;
+
   class usage;
+  class memory_stream;
 
   /// Residue identifier
   typedef int residue_id;
@@ -205,8 +234,6 @@ public:
   // allow these classes to access protected data
   class atom;
   class atom_group;
-  friend class atom;
-  friend class atom_group;
   typedef std::vector<atom>::iterator       atom_iter;
   typedef std::vector<atom>::const_iterator atom_const_iter;
 
@@ -246,6 +273,8 @@ public:
   {
     return it;
   }
+
+  bool binary_restart;
 
   /// \brief Finite difference step size (if there is no dynamics, or
   /// if gradients need to be tested independently from the size of
@@ -310,6 +339,9 @@ public:
   /// Indexes of the items to calculate for each colvar
   std::vector<int> *variables_active_smp_items();
 
+  /// Calculate the value of the specified component (to be called in a SMP loop)
+  int calc_component_smp(int i);
+
   /// Array of collective variable biases
   std::vector<colvarbias *> biases;
 
@@ -342,8 +374,18 @@ public:
   /// \param Pointer to instance of the proxy class (communicate with engine)
   colvarmodule(colvarproxy *proxy);
 
+private:
+
+  /// Cannot initialize the main object without a proxy
+  colvarmodule();
+
+public:
+
   /// Destructor
   ~colvarmodule();
+
+  /// Set the initial step number (it is 0 otherwise); may be overridden when reading a state
+  void set_initial_step(step_number it);
 
   /// Actual function called by the destructor
   int reset();
@@ -449,17 +491,52 @@ public:
   /// (Re)initialize the output trajectory and state file (does not write it yet)
   int setup_output();
 
-  /// Read a restart file
-  std::istream & read_restart(std::istream &is);
+private:
+
+  template <typename IST> IST & read_state_template_(IST &is);
+
+  /// Default input state file; if given, it is read unless the MD engine provides it
+  std::string default_input_state_file_;
+
+  /// Internal state buffer, to be read as an unformatted stream
+  std::vector<unsigned char> input_state_buffer_;
+
+public:
+
+  /// Read all objects' state fron a formatted (text) stream
+  std::istream & read_state(std::istream &is);
+
+  /// Read all objects' state fron an unformatted (binary) stream
+  memory_stream & read_state(memory_stream &is);
+
+  /// Set an internal state buffer, to be read later as an unformatted stream when ready
+  int set_input_state_buffer(size_t n, unsigned char *buf);
+
+  /// Same as set_input_state_buffer() for C array, but uses std::move
+  int set_input_state_buffer(std::vector<unsigned char> &buf);
 
   /// Read the states of individual objects; allows for changes
   std::istream & read_objects_state(std::istream &is);
 
+  /// Read the states of individual objects; allows for changes
+  memory_stream & read_objects_state(memory_stream &is);
+
   /// If needed (old restart file), print the warning that cannot be ignored
   int print_total_forces_errning(bool warn_total_forces);
 
-  /// Write the output restart file
-  std::ostream & write_restart(std::ostream &os);
+private:
+  template <typename OST> OST &write_state_template_(OST &os);
+
+public:
+
+  /// Write the state of the module to a formatted (text) file
+  std::ostream & write_state(std::ostream &os);
+
+  /// Write the state of the module to an unformatted (binary) file
+  memory_stream & write_state(memory_stream &os);
+
+  /// Write the state of the module to an array of bytes (wrapped as a memory_stream object)
+  int write_state_buffer(std::vector<unsigned char> &buffer);
 
   /// Strips .colvars.state from filename and checks that it is not empty
   static std::string state_file_prefix(char const *filename);
@@ -650,7 +727,7 @@ public:
   static void log(std::string const &message, int min_log_level = 10);
 
   /// Print a message to the main log and set global error code
-  static int error(std::string const &message, int code = COLVARS_ERROR);
+  static int error(std::string const &message, int code = -1);
 
 private:
 
@@ -715,17 +792,6 @@ public:
   /// Clear the index groups loaded so far
   int reset_index_groups();
 
-  /// \brief Select atom IDs from a file (usually PDB) \param filename name of
-  /// the file \param atoms array into which atoms read from "filename" will be
-  /// appended \param pdb_field (optional) if the file is a PDB and this
-  /// string is non-empty, select atoms for which this field is non-zero
-  /// \param pdb_field_value (optional) if non-zero, select only atoms whose
-  /// pdb_field equals this
-  static int load_atoms(char const *filename,
-                        atom_group &atoms,
-                        std::string const &pdb_field,
-                        double pdb_field_value = 0.0);
-
   /// \brief Load coordinates for a group of atoms from a file (PDB or XYZ);
   /// if "pos" is already allocated, the number of its elements must match the
   /// number of entries in "filename" \param filename name of the file \param
@@ -755,7 +821,7 @@ public:
   std::string   restart_out_name;
 
   /// Pseudo-random number with Gaussian distribution
-  static real rand_gaussian(void);
+  static real rand_gaussian();
 
 protected:
 
@@ -838,9 +904,20 @@ public:
 typedef colvarmodule cvm;
 
 
-
 std::ostream & operator << (std::ostream &os, cvm::rvector const &v);
 std::istream & operator >> (std::istream &is, cvm::rvector &v);
+
+
+namespace {
+  constexpr int32_t COLVARS_OK = 0;
+  constexpr int32_t COLVARS_ERROR = 1;
+  constexpr int32_t COLVARS_NOT_IMPLEMENTED = (1<<1);
+  constexpr int32_t COLVARS_INPUT_ERROR     = (1<<2); // out of bounds or inconsistent input
+  constexpr int32_t COLVARS_BUG_ERROR       = (1<<3); // Inconsistent state indicating bug
+  constexpr int32_t COLVARS_FILE_ERROR      = (1<<4);
+  constexpr int32_t COLVARS_MEMORY_ERROR    = (1<<5);
+  constexpr int32_t COLVARS_NO_SUCH_FRAME   = (1<<6); // Cannot load the requested frame
+}
 
 
 #endif

@@ -29,9 +29,8 @@ int dgelqf_(integer *m, integer *n, doublereal *a, integer *lda, doublereal *tau
     --tau;
     --work;
     *info = 0;
+    k = min(*m, *n);
     nb = ilaenv_(&c__1, (char *)"DGELQF", (char *)" ", m, n, &c_n1, &c_n1, (ftnlen)6, (ftnlen)1);
-    lwkopt = *m * nb;
-    work[1] = (doublereal)lwkopt;
     lquery = *lwork == -1;
     if (*m < 0) {
         *info = -1;
@@ -39,17 +38,24 @@ int dgelqf_(integer *m, integer *n, doublereal *a, integer *lda, doublereal *tau
         *info = -2;
     } else if (*lda < max(1, *m)) {
         *info = -4;
-    } else if (*lwork < max(1, *m) && !lquery) {
-        *info = -7;
+    } else if (!lquery) {
+        if (*lwork <= 0 || *n > 0 && *lwork < max(1, *m)) {
+            *info = -7;
+        }
     }
     if (*info != 0) {
         i__1 = -(*info);
         xerbla_((char *)"DGELQF", &i__1, (ftnlen)6);
         return 0;
     } else if (lquery) {
+        if (k == 0) {
+            lwkopt = 1;
+        } else {
+            lwkopt = *m * nb;
+        }
+        work[1] = (doublereal)lwkopt;
         return 0;
     }
-    k = min(*m, *n);
     if (k == 0) {
         work[1] = 1.;
         return 0;
@@ -81,13 +87,13 @@ int dgelqf_(integer *m, integer *n, doublereal *a, integer *lda, doublereal *tau
             dgelq2_(&ib, &i__3, &a[i__ + i__ * a_dim1], lda, &tau[i__], &work[1], &iinfo);
             if (i__ + ib <= *m) {
                 i__3 = *n - i__ + 1;
-                dlarft_((char *)"Forward", (char *)"Rowwise", &i__3, &ib, &a[i__ + i__ * a_dim1], lda, &tau[i__],
-                        &work[1], &ldwork, (ftnlen)7, (ftnlen)7);
+                dlarft_((char *)"F", (char *)"R", &i__3, &ib, &a[i__ + i__ * a_dim1], lda, &tau[i__], &work[1],
+                        &ldwork, (ftnlen)1, (ftnlen)1);
                 i__3 = *m - i__ - ib + 1;
                 i__4 = *n - i__ + 1;
-                dlarfb_((char *)"Right", (char *)"No transpose", (char *)"Forward", (char *)"Rowwise", &i__3, &i__4, &ib,
-                        &a[i__ + i__ * a_dim1], lda, &work[1], &ldwork, &a[i__ + ib + i__ * a_dim1],
-                        lda, &work[ib + 1], &ldwork, (ftnlen)5, (ftnlen)12, (ftnlen)7, (ftnlen)7);
+                dlarfb_((char *)"R", (char *)"N", (char *)"F", (char *)"R", &i__3, &i__4, &ib, &a[i__ + i__ * a_dim1], lda,
+                        &work[1], &ldwork, &a[i__ + ib + i__ * a_dim1], lda, &work[ib + 1], &ldwork,
+                        (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
             }
         }
     } else {

@@ -14,15 +14,23 @@
 #ifndef CODEEDITOR_H
 #define CODEEDITOR_H
 
-#include <QFont>
 #include <QMap>
 #include <QPlainTextEdit>
 #include <QString>
 #include <QStringList>
 
 class QCompleter;
-class QStringListModel;
+class QContextMenuEvent;
+class QDragEnterEvent;
+class QDropEvent;
+class QFont;
+class QKeyEvent;
+class QMimeData;
+class QPaintEvent;
+class QRect;
+class QResizeEvent;
 class QShortcut;
+class QWidget;
 
 class CodeEditor : public QPlainTextEdit {
     Q_OBJECT
@@ -30,6 +38,12 @@ class CodeEditor : public QPlainTextEdit {
 public:
     CodeEditor(QWidget *parent = nullptr);
     ~CodeEditor() override;
+
+    CodeEditor()                              = delete;
+    CodeEditor(const CodeEditor &)            = delete;
+    CodeEditor(CodeEditor &&)                 = delete;
+    CodeEditor &operator=(const CodeEditor &) = delete;
+    CodeEditor &operator=(CodeEditor &&)      = delete;
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int lineNumberAreaWidth();
@@ -56,6 +70,7 @@ public:
     void setMinimizeList(const QStringList &words);
     void setVariableList(const QStringList &words);
     void setUnitsList(const QStringList &words);
+    void setExtraList(const QStringList &words);
     void setGroupList();
     void setVarNameList();
     void setComputeIDList();
@@ -71,6 +86,7 @@ protected:
     void dropEvent(QDropEvent *event) override;
     void contextMenuEvent(QContextMenuEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
+    void setDocver();
 
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
@@ -78,7 +94,9 @@ private slots:
     void get_help();
     void find_help(QString &page, QString &help);
     void open_help();
+    void open_url();
     void view_file();
+    void inspect_file();
     void reformatCurrentLine();
     void runCompletion();
     void insertCompletedCommand(const QString &completion);
@@ -93,11 +111,12 @@ private:
     QCompleter *current_comp, *command_comp, *fix_comp, *compute_comp, *dump_comp, *atom_comp,
         *pair_comp, *bond_comp, *angle_comp, *dihedral_comp, *improper_comp, *kspace_comp,
         *region_comp, *integrate_comp, *minimize_comp, *variable_comp, *units_comp, *group_comp,
-        *varname_comp, *fixid_comp, *compid_comp, *file_comp;
+        *varname_comp, *fixid_comp, *compid_comp, *file_comp, *extra_comp;
 
     int highlight;
     bool reformat_on_return;
     bool automatic_completion;
+    QString docver;
 
     QMap<QString, QString> cmd_map;
     QMap<QString, QString> fix_map;

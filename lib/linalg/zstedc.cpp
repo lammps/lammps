@@ -107,7 +107,7 @@ int zstedc_(char *compz, integer *n, doublereal *d__, doublereal *e, doublecompl
             liwmin = *n * 5 + 3;
         }
         work[1].r = (doublereal)lwmin, work[1].i = 0.;
-        rwork[1] = (doublereal)lrwmin;
+        rwork[1] = (real)lrwmin;
         iwork[1] = liwmin;
         if (*lwork < lwmin && !lquery) {
             *info = -8;
@@ -142,7 +142,7 @@ int zstedc_(char *compz, integer *n, doublereal *d__, doublereal *e, doublecompl
         zsteqr_(compz, n, &d__[1], &e[1], &z__[z_offset], ldz, &rwork[1], info, (ftnlen)1);
     } else {
         if (icompz == 2) {
-            dlaset_((char *)"Full", n, n, &c_b17, &c_b18, &rwork[1], n, (ftnlen)4);
+            dlaset_((char *)"F", n, n, &c_b17, &c_b18, &rwork[1], n, (ftnlen)1);
             ll = *n * *n + 1;
             i__1 = *lrwork - ll + 1;
             dstedc_((char *)"I", n, &d__[1], &e[1], &rwork[1], n, &rwork[ll], &i__1, &iwork[1], liwork,
@@ -228,7 +228,7 @@ int zstedc_(char *compz, integer *n, doublereal *d__, doublereal *e, doublecompl
     }
 L70:
     work[1].r = (doublereal)lwmin, work[1].i = 0.;
-    rwork[1] = (doublereal)lrwmin;
+    rwork[1] = (real)lrwmin;
     iwork[1] = liwmin;
     return 0;
 }

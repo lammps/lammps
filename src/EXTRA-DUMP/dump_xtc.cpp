@@ -37,7 +37,6 @@
 
 #include "xdr_compat.h"
 
-#include <climits>
 #include <cmath>
 #include <cstring>
 

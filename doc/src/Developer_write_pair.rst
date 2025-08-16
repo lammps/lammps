@@ -160,7 +160,7 @@ message and before the include guards for the class definition:
 
    #endif
 
-This block of between ``#ifdef PAIR_CLASS`` and ``#else`` will be
+This block between ``#ifdef PAIR_CLASS`` and ``#else`` will be
 included by the ``Force`` class in ``force.cpp`` to build a map of
 "factory functions" that will create an instance of these classes and
 return a pointer to it.  The map connects the name of the pair style,
@@ -310,7 +310,7 @@ the constructor and the destructor.
 
 Pair styles are different from most classes in LAMMPS that define a
 "style", as their constructor only uses the LAMMPS class instance
-pointer as an argument, but **not** the command line arguments of the
+pointer as an argument, but **not** the arguments of the
 :doc:`pair_style command <pair_style>`.  Instead, those arguments are
 processed in the ``Pair::settings()`` function (or rather the version in
 the derived class).  The constructor is the place where global defaults
@@ -371,9 +371,9 @@ but moving this to a separate function allows users to change global
 settings like the default cutoff without having to reissue all
 pair_coeff commands or re-read the ``Pair Coeffs`` sections from the
 data file.  In the ``settings()`` function, also the arrays for storing
-parameters, to define cutoffs, track with pairs of parameters have been
-explicitly set are allocated and, if needed, initialized.  In this case,
-the memory allocation and initialization is moved to a function
+parameters, to define cutoffs, track which pairs of parameters have been
+explicitly set and allocated and, if needed, initialized.  In this case,
+the memory allocation and initialization are moved to a function
 ``allocate()``.
 
 .. code-block:: c++
@@ -588,17 +588,20 @@ loop atoms are also initialized.
        jnum = numneigh[i];
 
 The inner loop (index *j*) processes the neighbor lists.  The neighbor
-list code encodes in the upper 2 bits whether a pair is a regular pair
-of neighbor (= 0) or a pair of 1-2 (= 1), 1-3 (= 2), or 1-4 (= 3)
-:doc:`"special" neighbor <special_bonds>`.  The ``sbmask()`` inline
-function extracts those bits and converts them into a number.  This
-number is used to look up the corresponding scaling factor for the
-non-bonded interaction from the ``force->special_lj`` array and stores
-it in the `factor_lj` variable.  Due to the additional bits, the value
-of *j* would be out of range when accessing data from per-atom arrays,
-so we apply the NEIGHMASK constant with a bit-wise and operation to mask
-them out.  This step *must* be done, even if a pair style does not use
-special bond scaling of forces and energies to avoid segmentation faults.
+list code encodes extra information using the upper 3 bits. The 2
+highest bits encode whether a pair is a regular pair of neighbor (= 0)
+or a pair of 1-2 (= 1), 1-3 (= 2), or 1-4 (= 3) :doc:`"special" neighbor
+<special_bonds>`.  The next highest bit encodes whether the pair stores
+data in a ``fix neigh/history`` instance (an undocumented internal fix
+style).  The ``sbmask()`` inline function extracts those bits and
+converts them into a number.  This number is used to look up the
+corresponding scaling factor for the non-bonded interaction from the
+``force->special_lj`` array and stores it in the `factor_lj` variable.
+Due to the additional bits, the value of *j* would be out of range when
+accessing data from per-atom arrays, so we apply the NEIGHMASK constant
+with a bit-wise and operation to mask them out.  This step *must* be
+done, even if a pair style does not use special bond scaling of forces
+and energies to avoid segmentation faults.
 
 With the corrected *j* index, it is now possible to compute the distance
 of the pair.  For efficiency reasons, the square root is only taken
@@ -888,10 +891,10 @@ originally created from mixing or not).
 These data file output functions are only useful for true pair-wise
 additive potentials, where the potential parameters can be entered
 through *multiple* :doc:`pair_coeff commands <pair_coeff>`.  Pair styles
-that require a single "pair_coeff \* \*" command line are not compatible
+that require a single "pair_coeff \* \*" command are not compatible
 with reading their parameters from data files.  For pair styles like
 *born/gauss* that do support writing to data files, the potential
-parameters will be read from the data file, if present and
+parameters will be read from the data file, if present, and
 :doc:`pair_coeff commands <pair_coeff>` may not be needed.
 
 The member variable ``writedata`` should be set to 1 in the constructor,
@@ -1119,7 +1122,7 @@ once.  Thus, the ``coeff()`` function has to do three tasks, each of
 which is delegated to a function in the ``PairTersoff`` class:
 
 #. map elements to atom types.  Those follow the potential file name in the
-   command line arguments and are processed by the ``map_element2type()`` function.
+   command arguments and are processed by the ``map_element2type()`` function.
 #. read and parse the potential parameter file in the ``read_file()`` function.
 #. Build data structures where the original and derived parameters are
    indexed by all possible triples of atom types and thus can be looked
@@ -1353,8 +1356,8 @@ either 0 or 1.
 
 The ``morseflag`` variable defaults to 0 and is set to 1 in the
 ``PairAIREBOMorse::settings()`` function which is called by the
-:doc:`pair_style <pair_style>` command.  This function delegates
-all command line processing and setting of other parameters to the
+:doc:`pair_style <pair_style>` command.  This function delegates all
+command argument processing and setting of other parameters to the
 ``PairAIREBO::settings()`` function of the base class.
 
 .. code-block:: c++

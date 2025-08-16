@@ -40,9 +40,9 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace RigidConst;
 
-typedef struct {
+using dbl3_t = struct {
   double x, y, z;
-} dbl3_t;
+};
 
 // clang-format off
 /* ---------------------------------------------------------------------- */
@@ -229,7 +229,7 @@ void FixRigidSmallOMP::compute_forces_and_torques()
 #if defined(_OPENMP)
 #pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
-    for (int ibody = 0; ibody < nbody; ibody++) {
+    for (int ibody = 0; ibody < nlocal_body; ibody++) {
       double * _noalias const fcm = body[ibody].fcm;
       const double mass = body[ibody].mass;
       fcm[0] += gvec[0]*mass;

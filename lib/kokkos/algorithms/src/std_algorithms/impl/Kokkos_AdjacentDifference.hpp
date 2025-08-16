@@ -82,6 +82,11 @@ OutputIteratorType adjacent_difference_exespace_impl(
     return first_dest;
   }
 
+#ifdef KOKKOS_ENABLE_DEBUG
+  // check for overlapping iterators
+  Impl::expect_no_overlap(first_from, last_from, first_dest);
+#endif
+
   // run
   const auto num_elements =
       Kokkos::Experimental::distance(first_from, last_from);
@@ -113,6 +118,11 @@ KOKKOS_FUNCTION OutputIteratorType adjacent_difference_team_impl(
   if (first_from == last_from) {
     return first_dest;
   }
+
+#ifdef KOKKOS_ENABLE_DEBUG
+  // check for overlapping iterators
+  Impl::expect_no_overlap(first_from, last_from, first_dest);
+#endif
 
   // run
   const auto num_elements =

@@ -18,19 +18,17 @@
 #include "pair_pod.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
-#include "tokenizer.h"
 
+#include <algorithm>
 #include <cmath>
-#include <cstring>
-#include <chrono>
 
 #include "eapod.h"
 
@@ -77,6 +75,7 @@ PairPOD::PairPOD(LAMMPS *lmp) : Pair(lmp), fastpodptr(nullptr)
   abfx = nullptr;
   abfy = nullptr;
   abfz = nullptr;
+  abftm = nullptr;
   sumU = nullptr;
   forcecoeff = nullptr;
   Centroids = nullptr;
@@ -88,6 +87,7 @@ PairPOD::PairPOD(LAMMPS *lmp) : Pair(lmp), fastpodptr(nullptr)
   pdd = nullptr;
   coefficients = nullptr;
   pn3 = nullptr;
+  pq3 = nullptr;
   pc3 = nullptr;
   pa4 = nullptr;
   pb4 = nullptr;
@@ -124,6 +124,7 @@ PairPOD::~PairPOD()
   memory->destroy(abfx);
   memory->destroy(abfy);
   memory->destroy(abfz);
+  memory->destroy(abftm);
   memory->destroy(sumU);
   memory->destroy(forcecoeff);
   memory->destroy(Centroids);
@@ -135,6 +136,7 @@ PairPOD::~PairPOD()
   memory->destroy(pdd);
   memory->destroy(coefficients);
   memory->destroy(pn3);
+  memory->destroy(pq3);
   memory->destroy(pc3);
   memory->destroy(pa4);
   memory->destroy(pb4);
@@ -331,7 +333,9 @@ void PairPOD::init_style()
 
 double PairPOD::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   double rcut = 0.0;
   rcut = fastpodptr->rcut;
@@ -568,14 +572,18 @@ void PairPOD::copy_data_from_pod_class()
   besselparams[1] = fastpodptr->besselparams[1];
   besselparams[2] = fastpodptr->besselparams[2];
 
+  memory->destroy(abftm);
   memory->create(abftm, 4*K3, "abftm");
+  memory->destroy(elemindex);
   memory->create(elemindex, nelements*nelements, "elemindex");
   for (int i=0; i<nelements*nelements; i++) elemindex[i] = fastpodptr->elemindex[i];
 
+  memory->destroy(Phi);
   memory->create(Phi, ns * ns, "pair_pod:Phi");
   for (int i=0; i<ns*ns; i++)
     Phi[i] = fastpodptr->Phi[i];
 
+  memory->destroy(coefficients);
   memory->create(coefficients, nCoeffPerElement * nelements, "pair_pod:coefficients");
   for (int i=0; i<nCoeffPerElement * nelements; i++)
     coefficients[i] = fastpodptr->coeff[i];
@@ -590,11 +598,17 @@ void PairPOD::copy_data_from_pod_class()
       Centroids[i] = fastpodptr->Centroids[i];
   }
 
+  memory->destroy(pn3);
   memory->create(pn3, nabf3+1, "pn3"); // array stores the number of monomials for each degree
+  memory->destroy(pq3);
   memory->create(pq3, K3*2, "pq3"); // array needed for the recursive computation of the angular basis functions
+  memory->destroy(pc3);
   memory->create(pc3, K3, "pc3");   // array needed for the computation of the three-body descriptors
+  memory->destroy(pa4);
   memory->create(pa4, nabf4+1, "pa4"); // this array is a subset of the array {0, 1, 4, 10, 19, 29, 47, 74, 89, 119, 155, 209, 230, 275, 335, 425, 533, 561, 624, 714, 849, 949, 1129, 1345}
+  memory->destroy(pb4);
   memory->create(pb4, Q4*3, "pb4"); // array stores the indices of the monomials needed for the computation of the angular basis functions
+  memory->destroy(pc4);
   memory->create(pc4, Q4, "pc4");   // array of monomial coefficients needed for the computation of the four-body descriptors
   for (int i=0; i<nabf3+1; i++) pn3[i] = fastpodptr->pn3[i];
   for (int i=0; i<K3; i++) pc3[i] = fastpodptr->pc3[i];
@@ -808,7 +822,7 @@ void PairPOD::radialbasis(double *rbft, double *rbftx, double *rbfty, double *rb
   }
 }
 
-void matrixMultiply(double *Phi, double *rbft, double *rbf, int nrbfmax, int ns, int Nij)
+static void matrixMultiply(double *Phi, double *rbft, double *rbf, int nrbfmax, int ns, int Nij)
 {
   for (int idx=0; idx<nrbfmax*Nij; idx++)  {
     int j = idx / nrbfmax;  // pair index index
@@ -890,7 +904,7 @@ void PairPOD::angularbasis(double *tm, double *tmu, double *tmv, double *tmw, in
       double tmvm = abfy[mj];
       double tmwm = abfz[mj];
 
-      double tmn, tmun, tmvn, tmwn;
+      double tmn = 0.0, tmun = 0.0, tmvn = 0.0, tmwn = 0.0;
       // Calculate angular basis function and its derivatives using recursion relation
       if (d==1) {
         tmn = tmm*u;
@@ -2096,7 +2110,7 @@ void PairPOD::blockatomenergyforce(double *ei, double *fij, int Ni, int Nij)
   blockatom_energyforce(ei, fij, Ni, Nij);
 }
 
-void PairPOD::savematrix2binfile(std::string filename, double *A, int nrows, int ncols)
+void PairPOD::savematrix2binfile(const std::string &filename, double *A, int nrows, int ncols)
 {
   FILE *fp = fopen(filename.c_str(), "wb");
   double sz[2];
@@ -2107,7 +2121,7 @@ void PairPOD::savematrix2binfile(std::string filename, double *A, int nrows, int
   fclose(fp);
 }
 
-void PairPOD::saveintmatrix2binfile(std::string filename, int *A, int nrows, int ncols)
+void PairPOD::saveintmatrix2binfile(const std::string &filename, int *A, int nrows, int ncols)
 {
   FILE *fp = fopen(filename.c_str(), "wb");
   int sz[2];

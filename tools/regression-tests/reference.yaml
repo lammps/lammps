@@ -1,0 +1,932 @@
+in.granregion.box: { folder: examples/granregion, status: "completed", failed_checks: { abs_diff_failed: 5, rel_diff_failed: 8 }, walltime: 0.0, walltime_norm: 0.0 }
+in.granregion.funnel: { folder: examples/granregion, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 106.0, walltime_norm: 17.666666666666668 }
+in.granregion.mixer: { folder: examples/granregion, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 84.0, walltime_norm: 14.0 }
+in.melt: { folder: examples/melt, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.airebo: { folder: examples/airebo, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 60.0, walltime_norm: 10.0 }
+in.airebo-0-0: { folder: examples/airebo, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 5.0, walltime_norm: 0.8333333333333334 }
+in.airebo-m: { folder: examples/airebo, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 63.0, walltime_norm: 10.5 }
+in.rebo2: { folder: examples/airebo, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 5.0, walltime_norm: 0.8333333333333334 }
+in.hybrid: { folder: examples/template, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 7.0, walltime_norm: 1.1666666666666667 }
+in.mol-data-mix: { folder: examples/template, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 18.0, walltime_norm: 3.0 }
+in.mol-restart-mix: { folder: examples/template, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 45.0, walltime_norm: 7.5 }
+in.molecular-mix: { folder: examples/template, status: "completed", failed_checks: { abs_diff_failed: 5, rel_diff_failed: 5 }, walltime: 26.0, walltime_norm: 4.333333333333333 }
+in.template-mix: { folder: examples/template, status: "completed", failed_checks: { abs_diff_failed: 5, rel_diff_failed: 5 }, walltime: 26.0, walltime_norm: 4.333333333333333 }
+in.tmpl-data-mix: { folder: examples/template, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 18.0, walltime_norm: 3.0 }
+in.tmpl-restart-mix: { folder: examples/template, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 45.0, walltime_norm: 7.5 }
+in.first: { folder: examples/rerun, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 16.0, walltime_norm: 2.6666666666666665 }
+in.rdf.first: { folder: examples/rerun, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 16.0, walltime_norm: 2.6666666666666665 }
+in.rdf.rerun: { folder: examples/rerun, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 5.0, walltime_norm: 0.8333333333333334 }
+in.read_dump: { folder: examples/rerun, status: "failed, no Total wall time in the output, --------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 1.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+", walltime: -1 }
+in.rerun: { folder: examples/rerun, status: "failed, no Total wall time in the output, --------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 1.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+", walltime: -1 }
+in.lj.ehex: { folder: examples/HEAT, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.lj.hex: { folder: examples/HEAT, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.spce.ehex: { folder: examples/HEAT, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.spce.hex: { folder: examples/HEAT, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.vashishta.inp: { folder: examples/vashishta, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.vashishta.sio2: { folder: examples/vashishta, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.vashishta.table.inp: { folder: examples/vashishta, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.vashishta.table.sio2: { folder: examples/vashishta, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.rigid: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.rigid.atomfile: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.rigid.atomvar: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.rigid.early: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.rigid.gravity: { folder: examples/rigid, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.rigid.infile: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.rigid.molecule: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.rigid.nve: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 0.0, walltime_norm: 0.0 }
+in.rigid.nve.early: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 0.0, walltime_norm: 0.0 }
+in.rigid.poems: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 3.0, walltime_norm: 0.5 }
+in.rigid.poems2: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 3.0, walltime_norm: 0.5 }
+in.rigid.poems3: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.rigid.poems4: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 3.0, walltime_norm: 0.5 }
+in.rigid.poems5: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 3.0, walltime_norm: 0.5 }
+in.rigid.property: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.rigid.small: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.rigid.small.infile: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.rigid.tnr: { folder: examples/rigid, status: "completed", failed_checks: { abs_diff_failed: 18, rel_diff_failed: 22 }, walltime: 21.0, walltime_norm: 3.5 }
+in.voronoi: { folder: examples/voronoi, status: "completed, but no Step nor Loop in the output.", walltime: 6.0, walltime_norm: 1.0 }
+in.voronoi.2d: { folder: examples/voronoi, status: "completed, but no Step nor Loop in the output.", walltime: 0.0, walltime_norm: 0.0 }
+in.voronoi.data: { folder: examples/voronoi, status: "completed, but no Step nor Loop in the output.", walltime: 0.0, walltime_norm: 0.0 }
+in.ehex: { folder: examples/KAPPA, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.heat: { folder: examples/KAPPA, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.heatflux: { folder: examples/KAPPA, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.langevin: { folder: examples/KAPPA, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.mp: { folder: examples/KAPPA, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.pour: { folder: examples/pour, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 20.0, walltime_norm: 3.3333333333333335 }
+in.pour.2d: { folder: examples/pour, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.pour.2d.molecule: { folder: examples/pour, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.deposit.atom: { folder: examples/deposit, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 3.0, walltime_norm: 0.5 }
+in.deposit.molecule: { folder: examples/deposit, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.deposit.molecule.rigid-nve-small: { folder: examples/deposit, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.deposit.molecule.rigid-nvt-small: { folder: examples/deposit, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.deposit.molecule.rigid-small: { folder: examples/deposit, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.deposit.molecule.shake: { folder: examples/deposit, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.charmmfsw: { folder: examples/charmmfsw, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 17.0, walltime_norm: 2.8333333333333335 }
+in.indent: { folder: examples/indent, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.indent.min: { folder: examples/indent, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.qeq.buck: { folder: examples/qeq, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 21.0, walltime_norm: 3.5 }
+in.qeq.reaxff: { folder: examples/qeq, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.dreiding: { folder: examples/dreiding, status: "completed, error parsing log.lammps into YAML", walltime: 0.0, walltime_norm: 0.0 }
+in.22DMH.real: { folder: examples/relres, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 57.0, walltime_norm: 9.5 }
+in.22DMH.relres: { folder: examples/relres, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 8.0, walltime_norm: 1.3333333333333333 }
+in.22DMH.respa: { folder: examples/relres, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 6.0, walltime_norm: 1.0 }
+in.track: { folder: examples/tracker, status: "failed, ERROR: Illegal pair_style command (src/MISC/pair_tracker.cpp:221).", walltime: -1 }
+in.pour.drum: { folder: examples/granular, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 10.0, walltime_norm: 1.6666666666666667 }
+in.pour.flatwall: { folder: examples/granular, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 10.0, walltime_norm: 1.6666666666666667 }
+in.pour.heat: { folder: examples/granular, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 83.0, walltime_norm: 13.833333333333334 }
+in.restitution: { folder: examples/granular, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 5.0, walltime_norm: 0.8333333333333334 }
+in.micelle: { folder: examples/micelle, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 1 }, walltime: 0.0, walltime_norm: 0.0 }
+in.micelle-rigid: { folder: examples/micelle, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.replicate.bond.x: { folder: examples/replicate, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.replicate.bond.x.noloop: { folder: examples/replicate, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.replicate.bond.x.y: { folder: examples/replicate, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.replicate.bond.xy: { folder: examples/replicate, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.replicate.cnt: { folder: examples/replicate, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 8.0, walltime_norm: 1.3333333333333333 }
+in.srd.mixture: { folder: examples/srd, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.srd.pure: { folder: examples/srd, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.ttm: { folder: examples/ttm, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 11.0, walltime_norm: 1.8333333333333333 }
+in.ttm.grid: { folder: examples/ttm, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 11.0, walltime_norm: 1.8333333333333333 }
+in.ttm.mod: { folder: examples/ttm, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.colloid: { folder: examples/multi, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 0.0, walltime_norm: 0.0 }
+in.granular: { folder: examples/multi, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.powerlaw: { folder: examples/multi, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.msst: { folder: examples/msst, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 6.0, walltime_norm: 1.0 }
+in.gjf.vfull: { folder: examples/gjf, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.gjf.vhalf: { folder: examples/gjf, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.spin.cobalt_fcc: { folder: examples/SPIN/cobalt_fcc, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.spin.nickel: { folder: examples/SPIN/nickel, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.spin.nickel_cubic: { folder: examples/SPIN/nickel, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.spin.cobalt_hcp: { folder: examples/SPIN/cobalt_hcp, status: "completed", failed_checks: { abs_diff_failed: 4, rel_diff_failed: 4 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.spin.iron: { folder: examples/SPIN/iron, status: "completed", failed_checks: { abs_diff_failed: 4, rel_diff_failed: 4 }, walltime: 0.0, walltime_norm: 0.0 }
+in.spin.iron_cubic: { folder: examples/SPIN/iron, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 0.0, walltime_norm: 0.0 }
+in.gneb.skyrmion: { folder: examples/SPIN/gneb/skyrmion, status: "failed, ERROR: Did not assign all atoms correctly (src/read_data.cpp:1562).", walltime: -1 }
+in.gneb.iron: { folder: examples/SPIN/gneb/iron, status: "failed, ERROR: Cannot use NEBSpin with a single replica (src/SPIN/neb_spin.cpp:133).", walltime: -1 }
+in.spin.read_data: { folder: examples/SPIN/read_restart, status: "failed, no Total wall time in the output, --------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 1.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+", walltime: -1 }
+in.spin.restart: { folder: examples/SPIN/read_restart, status: "failed, ERROR: Invalid flag in force field section of restart file (src/read_restart.cpp:948).", walltime: -1 }
+in.spin.write_restart: { folder: examples/SPIN/read_restart, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.spin.bfo_min: { folder: examples/SPIN/spinmin, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 6.0, walltime_norm: 1.0 }
+in.spin.bfo_min_cg: { folder: examples/SPIN/spinmin, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 7.0, walltime_norm: 1.1666666666666667 }
+in.spin.bfo_min_lbfgs: { folder: examples/SPIN/spinmin, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.spin.iron_min: { folder: examples/SPIN/spinmin, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.spin.setforce: { folder: examples/SPIN/setforce_spin, status: "failed, no Total wall time in the output, [fv-az1014-42:16323] *** Process received signal ***
+[fv-az1014-42:16323] Signal: Segmentation fault (11)
+[fv-az1014-42:16323] Signal code: Address not mapped (1)
+[fv-az1014-42:16323] Failing at address: 0x390
+[fv-az1014-42:16323] [ 0] /lib/x86_64-linux-gnu/libc.so.6(+0x42520)[0x7f09e7842520]
+[fv-az1014-42:16323] [ 1] /home/runner/work/lammps/lammps/build/lmp(_ZN9LAMMPS_NS11ComputeSpin14compute_vectorEv+0x2d8)[0x5590ad415268]
+[fv-az1014-42:16323] [ 2] /home/runner/work/lammps/lammps/build/lmp(_ZN9LAMMPS_NS8Variable8evaluateEPcPPNS0_4TreeEi+0x6e7f)[0x5590ad0078ef]
+[fv-az1014-42:16323] [ 3] /home/runner/work/lammps/lammps/build/lmp(_ZN9LAMMPS_NS8Variable13compute_equalEi+0x22b)[0x5590ad00d2ab]
+[fv-az1014-42:16323] [ 4] /home/runner/work/lammps/lammps/build/lmp(_ZN9LAMMPS_NS6Thermo16compute_variableEv+0x5b)[0x5590acfbfa6b]
+[fv-az1014-42:16323] [ 5] /home/runner/work/lammps/lammps/build/lmp(_ZN9LAMMPS_NS6Thermo7computeEi+0x203)[0x5590acfc9dc3]
+[fv-az1014-42:16323] [ 6] /home/runner/work/lammps/lammps/build/lmp(_ZN9LAMMPS_NS6Output5setupEi+0x64)[0x5590acf57f14]
+[fv-az1014-42:16323] [ 7] /home/runner/work/lammps/lammps/build/lmp(_ZN9LAMMPS_NS3Min5setupEi+0x57d)[0x5590acee421d]
+[fv-az1014-42:16323] [ 8] /home/runner/work/lammps/lammps/build/lmp(_ZN9LAMMPS_NS8Minimize7commandEiPPc+0x1d7)[0x5590acee5a67]
+[fv-az1014-42:16323] [ 9] /home/runner/work/lammps/lammps/build/lmp(_ZN9LAMMPS_NS5Input15execute_commandEv+0xb1d)[0x5590ace91b9d]
+[fv-az1014-42:16323] [10] /home/runner/work/lammps/lammps/build/lmp(_ZN9LAMMPS_NS5Input4fileEv+0x19e)[0x5590ace91f5e]
+[fv-az1014-42:16323] [11] /home/runner/work/lammps/lammps/build/lmp(main+0x51)[0x5590ace7ed41]
+[fv-az1014-42:16323] [12] /lib/x86_64-linux-gnu/libc.so.6(+0x29d90)[0x7f09e7829d90]
+[fv-az1014-42:16323] [13] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0x80)[0x7f09e7829e40]
+[fv-az1014-42:16323] [14] /home/runner/work/lammps/lammps/build/lmp(_start+0x25)[0x5590ace834e5]
+[fv-az1014-42:16323] *** End of error message ***
+Segmentation fault (core dumped)
+", walltime: -1 }
+in.spin.bfo: { folder: examples/SPIN/bfo, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 7.0, walltime_norm: 1.1666666666666667 }
+in.spin.iron_dipole_cut: { folder: examples/SPIN/dipole_spin, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 6.0, walltime_norm: 1.0 }
+in.spin.iron_dipole_ewald: { folder: examples/SPIN/dipole_spin, status: "completed", failed_checks: { abs_diff_failed: 1, rel_diff_failed: 0 }, walltime: 20.0, walltime_norm: 3.3333333333333335 }
+in.spin.iron_dipole_pppm: { folder: examples/SPIN/dipole_spin, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 11.0, walltime_norm: 1.8333333333333333 }
+in.spin.iron-nve: { folder: examples/SPIN/test_problems/validation_nve, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 19.0, walltime_norm: 3.1666666666666665 }
+in.spin.nvt_lattice: { folder: examples/SPIN/test_problems/validation_nvt, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 95.0, walltime_norm: 15.833333333333334 }
+in.spin.nvt_spin: { folder: examples/SPIN/test_problems/validation_nvt, status: "failed, ERROR: Fix langevin period must be > 0.0 (src/fix_langevin.cpp:80).", walltime: -1 }
+in.mliap.ace.compute: { folder: examples/mliap, status: "completed, but no Step nor Loop in the output.", walltime: 0.0, walltime_norm: 0.0 }
+in.mliap.nn.Cu: { folder: examples/mliap, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.mliap.nn.Ta06A: { folder: examples/mliap, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.mliap.pytorch.Ta06A: { folder: examples/mliap, status: "failed, ERROR: Using pair_style mliap model mliappy requires ML-IAP with python support (src/ML-IAP/pair_mliap.cpp:173).", walltime: -1 }
+in.mliap.pytorch.ace: { folder: examples/mliap, status: "failed, ERROR: Using pair_style mliap model mliappy requires ML-IAP with python support (src/ML-IAP/pair_mliap.cpp:173).", walltime: -1 }
+in.mliap.pytorch.ace.NN: { folder: examples/mliap, status: "failed, ERROR: Using pair_style mliap model mliappy requires ML-IAP with python support (src/ML-IAP/pair_mliap.cpp:173).", walltime: -1 }
+in.mliap.pytorch.relu1hidden: { folder: examples/mliap, status: "failed, ERROR: Using pair_style mliap model mliappy requires ML-IAP with python support (src/ML-IAP/pair_mliap.cpp:173).", walltime: -1 }
+in.mliap.quadratic.compute: { folder: examples/mliap, status: "failed, no Total wall time in the output, munmap_chunk(): invalid pointer
+[fv-az1014-42:16535] *** Process received signal ***
+[fv-az1014-42:16535] Signal: Aborted (6)
+[fv-az1014-42:16535] Signal code:  (-6)
+corrupted double-linked list
+Aborted (core dumped)
+", walltime: -1 }
+in.mliap.snap.Ta06A: { folder: examples/mliap, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.mliap.snap.WBe.PRB2019: { folder: examples/mliap, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.mliap.snap.chem: { folder: examples/mliap, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 15.0, walltime_norm: 2.5 }
+in.mliap.snap.compute: { folder: examples/mliap, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.mliap.snap.quadratic: { folder: examples/mliap, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.mliap.so3.Ni_Mo: { folder: examples/mliap, status: "completed, but no Step nor Loop in the output.", walltime: 0.0, walltime_norm: 0.0 }
+in.mliap.so3.nn.Si: { folder: examples/mliap, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 3.0, walltime_norm: 0.5 }
+in.mliap.unified.lj.Ar: { folder: examples/mliap, status: "failed, ERROR: Could not process Python string: .", walltime: -1 }
+in.run: { folder: examples/mliap/jax, status: "failed, ERROR: Using pair_style mliap unified requires ML-IAP with python support (src/ML-IAP/pair_mliap.cpp:213).", walltime: -1 }
+in.eim: { folder: examples/eim, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 3.0, walltime_norm: 0.5 }
+in.shear: { folder: examples/shear, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.shear.void: { folder: examples/shear, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 3.0, walltime_norm: 0.5 }
+in.aimd.alone: { folder: examples/mdi, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.aimd.driver: { folder: examples/mdi, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.aimd.driver.plugin: { folder: examples/mdi, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.aimd.engine: { folder: examples/mdi, status: "failed, unknown command, package not installed, ERROR: Unknown command: mdi             engine (src/input.cpp:314)", walltime: -1 }
+in.aimdpy.mm: { folder: examples/mdi, status: "failed, unknown command, package not installed, ERROR: Unknown command: mdi             engine (src/input.cpp:314)", walltime: -1 }
+in.aimdpy.qm: { folder: examples/mdi, status: "failed, unknown command, package not installed, ERROR: Unknown command: mdi             engine (src/input.cpp:314)", walltime: -1 }
+in.sequence.python: { folder: examples/mdi, status: "failed, unknown command, package not installed, ERROR: Unknown command: mdi             engine (src/input.cpp:314)", walltime: -1 }
+in.series.alone: { folder: examples/mdi, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.series.driver: { folder: examples/mdi, status: "failed, unknown command, package not installed, ERROR: Unknown command: mdi             connect (src/input.cpp:314)", walltime: -1 }
+in.series.driver.plugin: { folder: examples/mdi, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.series.engine: { folder: examples/mdi, status: "failed, unknown command, package not installed, ERROR: Unknown command: mdi             engine (src/input.cpp:314)", walltime: -1 }
+in.snapshot.alone: { folder: examples/mdi, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.snapshot.driver: { folder: examples/mdi, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.snapshot.driver.plugin: { folder: examples/mdi, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.snapshot.engine: { folder: examples/mdi, status: "failed, unknown command, package not installed, ERROR: Unknown command: mdi             engine (src/input.cpp:314)", walltime: -1 }
+in.lammps: { folder: examples/PACKAGES/dpd-smooth/2d-diffusion, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 57.0, walltime_norm: 9.5 }
+in.lammps: { folder: examples/PACKAGES/dpd-smooth/2d-diffusion-in-shear-flow, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 102.0, walltime_norm: 17.0 }
+in.lammps: { folder: examples/PACKAGES/dpd-smooth/equipartition-verification, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 41.0, walltime_norm: 6.833333333333333 }
+in.fitpod: { folder: examples/PACKAGES/pod/InP, status: "failed, ERROR: Cannot fit potential without data files. The data paths may not be valid. Please check the data paths in the POD data file. (src/ML-POD/fitpod_command.cpp:718).", walltime: -1 }
+in.pod: { folder: examples/PACKAGES/pod/InP, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.fitpod: { folder: examples/PACKAGES/pod/Ta, status: "completed, but no Step nor Loop in the output.", walltime: 0.0, walltime_norm: 0.0 }
+in.pod: { folder: examples/PACKAGES/pod/Ta, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.pod.compute: { folder: examples/PACKAGES/pod/Ta, status: "failed, ERROR: Per-atom data too large (src/ML-POD/compute_podd_atom.cpp:62).", walltime: -1 }
+in.duplex2: { folder: examples/PACKAGES/cgdna/examples/real_units/oxRNA2/duplex2, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 1 }, walltime: 22.0, walltime_norm: 3.6666666666666665 }
+in.duplex2: { folder: examples/PACKAGES/cgdna/examples/real_units/oxRNA2/potential_file, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 1 }, walltime: 19.0, walltime_norm: 3.1666666666666665 }
+in.duplex2: { folder: examples/PACKAGES/cgdna/examples/real_units/oxDNA/duplex2, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 21.0, walltime_norm: 3.5 }
+in.duplex1: { folder: examples/PACKAGES/cgdna/examples/real_units/oxDNA/duplex1, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 10.0, walltime_norm: 1.6666666666666667 }
+in.duplex1: { folder: examples/PACKAGES/cgdna/examples/real_units/oxDNA/potential_file, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 10.0, walltime_norm: 1.6666666666666667 }
+in.duplex2: { folder: examples/PACKAGES/cgdna/examples/real_units/oxDNA2/duplex2, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 24.0, walltime_norm: 4.0 }
+in.duplex1: { folder: examples/PACKAGES/cgdna/examples/real_units/oxDNA2/duplex1, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 11.0, walltime_norm: 1.8333333333333333 }
+in.dsring: { folder: examples/PACKAGES/cgdna/examples/real_units/oxDNA2/dsring, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 46.0, walltime_norm: 7.666666666666667 }
+in.duplex1: { folder: examples/PACKAGES/cgdna/examples/real_units/oxDNA2/potential_file, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 11.0, walltime_norm: 1.8333333333333333 }
+in.duplex4.4type: { folder: examples/PACKAGES/cgdna/examples/real_units/oxDNA2/unique_bp, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 51.0, walltime_norm: 8.5 }
+in.duplex4.8type: { folder: examples/PACKAGES/cgdna/examples/real_units/oxDNA2/unique_bp, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 50.0, walltime_norm: 8.333333333333334 }
+in.duplex3: { folder: examples/PACKAGES/cgdna/examples/real_units/oxDNA2/duplex3, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 11.0, walltime_norm: 1.8333333333333333 }
+in.duplex2: { folder: examples/PACKAGES/cgdna/examples/lj_units/oxRNA2/duplex2, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 19.0, walltime_norm: 3.1666666666666665 }
+in.duplex2: { folder: examples/PACKAGES/cgdna/examples/lj_units/oxRNA2/potential_file, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 19.0, walltime_norm: 3.1666666666666665 }
+in.duplex2: { folder: examples/PACKAGES/cgdna/examples/lj_units/oxDNA/duplex2, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 22.0, walltime_norm: 3.6666666666666665 }
+in.duplex1: { folder: examples/PACKAGES/cgdna/examples/lj_units/oxDNA/duplex1, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 10.0, walltime_norm: 1.6666666666666667 }
+in.duplex1: { folder: examples/PACKAGES/cgdna/examples/lj_units/oxDNA/potential_file, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 10.0, walltime_norm: 1.6666666666666667 }
+in.duplex2: { folder: examples/PACKAGES/cgdna/examples/lj_units/oxDNA2/duplex2, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 25.0, walltime_norm: 4.166666666666667 }
+in.duplex1: { folder: examples/PACKAGES/cgdna/examples/lj_units/oxDNA2/duplex1, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 11.0, walltime_norm: 1.8333333333333333 }
+in.dsring: { folder: examples/PACKAGES/cgdna/examples/lj_units/oxDNA2/dsring, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 46.0, walltime_norm: 7.666666666666667 }
+in.duplex1: { folder: examples/PACKAGES/cgdna/examples/lj_units/oxDNA2/potential_file, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 11.0, walltime_norm: 1.8333333333333333 }
+in.duplex4.4type: { folder: examples/PACKAGES/cgdna/examples/lj_units/oxDNA2/unique_bp, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 50.0, walltime_norm: 8.333333333333334 }
+in.duplex4.8type: { folder: examples/PACKAGES/cgdna/examples/lj_units/oxDNA2/unique_bp, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 50.0, walltime_norm: 8.333333333333334 }
+in.duplex3: { folder: examples/PACKAGES/cgdna/examples/lj_units/oxDNA2/duplex3, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 11.0, walltime_norm: 1.8333333333333333 }
+in.temper_npt: { folder: examples/PACKAGES/temper_npt, status: "failed, ERROR: World variable count doesn't match # of partitions (src/variable.cpp:255).", walltime: -1 }
+in.peptide-plumed: { folder: examples/PACKAGES/plumed, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'plumed' is part of the PLUMED package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.methanol: { folder: examples/PACKAGES/bocs, status: "completed", failed_checks: { abs_diff_failed: 4, rel_diff_failed: 4 }, walltime: 23.0, walltime_norm: 3.8333333333333335 }
+in.pedone.melt: { folder: examples/PACKAGES/pedone, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 2 }, walltime: 13.0, walltime_norm: 2.1666666666666665 }
+in.pedone.relax: { folder: examples/PACKAGES/pedone, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 15.0, walltime_norm: 2.5 }
+in.methanol_implicit_water: { folder: examples/PACKAGES/local_density/methanol_implicit_water, status: "completed, but no Step nor Loop in the output.", walltime: 62.0, walltime_norm: 10.333333333333334 }
+in.benzene_water: { folder: examples/PACKAGES/local_density/benzene_water, status: "completed, but no Step nor Loop in the output.", walltime: 25.0, walltime_norm: 4.166666666666667 }
+in.gauss-diel: { folder: examples/PACKAGES/gauss_diel, status: "completed, error parsing log.lammps into YAML", walltime: 8.0, walltime_norm: 1.3333333333333333 }
+in.gauss-diel-cg: { folder: examples/PACKAGES/gauss_diel, status: "completed, error parsing log.lammps into YAML", walltime: 3.0, walltime_norm: 0.5 }
+in.gauss-diel-split: { folder: examples/PACKAGES/gauss_diel, status: "completed, error parsing log.lammps into YAML", walltime: 3.0, walltime_norm: 0.5 }
+in.alloy: { folder: examples/PACKAGES/alchemy, status: "failed, ERROR: World variable count doesn't match # of partitions (src/variable.cpp:255).", walltime: -1 }
+in.twowater: { folder: examples/PACKAGES/alchemy, status: "failed, ERROR: World variable count doesn't match # of partitions (src/variable.cpp:255).", walltime: -1 }
+in.sds-hybrid: { folder: examples/PACKAGES/cgspica/sds-monolayer, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 6.0, walltime_norm: 1.0 }
+in.sds-regular: { folder: examples/PACKAGES/cgspica/sds-monolayer, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 6.0, walltime_norm: 1.0 }
+in.pegc12e8: { folder: examples/PACKAGES/cgspica/peg-verlet, status: "completed, error parsing log.lammps into YAML", walltime: 69.0, walltime_norm: 11.5 }
+in.pegc12e8-angle: { folder: examples/PACKAGES/cgspica/peg-verlet, status: "completed, error parsing log.lammps into YAML", walltime: 69.0, walltime_norm: 11.5 }
+in.hkust1: { folder: examples/PACKAGES/mofff, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.hkust1_long: { folder: examples/PACKAGES/mofff, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.e3b-tip4p2005: { folder: examples/PACKAGES/e3b, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.uf3.Nb: { folder: examples/PACKAGES/uf3, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.fep01.lmp: { folder: examples/PACKAGES/fep/CC-CO/fep01, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.fep10.lmp: { folder: examples/PACKAGES/fep/CC-CO/fep10, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.insertion: { folder: examples/PACKAGES/fep/C7inEthanol/fep01, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.deletion: { folder: examples/PACKAGES/fep/C7inEthanol/fep10, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.fep01.lmp: { folder: examples/PACKAGES/fep/CH4-CF4/fep01, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.fep10.lmp: { folder: examples/PACKAGES/fep/CH4-CF4/fep10, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.bar10.lmp: { folder: examples/PACKAGES/fep/CH4-CF4/bar10, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.bar01.lmp: { folder: examples/PACKAGES/fep/CH4-CF4/bar01, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.fep01.lmp: { folder: examples/PACKAGES/fep/CH4hyd/fep01, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.fdti01.lmp: { folder: examples/PACKAGES/fep/CH4hyd/fdti01, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.fep10.lmp: { folder: examples/PACKAGES/fep/CH4hyd/fep10, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.fdti10.lmp: { folder: examples/PACKAGES/fep/CH4hyd/fdti10, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.spce.lmp: { folder: examples/PACKAGES/fep/ta, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.gap: { folder: examples/PACKAGES/quip, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized pair style 'quip' is part of the ML-QUIP package which is not enabled in this LAMMPS binary. (src/force.cpp:275)", walltime: -1 }
+in.molecular: { folder: examples/PACKAGES/quip, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized pair style 'quip' is part of the ML-QUIP package which is not enabled in this LAMMPS binary. (src/force.cpp:275)", walltime: -1 }
+in.sw: { folder: examples/PACKAGES/quip, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized pair style 'quip' is part of the ML-QUIP package which is not enabled in this LAMMPS binary. (src/force.cpp:275)", walltime: -1 }
+in.srp_react: { folder: examples/PACKAGES/srp_react, status: "failed, ERROR: Invalid bond type 0 for pair style srp (src/MISC/pair_srp.cpp:403).", walltime: -1 }
+in.spce: { folder: examples/PACKAGES/manybody_table, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 5.0, walltime_norm: 0.8333333333333334 }
+in.spce2: { folder: examples/PACKAGES/manybody_table, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 6.0, walltime_norm: 1.0 }
+in.spce_sw: { folder: examples/PACKAGES/manybody_table, status: "completed", failed_checks: { abs_diff_failed: 1, rel_diff_failed: 1 }, walltime: 5.0, walltime_norm: 0.8333333333333334 }
+in.confined: { folder: examples/PACKAGES/dielectric, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.nopbc: { folder: examples/PACKAGES/dielectric, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.methane_qtb: { folder: examples/PACKAGES/qtb/methane_qtb, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 9.0, walltime_norm: 1.5 }
+in.alpha_quartz_qtb: { folder: examples/PACKAGES/qtb/alpha_quartz_qtb, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 10.0, walltime_norm: 1.6666666666666667 }
+in.alpha_quartz_qbmsst: { folder: examples/PACKAGES/qtb/alpha_quartz_qbmsst, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 42.0, walltime_norm: 7.0 }
+in.methane_qbmsst: { folder: examples/PACKAGES/qtb/methane_qbmsst, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 97.0, walltime_norm: 16.166666666666668 }
+in.tmd: { folder: examples/PACKAGES/tmd, status: "completed, error parsing log.lammps into YAML", walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.meam-spline.Si: { folder: examples/PACKAGES/meam_spline, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.meam-spline.TiO2: { folder: examples/PACKAGES/meam_spline, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 79.0, walltime_norm: 13.166666666666666 }
+in.silicon: { folder: examples/PACKAGES/phonon/dynamical_matrix_command/Silicon, status: "completed, but no Step nor Loop in the output.", walltime: 0.0, walltime_norm: 0.0 }
+in.EAM3D: { folder: examples/PACKAGES/phonon/3-3D-FCC-Cu-EAM, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.disp: { folder: examples/PACKAGES/phonon/3-3D-FCC-Cu-EAM, status: "skipped", walltime: -2 }
+in.disp2: { folder: examples/PACKAGES/phonon/3-3D-FCC-Cu-EAM, status: "skipped", walltime: -2 }
+in.dos: { folder: examples/PACKAGES/phonon/3-3D-FCC-Cu-EAM, status: "skipped", walltime: -2 }
+in.Ana: { folder: examples/PACKAGES/phonon/1-1D-mono, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 6.0, walltime_norm: 1.0 }
+in.disp: { folder: examples/PACKAGES/phonon/1-1D-mono, status: "skipped", walltime: -2 }
+in.Ana: { folder: examples/PACKAGES/phonon/2-1D-diatomic, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 17.0, walltime_norm: 2.8333333333333335 }
+in.disp: { folder: examples/PACKAGES/phonon/2-1D-diatomic, status: "skipped", walltime: -2 }
+in.disp: { folder: examples/PACKAGES/phonon/4-Graphene, status: "skipped", walltime: -2 }
+in.graphene: { folder: examples/PACKAGES/phonon/4-Graphene, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.dpde-shardlow: { folder: examples/PACKAGES/dpd-react/dpde-shardlow, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.dpde-vv: { folder: examples/PACKAGES/dpd-react/dpde-vv, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 14.0, walltime_norm: 2.3333333333333335 }
+in.dpd-shardlow: { folder: examples/PACKAGES/dpd-react/dpd-shardlow, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.dpd-vv: { folder: examples/PACKAGES/dpd-react/dpd-vv, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 11.0, walltime_norm: 1.8333333333333333 }
+in.dpdp-shardlow: { folder: examples/PACKAGES/dpd-react/dpdp-shardlow, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.multi-lucy: { folder: examples/PACKAGES/dpd-react/multi-lucy, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.dpdh-shardlow: { folder: examples/PACKAGES/dpd-react/dpdh-shardlow, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 3.0, walltime_norm: 0.5 }
+in.dpdrx-shardlow: { folder: examples/PACKAGES/dpd-react/dpdrx-shardlow, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.GD: { folder: examples/PACKAGES/flow_gauss, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.basal: { folder: examples/PACKAGES/basal, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.cascade_AlCu: { folder: examples/PACKAGES/electron_stopping, status: "failed, ERROR: Must set 'extscalar' when setting 'scalar_flag' for fix electron/stopping/fit.  Contact the developer. (src/fix.cpp:135).", walltime: -1 }
+in.cascade_SiSi: { folder: examples/PACKAGES/electron_stopping, status: "failed, ERROR: Must set 'extscalar' when setting 'scalar_flag' for fix electron/stopping/fit.  Contact the developer. (src/fix.cpp:135).", walltime: -1 }
+in.elstop: { folder: examples/PACKAGES/electron_stopping, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 26.0, walltime_norm: 4.333333333333333 }
+in.elstop.only: { folder: examples/PACKAGES/electron_stopping, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.chreg-acid: { folder: examples/PACKAGES/charge_regulation, status: "completed", failed_checks: { abs_diff_failed: 1, rel_diff_failed: 1 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.chreg-acid-real: { folder: examples/PACKAGES/charge_regulation, status: "completed", failed_checks: { abs_diff_failed: 1, rel_diff_failed: 1 }, walltime: 0.0, walltime_norm: 0.0 }
+in.chreg-polymer: { folder: examples/PACKAGES/charge_regulation, status: "completed", failed_checks: { abs_diff_failed: 1, rel_diff_failed: 1 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.adatom: { folder: examples/PACKAGES/agni, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 16.0, walltime_norm: 2.6666666666666665 }
+in.vacancy: { folder: examples/PACKAGES/agni, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.bucky-plus-cnt: { folder: examples/PACKAGES/imd, status: "skipped", walltime: -2 }
+in.bucky-plus-cnt-gpu: { folder: examples/PACKAGES/imd, status: "skipped", walltime: -2 }
+in.deca-ala-solv-filter_imd: { folder: examples/PACKAGES/imd, status: "skipped", walltime: -2 }
+in.deca-ala-solv_imd: { folder: examples/PACKAGES/imd, status: "skipped", walltime: -2 }
+in.deca-ala_imd: { folder: examples/PACKAGES/imd, status: "skipped", walltime: -2 }
+in.deca-ala_imd-gpu: { folder: examples/PACKAGES/imd, status: "skipped", walltime: -2 }
+in.melt_imd: { folder: examples/PACKAGES/imd, status: "skipped", walltime: -2 }
+in.melt_imd-gpu: { folder: examples/PACKAGES/imd, status: "skipped", walltime: -2 }
+in.first: { folder: examples/PACKAGES/adios/rerun, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized dump style 'custom/adios' is part of the ADIOS package which is not enabled in this LAMMPS binary. (src/output.cpp:776)", walltime: -1 }
+in.read_dump: { folder: examples/PACKAGES/adios/rerun, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized reader style 'adios' is part of the ADIOS package which is not enabled in this LAMMPS binary. (src/read_dump.cpp:236)", walltime: -1 }
+in.rerun: { folder: examples/PACKAGES/adios/rerun, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized reader style 'adios' is part of the ADIOS package which is not enabled in this LAMMPS binary. (src/read_dump.cpp:236)", walltime: -1 }
+in.adios_balance: { folder: examples/PACKAGES/adios/balance, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized dump style 'custom/adios' is part of the ADIOS package which is not enabled in this LAMMPS binary. (src/output.cpp:776)", walltime: -1 }
+in.adios_balance2: { folder: examples/PACKAGES/adios/balance, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized reader style 'adios' is part of the ADIOS package which is not enabled in this LAMMPS binary. (src/read_dump.cpp:236)", walltime: -1 }
+in.bcc0: { folder: examples/PACKAGES/mgpt, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized pair style 'mgpt' is part of the MGPT package which is not enabled in this LAMMPS binary. (src/force.cpp:275)", walltime: -1 }
+in.vac0-bcc: { folder: examples/PACKAGES/mgpt, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized pair style 'mgpt' is part of the MGPT package which is not enabled in this LAMMPS binary. (src/force.cpp:275)", walltime: -1 }
+in.vacmin-bcc: { folder: examples/PACKAGES/mgpt, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized pair style 'mgpt' is part of the MGPT package which is not enabled in this LAMMPS binary. (src/force.cpp:275)", walltime: -1 }
+in.vtk: { folder: examples/PACKAGES/vtk, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized dump style 'vtk' is part of the VTK package which is not enabled in this LAMMPS binary. (src/output.cpp:776)", walltime: -1 }
+in.vtp: { folder: examples/PACKAGES/vtk, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized dump style 'vtk' is part of the VTK package which is not enabled in this LAMMPS binary. (src/output.cpp:776)", walltime: -1 }
+in.dpdext: { folder: examples/PACKAGES/dpd-basic/dpdext, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.dpd: { folder: examples/PACKAGES/dpd-basic/dpd, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 0.0, walltime_norm: 0.0 }
+in.dpdext_tstat: { folder: examples/PACKAGES/dpd-basic/dpdext_tstat, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 30.0, walltime_norm: 5.0 }
+in.dpd_tstat: { folder: examples/PACKAGES/dpd-basic/dpd_tstat, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 11.0, walltime_norm: 1.8333333333333333 }
+in.dpd_coul_slater_long: { folder: examples/PACKAGES/dpd-basic/dpd_coul_slater_long, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.piston: { folder: examples/PACKAGES/electrode/piston, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.cg: { folder: examples/PACKAGES/electrode/madelung, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.eta: { folder: examples/PACKAGES/electrode/madelung, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.eta_cg: { folder: examples/PACKAGES/electrode/madelung, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.eta_mix: { folder: examples/PACKAGES/electrode/madelung, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.ewald-ew2d: { folder: examples/PACKAGES/electrode/madelung, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.ewald-ew3dc: { folder: examples/PACKAGES/electrode/madelung, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.ewald-ffield: { folder: examples/PACKAGES/electrode/madelung, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.pppm-ew3dc: { folder: examples/PACKAGES/electrode/madelung, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.pppm-ffield: { folder: examples/PACKAGES/electrode/madelung, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.ffield: { folder: examples/PACKAGES/electrode/au-aq, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.tf: { folder: examples/PACKAGES/electrode/au-aq, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.conp: { folder: examples/PACKAGES/electrode/graph-il, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 96.0, walltime_norm: 16.0 }
+in.conq: { folder: examples/PACKAGES/electrode/graph-il, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 90.0, walltime_norm: 15.0 }
+in.conq2: { folder: examples/PACKAGES/electrode/graph-il, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 62.0, walltime_norm: 10.333333333333334 }
+in.etypes: { folder: examples/PACKAGES/electrode/graph-il, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 58.0, walltime_norm: 9.666666666666666 }
+in.ffield: { folder: examples/PACKAGES/electrode/graph-il, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 41.0, walltime_norm: 6.833333333333333 }
+in.ramp: { folder: examples/PACKAGES/electrode/graph-il, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 60.0, walltime_norm: 10.0 }
+in.thermo: { folder: examples/PACKAGES/electrode/graph-il, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 57.0, walltime_norm: 9.5 }
+in.planar-ewald-ew2d: { folder: examples/PACKAGES/electrode/planar, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.planar-ewald-ew3dc: { folder: examples/PACKAGES/electrode/planar, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.planar-ewald-ffield: { folder: examples/PACKAGES/electrode/planar, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.planar-pppm-ew3dc: { folder: examples/PACKAGES/electrode/planar, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.planar-pppm-ffield: { folder: examples/PACKAGES/electrode/planar, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.convective_pulse: { folder: examples/PACKAGES/atc/drift_diffusion, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.ddm_schrodinger: { folder: examples/PACKAGES/atc/drift_diffusion, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.finite_well: { folder: examples/PACKAGES/atc/drift_diffusion, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.no_atoms_ddm: { folder: examples/PACKAGES/atc/drift_diffusion, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.null_material_ddm: { folder: examples/PACKAGES/atc/drift_diffusion, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.poisson1d_noatoms: { folder: examples/PACKAGES/atc/drift_diffusion, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.poisson2d_noatoms: { folder: examples/PACKAGES/atc/drift_diffusion, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.schrodinger-poisson2d_Jconstraint: { folder: examples/PACKAGES/atc/drift_diffusion, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.schrodinger-poisson2d_convective: { folder: examples/PACKAGES/atc/drift_diffusion, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.schrodinger-poisson2d_noatoms: { folder: examples/PACKAGES/atc/drift_diffusion, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.cb_biaxial: { folder: examples/PACKAGES/atc/cauchy_born, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.cb_shear: { folder: examples/PACKAGES/atc/cauchy_born, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.cb_unistrain: { folder: examples/PACKAGES/atc/cauchy_born, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.cb_unistrain_eam: { folder: examples/PACKAGES/atc/cauchy_born, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.cb_unistrain_eam_linear: { folder: examples/PACKAGES/atc/cauchy_born, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.cb_unistrain_linear: { folder: examples/PACKAGES/atc/cauchy_born, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.cb_volumetric: { folder: examples/PACKAGES/atc/cauchy_born, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.flying_cube: { folder: examples/PACKAGES/atc/cauchy_born, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.ftcb_constV: { folder: examples/PACKAGES/atc/cauchy_born, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.read_xref: { folder: examples/PACKAGES/atc/cauchy_born, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.consistency: { folder: examples/PACKAGES/atc/hardy, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.eam_kernel_convergence: { folder: examples/PACKAGES/atc/hardy, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.eam_unistrain_cell: { folder: examples/PACKAGES/atc/hardy, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.eam_unistrain_mesh: { folder: examples/PACKAGES/atc/hardy, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.eam_unistrain_qcylinder: { folder: examples/PACKAGES/atc/hardy, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.eam_unistrain_qsphere: { folder: examples/PACKAGES/atc/hardy, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.eam_unistrain_step: { folder: examples/PACKAGES/atc/hardy, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.eam_volume_stretch: { folder: examples/PACKAGES/atc/hardy, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.eshelby_static: { folder: examples/PACKAGES/atc/hardy, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.nvt: { folder: examples/PACKAGES/atc/hardy, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.bar1d_fluids: { folder: examples/PACKAGES/atc/fluids, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.concentration: { folder: examples/PACKAGES/atc/fluids, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.conducting_interface: { folder: examples/PACKAGES/atc/fluids, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.dielectric_interface: { folder: examples/PACKAGES/atc/fluids, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.double_layer: { folder: examples/PACKAGES/atc/fluids, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.liquid_electrostatic: { folder: examples/PACKAGES/atc/fluids, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.opp_force: { folder: examples/PACKAGES/atc/fluids, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.poisson: { folder: examples/PACKAGES/atc/fluids, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.shear_flow: { folder: examples/PACKAGES/atc/fluids, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.shear_no_atoms: { folder: examples/PACKAGES/atc/fluids, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.harmonic_bonds: { folder: examples/PACKAGES/atc/molecule, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.polarize: { folder: examples/PACKAGES/atc/molecule, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.quartic_bonds: { folder: examples/PACKAGES/atc/molecule, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.water: { folder: examples/PACKAGES/atc/molecule, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.bar1d: { folder: examples/PACKAGES/atc/thermal, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.bar1d_all_atoms: { folder: examples/PACKAGES/atc/thermal, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.bar1d_combined: { folder: examples/PACKAGES/atc/thermal, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.bar1d_flux: { folder: examples/PACKAGES/atc/thermal, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.bar1d_frac_step: { folder: examples/PACKAGES/atc/thermal, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.bar1d_hoover: { folder: examples/PACKAGES/atc/thermal, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.bar1d_interpolate: { folder: examples/PACKAGES/atc/thermal, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.bar1d_lumped: { folder: examples/PACKAGES/atc/thermal, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.no_atoms: { folder: examples/PACKAGES/atc/thermal, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.gaussianIC1d_hex: { folder: examples/PACKAGES/atc/mesh, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.gaussianIC2d_hex: { folder: examples/PACKAGES/atc/mesh, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.gaussianIC2d_hex20_uniform: { folder: examples/PACKAGES/atc/mesh, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.gaussianIC2d_hex27_uniform: { folder: examples/PACKAGES/atc/mesh, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.gaussianIC2d_tet: { folder: examples/PACKAGES/atc/mesh, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.kernel2d_hex: { folder: examples/PACKAGES/atc/mesh, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.kernel2d_tet: { folder: examples/PACKAGES/atc/mesh, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.mesh2d_tet: { folder: examples/PACKAGES/atc/mesh, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.semicircle: { folder: examples/PACKAGES/atc/mesh, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.bar1d: { folder: examples/PACKAGES/atc/elastic, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.bar1d_damped: { folder: examples/PACKAGES/atc/elastic, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.bar1d_flux: { folder: examples/PACKAGES/atc/elastic, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.bar1d_frac_step: { folder: examples/PACKAGES/atc/elastic, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.bar1d_ghost_flux: { folder: examples/PACKAGES/atc/elastic, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.bar1d_thermo_elastic: { folder: examples/PACKAGES/atc/elastic, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.eam_energy: { folder: examples/PACKAGES/atc/elastic, status: "failed, no Total wall time in the output, --------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 1.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+", walltime: -1 }
+in.electron_density: { folder: examples/PACKAGES/atc/elastic, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.no_atoms: { folder: examples/PACKAGES/atc/elastic, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.no_atoms_cb: { folder: examples/PACKAGES/atc/elastic, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.no_atoms_cb_linear: { folder: examples/PACKAGES/atc/elastic, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.bar1d_ttm: { folder: examples/PACKAGES/atc/two_temperature, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.cutout: { folder: examples/PACKAGES/atc/two_temperature, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.gaussianIC_ttm: { folder: examples/PACKAGES/atc/two_temperature, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.no_atoms: { folder: examples/PACKAGES/atc/two_temperature, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.restart: { folder: examples/PACKAGES/atc/two_temperature, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.uniform_exchange: { folder: examples/PACKAGES/atc/two_temperature, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.uniform_heating: { folder: examples/PACKAGES/atc/two_temperature, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'atc' is part of the ATC package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.pits: { folder: examples/PACKAGES/latboltz/pit_geometry, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'lb/fluid' is part of the LATBOLTZ package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.polymer: { folder: examples/PACKAGES/latboltz/polymer, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'lb/fluid' is part of the LATBOLTZ package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.confined_colloids: { folder: examples/PACKAGES/latboltz/confined_colloid, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'lb/fluid' is part of the LATBOLTZ package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.trapnewsphere: { folder: examples/PACKAGES/latboltz/diffusingsphere, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'lb/fluid' is part of the LATBOLTZ package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.translocation: { folder: examples/PACKAGES/latboltz/translocation, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'lb/fluid' is part of the LATBOLTZ package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.toycar: { folder: examples/PACKAGES/latboltz/toycar, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.microrheology: { folder: examples/PACKAGES/latboltz/microrheology, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'lb/fluid' is part of the LATBOLTZ package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.dragtest: { folder: examples/PACKAGES/latboltz/dragforce, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'lb/fluid' is part of the LATBOLTZ package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.planewall: { folder: examples/PACKAGES/latboltz/planewall, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'lb/fluid' is part of the LATBOLTZ package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.compute: { folder: examples/PACKAGES/pace/compute, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.pace.product: { folder: examples/PACKAGES/pace, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 9.0, walltime_norm: 1.5 }
+in.pace.recursive: { folder: examples/PACKAGES/pace, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 7.0, walltime_norm: 1.1666666666666667 }
+in.addtorque: { folder: examples/PACKAGES/addtorque, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 3 }, walltime: 51.0, walltime_norm: 8.5 }
+in.cnp: { folder: examples/PACKAGES/cnp, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 18.0, walltime_norm: 3.0 }
+in.CH4fc.ang: { folder: examples/PACKAGES/eff/fixed-core/CH4, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 3.0, walltime_norm: 0.5 }
+in.CH4fc.bohr: { folder: examples/PACKAGES/eff/fixed-core/CH4, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.CH4fc.spe.ang: { folder: examples/PACKAGES/eff/fixed-core/CH4, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.CH4fc.spe.bohr: { folder: examples/PACKAGES/eff/fixed-core/CH4, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.C2H6fc.ang: { folder: examples/PACKAGES/eff/fixed-core/C2H6, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.C2H6fc.bohr: { folder: examples/PACKAGES/eff/fixed-core/C2H6, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.ch4.dynamics: { folder: examples/PACKAGES/eff/CH4, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.ch4.min: { folder: examples/PACKAGES/eff/CH4, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.ch4_ionized.dynamics: { folder: examples/PACKAGES/eff/CH4, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 16.0, walltime_norm: 2.6666666666666665 }
+in.Be-solid.spe: { folder: examples/PACKAGES/eff/Be-solid, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 14.0, walltime_norm: 2.3333333333333335 }
+in.adamantane_ionized.nve: { folder: examples/PACKAGES/eff/Auger-Adamantane, status: "failed, ERROR: Lost atoms: original 101 current 100 (src/thermo.cpp:494).", walltime: -1 }
+in.SiH4: { folder: examples/PACKAGES/eff/ECP/SiH4, status: "completed, error parsing log.lammps into YAML", walltime: 0.0, walltime_norm: 0.0 }
+in.SiH4.ang: { folder: examples/PACKAGES/eff/ECP/SiH4, status: "completed, error parsing log.lammps into YAML", walltime: 0.0, walltime_norm: 0.0 }
+in.Si2H6: { folder: examples/PACKAGES/eff/ECP/Si2H6, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.Si2H6.ang: { folder: examples/PACKAGES/eff/ECP/Si2H6, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.SiC: { folder: examples/PACKAGES/eff/ECP/SiC/bulk, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 31.0, walltime_norm: 5.166666666666667 }
+in.h2bulk.npt: { folder: examples/PACKAGES/eff/H_plasma, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 46.0, walltime_norm: 7.666666666666667 }
+in.h2bulk.nve: { folder: examples/PACKAGES/eff/H_plasma, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 78.0, walltime_norm: 13.0 }
+in.h2bulk.nve.ang: { folder: examples/PACKAGES/eff/H_plasma, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 87.0, walltime_norm: 14.5 }
+in.Li-dendritic.min: { folder: examples/PACKAGES/eff/Li-dendritic, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 35.0, walltime_norm: 5.833333333333333 }
+in.Li-dendritic.nvt: { folder: examples/PACKAGES/eff/Li-dendritic, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 69.0, walltime_norm: 11.5 }
+in.Li.ang: { folder: examples/PACKAGES/eff/Li-solid, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 74.0, walltime_norm: 12.333333333333334 }
+in.Li.bohr: { folder: examples/PACKAGES/eff/Li-solid, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 53.0, walltime_norm: 8.833333333333334 }
+in.h2: { folder: examples/PACKAGES/eff/H2, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.h_atom.spe.ang: { folder: examples/PACKAGES/eff/H, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.h_atom.spe.bohr: { folder: examples/PACKAGES/eff/H, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.npt_biaxial: { folder: examples/PACKAGES/uef/npt_biaxial, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 3.0, walltime_norm: 0.5 }
+in.nvt_uniaxial: { folder: examples/PACKAGES/uef/nvt_uniaxial, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 3.0, walltime_norm: 0.5 }
+in.crystal: { folder: examples/PACKAGES/rhok, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 23.0, walltime_norm: 3.8333333333333335 }
+in.pinning: { folder: examples/PACKAGES/rhok, status: "failed, ERROR: Cannot open file data.halfhalf: No such file or directory (src/read_data.cpp:367).", walltime: -1 }
+in.setup: { folder: examples/PACKAGES/rhok, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 17.0, walltime_norm: 2.8333333333333335 }
+in.peptide-colvars: { folder: examples/PACKAGES/colvars, status: "completed, error parsing log.lammps into YAML", walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.peptide-colvars2: { folder: examples/PACKAGES/colvars, status: "completed, error parsing log.lammps into YAML", walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.peptide-spring: { folder: examples/PACKAGES/colvars, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.peptide-spring2: { folder: examples/PACKAGES/colvars, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.hdnnp: { folder: examples/PACKAGES/hdnnp, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized pair style 'hdnnp' is part of the ML-HDNNP package which is not enabled in this LAMMPS binary. (src/force.cpp:275)", walltime: -1 }
+in.hybrid: { folder: examples/PACKAGES/hdnnp, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized pair style 'hdnnp' is part of the ML-HDNNP package which is not enabled in this LAMMPS binary. (src/force.cpp:275)", walltime: -1 }
+in.edip-Si: { folder: examples/PACKAGES/edip, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.edip-Si-multi: { folder: examples/PACKAGES/edip, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.edip-SiC: { folder: examples/PACKAGES/edip, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.large_nylon_melt: { folder: examples/PACKAGES/reaction/nylon,6-6_melt, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 60.0, walltime_norm: 10.0 }
+in.tiny_polystyrene.stabilized: { folder: examples/PACKAGES/reaction/tiny_polystyrene, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 18.0, walltime_norm: 3.0 }
+in.tiny_epoxy.stabilized: { folder: examples/PACKAGES/reaction/tiny_epoxy, status: "completed", failed_checks: { abs_diff_failed: 1, rel_diff_failed: 1 }, walltime: 0.0, walltime_norm: 0.0 }
+in.grow_styrene: { folder: examples/PACKAGES/reaction/create_atoms_polystyrene, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 6.0, walltime_norm: 1.0 }
+in.tiny_nylon.stabilized: { folder: examples/PACKAGES/reaction/tiny_nylon, status: "failed, unknown command, package not installed, ERROR: Unknown command:   react rxn2 all 1 0.0 5.0 mol3 mol4 rxn1_stp2_map rescale_charges yes (src/input.cpp:314)", walltime: -1 }
+in.tiny_nylon.stabilized_variable_probability: { folder: examples/PACKAGES/reaction/tiny_nylon, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 0.0, walltime_norm: 0.0 }
+in.tiny_nylon.unstabilized: { folder: examples/PACKAGES/reaction/tiny_nylon, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 0.0, walltime_norm: 0.0 }
+in.BulkNi: { folder: examples/PACKAGES/diffraction, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 158.0, walltime_norm: 26.333333333333332 }
+in.tdpd: { folder: examples/PACKAGES/dpd-meso/tdpd, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 64.0, walltime_norm: 10.666666666666666 }
+in.tdpd-region: { folder: examples/PACKAGES/dpd-meso/tdpd, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 63.0, walltime_norm: 10.5 }
+in.mdpd: { folder: examples/PACKAGES/dpd-meso/mdpd, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 100.0, walltime_norm: 16.666666666666668 }
+in.edpd: { folder: examples/PACKAGES/dpd-meso/edpd, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 87.0, walltime_norm: 14.5 }
+in.edpd-region: { folder: examples/PACKAGES/dpd-meso/edpd, status: "completed", failed_checks: { abs_diff_failed: 6, rel_diff_failed: 6 }, walltime: 87.0, walltime_norm: 14.5 }
+in.cylinder: { folder: examples/PACKAGES/stressprofile, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.flat: { folder: examples/PACKAGES/stressprofile, status: "failed, ERROR: Illegal compute stress/cartesian command: missing argument(s) (src/EXTRA-COMPUTE/compute_stress_cartesian.cpp:65).", walltime: -1 }
+in.sphere: { folder: examples/PACKAGES/stressprofile, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.srp: { folder: examples/PACKAGES/srp, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 6.0, walltime_norm: 1.0 }
+in.scafacos: { folder: examples/PACKAGES/scafacos, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized kspace style 'scafacos' is part of the SCAFACOS package which is not enabled in this LAMMPS binary. (src/force.cpp:660)", walltime: -1 }
+in.scafacos.cw.ewald: { folder: examples/PACKAGES/scafacos, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized kspace style 'scafacos' is part of the SCAFACOS package which is not enabled in this LAMMPS binary. (src/force.cpp:660)", walltime: -1 }
+in.scafacos.cw.fmm: { folder: examples/PACKAGES/scafacos, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized kspace style 'scafacos' is part of the SCAFACOS package which is not enabled in this LAMMPS binary. (src/force.cpp:660)", walltime: -1 }
+in.scafacos.cw.p2nfft: { folder: examples/PACKAGES/scafacos, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized kspace style 'scafacos' is part of the SCAFACOS package which is not enabled in this LAMMPS binary. (src/force.cpp:660)", walltime: -1 }
+in.scafacos.cw.p3m: { folder: examples/PACKAGES/scafacos, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized kspace style 'scafacos' is part of the SCAFACOS package which is not enabled in this LAMMPS binary. (src/force.cpp:660)", walltime: -1 }
+in.scafacos.ewald: { folder: examples/PACKAGES/scafacos, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized kspace style 'scafacos' is part of the SCAFACOS package which is not enabled in this LAMMPS binary. (src/force.cpp:660)", walltime: -1 }
+in.scafacos.fmm: { folder: examples/PACKAGES/scafacos, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized kspace style 'scafacos' is part of the SCAFACOS package which is not enabled in this LAMMPS binary. (src/force.cpp:660)", walltime: -1 }
+in.scafacos.hsph.direct: { folder: examples/PACKAGES/scafacos, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized kspace style 'scafacos' is part of the SCAFACOS package which is not enabled in this LAMMPS binary. (src/force.cpp:660)", walltime: -1 }
+in.scafacos.hsph.fmm: { folder: examples/PACKAGES/scafacos, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized kspace style 'scafacos' is part of the SCAFACOS package which is not enabled in this LAMMPS binary. (src/force.cpp:660)", walltime: -1 }
+in.scafacos.hsph.p2nfft: { folder: examples/PACKAGES/scafacos, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized kspace style 'scafacos' is part of the SCAFACOS package which is not enabled in this LAMMPS binary. (src/force.cpp:660)", walltime: -1 }
+in.scafacos.p2nfft: { folder: examples/PACKAGES/scafacos, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized kspace style 'scafacos' is part of the SCAFACOS package which is not enabled in this LAMMPS binary. (src/force.cpp:660)", walltime: -1 }
+in.scafacos.p3m: { folder: examples/PACKAGES/scafacos, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized kspace style 'scafacos' is part of the SCAFACOS package which is not enabled in this LAMMPS binary. (src/force.cpp:660)", walltime: -1 }
+in.h_atom: { folder: examples/PACKAGES/awpmd, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized atom style 'wavepacket' is part of the AWPMD package which is not enabled in this LAMMPS binary. (src/atom.cpp:745)", walltime: -1 }
+in.h_molecule: { folder: examples/PACKAGES/awpmd, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized atom style 'wavepacket' is part of the AWPMD package which is not enabled in this LAMMPS binary. (src/atom.cpp:745)", walltime: -1 }
+in.gold_gr: { folder: examples/PACKAGES/interlayer/saip_metal, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 10.0, walltime_norm: 1.6666666666666667 }
+in.atom-diffusion: { folder: examples/PACKAGES/interlayer/kolmogorov_crespi_z, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.bilayer-graphene: { folder: examples/PACKAGES/interlayer/kolmogorov_crespi_z, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.gr_water: { folder: examples/PACKAGES/interlayer/aip_water_2dm, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 19.0, walltime_norm: 3.1666666666666665 }
+in.gr_water.opt: { folder: examples/PACKAGES/interlayer/aip_water_2dm, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 10.0, walltime_norm: 1.6666666666666667 }
+in.bilayer-graphene: { folder: examples/PACKAGES/interlayer/kolmogorov_crespi_full, status: "failed, mismatched columns in the log files", walltime: 121.0, walltime_norm: 20.166666666666668 }
+in.CH_drip: { folder: examples/PACKAGES/interlayer/drip, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 1 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.C_drip: { folder: examples/PACKAGES/interlayer/drip, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.mos2: { folder: examples/PACKAGES/interlayer/ilp_tmds, status: "completed", failed_checks: { abs_diff_failed: 1, rel_diff_failed: 1 }, walltime: 57.0, walltime_norm: 9.5 }
+in.bilayer-graphene: { folder: examples/PACKAGES/interlayer/ilp_graphene_hbn, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 70.0, walltime_norm: 11.666666666666666 }
+in.bilayer-hBN: { folder: examples/PACKAGES/interlayer/ilp_graphene_hbn, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 134.0, walltime_norm: 22.333333333333332 }
+in.grhBN: { folder: examples/PACKAGES/interlayer/ilp_graphene_hbn, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 123.0, walltime_norm: 20.5 }
+in.ilp_graphene_hbn: { folder: examples/PACKAGES/interlayer/ilp_graphene_hbn, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 129.0, walltime_norm: 21.5 }
+in.smatbAgCuPancake: { folder: examples/PACKAGES/smtbq, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.smatbBulkFCC: { folder: examples/PACKAGES/smtbq, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.smtbq.Al: { folder: examples/PACKAGES/smtbq, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 3.0, walltime_norm: 0.5 }
+in.smtbq.Al2O3: { folder: examples/PACKAGES/smtbq, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.smtbq.TiO2: { folder: examples/PACKAGES/smtbq, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.slater: { folder: examples/PACKAGES/slater, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.slcsa: { folder: examples/PACKAGES/sna_nnn_slcsa, status: "completed, error parsing log.lammps into YAML", walltime: 42.0, walltime_norm: 7.0 }
+in.orient_eco: { folder: examples/PACKAGES/orient_eco, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 128.0, walltime_norm: 21.333333333333332 }
+in.entropy: { folder: examples/PACKAGES/entropy, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 13.0, walltime_norm: 2.1666666666666665 }
+in.bpti: { folder: examples/PACKAGES/filter_corotate, status: "completed, error parsing log.lammps into YAML", walltime: 24.0, walltime_norm: 4.0 }
+in.peptide: { folder: examples/PACKAGES/filter_corotate, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 98.0, walltime_norm: 16.333333333333332 }
+in.graphene: { folder: examples/PACKAGES/ipi, status: "failed, no Total wall time in the output, --------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 1.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+", walltime: -1 }
+in.gREM-npt: { folder: examples/PACKAGES/grem/lj-single, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.gREM-nvt: { folder: examples/PACKAGES/grem/lj-single, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.gREM: { folder: examples/PACKAGES/grem/lj-6rep, status: "failed, ERROR: Cannot open file restart_file: No such file or directory (src/read_data.cpp:367).", walltime: -1 }
+in.gREM-temper: { folder: examples/PACKAGES/grem/lj-temper, status: "failed, ERROR: World variable count doesn't match # of partitions (src/variable.cpp:255).", walltime: -1 }
+in.compute_stress_mop: { folder: examples/PACKAGES/mop, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.fix_wall: { folder: examples/PACKAGES/ees, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.fix_wall_region: { folder: examples/PACKAGES/ees, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.ti_spring: { folder: examples/PACKAGES/ti, status: "failed, no Total wall time in the output, --------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 1.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+", walltime: -1 }
+in.extep-bn: { folder: examples/PACKAGES/extep, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 0.0, walltime_norm: 0.0 }
+in.toluene.lang: { folder: examples/PACKAGES/drude/toluene, status: "completed", failed_checks: { abs_diff_failed: 4, rel_diff_failed: 5 }, walltime: 68.0, walltime_norm: 11.333333333333334 }
+in.toluene.nh: { folder: examples/PACKAGES/drude/toluene, status: "completed", failed_checks: { abs_diff_failed: 5, rel_diff_failed: 5 }, walltime: 68.0, walltime_norm: 11.333333333333334 }
+in.butane.lang: { folder: examples/PACKAGES/drude/butane, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 50.0, walltime_norm: 8.333333333333334 }
+in.butane.nh: { folder: examples/PACKAGES/drude/butane, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 5 }, walltime: 49.0, walltime_norm: 8.166666666666666 }
+in.butane.tgnh: { folder: examples/PACKAGES/drude/butane, status: "completed", failed_checks: { abs_diff_failed: 4, rel_diff_failed: 4 }, walltime: 49.0, walltime_norm: 8.166666666666666 }
+in.swm4-ndp.lang: { folder: examples/PACKAGES/drude/swm4-ndp, status: "completed", failed_checks: { abs_diff_failed: 5, rel_diff_failed: 5 }, walltime: 65.0, walltime_norm: 10.833333333333334 }
+in.swm4-ndp.nh: { folder: examples/PACKAGES/drude/swm4-ndp, status: "completed", failed_checks: { abs_diff_failed: 5, rel_diff_failed: 5 }, walltime: 54.0, walltime_norm: 9.0 }
+in.ethylene_glycol: { folder: examples/PACKAGES/drude/ethylene_glycol, status: "completed", failed_checks: { abs_diff_failed: 4, rel_diff_failed: 4 }, walltime: 25.0, walltime_norm: 4.166666666666667 }
+in.ethanol.lang: { folder: examples/PACKAGES/drude/ethanol, status: "completed", failed_checks: { abs_diff_failed: 5, rel_diff_failed: 5 }, walltime: 43.0, walltime_norm: 7.166666666666667 }
+in.ethanol.nh: { folder: examples/PACKAGES/drude/ethanol, status: "completed", failed_checks: { abs_diff_failed: 5, rel_diff_failed: 5 }, walltime: 42.0, walltime_norm: 7.0 }
+in.ethanol.tgnh: { folder: examples/PACKAGES/drude/ethanol, status: "completed", failed_checks: { abs_diff_failed: 5, rel_diff_failed: 5 }, walltime: 44.0, walltime_norm: 7.333333333333333 }
+in.force: { folder: examples/PACKAGES/tally, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.pe: { folder: examples/PACKAGES/tally, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.stress: { folder: examples/PACKAGES/tally, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.system: { folder: examples/PACKAGES/momb, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 13.0, walltime_norm: 2.1666666666666665 }
+in.momentum: { folder: examples/PACKAGES/momentum, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 41.0, walltime_norm: 6.833333333333333 }
+in.alpha: { folder: examples/PACKAGES/meam_sw_spline/Ti, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.alpha_relaxation: { folder: examples/PACKAGES/meam_sw_spline/Ti, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.beta: { folder: examples/PACKAGES/meam_sw_spline/Ti, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.energy_conservation.meam.sw: { folder: examples/PACKAGES/meam_sw_spline/Ti, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 74.0, walltime_norm: 12.333333333333334 }
+in.fcc: { folder: examples/PACKAGES/meam_sw_spline/Ti, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.hexagonal: { folder: examples/PACKAGES/meam_sw_spline/Ti, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.omega: { folder: examples/PACKAGES/meam_sw_spline/Ti, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.single_atom: { folder: examples/PACKAGES/meam_sw_spline/Ti, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.bcc: { folder: examples/PACKAGES/meam_sw_spline/Si, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.bcc_relax: { folder: examples/PACKAGES/meam_sw_spline/Si, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.dc: { folder: examples/PACKAGES/meam_sw_spline/Si, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.dc_relax: { folder: examples/PACKAGES/meam_sw_spline/Si, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.energy_conservation.meam.sw: { folder: examples/PACKAGES/meam_sw_spline/Si, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 11.0, walltime_norm: 1.8333333333333333 }
+in.fcc: { folder: examples/PACKAGES/meam_sw_spline/Si, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.fcc_relax: { folder: examples/PACKAGES/meam_sw_spline/Si, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.hcp_relax: { folder: examples/PACKAGES/meam_sw_spline/Si, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.sc: { folder: examples/PACKAGES/meam_sw_spline/Si, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.sc_relax: { folder: examples/PACKAGES/meam_sw_spline/Si, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.single_atom: { folder: examples/PACKAGES/meam_sw_spline/Si, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.film_mesocnt: { folder: examples/PACKAGES/mesont, status: "failed, no Total wall time in the output, --------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 1.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+", walltime: -1 }
+in.cauchystat: { folder: examples/PACKAGES/cauchy, status: "completed", failed_checks: { abs_diff_failed: 1, rel_diff_failed: 1 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.rubber_strip_pull: { folder: examples/PACKAGES/machdyn/rubber_strip_pull, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.aluminum_strip_pull: { folder: examples/PACKAGES/machdyn/aluminum_strip_pull, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.funnel_flow: { folder: examples/PACKAGES/machdyn/funnel_flow, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 29.0, walltime_norm: 4.833333333333333 }
+in.fluid_structure_interaction: { folder: examples/PACKAGES/machdyn/fluid_structure_interaction, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 32.0, walltime_norm: 5.333333333333333 }
+in.rubber_rings_3d: { folder: examples/PACKAGES/machdyn/rubber_rings_3d, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 21.0, walltime_norm: 3.5 }
+in.h2o-quantum: { folder: examples/PACKAGES/gle, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 13.0, walltime_norm: 2.1666666666666665 }
+in.h2o-smart: { folder: examples/PACKAGES/gle, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 13.0, walltime_norm: 2.1666666666666665 }
+in.pafi: { folder: examples/PACKAGES/pafi, status: "failed, no Total wall time in the output, --------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 1.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+", walltime: -1 }
+in.scp: { folder: examples/PACKAGES/pimd/prot-hairpin, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 15.0, walltime_norm: 2.5 }
+in.scp: { folder: examples/PACKAGES/pimd/para-h2, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 6.0, walltime_norm: 1.0 }
+in.lmp: { folder: examples/PACKAGES/pimd/langevin_reduced_units, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.langevin.metal: { folder: examples/PACKAGES/pimd/langevin_metal_units, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 0.0, walltime_norm: 0.0 }
+in.pimd-langevin.metal: { folder: examples/PACKAGES/pimd/langevin_metal_units, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 0.0, walltime_norm: 0.0 }
+in.rann: { folder: examples/PACKAGES/rann, status: "failed, no Total wall time in the output, --------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 1.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+", walltime: -1 }
+in.msd.2d: { folder: examples/DIFFUSE, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 36.0, walltime_norm: 6.0 }
+in.vacf.2d: { folder: examples/DIFFUSE, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 39.0, walltime_norm: 6.5 }
+in.numdiff: { folder: examples/numdiff, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.bpm.pour: { folder: examples/bpm/pour, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.bpm.impact.rotational: { folder: examples/bpm/impact, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 102.0, walltime_norm: 17.0 }
+in.bpm.impact.spring: { folder: examples/bpm/impact, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 12.0, walltime_norm: 2.0 }
+in.rheo.balloon: { folder: examples/rheo/balloon, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.rheo.oxidation: { folder: examples/rheo/oxidation, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.rheo.taylor.green: { folder: examples/rheo/taylor-green, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 113.0, walltime_norm: 18.833333333333332 }
+in.rheo.ice.cubes: { folder: examples/rheo/ice-cubes, status: "failed, no Total wall time in the output, --------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 1.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+", walltime: -1 }
+in.rheo.poiseuille: { folder: examples/rheo/poiseuille, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 29.0, walltime_norm: 4.833333333333333 }
+in.rheo.dam.break: { folder: examples/rheo/dam-break, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 159.0, walltime_norm: 26.5 }
+in.peptide: { folder: examples/peptide, status: "completed, error parsing log.lammps into YAML", walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.coreshell: { folder: examples/coreshell, status: "completed", failed_checks: { abs_diff_failed: 7, rel_diff_failed: 9 }, walltime: 10.0, walltime_norm: 1.6666666666666667 }
+in.coreshell.dsf: { folder: examples/coreshell, status: "completed", failed_checks: { abs_diff_failed: 7, rel_diff_failed: 8 }, walltime: 20.0, walltime_norm: 3.3333333333333335 }
+in.coreshell.thermostats: { folder: examples/coreshell, status: "completed", failed_checks: { abs_diff_failed: 12, rel_diff_failed: 14 }, walltime: 14.0, walltime_norm: 2.3333333333333335 }
+in.coreshell.wolf: { folder: examples/coreshell, status: "completed", failed_checks: { abs_diff_failed: 5, rel_diff_failed: 5 }, walltime: 22.0, walltime_norm: 3.6666666666666665 }
+in.marble_race: { folder: examples/mesh, status: "completed", failed_checks: { abs_diff_failed: 5, rel_diff_failed: 5 }, walltime: 131.0, walltime_norm: 21.833333333333332 }
+in.mesh_box: { folder: examples/mesh, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 10.0, walltime_norm: 1.6666666666666667 }
+in.abcfire: { folder: examples/fire, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.abcfire_mod: { folder: examples/fire, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.cg: { folder: examples/fire, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.fire: { folder: examples/fire, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.fire_mod: { folder: examples/fire, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.meam.abcfire: { folder: examples/fire, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 43.0, walltime_norm: 7.166666666666667 }
+in.meam.fire: { folder: examples/fire, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 62.0, walltime_norm: 10.333333333333334 }
+in.neb.sivac.abcfire: { folder: examples/fire, status: "failed, ERROR: Cannot use NEB with a single replica (src/REPLICA/neb.cpp:141).", walltime: -1 }
+in.neb.sivac.abcfire_mod: { folder: examples/fire, status: "failed, ERROR: Cannot use NEB with a single replica (src/REPLICA/neb.cpp:141).", walltime: -1 }
+in.neb.sivac.fire: { folder: examples/fire, status: "failed, ERROR: Cannot use NEB with a single replica (src/REPLICA/neb.cpp:141).", walltime: -1 }
+in.neb.sivac.fire_mod: { folder: examples/fire, status: "failed, ERROR: Cannot use NEB with a single replica (src/REPLICA/neb.cpp:141).", walltime: -1 }
+in.neb.sivac.qm: { folder: examples/fire, status: "failed, ERROR: Cannot use NEB with a single replica (src/REPLICA/neb.cpp:141).", walltime: -1 }
+in.bcc.orthog: { folder: examples/triclinic, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.bcc.primitive: { folder: examples/triclinic, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.data.general: { folder: examples/triclinic, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.fcc.orthog: { folder: examples/triclinic, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.fcc.primitive: { folder: examples/triclinic, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.hex.orthog: { folder: examples/triclinic, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.hex.primitive: { folder: examples/triclinic, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.sq2.orthog: { folder: examples/triclinic, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.sq2.primitive: { folder: examples/triclinic, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.tri.srd: { folder: examples/ASPHERE/tri, status: "completed", failed_checks: { abs_diff_failed: 4, rel_diff_failed: 4 }, walltime: 143.0, walltime_norm: 23.833333333333332 }
+in.star: { folder: examples/ASPHERE/star, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 12.0, walltime_norm: 2.0 }
+in.star.mp: { folder: examples/ASPHERE/star, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 12.0, walltime_norm: 2.0 }
+in.box: { folder: examples/ASPHERE/box, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 3 }, walltime: 18.0, walltime_norm: 3.0 }
+in.box.mp: { folder: examples/ASPHERE/box, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 19.0, walltime_norm: 3.1666666666666665 }
+in.dimer: { folder: examples/ASPHERE/dimer, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 6.0, walltime_norm: 1.0 }
+in.dimer.mp: { folder: examples/ASPHERE/dimer, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 16.0, walltime_norm: 2.6666666666666665 }
+in.vesicle: { folder: examples/ASPHERE/vesicle, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 9.0, walltime_norm: 1.5 }
+in.line: { folder: examples/ASPHERE/line, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.line.srd: { folder: examples/ASPHERE/line, status: "failed, no Total wall time in the output, --------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 1.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+", walltime: -1 }
+in.poly: { folder: examples/ASPHERE/poly, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 8.0, walltime_norm: 1.3333333333333333 }
+in.poly.mp: { folder: examples/ASPHERE/poly, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 8.0, walltime_norm: 1.3333333333333333 }
+in.flat_membrane: { folder: examples/ASPHERE/flat_membrane, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 7.0, walltime_norm: 1.1666666666666667 }
+in.ellipsoid: { folder: examples/ASPHERE/ellipsoid, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 9.0, walltime_norm: 1.5 }
+in.ellipsoid.mp: { folder: examples/ASPHERE/ellipsoid, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 9.0, walltime_norm: 1.5 }
+in.ubiquitin: { folder: examples/amoeba, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 12.0, walltime_norm: 2.0 }
+in.water_box.amoeba: { folder: examples/amoeba, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 8.0, walltime_norm: 1.3333333333333333 }
+in.water_box.hippo: { folder: examples/amoeba, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 6.0, walltime_norm: 1.0 }
+in.water_dimer.amoeba: { folder: examples/amoeba, status: "completed", failed_checks: { abs_diff_failed: 1, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.water_dimer.hippo: { folder: examples/amoeba, status: "completed", failed_checks: { abs_diff_failed: 1, rel_diff_failed: 1 }, walltime: 0.0, walltime_norm: 0.0 }
+in.water_hexamer.amoeba: { folder: examples/amoeba, status: "completed", failed_checks: { abs_diff_failed: 1, rel_diff_failed: 1 }, walltime: 0.0, walltime_norm: 0.0 }
+in.water_hexamer.hippo: { folder: examples/amoeba, status: "completed", failed_checks: { abs_diff_failed: 1, rel_diff_failed: 1 }, walltime: 0.0, walltime_norm: 0.0 }
+in.nb3b: { folder: examples/nb3b, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 5.0, walltime_norm: 0.8333333333333334 }
+in.nb3b.screened: { folder: examples/nb3b, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 29.0, walltime_norm: 4.833333333333333 }
+in.min: { folder: examples/min, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.min.box: { folder: examples/min, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.balance: { folder: examples/balance, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.balance.bond.fast: { folder: examples/balance, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.balance.bond.slow: { folder: examples/balance, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.balance.clock.dynamic: { folder: examples/balance, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 16.0, walltime_norm: 2.6666666666666665 }
+in.balance.clock.static: { folder: examples/balance, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 6.0, walltime_norm: 1.0 }
+in.balance.group.dynamic: { folder: examples/balance, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.balance.group.static: { folder: examples/balance, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.balance.kspace: { folder: examples/balance, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 6.0, walltime_norm: 1.0 }
+in.balance.neigh.dynamic: { folder: examples/balance, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 16.0, walltime_norm: 2.6666666666666665 }
+in.balance.neigh.rcb: { folder: examples/balance, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.balance.neigh.static: { folder: examples/balance, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 10.0, walltime_norm: 1.6666666666666667 }
+in.balance.var.dynamic: { folder: examples/balance, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 16.0, walltime_norm: 2.6666666666666665 }
+in.ch4: { folder: examples/QUANTUM/LATTE, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.ch4.plugin: { folder: examples/QUANTUM/LATTE, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.graphene: { folder: examples/QUANTUM/LATTE, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.graphene.plugin: { folder: examples/QUANTUM/LATTE, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.series: { folder: examples/QUANTUM/LATTE, status: "failed, unknown command, package not installed, ERROR: Unknown command: mdi             connect (src/input.cpp:314)", walltime: -1 }
+in.series.plugin: { folder: examples/QUANTUM/LATTE, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.sucrose: { folder: examples/QUANTUM/LATTE, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.sucrose.plugin: { folder: examples/QUANTUM/LATTE, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.uo2: { folder: examples/QUANTUM/LATTE, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.uo2.plugin: { folder: examples/QUANTUM/LATTE, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.water: { folder: examples/QUANTUM/LATTE, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.water.min: { folder: examples/QUANTUM/LATTE, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.water.min.plugin: { folder: examples/QUANTUM/LATTE, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.water.plugin: { folder: examples/QUANTUM/LATTE, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.mixture.mm: { folder: examples/QUANTUM/PySCF, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.mixture.qmmm: { folder: examples/QUANTUM/PySCF, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qmmm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.mixture.qmmm.plugin: { folder: examples/QUANTUM/PySCF, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qmmm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.water.qmmm: { folder: examples/QUANTUM/PySCF, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qmmm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.water.qmmm.plugin: { folder: examples/QUANTUM/PySCF, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qmmm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.series: { folder: examples/QUANTUM/NWChem, status: "failed, unknown command, package not installed, ERROR: Unknown command: mdi             connect (src/input.cpp:314)", walltime: -1 }
+in.series.plugin: { folder: examples/QUANTUM/NWChem, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.water.mm: { folder: examples/QUANTUM/NWChem, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.water.qmmm: { folder: examples/QUANTUM/NWChem, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qmmm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.water.qmmm.plugin: { folder: examples/QUANTUM/NWChem, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qmmm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.zeolite.mm: { folder: examples/QUANTUM/NWChem, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.zeolite.qmmm: { folder: examples/QUANTUM/NWChem, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qmmm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.zeolite.qmmm.plugin: { folder: examples/QUANTUM/NWChem, status: "failed, unrecognized command, package not installed, ERROR: Unrecognized fix style 'mdi/qmmm' is part of the MDI package which is not enabled in this LAMMPS binary. (src/modify.cpp:924)", walltime: -1 }
+in.wall.ccl: { folder: examples/wall, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.wall.diffusive: { folder: examples/wall, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.wall.flow: { folder: examples/wall, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 5.0, walltime_norm: 0.8333333333333334 }
+in.wall.lepton: { folder: examples/wall, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.wall.maxwell: { folder: examples/wall, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.wall.specular: { folder: examples/wall, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.wall.table: { folder: examples/wall, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.meam: { folder: examples/meam, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.meam.shear: { folder: examples/meam, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 31.0, walltime_norm: 5.166666666666667 }
+in.msmeam: { folder: examples/meam/msmeam, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.hugoniostat: { folder: examples/hugoniostat, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 10.0, walltime_norm: 1.6666666666666667 }
+in.comb.Cu: { folder: examples/comb, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.comb.Cu2O.elastic: { folder: examples/comb, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 21.0, walltime_norm: 3.5 }
+in.comb.HfO2: { folder: examples/comb, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.comb.Si: { folder: examples/comb, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.comb.Si.elastic: { folder: examples/comb, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.comb3: { folder: examples/comb, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 11.0, walltime_norm: 1.8333333333333333 }
+in.tad: { folder: examples/tad, status: "failed, ERROR: Cannot use TAD with a single replica for NEB (src/REPLICA/tad.cpp:79).", walltime: -1 }
+in.controller.temp: { folder: examples/controller, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 6.0, walltime_norm: 1.0 }
+in.controller.wall: { folder: examples/controller, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 19.0, walltime_norm: 3.1666666666666665 }
+in.reaxff.rdx: { folder: examples/reaxff, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 0.0, walltime_norm: 0.0 }
+in.reaxff.rdx-shielded: { folder: examples/reaxff, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.reaxff.tatb: { folder: examples/reaxff, status: "completed", failed_checks: { abs_diff_failed: 1, rel_diff_failed: 2 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.reaxff.tatb-shielded: { folder: examples/reaxff, status: "completed", failed_checks: { abs_diff_failed: 1, rel_diff_failed: 2 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.ci-reax.CH: { folder: examples/reaxff/ci-reaxFF, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 12.0, walltime_norm: 2.0 }
+in.reaxff.hns: { folder: examples/reaxff/HNS, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 20.0, walltime_norm: 3.3333333333333335 }
+in.VOH: { folder: examples/reaxff/VOH, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 2 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.water.acks2: { folder: examples/reaxff/water, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 13.0, walltime_norm: 2.1666666666666665 }
+in.water.acks2.field: { folder: examples/reaxff/water, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 17.0, walltime_norm: 2.8333333333333335 }
+in.water.qeq: { folder: examples/reaxff/water, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 6.0, walltime_norm: 1.0 }
+in.water.qeq.field: { folder: examples/reaxff/water, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 5.0, walltime_norm: 0.8333333333333334 }
+in.ZnOH2: { folder: examples/reaxff/ZnOH2, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.FC: { folder: examples/reaxff/FC, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 15.0, walltime_norm: 2.5 }
+in.RDX: { folder: examples/reaxff/RDX, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 6.0, walltime_norm: 1.0 }
+in.AuO: { folder: examples/reaxff/AuO, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 6.0, walltime_norm: 1.0 }
+in.CHO: { folder: examples/reaxff/CHO, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 2 }, walltime: 3.0, walltime_norm: 0.5 }
+in.FeOH3: { folder: examples/reaxff/FeOH3, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.AB: { folder: examples/reaxff/AB, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.grid.2d: { folder: examples/grid, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.grid.3d: { folder: examples/grid, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.sph: { folder: examples/grid, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 36.0, walltime_norm: 6.0 }
+in.yaml: { folder: examples/yaml, status: "completed, error parsing log.lammps into YAML", walltime: 3.0, walltime_norm: 0.5 }
+in.hBN_shift: { folder: examples/tersoff, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.tersoff: { folder: examples/tersoff, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.friction: { folder: examples/friction, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.cmap: { folder: examples/cmap, status: "completed", failed_checks: { abs_diff_failed: 1, rel_diff_failed: 1 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.dipole: { folder: examples/dipole, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.colloid: { folder: examples/colloid, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.streitz.ewald: { folder: examples/streitz, status: "completed", failed_checks: { abs_diff_failed: 1, rel_diff_failed: 2 }, walltime: 53.0, walltime_norm: 8.833333333333334 }
+in.streitz.wolf: { folder: examples/streitz, status: "failed, mismatched columns in the log files", walltime: 57.0, walltime_norm: 9.5 }
+in.neb.hop1: { folder: examples/neb, status: "failed, ERROR: Cannot use NEB with a single replica (src/REPLICA/neb.cpp:141).", walltime: -1 }
+in.neb.hop1.end: { folder: examples/neb, status: "failed, ERROR: Cannot use NEB with a single replica (src/REPLICA/neb.cpp:141).", walltime: -1 }
+in.neb.hop2: { folder: examples/neb, status: "failed, ERROR: Cannot use NEB with a single replica (src/REPLICA/neb.cpp:141).", walltime: -1 }
+in.neb.sivac: { folder: examples/neb, status: "failed, ERROR: Cannot use NEB with a single replica (src/REPLICA/neb.cpp:141).", walltime: -1 }
+in.fix_python_invoke: { folder: examples/python, status: "failed, ERROR: Could not process Python string: .", walltime: -1 }
+in.fix_python_invoke_neighlist: { folder: examples/python, status: "failed, ERROR: Could not process Python string: .", walltime: -1 }
+in.fix_python_move_nve_melt: { folder: examples/python, status: "failed, ERROR: Loading python integrator module failure (src/PYTHON/fix_python_move.cpp:64).", walltime: -1 }
+in.fix_python_move_nve_melt_opt: { folder: examples/python, status: "failed, ERROR: Loading python integrator module failure (src/PYTHON/fix_python_move.cpp:64).", walltime: -1 }
+in.pair_python_coulomb: { folder: examples/python, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 3.0, walltime_norm: 0.5 }
+in.pair_python_harmonic: { folder: examples/python, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 45.0, walltime_norm: 7.5 }
+in.pair_python_hybrid: { folder: examples/python, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 3 }, walltime: 13.0, walltime_norm: 2.1666666666666665 }
+in.pair_python_long: { folder: examples/python, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 4.0, walltime_norm: 0.6666666666666666 }
+in.pair_python_melt: { folder: examples/python, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 3 }, walltime: 28.0, walltime_norm: 4.666666666666667 }
+in.pair_python_spce: { folder: examples/python, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 11.0, walltime_norm: 1.8333333333333333 }
+in.pair_python_table: { folder: examples/python, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.python: { folder: examples/python, status: "failed, ERROR on proc 0: Python evaluation of function loop failed (src/PYTHON/python_impl.cpp:384).", walltime: -1 }
+in.bcc: { folder: examples/steinhardt, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.fcc: { folder: examples/steinhardt, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.icos: { folder: examples/steinhardt, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.kim-ex.melt: { folder: examples/kim, status: "failed, unknown command, package not installed, ERROR: Unknown command: kim          init LennardJones_Ar real (src/input.cpp:314)", walltime: -1 }
+in.kim-pm-property: { folder: examples/kim, status: "failed, unknown command, package not installed, ERROR: Unknown command: kim init LJ_Shifted_Bernardes_1958MedCutoff_Ar__MO_126566794224_004 metal (src/input.cpp:314)", walltime: -1 }
+in.kim-pm-query.melt: { folder: examples/kim, status: "failed, unknown command, package not installed, ERROR: Unknown command: kim          init SW_StillingerWeber_1985_Si__MO_405512056662_005 real (src/input.cpp:314)", walltime: -1 }
+in.kim-pm.melt: { folder: examples/kim, status: "failed, unknown command, package not installed, ERROR: Unknown command: kim          init SW_StillingerWeber_1985_Si__MO_405512056662_005 real (src/input.cpp:314)", walltime: -1 }
+in.kim-query: { folder: examples/kim, status: "failed, unknown command, package not installed, ERROR: Unknown command: kim   init EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal (src/input.cpp:314)", walltime: -1 }
+in.kim-sm.melt: { folder: examples/kim, status: "failed, unknown command, package not installed, ERROR: Unknown command: kim          init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 real (src/input.cpp:314)", walltime: -1 }
+in.lammps.melt: { folder: examples/kim, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.ellipse.gayberne: { folder: examples/ellipse, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.ellipse.resquared: { folder: examples/ellipse, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 2 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.cos.1000SPCE: { folder: examples/VISCOSITY, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 36.0, walltime_norm: 6.0 }
+in.einstein.2d: { folder: examples/VISCOSITY, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 39.0, walltime_norm: 6.5 }
+in.gk.2d: { folder: examples/VISCOSITY, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 39.0, walltime_norm: 6.5 }
+in.mp.2d: { folder: examples/VISCOSITY, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 5.0, walltime_norm: 0.8333333333333334 }
+in.nemd.2d: { folder: examples/VISCOSITY, status: "completed", failed_checks: { abs_diff_failed: 8, rel_diff_failed: 8 }, walltime: 17.0, walltime_norm: 2.8333333333333335 }
+in.wall.2d: { folder: examples/VISCOSITY, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 10.0, walltime_norm: 1.6666666666666667 }
+in.gcmc.co2: { folder: examples/mc, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 11.0, walltime_norm: 1.8333333333333333 }
+in.gcmc.h2o: { folder: examples/mc, status: "completed", failed_checks: { abs_diff_failed: 8, rel_diff_failed: 8 }, walltime: 138.0, walltime_norm: 23.0 }
+in.gcmc.lj: { folder: examples/mc, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 11.0, walltime_norm: 1.8333333333333333 }
+in.mixed: { folder: examples/mc, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 57.0, walltime_norm: 9.5 }
+in.pure: { folder: examples/mc, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 57.0, walltime_norm: 9.5 }
+in.sgcmc.eam: { folder: examples/mc, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 43.0, walltime_norm: 7.166666666666667 }
+in.widom.lj: { folder: examples/mc, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 8.0, walltime_norm: 1.3333333333333333 }
+in.widom.spce: { folder: examples/mc, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 44.0, walltime_norm: 7.333333333333333 }
+in.mc: { folder: examples/MC-LOOP, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.flow.couette: { folder: examples/flow, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.flow.pois: { folder: examples/flow, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.prd: { folder: examples/prd, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 3.0, walltime_norm: 0.5 }
+in.C_SNAP: { folder: examples/snap, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 34.0, walltime_norm: 5.666666666666667 }
+in.grid.snap: { folder: examples/snap, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.grid.tri: { folder: examples/snap, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.snap.InP.JCPA2020: { folder: examples/snap, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 15.0, walltime_norm: 2.5 }
+in.snap.Mo_Chen: { folder: examples/snap, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.snap.Ta06A: { folder: examples/snap, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.snap.W.2940: { folder: examples/snap, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.snap.WBe.PRB2019: { folder: examples/snap, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.snap.compute: { folder: examples/snap, status: "completed, but no Step nor Loop in the output.", walltime: 0.0, walltime_norm: 0.0 }
+in.snap.compute.quadratic: { folder: examples/snap, status: "completed, but no Step nor Loop in the output.", walltime: 0.0, walltime_norm: 0.0 }
+in.snap.hybrid.WSNAP.HePair: { folder: examples/snap, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.snap.scale.Ni_Zuo_JCPA2020: { folder: examples/snap, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 3.0, walltime_norm: 0.5 }
+in.lammps: { folder: examples/COUPLE/lammps_spparks, status: "failed, ERROR: Cannot open file data.lammps: No such file or directory (src/read_data.cpp:367).", walltime: -1 }
+in.spparks: { folder: examples/COUPLE/lammps_spparks, status: "failed, unknown command, package not installed, ERROR: Unknown command: seed		 56789 (src/input.cpp:314)", walltime: -1 }
+in.lj: { folder: examples/COUPLE/plugin, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.fix_external: { folder: examples/COUPLE/python, status: "completed, but no Step nor Loop in the output.", walltime: 0.0, walltime_norm: 0.0 }
+in.chain: { folder: examples/COUPLE/multiple, status: "failed, no Total wall time in the output, --------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 1.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+", walltime: -1 }
+in.lj: { folder: examples/COUPLE/simple, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.body: { folder: examples/body, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.cubes: { folder: examples/body, status: "completed", failed_checks: { abs_diff_failed: 2, rel_diff_failed: 2 }, walltime: 36.0, walltime_norm: 6.0 }
+in.pour3d: { folder: examples/body, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.squares: { folder: examples/body, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 3.0, walltime_norm: 0.5 }
+in.wall2d: { folder: examples/body, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
+in.atm: { folder: examples/atm, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 13.0, walltime_norm: 2.1666666666666665 }
+in.ar.lj: { folder: examples/UNITS, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.ar.metal: { folder: examples/UNITS, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.ar.real: { folder: examples/UNITS, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.mos2-bulk: { folder: examples/threebody, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.mos2.rebomos: { folder: examples/threebody, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 21.0, walltime_norm: 3.5 }
+in.mos2.sw.mod: { folder: examples/threebody, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.threebody: { folder: examples/threebody, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.nemd: { folder: examples/nemd, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 0.0, walltime_norm: 0.0 }
+in.obstacle: { folder: examples/obstacle, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 0.0, walltime_norm: 0.0 }
+in.crack: { folder: examples/crack, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 3.0, walltime_norm: 0.5 }
+in.elastic: { folder: examples/ELASTIC, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
+in.peri-pmb: { folder: examples/peri, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 9.0, walltime_norm: 1.5 }
+in.peri.eps: { folder: examples/peri, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 21.0, walltime_norm: 3.5 }
+in.peri.lps: { folder: examples/peri, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 17.0, walltime_norm: 2.8333333333333335 }
+in.peri.pmb: { folder: examples/peri, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 9.0, walltime_norm: 1.5 }
+in.peri.ves: { folder: examples/peri, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 21.0, walltime_norm: 3.5 }
+in.hyper.global: { folder: examples/hyper, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 53.0, walltime_norm: 8.833333333333334 }
+in.hyper.local: { folder: examples/hyper, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 13.0, walltime_norm: 2.1666666666666665 }
+in.spce: { folder: examples/rdf-adf, status: "completed", failed_checks: { abs_diff_failed: 6, rel_diff_failed: 6 }, walltime: 88.0, walltime_norm: 14.666666666666666 }
+in.elastic: { folder: examples/ELASTIC_T/BORN_MATRIX/Silicon, status: "completed, error parsing log.lammps into YAML", walltime: 62.0, walltime_norm: 10.333333333333334 }
+in.ljcov: { folder: examples/ELASTIC_T/BORN_MATRIX/Argon/Analytical, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.ljcov: { folder: examples/ELASTIC_T/BORN_MATRIX/Argon/Numdiff, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
+in.elastic: { folder: examples/ELASTIC_T/DEFORMATION/Silicon, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 6.0, walltime_norm: 1.0 }

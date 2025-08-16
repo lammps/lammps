@@ -358,6 +358,12 @@ void impl_testResize() {
   }
 }
 
+struct NoDefaultConstructor {
+  int value;
+  KOKKOS_FUNCTION
+  NoDefaultConstructor(int x) : value(x) {}
+};
+
 template <class DeviceType>
 void testResize() {
   {
@@ -366,6 +372,13 @@ void testResize() {
   {
     impl_testResize<DeviceType,
                     WithoutInitializing>();  // without data initialization
+  }
+  {
+    using view_type = Kokkos::View<NoDefaultConstructor*, DeviceType>;
+    view_type view_1d_no_default(
+        Kokkos::view_alloc(Kokkos::WithoutInitializing, "view_1d_no_default"),
+        5);
+    resize_dispatch(WithoutInitializing{}, view_1d_no_default, 3);
   }
 }
 

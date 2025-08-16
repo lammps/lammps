@@ -9,13 +9,12 @@ int dorm2r_(char *side, char *trans, integer *m, integer *n, integer *k, doubler
 {
     integer a_dim1, a_offset, c_dim1, c_offset, i__1, i__2;
     integer i__, i1, i2, i3, ic, jc, mi, ni, nq;
-    doublereal aii;
     logical left;
-    extern int dlarf_(char *, integer *, integer *, doublereal *, integer *, doublereal *,
-                      doublereal *, integer *, doublereal *, ftnlen);
     extern logical lsame_(char *, char *, ftnlen, ftnlen);
     extern int xerbla_(char *, integer *, ftnlen);
     logical notran;
+    extern int dlarf1f_(char *, integer *, integer *, doublereal *, integer *, doublereal *,
+                        doublereal *, integer *, doublereal *, ftnlen);
     a_dim1 = *lda;
     a_offset = 1 + a_dim1;
     a -= a_offset;
@@ -81,11 +80,8 @@ int dorm2r_(char *side, char *trans, integer *m, integer *n, integer *k, doubler
             ni = *n - i__ + 1;
             jc = i__;
         }
-        aii = a[i__ + i__ * a_dim1];
-        a[i__ + i__ * a_dim1] = 1.;
-        dlarf_(side, &mi, &ni, &a[i__ + i__ * a_dim1], &c__1, &tau[i__], &c__[ic + jc * c_dim1],
-               ldc, &work[1], (ftnlen)1);
-        a[i__ + i__ * a_dim1] = aii;
+        dlarf1f_(side, &mi, &ni, &a[i__ + i__ * a_dim1], &c__1, &tau[i__], &c__[ic + jc * c_dim1],
+                 ldc, &work[1], (ftnlen)1);
     }
     return 0;
 }

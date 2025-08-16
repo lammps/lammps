@@ -28,9 +28,10 @@ Syntax
            *no* = no reaction site stabilization (default)
          group_prefix = user-assigned prefix for the dynamic group of atoms not currently involved in a reaction
          xmax = value that is used by an internally-created :doc:`nve/limit <fix_nve_limit>` integrator
-       *reset_mol_ids* values = *yes* or *no*
+       *reset_mol_ids* values = *yes* or *no* or *molmap*
          *yes* = update molecule IDs based on new global topology (default)
          *no* = do not update molecule IDs
+         *molmap* = customize how molecule IDs are updated
 
 * react = mandatory argument indicating new reaction specification
 * react-ID = user-assigned name for the reaction
@@ -188,12 +189,30 @@ due to the internal dynamic grouping performed by fix bond/react.
    If the group-ID is an existing static group, react-group-IDs
    should also be specified as this static group or a subset.
 
-The *reset_mol_ids* keyword invokes the :doc:`reset_atoms mol
-<reset_atoms>` command after a reaction occurs, to ensure that
-molecule IDs are consistent with the new bond topology. The group-ID
-used for :doc:`reset_atoms mol <reset_atoms>` is the group-ID for this
-fix.  Resetting molecule IDs is necessarily a global operation, so it
-can be slow for very large systems.
+.. versionadded:: 2Apr2025
+
+   New *molmap* option
+
+If the *reset_mol_ids* keyword is set to *yes* (default), the
+:doc:`reset_atoms mol <reset_atoms>` command is invoked after a reaction
+occurs, to ensure that molecule IDs are consistent with the new bond
+topology.  The group-ID used for :doc:`reset_atoms mol <reset_atoms>` is
+the group-ID for this fix.  Resetting molecule IDs is necessarily a
+global operation, so it can be slow for very large systems.  If the
+*reset_mol_ids* keyword is set to *no*, molecule IDs are not updated.
+If the *reset_mol_ids* keyword is set to *molmap*, molecule IDs are
+updated consistently with the molecule IDs listed in the *Molecules*
+section of the pre- and post-reaction templates.  If a post-reaction
+atom has the same molecule ID as one or more pre-reaction atoms in the
+templates, then the post-reaction simulation atom will be assigned the
+same simulation molecule ID that those corresponding pre-reaction
+simulation atoms had before the reaction.  The *molmap* option is only
+guaranteed to work correctly if all the pre-reaction atoms that have
+equivalent template molecule IDs also have equivalent molecule IDs in
+the simulation.  No check is performed to test for this consistency.
+For post-reaction atoms that have a template molecule ID that does not
+exist in pre-reaction template, they are assigned a new molecule ID that
+does not currently exist in the simulation.
 
 The following comments pertain to each *react* argument (in other
 words, they can be customized for each reaction, or reaction step):
@@ -270,16 +289,15 @@ currently connected to the rest of a long polymer chain. These are
 referred to as edge atoms, and are also specified in the map file. All
 pre-reaction template atoms should be linked to an initiator atom, via
 at least one path that does not involve edge atoms. When the
-pre-reaction template contains edge atoms, not all atoms, bonds,
-charges, etc. specified in the reaction templates will be updated.
-Specifically, topology that involves only atoms that are "too near" to
-template edges will not be updated. The definition of "too near the
-edge" depends on which interactions are defined in the simulation. If
-the simulation has defined dihedrals, atoms within two bonds of edge
-atoms are considered "too near the edge." If the simulation defines
-angles, but not dihedrals, atoms within one bond of edge atoms are
-considered "too near the edge." If just bonds are defined, only edge
-atoms are considered "too near the edge."
+pre-reaction template contains edge atoms, not all atoms, bonds, etc.
+specified in the reaction templates will be updated. Specifically, topology
+that involves only atoms that are "too near" to template edges will not be
+updated. The definition of "too near the edge" depends on which
+interactions are defined in the simulation. If the simulation has defined
+dihedrals, atoms within two bonds of edge atoms are considered "too near
+the edge." If the simulation defines angles, but not dihedrals, atoms
+within one bond of edge atoms are considered "too near the edge." If just
+bonds are defined, only edge atoms are considered "too near the edge."
 
 .. note::
 
@@ -420,9 +438,10 @@ within a distance :math:`R` of any created atom, including the effect of
 periodic boundary conditions if applicable. :math:`R` is defined by the
 *overlap* sub-keyword. Note that the default value for :math:`R` is 0.0, which
 will allow atoms to strongly overlap if you are inserting where other
-atoms are present. The velocity of each created atom is initialized in
-a random direction with a magnitude calculated from the instantaneous
-temperature of the reaction site.
+atoms are present. The molecule ID of a created atom is zero, unless the
+*reset_mol_ids molmap* option is used. The velocity of each created atom is
+initialized in a random direction with a magnitude calculated from the
+instantaneous temperature of the reaction site.
 
 .. note::
 
@@ -558,16 +577,17 @@ only one value, e.g. bond force. This value is returned by the
 fragment in the pre-reaction template. The fragment must contain
 exactly two atoms, corresponding to the atoms involved in the bond
 whose value should be calculated. An example of a constraint that uses
-the force experienced by a bond is provided below. The 'rxnsum' and
-'rxnave' functions operate over the atoms in a given reaction site,
-and have one mandatory argument and one optional argument. The
-mandatory argument is the identifier for an atom-style variable. The
-second, optional argument is the name of a molecule fragment in the
-pre-reaction template, and can be used to operate over a subset of
-atoms in the reaction site. The 'rxnsum' function sums the atom-style
-variable over the reaction site, while the 'rxnave' returns the
-average value. For example, a constraint on the total potential energy
-of atoms involved in the reaction can be imposed as follows:
+the force experienced by a bond is provided below. When using 'rxnbond',
+at least one atom in the fragment must be an initiator atom. The
+'rxnsum' and 'rxnave' functions operate over the atoms in a given
+reaction site, and have one mandatory argument and one optional
+argument. The mandatory argument is the identifier for an atom-style
+variable. The second, optional argument is the name of a molecule
+fragment in the pre-reaction template, and can be used to operate over a
+subset of atoms in the reaction site. The 'rxnsum' function sums the
+atom-style variable over the reaction site, while the 'rxnave' returns
+the average value. For example, a constraint on the total potential
+energy of atoms involved in the reaction can be imposed as follows:
 
 .. code-block:: LAMMPS
 
@@ -600,7 +620,7 @@ Arrhenius constraint that depends on the bond force of a specific bond:
 
    # in Constraints section of map file
 
-   custom "exp(-(v_E_a-rxnbond(c_bondforce,bond1frag)*v_l0)/(2/3*rxnave(v_ke))) < random(0,1,12345)"
+   custom "exp(-(v_E_a-rxnbond(c_bondforce,bond1frag)*v_l0)/(2/3*rxnave(v_ke))) > random(0,1,12345)"
 
 By using an inequality and the 'random(x,y,z)' function, the left-hand
 side can be interpreted as the probability of the reaction occurring,
@@ -785,3 +805,7 @@ reset_mol_ids = yes, custom_charges = no, molecule = off, modify_create = *fit a
 .. _Gissinger2020:
 
 **(Gissinger2020)** Gissinger, Jensen and Wise, Macromolecules, 53, 22, 9953-9961 (2020).
+
+.. _Gissinger2024:
+
+**(Gissinger2024)** Gissinger, Jensen and Wise, Computer Physics Communications, 304, 109287 (2024).

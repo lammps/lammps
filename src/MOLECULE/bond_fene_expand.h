@@ -36,6 +36,7 @@ class BondFENEExpand : public Bond {
   void read_restart(FILE *) override;
   void write_data(FILE *) override;
   double single(int, double, int, int, double &) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double *k, *r0, *epsilon, *sigma, *shift;

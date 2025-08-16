@@ -85,11 +85,13 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix addforce region", error);
       region = domain->get_region_by_id(arg[iarg + 1]);
       if (!region) error->all(FLERR, "Region {} for fix addforce does not exist", arg[iarg + 1]);
+      delete[] idregion;
       idregion = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "energy") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix addforce energy", error);
       if (utils::strmatch(arg[iarg + 1], "^v_")) {
+        delete[] estr;
         estr = utils::strdup(arg[iarg + 1] + 2);
       } else
         error->all(FLERR, "Invalid fix addforce energy argument: {}", arg[iarg + 1]);

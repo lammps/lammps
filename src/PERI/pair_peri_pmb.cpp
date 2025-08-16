@@ -24,6 +24,7 @@
 #include "error.h"
 #include "fix_peri_neigh.h"
 #include "force.h"
+#include "info.h"
 #include "lattice.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -109,7 +110,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
       delx0 = xtmp0 - x0[j][0];
       dely0 = ytmp0 - x0[j][1];
       delz0 = ztmp0 - x0[j][2];
-      if (periodic) domain->minimum_image(delx0,dely0,delz0);
+      if (periodic) domain->minimum_image(FLERR, delx0,dely0,delz0);
       rsq0 = delx0*delx0 + dely0*dely0 + delz0*delz0;
       jtype = type[j];
 
@@ -188,7 +189,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      if (periodic) domain->minimum_image(delx,dely,delz);
+      if (periodic) domain->minimum_image(FLERR, delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
       delta = cut[itype][jtype];
@@ -245,7 +246,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
 
 void PairPeriPMB::coeff(int narg, char **arg)
 {
-  if (narg != 6) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 6) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -269,7 +270,7 @@ void PairPeriPMB::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -278,7 +279,9 @@ void PairPeriPMB::coeff(int narg, char **arg)
 
 double PairPeriPMB::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
 
   kspring[j][i] = kspring[i][j];
   alpha[j][i] = alpha[i][j];
@@ -358,7 +361,7 @@ double PairPeriPMB::single(int i, int j, int itype, int jtype, double rsq,
   dely0 = x0[i][1] - x0[j][1];
   delz0 = x0[i][2] - x0[j][2];
   int periodic = domain->xperiodic || domain->yperiodic || domain->zperiodic;
-  if (periodic) domain->minimum_image(delx0,dely0,delz0);
+  if (periodic) domain->minimum_image(FLERR, delx0,dely0,delz0);
   rsq0 = delx0*delx0 + dely0*dely0 + delz0*delz0;
 
   d_ij = MIN(0.9*sqrt(rsq0),1.35*lc);

@@ -52,15 +52,15 @@ void Hyper::command(int narg, char **arg)
   // error checks
 
   if (domain->box_exist == 0)
-    error->all(FLERR,"Hyper command before simulation box is defined");
+    error->all(FLERR,"Hyper command before simulation box is defined" + utils::errorurl(33));
 
   if (narg < 4) error->all(FLERR,"Illegal hyper command");
 
   int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
   t_event = utils::inumeric(FLERR,arg[1],false,lmp);
 
-  auto id_fix = utils::strdup(arg[2]);
-  auto id_compute = utils::strdup(arg[3]);
+  auto *id_fix = utils::strdup(arg[2]);
+  auto *id_compute = utils::strdup(arg[3]);
 
   options(narg-4,&arg[4]);
 
@@ -151,10 +151,10 @@ void Hyper::command(int narg, char **arg)
 
   // cannot use hyper with time-dependent fixes or regions
 
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if (ifix->time_depend) error->all(FLERR,"Cannot use hyper with a time-dependent fix defined");
 
-  for (auto &reg : domain->get_region_list())
+  for (const auto &reg : domain->get_region_list())
     if (reg->dynamic_check())
       error->all(FLERR,"Cannot use hyper with a time-dependent region defined");
 
@@ -254,8 +254,8 @@ void Hyper::command(int narg, char **arg)
 
   if (hyperenable) {
     t_hyper = fix_hyper->query(1);
-    nevent_running = fix_hyper->query(2);
-    nevent_atoms_running = fix_hyper->query(3);
+    nevent_running = (int) fix_hyper->query(2);
+    nevent_atoms_running = (int) fix_hyper->query(3);
     avebonds = fix_hyper->query(4);
     maxdrift = fix_hyper->query(5);
     maxbondlen = fix_hyper->query(6);
@@ -454,7 +454,7 @@ void Hyper::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"dump") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal hyper command");
       dumpflag = 1;
-      auto idump = output->get_dump_by_id(arg[iarg+1]);
+      auto *idump = output->get_dump_by_id(arg[iarg+1]);
       if (!idump) error->all(FLERR,"Dump ID {} in hyper command does not exist", arg[iarg+1]);
       dumplist.emplace_back(idump);
       iarg += 2;

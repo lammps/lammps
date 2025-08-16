@@ -86,9 +86,19 @@ PotentialFileReader::~PotentialFileReader()
 /** Set comment (= text after '#') handling preference for the file to be read
  *
  * \param   value   Comment text is ignored if true, or not if false */
+
 void PotentialFileReader::ignore_comments(bool value)
 {
   reader->ignore_comments = value;
+}
+
+/** Set line buffer size of the internal TextFileReader class instance.
+ *
+ * \param   bufsize   New size of the line buffer */
+
+void PotentialFileReader::set_bufsize(int bufsize)
+{
+  reader->set_bufsize(bufsize);
 }
 
 /** Reset file to the beginning */
@@ -134,7 +144,7 @@ char *PotentialFileReader::next_line(int nparams)
  *
  * This reads lines from the file using the next_line() function,
  * and splits them into floating-point numbers using the
- * ValueTokenizer class and stores the number is the provided list.
+ * ValueTokenizer class and stores the number in the provided list.
  *
  * \param  list  Pointer to array with suitable storage for *n* doubles
  * \param  n     Number of doubles to be read */
@@ -154,7 +164,7 @@ void PotentialFileReader::next_dvector(double *list, int n)
  *
  * This reads lines from the file using the next_line() function,
  * and splits them into floating-point numbers using the
- * ValueTokenizer class and stores the number is the provided list.
+ * ValueTokenizer class and stores the number in the provided list.
  *
  * \param   nparams     Number of words to be read
  * \param   separators  String with list of separators.

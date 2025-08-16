@@ -32,6 +32,7 @@
 #include "pair.h"
 
 #include <cmath>
+#include <cstring>
 
 #include "lj_spica_common.h"
 
@@ -44,8 +45,8 @@ static constexpr double SMALL = 0.001;
 /* ---------------------------------------------------------------------- */
 
 AngleSPICA::AngleSPICA(LAMMPS *lmp) :
-    Angle(lmp), k(nullptr), theta0(nullptr), lj_type(nullptr), lj1(nullptr), lj2(nullptr),
-    lj3(nullptr), lj4(nullptr), rminsq(nullptr), emin(nullptr)
+    Angle(lmp), k(nullptr), theta0(nullptr), repscale(nullptr), lj_type(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), rminsq(nullptr), emin(nullptr)
 {
   repflag = 0;
 }
@@ -54,7 +55,7 @@ AngleSPICA::AngleSPICA(LAMMPS *lmp) :
 
 AngleSPICA::~AngleSPICA()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k);
     memory->destroy(theta0);
@@ -249,7 +250,7 @@ void AngleSPICA::allocate()
 void AngleSPICA::coeff(int narg, char **arg)
 {
   if ((narg < 3) || (narg > 6))
-    error->all(FLERR,"Incorrect args for angle coefficients");
+    error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 
   if (!allocated) allocate();
 
@@ -270,7 +271,7 @@ void AngleSPICA::coeff(int narg, char **arg)
     if (repscale_one > 0.0) repscale_one = 1.0;
   } else if (narg == 4) repscale_one = utils::numeric(FLERR,arg[3],false,lmp);
   else if (narg == 3) repscale_one = 1.0;
-  else error->all(FLERR,"Incorrect args for angle coefficients");
+  else error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 
   // convert theta0 from degrees to radians and store coefficients
 
@@ -283,7 +284,7 @@ void AngleSPICA::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -458,13 +459,13 @@ double AngleSPICA::single(int type, int i1, int i2, int i3)
   double delx1 = x[i1][0] - x[i2][0];
   double dely1 = x[i1][1] - x[i2][1];
   double delz1 = x[i1][2] - x[i2][2];
-  domain->minimum_image(delx1,dely1,delz1);
+  domain->minimum_image(FLERR, delx1,dely1,delz1);
   double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
 
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];
-  domain->minimum_image(delx2,dely2,delz2);
+  domain->minimum_image(FLERR, delx2,dely2,delz2);
   double r2 = sqrt(delx2*delx2 + dely2*dely2 + delz2*delz2);
 
   double c = delx1*delx2 + dely1*dely2 + delz1*delz2;
@@ -479,7 +480,7 @@ double AngleSPICA::single(int type, int i1, int i2, int i3)
     double delx3 = x[i1][0] - x[i3][0];
     double dely3 = x[i1][1] - x[i3][1];
     double delz3 = x[i1][2] - x[i3][2];
-    domain->minimum_image(delx3,dely3,delz3);
+    domain->minimum_image(FLERR, delx3,dely3,delz3);
 
     const int type1 = atom->type[i1];
     const int type3 = atom->type[i3];
@@ -521,4 +522,16 @@ double AngleSPICA::single(int type, int i1, int i2, int i3)
   double dtheta = acos(c) - theta0[type];
   double tk = k[type] * dtheta;
   return tk*dtheta + e13;
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleSPICA::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
+  return nullptr;
 }

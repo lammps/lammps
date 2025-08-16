@@ -13,10 +13,12 @@
 #include <sstream>
 #include <iomanip>
 
+#include "colvardeps.h"
 #include "colvarmodule.h"
 #include "colvarproxy.h"
 #include "colvarparse.h"
 #include "colvaratoms.h"
+#include "colvar_rotation_derivative.h"
 
 
 cvm::atom::atom()
@@ -116,6 +118,11 @@ cvm::atom_group::~atom_group()
   if (fitting_group) {
     delete fitting_group;
     fitting_group = NULL;
+  }
+
+  if (rot_deriv != nullptr) {
+    delete rot_deriv;
+    rot_deriv = nullptr;
   }
 
   cvm::main()->unregister_named_atom_group(this);
@@ -226,6 +233,7 @@ int cvm::atom_group::init()
   b_dummy = false;
   b_user_defined_fit = false;
   fitting_group = NULL;
+  rot_deriv = nullptr;
 
   noforce = false;
 
@@ -278,7 +286,7 @@ int cvm::atom_group::init_dependencies() {
   // Initialize feature_states for each instance
   // default as unavailable, not enabled
   feature_states.reserve(f_ag_ntot);
-  for (i = 0; i < colvardeps::f_ag_ntot; i++) {
+  for (i = feature_states.size(); i < colvardeps::f_ag_ntot; i++) {
     feature_states.push_back(feature_state(false, false));
   }
 
@@ -315,6 +323,13 @@ int cvm::atom_group::setup()
   update_total_mass();
   update_total_charge();
   return COLVARS_OK;
+}
+
+void cvm::atom_group::setup_rotation_derivative() {
+  if (rot_deriv != nullptr) delete rot_deriv;
+  rot_deriv = new rotation_derivative<cvm::atom, cvm::atom_pos>(
+    rot, fitting_group ? fitting_group->atoms : this->atoms, ref_pos
+  );
 }
 
 
@@ -383,7 +398,7 @@ int cvm::atom_group::parse(std::string const &group_conf)
   // }
   // colvarparse::Parse_Mode mode = parse_normal;
 
-  int parse_error = COLVARS_OK;
+  int error_code = COLVARS_OK;
 
   // Optional group name will let other groups reuse atom definition
   if (get_keyval(group_conf, "name", name)) {
@@ -433,7 +448,7 @@ int cvm::atom_group::parse(std::string const &group_conf)
         cvm::error("Error: cannot find atom group with name " + atoms_of + ".\n");
         return COLVARS_ERROR;
       }
-      parse_error |= add_atoms_of_group(ag);
+      error_code |= add_atoms_of_group(ag);
     }
   }
 
@@ -447,7 +462,7 @@ int cvm::atom_group::parse(std::string const &group_conf)
     std::string numbers_conf = "";
     size_t pos = 0;
     while (key_lookup(group_conf, "atomNumbers", &numbers_conf, &pos)) {
-      parse_error |= add_atom_numbers(numbers_conf);
+      error_code |= add_atom_numbers(numbers_conf);
       numbers_conf = "";
     }
   }
@@ -456,7 +471,7 @@ int cvm::atom_group::parse(std::string const &group_conf)
     std::string index_group_name;
     if (get_keyval(group_conf, "indexGroup", index_group_name)) {
       // use an index group from the index file read globally
-      parse_error |= add_index_group(index_group_name);
+      error_code |= add_index_group(index_group_name);
     }
   }
 
@@ -465,7 +480,7 @@ int cvm::atom_group::parse(std::string const &group_conf)
     size_t pos = 0;
     while (key_lookup(group_conf, "atomNumbersRange",
                       &range_conf, &pos)) {
-      parse_error |= add_atom_numbers_range(range_conf);
+      error_code |= add_atom_numbers_range(range_conf);
       range_conf = "";
     }
   }
@@ -492,7 +507,7 @@ int cvm::atom_group::parse(std::string const &group_conf)
         cvm::error("Error: more instances of \"atomNameResidueRange\" than "
                    "values of \"psfSegID\".\n", COLVARS_INPUT_ERROR);
       } else {
-        parse_error |= add_atom_name_residue_range(psf_segids.size() ?
+        error_code |= add_atom_name_residue_range(psf_segids.size() ?
           *psii : std::string(""), range_conf);
         if (psf_segids.size()) psii++;
       }
@@ -517,26 +532,26 @@ int cvm::atom_group::parse(std::string const &group_conf)
         cvm::error("Error: atomsColValue, if provided, must be non-zero.\n", COLVARS_INPUT_ERROR);
       }
 
-      // NOTE: calls to add_atom() and/or add_atom_id() are in the proxy-implemented function
-      parse_error |= cvm::load_atoms(atoms_file_name.c_str(), *this, atoms_col, atoms_col_value);
+      error_code |= cvm::main()->proxy->load_atoms_pdb(atoms_file_name.c_str(), *this, atoms_col,
+                                                       atoms_col_value);
     }
   }
 
   // Catch any errors from all the initialization steps above
-  if (parse_error || cvm::get_error()) return (parse_error || cvm::get_error());
+  if (error_code || cvm::get_error()) return (error_code || cvm::get_error());
 
   // checks of doubly-counted atoms have been handled by add_atom() already
 
   if (get_keyval(group_conf, "dummyAtom", dummy_atom_pos, cvm::atom_pos())) {
 
-    parse_error |= set_dummy();
-    parse_error |= set_dummy_pos(dummy_atom_pos);
+    error_code |= set_dummy();
+    error_code |= set_dummy_pos(dummy_atom_pos);
 
   } else {
 
     if (!(atoms_ids.size())) {
-      parse_error |= cvm::error("Error: no atoms defined for atom group \""+
-                                key+"\".\n", COLVARS_INPUT_ERROR);
+      error_code |= cvm::error("Error: no atoms defined for atom group \"" + key + "\".\n",
+                               COLVARS_INPUT_ERROR);
     }
 
     // whether these atoms will ever receive forces or not
@@ -546,7 +561,7 @@ int cvm::atom_group::parse(std::string const &group_conf)
   }
 
   // Now that atoms are defined we can parse the detailed fitting options
-  parse_error |= parse_fitting_options(group_conf);
+  error_code |= parse_fitting_options(group_conf);
 
   if (is_enabled(f_ag_scalable) && !b_dummy) {
     cvm::log("Enabling scalable calculation for group \""+this->key+"\".\n");
@@ -583,7 +598,9 @@ int cvm::atom_group::parse(std::string const &group_conf)
     cvm::log(print_atom_ids());
   }
 
-  return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
+  if (is_enabled(f_ag_rotate)) setup_rotation_derivative();
+
+  return error_code;
 }
 
 
@@ -656,7 +673,7 @@ int cvm::atom_group::add_atom_numbers(std::string const &numbers_conf)
 }
 
 
-int cvm::atom_group::add_index_group(std::string const &index_group_name)
+int cvm::atom_group::add_index_group(std::string const &index_group_name, bool silent)
 {
   std::vector<std::string> const &index_group_names =
     cvm::main()->index_group_names;
@@ -670,7 +687,10 @@ int cvm::atom_group::add_index_group(std::string const &index_group_name)
   }
 
   if (i_group >= index_group_names.size()) {
-    return cvm::error("Error: could not find index group "+
+    if (silent)
+      return COLVARS_INPUT_ERROR;
+    else
+      return cvm::error("Error: could not find index group "+
                       index_group_name+" among those already provided.\n",
                       COLVARS_INPUT_ERROR);
   }
@@ -883,8 +903,6 @@ int cvm::atom_group::parse_fitting_options(std::string const &group_conf)
                "to its radius of gyration), the optimal rotation and its gradients may become discontinuous.  "
                "If that happens, use fittingGroup (or a different definition for it if already defined) "
                "to align the coordinates.\n");
-      // initialize rot member data
-      rot.request_group1_gradients(group_for_fit->size());
     }
   }
 
@@ -912,7 +930,6 @@ void cvm::atom_group::do_feature_side_effects(int id)
       if (is_enabled(f_ag_center) || is_enabled(f_ag_rotate)) {
         atom_group *group_for_fit = fitting_group ? fitting_group : this;
         group_for_fit->fit_gradients.assign(group_for_fit->size(), cvm::atom_pos(0.0, 0.0, 0.0));
-        rot.request_group1_gradients(group_for_fit->size());
       }
       break;
   }
@@ -1041,21 +1058,30 @@ void cvm::atom_group::calc_apply_roto_translation()
     }
   }
 
+  if (is_enabled(f_ag_fit_gradients) && !b_dummy) {
+    // Save the unrotated frame for fit gradients
+    pos_unrotated.resize(size());
+    for (size_t i = 0; i < size(); ++i) {
+      pos_unrotated[i] = atoms[i].pos;
+    }
+  }
+
   if (is_enabled(f_ag_rotate)) {
     // rotate the group (around the center of geometry if f_ag_center is
     // enabled, around the origin otherwise)
     rot.calc_optimal_rotation(fitting_group ?
-                              fitting_group->positions() :
-                              this->positions(),
+                              fitting_group->atoms:
+                              this->atoms,
                               ref_pos);
+    const auto rot_mat = rot.matrix();
 
     cvm::atom_iter ai;
     for (ai = this->begin(); ai != this->end(); ai++) {
-      ai->pos = rot.rotate(ai->pos);
+      ai->pos = rot_mat * ai->pos;
     }
     if (fitting_group) {
       for (ai = fitting_group->begin(); ai != fitting_group->end(); ai++) {
-        ai->pos = rot.rotate(ai->pos);
+        ai->pos = rot_mat * ai->pos;
       }
     }
   }
@@ -1095,9 +1121,10 @@ void cvm::atom_group::read_velocities()
 
   if (is_enabled(f_ag_rotate)) {
 
+    const auto rot_mat = rot.matrix();
     for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
       ai->read_velocity();
-      ai->vel = rot.rotate(ai->vel);
+      ai->vel = rot_mat * ai->vel;
     }
 
   } else {
@@ -1116,9 +1143,10 @@ void cvm::atom_group::read_total_forces()
 
   if (is_enabled(f_ag_rotate)) {
 
+    const auto rot_mat = rot.matrix();
     for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
       ai->read_total_force();
-      ai->total_force = rot.rotate(ai->total_force);
+      ai->total_force = rot_mat * ai->total_force;
     }
 
   } else {
@@ -1202,47 +1230,88 @@ void cvm::atom_group::calc_fit_gradients()
 
   cvm::atom_group *group_for_fit = fitting_group ? fitting_group : this;
 
-  if (is_enabled(f_ag_center)) {
-    // add the center of geometry contribution to the gradients
-    cvm::rvector atom_grad;
-
-    for (size_t i = 0; i < this->size(); i++) {
-      atom_grad += atoms[i].grad;
-    }
-    if (is_enabled(f_ag_rotate)) atom_grad = (rot.inverse()).rotate(atom_grad);
-    atom_grad *= (-1.0)/(cvm::real(group_for_fit->size()));
-
-    for (size_t j = 0; j < group_for_fit->size(); j++) {
-      group_for_fit->fit_gradients[j] = atom_grad;
-    }
-  }
-
-  if (is_enabled(f_ag_rotate)) {
-
-    // add the rotation matrix contribution to the gradients
-    cvm::rotation const rot_inv = rot.inverse();
-
-    for (size_t i = 0; i < this->size(); i++) {
-
-      // compute centered, unrotated position
-      cvm::atom_pos const pos_orig =
-        rot_inv.rotate((is_enabled(f_ag_center) ? (atoms[i].pos - ref_pos_cog) : (atoms[i].pos)));
-
-      // calculate \partial(R(q) \vec{x}_i)/\partial q) \cdot \partial\xi/\partial\vec{x}_i
-      cvm::quaternion const dxdq =
-        rot.q.position_derivative_inner(pos_orig, atoms[i].grad);
-
-      for (size_t j = 0; j < group_for_fit->size(); j++) {
-        // multiply by {\partial q}/\partial\vec{x}_j and add it to the fit gradients
-        for (size_t iq = 0; iq < 4; iq++) {
-          group_for_fit->fit_gradients[j] += dxdq[iq] * rot.dQ0_1[j][iq];
-        }
-      }
-    }
-  }
+  auto accessor_main = [this](size_t i){return atoms[i].grad;};
+  auto accessor_fitting = [&group_for_fit](size_t j, const cvm::rvector& grad){group_for_fit->fit_gradients[j] = grad;};
+  if (is_enabled(f_ag_center) && is_enabled(f_ag_rotate))
+    calc_fit_forces_impl<true, true>(accessor_main, accessor_fitting);
+  if (is_enabled(f_ag_center) && !is_enabled(f_ag_rotate))
+    calc_fit_forces_impl<true, false>(accessor_main, accessor_fitting);
+  if (!is_enabled(f_ag_center) && is_enabled(f_ag_rotate))
+    calc_fit_forces_impl<false, true>(accessor_main, accessor_fitting);
+  if (!is_enabled(f_ag_center) && !is_enabled(f_ag_rotate))
+    calc_fit_forces_impl<false, false>(accessor_main, accessor_fitting);
 
   if (cvm::debug())
     cvm::log("Done calculating fit gradients.\n");
+}
+
+
+template <bool B_ag_center, bool B_ag_rotate,
+          typename main_force_accessor_T, typename fitting_force_accessor_T>
+void cvm::atom_group::calc_fit_forces_impl(
+  main_force_accessor_T accessor_main,
+  fitting_force_accessor_T accessor_fitting) const {
+  const cvm::atom_group *group_for_fit = fitting_group ? fitting_group : this;
+  // the center of geometry contribution to the gradients
+  cvm::rvector atom_grad;
+  // the rotation matrix contribution to the gradients
+  const auto rot_inv = rot.inverse().matrix();
+  // temporary variables for computing and summing derivatives
+  cvm::real sum_dxdq[4] = {0, 0, 0, 0};
+  cvm::vector1d<cvm::rvector> dq0_1(4);
+  // loop 1: iterate over the current atom group
+  for (size_t i = 0; i < size(); i++) {
+    if (B_ag_center) {
+      atom_grad += accessor_main(i);
+    }
+    if (B_ag_rotate) {
+      // calculate \partial(R(q) \vec{x}_i)/\partial q) \cdot \partial\xi/\partial\vec{x}_i
+      cvm::quaternion const dxdq =
+        rot.q.position_derivative_inner(pos_unrotated[i], accessor_main(i));
+      sum_dxdq[0] += dxdq[0];
+      sum_dxdq[1] += dxdq[1];
+      sum_dxdq[2] += dxdq[2];
+      sum_dxdq[3] += dxdq[3];
+    }
+  }
+  if (B_ag_center) {
+    if (B_ag_rotate) atom_grad = rot_inv * atom_grad;
+    atom_grad *= (-1.0)/(cvm::real(group_for_fit->size()));
+  }
+  // loop 2: iterate over the fitting group
+  if (B_ag_rotate) rot_deriv->prepare_derivative(rotation_derivative_dldq::use_dq);
+  for (size_t j = 0; j < group_for_fit->size(); j++) {
+    cvm::rvector fitting_force_grad{0, 0, 0};
+    if (B_ag_center) {
+      fitting_force_grad += atom_grad;
+    }
+    if (B_ag_rotate) {
+      rot_deriv->calc_derivative_wrt_group1<false, true, false>(j, nullptr, &dq0_1);
+      // multiply by {\partial q}/\partial\vec{x}_j and add it to the fit gradients
+      fitting_force_grad += sum_dxdq[0] * dq0_1[0] +
+                            sum_dxdq[1] * dq0_1[1] +
+                            sum_dxdq[2] * dq0_1[2] +
+                            sum_dxdq[3] * dq0_1[3];
+    }
+    if (cvm::debug()) {
+      cvm::log(cvm::to_str(fitting_force_grad));
+    }
+    accessor_fitting(j, fitting_force_grad);
+  }
+}
+
+template <typename main_force_accessor_T, typename fitting_force_accessor_T>
+void cvm::atom_group::calc_fit_forces(
+  main_force_accessor_T accessor_main,
+  fitting_force_accessor_T accessor_fitting) const {
+  if (is_enabled(f_ag_center) && is_enabled(f_ag_rotate))
+    calc_fit_forces_impl<true, true, main_force_accessor_T, fitting_force_accessor_T>(accessor_main, accessor_fitting);
+  if (is_enabled(f_ag_center) && !is_enabled(f_ag_rotate))
+    calc_fit_forces_impl<true, false, main_force_accessor_T, fitting_force_accessor_T>(accessor_main, accessor_fitting);
+  if (!is_enabled(f_ag_center) && is_enabled(f_ag_rotate))
+    calc_fit_forces_impl<false, true, main_force_accessor_T, fitting_force_accessor_T>(accessor_main, accessor_fitting);
+  if (!is_enabled(f_ag_center) && !is_enabled(f_ag_rotate))
+    calc_fit_forces_impl<false, false, main_force_accessor_T, fitting_force_accessor_T>(accessor_main, accessor_fitting);
 }
 
 
@@ -1373,9 +1442,9 @@ void cvm::atom_group::apply_colvar_force(cvm::real const &force)
   if (is_enabled(f_ag_rotate)) {
 
     // rotate forces back to the original frame
-    cvm::rotation const rot_inv = rot.inverse();
+    const auto rot_inv = rot.inverse().matrix();
     for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
-      ai->apply_force(rot_inv.rotate(force * ai->grad));
+      ai->apply_force(rot_inv * (force * ai->grad));
     }
 
   } else {
@@ -1416,17 +1485,72 @@ void cvm::atom_group::apply_force(cvm::rvector const &force)
     return;
   }
 
-  if (is_enabled(f_ag_rotate)) {
+  auto ag_force = get_group_force_object();
+  for (size_t i = 0; i < size(); ++i) {
+    ag_force.add_atom_force(i, atoms[i].mass / total_mass * force);
+  }
+}
 
-    cvm::rotation const rot_inv = rot.inverse();
-    for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
-      ai->apply_force(rot_inv.rotate((ai->mass/total_mass) * force));
+cvm::atom_group::group_force_object cvm::atom_group::get_group_force_object() {
+  return cvm::atom_group::group_force_object(this);
+}
+
+cvm::atom_group::group_force_object::group_force_object(cvm::atom_group* ag):
+m_ag(ag), m_group_for_fit(m_ag->fitting_group ? m_ag->fitting_group : m_ag),
+m_has_fitting_force(m_ag->is_enabled(f_ag_center) || m_ag->is_enabled(f_ag_rotate)) {
+  if (m_has_fitting_force) {
+    if (m_ag->group_forces.size() != m_ag->size()) {
+      m_ag->group_forces.assign(m_ag->size(), 0);
+    } else {
+      std::fill(m_ag->group_forces.begin(),
+                m_ag->group_forces.end(), 0);
     }
+  }
+}
 
+cvm::atom_group::group_force_object::~group_force_object() {
+  if (m_has_fitting_force) {
+    apply_force_with_fitting_group();
+  }
+}
+
+void cvm::atom_group::group_force_object::add_atom_force(size_t i, const cvm::rvector& force) {
+  if (m_has_fitting_force) {
+    m_ag->group_forces[i] += force;
   } else {
+    // Apply the force directly if we don't use fitting
+    (*m_ag)[i].apply_force(force);
+  }
+}
 
-    for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
-      ai->apply_force((ai->mass/total_mass) * force);
+void cvm::atom_group::group_force_object::apply_force_with_fitting_group() {
+  const cvm::rmatrix rot_inv = m_ag->rot.inverse().matrix();
+  if (cvm::debug()) {
+    cvm::log("Applying force on main group " + m_ag->name + ":\n");
+  }
+  for (size_t ia = 0; ia < m_ag->size(); ++ia) {
+    const cvm::rvector f_ia = rot_inv * m_ag->group_forces[ia];
+    (*m_ag)[ia].apply_force(f_ia);
+    if (cvm::debug()) {
+      cvm::log(cvm::to_str(f_ia));
+    }
+  }
+  // Gradients are only available with scalar components, so for a scalar component,
+  // if f_ag_fit_gradients is disabled, then the forces on the fitting group is not
+  // computed. For a vector component, we can only know the forces on the fitting
+  // group, but checking this flag can mimic results that the users expect (if
+  // "enableFitGradients no" then there is no force on the fitting group).
+  if (!m_ag->b_dummy && m_ag->is_enabled(f_ag_fit_gradients)) {
+    auto accessor_main = [this](size_t i){return m_ag->group_forces[i];};
+    auto accessor_fitting = [this](size_t j, const cvm::rvector& fitting_force){
+      (*(m_group_for_fit))[j].apply_force(fitting_force);
+    };
+    if (cvm::debug()) {
+      cvm::log("Applying force on the fitting group of main group" + m_ag->name + ":\n");
+    }
+    m_ag->calc_fit_forces(accessor_main, accessor_fitting);
+    if (cvm::debug()) {
+      cvm::log("Done applying force on the fitting group of main group" + m_ag->name + ":\n");
     }
   }
 }

@@ -1,24 +1,35 @@
-# The "oplsaa.lt" file contains force-field parameters, atom type definitions,
+# The oplsaa2024.lt file contains force-field parameters, atom type definitions,
 # partial charges, masses and bond-angle rules for the atoms in your system.
+
+import /usr/local/moltemplate/moltemplate/force_fields/oplsaa2024.lt
+
+# It defines these atom types:
+# atom-type charge mass btype epsilon sigma description
+# @atom:235  0.5  12.011  C~  0.105 3.75  "C: C=O in amide. Acyl R in amides"
+# @atom:236 -0.5  15.999  O~  0.21  2.96  "O: C=O in amide. is neutral - use"
+# @atom:237 -0.76 14.007  N~  0.17  3.25  "N: primary amide. alkane params"
+# @atom:240  0.38 1.008   H~  0     0     "H on N: primary amide"
+# @atom:279  0    1.008   HC  0.03  2.42  "AA H-alpha in aldehyde & formamide"
+# (Note: Future versions of OPLSAA might use different @atom type numbers.)
+
 
 _FAM inherits OPLSAA {
 
-  # atom-id mol-id atom-type charge   X       Y       Z     # comment
-
+  # atomID    molID  atomType  charge   coordX       coordY        coordZ
   write('Data Atoms') {
-    $atom:C00 $mol @atom:177  0.00  0.100014490    0.490422099    0.0
-    $atom:O01 $mol @atom:178  0.00  1.091153187   -0.250749643    0.0
-    $atom:N02 $mol @atom:179  0.00 -1.121616690   -0.181085754    0.0
-    $atom:H03 $mol @atom:182  0.00 -2.013715893    0.272535813    0.0
-    $atom:H04 $mol @atom:182  0.00 -1.056768463   -1.190185868    0.0
-    $atom:H05 $mol @atom:221  0.00  0.144676387    1.570292021    0.0
+    $atom:C00  $mol  @atom:235  0.00    0.100014490    0.490422099    0.0
+    $atom:O01  $mol  @atom:236  0.00    1.091153187   -0.250749643    0.0
+    $atom:N02  $mol  @atom:237  0.00   -1.121616690   -0.181085754    0.0
+    $atom:H03  $mol  @atom:240  0.00   -2.013715893    0.272535813    0.0
+    $atom:H04  $mol  @atom:240  0.00   -1.056768463   -1.190185868    0.0
+    $atom:H05  $mol  @atom:279  0.00    0.144676387    1.570292021    0.0
   }
 
   # Note: You don't have to specify the charge in this example because we are
   #       using the OPLSAA force-field which assigns charge according to
   #       atom-type.  Just leave these numbers as 0.00 for now.
   # Note: LAMMPS expects an integer in the 2nd column (the Molecule-ID number).
-  #       If we put "$mol" there, moltemplate will generate this integer for you
+  #     If we put "$mol" there, moltemplate will generate this integer for you
 
   # A list of the bonds in the molecule:
   # BondID     AtomID1  AtomID2
@@ -32,6 +43,6 @@ _FAM inherits OPLSAA {
   }
 
   # In the "Data Bond List" section we don't have to specify the bond type.
-  # The bond-type will be determined by the atom type (according to "oplsaa.lt")
+  # Bond types will be determined by the atom type (according to oplsaa2024.lt).
 
 } 

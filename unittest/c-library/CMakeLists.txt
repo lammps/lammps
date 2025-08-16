@@ -3,6 +3,7 @@
 add_executable(test_library_open test_library_open.cpp test_main.cpp)
 target_link_libraries(test_library_open PRIVATE lammps GTest::GMock)
 add_test(NAME LibraryOpen COMMAND test_library_open)
+set_tests_properties(LibraryOpen PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=4;OMP_PROC_BIND=false")
 
 add_executable(test_library_commands test_library_commands.cpp test_main.cpp)
 target_link_libraries(test_library_commands PRIVATE lammps GTest::GMock)
@@ -16,7 +17,7 @@ add_executable(test_library_properties test_library_properties.cpp test_main.cpp
 target_link_libraries(test_library_properties PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_library_properties PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME LibraryProperties COMMAND test_library_properties)
-set_tests_properties(LibraryProperties PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+set_tests_properties(LibraryProperties PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};OMP_NUM_THREADS=4;OMP_PROC_BIND=false")
 
 add_executable(test_library_objects test_library_objects.cpp test_main.cpp)
 target_link_libraries(test_library_objects PRIVATE lammps GTest::GMock)
@@ -30,28 +31,28 @@ target_compile_definitions(test_library_scatter_gather PRIVATE -DTEST_INPUT_FOLD
 add_test(NAME LibraryScatterGather COMMAND test_library_scatter_gather)
 set_tests_properties(LibraryScatterGather PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
-set(TEST_CONFIG_DEFS "-DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR};-DLAMMPS_${LAMMPS_SIZES}")
+set(TEST_CONFIG_DEFS "TEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR};LAMMPS_${LAMMPS_SIZES}")
 set(PKG_COUNT 0)
 foreach(PKG ${STANDARD_PACKAGES} ${EXTRA_PACKAGES} ${SUFFIX_PACKAGES})
   if(PKG_${PKG})
     MATH(EXPR PKG_COUNT "${PKG_COUNT}+1")
   endif()
 endforeach()
-list(APPEND TEST_CONFIG_DEFS -DNUM_LAMMPS_PACKAGES=${PKG_COUNT})
+list(APPEND TEST_CONFIG_DEFS NUM_LAMMPS_PACKAGES=${PKG_COUNT})
 
 if(PKG_MANYBODY)
   set(HAS_MANYBODY 1)
 else()
   set(HAS_MANYBODY 0)
 endif()
-list(APPEND TEST_CONFIG_DEFS -DLAMMPS_HAS_MANYBODY=${HAS_MANYBODY})
+list(APPEND TEST_CONFIG_DEFS LAMMPS_HAS_MANYBODY=${HAS_MANYBODY})
 
 if(BUILD_MPI)
   set(HAS_MPI 1)
 else()
   set(HAS_MPI 0)
 endif()
-list(APPEND TEST_CONFIG_DEFS -DLAMMPS_HAS_MPI=${HAS_MPI})
+list(APPEND TEST_CONFIG_DEFS LAMMPS_HAS_MPI=${HAS_MPI})
 
 foreach(WITH "JPEG" "PNG" "GZIP" "FFMPEG")
   if(WITH_${WITH})
@@ -59,7 +60,7 @@ foreach(WITH "JPEG" "PNG" "GZIP" "FFMPEG")
   else()
     set(HAS_${WITH} 0)
   endif()
-  list(APPEND TEST_CONFIG_DEFS -DLAMMPS_HAS_${WITH}=${HAS_${WITH}})
+  list(APPEND TEST_CONFIG_DEFS LAMMPS_HAS_${WITH}=${HAS_${WITH}})
 endforeach()
 
 add_executable(test_library_config test_library_config.cpp test_main.cpp)
@@ -69,7 +70,7 @@ add_test(NAME LibraryConfig COMMAND test_library_config)
 
 add_executable(test_library_mpi test_library_mpi.cpp)
 target_link_libraries(test_library_mpi PRIVATE lammps GTest::GMock)
-target_compile_definitions(test_library_mpi PRIVATE ${TEST_CONFIG_DEFS})
+target_compile_definitions(test_library_mpi PRIVATE "${TEST_CONFIG_DEFS};MPICH_SKIP_MPICXX=1;OMPI_SKIP_MPICXX=1")
 add_mpi_test(NAME LibraryMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_library_mpi>)
 
 # simple run tests for coupling to the LAMMPS library

@@ -114,6 +114,7 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
   memory->create(vector_total,nrows,"saed/vtk:vector_total");
 
   vector_flag = 1;
+  extvector = 0;
   size_vector = nrows;
 
   if (nOutput == 0) {
@@ -171,7 +172,7 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
     if ((Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0)) {
       for (int i=0; i<3; i++) {
         dK[i] = prd_inv[i]*c[i];
-        Knmax[i] = ceil(Kmax / dK[i]);
+        Knmax[i] = (int) ceil(Kmax / dK[i]);
         Knmin[i] = -Knmax[i];
       }
     } else {
@@ -186,7 +187,7 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
       int Ksearch[3];
       for (int i=0; i<3; i++) {
         dK[i] = prd_inv[i]*c[i];
-        Ksearch[i] = ceil(Kmax / dK[i]);
+        Ksearch[i] = (int) ceil(Kmax / dK[i]);
       }
 
       for (int k = -Ksearch[2]; k <= Ksearch[2]; k++) {
@@ -248,8 +249,8 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
 
 FixSAEDVTK::~FixSAEDVTK()
 {
-  delete [] filename;
-  delete [] ids;
+  delete[] filename;
+  delete[] ids;
   memory->destroy(vector);
   memory->destroy(vector_total);
   if (fp && comm->me == 0) fclose(fp);

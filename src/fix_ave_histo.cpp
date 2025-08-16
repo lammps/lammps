@@ -42,7 +42,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), nvalues(0), fp(nullptr), stats_list(nullptr), bin(nullptr),
     bin_total(nullptr), bin_all(nullptr), bin_list(nullptr), coord(nullptr), vector(nullptr)
 {
-  auto mycmd = fmt::format("fix {}", style);
+  const auto mycmd = fmt::format("fix {}", style);
   if (narg < 10) utils::missing_cmd_args(FLERR, mycmd, error);
 
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
@@ -67,8 +67,9 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   // then read options so know mode = SCALAR/VECTOR before re-reading values
 
   nvalues = 0;
-
-  int iarg = 9;
+  // the first 9 arguments have fixed positions
+  const int ioffset = 9;
+  int iarg = ioffset;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"x") == 0 ||
         strcmp(arg[iarg],"y") == 0 ||
@@ -87,7 +88,9 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
     } else break;
   }
 
-  if (nvalues == 0) error->all(FLERR,"No values in {} command", mycmd);
+  if (nvalues == 0)
+    error->all(FLERR, ioffset,
+               "No values in from computes, fixes, or variables used in {} command", mycmd);
 
   options(iarg,narg,arg);
 
@@ -96,9 +99,10 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  nvalues = utils::expand_args(FLERR, nvalues, &arg[9], mode, earg, lmp);
+  int *amap = nullptr;
+  nvalues = utils::expand_args(FLERR, nvalues, &arg[ioffset], mode, earg, lmp, &amap);
 
-  if (earg != &arg[9]) expand = 1;
+  if (earg != &arg[ioffset]) expand = 1;
   arg = earg;
 
   // parse values
@@ -109,6 +113,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
     value_t val;
     val.id = "";
     val.val.c = nullptr;
+    if (expand) val.iarg = amap[i] + ioffset;
+    else val.iarg = i + ioffset;
 
     if (strcmp(arg[i],"x") == 0) {
       val.which = ArgInfo::X;
@@ -145,7 +151,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
       if (argi.get_type() == ArgInfo::NONE) break;
       if ((argi.get_type() == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
-        error->all(FLERR,"Invalid {} argument: {}", mycmd, arg[i]);
+        error->all(FLERR, val.iarg, "Invalid {} argument: {}", mycmd, arg[i]);
 
       val.which = argi.get_type();
       val.argindex = argi.get_index1();
@@ -156,26 +162,19 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   if (nvalues != (int)values.size())
     error->all(FLERR, "Could not parse value data consistently for {}", mycmd);
 
-  // if wildcard expansion occurred, free earg memory from expand_args()
-
-  if (expand) {
-    for (int i = 0; i < nvalues; i++) delete[] earg[i];
-    memory->sfree(earg);
-  }
-
   // check input args for kind consistency
   // inputs must all be all either global, per-atom, or local
 
   if (nevery <= 0)
-    error->all(FLERR,"Illegal {} nevery value: {}", mycmd, nevery);
+    error->all(FLERR, 3, "Illegal {} nevery value: {}", mycmd, nevery);
   if (nrepeat <= 0)
-    error->all(FLERR,"Illegal {} nrepeat value: {}", mycmd, nrepeat);
+    error->all(FLERR, 4, "Illegal {} nrepeat value: {}", mycmd, nrepeat);
   if (nfreq <= 0)
-    error->all(FLERR,"Illegal {} nfreq value: {}", mycmd, nfreq);
+    error->all(FLERR, 5, "Illegal {} nfreq value: {}", mycmd, nfreq);
   if (nfreq % nevery || nrepeat*nevery > nfreq)
-    error->all(FLERR,"Inconsistent {} nevery/nrepeat/nfreq values", mycmd);
+    error->all(FLERR, Error::NOPOINTER, "Inconsistent {} nevery/nrepeat/nfreq values", mycmd);
   if (ave != RUNNING && overwrite)
-    error->all(FLERR,"{} overwrite keyword requires ave running setting", mycmd);
+    error->all(FLERR, Error::NOPOINTER, "{} overwrite keyword requires ave running setting", mycmd);
 
   int kindglobal,kindperatom,kindlocal;
   for (auto &val : values) {
@@ -186,7 +185,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
-      if (!val.val.c) error->all(FLERR,"Compute ID {} for {} does not exist", val.id, mycmd);
+      if (!val.val.c)
+        error->all(FLERR, val.iarg, "Compute ID {} for {} does not exist", val.id, mycmd);
       // computes can produce multiple kinds of output
       if (val.val.c->scalar_flag || val.val.c->vector_flag || val.val.c->array_flag)
         kindglobal = 1;
@@ -195,7 +195,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
-      if (!val.val.f) error->all(FLERR,"Fix ID {} for {} does not exist", val.id, mycmd);
+      if (!val.val.f)
+        error->all(FLERR, val.iarg, "Fix ID {} for {} does not exist", val.id, mycmd);
       // fixes can produce multiple kinds of output
       if (val.val.f->scalar_flag || val.val.f->vector_flag || val.val.f->array_flag)
         kindglobal = 1;
@@ -205,135 +206,152 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
       if (val.val.v < 0)
-        error->all(FLERR,"Variable name {} for {} does not exist", val.id, mycmd);
+        error->all(FLERR, val.iarg, "Variable name {} for {} does not exist", val.id, mycmd);
       // variables only produce one kind of output
       if (input->variable->equalstyle(val.val.v) || input->variable->vectorstyle(val.val.v))
           kindglobal = 1;
       else if (input->variable->atomstyle(val.val.v)) kindperatom = 1;
-      else error->all(FLERR,"{} variable {} is incompatible style", mycmd, val.id);
+      else error->all(FLERR, val.iarg, "{} variable {} is incompatible style", mycmd, val.id);
     }
 
     if (kind == DEFAULT) {
       if (kindglobal + kindperatom + kindlocal > 1)
-        error->all(FLERR,"{} input kind is ambiguous", mycmd);
+        error->all(FLERR, val.iarg, "{} input kind is ambiguous", mycmd);
       if (kindglobal) kind = GLOBAL;
       if (kindperatom) kind = PERATOM;
       if (kindlocal) kind = LOCAL;
     } else if (kind == GLOBAL) {
       if (!kindglobal)
-        error->all(FLERR,"{} input kind is not global", mycmd);
+        error->all(FLERR, val.iarg, "{} input kind is not global", mycmd);
     } else if (kind == PERATOM) {
       if (!kindperatom)
-        error->all(FLERR,"{} input kind is not peratom", mycmd);
+        error->all(FLERR, val.iarg, "{} input kind is not peratom", mycmd);
     } else if (kind == LOCAL) {
       if (!kindlocal)
-        error->all(FLERR,"{} input kind is not local", mycmd);
+        error->all(FLERR, val.iarg, "{} input kind is not local", mycmd);
     }
+  }
+
+  // if wildcard expansion occurred, free earg memory from expand_args()
+
+  if (expand) {
+    for (int i = 0; i < nvalues; i++) delete[] earg[i];
+    memory->sfree(earg);
+    memory->sfree(amap);
   }
 
   // more error checks
   // for fix inputs, check that fix frequency is acceptable
 
   if (kind == PERATOM && mode == SCALAR)
-    error->all(FLERR, "{} cannot process per-atom values in scalar mode", mycmd);
+    error->all(FLERR, Error::NOPOINTER, "{} cannot process per-atom values in scalar mode", mycmd);
   if (kind == LOCAL && mode == SCALAR)
-    error->all(FLERR,"{} cannot process local values in scalar mode", mycmd);
+    error->all(FLERR, Error::NOPOINTER, "{} cannot process local values in scalar mode", mycmd);
 
   for (auto &val : values) {
     if (val.which == ArgInfo::COMPUTE && kind == GLOBAL && mode == SCALAR) {
       if (val.argindex == 0 && val.val.c->scalar_flag == 0)
-        error->all(FLERR, "{} compute {} does not calculate a global scalar", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} compute {} does not calculate a global scalar", mycmd, val.id);
       if (val.argindex && val.val.c->vector_flag == 0)
-        error->all(FLERR, "{} compute {} does not calculate a global vector", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} compute {} does not calculate a global vector", mycmd, val.id);
       if (val.argindex && val.argindex > val.val.c->size_vector)
-        error->all(FLERR, "{} compute {} vector is accessed out-of-range", mycmd, val.id);
+        error->all(FLERR,val.iarg, "{} compute {} vector is accessed out-of-range", mycmd, val.id);
 
     } else if (val.which == ArgInfo::COMPUTE && kind == GLOBAL && mode == VECTOR) {
       if (val.argindex == 0 && val.val.c->vector_flag == 0)
-        error->all(FLERR, "{} compute {} does not calculate a global vector", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} compute {} does not calculate a global vector", mycmd, val.id);
       if (val.argindex && val.val.c->array_flag == 0)
-        error->all(FLERR, "{} compute {} does not calculate a global array", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} compute {} does not calculate a global array", mycmd, val.id);
       if (val.argindex && val.argindex > val.val.c->size_array_cols)
-        error->all(FLERR, "{} compute {} array is accessed out-of-range", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} compute {} array is accessed out-of-range", mycmd, val.id);
 
     } else if (val.which == ArgInfo::COMPUTE && kind == PERATOM) {
       if (val.val.c->peratom_flag == 0)
-        error->all(FLERR, "{} compute {} does not calculate per-atom values", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} compute {} does not calculate per-atom values", mycmd, val.id);
       if (val.argindex == 0 && val.val.c->size_peratom_cols != 0)
-        error->all(FLERR, "{} compute {} does not calculate a per-atom vector", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} compute {} does not calculate a per-atom vector", mycmd, val.id);
       if (val.argindex && val.val.c->size_peratom_cols == 0)
-        error->all(FLERR, "{} compute {} does not calculate a per-atom array", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} compute {} does not calculate a per-atom array", mycmd, val.id);
       if (val.argindex && val.argindex > val.val.c->size_peratom_cols)
-        error->all(FLERR, "{} compute {} array is accessed out-of-range", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} compute {} array is accessed out-of-range", mycmd, val.id);
 
     } else if (val.which == ArgInfo::COMPUTE && kind == LOCAL) {
       if (val.val.c->local_flag == 0)
-        error->all(FLERR, "{} compute {} does not calculate local values", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} compute {} does not calculate local values", mycmd, val.id);
       if (val.argindex == 0 && val.val.c->size_local_cols != 0)
-        error->all(FLERR, "{} compute {} does not calculate a local vector", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} compute {} does not calculate a local vector", mycmd, val.id);
       if (val.argindex && val.val.c->size_local_cols == 0)
-        error->all(FLERR, "{} compute {} does not calculate a local array", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} compute {} does not calculate a local array", mycmd, val.id);
       if (val.argindex && val.argindex > val.val.c->size_local_cols)
-        error->all(FLERR, "{} compute {} array is accessed out-of-range", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} compute {} array is accessed out-of-range{}", mycmd,
+                   val.id, utils::errorurl(20));
 
     } else if (val.which == ArgInfo::FIX && kind == GLOBAL && mode == SCALAR) {
       if (val.argindex == 0 && val.val.f->scalar_flag == 0)
-        error->all(FLERR, "{} fix {} does not calculate a global scalar", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix {} does not calculate a global scalar", mycmd, val.id);
       if (val.argindex && val.val.f->vector_flag == 0)
-        error->all(FLERR, "{} fix {} does not calculate a global vector", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix {} does not calculate a global vector", mycmd, val.id);
       if (val.argindex && val.argindex > val.val.f->size_vector)
-        error->all(FLERR, "{} fix {} vector is accessed out-of-range", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix {} vector is accessed out-of-range{}", mycmd,
+                   val.id, utils::errorurl(20));
       if (nevery % val.val.f->global_freq)
-        error->all(FLERR, "Fix {} for {} not computed at compatible time", val.id, mycmd);
+        error->all(FLERR, val.iarg, "Fix {} for {} not computed at compatible time{}",
+                   val.id, mycmd, utils::errorurl(7));
 
     } else if (val.which == ArgInfo::FIX && kind == GLOBAL && mode == VECTOR) {
       if (val.argindex == 0 && val.val.f->vector_flag == 0)
-        error->all(FLERR, "{} fix {} does not calculate a global vector", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix {} does not calculate a global vector", mycmd, val.id);
       if (val.argindex && val.val.f->array_flag == 0)
-        error->all(FLERR, "{} fix {} does not calculate a global array", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix {} does not calculate a global array", mycmd, val.id);
       if (val.argindex && val.argindex > val.val.f->size_array_cols)
-        error->all(FLERR, "{} fix {} array is accessed out-of-range", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix {} array is accessed out-of-range{}", mycmd, val.id,
+                   utils::errorurl(20));
       if (nevery % val.val.f->global_freq)
-        error->all(FLERR, "Fix {} for {} not computed at compatible time", val.id, mycmd);
+        error->all(FLERR, val.iarg, "Fix {} for {} not computed at compatible time{}",
+                   val.id, mycmd, utils::errorurl(7));
 
     } else if (val.which == ArgInfo::FIX && kind == PERATOM) {
       if (val.val.f->peratom_flag == 0)
-        error->all(FLERR, "{} fix {} does not calculate per-atom values", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix {} does not calculate per-atom values", mycmd, val.id);
       if (val.argindex == 0 && val.val.f->size_peratom_cols != 0)
-        error->all(FLERR," {} fix {} does not calculate a per-atom vector", mycmd, val.id);
+        error->all(FLERR, val.iarg, " {} fix {} does not calculate a per-atom vector", mycmd, val.id);
       if (val.argindex && val.val.f->size_peratom_cols == 0)
-        error->all(FLERR, "{} fix {} does not ""calculate a per-atom array", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix {} does not ""calculate a per-atom array", mycmd, val.id);
       if (val.argindex && val.argindex > val.val.f->size_peratom_cols)
-        error->all(FLERR, "{} fix {} array is accessed out-of-range", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix {} array is accessed out-of-range{}", mycmd, val.id,
+                   utils::errorurl(20));
       if (nevery % val.val.f->global_freq)
-        error->all(FLERR, "Fix {} for {} not computed at compatible time", val.id, mycmd);
+        error->all(FLERR, val.iarg, "Fix {} for {} not computed at compatible time{}", val.id,
+                   mycmd, utils::errorurl(7));
 
     } else if (val.which == ArgInfo::FIX && kind == LOCAL) {
       if (val.val.f->local_flag == 0)
-        error->all(FLERR, "{} fix {} does not calculate local values", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix {} does not calculate local values", mycmd, val.id);
       if (val.argindex == 0 && val.val.f->size_local_cols != 0)
-        error->all(FLERR, "{} fix {} does not calculate a local vector", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix {} does not calculate a local vector", mycmd, val.id);
       if (val.argindex && val.val.f->size_local_cols == 0)
-        error->all(FLERR, "{} fix does not calculate a local array", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix does not calculate a local array", mycmd, val.id);
       if (val.argindex && val.argindex > val.val.f->size_local_cols)
-        error->all(FLERR, "{} fix {} array is accessed out-of-range", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} fix {} array is accessed out-of-range{}", mycmd,
+                   val.id, utils::errorurl(20));
       if (nevery % val.val.f->global_freq)
-        error->all(FLERR, "Fix {} for {} not computed at compatible time", val.id, mycmd);
+        error->all(FLERR, val.iarg, "Fix {} for {} not computed at compatible time{}", val.id,
+                   mycmd, utils::errorurl(7));
 
     } else if (val.which == ArgInfo::VARIABLE && kind == GLOBAL && mode == SCALAR) {
       if (val.argindex == 0 && input->variable->equalstyle(val.val.v) == 0)
-        error->all(FLERR,"{} variable {} is not equal-style variable", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} variable {} is not equal-style variable", mycmd, val.id);
       if (val.argindex && input->variable->vectorstyle(val.val.v) == 0)
-        error->all(FLERR,"{} variable {} is not vector-style variable" , mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} variable {} is not vector-style variable" , mycmd, val.id);
 
     } else if (val.which == ArgInfo::VARIABLE && kind == GLOBAL && mode == VECTOR) {
       if (val.argindex == 0 && input->variable->vectorstyle(val.val.v) == 0)
-        error->all(FLERR,"{} variable {} is not vector-style variable", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} variable {} is not vector-style variable", mycmd, val.id);
       if (val.argindex) error->all(FLERR,"{} variable {} cannot be indexed", mycmd, val.id);
 
     } else if (val.which == ArgInfo::VARIABLE && kind == PERATOM) {
       if (val.argindex == 0 && input->variable->atomstyle(val.val.v) == 0)
-        error->all(FLERR,"{} variable {} is not atom-style variable", mycmd, val.id);
+        error->all(FLERR, val.iarg, "{} variable {} is not atom-style variable", mycmd, val.id);
       if (val.argindex) error->all(FLERR,"{} variable {} cannot be indexed", mycmd, val.id);
     }
   }
@@ -350,7 +368,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
     if (title3) fprintf(fp,"%s\n",title3);
     else fprintf(fp,"# Bin Coord Count Count/Total\n");
 
-    if (ferror(fp)) error->one(FLERR,"Error writing file header: {}", utils::getsyserror());
+    if (ferror(fp))
+      error->one(FLERR, Error::NOPOINTER, "Error writing file header: {}", utils::getsyserror());
     filepos = platform::ftell(fp);
   }
 
@@ -450,13 +469,17 @@ void FixAveHisto::init()
   for (auto &val : values) {
     if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
-      if (!val.val.c) error->all(FLERR,"Compute ID {} for {} does not exist", val.id, mycmd);
+      if (!val.val.c)
+        error->all(FLERR, Error::NOLASTLINE, "Compute ID {} for {} does not exist", val.id, mycmd);
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
-      if (!val.val.f) error->all(FLERR,"Fix ID {} for {} does not exist", val.id, mycmd);
+      if (!val.val.f)
+        error->all(FLERR, Error::NOLASTLINE, "Fix ID {} for {} does not exist", val.id, mycmd);
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
-      if (val.val.v < 0) error->all(FLERR,"Variable name {} for {} does not exist", val.id, mycmd);
+      if (val.val.v < 0)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Variable name {} for {} does not exist", val.id, mycmd);
     }
   }
 
@@ -716,8 +739,8 @@ void FixAveHisto::end_of_step()
 
   if (fp && comm->me == 0) {
     clearerr(fp);
-    if (overwrite) platform::fseek(fp,filepos);
-    fmt::print(fp,"{} {} {} {} {} {}\n",ntimestep,nbins,
+    if (overwrite) (void) platform::fseek(fp,filepos);
+    utils::print(fp,"{} {} {} {} {} {}\n",ntimestep,nbins,
             stats_total[0],stats_total[1],stats_total[2],stats_total[3]);
     if (stats_total[0] != 0.0)
       for (int i = 0; i < nbins; i++)
@@ -728,13 +751,13 @@ void FixAveHisto::end_of_step()
         fprintf(fp,"%d %g %g %g\n",i+1,coord[i],0.0,0.0);
 
     if (ferror(fp))
-      error->one(FLERR,"Error writing out histogram data");
+      error->one(FLERR, Error::NOLASTLINE, "Error writing out histogram data");
 
     fflush(fp);
     if (overwrite) {
       bigint fileend = platform::ftell(fp);
       if ((fileend > 0) && (platform::ftruncate(fp,fileend)))
-        error->warning(FLERR,"Error while tuncating output: {}",utils::getsyserror());
+        error->warning(FLERR, "Error while tuncating output: {}",utils::getsyserror());
     }
   }
 }
@@ -839,56 +862,57 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
   title3 = nullptr;
 
   // optional args
-  auto mycmd = fmt::format("fix {}", style);
+  auto mycmd = fmt::format("fix {} ", style);
 
   while (iarg < narg) {
     if ((strcmp(arg[iarg],"file") == 0) || (strcmp(arg[iarg],"append") == 0)) {
       if (iarg+2 > narg)
-        utils::missing_cmd_args(FLERR, std::string("fix ave/histo ")+arg[iarg], error);
+        utils::missing_cmd_args(FLERR, mycmd + arg[iarg], error);
       if (comm->me == 0) {
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
         else fp = fopen(arg[iarg+1],"a");
         if (fp == nullptr)
-          error->one(FLERR, "Cannot open fix ave/histo file {}: {}",
+          error->one(FLERR, iarg+1, "Cannot open fix ave/histo file {}: {}",
                      arg[iarg+1], utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"kind") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, mycmd + " kind", error);
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, mycmd + "kind", error);
       if (strcmp(arg[iarg+1],"global") == 0) kind = GLOBAL;
       else if (strcmp(arg[iarg+1],"peratom") == 0) kind = PERATOM;
       else if (strcmp(arg[iarg+1],"local") == 0) kind = LOCAL;
-      else error->all(FLERR,"Unknown fix ave/histo kind option: {}", arg[iarg+1]);
+      else error->all(FLERR, iarg+1, "Unknown fix ave/histo kind option: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, mycmd + " ave", error);
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, mycmd + "ave", error);
       if (strcmp(arg[iarg+1],"one") == 0) ave = ONE;
       else if (strcmp(arg[iarg+1],"running") == 0) ave = RUNNING;
       else if (strcmp(arg[iarg+1],"window") == 0) ave = WINDOW;
-      else error->all(FLERR,"Unknown fix ave/histo ave option: {}", arg[iarg+1]);
+      else error->all(FLERR, iarg + 1, "Unknown fix ave/histo ave option: {}", arg[iarg+1]);
       if (ave == WINDOW) {
-        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, mycmd + " ave window", error);
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, mycmd + "ave window", error);
         nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-        if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/histo ave window size: {}", nwindow);
+        if (nwindow <= 0)
+          error->all(FLERR, iarg + 2, "Illegal fix ave/histo ave window size: {}", nwindow);
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
     } else if (strcmp(arg[iarg],"start") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, mycmd + " start", error);
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, mycmd + "start", error);
       startstep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mode") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, mycmd + " mode", error);
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, mycmd + "mode", error);
       if (strcmp(arg[iarg+1],"scalar") == 0) mode = SCALAR;
       else if (strcmp(arg[iarg+1],"vector") == 0) mode = VECTOR;
-      else error->all(FLERR,"Unknown fix ave/histo mode option: {}", arg[iarg+1]);
+      else error->all(FLERR, iarg + 1, "Unknown fix ave/histo mode option: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"beyond") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, mycmd + " beyond", error);
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, mycmd + "beyond", error);
       if (strcmp(arg[iarg+1],"ignore") == 0) beyond = IGNORE;
       else if (strcmp(arg[iarg+1],"end") == 0) beyond = END;
       else if (strcmp(arg[iarg+1],"extra") == 0) beyond = EXTRA;
-      else error->all(FLERR,"Unknown fix ave/histo beyond option: {}", arg[iarg+1]);
+      else error->all(FLERR, iarg + 1, "Unknown fix ave/histo beyond option: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"overwrite") == 0) {
       overwrite = 1;
@@ -908,7 +932,7 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
       delete[] title3;
       title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;
-    } else error->all(FLERR,"Unknown {} option: {}", mycmd, arg[iarg]);
+    } else error->all(FLERR, iarg, "Unknown {}option: {}", mycmd, arg[iarg]);
   }
 }
 

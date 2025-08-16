@@ -24,6 +24,7 @@
 #include "error.h"
 #include "fix_peri_neigh.h"
 #include "force.h"
+#include "info.h"
 #include "lattice.h"
 #include "math_const.h"
 #include "math_special.h"
@@ -123,7 +124,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
       delx0 = xtmp0 - x0[j][0];
       dely0 = ytmp0 - x0[j][1];
       delz0 = ztmp0 - x0[j][2];
-      if (periodic) domain->minimum_image(delx0,dely0,delz0);
+      if (periodic) domain->minimum_image(FLERR, delx0,dely0,delz0);
       rsq0 = delx0*delx0 + dely0*dely0 + delz0*delz0;
       jtype = type[j];
 
@@ -261,12 +262,12 @@ void PairPeriEPS::compute(int eflag, int vflag)
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      if (periodic) domain->minimum_image(delx,dely,delz);
+      if (periodic) domain->minimum_image(FLERR, delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       delx0 = xtmp0 - x0[j][0];
       dely0 = ytmp0 - x0[j][1];
       delz0 = ztmp0 - x0[j][2];
-      if (periodic) domain->minimum_image(delx0,dely0,delz0);
+      if (periodic) domain->minimum_image(FLERR, delx0,dely0,delz0);
       jtype = type[j];
       delta = cut[itype][jtype];
       r = sqrt(rsq);
@@ -360,7 +361,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
 
 void PairPeriEPS::coeff(int narg, char **arg)
 {
-  if (narg != 8) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 8) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -388,7 +389,7 @@ void PairPeriEPS::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -397,7 +398,9 @@ void PairPeriEPS::coeff(int narg, char **arg)
 
 double PairPeriEPS::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
 
   bulkmodulus[j][i] = bulkmodulus[i][j];
   shearmodulus[j][i] = shearmodulus[i][j];
@@ -511,12 +514,12 @@ double PairPeriEPS::compute_DeviatoricForceStateNorm(int i)
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      if (periodic) domain->minimum_image(delx,dely,delz);
+      if (periodic) domain->minimum_image(FLERR, delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       delx0 = xtmp0 - x0[j][0];
       dely0 = ytmp0 - x0[j][1];
       delz0 = ztmp0 - x0[j][2];
-      if (periodic) domain->minimum_image(delx0,dely0,delz0);
+      if (periodic) domain->minimum_image(FLERR, delx0,dely0,delz0);
       r = sqrt(rsq);
       dr = r - r0[i][jj];
       if (fabs(dr) < NEAR_ZERO) dr = 0.0;

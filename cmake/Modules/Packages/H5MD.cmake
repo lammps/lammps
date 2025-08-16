@@ -3,7 +3,7 @@ enable_language(C)
 # we don't use the parallel i/o interface.
 set(HDF5_PREFER_PARALLEL FALSE)
 
-find_package(HDF5 REQUIRED)
+find_package(HDF5 COMPONENTS C REQUIRED)
 
 # parallel HDF5 will import incompatible MPI headers with a serial build
 if((NOT BUILD_MPI) AND HDF5_IS_PARALLEL)

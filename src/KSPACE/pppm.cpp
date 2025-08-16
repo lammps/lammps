@@ -50,9 +50,6 @@ static constexpr double SMALL = 0.00001;
 static constexpr double EPS_HOC = 1.0e-7;
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
-enum { REVERSE_RHO };
-enum { FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
-
 /* ---------------------------------------------------------------------- */
 
 PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
@@ -153,11 +150,12 @@ PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
 
 void PPPM::settings(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal kspace_style {} command", force->kspace_style);
+  if (narg < 1)
+    utils::missing_cmd_args(FLERR,fmt::format("kspace_style {}", force->kspace_style), error);
 
   accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
   if (accuracy_relative > 1.0)
-    error->all(FLERR, "Invalid relative accuracy {:g} for kspace_style {}",
+    error->all(FLERR, 1, "Invalid relative accuracy {:g} for kspace_style {}",
                accuracy_relative, force->kspace_style);
 }
 
@@ -223,7 +221,7 @@ void PPPM::init()
   pair_check();
 
   int itmp = 0;
-  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
@@ -236,7 +234,7 @@ void PPPM::init()
   if (tip4pflag) {
     if (me == 0) utils::logmesg(lmp,"  extracting TIP4P info from pair style\n");
 
-    auto p_qdist = (double *) force->pair->extract("qdist",itmp);
+    auto *p_qdist = (double *) force->pair->extract("qdist",itmp);
     int *p_typeO = (int *) force->pair->extract("typeO",itmp);
     int *p_typeH = (int *) force->pair->extract("typeH",itmp);
     int *p_typeA = (int *) force->pair->extract("typeA",itmp);
@@ -1388,11 +1386,8 @@ void PPPM::set_grid_local()
   // nlo_fft,nhi_fft = lower/upper limit of the section
   //   of the global FFT mesh that I own in x-pencil decomposition
 
-  int npey_fft,npez_fft;
-  if (nz_pppm >= nprocs) {
-    npey_fft = 1;
-    npez_fft = nprocs;
-  } else procs2grid2d(nprocs,ny_pppm,nz_pppm,&npey_fft,&npez_fft);
+  int npey_fft = 1, npez_fft = nprocs;
+  procs2grid2d(nprocs, ny_pppm, nz_pppm, npey_fft, npez_fft);
 
   int me_y = me % npey_fft;
   int me_z = me / npey_fft;
@@ -1800,7 +1795,7 @@ void PPPM::particle_map()
   int flag = 0;
 
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
-    error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
+    error->one(FLERR,"Non-numeric box dimensions - simulation unstable" + utils::errorurl(6));
 
   for (int i = 0; i < nlocal; i++) {
 
@@ -1827,7 +1822,7 @@ void PPPM::particle_map()
       flag = 1;
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
+  if (flag) error->one(FLERR, Error::NOLASTLINE, "Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
 }
 
 /* ----------------------------------------------------------------------
@@ -2553,7 +2548,7 @@ void PPPM::fieldforce_peratom()
 
 void PPPM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -2613,7 +2608,7 @@ void PPPM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPM::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -2673,7 +2668,7 @@ void PPPM::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPM::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   if (flag == REVERSE_RHO) {
     FFT_SCALAR *src = &density_brick[nzlo_out][nylo_out][nxlo_out];
@@ -2688,7 +2683,7 @@ void PPPM::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPM::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   if (flag == REVERSE_RHO) {
     FFT_SCALAR *dest = &density_brick[nzlo_out][nylo_out][nxlo_out];
@@ -2701,7 +2696,7 @@ void PPPM::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
    map nprocs to NX by NY grid as PX by PY procs - return optimal px,py
 ------------------------------------------------------------------------- */
 
-void PPPM::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
+void PPPM::procs2grid2d(int nprocs, int nx, int ny, int &px, int &py)
 {
   // loop thru all possible factorizations of nprocs
   // surf = surface area of largest proc sub-domain
@@ -2722,13 +2717,12 @@ void PPPM::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
       boxy = ny/ipy;
       if (ny % ipy) boxy++;
       surf = boxx + boxy;
-      if (surf < bestsurf ||
-          (surf == bestsurf && boxx*boxy > bestboxx*bestboxy)) {
+      if ((surf < bestsurf) || ((surf == bestsurf) && (boxx*boxy > bestboxx*bestboxy))) {
         bestsurf = surf;
         bestboxx = boxx;
         bestboxy = boxy;
-        *px = ipx;
-        *py = ipy;
+        px = ipx;
+        py = ipy;
       }
     }
     ipx++;

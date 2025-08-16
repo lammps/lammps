@@ -46,17 +46,17 @@ class CommTiledKokkos : public CommTiled {
   void exchange() override;                     // move atoms to new procs
   void borders() override;                      // setup list of atoms to comm
 
-  void forward_comm(class Pair *) override;                 // forward comm from a Pair
-  void reverse_comm(class Pair *) override;                 // reverse comm from a Pair
-  void forward_comm(class Bond *) override;                 // forward comm from a Bond
-  void reverse_comm(class Bond *) override;                 // reverse comm from a Bond
-  void forward_comm(class Fix *, int size = 0) override;    // forward comm from a Fix
-  void reverse_comm(class Fix *, int size = 0) override;    // reverse comm from a Fix
-  void reverse_comm_variable(class Fix *) override;         // variable size reverse comm from a Fix
-  void forward_comm(class Compute *) override;              // forward from a Compute
-  void reverse_comm(class Compute *) override;              // reverse from a Compute
-  void forward_comm(class Dump *) override;                 // forward comm from a Dump
-  void reverse_comm(class Dump *) override;                 // reverse comm from a Dump
+  void forward_comm(class Pair *, int size = 0) override;     // forward comm from a Pair
+  void reverse_comm(class Pair *, int size = 0) override;     // reverse comm from a Pair
+  void forward_comm(class Bond *, int size = 0) override;     // forward comm from a Bond
+  void reverse_comm(class Bond *, int size = 0) override;     // reverse comm from a Bond
+  void forward_comm(class Fix *, int size = 0) override;      // forward comm from a Fix
+  void reverse_comm(class Fix *, int size = 0) override;      // reverse comm from a Fix
+  void reverse_comm_variable(class Fix *) override;           // variable size reverse comm from a Fix
+  void forward_comm(class Compute *, int size = 0) override;  // forward from a Compute
+  void reverse_comm(class Compute *, int size = 0) override;  // reverse from a Compute
+  void forward_comm(class Dump *, int size = 0) override;     // forward comm from a Dump
+  void reverse_comm(class Dump *, int size = 0) override;     // reverse comm from a Dump
 
   void forward_comm_array(int, double **) override;          // forward comm of array
 
@@ -64,18 +64,17 @@ class CommTiledKokkos : public CommTiled {
   template<class DeviceType> void reverse_comm_device();
 
  protected:
+  int nprocmaxtot;
 
   DAT::tdual_int_3d k_sendlist;
-  //DAT::tdual_int_scalar k_total_send;
   DAT::tdual_xfloat_2d k_buf_send,k_buf_recv;
-  //DAT::tdual_int_scalar k_count;
 
-  void grow_send(int, int) override;
-  void grow_recv(int, int flag = 0) override;
+  void grow_send(int, int) override;             // reallocate send buffer
+  void grow_recv(int, int flag = 0) override;    // free/allocate recv buffer
   void grow_send_kokkos(int, int, ExecutionSpace space = Host);
   void grow_recv_kokkos(int, int, ExecutionSpace space = Host);
-  void grow_list(int, int, int) override;
-  void grow_swap_send(int, int, int) override;     // grow swap arrays for send and recv
+  void grow_list(int, int, int) override;        // reallocate sendlist for one swap/proc
+  void grow_swap_send(int, int, int) override;   // grow swap arrays for send and recv
 };
 
 }    // namespace LAMMPS_NS

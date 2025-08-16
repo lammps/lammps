@@ -28,10 +28,11 @@ add_library(GTest::GMock ALIAS gmock)
 add_library(GTest::GTestMain ALIAS gtest_main)
 add_library(GTest::GMockMain ALIAS gmock_main)
 
-# import
-foreach(_FLAG ${CMAKE_TUNE_FLAGS})
-  add_compile_options(${_FLAG})
-endforeach()
+option(SKIP_DEATH_TESTS "Do not run 'death tests' to reduce false positives in valgrind" OFF)
+mark_as_advanced(SKIP_DEATH_TESTS)
+if(SKIP_DEATH_TESTS)
+  add_compile_definitions(LAMMPS_SKIP_DEATH_TESTS)
+endif()
 
 # must repeat handling coverage for older CMake
 if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND ENABLE_COVERAGE)

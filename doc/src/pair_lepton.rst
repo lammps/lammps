@@ -8,7 +8,17 @@
 pair_style lepton command
 =========================
 
-Accelerator Variants: *lepton/omp*, *lepton/coul/comp*, *lepton/sphere/comp*
+Accelerator Variant: *lepton/omp*
+
+pair_style lepton/coul command
+==============================
+
+Accelerator Variant: *lepton/coul/comp*
+
+pair_style lepton/sphere command
+================================
+
+Accelerator Variant: *lepton/sphere/comp*
 
 Syntax
 """"""

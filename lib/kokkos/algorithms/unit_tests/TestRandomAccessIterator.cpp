@@ -23,7 +23,7 @@ namespace stdalgos {
 
 struct random_access_iterator_test : std_algorithms_test {
  public:
-  virtual void SetUp() {
+  void SetUp() override {
     Kokkos::parallel_for(m_static_view.extent(0),
                          AssignIndexFunctor<static_view_t>(m_static_view));
 
@@ -37,12 +37,56 @@ struct random_access_iterator_test : std_algorithms_test {
 
 TEST_F(random_access_iterator_test, constructor) {
   // just tests that constructor works
-  auto it1 = KE::Impl::RandomAccessIterator<static_view_t>(m_static_view);
-  auto it2 = KE::Impl::RandomAccessIterator<dyn_view_t>(m_dynamic_view);
-  auto it3 = KE::Impl::RandomAccessIterator<strided_view_t>(m_strided_view);
-  auto it4 = KE::Impl::RandomAccessIterator<static_view_t>(m_static_view, 3);
-  auto it5 = KE::Impl::RandomAccessIterator<dyn_view_t>(m_dynamic_view, 3);
-  auto it6 = KE::Impl::RandomAccessIterator<strided_view_t>(m_strided_view, 3);
+  [[maybe_unused]] auto it1 =
+      KE::Impl::RandomAccessIterator<static_view_t>(m_static_view);
+  [[maybe_unused]] auto it2 =
+      KE::Impl::RandomAccessIterator<dyn_view_t>(m_dynamic_view);
+  [[maybe_unused]] auto it3 =
+      KE::Impl::RandomAccessIterator<strided_view_t>(m_strided_view);
+  [[maybe_unused]] auto it4 =
+      KE::Impl::RandomAccessIterator<static_view_t>(m_static_view, 3);
+  [[maybe_unused]] auto it5 =
+      KE::Impl::RandomAccessIterator<dyn_view_t>(m_dynamic_view, 3);
+  [[maybe_unused]] auto it6 =
+      KE::Impl::RandomAccessIterator<strided_view_t>(m_strided_view, 3);
+  EXPECT_TRUE(true);
+}
+
+TEST_F(random_access_iterator_test, constructiblity) {
+  auto first_d  = KE::begin(m_dynamic_view);
+  auto cfirst_d = KE::cbegin(m_dynamic_view);
+
+  static_assert(std::is_constructible_v<decltype(cfirst_d), decltype(first_d)>);
+  static_assert(
+      !std::is_constructible_v<decltype(first_d), decltype(cfirst_d)>);
+  [[maybe_unused]] decltype(cfirst_d) tmp_cfirst_d(first_d);
+
+  auto first_s  = KE::begin(m_static_view);
+  auto cfirst_s = KE::cbegin(m_static_view);
+
+  static_assert(std::is_constructible_v<decltype(cfirst_s), decltype(first_s)>);
+  static_assert(
+      !std::is_constructible_v<decltype(first_s), decltype(cfirst_s)>);
+  [[maybe_unused]] decltype(cfirst_s) tmp_cfirst_s(first_s);
+
+  auto first_st  = KE::begin(m_strided_view);
+  auto cfirst_st = KE::cbegin(m_strided_view);
+
+  static_assert(
+      std::is_constructible_v<decltype(cfirst_st), decltype(first_st)>);
+  static_assert(
+      !std::is_constructible_v<decltype(first_st), decltype(cfirst_st)>);
+  [[maybe_unused]] decltype(cfirst_st) tmp_cfirst_st(first_st);
+
+  // [FIXME] Better to have tests for the explicit specifier with an expression.
+  // As soon as View converting constructors are re-implemented with a
+  // conditional explicit, we may add those tests.
+  static_assert(std::is_constructible_v<decltype(first_s), decltype(first_d)>);
+  static_assert(std::is_constructible_v<decltype(first_st), decltype(first_d)>);
+  static_assert(std::is_constructible_v<decltype(first_d), decltype(first_s)>);
+  static_assert(std::is_constructible_v<decltype(first_st), decltype(first_s)>);
+  static_assert(std::is_constructible_v<decltype(first_d), decltype(first_st)>);
+  static_assert(std::is_constructible_v<decltype(first_s), decltype(first_st)>);
   EXPECT_TRUE(true);
 }
 
@@ -226,6 +270,37 @@ TEST_F(random_access_iterator_test, traits_helpers) {
   static_assert(KE::Impl::are_iterators_v<T1_t, T2_t, T3_t>);
   static_assert(KE::Impl::are_random_access_iterators_v<T1_t, T2_t, T3_t>);
   static_assert(!KE::Impl::are_iterators_v<int, T2_t, T3_t>);
+
+  static_assert(std::is_same_v<decltype(KE::begin(m_static_view))::value_type,
+                               value_type>);
+  static_assert(std::is_same_v<decltype(KE::begin(m_dynamic_view))::value_type,
+                               value_type>);
+  static_assert(std::is_same_v<decltype(KE::begin(m_strided_view))::value_type,
+                               value_type>);
+
+  static_assert(
+      std::is_same_v<decltype(KE::end(m_static_view))::value_type, value_type>);
+  static_assert(std::is_same_v<decltype(KE::end(m_dynamic_view))::value_type,
+                               value_type>);
+  static_assert(std::is_same_v<decltype(KE::end(m_strided_view))::value_type,
+                               value_type>);
+
+  static_assert(
+      std::is_same_v<decltype(KE::begin(m_static_view))::value_type,
+                     decltype(KE::cbegin(m_static_view))::value_type>);
+  static_assert(
+      std::is_same_v<decltype(KE::begin(m_dynamic_view))::value_type,
+                     decltype(KE::cbegin(m_dynamic_view))::value_type>);
+  static_assert(
+      std::is_same_v<decltype(KE::begin(m_strided_view))::value_type,
+                     decltype(KE::cbegin(m_strided_view))::value_type>);
+
+  static_assert(std::is_same_v<decltype(KE::end(m_static_view))::value_type,
+                               decltype(KE::cend(m_static_view))::value_type>);
+  static_assert(std::is_same_v<decltype(KE::end(m_dynamic_view))::value_type,
+                               decltype(KE::cend(m_dynamic_view))::value_type>);
+  static_assert(std::is_same_v<decltype(KE::end(m_strided_view))::value_type,
+                               decltype(KE::cend(m_strided_view))::value_type>);
 }
 
 }  // namespace stdalgos

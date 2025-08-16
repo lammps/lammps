@@ -126,7 +126,7 @@ void PairCoulLong::compute(int eflag, int vflag)
           rsq_lookup.f = rsq;
           itable = rsq_lookup.i & ncoulmask;
           itable >>= ncoulshiftbits;
-          fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+          fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
           table = ftable[itable] + fraction * dftable[itable];
           forcecoul = scale[itype][jtype] * qtmp * q[j] * table;
           if (factor_coul < 1.0) {
@@ -200,7 +200,7 @@ void PairCoulLong::settings(int narg, char **arg)
 
 void PairCoulLong::coeff(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg != 2) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -216,7 +216,7 @@ void PairCoulLong::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -346,7 +346,7 @@ double PairCoulLong::single(int i, int j, int /*itype*/, int /*jtype*/, double r
     rsq_lookup.f = rsq;
     itable = rsq_lookup.i & ncoulmask;
     itable >>= ncoulshiftbits;
-    fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+    fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
     table = ftable[itable] + fraction * dftable[itable];
     forcecoul = atom->q[i] * atom->q[j] * table;
     if (factor_coul < 1.0) {

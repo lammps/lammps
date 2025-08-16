@@ -96,7 +96,7 @@ methods that a new variable name or flag needs to be added to.
 In ``Atom::peratom_create()`` when using the ``Atom::add_peratom()``
 method, a cols argument of 0 is for per-atom vectors, a length >
 1 is for per-atom arrays.  Note the use of the extra per-thread flag and
-the add_peratom_vary() method when last dimension of the array is
+the add_peratom_vary() method when the last dimension of the array is
 variable-length.
 
 Adding the variable name to Atom::extract() enables the per-atom data

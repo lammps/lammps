@@ -12,22 +12,21 @@
 ------------------------------------------------------------------------- */
 
 #include "test_main.h"
+
 #include "atom.h"
 #include "error_stats.h"
-#include "lammps.h"
 #include "pointers.h"
 #include "test_config.h"
 #include "test_config_reader.h"
-#include "utils.h"
 #include "yaml_writer.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include <cstdlib>
 #include <cstring>
 #include <ctime>
 #include <iostream>
-#include <mpi.h>
+#include <set>
+#include <utility>
 #include <vector>
 
 using LAMMPS_NS::Atom;
@@ -97,6 +96,23 @@ void EXPECT_VELOCITIES(const std::string &name, Atom *atom, const std::vector<co
         EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
         EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
         EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
+    }
+    if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
+}
+
+void EXPECT_TORQUES(const std::string &name, Atom *atom, const std::vector<coord_t> &t_ref,
+                    double epsilon)
+{
+    SCOPED_TRACE("EXPECT_TORQUES: " + name);
+    double **t       = atom->torque;
+    tagint *tag      = atom->tag;
+    const int nlocal = atom->nlocal;
+    ASSERT_EQ(nlocal + 1, t_ref.size());
+    ErrorStats stats;
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(t[i][0], t_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(t[i][1], t_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(t[i][2], t_ref[tag[i]].z, epsilon);
     }
     if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
 }

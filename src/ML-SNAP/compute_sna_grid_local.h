@@ -32,7 +32,7 @@ class ComputeSNAGridLocal : public ComputeGridLocal {
   void compute_local() override;
   double memory_usage() override;
 
- private:
+ protected:
   int ncoeff;
   double **cutsq;
   double rcutfac;
@@ -46,6 +46,10 @@ class ComputeSNAGridLocal : public ComputeGridLocal {
   class SNA *snaptr;
   double cutmax;
   int quadraticflag;
+  double rfac0, rmin0;
+  int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
+  int chunksize;
+  int parallel_thresh;
 };
 
 }    // namespace LAMMPS_NS

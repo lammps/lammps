@@ -92,7 +92,7 @@ void DumpXYZZstd::write_header(bigint ndump)
     auto header = fmt::format("{}\n Atoms. Timestep: {}", ndump, update->ntimestep);
     if (time_flag) header += fmt::format(" Time: {:.6f}", compute_time());
     header += "\n";
-    writer.write(header.c_str(), header.length());
+    (void) writer.write(header.c_str(), header.length());
   }
 }
 
@@ -101,7 +101,7 @@ void DumpXYZZstd::write_header(bigint ndump)
 void DumpXYZZstd::write_data(int n, double *mybuf)
 {
   if (buffer_flag) {
-    writer.write(mybuf, n);
+    (void) writer.write(mybuf, n);
   } else {
     constexpr size_t VBUFFER_SIZE = 256;
     char vbuffer[VBUFFER_SIZE];
@@ -111,7 +111,7 @@ void DumpXYZZstd::write_data(int n, double *mybuf)
           snprintf(vbuffer, VBUFFER_SIZE, format, typenames[static_cast<int>(mybuf[m + 1])],
                    mybuf[m + 2], mybuf[m + 3], mybuf[m + 4]);
       if (written > 0) {
-        writer.write(vbuffer, written);
+        (void) writer.write(vbuffer, written);
       } else if (written < 0) {
         error->one(FLERR, "Error while writing dump xyz/gz output");
       }

@@ -49,11 +49,9 @@ struct AUTO_t {
   constexpr const AUTO_t &operator()() const { return *this; }
 };
 
-namespace {
 /**\brief Token to indicate that a parameter's value is to be automatically
  * selected */
-constexpr AUTO_t AUTO = Kokkos::AUTO_t();
-}  // namespace
+inline constexpr AUTO_t AUTO{};
 
 struct InvalidType {};
 
@@ -106,8 +104,7 @@ using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HIP)
 using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = HIP;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SYCL)
-using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
-    Experimental::SYCL;
+using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = SYCL;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENACC)
 using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
     Experimental::OpenACC;
@@ -122,7 +119,7 @@ using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
 using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = Serial;
 #else
 #error \
-    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::HIP, Kokkos::Experimental::SYCL, Kokkos::Experimental::OpenMPTarget, Kokkos::Experimental::OpenACC, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Experimental::HPX, or Kokkos::Serial."
+    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::HIP, Kokkos::SYCL, Kokkos::Experimental::OpenMPTarget, Kokkos::Experimental::OpenACC, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Experimental::HPX, or Kokkos::Serial."
 #endif
 
 #if defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP)
@@ -162,7 +159,7 @@ using SharedSpace = CudaUVMSpace;
 using SharedSpace = HIPManagedSpace;
 #define KOKKOS_HAS_SHARED_SPACE
 #elif defined(KOKKOS_ENABLE_SYCL)
-using SharedSpace = Experimental::SYCLSharedUSMSpace;
+using SharedSpace = SYCLSharedUSMSpace;
 #define KOKKOS_HAS_SHARED_SPACE
 // if only host compile point to HostSpace
 #elif !defined(KOKKOS_ENABLE_OPENACC) && !defined(KOKKOS_ENABLE_OPENMPTARGET)
@@ -184,7 +181,7 @@ using SharedHostPinnedSpace = CudaHostPinnedSpace;
 using SharedHostPinnedSpace = HIPHostPinnedSpace;
 #define KOKKOS_HAS_SHARED_HOST_PINNED_SPACE
 #elif defined(KOKKOS_ENABLE_SYCL)
-    using SharedHostPinnedSpace = Experimental::SYCLHostUSMSpace;
+    using SharedHostPinnedSpace = SYCLHostUSMSpace;
 #define KOKKOS_HAS_SHARED_HOST_PINNED_SPACE
 #elif !defined(KOKKOS_ENABLE_OPENACC) && !defined(KOKKOS_ENABLE_OPENMPTARGET)
     using SharedHostPinnedSpace = HostSpace;
@@ -260,15 +257,7 @@ KOKKOS_FUNCTION void runtime_check_memory_access_violation(
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
-// Getting ICE in Trilinos in Sacado and Intrepid in deep_copy
-// See issue https://github.com/kokkos/kokkos/issues/5290
-// Simply taking string by value did not resolve the issue
-#ifdef KOKKOS_COMPILER_INTEL
-void fence();
-void fence(const std::string &name);
-#else
 void fence(const std::string &name = "Kokkos::fence: Unnamed Global Fence");
-#endif
 }  // namespace Kokkos
 
 //----------------------------------------------------------------------------

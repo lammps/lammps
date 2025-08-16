@@ -1,4 +1,1 @@
-KOKKOS_ADD_EXECUTABLE(
-  stream
-  SOURCES stream-kokkos.cpp
-)
+kokkos_add_executable(stream SOURCES stream-kokkos.cpp)

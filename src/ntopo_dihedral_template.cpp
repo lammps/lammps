@@ -78,7 +78,7 @@ void NTopoDihedralTemplate::build()
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR, "Dihedral atoms {} {} {} {} missing on proc {} at step {}",
+          error->one(FLERR, Error::NOLASTLINE, "Dihedral atoms {} {} {} {} missing on proc {} at step {}" + utils::errorurl(5),
                      dihedral_atom1[iatom][m] + tagprev, dihedral_atom2[iatom][m] + tagprev,
                      dihedral_atom3[iatom][m] + tagprev, dihedral_atom4[iatom][m] + tagprev, me,
                      update->ntimestep);
@@ -109,5 +109,5 @@ void NTopoDihedralTemplate::build()
   int all;
   MPI_Allreduce(&nmissing, &all, 1, MPI_INT, MPI_SUM, world);
   if (all && (me == 0))
-    error->warning(FLERR, "Dihedral atoms missing at step {}", update->ntimestep);
+    error->warning(FLERR, "Dihedral atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 }

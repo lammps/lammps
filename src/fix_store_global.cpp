@@ -145,13 +145,14 @@ void FixStoreGlobal::restart(char *buf)
   // first 2 values in buf are vec/array sizes
 
   auto *dbuf = (double *) buf;
-  int n1_restart = dbuf[0];
-  int n2_restart = dbuf[1];
+  int n1_restart = (int) *dbuf++;
+  int n2_restart = (int) *dbuf++;
 
   // if size of vec/array has changed,
   //   means the restart file is setting size of vec or array and doing init
   //   because caller did not know size at time this fix was instantiated
   // reallocate vstore or astore accordingly
+  // also reset nrow,ncol to values from restart file
 
   if (n1 != n1_restart || n2 != n2_restart) {
     memory->destroy(vstore);
@@ -165,8 +166,8 @@ void FixStoreGlobal::restart(char *buf)
       vecflag = 1;
     else
       arrayflag = 1;
-    n1 = n1_restart;
-    n2 = n2_restart;
+    nrow = n1 = n1_restart;
+    ncol = n2 = n2_restart;
     if (vecflag)
       memory->create(vstore, n1, "fix/store:vstore");
     else if (arrayflag)
@@ -176,9 +177,9 @@ void FixStoreGlobal::restart(char *buf)
 
   int n = n1 * n2;
   if (vecflag)
-    memcpy(vstore, &dbuf[2], n * sizeof(double));
+    memcpy(vstore, dbuf, n * sizeof(double));
   else if (arrayflag)
-    memcpy(&astore[0][0], &dbuf[2], n * sizeof(double));
+    memcpy(&astore[0][0], dbuf, n * sizeof(double));
 }
 
 /* ----------------------------------------------------------------------

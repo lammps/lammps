@@ -7,7 +7,6 @@
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
-#if (__cplusplus >= 201103L)
 #ifndef NEURALNETWORKCOMPUTE_H
 #define NEURALNETWORKCOMPUTE_H
 
@@ -144,5 +143,4 @@ public:
 };
 
 }
-#endif
 #endif

@@ -69,7 +69,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   int me = 0;
   MPI_Comm_rank(world,&me);
   if (me == 0)
-    error->message(FLERR,"KOKKOS mode with Kokkos version {}.{}.{} is enabled",
+    utils::logmesg(lmp, "KOKKOS mode with Kokkos version {}.{}.{} is enabled\n",
                    KOKKOS_VERSION / 10000, (KOKKOS_VERSION % 10000) / 100, KOKKOS_VERSION % 100);
 
   // process any command-line args that invoke Kokkos settings
@@ -77,6 +77,17 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   ngpus = 0;
   int device = 0;
   nthreads = 1;
+
+  threads_per_atom = 1;
+  threads_per_atom_set = 0;
+  pair_team_size = 128;
+  pair_team_size_set = 0;
+  nbin_atoms_per_bin_set = 0;
+  nbin_atoms_per_bin = 16;
+  nbor_block_size = 128;
+  nbor_block_size_set = 0;
+  bond_block_size = 128;
+  bond_block_size_set = 0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -104,14 +115,14 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       int set_flag = 0;
       char *str;
       if ((str = getenv("SLURM_LOCALID"))) {
-        int local_rank = atoi(str);
+        int local_rank = std::stoi(str);
         device = local_rank % ngpus;
         if (device >= skip_gpu) device++;
         set_flag = 1;
       }
       if ((str = getenv("FLUX_TASK_LOCAL_ID"))) {
         if (ngpus > 0) {
-          int local_rank = atoi(str);
+          int local_rank = std::stoi(str);
           device = local_rank % ngpus;
           if (device >= skip_gpu) device++;
           set_flag = 1;
@@ -119,7 +130,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       }
       if ((str = getenv("MPT_LRANK"))) {
         if (ngpus > 0) {
-          int local_rank = atoi(str);
+          int local_rank = std::stoi(str);
           device = local_rank % ngpus;
           if (device >= skip_gpu) device++;
           set_flag = 1;
@@ -127,7 +138,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       }
       if ((str = getenv("MV2_COMM_WORLD_LOCAL_RANK"))) {
         if (ngpus > 0) {
-          int local_rank = atoi(str);
+          int local_rank = std::stoi(str);
           device = local_rank % ngpus;
           if (device >= skip_gpu) device++;
           set_flag = 1;
@@ -135,13 +146,21 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       }
       if ((str = getenv("OMPI_COMM_WORLD_LOCAL_RANK"))) {
         if (ngpus > 0) {
-          int local_rank = atoi(str);
+          int local_rank = std::stoi(str);
           device = local_rank % ngpus;
           if (device >= skip_gpu) device++;
           set_flag = 1;
         }
       }
       if ((str = getenv("PMI_LOCAL_RANK"))) {
+        if (ngpus > 0) {
+          int local_rank = std::stoi(str);
+          device = local_rank % ngpus;
+          if (device >= skip_gpu) device++;
+          set_flag = 1;
+        }
+      }
+      if ((str = getenv("PALS_LOCAL_RANKID"))) {
         if (ngpus > 0) {
           int local_rank = atoi(str);
           device = local_rank % ngpus;
@@ -531,6 +550,31 @@ void KokkosLMP::accelerator(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       neigh_transpose = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"threads/per/atom") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      threads_per_atom = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      threads_per_atom_set = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"pair/team/size") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      pair_team_size = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      pair_team_size_set = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"nbin/atoms/per/bin") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      nbin_atoms_per_bin = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      nbin_atoms_per_bin_set = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"nbor/block/size") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      nbor_block_size = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      nbor_block_size_set = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"bond/block/size") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      bond_block_size = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      bond_block_size_set = 1;
+      iarg += 2;
     } else error->all(FLERR,"Illegal package kokkos command");
   }
 
@@ -625,23 +669,45 @@ void KokkosLMP::accelerator(int narg, char **arg)
   // set neighbor binsize, same as neigh_modify command
 
   force->newton = force->newton_pair = force->newton_bond = newtonflag;
-
-  if (neigh_thread && newtonflag)
-    error->all(FLERR,"Must use KOKKOS package option 'newton off' with 'neigh/thread on'");
+  newton_check();
 
   neighbor->binsize_user = binsize;
   if (binsize <= 0.0) neighbor->binsizeflag = 0;
   else neighbor->binsizeflag = 1;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void KokkosLMP::newton_check()
+{
+  if (neighflag == FULL && force->newton)
+    error->all(FLERR,"Must use 'newton off' with KOKKOS package option 'neigh full'");
+
+  if (neigh_thread && force->newton)
+    error->all(FLERR,"Must use 'newton off' with KOKKOS package option 'neigh/thread on'");
+
+  if (!neigh_thread) {
+    if (threads_per_atom_set)
+      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'threads/per/atom'");
+    if (pair_team_size_set)
+      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'pair/team/size'");
+    if (nbin_atoms_per_bin_set)
+      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'nbin/atoms/per/bin'");
+    if (nbor_block_size_set)
+      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'nbor/block/size'");
+    if (bond_block_size_set)
+      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'bond/block/size'");
+  }
+}
+
 /* ----------------------------------------------------------------------
    called by Finish
 ------------------------------------------------------------------------- */
 
-int KokkosLMP::neigh_count(int m)
+bigint KokkosLMP::neigh_count(int m)
 {
   int inum = 0;
-  int nneigh = 0;
+  bigint nneigh = 0;
 
   ArrayTypes<LMPHostType>::t_int_1d h_ilist;
   ArrayTypes<LMPHostType>::t_int_1d h_numneigh;

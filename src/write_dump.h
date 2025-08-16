@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class WriteDump : public Command {
  public:
-  WriteDump(class LAMMPS *lmp) : Command(lmp){};
+  WriteDump(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **) override;
 };
 

@@ -87,7 +87,7 @@ ComputeCentroidStressAtom::ComputeCentroidStressAtom(LAMMPS *lmp, int narg, char
   else {
     id_temp = utils::strdup(arg[3]);
 
-    auto compute = modify->get_compute_by_id(id_temp);
+    auto *compute = modify->get_compute_by_id(id_temp);
     if (!compute)
       error->all(FLERR, "Could not find compute centroid/stress/atom temperature ID {}", id_temp);
     if (compute->tempflag == 0)
@@ -195,7 +195,7 @@ void ComputeCentroidStressAtom::init()
       error->all(FLERR, "KSpace style does not support compute centroid/stress/atom");
 
   if (fixflag) {
-    for (auto &ifix : modify->get_fix_list())
+    for (const auto &ifix : modify->get_fix_list())
       if (ifix->virial_peratom_flag && (ifix->centroidstressflag == CENTROID_NOTAVAIL))
         error->all(FLERR, "Fix {} does not support compute centroid/stress/atom", ifix->style);
   }
@@ -210,7 +210,7 @@ void ComputeCentroidStressAtom::compute_peratom()
 
   invoked_peratom = update->ntimestep;
   if (update->vflag_atom != invoked_peratom)
-    error->all(FLERR, "Per-atom virial was not tallied on needed timestep");
+    error->all(FLERR, Error::NOLASTLINE, "Per-atom virial was not tallied on needed timestep{}", utils::errorurl(22));
 
   // grow local stress array if necessary
   // needs to be atom->nmax in length
@@ -308,7 +308,7 @@ void ComputeCentroidStressAtom::compute_peratom()
   // fix styles are CENTROID_SAME, CENTROID_AVAIL or CENTROID_NOTAVAIL
 
   if (fixflag) {
-    for (auto &ifix : modify->get_fix_list())
+    for (const auto &ifix : modify->get_fix_list())
       if (ifix->virial_peratom_flag && ifix->thermo_virial) {
         if (ifix->centroidstressflag == CENTROID_AVAIL) {
           double **cvatom = ifix->cvatom;

@@ -116,18 +116,20 @@ charge would not be conserved. As a consequence, no checks on atomic
 charges are performed, and successful switches update the atom type but
 not the atom charge. While it is possible to use *semi-grand* with
 groups of atoms that have different charges, these charges will not be
-changed when the atom types change.
+changed when the atom types change.  The same applies for systems
+with per-atom masses: non *semi-grand* will swap atom masses, but
+the masses have to be the same each for the atom types.  When using
+*semi-grand* no per-atom masses are changed.
 
 Since this fix computes total potential energies before and after
-proposed swaps, so even complicated potential energy calculations are
-OK, including the following:
+proposed swaps, even complicated potential energy calculations are
+acceptable, including the following:
 
 * long-range electrostatics (:math:`k`-space)
 * many body pair styles
-* hybrid pair styles
-* eam pair styles
+* hybrid pair styles (with restrictions)
+* EAM pair styles
 * triclinic systems
-* need to include potential energy contributions from other fixes
 
 Some fixes have an associated potential energy. Examples of such fixes
 include: :doc:`efield <fix_efield>`, :doc:`gravity <fix_gravity>`,
@@ -165,8 +167,8 @@ This fix computes a global vector of length 2, which can be accessed
 by various :doc:`output commands <Howto_output>`.  The vector values are
 the following global cumulative quantities:
 
-* 1 = swap attempts
-* 2 = swap accepts
+  #. swap attempts
+  #. swap accepts
 
 The vector values calculated by this fix are "intensive".
 
@@ -181,11 +183,14 @@ This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-This fix cannot be used with systems that do not have per-type masses
-(e.g. atom style sphere) since the implemented algorithm pre-computes
-velocity rescaling factors from per-type masses and ignores any per-atom
-masses, if present.  In case both, per-type and per-atom masses are
-present, a warning is printed.
+When this fix is used with a :doc:`hybrid pair style <pair_hybrid>`
+system, only swaps between atom types of the same sub-style (or
+combination of sub-styles) are permitted.
+
+This fix can be used with systems that have per-atom masses
+(e.g. atom style sphere) provided all atoms of the types handled
+by this fix have the same mass per type. The fix will check for that.
+In case both, per-type and per-atom masses are present, a warning is printed.
 
 Related commands
 """"""""""""""""

@@ -86,9 +86,9 @@ struct TestFunctorA {
 
       case 2: {
         auto it    = KE::find_end(member, KE::cbegin(myRowViewFrom),
-                               KE::cend(myRowViewFrom),
-                               KE::cbegin(myRowSearchedSeqView),
-                               KE::cend(myRowSearchedSeqView), m_binaryPred);
+                                  KE::cend(myRowViewFrom),
+                                  KE::cbegin(myRowSearchedSeqView),
+                                  KE::cend(myRowSearchedSeqView), m_binaryPred);
         resultDist = KE::distance(KE::cbegin(myRowViewFrom), it);
         Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
           m_distancesView(myRowIndex) = resultDist;
@@ -99,7 +99,7 @@ struct TestFunctorA {
 
       case 3: {
         auto it    = KE::find_end(member, myRowViewFrom, myRowSearchedSeqView,
-                               m_binaryPred);
+                                  m_binaryPred);
         resultDist = KE::distance(KE::begin(myRowViewFrom), it);
         Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
           m_distancesView(myRowIndex) = resultDist;
@@ -227,6 +227,7 @@ void test_A(const bool sequencesExist, std::size_t numTeams,
 
         break;
       }
+      default: Kokkos::abort("unreachable");
     }
 
     if (sequencesExist) {

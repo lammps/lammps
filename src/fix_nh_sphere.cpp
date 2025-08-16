@@ -70,7 +70,7 @@ void FixNHSphere::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (radius[i] == 0.0)
-        error->one(FLERR,"Fix nvt/npt/nph/sphere require extended particles");
+        error->one(FLERR,"Fix {} requires extended particles", style);
 
   FixNH::init();
 }

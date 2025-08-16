@@ -4,21 +4,27 @@ Calculate elastic constants
 Elastic constants characterize the stiffness of a material. The formal
 definition is provided by the linear relation that holds between the
 stress and strain tensors in the limit of infinitesimal deformation.
-In tensor notation, this is expressed as s_ij = C_ijkl \* e_kl, where
-the repeated indices imply summation. s_ij are the elements of the
-symmetric stress tensor. e_kl are the elements of the symmetric strain
-tensor. C_ijkl are the elements of the fourth rank tensor of elastic
-constants. In three dimensions, this tensor has 3\^4=81 elements. Using
-Voigt notation, the tensor can be written as a 6x6 matrix, where C_ij
-is now the derivative of s_i w.r.t. e_j. Because s_i is itself a
-derivative w.r.t. e_i, it follows that C_ij is also symmetric, with at
-most 7\*6/2 = 21 distinct elements.
+In tensor notation, this is expressed as
+
+.. math::
+
+   s_{ij} = C_{ijkl} e_{kl}
+
+where
+the repeated indices imply summation. :math:`s_{ij}` are the elements of the
+symmetric stress tensor. :math:`e_{kl}` are the elements of the symmetric strain
+tensor. :math:`C_{ijkl}` are the elements of the fourth rank tensor of elastic
+constants. In three dimensions, this tensor has :math:`3^4=81` elements. Using
+Voigt notation, the tensor can be written as a 6x6 matrix, where :math:`C_{ij}`
+is now the derivative of :math:`s_i` w.r.t. :math:`e_j`. Because :math:`s_i` is itself a
+derivative w.r.t. :math:`e_i`, it follows that :math:`C_{ij}` is also symmetric, with at
+most :math:`\frac{7 \times 6}{2}` = 21 distinct elements.
 
 At zero temperature, it is easy to estimate these derivatives by
 deforming the simulation box in one of the six directions using the
 :doc:`change_box <change_box>` command and measuring the change in the
 stress tensor. A general-purpose script that does this is given in the
-examples/ELASTIC directory described on the :doc:`Examples <Examples>`
+``examples/ELASTIC`` directory described on the :doc:`Examples <Examples>`
 doc page.
 
 Calculating elastic constants at finite temperature is more
@@ -33,7 +39,7 @@ the :doc:`compute born/matrix <compute_born_matrix>` command,
 which works for any bonded or non-bonded potential in LAMMPS.
 The most expensive part of the calculation is the sampling of
 the stress fluctuations. Several examples of this method are
-provided in the examples/ELASTIC_T/BORN_MATRIX directory
+provided in the ``examples/ELASTIC_T/BORN_MATRIX`` directory
 described on the :doc:`Examples <Examples>` doc page.
 
 A second way is to measure
@@ -43,7 +49,7 @@ the systematic and statistical errors in this method, the magnitude of
 the deformation must be chosen judiciously, and care must be taken to
 fully equilibrate the deformed cell before sampling the stress
 tensor. An example of this method is provided in the
-examples/ELASTIC_T/DEFORMATION directory
+``examples/ELASTIC_T/DEFORMATION`` directory
 described on the :doc:`Examples <Examples>` doc page.
 
 Another approach is to sample the triclinic cell fluctuations

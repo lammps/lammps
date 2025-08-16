@@ -236,7 +236,6 @@ MEAMKokkos<DeviceType>::meam_dens_init(int inum_half, int ntype, typename AT::t_
   this->d_neighbors_half = d_neighbors_half;
   this->d_neighbors_full = d_neighbors_full;
   this->d_offset = d_offset;
-  this->nlocal = nlocal;
 
   if (need_dup) {
     dup_rho0 = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_rho0);
@@ -294,20 +293,20 @@ MEAMKokkos<DeviceType>::meam_dens_init(int inum_half, int ntype, typename AT::t_
     Kokkos::Experimental::contribute(d_arho3mb, dup_arho3mb);
 
     // free duplicated memory
-    dup_rho0 = decltype(dup_rho0)();
-    dup_arho2b = decltype(dup_arho2b)();
-    dup_arho1 = decltype(dup_arho1)();
-    dup_arho2 = decltype(dup_arho2)();
-    dup_arho3 = decltype(dup_arho3)();
-    dup_arho3b = decltype(dup_arho3b)();
-    dup_t_ave = decltype(dup_t_ave)();
-    dup_tsq_ave = decltype(dup_tsq_ave)();
+    dup_rho0 = {};
+    dup_arho2b = {};
+    dup_arho1 = {};
+    dup_arho2 = {};
+    dup_arho3 = {};
+    dup_arho3b = {};
+    dup_t_ave = {};
+    dup_tsq_ave = {};
     // msmeam
-    dup_arho2mb = decltype(dup_arho2mb)();
-    dup_arho1m = decltype(dup_arho1m)();
-    dup_arho2m = decltype(dup_arho2m)();
-    dup_arho3m = decltype(dup_arho3m)();
-    dup_arho3mb = decltype(dup_arho3mb)();
+    dup_arho2mb = {};
+    dup_arho1m = {};
+    dup_arho2m = {};
+    dup_arho3m = {};
+    dup_arho3mb = {};
   }
 }
 

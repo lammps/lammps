@@ -91,10 +91,10 @@ UEFBox::UEFBox()
   mul_m2(l0t,t2i);
   for (int k=0; k<3; ++k)
     for (int j=0; j<3; ++j) {
-      a1[k][j] = round(t1[k][j]);
-      a1i[k][j] = round(t1i[k][j]);
-      a2[k][j] = round(t2[k][j]);
-      a2i[k][j] = round(t2i[k][j]);
+      a1[k][j] = (int)round(t1[k][j]);
+      a1i[k][j] = (int)round(t1i[k][j]);
+      a2[k][j] = (int)round(t2[k][j]);
+      a2i[k][j] = (int)round(t2i[k][j]);
     }
 
   // winv used to transform between
@@ -115,7 +115,7 @@ UEFBox::UEFBox()
 ------------------------------------------------------------------------- */
 void UEFBox::get_box(double x[3][3], double v)
 {
-  v = cbrtf(v);
+  v = cbrt(v);
   for (int k=0;k<3;k++)
     for (int j=0;j<3;j++)
       x[k][j] = lrot[k][j]*v;
@@ -173,8 +173,8 @@ bool UEFBox::reduce()
   // determine how many times to apply the automorphisms and find new theta
   // values
 
-  int f1 = round(theta[0]);
-  int f2 = round(theta[1]);
+  int f1 = (int)round(theta[0]);
+  int f2 = (int)round(theta[1]);
   theta[0] -= f1;
   theta[1] -= f2;
 
@@ -311,7 +311,7 @@ void col_sort(double b[3][3],int r[3][3],int ri[3][3])
 ------------------------------------------------------------------------- */
 void red12(double b[3][3],int r[3][3],int ri[3][3])
 {
-  int y = round(col_prod(b,0,1)/col_prod(b,0,0));
+  int y = round(col_prod(b,0,1)/col_prod(b,0,0)); // NOLINT
   b[0][1] -= y*b[0][0];
   b[1][1] -= y*b[1][0];
   b[2][1] -= y*b[2][0];
@@ -351,8 +351,8 @@ void red3(double b[3][3], int r[3][3], int ri[3][3])
   double min = col_prod(b,2,2);
   int x1v[2];
   int x2v[2];
-  x1v[0] = floor(y1); x1v[1] = x1v[0]+1;
-  x2v[0] = floor(y2); x2v[1] = x2v[0]+1;
+  x1v[0] = (int) floor(y1); x1v[1] = x1v[0]+1;
+  x2v[0] = (int) floor(y2); x2v[1] = x2v[0]+1;
   for (int k=0;k<2;k++)
     for (int j=0;j<2;j++) {
       double a[3];

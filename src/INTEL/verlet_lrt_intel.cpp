@@ -94,7 +94,7 @@ void VerletLRTIntel::setup(int flag)
   if (comm->me == 0 && screen) {
     fputs("Setting up VerletLRTIntel run ...\n",screen);
     if (flag) {
-      fmt::print(screen,"  Unit style    : {}\n"
+      utils::print(screen,"  Unit style    : {}\n"
                         "  Current step  : {}\n"
                         "  Time step     : {}\n",
                  update->unit_style,update->ntimestep,update->dt);

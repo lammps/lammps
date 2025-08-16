@@ -17,6 +17,7 @@
 
 #include <cassert>
 #include "../__p0009_bits/dynamic_extent.hpp"
+#include "../__p0009_bits/utility.hpp"
 
 namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
 namespace MDSPAN_IMPL_PROPOSED_NAMESPACE {
@@ -82,36 +83,55 @@ struct is_layout_right_padded_mapping<_Mapping,
   std::enable_if_t<std::is_same<_Mapping, typename layout_right_padded<_Mapping::padding_value>::template mapping<typename _Mapping::extents_type>>::value>>
     : std::true_type {};
 
+
 template <class _LayoutExtentsType, class _PaddedLayoutMappingType>
-constexpr void check_padded_layout_converting_constructor_mandates()
+MDSPAN_INLINE_FUNCTION
+constexpr void check_padded_layout_converting_constructor_mandates(MDSPAN_IMPL_STANDARD_NAMESPACE::detail::with_rank<0>) {}
+
+template <class _LayoutExtentsType, class _PaddedLayoutMappingType>
+MDSPAN_INLINE_FUNCTION
+constexpr void check_padded_layout_converting_constructor_mandates(MDSPAN_IMPL_STANDARD_NAMESPACE::detail::with_rank<1>) {}
+
+template <class _LayoutExtentsType, class _PaddedLayoutMappingType, std::size_t N>
+MDSPAN_INLINE_FUNCTION
+constexpr void check_padded_layout_converting_constructor_mandates(MDSPAN_IMPL_STANDARD_NAMESPACE::detail::with_rank<N>)
 {
-  if constexpr (_LayoutExtentsType::rank() > 1) {
-    using extents_type = typename _PaddedLayoutMappingType::extents_type;
-    constexpr auto padding_value = _PaddedLayoutMappingType::padding_value;
-    constexpr auto idx = layout_padded_constants<typename _PaddedLayoutMappingType::layout_type, _LayoutExtentsType >::extent_to_pad_idx;
-    if constexpr ((_LayoutExtentsType::static_extent(idx) != dynamic_extent) &&
-                  (extents_type::static_extent(idx) != dynamic_extent) &&
-                  (padding_value != dynamic_extent)) {
-      if constexpr (padding_value == 0) {
-        static_assert(_LayoutExtentsType::static_extent(idx) == 0);
-      } else {
-        static_assert(
-            _LayoutExtentsType::static_extent(idx) % padding_value == 0);
-      }
-    }
-  }
+  using extents_type = typename _PaddedLayoutMappingType::extents_type;
+  constexpr auto padding_value = _PaddedLayoutMappingType::padding_value;
+  constexpr auto idx = layout_padded_constants<typename _PaddedLayoutMappingType::layout_type, _LayoutExtentsType >::extent_to_pad_idx;
+
+  constexpr auto statically_determinable =
+    (_LayoutExtentsType::static_extent(idx) != dynamic_extent) &&
+    (extents_type::static_extent(idx) != dynamic_extent) &&
+    (padding_value != dynamic_extent);
+
+  static_assert(!statically_determinable ||
+                (padding_value == 0
+                 ? _LayoutExtentsType::static_extent(idx) == 0
+                 : _LayoutExtentsType::static_extent(idx) % padding_value == 0),
+                "");
 }
 
 template <typename _ExtentsType, typename _OtherMapping>
-constexpr void check_padded_layout_converting_constructor_preconditions([[maybe_unused]] const _OtherMapping &other_mapping) {
-  if constexpr (_ExtentsType::rank() > 1) {
-    constexpr auto padded_stride_idx =
-        layout_padded_constants<typename _OtherMapping::layout_type,
-                                  _ExtentsType>::padded_stride_idx;
-    constexpr auto extent_to_pad_idx = layout_padded_constants<typename _OtherMapping::layout_type, _ExtentsType>::extent_to_pad_idx;
-    assert(other_mapping.stride(padded_stride_idx) == other_mapping.extents().extent(extent_to_pad_idx));
-  }
+MDSPAN_INLINE_FUNCTION
+constexpr void check_padded_layout_converting_constructor_preconditions(MDSPAN_IMPL_STANDARD_NAMESPACE::detail::with_rank<0>,
+                                                                        const _OtherMapping&) {}
+template <typename _ExtentsType, typename _OtherMapping>
+MDSPAN_INLINE_FUNCTION
+constexpr void check_padded_layout_converting_constructor_preconditions(MDSPAN_IMPL_STANDARD_NAMESPACE::detail::with_rank<1>,
+                                                                        const _OtherMapping&) {}
+template <typename _ExtentsType, typename _OtherMapping, std::size_t N>
+MDSPAN_INLINE_FUNCTION
+constexpr void check_padded_layout_converting_constructor_preconditions(MDSPAN_IMPL_STANDARD_NAMESPACE::detail::with_rank<N>,
+                                                                        const _OtherMapping &other_mapping) {
+  constexpr auto padded_stride_idx =
+    layout_padded_constants<typename _OtherMapping::layout_type,
+                            _ExtentsType>::padded_stride_idx;
+  constexpr auto extent_to_pad_idx = layout_padded_constants<typename _OtherMapping::layout_type, _ExtentsType>::extent_to_pad_idx;
+  MDSPAN_IMPL_PRECONDITION(other_mapping.stride(padded_stride_idx) == other_mapping.extents().extent(extent_to_pad_idx));
 }
+
+
 }
 }
 }

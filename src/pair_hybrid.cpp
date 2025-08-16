@@ -19,6 +19,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -578,7 +579,7 @@ void PairHybrid::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -646,7 +647,7 @@ void PairHybrid::init_style()
   // create skip lists inside each pair neigh request
   // any kind of list can have its skip flag set in this loop
 
-  for (auto &request : neighbor->get_pair_requests()) {
+  for (const auto &request : neighbor->get_pair_requests()) {
 
     // istyle = associated sub-style for the request
 
@@ -718,7 +719,8 @@ double PairHybrid::init_one(int i, int j)
 
   if (setflag[i][j] == 0) {
     if (nmap[i][i] != 1 || nmap[j][j] != 1 || map[i][i][0] != map[j][j][0])
-      error->one(FLERR,"All pair coeffs are not set");
+      error->one(FLERR, Error::NOLASTLINE,
+                 "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
     nmap[i][j] = 1;
     map[i][j][0] = map[i][i][0];
   }
@@ -758,7 +760,7 @@ double PairHybrid::init_one(int i, int j)
       if (cut > cutmax_style[istyle]) {
         cutmax_style[istyle] = cut;
 
-        for (auto &request : neighbor->get_pair_requests()) {
+        for (const auto &request : neighbor->get_pair_requests()) {
           if (styles[istyle] == request->get_requestor()) {
             request->set_cutoff(cutmax_style[istyle]);
             break;
@@ -1103,7 +1105,7 @@ void PairHybrid::set_special(int m)
 
 double * PairHybrid::save_special()
 {
-  auto saved = new double[8];
+  auto *saved = new double[8];
 
   for (int i = 0; i < 4; ++i) {
     saved[i] = force->special_lj[i];
@@ -1143,7 +1145,7 @@ void *PairHybrid::extract(const char *str, int &dim)
     if (ptr && strcmp(str,"cut_coul") == 0) {
       if (couldim != -1 && dim != couldim)
         error->all(FLERR, "Coulomb styles of pair hybrid sub-styles do not match");
-      auto p_newvalue = (double *) ptr;
+      auto *p_newvalue = (double *) ptr;
       double newvalue = *p_newvalue;
       if (cutptr && (newvalue != cutvalue))
         error->all(FLERR, "Coulomb cutoffs of pair hybrid sub-styles do not match");

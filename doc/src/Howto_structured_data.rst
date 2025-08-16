@@ -341,7 +341,12 @@ data files and obtain a list of dictionaries.
 
 .. code-block::
 
-   [{'timestep': 0, 'pe': -6.773368053259247, 'ke': 4.498875000000003}, {'timestep': 50, 'pe': -4.80824944183232, 'ke': 2.5257981827119798}, {'timestep': 100, 'pe': -4.787560887558151, 'ke': 2.5062598821985103}, {'timestep': 150, 'pe': -4.747103368600548, 'ke': 2.46609592554545}, {'timestep': 200, 'pe': -4.750905285854413, 'ke': 2.4701136792591694}, {'timestep': 250, 'pe': -4.777432735632181, 'ke': 2.4962152903997175}]
+   [{'timestep': 0, 'pe': -6.773368053259247, 'ke': 4.498875000000003},
+    {'timestep': 50, 'pe': -4.80824944183232, 'ke': 2.5257981827119798},
+    {'timestep': 100, 'pe': -4.787560887558151, 'ke': 2.5062598821985103},
+    {'timestep': 150, 'pe': -4.747103368600548, 'ke': 2.46609592554545},
+    {'timestep': 200, 'pe': -4.750905285854413, 'ke': 2.4701136792591694},
+    {'timestep': 250, 'pe': -4.777432735632181, 'ke': 2.4962152903997175}]
 
 Line Delimited JSON (LD-JSON)
 -----------------------------
@@ -352,7 +357,8 @@ Each line represents one JSON object.
 
 .. code-block:: LAMMPS
 
-   fix extra all print 50 """{"timestep": $(step), "pe": $(pe), "ke": $(ke)}""" title "" file output.json screen no
+   fix extra all print 50 """{"timestep": $(step), "pe": $(pe), "ke": $(ke)}""" &
+       title "" file output.json screen no
 
 .. code-block:: json
    :caption: output.json

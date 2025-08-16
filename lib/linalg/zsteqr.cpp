@@ -93,7 +93,7 @@ int zsteqr_(char *compz, integer *n, doublereal *d__, doublereal *e, doublecompl
     ssfmax = sqrt(safmax) / 3.;
     ssfmin = sqrt(safmin) / eps2;
     if (icompz == 2) {
-        zlaset_((char *)"Full", n, n, &c_b1, &c_b2, &z__[z_offset], ldz, (ftnlen)4);
+        zlaset_((char *)"F", n, n, &c_b1, &c_b2, &z__[z_offset], ldz, (ftnlen)1);
     }
     nmaxit = *n * 30;
     jtot = 0;

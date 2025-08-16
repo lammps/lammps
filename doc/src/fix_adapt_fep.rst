@@ -116,12 +116,22 @@ style supports it.  Note that the :doc:`pair_style <pair_style>` and
 to specify these parameters initially; the fix adapt command simply
 overrides the parameters.
 
-The *pstyle* argument is the name of the pair style.  If :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is used, *pstyle* should be
-a sub-style name.  For example, *pstyle* could be specified as "soft"
-or "lubricate".  The *pparam* argument is the name of the parameter to
-change.  This is the current list of pair styles and parameters that
-can be varied by this fix.  See the doc pages for individual pair
-styles and their energy formulas for the meaning of these parameters:
+.. note::
+
+   Pair_coeff settings must be made **explicitly** in order for fix
+   adapt/fep to be able to change them.  Settings inferred from mixing
+   are not suitable.  If necessary all mixed settings can be output
+   to a file using the :doc:`write_coeff command <write_coeff>` and
+   then the desired mixed pair_coeff settings copied from that file.
+
+The *pstyle* argument is the name of the pair style.  If
+:doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is used,
+*pstyle* should be a sub-style name.  For example, *pstyle* could be
+specified as "soft" or "lubricate".  The *pparam* argument is the name
+of the parameter to change.  This is the current list of pair styles and
+parameters that can be varied by this fix.  See the doc pages for
+individual pair styles and their energy formulas for the meaning of
+these parameters:
 
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`born <pair_born>`                                                      | a,b,c                   | type pairs |

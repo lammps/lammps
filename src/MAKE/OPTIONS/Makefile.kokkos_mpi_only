@@ -7,7 +7,7 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpicxx
-CCFLAGS =	-g -O3 -DNDEBUG
+CCFLAGS =	-g -O3 -DNDEBUG -DKOKKOS_ENABLE_ATOMICS_BYPASS
 SHFLAGS =	-fPIC
 # uncomment when compiling with Intel 21.5 or older
 FMTFLAGS = 	# -std=c++11

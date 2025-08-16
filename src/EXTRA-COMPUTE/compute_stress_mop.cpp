@@ -39,7 +39,7 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr double SMALL =     0.001;
+static constexpr double SMALL = 0.001;
 
 enum { X, Y, Z };
 enum { TOTAL, CONF, KIN, PAIR, BOND, ANGLE, DIHEDRAL };
@@ -63,7 +63,7 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(
   } else if (strcmp(arg[3], "z") == 0) {
     dir = Z;
   } else
-    error->all(FLERR, "Illegal compute stress/mop command");
+    error->all(FLERR, "Illegal compute stress/mop plane direction {}", arg[3]);
 
   // Position of the plane
 
@@ -82,14 +82,14 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(
     error->warning(FLERR, "The specified initial plane lies outside of the simulation box");
     double dx[3] = {0.0, 0.0, 0.0};
     dx[dir] = pos - 0.5 * (domain->boxhi[dir] + domain->boxlo[dir]);
-    domain->minimum_image(dx[0], dx[1], dx[2]);
+    domain->minimum_image(FLERR, dx[0], dx[1], dx[2]);
     pos = 0.5 * (domain->boxhi[dir] + domain->boxlo[dir]) + dx[dir];
 
     if ((pos > domain->boxhi[dir]) || (pos < domain->boxlo[dir]))
       error->all(FLERR, "Plane for compute stress/mop is out of bounds");
   }
 
- if (pos < (domain->boxlo[dir] + domain->prd_half[dir])) {
+  if (pos < (domain->boxlo[dir] + domain->prd_half[dir])) {
     pos1 = pos + domain->prd[dir];
   } else {
     pos1 = pos - domain->prd[dir];
@@ -104,6 +104,9 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(
   int iarg = 5;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "conf") == 0) {
+      bondflag = 1;
+      angleflag = 1;
+      dihedralflag = 1;
       for (i = 0; i < 3; i++) {
         which[nvalues] = CONF;
         nvalues++;
@@ -114,6 +117,9 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(
         nvalues++;
       }
     } else if (strcmp(arg[iarg], "total") == 0) {
+      bondflag = 1;
+      angleflag = 1;
+      dihedralflag = 1;
       for (i = 0; i < 3; i++) {
         which[nvalues] = TOTAL;
         nvalues++;
@@ -124,35 +130,28 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(
         nvalues++;
       }
     } else if (strcmp(arg[iarg], "bond") == 0) {
+      bondflag = 1;
       for (i = 0; i < 3; i++) {
         which[nvalues] = BOND;
         nvalues++;
       }
     } else if (strcmp(arg[iarg], "angle") == 0) {
+      angleflag = 1;
       for (i = 0; i < 3; i++) {
         which[nvalues] = ANGLE;
         nvalues++;
       }
-    } else if (strcmp(arg[iarg],"dihedral") == 0) {
-      for (i=0; i<3; i++) {
+    } else if (strcmp(arg[iarg], "dihedral") == 0) {
+      dihedralflag = 1;
+      for (i = 0; i < 3; i++) {
         which[nvalues] = DIHEDRAL;
         nvalues++;
       }
     } else
-      error->all(FLERR, "Illegal compute stress/mop command");    //break;
+      error->all(FLERR, "Unknown compute stress/mop keyword {}", arg[iarg]);
 
     iarg++;
   }
-
-  // Error checks:
-
-  // orthogonal simulation box
-  if (domain->triclinic != 0)
-    error->all(FLERR, "Compute stress/mop is incompatible with triclinic simulation box");
-
-  // 2D and pressure calculation in the Z coordinate
-  if (domain->dimension == 2 && dir == Z)
-    error->all(FLERR, "Compute stress/mop is incompatible with Z in 2d system");
 
   // Initialize some variables
 
@@ -173,8 +172,8 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(
   memory->create(bond_global, nvalues, "stress/mop:bond_global");
   memory->create(angle_local, nvalues, "stress/mop:angle_local");
   memory->create(angle_global, nvalues, "stress/mop:angle_global");
-  memory->create(dihedral_local,nvalues,"stress/mop:dihedral_local");
-  memory->create(dihedral_global,nvalues,"stress/mop:dihedral_global");
+  memory->create(dihedral_local, nvalues, "stress/mop:dihedral_local");
+  memory->create(dihedral_global, nvalues, "stress/mop:dihedral_global");
   size_vector = nvalues;
 
   vector_flag = 1;
@@ -202,6 +201,16 @@ ComputeStressMop::~ComputeStressMop()
 
 void ComputeStressMop::init()
 {
+  // Error checks:
+
+  // 2D and pressure calculation in the Z coordinate
+  if (domain->dimension == 2 && dir == Z)
+    error->all(FLERR, "Compute stress/mop is incompatible with Z in 2d system");
+
+  // orthogonal simulation box
+
+  if (domain->triclinic != 0)
+    error->all(FLERR, "Compute stress/mop is incompatible with triclinic simulation box");
 
   // Conversion constants
 
@@ -224,11 +233,12 @@ void ComputeStressMop::init()
 
   dt = update->dt;
 
-  // Error check
+  // Error checks:
 
   // Compute stress/mop requires fixed simulation box
+
   if (domain->box_change_size || domain->box_change_shape || domain->deform_flag)
-    error->all(FLERR, "Compute stress/mop requires a fixed size simulation box");
+    error->all(FLERR, "Compute stress/mop requires a fixed simulation box geometry");
 
   // This compute requires a pair style with pair_single method implemented
 
@@ -236,40 +246,53 @@ void ComputeStressMop::init()
   if (force->pair->single_enable == 0)
     error->all(FLERR, "Pair style does not support compute stress/mop");
 
+  // issue an error for unimplemented bond/angle/dihedral potentials
+
+  if (bondflag == 1 && !(force->bond)) {
+    bondflag = 0;
+  }
+
+  if (angleflag == 1 && !(force->angle)) {
+    angleflag = 0;
+  }
+
+  if (dihedralflag == 1 && !(force->dihedral)) {
+    dihedralflag = 0;
+  }
+
+  if (angleflag == 1 && force->angle) {
+    if (force->angle->born_matrix_enable == 0) {
+        if ((strcmp(force->angle_style, "zero") != 0) && (strcmp(force->angle_style, "none") != 0))
+          error->all(FLERR, "compute stress/mop does not account for the selected angle potential");
+    }
+  }
+
+  if (dihedralflag == 1 && force->dihedral) {
+    if (force->dihedral->born_matrix_enable == 0) {
+      if ((strcmp(force->dihedral_style, "zero") != 0) &&
+          (strcmp(force->dihedral_style, "none") != 0))
+          error->all(FLERR, "compute stress/mop does not account for the selected dihedral potentials");
+    }
+  }
+
   // Errors
 
   if (comm->me == 0) {
 
-    // issue an error for unimplemented intramolecular potentials or Kspace.
+    // issue a warning for unimplemented improper potentials and Kspace.
 
-    if (force->bond) bondflag = 1;
-    if (force->angle) {
-      if (force->angle->born_matrix_enable == 0) {
-        if ((strcmp(force->angle_style, "zero") != 0) && (strcmp(force->angle_style, "none") != 0))
-          error->all(FLERR, "compute stress/mop does not account for angle potentials");
-      } else {
-        angleflag = 1;
-      }
-    }
-    if (force->dihedral) {
-      if (force->dihedral->born_matrix_enable == 0) {
-        if ((strcmp(force->dihedral_style, "zero") != 0) &&
-            (strcmp(force->dihedral_style, "none") != 0))
-          error->all(FLERR, "compute stress/mop does not account for dihedral potentials");
-      } else {
-        dihedralflag = 1;
-      }
-    }
     if (force->improper) {
       if ((strcmp(force->improper_style, "zero") != 0) &&
           (strcmp(force->improper_style, "none") != 0))
-        error->all(FLERR, "compute stress/mop does not account for improper potentials");
+        error->warning(FLERR, "compute stress/mop does not account for improper potentials");
     }
+
     if (force->kspace)
       error->warning(FLERR, "compute stress/mop does not account for kspace contributions");
   }
 
   // need an occasional half neighbor list
+
   neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 }
 
@@ -324,11 +347,11 @@ void ComputeStressMop::compute_vector()
     //Compute dihedral contribution on separate procs
     compute_dihedrals();
   } else {
-    for (int i=0; i<nvalues; i++) dihedral_local[i] = 0.0;
+    for (int i = 0; i < nvalues; i++) dihedral_local[i] = 0.0;
   }
 
   // sum dihedral contribution over all procs
-  MPI_Allreduce(dihedral_local,dihedral_global,nvalues,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(dihedral_local, dihedral_global, nvalues, MPI_DOUBLE, MPI_SUM, world);
 
   for (int m = 0; m < nvalues; m++) {
     vector[m] = values_global[m] + bond_global[m] + angle_global[m] + dihedral_global[m];
@@ -425,7 +448,7 @@ void ComputeStressMop::compute_pairs()
               values_local[m + 1] += fpair * (xi[1] - xj[1]) / area * nktv2p;
               values_local[m + 2] += fpair * (xi[2] - xj[2]) / area * nktv2p;
             } else if (((xi[dir] < pos) && (xj[dir] > pos)) ||
-                        ((xi[dir] < pos1) && (xj[dir] > pos1))) {
+                       ((xi[dir] < pos1) && (xj[dir] > pos1))) {
               pair->single(i, j, itype, jtype, rsq, factor_coul, factor_lj, fpair);
               values_local[m] -= fpair * (xi[0] - xj[0]) / area * nktv2p;
               values_local[m + 1] -= fpair * (xi[1] - xj[1]) / area * nktv2p;
@@ -465,7 +488,7 @@ void ComputeStressMop::compute_pairs()
 
           // minimum image of xi with respect to the plane
           xi[dir] -= pos;
-          domain->minimum_image(xi[0], xi[1], xi[2]);
+          domain->minimum_image(FLERR, xi[0], xi[1], xi[2]);
           xi[dir] += pos;
 
           //velocities at t
@@ -588,7 +611,7 @@ void ComputeStressMop::compute_bonds()
       dx[1] = x[atom1][1];
       dx[2] = x[atom1][2];
       dx[dir] -= pos;
-      domain->minimum_image(dx[0], dx[1], dx[2]);
+      domain->minimum_image(FLERR, dx[0], dx[1], dx[2]);
       x_bond_1[0] = dx[0];
       x_bond_1[1] = dx[1];
       x_bond_1[2] = dx[2];
@@ -599,7 +622,7 @@ void ComputeStressMop::compute_bonds()
       dx[0] = x[atom2][0] - x_bond_1[0];
       dx[1] = x[atom2][1] - x_bond_1[1];
       dx[2] = x[atom2][2] - x_bond_1[2];
-      domain->minimum_image(dx[0], dx[1], dx[2]);
+      domain->minimum_image(FLERR, dx[0], dx[1], dx[2]);
       x_bond_2[0] = x_bond_1[0] + dx[0];
       x_bond_2[1] = x_bond_1[1] + dx[1];
       x_bond_2[2] = x_bond_1[2] + dx[2];
@@ -715,7 +738,7 @@ void ComputeStressMop::compute_angles()
       dx[1] = x[atom1][1];
       dx[2] = x[atom1][2];
       dx[dir] -= pos;
-      domain->minimum_image(dx[0], dx[1], dx[2]);
+      domain->minimum_image(FLERR, dx[0], dx[1], dx[2]);
       x_angle_left[0] = dx[0];
       x_angle_left[1] = dx[1];
       x_angle_left[2] = dx[2];
@@ -726,7 +749,7 @@ void ComputeStressMop::compute_angles()
       dx_left[0] = x[atom2][0] - x_angle_left[0];
       dx_left[1] = x[atom2][1] - x_angle_left[1];
       dx_left[2] = x[atom2][2] - x_angle_left[2];
-      domain->minimum_image(dx_left[0], dx_left[1], dx_left[2]);
+      domain->minimum_image(FLERR, dx_left[0], dx_left[1], dx_left[2]);
       x_angle_middle[0] = x_angle_left[0] + dx_left[0];
       x_angle_middle[1] = x_angle_left[1] + dx_left[1];
       x_angle_middle[2] = x_angle_left[2] + dx_left[2];
@@ -736,7 +759,7 @@ void ComputeStressMop::compute_angles()
       dx_right[0] = x[atom3][0] - x_angle_middle[0];
       dx_right[1] = x[atom3][1] - x_angle_middle[1];
       dx_right[2] = x[atom3][2] - x_angle_middle[2];
-      domain->minimum_image(dx_right[0], dx_right[1], dx_right[2]);
+      domain->minimum_image(FLERR, dx_right[0], dx_right[1], dx_right[2]);
       x_angle_right[0] = x_angle_middle[0] + dx_right[0];
       x_angle_right[1] = x_angle_middle[1] + dx_right[1];
       x_angle_right[2] = x_angle_middle[2] + dx_right[2];
@@ -869,9 +892,7 @@ void ComputeStressMop::compute_dihedrals()
   double x_atom_4[3] = {0.0, 0.0, 0.0};
 
   // initialization
-  for (int i = 0; i < nvalues; i++) {
-    dihedral_local[i] = 0.0;
-  }
+  for (int i = 0; i < nvalues; i++) dihedral_local[i] = 0.0;
   double local_contribution[3] = {0.0, 0.0, 0.0};
 
   for (atom2 = 0; atom2 < nlocal; atom2++) {
@@ -889,9 +910,9 @@ void ComputeStressMop::compute_dihedrals()
     for (i = 0; i < nd; i++) {
       if (molecular == 1) {
         if (tag[atom2] != dihedral_atom2[atom2][i]) continue;
-          atom1 = atom->map(dihedral_atom1[atom2][i]);
-          atom3 = atom->map(dihedral_atom3[atom2][i]);
-          atom4 = atom->map(dihedral_atom4[atom2][i]);
+        atom1 = atom->map(dihedral_atom1[atom2][i]);
+        atom3 = atom->map(dihedral_atom3[atom2][i]);
+        atom4 = atom->map(dihedral_atom4[atom2][i]);
       } else {
         if (tag[atom2] != onemols[imol]->dihedral_atom2[atom2][i]) continue;
         tagprev = tag[atom2] - iatom - 1;
@@ -909,14 +930,14 @@ void ComputeStressMop::compute_dihedrals()
       x_atom_1[1] = x[atom1][1];
       x_atom_1[2] = x[atom1][2];
       x_atom_1[dir] -= pos;
-      domain->minimum_image(x_atom_1[0], x_atom_1[1], x_atom_1[2]);
+      domain->minimum_image(FLERR, x_atom_1[0], x_atom_1[1], x_atom_1[2]);
       x_atom_1[dir] += pos;
 
       // minimum image of atom2 with respect to atom1
       diffx[0] = x[atom2][0] - x_atom_1[0];
       diffx[1] = x[atom2][1] - x_atom_1[1];
       diffx[2] = x[atom2][2] - x_atom_1[2];
-      domain->minimum_image(diffx[0], diffx[1], diffx[2]);
+      domain->minimum_image(FLERR, diffx[0], diffx[1], diffx[2]);
       x_atom_2[0] = x_atom_1[0] + diffx[0];
       x_atom_2[1] = x_atom_1[1] + diffx[1];
       x_atom_2[2] = x_atom_1[2] + diffx[2];
@@ -925,7 +946,7 @@ void ComputeStressMop::compute_dihedrals()
       diffx[0] = x[atom3][0] - x_atom_2[0];
       diffx[1] = x[atom3][1] - x_atom_2[1];
       diffx[2] = x[atom3][2] - x_atom_2[2];
-      domain->minimum_image(diffx[0], diffx[1], diffx[2]);
+      domain->minimum_image(FLERR, diffx[0], diffx[1], diffx[2]);
       x_atom_3[0] = x_atom_2[0] + diffx[0];
       x_atom_3[1] = x_atom_2[1] + diffx[1];
       x_atom_3[2] = x_atom_2[2] + diffx[2];
@@ -934,7 +955,7 @@ void ComputeStressMop::compute_dihedrals()
       diffx[0] = x[atom4][0] - x_atom_3[0];
       diffx[1] = x[atom4][1] - x_atom_3[1];
       diffx[2] = x[atom4][2] - x_atom_3[2];
-      domain->minimum_image(diffx[0], diffx[1], diffx[2]);
+      domain->minimum_image(FLERR, diffx[0], diffx[1], diffx[2]);
       x_atom_4[0] = x_atom_3[0] + diffx[0];
       x_atom_4[1] = x_atom_3[1] + diffx[1];
       x_atom_4[2] = x_atom_3[2] + diffx[2];
@@ -943,9 +964,9 @@ void ComputeStressMop::compute_dihedrals()
       double tau_right = (x_atom_2[dir] - pos) / (x_atom_2[dir] - x_atom_1[dir]);
       double tau_middle = (x_atom_3[dir] - pos) / (x_atom_3[dir] - x_atom_2[dir]);
       double tau_left = (x_atom_4[dir] - pos) / (x_atom_4[dir] - x_atom_3[dir]);
-      bool right_cross = ((tau_right >=0) && (tau_right  <= 1));
+      bool right_cross = ((tau_right >= 0) && (tau_right <= 1));
       bool middle_cross = ((tau_middle >= 0) && (tau_middle <= 1));
-      bool left_cross = ((tau_left >=0) && (tau_left <= 1));
+      bool left_cross = ((tau_left >= 0) && (tau_left <= 1));
 
       // no bonds crossing the plane
       if (!right_cross && !middle_cross && !left_cross) continue;
@@ -972,45 +993,45 @@ void ComputeStressMop::compute_dihedrals()
       vb3z = x_atom_4[2] - x_atom_3[2];
 
       // c0 calculation
-      sb1 = 1.0 / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
-      sb2 = 1.0 / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
-      sb3 = 1.0 / (vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
+      sb1 = 1.0 / (vb1x * vb1x + vb1y * vb1y + vb1z * vb1z);
+      sb2 = 1.0 / (vb2x * vb2x + vb2y * vb2y + vb2z * vb2z);
+      sb3 = 1.0 / (vb3x * vb3x + vb3y * vb3y + vb3z * vb3z);
 
       rb1 = sqrt(sb1);
       rb3 = sqrt(sb3);
 
-      c0 = (vb1x*vb3x + vb1y*vb3y + vb1z*vb3z) * rb1*rb3;
+      c0 = (vb1x * vb3x + vb1y * vb3y + vb1z * vb3z) * rb1 * rb3;
       // 1st and 2nd angle
-      b1mag2 = vb1x*vb1x + vb1y*vb1y + vb1z*vb1z;
+      b1mag2 = vb1x * vb1x + vb1y * vb1y + vb1z * vb1z;
       b1mag = sqrt(b1mag2);
-      b2mag2 = vb2x*vb2x + vb2y*vb2y + vb2z*vb2z;
+      b2mag2 = vb2x * vb2x + vb2y * vb2y + vb2z * vb2z;
       b2mag = sqrt(b2mag2);
-      b3mag2 = vb3x*vb3x + vb3y*vb3y + vb3z*vb3z;
+      b3mag2 = vb3x * vb3x + vb3y * vb3y + vb3z * vb3z;
       b3mag = sqrt(b3mag2);
 
-      ctmp = vb1x*vb2x + vb1y*vb2y + vb1z*vb2z;
-      r12c1 = 1.0 / (b1mag*b2mag);
+      ctmp = vb1x * vb2x + vb1y * vb2y + vb1z * vb2z;
+      r12c1 = 1.0 / (b1mag * b2mag);
       c1mag = ctmp * r12c1;
 
-      ctmp = vb2xm*vb3x + vb2ym*vb3y + vb2zm*vb3z;
-      r12c2 = 1.0 / (b2mag*b3mag);
+      ctmp = vb2xm * vb3x + vb2ym * vb3y + vb2zm * vb3z;
+      r12c2 = 1.0 / (b2mag * b3mag);
       c2mag = ctmp * r12c2;
 
       // cos and sin of 2 angles and final c
-      sin2 = MAX(1.0 - c1mag*c1mag,0.0);
+      sin2 = MAX(1.0 - c1mag * c1mag, 0.0);
       sc1 = sqrt(sin2);
       if (sc1 < SMALL) sc1 = SMALL;
-      sc1 = 1.0/sc1;
+      sc1 = 1.0 / sc1;
 
-      sin2 = MAX(1.0 - c2mag*c2mag,0.0);
+      sin2 = MAX(1.0 - c2mag * c2mag, 0.0);
       sc2 = sqrt(sin2);
       if (sc2 < SMALL) sc2 = SMALL;
-      sc2 = 1.0/sc2;
+      sc2 = 1.0 / sc2;
 
       s1 = sc1 * sc1;
       s2 = sc2 * sc2;
       s12 = sc1 * sc2;
-      c = (c0 + c1mag*c2mag) * s12;
+      c = (c0 + c1mag * c2mag) * s12;
 
       // error check
       if (c > 1.0) c = 1.0;
@@ -1020,28 +1041,28 @@ void ComputeStressMop::compute_dihedrals()
       double a = dudih;
       c = c * a;
       s12 = s12 * a;
-      a11 = c*sb1*s1;
-      a22 = -sb2 * (2.0*c0*s12 - c*(s1+s2));
-      a33 = c*sb3*s2;
-      a12 = -r12c1 * (c1mag*c*s1 + c2mag*s12);
-      a13 = -rb1*rb3*s12;
-      a23 = r12c2 * (c2mag*c*s2 + c1mag*s12);
+      a11 = c * sb1 * s1;
+      a22 = -sb2 * (2.0 * c0 * s12 - c * (s1 + s2));
+      a33 = c * sb3 * s2;
+      a12 = -r12c1 * (c1mag * c * s1 + c2mag * s12);
+      a13 = -rb1 * rb3 * s12;
+      a23 = r12c2 * (c2mag * c * s2 + c1mag * s12);
 
-      sx2  = a12*vb1x + a22*vb2x + a23*vb3x;
-      sy2  = a12*vb1y + a22*vb2y + a23*vb3y;
-      sz2  = a12*vb1z + a22*vb2z + a23*vb3z;
+      sx2 = a12 * vb1x + a22 * vb2x + a23 * vb3x;
+      sy2 = a12 * vb1y + a22 * vb2y + a23 * vb3y;
+      sz2 = a12 * vb1z + a22 * vb2z + a23 * vb3z;
 
-      f1[0] = a11*vb1x + a12*vb2x + a13*vb3x;
-      f1[1] = a11*vb1y + a12*vb2y + a13*vb3y;
-      f1[2] = a11*vb1z + a12*vb2z + a13*vb3z;
+      f1[0] = a11 * vb1x + a12 * vb2x + a13 * vb3x;
+      f1[1] = a11 * vb1y + a12 * vb2y + a13 * vb3y;
+      f1[2] = a11 * vb1z + a12 * vb2z + a13 * vb3z;
 
       f2[0] = -sx2 - f1[0];
       f2[1] = -sy2 - f1[1];
       f2[2] = -sz2 - f1[2];
 
-      f4[0] = a13*vb1x + a23*vb2x + a33*vb3x;
-      f4[1] = a13*vb1y + a23*vb2y + a33*vb3y;
-      f4[2] = a13*vb1z + a23*vb2z + a33*vb3z;
+      f4[0] = a13 * vb1x + a23 * vb2x + a33 * vb3x;
+      f4[1] = a13 * vb1y + a23 * vb2y + a33 * vb3y;
+      f4[2] = a13 * vb1z + a23 * vb2z + a33 * vb3z;
 
       f3[0] = sx2 - f4[0];
       f3[1] = sy2 - f4[1];
@@ -1106,9 +1127,10 @@ void ComputeStressMop::compute_dihedrals()
         df[1] = sgn * (f1[1] + f3[1]);
         df[2] = sgn * (f1[2] + f3[2]);
       }
-      local_contribution[0] += df[0]/area*nktv2p;
-      local_contribution[1] += df[1]/area*nktv2p;
-      local_contribution[2] += df[2]/area*nktv2p;
+
+      local_contribution[0] += df[0] / area * nktv2p;
+      local_contribution[1] += df[1] / area * nktv2p;
+      local_contribution[2] += df[2] / area * nktv2p;
     }
   }
 
@@ -1116,11 +1138,10 @@ void ComputeStressMop::compute_dihedrals()
   int m = 0;
   while (m < nvalues) {
     if ((which[m] == CONF) || (which[m] == TOTAL) || (which[m] == DIHEDRAL)) {
-        dihedral_local[m] = local_contribution[0];
-        dihedral_local[m+1] = local_contribution[1];
-        dihedral_local[m+2] = local_contribution[2];
+      dihedral_local[m] = local_contribution[0];
+      dihedral_local[m + 1] = local_contribution[1];
+      dihedral_local[m + 2] = local_contribution[2];
     }
     m += 3;
   }
-
 }

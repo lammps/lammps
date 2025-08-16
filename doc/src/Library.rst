@@ -93,14 +93,19 @@ run LAMMPS in serial mode.
 .. admonition:: Using the C library interface as a plugin
    :class: note
 
-   Rather than including the C library directly and link to the LAMMPS
+   Rather than including the C library interface directly using the
+   ``library.h`` header file and link to the LAMMPS (static or shared)
    library at compile time, you can use the ``liblammpsplugin.h`` header
    file and the ``liblammpsplugin.c`` C code in the
    ``examples/COUPLE/plugin`` folder for an interface to LAMMPS that is
    largely identical to the regular library interface, only that it will
    load a LAMMPS shared library file at runtime.  This can be useful for
    applications where the interface to LAMMPS would be an optional
-   feature.
+   feature or where you would like to load different version of the
+   LAMMPS library (e.g. an updated one) without replacing the executable.
+   The :ref:`LAMMPS-GUI <lammps_gui>` is an example for such a program.
+   It has its own wrapper that supports both modes and they can be
+   changed at compile time.
 
 .. warning::
 
@@ -131,16 +136,15 @@ run LAMMPS in serial mode.
 
 .. _lammps_python_api:
 
-LAMMPS Python APIs
-==================
+LAMMPS Python API
+=================
 
 The LAMMPS Python module enables calling the LAMMPS C library API from
 Python by dynamically loading functions in the LAMMPS shared library through
 the `Python ctypes module <https://docs.python.org/3/library/ctypes.html>`_.
 Because of the dynamic loading, it is **required** that LAMMPS is compiled
 in :ref:`"shared" mode <exe>`.  The Python interface is object-oriented, but
-otherwise tries to be very similar to the C library API.  Three different
-Python classes to run LAMMPS are available and they build on each other.
+otherwise tries to be very similar to the C library API.
 More information on this is in the :doc:`Python_head`
 section of the manual.  Use of the LAMMPS Python module is described in
 :doc:`Python_module`.

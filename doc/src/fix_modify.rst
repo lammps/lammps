@@ -12,19 +12,16 @@ Syntax
 
 * fix-ID = ID of the fix to modify
 * one or more keyword/value pairs may be appended
-* keyword = *bodyforces* or *colname* or *dynamic/dof* or *energy* or *press* or *respa* or *temp* or *virial*
+* keyword = *bodyforces* or *dynamic/dof* or *energy* or *pad* or *press* or *respa* or *temp* or *virial*
 
   .. parsed-literal::
 
        *bodyforces* value = *early* or *late*
          early/late = compute rigid-body forces/torques early or late in the timestep
-       *colname* values =  ID string
-         string = new column header name
-         ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
-              *or* a fix output property keyword or reference to compute, fix, property or variable.
        *dynamic/dof* value = *yes* or *no*
          yes/no = do or do not re-compute the number of degrees of freedom (DOF) contributing to the temperature
        *energy* value = *yes* or *no*
+       *pad*    arg = Nchar = # of characters to convert timestep to
        *press* value = compute ID that calculates a pressure
        *respa* value = *1* to *max respa level* or *0* (for outermost level)
        *temp* value = compute ID that calculates a temperature
@@ -38,7 +35,6 @@ Examples
    fix_modify 3 temp myTemp press myPress
    fix_modify 1 energy yes
    fix_modify tether respa 2
-   fix_modify ave colname c_thermo_press Pressure colname 1 Temperature
 
 Description
 """""""""""
@@ -171,19 +167,18 @@ will have no effect on the motion of the rigid bodies if they are
 specified in the input script after the fix rigid command.  LAMMPS
 will give a warning if that is the case.
 
+.. versionadded:: 2Apr2025
 
-The *colname* keyword can be used to change the default header keywords
-in output files of fix styles that support it: currently only :doc:`fix
-ave/time <fix_ave_time>` is supported.  The setting for *ID string*
-replaces the default text with the provided string.  *ID* can be a
-positive integer when it represents the column number counting from the
-left, a negative integer when it represents the column number from the
-right (i.e. -1 is the last column/keyword), or a custom fix output
-keyword (or compute, fix, property, or variable reference) and then it
-replaces the string for that specific keyword. The *colname* keyword can
-be used multiple times. If multiple *colname* settings refer to the same
-keyword, the last setting has precedence.
-
+The *pad* keyword only applies when a fix produces a file and the output
+filename is specified with a wildcard "\*" character which becomes the
+timestep.  If *pad* is 0, which is the default, the timestep is
+converted into a string of unpadded length (e.g., 100 or 12000 or
+2000000).  When *pad* is specified with *Nchar* :math:`>` 0, the string
+is padded with leading zeroes so they are all the same length = *Nchar*\
+.  For example, pad 7 would yield 0000100, 0012000, 2000000.  This can
+be useful so that post-processing programs can easily read the files in
+ascending timestep order.  Please see the documentation of the individual
+fix styles if this keyword is supported.
 
 Restrictions
 """"""""""""

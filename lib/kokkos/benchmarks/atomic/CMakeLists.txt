@@ -1,4 +1,1 @@
-KOKKOS_ADD_EXECUTABLE(
-  atomic
-  SOURCES main.cpp
-)
+kokkos_add_executable(atomic SOURCES main.cpp)

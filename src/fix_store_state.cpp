@@ -28,6 +28,7 @@
 #include "error.h"
 
 #include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -232,7 +233,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       if ((val.which == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
         error->all(FLERR,"Illegal fix store/state argument: {}", arg[iarg]);
     }
-    values.push_back(val);
+    values.push_back(std::move(val));
     iarg++;
   }
 
@@ -263,7 +264,8 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       if (val.argindex && val.val.c->size_peratom_cols == 0)
         error->all(FLERR, "Fix store/state compute {} does not calculate per-atom array", val.id);
       if (val.argindex && (val.argindex > val.val.c->size_peratom_cols))
-        error->all(FLERR, "Fix store/state compute array {} is accessed out-of-range", val.id);
+        error->all(FLERR, "Fix store/state compute array {} is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
 
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
@@ -276,9 +278,11 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       if (val.argindex && val.val.f->size_peratom_cols == 0)
         error->all(FLERR, "Fix store/state fix {} does not calculate per-atom array", val.id);
       if (val.argindex && (val.argindex > val.val.f->size_peratom_cols))
-        error->all(FLERR, "Fix store/state fix {} array is accessed out-of-range", val.id);
+        error->all(FLERR, "Fix store/state fix {} array is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
       if (nevery % val.val.f->peratom_freq)
-        error->all(FLERR, "Fix {} for fix store/state not computed at compatible time", val.id);
+        error->all(FLERR, "Fix {} for fix store/state not computed at compatible time{}",
+                   val.id, utils::errorurl(7));
 
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());

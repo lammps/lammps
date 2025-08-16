@@ -28,14 +28,14 @@ namespace LAMMPS_NS {
 class DomainOMP : public Domain {
  public:
   DomainOMP(class LAMMPS *lmp) : Domain(lmp) {}
-  virtual ~DomainOMP() {}
+  ~DomainOMP() override = default;
 
   // multi-threaded versions
-  virtual void pbc();
-  virtual void lamda2x(int);
-  virtual void lamda2x(double *lamda, double *x) { Domain::lamda2x(lamda, x); }
-  virtual void x2lamda(int);
-  virtual void x2lamda(double *x, double *lamda) { Domain::x2lamda(x, lamda); }
+  void pbc() override;
+  void lamda2x(int) override;
+  void lamda2x(double *lamda, double *x) override { Domain::lamda2x(lamda, x); }
+  void x2lamda(int) override;
+  void x2lamda(double *x, double *lamda) override { Domain::x2lamda(x, lamda); }
 };
 }    // namespace LAMMPS_NS
 

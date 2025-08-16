@@ -21,6 +21,23 @@
 #define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_STATICCRSGRAPH
 #endif
 
+#include <Kokkos_Macros.hpp>
+
+#if defined(KOKKOS_ENABLE_DEPRECATED_CODE_4)
+#if defined(KOKKOS_ENABLE_DEPRECATION_WARNINGS) && \
+    !defined(KOKKOS_IMPL_DO_NOT_WARN_INCLUDE_STATIC_CRS_GRAPH)
+namespace {
+[[deprecated("Deprecated <Kokkos_StaticCrsGraph.hpp> header is included")]] int
+emit_warning_kokkos_static_crs_graph_deprecated() {
+  return 0;
+}
+static auto do_not_include = emit_warning_kokkos_static_crs_graph_deprecated();
+}  // namespace
+#endif
+#else
+#error "Deprecated <Kokkos_StaticCrsGraph.hpp> header is included"
+#endif
+
 #include <string>
 #include <vector>
 
@@ -190,7 +207,7 @@ struct GraphRowViewConst {
       const typename GraphType::entries_type& colidx_in,
       const ordinal_type& stride, const ordinal_type& count,
       const OffsetType& idx,
-      const std::enable_if_t<std::is_integral<OffsetType>::value, int>& = 0)
+      const std::enable_if_t<std::is_integral_v<OffsetType>, int>& = 0)
       : colidx_(&colidx_in(idx)), stride_(stride), length(count) {}
 
   /// \brief Number of entries in the row.

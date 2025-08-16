@@ -1,4 +1,1 @@
-KOKKOS_ADD_EXECUTABLE(
-  gather
-  SOURCES main.cpp
-)
+kokkos_add_executable(gather SOURCES main.cpp)

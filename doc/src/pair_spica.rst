@@ -5,6 +5,7 @@
 .. index:: pair_style lj/spica/coul/long
 .. index:: pair_style lj/spica/coul/long/gpu
 .. index:: pair_style lj/spica/coul/long/omp
+.. index:: pair_style lj/spica/coul/long/kk
 .. index:: pair_style lj/spica/coul/msm
 .. index:: pair_style lj/spica/coul/msm/omp
 
@@ -16,7 +17,7 @@ Accelerator Variants: *lj/spica/gpu*, *lj/spica/kk*, *lj/spica/omp*
 pair_style lj/spica/coul/long command
 =====================================
 
-Accelerator Variants: *lj/spica/coul/long/gpu*, *lj/spica/coul/long/omp*
+Accelerator Variants: *lj/spica/coul/long/gpu*, *lj/spica/coul/long/omp*, *lj/spica/coul/long/kk*
 
 pair_style lj/spica/coul/msm command
 ====================================

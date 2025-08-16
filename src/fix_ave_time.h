@@ -22,8 +22,6 @@ FixStyle(ave/time,FixAveTime);
 
 #include "fix.h"
 
-#include <map>
-
 namespace LAMMPS_NS {
 
 class FixAveTime : public Fix {
@@ -34,7 +32,6 @@ class FixAveTime : public Fix {
   void init() override;
   void setup(int) override;
   void end_of_step() override;
-  int modify_param(int, char **) override;
   double compute_scalar() override;
   double compute_vector(int) override;
   double compute_array(int, int) override;
@@ -43,6 +40,7 @@ class FixAveTime : public Fix {
   struct value_t {
     int which;       // type of data: COMPUTE, FIX, VARIABLE
     int argindex;    // 1-based index if data is vector, else 0
+    int iarg;        // argument index in original argument list
     int varlen;      // 1 if value is from variable-length compute
     int offcol;
     std::string id;         // compute/fix/variable ID
@@ -68,11 +66,9 @@ class FixAveTime : public Fix {
   int ave, nwindow, startstep, mode;
   int noff, overwrite;
   int *offlist;
-  char *format, *format_user;
+  char *format;
   char *title1, *title2, *title3;
   bigint filepos;
-
-  std::map<std::string, int> key2col;
 
   int norm, iwindow, window_limit;
   double *vector;

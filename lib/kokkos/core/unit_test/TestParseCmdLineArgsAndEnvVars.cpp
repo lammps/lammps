@@ -92,7 +92,7 @@ class EnvVarsHelper {
     teardown();
     mutex_.unlock();
   }
-  EnvVarsHelper(EnvVarsHelper&) = delete;
+  EnvVarsHelper(EnvVarsHelper&)            = delete;
   EnvVarsHelper& operator=(EnvVarsHelper&) = delete;
   friend std::ostream& operator<<(std::ostream& os, EnvVarsHelper const& ev) {
     for (auto const& name : ev.vars_) {
@@ -408,7 +408,8 @@ TEST(defaultdevicetype, visible_devices) {
 
 #define DEV(...) \
   std::vector<int> { __VA_ARGS__ }
-#define ENV(...) std::unordered_map<std::string, std::string>{__VA_ARGS__}
+#define ENV(...) \
+  std::unordered_map<std::string, std::string> { __VA_ARGS__ }
 
   // first test with all environment variables that are involved in determining
   // the visible devices so user set var do not mess up the logic below.

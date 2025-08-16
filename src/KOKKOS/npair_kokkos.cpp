@@ -151,7 +151,15 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
   if (GHOST)
     nall += atom->nghost;
 
-  if (nall == 0) return;
+  int nbor_block_size = 0;
+  if (lmp->kokkos->nbor_block_size_set)
+    nbor_block_size = lmp->kokkos->nbor_block_size;
+
+  if (nall == 0) {
+    list->inum = 0;
+    list->gnum = 0;
+    return;
+  }
 
   list->grow(nall);
 
@@ -288,12 +296,13 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
         if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
           int team_size = atoms_per_bin*factor;
           int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-          if (team_size <= team_size_max) {
+          if (team_size <= team_size_max && nbor_block_size == 0) {
             Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
             Kokkos::parallel_for(config, f);
           } else { // fall back to flat method
             f.sharedsize = 0;
-            Kokkos::parallel_for(nall, f);
+            Kokkos::RangePolicy<DeviceType > config(0,nall,Kokkos::ChunkSize(nbor_block_size));
+            Kokkos::parallel_for(config, f);
           }
         } else
           Kokkos::parallel_for(nall, f);
@@ -1438,7 +1447,6 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
     for (int k = 0; k < nstencil; k++) {
       const int jbin = ibin + stencil[k];
 
-      if (ibin == jbin) continue;
       if (HalfNeigh && Newton && !Tri && (ibin == jbin)) continue;
 
       bincount_current = c_bincount[jbin];

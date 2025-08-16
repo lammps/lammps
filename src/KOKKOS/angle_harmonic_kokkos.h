@@ -37,6 +37,7 @@ class AngleHarmonicKokkos : public AngleHarmonic {
  public:
   typedef DeviceType device_type;
   typedef EV_FLOAT value_type;
+  typedef ArrayTypes<DeviceType> AT;
 
   AngleHarmonicKokkos(class LAMMPS *);
   ~AngleHarmonicKokkos() override;
@@ -59,6 +60,9 @@ class AngleHarmonicKokkos : public AngleHarmonic {
                      const F_FLOAT &delx1, const F_FLOAT &dely1, const F_FLOAT &delz1,
                      const F_FLOAT &delx2, const F_FLOAT &dely2, const F_FLOAT &delz2) const;
 
+  typename AT::tdual_efloat_1d k_eatom;
+  typename AT::tdual_virial_array k_vatom;
+
  protected:
 
   class NeighborKokkos *neighborKK;
@@ -66,9 +70,6 @@ class AngleHarmonicKokkos : public AngleHarmonic {
   typename ArrayTypes<DeviceType>::t_x_array_randomread x;
   typename ArrayTypes<DeviceType>::t_f_array f;
   typename ArrayTypes<DeviceType>::t_int_2d anglelist;
-
-  typename ArrayTypes<DeviceType>::tdual_efloat_1d k_eatom;
-  typename ArrayTypes<DeviceType>::tdual_virial_array k_vatom;
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 

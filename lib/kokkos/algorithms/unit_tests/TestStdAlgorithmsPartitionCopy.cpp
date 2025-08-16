@@ -95,7 +95,7 @@ void fill_view(ViewType dest_view, const std::string& name) {
   }
 
   else {
-    throw std::runtime_error("invalid choice");
+    FAIL() << "invalid choice";
   }
 
   Kokkos::deep_copy(aux_view, v_h);
@@ -110,9 +110,9 @@ void verify_data(const std::string& name, ResultType my_result,
                  ViewTypeDestFalse view_dest_false, PredType pred) {
   using value_type = typename ViewTypeFrom::value_type;
   static_assert(
-      std::is_same<value_type, typename ViewTypeDestTrue::value_type>::value);
+      std::is_same_v<value_type, typename ViewTypeDestTrue::value_type>);
   static_assert(
-      std::is_same<value_type, typename ViewTypeDestFalse::value_type>::value);
+      std::is_same_v<value_type, typename ViewTypeDestFalse::value_type>);
 
   const std::size_t ext = view_from.extent(0);
 

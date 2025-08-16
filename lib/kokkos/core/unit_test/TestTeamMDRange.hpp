@@ -148,10 +148,6 @@ struct TestTeamMDParallelFor {
   }
 };
 
-// If KOKKOS_ENABLE_CUDA_LAMBDA is off, extended lambdas used in parallel_for
-// and parallel_reduce in these tests will not compile correctly
-#if !defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_CUDA_LAMBDA)
-
 template <typename ExecSpace>
 struct TestTeamThreadMDRangeParallelFor : public TestTeamMDParallelFor {
   using TeamType = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
@@ -2186,7 +2182,7 @@ TEST(TEST_CATEGORY, TeamThreadMDRangeParallelReduce) {
 TEST(TEST_CATEGORY, ThreadVectorMDRangeParallelReduce) {
 // FIXME_SYCL sycl::group_barrier doesn't work correctly for non-Intel GPUs
 #if defined(KOKKOS_ENABLE_SYCL) && !defined(KOKKOS_ARCH_INTEL_GPU)
-  if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::SYCL>)
+  if (std::is_same_v<TEST_EXECSPACE, Kokkos::SYCL>)
     GTEST_SKIP() << "skipping because of bug in group_barrier implementation";
 #endif
 
@@ -2219,7 +2215,7 @@ TEST(TEST_CATEGORY, ThreadVectorMDRangeParallelReduce) {
 TEST(TEST_CATEGORY, TeamVectorMDRangeParallelReduce) {
 // FIXME_SYCL sycl::group_barrier doesn't work correctly for non-Intel GPUs
 #if defined(KOKKOS_ENABLE_SYCL) && !defined(KOKKOS_ARCH_INTEL_GPU)
-  if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::SYCL>)
+  if (std::is_same_v<TEST_EXECSPACE, Kokkos::SYCL>)
     GTEST_SKIP() << "skipping because of bug in group_barrier implementation";
 #endif
 
@@ -2248,8 +2244,6 @@ TEST(TEST_CATEGORY, TeamVectorMDRangeParallelReduce) {
   TestTeamVectorMDRangeParallelReduce<TEST_EXECSPACE>::
       test_parallel_reduce_for_8D_TeamVectorMDRange<Right>(smallDims);
 }
-
-#endif
 
 }  // namespace TeamMDRange
 }  // namespace Test

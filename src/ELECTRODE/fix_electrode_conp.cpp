@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meißner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
 ------------------------------------------------------------------------- */
 
 #include "fix_electrode_conp.h"
@@ -43,6 +43,7 @@
 #include <cmath>
 #include <cstring>
 #include <exception>
+#include <iterator>
 #include <memory>
 #include <utility>
 
@@ -154,7 +155,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
     } else if ((strcmp(arg[iarg], "algo") == 0)) {
       if (!default_algo) error->one(FLERR, "Algorithm can be set only once");
       default_algo = false;
-      if (iarg + 2 > narg) error->all(FLERR, "Need one argument after algo command");
+      if (iarg + 2 > narg) error->all(FLERR, "Need at least one argument after algo command");
       char *algo_arg = arg[++iarg];
       bool cg_algo = false;
       if ((strcmp(algo_arg, "mat_inv") == 0)) {
@@ -172,7 +173,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, "Unknown algo keyword {}", algo_arg);
       }
       if (cg_algo) {
-        if (iarg + 2 > narg) error->all(FLERR, "Need one argument after algo *cg command");
+        if (iarg + 2 > narg) error->all(FLERR, "Need one argument after algo cg command");
         cg_threshold = utils::numeric(FLERR, arg[++iarg], false, lmp);
       }
     } else if ((strncmp(arg[iarg], "write", 5) == 0)) {
@@ -337,7 +338,7 @@ int FixElectrodeConp::modify_param(int narg, char **arg)
     tfflag = true;
     // read atom type, Thomas-Fermi length, and voronoi volume (reciprocal
     // number density)
-    int const type = utils::inumeric(FLERR, arg[1], false, lmp);
+    const int type = utils::inumeric(FLERR, arg[1], false, lmp);
     double const len = utils::numeric(FLERR, arg[2], false, lmp);
     double const voronoi = utils::numeric(FLERR, arg[3], false, lmp);
     // check type exists and is completely in electrode
@@ -413,40 +414,37 @@ void FixElectrodeConp::init()
   if (pair == nullptr) error->all(FLERR, "Fix electrode couldn't find a Coulombic pair style");
 
   // error if more than one fix electrode/*
-  int count = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style, "electrode", 9) == 0) count++;
-  if (count > 1) error->all(FLERR, "More than one fix electrode");
+  if (modify->get_fix_by_style("^electrode").size() > 1)
+    error->all(FLERR, "More than one fix electrode");
 
   // make sure electrode atoms are not integrated if a matrix is used for electrode-electrode interaction
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   int *mask = atom->mask;
-  Fix **fix = modify->fix;
   if (matrix_algo) {
-    std::vector<char *> integrate_ids = std::vector<char *>();
-    for (int i = 0; i < modify->nfix; i++) {
-      if (fix[i]->time_integrate == 0) continue;
+    std::vector<Fix *> integrate_fixes;
+    for (auto *fix : modify->get_fix_list()) {
+      if (fix->time_integrate == 0) continue;
       int electrode_mover = 0;
-      int fix_groupbit = fix[i]->groupbit;
+      int fix_groupbit = fix->groupbit;
       for (int j = 0; j < nlocal; j++)
         if ((mask[j] & fix_groupbit) && (mask[j] & groupbit)) electrode_mover = 1;
       MPI_Allreduce(MPI_IN_PLACE, &electrode_mover, 1, MPI_INT, MPI_SUM, world);
-      if (electrode_mover && comm->me == 0) integrate_ids.push_back(fix[i]->id);
+      if (electrode_mover && comm->me == 0) integrate_fixes.push_back(fix);
     }
     if (comm->me == 0)
-      for (char *fix_id : integrate_ids)
+      for (auto *const fix : integrate_fixes)
         error->warning(FLERR,
-                       "Electrode atoms are integrated by fix {}, but fix electrode is using a "
+                       "Electrode atoms are integrated by fix {} {}, but fix electrode is using a "
                        "matrix method. For mobile electrodes use the conjugate gradient algorithm "
                        "without matrix ('algo cg').",
-                       fix_id);
+                       fix->id, fix->style);
   }
 
   // check for package intel
   if (etypes_neighlists)
     request_etypes_neighlists();
   else {
-    auto Req = neighbor->add_request(this);
+    auto *Req = neighbor->add_request(this);
     if (intelflag) Req->enable_intel();
   }
 }
@@ -497,7 +495,7 @@ void FixElectrodeConp::post_constructor()
 
 void FixElectrodeConp::setup_post_neighbor()
 {
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   int *mask = atom->mask;
   tagint *tag = atom->tag;
 
@@ -549,7 +547,7 @@ void FixElectrodeConp::setup_post_neighbor()
     size_t n = order.size();
     std::vector<std::vector<double>> ordered_mat(n, std::vector<double>(n));
     for (size_t i = 0; i < n; i++) {
-      bigint const gi = order[i];
+      const bigint gi = order[i];
       for (size_t j = 0; j < n; j++) { ordered_mat[gi][order[j]] = mat[i][j]; }
     }
     return ordered_mat;
@@ -565,7 +563,7 @@ void FixElectrodeConp::setup_post_neighbor()
         if (mask[i] & group_bits[g]) { iele_to_group[tag_to_iele[tag[i]]] = g; }
       }
     }
-    MPI_Allreduce(MPI_IN_PLACE, &iele_to_group.front(), ngroup, MPI_INT, MPI_MAX, world);
+    MPI_Allreduce(MPI_IN_PLACE, iele_to_group.data(), ngroup, MPI_INT, MPI_MAX, world);
 
     memory->destroy(elastance);
     memory->destroy(capacitance);
@@ -581,7 +579,7 @@ void FixElectrodeConp::setup_post_neighbor()
       array_compute->compute_array(elastance, timer_flag);
     }    // write_mat before proceeding
     if (comm->me == 0 && write_mat) {
-      auto f_mat = fopen(output_file_mat.c_str(), "w");
+      auto *f_mat = fopen(output_file_mat.c_str(), "w");
       if (f_mat == nullptr)
         error->one(FLERR, "Cannot open elastance matrix file {}: {}", output_file_mat,
                    utils::getsyserror());
@@ -621,7 +619,7 @@ void FixElectrodeConp::setup_post_neighbor()
     if (force->newton_pair) comm->reverse_comm(this);
     buffer_and_gather(potential_i, potential_iele);
     if (comm->me == 0) {
-      auto f_vec = fopen(output_file_vec.c_str(), "w");
+      auto *f_vec = fopen(output_file_vec.c_str(), "w");
       if (f_vec == nullptr)
         error->one(FLERR, "Cannot open vector file {}: {}", output_file_vec, utils::getsyserror());
       std::vector<std::vector<double>> vec(ngroup, std::vector<double>(1));
@@ -633,7 +631,7 @@ void FixElectrodeConp::setup_post_neighbor()
 
   if (write_inv) {
     if (comm->me == 0) {
-      auto f_inv = fopen(output_file_inv.c_str(), "w");
+      auto *f_inv = fopen(output_file_inv.c_str(), "w");
       if (f_inv == nullptr)
         error->one(FLERR, "Cannot open capacitance matrix file {}: {}", output_file_inv,
                    utils::getsyserror());
@@ -648,7 +646,8 @@ void FixElectrodeConp::setup_post_neighbor()
 void FixElectrodeConp::setup_pre_reverse(int eflag, int vflag)
 {
   if (pair->did_tally_callback() && (comm->me == 0))
-    error->warning(FLERR, "Computation of virials in fix {} is incompatible with TALLY package", style);
+    error->warning(FLERR, "Computation of virials in fix {} is incompatible with TALLY package",
+                   style);
   // correct forces for initial timestep
   ev_init(eflag, vflag);
   gausscorr(eflag, vflag, true);
@@ -665,12 +664,12 @@ void FixElectrodeConp::invert()
   if (timer_flag && (comm->me == 0)) utils::logmesg(lmp, "CONP inverting matrix\n");
   int m = ngroup, n = ngroup, lda = ngroup;
   std::vector<int> ipiv(ngroup);
-  int const lwork = ngroup * ngroup;
+  const int lwork = ngroup * ngroup;
   std::vector<double> work(lwork);
 
   int info_rf, info_ri;
-  dgetrf_(&m, &n, &capacitance[0][0], &lda, &ipiv.front(), &info_rf);
-  dgetri_(&n, &capacitance[0][0], &lda, &ipiv.front(), &work.front(), &lwork, &info_ri);
+  dgetrf_(&m, &n, &capacitance[0][0], &lda, ipiv.data(), &info_rf);
+  dgetri_(&n, &capacitance[0][0], &lda, ipiv.data(), work.data(), &lwork, &info_ri);
   if (info_rf != 0 || info_ri != 0) error->all(FLERR, "CONP matrix inversion failed!");
   MPI_Barrier(world);
   if (timer_flag && (comm->me == 0))
@@ -710,8 +709,8 @@ void FixElectrodeConp::setup_pre_exchange()    // create_taglist
   if (!matrix_algo) return;
 
   int *mask = atom->mask;
-  int const nlocal = atom->nlocal;
-  int const nprocs = comm->nprocs;
+  const int nlocal = atom->nlocal;
+  const int nprocs = comm->nprocs;
   tagint *tag = atom->tag;
 
   delete[] recvcounts;
@@ -735,9 +734,9 @@ void FixElectrodeConp::setup_pre_exchange()    // create_taglist
     MPI_Allgather(&gnum_local, 1, MPI_INT, recvcounts, 1, MPI_INT, world);
     displs[0] = 0;
     for (int i = 1; i < nprocs; i++) { displs[i] = displs[i - 1] + recvcounts[i - 1]; }
-    int const gnum = displs[nprocs - 1] + recvcounts[nprocs - 1];
+    const int gnum = displs[nprocs - 1] + recvcounts[nprocs - 1];
     std::vector<tagint> taglist_all(gnum);
-    MPI_Allgatherv(&taglist_local_group.front(), gnum_local, MPI_LMP_TAGINT, &taglist_all.front(),
+    MPI_Allgatherv(taglist_local_group.data(), gnum_local, MPI_LMP_TAGINT, taglist_all.data(),
                    recvcounts, displs, MPI_LMP_TAGINT, world);
     std::sort(taglist_all.begin(), taglist_all.end());
     for (tagint t : taglist_all) taglist_bygroup.push_back(t);
@@ -811,7 +810,7 @@ void FixElectrodeConp::compute_sd_vectors_ffield()
   double zprd = domain->prd[2];
   for (int i = 0; i < atom->nlocal; i++) {
     if (mask[i] & groupbit) {
-      int const i_iele = tag_to_iele[tag[i]];
+      const int i_iele = tag_to_iele[tag[i]];
       double const zprd_offset = (mask[i] & group_bits[top_group]) ? 0.0 : 1.0;
       double const evscale_elez = evscale * (x[i][2] / zprd + zprd_offset);
       for (int g = 0; g < num_of_groups; g++) {
@@ -823,7 +822,7 @@ void FixElectrodeConp::compute_sd_vectors_ffield()
     }
   }
   for (int g = 0; g < num_of_groups; g++) {
-    MPI_Allreduce(MPI_IN_PLACE, &sd_vectors[g].front(), ngroup, MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(MPI_IN_PLACE, sd_vectors[g].data(), ngroup, MPI_DOUBLE, MPI_SUM, world);
   }
 }
 
@@ -831,7 +830,7 @@ void FixElectrodeConp::compute_sd_vectors_ffield()
 
 int FixElectrodeConp::get_top_group()
 {
-  double *zmax = new double[num_of_groups];
+  auto *zmax = new double[num_of_groups];
   double **x = atom->x;
   for (int g = 0; g < num_of_groups; g++) { zmax[g] = domain->boxlo[2]; }
   int *mask = atom->mask;
@@ -876,13 +875,13 @@ void FixElectrodeConp::update_charges()
     double mult_start = MPI_Wtime();
     for (int i_iele = 0; i_iele < nlocalele; i_iele++) {
       double q_tmp = 0;
-      int const iele = list_iele[i_iele];
+      const int iele = list_iele[i_iele];
       double *_noalias caprow = capacitance[iele];
       for (int j = 0; j < ngroup; j++) { q_tmp -= caprow[j] * potential_iele[j]; }
       q_local[i_iele] = q_tmp;
       sb_charges[iele_to_group[iele]] += q_tmp;
     }
-    MPI_Allreduce(MPI_IN_PLACE, &sb_charges.front(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(MPI_IN_PLACE, sb_charges.data(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
     update_psi();    // use for equal-style and conq
     if (qtotal_var_style != VarStyle::UNSET)
       update_psi_qtotal();    // use for qtotal; same for thermo
@@ -930,8 +929,9 @@ void FixElectrodeConp::update_charges()
       delta = dot_nlocalele(r, d);
       dot_old = dot_new;
     }
-    recompute_potential(std::move(b), q_local);
-    if ((delta > cg_threshold) && (comm->me == 0)) error->warning(FLERR, "CG threshold not reached");
+    recompute_potential(b, q_local);
+    if ((delta > cg_threshold) && (comm->me == 0))
+      error->warning(FLERR, "CG threshold not reached");
   } else {
     error->all(FLERR, "This algorithm is not implemented, yet");
   }
@@ -980,10 +980,10 @@ std::vector<double> FixElectrodeConp::gather_ngroup(std::vector<double> x_local)
 {
   auto x = std::vector<double>(ngroup, 0.);
   for (int i = 0; i < nlocalele; i++) {
-    int const iele = list_iele[i];
+    const int iele = list_iele[i];
     x[iele] = x_local[i];
   }
-  MPI_Allreduce(MPI_IN_PLACE, &x.front(), ngroup, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, x.data(), ngroup, MPI_DOUBLE, MPI_SUM, world);
   return x;
 }
 
@@ -1125,7 +1125,7 @@ void FixElectrodeConp::compute_macro_matrices()
     int m = num_of_groups;
     int n = m, lda = m;
     std::vector<int> ipiv(m);
-    int const lwork = m * m;
+    const int lwork = m * m;
     std::vector<double> work(lwork);
     std::vector<double> tmp(lwork);
 
@@ -1137,8 +1137,8 @@ void FixElectrodeConp::compute_macro_matrices()
     }
 
     int info_rf, info_ri;
-    dgetrf_(&m, &n, &tmp.front(), &lda, &ipiv.front(), &info_rf);
-    dgetri_(&n, &tmp.front(), &lda, &ipiv.front(), &work.front(), &lwork, &info_ri);
+    dgetrf_(&m, &n, tmp.data(), &lda, ipiv.data(), &info_rf);
+    dgetri_(&n, tmp.data(), &lda, ipiv.data(), work.data(), &lwork, &info_ri);
     if (info_rf != 0 || info_ri != 0) error->all(FLERR, "ELECTRODE macro matrix inversion failed!");
     for (int i = 0; i < num_of_groups; i++) {
       for (int j = 0; j < num_of_groups; j++) {
@@ -1187,7 +1187,7 @@ double FixElectrodeConp::potential_energy()
 {
   // corrections to energy due to potential psi
   double const qqrd2e = force->qqrd2e;
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   int *mask = atom->mask;
   double *q = atom->q;
   double energy = 0;
@@ -1206,7 +1206,7 @@ double FixElectrodeConp::self_energy(int eflag)
 {
   // corrections to energy due to self interaction
   double const qqrd2e = force->qqrd2e;
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   double const pre = 1. / sqrt(MY_2PI) * qqrd2e;
   int *mask = atom->mask;
   int *type = atom->type;
@@ -1236,7 +1236,7 @@ double FixElectrodeConp::gausscorr(int eflag, int vflag, bool fflag)
   // correction to short range interaction due to eta
 
   double const qqrd2e = force->qqrd2e;
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   int *mask = atom->mask;
   double *q = atom->q;
   double **x = atom->x;
@@ -1261,7 +1261,7 @@ double FixElectrodeConp::gausscorr(int eflag, int vflag, bool fflag)
     int jnum = numneigh[i];
 
     for (int jj = 0; jj < jnum; jj++) {
-      int const j = jlist[jj] & NEIGHMASK;
+      const int j = jlist[jj] & NEIGHMASK;
       bool j_in_ele = groupbit & mask[j];
       if (!(i_in_ele || j_in_ele)) continue;
 
@@ -1364,10 +1364,10 @@ int FixElectrodeConp::setmask()
 void FixElectrodeConp::write_to_file(FILE *file, const std::vector<tagint> &tags,
                                      const std::vector<std::vector<double>> &mat)
 {
-  for (const auto &t : tags) fmt::print(file, "{:20}", t);
+  for (const auto &t : tags) utils::print(file, "{:20}", t);
   fputs("\n", file);
   for (const auto &vec : mat) {
-    for (const auto &x : vec) fmt::print(file, "{:20.11e}", x);
+    for (const auto &x : vec) utils::print(file, "{:20.11e}", x);
     fputs("\n", file);
   }
 }
@@ -1412,7 +1412,7 @@ void FixElectrodeConp::read_from_file(const std::string &input_file, double **ar
     if ((bigint) idx.size() != ngroup)
       error->all(FLERR, "Read tags do not match taglist of fix {}", style);
     for (bigint i = 0; i < ngroup; i++) {
-      bigint const ii = idx[i];
+      const bigint ii = idx[i];
       for (bigint j = 0; j < ngroup; j++) array[i][j] = matrix[ii][idx[j]];
     }
   }
@@ -1423,7 +1423,7 @@ void FixElectrodeConp::read_from_file(const std::string &input_file, double **ar
 
 void FixElectrodeConp::request_etypes_neighlists()
 {
-  int const ntypes = atom->ntypes;
+  const int ntypes = atom->ntypes;
   // construct etypes
   int *mask = atom->mask;
   int *type = atom->type;
@@ -1435,8 +1435,8 @@ void FixElectrodeConp::request_etypes_neighlists()
     else
       elyt[type[i] - 1] += 1;
   }
-  MPI_Allreduce(MPI_IN_PLACE, &elec.front(), ntypes, MPI_INT, MPI_SUM, world);
-  MPI_Allreduce(MPI_IN_PLACE, &elyt.front(), ntypes, MPI_INT, MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, elec.data(), ntypes, MPI_INT, MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, elyt.data(), ntypes, MPI_INT, MPI_SUM, world);
   etypes.clear();
   for (int i = 0; i < ntypes; i++) {
     if (!elec[i] == !elyt[i]) error->all(FLERR, "Types overlap, cannot use etypes keyword");
@@ -1469,12 +1469,12 @@ void FixElectrodeConp::request_etypes_neighlists()
   }
 
   if (need_array_compute) {
-    auto matReq = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
+    auto *matReq = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
     matReq->set_skip(iskip_mat, ijskip_mat);
     matReq->set_id(1);
     if (intelflag) matReq->enable_intel();
   } else if (need_elec_vector) {
-    auto matReq = neighbor->add_request(this);
+    auto *matReq = neighbor->add_request(this);
     matReq->set_skip(iskip_mat, ijskip_mat);
     matReq->set_id(1);
     if (intelflag) matReq->enable_intel();
@@ -1483,7 +1483,7 @@ void FixElectrodeConp::request_etypes_neighlists()
     memory->destroy(ijskip_mat);
   }
 
-  auto vecReq = neighbor->add_request(this);
+  auto *vecReq = neighbor->add_request(this);
   vecReq->set_skip(iskip_vec, ijskip_vec);
   vecReq->set_id(2);
   if (intelflag) vecReq->enable_intel();
@@ -1514,7 +1514,7 @@ void FixElectrodeConp::gather_list_iele()
 
   int *mask = atom->mask;
   tagint *tag = atom->tag;
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   if (matrix_algo) {
     list_iele.clear();
     list_iele.reserve(nlocalele);
@@ -1523,7 +1523,7 @@ void FixElectrodeConp::gather_list_iele()
   iele_to_group_local.clear();
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      tagint const t = tag[i];
+      const tagint t = tag[i];
       if (matrix_algo) list_iele.push_back(tag_to_iele[t]);
       taglist_local.push_back(t);
       for (int g = 0; g < num_of_groups; g++)
@@ -1536,10 +1536,10 @@ void FixElectrodeConp::gather_list_iele()
   if (matrix_algo) {
     MPI_Allgather(&nlocalele, 1, MPI_INT, recvcounts, 1, MPI_INT, world);
     displs[0] = 0;
-    int const nprocs = comm->nprocs;
+    const int nprocs = comm->nprocs;
     for (int i = 1; i < nprocs; i++) { displs[i] = displs[i - 1] + recvcounts[i - 1]; }
 
-    MPI_Allgatherv(&list_iele[0], nlocalele, MPI_INT, iele_gathered, recvcounts, displs, MPI_INT,
+    MPI_Allgatherv(list_iele.data(), nlocalele, MPI_INT, iele_gathered, recvcounts, displs, MPI_INT,
                    world);
   }
   nlocalele_outdated = 0;
@@ -1548,16 +1548,16 @@ void FixElectrodeConp::gather_list_iele()
 void FixElectrodeConp::gather_elevec(double *elevec)
 {
   assert(matrix_algo);
-  MPI_Allgatherv(&buf_iele[0], nlocalele, MPI_DOUBLE, buf_gathered, recvcounts, displs, MPI_DOUBLE,
-                 world);
+  MPI_Allgatherv(buf_iele.data(), nlocalele, MPI_DOUBLE, buf_gathered, recvcounts, displs,
+                 MPI_DOUBLE, world);
 
-  for (int i = 0; i < ngroup; i++) { elevec[iele_gathered[i]] = buf_gathered[i]; }
+  for (int i = 0; i < ngroup; i++) elevec[iele_gathered[i]] = buf_gathered[i];
 }
 
 void FixElectrodeConp::buffer_and_gather(double *ivec, double *elevec)
 {
   assert(matrix_algo);
-  buf_iele.reserve(nlocalele);    // avoid unexpected reallocs
+  buf_iele.resize(nlocalele);
   for (int i_iele = 0; i_iele < nlocalele; i_iele++) {
     buf_iele[i_iele] = ivec[atom->map(taglist[list_iele[i_iele]])];
   }
@@ -1566,8 +1566,8 @@ void FixElectrodeConp::buffer_and_gather(double *ivec, double *elevec)
 
 double FixElectrodeConp::memory_usage()
 {
-  int const nprocs = comm->nprocs;
-  int const nmax = atom->nmax;
+  const int nprocs = comm->nprocs;
+  const int nmax = atom->nmax;
   double bytes = 0.0;
   bytes += nmax * (sizeof(double));    // potential_i
   if (matrix_algo) {
@@ -1612,7 +1612,7 @@ int FixElectrodeConp::pack_forward_comm(int n, int *list, double *buf, int /*pbc
 {
   int m = 0;
   for (int i = 0; i < n; i++) {
-    int const j = list[i];
+    const int j = list[i];
     buf[m++] = atom->q[j];
   }
   return m;
@@ -1622,7 +1622,7 @@ int FixElectrodeConp::pack_forward_comm(int n, int *list, double *buf, int /*pbc
 
 void FixElectrodeConp::unpack_forward_comm(int n, int first, double *buf)
 {
-  int const last = first + n;
+  const int last = first + n;
   for (int i = first, m = 0; i < last; i++) atom->q[i] = buf[m++];
 }
 

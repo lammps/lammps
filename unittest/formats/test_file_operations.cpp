@@ -16,16 +16,12 @@
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
-#include "info.h"
-#include "input.h"
-#include "lammps.h"
 #include "update.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include <cstdio>
-#include <mpi.h>
-#include <string>
+#include <cstring>
+#include <fstream>
 
 using namespace LAMMPS_NS;
 
@@ -232,6 +228,7 @@ TEST_F(FileOperationsTest, read_lines_from_file)
     rv = utils::read_lines_from_file(fp, 2, MAX_BUF_SIZE / 2, buf, me, world);
     ASSERT_EQ(rv, 1);
     delete[] buf;
+    if (me == 0) fclose(fp);
 }
 
 TEST_F(FileOperationsTest, logmesg)
@@ -259,27 +256,25 @@ TEST_F(FileOperationsTest, logmesg)
     remove("test_logmesg.log");
 }
 
-TEST_F(FileOperationsTest, error_message_warn)
+TEST_F(FileOperationsTest, error_warn)
 {
     char buf[64];
     BEGIN_HIDE_OUTPUT();
     command("echo none");
-    command("log test_error_warn.log");
+    command("log test_warn.log");
     END_HIDE_OUTPUT();
     BEGIN_CAPTURE_OUTPUT();
-    lmp->error->message("testme.cpp", 10, "message me");
     lmp->error->warning("testme.cpp", 100, "warn me");
     command("log none");
     std::string out = END_CAPTURE_OUTPUT();
     memset(buf, 0, 64);
-    FILE *fp = fopen("test_error_warn.log", "r");
+    FILE *fp = fopen("test_warn.log", "r");
     fread(buf, 1, 64, fp);
     fclose(fp);
-    auto msg = StrEq("message me (testme.cpp:10)\n"
-                     "WARNING: warn me (testme.cpp:100)\n");
+    auto msg = StrEq("WARNING: warn me (testme.cpp:100)\n");
     ASSERT_THAT(out, msg);
     ASSERT_THAT(buf, msg);
-    remove("test_error_warn.log");
+    remove("test_warn.log");
 }
 
 TEST_F(FileOperationsTest, error_all_one)

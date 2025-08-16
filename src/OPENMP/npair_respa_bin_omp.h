@@ -13,17 +13,17 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-typedef NPairRespaBinOmp<0, 0> NPairHalfRespaBinNewtoffOmp;
+using NPairHalfRespaBinNewtoffOmp = NPairRespaBinOmp<0, 0>;
 NPairStyle(half/respa/bin/newtoff,
            NPairHalfRespaBinNewtoffOmp,
            NP_HALF | NP_RESPA | NP_BIN | NP_OMP | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairRespaBinOmp<1, 0> NPairHalfRespaBinNewtonOmp;
+using NPairHalfRespaBinNewtonOmp = NPairRespaBinOmp<1, 0>;
 NPairStyle(half/respa/bin/newton/omp,
            NPairHalfRespaBinNewtonOmp,
            NP_HALF | NP_RESPA | NP_BIN | NP_OMP | NP_NEWTON | NP_ORTHO);
 
-typedef NPairRespaBinOmp<1, 1> NPairHalfRespaBinNewtonTriOmp;
+using NPairHalfRespaBinNewtonTriOmp = NPairRespaBinOmp<1, 1>;
 NPairStyle(half/respa/bin/newton/tri/omp,
            NPairHalfRespaBinNewtonTriOmp,
            NP_HALF | NP_RESPA | NP_BIN | NP_OMP | NP_NEWTON | NP_TRI);

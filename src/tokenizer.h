@@ -36,11 +36,11 @@ class Tokenizer {
 
  public:
   Tokenizer(std::string str, std::string separators = TOKENIZER_DEFAULT_SEPARATORS);
-  Tokenizer(Tokenizer &&);
+  Tokenizer(Tokenizer &&) noexcept;
   Tokenizer(const Tokenizer &);
   Tokenizer &operator=(const Tokenizer &);
-  Tokenizer &operator=(Tokenizer &&);
-  void swap(Tokenizer &);
+  Tokenizer &operator=(Tokenizer &&) noexcept;
+  void swap(Tokenizer &) noexcept;
 
   void reset();
   void skip(int n = 1);
@@ -59,17 +59,21 @@ class TokenizerException : public std::exception {
   std::string message;
 
  public:
-  // remove unused default constructor
+  /** The default constructor is disabled */
   TokenizerException() = delete;
 
   /** Thrown during retrieving or skipping tokens
    *
-   * \param  msg    String with error message
-   * \param  token  String of the token/word that caused the error */
+   * \param   msg     String with error message
+   * \param   token   String of the token or word that caused the error */
   explicit TokenizerException(const std::string &msg, const std::string &token);
 
   /** Retrieve message describing the thrown exception
-   * \return string with error message */
+   *
+   * This function provides the message that can be retrieved when the corresponding
+   * exception is caught.
+   *
+   * \return  String with error message */
   const char *what() const noexcept override { return message.c_str(); }
 };
 
@@ -107,10 +111,10 @@ class ValueTokenizer {
   ValueTokenizer(const std::string &str,
                  const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
   ValueTokenizer(const ValueTokenizer &) = default;
-  ValueTokenizer(ValueTokenizer &&);
+  ValueTokenizer(ValueTokenizer &&) noexcept;
   ValueTokenizer &operator=(const ValueTokenizer &);
-  ValueTokenizer &operator=(ValueTokenizer &&);
-  void swap(ValueTokenizer &);
+  ValueTokenizer &operator=(ValueTokenizer &&) noexcept;
+  void swap(ValueTokenizer &) noexcept;
 
   std::string next_string();
   tagint next_tagint();

@@ -40,8 +40,8 @@ struct in_place_shfl_op {
   template <class Scalar>
   // requires _assignable_from_bits<Scalar>
   __device__ inline std::enable_if_t<sizeof(Scalar) < sizeof(int)> operator()(
-      Scalar& out, Scalar const& in, int lane_or_delta, int width) const
-      noexcept {
+      Scalar& out, Scalar const& in, int lane_or_delta,
+      int width) const noexcept {
     using shfl_type = int;
     union conv_type {
       Scalar orig;
@@ -65,16 +65,16 @@ struct in_place_shfl_op {
   template <class Scalar>
   // requires _assignable_from_bits<Scalar>
   __device__ inline std::enable_if_t<sizeof(Scalar) == sizeof(int)> operator()(
-      Scalar& out, Scalar const& in, int lane_or_delta, int width) const
-      noexcept {
+      Scalar& out, Scalar const& in, int lane_or_delta,
+      int width) const noexcept {
     reinterpret_cast<int&>(out) = self().do_shfl_op(
         reinterpret_cast<int const&>(in), lane_or_delta, width);
   }
 
   template <class Scalar>
   __device__ inline std::enable_if_t<sizeof(Scalar) == sizeof(double)>
-  operator()(Scalar& out, Scalar const& in, int lane_or_delta, int width) const
-      noexcept {
+  operator()(Scalar& out, Scalar const& in, int lane_or_delta,
+             int width) const noexcept {
     reinterpret_cast<double&>(out) = self().do_shfl_op(
         *reinterpret_cast<double const*>(&in), lane_or_delta, width);
   }
@@ -82,8 +82,8 @@ struct in_place_shfl_op {
   // sizeof(Scalar) > sizeof(double) case
   template <typename Scalar>
   __device__ inline std::enable_if_t<(sizeof(Scalar) > sizeof(double))>
-  operator()(Scalar& out, const Scalar& val, int lane_or_delta, int width) const
-      noexcept {
+  operator()(Scalar& out, const Scalar& val, int lane_or_delta,
+             int width) const noexcept {
     using shuffle_as_t = int;
     constexpr int N    = sizeof(Scalar) / sizeof(shuffle_as_t);
 
@@ -108,7 +108,7 @@ struct in_place_shfl_fn : in_place_shfl_op<in_place_shfl_fn> {
 
 template <class... Args>
 __device__ KOKKOS_IMPL_FORCEINLINE void in_place_shfl(Args&&... args) noexcept {
-  in_place_shfl_fn{}((Args &&) args...);
+  in_place_shfl_fn{}((Args&&)args...);
 }
 
 struct in_place_shfl_up_fn : in_place_shfl_op<in_place_shfl_up_fn> {
@@ -123,7 +123,7 @@ struct in_place_shfl_up_fn : in_place_shfl_op<in_place_shfl_up_fn> {
 template <class... Args>
 __device__ KOKKOS_IMPL_FORCEINLINE void in_place_shfl_up(
     Args&&... args) noexcept {
-  in_place_shfl_up_fn{}((Args &&) args...);
+  in_place_shfl_up_fn{}((Args&&)args...);
 }
 
 struct in_place_shfl_down_fn : in_place_shfl_op<in_place_shfl_down_fn> {
@@ -138,7 +138,7 @@ struct in_place_shfl_down_fn : in_place_shfl_op<in_place_shfl_down_fn> {
 template <class... Args>
 __device__ KOKKOS_IMPL_FORCEINLINE void in_place_shfl_down(
     Args&&... args) noexcept {
-  in_place_shfl_down_fn{}((Args &&) args...);
+  in_place_shfl_down_fn{}((Args&&)args...);
 }
 
 }  // namespace Impl

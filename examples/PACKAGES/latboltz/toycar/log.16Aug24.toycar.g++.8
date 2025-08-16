@@ -1,0 +1,970 @@
+LAMMPS (27 Jun 2024 - Development - patch_27Jun2024-653-ge4a654c7cd-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+#===========================================================================#
+#  Toy car driving down a system with a floor and ceiling.                  #
+#                                                                           #
+#  The car is first constructed by condensing particles onto various regions#
+#  that make up the car's parts.  Then the car moves in a lattice Boltzmann #
+#  fluid.  This requires compilation with the RIGID and LATBOLTZ packages   #
+#  You will need to uncomment the dump options to get useful output.        #
+#===========================================================================#
+
+units cgs
+dimension 3
+boundary p p f
+atom_style atomic
+processors * 1 *
+
+#-------------------------------------------------------------------------#
+# Set up the simulation box
+#-------------------------------------------------------------------------#
+variable dx equal 1.5
+
+variable more equal 6.5
+
+variable xl equal "-32*v_dx"
+variable xh equal "32*v_dx"
+variable yl equal "-60*v_dx"
+variable yh equal "420*v_dx"
+variable zl equal "-6*v_dx"
+variable zh equal "58*v_dx"
+
+region mybox block ${xl} ${xh} ${yl} ${yh} ${zl} ${zh}
+region mybox block -48 ${xh} ${yl} ${yh} ${zl} ${zh}
+region mybox block -48 48 ${yl} ${yh} ${zl} ${zh}
+region mybox block -48 48 -90 ${yh} ${zl} ${zh}
+region mybox block -48 48 -90 630 ${zl} ${zh}
+region mybox block -48 48 -90 630 -9 ${zh}
+region mybox block -48 48 -90 630 -9 87
+create_box 14 mybox
+Created orthogonal box = (-48 -90 -9) to (48 630 87)
+  2 by 1 by 2 MPI processor grid
+
+#-------------------------------------------------------------------------#
+# Creating the regions and filling them with atoms assigned to surge_group
+#-------------------------------------------------------------------------#
+variable density equal 0.001184
+
+variable sigma equal  "1.2*v_dx"            #"1.2*v_dx"
+variable rcutlj equal "v_sigma*2^(1/6)"
+variable rcutlj93 equal "v_sigma*(2/5)^(1/6)"
+
+#-------------------------------------------------------------------------#
+# Creating the cylinder
+#-------------------------------------------------------------------------#
+variable c1 equal 12.5
+variable c2 equal -1.5
+variable radius equal 6.0
+variable lo equal 9.5
+variable hi equal 12.5
+
+region mycylinderinside1 cylinder x ${c1} ${c2} ${radius} ${lo} ${hi}
+region mycylinderinside1 cylinder x 12.5 ${c2} ${radius} ${lo} ${hi}
+region mycylinderinside1 cylinder x 12.5 -1.5 ${radius} ${lo} ${hi}
+region mycylinderinside1 cylinder x 12.5 -1.5 6 ${lo} ${hi}
+region mycylinderinside1 cylinder x 12.5 -1.5 6 9.5 ${hi}
+region mycylinderinside1 cylinder x 12.5 -1.5 6 9.5 12.5
+
+variable n_nodes_Cy_1 equal "round(v_more*0.28*((2*PI*v_radius*(v_hi-v_lo))+(2*PI*(v_radius)^2)))"
+create_atoms 1 random ${n_nodes_Cy_1} 1234 mycylinderinside1 units box
+create_atoms 1 random 618 1234 mycylinderinside1 units box
+Created 618 atoms
+  using box units in orthogonal box = (-48 -90 -9) to (48 630 87)
+  create_atoms CPU = 0.001 seconds
+
+variable radius_2 equal "v_radius + v_rcutlj93"
+variable hi_2 equal "v_hi + 2*v_rcutlj93"
+variable lo_2 equal "v_lo - v_rcutlj93"
+region mycylinder1 cylinder x ${c1} ${c2} ${radius_2} ${lo_2} ${hi_2}
+region mycylinder1 cylinder x 12.5 ${c2} ${radius_2} ${lo_2} ${hi_2}
+region mycylinder1 cylinder x 12.5 -1.5 ${radius_2} ${lo_2} ${hi_2}
+region mycylinder1 cylinder x 12.5 -1.5 7.5450735940786 ${lo_2} ${hi_2}
+region mycylinder1 cylinder x 12.5 -1.5 7.5450735940786 7.9549264059214 ${hi_2}
+region mycylinder1 cylinder x 12.5 -1.5 7.5450735940786 7.9549264059214 15.5901471881572
+group gcylinder1 region mycylinder1
+618 atoms in group gcylinder1
+#-------------------------------------------------------------------------#
+# Creating the cylinder
+#-------------------------------------------------------------------------#
+variable c1 equal -9.0
+variable c2 equal -1.5
+variable radius equal 6.0
+variable lo equal 9.5
+variable hi equal 12.5
+
+region mycylinderinside2 cylinder x ${c1} ${c2} ${radius} ${lo} ${hi}
+region mycylinderinside2 cylinder x -9 ${c2} ${radius} ${lo} ${hi}
+region mycylinderinside2 cylinder x -9 -1.5 ${radius} ${lo} ${hi}
+region mycylinderinside2 cylinder x -9 -1.5 6 ${lo} ${hi}
+region mycylinderinside2 cylinder x -9 -1.5 6 9.5 ${hi}
+region mycylinderinside2 cylinder x -9 -1.5 6 9.5 12.5
+
+variable n_nodes_Cy_2 equal "round(v_more*0.28*((2*PI*v_radius*(v_hi-v_lo))+(2*PI*(v_radius)^2)))"
+create_atoms 2 random ${n_nodes_Cy_2} 1234 mycylinderinside2 units box
+create_atoms 2 random 618 1234 mycylinderinside2 units box
+Created 618 atoms
+  using box units in orthogonal box = (-48 -90 -9) to (48 630 87)
+  create_atoms CPU = 0.000 seconds
+
+variable radius_2 equal "v_radius + v_rcutlj93"
+variable hi_2 equal "v_hi + 2*v_rcutlj93"
+variable lo_2 equal "v_lo - v_rcutlj93"
+region mycylinder2 cylinder x ${c1} ${c2} ${radius_2} ${lo_2} ${hi_2}
+region mycylinder2 cylinder x -9 ${c2} ${radius_2} ${lo_2} ${hi_2}
+region mycylinder2 cylinder x -9 -1.5 ${radius_2} ${lo_2} ${hi_2}
+region mycylinder2 cylinder x -9 -1.5 7.5450735940786 ${lo_2} ${hi_2}
+region mycylinder2 cylinder x -9 -1.5 7.5450735940786 7.9549264059214 ${hi_2}
+region mycylinder2 cylinder x -9 -1.5 7.5450735940786 7.9549264059214 15.5901471881572
+group gcylinder2 region mycylinder2
+618 atoms in group gcylinder2
+#-------------------------------------------------------------------------#
+# Creating the cylinder
+#-------------------------------------------------------------------------#
+variable c1 equal -9.0
+variable c2 equal -1.5
+variable radius equal 6.0
+variable lo equal -12.5
+variable hi equal -9.5
+
+region mycylinderinside3 cylinder x ${c1} ${c2} ${radius} ${lo} ${hi}
+region mycylinderinside3 cylinder x -9 ${c2} ${radius} ${lo} ${hi}
+region mycylinderinside3 cylinder x -9 -1.5 ${radius} ${lo} ${hi}
+region mycylinderinside3 cylinder x -9 -1.5 6 ${lo} ${hi}
+region mycylinderinside3 cylinder x -9 -1.5 6 -12.5 ${hi}
+region mycylinderinside3 cylinder x -9 -1.5 6 -12.5 -9.5
+
+variable n_nodes_Cy_3 equal "round(v_more*0.28*((2*PI*v_radius*(v_hi-v_lo))+(2*PI*(v_radius)^2)))"
+create_atoms 3 random ${n_nodes_Cy_3} 1234 mycylinderinside3 units box
+create_atoms 3 random 618 1234 mycylinderinside3 units box
+Created 618 atoms
+  using box units in orthogonal box = (-48 -90 -9) to (48 630 87)
+  create_atoms CPU = 0.000 seconds
+
+variable radius_2 equal "v_radius + v_rcutlj93"
+variable hi_2 equal "v_hi + v_rcutlj93"
+variable lo_2 equal "v_lo - 2*v_rcutlj93"
+region mycylinder3 cylinder x ${c1} ${c2} ${radius_2} ${lo_2} ${hi_2}
+region mycylinder3 cylinder x -9 ${c2} ${radius_2} ${lo_2} ${hi_2}
+region mycylinder3 cylinder x -9 -1.5 ${radius_2} ${lo_2} ${hi_2}
+region mycylinder3 cylinder x -9 -1.5 7.5450735940786 ${lo_2} ${hi_2}
+region mycylinder3 cylinder x -9 -1.5 7.5450735940786 -15.5901471881572 ${hi_2}
+region mycylinder3 cylinder x -9 -1.5 7.5450735940786 -15.5901471881572 -7.9549264059214
+group gcylinder3 region mycylinder3
+618 atoms in group gcylinder3
+#-------------------------------------------------------------------------#
+# Creating the cylinder
+#-------------------------------------------------------------------------#
+variable c1 equal 12.0
+variable c2 equal -1.5
+variable radius equal 6.0
+variable lo equal -12.5
+variable hi equal -9.5
+
+region mycylinderinside4 cylinder x ${c1} ${c2} ${radius} ${lo} ${hi}
+region mycylinderinside4 cylinder x 12 ${c2} ${radius} ${lo} ${hi}
+region mycylinderinside4 cylinder x 12 -1.5 ${radius} ${lo} ${hi}
+region mycylinderinside4 cylinder x 12 -1.5 6 ${lo} ${hi}
+region mycylinderinside4 cylinder x 12 -1.5 6 -12.5 ${hi}
+region mycylinderinside4 cylinder x 12 -1.5 6 -12.5 -9.5
+
+variable n_nodes_Cy_4 equal "round(v_more*0.28*((2*PI*v_radius*(v_hi-v_lo))+(2*PI*(v_radius)^2)))"
+create_atoms 4 random ${n_nodes_Cy_4} 1234 mycylinderinside4 units box
+create_atoms 4 random 618 1234 mycylinderinside4 units box
+Created 618 atoms
+  using box units in orthogonal box = (-48 -90 -9) to (48 630 87)
+  create_atoms CPU = 0.000 seconds
+
+variable radius_2 equal "v_radius + v_rcutlj93"
+variable hi_2 equal "v_hi + v_rcutlj93"
+variable lo_2 equal "v_lo - 2*v_rcutlj93"
+region mycylinder4 cylinder x ${c1} ${c2} ${radius_2} ${lo_2} ${hi_2}
+region mycylinder4 cylinder x 12 ${c2} ${radius_2} ${lo_2} ${hi_2}
+region mycylinder4 cylinder x 12 -1.5 ${radius_2} ${lo_2} ${hi_2}
+region mycylinder4 cylinder x 12 -1.5 7.5450735940786 ${lo_2} ${hi_2}
+region mycylinder4 cylinder x 12 -1.5 7.5450735940786 -15.5901471881572 ${hi_2}
+region mycylinder4 cylinder x 12 -1.5 7.5450735940786 -15.5901471881572 -7.9549264059214
+group gcylinder4 region mycylinder4
+618 atoms in group gcylinder4
+
+
+#-------------------------------------------------------------------------#
+# Creating the prism
+#-------------------------------------------------------------------------#
+variable xlo1 equal -5.0
+variable xhi1 equal 5.0
+variable ylo1 equal -15.0
+variable yhi1 equal 15.0
+variable zlo1 equal -6.0
+variable zhi1 equal 6.0
+
+region myprisminside1 block ${xlo1} ${xhi1} ${ylo1} ${yhi1} ${zlo1} ${zhi1}
+region myprisminside1 block -5 ${xhi1} ${ylo1} ${yhi1} ${zlo1} ${zhi1}
+region myprisminside1 block -5 5 ${ylo1} ${yhi1} ${zlo1} ${zhi1}
+region myprisminside1 block -5 5 -15 ${yhi1} ${zlo1} ${zhi1}
+region myprisminside1 block -5 5 -15 15 ${zlo1} ${zhi1}
+region myprisminside1 block -5 5 -15 15 -6 ${zhi1}
+region myprisminside1 block -5 5 -15 15 -6 6
+variable n_nodes_P_1 equal "(round(v_more*3.4*(6*(10.0)^2)/(PI*v_dx^2)))"
+create_atoms 5 random ${n_nodes_P_1} 1234 myprisminside1 units box
+create_atoms 5 random 1876 1234 myprisminside1 units box
+Created 1876 atoms
+  using box units in orthogonal box = (-48 -90 -9) to (48 630 87)
+  create_atoms CPU = 0.000 seconds
+
+variable xlo1_2 equal "v_xlo1 - v_rcutlj93/2"
+variable xhi1_2 equal "v_xhi1 + v_rcutlj93/2"
+variable ylo1_2 equal "v_ylo1 - v_rcutlj93/2"
+variable yhi1_2 equal "v_yhi1 + v_rcutlj93/2"
+variable zlo1_2 equal "v_zlo1 - v_rcutlj93/2"
+variable zhi1_2 equal "v_zhi1 + v_rcutlj93/2"
+
+region myprism1 block ${xlo1_2} ${xhi1_2} ${ylo1_2} ${yhi1_2} ${zlo1_2} ${zhi1_2}
+region myprism1 block -5.7725367970393 ${xhi1_2} ${ylo1_2} ${yhi1_2} ${zlo1_2} ${zhi1_2}
+region myprism1 block -5.7725367970393 5.7725367970393 ${ylo1_2} ${yhi1_2} ${zlo1_2} ${zhi1_2}
+region myprism1 block -5.7725367970393 5.7725367970393 -15.7725367970393 ${yhi1_2} ${zlo1_2} ${zhi1_2}
+region myprism1 block -5.7725367970393 5.7725367970393 -15.7725367970393 15.7725367970393 ${zlo1_2} ${zhi1_2}
+region myprism1 block -5.7725367970393 5.7725367970393 -15.7725367970393 15.7725367970393 -6.7725367970393 ${zhi1_2}
+region myprism1 block -5.7725367970393 5.7725367970393 -15.7725367970393 15.7725367970393 -6.7725367970393 6.7725367970393
+group gprism1 region myprism1
+1876 atoms in group gprism1
+
+#-------------------------------------------------------------------------#
+# Creating the rear wing
+#-------------------------------------------------------------------------#
+variable xlo2 equal -10.0
+variable xhi2 equal 10.0
+variable ylo2 equal 14.0
+variable yhi2 equal 22.0
+variable zlo2 equal 10.0
+variable zhi2 equal 12.0
+
+region myprisminside2 block ${xlo2} ${xhi2} ${ylo2} ${yhi2} ${zlo2} ${zhi2}
+region myprisminside2 block -10 ${xhi2} ${ylo2} ${yhi2} ${zlo2} ${zhi2}
+region myprisminside2 block -10 10 ${ylo2} ${yhi2} ${zlo2} ${zhi2}
+region myprisminside2 block -10 10 14 ${yhi2} ${zlo2} ${zhi2}
+region myprisminside2 block -10 10 14 22 ${zlo2} ${zhi2}
+region myprisminside2 block -10 10 14 22 10 ${zhi2}
+region myprisminside2 block -10 10 14 22 10 12
+variable n_nodes_P_2 equal "(round(v_more*0.93*(6*(7.0)^2)/(PI*v_dx^2)))"
+create_atoms 6 random ${n_nodes_P_2} 1234 myprisminside2 units box
+create_atoms 6 random 251 1234 myprisminside2 units box
+Created 251 atoms
+  using box units in orthogonal box = (-48 -90 -9) to (48 630 87)
+  create_atoms CPU = 0.000 seconds
+
+variable xlo2_2 equal "v_xlo2 - v_rcutlj93/2"
+variable xhi2_2 equal "v_xhi2 + v_rcutlj93/2"
+variable ylo2_2 equal "v_ylo2 - v_rcutlj93/2"
+variable yhi2_2 equal "v_yhi2 + v_rcutlj93/2"
+variable zlo2_2 equal "v_zlo2 - v_rcutlj93/2"
+variable zhi2_2 equal "v_zhi2 + v_rcutlj93/2"
+
+region myprism2 block ${xlo2_2} ${xhi2_2} ${ylo2_2} ${yhi2_2} ${zlo2_2} ${zhi2_2}
+region myprism2 block -10.7725367970393 ${xhi2_2} ${ylo2_2} ${yhi2_2} ${zlo2_2} ${zhi2_2}
+region myprism2 block -10.7725367970393 10.7725367970393 ${ylo2_2} ${yhi2_2} ${zlo2_2} ${zhi2_2}
+region myprism2 block -10.7725367970393 10.7725367970393 13.2274632029607 ${yhi2_2} ${zlo2_2} ${zhi2_2}
+region myprism2 block -10.7725367970393 10.7725367970393 13.2274632029607 22.7725367970393 ${zlo2_2} ${zhi2_2}
+region myprism2 block -10.7725367970393 10.7725367970393 13.2274632029607 22.7725367970393 9.2274632029607 ${zhi2_2}
+region myprism2 block -10.7725367970393 10.7725367970393 13.2274632029607 22.7725367970393 9.2274632029607 12.7725367970393
+group gprism2 region myprism2
+251 atoms in group gprism2
+
+#-------------------------------------------------------------------------#
+# Creating the rear wing stand
+#-------------------------------------------------------------------------#
+variable xlo3 equal -2.0
+variable xhi3 equal 2.0
+variable ylo3 equal 17.0
+variable yhi3 equal 19.0
+variable zlo3 equal -2.0
+variable zhi3 equal 7.0
+
+region myprisminside3 block ${xlo3} ${xhi3} ${ylo3} ${yhi3} ${zlo3} ${zhi3}
+region myprisminside3 block -2 ${xhi3} ${ylo3} ${yhi3} ${zlo3} ${zhi3}
+region myprisminside3 block -2 2 ${ylo3} ${yhi3} ${zlo3} ${zhi3}
+region myprisminside3 block -2 2 17 ${yhi3} ${zlo3} ${zhi3}
+region myprisminside3 block -2 2 17 19 ${zlo3} ${zhi3}
+region myprisminside3 block -2 2 17 19 -2 ${zhi3}
+region myprisminside3 block -2 2 17 19 -2 7
+variable n_nodes_P_3 equal "(round(v_more*0.32*(6*(6.0)^2)/(PI*v_dx^2)))"
+create_atoms 7 random ${n_nodes_P_3} 1234 myprisminside3 units box
+create_atoms 7 random 64 1234 myprisminside3 units box
+Created 64 atoms
+  using box units in orthogonal box = (-48 -90 -9) to (48 630 87)
+  create_atoms CPU = 0.000 seconds
+
+variable xlo3_2 equal "v_xlo3 - v_rcutlj93/2"
+variable xhi3_2 equal "v_xhi3 + v_rcutlj93/2"
+variable ylo3_2 equal "v_ylo3 - v_rcutlj93/2"
+variable yhi3_2 equal "v_yhi3 + v_rcutlj93/2"
+variable zlo3_2 equal "v_zlo3 - v_rcutlj93/2"
+variable zhi3_2 equal "v_zhi3 + v_rcutlj93/2"
+
+region myprism3 block ${xlo3_2} ${xhi3_2} ${ylo3_2} ${yhi3_2} ${zlo3_2} ${zhi3_2}
+region myprism3 block -2.7725367970393 ${xhi3_2} ${ylo3_2} ${yhi3_2} ${zlo3_2} ${zhi3_2}
+region myprism3 block -2.7725367970393 2.7725367970393 ${ylo3_2} ${yhi3_2} ${zlo3_2} ${zhi3_2}
+region myprism3 block -2.7725367970393 2.7725367970393 16.2274632029607 ${yhi3_2} ${zlo3_2} ${zhi3_2}
+region myprism3 block -2.7725367970393 2.7725367970393 16.2274632029607 19.7725367970393 ${zlo3_2} ${zhi3_2}
+region myprism3 block -2.7725367970393 2.7725367970393 16.2274632029607 19.7725367970393 -2.7725367970393 ${zhi3_2}
+region myprism3 block -2.7725367970393 2.7725367970393 16.2274632029607 19.7725367970393 -2.7725367970393 7.7725367970393
+group gprism3 region myprism3
+64 atoms in group gprism3
+
+#-------------------------------------------------------------------------#
+# Creating the front wing
+#-------------------------------------------------------------------------#
+variable xlo4 equal -10.0
+variable xhi4 equal 10.0
+variable ylo4 equal -26.5
+variable yhi4 equal -22.0
+variable zlo4 equal -5.0
+variable zhi4 equal -3.0
+
+region myprisminside4 block ${xlo4} ${xhi4} ${ylo4} ${yhi4} ${zlo4} ${zhi4}
+region myprisminside4 block -10 ${xhi4} ${ylo4} ${yhi4} ${zlo4} ${zhi4}
+region myprisminside4 block -10 10 ${ylo4} ${yhi4} ${zlo4} ${zhi4}
+region myprisminside4 block -10 10 -26.5 ${yhi4} ${zlo4} ${zhi4}
+region myprisminside4 block -10 10 -26.5 -22 ${zlo4} ${zhi4}
+region myprisminside4 block -10 10 -26.5 -22 -5 ${zhi4}
+region myprisminside4 block -10 10 -26.5 -22 -5 -3
+variable n_nodes_P_4 equal "(round(v_more*1.47*(6*(4.0)^2)/(PI*v_dx^2)))"
+create_atoms 8 random ${n_nodes_P_4} 1234 myprisminside4 units box
+create_atoms 8 random 130 1234 myprisminside4 units box
+Created 130 atoms
+  using box units in orthogonal box = (-48 -90 -9) to (48 630 87)
+  create_atoms CPU = 0.000 seconds
+
+variable xlo4_2 equal "v_xlo4 - v_rcutlj93/2"
+variable xhi4_2 equal "v_xhi4 + v_rcutlj93/2"
+variable ylo4_2 equal "v_ylo4 - v_rcutlj93/2"
+variable yhi4_2 equal "v_yhi4 + v_rcutlj93/2"
+variable zlo4_2 equal "v_zlo4 - v_rcutlj93/2"
+variable zhi4_2 equal "v_zhi4 + v_rcutlj93/2"
+
+region myprism4 block ${xlo4_2} ${xhi4_2} ${ylo4_2} ${yhi4_2} ${zlo4_2} ${zhi4_2}
+region myprism4 block -10.7725367970393 ${xhi4_2} ${ylo4_2} ${yhi4_2} ${zlo4_2} ${zhi4_2}
+region myprism4 block -10.7725367970393 10.7725367970393 ${ylo4_2} ${yhi4_2} ${zlo4_2} ${zhi4_2}
+region myprism4 block -10.7725367970393 10.7725367970393 -27.2725367970393 ${yhi4_2} ${zlo4_2} ${zhi4_2}
+region myprism4 block -10.7725367970393 10.7725367970393 -27.2725367970393 -21.2274632029607 ${zlo4_2} ${zhi4_2}
+region myprism4 block -10.7725367970393 10.7725367970393 -27.2725367970393 -21.2274632029607 -5.7725367970393 ${zhi4_2}
+region myprism4 block -10.7725367970393 10.7725367970393 -27.2725367970393 -21.2274632029607 -5.7725367970393 -2.2274632029607
+group gprism4 region myprism4
+130 atoms in group gprism4
+
+#-------------------------------------------------------------------------#
+# Creating the front wing stand
+#-------------------------------------------------------------------------#
+variable xlo5 equal -4.0
+variable xhi5 equal 4.0
+variable ylo5 equal -20.0
+variable yhi5 equal -18.0
+variable zlo5 equal -5.0
+variable zhi5 equal 3.0
+
+region myprisminside5 block ${xlo5} ${xhi5} ${ylo5} ${yhi5} ${zlo5} ${zhi5}
+region myprisminside5 block -4 ${xhi5} ${ylo5} ${yhi5} ${zlo5} ${zhi5}
+region myprisminside5 block -4 4 ${ylo5} ${yhi5} ${zlo5} ${zhi5}
+region myprisminside5 block -4 4 -20 ${yhi5} ${zlo5} ${zhi5}
+region myprisminside5 block -4 4 -20 -18 ${zlo5} ${zhi5}
+region myprisminside5 block -4 4 -20 -18 -5 ${zhi5}
+region myprisminside5 block -4 4 -20 -18 -5 3
+variable n_nodes_P_5 equal "(round(v_more*2.15*(6*(3.0)^2)/(PI*v_dx^2)))"
+create_atoms 9 random ${n_nodes_P_5} 1234 myprisminside5 units box
+create_atoms 9 random 107 1234 myprisminside5 units box
+Created 107 atoms
+  using box units in orthogonal box = (-48 -90 -9) to (48 630 87)
+  create_atoms CPU = 0.000 seconds
+
+variable xlo5_2 equal "v_xlo5 - v_rcutlj93/2"
+variable xhi5_2 equal "v_xhi5 + v_rcutlj93/2"
+variable ylo5_2 equal "v_ylo5 - v_rcutlj93/2"
+variable yhi5_2 equal "v_yhi5 + v_rcutlj93/2"
+variable zlo5_2 equal "v_zlo5 - v_rcutlj93/2"
+variable zhi5_2 equal "v_zhi5 + v_rcutlj93/2"
+
+region myprism5 block ${xlo5_2} ${xhi5_2} ${ylo5_2} ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism5 block -4.7725367970393 ${xhi5_2} ${ylo5_2} ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism5 block -4.7725367970393 4.7725367970393 ${ylo5_2} ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism5 block -4.7725367970393 4.7725367970393 -20.7725367970393 ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism5 block -4.7725367970393 4.7725367970393 -20.7725367970393 -17.2274632029607 ${zlo5_2} ${zhi5_2}
+region myprism5 block -4.7725367970393 4.7725367970393 -20.7725367970393 -17.2274632029607 -5.7725367970393 ${zhi5_2}
+region myprism5 block -4.7725367970393 4.7725367970393 -20.7725367970393 -17.2274632029607 -5.7725367970393 3.7725367970393
+group gprism5 region myprism5
+107 atoms in group gprism5
+
+#-------------------------------------------------------------------------#
+# Creating the driver
+#-------------------------------------------------------------------------#
+variable radius2 equal 1.0
+variable xloc equal 0.0
+variable yloc equal 3.0
+variable zloc equal 9.5
+
+region mysphereinside2 sphere ${xloc} ${yloc} ${zloc} ${radius2}
+region mysphereinside2 sphere 0 ${yloc} ${zloc} ${radius2}
+region mysphereinside2 sphere 0 3 ${zloc} ${radius2}
+region mysphereinside2 sphere 0 3 9.5 ${radius2}
+region mysphereinside2 sphere 0 3 9.5 1
+
+variable n_nodes_S_2 equal "(round(v_more*2.0*(2*v_radius2^2/v_dx^2)))"
+create_atoms 10 random ${n_nodes_S_2} 1234 mysphereinside2 units box
+create_atoms 10 random 12 1234 mysphereinside2 units box
+Created 12 atoms
+  using box units in orthogonal box = (-48 -90 -9) to (48 630 87)
+  create_atoms CPU = 0.000 seconds
+variable radius2_2 equal "v_radius2 + v_rcutlj93"
+region mysphere2 sphere ${xloc} ${yloc} ${zloc} ${radius2_2}
+region mysphere2 sphere 0 ${yloc} ${zloc} ${radius2_2}
+region mysphere2 sphere 0 3 ${zloc} ${radius2_2}
+region mysphere2 sphere 0 3 9.5 ${radius2_2}
+region mysphere2 sphere 0 3 9.5 2.5450735940786
+group gball2 region mysphere2
+12 atoms in group gball2
+
+#-------------------------------------------------------------------------#
+# Creating the rear wing side
+#-------------------------------------------------------------------------#
+variable xlo5 equal 12.0
+variable xhi5 equal 14.25
+variable ylo5 equal 14.0
+variable yhi5 equal 22.0
+variable zlo5 equal 10.0
+variable zhi5 equal 14.0
+
+region myprisminside6 block ${xlo5} ${xhi5} ${ylo5} ${yhi5} ${zlo5} ${zhi5}
+region myprisminside6 block 12 ${xhi5} ${ylo5} ${yhi5} ${zlo5} ${zhi5}
+region myprisminside6 block 12 14.25 ${ylo5} ${yhi5} ${zlo5} ${zhi5}
+region myprisminside6 block 12 14.25 14 ${yhi5} ${zlo5} ${zhi5}
+region myprisminside6 block 12 14.25 14 22 ${zlo5} ${zhi5}
+region myprisminside6 block 12 14.25 14 22 10 ${zhi5}
+region myprisminside6 block 12 14.25 14 22 10 14
+variable n_nodes_P_6 equal "(round(v_more*1.0*(6*(3.0)^2)/(PI*v_dx^2)))"
+create_atoms 11 random ${n_nodes_P_6} 1234 myprisminside6 units box
+create_atoms 11 random 50 1234 myprisminside6 units box
+Created 50 atoms
+  using box units in orthogonal box = (-48 -90 -9) to (48 630 87)
+  create_atoms CPU = 0.000 seconds
+
+variable xlo5_2 equal "v_xlo5 - v_rcutlj93/2"
+variable xhi5_2 equal "v_xhi5 + v_rcutlj93/2"
+variable ylo5_2 equal "v_ylo5 - v_rcutlj93/2"
+variable yhi5_2 equal "v_yhi5 + v_rcutlj93/2"
+variable zlo5_2 equal "v_zlo5 - v_rcutlj93/2"
+variable zhi5_2 equal "v_zhi5 + v_rcutlj93/2"
+
+region myprism6 block ${xlo5_2} ${xhi5_2} ${ylo5_2} ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism6 block 11.2274632029607 ${xhi5_2} ${ylo5_2} ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism6 block 11.2274632029607 15.0225367970393 ${ylo5_2} ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism6 block 11.2274632029607 15.0225367970393 13.2274632029607 ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism6 block 11.2274632029607 15.0225367970393 13.2274632029607 22.7725367970393 ${zlo5_2} ${zhi5_2}
+region myprism6 block 11.2274632029607 15.0225367970393 13.2274632029607 22.7725367970393 9.2274632029607 ${zhi5_2}
+region myprism6 block 11.2274632029607 15.0225367970393 13.2274632029607 22.7725367970393 9.2274632029607 14.7725367970393
+group gprism6 region myprism6
+50 atoms in group gprism6
+
+#-------------------------------------------------------------------------#
+# Creating the rear wing side
+#-------------------------------------------------------------------------#
+variable xlo5 equal -14.25
+variable xhi5 equal -12.0
+variable ylo5 equal 14.0
+variable yhi5 equal 22.0
+variable zlo5 equal 10.0
+variable zhi5 equal 14.0
+
+region myprisminside7 block ${xlo5} ${xhi5} ${ylo5} ${yhi5} ${zlo5} ${zhi5}
+region myprisminside7 block -14.25 ${xhi5} ${ylo5} ${yhi5} ${zlo5} ${zhi5}
+region myprisminside7 block -14.25 -12 ${ylo5} ${yhi5} ${zlo5} ${zhi5}
+region myprisminside7 block -14.25 -12 14 ${yhi5} ${zlo5} ${zhi5}
+region myprisminside7 block -14.25 -12 14 22 ${zlo5} ${zhi5}
+region myprisminside7 block -14.25 -12 14 22 10 ${zhi5}
+region myprisminside7 block -14.25 -12 14 22 10 14
+variable n_nodes_P_7 equal "(round(v_more*1.0*(6*(3.0)^2)/(PI*v_dx^2)))"
+create_atoms 12 random ${n_nodes_P_7} 1234 myprisminside7 units box
+create_atoms 12 random 50 1234 myprisminside7 units box
+Created 50 atoms
+  using box units in orthogonal box = (-48 -90 -9) to (48 630 87)
+  create_atoms CPU = 0.000 seconds
+
+variable xlo5_2 equal "v_xlo5 - v_rcutlj93/2"
+variable xhi5_2 equal "v_xhi5 + v_rcutlj93/2"
+variable ylo5_2 equal "v_ylo5 - v_rcutlj93/2"
+variable yhi5_2 equal "v_yhi5 + v_rcutlj93/2"
+variable zlo5_2 equal "v_zlo5 - v_rcutlj93/2"
+variable zhi5_2 equal "v_zhi5 + v_rcutlj93/2"
+
+region myprism7 block ${xlo5_2} ${xhi5_2} ${ylo5_2} ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism7 block -15.0225367970393 ${xhi5_2} ${ylo5_2} ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism7 block -15.0225367970393 -11.2274632029607 ${ylo5_2} ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism7 block -15.0225367970393 -11.2274632029607 13.2274632029607 ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism7 block -15.0225367970393 -11.2274632029607 13.2274632029607 22.7725367970393 ${zlo5_2} ${zhi5_2}
+region myprism7 block -15.0225367970393 -11.2274632029607 13.2274632029607 22.7725367970393 9.2274632029607 ${zhi5_2}
+region myprism7 block -15.0225367970393 -11.2274632029607 13.2274632029607 22.7725367970393 9.2274632029607 14.7725367970393
+group gprism7 region myprism7
+50 atoms in group gprism7
+
+#-------------------------------------------------------------------------#
+# Creating the front wing side
+#-------------------------------------------------------------------------#
+variable xlo5 equal 12.0
+variable xhi5 equal 14.25
+variable ylo5 equal -26.0
+variable yhi5 equal -20.0
+variable zlo5 equal -5.0
+variable zhi5 equal -1.0
+
+region myprisminside8 block ${xlo5} ${xhi5} ${ylo5} ${yhi5} ${zlo5} ${zhi5}
+region myprisminside8 block 12 ${xhi5} ${ylo5} ${yhi5} ${zlo5} ${zhi5}
+region myprisminside8 block 12 14.25 ${ylo5} ${yhi5} ${zlo5} ${zhi5}
+region myprisminside8 block 12 14.25 -26 ${yhi5} ${zlo5} ${zhi5}
+region myprisminside8 block 12 14.25 -26 -20 ${zlo5} ${zhi5}
+region myprisminside8 block 12 14.25 -26 -20 -5 ${zhi5}
+region myprisminside8 block 12 14.25 -26 -20 -5 -1
+variable n_nodes_P_8 equal "(round(v_more*1.8*(6*(2.0)^2)/(PI*v_dx^2)))"
+create_atoms 11 random ${n_nodes_P_8} 1234 myprisminside8 units box
+create_atoms 11 random 40 1234 myprisminside8 units box
+Created 40 atoms
+  using box units in orthogonal box = (-48 -90 -9) to (48 630 87)
+  create_atoms CPU = 0.000 seconds
+
+variable xlo5_2 equal "v_xlo5 - v_rcutlj93/2"
+variable xhi5_2 equal "v_xhi5 + v_rcutlj93/2"
+variable ylo5_2 equal "v_ylo5 - v_rcutlj93/2"
+variable yhi5_2 equal "v_yhi5 + v_rcutlj93/2"
+variable zlo5_2 equal "v_zlo5 - v_rcutlj93/2"
+variable zhi5_2 equal "v_zhi5 + v_rcutlj93/2"
+
+region myprism8 block ${xlo5_2} ${xhi5_2} ${ylo5_2} ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism8 block 11.2274632029607 ${xhi5_2} ${ylo5_2} ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism8 block 11.2274632029607 15.0225367970393 ${ylo5_2} ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism8 block 11.2274632029607 15.0225367970393 -26.7725367970393 ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism8 block 11.2274632029607 15.0225367970393 -26.7725367970393 -19.2274632029607 ${zlo5_2} ${zhi5_2}
+region myprism8 block 11.2274632029607 15.0225367970393 -26.7725367970393 -19.2274632029607 -5.7725367970393 ${zhi5_2}
+region myprism8 block 11.2274632029607 15.0225367970393 -26.7725367970393 -19.2274632029607 -5.7725367970393 -0.2274632029607
+group gprism8 region myprism8
+40 atoms in group gprism8
+
+#-------------------------------------------------------------------------#
+# Creating the front wing side
+#-------------------------------------------------------------------------#
+variable xlo5 equal -14.25
+variable xhi5 equal -12.0
+variable ylo5 equal -26.0
+variable yhi5 equal -20.0
+variable zlo5 equal -5.0
+variable zhi5 equal -1.0
+
+region myprisminside9 block ${xlo5} ${xhi5} ${ylo5} ${yhi5} ${zlo5} ${zhi5}
+region myprisminside9 block -14.25 ${xhi5} ${ylo5} ${yhi5} ${zlo5} ${zhi5}
+region myprisminside9 block -14.25 -12 ${ylo5} ${yhi5} ${zlo5} ${zhi5}
+region myprisminside9 block -14.25 -12 -26 ${yhi5} ${zlo5} ${zhi5}
+region myprisminside9 block -14.25 -12 -26 -20 ${zlo5} ${zhi5}
+region myprisminside9 block -14.25 -12 -26 -20 -5 ${zhi5}
+region myprisminside9 block -14.25 -12 -26 -20 -5 -1
+variable n_nodes_P_9 equal "(round(v_more*1.8*(6*(2.0)^2)/(PI*v_dx^2)))"
+create_atoms 12 random ${n_nodes_P_9} 1234 myprisminside9 units box
+create_atoms 12 random 40 1234 myprisminside9 units box
+Created 40 atoms
+  using box units in orthogonal box = (-48 -90 -9) to (48 630 87)
+  create_atoms CPU = 0.000 seconds
+
+variable xlo5_2 equal "v_xlo5 - v_rcutlj93/2"
+variable xhi5_2 equal "v_xhi5 + v_rcutlj93/2"
+variable ylo5_2 equal "v_ylo5 - v_rcutlj93/2"
+variable yhi5_2 equal "v_yhi5 + v_rcutlj93/2"
+variable zlo5_2 equal "v_zlo5 - v_rcutlj93/2"
+variable zhi5_2 equal "v_zhi5 + v_rcutlj93/2"
+
+region myprism9 block ${xlo5_2} ${xhi5_2} ${ylo5_2} ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism9 block -15.0225367970393 ${xhi5_2} ${ylo5_2} ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism9 block -15.0225367970393 -11.2274632029607 ${ylo5_2} ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism9 block -15.0225367970393 -11.2274632029607 -26.7725367970393 ${yhi5_2} ${zlo5_2} ${zhi5_2}
+region myprism9 block -15.0225367970393 -11.2274632029607 -26.7725367970393 -19.2274632029607 ${zlo5_2} ${zhi5_2}
+region myprism9 block -15.0225367970393 -11.2274632029607 -26.7725367970393 -19.2274632029607 -5.7725367970393 ${zhi5_2}
+region myprism9 block -15.0225367970393 -11.2274632029607 -26.7725367970393 -19.2274632029607 -5.7725367970393 -0.2274632029607
+group gprism9 region myprism9
+40 atoms in group gprism9
+
+#------------------------------------------------------------------------#
+# creating the union between the regions
+#------------------------------------------------------------------------#
+
+group wheels union gcylinder1 gcylinder2 gcylinder3 gcylinder4
+2472 atoms in group wheels
+group not_wheels union gprism1 gprism2 gprism3 gprism4 gprism5 gball2 gprism6 gprism7 gprism8 gprism9
+2620 atoms in group not_wheels
+
+group aero_group union gprism2 gprism3 gprism4 gprism5 gball2 gprism6 gprism7 gprism8 gprism9
+744 atoms in group aero_group
+region aero union 9 myprism2 myprism3 myprism4 myprism5 mysphere2 myprism6 myprism7 myprism8 myprism9
+group chassis_group union gcylinder1 gcylinder2 gcylinder3 gcylinder4 gprism1
+4348 atoms in group chassis_group
+region chassis union 5 mycylinder1 mycylinder2 mycylinder3 mycylinder4 myprism1
+
+group surge_group union aero_group chassis_group
+5092 atoms in group surge_group
+region surge union 2 aero chassis
+
+#------------------------------------------------------------------------#
+# Soft Potential
+#------------------------------------------------------------------------#
+variable softlength equal "0.5*v_rcutlj"
+pair_style soft ${softlength}
+pair_style soft 1.01021584347843
+pair_coeff * * 0.0
+variable prefactor equal ramp(0,4.14e-8)
+fix 1 all adapt 1 pair soft a * * v_prefactor
+
+#------------------------------------------------------------------------#
+# Run parameters and set up dump
+#------------------------------------------------------------------------#
+timestep 0.2
+mass * 1.0e-6
+
+variable nbin equal "v_rcutlj / (4/3)"
+neighbor ${nbin} bin
+neighbor 1.51532376521765 bin
+neigh_modify delay 0 every 1 check yes
+#variable commcutoff equal "v_dx*2"
+#comm_modify cutoff ${commcutoff}
+
+#dump mydump all atom 10000 out.lammpstrj
+thermo 5000
+
+#------------------------------------------------------------------------#
+# Computes initial interaction
+#------------------------------------------------------------------------#
+variable epsilon equal 10.0e-10
+variable cutofflj93 equal 7.0
+
+fix wall surge_group wall/region surge lj93 ${epsilon} ${sigma} ${cutofflj93}
+fix wall surge_group wall/region surge lj93 1e-09 ${sigma} ${cutofflj93}
+fix wall surge_group wall/region surge lj93 1e-09 1.8 ${cutofflj93}
+fix wall surge_group wall/region surge lj93 1e-09 1.8 7
+
+fix 3 all langevin 31000000.0 50000.0 100.0 5678
+
+fix 2 all nve
+
+#restart 100000 ParticleRestart
+
+run 100000
+Generated 0 of 91 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.5255396
+  ghost atom cutoff = 2.5255396
+  binsize = 1.2627698, bins = 77 571 77
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair soft, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.685 | 6.044 | 7.403 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0              0              0              0              0            
+      5000   29842261       4.7942025e-06  0              3.6257904e-05  3.9879238e-12
+     10000   28098061       7.2385794e-06  0              3.6863311e-05  4.4347259e-12
+     15000   26888635       8.1191579e-06  0              3.6468752e-05  4.7939026e-12
+     20000   24887991       8.3385518e-06  0              3.4578799e-05  4.9862342e-12
+     25000   23265144       8.3946029e-06  0              3.2923828e-05  5.1750035e-12
+     30000   21711263       7.6172235e-06  0              3.0508139e-05  5.2324506e-12
+     35000   20102910       7.2232838e-06  0              2.8418459e-05  5.2342282e-12
+     40000   18634097       6.5402802e-06  0              2.6186836e-05  5.2128024e-12
+     45000   17486541       5.6292406e-06  0              2.4065889e-05  5.0867315e-12
+     50000   15741195       4.96711e-06    0              2.1563581e-05  4.8546007e-12
+     55000   14195280       4.6806146e-06  0              1.9647177e-05  4.7201162e-12
+     60000   12378448       3.8806954e-06  0              1.693171e-05   4.3985323e-12
+     65000   10976639       3.3069428e-06  0              1.4879983e-05  4.1055737e-12
+     70000   9434340        2.6574414e-06  0              1.2604384e-05  3.703813e-12 
+     75000   7827664.3      2.1262358e-06  0              1.0379206e-05  3.3234802e-12
+     80000   6487719.3      1.6234085e-06  0              8.4636294e-06  2.878629e-12 
+     85000   4761145.2      1.1556952e-06  0              6.175531e-06   2.3647084e-12
+     90000   3196900        6.7497651e-07  0              4.0455759e-06  1.7461024e-12
+     95000   1711466.2      3.2662861e-07  0              2.1310851e-06  1.1318791e-12
+    100000   217597.05      4.394432e-08   0              2.7336422e-07  3.7619707e-13
+Loop time of 131.294 on 4 procs for 100000 steps with 5092 atoms
+
+99.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0045648  | 9.3721     | 18.946     | 306.0 |  7.14
+Neigh   | 2.8643     | 5.951      | 9.063      | 125.7 |  4.53
+Comm    | 0.3616     | 0.90559    | 1.7801     |  61.8 |  0.69
+Output  | 0.00058742 | 0.013642   | 0.026668   |  11.2 |  0.01
+Modify  | 0.17841    | 50.602     | 101.42     | 708.8 | 38.54
+Other   |            | 64.45      |            |       | 49.09
+
+Nlocal:           1273 ave        2549 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:            247 ave         496 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:          19929 ave       39908 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 79716
+Ave neighs/atom = 15.655145
+Neighbor list builds = 4954
+Dangerous builds = 0
+
+unfix 1
+unfix 2
+unfix 3
+unfix wall
+
+#------------------------------------------------------------------------#
+# Phase 2 : annealing
+#------------------------------------------------------------------------#
+
+
+#------------------------------------------------------------------------#
+# Soft Potential
+#------------------------------------------------------------------------#
+variable softlength equal "0.475*v_rcutlj"
+pair_style soft ${softlength}
+pair_style soft 0.959705051304513
+pair_coeff * * 4.14e-8
+
+#------------------------------------------------------------------------#
+# Computes initial interaction
+#------------------------------------------------------------------------#
+variable epsilon equal 20.0e-10
+variable cutofflj93 equal 7.0
+
+fix wall surge_group wall/region surge lj93 ${epsilon} ${sigma} ${cutofflj93}
+fix wall surge_group wall/region surge lj93 2e-09 ${sigma} ${cutofflj93}
+fix wall surge_group wall/region surge lj93 2e-09 1.8 ${cutofflj93}
+fix wall surge_group wall/region surge lj93 2e-09 1.8 7
+
+fix 3 all langevin 100000.0 5000.0 100.0 5678
+
+fix 2 all nve
+
+run 200000
+Generated 0 of 91 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 4.966 | 6.325 | 7.684 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+    100000   217597.05      0              0              2.294199e-07   2.3049678e-14
+    105000   105542.67      6.5899047e-08  0              1.7717623e-07  6.9064382e-13
+    110000   96801.947      6.6329049e-08  0              1.683906e-07   7.0960381e-13
+    115000   93283.767      6.4052852e-08  0              1.6240507e-07  7.0033324e-13
+    120000   90930.59       6.3799892e-08  0              1.5967108e-07  7.0244972e-13
+    125000   90114.178      6.3511381e-08  0              1.5852179e-07  7.1128852e-13
+    130000   83917.505      6.279089e-08   0              1.5126794e-07  6.9980391e-13
+    135000   84057.326      6.269189e-08   0              1.5131636e-07  7.1046329e-13
+    140000   80989.747      6.2166941e-08  0              1.4755716e-07  7.0822238e-13
+    145000   79082.787      5.999291e-08   0              1.4337256e-07  7.0169908e-13
+    150000   76377.704      6.0983734e-08  0              1.4151132e-07  7.0803269e-13
+    155000   74642.465      5.8016291e-08  0              1.3671435e-07  6.8979034e-13
+    160000   71320.499      5.8203836e-08  0              1.3339944e-07  6.9671842e-13
+    165000   69769.632      5.8523021e-08  0              1.3208349e-07  6.9774909e-13
+    170000   67002.509      5.6265118e-08  0              1.2690812e-07  6.8640935e-13
+    175000   65045.732      5.5231406e-08  0              1.2381131e-07  6.8623008e-13
+    180000   62633.05       5.3858988e-08  0              1.1989512e-07  6.7679278e-13
+    185000   60510.328      5.3138189e-08  0              1.1693627e-07  6.7838603e-13
+    190000   56958.939      5.3092173e-08  0              1.131459e-07   6.7336019e-13
+    195000   55591.155      5.1736031e-08  0              1.1034766e-07  6.6906721e-13
+    200000   53009.069      5.0934685e-08  0              1.0682393e-07  6.7160648e-13
+    205000   50806.268      5.1266492e-08  0              1.0483325e-07  6.7042981e-13
+    210000   47438.734      4.9024426e-08  0              9.9040681e-08  6.6234011e-13
+    215000   45998.084      4.7751227e-08  0              9.6248556e-08  6.5536559e-13
+    220000   43057.946      4.7441717e-08  0              9.2839159e-08  6.6414744e-13
+    225000   41339.318      4.6636471e-08  0              9.0221906e-08  6.5621184e-13
+    230000   37991.695      4.5885529e-08  0              8.5941452e-08  6.5311348e-13
+    235000   36765.626      4.4005371e-08  0              8.2768609e-08  6.4411688e-13
+    240000   33633.564      4.3031845e-08  0              7.8492844e-08  6.411006e-13 
+    245000   31441.462      4.186446e-08   0              7.5014252e-08  6.3558893e-13
+    250000   28346.474      4.1330305e-08  0              7.1216947e-08  6.3547167e-13
+    255000   26485.436      4.0303887e-08  0              6.8228374e-08  6.3491378e-13
+    260000   24251.816      3.8404659e-08  0              6.3974165e-08  6.2184492e-13
+    265000   21588.99       3.8470221e-08  0              6.1232221e-08  6.3046737e-13
+    270000   19476.088      3.7190768e-08  0              5.7725063e-08  6.2042977e-13
+    275000   17402.215      3.719862e-08   0              5.5546362e-08  6.3332028e-13
+    280000   14911.078      3.5602533e-08  0              5.1323785e-08  6.2734446e-13
+    285000   12478.751      3.4819713e-08  0              4.7976481e-08  6.2920228e-13
+    290000   10052.548      3.3720905e-08  0              4.4319645e-08  6.2607642e-13
+    295000   7653.5468      3.190337e-08   0              3.9972762e-08  6.210325e-13 
+    300000   5240.5437      3.0902841e-08  0              3.6428123e-08  6.2021355e-13
+Loop time of 240.576 on 4 procs for 200000 steps with 5092 atoms
+
+99.1% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0094455  | 19.351     | 39.054     | 439.7 |  8.04
+Neigh   | 0.069968   | 0.11626    | 0.16266    |  13.6 |  0.05
+Comm    | 0.10053    | 0.88025    | 1.9201     |  85.4 |  0.37
+Output  | 0.0012827  | 0.02596    | 0.050595   |  15.3 |  0.01
+Modify  | 0.03084    | 98.954     | 197.96     | 994.4 | 41.13
+Other   |            | 121.2      |            |       | 50.40
+
+Nlocal:           1273 ave        2547 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:            175 ave         360 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:          19108 ave       38228 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 76432
+Ave neighs/atom = 15.010212
+Neighbor list builds = 114
+Dangerous builds = 0
+
+minimize 0.0 1.0e-8 1000 100000
+Generated 0 of 91 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 4.966 | 6.887 | 8.809 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+    300000   5240.5437      3.0902841e-08  0              3.6428123e-08  6.2021355e-13
+    301000   5240.5437      3.0896022e-08  0              3.6421304e-08  6.2016488e-13
+Loop time of 1.30229 on 4 procs for 1000 steps with 5092 atoms
+
+99.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = max iterations
+  Energy initial, next-to-last, final = 
+    3.09028409031651e-08 3.08960287166428e-08 3.08960219060082e-08
+  Force two-norm initial, final = 8.2667468e-08 8.2568929e-08
+  Force max component initial, final = 2.9188021e-09 2.9146337e-09
+  Final line search alpha, max atom move = 1 2.9146337e-09
+  Iterations, force evaluations = 1000 1000
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5.6358e-05 | 0.14395    | 0.28791    |  37.9 | 11.05
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00010928 | 0.0035209  | 0.0074675  |   5.8 |  0.27
+Output  | 1.9357e-05 | 2.0372e-05 | 2.2403e-05 |   0.0 |  0.00
+Modify  | 4.6032e-05 | 0.4419     | 0.88539    |  66.5 | 33.93
+Other   |            | 0.7129     |            |       | 54.74
+
+Nlocal:           1273 ave        2547 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:            175 ave         360 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:        19105.5 ave       38227 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 76422
+Ave neighs/atom = 15.008248
+Neighbor list builds = 0
+Dangerous builds = 0
+
+unfix wall
+unfix 2
+unfix 3
+
+
+#-------------------------------------------------------------------------#
+# The lb/fluid simulation
+#
+# The sphere travels through the simulation, being pushed by the fluid
+#-------------------------------------------------------------------------#
+
+variable number_all equal count(all)
+variable node_mass equal "500000 / v_number_all"
+mass 5* ${node_mass}
+mass 5* 98.1932443047918
+variable wheel_mass equal "v_node_mass/1000"
+mass *4 ${wheel_mass}
+mass *4 0.0981932443047918
+
+variable dx equal 1.0
+variable density equal 0.001184
+
+neighbor 0.5 bin
+neigh_modify delay 0 every 1 check yes
+comm_modify cutoff 3.0
+
+pair_style lj/cut 1.2
+pair_coeff * * 0.0 0.0
+
+timestep 0.025
+if "$(is_defined(dump,mydump))" then "undump mydump"
+
+reset_timestep 0
+
+#dump mydump all atom 10000 run.lammpstrj
+#variable total_force equal 0.2
+#variable node_force equal "v_total_force / 178"
+#fix drag all addforce 0.0 0.0 0.0
+
+velocity all set 0.0 -7.5 0.0 units box
+
+# viscosity of air is 0.0001847
+
+fix   FL all lb/fluid 1 0.0002 ${density} stencil 2 dx ${dx} zwall_velocity 0 0 # dumpxdmf 1000 sflow 0
+fix   FL all lb/fluid 1 0.0002 0.001184 stencil 2 dx ${dx} zwall_velocity 0 0 
+fix   FL all lb/fluid 1 0.0002 0.001184 stencil 2 dx 1 zwall_velocity 0 0 
+Using a lattice-Boltzmann grid of 96 by 720 by 97 points. 
+Local Grid Geometry created.
+First Run initialized
+
+variable vx equal vcm(all,x)
+variable vy equal vcm(all,y)
+variable vz equal vcm(all,z)
+
+#dump mydumpvtk all vtk 1000 out*.vtp vx vy vz
+
+fix   2 all lb/viscous
+
+fix 4 not_wheels nve
+
+fix  3 wheels rigid group 4 gcylinder1 gcylinder2 gcylinder3 gcylinder4 force * off off off torque * on off off
+  4 rigid bodies with 2472 atoms
+
+fix 5 not_wheels setforce 0.0 0.0 0.0
+
+thermo_style custom step v_number_all v_node_mass f_FL[2] f_5[1] f_5[2] f_5[3]
+thermo 100
+
+run 5000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix lb/fluid command: doi:10.1016/j.cpc.2022.108318
+
+@Article{Denniston et al.,
+  author = {C. Denniston and N. Afrasiabian and M. G. Cole-Andre,    F. E. Mackay and S. T. T. Ollila and T. Whitehead},
+ title =   {{LAMMPS} lb/fluid fix version 2: Improved Hydrodynamic     Forces Implemented into {LAMMPS} Through a Lattice-{B}oltzmann Fluid}, journal = {Comput.\ Phys.\ Commun.},
+ year =    2022,
+ volume =  275,
+ pages =   {108318}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 91 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.7
+  ghost atom cutoff = 3
+  binsize = 0.85, bins = 113 848 113
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 14.67 | 16.66 | 18.64 Mbytes
+   Step      v_number_all   v_node_mass      f_FL[2]         f_5[1]         f_5[2]         f_5[3]    
+         0   5092           98.193244      265447.33      0              0              0            
+       100   5092           98.193244      265447.33      0.42848502     10.910894     -2.3324154    
+       200   5092           98.193244      265447.33     -0.02627078     13.323497      0.5134388    
+       300   5092           98.193244      265447.33      0.33955198     12.017917      0.07308431   
+       400   5092           98.193244      265447.33      0.28511704     14.563626      3.4626969    
+       500   5092           98.193244      265447.33     -0.080267505    11.795121      3.266271     
+       600   5092           98.193244      265447.33      0.11024837     10.763593      0.68027763   
+       700   5092           98.193244      265447.33      0.22058041     10.773118      1.1020572    
+       800   5092           98.193244      265447.33      0.26569373     12.841207      1.7015156    
+       900   5092    

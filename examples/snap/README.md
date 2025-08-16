@@ -9,5 +9,11 @@ in.snap.Mo_Chen                   # SNAP linear Mo potential
 in.snap.compute                   # SNAP compute for training a linear model
 in.snap.compute.quadratic         # SNAP compute for training a quadratic model
 in.snap.scale.Ni_Zuo_JCPA2020     # SNAP linear Ni potential with thermodynamic integration (fix adapt scale)
+in.C_SNAP                         # SNAP carbon potential
 
 compute_snap_dgrad.py             # SNAP compute with dgradflag (dBi/dRj) for training a non-linear model
+
+in.snap.grid                      # SNAP descriptors on a grid
+in.snap.grid.triclinic            # SNAP descriptors on a grid, triclinic
+in.gaussian.grid                  # Gaussian descriptors on a grid
+

@@ -85,12 +85,14 @@ By default, *adof* = 2 or 3 = dimensionality of system, as set via the
 :doc:`dimension <dimension>` command, and *cdof* = 0.0.
 This gives the usual formula for temperature.
 
-A kinetic energy tensor, stored as a six-element vector, is also
-calculated by this compute for use in the computation of a pressure
-tensor.  The formula for the components of the tensor is the same as
-the above formula, except that :math:`v^2` is replaced by
-:math:`v_x v_y` for the :math:`xy` component, and so on.
-The six components of the vector are ordered :math:`xx`, :math:`yy`,
+A symmetric tensor, stored as a six-element vector, is also calculated
+by this compute.  The formula for the components of the tensor is the
+same as the above expression for :math:`E_\mathrm{kin}`, except that
+the 1/2 factor is NOT included and the :math:`v_i^2` is replaced by
+:math:`v_{i,x} v_{i,y}` for the :math:`xy` component, and so on.  Note
+that because it lacks the 1/2 factor, these tensor components are
+twice those of the traditional kinetic energy tensor.  The six
+components of the vector are ordered :math:`xx`, :math:`yy`,
 :math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`.
 
 Note that the number of atoms contributing to the temperature is
@@ -182,11 +184,24 @@ temp/chunk calculation to a file is to use the
 The keyword/value option pairs are used in the following ways.
 
 The *com* keyword can be used with a value of *yes* to subtract the
-velocity of the center-of-mass for each chunk from the velocity of the
-atoms in that chunk, before calculating either the global or per-chunk
-temperature.  This can be useful if the atoms are streaming or
+velocity of the center-of-mass (VCM) for each chunk from the velocity of
+the atoms in that chunk, before calculating either the global or per-chunk
+temperature. This can be useful if the atoms are streaming or
 otherwise moving collectively, and you wish to calculate only the
-thermal temperature.
+thermal temperature. This per-chunk VCM bias can be used in other fixes and
+computes that can incorporate a temperature bias. If this compute is used
+as a temperature bias in other commands then this bias is subtracted from
+each atom, the command runs with the remaining thermal velocities, and
+then the bias is added back in. This includes thermostatting
+fixes like :doc:`fix nvt <fix_nh>`,
+:doc:`fix temp/rescale <fix_temp_rescale>`,
+:doc:`fix temp/berendsen <fix_temp_berendsen>`, and
+:doc:`fix langevin <fix_langevin>`, and computes like
+:doc:`compute stress/atom <compute_stress_atom>` and
+:doc:`compute pressure <compute_pressure>`. See the input script in
+examples/stress_vcm for an example of how to use the *com* keyword in
+conjunction with compute stress/atom to create a stress profile of a rigid
+body while removing the overall motion of the rigid body.
 
 For the *bias* keyword, *bias-ID* refers to the ID of a temperature
 compute that removes a "bias" velocity from each atom.  This also
@@ -227,10 +242,10 @@ Output info
 """""""""""
 
 This compute calculates a global scalar (the temperature) and a global
-vector of length 6 (KE tensor), which can be accessed by indices 1--6.
-These values can be used by any command that uses global scalar or
-vector values from a compute as input.
-See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS
+vector of length 6 (symmetric tensor), which can be accessed by
+indices 1--6.  These values can be used by any command that uses
+global scalar or vector values from a compute as input.  See the
+:doc:`Howto output <Howto_output>` page for an overview of LAMMPS
 output options.
 
 This compute also optionally calculates a global array, if one or more
@@ -245,9 +260,9 @@ page for an overview of LAMMPS output options.
 The scalar value calculated by this compute is "intensive".  The
 vector values are "extensive".  The array values are "intensive".
 
-The scalar value will be in temperature :doc:`units <units>`.  The
-vector values will be in energy :doc:`units <units>`.  The array values
-will be in temperature :doc:`units <units>` for the *temp* value, and in
+The scalar value is in temperature :doc:`units <units>`.  The vector
+values are in energy :doc:`units <units>`.  The array values will be
+in temperature :doc:`units <units>` for the *temp* value, and in
 energy :doc:`units <units>` for the *kecom* and *internal* values.
 
 Restrictions

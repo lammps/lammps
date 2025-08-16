@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
+#include "atom.h"
 #include "pointers.h"
 #include "tokenizer.h"
 
@@ -19,8 +19,6 @@
 #include "gtest/gtest.h"
 
 #include <cerrno>
-#include <string>
-#include <vector>
 
 using namespace LAMMPS_NS;
 using ::testing::EndsWith;
@@ -44,6 +42,49 @@ TEST(Utils, strdup)
 
     delete[] copy;
     delete[] copy2;
+}
+
+TEST(Utils, strsame)
+{
+    std::string text1("some_text");
+    std::string text2("some_text");
+    ASSERT_TRUE(utils::strsame(text1, text2));
+    text1 = " some   _\ttext\n ";
+    ASSERT_TRUE(utils::strsame(text1, text2));
+    text2 = "  some _  text\n    ";
+    ASSERT_TRUE(utils::strsame(text1, text2));
+
+    text2 = "some_other_text";
+    ASSERT_FALSE(utils::strsame(text1, text2));
+    text2 = " some other_text";
+    ASSERT_FALSE(utils::strsame(text1, text2));
+}
+
+TEST(Utils, strcompress)
+{
+    auto compressed = utils::strcompress("\t some   text   ");
+    ASSERT_THAT(compressed, StrEq("some text"));
+
+    compressed = utils::strcompress("some \ntext");
+    ASSERT_THAT(compressed, StrEq("some text"));
+
+    compressed = utils::strcompress("sometext");
+    ASSERT_THAT(compressed, StrEq("sometext"));
+
+    compressed = utils::strcompress("some   text \r\n");
+    ASSERT_THAT(compressed, StrEq("some text"));
+
+    compressed = utils::strcompress("some other  text \r\n");
+    ASSERT_THAT(compressed, StrEq("some other text"));
+
+    compressed = utils::strcompress("\v some  \t\t  text \f");
+    ASSERT_THAT(compressed, StrEq("some text"));
+
+    compressed = utils::strcompress("   some\t text    ");
+    ASSERT_THAT(compressed, StrEq("some text"));
+
+    compressed = utils::strcompress("  \t\n   ");
+    ASSERT_THAT(compressed, StrEq(""));
 }
 
 TEST(Utils, trim)
@@ -210,6 +251,23 @@ TEST(Utils, split_words_quoted)
     ASSERT_EQ(list.size(), 3);
     ASSERT_THAT(list[0], StrEq("one"));
     ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
+}
+
+TEST(Utils, split_words_partially_quoted)
+{
+    auto list = utils::split_words("one \'two \"three\"");
+    ASSERT_EQ(list.size(), 2);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two \"three\""));
+}
+
+TEST(Utils, split_words_partially_escaped)
+{
+    auto list = utils::split_words("one \\'two \"three\"");
+    ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("\\'two"));
     ASSERT_THAT(list[2], StrEq("three"));
 }
 
@@ -929,6 +987,16 @@ TEST(Utils, boundsbig_case3)
     ASSERT_EQ(nhi, -1);
 }
 
+TEST(Utils, bounds_typelabel_forward)
+{
+    int nlo, nhi;
+
+    nlo = nhi = -1;
+    utils::bounds_typelabel(FLERR, "2*9", 0, 10, nlo, nhi, nullptr, Atom::ATOM);
+    ASSERT_EQ(nlo, 2);
+    ASSERT_EQ(nhi, 9);
+}
+
 TEST(Utils, parse_grid_id)
 {
     auto words = utils::parse_grid_id(FLERR, "c_1:full:density", nullptr);
@@ -969,8 +1037,9 @@ TEST(Utils, parse_grid_id)
 
 TEST(Utils, errorurl)
 {
-    auto errmesg = utils::errorurl(10);
-    ASSERT_THAT(errmesg, Eq("\nFor more information see https://docs.lammps.org/err0010"));
+    ASSERT_THAT(utils::errorurl(10), StrEq("\nFor more information see https://docs.lammps.org/err0010"));
+    ASSERT_THAT(utils::errorurl(0), StrEq("\nFor more information see https://docs.lammps.org/Errors_details.html"));
+    ASSERT_THAT(utils::errorurl(-1), StrEq(""));
 }
 
 TEST(Utils, getsyserror)
@@ -982,6 +1051,40 @@ TEST(Utils, getsyserror)
 #else
     GTEST_SKIP();
 #endif
+}
+
+static void BEGIN_CAPTURE_OUTPUT()
+{
+    ::testing::internal::CaptureStdout();
+}
+
+static std::string END_CAPTURE_OUTPUT()
+{
+    return ::testing::internal::GetCapturedStdout();
+}
+
+TEST(Utils, print)
+{
+    BEGIN_CAPTURE_OUTPUT();
+    utils::print("hello, world!\n");
+    auto text = END_CAPTURE_OUTPUT();
+    EXPECT_THAT(text, StrEq("hello, world!\n"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    utils::print(stdout, "hello, world!\n");
+    text = END_CAPTURE_OUTPUT();
+    EXPECT_THAT(text, StrEq("hello, world!\n"));
+
+    const auto world = "world";
+    BEGIN_CAPTURE_OUTPUT();
+    utils::print("hello, {:>20}!\n", world);
+    text = END_CAPTURE_OUTPUT();
+    EXPECT_THAT(text, StrEq("hello,                world!\n"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    utils::print(stdout, "hello, {:<20}!\n", world);
+    text = END_CAPTURE_OUTPUT();
+    EXPECT_THAT(text, StrEq("hello, world               !\n"));
 }
 
 TEST(Utils, potential_file)
@@ -1073,7 +1176,7 @@ TEST(Utils, timespec2seconds_mmfraction)
 
 TEST(Utils, timespec2seconds_invalid)
 {
-    ASSERT_DOUBLE_EQ(utils::timespec2seconds("2:aa:45"), -1.0);
+    ASSERT_THROW(utils::timespec2seconds("2:aa:45"), TokenizerException);
 }
 
 TEST(Utils, date2num)

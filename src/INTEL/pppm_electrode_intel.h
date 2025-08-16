@@ -38,7 +38,7 @@ namespace LAMMPS_NS {
 class PPPMElectrodeIntel : public PPPMIntel, public ElectrodeKSpace {
  public:
   PPPMElectrodeIntel(class LAMMPS *);
-  ~PPPMElectrodeIntel();
+  ~PPPMElectrodeIntel() override;
   void init() override;
   void setup() override;
   void compute(int, int) override;

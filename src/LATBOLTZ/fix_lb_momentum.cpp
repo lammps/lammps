@@ -21,12 +21,12 @@
 #include "fix_lb_momentum.h"
 
 #include "atom.h"
-#include "comm.h"
-#include "domain.h"
 #include "error.h"
 #include "fix_lb_fluid.h"
 #include "group.h"
 #include "modify.h"
+
+#include <cstring>
 
 #include "latboltz_const.h"
 

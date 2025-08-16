@@ -118,7 +118,7 @@ void ThirdOrder::command(int narg, char **arg)
   MPI_Comm_rank(world,&me);
 
   if (domain->box_exist == 0)
-    error->all(FLERR,"third_order command before simulation box is defined");
+    error->all(FLERR,"third_order command before simulation box is defined" + utils::errorurl(33));
   if (narg < 2) error->all(FLERR,"Illegal third_order command");
 
   // request a full neighbor list for use by this command
@@ -162,7 +162,7 @@ void ThirdOrder::command(int narg, char **arg)
   conversion = 1;
   folded = 0;
 
-  // set Neigborlist attributes to NULL
+  // set Neighborlist attributes to NULL
   ijnum = nullptr;
   neighbortags = nullptr;
 
@@ -286,8 +286,8 @@ void ThirdOrder::calculateMatrix()
   bigint j;
   bigint *firstneigh;
 
-  auto dynmat = new double[dynlenb];
-  auto fdynmat = new double[dynlenb];
+  auto *dynmat = new double[dynlenb];
+  auto *fdynmat = new double[dynlenb];
   memset(&dynmat[0],0,dynlenb*sizeof(double));
   memset(&fdynmat[0],0,dynlenb*sizeof(double));
 
@@ -295,7 +295,7 @@ void ThirdOrder::calculateMatrix()
 
   if (comm->me == 0 && screen) {
     fputs("Calculating Third Order ...\n", screen);
-    fmt::print(screen,"  Total # of atoms = {}\n"
+    utils::print(screen,"  Total # of atoms = {}\n"
                       "  Atoms in group = {}\n"
                       "  Total third order elements = {}\n",
                       natoms, gcount, dynlen*dynlen*dynlen);
@@ -432,7 +432,7 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
       for (int k = 0; k < atom->natoms; k++){
         norm = square(dynmat[k*3])+square(dynmat[k*3+1])+square(dynmat[k*3+2]);
         if (norm > 1.0e-16)
-          fmt::print(fp, "{} {} {} {} {} {:17.8f} {:17.8f} {:17.8f}\n",
+          utils::print(fp, "{} {} {} {} {} {:17.8f} {:17.8f} {:17.8f}\n",
                      i+1, a+1, j+1, b+1, k+1, dynmat[k*3] * conversion,
                      dynmat[k*3+1] * conversion, dynmat[k*3+2] * conversion);
       }
@@ -440,7 +440,7 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
       for (int k = 0; k < gcount; k++){
         norm = square(dynmat[k*3])+square(dynmat[k*3+1])+square(dynmat[k*3+2]);
         if (norm > 1.0e-16)
-          fmt::print(fp, "{} {} {} {} {} {:17.8f} {:17.8f} {:17.8f}\n",
+          utils::print(fp, "{} {} {} {} {} {:17.8f} {:17.8f} {:17.8f}\n",
                      i+1, a+1, j+1, b+1, groupmap[k]+1, dynmat[k*3] * conversion,
                      dynmat[k*3+1] * conversion, dynmat[k*3+2] * conversion);
       }
@@ -618,7 +618,7 @@ void ThirdOrder::create_groupmap()
   bigint natoms = atom->natoms;
   int *recv = new int[comm->nprocs];
   int *displs = new int[comm->nprocs];
-  auto temp_groupmap = new bigint[natoms];
+  auto *temp_groupmap = new bigint[natoms];
 
   //find number of local atoms in the group (final_gid)
   for (bigint i=1; i<=natoms; i++) {
@@ -627,7 +627,7 @@ void ThirdOrder::create_groupmap()
       gid += 1; // gid at the end of loop is final_Gid
   }
   //create an array of length final_gid
-  auto sub_groupmap = new bigint[gid];
+  auto *sub_groupmap = new bigint[gid];
 
   gid = 0;
   //create a map between global atom id and group atom id for each proc
@@ -715,8 +715,8 @@ void ThirdOrder::getNeighbortags() {
   }
 
   bigint nbytes = ((bigint) sizeof(bigint)) * sum;
-  auto data = (bigint *) memory->smalloc(nbytes, "thirdorder:firsttags");
-  auto datarecv = (bigint *) memory->smalloc(nbytes, "thirdorder:neighbortags");
+  auto *data = (bigint *) memory->smalloc(nbytes, "thirdorder:firsttags");
+  auto *datarecv = (bigint *) memory->smalloc(nbytes, "thirdorder:neighbortags");
   nbytes = ((bigint) sizeof(bigint *)) * natoms;
   firsttags = (bigint **) memory->smalloc(nbytes, "thirdorder:firsttags");
   neighbortags = (bigint **) memory->smalloc(nbytes, "thirdorder:neighbortags");

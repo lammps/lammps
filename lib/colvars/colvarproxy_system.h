@@ -61,8 +61,14 @@ public:
   /// Set the current target temperature of the simulation (K units)
   virtual int set_target_temperature(cvm::real T);
 
-  /// \brief Time step of the simulation (fs)
-  virtual cvm::real dt();
+  /// Time step of the simulation (fs units)
+  inline double dt() const
+  {
+    return timestep_;
+  }
+
+  /// Set the current integration timestep of the simulation (fs units)
+  virtual int set_integration_timestep(cvm::real dt);
 
   /// \brief Pseudo-random number with Gaussian distribution
   virtual cvm::real rand_gaussian(void);
@@ -88,6 +94,7 @@ public:
   virtual bool total_forces_enabled() const;
 
   /// Are total forces from the current step available?
+  /// in which case they are really system forces
   virtual bool total_forces_same_step() const;
 
   /// Get the molecule ID when called in VMD; raise error otherwise
@@ -102,6 +109,11 @@ public:
 
   /// Send cached value of alchemical lambda parameter to back-end (if available)
   virtual int send_alch_lambda();
+
+  /// Request energy computation every freq steps (necessary for NAMD3, not all back-ends)
+  virtual int request_alch_energy_freq(int const freq) {
+    return COLVARS_OK;
+  }
 
   /// Get energy derivative with respect to lambda (if available)
   virtual int get_dE_dlambda(cvm::real* dE_dlambda);
@@ -137,8 +149,11 @@ protected:
   /// Boltzmann constant in internal Colvars units
   cvm::real boltzmann_;
 
-  /// Most up to date target temperature for the system (in K)
+  /// Most up to date target temperature (K units); default to 0.0 if undefined
   cvm::real target_temperature_;
+
+  /// Current integration timestep (engine units); default to 1.0 if undefined
+  double timestep_;
 
   /// \brief Value of 1 Angstrom in the internal (front-end) Colvars unit for atomic coordinates
   /// * defaults to 0 in the base class; derived proxy classes must set it

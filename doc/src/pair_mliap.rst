@@ -145,6 +145,7 @@ per line.
 The detail of *nn* module implementation can be found at :ref:`(Yanxon) <Yanxon2020>`.
 
 .. admonition:: Notes on mliappy models
+   :class: note
 
    When the *model* keyword is *mliappy*, if the filename ends in '.pt',
    or '.pth', it will be loaded using pytorch; otherwise, it will be
@@ -198,7 +199,7 @@ the elements are listed must be consistent for all three keywords.
 The SO3 descriptor file is similar to the SNAP descriptor except that it
 contains a few more arguments (e.g., *nmax* and *alpha*). The preparation
 of SO3 descriptor and model files can be done with the
-`Pyxtal_FF <https://github.com/qzhu2017/PyXtal_FF>`_ package.
+`PyXtal_FF <https://github.com/MaterSim/PyXtal_FF>`_ package.
 
 The ACE descriptor file differs from the SNAP and SO3 files. It more
 closely resembles the potential file format for linear or square-root

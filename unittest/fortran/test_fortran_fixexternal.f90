@@ -323,44 +323,50 @@ SUBROUTINE f_lammps_find_forces() BIND(C)
   INTEGER(c_int) :: size_tagint
   INTEGER(c_int), DIMENSION(:), POINTER :: id
   INTEGER(c_int64_t), DIMENSION(:), POINTER :: tag
+  INTEGER :: i, nlocal
 
   f3(:,:) = 0.0_c_double
   f4(:,:) = 0.0_c_double
   size_tagint = lmp%extract_setting('tagint')
+  nlocal = lmp%extract_setting('nlocal')
   IF (size_tagint == 4_c_int) THEN
     id = lmp%extract_atom('id')
-    WHERE (id == 1_c_int)
-      f3(1,:) = 4.0_c_double
-      f3(2,:) = -4.0_c_double
-      f3(3,:) = 6.0_c_double
-      f4(1,:) = 10.0_c_double
-      f4(2,:) = -10.0_c_double
-      f4(3,:) = 12.0_c_double
-    ELSEWHERE
-      f3(1,:) = 5.0_c_double
-      f3(2,:) = -5.0_c_double
-      f3(3,:) = 7.0_c_double
-      f4(1,:) = 11.0_c_double
-      f4(2,:) = -11.0_c_double
-      f4(3,:) = 13.0_c_double
-    END WHERE
+    DO i=1,nlocal
+      IF (id(i) == 1_c_int) THEN
+        f3(1,i) = 4.0_c_double
+        f3(2,i) = -4.0_c_double
+        f3(3,i) = 6.0_c_double
+        f4(1,i) = 10.0_c_double
+        f4(2,i) = -10.0_c_double
+        f4(3,i) = 12.0_c_double
+      ELSE
+        f3(1,i) = 5.0_c_double
+        f3(2,i) = -5.0_c_double
+        f3(3,i) = 7.0_c_double
+        f4(1,i) = 11.0_c_double
+        f4(2,i) = -11.0_c_double
+        f4(3,i) = 13.0_c_double
+      END IF
+    END DO
   ELSE
     tag = lmp%extract_atom('id')
-    WHERE (tag == 1_c_int64_t)
-      f3(1,:) = 4.0_c_double
-      f3(2,:) = -4.0_c_double
-      f3(3,:) = 6.0_c_double
-      f4(1,:) = 10.0_c_double
-      f4(2,:) = -10.0_c_double
-      f4(3,:) = 12.0_c_double
-    ELSEWHERE
-      f3(1,:) = 5.0_c_double
-      f3(2,:) = -5.0_c_double
-      f3(3,:) = 7.0_c_double
-      f4(1,:) = 11.0_c_double
-      f4(2,:) = -11.0_c_double
-      f4(3,:) = 13.0_c_double
-    END WHERE
+    DO i=1,nlocal
+      IF (tag(i) == 1_c_int64_t) THEN
+        f3(1,i) = 4.0_c_double
+        f3(2,i) = -4.0_c_double
+        f3(3,i) = 6.0_c_double
+        f4(1,i) = 10.0_c_double
+        f4(2,i) = -10.0_c_double
+        f4(3,i) = 12.0_c_double
+      ELSE
+        f3(1,i) = 5.0_c_double
+        f3(2,i) = -5.0_c_double
+        f3(3,i) = 7.0_c_double
+        f4(1,i) = 11.0_c_double
+        f4(2,i) = -11.0_c_double
+        f4(3,i) = 13.0_c_double
+      END IF
+    END DO
   END IF
 END SUBROUTINE f_lammps_find_forces
 

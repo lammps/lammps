@@ -95,6 +95,8 @@
 /angle_lepton.h
 /dihedral_lepton.cpp
 /dihedral_lepton.h
+/fix_efield_lepton.cpp
+/fix_efield_lepton.h
 /fix_wall_lepton.cpp
 /fix_wall_lepton.h
 /lepton_utils.cpp
@@ -106,6 +108,32 @@
 /pair_pace.h
 /pair_pace_extrapolation.cpp
 /pair_pace_extrapolation.h
+
+/atom_vec_apip.cpp
+/atom_vec_apip.h
+/fix_lambda_apip.cpp
+/fix_lambda_apip.h
+/fix_lambda_thermostat_apip.cpp
+/fix_lambda_thermostat_apip.h
+/pair_lambda_input_apip.cpp
+/pair_lambda_input_apip.h
+/pair_lambda_input_csp_apip.cpp
+/pair_lambda_input_csp_apip.h
+/pair_eam_fs_apip.cpp
+/pair_eam_fs_apip.h
+/pair_eam_apip.cpp
+/pair_eam_apip.h
+/pair_lambda_zone_apip.cpp
+/pair_lambda_zone_apip.h
+/pair_pace_apip.cpp
+/pair_pace_apip.h
+/pair_pace_precise_apip.cpp
+/pair_pace_precise_apip.h
+/pair_pace_fast_apip.cpp
+/pair_pace_fast_apip.h
+/fix_atom_weight_apip.cpp
+/fix_atom_weight_apip.h
+
 
 /pair_pod.cpp
 /pair_pod.h
@@ -192,6 +220,8 @@
 /colvarproxy_lammps_version.h
 /fix_colvars.cpp
 /fix_colvars.h
+/inthash.cpp
+/inthash.h
 /fix_plumed.cpp
 /fix_plumed.h
 /dump_molfile.cpp
@@ -248,6 +278,8 @@
 /*rheo*.cpp
 /*rheo*.h
 
+/compute_gaussian_grid_local.cpp
+/compute_gaussian_grid_local.h
 /compute_grid.cpp
 /compute_grid.h
 /compute_grid_local.cpp
@@ -368,6 +400,8 @@
 /bond_bpm_rotational.h
 /bond_bpm_spring.cpp
 /bond_bpm_spring.h
+/bond_bpm_spring_plastic.cpp
+/bond_bpm_spring_plastic.h
 /compute_nbond_atom.cpp
 /compute_nbond_atom.h
 /fix_nve_bpm_sphere.cpp
@@ -411,6 +445,8 @@
 /compute_hexorder_atom.h
 /dump_dcd.cpp
 /dump_dcd.h
+/dump_extxyz.cpp
+/dump_extxyz.h
 /fix_controller.cpp
 /fix_controller.h
 /fix_drag.cpp
@@ -437,6 +473,8 @@
 /pair_coul_cut_global.h
 /pair_coul_streitz.cpp
 /pair_coul_streitz.h
+/pair_coul_ctip.cpp
+/pair_coul_ctip.h
 /pair_gauss.cpp
 /pair_gauss.h
 /pair_lj96_cut.cpp
@@ -503,6 +541,8 @@
 /angle_harmonic.h
 /angle_mm3.cpp
 /angle_mm3.h
+/angle_mwlc.cpp
+/angle_mwlc.h
 /angle_quartic.cpp
 /angle_quartic.h
 /angle_spica.cpp
@@ -841,6 +881,8 @@
 /fix_ffl.h
 /fix_filter_corotate.cpp
 /fix_filter_corotate.h
+/fix_granular_mdr.cpp
+/fix_granular_mdr.h
 /fix_viscosity.cpp
 /fix_viscosity.h
 /fix_ehex.cpp
@@ -859,6 +901,8 @@
 /fix_freeze.h
 /fix_gcmc.cpp
 /fix_gcmc.h
+/fix_gjf.cpp
+/fix_gjf.h
 /fix_gld.cpp
 /fix_gld.h
 /fix_gle.cpp
@@ -867,6 +911,8 @@
 /fix_gpu.h
 /fix_grem.cpp
 /fix_grem.h
+/fix_hmc.cpp
+/fix_hmc.h
 /fix_hyper.cpp
 /fix_hyper.h
 /fix_hyper_global.cpp
@@ -908,6 +954,8 @@
 /fix_msst.h
 /fix_neb.cpp
 /fix_neb.h
+/fix_neighbor_swap.cpp
+/fix_neighbor_swap.h
 /fix_nh_asphere.cpp
 /fix_nh_asphere.h
 /fix_nph_asphere.cpp
@@ -976,12 +1024,18 @@
 /fix_pour.h
 /fix_qeq_comb.cpp
 /fix_qeq_comb.h
+/fix_qeq_ctip.cpp
+/fix_qeq_ctip.h
 /fix_qeq_fire.cpp
 /fix_qeq_fire.h
 /fix_qeq_reaxff.cpp
 /fix_qeq_reaxff.h
+/fix_qeq_rel_reaxff.cpp
+/fix_qeq_rel_reaxff.h
 /fix_qmmm.cpp
 /fix_qmmm.h
+/fix_qtpie_reaxff.cpp
+/fix_qtpie_reaxff.h
 /fix_reaxff.cpp
 /fix_reaxff.h
 /fix_reaxff_bonds.cpp
@@ -1075,13 +1129,15 @@
 /fix_wall_srd.h
 /fix_widom.cpp
 /fix_widom.h
+/geturl.cpp
+/geturl.h
 /gpu_extra.h
-/group_ndx.cpp
-/group_ndx.h
+/group2ndx.cpp
+/group2ndx.h
 /gz_file_writer.cpp
 /gz_file_writer.h
-/ndx_group.cpp
-/ndx_group.h
+/ndx2group.cpp
+/ndx2group.h
 /hyper.cpp
 /hyper.h
 /improper_class2.cpp
@@ -1207,6 +1263,9 @@
 /pair_dipole_cut.h
 /pair_dipole_sf.cpp
 /pair_dipole_sf.h
+/d3_parameters.h
+/pair_dispersion_d3.h
+/pair_dispersion_d3.cpp
 /pair_dsmc.cpp
 /pair_dsmc.h
 /pair_e3b.cpp
@@ -1260,6 +1319,10 @@
 /pair_hbond_dreiding_lj.h
 /pair_hbond_dreiding_morse.cpp
 /pair_hbond_dreiding_morse.h
+/pair_hbond_dreiding_lj_angleoffset.cpp
+/pair_hbond_dreiding_lj_angleoffset.h
+/pair_hbond_dreiding_morse_angleoffset.cpp
+/pair_hbond_dreiding_morse_angleoffset.h
 /pair_hdnnp.cpp
 /pair_hdnnp.h
 /pair_ilp_graphene_hbn.cpp
@@ -1524,6 +1587,8 @@
 /reaxff_inline.h
 /reaxff_omp.h
 /reaxff_types.h
+/region2vmd.cpp
+/region2vmd.h
 /remap.cpp
 /remap.h
 /remap_wrap.cpp
@@ -1564,6 +1629,8 @@
 /compute_pressure_alchemy.h
 /atom_vec_smd.cpp
 /atom_vec_smd.h
+/bosonic_exchange.cpp
+/bosonic_exchange.h
 /compute_saed.cpp
 /compute_saed.h
 /compute_saed_consts.h
@@ -1620,6 +1687,8 @@
 /fix_atom_swap.h
 /fix_ave_spatial_sphere.cpp
 /fix_ave_spatial_sphere.h
+/fix_ave_momentum.cpp
+/fix_ave_momentum.h
 /fix_drude.cpp
 /fix_drude.h
 /fix_drude_transform.cpp
@@ -1632,10 +1701,14 @@
 /fix_pimd.h
 /fix_pimd_langevin.cpp
 /fix_pimd_langevin.h
+/fix_pimd_langevin_bosonic.cpp
+/fix_pimd_langevin_bosonic.h
 /fix_alchemy.cpp
 /fix_alchemy.h
 /fix_pimd_nvt.cpp
 /fix_pimd_nvt.h
+/fix_pimd_nvt_bosonic.cpp
+/fix_pimd_nvt_bosonic.h
 /fix_qbmsst.cpp
 /fix_qbmsst.h
 /fix_qtb.cpp
@@ -1764,4 +1837,6 @@
 /pair_smtbq.h
 /pair_vashishta*.cpp
 /pair_vashishta*.h
+/pair_lj_pirani.cpp
+/pair_lj_pirani.h
 

@@ -19,13 +19,13 @@
 
 using namespace LAMMPS_NS;
 
-static const char cite_separator[] =
+static constexpr char cite_separator[] =
     "CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE\n\n";
 
-static const char cite_nagline[] =
+static constexpr char cite_nagline[] =
     "Your simulation uses code contributions which should be cited:\n";
 
-static const char cite_file[] = "The {} {} lists these citations in BibTeX format.\n\n";
+static constexpr char cite_file[] = "The {} {} lists these citations in BibTeX format.\n\n";
 
 // define hash function
 static std::hash<std::string> get_hash;

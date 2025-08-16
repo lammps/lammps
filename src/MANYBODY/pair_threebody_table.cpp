@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -263,7 +264,9 @@ void PairThreebodyTable::init_style()
 
 double PairThreebodyTable::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   return cutmax;
 }
@@ -700,6 +703,7 @@ void PairThreebodyTable::uf_lookup(Param *pm, double r12, double r13, double the
 
   //lookup scheme
 
+  // NOLINTBEGIN
   // if it is a symmetric threebody interaction, less table entries are required
   if (pm->symmetric) {
     nr12 = (r12 - pm->mltable->rmin + 0.5 * dr - 0.00000001) / dr;
@@ -727,6 +731,7 @@ void PairThreebodyTable::uf_lookup(Param *pm, double r12, double r13, double the
     itable *= (pm->mltable->ninput * 2);
     itable += ntheta;
   }
+  // NOLINTEND
 
   f11 = pm->mltable->f11file[itable];
   f12 = pm->mltable->f12file[itable];
@@ -768,12 +773,12 @@ void PairThreebodyTable::threebody(Param *paramijk, double rsq1, double rsq2, do
     swapped = true;
   }
 
-  //look up forces and energy in table belonging to parameter set paramijk
+  // look up forces and energy in table belonging to parameter set paramijk
 
-  //only do lookup and add three-body interactions if r12 and r13 are both between rmin and rmax
+  // only do lookup and add three-body interactions if r12 and r13 are both between rmin and rmax
 
   if ((r12 >= (paramijk->mltable->rmin - 0.5 * dr)) &&
-      (r13 <= (paramijk->mltable->rmax + 0.5 * dr)) &&
+      (r12 <= (paramijk->mltable->rmax + 0.5 * dr)) &&
       (r13 >= (paramijk->mltable->rmin - 0.5 * dr)) &&
       (r13 <= (paramijk->mltable->rmax + 0.5 * dr))) {
     uf_lookup(paramijk, r12, r13, theta, f11, f12, f21, f22, f31, f32, u);

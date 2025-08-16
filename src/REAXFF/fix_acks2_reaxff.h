@@ -57,7 +57,7 @@ class FixACKS2ReaxFF : public FixQEqReaxFF {
   void deallocate_matrix() override;
 
   void init_matvec() override;
-  void compute_X();
+  void compute_X();    // NOLINT
   double calculate_X(double, double);
   void calculate_Q() override;
 

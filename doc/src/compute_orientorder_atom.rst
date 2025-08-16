@@ -49,7 +49,7 @@ For each atom, :math:`Q_\ell` is a real number defined as follows:
 
 .. math::
 
-   \bar{Y}_{\ell m} = & \frac{1}{nnn}\sum_{j = 1}^{nnn} Y_{\ell m}\bigl( \theta( {\bf r}_{ij} ), \phi( {\bf r}_{ij} ) \bigr) \\
+   \bar{Y}_{\ell m} = & \frac{1}{nnn}\sum_{j = 1}^{nnn} Y_{\ell m}\bigl( \theta( \mathbf{r}_{ij} ), \phi( \mathbf{r}_{ij} ) \bigr) \\
    Q_\ell  = & \sqrt{\frac{4 \pi}{2 \ell  + 1} \sum_{m = -\ell }^{m = \ell } \bar{Y}_{\ell m} \bar{Y}^*_{\ell m}}
 
 The first equation defines the local order parameters as averages

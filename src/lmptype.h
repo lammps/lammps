@@ -64,20 +64,31 @@ namespace LAMMPS_NS {
 #define HISTMASK 0xDFFFFFFF
 #define SPECIALMASK 0x3FFFFFFF
 
+// mask to curb data sizes when calling memcpy() to avoid bogus compiler warnings
+#if UINTPTR_MAX > (1UL<<63)
+static constexpr uint64_t MEMCPYMASK = (static_cast<uint64_t>(1) << 63) - 1U;
+#else
+static constexpr uint32_t MEMCPYMASK = (static_cast<uint32_t>(1) << 31) - 1U;
+#endif
+
 // default to 32-bit smallint and other ints, 64-bit bigint
 
-#if !defined(LAMMPS_SMALLSMALL) && !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG)
+#if !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG)
 #define LAMMPS_SMALLBIG
+#endif
+
+// we no longer support LAMMPS_SMALLSMALL
+
+#if defined(LAMMPS_SMALLSMALL)
+#error LAMMPS no longer supports -DLAMMPS_SMALLSMALL
 #endif
 
 // allow user override of LONGLONG to LONG, necessary for some machines/MPI
 
 #ifdef LAMMPS_LONGLONG_TO_LONG
 #define MPI_LL MPI_LONG
-#define ATOLL atoll
 #else
 #define MPI_LL MPI_LONG_LONG
-#define ATOLL atol
 #endif
 
 // for atomic problems that exceed 2 billion (2^31) atoms
@@ -86,10 +97,10 @@ namespace LAMMPS_NS {
 
 #ifdef LAMMPS_SMALLBIG
 
-typedef int smallint;
-typedef int imageint;
-typedef int tagint;
-typedef int64_t bigint;
+using smallint = int;
+using imageint = int;
+using tagint = int;
+using bigint = int64_t;
 
 #define MAXSMALLINT INT_MAX
 #define MAXTAGINT INT_MAX
@@ -102,9 +113,6 @@ typedef int64_t bigint;
 
 #define TAGINT_FORMAT "%d"
 #define BIGINT_FORMAT "%" PRId64
-
-#define ATOTAGINT atoi
-#define ATOBIGINT ATOLL
 
 #define LAMMPS_TAGINT LAMMPS_INT
 #define LAMMPS_TAGINT_2D LAMMPS_INT_2D
@@ -124,10 +132,10 @@ typedef int64_t bigint;
 
 #ifdef LAMMPS_BIGBIG
 
-typedef int smallint;
-typedef int64_t imageint;
-typedef int64_t tagint;
-typedef int64_t bigint;
+using smallint = int;
+using imageint = int64_t;
+using tagint = int64_t;
+using bigint = int64_t;
 
 #define MAXSMALLINT INT_MAX
 #define MAXTAGINT INT64_MAX
@@ -141,9 +149,6 @@ typedef int64_t bigint;
 #define TAGINT_FORMAT "%" PRId64
 #define BIGINT_FORMAT "%" PRId64
 
-#define ATOTAGINT ATOLL
-#define ATOBIGINT ATOLL
-
 #define LAMMPS_TAGINT LAMMPS_INT64
 #define LAMMPS_TAGINT_2D LAMMPS_INT64_2D
 #define LAMMPS_BIGINT LAMMPS_INT64
@@ -153,43 +158,6 @@ typedef int64_t bigint;
 #define IMGMAX 1048576
 #define IMGBITS 21
 #define IMG2BITS 42
-
-#endif
-
-// for machines that do not support 64-bit ints
-// 32-bit smallint/imageint/tagint/bigint
-
-#ifdef LAMMPS_SMALLSMALL
-
-typedef int smallint;
-typedef int imageint;
-typedef int tagint;
-typedef int bigint;
-
-#define MAXSMALLINT INT_MAX
-#define MAXTAGINT INT_MAX
-#define MAXBIGINT INT_MAX
-#define MAXDOUBLEINT INT_MAX
-
-#define MPI_LMP_TAGINT MPI_INT
-#define MPI_LMP_IMAGEINT MPI_INT
-#define MPI_LMP_BIGINT MPI_INT
-
-#define TAGINT_FORMAT "%d"
-#define BIGINT_FORMAT "%d"
-
-#define ATOTAGINT atoi
-#define ATOBIGINT atoi
-
-#define LAMMPS_TAGINT LAMMPS_INT
-#define LAMMPS_TAGINT_2D LAMMPS_INT_2D
-#define LAMMPS_BIGINT LAMMPS_INT
-#define LAMMPS_BIGINT_2D LAMMPS_INT_2D
-
-#define IMGMASK 1023
-#define IMGMAX 512
-#define IMGBITS 10
-#define IMG2BITS 20
 
 #endif
 
@@ -259,13 +227,13 @@ union ubuf {
    std::string str;
    for (int i = 0; i < 5; ++i) {
        switch (m[i].type) {
-           case multitype::DOUBLE:
+           case multitype::LAMMPS_DOUBLE:
                str += std::to_string(m[i].data.d) + ' ';
                break;
-           case multitype::INT:
+           case multitype::LAMMPS_INT:
                str += std::to_string(m[i].data.i) + ' ';
                break;
-           case multitype::BIGINT:
+           case multitype::LAMMPS_INT64:
                str += std::to_string(m[i].data.b) + ' ';
                break;
            default:
@@ -298,7 +266,7 @@ struct multitype {
     int64_t b;
   } data;
 
-  multitype() : type(LAMMPS_NONE) { data.d = 0.0; }
+  multitype() noexcept : type(LAMMPS_NONE) { data.d = 0.0; }
   multitype(const multitype &) = default;
   multitype(multitype &&) = default;
   ~multitype() = default;

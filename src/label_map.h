@@ -23,12 +23,13 @@ namespace LAMMPS_NS {
 class LabelMap : protected Pointers {
   friend class AtomVec;
   friend class DumpCustom;
+  friend class DumpExtXYZ;
   friend class DumpXYZ;
   friend class ReadData;
 
  public:
   LabelMap(LAMMPS *lmp, int, int, int, int, int);
-  ~LabelMap();
+  ~LabelMap() override;
 
   void modify_lmap(int, char **);              // labelmap command in the input script
   void merge_lmap(LabelMap *, int);            // copy another lmap into this one

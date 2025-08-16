@@ -225,7 +225,7 @@ KOKKOS_IMPL_ACC_PRAGMA(parallel loop gang vector_length(chunk_size) KOKKOS_IMPL_
     }
 
 #pragma acc exit data delete (functor, chunk_values, offset_values, \
-                              final_reducer)async(async_arg)
+                                  final_reducer)async(async_arg)
     acc_wait(async_arg);
   }
 

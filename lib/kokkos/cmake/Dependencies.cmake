@@ -1,6 +1,3 @@
-TRIBITS_PACKAGE_DEFINE_DEPENDENCIES(
-  LIB_OPTIONAL_TPLS Pthread CUDA HWLOC DLlib
-  TEST_OPTIONAL_TPLS CUSPARSE
-  )
+tribits_package_define_dependencies(LIB_OPTIONAL_TPLS Pthread CUDA HWLOC DLlib)
 
-TRIBITS_TPL_TENTATIVELY_ENABLE(DLlib)
+tribits_tpl_tentatively_enable(DLlib)

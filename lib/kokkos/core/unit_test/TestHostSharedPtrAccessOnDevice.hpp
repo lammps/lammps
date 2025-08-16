@@ -37,7 +37,7 @@ template <class SmartPtr>
 struct CheckAccessStoredPointerAndDereferenceOnDevice {
   SmartPtr m_device_ptr;
   using ElementType = typename SmartPtr::element_type;
-  static_assert(std::is_same<ElementType, Data>::value);
+  static_assert(std::is_same_v<ElementType, Data>);
 
   CheckAccessStoredPointerAndDereferenceOnDevice(SmartPtr device_ptr)
       : m_device_ptr(device_ptr) {
@@ -127,8 +127,7 @@ TEST(TEST_CATEGORY, host_shared_ptr_special_members_on_device) {
 #endif
 
 // FIXME_OPENMPTARGET
-#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA) && \
-    !defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
 namespace {
 
 struct Bar {
@@ -155,7 +154,7 @@ void host_shared_ptr_test_reference_counting() {
         static_cast<Foo*>(Kokkos::kokkos_malloc<DevMemSpace>(sizeof(Foo)));
     Kokkos::View<Foo, DevMemSpace> fp_d(fp_d_ptr);
     // If using UVM or on the CPU don't make an extra HostCopy
-    Foo* fp_h_ptr = std::is_same<DevMemSpace, HostMemSpace>::value
+    Foo* fp_h_ptr = std::is_same_v<DevMemSpace, HostMemSpace>
                         ? fp_d_ptr
                         : static_cast<Foo*>(
                               Kokkos::kokkos_malloc<HostMemSpace>(sizeof(Foo)));
@@ -238,18 +237,17 @@ TEST(TEST_CATEGORY, host_shared_ptr_tracking) {
   host_shared_ptr_test_reference_counting<typename TEST_EXECSPACE::memory_space,
                                           Kokkos::HostSpace>();
 #ifdef KOKKOS_ENABLE_CUDA
-  if (std::is_same<TEST_EXECSPACE, Kokkos::Cuda>::value)
+  if (std::is_same_v<TEST_EXECSPACE, Kokkos::Cuda>)
     host_shared_ptr_test_reference_counting<Kokkos::CudaUVMSpace,
                                             Kokkos::CudaUVMSpace>();
 #endif
 #ifdef KOKKOS_ENABLE_SYCL
-  if (std::is_same<TEST_EXECSPACE, Kokkos::Experimental::SYCL>::value)
-    host_shared_ptr_test_reference_counting<
-        Kokkos::Experimental::SYCLSharedUSMSpace,
-        Kokkos::Experimental::SYCLSharedUSMSpace>();
+  if (std::is_same_v<TEST_EXECSPACE, Kokkos::SYCL>)
+    host_shared_ptr_test_reference_counting<Kokkos::SYCLSharedUSMSpace,
+                                            Kokkos::SYCLSharedUSMSpace>();
 #endif
 #ifdef KOKKOS_ENABLE_HIP
-  if (std::is_same<TEST_EXECSPACE, Kokkos::HIP>::value) {
+  if (std::is_same_v<TEST_EXECSPACE, Kokkos::HIP>) {
     host_shared_ptr_test_reference_counting<Kokkos::HIPHostPinnedSpace,
                                             Kokkos::HIPHostPinnedSpace>();
     host_shared_ptr_test_reference_counting<Kokkos::HIPManagedSpace,
@@ -258,4 +256,4 @@ TEST(TEST_CATEGORY, host_shared_ptr_tracking) {
 #endif
 }
 
-#endif  // KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
+#endif

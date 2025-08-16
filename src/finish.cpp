@@ -121,9 +121,9 @@ void Finish::end(int flag)
     MPI_Allreduce(&cpu_loop,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     cpu_loop = tmp/nprocs;
     if (time_loop > 0.0) cpu_loop = cpu_loop/time_loop*100.0;
+    output->thermo->footer();
 
     if (me == 0) {
-      output->thermo->footer();
       int ntasks = nprocs * nthreads;
       utils::logmesg(lmp,"Loop time of {:.6g} on {} procs for {} steps with {} atoms\n\n",
                      time_loop,ntasks,update->nsteps,atom->natoms);
@@ -441,7 +441,7 @@ void Finish::end(int flag)
 
     double fraction,flop3,flop1;
     if (nsteps) {
-      if (time_kspace) fraction = time3d/time_kspace*100.0;
+      if (time_kspace != 0.0) fraction = time3d/time_kspace*100.0;
       else fraction = 0.0;
       flop3 = nfft*nflops/1.0e9/(time3d/nsteps);
       flop1 = nfft*nflops/1.0e9/(time1d/nsteps);

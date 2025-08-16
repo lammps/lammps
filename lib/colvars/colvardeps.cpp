@@ -92,6 +92,8 @@ void colvardeps::restore_children_deps() {
 
 void colvardeps::provide(int feature_id, bool truefalse) {
   feature_states[feature_id].available = truefalse;
+  // Make sure that we don't leave this feature enabled
+  if (!truefalse) disable(feature_id);
 }
 
 
@@ -123,18 +125,27 @@ bool colvardeps::get_keyval_feature(colvarparse *cvp,
 
 
 int colvardeps::enable(int feature_id,
-                       bool dry_run /* default: false */,
-                       bool toplevel /* default: true */)
+                       bool dry_run  /* default: false */,
+                       bool toplevel /* default: true */,
+                       bool error    /*default: false */)
 {
   int res;
   size_t i, j;
   bool ok;
+
+  if (feature_id < 0 || feature_id >= int(features().size())) {
+    cvm::error("Error: colvardeps::enable() called with invalid feature_id " + cvm::to_str(feature_id) + "\n");
+    return COLVARS_ERROR;
+  }
   feature *f = features()[feature_id];
   feature_state *fs = &feature_states[feature_id];
 
+  // dry_run can be true because parent object is not active, yet we are displaying an error message
+  // then error is set to true
+
   if (cvm::debug()) {
     cvm::log("DEPS: " + description +
-      (dry_run ? " testing " : " enabling ") +
+      (dry_run ? " testing " : " enabling ") +  (error ? " [error] " : "") +
       "\"" + f->description +"\"\n");
   }
 
@@ -154,7 +165,7 @@ int colvardeps::enable(int feature_id,
     (is_dynamic(feature_id) ? "Dynamic" : "User-controlled");
 
   if (!fs->available) {
-    if (!dry_run) {
+    if (!dry_run || error) {
       if (toplevel) {
         cvm::error("Error: " + feature_type_descr + " feature unavailable: \""
           + f->description + "\" in " + description + ".\n");
@@ -167,7 +178,7 @@ int colvardeps::enable(int feature_id,
   }
 
   if (!toplevel && !is_dynamic(feature_id)) {
-    if (!dry_run) {
+    if (!dry_run || error) {
       cvm::log(feature_type_descr + " feature \"" + f->description
         + "\" cannot be enabled automatically in " + description + ".\n");
       if (is_user(feature_id)) {
@@ -184,7 +195,7 @@ int colvardeps::enable(int feature_id,
     if (cvm::debug())
       cvm::log(f->description + " requires exclude " + g->description + "\n");
     if (is_enabled(f->requires_exclude[i])) {
-      if (!dry_run) {
+      if (!dry_run || error) {
         cvm::log("Feature \"" + f->description + "\" is incompatible with \""
         + g->description + "\" in " + description + ".\n");
         if (toplevel) {
@@ -199,10 +210,14 @@ int colvardeps::enable(int feature_id,
   for (i=0; i<f->requires_self.size(); i++) {
     if (cvm::debug())
       cvm::log(f->description + " requires self " + features()[f->requires_self[i]]->description + "\n");
-    res = enable(f->requires_self[i], dry_run, false);
+    res = enable(f->requires_self[i], dry_run, false, error);
     if (res != COLVARS_OK) {
-      if (!dry_run) {
-        cvm::log("...required by \"" + f->description + "\" in " + description + "\n");
+      if (!dry_run || error) {
+        if (toplevel) {
+          cvm::log("Cannot enable \"" + f->description + "\" in " + description + "\n");
+        } else {
+          cvm::log("...required by \"" + f->description + "\" in " + description + "\n");
+        }
         if (toplevel) {
           cvm::error("Error: Failed dependency in " + description + ".\n");
         }
@@ -220,11 +235,11 @@ int colvardeps::enable(int feature_id,
       int g = f->requires_alt[i][j];
       if (cvm::debug())
         cvm::log(f->description + " requires alt " + features()[g]->description + "\n");
-      res = enable(g, true, false);  // see if available
+      res = enable(g, true, false, error);  // see if available
       if (res == COLVARS_OK) {
         ok = true;
-        if (!dry_run) {
-          enable(g, false, false); // Require again, for real
+        if (!dry_run || error) {
+          enable(g, false, false, error); // Require again, for real
           fs->alternate_refs.push_back(g); // We remember we enabled this
           // so we can free it if this feature gets disabled
         }
@@ -240,7 +255,7 @@ int colvardeps::enable(int feature_id,
         for (j=0; j<f->requires_alt[i].size(); j++) {
           int g = f->requires_alt[i][j];
           cvm::log(cvm::to_str(j+1) + ". " + features()[g]->description + "\n");
-          enable(g, false, false); // Just for printing error output
+          enable(g, false, false, true); // Just for printing error output
         }
         cvm::decrease_depth();
         cvm::log("-----------------------------------------\n");
@@ -259,10 +274,14 @@ int colvardeps::enable(int feature_id,
   for (i=0; i<f->requires_children.size(); i++) {
     int g = f->requires_children[i];
     for (j=0; j<children.size(); j++) {
-      res = children[j]->enable(g, dry_run || !is_enabled(), false);
+      res = children[j]->enable(g, dry_run || !is_enabled(), false, error);
       if (res != COLVARS_OK) {
-        if (!dry_run) {
-          cvm::log("...required by \"" + f->description + "\" in " + description + "\n");
+        if (!dry_run || error) {
+          if (toplevel) {
+            cvm::log("Cannot enable \"" + f->description + "\" in " + description + "\n");
+          } else {
+            cvm::log("...required by \"" + f->description + "\" in " + description + "\n");
+          }
           if (toplevel) {
             cvm::error("Error: Failed dependency in " + description + ".\n");
           }

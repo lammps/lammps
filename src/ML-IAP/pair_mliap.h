@@ -36,7 +36,6 @@ class PairMLIAP : public Pair {
   void init_style() override;
   double init_one(int, int) override;
   double memory_usage() override;
-  int *map;    // mapping from atom types to elements
 
  protected:
   virtual void allocate();

@@ -16,14 +16,27 @@
 
 #include <QString>
 #include <string>
+#include <vector>
 
 // duplicate string
 extern char *mystrdup(const std::string &text);
 extern char *mystrdup(const char *text);
 extern char *mystrdup(const QString &text);
 
+// split string into words while respecting quotes
+extern std::vector<std::string> split_line(const std::string &text);
+
+// get pointer to LAMMPS-GUI main widget
+extern class QWidget *get_main_widget();
+
 // find if executable is in path
 extern bool has_exe(const QString &exe);
+
+// recursively purge a directory
+extern void purge_directory(const QString &dir);
+
+// flag if light or dark theme
+extern bool is_light_theme();
 
 #endif
 // Local Variables:

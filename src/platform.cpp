@@ -24,6 +24,7 @@
 #include <deque>
 #include <exception>
 #include <mpi.h>
+#include <utility>
 
 ////////////////////////////////////////////////////////////////////////
 // include system headers and tweak system settings
@@ -52,6 +53,7 @@
 #include <dlfcn.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
 #include <unistd.h>
@@ -75,7 +77,7 @@
 #include <thread>
 
 /* ------------------------------------------------------------------ */
-
+namespace {
 /// Struct for listing on-the-fly compression/decompression commands
 struct compress_info {
   /// identifier for the different compression algorithms
@@ -88,7 +90,7 @@ struct compress_info {
 };
 
 // clang-format off
-static const std::vector<compress_info> compress_styles = {
+const std::vector<compress_info> compress_styles = {
     {"",     "",      "",       "",        compress_info::NONE},
     {"gz",   "gzip",  " > ",    " -cdf ",  compress_info::GZIP},
     {"bz2",  "bzip2", " > ",    " -cdf ",  compress_info::BZIP2},
@@ -101,7 +103,7 @@ static const std::vector<compress_info> compress_styles = {
 
 /* ------------------------------------------------------------------ */
 
-static const compress_info &find_compress_type(const std::string &file)
+const compress_info &find_compress_type(const std::string &file)
 {
   std::size_t dot = file.find_last_of('.');
   if (dot != std::string::npos) {
@@ -117,8 +119,8 @@ static const compress_info &find_compress_type(const std::string &file)
 
 // set reference time stamp during executable/library init.
 // should provide better resolution than using epoch, if the system clock supports it.
-static auto initial_time = std::chrono::steady_clock::now();
-
+auto initial_time = std::chrono::steady_clock::now();
+}
 using namespace LAMMPS_NS;
 
 // get CPU time
@@ -248,8 +250,12 @@ std::string platform::os_info()
     buf = "Windows 11 22H2";
   } else if (build == "22631") {
     buf = "Windows 11 23H2";
+  } else if (build == "25398") {
+    buf = "Windows Server 23H2";
   } else if (build == "26100") {
     buf = "Windows 11 24H2";
+  } else if (build == "26200") {
+    buf = "Windows 11 25H2";
   } else {
     buf = "Windows Build " + build;
   }
@@ -314,8 +320,10 @@ std::string platform::os_info()
 
 std::string platform::cxx_standard()
 {
-#if __cplusplus > 202002L
-  return "newer than C++20";
+#if __cplusplus > 202302L
+  return "newer than C++23";
+#elif __cplusplus == 202302L
+  return "C++23";
 #elif __cplusplus == 202002L
   return "C++20";
 #elif __cplusplus == 201703L
@@ -753,12 +761,11 @@ std::string platform::current_directory()
 #if defined(_WIN32)
   char *buf = new char[MAX_PATH];
   if (_getcwd(buf, MAX_PATH)) { cwd = buf; }
-  delete[] buf;
 #else
-  auto buf = new char[PATH_MAX];
+  auto *buf = new char[PATH_MAX];
   if (::getcwd(buf, PATH_MAX)) { cwd = buf; }
-  delete[] buf;
 #endif
+  delete[] buf;
   return cwd;
 }
 
@@ -798,7 +805,7 @@ std::vector<std::string> platform::list_directory(const std::string &dir)
   while (FindNextFile(handle, &fd)) {
     std::string entry(fd.cFileName);
     if ((entry == "..") || (entry == ".")) continue;
-    files.push_back(entry);
+    files.push_back(std::move(entry));
   }
   FindClose(handle);
 #else
@@ -809,7 +816,7 @@ std::vector<std::string> platform::list_directory(const std::string &dir)
   while ((fd = readdir(handle)) != nullptr) {
     std::string entry(fd->d_name);
     if ((entry == "..") || (entry == ".")) continue;
-    files.push_back(entry);
+    files.push_back(std::move(entry));
   }
   closedir(handle);
 #endif
@@ -942,7 +949,7 @@ int platform::ftruncate(FILE *fp, bigint length)
     return 1;
   }
 #else
-  platform::fseek(fp, length);
+  (void) platform::fseek(fp, length);
   return ::ftruncate(fileno(fp), (off_t) length);
 #endif
 }
@@ -1051,6 +1058,32 @@ bool platform::file_is_readable(const std::string &path)
   }
   return false;
 }
+
+/* ----------------------------------------------------------------------
+   try to open file for writing to prove if it can be written to
+------------------------------------------------------------------------- */
+
+bool platform::file_is_writable(const std::string &path)
+{
+  // if the file exists, try to append and don't delete
+
+  if (file_is_readable(path)) {
+    FILE *fp = fopen(path.c_str(), "a");
+    if (fp) {
+      fclose(fp);
+      return true;
+    }
+  } else {
+    FILE *fp = fopen(path.c_str(), "w");
+    if (fp) {
+      fclose(fp);
+      unlink(path);
+      return true;
+    }
+  }
+  return false;
+}
+
 /* ----------------------------------------------------------------------
    determine available disk space, if supported. Return -1 if not.
 ------------------------------------------------------------------------- */
@@ -1121,6 +1154,7 @@ FILE *platform::compressed_write(const std::string &file)
 #if defined(LAMMPS_GZIP)
   const auto &compress = find_compress_type(file);
   if (compress.style == ::compress_info::NONE) return nullptr;
+  if (!file_is_writable(file)) return nullptr;
 
   if (find_exe_path(compress.command).size())
     // put quotes around file name so that they may contain blanks

@@ -36,6 +36,7 @@
 #include <cstring>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -623,7 +624,7 @@ void FixDeform::init()
 
   rfix.clear();
 
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if (ifix->rigid_flag) rfix.push_back(ifix);
 }
 
@@ -648,11 +649,7 @@ void FixDeform::pre_exchange()
   domain->set_local_box();
 
   domain->image_flip(flipxy, flipxz, flipyz);
-
-  double **x = atom->x;
-  imageint *image = atom->image;
-  int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
+  domain->remap_all();
 
   domain->x2lamda(atom->nlocal);
   irregular->migrate_atoms();
@@ -898,13 +895,7 @@ void FixDeform::update_domain()
   // convert atoms and rigid bodies to lamda coords
 
   if (remapflag == Domain::X_REMAP) {
-    double **x = atom->x;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
-        domain->x2lamda(x[i], x[i]);
+    domain->x2lamda(atom->nlocal, groupbit);
 
     for (auto &ifix : rfix)
       ifix->deform(0);
@@ -937,13 +928,7 @@ void FixDeform::update_domain()
   // convert atoms and rigid bodies back to box coords
 
   if (remapflag == Domain::X_REMAP) {
-    double **x = atom->x;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
-        domain->lamda2x(x[i], x[i]);
+    domain->lamda2x(atom->nlocal, groupbit);
 
     for (auto &ifix : rfix)
       ifix->deform(1);

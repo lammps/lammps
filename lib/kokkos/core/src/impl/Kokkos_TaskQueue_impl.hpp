@@ -17,6 +17,11 @@
 #ifndef KOKKOS_IMPL_TASKQUEUE_IMPL_HPP
 #define KOKKOS_IMPL_TASKQUEUE_IMPL_HPP
 #include <Kokkos_Macros.hpp>
+
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#error "The tasking framework is deprecated"
+#endif
+
 #if defined(KOKKOS_ENABLE_TASKDAG)
 
 #define KOKKOS_IMPL_DEBUG_TASKDAG_SCHEDULING 0

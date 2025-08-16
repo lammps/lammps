@@ -45,13 +45,13 @@ Examples
 Description
 """""""""""
 
-Compute *stress/mop* and compute *stress/mop/profile* define
-computations that calculate components of the local stress tensor using
-the method of planes :ref:`(Todd) <mop-todd>`.  Specifically in compute
-*stress/mop* calculates 3 components are computed in directions *dir*,\
-*x*\ ; *dir*,\ *y*\ ; and *dir*,\ *z*\ ; where *dir* is the direction
-normal to the plane, while in compute *stress/mop/profile* the profile
-of the stress is computed.
+Compute *stress/mop* and compute *stress/mop/profile*
+calculate components of the local stress tensor using
+the method of planes :ref:`(Todd) <mop-todd>`.  Specifically, compute
+*stress/mop* calculates 3 components in directions :math:`ix`,
+:math:`iy`, and :math:`iz` where :math:`i` is the direction
+normal to the plane, while compute *stress/mop/profile* calculates the profile
+of the local stress along the :math:`i` direction.
 
 Contrary to methods based on histograms of atomic stress (i.e., using
 :doc:`compute stress/atom <compute_stress_atom>`), the method of planes
@@ -103,14 +103,15 @@ Output info
 Compute *stress/mop* calculates a global vector (indices starting at 1),
 with 3 values for each declared keyword (in the order the keywords have
 been declared). For each keyword, the stress tensor components are
-ordered as follows: stress_dir,x, stress_dir,y, and stress_dir,z.
+ordered as follows: :math:`P_{ix}`, :math:`P_{iy}`, and :math:`P_{iz}`,
+where :math:`i` is the direction normal to the plane.
 
 Compute *stress/mop/profile* instead calculates a global array, with 1
 column giving the position of the planes where the stress tensor was
 computed, and with 3 columns of values for each declared keyword (in the
 order the keywords have been declared). For each keyword, the profiles
-of stress tensor components are ordered as follows: stress_dir,x;
-stress_dir,y; and stress_dir,z.
+of stress tensor components are ordered as follows: :math:`P_{ix}`,
+:math:`P_{iy}`, and :math:`P_{iz}`.
 
 The values are in pressure :doc:`units <units>`.
 
@@ -129,12 +130,11 @@ package <Build_package>` doc page on for more info.
 The method is implemented for orthogonal simulation boxes whose
 size does not change in time, and axis-aligned planes.
 
-The method only works with two-body pair interactions, because it
-requires the class method ``Pair::single()`` to be implemented, which is
-not possible for manybody potentials.  In particular, compute
-*stress/mop/profile* and *stress/mop* do not work with more than two-body
-pair interactions, long range (kspace) interactions and
-improper intramolecular interactions.
+Compute *stress/mop* and *stress/mop/profile* do not work with manybody
+non-bonded interactions, long range (kspace) interactions and
+improper intramolecular interactions. The reason is that the current
+implementation requires the class method ``Pair::single()`` to be implemented,
+which is not possible for manybody potentials.
 
 The impact of fixes that affect the stress (e.g. fix langevin) is
 also not included in the stress computed here.

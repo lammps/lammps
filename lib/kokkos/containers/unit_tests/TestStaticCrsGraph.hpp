@@ -18,7 +18,9 @@
 
 #include <vector>
 
+#define KOKKOS_IMPL_DO_NOT_WARN_INCLUDE_STATIC_CRS_GRAPH
 #include <Kokkos_StaticCrsGraph.hpp>
+#undef KOKKOS_IMPL_DO_NOT_WARN_INCLUDE_STATIC_CRS_GRAPH
 #include <Kokkos_Core.hpp>
 
 /*--------------------------------------------------------------------------*/
@@ -207,7 +209,7 @@ void run_test_graph4() {
   const ordinal_type nnz     = 24;
   ptr_row_map_type ptrRaw[]  = {0, 4, 8, 10, 12, 14, 16, 20, 24};
   ptr_entries_type indRaw[]  = {0, 1, 4, 5, 0, 1, 4, 5, 2, 3, 2, 3,
-                               4, 5, 4, 5, 2, 3, 6, 7, 2, 3, 6, 7};
+                                4, 5, 4, 5, 2, 3, 6, 7, 2, 3, 6, 7};
 
   // Wrap pointers in unmanaged host views
   using local_row_map_type = typename hView::row_map_type;
@@ -237,14 +239,14 @@ void run_test_graph4() {
   dx.row_map = typename dView::row_map_type(tmp_row_map.data(), numRows + 1);
   dx.entries = typename dView::entries_type(tmp_entries.data(), nnz);
 
-  ASSERT_TRUE((std::is_same<typename dView::row_map_type::memory_traits,
-                            Kokkos::MemoryUnmanaged>::value));
-  ASSERT_TRUE((std::is_same<typename dView::entries_type::memory_traits,
-                            Kokkos::MemoryUnmanaged>::value));
-  ASSERT_TRUE((std::is_same<typename hView::row_map_type::memory_traits,
-                            Kokkos::MemoryUnmanaged>::value));
-  ASSERT_TRUE((std::is_same<typename hView::entries_type::memory_traits,
-                            Kokkos::MemoryUnmanaged>::value));
+  ASSERT_TRUE((std::is_same_v<typename dView::row_map_type::memory_traits,
+                              Kokkos::MemoryUnmanaged>));
+  ASSERT_TRUE((std::is_same_v<typename dView::entries_type::memory_traits,
+                              Kokkos::MemoryUnmanaged>));
+  ASSERT_TRUE((std::is_same_v<typename hView::row_map_type::memory_traits,
+                              Kokkos::MemoryUnmanaged>));
+  ASSERT_TRUE((std::is_same_v<typename hView::entries_type::memory_traits,
+                              Kokkos::MemoryUnmanaged>));
 }
 
 } /* namespace TestStaticCrsGraph */

@@ -39,8 +39,8 @@ class Domain : protected Pointers {
                          // 2 = shrink-wrap non-periodic
                          // 3 = shrink-wrap non-per w/ min
 
-  int triclinic;          // 0 = orthog box, 1 = triclinic (restricted or general)
-  int triclinic_general;  // 1 if general <-> restricted tri mapping is stored, 0 if not
+  int triclinic;            // 0 = orthog box, 1 = triclinic (restricted or general)
+  int triclinic_general;    // 1 if general <-> restricted tri mapping is stored, 0 if not
 
   // orthogonal box
 
@@ -91,9 +91,9 @@ class Domain : protected Pointers {
   // general triclinic box
   // boxlo = lower left corner
 
-  double avec[3], bvec[3], cvec[3];  // ABC edge vectors of general triclinic box
-  double rotate_g2r[3][3];           // rotation matrix from general --> restricted tri
-  double rotate_r2g[3][3];           // rotation matrix from restricted --> general tri
+  double avec[3], bvec[3], cvec[3];    // ABC edge vectors of general triclinic box
+  double rotate_g2r[3][3];             // rotation matrix from general --> restricted tri
+  double rotate_r2g[3][3];             // rotation matrix from restricted --> general tri
 
   // box flags
 
@@ -111,8 +111,8 @@ class Domain : protected Pointers {
   int copymode;
   enum { NO_REMAP, X_REMAP, V_REMAP };
 
-  typedef Region *(*RegionCreator)(LAMMPS *, int, char **);
-  typedef std::map<std::string, RegionCreator> RegionCreatorMap;
+  using RegionCreator = Region *(*) (LAMMPS *, int, char **);
+  using RegionCreatorMap = std::map<std::string, RegionCreator>;
   RegionCreatorMap *region_map;
 
   Domain(class LAMMPS *);
@@ -127,15 +127,22 @@ class Domain : protected Pointers {
   void image_check();
   void box_too_small_check();
   void subbox_too_small_check(double);
-  void minimum_image(double &, double &, double &) const;
-  void minimum_image(double *delta) const { minimum_image(delta[0], delta[1], delta[2]); }
-  void minimum_image_big(double &, double &, double &) const;
-  void minimum_image_big(double *delta) const { minimum_image_big(delta[0], delta[1], delta[2]); }
+  void minimum_image(const std::string &, int, double &, double &, double &) const;
+  void minimum_image(const std::string &file, int line, double *delta) const
+  {
+    minimum_image(file, line, delta[0], delta[1], delta[2]);
+  }
+  void minimum_image_big(const std::string &, int, double &, double &, double &) const;
+  void minimum_image_big(const std::string &file, int line, double *delta) const
+  {
+    minimum_image_big(file, line, delta[0], delta[1], delta[2]);
+  }
   int closest_image(int, int);
   int closest_image(const double *const, int);
   void closest_image(const double *const, const double *const, double *const);
   void remap(double *, imageint &);
   void remap(double *);
+  void remap_all();
   void remap_near(double *, double *);
   void unmap_inv(double *x, imageint);
   void unmap(double *, imageint);
@@ -144,9 +151,8 @@ class Domain : protected Pointers {
   int ownatom(int, double *, imageint *, int);
 
   void define_general_triclinic(double *, double *, double *, double *);
-  void general_to_restricted_rotation(double *, double *, double *,
-                                      double [3][3],
-                                      double *, double *, double *);
+  void general_to_restricted_rotation(double *, double *, double *, double[3][3], double *,
+                                      double *, double *);
   void general_to_restricted_coords(double *);
   void restricted_to_general_coords(double *);
   void restricted_to_general_coords(double *, double *);
@@ -166,7 +172,9 @@ class Domain : protected Pointers {
   void boundary_string(char *);
 
   virtual void lamda2x(int);
+  virtual void lamda2x(int, int);
   virtual void x2lamda(int);
+  virtual void x2lamda(int, int);
   virtual void lamda2x(double *, double *);
   virtual void x2lamda(double *, double *);
   int inside(double *);
@@ -183,7 +191,7 @@ class Domain : protected Pointers {
   //   but is a far-away image that should be treated as an unbonded neighbor
   // inline since called from neighbor build inner loop
 
-  inline int minimum_image_check(double dx, double dy, double dz)
+  inline int minimum_image_check(double dx, double dy, double dz) const
   {
     if (xperiodic && fabs(dx) > xprd_half) return 1;
     if (yperiodic && fabs(dy) > yprd_half) return 1;

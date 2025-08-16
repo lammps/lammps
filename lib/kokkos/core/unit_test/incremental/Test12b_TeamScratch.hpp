@@ -79,19 +79,21 @@ struct TeamScratch {
     auto v_H = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), v);
 
     size_t check   = 0;
-    const size_t s = pN * sX * sY;
+    const size_t s = static_cast<size_t>(pN) * sX * sY;
     for (int n = 0; n < pN; ++n)
       for (int m = 0; m < sX; ++m) check += v_H(n, m);
     ASSERT_EQ(check, s * (s - 1) / 2);
   }
 };
 
+KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_PUSH()
 TEST(TEST_CATEGORY, IncrTest_12b_TeamScratch) {
-  TeamScratch<TEST_EXECSPACE> test;
 #ifdef KOKKOS_ENABLE_OPENACC  // FIXME_OPENACC
   GTEST_SKIP() << "skipping since scratch memory is not yet implemented in the "
                   "OpenACC backend";
 #endif
+
+  TeamScratch<TEST_EXECSPACE> test;
   // FIXME_OPENMPTARGET - team_size has to be a multiple of 32 for the tests to
   // pass in the Release and RelWithDebInfo builds. Does not need the team_size
   // to be a multiple of 32 for the Debug builds.
@@ -105,5 +107,6 @@ TEST(TEST_CATEGORY, IncrTest_12b_TeamScratch) {
   test.run(14, 277, 321);
 #endif
 }
+KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_POP()
 
 }  // namespace Test

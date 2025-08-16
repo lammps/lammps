@@ -51,7 +51,7 @@ namespace Granular_NS {
   class GranSubModTangentialNone : public GranSubModTangential {
    public:
     GranSubModTangentialNone(class GranularModel *, class LAMMPS *);
-    void calculate_forces() override{};
+    void calculate_forces() override {};
   };
 
   /* ---------------------------------------------------------------------- */

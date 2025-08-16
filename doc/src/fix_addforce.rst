@@ -115,10 +115,6 @@ correctly, the minimization will not converge properly.
 
 ----------
 
-.. include:: accel_styles.rst
-
-----------
-
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

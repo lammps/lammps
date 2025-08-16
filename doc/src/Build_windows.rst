@@ -100,9 +100,9 @@ procedure.
 
 It is possible to use both the integrated CMake support of the Visual
 Studio IDE or use an external CMake installation (e.g. downloaded from
-cmake.org) to create build files and compile LAMMPS from the command line.
+cmake.org) to create build files and compile LAMMPS from the command-line.
 
-Compilation via command line and unit tests are checked automatically
+Compilation via command-line and unit tests are checked automatically
 for the LAMMPS development branch through
 `GitHub Actions <https://github.com/lammps/lammps/actions/workflows/compile-msvc.yml>`_.
 
@@ -115,7 +115,7 @@ for the LAMMPS development branch through
 
 Please note, that for either approach CMake will create a so-called
 :ref:`"multi-configuration" build environment <cmake_multiconfig>`, and
-the command lines for building and testing LAMMPS must be adjusted
+the commands for building and testing LAMMPS must be adjusted
 accordingly.
 
 The LAMMPS cmake folder contains a ``CMakeSettings.json`` file with

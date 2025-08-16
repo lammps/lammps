@@ -19,7 +19,7 @@ Syntax
 * lr_decision_file = file name of file containing the scaling matrix for logistic regression classification
 * lr_bias_file = file name of file containing the bias vector for logistic regression classification
 * maha_file = file name of file containing for each crystal structure: the Mahalanobis distance threshold for sanity check purposes, the average reduced descriptor and the inverse of the corresponding covariance matrix
-* c_ID[*] = compute ID of previously required *compute sna/atom* command
+* c_ID[1] = compute ID and output data column of previously defined *compute sna/atom* command
 
 Examples
 """"""""
@@ -27,7 +27,7 @@ Examples
 .. code-block:: LAMMPS
 
    compute b1 all sna/atom 9.0 0.99363 8 0.5 1.0 rmin0 0.0 nnn 24 wmode 1 delta 0.3
-   compute b2 all slcsa/atom 8 4 mean_descriptors.dat lda_scalings.dat lr_decision.dat lr_bias.dat maha_thresholds.dat c_b1[*]
+   compute b2 all slcsa/atom 8 4 mean_descriptors.dat lda_scalings.dat lr_decision.dat lr_bias.dat maha_thresholds.dat c_b1[1]
 
 Description
 """""""""""

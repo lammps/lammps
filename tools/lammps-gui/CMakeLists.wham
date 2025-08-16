@@ -1,0 +1,37 @@
+# Custom minimal -*- CMake -*- file for libyaml
+
+cmake_minimum_required(VERSION 3.16)
+project(wham VERSION 2.0.11
+  DESCRIPTION "WHAM: a fast, memory efficient implementation of the Weighted Histogram Analysis Method"
+  LANGUAGES C
+  HOMEPAGE_URL http://membrane.urmc.rochester.edu/content/wham/)
+
+set(CMAKE_AUTOUIC OFF)
+set(CMAKE_AUTOMOC OFF)
+set(CMAKE_AUTORCC OFF)
+
+include(GNUInstallDirs)
+
+add_executable(wham
+  nr/ran2.c
+  nr/locate.c
+  wham/wham.c
+  wham/file_read.c
+  wham/histogram.c
+  wham/bootstrap.c
+)
+target_include_directories(wham PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/wham)
+target_link_libraries(wham PRIVATE m)
+install(TARGETS wham DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+add_executable(wham-2d
+  nr/ran2.c
+  nr/locate.c
+  wham-2d/wham-2d.c
+  wham-2d/file_read.c
+  wham-2d/histogram.c
+  wham/bootstrap.c
+)
+target_include_directories(wham-2d PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/wham)
+target_link_libraries(wham-2d PRIVATE m)
+install(TARGETS wham-2d DESTINATION ${CMAKE_INSTALL_BINDIR})

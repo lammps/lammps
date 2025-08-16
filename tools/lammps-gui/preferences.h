@@ -29,17 +29,24 @@ public:
     explicit Preferences(LammpsWrapper *lammps, QWidget *parent = nullptr);
     ~Preferences() override;
 
+    Preferences()                               = delete;
+    Preferences(const Preferences &)            = delete;
+    Preferences(Preferences &&)                 = delete;
+    Preferences &operator=(const Preferences &) = delete;
+    Preferences &operator=(Preferences &&)      = delete;
+
 private slots:
     void accept() override;
 
 public:
-    bool need_relaunch;
+    void set_relaunch(bool val) { need_relaunch = val; }
 
 private:
     QTabWidget *tabWidget;
     QDialogButtonBox *buttonBox;
     QSettings *settings;
     LammpsWrapper *lammps;
+    bool need_relaunch;
 };
 
 // individual tabs
@@ -67,6 +74,10 @@ class AcceleratorTab : public QWidget {
 public:
     explicit AcceleratorTab(QSettings *settings, LammpsWrapper *lammps, QWidget *parent = nullptr);
     enum { None, Opt, OpenMP, Intel, Kokkos, Gpu };
+    enum { Double, Mixed, Single };
+
+private slots:
+    void update_accel();
 
 private:
     QSettings *settings;
@@ -79,6 +90,10 @@ class SnapshotTab : public QWidget {
 public:
     explicit SnapshotTab(QSettings *settings, QWidget *parent = nullptr);
 
+private slots:
+    void choose_vdw();
+    void choose_bond();
+
 private:
     QSettings *settings;
 };
@@ -88,6 +103,16 @@ class EditorTab : public QWidget {
 
 public:
     explicit EditorTab(QSettings *settings, QWidget *parent = nullptr);
+
+private:
+    QSettings *settings;
+};
+
+class ChartsTab : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit ChartsTab(QSettings *settings, QWidget *parent = nullptr);
 
 private:
     QSettings *settings;

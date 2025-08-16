@@ -1,19 +1,5 @@
-.. table_from_list::
-   :columns: 3
-
-   * :doc:`General commands <Commands_all>`
-   * :doc:`Fix styles <Commands_fix>`
-   * :doc:`Compute styles <Commands_compute>`
-   * :doc:`Pair styles <Commands_pair>`
-   * :ref:`Bond styles <bond>`
-   * :ref:`Angle styles <angle>`
-   * :ref:`Dihedral styles <dihedral>`
-   * :ref:`Improper styles <improper>`
-   * :doc:`KSpace styles <Commands_kspace>`
-   * :doc:`Dump styles <Commands_dump>`
-
-Fix commands
-============
+Fix styles
+==========
 
 An alphabetic list of all LAMMPS :doc:`fix <fix>` commands.  Some styles
 have accelerated versions.  This is indicated by additional letters in
@@ -21,7 +7,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
-   :columns: 5
+   :columns: 4
 
    * :doc:`accelerate/cos <fix_accelerate_cos>`
    * :doc:`acks2/reaxff (k) <fix_acks2_reaxff>`
@@ -36,6 +22,7 @@ OPT.
    * :doc:`append/atoms <fix_append_atoms>`
    * :doc:`atc <fix_atc>`
    * :doc:`atom/swap <fix_atom_swap>`
+   * :doc:`atom_weight/apip <fix_atom_weight_apip>`
    * :doc:`ave/atom <fix_ave_atom>`
    * :doc:`ave/chunk <fix_ave_chunk>`
    * :doc:`ave/correlate <fix_ave_correlate>`
@@ -43,6 +30,7 @@ OPT.
    * :doc:`ave/grid <fix_ave_grid>`
    * :doc:`ave/histo <fix_ave_histo>`
    * :doc:`ave/histo/weight <fix_ave_histo>`
+   * :doc:`ave/moments <fix_ave_moments>`
    * :doc:`ave/time <fix_ave_time>`
    * :doc:`aveforce <fix_aveforce>`
    * :doc:`balance <fix_balance>`
@@ -57,7 +45,7 @@ OPT.
    * :doc:`brownian/asphere <fix_brownian>`
    * :doc:`brownian/sphere <fix_brownian>`
    * :doc:`charge/regulation <fix_charge_regulation>`
-   * :doc:`cmap <fix_cmap>`
+   * :doc:`cmap (k) <fix_cmap>`
    * :doc:`colvars <fix_colvars>`
    * :doc:`controller <fix_controller>`
    * :doc:`damping/cundall <fix_damping_cundall>`
@@ -72,12 +60,13 @@ OPT.
    * :doc:`dt/reset (k) <fix_dt_reset>`
    * :doc:`edpd/source <fix_dpd_source>`
    * :doc:`efield (k) <fix_efield>`
+   * :doc:`efield/lepton <fix_efield_lepton>`
    * :doc:`efield/tip4p <fix_efield>`
    * :doc:`ehex <fix_ehex>`
    * :doc:`electrode/conp (i) <fix_electrode>`
    * :doc:`electrode/conq (i) <fix_electrode>`
    * :doc:`electrode/thermo (i) <fix_electrode>`
-   * :doc:`electron/stopping <fix_electron_stopping>`
+   * :doc:`electron/stopping (k) <fix_electron_stopping>`
    * :doc:`electron/stopping/fit <fix_electron_stopping>`
    * :doc:`enforce2d (k) <fix_enforce2d>`
    * :doc:`eos/cv <fix_eos_cv>`
@@ -90,6 +79,7 @@ OPT.
    * :doc:`flow/gauss <fix_flow_gauss>`
    * :doc:`freeze (k) <fix_freeze>`
    * :doc:`gcmc <fix_gcmc>`
+   * :doc:`gjf <fix_gjf>`
    * :doc:`gld <fix_gld>`
    * :doc:`gle <fix_gle>`
    * :doc:`gravity (ko) <fix_gravity>`
@@ -97,11 +87,14 @@ OPT.
    * :doc:`halt <fix_halt>`
    * :doc:`heat <fix_heat>`
    * :doc:`heat/flow <fix_heat_flow>`
+   * :doc:`hmc <fix_hmc>`
    * :doc:`hyper/global <fix_hyper_global>`
    * :doc:`hyper/local <fix_hyper_local>`
    * :doc:`imd <fix_imd>`
    * :doc:`indent <fix_indent>`
    * :doc:`ipi <fix_ipi>`
+   * :doc:`lambda/apip <fix_lambda_apip>`
+   * :doc:`lambda_thermostat/apip <fix_lambda_thermostat_apip>`
    * :doc:`langevin (k) <fix_langevin>`
    * :doc:`langevin/drude <fix_langevin_drude>`
    * :doc:`langevin/eff <fix_langevin_eff>`
@@ -124,6 +117,7 @@ OPT.
    * :doc:`mvv/tdpd <fix_mvv_dpd>`
    * :doc:`neb <fix_neb>`
    * :doc:`neb/spin <fix_neb_spin>`
+   * :doc:`neighbor/swap <fix_neighbor_swap>`
    * :doc:`nonaffine/displacement <fix_nonaffine_displacement>`
    * :doc:`nph (ko) <fix_nh>`
    * :doc:`nph/asphere (o) <fix_nph_asphere>`
@@ -148,7 +142,7 @@ OPT.
    * :doc:`nve/dot <fix_nve_dot>`
    * :doc:`nve/dotc/langevin <fix_nve_dotc_langevin>`
    * :doc:`nve/eff <fix_nve_eff>`
-   * :doc:`nve/limit <fix_nve_limit>`
+   * :doc:`nve/limit (k) <fix_nve_limit>`
    * :doc:`nve/line <fix_nve_line>`
    * :doc:`nve/manifold/rattle <fix_nve_manifold_rattle>`
    * :doc:`nve/noforce <fix_nve_noforce>`
@@ -175,6 +169,8 @@ OPT.
    * :doc:`phonon <fix_phonon>`
    * :doc:`pimd/langevin <fix_pimd>`
    * :doc:`pimd/nvt <fix_pimd>`
+   * :doc:`pimd/langevin/bosonic <fix_pimd>`
+   * :doc:`pimd/nvt/bosonic <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`
    * :doc:`plumed <fix_plumed>`
    * :doc:`poems <fix_poems>`
@@ -192,18 +188,21 @@ OPT.
    * :doc:`python/move <fix_python_move>`
    * :doc:`qbmsst <fix_qbmsst>`
    * :doc:`qeq/comb (o) <fix_qeq_comb>`
+   * :doc:`qeq/ctip <fix_qeq>`
    * :doc:`qeq/dynamic <fix_qeq>`
    * :doc:`qeq/fire <fix_qeq>`
    * :doc:`qeq/point <fix_qeq>`
    * :doc:`qeq/reaxff (ko) <fix_qeq_reaxff>`
+   * :doc:`qeq/rel/reaxff <fix_qeq_rel_reaxff>`
    * :doc:`qeq/shielded <fix_qeq>`
    * :doc:`qeq/slater <fix_qeq>`
    * :doc:`qmmm <fix_qmmm>`
    * :doc:`qtb <fix_qtb>`
+   * :doc:`qtpie/reaxff <fix_qtpie_reaxff>`
    * :doc:`rattle <fix_shake>`
    * :doc:`reaxff/bonds (k) <fix_reaxff_bonds>`
    * :doc:`reaxff/species (k) <fix_reaxff_species>`
-   * :doc:`recenter <fix_recenter>`
+   * :doc:`recenter (k) <fix_recenter>`
    * :doc:`restrain <fix_restrain>`
    * :doc:`rheo <fix_rheo>`
    * :doc:`rheo/oxidation <fix_rheo_oxidation>`
@@ -224,6 +223,7 @@ OPT.
    * :doc:`rigid/small (o) <fix_rigid>`
    * :doc:`rx (k) <fix_rx>`
    * :doc:`saed/vtk <fix_saed_vtk>`
+   * :doc:`set <fix_set>`
    * :doc:`setforce (k) <fix_setforce>`
    * :doc:`setforce/spin <fix_setforce>`
    * :doc:`sgcmc <fix_sgcmc>`
@@ -281,7 +281,7 @@ OPT.
    * :doc:`wall/piston <fix_wall_piston>`
    * :doc:`wall/reflect (k) <fix_wall_reflect>`
    * :doc:`wall/reflect/stochastic <fix_wall_reflect_stochastic>`
-   * :doc:`wall/region <fix_wall_region>`
+   * :doc:`wall/region (k) <fix_wall_region>`
    * :doc:`wall/region/ees <fix_wall_ees>`
    * :doc:`wall/srd <fix_wall_srd>`
    * :doc:`wall/table <fix_wall>`

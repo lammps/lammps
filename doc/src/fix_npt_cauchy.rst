@@ -426,8 +426,8 @@ according to the following factorization of the Liouville propagator
 .. math::
 
    \exp \left(\mathrm{i} L \Delta t \right) = & \hat{E}
-   \exp \left(\mathrm{i} L_{\rm T\textrm{-}baro} \frac{\Delta t}{2} \right)
-   \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_\mathrm{T\textrm{-}baro} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_\mathrm{T\textrm{-}part} \frac{\Delta t}{2} \right)
    \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right)
    \exp \left(\mathrm{i} L_{2}^{(2)} \frac{\Delta t}{2} \right) \\
    &\times \left[
@@ -440,8 +440,8 @@ according to the following factorization of the Liouville propagator
    &\times
    \exp \left(\mathrm{i} L_{2}^{(2)} \frac{\Delta t}{2} \right)
    \exp \left(\mathrm{i} L_{\epsilon , 2} \frac{\Delta t}{2} \right)
-   \exp \left(\mathrm{i} L_{\rm T\textrm{-}part} \frac{\Delta t}{2} \right)
-   \exp \left(\mathrm{i} L_{\rm T\textrm{-}baro} \frac{\Delta t}{2} \right) \\
+   \exp \left(\mathrm{i} L_\mathrm{T\textrm{-}part} \frac{\Delta t}{2} \right)
+   \exp \left(\mathrm{i} L_\mathrm{T\textrm{-}baro} \frac{\Delta t}{2} \right) \\
    &+ \mathcal{O} \left(\Delta t^3 \right)
 
 This factorization differs somewhat from that of Tuckerman et al, in

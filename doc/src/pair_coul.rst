@@ -4,6 +4,7 @@
 .. index:: pair_style coul/cut/omp
 .. index:: pair_style coul/cut/global
 .. index:: pair_style coul/cut/global/omp
+.. index:: pair_style coul/ctip
 .. index:: pair_style coul/debye
 .. index:: pair_style coul/debye/gpu
 .. index:: pair_style coul/debye/kk
@@ -37,6 +38,9 @@ pair_style coul/cut/global command
 ==================================
 
 Accelerator Variants: *coul/cut/omp*
+
+pair_style coul/ctip command
+============================
 
 pair_style coul/debye command
 =============================
@@ -79,7 +83,6 @@ pair_style tip4p/long command
 
 Accelerator Variants: *tip4p/long/omp*
 
-
 Syntax
 """"""
 
@@ -87,18 +90,26 @@ Syntax
 
    pair_style coul/cut cutoff
    pair_style coul/cut/global cutoff
+   pair_style coul/ctip alpha cutoff
    pair_style coul/debye kappa cutoff
    pair_style coul/dsf alpha cutoff
    pair_style coul/exclude cutoff
    pair_style coul/long cutoff
    pair_style coul/wolf alpha cutoff
    pair_style coul/streitz cutoff keyword alpha
+
+   * cutoff = global cutoff for Coulombic interactions
+   * kappa = Debye length (inverse distance units)
+   * alpha = damping parameter (inverse distance units)
+
+.. code-block:: LAMMPS
+
    pair_style tip4p/cut otype htype btype atype qdist cutoff
    pair_style tip4p/long otype htype btype atype qdist cutoff
 
-* cutoff = global cutoff for Coulombic interactions
-* kappa = Debye length (inverse distance units)
-* alpha = damping parameter (inverse distance units)
+   * otype,htype = atom types (numeric or type label) for TIP4P O and H
+   * btype,atype = bond and angle types (numeric or type label) for TIP4P waters
+   * qdist = distance from O atom to massless charge (distance units)
 
 Examples
 """"""""
@@ -108,6 +119,9 @@ Examples
    pair_style coul/cut 2.5
    pair_coeff * *
    pair_coeff 2 2 3.5
+
+   pair_style coul/ctip 0.30 12.0
+   pair_coeff * * NiO.ctip Ni O
 
    pair_style coul/debye 1.4 3.0
    pair_coeff * *
@@ -138,6 +152,12 @@ Examples
    pair_style tip4p/long 1 2 7 8 0.15 10.0
    pair_coeff * *
 
+   pair_style tip4p/cut OW HW HW-OW HW-OW-HW 0.15 12.0
+   labelmap atom 1 OW 2 HW
+   labelmap bond 1 HW-OW
+   labelmap angle 1 HW-OW-HW
+   pair_coeff * *
+
 Description
 """""""""""
 
@@ -149,7 +169,7 @@ potential given by
    E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
 
 where C is an energy-conversion constant, Qi and Qj are the charges on
-the 2 atoms, and :math:`\epsilon` is the dielectric constant which can be set
+the two atoms, and :math:`\epsilon` is the dielectric constant which can be set
 by the :doc:`dielectric <dielectric>` command.  The cutoff :math:`r_c` truncates
 the interaction distance.
 
@@ -157,6 +177,33 @@ Pair style *coul/cut/global* computes the same Coulombic interactions
 as style *coul/cut* except that it allows only a single global cutoff
 and thus makes it compatible for use in combination with long-range
 coulomb styles in :doc:`hybrid pair styles <pair_hybrid>`.
+
+----------
+
+.. versionadded:: 19Nov2024
+
+Style *coul/ctip* computes the Coulomb interactions as described in
+:ref:`Plummer <Plummer1>`. It uses the the damped shifted model as in
+style *coul/dsf* but is further extended to the second derivative of the
+potential and incorporates empirical charge shielding meant to
+approximate the more expensive Coulomb integrals used in style
+*coul/streitz*.  More details can be found in the referenced paper. Like
+the style *coul/streitz*, style *coul/ctip* is a variable charge
+potential and must be hybridized with a short-range potential via the
+:doc:`pair_style hybrid/overlay <pair_hybrid>` command. Charge
+equilibration must be performed with the :doc:`fix qeq/ctip <fix_qeq>`
+command. For example:
+
+.. code-block:: LAMMPS
+
+   pair_style hybrid/overlay eam/fs coul/ctip 0.30 12.0
+   pair_coeff * * eam/fs NiO.eam.fs Ni O
+   pair_coeff * * coul/ctip NiO.ctip Ni O
+   fix 1 all qeq/ctip 1 12.0 1.0e-8 100 coul/ctip cdamp 0.30 maxrepeat 10
+
+See the examples/ctip directory for an example input script using the
+CTIP potential. An Ni-O CTIP and EAM/FS parameterization are included
+for use with the example.
 
 ----------
 
@@ -194,9 +241,9 @@ summation method, described in :ref:`Wolf <Wolf1>`, given by:
 .. math::
 
    E_i = \frac{1}{2} \sum_{j \neq i}
-   \frac{q_i q_j {\rm erfc}(\alpha r_{ij})}{r_{ij}} +
+   \frac{q_i q_j \mathrm{erfc}(\alpha r_{ij})}{r_{ij}} +
    \frac{1}{2} \sum_{j \neq i}
-   \frac{q_i q_j {\rm erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
+   \frac{q_i q_j \mathrm{erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
 
 where :math:`\alpha` is the damping parameter, and *erf()* and *erfc()*
 are error-function and complementary error-function terms.  This
@@ -307,6 +354,11 @@ Coulombic solver (Ewald or PPPM).
    atom.  For example, if the atom ID of an O atom in a TIP4P water
    molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 
+.. note::
+
+   If using type labels, the type labels must be defined before calling
+   the :doc:`pair_coeff <pair_coeff>` command.
+
 See the :doc:`Howto tip4p <Howto_tip4p>` page for more information
 on how to use the TIP4P pair styles and lists of parameters to set.
 Note that the neighbor list cutoff for Coulomb interactions is
@@ -381,15 +433,18 @@ Restrictions
 """"""""""""
 
 The *coul/long*, *coul/msm*, *coul/streitz*, and *tip4p/long* styles are
-part of the KSPACE package.  The *coul/cut/global* and *coul/exclude* are
-part of the EXTRA-PAIR package.  A pair style is only enabled if LAMMPS was
-built with its corresponding package.  See the :doc:`Build package <Build_package>`
-doc page for more info.
+part of the KSPACE package.  The *coul/cut/global*, *coul/exclude*, and
+*coul/ctip* styles are part of the EXTRA-PAIR package.  The *tip4p/cut*
+style is part of the MOLECULE package.  A pair style is only enabled if
+LAMMPS was built with its corresponding package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style, hybrid/overlay <pair_hybrid>`, :doc:`kspace_style <kspace_style>`
+:doc:`pair_coeff <pair_coeff>`,
+:doc:`pair_style hybrid/overlay <pair_hybrid>`,
+:doc:`kspace_style <kspace_style>`
 
 Default
 """""""
@@ -412,6 +467,11 @@ Phys, 110, 8254 (1999).
 
 **(Streitz)** F. H. Streitz, J. W. Mintmire, Phys Rev B, 50, 11996-12003
 (1994).
+
+.. _Plummer1:
+
+**(Plummer)** G. Plummer, J. P. Tavenner, M. I. Mendelev, Z. Wu, J. W. Lawson,
+J Chemical Physics, 162, 054709 (2025).
 
 .. _Jorgensen3:
 

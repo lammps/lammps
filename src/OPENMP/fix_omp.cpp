@@ -129,7 +129,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
 #endif
   {
     const int tid = get_tid();
-    auto t = new Timer(lmp);
+    auto *t = new Timer(lmp);
     thr[tid] = new ThrData(tid,t);
   }
 }
@@ -184,7 +184,7 @@ void FixOMP::init()
 #endif
     {
       const int tid = get_tid();
-      auto t = new Timer(lmp);
+      auto *t = new Timer(lmp);
       thr[tid] = new ThrData(tid,t);
     }
   }

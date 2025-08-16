@@ -15,9 +15,7 @@
 
 #include "error_stats.h"
 #include "test_config.h"
-#include "test_config_reader.h"
 #include "test_main.h"
-#include "yaml_reader.h"
 #include "yaml_writer.h"
 
 #include "gmock/gmock.h"
@@ -25,43 +23,33 @@
 
 #include "atom.h"
 #include "compute.h"
-#include "exceptions.h"
 #include "fix.h"
-#include "fmt/format.h"
 #include "force.h"
 #include "improper.h"
 #include "info.h"
 #include "input.h"
-#include "lammps.h"
 #include "modify.h"
-#include "platform.h"
-#include "universe.h"
 
-#include <cctype>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <mpi.h>
-
-#include <map>
-#include <string>
+#include <exception>
+#include <iostream>
+#include <set>
 #include <utility>
-#include <vector>
 
 using ::testing::HasSubstr;
 using ::testing::StartsWith;
 
 using namespace LAMMPS_NS;
 
-void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
+void cleanup_lammps(LAMMPS *&lmp, const TestConfig &cfg)
 {
     platform::unlink(cfg.basename + ".restart");
     platform::unlink(cfg.basename + ".data");
     platform::unlink(cfg.basename + "-coeffs.in");
     delete lmp;
+    lmp = nullptr;
 }
 
-LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton = true)
+LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton)
 {
     LAMMPS *lmp;
 
@@ -92,21 +80,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
 
     // utility lambdas to improve readability
     auto command = [&](const std::string &line) {
-        try {
-            lmp->input->one(line);
-        } catch (LAMMPSAbortException &ae) {
-            fprintf(stderr, "LAMMPS Error: %s\n", ae.what());
-            exit(2);
-        } catch (LAMMPSException &e) {
-            fprintf(stderr, "LAMMPS Error: %s\n", e.what());
-            exit(3);
-        } catch (fmt::format_error &fe) {
-            fprintf(stderr, "fmt::format_error: %s\n", fe.what());
-            exit(4);
-        } catch (std::exception &e) {
-            fprintf(stderr, "General exception: %s\n", e.what());
-            exit(5);
-        }
+        lmp->input->one(line);
     };
     auto parse_input_script = [&](const std::string &filename) {
         lmp->input->file(filename.c_str());
@@ -230,7 +204,12 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // initialize system geometry
     LAMMPS::argv args = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
-    LAMMPS *lmp = init_lammps(args, config);
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, config, true);
+    } catch (std::exception &e) {
+        FAIL() << e.what();
+    }
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
                      "in this LAMMPS configuration:\n";
@@ -315,8 +294,14 @@ TEST(ImproperStyle, plain)
     LAMMPS::argv args = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(args, test_config, true);
-
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -356,15 +341,21 @@ TEST(ImproperStyle, plain)
     EXPECT_STRESS("run_stress (newton on)", improper->virial, test_config.run_stress, epsilon);
 
     stats.reset();
-    int id        = lmp->modify->find_compute("sum");
-    double energy = lmp->modify->compute[id]->compute_scalar();
+    auto *icompute = lmp->modify->get_compute_by_id("sum");
+    double energy  = 0.0;
+    if (icompute) energy = icompute->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.run_energy, epsilon);
     EXPECT_FP_LE_WITH_EPS(improper->energy, energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
-    lmp = init_lammps(args, test_config, false);
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // skip over these tests if newton bond is forced to be on
@@ -387,8 +378,8 @@ TEST(ImproperStyle, plain)
         EXPECT_STRESS("run_stress (newton off)", improper->virial, test_config.run_stress, epsilon);
 
         stats.reset();
-        id     = lmp->modify->find_compute("sum");
-        energy = lmp->modify->compute[id]->compute_scalar();
+        icompute = lmp->modify->get_compute_by_id("sum");
+        if (icompute) energy = icompute->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.run_energy, epsilon);
         EXPECT_FP_LE_WITH_EPS(improper->energy, energy, epsilon);
         if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
@@ -427,15 +418,21 @@ TEST(ImproperStyle, plain)
 
 TEST(ImproperStyle, omp)
 {
-    if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
+    if (!Info::has_package("OPENMP")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     LAMMPS::argv args = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite",
                          "-pk",           "omp",  "4",    "-sf",   "omp"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(args, test_config, true);
-
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -477,8 +474,9 @@ TEST(ImproperStyle, omp)
     EXPECT_STRESS("run_stress (newton on)", improper->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
-    int id        = lmp->modify->find_compute("sum");
-    double energy = lmp->modify->compute[id]->compute_scalar();
+    auto *icompute = lmp->modify->get_compute_by_id("sum");
+    double energy  = 0.0;
+    if (icompute) energy = icompute->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.run_energy, epsilon);
     // TODO: this is currently broken for OPENMP with improper style hybrid
     // needs to be fixed in the main code somewhere. Not sure where, though.
@@ -488,7 +486,12 @@ TEST(ImproperStyle, omp)
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
-    lmp = init_lammps(args, test_config, false);
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // skip over these tests if newton bond is forced to be on
@@ -512,8 +515,8 @@ TEST(ImproperStyle, omp)
                       10 * epsilon);
 
         stats.reset();
-        id     = lmp->modify->find_compute("sum");
-        energy = lmp->modify->compute[id]->compute_scalar();
+        icompute = lmp->modify->get_compute_by_id("sum");
+        if (icompute) energy = icompute->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.run_energy, epsilon);
         // TODO: this is currently broken for OPENMP with improper style hybrid
         // needs to be fixed in the main code somewhere. Not sure where, though.
@@ -527,16 +530,147 @@ TEST(ImproperStyle, omp)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
 
+TEST(ImproperStyle, kokkos_omp)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // test either OpenMP or Serial
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "serial") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
+        GTEST_SKIP();
+    // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
+    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl"))
+        GTEST_SKIP() << "Cannot test KOKKOS/OpenMP with GPU support enabled";
+
+    LAMMPS::argv args = {"ImproperStyle", "-log", "none", "-echo", "screen",
+                         "-nocite",       "-k",   "on",   "t",     "4",
+                         "-sf",           "kk"};
+    // fall back to serial if openmp is not available
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[9] = "1";
+
+    ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles with /kk suffix\n"
+                     "are not available in this LAMMPS configuration:\n";
+        for (auto &prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    EXPECT_THAT(output, StartsWith("LAMMPS ("));
+    EXPECT_THAT(output, HasSubstr("Loop time"));
+
+    // abort if running in parallel and not all atoms are local
+    const int nlocal = lmp->atom->nlocal;
+    ASSERT_EQ(lmp->atom->natoms, nlocal);
+
+    // relax error a bit for KOKKOS package
+    double epsilon = 5.0 * test_config.epsilon;
+
+    ErrorStats stats;
+    auto improper = lmp->force->improper;
+
+    EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_STRESS("init_stress (newton on)", improper->virial, test_config.init_stress,
+                  10 * epsilon);
+
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.init_energy, epsilon);
+    if (print_stats) std::cerr << "init_energy stats, newton on: " << stats << std::endl;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    run_lammps(lmp);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 10 * epsilon);
+    EXPECT_STRESS("run_stress (newton on)", improper->virial, test_config.run_stress, 10 * epsilon);
+
+    stats.reset();
+    auto *icompute = lmp->modify->get_compute_by_id("sum");
+    if (icompute) icompute->compute_scalar();
+    EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.run_energy, epsilon);
+    // FIXME: this is currently broken ??? for KOKKOS with improper style hybrid
+    // needs to be fixed in the main code somewhere. Not sure where, though.
+    // if (test_config.improper_style.substr(0, 6) != "hybrid")
+    //    EXPECT_FP_LE_WITH_EPS(improper->energy, energy, epsilon);
+    if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    // skip over these tests if newton bond is forced to be on
+    if (lmp->force->newton_bond == 0) {
+        improper = lmp->force->improper;
+
+        EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+        EXPECT_STRESS("init_stress (newton off)", improper->virial, test_config.init_stress,
+                      10 * epsilon);
+
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.init_energy, epsilon);
+        if (print_stats) std::cerr << "init_energy stats, newton off:" << stats << std::endl;
+
+        if (!verbose) ::testing::internal::CaptureStdout();
+        run_lammps(lmp);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+
+        EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 10 * epsilon);
+        EXPECT_STRESS("run_stress (newton off)", improper->virial, test_config.run_stress,
+                      10 * epsilon);
+
+        stats.reset();
+        icompute = lmp->modify->get_compute_by_id("sum");
+        if (icompute) icompute->compute_scalar();
+        EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.run_energy, epsilon);
+        // FIXME: this is currently broken ??? for KOKKOS with improper style hybrid
+        // needs to be fixed in the main code somewhere. Not sure where, though.
+        // if (test_config.improper_style.substr(0, 6) != "hybrid")
+        //    EXPECT_FP_LE_WITH_EPS(improper->energy, energy, epsilon);
+        if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
+    }
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+};
+
 TEST(ImproperStyle, numdiff)
 {
-    if (!LAMMPS::is_installed_pkg("EXTRA-FIX")) GTEST_SKIP();
+    if (!Info::has_package("EXTRA-FIX")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     LAMMPS::argv args = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(args, test_config, true);
-
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -575,6 +709,47 @@ TEST(ImproperStyle, numdiff)
         if (print_stats)
             std::cerr << "numdiff  stats: " << stats << " epsilon: " << epsilon << std::endl;
     }
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+}
+
+TEST(ImproperStyle, extract)
+{
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    LAMMPS::argv args = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles are not available "
+                     "in this LAMMPS configuration:\n";
+        for (auto prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    auto *improper = lmp->force->improper;
+    void *ptr      = nullptr;
+    int dim        = 0;
+    for (auto extract : test_config.extract) {
+        ptr = improper->extract(extract.first.c_str(), dim);
+        EXPECT_NE(ptr, nullptr);
+        EXPECT_EQ(dim, extract.second);
+    }
+    ptr = improper->extract("does_not_exist", dim);
+    EXPECT_EQ(ptr, nullptr);
+
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();

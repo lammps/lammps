@@ -15,16 +15,14 @@
 #include "test_config.h"
 #include "utils.h"
 #include "yaml.h"
-#include "yaml_reader.h"
 
 #include <cstdlib>
-#include <cstring>
 
-#include <iostream>
+#include <map>
+#include <set>
 #include <sstream>
 #include <string>
 #include <utility>
-#include <vector>
 
 using LAMMPS_NS::utils::split_words;
 using LAMMPS_NS::utils::trim;
@@ -48,6 +46,7 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
     consumers["run_forces"]     = &TestConfigReader::run_forces;
     consumers["run_pos"]        = &TestConfigReader::run_pos;
     consumers["run_vel"]        = &TestConfigReader::run_vel;
+    consumers["run_torque"]     = &TestConfigReader::run_torque;
 
     consumers["pair_style"] = &TestConfigReader::pair_style;
     consumers["pair_coeff"] = &TestConfigReader::pair_coeff;
@@ -225,6 +224,21 @@ void TestConfigReader::run_vel(const yaml_event_t &event)
         coord_t xyz;
         sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
         config.run_vel[tag] = xyz;
+    }
+}
+
+void TestConfigReader::run_torque(const yaml_event_t &event)
+{
+    config.run_torque.clear();
+    config.run_torque.resize(config.natoms + 1);
+    std::stringstream data((char *)event.data.scalar.value);
+    std::string line;
+
+    while (std::getline(data, line, '\n')) {
+        int tag;
+        coord_t xyz;
+        sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
+        config.run_torque[tag] = xyz;
     }
 }
 

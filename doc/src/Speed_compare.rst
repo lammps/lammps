@@ -44,11 +44,6 @@ section below for examples where this has been done.
   system the crossover (in single precision) is often about 50K-100K
   atoms per GPU.  When performing double precision calculations the
   crossover point can be significantly smaller.
-* Both KOKKOS and GPU package compute bonded interactions (bonds, angles,
-  etc) on the CPU.  If the GPU package is running with several MPI processes
-  assigned to one GPU, the cost of computing the bonded interactions is
-  spread across more CPUs and hence the GPU package can run faster in these
-  cases.
 * When using LAMMPS with multiple MPI ranks assigned to the same GPU, its
   performance depends to some extent on the available bandwidth between
   the CPUs and the GPU. This can differ significantly based on the
@@ -80,15 +75,34 @@ section below for examples where this has been done.
 **Differences between the GPU and KOKKOS packages:**
 
 * The GPU package accelerates only pair force, neighbor list, and (parts
-  of) PPPM calculations. The KOKKOS package attempts to run most of the
+  of) PPPM calculations (and runs the remaining force computations on
+  the CPU concurrently).  The KOKKOS package attempts to run most of the
   calculation on the GPU, but can transparently support non-accelerated
   code (with a performance penalty due to having data transfers between
   host and GPU).
+* The list of which styles are accelerated by the GPU or KOKKOS package
+  differs with some overlap.
 * The GPU package requires neighbor lists to be built on the CPU when using
-  exclusion lists, or a triclinic simulation box.
-* The GPU package can be compiled for CUDA or OpenCL and thus supports
-  both, NVIDIA and AMD GPUs well. On NVIDIA hardware, using CUDA is typically
-  resulting in equal or better performance over OpenCL.
-* OpenCL in the GPU package does theoretically also support Intel CPUs or
-  Intel Xeon Phi, but the native support for those in KOKKOS (or INTEL)
-  is superior.
+  hybrid pair styles, exclusion lists, or a triclinic simulation box.
+* The GPU package benefits from running multiple MPI processes (2-8) per
+  GPU to parallelize the non-GPU accelerated styles.  The KOKKOS package
+  usually not, especially when all parts of the calculation have KOKKOS
+  support.
+* The GPU package can be compiled for CUDA, HIP, or OpenCL and thus
+  supports NVIDIA, AMD, and Intel GPUs well. On NVIDIA or AMD hardware,
+  using native CUDA or HIP compilation, respectively, with either GPU or
+  KOKKOS results in equal or better performance over OpenCL.
+* OpenCL in the GPU package supports NVIDIA, AMD, and Intel GPUs at the
+  *same time* and with the *same executable*.  KOKKOS currently does not
+  support OpenCL.
+* The GPU package supports single precision floating point, mixed
+  precision floating point, and double precision floating point math on
+  the GPU.  This must be chosen at compile time.  KOKKOS currently only
+  supports double precision floating point math.  Using single or mixed
+  precision (recommended) results in significantly improved performance
+  on consumer GPUs for some loss in accuracy (which is rather small with
+  mixed precision).  Single and mixed precision support for KOKKOS is in
+  development (no ETA yet).
+* Some pair styles (for example :doc:`snap <pair_snap>`, :doc:`mliap
+  <pair_mliap>` or :doc:`reaxff <pair_reaxff>` in the KOKKOS package have
+  seen extensive optimizations and specializations for GPUs and CPUs.

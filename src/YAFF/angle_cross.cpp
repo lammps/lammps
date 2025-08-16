@@ -18,16 +18,17 @@
 
 #include "angle_cross.h"
 
-#include <cmath>
 #include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -220,7 +221,7 @@ void AngleCross::allocate()
 
 void AngleCross::coeff(int narg, char **arg)
 {
-  if (narg != 7) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (narg != 7) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -247,7 +248,7 @@ void AngleCross::coeff(int narg, char **arg)
       count++;
     }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -318,13 +319,13 @@ double AngleCross::single(int type, int i1, int i2, int i3)
   double delx1 = x[i1][0] - x[i2][0];
   double dely1 = x[i1][1] - x[i2][1];
   double delz1 = x[i1][2] - x[i2][2];
-  domain->minimum_image(delx1,dely1,delz1);
+  domain->minimum_image(FLERR, delx1,dely1,delz1);
   double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
 
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];
-  domain->minimum_image(delx2,dely2,delz2);
+  domain->minimum_image(FLERR, delx2,dely2,delz2);
   double r2 = sqrt(delx2*delx2 + dely2*dely2 + delz2*delz2);
 
   double c = delx1*delx2 + dely1*dely2 + delz1*delz2;
@@ -341,4 +342,20 @@ double AngleCross::single(int type, int i1, int i2, int i3)
   double dr2 = r2 - r01[type];
   double energy = kss[type]*dr1*dr2+kbs0[type]*dr1*dtheta + kbs1[type]*dr2*dtheta;
   return energy;
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleCross::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "r00") == 0) return (void *) r00;
+  if (strcmp(str, "r01") == 0) return (void *) r01;
+  if (strcmp(str, "kss") == 0) return (void *) kss;
+  if (strcmp(str, "kbs0") == 0) return (void *) kbs0;
+  if (strcmp(str, "kbs1") == 0) return (void *) kbs1;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
+  return nullptr;
 }

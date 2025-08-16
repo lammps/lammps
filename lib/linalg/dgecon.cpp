@@ -78,15 +78,15 @@ L10:
     dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
     if (kase != 0) {
         if (kase == kase1) {
-            dlatrs_((char *)"Lower", (char *)"No transpose", (char *)"Unit", normin, n, &a[a_offset], lda, &work[1], &sl,
-                    &work[(*n << 1) + 1], info, (ftnlen)5, (ftnlen)12, (ftnlen)4, (ftnlen)1);
-            dlatrs_((char *)"Upper", (char *)"No transpose", (char *)"Non-unit", normin, n, &a[a_offset], lda, &work[1],
-                    &su, &work[*n * 3 + 1], info, (ftnlen)5, (ftnlen)12, (ftnlen)8, (ftnlen)1);
+            dlatrs_((char *)"L", (char *)"N", (char *)"U", normin, n, &a[a_offset], lda, &work[1], &sl,
+                    &work[(*n << 1) + 1], info, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
+            dlatrs_((char *)"U", (char *)"N", (char *)"N", normin, n, &a[a_offset], lda, &work[1], &su, &work[*n * 3 + 1],
+                    info, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
         } else {
-            dlatrs_((char *)"Upper", (char *)"Transpose", (char *)"Non-unit", normin, n, &a[a_offset], lda, &work[1], &su,
-                    &work[*n * 3 + 1], info, (ftnlen)5, (ftnlen)9, (ftnlen)8, (ftnlen)1);
-            dlatrs_((char *)"Lower", (char *)"Transpose", (char *)"Unit", normin, n, &a[a_offset], lda, &work[1], &sl,
-                    &work[(*n << 1) + 1], info, (ftnlen)5, (ftnlen)9, (ftnlen)4, (ftnlen)1);
+            dlatrs_((char *)"U", (char *)"T", (char *)"N", normin, n, &a[a_offset], lda, &work[1], &su, &work[*n * 3 + 1],
+                    info, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
+            dlatrs_((char *)"L", (char *)"T", (char *)"U", normin, n, &a[a_offset], lda, &work[1], &sl,
+                    &work[(*n << 1) + 1], info, (ftnlen)1, (ftnlen)1, (ftnlen)1, (ftnlen)1);
         }
         scale = sl * su;
         *(unsigned char *)normin = 'Y';

@@ -46,7 +46,7 @@ Include files (varied)
   but instead should be initialized either in the initializer list of
   the constructor or explicitly assigned in the body of the constructor.
   If the member variable is relevant to the functionality of a class
-  (for example when it stores a value from a command line argument), the
+  (for example when it stores a value from a command-line argument), the
   member variable declaration is followed by a brief comment explaining
   its purpose and what its values can be.  Class members that are
   pointers should always be initialized to ``nullptr`` in the
@@ -153,9 +153,10 @@ Miscellaneous standards (varied)
   ``&&``, ``||``, and ``!``.  The alternative tokens are not available
   by default on all compilers.
 
-- Output to the screen and the logfile should use the corresponding
-  FILE pointers and only be done on MPI rank 0.  Use the
-  :cpp:func:`utils::logmesg` convenience function where possible.
+- Output to the screen and the logfile should use the corresponding FILE
+  pointers and only be done on MPI rank 0.  Use the
+  :cpp:func:`utils::logmesg() <LAMMPS_NS::utils::logmesg>` convenience
+  function where possible.
 
 - Usage of C++11 `virtual`, `override`, `final` keywords: Please
   follow the `C++ Core Guideline C.128

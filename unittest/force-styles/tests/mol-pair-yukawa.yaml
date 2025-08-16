@@ -17,7 +17,8 @@ pair_coeff: ! |
   3 3 350.0
   4 4 250.0
   5 5 250.0
-extract: ! ""
+extract: ! |
+  alpha 2
 natoms: 29
 init_vdwl: 12.114009254533281
 init_coul: 0

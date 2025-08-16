@@ -59,7 +59,7 @@ parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<
 #pragma omp barrier
 
   if constexpr (std::is_arithmetic<ValueType>::value) {
-#pragma omp for reduction(+ : TeamThread_scratch[:1])
+#pragma omp for reduction(+ : TeamThread_scratch[ : 1])
     for (iType i = loop_boundaries.start; i < loop_boundaries.end; i++) {
       ValueType tmp = ValueType();
       lambda(i, tmp);
@@ -68,7 +68,7 @@ parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<
   } else {
 #pragma omp declare reduction(custom:ValueType : omp_out += omp_in)
 
-#pragma omp for reduction(custom : TeamThread_scratch[:1])
+#pragma omp for reduction(custom : TeamThread_scratch[ : 1])
     for (iType i = loop_boundaries.start; i < loop_boundaries.end; i++) {
       ValueType tmp = ValueType();
       lambda(i, tmp);
@@ -90,11 +90,10 @@ parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<
                 const Lambda& lambda, ReducerType result) {
   using ValueType = typename ReducerType::value_type;
 
-#pragma omp declare reduction(                                               \
-    custominner:ValueType                                                    \
-    : Impl::OpenMPTargetReducerWrapper <ReducerType>::join(omp_out, omp_in)) \
-    initializer(                                                             \
-        Impl::OpenMPTargetReducerWrapper <ReducerType>::init(omp_priv))
+#pragma omp declare reduction(custominner                                     \
+:ValueType : Impl::OpenMPTargetReducerWrapper<ReducerType>::join(omp_out,     \
+                                                                     omp_in)) \
+    initializer(Impl::OpenMPTargetReducerWrapper<ReducerType>::init(omp_priv))
 
   // FIXME_OPENMPTARGET - Make sure that if its an array reduction, number of
   // elements in the array <= 32. For reduction we allocate, 16 bytes per
@@ -109,7 +108,7 @@ parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<
   Impl::OpenMPTargetReducerWrapper<ReducerType>::init(TeamThread_scratch[0]);
 #pragma omp barrier
 
-#pragma omp for reduction(custominner : TeamThread_scratch[:1])
+#pragma omp for reduction(custominner : TeamThread_scratch[ : 1])
   for (iType i = loop_boundaries.start; i < loop_boundaries.end; i++) {
     lambda(i, TeamThread_scratch[0]);
   }
@@ -132,11 +131,10 @@ parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<
   ValueType* TeamThread_scratch =
       static_cast<ValueType*>(loop_boundaries.team.impl_reduce_scratch());
 
-#pragma omp declare reduction(                                               \
-    omp_red_teamthread_reducer:ValueType                                     \
-    : Impl::OpenMPTargetReducerWrapper <ReducerType>::join(omp_out, omp_in)) \
-    initializer(                                                             \
-        Impl::OpenMPTargetReducerWrapper <ReducerType>::init(omp_priv))
+#pragma omp declare reduction(omp_red_teamthread_reducer                      \
+:ValueType : Impl::OpenMPTargetReducerWrapper<ReducerType>::join(omp_out,     \
+                                                                     omp_in)) \
+    initializer(Impl::OpenMPTargetReducerWrapper<ReducerType>::init(omp_priv))
 
 #pragma omp barrier
   ValueType tmp;
@@ -145,8 +143,9 @@ parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<
 #pragma omp barrier
 
   iType team_size = iType(omp_get_num_threads());
-#pragma omp for reduction(omp_red_teamthread_reducer \
-                          : TeamThread_scratch[:1]) schedule(static, 1)
+#pragma omp for reduction(                                     \
+        omp_red_teamthread_reducer : TeamThread_scratch[ : 1]) \
+    schedule(static, 1)
   for (iType t = 0; t < team_size; t++) {
     ValueType tmp2;
     result.init(tmp2);
@@ -259,11 +258,10 @@ parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<
                 const Lambda& lambda, ReducerType const& result) {
   using ValueType = typename ReducerType::value_type;
 
-#pragma omp declare reduction(                                               \
-    custom:ValueType                                                         \
-    : Impl::OpenMPTargetReducerWrapper <ReducerType>::join(omp_out, omp_in)) \
-    initializer(                                                             \
-        Impl::OpenMPTargetReducerWrapper <ReducerType>::init(omp_priv))
+#pragma omp declare reduction(custom                                          \
+:ValueType : Impl::OpenMPTargetReducerWrapper<ReducerType>::join(omp_out,     \
+                                                                     omp_in)) \
+    initializer(Impl::OpenMPTargetReducerWrapper<ReducerType>::init(omp_priv))
 
   ValueType vector_reduce;
   Impl::OpenMPTargetReducerWrapper<ReducerType>::init(vector_reduce);
@@ -329,7 +327,7 @@ KOKKOS_INLINE_FUNCTION void parallel_reduce(
 #pragma omp barrier
 
   if constexpr (std::is_arithmetic<ValueType>::value) {
-#pragma omp for simd reduction(+ : TeamVector_scratch[:1])
+#pragma omp for simd reduction(+ : TeamVector_scratch[ : 1])
     for (iType i = loop_boundaries.start; i < loop_boundaries.end; i++) {
       ValueType tmp = ValueType();
       lambda(i, tmp);
@@ -338,7 +336,7 @@ KOKKOS_INLINE_FUNCTION void parallel_reduce(
   } else {
 #pragma omp declare reduction(custom:ValueType : omp_out += omp_in)
 
-#pragma omp for simd reduction(custom : TeamVector_scratch[:1])
+#pragma omp for simd reduction(custom : TeamVector_scratch[ : 1])
     for (iType i = loop_boundaries.start; i < loop_boundaries.end; i++) {
       ValueType tmp = ValueType();
       lambda(i, tmp);
@@ -363,11 +361,10 @@ parallel_reduce(const Impl::TeamVectorRangeBoundariesStruct<
   static_assert(sizeof(ValueType) <=
                 Impl::OpenMPTargetExecTeamMember::TEAM_REDUCE_SIZE);
 
-#pragma omp declare reduction(                                               \
-    custom:ValueType                                                         \
-    : Impl::OpenMPTargetReducerWrapper <ReducerType>::join(omp_out, omp_in)) \
-    initializer(                                                             \
-        Impl::OpenMPTargetReducerWrapper <ReducerType>::init(omp_priv))
+#pragma omp declare reduction(custom                                          \
+:ValueType : Impl::OpenMPTargetReducerWrapper<ReducerType>::join(omp_out,     \
+                                                                     omp_in)) \
+    initializer(Impl::OpenMPTargetReducerWrapper<ReducerType>::init(omp_priv))
 
   ValueType* TeamVector_scratch =
       static_cast<ValueType*>(loop_boundaries.team.impl_reduce_scratch());
@@ -376,7 +373,7 @@ parallel_reduce(const Impl::TeamVectorRangeBoundariesStruct<
   Impl::OpenMPTargetReducerWrapper<ReducerType>::init(TeamVector_scratch[0]);
 #pragma omp barrier
 
-#pragma omp for simd reduction(custom : TeamVector_scratch[:1])
+#pragma omp for simd reduction(custom : TeamVector_scratch[ : 1])
   for (iType i = loop_boundaries.start; i < loop_boundaries.end; i++) {
     lambda(i, TeamVector_scratch[0]);
   }
@@ -400,11 +397,10 @@ parallel_reduce(const Impl::TeamVectorRangeBoundariesStruct<
   ValueType* TeamVector_scratch =
       static_cast<ValueType*>(loop_boundaries.team.impl_reduce_scratch());
 
-#pragma omp declare reduction(                                               \
-    omp_red_teamthread_reducer:ValueType                                     \
-    : Impl::OpenMPTargetReducerWrapper <ReducerType>::join(omp_out, omp_in)) \
-    initializer(                                                             \
-        Impl::OpenMPTargetReducerWrapper <ReducerType>::init(omp_priv))
+#pragma omp declare reduction(omp_red_teamthread_reducer                      \
+:ValueType : Impl::OpenMPTargetReducerWrapper<ReducerType>::join(omp_out,     \
+                                                                     omp_in)) \
+    initializer(Impl::OpenMPTargetReducerWrapper<ReducerType>::init(omp_priv))
 
 #pragma omp barrier
   ValueType tmp;
@@ -413,8 +409,9 @@ parallel_reduce(const Impl::TeamVectorRangeBoundariesStruct<
 #pragma omp barrier
 
   iType team_size = iType(omp_get_num_threads());
-#pragma omp for simd reduction(omp_red_teamthread_reducer \
-                               : TeamVector_scratch[:1]) schedule(static, 1)
+#pragma omp for simd reduction(                                \
+        omp_red_teamthread_reducer : TeamVector_scratch[ : 1]) \
+    schedule(static, 1)
   for (iType t = 0; t < team_size; t++) {
     ValueType tmp2;
     result.init(tmp2);
@@ -443,8 +440,7 @@ class ParallelReduce<CombinedFunctorReducerType,
   using FunctorType = typename CombinedFunctorReducerType::functor_type;
   using ReducerType = typename CombinedFunctorReducerType::reducer_type;
 
-  using WorkTag = typename Policy::work_tag;
-  using Member  = typename Policy::member_type;
+  using Member = typename Policy::member_type;
 
   using pointer_type   = typename ReducerType::pointer_type;
   using reference_type = typename ReducerType::reference_type;
@@ -470,13 +466,14 @@ class ParallelReduce<CombinedFunctorReducerType,
   const pointer_type m_result_ptr;
   const size_t m_shmem_size;
 
-  // Only let one ParallelReduce instance at a time use the scratch memory.
-  // The constructor acquires the mutex which is released in the destructor.
-  std::scoped_lock<std::mutex> m_scratch_memory_lock;
-
  public:
   void execute() const {
-    const FunctorType& functor = m_functor_reducer.get_functor();
+    // Only let one ParallelReduce instance at a time use the scratch memory.
+    std::scoped_lock<std::mutex> scratch_memory_lock(
+        m_policy.space().impl_internal_space_instance()->m_mutex_scratch_ptr);
+    auto const functor =
+        Kokkos::Experimental::Impl::FunctorAdapter<FunctorType, Policy>(
+            m_functor_reducer.get_functor());
     if constexpr (FunctorHasJoin) {
       ParReduceSpecialize::execute_init_join(functor, m_policy, m_result_ptr,
                                              m_result_ptr_on_device);
@@ -521,8 +518,7 @@ class ParallelReduce<CombinedFunctorReducerType,
         m_shmem_size(
             arg_policy.scratch_size(0) + arg_policy.scratch_size(1) +
             FunctorTeamShmemSize<FunctorType>::value(
-                arg_functor_reducer.get_functor(), arg_policy.team_size())),
-        m_scratch_memory_lock(OpenMPTargetExec::m_mutex_scratch_ptr) {}
+                arg_functor_reducer.get_functor(), arg_policy.team_size())) {}
 };
 
 }  // namespace Impl

@@ -86,7 +86,7 @@ void KimInit::command(int narg, char **arg)
   if ((narg < 2) || (narg > 3)) error->all(FLERR, "Illegal 'kim init' command");
 
   if (domain->box_exist)
-    error->all(FLERR, "Must use 'kim init' command before simulation box is defined");
+    error->all(FLERR, "Must use 'kim init' command before simulation box is defined" + utils::errorurl(33));
 
   char *model_name = utils::strdup(arg[0]);
   char *user_units = utils::strdup(arg[1]);
@@ -206,7 +206,7 @@ void KimInit::determine_model_type_and_units(char *model_name, char *user_units,
     } else if (unit_conversion_mode) {
       KIM_Model_Destroy(&pkim);
       const char *unit_systems[] = {"metal", "real", "si", "cgs", "electron"};
-      for (auto units : unit_systems) {
+      for (const auto *units : unit_systems) {
         get_kim_unit_names(units, lengthUnit, energyUnit, chargeUnit, temperatureUnit, timeUnit,
                            error);
         kim_error = KIM_Model_Create(KIM_NUMBERING_zeroBased, lengthUnit, energyUnit, chargeUnit,
@@ -267,7 +267,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
   // create storage proxy fix. delete existing fix, if needed.
 
   if (modify->get_fix_by_id("KIM_MODEL_STORE")) modify->delete_fix("KIM_MODEL_STORE");
-  auto fix_store = dynamic_cast<FixStoreKIM *>(modify->add_fix("KIM_MODEL_STORE all STORE/KIM"));
+  auto *fix_store = dynamic_cast<FixStoreKIM *>(modify->add_fix("KIM_MODEL_STORE all STORE/KIM"));
   fix_store->setptr("model_name", (void *) model_name);
   fix_store->setptr("user_units", (void *) user_units);
   fix_store->setptr("model_units", (void *) model_units);
@@ -411,7 +411,7 @@ void KimInit::do_variables(const std::string &from, const std::string &to)
 
   input->write_echo(fmt::format("# Conversion factors from {} to {}:\n", from, to));
 
-  auto variable = input->variable;
+  auto *variable = input->variable;
   for (int i = 0; units[i] != nullptr; ++i) {
     var_str = std::string("_u_") + units[i];
     v_unit = variable->find(var_str.c_str());

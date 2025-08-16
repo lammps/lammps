@@ -88,7 +88,7 @@ void AtomVecPeri::grow_pointers()
 
 void AtomVecPeri::create_atom_post(int ilocal)
 {
-  const auto xinit = atom->x;
+  auto *const xinit = atom->x;
   vfrac[ilocal] = 1.0;
   rmass[ilocal] = 1.0;
   s0[ilocal] = DBL_MAX;
@@ -104,7 +104,7 @@ void AtomVecPeri::create_atom_post(int ilocal)
 
 void AtomVecPeri::data_atom_post(int ilocal)
 {
-  const auto xinit = atom->x;
+  auto *const xinit = atom->x;
   s0[ilocal] = DBL_MAX;
   x0[ilocal][0] = xinit[ilocal][0];
   x0[ilocal][1] = xinit[ilocal][1];

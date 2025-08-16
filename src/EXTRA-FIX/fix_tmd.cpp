@@ -270,7 +270,7 @@ void FixTMD::initial_integrate(int /*vflag*/)
     work_lambda += lambda*(rho_target - rho_old);
     if (!(update->ntimestep % nfileevery) &&
         (previous_stat != update->ntimestep)) {
-      fmt::print(fp, "{} {} {} {} {} {} {} {}\n", update->ntimestep,rho_target,rho_old,
+      utils::print(fp, "{} {} {} {} {} {} {} {}\n", update->ntimestep,rho_target,rho_old,
                  gamma_back,gamma_forward,lambda,work_lambda,work_analytical);
       fflush(fp);
       previous_stat = update->ntimestep;
@@ -390,7 +390,7 @@ void FixTMD::readfile(char *file)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  auto buffer = new char[CHUNK*MAXLINE];
+  auto *buffer = new char[CHUNK*MAXLINE];
   char *next,*bufptr;
   int i,m,nlines,imageflag,ix,iy,iz;
   tagint itag;

@@ -122,7 +122,7 @@ create_atoms 1 single &
         x = [ 1.0, 1.0, 1.0,  1.0, 1.0, 1.5 ]
         types = [1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(2, id=None, type=types, x=x), 2)
+        self.assertEqual(self.lmp.create_atoms(2, atomid=None, atype=types, x=x), 2)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 2)
 
@@ -167,7 +167,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -207,7 +207,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -237,7 +237,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -276,7 +276,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -310,7 +310,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 2, 2, 2]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -378,7 +378,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -522,11 +522,42 @@ create_atoms 1 single &
 
         types = [1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(2, id=None, type=types, x=x), 2)
+        self.assertEqual(self.lmp.create_atoms(2, atomid=None, atype=types, x=x), 2)
         self.lmp.command("variable a atom x*x+y*y+z*z")
         a = self.lmp.extract_variable("a", "all", LMP_VAR_ATOM)
         self.assertEqual(a[0], x[0]*x[0]+x[1]*x[1]+x[2]*x[2])
         self.assertEqual(a[1], x[3]*x[3]+x[4]*x[4]+x[5]*x[5])
+
+    def test_expand(self):
+        self.lmp.command("variable one    index     1 2 3 4");
+        self.lmp.command("variable two    equal     2");
+        self.lmp.command("variable three  string    three");
+
+        expanded = self.lmp.expand("xx_$(4+5)_$(PI) ${one}-${two}-${three}")
+        self.assertEqual(expanded, "xx_9_3.141592653589793116 1-2-three")
+        expanded = self.lmp.expand("'xx_$(4+5)_$(PI) ${one}-${two}-${three}'")
+        self.assertEqual(expanded, "'xx_$(4+5)_$(PI) ${one}-${two}-${three}'")
+
+    def test_eval(self):
+        self.lmp.commands_string(
+            """region box1 block 0 10 0 5 -0.5 0.5
+            lattice fcc 0.8
+            create_box 1 box1
+            create_atoms 1 box
+            mass * 1.0
+            pair_style lj/cut 4.0
+            pair_coeff * * 1.0 1.0
+            variable t equal 15.0
+            velocity all create 1.5 532656
+            fix 1 all nve
+            run 0 post no""")
+        self.lmp.command("variable one    index     1 2 3 4")
+        self.lmp.command("variable two    equal     2")
+
+        self.assertEqual(self.lmp.eval("4+5"), 9.0)
+        self.assertEqual(self.lmp.eval("v_one / 2.0"), 0.5)
+        self.assertEqual(self.lmp.eval("count(all)"), 36.0)
+        self.assertEqual(self.lmp.eval("pe"), -3.9848867644689534)
 
     def test_get_thermo(self):
         self.lmp.command("units lj")
@@ -542,7 +573,7 @@ create_atoms 1 single &
         ]
 
         types = [1, 1]
-        self.lmp.create_atoms(2, id=None, type=types, x=x)
+        self.lmp.create_atoms(2, atomid=None, atype=types, x=x)
 
         state = {
             "step": 0,
@@ -580,7 +611,7 @@ create_atoms 1 single &
           1.5, 1.5, 1.5
         ]
         types = [1, 1]
-        self.lmp.create_atoms(2, id=None, type=types, x=x)
+        self.lmp.create_atoms(2, atomid=None, atype=types, x=x)
 
         self.assertEqual(self.lmp.last_thermo(), None)
         self.lmp.command("run 2 post no")
@@ -656,6 +687,9 @@ create_atoms 1 single &
         self.assertEqual(self.lmp.extract_global("map_tag_max"), -1)
         self.assertEqual(self.lmp.extract_global("sortfreq"), 1000)
         self.assertEqual(self.lmp.extract_global("nextsort"), 0)
+        self.assertEqual(self.lmp.extract_global("xlattice"), 1.0)
+        self.assertEqual(self.lmp.extract_global("ylattice"), 1.0)
+        self.assertEqual(self.lmp.extract_global("zlattice"), 1.0)
 
         # set and initialize r-RESPA
         self.lmp.command("run_style respa 3 5 2 pair 2 kspace 3")

@@ -206,7 +206,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   // Find reciprocal spacing and integer dimensions
   for (int i=0; i<3; i++) {
     dK[i] = prd_inv[i]*c[i];
-    Knmax[i] = ceil(Kmax / dK[i]);
+    Knmax[i] = (int) ceil(Kmax / dK[i]);
   }
 
   // Finding the intersection of the reciprocal space and Ewald sphere
@@ -348,7 +348,7 @@ void ComputeSAED::compute_vector()
     utils::logmesg(lmp,"-----\nComputing SAED intensities");
 
   double t0 = platform::walltime();
-  auto Fvec = new double[2*nRows]; // Strct factor (real & imaginary)
+  auto *Fvec = new double[2*nRows]; // Strct factor (real & imaginary)
   // -- Note, vector entries correspond to different RELP
 
   ntypes = atom->ntypes;
@@ -364,8 +364,8 @@ void ComputeSAED::compute_vector()
     }
   }
 
-  auto xlocal = new double [3*nlocalgroup];
-  int *typelocal = new int [nlocalgroup];
+  auto *xlocal = new double[3*nlocalgroup];
+  auto *typelocal = new int[nlocalgroup];
 
   nlocalgroup = 0;
   for (int ii = 0; ii < nlocal; ii++) {
@@ -378,20 +378,6 @@ void ComputeSAED::compute_vector()
     }
   }
 
-/*
-  double *x = new double [3*nlocal];
-  int nlocalgroup = 0;
-  for (int ii = 0; ii < nlocal; ii++) {
-    if (mask[ii] & groupbit) {
-     x[3*ii+0] = atom->x[ii][0];
-     x[3*ii+1] = atom->x[ii][1];
-     x[3*ii+2] = atom->x[ii][2];
-     nlocalgroup++;
-    }
-  }
-*/
-
-
  // determining parameter set to use based on maximum S = sin(theta)/lambda
   double Smax = Kmax / 2;
 
@@ -401,7 +387,7 @@ void ComputeSAED::compute_vector()
 
   // Setting up OMP
 #if defined(_OPENMP)
-  if (me == 0 && echo) utils::logmesg(lmp," using {}OMP threads\n",comm->nthreads);
+  if (me == 0 && echo) utils::logmesg(lmp," using {} OMP thread(s)\n",comm->nthreads);
 #endif
 
   if (me == 0 && echo) utils::logmesg(lmp,"\n");
@@ -413,7 +399,7 @@ void ComputeSAED::compute_vector()
 #pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(offset,ASFSAED,typelocal,xlocal,Fvec,m,frac)
 #endif
   {
-    auto f = new double[ntypes];    // atomic structure factor by type
+    auto *f = new double[ntypes];    // atomic structure factor by type
     int typei = 0;
     double Fatom1 = 0.0;               // structure factor per atom
     double Fatom2 = 0.0;               // structure factor per atom (imaginary)
@@ -478,10 +464,10 @@ void ComputeSAED::compute_vector()
         }
       }
     } // End of pragma omp for region
-    delete [] f;
+    delete[] f;
   }
 
-  auto scratch = new double[2*nRows];
+  auto *scratch = new double[2*nRows];
 
   // Sum intensity for each ang-hkl combination across processors
   MPI_Allreduce(Fvec,scratch,2*nRows,MPI_DOUBLE,MPI_SUM,world);
@@ -499,10 +485,10 @@ void ComputeSAED::compute_vector()
     utils::logmesg(lmp," 100% \nTime elapsed during compute_saed = {:.2f} sec "
                    "using {:.2f} Mbytes/processor\n-----\n", t2-t0, bytes/1024.0/1024.0);
 
-  delete [] xlocal;
-  delete [] typelocal;
-  delete [] scratch;
-  delete [] Fvec;
+  delete[] xlocal;
+  delete[] typelocal;
+  delete[] scratch;
+  delete[] Fvec;
 }
 
 /* ----------------------------------------------------------------------

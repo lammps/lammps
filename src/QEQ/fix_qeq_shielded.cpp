@@ -33,6 +33,8 @@
 
 using namespace LAMMPS_NS;
 
+static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
+
 /* ---------------------------------------------------------------------- */
 
 FixQEqShielded::FixQEqShielded(LAMMPS *lmp, int narg, char **arg) : FixQEq(lmp, narg, arg)
@@ -56,6 +58,7 @@ void FixQEqShielded::init()
   neighbor->add_request(this, NeighConst::REQ_FULL);
 
   const int ntypes = atom->ntypes;
+  memory->destroy(shld);
   memory->create(shld, ntypes + 1, ntypes + 1, "qeq:shielding");
 
   init_shielding();

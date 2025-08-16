@@ -39,7 +39,7 @@ FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery <= 0) error->all(FLERR,"Illegal fix controller command");
+  if (nevery <= 0) error->all(FLERR, 3, "Illegal fix controller nevery value {}", nevery);
 
   alpha = utils::numeric(FLERR,arg[4],false,lmp);
   kp = utils::numeric(FLERR,arg[5],false,lmp);
@@ -52,7 +52,7 @@ FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
   if ((argi.get_type() == ArgInfo::UNKNOWN)
       || (argi.get_type() == ArgInfo::NONE)
       || (argi.get_dim() != 0))
-    error->all(FLERR,"Illegal fix controller command");
+    error->all(FLERR,8,"Illegal fix controller argument {}", arg[8]);
 
   pvwhich = argi.get_type();
   pvindex = argi.get_index1();
@@ -60,48 +60,51 @@ FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
 
   // setpoint arg
 
-  int iarg=9;
-  setpoint = utils::numeric(FLERR,arg[iarg],false,lmp);
-  iarg++;
+  setpoint = utils::numeric(FLERR,arg[9],false,lmp);
 
   // control variable arg
 
-  cvID = utils::strdup(arg[iarg]);
+  cvID = utils::strdup(arg[10]);
 
   // error check
 
   if (pvwhich == ArgInfo::COMPUTE) {
     Compute *c = modify->get_compute_by_id(pvID);
-    if (!c) error->all(FLERR,"Compute ID {} for fix controller does not exist", pvID);
+    if (!c) error->all(FLERR, 8, "Compute ID {} for fix controller does not exist", pvID);
     int flag = 0;
     if (c->scalar_flag && pvindex == 0) flag = 1;
     else if (c->vector_flag && pvindex > 0) flag = 1;
     if (!flag)
-      error->all(FLERR,"Fix controller compute does not calculate a global scalar or vector");
+      error->all(FLERR, 8, "Fix controller compute {} does not calculate a global scalar or "
+                 "vector", pvID);
     if (pvindex && pvindex > c->size_vector)
-      error->all(FLERR,"Fix controller compute vector is accessed out-of-range");
+      error->all(FLERR, 8, "Fix controller compute {} vector is accessed out-of-range{}",
+                 pvID, utils::errorurl(20));
   } else if (pvwhich == ArgInfo::FIX) {
     Fix *f = modify->get_fix_by_id(pvID);
-    if (!f) error->all(FLERR,"Fix ID {} for fix controller does not exist", pvID);
+    if (!f) error->all(FLERR, 8, "Fix ID {} for fix controller does not exist", pvID);
     int flag = 0;
     if (f->scalar_flag && pvindex == 0) flag = 1;
     else if (f->vector_flag && pvindex > 0) flag = 1;
-    if (!flag) error->all(FLERR,"Fix controller fix does not calculate a global scalar or vector");
+    if (!flag)
+      error->all(FLERR, 8, "Fix controller fix {} does not calculate a global scalar or vector",
+                 pvID);
     if (pvindex && pvindex > f->size_vector)
-      error->all(FLERR,"Fix controller fix vector is accessed out-of-range");
+      error->all(FLERR, 8, "Fix controller fix {} vector is accessed out-of-range{}", pvID,
+                 utils::errorurl(20));
   } else if (pvwhich == ArgInfo::VARIABLE) {
     int ivariable = input->variable->find(pvID);
     if (ivariable < 0)
-      error->all(FLERR,"Variable name for fix controller does not exist");
+      error->all(FLERR, 8, "Variable name {} for fix controller does not exist", pvID);
     if (input->variable->equalstyle(ivariable) == 0)
-      error->all(FLERR,"Fix controller variable is not equal-style variable");
+      error->all(FLERR, 8, "Fix controller variable {} is not equal-style variable", pvID);
   }
 
   int ivariable = input->variable->find(cvID);
   if (ivariable < 0)
-    error->all(FLERR,"Variable name for fix controller does not exist");
+    error->all(FLERR, 10, "Variable name {} for fix controller does not exist", cvID);
   if (input->variable->internalstyle(ivariable) == 0)
-    error->all(FLERR,"Fix controller variable is not internal-style variable");
+    error->all(FLERR, 10, "Fix controller variable {} is not internal-style variable", cvID);
   control = input->variable->compute_equal(ivariable);
 
   firsttime = 1;
@@ -130,19 +133,26 @@ void FixController::init()
 {
   if (pvwhich == ArgInfo::COMPUTE) {
     pcompute = modify->get_compute_by_id(pvID);
-    if (!pcompute) error->all(FLERR,"Compute ID {} for fix controller does not exist", pvID);
+    if (!pcompute)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Compute ID {} for fix controller does not exist", pvID);
 
   } else if (pvwhich == ArgInfo::FIX) {
     pfix = modify->get_fix_by_id(pvID);
-    if (!pfix) error->all(FLERR,"Fix ID {} for fix controller does not exist", pvID);
+    if (!pfix)
+      error->all(FLERR, Error::NOLASTLINE, "Fix ID {} for fix controller does not exist", pvID);
 
   } else if (pvwhich == ArgInfo::VARIABLE) {
     pvar = input->variable->find(pvID);
-    if (pvar < 0) error->all(FLERR,"Variable name for fix controller does not exist");
+    if (pvar < 0)
+      error->all(FLERR, Error::NOLASTLINE, "Variable name {} for fix controller does not exist",
+                 pvID);
   }
 
   cvar = input->variable->find(cvID);
-  if (cvar < 0) error->all(FLERR,"Variable name for fix controller does not exist");
+  if (cvar < 0)
+    error->all(FLERR, Error::NOLASTLINE, "Variable name {} for fix controller does not exist",
+               cvID);
 
   // set sampling time
 

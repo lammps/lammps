@@ -50,7 +50,7 @@ terms.  Thus J (the second atom in the quadruplet) is the atom of
 symmetry in the 3 :math:`\chi` angles.
 
 The subscripts on the various :math:`\theta`\ s refer to different
-combinations of 3 atoms (I,J,K,L) used to form a particular angle.
+combinations of three atoms (I,J,K,L) used to form a particular angle.
 E.g. :math:`\theta_{ijl}` is the angle formed by atoms I,J,L with J
 in the middle.  :math:`\theta_1`, :math:`\theta_2`, :math:`\theta_3`
 are the equilibrium positions of those angles.  Again,

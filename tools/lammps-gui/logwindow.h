@@ -16,27 +16,44 @@
 
 #include <QPlainTextEdit>
 
+class FlagWarnings;
+class QLabel;
+
 class LogWindow : public QPlainTextEdit {
     Q_OBJECT
 
 public:
     LogWindow(const QString &filename, QWidget *parent = nullptr);
+    ~LogWindow() override;
+
+    LogWindow()                             = delete;
+    LogWindow(const LogWindow &)            = delete;
+    LogWindow(LogWindow &&)                 = delete;
+    LogWindow &operator=(const LogWindow &) = delete;
+    LogWindow &operator=(LogWindow &&)      = delete;
 
 private slots:
     void extract_yaml();
     void quit();
     void save_as();
     void stop_run();
+    void next_warning();
+    void open_errorurl();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
     void contextMenuEvent(QContextMenuEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
     bool check_yaml();
 
 private:
     QString filename;
+    QString errorurl;
     static const QString yaml_regex;
+    static const QString url_regex;
+    FlagWarnings *warnings;
+    QLabel *summary;
 };
 
 #endif

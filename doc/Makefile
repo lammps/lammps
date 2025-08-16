@@ -17,9 +17,12 @@ MATHJAXTAG     = 3.2.2
 
 PYTHON         = $(word 3,$(shell type python3))
 DOXYGEN        = $(word 3,$(shell type doxygen))
+PANDOC         = $(word 3,$(shell type pandoc))
 HAS_PYTHON3    = NO
 HAS_DOXYGEN    = NO
 HAS_PDFLATEX   = NO
+HAS_PANDOC     = NO
+WEB_SEARCH     = NO
 
 ifeq ($(shell type python3 >/dev/null 2>&1; echo $$?), 0)
 HAS_PYTHON3    = YES
@@ -31,8 +34,12 @@ endif
 
 ifeq ($(shell type pdflatex >/dev/null 2>&1; echo $$?), 0)
 ifeq ($(shell type latexmk >/dev/null 2>&1; echo $$?), 0)
-HAS_PDFLATEX = YES
+HAS_PDFLATEX   = YES
 endif
+endif
+
+ifeq ($(shell type pandoc >/dev/null 2>&1; echo $$?), 0)
+HAS_PANDOC     = YES
 endif
 
 # override settings for PIP commands
@@ -45,8 +52,9 @@ SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocess
 # we only want to use explicitly listed files.
 DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+=/p' doxygen/Doxyfile.in | sed -e 's/@LAMMPS_SOURCE_DIR@/..\/src/g' -e 's/\\//g' -e 's/ \+/ /' -e 's/[A-Z_]\+ \+= *\(YES\|NO\|\)//') 
 
-.PHONY: help clean-all clean clean-spelling epub mobi html pdf spelling anchor_check style_check char_check role_check xmlgen fasthtml
+.PHONY: help clean-all clean clean-spelling epub mobi html pdf spelling anchor_check style_check char_check link_check role_check xmlgen fasthtml fasthtml-init 
 
+FASTHTMLFILES = $(patsubst $(RSTDIR)/%.rst,fasthtml/%.html,$(wildcard $(RSTDIR)/*rst))
 # ------------------------------------------
 
 help:
@@ -58,12 +66,15 @@ help:
 	@echo "  mobi          convert ePUB to MOBI format manual for e-book readers (e.g. Kindle)"
 	@echo "                      (requires ebook-convert tool from calibre)"
 	@echo "  fasthtml      approximate HTML page creation in fasthtml dir (for development)"
+	@echo "  upgrade       upgrade sphinx, extensions, and dependencies to latest supported versions"
 	@echo "  clean         remove all intermediate files"
 	@echo "  clean-all     reset the entire build environment"
 	@echo "  anchor_check  scan for duplicate anchor labels"
 	@echo "  style_check   check for complete and consistent style lists"
 	@echo "  package_check check for complete and consistent package lists"
+	@echo "  char_check    check for non-ASCII characters"
 	@echo "  role_check    check for misformatted role keywords"
+	@echo "  link_check    check external links in the manual"
 	@echo "  spelling      spell-check the manual"
 
 # ------------------------------------------
@@ -71,11 +82,14 @@ help:
 clean-all: clean
 	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf
 
-clean: clean-spelling
-	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py $(BUILDDIR)/fasthtml
+clean: clean-spelling clean-linkcheck
+	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py $(BUILDDIR)/fasthtml $(BUILDDIR)/spelling
 
 clean-spelling:
 	rm -rf $(BUILDDIR)/spelling
+
+clean-linkcheck:
+	rm -rf $(BUILDDIR)/linkcheck $(BUILDDIR)/linkchecker-out.html
 
 $(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
 	sed -e 's,@DOXYGEN_XML_DIR@,$(BUILDDIR)/doxygen/xml,g'   \
@@ -83,14 +97,22 @@ $(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
 	    -e 's,@LAMMPS_PYTHON_DIR@,$(BUILDDIR)/../python,g' \
 	    -e 's,@LAMMPS_DOC_DIR@,$(BUILDDIR),g' $< > $@
 
-html: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
+globbed-tocs:
+	$(PYTHON) $(BUILDDIR)/utils/make-globbed-tocs.py -d $(RSTDIR)
+
+html: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
+	@if [ "$(WEB_SEARCH)" == "YES" ] ; then \
+		cp -v utils/sphinx-config/_themes/lammps_theme/google_search.html \
+		      utils/sphinx-config/_themes/lammps_theme/search.html; \
+	else \
+		cp -v utils/sphinx-config/_themes/lammps_theme/local_search.html \
+		      utils/sphinx-config/_themes/lammps_theme/search.html; \
+	fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
 		sphinx-build -E $(SPHINXEXTRA) -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
-		touch $(RSTDIR)/Fortran.rst ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		sphinx-build $(SPHINXEXTRA) -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		ln -sf Manual.html html/index.html;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		echo "############################################" ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
@@ -102,6 +124,8 @@ html: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 		env LC_ALL=C grep -n ':\(ref\|doc\):[^`]' $(RSTDIR)/*.rst ;\
 		env LC_ALL=C grep -n '\(ref\|doc\)`[^`]' $(RSTDIR)/*.rst ;\
 		$(PYTHON) $(BUILDDIR)/utils/check-styles.py -s ../src -d src ;\
+		env LC_ALL=C grep -n -E '^ *\.\. [a-z0-9]+:(\s+.*|)$$' \
+                         $(RSTDIR)/*.rst ../src/*.{cpp,h} ../src/*/*.{cpp,h} ;\
 		echo "############################################" ;\
 		deactivate ;\
 	)
@@ -113,26 +137,24 @@ html: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@rm -rf html/PDF/.[sg]*
 	@echo "Build finished. The HTML pages are in doc/html."
 
-fasthtml: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
-	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
-	@$(MAKE) $(MFLAGS) -C graphviz all
-	@mkdir -p fasthtml
-	@(\
-		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		sphinx-build $(SPHINXEXTRA) -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/fasthtml/doctrees $(RSTDIR) fasthtml ;\
-		touch $(RSTDIR)/Fortran.rst ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		sphinx-build $(SPHINXEXTRA) -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/fasthtml/doctrees $(RSTDIR) fasthtml ;\
-		deactivate ;\
-	)
-	@rm -rf fasthtml/_sources
-	@rm -rf fasthtml/PDF
-	@rm -rf fasthtml/USER
-	@rm -rf fasthtml/JPG
-	@cp -r src/PDF fasthtml/PDF
-	@rm -rf fasthtml/PDF/.[sg]*
+fasthtml: fasthtml-init $(FASTHTMLFILES)
 	@echo "Fast HTML build finished. The HTML pages are in doc/fasthtml."
 
-spelling: xmlgen $(SPHINXCONFIG)/conf.py $(VENV) $(SPHINXCONFIG)/false_positives.txt
+fasthtml-init:
+	@mkdir -p fasthtml/JPG
+	@cp src/JPG/*.* fasthtml/JPG
+	@cp $(RSTDIR)/accel_styles.rst $(RSTDIR)/lepton_expression.rst fasthtml/
+	@cp $(BUILDDIR)/utils/pandoc.css fasthtml/
+
+fasthtml/%.html: $(RSTDIR)/%.rst
+	@if [ "$(HAS_PANDOC)" == "NO" ] ; then echo "Make 'fasthtml' requires the 'pandoc' software" 1>&2; exit 1; fi
+	@mkdir -p fasthtml
+	@echo converting $< to $@
+	@sed -e 's/\\AA/\\mathring{\\mathrm{A}}/g' $< > fasthtml/$*.temp.rst
+	@pandoc -s --mathml --css="pandoc.css" --template=$(BUILDDIR)/utils/pandoc.html --metadata title="$@" -o $@ fasthtml/$*.temp.rst
+	@rm -f fasthtml/$*.temp.rst
+
+spelling: xmlgen globbed-tocs $(SPHINXCONFIG)/conf.py $(VENV) $(SPHINXCONFIG)/false_positives.txt
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@(\
 		. $(VENV)/bin/activate ; \
@@ -143,7 +165,18 @@ spelling: xmlgen $(SPHINXCONFIG)/conf.py $(VENV) $(SPHINXCONFIG)/false_positives
 	)
 	@echo "Spell check finished."
 
-epub: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
+link_check: xmlgen globbed-tocs $(SPHINXCONFIG)/conf.py $(VENV) $(SPHINXCONFIG)/false_positives.txt
+	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
+	@(\
+		. $(VENV)/bin/activate ; \
+		cp $(SPHINXCONFIG)/false_positives.txt $(RSTDIR)/;  env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
+		sphinx-build -b linkcheck -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) linkcheck ;\
+		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
+		deactivate ;\
+	)
+	@echo "Link check finished."
+
+epub: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@mkdir -p epub/JPG
@@ -152,8 +185,6 @@ epub: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
 		sphinx-build -E $(SPHINXEXTRA) -b epub -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
-		touch $(RSTDIR)/Fortran.rst ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		sphinx-build $(SPHINXEXTRA) -b epub -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		deactivate ;\
 	)
@@ -166,15 +197,13 @@ mobi: epub
 	@ebook-convert LAMMPS.epub LAMMPS.mobi
 	@echo "Conversion finished. The MOBI manual file is created."
 
-pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
+pdf: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX or latexmk were not found! Please check README for further instructions" 1>&2; exit 1; fi
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
 		sphinx-build -E $(SPHINXEXTRA) -b latex -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
-		touch $(RSTDIR)/Fortran.rst ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		sphinx-build  $(SPHINXEXTRA) -b latex -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		echo "############################################" ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
 		rst_anchor_check src/*.rst ;\
@@ -185,6 +214,8 @@ pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 		env LC_ALL=C grep -n ':\(ref\|doc\):[^`]' $(RSTDIR)/*.rst ;\
 		env LC_ALL=C grep -n '\(ref\|doc\)`[^`]' $(RSTDIR)/*.rst ;\
 		$(PYTHON) utils/check-styles.py -s ../src -d src ;\
+		env LC_ALL=C grep -n -E '^ *\.\. [a-z0-9]+:(\s+.*|)$$' \
+                         $(RSTDIR)/*.rst ../src/*.{cpp,h} ../src/*/*.{cpp,h} ;\
 		echo "############################################" ;\
 		deactivate ;\
 	)
@@ -234,12 +265,16 @@ role_check :
 	@( env LC_ALL=C grep -n ' `[^`]\+<[a-z][^`]\+`[^_]' $(RSTDIR)/*.rst && exit 1 || : )
 	@( env LC_ALL=C grep -n ':\(ref\|doc\):[^`]' $(RSTDIR)/*.rst && exit 1 || : )
 	@( env LC_ALL=C grep -n '\(ref\|doc\)`[^`]' $(RSTDIR)/*.rst && exit 1 || : )
+	@( env LC_ALL=C grep -n -E '^ *\.\. [a-z0-9]+:(\s+.*|)$$' \
+                        $(RSTDIR)/*.rst ../src/*.{cpp,h} ../src/*/*.{cpp,h} && exit 1 || : )
 
-link_check : $(VENV) html
+upgrade: $(VENV)
 	@(\
-		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		linkchecker -F html --check-extern html/Manual.html ;\
-		deactivate ;\
+		. $(VENV)/bin/activate; \
+		pip $(PIP_OPTIONS) install --upgrade pip; \
+		pip $(PIP_OPTIONS) install --upgrade wheel; \
+		pip $(PIP_OPTIONS) install --upgrade -r $(BUILDDIR)/utils/requirements.txt; \
+		deactivate;\
 	)
 
 xmlgen : doxygen/xml/index.xml

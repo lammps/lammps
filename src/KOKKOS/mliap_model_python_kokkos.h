@@ -29,7 +29,7 @@ class MLIAPModelPythonKokkos : public MLIAPModelPython, public MLIAPModelKokkos<
  public:
   MLIAPModelPythonKokkos(LAMMPS *, char * = nullptr);
   ~MLIAPModelPythonKokkos();
-  void read_coeffs(char *fname);
+  void read_coeffs(char *fname) override;
 
   void compute_gradients(class MLIAPData *) override;
   void compute_gradgrads(class MLIAPData *) override;

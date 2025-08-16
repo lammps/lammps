@@ -83,7 +83,7 @@ Run LAMMPS from within the debugger
 Running LAMMPS under the control of the debugger as shown below only
 works for a single MPI rank (for debugging a program running in parallel
 you usually need a parallel debugger program).  A simple way to launch
-GDB is to prefix the LAMMPS command line with ``gdb --args`` and then
+GDB is to prefix the LAMMPS command-line with ``gdb --args`` and then
 type the command "run" at the GDB prompt.  This will launch the
 debugger, load the LAMMPS executable and its debug info, and then run
 it.  When it reaches the code causing the segmentation fault, it will
@@ -180,7 +180,7 @@ inspect the behavior of a compiled program by essentially emulating a
 CPU and instrumenting the program while running.  This slows down
 execution quite significantly, but can also report issues that are not
 resulting in a crash.  The default valgrind tool is a memory checker and
-you can use it by prefixing the normal command line with ``valgrind``.
+you can use it by prefixing the normal command-line with ``valgrind``.
 Unlike GDB, this will also work for parallel execution, but it is
 recommended to redirect the valgrind output to a file (e.g. with
 ``--log-file=crash-%p.txt``, the %p will be substituted with the
@@ -235,3 +235,53 @@ from GDB. In addition you get a more specific hint about what cause the
 segmentation fault, i.e. that it is a NULL pointer dereference.  To find
 out which pointer exactly was NULL, you need to use the debugger, though.
 
+Debugging when LAMMPS appears to be stuck
+=========================================
+
+Sometimes the LAMMPS calculation appears to be stuck, that is the LAMMPS
+process or processes are active, but there is no visible progress.  This
+can have multiple reasons:
+
+- The selected styles are slow and require a lot of CPU time and the
+  system is large. When extrapolating the expected speed from smaller
+  systems, one has to factor in that not all models scale linearly with
+  system size, e.g. :doc:`kspace styles like ewald or pppm
+  <kspace_style>`. There is very little that can be done in this case.
+- The output interval is not set or set to a large value with the
+  :doc:`thermo <thermo>` command. I the first case, there will be output
+  only at the first and last step.
+- The output is block-buffered and instead of line-buffered. The output
+  will only be written to the screen after 4096 or 8192 characters of
+  output have accumulated.  This most often happens for files but also
+  with MPI parallel executables for output to the screen, since the
+  output to the screen is handled by the MPI library so that output from
+  all processes can be shown.  This can be suppressed by using the
+  ``-nonblock`` or ``-nb`` command-line flag, which turns off buffering
+  for screen and logfile output.
+- An MPI parallel calculation has a bug where a collective MPI function
+  is called (e.g. ``MPI_Barrier()``, ``MPI_Bcast()``,
+  ``MPI_Allreduce()`` and so on) before pending point-to-point
+  communications are completed or when the collective function is only
+  called from a subset of the MPI processes.  This also applies to some
+  internal LAMMPS functions like ``Error::all()`` which uses
+  ``MPI_Barrier()`` and thus ``Error::one()`` must be called, if the
+  error condition does not happen on all MPI processes simultaneously.
+- Some function in LAMMPS has a bug where a ``for`` or ``while`` loop
+  does not trigger the exit condition and thus will loop forever.  This
+  can happen when the wrong variable is incremented or when one value in
+  a comparison becomes ``NaN`` due to an overflow.
+
+In the latter two cases, further information and stack traces (see above)
+can be obtain by attaching a debugger to a running process.  For that the
+process ID (PID) is needed; this can be found on Linux machines with the
+``top``, ``htop``, ``ps``, or ``pstree`` commands.
+
+Then running the (GNU) debugger ``gdb`` with the ``-p`` flag followed by
+the process id will attach the process to the debugger and stop
+execution of that specific process.  From there on it is possible to
+issue all debugger commands in the same way as when LAMMPS was started
+from the debugger (see above).  Most importantly it is possible to
+obtain a stack trace with the ``where`` command and thus determine where
+in the execution of a timestep this process is.  Also internal data can
+be printed and execution single stepped or continued.  When the debugger
+is exited, the calculation will resume normally.

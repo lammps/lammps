@@ -13,8 +13,6 @@
 
 #include "my_pool_chunk.h"
 
-#include <cstdlib>
-
 #if defined(LMP_INTEL) && !defined(LAMMPS_MEMALIGN) && !defined(_WIN32)
 #define LAMMPS_MEMALIGN 64
 #endif
@@ -35,7 +33,7 @@ using namespace LAMMPS_NS;
  *
  * \note
  * This is a template class with explicit instantiation. If the class
- * is used with a new data type a new explicit instantiation may need
+ * is used with a new data type, a new explicit instantiation may need
  * to be added at the end of the file ``src/my_pool_chunk.cpp`` to
  * avoid symbol lookup errors. */
 

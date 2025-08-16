@@ -19,18 +19,13 @@
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
 #include "body.h"
-#include "input.h"
-#include "lammps.h"
+#include "info.h"
 #include "math_const.h"
-#include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 #include <cmath>
-#include <cstdio>
 #include <cstring>
-#include <mpi.h>
-#include <vector>
 
 #if !defined(_FORTIFY_SOURCE) || (_FORTIFY_SOURCE == 0)
 #if defined(__INTEL_COMPILER) || (__PGI)
@@ -88,7 +83,7 @@ static void create_molecule_files(const std::string &h2o_filename, const std::st
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-const double EPSILON = 5.0e-14;
+static const double EPSILON = 5.0e-14;
 
 namespace LAMMPS_NS {
 using ::testing::Eq;
@@ -347,8 +342,8 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_ARRAY_ALLOCATED(atom->x, expected.has_x);
     ASSERT_ARRAY_ALLOCATED(atom->v, expected.has_v);
     ASSERT_ARRAY_ALLOCATED(atom->f, expected.has_f);
-    ASSERT_ARRAY_ALLOCATED(atom->q, expected.q_flag);
     ASSERT_ARRAY_ALLOCATED(atom->mu, expected.mu_flag);
+    ASSERT_ARRAY_ALLOCATED(atom->q, expected.q_flag);
 
     ASSERT_ARRAY_ALLOCATED(atom->omega, expected.omega_flag);
     ASSERT_ARRAY_ALLOCATED(atom->angmom, expected.angmom_flag);
@@ -1146,7 +1141,7 @@ TEST_F(AtomStyleTest, sphere)
 
 TEST_F(AtomStyleTest, ellipsoid)
 {
-    if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
+    if (!Info::has_package("ASPHERE")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("atom_style ellipsoid");
@@ -1483,7 +1478,7 @@ TEST_F(AtomStyleTest, ellipsoid)
 
 TEST_F(AtomStyleTest, line)
 {
-    if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
+    if (!Info::has_package("ASPHERE")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("dimension 2");
@@ -1753,7 +1748,7 @@ TEST_F(AtomStyleTest, line)
 
 TEST_F(AtomStyleTest, tri)
 {
-    if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
+    if (!Info::has_package("ASPHERE")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("atom_style tri");
@@ -2156,7 +2151,7 @@ TEST_F(AtomStyleTest, tri)
 
 TEST_F(AtomStyleTest, body_nparticle)
 {
-    if (!LAMMPS::is_installed_pkg("BODY")) GTEST_SKIP();
+    if (!Info::has_package("BODY")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("atom_style body nparticle 2 4");
@@ -2724,7 +2719,7 @@ TEST_F(AtomStyleTest, body_nparticle)
 
 TEST_F(AtomStyleTest, template)
 {
-    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
     BEGIN_HIDE_OUTPUT();
     command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
     command("atom_style template twomols");
@@ -3119,7 +3114,7 @@ TEST_F(AtomStyleTest, template)
 
 TEST_F(AtomStyleTest, template_charge)
 {
-    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
     BEGIN_HIDE_OUTPUT();
     command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
     command("atom_style hybrid template twomols charge");
@@ -3547,7 +3542,7 @@ TEST_F(AtomStyleTest, template_charge)
 
 TEST_F(AtomStyleTest, bond)
 {
-    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("atom_style bond");
@@ -3895,7 +3890,7 @@ TEST_F(AtomStyleTest, bond)
 
 TEST_F(AtomStyleTest, angle)
 {
-    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("atom_style angle");
@@ -4255,8 +4250,8 @@ TEST_F(AtomStyleTest, angle)
 
 TEST_F(AtomStyleTest, full_ellipsoid)
 {
-    if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
-    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
+    if (!Info::has_package("ASPHERE")) GTEST_SKIP();
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("atom_style hybrid full ellipsoid");
@@ -4909,9 +4904,9 @@ TEST_F(AtomStyleTest, property_atom)
 
 TEST_F(AtomStyleTest, oxdna)
 {
-    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
-    if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
-    if (!LAMMPS::is_installed_pkg("CG-DNA")) GTEST_SKIP();
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
+    if (!Info::has_package("ASPHERE")) GTEST_SKIP();
+    if (!Info::has_package("CG-DNA")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("atom_style hybrid bond ellipsoid oxdna");

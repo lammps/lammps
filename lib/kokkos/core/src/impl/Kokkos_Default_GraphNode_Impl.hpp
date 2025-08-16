@@ -38,8 +38,8 @@ struct GraphNodeBackendSpecificDetails {
   using execution_space_instance_storage_t =
       ExecutionSpaceInstanceStorage<ExecutionSpace>;
   using default_kernel_impl_t = GraphNodeKernelDefaultImpl<ExecutionSpace>;
-  using default_aggregate_kernel_impl_t =
-      GraphNodeAggregateKernelDefaultImpl<ExecutionSpace>;
+  using default_aggregate_impl_t =
+      GraphNodeAggregateDefaultImpl<ExecutionSpace>;
 
   std::vector<std::shared_ptr<GraphNodeBackendSpecificDetails<ExecutionSpace>>>
       m_predecessors = {};
@@ -69,10 +69,10 @@ struct GraphNodeBackendSpecificDetails {
   GraphNodeBackendSpecificDetails(GraphNodeBackendSpecificDetails&&) noexcept =
       delete;
 
-  GraphNodeBackendSpecificDetails& operator   =(
+  GraphNodeBackendSpecificDetails& operator=(
       GraphNodeBackendSpecificDetails const&) = delete;
 
-  GraphNodeBackendSpecificDetails& operator       =(
+  GraphNodeBackendSpecificDetails& operator=(
       GraphNodeBackendSpecificDetails&&) noexcept = delete;
 
   ~GraphNodeBackendSpecificDetails() = default;
@@ -86,10 +86,22 @@ struct GraphNodeBackendSpecificDetails {
     m_kernel_ptr = &arg_kernel;
   }
 
-  void set_kernel(default_aggregate_kernel_impl_t& arg_kernel) {
+  void set_kernel(default_aggregate_impl_t& arg_kernel) {
     KOKKOS_EXPECTS(m_kernel_ptr == nullptr)
     m_kernel_ptr   = &arg_kernel;
     m_is_aggregate = true;
+  }
+
+  // A node is awaitable if it can execute a kernel.
+  // A root node or an aggregate node cannot be waited for, because it does
+  // not launch anything.
+  bool awaitable() const { return (!m_is_root) && (!m_is_aggregate); }
+
+  // Retrieve the execution space instance that has been passed to
+  // the kernel at construction phase.
+  const ExecutionSpace& get_execution_space() const {
+    KOKKOS_EXPECTS(m_kernel_ptr != nullptr)
+    return m_kernel_ptr->m_execution_space;
   }
 
   void set_predecessor(
@@ -104,7 +116,7 @@ struct GraphNodeBackendSpecificDetails {
     m_predecessors.push_back(std::move(arg_pred_impl));
   }
 
-  void execute_node() {
+  void execute_node(const ExecutionSpace& exec) {
     // This node could have already been executed as the predecessor of some
     // other
     KOKKOS_EXPECTS(bool(m_kernel_ptr) || m_has_executed)
@@ -115,8 +127,18 @@ struct GraphNodeBackendSpecificDetails {
       // supported semantics, but instinct I have feels like it should be...
       m_has_executed = true;
       for (auto const& predecessor : m_predecessors) {
-        predecessor->execute_node();
+        predecessor->execute_node(exec);
       }
+
+      // Before executing the kernel, be sure to fence the execution space
+      // instance of predecessors.
+      for (const auto& predecessor : m_predecessors) {
+        if (predecessor->awaitable() &&
+            predecessor->get_execution_space() != this->get_execution_space())
+          predecessor->get_execution_space().fence(
+              "Kokkos::DefaultGraphNode::execute_node: sync with predecessors");
+      }
+
       m_kernel_ptr->execute_kernel();
     }
     KOKKOS_ENSURES(m_has_executed)

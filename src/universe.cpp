@@ -27,21 +27,18 @@ static constexpr int MAXLINE = 256;
    create & initialize the universe of processors in communicator
 ------------------------------------------------------------------------- */
 
-Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
+Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) :
+    Pointers(lmp), uscreen(stdout), ulogfile(nullptr), procs_per_world(nullptr), root_proc(nullptr),
+    uni2orig(nullptr)
 {
   uworld = uorig = communicator;
-  MPI_Comm_rank(uworld,&me);
-  MPI_Comm_size(uworld,&nprocs);
-
-  uscreen = stdout;
-  ulogfile = nullptr;
+  MPI_Comm_rank(uworld, &me);
+  MPI_Comm_size(uworld, &nprocs);
 
   existflag = 0;
   nworlds = 0;
-  procs_per_world = nullptr;
-  root_proc = nullptr;
 
-  memory->create(uni2orig,nprocs,"universe:uni2orig");
+  memory->create(uni2orig, nprocs, "universe:uni2orig");
   for (int i = 0; i < nprocs; i++) uni2orig[i] = i;
 }
 
@@ -89,8 +86,7 @@ void Universe::reorder(char *style, char *arg)
     if (me == 0) {
       FILE *fp = fopen(arg,"r");
       if (fp == nullptr)
-        error->universe_one(FLERR,fmt::format("Cannot open -reorder "
-                                              "file {}: {}",arg,
+        error->universe_one(FLERR,fmt::format("Cannot open -reorder file {}: {}", arg,
                                               utils::getsyserror()));
 
       // skip header = blank and comment lines
@@ -181,10 +177,10 @@ void Universe::add_world(char *str)
       if ((found == 0) || (found == (part.size() - 1))) {
         valid = false;
       } else if (found == std::string::npos) {
-        nper = atoi(part.c_str());
+        nper = std::stoi(part);
       } else {
-        n = atoi(part.substr(0,found).c_str());
-        nper = atoi(part.substr(found+1).c_str());
+        n = std::stoi(part.substr(0,found));
+        nper = std::stoi(part.substr(found+1));
       }
     }
 
@@ -193,8 +189,7 @@ void Universe::add_world(char *str)
     if (n < 1 || nper < 1) valid = false;
 
     if (!valid)
-      error->universe_all(FLERR,fmt::format("Invalid partition string '{}'",
-                                            str));
+      error->universe_all(FLERR, fmt::format("Invalid partition string '{}'", str));
   } else nper = nprocs;
 
   memory->grow(procs_per_world,nworlds+n,"universe:procs_per_world");

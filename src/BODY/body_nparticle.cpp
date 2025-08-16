@@ -105,20 +105,17 @@ int BodyNparticle::unpack_border_body(AtomVecBody::Bonus *bonus, double *buf)
 void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
                               int *ifile, double *dfile)
 {
-  auto bonus = &avec->bonus[ibonus];
+  auto *bonus = &avec->bonus[ibonus];
 
   // set ninteger, ndouble in bonus and allocate 2 vectors of ints, doubles
 
   if (ninteger != 1)
-    error->one(FLERR,"Incorrect # of integer values in "
-               "Bodies section of data file");
+    error->one(FLERR,"Incorrect # of integer values in Bodies section of data file");
   int nsub = ifile[0];
   if (nsub < 1)
-    error->one(FLERR,"Incorrect integer value in "
-               "Bodies section of data file");
+    error->one(FLERR,"Incorrect integer value in Bodies section of data file");
   if (ndouble != 6 + 3*nsub)
-    error->one(FLERR,"Incorrect # of floating-point values in "
-               "Bodies section of data file");
+    error->one(FLERR,"Incorrect # of floating-point values in Bodies section of data file");
 
   bonus->ninteger = 1;
   bonus->ivalue = icp->get(bonus->iindex);
@@ -139,8 +136,8 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
   double *inertia = bonus->inertia;
   double evectors[3][3];
   int ierror = MathEigen::jacobi3(tensor,inertia,evectors);
-  if (ierror) error->one(FLERR,
-                         "Insufficient Jacobi rotations for body nparticle");
+  if (ierror)
+    error->one(FLERR, Error::NOLASTLINE, "Insufficient Jacobi rotations for body nparticle");
 
   // if any principal moment < scaled EPSILON, set to 0.0
 
@@ -187,8 +184,7 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
     delta[0] = dfile[j];
     delta[1] = dfile[j+1];
     delta[2] = dfile[j+2];
-    MathExtra::transpose_matvec(ex_space,ey_space,ez_space,
-                                delta,&bonus->dvalue[k]);
+    MathExtra::transpose_matvec(ex_space,ey_space,ez_space,delta,&bonus->dvalue[k]);
     j += 3;
     k += 3;
   }
@@ -261,22 +257,22 @@ int BodyNparticle::write_data_body(FILE *fp, double *buf)
 
   // atomID ninteger ndouble
 
-  fmt::print(fp,"{} {} {}\n",ubuf(buf[m]).i,ubuf(buf[m+1]).i,ubuf(buf[m+2]).i);
+  utils::print(fp,"{} {} {}\n",ubuf(buf[m]).i,ubuf(buf[m+1]).i,ubuf(buf[m+2]).i);
   m += 3;
 
   const int nsub = (int) ubuf(buf[m++]).i;
-  fmt::print(fp,"{}\n",nsub);
+  utils::print(fp,"{}\n",nsub);
 
   // inertia
 
-  fmt::print(fp,"{} {} {} {} {} {}\n",
+  utils::print(fp,"{} {} {} {} {} {}\n",
              buf[m+0],buf[m+1],buf[m+2],buf[m+3],buf[m+4],buf[m+5]);
   m += 6;
 
   // nsub vertices
 
   for (int i = 0; i < nsub; i++) {
-    fmt::print(fp,"{} {} {}\n",buf[m],buf[m+1],buf[m+2]);
+    utils::print(fp,"{} {} {}\n",buf[m],buf[m+1],buf[m+2]);
     m += 3;
   }
 
@@ -289,16 +285,13 @@ int BodyNparticle::write_data_body(FILE *fp, double *buf)
    called by Molecule class which needs single body size
 ------------------------------------------------------------------------- */
 
-double BodyNparticle::radius_body(int /*ninteger*/, int ndouble,
-                                  int *ifile, double *dfile)
+double BodyNparticle::radius_body(int /*ninteger*/, int ndouble, int *ifile, double *dfile)
 {
   int nsub = ifile[0];
   if (nsub < 1)
-    error->one(FLERR,"Incorrect integer value in "
-               "Bodies section of data file");
+    error->one(FLERR,"Incorrect integer value in Bodies section of data file");
   if (ndouble != 6 + 3*nsub)
-    error->one(FLERR,"Incorrect # of floating-point values in "
-               "Bodies section of data file");
+    error->one(FLERR,"Incorrect # of floating-point values in Bodies section of data file");
 
   // sub-particle coords are relative to body center at (0,0,0)
   // offset = 6 for sub-particle coords

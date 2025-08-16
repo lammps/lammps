@@ -281,7 +281,7 @@ struct test_random_scalar {
       double covariance_eps =
           result.covariance / num_draws / 2 / variance_expect;
 #if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
-      if (!std::is_same<Scalar, Kokkos::Experimental::bhalf_t>::value) {
+      if (!std::is_same_v<Scalar, Kokkos::Experimental::bhalf_t>) {
 #endif
         EXPECT_LT(std::abs(mean_eps), tolerance);
         EXPECT_LT(std::abs(variance_eps), 1.5 * tolerance);
@@ -312,7 +312,7 @@ struct test_random_scalar {
           (result.covariance / HIST_DIM1D - covariance_expect) / mean_expect;
 
 #if defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
-      if (std::is_same<Scalar, Kokkos::Experimental::half_t>::value) {
+      if (std::is_same_v<Scalar, Kokkos::Experimental::half_t>) {
         mean_eps_expect       = 0.0003;
         variance_eps_expect   = 1.0;
         covariance_eps_expect = 5.0e4;
@@ -320,7 +320,7 @@ struct test_random_scalar {
 #endif
 
 #if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
-      if (!std::is_same<Scalar, Kokkos::Experimental::bhalf_t>::value) {
+      if (!std::is_same_v<Scalar, Kokkos::Experimental::bhalf_t>) {
 #endif
         EXPECT_LT(std::abs(mean_eps), mean_eps_expect);
         EXPECT_LT(std::abs(variance_eps), variance_eps_expect);
@@ -358,13 +358,13 @@ struct test_random_scalar {
           (result.covariance / HIST_DIM1D - covariance_expect) / mean_expect;
 
 #if defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
-      if (std::is_same<Scalar, Kokkos::Experimental::half_t>::value) {
+      if (std::is_same_v<Scalar, Kokkos::Experimental::half_t>) {
         variance_factor = 7;
       }
 #endif
 
 #if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
-      if (!std::is_same<Scalar, Kokkos::Experimental::bhalf_t>::value) {
+      if (!std::is_same_v<Scalar, Kokkos::Experimental::bhalf_t>) {
 #endif
         EXPECT_LT(std::abs(mean_eps), tolerance);
         EXPECT_LT(std::abs(variance_eps), variance_factor);
@@ -542,6 +542,11 @@ void test_duplicate_stream() {
 }  // namespace AlgoRandomImpl
 
 TEST(TEST_CATEGORY, Random_XorShift64) {
+  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
+#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
+  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
+#endif
+
   using ExecutionSpace = TEST_EXECSPACE;
 
 #if defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_CUDA) || \
@@ -562,6 +567,10 @@ TEST(TEST_CATEGORY, Random_XorShift64) {
 
 TEST(TEST_CATEGORY, Random_XorShift1024_0) {
   using ExecutionSpace = TEST_EXECSPACE;
+  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
+#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
+  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
+#endif
 
 #if defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_CUDA) || \
     defined(KOKKOS_ENABLE_HIP)
@@ -589,7 +598,7 @@ TEST(TEST_CATEGORY, Multi_streams) {
 #endif
 
 #if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
-  if constexpr (std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>) {
+  if constexpr (std::is_same_v<ExecutionSpace, Kokkos::SYCL>) {
     GTEST_SKIP() << "Failing on NVIDIA GPUs";  // FIXME_SYCL
   }
 #endif

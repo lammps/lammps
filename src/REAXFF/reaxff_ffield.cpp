@@ -57,9 +57,9 @@ namespace ReaxFF {
                         control_params *control, MPI_Comm world)
   {
     char ****tor_flag;
-    auto error = control->error_ptr;
-    auto lmp = control->lmp_ptr;
-    auto memory = control->lmp_ptr->memory;
+    auto *error = control->error_ptr;
+    auto *lmp = control->lmp_ptr;
+    auto *memory = control->lmp_ptr->memory;
 
     // read and parse the force field only on rank 0
 
@@ -84,7 +84,7 @@ namespace ReaxFF {
 
         // check if header comment line is present
 
-        auto line = reader.next_line();
+        auto *line = reader.next_line();
         if (strmatch(line, "^\\s*[0-9]+\\s+!.*general parameters.*"))
           THROW_ERROR("First line of ReaxFF potential file must be a comment or empty");
         ++lineno;
@@ -234,6 +234,12 @@ namespace ReaxFF {
           if (lgflag) {
             values = reader.next_values(0);
             ++lineno;
+
+            // if line does not start with a floating point number, i.e. is the start
+            // of the data for the next element, the file does not support lgflag != 0
+            if (!values.matches("^\\s*\\f+\\s*"))
+              THROW_ERROR("ReaxFF potential file is not compatible with 'lgvdw yes'");
+
             CHECK_COLUMNS(2);
             sbp[i].lgcij    = values.next_double();
             sbp[i].lgre     = values.next_double();
@@ -550,7 +556,7 @@ namespace ReaxFF {
             for (k = 0; k < ntypes; ++k)
               hbp[i][j][k].r0_hb = -1.0;
 
-        auto thisline = reader.next_line();
+        auto *thisline = reader.next_line();
         if (!thisline) throw EOFException("ReaxFF parameter file has no hydrogen bond parameters");
 
         values = ValueTokenizer(thisline);

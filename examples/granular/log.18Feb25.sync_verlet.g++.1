@@ -1,0 +1,186 @@
+LAMMPS (19 Nov 2024 - Development - patch_5May2020-20901-g8641486249-modified)
+# Example problem demonstrating the use of synchronized_verlet
+# Refer https://doi.org/10.1016/j.cpc.2025.109524 for further details
+
+units	        si
+atom_style	sphere
+newton off
+
+boundary   	p p f
+read_data       3ps.dat
+Reading data file ...
+  orthogonal box = (-0.03 -0.02 -0.02) to (0.03 0.02 0.02)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  3 atoms
+  reading velocities ...
+  3 velocities
+  read_data CPU = 0.003 seconds
+
+group           ps type 1
+2 atoms in group ps
+group           fine type 2
+1 atoms in group fine
+
+pair_style granular
+pair_coeff * * hooke 1e4 0.5 tangential linear_history 8235 0 0.5 damping coeff_restitution synchronized_verlet
+# pair_coeff * * hertz/material 5e8 0.5 0.3 tangential mindlin  NULL 0.0 0.5 damping coeff_restitution #synchronized_verlet
+
+timestep        1e-6
+fix             frz ps freeze
+fix             g fine gravity 9.81 vector 0 0 -1
+fix             1 fine nve/sphere
+fix             2 all wall/gran granular hooke 1e4 0.5 tangential linear_history 8235 0 0.5 damping coeff_restitution zplane $(zlo) $(zhi)
+fix             2 all wall/gran granular hooke 1e4 0.5 tangential linear_history 8235 0 0.5 damping coeff_restitution zplane -0.020000000000000000416 $(zhi)
+fix             2 all wall/gran granular hooke 1e4 0.5 tangential linear_history 8235 0 0.5 damping coeff_restitution zplane -0.020000000000000000416 0.020000000000000000416
+
+dump            1 all custom 3000 op.dump id x y z vx vy vz type diameter
+
+comm_modify     vel yes
+
+thermo          3000
+thermo_style    custom step ke
+run_style       verlet
+run             300000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 0.011
+  ghost atom cutoff = 0.011
+  binsize = 0.0055, bins = 11 8 8
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair granular, perpetual
+      attributes: half, newton off, size, history
+      pair build: half/size/bin/atomonly/newtoff
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 10.34 | 10.34 | 10.34 Mbytes
+   Step         KinEng    
+         0   0            
+      3000   7.7090573e-16
+      6000   3.11122e-15  
+      9000   7.1189829e-15
+     12000   1.2962539e-14
+     15000   2.0887458e-14
+     18000   3.1226589e-14
+     21000   4.4413694e-14
+     24000   6.1001238e-14
+     27000   8.1683111e-14
+     30000   1.0732325e-13
+     33000   1.3899142e-13
+     36000   1.7800759e-13
+     39000   2.2599689e-13
+     42000   2.849574e-13 
+     45000   3.5734355e-13
+     48000   4.4616861e-13
+     51000   5.5513052e-13
+     54000   6.8876606e-13
+     57000   8.5263971e-13
+     60000   1.0535747e-12
+     63000   1.2999356e-12
+     66000   1.6019734e-12
+     69000   1.9722472e-12
+     72000   2.4261384e-12
+     75000   2.9824767e-12
+     78000   3.6643038e-12
+     81000   4.4997992e-12
+     84000   5.5234053e-12
+     87000   6.7771879e-12
+     90000   8.3124767e-12
+     93000   1.0191838e-11
+     96000   1.2491433e-11
+     99000   1.5303816e-11
+    102000   1.8741238e-11
+    105000   2.2939491e-11
+    108000   2.8062329e-11
+    111000   3.4306457e-11
+    114000   4.1907005e-11
+    117000   5.114332e-11 
+    120000   6.2344723e-11
+    123000   7.5895667e-11
+    126000   9.2239362e-11
+    129000   1.118785e-10 
+    132000   1.3537107e-10
+    135000   1.6331855e-10
+    138000   1.96343e-10  
+    141000   2.3504868e-10
+    144000   2.799638e-10 
+    147000   4.4767299e-10
+    150000   8.5696526e-10
+    153000   1.4079769e-09
+    156000   2.1007079e-09
+    159000   2.9351582e-09
+    162000   3.9113279e-09
+    165000   5.029217e-09 
+    168000   6.2888254e-09
+    171000   7.6901531e-09
+    174000   9.2332002e-09
+    177000   1.0917967e-08
+    180000   1.2744453e-08
+    183000   1.4712658e-08
+    186000   1.6822582e-08
+    189000   1.9074226e-08
+    192000   2.1467589e-08
+    195000   2.4002672e-08
+    198000   2.6679474e-08
+    201000   2.9497995e-08
+    204000   3.2458236e-08
+    207000   6.543991e-09 
+    210000   5.3049419e-09
+    213000   4.2076122e-09
+    216000   3.2520018e-09
+    219000   2.4381108e-09
+    222000   1.7659392e-09
+    225000   1.2354868e-09
+    228000   8.4675389e-10
+    231000   5.997403e-10 
+    234000   4.9444606e-10
+    237000   5.3087117e-10
+    240000   7.0901564e-10
+    243000   1.0288795e-09
+    246000   1.4904626e-09
+    249000   2.0937652e-09
+    252000   2.8387871e-09
+    255000   3.7255283e-09
+    258000   4.7539889e-09
+    261000   5.9241689e-09
+    264000   7.2360682e-09
+    267000   1.6704365e-09
+    270000   1.161387e-09 
+    273000   7.9405678e-10
+    276000   5.6844595e-10
+    279000   4.8455448e-10
+    282000   5.4238236e-10
+    285000   7.419296e-10 
+    288000   1.0831962e-09
+    291000   1.5661821e-09
+    294000   8.41555e-10  
+    297000   5.7599278e-10
+    300000   4.5214992e-10
+Loop time of 0.193539 on 1 procs for 300000 steps with 3 atoms
+
+98.8% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.064036   | 0.064036   | 0.064036   |   0.0 | 33.09
+Neigh   | 0.00015725 | 0.00015725 | 0.00015725 |   0.0 |  0.08
+Comm    | 0.027944   | 0.027944   | 0.027944   |   0.0 | 14.44
+Output  | 0.002992   | 0.002992   | 0.002992   |   0.0 |  1.55
+Modify  | 0.059704   | 0.059704   | 0.059704   |   0.0 | 30.85
+Other   |            | 0.03871    |            |       | 20.00
+
+Nlocal:              3 ave           3 max           3 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              1 ave           1 max           1 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              1 ave           1 max           1 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1
+Ave neighs/atom = 0.33333333
+Neighbor list builds = 70
+Dangerous builds = 0
+Total wall time: 0:00:00

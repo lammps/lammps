@@ -26,7 +26,7 @@ class BinaryDistribution(Distribution):
         return True
 
 if version_info.major >= 3:
-    pkgs = ['lammps', 'lammps.mliap']
+    pkgs = ['lammps', 'lammps.mliap', 'lammps.ipython']
 else:
     pkgs = ['lammps']
 
@@ -44,6 +44,7 @@ else:
 setup(
     name = "lammps",
     version = get_lammps_version(),
+    license = "GPL-2.0-only",
     author = "The LAMMPS Developers",
     author_email = "developers@lammps.org",
     url = "https://www.lammps.org",
@@ -57,11 +58,10 @@ setup(
         "Programming Language :: Python :: 3",
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
-        "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
         "Operating System :: OS Independent",
     ],
-    license = "GPL",
     packages = pkgs,
     package_data = pkgdata,
     distclass = bdist,
+    python_requires = '>=3.6',
 )

@@ -22,6 +22,7 @@
 #include "neighbor.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using MathConst::DEG2RAD;
@@ -245,7 +246,7 @@ void DihedralCosineSquaredRestricted::allocate()
 
 void DihedralCosineSquaredRestricted::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR, "Incorrect args for dihedral coefficients");
+  if (narg != 3) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -262,7 +263,7 @@ void DihedralCosineSquaredRestricted::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -392,4 +393,16 @@ void DihedralCosineSquaredRestricted::born_matrix(int nd, int i1, int i2, int i3
   double denominator = sq_sin * sq_sin * sq_sin;
 
   du2 = 2 * k[type] * numerator / denominator;
+}
+
+/* ----------------------------------------------------------------------
+    return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *DihedralCosineSquaredRestricted::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "phi0") == 0) return (void *) phi0;
+  return nullptr;
 }

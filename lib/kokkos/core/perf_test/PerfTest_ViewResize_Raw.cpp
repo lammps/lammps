@@ -18,7 +18,6 @@
 
 namespace Test {
 
-#if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)
 BENCHMARK(ViewResize_NoInit_Raw<Kokkos::LayoutLeft>)
     ->ArgName("N")
     ->Arg(N)
@@ -30,6 +29,5 @@ BENCHMARK(ViewResize_NoInit_Raw<Kokkos::LayoutRight>)
     ->Arg(N)
     ->UseManualTime()
     ->Iterations(R);
-#endif
 
 }  // namespace Test

@@ -22,6 +22,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -373,7 +374,7 @@ void PairE3B::allocateE3B()
 void PairE3B::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR, "Illegal pair_style command");
-  typeO = utils::inumeric(FLERR, arg[0], false, lmp);
+  typeO_str = arg[0];
 }
 
 /* ----------------------------------------------------------------------
@@ -386,6 +387,9 @@ void PairE3B::coeff(int narg, char **arg)
 
   //1=* 2=* 3/4=1st keyword/value
   if (narg < 4) error->all(FLERR, "There must be at least one keyword given to pair_coeff");
+
+  if (typeO_str.size() > 0)
+    typeO = utils::expand_type_int(FLERR, typeO_str, Atom::ATOM, lmp, true);
 
   // clear setflag since coeff() called once with I,J = * *
   int n = atom->ntypes;
@@ -598,7 +602,9 @@ void PairE3B::presetParam(const int flag, bool &repeatFlag, double &bondL)
 //pair.cpp::init uses this to set cutsq array, used for neighboring, etc
 double PairE3B::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   return cutmax;
 }

@@ -10,7 +10,7 @@ Syntax
 
    atom_style style args
 
-* style = *amoeba* or *angle* or *atomic* or *body* or *bond* or *charge* or *dielectric* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *oxdna* or *peri* or *smd* or *sph* or *sphere* or *bpm/sphere* or *spin* or *tdpd* or *tri* or *template* or *wavepacket* or *hybrid*
+* style = *amoeba* or *angle* or *apip* or *atomic* or *body* or *bond* or *charge* or *dielectric* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *oxdna* or *peri* or *smd* or *sph* or *sphere* or *bpm/sphere* or *spin* or *tdpd* or *tri* or *template* or *wavepacket* or *hybrid*
 
   .. parsed-literal::
 
@@ -103,7 +103,7 @@ the Additional Information section below.
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 12 28 18 32
 
    * - Atom style
      - Attributes
@@ -117,6 +117,10 @@ the Additional Information section below.
      - *bond* + "angle data"
      - :ref:`MOLECULE <PKG-MOLECULE>`
      - bead-spring polymers with stiffness
+   * - *apip*
+     - *atomic* + apip_lambda, apip_lambda_required, apip_lambda_input, apip_lambda_const, apip_lambda_input_ta, apip_e_fast, apip_e_precise, apip_f_const_lambda, apip_f_dyn_lambda
+     - :ref:`APIP <PKG-APIP>`
+     - adaptive-precision interatomic potentials(APIP), see :doc:`APIP howto <Howto_apip>`
    * - *atomic*
      - tag, type, x, v, f, image, mask
      -
@@ -419,7 +423,7 @@ showing the use of the *template* atom style versus *molecular*.
    <molecule>` that contains multiple molecules, you should ensure the
    atom types, bond types, angle_types, etc in all the molecules are
    consistent.  E.g. if one molecule represents H2O and another CO2,
-   then you probably do not want each molecule file to define 2 atom
+   then you probably do not want each molecule file to define two atom
    types and a single bond type, because they will conflict with each
    other when a mixture system of H2O and CO2 molecules is defined,
    e.g. by the :doc:`read_data <read_data>` command.  Rather the H2O

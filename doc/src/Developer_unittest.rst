@@ -44,7 +44,7 @@ available:
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 32 18 50
    :align: left
 
    * - File name:
@@ -227,12 +227,12 @@ Tests for the C-style library interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Tests for validating the LAMMPS C-style library interface are in the
-``unittest/c-library`` folder.  They are implemented in either way used
-for utility functions and for LAMMPS commands, but use the functions
-implemented in the ``src/library.cpp`` file as much as possible.  There
-may be some overlap with other tests, but only in as much as is required
-to test the C-style library API.  The tests are distributed over
-multiple test programs which tries to match the grouping of the
+``unittest/c-library`` folder.  They text either utility functions or
+LAMMPS commands, but use the functions implemented in
+``src/library.cpp`` as much as possible.  There may be some overlap with
+other tests as far as the LAMMPS functionality is concerned, but the
+focus is on testing the C-style library API.  The tests are distributed
+over multiple test programs which try to match the grouping of the
 functions in the source code and :ref:`in the manual <lammps_c_api>`.
 
 This group of tests also includes tests invoking LAMMPS in parallel
@@ -272,29 +272,30 @@ Tests for the Fortran interface
 
 Tests for using the Fortran module are in the ``unittest/fortran``
 folder.  Since they are also using the GoogleTest library, they require
-to also implement test wrappers in C++ that will call fortran functions
-which provide a C function interface through ISO_C_BINDINGS that will in
-turn call the functions in the LAMMPS Fortran module.
+test wrappers written in C++ that will call fortran functions with a C
+function interface through ISO_C_BINDINGS which will in turn call the
+functions in the LAMMPS Fortran module.
 
 Tests for the C++-style library interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The tests in the ``unittest/cplusplus`` folder are somewhat similar to
 the tests for the C-style library interface, but do not need to test the
-several convenience and utility functions that are only available through
-the C-style interface.  Instead it can focus on the more generic features
-that are used internally.  This part of the unit tests is currently still
-mostly in the planning stage.
+convenience and utility functions that are only available through the
+C-style library interface.  Instead they focus on the more generic
+features that are used in LAMMPS internally.  This part of the unit
+tests is currently still mostly in the planning stage.
 
 Tests for reading and writing file formats
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``unittest/formats`` folder contains test programs for reading and
-writing files like data files, restart files, potential files or dump files.
-This covers simple things like the file i/o convenience functions in the
-``utils::`` namespace to complex tests of atom styles where creating and
-deleting of atoms with different properties is tested in different ways
-and through script commands or reading and writing of data or restart files.
+writing files like data files, restart files, potential files or dump
+files.  This covers simple things like the file i/o convenience
+functions in the ``utils::`` namespace to complex tests of atom styles
+where creating and deleting of atoms with different properties is tested
+in different ways and through script commands or reading and writing of
+data or restart files.
 
 Tests for styles computing or modifying forces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -411,7 +412,7 @@ With this scheme a large fraction of the code of any tested pair style
 will be executed and consistent results are required for different
 settings and between different accelerated pair style variants and the
 base class, as well as for computing individual pairs through the
-``Pair::single()`` where supported.
+``Pair::single()`` method where supported.
 
 The ``test_pair_style`` tester is used with 4 categories of test inputs:
 
@@ -476,7 +477,7 @@ the tabulated coulomb, to test both code paths.  The reference results in the YA
 files then should be compared manually, if they agree well enough within the limits
 of those two approximations.
 
-The ``test_pair_style`` and equivalent programs have special command line options
+The ``test_pair_style`` and equivalent programs have special command-line options
 to update the YAML files. Running a command like
 
 .. code-block:: bash
@@ -531,19 +532,20 @@ Python module.
 Troubleshooting failed unit tests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The are by default no unit tests for newly added features (e.g. pair, fix,
-or compute styles) unless your pull request also includes tests for the
-added features.  If you are modifying some features, you may see failures
-for existing tests, if your modifications have some unexpected side effects
-or your changes render the existing text invalid.  If you are adding an
-accelerated version of an existing style, then only tests for INTEL,
-KOKKOS (with OpenMP only), OPENMP, and OPT will be run automatically.
-Tests for the GPU package are time consuming and thus are only run
-*after* a merge, or when a special label, ``gpu_unit_tests`` is added
-to the pull request.  After the test has started, it is often best to
-remove the label since every PR activity will re-trigger the test (that
-is a limitation of triggering a test with a label).  Support for unit
-tests with using KOKKOS with GPU acceleration is currently not supported.
+There are by default no unit tests for newly added features (e.g. pair,
+fix, or compute styles) unless your pull request also includes tests for
+these added features.  If you are modifying some existing LAMMPS
+features, you may see failures for existing tests, if your modifications
+have some unexpected side effects or your changes render the existing
+test invalid.  If you are adding an accelerated version of an existing
+style, then only tests for INTEL, KOKKOS (with OpenMP only), OPENMP, and
+OPT will be run automatically.  Tests for the GPU package are time
+consuming and thus are only run *after* a merge, or when a special
+label, ``gpu_unit_tests`` is added to the pull request.  After the test
+has started, it is often best to remove the label since every PR
+activity will re-trigger the test (that is a limitation of triggering a
+test with a label).  Support for unit tests using KOKKOS with GPU
+acceleration is currently not supported.
 
 When you see a failed build on GitHub, click on ``Details`` to be taken
 to the corresponding LAMMPS Jenkins CI web page.  Click on the "Exit"
@@ -588,12 +590,11 @@ While the epsilon (relative precision) for a single, `IEEE 754 compliant
 <https://en.wikipedia.org/wiki/IEEE_754>`_, double precision floating
 point operation is at about 2.2e-16, the achievable precision for the
 tests is lower due to most numbers being sums over intermediate results
-and the non-associativity of floating point math leading to larger
-errors.  In some cases specific properties of the tested style.  As a
-rule of thumb, the test epsilon can often be in the range 5.0e-14 to
-1.0e-13.  But for "noisy" force kernels, e.g. those a larger amount of
-arithmetic operations involving `exp()`, `log()` or `sin()` functions,
-and also due to the effect of compiler optimization or differences
+for which the non-associativity of floating point math leads to larger
+errors.  As a rule of thumb, the test epsilon can often be in the range
+5.0e-14 to 1.0e-13.  But for "noisy" force kernels, e.g. those a larger
+amount of arithmetic operations involving `exp()`, `log()` or `sin()`
+functions, and also due to the effect of compiler optimization or differences
 between compilers or platforms, epsilon may need to be further relaxed,
 sometimes epsilon can be relaxed to 1.0e-12. If interpolation or lookup
 tables are used, epsilon may need to be set to 1.0e-10 or even higher.
@@ -603,14 +604,14 @@ of floating point operations or that some or most intermediate operations
 may be done using approximations or with single precision floating point
 math.
 
-To rerun the failed unit test individually, change to the ``build`` directory
+To rerun a failed unit test individually, change to the ``build`` directory
 and run the test with verbose output. For example,
 
 .. code-block:: bash
 
     env TEST_ARGS=-v ctest -R ^MolPairStyle:lj_cut_coul_long -V
 
-``ctest`` with the ``-V`` flag also shows the exact command line
+``ctest`` with the ``-V`` flag also shows the exact command
 of the test. One can then use ``gdb --args`` to further debug and
 catch exceptions with the test command, for example,
 

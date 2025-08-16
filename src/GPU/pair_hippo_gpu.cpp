@@ -24,17 +24,16 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_store_atom.h"
-#include "force.h"
 #include "gpu_extra.h"
 #include "info.h"
 #include "math_const.h"
-#include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
+
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -856,7 +855,7 @@ void PairHippoGPU::udirect2b(double **field, double **fieldp)
 
   int nlocal = atom->nlocal;
   if (acc_float) {
-    auto field_ptr = (float *)fieldp_pinned;
+    auto *field_ptr = (float *)fieldp_pinned;
 
     for (int i = 0; i < nlocal; i++) {
       int idx = 3*i;
@@ -875,7 +874,7 @@ void PairHippoGPU::udirect2b(double **field, double **fieldp)
 
   } else {
 
-    auto field_ptr = (double *)fieldp_pinned;
+    auto *field_ptr = (double *)fieldp_pinned;
     for (int i = 0; i < nlocal; i++) {
       int idx = 3*i;
       field[i][0] += field_ptr[idx];
@@ -1167,7 +1166,7 @@ void PairHippoGPU::umutual1(double **field, double **fieldp)
 
   // gridpre = my portion of 4d grid in brick decomp w/ ghost values
 
-  FFT_SCALAR ****gridpre = (FFT_SCALAR ****) ic_kspace->zero();
+  auto ****gridpre = (FFT_SCALAR ****) ic_kspace->zero();
 
   // map 2 values to grid
 
@@ -1213,7 +1212,7 @@ void PairHippoGPU::umutual1(double **field, double **fieldp)
   // post-convolution operations including backward FFT
   // gridppost = my portion of 4d grid in brick decomp w/ ghost values
 
-  FFT_SCALAR ****gridpost = (FFT_SCALAR ****) ic_kspace->post_convolution();
+  auto ****gridpost = (FFT_SCALAR ****) ic_kspace->post_convolution();
 
   // get potential
 
@@ -1290,7 +1289,7 @@ void PairHippoGPU::fphi_uind(FFT_SCALAR ****grid, double **fdip_phi1,
 
   int nlocal = atom->nlocal;
   if (acc_float) {
-    auto _fdip_phi1_ptr = (float *)fdip_phi1_pinned;
+    auto *_fdip_phi1_ptr = (float *)fdip_phi1_pinned;
     for (int i = 0; i < nlocal; i++) {
       int n = i;
       for (int m = 0; m < 10; m++) {
@@ -1299,7 +1298,7 @@ void PairHippoGPU::fphi_uind(FFT_SCALAR ****grid, double **fdip_phi1,
       }
     }
 
-    auto _fdip_phi2_ptr = (float *)fdip_phi2_pinned;
+    auto *_fdip_phi2_ptr = (float *)fdip_phi2_pinned;
     for (int i = 0; i < nlocal; i++) {
       int n = i;
       for (int m = 0; m < 10; m++) {
@@ -1308,7 +1307,7 @@ void PairHippoGPU::fphi_uind(FFT_SCALAR ****grid, double **fdip_phi1,
       }
     }
 
-    auto _fdip_sum_phi_ptr = (float *)fdip_sum_phi_pinned;
+    auto *_fdip_sum_phi_ptr = (float *)fdip_sum_phi_pinned;
     for (int i = 0; i < nlocal; i++) {
       int n = i;
       for (int m = 0; m < 20; m++) {
@@ -1319,7 +1318,7 @@ void PairHippoGPU::fphi_uind(FFT_SCALAR ****grid, double **fdip_phi1,
 
   } else {
 
-    auto _fdip_phi1_ptr = (double *)fdip_phi1_pinned;
+    auto *_fdip_phi1_ptr = (double *)fdip_phi1_pinned;
     for (int i = 0; i < nlocal; i++) {
       int n = i;
       for (int m = 0; m < 10; m++) {
@@ -1328,7 +1327,7 @@ void PairHippoGPU::fphi_uind(FFT_SCALAR ****grid, double **fdip_phi1,
       }
     }
 
-    auto _fdip_phi2_ptr = (double *)fdip_phi2_pinned;
+    auto *_fdip_phi2_ptr = (double *)fdip_phi2_pinned;
     for (int i = 0; i < nlocal; i++) {
       int n = i;
       for (int m = 0; m < 10; m++) {
@@ -1337,7 +1336,7 @@ void PairHippoGPU::fphi_uind(FFT_SCALAR ****grid, double **fdip_phi1,
       }
     }
 
-    auto _fdip_sum_phi_ptr = (double *)fdip_sum_phi_pinned;
+    auto *_fdip_sum_phi_ptr = (double *)fdip_sum_phi_pinned;
     for (int i = 0; i < nlocal; i++) {
       int n = i;
       for (int m = 0; m < 20; m++) {

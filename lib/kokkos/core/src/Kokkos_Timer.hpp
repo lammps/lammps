@@ -48,7 +48,7 @@ class Timer {
 
   inline Timer() { reset(); }
 
-  Timer(const Timer&) = delete;
+  Timer(const Timer&)            = delete;
   Timer& operator=(const Timer&) = delete;
 
   inline double seconds() const {

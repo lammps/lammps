@@ -76,7 +76,6 @@ void PairLJCutCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   ev_init(eflag,vflag,0);
 
-
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
@@ -125,11 +124,11 @@ void PairLJCutCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     ev = pair_compute<PairLJCutCoulLongKokkos<DeviceType>,CoulLongTable<0> >
       (this,(NeighListKokkos<DeviceType>*)list);
 
-
   if (eflag) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;
   }
+
   if (vflag_global) {
     virial[0] += ev.v[0];
     virial[1] += ev.v[1];
@@ -186,7 +185,7 @@ compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
     union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
     const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
-    const F_FLOAT fraction = (rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+    const F_FLOAT fraction = ((F_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
     const F_FLOAT table = d_ftable[itable] + fraction*d_dftable[itable];
     F_FLOAT forcecoul = qtmp*q[j] * table;
     if (factor_coul < 1.0) {
@@ -243,7 +242,7 @@ compute_ecoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
     union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
     const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
-    const F_FLOAT fraction = (rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+    const F_FLOAT fraction = ((F_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
     const F_FLOAT table = d_etable[itable] + fraction*d_detable[itable];
     F_FLOAT ecoul = qtmp*q[j] * table;
     if (factor_coul < 1.0) {

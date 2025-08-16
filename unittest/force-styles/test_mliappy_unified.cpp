@@ -13,7 +13,8 @@
 
 #include "library.h"
 
-#include "gmock/gmock.h"
+#include "info.h"
+
 #include "gtest/gtest.h"
 
 const char pickle[] = "python create_pickle here \"\"\"\n"
@@ -113,4 +114,106 @@ TEST(MliapUnified, VersusLJMeltGhost)
     lammps_close(mliap);
 }
 
+TEST(MliapUnified, VersusLJMeltKokkos)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    // test either OpenMP or Serial
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "serial") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
+        GTEST_SKIP();
+    // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
+    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
+        GTEST_SKIP() << "Cannot test KOKKOS/OpenMP with GPU support enabled";
+    }
+
+    const char *lmpargv[] = {"melt", "-log", "none", "-echo", "screen", "-nocite",
+                             "-k",   "on",   "t",    "4",     "-sf",    "kk"};
+    // fall back to serial if openmp is not available
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) lmpargv[9] = "1";
+    int lmpargc = sizeof(lmpargv) / sizeof(const char *);
+
+    void *ljmelt = lammps_open_no_mpi(lmpargc, (char **)lmpargv, nullptr);
+    void *mliap  = lammps_open_no_mpi(lmpargc, (char **)lmpargv, nullptr);
+
+    lammps_commands_string(ljmelt, first);
+    lammps_command(ljmelt, "pair_style lj/cut 2.5");
+    lammps_command(ljmelt, "pair_coeff * * 1.0 1.0");
+    lammps_commands_string(ljmelt, second);
+
+    lammps_command(mliap, pickle);
+    lammps_command(mliap, "python create_pickle invoke");
+
+    lammps_commands_string(mliap, first);
+    lammps_command(mliap, "pair_style mliap unified mliap_unified_lj_Ar.pkl 0");
+    lammps_command(mliap, "pair_coeff * * Ar");
+    lammps_commands_string(mliap, second);
+
+    double lj_pe = lammps_get_thermo(ljmelt, "pe");
+    double ml_pe = lammps_get_thermo(mliap, "pe");
+    EXPECT_NEAR(lj_pe, ml_pe, 1.0e-14);
+    double lj_ke = lammps_get_thermo(ljmelt, "ke");
+    double ml_ke = lammps_get_thermo(mliap, "ke");
+    EXPECT_NEAR(lj_ke, ml_ke, 1.0e-14);
+    double lj_press = lammps_get_thermo(ljmelt, "press");
+    double ml_press = lammps_get_thermo(mliap, "press");
+    EXPECT_NEAR(lj_press, ml_press, 1.0e-14);
+
+    lammps_command(mliap, "shell rm mliap_unified_lj_Ar.pkl");
+    lammps_close(ljmelt);
+    lammps_close(mliap);
+}
+
+TEST(MliapUnified, VersusLJMeltGhostKokkos)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    // test either OpenMP or Serial
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "serial"))
+        GTEST_SKIP();
+    // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
+    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
+        GTEST_SKIP() << "Cannot test KOKKOS/OpenMP with GPU support enabled";
+    }
+
+    const char *lmpargv[] = {"melt", "-log", "none", "-echo", "screen", "-nocite",
+                             "-k",   "on",   "t",    "4",     "-sf",    "kk"};
+    // fall back to serial if openmp is not available
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) lmpargv[9] = "1";
+
+    int lmpargc = sizeof(lmpargv) / sizeof(const char *);
+
+    void *ljmelt = lammps_open_no_mpi(lmpargc, (char **)lmpargv, nullptr);
+    void *mliap  = lammps_open_no_mpi(lmpargc, (char **)lmpargv, nullptr);
+
+    lammps_commands_string(ljmelt, first);
+    lammps_command(ljmelt, "pair_style lj/cut 2.5");
+    lammps_command(ljmelt, "pair_coeff * * 1.0 1.0");
+    lammps_commands_string(ljmelt, second);
+
+    lammps_command(mliap, pickle);
+    lammps_command(mliap, "python create_pickle invoke");
+
+    lammps_commands_string(mliap, first);
+    lammps_command(mliap, "pair_style mliap unified mliap_unified_lj_Ar.pkl 1");
+    lammps_command(mliap, "pair_coeff * * Ar");
+    lammps_commands_string(mliap, second);
+
+    double lj_pe = lammps_get_thermo(ljmelt, "pe");
+    double ml_pe = lammps_get_thermo(mliap, "pe");
+    EXPECT_NEAR(lj_pe, ml_pe, 1.0e-14);
+    double lj_ke = lammps_get_thermo(ljmelt, "ke");
+    double ml_ke = lammps_get_thermo(mliap, "ke");
+    EXPECT_NEAR(lj_ke, ml_ke, 1.0e-14);
+    double lj_press = lammps_get_thermo(ljmelt, "press");
+    double ml_press = lammps_get_thermo(mliap, "press");
+    EXPECT_NEAR(lj_press, ml_press, 1.0e-14);
+
+    lammps_command(mliap, "shell rm mliap_unified_lj_Ar.pkl");
+    lammps_close(ljmelt);
+    lammps_close(mliap);
+}
 } // namespace LAMMPS_NS

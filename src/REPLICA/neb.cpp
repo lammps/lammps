@@ -32,6 +32,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -83,7 +84,7 @@ NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in, int n2step
     delx = buf_final[ii] - buf_init[ii];
     dely = buf_final[ii + 1] - buf_init[ii + 1];
     delz = buf_final[ii + 2] - buf_init[ii + 2];
-    domain->minimum_image(delx, dely, delz);
+    domain->minimum_image(FLERR, delx, dely, delz);
     x[i][0] = buf_init[ii] + fraction * delx;
     x[i][1] = buf_init[ii + 1] + fraction * dely;
     x[i][2] = buf_init[ii + 2] + fraction * delz;
@@ -95,7 +96,7 @@ NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in, int n2step
 
 NEB::~NEB()
 {
-  MPI_Comm_free(&roots);
+  if (roots != MPI_COMM_NULL) MPI_Comm_free(&roots);
   memory->destroy(all);
   delete[] rdist;
   if (fp) {
@@ -113,7 +114,7 @@ NEB::~NEB()
 void NEB::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->universe_all(FLERR, "NEB command before simulation box is defined");
+    error->universe_all(FLERR, "NEB command before simulation box is defined" + utils::errorurl(33));
 
   if (narg < 6) error->universe_all(FLERR, "Illegal NEB command: missing argument(s)");
 
@@ -241,19 +242,19 @@ void NEB::run()
 
   if (me_universe == 0) {
     if (uscreen) {
-      fmt::print(uscreen, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
+      utils::print(uscreen, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0", "GradV1", "GradVc", "EBF", "EBR",
                  "RDT");
 
       if (print_mode != TERSE) {
         for (int i = 1; i <= nreplica; ++i)
-          fmt::print(uscreen, "{:^14} {:^14} ", "RD" + std::to_string(i), "PE" + std::to_string(i));
+          utils::print(uscreen, "{:^14} {:^14} ", "RD" + std::to_string(i), "PE" + std::to_string(i));
       }
 
       if (print_mode == VERBOSE) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
-          fmt::print(uscreen, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
+          utils::print(uscreen, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
                      "angletangrad" + idx, "anglegrad" + idx, "gradV" + idx, "RepForce" + idx,
                      "MaxAtomForce" + idx);
         }
@@ -262,20 +263,20 @@ void NEB::run()
     }
 
     if (ulogfile) {
-      fmt::print(ulogfile, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
+      utils::print(ulogfile, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0", "GradV1", "GradVc", "EBF", "EBR",
                  "RDT");
 
       if (print_mode != TERSE) {
         for (int i = 1; i <= nreplica; ++i)
-          fmt::print(ulogfile, "{:^14} {:^14} ", "RD" + std::to_string(i),
+          utils::print(ulogfile, "{:^14} {:^14} ", "RD" + std::to_string(i),
                      "PE" + std::to_string(i));
       }
 
       if (print_mode == VERBOSE) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
-          fmt::print(ulogfile, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
+          utils::print(ulogfile, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
                      "angletangrad" + idx, "anglegrad" + idx, "gradV" + idx, "RepForce" + idx,
                      "MaxAtomForce" + idx);
         }
@@ -340,19 +341,19 @@ void NEB::run()
 
   if (me_universe == 0) {
     if (uscreen) {
-      fmt::print(uscreen, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
+      utils::print(uscreen, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0", "GradV1", "GradVc", "EBF", "EBR",
                  "RDT");
 
       if (print_mode != TERSE) {
         for (int i = 1; i <= nreplica; ++i)
-          fmt::print(uscreen, "{:^14} {:^14} ", "RD" + std::to_string(i), "PE" + std::to_string(i));
+          utils::print(uscreen, "{:^14} {:^14} ", "RD" + std::to_string(i), "PE" + std::to_string(i));
       }
 
       if (print_mode == VERBOSE) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
-          fmt::print(uscreen, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
+          utils::print(uscreen, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
                      "angletangrad" + idx, "anglegrad" + idx, "gradV" + idx, "RepForce" + idx,
                      "MaxAtomForce" + idx);
         }
@@ -361,20 +362,20 @@ void NEB::run()
     }
 
     if (ulogfile) {
-      fmt::print(ulogfile, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
+      utils::print(ulogfile, "    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0", "GradV1", "GradVc", "EBF", "EBR",
                  "RDT");
 
       if (print_mode != TERSE) {
         for (int i = 1; i <= nreplica; ++i)
-          fmt::print(ulogfile, "{:^14} {:^14} ", "RD" + std::to_string(i),
+          utils::print(ulogfile, "{:^14} {:^14} ", "RD" + std::to_string(i),
                      "PE" + std::to_string(i));
       }
 
       if (print_mode == VERBOSE) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
-          fmt::print(ulogfile, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
+          utils::print(ulogfile, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ", "pathangle" + idx,
                      "angletangrad" + idx, "anglegrad" + idx, "gradV" + idx, "RepForce" + idx,
                      "MaxAtomForce" + idx);
         }
@@ -473,7 +474,7 @@ void NEB::readfile(char *file, int flag)
     if (nlines < 0) error->universe_all(FLERR, "Incorrectly formatted NEB file");
   }
 
-  auto buffer = new char[CHUNK * MAXLINE];
+  auto *buffer = new char[CHUNK * MAXLINE];
   double fraction = ireplica / (nreplica - 1.0);
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -529,7 +530,7 @@ void NEB::readfile(char *file, int flag)
           dely = values.next_double() - x[m][1];
           delz = values.next_double() - x[m][2];
 
-          domain->minimum_image(delx, dely, delz);
+          domain->minimum_image(FLERR, delx, dely, delz);
 
           if (flag == 0) {
             x[m][0] += fraction * delx;

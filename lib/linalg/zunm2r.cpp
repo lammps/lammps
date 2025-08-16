@@ -11,14 +11,13 @@ int zunm2r_(char *side, char *trans, integer *m, integer *n, integer *k, doublec
     doublecomplex z__1;
     void d_lmp_cnjg(doublecomplex *, doublecomplex *);
     integer i__, i1, i2, i3, ic, jc, mi, ni, nq;
-    doublecomplex aii;
     logical left;
     doublecomplex taui;
     extern logical lsame_(char *, char *, ftnlen, ftnlen);
-    extern int zlarf_(char *, integer *, integer *, doublecomplex *, integer *, doublecomplex *,
-                      doublecomplex *, integer *, doublecomplex *, ftnlen),
-        xerbla_(char *, integer *, ftnlen);
+    extern int xerbla_(char *, integer *, ftnlen);
     logical notran;
+    extern int zlarf1f_(char *, integer *, integer *, doublecomplex *, integer *, doublecomplex *,
+                        doublecomplex *, integer *, doublecomplex *, ftnlen);
     a_dim1 = *lda;
     a_offset = 1 + a_dim1;
     a -= a_offset;
@@ -91,14 +90,8 @@ int zunm2r_(char *side, char *trans, integer *m, integer *n, integer *k, doublec
             d_lmp_cnjg(&z__1, &tau[i__]);
             taui.r = z__1.r, taui.i = z__1.i;
         }
-        i__3 = i__ + i__ * a_dim1;
-        aii.r = a[i__3].r, aii.i = a[i__3].i;
-        i__3 = i__ + i__ * a_dim1;
-        a[i__3].r = 1., a[i__3].i = 0.;
-        zlarf_(side, &mi, &ni, &a[i__ + i__ * a_dim1], &c__1, &taui, &c__[ic + jc * c_dim1], ldc,
-               &work[1], (ftnlen)1);
-        i__3 = i__ + i__ * a_dim1;
-        a[i__3].r = aii.r, a[i__3].i = aii.i;
+        zlarf1f_(side, &mi, &ni, &a[i__ + i__ * a_dim1], &c__1, &taui, &c__[ic + jc * c_dim1], ldc,
+                 &work[1], (ftnlen)1);
     }
     return 0;
 }

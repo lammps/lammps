@@ -1,6 +1,12 @@
 # demo for atom style template simulating a cyclohexane methane mixture
 # part 3: continuing from restart file
 
+# run the first part and write out restart
+include in.template-mix
+write_restart template-mix.restart
+
+# now restart
+clear
 molecule cychex cyclohexane.mol
 read_restart template-mix.restart
 
@@ -9,3 +15,6 @@ thermo 100
 fix 1 all nvt temp 300.0 300.0 1.0
 # dump 1 all custom 100 custom template-mix.lammpstrj id xu yu zu
 run 2000
+
+# clean up
+shell rm template-mix.restart

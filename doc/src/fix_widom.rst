@@ -178,9 +178,9 @@ This fix computes a global vector of length 3, which can be accessed by
 various :doc:`output commands <Howto_output>`.  The vector values are
 the following global cumulative quantities:
 
-* 1 = average excess chemical potential on each timestep
-* 2 = average difference in potential energy on each timestep
-* 3 = volume of the insertion region
+  #. average excess chemical potential on each timestep
+  #. average difference in potential energy on each timestep
+  #. volume of the insertion region
 
 The vector values calculated by this fix are "intensive".
 

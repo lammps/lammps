@@ -26,8 +26,6 @@
 #include "mliap_data.h"
 #include "mliap_unified_couple.h"
 #include "pair_mliap.h"
-#include "python_compat.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -95,17 +93,14 @@ void MLIAPDummyDescriptor::init()
   double cut;
   cutmax = 0.0;
   memory->create(cutsq, nelements, nelements, "mliap/descriptor/dummy:cutsq");
-  memory->create(cutghost, nelements, nelements, "mliap/descriptor/dummy:cutghost");
   for (int ielem = 0; ielem < nelements; ielem++) {
     // rcutfac set from python, is global cutoff for all elements
     cut = 2.0 * radelem[ielem] * rcutfac;
     if (cut > cutmax) cutmax = cut;
     cutsq[ielem][ielem] = cut * cut;
-    cutghost[ielem][ielem] = cut * cut;
     for (int jelem = ielem + 1; jelem < nelements; jelem++) {
       cut = (radelem[ielem] + radelem[jelem]) * rcutfac;
       cutsq[ielem][jelem] = cutsq[jelem][ielem] = cut * cut;
-      cutghost[ielem][jelem] = cutghost[jelem][ielem] = cut * cut;
     }
   }
 }
@@ -114,7 +109,8 @@ void MLIAPDummyDescriptor::set_elements(char **elems, int nelems)
 {
   nelements = nelems;
   elements = new char *[nelems];
-  for (int i = 0; i < nelems; i++) { elements[i] = utils::strdup(elems[i]); }
+  for (int i = 0; i < nelems; i++) elements[i] = utils::strdup(elems[i]);
+  allocated_elements = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -213,8 +209,8 @@ MLIAPBuildUnified_t LAMMPS_NS::build_unified(char *unified_fname, MLIAPData *dat
   }
 
   // Connect dummy model, dummy descriptor, data to Python unified
-  MLIAPDummyModel *model = new MLIAPDummyModel(lmp, coefffilename);
-  MLIAPDummyDescriptor *descriptor = new MLIAPDummyDescriptor(lmp);
+  auto *model = new MLIAPDummyModel(lmp, coefffilename);
+  auto *descriptor = new MLIAPDummyDescriptor(lmp);
 
   PyObject *unified_interface = mliap_unified_connect(unified_fname, model, descriptor);
   if (PyErr_Occurred()) {
@@ -253,8 +249,10 @@ void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij)
     double e = 0.5 * eij[ii];
 
     // must not count any contribution where i is not a local atom
-    data->eatoms[i] += e;
-    e_total += e;
+    if (i < data->nlocal) {
+      data->eatoms[i] += e;
+      e_total += e;
+    }
   }
   data->energy = e_total;
 }

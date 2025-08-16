@@ -49,7 +49,7 @@ protected:
 
 TEST_F(KimCommandsTest, kim)
 {
-    if (!LAMMPS::is_installed_pkg("KIM")) GTEST_SKIP();
+    if (!Info::has_package("KIM")) GTEST_SKIP();
 
     TEST_FAILURE(".*ERROR: Illegal kim command.*", command("kim"););
     TEST_FAILURE(".*ERROR: Unknown kim subcommand.*", command("kim unknown"););
@@ -62,7 +62,7 @@ TEST_F(KimCommandsTest, kim)
 
 TEST_F(KimCommandsTest, kim_init)
 {
-    if (!LAMMPS::is_installed_pkg("KIM")) GTEST_SKIP();
+    if (!Info::has_package("KIM")) GTEST_SKIP();
 
     TEST_FAILURE(".*ERROR: Illegal 'kim init' command.*", command("kim init"););
     TEST_FAILURE(".*ERROR: Illegal 'kim init' command.*",
@@ -90,7 +90,7 @@ TEST_F(KimCommandsTest, kim_init)
 
 TEST_F(KimCommandsTest, kim_interactions)
 {
-    if (!LAMMPS::is_installed_pkg("KIM")) GTEST_SKIP();
+    if (!Info::has_package("KIM")) GTEST_SKIP();
 
     TEST_FAILURE(".*ERROR: Illegal kim interactions command: missing argument.*",
                  command("kim interactions"););
@@ -213,7 +213,7 @@ TEST_F(KimCommandsTest, kim_interactions)
 
 TEST_F(KimCommandsTest, kim_param)
 {
-    if (!LAMMPS::is_installed_pkg("KIM")) GTEST_SKIP();
+    if (!Info::has_package("KIM")) GTEST_SKIP();
 
     TEST_FAILURE(".*ERROR: Illegal 'kim param' command.*", command("kim param"););
     TEST_FAILURE(".*ERROR: Incorrect arguments in 'kim param' command.\n"
@@ -401,8 +401,8 @@ TEST_F(KimCommandsTest, kim_param)
 
 TEST_F(KimCommandsTest, kim_property)
 {
-    if (!LAMMPS::is_installed_pkg("KIM")) GTEST_SKIP();
-    if (!LAMMPS::is_installed_pkg("PYTHON")) GTEST_SKIP();
+    if (!Info::has_package("KIM")) GTEST_SKIP();
+    if (!Info::has_package("PYTHON")) GTEST_SKIP();
 
     if (!lmp->python->has_minimum_version(3, 6)) {
         TEST_FAILURE(".*ERROR: Invalid Python version.\n"
@@ -444,7 +444,7 @@ TEST_F(KimCommandsTest, kim_property)
 
 TEST_F(KimCommandsTest, kim_query)
 {
-    if (!LAMMPS::is_installed_pkg("KIM")) GTEST_SKIP();
+    if (!Info::has_package("KIM")) GTEST_SKIP();
 
     TEST_FAILURE(".*ERROR: Illegal 'kim query' command.*", command("kim query"););
     TEST_FAILURE(".*ERROR: Illegal 'kim query' command.\nThe keyword 'split' "
@@ -636,7 +636,7 @@ TEST_F(KimCommandsTest, kim_query)
             "temperature_units=[K]");
     END_HIDE_OUTPUT();
 
-    ASSERT_THAT(variable->retrieve("alpha"), StrEq("1.654960564704273e-05"));
+    ASSERT_THAT(variable->retrieve("alpha"), StrEq("1.656579473023212e-05"));
 
     BEGIN_HIDE_OUTPUT();
     command("clear");

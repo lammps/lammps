@@ -22,6 +22,10 @@
 namespace Kokkos {
 namespace Impl {
 
+using OpenMPTargetIterateLeft = std::integral_constant<Iterate, Iterate::Left>;
+using OpenMPTargetIterateRight =
+    std::integral_constant<Iterate, Iterate::Right>;
+
 template <typename Rank,
           ::Kokkos::Impl::TeamMDRangeThreadAndVector ThreadAndVector>
 struct ThreadAndVectorNestLevel<Rank, Kokkos::Experimental::OpenMPTarget,
@@ -30,4 +34,5 @@ struct ThreadAndVectorNestLevel<Rank, Kokkos::Experimental::OpenMPTarget,
 
 }  // namespace Impl
 }  // namespace Kokkos
+
 #endif

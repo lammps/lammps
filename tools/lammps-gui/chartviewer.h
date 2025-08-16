@@ -15,13 +15,23 @@
 #define CHARTVIEWER_H
 
 #include <QComboBox>
+#include <QLineEdit>
 #include <QList>
+#include <QRectF>
 #include <QString>
+#include <QTime>
 #include <QWidget>
 
 class QAction;
+class QCheckBox;
+class QCloseEvent;
+class QEvent;
+class QLabel;
 class QMenuBar;
 class QMenu;
+class QSpinBox;
+class RangeSlider;
+
 namespace QtCharts {
 class ChartViewer;
 }
@@ -41,15 +51,23 @@ public:
     void reset_charts();
     void add_chart(const QString &title, int index);
     void add_data(int step, double data, int index);
+    void set_units(const QString &_units);
+    void set_norm(bool norm);
 
 private slots:
     void quit();
-    void reset_zoom();
     void stop_run();
+    void select_smooth(int selection);
+    void update_smooth();
+    void update_tlabel();
+    void update_ylabel();
+    void update_xrange(int low, int high);
+    void update_yrange(int low, int high);
 
     void saveAs();
     void exportDat();
     void exportCsv();
+    void exportYaml();
 
     void change_chart(int index);
 
@@ -58,11 +76,18 @@ protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
+    bool do_raw, do_smooth;
     QMenuBar *menu;
     QMenu *file;
     QComboBox *columns;
-    QAction *saveAsAct, *exportCsvAct, *exportDatAct;
+    QAction *saveAsAct, *exportCsvAct, *exportDatAct, *exportYamlAct;
     QAction *closeAct, *stopAct, *quitAct;
+    QComboBox *smooth;
+    QSpinBox *window, *order;
+    QLineEdit *chartTitle, *chartYlabel;
+    QLabel *units;
+    QCheckBox *norm;
+    RangeSlider *xrange, *yrange;
 
     QString filename;
     QList<QtCharts::ChartViewer *> charts;
@@ -70,10 +95,10 @@ private:
 
 /* -------------------------------------------------------------------- */
 
-#include <QChart>
 #include <QChartView>
 #include <QLineSeries>
 #include <QValueAxis>
+class QChart;
 
 namespace QtCharts {
 class ChartViewer : public QChartView {
@@ -81,22 +106,41 @@ class ChartViewer : public QChartView {
 
 public:
     explicit ChartViewer(const QString &title, int index, QWidget *parent = nullptr);
+    ~ChartViewer() override;
+
+    ChartViewer()                               = delete;
+    ChartViewer(const ChartViewer &)            = delete;
+    ChartViewer(ChartViewer &&)                 = delete;
+    ChartViewer &operator=(const ChartViewer &) = delete;
+    ChartViewer &operator=(ChartViewer &&)      = delete;
 
     void add_data(int step, double data);
+    QRectF get_minmax() const;
+    QList<QAbstractAxis *> get_axes() const { return chart->axes(); }
     void reset_zoom();
+    void smooth_param(bool _do_raw, bool _do_smooth, int _window, int _order);
+    void update_smooth();
 
     int get_index() const { return index; };
     int get_count() const { return series->count(); }
-    const char *get_title() const { return series->name().toLocal8Bit(); }
+    QString get_title() const { return series->name(); }
     double get_step(int index) const { return (index < 0) ? 0.0 : series->at(index).x(); }
     double get_data(int index) const { return (index < 0) ? 0.0 : series->at(index).y(); }
+    void set_tlabel(const QString &tlabel);
+    void set_ylabel(const QString &ylabel);
+    QString get_tlabel() const { return chart->title(); }
+    QString get_xlabel() const { return xaxis->titleText(); }
+    QString get_ylabel() const { return yaxis->titleText(); }
 
 private:
     int last_step, index;
+    int window, order;
     QChart *chart;
-    QLineSeries *series;
+    QLineSeries *series, *smooth;
     QValueAxis *xaxis;
     QValueAxis *yaxis;
+    QTime last_update;
+    bool do_raw, do_smooth;
 };
 } // namespace QtCharts
 #endif

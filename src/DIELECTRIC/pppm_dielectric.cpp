@@ -30,27 +30,21 @@
 #include "memory.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
 static constexpr double SMALL = 0.00001;
-
-enum { REVERSE_RHO };
-enum { FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
-
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
 /* ---------------------------------------------------------------------- */
 
-PPPMDielectric::PPPMDielectric(LAMMPS *_lmp) : PPPM(_lmp)
+PPPMDielectric::PPPMDielectric(LAMMPS *_lmp) : PPPM(_lmp), efield(nullptr)
 {
   group_group_enable = 0;
 
-  efield = nullptr;
-  phi = nullptr;
-  potflag = 0;
   use_qscaled = true;
 
   // no warnings about non-neutral systems from qsum_qsq()
@@ -65,7 +59,6 @@ PPPMDielectric::PPPMDielectric(LAMMPS *_lmp) : PPPM(_lmp)
 PPPMDielectric::~PPPMDielectric()
 {
   memory->destroy(efield);
-  memory->destroy(phi);
 }
 
 /* ----------------------------------------------------------------------
@@ -111,11 +104,9 @@ void PPPMDielectric::compute(int eflag, int vflag)
   if (atom->nmax > nmax) {
     memory->destroy(part2grid);
     memory->destroy(efield);
-    memory->destroy(phi);
     nmax = atom->nmax;
     memory->create(part2grid,nmax,3,"pppm/dielectric:part2grid");
     memory->create(efield,nmax,3,"pppm/dielectric:efield");
-    memory->create(phi,nmax,"pppm/dielectric:phi");
   }
 
   // find grid points for all my particles
@@ -292,7 +283,7 @@ void PPPMDielectric::qsum_qsq(int warning_flag)
   double qsqsume;
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(shared) reduction(+:qsum_local,qsqsum_local)
+#pragma omp parallel for default(shared) reduction(+:qsum_local,qsqsum_local,qsqsume_local)
 #endif
   for (int i = 0; i < nlocal; i++) {
     qsum_local += q[i];
@@ -316,8 +307,8 @@ void PPPMDielectric::qsum_qsq(int warning_flag)
   // so issue warning or error
 
   if (fabs(qsum) > SMALL) {
-    std::string message = fmt::format("System is not charge neutral, net "
-                                      "charge = {:.8}",qsum);
+    std::string message = fmt::format("System is not charge neutral, net charge = {:.8}{}",
+                                      qsum, utils::errorurl(29));
     if (!warn_nonneutral) error->all(FLERR,message);
     if (warn_nonneutral == 1 && comm->me == 0) error->warning(FLERR,message);
     warn_nonneutral = 2;
@@ -388,7 +379,7 @@ void PPPMDielectric::fieldforce_ik()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz,x0,y0,z0;
-  FFT_SCALAR ekx,eky,ekz,u;
+  FFT_SCALAR ekx,eky,ekz;
 
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -412,7 +403,7 @@ void PPPMDielectric::fieldforce_ik()
 
     compute_rho1d(dx,dy,dz);
 
-    u = ekx = eky = ekz = ZEROF;
+    ekx = eky = ekz = ZEROF;
     for (n = nlower; n <= nupper; n++) {
       mz = n+nz;
       z0 = rho1d[2][n];
@@ -422,17 +413,12 @@ void PPPMDielectric::fieldforce_ik()
         for (l = nlower; l <= nupper; l++) {
           mx = l+nx;
           x0 = y0*rho1d[0][l];
-          if (potflag) u += x0*u_brick[mz][my][mx];
           ekx -= x0*vdx_brick[mz][my][mx];
           eky -= x0*vdy_brick[mz][my][mx];
           ekz -= x0*vdz_brick[mz][my][mx];
         }
       }
     }
-
-    // electrostatic potential
-
-    if (potflag) phi[i] = u;
 
     // convert E-field to force
     const double efactor = scale * eps[i];
@@ -455,7 +441,7 @@ void PPPMDielectric::fieldforce_ad()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz;
-  FFT_SCALAR ekx,eky,ekz,u;
+  FFT_SCALAR ekx,eky,ekz;
 
   double s1,s2,s3;
   double sf = 0.0;
@@ -493,14 +479,13 @@ void PPPMDielectric::fieldforce_ad()
     compute_rho1d(dx,dy,dz);
     compute_drho1d(dx,dy,dz);
 
-    u = ekx = eky = ekz = ZEROF;
+    ekx = eky = ekz = ZEROF;
     for (n = nlower; n <= nupper; n++) {
       mz = n+nz;
       for (m = nlower; m <= nupper; m++) {
         my = m+ny;
         for (l = nlower; l <= nupper; l++) {
           mx = l+nx;
-          u += rho1d[0][l]*rho1d[1][m]*rho1d[2][n]*u_brick[mz][my][mx];
           ekx += drho1d[0][l]*rho1d[1][m]*rho1d[2][n]*u_brick[mz][my][mx];
           eky += rho1d[0][l]*drho1d[1][m]*rho1d[2][n]*u_brick[mz][my][mx];
           ekz += rho1d[0][l]*rho1d[1][m]*drho1d[2][n]*u_brick[mz][my][mx];
@@ -510,10 +495,6 @@ void PPPMDielectric::fieldforce_ad()
     ekx *= hx_inv;
     eky *= hy_inv;
     ekz *= hz_inv;
-
-    // electrical potential
-
-    if (potflag) phi[i] = u;
 
     // convert E-field to force and substract self forces
 

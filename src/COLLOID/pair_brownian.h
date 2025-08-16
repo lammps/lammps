@@ -55,7 +55,7 @@ class PairBrownian : public Pair {
   class RanMars *random;
 
   void set_3_orthogonal_vectors(double *, double *, double *);
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

@@ -40,14 +40,17 @@ class DihedralHybrid : public Dihedral {
   void read_restart(FILE *) override;
   double memory_usage() override;
 
- private:
+  int check_itype(int, char *);
+
+ protected:
   int *map;    // which style each dihedral type points to
 
   int *ndihedrallist;     // # of dihedrals in sub-style dihedrallists
   int *maxdihedral;       // max # of dihedrals sub-style lists can store
   int ***dihedrallist;    // dihedrallist for each sub-style
 
-  void allocate();
+  virtual void allocate();
+  virtual void deallocate();
 };
 
 }    // namespace LAMMPS_NS

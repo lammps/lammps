@@ -1,24 +1,24 @@
 // unit tests for public member functions of the Error class
 
 #include "error.h"
-#include "info.h"
-#include "lammps.h"
 #include "output.h"
 #include "thermo.h"
+#include "exceptions.h"
 
 #include "../testing/core.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include <string>
+#include <cstring>
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
 namespace LAMMPS_NS {
 using ::testing::ContainsRegex;
+using ::testing::StrEq;
 
-class Error_class : public LAMMPSTest {
+class ErrorTest : public LAMMPSTest {
 protected:
     Error *error;
     Thermo *thermo;
@@ -32,15 +32,7 @@ protected:
     }
 };
 
-TEST_F(Error_class, message)
-{
-    auto output = CAPTURE_OUTPUT([&] {
-        error->message(FLERR, "one message");
-    });
-    ASSERT_THAT(output, ContainsRegex("one message .*test_error_class.cpp:.*"));
-};
-
-TEST_F(Error_class, warning)
+TEST_F(ErrorTest, warning)
 {
     // standard warning
     auto output = CAPTURE_OUTPUT([&] {
@@ -108,16 +100,91 @@ TEST_F(Error_class, warning)
     ASSERT_THAT(error->get_numwarn(), 2);
 };
 
-TEST_F(Error_class, one)
+TEST_F(ErrorTest, one)
 {
-    TEST_FAILURE("ERROR on proc 0: one error.*test_error_class.cpp:.*",
-                 error->one(FLERR, "one error"););
+    bool caught = false;
+    try {
+        BEGIN_HIDE_OUTPUT();
+        error->one(FLERR, "one error");
+    } catch (LAMMPSAbortException &e) {
+        END_HIDE_OUTPUT();
+        EXPECT_THAT(e.what(), ContainsRegex("ERROR on proc 0: one error.*test_error_class.cpp"));
+        caught = true;
+    } catch (std::exception &e) {
+        END_HIDE_OUTPUT();
+        GTEST_FAIL() << "Incorrect exception\n";
+    }
+    ASSERT_TRUE(caught);
 };
 
-TEST_F(Error_class, all)
+TEST_F(ErrorTest, all)
 {
-    TEST_FAILURE("ERROR: one error.*test_error_class.cpp:.*", error->all(FLERR, "one error"););
+    bool caught = false;
+    try {
+        BEGIN_HIDE_OUTPUT();
+        error->all(FLERR, "one error");
+    } catch (LAMMPSException &e) {
+        END_HIDE_OUTPUT();
+        EXPECT_THAT(e.what(), ContainsRegex("ERROR: one error.*test_error_class.cpp"));
+        caught = true;
+    } catch (std::exception &e) {
+        END_HIDE_OUTPUT();
+        GTEST_FAIL() << "Incorrect exception\n";
+    }
+    ASSERT_TRUE(caught);
 };
+
+TEST_F(ErrorTest, errorpointer)
+{
+    lmp->input->line = utils::strdup("some command line with no blanks");
+    lmp->input->parse();
+    EXPECT_THAT(utils::point_to_error(lmp->input, Error::NOPOINTER),
+                StrEq("Last input line: some command line with no blanks\n"));
+    EXPECT_THAT(utils::point_to_error(lmp->input, -1),
+                StrEq("Last input line: some command line with no blanks \n"
+                      "                 ^^^^\n"));
+    EXPECT_THAT(utils::point_to_error(lmp->input, 0),
+                StrEq("Last input line: some command line with no blanks \n"
+                      "                      ^^^^^^^\n"));
+    EXPECT_THAT(utils::point_to_error(lmp->input, 1),
+                StrEq("Last input line: some command line with no blanks \n"
+                      "                              ^^^^\n"));
+    EXPECT_THAT(utils::point_to_error(lmp->input, 2),
+                StrEq("Last input line: some command line with no blanks \n"
+                      "                                   ^^^^\n"));
+    EXPECT_THAT(utils::point_to_error(lmp->input, 3),
+                StrEq("Last input line: some command line with no blanks \n"
+                      "                                        ^^\n"));
+    EXPECT_THAT(utils::point_to_error(lmp->input, 4),
+                StrEq("Last input line: some command line with no blanks \n"
+                      "                                           ^^^^^^\n"));
+
+    delete[] lmp->input->line;
+    lmp->input->line = utils::strdup("some command line 'with some blanks'");
+    lmp->input->parse();
+    EXPECT_THAT(utils::point_to_error(nullptr, 0), StrEq(""));
+    EXPECT_THAT(utils::point_to_error(lmp->input, Error::NOPOINTER),
+                StrEq("Last input line: some command line 'with some blanks'\n"));
+    EXPECT_THAT(utils::point_to_error(lmp->input, -1),
+                StrEq("Last input line: some command line 'with some blanks'\n"
+                      "--> parsed line: some command line \"with some blanks\" \n"
+                      "                 ^^^^\n"));
+    EXPECT_THAT(utils::point_to_error(lmp->input, 0),
+                StrEq("Last input line: some command line 'with some blanks'\n"
+                      "--> parsed line: some command line \"with some blanks\" \n"
+                      "                      ^^^^^^^\n"));
+    EXPECT_THAT(utils::point_to_error(lmp->input, 1),
+                StrEq("Last input line: some command line 'with some blanks'\n"
+                      "--> parsed line: some command line \"with some blanks\" \n"
+                      "                              ^^^^\n"));
+    EXPECT_THAT(utils::point_to_error(lmp->input, 2),
+                StrEq("Last input line: some command line 'with some blanks'\n"
+                      "--> parsed line: some command line \"with some blanks\" \n"
+                      "                                   ^^^^^^^^^^^^^^^^^^\n"));
+    delete[] lmp->input->line;
+    lmp->input->line = nullptr;
+};
+
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

@@ -31,13 +31,14 @@ Syntax
 
   .. parsed-literal::
 
-       *type* arg = *auto* or *upper* or *lower* or *auto/upper* or *auto/lower* or *full*
+       *type* arg = *auto* or *upper* or *lower* or *auto/upper* or *auto/lower* or *full* or *first*
          auto = correlate each value with itself
          upper = correlate each value with each succeeding value
          lower = correlate each value with each preceding value
          auto/upper = auto + upper
          auto/lower = auto + lower
          full = correlate each value with every other value, including itself = auto + upper + lower
+         first = correlate each value with the first value
        *start* args = Nstart
          Nstart = start accumulating correlations on this time step
        *file* arg = filename
@@ -81,10 +82,9 @@ specified values may represent calculations performed by computes and
 fixes which store their own "group" definitions.
 
 Each listed value can be the result of a compute or fix or the
-evaluation of an equal-style or vector-style variable.  For
-vector-style variables, the specified indices can include a wildcard
-character.  See the :doc:`fix ave/correlate <fix_ave_correlate>` page
-for details.
+evaluation of an equal-style or vector-style variable.  The specified
+indices can include a wildcard string.  See the
+:doc:`fix ave/correlate <fix_ave_correlate>` page for details on that.
 
 The *Nevery* and *Nfreq* arguments specify on what time steps the input
 values will be used to calculate correlation data and the frequency

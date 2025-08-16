@@ -217,13 +217,16 @@ scaled differently in the two different dimensions to transform them
 into ellipses).
 
 The created bins (and hence the chunk IDs) are numbered consecutively
-from 1 to the number of bins = *Nchunk*\ .  For *bin2d* and *bin3d*, the
-numbering varies most rapidly in the first dimension (which could be
-*x*, *y*, or *z*), next rapidly in the second dimension, and most slowly in the
-third dimension.  For *bin/sphere*, the bin with smallest radii is chunk
-1 and the bin with largest radii is chunk Nchunk = *ncbin*\ .  For
-*bin/cylinder*, the numbering varies most rapidly in the dimension
-along the cylinder axis and most slowly in the radial direction.
+from 1 to the number of bins = *Nchunk*\ . For *bin2d* and *bin3d*, the
+numbering varies fastest in the last dimension (which could be
+*x*, *y*, or *z*), slower in the second dimension, and slowest in the
+first dimension. For *bin/sphere*, the bin with smallest radius is chunk
+1 and the bin with largest radius is chunk Nchunk = *ncbin*\ .  For
+*bin/cylinder*, the numbering varies faster in the dimension
+along the cylinder axis and slower in the radial direction.
+In all cases, for a given dimension, the numbering increases
+with increasing value of the coordinate (Cartesian coordinate,
+sphere or cylinder radius, axial position).
 
 Each time this compute is invoked, each atom is mapped to a bin based
 on its current position.  Note that between reneighboring timesteps,

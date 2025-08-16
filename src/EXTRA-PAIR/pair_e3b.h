@@ -36,6 +36,7 @@ class PairE3B : public Pair {
 
  protected:
   //potential parameters
+  std::string typeO_str;
   int typeO;
   double ea, eb, ec;      //three body energies
   double k3;              //three body exponential decay (units inverse length)

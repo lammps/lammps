@@ -1,8 +1,6 @@
-# Import the force field.
-import /usr/local/moltemplate/moltemplate/force_fields/oplsaa.lt
-import formamide.lt # after oplsaa.lt, as it depends on it.
+import formamide.lt  # Defines "_FAM" and OPLSAA
 
-# Create the input sample.
+# Distribute the molecules on a 5x5x5 cubic grid with spacing 4.6
 solv = new _FAM [5].move( 4.6, 0, 0)
                 [5].move( 0, 4.6, 0)
                 [5].move( 0, 0, 4.6)
@@ -15,8 +13,11 @@ write_once("Data Boundary") {
  -11.5 11.5 zlo zhi
 }
 
-# Create an input deck for LAMMPS.
-write_once("In Init"){
+# Note: The lines below in the "In Run" section are often omitted.
+
+write_once("In Run"){
+ # Create an input deck for LAMMPS.
+ # Run an NPT simulation.
  # Input variables.
  variable run    string solv_01   # output name
  variable ts     equal  1         # timestep
@@ -26,26 +27,20 @@ write_once("In Init"){
  variable equi   equal  5000      # Equilibration steps
  variable prod   equal  30000     # Production steps
 
- # PBC (set them before the creation of the box).
- boundary p p p
-}
-
-# Run an NPT simulation.
-write_once("In Run"){
  # Derived variables.
  variable tcouple equal \$\{ts\}*100
  variable pcouple equal \$\{ts\}*1000
 
  # Output.
  thermo          \$d
- thermo_style custom step etotal evdwl ecoul elong ebond eangle edihed eimp &
- ke pe temp press vol density cpu
+ thermo_style custom step etotal evdwl ecoul elong ebond eangle &
+ edihed eimp ke pe temp press vol density cpu
  thermo_modify flush yes
-  
+
  # Trajectory.
  dump TRJ all dcd \$d \$\{run\}.dcd
  dump_modify TRJ unwrap yes
- 
+
  # Thermalisation and relaxation, NPT ensemble.
  timestep       \$\{ts\}
  fix             NPT all npt temp \$\{temp\} \$\{temp\} \$\{tcouple\} iso \$p \$p \$\{pcouple\}
@@ -59,3 +54,4 @@ write_once("In Run"){
  run    \$\{prod\}
  unfix NPT
 }
+

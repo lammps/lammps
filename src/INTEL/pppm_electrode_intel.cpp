@@ -51,8 +51,6 @@ using namespace std;
 
 static constexpr int OFFSET = 16384;
 
-enum { REVERSE_RHO };
-enum { FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
 enum : bool { ELECTRODE = true, ELECTROLYTE = false };
 
 static constexpr FFT_SCALAR ZEROF = 0.0;

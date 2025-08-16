@@ -209,7 +209,7 @@ double MathSpecial::factorial(const int n)
  *
  * Copyright:
  *   (C) 2012 Massachusetts Institute of Technology
- *   (C) 2013 Forschungszentrum Jülich GmbH
+ *   (C) 2013 Forschungszentrum Juelich GmbH
  *
  * Licence:
  *   Permission is hereby granted, free of charge, to any person obtaining
@@ -233,7 +233,7 @@ double MathSpecial::factorial(const int n)
  *
  * Authors:
  *   Steven G. Johnson, Massachusetts Institute of Technology, 2012, core author
- *   Joachim Wuttke, Forschungszentrum Jülich, 2013, package maintainer
+ *   Joachim Wuttke, Forschungszentrum Juelich, 2013, package maintainer
  *
  * Website:
  *   https://jugit.fz-juelich.de/mlz/libcerf
@@ -682,6 +682,7 @@ double MathSpecial::erfcx_y100(const double y100)
  * the result becomes: exp2(x) = exp2(ipart) * exp2(fpart)
  */
 
+// NOLINTBEGIN
 /* IEEE 754 double precision floating point data manipulation */
 typedef union
 {
@@ -689,6 +690,7 @@ typedef union
     uint64_t u;
     struct {int32_t  i0,i1;} s;
 }  udi_t;
+// NOLINTEND
 
 static const double fm_exp2_q[] = {
 /*  1.00000000000000000000e0, */

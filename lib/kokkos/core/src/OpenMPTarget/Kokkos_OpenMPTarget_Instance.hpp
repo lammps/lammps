@@ -17,8 +17,6 @@
 #ifndef KOKKOS_OPENMPTARGET_INSTANCE_HPP
 #define KOKKOS_OPENMPTARGET_INSTANCE_HPP
 
-#include <Kokkos_Core.hpp>
-
 namespace Kokkos {
 namespace Experimental {
 namespace Impl {
@@ -27,9 +25,9 @@ enum class openmp_fence_is_static { yes, no };
 
 class OpenMPTargetInternal {
  private:
-  OpenMPTargetInternal()                            = default;
-  OpenMPTargetInternal(const OpenMPTargetInternal&) = default;
-  OpenMPTargetInternal& operator=(const OpenMPTargetInternal&) = default;
+  OpenMPTargetInternal()                                       = default;
+  OpenMPTargetInternal(const OpenMPTargetInternal&)            = delete;
+  OpenMPTargetInternal& operator=(const OpenMPTargetInternal&) = delete;
 
  public:
   void fence(openmp_fence_is_static is_static = openmp_fence_is_static::no);
@@ -54,6 +52,19 @@ class OpenMPTargetInternal {
   void impl_initialize();
 
   static OpenMPTargetInternal* impl_singleton();
+
+  static void verify_is_process(const char* const);
+  static void verify_initialized(const char* const);
+
+  void* get_scratch_ptr();
+  void clear_scratch();
+  void resize_scratch(int64_t team_reduce_bytes, int64_t team_shared_bytes,
+                      int64_t thread_local_bytes, int64_t league_size);
+
+  void* m_scratch_ptr = nullptr;
+  std::mutex m_mutex_scratch_ptr;
+  int64_t m_scratch_size      = 0;
+  uint32_t* m_uniquetoken_ptr = nullptr;
 
  private:
   bool m_is_initialized  = false;

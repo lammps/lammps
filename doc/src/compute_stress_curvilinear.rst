@@ -87,7 +87,7 @@ This array can be output with :doc:`fix ave/time <fix_ave_time>`,
 
 .. code-block:: LAMMPS
 
-  compute 1 all stress/spherical 0 0 0 0.1 10
+  compute p all stress/spherical 0 0 0 0.1 10
   fix 2 all ave/time 100 1 100 c_p[*] file dump_p.out mode vector
 
 The values calculated by this compute are "intensive".  The stress

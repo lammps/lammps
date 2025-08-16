@@ -24,7 +24,7 @@ namespace Test {
 // Test whether external allocations can be accessed by the default queue.
 TEST(sycl, raw_sycl_interop_context_1) {
   // Make sure all queues use the same context
-  Kokkos::Experimental::SYCL default_space;
+  Kokkos::SYCL default_space;
   sycl::context default_context = default_space.sycl_queue().get_context();
 
   sycl::queue queue(default_context, sycl::default_selector_v,
@@ -32,7 +32,7 @@ TEST(sycl, raw_sycl_interop_context_1) {
   constexpr int n = 100;
   int* p          = sycl::malloc_device<int>(n, queue);
 
-  Kokkos::Experimental::SYCL space(queue);
+  Kokkos::SYCL space(queue);
   Kokkos::View<int*, Kokkos::MemoryTraits<Kokkos::Unmanaged>> v(p, n);
   Kokkos::deep_copy(v, 5);
 
@@ -58,16 +58,15 @@ TEST(sycl, raw_sycl_interop_context_1) {
 
 // Test whether regular View allocations can be accessed by non-default queues.
 TEST(sycl, raw_sycl_interop_context_2) {
-  Kokkos::Experimental::SYCL default_space;
+  Kokkos::SYCL default_space;
   sycl::context default_context = default_space.sycl_queue().get_context();
 
   sycl::queue queue(default_context, sycl::default_selector_v,
                     sycl::property::queue::in_order());
   constexpr int n = 100;
 
-  Kokkos::Experimental::SYCL space(queue);
-  Kokkos::View<int*, Kokkos::Experimental::SYCLDeviceUSMSpace> v("default_view",
-                                                                 n);
+  Kokkos::SYCL space(queue);
+  Kokkos::View<int*, Kokkos::SYCLDeviceUSMSpace> v("default_view", n);
   Kokkos::deep_copy(space, v, 5);
 
   auto* v_ptr = v.data();

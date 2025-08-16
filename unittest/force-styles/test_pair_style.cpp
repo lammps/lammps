@@ -15,9 +15,7 @@
 
 #include "error_stats.h"
 #include "test_config.h"
-#include "test_config_reader.h"
 #include "test_main.h"
-#include "yaml_reader.h"
 #include "yaml_writer.h"
 
 #include "gmock/gmock.h"
@@ -26,43 +24,34 @@
 #include "atom.h"
 #include "compute.h"
 #include "domain.h"
-#include "exceptions.h"
 #include "force.h"
 #include "info.h"
 #include "input.h"
-#include "kspace.h"
-#include "lammps.h"
 #include "modify.h"
 #include "pair.h"
-#include "platform.h"
-#include "universe.h"
-#include "utils.h"
 
-#include <cctype>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <mpi.h>
+#include <cmath>
 
-#include <map>
-#include <string>
+#include <exception>
+#include <iostream>
+#include <set>
 #include <utility>
-#include <vector>
 
 using ::testing::HasSubstr;
 using ::testing::StartsWith;
 
 using namespace LAMMPS_NS;
 
-void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
+void cleanup_lammps(LAMMPS *&lmp, const TestConfig &cfg)
 {
     platform::unlink(cfg.basename + ".restart");
     platform::unlink(cfg.basename + ".data");
     platform::unlink(cfg.basename + "-coeffs.in");
     delete lmp;
+    lmp = nullptr;
 }
 
-LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton = true)
+LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton)
 {
     LAMMPS *lmp;
 
@@ -93,21 +82,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
 
     // utility lambdas to improve readability
     auto command = [&](const std::string &line) {
-        try {
-            lmp->input->one(line);
-        } catch (LAMMPSAbortException &ae) {
-            fprintf(stderr, "LAMMPS Error: %s\n", ae.what());
-            exit(2);
-        } catch (LAMMPSException &e) {
-            fprintf(stderr, "LAMMPS Error: %s\n", e.what());
-            exit(3);
-        } catch (fmt::format_error &fe) {
-            fprintf(stderr, "fmt::format_error: %s\n", fe.what());
-            exit(4);
-        } catch (std::exception &e) {
-            fprintf(stderr, "General exception: %s\n", e.what());
-            exit(5);
-        }
+        lmp->input->one(line);
     };
 
     auto parse_input_script = [&](const std::string &filename) {
@@ -242,8 +217,12 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 {
     // initialize system geometry
     LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite"};
-
-    LAMMPS *lmp = init_lammps(args, config);
+    LAMMPS *lmp       = nullptr;
+    try {
+        lmp = init_lammps(args, config, true);
+    } catch (std::exception &e) {
+        FAIL() << e.what();
+    }
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
                      "in this LAMMPS configuration:\n";
@@ -340,8 +319,14 @@ TEST(PairStyle, plain)
     LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(args, test_config, true);
-
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -399,7 +384,12 @@ TEST(PairStyle, plain)
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
-    lmp = init_lammps(args, test_config, false);
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // skip over these tests if newton pair is forced to be on
@@ -480,9 +470,14 @@ TEST(PairStyle, plain)
     if (pair->respa_enable) {
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
-        lmp = init_lammps(args, test_config, false);
-        lmp->input->one("run_style respa 2 1 inner 1 4.8 5.5 outer 2");
-        run_lammps(lmp);
+        try {
+            lmp = init_lammps(args, test_config, false);
+            lmp->input->one("run_style respa 2 1 inner 1 4.8 5.5 outer 2");
+            run_lammps(lmp);
+        } catch (std::exception &e) {
+            if (!verbose) ::testing::internal::GetCapturedStdout();
+            FAIL() << e.what();
+        }
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         // need to relax error by a large amount with tabulation, since
@@ -509,7 +504,7 @@ TEST(PairStyle, plain)
 
 TEST(PairStyle, omp)
 {
-    if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
+    if (!Info::has_package("OPENMP")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
@@ -519,8 +514,14 @@ TEST(PairStyle, omp)
     if (utils::strmatch(test_config.pair_style, "^dpd")) args[8] = "1";
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(args, test_config, true);
-
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -578,7 +579,12 @@ TEST(PairStyle, omp)
 
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
-        lmp = init_lammps(args, test_config, false);
+        try {
+            lmp = init_lammps(args, test_config, false);
+        } catch (std::exception &e) {
+            if (!verbose) ::testing::internal::GetCapturedStdout();
+            FAIL() << e.what();
+        }
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         pair = lmp->force->pair;
@@ -630,12 +636,23 @@ TEST(PairStyle, omp)
 
 TEST(PairStyle, kokkos_omp)
 {
-    if (!LAMMPS::is_installed_pkg("KOKKOS")) GTEST_SKIP();
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
-    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) GTEST_SKIP();
+    // test either OpenMP or Serial
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "serial") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
+        GTEST_SKIP();
+    // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
+    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
+        GTEST_SKIP() << "Cannot test KOKKOS/OpenMP with GPU support enabled";
+    }
 
     LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
                          "-k",        "on",   "t",    "4",     "-sf",    "kk"};
+    // fall back to serial if openmp is not available
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[9] = "1";
 
     // cannot run dpd styles in plain or hybrid with more than 1 thread due to using multiple pRNGs
     if (utils::strmatch(test_config.pair_style, "^dpd") ||
@@ -651,8 +668,14 @@ TEST(PairStyle, kokkos_omp)
         args[9] = "1";
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(args, test_config, true);
-
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -709,7 +732,12 @@ TEST(PairStyle, kokkos_omp)
     if (lmp->force->newton_pair == 0) {
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
-        lmp = init_lammps(args, test_config, false);
+        try {
+            lmp = init_lammps(args, test_config, false);
+        } catch (std::exception &e) {
+            if (!verbose) ::testing::internal::GetCapturedStdout();
+            FAIL() << e.what();
+        }
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         pair = lmp->force->pair;
@@ -761,7 +789,7 @@ TEST(PairStyle, kokkos_omp)
 
 TEST(PairStyle, gpu)
 {
-    if (!LAMMPS::is_installed_pkg("GPU")) GTEST_SKIP();
+    if (!Info::has_package("GPU")) GTEST_SKIP();
     if (!Info::has_gpu_device()) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
@@ -784,8 +812,14 @@ TEST(PairStyle, gpu)
     }
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(args, test_config, false);
-
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -813,8 +847,8 @@ TEST(PairStyle, gpu)
         epsilon *= 5.0e8;
     else
         epsilon *= 1.0e10;
-        // relax test precision when using pppm and single precision FFTs, but only when also
-        // running with double precision
+    // relax test precision when using pppm and single precision FFTs, but only when also
+    // running with double precision
 #if defined(FFT_SINGLE)
     if (lmp->force->kspace && lmp->force->kspace->compute_flag &&
         Info::has_accelerator_feature("GPU", "precision", "double"))
@@ -853,7 +887,7 @@ TEST(PairStyle, gpu)
 
 TEST(PairStyle, intel)
 {
-    if (!LAMMPS::is_installed_pkg("INTEL")) GTEST_SKIP();
+    if (!Info::has_package("INTEL")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     LAMMPS::argv args = {"PairStyle", "-log",  "none", "-echo", "screen", "-nocite",
@@ -864,8 +898,14 @@ TEST(PairStyle, intel)
     if (utils::strmatch(test_config.pair_style, "^dpd")) args[12] = "1";
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(args, test_config, true);
-
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -938,14 +978,20 @@ TEST(PairStyle, intel)
 
 TEST(PairStyle, opt)
 {
-    if (!LAMMPS::is_installed_pkg("OPT")) GTEST_SKIP();
+    if (!Info::has_package("OPT")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf", "opt"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(args, test_config);
-
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -1028,7 +1074,13 @@ TEST(PairStyle, single)
 
     // create a LAMMPS instance with standard settings to detect the number of atom types
     if (!verbose) ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(args, test_config);
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     if (!lmp) {
@@ -1272,7 +1324,95 @@ TEST(PairStyle, extract)
     LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(args, test_config, true);
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles are not available "
+                     "in this LAMMPS configuration:\n";
+        for (const auto &prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    auto *pair = lmp->force->pair;
+    if (!pair->compute_flag) {
+        std::cerr << "Pair style disabled" << std::endl;
+        if (!verbose) ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp, test_config);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        GTEST_SKIP();
+    }
+
+    void *ptr = nullptr;
+    int dim   = 0;
+    for (auto &extract : test_config.extract) {
+        ptr = pair->extract(extract.first.c_str(), dim);
+        EXPECT_NE(ptr, nullptr);
+        EXPECT_EQ(dim, extract.second);
+    }
+    ptr = pair->extract("does_not_exist", dim);
+    EXPECT_EQ(ptr, nullptr);
+
+    // replace pair style with the same.
+    // should just update setting, but not create new style.
+
+    int ntypes = lmp->atom->ntypes;
+    for (int i = 1; i <= ntypes; ++i) {
+        for (int j = 1; j <= ntypes; ++j) {
+            pair->cutsq[i][j] = -1.0;
+        }
+    }
+
+    // utility lambda to improve readability
+    auto command = [&](const std::string &line) {
+        lmp->input->one(line);
+    };
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("pair_style " + test_config.pair_style);
+    EXPECT_EQ(pair, lmp->force->pair);
+
+    for (auto &pair_coeff : test_config.pair_coeff) {
+        command("pair_coeff " + pair_coeff);
+    }
+    pair->init();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    for (int i = 1; i <= ntypes; ++i) {
+        for (int j = 1; j <= ntypes; ++j) {
+            EXPECT_GE(pair->cutsq[i][j], 0.0);
+        }
+    }
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+}
+
+TEST(PairStyle, extract_omp)
+{
+    if (!Info::has_package("OPENMP")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-pk",       "omp",  "4",    "-sf",   "omp"};
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     if (!lmp) {

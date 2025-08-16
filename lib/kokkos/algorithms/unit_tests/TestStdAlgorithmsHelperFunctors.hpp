@@ -104,7 +104,7 @@ struct AssignIndexFunctor {
 
 template <class ValueType>
 struct IsEvenFunctor {
-  static_assert(std::is_integral<ValueType>::value,
+  static_assert(std::is_integral_v<ValueType>,
                 "IsEvenFunctor uses operator%, so ValueType must be int");
 
   KOKKOS_INLINE_FUNCTION

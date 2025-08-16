@@ -93,8 +93,8 @@ TEST(kokkosp, create_mirror_view_and_copy) {
 #endif
 
 #ifdef KOKKOS_ENABLE_CUDA
-  if (std::is_same<Kokkos::DefaultExecutionSpace::memory_space,
-                   Kokkos::CudaUVMSpace>::value)
+  if (std::is_same_v<Kokkos::DefaultExecutionSpace::memory_space,
+                     Kokkos::CudaUVMSpace>)
     GTEST_SKIP()
         << "skipping since the CudaUVMSpace requires additional fences";
 #endif

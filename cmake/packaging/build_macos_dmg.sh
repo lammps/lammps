@@ -1,9 +1,10 @@
 #!/bin/bash
 
 APP_NAME=lammps-gui
+VERSION="$1"
 
 echo "Delete old files, if they exist"
-rm -f ${APP_NAME}.dmg ${APP_NAME}-rw.dmg LAMMPS_GUI-macOS-multiarch.dmg
+rm -f ${APP_NAME}.dmg ${APP_NAME}-rw.dmg LAMMPS_GUI-macOS-multiarch*.dmg
 
 echo "Create initial dmg file with macdeployqt"
 macdeployqt  lammps-gui.app -dmg
@@ -96,12 +97,12 @@ sync
 
 echo "Unmount modified disk image and convert to compressed read-only image"
 hdiutil detach "${DEVICE}"
-hdiutil convert "${APP_NAME}-rw.dmg" -format UDZO -o "LAMMPS_GUI-macOS-multiarch.dmg"
+hdiutil convert "${APP_NAME}-rw.dmg" -format UDZO -o "LAMMPS_GUI-macOS-multiarch-${VERSION}.dmg"
 
 echo "Attach icon to .dmg file"
 echo "read 'icns' (-16455) \"lammps-gui.app/Contents/Resources/lammps.icns\";" > icon.rsrc
-Rez -a icon.rsrc -o LAMMPS_GUI-macOS-multiarch.dmg
-SetFile -a C LAMMPS_GUI-macOS-multiarch.dmg
+Rez -a icon.rsrc -o LAMMPS_GUI-macOS-multiarch-${VERSION}.dmg
+SetFile -a C LAMMPS_GUI-macOS-multiarch-${VERSION}.dmg
 rm icon.rsrc
 
 echo "Delete temporary disk images"

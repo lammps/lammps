@@ -54,14 +54,14 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
 
   PyUtils::GIL lock;
   PyObject *py_path = PySys_GetObject((char *)"path");
-  PyList_Append(py_path, PY_STRING_FROM_STRING("."));
+  PyList_Append(py_path, PyUnicode_FromString("."));
 
   // if LAMMPS_POTENTIALS environment variable is set,
   // add it to PYTHONPATH as well
 
   const char *potentials_path = getenv("LAMMPS_POTENTIALS");
   if (potentials_path != nullptr) {
-    PyList_Append(py_path, PY_STRING_FROM_STRING(potentials_path));
+    PyList_Append(py_path, PyUnicode_FromString(potentials_path));
   }
 }
 
@@ -106,7 +106,7 @@ void PairPython::compute(int eflag, int vflag)
   // prepare access to compute_force and compute_energy functions
 
   PyUtils::GIL lock;
-  auto py_pair_instance = (PyObject *) py_potential;
+  auto *py_pair_instance = (PyObject *) py_potential;
   PyObject *py_compute_force = PyObject_GetAttrString(py_pair_instance,"compute_force");
   if (!py_compute_force) {
     PyUtils::Print_Errors();
@@ -244,14 +244,14 @@ void PairPython::coeff(int narg, char **arg)
   const int ntypes = atom->ntypes;
 
   if (narg != 3+ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
   if (!allocated) allocate();
 
   // make sure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
 
   // check if python potential class type exists
@@ -347,8 +347,8 @@ double PairPython::single(int /* i */, int /* j */, int itype, int jtype,
   // prepare access to compute_force and compute_energy functions
 
   PyUtils::GIL lock;
-  auto py_compute_force = (PyObject *) get_member_function("compute_force");
-  auto py_compute_energy = (PyObject *) get_member_function("compute_energy");
+  auto *py_compute_force = (PyObject *) get_member_function("compute_force");
+  auto *py_compute_energy = (PyObject *) get_member_function("compute_energy");
   PyObject *py_compute_args = Py_BuildValue("(dii)", rsq, itype, jtype);
 
   if (!py_compute_args) {
@@ -383,7 +383,7 @@ double PairPython::single(int /* i */, int /* j */, int itype, int jtype,
 void * PairPython::get_member_function(const char * name)
 {
   PyUtils::GIL lock;
-  auto py_pair_instance = (PyObject *) py_potential;
+  auto *py_pair_instance = (PyObject *) py_potential;
   PyObject * py_mfunc = PyObject_GetAttrString(py_pair_instance, name);
   if (!py_mfunc) {
     PyUtils::Print_Errors();

@@ -32,7 +32,7 @@ There is an example script for this package in examples/PACKAGES/srp_react/.
 #include "citeme.h"
 #include "comm.h"
 #include "error.h"
-#include "fix_srp_react.h"
+#include "fix.h"
 #include "force.h"
 #include "modify.h"
 #include "neighbor.h"
@@ -55,7 +55,9 @@ static const char cite_srpreact[] =
   " pages = {336--346}\n"
   "}\n\n";
 
-static int srp_instance = 0;
+namespace {
+int srp_instance = 0;
+}
 
 /* ----------------------------------------------------------------------
  constructor
@@ -64,21 +66,18 @@ static int srp_instance = 0;
 PairSRPREACT::PairSRPREACT(LAMMPS *lmp) :
   PairSRP(lmp), idbreak(nullptr), idcreate(nullptr), bond_break(false), bond_create(false)
 {
-
   if (lmp->citeme) lmp->citeme->add(cite_srpreact);
 
-  // pair srp/react has its own fix, hence delete fix srp instance
-  // created in the constructor of pair srp
-  for (auto &ifix : modify->get_fix_by_style("SRP"))
-    modify->delete_fix(ifix->id);
-
-  // similar to fix SRP, create fix SRP REACT instance here with unique fix id
-  f_srp = (FixSRPREACT *) modify->add_fix(fmt::format("{:02d}_FIX_SRP_REACT all SRPREACT",srp_instance));
+  // replace fix SRP with fix SRPREACT instance here with unique fix id
+  if (f_srp) modify->delete_fix(f_srp->id);
+  fix_id = fmt::format("{:02d}_FIX_SRP_REACT", srp_instance);
+  f_srp = modify->add_fix(fix_id + " all SRPREACT");
   ++srp_instance;
 }
 
 PairSRPREACT::~PairSRPREACT()
 {
+  // don't delete fix SRPREACT instance here. will be done in parent class destructor
   delete[] idbreak;
   delete[] idcreate;
 }
@@ -223,7 +222,7 @@ void PairSRPREACT::init_style()
   arg1[0] = (char *) "norm";
   arg1[1] = (char *) "no";
   output->thermo->modify_params(2, arg1);
-  if (comm->me == 0) error->message(FLERR,"Thermo normalization turned off by pair srp/react");
+  if (comm->me == 0) utils::logmesg(lmp,"Thermo normalization turned off by pair srp/react\n");
 
   neighbor->request(this,instance_me);
 }

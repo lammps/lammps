@@ -100,7 +100,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   boxhi_lamda[0] = boxhi_lamda[1] = boxhi_lamda[2] = 1.0;
 
   lattice = nullptr;
-  auto args = new char*[2];
+  auto *args = new char*[2];
   args[0] = (char *) "none";
   args[1] = (char *) "1.0";
   set_lattice(2,args);
@@ -125,7 +125,7 @@ Domain::~Domain()
 {
   if (copymode) return;
 
-  for (auto &reg : regions) delete reg;
+  for (const auto &reg : regions) delete reg;
   regions.clear();
   delete lattice;
   delete region_map;
@@ -190,7 +190,7 @@ void Domain::init()
 
   // region inits
 
-  for (auto &reg : regions) reg->init();
+  for (const auto &reg : regions) reg->init();
 }
 
 /* ----------------------------------------------------------------------
@@ -787,7 +787,7 @@ void Domain::pbc()
   int flag = 0;
   for (i = 0; i < n3; i++)
     if (!std::isfinite(*coord++)) flag = 1;
-  if (flag) error->one(FLERR,"Non-numeric atom coords - simulation unstable");
+  if (flag) error->one(FLERR,"Non-numeric atom coords - simulation unstable" + utils::errorurl(6));
 
   // setup for PBC checks
 
@@ -1028,7 +1028,8 @@ void Domain::image_check()
       if (k == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR,"Bond atom missing in image check");
+          error->one(FLERR, Error::NOLASTLINE,
+                     "Bond atom missing in image check" + utils::errorurl(14));
         continue;
       }
 
@@ -1048,13 +1049,13 @@ void Domain::image_check()
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
   if (flagall && comm->me == 0)
-    error->warning(FLERR,"Inconsistent image flags");
+    error->warning(FLERR,"Inconsistent image flags" + utils::errorurl(27));
 
   if (lostbond == Thermo::WARN) {
     int all;
     MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
     if (all && comm->me == 0)
-      error->warning(FLERR,"Bond atom missing in image check");
+      error->warning(FLERR, "Bond atom missing in image check" + utils::errorurl(14));
   }
 
   memory->destroy(unwrap);
@@ -1127,14 +1128,15 @@ void Domain::box_too_small_check()
       if (k == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR,"Bond atom missing in box size check");
+          error->one(FLERR, Error::NOLASTLINE,
+                     "Bond atom missing in box size check" + utils::errorurl(14));
         continue;
       }
 
       delx = x[i][0] - x[k][0];
       dely = x[i][1] - x[k][1];
       delz = x[i][2] - x[k][2];
-      minimum_image(delx,dely,delz);
+      minimum_image(FLERR, delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       maxbondme = MAX(maxbondme,rsq);
     }
@@ -1144,7 +1146,7 @@ void Domain::box_too_small_check()
     int all;
     MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
     if (all && comm->me == 0)
-      error->warning(FLERR,"Bond atom missing in box size check");
+      error->warning(FLERR,"Bond atom missing in box size check" + utils::errorurl(14));
   }
 
   double maxbondall;
@@ -1203,6 +1205,7 @@ void Domain::subbox_too_small_check(double thresh)
                    "could lead to lost atoms");
 }
 
+// clang-format on
 /* ----------------------------------------------------------------------
    minimum image convention in periodic dimensions
    use 1/2 of box size as test
@@ -1216,39 +1219,45 @@ void Domain::subbox_too_small_check(double thresh)
 ------------------------------------------------------------------------- */
 
 static constexpr double MAXIMGCOUNT = 16;
-
-void Domain::minimum_image(double &dx, double &dy, double &dz) const
+void Domain::minimum_image(const std::string &file, int line, double &dx, double &dy,
+                           double &dz) const
 {
   if (triclinic == 0) {
     if (xperiodic) {
       if (fabs(dx) > (MAXIMGCOUNT * xprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       while (fabs(dx) > xprd_half) {
-        if (dx < 0.0) dx += xprd;
-        else dx -= xprd;
+        if (dx < 0.0)
+          dx += xprd;
+        else
+          dx -= xprd;
       }
     }
     if (yperiodic) {
       if (fabs(dy) > (MAXIMGCOUNT * yprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       while (fabs(dy) > yprd_half) {
-        if (dy < 0.0) dy += yprd;
-        else dy -= yprd;
+        if (dy < 0.0)
+          dy += yprd;
+        else
+          dy -= yprd;
       }
     }
     if (zperiodic) {
       if (fabs(dz) > (MAXIMGCOUNT * zprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       while (fabs(dz) > zprd_half) {
-        if (dz < 0.0) dz += zprd;
-        else dz -= zprd;
+        if (dz < 0.0)
+          dz += zprd;
+        else
+          dz -= zprd;
       }
     }
 
   } else {
     if (zperiodic) {
       if (fabs(dz) > (MAXIMGCOUNT * zprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       while (fabs(dz) > zprd_half) {
         if (dz < 0.0) {
           dz += zprd;
@@ -1263,7 +1272,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz) const
     }
     if (yperiodic) {
       if (fabs(dy) > (MAXIMGCOUNT * yprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       while (fabs(dy) > yprd_half) {
         if (dy < 0.0) {
           dy += yprd;
@@ -1276,10 +1285,12 @@ void Domain::minimum_image(double &dx, double &dy, double &dz) const
     }
     if (xperiodic) {
       if (fabs(dx) > (MAXIMGCOUNT * xprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       while (fabs(dx) > xprd_half) {
-        if (dx < 0.0) dx += xprd;
-        else dx -= xprd;
+        if (dx < 0.0)
+          dx += xprd;
+        else
+          dx -= xprd;
       }
     }
   }
@@ -1296,61 +1307,63 @@ void Domain::minimum_image(double &dx, double &dy, double &dz) const
      this applies for example to fix rigid/small
 ------------------------------------------------------------------------- */
 
-void Domain::minimum_image_big(double &dx, double &dy, double &dz) const
+void Domain::minimum_image_big(const std::string &file, int line, double &dx, double &dy,
+                               double &dz) const
 {
   if (triclinic == 0) {
     if (xperiodic) {
-      double dfactor = dx/xprd + 0.5;
+      double dfactor = dx / xprd + 0.5;
       if (dx < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       dx -= xprd * static_cast<int>(dfactor);
     }
     if (yperiodic) {
-      double dfactor = dy/yprd + 0.5;
+      double dfactor = dy / yprd + 0.5;
       if (dy < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       dy -= yprd * static_cast<int>(dfactor);
     }
     if (zperiodic) {
-      double dfactor = dz/zprd + 0.5;
+      double dfactor = dz / zprd + 0.5;
       if (dz < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       dz -= zprd * static_cast<int>(dfactor);
     }
 
   } else {
     if (zperiodic) {
-      double dfactor = dz/zprd + 0.5;
+      double dfactor = dz / zprd + 0.5;
       if (dz < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       int factor = static_cast<int>(dfactor);
       dz -= zprd * factor;
       dy -= yz * factor;
       dx -= xz * factor;
     }
     if (yperiodic) {
-      double dfactor = dy/yprd + 0.5;
+      double dfactor = dy / yprd + 0.5;
       if (dy < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       int factor = static_cast<int>(dfactor);
       dy -= yprd * factor;
       dx -= xy * factor;
     }
     if (xperiodic) {
-      double dfactor = dx/xprd + 0.5;
+      double dfactor = dx / xprd + 0.5;
       if (dx < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       dx -= xprd * static_cast<int>(dfactor);
     }
   }
 }
 
+// clang-format off
 /* ----------------------------------------------------------------------
    return local index of atom J or any of its images that is closest to atom I
    if J is not a valid index like -1, just return it
@@ -1661,6 +1674,25 @@ void Domain::remap(double *x)
   }
 
   if (triclinic) lamda2x(coord,x);
+}
+
+/* ----------------------------------------------------------------------
+   remap all points into the periodic box no matter how far away
+   adjust 3 image flags encoded in image accordingly
+   resulting coord must satisfy lo <= coord < hi
+   MAX is important since coord - prd < lo can happen when coord = hi
+   for triclinic, point is converted to lamda coords (0-1) within remap()
+   image = 10 bits for each dimension
+   increment/decrement in wrap-around fashion
+------------------------------------------------------------------------- */
+
+void Domain::remap_all()
+{
+  double **x = atom->x;
+  imageint *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) remap(x[i],image[i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -2007,7 +2039,7 @@ void Domain::delete_region(Region *reg)
 
 void Domain::delete_region(const std::string &id)
 {
-  auto reg = get_region_by_id(id);
+  auto *reg = get_region_by_id(id);
   if (!reg) error->all(FLERR,"Delete region {} does not exist", id);
   delete_region(reg);
 }
@@ -2019,7 +2051,7 @@ void Domain::delete_region(const std::string &id)
 
 Region *Domain::get_region_by_id(const std::string &name) const
 {
-  for (auto &reg : regions)
+  for (const auto &reg : regions)
     if (name == reg->id) return reg;
   return nullptr;
 }
@@ -2034,7 +2066,7 @@ const std::vector<Region *> Domain::get_region_by_style(const std::string &name)
   std::vector<Region *> matches;
   if (name.empty()) return matches;
 
-  for (auto &reg : regions)
+  for (const auto &reg : regions)
     if (name == reg->style)  matches.push_back(reg);
 
   return matches;
@@ -2188,6 +2220,19 @@ void Domain::lamda2x(int n)
   }
 }
 
+void Domain::lamda2x(int n, int groupbit)
+{
+  double **x = atom->x;
+  int *mask = atom->mask;
+
+  for (int i = 0; i < n; i++)
+    if (mask[i] & groupbit) {
+      x[i][0] = h[0]*x[i][0] + h[5]*x[i][1] + h[4]*x[i][2] + boxlo[0];
+      x[i][1] = h[1]*x[i][1] + h[3]*x[i][2] + boxlo[1];
+      x[i][2] = h[2]*x[i][2] + boxlo[2];
+    }
+}
+
 /* ----------------------------------------------------------------------
    convert box coords to triclinic 0-1 lamda coords for all N atoms
    lamda = H^-1 (x - x0)
@@ -2207,6 +2252,25 @@ void Domain::x2lamda(int n)
     x[i][1] = h_inv[1]*delta[1] + h_inv[3]*delta[2];
     x[i][2] = h_inv[2]*delta[2];
   }
+}
+
+void Domain::x2lamda(int n, int groupbit)
+{
+  double delta[3];
+  double **x = atom->x;
+  int *mask = atom->mask;
+
+  for (int i = 0; i < n; i++)
+    if (mask[i] & groupbit) {
+      delta[0] = x[i][0] - boxlo[0];
+      delta[1] = x[i][1] - boxlo[1];
+      delta[2] = x[i][2] - boxlo[2];
+
+      x[i][0] = h_inv[0]*delta[0] + h_inv[5]*delta[1] + h_inv[4]*delta[2];
+      x[i][1] = h_inv[1]*delta[1] + h_inv[3]*delta[2];
+      x[i][2] = h_inv[2]*delta[2];
+    }
+
 }
 
 /* ----------------------------------------------------------------------

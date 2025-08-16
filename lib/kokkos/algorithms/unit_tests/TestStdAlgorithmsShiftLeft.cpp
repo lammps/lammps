@@ -150,7 +150,7 @@ void run_single_scenario(const InfoType& scenario_info,
     // create host copy BEFORE shift_left or view will be modified
     auto view_h = create_host_space_copy(view);
     auto rit    = KE::shift_left("label", exespace(), KE::begin(view),
-                              KE::end(view), shift_value);
+                                 KE::end(view), shift_value);
     verify_data(rit, view, view_h, shift_value);
   }
 

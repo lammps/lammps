@@ -25,10 +25,10 @@ if(MSVC)
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
-find_package(MPI QUIET)
 # do not include the (obsolete) MPI C++ bindings which makes
 # for leaner object files and avoids namespace conflicts
 set(MPI_CXX_SKIP_MPICXX TRUE)
+find_package(MPI QUIET COMPONENTS C CXX)
 
 ##########################
 

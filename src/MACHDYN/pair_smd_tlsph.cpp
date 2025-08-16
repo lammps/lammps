@@ -34,6 +34,7 @@
 #include "fix.h"
 #include "force.h"
 #include "group.h"
+#include "info.h"
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
@@ -219,7 +220,7 @@ void PairTlsph::PreCompute() {
         dx = xj - xi;
 
         if (periodic)
-          domain->minimum_image(dx0(0), dx0(1), dx0(2));
+          domain->minimum_image(FLERR, dx0(0), dx0(1), dx0(2));
 
         r0Sq = dx0.squaredNorm();
         h = irad + radius[j];
@@ -267,7 +268,7 @@ void PairTlsph::PreCompute() {
       } else {
         status = PolDec(Fincr[i], R[i], U, false); // polar decomposition of the deformation gradient, F = R * U
         if (!status) {
-          error->message(FLERR, "Polar decomposition of deformation gradient failed.\n");
+          utils::logmesg(lmp, "Polar decomposition of deformation gradient failed.\n");
           mol[i] = -1;
         } else {
           Fincr[i] = R[i] * U;
@@ -487,7 +488,7 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
       }
 
       if (periodic)
-        domain->minimum_image(dx0(0), dx0(1), dx0(2));
+        domain->minimum_image(FLERR, dx0(0), dx0(1), dx0(2));
 
       // check that distance between i and j (in the reference config) is less than cutoff
       dx0 = x0j - x0i;
@@ -1553,10 +1554,11 @@ double PairTlsph::init_one(int i, int j) {
     allocate();
 
   if (setflag[i][j] == 0)
-    error->all(FLERR, "All pair coeffs are not set");
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
 
   if (force->newton == 1)
-    error->all(FLERR, "Pair style tlsph requires newton off");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style tlsph requires newton off");
 
 // cutoff = sum of max I,J radii for
 // dynamic/dynamic & dynamic/frozen interactions, but not frozen/frozen
@@ -1604,7 +1606,7 @@ void PairTlsph::init_style() {
     error->all(FLERR, "Pair style tlsph requires its particles to be part of a group named tlsph. This group does not exist.");
 
   if (fix_tlsph_reference_configuration == nullptr) {
-    auto fixarg = new char*[3];
+    auto *fixarg = new char*[3];
     fixarg[0] = (char *) "SMD_TLSPH_NEIGHBORS";
     fixarg[1] = (char *) "tlsph";
     fixarg[2] = (char *) "SMD_TLSPH_NEIGHBORS";

@@ -59,7 +59,7 @@ WriteRestart::WriteRestart(LAMMPS *lmp) : Command(lmp)
 void WriteRestart::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR,"Write_restart command before simulation box is defined");
+    error->all(FLERR,"Write_restart command before simulation box is defined" + utils::errorurl(33));
   if (narg < 1) utils::missing_cmd_args(FLERR, "write_restart", error);
 
   // if filename contains a "*", replace with current timestep
@@ -380,7 +380,7 @@ void WriteRestart::write(const std::string &file)
 
   // invoke any fixes that write their own restart file
 
-  for (auto &fix : modify->get_fix_list())
+  for (const auto &fix : modify->get_fix_list())
     if (fix->restart_file)
       fix->write_restart_file(file.c_str());
 }

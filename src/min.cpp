@@ -113,7 +113,10 @@ void Min::init()
   // create fix needed for storing atom-based quantities
   // will delete it at end of run
 
-  fix_minimize = dynamic_cast<FixMinimize *>(modify->add_fix("MINIMIZE all MINIMIZE"));
+  if (lmp->kokkos)
+    fix_minimize = dynamic_cast<FixMinimize *>(modify->add_fix("MINIMIZE all MINIMIZE/kk"));
+  else
+    fix_minimize = dynamic_cast<FixMinimize *>(modify->add_fix("MINIMIZE all MINIMIZE"));
 
   // clear out extra global and per-atom dof
   // will receive requests for new per-atom dof during pair init()
@@ -197,10 +200,10 @@ void Min::init()
 void Min::setup(int flag)
 {
   if (comm->me == 0 && screen) {
-    fmt::print(screen,"Setting up {} style minimization ...\n", update->minimize_style);
+    utils::print(screen,"Setting up {} style minimization ...\n", update->minimize_style);
     if (flag) {
-      fmt::print(screen,"  Unit style    : {}\n", update->unit_style);
-      fmt::print(screen,"  Current step  : {}\n", update->ntimestep);
+      utils::print(screen,"  Unit style    : {}\n", update->unit_style);
+      utils::print(screen,"  Current step  : {}\n", update->ntimestep);
       timer->print_timeout(screen);
     }
   }
@@ -668,7 +671,7 @@ void Min::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"delaystep") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      delaystep = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      delaystep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dtgrow") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
@@ -704,7 +707,7 @@ void Min::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"vdfmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      max_vdotf_negatif = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      max_vdotf_negatif = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"integrator") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
@@ -785,7 +788,7 @@ void Min::ev_set(bigint ntimestep)
   int flag;
 
   int eflag_global = 1;
-  for (auto &icompute : elist_global) icompute->matchstep(ntimestep);
+  for (auto &icompute : elist_global) (void) icompute->matchstep(ntimestep);
 
   flag = 0;
   int eflag_atom = 0;

@@ -10,7 +10,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #ifndef PTM_FUNCTIONS_H
 #define PTM_FUNCTIONS_H
 
-#include <cstdbool>
 #include <cstddef>
 #include <cstdint>
 

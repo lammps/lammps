@@ -1,5 +1,35 @@
---- src/Makefile.orig	2020-05-03 03:50:23.501557199 -0400
-+++ src/Makefile	2020-05-03 03:53:32.147681674 -0400
+--- Makefile.orig	2025-06-04 12:16:01.056286325 -0400
++++ Makefile	2025-06-04 12:18:47.454879006 -0400
+@@ -11,8 +11,7 @@
+ 
+ # Build all of the executable files
+ all:
+-	$(MAKE) -C src
+-	$(MAKE) -C examples
++	$(MAKE) -C src depend libvoro++.a
+ 
+ # Build the help files (with Doxygen)
+ help:
+@@ -24,16 +23,12 @@
+ 	$(MAKE) -C examples clean
+ 
+ # Install the executable, man page, and shared library
+-install:
+-	$(MAKE) -C src
+-	$(INSTALL) -d $(IFLAGS_EXEC) $(PREFIX)/bin
++install: all
+ 	$(INSTALL) -d $(IFLAGS_EXEC) $(PREFIX)/lib
+ 	$(INSTALL) -d $(IFLAGS_EXEC) $(PREFIX)/man
+ 	$(INSTALL) -d $(IFLAGS_EXEC) $(PREFIX)/man/man1
+ 	$(INSTALL) -d $(IFLAGS_EXEC) $(PREFIX)/include
+ 	$(INSTALL) -d $(IFLAGS_EXEC) $(PREFIX)/include/voro++
+-	$(INSTALL) $(IFLAGS_EXEC) src/voro++ $(PREFIX)/bin
+-	$(INSTALL) $(IFLAGS) man/voro++.1 $(PREFIX)/man/man1
+ 	$(INSTALL) $(IFLAGS) src/libvoro++.a $(PREFIX)/lib
+ 	$(INSTALL) $(IFLAGS) src/voro++.hh $(PREFIX)/include/voro++
+ 	$(INSTALL) $(IFLAGS) src/c_loops.hh $(PREFIX)/include/voro++
+--- src/Makefile.orig	2013-10-17 13:54:13.000000000 -0400
++++ src/Makefile	2025-06-04 12:16:47.293104880 -0400
 @@ -10,10 +10,10 @@
  # List of the common source files
  objs=cell.o common.o container.o unitcell.o v_compute.o c_loops.o \

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meißner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
 ------------------------------------------------------------------------- */
 
 #include "fix_electrode_thermo.h"
@@ -76,7 +76,7 @@ void FixElectrodeThermo::compute_macro_matrices()
 void FixElectrodeThermo::pre_update()
 {
   // total electrode charges after last step, required for update psi
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   int *mask = atom->mask;
   double *q = atom->q;
   for (int g = 0; g < NUM_GROUPS; g++) {

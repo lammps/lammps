@@ -29,6 +29,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -174,7 +176,7 @@ void AngleFourier::allocate()
 
 void AngleFourier::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -195,7 +197,7 @@ void AngleFourier::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -263,13 +265,13 @@ double AngleFourier::single(int type, int i1, int i2, int i3)
   double delx1 = x[i1][0] - x[i2][0];
   double dely1 = x[i1][1] - x[i2][1];
   double delz1 = x[i1][2] - x[i2][2];
-  domain->minimum_image(delx1,dely1,delz1);
+  domain->minimum_image(FLERR, delx1,dely1,delz1);
   double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
 
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];
-  domain->minimum_image(delx2,dely2,delz2);
+  domain->minimum_image(FLERR, delx2,dely2,delz2);
   double r2 = sqrt(delx2*delx2 + dely2*dely2 + delz2*delz2);
 
   double c = delx1*delx2 + dely1*dely2 + delz1*delz2;
@@ -291,13 +293,13 @@ void AngleFourier::born_matrix(int type, int i1, int i2, int i3, double &du, dou
   double delx1 = x[i1][0] - x[i2][0];
   double dely1 = x[i1][1] - x[i2][1];
   double delz1 = x[i1][2] - x[i2][2];
-  domain->minimum_image(delx1,dely1,delz1);
+  domain->minimum_image(FLERR, delx1,dely1,delz1);
   double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
 
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];
-  domain->minimum_image(delx2,dely2,delz2);
+  domain->minimum_image(FLERR, delx2,dely2,delz2);
   double r2 = sqrt(delx2*delx2 + dely2*dely2 + delz2*delz2);
 
   double c = delx1*delx2 + dely1*dely2 + delz1*delz2;
@@ -309,3 +311,16 @@ void AngleFourier::born_matrix(int type, int i1, int i2, int i3, double &du, dou
   du = k[type] * (C1[type] + 4 * C2[type] * c);
 }
 
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleFourier::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "C0") == 0) return (void *) C0;
+  if (strcmp(str, "C1") == 0) return (void *) C1;
+  if (strcmp(str, "C2") == 0) return (void *) C2;
+  return nullptr;
+}

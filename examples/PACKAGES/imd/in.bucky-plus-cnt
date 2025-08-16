@@ -46,8 +46,8 @@ fix     integrate   mobile nve
 fix     thermostat  mobile langevin 300.0 300.0 2000.0 234624
 
 # IMD setup.
-fix  comm       all imd 6789 unwrap on trate 10
-#fix  comm       all imd 6789 unwrap on trate 10 nowait on
+#fix  comm       all imd 6789 unwrap on trate 10
+fix  comm       all imd 6789 unwrap on trate 10 nowait on
 
 # temperature is based on mobile atoms only
 compute mobtemp mobile temp

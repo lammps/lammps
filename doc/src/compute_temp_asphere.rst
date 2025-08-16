@@ -41,8 +41,8 @@ translational and rotational kinetic energy.  This differs from the
 usual :doc:`compute temp <compute_temp>` command, which assumes point
 particles with only translational kinetic energy.
 
-Only finite-size particles (aspherical or spherical) can be included
-in the group.  For 3d finite-size particles, each has six degrees of
+Only finite-size particles (aspherical or spherical) can be included in
+the group.  For 3d finite-size particles, each has six degrees of
 freedom (three translational, three rotational).  For 2d finite-size
 particles, each has three degrees of freedom (two translational, one
 rotational).
@@ -70,25 +70,39 @@ axis.  It will also be the case for biaxial ellipsoids when exactly two
 of the semiaxes have the same length and the corresponding relative well
 depths are equal.
 
-The translational kinetic energy is computed the same as is described
-by the :doc:`compute temp <compute_temp>` command.  The rotational
-kinetic energy is computed as :math:`\frac12 I \omega^2`, where :math:`I` is
-the inertia tensor for the aspherical particle and :math:`\omega` is its
+The translational kinetic energy is computed the same as is described by
+the :doc:`compute temp <compute_temp>` command.  The rotational kinetic
+energy is computed as :math:`\frac12 I \omega^2`, where :math:`I` is the
+inertia tensor for the aspherical particle and :math:`\omega` is its
 angular velocity, which is computed from its angular momentum.
 
 .. note::
 
    For :doc:`2d models <dimension>`, particles are treated as
-   ellipsoids, not ellipses, meaning their moments of inertia will be the
-   same as in 3d.
+   ellipsoids, not ellipses, meaning their moments of inertia will be
+   the same as in 3d.
 
 A kinetic energy tensor, stored as a six-element vector, is also
 calculated by this compute.  The formula for the components of the
 tensor is the same as the above formula, except that :math:`v^2` and
-:math:`\omega^2` are replaced by :math:`v_x v_y` and :math:`\omega_x \omega_y`
-for the :math:`xy` component, and the appropriate elements of the moment of
-inertia tensor are used.  The six components of the vector are ordered
-:math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`.
+:math:`\omega^2` are replaced by :math:`v_x v_y` and :math:`\omega_x
+\omega_y` for the :math:`xy` component, and the appropriate elements of
+the moment of inertia tensor are used.  The six components of the vector
+are ordered :math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`,
+:math:`yz`.
+
+A symmetric tensor, stored as a six-element vector, is also calculated
+by this compute for use in the computation of a pressure tensor by the
+:doc:`compute pressue <compute_pressure>` command.  The formula for the
+components of the tensor is the same as the above expression for
+:math:`E_\mathrm{kin}`, except that the 1/2 factor is NOT included and
+the :math:`v_i^2` and :math:`\omega^2` are replaced by :math:`v_x v_y`
+and :math:`\omega_x \omega_y` for the :math:`xy` component, and so on.
+And the appropriate elements of the moment of inertia tensor are used.
+Note that because it lacks the 1/2 factor, these tensor components are
+twice those of the traditional kinetic energy tensor.  The six
+components of the vector are ordered :math:`xx`, :math:`yy`, :math:`zz`,
+:math:`xy`, :math:`xz`, :math:`yz`.
 
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the *dynamic/dof* option of
@@ -131,27 +145,26 @@ Output info
 """""""""""
 
 This compute calculates a global scalar (the temperature) and a global
-vector of length 6 (KE tensor), which can be accessed by indices 1--6.
-These values can be used by any command that uses global scalar or
-vector values from a compute as input.
-See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS
-output options.
+vector of length 6 (symmetric tensor), which can be accessed by indices
+1--6.  These values can be used by any command that uses global scalar
+or vector values from a compute as input.  See the :doc:`Howto output
+<Howto_output>` page for an overview of LAMMPS output options.
 
-The scalar value calculated by this compute is "intensive".  The
-vector values are "extensive".
+The scalar value calculated by this compute is "intensive".  The vector
+values are "extensive".
 
-The scalar value will be in temperature :doc:`units <units>`.  The
-vector values will be in energy :doc:`units <units>`.
+The scalar value is in temperature :doc:`units <units>`.  The vector
+values are in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
 
 This compute is part of the ASPHERE package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
-This compute requires that atoms store angular momentum and a
-quaternion as defined by the :doc:`atom_style ellipsoid <atom_style>`
-command.
+This compute requires that atoms store angular momentum and a quaternion
+as defined by the :doc:`atom_style ellipsoid <atom_style>` command.
 
 All particles in the group must be finite-size.  They cannot be point
 particles, but they can be aspherical or spherical as defined by their

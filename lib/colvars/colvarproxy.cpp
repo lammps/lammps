@@ -13,8 +13,9 @@
 
 #include "colvarmodule.h"
 #include "colvarproxy.h"
+#include "colvar.h"
+#include "colvarbias.h"
 #include "colvarscript.h"
-#include "colvaratoms.h"
 #include "colvarmodule_utils.h"
 
 
@@ -23,6 +24,7 @@ colvarproxy_atoms::colvarproxy_atoms()
 {
   atoms_rms_applied_force_ = atoms_max_applied_force_ = 0.0;
   atoms_max_applied_force_id_ = -1;
+  modified_atom_list_ = false;
   updated_masses_ = updated_charges_ = false;
 }
 
@@ -55,6 +57,7 @@ int colvarproxy_atoms::add_atom_slot(int atom_id)
   atoms_positions.push_back(cvm::rvector(0.0, 0.0, 0.0));
   atoms_total_forces.push_back(cvm::rvector(0.0, 0.0, 0.0));
   atoms_new_colvar_forces.push_back(cvm::rvector(0.0, 0.0, 0.0));
+  modified_atom_list_ = true;
   return (atoms_ids.size() - 1);
 }
 
@@ -66,6 +69,12 @@ int colvarproxy_atoms::init_atom(int /* atom_number */)
 
 
 int colvarproxy_atoms::check_atom_id(int /* atom_number */)
+{
+  return COLVARS_NOT_IMPLEMENTED;
+}
+
+
+int colvarproxy_atoms::check_atom_name_selections_available()
 {
   return COLVARS_NOT_IMPLEMENTED;
 }
@@ -109,29 +118,6 @@ size_t colvarproxy_atoms::get_num_active_atoms() const
     if (atoms_refcount[i] > 0) result++;
   }
   return result;
-}
-
-
-int colvarproxy_atoms::load_atoms(char const * /* filename */,
-                                  cvm::atom_group & /* atoms */,
-                                  std::string const & /* pdb_field */,
-                                  double)
-{
-  return cvm::error("Error: loading atom identifiers from a file "
-                    "is currently not implemented.\n",
-                    COLVARS_NOT_IMPLEMENTED);
-}
-
-
-int colvarproxy_atoms::load_coords(char const * /* filename */,
-                                   std::vector<cvm::atom_pos> & /* pos */,
-                                   std::vector<int> const & /* sorted_ids */,
-                                   std::string const & /* pdb_field */,
-                                   double)
-{
-  return cvm::error("Error: loading atomic coordinates from a file "
-                    "is currently not implemented.\n",
-                    COLVARS_NOT_IMPLEMENTED);
 }
 
 
@@ -257,7 +243,7 @@ void colvarproxy_atom_groups::compute_max_atom_groups_applied_force()
 
 colvarproxy_smp::colvarproxy_smp()
 {
-  b_smp_active = true; // May be disabled by user option
+  smp_mode = smp_mode_t::cvcs; // May be disabled by user option
   omp_lock_state = NULL;
 #if defined(_OPENMP)
   if (omp_get_thread_num() == 0) {
@@ -279,41 +265,45 @@ colvarproxy_smp::~colvarproxy_smp()
 #endif
 }
 
-
-int colvarproxy_smp::smp_enabled()
-{
+colvarproxy::smp_mode_t colvarproxy_smp::get_smp_mode() const {
 #if defined(_OPENMP)
-  if (b_smp_active) {
-    return COLVARS_OK;
-  }
-  return COLVARS_ERROR;
+  return smp_mode;
 #else
-  return COLVARS_NOT_IMPLEMENTED;
+  return colvarproxy::smp_mode_t::none;
+#endif
+}
+
+int colvarproxy_smp::set_smp_mode(smp_mode_t mode) {
+#if defined(_OPENMP)
+  smp_mode = mode;
+  return COLVARS_OK;
+#else
+  if (mode != colvarproxy::smp_mode_t::none) {
+    return COLVARS_NOT_IMPLEMENTED;
+  } else {
+    smp_mode = colvarproxy::smp_mode_t::none;
+  }
+  return COLVARS_OK;
 #endif
 }
 
 
-int colvarproxy_smp::smp_colvars_loop()
+int colvarproxy_smp::smp_loop(int n_items, std::function<int (int)> const &worker)
 {
+  int error_code = COLVARS_OK;
 #if defined(_OPENMP)
-  colvarmodule *cv = cvm::main();
-  colvarproxy *proxy = cv->proxy;
+  cvm::increase_depth();
 #pragma omp parallel for
-  for (size_t i = 0; i < cv->variables_active_smp()->size(); i++) {
-    colvar *x = (*(cv->variables_active_smp()))[i];
-    int x_item = (*(cv->variables_active_smp_items()))[i];
-    if (cvm::debug()) {
-      cvm::log("["+cvm::to_str(proxy->smp_thread_id())+"/"+
-               cvm::to_str(proxy->smp_num_threads())+
-               "]: calc_colvars_items_smp(), i = "+cvm::to_str(i)+", cv = "+
-               x->name+", cvc = "+cvm::to_str(x_item)+"\n");
-    }
-    x->calc_cvcs(x_item, 1);
+  for (int i = 0; i < n_items; i++) {
+    int const retcode = worker(i);
+#pragma omp atomic
+    error_code |= retcode;
   }
-  return cvm::get_error();
+  cvm::decrease_depth();
 #else
-  return COLVARS_NOT_IMPLEMENTED;
+  error_code |= COLVARS_NOT_IMPLEMENTED;
 #endif
+  return error_code;
 }
 
 
@@ -324,7 +314,7 @@ int colvarproxy_smp::smp_biases_loop()
 #pragma omp parallel
   {
 #pragma omp for
-    for (size_t i = 0; i < cv->biases_active()->size(); i++) {
+    for (int i = 0; i < static_cast<int>(cv->biases_active()->size()); i++) {
       colvarbias *b = (*(cv->biases_active()))[i];
       if (cvm::debug()) {
         cvm::log("Calculating bias \""+b->name+"\" on thread "+
@@ -351,7 +341,7 @@ int colvarproxy_smp::smp_biases_script_loop()
       cv->calc_scripted_forces();
     }
 #pragma omp for
-    for (size_t i = 0; i < cv->biases_active()->size(); i++) {
+    for (int i = 0; i < static_cast<int>(cv->biases_active()->size()); i++) {
       colvarbias *b = (*(cv->biases_active()))[i];
       if (cvm::debug()) {
         cvm::log("Calculating bias \""+b->name+"\" on thread "+
@@ -484,16 +474,21 @@ colvarproxy::~colvarproxy()
 
 bool colvarproxy::io_available()
 {
-  return (smp_enabled() == COLVARS_OK && smp_thread_id() == 0) ||
-    (smp_enabled() != COLVARS_OK);
+  return ((get_smp_mode() != smp_mode_t::none) && smp_thread_id() == 0) ||
+    (get_smp_mode() == smp_mode_t::none);
 }
 
 
 int colvarproxy::reset()
 {
+  if (cvm::debug()) {
+    cvm::log("colvarproxy::reset()\n");
+  }
   int error_code = COLVARS_OK;
   error_code |= colvarproxy_atoms::reset();
   error_code |= colvarproxy_atom_groups::reset();
+  error_code |= colvarproxy_volmaps::reset();
+  total_force_requested = false;
   return error_code;
 }
 
@@ -538,6 +533,31 @@ int colvarproxy::parse_module_config()
     config_queue->pop_front();
   }
   return error_code;
+}
+
+
+int colvarproxy::load_atoms_pdb(char const * /* filename */,
+                                cvm::atom_group & /* atoms */,
+                                std::string const & /* pdb_field */,
+                                double /* pdb_field_value */)
+{
+  return cvm::error(
+      "Error: loading atom indices from a PDB file is currently not implemented in " +
+          engine_name() + ".\n",
+      COLVARS_NOT_IMPLEMENTED);
+}
+
+
+int colvarproxy::load_coords_pdb(char const * /* filename */,
+                                 std::vector<cvm::atom_pos> & /* pos */,
+                                 std::vector<int> const & /* sorted_ids */,
+                                 std::string const & /* pdb_field */,
+                                 double /* pdb_field_value */)
+{
+  return cvm::error(
+      "Error: loading atomic coordinates from a PDB file is currently not implemented in " +
+          engine_name() + ".\n",
+      COLVARS_NOT_IMPLEMENTED);
 }
 
 
@@ -591,47 +611,78 @@ void colvarproxy::print_input_atomic_data()
   cvm::log(cvm::line_marker);
 
   cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
-           "atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
+           "atoms_ids[size = "+cvm::to_str(atoms_ids.size())+
+           "] = "+cvm::to_str(atoms_ids)+"\n");
+
   cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
-           "atoms_refcount = "+cvm::to_str(atoms_refcount)+"\n");
+           "atoms_refcount[size = "+cvm::to_str(atoms_refcount.size())+
+           "] = "+cvm::to_str(atoms_refcount)+"\n");
+
   cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
-           "atoms_masses = "+cvm::to_str(atoms_masses)+"\n");
+           "atoms_masses[size = "+cvm::to_str(atoms_masses.size())+
+           "] = "+cvm::to_str(atoms_masses)+"\n");
+
   cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
-           "atoms_charges = "+cvm::to_str(atoms_charges)+"\n");
+           "atoms_charges[size = "+cvm::to_str(atoms_charges.size())+
+           "] = "+cvm::to_str(atoms_charges)+"\n");
+
   cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
-           "atoms_positions = "+cvm::to_str(atoms_positions,
-                                            cvm::cv_width,
-                                            cvm::cv_prec)+"\n");
+           "atoms_positions[size = "+cvm::to_str(atoms_positions.size())+
+           "] = "+cvm::to_str(atoms_positions,
+                              cvm::cv_width,
+                              cvm::cv_prec)+"\n");
+
   cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
-           "atoms_total_forces = "+cvm::to_str(atoms_total_forces,
-                                               cvm::cv_width,
-                                               cvm::cv_prec)+"\n");
+           "atoms_total_forces[size = "+
+           cvm::to_str(atoms_total_forces.size())+
+           "] = "+cvm::to_str(atoms_total_forces,
+                              cvm::cv_width,
+                              cvm::cv_prec)+"\n");
 
   cvm::log(cvm::line_marker);
 
   cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
-           "atom_groups_ids = "+cvm::to_str(atom_groups_ids)+"\n");
+           "atom_groups_ids[size = "+cvm::to_str(atom_groups_ids.size())+
+           "] = "+cvm::to_str(atom_groups_ids)+"\n");
+
   cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
-           "atom_groups_refcount = "+cvm::to_str(atom_groups_refcount)+"\n");
+           "atom_groups_refcount[size = "+
+           cvm::to_str(atom_groups_refcount.size())+
+           "] = "+cvm::to_str(atom_groups_refcount)+"\n");
+
   cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
-           "atom_groups_masses = "+cvm::to_str(atom_groups_masses)+"\n");
+           "atom_groups_masses[size = "+
+           cvm::to_str(atom_groups_masses.size())+
+           "] = "+cvm::to_str(atom_groups_masses)+"\n");
+
   cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
-           "atom_groups_charges = "+cvm::to_str(atom_groups_charges)+"\n");
+           "atom_groups_charges[size = "+
+           cvm::to_str(atom_groups_charges.size())+
+           "] = "+cvm::to_str(atom_groups_charges)+"\n");
+
   cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
-           "atom_groups_coms = "+cvm::to_str(atom_groups_coms,
-                                             cvm::cv_width,
-                                             cvm::cv_prec)+"\n");
+           "atom_groups_coms[size = "+
+           cvm::to_str(atom_groups_coms.size())+
+           "] = "+cvm::to_str(atom_groups_coms,
+                              cvm::cv_width,
+                              cvm::cv_prec)+"\n");
+
   cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
-           "atom_groups_total_forces = "+cvm::to_str(atom_groups_total_forces,
-                                                     cvm::cv_width,
-                                                     cvm::cv_prec)+"\n");
+           "atom_groups_total_forces[size = "+
+           cvm::to_str(atom_groups_total_forces.size())+
+           "] = "+cvm::to_str(atom_groups_total_forces,
+                              cvm::cv_width,
+                              cvm::cv_prec)+"\n");
 
   cvm::log(cvm::line_marker);
 
   cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
-           "volmaps_ids = "+cvm::to_str(volmaps_ids)+"\n");
+           "volmaps_ids[size = "+cvm::to_str(volmaps_ids.size())+
+           "] = "+cvm::to_str(volmaps_ids)+"\n");
+
   cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
-           "volmaps_values = "+cvm::to_str(volmaps_values)+"\n");
+           "volmaps_values[size = "+cvm::to_str(volmaps_values.size())+
+           "] = "+cvm::to_str(volmaps_values)+"\n");
 
   cvm::log(cvm::line_marker);
 }

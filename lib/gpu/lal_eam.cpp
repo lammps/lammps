@@ -61,7 +61,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
       if (onetype>0)
         onetype=-1;
       else if (onetype==0)
-        onetype=i*max_shared_types+i;
+        onetype=i;
     }
   if (onetype<0) onetype=0;
   #endif
@@ -109,7 +109,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
   int lj_types=ntypes;
   shared_types=false;
 
-  if (lj_types<=max_shared_types && this->_block_size>=max_shared_types) {
+  if (lj_types<=max_shared_types && this->_block_size>=max_shared_types*max_shared_types) {
     lj_types=max_shared_types;
     shared_types=true;
   }

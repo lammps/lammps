@@ -1,0 +1,185 @@
+LAMMPS (27 Jun 2024)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+
+# Created 2011-01-07
+
+# General parameters
+
+variable        sname index Si2H6
+
+units           electron
+newton          on
+boundary        f f f
+
+atom_style      electron
+
+read_data       data.${sname}
+read_data       data.Si2H6
+Reading data file ...
+  orthogonal box = (-1000 -1000 -1000) to (1000 1000 1000)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  22 atoms
+  read_data CPU = 0.001 seconds
+
+pair_style      eff/cut 1000.0 ecp 1 Si
+pair_coeff      * *
+
+compute         energies all pair eff/cut
+variable        eke equal c_energies[1]
+variable        epauli equal c_energies[2]
+variable        estatics equal c_energies[3]
+variable        errestrain equal c_energies[4]
+
+comm_modify     vel yes
+
+compute         peratom all stress/atom NULL
+compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
+variable        press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
+
+compute         effTemp all temp/eff
+compute         effPress all pressure effTemp
+
+thermo          2
+thermo_style    custom step etotal pe ke v_eke v_epauli v_estatics v_errestrain temp press v_press
+thermo_modify   temp effTemp press effPress
+
+# Minimization
+
+min_style       cg
+#dump            1 all xyz 2 ${sname}.min.xyz
+compute         1 all property/atom spin eradius erforce
+#dump            2 all custom 2 ${sname}.min.lammpstrj id type q c_1[1] c_1[2] x y z fx fy fz c_1[3]
+min_modify      line quadratic
+minimize        0 1.0e-5 1000 10000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- EFF package: doi:10.1002/jcc.21637
+
+@Article{Jaramillo-Botero11,
+ author = {A. Jaramillo-Botero and J. Su and A. Qi and Goddard, III, W. A.},
+ title = {Large-Scale, Long-Term Nonadiabatic Electron Molecular Dynamics for Describing Material Properties and Phenomena in Extreme Environments},
+ journal = {J.~Comp.\ Chem.},
+ year =    2011,
+ volume =  32,
+ number =  3,
+ pages =   {497--512}
+}
+
+- Type Label Framework: https://doi.org/10.1021/acs.jpcb.3c08419
+
+@Article{Gissinger24,
+ author = {Jacob R. Gissinger, Ilia Nikiforov, Yaser Afshar, Brendon Waters, Moon-ki Choi, Daniel S. Karls, Alexander Stukowski, Wonpil Im, Hendrik Heinz, Axel Kohlmeyer, and Ellad B. Tadmor},
+ title = {Type Label Framework for Bonded Force Fields in LAMMPS},
+ journal = {J. Phys. Chem. B},
+ year =    2024,
+ volume =  128,
+ number =  13,
+ pages =   {3282–-3297}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1002
+  ghost atom cutoff = 1002
+  binsize = 501, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eff/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.113 | 6.113 | 6.113 Mbytes
+   Step         TotEng         PotEng         KinEng         v_eke         v_epauli      v_estatics    v_errestrain       Temp          Press         v_press    
+         0  -8.5010994     -8.5010994      0              5.4885963      1.6463577     -15.636053      0              0              3948.0425      3948.0425    
+         2  -8.67691       -8.67691        0              5.5258385      1.589403      -15.792152      0              0              3880.1721      3880.1721    
+         4  -8.848848      -8.848848       0              5.5663359      1.5311327     -15.946317      0              0              3788.6697      3788.6697    
+         6  -9.0177692     -9.0177692      0              5.6106795      1.4710658     -16.099514      0              0              3671.1737      3671.1737    
+         8  -9.185303      -9.185303       0              5.6598348      1.4083124     -16.25345       0              0              3523.4287      3523.4287    
+        10  -9.3547798     -9.3547798      0              5.7155927      1.3410774     -16.41145       0              0              3336.9891      3336.9891    
+        12  -9.5342746     -9.5342746      0              5.7820671      1.2650232     -16.581365      0              0              3091.6153      3091.6153    
+        14  -9.753773      -9.753773       0              5.8743943      1.1639        -16.792067      0              0              2711.1247      2711.1247    
+        16  -10.097143     -10.097143      0              6.0386279      0.98467639    -17.120448      0              0              1912.0559      1912.0559    
+        18  -10.206415     -10.206415      0              6.0972556      0.92111471    -17.224785      0              0              1604.9272      1604.9272    
+        20  -10.28471      -10.28471       0              6.1543746      0.86786676    -17.306951      0              0              1325.3681      1325.3681    
+        22  -10.343227     -10.343227      0              6.2122367      0.82042286    -17.375887      0              0              1062.6534      1062.6534    
+        24  -10.386164     -10.386164      0              6.2699963      0.77763016    -17.43379       0              0              820.84479      820.84479    
+        26  -10.416263     -10.416263      0              6.3255676      0.73934069    -17.481171      0              0              608.7375       608.7375     
+        28  -10.436521     -10.436521      0              6.3761026      0.70612619    -17.51875       0              0              434.68899      434.68899    
+        30  -10.450247     -10.450247      0              6.4147546      0.68147364    -17.546475      0              0              302.62232      302.62232    
+        32  -10.456683     -10.456683      0              6.416721       0.67361461    -17.547019      0              0              223.07929      223.07929    
+        34  -10.458069     -10.458069      0              6.3974543      0.66990042    -17.525424      0              0              164.78914      164.78914    
+        36  -10.458558     -10.458558      0              6.3763802      0.66472241    -17.49966       0              0              100.618        100.618      
+        38  -10.459231     -10.459231      0              6.3293189      0.66038284    -17.448933      0              0             -3.1075375     -3.1075375    
+        40  -10.459346     -10.459346      0              6.3132377      0.65807627    -17.43066       0              0             -29.981737     -29.981737    
+        42  -10.459366     -10.459366      0              6.3179452      0.65719131    -17.434503      0              0             -45.500522     -45.500522    
+        44  -10.459413     -10.459413      0              6.2985544      0.66239121    -17.420359      0              0              14.638842      14.638842    
+        46  -10.459499     -10.459499      0              6.3129457      0.65696218    -17.429407      0              0             -46.926115     -46.926115    
+        48  -10.459522     -10.459522      0              6.3120038      0.65909539    -17.430621      0              0             -27.058486     -27.058486    
+        50  -10.459532     -10.459532      0              6.3113769      0.65958039    -17.430489      0              0             -16.067028     -16.067028    
+        52  -10.459536     -10.459536      0              6.3181474      0.65939215    -17.437076      0              0             -15.311525     -15.311525    
+        54  -10.459539     -10.459539      0              6.3204818      0.66055005    -17.440571      0              0             -0.1004938     -0.1004938    
+        56  -10.459539     -10.459539      0              6.320264       0.6605463     -17.440349      0              0             -0.12138436    -0.12138436   
+        58  -10.459539     -10.459539      0              6.3204128      0.66045741    -17.440409      0              0             -1.2175176     -1.2175176    
+        60  -10.459539     -10.459539      0              6.3201688      0.66048114    -17.440189      0              0             -0.80979946    -0.80979946   
+        62  -10.459539     -10.459539      0              6.3201369      0.6605348     -17.440211      0              0             -0.85945162    -0.85945162   
+        64  -10.459539     -10.459539      0              6.3201036      0.66047761    -17.44012       0              0             -0.95534903    -0.95534903   
+        66  -10.459539     -10.459539      0              6.3201475      0.66049137    -17.440178      0              0             -0.89220297    -0.89220297   
+        68  -10.459539     -10.459539      0              6.3201605      0.6605388     -17.440238      0              0             -0.44631358    -0.44631358   
+        70  -10.459539     -10.459539      0              6.3202978      0.66049413    -17.440331      0              0             -0.72919322    -0.72919322   
+        72  -10.459539     -10.459539      0              6.3202928      0.66056005    -17.440392      0              0             -0.049401694   -0.049401694  
+        74  -10.459539     -10.459539      0              6.3204368      0.66055883    -17.440535      0              0             -0.025056381   -0.025056381  
+        76  -10.459539     -10.459539      0              6.3204403      0.66054902    -17.440528      0              0             -0.010774653   -0.010774653  
+        78  -10.459539     -10.459539      0              6.3203876      0.66056716    -17.440494      0              0              0.087250755    0.087250755  
+        80  -10.459539     -10.459539      0              6.3203944      0.66054525    -17.440479      0              0             -0.13822694    -0.13822694   
+        82  -10.459539     -10.459539      0              6.3203511      0.66055332    -17.440443      0              0             -0.043784806   -0.043784806  
+        84  -10.459539     -10.459539      0              6.32037        0.66054937    -17.440458      0              0             -0.10833935    -0.10833935   
+        86  -10.459539     -10.459539      0              6.3203586      0.66055472    -17.440452      0              0             -0.047719128   -0.047719128  
+        88  -10.459539     -10.459539      0              6.3203709      0.66055294    -17.440463      0              0             -0.055818341   -0.055818341  
+Loop time of 0.00213866 on 4 procs for 88 steps with 22 atoms
+
+95.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = force tolerance
+  Energy initial, next-to-last, final = 
+     -8.50109938620958  -10.4595390706543   -10.459539070672
+  Force two-norm initial, final = 3.2945156 4.7997573e-06
+  Force max component initial, final = 1.8019385 2.1386971e-06
+  Final line search alpha, max atom move = 1 2.1386971e-06
+  Iterations, force evaluations = 88 127
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.00027642 | 0.00052972 | 0.00096856 |   0.0 | 24.77
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00035997 | 0.00081245 | 0.0010746  |   0.0 | 37.99
+Output  | 0.00037064 | 0.00039193 | 0.00045231 |   0.0 | 18.33
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.0004046  |            |       | 18.92
+
+Nlocal:            5.5 ave           7 max           3 min
+Histogram: 1 0 0 0 0 0 0 2 0 1
+Nghost:           16.5 ave          19 max          15 min
+Histogram: 1 0 2 0 0 0 0 0 0 1
+Neighs:          57.75 ave         109 max          29 min
+Histogram: 1 1 0 1 0 0 0 0 0 1
+
+Total # of neighbors = 231
+Ave neighs/atom = 10.5
+Neighbor list builds = 0
+Dangerous builds = 0
+
+#undump          1
+#undump          2
+
+Total wall time: 0:00:00

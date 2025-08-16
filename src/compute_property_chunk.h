@@ -42,7 +42,7 @@ class ComputePropertyChunk : public ComputeChunk {
 
   void allocate() override;
 
-  typedef void (ComputePropertyChunk::*FnPtrPack)(int);
+  using FnPtrPack = void (ComputePropertyChunk::*)(int);
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_count(int);

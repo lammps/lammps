@@ -28,6 +28,7 @@
 #include "neighbor.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -263,7 +264,7 @@ void DihedralHelix::allocate()
 
 void DihedralHelix::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (narg != 4) error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -282,7 +283,7 @@ void DihedralHelix::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -430,3 +431,16 @@ void DihedralHelix::born_matrix(int nd, int i1, int i2, int i3, int i4,
   du2 = -(9.0*bphi[type]*cos(3.0*phi) + cphi[type]*cos(phi + MY_PI4))*siinv*siinv +
           (3.0*bphi[type]*sin(3.0*phi) + cphi[type]*sin(phi + MY_PI4))*c*siinv*siinv*siinv;
 }
+
+/* ----------------------------------------------------------------------
+    return ptr to internal members upon request
+ ------------------------------------------------------------------------ */
+
+ void *DihedralHelix::extract(const char *str, int &dim)
+ {
+   dim = 1;
+   if (strcmp(str, "a") == 0) return (void *) aphi;
+   if (strcmp(str, "b") == 0) return (void *) bphi;
+   if (strcmp(str, "c") == 0) return (void *) cphi;
+   return nullptr;
+ }

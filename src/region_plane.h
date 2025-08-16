@@ -25,16 +25,31 @@ RegionStyle(plane,RegPlane);
 namespace LAMMPS_NS {
 
 class RegPlane : public Region {
+  friend class Region2VMD;
+
  public:
   RegPlane(class LAMMPS *, int, char **);
   ~RegPlane() override;
+  void init() override;
   int inside(double, double, double) override;
   int surface_interior(double *, double) override;
   int surface_exterior(double *, double) override;
+  void shape_update() override;
 
  private:
   double xp, yp, zp;
   double normal[3];
+
+  int xstyle, xvar;
+  int ystyle, yvar;
+  int zstyle, zvar;
+  char *xstr, *ystr, *zstr;
+
+  int nstyle;
+  int nxvar, nyvar, nzvar;
+  char *nxstr, *nystr, *nzstr;
+
+  void variable_check();
 };
 
 }    // namespace LAMMPS_NS

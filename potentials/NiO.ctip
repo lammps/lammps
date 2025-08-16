@@ -1,0 +1,4 @@
+# CTIP potential parameters for Ni-O  UNITS: metal  DATE: 2024-09-11  CONTRIBUTOR: Gabriel Plummer gabriel.w.plummer@nasa.gov
+#     X (eV)       J (eV)       gamma (1/ang)       zeta (1/ang)       Z (e)       qmin       qmax       omega
+Ni  -5.840000    14.157390     0.549290            0.000000           0.000000    0.000000   2.000000    100.000
+O    0.000000    15.655862     1.428571            0.000000           0.000000   -2.000000   0.000000    100.000

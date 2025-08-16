@@ -10,12 +10,11 @@
 #ifndef COLVAR_H
 #define COLVAR_H
 
-#include <iostream>
-
-#if (__cplusplus >= 201103L)
-#include <map>
 #include <functional>
-#endif
+#include <list>
+#include <iosfwd>
+#include <map>
+#include <memory>
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
@@ -91,7 +90,7 @@ public:
   /// calculations, \link colvarbias_abf \endlink, it is used to
   /// calculate the grid spacing in the direction of this collective
   /// variable.
-  cvm::real width;
+  cvm::real width = 1.0;
 
   /// \brief Implementation of the feature list for colvar
   static std::vector<feature *> cv_features;
@@ -184,13 +183,13 @@ protected:
   /// Previous velocity of the restraint center
   colvarvalue prev_v_ext;
   /// Mass of the restraint center
-  cvm::real ext_mass;
+  cvm::real ext_mass = 0.0;
   /// Restraint force constant
-  cvm::real ext_force_k;
+  cvm::real ext_force_k = 0.0;
   /// Friction coefficient for Langevin extended dynamics
-  cvm::real ext_gamma;
+  cvm::real ext_gamma = 0.0;
   /// Amplitude of Gaussian white noise for Langevin extended dynamics
-  cvm::real ext_sigma;
+  cvm::real ext_sigma = 0.0;
 
   /// \brief Applied force on extended DOF, for output (unscaled if using MTS)
   colvarvalue fr;
@@ -224,14 +223,14 @@ public:
   colvarvalue ft;
 
   /// Period, if this variable is periodic
-  cvm::real period;
+  cvm::real period = 0.0;
 
   /// Center of wrapping, if this variable is periodic
-  cvm::real wrap_center;
+  cvm::real wrap_center = 0.0;
 
   /// \brief Expand the boundaries of multiples of width, to keep the
   /// value always within range
-  bool expand_boundaries;
+  bool expand_boundaries = false;
 
   /// \brief Location of the lower boundary
   colvarvalue lower_boundary;
@@ -252,6 +251,9 @@ public:
   /// Main init function
   int init(std::string const &conf);
 
+  /// Populate the map of available CVC types
+  void define_component_types();
+
   /// Parse the CVC configuration and allocate their data
   int init_components(std::string const &conf);
 
@@ -260,6 +262,12 @@ public:
 
   /// Init defaults for grid options
   int init_grid_parameters(std::string const &conf);
+
+  /// Consistency check for the grid paramaters
+  int check_grid_parameters();
+
+  /// Read legacy wall keyword (these are biases now)
+  int parse_legacy_wall_params(std::string const &conf);
 
   /// Init extended Lagrangian parameters
   int init_extended_Lagrangian(std::string const &conf);
@@ -271,17 +279,13 @@ public:
   virtual int init_dependencies();
 
 private:
-  /// Parse the CVC configuration for all components of a certain type
-  template<typename def_class_name> int init_components_type(std::string const & conf,
-                                                             char const *def_desc,
-                                                             char const *def_config_key);
-#if (__cplusplus >= 201103L)
-  /// For the C++11 case, the names of all available components are
-  /// registered in the global map at first, and then the CVC configuration
-  /// is parsed by this function
-  int init_components_type_from_global_map(const std::string& conf,
-                                           const char* def_config_key);
-#endif
+
+  /// Declare an available CVC type and its description, register them in the global map
+  template <typename def_class_name>
+  void add_component_type(char const *description, char const *config_key);
+
+  /// Initialize any CVC objects matching the given key
+  int init_components_type(const std::string &conf, const char *config_key);
 
 public:
 
@@ -387,10 +391,10 @@ public:
 protected:
 
   /// \brief Number of CVC objects with an active flag
-  size_t n_active_cvcs;
+  size_t n_active_cvcs = 0;
 
   /// Sum of square coefficients for active cvcs
-  cvm::real active_cvc_square_norm;
+  cvm::real active_cvc_square_norm = 0.0;
 
   /// Update the sum of square coefficients for active cvcs
   void update_active_cvc_square_norm();
@@ -460,15 +464,34 @@ public:
   /// Write a label to the trajectory file (comment line)
   std::ostream & write_traj_label(std::ostream &os);
 
-  /// Read the collective variable from a restart file
+  /// Read the colvar's state from a formatted input stream
   std::istream & read_state(std::istream &is);
-  /// Write the collective variable to a restart file
-  std::ostream & write_state(std::ostream &os);
+
+  /// Read the colvar's state from an unformatted input stream
+  cvm::memory_stream & read_state(cvm::memory_stream &is);
+
+  /// Check the name of the bias vs. the given string, set the matching_state flag accordingly
+  int check_matching_state(std::string const &state_conf);
+
+  /// Read the values of colvar mutable data from a string (used by both versions of read_state())
+  int set_state_params(std::string const &state_conf);
+
+  /// Write the state information of this colvar in a block of text, suitable for later parsing
+  std::string const get_state_params() const;
+
+  /// Write the colvar's state to a formatted output stream
+  std::ostream & write_state(std::ostream &os) const;
+
+  /// Write the colvar's state to an unformatted output stream
+  cvm::memory_stream & write_state(cvm::memory_stream &os) const;
 
   /// Write output files (if defined, e.g. in analysis mode)
   int write_output_files();
 
 protected:
+
+  /// Flag used to tell if the state string being read is for this colvar
+  bool matching_state;
 
   /// Previous value (to calculate velocities during analysis)
   colvarvalue            x_old;
@@ -554,15 +577,15 @@ protected:
   /// Current value of the running average
   colvarvalue    runave;
   /// Current value of the square deviation from the running average
-  cvm::real      runave_variance;
+  cvm::real      runave_variance = 0.0;
 
   /// Calculate the running average and its standard deviation
   int calc_runave();
 
   /// If extended Lagrangian active: colvar kinetic energy
-  cvm::real kinetic_energy;
+  cvm::real kinetic_energy = 0.0;
   /// If extended Lagrangian active: colvar harmonic potential
-  cvm::real potential_energy;
+  cvm::real potential_energy = 0.0;
 
 public:
 
@@ -601,8 +624,9 @@ public:
   class dihedPC;
   class alch_lambda;
   class alch_Flambda;
-  class componentDisabled;
   class CartesianBasedPath;
+  class aspath;
+  class azpath;
   class gspath;
   class gzpath;
   class linearCombination;
@@ -615,6 +639,7 @@ public:
   class euler_psi;
   class euler_theta;
   class neuralNetwork;
+  class torchANN;
   class customColvar;
 
   // non-scalar components
@@ -626,21 +651,19 @@ public:
   // components that do not handle any atoms directly
   class map_total;
 
-  /// getter of the global cvc map
-#if (__cplusplus >= 201103L)
   /// A global mapping of cvc names to the cvc constructors
-  static const std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>>& get_global_cvc_map() {
-      return global_cvc_map;
+  static const std::map<std::string, std::function<colvar::cvc *()>> &get_global_cvc_map()
+  {
+    return global_cvc_map;
   }
-#endif
 
   /// \brief function for sorting cvcs by their names
   static bool compare_cvc(const colvar::cvc* const i, const colvar::cvc* const j);
 
 protected:
 
-  /// \brief Array of \link colvar::cvc \endlink objects
-  std::vector<cvc *> cvcs;
+  /// Array of components objects
+  std::vector<std::shared_ptr<colvar::cvc>> cvcs;
 
   /// \brief Flags to enable or disable cvcs at next colvar evaluation
   std::vector<bool> cvc_flags;
@@ -671,10 +694,11 @@ protected:
   double dev_null;
 #endif
 
-#if (__cplusplus >= 201103L)
   /// A global mapping of cvc names to the cvc constructors
-  static std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>> global_cvc_map;
-#endif
+  static std::map<std::string, std::function<colvar::cvc *()>> global_cvc_map;
+
+  /// A global mapping of cvc names to the corresponding descriptions
+  static std::map<std::string, std::string> global_cvc_desc_map;
 
   /// Volmap numeric IDs, one for each CVC (-1 if not available)
   std::vector<int> volmap_ids_;
@@ -736,7 +760,7 @@ inline colvarvalue const & colvar::total_force() const
 
 inline void colvar::add_bias_force(colvarvalue const &force)
 {
-  check_enabled(f_cv_gradient,
+  check_enabled(f_cv_apply_force,
                 std::string("applying a force to the variable \""+name+"\""));
   if (cvm::debug()) {
     cvm::log("Adding biasing force "+cvm::to_str(force)+" to colvar \""+name+"\".\n");
@@ -761,5 +785,10 @@ inline void colvar::reset_bias_force() {
   fb_actual.reset();
 }
 
-#endif
 
+namespace {
+  // Tolerance parameter to decide when two boundaries coincide
+  constexpr cvm::real colvar_boundaries_tol = 1.0e-10;
+}
+
+#endif

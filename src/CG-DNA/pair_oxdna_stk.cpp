@@ -26,11 +26,11 @@
 #include "memory.h"
 #include "mf_oxdna.h"
 #include "neighbor.h"
-#include "neigh_list.h"
 #include "potential_file_reader.h"
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace MFOxdna;
@@ -341,7 +341,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
         b_st_lo[atype][btype], b_st_hi[atype][btype], shift_st[atype][btype]);
 
     // early rejection criterium
-    if (f1) {
+    if (f1 != 0.0) {
 
     az[0] = nz_xtrct[a][0];
     az[1] = nz_xtrct[a][1];
@@ -360,7 +360,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
         b_st4[atype][btype], dtheta_st4_c[atype][btype]);
 
     // early rejection criterium
-    if (f4t4) {
+    if (f4t4 != 0.0) {
 
     // theta5 angle and correction
     cost5p  = MathExtra::dot3(delr_st_norm,bz);
@@ -372,7 +372,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
         b_st5[atype][btype], dtheta_st5_c[atype][btype]);
 
     // early rejection criterium
-    if (f4t5) {
+    if (f4t5 != 0.0) {
 
     ay[0] = ny_xtrct[a][0];
     ay[1] = ny_xtrct[a][1];
@@ -406,7 +406,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     evdwl = f1 * f4t4 * f4t5 * f4t6 * f5c1 * f5c2;
 
     // early rejection criterium
-    if (evdwl) {
+    if (evdwl != 0.0) {
 
     df1 = DF1(r_st, epsilon_st[atype][btype], a_st[atype][btype], cut_st_0[atype][btype],
         cut_st_lc[atype][btype], cut_st_hc[atype][btype], cut_st_lo[atype][btype], cut_st_hi[atype][btype],
@@ -450,7 +450,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     delf[2] += delr_st[2] * finc;
 
     // theta5p force
-    if (theta5p) {
+    if (theta5p != 0.0) {
 
       finc   = -f1 * f4t4 * df4t5 * f4t6 * f5c1 * f5c2 * rinv_st;
 
@@ -461,7 +461,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     }
 
     // theta6p force
-    if (theta6p) {
+    if (theta6p != 0.0) {
 
       finc   = -f1 * f4t4 * f4t5 * df4t6 * f5c1 * f5c2 * rinv_st;
 
@@ -528,7 +528,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     deltb[2] = 0.0;
 
     // cosphi1 force
-    if (cosphi1) {
+    if (cosphi1 != 0.0) {
 
       finc   = -f1 * f4t4 * f4t5 * f4t6 * df5c1 * f5c2 * rinv_ss;
 
@@ -539,7 +539,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     }
 
     // cosphi2 force
-    if (cosphi2) {
+    if (cosphi2 != 0.0) {
 
       finc   = -f1 * f4t4 * f4t5 * f4t6 * f5c1 * df5c2 * rinv_ss;
 
@@ -598,7 +598,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     deltb[2] = 0.0;
 
     // theta4 torque
-    if (theta4) {
+    if (theta4 != 0.0) {
 
       tpair = -f1 * df4t4 * f4t5 * f4t6 * f5c1 * f5c2;
       MathExtra::cross3(az,bz,t4dir);
@@ -614,7 +614,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     }
 
     // theta5p torque
-    if (theta5p) {
+    if (theta5p != 0.0) {
 
       tpair = -f1 * f4t4 * df4t5 * f4t6 * f5c1 * f5c2;
       MathExtra::cross3(delr_st_norm,bz,t5pdir);
@@ -626,7 +626,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     }
 
     // theta6p torque
-    if (theta6p) {
+    if (theta6p != 0.0) {
 
       tpair = -f1 * f4t4 * f4t5 * df4t6 * f5c1 * f5c2;
       MathExtra::cross3(delr_st_norm,az,t6pdir);
@@ -638,7 +638,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     }
 
     // cosphi1 torque
-    if (cosphi1) {
+    if (cosphi1 != 0.0) {
 
       tpair   = -f1 * f4t4 * f4t5 * f4t6 * df5c1 * f5c2;
       MathExtra::cross3(delr_ss_norm,by,cosphi1dir);
@@ -650,7 +650,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     }
 
     // cosphi2 torque
-    if (cosphi2) {
+    if (cosphi2 != 0.0) {
 
       tpair   = -f1 * f4t4 * f4t5 * f4t6 * f5c1 * df5c2;
       MathExtra::cross3(delr_ss_norm,ay,cosphi2dir);
@@ -778,7 +778,7 @@ void PairOxdnaStk::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 7 && narg != 24) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/stk");
+  if (narg != 7 && narg != 24) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/stk" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi,imod4,jmod4;
@@ -998,7 +998,7 @@ void PairOxdnaStk::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/stk");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/stk" + utils::errorurl(21));
 
 }
 

@@ -561,7 +561,7 @@ bool LammpsInterface::region_bounds(const char * regionName,
 }
 
 void LammpsInterface::minimum_image(double & dx, double & dy, double & dz) const {
-  lammps_->domain->minimum_image(dx,dy,dz);
+  lammps_->domain->minimum_image(FLERR,dx,dy,dz);
 }
 
 void LammpsInterface::closest_image(const double * const xi, const double * const xj, double * const xjImage) const {

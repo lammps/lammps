@@ -1,0 +1,6 @@
+# Gaussian orbital exponents (required for fix qtpie/reaxff) taken from Table 2.2
+# of Chen, J. (2009). Theory and applications of fluctuating-charge models.
+# The units of the exponents are 1 / (Bohr radius)^2 .
+1  0.5434  # H
+2  0.2069  # C
+3  0.2240  # O

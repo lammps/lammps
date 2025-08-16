@@ -36,10 +36,6 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 static constexpr int MAXORDER = 7;
-
-enum { REVERSE_MU };
-enum { FORWARD_MU, FORWARD_MU_PERATOM };
-
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
 /* ---------------------------------------------------------------------- */
@@ -127,7 +123,7 @@ void PPPMDipoleSpin::init()
   pair_check();
 
   int itmp = 0;
-  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   // check the correct extract here
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");

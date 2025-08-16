@@ -19,6 +19,7 @@
 #include "fmt/format.h"
 #include "utils.h"
 
+#include <cmath>
 #include <utility>
 
 using namespace LAMMPS_NS;
@@ -63,7 +64,7 @@ Tokenizer::Tokenizer(const Tokenizer &rhs) :
   reset();
 }
 
-Tokenizer::Tokenizer(Tokenizer &&rhs) :
+Tokenizer::Tokenizer(Tokenizer &&rhs) noexcept :
     text(std::move(rhs.text)), separators(std::move(rhs.separators)), ntokens(rhs.ntokens)
 {
   reset();
@@ -76,14 +77,14 @@ Tokenizer &Tokenizer::operator=(const Tokenizer &other)
   return *this;
 }
 
-Tokenizer &Tokenizer::operator=(Tokenizer &&other)
+Tokenizer &Tokenizer::operator=(Tokenizer &&other) noexcept
 {
   Tokenizer tmp(std::move(other));
   swap(tmp);
   return *this;
 }
 
-void Tokenizer::swap(Tokenizer &other)
+void Tokenizer::swap(Tokenizer &other) noexcept
 {
   std::swap(text, other.text);
   std::swap(separators, other.separators);
@@ -219,7 +220,7 @@ ValueTokenizer::ValueTokenizer(const std::string &str, const std::string &separa
 {
 }
 
-ValueTokenizer::ValueTokenizer(ValueTokenizer &&rhs) : tokens(std::move(rhs.tokens)) {}
+ValueTokenizer::ValueTokenizer(ValueTokenizer &&rhs) noexcept : tokens(std::move(rhs.tokens)) {}
 
 ValueTokenizer &ValueTokenizer::operator=(const ValueTokenizer &other)
 {
@@ -228,14 +229,14 @@ ValueTokenizer &ValueTokenizer::operator=(const ValueTokenizer &other)
   return *this;
 }
 
-ValueTokenizer &ValueTokenizer::operator=(ValueTokenizer &&other)
+ValueTokenizer &ValueTokenizer::operator=(ValueTokenizer &&other) noexcept
 {
   ValueTokenizer tmp(std::move(other));
   swap(tmp);
   return *this;
 }
 
-void ValueTokenizer::swap(ValueTokenizer &other)
+void ValueTokenizer::swap(ValueTokenizer &other) noexcept
 {
   std::swap(tokens, other.tokens);
 }
@@ -287,8 +288,20 @@ std::string ValueTokenizer::next_string()
 int ValueTokenizer::next_int()
 {
   std::string current = tokens.next();
-  if (!utils::is_integer(current)) { throw InvalidIntegerException(current); }
-  return atoi(current.c_str());
+  try {
+    std::size_t end;
+    auto val = std::stoi(current, &end);
+    // only partially converted
+    if (current.size() != end) { throw InvalidIntegerException(current); }
+    return val;
+
+    // rethrow exceptions from std::stoi()
+  } catch (std::out_of_range const &) {
+    throw InvalidIntegerException(current);
+  } catch (std::invalid_argument const &) {
+    throw InvalidIntegerException(current);
+  }
+  return 0;
 }
 
 /*! Retrieve next token and convert to bigint
@@ -297,8 +310,22 @@ int ValueTokenizer::next_int()
 bigint ValueTokenizer::next_bigint()
 {
   std::string current = tokens.next();
-  if (!utils::is_integer(current)) { throw InvalidIntegerException(current); }
-  return ATOBIGINT(current.c_str());
+  try {
+    std::size_t end;
+    auto val = std::stoll(current, &end, 10);
+    // only partially converted
+    if (current.size() != end) { throw InvalidIntegerException(current); }
+    // out of range
+    if ((val < (-MAXBIGINT - 1) || (val > MAXBIGINT))) { throw InvalidIntegerException(current); };
+    return (bigint) val;
+
+    // rethrow exceptions from std::stoll()
+  } catch (std::out_of_range const &) {
+    throw InvalidIntegerException(current);
+  } catch (std::invalid_argument const &) {
+    throw InvalidIntegerException(current);
+  }
+  return 0;
 }
 
 /*! Retrieve next token and convert to tagint
@@ -307,8 +334,22 @@ bigint ValueTokenizer::next_bigint()
 tagint ValueTokenizer::next_tagint()
 {
   std::string current = tokens.next();
-  if (!utils::is_integer(current)) { throw InvalidIntegerException(current); }
-  return ATOTAGINT(current.c_str());
+  try {
+    std::size_t end;
+    auto val = std::stoll(current, &end, 10);
+    // only partially converted
+    if (current.size() != end) { throw InvalidIntegerException(current); }
+    // out of range
+    if ((val < (-MAXTAGINT - 1) || (val > MAXTAGINT))) { throw InvalidIntegerException(current); }
+    return (tagint) val;
+
+    // rethrow exceptions from std::stoll()
+  } catch (std::out_of_range const &) {
+    throw InvalidIntegerException(current);
+  } catch (std::invalid_argument const &) {
+    throw InvalidIntegerException(current);
+  }
+  return 0;
 }
 
 /*! Retrieve next token and convert to double
@@ -317,8 +358,24 @@ tagint ValueTokenizer::next_tagint()
 double ValueTokenizer::next_double()
 {
   std::string current = tokens.next();
-  if (!utils::is_double(current)) { throw InvalidFloatException(current); }
-  return atof(current.c_str());
+  try {
+    std::size_t end;
+    auto val = std::stod(current, &end);
+    // only partially converted
+    if (current.size() != end) { throw InvalidFloatException(current); }
+    return val;
+    // rethrow exceptions from std::stod()
+  } catch (std::out_of_range const &) {
+    // could be a denormal number. try again with std::strtod().
+    char *end;
+    auto val = std::strtod(current.c_str(), &end);
+    // return value of denormal
+    if ((val > -HUGE_VAL) && (val < HUGE_VAL)) return val;
+    throw InvalidFloatException(current);
+  } catch (std::invalid_argument const &) {
+    throw InvalidFloatException(current);
+  }
+  return 0.0;
 }
 
 /*! Skip over a given number of tokens

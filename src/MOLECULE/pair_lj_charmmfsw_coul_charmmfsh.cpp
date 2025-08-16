@@ -53,8 +53,7 @@ PairLJCharmmfswCoulCharmmfsh::PairLJCharmmfswCoulCharmmfsh(LAMMPS *lmp) :
 
   if (strcmp(update->unit_style,"real") == 0) {
     if ((comm->me == 0) && (force->qqr2e != force->qqr2e_charmm_real))
-      error->message(FLERR,"Switching to CHARMM coulomb energy"
-                     " conversion constant");
+      utils::logmesg(lmp,"Switching to CHARMM coulomb energy conversion constant\n");
     force->qqr2e = force->qqr2e_charmm_real;
   }
 }
@@ -67,8 +66,7 @@ PairLJCharmmfswCoulCharmmfsh::~PairLJCharmmfswCoulCharmmfsh()
 
   if (update && strcmp(update->unit_style,"real") == 0) {
     if ((comm->me == 0) && (force->qqr2e == force->qqr2e_charmm_real))
-      error->message(FLERR,"Restoring original LAMMPS coulomb energy"
-                     " conversion constant");
+      utils::logmesg(lmp,"Restoring original LAMMPS coulomb energy conversion constant\n");
     force->qqr2e = force->qqr2e_lammps_real;
   }
 
@@ -267,7 +265,7 @@ void PairLJCharmmfswCoulCharmmfsh::settings(int narg, char **arg)
 void PairLJCharmmfswCoulCharmmfsh::coeff(int narg, char **arg)
 {
   if (narg != 4 && narg != 6)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -295,7 +293,7 @@ void PairLJCharmmfswCoulCharmmfsh::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

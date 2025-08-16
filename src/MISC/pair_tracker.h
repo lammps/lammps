@@ -63,7 +63,7 @@ class PairTracker : public Pair {
 
   int nvalues, ncount;
   double *output_data;
-  typedef void (PairTracker::*FnPtrPack)(int, int, int, double *);
+  using FnPtrPack = void (PairTracker::*)(int, int, int, double *);
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_id1(int, int, int, double *);

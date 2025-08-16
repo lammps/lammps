@@ -210,21 +210,12 @@ The default options are *dir* = "hdnnp/", *showew* = yes, *showewsum* = 0, *maxe
 
 .. _Behler_Parrinello_2007:
 
-**(Behler and Parrinello 2007)** `Behler, J.; Parrinello, M. Generalized
-Neural-Network Representation of High-Dimensional Potential-Energy Surfaces.
-Phys. Rev. Lett.  2007, 98 (14), 146401.
-<https://doi.org/10.1103/PhysRevLett.98.146401>`__
+**(Behler and Parrinello 2007)** Behler, J.; Parrinello, M. Phys. Rev. Lett.  2007, 98 (14), 146401.
 
 .. _Singraber_Behler_Dellago_2019:
 
-**(Singraber, Behler and Dellago 2019)** `Singraber, A.; Behler, J.; Dellago, C.
-Library-Based LAMMPS Implementation of High-Dimensional Neural Network
-Potentials. J. Chem.  Theory Comput. 2019, 15 (3), 1827-1840
-<https://doi.org/10.1021/acs.jctc.8b00770>`__
+**(Singraber, Behler and Dellago 2019)** Singraber, A.; Behler, J.; Dellago, C. J., Chem.  Theory Comput. 2019, 15 (3), 1827-1840
 
 .. _Singraber_et_al_2019:
 
-**(Singraber et al 2019)** `Singraber, A.; Morawietz, T.; Behler, J.; Dellago,
-C. Parallel Multistream Training of High-Dimensional Neural Network Potentials.
-J. Chem. Theory Comput.  2019, 15 (5), 3075-3092.
-<https://doi.org/10.1021/acs.jctc.8b01092>`__
+**(Singraber et al 2019)** Singraber, A.; Morawietz, T.; Behler, J.; Dellago, C., J. Chem. Theory Comput.  2019, 15 (5), 3075-3092.

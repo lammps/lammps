@@ -151,7 +151,7 @@ class AtomKokkos : public Atom {
   static int map_find_hash_kokkos(tagint global, const dual_hash_type &k_map_hash)
   {
     int local = -1;
-    auto& d_map_hash = k_map_hash.const_view<DeviceType>();
+    auto& d_map_hash = k_map_hash.const_view<DeviceType>(); // must be alias
     auto index = d_map_hash.find(global);
     if (d_map_hash.valid_at(index))
       local = d_map_hash.value_at(index);
@@ -165,7 +165,6 @@ class AtomKokkos : public Atom {
   void modified(const ExecutionSpace space, unsigned int mask);
   void sync_overlapping_device(const ExecutionSpace space, unsigned int mask);
   void sort() override;
-  virtual void grow(unsigned int mask);
   int add_custom(const char *, int, int, int border = 0) override;
   void remove_custom(int, int, int) override;
   void deallocate_topology() override;

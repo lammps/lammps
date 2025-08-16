@@ -53,7 +53,7 @@ ResetAtomsID::ResetAtomsID(LAMMPS *lmp) : Command(lmp)
 void ResetAtomsID::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR, "Reset_atoms id command before simulation box is defined");
+    error->all(FLERR, "Reset_atoms id command before simulation box is defined" + utils::errorurl(33));
   if (atom->tag_enable == 0) error->all(FLERR, "Cannot use reset_atoms id unless atoms have IDs");
 
   for (const auto &ifix : modify->get_fix_list())
@@ -418,7 +418,7 @@ void ResetAtomsID::sort()
 
   int *proclist;
   memory->create(proclist, nlocal, "special:proclist");
-  auto atombuf =
+  auto *atombuf =
       (AtomRvous *) memory->smalloc((bigint) nlocal * sizeof(AtomRvous), "resetIDs:idbuf");
 
   int ibinx, ibiny, ibinz, iproc;
@@ -449,7 +449,7 @@ void ResetAtomsID::sort()
   char *buf;
   int nreturn = comm->rendezvous(1, nlocal, (char *) atombuf, sizeof(AtomRvous), 0, proclist,
                                  sort_bins, 0, buf, sizeof(IDRvous), (void *) this);
-  auto outbuf = (IDRvous *) buf;
+  auto *outbuf = (IDRvous *) buf;
 
   memory->destroy(proclist);
   memory->sfree(atombuf);
@@ -476,7 +476,7 @@ int ResetAtomsID::sort_bins(int n, char *inbuf, int &flag, int *&proclist, char 
 {
   int i, ibin, index;
 
-  auto rptr = (ResetAtomsID *) ptr;
+  auto *rptr = (ResetAtomsID *) ptr;
   Memory *memory = rptr->memory;
   Error *error = rptr->error;
   MPI_Comm world = rptr->world;
@@ -504,7 +504,7 @@ int ResetAtomsID::sort_bins(int n, char *inbuf, int &flag, int *&proclist, char 
     count[ibin] = 0;
   }
 
-  auto in = (AtomRvous *) inbuf;
+  auto *in = (AtomRvous *) inbuf;
 
   for (i = 0; i < n; i++) {
     if (in[i].ibin < binlo || in[i].ibin >= binhi) {
@@ -562,7 +562,7 @@ int ResetAtomsID::sort_bins(int n, char *inbuf, int &flag, int *&proclist, char 
 
   int nout = n;
   memory->create(proclist, nout, "resetIDs:proclist");
-  auto out = (IDRvous *) memory->smalloc(nout * sizeof(IDRvous), "resetIDs:out");
+  auto *out = (IDRvous *) memory->smalloc(nout * sizeof(IDRvous), "resetIDs:out");
 
   tagint one = nprev + 1;
   for (ibin = 0; ibin < nbins; ibin++) {
@@ -624,7 +624,7 @@ int compare_coords(const void *iptr, const void *jptr)
 
 int compare_coords(const int i, const int j, void *ptr)
 {
-  auto rvous = (ResetAtomsID::AtomRvous *) ptr;
+  auto *rvous = (ResetAtomsID::AtomRvous *) ptr;
   double *xi = rvous[i].x;
   double *xj = rvous[j].x;
   if (xi[0] < xj[0]) return -1;

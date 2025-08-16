@@ -30,7 +30,10 @@ static constexpr double EPSILON = 1e-10;
    Default rolling friction model
 ------------------------------------------------------------------------- */
 
-GranSubModRolling::GranSubModRolling(GranularModel *gm, LAMMPS *lmp) : GranSubMod(gm, lmp) {}
+GranSubModRolling::GranSubModRolling(GranularModel *gm, LAMMPS *lmp) : GranSubMod(gm, lmp)
+{
+  allow_synchronization = 0;
+}
 
 /* ----------------------------------------------------------------------
    No model
@@ -39,6 +42,7 @@ GranSubModRolling::GranSubModRolling(GranularModel *gm, LAMMPS *lmp) : GranSubMo
 GranSubModRollingNone::GranSubModRollingNone(GranularModel *gm, LAMMPS *lmp) :
     GranSubModRolling(gm, lmp)
 {
+  allow_synchronization = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -50,6 +54,7 @@ GranSubModRollingSDS::GranSubModRollingSDS(GranularModel *gm, LAMMPS *lmp) :
 {
   num_coeffs = 3;
   size_history = 3;
+  allow_synchronization = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -68,7 +73,7 @@ void GranSubModRollingSDS::coeffs_to_local()
 void GranSubModRollingSDS::calculate_forces()
 {
   int rhist0, rhist1, rhist2, frameupdate;
-  double Frcrit, rolldotn, rollmag, prjmag, magfr, hist_temp[3], scalefac, temp_array[3];
+  double Frcrit, rolldotn, rollmag, magfr, hist_temp[3], temp_array[3];
   double k_inv, magfr_inv;
 
   rhist0 = history_index;
@@ -77,29 +82,26 @@ void GranSubModRollingSDS::calculate_forces()
 
   Frcrit = mu * gm->normal_model->get_fncrit();
 
+  hist_temp[0] = gm->history[rhist0];
+  hist_temp[1] = gm->history[rhist1];
+  hist_temp[2] = gm->history[rhist2];
+
   if (gm->history_update) {
-    hist_temp[0] = gm->history[rhist0];
-    hist_temp[1] = gm->history[rhist1];
-    hist_temp[2] = gm->history[rhist2];
     rolldotn = dot3(hist_temp, gm->nx);
 
     frameupdate = (fabs(rolldotn) * k) > (EPSILON * Frcrit);
-    if (frameupdate) {    // rotate into tangential plane
-      rollmag = len3(hist_temp);
-      // projection
-      scale3(rolldotn, gm->nx, temp_array);
-      sub3(hist_temp, temp_array, hist_temp);
+    if (frameupdate) rotate_rescale_vec(hist_temp, gm->nx);
 
-      // also rescale to preserve magnitude
-      prjmag = len3(hist_temp);
-      if (prjmag > 0)
-        scalefac = rollmag / prjmag;
-      else
-        scalefac = 0;
-      scale3(scalefac, hist_temp);
-    }
+    // update history at half-step
     scale3(gm->dt, gm->vrl, temp_array);
     add3(hist_temp, temp_array, hist_temp);
+
+    // rotate into tangential plane at full-step for synchronized_verlet
+    if (gm->synchronized_verlet == 1) {
+      rolldotn = dot3(hist_temp, gm->nx_unrotated);
+      frameupdate = (fabs(rolldotn) * k) > (EPSILON * Frcrit);
+      if (frameupdate) rotate_rescale_vec(hist_temp, gm->nx_unrotated);
+    }
   }
 
   scaleadd3(-k, hist_temp, -gamma, gm->vrl, gm->fr);

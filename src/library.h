@@ -24,7 +24,7 @@
 /* We follow the behavior of regular LAMMPS compilation and assume
  * -DLAMMPS_SMALLBIG when no define is set. */
 
-#if !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG) && !defined(LAMMPS_SMALLSMALL)
+#if !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG)
 #define LAMMPS_SMALLBIG
 #endif
 
@@ -37,6 +37,8 @@
 #if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
 #include <stdint.h> /* for int64_t */
 #endif
+
+// NOLINTBEGIN
 
 /** Data type constants for extracting data from atoms, computes and fixes
  *
@@ -109,6 +111,17 @@ enum _LMP_VAR_CONST {
   LMP_VAR_STRING = 3  /*!< return value will be a string (catch-all) */
 };
 
+/** Neighbor list settings constants
+ *
+ * Must be kept in sync with the equivalent constants in ``python/lammps/constants.py``,
+ * ``fortran/lammps.f90``, ``tools/swig/lammps.i``, and
+ * ``examples/COUPLE/plugin/liblammpsplugin.h`` */
+
+enum _LMP_NEIGH_CONST {
+  LMP_NEIGH_HALF = 0, /*!< request (default) half neighbor list */
+  LMP_NEIGH_FULL = 1, /*!< request full neighbor list */
+};
+
 /* Ifdefs to allow this file to be included in C and C++ programs */
 
 #ifdef __cplusplus
@@ -129,9 +142,12 @@ void lammps_close(void *handle);
 void lammps_mpi_init();
 void lammps_mpi_finalize();
 void lammps_kokkos_finalize();
+void lammps_plugin_finalize();
 void lammps_python_finalize();
 
 void lammps_error(void *handle, int error_type, const char *error_text);
+
+char *lammps_expand(void *handle, const char *line);
 
 /* ----------------------------------------------------------------------
  * Library functions to process commands
@@ -172,6 +188,7 @@ int lammps_map_atom(void *handle, const void *id);
  * ---------------------------------------------------------------------- */
 
 int lammps_extract_atom_datatype(void *handle, const char *name);
+int lammps_extract_atom_size(void *handle, const char *name, int type);
 void *lammps_extract_atom(void *handle, const char *name);
 
 /* ----------------------------------------------------------------------
@@ -186,6 +203,11 @@ int lammps_set_variable(void *handle, const char *name, const char *str);
 int lammps_set_string_variable(void *handle, const char *name, const char *str);
 int lammps_set_internal_variable(void *handle, const char *name, double value);
 int lammps_variable_info(void *handle, int idx, char *buf, int bufsize);
+double lammps_eval(void *handle, const char *expr);
+
+void lammps_clearstep_compute(void *handle);
+void lammps_addstep_compute_all(void *handle, void *nextstep);
+void lammps_addstep_compute(void *handle, void *nextstep);
 
 /* ----------------------------------------------------------------------
  * Library functions for scatter/gather operations of data
@@ -220,6 +242,8 @@ int lammps_create_atoms(void *handle, int n, const int64_t *id, const int *type,
                         const double *v, const int64_t *image, int bexpand);
 #endif
 
+void lammps_create_molecule(void *handle, const char *id, const char *json);
+
 /* ----------------------------------------------------------------------
  * Library functions for accessing neighbor lists
  * ---------------------------------------------------------------------- */
@@ -227,6 +251,7 @@ int lammps_create_atoms(void *handle, int n, const int64_t *id, const int *type,
 int lammps_find_pair_neighlist(void *handle, const char *style, int exact, int nsub, int request);
 int lammps_find_fix_neighlist(void *handle, const char *id, int request);
 int lammps_find_compute_neighlist(void *handle, const char *id, int request);
+int lammps_request_single_neighlist(void *handle, const char *id, int flags, double cutoff);
 int lammps_neighlist_num_elements(void *handle, int idx);
 void lammps_neighlist_element_neighbors(void *handle, int idx, int element, int *iatom,
                                         int *numneigh, int **neighbors);
@@ -243,6 +268,7 @@ int lammps_config_has_gzip_support();
 int lammps_config_has_png_support();
 int lammps_config_has_jpeg_support();
 int lammps_config_has_ffmpeg_support();
+int lammps_config_has_curl_support();
 int lammps_config_has_exceptions();
 
 int lammps_config_has_package(const char *);
@@ -278,10 +304,8 @@ void lammps_decode_image_flags(int64_t image, int *flags);
 
 #if defined(LAMMPS_BIGBIG)
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
-#elif defined(LAMMPS_SMALLBIG)
-typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
 #else
-typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
+typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
 #endif
 
 void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalFnPtr funcptr,
@@ -303,8 +327,11 @@ void lammps_force_timeout(void *handle);
 
 int lammps_has_error(void *handle);
 int lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
+int lammps_set_show_error(void *handle, const int flag);
 
 int lammps_python_api_version();
+
+// NOLINTEND
 
 #ifdef __cplusplus
 }

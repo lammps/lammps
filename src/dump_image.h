@@ -54,9 +54,10 @@ class DumpImage : public DumpCustom {
   int fixcolor;                   // what determines color of fix objects
   double fixflag1, fixflag2;      // user-specified params for fix objects
 
-  int bondflag;         // 0/1 for draw bonds
+  int bondflag;         // NO/YES/AUTO for drawing bonds
   int bcolor, bdiam;    // what determines color/diam of bonds
   double bdiamvalue;    // bond diameter value
+  double bondcutoff;    // autobond cutoff
 
   int extraflag;                        // 0/1 for any of line/tri/body flag set
   char *thetastr, *phistr;              // variables for view theta,phi
@@ -79,17 +80,17 @@ class DumpImage : public DumpCustom {
   double *diamtype, *diamelement, *bdiamtype;          // per-type diameters
   double **colortype, **colorelement, **bcolortype;    // per-type colors
 
-  int gridflag;         // 0/1 for draw grid cells
+  int gridflag;    // 0/1 for draw grid cells
   class Grid2d *grid2d;
   class Grid3d *grid3d;
-  char *id_grid_compute,*id_grid_fix;
+  char *id_grid_compute, *id_grid_fix;
   class Compute *grid_compute;
   class Fix *grid_fix;
-  int grid_igrid,grid_idata,grid_index;
-  int nxgrid,nygrid,nzgrid;
-  int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
+  int grid_igrid, grid_idata, grid_index;
+  int nxgrid, nygrid, nzgrid;
+  int nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in;
   double *gbuf;
-  int ngrid,maxgrid;
+  int ngrid, maxgrid;
   double gcorners[8][3];
 
   class AtomVecLine *avec_line;    // ptrs to atom style (sub)classes
@@ -98,10 +99,10 @@ class DumpImage : public DumpCustom {
 
   class Fix *fixptr;    // ptr to Fix that provides image data
 
-  class Image *image;   // class that renders each image
+  class Image *image;    // class that renders each image
 
-  int *chooseghost;     // extended choose array for comm
-  double **bufcopy;     // buffer for communicating bond/atom info
+  int *chooseghost;    // extended choose array for comm
+  double **bufcopy;    // buffer for communicating bond/atom info
   int maxbufcopy;
 
   void init_style() override;

@@ -121,6 +121,7 @@ TEST(TEST_CATEGORY_DEATH, policy_invalid_bounds) {
   // escape the parentheses in the regex to match the error message
   msg1 = std::regex_replace(msg1, std::regex("\\(|\\)"), "\\$&");
   (void)msg2;
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   ASSERT_DEATH({ (void)Policy({100, 100}, {90, 90}); }, msg1);
 #else
   if (!Kokkos::show_warnings()) {
@@ -140,5 +141,63 @@ TEST(TEST_CATEGORY_DEATH, policy_invalid_bounds) {
 #endif
 }
 #endif
+
+TEST(TEST_CATEGORY, policy_get_tile_size) {
+  constexpr int rank = 3;
+  using Policy    = Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<rank>>;
+  using tile_type = typename Policy::tile_type;
+
+  std::size_t last_rank =
+      (Policy::inner_direction == Kokkos::Iterate::Right) ? rank - 1 : 0;
+
+  auto default_size_properties =
+      Kokkos::Impl::get_tile_size_properties(TEST_EXECSPACE());
+
+  {
+    int dim_length = 100;
+    Policy policy_default({0, 0, 0}, {dim_length, dim_length, dim_length});
+
+    auto rec_tile_sizes      = policy_default.tile_size_recommended();
+    auto internal_tile_sizes = policy_default.m_tile;
+
+    for (std::size_t i = 0; i < rank; ++i) {
+      EXPECT_EQ(rec_tile_sizes[i], internal_tile_sizes[i])
+          << " incorrect recommended tile size returned for rank " << i;
+    }
+  }
+  {
+    int dim_length = 100;
+    Policy policy({0, 0, 0}, {dim_length, dim_length, dim_length},
+                  tile_type{{2, 4, 16}});
+
+    auto rec_tile_sizes = policy.tile_size_recommended();
+
+    EXPECT_EQ(default_size_properties.max_total_tile_size,
+              policy.max_total_tile_size());
+
+    int prod_rec_tile_size = 1;
+    for (std::size_t i = 0; i < rank; ++i) {
+      EXPECT_GT(rec_tile_sizes[i], 0)
+          << " invalid default tile size for rank " << i;
+
+      if (default_size_properties.default_largest_tile_size == 0) {
+        auto expected_rec_tile_size =
+            (i == last_rank) ? dim_length
+                             : default_size_properties.default_tile_size;
+        EXPECT_EQ(expected_rec_tile_size, rec_tile_sizes[i])
+            << " incorrect recommended tile size returned for rank " << i;
+      } else {
+        auto expected_rec_tile_size =
+            (i == last_rank) ? default_size_properties.default_largest_tile_size
+                             : default_size_properties.default_tile_size;
+        EXPECT_EQ(expected_rec_tile_size, rec_tile_sizes[i])
+            << " incorrect recommended tile size returned for rank " << i;
+      }
+
+      prod_rec_tile_size *= rec_tile_sizes[i];
+    }
+    EXPECT_LT(prod_rec_tile_size, policy.max_total_tile_size());
+  }
+}
 
 }  // namespace

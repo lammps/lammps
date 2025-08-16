@@ -25,6 +25,8 @@
 
 #include <HPX/Kokkos_HPX.hpp>
 
+#include <impl/Kokkos_TaskTeamMember.hpp>
+
 #include <hpx/execution.hpp>
 #include <hpx/future.hpp>
 
@@ -32,6 +34,11 @@
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+// We allow using deprecated classes in this file
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
 
 namespace Kokkos {
 namespace Impl {
@@ -121,8 +128,8 @@ class TaskQueueSpecialization<
 template <class Scheduler>
 class TaskQueueSpecializationConstrained<
     Scheduler,
-    std::enable_if_t<std::is_same<typename Scheduler::execution_space,
-                                  Kokkos::Experimental::HPX>::value>> {
+    std::enable_if_t<std::is_same_v<typename Scheduler::execution_space,
+                                    Kokkos::Experimental::HPX>>> {
  public:
   void setup() const {
     const int num_worker_threads = Kokkos::Experimental::HPX().concurrency();
@@ -255,6 +262,10 @@ extern template class TaskQueue<
 
 }  // namespace Impl
 }  // namespace Kokkos
+
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

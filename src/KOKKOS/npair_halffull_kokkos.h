@@ -18,25 +18,25 @@
 
 // Newton, no triclinic
 
-typedef NPairHalffullKokkos<LMPDeviceType,1,0,0> NPairKokkosHalffullNewtonDevice;
+using NPairKokkosHalffullNewtonDevice = NPairHalffullKokkos<LMPDeviceType,1,0,0>;
 NPairStyle(halffull/newton/kk/device,
            NPairKokkosHalffullNewtonDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,1,0,0> NPairKokkosHalffullNewtonHost;
+using NPairKokkosHalffullNewtonHost = NPairHalffullKokkos<LMPHostType,1,0,0>;
 NPairStyle(halffull/newton/kk/host,
            NPairKokkosHalffullNewtonHost,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_KOKKOS_HOST);
 
-typedef NPairHalffullKokkos<LMPDeviceType,1,0,0> NPairKokkosHalffullNewtonDevice;
+using NPairKokkosHalffullNewtonDevice = NPairHalffullKokkos<LMPDeviceType,1,0,0>;
 NPairStyle(halffull/newton/skip/kk/device,
            NPairKokkosHalffullNewtonDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_SKIP | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,1,0,0> NPairKokkosHalffullNewtonHost;
+using NPairKokkosHalffullNewtonHost = NPairHalffullKokkos<LMPHostType,1,0,0>;
 NPairStyle(halffull/newton/skip/kk/host,
            NPairKokkosHalffullNewtonHost,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
@@ -44,25 +44,25 @@ NPairStyle(halffull/newton/skip/kk/host,
 
 // Newton, triclinic
 
-typedef NPairHalffullKokkos<LMPDeviceType,1,1,0> NPairKokkosHalffullNewtonTriDevice;
+using NPairKokkosHalffullNewtonTriDevice = NPairHalffullKokkos<LMPDeviceType,1,1,0>;
 NPairStyle(halffull/newton/tri/kk/device,
            NPairKokkosHalffullNewtonTriDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,1,1,0> NPairKokkosHalffullNewtonTriHost;
+using NPairKokkosHalffullNewtonTriHost = NPairHalffullKokkos<LMPHostType,1,1,0>;
 NPairStyle(halffull/newton/tri/kk/host,
            NPairKokkosHalffullNewtonTriHost,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_KOKKOS_HOST);
 
-typedef NPairHalffullKokkos<LMPDeviceType,1,1,0> NPairKokkosHalffullNewtonTriDevice;
+using NPairKokkosHalffullNewtonTriDevice = NPairHalffullKokkos<LMPDeviceType,1,1,0>;
 NPairStyle(halffull/newton/tri/skip/kk/device,
            NPairKokkosHalffullNewtonTriDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_SKIP | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,1,1,0> NPairKokkosHalffullNewtonTriHost;
+using NPairKokkosHalffullNewtonTriHost = NPairHalffullKokkos<LMPHostType,1,1,0>;
 NPairStyle(halffull/newton/tri/skip/kk/host,
            NPairKokkosHalffullNewtonTriHost,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
@@ -70,25 +70,25 @@ NPairStyle(halffull/newton/tri/skip/kk/host,
 
 // Newtoff (can be triclinic but template param always set to 0)
 
-typedef NPairHalffullKokkos<LMPDeviceType,0,0,0> NPairKokkosHalffullNewtoffDevice;
+using NPairKokkosHalffullNewtoffDevice = NPairHalffullKokkos<LMPDeviceType,0,0,0>;
 NPairStyle(halffull/newtoff/kk/device,
            NPairKokkosHalffullNewtoffDevice,
            NP_HALF_FULL | NP_NEWTOFF | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,0,0,0> NPairKokkosHalffullNewtoffHost;
+using NPairKokkosHalffullNewtoffHost = NPairHalffullKokkos<LMPHostType,0,0,0>;
 NPairStyle(halffull/newtoff/kk/host,
            NPairKokkosHalffullNewtoffHost,
            NP_HALF_FULL | NP_NEWTOFF | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_KOKKOS_HOST);
 
-typedef NPairHalffullKokkos<LMPDeviceType,0,0,0> NPairKokkosHalffullNewtoffDevice;
+using NPairKokkosHalffullNewtoffDevice = NPairHalffullKokkos<LMPDeviceType,0,0,0>;
 NPairStyle(halffull/newtoff/skip/kk/device,
            NPairKokkosHalffullNewtoffDevice,
            NP_HALF_FULL | NP_NEWTOFF | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_SKIP | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,0,0,0> NPairKokkosHalffullNewtoffHost;
+using NPairKokkosHalffullNewtoffHost = NPairHalffullKokkos<LMPHostType,0,0,0>;
 NPairStyle(halffull/newtoff/skip/kk/host,
            NPairKokkosHalffullNewtoffHost,
            NP_HALF_FULL | NP_NEWTOFF | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
@@ -98,25 +98,25 @@ NPairStyle(halffull/newtoff/skip/kk/host,
 
 // Newton, no triclinic
 
-typedef NPairHalffullKokkos<LMPDeviceType,1,0,0> NPairKokkosHalffullNewtonDevice;
+using NPairKokkosHalffullNewtonDevice = NPairHalffullKokkos<LMPDeviceType,1,0,0>;
 NPairStyle(halffull/newton/ghost/kk/device,
            NPairKokkosHalffullNewtonDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_GHOST | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,1,0,0> NPairKokkosHalffullNewtonHost;
+using NPairKokkosHalffullNewtonHost = NPairHalffullKokkos<LMPHostType,1,0,0>;
 NPairStyle(halffull/newton/ghost/kk/host,
            NPairKokkosHalffullNewtonHost,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_GHOST | NP_KOKKOS_HOST);
 
-typedef NPairHalffullKokkos<LMPDeviceType,1,0,0> NPairKokkosHalffullNewtonDevice;
+using NPairKokkosHalffullNewtonDevice = NPairHalffullKokkos<LMPDeviceType,1,0,0>;
 NPairStyle(halffull/newton/skip/ghost/kk/device,
            NPairKokkosHalffullNewtonDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_GHOST | NP_SKIP | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,1,0,0> NPairKokkosHalffullNewtonHost;
+using NPairKokkosHalffullNewtonHost = NPairHalffullKokkos<LMPHostType,1,0,0>;
 NPairStyle(halffull/newton/skip/ghost/kk/host,
            NPairKokkosHalffullNewtonHost,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
@@ -124,25 +124,25 @@ NPairStyle(halffull/newton/skip/ghost/kk/host,
 
 // Newton, triclinic
 
-typedef NPairHalffullKokkos<LMPDeviceType,1,1,0> NPairKokkosHalffullNewtonTriDevice;
+using NPairKokkosHalffullNewtonTriDevice = NPairHalffullKokkos<LMPDeviceType,1,1,0>;
 NPairStyle(halffull/newton/tri/ghost/kk/device,
            NPairKokkosHalffullNewtonTriDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_GHOST | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,1,1,0> NPairKokkosHalffullNewtonTriHost;
+using NPairKokkosHalffullNewtonTriHost = NPairHalffullKokkos<LMPHostType,1,1,0>;
 NPairStyle(halffull/newton/tri/ghost/kk/host,
            NPairKokkosHalffullNewtonTriHost,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_GHOST | NP_KOKKOS_HOST);
 
-typedef NPairHalffullKokkos<LMPDeviceType,1,1,0> NPairKokkosHalffullNewtonTriDevice;
+using NPairKokkosHalffullNewtonTriDevice = NPairHalffullKokkos<LMPDeviceType,1,1,0>;
 NPairStyle(halffull/newton/tri/skip/ghost/kk/device,
            NPairKokkosHalffullNewtonTriDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_GHOST | NP_SKIP | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,1,1,0> NPairKokkosHalffullNewtonTriHost;
+using NPairKokkosHalffullNewtonTriHost = NPairHalffullKokkos<LMPHostType,1,1,0>;
 NPairStyle(halffull/newton/tri/skip/ghost/kk/host,
            NPairKokkosHalffullNewtonTriHost,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
@@ -150,25 +150,25 @@ NPairStyle(halffull/newton/tri/skip/ghost/kk/host,
 
 // Newtoff (can be triclinic but template param always set to 0)
 
-typedef NPairHalffullKokkos<LMPDeviceType,0,0,0> NPairKokkosHalffullNewtoffDevice;
+using NPairKokkosHalffullNewtoffDevice = NPairHalffullKokkos<LMPDeviceType,0,0,0>;
 NPairStyle(halffull/newtoff/ghost/kk/device,
            NPairKokkosHalffullNewtoffDevice,
            NP_HALF_FULL | NP_NEWTOFF | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_GHOST | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,0,0,0> NPairKokkosHalffullNewtoffHost;
+using NPairKokkosHalffullNewtoffHost = NPairHalffullKokkos<LMPHostType,0,0,0>;
 NPairStyle(halffull/newtoff/ghost/kk/host,
            NPairKokkosHalffullNewtoffHost,
            NP_HALF_FULL | NP_NEWTOFF | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_GHOST | NP_KOKKOS_HOST);
 
-typedef NPairHalffullKokkos<LMPDeviceType,0,0,0> NPairKokkosHalffullNewtoffDevice;
+using NPairKokkosHalffullNewtoffDevice = NPairHalffullKokkos<LMPDeviceType,0,0,0>;
 NPairStyle(halffull/newtoff/skip/ghost/kk/device,
            NPairKokkosHalffullNewtoffDevice,
            NP_HALF_FULL | NP_NEWTOFF | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_GHOST | NP_SKIP | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,0,0,0> NPairKokkosHalffullNewtoffHost;
+using NPairKokkosHalffullNewtoffHost = NPairHalffullKokkos<LMPHostType,0,0,0>;
 NPairStyle(halffull/newtoff/skip/ghost/kk/host,
            NPairKokkosHalffullNewtoffHost,
            NP_HALF_FULL | NP_NEWTOFF | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
@@ -178,25 +178,25 @@ NPairStyle(halffull/newtoff/skip/ghost/kk/host,
 
 // Newton, no triclinic
 
-typedef NPairHalffullKokkos<LMPDeviceType,1,0,1> NPairKokkosHalffullNewtonTrimDevice;
+using NPairKokkosHalffullNewtonTrimDevice = NPairHalffullKokkos<LMPDeviceType,1,0,1>;
 NPairStyle(halffull/newton/trim/kk/device,
            NPairKokkosHalffullNewtonTrimDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRIM | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,1,0,1> NPairKokkosHalffullNewtonTrimHost;
+using NPairKokkosHalffullNewtonTrimHost = NPairHalffullKokkos<LMPHostType,1,0,1>;
 NPairStyle(halffull/newton/trim/kk/host,
            NPairKokkosHalffullNewtonTrimHost,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRIM | NP_KOKKOS_HOST);
 
-typedef NPairHalffullKokkos<LMPDeviceType,1,0,1> NPairKokkosHalffullNewtonTrimDevice;
+using NPairKokkosHalffullNewtonTrimDevice = NPairHalffullKokkos<LMPDeviceType,1,0,1>;
 NPairStyle(halffull/newton/trim/skip/kk/device,
            NPairKokkosHalffullNewtonTrimDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_SKIP | NP_TRIM | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,1,0,1> NPairKokkosHalffullNewtonTrimHost;
+using NPairKokkosHalffullNewtonTrimHost = NPairHalffullKokkos<LMPHostType,1,0,1>;
 NPairStyle(halffull/newton/trim/skip/kk/host,
            NPairKokkosHalffullNewtonTrimHost,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
@@ -204,25 +204,25 @@ NPairStyle(halffull/newton/trim/skip/kk/host,
 
 // Newton, triclinic
 
-typedef NPairHalffullKokkos<LMPDeviceType,1,1,1> NPairKokkosHalffullNewtonTriTrimDevice;
+using NPairKokkosHalffullNewtonTriTrimDevice = NPairHalffullKokkos<LMPDeviceType,1,1,1>;
 NPairStyle(halffull/newton/tri/trim/kk/device,
            NPairKokkosHalffullNewtonTriTrimDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_TRIM | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,1,1,1> NPairKokkosHalffullNewtonTriTrimHost;
+using NPairKokkosHalffullNewtonTriTrimHost = NPairHalffullKokkos<LMPHostType,1,1,1>;
 NPairStyle(halffull/newton/tri/trim/kk/host,
            NPairKokkosHalffullNewtonTriTrimHost,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_TRIM | NP_KOKKOS_HOST);
 
-typedef NPairHalffullKokkos<LMPDeviceType,1,1,1> NPairKokkosHalffullNewtonTriTrimDevice;
+using NPairKokkosHalffullNewtonTriTrimDevice = NPairHalffullKokkos<LMPDeviceType,1,1,1>;
 NPairStyle(halffull/newton/tri/trim/skip/kk/device,
            NPairKokkosHalffullNewtonTrimDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_SKIP | NP_TRIM | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,1,1,1> NPairKokkosHalffullNewtonTriTrimHost;
+using NPairKokkosHalffullNewtonTriTrimHost = NPairHalffullKokkos<LMPHostType,1,1,1>;
 NPairStyle(halffull/newton/tri/trim/skip/kk/host,
            NPairKokkosHalffullNewtonTriTrimHost,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
@@ -230,25 +230,25 @@ NPairStyle(halffull/newton/tri/trim/skip/kk/host,
 
 // Newtoff (can be triclinic but template param always set to 0)
 
-typedef NPairHalffullKokkos<LMPDeviceType,0,0,1> NPairKokkosHalffullNewtoffTrimDevice;
+using NPairKokkosHalffullNewtoffTrimDevice = NPairHalffullKokkos<LMPDeviceType,0,0,1>;
 NPairStyle(halffull/newtoff/trim/kk/device,
            NPairKokkosHalffullNewtoffTrimDevice,
            NP_HALF_FULL | NP_NEWTOFF | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_TRIM | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,0,0,1> NPairKokkosHalffullNewtoffTrimHost;
+using NPairKokkosHalffullNewtoffTrimHost = NPairHalffullKokkos<LMPHostType,0,0,1>;
 NPairStyle(halffull/newtoff/trim/kk/host,
            NPairKokkosHalffullNewtoffTrimHost,
            NP_HALF_FULL | NP_NEWTOFF | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_TRIM | NP_KOKKOS_HOST);
 
-typedef NPairHalffullKokkos<LMPDeviceType,0,0,1> NPairKokkosHalffullNewtoffTrimDevice;
+using NPairKokkosHalffullNewtoffTrimDevice = NPairHalffullKokkos<LMPDeviceType,0,0,1>;
 NPairStyle(halffull/newtoff/trim/skip/kk/device,
            NPairKokkosHalffullNewtoffTrimDevice,
            NP_HALF_FULL | NP_NEWTOFF | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_SKIP | NP_TRIM | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,0,0,1> NPairKokkosHalffullNewtoffTrimHost;
+using NPairKokkosHalffullNewtoffTrimHost = NPairHalffullKokkos<LMPHostType,0,0,1>;
 NPairStyle(halffull/newtoff/trim/skip/kk/host,
            NPairKokkosHalffullNewtoffTrimHost,
            NP_HALF_FULL | NP_NEWTOFF | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
@@ -258,25 +258,25 @@ NPairStyle(halffull/newtoff/trim/skip/kk/host,
 
 // Newton, no triclinic
 
-typedef NPairHalffullKokkos<LMPDeviceType,1,0,1> NPairKokkosHalffullNewtonTrimDevice;
+using NPairKokkosHalffullNewtonTrimDevice = NPairHalffullKokkos<LMPDeviceType,1,0,1>;
 NPairStyle(halffull/newton/tri/trim/ghost/kk/device,
            NPairKokkosHalffullNewtonTrimDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_GHOST | NP_TRIM | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,1,0,1> NPairKokkosHalffullNewtonTrimHost;
+using NPairKokkosHalffullNewtonTrimHost = NPairHalffullKokkos<LMPHostType,1,0,1>;
 NPairStyle(halffull/newton/trim/ghost/kk/host,
            NPairKokkosHalffullNewtonTrimHost,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_GHOST | NP_TRIM | NP_KOKKOS_HOST);
 
-typedef NPairHalffullKokkos<LMPDeviceType,1,0,1> NPairKokkosHalffullNewtonTrimDevice;
+using NPairKokkosHalffullNewtonTrimDevice = NPairHalffullKokkos<LMPDeviceType,1,0,1>;
 NPairStyle(halffull/newton/trim/skip/ghost/kk/device,
            NPairKokkosHalffullNewtonTrimDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_GHOST | NP_SKIP | NP_TRIM | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,1,0,1> NPairKokkosHalffullNewtonTrimHost;
+using NPairKokkosHalffullNewtonTrimHost = NPairHalffullKokkos<LMPHostType,1,0,1>;
 NPairStyle(halffull/newton/trim/skip/ghost/kk/host,
            NPairKokkosHalffullNewtonTrimHost,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
@@ -284,25 +284,25 @@ NPairStyle(halffull/newton/trim/skip/ghost/kk/host,
 
 // Newton, triclinic
 
-typedef NPairHalffullKokkos<LMPDeviceType,1,1,1> NPairKokkosHalffullNewtonTriTrimDevice;
+using NPairKokkosHalffullNewtonTriTrimDevice = NPairHalffullKokkos<LMPDeviceType,1,1,1>;
 NPairStyle(halffull/newton/tri/trim/ghost/kk/device,
            NPairKokkosHalffullNewtonTriTrimDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_GHOST | NP_TRIM | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,1,1,1> NPairKokkosHalffullNewtonTriTrimHost;
+using NPairKokkosHalffullNewtonTriTrimHost = NPairHalffullKokkos<LMPHostType,1,1,1>;
 NPairStyle(halffull/newton/tri/trim/ghost/kk/host,
            NPairKokkosHalffullNewtonTriTrimHost,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_GHOST | NP_TRIM | NP_KOKKOS_HOST);
 
-typedef NPairHalffullKokkos<LMPDeviceType,1,1,1> NPairKokkosHalffullNewtonTriTrimDevice;
+using NPairKokkosHalffullNewtonTriTrimDevice = NPairHalffullKokkos<LMPDeviceType,1,1,1>;
 NPairStyle(halffull/newton/tri/trim/skip/ghost/kk/device,
            NPairKokkosHalffullNewtonTriTrimDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_GHOST | NP_SKIP | NP_TRIM | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,1,1,1> NPairKokkosHalffullNewtonTriTrimHost;
+using NPairKokkosHalffullNewtonTriTrimHost = NPairHalffullKokkos<LMPHostType,1,1,1>;
 NPairStyle(halffull/newton/tri/trim/skip/ghost/kk/host,
            NPairKokkosHalffullNewtonTriTrimHost,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
@@ -310,25 +310,25 @@ NPairStyle(halffull/newton/tri/trim/skip/ghost/kk/host,
 
 // Newtoff (can be triclinic but template param always set to 0)
 
-typedef NPairHalffullKokkos<LMPDeviceType,0,0,1> NPairKokkosHalffullNewtoffTrimDevice;
+using NPairKokkosHalffullNewtoffTrimDevice = NPairHalffullKokkos<LMPDeviceType,0,0,1>;
 NPairStyle(halffull/newtoff/trim/ghost/kk/device,
            NPairKokkosHalffullNewtoffTrimDevice,
            NP_HALF_FULL | NP_NEWTOFF | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_GHOST | NP_TRIM | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,0,0,1> NPairKokkosHalffullNewtoffTrimHost;
+using NPairKokkosHalffullNewtoffTrimHost = NPairHalffullKokkos<LMPHostType,0,0,1>;
 NPairStyle(halffull/newtoff/trim/ghost/kk/host,
            NPairKokkosHalffullNewtoffTrimHost,
            NP_HALF_FULL | NP_NEWTOFF | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_GHOST | NP_TRIM | NP_KOKKOS_HOST);
 
-typedef NPairHalffullKokkos<LMPDeviceType,0,0,1> NPairKokkosHalffullNewtoffTrimDevice;
+using NPairKokkosHalffullNewtoffTrimDevice = NPairHalffullKokkos<LMPDeviceType,0,0,1>;
 NPairStyle(halffull/newtoff/trim/skip/ghost/kk/device,
            NPairKokkosHalffullNewtoffTrimDevice,
            NP_HALF_FULL | NP_NEWTOFF | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_GHOST | NP_SKIP | NP_TRIM | NP_KOKKOS_DEVICE);
 
-typedef NPairHalffullKokkos<LMPHostType,0,0,1> NPairKokkosHalffullNewtoffTrimHost;
+using NPairKokkosHalffullNewtoffTrimHost = NPairHalffullKokkos<LMPHostType,0,0,1>;
 NPairStyle(halffull/newtoff/trim/skip/ghost/kk/host,
            NPairKokkosHalffullNewtoffTrimHost,
            NP_HALF_FULL | NP_NEWTOFF | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |

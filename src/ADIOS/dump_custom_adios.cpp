@@ -273,8 +273,8 @@ void DumpCustomADIOS::init_style()
     fix[i] = modify->get_fix_by_id(id_fix[i]);
     if (!fix[i]) error->all(FLERR, "Could not find dump custom/adios fix ID {}", id_fix[i]);
     if (nevery % fix[i]->peratom_freq)
-      error->all(FLERR, "dump custom/adios and fix {} with ID {} not computed at compatible times",
-                 fix[i]->style, id_fix[i]);
+      error->all(FLERR, Error::NOLASTLINE, "dump custom/adios and fix {} with ID {} not "
+                 "computed at compatible times{}", fix[i]->style, id_fix[i], utils::errorurl(7));
   }
 
   int ivariable;

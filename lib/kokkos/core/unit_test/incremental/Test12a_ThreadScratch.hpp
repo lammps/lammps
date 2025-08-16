@@ -75,7 +75,8 @@ struct ThreadScratch {
             .set_scratch_size(scratch_level, Kokkos::PerThread(scratchSize));
 
     int max_team_size = policy.team_size_max(*this, Kokkos::ParallelForTag());
-    v                 = data_t("Matrix", pN, max_team_size);
+    ASSERT_GT(max_team_size, 0);
+    v = data_t("Matrix", pN, max_team_size);
 
     Kokkos::parallel_for(
         "Test12a_ThreadScratch",
@@ -87,7 +88,7 @@ struct ThreadScratch {
     auto v_H = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), v);
 
     size_t check   = 0;
-    const size_t s = pN * sX * sY;
+    const size_t s = static_cast<size_t>(pN) * sX * sY;
     for (int n = 0; n < pN; ++n)
       for (int m = 0; m < max_team_size; ++m) {
         check += v_H(n, m);
@@ -96,12 +97,14 @@ struct ThreadScratch {
   }
 };
 
+KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_PUSH()
 TEST(TEST_CATEGORY, IncrTest_12a_ThreadScratch) {
-  ThreadScratch<TEST_EXECSPACE> test;
 #ifdef KOKKOS_ENABLE_OPENACC  // FIXME_OPENACC
   GTEST_SKIP() << "skipping since scratch memory is not yet implemented in the "
                   "OpenACC backend";
 #endif
+
+  ThreadScratch<TEST_EXECSPACE> test;
   // FIXME_OPENMPTARGET - team_size has to be a multiple of 32 for the tests to
   // pass in the Release and RelWithDebInfo builds. Does not need the team_size
   // to be a multiple of 32 for the Debug builds.
@@ -115,5 +118,6 @@ TEST(TEST_CATEGORY, IncrTest_12a_ThreadScratch) {
   test.run(14, 277, 321);
 #endif
 }
+KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_POP()
 
 }  // namespace Test

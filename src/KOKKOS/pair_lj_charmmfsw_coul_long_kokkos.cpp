@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mitch Murphy (alphataubio)
+   Contributing author: Mitch Murphy (alphataubio@gmail.com)
 
    Based on serial kspace lj-fsw sections (force-switched) provided by
    Robert Meissner and Lucio Colombi Ciacchi of Bremen University, Germany,
@@ -233,7 +233,7 @@ compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
     union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
     const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
-    const F_FLOAT fraction = (rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+    const F_FLOAT fraction = ((F_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
     const F_FLOAT table = d_ftable[itable] + fraction*d_dftable[itable];
     F_FLOAT forcecoul = qtmp*q[j] * table;
     if (factor_coul < 1.0) {
@@ -270,7 +270,7 @@ compute_ecoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
     union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
     const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
-    const F_FLOAT fraction = (rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+    const F_FLOAT fraction = ((F_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
     const F_FLOAT table = d_etable[itable] + fraction*d_detable[itable];
     F_FLOAT ecoul = qtmp*q[j] * table;
     if (factor_coul < 1.0) {
@@ -463,7 +463,6 @@ double PairLJCharmmfswCoulLongKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).lj2 = lj2[i][j];
   k_params.h_view(i,j).lj3 = lj3[i][j];
   k_params.h_view(i,j).lj4 = lj4[i][j];
-  //k_params.h_view(i,j).offset = offset[i][j];
   k_params.h_view(i,j).cut_ljsq = cut_ljsq;
   k_params.h_view(i,j).cut_coulsq = cut_coulsq;
 

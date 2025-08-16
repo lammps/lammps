@@ -79,7 +79,7 @@ void PairLJLongDipoleLong::settings(int narg, char **arg)
   options(arg, 1);
 
   if (!comm->me && ewald_order&(1<<6))
-    error->warning(FLERR,"Geometric mixing assumed for 1/r^6 coefficients");
+    error->warning(FLERR,"Geometric mixing assumed for 1/r^6 coefficients" + utils::errorurl(21));
   if (!comm->me && ewald_order==((1<<3)|(1<<6)))
     error->warning(FLERR,"Using largest cut-off for lj/long/dipole/long long long");
   if (!*(++arg))
@@ -185,7 +185,7 @@ void *PairLJLongDipoleLong::extract(const char *id, int &dim)
 void PairLJLongDipoleLong::coeff(int narg, char **arg)
 {
   if (narg < 4 || narg > 5)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -209,7 +209,7 @@ void PairLJLongDipoleLong::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

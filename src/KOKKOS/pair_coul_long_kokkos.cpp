@@ -170,7 +170,7 @@ compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
     union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
     const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
-    const F_FLOAT fraction = (rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+    const F_FLOAT fraction = ((F_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
     const F_FLOAT table = d_ftable[itable] + fraction*d_dftable[itable];
     F_FLOAT forcecoul = qtmp*q[j] * table;
     if (factor_coul < 1.0) {
@@ -209,7 +209,7 @@ compute_ecoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
     union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
     const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
-    const F_FLOAT fraction = (rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+    const F_FLOAT fraction = ((F_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
     const F_FLOAT table = d_etable[itable] + fraction*d_detable[itable];
     F_FLOAT ecoul = qtmp*q[j] * table;
     if (factor_coul < 1.0) {
@@ -378,6 +378,7 @@ void PairCoulLongKokkos<DeviceType>::init_style()
   PairCoulLong::init_style();
 
   Kokkos::deep_copy(d_cut_coulsq,cut_coulsq);
+  Kokkos::deep_copy(d_cut_ljsq,cut_coulsq);
 
   // error if rRESPA with inner levels
 
@@ -415,6 +416,7 @@ double PairCoulLongKokkos<DeviceType>::init_one(int i, int j)
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
     m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsq;
+    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_coulsq;
   }
 
   k_cutsq.h_view(i,j) = cutone*cutone;

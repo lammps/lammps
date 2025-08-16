@@ -42,6 +42,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -437,7 +438,9 @@ void PairBOP::init_style()
 
 double PairBOP::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
 
   int itype = map[i];
   int jtype = map[j];
@@ -893,7 +896,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
     // k' is loop over neighbors all neighbors of j with k a neighbor
     // of i and j a neighbor of i and determine which k' is k
 
-    if (sigma_f[param_ij] == 0.5 || !sigma_k[param_ij] || !pass_jk) continue;
+    if ((sigma_f[param_ij] == 0.5) || (sigma_k[param_ij] == 0.0) || !pass_jk) continue;
     PairList1 & pl_jk = pairlist1[temp_jk];
     dis_jk[0] = pl_jk.dis[0];
     dis_jk[1] = pl_jk.dis[1];

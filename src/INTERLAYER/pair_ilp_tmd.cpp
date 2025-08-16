@@ -72,7 +72,7 @@ void PairILPTMD::settings(int narg, char **arg)
     error->all(FLERR, "Pair style ilp/tmd must be used as sub-style with hybrid/overlay");
 
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
-  if (narg == 2) tap_flag = utils::numeric(FLERR, arg[1], false, lmp);
+  if (narg == 2) tap_flag = utils::inumeric(FLERR, arg[1], false, lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -372,7 +372,7 @@ void PairILPTMD::ILP_neigh()
     ILP_numneigh[i] = n;
 
     ipage->vgot(n);
-    if (ipage->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
   }
 }
 
@@ -490,7 +490,7 @@ void PairILPTMD::calc_normal()
             vect[0][1] = x[jH2][1] - ytp;
             vect[0][2] = x[jH2][2] - ztp;
           } else {
-            error->one(FLERR, "The order of atoms in water molecule should be O H H !");
+            error->one(FLERR, Error::NOLASTLINE, "The order of atoms in water molecule should be O H H !");
           }
         }
         Nave[0] = vect[0][0];
@@ -499,7 +499,7 @@ void PairILPTMD::calc_normal()
         // the magnitude of the normal vector
         nn2 = Nave[0] * Nave[0] + Nave[1] * Nave[1] + Nave[2] * Nave[2];
         nn = sqrt(nn2);
-        if (nn == 0) error->one(FLERR, "The magnitude of the normal vector is zero");
+        if (nn == 0) error->one(FLERR, Error::NOLASTLINE, "The magnitude of the normal vector is zero");
         // the unit normal vector
         normal[i][0] = Nave[0] / nn;
         normal[i][1] = Nave[1] / nn;
@@ -576,7 +576,7 @@ void PairILPTMD::calc_normal()
         // the magnitude of the normal vector
         nn2 = Nave[0] * Nave[0] + Nave[1] * Nave[1] + Nave[2] * Nave[2];
         nn = sqrt(nn2);
-        if (nn == 0) error->one(FLERR, "The magnitude of the normal vector is zero");
+        if (nn == 0) error->one(FLERR, Error::NOLASTLINE, "The magnitude of the normal vector is zero");
         // the unit normal vector
         normal[i][0] = Nave[0] / nn;
         normal[i][1] = Nave[1] / nn;
@@ -652,7 +652,7 @@ void PairILPTMD::calc_normal()
 
             cont = 2;
           } else {
-            error->one(FLERR, "The order of atoms in water molecule should be O H H !");
+            error->one(FLERR, Error::NOLASTLINE, "The order of atoms in water molecule should be O H H !");
           }
         }
         if (cont == 2) {
@@ -662,7 +662,7 @@ void PairILPTMD::calc_normal()
           // the magnitude of the normal vector
           nn2 = Nave[0] * Nave[0] + Nave[1] * Nave[1] + Nave[2] * Nave[2];
           nn = sqrt(nn2);
-          if (nn == 0) error->one(FLERR, "The magnitude of the normal vector is zero");
+          if (nn == 0) error->one(FLERR, Error::NOLASTLINE, "The magnitude of the normal vector is zero");
           // the unit normal vector
           normal[i][0] = Nave[0] / nn;
           normal[i][1] = Nave[1] / nn;
@@ -717,7 +717,7 @@ void PairILPTMD::calc_normal()
           }
         }
         else if (cont >= 3) {
-          error->one(FLERR,
+          error->one(FLERR, Error::NOLASTLINE,
                      "There are too many neighbors for calculating normals of water molecules");
         }
       }
@@ -762,7 +762,7 @@ void PairILPTMD::calc_normal()
           // the magnitude of the normal vector
           nn2 = Nave[0] * Nave[0] + Nave[1] * Nave[1] + Nave[2] * Nave[2];
           nn = sqrt(nn2);
-          if (nn == 0) error->one(FLERR, "The magnitude of the normal vector is zero");
+          if (nn == 0) error->one(FLERR, Error::NOLASTLINE, "The magnitude of the normal vector is zero");
           // the unit normal vector
           normal[i][0] = Nave[0] / nn;
           normal[i][1] = Nave[1] / nn;
@@ -867,7 +867,7 @@ void PairILPTMD::calc_normal()
           // the magnitude of the normal vector
           nn2 = Nave[0] * Nave[0] + Nave[1] * Nave[1] + Nave[2] * Nave[2];
           nn = sqrt(nn2);
-          if (nn == 0) error->one(FLERR, "The magnitude of the normal vector is zero");
+          if (nn == 0) error->one(FLERR, Error::NOLASTLINE, "The magnitude of the normal vector is zero");
           // the unit normal vector
           normal[i][0] = Nave[0] / nn;
           normal[i][1] = Nave[1] / nn;
@@ -911,7 +911,7 @@ void PairILPTMD::calc_normal()
           }
         }    // end of cont == 3
         else
-          error->one(FLERR,
+          error->one(FLERR, Error::NOLASTLINE,
                      "There are too many neighbors for calculating normals of B/N/C/H atoms");
       }    // for B/N/C/H
     }      // end of if(cont<Nnei)
@@ -965,7 +965,7 @@ void PairILPTMD::calc_normal()
       // the magnitude of the normal vector
       nn2 = Nave[0] * Nave[0] + Nave[1] * Nave[1] + Nave[2] * Nave[2];
       nn = sqrt(nn2);
-      if (nn == 0.0) error->one(FLERR, "The magnitude of the normal vector is zero");
+      if (nn == 0.0) error->one(FLERR, Error::NOLASTLINE, "The magnitude of the normal vector is zero");
       // the unit normal vector
       normal[i][0] = Nave[0] / nn;
       normal[i][1] = Nave[1] / nn;
@@ -1008,7 +1008,7 @@ void PairILPTMD::calc_normal()
         }
       }
     } else {
-      error->one(FLERR, "There are too many neighbors for calculating normals of TMD atoms");
+      error->one(FLERR, Error::NOLASTLINE, "There are too many neighbors for calculating normals of TMD atoms");
     }    // end of four cases of cont
   }      // end of i loop
 }

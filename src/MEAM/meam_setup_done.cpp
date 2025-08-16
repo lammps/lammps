@@ -329,7 +329,7 @@ double MEAM::phi_meam(double r, int a, int b)
   double arat, scrn, scrn2;
   int Z12, errorflag;
   int Z1nn, Z2nn;
-  lattice_t latta /*unused:,lattb*/;
+  MEAM::lattice_t latta /*unused:,lattb*/;
   double rho_bkgd1, rho_bkgd2;
   double b11s, b22s;
   // msmeam
@@ -623,9 +623,9 @@ void MEAM::compute_reference_density()
 // Average weighting factors for the reference structure
 void MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av, double* t22av, double* t32av,
                       double t11, double t21, double t31, double t12, double t22, double t32, double r, int a,
-                      int b, lattice_t latt)
+                      int b, MEAM::lattice_t latt)
 {
-  double rhoa01, rhoa02, a1, a2, rho01 /*,rho02*/;
+  double rhoa01, rhoa02, a1, a2;
 
   //     For ialloy = 2, no averaging is done
   if (ialloy == 2) {
@@ -663,13 +663,20 @@ void MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av
       rhoa01 = rho0_meam[a] * MathSpecial::fm_exp(-beta0_meam[a] * a1);
       rhoa02 = rho0_meam[b] * MathSpecial::fm_exp(-beta0_meam[b] * a2);
       if (latt == L12) {
-        rho01 = 8 * rhoa01 + 4 * rhoa02;
-        *t11av = (8 * t11 * rhoa01 + 4 * t12 * rhoa02) / rho01;
+        double rho01 = 8 * rhoa01 + 4 * rhoa02;
         *t12av = t11;
-        *t21av = (8 * t21 * rhoa01 + 4 * t22 * rhoa02) / rho01;
         *t22av = t21;
-        *t31av = (8 * t31 * rhoa01 + 4 * t32 * rhoa02) / rho01;
         *t32av = t31;
+        if (rho01 > 0.0) {
+          *t11av = (8 * t11 * rhoa01 + 4 * t12 * rhoa02) / rho01;
+          *t21av = (8 * t21 * rhoa01 + 4 * t22 * rhoa02) / rho01;
+          *t31av = (8 * t31 * rhoa01 + 4 * t32 * rhoa02) / rho01;
+        } else {
+          // limit for rhoa01 and rhoa02 -> 0.0. Should not happen.
+          *t11av = (2.0 * t11 + t12) / 3.0;
+          *t21av = (2.0 * t21 + t22) / 3.0;
+          *t31av = (2.0 * t31 + t32) / 3.0;
+        }
       } else {
         //      call error('Lattice not defined in get_tavref.')
       }
@@ -693,7 +700,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
 {
   double a1, a2;
   double s[3];
-  lattice_t lat;
+  MEAM::lattice_t lat;
   int Zij,Zij2nn;
   double rhoa01nn, rhoa02nn;
   double rhoa01, rhoa11, rhoa21, rhoa31;
@@ -829,7 +836,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
     case L12:
       *rho01 = 8 * rhoa01 + 4 * rhoa02;
       *rho02 = 12 * rhoa01;
-      if (ialloy ==1){
+      if (ialloy == 1) {
         *rho21 = 8. / 3. * MathSpecial::square(rhoa21 * t2_meam[a] - rhoa22 * t2_meam[b]);
         denom = 8 * rhoa01 * MathSpecial::square(t2_meam[a]) + 4 * rhoa02 * MathSpecial::square(t2_meam[b]);
         if (denom > 0.)
@@ -837,6 +844,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       } else
         *rho21 = 8. / 3. * (rhoa21 - rhoa22) * (rhoa21 - rhoa22);
       if (msmeamflag) {
+        *rho21 = 8. / 3. * (rhoa21 - rhoa22) * (rhoa21 - rhoa22);
         *rho2m1 = 8. / 3. * (rhoa2m1 - rhoa2m2) * (rhoa2m1 - rhoa2m2);
       }
       break;

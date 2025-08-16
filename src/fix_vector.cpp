@@ -35,7 +35,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 5) utils::missing_cmd_args(FLERR, "fix vector", error);
 
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
-  if (nevery <= 0) error->all(FLERR, "Invalid fix vector every argument: {}", nevery);
+  if (nevery <= 0) error->all(FLERR, 3, "Invalid fix vector every argument: {}", nevery);
 
   nmaxval = MAXSMALLINT;
   nindex = 0;
@@ -84,14 +84,15 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
   bool first = true;
   for (auto &val : values) {
     if (val.which == ArgInfo::COMPUTE) {
-      auto icompute = modify->get_compute_by_id(val.id);
+      auto *icompute = modify->get_compute_by_id(val.id);
       if (!icompute) error->all(FLERR, "Compute ID {} for fix vector does not exist", val.id);
       if (val.argindex == 0 && icompute->scalar_flag == 0)
         error->all(FLERR, "Fix vector compute {} does not calculate a scalar", val.id);
       if (val.argindex && icompute->vector_flag == 0)
         error->all(FLERR, "Fix vector compute {} does not calculate a vector", val.id);
       if (val.argindex && (val.argindex > icompute->size_vector))
-        error->all(FLERR, "Fix vector compute {} vector is accessed out-of-range", val.id);
+        error->all(FLERR, "Fix vector compute {} vector is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
 
       if (val.argindex == 0)
         value = icompute->extscalar;
@@ -102,21 +103,25 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
       val.val.c = icompute;
 
     } else if (val.which == ArgInfo::FIX) {
-      auto ifix = modify->get_fix_by_id(val.id);
+      auto *ifix = modify->get_fix_by_id(val.id);
       if (!ifix) error->all(FLERR, "Fix ID {} for fix vector does not exist", val.id);
       if (val.argindex == 0 && ifix->scalar_flag == 0)
         error->all(FLERR, "Fix vector fix {} does not calculate a scalar", val.id);
       if (val.argindex && ifix->vector_flag == 0)
         error->all(FLERR, "Fix vector fix {} does not calculate a vector", val.id);
       if (val.argindex && val.argindex > ifix->size_vector)
-        error->all(FLERR, "Fix vector fix {} vector is accessed out-of-range", val.id);
+        error->all(FLERR, "Fix vector fix {} vector is accessed out-of-range{}",
+                   val.id, utils::errorurl(20));
       if (nevery % ifix->global_freq)
-        error->all(FLERR, "Fix for fix {} vector not computed at compatible time", val.id);
+        error->all(FLERR, "Fix for fix {} vector not computed at compatible time{}",
+                   val.id, utils::errorurl(7));
 
       if (val.argindex == 0)
+        value = ifix->extscalar;
+      else if (ifix->extvector >= 0)
         value = ifix->extvector;
       else
-        value = ifix->extarray;
+        value = ifix->extlist[val.argindex - 1];
       val.val.f = ifix;
 
     } else if (val.which == ArgInfo::VARIABLE) {

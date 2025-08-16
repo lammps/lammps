@@ -25,7 +25,7 @@
 
 template <class FunctorType, class... Traits>
 class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
-                                Kokkos::Experimental::SYCL> {
+                                Kokkos::SYCL> {
  public:
   using Policy = Kokkos::MDRangePolicy<Traits...>;
 
@@ -54,7 +54,7 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
     const typename Policy::index_type m_num_tiles;
     static constexpr Iterate inner_direction = Policy::inner_direction;
   } m_policy;
-  const Kokkos::Experimental::SYCL& m_space;
+  const Kokkos::SYCL& m_space;
 
   sycl::nd_range<3> compute_ranges() const {
     const auto& m_tile     = m_policy.m_tile;
@@ -120,7 +120,7 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
 
     desul::ensure_sycl_lock_arrays_on_device(q);
 
-    auto parallel_for_event = q.submit([&](sycl::handler& cgh) {
+    auto cgh_lambda = [&](sycl::handler& cgh) {
       const auto range                  = compute_ranges();
       const sycl::range<3> global_range = range.get_global_range();
       const sycl::range<3> local_range  = range.get_local_range();
@@ -153,12 +153,22 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
             {global_x, global_y, global_z}, {local_x, local_y, local_z})
             .exec_range();
       });
-    });
-#ifndef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
-    q.ext_oneapi_submit_barrier(std::vector<sycl::event>{parallel_for_event});
-#endif
+    };
 
-    return parallel_for_event;
+#ifdef SYCL_EXT_ONEAPI_GRAPH
+    if constexpr (Policy::is_graph_kernel::value) {
+      sycl_attach_kernel_to_node(*this, cgh_lambda);
+      return {};
+    } else
+#endif
+    {
+      auto parallel_for_event = q.submit(cgh_lambda);
+
+#ifndef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
+      q.ext_oneapi_submit_barrier(std::vector<sycl::event>{parallel_for_event});
+#endif
+      return parallel_for_event;
+    }
   }
 
  public:
@@ -170,22 +180,15 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
   }
 
   void execute() const {
-    Kokkos::Experimental::Impl::SYCLInternal::IndirectKernelMem&
-        indirectKernelMem =
-            m_space.impl_internal_space_instance()->get_indirect_kernel_mem();
+    Kokkos::Impl::SYCLInternal::IndirectKernelMem& indirectKernelMem =
+        m_space.impl_internal_space_instance()->get_indirect_kernel_mem();
 
-    auto functor_wrapper = Experimental::Impl::make_sycl_function_wrapper(
-        m_functor, indirectKernelMem);
+    auto functor_wrapper =
+        Impl::make_sycl_function_wrapper(m_functor, indirectKernelMem);
     sycl::event event =
         sycl_direct_launch(functor_wrapper, functor_wrapper.get_copy_event());
     functor_wrapper.register_event(event);
   }
-
-  ParallelFor(const ParallelFor&) = delete;
-  ParallelFor(ParallelFor&&)      = delete;
-  ParallelFor& operator=(const ParallelFor&) = delete;
-  ParallelFor& operator=(ParallelFor&&) = delete;
-  ~ParallelFor()                        = default;
 
   ParallelFor(const FunctorType& arg_functor, const Policy& arg_policy)
       : m_functor(arg_functor),

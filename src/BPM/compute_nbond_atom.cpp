@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Joel Clemmer (SNL)
+------------------------------------------------------------------------- */
+
 #include "compute_nbond_atom.h"
 
 #include "atom.h"
@@ -19,6 +23,8 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

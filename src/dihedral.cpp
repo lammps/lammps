@@ -17,6 +17,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "suffix.h"
 #include "update.h"
@@ -32,6 +33,7 @@ Dihedral::Dihedral(LAMMPS *_lmp) : Pointers(_lmp)
 {
   energy = 0.0;
   writedata = 0;
+  reinitflag = 1;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
@@ -48,7 +50,7 @@ Dihedral::Dihedral(LAMMPS *_lmp) : Pointers(_lmp)
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
 
-  copymode = 0;
+  copymode = kokkosable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -68,9 +70,14 @@ Dihedral::~Dihedral()
 
 void Dihedral::init()
 {
-  if (!allocated && atom->ndihedraltypes) error->all(FLERR, "Dihedral coeffs are not set");
+  if (!allocated && atom->ndihedraltypes)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Dihedral coeffs are not set. Status:\n" + Info::get_dihedral_coeff_status(lmp));
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    if (setflag[i] == 0) error->all(FLERR, "All dihedral coeffs are not set");
+    if (setflag[i] == 0)
+            error->all(FLERR, Error::NOLASTLINE,
+                       "All dihedral coeffs are not set. Status:\n"
+                       + Info::get_dihedral_coeff_status(lmp));
   init_style();
 }
 
@@ -177,7 +184,6 @@ void Dihedral::ev_setup(int eflag, int vflag, int alloc)
       cvatom[i][6] = 0.0;
       cvatom[i][7] = 0.0;
       cvatom[i][8] = 0.0;
-      cvatom[i][9] = 0.0;
     }
   }
 }
@@ -399,7 +405,7 @@ void Dihedral::ev_tally(int i1, int i2, int i3, int i4, int nlocal, int newton_b
 
 void Dihedral::problem(const char *filename, int lineno, int i1, int i2, int i3, int i4)
 {
-  const auto x = atom->x;
+  auto *const x = atom->x;
   auto warn = fmt::format("Dihedral problem: {} {} {} {} {} {}\n", comm->me, update->ntimestep,
                           atom->tag[i1], atom->tag[i2], atom->tag[i3], atom->tag[i4]);
   warn += fmt::format("WARNING:   1st atom: {} {:.8} {:.8} {:.8}\n", comm->me, x[i1][0], x[i1][1],
@@ -421,4 +427,16 @@ double Dihedral::memory_usage()
   bytes += (double) comm->nthreads * maxvatom * 6 * sizeof(double);
   bytes += (double) comm->nthreads * maxcvatom * 9 * sizeof(double);
   return bytes;
+}
+
+/* -----------------------------------------------------------------------
+   reset all type-based dihedral params via init()
+-------------------------------------------------------------------------- */
+
+void Dihedral::reinit()
+{
+  if (!reinitflag)
+    error->all(FLERR, "Fix adapt interface to this dihedral style not supported");
+
+  init();
 }

@@ -451,7 +451,7 @@ void DihedralTableCut::allocate()
 
 void DihedralTableCut::coeff(int narg, char **arg)
 {
-  if (narg != 7) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (narg != 7) error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -523,9 +523,9 @@ void DihedralTableCut::coeff(int narg, char **arg)
   // We also want the angles to be sorted in increasing order.
   // This messy code fixes these problems with the user's data:
   {
-    auto phifile_tmp = new double[tb->ninput];  //temporary arrays
-    auto ffile_tmp = new double[tb->ninput];  //used for sorting
-    auto efile_tmp = new double[tb->ninput];
+    auto *phifile_tmp = new double[tb->ninput];  //temporary arrays
+    auto *ffile_tmp = new double[tb->ninput];  //used for sorting
+    auto *efile_tmp = new double[tb->ninput];
 
     // After re-imaging, does the range of angles cross the 0 or 2*PI boundary?
     // If so, find the discontinuity:
@@ -628,5 +628,5 @@ void DihedralTableCut::coeff(int narg, char **arg)
   }
   ntables++;
 
-  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
 }

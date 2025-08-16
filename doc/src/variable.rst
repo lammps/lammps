@@ -45,13 +45,14 @@ Syntax
        *universe* args = one or more strings
        *world* args = one string for each partition of processors
 
-       *equal* or *vector* or *atom* args = one formula containing numbers, thermo keywords, math operations, built-in functions, atom values and vectors, compute/fix/variable references
+       *equal* or *vector* or *atom* args = one formula containing numbers, thermo keywords,
+           math operations, built-in functions, atom values and vectors, compute/fix/variable references
          numbers = 0.0, 100, -5.4, 2.8e-4, etc
          constants = PI, version, on, off, true, false, yes, no
          thermo keywords = vol, ke, press, etc from :doc:`thermo_style <thermo_style>`
          math operators = (), -x, x+y, x-y, x\*y, x/y, x\^y, x%y,
                           x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x \|\| y, x \|\^ y, !x
-         math functions = sqrt(x), exp(x), ln(x), log(x), abs(x),
+         math functions = sqrt(x), exp(x), ln(x), log(x), abs(x), sign(x),
                           sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
                           random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ternary(x,y,z),
                           ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z),
@@ -67,13 +68,18 @@ Syntax
                            bound(group,dir,region), gyration(group,region), ke(group,reigon),
                            angmom(group,dim,region), torque(group,dim,region),
                            inertia(group,dimdim,region), omega(group,dim,region)
-         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), sort(x), rsort(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label), is_timeout()
-         feature functions = is_available(category,feature), is_active(category,feature), is_defined(category,id)
+         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), sort(x), rsort(x),
+                             gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name),
+                             extract_setting(name), label2type(kind,label),
+                             is_typelabel(kind,label), is_timeout()
+         feature functions = is_available(category,feature), is_active(category,feature),
+                             is_defined(category,id)
+         python function wrapper = py_varname(x,y,z,...)
          atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
          atom vector = id, mass, type, mol, radius, q, x, y, z, vx, vy, vz, fx, fy, fz
-         custom atom property = i_name, d_name, i_name[i], d_name[i], i2_name[i], d2_name[i], i2_name[i][j], d_name[i][j]
-         compute references = c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]
-         fix references = f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]
+         custom atom property = i_name, d_name, i_name[i], d_name[i], i2_name[i], d2_name[i], i2_name[i][j], d2_name[i][j]
+         compute references = c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i], C_ID[i][j]
+         fix references = f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i], F_ID[i][j]
          variable references = v_name, v_name[i]
          vector initialization = [1,3,7,10] (for *vector* variables only)
 
@@ -127,18 +133,21 @@ command), or used as input to an averaging fix (see the :doc:`fix
 ave/time <fix_ave_time>` command).  Variables of style *vector* store
 a formula which produces a vector of such values which can be used as
 input to various averaging fixes, or elements of which can be part of
-thermodynamic output.  Variables of style *atom* store a formula which
-when evaluated produces one numeric value per atom which can be output
-to a dump file (see the :doc:`dump custom <dump>` command) or used as
-input to an averaging fix (see the :doc:`fix ave/chunk
-<fix_ave_chunk>` and :doc:`fix ave/atom <fix_ave_atom>` commands).
-Variables of style *atomfile* can be used anywhere in an input script
-that atom-style variables are used; they get their per-atom values
-from a file rather than from a formula.  Variables of style *python*
-can be hooked to Python functions using code you provide, so that the
-variable gets its value from the evaluation of the Python code.
-Variables of style *internal* are used by a few commands which set
-their value directly.
+thermodynamic output.
+
+Variables of style *atom* store a formula which when evaluated
+produces one numeric value per atom which can be output to a dump file
+(see the :doc:`dump custom <dump>` command) or used as input to an
+averaging fix (see the :doc:`fix ave/chunk <fix_ave_chunk>` and
+:doc:`fix ave/atom <fix_ave_atom>` commands).  Variables of style
+*atomfile* can be used anywhere in an input script that atom-style
+variables are used; they get their per-atom values from a file rather
+than from a formula.
+
+Variables of style *python* can be hooked to Python functions using
+Python code you provide, so that the variable gets its value from the
+evaluation of the Python code.  Variables of style *internal* are used
+by a few commands which set their value directly.
 
 .. note::
 
@@ -166,15 +175,16 @@ simulation.
 
 .. note::
 
-   When an input script line is encountered that defines a variable
-   of style *equal* or *vector* or *atom* or *python* that contains a
-   formula or Python code, the formula is NOT immediately evaluated.  It
-   will be evaluated every time when the variable is **used** instead.  If
-   you simply want to evaluate a formula in place you can use as
-   so-called. See the section below about "Immediate Evaluation of
-   Variables" for more details on the topic.  This is also true of a
-   *format* style variable since it evaluates another variable when it is
-   invoked.
+   When an input script line is encountered that defines a variable of
+   style *equal* or *vector* or *atom* or *python* that contains a
+   formula or links to Python code, the formula or Python code is NOT
+   immediately evaluated.  Instead, it is evaluated each time the
+   variable is **used**.  If you simply want to evaluate a formula in
+   place you can use a so-called immediate variable. as described in
+   the preceding note.  Or see the section below about "Immediate
+   Evaluation of Variables" for more details on the topic.  This is
+   also true of a *format* style variable since it evaluates another
+   variable when it is invoked.
 
 Variables of style *equal* and *vector* and *atom* can be used as
 inputs to various other commands which evaluate their formulas as
@@ -183,12 +193,12 @@ this context, variables of style *timer* or *internal* or *python* can
 be used in place of an equal-style variable, with the following two
 caveats.
 
-First, internal-style variables can be used except by commands that
-set the value stored by the internal variable.  When the LAMMPS
-command evaluates the internal-style variable, it will use the value
-set (internally) by another command.  Second, python-style variables
-can be used so long as the associated Python function, as defined by
-the :doc:`python <python>` command, returns a numeric value.  When the
+First, internal-style variables require their values be set by code
+elsewhere in LAMMPS.  When a LAMMPS input script or command evaluates
+an internal-style variable, it must have a current value set
+(internally) via that mechanism.  Second, python-style variables can
+be used so long as the associated Python function, as defined by the
+:doc:`python <python>` command, returns a numeric value.  When the
 LAMMPS command evaluates the python-style variable, the Python
 function will be executed.
 
@@ -388,13 +398,24 @@ using the :doc:`command-line switch -var <Run_options>`.
 
 For the *internal* style a numeric value is provided.  This value will
 be assigned to the variable until a LAMMPS command sets it to a new
-value.  There are currently only two LAMMPS commands that require
-*internal* variables as inputs, because they reset them:
-:doc:`create_atoms <create_atoms>` and :doc:`fix controller
-<fix_controller>`.  As mentioned above, an internal-style variable can
-be used in place of an equal-style variable anywhere else in an input
-script, e.g. as an argument to another command that allows for
-equal-style variables.
+value.
+
+Note however, that most commands which use internal-style variables do
+not require them to be defined in the input script.  They create one or
+more internal-style variables if they do not already exist.  Examples
+are these commands:
+
+* :doc:`create_atoms <create_atoms>`
+* :doc:`fix deposit <fix_deposit>`
+* :doc:`compute bond/local <compute_bond_local>`
+* :doc:`compute angle/local <compute_angle_local>`
+* :doc:`compute dihedral/local <compute_dihedral_local>`
+* :doc:`python <python>` command in conjunction with Python function wrappers used in equal- and atom-style variable formulas
+
+A command which does require an internal-style variable to be defined in
+the input script is the :doc:`fix controller <fix_controller>` command,
+because another (arbitrary) command typically also references the
+variable.
 
 ----------
 
@@ -438,6 +459,15 @@ it is a numeric value (integer or floating point), then the
 python-style variable can be used in place of an equal-style variable
 anywhere in an input script, e.g. as an argument to another command
 that allows for equal-style variables.
+
+A python-style variable can also be used within the formula for an
+equal-style or atom-style formula in a Python function wrapper, as
+explained below for variable formulas.  In this context, the usage
+syntax is py_varname(arg1,arg2,...), where varname is the name of the
+python-style variable.  When a Python wrapper function is used in an
+atom-style formula, it can be invoked once per atom using arguments
+specific to each atom.  The resulting values in the atom-style
+variable can thus be calculated by Python code.
 
 ----------
 
@@ -528,41 +558,43 @@ is a valid (though strange) variable formula:
 
 Specifically, a formula can contain numbers, constants, thermo
 keywords, math operators, math functions, group functions, region
-functions, special functions, feature functions, atom values, atom
-vectors, custom atom properties, compute references, fix references, and references to other
-variables.
+functions, special functions, feature functions, Python function
+wrappers, atom values, atom vectors, custom atom properties, compute
+references, fix references, and references to other variables.
 
-+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Number                 | 0.2, 100, 1.0e20, -15.4, etc                                                                                                                                                                                                                                                                                                                      |
-+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Constant               | PI, version, on, off, true, false, yes, no                                                                                                                                                                                                                                                                                                        |
-+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Thermo keywords        | vol, pe, ebond, etc                                                                                                                                                                                                                                                                                                                               |
-+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Math operators         | (), -x, x+y, x-y, x\*y, x/y, x\^y, x%y, x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x \|\| y, x \|\^ y, !x                                                                                                                                                                                                                              |
-+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Math functions         | sqrt(x), exp(x), ln(x), log(x), abs(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ternary(x,y,z), ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)  |
-+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Group functions        | count(ID), mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), inertia(ID,dimdim), omega(ID,dim)                                                                                                                                                                    |
-+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Region functions       | count(ID,IDR), mass(ID,IDR), charge(ID,IDR), xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), angmom(ID,dim,IDR), torque(ID,dim,IDR), inertia(ID,dimdim,IDR), omega(ID,dim,IDR)                                                                                                                |
-+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Special functions      | sum(x), min(x), max(x), ave(x), trap(x), slope(x), sort(x), rsort(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label), is_timeout()                                                                                                                 |
-+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Feature functions      | is_available(category,feature), is_active(category,feature), is_defined(category,id)                                                                                                                                                                                                                                                              |
-+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Atom values            | id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]                                                                                                                                                                                                                                                 |
-+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Atom vectors           | id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q                                                                                                                                                                                                                                                                                           |
-+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Custom atom properties | i_name, d_name, i_name[i], d_name[i], i2_name[i], d2_name[i], i2_name[i][j], d_name[i][j]                                                                                                                                                                                                                                                         |
-+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Compute references     | c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]                                                                                                                                                                                                                                                                                                          |
-+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Fix references         | f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]                                                                                                                                                                                                                                                                                                          |
-+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Other variables        | v_name, v_name[i]                                                                                                                                                                                                                                                                                                                                 |
-+------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Number                 | 0.2, 100, 1.0e20, -15.4, etc                                                                                                                                                                                                                                                                                                                               |
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Constant               | PI, version, on, off, true, false, yes, no                                                                                                                                                                                                                                                                                                                 |
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Thermo keywords        | vol, pe, ebond, etc                                                                                                                                                                                                                                                                                                                                        |
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Math operators         | (), -x, x+y, x-y, x\*y, x/y, x\^y, x%y, x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x \|\| y, x \|\^ y, !x                                                                                                                                                                                                                                       |
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Math functions         | sqrt(x), exp(x), ln(x), log(x), abs(x), sign(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ternary(x,y,z), ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)  |
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Group functions        | count(ID), mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), inertia(ID,dimdim), omega(ID,dim)                                                                                                                                                                             |
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Region functions       | count(ID,IDR), mass(ID,IDR), charge(ID,IDR), xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), angmom(ID,dim,IDR), torque(ID,dim,IDR), inertia(ID,dimdim,IDR), omega(ID,dim,IDR)                                                                                                                         |
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Special functions      | sum(x), min(x), max(x), ave(x), trap(x), slope(x), sort(x), rsort(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label), is_timeout()                                                                                                                          |
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Feature functions      | is_available(category,feature), is_active(category,feature), is_defined(category,id)                                                                                                                                                                                                                                                                       |
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Python func wrapper    | py_varname(x,y,z,...)                                                                                                                                                                                                                                                                                                                                      |
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Atom values            | id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]                                                                                                                                                                                                                                                          |
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Atom vectors           | id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q                                                                                                                                                                                                                                                                                                    |
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Custom atom properties | i_name, d_name, i_name[i], d_name[i], i2_name[i], d2_name[i], i2_name[i][j], d_name[i][j]                                                                                                                                                                                                                                                                  |
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Compute references     | c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]                                                                                                                                                                                                                                                                                                                   |
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Fix references         | f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]                                                                                                                                                                                                                                                                                                                   |
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Other variables        | v_name, v_name[i]                                                                                                                                                                                                                                                                                                                                          |
++------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Most of the formula elements produce a scalar value.  Some produce a
 global or per-atom vector of values.  Global vectors can be produced
@@ -692,6 +724,11 @@ sqrt() of the product of one atom's y and z coordinates.
 Most of the math functions perform obvious operations.  The ln() is
 the natural log; log() is the base 10 log.
 
+.. versionadded:: 4Feb2025
+
+The sign(x) function returns 1.0 if the value is greater than or equal
+to 0.0, and -1.0 otherwise.
+
 The random(x,y,z) function takes 3 arguments: x = lo, y = hi, and z =
 seed.  It generates a uniform random number between lo and hi.  The
 normal(x,y,z) function also takes 3 arguments: x = mu, y = sigma, and
@@ -722,10 +759,23 @@ is the nearest integer to its argument.
 
 .. versionadded:: 7Feb2024
 
-The ternary(x,y,z) function is the equivalent of the ternary operator
-(? and :) in C or C++.  It takes 3 arguments.  The first argument is a
+.. versionchanged:: 22Jul2025
+
+   Evaluate only selected argument
+
+The ternary(x,y,z) function is the equivalent of the ternary operator (?
+and :) in C or C++.  It takes 3 arguments.  The first argument is a
 conditional.  The result of the function is y if x evaluates to true
-(non-zero).  The result is z if x evaluates to false (zero).
+(non-zero).  The result is z if x evaluates to false (zero).  Same as in
+C or C++ only the selected argument y or z is evaluated, so this
+function can be used to protect against crashes from evaluating invalid
+arguments, e.g. in the following example where "qval" is a variable with
+an expression that may become (slightly) negative due to floating-point
+math limitations.:
+
+.. code-block:: LAMMPS
+
+   variable sqrtofqval equal "ternary(v_qval >= 0, sqrt(v_qval), 0.0)"
 
 The ramp(x,y) function uses the current timestep to generate a value
 linearly interpolated between the specified x,y values over the course
@@ -1042,7 +1092,7 @@ label2type(), but returns 1 if the type label has been assigned,
 otherwise it returns 0.  This function can be used to check if a
 particular type label already exists in the simulation.
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 The is_timeout() function returns 1 when the :doc:`timer timeout
 <timer>` has expired otherwise it returns 0.  This function can be used
@@ -1153,6 +1203,84 @@ well as the variable command) can be specified multiple times within
 LAMMPS, each with a unique *id*.  This function checks whether the
 specified *id* exists.  For category *variable", the *id* is the
 variable name.
+
+----------
+
+Python Function wrapper
+------------------------
+
+A Python function wrapper enables the formula for an equal-style or
+atom-style variable to invoke functions coded in Python.  In the case
+of an equal-style variable, the Python-coded function will be invoked
+once.  In the case of an atom-style variable, it can be invoked once
+per atom, if one or more of its arguments include a per-atom quantity,
+e.g. the position of an atom.  As illustrated below, the reason to use
+a Python function wrapper is to make it easy to pass LAMMPS-related
+arguments to the Python-coded function associated with a python-style
+variable.
+
+The syntax for defining a Python function wrapper is
+
+.. code-block:: LAMMPS
+
+   py_varname(arg1,arg2,...argN)
+
+where *varname* is the name of a python-style variable which couples
+to a Python-coded function.  The function will be passed the zero or
+more arguments listed in parentheses: *arg1*, *arg2*, ... *argN*.  As
+with Math Functions, each argument can itself be an arbitrarily
+complex formula.
+
+A Python function wrapper can be used in the following manner by an
+input script:
+
+.. code-block:: LAMMPS
+
+   variable        foo python truncate
+   python          truncate return v_foo input 1 v_arg format fi here """
+   def truncate(x):
+    return int(x)
+   """
+   variable        xtrunc atom py_foo(x)
+   variable        ytrunc atom py_foo(y)
+   variable        ztrunc atom py_foo(z)
+   dump            1 all custom 100 tmp.dump id x y z v_xtrunc v_ytrunc v_ztrunc
+
+The first two commands define a python-style variable *foo* and couple
+it to the Python-coded function *truncate()* which takes a single
+floating point argument, and returns its truncated integer value.  In
+this case, the Python code for truncate() is included in the *python*
+command; it could also be contained in a file.  See the :doc:`python
+<python>` command doc page for details.
+
+The next three commands define atom-style variables *xtrunc*,
+*ytrunc*, and *ztrunc*.  Each of them include the same Python function
+wrapper in their formula, with a different argument.  The atom-style
+variable *xtrunc* will invoke the python-style variable *foo*, which
+will in turn invoke the Python-coded *truncate()* method.  Because
+*xtrunc* is an atom-style variable, and the argument *x* in the Python
+function wrapper is a per-atom quantity (the x-coord of each atom),
+each processor will invoke the *truncate()* method once per atom, for
+the atoms it owns.
+
+When invoked for the Ith atom, the value of the *arg* internal-style
+variable, defined by the *python* command, is set to the x-coord of
+the Ith atom.  The call via python-style variable *foo* to the Python
+*truncate()* function passes the value of the *arg* variable as the
+function's first (and only) argument.  Likewise, the return value of
+the Python function is stored by the python-style variable *foo* and
+used in the *xtrunc* atom-style variable formula for the Ith atom.
+
+The resulting per-atom vector for *xtrunc* will thus contain the
+truncated x-coord of every atom in the system.  The dump command
+includes the truncated xyz coords for each atom in its output.
+
+See the :doc:`python <python>` command for more details on options the
+*python* command can specify as well as examples of more complex Python
+functions which can be wrapped in this manner.  In particular, the
+Python function can take a variety of arguments, some generated by the
+*python* command, and others by the arguments of the Python function
+wrapper.
 
 ----------
 

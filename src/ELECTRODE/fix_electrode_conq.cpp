@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meißner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
 ------------------------------------------------------------------------- */
 
 #include "fix_electrode_conq.h"
@@ -49,7 +49,7 @@ FixElectrodeConq::FixElectrodeConq(LAMMPS *lmp, int narg, char **arg) :
 
 void FixElectrodeConq::update_psi()
 {
-  int const numsymm = num_of_groups - ((symm) ? 1 : 0);
+  const int numsymm = num_of_groups - ((symm) ? 1 : 0);
   bool symm_update_back = false;
   for (int g = 0; g < numsymm; g++) {
     if (group_psi_var_styles[g] == VarStyle::CONST) continue;
@@ -82,10 +82,10 @@ void FixElectrodeConq::update_psi()
 
 std::vector<double> FixElectrodeConq::constraint_correction(std::vector<double> x)
 {
-  int const n = x.size();
+  const int n = x.size();
   auto sums = std::vector<double>(num_of_groups, 0);
   for (int i = 0; i < n; i++) sums[iele_to_group_local[i]] += x[i];
-  MPI_Allreduce(MPI_IN_PLACE, &sums.front(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, sums.data(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
   for (int g = 0; g < num_of_groups; g++) {
     sums[g] -= group_q[g];
     sums[g] /= group->count(groups[g]);
@@ -100,10 +100,10 @@ std::vector<double> FixElectrodeConq::constraint_correction(std::vector<double> 
 
 std::vector<double> FixElectrodeConq::constraint_projection(std::vector<double> x)
 {
-  int const n = x.size();
+  const int n = x.size();
   auto sums = std::vector<double>(num_of_groups, 0);
   for (int i = 0; i < n; i++) sums[iele_to_group_local[i]] += x[i];
-  MPI_Allreduce(MPI_IN_PLACE, &sums.front(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, sums.data(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
   for (int g = 0; g < num_of_groups; g++) sums[g] /= group->count(groups[g]);
   for (int i = 0; i < n; i++) x[i] -= sums[iele_to_group_local[i]];
   return x;
@@ -113,12 +113,12 @@ std::vector<double> FixElectrodeConq::constraint_projection(std::vector<double> 
    Recompute group potential as average for output if using cg algo
 ------------------------------------------------------------------------- */
 
-void FixElectrodeConq::recompute_potential(std::vector<double> b, std::vector<double> q_local)
+void FixElectrodeConq::recompute_potential(const std::vector<double> &b, const std::vector<double> &q_local)
 {
-  int const n = b.size();
+  const int n = b.size();
   auto a = ele_ele_interaction(q_local);
   auto psi_sums = std::vector<double>(num_of_groups, 0);
   for (int i = 0; i < n; i++) { psi_sums[iele_to_group_local[i]] += (a[i] + b[i]) / evscale; }
-  MPI_Allreduce(MPI_IN_PLACE, &psi_sums.front(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, psi_sums.data(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
   for (int g = 0; g < num_of_groups; g++) group_psi[g] = psi_sums[g] / group->count(groups[g]);
 }

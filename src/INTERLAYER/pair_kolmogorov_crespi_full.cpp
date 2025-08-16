@@ -27,6 +27,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "interlayer_taper.h"
 #include "memory.h"
 #include "my_page.h"
@@ -144,7 +145,7 @@ void PairKolmogorovCrespiFull::settings(int narg, char **arg)
                "Pair style kolmogorov/crespi/full must be used as sub-style with hybrid/overlay");
 
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
-  if (narg == 2) tap_flag = utils::numeric(FLERR, arg[1], false, lmp);
+  if (narg == 2) tap_flag = utils::inumeric(FLERR, arg[1], false, lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -164,8 +165,11 @@ void PairKolmogorovCrespiFull::coeff(int narg, char **arg)
 
 double PairKolmogorovCrespiFull::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
-  if (!offset_flag) error->all(FLERR, "Must use 'pair_modify shift yes' with this pair style");
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status:\n" + Info::get_pair_coeff_status(lmp));
+  if (!offset_flag)
+    error->all(FLERR, Error::NOLASTLINE, "Must use 'pair_modify shift yes' with this pair style");
 
   if (offset_flag && (cut_global > 0.0)) {
     int iparam_ij = elem2param[map[i]][map[j]];
@@ -669,11 +673,11 @@ void PairKolmogorovCrespiFull::KC_neigh()
     KC_firstneigh[i] = neighptr;
     KC_numneigh[i] = n;
     if (n > 3)
-      error->one(FLERR,
+      error->one(FLERR, Error::NOLASTLINE,
                  "There are too many neighbors for some atoms, please check your configuration");
 
     ipage->vgot(n);
-    if (ipage->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
   }
 }
 
@@ -811,7 +815,7 @@ void PairKolmogorovCrespiFull::calc_normal()
       // the magnitude of the normal vector
       nn2 = n1[0] * n1[0] + n1[1] * n1[1] + n1[2] * n1[2];
       nn = sqrt(nn2);
-      if (nn == 0) error->one(FLERR, "The magnitude of the normal vector is zero");
+      if (nn == 0) error->one(FLERR, Error::NOLASTLINE, "The magnitude of the normal vector is zero");
       // the unit normal vector
       normal[i][0] = n1[0] / nn;
       normal[i][1] = n1[1] / nn;
@@ -951,7 +955,7 @@ void PairKolmogorovCrespiFull::calc_normal()
       // the magnitude of the normal vector
       nn2 = n1[0] * n1[0] + n1[1] * n1[1] + n1[2] * n1[2];
       nn = sqrt(nn2);
-      if (nn == 0) error->one(FLERR, "The magnitude of the normal vector is zero");
+      if (nn == 0) error->one(FLERR, Error::NOLASTLINE, "The magnitude of the normal vector is zero");
       // the unit normal vector
       normal[i][0] = n1[0] / nn;
       normal[i][1] = n1[1] / nn;
@@ -988,7 +992,7 @@ void PairKolmogorovCrespiFull::calc_normal()
         }
       }
     } else {
-      error->one(FLERR, "There are too many neighbors for calculating normals");
+      error->one(FLERR, Error::NOLASTLINE, "There are too many neighbors for calculating normals");
     }
 
     //##############################################################################################

@@ -16,12 +16,13 @@ Syntax
 
   .. parsed-literal::
 
-     field = *x* or *y* or *z* or *vx* or *vy* or *vz* or *q* or *ix* or *iy* or *iz* or *fx* or *fy* or *fz*
+     field = *x* or *y* or *z* or *vx* or *vy* or *vz* or *q* or *ix* or *iy* or *iz* or *fx* or *fy* or *fz* or *apip_lambda*
        *x*,\ *y*,\ *z* = atom coordinates
        *vx*,\ *vy*,\ *vz* = velocity components
        *q* = charge
        *ix*,\ *iy*,\ *iz* = image flags in each dimension
        *fx*,\ *fy*,\ *fz* = force components
+       *apip_lambda* = switching parameter of an :doc:`adaptive-precision interatomic potential <Howto_apip>`
 
 * zero or more keyword/value pairs may be appended
 * keyword = *nfile* or *box* or *timestep* or *replace* or *purge* or *trim* or *add* or *label* or *scaled* or *wrapped* or *format*
@@ -115,10 +116,11 @@ to tell LAMMPS how many parallel files exist, via its specified
 
 The format of the dump file is selected through the *format* keyword.
 If specified, it must be the last keyword used, since all remaining
-arguments are passed on to the dump reader.  The *native* format is
-for native LAMMPS dump files, written with a :doc:`dump atom <dump>`
-or :doc:`dump custom <dump>` command.  The *xyz* format is for generic XYZ
-formatted dump files.  These formats take no additional values.
+arguments are passed on to the dump reader.  The *native* format is for
+native LAMMPS dump files, written with a :doc:`dump atom <dump>` or
+:doc:`dump custom <dump>` command.  The *xyz* format is for generic XYZ
+formatted dump files (see details below).  These formats take no
+additional values.
 
 The *molfile* format supports reading data through using the `VMD <vmd_>`_
 molfile plugin interface. This dump reader format is only available,
@@ -230,23 +232,39 @@ will then have a label corresponding to the fix-ID rather than "x" or
 "xs".  The *label* keyword can also be used to specify new column
 labels for fields *id* and *type*\ .
 
-For dump files in *xyz* format, only the *x*, *y*, and *z* fields are
-supported.  The dump file does not store atom IDs, so these are
-assigned consecutively to the atoms as they appear in the dump file,
-starting from 1.  Thus you should ensure that order of atoms is
-consistent from snapshot to snapshot in the XYZ dump file.  See
-the :doc:`dump_modify sort <dump_modify>` command if the XYZ dump file
-was written by LAMMPS.
+For dump files in *xyz* format, only the *type*, *x*, *y*, and *z*
+fields are supported.  There are many variants of the XYZ file format.
+LAMMPS will read the number of atoms from the first line of each frame,
+ignore the second (title) line, and then read one line for each atom in the format:
+
+.. parsed-literal::
+
+   <label> <x coordinate>  <y coordinate> <z coordinate>
+
+
+If the atom label is a numeric integer (like with XYZ files created by
+created with default settings by :doc:`dump style <dump>` *xyz*), that
+number will be used as the atom type.  If the atom label is a string,
+then a type map must be created using the :doc:`labelmap command
+<labelmap>`.  This map needs to associate each (numeric) atom type with
+a string label. The numeric atom type is stored internally.
+
+The xyz format dump file does not store atom IDs, so these are assigned
+consecutively to the atoms as they appear in the dump file, starting
+from 1.  Thus you should ensure that the order of atoms is consistent
+from snapshot to snapshot in the XYZ dump file.  See the
+:doc:`dump_modify sort <dump_modify>` command if the XYZ dump file was
+written by LAMMPS.
 
 For dump files in *molfile* format, the *x*, *y*, *z*, *vx*, *vy*, and
 *vz* fields can be specified.  However, not all molfile formats store
 velocities, or their respective plugins may not support reading of
-velocities.  The molfile dump files do not store atom IDs, so these
-are assigned consecutively to the atoms as they appear in the dump
-file, starting from 1.  Thus you should ensure that order of atoms are
-consistent from snapshot to snapshot in the molfile dump file.
-See the :doc:`dump_modify sort <dump_modify>` command if the dump file
-was written by LAMMPS.
+velocities.  The molfile dump files do not store atom IDs, so these are
+assigned consecutively to the atoms as they appear in the dump file,
+starting from 1.  Thus you should ensure that the order of atoms are
+consistent from snapshot to snapshot in the molfile dump file.  See the
+:doc:`dump_modify sort <dump_modify>` command if the dump file was
+written by LAMMPS.
 
 The *adios* format supports all fields that the *native* format supports
 except for the *q* charge field.
@@ -399,4 +417,4 @@ Default
 The option defaults are box = yes, timestep = yes, replace = yes, purge = no,
 trim = no, add = no, scaled = no, wrapped = yes, and format = native.
 
-.. _vmd: https://www.ks.uiuc.edu/Research/vmd
+.. _vmd: https://www.ks.uiuc.edu/Research/vmd/

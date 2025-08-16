@@ -213,3 +213,54 @@ TEST_F(LibraryObjects, variables)
 
     LAMMPS_NS::platform::unlink("test_variable.file");
 }
+
+TEST_F(LibraryObjects, expand)
+{
+    ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "variable one    index     1 2 3 4");
+    lammps_command(lmp, "variable two    equal     2");
+    lammps_command(lmp, "variable three  string    three");
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+
+    char *ptr = lammps_expand(lmp, "xx_$(4+5)_$(PI) ${one}-${two}-${three}");
+    EXPECT_NE(ptr, nullptr);
+    EXPECT_THAT((char *)ptr, StrEq("xx_9_3.141592653589793116 1-2-three"));
+    lammps_free(ptr);
+
+    ptr = lammps_expand(lmp, "'xx_$(4+5)_$(PI) ${one}-${two}-${three}'");
+    EXPECT_NE(ptr, nullptr);
+    EXPECT_THAT((char *)ptr, StrEq("'xx_$(4+5)_$(PI) ${one}-${two}-${three}'"));
+    lammps_free(ptr);
+}
+
+TEST_F(LibraryObjects, eval)
+{
+    lammps_get_last_error_message(lmp, nullptr, 1);
+    ::testing::internal::CaptureStdout();
+    lammps_commands_string(lmp, "region box1 block 0 10 0 5 -0.5 0.5\n"
+                                "lattice fcc 0.8\n"
+                                "create_box 1 box1\n"
+                                "create_atoms 1 box\n"
+                                "mass * 1.0\n"
+                                "pair_style lj/cut 4.0\n"
+                                "pair_coeff * * 1.0 1.0\n"
+                                "variable t equal 15.0\n"
+                                "velocity all create 1.5 532656\n"
+                                "fix 1 all nve\n"
+                                "run 0 post no\n");
+    lammps_command(lmp, "variable one    index     1 2 3 4");
+    lammps_command(lmp, "variable two    equal     2");
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    ASSERT_EQ(lammps_has_error(lmp), 0);
+
+    EXPECT_DOUBLE_EQ(lammps_eval(lmp, "4+5"), 9.0);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
+    EXPECT_DOUBLE_EQ(lammps_eval(lmp, "v_one / 2.0"), 0.5);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
+    EXPECT_DOUBLE_EQ(lammps_eval(lmp, "count(all)"), 36.0);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
+    EXPECT_DOUBLE_EQ(lammps_eval(lmp, "pe"), -3.9848867644689534);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
+}

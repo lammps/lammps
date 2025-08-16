@@ -60,7 +60,7 @@ struct WorkTagTrait : TraitSpecificationBase<WorkTagTrait> {
         show_extra_work_tag_erroneously_given_to_execution_policy<
             typename base_t::work_tag>{};
     static_assert(
-        std::is_void<typename base_t::work_tag>::value,
+        std::is_void_v<typename base_t::work_tag>,
         "Kokkos Error: More than one work tag given. Search compiler output "
         "for 'show_extra_work_tag' to see the type of the errant tag.");
   };
@@ -81,7 +81,7 @@ struct WorkTagTrait : TraitSpecificationBase<WorkTagTrait> {
   //   we should benchmark this assumption if it becomes a problem.
   template <class T>
   using trait_matches_specification = std::bool_constant<
-      std::is_empty<T>::value &&
+      std::is_empty_v<T> &&
       !type_list_any<_trait_matches_spec_predicate<T>::template apply,
                      _exec_policy_traits_without_work_tag>::value>;
 };

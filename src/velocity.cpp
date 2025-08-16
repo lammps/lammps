@@ -51,7 +51,7 @@ void Velocity::command(int narg, char **arg)
   if (narg < 2) utils::missing_cmd_args(FLERR, "velocity", error);
 
   if (domain->box_exist == 0)
-    error->all(FLERR,"Velocity command before simulation box is defined");
+    error->all(FLERR,"Velocity command before simulation box is defined" + utils::errorurl(33));
   if (atom->natoms == 0)
     error->all(FLERR,"Velocity command with no atoms existing");
 
@@ -184,7 +184,7 @@ void Velocity::create(double t_desired, int seed)
   Compute *temperature_nobias = nullptr;
 
   if (temperature == nullptr || bias_flag) {
-    auto newcompute = modify->add_compute(fmt::format("velocity_temp {} temp",group->names[igroup]));
+    auto *newcompute = modify->add_compute(fmt::format("velocity_temp {} temp",group->names[igroup]));
     if (temperature == nullptr) {
       temperature = newcompute;
       tcreate_flag = 1;

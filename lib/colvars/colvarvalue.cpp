@@ -8,11 +8,10 @@
 // Colvars repository at GitHub.
 
 #include <vector>
-#include <sstream>
-#include <iostream>
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
+#include "colvars_memstream.h"
 
 
 
@@ -150,29 +149,6 @@ std::string const colvarvalue::type_keyword(Type t)
     return ""; break;
   case colvarvalue::type_vector:
     return "vector"; break;
-  }
-}
-
-
-size_t colvarvalue::num_df(Type t)
-{
-  switch (t) {
-  case colvarvalue::type_notset:
-  default:
-    return 0; break;
-  case colvarvalue::type_scalar:
-    return 1; break;
-  case colvarvalue::type_3vector:
-    return 3; break;
-  case colvarvalue::type_unit3vector:
-  case colvarvalue::type_unit3vectorderiv:
-    return 2; break;
-  case colvarvalue::type_quaternion:
-  case colvarvalue::type_quaternionderiv:
-    return 3; break;
-  case colvarvalue::type_vector:
-    // the size of a vector is unknown without its object
-    return 0; break;
   }
 }
 
@@ -592,34 +568,132 @@ cvm::real operator * (colvarvalue const &x1,
 }
 
 
+cvm::real colvarvalue::norm2() const
+{
+  switch (value_type) {
+  case colvarvalue::type_scalar:
+    return (this->real_value)*(this->real_value);
+  case colvarvalue::type_3vector:
+  case colvarvalue::type_unit3vector:
+  case colvarvalue::type_unit3vectorderiv:
+    return (this->rvector_value).norm2();
+  case colvarvalue::type_quaternion:
+  case colvarvalue::type_quaternionderiv:
+    return (this->quaternion_value).norm2();
+  case colvarvalue::type_vector:
+    if (elem_types.size() > 0) {
+      // if we have information about non-scalar types, use it
+      cvm::real result = 0.0;
+      size_t i;
+      for (i = 0; i < elem_types.size(); i++) {
+        result += (this->get_elem(i)).norm2();
+      }
+      return result;
+    } else {
+      return vector1d_value.norm2();
+    }
+    break;
+  case colvarvalue::type_notset:
+  default:
+    return 0.0;
+  }
+}
+
+
+cvm::real colvarvalue::sum() const
+{
+  switch (value_type) {
+  case colvarvalue::type_scalar:
+    return (this->real_value);
+  case colvarvalue::type_3vector:
+  case colvarvalue::type_unit3vector:
+  case colvarvalue::type_unit3vectorderiv:
+    return (this->rvector_value).x + (this->rvector_value).y +
+      (this->rvector_value).z;
+  case colvarvalue::type_quaternion:
+  case colvarvalue::type_quaternionderiv:
+    return (this->quaternion_value).q0 + (this->quaternion_value).q1 +
+      (this->quaternion_value).q2 + (this->quaternion_value).q3;
+  case colvarvalue::type_vector:
+    return (this->vector1d_value).sum();
+  case colvarvalue::type_notset:
+  default:
+    return 0.0;
+  }
+}
+
+
+cvm::real colvarvalue::dist2(colvarvalue const &x2) const
+{
+  colvarvalue::check_types(*this, x2);
+
+  switch (this->type()) {
+  case colvarvalue::type_scalar:
+    return (this->real_value - x2.real_value) * (this->real_value - x2.real_value);
+  case colvarvalue::type_3vector:
+    return (this->rvector_value - x2.rvector_value).norm2();
+  case colvarvalue::type_unit3vector: {
+    cvm::rvector const &v1 = this->rvector_value;
+    cvm::rvector const &v2 = x2.rvector_value;
+    cvm::real const theta = cvm::acos(v1 * v2);
+    return theta * theta;
+  }
+  case colvarvalue::type_quaternion:
+    // angle between (*this) and x2 is the distance, the quaternion
+    // object has it implemented internally
+    return this->quaternion_value.dist2(x2.quaternion_value);
+  case colvarvalue::type_vector:
+    return (this->vector1d_value - x2.vector1d_value).norm2();
+  case colvarvalue::type_unit3vectorderiv:
+  case colvarvalue::type_quaternionderiv:
+    cvm::error("Error: computing a squared-distance between two variables of type \"" +
+                   type_desc(this->type()) + "\", for which it is not defined.\n",
+               COLVARS_BUG_ERROR);
+  case colvarvalue::type_notset:
+  default:
+    this->undef_op();
+    return 0.0;
+  };
+
+  return 0.0;
+}
+
+
 colvarvalue colvarvalue::dist2_grad(colvarvalue const &x2) const
 {
   colvarvalue::check_types(*this, x2);
+
+  // Compute derivative with respect to (*this)
 
   switch (this->value_type) {
   case colvarvalue::type_scalar:
     return 2.0 * (this->real_value - x2.real_value);
   case colvarvalue::type_3vector:
     return 2.0 * (this->rvector_value - x2.rvector_value);
-  case colvarvalue::type_unit3vector:
-  case colvarvalue::type_unit3vectorderiv:
-    {
-      cvm::rvector const &v1 = this->rvector_value;
-      cvm::rvector const &v2 = x2.rvector_value;
-      cvm::real const cos_t = v1 * v2;
-      return colvarvalue(2.0 * (cos_t * v1 - v2), colvarvalue::type_unit3vectorderiv);
-    }
+  case colvarvalue::type_unit3vector: {
+    cvm::rvector const &v1 = this->rvector_value;
+    cvm::rvector const &v2 = x2.rvector_value;
+    cvm::real const cos_t = v1 * v2;
+    return colvarvalue(2.0 * cvm::acos(cos_t) * -1.0 / cvm::sqrt(1.0 - cos_t * cos_t) * v2,
+                       colvarvalue::type_unit3vectorderiv);
+  }
   case colvarvalue::type_quaternion:
-  case colvarvalue::type_quaternionderiv:
     return this->quaternion_value.dist2_grad(x2.quaternion_value);
   case colvarvalue::type_vector:
     return colvarvalue(2.0 * (this->vector1d_value - x2.vector1d_value), colvarvalue::type_vector);
     break;
+  case colvarvalue::type_unit3vectorderiv:
+  case colvarvalue::type_quaternionderiv:
+    cvm::error("Error: computing a squared-distance gradient between two variables of type \"" +
+                   type_desc(this->type()) + "\", for which it is not defined.\n",
+               COLVARS_BUG_ERROR);
   case colvarvalue::type_notset:
   default:
     this->undef_op();
     return colvarvalue(colvarvalue::type_notset);
   };
+
+  return colvarvalue(colvarvalue::type_notset);
 }
 
 
@@ -721,29 +795,43 @@ int colvarvalue::from_simple_string(std::string const &s)
   return COLVARS_ERROR;
 }
 
-std::ostream & operator << (std::ostream &os, colvarvalue const &x)
+
+template <typename OST> void colvarvalue::write_to_stream_template_(OST &os) const
 {
-  switch (x.type()) {
+  switch (type()) {
   case colvarvalue::type_scalar:
-    os << x.real_value;
+    os << real_value;
     break;
   case colvarvalue::type_3vector:
   case colvarvalue::type_unit3vector:
   case colvarvalue::type_unit3vectorderiv:
-    os << x.rvector_value;
+    os << rvector_value;
     break;
   case colvarvalue::type_quaternion:
   case colvarvalue::type_quaternionderiv:
-    os << x.quaternion_value;
+    os << quaternion_value;
     break;
   case colvarvalue::type_vector:
-    os << x.vector1d_value;
+    os << vector1d_value;
     break;
   case colvarvalue::type_notset:
   default:
     os << "not set";
     break;
   }
+}
+
+
+std::ostream & operator << (std::ostream &os, colvarvalue const &x)
+{
+  x.write_to_stream_template_<std::ostream>(os);
+  return os;
+}
+
+
+cvm::memory_stream & operator << (cvm::memory_stream &os, colvarvalue const &x)
+{
+  x.write_to_stream_template_<cvm::memory_stream>(os);
   return os;
 }
 
@@ -758,43 +846,54 @@ std::ostream & operator << (std::ostream &os, std::vector<colvarvalue> const &v)
 }
 
 
-std::istream & operator >> (std::istream &is, colvarvalue &x)
+template <typename IST> void colvarvalue::read_from_stream_template_(IST &is)
 {
-  if (x.type() == colvarvalue::type_notset) {
+  if (type() == colvarvalue::type_notset) {
     cvm::error("Trying to read from a stream a colvarvalue, "
                "which has not yet been assigned a data type.\n");
-    return is;
   }
 
-  switch (x.type()) {
+  switch (type()) {
   case colvarvalue::type_scalar:
-    is >> x.real_value;
+    is >> real_value;
     break;
   case colvarvalue::type_3vector:
   case colvarvalue::type_unit3vectorderiv:
-    is >> x.rvector_value;
+    is >> rvector_value;
     break;
   case colvarvalue::type_unit3vector:
-    is >> x.rvector_value;
-    x.apply_constraints();
+    is >> rvector_value;
+    apply_constraints();
     break;
   case colvarvalue::type_quaternion:
-    is >> x.quaternion_value;
-    x.apply_constraints();
+    is >> quaternion_value;
+    apply_constraints();
     break;
   case colvarvalue::type_quaternionderiv:
-    is >> x.quaternion_value;
+    is >> quaternion_value;
     break;
   case colvarvalue::type_vector:
-    is >> x.vector1d_value;
+    is >> vector1d_value;
     break;
   case colvarvalue::type_notset:
   default:
-    x.undef_op();
+    undef_op();
   }
+}
+
+
+std::istream & operator >> (std::istream &is, colvarvalue &x)
+{
+  x.read_from_stream_template_<std::istream>(is);
   return is;
 }
 
+
+cvm::memory_stream & operator >> (cvm::memory_stream &is, colvarvalue &x)
+{
+  x.read_from_stream_template_<cvm::memory_stream>(is);
+  return is;
+}
 
 size_t colvarvalue::output_width(size_t const &real_width) const
 {

@@ -50,8 +50,8 @@ Syntax
        *intra_energy* value = intramolecular energy (energy units)
        *tfac_insert* value = scale up/down temperature of inserted atoms (unitless)
        *overlap_cutoff* value = maximum pair distance for overlap rejection (distance units)
-       *max* value = Maximum number of molecules allowed in the system
-       *min* value = Minimum number of molecules allowed in the system
+       *max* value = Maximum number of atoms allowed in the fix group (and region)
+       *min* value = Minimum number of atoms allowed in the fix group (and region)
 
 Examples
 """"""""
@@ -380,10 +380,11 @@ an infinite positive energy to all new configurations that place any
 pair of atoms closer than the specified overlap cutoff distance.
 
 The *max* and *min* keywords allow for the restriction of the number of
-atoms in the simulation. They automatically reject all insertion or
-deletion moves that would take the system beyond the set boundaries.
-Should the system already be beyond the boundary, only moves that bring
-the system closer to the bounds may be accepted.
+atoms in the fix group (and region in case the *region* keyword is
+used).  They automatically reject all insertion or deletion moves that
+would take the system beyond the set boundaries.  Should the system
+already be beyond the boundary, only moves that bring the system closer
+to the bounds may be accepted.
 
 The *group* keyword adds all inserted atoms to the :doc:`group <group>`
 of the group-ID value. The *grouptype* keyword adds all inserted atoms
@@ -413,14 +414,14 @@ This fix computes a global vector of length 8, which can be accessed
 by various :doc:`output commands <Howto_output>`.  The vector values are
 the following global cumulative quantities:
 
-* 1 = translation attempts
-* 2 = translation successes
-* 3 = insertion attempts
-* 4 = insertion successes
-* 5 = deletion attempts
-* 6 = deletion successes
-* 7 = rotation attempts
-* 8 = rotation successes
+  #. translation attempts
+  #. translation successes
+  #. insertion attempts
+  #. insertion successes
+  #. deletion attempts
+  #. deletion successes
+  #. rotation attempts
+  #. rotation successes
 
 The vector values calculated by this fix are "intensive".
 

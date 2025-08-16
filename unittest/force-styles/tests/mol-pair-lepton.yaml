@@ -1,7 +1,7 @@
 ---
 lammps_version: 21 Nov 2023
 date_generated: Thu Jan 18 11:01:50 2024
-epsilon: 5e-14
+epsilon: 1e-13
 skip_tests: intel
 prerequisites: ! |
   atom full

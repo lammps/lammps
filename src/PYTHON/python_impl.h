@@ -25,9 +25,10 @@ class PythonImpl : protected Pointers, public PythonInterface {
   PythonImpl(class LAMMPS *);
   ~PythonImpl() override;
   void command(int, char **) override;
-  void invoke_function(int, char *) override;
+  void invoke_function(int, char *, double *) override;
   int find(const char *) override;
-  int variable_match(const char *, const char *, int) override;
+  int function_match(const char *, const char *, int, Error *) override;
+  int wrapper_match(const char *, const char *, int, int *, Error *) override;
   char *long_string(int) override;
   int execute_string(char *) override;
   int execute_file(char *) override;
@@ -44,6 +45,7 @@ class PythonImpl : protected Pointers, public PythonInterface {
     int *ivalue;
     double *dvalue;
     char **svalue;
+    int *internal_var;        // stores per-arg index of internal variable
     int otype;
     char *ovarname;
     char *longstr;

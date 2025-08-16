@@ -16,7 +16,7 @@ compiled alongside the code using it from the source code in
 ``fortran/lammps.f90`` *and* with the same compiler used to build the
 rest of the Fortran code that interfaces to LAMMPS.  When linking, you
 also need to :doc:`link to the LAMMPS library <Build_link>`.  A typical
-command line for a simple program using the Fortran interface would be:
+command for a simple program using the Fortran interface would be:
 
 .. code-block:: bash
 
@@ -69,10 +69,11 @@ statement.  Internally, it will call either
 :cpp:func:`lammps_open_fortran` or :cpp:func:`lammps_open_no_mpi` from
 the C library API to create the class instance.  All arguments are
 optional and :cpp:func:`lammps_mpi_init` will be called automatically
-if it is needed.  Similarly, a possible call to
-:cpp:func:`lammps_mpi_finalize` is integrated into the :f:func:`close`
-function and triggered with the optional logical argument set to
-``.TRUE.``. Here is a simple example:
+if it is needed.  Similarly, optional calls to
+:cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_kokkos_finalize`,
+:cpp:func:`lammps_python_finalize`, and :cpp:func:`lammps_plugin_finalize`
+are integrated into the :f:func:`close` function and triggered with the
+optional logical argument set to ``.TRUE.``. Here is a simple example:
 
 .. code-block:: fortran
 
@@ -91,12 +92,12 @@ function and triggered with the optional logical argument set to
      CALL lmp%close(.TRUE.)
    END PROGRAM testlib
 
-It is also possible to pass command line flags from Fortran to C/C++ and
+It is also possible to pass command-line flags from Fortran to C/C++ and
 thus make the resulting executable behave similarly to the standalone
 executable (it will ignore the `-in/-i` flag, though).  This allows
-using the command line to configure accelerator and suffix settings,
+using the command-line to configure accelerator and suffix settings,
 configure screen and logfile output, or to set index style variables
-from the command line and more.  Here is a correspondingly adapted
+from the command-line and more.  Here is a correspondingly adapted
 version of the previous example:
 
 .. code-block:: fortran
@@ -108,7 +109,7 @@ version of the previous example:
      CHARACTER(LEN=128), ALLOCATABLE :: command_args(:)
      INTEGER :: i, argc
 
-     ! copy command line flags to `command_args()`
+     ! copy command-line flags to `command_args()`
      argc = COMMAND_ARGUMENT_COUNT()
      ALLOCATE(command_args(0:argc))
      DO i=0, argc
@@ -321,6 +322,14 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype set_string_variable: subroutine
    :f set_internal_variable: :f:subr:`set_internal_variable`
    :ftype set_internal_variable: subroutine
+   :f eval: :f:func:`eval`
+   :ftype eval: function
+   :f clearstep_compute: :f:subr:`clearstep_compute`
+   :ftype clearstep_compute: subroutine
+   :f addstep_compute: :f:subr:`addstep_compute`
+   :ftype addstep_compute: subroutine
+   :f addstep_compute_all: :f:subr:`addstep_compute_all`
+   :ftype addstep_compute_all: subroutine
    :f gather_atoms: :f:subr:`gather_atoms`
    :ftype gather_atoms: subroutine
    :f gather_atoms_concat: :f:subr:`gather_atoms_concat`
@@ -448,7 +457,7 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    compiled with MPI support, it will also initialize MPI, if it has
    not already been initialized before.
 
-   The *args* argument with the list of command line parameters is
+   The *args* argument with the list of command-line parameters is
    optional and so it the *comm* argument with the MPI communicator.
    If *comm* is not provided, ``MPI_COMM_WORLD`` is assumed. For
    more details please see the documentation of :cpp:func:`lammps_open`.
@@ -513,8 +522,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This method will close down the LAMMPS instance through calling
    :cpp:func:`lammps_close`.  If the *finalize* argument is present and
    has a value of ``.TRUE.``, then this subroutine also calls
-   :cpp:func:`lammps_kokkos_finalize` and
-   :cpp:func:`lammps_mpi_finalize`.
+   :cpp:func:`lammps_kokkos_finalize`, :cpp:func:`lammps_mpi_finalize`,
+   :cpp:func:`lammps_python_finalize`, and :cpp:func:`lammps_plugin_finalize`.
 
    :o finalize: shut down the MPI environment of the LAMMPS
     library if ``.TRUE.``.
@@ -522,6 +531,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :to: :cpp:func:`lammps_close`
    :to: :cpp:func:`lammps_mpi_finalize`
    :to: :cpp:func:`lammps_kokkos_finalize`
+   :to: :cpp:func:`lammps_python_finalize`
+   :to: :cpp:func:`lammps_plugin_finalize`
 
 --------
 
@@ -954,6 +965,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       :f:func:`extract_atom` between runs.
 
    .. admonition:: Array index order
+      :class: tip
 
       Two-dimensional arrays returned from :f:func:`extract_atom` will be
       **transposed** from equivalent arrays in C, and they will be indexed
@@ -1066,6 +1078,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    you based on data from the :cpp:class:`Compute` class.
 
    .. admonition:: Array index order
+      :class: tip
 
       Two-dimensional arrays returned from :f:func:`extract_compute` will be
       **transposed** from equivalent arrays in C, and they will be indexed
@@ -1077,7 +1090,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. list-table::
       :header-rows: 1
-      :widths: auto
+      :widths: 21 20 40 19
 
       * - Style
         - Type
@@ -1167,7 +1180,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. list-table::
       :header-rows: 1
-      :widths: auto
+      :widths: 20 19 11 11 21 18
 
       * - Style
         - Type
@@ -1324,6 +1337,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :rtype data: polymorphic
 
    .. admonition:: Array index order
+      :class: tip
 
       Two-dimensional global, per-atom, or local array data from
       :f:func:`extract_fix` will be **transposed** from equivalent arrays in
@@ -1448,8 +1462,59 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    an internal-style variable, an error is generated.
 
    :p character(len=*) name: name of the variable
-   :p read(c_double) val:  new value to assign to the variable
+   :p real(c_double) val:  new value to assign to the variable
    :to: :cpp:func:`lammps_set_internal_variable`
+
+--------
+
+.. f:function:: eval(expr)
+
+   This function is a wrapper around :cpp:func:`lammps_eval` that takes a
+   LAMMPS equal style variable string, evaluates it and returns the resulting
+   scalar value as a floating-point number.
+
+   .. versionadded:: 4Feb2025
+
+   :p character(len=\*) expr: string to be evaluated
+   :to: :cpp:func:`lammps_eval`
+   :r value [real(c_double)]: result of the evaluated string
+
+--------
+
+.. f:subroutine:: clearstep_compute()
+
+   Clear whether a compute has been invoked
+
+   .. versionadded:: 4Feb2025
+
+   :to: :cpp:func:`lammps_clearstep_compute`
+
+--------
+
+.. f:subroutine:: addstep_compute(nextstep)
+
+   Add timestep to list of future compute invocations
+   if the compute has been invoked on the current timestep
+
+   .. versionadded:: 4Feb2025
+
+   overloaded for 32-bit and 64-bit integer arguments
+
+   :p integer(kind=8 or kind=4) nextstep: next timestep
+   :to: :cpp:func:`lammps_addstep_compute`
+
+--------
+
+.. f:subroutine:: addstep_compute_all(nextstep)
+
+   Add timestep to list of future compute invocations
+
+   .. versionadded:: 4Feb2025
+
+   overloaded for 32-bit and 64-bit integer arguments
+
+   :p integer(kind=8 or kind=4) nextstep: next timestep
+   :to: :cpp:func:`lammps_addstep_compute_all`
 
 --------
 
@@ -2034,7 +2099,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
 --------
 
-.. f:subroutine:: create_atoms([id,] type, x, [v,] [image,] [bexpand])
+.. f:function:: create_atoms([id,] type, x, [v,] [image,] [bexpand])
 
    This method calls :cpp:func:`lammps_create_atoms` to create additional atoms
    from a given list of coordinates and a list of atom types. Additionally,
@@ -2063,6 +2128,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     will be created, not dropped, and the box dimensions will be extended.
     Default is ``.FALSE.``
    :otype bexpand: logical,optional
+   :r atoms: number of created atoms
+   :rtype atoms: integer(c_int)
    :to: :cpp:func:`lammps_create_atoms`
 
    .. note::
@@ -2084,6 +2151,18 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       This is required because having all arguments be optional in both
       generic functions creates an ambiguous interface. This limitation does
       not exist if LAMMPS was not compiled with ``-DLAMMPS_BIGBIG``.
+
+--------
+
+.. f:subroutine:: create_molecule(id, jsonstr)
+
+   Add molecule template from string with JSON data
+
+   .. versionadded:: 22Jul2025
+
+   :p character(len=\*) id: desired molecule-ID
+   :p character(len=\*) jsonstr: string with JSON data defining the molecule template
+   :to: :cpp:func:`lammps_create_molecule`
 
 --------
 
@@ -2711,8 +2790,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
         END SUBROUTINE external_callback
       END INTERFACE
 
-   where ``c_bigint`` is ``c_int`` if ``-DLAMMPS_SMALLSMALL`` was used and
-   ``c_int64_t`` otherwise; and ``c_tagint`` is ``c_int64_t`` if
+   where ``c_bigint`` is ``c_int64_t`` and ``c_tagint`` is ``c_int64_t`` if
    ``-DLAMMPS_BIGBIG`` was used and ``c_int`` otherwise.
 
    The argument *caller* to :f:subr:`set_fix_external_callback` is unlimited

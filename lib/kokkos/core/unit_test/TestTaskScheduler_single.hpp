@@ -19,8 +19,8 @@ namespace Test {
 TEST(TEST_CATEGORY, KOKKOS_TEST_WITH_SUFFIX(task_fib, TEST_SCHEDULER_SUFFIX)) {
   const int N = 27;
   for (int i = 0; i < N; ++i) {
-    TestTaskScheduler::TestFib<TEST_SCHEDULER>::run(i,
-                                                    (i + 1) * (i + 1) * 64000);
+    TestTaskScheduler::TestFib<TEST_SCHEDULER>::run(
+        i, static_cast<size_t>(i + 1) * (i + 1) * 64000);
   }
 }
 

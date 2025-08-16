@@ -19,9 +19,9 @@ there are now a few requirements for including new changes or extensions.
     be added.
   - New features should also be implemented and documented not just
     for the C interface, but also the Python and Fortran interfaces.
-  - All additions should work and be compatible with ``-DLAMMPS_BIGBIG``,
-    ``-DLAMMPS_SMALLBIG``, ``-DLAMMPS_SMALLSMALL`` as well as when
-    compiling with and without MPI support.
+  - All additions should work and be compatible with
+    ``-DLAMMPS_BIGBIG``, ``-DLAMMPS_SMALLBIG`` as well as when compiling
+    with and without MPI support.
   - The ``library.h`` file should be kept compatible to C code at
     a level similar to C89. Its interfaces may not reference any
     custom data types (e.g. ``bigint``, ``tagint``, and so on) that

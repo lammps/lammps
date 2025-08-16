@@ -777,14 +777,14 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
           int * _noalias jlist = firstneigh[i];
           int jnum = numneigh[i];
           if (!THREE) IP_PRE_neighbor_pad(jnum, offload);
-          #if __INTEL_COMPILER+0 > 1499
-#if defined(USE_OMP_SIMD)
+          #if (__INTEL_COMPILER+0 > 1499) || __INTEL_LLVM_COMPILER
+          #if defined(USE_OMP_SIMD)
           #pragma omp simd reduction(max:vlmax,vgmax) \
             reduction(min:vlmin, vgmin)
-#else
+          #else
           #pragma simd reduction(max:vlmax,vgmax) \
             reduction(min:vlmin, vgmin)
-#endif
+          #endif
           #pragma vector aligned
           #endif
           for (int jj = 0; jj < jnum; jj++) {

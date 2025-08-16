@@ -7,8 +7,6 @@
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
-#include <cstdlib>
-#include <cstring>
 #include <sstream>
 
 #include "colvarproxy.h"
@@ -35,6 +33,7 @@ colvarscript::colvarscript(colvarproxy *p, colvarmodule *m)
  : proxy_(p),
    colvars(m)
 {
+  cmdline_main_cmd_ = std::string("cv");
   cmd_names = NULL;
   init_commands();
 #ifdef COLVARS_TCL
@@ -141,7 +140,7 @@ int colvarscript::init_command(colvarscript::command const &comm,
   }
 
   cmd_full_help[comm] = cmd_help[comm]+"\n";
-  if (cmd_n_args_min[comm] > 0) {
+  if (cmd_n_args_max[comm] > 0) {
     cmd_full_help[comm] += "\nParameters\n";
     cmd_full_help[comm] += "----------\n\n";
     size_t i;
@@ -281,11 +280,15 @@ std::string colvarscript::get_command_cmdline_syntax(colvarscript::Object_type t
 
   switch (t) {
   case use_module:
-    return std::string("cv "+cmdline_cmd+cmdline_args); break;
+    return std::string(cmdline_main_cmd_ + " " + cmdline_cmd + cmdline_args);
+    break;
   case use_colvar:
-    return std::string("cv colvar name "+cmdline_cmd+cmdline_args); break;
+    return std::string(cmdline_main_cmd_ + " colvar name " + cmdline_cmd+
+                       cmdline_args);
+    break;
   case use_bias:
-    return std::string("cv bias name "+cmdline_cmd+cmdline_args); break;
+    return std::string(cmdline_main_cmd_ + " bias name " + cmdline_cmd+cmdline_args);
+    break;
   default:
     // Already handled, but silence the warning
     return std::string("");
@@ -353,7 +356,7 @@ int colvarscript::run(int objc, unsigned char *const objv[])
   }
 
   if (objc < 2) {
-    set_result_str("No commands given: use \"cv help\" "
+    set_result_str("No commands given: use \""+cmdline_main_cmd_+" help\" "
                    "for a list of commands.");
     return COLVARSCRIPT_ERROR;
   }
@@ -436,7 +439,8 @@ int colvarscript::run(int objc, unsigned char *const objv[])
     error_code = (*cmd_fn)(obj_for_cmd, objc, objv);
   } else {
     add_error_msg("Syntax error: "+cmdline+"\n"
-                  "  Run \"cv help\" or \"cv help <command>\" "
+                  "  Run \""+main_cmd+" help\" or \""+
+                  main_cmd+" help <command>\" "
                   "to get the correct syntax.\n");
     error_code = COLVARSCRIPT_ERROR;
   }
@@ -763,7 +767,7 @@ extern "C" int tcl_run_colvarscript_command(ClientData /* clientData */,
 int colvarscript::set_result_text_from_str(std::string const &x_str,
                                            unsigned char *obj) {
   if (obj) {
-    strcpy(reinterpret_cast<char *>(obj), x_str.c_str());
+    std::memcpy(reinterpret_cast<char *>(obj), x_str.c_str(), x_str.size());
   } else {
     set_result_str(x_str);
   }

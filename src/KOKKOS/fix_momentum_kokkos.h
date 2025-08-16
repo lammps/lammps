@@ -24,6 +24,8 @@ FixStyle(momentum/kk/host,FixMomentumKokkos<LMPHostType>);
 #define LMP_FIX_MOMENTUM_KOKKOS_H
 
 #include "fix_momentum.h"
+
+#include "group_kokkos.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
@@ -35,6 +37,8 @@ class FixMomentumKokkos : public FixMomentum {
 
   FixMomentumKokkos(class LAMMPS *, int, char **);
   void end_of_step() override;
+ private:
+    GroupKokkos *groupKK;
 };
 
 }

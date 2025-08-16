@@ -19,9 +19,16 @@
 
 class LineNumberArea : public QWidget {
 public:
-    LineNumberArea(CodeEditor *editor) : QWidget(editor), codeEditor(editor) {}
+    explicit LineNumberArea(CodeEditor *editor) : QWidget(editor), codeEditor(editor) {}
+    ~LineNumberArea() override = default;
 
-    QSize sizeHint() const override { return QSize(codeEditor->lineNumberAreaWidth(), 0); }
+    LineNumberArea()                                  = delete;
+    LineNumberArea(const LineNumberArea &)            = delete;
+    LineNumberArea(LineNumberArea &&)                 = delete;
+    LineNumberArea &operator=(const LineNumberArea &) = delete;
+    LineNumberArea &operator=(LineNumberArea &&)      = delete;
+
+    QSize sizeHint() const override { return {codeEditor->lineNumberAreaWidth(), 0}; }
 
 protected:
     void paintEvent(QPaintEvent *event) override { codeEditor->lineNumberAreaPaintEvent(event); }

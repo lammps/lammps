@@ -80,6 +80,11 @@ FixACKS2ReaxFF::FixACKS2ReaxFF(LAMMPS *lmp, int narg, char **arg) :
 
   last_rows_rank = 0;
   last_rows_flag = (comm->me == last_rows_rank);
+
+  if (lmp->citeme) lmp->citeme->add(cite_fix_acks2_reax);
+
+  if (dual_enabled)
+    error->all(FLERR, Error::NOLASTLINE, "Dual keyword only supported with fix qeq/reax/omp");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,8 +109,6 @@ FixACKS2ReaxFF::~FixACKS2ReaxFF()
 
 void FixACKS2ReaxFF::post_constructor()
 {
-  if (lmp->citeme) lmp->citeme->add(cite_fix_acks2_reax);
-
   memory->create(s_hist_last,2,nprev,"acks2/reax:s_hist_last");
   for (int i = 0; i < 2; i++)
     for (int j = 0; j < nprev; ++j)
@@ -117,8 +120,6 @@ void FixACKS2ReaxFF::post_constructor()
       s_hist[i][j] = s_hist_X[i][j] = 0.0;
 
   pertype_parameters(pertype_option);
-  if (dual_enabled)
-    error->all(FLERR,"Dual keyword only supported with fix qeq/reax/omp");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,19 +129,19 @@ void FixACKS2ReaxFF::pertype_parameters(char *arg)
   if (utils::strmatch(arg,"^reaxff")) {
     reaxflag = 1;
     Pair *pair = force->pair_match("^reaxff",0);
-    if (!pair) error->all(FLERR,"No reaxff pair style for fix acks2/reaxff");
+    if (!pair) error->all(FLERR, Error::NOLASTLINE, "No reaxff pair style for fix acks2/reaxff");
 
     int tmp;
     chi = (double *) pair->extract("chi",tmp);
     eta = (double *) pair->extract("eta",tmp);
     gamma = (double *) pair->extract("gamma",tmp);
     bcut_acks2 = (double *) pair->extract("bcut_acks2",tmp);
-    auto  bond_softness_ptr = (double *) pair->extract("bond_softness",tmp);
+    auto *bond_softness_ptr = (double *) pair->extract("bond_softness",tmp);
 
     if (chi == nullptr || eta == nullptr || gamma == nullptr ||
         bcut_acks2 == nullptr || bond_softness_ptr == nullptr)
-      error->all(FLERR,
-                 "Fix acks2/reaxff could not extract params from pair reaxff");
+      error->all(FLERR, Error::NOLASTLINE, "Fix {} could not extract params from pair reaxff",
+                 style);
     bond_softness = *bond_softness_ptr;
     return;
   }
@@ -411,12 +412,12 @@ void FixACKS2ReaxFF::init_matvec()
 
 /* ---------------------------------------------------------------------- */
 
-void FixACKS2ReaxFF::compute_X()
+void FixACKS2ReaxFF::compute_X() // NOLINT
 {
   int jnum;
   int i, j, ii, jj, flag;
   double dx, dy, dz, r_sqr;
-  const double SMALL = 0.0001;
+  constexpr double SMALL = 0.0001;
 
   int *type = atom->type;
   tagint *tag = atom->tag;

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meißner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
@@ -54,7 +54,7 @@ class FixElectrodeConp : public Fix {
   double compute_array(int, int) override;
   int modify_param(int, char **) override;
   int modify_param(const std::string &);
-  virtual void init() override;
+  void init() override;
   void init_list(int, NeighList *) override;
   void post_constructor() override;    // used by ffield to set up fix efield
   double memory_usage() override;
@@ -72,8 +72,8 @@ class FixElectrodeConp : public Fix {
   enum class Algo { MATRIX_INV, MATRIX_CG, CG };
   enum class VarStyle { CONST, EQUAL, UNSET };
   virtual void update_psi();
-  virtual void pre_update(){};
-  virtual void recompute_potential(std::vector<double>, std::vector<double>){};
+  virtual void pre_update() {};
+  virtual void recompute_potential(const std::vector<double> &, const std::vector<double> &) {};
   virtual std::vector<double> constraint_projection(std::vector<double>);
   virtual std::vector<double> constraint_correction(std::vector<double>);
   virtual void compute_macro_matrices();

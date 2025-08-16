@@ -13,13 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_sph_rho_atom.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -30,8 +32,7 @@ ComputeSPHRhoAtom::ComputeSPHRhoAtom(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all(FLERR,"Illegal compute sph/rho/atom command");
   if (atom->rho_flag != 1)
-    error->all(FLERR,"Compute sph/rho/atom command requires atom_style sph");
-
+    error->all(FLERR, "Compute sph/rho/atom requires atom attribute density, e.g. in atom_style sph");
   peratom_flag = 1;
   size_peratom_cols = 0;
 
@@ -50,12 +51,11 @@ ComputeSPHRhoAtom::~ComputeSPHRhoAtom()
 
 void ComputeSPHRhoAtom::init()
 {
-
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"rhoVector/atom") == 0) count++;
+    if (strcmp(modify->compute[i]->style,"sph/rho/atom") == 0) count++;
   if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute rhoVector/atom");
+    error->warning(FLERR,"More than one compute sph/rho/atom");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -73,20 +73,17 @@ void ComputeSPHRhoAtom::compute_peratom()
     vector_atom = rhoVector;
   }
 
-  // compute kinetic energy for each atom in group
-
   double *rho = atom->rho;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-              rhoVector[i] = rho[i];
-      }
-      else {
-              rhoVector[i] = 0.0;
-      }
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      rhoVector[i] = rho[i];
+    } else {
+      rhoVector[i] = 0.0;
     }
+  }
 }
 
 /* ----------------------------------------------------------------------

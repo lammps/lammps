@@ -2,6 +2,7 @@
 // (They were added to test for many different kinds of array formats.)
 
 #include "math_eigen_impl.h"
+
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -11,6 +12,7 @@
 #include <iomanip>
 #include <iostream>
 #include <random>
+#include <string>
 #include <vector>
 
 using std::array;

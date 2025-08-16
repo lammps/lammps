@@ -54,7 +54,7 @@ using namespace user_manifold;
 
 enum { CONST, EQUAL }; // For treating the variables.
 
-static const char* cite_fix_nve_manifold_rattle =
+static const char cite_fix_nve_manifold_rattle[] =
   "fix nve/manifold/rattle command: doi:10.1016/j.bpj.2016.02.017\n\n"
   "@article{paquay-2016,\n"
   "   author        = {Paquay, Stefan and Kusters, Remy},\n"
@@ -68,7 +68,6 @@ static const char* cite_fix_nve_manifold_rattle =
   "   volume        = {110},\n"
   "   year          = {2016}\n"
   "}\n\n";
-
 
 /* -----------------------------------------------------------------------------
    ---------------------------------------------------------------------------*/
@@ -90,10 +89,10 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
   dtv = dtf = 0;
 
   tolerance = utils::numeric( FLERR, arg[3] ,false,lmp);
-  max_iter  = utils::numeric( FLERR, arg[4] ,false,lmp);
+  max_iter  = utils::inumeric( FLERR, arg[4] ,false,lmp);
 
   ptr_m = create_manifold(arg[5], lmp, narg, arg);
-  if (!ptr_m) error->all(FLERR,"Error creating manifold pointer");
+  if (!ptr_m) error->all(FLERR, 5, "Error creating manifold pointer");
 
   nvars = ptr_m->nparams();
   tstrs  = new char*[nvars];
@@ -159,12 +158,12 @@ FixNVEManifoldRattle::~FixNVEManifoldRattle()
 {
   if (tstrs) {
     for (int i = 0; i < nvars; ++i) {
-      delete [] tstrs[i];
+      delete[] tstrs[i];
     }
-    delete [] tstrs;
+    delete[] tstrs;
   }
 
-  if (tvars ) delete [] tvars;
+  if (tvars) delete[] tvars;
   delete[] tstyle;
   delete[] is_var;
 }
@@ -316,10 +315,10 @@ double FixNVEManifoldRattle::memory_usage()
 {
   double bytes = 0.0;
 
-  bytes += (double)sizeof(statistics);
-  bytes += (double)sizeof(*ptr_m) + sizeof(ptr_m);
-  bytes += (double)nvars*sizeof(double) + sizeof(double*);
-  bytes += (double)nvars*( sizeof(char*) + 3*sizeof(int) );
+  bytes += (double) sizeof(statistics);
+  bytes += (double) sizeof(*ptr_m) + sizeof(double *);
+  bytes += (double) nvars * sizeof(double) + sizeof(double *);
+  bytes += (double) nvars * (sizeof(char*) + 3 * sizeof(int));
   return bytes;
 }
 

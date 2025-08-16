@@ -269,9 +269,9 @@ a positive floating-point number.
    For pimd simulations, a temperature values should be specified even for nve ensemble. Temperature will make a difference
    for nve pimd, since the spring elastic frequency between the beads will be affected by the temperature.
 
-The keyword *thermostat* reads *style* of thermostat for fix style *pimd/langevin*.Two thermostat styles are available: *PILE_L* or *NHC*.
+The keyword *thermostat* reads *style* of thermostat for fix style *pimd/langevin*. Two thermostat styles are available: *PILE_L* or *NHC*.
 For *PILE_L* (path integral Langevin equation local thermostat, as described in :ref:`Ceriotti <Ceriotti2>`), 
-a keyword *seed* is required. *seed* should be a positive integer that serves as the seed of the pseudo-random number generator.
+a keyword *seed* is required and *seed* should be a positive integer that serves as the seed of the pseudo-random number generator.
 For *NHC* (Nose-Hoover chains thermostat), perform time integration using Nose-Hoover non-Hamiltonian equations of motion.
 The *Tdamp* parameter is specified in time units and determines how rapidly the temperature is relaxed.
 The keyword *tchain* determines the number of thermostats and the keyword *tloop* enhances integration accuracy by splitting thermostat updates into sub-steps of size dt/tloop, 

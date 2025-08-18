@@ -40,10 +40,12 @@ class FixContinuumChunk : public Fix {
   std::vector<std::pair<int, int>> values;
   std::vector<std::string> labels;
 
-  int dim, pstyle, single_needed;
+  int dim, pstyle, calculate_pair, calculate_grad;
+  int need_density, need_momentum, need_vgrad;
+  int index_density, index_momentum[3], index_vgrad[3][3];
   double w_cut, w_cut_sq, w_sd, w_sd_sq, w_scale, w_offset;
 
-  int nvalues, nrepeat, nfreq, irepeat;
+  int nvalues, nskip, nrepeat, nfreq, irepeat;
   int borderflag, overwrite, colextra;
   bigint nvalid, nvalid_last;
   char *format, *format_user;
@@ -72,9 +74,13 @@ class FixContinuumChunk : public Fix {
   double *count_total, **count_list;
   double **values_total, ***values_list;
 
+  double *density_one, *density_sum_now;
+  double **momentum_one, **momentum_sum_now;
+
   void allocate();
   bigint nextvalid();
   inline double calc_w(const double) const ;
+  inline double calc_dw(const double) const ;
   inline double calc_w_int(const double, const double, const double) const ;
   void add_tensor_component(char *, int);
   void add_vector_component(char *, int);

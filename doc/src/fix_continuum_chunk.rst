@@ -28,7 +28,7 @@ Syntax
        *stress/ab* = ab-component of the total stress field
        *stress/ke/ab* = ab-component of the kinetic stress field
        *stress/contacts/ab* = ab-component of the contacts stress field
-       *fabrc/ab* = ab-component of the fabric tensor field
+       *fabric/ab* = ab-component of the fabric tensor field
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *ave* or *border* or *file* or *append* or *overwrite* or *format* or *title1* or *title2* or *title3*
@@ -75,20 +75,14 @@ averaged over longer timescales. The resulting chunk fields can be used by
 other :doc:`output commands <Howto_output>` such as :doc:`thermo_style custom
 <thermo_style>`, and can also be written to a file.
 
-The available fields include scalar, vector, and tensor values. Currently, the
-only scalar field is the density and the only vector field is the velocity.
-An individual component of the velocity field can be requested as *v/x*,
-*v/y*, or *v/z* or one can request all three components (two in 2D) using
-a wildcard: *v/\**. The remaining stress and fabric values are tensors
-and require two components to be specified. E.g., *stress/xx*, *stress/xy*,
-*stress/yx*, and *stress/yy* in 2D. Note that the fix does not assume tensors
-are symmetric and independently calculates each diagonal component. A
-wildcard can be used to access all nine components (four in 2D) such as
-*stress/\**. The *stress* field includes both kinetic and bulk contributions
-as defined in :ref:`(Goldhirsch)`. These contributions can also be accessed
-separately using the *stress/contacts* and *stress/ke* values. The *fabric*
-tensor is calculated similar to the *stress/contacts* tensor except is is
-the outer product of two normal vectors scaled by the particle volume.
+The available fields include scalar, vector, and tensor values described below.
+An individual component of a vector field such as the velocity can be requested
+as *v/x*, *v/y*, or *v/z* or one can request all three components (two in 2D)
+using a wildcard: *v/\**. Tensor fields, such as the stress, and require two
+components to be specified. E.g., *stress/xx*, *stress/xy*, *stress/yx*, and
+*stress/yy* in 2D. Note that the fix does not assume tensors are symmetric
+and independently calculates each diagonal component. A wildcard can be used
+to access all nine components (four in 2D) such as *stress/\**.
 
 In LAMMPS, chunks are collections of atoms defined by a :doc:`compute
 chunk/atom <compute_chunk_atom>` command, which assigns each atom to a
@@ -186,6 +180,17 @@ early steps will average over less than :math:`M` values if they are not
 available.
 
 ----------
+*density*
+
+*momentum* *velocity*
+
+*stress*, *stress/ke*, *stress/contacts*, *fabric*, *momentum/grad*, *velocity/grad*, *strain/rate*
+
+The *stress* field includes both kinetic and bulk contributions
+as defined in :ref:`(Goldhirsch)`. These contributions can also be accessed
+separately using the *stress/contacts* and *stress/ke* values. The *fabric*
+tensor is calculated similar to the *stress/contacts* tensor except is is
+the outer product of two normal vectors scaled by the particle volume.
 
 The *border* keyword turns on corrections to the *stress* and *stress/contacts*
 fields using the construction from :ref:`(Weinhart)`. This keyword only applies

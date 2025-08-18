@@ -25,6 +25,7 @@
 #include <exception>
 #include <mpi.h>
 #include <utility>
+#include <filesystem>
 
 ////////////////////////////////////////////////////////////////////////
 // include system headers and tweak system settings
@@ -751,22 +752,11 @@ bool platform::is_console(FILE *fp)
 
 /* ----------------------------------------------------------------------
    Get string with path to the current directory
-   PATH_MAX may not be a compile time constant, so we must allocate and delete a buffer.
 ------------------------------------------------------------------------- */
 
 std::string platform::current_directory()
 {
-  std::string cwd;
-
-#if defined(_WIN32)
-  char *buf = new char[MAX_PATH];
-  if (_getcwd(buf, MAX_PATH)) { cwd = buf; }
-#else
-  auto *buf = new char[PATH_MAX];
-  if (::getcwd(buf, PATH_MAX)) { cwd = buf; }
-#endif
-  delete[] buf;
-  return cwd;
+  return std::filesystem::current_path();
 }
 
 /* ----------------------------------------------------------------------
@@ -775,16 +765,7 @@ std::string platform::current_directory()
 
 bool platform::path_is_directory(const std::string &path)
 {
-#if defined(_WIN32)
-  struct _stat info;
-  memset(&info, 0, sizeof(info));
-  if (_stat(path.c_str(), &info) != 0) return false;
-#else
-  struct stat info;
-  memset(&info, 0, sizeof(info));
-  if (stat(path.c_str(), &info) != 0) return false;
-#endif
-  return ((info.st_mode & S_IFDIR) != 0);
+  return std::filesystem::is_directory(path);
 }
 
 /* ----------------------------------------------------------------------
@@ -796,30 +777,10 @@ std::vector<std::string> platform::list_directory(const std::string &dir)
   std::vector<std::string> files;
   if (!path_is_directory(dir)) return files;
 
-#if defined(_WIN32)
-  HANDLE handle;
-  WIN32_FIND_DATA fd;
-  std::string searchname = dir + filepathsep[0] + "*";
-  handle = FindFirstFile(searchname.c_str(), &fd);
-  if (handle == ((HANDLE) -1)) return files;
-  while (FindNextFile(handle, &fd)) {
-    std::string entry(fd.cFileName);
-    if ((entry == "..") || (entry == ".")) continue;
-    files.push_back(std::move(entry));
+  for (const auto & dir_entry : std::filesystem::directory_iterator{dir}) {
+    files.push_back(dir_entry.path().filename());
   }
-  FindClose(handle);
-#else
-  std::string dirname = dir + filepathsep[0];
-  DIR *handle = opendir(dirname.c_str());
-  if (handle == nullptr) return files;
-  struct dirent *fd;
-  while ((fd = readdir(handle)) != nullptr) {
-    std::string entry(fd->d_name);
-    if ((entry == "..") || (entry == ".")) continue;
-    files.push_back(std::move(entry));
-  }
-  closedir(handle);
-#endif
+
   return files;
 }
 
@@ -829,11 +790,9 @@ std::vector<std::string> platform::list_directory(const std::string &dir)
 
 int platform::chdir(const std::string &path)
 {
-#if defined(_WIN32)
-  return ::_chdir(path.c_str());
-#else
-  return ::chdir(path.c_str());
-#endif
+  std::error_code ec;
+  std::filesystem::current_path(path, ec);
+  return ec.value();
 }
 
 /* ----------------------------------------------------------------------
@@ -842,26 +801,9 @@ int platform::chdir(const std::string &path)
 
 int platform::mkdir(const std::string &path)
 {
-  std::deque<std::string> dirlist = {path};
-  std::string dirname = path_dirname(path);
-
-  while ((dirname != ".") && (dirname != "")) {
-    dirlist.push_front(dirname);
-    dirname = path_dirname(dirname);
-  }
-
-  int rv;
-  for (const auto &dir : dirlist) {
-    if (!path_is_directory(dir)) {
-#if defined(_WIN32)
-      rv = ::_mkdir(dir.c_str());
-#else
-      rv = ::mkdir(dir.c_str(), S_IRWXU | S_IRGRP | S_IXGRP);
-#endif
-      if (rv != 0) return rv;
-    }
-  }
-  return 0;
+  std::error_code ec;
+  std::filesystem::create_directories(path, ec);
+  return ec.value() == 0 ? 0 : -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -870,20 +812,7 @@ int platform::mkdir(const std::string &path)
 
 int platform::rmdir(const std::string &path)
 {
-  // recurse through directory tree deleting files and directories
-  auto entries = list_directory(path);
-  for (const auto &entry : entries) {
-    const auto newpath = path_join(path, entry);
-    if (path_is_directory(newpath))
-      rmdir(newpath);
-    else
-      unlink(newpath);
-  }
-#if defined(_WIN32)
-  return ::_rmdir(path.c_str());
-#else
-  return ::rmdir(path.c_str());
-#endif
+  return static_cast<int>(std::filesystem::remove_all(path));
 }
 
 /* ----------------------------------------------------------------------
@@ -892,11 +821,10 @@ int platform::rmdir(const std::string &path)
 
 int platform::unlink(const std::string &path)
 {
-#if defined(_WIN32)
-  return ::_unlink(path.c_str());
-#else
-  return ::unlink(path.c_str());
-#endif
+  if(path_is_directory(path)) return -1;
+  std::error_code ec;
+  bool deleted = std::filesystem::remove(path, ec);
+  return deleted && ec.value() == 0 ? 0 : -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -994,15 +922,7 @@ int platform::pclose(FILE *fp)
 
 std::string platform::path_basename(const std::string &path)
 {
-  size_t start = path.find_last_of(platform::filepathsep);
-
-  if (start == std::string::npos) {
-    start = 0;
-  } else {
-    start += 1;
-  }
-
-  return path.substr(start);
+  return std::filesystem::path(path).filename();
 }
 
 /* ----------------------------------------------------------------------

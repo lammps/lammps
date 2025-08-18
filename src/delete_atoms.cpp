@@ -36,7 +36,7 @@
 #include "variable.h"
 
 #include <cstring>
-#include <map>
+#include <set>
 #include <utility>
 
 using namespace LAMMPS_NS;
@@ -588,12 +588,6 @@ void DeleteAtoms::delete_variable(int narg, char **arg)
 
 void DeleteAtoms::delete_bond()
 {
-  // hash = for atom IDs being deleted by one processor
-  // list of these IDs is sent around ring
-  // at each stage of ring pass, hash is re-populated with received IDs
-
-  hash = new std::map<tagint, int>();
-
   // list = set of unique molecule IDs from which I deleted atoms
   // pass list to all other procs via comm->ring()
 
@@ -612,7 +606,6 @@ void DeleteAtoms::delete_bond()
 
   comm->ring(n, sizeof(tagint), list, 1, bondring, nullptr, (void *) this);
 
-  delete hash;
   memory->destroy(list);
 }
 
@@ -626,30 +619,27 @@ void DeleteAtoms::delete_molecule()
 {
   // hash = unique molecule IDs from which I deleted atoms
 
-  hash = new std::map<tagint, int>();
+  std::set<tagint> hash;
 
   tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (molecule[i] == 0) continue;
-    if (dlist[i] && hash->find(molecule[i]) == hash->end()) (*hash)[molecule[i]] = 1;
+    if (dlist[i] && molecule[i] != 0) hash.insert(molecule[i]);
   }
 
   // list = set of unique molecule IDs from which I deleted atoms
   // pass list to all other procs via comm->ring()
 
-  int n = hash->size();
+  auto n = hash.size();
   tagint *list;
   memory->create(list, n, "delete_atoms:list");
 
   n = 0;
-  std::map<tagint, int>::iterator pos;
-  for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
+  for (const auto pos : hash) list[n++] = pos;
 
   comm->ring(n, sizeof(tagint), list, 1, molring, nullptr, (void *) this);
 
-  delete hash;
   memory->destroy(list);
 }
 
@@ -724,7 +714,6 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
 {
   auto *daptr = (DeleteAtoms *) ptr;
   auto *list = (tagint *) cbuf;
-  std::map<tagint, int> *hash = daptr->hash;
 
   int *num_bond = daptr->atom->num_bond;
   int *num_angle = daptr->atom->num_angle;
@@ -758,9 +747,7 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
   int n_histories = histories.size();
 
   // cbuf = list of N deleted atom IDs from other proc, put them in hash
-
-  hash->clear();
-  for (int i = 0; i < nbuf; i++) (*hash)[list[i]] = 1;
+  std::set<tagint> hash(list, list + nbuf);
 
   // loop over my atoms and their bond topology lists
   // if any atom in an interaction matches atom ID in hash, delete interaction
@@ -771,7 +758,7 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
       m = 0;
       n = num_bond[i];
       while (m < n) {
-        if (hash->find(bond_atom[i][m]) != hash->end()) {
+        if (hash.find(bond_atom[i][m]) != hash.end()) {
           bond_type[i][m] = bond_type[i][n - 1];
           bond_atom[i][m] = bond_atom[i][n - 1];
           if (n_histories > 0)
@@ -790,9 +777,9 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
       m = 0;
       n = num_angle[i];
       while (m < n) {
-        if (hash->find(angle_atom1[i][m]) != hash->end() ||
-            hash->find(angle_atom2[i][m]) != hash->end() ||
-            hash->find(angle_atom3[i][m]) != hash->end()) {
+        if (hash.find(angle_atom1[i][m]) != hash.end() ||
+            hash.find(angle_atom2[i][m]) != hash.end() ||
+            hash.find(angle_atom3[i][m]) != hash.end()) {
           angle_type[i][m] = angle_type[i][n - 1];
           angle_atom1[i][m] = angle_atom1[i][n - 1];
           angle_atom2[i][m] = angle_atom2[i][n - 1];
@@ -808,10 +795,10 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
       m = 0;
       n = num_dihedral[i];
       while (m < n) {
-        if (hash->find(dihedral_atom1[i][m]) != hash->end() ||
-            hash->find(dihedral_atom2[i][m]) != hash->end() ||
-            hash->find(dihedral_atom3[i][m]) != hash->end() ||
-            hash->find(dihedral_atom4[i][m]) != hash->end()) {
+        if (hash.find(dihedral_atom1[i][m]) != hash.end() ||
+            hash.find(dihedral_atom2[i][m]) != hash.end() ||
+            hash.find(dihedral_atom3[i][m]) != hash.end() ||
+            hash.find(dihedral_atom4[i][m]) != hash.end()) {
           dihedral_type[i][m] = dihedral_type[i][n - 1];
           dihedral_atom1[i][m] = dihedral_atom1[i][n - 1];
           dihedral_atom2[i][m] = dihedral_atom2[i][n - 1];
@@ -828,10 +815,10 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
       m = 0;
       n = num_improper[i];
       while (m < n) {
-        if (hash->find(improper_atom1[i][m]) != hash->end() ||
-            hash->find(improper_atom2[i][m]) != hash->end() ||
-            hash->find(improper_atom3[i][m]) != hash->end() ||
-            hash->find(improper_atom4[i][m]) != hash->end()) {
+        if (hash.find(improper_atom1[i][m]) != hash.end() ||
+            hash.find(improper_atom2[i][m]) != hash.end() ||
+            hash.find(improper_atom3[i][m]) != hash.end() ||
+            hash.find(improper_atom4[i][m]) != hash.end()) {
           improper_type[i][m] = improper_type[i][n - 1];
           improper_atom1[i][m] = improper_atom1[i][n - 1];
           improper_atom2[i][m] = improper_atom2[i][n - 1];
@@ -855,19 +842,17 @@ void DeleteAtoms::molring(int n, char *cbuf, void *ptr)
   auto *daptr = (DeleteAtoms *) ptr;
   auto *list = (tagint *) cbuf;
   int *dlist = daptr->dlist;
-  std::map<tagint, int> *hash = daptr->hash;
   int nlocal = daptr->atom->nlocal;
   tagint *molecule = daptr->atom->molecule;
 
   // cbuf = list of N molecule IDs from other proc, put them in hash
 
-  hash->clear();
-  for (int i = 0; i < n; i++) (*hash)[list[i]] = 1;
+  std::set<tagint> hash(list, list + n);
 
   // loop over my atoms, if matches molecule ID in hash, delete that atom
 
   for (int i = 0; i < nlocal; i++)
-    if (hash->find(molecule[i]) != hash->end()) dlist[i] = 1;
+    if (hash.find(molecule[i]) != hash.end()) dlist[i] = 1;
 }
 
 /* ----------------------------------------------------------------------

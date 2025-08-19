@@ -266,15 +266,15 @@ a positive floating-point number.
 
 .. note::
 
-   For pimd simulations, a temperature values should be specified even for nve ensemble. Temperature will make a difference
+   For pimd simulations, a temperature value should be specified even for nve ensemble. Temperature will make a difference
    for nve pimd, since the spring elastic frequency between the beads will be affected by the temperature.
 
 The keyword *thermostat* reads *style* of thermostat for fix style *pimd/langevin*. Two thermostat styles are available: *PILE_L* or *NHC*.
 For *PILE_L* (path integral Langevin equation local thermostat, as described in :ref:`Ceriotti <Ceriotti2>`),
 a keyword *seed* is required and *seed* should be a positive integer that serves as the seed of the pseudo-random number generator.
-For *NHC* (Nose-Hoover chains thermostat), perform time integration using Nose-Hoover non-Hamiltonian equations of motion.
-The *Tdamp* parameter is specified in time units and determines how rapidly the temperature is relaxed.
-The keyword *tchain* determines the number of thermostats and the keyword *tloop* enhances integration accuracy by splitting thermostat updates into sub-steps of size dt/tloop,
+For *NHC* (Nose-Hoover chain thermostat), three parameters are required: *Tdamp*, *tchain*, and *tloop*.
+The parameter *Tdamp* is specified in time units and determines how rapidly the temperature is relaxed.
+The parameter *tchain* determines the number of thermostats and the parameter *tloop* enhances integration accuracy by splitting thermostat updates into sub-steps of size dt/tloop,
 adding minimal computational overhead.
 
 .. note::
@@ -415,7 +415,7 @@ is *nve* or *nvt*, the vector has 10 values:
 
 The first 3 are different for different log files, and the others are the same for different log files.
 
-If *thermostat* is *NHC*, the order of the output vector extended beyond the standard 10 quantities and their meaning is as follows.
+If *thermostat* is *NHC*, the order of the output vector extends beyond the standard 10 quantities and their meaning is as follows.
 
    #. eta[tchain] = particle thermostat displacements (unitless)
    #. eta_dot[tchain] = particle thermostat velocities (1/time units)

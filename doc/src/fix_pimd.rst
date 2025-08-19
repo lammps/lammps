@@ -50,11 +50,9 @@ Syntax
           temperature = target temperature of the thermostat
      *thermostat* values = style seed
           style value = *PILE_L* or *NHC*
-          seed = random number generator seed
-     *NHC* values = Tdamp tchain tloop
-         Tdamp = temperature damping parameter (time units)
-         tchain value = length of thermostat chain (1 = single thermostat)
-         tloop value = number of sub-cycles to perform on thermostat
+          seed = random number generator seed (only needed for *PILE_L*)
+     *tchain* value = number of thermostats in the Nose-Hoover chain
+     *tloop* value = number of sub-cycles to perform on the Nose-Hoover chain thermostat
      *tau* value = thermostat damping parameter (time unit)
      *scale* value = scaling factor of the damping times of non-centroid modes of PILE_L thermostat
      *iso* or *aniso* values = pressure (pressure unit)
@@ -77,7 +75,7 @@ Examples
 
    fix 1 all pimd/nvt method nmpimd fmass 1.0 sp 2.0 temp 300.0 nhc 4
    fix 1 all pimd/langevin ensemble npt integrator obabo temp 113.15 thermostat PILE_L 1234 tau 1.0 iso 1.0 barostat BZP taup 1.0
-   fix 1 all pimd/langevin ensemble nvt integrator obabo temp 300.0 thermostat NHC Tdamp 0.1
+   fix 1 all pimd/langevin ensemble nvt integrator obabo temp 300.0 thermostat NHC tau 0.1
    fix 1 all pimd/nvt/bosonic method pimd fmass 1.0 sp 1.0 temp 2.0 nhc 4
    fix 1 all pimd/langevin/bosonic integrator obabo temp 113.15 thermostat PILE_L 1234 tau 1.0
 
@@ -272,9 +270,10 @@ a positive floating-point number.
 The keyword *thermostat* reads *style* of thermostat for fix style *pimd/langevin*. Two thermostat styles are available: *PILE_L* or *NHC*.
 For *PILE_L* (path integral Langevin equation local thermostat, as described in :ref:`Ceriotti <Ceriotti2>`),
 a keyword *seed* is required and *seed* should be a positive integer that serves as the seed of the pseudo-random number generator.
-For *NHC* (Nose-Hoover chain thermostat), three parameters are required: *Tdamp*, *tchain*, and *tloop*.
-The parameter *Tdamp* is specified in time units and determines how rapidly the temperature is relaxed.
-The parameter *tchain* determines the number of thermostats and the parameter *tloop* enhances integration accuracy by splitting thermostat updates into sub-steps of size dt/tloop,
+For *NHC* (Nose-Hoover chain thermostat), no parameter is required. However, the three keywords should be set properly: *tau*, *tchain*, and *tloop*.
+The keyword *tau* is specified in time units and determines how rapidly the temperature is relaxed.
+The keyword *tchain* determines the number of thermostats.
+The keyword *tloop* enhances integration accuracy by splitting thermostat updates into sub-steps of size dt/tloop,
 adding minimal computational overhead.
 
 .. note::

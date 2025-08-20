@@ -33,7 +33,7 @@ class FixPIMDLangevin : public Fix {
   enum { PHYSICAL, NORMAL };
   enum { BAOAB, OBABO };
   enum { ISO, ANISO, TRICLINIC };
-  enum { PILE_L };
+  enum { PILE_L, NHC };
   enum { MTTK, BZP };
   enum { NVE, NVT, NPH, NPT };
   enum { SINGLE_PROC, MULTI_PROC };
@@ -47,7 +47,6 @@ class FixPIMDLangevin : public Fix {
   void final_integrate() override;
   void end_of_step() override;
 
-//   double compute_scalar() override;
   double compute_vector(int) override;
 
  protected:

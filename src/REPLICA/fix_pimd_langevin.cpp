@@ -117,7 +117,6 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   mtchain = 3;
   nc_tchain = 1;
-  t_period = 0.0;
   drag = 0.0;
 
   int seed = -1;
@@ -216,8 +215,6 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[i + 1], "NHC") == 0) {
         thermostat = NHC;
       }
-    } else if (strcmp(arg[i], "Tdamp") == 0) {
-        t_period = utils::numeric(FLERR, arg[i + 1], false, lmp);
     } else if (strcmp(arg[i], "tchain") == 0) {
         mtchain = utils::inumeric(FLERR, arg[i + 1], false, lmp);
     } else if (strcmp(arg[i],"tloop") == 0) {
@@ -1191,7 +1188,7 @@ void FixPIMDLangevin::nhc_init()
   }
 
   if (tstat_flag) {
-    t_freq = 1.0 / t_period;
+    t_freq = 1.0 / tau;
     tdrag_factor = 1.0 - (update->dt * t_freq * drag / nc_tchain);
   }
 

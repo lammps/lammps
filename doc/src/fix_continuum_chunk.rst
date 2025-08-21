@@ -180,24 +180,92 @@ early steps will average over less than :math:`M` values if they are not
 available.
 
 ----------
-*density*
 
-*momentum* *velocity*
+The *density* field is given by
 
-*stress*, *stress/ke*, *stress/contacts*, *fabric*, *momentum/grad*, *velocity/grad*, *strain/rate*
+.. math::
 
-The *stress* field includes both kinetic and bulk contributions
-as defined in :ref:`(Goldhirsch)`. These contributions can also be accessed
-separately using the *stress/contacts* and *stress/ke* values. The *fabric*
-tensor is calculated similar to the *stress/contacts* tensor except is is
-the outer product of two normal vectors scaled by the particle volume.
+   \sum_i m_i W(\vec{r}_c - \vec{r}_i)
 
-The *border* keyword turns on corrections to the *stress* and *stress/contacts*
-fields using the construction from :ref:`(Weinhart)`. This keyword only applies
-corrections from boundaries created with instances of
-:doc:`fix wall/gran<fix_wall_gran>` or
-:doc:`fix wall/gran/region<fix_wall_gran_region>`.
-An error will be triggered if no such fixes are detected.
+where the summation is across all atoms :math:`i` in the chunk. :math:`m_i`
+is the atom mass, :math:`\vec{r}_c` is the location of the center of the
+chunk, :math:`\vec{r}_i` is the atom position, and :math:`W` is the Gaussian
+kernel.
+
+The *momentum* field is given by
+
+.. math::
+
+   \sum_i m_i v_{i,a} W(\vec{r}_c - \vec{r}_i)
+
+where :math:`v_{i,a}` is the :math:`a`-component of the atom velocity.
+
+The *velocity* field is calculated as the ratio of the *momentum* and *density*
+fields.
+
+The *stress/ke* field is the kinetic contribution to the stress and is
+given by
+
+.. math::
+
+   -\sum_i m_i v_{i,a} v_{i,b} W(\vec{r}_c - \vec{r}_i)
+
+The *stress/contacts* field is the contact force contribution to the stress
+and is given by
+
+.. math::
+
+   -\sum_{i,j} f_{ij,a} r_{ij,b} \int_0^1 ds W(\vec{r}_c - \vec{r}_i + s \vec{r}_{ij})
+
+where the summation is over all pairs of atoms in the chunk that are in contact (nonzero force), :math:`f_{ij,a}` is the force on atom :math:`i`
+from atom :math:`j`, and :math:`\vec{r}_{ij}` is the displacement between
+the two atoms.
+
+The *stress* field is the summation of the kinetic and contact contributions.
+This definition, as well as the above expressions, are found in :ref:`(Goldhirsch)`.
+
+The *fabric* field is defined as
+
+.. math::
+
+   \sum_{i,j} V_i r_{ij,a} r_{ij,b} \int_0^1 ds W(\vec{r}_c - \vec{r}_i + s \vec{r}_{ij})
+
+where :math:`V_i` is the volume of the atom in 3D and area in 2D.
+
+The *momentum/grad* field is defined as
+
+.. math::
+
+   \sum_i (p_{c,a} - m_i v_{i,a}) \grad_b W(\vec{r}_c - \vec{r}_i)
+
+where :math:`p_{c,a}` is the :math:`a`-component of the *momentum* field and :math:`\grad_b W` is the :math:`b`-component of the of the gradient
+of the kernel.
+
+The *velocity/grad* field is defined as
+
+.. math::
+
+   \sum_i (v_{c,a} - v_{i,a}) \grad_b W(\vec{r}_c - \vec{r}_i)
+
+where :math:`v_{c,a}` is the :math:`a`-component of the *velocity* field.
+
+The *strain/rate* is defined as
+
+.. math::
+
+   \frac{1}{2} \left(\grad_{ab} v + \grad_{ba} v)
+
+where :math:`\grad_{ab} v` is the :math:`ab` component of the *velocity/grad*
+field.
+
+----------
+
+The optional *border* keyword turns on corrections to the *stress* and
+*stress/contacts* fields using the construction from :ref:`(Weinhart)`.
+This keyword only applies corrections from boundaries created with instances
+of :doc:`fix wall/gran<fix_wall_gran>` or
+:doc:`fix wall/gran/region<fix_wall_gran_region>`. An error will be triggered
+if no such fixes are detected.
 
 ----------
 

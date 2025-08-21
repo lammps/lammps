@@ -912,12 +912,9 @@ void FixContinuumChunk::end_of_step()
         if (dtemp != 0.0)
           values_sum[index][m] = mtemp / dtemp;
       } else if (style == STRAINRATE) {
-        dtemp = values_sum[index][index_density];
         mtemp = values_sum[index][index_vgrad[a][b]];
         mtemp2 = values_sum[index][index_vgrad[b][a]];
         values_sum[index][m] = 0.5 * (mtemp + mtemp2);
-        if (dtemp != 0.0)
-          values_sum[index][m] /= dtemp;
       }
 
       m++;

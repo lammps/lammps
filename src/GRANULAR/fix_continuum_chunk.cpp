@@ -98,8 +98,6 @@ inline double FixContinuumChunk::calc_w_int(double dr_dot_dr, double dr_dot_rij,
   return w_scale * w_int - w_offset;
 }
 
-// add cite me for Goldhirsch and for boundary Weinhart et al.
-
 /* ---------------------------------------------------------------------- */
 
 FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
@@ -236,71 +234,71 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
   char *title3 = nullptr;
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"border") == 0) {
+    if (strcmp(arg[iarg], "border") == 0) {
       borderflag = 1;
       iarg += 1;
-    } else if (strcmp(arg[iarg],"ave") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix continuum/chunk ave", error);
-      if (strcmp(arg[iarg+1],"one") == 0) ave = ONE;
-      else if (strcmp(arg[iarg+1],"running") == 0) ave = RUNNING;
-      else if (strcmp(arg[iarg+1],"window") == 0) ave = WINDOW;
-      else error->all(FLERR,"Unknown fix continuum/chunk ave mode: {}", arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "ave") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix continuum/chunk ave", error);
+      if (strcmp(arg[iarg + 1], "one") == 0) ave = ONE;
+      else if (strcmp(arg[iarg + 1], "running") == 0) ave = RUNNING;
+      else if (strcmp(arg[iarg + 1], "window") == 0) ave = WINDOW;
+      else error->all(FLERR, "Unknown fix continuum/chunk ave mode: {}", arg[iarg + 1]);
       if (ave == WINDOW) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix continuum/chunk ave window", error);
-        nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-        if (nwindow <= 0) error->all(FLERR,"Illegal fix continuum/chunk number of windows: {}", nwindow);
+        nwindow = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
+        if (nwindow <= 0) error->all(FLERR, "Illegal fix continuum/chunk number of windows: {}", nwindow);
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
 
 
-    } else if ((strcmp(arg[iarg],"file") == 0) || (strcmp(arg[iarg],"append") == 0)) {
-      if (iarg+2 > narg)
-        utils::missing_cmd_args(FLERR, std::string("fix continuum/chunk ")+arg[iarg], error);
+    } else if ((strcmp(arg[iarg], "file") == 0) || (strcmp(arg[iarg], "append") == 0)) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, std::string("fix continuum/chunk ") + arg[iarg], error);
       if (comm->me == 0) {
-        if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
-        else fp = fopen(arg[iarg+1],"a");
+        if (strcmp(arg[iarg], "file") == 0) fp = fopen(arg[iarg + 1], "w");
+        else fp = fopen(arg[iarg + 1], "a");
         if (fp == nullptr)
           error->one(FLERR, "Cannot open fix continuum/chunk file {}: {}",
-                     arg[iarg+1], utils::getsyserror());
+                     arg[iarg + 1], utils::getsyserror());
       }
       iarg += 2;
-    } else if (strcmp(arg[iarg],"overwrite") == 0) {
+    } else if (strcmp(arg[iarg], "overwrite") == 0) {
       overwrite = 1;
       iarg += 1;
-    } else if (strcmp(arg[iarg],"format") == 0) {
-      if (iarg+2 > narg)  utils::missing_cmd_args(FLERR, "fix continuum/chunk format", error);
+    } else if (strcmp(arg[iarg], "format") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix continuum/chunk format", error);
       delete[] format_user;
-      format_user = utils::strdup(arg[iarg+1]);
+      format_user = utils::strdup(arg[iarg + 1]);
       format = format_user;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"title1") == 0) {
-      if (iarg+2 > narg)  utils::missing_cmd_args(FLERR, "fix continuum/chunk title1", error);
+    } else if (strcmp(arg[iarg], "title1") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix continuum/chunk title1", error);
       delete[] title1;
-      title1 = utils::strdup(arg[iarg+1]);
+      title1 = utils::strdup(arg[iarg + 1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"title2") == 0) {
-      if (iarg+2 > narg)  utils::missing_cmd_args(FLERR, "fix continuum/chunk title2", error);
+    } else if (strcmp(arg[iarg], "title2") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix continuum/chunk title2", error);
       delete[] title2;
-      title2 = utils::strdup(arg[iarg+1]);
+      title2 = utils::strdup(arg[iarg + 1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"title3") == 0) {
-      if (iarg+2 > narg)  utils::missing_cmd_args(FLERR, "fix continuum/chunk title3", error);
+    } else if (strcmp(arg[iarg], "title3") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix continuum/chunk title3", error);
       delete[] title3;
-      title3 = utils::strdup(arg[iarg+1]);
+      title3 = utils::strdup(arg[iarg + 1]);
       iarg += 2;
-    } else error->all(FLERR,"Unknown fix continuum/chunk keyword: {}", arg[iarg]);
+    } else error->all(FLERR, "Unknown fix continuum/chunk keyword: {}", arg[iarg]);
   }
 
   // setup and error check
 
-  if (nevery <= 0) error->all(FLERR,"Illegal fix continuum/chunk nevery value: {}", nevery);
-  if (nrepeat <= 0) error->all(FLERR,"Illegal fix continuum/chunk nrepeat value: {}", nrepeat);
-  if (nfreq <= 0) error->all(FLERR,"Illegal fix continuum/chunk nfreq value: {}", nfreq);
+  if (nevery <= 0) error->all(FLERR, "Illegal fix continuum/chunk nevery value: {}", nevery);
+  if (nrepeat <= 0) error->all(FLERR, "Illegal fix continuum/chunk nrepeat value: {}", nrepeat);
+  if (nfreq <= 0) error->all(FLERR, "Illegal fix continuum/chunk nfreq value: {}", nfreq);
   if (nfreq % nevery || nrepeat*nevery > nfreq)
-    error->all(FLERR,"Inconsistent fix continuum/chunk nevery/nrepeat/nfreq values");
+    error->all(FLERR, "Inconsistent fix continuum/chunk nevery/nrepeat/nfreq values");
   if (ave != RUNNING && overwrite)
-    error->all(FLERR,"Fix continuum/chunk overwrite keyword requires ave running setting");
+    error->all(FLERR, "Fix continuum/chunk overwrite keyword requires ave running setting");
 
   // increment lock counter in compute chunk/atom
   // only if nrepeat > 1 or ave = RUNNING/WINDOW,
@@ -336,33 +334,33 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
 
   if (fp && comm->me == 0) {
     clearerr(fp);
-    if (title1) fprintf(fp,"%s\n",title1);
-    else fprintf(fp,"# Chunk-averaged data for fix %s and group %s\n", id, group);
-    if (title2) fprintf(fp,"%s\n",title2);
-    else fprintf(fp,"# Timestep Number-of-chunks Total-count\n");
-    if (title3) fprintf(fp,"%s\n",title3);
+    if (title1) fprintf(fp, "%s\n",title1);
+    else fprintf(fp, "# Chunk-averaged data for fix %s and group %s\n", id, group);
+    if (title2) fprintf(fp, "%s\n",title2);
+    else fprintf(fp, "# Timestep Number-of-chunks Total-count\n");
+    if (title3) fprintf(fp, "%s\n",title3);
     else {
       int compress = cchunk->compress;
       int ncoord = cchunk->ncoord;
       if (!compress) {
-        if (ncoord == 0) fprintf(fp,"# Chunk Ncount");
-        else if (ncoord == 1) fprintf(fp,"# Chunk Coord1 Ncount");
-        else if (ncoord == 2) fprintf(fp,"# Chunk Coord1 Coord2 Ncount");
+        if (ncoord == 0) fprintf(fp, "# Chunk Ncount");
+        else if (ncoord == 1) fprintf(fp, "# Chunk Coord1 Ncount");
+        else if (ncoord == 2) fprintf(fp, "# Chunk Coord1 Coord2 Ncount");
         else if (ncoord == 3)
-          fprintf(fp,"# Chunk Coord1 Coord2 Coord3 Ncount");
+          fprintf(fp, "# Chunk Coord1 Coord2 Coord3 Ncount");
       } else {
-        if (ncoord == 0) fprintf(fp,"# Chunk OrigID Ncount");
-        else if (ncoord == 1) fprintf(fp,"# Chunk OrigID Coord1 Ncount");
-        else if (ncoord == 2) fprintf(fp,"# Chunk OrigID Coord1 Coord2 Ncount");
+        if (ncoord == 0) fprintf(fp, "# Chunk OrigID Ncount");
+        else if (ncoord == 1) fprintf(fp, "# Chunk OrigID Coord1 Ncount");
+        else if (ncoord == 2) fprintf(fp, "# Chunk OrigID Coord1 Coord2 Ncount");
         else if (ncoord == 3)
-          fprintf(fp,"# Chunk OrigID Coord1 Coord2 Coord3 Ncount");
+          fprintf(fp, "# Chunk OrigID Coord1 Coord2 Coord3 Ncount");
       }
       for (int i = 0; i < (nvalues - nskip); i++)
-        fprintf(fp," %s", labels[i].c_str());
-      fprintf(fp,"\n");
+        fprintf(fp, " %s", labels[i].c_str());
+      fprintf(fp, "\n");
     }
     if (ferror(fp))
-      error->one(FLERR,"Error writing file header");
+      error->one(FLERR, "Error writing file header");
 
     filepos = platform::ftell(fp);
   }
@@ -485,7 +483,7 @@ void FixContinuumChunk::init()
 
   cchunk = dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
   if (!cchunk)
-    error->all(FLERR,"Chunk/atom compute {} does not exist or is "
+    error->all(FLERR, "Chunk/atom compute {} does not exist or is "
                "incorrect style for fix continuum/chunk",idchunk);
 
   if (borderflag) {
@@ -553,7 +551,7 @@ void FixContinuumChunk::setup(int /*vflag*/)
 
 void FixContinuumChunk::end_of_step()
 {
-  int i,j,m;
+  int i, j,m;
 
   // skip if not step which requires doing something
 
@@ -579,12 +577,12 @@ void FixContinuumChunk::end_of_step()
     if (cchunk->computeflag) modify->clearstep_compute();
     nchunk = cchunk->setup_chunks();
     if (cchunk->computeflag) {
-      modify->addstep_compute(ntimestep+nevery);
-      modify->addstep_compute(ntimestep+nfreq);
+      modify->addstep_compute(ntimestep + nevery);
+      modify->addstep_compute(ntimestep + nfreq);
     }
     allocate();
     if (nrepeat > 1 && ave == ONE)
-      cchunk->lock(this,ntimestep,ntimestep+((bigint)nrepeat-1)*nevery);
+      cchunk->lock(this, ntimestep, ntimestep + ((bigint)nrepeat - 1) * nevery);
     else if ((ave == RUNNING || ave == WINDOW) && !lockforever) {
       cchunk->lock(this,update->ntimestep,-1);
       lockforever = 1;
@@ -631,7 +629,7 @@ void FixContinuumChunk::end_of_step()
   cchunk->compute_ichunk();
   int *ichunk = cchunk->ichunk;
 
-  if (cchunk->computeflag) modify->addstep_compute(ntimestep+nevery);
+  if (cchunk->computeflag) modify->addstep_compute(ntimestep + nevery);
 
   // perform the computation for one sample
   // count # of atoms in each bin
@@ -805,10 +803,10 @@ void FixContinuumChunk::end_of_step()
       }
     }
 
-    MPI_Allreduce(&density_one[0],&density_sum_now[0],nchunk,
-                MPI_DOUBLE,MPI_SUM,world);
-    MPI_Allreduce(&momentum_one[0][0],&momentum_sum_now[0][0],nchunk*3,
-                MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&density_one[0], &density_sum_now[0], nchunk,
+                MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(&momentum_one[0][0], &momentum_sum_now[0][0], nchunk * 3,
+                MPI_DOUBLE, MPI_SUM, world);
 
     double dw, vbin;
     for (i = 0; i < nlocal; i++) {
@@ -870,7 +868,7 @@ void FixContinuumChunk::end_of_step()
 
   // process the current sample, one = value/count, accumulate one to many
 
-  MPI_Allreduce(count_one,count_many,nchunk,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(count_one, count_many, nchunk, MPI_DOUBLE, MPI_SUM, world);
 
   for (m = 0; m < nchunk; m++) {
     for (j = 0; j < nvalues; j++)
@@ -901,8 +899,8 @@ void FixContinuumChunk::end_of_step()
 
   double repeat = nrepeat;
 
-  MPI_Allreduce(&values_many[0][0],&values_sum[0][0],nchunk*nvalues,
-                MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&values_many[0][0], &values_sum[0][0], nchunk * nvalues,
+                MPI_DOUBLE, MPI_SUM, world);
   for (m = 0; m < nchunk; m++) {
     for (j = 0; j < nvalues; j++) values_sum[m][j] /= repeat;
     count_sum[m] /= repeat;
@@ -985,7 +983,7 @@ void FixContinuumChunk::end_of_step()
     if (overwrite) (void) platform::fseek(fp,filepos);
     double count = 0.0;
     for (m = 0; m < nchunk; m++) count += count_total[m];
-    fmt::print(fp,"{} {} {}\n",ntimestep,nchunk,count);
+    fmt::print(fp, "{} {} {}\n", ntimestep, nchunk, count);
 
     int compress = cchunk->compress;
     int *chunkID = cchunk->chunkID;
@@ -995,82 +993,82 @@ void FixContinuumChunk::end_of_step()
     if (!compress) {
       if (ncoord == 0) {
         for (m = 0; m < nchunk; m++) {
-          fprintf(fp,"  %d %g",m+1,count_total[m]/normcount);
+          fprintf(fp, "  %d %g", m + 1, count_total[m] / normcount);
           for (i = 0; i < (nvalues - nskip); i++)
-            fprintf(fp,format,values_total[m][i]/normcount);
-          fprintf(fp,"\n");
+            fprintf(fp,format,values_total[m][i] / normcount);
+          fprintf(fp, "\n");
         }
       } else if (ncoord == 1) {
         for (m = 0; m < nchunk; m++) {
-          fprintf(fp,"  %d %g %g",m+1,coord[m][0],
-                  count_total[m]/normcount);
+          fprintf(fp, "  %d %g %g", m + 1, coord[m][0],
+                  count_total[m] / normcount);
           for (i = 0; i < (nvalues - nskip); i++)
-            fprintf(fp,format,values_total[m][i]/normcount);
-          fprintf(fp,"\n");
+            fprintf(fp,format,values_total[m][i] / normcount);
+          fprintf(fp, "\n");
         }
       } else if (ncoord == 2) {
         for (m = 0; m < nchunk; m++) {
-          fprintf(fp,"  %d %g %g %g",m+1,coord[m][0],coord[m][1],
-                  count_total[m]/normcount);
+          fprintf(fp, "  %d %g %g %g", m + 1, coord[m][0], coord[m][1],
+                  count_total[m] / normcount);
           for (i = 0; i < (nvalues - nskip); i++)
-            fprintf(fp,format,values_total[m][i]/normcount);
-          fprintf(fp,"\n");
+            fprintf(fp,format,values_total[m][i] / normcount);
+          fprintf(fp, "\n");
         }
       } else if (ncoord == 3) {
         for (m = 0; m < nchunk; m++) {
-          fprintf(fp,"  %d %g %g %g %g",m+1,
-                  coord[m][0],coord[m][1],coord[m][2],count_total[m]/normcount);
+          fprintf(fp, "  %d %g %g %g %g", m + 1,
+                  coord[m][0], coord[m][1], coord[m][2], count_total[m] / normcount);
           for (i = 0; i < (nvalues - nskip); i++)
-            fprintf(fp,format,values_total[m][i]/normcount);
-          fprintf(fp,"\n");
+            fprintf(fp,format,values_total[m][i] / normcount);
+          fprintf(fp, "\n");
         }
       }
     } else {
       if (ncoord == 0) {
         for (m = 0; m < nchunk; m++) {
-          fprintf(fp,"  %d %d %g",m+1,chunkID[m],count_total[m]/normcount);
+          fprintf(fp, "  %d %d %g", m + 1, chunkID[m], count_total[m] / normcount);
           for (i = 0; i < (nvalues - nskip); i++)
-            fprintf(fp,format,values_total[m][i]/normcount);
-          fprintf(fp,"\n");
+            fprintf(fp,format,values_total[m][i] / normcount);
+          fprintf(fp, "\n");
         }
       } else if (ncoord == 1) {
         for (m = 0; m < nchunk; m++) {
           j = chunkID[m];
-          fprintf(fp,"  %d %d %g %g",m+1,j,coord[j-1][0],
-                  count_total[m]/normcount);
+          fprintf(fp, "  %d %d %g %g", m + 1, j, coord[j - 1][0],
+                  count_total[m] / normcount);
           for (i = 0; i < (nvalues - nskip); i++)
-            fprintf(fp,format,values_total[m][i]/normcount);
-          fprintf(fp,"\n");
+            fprintf(fp,format,values_total[m][i] / normcount);
+          fprintf(fp, "\n");
         }
       } else if (ncoord == 2) {
         for (m = 0; m < nchunk; m++) {
           j = chunkID[m];
-          fprintf(fp,"  %d %d %g %g %g",m+1,j,coord[j-1][0],coord[j-1][1],
-                  count_total[m]/normcount);
+          fprintf(fp, "  %d %d %g %g %g", m + 1, j, coord[j - 1][0], coord[j - 1][1],
+                  count_total[m] / normcount);
           for (i = 0; i < (nvalues - nskip); i++)
-            fprintf(fp,format,values_total[m][i]/normcount);
-          fprintf(fp,"\n");
+            fprintf(fp,format,values_total[m][i] / normcount);
+          fprintf(fp, "\n");
         }
       } else if (ncoord == 3) {
         for (m = 0; m < nchunk; m++) {
           j = chunkID[m];
-          fprintf(fp,"  %d %d %g %g %g %g",m+1,j,coord[j-1][0],
-                  coord[j-1][1],coord[j-1][2],count_total[m]/normcount);
+          fprintf(fp, "  %d %d %g %g %g %g", m + 1, j, coord[j - 1][0],
+                  coord[j - 1][1], coord[j - 1][2], count_total[m] / normcount);
           for (i = 0; i < (nvalues - nskip); i++)
-            fprintf(fp,format,values_total[m][i]/normcount);
-          fprintf(fp,"\n");
+            fprintf(fp,format,values_total[m][i] / normcount);
+          fprintf(fp, "\n");
         }
       }
     }
     if (ferror(fp))
-      error->one(FLERR,"Error writing averaged chunk data");
+      error->one(FLERR, "Error writing averaged chunk data");
 
     fflush(fp);
 
     if (overwrite) {
       bigint fileend = platform::ftell(fp);
       if ((fileend > 0) && (platform::ftruncate(fp,fileend)))
-        error->warning(FLERR,"Error while tuncating output: {}", utils::getsyserror());
+        error->warning(FLERR, "Error while tuncating output: {}", utils::getsyserror());
     }
   }
 }
@@ -1087,33 +1085,33 @@ void FixContinuumChunk::allocate()
 
   if (nchunk > maxchunk) {
     maxchunk = nchunk;
-    memory->grow(count_one,nchunk,"continuum/chunk:count_one");
-    memory->grow(count_many,nchunk,"continuum/chunk:count_many");
-    memory->grow(count_sum,nchunk,"continuum/chunk:count_sum");
-    memory->grow(count_total,nchunk,"continuum/chunk:count_total");
+    memory->grow(count_one, nchunk, "continuum/chunk:count_one");
+    memory->grow(count_many, nchunk, "continuum/chunk:count_many");
+    memory->grow(count_sum, nchunk, "continuum/chunk:count_sum");
+    memory->grow(count_total, nchunk, "continuum/chunk:count_total");
 
-    memory->grow(values_one,nchunk,nvalues,"continuum/chunk:values_one");
-    memory->grow(values_many,nchunk,nvalues,"continuum/chunk:values_many");
-    memory->grow(values_sum,nchunk,nvalues,"continuum/chunk:values_sum");
-    memory->grow(values_total,nchunk,nvalues,"continuum/chunk:values_total");
+    memory->grow(values_one, nchunk, nvalues, "continuum/chunk:values_one");
+    memory->grow(values_many, nchunk, nvalues, "continuum/chunk:values_many");
+    memory->grow(values_sum, nchunk, nvalues, "continuum/chunk:values_sum");
+    memory->grow(values_total, nchunk, nvalues, "continuum/chunk:values_total");
 
     if (calculate_grad) {
-      memory->grow(momentum_one,nchunk,3,"continuum/chunk:momentum_one");
-      memory->grow(momentum_sum_now,nchunk,3,"continuum/chunk:momentum_sum_now");
-      memory->grow(density_one,nchunk,"continuum/chunk:density_one");
-      memory->grow(density_sum_now,nchunk,"continuum/chunk:density_sum_now");
+      memory->grow(momentum_one, nchunk, 3, "continuum/chunk:momentum_one");
+      memory->grow(momentum_sum_now, nchunk, 3, "continuum/chunk:momentum_sum_now");
+      memory->grow(density_one, nchunk, "continuum/chunk:density_one");
+      memory->grow(density_sum_now, nchunk, "continuum/chunk:density_sum_now");
     }
 
     // only allocate count and values list for ave = WINDOW
 
     if (ave == WINDOW) {
-      memory->create(count_list,nwindow,nchunk,"continuum/chunk:count_list");
-      memory->create(values_list,nwindow,nchunk,nvalues,"continuum/chunk:values_list");
+      memory->create(count_list, nwindow, nchunk, "continuum/chunk:count_list");
+      memory->create(values_list, nwindow, nchunk, nvalues, "continuum/chunk:values_list");
     }
 
     // reinitialize regrown count/values total since they accumulate
 
-    int i,m;
+    int i, m;
     for (m = 0; m < nchunk; m++) {
       for (i = 0; i < nvalues; i++) values_total[m][i] = 0.0;
       count_total[m] = 0.0;
@@ -1122,7 +1120,7 @@ void FixContinuumChunk::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   return I,J array value
+   return I, j array value
    if I exceeds current nchunks, return 0.0 instead of generating an error
    columns 1 to colextra = chunkID + ncoord
    next column = count, remaining columns = Nvalues
@@ -1135,13 +1133,13 @@ double FixContinuumChunk::compute_array(int i, int j)
   if (j < colextra) {
     if (cchunk->compress) {
       if (j == 0) return (double) cchunk->chunkID[i];
-      return cchunk->coord[i][j-1];
+      return cchunk->coord[i][j - 1];
     } else return cchunk->coord[i][j];
   }
   j -= colextra + 1;
   if (!normcount) return 0.0;
-  if (j < 0) return count_total[i]/normcount;
-  return values_total[i][j]/normcount;
+  if (j < 0) return count_total[i] / normcount;
+  return values_total[i][j] / normcount;
 }
 
 /* ----------------------------------------------------------------------
@@ -1168,10 +1166,10 @@ bigint FixContinuumChunk::nextvalid()
 double FixContinuumChunk::memory_usage()
 {
   double bytes = (double)maxvar * sizeof(double);         // varatom
-  bytes += (double)4*maxchunk * sizeof(double);           // count one,many,sum,total
-  bytes += (double)nvalues*maxchunk * sizeof(double);     // values one,many,sum,total
-  bytes += (double)nwindow*maxchunk * sizeof(double);          // count_list
-  bytes += (double)nwindow*maxchunk*nvalues * sizeof(double);  // values_list
+  bytes += (double)4 * maxchunk * sizeof(double);           // count one,many,sum,total
+  bytes += (double)nvalues * maxchunk * sizeof(double);     // values one,many,sum,total
+  bytes += (double)nwindow * maxchunk * sizeof(double);          // count_list
+  bytes += (double)nwindow * maxchunk*nvalues * sizeof(double);  // values_list
   return bytes;
 }
 

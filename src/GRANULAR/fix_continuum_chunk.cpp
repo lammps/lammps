@@ -812,6 +812,14 @@ void FixContinuumChunk::end_of_step()
 
     double dw, vbin;
     for (i = 0; i < nlocal; i++) {
+
+      itype = type[i];
+      if (rmass) mi = rmass[i];
+      else mi = mass[itype];
+      voli = MY_PI * radius[i] * radius[i];
+      if (dim == 3)
+        voli *= 4.0 * THIRD * radius[i];
+
       if (mask[i] & groupbit && ichunk[i] > 0) {
         m = ichunk[i] - 1;
 
@@ -843,7 +851,7 @@ void FixContinuumChunk::end_of_step()
           b = (component - a) / 3;
 
           if (style == MGRAD) {
-            values_one[m][field_index] += (momentum_sum_now[m][a] - mi * v[i][a]) * dx_bin[b] * dw;
+            values_one[m][field_index] += voli * (momentum_sum_now[m][a] - mi * v[i][a]) * dx_bin[b] * dw;
           } else if (style == VGRAD) {
             if (density_sum_now[m] != 0.0) {
               vbin = momentum_sum_now[m][a] / density_sum_now[m];
@@ -851,7 +859,7 @@ void FixContinuumChunk::end_of_step()
               vbin = 0.0;
             }
 
-            values_one[m][field_index] += (vbin - v[i][a]) * dx_bin[b] * dw;
+            values_one[m][field_index] += voli * (vbin - v[i][a]) * dx_bin[b] * dw;
           }
 
           field_index++;

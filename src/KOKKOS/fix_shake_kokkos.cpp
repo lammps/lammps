@@ -1437,6 +1437,10 @@ void FixShakeKokkos<DeviceType>::stats()
 template<class DeviceType>
 void FixShakeKokkos<DeviceType>::grow_arrays(int nmax)
 {
+  k_shake_flag.sync_device();
+  k_shake_atom.sync_device();
+  k_shake_type.sync_device();
+
   memoryKK->grow_kokkos(k_shake_flag,shake_flag,nmax,"shake:shake_flag");
   memoryKK->grow_kokkos(k_shake_atom,shake_atom,nmax,4,"shake:shake_atom");
   memoryKK->grow_kokkos(k_shake_type,shake_type,nmax,3,"shake:shake_type");

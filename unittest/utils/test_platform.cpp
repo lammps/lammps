@@ -6,6 +6,7 @@
 #include "gtest/gtest.h"
 
 #include <cstdio>
+#include <string>
 
 using namespace LAMMPS_NS;
 using testing::EndsWith;

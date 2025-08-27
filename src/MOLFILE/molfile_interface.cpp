@@ -24,8 +24,10 @@
 
 #include "molfile_plugin.h"
 
+#include <cctype>
 #include <cstdio>
 #include <cstring>
+
 
 #if vmdplugin_ABIVERSION < 16
 #error "unsupported VMD molfile plugin ABI version"
@@ -46,7 +48,7 @@ extern "C" {
   // callback function for plugin registration.
   static int plugin_register_cb(void *v, vmdplugin_t *p)
   {
-    auto r = static_cast<plugin_reginfo_t *>(v);
+    auto *r = static_cast<plugin_reginfo_t *>(v);
     // make sure we have the proper plugin type (native reader)
     // for the desired file type (called "name" at this level)
     if ((strcmp(MOLFILE_PLUGIN_TYPE,p->type) == 0)
@@ -213,7 +215,7 @@ MolfileInterface::~MolfileInterface()
   forget_plugin();
 
   if (_info) {
-    auto a = static_cast<molfile_atom_t *>(_info);
+    auto *a = static_cast<molfile_atom_t *>(_info);
     delete[] a;
     _info = nullptr;
   }
@@ -277,7 +279,7 @@ int MolfileInterface::load_plugin(const char *filename)
   ((regfunc)rfunc)(&reginfo, plugin_register_cb);
 
   // make some checks to see if the plugin is suitable or not.
-  auto plugin = static_cast<molfile_plugin_t *>(reginfo.p);
+  auto *plugin = static_cast<molfile_plugin_t *>(reginfo.p);
 
   // if the callback found a matching plugin and copied the struct,
   // its name element will point to a different location now.
@@ -395,7 +397,7 @@ int MolfileInterface::open(const char *name, int *natoms)
 {
   if (!_plugin || !_dso || !natoms)
     return E_FILE;
-  auto p = static_cast<molfile_plugin_t *>(_plugin);
+  auto *p = static_cast<molfile_plugin_t *>(_plugin);
 
   if (_mode & M_WRITE)
     _ptr = p->open_file_write(name,_type,*natoms);
@@ -409,7 +411,7 @@ int MolfileInterface::open(const char *name, int *natoms)
   // we need to deal with structure information,
   // so we allocate and initialize storage for it.
   if (_mode & (M_RSTRUCT|M_WSTRUCT)) {
-    auto a = new molfile_atom_t[_natoms];
+    auto *a = new molfile_atom_t[_natoms];
     _info = a;
     memset(_info,0,_natoms*sizeof(molfile_atom_t));
     for (int i=0; i < _natoms; ++i) {
@@ -428,7 +430,7 @@ int MolfileInterface::structure()
 {
   if (!_plugin || !_dso)
     return E_FILE;
-  auto p = static_cast<molfile_plugin_t *>(_plugin);
+  auto *p = static_cast<molfile_plugin_t *>(_plugin);
 
   int optflags = MOLFILE_NOOPTIONS;
 
@@ -440,10 +442,10 @@ int MolfileInterface::structure()
     optflags |= (_props & P_RADS) ? MOLFILE_RADIUS : 0;
     optflags |= (_props & P_ATMN) ? MOLFILE_ATOMICNUMBER : 0;
 
-    auto a = static_cast<molfile_atom_t *>(_info);
+    auto *a = static_cast<molfile_atom_t *>(_info);
     p->write_structure(_ptr,optflags,a);
   } else if (_mode & M_RSTRUCT) {
-    auto a = static_cast<molfile_atom_t *>(_info);
+    auto *a = static_cast<molfile_atom_t *>(_info);
     p->read_structure(_ptr,&optflags,a);
     // mandatory properties
     _props = P_NAME|P_TYPE|P_RESN|P_RESI|P_SEGN|P_CHAI;
@@ -464,7 +466,7 @@ int MolfileInterface::close()
   if (!_plugin || !_dso || !_ptr)
     return E_FILE;
 
-  auto p = static_cast<molfile_plugin_t *>(_plugin);
+  auto *p = static_cast<molfile_plugin_t *>(_plugin);
 
   if (_mode & M_WRITE) {
     p->close_file_write(_ptr);
@@ -473,7 +475,7 @@ int MolfileInterface::close()
   }
 
   if (_info) {
-    auto a = static_cast<molfile_atom_t *>(_info);
+    auto *a = static_cast<molfile_atom_t *>(_info);
     delete[] a;
     _info = nullptr;
   }
@@ -491,8 +493,8 @@ int MolfileInterface::timestep(float *coords, float *vels,
   if (!_plugin || !_dso || !_ptr)
     return 1;
 
-  auto p = static_cast<molfile_plugin_t *>(_plugin);
-  auto t = new molfile_timestep_t;
+  auto *p = static_cast<molfile_plugin_t *>(_plugin);
+  auto *t = new molfile_timestep_t;
   int rv;
 
   if (_mode & M_WRITE) {
@@ -707,7 +709,7 @@ int MolfileInterface::property(int propid, int idx, float *prop)
   if ((_info == nullptr) || (prop == nullptr) || (idx < 0) || (idx >= _natoms))
     return P_NONE;
 
-  auto a = static_cast<molfile_atom_t *>(_info);
+  auto *a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT)
     _props |= write_atom_property(a[idx], propid, *prop);
@@ -724,7 +726,7 @@ int MolfileInterface::property(int propid, int *types, float *prop)
   if ((_info == nullptr) || (types == nullptr) || (prop == nullptr))
     return P_NONE;
 
-  auto a = static_cast<molfile_atom_t *>(_info);
+  auto *a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     for (int i=0; i < _natoms; ++i)
@@ -744,7 +746,7 @@ int MolfileInterface::property(int propid, float *prop)
   if ((_info == nullptr) || (prop == nullptr))
     return P_NONE;
 
-  auto a = static_cast<molfile_atom_t *>(_info);
+  auto *a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     for (int i=0; i < _natoms; ++i)
@@ -765,7 +767,7 @@ int MolfileInterface::property(int propid, int idx, double *prop)
   if ((_info == nullptr) || (prop == nullptr) || (idx < 0) || (idx >= _natoms))
     return P_NONE;
 
-  auto a = static_cast<molfile_atom_t *>(_info);
+  auto *a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT)
     return write_atom_property(a[idx], propid, *prop);
@@ -782,7 +784,7 @@ int MolfileInterface::property(int propid, int *types, double *prop)
   if ((_info == nullptr) || (types == nullptr) || (prop == nullptr))
     return P_NONE;
 
-  auto a = static_cast<molfile_atom_t *>(_info);
+  auto *a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     for (int i=0; i < _natoms; ++i)
@@ -802,7 +804,7 @@ int MolfileInterface::property(int propid, double *prop)
   if ((_info == nullptr) || (prop == nullptr))
     return P_NONE;
 
-  auto a = static_cast<molfile_atom_t *>(_info);
+  auto *a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     for (int i=0; i < _natoms; ++i)
@@ -837,7 +839,7 @@ int MolfileInterface::property(int propid, int idx, int *prop)
   if ((_info == nullptr) || (prop == nullptr) || (idx < 0) || (idx >= _natoms))
     return P_NONE;
 
-  auto a = static_cast<molfile_atom_t *>(_info);
+  auto *a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     char buf[64];
@@ -862,7 +864,7 @@ int MolfileInterface::property(int propid, int *types, int *prop)
   if ((_info == nullptr) || (types == nullptr) || (prop == nullptr))
     return P_NONE;
 
-  auto a = static_cast<molfile_atom_t *>(_info);
+  auto *a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     char buf[64];
@@ -891,7 +893,7 @@ int MolfileInterface::property(int propid, int *prop)
   if ((_info == nullptr) || (prop == nullptr))
     return P_NONE;
 
-  auto a = static_cast<molfile_atom_t *>(_info);
+  auto *a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     char buf[64];
@@ -922,7 +924,7 @@ int MolfileInterface::property(int propid, int idx, char *prop)
   if ((_info == nullptr) || (prop == nullptr) || (idx < 0) || (idx >= _natoms))
     return P_NONE;
 
-  auto a = static_cast<molfile_atom_t *>(_info);
+  auto *a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     _props |= write_atom_property(a[idx], propid, prop);
@@ -940,7 +942,7 @@ int MolfileInterface::property(int propid, int *types, char **prop)
   if ((_info == nullptr) || (types == nullptr) || (prop == nullptr))
     return P_NONE;
 
-  auto a = static_cast<molfile_atom_t *>(_info);
+  auto *a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     for (int i=0; i < _natoms; ++i) {
@@ -961,7 +963,7 @@ int MolfileInterface::property(int propid, char **prop)
   if ((_info == nullptr) || (prop == nullptr))
     return P_NONE;
 
-  auto a = static_cast<molfile_atom_t *>(_info);
+  auto *a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     for (int i=0; i < _natoms; ++i) {

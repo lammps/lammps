@@ -9,7 +9,7 @@ can create files in several formats. The native LAMMPS dump format is a
 text file (see :lammps:`dump atom` or :lammps:`dump custom`) which can be visualized by
 `several visualization tools <https://www.lammps.org/viz.html>`_ for MD
 simulation trajectories.  `OVITO <https://www.ovito.org>`_ and `VMD
-<https://www.ks.uiuc.edu/Research/vmd>`_ seem to be the most popular
+<https://www.ks.uiuc.edu/Research/vmd/>`_ seem to be the most popular
 choices among them.
 
 The :doc:`dump image <dump_image>` and :doc:`dump movie <dump_image>`

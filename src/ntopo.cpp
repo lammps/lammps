@@ -109,7 +109,7 @@ void NTopo::bond_check()
     dxstart = dx = x[i][0] - x[j][0];
     dystart = dy = x[i][1] - x[j][1];
     dzstart = dz = x[i][2] - x[j][2];
-    domain->minimum_image(dx, dy, dz);
+    domain->minimum_image(FLERR, dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
   }
 
@@ -138,17 +138,17 @@ void NTopo::angle_check()
     dxstart = dx = x[i][0] - x[j][0];
     dystart = dy = x[i][1] - x[j][1];
     dzstart = dz = x[i][2] - x[j][2];
-    domain->minimum_image(dx, dy, dz);
+    domain->minimum_image(FLERR, dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
     dxstart = dx = x[i][0] - x[k][0];
     dystart = dy = x[i][1] - x[k][1];
     dzstart = dz = x[i][2] - x[k][2];
-    domain->minimum_image(dx, dy, dz);
+    domain->minimum_image(FLERR, dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
     dxstart = dx = x[j][0] - x[k][0];
     dystart = dy = x[j][1] - x[k][1];
     dzstart = dz = x[j][2] - x[k][2];
-    domain->minimum_image(dx, dy, dz);
+    domain->minimum_image(FLERR, dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
   }
 
@@ -178,32 +178,32 @@ void NTopo::dihedral_check(int nlist, int **list)
     dxstart = dx = x[i][0] - x[j][0];
     dystart = dy = x[i][1] - x[j][1];
     dzstart = dz = x[i][2] - x[j][2];
-    domain->minimum_image(dx, dy, dz);
+    domain->minimum_image(FLERR, dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
     dxstart = dx = x[i][0] - x[k][0];
     dystart = dy = x[i][1] - x[k][1];
     dzstart = dz = x[i][2] - x[k][2];
-    domain->minimum_image(dx, dy, dz);
+    domain->minimum_image(FLERR, dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
     dxstart = dx = x[i][0] - x[l][0];
     dystart = dy = x[i][1] - x[l][1];
     dzstart = dz = x[i][2] - x[l][2];
-    domain->minimum_image(dx, dy, dz);
+    domain->minimum_image(FLERR, dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
     dxstart = dx = x[j][0] - x[k][0];
     dystart = dy = x[j][1] - x[k][1];
     dzstart = dz = x[j][2] - x[k][2];
-    domain->minimum_image(dx, dy, dz);
+    domain->minimum_image(FLERR, dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
     dxstart = dx = x[j][0] - x[l][0];
     dystart = dy = x[j][1] - x[l][1];
     dzstart = dz = x[j][2] - x[l][2];
-    domain->minimum_image(dx, dy, dz);
+    domain->minimum_image(FLERR, dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
     dxstart = dx = x[k][0] - x[l][0];
     dystart = dy = x[k][1] - x[l][1];
     dzstart = dz = x[k][2] - x[l][2];
-    domain->minimum_image(dx, dy, dz);
+    domain->minimum_image(FLERR, dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
   }
 

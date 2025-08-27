@@ -69,10 +69,11 @@ statement.  Internally, it will call either
 :cpp:func:`lammps_open_fortran` or :cpp:func:`lammps_open_no_mpi` from
 the C library API to create the class instance.  All arguments are
 optional and :cpp:func:`lammps_mpi_init` will be called automatically
-if it is needed.  Similarly, a possible call to
-:cpp:func:`lammps_mpi_finalize` is integrated into the :f:func:`close`
-function and triggered with the optional logical argument set to
-``.TRUE.``. Here is a simple example:
+if it is needed.  Similarly, optional calls to
+:cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_kokkos_finalize`,
+:cpp:func:`lammps_python_finalize`, and :cpp:func:`lammps_plugin_finalize`
+are integrated into the :f:func:`close` function and triggered with the
+optional logical argument set to ``.TRUE.``. Here is a simple example:
 
 .. code-block:: fortran
 
@@ -521,8 +522,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This method will close down the LAMMPS instance through calling
    :cpp:func:`lammps_close`.  If the *finalize* argument is present and
    has a value of ``.TRUE.``, then this subroutine also calls
-   :cpp:func:`lammps_kokkos_finalize` and
-   :cpp:func:`lammps_mpi_finalize`.
+   :cpp:func:`lammps_kokkos_finalize`, :cpp:func:`lammps_mpi_finalize`,
+   :cpp:func:`lammps_python_finalize`, and :cpp:func:`lammps_plugin_finalize`.
 
    :o finalize: shut down the MPI environment of the LAMMPS
     library if ``.TRUE.``.
@@ -530,6 +531,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :to: :cpp:func:`lammps_close`
    :to: :cpp:func:`lammps_mpi_finalize`
    :to: :cpp:func:`lammps_kokkos_finalize`
+   :to: :cpp:func:`lammps_python_finalize`
+   :to: :cpp:func:`lammps_plugin_finalize`
 
 --------
 
@@ -2096,7 +2099,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
 --------
 
-.. f:subroutine:: create_atoms([id,] type, x, [v,] [image,] [bexpand])
+.. f:function:: create_atoms([id,] type, x, [v,] [image,] [bexpand])
 
    This method calls :cpp:func:`lammps_create_atoms` to create additional atoms
    from a given list of coordinates and a list of atom types. Additionally,
@@ -2125,6 +2128,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     will be created, not dropped, and the box dimensions will be extended.
     Default is ``.FALSE.``
    :otype bexpand: logical,optional
+   :r atoms: number of created atoms
+   :rtype atoms: integer(c_int)
    :to: :cpp:func:`lammps_create_atoms`
 
    .. note::
@@ -2146,6 +2151,18 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       This is required because having all arguments be optional in both
       generic functions creates an ambiguous interface. This limitation does
       not exist if LAMMPS was not compiled with ``-DLAMMPS_BIGBIG``.
+
+--------
+
+.. f:subroutine:: create_molecule(id, jsonstr)
+
+   Add molecule template from string with JSON data
+
+   .. versionadded:: 22Jul2025
+
+   :p character(len=\*) id: desired molecule-ID
+   :p character(len=\*) jsonstr: string with JSON data defining the molecule template
+   :to: :cpp:func:`lammps_create_molecule`
 
 --------
 

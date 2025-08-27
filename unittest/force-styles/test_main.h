@@ -14,9 +14,12 @@
 #ifndef TEST_MAIN_H
 #define TEST_MAIN_H
 
-#include "atom.h"
-#include "lammps.h"
+#include "pointers.h"
+
+#include "gtest/gtest.h"
 #include "test_config.h"
+
+#include <cmath>
 #include <string>
 #include <vector>
 

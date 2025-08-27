@@ -15,7 +15,7 @@ with the direct alternative (if available) and print a warning.
 GJF formulation in fix langevin
 -------------------------------
 
-.. deprecated:: TBD
+.. deprecated:: 12Jun2025
 
 The *gjf* keyword in fix langevin is deprecated and will be removed
 soon.  The GJF functionality has been moved to its own fix style

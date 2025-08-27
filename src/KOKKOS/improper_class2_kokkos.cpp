@@ -17,17 +17,17 @@
 ------------------------------------------------------------------------- */
 
 #include "improper_class2_kokkos.h"
-#include <cmath>
+
 #include "atom_kokkos.h"
-#include "neighbor_kokkos.h"
+#include "atom_masks.h"
+#include "error.h"
 #include "force.h"
 #include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
+#include "neighbor_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
-
-static constexpr double SMALL =     0.001;
 
 /* ---------------------------------------------------------------------- */
 
@@ -72,14 +72,12 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    //if(k_eatom.extent(0)<maxeatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_eatom,eatom);
       memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
       d_eatom = k_eatom.template view<DeviceType>();
     //}
   }
   if (vflag_atom) {
-    //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
       memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
       d_vatom = k_vatom.template view<DeviceType>();
@@ -98,6 +96,7 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_setflag.template sync<DeviceType>();
   k_setflag_i.template sync<DeviceType>();
   k_setflag_aa.template sync<DeviceType>();
+
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
 

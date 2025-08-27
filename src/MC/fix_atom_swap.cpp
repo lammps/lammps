@@ -52,11 +52,11 @@ using namespace FixConst;
 
 FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), region(nullptr), idregion(nullptr), type_list(nullptr), mu(nullptr),
-    qtype(nullptr), sqrt_mass_ratio(nullptr), local_swap_iatom_list(nullptr),
+    qtype(nullptr), mtype(nullptr), sqrt_mass_ratio(nullptr), local_swap_iatom_list(nullptr),
     local_swap_jatom_list(nullptr), local_swap_atom_list(nullptr), random_equal(nullptr),
     random_unequal(nullptr), c_pe(nullptr)
 {
-  if (narg < 10) error->all(FLERR, "Illegal fix atom/swap command");
+  if (narg < 10) utils::missing_cmd_args(FLERR, "fix atom/swap", error);
 
   dynamic_group_allow = 1;
 
@@ -129,6 +129,7 @@ FixAtomSwap::~FixAtomSwap()
   memory->destroy(type_list);
   memory->destroy(mu);
   memory->destroy(qtype);
+  memory->destroy(mtype);
   memory->destroy(sqrt_mass_ratio);
   memory->destroy(local_swap_iatom_list);
   memory->destroy(local_swap_jatom_list);
@@ -204,9 +205,8 @@ int FixAtomSwap::setmask()
 
 void FixAtomSwap::init()
 {
-  if (!atom->mass) error->all(FLERR, "Fix atom/swap requires per atom type masses");
-  if (atom->rmass_flag && (comm->me == 0))
-    error->warning(FLERR, "Fix atom/swap will use per-type masses for velocity rescaling");
+  if ((atom->mass != nullptr) && (atom->rmass != nullptr) && (comm->me == 0))
+    error->warning(FLERR, "Fix atom/swap will use per-atom masses for velocity rescaling");
 
   c_pe = modify->get_compute_by_id("thermo_pe");
 
@@ -286,13 +286,62 @@ void FixAtomSwap::init()
       if (first) qtype[iswaptype] = DBL_MAX;
       MPI_Allreduce(&qtype[iswaptype], &qmin, 1, MPI_DOUBLE, MPI_MIN, world);
       if (qmax != qmin) error->all(FLERR, "All atoms of a swapped type must have same charge.");
+      qtype[iswaptype] = qmax;
+    }
+  }
+
+  // if we have per-atom masses, check that rmass is consistent with type,
+  // and set per-type mass to that value
+  if ((atom->rmass !=  nullptr) && !semi_grand_flag) {
+    double mmax, mmin;
+    int firstall, first;
+    memory->create(mtype, nswaptypes, "atom/swap:mtype");
+    for (int iswaptype = 0; iswaptype < nswaptypes; iswaptype++) {
+      first = 1;
+      for (int i = 0; i < atom->nlocal; i++) {
+        if (atom->mask[i] & groupbit) {
+          if (type[i] == type_list[iswaptype]) {
+            if (first > 0) {
+              mtype[iswaptype] = atom->rmass[i];
+              first = 0;
+            } else if (mtype[iswaptype] != atom->rmass[i])
+              first = -1;
+          }
+        }
+      }
+      MPI_Allreduce(&first, &firstall, 1, MPI_INT, MPI_MIN, world);
+      if (firstall < 0)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "All atoms of a swapped type must have the same per-atom mass");
+      if (firstall > 0)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "At least one atom of each swapped type must be present to define masses");
+      if (first) mtype[iswaptype] = -DBL_MAX;
+      MPI_Allreduce(&mtype[iswaptype], &mmax, 1, MPI_DOUBLE, MPI_MAX, world);
+      if (first) mtype[iswaptype] = DBL_MAX;
+      MPI_Allreduce(&mtype[iswaptype], &mmin, 1, MPI_DOUBLE, MPI_MIN, world);
+      if (mmax != mmin)
+        error->all(FLERR, Error::NOLASTLINE, "All atoms of a swapped type must have same mass.");
+      mtype[iswaptype] = mmax;
     }
   }
 
   memory->create(sqrt_mass_ratio, atom->ntypes + 1, atom->ntypes + 1, "atom/swap:sqrt_mass_ratio");
-  for (int itype = 1; itype <= atom->ntypes; itype++)
-    for (int jtype = 1; jtype <= atom->ntypes; jtype++)
-      sqrt_mass_ratio[itype][jtype] = sqrt(atom->mass[itype] / atom->mass[jtype]);
+  if (atom->rmass != nullptr) {
+    for (int itype = 1; itype <= atom->ntypes; itype++)
+      for (int jtype = 1; jtype <= atom->ntypes; jtype++) sqrt_mass_ratio[itype][jtype] = 1.0;
+    for (int iswaptype = 0; iswaptype < nswaptypes; iswaptype++) {
+      int itype = type_list[iswaptype];
+      for (int jswaptype = 0; jswaptype < nswaptypes; jswaptype++) {
+        int jtype = type_list[jswaptype];
+        sqrt_mass_ratio[itype][jtype] = sqrt(mtype[iswaptype] / mtype[jswaptype]);
+      }
+    }
+  } else {
+    for (int itype = 1; itype <= atom->ntypes; itype++)
+      for (int jtype = 1; jtype <= atom->ntypes; jtype++)
+        sqrt_mass_ratio[itype][jtype] = sqrt(atom->mass[itype] / atom->mass[jtype]);
+  }
 
   // check to see if itype and jtype cutoffs are the same
   // if not, reneighboring will be needed between swaps
@@ -479,10 +528,12 @@ int FixAtomSwap::attempt_swap()
   if (i >= 0) {
     atom->type[i] = jtype;
     if (atom->q_flag) atom->q[i] = qtype[1];
+    if (atom->rmass != nullptr) atom->rmass[i] = mtype[1];
   }
   if (j >= 0) {
     atom->type[j] = itype;
     if (atom->q_flag) atom->q[j] = qtype[0];
+    if (atom->rmass != nullptr) atom->rmass[j] = mtype[0];
   }
 
   // if unequal_cutoffs, call comm->borders() and rebuild neighbor list
@@ -534,10 +585,12 @@ int FixAtomSwap::attempt_swap()
   if (i >= 0) {
     atom->type[i] = type_list[0];
     if (atom->q_flag) atom->q[i] = qtype[0];
+    if (atom->rmass != nullptr) atom->rmass[i] = mtype[0];
   }
   if (j >= 0) {
     atom->type[j] = type_list[1];
     if (atom->q_flag) atom->q[j] = qtype[1];
+    if (atom->rmass != nullptr) atom->rmass[j] = mtype[1];
   }
 
   return 0;
@@ -628,10 +681,9 @@ void FixAtomSwap::update_semi_grand_atoms_list()
   double **x = atom->x;
 
   if (atom->nmax > atom_swap_nmax) {
-    memory->sfree(local_swap_atom_list);
+    memory->destroy(local_swap_atom_list);
     atom_swap_nmax = atom->nmax;
-    local_swap_atom_list =
-        (int *) memory->smalloc(atom_swap_nmax * sizeof(int), "MCSWAP:local_swap_atom_list");
+    memory->create(local_swap_atom_list, atom_swap_nmax, "MCSWAP:local_swap_atom_list");
   }
 
   nswap_local = 0;
@@ -681,13 +733,11 @@ void FixAtomSwap::update_swap_atoms_list()
   double **x = atom->x;
 
   if (atom->nmax > atom_swap_nmax) {
-    memory->sfree(local_swap_iatom_list);
-    memory->sfree(local_swap_jatom_list);
+    memory->destroy(local_swap_iatom_list);
+    memory->destroy(local_swap_jatom_list);
     atom_swap_nmax = atom->nmax;
-    local_swap_iatom_list =
-        (int *) memory->smalloc(atom_swap_nmax * sizeof(int), "MCSWAP:local_swap_iatom_list");
-    local_swap_jatom_list =
-        (int *) memory->smalloc(atom_swap_nmax * sizeof(int), "MCSWAP:local_swap_jatom_list");
+    memory->create(local_swap_iatom_list, atom_swap_nmax, "MCSWAP:local_swap_iatom_list");
+    memory->create(local_swap_jatom_list, atom_swap_nmax, "MCSWAP:local_swap_jatom_list");
   }
 
   niswap_local = 0;
@@ -831,7 +881,7 @@ void FixAtomSwap::write_restart(FILE *fp)
 void FixAtomSwap::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
 
   seed = static_cast<int>(list[n++]);
   random_equal->reset(seed);

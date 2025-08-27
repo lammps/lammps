@@ -69,7 +69,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   int me = 0;
   MPI_Comm_rank(world,&me);
   if (me == 0)
-    error->message(FLERR,"KOKKOS mode with Kokkos version {}.{}.{} is enabled",
+    utils::logmesg(lmp, "KOKKOS mode with Kokkos version {}.{}.{} is enabled\n",
                    KOKKOS_VERSION / 10000, (KOKKOS_VERSION % 10000) / 100, KOKKOS_VERSION % 100);
 
   // process any command-line args that invoke Kokkos settings
@@ -77,6 +77,17 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   ngpus = 0;
   int device = 0;
   nthreads = 1;
+
+  threads_per_atom = 1;
+  threads_per_atom_set = 0;
+  pair_team_size = 128;
+  pair_team_size_set = 0;
+  nbin_atoms_per_bin_set = 0;
+  nbin_atoms_per_bin = 16;
+  nbor_block_size = 128;
+  nbor_block_size_set = 0;
+  bond_block_size = 128;
+  bond_block_size_set = 0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -539,6 +550,31 @@ void KokkosLMP::accelerator(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       neigh_transpose = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"threads/per/atom") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      threads_per_atom = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      threads_per_atom_set = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"pair/team/size") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      pair_team_size = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      pair_team_size_set = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"nbin/atoms/per/bin") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      nbin_atoms_per_bin = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      nbin_atoms_per_bin_set = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"nbor/block/size") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      nbor_block_size = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      nbor_block_size_set = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"bond/block/size") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      bond_block_size = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      bond_block_size_set = 1;
+      iarg += 2;
     } else error->all(FLERR,"Illegal package kokkos command");
   }
 
@@ -649,6 +685,19 @@ void KokkosLMP::newton_check()
 
   if (neigh_thread && force->newton)
     error->all(FLERR,"Must use 'newton off' with KOKKOS package option 'neigh/thread on'");
+
+  if (!neigh_thread) {
+    if (threads_per_atom_set)
+      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'threads/per/atom'");
+    if (pair_team_size_set)
+      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'pair/team/size'");
+    if (nbin_atoms_per_bin_set)
+      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'nbin/atoms/per/bin'");
+    if (nbor_block_size_set)
+      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'nbor/block/size'");
+    if (bond_block_size_set)
+      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'bond/block/size'");
+  }
 }
 
 /* ----------------------------------------------------------------------

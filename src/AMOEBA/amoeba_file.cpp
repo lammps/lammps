@@ -518,32 +518,32 @@ void PairAmoeba::read_keyfile(char *filename)
 
     } else if (keyword == "pme-order") {
       if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
-      bseorder = utils::numeric(FLERR, words[1], false, lmp);
+      bseorder = utils::inumeric(FLERR, words[1], false, lmp);
     } else if (keyword == "ppme-order") {
       if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
-      bsporder = utils::numeric(FLERR, words[1], false, lmp);
+      bsporder = utils::inumeric(FLERR, words[1], false, lmp);
     } else if (keyword == "dpme-order") {
       if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
-      bsdorder = utils::numeric(FLERR, words[1], false, lmp);
+      bsdorder = utils::inumeric(FLERR, words[1], false, lmp);
 
     } else if (keyword == "pme-grid") {
       if (nwords != 2 && nwords != 4) error->all(FLERR, "AMOEBA keyfile line is invalid");
       if (nwords == 2)
-        nefft1 = nefft2 = nefft3 = utils::numeric(FLERR, words[1], false, lmp);
+        nefft1 = nefft2 = nefft3 = utils::inumeric(FLERR, words[1], false, lmp);
       else {
-        nefft1 = utils::numeric(FLERR, words[1], false, lmp);
-        nefft2 = utils::numeric(FLERR, words[2], false, lmp);
-        nefft3 = utils::numeric(FLERR, words[3], false, lmp);
+        nefft1 = utils::inumeric(FLERR, words[1], false, lmp);
+        nefft2 = utils::inumeric(FLERR, words[2], false, lmp);
+        nefft3 = utils::inumeric(FLERR, words[3], false, lmp);
       }
       pmegrid_key = 1;
     } else if (keyword == "dpme-grid") {
       if (nwords != 2 && nwords != 4) error->all(FLERR, "AMOEBA keyfile line is invalid");
       if (nwords == 2)
-        ndfft1 = ndfft2 = ndfft3 = utils::numeric(FLERR, words[1], false, lmp);
+        ndfft1 = ndfft2 = ndfft3 = utils::inumeric(FLERR, words[1], false, lmp);
       else {
-        ndfft1 = utils::numeric(FLERR, words[1], false, lmp);
-        ndfft2 = utils::numeric(FLERR, words[2], false, lmp);
-        ndfft3 = utils::numeric(FLERR, words[3], false, lmp);
+        ndfft1 = utils::inumeric(FLERR, words[1], false, lmp);
+        ndfft2 = utils::inumeric(FLERR, words[2], false, lmp);
+        ndfft3 = utils::inumeric(FLERR, words[3], false, lmp);
       }
       dpmegrid_key = 1;
 
@@ -635,7 +635,7 @@ void PairAmoeba::read_keyfile(char *filename)
 
   // close key file
 
-  if (me == 0) fclose(fptr);
+  if (me == 0) (void) fclose(fptr);
 
   // cutoff resets for long-range interactions
 

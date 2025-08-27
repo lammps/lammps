@@ -39,6 +39,12 @@ public:
     CodeEditor(QWidget *parent = nullptr);
     ~CodeEditor() override;
 
+    CodeEditor()                              = delete;
+    CodeEditor(const CodeEditor &)            = delete;
+    CodeEditor(CodeEditor &&)                 = delete;
+    CodeEditor &operator=(const CodeEditor &) = delete;
+    CodeEditor &operator=(CodeEditor &&)      = delete;
+
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int lineNumberAreaWidth();
     void setFont(const QFont &newfont);

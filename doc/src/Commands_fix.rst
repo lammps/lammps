@@ -22,6 +22,7 @@ OPT.
    * :doc:`append/atoms <fix_append_atoms>`
    * :doc:`atc <fix_atc>`
    * :doc:`atom/swap <fix_atom_swap>`
+   * :doc:`atom_weight/apip <fix_atom_weight_apip>`
    * :doc:`ave/atom <fix_ave_atom>`
    * :doc:`ave/chunk <fix_ave_chunk>`
    * :doc:`ave/correlate <fix_ave_correlate>`
@@ -29,6 +30,7 @@ OPT.
    * :doc:`ave/grid <fix_ave_grid>`
    * :doc:`ave/histo <fix_ave_histo>`
    * :doc:`ave/histo/weight <fix_ave_histo>`
+   * :doc:`ave/moments <fix_ave_moments>`
    * :doc:`ave/time <fix_ave_time>`
    * :doc:`aveforce <fix_aveforce>`
    * :doc:`balance <fix_balance>`
@@ -64,7 +66,7 @@ OPT.
    * :doc:`electrode/conp (i) <fix_electrode>`
    * :doc:`electrode/conq (i) <fix_electrode>`
    * :doc:`electrode/thermo (i) <fix_electrode>`
-   * :doc:`electron/stopping <fix_electron_stopping>`
+   * :doc:`electron/stopping (k) <fix_electron_stopping>`
    * :doc:`electron/stopping/fit <fix_electron_stopping>`
    * :doc:`enforce2d (k) <fix_enforce2d>`
    * :doc:`eos/cv <fix_eos_cv>`
@@ -85,11 +87,14 @@ OPT.
    * :doc:`halt <fix_halt>`
    * :doc:`heat <fix_heat>`
    * :doc:`heat/flow <fix_heat_flow>`
+   * :doc:`hmc <fix_hmc>`
    * :doc:`hyper/global <fix_hyper_global>`
    * :doc:`hyper/local <fix_hyper_local>`
    * :doc:`imd <fix_imd>`
    * :doc:`indent <fix_indent>`
    * :doc:`ipi <fix_ipi>`
+   * :doc:`lambda/apip <fix_lambda_apip>`
+   * :doc:`lambda_thermostat/apip <fix_lambda_thermostat_apip>`
    * :doc:`langevin (k) <fix_langevin>`
    * :doc:`langevin/drude <fix_langevin_drude>`
    * :doc:`langevin/eff <fix_langevin_eff>`
@@ -112,6 +117,7 @@ OPT.
    * :doc:`mvv/tdpd <fix_mvv_dpd>`
    * :doc:`neb <fix_neb>`
    * :doc:`neb/spin <fix_neb_spin>`
+   * :doc:`neighbor/swap <fix_neighbor_swap>`
    * :doc:`nonaffine/displacement <fix_nonaffine_displacement>`
    * :doc:`nph (ko) <fix_nh>`
    * :doc:`nph/asphere (o) <fix_nph_asphere>`
@@ -217,6 +223,7 @@ OPT.
    * :doc:`rigid/small (o) <fix_rigid>`
    * :doc:`rx (k) <fix_rx>`
    * :doc:`saed/vtk <fix_saed_vtk>`
+   * :doc:`set <fix_set>`
    * :doc:`setforce (k) <fix_setforce>`
    * :doc:`setforce/spin <fix_setforce>`
    * :doc:`sgcmc <fix_sgcmc>`

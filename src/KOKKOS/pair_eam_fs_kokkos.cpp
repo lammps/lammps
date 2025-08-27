@@ -34,8 +34,9 @@
 #include <cmath>
 using namespace LAMMPS_NS;
 
-#define MAX_CACHE_ROWS 500
-
+#ifdef KOKKOS_ENABLE_HIP
+static constexpr int MAX_CACHE_ROWS = 500;
+#endif
 // Cannot use virtual inheritance on the GPU, so must duplicate code
 
 /* ---------------------------------------------------------------------- */
@@ -835,7 +836,7 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelC<NEIGHFLAG,NEWTO
 }
 
 /* ---------------------------------------------------------------------- */
-
+#ifdef KOKKOS_ENABLE_HIP
 ////Specialisation for Neighborlist types Half, HalfThread, Full
 template<class DeviceType>
 template<int EFLAG>
@@ -920,7 +921,7 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelAB<EFLAG>,
     }
   }
 }
-
+#endif
 template<class DeviceType>
 template<int EFLAG>
 KOKKOS_INLINE_FUNCTION
@@ -933,6 +934,7 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelAB<EFLAG>,
 /* ---------------------------------------------------------------------- */
 
 ////Specialisation for Neighborlist types Half, HalfThread, Full
+#ifdef KOKKOS_ENABLE_HIP
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
@@ -1052,7 +1054,7 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelC<NEIGHFLAG,NEWTO
     a_f(i,2) += fztmp;
   }
 }
-
+#endif
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION

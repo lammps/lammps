@@ -84,7 +84,7 @@ void Ewald::settings(int narg, char **arg)
 
 Ewald::~Ewald()
 {
-  deallocate();
+  Ewald::deallocate();
   if (group_allocate_flag) deallocate_groups();
   memory->destroy(ek);
   memory->destroy3d_offset(cs,-kmax_created);
@@ -126,7 +126,7 @@ void Ewald::init()
   pair_check();
 
   int itmp;
-  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;

@@ -15,9 +15,7 @@
 
 #include "error_stats.h"
 #include "test_config.h"
-#include "test_config_reader.h"
 #include "test_main.h"
-#include "yaml_reader.h"
 #include "yaml_writer.h"
 
 #include "gmock/gmock.h"
@@ -26,28 +24,18 @@
 #include "atom.h"
 #include "compute.h"
 #include "domain.h"
-#include "exceptions.h"
 #include "force.h"
 #include "info.h"
 #include "input.h"
-#include "kspace.h"
-#include "lammps.h"
 #include "modify.h"
 #include "pair.h"
-#include "platform.h"
-#include "universe.h"
-#include "utils.h"
 
-#include <cctype>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <mpi.h>
+#include <cmath>
 
-#include <map>
-#include <string>
+#include <exception>
+#include <iostream>
+#include <set>
 #include <utility>
-#include <vector>
 
 using ::testing::HasSubstr;
 using ::testing::StartsWith;
@@ -516,7 +504,7 @@ TEST(PairStyle, plain)
 
 TEST(PairStyle, omp)
 {
-    if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
+    if (!Info::has_package("OPENMP")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
@@ -648,9 +636,12 @@ TEST(PairStyle, omp)
 
 TEST(PairStyle, kokkos_omp)
 {
-    if (!LAMMPS::is_installed_pkg("KOKKOS")) GTEST_SKIP();
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
-    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) GTEST_SKIP();
+    // test either OpenMP or Serial
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "serial") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
+        GTEST_SKIP();
     // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
     if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
         Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
@@ -660,6 +651,8 @@ TEST(PairStyle, kokkos_omp)
 
     LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
                          "-k",        "on",   "t",    "4",     "-sf",    "kk"};
+    // fall back to serial if openmp is not available
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[9] = "1";
 
     // cannot run dpd styles in plain or hybrid with more than 1 thread due to using multiple pRNGs
     if (utils::strmatch(test_config.pair_style, "^dpd") ||
@@ -796,7 +789,7 @@ TEST(PairStyle, kokkos_omp)
 
 TEST(PairStyle, gpu)
 {
-    if (!LAMMPS::is_installed_pkg("GPU")) GTEST_SKIP();
+    if (!Info::has_package("GPU")) GTEST_SKIP();
     if (!Info::has_gpu_device()) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
@@ -854,8 +847,8 @@ TEST(PairStyle, gpu)
         epsilon *= 5.0e8;
     else
         epsilon *= 1.0e10;
-        // relax test precision when using pppm and single precision FFTs, but only when also
-        // running with double precision
+    // relax test precision when using pppm and single precision FFTs, but only when also
+    // running with double precision
 #if defined(FFT_SINGLE)
     if (lmp->force->kspace && lmp->force->kspace->compute_flag &&
         Info::has_accelerator_feature("GPU", "precision", "double"))
@@ -894,7 +887,7 @@ TEST(PairStyle, gpu)
 
 TEST(PairStyle, intel)
 {
-    if (!LAMMPS::is_installed_pkg("INTEL")) GTEST_SKIP();
+    if (!Info::has_package("INTEL")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     LAMMPS::argv args = {"PairStyle", "-log",  "none", "-echo", "screen", "-nocite",
@@ -985,7 +978,7 @@ TEST(PairStyle, intel)
 
 TEST(PairStyle, opt)
 {
-    if (!LAMMPS::is_installed_pkg("OPT")) GTEST_SKIP();
+    if (!Info::has_package("OPT")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf", "opt"};
@@ -1329,6 +1322,88 @@ TEST(PairStyle, extract)
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles are not available "
+                     "in this LAMMPS configuration:\n";
+        for (const auto &prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    auto *pair = lmp->force->pair;
+    if (!pair->compute_flag) {
+        std::cerr << "Pair style disabled" << std::endl;
+        if (!verbose) ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp, test_config);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        GTEST_SKIP();
+    }
+
+    void *ptr = nullptr;
+    int dim   = 0;
+    for (auto &extract : test_config.extract) {
+        ptr = pair->extract(extract.first.c_str(), dim);
+        EXPECT_NE(ptr, nullptr);
+        EXPECT_EQ(dim, extract.second);
+    }
+    ptr = pair->extract("does_not_exist", dim);
+    EXPECT_EQ(ptr, nullptr);
+
+    // replace pair style with the same.
+    // should just update setting, but not create new style.
+
+    int ntypes = lmp->atom->ntypes;
+    for (int i = 1; i <= ntypes; ++i) {
+        for (int j = 1; j <= ntypes; ++j) {
+            pair->cutsq[i][j] = -1.0;
+        }
+    }
+
+    // utility lambda to improve readability
+    auto command = [&](const std::string &line) {
+        lmp->input->one(line);
+    };
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("pair_style " + test_config.pair_style);
+    EXPECT_EQ(pair, lmp->force->pair);
+
+    for (auto &pair_coeff : test_config.pair_coeff) {
+        command("pair_coeff " + pair_coeff);
+    }
+    pair->init();
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    for (int i = 1; i <= ntypes; ++i) {
+        for (int j = 1; j <= ntypes; ++j) {
+            EXPECT_GE(pair->cutsq[i][j], 0.0);
+        }
+    }
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+}
+
+TEST(PairStyle, extract_omp)
+{
+    if (!Info::has_package("OPENMP")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-pk",       "omp",  "4",    "-sf",   "omp"};
 
     if (!verbose) ::testing::internal::CaptureStdout();
     LAMMPS *lmp = nullptr;

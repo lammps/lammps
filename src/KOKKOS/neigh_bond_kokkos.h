@@ -130,7 +130,7 @@ class NeighBondKokkos : protected Pointers  {
 
   // topology build functions
 
-  typedef void (NeighBondKokkos::*BondPtr)();   // ptrs to topology build functions
+  using BondPtr = void (NeighBondKokkos::*)();   // ptrs to topology build functions
 
   BondPtr bond_build_kk;                 // ptr to bond list functions
   void bond_all();                    // bond list with all bonds

@@ -97,14 +97,14 @@ set of files ``gran_sub_mod_custom.h``:
 
 .. code-block:: c++
 
-   #ifdef GranSubMod_CLASS
+   #ifdef GRAN_SUB_MOD_CLASS
    // clang-format off
    GranSubModStyle(hooke/piecewise,GranSubModNormalHookePiecewise,NORMAL);
    // clang-format on
    #else
 
-   #ifndef GRAN_SUB_MOD_CUSTOM_H_
-   #define GRAN_SUB_MOD_CUSTOM_H_
+   #ifndef GRAN_SUB_MOD_CUSTOM_H
+   #define GRAN_SUB_MOD_CUSTOM_H
 
    #include "gran_sub_mod.h"
    #include "gran_sub_mod_normal.h"
@@ -122,8 +122,8 @@ set of files ``gran_sub_mod_custom.h``:
    }    // namespace Granular_NS
    }    // namespace LAMMPS_NS
 
-   #endif /*GRAN_SUB_MOD_CUSTOM_H_ */
-   #endif /*GRAN_SUB_MOD_CLASS_H_ */
+   #endif /*GRAN_SUB_MOD_CUSTOM_H */
+   #endif /*GRAN_SUB_MOD_CLASS_H */
 
 
 and ``gran_sub_mod_custom.cpp``

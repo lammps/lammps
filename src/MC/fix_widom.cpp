@@ -663,7 +663,7 @@ void FixWidom::attempt_molecule_insertion()
     MathExtra::quat_to_mat(quat,rotmat);
 
     double insertion_energy = 0.0;
-    auto procflag = new bool[natoms_per_molecule];
+    auto *procflag = new bool[natoms_per_molecule];
 
     for (int i = 0; i < natoms_per_molecule; i++) {
       MathExtra::matvec(rotmat,onemol->x[i],molcoords[i]);
@@ -1130,7 +1130,7 @@ void FixWidom::write_restart(FILE *fp)
 void FixWidom::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
 
   seed = static_cast<int> (list[n++]);
   random_equal->reset(seed);

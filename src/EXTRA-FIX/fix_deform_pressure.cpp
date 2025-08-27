@@ -905,7 +905,7 @@ void FixDeformPressure::restart(char *buf)
     error->all(FLERR, "Fix deform/pressure settings not consistent with restart");
 
   n += sizeof(Set);
-  SetExtra *set_extra_restart = (SetExtra *) &buf[n];
+  auto *set_extra_restart = (SetExtra *) &buf[n];
   for (int i = 0; i < 7; ++i) {
     set_extra[i].saved = set_extra_restart[i].saved;
     set_extra[i].prior_rate = set_extra_restart[i].prior_rate;
@@ -979,7 +979,7 @@ int FixDeformPressure::modify_param(int narg, char **arg)
 
     // reset id_temp of pressure to new temperature ID
 
-    auto icompute = modify->get_compute_by_id(id_press);
+    auto *icompute = modify->get_compute_by_id(id_press);
     if (!icompute)
       error->all(FLERR, "Pressure compute ID {} for fix {} does not exist", id_press, style);
     icompute->reset_extra_compute_fix(id_temp);

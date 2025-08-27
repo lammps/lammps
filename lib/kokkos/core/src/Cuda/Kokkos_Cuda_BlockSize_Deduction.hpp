@@ -33,7 +33,9 @@ inline int cuda_warp_per_sm_allocation_granularity(
     case 5:
     case 7:
     case 8:
-    case 9: return 4;
+    case 9:
+    case 10:
+    case 12: return 4;
     case 6: return (properties.minor == 0 ? 2 : 4);
     default:
       throw_runtime_exception(

@@ -20,20 +20,13 @@
 #include <QLabel>
 #include <QTextDocument>
 
-// workaround for Qt-5.12
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-namespace QColorConstants {
-const QColor Red  = QColor::fromRgb(0xff, 0x00, 0x00);
-const QColor Blue = QColor::fromRgb(0x00, 0x00, 0xff);
-} // namespace QColorConstants
-#endif
-
 FlagWarnings::FlagWarnings(QLabel *label, QTextDocument *parent) :
     QSyntaxHighlighter(parent), isWarning(QStringLiteral("^(ERROR|WARNING).*$")),
     isURL(QStringLiteral("^.*(https://docs.lammps.org/err[0-9]+).*$")), summary(label),
     document(parent)
 {
     nwarnings = nlines = 0;
+    oldwarnings = oldlines = -1;
 
     formatWarning.setForeground(QColorConstants::Red);
     formatWarning.setFontWeight(QFont::Bold);
@@ -59,11 +52,15 @@ void FlagWarnings::highlightBlock(const QString &text)
         setFormat(match.capturedStart(1), match.capturedLength(1), formatURL);
     }
 
-    // update error summary label
+    // update error summary label when its content has changed
     if (document && summary) {
-        summary->setText(
-            QString("%1 Warnings / Errors - %2 Lines").arg(nwarnings).arg(document->lineCount()));
-        summary->repaint();
+        nlines = document->lineCount();
+        if ((nwarnings > oldwarnings) || (nlines > oldlines)) {
+            oldwarnings = nwarnings;
+            oldlines    = nlines;
+            summary->setText(QString("%1 Warnings / Errors - %2 Lines").arg(nwarnings).arg(nlines));
+            summary->repaint();
+        }
     }
 }
 

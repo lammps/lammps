@@ -267,11 +267,12 @@ class Pair : protected Pointers {
 
  public:
   // custom data type for accessing Coulomb tables
-
+  // NOLINTBEGIN
   typedef union {
     int i;
     float f;
   } union_int_float_t;
+  // NOLINTEND
 
   // Accessor for the INTEL package to determine virial calc for hybrid
 

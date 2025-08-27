@@ -17,16 +17,21 @@
 #include <QComboBox>
 #include <QLineEdit>
 #include <QList>
+#include <QRectF>
 #include <QString>
 #include <QTime>
 #include <QWidget>
 
 class QAction;
+class QCheckBox;
 class QCloseEvent;
 class QEvent;
+class QLabel;
 class QMenuBar;
 class QMenu;
 class QSpinBox;
+class RangeSlider;
+
 namespace QtCharts {
 class ChartViewer;
 }
@@ -46,15 +51,18 @@ public:
     void reset_charts();
     void add_chart(const QString &title, int index);
     void add_data(int step, double data, int index);
+    void set_units(const QString &_units);
+    void set_norm(bool norm);
 
 private slots:
     void quit();
-    void reset_zoom();
     void stop_run();
     void select_smooth(int selection);
     void update_smooth();
     void update_tlabel();
     void update_ylabel();
+    void update_xrange(int low, int high);
+    void update_yrange(int low, int high);
 
     void saveAs();
     void exportDat();
@@ -77,6 +85,9 @@ private:
     QComboBox *smooth;
     QSpinBox *window, *order;
     QLineEdit *chartTitle, *chartYlabel;
+    QLabel *units;
+    QCheckBox *norm;
+    RangeSlider *xrange, *yrange;
 
     QString filename;
     QList<QtCharts::ChartViewer *> charts;
@@ -95,9 +106,17 @@ class ChartViewer : public QChartView {
 
 public:
     explicit ChartViewer(const QString &title, int index, QWidget *parent = nullptr);
-    ~ChartViewer();
+    ~ChartViewer() override;
+
+    ChartViewer()                               = delete;
+    ChartViewer(const ChartViewer &)            = delete;
+    ChartViewer(ChartViewer &&)                 = delete;
+    ChartViewer &operator=(const ChartViewer &) = delete;
+    ChartViewer &operator=(ChartViewer &&)      = delete;
 
     void add_data(int step, double data);
+    QRectF get_minmax() const;
+    QList<QAbstractAxis *> get_axes() const { return chart->axes(); }
     void reset_zoom();
     void smooth_param(bool _do_raw, bool _do_smooth, int _window, int _order);
     void update_smooth();

@@ -55,6 +55,60 @@
   </provides>
 
   <releases>
+    <release version="1.7.1" timestamp="1754346906">
+      <description>
+        Remove workarounds for compatibility with Qt 5.12 on Ubuntu 20.04LTS.
+        Qt 5.15LTS is now the minimum required version and thus Ubuntu 22.04LTS.
+        Fix bugs when using filenames or paths with blanks.
+        Support new "dump image autobond" feature in image viewer.
+        Support new "dump image region" feature in image viewer.
+        Change color selections for dump image to text fields with completion and validation.
+        Update minimum required LAMMPS version.
+      </description>
+    </release>
+    <release version="1.7.0" timestamp="1751978344">
+      <description>
+        Reset minor version number for upcoming stable release and tutorial session.
+        Refactor chartviewer title line to have two rows and add display of units and normalization
+        Replace rubberband-zoom feature and button to reset zoom with two range sliders
+        Update minimum required LAMMPS version.
+      </description>
+    </release>
+    <release version="1.6.15" timestamp="1751751132">
+      <description>
+        Address the issue of LAMMPS stalling on output by increasing
+          the buffersize for reading from the pipe to the maximum of 64k.
+        Add warning dialog at the end of a run if I/O buffer usage is high.
+        Apply fixes and code modernization suggested by clang-tidy
+        Make selection of accelerator and threads consistent
+        Cache and restore PATH and LD_LIBRARY_PATH in linux-wrapper.sh
+          so that xdg-open can work with native executables
+        Rename "Restart LAMMPS" to "Relaunch LAMMPS Instance" and document it.
+        Fix bug when recentering object in image viewer
+        Fix crash when editing partially quoted strings
+        Closing the editor window will close the entire app, even when
+          a simulation is still runnig. Prevent segfaults in that case.
+        Must delete variable when starting a new run, since we don't
+          always re-launch LAMMPS "clear" does not clear variables
+        Add support for some common accelerator package command options
+          GPU: neighbor list on host/device, accelerate only pair style
+          INTEL: choose double/mixed/single precision
+        Add support to set the "download solution" and "open tutorial
+          webpage in web browser" default in preferences
+        Redesign the general settings preferences tab
+        Display CPU utilization in % during runs
+        Display a LAMMPS-GUI banner image on new/empty editor windows
+          and clear it when editing or loading a file.
+      </description>
+    </release>
+    <release version="1.6.14" timestamp="1747828753">
+      <description>
+        Must set en_US.UTF-8 locale on macOS since it lacks support for C.UTF-8
+        Disable OpenMP processor affinity
+        Address performance regression with processing smoothed data
+        Code refactoring and optimization
+      </description>
+    </release>
     <release version="1.6.13" timestamp="1743734509">
       <description>
         Change working directory to user's home dir if initial directory is "/" or the Application folder
@@ -68,7 +122,7 @@
         Double-click on highlighted URL opens it in web browser. Also available via context menu.
       </description>
     </release>
-     <release version="1.6.12" timestamp="1734890080">
+    <release version="1.6.12" timestamp="1734890080">
       <description>
         Update Tutorial menu entries to cover all 8 tutorials
         Highlight warnings and error messages in Output window

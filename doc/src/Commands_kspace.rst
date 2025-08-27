@@ -31,3 +31,5 @@ OPT.
    * :doc:`pppm/dielectric <kspace_style>`
    * :doc:`pppm/electrode (i) <kspace_style>`
    * :doc:`scafacos <kspace_style>`
+   * :doc:`zero <kspace_style>`
+

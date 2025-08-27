@@ -16,6 +16,7 @@
 #include "lammpsgui.h"
 #include "lammpswrapper.h"
 #include "linenumberarea.h"
+#include "helpers.h"
 
 #include <QAbstractItemView>
 #include <QAction>
@@ -49,89 +50,6 @@
 #include <string>
 #include <vector>
 
-// Convert string into words on whitespace while handling single and double
-// quotes. Adapted from LAMMPS_NS::utils::split_words() to preserve quotes.
-
-static std::vector<std::string> split_line(const std::string &text)
-{
-    std::vector<std::string> list;
-    const char *buf = text.c_str();
-    std::size_t beg = 0;
-    std::size_t len = 0;
-    std::size_t add = 0;
-
-    char c = *buf;
-    while (c) { // leading whitespace
-        if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f') {
-            c = *++buf;
-            ++beg;
-            continue;
-        };
-        len = 0;
-
-    // handle escaped/quoted text.
-    quoted:
-
-        if (c == '\'') { // handle single quote
-            add = 0;
-            len = 1;
-            c   = *++buf;
-            while (((c != '\'') && (c != '\0')) || ((c == '\\') && (buf[1] == '\''))) {
-                if ((c == '\\') && (buf[1] == '\'')) {
-                    ++buf;
-                    ++len;
-                }
-                c = *++buf;
-                ++len;
-            }
-            ++len;
-            c = *++buf;
-
-            // handle triple double quotation marks
-        } else if ((c == '"') && (buf[1] == '"') && (buf[2] == '"') && (buf[3] != '"')) {
-            len = 3;
-            add = 1;
-            buf += 3;
-            c = *buf;
-
-        } else if (c == '"') { // handle double quote
-            add = 0;
-            len = 1;
-            c   = *++buf;
-            while (((c != '"') && (c != '\0')) || ((c == '\\') && (buf[1] == '"'))) {
-                if ((c == '\\') && (buf[1] == '"')) {
-                    ++buf;
-                    ++len;
-                }
-                c = *++buf;
-                ++len;
-            }
-            ++len;
-            c = *++buf;
-        }
-
-        while (true) { // unquoted
-            if ((c == '\'') || (c == '"')) goto quoted;
-            // skip escaped quote
-            if ((c == '\\') && ((buf[1] == '\'') || (buf[1] == '"'))) {
-                ++buf;
-                ++len;
-                c = *++buf;
-                ++len;
-            }
-            if ((c == ' ') || (c == '\t') || (c == '\r') || (c == '\n') || (c == '\f') ||
-                (c == '\0')) {
-                list.push_back(text.substr(beg, len));
-                beg += len + add;
-                break;
-            }
-            c = *++buf;
-            ++len;
-        }
-    }
-    return list;
-}
-
 CodeEditor::CodeEditor(QWidget *parent) :
     QPlainTextEdit(parent), current_comp(nullptr), command_comp(new QCompleter(this)),
     fix_comp(new QCompleter(this)), compute_comp(new QCompleter(this)),
@@ -144,11 +62,11 @@ CodeEditor::CodeEditor(QWidget *parent) :
     units_comp(new QCompleter(this)), group_comp(new QCompleter(this)),
     varname_comp(new QCompleter(this)), fixid_comp(new QCompleter(this)),
     compid_comp(new QCompleter(this)), file_comp(new QCompleter(this)),
-    extra_comp(new QCompleter(this)), highlight(NO_HIGHLIGHT)
+    extra_comp(new QCompleter(this)), highlight(NO_HIGHLIGHT), reformat_on_return(false),
+    automatic_completion(true), docver("")
 {
     help_action = new QShortcut(QKeySequence::fromString("Ctrl+?"), parent);
     connect(help_action, &QShortcut::activated, this, &CodeEditor::get_help);
-    docver = "";
 
     // set up completer class (without a model currently)
 #define COMPLETER_SETUP(completer)                                                            \
@@ -212,7 +130,7 @@ CodeEditor::CodeEditor(QWidget *parent) :
             } else if (words.size() == 2) {
                 cmd_map[words.at(1)] = words.at(0);
             } else {
-                fprintf(stderr, "unhandled: %s", line.toStdString().c_str());
+                fprintf(stderr, "unhandled help item: %s", line.toStdString().c_str());
             }
         }
         help_index.close();
@@ -265,7 +183,7 @@ int CodeEditor::lineNumberAreaWidth()
         ++digits;
     }
 
-    int space = 3 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * (digits + 2);
+    int space = 3 + (fontMetrics().horizontalAdvance(QLatin1Char('9')) * (digits + 2));
     return space;
 }
 
@@ -320,7 +238,7 @@ QString CodeEditor::reformatLine(const QString &line)
     bool rebuildComputeIDComp = false;
     bool rebuildFixIDComp     = false;
 
-    if (words.size()) {
+    if (!words.empty()) {
         // commented line. do nothing
         if (words[0][0] == '#') return line;
 
@@ -411,11 +329,8 @@ COMPLETER_INIT_FUNC(extra, Extra)
 void CodeEditor::setGroupList()
 {
     QStringList groups;
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-    QRegExp groupcmd(QStringLiteral("^\\s*group\\s+(\\S+)(\\s+|$)"));
-#else
     QRegularExpression groupcmd(QStringLiteral("^\\s*group\\s+(\\S+)(\\s+|$)"));
-#endif
+
     auto saved = textCursor();
     // reposition cursor to beginning of text and search for group commands
     auto cursor = textCursor();
@@ -453,11 +368,7 @@ void CodeEditor::setVarNameList()
         }
     }
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-    QRegExp varcmd(QStringLiteral("^\\s*variable\\s+(\\S+)(\\s+|$)"));
-#else
     QRegularExpression varcmd(QStringLiteral("^\\s*variable\\s+(\\S+)(\\s+|$)"));
-#endif
     auto saved = textCursor();
     // reposition cursor to beginning of text and search for group commands
     auto cursor = textCursor();
@@ -483,11 +394,8 @@ void CodeEditor::setVarNameList()
 void CodeEditor::setComputeIDList()
 {
     QStringList compid;
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-    QRegExp compcmd(QStringLiteral("^\\s*compute\\s+(\\S+)\\s+"));
-#else
     QRegularExpression compcmd(QStringLiteral("^\\s*compute\\s+(\\S+)\\s+"));
-#endif
+
     auto saved = textCursor();
     // reposition cursor to beginning of text and search for group commands
     auto cursor = textCursor();
@@ -511,11 +419,8 @@ void CodeEditor::setComputeIDList()
 void CodeEditor::setFixIDList()
 {
     QStringList fixid;
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-    QRegExp fixcmd(QStringLiteral("^\\s*fix\\s+(\\S+)\\s+"));
-#else
     QRegularExpression fixcmd(QStringLiteral("^\\s*fix\\s+(\\S+)\\s+"));
-#endif
+
     auto saved = textCursor();
     // reposition cursor to beginning of text and search for group commands
     auto cursor = textCursor();
@@ -578,6 +483,8 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
     }
 
     // automatically reformat when hitting the return or enter key
+    QSettings settings;
+    reformat_on_return = settings.value("return", false).toBool();
     if (reformat_on_return && ((key == Qt::Key_Return) || (key == Qt::Key_Enter))) {
         reformatCurrentLine();
     }
@@ -586,6 +493,7 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
     QPlainTextEdit::keyPressEvent(event);
 
     // if enabled, try pop up completion automatically after 2 characters
+    automatic_completion = settings.value("automatic", true).toBool();
     if (automatic_completion) {
         auto cursor = textCursor();
         auto line   = cursor.block().text();
@@ -843,7 +751,7 @@ void CodeEditor::comment_selection()
     auto text   = cursor.selection().toPlainText();
     auto lines  = text.split('\n');
     QString newtext;
-    for (auto line : lines) {
+    for (const auto &line : lines) {
         newtext.append('#');
         newtext.append(line);
         newtext.append('\n');
@@ -859,7 +767,7 @@ void CodeEditor::uncomment_selection()
     auto text   = cursor.selection().toPlainText();
     auto lines  = text.split('\n');
     QString newtext;
-    for (auto line : lines) {
+    for (const auto &line : lines) {
         QString newline;
         bool start = true;
         for (auto letter : line) {
@@ -949,7 +857,7 @@ void CodeEditor::runCompletion()
         current_comp->complete(cr);
 
         // if on first word, try to complete command
-    } else if ((words.size() > 0) && (words[0] == selected.toStdString())) {
+    } else if ((!words.empty()) && (words[0] == selected.toStdString())) {
         // no completion on comment lines
         if (words[0][0] == '#') return;
 
@@ -1008,13 +916,9 @@ void CodeEditor::runCompletion()
                 current_comp = file_comp;
         } else if (selected.startsWith("v_"))
             current_comp = varname_comp;
-        else if (selected.startsWith("c_"))
+        else if (selected.startsWith("c_") || selected.startsWith("C_"))
             current_comp = compid_comp;
-        else if (selected.startsWith("C_"))
-            current_comp = compid_comp;
-        else if (selected.startsWith("f_"))
-            current_comp = fixid_comp;
-        else if (selected.startsWith("F_"))
+        else if (selected.startsWith("f_") || selected.startsWith("F_"))
             current_comp = fixid_comp;
 
         if (current_comp) {
@@ -1042,21 +946,13 @@ void CodeEditor::runCompletion()
             current_comp = region_comp;
         else if (words[0] == "variable")
             current_comp = variable_comp;
-        else if (words[0] == "fix")
-            current_comp = group_comp;
-        else if (words[0] == "compute")
-            current_comp = group_comp;
-        else if (words[0] == "dump")
+        else if ((words[0] == "fix") || (words[0] == "compute") || (words[0] == "dump"))
             current_comp = group_comp;
         else if (selected.startsWith("v_"))
             current_comp = varname_comp;
-        else if (selected.startsWith("c_"))
+        else if (selected.startsWith("c_") || selected.startsWith("C_"))
             current_comp = compid_comp;
-        else if (selected.startsWith("C_"))
-            current_comp = compid_comp;
-        else if (selected.startsWith("f_"))
-            current_comp = fixid_comp;
-        else if (selected.startsWith("F_"))
+        else if (selected.startsWith("f_") || selected.startsWith("F_"))
             current_comp = fixid_comp;
         else if ((words[0] == "read_data") && selected.startsWith("ex"))
             current_comp = extra_comp;
@@ -1100,13 +996,9 @@ void CodeEditor::runCompletion()
                 current_comp = file_comp;
         } else if (selected.startsWith("v_"))
             current_comp = varname_comp;
-        else if (selected.startsWith("c_"))
+        else if (selected.startsWith("c_") || selected.startsWith("C_"))
             current_comp = compid_comp;
-        else if (selected.startsWith("C_"))
-            current_comp = compid_comp;
-        else if (selected.startsWith("f_"))
-            current_comp = fixid_comp;
-        else if (selected.startsWith("F_"))
+        else if (selected.startsWith("f_") || selected.startsWith("F_"))
             current_comp = fixid_comp;
         else if ((words[0] == "read_data") && selected.startsWith("ex"))
             current_comp = extra_comp;
@@ -1131,13 +1023,9 @@ void CodeEditor::runCompletion()
         current_comp = nullptr;
         if (selected.startsWith("v_"))
             current_comp = varname_comp;
-        else if (selected.startsWith("c_"))
+        else if (selected.startsWith("c_") || selected.startsWith("C_"))
             current_comp = compid_comp;
-        else if (selected.startsWith("C_"))
-            current_comp = compid_comp;
-        else if (selected.startsWith("f_"))
-            current_comp = fixid_comp;
-        else if (selected.startsWith("F_"))
+        else if (selected.startsWith("f_") || selected.startsWith("F_"))
             current_comp = fixid_comp;
         else if ((words[0] == "read_data") && selected.startsWith("ex"))
             current_comp = extra_comp;

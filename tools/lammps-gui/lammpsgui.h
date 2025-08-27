@@ -63,12 +63,20 @@ class LammpsGui : public QMainWindow {
     Q_OBJECT
 
     friend class CodeEditor;
+    friend class AcceleratorTab;
     friend class GeneralTab;
     friend class TutorialWizard;
+    friend class Preferences;
 
 public:
     LammpsGui(QWidget *parent = nullptr, const QString &filename = QString());
     ~LammpsGui() override;
+
+    LammpsGui()                             = delete;
+    LammpsGui(const LammpsGui &)            = delete;
+    LammpsGui(LammpsGui &&)                 = delete;
+    LammpsGui &operator=(const LammpsGui &) = delete;
+    LammpsGui &operator=(LammpsGui &&)      = delete;
 
 protected:
     void open_file(const QString &filename);
@@ -76,6 +84,7 @@ protected:
     void inspect_file(const QString &filename);
     void write_file(const QString &filename);
     void update_recents(const QString &filename = "");
+    void clear_variables();
     void update_variables();
     void do_run(bool use_buffer);
     void start_lammps();
@@ -85,7 +94,7 @@ protected:
     void setFont(const QFont &newfont);
     QWizardPage *tutorial_intro(const int ntutorial, const QString &infotext);
     QWizardPage *tutorial_directory(const int ntutorial);
-    void setup_tutorial(int ntutorial, const QString &dir, bool purgedir, bool getsolution,
+    void setup_tutorial(int tutno, const QString &dir, bool purgedir, bool getsolution,
                         bool openwebpage);
     void purge_inspect_list();
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -112,7 +121,7 @@ private slots:
     void findandreplace();
     void run_buffer() { do_run(true); }
     void run_file() { do_run(false); }
-    void restart_lammps() { lammps.close(); };
+    void restart_lammps();
 
     void edit_variables();
     void render_image();
@@ -146,6 +155,7 @@ private:
     Highlighter *highlighter;
     StdCapture *capturer;
     QLabel *status;
+    QLabel *cpuuse;
     LogWindow *logwindow;
     ImageViewer *imagewindow;
     ChartWindow *chartwindow;
@@ -177,6 +187,9 @@ private:
     bool is_running;
     int run_counter;
     std::vector<char *> lammps_args;
+
+protected:
+    int nthreads;
 };
 
 class TutorialWizard : public QWizard {

@@ -27,7 +27,6 @@
 #include "force.h"
 #include "gran_sub_mod.h"
 #include "math_extra.h"
-#include "memory.h"
 
 #include "style_gran_sub_mod.h"    // IWYU pragma: keep
 

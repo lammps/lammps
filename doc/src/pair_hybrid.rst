@@ -100,6 +100,56 @@ first is assigned to intra-molecular interactions (i.e. both atoms
 have the same molecule ID), the second to inter-molecular interactions
 (i.e. interacting atoms have different molecule IDs).
 
+.. admonition:: When **NOT** to use a hybrid pair style
+   :class: warning
+
+   Using pair style *hybrid* can be very tempting to use if you need a
+   **many-body potential** supporting a mix of elements for which you
+   cannot find a potential file that covers *all* of them.  Regardless
+   of how this is set up, there will be *errors*.  The major use case
+   where the error is *small*, is when the many-body sub-styles are used
+   on different objects (for example a slab and a liquid, a metal and a
+   nano-machining work piece).  In that case the *mixed* terms
+   **should** be provided by a pair-wise additive potential (like
+   Lennard-Jones or Morse) to avoid unexpected behavior and reduce
+   errors.  LAMMPS cannot easily check for this condition and thus will
+   accept good and bad choices alike.
+
+   Outside of this, we *strongly* recommend *against* using pair style
+   hybrid with many-body potentials for the following reasons:
+
+   1. When trying to combine EAM or MEAM potentials, there is a *large*
+      error in the embedding term, since it is computed separately for
+      each sub-style only.
+
+   2. When trying to combine many-body potentials like Stillinger-Weber,
+      Tersoff, AIREBO, Vashishta, or similar, you have to understand
+      that the potential of a sub-style cannot be applied in a pair-wise
+      fashion but will need to be applied to multiples of atoms
+      (e.g. a Tersoff potential of elements A and B includes the
+      interactions A-A, B-B, A-B, A-A-A, A-A-B, A-B-B, A-B-A, B-A-A,
+      B-A-B, B-B-A, B-B-B; AIREBO also considers all quadruples of
+      atom elements).
+
+   3. When one of the sub-styles uses charge-equilibration (= QEq; like
+      in ReaxFF or COMB) you have inconsistent QEq behavior because
+      either you try to apply QEq to *all* atoms but then you are
+      missing the QEq parameters for the non-QEq pair style (and it
+      would be inconsistent to apply QEq for pair styles that are not
+      parameterized for QEq) or else you would have either no charges or
+      fixed charges interacting with the QEq which also leads to
+      inconsistent behavior between two sub-styles.  When attempting to
+      use multiple ReaxFF instances to combine different potential
+      files, you might be able to work around the QEq limitations, but
+      point 2. still applies.
+
+   We understand that it is frustrating to not be able to run simulations
+   due to lack of available potential files, but that does not justify
+   combining potentials in a broken way via pair style hybrid.  This is
+   not what the hybrid pair styles are designed for.
+
+----------
+
 Here are two examples of hybrid simulations.  The *hybrid* style could
 be used for a simulation of a metal droplet on a LJ surface.  The metal
 atoms interact with each other via an *eam* potential, the surface atoms
@@ -121,29 +171,26 @@ restrictions discussed below.
 If the *hybrid/scaled* style is used instead of *hybrid/overlay*,
 contributions from sub-styles are weighted by their scale factors, which
 may be fractional or even negative.  Furthermore the scale factor for
-each sub-style may a constant, an *equal* style variable, or an *atom*
-style variable. Variable scale factors may change during the simulation.
-Different sub-styles may use different scale factor styles.
-In the case of a sub-style scale factor that is an *atom* style variable,
-the force contribution to each atom from that sub-style is weighted
-by the value of the variable for that atom, while the contribution
-from that sub-style to the global potential energy is zero.
-All other contributions to the per-atom energy, per-atom
-virial, and global virial (if not obtained from forces)
-from that sub-style are zero.
-This enables
-switching smoothly between two different pair styles or two different
-parameter sets during a run in a similar fashion as could be done
-with :doc:`fix adapt <fix_adapt>` or :doc:`fix alchemy <fix_alchemy>`.
-All pair styles that will be used are listed as "sub-styles" following
-the *hybrid* or *hybrid/overlay* keyword, in any order.  In case of the
-*hybrid/scaled* pair style, each sub-style is prefixed with a scale
-factor.  The scale factor is either a floating point number or an
-*equal* or *atom*
-style (or equivalent) variable.  Each sub-style's name is followed by
-its usual arguments, as illustrated in the examples above.  See the doc
-pages of the individual pair styles for a listing and explanation of the
-appropriate arguments for them.
+each sub-style may be a constant, an *equal* style variable, or an
+*atom* style variable. Variable scale factors may change during the
+simulation.  Different sub-styles may use different scale factor styles.
+In the case of a sub-style scale factor that is an *atom* style
+variable, the force contribution to each atom from that sub-style is
+weighted by the value of the variable for that atom, while the
+contribution from that sub-style to the global potential energy is zero.
+All other contributions to the per-atom energy, per-atom virial, and
+global virial (if not obtained from forces) from that sub-style are
+zero.  This enables switching smoothly between two different pair styles
+or two different parameter sets during a run in a similar fashion as
+could be done with :doc:`fix adapt <fix_adapt>` or :doc:`fix alchemy
+<fix_alchemy>`.  All pair styles that will be used are listed as
+"sub-styles" following the *hybrid* or *hybrid/overlay* keyword, in any
+order.  In case of the *hybrid/scaled* pair style, each sub-style is
+prefixed with a scale factor.  The scale factor is either a floating
+point number or an *equal* or *atom* style (or equivalent) variable.
+Each sub-style's name is followed by its usual arguments, as illustrated
+in the examples above.  See the doc pages of the individual pair styles
+for a listing and explanation of the appropriate arguments for them.
 
 Note that an individual pair style can be used multiple times as a
 sub-style.  For efficiency reasons this should only be done if your
@@ -374,12 +421,11 @@ selected sub-style.
 
 ----------
 
-.. note::
-
-   Several of the potentials defined via the pair_style command in
-   LAMMPS are really many-body potentials, such as Tersoff, AIREBO, MEAM,
-   ReaxFF, etc.  The way to think about using these potentials in a
-   hybrid setting is as follows.
+Even though the command name "pair_style" would suggest that these are
+pair-wise interactions, several of the potentials defined via the
+pair_style command in LAMMPS are really many-body potentials, such as
+Tersoff, AIREBO, MEAM, ReaxFF, etc.  The way to think about using these
+potentials in a hybrid setting is as follows.
 
 A subset of atom types is assigned to the many-body potential with a
 single :doc:`pair_coeff <pair_coeff>` command, using "\* \*" to include

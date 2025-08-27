@@ -1,0 +1,426 @@
+// clang-format off
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#include "verlet2.h"
+
+#include "angle.h"
+#include "atom.h"
+#include "atom_vec.h"
+#include "bond.h"
+#include "comm.h"
+#include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "improper.h"
+#include "kspace.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
+#include "timer.h"
+#include "update.h"
+
+#include <cstring>
+
+using namespace LAMMPS_NS;
+
+/* ---------------------------------------------------------------------- */
+
+Verlet2::Verlet2(LAMMPS *lmp, int narg, char **arg) :
+  Integrate(lmp, narg, arg) {}
+
+Verlet2::~Verlet2()
+{
+        // do nothing
+}
+
+/* ----------------------------------------------------------------------
+   initialization before run
+------------------------------------------------------------------------- */
+
+void Verlet2::init()
+{
+  Integrate::init();
+
+  // warn if no fixes doing time integration
+
+  bool do_time_integrate = false;
+  for (const auto &fix : modify->get_fix_list())
+    if (fix->time_integrate) do_time_integrate = true;
+
+  if (!do_time_integrate && (comm->me == 0))
+    error->warning(FLERR,"No fixes with time integration, atoms won't move" + utils::errorurl(28));
+
+  // virial_style:
+  // VIRIAL_PAIR if computed explicitly in pair via sum over pair interactions
+  // VIRIAL_FDOTR if computed implicitly in pair by
+  //   virial_fdotr_compute() via sum over ghosts
+
+  if (force->newton_pair) virial_style = VIRIAL_FDOTR;
+  else virial_style = VIRIAL_PAIR;
+
+  // setup lists of computes for global and per-atom PE and pressure
+
+  ev_setup();
+
+  // detect if fix omp is present for clearing force arrays
+
+  if (modify->get_fix_by_id("package_omp")) external_force_clear = 1;
+
+  // set flags for arrays to clear in force_clear()
+
+  torqueflag = extraflag = 0;
+  if (atom->torque_flag) torqueflag = 1;
+  if (atom->avec->forceclearflag) extraflag = 1;
+
+  // orthogonal vs triclinic simulation box
+
+  triclinic = domain->triclinic;
+}
+
+/* ----------------------------------------------------------------------
+   setup before run
+------------------------------------------------------------------------- */
+
+void Verlet2::setup(int flag)
+{
+  if (comm->me == 0 && screen) {
+    fputs("Setting up Verlet2 run ...\n",screen);
+    if (flag) {
+      utils::print(screen,"  Unit style    : {}\n"
+                        "  Current step  : {}\n"
+                        "  Time step     : {}\n",
+                 update->unit_style,update->ntimestep,update->dt);
+      timer->print_timeout(screen);
+    }
+  }
+
+  if (lmp->kokkos)
+    error->all(FLERR,"KOKKOS package requires run_style verlet2/kk");
+
+  update->setupflag = 1;
+
+  // setup domain, communication and neighboring
+  // acquire ghosts
+  // build neighbor lists
+
+  atom->setup();
+  modify->setup_pre_exchange();
+  if (triclinic) domain->x2lamda(atom->nlocal);
+  domain->pbc();
+  domain->reset_box();
+  comm->setup();
+  if (neighbor->style) neighbor->setup_bins();
+  comm->exchange();
+  if (atom->sortfreq > 0) atom->sort();
+  comm->borders();
+  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  domain->image_check();
+  domain->box_too_small_check();
+  modify->setup_pre_neighbor();
+  neighbor->build(1);
+  modify->setup_post_neighbor();
+  neighbor->ncalls = 0;
+
+  // compute all forces
+
+  force->setup();
+  ev_set(update->ntimestep);
+  force_clear();
+  modify->setup_pre_force(vflag);
+
+  if (pair_compute_flag) force->pair->compute(eflag,vflag);
+  else if (force->pair) force->pair->compute_dummy(eflag,vflag);
+
+  if (atom->molecular != Atom::ATOMIC) {
+    if (force->bond) force->bond->compute(eflag,vflag);
+    if (force->angle) force->angle->compute(eflag,vflag);
+    if (force->dihedral) force->dihedral->compute(eflag,vflag);
+    if (force->improper) force->improper->compute(eflag,vflag);
+  }
+
+  if (force->kspace) {
+    force->kspace->setup();
+    if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
+    else force->kspace->compute_dummy(eflag,vflag);
+  }
+
+  modify->setup_pre_reverse(eflag,vflag);
+  if (force->newton) comm->reverse_comm();
+
+  modify->setup(vflag);
+  output->setup(flag);
+  update->setupflag = 0;
+}
+
+/* ----------------------------------------------------------------------
+   setup without output
+   flag = 0 = just force calculation
+   flag = 1 = reneighbor and force calculation
+------------------------------------------------------------------------- */
+
+void Verlet2::setup_minimal(int flag)
+{
+  update->setupflag = 1;
+
+  // setup domain, communication and neighboring
+  // acquire ghosts
+  // build neighbor lists
+
+  if (flag) {
+    modify->setup_pre_exchange();
+    if (triclinic) domain->x2lamda(atom->nlocal);
+    domain->pbc();
+    domain->reset_box();
+    comm->setup();
+    if (neighbor->style) neighbor->setup_bins();
+    comm->exchange();
+    comm->borders();
+    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    domain->image_check();
+    domain->box_too_small_check();
+    modify->setup_pre_neighbor();
+    neighbor->build(1);
+    modify->setup_post_neighbor();
+    neighbor->ncalls = 0;
+  }
+
+  // compute all forces
+
+  ev_set(update->ntimestep);
+  force_clear();
+  modify->setup_pre_force(vflag);
+
+  if (pair_compute_flag) force->pair->compute(eflag,vflag);
+  else if (force->pair) force->pair->compute_dummy(eflag,vflag);
+
+  if (atom->molecular != Atom::ATOMIC) {
+    if (force->bond) force->bond->compute(eflag,vflag);
+    if (force->angle) force->angle->compute(eflag,vflag);
+    if (force->dihedral) force->dihedral->compute(eflag,vflag);
+    if (force->improper) force->improper->compute(eflag,vflag);
+  }
+
+  if (force->kspace) {
+    force->kspace->setup();
+    if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
+    else force->kspace->compute_dummy(eflag,vflag);
+  }
+
+  modify->setup_pre_reverse(eflag,vflag);
+  if (force->newton) comm->reverse_comm();
+
+  modify->setup(vflag);
+  update->setupflag = 0;
+}
+
+/* ----------------------------------------------------------------------
+   run for N steps
+------------------------------------------------------------------------- */
+
+void Verlet2::run(int n)
+{
+  bigint ntimestep;
+  int nflag,sortflag;
+
+  int n_post_integrate = modify->n_post_integrate;
+  int n_pre_exchange = modify->n_pre_exchange;
+  int n_pre_neighbor = modify->n_pre_neighbor;
+  int n_post_neighbor = modify->n_post_neighbor;
+  int n_pre_force = modify->n_pre_force;
+  int n_pre_reverse = modify->n_pre_reverse;
+  int n_post_force_any = modify->n_post_force_any;
+  int n_end_of_step = modify->n_end_of_step;
+
+  if (atom->sortfreq > 0) sortflag = 1;
+  else sortflag = 0;
+
+  for (int i = 0; i < n; i++) {
+    if (timer->check_timeout(i)) {
+      update->nsteps = i;
+      break;
+    }
+
+    ntimestep = ++update->ntimestep;
+    ev_set(ntimestep);
+
+    // initial time integration
+
+    timer->stamp();
+    modify->initial_integrate(vflag);
+    if (n_post_integrate) modify->post_integrate();
+    timer->stamp(Timer::MODIFY);
+
+    // regular communication vs neighbor list rebuild
+
+    nflag = neighbor->decide();
+
+    if (nflag == 0) {
+      timer->stamp();
+      comm->forward_comm();
+      timer->stamp(Timer::COMM);
+    } else {
+      if (n_pre_exchange) {
+        timer->stamp();
+        modify->pre_exchange();
+        timer->stamp(Timer::MODIFY);
+      }
+      if (triclinic) domain->x2lamda(atom->nlocal);
+      domain->pbc();
+      if (domain->box_change) {
+        domain->reset_box();
+        comm->setup();
+        if (neighbor->style) neighbor->setup_bins();
+      }
+      timer->stamp();
+      comm->exchange();
+      if (sortflag && ntimestep >= atom->nextsort) atom->sort();
+      comm->borders();
+      if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+      timer->stamp(Timer::COMM);
+      if (n_pre_neighbor) {
+        modify->pre_neighbor();
+        timer->stamp(Timer::MODIFY);
+      }
+      neighbor->build(1);
+      timer->stamp(Timer::NEIGH);
+      if (n_post_neighbor) {
+        modify->post_neighbor();
+        timer->stamp(Timer::MODIFY);
+      }
+    }
+
+    // force computations
+    // important for pair to come before bonded contributions
+    // since some bonded potentials tally pairwise energy/virial
+    // and Pair:ev_tally() needs to be called before any tallying
+
+    force_clear();
+
+    timer->stamp();
+
+    if (n_pre_force) {
+      modify->pre_force(vflag);
+      timer->stamp(Timer::MODIFY);
+    }
+
+    if (pair_compute_flag) {
+      force->pair->compute(eflag,vflag);
+      timer->stamp(Timer::PAIR);
+    }
+
+    if (atom->molecular != Atom::ATOMIC) {
+      if (force->bond) force->bond->compute(eflag,vflag);
+      if (force->angle) force->angle->compute(eflag,vflag);
+      if (force->dihedral) force->dihedral->compute(eflag,vflag);
+      if (force->improper) force->improper->compute(eflag,vflag);
+      timer->stamp(Timer::BOND);
+    }
+
+    if (kspace_compute_flag) {
+      force->kspace->compute(eflag,vflag);
+      timer->stamp(Timer::KSPACE);
+    }
+
+    if (n_pre_reverse) {
+      modify->pre_reverse(eflag,vflag);
+      timer->stamp(Timer::MODIFY);
+    }
+
+    // reverse communication of forces
+
+    if (force->newton) {
+      comm->reverse_comm();
+      timer->stamp(Timer::COMM);
+    }
+
+    // force modifications, final time integration, diagnostics
+
+    if (n_post_force_any) modify->post_force(vflag);
+    modify->final_integrate();
+    if (n_end_of_step) modify->end_of_step();
+    timer->stamp(Timer::MODIFY);
+
+    // all output
+
+    if (ntimestep == output->next) {
+      timer->stamp();
+      output->write(ntimestep);
+      timer->stamp(Timer::OUTPUT);
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Verlet2::cleanup()
+{
+  modify->post_run();
+  domain->box_too_small_check();
+  update->update_time();
+}
+
+/* ----------------------------------------------------------------------
+   clear force on own & ghost atoms
+   clear other arrays as needed
+------------------------------------------------------------------------- */
+
+void Verlet2::force_clear()
+{
+  size_t nbytes;
+
+  if (external_force_clear) return;
+
+  // clear force on all particles
+  // if either newton flag is set, also include ghosts
+  // when using threads always clear all forces.
+
+  int nlocal = atom->nlocal;
+
+  if (neighbor->includegroup == 0) {
+    nbytes = sizeof(double) * nlocal;
+    if (force->newton) nbytes += sizeof(double) * atom->nghost;
+
+    if (nbytes) {
+      memset(&atom->f[0][0],0,3*nbytes);
+      if (torqueflag) memset(&atom->torque[0][0],0,3*nbytes);
+      if (extraflag) atom->avec->force_clear(0,nbytes);
+    }
+
+  // neighbor includegroup flag is set
+  // clear force only on initial nfirst particles
+  // if either newton flag is set, also include ghosts
+
+  } else {
+    nbytes = sizeof(double) * atom->nfirst;
+
+    if (nbytes) {
+      memset(&atom->f[0][0],0,3*nbytes);
+      if (torqueflag) memset(&atom->torque[0][0],0,3*nbytes);
+      if (extraflag) atom->avec->force_clear(0,nbytes);
+    }
+
+    if (force->newton) {
+      nbytes = sizeof(double) * atom->nghost;
+
+      if (nbytes) {
+        memset(&atom->f[nlocal][0],0,3*nbytes);
+        if (torqueflag) memset(&atom->torque[nlocal][0],0,3*nbytes);
+        if (extraflag) atom->avec->force_clear(nlocal,nbytes);
+      }
+    }
+  }
+}

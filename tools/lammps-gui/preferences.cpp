@@ -16,6 +16,7 @@
 #include "helpers.h"
 #include "lammpsgui.h"
 #include "lammpswrapper.h"
+#include "qaddon.h"
 #include "ui_lammpsgui.h"
 
 #include <QApplication>
@@ -28,6 +29,7 @@
 #include <QFontDialog>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QHash>
 #include <QIcon>
 #include <QIntValidator>
 #include <QLabel>
@@ -39,6 +41,7 @@
 #include <QSpacerItem>
 #include <QSpinBox>
 #include <QTabWidget>
+#include <QValidator>
 #if defined(_OPENMP)
 #include <QThread>
 #endif
@@ -59,9 +62,9 @@
 #endif
 
 Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
-    QDialog(parent), need_relaunch(false), tabWidget(new QTabWidget),
+    QDialog(parent), tabWidget(new QTabWidget),
     buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel)),
-    settings(new QSettings), lammps(_lammps)
+    settings(new QSettings), lammps(_lammps), need_relaunch(false)
 {
     tabWidget->addTab(new GeneralTab(settings, lammps), "&General Settings");
     tabWidget->addTab(new AcceleratorTab(settings, lammps), "&Accelerators");
@@ -88,39 +91,57 @@ Preferences::~Preferences()
     delete settings;
 }
 
+namespace {
+const QHash<QString, int> buttonToChoice = {
+    {"none", AcceleratorTab::None},     {"opt", AcceleratorTab::Opt},
+    {"openmp", AcceleratorTab::OpenMP}, {"intel", AcceleratorTab::Intel},
+    {"kokkos", AcceleratorTab::Kokkos}, {"gpu", AcceleratorTab::Gpu}};
+
+const QHash<QString, int> buttonToPrecision = {{"inteldouble", AcceleratorTab::Double},
+                                               {"intelmixed", AcceleratorTab::Mixed},
+                                               {"intelsingle", AcceleratorTab::Single}};
+} // namespace
+
 void Preferences::accept()
 {
     // store all data in settings class
     // and then confirm accepting
 
-    // store selected accelerator
+    // store selected accelerator and precision settings from radiobuttons
     QList<QRadioButton *> allButtons = tabWidget->findChildren<QRadioButton *>();
-    for (auto &allButton : allButtons) {
-        if (allButton->isChecked()) {
-            if (allButton->objectName() == "none")
-                settings->setValue("accelerator", QString::number(AcceleratorTab::None));
-            if (allButton->objectName() == "opt")
-                settings->setValue("accelerator", QString::number(AcceleratorTab::Opt));
-            if (allButton->objectName() == "openmp")
-                settings->setValue("accelerator", QString::number(AcceleratorTab::OpenMP));
-            if (allButton->objectName() == "intel")
-                settings->setValue("accelerator", QString::number(AcceleratorTab::Intel));
-            if (allButton->objectName() == "kokkos")
-                settings->setValue("accelerator", QString::number(AcceleratorTab::Kokkos));
-            if (allButton->objectName() == "gpu")
-                settings->setValue("accelerator", QString::number(AcceleratorTab::Gpu));
+    for (const auto &anyButton : allButtons) {
+        if (anyButton->isChecked()) {
+            const auto &button = anyButton->objectName();
+            if (buttonToChoice.contains(button)) {
+                settings->setValue("accelerator", buttonToChoice.value(button));
+            } else if (buttonToPrecision.contains(button)) {
+                settings->setValue("intelprec", buttonToPrecision.value(button));
+            }
         }
     }
 
+    QLineEdit *field;
+
+#if defined(_OPENMP)
     // store number of threads, reset to 1 for "None" and "Opt" settings
-    auto *field = tabWidget->findChild<QLineEdit *>("nthreads");
-    if (field) {
+    auto *mainwidget = dynamic_cast<LammpsGui *>(get_main_widget());
+    field            = tabWidget->findChild<QLineEdit *>("nthreads");
+    if (field && mainwidget) {
         int accel = settings->value("accelerator", AcceleratorTab::None).toInt();
-        if ((accel == AcceleratorTab::None) || (accel == AcceleratorTab::Opt))
-            settings->setValue("nthreads", 1);
-        else if (field->hasAcceptableInput())
+        if ((accel == AcceleratorTab::None) || (accel == AcceleratorTab::Opt)) {
+            mainwidget->nthreads = 1;
+        } else if (field->hasAcceptableInput()) {
             settings->setValue("nthreads", field->text());
+            mainwidget->nthreads = settings->value("nthreads", 1).toInt();
+        }
     }
+#endif
+
+    // store setting for GPU package
+    auto *box = tabWidget->findChild<QCheckBox *>("gpuneigh");
+    if (box) settings->setValue("gpuneigh", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("gpupaironly");
+    if (box) settings->setValue("gpupaironly", box->isChecked());
 
     // store image width, height, zoom, and rendering settings
 
@@ -134,7 +155,7 @@ void Preferences::accept()
     field = tabWidget->findChild<QLineEdit *>("zoom");
     if (field)
         if (field->hasAcceptableInput()) settings->setValue("zoom", field->text());
-    auto *box = tabWidget->findChild<QCheckBox *>("anti");
+    box = tabWidget->findChild<QCheckBox *>("anti");
     if (box) settings->setValue("antialias", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("ssao");
     if (box) settings->setValue("ssao", box->isChecked());
@@ -146,10 +167,12 @@ void Preferences::accept()
     if (box) settings->setValue("axes", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("vdwstyle");
     if (box) settings->setValue("vdwstyle", box->isChecked());
-    auto *combo = tabWidget->findChild<QComboBox *>("background");
-    if (combo) settings->setValue("background", combo->currentText());
-    combo = tabWidget->findChild<QComboBox *>("boxcolor");
-    if (combo) settings->setValue("boxcolor", combo->currentText());
+    box = tabWidget->findChild<QCheckBox *>("autobond");
+    if (box) settings->setValue("autobond", box->isChecked());
+    field = tabWidget->findChild<QLineEdit *>("background");
+    if (field && field->hasAcceptableInput()) settings->setValue("background", field->text());
+    field = tabWidget->findChild<QLineEdit *>("boxcolor");
+    if (field && field->hasAcceptableInput()) settings->setValue("boxcolor", field->text());
     settings->endGroup();
 
     // general settings
@@ -169,6 +192,13 @@ void Preferences::accept()
     if (box) settings->setValue("viewchart", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("viewslide");
     if (box) settings->setValue("viewslide", box->isChecked());
+
+    settings->beginGroup("tutorial");
+    box = tabWidget->findChild<QCheckBox *>("solution");
+    if (box) settings->setValue("solution", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("webpage");
+    if (box) settings->setValue("webpage", box->isChecked());
+    settings->endGroup();
 
     auto *spin = tabWidget->findChild<QSpinBox *>("updfreq");
     if (spin) settings->setValue("updfreq", spin->value());
@@ -213,7 +243,7 @@ void Preferences::accept()
     settings->beginGroup("charts");
     field = tabWidget->findChild<QLineEdit *>("title");
     if (field) settings->setValue("title", field->text());
-    combo = tabWidget->findChild<QComboBox *>("smoothchoice");
+    auto *combo = tabWidget->findChild<QComboBox *>("smoothchoice");
     if (combo) settings->setValue("smoothchoice", combo->currentIndex());
     combo = tabWidget->findChild<QComboBox *>("rawbrush");
     if (combo) settings->setValue("rawbrush", combo->currentIndex());
@@ -235,7 +265,7 @@ void Preferences::accept()
 GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *parent) :
     QWidget(parent), settings(_settings), lammps(_lammps)
 {
-    auto *layout = new QVBoxLayout;
+    auto *layout = new QGridLayout;
 
     auto *echo = new QCheckBox("Echo input to output buffer");
     echo->setObjectName("echo");
@@ -264,7 +294,76 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     pltr->setCheckState(settings->value("chartreplace", true).toBool() ? Qt::Checked
                                                                        : Qt::Unchecked);
 
+    settings->beginGroup("tutorial");
+    auto *solution = new QCheckBox("Download tutorial solutions enabled");
+    solution->setObjectName("solution");
+    solution->setCheckState(settings->value("solution", false).toBool() ? Qt::Checked
+                                                                        : Qt::Unchecked);
+    auto *webpage = new QCheckBox("Open tutorial webpage enabled");
+    webpage->setObjectName("webpage");
+    webpage->setCheckState(settings->value("webpage", true).toBool() ? Qt::Checked : Qt::Unchecked);
+    settings->endGroup();
+
+    auto *getallfont =
+        new QPushButton(QIcon(":/icons/preferences-desktop-font.png"), "Select Default Font...");
+    auto *gettextfont =
+        new QPushButton(QIcon(":/icons/preferences-desktop-font.png"), "Select Text Font...");
+    connect(getallfont, &QPushButton::released, this, &GeneralTab::newallfont);
+    connect(gettextfont, &QPushButton::released, this, &GeneralTab::newtextfont);
+
+    auto *freqlabel = new QLabel("Data update interval (ms):");
+    auto *freqval   = new QSpinBox;
+    freqval->setRange(1, 1000);
+    freqval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
+    freqval->setValue(settings->value("updfreq", "10").toInt());
+    freqval->setObjectName("updfreq");
+
+    auto *chartlabel = new QLabel("Charts update interval (ms):");
+    auto *chartval   = new QSpinBox;
+    chartval->setRange(1, 5000);
+    chartval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
+    chartval->setValue(settings->value("updchart", "500").toInt());
+    chartval->setObjectName("updchart");
+
+    int nrow = 0;
+    layout->addWidget(new QHline, nrow++, 0, 1, 2);
+    layout->addWidget(echo, nrow, 0);
+    layout->addWidget(cite, nrow++, 1);
+    layout->addWidget(new QHline, nrow++, 0, 1, 2);
+    layout->addWidget(logv, nrow, 0);
+    layout->addWidget(logr, nrow++, 1);
+    layout->addWidget(pltv, nrow, 0);
+    layout->addWidget(pltr, nrow++, 1);
+    layout->addWidget(sldv, nrow, 0);
+    layout->addWidget(imgr, nrow++, 1);
+    layout->addWidget(new QHline, nrow++, 0, 1, 2);
+    layout->addWidget(solution, nrow, 0);
+    layout->addWidget(webpage, nrow++, 1);
+    layout->addWidget(new QHline, nrow++, 0, 1, 2);
+    layout->addWidget(getallfont, nrow, 0);
+    layout->addWidget(gettextfont, nrow++, 1);
+    layout->addWidget(new QHline, nrow++, 0, 1, 2);
+    layout->addWidget(freqlabel, nrow, 0);
+    layout->addWidget(freqval, nrow++, 1);
+    layout->addWidget(chartlabel, nrow, 0);
+    layout->addWidget(chartval, nrow++, 1);
+    layout->addWidget(new QHline, nrow++, 0, 1, 2);
+
+    auto *proxylabel = new QLabel("HTTPS proxy setting (empty for no proxy):");
+    layout->addWidget(proxylabel, nrow, 0);
+
+    auto https_proxy = QString::fromLocal8Bit(qgetenv("https_proxy"));
+    if (https_proxy.isEmpty()) {
+        https_proxy     = settings->value("https_proxy", "").toString();
+        auto *proxyedit = new QLineEdit(https_proxy);
+        proxyedit->setObjectName("proxyval");
+        layout->addWidget(proxyedit, nrow++, 1);
+    } else {
+        layout->addWidget(new QLabel(https_proxy), nrow++, 1);
+    }
+
 #if defined(LAMMPS_GUI_USE_PLUGIN)
+    layout->addWidget(new QHline, nrow++, 0, 1, 2);
     auto *pluginlabel = new QLabel("Path to LAMMPS Shared Library File:");
     auto *pluginedit =
         new QLineEdit(settings->value("plugin_path", "liblammpsplugin.so").toString());
@@ -275,76 +374,25 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     pluginlayout->addWidget(pluginbrowse);
 
     connect(pluginbrowse, &QPushButton::released, this, &GeneralTab::pluginpath);
+
+    layout->addWidget(pluginlabel, nrow++, 0, 1, 2);
+    layout->addLayout(pluginlayout, nrow++, 0, 1, 2);
 #endif
+    layout->addWidget(new QHline, nrow++, 0, 1, 2);
 
-    auto *gridlayout = new QGridLayout;
-    auto *getallfont =
-        new QPushButton(QIcon(":/icons/preferences-desktop-font.png"), "Select Default Font...");
-    auto *gettextfont =
-        new QPushButton(QIcon(":/icons/preferences-desktop-font.png"), "Select Text Font...");
-    gridlayout->addWidget(getallfont, 0, 0);
-    gridlayout->addWidget(gettextfont, 0, 1);
-    connect(getallfont, &QPushButton::released, this, &GeneralTab::newallfont);
-    connect(gettextfont, &QPushButton::released, this, &GeneralTab::newtextfont);
-
-    auto *freqlabel = new QLabel("Data update interval (ms):");
-    auto *freqval   = new QSpinBox;
-    freqval->setRange(1, 1000);
-    freqval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
-    freqval->setValue(settings->value("updfreq", "10").toInt());
-    freqval->setObjectName("updfreq");
-    gridlayout->addWidget(freqlabel, 1, 0);
-    gridlayout->addWidget(freqval, 1, 1);
-
-    auto *chartlabel = new QLabel("Charts update interval (ms):");
-    auto *chartval   = new QSpinBox;
-    chartval->setRange(1, 5000);
-    chartval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
-    chartval->setValue(settings->value("updchart", "500").toInt());
-    chartval->setObjectName("updchart");
-    gridlayout->addWidget(chartlabel, 2, 0);
-    gridlayout->addWidget(chartval, 2, 1);
-
-    auto *proxylabel = new QLabel("HTTPS proxy setting (empty for no proxy):");
-    gridlayout->addWidget(proxylabel, 3, 0);
-
-    auto https_proxy = QString::fromLocal8Bit(qgetenv("https_proxy"));
-    if (https_proxy.isEmpty()) {
-        https_proxy     = settings->value("https_proxy", "").toString();
-        auto *proxyedit = new QLineEdit(https_proxy);
-        proxyedit->setObjectName("proxyval");
-        gridlayout->addWidget(proxyedit, 3, 1);
-    } else {
-        gridlayout->addWidget(new QLabel(https_proxy), 3, 1);
-    }
-
-    layout->addWidget(echo);
-    layout->addWidget(cite);
-    layout->addWidget(logv);
-    layout->addWidget(pltv);
-    layout->addWidget(sldv);
-    layout->addWidget(logr);
-    layout->addWidget(pltr);
-    layout->addWidget(imgr);
-#if defined(LAMMPS_GUI_USE_PLUGIN)
-    layout->addWidget(pluginlabel);
-    layout->addLayout(pluginlayout);
-#endif
-    layout->addLayout(gridlayout);
-    layout->addStretch(1);
+    layout->addItem(new QSpacerItem(10, 10, QSizePolicy::Minimum, QSizePolicy::Expanding), nrow, 0);
+    layout->addItem(new QSpacerItem(10, 10, QSizePolicy::Minimum, QSizePolicy::Expanding), nrow++,
+                    1);
     setLayout(layout);
 }
 
 void GeneralTab::updatefonts(const QFont &all, const QFont &text)
 {
-    LammpsGui *main = nullptr;
-    for (QWidget *widget : QApplication::topLevelWidgets())
-        if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
-
-    if (main) {
-        main->setFont(all);
-        main->ui->textEdit->document()->setDefaultFont(text);
-        if (main->wizard) main->wizard->setFont(all);
+    auto *mainwidget = dynamic_cast<LammpsGui *>(get_main_widget());
+    if (mainwidget) {
+        mainwidget->setFont(all);
+        mainwidget->ui->textEdit->document()->setDefaultFont(text);
+        if (mainwidget->wizard) mainwidget->wizard->setFont(all);
     }
 
     Preferences *prefs = nullptr;
@@ -392,7 +440,7 @@ void GeneralTab::pluginpath()
         field->setText(pluginfile);
         settings->setValue("plugin_path", canonical);
         // ugly hack
-        qobject_cast<Preferences *>(parent()->parent()->parent())->need_relaunch = true;
+        qobject_cast<Preferences *>(parent()->parent()->parent())->set_relaunch(true);
     }
 }
 
@@ -406,9 +454,12 @@ AcceleratorTab::AcceleratorTab(QSettings *_settings, LammpsWrapper *_lammps, QWi
     auto *openmp      = new QRadioButton("&OpenMP");
     auto *intel       = new QRadioButton("&Intel");
     auto *kokkos      = new QRadioButton("&Kokkos");
-    auto *gpu         = new QRadioButton("&GPU");
+    auto *gpu         = new QRadioButton("GP&U");
 
+    auto *accelframe   = new QFrame;
+    auto *accelLayout  = new QVBoxLayout;
     auto *buttonLayout = new QVBoxLayout;
+    accelLayout->addWidget(accelerator);
     buttonLayout->addWidget(none);
     buttonLayout->addWidget(opt);
     buttonLayout->addWidget(openmp);
@@ -417,7 +468,8 @@ AcceleratorTab::AcceleratorTab(QSettings *_settings, LammpsWrapper *_lammps, QWi
     buttonLayout->addWidget(gpu);
     buttonLayout->addStretch(1);
     accelerator->setLayout(buttonLayout);
-    mainLayout->addWidget(accelerator);
+    accelframe->setLayout(accelLayout);
+    mainLayout->addWidget(accelframe);
 
     none->setEnabled(true);
     none->setObjectName("none");
@@ -440,56 +492,172 @@ AcceleratorTab::AcceleratorTab(QSettings *_settings, LammpsWrapper *_lammps, QWi
     gpu->setEnabled(lammps->config_has_package("GPU") && lammps->has_gpu_device());
     gpu->setObjectName("gpu");
 
-    int choice = settings->value("accelerator", AcceleratorTab::None).toInt();
-    switch (choice) {
-        case AcceleratorTab::Opt:
-            if (opt->isEnabled()) opt->setChecked(true);
-            break;
-        case AcceleratorTab::OpenMP:
-            if (openmp->isEnabled()) openmp->setChecked(true);
-            break;
-        case AcceleratorTab::Intel:
-            if (intel->isEnabled()) intel->setChecked(true);
-            break;
-        case AcceleratorTab::Kokkos:
-            if (kokkos->isEnabled()) kokkos->setChecked(true);
-            break;
-        case AcceleratorTab::Gpu:
-            if (gpu->isEnabled()) gpu->setChecked(true);
-            break;
-        case AcceleratorTab::None: // fallthrough
-        default:
-            none->setChecked(true);
-            break;
-    }
-
-    int maxthreads = 1;
-#if defined(_OPENMP)
-    maxthreads = QThread::idealThreadCount();
-#endif
     auto *choices      = new QFrame;
     auto *choiceLayout = new QVBoxLayout;
 #if defined(_OPENMP)
+    // maximum number of threads is limited half of available threads and no more than 16
+    // unless OMP_NUM_THREADS is set to a larger value
+    int maxthreads = std::min(QThread::idealThreadCount() / 2, 16);
+    maxthreads     = std::max(maxthreads, 1);
+    maxthreads     = std::max(maxthreads, qEnvironmentVariable("OMP_NUM_THREADS").toInt());
+
     auto *ntlabel  = new QLabel(QString("Number of threads (max %1):").arg(maxthreads));
     auto *ntchoice = new QLineEdit(settings->value("nthreads", maxthreads).toString());
-#else
-    auto *ntlabel  = new QLabel(QString("Number of threads (OpenMP not available):"));
-    auto *ntchoice = new QLineEdit("1");
-#endif
-    auto *intval = new QIntValidator(1, maxthreads, this);
+    auto *intval   = new QIntValidator(1, maxthreads, this);
     ntchoice->setValidator(intval);
-    ntchoice->setObjectName("nthreads");
-#if !defined(_OPENMP)
+#else
+    auto *ntlabel  = new QLabel("Number of threads (OpenMP not available):");
+    auto *ntchoice = new QLineEdit("1");
     ntchoice->setEnabled(false);
 #endif
+    ntchoice->setObjectName("nthreads");
 
+    connect(none, &QRadioButton::released, this, &AcceleratorTab::update_accel);
+    connect(opt, &QRadioButton::released, this, &AcceleratorTab::update_accel);
+    connect(openmp, &QRadioButton::released, this, &AcceleratorTab::update_accel);
+    connect(intel, &QRadioButton::released, this, &AcceleratorTab::update_accel);
+    connect(kokkos, &QRadioButton::released, this, &AcceleratorTab::update_accel);
+    connect(gpu, &QRadioButton::released, this, &AcceleratorTab::update_accel);
+
+    auto *intelLayout = new QHBoxLayout;
+    auto *intelprec   = new QGroupBox("Intel Precision:");
+    auto *inteldouble = new QRadioButton("&Double");
+    auto *intelmixed  = new QRadioButton("&Mixed");
+    auto *intelsingle = new QRadioButton("&Single");
+    intelLayout->addWidget(inteldouble);
+    inteldouble->setObjectName("inteldouble");
+    intelLayout->addWidget(intelmixed);
+    intelmixed->setObjectName("intelmixed");
+    intelLayout->addWidget(intelsingle);
+    intelsingle->setObjectName("intelsingle");
+    intelprec->setLayout(intelLayout);
+    intelprec->setObjectName("intelprec");
+    intelprec->setEnabled(false);
+
+    connect(inteldouble, &QRadioButton::released, this, &AcceleratorTab::update_accel);
+    connect(intelmixed, &QRadioButton::released, this, &AcceleratorTab::update_accel);
+    connect(intelsingle, &QRadioButton::released, this, &AcceleratorTab::update_accel);
+
+    auto *gpuLayout   = new QHBoxLayout;
+    auto *gpuchoice   = new QGroupBox("GPU Settings:");
+    auto *gpuneigh    = new QCheckBox("Neighbor&list on GPU");
+    auto *gpupaironly = new QCheckBox("Pair st&yles only");
+    gpuLayout->addWidget(gpuneigh);
+    gpuneigh->setObjectName("gpuneigh");
+    gpuneigh->setCheckState(settings->value("gpuneigh", true).toBool() ? Qt::Checked
+                                                                       : Qt::Unchecked);
+    gpuLayout->addWidget(gpupaironly);
+    gpupaironly->setObjectName("gpupaironly");
+    gpupaironly->setCheckState(settings->value("gpupaironly", false).toBool() ? Qt::Checked
+                                                                              : Qt::Unchecked);
+    gpuchoice->setLayout(gpuLayout);
+    gpuchoice->setObjectName("gpuchoice");
+    gpuchoice->setEnabled(false);
+
+    choiceLayout->addWidget(new QLabel("Settings for accelerator packages:\n"));
     choiceLayout->addWidget(ntlabel);
     choiceLayout->addWidget(ntchoice);
-    choices->setLayout(choiceLayout);
+    choiceLayout->addWidget(intelprec);
+    choiceLayout->addWidget(gpuchoice);
     choiceLayout->addStretch(1);
-
+    choices->setLayout(choiceLayout);
     mainLayout->addWidget(choices);
     setLayout(mainLayout);
+
+    // trigger update of nthreads line editor field depending on accelerator choice
+    // fall back on None, if configured accelerator package is no longer available
+    int choice = settings->value("accelerator", AcceleratorTab::None).toInt();
+    int iprec  = settings->value("intelprec", AcceleratorTab::Mixed).toInt();
+    if (iprec == AcceleratorTab::Double)
+        inteldouble->setChecked(true);
+    else if (iprec == AcceleratorTab::Mixed)
+        intelmixed->setChecked(true);
+    else if (iprec == AcceleratorTab::Single)
+        intelsingle->setChecked(true);
+
+    switch (choice) {
+        case AcceleratorTab::Opt:
+            if (opt->isEnabled())
+                opt->click();
+            else
+                none->click();
+            break;
+        case AcceleratorTab::OpenMP:
+            if (openmp->isEnabled())
+                openmp->click();
+            else
+                none->click();
+            break;
+        case AcceleratorTab::Intel:
+            if (intel->isEnabled()) {
+                intel->click();
+                intelprec->setEnabled(true);
+            } else {
+                none->click();
+            }
+            break;
+        case AcceleratorTab::Kokkos:
+            if (kokkos->isEnabled())
+                kokkos->click();
+            else
+                none->click();
+            break;
+        case AcceleratorTab::Gpu:
+            if (gpu->isEnabled()) {
+                gpu->click();
+                gpuchoice->setEnabled(true);
+            } else
+                none->click();
+            break;
+        case AcceleratorTab::None: // fallthrough
+        default:
+            none->click();
+            break;
+    }
+}
+
+void AcceleratorTab::update_accel()
+{
+    // store selected accelerator
+    int choice = AcceleratorTab::None;
+
+    QList<QRadioButton *> allButtons = findChildren<QRadioButton *>();
+    for (auto &anyButton : allButtons) {
+        if (anyButton->isChecked()) {
+            const auto &button = anyButton->objectName();
+            if (buttonToChoice.contains(button)) {
+                choice = buttonToChoice.value(button);
+            }
+        }
+    }
+
+    auto *group = findChild<QGroupBox *>("intelprec");
+    if (choice == AcceleratorTab::Intel) {
+        group->setEnabled(true);
+    } else {
+        group->setEnabled(false);
+    }
+
+    group = findChild<QGroupBox *>("gpuchoice");
+    if (choice == AcceleratorTab::Gpu) {
+        group->setEnabled(true);
+    } else {
+        group->setEnabled(false);
+    }
+
+#if defined(_OPENMP)
+    // The number of threads field is disabled and the value set to 1 for "None" and "Opt" choice
+    auto *field = findChild<QLineEdit *>("nthreads");
+    if (field) {
+        if ((choice == AcceleratorTab::None) || (choice == AcceleratorTab::Opt)) {
+            field->setText("1");
+            field->setEnabled(false);
+        } else {
+            field->setText(settings->value("nthreads", 1).toString());
+            field->setEnabled(true);
+        }
+    }
+#endif
 }
 
 SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
@@ -506,6 +674,8 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *bbox  = new QLabel("Show Box:");
     auto *axes  = new QLabel("Show Axes:");
     auto *vdw   = new QLabel("VDW Style:");
+    auto *bond  = new QLabel("Dynamic Bonds:");
+    auto *bclbl  = new QLabel("Bond Cutoff:");
     auto *cback = new QLabel("Background Color:");
     auto *cbox  = new QLabel("Box Color:");
     settings->beginGroup("snapshot");
@@ -518,6 +688,9 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *bval = new QCheckBox;
     auto *eval = new QCheckBox;
     auto *vval = new QCheckBox;
+    auto *uval = new QCheckBox;
+    auto *bcut = new QLineEdit(settings->value("bondcut", "1.6").toString());
+
     sval->setCheckState(settings->value("ssao", false).toBool() ? Qt::Checked : Qt::Unchecked);
     sval->setObjectName("ssao");
     aval->setCheckState(settings->value("antialias", false).toBool() ? Qt::Checked : Qt::Unchecked);
@@ -530,6 +703,9 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     eval->setObjectName("axes");
     vval->setCheckState(settings->value("vdwstyle", false).toBool() ? Qt::Checked : Qt::Unchecked);
     vval->setObjectName("vdwstyle");
+    uval->setCheckState(settings->value("autobond", false).toBool() ? Qt::Checked : Qt::Unchecked);
+    uval->setObjectName("autobond");
+    bcut->setObjectName("bondcut");
 
     auto *intval = new QIntValidator(100, 100000, this);
     xval->setValidator(intval);
@@ -539,24 +715,22 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     zval->setValidator(new QDoubleValidator(0.01, 100.0, 100, this));
     zval->setObjectName("zoom");
 
-    auto *background = new QComboBox;
-    background->setObjectName("background");
-    background->addItem("black");
-    background->addItem("darkgray");
-    background->addItem("gray");
-    background->addItem("silver");
-    background->addItem("white");
-    background->setCurrentText(settings->value("background", "black").toString());
+    auto *colorcompleter = new QColorCompleter();
+    auto *colorvalidator = new QColorValidator();
+    QFontMetrics metrics(fontMetrics());
 
-    auto *boxcolor = new QComboBox;
+    auto *background = new QLineEdit(settings->value("background", "black").toString());
+    background->setObjectName("background");
+    background->setCompleter(colorcompleter);
+    background->setValidator(colorvalidator);
+    background->setFixedSize(metrics.averageCharWidth() * 12, metrics.height() + 4);
+
+    auto *boxcolor = new QLineEdit(settings->value("boxcolor", "yellow").toString());
     boxcolor->setObjectName("boxcolor");
-    boxcolor->addItem("yellow");
-    boxcolor->addItem("silver");
-    boxcolor->addItem("gray");
-    boxcolor->addItem("darkred");
-    boxcolor->addItem("darkgreen");
-    boxcolor->addItem("darkblue");
-    boxcolor->setCurrentText(settings->value("boxcolor", "yellow").toString());
+    boxcolor->setCompleter(colorcompleter);
+    boxcolor->setValidator(colorvalidator);
+    boxcolor->setFixedSize(metrics.averageCharWidth() * 12, metrics.height() + 4);
+
     settings->endGroup();
 
     int i = 0;
@@ -578,6 +752,10 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     grid->addWidget(eval, i++, 1, Qt::AlignVCenter);
     grid->addWidget(vdw, i, 0, Qt::AlignTop);
     grid->addWidget(vval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(bond, i, 0, Qt::AlignTop);
+    grid->addWidget(uval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(bclbl, i, 0, Qt::AlignTop);
+    grid->addWidget(bcut, i++, 1, Qt::AlignVCenter);
     grid->addWidget(cback, i, 0, Qt::AlignTop);
     grid->addWidget(background, i++, 1, Qt::AlignVCenter);
     grid->addWidget(cbox, i, 0, Qt::AlignTop);
@@ -587,6 +765,27 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 1);
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), i, 2);
     setLayout(grid);
+
+    connect(vval, &QCheckBox::toggled, this, &SnapshotTab::choose_vdw);
+    connect(uval, &QCheckBox::toggled, this, &SnapshotTab::choose_bond);
+}
+
+void SnapshotTab::choose_vdw()
+{
+    auto *vdw = findChild<QCheckBox *>("vdwstyle");
+    auto *bnd = findChild<QCheckBox *>("autobond");
+    if (vdw && bnd) {
+        if (vdw->isChecked()) bnd->setCheckState(Qt::Unchecked);
+    }
+}
+
+void SnapshotTab::choose_bond()
+{
+    auto *vdw = findChild<QCheckBox *>("vdwstyle");
+    auto *bnd = findChild<QCheckBox *>("autobond");
+    if (vdw && bnd) {
+        if (bnd->isChecked()) vdw->setCheckState(Qt::Unchecked);
+    }
 }
 
 EditorTab::EditorTab(QSettings *_settings, QWidget *parent) : QWidget(parent), settings(_settings)
@@ -671,7 +870,7 @@ ChartsTab::ChartsTab(QSettings *_settings, QWidget *parent) : QWidget(parent), s
     smoothval->addItem("Smooth");
     smoothval->addItem("Both");
     smoothval->setObjectName("smoothchoice");
-    smoothval->setCurrentIndex(settings->value("smoothchoice", 2).toInt());
+    smoothval->setCurrentIndex(settings->value("smoothchoice", 0).toInt());
 
     auto *rawbrlbl = new QLabel("Raw plot color:");
     auto *rawbrush = new QComboBox;

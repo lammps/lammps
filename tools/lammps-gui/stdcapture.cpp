@@ -35,7 +35,11 @@
 #include <fcntl.h>
 #include <thread>
 
-StdCapture::StdCapture() : m_oldStdOut(0), m_capturing(false)
+namespace {
+constexpr int bufSize = (1 << 16) + 1;
+} // namespace
+
+StdCapture::StdCapture() : m_oldStdOut(0), m_capturing(false), maxread(0), buf(new char[bufSize])
 {
     // make stdout unbuffered so that we don't need to flush the stream
     setvbuf(stdout, nullptr, _IONBF, 0);
@@ -54,9 +58,7 @@ StdCapture::StdCapture() : m_oldStdOut(0), m_capturing(false)
 
 StdCapture::~StdCapture()
 {
-    if (m_capturing) {
-        EndCapture();
-    }
+    delete[] buf;
     if (m_oldStdOut > 0) close(m_oldStdOut);
     if (m_pipe[READ] > 0) close(m_pipe[READ]);
     if (m_pipe[WRITE] > 0) close(m_pipe[WRITE]);
@@ -67,6 +69,7 @@ void StdCapture::BeginCapture()
     if (m_capturing) EndCapture();
     dup2(m_pipe[WRITE], fileno(stdout));
     m_capturing = true;
+    maxread     = 0;
 }
 
 bool StdCapture::EndCapture()
@@ -121,7 +124,13 @@ std::string StdCapture::GetChunk()
     if (bytesRead > 0) {
         buf[bytesRead] = '\0';
     }
+    maxread = std::max(maxread, bytesRead);
     return {buf};
+}
+
+double StdCapture::get_bufferuse() const
+{
+    return (double)maxread / (double)(bufSize - 1);
 }
 
 std::string StdCapture::GetCapture()
@@ -129,9 +138,8 @@ std::string StdCapture::GetCapture()
     std::string::size_type idx = m_captured.find_last_not_of("\r\n");
     if (idx == std::string::npos) {
         return m_captured;
-    } else {
-        return m_captured.substr(0, idx + 1);
     }
+    return m_captured.substr(0, idx + 1);
 }
 
 // Local Variables:

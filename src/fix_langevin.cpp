@@ -245,7 +245,7 @@ void FixLangevin::init()
     // warn if any integrate fix comes after this one
     int before = 1;
     int flag = 0;
-    for (auto ifix : modify->get_fix_list()) {
+    for (auto *ifix : modify->get_fix_list()) {
       if (strcmp(id, ifix->id) == 0)
         before = 0;
       else if ((modify->get_fix_mask(ifix) && utils::strmatch(ifix->style, "^nve")) && before)
@@ -258,7 +258,7 @@ void FixLangevin::init()
     error->all(FLERR, "Fix langevin omega requires atom attribute omega");
   if (oflag && !atom->radius_flag)
     error->all(FLERR, "Fix langevin omega requires atom attribute radius");
-  if (ascale && !atom->ellipsoid_flag)
+  if ((ascale != 0.0) && !atom->ellipsoid_flag)
     error->all(FLERR, "Fix langevin angmom requires atom style ellipsoid");
 
   // check variable
@@ -286,7 +286,7 @@ void FixLangevin::init()
         if (radius[i] == 0.0) error->one(FLERR, "Fix langevin omega requires extended particles");
   }
 
-  if (ascale) {
+  if (ascale != 0.0) {
     avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
     if (!avec) error->all(FLERR, "Fix langevin angmom requires atom style ellipsoid");
 
@@ -376,7 +376,7 @@ void FixLangevin::setup(int vflag)
   if (utils::strmatch(update->integrate_style, "^verlet"))
     post_force(vflag);
   else {
-    auto respa = static_cast<Respa *>(update->integrate);
+    auto *respa = static_cast<Respa *>(update->integrate);
     respa->copy_flevel_f(nlevels_respa - 1);
     post_force_respa(vflag, nlevels_respa - 1, 0);
     respa->copy_f_flevel(nlevels_respa - 1);
@@ -779,7 +779,7 @@ void FixLangevin::post_force_templated()
   // thermostat omega and angmom
 
   if (oflag) omega_thermostat();
-  if (ascale) angmom_thermostat();
+  if (ascale != 0.0) angmom_thermostat();
 }
 
 /* ----------------------------------------------------------------------

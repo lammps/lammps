@@ -14,8 +14,6 @@
 #include "../testing/core.h"
 #include "MANYBODY/pair_eim.h"
 #include "info.h"
-#include "input.h"
-#include "lammps.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"

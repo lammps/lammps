@@ -376,7 +376,7 @@ void FixTTMGrid::write_restart(FILE *fp)
 
 void FixTTMGrid::restart(char *buf)
 {
-  auto rlist = (double *) buf;
+  auto *rlist = (double *) buf;
 
   // check that restart grid size is same as current grid size
 
@@ -436,7 +436,7 @@ void FixTTMGrid::pack_write_grid(int /*which*/, void *vbuf)
 {
   int ix, iy, iz;
 
-  auto buf = (double *) vbuf;
+  auto *buf = (double *) vbuf;
 
   int m = 0;
   for (iz = nzlo_in; iz <= nzhi_in; iz++)
@@ -460,7 +460,7 @@ void FixTTMGrid::unpack_write_grid(int /*which*/, void *vbuf, int *bounds)
   int zlo = bounds[4];
   int zhi = bounds[5];
 
-  auto buf = (double *) vbuf;
+  auto *buf = (double *) vbuf;
   double value;
 
   int m = 0;
@@ -484,7 +484,7 @@ void FixTTMGrid::reset_grid()
 
   int tmp[12];
   double maxdist = 0.5 * neighbor->skin;
-  Grid3d *gridnew = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid);
+  auto *gridnew = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid);
   gridnew->set_distance(maxdist);
   gridnew->set_stencil_grid(1,1);
   gridnew->setup_grid(tmp[0],tmp[1],tmp[2],tmp[3],tmp[4],tmp[5],
@@ -554,7 +554,7 @@ void FixTTMGrid::reset_grid()
 
 void FixTTMGrid::pack_forward_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
-  auto buf = (double *) vbuf;
+  auto *buf = (double *) vbuf;
   double *src = &T_electron[nzlo_out][nylo_out][nxlo_out];
 
   for (int i = 0; i < nlist; i++) buf[i] = src[list[i]];
@@ -566,7 +566,7 @@ void FixTTMGrid::pack_forward_grid(int /*which*/, void *vbuf, int nlist, int *li
 
 void FixTTMGrid::unpack_forward_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
-  auto buf = (double *) vbuf;
+  auto *buf = (double *) vbuf;
   double *dest = &T_electron[nzlo_out][nylo_out][nxlo_out];
 
   for (int i = 0; i < nlist; i++) dest[list[i]] = buf[i];
@@ -578,7 +578,7 @@ void FixTTMGrid::unpack_forward_grid(int /*which*/, void *vbuf, int nlist, int *
 
 void FixTTMGrid::pack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
-  auto buf = (double *) vbuf;
+  auto *buf = (double *) vbuf;
   double *src = &net_energy_transfer[nzlo_out][nylo_out][nxlo_out];
 
   for (int i = 0; i < nlist; i++) buf[i] = src[list[i]];
@@ -590,7 +590,7 @@ void FixTTMGrid::pack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *li
 
 void FixTTMGrid::unpack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
-  auto buf = (double *) vbuf;
+  auto *buf = (double *) vbuf;
   double *dest = &net_energy_transfer[nzlo_out][nylo_out][nxlo_out];
 
   for (int i = 0; i < nlist; i++) dest[list[i]] += buf[i];
@@ -602,7 +602,7 @@ void FixTTMGrid::unpack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *
 
 void FixTTMGrid::pack_remap_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
-  auto buf = (double *) vbuf;
+  auto *buf = (double *) vbuf;
   double *src =
     &T_electron_previous[nzlo_out_previous][nylo_out_previous][nxlo_out_previous];
 
@@ -615,7 +615,7 @@ void FixTTMGrid::pack_remap_grid(int /*which*/, void *vbuf, int nlist, int *list
 
 void FixTTMGrid::unpack_remap_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
-  auto buf = (double *) vbuf;
+  auto *buf = (double *) vbuf;
   double *dest = &T_electron[nzlo_out][nylo_out][nxlo_out];
 
   for (int i = 0; i < nlist; i++) dest[list[i]] = buf[i];

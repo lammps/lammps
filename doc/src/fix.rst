@@ -201,6 +201,7 @@ accelerated styles exist.
 * :doc:`append/atoms <fix_append_atoms>` - append atoms to a running simulation
 * :doc:`atc <fix_atc>` - initiates a coupled MD/FE simulation
 * :doc:`atom/swap <fix_atom_swap>` - Monte Carlo atom type swapping
+* :doc:`atom_weight/apip <fix_atom_weight_apip>` - compute atomic load of an :doc:`APIP potential <Howto_apip>` for load balancing
 * :doc:`ave/atom <fix_ave_atom>` - compute per-atom time-averaged quantities
 * :doc:`ave/chunk <fix_ave_chunk>` - compute per-chunk time-averaged quantities
 * :doc:`ave/correlate <fix_ave_correlate>` - compute/output time correlations
@@ -208,6 +209,7 @@ accelerated styles exist.
 * :doc:`ave/grid <fix_ave_grid>` - compute per-grid time-averaged quantities
 * :doc:`ave/histo <fix_ave_histo>` - compute/output time-averaged histograms
 * :doc:`ave/histo/weight <fix_ave_histo>` - weighted version of fix ave/histo
+* :doc:`ave/moments <fix_ave_moments>` - compute moments of scalar quantities
 * :doc:`ave/time <fix_ave_time>` - compute/output global time-averaged quantities
 * :doc:`aveforce <fix_aveforce>` - add an averaged force to each atom
 * :doc:`balance <fix_balance>` - perform dynamic load-balancing
@@ -264,11 +266,13 @@ accelerated styles exist.
 * :doc:`halt <fix_halt>` - terminate a dynamics run or minimization
 * :doc:`heat <fix_heat>` - add/subtract momentum-conserving heat
 * :doc:`heat/flow <fix_heat_flow>` - plain time integration of heat flow with per-atom temperature updates
+* :doc:`hmc <fix_hmc>` -  Hybrid/Hamiltonian Monte Carlo (HMC) particle propagation
 * :doc:`hyper/global <fix_hyper_global>` - global hyperdynamics
 * :doc:`hyper/local <fix_hyper_local>` - local hyperdynamics
 * :doc:`imd <fix_imd>` - implements the "Interactive MD" (IMD) protocol
 * :doc:`indent <fix_indent>` - impose force due to an indenter
 * :doc:`ipi <fix_ipi>` - enable LAMMPS to run as a client for i-PI path-integral simulations
+* :doc:`lambda/apip <fix_lambda_apip>` - compute switching parameter, that controls the precision of an :doc:`APIP potential <Howto_apip>`
 * :doc:`langevin <fix_langevin>` - Langevin temperature control
 * :doc:`langevin/drude <fix_langevin_drude>` - Langevin temperature control of Drude oscillators
 * :doc:`langevin/eff <fix_langevin_eff>` - Langevin temperature control for the electron force field model
@@ -277,6 +281,7 @@ accelerated styles exist.
 * :doc:`lb/momentum <fix_lb_momentum>` - :doc:`fix momentum <fix_momentum>` replacement for use with a lattice-Boltzmann fluid
 * :doc:`lb/viscous <fix_lb_viscous>` - :doc:`fix viscous <fix_viscous>` replacement for use with a lattice-Boltzmann fluid
 * :doc:`lineforce <fix_lineforce>` - constrain atoms to move in a line
+* :doc:`lambda_thermostat/apip <fix_lambda_thermostat_apip>` - apply energy conserving correction for an :doc:`APIP potential <Howto_apip>`
 * :doc:`manifoldforce <fix_manifoldforce>` - restrain atoms to a manifold during minimization
 * :doc:`mdi/qm <fix_mdi_qm>` - LAMMPS operates as a client for a quantum code via the MolSSI Driver Interface (MDI)
 * :doc:`mdi/qmmm <fix_mdi_qmmm>` - LAMMPS operates as client for QM/MM simulation with a quantum code via the MolSSI Driver Interface (MDI)
@@ -291,6 +296,7 @@ accelerated styles exist.
 * :doc:`mvv/tdpd <fix_mvv_dpd>` - constant temperature DPD using the modified velocity-Verlet algorithm
 * :doc:`neb <fix_neb>` - nudged elastic band (NEB) spring forces
 * :doc:`neb/spin <fix_neb_spin>` - nudged elastic band (NEB) spring forces for spins
+* :doc:`neighbor/swap <fix_neighbor_swap>` - kinetic Monte Carlo (kMC) atom swapping
 * :doc:`nonaffine/displacement <fix_nonaffine_displacement>` - calculate nonaffine displacement of atoms
 * :doc:`nph <fix_nh>` - constant NPH time integration via Nose/Hoover
 * :doc:`nph/asphere <fix_nph_asphere>` - NPH for aspherical particles
@@ -396,6 +402,7 @@ accelerated styles exist.
 * :doc:`rigid/small <fix_rigid>` - constrain many small clusters of atoms to move as a rigid body with NVE integration
 * :doc:`rx <fix_rx>` - solve reaction kinetic ODEs for a defined reaction set
 * :doc:`saed/vtk <fix_saed_vtk>` - time-average the intensities from :doc:`compute saed <compute_saed>`
+* :doc:`set <fix_set>` - reset an atom property via an atom-style variable every N steps
 * :doc:`setforce <fix_setforce>` - set the force on each atom
 * :doc:`setforce/spin <fix_setforce>` - set magnetic precession vectors on each atom
 * :doc:`sgcmc <fix_sgcmc>` - fix for hybrid semi-grand canonical MD/MC simulations

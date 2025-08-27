@@ -13,11 +13,15 @@
 
 #include "chartviewer.h"
 
+#include "helpers.h"
 #include "lammpsgui.h"
+#include "rangeslider.h"
+#include "qaddon.h"
 
 #include <QAction>
 #include <QApplication>
 #include <QChart>
+#include <QCheckBox>
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QEvent>
@@ -44,9 +48,15 @@
 
 using namespace QtCharts;
 
+namespace {
+
+// Set RangeSlider resolution to 1000 steps
+constexpr int SLIDER_RANGE       = 1000;
+constexpr double SLIDER_FRACTION = 1.0 / (double)SLIDER_RANGE;
+
 // brush color index must be kept in sync with preferences
 
-static const QList<QBrush> mybrushes = {
+const QList<QBrush> mybrushes = {
     QBrush(QColor(0, 0, 0)),       // black
     QBrush(QColor(100, 150, 255)), // blue
     QBrush(QColor(255, 125, 125)), // red
@@ -54,16 +64,25 @@ static const QList<QBrush> mybrushes = {
     QBrush(QColor(120, 120, 120)), // grey
 };
 
+} // namespace
+
 ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     QWidget(parent), menu(new QMenuBar), file(new QMenu("&File")), saveAsAct(nullptr),
     exportCsvAct(nullptr), exportDatAct(nullptr), exportYamlAct(nullptr), closeAct(nullptr),
     stopAct(nullptr), quitAct(nullptr), smooth(nullptr), window(nullptr), order(nullptr),
-    chartTitle(nullptr), chartYlabel(nullptr), filename(_filename)
+    chartTitle(nullptr), chartYlabel(nullptr), units(nullptr), norm(nullptr), filename(_filename)
 {
     QSettings settings;
-    auto *top = new QHBoxLayout;
+    auto *top  = new QVBoxLayout;
+    auto *row1 = new QHBoxLayout;
+    auto *row2 = new QHBoxLayout;
+    top->addLayout(row1);
+    top->addWidget(new QHline);
+    top->addLayout(row2);
+    top->addWidget(new QHline);
+
     menu->addMenu(file);
-    menu->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+    menu->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     // workaround for incorrect highlight bug on macOS
     auto *dummy = new QPushButton(QIcon(), "");
@@ -76,7 +95,7 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     chartYlabel = new QLineEdit("");
 
     // plot smoothing
-    int smoothchoice = settings.value("smoothchoice", 2).toInt();
+    int smoothchoice = settings.value("smoothchoice", 0).toInt();
     switch (smoothchoice) {
         case 0:
             do_raw    = true;
@@ -111,26 +130,49 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     order->setToolTip("Smoothing Order");
     settings.endGroup();
 
-    auto *normal = new QPushButton(QIcon(":/icons/gtk-zoom-fit.png"), "");
-    normal->setToolTip("Reset zoom to normal");
-
     columns = new QComboBox;
-    top->addWidget(menu);
-    top->addSpacerItem(new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Minimum));
-    top->addWidget(dummy);
-    top->addWidget(new QLabel("Title:"));
-    top->addWidget(chartTitle);
-    top->addWidget(new QLabel("Y:"));
-    top->addWidget(chartYlabel);
-    top->addWidget(new QLabel("Plot:"));
-    top->addWidget(smooth);
-    top->addWidget(new QLabel(" Smooth:"));
-    top->addWidget(window);
-    top->addWidget(order);
-    top->addWidget(new QLabel(" "));
-    top->addWidget(normal);
-    top->addWidget(new QLabel(" Data:"));
-    top->addWidget(columns);
+    row1->addWidget(menu);
+    row1->addWidget(dummy);
+    row2->addWidget(dummy);
+    row1->addWidget(new QLabel("Title:"));
+    row1->addWidget(chartTitle);
+    row1->addWidget(new QLabel("Y-Axis:"));
+    row1->addWidget(chartYlabel);
+
+    units = new QLabel("Units:");
+    row2->addWidget(units);
+    row2->addWidget(new QLabel("Norm:"));
+    norm = new QCheckBox("");
+    norm->setChecked(Qt::Unchecked);
+    norm->setEnabled(false);
+    row2->addWidget(norm);
+    xrange = new RangeSlider;
+    xrange->setMinimum(0);
+    xrange->setMaximum(SLIDER_RANGE);
+    xrange->setLow(0);
+    xrange->setHigh(SLIDER_RANGE);
+    xrange->setToolTip("Adjust x-axis data range");
+    xrange->setTickPosition(QSlider::TicksBothSides);
+    xrange->setTickInterval(100);
+    yrange = new RangeSlider;
+    yrange->setMinimum(0);
+    yrange->setMaximum(SLIDER_RANGE);
+    yrange->setLow(0);
+    yrange->setHigh(SLIDER_RANGE);
+    yrange->setToolTip("Adjust y-axis data range");
+    yrange->setTickPosition(QSlider::TicksBothSides);
+    yrange->setTickInterval(100);
+    row2->addWidget(new QLabel("X:"));
+    row2->addWidget(xrange);
+    row2->addWidget(new QLabel("Y:"));
+    row2->addWidget(yrange);
+    row2->addWidget(new QLabel("Plot:"));
+    row2->addWidget(smooth);
+    row2->addWidget(new QLabel(" Smooth:"));
+    row2->addWidget(window);
+    row2->addWidget(order);
+    row1->addWidget(new QLabel(" Data:"));
+    row1->addWidget(columns);
     saveAsAct = file->addAction("&Save Graph As...", this, &ChartWindow::saveAs);
     saveAsAct->setIcon(QIcon(":/icons/document-save-as.png"));
     exportCsvAct = file->addAction("&Export data to CSV...", this, &ChartWindow::exportCsv);
@@ -160,24 +202,23 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     connect(order, &QAbstractSpinBox::editingFinished, this, &ChartWindow::update_smooth);
     connect(window, QOverload<int>::of(&QSpinBox::valueChanged), this, &ChartWindow::update_smooth);
     connect(order, QOverload<int>::of(&QSpinBox::valueChanged), this, &ChartWindow::update_smooth);
-    connect(normal, &QPushButton::released, this, &ChartWindow::reset_zoom);
     connect(columns, SIGNAL(currentIndexChanged(int)), this, SLOT(change_chart(int)));
-    installEventFilter(this);
+    connect(xrange, &RangeSlider::sliderMoved, this, &ChartWindow::update_xrange);
+    connect(yrange, &RangeSlider::sliderMoved, this, &ChartWindow::update_yrange);
 
-    resize(settings.value("chartx", 500).toInt(), settings.value("charty", 320).toInt());
+    installEventFilter(this);
+    resize(settings.value("chartx", 640).toInt(), settings.value("charty", 480).toInt());
 }
 
 int ChartWindow::get_step() const
 {
-    if (charts.size() > 0) {
+    if (!charts.empty()) {
         auto *v = charts[0];
-        if (v)
+        if (v) {
             return (int)v->get_step(v->get_count() - 1);
-        else
-            return -1;
-    } else {
-        return -1;
+        }
     }
+    return -1;
 }
 
 void ChartWindow::reset_charts()
@@ -201,7 +242,7 @@ void ChartWindow::add_chart(const QString &title, int index)
     columns->addItem(title, index);
     columns->show();
     // hide all but the first chart added
-    if (charts.size() > 0) {
+    if (!charts.empty()) {
         chart->hide();
     } else {
         // must initialize QLineEdit with first title
@@ -219,28 +260,25 @@ void ChartWindow::add_data(int step, double data, int index)
         if (c->get_index() == index) c->add_data(step, data);
 }
 
-void ChartWindow::quit()
+void ChartWindow::set_units(const QString &_units)
 {
-    LammpsGui *main = nullptr;
-    for (QWidget *widget : QApplication::topLevelWidgets())
-        if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
-    if (main) main->quit();
+    units->setText(_units);
 }
 
-void ChartWindow::reset_zoom()
+void ChartWindow::set_norm(bool _norm)
 {
-    int choice = columns->currentData().toInt();
-    if ((choice >= 0) && (choice < charts.size())) {
-        charts[choice]->update_smooth();
-        charts[choice]->reset_zoom();
-    }
+    norm->setChecked(_norm ? Qt::Checked : Qt::Unchecked);
+}
+
+void ChartWindow::quit()
+{
+    auto *main = dynamic_cast<LammpsGui *>(get_main_widget());
+    if (main) main->quit();
 }
 
 void ChartWindow::stop_run()
 {
-    LammpsGui *main = nullptr;
-    for (QWidget *widget : QApplication::topLevelWidgets())
-        if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
+    auto *main = dynamic_cast<LammpsGui *>(get_main_widget());
     if (main) main->stop_run();
 }
 
@@ -285,6 +323,33 @@ void ChartWindow::update_ylabel()
 {
     for (auto &c : charts) {
         if (c->isVisible()) c->set_ylabel(chartYlabel->text());
+    }
+}
+
+void ChartWindow::update_xrange(int low, int high)
+{
+    for (auto &c : charts) {
+        if (c->isVisible()) {
+            auto axes   = c->get_axes();
+            auto ranges = c->get_minmax();
+            double xmin = ranges.left() + (double)low * SLIDER_FRACTION * ranges.width();
+            double xmax = ranges.left() + (double)high * SLIDER_FRACTION * ranges.width();
+            axes[0]->setRange(xmin, xmax);
+        }
+    }
+}
+
+void ChartWindow::update_yrange(int low, int high)
+{
+    for (auto &c : charts) {
+        if (c->isVisible()) {
+            constexpr double fraction = 1.0 / (double)SLIDER_RANGE;
+            auto axes                 = c->get_axes();
+            auto ranges               = c->get_minmax();
+            double ymin = ranges.bottom() - (double)low * SLIDER_FRACTION * ranges.height();
+            double ymax = ranges.bottom() - (double)high * SLIDER_FRACTION * ranges.height();
+            axes[1]->setRange(ymin, ymax);
+        }
     }
 }
 
@@ -413,6 +478,12 @@ void ChartWindow::change_chart(int)
             c->hide();
         }
     }
+
+    // reset plot range selection
+    xrange->setLow(0);
+    xrange->setHigh(SLIDER_RANGE);
+    yrange->setLow(0);
+    yrange->setHigh(SLIDER_RANGE);
 }
 
 void ChartWindow::closeEvent(QCloseEvent *event)
@@ -450,7 +521,7 @@ bool ChartWindow::eventFilter(QObject *watched, QEvent *event)
 ChartViewer::ChartViewer(const QString &title, int _index, QWidget *parent) :
     QChartView(parent), last_step(-1), index(_index), window(10), order(4), chart(new QChart),
     series(new QLineSeries), smooth(nullptr), xaxis(new QValueAxis), yaxis(new QValueAxis),
-    do_raw(true), do_smooth(true)
+    do_raw(true), do_smooth(false)
 {
     chart->legend()->hide();
     chart->addAxis(xaxis, Qt::AlignBottom);
@@ -467,7 +538,7 @@ ChartViewer::ChartViewer(const QString &title, int _index, QWidget *parent) :
 
     setRenderHint(QPainter::Antialiasing);
     setChart(chart);
-    setRubberBand(QChartView::RectangleRubberBand);
+    setRubberBand(QChartView::NoRubberBand);
     last_update = QTime::currentTime();
     update_smooth();
 }
@@ -503,7 +574,7 @@ void ChartViewer::add_data(int step, double data)
 
 /* -------------------------------------------------------------------- */
 
-void ChartViewer::reset_zoom()
+QRectF ChartViewer::get_minmax() const
 {
     auto points = series->points();
 
@@ -553,8 +624,16 @@ void ChartViewer::reset_zoom()
         }
     }
 
-    xaxis->setRange(xmin, xmax);
-    yaxis->setRange(ymin, ymax);
+    return QRectF(xmin, ymax, xmax - xmin, ymin - ymax);
+}
+
+/* -------------------------------------------------------------------- */
+
+void ChartViewer::reset_zoom()
+{
+    auto ranges = get_minmax();
+    xaxis->setRange(ranges.left(), ranges.right());
+    yaxis->setRange(ranges.bottom(), ranges.top());
 }
 
 /* -------------------------------------------------------------------- */
@@ -594,80 +673,40 @@ void ChartViewer::set_ylabel(const QString &ylabel)
     yaxis->setTitleText(ylabel);
 }
 
-/* -------------------------------------------------------------------- */
+// local implementation of Savitzky-Golay filter
 
-// update smooth plot data
+namespace {
 
-static QList<QPointF> calc_sgsmooth(const QList<QPointF> &input, const int window, const int order);
+//! array of doubles
+using float_vect = std::vector<double>;
 
-void ChartViewer::update_smooth()
-{
-    QSettings settings;
-    settings.beginGroup("charts");
-    int rawidx    = settings.value("rawbrush", 1).toInt();
-    int smoothidx = settings.value("smoothbrush", 2).toInt();
-    if ((rawidx < 0) || (rawidx >= mybrushes.size())) rawidx = 0;
-    if ((smoothidx < 0) || (smoothidx >= mybrushes.size())) smoothidx = 0;
-    settings.endGroup();
+//! array of ints;
+using int_vect = std::vector<int>;
 
-    auto allseries = chart->series();
-    if (do_raw) {
-        // add raw data if not in chart
-        if (!allseries.contains(series)) {
-            series->setPen(QPen(mybrushes[rawidx], 3, Qt::SolidLine, Qt::RoundCap));
-            chart->addSeries(series);
-            series->attachAxis(xaxis);
-            series->attachAxis(yaxis);
-        }
-    }
-
-    if (do_smooth) {
-        if (series->count() > (2 * window)) {
-            if (!smooth) {
-                smooth = new QLineSeries;
-                smooth->setPen(QPen(mybrushes[smoothidx], 3, Qt::SolidLine, Qt::RoundCap));
-                chart->addSeries(smooth);
-                smooth->attachAxis(xaxis);
-                smooth->attachAxis(yaxis);
-            }
-            smooth->clear();
-            smooth->append(calc_sgsmooth(series->points(), window, order));
-        }
-    }
-}
-
-//! default convergence
-static constexpr double TINY_FLOAT = 1.0e-300;
-
-//! comfortable array of doubles
-typedef std::vector<double> float_vect;
-//! comfortable array of ints;
-typedef std::vector<int> int_vect;
+// forward declaration
+float_vect sg_smooth(const float_vect &v, const int w, const int deg);
 
 // savitzky golay smoothing.
-static float_vect sg_smooth(const float_vect &v, const int w, const int deg);
-
 QList<QPointF> calc_sgsmooth(const QList<QPointF> &input, int window, int order)
 {
-    const int ndat = input.count();
-    if (ndat < 2 * window + 2) window = ndat / 2 - 1;
+    const std::size_t ndat = input.count();
+    if (ndat < ((2 * window) + 2)) window = (ndat / 2) - 1;
 
     if (window > 1) {
         float_vect in(ndat);
-        QList<QPointF> rv;
+        QList<QPointF> rv(input);
 
-        for (int i = 0; i < ndat; ++i) {
+        for (int i = 0; i < ndat; ++i)
             in[i] = input[i].y();
-        }
+
         float_vect out = sg_smooth(in, window, order);
 
-        for (int i = 0; i < ndat; ++i) {
-            rv.append(QPointF(input[i].x(), out[i]));
-        }
+        for (int i = 0; i < ndat; ++i)
+            rv[i].setY(out[i]);
+
         return rv;
-    } else {
-        return input;
     }
+    return input;
 }
 
 /*! matrix class.
@@ -680,13 +719,15 @@ QList<QPointF> calc_sgsmooth(const QList<QPointF> &input, int window, int order)
  * \brief two dimensional floating point array
  */
 class float_mat : public std::vector<float_vect> {
-private:
-    //! disable the default constructor
-    explicit float_mat() {};
-    //! disable assignment operator until it is implemented.
-    float_mat &operator=(const float_mat &) { return *this; };
 
 public:
+    // disable selected default constructors and assignment operators
+    float_mat()                             = delete;
+    float_mat(float_mat &&)                 = default;
+    ~float_mat()                            = default;
+    float_mat &operator=(const float_mat &) = delete;
+    float_mat &operator=(float_mat &&)      = delete;
+
     //! constructor with sizes
     float_mat(const std::size_t rows, const std::size_t cols, const double def = 0.0);
     //! copy constructor for matrix
@@ -694,13 +735,10 @@ public:
     //! copy constructor for vector
     float_mat(const float_vect &v);
 
-    //! use default destructor
-    // ~float_mat() {};
-
     //! get size
-    int nr_rows(void) const { return size(); };
+    std::size_t nr_rows() const { return size(); };
     //! get size
-    int nr_cols(void) const { return front().size(); };
+    std::size_t nr_cols() const { return front().size(); };
 };
 
 // constructor with sizes
@@ -710,27 +748,18 @@ float_mat::float_mat(const std::size_t rows, const std::size_t cols, const doubl
     for (std::size_t i = 0; i < rows; ++i) {
         (*this)[i].resize(cols, defval);
     }
-#if 0
-    if ((rows < 1) || (cols < 1)) {
-        char buffer[1024];
-
-        sprintf(buffer, "cannot build matrix with %d rows and %d columns\n",
-                rows, cols);
-        sgs_error(buffer);
-    }
-#endif
 }
 
 // copy constructor for matrix
 float_mat::float_mat(const float_mat &m) : std::vector<float_vect>(m.size())
 {
 
-    float_mat::iterator inew       = begin();
-    float_mat::const_iterator iold = m.begin();
+    auto inew = begin();
+    auto iold = m.begin();
     for (/* empty */; iold < m.end(); ++inew, ++iold) {
         const auto oldsz = iold->size();
         inew->resize(oldsz);
-        const float_vect oldvec(*iold);
+        const float_vect &oldvec(*iold);
         *inew = oldvec;
     }
 }
@@ -783,11 +812,9 @@ void permute(float_mat &A, int_vect &idx)
  * scaling information in the vector scale. The map of swapped indices is
  * recorded in swp. The return value is +1 or -1 depending on whether the
  * number of row swaps was even or odd respectively. */
-static int partial_pivot(float_mat &A, const std::size_t row, const std::size_t col,
-                         float_vect &scale, int_vect &idx, double tol)
+int partial_pivot(float_mat &A, const std::size_t row, const std::size_t col, float_vect &scale,
+                  int_vect &idx)
 {
-    if (tol <= 0.0) tol = TINY_FLOAT;
-
     int swapNum = 1;
 
     // default pivot is the current position, [row,col]
@@ -795,7 +822,7 @@ static int partial_pivot(float_mat &A, const std::size_t row, const std::size_t 
     double piv_elem   = fabs(A[idx[row]][col]) * scale[idx[row]];
 
     // loop over possible pivots below current
-    for (int j = row + 1; j < A.nr_rows(); ++j) {
+    for (std::size_t j = row + 1; j < A.nr_rows(); ++j) {
 
         const double tmp = fabs(A[idx[j]][col]) * scale[idx[j]];
 
@@ -805,11 +832,6 @@ static int partial_pivot(float_mat &A, const std::size_t row, const std::size_t 
             piv_elem = tmp;
         }
     }
-
-#if 0
-    if(piv_elem < tol) {
-        sgs_error("partial_pivot(): Zero pivot encountered.\n")
-#endif
 
     if (pivot > row) {         // bring the pivot to the diagonal
         int j      = idx[row]; // reorder swap array
@@ -827,7 +849,7 @@ static int partial_pivot(float_mat &A, const std::size_t row, const std::size_t 
  * assumed to be 1.  Note that the lower triangular elements are never
  * checked, so this function is valid to use after a LU-decomposition in
  * place.  A is not modified, and the solution, b, is returned in a. */
-static void lu_backsubst(float_mat &A, float_mat &a, bool diag = false)
+void lu_backsubst(float_mat &A, float_mat &a, bool diag = false)
 {
     for (int r = (A.nr_rows() - 1); r >= 0; --r) {
         for (int c = (A.nr_cols() - 1); c > r; --c) {
@@ -850,7 +872,7 @@ static void lu_backsubst(float_mat &A, float_mat &a, bool diag = false)
  * assumed to be 1.  Note that the upper triangular elements are never
  * checked, so this function is valid to use after a LU-decomposition in
  * place.  A is not modified, and the solution, b, is returned in a. */
-static void lu_forwsubst(float_mat &A, float_mat &a, bool diag = true)
+void lu_forwsubst(float_mat &A, float_mat &a, bool diag = true)
 {
     for (int r = 0; r < A.nr_rows(); ++r) {
         for (int c = 0; c < r; ++c) {
@@ -873,36 +895,24 @@ static void lu_forwsubst(float_mat &A, float_mat &a, bool diag = true)
  * depending on whether the number of row swaps was even or odd
  * respectively.  idx must be preinitialized to a valid set of indices
  * (e.g., {1,2, ... ,A.nr_rows()}). */
-static int lu_factorize(float_mat &A, int_vect &idx, double tol = TINY_FLOAT)
+int lu_factorize(float_mat &A, int_vect &idx)
 {
-    if (tol <= 0.0) tol = TINY_FLOAT;
-#if 0
-    if ((A.nr_rows() == 0) || (A.nr_rows() != A.nr_cols())) {
-        sgs_error("lu_factorize(): cannot handle empty "
-                  "or nonsquare matrices.\n");
-
-        return 0;
-    }
-#endif
     float_vect scale(A.nr_rows()); // implicit pivot scaling
     for (int i = 0; i < A.nr_rows(); ++i) {
         double maxval = 0.0;
         for (int j = 0; j < A.nr_cols(); ++j) {
-            if (fabs(A[i][j]) > maxval) maxval = fabs(A[i][j]);
+            maxval = std::max(fabs(A[i][j]), maxval);
         }
         if (maxval == 0.0) {
-#if 0
-            sgs_error("lu_factorize(): zero pivot found.\n");
-#endif
             return 0;
         }
         scale[i] = 1.0 / maxval;
     }
 
     int swapNum = 1;
-    for (int c = 0; c < A.nr_cols(); ++c) {                 // loop over columns
-        swapNum *= partial_pivot(A, c, c, scale, idx, tol); // bring pivot to diagonal
-        for (int r = 0; r < A.nr_rows(); ++r) {             //  loop over rows
+    for (int c = 0; c < A.nr_cols(); ++c) {            // loop over columns
+        swapNum *= partial_pivot(A, c, c, scale, idx); // bring pivot to diagonal
+        for (int r = 0; r < A.nr_rows(); ++r) {        //  loop over rows
             int lim = (r < c) ? r : c;
             for (int j = 0; j < lim; ++j) {
                 A[idx[r]][c] -= A[idx[r]][j] * A[idx[j]][c];
@@ -917,7 +927,7 @@ static int lu_factorize(float_mat &A, int_vect &idx, double tol = TINY_FLOAT)
 /*! \brief Solve a system of linear equations.
  * Solves the inhomogeneous matrix problem with lu-decomposition. Note that
  * inversion may be accomplished by setting a to the identity_matrix. */
-static float_mat lin_solve(const float_mat &A, const float_mat &a, double tol = TINY_FLOAT)
+float_mat lin_solve(const float_mat &A, const float_mat &a)
 {
     float_mat B(A);
     float_mat b(a);
@@ -926,10 +936,10 @@ static float_mat lin_solve(const float_mat &A, const float_mat &a, double tol = 
     for (int j = 0; j < B.nr_rows(); ++j) {
         idx[j] = j; // init row swap label array
     }
-    lu_factorize(B, idx, tol); // get the lu-decomp.
-    permute(b, idx);           // sort the inhomogeneity to match the lu-decomp
-    lu_forwsubst(B, b);        // solve the forward problem
-    lu_backsubst(B, b);        // solve the backward problem
+    lu_factorize(B, idx); // get the lu-decomp.
+    permute(b, idx);      // sort the inhomogeneity to match the lu-decomp
+    lu_forwsubst(B, b);   // solve the forward problem
+    lu_backsubst(B, b);   // solve the backward problem
     return b;
 }
 
@@ -938,13 +948,13 @@ static float_mat lin_solve(const float_mat &A, const float_mat &a, double tol = 
 ///////////////////////
 
 //! Returns the inverse of a matrix using LU-decomposition.
-static float_mat invert(const float_mat &A)
+float_mat invert(const float_mat &A)
 {
-    const int n = A.size();
+    const std::size_t n = A.size();
     float_mat E(n, n, 0.0);
-    float_mat B(A);
+    const float_mat &B(A);
 
-    for (int i = 0; i < n; ++i) {
+    for (std::size_t i = 0; i < n; ++i) {
         E[i][i] = 1.0;
     }
 
@@ -952,12 +962,12 @@ static float_mat invert(const float_mat &A)
 }
 
 //! returns the transposed matrix.
-static float_mat transpose(const float_mat &a)
+float_mat transpose(const float_mat &a)
 {
     float_mat res(a.nr_cols(), a.nr_rows());
 
-    for (int i = 0; i < a.nr_rows(); ++i) {
-        for (int j = 0; j < a.nr_cols(); ++j) {
+    for (std::size_t i = 0; i < a.nr_rows(); ++i) {
+        for (std::size_t j = 0; j < a.nr_cols(); ++j) {
             res[j][i] = a[i][j];
         }
     }
@@ -968,16 +978,10 @@ static float_mat transpose(const float_mat &a)
 float_mat operator*(const float_mat &a, const float_mat &b)
 {
     float_mat res(a.nr_rows(), b.nr_cols());
-#if 0
-    if (a.nr_cols() != b.nr_rows()) {
-        sgs_error("incompatible matrices in multiplication\n");
-        return res;
-    }
-#endif
-    for (int i = 0; i < a.nr_rows(); ++i) {
-        for (int j = 0; j < b.nr_cols(); ++j) {
+    for (std::size_t i = 0; i < a.nr_rows(); ++i) {
+        for (std::size_t j = 0; j < b.nr_cols(); ++j) {
             double sum(0.0);
-            for (int k = 0; k < a.nr_cols(); ++k) {
+            for (std::size_t k = 0; k < a.nr_cols(); ++k) {
                 sum += a[i][k] * b[k][j];
             }
             res[i][j] = sum;
@@ -987,7 +991,7 @@ float_mat operator*(const float_mat &a, const float_mat &b)
 }
 
 //! calculate savitzky golay coefficients.
-static float_vect sg_coeff(const float_vect &b, const std::size_t deg)
+float_vect sg_coeff(const float_vect &b, const std::size_t deg)
 {
     const std::size_t rows(b.size());
     const std::size_t cols(deg + 1);
@@ -1023,13 +1027,7 @@ static float_vect sg_coeff(const float_vect &b, const std::size_t deg)
 float_vect sg_smooth(const float_vect &v, const int width, const int deg)
 {
     float_vect res(v.size(), 0.0);
-#if 0
-    if ((width < 1) || (deg < 0) || (v.size() < (2 * width + 2))) {
-        sgs_error("sgsmooth: parameter error.\n");
-        return res;
-    }
-#endif
-    const int window = 2 * width + 1;
+    const int window = (2 * width) + 1;
     const int endidx = v.size() - 1;
 
     // do a regular sliding window average
@@ -1047,6 +1045,9 @@ float_vect sg_smooth(const float_vect &v, const int width, const int deg)
         // now loop over rest of data. reusing the "symmetric" coefficients.
         const double scale = 1.0 / double(window);
         const float_vect c2(window, scale);
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
         for (std::size_t i = 0; i <= (v.size() - window); ++i) {
             for (int j = 0; j < window; ++j) {
                 res[i + width] += c2[j] * v[i + j];
@@ -1078,6 +1079,46 @@ float_vect sg_smooth(const float_vect &v, const int width, const int deg)
         }
     }
     return res;
+}
+} // namespace
+
+/* -------------------------------------------------------------------- */
+
+// update smooth plot data
+
+void ChartViewer::update_smooth()
+{
+    QSettings settings;
+    settings.beginGroup("charts");
+    int rawidx    = settings.value("rawbrush", 1).toInt();
+    int smoothidx = settings.value("smoothbrush", 2).toInt();
+    if ((rawidx < 0) || (rawidx >= mybrushes.size())) rawidx = 0;
+    if ((smoothidx < 0) || (smoothidx >= mybrushes.size())) smoothidx = 0;
+    settings.endGroup();
+
+    auto allseries = chart->series();
+    if (do_raw) {
+        // add raw data if not in chart
+        if (!allseries.contains(series)) {
+            series->setPen(QPen(mybrushes[rawidx], 3, Qt::SolidLine, Qt::RoundCap));
+            chart->addSeries(series);
+            series->attachAxis(xaxis);
+            series->attachAxis(yaxis);
+        }
+    }
+
+    if (do_smooth) {
+        if (series->count() > (2 * window)) {
+            if (!smooth) {
+                smooth = new QLineSeries;
+                smooth->setPen(QPen(mybrushes[smoothidx], 3, Qt::SolidLine, Qt::RoundCap));
+                chart->addSeries(smooth);
+                smooth->attachAxis(xaxis);
+                smooth->attachAxis(yaxis);
+            }
+            smooth->replace(calc_sgsmooth(series->points(), window, order));
+        }
+    }
 }
 
 // Local Variables:

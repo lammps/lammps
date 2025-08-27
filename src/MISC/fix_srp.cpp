@@ -116,7 +116,7 @@ void FixSRP::init()
   // because this fix's pre_exchange() creates per-atom data structure
   // that data must be current for atom migration to carry it along
 
-  for (auto &ifix : modify->get_fix_list()) {
+  for (const auto &ifix : modify->get_fix_list()) {
     if (ifix == this) break;
     if (ifix->pre_exchange_migrate)
       error->all(FLERR,"Fix {} comes after a fix which migrates atoms in pre_exchange", style);
@@ -243,7 +243,7 @@ void FixSRP::setup_pre_force(int /*zz*/)
   MPI_Allreduce(&ndel,&ndel_all,1,MPI_INT,MPI_SUM,world);
   MPI_Allreduce(&nadd,&nadd_all,1,MPI_INT,MPI_SUM,world);
   if (comm->me == 0)
-    error->message(FLERR,"Removed/inserted {}/{} bond particles.", ndel_all,nadd_all);
+    utils::logmesg(lmp, "Removed/inserted {}/{} bond particles.\n", ndel_all, nadd_all);
 
   // check ghost comm distances
   // warn and change if shorter from estimate
@@ -604,7 +604,7 @@ void FixSRP::write_restart(FILE *fp)
 void FixSRP::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
 
   comm->cutghostuser = static_cast<double> (list[n++]);
   btype = static_cast<int> (list[n++]);

@@ -286,7 +286,7 @@ find a heFFTe installation with the correct back end (e.g., FFTW or
 MKL), it will attempt to download and build the library automatically.
 In this case, LAMMPS CMake will also accept all heFFTe specific
 variables listed in the `heFFTe documentation
-<https://mkstoyanov.bitbucket.io/heffte/md_doxygen_installation.html>`_
+<https://icl-utk-edu.github.io/heffte/md_doxygen_installation.html>`_
 and those variables will be passed into the heFFTe build.
 
 ----------
@@ -565,7 +565,7 @@ folder as examples of how those kinds of potential files look like and
 for use with the provided input examples in the ``examples`` tree.  To
 keep the size of the distributed LAMMPS source package small, very large
 potential files (> 5 MBytes) are not bundled, but only downloaded on
-demand when the :doc:`corresponding package <Packages_list>` is
+demand when the :doc:`corresponding package <Packages>` is
 installed.  This automatic download can be prevented when :doc:`building
 LAMMPS with CMake <Build_cmake>` by adding the setting `-D
 DOWNLOAD_POTENTIALS=off` when configuring.

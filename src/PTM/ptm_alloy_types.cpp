@@ -85,7 +85,7 @@ static int32_t canonical_alloy_representation(const refdata_t* ref, int8_t* mapp
 
         return best;
 }
-
+// NOLINTNEXTLINE
 int32_t find_alloy_type(const refdata_t* ref, int8_t* mapping, int32_t* numbers)
 {
         for (int i=0;i<ref->num_nbrs+1;i++)

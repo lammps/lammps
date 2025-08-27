@@ -153,7 +153,7 @@ int RegUnion::surface_interior(double *x, double cutoff)
   int n = 0;
   int walloffset = 0;
   for (ilist = 0; ilist < nregion; ilist++) {
-    auto region = reglist[ilist];
+    auto *region = reglist[ilist];
     ncontacts = region->surface(x[0], x[1], x[2], cutoff);
     for (m = 0; m < ncontacts; m++) {
       xs = x[0] - region->contact[m].delx;
@@ -200,7 +200,7 @@ int RegUnion::surface_exterior(double *x, double cutoff)
   for (ilist = 0; ilist < nregion; ilist++) reglist[ilist]->interior ^= 1;
 
   for (ilist = 0; ilist < nregion; ilist++) {
-    auto region = reglist[ilist];
+    auto *region = reglist[ilist];
     ncontacts = region->surface(x[0], x[1], x[2], cutoff);
     for (m = 0; m < ncontacts; m++) {
       xs = x[0] - region->contact[m].delx;

@@ -24,9 +24,9 @@
 
 using namespace LAMMPS_NS;
 
-typedef struct {
+using dbl3_t = struct {
   double x, y, z;
-} dbl3_t;
+};
 
 /* ----------------------------------------------------------------------
    enforce PBC and modify box image flags for each atom

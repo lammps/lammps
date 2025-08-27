@@ -135,7 +135,7 @@ void PairGranular::compute(int eflag, int vflag)
   if (fix_rigid && neighbor->ago == 0) {
     int tmp;
     int *body = (int *) fix_rigid->extract("body",tmp);
-    auto mass_body = (double *) fix_rigid->extract("masstotal",tmp);
+    auto *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
     if (atom->nmax > nmax) {
       memory->destroy(mass_rigid);
       nmax = atom->nmax;
@@ -422,7 +422,7 @@ void PairGranular::init_style()
 
   // allocate history and aggregate model information
   class GranularModel* model;
-  double nsvector_total;
+  int nsvector_total;
   extra_svector = 0;
   int size_max[NSUBMODELS] = {0};
   for (int n = 0; n < nmodels; n++) {
@@ -559,9 +559,9 @@ double PairGranular::init_one(int i, int j)
 
   if (setflag[i][j] == 0) {
 
-    models_list[nmodels] = new GranularModel(lmp);
+    model = new GranularModel(lmp);
+    models_list[nmodels] = model;
     types_indices[i][j] = nmodels;
-    model = models_list[nmodels];
 
     nmodels += 1;
     if (nmodels == maxmodels) prune_models();

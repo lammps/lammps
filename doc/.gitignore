@@ -3,6 +3,8 @@
 /fasthtml
 /epub
 /latex
+/linkcheck
+/linkchecker-out.html
 /mathjax
 /spelling
 /LAMMPS.epub
@@ -17,6 +19,7 @@
 *.el
 /utils/sphinx-config/_static/mathjax
 /utils/sphinx-config/_static/polyfill.js
+/utils/sphinx-config/_themes/lammps_theme/search.html
 /src/pairs.rst
 /src/bonds.rst
 /src/angles.rst

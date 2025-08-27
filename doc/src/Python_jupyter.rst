@@ -1,16 +1,19 @@
 Using LAMMPS in IPython notebooks and Jupyter
 =============================================
 
-If the LAMMPS Python package is installed for the same Python interpreter as
-`IPython <ipython>`_, you can use LAMMPS directly inside of an IPython notebook inside of
-Jupyter. `Jupyter <juypter>`_ is a powerful integrated development environment (IDE) for
-many dynamic languages like Python, Julia and others, which operates inside of
-any web browser. Besides auto-completion and syntax highlighting it allows you
-to create formatted documents using Markup, mathematical formulas, graphics and
-animations intermixed with executable Python code. It is a great format for
-tutorials and showcasing your latest research.
+If the LAMMPS Python package is installed for the same Python
+interpreter as `IPython <https://ipython.org/>`_, you can use LAMMPS
+directly inside of an IPython notebook inside of Jupyter. `Jupyter
+<https://jupyter.org/>`_ is a powerful integrated development environment
+(IDE) for many dynamic languages like `Python <https://www.python.org/>`_,
+`Julia <https://julialang.org/>`_ and others, which operates inside of
+any web browser. Besides auto-completion and syntax highlighting it
+allows you to create formatted documents using Markup, mathematical
+formulas, graphics and animations intermixed with executable Python
+code. It is a great format for tutorials and showcasing your latest
+research.
 
-The easiest way to install it is via ``pip``:
+The easiest way to install it is via ``pip`` from `<https://pypi.org/>`_:
 
 .. code-block:: bash
 

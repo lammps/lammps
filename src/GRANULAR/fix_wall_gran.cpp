@@ -385,8 +385,8 @@ void FixWallGran::post_force(int /*vflag*/)
 
   if (neighbor->ago == 0 && fix_rigid) {
     int tmp;
-    int *body = (int *) fix_rigid->extract("body",tmp);
-    auto mass_body = (double *) fix_rigid->extract("masstotal",tmp);
+    auto *body = (int *) fix_rigid->extract("body",tmp);
+    auto *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
     if (atom->nmax > nmax) {
       memory->destroy(mass_rigid);
       nmax = atom->nmax;
@@ -500,7 +500,7 @@ void FixWallGran::post_force(int /*vflag*/)
     model->dx[2] = dz;
     model->radi = radius[i];
     model->radj = rwall;
-    if (model->beyond_contact) model->touch = history_one[i][0];
+    if (model->beyond_contact) model->touch = (history_one[i][0] != 0.0);
 
     touchflag = model->check_contact();
 

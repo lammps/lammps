@@ -217,7 +217,7 @@ void FixNonaffineDisplacement::init()
     if (cut_style == RADIUS) {
       neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_OCCASIONAL);
     } else {
-      auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
+      auto *req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
       if (cut_style == CUSTOM) {
         if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
           error->all(FLERR, "Fix nonaffine/displacement with custom cutoff requires neighbor style 'bin' or 'nsq'");

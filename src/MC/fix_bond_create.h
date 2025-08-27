@@ -49,7 +49,6 @@ class FixBondCreate : public Fix {
   double memory_usage() override;
 
  protected:
-  int me;
   int iatomtype, jatomtype;
   int btype, seed;
   int imaxbond, jmaxbond;
@@ -59,6 +58,7 @@ class FixBondCreate : public Fix {
   double cutsq, fraction;
   int atype, dtype, itype;
   int angleflag, dihedralflag, improperflag;
+  int molecule_keyword;
 
   int overflow;
   tagint lastcheck;

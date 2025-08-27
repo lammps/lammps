@@ -56,7 +56,7 @@ using namespace MathExtra;
 
 // CUSTOMIZATION: add a new keyword by adding it to this list:
 
-// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain, part, timeremain
+// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuuse, cpuremain, part, timeremain
 // atoms, temp, press, pe, ke, etotal
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
 // enthalpy, ecouple, econserve
@@ -101,8 +101,9 @@ static char fmtbuf[512];
 /* ---------------------------------------------------------------------- */
 
 Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
-  Pointers(_lmp), style(nullptr), temperature(nullptr), pressure(nullptr), pe(nullptr),
-  vtype(nullptr), cache_mutex(nullptr), field2index(nullptr), argindex1(nullptr), argindex2(nullptr)
+    Pointers(_lmp), style(nullptr), temperature(nullptr), pressure(nullptr), pe(nullptr),
+    vtype(nullptr), cache_mutex(nullptr), field2index(nullptr), argindex1(nullptr),
+    argindex2(nullptr)
 {
   style = utils::strdup(arg[0]);
 
@@ -111,6 +112,8 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
   lineflag = ONELINE;
   modified = 0;
   normuserflag = 0;
+  normflag = 0;
+  normvalue = 0;
   lostflag = lostbond = Thermo::ERROR;
   lostbefore = warnbefore = 0;
   flushflag = 0;
@@ -193,6 +196,7 @@ void Thermo::init()
     normvalue = 1;
   else
     normvalue = 0;
+  normflag = normvalue;
 
   // add Volume field if volume changes and not style = custom
   // this check must come after domain init, so box_change is set
@@ -211,22 +215,27 @@ void Thermo::init()
   if (format_line_user.size()) format_line = new ValueTokenizer(format_line_user);
 
   lock_cache();
-  field_data.clear();
-  field_data.resize(nfield);
+  // only reset cached thermo data if it is the first run or the thermo style has changed
+  if (ntimestep < 0) {
+    field_data.clear();
+    field_data.resize(nfield);
+    for (int i = 0; i < nfield; i++) {
+      if (vtype[i] == FLOAT) {
+        field_data[i] = (double) 0.0;
+      } else if (vtype[i] == INT) {
+        field_data[i] = (int) 0;
+      } else if (vtype[i] == BIGINT) {
+        field_data[i] = (bigint) 0;
+      }
+    }
+  }
+  unlock_cache();
+
   std::string format_this, format_line_user_def;
   for (int i = 0; i < nfield; i++) {
-
     format[i].clear();
     format_this.clear();
     format_line_user_def.clear();
-
-    if (vtype[i] == FLOAT) {
-      field_data[i] = (double) 0.0;
-    } else if (vtype[i] == INT) {
-      field_data[i] = (int) 0;
-    } else if (vtype[i] == BIGINT) {
-      field_data[i] = (bigint) 0;
-    }
 
     if ((lineflag == MULTILINE) && ((i % 3) == 0)) format[i] += "\n";
     if ((lineflag == YAMLLINE) && (i == 0)) format[i] += "  - [";
@@ -280,7 +289,6 @@ void Thermo::init()
         format[i] += fmt::format("{:<8} = {} ", keyword[i], format_this);
     }
   }
-  unlock_cache();
 
   // chop off trailing blank or add closing bracket if needed and then add newline
   if (lineflag == ONELINE)
@@ -396,8 +404,8 @@ void Thermo::footer()
 
 void Thermo::compute(int flag)
 {
-  int i;
-
+  // don't overwrite field data if continuing run and no change to thermo style
+  bool update_field_data = ntimestep != update->ntimestep;
   firststep = flag;
   ntimestep = update->ntimestep;
 
@@ -412,7 +420,7 @@ void Thermo::compute(int flag)
 
   // invoke Compute methods needed for thermo keywords
 
-  for (i = 0; i < ncompute; i++)
+  for (int i = 0; i < ncompute; i++)
     if (compute_which[i] == SCALAR) {
       if (!(computes[i]->invoked_flag & Compute::INVOKED_SCALAR)) {
         computes[i]->compute_scalar();
@@ -443,27 +451,28 @@ void Thermo::compute(int flag)
   }
 
   // add each thermo value to line with its specific format
-  lock_cache();
-  field_data.clear();
-  field_data.resize(nfield);
+  if (update_field_data) {
+    lock_cache();
+    if ((int)field_data.size() != nfield) field_data.resize(nfield);
+  }
 
   for (ifield = 0; ifield < nfield; ifield++) {
     (this->*vfunc[ifield])();
     if (vtype[ifield] == FLOAT) {
       snprintf(fmtbuf, sizeof(fmtbuf), format[ifield].c_str(), dvalue);
       line += fmtbuf;
-      field_data[ifield] = dvalue;
+      if (update_field_data) field_data[ifield] = dvalue;
     } else if (vtype[ifield] == INT) {
       snprintf(fmtbuf, sizeof(fmtbuf), format[ifield].c_str(), ivalue);
       line += fmtbuf;
-      field_data[ifield] = ivalue;
+      if (update_field_data) field_data[ifield] = ivalue;
     } else if (vtype[ifield] == BIGINT) {
       snprintf(fmtbuf, sizeof(fmtbuf), format[ifield].c_str(), bivalue);
       line += fmtbuf;
-      field_data[ifield] = bivalue;
+      if (update_field_data) field_data[ifield] = bivalue;
     }
   }
-  unlock_cache();
+  if (update_field_data) unlock_cache();
 
   // print line to screen and logfile
 
@@ -498,10 +507,9 @@ bigint Thermo::lost_check()
   if ((maxwarn > 0) && (warnbefore == 0) && (ntotal[1] > maxwarn)) {
     warnbefore = 1;
     if (comm->me == 0)
-      error->message(FLERR,
-                     "WARNING: Too many warnings: {} vs {}. "
-                     "All future warnings will be suppressed",
-                     ntotal[1], maxwarn);
+      utils::logmesg(
+          lmp, "WARNING: Too many warnings: {} vs {}. All future warnings willbe suppressed\n",
+          ntotal[1], maxwarn);
   }
   error->set_allwarn(MIN(MAXSMALLINT, ntotal[1]));
 
@@ -515,12 +523,14 @@ bigint Thermo::lost_check()
   // error message
 
   if (lostflag == Thermo::ERROR)
-    error->all(FLERR, Error::NOLASTLINE, "Lost atoms: original {} current {}" + utils::errorurl(8), atom->natoms, ntotal[0]);
+    error->all(FLERR, Error::NOLASTLINE, "Lost atoms: original {} current {}" + utils::errorurl(8),
+               atom->natoms, ntotal[0]);
 
   // warning message
 
   if (comm->me == 0)
-    error->warning(FLERR, "Lost atoms: original {} current {}" + utils::errorurl(8), atom->natoms, ntotal[0]);
+    error->warning(FLERR, "Lost atoms: original {} current {}" + utils::errorurl(8), atom->natoms,
+                   ntotal[0]);
 
   // reset total atom count
 
@@ -875,6 +885,8 @@ void Thermo::parse_fields(const std::string &str)
       addfield("T/CPU", &Thermo::compute_tpcpu, FLOAT);
     } else if (word == "spcpu") {
       addfield("S/CPU", &Thermo::compute_spcpu, FLOAT);
+    } else if (word == "cpuuse") {
+      addfield("%CPU", &Thermo::compute_cpuuse, FLOAT);
     } else if (word == "cpuremain") {
       addfield("CPULeft", &Thermo::compute_cpuremain, FLOAT);
     } else if (word == "part") {
@@ -1087,28 +1099,28 @@ void Thermo::parse_fields(const std::string &str)
       argindex2[nfield] = (argi.get_dim() > 1) ? argi.get_index2() : 0;
 
       if (argi.get_type() == ArgInfo::COMPUTE) {
-        auto icompute = modify->get_compute_by_id(argi.get_name());
+        auto *icompute = modify->get_compute_by_id(argi.get_name());
         if (!icompute)
           error->all(FLERR, nfield + 1, "Could not find thermo custom compute ID: {}",
                      icompute->id);
-        if (argi.get_dim() == 0) { // scalar
+        if (argi.get_dim() == 0) {    // scalar
           if (icompute->scalar_flag == 0)
-            error->all(FLERR,  nfield + 1, "Thermo custom compute {} does not compute a scalar",
+            error->all(FLERR, nfield + 1, "Thermo custom compute {} does not compute a scalar",
                        icompute->id);
           field2index[nfield] = add_compute(icompute->id, SCALAR);
 
-        } else if (argi.get_dim() == 1) { // vector
+        } else if (argi.get_dim() == 1) {    // vector
           if (icompute->vector_flag == 0)
             error->all(FLERR, nfield + 1, "Thermo custom compute {} does not compute a vector",
                        icompute->id);
           if ((argindex1[nfield] < 1) ||
               ((icompute->size_vector_variable == 0) && argindex1[nfield] > icompute->size_vector))
             error->all(FLERR, nfield + 1,
-                       "Thermo custom compute {} vector is accessed out-of-range{}",
-                       icompute->id,utils::errorurl(20));
+                       "Thermo custom compute {} vector is accessed out-of-range{}", icompute->id,
+                       utils::errorurl(20));
           field2index[nfield] = add_compute(icompute->id, VECTOR);
 
-        } else if (argi.get_dim() == 2) { // array
+        } else if (argi.get_dim() == 2) {    // array
           if (icompute->array_flag == 0)
             error->all(FLERR, nfield + 1, "Thermo custom compute {} does not compute an array",
                        icompute->id);
@@ -1117,8 +1129,8 @@ void Thermo::parse_fields(const std::string &str)
                (argindex1[nfield] > icompute->size_array_rows)) ||
               (argindex2[nfield] > icompute->size_array_cols))
             error->all(FLERR, nfield + 1,
-                       "Thermo custom compute {} array is accessed out-of-range{}",
-                       icompute->id, utils::errorurl(20));
+                       "Thermo custom compute {} array is accessed out-of-range{}", icompute->id,
+                       utils::errorurl(20));
           field2index[nfield] = add_compute(icompute->id, ARRAY);
 
         } else {
@@ -1128,15 +1140,15 @@ void Thermo::parse_fields(const std::string &str)
         addfield(word.c_str(), &Thermo::compute_compute, FLOAT);
 
       } else if (argi.get_type() == ArgInfo::FIX) {
-        auto ifix = modify->get_fix_by_id(argi.get_name());
-        if (!ifix) error->all(FLERR, nfield + 1, "Could not find thermo custom fix ID: {}",
-                              ifix->id);
-        if (argi.get_dim() == 0) { // scalar
+        auto *ifix = modify->get_fix_by_id(argi.get_name());
+        if (!ifix)
+          error->all(FLERR, nfield + 1, "Could not find thermo custom fix ID: {}", ifix->id);
+        if (argi.get_dim() == 0) {    // scalar
           if (ifix->scalar_flag == 0)
             error->all(FLERR, nfield + 1, "Thermo custom fix {} does not compute a scalar",
                        ifix->id);
 
-        } else if (argi.get_dim() == 1) { // vector
+        } else if (argi.get_dim() == 1) {    // vector
           if (ifix->vector_flag == 0)
             error->all(FLERR, nfield + 1, "Thermo custom fix {} does not compute a vector",
                        ifix->id);
@@ -1145,14 +1157,14 @@ void Thermo::parse_fields(const std::string &str)
             error->all(FLERR, nfield + 1, "Thermo custom fix {} vector is accessed out-of-range{}",
                        ifix->id, utils::errorurl(20));
 
-        } else if (argi.get_dim() == 2) { // array
+        } else if (argi.get_dim() == 2) {    // array
           if (ifix->array_flag == 0)
-            error->all(FLERR,  nfield + 1, "Thermo custom fix {} does not compute an array",
+            error->all(FLERR, nfield + 1, "Thermo custom fix {} does not compute an array",
                        ifix->id);
-          if ((argindex1[nfield] < 1) || (argindex2[nfield] < 1)
-              || ((ifix->size_array_rows_variable == 0) &&
-                  (argindex1[nfield] > ifix->size_array_rows))
-              || (argindex2[nfield] > ifix->size_array_cols))
+          if ((argindex1[nfield] < 1) || (argindex2[nfield] < 1) ||
+              ((ifix->size_array_rows_variable == 0) &&
+               (argindex1[nfield] > ifix->size_array_rows)) ||
+              (argindex2[nfield] > ifix->size_array_cols))
             error->all(FLERR, nfield + 1, "Thermo custom fix {} array is accessed out-of-range{}",
                        ifix->id, utils::errorurl(20));
         } else {
@@ -1176,11 +1188,11 @@ void Thermo::parse_fields(const std::string &str)
             error->all(FLERR, nfield + 1,
                        "Thermo custom variable {} is not a vector-style variable", argi.get_name());
         } else if (argi.get_dim() == 2) {
-          error->all(FLERR,  nfield + 1, "Thermo custom variable {} cannot have two indices",
+          error->all(FLERR, nfield + 1, "Thermo custom variable {} cannot have two indices",
                      argi.get_name());
         } else {
-          error->all(FLERR, nfield + 1,
-                     "Thermo custom variable {} has unsupported format", argi.get_name());
+          error->all(FLERR, nfield + 1, "Thermo custom variable {} has unsupported format",
+                     argi.get_name());
         }
         field2index[nfield] = add_variable(argi.get_name());
         addfield(word.c_str(), &Thermo::compute_variable, FLOAT);
@@ -1269,7 +1281,8 @@ void Thermo::check_temp(const std::string &keyword)
 void Thermo::check_pe(const std::string &keyword)
 {
   if (update->eflag_global != update->ntimestep)
-    error->all(FLERR, Error::NOLASTLINE, "Energy was not tallied on needed timestep{}", utils::errorurl(22));
+    error->all(FLERR, Error::NOLASTLINE, "Energy was not tallied on needed timestep{}",
+               utils::errorurl(22));
   if (!pe)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init potential energy",
                keyword);
@@ -1393,6 +1406,11 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
       error->all(FLERR, "The variable thermo keyword spcpu cannot be used between runs");
     compute_spcpu();
 
+  } else if (word == "cpuuse") {
+    if (update->whichflag == 0)
+      error->all(FLERR, "The variable thermo keyword cpuuse cannot be used between runs");
+    compute_cpuuse();
+
   } else if (word == "cpuremain") {
     if (update->whichflag == 0)
       error->all(FLERR, "The variable thermo keyword cpuremain cannot be used between runs");
@@ -1468,8 +1486,9 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   } else if (word == "etail") {
     if (update->eflag_global != update->ntimestep)
-      error->all(FLERR, Error::NOLASTLINE, "Energy was not tallied on needed timestep for thermo "
-                                           "keyword etail{}", utils::errorurl(22));
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Energy was not tallied on needed timestep for thermo keyword etail{}",
+                 utils::errorurl(22));
     compute_etail();
 
   } else if (word == "enthalpy") {
@@ -1819,9 +1838,13 @@ void Thermo::compute_tpcpu()
   if (firststep == 0) {
     new_cpu = 0.0;
     dvalue = 0.0;
+    // if evaluated on the same step already used cached value
+  } else if (last_time == new_time) {
+    dvalue = last_tpcpu;
+    return;
   } else {
     new_cpu = timer->elapsed(Timer::TOTAL);
-    double cpu_diff = new_cpu - last_tpcpu;
+    double cpu_diff = new_cpu - last_cpu1;
     double time_diff = new_time - last_time;
     if (time_diff > 0.0 && cpu_diff > 0.0)
       dvalue = time_diff / cpu_diff;
@@ -1830,7 +1853,8 @@ void Thermo::compute_tpcpu()
   }
 
   last_time = new_time;
-  last_tpcpu = new_cpu;
+  last_cpu1 = new_cpu;
+  last_tpcpu = dvalue;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1838,23 +1862,38 @@ void Thermo::compute_tpcpu()
 void Thermo::compute_spcpu()
 {
   double new_cpu;
-  int new_step = update->ntimestep;
+  bigint new_step = update->ntimestep;
 
   if (firststep == 0) {
     new_cpu = 0.0;
     dvalue = 0.0;
+    // if evaluated on the same step already used cached value
+  } else if (last_step == new_step) {
+    dvalue = last_spcpu;
+    return;
   } else {
     new_cpu = timer->elapsed(Timer::TOTAL);
-    double cpu_diff = new_cpu - last_spcpu;
-    int step_diff = new_step - last_step;
+    double cpu_diff = new_cpu - last_cpu2;
+    auto step_diff = double(new_step - last_step);
     if (cpu_diff > 0.0)
       dvalue = step_diff / cpu_diff;
     else
       dvalue = 0.0;
   }
 
+  last_cpu2 = new_cpu;
   last_step = new_step;
-  last_spcpu = new_cpu;
+  last_spcpu = dvalue;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_cpuuse()
+{
+  if (firststep == 0)
+    dvalue = 0.0;
+  else
+    dvalue = 100.0 * timer->cpu(Timer::TOTAL) / (timer->elapsed(Timer::TOTAL) + 1.0e-100);
 }
 
 /* ---------------------------------------------------------------------- */

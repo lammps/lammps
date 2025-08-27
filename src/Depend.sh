@@ -96,6 +96,10 @@ if (test $1 = "EXTRA-COMPUTE") then
   depend KOKKOS
 fi
 
+if (test $1 = "EXTRA-FIX") then
+  depend KOKKOS
+fi
+
 if (test $1 = "EXTRA-MOLECULE") then
   depend GPU
   depend OPENMP
@@ -146,6 +150,7 @@ fi
 
 if (test $1 = "MC") then
   depend MISC
+  depend VORONOI
 fi
 
 if (test $1 = "MEAM") then
@@ -176,6 +181,7 @@ if (test $1 = "PHONON") then
 fi
 
 if (test $1 = "RIGID") then
+  depend MC
   depend KOKKOS
   depend OPENMP
   depend DPD-SMOOTH

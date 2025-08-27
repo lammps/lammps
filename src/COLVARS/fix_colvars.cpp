@@ -39,14 +39,17 @@
 #include "modify.h"
 #include "output.h"
 #include "respa.h"
+#if defined(COLVARS_MPI)
 #include "universe.h"
+#endif
 #include "update.h"
 
 #include "colvarmodule.h"
-#include "colvarproxy.h"
 #include "colvarproxy_lammps.h"
 #include "colvars_memstream.h"
 #include "colvarscript.h"
+
+#include <cstring>
 
 /* struct for packed data communication of coordinates and forces. */
 struct LAMMPS_NS::commdata {
@@ -293,7 +296,7 @@ void FixColvars::set_thermostat_temperature()
           error->one(FLERR, "Could not find thermostat fix ID {}", tfix_name);
         }
         int tmp = 0;
-        double *tt = reinterpret_cast<double *>(tstat_fix->extract("t_target", tmp));
+        auto *tt = reinterpret_cast<double *>(tstat_fix->extract("t_target", tmp));
         if (tt) {
           t_target = *tt;
         } else {
@@ -492,7 +495,6 @@ void FixColvars::setup(int vflag)
 
   if (me == 0) {
 
-    std::vector<int>     const &id = *(proxy->get_atom_ids());
     std::vector<int>           &tp = *(proxy->modify_atom_types());
     std::vector<cvm::atom_pos> &cd = *(proxy->modify_atom_positions());
     std::vector<cvm::rvector>  &of = *(proxy->modify_atom_total_forces());
@@ -898,7 +900,7 @@ void FixColvars::restart(char *buf)
   if (comm->me == 0) {
     // Read the buffer's length, then load it into Colvars starting right past that location
     int length = *(reinterpret_cast<int *>(buf));
-    unsigned char *colvars_state_buffer = reinterpret_cast<unsigned char *>(buf + sizeof(int));
+    auto *colvars_state_buffer = reinterpret_cast<unsigned char *>(buf + sizeof(int));
     if (proxy->colvars->set_input_state_buffer(length, colvars_state_buffer) != COLVARS_OK) {
       error->all(FLERR, "Failed to set the Colvars input state from string buffer");
     }
@@ -928,7 +930,7 @@ double FixColvars::compute_scalar()
 /* local memory usage. approximately. */
 double FixColvars::memory_usage()
 {
-  double bytes = (double) (num_coords * (2*sizeof(int)+3*sizeof(double)));
-  bytes += (double)(double) (nmax*size_one) + sizeof(this);
+  auto bytes = (double) (num_coords * (2*sizeof(int)+3*sizeof(double)));
+  bytes += (double) (nmax*size_one) + sizeof(*this);
   return bytes;
 }

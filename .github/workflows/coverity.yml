@@ -12,7 +12,7 @@ jobs:
     if: ${{ github.repository == 'lammps/lammps' }}
     runs-on: ubuntu-latest
     container:
-      image: lammps/buildenv:ubuntu20.04
+      image: lammps/buildenv:ubuntu22.04
 
     steps:
     - name: Checkout repository
@@ -58,9 +58,7 @@ jobs:
         -D BUILD_OMP=on \
         -D BUILD_SHARED_LIBS=on \
         -D LAMMPS_SIZES=SMALLBIG \
-        -D LAMMPS_EXCEPTIONS=off \
-        -D PKG_ATC=on \
-        -D PKG_AWPMD=on \
+        -D DOWNLOAD_POTENTIALS=off \
         -D PKG_H5MD=on \
         -D PKG_INTEL=on \
         -D PKG_LATBOLTZ=on \

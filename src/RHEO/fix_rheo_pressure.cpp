@@ -20,14 +20,13 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
 #include "error.h"
 #include "fix_rheo.h"
 #include "memory.h"
 #include "modify.h"
-#include "update.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -289,7 +288,7 @@ double FixRHEOPressure::calc_rho(double p, int i)
 
 /* ---------------------------------------------------------------------- */
 
-double FixRHEOPressure::calc_csq(double p, int i)
+double FixRHEOPressure::calc_csq(double /*p*/, int i)
 {
   int type = atom->type[i];
   double csq2 = csq[type];

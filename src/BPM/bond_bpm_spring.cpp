@@ -140,7 +140,7 @@ void BondBPMSpring::store_data()
       delz = x[i][2] - x[j][2];
 
       // Get closest image in case bonded with ghost
-      domain->minimum_image(delx, dely, delz);
+      domain->minimum_image(FLERR, delx, dely, delz);
       r = sqrt(delx * delx + dely * dely + delz * delz);
 
       fix_bond_history->update_atom_value(i, m, 0, r);
@@ -154,7 +154,7 @@ void BondBPMSpring::store_data()
 
 void BondBPMSpring::compute(int eflag, int vflag)
 {
-  int i, bond_change_flag;
+  int bond_change_flag = 0;
   double *vol0, *vol;
 
   if (volume_flag) {
@@ -165,7 +165,7 @@ void BondBPMSpring::compute(int eflag, int vflag)
     if (nmax < atom->nmax) {
       nmax = atom->nmax;
       memory->create(dvol0, nmax, "bond/bpm/spring:dvol0");
-      for (i = 0; i < nmax; i++) dvol0[i] = 0.0;
+      for (int i = 0; i < nmax; i++) dvol0[i] = 0.0;
     }
   }
 
@@ -178,7 +178,7 @@ void BondBPMSpring::compute(int eflag, int vflag)
       bond_change_flag = calculate_vol();
 
       // zero dvol0, not needed since vol0 just calculated
-      for (i = 0; i < nmax; i++) dvol0[i] = 0.0;
+      for (int i = 0; i < nmax; i++) dvol0[i] = 0.0;
     }
   }
 
@@ -627,10 +627,9 @@ double BondBPMSpring::single(int type, double rsq, int i, int j, double &fforce)
 
 int BondBPMSpring::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i, m, last;
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) buf[m++] = vol_current[i];
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; i++) buf[m++] = vol_current[i];
   return m;
 }
 
@@ -638,10 +637,9 @@ int BondBPMSpring::pack_reverse_comm(int n, int first, double *buf)
 
 void BondBPMSpring::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i, j, m;
-  m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    int j = list[i];
     vol_current[j] += buf[m++];
   }
 }
@@ -650,10 +648,9 @@ void BondBPMSpring::unpack_reverse_comm(int n, int *list, double *buf)
 
 int BondBPMSpring::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
-  int i, j, m;
-  m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    int j = list[i];
     buf[m++] = vol_current[j];
   }
   return m;
@@ -663,8 +660,7 @@ int BondBPMSpring::pack_forward_comm(int n, int *list, double *buf, int /*pbc_fl
 
 void BondBPMSpring::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i, m, last;
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) vol_current[i] = buf[m++];
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; i++) vol_current[i] = buf[m++];
 }

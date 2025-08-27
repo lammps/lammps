@@ -22,7 +22,7 @@ class BosonicExchange : protected Pointers {
  public:
   BosonicExchange(class LAMMPS *, int nbosons, int np, int bead_num, bool mic,
                   bool beta_convention);
-  ~BosonicExchange();
+  ~BosonicExchange() override;
 
   void prepare_with_coordinates(const double *x, const double *x_prev, const double *x_next,
                                 double beta, double spring_constant);

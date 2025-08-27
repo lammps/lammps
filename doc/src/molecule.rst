@@ -34,7 +34,7 @@ Syntax
        *ioff* value = Ioff
          Ioff = offset to add to improper types
        *scale* value = sfactor
-         sfactor = scale factor to apply to the size and mass of the molecule
+         sfactor = scale factor to apply to the size, mass, and dipole of the molecule
 
 Examples
 """"""""
@@ -42,6 +42,7 @@ Examples
 .. code-block:: LAMMPS
 
    molecule 1 mymol.txt
+   molecule water tip3p.json
    molecule 1 co2.txt h2o.txt
    molecule CO2 co2.txt boff 3 aoff 2
    molecule 1 mymol.txt offset 6 9 18 23 14
@@ -65,7 +66,7 @@ templates include:
 * :doc:`atom_style template <atom_style>`
 
 The ID of a molecule template can only contain alphanumeric characters
-and underscores.
+and underscores, same as other IDs in LAMMPS.
 
 A single template can contain multiple molecules, listed one per file.
 Some of the commands listed above currently use only the first
@@ -73,6 +74,13 @@ molecule in the template, and will issue a warning if the template
 contains multiple molecules.  The :doc:`atom_style template
 <atom_style>` command allows multiple-molecule templates to define a
 system with more than one templated molecule.
+
+The molecule file can be either in a *native* format or in `JSON format
+<https://www.json.org/>`_.  JSON formal filenames **must** have the
+extension ".json".  Files with any other name will be assumed to be in
+the "native" format.  The details of the two formats are described
+below.  When referencing multiple molecule files in a single *molecule*
+command, each of those files may be either format.
 
 Each filename can be followed by optional keywords which are applied
 only to the molecule in the file as used in this template.  This is to
@@ -95,40 +103,45 @@ use that attribute (e.g. no bonds).
    labels will determine the actual types directly depending on the
    current :doc:`labelmap <labelmap>` settings.
 
-The *scale* keyword scales the size of the molecule.  This can be
-useful for modeling polydisperse granular rigid bodies.  The scale
-factor is applied to each of these properties in the molecule file, if
-they are defined: the individual particle coordinates (Coords
-section), the individual mass of each particle (Masses section), the
-individual diameters of each particle (Diameters section), the total
-mass of the molecule (header keyword = mass), the center-of-mass of
-the molecule (header keyword = com), and the moments of inertia of the
-molecule (header keyword = inertia).
+The *scale* keyword scales the size of the molecule.  This can be useful
+for modeling polydisperse granular rigid bodies.  The scale factor is
+applied to each of these properties in the molecule file, if they are
+defined: the individual particle coordinates (Coords or "coords"
+section), the individual mass of each particle (Masses or "masses"
+section), the individual diameters of each particle (Diameters or
+"diameters" section), the per-atom dipoles (Dipoles or "dipoles"
+section) the total mass of the molecule (header keyword = mass), the
+center-of-mass of the molecule (header keyword = com), and the moments
+of inertia of the molecule (header keyword = inertia).
 
 .. note::
 
    The molecule command can be used to define molecules with bonds,
-   angles, dihedrals, impropers, or special bond lists of neighbors
+   angles, dihedrals, impropers, and special bond lists of neighbors
    within a molecular topology, so that you can later add the molecules
    to your simulation, via one or more of the commands listed above.
-   Since this topology-related information requires that suitable storage
-   is reserved when LAMMPS creates the simulation box (e.g. when using
-   the :doc:`create_box <create_box>` command or the
-   :doc:`read_data <read_data>` command) suitable space has to be reserved
-   so you do not overflow those pre-allocated data structures when adding
-   molecules later.  Both the :doc:`create_box <create_box>` command and
-   the :doc:`read_data <read_data>` command have "extra" options which
-   ensure space is allocated for storing topology info for molecules that
-   are added later.
+   Since this topology-related information requires that suitable
+   storage is reserved when LAMMPS creates the simulation box (e.g. when
+   using the :doc:`create_box <create_box>` command or the
+   :doc:`read_data <read_data>` command) suitable space has to be
+   reserved at that step so you do not overflow those pre-allocated data
+   structures when adding molecules later.  Both the :doc:`create_box
+   <create_box>` command and the :doc:`read_data <read_data>` command
+   have "extra" options which ensure extra space is allocated for
+   storing topology info for molecules that are added later.  This
+   feature is *not* available for the :doc:`read_restart command
+   <read_restart>`, thus binary restart files need to be converted
+   to data files first.
 
 ----------
 
-Format of a molecule file
-"""""""""""""""""""""""""
+Format of a native molecule file
+""""""""""""""""""""""""""""""""
 
-The format of an individual molecule file looks similar but is
-different than that of a data file read by the :doc:`read_data <read_data>`
-commands.  Here is a simple example for a TIP3P water molecule:
+The format of an "native" individual molecule file looks similar but is
+*different* from that of a data file read by the :doc:`read_data
+<read_data>` commands.  Here is a simple example for a TIP3P water
+molecule:
 
 .. code-block::
 
@@ -196,7 +209,7 @@ defining a *body* particle, which requires setting the number of
 
 .. list-table::
       :header-rows: 1
-      :widths: 20 13 42 15
+      :widths: 21 12 47 20
 
       * - Number(s)
         - Keyword
@@ -205,7 +218,7 @@ defining a *body* particle, which requires setting the number of
       * - N
         - atoms
         - # of atoms N in molecule
-        - 0
+        - keyword is *required*
       * - Nb
         - bonds
         - # of bonds Nb in molecule
@@ -228,8 +241,8 @@ defining a *body* particle, which requires setting the number of
         - 0
       * - Ninteger Ndouble
         - body
-        - # of integer and floating-point values in body particle
-        - 0
+        - # of integer and floating-point values in :doc:`body particle <Howto_body>`
+        - 0 0
       * - Mtotal
         - mass
         - total mass of molecule
@@ -666,6 +679,343 @@ and 4F vertex indices defining the faces are required.
 
 See the :doc:`Howto body <Howto_body>` page for a further description of
 the file format.
+
+----------
+
+Format of a JSON molecule file
+""""""""""""""""""""""""""""""
+
+.. versionadded:: 12Jun2025
+
+The format of a JSON format individual molecule file must follow the
+`JSON format <https://www.json.org/>`_, which evolved from the
+JavaScript programming language as a programming-language-neutral data
+interchange language.  The JSON syntax is independent of its content,
+and thus the data in the file must follow suitable conventions to be
+correctly processed.  LAMMPS provides a `JSON schema file
+<https://json-schema.org/>`_ for JSON format molecule files in the
+:ref:`tools/json folder <json>` to represent those conventions.  Using
+the schema file any JSON format molecule files can be validated.  Please
+note that the format requirement for JSON are very strict and the JSON
+reader in LAMMPS does not accept files with extensions like comments.
+Validating a particular JSON format molecule file against this schema
+ensures that both, the JSON syntax requirement *and* the LAMMPS
+conventions for molecule template files are followed.  LAMMPS should be
+able to read and parse any JSON file that passes the schema check.  This
+is a formal check only and thus it **cannot** check whether the file
+contents are consistent or physically meaningful.
+
+Here is a simple example for the same TIP3P water molecule from above in
+JSON format and also using :doc:`type labels <labelmap>` instead of
+numeric types:
+
+.. code-block:: json
+
+   {
+       "application": "LAMMPS",
+       "format": "molecule",
+       "revision": 1,
+       "title": "Water molecule. TIP3P geometry",
+       "schema": "https://download.lammps.org/json/molecule-schema.json",
+       "units": "real",
+       "coords": {
+           "format": ["atom-id", "x", "y", "z"],
+           "data": [
+               [1,  0.00000, -0.06556,  0.00000],
+               [2,  0.75695,  0.52032,  0.00000],
+               [3, -0.75695,  0.52032,  0.00000]
+           ]
+       },
+       "types": {
+           "format": ["atom-id", "type"],
+           "data": [
+               [1,  "OW"],
+               [2,  "HO1"],
+               [3,  "HO1"]
+           ]
+       },
+       "charges": {
+           "format": ["atom-id", "charge"],
+           "data": [
+               [1, -0.834],
+               [2,  0.417],
+               [3,  0.417]
+           ]
+       },
+       "bonds": {
+           "format": ["bond-type", "atom1", "atom2"],
+           "data": [
+               ["OW-HO1",  1,  2],
+               ["OW-HO1",  1,  3]
+           ]
+       },
+       "angles": {
+           "format": ["angle-type", "atom1", "atom2", "atom3"],
+           "data": [
+               ["HO1-OW-HO1",  2,  1,  3]
+           ]
+       }
+   }
+
+Unlike with the native molecule file format, there are no header or body
+sections, just a list of keywords with associated data.  JSON format
+data is read, parsed, and stored in an internal dictionary data
+structure in one step and thus the order of keywords is not relevant.
+
+Data for keywords is either provided directly following the keyword or
+as a *data block*.  A *data block* is a list that has to include two
+keywords, "format" and "data", where the former lists keywords of the
+properties that are stored in the columns of the "data" lists.  The
+names and order of entries in the "format" list (and thus how the data
+is interpreted) are currently fixed.
+
+Since the length of the various lists can be easily obtained from the
+internal data structure, several header keywords of the "native" molecule
+file are not needed.  On the other hand, some additional keywords are
+required to identify the conventions applied to the generic JSON file
+format.  The structure of the data itself mostly follows what is used
+for the "native" molecule file format.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Keyword
+     - Argument(s)
+     - Required
+     - Description
+   * - application
+     - "LAMMPS"
+     - yes
+     - indicates a LAMMPS JSON file; files from other applications may be accepted in the future
+   * - format
+     - "molecule"
+     - yes
+     - indicates a molecule template file
+   * - revision
+     - an integer
+     - yes
+     - currently 1, to facility backward compatibility on changes to the conventions
+   * - title
+     - a string
+     - no
+     - information about the template which will echoed to the screen and log
+   * - schema
+     - URL as string
+     - no
+     - location of a JSON schema file for validating the molecule file format
+   * - units
+     - a string
+     - no
+     - indicates :doc:`units settings <units>` for this molecule template
+   * - com
+     - list with 3 doubles
+     - no
+     - overrides the auto-computed center-of-mass for the template
+   * - masstotal
+     - double
+     - no
+     - overrides the auto-computed total mass for the template
+   * - inertia
+     - list with 6 doubles
+     - no
+     - overrides the auto-computed moments of inertia
+   * - coords
+     - a data block
+     - no
+     - contains atom positions with the format "atom-id", "x", "y", "z" (same as Coords)
+   * - types
+     - a data block
+     - yes
+     - assigns atom types to atoms with the format "atom-id", "type" (same as Types)
+   * - molecule
+     - a data block
+     - no
+     - assigns molecule-IDs to atoms with the format "atom-id", "molecule-id" (same as Molecules)
+   * - fragments
+     - a data block
+     - no
+     - assigns atom-ids to fragment-IDs with the format "fragment-id", "atom-id-list" (same as Fragments)
+   * - charges
+     - a data block
+     - no
+     - assigns charges to atoms with the format "atom-id", "charge" (same as Charges)
+   * - dipoles
+     - a data block
+     - no
+     - assigns point dipoles to atoms with the format "atom-id", "mux", "muy", "muz" (same as Dipoles)
+   * - diameters
+     - a data block
+     - no
+     - assigns diameters to atoms with the format "atom-id", "diameter" (same as Diameters)
+   * - masses
+     - a data block
+     - no
+     - assigns per-atom masses to atoms with the format "atom-id", "mass" (same as Masses)
+   * - bonds
+     - a data block
+     - no
+     - defines bonds in the molecule template with the format "bond-type", "atom1", "atom2" (same as Bonds without bond-ID)
+   * - angles
+     - a data block
+     - no
+     - defines angles in the molecule template with the format "angle-type", "atom1", "atom2", "atom3" (same as Angles without angle-ID)
+   * - dihedrals
+     - a data block
+     - no
+     - defines dihedrals in the molecule template with the format "dihedral-type", "atom1", "atom2", "atom3", "atom4" (same as Dihedrals without dihedral-ID)
+   * - impropers
+     - a data block
+     - no
+     - defines impropers in the molecule template with the format "improper-type", "atom1", "atom2", "atom3", "atom4" (same as Impropers without improper-ID)
+   * - shake
+     - 3 JSON objects
+     - no
+     - contains the sub-sections "flags", "atoms", "bonds" described below
+   * - special
+     - 2 JSON objects
+     - no
+     - contains the sub-sections "counts" and "bonds" described below
+   * - body
+     - 2 JSON objects
+     - no
+     - contains the "integers" and "doubles" sub-sections with arrays with the same data as Body Integers and Body Doubles, respectively
+
+The following table describes the sub-sections for the "special" entry from above:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Subsection
+     - Argument(s)
+     - Required
+     - Description
+   * - counts
+     - a data block
+     - yes
+     - contains the counts of 1-2, 1-3, and 1-4 special neighbors with the format "atom-id", "n12", "n13", "n14" (same as Special Bond Counts)
+   * - bonds
+     - a data block
+     - yes
+     - contains the lists of special neighbors to atoms with the format "atom-id", "atom-id-list" (same as Special Bonds)
+
+The following table describes the sub-sections for the "shake" entry from above:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Subsection
+     - Argument(s)
+     - Required
+     - Description
+   * - flags
+     - a data block
+     - yes
+     - contains the counts shake flags for atoms with the format "atom-id", "flag" (same as Shake Flags)
+   * - atoms
+     - a data block
+     - yes
+     - contains the lists of shake cluster atom-ids for atoms with the format "atom-id", "atom-id-list" (same as Shake Atoms)
+   * - bonds
+     - a data block
+     - yes
+     - contains the lists of shake bond or angle types for atoms with the format "atom-id", "type-list" (same as Shake Bonds)
+
+The "special" and "shake" sections are usually not needed, since the
+data can be auto-generated as soon as the simulation box is defined.
+Below is an example for what would have to be *added* to the example
+JSON file above in case the molecule command needs to be issued earlier.
+
+.. code-block:: json
+
+   "special": {
+       "counts": {
+           "format": ["atom-id", "n12", "n13", "n14"],
+           "data": [
+               [1, 2, 0, 0],
+               [2, 1, 1, 0],
+               [3, 1, 1, 0]
+           ]
+       },
+       "bonds": {
+           "format": ["atom-id", "atom-id-list"],
+           "data": [
+               [1,  [2, 3]],
+               [2,  [1, 3]],
+               [3,  [1, 2]]
+           ]
+       }
+   },
+   "shake": {
+       "flags": {
+           "format": ["atom-id", "flag"],
+           "data": [
+               [1, 1],
+               [2, 1],
+               [3, 1]
+           ]
+       },
+       "atoms": {
+           "format": ["atom-id", "atom-id-list"],
+           "data": [
+               [1,  [1, 2, 3]],
+               [2,  [1, 2, 3]],
+               [3,  [1, 2, 3]]
+           ]
+       },
+       "types": {
+           "format": ["atom-id", "type-list"],
+           "data": [
+               [1,  ["OW-HO1",  "OW-HO1", "HO1-OW-HO1"]],
+               [2,  ["OW-HO1",  "OW-HO1", "HO1-OW-HO1"]],
+               [3,  ["OW-HO1",  "OW-HO1", "HO1-OW-HO1"]]
+           ]
+       }
+   }
+
+
+Below is a minimal example of a JSON format molecule template for a body
+particle for :doc:`pair style body/nparticle
+<pair_body_nparticle>`. Molecule templates for body particles must
+contain only one atom:
+
+.. code-block:: json
+
+   {
+       "application": "LAMMPS",
+       "format": "molecule",
+       "revision": 1,
+       "title": "Square body for body/nparticles",
+       "schema": "https://download.lammps.org/json/molecule-schema.json",
+       "units": "real",
+       "coords": {
+           "format": ["atom-id", "x", "y", "z"],
+           "data": [
+               [1,  0.00000,  0.00000,  0.00000]
+           ]
+       },
+       "types": {
+           "format": ["atom-id", "type"],
+           "data": [
+               [1,  1]
+           ]
+       },
+       "masses": {
+           "format": ["atom-id", "mass"],
+           "data": [
+               [1,  1.0]
+           ]
+       },
+       "body": {
+           "integers": [4],
+           "doubles": [
+               1.0, 1.0, 4.0, 0.0, 0.0, 0.0,
+               -0.70710678118654752440, -0.70710678118654752440, 0.0,
+               -0.70710678118654752440,  0.70710678118654752440, 0.0,
+               0.70710678118654752440,  0.70710678118654752440, 0.0,
+               0.70710678118654752440, -0.70710678118654752440, 0.0
+           ]
+       }
+   }
 
 ----------
 

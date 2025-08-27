@@ -18,6 +18,7 @@
 #include <QDialog>
 #include <QImage>
 #include <QString>
+#include <map>
 
 class QAction;
 class QMenuBar;
@@ -29,6 +30,7 @@ class QScrollBar;
 class QStatusBar;
 class LammpsWrapper;
 class QComboBox;
+class RegionInfo;
 
 class ImageViewer : public QDialog {
     Q_OBJECT
@@ -36,6 +38,13 @@ class ImageViewer : public QDialog {
 public:
     explicit ImageViewer(const QString &fileName, LammpsWrapper *_lammps,
                          QWidget *parent = nullptr);
+    ~ImageViewer() = default;
+
+    ImageViewer()                               = delete;
+    ImageViewer(const ImageViewer &)            = delete;
+    ImageViewer(ImageViewer &&)                 = delete;
+    ImageViewer &operator=(const ImageViewer &) = delete;
+    ImageViewer &operator=(ImageViewer &&)      = delete;
 
 private slots:
     void saveAs();
@@ -49,6 +58,8 @@ private slots:
     void toggle_anti();
     void toggle_shiny();
     void toggle_vdw();
+    void toggle_bond();
+    void set_bondcut();
     void toggle_box();
     void toggle_axes();
     void do_zoom_in();
@@ -59,6 +70,7 @@ private slots:
     void do_rot_down();
     void do_recenter();
     void cmd_to_clipboard();
+    void region_settings();
     void change_group(int);
     void change_molecule(int);
 
@@ -71,6 +83,7 @@ private:
     void saveFile(const QString &fileName);
     void scaleImage(double factor);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
+    void update_regions();
 
 private:
     QImage image;
@@ -95,9 +108,10 @@ private:
     QString last_dump_cmd;
     int xsize, ysize;
     int hrot, vrot;
-    double zoom, vdwfactor, shinyfactor;
+    double zoom, vdwfactor, shinyfactor, bondcutoff;
     double xcenter, ycenter, zcenter;
-    bool showbox, showaxes, antialias, usessao, useelements, usediameter, usesigma;
+    bool showbox, showaxes, antialias, usessao, useelements, usediameter, usesigma, autobond;
+    std::map<std::string, RegionInfo *> regions;
 };
 #endif
 

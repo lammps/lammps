@@ -289,16 +289,15 @@ currently connected to the rest of a long polymer chain. These are
 referred to as edge atoms, and are also specified in the map file. All
 pre-reaction template atoms should be linked to an initiator atom, via
 at least one path that does not involve edge atoms. When the
-pre-reaction template contains edge atoms, not all atoms, bonds,
-charges, etc. specified in the reaction templates will be updated.
-Specifically, topology that involves only atoms that are "too near" to
-template edges will not be updated. The definition of "too near the
-edge" depends on which interactions are defined in the simulation. If
-the simulation has defined dihedrals, atoms within two bonds of edge
-atoms are considered "too near the edge." If the simulation defines
-angles, but not dihedrals, atoms within one bond of edge atoms are
-considered "too near the edge." If just bonds are defined, only edge
-atoms are considered "too near the edge."
+pre-reaction template contains edge atoms, not all atoms, bonds, etc.
+specified in the reaction templates will be updated. Specifically, topology
+that involves only atoms that are "too near" to template edges will not be
+updated. The definition of "too near the edge" depends on which
+interactions are defined in the simulation. If the simulation has defined
+dihedrals, atoms within two bonds of edge atoms are considered "too near
+the edge." If the simulation defines angles, but not dihedrals, atoms
+within one bond of edge atoms are considered "too near the edge." If just
+bonds are defined, only edge atoms are considered "too near the edge."
 
 .. note::
 
@@ -578,16 +577,17 @@ only one value, e.g. bond force. This value is returned by the
 fragment in the pre-reaction template. The fragment must contain
 exactly two atoms, corresponding to the atoms involved in the bond
 whose value should be calculated. An example of a constraint that uses
-the force experienced by a bond is provided below. The 'rxnsum' and
-'rxnave' functions operate over the atoms in a given reaction site,
-and have one mandatory argument and one optional argument. The
-mandatory argument is the identifier for an atom-style variable. The
-second, optional argument is the name of a molecule fragment in the
-pre-reaction template, and can be used to operate over a subset of
-atoms in the reaction site. The 'rxnsum' function sums the atom-style
-variable over the reaction site, while the 'rxnave' returns the
-average value. For example, a constraint on the total potential energy
-of atoms involved in the reaction can be imposed as follows:
+the force experienced by a bond is provided below. When using 'rxnbond',
+at least one atom in the fragment must be an initiator atom. The
+'rxnsum' and 'rxnave' functions operate over the atoms in a given
+reaction site, and have one mandatory argument and one optional
+argument. The mandatory argument is the identifier for an atom-style
+variable. The second, optional argument is the name of a molecule
+fragment in the pre-reaction template, and can be used to operate over a
+subset of atoms in the reaction site. The 'rxnsum' function sums the
+atom-style variable over the reaction site, while the 'rxnave' returns
+the average value. For example, a constraint on the total potential
+energy of atoms involved in the reaction can be imposed as follows:
 
 .. code-block:: LAMMPS
 
@@ -620,7 +620,7 @@ Arrhenius constraint that depends on the bond force of a specific bond:
 
    # in Constraints section of map file
 
-   custom "exp(-(v_E_a-rxnbond(c_bondforce,bond1frag)*v_l0)/(2/3*rxnave(v_ke))) < random(0,1,12345)"
+   custom "exp(-(v_E_a-rxnbond(c_bondforce,bond1frag)*v_l0)/(2/3*rxnave(v_ke))) > random(0,1,12345)"
 
 By using an inequality and the 'random(x,y,z)' function, the left-hand
 side can be interpreted as the probability of the reaction occurring,

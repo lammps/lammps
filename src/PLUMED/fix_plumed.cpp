@@ -24,7 +24,6 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "modify.h"
 #include "pair.h"
 #include "respa.h"

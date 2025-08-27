@@ -17,9 +17,9 @@
 // wrapper around including the JSON parsing and writing class
 // Do NOT include in any header file
 
-#include "nlohmann/json.hpp"
+#include "nlohmann/json.hpp" // IWYU pragma: export
 
 namespace LAMMPS_NS {
-using json = ::nlohmann_lmp::json;
+using json = ::nlohmann_lmp::basic_json<>;
 }
 #endif

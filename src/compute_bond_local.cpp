@@ -154,7 +154,8 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
 
     if (dstr) {
       dvar = input->variable->find(dstr);
-      if (dvar < 0) error->all(FLERR, "Variable name for compute bond/local does not exist");
+      if (dvar < 0) dvar = input->variable->internal_create(dstr, 0.0);
+
       if (!input->variable->internalstyle(dvar))
         error->all(FLERR, "Variable for compute bond/local is invalid style");
     }
@@ -344,7 +345,7 @@ int ComputeBondLocal::compute_bonds(int flag)
       dx = x[atom1][0] - x[atom2][0];
       dy = x[atom1][1] - x[atom2][1];
       dz = x[atom1][2] - x[atom2][2];
-      domain->minimum_image(dx, dy, dz);
+      domain->minimum_image(FLERR, dx, dy, dz);
       rsq = dx * dx + dy * dy + dz * dz;
 
       if (btype == 0) {
@@ -428,22 +429,19 @@ int ComputeBondLocal::compute_bonds(int flag)
           if (dstr) input->variable->internal_set(dvar, sqrt(rsq));
         }
 
-        // to make sure dx, dy and dz are always from the lower to the higher id
-        double directionCorrection = tag[atom1] > tag[atom2] ? -1.0 : 1.0;
-
         for (int n = 0; n < nvalues; n++) {
           switch (bstyle[n]) {
             case DIST:
               ptr[n] = sqrt(rsq);
               break;
             case DX:
-              ptr[n] = dx * directionCorrection;
+              ptr[n] = dx;
               break;
             case DY:
-              ptr[n] = dy * directionCorrection;
+              ptr[n] = dy;
               break;
             case DZ:
-              ptr[n] = dz * directionCorrection;
+              ptr[n] = dz;
               break;
             case ENGPOT:
               ptr[n] = engpot;

@@ -998,7 +998,7 @@ void Irregular::destroy_data()
 void Irregular::init_exchange()
 {
   int maxexchange_fix = 0;
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     maxexchange_fix = MAX(maxexchange_fix, ifix->maxexchange);
 
   bufextra = atom->avec->maxexchange + maxexchange_fix + BUFEXTRA;

@@ -107,7 +107,7 @@ void ComputeCompositionAtom::init()
 
   // need an occasional full neighbor list
 
-  auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
+  auto *req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
   if (cutflag) req->set_cutoff(cutoff);
 }
 

@@ -36,8 +36,16 @@ int main(int argc, char *argv[])
     qRegisterMetaTypeStreamOperators<QList<QString>>("QList<QString>");
 #endif
 
+#ifndef Q_OS_MACOS
     // enforce using the plain ASCII C locale with UTF-8 encoding within the GUI.
     qputenv("LC_ALL", "C.UTF-8");
+#else
+    // macOS does not support "C" locale with UTF-8 encoding, but Qt requires UTF-8
+    qputenv("LC_ALL", "en_US.UTF-8");
+#endif
+
+    // disable processor affinity for threads by default
+    qputenv("OMP_PROC_BIND", "false");
 
     QApplication app(argc, argv);
     QCoreApplication::setOrganizationName("The LAMMPS Developers");
@@ -75,7 +83,7 @@ int main(int argc, char *argv[])
 
     QString infile;
     QStringList args = parser.positionalArguments();
-    if (args.size() > 0) infile = args[0];
+    if (!args.empty()) infile = args[0];
     LammpsGui w(nullptr, infile);
     w.show();
     return app.exec();

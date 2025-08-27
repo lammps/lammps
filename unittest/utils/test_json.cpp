@@ -11,11 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
-
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include <exception>
+
 #include <string>
 
 #include "json.h"

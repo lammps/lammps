@@ -65,7 +65,10 @@ BondBPM::BondBPM(LAMMPS *_lmp) :
   writedata = 0;
 
   nhistory = 0;
+  n_histories = 0;
   update_flag = 0;
+  hybrid_flag = 0;
+  store_local_freq = 0;
 
   r0_max_estimate = 0.0;
   max_stretch = 1.0;
@@ -109,7 +112,7 @@ BondBPM::~BondBPM()
 void BondBPM::init_style()
 {
   if (id_fix_store_local) {
-    auto ifix = modify->get_fix_by_id(id_fix_store_local);
+    auto *ifix = modify->get_fix_by_id(id_fix_store_local);
     if (!ifix) error->all(FLERR, "Cannot find fix STORE/LOCAL id {}", id_fix_store_local);
     if (strcmp(ifix->style, "STORE/LOCAL") != 0)
       error->all(FLERR, "Incorrect fix style matched, not STORE/LOCAL: {}", ifix->style);
@@ -156,7 +159,7 @@ void BondBPM::init_style()
           fix_update_special_bonds = dynamic_cast<FixUpdateSpecialBonds *>(fixes[0]);
         } else {
           id_fix_update_special_bonds = utils::strdup("BPM_UPDATE_SPECIAL_BONDS");
-          auto newfix = modify->replace_fix(
+          auto *newfix = modify->replace_fix(
             id_fix_dummy_special,
             fmt::format("{} all UPDATE_SPECIAL_BONDS", id_fix_update_special_bonds), 1);
           fix_update_special_bonds = dynamic_cast<FixUpdateSpecialBonds *>(newfix);
@@ -191,7 +194,7 @@ void BondBPM::init_style()
 
   // Set up necessary history fix
   if (!fix_bond_history) {
-    auto newfix = modify->replace_fix(
+    auto *newfix = modify->replace_fix(
         id_fix_dummy_history,
         fmt::format("{} all BOND_HISTORY {} {}", id_fix_bond_history, update_flag, nhistory), 1);
     fix_bond_history = dynamic_cast<FixBondHistory *>(newfix);
@@ -270,7 +273,7 @@ void BondBPM::settings(int narg, char **arg)
       error->all(FLERR, "Storing local data must include at least one value to output");
     memory->create(output_data, nvalues, "bond/bpm:output_data");
 
-    auto ifix = modify->get_fix_by_id(id_fix_store_local);
+    auto *ifix = modify->get_fix_by_id(id_fix_store_local);
     if (!ifix)
       ifix = modify->add_fix(
           fmt::format("{} all STORE/LOCAL {} {}", id_fix_store_local, store_local_freq, nvalues));
@@ -320,7 +323,7 @@ void BondBPM::settings(int narg, char **arg)
 
   // Set up necessary history fix
   if (!fix_bond_history) {
-    auto newfix = modify->replace_fix(
+    auto *newfix = modify->replace_fix(
         id_fix_dummy_history,
         fmt::format("{} all BOND_HISTORY {} {}", id_fix_bond_history, update_flag, nhistory), 1);
     fix_bond_history = dynamic_cast<FixBondHistory *>(newfix);
@@ -352,7 +355,7 @@ double BondBPM::equilibrium_distance(int /*i*/)
           delx = x[i][0] - x[j][0];
           dely = x[i][1] - x[j][1];
           delz = x[i][2] - x[j][2];
-          domain->minimum_image(delx, dely, delz);
+          domain->minimum_image(FLERR, delx, dely, delz);
 
           r = sqrt(delx * delx + dely * dely + delz * delz);
           if (r > r0_max_estimate) r0_max_estimate = r;
@@ -457,7 +460,7 @@ void BondBPM::process_broken(int i, int j)
         bond_type[i][m] = bond_type[i][n - 1];
         bond_atom[i][m] = bond_atom[i][n - 1];
         for (auto &ihistory : histories) {
-          auto fix_bond_history2 = dynamic_cast<FixBondHistory *>(ihistory);
+          auto *fix_bond_history2 = dynamic_cast<FixBondHistory *>(ihistory);
           fix_bond_history2->shift_history(i, m, n - 1);
           fix_bond_history2->delete_history(i, n - 1);
         }
@@ -474,7 +477,7 @@ void BondBPM::process_broken(int i, int j)
         bond_type[j][m] = bond_type[j][n - 1];
         bond_atom[j][m] = bond_atom[j][n - 1];
         for (auto &ihistory : histories) {
-          auto fix_bond_history2 = dynamic_cast<FixBondHistory *>(ihistory);
+          auto *fix_bond_history2 = dynamic_cast<FixBondHistory *>(ihistory);
           fix_bond_history2->shift_history(j, m, n - 1);
           fix_bond_history2->delete_history(j, n - 1);
         }

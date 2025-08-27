@@ -118,7 +118,7 @@ void KimInteractions::do_setup(int narg, char **arg)
   // retrieve model name and pointer to simulator model class instance.
   // validate model name if not given as null pointer.
 
-  auto fix_store = dynamic_cast<FixStoreKIM *>(modify->get_fix_by_id("KIM_MODEL_STORE"));
+  auto *fix_store = dynamic_cast<FixStoreKIM *>(modify->get_fix_by_id("KIM_MODEL_STORE"));
   if (fix_store) {
     model_name = (char *)fix_store->getptr("model_name");
     simulatorModel = (KIM_SimulatorModel *)fix_store->getptr("simulator_model");

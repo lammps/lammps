@@ -52,7 +52,7 @@ BondHybrid::~BondHybrid()
 
   delete[] svector;
 
-  deallocate();
+  BondHybrid::deallocate();
 }
 
 /* ---------------------------------------------------------------------- */

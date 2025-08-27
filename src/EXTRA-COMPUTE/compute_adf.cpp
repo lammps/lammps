@@ -324,7 +324,7 @@ void ComputeADF::init()
   //   (until next reneighbor), so it needs to contain atoms further
   //   than maxouter apart, just like a normal neighbor list does
 
-  auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
+  auto *req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
   if (mycutneigh > 0.0) {
     if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
       error->all(FLERR, "Compute adf with custom cutoffs requires neighbor style 'bin' or 'nsq'");

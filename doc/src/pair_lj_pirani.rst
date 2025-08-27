@@ -27,7 +27,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 12Jun2025
 
 Pair style *lj/pirani* computes pairwise interactions from an Improved
 Lennard-Jones (ILJ) potential according to :ref:`(Pirani) <Pirani>`.

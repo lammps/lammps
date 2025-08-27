@@ -14,6 +14,7 @@
 #include "findandreplace.h"
 
 #include "codeeditor.h"
+#include "helpers.h"
 #include "lammpsgui.h"
 
 #include <QApplication>
@@ -67,7 +68,7 @@ FindAndReplace::FindAndReplace(CodeEditor *_editor, QWidget *parent) :
     connect(replall, &QPushButton::released, this, &FindAndReplace::replace_all);
     connect(done, &QPushButton::released, this, &QDialog::accept);
 
-    auto action = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q), this);
+    auto *action = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q), this);
     connect(action, &QShortcut::activated, this, &FindAndReplace::quit);
 
     setLayout(layout);
@@ -81,15 +82,15 @@ void FindAndReplace::find_next()
 {
     auto text = search->text();
 
-    int find_flags = 0;
+    auto find_flags = QTextDocument::FindFlags();
     if (withcase->isChecked()) find_flags |= QTextDocument::FindCaseSensitively;
     if (whole->isChecked()) find_flags |= QTextDocument::FindWholeWords;
 
     if (!text.isEmpty()) {
-        if (!editor->find(text, (QTextDocument::FindFlag)find_flags) && wrap->isChecked()) {
+        if (!editor->find(text, find_flags) && wrap->isChecked()) {
             // nothing found from the current position to the end, reposition cursor and beginning
             editor->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
-            editor->find(text, (QTextDocument::FindFlag)find_flags);
+            editor->find(text, find_flags);
         }
     }
 }
@@ -137,9 +138,7 @@ void FindAndReplace::replace_all()
 
 void FindAndReplace::quit()
 {
-    LammpsGui *main = nullptr;
-    for (QWidget *widget : QApplication::topLevelWidgets())
-        if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
+    auto *main = dynamic_cast<LammpsGui *>(get_main_widget());
     if (main) main->quit();
 }
 

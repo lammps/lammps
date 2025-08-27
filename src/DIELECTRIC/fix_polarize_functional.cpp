@@ -652,7 +652,7 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
           double delx = xtmp - x[k][0];
           double dely = ytmp - x[k][1];
           double delz = ztmp - x[k][2];
-          domain->minimum_image(delx, dely, delz);
+          domain->minimum_image(FLERR, delx, dely, delz);
           int mk = tag2mat[tag[k]];
 
           // G1ww[mi][mk] = calculate_greens_ewald(delx, dely, delz);
@@ -861,7 +861,7 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
           delx = xtmp - x[k][0];
           dely = ytmp - x[k][1];
           delz = ztmp - x[k][2];
-          domain->minimum_image(delx, dely, delz);
+          domain->minimum_image(FLERR, delx, dely, delz);
           r = sqrt(delx * delx + dely * dely + delz * delz);
 
           int mk = tag2mat[tag[k]];
@@ -902,7 +902,7 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
           delx = x[i][0] - xtmp;
           dely = x[i][1] - ytmp;
           delz = x[i][2] - ztmp;
-          domain->minimum_image(delx, dely, delz);
+          domain->minimum_image(FLERR, delx, dely, delz);
 
           int mi = tag2mat_ions[tag[i]];    //ion_idx[i];
 

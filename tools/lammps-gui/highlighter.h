@@ -22,7 +22,14 @@ class Highlighter : public QSyntaxHighlighter {
     Q_OBJECT
 
 public:
-    Highlighter(QTextDocument *parent = 0);
+    explicit Highlighter(QTextDocument *parent = nullptr);
+    ~Highlighter() override = default;
+
+    Highlighter()                               = delete;
+    Highlighter(const Highlighter &)            = delete;
+    Highlighter(Highlighter &&)                 = delete;
+    Highlighter &operator=(const Highlighter &) = delete;
+    Highlighter &operator=(Highlighter &&)      = delete;
 
 protected:
     void highlightBlock(const QString &text) override;
@@ -48,7 +55,6 @@ private:
     QTextCharFormat formatString;
 
     int in_triple;
-    int startIndex;
 };
 #endif
 // Local Variables:

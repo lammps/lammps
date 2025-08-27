@@ -390,7 +390,7 @@ void FixTMD::readfile(char *file)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  auto buffer = new char[CHUNK*MAXLINE];
+  auto *buffer = new char[CHUNK*MAXLINE];
   char *next,*bufptr;
   int i,m,nlines,imageflag,ix,iy,iz;
   tagint itag;

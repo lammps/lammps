@@ -177,7 +177,7 @@ void FixSMDIntegrateUlsph::initial_integrate(int /*vflag*/) {
          * get smoothed velocities from ULSPH pair style
          */
 
-        auto smoothVel = (Vector3d *) force->pair->extract("smd/ulsph/smoothVel_ptr", itmp);
+        auto *smoothVel = (Vector3d *) force->pair->extract("smd/ulsph/smoothVel_ptr", itmp);
 
         if (xsphFlag) {
                 if (smoothVel == nullptr) {
@@ -272,7 +272,7 @@ void FixSMDIntegrateUlsph::final_integrate() {
                 error->one(FLERR, "fix smd/integrate_ulsph failed to accesss num_neighs array");
         }
 
-        auto L = (Matrix3d *) force->pair->extract("smd/ulsph/velocityGradient_ptr", itmp);
+        auto *L = (Matrix3d *) force->pair->extract("smd/ulsph/velocityGradient_ptr", itmp);
         if (L == nullptr) {
                 error->one(FLERR, "fix smd/integrate_ulsph failed to accesss velocityGradient array");
         }

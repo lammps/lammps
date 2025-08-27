@@ -26,6 +26,12 @@ public:
     LogWindow(const QString &filename, QWidget *parent = nullptr);
     ~LogWindow() override;
 
+    LogWindow()                             = delete;
+    LogWindow(const LogWindow &)            = delete;
+    LogWindow(LogWindow &&)                 = delete;
+    LogWindow &operator=(const LogWindow &) = delete;
+    LogWindow &operator=(LogWindow &&)      = delete;
+
 private slots:
     void extract_yaml();
     void quit();

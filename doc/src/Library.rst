@@ -93,14 +93,19 @@ run LAMMPS in serial mode.
 .. admonition:: Using the C library interface as a plugin
    :class: note
 
-   Rather than including the C library directly and link to the LAMMPS
+   Rather than including the C library interface directly using the
+   ``library.h`` header file and link to the LAMMPS (static or shared)
    library at compile time, you can use the ``liblammpsplugin.h`` header
    file and the ``liblammpsplugin.c`` C code in the
    ``examples/COUPLE/plugin`` folder for an interface to LAMMPS that is
    largely identical to the regular library interface, only that it will
    load a LAMMPS shared library file at runtime.  This can be useful for
    applications where the interface to LAMMPS would be an optional
-   feature.
+   feature or where you would like to load different version of the
+   LAMMPS library (e.g. an updated one) without replacing the executable.
+   The :ref:`LAMMPS-GUI <lammps_gui>` is an example for such a program.
+   It has its own wrapper that supports both modes and they can be
+   changed at compile time.
 
 .. warning::
 

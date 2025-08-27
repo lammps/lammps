@@ -1340,7 +1340,7 @@ void PairAmoeba::polar_kspace()
 
     // gridpre = my portion of 3d grid in brick decomp w/ ghost values
 
-    FFT_SCALAR ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
+    auto ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
 
     // map atoms to grid
 
@@ -1373,10 +1373,9 @@ void PairAmoeba::polar_kspace()
           h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
           hsq = h1*h1 + h2*h2 + h3*h3;
           term = -pterm * hsq;
-          expterm = 0.0;
-          if (term > -50.0 && hsq != 0.0) {
+          if ((term > -50.0) && (hsq != 0.0)) {
             denom = volterm*hsq*bsmod1[i]*bsmod2[j]*bsmod3[k];
-            if (hsq) expterm = exp(term) / denom;
+            expterm = (denom == 0.0) ? 0.0 : exp(term) / denom;
             struc2 = gridfft[n]*gridfft[n] + gridfft[n+1]*gridfft[n+1];
             eterm = 0.5 * felec * expterm * struc2;
             vterm = (2.0/hsq) * (1.0-term) * eterm;
@@ -1399,7 +1398,7 @@ void PairAmoeba::polar_kspace()
     // post-convolution operations including backward FFT
     // gridppost = my portion of 3d grid in brick decomp w/ ghost values
 
-    FFT_SCALAR ***gridpost = (FFT_SCALAR ***) p_kspace->post_convolution();
+    auto ***gridpost = (FFT_SCALAR ***) p_kspace->post_convolution();
 
     // get potential
 
@@ -1432,7 +1431,7 @@ void PairAmoeba::polar_kspace()
 
   // gridpre2 = my portion of 4d grid in brick decomp w/ ghost values
 
-  FFT_SCALAR ****gridpre2 = (FFT_SCALAR ****) pc_kspace->zero();
+  auto ****gridpre2 = (FFT_SCALAR ****) pc_kspace->zero();
 
   // map 2 values to grid
 
@@ -1464,7 +1463,7 @@ void PairAmoeba::polar_kspace()
   // post-convolution operations including backward FFT
   // gridppost = my portion of 4d grid in brick decomp w/ ghost values
 
-  FFT_SCALAR ****gridpost = (FFT_SCALAR ****) pc_kspace->post_convolution();
+  auto ****gridpost = (FFT_SCALAR ****) pc_kspace->post_convolution();
 
   // get potential
 
@@ -1870,7 +1869,7 @@ void PairAmoeba::polar_kspace()
   // gridpre = my portion of 3d grid in brick decomp w/ ghost values
   // zeroed by zero()
 
-  FFT_SCALAR ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
+  auto ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
 
   // map atoms to grid
 
@@ -1915,7 +1914,7 @@ void PairAmoeba::polar_kspace()
   // convolution operation
   // ---------------------
 
-  m = n = 0;
+  n = 0;
   for (k = nzlo; k <= nzhi; k++) {
     for (j = nylo; j <= nyhi; j++) {
       for (i = nxlo; i <= nxhi; i++) {
@@ -1927,10 +1926,9 @@ void PairAmoeba::polar_kspace()
         h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
         hsq = h1*h1 + h2*h2 + h3*h3;
         term = -pterm * hsq;
-        expterm = 0.0;
-        if (term > -50.0 && hsq != 0.0) {
+        if ((term > -50.0) && (hsq != 0.0)) {
           denom = volterm*hsq*bsmod1[i]*bsmod2[j]*bsmod3[k];
-          expterm = exp(term) / denom;
+          expterm = (denom == 0.0) ? 0.0 : exp(term) / denom;
           struc2 = gridfft1[n]*gridfft2[n] + gridfft1[n+1]*gridfft2[n+1];
           eterm = 0.5 * felec * expterm * struc2;
           vterm = (2.0/hsq) * (1.0-term) * eterm;
@@ -1966,7 +1964,7 @@ void PairAmoeba::polar_kspace()
     // gridpre = my portion of 3d grid in brick decomp w/ ghost values
     // zeroed by zero()
 
-    FFT_SCALAR ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
+    auto ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
 
     // map atoms to grid
 
@@ -2010,7 +2008,7 @@ void PairAmoeba::polar_kspace()
     // convolution operation
     // ---------------------
 
-    m = n = 0;
+    n = 0;
     for (k = nzlo; k <= nzhi; k++) {
       for (j = nylo; j <= nyhi; j++) {
         for (i = nxlo; i <= nxhi; i++) {
@@ -2022,10 +2020,9 @@ void PairAmoeba::polar_kspace()
           h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
           hsq = h1*h1 + h2*h2 + h3*h3;
           term = -pterm * hsq;
-          expterm = 0.0;
-          if (term > -50.0 && hsq != 0.0) {
+          if ((term > -50.0) && (hsq != 0.0)) {
             denom = volterm*hsq*bsmod1[i]*bsmod2[j]*bsmod3[k];
-            expterm = exp(term) / denom;
+            expterm = (denom == 0.0) ? 0.0 : exp(term) / denom;
             struc2 = gridfft1[n]*gridfft2[n] + gridfft1[n+1]*gridfft2[n+1];
             eterm = 0.5 * felec * expterm * struc2;
             vterm = (2.0/hsq) * (1.0-term) * eterm;

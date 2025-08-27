@@ -121,7 +121,7 @@ void FixMinimizeKokkos::reset_coords()
       double dx = dx0;
       double dy = dy0;
       double dz = dz0;
-      // domain->minimum_image(dx,dy,dz);
+      // domain->minimum_image(FLERR, dx,dy,dz);
       {
         if (triclinic == 0) {
           if (xperiodic) {
@@ -175,7 +175,7 @@ void FixMinimizeKokkos::reset_coords()
             }
           }
         }
-      } // end domain->minimum_image(dx,dy,dz);
+      } // end domain->minimum_image(FLERR, dx,dy,dz);
       if (dx != dx0) l_x0[n] = l_x(i,0) - dx;
       if (dy != dy0) l_x0[n+1] = l_x(i,1) - dy;
       if (dz != dz0) l_x0[n+2] = l_x(i,2) - dz;

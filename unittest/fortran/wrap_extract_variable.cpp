@@ -1,16 +1,14 @@
 // unit tests for extracting compute data from a LAMMPS instance through the
 // Fortran wrapper
 
-#include "lammps.h"
 #include "library.h"
+
 #include "platform.h"
 
 #include <chrono>
 #include <cmath>
-#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <mpi.h>
 #include <string>
 #include <thread>
 
@@ -18,6 +16,11 @@
 
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
+
+// forward decl
+namespace LAMMPS_NS {
+class LAMMPS;
+}
 
 // prototypes for Fortran reverse wrapper functions
 extern "C" {

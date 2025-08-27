@@ -31,7 +31,7 @@ static int initialize_graphs(const ptm::refdata_t* s, int8_t* colours)
         {
                 int8_t code[2 * PTM_MAX_EDGES];
                 int8_t degree[PTM_MAX_NBRS];
-                int _max_degree = ptm::graph_degree(s->num_facets, s->graphs[i].facets, s->num_nbrs, degree);
+                int _max_degree = ptm::graph_degree(s->num_facets, s->graphs[i].facets, s->num_nbrs, degree); // NOLINT
                 assert(_max_degree <= s->max_degree);
 
                 make_facets_clockwise(s->num_facets, s->graphs[i].facets, &s->points[1]);

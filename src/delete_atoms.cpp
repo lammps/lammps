@@ -130,6 +130,7 @@ void DeleteAtoms::command(int narg, char **arg)
   // if non-molecular system and compress flag set:
   // reset atom tags to be contiguous
   // set all atom IDs to 0, call tag_extend()
+  // for molecular system call reset_atoms id, unless there is a fix that stores atom IDs.
 
   if (compress_flag) {
     if (atom->molecular == Atom::ATOMIC) {
@@ -137,8 +138,18 @@ void DeleteAtoms::command(int narg, char **arg)
       int nlocal = atom->nlocal;
       for (int i = 0; i < nlocal; i++) tag[i] = 0;
       atom->tag_extend();
-    } else if (comm->me == 0)
-      error->warning(FLERR, "Ignoring 'compress yes' for molecular system");
+    } else {
+      bool can_compress = true;
+      for (const auto &ifix : modify->get_fix_list())
+        if (ifix->stores_ids) can_compress = false;
+
+      if (can_compress) {
+        input->one("reset_atoms id");
+      } else {
+        if (comm->me == 0)
+          error->warning(FLERR, "Ignoring 'compress yes' because of a fix storing atom IDs");
+      }
+    }
   }
 
   // reset atom->natoms and also topology counts
@@ -148,10 +159,10 @@ void DeleteAtoms::command(int narg, char **arg)
 
   // reset bonus data counts
 
-  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
-  auto avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
-  auto avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
-  auto avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
+  auto *avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  auto *avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  auto *avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  auto *avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
   bigint nlocal_bonus;
 
   if (atom->nellipsoids > 0) {
@@ -245,7 +256,7 @@ void DeleteAtoms::delete_region(int narg, char **arg)
 {
   if (narg < 2) utils::missing_cmd_args(FLERR, "delete_atoms region", error);
 
-  auto iregion = domain->get_region_by_id(arg[1]);
+  auto *iregion = domain->get_region_by_id(arg[1]);
   if (!iregion) error->all(FLERR, "Could not find delete_atoms region ID {}", arg[1]);
   iregion->prematch();
 
@@ -317,7 +328,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   // build neighbor list this command needs based on the earlier request
 
-  auto list = neighbor->find_list(this);
+  auto *list = neighbor->find_list(this);
   neighbor->build_one(list);
 
   // allocate and initialize deletion list
@@ -445,14 +456,14 @@ void DeleteAtoms::delete_random(int narg, char **arg)
   }
 
   int groupbit = group->get_bitmask_by_id(FLERR, arg[4], "delete_atoms");
-  auto region = domain->get_region_by_id(arg[5]);
+  auto *region = domain->get_region_by_id(arg[5]);
   if (!region && (strcmp(arg[5], "NULL") != 0))
     error->all(FLERR, "Could not find delete_atoms random region ID {}", arg[5]);
 
   int seed = utils::inumeric(FLERR, arg[6], false, lmp);
   options(narg - 7, &arg[7]);
 
-  auto ranmars = new RanMars(lmp, seed + comm->me);
+  auto *ranmars = new RanMars(lmp, seed + comm->me);
 
   // allocate and initialize deletion list
 
@@ -711,8 +722,8 @@ void DeleteAtoms::recount_topology()
 
 void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
 {
-  auto daptr = (DeleteAtoms *) ptr;
-  auto list = (tagint *) cbuf;
+  auto *daptr = (DeleteAtoms *) ptr;
+  auto *list = (tagint *) cbuf;
   std::map<tagint, int> *hash = daptr->hash;
 
   int *num_bond = daptr->atom->num_bond;
@@ -841,8 +852,8 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
 
 void DeleteAtoms::molring(int n, char *cbuf, void *ptr)
 {
-  auto daptr = (DeleteAtoms *) ptr;
-  auto list = (tagint *) cbuf;
+  auto *daptr = (DeleteAtoms *) ptr;
+  auto *list = (tagint *) cbuf;
   int *dlist = daptr->dlist;
   std::map<tagint, int> *hash = daptr->hash;
   int nlocal = daptr->atom->nlocal;
@@ -865,7 +876,12 @@ void DeleteAtoms::molring(int n, char *cbuf, void *ptr)
 
 void DeleteAtoms::options(int narg, char **arg)
 {
-  compress_flag = 1;
+  // default to "compress yes" for atomic systems and "compress no" for molecular systems
+  if (atom->molecular == Atom::ATOMIC)
+    compress_flag = 1;
+  else
+    compress_flag = 0;
+
   bond_flag = mol_flag = 0;
 
   int iarg = 0;

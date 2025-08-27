@@ -104,7 +104,7 @@ PairMGPT::~PairMGPT()
 static double t_make_b2 = 0.0,n_make_b2 = 0.0;
 
 template<typename intype,typename outtype,int ni,int nj> void fmatconv(intype *array) {
-  outtype *cast = (outtype *) array;
+  auto *cast = (outtype *) array;
   for (int i = 0; i<ni; i++)
     for (int j = 0; j<nj; j++)
       cast[i*nj+j] = array[i*nj+j];
@@ -1720,10 +1720,10 @@ void PairMGPT::compute(int eflag, int vflag)
       if (i > nmax) nmax = i;
     }
     nmax++;
-    double *ffwork = new double[3*nmax];
-    double *ffloc = new double[3*listfull->inum];
-    double *ffloc2 = new double[3*listfull->inum];
-    double **ffptr = new double *[nmax];
+    auto *ffwork = new double[3*nmax];
+    auto *ffloc = new double[3*listfull->inum];
+    auto *ffloc2 = new double[3*listfull->inum];
+    auto **ffptr = new double *[nmax];
     for (ii = 0; ii<listfull->inum + listfull->gnum; ii++)
       ffptr[ii] = &ffwork[3*ii];
 

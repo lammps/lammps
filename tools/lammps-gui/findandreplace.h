@@ -25,7 +25,13 @@ class FindAndReplace : public QDialog {
 
 public:
     explicit FindAndReplace(CodeEditor *_editor, QWidget *parent = nullptr);
-    ~FindAndReplace() = default;
+    ~FindAndReplace() override = default;
+
+    FindAndReplace()                                  = delete;
+    FindAndReplace(const FindAndReplace &)            = delete;
+    FindAndReplace(FindAndReplace &&)                 = delete;
+    FindAndReplace &operator=(const FindAndReplace &) = delete;
+    FindAndReplace &operator=(FindAndReplace &&)      = delete;
 
 private slots:
     void find_next();

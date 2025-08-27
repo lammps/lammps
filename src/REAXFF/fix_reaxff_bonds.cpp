@@ -29,6 +29,9 @@
 #include "pair_reaxff.h"
 #include "reaxff_api.h"
 
+#include <cmath>
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace ReaxFF;
@@ -83,6 +86,9 @@ int FixReaxFFBonds::setmask()
 
 void FixReaxFFBonds::setup(int /*vflag*/)
 {
+  if (atom->natoms > MAXSMALLINT)
+    error->all(FLERR, Error::NOLASTLINE, "Too many atoms for fix {}", style);
+
   // only print output during setup() at the very beginning
   // to avoid duplicate outputs when using multiple run statements
   if (first_flag) end_of_step();
@@ -94,8 +100,9 @@ void FixReaxFFBonds::setup(int /*vflag*/)
 void FixReaxFFBonds::init()
 {
   reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reax..",0));
-  if (reaxff == nullptr) error->all(FLERR,"Cannot use fix reaxff/bonds without "
-                                "pair_style reaxff, reaxff/kk, or reaxff/omp");
+  if (reaxff == nullptr)
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix reaxff/bonds without "
+               "pair_style reaxff, reaxff/kk, or reaxff/omp");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -116,7 +123,7 @@ void FixReaxFFBonds::Output_ReaxFF_Bonds()
   double *buf;
 
   int nlocal = atom->nlocal;
-  int nlocal_tot = static_cast<int> (atom->natoms);
+  int nlocal_tot = static_cast<int>(atom->natoms);
 
   if (atom->nmax > nmax) {
     destroy();
@@ -205,7 +212,7 @@ void FixReaxFFBonds::PassBuffer(double *buf, int &nbuf_local)
     buf[j+2] = reaxff->api->workspace->nlp[i];
     buf[j+3] = atom->q[i];
     buf[j+4] = numneigh[i];
-    numbonds = nint(buf[j+4]);
+    numbonds = std::lround(buf[j+4]);
 
     for (k = 5; k < 5+numbonds; k++) {
       buf[j+k] = neighid[i][k-5];
@@ -273,16 +280,16 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
       } else {
         MPI_Irecv(&buf[0],nbuf,MPI_DOUBLE,inode,0,world,&irequest);
         MPI_Wait(&irequest,MPI_STATUS_IGNORE);
-        nlocal_tmp = nint(buf[0]);
+        nlocal_tmp = std::lround(buf[0]);
       }
       j = 2;
       for (i = 0; i < nlocal_tmp; i ++) {
         itag = static_cast<tagint> (buf[j-1]);
-        itype = nint(buf[j+0]);
+        itype = std::lround(buf[j+0]);
         sbotmp = buf[j+1];
         nlptmp = buf[j+2];
         avqtmp = buf[j+3];
-        numbonds = nint(buf[j+4]);
+        numbonds = std::lround(buf[j+4]);
 
         auto mesg = fmt::format(" {} {} {}",itag,itype,numbonds);
         for (k = 5; k < 5+numbonds; k++)
@@ -307,16 +314,6 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
     fputs("# \n",fp);
     fflush(fp);
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixReaxFFBonds::nint(const double &r)
-{
-  int i = 0;
-  if (r>0.0) i = static_cast<int>(r+0.5);
-  else if (r<0.0) i = static_cast<int>(r-0.5);
-  return i;
 }
 
 /* ---------------------------------------------------------------------- */

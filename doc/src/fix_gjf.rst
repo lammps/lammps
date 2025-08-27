@@ -39,7 +39,7 @@ Examples
 
 Description
 """""""""""
-.. versionadded:: TBD
+.. versionadded:: 12Jun2025
 
 Apply a Langevin thermostat as described in :ref:`(Gronbech-Jensen-2020) <Gronbech-Jensen-2020>`
 to a group of atoms which models an interaction with a background

@@ -1,10 +1,15 @@
 Using LAMMPS-GUI
 ================
 
+.. image:: JPG/lammps-gui-banner.png
+   :align: center
+   :scale: 75%
+
 LAMMPS-GUI is a graphical text editor programmed using the `Qt Framework
-<https://www.qt.io/>`_ and customized for editing LAMMPS input files.  It
-is linked to the :ref:`LAMMPS library <lammps_c_api>` and thus can run
-LAMMPS directly using the contents of the editor's text buffer as input.
+<https://www.qt.io/>`_ and customized for editing and running LAMMPS
+input files.  It is linked to the :ref:`LAMMPS library <lammps_c_api>`
+and thus can run LAMMPS directly using the contents of the editor's text
+buffer as input and without having to launch the LAMMPS executable.
 
 It *differs* from other known interfaces to LAMMPS in that it can
 retrieve and display information from LAMMPS *while it is running*,
@@ -13,7 +18,7 @@ display visualizations created with the :doc:`dump image command
 LAMMPS commands and styles, and directly integrates with a collection
 of LAMMPS tutorials (:ref:`Gravelle1 <Gravelle1>`).
 
-This document describes **LAMMPS-GUI version 1.6**.
+This document describes **LAMMPS-GUI version 1.7.1**.
 
 -----
 
@@ -21,17 +26,20 @@ This document describes **LAMMPS-GUI version 1.6**.
 
 ----
 
-LAMMPS-GUI tries to provide an experience similar to what people
-traditionally would have running LAMMPS using a command-line window and
-the console LAMMPS executable but just rolled into a single executable:
+LAMMPS-GUI aims to provide the traditional experience of running LAMMPS
+using a text editor, a command-line window, and launching the LAMMPS
+text-mode executable printing output to the screen, but just integrated
+into a single application:
 
-- writing & editing LAMMPS input files with a text editor
-- run LAMMPS on those input file with selected command-line flags
-- extract data from the created files and visualize it with and
-  external software
+- Write and edit LAMMPS input files using the built-in text editor.
+- Run LAMMPS on those input file with command-line flags to enable a
+  specific accelerator package (or none).
+- Extract data from the created files (like trajectory files, log files
+  with thermodynamic data, or images) and visualize it using external
+  software.
 
-That procedure is quite effective for people proficient in using the
-command-line, as that allows them to use tools for the individual steps
+That traditional procedure is effective for people proficient in using the
+command-line, as it allows them to use the tools for the individual steps
 that they are most comfortable with.  In fact, it is often *required* to
 adopt this workflow when running LAMMPS simulations on high-performance
 computing facilities.
@@ -42,35 +50,46 @@ window or using external programs, let alone writing scripts to extract
 data from the generated output.  It also integrates well with graphical
 desktop environments where the `.lmp` filename extension can be
 registered with LAMMPS-GUI as the executable to launch when double
-clicking on such files.  Also, LAMMPS-GUI has support for drag-n-drop,
-i.e.  an input file can be selected and then moved and dropped on the
-LAMMPS-GUI executable, and LAMMPS-GUI will launch and read the file into
-its buffer.  In many cases LAMMPS-GUI will be integrated into the
-graphical desktop environment and can be launched like other
-applications.
+clicking on such files using a file manager.  LAMMPS-GUI also has
+support for 'drag and drop' for opening inputs: an input file can
+be selected and then moved and dropped on the LAMMPS-GUI executable;
+LAMMPS-GUI will launch and read the file into its buffer.  Input files
+also can be dropped into the editor window of the running LAMMPS-GUI
+application, which will close the current file and open the new file.
+In many cases LAMMPS-GUI will be integrated into the graphical desktop
+environment and can be launched just like any other applications from
+the graphical interface.
 
 LAMMPS-GUI thus makes it easier for beginners to get started running
-simple LAMMPS simulations.  It is very suitable for tutorials on LAMMPS
-since you only need to learn how to use a single program for most tasks
-and thus time can be saved and people can focus on learning LAMMPS.
-The tutorials at https://lammpstutorials.github.io/ are specifically
-updated for use with LAMMPS-GUI and their tutorial materials can
-be downloaded and edited directly from the GUI.
+LAMMPS and is well-suited for LAMMPS tutorials, since you only need to
+work with a single, ready-to-use program for most of the tasks.  Plus it
+is available for download as pre-compiled package for popular operating
+systems (Linux, macOS, Windows).  This saves time and allows users to
+focus on learning LAMMPS itself, without the need to learn how to
+compile LAMMPS, learn how to use the command line, or learn how to use a
+separate text editor.
 
-Another design goal is to keep the barrier low when replacing part of
-the functionality of LAMMPS-GUI with external tools.  That said, LAMMPS-GUI
-has some unique functionality that is not found elsewhere:
+The tutorials at https://lammpstutorials.github.io/ are specifically
+updated for use with LAMMPS-GUI and their tutorial materials can be
+downloaded and edited directly from within the GUI while automatically
+loading the matching tutorial instructions into a webbrowser.
+
+Yet the basic control flow remains similar to running LAMMPS from the
+command line, so the barrier for replacing parts of the functionality of
+LAMMPS-GUI with external tools is low.  That said, LAMMPS-GUI offer some
+unique features that are not easily found elsewhere:
 
 - auto-adapting to features available in the integrated LAMMPS library
-- auto-completion for LAMMPS commands and options
-- context-sensitive online help
+- auto-completion for available LAMMPS commands and options only
+- context-sensitive online help for known LAMMPS commands
 - start and stop of simulations via mouse or keyboard
-- monitoring of simulation progress
-- interactive visualization using the :doc:`dump image <dump_image>`
+- monitoring of simulation progress and CPU use
+- interactive visualization using the LAMMPS :doc:`dump image feature <dump_image>`
   command with the option to copy-paste the resulting settings
 - automatic slide show generation from dump image output at runtime
 - automatic plotting of thermodynamic data at runtime
 - inspection of binary restart files
+- integration will a set of LAMMPS tutorials
 
 .. admonition:: Download LAMMPS-GUI for your platform
    :class: Hint
@@ -93,7 +112,7 @@ has some unique functionality that is not found elsewhere:
 
 -----
 
-The following text provides a detailed tour of the features and
+The following text provides a documentation of the features and
 functionality of LAMMPS-GUI.  Suggestions for new features and
 reports of bugs are always welcome.  You can use the :doc:`the same
 channels as for LAMMPS itself <Errors_bugs>` for that purpose.
@@ -104,11 +123,28 @@ Installing Pre-compiled LAMMPS-GUI Packages
 -------------------------------------------
 
 LAMMPS-GUI is available for download as pre-compiled binary packages for
-Linux x86\_64 (Ubuntu 20.04LTS or later and compatible), macOS (version
+Linux x86\_64 (Ubuntu 22.04LTS or later and compatible), macOS (version
 11 aka Big Sur or later), and Windows (version 10 or later) from the
 `LAMMPS release pages on GitHub <https://github.com/lammps/lammps/releases/>`_.
 A backup download location is at https://download.lammps.org/static/
 Alternately, LAMMPS-GUI can be compiled from source when building LAMMPS.
+
+.. admonition:: GPU support and MPI parallelization
+   :class: note
+
+   The pre-compiled packages include support for GPUs through the GPU
+   package with OpenCL (in mixed precision).  However, this requires
+   that you have a compatible driver and the OpenCL runtime installed.
+   This is not always available and when using the flatpak package, the
+   flatpak sandbox prevents accessing the GPU.  GPU support through
+   KOKKOS is currently not available for technical reasons, but serial
+   and OpenMP multi-threading is available.
+
+   The design decisions for LAMMPS-GUI and how it launches LAMMPS
+   conflict with parallel runs using MPI.  You have to :doc:`use a
+   regular LAMMPS executable <Run_basics>` compiled with MPI support for
+   that.  For the use cases that LAMMPS-GUI has been conceived for this
+   is not a significant limitation.
 
 Windows 10 and later
 ^^^^^^^^^^^^^^^^^^^^
@@ -159,7 +195,6 @@ listed with:
 .. code-block:: sh
 
    ls $(flatpak info --show-location org.lammps.lammps-gui )/files/bin
-
 
 Compiling from Source
 ^^^^^^^^^^^^^^^^^^^^^
@@ -230,9 +265,9 @@ editor buffer, which may contain multiple :doc:`run <run>` or
 
 LAMMPS runs in a separate thread, so the GUI stays responsive and is
 able to interact with the running calculation and access data it
-produces.  It is important to note that running LAMMPS this way is
-using the contents of the input buffer for the run (via the
-:cpp:func:`lammps_commands_string()` function of the LAMMPS C-library
+produces.  It is important to note that running LAMMPS this way is using
+the contents of the input buffer for the run (via the
+:cpp:func:`lammps_commands_string` function of the LAMMPS C-library
 interface), and **not** the original file it was read from.  Thus, if
 there are unsaved changes in the buffer, they *will* be used.  As an
 alternative, it is also possible to run LAMMPS by reading the contents
@@ -240,28 +275,55 @@ of a file from the *Run LAMMPS from File* menu entry or with
 `Ctrl-Shift-Enter`.  This option may be required in some rare cases
 where the input uses some functionality that is not compatible with
 running LAMMPS from a string buffer.  For consistency, any unsaved
-changes in the buffer must be either saved to the file or undone
-before LAMMPS can be run from a file.
+changes in the buffer must be either saved to the file or undone before
+LAMMPS can be run from a file.
+
+The line number of the currently executed command is highlighted in
+green in the line number display for the *Editor* Window.
 
 .. image:: JPG/lammps-gui-running.png
    :align: center
    :scale: 75%
 
-While LAMMPS is running, the contents of the status bar change.  On
-the left side there is a text indicating that LAMMPS is running, which
-also indicates the number of active threads, when thread-parallel
-acceleration was selected in the *Preferences* dialog.  On the right
+While LAMMPS is running, the contents of the status bar change.  The
+text fields that normally show "Ready." and the current working
+directory, change into an area showing the CPU utilization in percent.
+Nest to it is a text indicating that LAMMPS is running, which also
+indicates the number of active threads (in case thread-parallel
+acceleration was selected in the *Preferences* dialog).  On the right
 side, a progress bar is shown that displays the estimated progress for
 the current :doc:`run <run>` or :doc:`minimize <minimize>` command.
 
-Also, the line number of the currently executed command is highlighted
-in green.
+.. admonition:: CPU Utilization
+   :class: note
+
+   The CPU Utilization should ideally be close to 100% times the number
+   of threads like in the screenshot image above.  Since the GUI is
+   running as a separate thread, the CPU utilization can be higher, for
+   example when the GUI needs to work hard to keep up with the
+   simulation.  This can be caused by having frequent thermo output or
+   running a simulation of a small system.  In the *Preferences* dialog,
+   the polling interval for updating the the *Output* and *Charts*
+   windows can be set. The intervals may need to be lowered to not miss
+   data between *Charts* data updates or to avoid stalling when the
+   thermo output is not transferred to the *Output* window fast enough.
+   It is also possible to reduce the amount of data by increasing the
+   :doc:`thermo interval <thermo>`.  LAMMPS-GUI detects, if the
+   associated I/O buffer is by a significant percentage and will print a
+   warning after the run with suggested adjustments.  The utilization
+   can also be lower, e.g.  when the simulation is slowed down by the
+   GUI or other processes also running on the host computer and
+   competing with LAMMPS-GUI for GPU resources.
+
+   .. image:: JPG/lammps-gui-buffer-warn.png
+      :align: center
+      :scale: 75%
 
 If an error occurs (in the example below the command :doc:`label
 <label>` was incorrectly capitalized as "Label"), an error message
 dialog is shown and the line of the input which triggered the error is
-highlighted.  The state of LAMMPS in the status bar is set to "Failed."
-instead of "Ready."
+highlighted in red.  The state of LAMMPS in the status bar is set to
+"Failed."  instead of "Ready."
 
 .. image:: JPG/lammps-gui-run-error.png
    :align: center
@@ -285,7 +347,7 @@ timestep (or iteration for energy minimization) and then complete the
 processing of the buffer while skipping all run or minimize commands.
 This is equivalent to the input script command :doc:`timer timeout 0
 <timer>` and is implemented by calling the
-:cpp:func:`lammps_force_timeout()` function of the LAMMPS C-library
+:cpp:func:`lammps_force_timeout` function of the LAMMPS C-library
 interface.  Please see the corresponding documentation pages to
 understand the implications of this operation.
 
@@ -351,32 +413,28 @@ plot of thermodynamic output of the LAMMPS calculation as shown below.
    :align: center
    :scale: 33%
 
-The drop down menu on the top right allows selection of different
-properties that are computed and written to thermo output.  Only one
-property can be shown at a time.  The plots are updated regularly with
-new data as the run progresses, so they can be used to visually monitor
-the evolution of available properties.  The update interval can be set
-in the *Preferences* dialog.  By default, the raw data for the selected
-property is plotted as a blue graph. As soon as there are a sufficient
-number of data points, there will be a second graph shown in red with a
-smoothed version of the data.  From the drop down menu on the top left,
-you can select whether to plot only the raw data, only the smoothed
-data or both.  The smoothing uses a `Savitzky-Golay convolution filter
-<https://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_filter>`_ The
-window width (left) and order (right) parameters can be set in the boxes
-next to the drop down menu.  Default settings are 10 and 4 which means
-that the smoothing window includes 10 points each to the left and the
-right of the current data point for a total of 21 points and a fourth
-order polynomial is fitted to the data in the window.
+The "Data:" drop down menu on the top right allows selection of
+different properties that are computed and written as thermodynamic
+output to the output window.  Only one property can be shown at a time.
+The plots are updated regularly with new data as the run progresses, so
+they can be used to visually monitor the evolution of available
+properties.  The update interval can be set in the *Preferences* dialog.
+By default, the raw data for the selected property is plotted as a blue
+graph.  From the "Plot:" drop menu on the second row and on the left,
+you can select whether to plot only raw data graph, only a smoothed data
+graph, or both graphs on top of each other.  The smoothing process uses
+a `Savitzky-Golay convolution filter
+<https://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_filter>`_.  The
+convolution window width (left) and order (right) parameters can be set
+in the boxes next to the drop down menu.  Default settings are 10 and 4
+which means that the smoothing window includes 10 points each to the
+left and the right of the current data point for a total of 21 points
+and a fourth order polynomial is fitted to the data in the window.
 
 The "Title:" and "Y:" input boxes allow to edit the text shown as the
 plot title and the y-axis label, respectively.  The text entered in the
 "Title:" box is applied to *all* charts, while the "Y:" text changes
 only the y-axis label of the currently *selected* plot.
-
-You can use the mouse to zoom into the graph (hold the left button and
-drag to mark an area) or zoom out (right click) and you can reset the
-view with a click to the "lens" button next to the data drop down menu.
 
 The window title shows the current run number that this chart window
 corresponds to.  Same as for the *Output* window, the chart window is
@@ -408,6 +466,35 @@ The *Preferences* dialog has a *Charts* tab, where you can configure
 multiple chart-related settings, like the default title, colors for the
 graphs, default choice of the raw / smooth graph selection, and the
 default chart graph size.
+
+
+
+.. admonition:: Slowdown of Simulations from Charts Data Processing
+   :class: warning
+
+   Using frequent thermo output during long simulations can result in a
+   significant slowdown of that simulation since it is accumulating many
+   data points for each of the thermo properties in the chart window to
+   be redrawn with every update.  The updates are consuming additional
+   CPU time when smoothing enabled.  This slowdown can be confirmed when
+   an increasing percentage of the total run time is spent in the
+   "Output" or "Other" sections of the :doc:`MPI task timing breakdown
+   <Run_output>`.  It is thus recommended to use a large enough value as
+   argument `N` for the :doc:`thermo command <thermo>` and to select
+   plotting only the "Raw" data in the *Charts Window* during such
+   simulations.  It is always possible to switch between the different
+   display styles for charts during the simulation and after it has
+   finished.
+
+   .. versionchanged:: 1.7
+
+      As of LAMMPS-GUI version 1.7 the chart data processing is
+      significantly optimized compared to older versions of LAMMPS-GUI.
+      The general problem of accumulating excessive amounts of data
+      and the overhead of too frequently polling LAMMPS for new data
+      cannot be optimized away, though.  If necessary, the command
+      line LAMMPS executable needs to be used and the output accumulated
+      of a very fast disk (e.g. a high-performance SSD).
 
 Image Slide Show
 ----------------
@@ -492,19 +579,29 @@ Lennard-Jones type potential, it will extract the *sigma* parameter for
 each atom type and assign atom diameters from those numbers.  For cases
 where atom diameters are not auto-detected, the *Atom size* field can be
 edited and a suitable value set manually. The default value is inferred
-from the x-direction lattice spacing.
+from the x-direction lattice spacing. It is also possible to visualize
+regions and have bonds computed dynamically for potentials, where the
+bonds are determined implicitly (like :doc:`AIREBO <pair_airebo>`.
+Please see the documentation of the :doc:`dump image command
+<dump_image>` for more details on these two features.
 
 If elements cannot be detected the default sequence of colors of the
 :doc:`dump image <dump_image>` command is assigned to the different atom
 types.
 
 .. |gui-image1| image:: JPG/lammps-gui-image.png
-   :width: 48%
+   :width: 24%
 
 .. |gui-image2| image:: JPG/lammps-gui-funnel.png
-   :width: 48%
+   :width: 24%
 
-|gui-image1|  |gui-image2|
+.. |gui-image3| image:: JPG/lammps-gui-regions.png
+   :width: 24%
+
+.. |gui-image4| image:: JPG/lammps-gui-autobond.png
+   :width: 24%
+
+|gui-image1|  |gui-image2|  |gui-image3|  |gui-image4|
 
 The default image size, some default image quality settings, the view
 style and some colors can be changed in the *Preferences* dialog window.
@@ -640,13 +737,27 @@ generated with a :doc:`write_data command <write_data>`.  The third
 window is a :ref:`Snapshot Image Viewer <snapshot_viewer>` containing a
 visualization of the system in the restart.
 
-If the restart file is larger than 250 MBytes, a dialog will ask
-for confirmation before continuing, since large restart files
-may require large amounts of RAM since the entire system must
-be read into RAM.  Thus restart file for large simulations that
-have been run on an HPC cluster may overload a laptop or local
-workstation. The *Show Details...* button will display a rough
-estimate of the additional memory required.
+.. |inspect1| image:: JPG/lammps-gui-inspect-data.png
+   :width: 32%
+
+.. |inspect2| image:: JPG/lammps-gui-inspect-info.png
+   :width: 32%
+
+.. |inspect3| image:: JPG/lammps-gui-inspect-image.png
+   :width: 32%
+
+|inspect1|  |inspect2|  |inspect3|
+
+.. admonition:: Large Restart Files
+   :class: warning
+
+   If the restart file is larger than 250 MBytes, a dialog will ask for
+   confirmation before continuing, since large restart files may require
+   large amounts of RAM since the entire system must be read into RAM.
+   Thus restart file for large simulations that have been run on an HPC
+   cluster may overload a laptop or local workstation. The *Show
+   Details...* button will display a rough estimate of the additional
+   memory required.
 
 Menu
 ----
@@ -718,6 +829,12 @@ timestep.  The *Stop LAMMPS* entry will do this by calling the
 :cpp:func:`lammps_force_timeout` library function, which is equivalent
 to a :doc:`timer timeout 0 <timer>` command.
 
+The *Relaunch LAMMPS Instance* will destroy the current LAMMPS thread
+and free its data and then create a new thread with a new LAMMPS
+instance.  This is usually not needed, since LAMMPS-GUI tries to detect
+when this is needed and does it automatically.  This is available
+in case it missed something and LAMMPS behaves in unexpected ways.
+
 The *Set Variables...* entry opens a dialog box where
 :doc:`index style variables <variable>` can be set. Those variables
 are passed to the LAMMPS instance when it is created and are thus
@@ -771,6 +888,10 @@ tutorial's online version opened in your web browser.  The dialog will
 then start downloading the files requested (download progress is
 reported in the status line) and load the first input file for the
 selected session into LAMMPS-GUI.
+
+.. image:: JPG/lammps-gui-tutorials.png
+   :align: center
+   :scale: 50%
 
 About
 ^^^^^
@@ -878,13 +999,12 @@ General Settings:
 - *Replace image window on new render:* when checked, an existing
   chart window will be replaced when a new snapshot image is requested,
   otherwise each command will create a new image window.
-- *Path to LAMMPS Shared Library File:* this option is only visible
-  when LAMMPS-GUI was compiled to load the LAMMPS library at run time
-  instead of being linked to it directly.  With the *Browse..* button
-  or by changing the text, a different shared library file with a
-  different compilation of LAMMPS with different settings or from a
-  different version can be loaded.  After this setting was changed,
-  LAMMPS-GUI needs to be re-launched.
+- *Download tutorial solutions enabled* this controls whether the
+  "Download solutions" option is enabled by default when setting up
+  a tutorial.
+- *Open tutorial webpage enabled* this controls whether the "Open
+  tutorial webpage in web browser" option is enabled by default when
+  setting up a tutorial.
 - *Select Default Font:* Opens a font selection dialog where the type
   and size for the default font (used for everything but the editor and
   log) of the application can be set.
@@ -908,16 +1028,31 @@ General Settings:
   or for downloading tutorial files from the *Tutorials* menu.  If the
   ``https_proxy`` environment variable was set externally, its value is
   displayed but cannot be changed.
+- *Path to LAMMPS Shared Library File:* this option is only visible
+  when LAMMPS-GUI was compiled to load the LAMMPS library at run time
+  instead of being linked to it directly.  With the *Browse..* button
+  or by changing the text, a different shared library file with a
+  different compilation of LAMMPS with different settings or from a
+  different version can be loaded.  After this setting was changed,
+  LAMMPS-GUI needs to be re-launched.
 
 Accelerators:
 ^^^^^^^^^^^^^
 
-This tab enables selection of an accelerator package for LAMMPS to use
-and is equivalent to using the `-suffix` and `-package` flags on the
-command-line.  Only settings supported by the LAMMPS library and local
-hardware are available.  The `Number of threads` field allows setting
-the maximum number of threads for the accelerator packages that use
-threads.
+This tab enables selection of an accelerator package and modify some of
+its settings to use for running LAMMPS and is equivalent to using the
+:doc:`-sf <suffix>` and :doc:`-pk <package>` flags :doc:`on the
+command-line <Run_options>`.  Only settings supported by the LAMMPS
+library and local hardware are available.  The `Number of threads` field
+allows setting the number of threads for the accelerator packages that
+support using threads (OPENMP, INTEL, KOKKOS, and GPU).  Furthermore,
+the choice of precision mode (double, mixed, or single) for the INTEL
+package can be selected and for the GPU package, whether the neighbor
+lists are built on the GPU or the host (required for :doc:`pair style
+hybrid <pair_hybrid>`) and whether only pair styles should be
+accelerated (i.e. run PPPM entirely on the CPU, which sometimes leads
+to better overall performance).  Whether settings can be changed depends
+on which accelerator package is chosen (or "None").
 
 Snapshot Image:
 ^^^^^^^^^^^^^^^
@@ -1059,7 +1194,7 @@ Window), and `Ctrl-Q` (Quit Application) are supported.
 
 .. _Gravelle1:
 
-**(Gravelle1)** Gravelle, Gissinger, Kohlmeyer, `arXiv:2503.14020 \[physics.comp-ph\] <https://doi.org/10.48550/arXiv.2503.14020>`_ (2025)
+**(Gravelle1)** Gravelle, Alvares, Gissinger, Kohlmeyer, `arXiv:2503.14020 \[physics.comp-ph\] <https://doi.org/10.48550/arXiv.2503.14020>`_ (2025)
 
 .. _Gravelle2:
 

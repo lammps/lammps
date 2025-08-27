@@ -21,7 +21,6 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "info.h"
 #include "gpu_extra.h"
 #include "memory.h"

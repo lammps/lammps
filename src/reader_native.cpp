@@ -419,6 +419,9 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
       fieldindex[i] = find_label("iy", labels);
     else if (fieldtype[i] == IZ)
       fieldindex[i] = find_label("iz", labels);
+
+    else if (fieldtype[i] == APIP_LAMBDA)
+      fieldindex[i] = find_label("apip_lambda", labels);
   }
 
   // set fieldflag = -1 if any unfound fields
@@ -524,7 +527,7 @@ void ReaderNative::read_buf(void * ptr, size_t size, size_t count)
 std::string ReaderNative::read_binary_str(size_t size)
 {
   std::string str(size, '\0');
-  read_buf(&str[0], sizeof(char), size);
+  read_buf((char *)str.data(), sizeof(char), size);
   return str;
 }
 

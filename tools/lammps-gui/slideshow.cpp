@@ -38,6 +38,8 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
+#include <algorithm>
+
 SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     QDialog(parent), playtimer(nullptr), imageLabel(new QLabel), imageName(new QLabel("(none)")),
     do_loop(true)
@@ -193,8 +195,8 @@ void SlideShow::loadImage(int idx)
         if (newImage.isNull()) {
             --idx;
         } else {
-            int newheight = (int)newImage.height() * scaleFactor;
-            int newwidth  = (int)newImage.width() * scaleFactor;
+            int newheight = newImage.height() * scaleFactor;
+            int newwidth  = newImage.width() * scaleFactor;
             image         = newImage.scaled(newwidth, newheight, Qt::IgnoreAspectRatio,
                                             Qt::SmoothTransformation);
             imageLabel->setPixmap(QPixmap::fromImage(image));
@@ -212,17 +214,13 @@ void SlideShow::loadImage(int idx)
 
 void SlideShow::quit()
 {
-    LammpsGui *main = nullptr;
-    for (QWidget *widget : QApplication::topLevelWidgets())
-        if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
+    auto *main = dynamic_cast<LammpsGui *>(get_main_widget());
     if (main) main->quit();
 }
 
 void SlideShow::stop_run()
 {
-    LammpsGui *main = nullptr;
-    for (QWidget *widget : QApplication::topLevelWidgets())
-        if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
+    auto *main = dynamic_cast<LammpsGui *>(get_main_widget());
     if (main) main->stop_run();
 }
 
@@ -235,7 +233,7 @@ void SlideShow::movie()
     QDir curdir(".");
     QTemporaryFile concatfile;
     concatfile.open();
-    for (auto image : imagefiles) {
+    for (const auto &image : imagefiles) {
         concatfile.write("file '");
         concatfile.write(curdir.absoluteFilePath(image).toLocal8Bit());
         concatfile.write("'\n");
@@ -356,9 +354,9 @@ void SlideShow::scaleImage(double factor)
     maxfactor        = qMin((double)maxheight / (double)image.height(), maxfactor);
     maxfactor        = qMin((double)maxwidth / (double)image.width(), maxfactor);
 
-    if (factor > maxfactor) factor = maxfactor;
+    factor = std::min(factor, maxfactor);
     scaleFactor *= factor;
-    if (scaleFactor < 0.25) scaleFactor = 0.25;
+    scaleFactor = std::max(scaleFactor, 0.25);
 
     loadImage(current);
 }

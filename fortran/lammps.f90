@@ -197,6 +197,8 @@ MODULE LIBLAMMPS
     PROCEDURE, PRIVATE :: lmp_create_atoms_bigbig
     GENERIC   :: create_atoms           => lmp_create_atoms_int, &
                                            lmp_create_atoms_bigbig
+    PROCEDURE :: create_molecule        => lmp_create_molecule
+
     PROCEDURE :: find_pair_neighlist         => lmp_find_pair_neighlist
     PROCEDURE :: find_fix_neighlist          => lmp_find_fix_neighlist
     PROCEDURE :: find_compute_neighlist      => lmp_find_compute_neighlist
@@ -407,6 +409,12 @@ MODULE LIBLAMMPS
 
     SUBROUTINE lammps_kokkos_finalize() BIND(C)
     END SUBROUTINE lammps_kokkos_finalize
+
+    SUBROUTINE lammps_python_finalize() BIND(C)
+    END SUBROUTINE lammps_python_finalize
+
+    SUBROUTINE lammps_plugin_finalize() BIND(C)
+    END SUBROUTINE lammps_plugin_finalize
 
     SUBROUTINE lammps_error(handle, error_type, error_text) BIND(C)
       IMPORT :: c_ptr, c_int
@@ -755,6 +763,12 @@ MODULE LIBLAMMPS
       INTEGER(c_int), VALUE :: n, bexpand
       INTEGER(c_int) :: lammps_create_atoms
     END FUNCTION lammps_create_atoms
+
+    SUBROUTINE lammps_create_molecule(handle, id, jsonstr) BIND(C)
+      IMPORT :: c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, id, jsonstr
+    END SUBROUTINE lammps_create_molecule
 
     FUNCTION lammps_find_pair_neighlist(handle, style, exact, nsub, reqid) &
     BIND(C)
@@ -1135,7 +1149,7 @@ CONTAINS
     SIZE_IMAGEINT = lmp_extract_setting(lmp_open, 'imageint')
   END FUNCTION lmp_open
 
-  ! Combined Fortran wrapper around lammps_close() and lammps_mpi_finalize()
+  ! Combined Fortran wrapper around lammps_close() and lammps_*_finalize()
   SUBROUTINE lmp_close(self, finalize)
     CLASS(lammps), INTENT(IN) :: self
     LOGICAL, INTENT(IN), OPTIONAL :: finalize
@@ -1146,6 +1160,11 @@ CONTAINS
       IF (finalize) THEN
         CALL lammps_kokkos_finalize()
         CALL lammps_mpi_finalize()
+        CALL lammps_python_finalize()
+        CALL lammps_plugin_finalize()
+        IF (ALLOCATED(ext_data)) THEN
+            DEALLOCATE(ext_data)
+        END IF
       END IF
     END IF
   END SUBROUTINE lmp_close
@@ -2873,6 +2892,19 @@ CONTAINS
     END IF
   END SUBROUTINE lmp_create_atoms_bigbig
 
+  ! equivalent function to lammps_create_molecule
+  SUBROUTINE lmp_create_molecule(self, id, jsonstr)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id, jsonstr
+    TYPE(c_ptr) :: Cid, Cjsonstr
+
+    Cid = f2c_string(id)
+    Cjsonstr = f2c_string(jsonstr)
+    CALL lammps_create_molecule(self%handle, Cid, Cjsonstr)
+    CALL lammps_free(Cid)
+    CALL lammps_free(Cjsonstr)
+  END SUBROUTINE lmp_create_molecule
+
   ! equivalent function to lammps_find_pair_neighlist
   INTEGER(c_int) FUNCTION lmp_find_pair_neighlist(self, style, exact, nsub, &
       reqid)
@@ -3411,6 +3443,7 @@ CONTAINS
     TYPE(c_ptr) :: c_id, c_caller
     TYPE(c_funptr) :: c_callback
     INTEGER :: i, this_fix
+    TYPE(fix_external_data), DIMENSION(:), ALLOCATABLE :: tmp_ext_data
 
     c_id = f2c_string(id)
     IF (ALLOCATED(ext_data)) THEN
@@ -3422,9 +3455,13 @@ CONTAINS
         END IF
       END DO
       IF (this_fix > SIZE(ext_data)) THEN
-        ! reallocates ext_data; this requires us to re-bind "caller" on the C
+        ! reallocate ext_data in a pre-fortran 2008 compatible way.
+        ALLOCATE(tmp_ext_data(this_fix))
+        tmp_ext_data(1:this_fix-1) = ext_data(1:this_fix-1)
+        tmp_ext_data(this_fix) = fix_external_data()
+        CALL move_alloc(tmp_ext_data, ext_data)
+        ! this requires us to re-bind "caller" on the C
         ! side to the new data structure, which likely moved to a new address
-        ext_data = [ext_data, fix_external_data()] ! extends ext_data by 1
         CALL rebind_external_callback_data()
       END IF
     ELSE

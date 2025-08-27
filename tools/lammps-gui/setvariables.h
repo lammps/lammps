@@ -24,7 +24,13 @@ class SetVariables : public QDialog {
 
 public:
     explicit SetVariables(QList<QPair<QString, QString>> &vars, QWidget *parent = nullptr);
-    ~SetVariables() = default;
+    ~SetVariables() override = default;
+
+    SetVariables()                                = delete;
+    SetVariables(const SetVariables &)            = delete;
+    SetVariables(SetVariables &&)                 = delete;
+    SetVariables &operator=(const SetVariables &) = delete;
+    SetVariables &operator=(SetVariables &&)      = delete;
 
 private slots:
     void accept() override;

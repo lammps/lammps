@@ -53,15 +53,17 @@ The value *eng* is the interaction energy for the angle.
 
 The value *v_name* can be used together with the *set* keyword to
 compute a user-specified function of the angle theta.  The *name*
-specified for the *v_name* value is the name of an :doc:`equal-style variable <variable>` which should evaluate a formula based on a
+specified for the *v_name* value is the name of an :doc:`equal-style
+variable <variable>` which should evaluate a formula based on a
 variable which will store the angle theta.  This other variable must
-be an :doc:`internal-style variable <variable>` defined in the input
-script; its initial numeric value can be anything.  It must be an
-internal-style variable, because this command resets its value
-directly.  The *set* keyword is used to identify the name of this
-other variable associated with theta.
+be an :doc:`internal-style variable <variable>` specified by the *set*
+keyword.  It is an internal-style variable, because this command
+resets its value directly.  The internal-style variable does not need
+to be defined in the input script (though it can be); if it is not
+defined, then the *set* option creates an :doc:`internal-style
+variable <variable>` with the specified name.
 
-Note that the value of theta for each angle which stored in the
+Note that the value of theta for each angle which is stored in the
 internal variable is in radians, not degrees.
 
 As an example, these commands can be added to the bench/in.rhodo
@@ -70,7 +72,6 @@ system and output the statistics in various ways:
 
 .. code-block:: LAMMPS
 
-   variable t internal 0.0
    variable cos equal cos(v_t)
    variable cossq equal cos(v_t)*cos(v_t)
 

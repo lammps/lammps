@@ -273,7 +273,7 @@ void FixIndent::post_force(int /*vflag*/)
         delx = x[i][0] - ctr[0];
         dely = x[i][1] - ctr[1];
         delz = x[i][2] - ctr[2];
-        domain->minimum_image(delx, dely, delz);
+        domain->minimum_image(FLERR, delx, dely, delz);
         r = sqrt(delx * delx + dely * dely + delz * delz);
         if (side == OUTSIDE) {
           dr = r - radius;
@@ -313,7 +313,7 @@ void FixIndent::post_force(int /*vflag*/)
       if (mask[i] & groupbit) {
         double del[3] = {x[i][0] - ctr[0], x[i][1] - ctr[1], x[i][2] - ctr[2]};
         del[cdim] = 0;
-        domain->minimum_image(del[0], del[1], del[2]);
+        domain->minimum_image(FLERR, del[0], del[1], del[2]);
         r = sqrt(del[0] * del[0] + del[1] * del[1] + del[2] * del[2]);
         if (side == OUTSIDE) {
           dr = r - radius;
@@ -360,7 +360,7 @@ void FixIndent::post_force(int /*vflag*/)
         delx = x[i][0] - ctr[0];
         dely = x[i][1] - ctr[1];
         delz = x[i][2] - ctr[2];
-        domain->minimum_image(delx, dely, delz);
+        domain->minimum_image(FLERR, delx, dely, delz);
 
         double x0[3] = {delx + ctr[0], dely + ctr[1], delz + ctr[2]};
         r = sqrt(delx * delx + dely * dely + delz * delz);
@@ -700,9 +700,7 @@ bool FixIndent::PointInsideCone(int dir, double *center, double lo, double hi, d
   double dist = sqrt(del[0] * del[0] + del[1] * del[1] + del[2] * del[2]);
   double currentradius = rlo + (x[dir] - lo) * (rhi - rlo) / (hi - lo);
 
-  if (dist > currentradius) return false;
-
-  return true;
+  return dist <= currentradius;
 }
 
 /* ----------------------------------------------------------------------
@@ -757,8 +755,6 @@ void FixIndent::DistanceExteriorPoint(int dir, double *center, double lo, double
   x -= nearest[0];
   y -= nearest[1];
   z -= nearest[2];
-
-  return;
 }
 
 /* ----------------------------------------------------------------------
@@ -812,8 +808,6 @@ void FixIndent::DistanceInteriorPoint(int dir, double *center, double lo, double
     y = point[1];
     z = point[2];
   }
-
-  return;
 }
 
 /* ----------------------------------------------------------------------

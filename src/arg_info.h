@@ -50,7 +50,7 @@ class ArgInfo {
   };
   // clang-format on
   ArgInfo(const std::string &arg, int allowed = COMPUTE | FIX | VARIABLE);
-  virtual ~ArgInfo() {}
+  virtual ~ArgInfo() = default;
 
  public:
   /*! get type of reference

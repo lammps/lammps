@@ -474,6 +474,7 @@ fix_amoeba_pitorsion.html fix amoeba/pitorsion
 fix_append_atoms.html fix append/atoms
 fix_atc.html fix atc
 fix_atom_swap.html fix atom/swap
+fix_atom_weight_apip.html fix atom_weight/apip
 fix_ave_atom.html fix ave/atom
 fix_ave_chunk.html fix ave/chunk
 fix_ave_correlate_long.html fix ave/correlate/long
@@ -482,6 +483,7 @@ fix_aveforce.html fix aveforce
 fix_ave_grid.html fix ave/grid
 fix_ave_histo.html fix ave/histo
 fix_ave_histo.html fix ave/histo/weight
+fix_ave_moments.html fix ave/moments
 fix_ave_time.html fix ave/time
 fix_balance.html fix balance
 fix_bocs.html fix bocs
@@ -542,6 +544,7 @@ fix_flow_gauss.html fix flow/gauss
 fix_freeze.html fix freeze
 fix_freeze.html fix freeze/kk
 fix_gcmc.html fix gcmc
+fix_gjf.html fix gjf
 fix_gld.html fix gld
 fix_gle.html fix gle
 fix_gravity.html fix gravity
@@ -551,11 +554,14 @@ fix_grem.html fix grem
 fix_halt.html fix halt
 fix_heat_flow.html fix heat/flow
 fix_heat.html fix heat
+fix_hmc.html fix hmc
 fix_hyper_global.html fix hyper/global
 fix_hyper_local.html fix hyper/local
 fix_imd.html fix imd
 fix_indent.html fix indent
 fix_ipi.html fix ipi
+fix_lambda_apip.html fix lambda/apip
+fix_lambda_thermostat_apip.html fix lambda_thermostat/apip
 fix_langevin_drude.html fix langevin/drude
 fix_langevin_eff.html fix langevin/eff
 fix_langevin.html fix langevin
@@ -732,6 +738,7 @@ fix_saed_vtk.html fix saed/vtk
 fix_setforce.html fix setforce
 fix_setforce.html fix setforce/kk
 fix_setforce.html fix setforce/spin
+fix_set.html fix set
 fix_sgcmc.html fix sgcmc
 fix_shake.html fix rattle
 fix_shake.html fix shake
@@ -877,6 +884,7 @@ kspace_style.html kspace_style pppm/stagger
 kspace_style.html kspace_style pppm/tip4p
 kspace_style.html kspace_style pppm/tip4p/omp
 kspace_style.html kspace_style scafacos
+kspace_style.html kspace_style zero
 labelmap.html labelmap
 label.html label
 lattice.html lattice
@@ -1096,6 +1104,8 @@ pair_dpd.html pair_style dpd/tstat/omp
 pair_drip.html pair_style drip
 pair_dsmc.html pair_style dsmc
 pair_e3b.html pair_style e3b
+pair_eam_apip.html pair_style eam/apip
+pair_eam_apip.html pair_style eam/fs/apip
 pair_eam.html pair_style eam
 pair_eam.html pair_style eam/alloy
 pair_eam.html pair_style eam/alloy/gpu
@@ -1202,6 +1212,9 @@ pair_ilp_tmd.html pair_style ilp/tmd/opt
 pair_kim.html pair_style kim
 pair_kolmogorov_crespi_full.html pair_style kolmogorov/crespi/full
 pair_kolmogorov_crespi_z.html pair_style kolmogorov/crespi/z
+pair_lambda_input_apip.html pair_style lambda/input/apip
+pair_lambda_input_apip.html pair_style lambda/input/csp/apip
+pair_lambda_zone_apip.html pair_style lambda/zone/apip
 pair_lcbop.html pair_style lcbop
 pair_lebedeva_z.html pair_style lebedeva/z
 pair_lepton.html pair_style lepton
@@ -1350,6 +1363,9 @@ pair_oxrna2.html pair_style oxrna2/excv
 pair_oxrna2.html pair_style oxrna2/hbond
 pair_oxrna2.html pair_style oxrna2/stk
 pair_oxrna2.html pair_style oxrna2/xstk
+pair_pace_apip.html pair_style pace/apip
+pair_pace_apip.html pair_style pace/fast/apip
+pair_pace_apip.html pair_style pace/precise/apip
 pair_pace.html pair_style pace
 pair_pace.html pair_style pace/extrapolation
 pair_pace.html pair_style pace/extrapolation/kk

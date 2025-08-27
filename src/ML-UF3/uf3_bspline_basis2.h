@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    lammps - large-scale atomic/molecular massively parallel simulator
    https://www.lammps.org/, sandia national laboratories
@@ -11,9 +10,6 @@
 
    see the readme file in the top-level lammps directory.
 ------------------------------------------------------------------------- */
-#include "pointers.h"
-
-#include <vector>
 
 #ifndef UF3_BSPLINE_BASIS2_H
 #define UF3_BSPLINE_BASIS2_H
@@ -22,17 +18,30 @@ namespace LAMMPS_NS {
 
 class uf3_bspline_basis2 {
  private:
-  LAMMPS *lmp;
-  //std::vector<double> constants;
+  class LAMMPS *lmp;
 
  public:
   uf3_bspline_basis2(LAMMPS *ulmp, const double *knots, double coefficient);
-  ~uf3_bspline_basis2();
-  //std::vector<double> constants;
-  double constants[9] = {};
-  double eval0(double, double);
-  double eval1(double, double);
-  double eval2(double, double);
+  ~uf3_bspline_basis2() = default;
+  double constants[9];
+
+  // Evaluate outer-left part of spline
+  double eval0(double rsq, double r) const
+  {
+    return rsq * constants[2] + r * constants[1] + constants[0];
+  }
+
+  // Evaluate center-left part of spline
+  double eval1(double rsq, double r) const
+  {
+    return rsq * constants[5] + r * constants[4] + constants[3];
+  }
+
+  // Evaluate center-right part of spline
+  double eval2(double rsq, double r) const
+  {
+    return rsq * constants[8] + r * constants[7] + constants[6];
+  }
 
   double memory_usage();
 };

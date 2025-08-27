@@ -94,7 +94,7 @@ class DumpGrid : public Dump {
   void header_time_binary();
   void header_columns_binary();
 
-  typedef void (DumpGrid::*FnPtrHeader)(bigint);
+  using FnPtrHeader = void (DumpGrid::*)(bigint);
   FnPtrHeader header_choice;    // ptr to write header functions
   void header_binary(bigint);
   void header_binary_triclinic(bigint);
@@ -105,7 +105,7 @@ class DumpGrid : public Dump {
   void format_endian_binary();
   void format_revision_binary();
 
-  typedef void (DumpGrid::*FnPtrWrite)(int, double *);
+  using FnPtrWrite = void (DumpGrid::*)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions
   void write_binary(int, double *);
   void write_string(int, double *);
@@ -113,7 +113,7 @@ class DumpGrid : public Dump {
 
   // customize by adding a method prototype
 
-  typedef void (DumpGrid::*FnPtrPack)(int);
+  using FnPtrPack = void (DumpGrid::*)(int);
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_grid2d(int);

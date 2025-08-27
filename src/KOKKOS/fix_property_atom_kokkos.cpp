@@ -83,16 +83,19 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
   for (int nv = 0; nv < nvalue; nv++) {
     if (styles[nv] == MOLECULE) {
       atomKK->sync(Device,MOLECULE_MASK);
-      memoryKK->grow_kokkos(atomKK->k_molecule,atom->molecule,nmax,"atom:molecule");
       atomKK->modified(Device,MOLECULE_MASK);
+      memoryKK->grow_kokkos(atomKK->k_molecule,atom->molecule,nmax,"atom:molecule");
+      atomKK->sync(Host,MOLECULE_MASK);
     } else if (styles[nv] == CHARGE) {
       atomKK->sync(Device,Q_MASK);
-      memoryKK->grow_kokkos(atomKK->k_q,atom->q,nmax,"atom:q");
       atomKK->modified(Device,Q_MASK);
+      memoryKK->grow_kokkos(atomKK->k_q,atom->q,nmax,"atom:q");
+      atomKK->sync(Host,Q_MASK);
     } else if (styles[nv] == RMASS) {
       atomKK->sync(Device,RMASS_MASK);
-      memoryKK->grow_kokkos(atomKK->k_rmass,atom->rmass,nmax,"atom:rmass");
       atomKK->modified(Device,RMASS_MASK);
+      memoryKK->grow_kokkos(atomKK->k_rmass,atom->rmass,nmax,"atom:rmass");
+      atomKK->sync(Host,RMASS_MASK);
     } else if (styles[nv] == TEMPERATURE) {
       memory->grow(atom->temperature, nmax, "atom:temperature");
       size_t nbytes = (nmax - nmax_old) * sizeof(double);
@@ -107,9 +110,10 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
       memset(&atom->ivector[index[nv]][nmax_old],0,nbytes);
     } else if (styles[nv] == DVEC) {
       atomKK->sync(Device,DVECTOR_MASK);
+      atomKK->modified(Device,DVECTOR_MASK);
       memoryKK->grow_kokkos(atomKK->k_dvector,atom->dvector,atomKK->k_dvector.extent(0),nmax,
                           "atom:dvector");
-      atomKK->modified(Device,DVECTOR_MASK);
+      atomKK->sync(Host,DVECTOR_MASK);
     } else if (styles[nv] == IARRAY) {
       memory->grow(atom->iarray[index[nv]], nmax, cols[nv], "atom:iarray");
       size_t nbytes = (size_t) (nmax - nmax_old) * cols[nv] * sizeof(int);

@@ -469,7 +469,7 @@ void PairReaxFF::compute(int eflag, int vflag)
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
 
   if (api->system->acks2_flag) {
-    auto ifix = modify->get_fix_by_style("^acks2/reax").front();
+    auto *ifix = modify->get_fix_by_style("^acks2/reax").front();
     api->workspace->s = (dynamic_cast<FixACKS2ReaxFF*>(ifix))->get_s();
   }
 

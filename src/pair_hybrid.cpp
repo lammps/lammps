@@ -647,7 +647,7 @@ void PairHybrid::init_style()
   // create skip lists inside each pair neigh request
   // any kind of list can have its skip flag set in this loop
 
-  for (auto &request : neighbor->get_pair_requests()) {
+  for (const auto &request : neighbor->get_pair_requests()) {
 
     // istyle = associated sub-style for the request
 
@@ -760,7 +760,7 @@ double PairHybrid::init_one(int i, int j)
       if (cut > cutmax_style[istyle]) {
         cutmax_style[istyle] = cut;
 
-        for (auto &request : neighbor->get_pair_requests()) {
+        for (const auto &request : neighbor->get_pair_requests()) {
           if (styles[istyle] == request->get_requestor()) {
             request->set_cutoff(cutmax_style[istyle]);
             break;
@@ -1105,7 +1105,7 @@ void PairHybrid::set_special(int m)
 
 double * PairHybrid::save_special()
 {
-  auto saved = new double[8];
+  auto *saved = new double[8];
 
   for (int i = 0; i < 4; ++i) {
     saved[i] = force->special_lj[i];
@@ -1145,7 +1145,7 @@ void *PairHybrid::extract(const char *str, int &dim)
     if (ptr && strcmp(str,"cut_coul") == 0) {
       if (couldim != -1 && dim != couldim)
         error->all(FLERR, "Coulomb styles of pair hybrid sub-styles do not match");
-      auto p_newvalue = (double *) ptr;
+      auto *p_newvalue = (double *) ptr;
       double newvalue = *p_newvalue;
       if (cutptr && (newvalue != cutvalue))
         error->all(FLERR, "Coulomb cutoffs of pair hybrid sub-styles do not match");

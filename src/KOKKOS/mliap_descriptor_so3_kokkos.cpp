@@ -24,6 +24,7 @@
 #include "mliap_data_kokkos.h"
 #include "mliap_so3_kokkos.h"
 #include "pair_mliap.h"
+#include "atom_masks.h"
 
 using namespace LAMMPS_NS;
 
@@ -70,7 +71,9 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_forces(class MLIAPData *data_
   so3ptr_kokkos->spectrum_dxdr(data->nlistatoms, data->k_numneighs, data->k_jelems, this->k_wjelem, data->k_rij, data->k_ij,
                                nmax, lmax, rcutfac, alpha, npairs, data->ndescriptors);
 
+  atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,F_MASK);
   auto d_f = atomKK->k_f.view<DeviceType>();
+
   auto d_iatoms = data->k_iatoms.template view<DeviceType>();
   auto d_jatoms = data->k_jatoms.template view<DeviceType>();
   auto d_betas = data->k_betas.template view<DeviceType>();
@@ -78,8 +81,10 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_forces(class MLIAPData *data_
   auto d_ij = data->k_ij.template view<DeviceType>();
   auto ndescriptors = data->ndescriptors;
   auto d_dplist_r = so3ptr_kokkos->k_dplist_r;
-  auto vflag=data->vflag;
-  int vflag_either=data->k_pairmliap->vflag_either, vflag_global=data->pairmliap->vflag_global, vflag_atom=data->pairmliap->vflag_atom;
+  auto vflag = data->vflag;
+  int vflag_either = data->pairmliap->vflag_either;
+  int vflag_global = data->pairmliap->vflag_global;
+  int vflag_atom = data->pairmliap->vflag_atom;
   auto d_vatom = data->k_pairmliap->k_vatom.template view<DeviceType>();
   Kokkos::View<double[6], DeviceType> virial("virial");
   data->k_pairmliap->k_vatom.template modify<LMPHostType>();

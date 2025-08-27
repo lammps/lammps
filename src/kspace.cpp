@@ -33,15 +33,15 @@ static constexpr double SMALL = 0.00001;
 
 /* ---------------------------------------------------------------------- */
 
-KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
+KSpace::KSpace(LAMMPS *lmp) :
+    Pointers(lmp), eatom(nullptr), vatom(nullptr), gcons(nullptr), dgcons(nullptr)
 {
   order_allocated = 0;
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
 
   triclinic_support = 1;
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag =
-    dipoleflag = spinflag = 0;
+  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   compute_flag = 1;
   group_group_enable = 0;
   stagger_flag = 0;
@@ -83,14 +83,17 @@ KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
   accuracy_real_6 = -1.0;
   accuracy_kspace_6 = -1.0;
 
+  qqrd2e = force->qqrd2e;
+  g_ewald = g_ewald_6 = 0.0;
+  scale = 1.0;
+
   neighrequest_flag = 1;
   mixflag = 0;
 
   splittol = 1.0e-6;
+  scale = 1.0;
 
   maxeatom = maxvatom = 0;
-  eatom = nullptr;
-  vatom = nullptr;
   centroidstressflag = CENTROID_NOTAVAIL;
 
   execution_space = Host;
@@ -339,9 +342,9 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
   int nctb = force->pair->ncoultablebits;
   if (comm->me == 0) {
     if (nctb)
-      error->message(FLERR,"  using {}-bit tables for long-range coulomb",nctb);
+      utils::logmesg(lmp, "  using {}-bit tables for long-range coulomb\n", nctb);
     else
-      error->message(FLERR,"  using polynomial approximation for long-range coulomb");
+      utils::logmesg(lmp, "  using polynomial approximation for long-range coulomb\n");
   }
 
   if (nctb) {

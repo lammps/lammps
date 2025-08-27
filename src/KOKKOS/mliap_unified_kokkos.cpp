@@ -296,7 +296,8 @@ void LAMMPS_NS::update_pair_forces(MLIAPDataKokkosDevice *data, double *fij)
   auto j_atoms = data->jatoms;
   auto vflag = data->vflag;
   auto rij = data->rij;
-  int vflag_global=data->pairmliap->vflag_global, vflag_atom=data->pairmliap->vflag_atom;
+  int vflag_global = data->pairmliap->vflag_global;
+  int vflag_atom = data->pairmliap->vflag_atom;
   if (vflag_atom) {
     data->pairmliap->k_vatom.template modify<LMPHostType>();
     data->pairmliap->k_vatom.template sync<LMPDeviceType>();
@@ -355,8 +356,8 @@ void LAMMPS_NS::update_pair_forces(MLIAPDataKokkosDevice *data, double *fij)
     if (vflag_global) {
       Kokkos::View<double[6], LMPHostType> h_virial("h_virial");
       Kokkos::deep_copy(h_virial,virial);
-      for (int i=0;i<6;++i)
-        data->pairmliap->virial[i]+=h_virial[i];
+      for (int i = 0; i < 6; ++i)
+        data->pairmliap->virial[i] += h_virial[i];
     }
     if (vflag_atom) {
       data->pairmliap->k_vatom.template modify<LMPDeviceType>();

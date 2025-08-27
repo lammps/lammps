@@ -26,6 +26,7 @@ class Input : protected Pointers {
   friend class Error;
   friend class Deprecated;
   friend class SimpleCommandsTest_Echo_Test;
+  friend class ErrorTest_errorpointer_Test;
   friend std::string utils::point_to_error(Input *input, int failed);
 
  public:
@@ -47,7 +48,7 @@ class Input : protected Pointers {
   int echo_screen;    // 0 = no, 1 = yes
   int echo_log;       // 0 = no, 1 = yes
 
- private:
+ protected:
   int me;                           // proc ID
   int maxarg;                       // max # of args in arg
   char *line, *copy, *work;         // input line & copy and work string
@@ -62,11 +63,11 @@ class Input : protected Pointers {
   int *inlines;      // list of saved line numbers of open input files
 
  public:
-  typedef Command *(*CommandCreator)(LAMMPS *);
-  typedef std::map<std::string, CommandCreator> CommandCreatorMap;
+  using CommandCreator = Command *(*) (LAMMPS *);
+  using CommandCreatorMap = std::map<std::string, CommandCreator>;
   CommandCreatorMap *command_map;
 
- private:
+ protected:
   void parse();                            // parse an input text line
   char *nextword(char *, char **);         // find next word in string with quotes
   int numtriple(char *);                   // count number of triple quotes

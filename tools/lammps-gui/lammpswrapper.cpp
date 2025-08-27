@@ -113,7 +113,7 @@ double LammpsWrapper::extract_variable(const char *keyword)
         ptr = lammps_extract_variable(lammps_handle, keyword, nullptr);
 #endif
     }
-    double val = *((double *)ptr);
+    double val = (ptr) ? *((double *)ptr) : 0.0;
 #if defined(LAMMPS_GUI_USE_PLUGIN)
     ((liblammpsplugin_t *)plugin_handle)->free(ptr);
 #else
@@ -122,14 +122,27 @@ double LammpsWrapper::extract_variable(const char *keyword)
     return val;
 }
 
-int LammpsWrapper::id_count(const char *keyword)
+int LammpsWrapper::id_count(const char *idtype)
 {
     int val = 0;
     if (lammps_handle) {
 #if defined(LAMMPS_GUI_USE_PLUGIN)
-        val = ((liblammpsplugin_t *)plugin_handle)->id_count(lammps_handle, keyword);
+        val = ((liblammpsplugin_t *)plugin_handle)->id_count(lammps_handle, idtype);
 #else
-        val = lammps_id_count(lammps_handle, keyword);
+        val = lammps_id_count(lammps_handle, idtype);
+#endif
+    }
+    return val;
+}
+
+int LammpsWrapper::has_id(const char *idtype, const char *id)
+{
+    int val = 0;
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        val = ((liblammpsplugin_t *)plugin_handle)->has_id(lammps_handle, idtype, id);
+#else
+        val = lammps_has_id(lammps_handle, idtype, id);
 #endif
     }
     return val;

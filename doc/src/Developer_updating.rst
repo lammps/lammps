@@ -29,6 +29,8 @@ Available topics in mostly chronological order are:
 - `Rename of fix STORE/PERATOM to fix STORE/ATOM and change of arguments`_
 - `Use Output::get_dump_by_id() instead of Output::find_dump()`_
 - `Refactored grid communication using Grid3d/Grid2d classes instead of GridComm`_
+- `FLERR as first argument to minimum image functions in Domain class`_
+- `Use utils::logmesg() instead of error->warning()`_
 
 ----
 
@@ -162,7 +164,7 @@ New:
 .. seealso::
 
    :cpp:func:`utils::count_words() <LAMMPS_NS::utils::count_words>`,
-   :cpp:func:`utils::trim_comments() <LAMMPS_NS::utils::trim_comments>`
+   :cpp:func:`utils::trim_comment() <LAMMPS_NS::utils::trim_comment>`
 
 
 Use utils::numeric() functions instead of force->numeric()
@@ -608,5 +610,74 @@ KSpace solvers which use distributed FFT grids:
 - ``src/compute_property_grid.cpp``
 - ``src/EXTRA-FIX/fix_ttm_grid.cpp``
 - ``src/KSPACE/pppm.cpp``
+
+This change is **required** or else the code will not compile.
+
+FLERR as first argument to minimum image functions in Domain class
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: 12Jun2025
+
+The ``Domain::minimum_image()`` and ``Domain::minimum_image_big()``
+functions were changed to take the ``FLERR`` macros as first argument.
+This way the error message indicates *where* the function was called
+instead of pointing to the implementation of the function.  Example:
+
+Old:
+
+.. code-block:: c++
+
+   double delx1 = x[i1][0] - x[i2][0];
+   double dely1 = x[i1][1] - x[i2][1];
+   double delz1 = x[i1][2] - x[i2][2];
+   domain->minimum_image(delx1, dely1, delz1);
+   double r1 = sqrt(delx1 * delx1 + dely1 * dely1 + delz1 * delz1);
+
+   double delx2 = x[i3][0] - x[i2][0];
+   double dely2 = x[i3][1] - x[i2][1];
+   double delz2 = x[i3][2] - x[i2][2];
+   domain->minimum_image_big(delx2, dely2, delz2);
+   double r2 = sqrt(delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
+
+New:
+
+.. code-block:: c++
+
+   double delx1 = x[i1][0] - x[i2][0];
+   double dely1 = x[i1][1] - x[i2][1];
+   double delz1 = x[i1][2] - x[i2][2];
+   domain->minimum_image(FLERR, delx1, dely1, delz1);
+   double r1 = sqrt(delx1 * delx1 + dely1 * dely1 + delz1 * delz1);
+
+   double delx2 = x[i3][0] - x[i2][0];
+   double dely2 = x[i3][1] - x[i2][1];
+   double delz2 = x[i3][2] - x[i2][2];
+   domain->minimum_image_big(FLERR, delx2, dely2, delz2);
+   double r2 = sqrt(delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
+
+This change is **required** or else the code will not compile.
+
+Use utils::logmesg() instead of error->warning()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: 22Jul2025
+
+The ``Error::message()`` method has been removed since its functionality
+has been superseded by the :cpp:func:`utils::logmesg()
+<LAMMPS_NS::utils::logmesg>` function.
+
+Old:
+
+.. code-block:: c++
+
+   if (comm->me == 0) {
+     error->message(FLERR, "INFO: About to read data file: {}", filename);
+  }
+
+New:
+
+.. code-block:: c++
+
+   if (comm->me == 0) utils::logmesg(lmp, "INFO: About to read data file: {}\n", filename);
 
 This change is **required** or else the code will not compile.

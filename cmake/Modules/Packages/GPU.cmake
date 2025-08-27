@@ -74,7 +74,7 @@ if(GPU_API STREQUAL "CUDA")
   option(CUDA_BUILD_MULTIARCH "Enable building CUDA kernels for all supported GPU architectures" ON)
   mark_as_advanced(GPU_BUILD_MULTIARCH)
 
-  set(GPU_ARCH "sm_50" CACHE STRING "LAMMPS GPU CUDA SM primary architecture (e.g. sm_60)")
+  set(GPU_ARCH "sm_75" CACHE STRING "LAMMPS GPU CUDA SM primary architecture (e.g. sm_80)")
 
   # ensure that no *cubin.h files exist from a compile in the lib/gpu folder
   file(GLOB GPU_LIB_OLD_CUBIN_HEADERS CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/*_cubin.h)
@@ -150,10 +150,7 @@ if(GPU_API STREQUAL "CUDA")
       if(CUDA_VERSION VERSION_GREATER_EQUAL "11.8")
         string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
       endif()
-      # Hopper (GPU Arch 9.0) is supported by CUDA 12.0 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
-      endif()
+      # newer GPU Arch versions require CUDA 12.0 or later which is handled above
     endif()
   endif()
 
@@ -189,7 +186,7 @@ if(GPU_API STREQUAL "CUDA")
   endif()
 
   add_executable(nvc_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
-  target_compile_definitions(nvc_get_devices PRIVATE -DUCL_CUDADR)
+  target_compile_definitions(nvc_get_devices PRIVATE -DUCL_CUDADR -DLAMMPS_${LAMMPS_SIZES})
   target_link_libraries(nvc_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
   target_include_directories(nvc_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
 
@@ -287,7 +284,7 @@ elseif(GPU_API STREQUAL "HIP")
     set(HIP_ARCH "spirv" CACHE STRING "HIP target architecture")
   elseif(HIP_PLATFORM STREQUAL "nvcc")
     find_package(CUDA REQUIRED)
-    set(HIP_ARCH "sm_50" CACHE STRING "HIP primary CUDA architecture (e.g. sm_60)")
+    set(HIP_ARCH "sm_75" CACHE STRING "HIP primary CUDA architecture (e.g. sm_75)")
 
     if(CUDA_VERSION VERSION_LESS 8.0)
       message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
@@ -335,10 +332,7 @@ elseif(GPU_API STREQUAL "HIP")
       if(CUDA_VERSION VERSION_GREATER_EQUAL "11.8")
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
       endif()
-      # Hopper (GPU Arch 9.0) is supported by CUDA 12.0 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
-        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
-      endif()
+      # newer GPU Arch versions require CUDA 12.0 or later which is handled above
     endif()
   endif()
 
@@ -489,7 +483,7 @@ else()
   target_link_libraries(gpu PRIVATE mpi_stubs)
 endif()
 
-target_compile_definitions(gpu PRIVATE -DLAMMPS_${LAMMPS_SIZES})
 set_target_properties(gpu PROPERTIES OUTPUT_NAME lammps_gpu${LAMMPS_MACHINE})
+target_compile_definitions(gpu PRIVATE -DLAMMPS_${LAMMPS_SIZES})
 target_sources(lammps PRIVATE ${GPU_SOURCES})
 target_include_directories(lammps PRIVATE ${GPU_SOURCES_DIR})

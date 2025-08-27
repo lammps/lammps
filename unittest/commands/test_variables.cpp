@@ -431,6 +431,8 @@ TEST_F(VariableTest, Functions)
     command("variable ten4   equal     extract_setting(world_size)");
     command("variable ten5   equal     ternary(v_one,1.1,-2.2)");
     command("variable ten6   equal     ternary(${one}==2.0,v_nine,v_ten)");
+    command("variable ten7   equal     ternary(v_one,sqrt(-1.1),2.2)");
+    command("variable ten8   equal     ternary(v_one,1.1,sqrt(-2.2))");
     END_HIDE_OUTPUT();
 
     ASSERT_GT(variable->compute_equal(variable->find("two")), 0.99);
@@ -447,6 +449,7 @@ TEST_F(VariableTest, Functions)
     ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten4")), 1);
     ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten5")), 1.1);
     ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten6")), 3);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten8")), 1.1);
 
     TEST_FAILURE(".*ERROR: Variable four: Invalid syntax in variable formula.*",
                  command("print \"${four}\""););
@@ -459,6 +462,8 @@ TEST_F(VariableTest, Functions)
     TEST_FAILURE(
         ".*ERROR: Unknown setting nprocs for extract_setting.. function in variable formula.*",
         command("print \"$(extract_setting(nprocs))\""););
+    TEST_FAILURE(".*ERROR on proc 0: Variable ten7: Sqrt of negative value in variable formula.*",
+                 command("print \"${ten7}\""););
 }
 
 TEST_F(VariableTest, IfCommand)

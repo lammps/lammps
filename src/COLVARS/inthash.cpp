@@ -3,7 +3,6 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <memory>
 
 #include "inthash.h"
 
@@ -13,7 +12,7 @@ namespace IntHash_NS {
 /************************************************************************
  * integer hash code:
  ************************************************************************/
-
+namespace {
 /* inthash() - Hash function returns a hash number for a given key.
  * tptr: Pointer to a hash table, key: The key to create a hash number for */
 int inthash(const inthash_t *tptr, int key) {
@@ -55,6 +54,7 @@ void rebuild_table_int(inthash_t *tptr) {
 
   /* free memory used by old table */
   free(old_bucket);
+}
 }
 
 /*

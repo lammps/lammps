@@ -228,7 +228,7 @@ void FixNHUef::init()
 
 
   // find conflict with fix/deform or other box chaging fixes
-  for (auto &ifix : modify->get_fix_list()) {
+  for (const auto &ifix : modify->get_fix_list()) {
     if (strcmp(ifix->id, id) != 0)
       if ((ifix->box_change & BOX_CHANGE_SHAPE) != 0)
         error->all(FLERR,"Can't use another fix which changes box shape with fix {}", style);
@@ -710,7 +710,7 @@ void FixNHUef::restart(char *buf)
 {
   int n = size_restart_global();
   FixNH::restart(buf);
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
   strain[0] = list[n-2];
   strain[1] = list[n-1];
   uefbox->set_strain(strain[0],strain[1]);

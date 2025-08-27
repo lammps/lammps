@@ -196,7 +196,7 @@ preserve the bond lengths and angles as closely as the constraints
 during the MD, they are generally close enough so that the constraints
 will be fulfilled to the desired accuracy within a few MD steps
 following the minimization. The default value for *kbond* depends on the
-:doc:`units <units>` setting and is 1.0e6*k_B.
+:doc:`units <units>` setting and is 1.0e9*k_B.
 
 ----------
 
@@ -272,10 +272,10 @@ which can lead to poor energy conservation.  You can test for this in
 your system by running a constant NVE simulation with a particular set
 of SHAKE parameters and monitoring the energy versus time.
 
-SHAKE or RATTLE should not be used to constrain an angle at 180 degrees
+SHAKE or RATTLE *cannot* not be used to constrain an angle at 180 degrees
 (e.g. a linear CO2 molecule).  This causes a divergence when solving the
 constraint equations numerically.  You can use :doc:`fix rigid or fix
-rigid/small <fix_rigid>` instead to make a linear molecule rigid.
+rigid/small <fix_rigid>` instead to simulate rigid linear molecules.
 
 When used during minimization choosing a too large value of the *kbond*
 can make minimization very inefficient and also cause stability problems

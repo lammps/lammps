@@ -294,7 +294,7 @@ void FixPressBerendsen::init()
   // detect if any rigid fixes exist so rigid bodies move when box is remapped
 
   rfix.clear();
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if (ifix->rigid_flag) rfix.push_back(ifix);
 }
 
@@ -454,7 +454,7 @@ int FixPressBerendsen::modify_param(int narg, char **arg)
 
     // reset id_temp of pressure to new temperature ID
 
-    auto icompute = modify->get_compute_by_id(id_press);
+    auto *icompute = modify->get_compute_by_id(id_press);
     if (!icompute)
       error->all(FLERR, "Pressure compute ID {} for fix {} does not exist", id_press, style);
     icompute->reset_extra_compute_fix(id_temp);

@@ -79,10 +79,6 @@ FixRHEOOxidation::FixRHEOOxidation(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixRHEOOxidation::~FixRHEOOxidation() {}
-
-/* ---------------------------------------------------------------------- */
-
 int FixRHEOOxidation::setmask()
 {
   int mask = 0;
@@ -112,7 +108,7 @@ void FixRHEOOxidation::init()
   if (index_nb == -1) error->all(FLERR, "Must use bond style rheo/shell to use fix rheo/oxidation");
 
   // need a half neighbor list
-  auto req = neighbor->add_request(this, NeighConst::REQ_FULL);
+  auto *req = neighbor->add_request(this, NeighConst::REQ_FULL);
   req->set_cutoff(cut);
 }
 

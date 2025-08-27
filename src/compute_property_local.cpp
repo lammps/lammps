@@ -261,7 +261,7 @@ void ComputePropertyLocal::init()
 
   if (kindflag == NEIGH || kindflag == PAIR) {
     int neighflags = NeighConst::REQ_OCCASIONAL;
-    auto pairrequest = neighbor->find_request(force->pair);
+    auto *pairrequest = neighbor->find_request(force->pair);
     if (pairrequest && pairrequest->get_size()) neighflags |= NeighConst::REQ_SIZE;
     neighbor->add_request(this, neighflags);
   }

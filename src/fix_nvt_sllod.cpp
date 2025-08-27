@@ -86,7 +86,7 @@ void FixNVTSllod::init()
   if (deform.size() < 1) error->all(FLERR,"Using fix {} with no fix deform defined", style);
 
   for (auto &ifix : deform) {
-    auto f = dynamic_cast<FixDeform *>(ifix);
+    auto *f = dynamic_cast<FixDeform *>(ifix);
     if (f && (f->remapflag != Domain::V_REMAP))
       error->all(FLERR,"Using fix {} with inconsistent fix deform remap option", style);
   }

@@ -117,6 +117,16 @@ Syntax
         *pair/only* = *off* or *on*
           *off* = use device acceleration (e.g. GPU) for all available styles in the KOKKOS package (default)
           *on*  = use device acceleration only for pair styles (and host acceleration for others)
+        *threads/per/atom* args = Ntpa
+          Ntpa = # of threads per atom for multiple GPU threads over the neighbor list per atom
+        *pair/team/size* args = Nteamsize
+          Nteamsize = # of threads per block used for the pair compute kernel
+        *nbin/atoms/per/bin = Natomsperbin
+          Natomsperbin = # of atoms per bin used for neighbor list builds
+        *nbor/block/size = blocksize
+          blocksize = # of GPU threads per block for the flat neighbor build method
+        *bond/block/size = blocksize
+          blocksize = # of GPU threads per block for the bond force computation
     *omp* args = Nthreads keyword value ...
       Nthreads = # of OpenMP threads to associate with each MPI process
       zero or more keyword/value pairs may be appended
@@ -586,14 +596,14 @@ keyword above.
 The *gpu/aware* keyword chooses whether GPU-aware MPI will be used. When
 this keyword is set to *on*, buffers in GPU memory are passed directly
 through MPI send/receive calls. This reduces overhead of first copying
-the data to the host CPU. However GPU-aware MPI is not supported on all
+the data to the host CPU.  However GPU-aware MPI is not supported on all
 systems, which can lead to segmentation faults and would require using a
 value of *off*\ . If LAMMPS can safely detect that GPU-aware MPI is not
 available (currently only possible with OpenMPI v2.0.0 or later), then
 the *gpu/aware* keyword is automatically set to *off* by default. When
 the *gpu/aware* keyword is set to *off* while any of the *comm*
 keywords are set to *device*, the value for these *comm* keywords will
-be automatically changed to *no*\ . This setting has no effect if not
+be automatically changed to *no*\ .  This setting has no effect if not
 running on GPUs or if using only one MPI rank. GPU-aware MPI is available
 for OpenMPI 1.8 (or later versions), Mvapich2 1.9 (or later) when the
 "MV2_USE_CUDA" environment variable is set to "1", CrayMPI, and IBM
@@ -607,6 +617,37 @@ other force computations on the host CPU.  The *comm* flags, along with the
 *sort* and *atom/map* keywords will also automatically be changed to *no*\ .
 This can result in better performance for certain configurations and
 system sizes.
+
+The following parameters allow users to tune the overall performance
+depending on the simulated systems.  If not explicitly specified,
+their values will be set internally by the KOKKOS package.
+
+The *threads/per/atom* keyword sets the number of GPU vector lanes per atom
+used to perform force calculations.  This keyword is only applicable
+when *neigh/thread* is set to *on*.   For large cutoffs or with a small number
+of particles per GPU, increasing the value can improve performance.
+The number of lanes per atom must be a power of 2 and currently cannot be
+greater than the SIMD width for the GPU / accelerator.  In the case
+it exceeds the SIMD width, it will automatically be decreased to meet
+the restriction.
+
+The *pair/team/size* keyword sets the number of threads per block for
+the pair force compute kernel.  This keyword is only applicable
+when *neigh/thread* is set to *on*.  The default value of this parameter
+is determined based on the GPU architecture at runtime.
+
+The *nbin/atoms/per/bin* keyword sets the number of atoms per bin
+used for the neighbor list builds on the GPU, which then determines
+the number of GPU threads per bin.  The default value of this parameter is 16.
+
+The *nbor/block/size* keyword sets the number of GPU threads per block
+used for the neighbor list builds on the GPU using the flat method (i.e.,
+each thread finds the neighbor list of an atom).  If not specified, then
+the GPU threads are assigned to the bins.
+
+The *bond/block/size* keyword sets the number of GPU threads per block
+used for launching the bond force kernel on the GPU.  The default value
+of this parameter is determined based on the GPU architecture at runtime.
 
 ----------
 

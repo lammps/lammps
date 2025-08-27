@@ -15,7 +15,7 @@ Sandia which provides tools for doing setup, analysis, plotting, and
 visualization for LAMMPS simulations.
 
 .. _lws: https://www.lammps.org
-.. _pizza: https://lammps.github.io/pizza
+.. _pizza: https://lammps.github.io/pizza/
 .. _python: https://www.python.org
 
 Additional tools included in the LAMMPS distribution are described on
@@ -92,6 +92,7 @@ Miscellaneous tools
    * :ref:`LAMMPS coding standards <coding_standard>`
    * :ref:`emacs <emacs>`
    * :ref:`i-PI <ipi>`
+   * :ref:`JSON support <json>`
    * :ref:`kate <kate>`
    * :ref:`LAMMPS-GUI <lammps_gui>`
    * :ref:`LAMMPS magic patterns for file(1) <magic>`
@@ -364,7 +365,7 @@ These tools were provided by Aidan Thompson at Sandia
 .. _fep:
 
 fep tool
-------------------
+--------
 
 The tools/fep directory contains Python scripts useful for
 post-processing results from performing free-energy perturbation
@@ -379,7 +380,7 @@ See README file in the tools/fep directory.
 .. _ipi:
 
 i-PI tool
--------------------
+---------
 
 .. versionchanged:: 27June2024
 
@@ -429,6 +430,87 @@ sandia.gov.
 
 See two examples in the tools/ipp directory.  One of them is for the
 tools/createatoms tool's input file.
+
+----------
+
+.. _json:
+
+JSON support files
+------------------
+
+.. versionadded:: 12June2025
+
+The ``tools/json`` directory contains files and tools to support
+using `JSON format <https://www.json.org/>`_ files in LAMMPS.
+Currently only the :doc:`molecule command <molecule>` supports
+files in JSON format directly, but this is planned to be expanded
+in the future.
+
+JSON file validation
+^^^^^^^^^^^^^^^^^^^^
+
+The JSON syntax is independent of its content, and thus the data in the
+file must follow suitable conventions to be correctly parsed during
+input.  This can be done in a portable fashion using a `JSON schema file
+<https://json-schema.org/>`_ (which is in JSON format as well) to define
+those conventions.  A suitable JSON validator software can then validate
+JSON files against the requirements.  Validating a particular JSON file
+against a schema ensures that both, the syntax *and* the conventions
+are followed.  This is useful when writing or editing JSON files in a
+text editor or when writing a pre-processing script or tool to create
+JSON files for a specific purpose in LAMMPS.  It **cannot** check
+whether the file contents are physically meaningful, though.
+
+One such validator tool is `check-jsonschema
+<https://check-jsonschema.readthedocs.io/>`_ which is written in Python
+and can be installed using the `pip Python package manager
+<https://pypi.org/>`_, best in a virtual environment as shown below (for
+a Bourne Shell command line):
+
+.. code-block:: sh
+
+   python -m venv validate-json
+   source validate-json/bin/activate
+   pip install --upgrade pip
+   pip install check-jsonschema
+
+To validate a specific JSON file against a provided schema (here for
+a :doc:`molecule command file <molecule>` you would then run for example:
+
+.. code-block:: sh
+
+   check-jsonschema --schemafile molecule-schema.json tip3p.json
+
+The latest schema files are also maintained and available for download
+at https://download.lammps.org/json/ .  This enables validation of JSON
+files even if the LAMMPS sources are not locally available. Example:
+
+.. code-block:: sh
+
+   check-jsonschema --schemafile https://download.lammps.org/json/molecule-schema.json tip3p.json
+
+JSON file format normalization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are extensions to the strict JSON format that allow for comments
+or ignore additional (dangling) commas. The ``reformat-json.cpp`` tool
+will read JSON files in relaxed format, but write it out in strict format.
+It is also possible to change the level of indentation from -1 (all data
+one long line) to any positive integer value.  The original file will be
+backed up (.bak added to file name) and then overwritten.
+
+Manual compilation (it will be automatically included in the CMake build
+if building tools is requested during CMake configuration):
+
+.. code-block:: sh
+
+   g++ -I <path/to/lammps/src> -o reformat-json reformat-json.cpp
+
+Usage:
+
+.. parsed-literal::
+
+   reformat-json <indent-width> <json-file-1> [<json-file-2> ...]
 
 ----------
 
@@ -518,21 +600,23 @@ acceleration is available and enabled by default.
 Prerequisites and portability
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-LAMMPS-GUI is programmed in C++ based on the C++11 standard and using
-the `Qt GUI framework <https://www.qt.io/product/framework>`_.
-Currently, Qt version 5.12 or later is required; Qt 5.15LTS is
-recommended; support for Qt version 6.x is available.  Building LAMMPS
-with CMake is required.
+.. versionchanged:: TBD
+
+LAMMPS-GUI version 1.7.1 and later is programmed in C++ based on the C++17
+standard and using the `Qt GUI framework
+<https://www.qt.io/product/framework>`_.  Currently, Qt version 5.15LTS
+or later is required; support for Qt version 6.x is available.  Building
+LAMMPS with CMake (version 3.20 or later) is required.
 
 The LAMMPS-GUI has been successfully compiled and tested on:
 
-- Ubuntu Linux 20.04LTS x86_64 using GCC 9, Qt version 5.12
-- Fedora Linux 41 x86\_64 using GCC 14 and Clang 17, Qt version 5.15LTS
-- Fedora Linux 41 x86\_64 using GCC 14, Qt version 6.8
-- Apple macOS 12 (Monterey) and macOS 13 (Ventura) with Xcode on arm64 and x86\_64, Qt version 5.15LTS
-- Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.36, Qt version 5.15LTS
+- Ubuntu Linux 22.04LTS x86_64 using GCC 11, Qt version 5.15
+- Fedora Linux 41 x86\_64 using GCC 14 and Clang 17, Qt version 5.15
+- Fedora Linux 42 x86\_64 using GCC 15, Qt version 6.9
+- Apple macOS 12 (Monterey) and macOS 13 (Ventura) with Xcode on arm64 and x86\_64, Qt version 5.15
+- Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.36, Qt version 5.15
 - Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.40, Qt version 6.7
-- Windows 10 and 11 x86_64 with MinGW / GCC 10.0 cross-compiler on Fedora 38, Qt version 5.15LTS
+- Windows 10 and 11 x86_64 with MinGW / GCC 14.2 cross-compiler on Fedora 42, Qt version 5.15
 
 .. _lammps_gui_install:
 
@@ -541,7 +625,7 @@ Pre-compiled executables
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 Pre-compiled LAMMPS executable packages that include the GUI are
-currently available from https://download.lammps.org/static or
+currently available from https://download.lammps.org/static/ or
 https://github.com/lammps/lammps/releases.  For Windows, you need to
 download and then run the application installer.  For macOS you download
 and mount the disk image and then drag the application bundle to the
@@ -618,6 +702,12 @@ This is usually auto-detected on the first run and can be changed in the
 LAMMPS-GUI *Preferences* dialog.  The command-line flag allows to reset
 this path to a valid value in case the original setting has become
 invalid.  An empty path ("") as argument restores the default setting.
+
+.. versionchanged:: TBD
+
+When loading a LAMMPS library, it must be at least version 27 August
+2025 for LAMMPS-GUI version 1.7.1, since it uses features only available
+since that LAMMPS version.  Older LAMMPS versions will be rejected.
 
 Platform notes
 ^^^^^^^^^^^^^^

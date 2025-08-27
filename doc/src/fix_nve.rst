@@ -35,9 +35,9 @@ consistent with the microcanonical ensemble (NVE) provided there
 are (full) periodic boundary conditions and no other "manipulations"
 of the system (e.g. fixes that modify forces or velocities).
 
-This fix invokes the velocity form of the
-Stoermer-Verlet time integration algorithm (velocity-Verlet). Other
-time integration options can be invoked using the :doc:`run_style <run_style>` command.
+This fix invokes the velocity form of the Stoermer-Verlet time
+integration algorithm (velocity-Verlet). Other time integration
+options can be invoked using the :doc:`run_style <run_style>` command.
 
 ----------
 
@@ -48,11 +48,13 @@ time integration options can be invoked using the :doc:`run_style <run_style>` c
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various :doc:`output commands <Howto_output>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
+relevant to this fix.  No global or per-atom quantities are stored by
+this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.  This fix is not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""

@@ -105,7 +105,7 @@ Here are suggestions on how to perform these tasks:
   collected during the simulation and plotted immediately.
 
 * **Pizza.py:** Our group has also written a separate toolkit called
-  `Pizza.py <https://lammps.github.io/pizza>`_ which can do certain kinds of
+  `Pizza.py <https://lammps.github.io/pizza/>`_ which can do certain kinds of
   setup, analysis, plotting, and visualization (via OpenGL) for LAMMPS
   simulations.  It thus provides some functionality for several of the
   above bullets.  Pizza.py is written in `Python <https://www.python.org>`_

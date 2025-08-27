@@ -13,6 +13,7 @@
 
 #include "fileviewer.h"
 
+#include "helpers.h"
 #include "lammpsgui.h"
 
 #include <QApplication>
@@ -29,7 +30,7 @@
 #include <QTextCursor>
 #include <QTextStream>
 
-FileViewer::FileViewer(const QString &_filename, QString title, QWidget *parent) :
+FileViewer::FileViewer(const QString &_filename, const QString &title, QWidget *parent) :
     QPlainTextEdit(parent), fileName(_filename)
 {
     auto *action = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q), this);
@@ -107,17 +108,13 @@ FileViewer::FileViewer(const QString &_filename, QString title, QWidget *parent)
 
 void FileViewer::quit()
 {
-    LammpsGui *main = nullptr;
-    for (QWidget *widget : QApplication::topLevelWidgets())
-        if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
+    auto *main = dynamic_cast<LammpsGui *>(get_main_widget());
     if (main) main->quit();
 }
 
 void FileViewer::stop_run()
 {
-    LammpsGui *main = nullptr;
-    for (QWidget *widget : QApplication::topLevelWidgets())
-        if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
+    auto *main = dynamic_cast<LammpsGui *>(get_main_widget());
     if (main) main->stop_run();
 }
 
@@ -126,7 +123,7 @@ bool FileViewer::eventFilter(QObject *watched, QEvent *event)
 {
     if (event->type() == QEvent::ShortcutOverride) {
         auto *keyEvent = dynamic_cast<QKeyEvent *>(event);
-        if (!keyEvent) return QWidget::eventFilter(watched, event);
+        if (!keyEvent) return QAbstractScrollArea::eventFilter(watched, event);
         if (keyEvent->modifiers().testFlag(Qt::ControlModifier) && keyEvent->key() == '/') {
             stop_run();
             event->accept();

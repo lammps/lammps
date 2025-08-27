@@ -220,6 +220,12 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
 
   area = ed = em = epsilon = curvature = q_scaled = nullptr;
 
+  // APIP package
+
+  apip_lambda_const = apip_lambda = apip_lambda_input = apip_lambda_input_ta = apip_e_fast = apip_e_precise = nullptr;
+  apip_lambda_required = nullptr;
+  apip_f_const_lambda = apip_f_dyn_lambda = nullptr;
+
   // end of customization section
   // --------------------------------------------------------------------
 
@@ -575,6 +581,18 @@ void Atom::peratom_create()
   add_peratom("curvature",&curvature,DOUBLE,0);
   add_peratom("q_scaled",&q_scaled,DOUBLE,0);
 
+  // APIP package
+
+  add_peratom("apip_lambda",&apip_lambda,DOUBLE,0);
+  add_peratom("apip_lambda_required",&apip_lambda_required,INT,0);
+  add_peratom("apip_lambda_input",&apip_lambda_input,DOUBLE,0);
+  add_peratom("apip_lambda_input_ta",&apip_lambda_input_ta,DOUBLE,0);
+  add_peratom("apip_e_fast",&apip_e_fast,DOUBLE,0);
+  add_peratom("apip_e_precise",&apip_e_precise,DOUBLE,0);
+  add_peratom("apip_lambda_const",&apip_lambda_const,DOUBLE,0);
+  add_peratom("apip_f_const_lambda",&apip_f_const_lambda,DOUBLE,3,1);
+  add_peratom("apip_f_dyn_lambda",&apip_f_dyn_lambda,DOUBLE,3,1);
+
   // end of customization section
   // --------------------------------------------------------------------
 }
@@ -658,6 +676,7 @@ void Atom::set_atomflag_defaults()
   contact_radius_flag = smd_data_9_flag = smd_stress_flag = 0;
   eff_plastic_strain_flag = eff_plastic_strain_rate_flag = 0;
   nspecial15_flag = 0;
+  apip_lambda_flag = apip_e_fast_flag = apip_e_precise_flag = apip_lambda_input_flag = apip_lambda_input_ta_flag = apip_lambda_required_flag = apip_f_const_lambda_flag = apip_f_dyn_lambda_flag = apip_lambda_const_flag = 0;
 
   pdscale = 1.0;
 }
@@ -791,7 +810,7 @@ std::string Atom::get_style()
 {
   std::string retval = atom_style;
   if (retval == "hybrid") {
-    auto avec_hybrid = dynamic_cast<AtomVecHybrid *>(avec);
+    auto *avec_hybrid = dynamic_cast<AtomVecHybrid *>(avec);
     if (avec_hybrid) {
       for (int i = 0; i < avec_hybrid->nstyles; i++) {
         retval += ' ';
@@ -811,7 +830,7 @@ AtomVec *Atom::style_match(const char *style)
 {
   if (strcmp(atom_style,style) == 0) return avec;
   else if (strcmp(atom_style,"hybrid") == 0) {
-    auto avec_hybrid = dynamic_cast<AtomVecHybrid *>(avec);
+    auto *avec_hybrid = dynamic_cast<AtomVecHybrid *>(avec);
     for (int i = 0; i < avec_hybrid->nstyles; i++)
       if (strcmp(avec_hybrid->keywords[i],style) == 0)
         return avec_hybrid->styles[i];
@@ -1073,7 +1092,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   double *coord;
   char *next;
   std::string typestr;
-  auto location = "Atoms section of data file";
+  const auto *location = "Atoms section of data file";
 
   // use the first line to detect and validate the number of words/tokens per line
 
@@ -1329,7 +1348,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
   char *next;
   std::string typestr;
   int newton_bond = force->newton_bond;
-  auto location = "Bonds section of data file";
+  const auto *location = "Bonds section of data file";
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
@@ -1422,7 +1441,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
   char *next;
   std::string typestr;
   int newton_bond = force->newton_bond;
-  auto location = "Angles section of data file";
+  const auto *location = "Angles section of data file";
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
@@ -1531,7 +1550,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
   char *next;
   std::string typestr;
   int newton_bond = force->newton_bond;
-  auto location = "Dihedrals section of data file";
+  const auto *location = "Dihedrals section of data file";
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
@@ -1659,7 +1678,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
   char *next;
   std::string typestr;
   int newton_bond = force->newton_bond;
-  auto location = "Impropers section of data file";
+  const auto *location = "Impropers section of data file";
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
@@ -1937,7 +1956,7 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
 
   int itype;
   double mass_one;
-  auto location = "Masses section of data file";
+  const auto *location = "Masses section of data file";
   auto values = Tokenizer(str).as_vector();
   int nwords = values.size();
   for (std::size_t i = 0; i < values.size(); ++i) {
@@ -1989,13 +2008,12 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
 
 /* ----------------------------------------------------------------------
    set a mass and flag it as set
-   called from EAM pair routine
+   called from EAM, MEAM, BOP, MGPT, RANN pair routines
 ------------------------------------------------------------------------- */
 
 void Atom::set_mass(const char *file, int line, int itype, double value)
 {
-  if (mass == nullptr)
-    error->all(file,line, "Cannot set per-type mass for atom style {}", atom_style);
+  // sanity checks
   if (itype < 1 || itype > ntypes)
     error->all(file,line,"Invalid type {} for atom mass {}", itype, value);
   if (value <= 0.0) {
@@ -2003,9 +2021,23 @@ void Atom::set_mass(const char *file, int line, int itype, double value)
       error->warning(file,line,"Ignoring invalid mass value {} for atom type {}", value, itype);
     return;
   }
-  mass[itype] = value;
-  mass_setflag[itype] = 1;
+
+  // set per-type mass
+  if (mass != nullptr) {
+    mass[itype] = value;
+    mass_setflag[itype] = 1;
+  }
+
+  // set per-atom mass
+  if (rmass != nullptr) {
+    for (int i = 0; i < atom->nlocal; ++i) {
+      if (atom->type[i] == itype) {
+        atom->rmass[i] = value;
+      }
+    }
+  }
 }
+
 
 /* ----------------------------------------------------------------------
    set one or more masses and flag them as set
@@ -2094,8 +2126,8 @@ int Atom::shape_consistency(int itype, double &shapex, double &shapey, double &s
   double one[3] = {-1.0, -1.0, -1.0};
   double *shape;
 
-  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(style_match("ellipsoid"));
-  auto bonus = avec_ellipsoid->bonus;
+  auto *avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(style_match("ellipsoid"));
+  auto *bonus = avec_ellipsoid->bonus;
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++) {
@@ -2124,7 +2156,7 @@ int Atom::shape_consistency(int itype, double &shapex, double &shapey, double &s
 }
 
 /* ----------------------------------------------------------------------
-   add a new molecule template = set of molecules
+   add a new molecule template = set of molecules from the "molecule" command
 ------------------------------------------------------------------------- */
 
 void Atom::add_molecule(int narg, char **arg)
@@ -2143,13 +2175,34 @@ void Atom::add_molecule(int narg, char **arg)
   while (true) {
     molecules = (Molecule **)
       memory->srealloc(molecules,(nmolecule+1)*sizeof(Molecule *), "atom::molecules");
-    molecules[nmolecule] = new Molecule(lmp,narg,arg,index);
+    molecules[nmolecule] = new Molecule(lmp);
+    molecules[nmolecule]->command(narg,arg,index);
     molecules[nmolecule]->nset = 0;
     molecules[nmolecule-ifile+1]->nset++;
     nmolecule++;
     if (molecules[nmolecule-1]->last) break;
     ifile++;
   }
+}
+
+/* ----------------------------------------------------------------------
+   add a new molecule template from a JSON object
+------------------------------------------------------------------------- */
+
+void Atom::add_molecule(const std::string &id, const json &moldata)
+{
+  if (id.empty()) error->all(FLERR, "Must provide molecule ID");
+
+  if (find_molecule(id.c_str()) >= 0)
+    error->all(FLERR, Error::NOLASTLINE, "Reuse of molecule template ID {}", id);
+
+  molecules = (Molecule **)
+    memory->srealloc(molecules,(nmolecule+1)*sizeof(Molecule *), "atom::molecules");
+  molecules[nmolecule] = new Molecule(lmp);
+  molecules[nmolecule]->from_json(id, moldata);
+  molecules[nmolecule]->nset = 1;
+  molecules[nmolecule]->last = 1;
+  nmolecule++;
 }
 
 /* ----------------------------------------------------------------------
@@ -2449,7 +2502,7 @@ void Atom::setup_sort_bins()
 
 #ifdef LMP_GPU
   if (userbinsize == 0.0) {
-    auto ifix = dynamic_cast<FixGPU *>(modify->get_fix_by_id("package_gpu"));
+    auto *ifix = dynamic_cast<FixGPU *>(modify->get_fix_by_id("package_gpu"));
     if (ifix) {
       const double subx = domain->subhi[0] - domain->sublo[0];
       const double suby = domain->subhi[1] - domain->sublo[1];
@@ -3146,6 +3199,18 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"curvature") == 0) return (void *) curvature;
   if (strcmp(name,"q_scaled") == 0) return (void *) q_scaled;
 
+  // APIP package
+
+  if (strcmp(name,"apip_lambda") == 0) return (void *) apip_lambda;
+  if (strcmp(name,"apip_lambda_required") == 0) return (void *) apip_lambda_required;
+  if (strcmp(name,"apip_lambda_input") == 0) return (void *) apip_lambda_input;
+  if (strcmp(name,"apip_lambda_input_ta") == 0) return (void *) apip_lambda_input_ta;
+  if (strcmp(name,"apip_e_fast") == 0) return (void *) apip_e_fast;
+  if (strcmp(name,"apip_e_precise") == 0) return (void *) apip_e_precise;
+  if (strcmp(name,"apip_f_const_lambda") == 0) return (void *) apip_f_const_lambda;
+  if (strcmp(name,"apip_f_dyn_lambda") == 0) return (void *) apip_f_dyn_lambda;
+  if (strcmp(name,"apip_lambda_const") == 0) return (void *) apip_lambda_const;
+
   // end of customization section
   // --------------------------------------------------------------------
 
@@ -3304,6 +3369,17 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"curvature") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"q_unscaled") == 0) return LAMMPS_DOUBLE;
 
+  // APIP package
+
+  if (strcmp(name,"apip_lambda") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"apip_lambda_required") == 0) return LAMMPS_INT;
+  if (strcmp(name,"apip_lambda_input") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"apip_lambda_input_ta") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"apip_e_fast") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"apip_e_precise") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"apip_lambda_const") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"apip_f_const_lambda") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"apip_f_dyn_lambda") == 0) return LAMMPS_DOUBLE_2D;
   // end of customization section
   // --------------------------------------------------------------------
 
@@ -3440,6 +3516,18 @@ int Atom::extract_size(const char *name, int type)
 
       if (strcmp(name, "smd_data_9") == 0) return 9;
       if (strcmp(name, "smd_stress") == 0) return 6;
+
+      // APIP package
+
+      if (strcmp(name, "apip_lambda") == 0) return nlocal;
+      if (strcmp(name, "apip_lambda_required") == 0) return nlocal;
+      if (strcmp(name, "apip_lambda_input") == 0) return nlocal;
+      if (strcmp(name, "apip_lambda_input_ta") == 0) return nlocal;
+      if (strcmp(name, "apip_e_fast") == 0) return nlocal;
+      if (strcmp(name, "apip_e_precise") == 0) return nlocal;
+      if (strcmp(name, "apip_lambda_const") == 0) return nlocal;
+      if (strcmp(name, "apip_f_const_lambda") == 0) return nall;
+      if (strcmp(name, "apip_f_dyn_lambda") == 0) return nall;
     }
 
     // custom arrays

@@ -21,8 +21,8 @@ You can follow the LAMMPS development on 4 different git branches:
 
 * **develop** : this branch follows the ongoing development and is
   updated with every merge commit of a pull request
-* **release** : this branch is updated with every "feature release";
-   updates are always "fast-forward" merges from *develop*
+* **release** : this branch is updated with every "feature release"
+  and updates are always "fast-forward" merges from *develop*
 * **maintenance** : this branch collects back-ported bug fixes from the
   *develop* branch to the *stable* branch.  It is used to update the
   *stable* branch for "stable update releases".

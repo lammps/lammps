@@ -39,8 +39,8 @@ namespace LAMMPS_NS {
 struct TagCSNAGridComputeNeigh{};
 struct TagCSNAGridComputeCayleyKlein{};
 struct TagCSNAGridPreUi{};
-struct TagCSNAGridComputeUiSmall{}; // more parallelism, more divergence
-struct TagCSNAGridComputeUiLarge{}; // less parallelism, no divergence
+template <bool chemsnap> struct TagCSNAGridComputeUiSmall{}; // more parallelism, more divergence
+template <bool chemsnap> struct TagCSNAGridComputeUiLarge{}; // less parallelism, no divergence
 struct TagCSNAGridTransformUi{}; // re-order ulisttot from SoA to AoSoA, zero ylist
 template <bool chemsnap> struct TagCSNAGridComputeZi{};
 template <bool chemsnap> struct TagCSNAGridComputeBi{};
@@ -62,6 +62,12 @@ class ComputeSNAGridKokkos : public ComputeSNAGrid {
   static constexpr int vector_length = vector_length_;
   using real_type = real_type_;
   using complex = SNAComplex<real_type>;
+
+  static constexpr bool legacy_on_gpu = false; // run the CPU path on the GPU
+  static_assert(legacy_on_gpu == false, "legacy_on_gpu must be false");
+
+  // extra padding factor, see pair_snap_kokkos.h for more context
+  static constexpr int padding_factor = 1;
 
   // Static team/tile sizes for device offload
 
@@ -166,11 +172,11 @@ class ComputeSNAGridKokkos : public ComputeSNAGrid {
   KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridPreUi, const int& iatom) const;
 
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagCSNAGridComputeUiSmall,const typename Kokkos::TeamPolicy<DeviceType, TagCSNAGridComputeUiSmall>::member_type& team) const;
+  template <bool chemsnap> KOKKOS_INLINE_FUNCTION
+  void operator() (TagCSNAGridComputeUiSmall<chemsnap>,const typename Kokkos::TeamPolicy<DeviceType, TagCSNAGridComputeUiSmall<chemsnap>>::member_type& team) const;
 
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagCSNAGridComputeUiLarge,const typename Kokkos::TeamPolicy<DeviceType, TagCSNAGridComputeUiLarge>::member_type& team) const;
+  template <bool chemsnap> KOKKOS_INLINE_FUNCTION
+  void operator() (TagCSNAGridComputeUiLarge<chemsnap>,const typename Kokkos::TeamPolicy<DeviceType, TagCSNAGridComputeUiLarge<chemsnap>>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridTransformUi, const int& iatom_mod, const int& idxu, const int& iatom_div) const;
@@ -234,12 +240,7 @@ class ComputeSNAGridKokkos : public ComputeSNAGrid {
   typename AT::t_x_array_randomread x;
   typename AT::t_int_1d_randomread type;
   DAT::tdual_float_2d k_grid;
-  DAT::tdual_float_2d k_gridall;
   typename AT::t_float_2d d_grid;
-  typename AT::t_float_2d d_gridall;
-
-  DAT::tdual_float_4d k_gridlocal;
-  typename AT::t_float_4d d_gridlocal;
 
 
   // Utility routine which wraps computing per-team scratch size requirements for

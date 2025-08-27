@@ -16,6 +16,8 @@
 
 #include "pointers.h"
 
+#include "json_fwd.h"
+
 namespace LAMMPS_NS {
 
 class Molecule : protected Pointers {
@@ -122,8 +124,12 @@ class Molecule : protected Pointers {
   double *quat_external;    // orientation imposed by external class
                             // e.g. FixPour or CreateAtoms
 
-  Molecule(class LAMMPS *, int, char **, int &);
+  Molecule(class LAMMPS *);
   ~Molecule() override;
+
+  void command(int, char **, int &);
+  void from_json(const std::string &id, const json &);
+
   void compute_center();
   void compute_mass();
   void compute_com();
@@ -132,11 +138,10 @@ class Molecule : protected Pointers {
   void check_attributes();
 
  private:
-  int me;
   FILE *fp;
   int *count;
   int toffset, boffset, aoffset, doffset, ioffset;
-  int autospecial;
+  int json_format;
   double sizescale;
 
   void read(int);
@@ -168,6 +173,7 @@ class Molecule : protected Pointers {
   std::string parse_keyword(int, char *);
   void skip_lines(int, char *, const std::string &);
 
+  void stats();
   // void print();
 };
 

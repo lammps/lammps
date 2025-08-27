@@ -53,14 +53,11 @@ uf3_bspline_basis3::uf3_bspline_basis3(LAMMPS *ulmp, const double *knots, double
         square(knots[0]) * knots[3] - knots[0] * knots[1] * knots[2] -
         knots[0] * knots[1] * knots[3] - knots[0] * knots[2] * knots[3] +
         knots[1] * knots[2] * knots[3]));
-  //constants.push_back(c0);
-  //constants.push_back(c1);
-  //constants.push_back(c2);
-  //constants.push_back(c3);
   constants[0] = c0;
   constants[1] = c1;
   constants[2] = c2;
   constants[3] = c3;
+
   c0 = coefficient *
       (square(knots[1]) * knots[4] /
            (-cube(knots[1]) + square(knots[1]) * knots[2] + square(knots[1]) * knots[3] +
@@ -165,10 +162,7 @@ uf3_bspline_basis3::uf3_bspline_basis3(LAMMPS *ulmp, const double *knots, double
             knots[0] * knots[1] * knots[3] - knots[0] * knots[2] * knots[3] +
             square(knots[1]) * knots[3] - knots[1] * knots[2] * knots[3] -
             knots[1] * square(knots[3]) + knots[2] * square(knots[3])));
-  //constants.push_back(c0);
-  //constants.push_back(c1);
-  //constants.push_back(c2);
-  //constants.push_back(c3);
+
   constants[4] = c0;
   constants[5] = c1;
   constants[6] = c2;
@@ -277,10 +271,7 @@ uf3_bspline_basis3::uf3_bspline_basis3(LAMMPS *ulmp, const double *knots, double
             knots[1] * knots[2] * knots[4] - knots[1] * knots[3] * knots[4] +
             square(knots[2]) * knots[4] - knots[2] * knots[3] * knots[4] -
             knots[2] * square(knots[4]) + knots[3] * square(knots[4])));
-  //constants.push_back(c0);
-  //constants.push_back(c1);
-  //constants.push_back(c2);
-  //constants.push_back(c3);
+
   constants[8] = c0;
   constants[9] = c1;
   constants[10] = c2;
@@ -309,40 +300,11 @@ uf3_bspline_basis3::uf3_bspline_basis3(LAMMPS *ulmp, const double *knots, double
         knots[1] * knots[3] * knots[4] - knots[1] * square(knots[4]) +
         knots[2] * knots[3] * knots[4] - knots[2] * square(knots[4]) - knots[3] * square(knots[4]) +
         cube(knots[4])));
-  //constants.push_back(c0);
-  //constants.push_back(c1);
-  //constants.push_back(c2);
-  //constants.push_back(c3);
+
   constants[12] = c0;
   constants[13] = c1;
   constants[14] = c2;
   constants[15] = c3;
-}
-
-uf3_bspline_basis3::~uf3_bspline_basis3() {}
-
-// Evaluate outer-left part of spline
-double uf3_bspline_basis3::eval0(double rth, double rsq, double r)
-{
-  return rth * constants[3] + rsq * constants[2] + r * constants[1] + constants[0];
-}
-
-// Evaluate center-left part of spline
-double uf3_bspline_basis3::eval1(double rth, double rsq, double r)
-{
-  return rth * constants[7] + rsq * constants[6] + r * constants[5] + constants[4];
-}
-
-// Evaluate center-right part of spline
-double uf3_bspline_basis3::eval2(double rth, double rsq, double r)
-{
-  return rth * constants[11] + rsq * constants[10] + r * constants[9] + constants[8];
-}
-
-// Evaluate outer-right part of spline
-double uf3_bspline_basis3::eval3(double rth, double rsq, double r)
-{
-  return rth * constants[15] + rsq * constants[14] + r * constants[13] + constants[12];
 }
 
 double uf3_bspline_basis3::memory_usage()

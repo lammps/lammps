@@ -13,56 +13,56 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-typedef NPairSkipKokkos<LMPDeviceType,0> NPairKokkosSkipDevice;
+using NPairKokkosSkipDevice = NPairSkipKokkos<LMPDeviceType,0>;
 NPairStyle(skip/kk/device,
            NPairKokkosSkipDevice,
            NP_SKIP | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_KOKKOS_DEVICE);
 
-typedef NPairSkipKokkos<LMPDeviceType,0> NPairKokkosSkipGhostDevice;
+using NPairKokkosSkipGhostDevice = NPairSkipKokkos<LMPDeviceType,0>;
 NPairStyle(skip/ghost/kk/device,
            NPairKokkosSkipGhostDevice,
            NP_SKIP | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_GHOST | NP_KOKKOS_DEVICE);
 
-typedef NPairSkipKokkos<LMPHostType,0> NPairKokkosSkipHost;
+using NPairKokkosSkipHost = NPairSkipKokkos<LMPHostType,0>;
 NPairStyle(skip/kk/host,
            NPairKokkosSkipHost,
            NP_SKIP | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_KOKKOS_HOST);
 
-typedef NPairSkipKokkos<LMPHostType,0> NPairKokkosSkipGhostHost;
+using NPairKokkosSkipGhostHost = NPairSkipKokkos<LMPHostType,0>;
 NPairStyle(skip/ghost/kk/host,
            NPairKokkosSkipGhostHost,
            NP_SKIP | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_GHOST | NP_KOKKOS_HOST);
 
-typedef NPairSkipKokkos<LMPDeviceType,1> NPairKokkosSkipTrimDevice;
+using NPairKokkosSkipTrimDevice = NPairSkipKokkos<LMPDeviceType,1>;
 NPairStyle(skip/trim/kk/device,
            NPairKokkosSkipTrimDevice,
            NP_SKIP | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM |NP_KOKKOS_DEVICE);
 
-typedef NPairSkipKokkos<LMPDeviceType,1> NPairKokkosSkipTrimGhostDevice;
+using NPairKokkosSkipTrimGhostDevice = NPairSkipKokkos<LMPDeviceType,1>;
 NPairStyle(skip/trim/ghost/kk/device,
            NPairKokkosSkipTrimGhostDevice,
            NP_SKIP | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM | NP_GHOST | NP_KOKKOS_DEVICE);
 
-typedef NPairSkipKokkos<LMPHostType,1> NPairKokkosSkipTrimHost;
+using NPairKokkosSkipTrimHost = NPairSkipKokkos<LMPHostType,1>;
 NPairStyle(skip/trim/kk/host,
            NPairKokkosSkipTrimHost,
            NP_SKIP | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM | NP_KOKKOS_HOST);
 
-typedef NPairSkipKokkos<LMPHostType,1> NPairKokkosSkipTrimGhostHost;
+using NPairKokkosSkipTrimGhostHost = NPairSkipKokkos<LMPHostType,1>;
 NPairStyle(skip/trim/ghost/kk/host,
            NPairKokkosSkipTrimGhostHost,
            NP_SKIP | NP_HALF | NP_FULL |

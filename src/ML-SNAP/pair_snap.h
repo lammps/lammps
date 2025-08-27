@@ -36,8 +36,8 @@ class PairSNAP : public Pair {
   double memory_usage() override;
   void *extract(const char *, int &) override;
 
-  double rcutfac, quadraticflag;    // declared public to workaround gcc 4.9
-  int ncoeff;                       //  compiler bug, manifest in KOKKOS package
+  double rcutfac;
+  int quadraticflag, ncoeff;
 
  protected:
   int ncoeffq, ncoeffall;

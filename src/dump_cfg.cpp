@@ -26,6 +26,7 @@
 #include "error.h"
 
 #include <cstring>
+#include <map>
 
 using namespace LAMMPS_NS;
 

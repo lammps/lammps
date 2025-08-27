@@ -40,13 +40,14 @@ class FixContinuumChunk : public Fix {
   std::vector<std::pair<int, int>> values;
   std::vector<std::string> labels;
 
-  int dim, pstyle, calculate_pair, calculate_grad;
+  int dim, bin_dim, pstyle, calculate_pair, calculate_grad;
   int need_density, need_momentum, need_vgrad;
+  int boundary_group_flag, boundary_groupbit;
   int index_density, index_momentum[3], index_vgrad[3][3];
   double w_cut, w_cut_sq, w_sd, w_sd_sq, w_scale, w_offset;
 
   int nvalues, nskip, nrepeat, nfreq, irepeat;
-  int borderflag, overwrite, colextra;
+  int boundaryflag, overwrite, colextra;
   bigint nvalid, nvalid_last;
   char *format, *format_user;
   FILE *fp;

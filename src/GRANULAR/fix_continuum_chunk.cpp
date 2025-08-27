@@ -27,6 +27,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "input.h"
 #include "math_const.h"
 #include "math_extra.h"
@@ -47,7 +48,8 @@ using namespace NeighConst;
 using namespace MathConst;
 
 enum { OTHER, GRANULAR };
-enum { DENSITY, MOMENTUM, VELOCITY, MGRAD, VGRAD, STRAINRATE, STRESS, STRESSKE, STRESSCON, FABRIC };
+enum { DENSITY, VOLFRAC, MOMENTUM, VELOCITY, MGRAD, VGRAD, STRAINRATE, STRESS, STRESSKE, STRESSCON, IFD, FABRIC };
+enum { BOUNDARY_NONE, BOUNDARY_FIX, BOUNDARY_ATOM, BOUNDARY_BOTH };
 enum { SCALAR, VECTOR };
 enum { SAMPLE, ALL };
 enum { NOSCALE, ATOM };
@@ -65,7 +67,7 @@ static const char cite_continuum[] =
     " pages =   {239--252}\n"
     "}\n\n";
 
-static const char cite_borders[] =
+static const char cite_boundary[] =
     "Boundary corrections: doi:10.1007/s10035-012-0317-4\n\n"
     "@Article{Weinhart2012,\n"
     " author = {Weinhart, Thomas and Thornton, Anthony R. and Luding, Stefan and Bokhove, Onno},\n"
@@ -135,7 +137,7 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  char *group = arg[1];
+  char *mygroup = arg[1];
 
   // parse values until one isn't recognized
 
@@ -147,6 +149,9 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
       values.push_back(std::make_pair(DENSITY, -1));
       labels.push_back("density");
       index_density = values.size() - 1;
+    } else if (strcmp(arg[iarg], "volume/fraction") == 0) {
+      values.push_back(std::make_pair(VOLFRAC, -1));
+      labels.push_back("volume/fraction");
     } else if (utils::strmatch(arg[iarg], "^momentum/.$")) {
       add_vector_component(arg[iarg], MOMENTUM);
     } else if (utils::strmatch(arg[iarg], "^velocity/.$")) {
@@ -170,13 +175,17 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
       need_momentum = 1;
       need_vgrad = 1;
       calculate_grad = 1;
-    } else if (utils::strmatch(arg[iarg], "^stress/..$")) {
+    } else if (utils::strmatch(arg[iarg], "^stress/.$") ||
+               utils::strmatch(arg[iarg], "^stress/..$")) {
       add_tensor_component(arg[iarg], STRESS);
       calculate_pair = 1;
     } else if (utils::strmatch(arg[iarg], "^stress/ke/")) {
       add_tensor_component(arg[iarg], STRESSKE);
     } else if (utils::strmatch(arg[iarg], "^stress/contacts/")) {
       add_tensor_component(arg[iarg], STRESSCON);
+      calculate_pair = 1;
+    } else if (utils::strmatch(arg[iarg], "^boundary/force")) {
+      add_vector_component(arg[iarg], IFD);
       calculate_pair = 1;
     } else if (utils::strmatch(arg[iarg], "^fabric/")) {
       add_tensor_component(arg[iarg], FABRIC);
@@ -223,7 +232,8 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // optional args
 
-  borderflag = 0;
+  boundaryflag = BOUNDARY_NONE;
+  boundary_group_flag = 0;
   ave = ONE;
   nwindow = 0;
   overwrite = 0;
@@ -234,9 +244,22 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
   char *title3 = nullptr;
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg], "border") == 0) {
-      borderflag = 1;
+    if (strcmp(arg[iarg], "boundary/fix") == 0) {
+      if (boundaryflag == BOUNDARY_ATOM)
+        boundaryflag = BOUNDARY_BOTH;
+      else
+        boundaryflag = BOUNDARY_FIX;
       iarg += 1;
+    } else if (strcmp(arg[iarg], "boundary/atom") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, std::string("fix continuum/chunk ") + arg[iarg], error);
+      if (boundaryflag == BOUNDARY_FIX)
+        boundaryflag = BOUNDARY_BOTH;
+      else
+        boundaryflag = BOUNDARY_ATOM;
+      boundary_group_flag = 1;
+      boundary_groupbit = group->get_bitmask_by_id(FLERR, arg[iarg + 1], "fix continuum/chunk");
+      iarg += 2;
     } else if (strcmp(arg[iarg], "ave") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix continuum/chunk ave", error);
       if (strcmp(arg[iarg + 1], "one") == 0) ave = ONE;
@@ -299,6 +322,10 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR, "Inconsistent fix continuum/chunk nevery/nrepeat/nfreq values");
   if (ave != RUNNING && overwrite)
     error->all(FLERR, "Fix continuum/chunk overwrite keyword requires ave running setting");
+  if (!boundaryflag)
+    for (auto &val : values)
+      if (val.first == IFD)
+        error->all(FLERR, "Must specify type of boundary corrections, atom and/or fix, to compute boundary/force");
 
   // increment lock counter in compute chunk/atom
   // only if nrepeat > 1 or ave = RUNNING/WINDOW,
@@ -310,14 +337,26 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
                "incorrect style for fix continuum/chunk", idchunk);
 
   int which = cchunk->get_which();
-  if ((which != ArgInfo::BIN1D) && (which != ArgInfo::BIN2D) && (which != ArgInfo::BIN3D))
-      error->all(FLERR, "Can only use bin chunk/atom styles with fix continuum/chunk");
+  if (which == ArgInfo::BIN1D) {
+    bin_dim = 1;
+  } else if (which == ArgInfo::BIN2D) {
+    bin_dim = 2;
+  } else if (which == ArgInfo::BIN3D) {
+    bin_dim = 3;
+  } else {
+    error->all(FLERR, "Can only use bin chunk/atom styles with fix continuum/chunk");
+  }
+
   w_cut_sq = w_cut * w_cut;
   w_sd_sq = w_sd * w_sd;
 
   // Normalization factor for truncated Gaussian
   double exp_cut = exp(-w_cut_sq / (2.0 * w_sd_sq));
-  if (dim == 2) {
+  if (bin_dim == 1) {
+    w_scale = sqrt(2.0 * MY_PI) * w_sd * erf(w_cut / (MY_SQRT2 * w_sd));
+    w_scale -= 2.0 * w_cut * exp_cut;
+    w_scale = 1.0 / w_scale;
+  } else if (bin_dim == 2) {
     w_scale = -0.5 * w_cut_sq * exp_cut + w_sd_sq * (1.0 - exp_cut);
     w_scale = 1.0 / (2.0 * MY_PI * w_scale);
   } else {
@@ -335,7 +374,7 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
   if (fp && comm->me == 0) {
     clearerr(fp);
     if (title1) fprintf(fp, "%s\n",title1);
-    else fprintf(fp, "# Chunk-averaged data for fix %s and group %s\n", id, group);
+    else fprintf(fp, "# Chunk-averaged data for fix %s and group %s\n", id, mygroup);
     if (title2) fprintf(fp, "%s\n",title2);
     else fprintf(fp, "# Timestep Number-of-chunks Total-count\n");
     if (title3) fprintf(fp, "%s\n",title3);
@@ -410,8 +449,8 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
 
   if (lmp->citeme) {
     lmp->citeme->add(cite_continuum);
-    if (borderflag)
-      lmp->citeme->add(cite_borders);
+    if (boundaryflag)
+      lmp->citeme->add(cite_boundary);
   }
 }
 
@@ -486,13 +525,13 @@ void FixContinuumChunk::init()
     error->all(FLERR, "Chunk/atom compute {} does not exist or is "
                "incorrect style for fix continuum/chunk",idchunk);
 
-  if (borderflag) {
+  if (boundaryflag == BOUNDARY_FIX || boundaryflag == BOUNDARY_BOTH) {
     auto wall_fixes = modify->get_fix_by_style("wall/gran");
     if (wall_fixes.size() == 0)
-      error->all(FLERR, "Could not find any instances of fix wall/gran for border corrections");
+      error->all(FLERR, "Could not find any instances of fix wall/gran for boundary corrections");
     for (auto fix : wall_fixes)
       if (!fix->peratom_flag)
-        error->all(FLERR, "Must use contacts keyword in fix wall/gran {} for border corrections", fix->id);
+        error->all(FLERR, "Must use contacts keyword in fix wall/gran {} for boundary corrections", fix->id);
   }
 
   // need to reset nvalid if nvalid < ntimestep b/c minimize was performed
@@ -638,8 +677,8 @@ void FixContinuumChunk::end_of_step()
   // compute/fix/variable may invoke computes so wrap with clear/add
 
   int a, b, itype, style, component, field_index;
-  double w, mi, voli, r, rsq_bin, rsq_pair, rsq_wall, rbin_dot_r, f_norm, w_int_tmp;
-  double xbin[3], dx_bin[3], dx_pair[3], f_pair[3], f_wall[3], dx_wall[3];
+  double w, wc, mi, voli, r, rsq_bin, rsq_pair, rsq_wall, rbin_dot_r, f_norm, w_int_tmp, wc_int_tmp;
+  double xbin[3], xcont[3], dx_bin[3], dx_pair[3], dx_cont[3], f_pair[3], f_wall[3], dx_wall[3];
 
   double **x = atom->x;
   double **v = atom->v;
@@ -676,6 +715,7 @@ void FixContinuumChunk::end_of_step()
     if (mask[i] & groupbit && ichunk[i] > 0) {
       m = ichunk[i] - 1;
 
+      // x[i] is default so won't contribute unless binned in that coord
       MathExtra::copy3(x[i], xbin);
       for (a = 0; a < ncoord; a++) {
         xbin[cdim[a]] = coord[m][a];
@@ -698,47 +738,51 @@ void FixContinuumChunk::end_of_step()
       if (rsq_bin > w_cut_sq) continue;
       w = calc_w(sqrt(rsq_bin));
 
-      // contributions from single atoms
+      // contributions from single atoms (excluding boundary)
 
-      field_index = 0;
-      for (auto &val : values) {
-        style = val.first;
-        component = val.second;
+      if (!(boundary_group_flag && (mask[i] & boundary_groupbit))) {
+        field_index = 0;
+        for (auto &val : values) {
+          style = val.first;
+          component = val.second;
 
-        a = component % 3;
-        b = (component - a) / 3;
+          a = component % 3;
+          b = (component - a) / 3;
 
-        if (style == DENSITY) {
-          values_one[m][field_index] += mi * w;
-        } else if (style == MOMENTUM) {
-          values_one[m][field_index] += mi * v[i][component] * w;
-        } else if (style == STRESS || style == STRESSKE) {
-          values_one[m][field_index] -= mi * v[i][a] * v[i][b] * w;
-        }
-
-        // Boundary corrections from Weinhart et al. 2012
-        if (borderflag && (style == STRESS || style == STRESSCON)) {
-          for (auto wall_fix : wall_fixes) {
-            array_atom_fix = wall_fix->array_atom;
-
-            // Skip if not in contact
-            if (array_atom_fix[i][0] != 1.0) continue;
-            f_wall[0] = array_atom_fix[i][1];
-            f_wall[1] = array_atom_fix[i][2];
-            f_wall[2] = array_atom_fix[i][3];
-            dx_wall[0] = x[i][0] - array_atom_fix[i][4];
-            dx_wall[1] = x[i][1] - array_atom_fix[i][5];
-            dx_wall[2] = x[i][2] - array_atom_fix[i][6];
-
-            rsq_wall = MathExtra::lensq3(dx_wall);
-            rbin_dot_r = MathExtra::dot3(dx_bin, dx_pair);
-            w_int_tmp = calc_w_int(rsq_bin, rbin_dot_r, rsq_wall);
-
-            values_one[m][field_index] -= f_wall[a] * dx_wall[b] * w_int_tmp;
+          if (style == DENSITY) {
+            values_one[m][field_index] += mi * w;
+          } else if (style == VOLFRAC) {
+            values_one[m][field_index] += voli * w;
+          } else if (style == MOMENTUM) {
+            values_one[m][field_index] += mi * v[i][component] * w;
+          } else if (style == STRESS || style == STRESSKE) {
+            values_one[m][field_index] -= mi * v[i][a] * v[i][b] * w;
           }
-        }
 
-        field_index++;
+          // Boundary corrections from Weinhart et al. 2012
+          if (boundaryflag && (style == STRESS || style == STRESSCON)) {
+            for (auto wall_fix : wall_fixes) {
+              array_atom_fix = wall_fix->array_atom;
+
+              // Skip if not in contact
+              if (array_atom_fix[i][0] != 1.0) continue;
+              f_wall[0] = array_atom_fix[i][1];
+              f_wall[1] = array_atom_fix[i][2];
+              f_wall[2] = array_atom_fix[i][3];
+              dx_wall[0] = x[i][0] - array_atom_fix[i][4];
+              dx_wall[1] = x[i][1] - array_atom_fix[i][5];
+              dx_wall[2] = x[i][2] - array_atom_fix[i][6];
+
+              rsq_wall = MathExtra::lensq3(dx_wall);
+              rbin_dot_r = MathExtra::dot3(dx_bin, dx_pair);
+              w_int_tmp = calc_w_int(rsq_bin, rbin_dot_r, rsq_wall);
+
+              values_one[m][field_index] -= f_wall[a] * dx_wall[b] * w_int_tmp;
+            }
+          }
+
+          field_index++;
+        }
       }
 
       // contributions from pairs of atoms
@@ -749,6 +793,8 @@ void FixContinuumChunk::end_of_step()
         for (jj = 0; jj < jnum; jj++) {
           j = jlist[jj];
           j &= NEIGHMASK;
+
+          if (!mask[j] & groupbit) continue;
 
           MathExtra::sub3(x[i], x[j], dx_pair);
           rsq_pair = MathExtra::lensq3(dx_pair);
@@ -767,6 +813,27 @@ void FixContinuumChunk::end_of_step()
 
           rbin_dot_r = MathExtra::dot3(dx_bin, dx_pair);
           w_int_tmp = calc_w_int(rsq_bin, rbin_dot_r, rsq_pair);
+          if (boundary_group_flag) {
+            // Skip if both are boundary particles
+            if ((mask[i] & boundary_groupbit) && (mask[j] & boundary_groupbit))
+              continue;
+
+            MathExtra::scale3(0.5, dx_pair, xcont);
+            MathExtra::sub3(x[i], xcont, xcont);
+
+            // Check which one is a boundary
+            if (mask[i] & boundary_groupbit) {
+              MathExtra::sub3(x[i], xcont, dx_cont);
+            } else {
+              MathExtra::sub3(xcont, x[j], dx_cont);
+            }
+
+            // Calculate alternate kernel metrics (could be more selective if only one needed)
+            rsq_pair = MathExtra::lensq3(dx_cont); // reuse temp variables
+            rbin_dot_r = MathExtra::dot3(dx_bin, dx_cont);
+            wc_int_tmp = calc_w_int(rsq_bin, rbin_dot_r, rsq_pair);
+            wc = calc_w(MathExtra::len3(dx_cont));
+          }
 
           field_index = 0;
           for (auto &val : values) {
@@ -777,8 +844,16 @@ void FixContinuumChunk::end_of_step()
             b = (component - a) / 3;
 
             if (style == STRESS || style == STRESSCON) {
-              values_one[m][field_index] -= f_pair[a] * dx_pair[b] * w_int_tmp;
+              if (boundary_group_flag && (mask[i] & boundary_groupbit)) {
+                values_one[m][field_index] -= f_pair[a] * dx_cont[b] * wc_int_tmp;
+              } else {
+                values_one[m][field_index] -= f_pair[a] * dx_pair[b] * w_int_tmp;
+              }
+            } else if (style == IFD) {
+              if (!(boundary_group_flag && (mask[i] & boundary_groupbit))) continue;
+              values_one[m][field_index] -= f_pair[a] * dx_cont[b] * wc;
             } else if (style == FABRIC) {
+              if (boundary_group_flag && (mask[i] & boundary_groupbit)) continue;
               values_one[m][field_index] += voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
             }
 
@@ -810,15 +885,16 @@ void FixContinuumChunk::end_of_step()
 
     double dw, vbin;
     for (i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit && ichunk[i] > 0) {
+        if (boundary_group_flag && (mask[i] & boundary_groupbit)) continue;
 
-      itype = type[i];
-      if (rmass) mi = rmass[i];
-      else mi = mass[itype];
-      voli = MY_PI * radius[i] * radius[i];
-      if (dim == 3)
+        itype = type[i];
+        if (rmass) mi = rmass[i];
+        else mi = mass[itype];
+        voli = MY_PI * radius[i] * radius[i];
+        if (dim == 3)
         voli *= 4.0 * THIRD * radius[i];
 
-      if (mask[i] & groupbit && ichunk[i] > 0) {
         m = ichunk[i] - 1;
 
         MathExtra::copy3(x[i], xbin);
@@ -932,6 +1008,20 @@ void FixContinuumChunk::end_of_step()
 
       field_index++;
     }
+  }
+
+  // Normalize by any unused dimensions
+
+  if (bin_dim != dim) {
+    int unused_dim[3] = {1, 1, 1};
+    for (a = 0; a < ncoord; a++)
+      unused_dim[cdim[a]] = 0;
+
+    for (a = 0; a < dim; a++)
+      if (unused_dim[a])
+        for (m = 0; m < nchunk; m++)
+          for (int n = 0; n < nvalues; n++)
+            values_sum[m][n] /= domain->prd[a];
   }
 
   // if ave = ONE, only single Nfreq timestep value is needed

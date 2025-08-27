@@ -19,19 +19,21 @@ Syntax
 * cutoff = cutoff for Gaussian kernel
 * width = standard deviation of Gaussian kernel
 * one or more input values can be listed
-* value = *density*, *v/a*, *stress/ab*, *stress/ke/ab*, *stress/contacts/ab*, *fabric/ab*
+* value = *density*, *volume/fraction*, *v/a*, *boundary/force/a*, *stress/ab*, *stress/ke/ab*, *stress/contacts/ab*, *fabric/ab*
 
   .. parsed-literal::
 
        *density* = density field
+       *volume/fraction* = volume fraction field
        *v/a* = a-component of the velocity field
+       *boundary/force/a* = a-component of the boundary force density
        *stress/ab* = ab-component of the total stress field
        *stress/ke/ab* = ab-component of the kinetic stress field
        *stress/contacts/ab* = ab-component of the contacts stress field
        *fabric/ab* = ab-component of the fabric tensor field
 
 * zero or more keyword/arg pairs may be appended
-* keyword = *ave* or *border* or *file* or *append* or *overwrite* or *format* or *title1* or *title2* or *title3*
+* keyword = *ave* or *boundary/atom* or *boundary/fix* or *file* or *append* or *overwrite* or *format* or *title1* or *title2* or *title3*
 
   .. parsed-literal::
 
@@ -39,7 +41,9 @@ Syntax
          one = output new average value every Nfreq steps
          running = output cumulative average of all previous Nfreq steps
          window M = output average of M most recent Nfreq steps
-       *border* arg = none = turn on boundary corrections to the stress
+       *boundary/atom* arg = *groupbound* = enable boundary corrections from atoms
+         groupbound = group-ID for atoms that make up a boundary
+       *boundary/fix* arg = none = enable boundary corrections from fixes
        *file* arg = filename
          filename = file to write results to
        *append* arg = filename
@@ -95,9 +99,14 @@ can be used to measure properties of a system.
 
 This fix is ONLY compatible with the binning styles in compute chunk/atom
 (*bin/1d*, *bin/2d*, or *bin/3d*). This fix also requires bins to be
-wider than the specified *cutoff* in all dimensions.
+wider than the specified *cutoff* in all dimensions. If binning is not
+performed along one of the dimensions of the box, then all outputs are
+normalized by the length of the simulation box in that dimension. For
+instance, if a 3D system is only binned along the z dimension using
+*bin/1d*, then all outputs are normalized by *Lx* and *Ly*.
 
 Note that only atoms in the specified group contribute to the calculations.
+In sums of pairs of atoms, both atoms must be in the group to contribute.
 The :doc:`compute chunk/atom <compute_chunk_atom>` command defines its own
 group as well as an optional region.  Atoms will have a chunk ID = 0,
 meaning they belong to no chunk, if they are not in that group or region.
@@ -185,71 +194,91 @@ The *density* field is given by
 
 .. math::
 
-   \sum_i m_i W(\vec{r}_c - \vec{r}_i)
+   \sum_i m_i W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
 
 where the summation is across all atoms :math:`i` in the chunk. :math:`m_i`
-is the atom mass, :math:`\vec{r}_c` is the location of the center of the
+is the atom mass, :math:`\vec{r}_\mathrm{chunk}` is the location of the center of the
 chunk, :math:`\vec{r}_i` is the atom position, and :math:`W` is the Gaussian
 kernel.
+
+The *volume/fraction* field is given by
+
+.. math::
+
+   \sum_i V_i W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
+
+where :math:`V_i` is the volume of the finite sized atom in 3D and the area in 2D.
 
 The *momentum* field is given by
 
 .. math::
 
-   \sum_i m_i v_{i,a} W(\vec{r}_c - \vec{r}_i)
+   \sum_i m_i v_{i,a} W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
 
 where :math:`v_{i,a}` is the :math:`a`-component of the atom velocity.
 
 The *velocity* field is calculated as the ratio of the *momentum* and *density*
 fields.
 
+The *boundary/force* field is the interaction force density of boundaries as
+defined in :ref:`(Weinhart)`. It is calculated as
+
+.. math::
+
+   \sum_i \sum_k f_{ik,a} W(\vec{r}_\mathrm{chunk} - \vec{r}_{\mathrm{contact},ik})
+
+where the sum over :math:`k` is a summation across boundary elements and
+:math:`\vec{r}_{\mathrm{contact},ik}` is the position of the contact between
+atom :math:`i` and boundary element :math:`k`. A boundary element can either
+be an atom or a fix as defined below in the discussion of the *boundary* options.
+At least one of the two *boundary* options must be enabled to compute this quantity.
+
 The *stress/ke* field is the kinetic contribution to the stress and is
 given by
 
 .. math::
 
-   -\sum_i m_i v_{i,a} v_{i,b} W(\vec{r}_c - \vec{r}_i)
+   -\sum_i m_i v_{i,a} v_{i,b} W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
 
 The *stress/contacts* field is the contact force contribution to the stress
 and is given by
 
 .. math::
 
-   -\sum_{i,j} f_{ij,a} r_{ij,b} \int_0^1 ds W(\vec{r}_c - \vec{r}_i + s \vec{r}_{ij})
+   -\sum_{i,j} f_{ij,a} r_{ij,b} \int_0^1 ds W(\vec{r}_\mathrm{chunk} - \vec{r}_i + s \vec{r}_{ij})
 
 where the summation is over all pairs of atoms in the chunk that are in contact (nonzero force), :math:`f_{ij,a}` is the force on atom :math:`i`
 from atom :math:`j`, and :math:`\vec{r}_{ij}` is the displacement between
 the two atoms.
 
 The *stress* field is the summation of the kinetic and contact contributions.
-This definition, as well as the above expressions, are found in :ref:`(Goldhirsch)`.
 
 The *fabric* field is defined as
 
 .. math::
 
-   \sum_{i,j} V_i r_{ij,a} r_{ij,b} \int_0^1 ds W(\vec{r}_c - \vec{r}_i + s \vec{r}_{ij})
+   \sum_{i,j} V_i r_{ij,a} r_{ij,b} \int_0^1 ds W(\vec{r}_\mathrm{chunk} - \vec{r}_i + s \vec{r}_{ij})
 
 where :math:`V_i` is the volume of the atom in 3D and area in 2D.
 
-The *momentum/grad* field is defined as
+TBD: The *momentum/grad* field is defined as
 
 .. math::
 
-   \sum_i (p_{c,a} - m_i v_{i,a}) \grad_b W(\vec{r}_c - \vec{r}_i)
+   \sum_i V_i (p_{c,a} - m_i v_{i,a}) \grad_b W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
 
 where :math:`p_{c,a}` is the :math:`a`-component of the *momentum* field and :math:`\grad_b W` is the :math:`b`-component of the of the gradient
 of the kernel.
 
-The *velocity/grad* field is defined as
+TBD: The *velocity/grad* field is defined as
 
 .. math::
 
-   \sum_i (v_{c,a} - v_{i,a}) \grad_b W(\vec{r}_c - \vec{r}_i)
+   \sum_i V_i (v_{c,a} - v_{i,a}) \grad_b W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
 
 where :math:`v_{c,a}` is the :math:`a`-component of the *velocity* field.
 
-The *strain/rate* is defined as
+TBD: The *strain/rate* is defined as
 
 .. math::
 
@@ -260,10 +289,25 @@ field.
 
 ----------
 
-The optional *border* keyword turns on corrections to the *stress* and
-*stress/contacts* fields using the construction from :ref:`(Weinhart)`.
-This keyword only applies corrections from boundaries created with instances
-of :doc:`fix wall/gran<fix_wall_gran>` or
+The optional *boundary/atom* and *boundary/fix* keywords turn on corrections
+to the *stress* and *stress/contacts* fields using the construction from
+:ref:`(Weinhart)`. At least one of these two keywords must be used to compute
+the *boundary/force* vector.
+
+The *boundary/atom* allows a group-ID to be specified. All atoms in this
+group-ID will no longer contribute to any of the above summations, except
+for *boundary/force*. In addition, these atoms will add an alternate contribution
+to the *stress* and *stress/contacts* fields:
+
+.. math::
+
+   -\sum_{i,k} f_{ik,a} a_{ik,b} \int_0^1 ds W(\vec{r}_\mathrm{chunk} - \vec{r}_i + s \vec{a}_{ik})
+
+where :math:`\vec{a}_{ik}` is the vector between the position of non-boundary
+atom :math:`i` and the location of its contact with boundary atom :math:`k`.
+
+The *boundary/fix* keyword applies analogous corrections from boundaries created
+with instances of :doc:`fix wall/gran<fix_wall_gran>` or
 :doc:`fix wall/gran/region<fix_wall_gran_region>`. An error will be triggered
 if no such fixes are detected.
 

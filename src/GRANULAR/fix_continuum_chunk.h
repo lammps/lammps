@@ -82,7 +82,7 @@ class FixContinuumChunk : public Fix {
   bigint nextvalid();
   inline double calc_w(const double) const ;
   inline double calc_dw(const double) const ;
-  inline double calc_w_int(const double, const double, const double) const ;
+  inline double calc_w_int(double*, double*) const ;
   void add_tensor_component(char *, int);
   void add_vector_component(char *, int);
 };

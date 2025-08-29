@@ -90,13 +90,16 @@ inline double FixContinuumChunk::calc_dw(double r) const
   // missing factor of x, added after called
 }
 
-inline double FixContinuumChunk::calc_w_int(double dr_dot_dr, double dr_dot_rij, double rij_dot_rij) const
+inline double FixContinuumChunk::calc_w_int(double *dr, double *rij) const
 {
-  double sqrt_rij_dot_rij = sqrt(rij_dot_rij);
-  double tmp = MY_SQRT2 * sqrt_rij_dot_rij * w_sd;
-  double w_int = erf(dr_dot_rij / tmp) + erf((rij_dot_rij - dr_dot_rij) / tmp);
-  w_int *= exp((dr_dot_rij * dr_dot_rij - dr_dot_dr * rij_dot_rij) / (tmp * tmp));
-  w_int *= sqrt(0.5 * MY_PI) * w_sd / sqrt_rij_dot_rij;
+  double dr_sq = MathExtra::lensq3(dr);
+  double dr_dot_rij = MathExtra::dot3(dr, rij);
+  double rij_sq = MathExtra::lensq3(rij);
+  double rij_mag = sqrt(rij_sq);
+  double tmp = MY_SQRT2 * rij_mag * w_sd;
+  double w_int = erf(dr_dot_rij / tmp) + erf((rij_sq - dr_dot_rij) / tmp);
+  w_int *= exp((dr_dot_rij * dr_dot_rij - dr_sq * rij_sq) / (tmp * tmp));
+  w_int *= sqrt(0.5 * MY_PI) * w_sd / rij_mag;
   return w_scale * w_int - w_offset;
 }
 
@@ -676,9 +679,11 @@ void FixContinuumChunk::end_of_step()
   // sum within each chunk, only include atoms in fix group
   // compute/fix/variable may invoke computes so wrap with clear/add
 
-  int a, b, itype, style, component, field_index;
-  double w, wc, mi, voli, r, rsq_bin, rsq_pair, rsq_wall, rbin_dot_r, f_norm, w_int_tmp, wc_int_tmp;
-  double xbin[3], xcont[3], dx_bin[3], dx_pair[3], dx_cont[3], f_pair[3], f_wall[3], dx_wall[3];
+  int a, b, itype, style, component, field_index, jboundary;
+  double w, wc, mi, voli, r, rsq_atom_bin, rsq_pair;
+  double f_norm, w_int_tmp;
+  double xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3];
+  double dx_pair[3], dx_atom_bin[3], dx_bin_cont[3], dx_atom_cont[3];
 
   double **x = atom->x;
   double **v = atom->v;
@@ -715,6 +720,10 @@ void FixContinuumChunk::end_of_step()
     if (mask[i] & groupbit && ichunk[i] > 0) {
       m = ichunk[i] - 1;
 
+      // Skip if i is a boundary (using full nlist)
+      if (boundary_group_flag && (mask[i] & boundary_groupbit))
+        continue;
+
       // x[i] is default so won't contribute unless binned in that coord
       MathExtra::copy3(x[i], xbin);
       for (a = 0; a < ncoord; a++) {
@@ -732,57 +741,54 @@ void FixContinuumChunk::end_of_step()
       if (dim == 3)
         voli *= 4.0 * THIRD * radius[i];
 
-      MathExtra::sub3(x[i], xbin, dx_bin);
-      rsq_bin = MathExtra::lensq3(dx_bin);
+      MathExtra::sub3(x[i], xbin, dx_atom_bin);
+      rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
 
-      if (rsq_bin > w_cut_sq) continue;
-      w = calc_w(sqrt(rsq_bin));
+      if (rsq_atom_bin > w_cut_sq) continue;
+      w = calc_w(sqrt(rsq_atom_bin));
 
       // contributions from single atoms (excluding boundary)
 
-      if (!(boundary_group_flag && (mask[i] & boundary_groupbit))) {
-        field_index = 0;
-        for (auto &val : values) {
-          style = val.first;
-          component = val.second;
+      field_index = 0;
+      for (auto &val : values) {
+        style = val.first;
+        component = val.second;
 
-          a = component % 3;
-          b = (component - a) / 3;
+        a = component % 3;
+        b = (component - a) / 3;
 
-          if (style == DENSITY) {
-            values_one[m][field_index] += mi * w;
-          } else if (style == VOLFRAC) {
-            values_one[m][field_index] += voli * w;
-          } else if (style == MOMENTUM) {
-            values_one[m][field_index] += mi * v[i][component] * w;
-          } else if (style == STRESS || style == STRESSKE) {
-            values_one[m][field_index] -= mi * v[i][a] * v[i][b] * w;
-          }
-
-          // Boundary corrections from Weinhart et al. 2012
-          if (boundaryflag && (style == STRESS || style == STRESSCON)) {
-            for (auto wall_fix : wall_fixes) {
-              array_atom_fix = wall_fix->array_atom;
-
-              // Skip if not in contact
-              if (array_atom_fix[i][0] != 1.0) continue;
-              f_wall[0] = array_atom_fix[i][1];
-              f_wall[1] = array_atom_fix[i][2];
-              f_wall[2] = array_atom_fix[i][3];
-              dx_wall[0] = x[i][0] - array_atom_fix[i][4];
-              dx_wall[1] = x[i][1] - array_atom_fix[i][5];
-              dx_wall[2] = x[i][2] - array_atom_fix[i][6];
-
-              rsq_wall = MathExtra::lensq3(dx_wall);
-              rbin_dot_r = MathExtra::dot3(dx_bin, dx_pair);
-              w_int_tmp = calc_w_int(rsq_bin, rbin_dot_r, rsq_wall);
-
-              values_one[m][field_index] -= f_wall[a] * dx_wall[b] * w_int_tmp;
-            }
-          }
-
-          field_index++;
+        if (style == DENSITY) {
+          values_one[m][field_index] += mi * w;
+        } else if (style == VOLFRAC) {
+          values_one[m][field_index] += voli * w;
+        } else if (style == MOMENTUM) {
+          values_one[m][field_index] += mi * v[i][component] * w;
+        } else if (style == STRESS || style == STRESSKE) {
+          values_one[m][field_index] -= mi * v[i][a] * v[i][b] * w;
         }
+
+        // Fix boundary corrections from Weinhart et al. 2012
+        if (boundaryflag && (style == STRESS || style == STRESSCON)) {
+          for (auto wall_fix : wall_fixes) {
+            array_atom_fix = wall_fix->array_atom;
+
+            // Skip if not in contact
+            if (array_atom_fix[i][0] != 1.0) continue;
+            f_wall[0] = array_atom_fix[i][1];
+            f_wall[1] = array_atom_fix[i][2];
+            f_wall[2] = array_atom_fix[i][3];
+            xcont[0] = array_atom_fix[i][4];
+            xcont[1] = array_atom_fix[i][5];
+            xcont[2] = array_atom_fix[i][6];
+
+            MathExtra::sub3(x[i], xcont, dx_atom_cont); // a in Weinhart et al.
+            w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont);
+
+            values_one[m][field_index] -= f_wall[a] * dx_atom_cont[b] * w_int_tmp;
+          }
+        }
+
+        field_index++;
       }
 
       // contributions from pairs of atoms
@@ -795,6 +801,11 @@ void FixContinuumChunk::end_of_step()
           j &= NEIGHMASK;
 
           if (!mask[j] & groupbit) continue;
+
+          if (boundary_group_flag && (mask[j] & boundary_groupbit))
+            jboundary = 1;
+          else
+            jboundary = 0;
 
           MathExtra::sub3(x[i], x[j], dx_pair);
           rsq_pair = MathExtra::lensq3(dx_pair);
@@ -811,28 +822,22 @@ void FixContinuumChunk::end_of_step()
           if (MathExtra::lensq3(f_pair) == 0.0)
             continue;
 
-          rbin_dot_r = MathExtra::dot3(dx_bin, dx_pair);
-          w_int_tmp = calc_w_int(rsq_bin, rbin_dot_r, rsq_pair);
-          if (boundary_group_flag) {
-            // Skip if both are boundary particles
-            if ((mask[i] & boundary_groupbit) && (mask[j] & boundary_groupbit))
-              continue;
+          if (jboundary) {
+            // Calculate contact point
+            MathExtra::scaleadd3(radius[i], x[i], radius[j], x[j], xcont);
+            MathExtra::scale3(1.0 / (radius[i] + radius[j]), xcont);
 
-            MathExtra::scale3(0.5, dx_pair, xcont);
-            MathExtra::sub3(x[i], xcont, xcont);
+            // Calculate distance to chunk CoM w/ missing dims
+            MathExtra::copy3(xcont, xbin2);
+            for (a = 0; a < ncoord; a++)
+              xbin2[cdim[a]] = xbin[cdim[a]];
+            MathExtra::sub3(xbin2, xcont, dx_bin_cont);
+            wc = calc_w(MathExtra::len3(dx_bin_cont));
 
-            // Check which one is a boundary
-            if (mask[i] & boundary_groupbit) {
-              MathExtra::sub3(x[i], xcont, dx_cont);
-            } else {
-              MathExtra::sub3(xcont, x[j], dx_cont);
-            }
-
-            // Calculate alternate kernel metrics (could be more selective if only one needed)
-            rsq_pair = MathExtra::lensq3(dx_cont); // reuse temp variables
-            rbin_dot_r = MathExtra::dot3(dx_bin, dx_cont);
-            wc_int_tmp = calc_w_int(rsq_bin, rbin_dot_r, rsq_pair);
-            wc = calc_w(MathExtra::len3(dx_cont));
+            MathExtra::sub3(x[i], xcont, dx_atom_cont); // a
+            w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont);
+          } else {
+            w_int_tmp = calc_w_int(dx_atom_bin, dx_pair);
           }
 
           field_index = 0;
@@ -844,16 +849,16 @@ void FixContinuumChunk::end_of_step()
             b = (component - a) / 3;
 
             if (style == STRESS || style == STRESSCON) {
-              if (boundary_group_flag && (mask[i] & boundary_groupbit)) {
-                values_one[m][field_index] -= f_pair[a] * dx_cont[b] * wc_int_tmp;
+              if (jboundary) {
+                values_one[m][field_index] -= f_pair[a] * dx_atom_cont[b] * w_int_tmp;
               } else {
                 values_one[m][field_index] -= f_pair[a] * dx_pair[b] * w_int_tmp;
               }
             } else if (style == IFD) {
-              if (!(boundary_group_flag && (mask[i] & boundary_groupbit))) continue;
-              values_one[m][field_index] -= f_pair[a] * dx_cont[b] * wc;
+              if (!jboundary) continue;
+              values_one[m][field_index] -= f_pair[a] * wc;
             } else if (style == FABRIC) {
-              if (boundary_group_flag && (mask[i] & boundary_groupbit)) continue;
+              if (jboundary) continue;
               values_one[m][field_index] += voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
             }
 
@@ -910,11 +915,11 @@ void FixContinuumChunk::end_of_step()
         if (rmass) mi = rmass[i];
         else mi = mass[itype];
 
-        MathExtra::sub3(x[i], xbin, dx_bin);
-        rsq_bin = MathExtra::lensq3(dx_bin);
+        MathExtra::sub3(x[i], xbin, dx_atom_bin);
+        rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
 
-        if (rsq_bin > w_cut_sq) continue;
-        dw = calc_dw(rsq_bin); // sans dx factor
+        if (rsq_atom_bin > w_cut_sq) continue;
+        dw = calc_dw(rsq_atom_bin); // sans dx factor
 
         field_index = 0;
         for (auto &val : values) {
@@ -925,7 +930,7 @@ void FixContinuumChunk::end_of_step()
           b = (component - a) / 3;
 
           if (style == MGRAD) {
-            values_one[m][field_index] += voli * (momentum_sum_now[m][a] - mi * v[i][a]) * dx_bin[b] * dw;
+            values_one[m][field_index] += voli * (momentum_sum_now[m][a] - mi * v[i][a]) * dx_atom_bin[b] * dw;
           } else if (style == VGRAD) {
             if (density_sum_now[m] != 0.0) {
               vbin = momentum_sum_now[m][a] / density_sum_now[m];
@@ -933,7 +938,7 @@ void FixContinuumChunk::end_of_step()
               vbin = 0.0;
             }
 
-            values_one[m][field_index] += voli * (vbin - v[i][a]) * dx_bin[b] * dw;
+            values_one[m][field_index] += voli * (vbin - v[i][a]) * dx_atom_bin[b] * dw;
           }
 
           field_index++;

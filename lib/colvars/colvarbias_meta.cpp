@@ -564,7 +564,27 @@ int colvarbias_meta::update_bias()
       cvm::real hills_energy_sum_here = 0.0;
       if (use_grids) {
         std::vector<int> curr_bin = hills_energy->get_colvars_index();
-        hills_energy_sum_here = hills_energy->value(curr_bin);
+        const bool index_ok = hills_energy->index_ok(curr_bin);
+        if (index_ok) {
+          // TODO: Should I sum the energies from other replicas?
+          hills_energy_sum_here = hills_energy->value(curr_bin);
+        } else {
+          if (!keep_hills) {
+            // TODO: Should I sum the off-grid hills from other replicas?
+            calc_hills(hills_off_grid.begin(),
+                       hills_off_grid.end(),
+                       hills_energy_sum_here,
+                       &colvar_values);
+          } else {
+            // TODO: Is it better to compute the energy from all historic hills
+            //       when keepHills is on?
+            calc_hills(hills.begin(),
+                       hills.end(),
+                       hills_energy_sum_here,
+                       &colvar_values);
+          }
+          // cvm::log("WARNING: computing bias factor for off-grid hills. Hills energy: " + cvm::to_str(hills_energy_sum_here) + "\n");
+        }
       } else {
         calc_hills(new_hills_begin, hills.end(), hills_energy_sum_here, NULL);
       }

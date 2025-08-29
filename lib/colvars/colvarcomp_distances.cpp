@@ -192,25 +192,23 @@ int colvar::distance_z::init(std::string const &conf)
 
 void colvar::distance_z::calc_value()
 {
+  cvm::rvector const M = main->center_of_mass();
+  cvm::rvector const R1 = ref1->center_of_mass();
   if (fixed_axis) {
     if (!is_enabled(f_cvc_pbc_minimum_image)) {
-      dist_v = main->center_of_mass() - ref1->center_of_mass();
+      dist_v = M - R1;
     } else {
-      dist_v = cvm::position_distance(ref1->center_of_mass(),
-                                      main->center_of_mass());
+      dist_v = cvm::position_distance(R1, M);
     }
   } else {
-
+    cvm::rvector const R2 = ref2->center_of_mass();
+    cvm::rvector const C = 0.5 * (R1 + R2);
     if (!is_enabled(f_cvc_pbc_minimum_image)) {
-      dist_v = main->center_of_mass() -
-               (0.5 * (ref1->center_of_mass() + ref2->center_of_mass()));
-      axis = ref2->center_of_mass() - ref1->center_of_mass();
+      dist_v = M - C;
+      axis = R2 - R1;
     } else {
-      dist_v = cvm::position_distance(0.5 * (ref1->center_of_mass() +
-                                             ref2->center_of_mass()),
-                                      main->center_of_mass());
-      axis = cvm::position_distance(ref1->center_of_mass(),
-                                    ref2->center_of_mass());
+      dist_v = cvm::position_distance(C, M);
+      axis = cvm::position_distance(R1, R2);
     }
     axis_norm = axis.norm();
     axis = axis.unit();
@@ -227,21 +225,14 @@ void colvar::distance_z::calc_gradients()
   if (fixed_axis) {
     ref1->set_weighted_gradient(-1.0 * axis);
   } else {
-    if (!is_enabled(f_cvc_pbc_minimum_image)) {
-      ref1->set_weighted_gradient( 1.0 / axis_norm *
-                                   (main->center_of_mass() - ref2->center_of_mass() -
-                                   x.real_value * axis ));
-      ref2->set_weighted_gradient( 1.0 / axis_norm *
-                                   (ref1->center_of_mass() - main->center_of_mass() +
-                                   x.real_value * axis ));
-    } else {
-      ref1->set_weighted_gradient( 1.0 / axis_norm * (
-        cvm::position_distance(ref2->center_of_mass(),
-                               main->center_of_mass()) - x.real_value * axis ));
-      ref2->set_weighted_gradient( 1.0 / axis_norm * (
-        cvm::position_distance(main->center_of_mass(),
-                               ref1->center_of_mass()) + x.real_value * axis ));
-    }
+    // Perpendicular term: (M - C) - Â(Â·(M - C)) = (M - C) - Â x
+    cvm::rvector const perp_term = dist_v - axis * x.real_value;
+    // ∂x/∂R₁ = -common_term/‖A‖ - (1/2)Â
+    cvm::rvector const grad_R1 = -perp_term / axis_norm - 0.5 * axis;
+    // ∂x/∂R₂ = common_term/‖A‖ - (1/2)Â
+    cvm::rvector const grad_R2 = perp_term / axis_norm - 0.5 * axis;
+    ref1->set_weighted_gradient(grad_R1);
+    ref2->set_weighted_gradient(grad_R2);
   }
 }
 
@@ -1132,8 +1123,6 @@ int colvar::eigenvector::init(std::string const &conf)
     atoms->enable(f_ag_rotate);
     atoms->ref_pos = ref_pos;
     atoms->center_ref_pos();
-    atoms->disable(f_ag_fit_gradients); // cancel out if group is fitted on itself
-                                        // and cvc is translationally invariant
   }
   atoms->setup_rotation_derivative();
 

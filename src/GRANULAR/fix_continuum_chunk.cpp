@@ -81,7 +81,11 @@ static const char cite_boundary[] =
 
 inline double FixContinuumChunk::calc_w(double r) const
 {
-  return w_scale * exp(-(r * r) / (2 * w_sd_sq)) - w_offset;
+  if (r > w_cut) {
+    return 0.0;
+  } else {
+    return w_scale * exp(-(r * r) / (2 * w_sd_sq)) - w_offset;
+  }
 }
 
 inline double FixContinuumChunk::calc_dw(double r) const
@@ -95,12 +99,26 @@ inline double FixContinuumChunk::calc_w_int(double *dr, double *rij) const
   double dr_sq = MathExtra::lensq3(dr);
   double dr_dot_rij = MathExtra::dot3(dr, rij);
   double rij_sq = MathExtra::lensq3(rij);
+
+  // Bounds of line integral
+  double tmp = dr_dot_rij * dr_dot_rij - dr_sq * rij_sq + rij_sq * w_cut_sq;
+  if (tmp < 0.0) return 0.0;
+  tmp = sqrt(tmp);
+  double smin = MAX(0.0, (-dr_dot_rij - tmp) / rij_sq);
+  double smax = MIN(1.0, (-dr_dot_rij + tmp) / rij_sq);
+
+  if (smin >= 1.0 || smax <= 0.0)
+    return 0.0;
+
   double rij_mag = sqrt(rij_sq);
-  double tmp = MY_SQRT2 * rij_mag * w_sd;
-  double w_int = erf(dr_dot_rij / tmp) + erf((rij_sq - dr_dot_rij) / tmp);
+  tmp = MY_SQRT2 * rij_mag * w_sd;
+  double w_int = erf((rij_sq * smax + dr_dot_rij) / tmp) - erf((rij_sq * smin + dr_dot_rij) / tmp);
+  double w_int1 = w_int;
   w_int *= exp((dr_dot_rij * dr_dot_rij - dr_sq * rij_sq) / (tmp * tmp));
+  double w_int2 = w_int;
   w_int *= sqrt(0.5 * MY_PI) * w_sd / rij_mag;
-  return w_scale * w_int - w_offset;
+
+  return w_scale * w_int - w_offset * (smax - smin);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -163,12 +181,10 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
       need_momentum = 1;
     } else if (utils::strmatch(arg[iarg], "^momentum/grad/")) {
       add_tensor_component(arg[iarg], MGRAD);
-      printf("momentum grad\n");
       need_momentum = 1;
       calculate_grad = 1;
     } else if (utils::strmatch(arg[iarg], "^velocity/grad/")) {
       add_tensor_component(arg[iarg], VGRAD);
-      printf("velocity grad\n");
       need_density = 1;
       need_momentum = 1;
       calculate_grad = 1;
@@ -680,7 +696,7 @@ void FixContinuumChunk::end_of_step()
   // compute/fix/variable may invoke computes so wrap with clear/add
 
   int a, b, itype, style, component, field_index, jboundary;
-  double w, wc, mi, voli, r, rsq_atom_bin, rsq_pair;
+  double w, wc, mi, voli, r, rsq_atom_bin, rsq_cont_bin, rsq_pair, r_pair;
   double f_norm, w_int_tmp;
   double xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3];
   double dx_pair[3], dx_atom_bin[3], dx_bin_cont[3], dx_atom_cont[3];
@@ -744,7 +760,7 @@ void FixContinuumChunk::end_of_step()
       MathExtra::sub3(x[i], xbin, dx_atom_bin);
       rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
 
-      if (rsq_atom_bin > w_cut_sq) continue;
+      //if (rsq_atom_bin > w_cut_sq) continue;
       w = calc_w(sqrt(rsq_atom_bin));
 
       // contributions from single atoms (excluding boundary)
@@ -809,9 +825,10 @@ void FixContinuumChunk::end_of_step()
 
           MathExtra::sub3(x[i], x[j], dx_pair);
           rsq_pair = MathExtra::lensq3(dx_pair);
+          r_pair = sqrt(rsq_pair);
           pair->single(i, j, itype, type[j], rsq_pair, 1.0, 1.0, f_norm);
 
-          MathExtra::scale3(f_norm / sqrt(rsq_pair), dx_pair, f_pair);
+          MathExtra::scale3(f_norm / r_pair, dx_pair, f_pair);
           if (pstyle == GRANULAR) {
             // add tangential forces
             f_pair[0] += force->pair->svector[0];
@@ -824,17 +841,24 @@ void FixContinuumChunk::end_of_step()
 
           if (jboundary) {
             // Calculate contact point
-            MathExtra::scaleadd3(radius[i], x[i], radius[j], x[j], xcont);
-            MathExtra::scale3(1.0 / (radius[i] + radius[j]), xcont);
+            MathExtra::add3(x[i], x[j], xcont);
+            MathExtra::scaleadd3((radius[j] - radius[i]) / r_pair, dx_pair, xcont, xcont);
+            MathExtra::scale3(0.5, xcont);
 
             // Calculate distance to chunk CoM w/ missing dims
             MathExtra::copy3(xcont, xbin2);
             for (a = 0; a < ncoord; a++)
               xbin2[cdim[a]] = xbin[cdim[a]];
             MathExtra::sub3(xbin2, xcont, dx_bin_cont);
-            wc = calc_w(MathExtra::len3(dx_bin_cont));
 
-            MathExtra::sub3(x[i], xcont, dx_atom_cont); // a
+            rsq_cont_bin = MathExtra::lensq3(dx_bin_cont);
+            //if (rsq_cont_bin > w_cut_sq)
+            //  continue;
+
+            // May not need both kernel + line integral, but only on boundaries
+            wc = calc_w(sqrt(rsq_cont_bin));
+
+            MathExtra::sub3(x[i], xcont, dx_atom_cont); // a in Weinhart et al.
             w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont);
           } else {
             w_int_tmp = calc_w_int(dx_atom_bin, dx_pair);

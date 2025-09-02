@@ -8,148 +8,230 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID rmc/partial Nmd Nmc Nad Nas Nd Ns Temp TypeThreshold Ncs restart
+   fix ID group-ID rmc/partial filename.json
 
 * ID, group-ID = fix ID and group ID (as defined in :doc:`fix <fix>`)
-* Nmd = number of MD steps in each Reactive MCMD cycle
-* Nmc = number of Reactive MC steps in each Reactive MCMD cycle
-* Nad = number of atoms in a dopant molecule
-* Nas = number of atoms in a semiconductor molecule
-* Nd = number of dopant molecules
-* Ns = number of semiconductor molecules
-* Temp = temperature (Kelvin)
-* TypeThreshold = threshold for atom type, atom with type <= TypeThreshold are considered semiconductor atoms, otherwise dopant atoms
-* Ncs = number of charge states, choose 2 for integer charge states, or more to include partial charge
-* restart = 0 if fresh run, 1 if continuing from previous run. Requires necessary restart files (discussed below)
+* filename.json = A JSON file containing the inputs for the RMC run
 
-Examples
+Example
 """""""""
 
 .. code-block:: LAMMPS
     
-    fix 1 all nvt temp 300 300 100
-    fix 2 all rmc/partial 1000 200 20 202 25 100 300 16 2 0  
-    # Fresh RMCMD run at 300 K, 2 charge states (0 and +-1)
-    # 25 dopant molecules, 100 semiconductor molecules
-    # 20 atoms in each dopant molecule, 202 atoms in each semiconductor molecule
-    # 1000 MD steps, 200 Reactive MC steps per cycle
-    # Atoms of type 16 or lesser belong to semiconductor molecules, others belong to dopant molecules
+    fix 1 all nvt temp 800 800 100
+    fix 2 all rmc/partial rmc_input.json
 
-    fix 2 all rmc/partial 1000 200 20 202 25 100 300 16 6 1
-    # Continuing RMCMD run at 300K, 6 partial charge states (0, +-0.2, +-0.4, +-0.6, +-0.8, +-1.0)
-    # Other parameters same as above
+An example rmc_input.json file, along with input file in.rmc and data file rmc_struct.data are provided in the examples/mc folder. 
 
-Files required
+Input file format
 """""""""""""""""""""
-In addition to the above command, this fix also requires the following files:
 
-.. parsed-literal::
-    
-    **semiconductor_neutral.dat**
-    `file containing the charges of atoms in a single neutral semiconductor molecule, with one value per line. For eg.`
-    0.3924909999999989
-    -0.177266
-    -0.073638
-    -0.080285
-    -0.172156
-    0.048395
-    0.0015773157894736843
-    ...
-    The order of the charges should match the order of the atoms in the molecule, when arranged from lowest to highest atom ID. This means that the first charge
-    corresponds to the first atom in the semiconductor molecule, denoted by the lowest atom ID of all the atoms in that molecule. Note that this order should be
-    the same for each semiconductor molecule, i.e if the lowest atom ID in a molecule is subtracted from all the atoms in that molecule, the resulting "local" 
-    atom ID should refer to the same atom in each molecule. Additionally, the atom IDs within each molecule must also be contiguous. 
+The inputs for fix rmc/partial should be provided in a JSON file. Here we go through what this file looks like, with all the relevant fields.
 
-    **semiconductor_charged.dat**
-    `file containing the charges of atoms in a single ionized semiconductor molecule (+1 charge), with one value per line. For eg.`
-    0.42590700000000004
-    -0.196852
-    -0.017455
-    -0.068876
-    -0.118641
-    0.06525
-    0.0022099473684210526
-    The order of the charges should match the order of the atoms in the molecule (same logic as semiconductor_neutral.dat file).
+.. code-block:: json
 
-    **dopant_neutral.dat**
-    `file containing the charges of atoms in a single neutral dopant molecule, with one value per line. For eg.`
-    -0.0043649999999999705
-    -0.023369
-    -0.067212
-    -0.023214
-    -0.001734
-    -0.005162
-    ...
-    The order of the charges should match the order of the atoms (same logic as semiconductor_neutral.dat file).
+      {    
+        "sysname" : "p3ht_f4tcnq",
+        "temperature": 800.0,
+        "restart": "y",
+        "cycle": {
+           "mdsteps" : 100,
+           "mcsteps" : 20
+        },
+        "system" : {
+           "semiconductor_num_atoms" : 2,
+           "dopant_num_atoms" : 2,
+           "num_semiconductors" : 100,
+           "num_dopants" : 25
+        },  
+        "type_threshold" : 16,
+        "num_charge_states" : 6,
+        "barrier" : [0.0, 1.0, 2.0, 3.0, 4.0, 30.1],
+        "semiconductor_charges" : {
+           "neutral" : [
+            0.3924909999999989,
+            0.045532
+            ],
+            "charged" : [
+            0.42590700000000004,
+            0.049222
+            ] 
+        },  
+        "dopant_charges" : {
+            "neutral" : [
+            -0.0043649999999999705,
+            -0.009380
+            ],
+            "charged" : [
+            -0.109287,
+            -0.120895 
+            ]
+        },
+        "dihedral_modification" : "y",
+        "dihedral_types" : [3, 3, 3, 3, 3, 3],
+        "dihedral_list" : [
+          [ 166, 169, 172, 173]
+        ],
+        "angle_modification" : "y",
+        "angle_types" : [6, 6, 6, 6, 6, 6],
+        "angle_list" : [
+          [3876,3879,3882]
+        ],
+        "bond_modification" : "y",
+        "bond_types" : [4, 4, 4, 4, 4, 4],
+        "bond_list" : [
+          [999,1000]
+        ]
+      }
 
-    **dopant_charged.dat**
-    `file containing the charges of atoms in a single charged dopant molecule (-1 charge), with one value per line. For eg,`
-    -0.109287
-    -0.023825
-    -0.187472
-    -0.029575
-    -0.118920
-    -0.040151
-    0.039783
-    ...
-    The order of the charges should match the order of the atoms in the molecule (same logic as semiconductor_neutral.dat file).
+The inputs are described in the table below.
 
-    **dihedral_list.dat**
-    `A list of semiconductor dihedrals whose coefficients will be modified during an Reactive Monte Carlo step. The first line shows number of dihedrals to consider,
-    the second line should have a dihedral type for each charge state, and subsequent line should have the 4 atom IDs for each dihedral. For eg.`
-    700
-    6 10
-    13535 13536 13564 13560
-    2323 2324 2352 2348
-    2373 2374 2402 2398
-    2348 2349 2377 2373
-    ...
-    In this example, the first line indicates that there are 700 dihedrals to consider. The second line indicates that the first dihedral type (6) will be used
-    for charge state 0, and the second dihedral type (10) will be used for charge state +1. The subsequent lines contain the atom IDs of the atoms in each
-    dihedral. The coefficients for dihedral type 6 and type 10 are specified in the input data file.
-    
-    This straightforwardly expands to the number of charge states you have. For example, if you have 6 charge states, you can specify 6 dihedral types in the
-    second line, and then list the atom IDs for each dihedral in subsequent lines.
-    700
-    6 7 8 9 10 11
-    13535 13536 13564 13560
-    2323 2324 2352 2348
-    2373 2374 2402 2398
-    2348 2349 2377 2373
-    ...
+.. list-table::
+   :header-rows: 1
 
-    If you do not wish to consider dihedral effects, you can create a dihedral_list.dat file with one dihedral and the same type for both states i.e
-    1
-    6 6
-    13535 13536 13564 13560
+   * - Keyword
+     - Argument(s)
+     - Required
+     - Description
+   * - sysname
+     - a string
+     - yes
+     - indicates the name of the system; the restart filenames will be based on this.
+   * - temperature
+     - a double
+     - yes
+     - the temperature at which the MC simulation should occur
+   * - restart
+     - "y" or "n"
+     - no
+     - use "y" or "n" to indicate if the run is a restart or a fresh run. The fix looks for files "sysname_type.dat" and "sysname_charge.dat" which are created in a fresh run. If not specified, fresh run assumed.
+   * - cycle
+     - a data block
+     - yes
+     - information about the MC/MD cycle
+   * - system
+     - a data block
+     - yes
+     - information about the system
+   * - type_threshold
+     - an integer
+     - yes
+     - if atom_type > type_threshold, that atom belongs to a dopant, otherwise it belongs to a semiconductor.
+   * - num_charge_states
+     - an integer
+     - yes
+     - indicates number of charge states for RMC calculation, 2 means only 0 and +-1, more than 2 introduces partial charge states.
+   * - barrier
+     - list of num_charge_states doubles
+     - yes
+     - reaction free energies for each of the charge states.
+   * - semiconductor_charges
+     - a data block
+     - yes
+     - information on the semiconductor atomic charges
+   * - dopant_charges
+     - a data block
+     - yes
+     - information on the dopant atomic charges
+   * - dihedral_modification
+     - "y" or "n"
+     - no
+     - indicates if dihedral coefficients will be modified during the MC step. If not specified, assumed no.
+   * - dihedral_types
+     - list with num_charge_states integers
+     - depends
+     - list of dihedral types for each charge state. Required if dihedral_modification is set to "y"
+   * - dihedral_list
+     - list of 4 integer lists.
+     - depends
+     - list of dihedrals whose coefficents are to be switched during the MC step, specified by 4 global indices for each.
+   * - angle_modification
+     - "y" or "n"
+     - no
+     - indicates if angle coefficients will be modified during the MC step. If not specified, assumed no.
+   * - angle_types
+     - list with num_charge_states integers
+     - depends
+     - list of angle types for each charge state. Required if angle_modification is set to "y"
+   * - angle_list
+     - list of 3 integer lists.
+     - depends
+     - list of angles whose coefficents are to be switched during the MC step, specified by 3 global indices for each.
+   * - bond_modification
+     - "y" or "n"
+     - no
+     - indicates if bond coefficients will be modified during the MC step. If not specified, assumed no.
+   * - bond_types
+     - list with num_charge_states integers
+     - depends
+     - list of bond types for each charge state. Required if bond_modification is set to "y"
+   * - bond_list
+     - list of 2 integer lists.
+     - depends
+     - list of bonds whose coefficents are to be switched during the MC step, specified by the 2 global indices.
+ 
+The following table highlights the sub-sections for the "cycle" entry from above.
 
-    **angle_list.dat**
-    `A list of semiconductor angles whose coefficients will be modified during an Reactive Monte Carlo step. The first line shows number of angles to consider,
-    the second line should have an angle type for each charge state, and subsequent line should have the 3 atom IDs for each angle. For eg.`
-    1
-    10 10
-    1 2 30
+.. list-table::
+   :header-rows: 1
 
-    Identical to the dihedral_list.dat file, except with three IDS representing an angle.
+   * - Subsection
+     - Argument(s)
+     - Required
+     - Description
+   * - mdsteps
+     - an integer
+     - yes
+     - The number of MD steps to be performed in each RMCMD cycle.
+   * - mcsteps
+     - an integer
+     - yes
+     - The number of RMC steps to be performed in each RMCMD cycle.
 
-    **bond_list.dat**
-    `A list of semiconductor bonds whose coefficients will be modified during an Reactive Monte Carlo step. The first line shows number of bonds to consider,
-    the second line should have a bond type for each charge state, and subsequent line should have the 2 atom IDs for each bond. For eg.`
-    1
-    4 4
-    965 967
+The following table highlights the sub-sections for the "system" entry from above.
 
-    Identical to the dihedral_list.dat file, except with two IDS representing a bond.
+.. list-table::
+   :header-rows: 1
 
-    **barrier_list.dat**
-    `A list of the reaction free energies for each charge state. The energies should be written in a single line. For eg.`
-    17.304428 13.853026 15.157749 21.218598 32.035572 47.608672
+   * - Subsection
+     - Argument(s)
+     - Required
+     - Description
+   * - semiconductor_num_atoms
+     - an integer
+     - yes
+     - The number of atoms in a semiconductor molecule.
+   * - dopant_num_atoms
+     - an integer
+     - yes
+     - The number of atoms in a dopant molecule.
+   * - num_semiconductors
+     - an integer
+     - yes
+     - The number of semiconductor molecules in the system.
+   * - num_dopants
+     - an integer
+     - yes
+     - The number of dopant atoms in the system.
 
-    Here there are six values for six charge states. For a move from 0 to +-1 charge state, the energy barrier used in the MC acceptance step is 
-    (47.608672 - 17.304428) = 30.304244 kcal/mol. A much simpler case, with only 0/+1 charge states
+The following table highlights the sub-sections for the "semiconductor_charges" and "dopant_charges" entries from above.
 
-    0 30
-    would have only two values, one for neutral and one for the ionized state.
+.. list-table::
+   :header-rows: 1
+
+   * - Subsection
+     - Argument(s)
+     - Required
+     - Description
+   * - neutral
+     - a list of semiconductor_num_atoms/dopant_num_atoms doubles.
+     - yes
+     - A list of atomic charges for a neutral semiconductor/dopant molecule, specified in order of global atom ID. Note that global IDs within a molecule must be contiguous. 
+   * - charged
+     - a list of semiconductor_num_atoms/dopant_num_atoms doubles.
+     - yes
+     - A list of atomic charges for a semiconductor/dopant molecule with +1/-1 charge, specified in order of global atom ID. Note that global IDs within a molecule must be contiguous. 
+
 
 Description
 """""""""""

@@ -90,6 +90,10 @@ class FixRMCPartial: public Fix {
    int num_angles;
    int num_bonds;
    int restart;
+   int do_dihedral;
+   int do_angle;
+   int do_bond;
+   std::string sysname;
    
    int acceptances;
    int rejections;

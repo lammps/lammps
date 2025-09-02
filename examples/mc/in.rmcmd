@@ -1,0 +1,29 @@
+units    real    # angstroms,kCal/mol,Daltons,Kelvin
+atom_style       full    # select column format for Atoms section
+pair_style       lj/cut/coul/long 12.0 20.0      # cutoffLJ cutoff_coulomb
+bond_style       harmonic        #parameters needed: k_bond, r0
+angle_style      harmonic        #parameters needed: k_theta, theta0
+dihedral_style   opls
+boundary         p p p
+improper_style   cvff
+kspace_style     ewald 1e-5      # long-range electrostatics sum method
+# kspace_modify    gewald 0.0005
+#pair_modify mix geometric       #using Lorenz-Berthelot mixing rules
+special_bonds lj 0.0 0.0 0.5 coul 0.0 0.0 0.0    #scale factor for converting between tinker and lammps parameters
+
+read_data npt_struct.data
+
+variable random_seed equal 4928459
+
+
+timestep 1
+thermo 1
+thermo_style custom step temp press vol etotal ecoul elong ke pe
+neigh_modify delay 0 every 1 check yes page 100000 one 10000
+
+
+fix 1 all nvt temp 800.0 800.0 100.0
+fix 2 all rmc/partial rmc_input.json
+run 10
+
+write_data rmc_output.data

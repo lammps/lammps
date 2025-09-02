@@ -108,7 +108,7 @@ The inputs are described in the table below.
    * - cycle
      - a data block
      - yes
-     - information about the MC/MD cycle
+     - information about the RMCMD cycle
    * - system
      - a data block
      - yes

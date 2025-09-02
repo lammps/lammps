@@ -47,15 +47,15 @@ template <class DeviceType> class ComputeCompositionAtomKokkos : public ComputeC
 
  private:
 
-  typename AT::t_x_array x;
-  typename ArrayTypes<DeviceType>::t_int_1d type;
-  typename ArrayTypes<DeviceType>::t_int_1d mask;
+  typename AT::t_kkfloat_1d_3_lr x;
+  typename AT::t_int_1d type;
+  typename AT::t_int_1d mask;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d d_ilist;
   typename AT::t_int_1d d_numneigh;
-  DAT::tdual_float_2d k_result;
-  typename AT::t_float_2d d_result;
+  DAT::ttransform_kkfloat_2d k_result;
+  typename AT::t_kkfloat_2d d_result;
 };
 
 }    // namespace LAMMPS_NS

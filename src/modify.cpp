@@ -130,8 +130,9 @@ Modify::~Modify()
   memory->destroy(fmask);
 
   // delete all computes
+  // do it via delete_compute() for clean deletion of computes that have created other computes
 
-  for (int i = 0; i < ncompute; i++) delete compute[i];
+  while (ncompute) delete_compute(0);
   memory->sfree(compute);
 
   delete[] list_initial_integrate;

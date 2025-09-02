@@ -305,9 +305,9 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   Few<double,6> h, h_inv;
 
   KOKKOS_INLINE_FUNCTION
-  void x2lamdaT_kokkos(double* v, double* lamda) const
+  void x2lamdaT_kokkos(KK_FLOAT* v, KK_FLOAT* lamda) const
   {
-    double lamda_tmp[3];
+    KK_FLOAT lamda_tmp[3];
 
     lamda_tmp[0] = h_inv[0]*v[0];
     lamda_tmp[1] = h_inv[5]*v[0] + h_inv[1]*v[1];
@@ -325,25 +325,25 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 
   DAT::tdual_int_scalar k_flag;
 
-  typename AT::t_x_array_randomread x;
-  typename AT::t_f_array f;
-  typename AT::t_float_1d_randomread q;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkacc_1d_3 f;
+  typename AT::t_kkfloat_1d_randomread q;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
+  DAT::ttransform_kkacc_1d k_eatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d d_eatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
   typename FFT_AT::t_FFT_SCALAR_3d d_density_brick;
   typename FFT_AT::t_FFT_SCALAR_3d d_vdx_brick,d_vdy_brick,d_vdz_brick;
   typename FFT_AT::t_FFT_SCALAR_3d d_u_brick;
   typename FFT_AT::t_FFT_SCALAR_3d d_v0_brick,d_v1_brick,d_v2_brick;
   typename FFT_AT::t_FFT_SCALAR_3d d_v3_brick,d_v4_brick,d_v5_brick;
-  typename AT::t_float_1d d_greensfn;
-  typename AT::t_virial_array d_vg;
-  typename AT::t_float_1d d_fkx;
-  typename AT::t_float_1d d_fky;
-  typename AT::t_float_1d d_fkz;
+  typename AT::t_kkfloat_1d d_greensfn;
+  typename AT::t_kkfloat_1d_6 d_vg;
+  typename AT::t_kkfloat_1d d_fkx;
+  typename AT::t_kkfloat_1d d_fky;
+  typename AT::t_kkfloat_1d d_fkz;
   FFT_DAT::tdual_FFT_SCALAR_1d k_density_fft;
   FFT_DAT::tdual_FFT_SCALAR_1d k_work1;
   FFT_DAT::tdual_FFT_SCALAR_1d k_work2;
@@ -351,8 +351,8 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   typename FFT_AT::t_FFT_SCALAR_1d d_work1;
   typename FFT_AT::t_FFT_SCALAR_1d d_work2;
 
-  DAT::tdual_float_1d k_gf_b;
-  typename AT::t_float_1d d_gf_b;
+  DAT::tdual_kkfloat_1d k_gf_b;
+  typename AT::t_kkfloat_1d d_gf_b;
 
   //FFT_SCALAR **rho1d,**rho_coeff,**drho1d,**drho_coeff;
   typename FFT_AT::t_FFT_SCALAR_2d_3 d_rho1d;
@@ -360,7 +360,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   typename FFT_AT::t_FFT_SCALAR_2d d_rho_coeff;
   FFT_HAT::t_FFT_SCALAR_2d h_rho_coeff;
   //double **acons;
-  typename Kokkos::DualView<F_FLOAT[8][7],Kokkos::LayoutRight,DeviceType>::t_host acons;
+  typename Kokkos::DualView<KK_FLOAT[8][7],LMPDeviceLayout,DeviceType>::t_host acons;
 
   // FFTs and grid communication
 
@@ -406,10 +406,10 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 
   // grid communication
 
-  void pack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) override;
-  void unpack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d &, int) override;
-  void pack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) override;
-  void unpack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d &, int) override;
+  void pack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d_lr &, int) override;
+  void unpack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d_lr &, int) override;
+  void pack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d_lr &, int) override;
+  void unpack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d_lr &, int) override;
 
   // triclinic
 
@@ -430,16 +430,16 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 ------------------------------------------------------------------------- */
 
   KOKKOS_INLINE_FUNCTION
-  double gf_denom(const double &x, const double &y,
-                         const double &z) const {
-    double sx,sy,sz;
+  KK_FLOAT gf_denom(const KK_FLOAT &x, const KK_FLOAT &y,
+                         const KK_FLOAT &z) const {
+    KK_FLOAT sx,sy,sz;
     sz = sy = sx = 0.0;
     for (int l = order-1; l >= 0; l--) {
       sx = d_gf_b[l] + sx*x;
       sy = d_gf_b[l] + sy*y;
       sz = d_gf_b[l] + sz*z;
     }
-    double s = sx*sy*sz;
+    KK_FLOAT s = sx*sy*sz;
     return s*s;
   };
 };

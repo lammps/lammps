@@ -81,8 +81,8 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-                  const F_FLOAT &dely, const F_FLOAT &delz) const;
+      const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                  const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
@@ -92,10 +92,10 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
     params_dpd() {cut=0;a0=0;sigma=0;kappa=0;alpha=0;};
     KOKKOS_INLINE_FUNCTION
     params_dpd(int /*i*/) {cut=0;a0=0;sigma=0;kappa=0;alpha=0;};
-    F_FLOAT cut,a0,sigma,kappa,alpha;
+    KK_FLOAT cut,a0,sigma,kappa,alpha;
   };
 
-  DAT::tdual_efloat_1d k_duCond,k_duMech;
+  DAT::ttransform_kkfloat_1d k_duCond,k_duMech;
 
 #ifdef DPD_USE_RAN_MARS
   RandPoolWrap rand_pool;
@@ -108,15 +108,15 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   typedef typename Kokkos::Random_XorShift1024_Pool<DeviceType>::generator_type rand_type;
 #endif
 
-  typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
-  typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
+  DAT::ttransform_kkfloat_2d k_cutsq;
+  typename AT::t_kkfloat_2d d_cutsq;
 
  protected:
   int eflag,vflag;
   int nlocal,neighflag;
   double dtinvsqrt;
   double boltz,ftm2v;
-  double special_lj[4];
+  KK_FLOAT special_lj[4];
 
   void allocate() override;
 
@@ -126,22 +126,22 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   // hardwired to space for MAX_TYPES_STACKPARAMS (12) atom types
   params_dpd m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
-  F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  typename ArrayTypes<DeviceType>::t_x_array_randomread x;
-  typename ArrayTypes<DeviceType>::t_x_array c_x;
-  typename ArrayTypes<DeviceType>::t_v_array_randomread v;
-  typename ArrayTypes<DeviceType>::t_f_array f;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
-  typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
-  typename ArrayTypes<DeviceType>::t_float_1d rmass;
-  typename AT::t_efloat_1d dpdTheta;
-  typename AT::t_efloat_1d d_duCond,d_duMech;
-  HAT::t_efloat_1d h_duCond,h_duMech;
+  KK_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkfloat_1d_3_lr c_x;
+  typename AT::t_kkfloat_1d_3_randomread v;
+  typename AT::t_kkacc_1d_3 f;
+  typename AT::t_int_1d_randomread type;
+  typename AT::t_kkfloat_1d_randomread mass;
+  typename AT::t_kkfloat_1d rmass;
+  typename AT::t_kkfloat_1d dpdTheta;
+  typename AT::t_kkfloat_1d d_duCond,d_duMech;
+  HAT::t_double_1d h_duCond,h_duMech;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::ttransform_kkacc_1d k_eatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d d_eatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;

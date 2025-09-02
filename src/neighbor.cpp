@@ -454,7 +454,7 @@ void Neighbor::init()
           ri = collection2cut[i]*0.5;
           for (j = 0; j < ncollections; j++){
             rj = collection2cut[j]*0.5;
-            tmp = force->pair->radii2cut(ri, rj) + skin;
+            tmp = ri + rj + skin;
             cutcollectionsq[i][j] = tmp*tmp;
           }
         }
@@ -2974,9 +2974,10 @@ void Neighbor::build_collection(int istart)
 
   if (finite_cut_flag) {
     double cut;
+    double *radius = atom->radius;
     int icollection;
     for (int i = istart; i < nmax; i++){
-      cut = force->pair->atom2cut(i);
+      cut = 2 * radius[i];
       collection[i] = -1;
 
       for (icollection = 0; icollection < ncollections; icollection++){
@@ -2995,6 +2996,30 @@ void Neighbor::build_collection(int istart)
       collection[i] = type2collection[type[i]];
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   look up existing non-skip half or full neighbor list (used for dump image autobond)
+------------------------------------------------------------------------- */
+
+NeighList *Neighbor::get_best_pair_list()
+{
+  // find a non-skip neighbor list containing either half or full pairwise interactions
+
+  int i;
+  for (i = 0; i < old_nrequest; ++i)
+    if (old_requests[i]->half && !old_requests[i]->skip) break;
+
+  // no half list found, try for full list
+  if (i >= old_nrequest) {
+    for (i = 0; i < old_nrequest; ++i)
+      if (old_requests[i]->full && !old_requests[i]->skip) break;
+  }
+
+  // no suitable list found
+  if ((i >= old_nrequest) || lists[i]->kokkos) return nullptr;
+
+  return lists[i];
 }
 
 /* ----------------------------------------------------------------------

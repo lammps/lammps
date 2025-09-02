@@ -933,9 +933,27 @@ transparently use RAM on the host to supplement the memory used on the
 GPU (with some performance penalty) and thus enables running larger
 problems that would otherwise not fit into the RAM on the GPU.
 
-Please note, that the LAMMPS KOKKOS package must **always** be compiled
-with the *enable_lambda* option when using GPUs.  The CMake configuration
-will thus always enable it.
+The CMake option ``-D KOKKOS_PREC=value`` sets the floating point
+precision of the calculations, where ``value`` can be one of:
+``double`` (FP64, default) or ``mixed`` (FP64 for accumulation of
+forces, energy, and virial, FP32 otherwise) or ``single`` (FP32).
+Similarly the makefile settings ``-DLMP_KOKKOS_DOUBLE_DOUBLE``
+(default), ``-DLMP_KOKKOS_SINGLE_DOUBLE``, and
+``-DLMP_KOKKOS_SINGLE_SINGLE`` set double, mixed, single precision
+respectively. When using reduced precision (single or mixed), the
+simulation should be carefully checked to ensure it is stable and that
+energy is acceptably conserved.
+
+The CMake option ``-D KOKKOS_LAYOUT=value`` sets the array layout of
+Kokkos views (e.g. forces, velocities, etc.) on GPUs, where ``value``
+can be one of: ``legacy`` (mostly LayoutRight, default) or ``default``
+(mostly LayoutLeft). Similarly the makefile settings
+``-DLMP_KOKKOS_LAYOUT_LEGACY`` (default) and
+``-DLMP_KOKKOS_LAYOUT_DEFAULT`` set legacy or default layouts
+respectively. Using the default layout (LayoutLeft) can give speedup
+on GPUs for some models, but a slowdown for others. LayoutRight is
+always used for positions on GPUs since it has been found to be
+faster, and when compiling exclusively for CPUs.
 
 ----------
 

@@ -36,6 +36,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 struct fft_plan_3d_kokkos {
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
 
   struct remap_plan_3d_kokkos<DeviceType> *pre_plan;       // remap from input -> 1st FFTs
@@ -91,6 +92,7 @@ class FFT3dKokkos : protected Pointers {
  public:
   enum{FORWARD=1,BACKWARD=-1};
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
 
   FFT3dKokkos(class LAMMPS *, MPI_Comm,

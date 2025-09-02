@@ -46,7 +46,7 @@ namespace LAMMPS_NS {
 
 // enum used for KOKKOS host/device flags
 
-enum ExecutionSpace{ Host, Device };
+enum ExecutionSpace{ Host, HostKK, Device };
 
 // global forward declarations
 

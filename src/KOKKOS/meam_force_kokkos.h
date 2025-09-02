@@ -8,10 +8,10 @@ using namespace MathSpecialKokkos;
 template <class DeviceType>
 void MEAMKokkos<DeviceType>::meam_force(
     int inum_half, int eflag_global, int eflag_atom, int vflag_global, int vflag_atom,
-    typename ArrayTypes<DeviceType>::t_efloat_1d eatom, int ntype, typename AT::t_int_1d type,
-    typename AT::t_int_1d d_map, typename AT::t_x_array x, typename AT::t_int_1d numneigh,
-    typename AT::t_int_1d numneigh_full, typename AT::t_f_array f,
-    typename ArrayTypes<DeviceType>::t_virial_array vatom, typename AT::t_int_1d d_ilist_half,
+    typename AT::t_kkacc_1d eatom, int ntype, typename AT::t_int_1d type,
+    typename AT::t_int_1d d_map, typename AT::t_kkfloat_1d_3_lr x, typename AT::t_int_1d numneigh,
+    typename AT::t_int_1d numneigh_full, typename AT::t_kkacc_1d_3 f,
+    typename AT::t_kkacc_1d_6 vatom, typename AT::t_int_1d d_ilist_half,
     typename AT::t_int_1d d_offset, typename AT::t_neighbors_2d d_neighbors_half,
     typename AT::t_neighbors_2d d_neighbors_full, int neighflag, int need_dup, EV_FLOAT &ev_all)
 {
@@ -87,48 +87,48 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
 {
   int i, j, jn, k, kn, kk, m, n, p, q;
   int nv2, nv3, elti, eltj, eltk, ind;
-  X_FLOAT xitmp, yitmp, zitmp, delij[3];
-  double rij2, rij, rij3;
-  double v[6], fi[3], fj[3];
-  double third, sixth;
-  double pp, dUdrij, dUdsij, dUdrijm[3], force, forcem;
-  double recip, phi, phip;
-  double sij;
-  double a1, a1i, a1j, a2, a2i, a2j;
-  double a3i, a3j;
-  double shpi[3], shpj[3];
-  double ai, aj, ro0i, ro0j, invrei, invrej;
-  double rhoa0j, drhoa0j, rhoa0i, drhoa0i;
-  double rhoa1j, drhoa1j, rhoa1i, drhoa1i;
-  double rhoa2j, drhoa2j, rhoa2i, drhoa2i;
-  double a3, a3a, rhoa3j, drhoa3j, rhoa3i, drhoa3i;
-  double drho0dr1, drho0dr2, drho0ds1, drho0ds2;
-  double drho1dr1, drho1dr2, drho1ds1, drho1ds2;
-  double drho1drm1[3], drho1drm2[3];
-  double drho2dr1, drho2dr2, drho2ds1, drho2ds2;
-  double drho2drm1[3], drho2drm2[3];
-  double drho3dr1, drho3dr2, drho3ds1, drho3ds2;
-  double drho3drm1[3], drho3drm2[3];
-  double dt1dr1, dt1dr2, dt1ds1, dt1ds2;
-  double dt2dr1, dt2dr2, dt2ds1, dt2ds2;
-  double dt3dr1, dt3dr2, dt3ds1, dt3ds2;
-  double drhodr1, drhodr2, drhods1, drhods2, drhodrm1[3], drhodrm2[3];
-  double arg;
-  double arg1i1, arg1j1, arg1i2, arg1j2, arg1i3, arg1j3, arg3i3, arg3j3;
-  double dsij1, dsij2, force1, force2;
-  double t1i, t2i, t3i, t1j, t2j, t3j;
+  KK_FLOAT xitmp, yitmp, zitmp, delij[3];
+  KK_FLOAT rij2, rij, rij3;
+  KK_FLOAT v[6], fi[3], fj[3];
+  KK_FLOAT third, sixth;
+  KK_FLOAT pp, dUdrij, dUdsij, dUdrijm[3], force, forcem;
+  KK_FLOAT recip, phi, phip;
+  KK_FLOAT sij;
+  KK_FLOAT a1, a1i, a1j, a2, a2i, a2j;
+  KK_FLOAT a3i, a3j;
+  KK_FLOAT shpi[3], shpj[3];
+  KK_FLOAT ai, aj, ro0i, ro0j, invrei, invrej;
+  KK_FLOAT rhoa0j, drhoa0j, rhoa0i, drhoa0i;
+  KK_FLOAT rhoa1j, drhoa1j, rhoa1i, drhoa1i;
+  KK_FLOAT rhoa2j, drhoa2j, rhoa2i, drhoa2i;
+  KK_FLOAT a3, a3a, rhoa3j, drhoa3j, rhoa3i, drhoa3i;
+  KK_FLOAT drho0dr1, drho0dr2, drho0ds1, drho0ds2;
+  KK_FLOAT drho1dr1, drho1dr2, drho1ds1, drho1ds2;
+  KK_FLOAT drho1drm1[3], drho1drm2[3];
+  KK_FLOAT drho2dr1, drho2dr2, drho2ds1, drho2ds2;
+  KK_FLOAT drho2drm1[3], drho2drm2[3];
+  KK_FLOAT drho3dr1, drho3dr2, drho3ds1, drho3ds2;
+  KK_FLOAT drho3drm1[3], drho3drm2[3];
+  KK_FLOAT dt1dr1, dt1dr2, dt1ds1, dt1ds2;
+  KK_FLOAT dt2dr1, dt2dr2, dt2ds1, dt2ds2;
+  KK_FLOAT dt3dr1, dt3dr2, dt3ds1, dt3ds2;
+  KK_FLOAT drhodr1, drhodr2, drhods1, drhods2, drhodrm1[3], drhodrm2[3];
+  KK_FLOAT arg;
+  KK_FLOAT arg1i1, arg1j1, arg1i2, arg1j2, arg1i3, arg1j3, arg3i3, arg3j3;
+  KK_FLOAT dsij1, dsij2, force1, force2;
+  KK_FLOAT t1i, t2i, t3i, t1j, t2j, t3j;
   int fnoffset;
   // msmeam
-  double rhoa1mj,drhoa1mj,rhoa1mi,drhoa1mi;
-  double rhoa2mj,drhoa2mj,rhoa2mi,drhoa2mi;
-  double rhoa3mj, drhoa3mj, rhoa3mi, drhoa3mi;
-  double arg1i1m, arg1j1m, arg1i2m, arg1j2m, arg1i3m, arg1j3m, arg3i3m, arg3j3m;
-  double drho1mdr1, drho1mdr2, drho1mds1, drho1mds2;
-  double drho1mdrm1[3], drho1mdrm2[3];
-  double drho2mdr1, drho2mdr2, drho2mds1, drho2mds2;
-  double drho2mdrm1[3], drho2mdrm2[3];
-  double drho3mdr1, drho3mdr2, drho3mds1, drho3mds2;
-  double drho3mdrm1[3], drho3mdrm2[3];
+  KK_FLOAT rhoa1mj,drhoa1mj,rhoa1mi,drhoa1mi;
+  KK_FLOAT rhoa2mj,drhoa2mj,rhoa2mi,drhoa2mi;
+  KK_FLOAT rhoa3mj, drhoa3mj, rhoa3mi, drhoa3mi;
+  KK_FLOAT arg1i1m, arg1j1m, arg1i2m, arg1j2m, arg1i3m, arg1j3m, arg3i3m, arg3j3m;
+  KK_FLOAT drho1mdr1, drho1mdr2, drho1mds1, drho1mds2;
+  KK_FLOAT drho1mdrm1[3], drho1mdrm2[3];
+  KK_FLOAT drho2mdr1, drho2mdr2, drho2mds1, drho2mds2;
+  KK_FLOAT drho2mdrm1[3], drho2mdrm2[3];
+  KK_FLOAT drho3mdr1, drho3mdr2, drho3mds1, drho3mds2;
+  KK_FLOAT drho3mdrm1[3], drho3mdrm2[3];
 
   // The f, etc. arrays are duplicated for OpenMP, atomic for GPU, and neither for Serial
 
@@ -183,8 +183,8 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         phip = (d_phirar6(ind, kk) * pp + d_phirar5(ind, kk)) * pp + d_phirar4(ind, kk);
 
         if (eflag_either) {
-          double scaleij = d_scale(type[i], type[i]);
-          double phi_sc = phi * scaleij;
+          KK_FLOAT scaleij = d_scale(type[i], type[i]);
+          KK_FLOAT phi_sc = phi * scaleij;
           if (eflag_global) ev.evdwl += phi_sc * sij;
           if (eflag_atom) {
             a_eatom[i] += 0.5 * phi * sij;
@@ -255,12 +255,12 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           }
         }
 
-        const double t1mi = t1_meam[elti];
-        const double t2mi = t2_meam[elti];
-        const double t3mi = t3_meam[elti];
-        const double t1mj = t1_meam[eltj];
-        const double t2mj = t2_meam[eltj];
-        const double t3mj = t3_meam[eltj];
+        const KK_FLOAT t1mi = t1_meam[elti];
+        const KK_FLOAT t2mi = t2_meam[elti];
+        const KK_FLOAT t3mi = t3_meam[elti];
+        const KK_FLOAT t1mj = t1_meam[eltj];
+        const KK_FLOAT t2mj = t2_meam[eltj];
+        const KK_FLOAT t3mj = t3_meam[eltj];
 
         // ialloy mod not needed in MS-MEAM, but similarity here is that we multply rhos by t.
         // We did this above with rhoa1mj, rhoa2mj, etc.
@@ -733,25 +733,25 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
 
         if (iszero_kk(sij) || isone_kk(sij)) continue;    //: cont jn loop
 
-        double dxik(0), dyik(0), dzik(0);
-        double dxjk(0), dyjk(0), dzjk(0);
+        KK_FLOAT dxik(0), dyik(0), dzik(0);
+        KK_FLOAT dxjk(0), dyjk(0), dzjk(0);
 
         for (kn = 0; kn < d_numneigh_full[i]; kn++) {
           k = d_neighbors_full(i, kn);
           eltk = d_map[type[k]];
           if (k != j && eltk >= 0) {
-            double xik, xjk, cikj, sikj, dfc, a;
-            double dCikj1, dCikj2;
-            double delc, rik2, rjk2;
+            KK_FLOAT xik, xjk, cikj, sikj, dfc, a;
+            KK_FLOAT dCikj1, dCikj2;
+            KK_FLOAT delc, rik2, rjk2;
 
             sij = d_scrfcn[jn + fnoffset] * d_fcpair[jn + fnoffset];
-            const double Cmax = Cmax_meam[elti][eltj][eltk];
-            const double Cmin = Cmin_meam[elti][eltj][eltk];
+            const KK_FLOAT Cmax = Cmax_meam[elti][eltj][eltk];
+            const KK_FLOAT Cmin = Cmin_meam[elti][eltj][eltk];
 
             dsij1 = 0.0;
             dsij2 = 0.0;
             if (!iszero_kk(sij) && !isone_kk(sij)) {
-              const double rbound = rij2 * ebound_meam[elti][eltj];
+              const KK_FLOAT rbound = rij2 * ebound_meam[elti][eltj];
               delc = Cmax - Cmin;
               dxjk = x(k, 0) - x(j, 0);
               dyjk = x(k, 1) - x(j, 1);

@@ -156,12 +156,12 @@ class NPairKokkos : public NPair {
 
   // data from Neighbor class
 
-  DAT::tdual_xfloat_2d k_cutneighsq;
+  DAT::ttransform_kkfloat_2d k_cutneighsq;
 
   // exclusion data from Neighbor class
 
   DAT::tdual_int_1d k_ex1_type,k_ex2_type;
-  DAT::tdual_int_2d k_ex_type;
+  DAT::ttransform_int_2d k_ex_type;
   DAT::tdual_int_1d k_ex1_bit,k_ex2_bit;
   DAT::tdual_int_1d k_ex_mol_group;
   DAT::tdual_int_1d k_ex_mol_bit;
@@ -193,7 +193,7 @@ class NeighborKokkosExecute
 
   // data from Neighbor class
 
-  const typename AT::t_xfloat_2d_randomread cutneighsq;
+  const typename AT::t_kkfloat_2d_randomread cutneighsq;
 
   // exclusion data from Neighbor class
 
@@ -230,8 +230,8 @@ class NeighborKokkosExecute
 
   // data from Atom class
 
-  const typename AT::t_x_array_randomread x;
-  const typename AT::t_float_1d radius;
+  const typename AT::t_kkfloat_1d_3_lr_randomread x;
+  const typename AT::t_kkfloat_1d radius;
   const typename AT::t_int_1d_const type,mask;
   const typename AT::t_tagint_1d_const molecule;
   const typename AT::t_tagint_1d_const tag;
@@ -245,25 +245,25 @@ class NeighborKokkosExecute
   const int nbinx,nbiny,nbinz;
   const int mbinx,mbiny,mbinz;
   const int mbinxlo,mbinylo,mbinzlo;
-  const X_FLOAT bininvx,bininvy,bininvz;
-  X_FLOAT bboxhi[3],bboxlo[3];
+  const double bininvx,bininvy,bininvz;
+  double bboxhi[3],bboxlo[3];
 
   const int nlocal,nall,neigh_transpose;
 
   typename AT::t_int_scalar resize;
   typename AT::t_int_scalar new_maxneighs;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_resize;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_new_maxneighs;
+  HAT::t_int_scalar h_resize;
+  HAT::t_int_scalar h_new_maxneighs;
 
   const int xperiodic, yperiodic, zperiodic;
   const int xprd_half, yprd_half, zprd_half;
 
   // GRANULAR required member variables
-  const X_FLOAT skin;
+  const double skin;
 
   NeighborKokkosExecute(
                         const NeighListKokkos<DeviceType> &_neigh_list,
-                        const typename AT::t_xfloat_2d_randomread &_cutneighsq,
+                        const typename AT::t_kkfloat_2d_randomread &_cutneighsq,
                         const typename AT::t_int_1d &_bincount,
                         const typename AT::t_int_2d &_bins,
                         const typename AT::t_int_1d &_atom2bin,
@@ -271,8 +271,8 @@ class NeighborKokkosExecute
                         const typename AT::t_int_1d &_d_stencil,
                         const typename AT::t_int_1d_3 &_d_stencilxyz,
                         const int _nlocal,const int _nall,const int _neigh_transpose,
-                        const typename AT::t_x_array_randomread &_x,
-                        const typename AT::t_float_1d &_radius,
+                        const typename AT::t_kkfloat_1d_3_lr_randomread &_x,
+                        const typename AT::t_kkfloat_1d &_radius,
                         const typename AT::t_int_1d_const &_type,
                         const typename AT::t_int_1d_const &_mask,
                         const typename AT::t_tagint_1d_const &_molecule,
@@ -283,7 +283,7 @@ class NeighborKokkosExecute
                         const int & _nbinx,const int & _nbiny,const int & _nbinz,
                         const int & _mbinx,const int & _mbiny,const int & _mbinz,
                         const int & _mbinxlo,const int & _mbinylo,const int & _mbinzlo,
-                        const X_FLOAT &_bininvx,const X_FLOAT &_bininvy,const X_FLOAT &_bininvz,
+                        const double &_bininvx,const double &_bininvy,const double &_bininvz,
                         const double &_delta,const int & _exclude,const int & _nex_type,
                         const typename AT::t_int_1d_const & _ex1_type,
                         const typename AT::t_int_1d_const & _ex2_type,
@@ -295,14 +295,14 @@ class NeighborKokkosExecute
                         const typename AT::t_int_1d_const & _ex_mol_group,
                         const typename AT::t_int_1d_const & _ex_mol_bit,
                         const typename AT::t_int_1d_const & _ex_mol_intra,
-                        const X_FLOAT *_bboxhi, const X_FLOAT* _bboxlo,
+                        const double *_bboxhi, const double* _bboxlo,
                         const int & _xperiodic, const int & _yperiodic, const int & _zperiodic,
                         const int & _xprd_half, const int & _yprd_half, const int & _zprd_half,
-                        const X_FLOAT _skin,
+                        const double _skin,
                         const typename AT::t_int_scalar _resize,
-                        const typename ArrayTypes<LMPHostType>::t_int_scalar _h_resize,
+                        const HAT::t_int_scalar _h_resize,
                         const typename AT::t_int_scalar _new_maxneighs,
-                        const typename ArrayTypes<LMPHostType>::t_int_scalar _h_new_maxneighs):
+                        const HAT::t_int_scalar _h_new_maxneighs):
     neigh_list(_neigh_list),delta(_delta),cutneighsq(_cutneighsq),exclude(_exclude),
     nex_type(_nex_type),ex1_type(_ex1_type),ex2_type(_ex2_type),
     ex_type(_ex_type),nex_group(_nex_group),
@@ -367,7 +367,7 @@ class NeighborKokkosExecute
 #endif
 
   KOKKOS_INLINE_FUNCTION
-  int coord2bin(const X_FLOAT & x,const X_FLOAT & y,const X_FLOAT & z, int* i) const
+  int coord2bin(const double & x,const double & y,const double & z, int* i) const
   {
     int ix,iy,iz;
 

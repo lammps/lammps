@@ -166,7 +166,9 @@ output are compressed to a single blank by calling :cpp:func:`strcompress()`
    *
    * Print to stdout without specifying the FILE pointer.
    *
-   *  \param mesg   string with message to be printed */
+   *  \param format   format string of message to be printed
+   *  \param args     arguments to format string
+   */
   template <typename... Args> void print(const std::string &format, Args &&...args)
   {
     fmtargs_print(stdout, format, fmt::make_format_args(args...));

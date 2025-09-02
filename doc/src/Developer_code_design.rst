@@ -276,10 +276,12 @@ I/O and output formatting
 C-style stdio versus C++ style iostreams
 ========================================
 
-LAMMPS uses the "stdio" library of the standard C library for reading
-from and writing to files and console instead of C++ "iostreams".
-This is mainly motivated by better performance, better control over
-formatting, and less effort to achieve specific formatting.
+LAMMPS uses the `stdio <https://en.cppreference.com/w/cpp/io/c.html>`
+library of the standard C library for reading from and writing to files
+and console instead of C++ `iostreams
+<https://en.cppreference.com/w/cpp/io.html>`_.  This is mainly motivated
+by better performance, better control over formatting, and less effort
+to achieve specific formatting.
 
 Since mixing "stdio" and "iostreams" can lead to unexpected behavior,
 use of the latter is strongly discouraged.  Output to the screen should
@@ -290,11 +292,12 @@ Furthermore, output should generally only be done by MPI rank 0
 ``logfile`` should use the :cpp:func:`utils::logmesg() convenience
 function <LAMMPS_NS::utils::logmesg>`.
 
-We discourage the use of stringstreams because the bundled {fmt} library
-and the customized tokenizer classes provide the same functionality in a
-cleaner way with better performance.  This also helps maintain a
-consistent programming syntax with code from many different
-contributors.
+We discourage the use of `stringstreams
+<https://en.cppreference.com/w/cpp/io/basic_stringstream.html>`_ because
+the bundled {fmt} library and the customized tokenizer classes provide
+the same functionality in a cleaner way with better performance.  This
+also helps maintain a consistent programming syntax with code from many
+different contributors.
 
 Formatting with the {fmt} library
 ===================================
@@ -327,11 +330,13 @@ Formatted strings are frequently created by calling the
 In the simplest case, no additional characters are needed, as {fmt} will
 choose the default format based on the data type of the argument.
 Otherwise, the :cpp:func:`utils::print() <LAMMPS_NS::utils::print>`
-function may be used instead of ``printf()`` or ``fprintf()``.  In
-addition, several LAMMPS output functions, that originally accepted a
-single string as argument have been overloaded to accept a format string
-with optional arguments as well (e.g., ``Error::all()``,
-``Error::one()``, :cpp:func:`utils::logmesg()
+function may be used instead of ``printf()`` or ``fprintf()``.  The
+equivalent `std::print() function
+<https://en.cppreference.com/w/cpp/io/print.html>`_ will become
+available in C++ 23.  In addition, several LAMMPS output functions, that
+originally accepted a single string as argument have been overloaded to
+accept a format string with optional arguments as well (e.g.,
+``Error::all()``, ``Error::one()``, :cpp:func:`utils::logmesg()
 <LAMMPS_NS::utils::logmesg>`).
 
 Summary of the {fmt} format syntax
@@ -402,6 +407,19 @@ plan to eventually transition from {fmt} to using ``std::format()``
 of the C++ standard library, it is advisable to avoid using any
 extensions beyond what the `C++20 standard offers
 <https://en.cppreference.com/w/cpp/utility/format/format.html>`_.
+
+JSON format input and output
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Since LAMMPS version 12 June 2025, the LAMMPS source code includes a
+copy of the header-only JSON C++ library from https://json.nlohmann.me/.
+Same as with the {fmt} library described above some modification to the
+namespace has been made to avoid collisions with other uses of the same
+library, which may use a different, incompatible version.  To have a
+uniform interface with other parts of LAMMPS, you should be using
+``#include "json.h"`` or ``#include "json_fwd.h"`` (in header files).
+See the implementation of the :doc:`molecule command <molecule>` for an
+example of using this library.
 
 Memory management
 ^^^^^^^^^^^^^^^^^

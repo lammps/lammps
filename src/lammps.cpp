@@ -1490,14 +1490,15 @@ void LAMMPS::print_config(FILE *fp)
   fputs("\n\n",fp);
 }
 
-/** Create vector of argv string pointers including terminating nullptr element
+/** Create vector of argv char pointers including terminating nullptr element
  *
  * \param args list of arguments
+ * \return vector of argument pointers
  */
-std::vector<char*> LAMMPS::argv_pointers(argv & args){
+std::vector<char*> LAMMPS::argv_pointers(argv &args){
   std::vector<char*> r;
   r.reserve(args.size()+1);
-  for(auto & a : args) {
+  for(auto &a : args) {
     r.push_back((char*)a.data());
   }
   r.push_back(nullptr);

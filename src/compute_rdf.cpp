@@ -190,7 +190,7 @@ void ComputeRDF::init()
                  "range {} - use comm_modify cutoff command to increase it", mycutneigh, cutghost);
 
     delr = cutoff_user / nbin;
-  } delr = force->pair->cutforce / nbin;
+  } else delr = force->pair->cutforce / nbin;
 
   delrinv = 1.0/delr;
 

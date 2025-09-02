@@ -338,7 +338,7 @@ void PairMEAMKokkos<DeviceType>::init_style()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairMEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist, DAT::tdual_xfloat_1d &buf,
+int PairMEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist, DAT::tdual_double_1d &buf,
                                 int /*pbc_flag*/, int * /*pbc*/)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
@@ -404,7 +404,7 @@ void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMPackForwardComm, const in
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairMEAMKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, DAT::tdual_xfloat_1d &buf)
+void PairMEAMKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, DAT::tdual_double_1d &buf)
 {
   first = first_in;
   v_buf = buf.view<DeviceType>();
@@ -656,7 +656,7 @@ void PairMEAMKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *b
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairMEAMKokkos<DeviceType>::pack_reverse_comm_kokkos(int n, int first_in, DAT::tdual_xfloat_1d &buf)
+int PairMEAMKokkos<DeviceType>::pack_reverse_comm_kokkos(int n, int first_in, DAT::tdual_double_1d &buf)
 {
   first = first_in;
   v_buf = buf.view<DeviceType>();
@@ -781,7 +781,7 @@ int PairMEAMKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairMEAMKokkos<DeviceType>::unpack_reverse_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist, DAT::tdual_xfloat_1d &buf)
+void PairMEAMKokkos<DeviceType>::unpack_reverse_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist, DAT::tdual_double_1d &buf)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
   v_buf = buf.view<DeviceType>();

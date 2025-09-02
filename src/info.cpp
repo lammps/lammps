@@ -1123,7 +1123,20 @@ bool Info::has_accelerator_feature(const std::string &package,
 #if defined(LMP_KOKKOS)
   if (package == "KOKKOS") {
     if (category == "precision") {
+#if defined(LMP_KOKKOS_SINGLE_SINGLE)
+      return setting == "single";
+#elif defined(LMP_KOKKOS_DOUBLE_DOUBLE)
       return setting == "double";
+#elif defined(LMP_KOKKOS_SINGLE_DOUBLE)
+      return setting == "mixed";
+#endif
+    }
+    if (category == "layout") {
+#if defined(LMP_KOKKOS_LAYOUT_LEGACY)
+      return setting == "legacy";
+#else
+      return setting == "default";
+#endif
     }
     if (category == "api") {
 #if defined(KOKKOS_ENABLE_OPENMP)
@@ -1220,6 +1233,9 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("KOKKOS","precision","single")) mesg += " single";
     if (has_accelerator_feature("KOKKOS","precision","mixed"))  mesg += " mixed";
     if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
+    mesg +=  "\nKOKKOS package view layout:";
+    if (has_accelerator_feature("KOKKOS","layout","legacy")) mesg += " legacy";
+    if (has_accelerator_feature("KOKKOS","layout","default"))  mesg += " default";
 #if LMP_KOKKOS
     mesg += fmt::format("\nKokkos library version: {}.{}.{}", KOKKOS_VERSION / 10000,
                        (KOKKOS_VERSION % 10000) / 100, KOKKOS_VERSION % 100);

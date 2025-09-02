@@ -161,45 +161,45 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
      const int np_total = nlocal + atom->nghost;
 
      if (np_total > (int)PairExp6ParamData.epsilon1.extent(0)) {
-       PairExp6ParamData.epsilon1      = typename AT::t_float_1d("PairExp6ParamData.epsilon1"     ,np_total);
-       PairExp6ParamData.alpha1        = typename AT::t_float_1d("PairExp6ParamData.alpha1"       ,np_total);
-       PairExp6ParamData.rm1           = typename AT::t_float_1d("PairExp6ParamData.rm1"          ,np_total);
-       PairExp6ParamData.mixWtSite1    = typename AT::t_float_1d("PairExp6ParamData.mixWtSite1"   ,np_total);
-       PairExp6ParamData.epsilon2      = typename AT::t_float_1d("PairExp6ParamData.epsilon2"     ,np_total);
-       PairExp6ParamData.alpha2        = typename AT::t_float_1d("PairExp6ParamData.alpha2"       ,np_total);
-       PairExp6ParamData.rm2           = typename AT::t_float_1d("PairExp6ParamData.rm2"          ,np_total);
-       PairExp6ParamData.mixWtSite2    = typename AT::t_float_1d("PairExp6ParamData.mixWtSite2"   ,np_total);
-       PairExp6ParamData.epsilonOld1   = typename AT::t_float_1d("PairExp6ParamData.epsilonOld1"  ,np_total);
-       PairExp6ParamData.alphaOld1     = typename AT::t_float_1d("PairExp6ParamData.alphaOld1"    ,np_total);
-       PairExp6ParamData.rmOld1        = typename AT::t_float_1d("PairExp6ParamData.rmOld1"       ,np_total);
-       PairExp6ParamData.mixWtSite1old = typename AT::t_float_1d("PairExp6ParamData.mixWtSite1old",np_total);
-       PairExp6ParamData.epsilonOld2   = typename AT::t_float_1d("PairExp6ParamData.epsilonOld2"  ,np_total);
-       PairExp6ParamData.alphaOld2     = typename AT::t_float_1d("PairExp6ParamData.alphaOld2"    ,np_total);
-       PairExp6ParamData.rmOld2        = typename AT::t_float_1d("PairExp6ParamData.rmOld2"       ,np_total);
-       PairExp6ParamData.mixWtSite2old = typename AT::t_float_1d("PairExp6ParamData.mixWtSite2old",np_total);
+       PairExp6ParamData.epsilon1      = typename AT::t_kkfloat_1d("PairExp6ParamData.epsilon1"     ,np_total);
+       PairExp6ParamData.alpha1        = typename AT::t_kkfloat_1d("PairExp6ParamData.alpha1"       ,np_total);
+       PairExp6ParamData.rm1           = typename AT::t_kkfloat_1d("PairExp6ParamData.rm1"          ,np_total);
+       PairExp6ParamData.mixWtSite1    = typename AT::t_kkfloat_1d("PairExp6ParamData.mixWtSite1"   ,np_total);
+       PairExp6ParamData.epsilon2      = typename AT::t_kkfloat_1d("PairExp6ParamData.epsilon2"     ,np_total);
+       PairExp6ParamData.alpha2        = typename AT::t_kkfloat_1d("PairExp6ParamData.alpha2"       ,np_total);
+       PairExp6ParamData.rm2           = typename AT::t_kkfloat_1d("PairExp6ParamData.rm2"          ,np_total);
+       PairExp6ParamData.mixWtSite2    = typename AT::t_kkfloat_1d("PairExp6ParamData.mixWtSite2"   ,np_total);
+       PairExp6ParamData.epsilonOld1   = typename AT::t_kkfloat_1d("PairExp6ParamData.epsilonOld1"  ,np_total);
+       PairExp6ParamData.alphaOld1     = typename AT::t_kkfloat_1d("PairExp6ParamData.alphaOld1"    ,np_total);
+       PairExp6ParamData.rmOld1        = typename AT::t_kkfloat_1d("PairExp6ParamData.rmOld1"       ,np_total);
+       PairExp6ParamData.mixWtSite1old = typename AT::t_kkfloat_1d("PairExp6ParamData.mixWtSite1old",np_total);
+       PairExp6ParamData.epsilonOld2   = typename AT::t_kkfloat_1d("PairExp6ParamData.epsilonOld2"  ,np_total);
+       PairExp6ParamData.alphaOld2     = typename AT::t_kkfloat_1d("PairExp6ParamData.alphaOld2"    ,np_total);
+       PairExp6ParamData.rmOld2        = typename AT::t_kkfloat_1d("PairExp6ParamData.rmOld2"       ,np_total);
+       PairExp6ParamData.mixWtSite2old = typename AT::t_kkfloat_1d("PairExp6ParamData.mixWtSite2old",np_total);
 
-       PairExp6ParamDataVect.epsilon          = typename AT::t_float_1d("PairExp6ParamDataVect.epsilon"         ,np_total);
-       PairExp6ParamDataVect.rm3              = typename AT::t_float_1d("PairExp6ParamDataVect.rm3"             ,np_total);
-       PairExp6ParamDataVect.alpha            = typename AT::t_float_1d("PairExp6ParamDataVect.alpha"           ,np_total);
-       PairExp6ParamDataVect.xMolei           = typename AT::t_float_1d("PairExp6ParamDataVect.xMolei"          ,np_total);
-       PairExp6ParamDataVect.epsilon_old      = typename AT::t_float_1d("PairExp6ParamDataVect.epsilon_old"     ,np_total);
-       PairExp6ParamDataVect.rm3_old          = typename AT::t_float_1d("PairExp6ParamDataVect.rm3_old"         ,np_total);
-       PairExp6ParamDataVect.alpha_old        = typename AT::t_float_1d("PairExp6ParamDataVect.alpha_old"       ,np_total);
-       PairExp6ParamDataVect.xMolei_old       = typename AT::t_float_1d("PairExp6ParamDataVect.xMolei_old"      ,np_total);
-       PairExp6ParamDataVect.fractionOFA      = typename AT::t_float_1d("PairExp6ParamDataVect.fractionOFA"     ,np_total);
-       PairExp6ParamDataVect.fraction1        = typename AT::t_float_1d("PairExp6ParamDataVect.fraction1"       ,np_total);
-       PairExp6ParamDataVect.fraction2        = typename AT::t_float_1d("PairExp6ParamDataVect.fraction2"       ,np_total);
-       PairExp6ParamDataVect.nMoleculesOFA    = typename AT::t_float_1d("PairExp6ParamDataVect.nMoleculesOFA"   ,np_total);
-       PairExp6ParamDataVect.nMolecules1      = typename AT::t_float_1d("PairExp6ParamDataVect.nMolecules1"     ,np_total);
-       PairExp6ParamDataVect.nMolecules2      = typename AT::t_float_1d("PairExp6ParamDataVect.nMolecules2"     ,np_total);
-       PairExp6ParamDataVect.nTotal           = typename AT::t_float_1d("PairExp6ParamDataVect.nTotal"          ,np_total);
-       PairExp6ParamDataVect.fractionOFAold   = typename AT::t_float_1d("PairExp6ParamDataVect.fractionOFAold"  ,np_total);
-       PairExp6ParamDataVect.fractionOld1     = typename AT::t_float_1d("PairExp6ParamDataVect.fractionOld1"    ,np_total);
-       PairExp6ParamDataVect.fractionOld2     = typename AT::t_float_1d("PairExp6ParamDataVect.fractionOld2"    ,np_total);
-       PairExp6ParamDataVect.nMoleculesOFAold = typename AT::t_float_1d("PairExp6ParamDataVect.nMoleculesOFAold",np_total);
-       PairExp6ParamDataVect.nMoleculesOld1   = typename AT::t_float_1d("PairExp6ParamDataVect.nMoleculesOld1"  ,np_total);
-       PairExp6ParamDataVect.nMoleculesOld2   = typename AT::t_float_1d("PairExp6ParamDataVect.nMoleculesOld2"  ,np_total);
-       PairExp6ParamDataVect.nTotalold        = typename AT::t_float_1d("PairExp6ParamDataVect.nTotalold"       ,np_total);
+       PairExp6ParamDataVect.epsilon          = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.epsilon"         ,np_total);
+       PairExp6ParamDataVect.rm3              = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.rm3"             ,np_total);
+       PairExp6ParamDataVect.alpha            = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.alpha"           ,np_total);
+       PairExp6ParamDataVect.xMolei           = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.xMolei"          ,np_total);
+       PairExp6ParamDataVect.epsilon_old      = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.epsilon_old"     ,np_total);
+       PairExp6ParamDataVect.rm3_old          = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.rm3_old"         ,np_total);
+       PairExp6ParamDataVect.alpha_old        = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.alpha_old"       ,np_total);
+       PairExp6ParamDataVect.xMolei_old       = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.xMolei_old"      ,np_total);
+       PairExp6ParamDataVect.fractionOFA      = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.fractionOFA"     ,np_total);
+       PairExp6ParamDataVect.fraction1        = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.fraction1"       ,np_total);
+       PairExp6ParamDataVect.fraction2        = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.fraction2"       ,np_total);
+       PairExp6ParamDataVect.nMoleculesOFA    = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.nMoleculesOFA"   ,np_total);
+       PairExp6ParamDataVect.nMolecules1      = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.nMolecules1"     ,np_total);
+       PairExp6ParamDataVect.nMolecules2      = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.nMolecules2"     ,np_total);
+       PairExp6ParamDataVect.nTotal           = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.nTotal"          ,np_total);
+       PairExp6ParamDataVect.fractionOFAold   = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.fractionOFAold"  ,np_total);
+       PairExp6ParamDataVect.fractionOld1     = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.fractionOld1"    ,np_total);
+       PairExp6ParamDataVect.fractionOld2     = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.fractionOld2"    ,np_total);
+       PairExp6ParamDataVect.nMoleculesOFAold = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.nMoleculesOFAold",np_total);
+       PairExp6ParamDataVect.nMoleculesOld1   = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.nMoleculesOld1"  ,np_total);
+       PairExp6ParamDataVect.nMoleculesOld2   = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.nMoleculesOld2"  ,np_total);
+       PairExp6ParamDataVect.nTotalold        = typename AT::t_kkfloat_1d("PairExp6ParamDataVect.nTotalold"       ,np_total);
      } else
        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxZeroMixingWeights>(0,np_total),*this);
 
@@ -231,7 +231,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   k_error_flag.template modify<DeviceType>();
-  k_error_flag.template sync<LMPHostType>();
+  k_error_flag.sync_host();
   if (k_error_flag.h_view() == 1)
     error->all(FLERR,"The number of molecules in CG particle is less than 10*DBL_EPSILON.");
   else if (k_error_flag.h_view() == 2)
@@ -280,9 +280,9 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   nthreads = lmp->kokkos->nthreads;
   int nmax = f.extent(0);
   if (nmax > (int)t_f.extent(1)) {
-    t_f = t_f_array_thread("pair_exp6_rx:t_f",nthreads,nmax);
-    t_uCG = t_efloat_1d_thread("pair_exp6_rx:t_uCG",nthreads,nmax);
-    t_uCGnew = t_efloat_1d_thread("pair_exp6_rx:t_UCGnew",nthreads,nmax);
+    t_f = t_kkfloat_1d_3_thread("pair_exp6_rx:t_f",nthreads,nmax);
+    t_uCG = t_kkfloat_1d_thread("pair_exp6_rx:t_uCG",nthreads,nmax);
+    t_uCGnew = t_kkfloat_1d_thread("pair_exp6_rx:t_UCGnew",nthreads,nmax);
   }
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxZeroDupViews>(0,nmax),*this);
@@ -318,7 +318,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 #endif
 
   k_error_flag.template modify<DeviceType>();
-  k_error_flag.template sync<LMPHostType>();
+  k_error_flag.sync_host();
   if (k_error_flag.h_view())
     error->all(FLERR,"alpha_ij is 6.0 in pair exp6");
 
@@ -336,12 +336,12 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   copymode = 0;
@@ -410,40 +410,40 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
   }
 
   // These arrays are atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_uCG = uCG;
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_uCGnew = uCGnew;
+  Kokkos::View<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<KK_FLOAT*, typename DAT::t_kkfloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_uCG = uCG;
+  Kokkos::View<KK_FLOAT*, typename DAT::t_kkfloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_uCGnew = uCGnew;
 
   int i,jj,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
-  double rsq,r2inv,r6inv,forceExp6,factor_lj;
-  double rCut,rCutInv,rCut2inv,rCut6inv,rCutExp,urc,durc;
-  double rm2ij,rm6ij;
-  double r,rexp;
+  KK_FLOAT xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
+  KK_FLOAT rsq,r2inv,r6inv,forceExp6,factor_lj;
+  KK_FLOAT rCut,rCutInv,rCut2inv,rCut6inv,rCutExp,urc,durc;
+  KK_FLOAT rm2ij,rm6ij;
+  KK_FLOAT r,rexp;
 
-  double alphaOld12_ij, rmOld12_ij, epsilonOld12_ij;
-  double alphaOld21_ij, rmOld21_ij, epsilonOld21_ij;
-  double alpha12_ij, rm12_ij, epsilon12_ij;
-  double alpha21_ij, rm21_ij, epsilon21_ij;
-  double rminv, buck1, buck2;
-  double epsilonOld1_i,alphaOld1_i,rmOld1_i;
-  double epsilonOld1_j,alphaOld1_j,rmOld1_j;
-  double epsilonOld2_i,alphaOld2_i,rmOld2_i;
-  double epsilonOld2_j,alphaOld2_j,rmOld2_j;
-  double epsilon1_i,alpha1_i,rm1_i;
-  double epsilon1_j,alpha1_j,rm1_j;
-  double epsilon2_i,alpha2_i,rm2_i;
-  double epsilon2_j,alpha2_j,rm2_j;
-  double evdwlOldEXP6_12, evdwlOldEXP6_21, fpairOldEXP6_12, fpairOldEXP6_21;
-  double evdwlEXP6_12, evdwlEXP6_21;
-  double mixWtSite1old_i, mixWtSite1old_j;
-  double mixWtSite2old_i, mixWtSite2old_j;
-  double mixWtSite1_i, mixWtSite1_j;
-  double mixWtSite2_i, mixWtSite2_j;
+  KK_FLOAT alphaOld12_ij, rmOld12_ij, epsilonOld12_ij;
+  KK_FLOAT alphaOld21_ij, rmOld21_ij, epsilonOld21_ij;
+  KK_FLOAT alpha12_ij, rm12_ij, epsilon12_ij;
+  KK_FLOAT alpha21_ij, rm21_ij, epsilon21_ij;
+  KK_FLOAT rminv, buck1, buck2;
+  KK_FLOAT epsilonOld1_i,alphaOld1_i,rmOld1_i;
+  KK_FLOAT epsilonOld1_j,alphaOld1_j,rmOld1_j;
+  KK_FLOAT epsilonOld2_i,alphaOld2_i,rmOld2_i;
+  KK_FLOAT epsilonOld2_j,alphaOld2_j,rmOld2_j;
+  KK_FLOAT epsilon1_i,alpha1_i,rm1_i;
+  KK_FLOAT epsilon1_j,alpha1_j,rm1_j;
+  KK_FLOAT epsilon2_i,alpha2_i,rm2_i;
+  KK_FLOAT epsilon2_j,alpha2_j,rm2_j;
+  KK_FLOAT evdwlOldEXP6_12, evdwlOldEXP6_21, fpairOldEXP6_12, fpairOldEXP6_21;
+  KK_FLOAT evdwlEXP6_12, evdwlEXP6_21;
+  KK_FLOAT mixWtSite1old_i, mixWtSite1old_j;
+  KK_FLOAT mixWtSite2old_i, mixWtSite2old_j;
+  KK_FLOAT mixWtSite1_i, mixWtSite1_j;
+  KK_FLOAT mixWtSite2_i, mixWtSite2_j;
 
   const int nRep = 12;
-  const double shift = 1.05;
-  double rin1, aRep, uin1, win1, uin1rep, rin1exp, rin6, rin6inv;
+  const KK_FLOAT shift = 1.05;
+  KK_FLOAT rin1, aRep, uin1, win1, uin1rep, rin1exp, rin6, rin6inv;
 
   evdwlOld = 0.0;
   evdwl = 0.0;
@@ -455,11 +455,11 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
   itype = type[i];
   jnum = d_numneigh[i];
 
-  double fx_i = 0.0;
-  double fy_i = 0.0;
-  double fz_i = 0.0;
-  double uCG_i = 0.0;
-  double uCGnew_i = 0.0;
+  KK_FLOAT fx_i = 0.0;
+  KK_FLOAT fy_i = 0.0;
+  KK_FLOAT fz_i = 0.0;
+  KK_FLOAT uCG_i = 0.0;
+  KK_FLOAT uCGnew_i = 0.0;
 
   {
      epsilon1_i     = PairExp6ParamData.epsilon1[i];
@@ -580,7 +580,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
 
           uin1rep = aRep/powint(rin1,nRep);
 
-          forceExp6 = double(nRep)*aRep/powint(r,nRep);
+          forceExp6 = KK_FLOAT(nRep)*aRep/powint(r,nRep);
           fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
 
           evdwlOldEXP6_12 = uin1 - uin1rep + aRep/powint(r,nRep);
@@ -620,7 +620,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
 
           uin1rep = aRep/powint(rin1,nRep);
 
-          forceExp6 = double(nRep)*aRep/powint(r,nRep);
+          forceExp6 = KK_FLOAT(nRep)*aRep/powint(r,nRep);
           fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
 
           evdwlOldEXP6_21 = uin1 - uin1rep + aRep/powint(r,nRep);
@@ -789,35 +789,35 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 #endif
 
   int i,jj,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
-  double rsq,r2inv,r6inv,forceExp6,factor_lj;
-  double rCut,rCutInv,rCut2inv,rCut6inv,rCutExp,urc,durc;
-  double rm2ij,rm6ij;
-  double r,rexp;
+  KK_FLOAT xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
+  KK_FLOAT rsq,r2inv,r6inv,forceExp6,factor_lj;
+  KK_FLOAT rCut,rCutInv,rCut2inv,rCut6inv,rCutExp,urc,durc;
+  KK_FLOAT rm2ij,rm6ij;
+  KK_FLOAT r,rexp;
 
-  double alphaOld12_ij, rmOld12_ij, epsilonOld12_ij;
-  double alphaOld21_ij, rmOld21_ij, epsilonOld21_ij;
-  double alpha12_ij, rm12_ij, epsilon12_ij;
-  double alpha21_ij, rm21_ij, epsilon21_ij;
-  double rminv, buck1, buck2;
-  double epsilonOld1_i,alphaOld1_i,rmOld1_i;
-  double epsilonOld1_j,alphaOld1_j,rmOld1_j;
-  double epsilonOld2_i,alphaOld2_i,rmOld2_i;
-  double epsilonOld2_j,alphaOld2_j,rmOld2_j;
-  double epsilon1_i,alpha1_i,rm1_i;
-  double epsilon1_j,alpha1_j,rm1_j;
-  double epsilon2_i,alpha2_i,rm2_i;
-  double epsilon2_j,alpha2_j,rm2_j;
-  double evdwlOldEXP6_12, evdwlOldEXP6_21, fpairOldEXP6_12, fpairOldEXP6_21;
-  double evdwlEXP6_12, evdwlEXP6_21;
-  double mixWtSite1old_i, mixWtSite1old_j;
-  double mixWtSite2old_i, mixWtSite2old_j;
-  double mixWtSite1_i, mixWtSite1_j;
-  double mixWtSite2_i, mixWtSite2_j;
+  KK_FLOAT alphaOld12_ij, rmOld12_ij, epsilonOld12_ij;
+  KK_FLOAT alphaOld21_ij, rmOld21_ij, epsilonOld21_ij;
+  KK_FLOAT alpha12_ij, rm12_ij, epsilon12_ij;
+  KK_FLOAT alpha21_ij, rm21_ij, epsilon21_ij;
+  KK_FLOAT rminv, buck1, buck2;
+  KK_FLOAT epsilonOld1_i,alphaOld1_i,rmOld1_i;
+  KK_FLOAT epsilonOld1_j,alphaOld1_j,rmOld1_j;
+  KK_FLOAT epsilonOld2_i,alphaOld2_i,rmOld2_i;
+  KK_FLOAT epsilonOld2_j,alphaOld2_j,rmOld2_j;
+  KK_FLOAT epsilon1_i,alpha1_i,rm1_i;
+  KK_FLOAT epsilon1_j,alpha1_j,rm1_j;
+  KK_FLOAT epsilon2_i,alpha2_i,rm2_i;
+  KK_FLOAT epsilon2_j,alpha2_j,rm2_j;
+  KK_FLOAT evdwlOldEXP6_12, evdwlOldEXP6_21, fpairOldEXP6_12, fpairOldEXP6_21;
+  KK_FLOAT evdwlEXP6_12, evdwlEXP6_21;
+  KK_FLOAT mixWtSite1old_i, mixWtSite1old_j;
+  KK_FLOAT mixWtSite2old_i, mixWtSite2old_j;
+  KK_FLOAT mixWtSite1_i, mixWtSite1_j;
+  KK_FLOAT mixWtSite2_i, mixWtSite2_j;
 
   const int nRep = 12;
-  const double shift = 1.05;
-  double rin1, aRep, uin1, win1, uin1rep, rin1exp, rin6, rin6inv;
+  const KK_FLOAT shift = 1.05;
+  KK_FLOAT rin1, aRep, uin1, win1, uin1rep, rin1exp, rin6, rin6inv;
 
   evdwlOld = 0.0;
   evdwl = 0.0;
@@ -829,11 +829,11 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
   itype = type[i];
   jnum = d_numneigh[i];
 
-  double fx_i = 0.0;
-  double fy_i = 0.0;
-  double fz_i = 0.0;
-  double uCG_i = 0.0;
-  double uCGnew_i = 0.0;
+  KK_FLOAT fx_i = 0.0;
+  KK_FLOAT fy_i = 0.0;
+  KK_FLOAT fz_i = 0.0;
+  KK_FLOAT uCG_i = 0.0;
+  KK_FLOAT uCGnew_i = 0.0;
 
   {
      epsilon1_i     = PairExp6ParamData.epsilon1[i];
@@ -954,7 +954,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 
           uin1rep = aRep/powint(rin1,nRep);
 
-          forceExp6 = double(nRep)*aRep/powint(r,nRep);
+          forceExp6 = KK_FLOAT(nRep)*aRep/powint(r,nRep);
           fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
 
           evdwlOldEXP6_12 = uin1 - uin1rep + aRep/powint(r,nRep);
@@ -994,7 +994,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 
           uin1rep = aRep/powint(rin1,nRep);
 
-          forceExp6 = double(nRep)*aRep/powint(r,nRep);
+          forceExp6 = KK_FLOAT(nRep)*aRep/powint(r,nRep);
           fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
 
           evdwlOldEXP6_21 = uin1 - uin1rep + aRep/powint(r,nRep);
@@ -1133,14 +1133,14 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 
 template<int n>
   KOKKOS_INLINE_FUNCTION
-double __powint(const double& x, const int)
+KK_FLOAT __powint(const KK_FLOAT& x, const int)
 {
    static_assert(n == 12, "__powint<> only supports specific integer powers.");
 
    if (n == 12)
    {
      // Do x^12 here ... x^12 = (x^3)^4
-     double x3 = x*x*x;
+     KK_FLOAT x3 = x*x*x;
      return x3*x3*x3*x3;
    }
 }
@@ -1151,9 +1151,9 @@ KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& ev) const
 {
   // These arrays are atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_uCG = uCG;
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_uCGnew = uCGnew;
+  Kokkos::View<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<KK_FLOAT*, typename DAT::t_kkfloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_uCG = uCG;
+  Kokkos::View<KK_FLOAT*, typename DAT::t_kkfloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_uCGnew = uCGnew;
 
   int tid = 0;
 #ifndef LMP_KOKKOS_GPU
@@ -1164,44 +1164,44 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 #endif
 
   const int nRep = 12;
-  const double shift = 1.05;
+  const KK_FLOAT shift = 1.05;
 
   const int i = d_ilist[ii];
-  const double xtmp = x(i,0);
-  const double ytmp = x(i,1);
-  const double ztmp = x(i,2);
+  const KK_FLOAT xtmp = x(i,0);
+  const KK_FLOAT ytmp = x(i,1);
+  const KK_FLOAT ztmp = x(i,2);
   const int itype = type[i];
   const int jnum = d_numneigh[i];
 
-  double fx_i = 0.0;
-  double fy_i = 0.0;
-  double fz_i = 0.0;
-  double uCG_i = 0.0;
-  double uCGnew_i = 0.0;
+  KK_FLOAT fx_i = 0.0;
+  KK_FLOAT fy_i = 0.0;
+  KK_FLOAT fz_i = 0.0;
+  KK_FLOAT uCG_i = 0.0;
+  KK_FLOAT uCGnew_i = 0.0;
 
   // Constant values for this atom.
-  const double epsilon1_i      = PairExp6ParamData.epsilon1[i];
-  const double alpha1_i        = PairExp6ParamData.alpha1[i];
-  const double rm1_i           = PairExp6ParamData.rm1[i];
-  const double mixWtSite1_i    = PairExp6ParamData.mixWtSite1[i];
-  const double epsilon2_i      = PairExp6ParamData.epsilon2[i];
-  const double alpha2_i        = PairExp6ParamData.alpha2[i];
-  const double rm2_i           = PairExp6ParamData.rm2[i];
-  const double mixWtSite2_i    = PairExp6ParamData.mixWtSite2[i];
-  const double epsilonOld1_i   = PairExp6ParamData.epsilonOld1[i];
-  const double alphaOld1_i     = PairExp6ParamData.alphaOld1[i];
-  const double rmOld1_i        = PairExp6ParamData.rmOld1[i];
-  const double mixWtSite1old_i = PairExp6ParamData.mixWtSite1old[i];
-  const double epsilonOld2_i   = PairExp6ParamData.epsilonOld2[i];
-  const double alphaOld2_i     = PairExp6ParamData.alphaOld2[i];
-  const double rmOld2_i        = PairExp6ParamData.rmOld2[i];
-  const double mixWtSite2old_i = PairExp6ParamData.mixWtSite2old[i];
+  const KK_FLOAT epsilon1_i      = PairExp6ParamData.epsilon1[i];
+  const KK_FLOAT alpha1_i        = PairExp6ParamData.alpha1[i];
+  const KK_FLOAT rm1_i           = PairExp6ParamData.rm1[i];
+  const KK_FLOAT mixWtSite1_i    = PairExp6ParamData.mixWtSite1[i];
+  const KK_FLOAT epsilon2_i      = PairExp6ParamData.epsilon2[i];
+  const KK_FLOAT alpha2_i        = PairExp6ParamData.alpha2[i];
+  const KK_FLOAT rm2_i           = PairExp6ParamData.rm2[i];
+  const KK_FLOAT mixWtSite2_i    = PairExp6ParamData.mixWtSite2[i];
+  const KK_FLOAT epsilonOld1_i   = PairExp6ParamData.epsilonOld1[i];
+  const KK_FLOAT alphaOld1_i     = PairExp6ParamData.alphaOld1[i];
+  const KK_FLOAT rmOld1_i        = PairExp6ParamData.rmOld1[i];
+  const KK_FLOAT mixWtSite1old_i = PairExp6ParamData.mixWtSite1old[i];
+  const KK_FLOAT epsilonOld2_i   = PairExp6ParamData.epsilonOld2[i];
+  const KK_FLOAT alphaOld2_i     = PairExp6ParamData.alphaOld2[i];
+  const KK_FLOAT rmOld2_i        = PairExp6ParamData.rmOld2[i];
+  const KK_FLOAT mixWtSite2old_i = PairExp6ParamData.mixWtSite2old[i];
 
-  const double cutsq_type11 = d_cutsq(1,1);
-  const double rCut2inv_type11 = 1.0/ cutsq_type11;
-  const double rCut6inv_type11 = rCut2inv_type11*rCut2inv_type11*rCut2inv_type11;
-  const double rCut_type11 = sqrt( cutsq_type11 );
-  const double rCutInv_type11 = 1.0/rCut_type11;
+  const KK_FLOAT cutsq_type11 = d_cutsq(1,1);
+  const KK_FLOAT rCut2inv_type11 = 1.0/ cutsq_type11;
+  const KK_FLOAT rCut6inv_type11 = rCut2inv_type11*rCut2inv_type11*rCut2inv_type11;
+  const KK_FLOAT rCut_type11 = sqrt( cutsq_type11 );
+  const KK_FLOAT rCutInv_type11 = 1.0/rCut_type11;
 
   // Do error testing locally.
   bool hasError = false;
@@ -1210,13 +1210,13 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
   const int batchSize = 8;
 
   int neigh_j[batchSize];
-  double evdwlOld_j[batchSize];
-  double uCGnew_j[batchSize];
-  double fpair_j[batchSize];
-  double delx_j[batchSize];
-  double dely_j[batchSize];
-  double delz_j[batchSize];
-  double cutsq_j[batchSize];
+  KK_FLOAT evdwlOld_j[batchSize];
+  KK_FLOAT uCGnew_j[batchSize];
+  KK_FLOAT fpair_j[batchSize];
+  KK_FLOAT delx_j[batchSize];
+  KK_FLOAT dely_j[batchSize];
+  KK_FLOAT delz_j[batchSize];
+  KK_FLOAT cutsq_j[batchSize];
 
   for (int jptr = 0; jptr < jnum; )
   {
@@ -1240,14 +1240,14 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
     {
       const int j = d_neighbors(i,jptr) & NEIGHMASK;
 
-      const double delx = xtmp - x(j,0);
-      const double dely = ytmp - x(j,1);
-      const double delz = ztmp - x(j,2);
+      const KK_FLOAT delx = xtmp - x(j,0);
+      const KK_FLOAT dely = ytmp - x(j,1);
+      const KK_FLOAT delz = ztmp - x(j,2);
 
-      const double rsq = delx*delx + dely*dely + delz*delz;
+      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
       const int jtype = type[j];
 
-      const double cutsq_ij = (OneType) ? cutsq_type11 : d_cutsq(itype,jtype);
+      const KK_FLOAT cutsq_ij = (OneType) ? cutsq_type11 : d_cutsq(itype,jtype);
 
       if (rsq < cutsq_ij)
       {
@@ -1270,26 +1270,26 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
     for (int jlane = 0; jlane < niters; jlane++)
     {
       int j = neigh_j[jlane];
-      const double factor_lj = special_lj[sbmask(j)];
+      const KK_FLOAT factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
-      const double delx = delx_j[jlane];
-      const double dely = dely_j[jlane];
-      const double delz = delz_j[jlane];
+      const KK_FLOAT delx = delx_j[jlane];
+      const KK_FLOAT dely = dely_j[jlane];
+      const KK_FLOAT delz = delz_j[jlane];
 
-      const double rsq = delx*delx + dely*dely + delz*delz;
+      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
       // const int jtype = type[j];
 
       // if (rsq < d_cutsq(itype,jtype)) // optimize
       {
-        const double r2inv = 1.0/rsq;
-        const double r6inv = r2inv*r2inv*r2inv;
+        const KK_FLOAT r2inv = 1.0/rsq;
+        const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
 
-        const double r = sqrt(rsq);
-        const double rCut2inv = (OneType) ? rCut2inv_type11 : (1.0/ cutsq_j[jlane]);
-        const double rCut6inv = (OneType) ? rCut6inv_type11 : (rCut2inv*rCut2inv*rCut2inv);
-        const double rCut =     (OneType) ? rCut_type11     : (sqrt( cutsq_j[jlane] ));
-        const double rCutInv =  (OneType) ? rCutInv_type11  : (1.0/rCut);
+        const KK_FLOAT r = sqrt(rsq);
+        const KK_FLOAT rCut2inv = (OneType) ? rCut2inv_type11 : (1.0/ cutsq_j[jlane]);
+        const KK_FLOAT rCut6inv = (OneType) ? rCut6inv_type11 : (rCut2inv*rCut2inv*rCut2inv);
+        const KK_FLOAT rCut =     (OneType) ? rCut_type11     : (sqrt( cutsq_j[jlane] ));
+        const KK_FLOAT rCutInv =  (OneType) ? rCutInv_type11  : (1.0/rCut);
 
         //
         // A. Compute the exp-6 potential
@@ -1297,83 +1297,83 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 
         // A1.  Get alpha, epsilon and rm for particle j
 
-        const double epsilon1_j      = PairExp6ParamData.epsilon1[j];
-        const double alpha1_j        = PairExp6ParamData.alpha1[j];
-        const double rm1_j           = PairExp6ParamData.rm1[j];
-        const double mixWtSite1_j    = PairExp6ParamData.mixWtSite1[j];
-        const double epsilon2_j      = PairExp6ParamData.epsilon2[j];
-        const double alpha2_j        = PairExp6ParamData.alpha2[j];
-        const double rm2_j           = PairExp6ParamData.rm2[j];
-        const double mixWtSite2_j    = PairExp6ParamData.mixWtSite2[j];
-        const double epsilonOld1_j   = PairExp6ParamData.epsilonOld1[j];
-        const double alphaOld1_j     = PairExp6ParamData.alphaOld1[j];
-        const double rmOld1_j        = PairExp6ParamData.rmOld1[j];
-        const double mixWtSite1old_j = PairExp6ParamData.mixWtSite1old[j];
-        const double epsilonOld2_j   = PairExp6ParamData.epsilonOld2[j];
-        const double alphaOld2_j     = PairExp6ParamData.alphaOld2[j];
-        const double rmOld2_j        = PairExp6ParamData.rmOld2[j];
-        const double mixWtSite2old_j = PairExp6ParamData.mixWtSite2old[j];
+        const KK_FLOAT epsilon1_j      = PairExp6ParamData.epsilon1[j];
+        const KK_FLOAT alpha1_j        = PairExp6ParamData.alpha1[j];
+        const KK_FLOAT rm1_j           = PairExp6ParamData.rm1[j];
+        const KK_FLOAT mixWtSite1_j    = PairExp6ParamData.mixWtSite1[j];
+        const KK_FLOAT epsilon2_j      = PairExp6ParamData.epsilon2[j];
+        const KK_FLOAT alpha2_j        = PairExp6ParamData.alpha2[j];
+        const KK_FLOAT rm2_j           = PairExp6ParamData.rm2[j];
+        const KK_FLOAT mixWtSite2_j    = PairExp6ParamData.mixWtSite2[j];
+        const KK_FLOAT epsilonOld1_j   = PairExp6ParamData.epsilonOld1[j];
+        const KK_FLOAT alphaOld1_j     = PairExp6ParamData.alphaOld1[j];
+        const KK_FLOAT rmOld1_j        = PairExp6ParamData.rmOld1[j];
+        const KK_FLOAT mixWtSite1old_j = PairExp6ParamData.mixWtSite1old[j];
+        const KK_FLOAT epsilonOld2_j   = PairExp6ParamData.epsilonOld2[j];
+        const KK_FLOAT alphaOld2_j     = PairExp6ParamData.alphaOld2[j];
+        const KK_FLOAT rmOld2_j        = PairExp6ParamData.rmOld2[j];
+        const KK_FLOAT mixWtSite2old_j = PairExp6ParamData.mixWtSite2old[j];
 
         // A2.  Apply Lorentz-Berthelot mixing rules for the i-j pair
-        const double alphaOld12_ij = sqrt(alphaOld1_i*alphaOld2_j);
-        const double rmOld12_ij = 0.5*(rmOld1_i + rmOld2_j);
-        const double epsilonOld12_ij = sqrt(epsilonOld1_i*epsilonOld2_j);
-        const double alphaOld21_ij = sqrt(alphaOld2_i*alphaOld1_j);
-        const double rmOld21_ij = 0.5*(rmOld2_i + rmOld1_j);
-        const double epsilonOld21_ij = sqrt(epsilonOld2_i*epsilonOld1_j);
+        const KK_FLOAT alphaOld12_ij = sqrt(alphaOld1_i*alphaOld2_j);
+        const KK_FLOAT rmOld12_ij = 0.5*(rmOld1_i + rmOld2_j);
+        const KK_FLOAT epsilonOld12_ij = sqrt(epsilonOld1_i*epsilonOld2_j);
+        const KK_FLOAT alphaOld21_ij = sqrt(alphaOld2_i*alphaOld1_j);
+        const KK_FLOAT rmOld21_ij = 0.5*(rmOld2_i + rmOld1_j);
+        const KK_FLOAT epsilonOld21_ij = sqrt(epsilonOld2_i*epsilonOld1_j);
 
-        const double alpha12_ij = sqrt(alpha1_i*alpha2_j);
-        const double rm12_ij = 0.5*(rm1_i + rm2_j);
-        const double epsilon12_ij = sqrt(epsilon1_i*epsilon2_j);
-        const double alpha21_ij = sqrt(alpha2_i*alpha1_j);
-        const double rm21_ij = 0.5*(rm2_i + rm1_j);
-        const double epsilon21_ij = sqrt(epsilon2_i*epsilon1_j);
+        const KK_FLOAT alpha12_ij = sqrt(alpha1_i*alpha2_j);
+        const KK_FLOAT rm12_ij = 0.5*(rm1_i + rm2_j);
+        const KK_FLOAT epsilon12_ij = sqrt(epsilon1_i*epsilon2_j);
+        const KK_FLOAT alpha21_ij = sqrt(alpha2_i*alpha1_j);
+        const KK_FLOAT rm21_ij = 0.5*(rm2_i + rm1_j);
+        const KK_FLOAT epsilon21_ij = sqrt(epsilon2_i*epsilon1_j);
 
-        double evdwlOldEXP6_12 = 0.0;
-        double evdwlOldEXP6_21 = 0.0;
-        double evdwlEXP6_12 = 0.0;
-        double evdwlEXP6_21 = 0.0;
-        double fpairOldEXP6_12 = 0.0;
-        double fpairOldEXP6_21 = 0.0;
+        KK_FLOAT evdwlOldEXP6_12 = 0.0;
+        KK_FLOAT evdwlOldEXP6_21 = 0.0;
+        KK_FLOAT evdwlEXP6_12 = 0.0;
+        KK_FLOAT evdwlEXP6_21 = 0.0;
+        KK_FLOAT fpairOldEXP6_12 = 0.0;
+        KK_FLOAT fpairOldEXP6_21 = 0.0;
 
         if (rmOld12_ij!=0.0 && rmOld21_ij!=0.0)
         {
           hasError |= (alphaOld21_ij == 6.0 || alphaOld12_ij == 6.0);
 
           // A3.  Compute some convenient quantities for evaluating the force
-          double rminv = 1.0/rmOld12_ij;
-          double buck1 = epsilonOld12_ij / (alphaOld12_ij - 6.0);
-          double rexp = expValue(alphaOld12_ij*(1.0-r*rminv));
-          double rm2ij = rmOld12_ij*rmOld12_ij;
-          double rm6ij = rm2ij*rm2ij*rm2ij;
+          KK_FLOAT rminv = 1.0/rmOld12_ij;
+          KK_FLOAT buck1 = epsilonOld12_ij / (alphaOld12_ij - 6.0);
+          KK_FLOAT rexp = expValue(alphaOld12_ij*(1.0-r*rminv));
+          KK_FLOAT rm2ij = rmOld12_ij*rmOld12_ij;
+          KK_FLOAT rm6ij = rm2ij*rm2ij*rm2ij;
 
           // Compute the shifted potential
-          double rCutExp = expValue(alphaOld12_ij*(1.0-rCut*rminv));
-          double buck2 = 6.0*alphaOld12_ij;
-          double urc = buck1*(6.0*rCutExp - alphaOld12_ij*rm6ij*rCut6inv);
-          double durc = -buck1*buck2*(rCutExp* rminv - rCutInv*rm6ij*rCut6inv);
-          double rin1 = shift*rmOld12_ij*func_rin(alphaOld12_ij);
+          KK_FLOAT rCutExp = expValue(alphaOld12_ij*(1.0-rCut*rminv));
+          KK_FLOAT buck2 = 6.0*alphaOld12_ij;
+          KK_FLOAT urc = buck1*(6.0*rCutExp - alphaOld12_ij*rm6ij*rCut6inv);
+          KK_FLOAT durc = -buck1*buck2*(rCutExp* rminv - rCutInv*rm6ij*rCut6inv);
+          KK_FLOAT rin1 = shift*rmOld12_ij*func_rin(alphaOld12_ij);
 
           if (r < rin1) {
-            const double rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-            const double rin6inv = 1.0/rin6;
+            const KK_FLOAT rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
+            const KK_FLOAT rin6inv = 1.0/rin6;
 
-            const double rin1exp = expValue(alphaOld12_ij*(1.0-rin1*rminv));
+            const KK_FLOAT rin1exp = expValue(alphaOld12_ij*(1.0-rin1*rminv));
 
-            const double uin1 = buck1*(6.0*rin1exp - alphaOld12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+            const KK_FLOAT uin1 = buck1*(6.0*rin1exp - alphaOld12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-            const double win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
+            const KK_FLOAT win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
-            const double aRep = win1*__powint<12>(rin1,nRep)/nRep;
+            const KK_FLOAT aRep = win1*__powint<12>(rin1,nRep)/nRep;
 
-            const double uin1rep = aRep/__powint<12>(rin1,nRep);
+            const KK_FLOAT uin1rep = aRep/__powint<12>(rin1,nRep);
 
-            const double forceExp6 = double(nRep)*aRep/__powint<12>(r,nRep);
+            const KK_FLOAT forceExp6 = KK_FLOAT(nRep)*aRep/__powint<12>(r,nRep);
             fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
 
             evdwlOldEXP6_12 = uin1 - uin1rep + aRep/__powint<12>(r,nRep);
           } else {
-            const double forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
+            const KK_FLOAT forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
             fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
 
             evdwlOldEXP6_12 = buck1*(6.0*rexp - alphaOld12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
@@ -1395,31 +1395,31 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
           rin1 = shift*rmOld21_ij*func_rin(alphaOld21_ij);
 
           if (r < rin1) {
-            const double rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-            const double rin6inv = 1.0/rin6;
+            const KK_FLOAT rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
+            const KK_FLOAT rin6inv = 1.0/rin6;
 
-            const double rin1exp = expValue(alphaOld21_ij*(1.0-rin1*rminv));
+            const KK_FLOAT rin1exp = expValue(alphaOld21_ij*(1.0-rin1*rminv));
 
-            const double uin1 = buck1*(6.0*rin1exp - alphaOld21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+            const KK_FLOAT uin1 = buck1*(6.0*rin1exp - alphaOld21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-            const double win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
+            const KK_FLOAT win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
-            const double aRep = win1*__powint<12>(rin1,nRep)/nRep;
+            const KK_FLOAT aRep = win1*__powint<12>(rin1,nRep)/nRep;
 
-            const double uin1rep = aRep/__powint<12>(rin1,nRep);
+            const KK_FLOAT uin1rep = aRep/__powint<12>(rin1,nRep);
 
-            const double forceExp6 = double(nRep)*aRep/__powint<12>(r,nRep);
+            const KK_FLOAT forceExp6 = KK_FLOAT(nRep)*aRep/__powint<12>(r,nRep);
             fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
 
             evdwlOldEXP6_21 = uin1 - uin1rep + aRep/__powint<12>(r,nRep);
           } else {
-            const double forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
+            const KK_FLOAT forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
             fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
 
             evdwlOldEXP6_21 = buck1*(6.0*rexp - alphaOld21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
           }
 
-          double evdwlOld;
+          KK_FLOAT evdwlOld;
           if (Site1EqSite2)
             evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12;
           else
@@ -1437,32 +1437,32 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
           hasError |= (alpha21_ij == 6.0 || alpha12_ij == 6.0);
 
           // A3.  Compute some convenient quantities for evaluating the force
-          double rminv = 1.0/rm12_ij;
-          double buck1 = epsilon12_ij / (alpha12_ij - 6.0);
-          double buck2 = 6.0*alpha12_ij;
-          double rexp = expValue(alpha12_ij*(1.0-r*rminv));
-          double rm2ij = rm12_ij*rm12_ij;
-          double rm6ij = rm2ij*rm2ij*rm2ij;
+          KK_FLOAT rminv = 1.0/rm12_ij;
+          KK_FLOAT buck1 = epsilon12_ij / (alpha12_ij - 6.0);
+          KK_FLOAT buck2 = 6.0*alpha12_ij;
+          KK_FLOAT rexp = expValue(alpha12_ij*(1.0-r*rminv));
+          KK_FLOAT rm2ij = rm12_ij*rm12_ij;
+          KK_FLOAT rm6ij = rm2ij*rm2ij*rm2ij;
 
           // Compute the shifted potential
-          double rCutExp = expValue(alpha12_ij*(1.0-rCut*rminv));
-          double urc = buck1*(6.0*rCutExp - alpha12_ij*rm6ij*rCut6inv);
-          double durc = -buck1*buck2*(rCutExp*rminv - rCutInv*rm6ij*rCut6inv);
-          double rin1 = shift*rm12_ij*func_rin(alpha12_ij);
+          KK_FLOAT rCutExp = expValue(alpha12_ij*(1.0-rCut*rminv));
+          KK_FLOAT urc = buck1*(6.0*rCutExp - alpha12_ij*rm6ij*rCut6inv);
+          KK_FLOAT durc = -buck1*buck2*(rCutExp*rminv - rCutInv*rm6ij*rCut6inv);
+          KK_FLOAT rin1 = shift*rm12_ij*func_rin(alpha12_ij);
 
           if (r < rin1) {
-            const double rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-            const double rin6inv = 1.0/rin6;
+            const KK_FLOAT rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
+            const KK_FLOAT rin6inv = 1.0/rin6;
 
-            const double rin1exp = expValue(alpha12_ij*(1.0-rin1*rminv));
+            const KK_FLOAT rin1exp = expValue(alpha12_ij*(1.0-rin1*rminv));
 
-            const double uin1 = buck1*(6.0*rin1exp - alpha12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+            const KK_FLOAT uin1 = buck1*(6.0*rin1exp - alpha12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-            const double win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
+            const KK_FLOAT win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
-            const double aRep = win1*__powint<12>(rin1,nRep)/nRep;
+            const KK_FLOAT aRep = win1*__powint<12>(rin1,nRep)/nRep;
 
-            const double uin1rep = aRep/__powint<12>(rin1,nRep);
+            const KK_FLOAT uin1rep = aRep/__powint<12>(rin1,nRep);
 
             evdwlEXP6_12 = uin1 - uin1rep + aRep/__powint<12>(r,nRep);
           } else {
@@ -1483,18 +1483,18 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
           rin1 = shift*rm21_ij*func_rin(alpha21_ij);
 
           if (r < rin1) {
-            const double rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-            const double rin6inv = 1.0/rin6;
+            const KK_FLOAT rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
+            const KK_FLOAT rin6inv = 1.0/rin6;
 
-            const double rin1exp = expValue(alpha21_ij*(1.0-rin1*rminv));
+            const KK_FLOAT rin1exp = expValue(alpha21_ij*(1.0-rin1*rminv));
 
-            const double uin1 = buck1*(6.0*rin1exp - alpha21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+            const KK_FLOAT uin1 = buck1*(6.0*rin1exp - alpha21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-            const double win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
+            const KK_FLOAT win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
-            const double aRep = win1*__powint<12>(rin1,nRep)/nRep;
+            const KK_FLOAT aRep = win1*__powint<12>(rin1,nRep)/nRep;
 
-            const double uin1rep = aRep/__powint<12>(rin1,nRep);
+            const KK_FLOAT uin1rep = aRep/__powint<12>(rin1,nRep);
 
             evdwlEXP6_21 = uin1 - uin1rep + aRep/__powint<12>(r,nRep);
           } else {
@@ -1505,13 +1505,13 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
         //
         // Apply Mixing Rule to get the overall force for the CG pair
         //
-        double fpair;
+        KK_FLOAT fpair;
         if (Site1EqSite2)
           fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12;
         else
           fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*fpairOldEXP6_21;
 
-        double evdwl;
+        KK_FLOAT evdwl;
         if (Site1EqSite2)
           evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12;
         else
@@ -1563,7 +1563,7 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
         }
       }
 
-      double evdwl = evdwlOld_j[jlane];
+      KK_FLOAT evdwl = evdwlOld_j[jlane];
       if (EVFLAG)
         ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
       //if (vflag_either || eflag_atom)
@@ -1646,7 +1646,7 @@ void PairExp6rxKokkos<DeviceType>::allocate()
 
   memoryKK->create_kokkos(k_cutsq,cutsq,ntypes+1,ntypes+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
-  k_cutsq.template modify<LMPHostType>();
+  k_cutsq.modify_host();
 
   memory->create(cut,ntypes+1,ntypes+1,"pair:cut_lj");
 }
@@ -1668,7 +1668,7 @@ void PairExp6rxKokkos<DeviceType>::coeff(int narg, char **arg)
       s_coeffRm[i] = coeffRm[i];
     }
 
-  k_params.template modify<LMPHostType>();
+  k_params.modify_host();
   k_params.template sync<DeviceType>();
   d_params = k_params.template view<DeviceType>();
 }
@@ -1760,7 +1760,7 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
     // load up parameter settings and error check their values
 
     if (nparams == maxparam) {
-      k_params.template modify<LMPHostType>();
+      k_params.modify_host();
       maxparam += DELTA;
       memoryKK->grow_kokkos(k_params,params,maxparam,
                           "pair:params");
@@ -1810,7 +1810,7 @@ void PairExp6rxKokkos<DeviceType>::setup()
     mol2param[i] = n;
   }
 
-  k_mol2param.template modify<LMPHostType>();
+  k_mol2param.modify_host();
   k_mol2param.template sync<DeviceType>();
   d_mol2param = k_mol2param.template view<DeviceType>();
 
@@ -1821,23 +1821,23 @@ void PairExp6rxKokkos<DeviceType>::setup()
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,double &epsilon1,double &alpha1,double &rm1, double &mixWtSite1,double &epsilon2,double &alpha2,double &rm2,double &mixWtSite2,double &epsilon1_old,double &alpha1_old,double &rm1_old, double &mixWtSite1old,double &epsilon2_old,double &alpha2_old,double &rm2_old,double &mixWtSite2old) const
+void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK_FLOAT &alpha1,KK_FLOAT &rm1, KK_FLOAT &mixWtSite1,KK_FLOAT &epsilon2,KK_FLOAT &alpha2,KK_FLOAT &rm2,KK_FLOAT &mixWtSite2,KK_FLOAT &epsilon1_old,KK_FLOAT &alpha1_old,KK_FLOAT &rm1_old, KK_FLOAT &mixWtSite1old,KK_FLOAT &epsilon2_old,KK_FLOAT &alpha2_old,KK_FLOAT &rm2_old,KK_FLOAT &mixWtSite2old) const
 {
   int iparam, jparam;
-  double rmi, rmj, rmij, rm3ij;
-  double epsiloni, epsilonj, epsilonij;
-  double alphai, alphaj, alphaij;
-  double epsilon_old, rm3_old, alpha_old;
-  double epsilon, rm3, alpha;
-  double xMolei, xMolej, xMolei_old, xMolej_old;
+  KK_FLOAT rmi, rmj, rmij, rm3ij;
+  KK_FLOAT epsiloni, epsilonj, epsilonij;
+  KK_FLOAT alphai, alphaj, alphaij;
+  KK_FLOAT epsilon_old, rm3_old, alpha_old;
+  KK_FLOAT epsilon, rm3, alpha;
+  KK_FLOAT xMolei, xMolej, xMolei_old, xMolej_old;
 
-  double fractionOFAold, fractionOFA;
-  double fractionOld1, fraction1;
-  double fractionOld2, fraction2;
-  double nMoleculesOFAold, nMoleculesOFA;
-  double nMoleculesOld1, nMolecules1;
-  double nMoleculesOld2, nMolecules2;
-  double nTotal, nTotalold;
+  KK_FLOAT fractionOFAold, fractionOFA;
+  KK_FLOAT fractionOld1, fraction1;
+  KK_FLOAT fractionOld2, fraction2;
+  KK_FLOAT nMoleculesOFAold, nMoleculesOFA;
+  KK_FLOAT nMoleculesOld1, nMolecules1;
+  KK_FLOAT nMoleculesOld2, nMolecules2;
+  KK_FLOAT nTotal, nTotalold;
 
   rm3 = 0.0;
   epsilon = 0.0;
@@ -2252,9 +2252,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == d_params[iparam].ispecies || isite2 == d_params[iparam].ispecies) continue;
 
-      const double rmi = d_params[iparam].rm;
-      const double epsiloni = d_params[iparam].epsilon;
-      const double alphai = d_params[iparam].alpha;
+      const KK_FLOAT rmi = d_params[iparam].rm;
+      const KK_FLOAT epsiloni = d_params[iparam].epsilon;
+      const KK_FLOAT alphai = d_params[iparam].alpha;
 
       #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
       #pragma ivdep
@@ -2272,21 +2272,21 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
         if (jparam < 0 || d_params[jparam].potentialType != exp6PotentialType ) continue;
         if (isite1 == d_params[jparam].ispecies || isite2 == d_params[jparam].ispecies) continue;
 
-        const double rmj = d_params[jparam].rm;
-        const double epsilonj = d_params[jparam].epsilon;
-        const double alphaj = d_params[jparam].alpha;
+        const KK_FLOAT rmj = d_params[jparam].rm;
+        const KK_FLOAT epsilonj = d_params[jparam].epsilon;
+        const KK_FLOAT alphaj = d_params[jparam].alpha;
 
-        const double rmij = (rmi+rmj)/2.0;
-        const double rm3ij = rmij*rmij*rmij;
-        const double epsilonij = sqrt(epsiloni*epsilonj);
-        const double alphaij = sqrt(alphai*alphaj);
+        const KK_FLOAT rmij = (rmi+rmj)/2.0;
+        const KK_FLOAT rm3ij = rmij*rmij*rmij;
+        const KK_FLOAT epsilonij = sqrt(epsiloni*epsilonj);
+        const KK_FLOAT alphaij = sqrt(alphai*alphaj);
 
         #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
         #pragma ivdep
         #endif
         for (int id = idx_begin; id < idx_end; ++id)
         {
-          double xMolej, xMolej_old;
+          KK_FLOAT xMolej, xMolej_old;
           if (nMoleculesOFA[id]<MY_EPSILON) xMolej = 0.0;
           else xMolej = dvector(jspecies,id)/nMoleculesOFA[id];
           if (nMoleculesOFAold[id]<MY_EPSILON) xMolej_old = 0.0;
@@ -2477,9 +2477,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairExp6rxKokkos<DeviceType>::exponentScaling(double phi, double &epsilon, double &rm) const
+void PairExp6rxKokkos<DeviceType>::exponentScaling(KK_FLOAT phi, KK_FLOAT &epsilon, KK_FLOAT &rm) const
 {
-  double powfuch;
+  KK_FLOAT powfuch;
 
   if (exponentEpsilon < 0.0) {
     powfuch = pow(phi,-exponentEpsilon);
@@ -2502,12 +2502,12 @@ void PairExp6rxKokkos<DeviceType>::exponentScaling(double phi, double &epsilon, 
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairExp6rxKokkos<DeviceType>::polynomialScaling(double phi, double &alpha, double &epsilon, double &rm) const
+void PairExp6rxKokkos<DeviceType>::polynomialScaling(KK_FLOAT phi, KK_FLOAT &alpha, KK_FLOAT &epsilon, KK_FLOAT &rm) const
 {
-    double phi2 = phi*phi;
-    double phi3 = phi2*phi;
-    double phi4 = phi2*phi2;
-    double phi5 = phi2*phi3;
+    KK_FLOAT phi2 = phi*phi;
+    KK_FLOAT phi3 = phi2*phi;
+    KK_FLOAT phi4 = phi2*phi2;
+    KK_FLOAT phi5 = phi2*phi3;
 
     alpha = (s_coeffAlpha[0]*phi5 + s_coeffAlpha[1]*phi4 + s_coeffAlpha[2]*phi3 + s_coeffAlpha[3]*phi2 + s_coeffAlpha[4]*phi + s_coeffAlpha[5]);
     epsilon *= (s_coeffEps[0]*phi5 + s_coeffEps[1]*phi4 + s_coeffEps[2]*phi3 + s_coeffEps[3]*phi2 + s_coeffEps[4]*phi + s_coeffEps[5]);
@@ -2518,12 +2518,12 @@ void PairExp6rxKokkos<DeviceType>::polynomialScaling(double phi, double &alpha, 
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairExp6rxKokkos<DeviceType>::func_rin(const double &alpha) const
+KK_FLOAT PairExp6rxKokkos<DeviceType>::func_rin(const KK_FLOAT &alpha) const
 {
-  double function;
+  KK_FLOAT function;
 
-  const double a = 3.7682065;
-  const double b = -1.4308614;
+  const KK_FLOAT a = 3.7682065;
+  const KK_FLOAT b = -1.4308614;
 
   function = a+b*sqrt(alpha);
   function = expValue(function);
@@ -2535,9 +2535,9 @@ double PairExp6rxKokkos<DeviceType>::func_rin(const double &alpha) const
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairExp6rxKokkos<DeviceType>::expValue(double value) const
+KK_FLOAT PairExp6rxKokkos<DeviceType>::expValue(KK_FLOAT value) const
 {
-  double returnValue;
+  KK_FLOAT returnValue;
   if (value < DBL_MIN_EXP) returnValue = 0.0;
   else returnValue = exp(value);
 
@@ -2550,19 +2550,19 @@ template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-                const F_FLOAT &dely, const F_FLOAT &delz) const
+      const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                const KK_FLOAT &dely, const KK_FLOAT &delz) const
 {
   const int EFLAG = eflag;
   const int VFLAG = vflag_either;
 
   // The eatom and vatom arrays are atomic for Half/Thread neighbor style
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
+  Kokkos::View<KK_ACC_FLOAT*, typename DAT::t_kkacc_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = d_eatom;
+  Kokkos::View<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = d_vatom;
 
   if (EFLAG) {
     if (eflag_atom) {
-      const E_FLOAT epairhalf = 0.5 * epair;
+      const KK_FLOAT epairhalf = 0.5 * epair;
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) v_eatom[i] += epairhalf;
         if (NEWTON_PAIR || j < nlocal) v_eatom[j] += epairhalf;
@@ -2573,12 +2573,12 @@ void PairExp6rxKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const in
   }
 
   if (VFLAG) {
-    const E_FLOAT v0 = delx*delx*fpair;
-    const E_FLOAT v1 = dely*dely*fpair;
-    const E_FLOAT v2 = delz*delz*fpair;
-    const E_FLOAT v3 = delx*dely*fpair;
-    const E_FLOAT v4 = delx*delz*fpair;
-    const E_FLOAT v5 = dely*delz*fpair;
+    const KK_FLOAT v0 = delx*delx*fpair;
+    const KK_FLOAT v1 = dely*dely*fpair;
+    const KK_FLOAT v2 = delz*delz*fpair;
+    const KK_FLOAT v3 = delx*dely*fpair;
+    const KK_FLOAT v4 = delx*delz*fpair;
+    const KK_FLOAT v5 = dely*delz*fpair;
 
     if (vflag_global) {
       if (NEIGHFLAG!=FULL) {

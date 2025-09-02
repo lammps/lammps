@@ -175,6 +175,10 @@ class Neighbor : protected Pointers {
 
   bigint get_nneigh_full();    // return number of neighbors in a regular full neighbor list
   bigint get_nneigh_half();    // return number of neighbors in a regular half neighbor list
+
+  // return "best" non-skip pair neighbor list (used by dump image)
+  NeighList *get_best_pair_list();
+
   void add_temporary_bond(int, int, int);    // add temporary bond to bondlist array
   double memory_usage();
 

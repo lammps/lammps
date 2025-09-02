@@ -52,12 +52,12 @@ ComputeGaussianGridLocalKokkos<DeviceType>::ComputeGaussianGridLocalKokkos(LAMMP
   auto d_cutsq = k_cutsq.template view<DeviceType>();
   rnd_cutsq = d_cutsq;
 
-  host_flag = (execution_space == Host);
+  host_flag = (execution_space == HostKK);
 
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = 1; j <= atom->ntypes; j++){
       k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutsq[i][j]; //cutsq_tmp;
-      k_cutsq.template modify<LMPHostType>();
+      k_cutsq.modify_host();
     }
   }
   // Set up element lists
@@ -94,7 +94,6 @@ ComputeGaussianGridLocalKokkos<DeviceType>::~ComputeGaussianGridLocalKokkos()
 {
   if (copymode) return;
 
-  memoryKK->destroy_kokkos(k_cutsq,cutsq);
   memoryKK->destroy_kokkos(k_alocal,alocal);
   //gridlocal_allocated = 0;
 
@@ -200,7 +199,7 @@ void ComputeGaussianGridLocalKokkos<DeviceType>::compute_local()
   copymode = 0;
 
   k_alocal.template modify<DeviceType>();
-  k_alocal.template sync<LMPHostType>();
+  k_alocal.sync_host();
 
 }
 
@@ -253,9 +252,9 @@ void ComputeGaussianGridLocalKokkos<DeviceType>::operator() (TagComputeGaussianG
     xgrid[2] = h2*xgrid[2] + lo2;
   }
 
-  const F_FLOAT xtmp = xgrid[0];
-  const F_FLOAT ytmp = xgrid[1];
-  const F_FLOAT ztmp = xgrid[2];
+  const double xtmp = xgrid[0];
+  const double ytmp = xgrid[1];
+  const double ztmp = xgrid[2];
 
   // Zeroing out the components, which are filled as a sum.
   for (int icol = size_local_cols_base; icol < size_local_cols; icol++){
@@ -272,11 +271,11 @@ void ComputeGaussianGridLocalKokkos<DeviceType>::operator() (TagComputeGaussianG
 
   // Looping over ntotal for now.
   for (int j = 0; j < ntotal; j++){
-    const F_FLOAT dx = x(j,0) - xtmp;
-    const F_FLOAT dy = x(j,1) - ytmp;
-    const F_FLOAT dz = x(j,2) - ztmp;
+    const double dx = x(j,0) - xtmp;
+    const double dy = x(j,1) - ytmp;
+    const double dz = x(j,2) - ztmp;
     int jtype = type(j);
-    const F_FLOAT rsq = dx*dx + dy*dy + dz*dz;
+    const double rsq = dx*dx + dy*dy + dz*dz;
 
     if (rsq < rnd_cutsq(jtype, jtype) ) {
       int icol = size_local_cols_base + jtype - 1;

@@ -84,26 +84,22 @@ class PairVashishtaKokkos : public PairVashishta {
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-                  const F_FLOAT &dely, const F_FLOAT &delz) const;
+      const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                  const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void ev_tally3(EV_FLOAT &ev, const int &i, const int &j, int &k,
-            const F_FLOAT &evdwl, const F_FLOAT &ecoul,
-                       F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drki) const;
+            const KK_FLOAT &evdwl, const KK_FLOAT &ecoul,
+                       KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk, KK_FLOAT *drji, KK_FLOAT *drki) const;
 
   KOKKOS_INLINE_FUNCTION
   void ev_tally3_atom(EV_FLOAT &ev, const int &i,
-            const F_FLOAT &evdwl, const F_FLOAT &ecoul,
-                       F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drki) const;
+            const KK_FLOAT &evdwl, const KK_FLOAT &ecoul,
+                       KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk, KK_FLOAT *drji, KK_FLOAT *drki) const;
 
  protected:
-  typedef Kokkos::DualView<int***,DeviceType> tdual_int_3d;
-  typedef typename tdual_int_3d::t_dev_const_randomread t_int_3d_randomread;
-  typedef typename tdual_int_3d::t_host t_host_int_3d;
-
-  t_int_3d_randomread d_elem3param;
+  typename AT::t_int_3d_randomread d_elem3param;
   typename AT::t_int_1d_randomread d_map;
 
   typedef Kokkos::DualView<Param*,DeviceType> tdual_param_1d;
@@ -115,29 +111,29 @@ class PairVashishtaKokkos : public PairVashishta {
   void setup_params() override;
 
   KOKKOS_INLINE_FUNCTION
-  void twobody(const Param&, const F_FLOAT&, F_FLOAT&, const int&, F_FLOAT&) const;
+  void twobody(const Param&, const KK_FLOAT&, KK_FLOAT&, const int&, KK_FLOAT&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void threebody(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
-                 F_FLOAT *, F_FLOAT *, const int&, F_FLOAT&) const;
+  void threebody(const Param&, const Param&, const Param&, const KK_FLOAT&, const KK_FLOAT&, KK_FLOAT *, KK_FLOAT *,
+                 KK_ACC_FLOAT *, KK_ACC_FLOAT *, const int&, KK_FLOAT&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void threebodyj(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
-                 F_FLOAT *) const;
+  void threebodyj(const Param&, const Param&, const Param&, const KK_FLOAT&, const KK_FLOAT&, KK_FLOAT *, KK_FLOAT *,
+                 KK_ACC_FLOAT *) const;
 
-  typename AT::t_x_array_randomread x;
-  typename AT::t_f_array f;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkacc_1d_3 f;
   typename AT::t_tagint_1d tag;
   typename AT::t_int_1d_randomread type;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
+  DAT::ttransform_kkacc_1d k_eatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d d_eatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
   typename AT::t_int_1d_randomread d_type2frho;
-  typename AT::t_int_2d_randomread d_type2rhor;
-  typename AT::t_int_2d_randomread d_type2z2r;
+  typename AT::t_int_2d_dl_randomread d_type2rhor;
+  typename AT::t_int_2d_dl_randomread d_type2z2r;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
@@ -148,10 +144,10 @@ class PairVashishtaKokkos : public PairVashishta {
   int nlocal,nall,eflag,vflag;
 
   int inum;
-  Kokkos::View<int**,DeviceType> d_neighbors_short_2body;
-  Kokkos::View<int*,DeviceType> d_numneigh_short_2body;
-  Kokkos::View<int**,DeviceType> d_neighbors_short_3body;
-  Kokkos::View<int*,DeviceType> d_numneigh_short_3body;
+  typename AT::t_int_2d_dl d_neighbors_short_2body;
+  typename AT::t_int_1d d_numneigh_short_2body;
+  typename AT::t_int_2d_dl d_neighbors_short_3body;
+  typename AT::t_int_1d d_numneigh_short_3body;
   friend void pair_virial_fdotr_compute<PairVashishtaKokkos>(PairVashishtaKokkos*);
 };
 

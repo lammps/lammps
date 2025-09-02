@@ -126,7 +126,7 @@ void NPairTrimKokkos<DeviceType>::trim_to_cpu(NeighList *list)
   NeighList *listcopy = list->listcopy;
   NeighListKokkos<DeviceType>* listcopy_kk = (NeighListKokkos<DeviceType>*) listcopy;
 
-  listcopy_kk->k_ilist.template sync<LMPHostType>();
+  listcopy_kk->k_ilist.sync_host();
 
   double** x = atom->x;
 

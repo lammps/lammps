@@ -193,7 +193,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // parse optional args
 
   onemols = nullptr;
-  kbond = 1.0e6*force->boltz;
+  kbond = 1.0e9*force->boltz;
 
   int iarg = next;
   while (iarg < narg) {
@@ -383,7 +383,7 @@ void FixShake::init()
 
   if ((comm->me == 0) && (update->whichflag == 2))
     error->warning(FLERR,"Using fix {} with minimization.\n  Substituting constraints with "
-                   "harmonic restraint forces using kbond={:.4g}", style, kbond);
+                   "harmonic restraint forces using kbond={:.8g}", style, kbond);
 
   // error if a fix changing the box comes before shake fix
   bool boxflag = false;
@@ -746,42 +746,242 @@ void FixShake::min_pre_reverse(int eflag, int /*vflag*/)
 
 void FixShake::min_post_force(int vflag)
 {
+  // update local pointers of per-atom quantities
+
+  x = atom->x;
+  v = atom->v;
+  f = atom->f;
+  mass = atom->mass;
+  rmass = atom->rmass;
+  type = atom->type;
+  nlocal = atom->nlocal;
+
+  int atom1,atom2,atom3,atom4;
+  int eflag = eflag_pre_reverse;
+  ev_init(eflag, vflag);
+  ebond = 0.0;
+
+  // zero out accumulators for statistics
+
+  int nb = atom->nbondtypes + 1;
+  int na = atom->nangletypes + 1;
+
+  for (int i = 0; i < nb; i++) {
+    b_count[i] = 0;
+    b_ave[i] = b_max[i] = 0.0;
+    b_min[i] = BIG;
+  }
+  for (int i = 0; i < na; i++) {
+    a_count[i] = 0;
+    a_ave[i] = a_max[i] = 0.0;
+    a_min[i] = BIG;
+  }
+
+  // loop over local shake clusters to add restraint forces
+
+  for (int i = 0; i < nlocal; i++) {
+    if (shake_flag[i]) {
+      if (shake_flag[i] == 2) {
+        atom1 = atom->map(shake_atom[i][0]);
+        atom2 = atom->map(shake_atom[i][1]);
+        if (atom1 == -1 || atom2 == -1)
+          error->one(FLERR,"Shake atoms {} {} missing on proc {} at step {}{}",shake_atom[i][0],
+                     shake_atom[i][1],comm->me,update->ntimestep,utils::errorurl(5));
+        atom1 = domain->closest_image(i, atom1);
+        atom2 = domain->closest_image(i, atom2);
+        if (i <= atom1 && i <= atom2) {
+          int m = shake_type[i][0];
+          double r = bond_force(atom1, atom2, bond_distance[m]);
+          if (atom1 < nlocal) {
+            b_count[m]++;
+            b_ave[m] += r;
+          }
+          if (atom2 < nlocal) {
+            b_count[m]++;
+            b_ave[m] += r;
+          }
+          b_max[m] = MAX(b_max[m], r);
+          b_min[m] = MIN(b_min[m], r);
+        }
+      } else if (shake_flag[i] == 3) {
+        atom1 = atom->map(shake_atom[i][0]);
+        atom2 = atom->map(shake_atom[i][1]);
+        atom3 = atom->map(shake_atom[i][2]);
+        if (atom1 == -1 || atom2 == -1 || atom3 == -1)
+          error->one(FLERR,"Shake atoms {} {} {} missing on proc {} at step {}{}",shake_atom[i][0],
+                     shake_atom[i][1],shake_atom[i][2],comm->me,update->ntimestep,
+                     utils::errorurl(5));
+        atom1 = domain->closest_image(i, atom1);
+        atom2 = domain->closest_image(i, atom2);
+        atom3 = domain->closest_image(i, atom3);
+        if (i <= atom1 && i <= atom2 && i <= atom3) {
+          int m = shake_type[i][0];
+          double r = bond_force(atom1, atom2, bond_distance[m]);
+          if (atom1 < nlocal) {
+            b_count[m]++;
+            b_ave[m] += r;
+          }
+          if (atom2 < nlocal) {
+            b_count[m]++;
+            b_ave[m] += r;
+          }
+          b_max[m] = MAX(b_max[m], r);
+          b_min[m] = MIN(b_min[m], r);
+          m = shake_type[i][1];
+          r = bond_force(atom1, atom3, bond_distance[m]);
+          if (atom1 < nlocal) {
+            b_count[m]++;
+            b_ave[m] += r;
+          }
+          if (atom3 < nlocal) {
+            b_count[m]++;
+            b_ave[m] += r;
+          }
+          b_max[m] = MAX(b_max[m], r);
+          b_min[m] = MIN(b_min[m], r);
+        }
+      } else if (shake_flag[i] == 4) {
+        atom1 = atom->map(shake_atom[i][0]);
+        atom2 = atom->map(shake_atom[i][1]);
+        atom3 = atom->map(shake_atom[i][2]);
+        atom4 = atom->map(shake_atom[i][3]);
+        if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
+          error->one(FLERR,"Shake atoms {} {} {} {} missing on proc {} at step {}{}",
+                     shake_atom[i][0],shake_atom[i][1],shake_atom[i][2],shake_atom[i][3],
+                     comm->me,update->ntimestep,utils::errorurl(5));
+        atom1 = domain->closest_image(i, atom1);
+        atom2 = domain->closest_image(i, atom2);
+        atom3 = domain->closest_image(i, atom3);
+        atom4 = domain->closest_image(i, atom4);
+        if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4) {
+          int m = shake_type[i][0];
+          double r = bond_force(atom1, atom2, bond_distance[m]);
+          if (atom1 < nlocal) {
+            b_count[m]++;
+            b_ave[m] += r;
+          }
+          if (atom2 < nlocal) {
+            b_count[m]++;
+            b_ave[m] += r;
+          }
+          b_max[m] = MAX(b_max[m], r);
+          b_min[m] = MIN(b_min[m], r);
+          m = shake_type[i][1];
+          r = bond_force(atom1, atom3, bond_distance[m]);
+          if (atom1 < nlocal) {
+            b_count[m]++;
+            b_ave[m] += r;
+          }
+          if (atom3 < nlocal) {
+            b_count[m]++;
+            b_ave[m] += r;
+          }
+          b_max[m] = MAX(b_max[m], r);
+          b_min[m] = MIN(b_min[m], r);
+          m = shake_type[i][2];
+          r = bond_force(atom1, atom4, bond_distance[m]);
+          if (atom1 < nlocal) {
+            b_count[m]++;
+            b_ave[m] += r;
+          }
+          if (atom4 < nlocal) {
+            b_count[m]++;
+            b_ave[m] += r;
+          }
+          b_max[m] = MAX(b_max[m], r);
+          b_min[m] = MIN(b_min[m], r);
+        }
+      } else { // shake_flag[i] == 1
+        atom1 = atom->map(shake_atom[i][0]);
+        atom2 = atom->map(shake_atom[i][1]);
+        atom3 = atom->map(shake_atom[i][2]);
+        if (atom1 == -1 || atom2 == -1 || atom3 == -1)
+          error->one(FLERR,"Shake atoms {} {} {} missing on proc {} at step {}{}",
+                     shake_atom[i][0],shake_atom[i][1],shake_atom[i][2],
+                     comm->me,update->ntimestep,utils::errorurl(5));
+        atom1 = domain->closest_image(i, atom1);
+        atom2 = domain->closest_image(i, atom2);
+        atom3 = domain->closest_image(i, atom3);
+        if (i <= atom1 && i <= atom2 && i <= atom3) {
+          int m = shake_type[i][0];
+          double r1 = bond_force(atom1, atom2, bond_distance[m]);
+          if (atom1 < nlocal) {
+            b_count[m]++;
+            b_ave[m] += r1;
+          }
+          if (atom2 < nlocal) {
+            b_count[m]++;
+            b_ave[m] += r1;
+          }
+          b_max[m] = MAX(b_max[m], r1);
+          b_min[m] = MIN(b_min[m], r1);
+          m = shake_type[i][1];
+          double r2 = bond_force(atom1, atom3, bond_distance[m]);
+          if (atom1 < nlocal) {
+            b_count[m]++;
+            b_ave[m] += r2;
+          }
+          if (atom3 < nlocal) {
+            b_count[m]++;
+            b_ave[m] += r2;
+          }
+          b_max[m] = MAX(b_max[m], r2);
+          b_min[m] = MIN(b_min[m], r2);
+          m = shake_type[i][2];
+          double r3 = bond_force(atom2, atom3, angle_distance[m]);
+          double angle = acos((r1*r1 + r2*r2 - r3*r3) / (2.0*r1*r2));
+          angle *= 180.0/MY_PI;
+          if (atom2 < nlocal) {
+            a_count[m]++;
+            a_ave[m] += angle;
+          }
+          if (atom3 < nlocal) {
+            a_count[m]++;
+            a_ave[m] += angle;
+          }
+          a_max[m] = MAX(a_max[m],angle);
+          a_min[m] = MIN(a_min[m],angle);
+        }
+      }
+    }
+  }
+
   if (output_every) {
     bigint ntimestep = update->ntimestep;
-    if (next_output == ntimestep) stats();
+    if (next_output == ntimestep) {
+      // sum collected data across all procs
+      MPI_Allreduce(b_count,b_count_all,nb,MPI_LMP_BIGINT,MPI_SUM,world);
+      MPI_Allreduce(b_ave,b_ave_all,nb,MPI_DOUBLE,MPI_SUM,world);
+      MPI_Allreduce(b_max,b_max_all,nb,MPI_DOUBLE,MPI_MAX,world);
+      MPI_Allreduce(b_min,b_min_all,nb,MPI_DOUBLE,MPI_MIN,world);
 
+      MPI_Allreduce(a_count,a_count_all,na,MPI_LMP_BIGINT,MPI_SUM,world);
+      MPI_Allreduce(a_ave,a_ave_all,na,MPI_DOUBLE,MPI_SUM,world);
+      MPI_Allreduce(a_max,a_max_all,na,MPI_DOUBLE,MPI_MAX,world);
+      MPI_Allreduce(a_min,a_min_all,na,MPI_DOUBLE,MPI_MIN,world);
+      if (comm->me == 0) {
+        const int width = (int) log10((double)(MAX(MAX(1,nb),na))) + 2;
+        auto mesg = fmt::format("{} stats (type/ave/delta/count) on step {}\n",
+                                utils::uppercase(style), update->ntimestep);
+        for (int i = 1; i < nb; i++) {
+          const auto bcnt = b_count_all[i];
+          if (bcnt)
+            mesg += fmt::format("Bond:  {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
+                                b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt/2);
+        }
+        for (int i = 1; i < na; i++) {
+          const auto acnt = a_count_all[i];
+          if (acnt)
+            mesg += fmt::format("Angle: {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
+                                a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt/2);
+        }
+        utils::logmesg(lmp,mesg);
+      }
+    }
     next_output = ntimestep + output_every;
     if (ntimestep % output_every != 0)
       next_output = (ntimestep/output_every)*output_every + output_every;
   } else next_output = -1;
-
-  int eflag = eflag_pre_reverse;
-  ev_init(eflag, vflag);
-
-  x = atom->x;
-  f = atom->f;
-  nlocal = atom->nlocal;
-  ebond = 0.0;
-
-  // loop over shake clusters to add restraint forces
-
-  for (int i = 0; i < nlist; i++) {
-    int m = list[i];
-    if (shake_flag[m] == 2) {
-      bond_force(closest_list[i][0], closest_list[i][1], bond_distance[shake_type[m][0]]);
-    } else if (shake_flag[m] == 3) {
-      bond_force(closest_list[i][0], closest_list[i][1], bond_distance[shake_type[m][0]]);
-      bond_force(closest_list[i][0], closest_list[i][2], bond_distance[shake_type[m][1]]);
-    } else if (shake_flag[m] == 4) {
-      bond_force(closest_list[i][0], closest_list[i][1], bond_distance[shake_type[m][0]]);
-      bond_force(closest_list[i][0], closest_list[i][2], bond_distance[shake_type[m][1]]);
-      bond_force(closest_list[i][0], closest_list[i][3], bond_distance[shake_type[m][2]]);
-    } else {
-      bond_force(closest_list[i][0], closest_list[i][1], bond_distance[shake_type[m][0]]);
-      bond_force(closest_list[i][0], closest_list[i][2], bond_distance[shake_type[m][1]]);
-      bond_force(closest_list[i][1], closest_list[i][2], angle_distance[shake_type[m][2]]);
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -2581,34 +2781,38 @@ void FixShake::shake3angle(int ilist)
    apply bond force for minimization between atom indices i1 and i2
 ------------------------------------------------------------------------- */
 
-void FixShake::bond_force(int i1, int i2, double length)
+double FixShake::bond_force(int i1, int i2, double length)
 {
-  if ((i1 < 0) || (i2 < 0)) return;
-
-  // distance vec between atoms, with PBC
+  if ((i1 < 0) || (i2 < 0)) return -1.0;
 
   double delx = x[i1][0] - x[i2][0];
   double dely = x[i1][1] - x[i2][1];
   double delz = x[i1][2] - x[i2][2];
+  domain->minimum_image(FLERR, delx, dely, delz);
+
+  // get canonical local atom indices
+  i1 = atom->map(atom->tag[i1]);
+  i2 = atom->map(atom->tag[i2]);
 
   // compute and apply force
 
   const double r = sqrt(delx * delx + dely * dely + delz * delz);
   const double dr = r - length;
+
   const double rk = kbond * dr;
   const double fbond = (r > 0.0) ? -2.0 * rk / r : 0.0;
   const double eb = rk*dr;
   int atomlist[2];
   int count = 0;
 
-  if (i1 < nlocal) {
+  if ((i1 >= 0) && (i1 < nlocal)) {
     f[i1][0] += delx * fbond;
     f[i1][1] += dely * fbond;
     f[i1][2] += delz * fbond;
     atomlist[count++] = i1;
     ebond += 0.5*eb;
   }
-  if (i2 < nlocal) {
+  if ((i2 >= 0) && (i2 < nlocal)) {
     f[i2][0] -= delx * fbond;
     f[i2][1] -= dely * fbond;
     f[i2][2] -= delz * fbond;
@@ -2625,6 +2829,7 @@ void FixShake::bond_force(int i1, int i2, double length)
     v[5] = 0.5 * dely * delz * fbond;
     ev_tally(count, atomlist, 2.0, eb, v);
   }
+  return r;
 }
 
 /* ----------------------------------------------------------------------
@@ -3197,15 +3402,6 @@ double FixShake::compute_scalar()
   MPI_Allreduce(&ebond, &all, 1, MPI_DOUBLE, MPI_SUM, world);
   return all;
 }
-
-/*  ----------------------------------------------------------------------
-   print shake stats at the end of a minimization
-------------------------------------------------------------------------- */
-void FixShake::post_run()
-{
-  if ((update->whichflag == 2) && (output_every > 0)) stats();
-}
-
 
 /* ----------------------------------------------------------------------
    add coordinate constraining forces

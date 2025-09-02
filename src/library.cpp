@@ -1624,7 +1624,9 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"peri_flag") == 0) return lmp->atom->peri_flag;
 
   if (strcmp(keyword,"thermo_every") == 0) return lmp->output->thermo_every;
-  if (strcmp(keyword,"thermo_norm") == 0) return lmp->output->thermo->normflag;
+  if (lmp->output->thermo) {
+    if (strcmp(keyword,"thermo_norm") == 0) return lmp->output->thermo->normflag;
+  }
 
   return -1;
 }
@@ -1697,6 +1699,9 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"special_lj") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"special_coul") == 0) return LAMMPS_DOUBLE;
 
+  if (strcmp(name,"neigh_skin") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"neigh_cutmin") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"neigh_cutmax") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"neigh_bondlist") == 0) return LAMMPS_INT_2D;
   if (strcmp(name,"neigh_anglelist") == 0) return LAMMPS_INT_2D;
   if (strcmp(name,"neigh_dihedrallist") == 0) return LAMMPS_INT_2D;
@@ -2053,6 +2058,18 @@ Get length of lists with :ref:`lammps_extract_setting() <extract_neighbor_settin
      - Type
      - Length
      - Description
+   * - neigh_skin
+     - double
+     - 1
+     - neighbor list skin
+   * - neigh_cutmin
+     - double
+     - 1
+     - minimum neighbor cutoff across all type pairs
+   * - neigh_cutmax
+     - double
+     - 1
+     - maximum neighbor cutoff across all type pairs
    * - neigh_bondlist
      - 2d int
      - nbondlist
@@ -2230,6 +2247,11 @@ Get length of lists with :ref:`lammps_extract_setting() <extract_neighbor_settin
 
 void *lammps_extract_global(void *handle, const char *name)
 {
+  if (strcmp(name,"git_commit") == 0) return (void *)LAMMPS::git_commit;
+  if (strcmp(name,"git_branch") == 0) return (void  *)LAMMPS::git_branch;
+  if (strcmp(name,"git_descriptor") == 0) return (void *)LAMMPS::git_descriptor;
+  if (strcmp(name,"lammps_version") == 0) return (void *)LAMMPS_VERSION;
+
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->update || !lmp->atom || !lmp->force || !lmp->domain || !lmp->domain->lattice
       || !lmp->update->integrate) {
@@ -2260,11 +2282,6 @@ void *lammps_extract_global(void *handle, const char *name)
     if (strcmp(name,"respa_levels") == 0) return (void *) &respa->nlevels;
     if (strcmp(name,"respa_dt") == 0) return (void *) respa->step;
   }
-
-  if (strcmp(name,"git_commit") == 0) return (void *)LAMMPS::git_commit;
-  if (strcmp(name,"git_branch") == 0) return (void  *)LAMMPS::git_branch;
-  if (strcmp(name,"git_descriptor") == 0) return (void *)LAMMPS::git_descriptor;
-  if (strcmp(name,"lammps_version") == 0) return (void *)LAMMPS_VERSION;
 
   if (strcmp(name,"boxlo") == 0) return (void *) lmp->domain->boxlo;
   if (strcmp(name,"boxhi") == 0) return (void *) lmp->domain->boxhi;
@@ -2310,6 +2327,9 @@ void *lammps_extract_global(void *handle, const char *name)
 
   if (strcmp(name,"q_flag") == 0) return (void *) &lmp->atom->q_flag;
 
+  if (strcmp(name,"neigh_skin") == 0) return (void *) &lmp->neighbor->skin;
+  if (strcmp(name,"neigh_cutmin") == 0) return (void *) &lmp->neighbor->cutneighmin;
+  if (strcmp(name,"neigh_cutmax") == 0) return (void *) &lmp->neighbor->cutneighmax;
   if (strcmp(name,"neigh_bondlist") == 0) return (void *) lmp->neighbor->bondlist;
   if (strcmp(name,"neigh_anglelist") == 0) return (void *) lmp->neighbor->anglelist;
   if (strcmp(name,"neigh_dihedrallist") == 0) return (void *) lmp->neighbor->dihedrallist;
@@ -6243,7 +6263,7 @@ as a C-style string instead of reading it from a file.
  *
  * \param  handle   pointer to a previously created LAMMPS instance
  * \param  id       molecule-ID
- * \param  json     molecule data in JSON format as C-style string */
+ * \param  jsonstr  molecule data in JSON format as C-style string */
 
 void lammps_create_molecule(void *handle, const char *id, const char *jsonstr)
 {

@@ -78,8 +78,8 @@ void NPairSkipKokkos<DeviceType,TRIM>::build(NeighList *list)
       k_ijskip.h_view(itype,jtype) = list->ijskip[itype][jtype];
     }
   }
-  k_iskip.modify<LMPHostType>();
-  k_ijskip.modify<LMPHostType>();
+  k_iskip.modify_host();
+  k_ijskip.modify_host();
 
   k_iskip.sync<DeviceType>();
   k_ijskip.sync<DeviceType>();
@@ -111,7 +111,7 @@ void NPairSkipKokkos<DeviceType,TRIM>::operator()(TagNPairSkipCompute, const int
   const int i = d_ilist_skip(ii);
   const int itype = type(i);
 
-  F_FLOAT xtmp,ytmp,ztmp;
+  double xtmp,ytmp,ztmp;
   if (TRIM) {
     xtmp = x(i,0);
     ytmp = x(i,1);

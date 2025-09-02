@@ -39,10 +39,11 @@ colvarbias_alb::colvarbias_alb(char const *key)
 int colvarbias_alb::init(std::string const &conf)
 {
   colvarproxy *proxy = cvm::main()->proxy;
-  int err = colvarbias::init(conf);
-  if (err != COLVARS_OK) {
-    return err;
+  int error_code = colvarbias::init(conf);
+  if (error_code != COLVARS_OK) {
+    return error_code;
   }
+
   cvm::main()->cite_feature("ALB colvar bias implementation");
 
   enable(f_cvb_scalar_variables);
@@ -80,21 +81,34 @@ int colvarbias_alb::init(std::string const &conf)
     }
   } else {
     colvar_centers.clear();
-    cvm::error("Error: must define the initial centers of adaptive linear bias .\n");
+    error_code |= cvm::error("Error: must define the initial centers of adaptive linear bias.\n",
+                             COLVARS_INPUT_ERROR);
   }
 
-  if (colvar_centers.size() != num_variables())
-    cvm::error("Error: number of centers does not match "
-                      "that of collective variables.\n");
+  if (colvar_centers.size() != num_variables()) {
+    error_code |=
+        cvm::error("Error: number of centers does not match that of collective variables.\n");
+  }
 
-  if (!get_keyval(conf, "UpdateFrequency", update_freq, 0))
-    cvm::error("Error: must set updateFrequency for adaptive linear bias.\n");
+  if (!get_keyval(conf, "updateFrequency", update_freq, 0)) {
+    error_code |= cvm::error("Error: must set updateFrequency for adaptive linear bias.\n",
+                             COLVARS_INPUT_ERROR);
+  }
+
+  if (update_freq % time_step_factor != 0) {
+    error_code |= cvm::error("updateFrequency (currently " + cvm::to_str(update_freq) +
+                                 ") must be a multiple of timeStepFactor (" +
+                                 cvm::to_str(time_step_factor) + ").\n",
+                             COLVARS_INPUT_ERROR);
+  }
 
   //we split the time between updating and equilibrating
   update_freq /= 2;
 
-  if (update_freq <= 1)
-    cvm::error("Error: must set updateFrequency to greater than 2.\n");
+  if (update_freq <= 1) {
+    error_code |=
+        cvm::error("Error: must set updateFrequency to greater than 2.\n", COLVARS_INPUT_ERROR);
+  }
 
   enable(f_cvb_history_dependent);
 
@@ -136,7 +150,7 @@ int colvarbias_alb::init(std::string const &conf)
   if (cvm::debug())
     cvm::log(" bias.\n");
 
-  return COLVARS_OK;
+  return error_code;
 }
 
 
@@ -150,7 +164,7 @@ int colvarbias_alb::update()
   colvarproxy *proxy = cvm::main()->proxy;
 
   bias_energy = 0.0;
-  update_calls++;
+  update_calls += time_step_factor;
 
   if (cvm::debug())
     cvm::log("Updating the adaptive linear bias \""+this->name+"\".\n");
@@ -221,7 +235,7 @@ int colvarbias_alb::update()
     //reset means and sum of squares of differences
     for (size_t i = 0; i < num_variables(); i++) {
 
-      temp = 2. * (means[i] / (static_cast<cvm::real> (colvar_centers[i])) - 1) * ssd[i] / (update_calls - 1);
+      temp = 2. * (means[i] / (static_cast<cvm::real> (colvar_centers[i])) - 1) * ssd[i] / (update_calls - time_step_factor);
 
       if (proxy->target_temperature() > 0.0) {
         step_size = temp / (proxy->target_temperature() * proxy->boltzmann());

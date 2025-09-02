@@ -120,9 +120,9 @@ void ComputeCompositionAtomKokkos<DeviceType>::operator()(TagComputeCompositionA
 
   if (mask[i] & groupbit) {
 
-    const X_FLOAT xtmp = x(i,0);
-    const X_FLOAT ytmp = x(i,1);
-    const X_FLOAT ztmp = x(i,2);
+    const KK_FLOAT xtmp = x(i,0);
+    const KK_FLOAT ytmp = x(i,1);
+    const KK_FLOAT ztmp = x(i,2);
     const int jnum = d_numneigh[i];
 
     // i atom contribution
@@ -138,10 +138,10 @@ void ComputeCompositionAtomKokkos<DeviceType>::operator()(TagComputeCompositionA
 
       int jtype = type[j];
 
-      const F_FLOAT delx = x(j,0) - xtmp;
-      const F_FLOAT dely = x(j,1) - ytmp;
-      const F_FLOAT delz = x(j,2) - ztmp;
-      const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      const KK_FLOAT delx = x(j,0) - xtmp;
+      const KK_FLOAT dely = x(j,1) - ytmp;
+      const KK_FLOAT delz = x(j,2) - ztmp;
+      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
       if (rsq < cutsq) {
         count++;
         d_result(i,jtype) += 1.0;
@@ -154,7 +154,7 @@ void ComputeCompositionAtomKokkos<DeviceType>::operator()(TagComputeCompositionA
 
     // local comp fractions per atom type
 
-    double lfac = 1.0 / count;
+    KK_FLOAT lfac = 1.0 / count;
 
     for (int n = 1; n < size_peratom_cols; n++) {
       d_result(i,n) *= lfac;

@@ -84,6 +84,7 @@ Alexey
 ali
 aliceblue
 aliphatic
+alkyl
 Allera
 Allinger
 allocatable
@@ -96,6 +97,7 @@ Alonso
 Alperen
 alphak
 alphashrink
+Alvares
 amap
 Amatrix
 AMD
@@ -691,6 +693,7 @@ cuthi
 cutinner
 cutlo
 cutmax
+cutmin
 cutoffA
 cutoffC
 cutsq

@@ -70,144 +70,115 @@ template<class DeviceType>
 void
 MEAMKokkos<DeviceType>::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
 {
-  MemoryKokkos *memoryKK = (MemoryKokkos *)memory;
-
   // grow local arrays if necessary
 
   if (atom_nmax > nmax) {
-    memoryKK->destroy_kokkos(k_rho,rho);
-    memoryKK->destroy_kokkos(k_rho0,rho0);
-    memoryKK->destroy_kokkos(k_rho1,rho1);
-    memoryKK->destroy_kokkos(k_rho2,rho2);
-    memoryKK->destroy_kokkos(k_rho3,rho3);
-    memoryKK->destroy_kokkos(k_frhop,frhop);
-    memoryKK->destroy_kokkos(k_gamma,gamma);
-    memoryKK->destroy_kokkos(k_dgamma1,dgamma1);
-    memoryKK->destroy_kokkos(k_dgamma2,dgamma2);
-    memoryKK->destroy_kokkos(k_dgamma3,dgamma3);
-    memoryKK->destroy_kokkos(k_arho2b,arho2b);
-    memoryKK->destroy_kokkos(k_arho1,arho1);
-    memoryKK->destroy_kokkos(k_arho2,arho2);
-    memoryKK->destroy_kokkos(k_arho3,arho3);
-    memoryKK->destroy_kokkos(k_arho3b,arho3b);
-    memoryKK->destroy_kokkos(k_t_ave,t_ave);
-    memoryKK->destroy_kokkos(k_tsq_ave,tsq_ave);
-    // msmeam
-    memoryKK->destroy_kokkos(k_arho2mb, arho2mb);
-    memoryKK->destroy_kokkos(k_arho1m, arho1m);
-    memoryKK->destroy_kokkos(k_arho2m, arho2m);
-    memoryKK->destroy_kokkos(k_arho3m, arho3m);
-    memoryKK->destroy_kokkos(k_arho3mb, arho3mb);
-
     nmax = atom_nmax;
 
     //memory->create(rho, nmax, "pair:rho");
-    k_rho = DAT::tdual_ffloat_1d("pair:rho",nmax);
+    k_rho = DAT::tdual_kkfloat_1d("pair:rho",nmax);
     d_rho = k_rho.template view<DeviceType>();
     h_rho = k_rho.h_view;
     //memory->create(rho0, nmax, "pair:rho0");
-    k_rho0 = DAT::tdual_ffloat_1d("pair:rho0",nmax);
+    k_rho0 = DAT::tdual_kkfloat_1d("pair:rho0",nmax);
     d_rho0 = k_rho0.template view<DeviceType>();
     h_rho0 = k_rho0.h_view;
     //memory->create(rho1, nmax, "pair:rho1");
-    k_rho1 = DAT::tdual_ffloat_1d("pair:rho1",nmax);
+    k_rho1 = DAT::tdual_kkfloat_1d("pair:rho1",nmax);
     d_rho1 = k_rho1.template view<DeviceType>();
     h_rho1 = k_rho1.h_view;
     //memory->create(rho2, nmax, "pair:rho2");
-    k_rho2 = DAT::tdual_ffloat_1d("pair:rho2",nmax);
+    k_rho2 = DAT::tdual_kkfloat_1d("pair:rho2",nmax);
     d_rho2 = k_rho2.template view<DeviceType>();
     h_rho2 = k_rho2.h_view;
     //memory->create(rho3, nmax, "pair:rho3");
-    k_rho3 = DAT::tdual_ffloat_1d("pair:rho3",nmax);
+    k_rho3 = DAT::tdual_kkfloat_1d("pair:rho3",nmax);
     d_rho3 = k_rho3.template view<DeviceType>();
     h_rho3 = k_rho3.h_view;
     //memory->create(frhop, nmax, "pair:frhop");
-    k_frhop = DAT::tdual_ffloat_1d("pair:frhop",nmax);
+    k_frhop = DAT::tdual_kkfloat_1d("pair:frhop",nmax);
     d_frhop = k_frhop.template view<DeviceType>();
     h_frhop = k_frhop.h_view;
     //memory->create(gamma, nmax, "pair:gamma");
-    k_gamma = DAT::tdual_ffloat_1d("pair:gamma",nmax);
+    k_gamma = DAT::tdual_kkfloat_1d("pair:gamma",nmax);
     d_gamma = k_gamma.template view<DeviceType>();
     h_gamma = k_gamma.h_view;
     //memory->create(dgamma1, nmax, "pair:dgamma1");
-    k_dgamma1 = DAT::tdual_ffloat_1d("pair:dgamma1",nmax);
+    k_dgamma1 = DAT::tdual_kkfloat_1d("pair:dgamma1",nmax);
     d_dgamma1 = k_dgamma1.template view<DeviceType>();
     h_dgamma1 = k_dgamma1.h_view;
     //memory->create(dgamma2, nmax, "pair:dgamma2");
-    k_dgamma2 = DAT::tdual_ffloat_1d("pair:dgamma2",nmax);
+    k_dgamma2 = DAT::tdual_kkfloat_1d("pair:dgamma2",nmax);
     d_dgamma2 = k_dgamma2.template view<DeviceType>();
     h_dgamma2 = k_dgamma2.h_view;
     //memory->create(dgamma3, nmax, "pair:dgamma3");
-    k_dgamma3 = DAT::tdual_ffloat_1d("pair:dgamma3",nmax);
+    k_dgamma3 = DAT::tdual_kkfloat_1d("pair:dgamma3",nmax);
     d_dgamma3 = k_dgamma3.template view<DeviceType>();
     h_dgamma3 = k_dgamma3.h_view;
     //memory->create(arho2b, nmax, "pair:arho2b");
-    k_arho2b = DAT::tdual_ffloat_1d("pair:arho2b",nmax);
+    k_arho2b = DAT::tdual_kkfloat_1d("pair:arho2b",nmax);
     d_arho2b = k_arho2b.template view<DeviceType>();
     h_arho2b = k_arho2b.h_view;
     //memory->create(arho1, nmax, 3, "pair:arho1");
-    k_arho1 = DAT::tdual_ffloat_2d("pair:arho1",nmax, 3);
+    k_arho1 = DAT::tdual_kkfloat_2d("pair:arho1",nmax, 3);
     d_arho1 = k_arho1.template view<DeviceType>();
     h_arho1 = k_arho1.h_view;
     //memory->create(arho2, nmax, 6, "pair:arho2");
-    k_arho2 = DAT::tdual_ffloat_2d("pair:arho2",nmax, 6);
+    k_arho2 = DAT::tdual_kkfloat_2d("pair:arho2",nmax, 6);
     d_arho2 = k_arho2.template view<DeviceType>();
     h_arho2 = k_arho2.h_view;
     //memory->create(arho3, nmax, 10, "pair:arho3");
-    k_arho3 = DAT::tdual_ffloat_2d("pair:arho3",nmax, 10);
+    k_arho3 = DAT::tdual_kkfloat_2d("pair:arho3",nmax, 10);
     d_arho3 = k_arho3.template view<DeviceType>();
     h_arho3 = k_arho3.h_view;
     //memory->create(arho3b, nmax, 3, "pair:arho3b");
-    k_arho3b = DAT::tdual_ffloat_2d("pair:arho3b",nmax, 3);
+    k_arho3b = DAT::tdual_kkfloat_2d("pair:arho3b",nmax, 3);
     d_arho3b = k_arho3b.template view<DeviceType>();
     h_arho3b = k_arho3b.h_view;
     //memory->create(t_ave, nmax, 3, "pair:t_ave");
-    k_t_ave = DAT::tdual_ffloat_2d("pair:t_ave",nmax, 3);
+    k_t_ave = DAT::tdual_kkfloat_2d("pair:t_ave",nmax, 3);
     d_t_ave = k_t_ave.template view<DeviceType>();
     h_t_ave = k_t_ave.h_view;
     //memory->create(tsq_ave, nmax, 3, "pair:tsq_ave");
-    k_tsq_ave = DAT::tdual_ffloat_2d("pair:tsq_ave",nmax, 3);
+    k_tsq_ave = DAT::tdual_kkfloat_2d("pair:tsq_ave",nmax, 3);
     d_tsq_ave = k_tsq_ave.template view<DeviceType>();
     h_tsq_ave = k_tsq_ave.h_view;
 
     // msmeam
     //memory->create(arho2mb, nmax, "pair:arho2mb");
-    k_arho2mb = DAT::tdual_ffloat_1d("pair:arho2mb",nmax);
+    k_arho2mb = DAT::tdual_kkfloat_1d("pair:arho2mb",nmax);
     d_arho2mb = k_arho2mb.template view<DeviceType>();
     h_arho2mb = k_arho2mb.h_view;
     //memory->create(arho1m, nmax, 3, "pair:arho1m");
-    k_arho1m = DAT::tdual_ffloat_2d("pair:arho1m", nmax, 3);
+    k_arho1m = DAT::tdual_kkfloat_2d("pair:arho1m", nmax, 3);
     d_arho1m = k_arho1m.template view<DeviceType>();
     h_arho1m = k_arho1m.h_view;
     //memory->create(arho2m, nmax, 6, "pair:arho2m");
-    k_arho2m = DAT::tdual_ffloat_2d("pair:arho2m", nmax, 6);
+    k_arho2m = DAT::tdual_kkfloat_2d("pair:arho2m", nmax, 6);
     d_arho2m = k_arho2m.template view<DeviceType>();
     h_arho2m = k_arho2m.h_view;
     //memory->create(arho3m, nmax, 10, "pair:arho3m");
-    k_arho3m = DAT::tdual_ffloat_2d("pair:arho3m", nmax, 10);
+    k_arho3m = DAT::tdual_kkfloat_2d("pair:arho3m", nmax, 10);
     d_arho3m = k_arho3m.template view<DeviceType>();
     h_arho3m = k_arho3m.h_view;
     //memory->create(arho3mb, nmax, 3, "pair:arho3mb");
-    k_arho3mb = DAT::tdual_ffloat_2d("pair:arho3mb", nmax, 3);
+    k_arho3mb = DAT::tdual_kkfloat_2d("pair:arho3mb", nmax, 3);
     d_arho3mb = k_arho3mb.template view<DeviceType>();
     h_arho3mb = k_arho3mb.h_view;
   }
 
   if (n_neigh > maxneigh) {
-    memoryKK->destroy_kokkos(k_scrfcn,scrfcn);
-    memoryKK->destroy_kokkos(k_dscrfcn,dscrfcn);
-    memoryKK->destroy_kokkos(k_fcpair,fcpair);
     maxneigh = n_neigh;
    // memory->create(scrfcn, maxneigh, "pair:scrfcn");
-    k_scrfcn = DAT::tdual_ffloat_1d("pair:scrfcn", maxneigh);
+    k_scrfcn = DAT::tdual_kkfloat_1d("pair:scrfcn", maxneigh);
     d_scrfcn = k_scrfcn.template view<DeviceType>();
     h_scrfcn = k_scrfcn.h_view;
     //memory->create(dscrfcn, maxneigh, "pair:dscrfcn");
-    k_dscrfcn = DAT::tdual_ffloat_1d("pair:dscrfcn", maxneigh);
+    k_dscrfcn = DAT::tdual_kkfloat_1d("pair:dscrfcn", maxneigh);
     d_dscrfcn = k_dscrfcn.template view<DeviceType>();
     h_dscrfcn = k_dscrfcn.h_view;
     //memory->create(fcpair, maxneigh, "pair:fcpair");
-    k_fcpair = DAT::tdual_ffloat_1d("pair:fcpair", maxneigh);
+    k_fcpair = DAT::tdual_kkfloat_1d("pair:fcpair", maxneigh);
     d_fcpair = k_fcpair.template view<DeviceType>();
     h_fcpair = k_fcpair.h_view;
   }
@@ -223,7 +194,7 @@ MEAMKokkos<DeviceType>::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
 
 template<class DeviceType>
 void
-MEAMKokkos<DeviceType>::meam_dens_init(int inum_half, int ntype, typename AT::t_int_1d type, typename AT::t_int_1d d_map, typename AT::t_x_array x, typename AT::t_int_1d d_numneigh_half, typename AT::t_int_1d d_numneigh_full,
+MEAMKokkos<DeviceType>::meam_dens_init(int inum_half, int ntype, typename AT::t_int_1d type, typename AT::t_int_1d d_map, typename AT::t_kkfloat_1d_3_lr x, typename AT::t_int_1d d_numneigh_half, typename AT::t_int_1d d_numneigh_full,
                      typename AT::t_int_1d d_ilist_half, typename AT::t_neighbors_2d d_neighbors_half, typename AT::t_neighbors_2d d_neighbors_full, typename AT::t_int_1d d_offset, int neighflag, int need_dup)
 {
   this->ntype = ntype;
@@ -316,16 +287,16 @@ template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void
-MEAMKokkos<DeviceType>::getscreen(int i, int offset, typename AT::t_x_array x, typename AT::t_int_1d d_numneigh_half,
+MEAMKokkos<DeviceType>::getscreen(int i, int offset, typename AT::t_kkfloat_1d_3_lr x, typename AT::t_int_1d d_numneigh_half,
                 typename AT::t_int_1d d_numneigh_full, int /*ntype*/, typename AT::t_int_1d type, typename AT::t_int_1d d_map)
 const {
-  const double drinv = 1.0 / delr_meam;
+  const KK_FLOAT drinv = 1.0 / delr_meam;
   const int elti = d_map[type[i]];
   if (elti < 0) return;
 
-  const double xitmp = x(i,0);
-  const double yitmp = x(i,1);
-  const double zitmp = x(i,2);
+  const KK_FLOAT xitmp = x(i,0);
+  const KK_FLOAT yitmp = x(i,1);
+  const KK_FLOAT zitmp = x(i,2);
 
   for (int jn = 0; jn < d_numneigh_half[i]; jn++) {
     const int j = d_neighbors_half(i,jn);
@@ -334,14 +305,14 @@ const {
     if (eltj < 0) continue;
 
     // First compute screening function itself, sij
-    const double xjtmp = x(j,0);
-    const double yjtmp = x(j,1);
-    const double zjtmp = x(j,2);
-    const double delxij = xjtmp - xitmp;
-    const double delyij = yjtmp - yitmp;
-    const double delzij = zjtmp - zitmp;
+    const KK_FLOAT xjtmp = x(j,0);
+    const KK_FLOAT yjtmp = x(j,1);
+    const KK_FLOAT zjtmp = x(j,2);
+    const KK_FLOAT delxij = xjtmp - xitmp;
+    const KK_FLOAT delyij = yjtmp - yitmp;
+    const KK_FLOAT delzij = zjtmp - zitmp;
 
-    const double rij2 = delxij * delxij + delyij * delyij + delzij * delzij;
+    const KK_FLOAT rij2 = delxij * delxij + delyij * delyij + delzij * delzij;
 
     if (rij2 > cutforcesq) {
       d_dscrfcn[offset+jn] = 0.0;
@@ -351,10 +322,10 @@ const {
     }
 
     // Now compute derivatives
-    const double rbound = ebound_meam[elti][eltj] * rij2;
-    const double rij = sqrt(rij2);
-    const double rnorm = (cutforce - rij) * drinv;
-    double sij = 1.0;
+    const KK_FLOAT rbound = ebound_meam[elti][eltj] * rij2;
+    const KK_FLOAT rij = sqrt(rij2);
+    const KK_FLOAT rnorm = (cutforce - rij) * drinv;
+    KK_FLOAT sij = 1.0;
 
     // if rjk2 > ebound*rijsq, atom k is definitely outside the ellipse
     for (int kn = 0; kn < d_numneigh_full[i]; kn++) {
@@ -363,33 +334,33 @@ const {
       int eltk = d_map[type[k]];
       if (eltk < 0) continue;
 
-      const double xktmp = x(k,0);
-      const double yktmp = x(k,1);
-      const double zktmp = x(k,2);
+      const KK_FLOAT xktmp = x(k,0);
+      const KK_FLOAT yktmp = x(k,1);
+      const KK_FLOAT zktmp = x(k,2);
 
-      const double delxjk = xktmp - xjtmp;
-      const double delyjk = yktmp - yjtmp;
-      const double delzjk = zktmp - zjtmp;
-      const double rjk2 = delxjk * delxjk + delyjk * delyjk + delzjk * delzjk;
+      const KK_FLOAT delxjk = xktmp - xjtmp;
+      const KK_FLOAT delyjk = yktmp - yjtmp;
+      const KK_FLOAT delzjk = zktmp - zjtmp;
+      const KK_FLOAT rjk2 = delxjk * delxjk + delyjk * delyjk + delzjk * delzjk;
       if (rjk2 > rbound) continue;
 
-      const double delxik = xktmp - xitmp;
-      const double delyik = yktmp - yitmp;
-      const double delzik = zktmp - zitmp;
-      const double rik2 = delxik * delxik + delyik * delyik + delzik * delzik;
+      const KK_FLOAT delxik = xktmp - xitmp;
+      const KK_FLOAT delyik = yktmp - yitmp;
+      const KK_FLOAT delzik = zktmp - zitmp;
+      const KK_FLOAT rik2 = delxik * delxik + delyik * delyik + delzik * delzik;
       if (rik2 > rbound) continue;
 
-      const double xik = rik2 / rij2;
-      const double xjk = rjk2 / rij2;
-      const double a = 1 - (xik - xjk) * (xik - xjk);
+      const KK_FLOAT xik = rik2 / rij2;
+      const KK_FLOAT xjk = rjk2 / rij2;
+      const KK_FLOAT a = 1 - (xik - xjk) * (xik - xjk);
       // if a < 0, then ellipse equation doesn't describe this case and
       // atom k can't possibly screen i-j
       if (a <= 0.0) continue;
 
-      double cikj = (2.0 * (xik + xjk) + a - 2.0) / a;
-      const double Cmax = Cmax_meam[elti][eltj][eltk];
-      const double Cmin = Cmin_meam[elti][eltj][eltk];
-      double sikj;
+      KK_FLOAT cikj = (2.0 * (xik + xjk) + a - 2.0) / a;
+      const KK_FLOAT Cmax = Cmax_meam[elti][eltj][eltk];
+      const KK_FLOAT Cmin = Cmin_meam[elti][eltj][eltk];
+      KK_FLOAT sikj;
       if (cikj >= Cmax) continue;
       // note that cikj may be slightly negative (within numerical
       // tolerance) if atoms are colinear, so don't reject that case here
@@ -398,21 +369,21 @@ const {
         sij = 0.0;
         break;
       } else {
-        const double delc = Cmax - Cmin;
+        const KK_FLOAT delc = Cmax - Cmin;
         cikj = (cikj - Cmin) / delc;
         sikj = fcut(cikj);
       }
       sij *= sikj;
     }
 
-    double dfc;
-    const double fc = dfcut(rnorm, dfc);
-    const double fcij = fc;
-    const double dfcij = dfc * drinv;
+    KK_FLOAT dfc;
+    const KK_FLOAT fc = dfcut(rnorm, dfc);
+    const KK_FLOAT fcij = fc;
+    const KK_FLOAT dfcij = dfc * drinv;
 
     // Now compute derivatives
     d_dscrfcn[offset+jn] = 0.0;
-    const double sfcij = sij * fcij;
+    const KK_FLOAT sfcij = sij * fcij;
     if (!iszero_kk(sfcij) && !isone_kk(sfcij)) {
       for (int kn = 0; kn < d_numneigh_full[i]; kn++) {
         const int k = d_neighbors_full(i,kn);
@@ -420,28 +391,28 @@ const {
         const int eltk = d_map[type[k]];
         if (eltk < 0) continue;
 
-        const double delxjk = x(k,0) - xjtmp;
-        const double delyjk = x(k,1) - yjtmp;
-        const double delzjk = x(k,2) - zjtmp;
-        const double rjk2 = delxjk * delxjk + delyjk * delyjk + delzjk * delzjk;
+        const KK_FLOAT delxjk = x(k,0) - xjtmp;
+        const KK_FLOAT delyjk = x(k,1) - yjtmp;
+        const KK_FLOAT delzjk = x(k,2) - zjtmp;
+        const KK_FLOAT rjk2 = delxjk * delxjk + delyjk * delyjk + delzjk * delzjk;
         if (rjk2 > rbound) continue;
 
-        const double delxik = x(k,0) - xitmp;
-        const double delyik = x(k,1) - yitmp;
-        const double delzik = x(k,2) - zitmp;
-        const double rik2 = delxik * delxik + delyik * delyik + delzik * delzik;
+        const KK_FLOAT delxik = x(k,0) - xitmp;
+        const KK_FLOAT delyik = x(k,1) - yitmp;
+        const KK_FLOAT delzik = x(k,2) - zitmp;
+        const KK_FLOAT rik2 = delxik * delxik + delyik * delyik + delzik * delzik;
         if (rik2 > rbound) continue;
 
-        const double xik = rik2 / rij2;
-        const double xjk = rjk2 / rij2;
-        const double a = 1 - (xik - xjk) * (xik - xjk);
+        const KK_FLOAT xik = rik2 / rij2;
+        const KK_FLOAT xjk = rjk2 / rij2;
+        const KK_FLOAT a = 1 - (xik - xjk) * (xik - xjk);
         // if a < 0, then ellipse equation doesn't describe this case and
         // atom k can't possibly screen i-j
         if (a <= 0.0) continue;
 
-        double cikj = (2.0 * (xik + xjk) + a - 2.0) / a;
-        const double Cmax = Cmax_meam[elti][eltj][eltk];
-        const double Cmin = Cmin_meam[elti][eltj][eltk];
+        KK_FLOAT cikj = (2.0 * (xik + xjk) + a - 2.0) / a;
+        const KK_FLOAT Cmax = Cmax_meam[elti][eltj][eltk];
+        const KK_FLOAT Cmin = Cmin_meam[elti][eltj][eltk];
         if (cikj >= Cmax) {
           continue;
           // Note that cikj may be slightly negative (within numerical
@@ -452,17 +423,17 @@ const {
           // Note that we never have 0<cikj<Cmin here, else sij=0
           // (rejected above)
         } else {
-          const double delc = Cmax - Cmin;
+          const KK_FLOAT delc = Cmax - Cmin;
           cikj = (cikj - Cmin) / delc;
-          double dfikj;
-          const double sikj = dfcut(cikj, dfikj);
-          const double coef1 = dfikj / (delc * sikj);
-          const double dCikj = dCfunc(rij2, rik2, rjk2);
+          KK_FLOAT dfikj;
+          const KK_FLOAT sikj = dfcut(cikj, dfikj);
+          const KK_FLOAT coef1 = dfikj / (delc * sikj);
+          const KK_FLOAT dCikj = dCfunc(rij2, rik2, rjk2);
           d_dscrfcn[offset+jn] += coef1 * dCikj;
         }
       }
-      const double coef1 = sfcij;
-      const double coef2 = sij * dfcij / rij;
+      const KK_FLOAT coef1 = sfcij;
+      const KK_FLOAT coef2 = sij * dfcij / rij;
       d_dscrfcn[offset+jn] = d_dscrfcn[offset+jn] * coef1 - coef2;
     }
 
@@ -477,7 +448,7 @@ template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void
-MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d type, typename AT::t_int_1d d_map, typename AT::t_x_array x, typename AT::t_int_1d d_numneigh,
+MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d type, typename AT::t_int_1d d_map, typename AT::t_kkfloat_1d_3_lr x, typename AT::t_int_1d d_numneigh,
                 int offset) const
 {
   // The rho0, etc. arrays are duplicated for OpenMP, atomic for GPU, and neither for Serial
@@ -510,35 +481,35 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
   auto a_arho3mb = v_arho3mb.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int elti = d_map[type[i]];
-  const double xtmp = x(i,0);
-  const double ytmp = x(i,1);
-  const double ztmp = x(i,2);
+  const KK_FLOAT xtmp = x(i,0);
+  const KK_FLOAT ytmp = x(i,1);
+  const KK_FLOAT ztmp = x(i,2);
   for (int jn = 0; jn < d_numneigh[i]; jn++) {
     if (!iszero_kk(d_scrfcn[offset+jn])) {
       const int j = d_neighbors_half(i,jn);
-      const double sij = d_scrfcn[offset+jn] * d_fcpair[offset+jn];
-      double delij[3];
+      const KK_FLOAT sij = d_scrfcn[offset+jn] * d_fcpair[offset+jn];
+      KK_FLOAT delij[3];
       delij[0] = x(j,0) - xtmp;
       delij[1] = x(j,1) - ytmp;
       delij[2] = x(j,2) - ztmp;
-      const double rij2 = delij[0] * delij[0] + delij[1] * delij[1] + delij[2] * delij[2];
+      const KK_FLOAT rij2 = delij[0] * delij[0] + delij[1] * delij[1] + delij[2] * delij[2];
       if (rij2 < cutforcesq) {
         const int eltj = d_map[type[j]];
-        const double rij = sqrt(rij2);
-        const double ai = rij / re_meam[elti][elti] - 1.0;
-        const double aj = rij / re_meam[eltj][eltj] - 1.0;
-        const double ro0i = rho0_meam[elti];
-        const double ro0j = rho0_meam[eltj];
-        const double rhoa0j = ro0j * MathSpecialKokkos::fm_exp(-beta0_meam[eltj] * aj) * sij;
-        double rhoa1j = ro0j * MathSpecialKokkos::fm_exp(-beta1_meam[eltj] * aj) * sij;
-        double rhoa2j = ro0j * MathSpecialKokkos::fm_exp(-beta2_meam[eltj] * aj) * sij;
-        double rhoa3j = ro0j * MathSpecialKokkos::fm_exp(-beta3_meam[eltj] * aj) * sij;
-        const double rhoa0i = ro0i * MathSpecialKokkos::fm_exp(-beta0_meam[elti] * ai) * sij;
-        double rhoa1i = ro0i * MathSpecialKokkos::fm_exp(-beta1_meam[elti] * ai) * sij;
-        double rhoa2i = ro0i * MathSpecialKokkos::fm_exp(-beta2_meam[elti] * ai) * sij;
-        double rhoa3i = ro0i * MathSpecialKokkos::fm_exp(-beta3_meam[elti] * ai) * sij;
+        const KK_FLOAT rij = sqrt(rij2);
+        const KK_FLOAT ai = rij / re_meam[elti][elti] - 1.0;
+        const KK_FLOAT aj = rij / re_meam[eltj][eltj] - 1.0;
+        const KK_FLOAT ro0i = rho0_meam[elti];
+        const KK_FLOAT ro0j = rho0_meam[eltj];
+        const KK_FLOAT rhoa0j = ro0j * MathSpecialKokkos::fm_exp(-beta0_meam[eltj] * aj) * sij;
+        KK_FLOAT rhoa1j = ro0j * MathSpecialKokkos::fm_exp(-beta1_meam[eltj] * aj) * sij;
+        KK_FLOAT rhoa2j = ro0j * MathSpecialKokkos::fm_exp(-beta2_meam[eltj] * aj) * sij;
+        KK_FLOAT rhoa3j = ro0j * MathSpecialKokkos::fm_exp(-beta3_meam[eltj] * aj) * sij;
+        const KK_FLOAT rhoa0i = ro0i * MathSpecialKokkos::fm_exp(-beta0_meam[elti] * ai) * sij;
+        KK_FLOAT rhoa1i = ro0i * MathSpecialKokkos::fm_exp(-beta1_meam[elti] * ai) * sij;
+        KK_FLOAT rhoa2i = ro0i * MathSpecialKokkos::fm_exp(-beta2_meam[elti] * ai) * sij;
+        KK_FLOAT rhoa3i = ro0i * MathSpecialKokkos::fm_exp(-beta3_meam[elti] * ai) * sij;
         // msmeam
-        double rhoa1mj, rhoa2mj, rhoa3mj, rhoa1mi, rhoa2mi, rhoa3mi;
+        KK_FLOAT rhoa1mj, rhoa2mj, rhoa3mj, rhoa1mi, rhoa2mi, rhoa3mi;
         if (msmeamflag) {
           rhoa1mj = ro0j * t1m_meam[eltj] * MathSpecialKokkos::fm_exp(-beta1m_meam[eltj] * aj) * sij;
           rhoa2mj = ro0j * t2m_meam[eltj] * MathSpecialKokkos::fm_exp(-beta2m_meam[eltj] * aj) * sij;
@@ -577,13 +548,13 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
         a_arho2b[i] += rhoa2j;
         a_arho2b[j] += rhoa2i;
 
-        const double A1j = rhoa1j / rij;
-        const double A2j = rhoa2j / rij2;
-        const double A3j = rhoa3j / (rij2 * rij);
-        const double A1i = rhoa1i / rij;
-        const double A2i = rhoa2i / rij2;
-        const double A3i = rhoa3i / (rij2 * rij);
-        double A1mj, A2mj, A3mj, A1mi, A2mi, A3mi;
+        const KK_FLOAT A1j = rhoa1j / rij;
+        const KK_FLOAT A2j = rhoa2j / rij2;
+        const KK_FLOAT A3j = rhoa3j / (rij2 * rij);
+        const KK_FLOAT A1i = rhoa1i / rij;
+        const KK_FLOAT A2i = rhoa2i / rij2;
+        const KK_FLOAT A3i = rhoa3i / (rij2 * rij);
+        KK_FLOAT A1mj, A2mj, A3mj, A1mi, A2mi, A3mi;
         if (msmeamflag) {
           a_arho2mb[i] += rhoa2mj;
           a_arho2mb[j] += rhoa2mi;
@@ -637,7 +608,7 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double MEAMKokkos<DeviceType>::dfcut(const double xi, double& dfc) const
+KK_FLOAT MEAMKokkos<DeviceType>::dfcut(const KK_FLOAT xi, KK_FLOAT& dfc) const
 {
   if (xi >= 1.0) {
     dfc = 0.0;
@@ -646,10 +617,10 @@ double MEAMKokkos<DeviceType>::dfcut(const double xi, double& dfc) const
     dfc = 0.0;
     return 0.0;
   } else {
-    const double a = 1.0 - xi;
-    const double a3 = a * a * a;
-    const double a4 = a * a3;
-    const double a1m4 = 1.0 - a4;
+    const KK_FLOAT a = 1.0 - xi;
+    const KK_FLOAT a3 = a * a * a;
+    const KK_FLOAT a4 = a * a3;
+    const KK_FLOAT a1m4 = 1.0 - a4;
 
     dfc = 8 * a1m4 * a3;
     return a1m4*a1m4;
@@ -662,13 +633,13 @@ double MEAMKokkos<DeviceType>::dfcut(const double xi, double& dfc) const
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double MEAMKokkos<DeviceType>::dCfunc(const double rij2, const double rik2, const double rjk2) const
+KK_FLOAT MEAMKokkos<DeviceType>::dCfunc(const KK_FLOAT rij2, const KK_FLOAT rik2, const KK_FLOAT rjk2) const
 {
-  const double rij4 = rij2 * rij2;
-  const double a = rik2 - rjk2;
-  const double b = rik2 + rjk2;
-  const double asq = a*a;
-  double denom = rij4 - asq;
+  const KK_FLOAT rij4 = rij2 * rij2;
+  const KK_FLOAT a = rik2 - rjk2;
+  const KK_FLOAT b = rik2 + rjk2;
+  const KK_FLOAT asq = a*a;
+  KK_FLOAT denom = rij4 - asq;
   denom = denom * denom;
   return -4 * (-2 * rij2 * asq + rij4 * b + asq * b) / denom;
 }
@@ -677,13 +648,13 @@ double MEAMKokkos<DeviceType>::dCfunc(const double rij2, const double rik2, cons
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void MEAMKokkos<DeviceType>::dCfunc2(const double rij2, const double rik2, const double rjk2, double& dCikj1, double& dCikj2) const
+void MEAMKokkos<DeviceType>::dCfunc2(const KK_FLOAT rij2, const KK_FLOAT rik2, const KK_FLOAT rjk2, KK_FLOAT& dCikj1, KK_FLOAT& dCikj2) const
 {
-  const double rij4 = rij2 * rij2;
-  const double rik4 = rik2 * rik2;
-  const double rjk4 = rjk2 * rjk2;
-  const double a = rik2 - rjk2;
-  double denom = rij4 - a * a;
+  const KK_FLOAT rij4 = rij2 * rij2;
+  const KK_FLOAT rik4 = rik2 * rik2;
+  const KK_FLOAT rjk4 = rjk2 * rjk2;
+  const KK_FLOAT a = rik2 - rjk2;
+  KK_FLOAT denom = rij4 - a * a;
   denom = denom * denom;
   dCikj1 = 4 * rij2 * (rij4 + rik4 + 2 * rik2 * rjk2 - 3 * rjk4 - 2 * rij2 * a) / denom;
   dCikj2 = 4 * rij2 * (rij4 - 3 * rik4 + 2 * rik2 * rjk2 + rjk4 + 2 * rij2 * a) / denom;
@@ -693,9 +664,9 @@ void MEAMKokkos<DeviceType>::dCfunc2(const double rij2, const double rik2, const
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double MEAMKokkos<DeviceType>::fcut(const double xi) const
+KK_FLOAT MEAMKokkos<DeviceType>::fcut(const KK_FLOAT xi) const
 {
-  double a;
+  KK_FLOAT a;
   if (xi >= 1.0)
     return 1.0;
   else if (xi <= 0.0)

@@ -8,6 +8,7 @@
 // Colvars repository at GitHub.
 
 #include <algorithm>
+#include <array>
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
@@ -150,7 +151,7 @@ int colvar::cvc::init_total_force_params(std::string const &conf)
 
   if (! is_enabled(f_cvc_one_site_total_force)) {
     // check whether any of the other atom groups is dummy
-    std::vector<cvm::atom_group *>::iterator agi = atom_groups.begin();
+    auto agi = atom_groups.begin();
     agi++;
     for ( ; agi != atom_groups.end(); agi++) {
       if ((*agi)->b_dummy) {
@@ -163,18 +164,15 @@ int colvar::cvc::init_total_force_params(std::string const &conf)
   return COLVARS_OK;
 }
 
-
 cvm::atom_group *colvar::cvc::parse_group(std::string const &conf,
                                           char const *group_key,
                                           bool optional)
 {
   int error_code = COLVARS_OK;
-
   cvm::atom_group *group = nullptr;
   std::string group_conf;
 
   if (key_lookup(conf, group_key, &group_conf)) {
-
     group = new cvm::atom_group(group_key);
 
     if (b_try_scalable) {
@@ -444,7 +442,7 @@ void colvar::cvc::read_data()
 {
   if (is_enabled(f_cvc_explicit_atom_groups)) {
     for (auto agi = atom_groups.begin(); agi != atom_groups.end(); agi++) {
-      cvm::atom_group &atoms = *(*agi);
+      auto &atoms = *(*agi);
       atoms.reset_atoms_data();
       atoms.read_positions();
       atoms.calc_required_properties();
@@ -458,12 +456,12 @@ std::vector<std::vector<int>> colvar::cvc::get_atom_lists()
 {
   std::vector<std::vector<int>> lists;
 
-  std::vector<cvm::atom_group *>::iterator agi = atom_groups.begin();
+  auto agi = atom_groups.begin();
   for ( ; agi != atom_groups.end(); ++agi) {
     (*agi)->create_sorted_ids();
     lists.push_back((*agi)->sorted_ids());
     if ((*agi)->is_enabled(f_ag_fitting_group) && (*agi)->is_enabled(f_ag_fit_gradients)) {
-      cvm::atom_group &fg = *((*agi)->fitting_group);
+      auto &fg = *((*agi)->fitting_group);
       fg.create_sorted_ids();
       lists.push_back(fg.sorted_ids());
     }
@@ -479,9 +477,7 @@ void colvar::cvc::collect_gradients(std::vector<int> const &atom_ids, std::vecto
     cvm::integer_power(value().real_value, sup_np-1);
 
   for (size_t j = 0; j < atom_groups.size(); j++) {
-
-    cvm::atom_group &ag = *(atom_groups[j]);
-
+    auto &ag = *(atom_groups[j]);
     // If necessary, apply inverse rotation to get atomic
     // gradient in the laboratory frame
     if (ag.is_enabled(f_ag_rotate)) {
@@ -489,25 +485,30 @@ void colvar::cvc::collect_gradients(std::vector<int> const &atom_ids, std::vecto
 
       for (size_t k = 0; k < ag.size(); k++) {
         size_t a = std::lower_bound(atom_ids.begin(), atom_ids.end(),
-                                    ag[k].id) - atom_ids.begin();
-        atomic_gradients[a] += coeff * (rot_inv * ag[k].grad);
+                                    ag.id(k)) - atom_ids.begin();
+        atomic_gradients[a] += coeff * (rot_inv * cvm::rvector(ag.grad_x(k),
+                                                               ag.grad_y(k),
+                                                               ag.grad_z(k)));
       }
 
     } else {
 
       for (size_t k = 0; k < ag.size(); k++) {
         size_t a = std::lower_bound(atom_ids.begin(), atom_ids.end(),
-                                    ag[k].id) - atom_ids.begin();
-        atomic_gradients[a] += coeff * ag[k].grad;
+                                    ag.id(k)) - atom_ids.begin();
+        atomic_gradients[a] += coeff * cvm::rvector(ag.grad_x(k),
+                                                    ag.grad_y(k),
+                                                    ag.grad_z(k));
       }
     }
     if (ag.is_enabled(f_ag_fitting_group) && ag.is_enabled(f_ag_fit_gradients)) {
-      cvm::atom_group const &fg = *(ag.fitting_group);
+      auto const &fg = *(ag.fitting_group);
       for (size_t k = 0; k < fg.size(); k++) {
         size_t a = std::lower_bound(atom_ids.begin(), atom_ids.end(),
-                                    fg[k].id) - atom_ids.begin();
-        // fit gradients are in the unrotated (simulation) frame
-        atomic_gradients[a] += coeff * fg.fit_gradients[k];
+                                    fg.id(k)) - atom_ids.begin();
+        atomic_gradients[a] += coeff * cvm::rvector(fg.fit_gradients_x(k),
+                                                    fg.fit_gradients_y(k),
+                                                    fg.fit_gradients_z(k));
       }
     }
   }
@@ -551,7 +552,6 @@ void colvar::cvc::apply_force(colvarvalue const &cvforce)
   }
 }
 
-
 void colvar::cvc::debug_gradients()
 {
   // this function should work for any scalar cvc:
@@ -561,19 +561,54 @@ void colvar::cvc::debug_gradients()
 
   cvm::log("Debugging gradients for " + description);
 
+  /**
+   * @note Some CVCs change the gradients when running calc_value(), so it is
+   * better to copy the original gradients out at first.
+   */
+  std::unordered_map<cvm::atom_group*, std::array<std::vector<cvm::rvector>, 2>> ag_gradients;
   for (size_t ig = 0; ig < atom_groups.size(); ig++) {
-    cvm::atom_group *group = atom_groups[ig];
+    auto *group = atom_groups[ig];
+    if (group->b_dummy) continue;
+    // const auto rot_0 = group->rot.matrix();
+    const auto rot_inv = group->rot.inverse().matrix();
+    auto *group_for_fit = group->fitting_group ? group->fitting_group : group;
+    const bool add_fit_gradients_to_main = group->is_enabled(f_ag_fit_gradients) && group_for_fit == group;
+    std::array<std::vector<cvm::rvector>, 2> gradients;
+    for (size_t ia = 0; ia < group->size(); ia++) {
+      cvm::rvector g(group->grad_x(ia),
+                     group->grad_y(ia),
+                     group->grad_z(ia));
+      if (group->is_enabled(f_ag_rotate)) {
+        g = rot_inv * g;
+      }
+      if (add_fit_gradients_to_main) {
+        g.x += group_for_fit->fit_gradients_x(ia);
+        g.y += group_for_fit->fit_gradients_y(ia);
+        g.z += group_for_fit->fit_gradients_z(ia);
+      }
+      gradients[0].push_back(g);
+    }
+    if ((group->is_enabled(f_ag_fit_gradients)) && (group->fitting_group != NULL)) {
+      auto *ref_group = group->fitting_group;
+      for (size_t ia = 0; ia < ref_group->size(); ia++) {
+        cvm::rvector g(ref_group->fit_gradients_x(ia),
+                       ref_group->fit_gradients_y(ia),
+                       ref_group->fit_gradients_z(ia));
+        gradients[1].push_back(g);
+      }
+    }
+    ag_gradients[group] = gradients;
+  }
+
+  for (size_t ig = 0; ig < atom_groups.size(); ig++) {
+    auto *group = atom_groups[ig];
     if (group->b_dummy) continue;
 
     const auto rot_0 = group->rot.matrix();
-    const auto rot_inv = group->rot.inverse().matrix();
-
-    cvm::real x_0 = x.real_value;
-    if ((x.type() == colvarvalue::type_vector) && (x.size() == 1)) x_0 = x[0];
 
     // cvm::log("gradients     = "+cvm::to_str (gradients)+"\n");
 
-    cvm::atom_group *group_for_fit = group->fitting_group ? group->fitting_group : group;
+    auto *group_for_fit = group->fitting_group ? group->fitting_group : group;
     cvm::atom_pos fit_gradient_sum, gradient_sum;
 
     // print the values of the fit gradients
@@ -582,58 +617,81 @@ void colvar::cvc::debug_gradients()
         size_t j;
 
         // fit_gradients are in the simulation frame: we should print them in the rotated frame
-        cvm::log("Fit gradients:\n");
-        for (j = 0; j < group_for_fit->fit_gradients.size(); j++) {
-          cvm::log((group->fitting_group ? std::string("refPosGroup") : group->key) +
+        cvm::log("Fit gradients for group " + group->key + ":\n");
+        for (j = 0; j < group_for_fit->size(); j++) {
+          const cvm::rvector fit_grad(
+            group_for_fit->fit_gradients_x(j),
+            group_for_fit->fit_gradients_y(j),
+            group_for_fit->fit_gradients_z(j));
+          cvm::log((group->fitting_group ? std::string("fittingGroup") : group->key) +
                   "[" + cvm::to_str(j) + "] = " +
                   (group->is_enabled(f_ag_rotate) ?
-                    cvm::to_str(rot_0 * (group_for_fit->fit_gradients[j])) :
-                    cvm::to_str(group_for_fit->fit_gradients[j])));
+                    cvm::to_str(rot_0 * (fit_grad)) :
+                    cvm::to_str(fit_grad)));
         }
       }
     }
 
+    cvm::log("Gradients for group " + group->key + ":\n");
+    std::vector<cvm::rvector> gradients = ag_gradients.at(group)[0];
     // debug the gradients
     for (size_t ia = 0; ia < group->size(); ia++) {
-
       // tests are best conducted in the unrotated (simulation) frame
-      cvm::rvector const atom_grad = (group->is_enabled(f_ag_rotate) ?
-                                      rot_inv * ((*group)[ia].grad) :
-                                      (*group)[ia].grad);
-      gradient_sum += atom_grad;
+      const cvm::rvector g = gradients[ia];
+      gradient_sum += g;
 
+      auto const this_atom = (*group)[ia];
       for (size_t id = 0; id < 3; id++) {
         // (re)read original positions
         group->read_positions();
         // change one coordinate
-        (*group)[ia].pos[id] += cvm::debug_gradients_step_size;
+        switch (id) {
+          case 0: group->pos_x(ia) += cvm::debug_gradients_step_size; break;
+          case 1: group->pos_y(ia) += cvm::debug_gradients_step_size; break;
+          case 2: group->pos_z(ia) += cvm::debug_gradients_step_size; break;
+        }
         group->calc_required_properties();
         calc_value();
         cvm::real x_1 = x.real_value;
         if ((x.type() == colvarvalue::type_vector) && (x.size() == 1)) x_1 = x[0];
-        cvm::log("Atom "+cvm::to_str(ia)+", component "+cvm::to_str(id)+":\n");
-        cvm::log("dx(actual) = "+cvm::to_str(x_1 - x_0,
-                              21, 14)+"\n");
-        cvm::real const dx_pred = (group->fit_gradients.size()) ?
-          (cvm::debug_gradients_step_size * (atom_grad[id] + group->fit_gradients[ia][id])) :
-          (cvm::debug_gradients_step_size * atom_grad[id]);
-        cvm::log("dx(interp) = "+cvm::to_str(dx_pred,
-                              21, 14)+"\n");
-        cvm::log("|dx(actual) - dx(interp)|/|dx(actual)| = "+
-                  cvm::to_str(cvm::fabs(x_1 - x_0 - dx_pred) /
-                              cvm::fabs(x_1 - x_0), 12, 5)+"\n");
+
+        // (re)read original positions
+        group->read_positions();
+        // change one coordinate
+        switch (id) {
+          case 0: group->pos_x(ia) -= cvm::debug_gradients_step_size; break;
+          case 1: group->pos_y(ia) -= cvm::debug_gradients_step_size; break;
+          case 2: group->pos_z(ia) -= cvm::debug_gradients_step_size; break;
+        }
+        group->calc_required_properties();
+        calc_value();
+        cvm::real x_2 = x.real_value;
+        if ((x.type() == colvarvalue::type_vector) && (x.size() == 1)) x_2 = x[0];
+
+        cvm::real const num_diff = 0.5 * (x_1 - x_2);
+        cvm::real const dx_pred = cvm::debug_gradients_step_size * gradients[ia][id];
+        cvm::real rel_error = cvm::fabs (num_diff - dx_pred) / (cvm::fabs (num_diff) + cvm::fabs(dx_pred));
+        cvm::main()->record_gradient_error(rel_error);
+
+        cvm::log("Atom "+cvm::to_str(ia) + ", ID " + cvm::to_str(this_atom.id) + \
+                  ", comp. " + cvm::to_str(id) + ":" + \
+                  "  dx(actual) = " + cvm::to_str (num_diff, 19, 12) + \
+                  "  dx(interp) = " + cvm::to_str (dx_pred, 19, 12) + \
+                  "  rel. error = " + cvm::to_str(rel_error, 12, 5) + ".\n");
       }
     }
 
     if ((group->is_enabled(f_ag_fit_gradients)) && (group->fitting_group != NULL)) {
-      cvm::atom_group *ref_group = group->fitting_group;
+      auto *ref_group = group->fitting_group;
       group->read_positions();
       group->calc_required_properties();
 
+      std::vector<cvm::rvector> fit_gradients = ag_gradients.at(group)[1];
       for (size_t ia = 0; ia < ref_group->size(); ia++) {
 
+        auto const this_atom = (*ref_group)[ia];
         // fit gradients are in the unrotated (simulation) frame
-        cvm::rvector const atom_grad = ref_group->fit_gradients[ia];
+        cvm::rvector const atom_grad = fit_gradients[ia];
         fit_gradient_sum += atom_grad;
 
         for (size_t id = 0; id < 3; id++) {
@@ -641,24 +699,38 @@ void colvar::cvc::debug_gradients()
           group->read_positions();
           ref_group->read_positions();
           // change one coordinate
-          (*ref_group)[ia].pos[id] += cvm::debug_gradients_step_size;
+          switch (id) {
+            case 0: ref_group->pos_x(ia) += cvm::debug_gradients_step_size; break;
+            case 1: ref_group->pos_y(ia) += cvm::debug_gradients_step_size; break;
+            case 2: ref_group->pos_z(ia) += cvm::debug_gradients_step_size; break;
+          }
           group->calc_required_properties();
           calc_value();
-
           cvm::real const x_1 = x.real_value;
-          cvm::log("refPosGroup atom "+cvm::to_str(ia)+", component "+cvm::to_str (id)+":\n");
-          cvm::log("dx(actual) = "+cvm::to_str (x_1 - x_0,
-                                21, 14)+"\n");
 
+          // (re)read original positions
+          group->read_positions();
+          ref_group->read_positions();
+          // change one coordinate
+          switch (id) {
+            case 0: ref_group->pos_x(ia) -= cvm::debug_gradients_step_size; break;
+            case 1: ref_group->pos_y(ia) -= cvm::debug_gradients_step_size; break;
+            case 2: ref_group->pos_z(ia) -= cvm::debug_gradients_step_size; break;
+          }
+          group->calc_required_properties();
+          calc_value();
+          cvm::real const x_2 = x.real_value;
+
+          cvm::real const num_diff = 0.5 * (x_1 - x_2);
           cvm::real const dx_pred = cvm::debug_gradients_step_size * atom_grad[id];
+          cvm::real rel_error = cvm::fabs (num_diff - dx_pred) / (cvm::fabs (num_diff) + cvm::fabs(dx_pred));
+          cvm::main()->record_gradient_error(rel_error);
 
-          cvm::log("dx(interp) = "+cvm::to_str (dx_pred,
-                                21, 14)+"\n");
-          cvm::log ("|dx(actual) - dx(interp)|/|dx(actual)| = "+
-                    cvm::to_str(cvm::fabs (x_1 - x_0 - dx_pred) /
-                                cvm::fabs (x_1 - x_0),
-                                12, 5)+
-                    ".\n");
+          cvm::log("fittingGroup atom " + cvm::to_str(ia) + ", ID " + cvm::to_str(this_atom.id) + \
+                    ", comp. " + cvm::to_str(id) + ":" + \
+                    "  dx(actual) = " + cvm::to_str (num_diff, 19, 12) + \
+                    "  dx(interp) = " + cvm::to_str (dx_pred, 19, 12) + \
+                    "  rel. error = " + cvm::to_str(rel_error, 12, 5) + ".\n");
         }
       }
     }
@@ -666,6 +738,17 @@ void colvar::cvc::debug_gradients()
     cvm::log("Gradient sum: " +  cvm::to_str(gradient_sum) +
           "  Fit gradient sum: " + cvm::to_str(fit_gradient_sum) +
           "  Total " + cvm::to_str(gradient_sum + fit_gradient_sum));
+  }
+
+  // Do cleanups
+  // Reset the atom groups and restore the CV value after debugging gradients
+  for (size_t ig = 0; ig < atom_groups.size(); ig++) {
+    cvm::atom_group *group = atom_groups[ig];
+    if (group->b_dummy) continue;
+    // (re)read original positions
+    group->read_positions();
+    group->calc_required_properties();
+    calc_value();
   }
   return;
 }

@@ -105,8 +105,8 @@ void MinLineSearchKokkos::reset_vectors()
   auto d_x = atomKK->k_x.d_view;
   auto d_f = atomKK->k_f.d_view;
 
-  if (nvec) xvec = DAT::t_ffloat_1d(d_x.data(),d_x.size());
-  if (nvec) fvec = DAT::t_ffloat_1d(d_f.data(),d_f.size());
+  if (nvec) xvec = DAT::t_kkfloat_1d(d_x.data(),nvec);
+  if (nvec) fvec = DAT::t_kkacc_1d(d_f.data(),nvec);
   x0 = fix_minimize_kk->request_vector_kokkos(0);
   g = fix_minimize_kk->request_vector_kokkos(1);
   h = fix_minimize_kk->request_vector_kokkos(2);
@@ -174,8 +174,8 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
   double dot,dotall;
   double alphamax;
 
-  fix_minimize_kk->k_vectors.sync<LMPDeviceType>();
-  fix_minimize_kk->k_vectors.modify<LMPDeviceType>();
+  fix_minimize_kk->k_vectors.sync_device();
+  fix_minimize_kk->k_vectors.modify_device();
 
   atomKK->sync(Device,X_MASK|F_MASK);
 
@@ -186,12 +186,22 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
   {
     // local variables for lambda capture
 
-    auto l_fvec = fvec;
     auto l_h = h;
 
-    Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, double& fdothme) {
-      fdothme += l_fvec[i]*l_h[i];
-    },fdothme);
+    if constexpr (F_LAYOUTRIGHT) {
+      auto l_fvec = fvec;
+      Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, double& fdothme) {
+        fdothme += l_fvec[i]*l_h[i];
+      },fdothme);
+    } else {
+      auto l_f = atomKK->k_f.d_view;
+      Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(const int& i, double& fdothme) {
+        const int j = i*3;
+        fdothme += l_f(i,0)*l_h[j];
+        fdothme += l_f(i,1)*l_h[j+1];
+        fdothme += l_f(i,2)*l_h[j+2];
+      },fdothme);
+    }
   }
   MPI_Allreduce(&fdothme,&fdothall,1,MPI_DOUBLE,MPI_SUM,world);
   if (nextra_global)
@@ -267,17 +277,31 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
 
     // compute new fh, alpha, delfh
 
-    s_double2 sdot;
+    s_KK_double2 sdot;
     {
       // local variables for lambda capture
 
-      auto l_fvec = fvec;
       auto l_h = h;
 
-      Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, s_double2& sdot) {
-        sdot.d0 += l_fvec[i]*l_fvec[i];
-        sdot.d1 += l_fvec[i]*l_h[i];
-      },sdot);
+      if constexpr (F_LAYOUTRIGHT) {
+        auto l_fvec = fvec;
+        Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
+          sdot.d0 += l_fvec[i]*l_fvec[i];
+          sdot.d1 += l_fvec[i]*l_h[i];
+        },sdot);
+      } else {
+        auto l_f = atomKK->k_f.d_view;
+        Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
+          sdot.d0 += l_f(i,0)*l_f(i,0);
+          sdot.d0 += l_f(i,1)*l_f(i,1);
+          sdot.d0 += l_f(i,2)*l_f(i,2);
+
+          const int j = i*3;
+          sdot.d1 += l_f(i,0)*l_h[j];
+          sdot.d1 += l_f(i,1)*l_h[j+1];
+          sdot.d1 += l_f(i,2)*l_h[j+2];
+        },sdot);
+      }
     }
     dot = sdot.d1;
 
@@ -409,17 +433,31 @@ double MinLineSearchKokkos::compute_dir_deriv(double &ff)
 
   // compute new fh, alpha, delfh
 
-  s_double2 sdot;
+  s_KK_double2 sdot;
   {
     // local variables for lambda capture
 
-    auto l_fvec = fvec;
     auto l_h = h;
 
-    Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, s_double2& sdot) {
-      sdot.d0 += l_fvec[i]*l_fvec[i];
-      sdot.d1 += l_fvec[i]*l_h[i];
-    },sdot);
+    if constexpr (F_LAYOUTRIGHT) {
+      auto l_fvec = fvec;
+      Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
+        sdot.d0 += l_fvec[i]*l_fvec[i];
+        sdot.d1 += l_fvec[i]*l_h[i];
+      },sdot);
+    } else {
+      auto l_f = atomKK->k_f.d_view;
+      Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
+        sdot.d0 += l_f(i,0)*l_f(i,0);
+        sdot.d0 += l_f(i,1)*l_f(i,1);
+        sdot.d0 += l_f(i,2)*l_f(i,2);
+
+        const int j = i*3;
+        sdot.d1 += l_f(i,0)*l_h[j];
+        sdot.d1 += l_f(i,1)*l_h[j+1];
+        sdot.d1 += l_f(i,2)*l_h[j+2];
+      },sdot);
+    }
   }
   dot[0] = sdot.d0;
   dot[1] = sdot.d1;

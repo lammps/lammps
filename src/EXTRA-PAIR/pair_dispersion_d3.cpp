@@ -1060,7 +1060,8 @@ void PairDispersionD3::set_funcpar(std::string &functional_name)
           {"lc-wpbe", 37},  {"b2gp-plyp", 38},   {"ptpss", 39},    {"pwpb95", 40},
           {"hf/mixed", 41}, {"hf/sv", 42},       {"hf/minis", 43}, {"b3-lyp/6-31gd", 44},
           {"hcth120", 45},  {"pw1pw", 46},       {"pwgga", 47},    {"hsesol", 48},
-          {"hf3c", 49},     {"hf3cv", 50},       {"pbeh3c", 51},   {"pbeh-3c", 52}};
+          {"hf3c", 49},     {"hf3cv", 50},       {"pbeh3c", 51},   {"pbeh-3c", 52},
+          {"mn15", 53}};
 
       int functionalCode = functionalMap[functional_name];
       switch (functionalCode) {
@@ -1338,6 +1339,11 @@ void PairDispersionD3::set_funcpar(std::string &functional_name)
           a1 = 0.4860;
           s8 = 0.0000;
           a2 = 4.5000;
+          break;
+        case 53:
+          a1 = 2.0971;
+          s8 = 0.7862;
+          a2 = 7.5923;
           break;
         default:
           error->all(FLERR, Error::NOLASTLINE,

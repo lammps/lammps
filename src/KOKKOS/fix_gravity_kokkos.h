@@ -34,6 +34,8 @@ struct TagFixGravityMass {};
 template<class DeviceType>
 class FixGravityKokkos : public FixGravity {
   public:
+    typedef ArrayTypes<DeviceType> AT;
+
     FixGravityKokkos(class LAMMPS *, int, char **);
 
     void post_force(int) override;
@@ -44,12 +46,12 @@ class FixGravityKokkos : public FixGravity {
     void operator()(TagFixGravityMass, const int, double &) const;
 
   private:
-    typename ArrayTypes<DeviceType>::t_x_array x;
-    typename ArrayTypes<DeviceType>::t_f_array f;
-    typename ArrayTypes<DeviceType>::t_float_1d_randomread rmass;
-    typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
-    typename ArrayTypes<DeviceType>::t_int_1d type;
-    typename ArrayTypes<DeviceType>::t_int_1d mask;
+    typename AT::t_kkfloat_1d_3_lr x;
+    typename AT::t_kkacc_1d_3 f;
+    typename AT::t_kkfloat_1d_randomread rmass;
+    typename AT::t_kkfloat_1d_randomread mass;
+    typename AT::t_int_1d type;
+    typename AT::t_int_1d mask;
 };
 
 } // namespace LAMMPS_NS

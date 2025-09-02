@@ -22,7 +22,7 @@ To run with 4 threads, you can type this:
 Alternately, you can also install a package with LAMMPS-GUI included and
 open the LAMMPS-GUI app (the package includes the command-line version
 of LAMMPS as well) and open the input file in the GUI and run it from
-there.  For details on LAMMPS-GUI, see :doc:`Howto_lammps_gui`.
+there.  For details on LAMMPS-GUI, see https://lammps-gui.lammps.org/
 
 ----------
 

@@ -148,7 +148,7 @@ void ThirdOrderKokkos::update_force()
 
   lmp->kokkos->auto_sync = 0;
 
-  f_merge_copy = DAT::t_f_array("ThirdOrderKokkos::f_merge_copy",atomKK->k_f.extent(0));
+  f_merge_copy = DAT::t_kkacc_1d_3("ThirdOrderKokkos::f_merge_copy",atomKK->k_f.extent(0));
 
   atomKK->modified(Host,X_MASK);
   atomKK->sync(Device,X_MASK);
@@ -217,7 +217,7 @@ void ThirdOrderKokkos::update_force()
   if (execute_on_host) {
     if (pair_compute_flag && force->pair->datamask_modify!=(F_MASK | ENERGY_MASK | VIRIAL_MASK))
       Kokkos::fence();
-    atomKK->sync_overlapping_device(Host,~(~datamask_read_host|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+    atomKK->sync_pinned(Host,~(~datamask_read_host|(F_MASK | ENERGY_MASK | VIRIAL_MASK)),1);
     if (pair_compute_flag && force->pair->execution_space!=Host) {
       Kokkos::deep_copy(LMPHostType(),atomKK->k_f.h_view,0.0);
     }
@@ -256,14 +256,14 @@ void ThirdOrderKokkos::update_force()
 
   if (execute_on_host && !std::is_same_v<LMPHostType,LMPDeviceType>) {
     if (f_merge_copy.extent(0)<atomKK->k_f.extent(0)) {
-      f_merge_copy = DAT::t_f_array("ThirdOrderKokkos::f_merge_copy",atomKK->k_f.extent(0));
+      f_merge_copy = DAT::t_kkacc_1d_3("ThirdOrderKokkos::f_merge_copy",atomKK->k_f.extent(0));
     }
     f = atomKK->k_f.d_view;
     Kokkos::deep_copy(LMPHostType(),f_merge_copy,atomKK->k_f.h_view);
     Kokkos::parallel_for(atomKK->k_f.extent(0),
-                         ForceAdder<DAT::t_f_array,DAT::t_f_array>(atomKK->k_f.d_view,f_merge_copy));
+                         ForceAdder<DAT::t_kkacc_1d_3,DAT::t_kkacc_1d_3>(atomKK->k_f.d_view,f_merge_copy));
     atomKK->k_f.clear_sync_state(); // special case
-    atomKK->k_f.modify<LMPDeviceType>();
+    atomKK->k_f.modify_device();
   }
   if (n_pre_reverse) {
     modify->pre_reverse(eflag,vflag);
@@ -304,7 +304,7 @@ void ThirdOrderKokkos::force_clear()
   int nall = atomKK->nlocal;
   if (force->newton) nall += atomKK->nghost;
 
-  Kokkos::parallel_for(nall, Zero<typename ArrayTypes<LMPDeviceType>::t_f_array>(atomKK->k_f.view<LMPDeviceType>()));
+  Kokkos::parallel_for(nall, Zero<DAT::t_kkacc_1d_3>(atomKK->k_f.d_view));
   atomKK->modified(Device,F_MASK);
 
 }

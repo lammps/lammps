@@ -138,6 +138,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 struct kiss_fft_state_kokkos {
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
   int nfft;
   int inverse;
@@ -150,6 +151,7 @@ template<class DeviceType>
 class KissFFTKokkos {
  public:
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
 
   KOKKOS_INLINE_FUNCTION
@@ -512,12 +514,12 @@ class KissFFTKokkos {
           st.d_scratch = typename FFT_AT::t_FFT_DATA_1d("kissfft:scratch",p_max);
       }
 
-      k_factors.template modify<LMPHostType>();
-      k_factors.template sync<LMPDeviceType>();
+      k_factors.modify_host();
+      k_factors.sync_device();
       st.d_factors = k_factors.template view<DeviceType>();
 
-      k_twiddles.template modify<LMPHostType>();
-      k_twiddles.template sync<LMPDeviceType>();
+      k_twiddles.modify_host();
+      k_twiddles.sync_device();
       st.d_twiddles = k_twiddles.template view<DeviceType>();
 
       return st;

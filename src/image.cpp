@@ -449,12 +449,9 @@ void Image::draw_axes(double (*axes)[3], double diameter)
    render pixel by pixel onto image plane with depth buffering
 ------------------------------------------------------------------------- */
 
-void Image::draw_sphere(double *x, double *surfaceColor, double diameter)
+void Image::draw_sphere(const double *x, const double *surfaceColor, double diameter)
 {
-  int ix,iy;
-  double projRad;
-  double xlocal[3],surface[3];
-  double depth;
+  double xlocal[3];
 
   xlocal[0] = x[0] - xctr;
   xlocal[1] = x[1] - yctr;
@@ -483,25 +480,26 @@ void Image::draw_sphere(double *x, double *surfaceColor, double diameter)
   xc += width / 2;
   yc += height / 2;
 
-  for (iy = yc - pixelRadius; iy <= yc + pixelRadius; iy++) {
-    for (ix = xc - pixelRadius; ix <= xc + pixelRadius; ix++) {
+  for (int iy = yc - pixelRadius; iy <= yc + pixelRadius; iy++) {
+    for (int ix = xc - pixelRadius; ix <= xc + pixelRadius; ix++) {
       if (iy < 0 || iy >= height || ix < 0 || ix >= width) continue;
+      double surface[3];
 
       surface[1] = ((iy - yc) - height_error) * pixelWidth;
       surface[0] = ((ix - xc) - width_error) * pixelWidth;
-      projRad = surface[0]*surface[0] + surface[1]*surface[1];
+      double projRad = surface[0]*surface[0] + surface[1]*surface[1];
 
       // outside the sphere in the projected image
 
       if (projRad > radsq) continue;
       surface[2] = sqrt(radsq - projRad);
-      depth = dist - surface[2];
+      double depth = dist - surface[2];
 
       surface[0] /= radius;
       surface[1] /= radius;
       surface[2] /= radius;
 
-      draw_pixel (ix, iy, depth, surface, surfaceColor);
+      draw_pixel(ix, iy, depth, surface, surfaceColor);
     }
   }
 }
@@ -511,7 +509,7 @@ void Image::draw_sphere(double *x, double *surfaceColor, double diameter)
    render pixel by pixel onto image plane with depth buffering
 ------------------------------------------------------------------------- */
 
-void Image::draw_cube(double *x, double *surfaceColor, double diameter)
+void Image::draw_cube(const double *x, const double *surfaceColor, double diameter)
 {
   double xlocal[3],surface[3],normal[3];
   double t,tdir[3];
@@ -587,19 +585,19 @@ void Image::draw_cube(double *x, double *surfaceColor, double diameter)
           case 0:
             if (yin & zin) {
               depth = dist - t;
-              draw_pixel (ix, iy, depth, normal, surfaceColor);
+              draw_pixel(ix, iy, depth, normal, surfaceColor);
             }
             break;
           case 1:
             if (xin & zin) {
               depth = dist - t;
-              draw_pixel (ix, iy, depth, normal, surfaceColor);
+              draw_pixel(ix, iy, depth, normal, surfaceColor);
             }
             break;
           case 2:
             if (xin & yin) {
               depth = dist - t;
-              draw_pixel (ix, iy, depth, normal, surfaceColor);
+              draw_pixel(ix, iy, depth, normal, surfaceColor);
             }
             break;
           }
@@ -618,17 +616,15 @@ void Image::draw_cube(double *x, double *surfaceColor, double diameter)
    if sflag = 3, draw both end spheres
 ------------------------------------------------------------------------- */
 
-void Image::draw_cylinder(double *x, double *y,
-                          double *surfaceColor, double diameter, int sflag)
+void Image::draw_cylinder(const double *x, const double *y,
+                          const double *surfaceColor, double diameter, int sflag)
 {
-  double surface[3], normal[3];
   double mid[3],xaxis[3],yaxis[3],zaxis[3];
   double camLDir[3], camLRight[3], camLUp[3];
   double zmin, zmax;
 
   if (sflag % 2) draw_sphere(x,surfaceColor,diameter);
-  if (sflag/2) draw_sphere(y,surfaceColor,diameter);
-
+  if (sflag / 2) draw_sphere(y,surfaceColor,diameter);
   double radius = 0.5*diameter;
   double radsq = radius*radius;
 
@@ -703,6 +699,7 @@ void Image::draw_cylinder(double *x, double *y,
     for (int ix = xc - pixelHalfWidth; ix <= xc + pixelHalfWidth; ix ++) {
       if (iy < 0 || iy >= height || ix < 0 || ix >= width) continue;
 
+      double surface[3], normal[3];
       double sy = ((iy - yc) - height_error) * pixelWidth;
       double sx = ((ix - xc) - width_error) * pixelWidth;
       surface[0] = camLRight[0] * sx + camLUp[0] * sy;
@@ -739,7 +736,7 @@ void Image::draw_cylinder(double *x, double *y,
       surface[2] = MathExtra::dot3 (normal, camLDir);
 
       double depth = dist - t;
-      draw_pixel (ix, iy, depth, surface, surfaceColor);
+      draw_pixel(ix, iy, depth, surface, surfaceColor);
     }
   }
 }
@@ -748,7 +745,7 @@ void Image::draw_cylinder(double *x, double *y,
    draw triangle with 3 corner points x,y,z and surfaceColor
 ------------------------------------------------------------------------- */
 
-void Image::draw_triangle(double *x, double *y, double *z, double *surfaceColor)
+void Image::draw_triangle(const double *x, const double *y, const double *z, const double *surfaceColor)
 {
   double d1[3], d1len, d2[3], d2len, normal[3], invndotd;
   double xlocal[3], ylocal[3], zlocal[3];
@@ -888,7 +885,7 @@ void Image::draw_triangle(double *x, double *y, double *z, double *surfaceColor)
 /* ---------------------------------------------------------------------- */
 
 void Image::draw_pixel(int ix, int iy, double depth,
-                           double *surface, double *surfaceColor)
+                       const double *surface, const double *surfaceColor)
 {
   double diffuseKey,diffuseFill,diffuseBack,specularKey;
   if (depth < 0 || (depthBuffer[ix + iy*width] >= 0 &&
